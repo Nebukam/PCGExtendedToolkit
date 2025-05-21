@@ -145,9 +145,9 @@ namespace PCGExDataBlending
 		for (int i = 0; i < Operations->Num(); i++) { OutTrackers[i] = (*(Operations->GetData() + i))->BeginMultiBlend(TargetIndex); }
 	}
 
-	void FBlendOpsManager::MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGEx::FOpStats>& Trackers) const
+	void FBlendOpsManager::MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->MultiBlend(SourceIndex, TargetIndex, Weight, Trackers[i]); }
+		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->MultiBlend(SourceIndex, TargetIndex, InWeight, Trackers[i]); }
 	}
 
 	void FBlendOpsManager::EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const

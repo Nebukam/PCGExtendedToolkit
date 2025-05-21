@@ -164,8 +164,9 @@ namespace PCGExAttributesToTags
 {
 	void FProcessor::Tag(const FPCGExAttributeToTagDetails& InDetails, const int32 Index) const
 	{
-		if (OutputSet) { InDetails.Tag(Index, OutputSet->Metadata); }
-		else { InDetails.Tag(Index, PointDataFacade->Source); }
+		const PCGExData::FConstPoint Point = PointDataFacade->GetInPoint(Index);
+		if (OutputSet) { InDetails.Tag(Point, OutputSet->Metadata); }
+		else { InDetails.Tag(Point, PointDataFacade->Source); }
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)

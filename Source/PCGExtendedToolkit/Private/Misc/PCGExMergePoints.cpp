@@ -57,7 +57,7 @@ bool FPCGExMergePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
-	Context->CompositeDataFacade->Source->StageOutput();
+	Context->CompositeDataFacade->Source->StageOutput(Context);
 
 	return Context->TryComplete();
 }

@@ -193,7 +193,7 @@ namespace PCGExFindContours
 		PathIO->InheritPoints(ReadIndices, 0);
 		InCell->PostProcessPoints(PathIO->GetOut());
 
-		Context->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
+		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(SeedIndex), PathIO);
 		Context->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
 
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);

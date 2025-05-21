@@ -6,12 +6,12 @@
 #include "CoreMinimal.h"
 
 #include "Metadata/Accessors//PCGCustomAccessor.h"
-#include "IndexTypes.h"
 #include "PCGElement.h"
 #include "UObject/Object.h"
 #include "PCGPoint.h"
 #include "Data/PCGPointData.h"
 
+#include "PCGExMT.h"
 #include "PCGEx.h"
 #include "PCGExContext.h"
 #include "PCGExDataTag.h"
@@ -247,7 +247,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 	PCGEXTENDEDTOOLKIT_API
 	void SetPointProperty(FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
-	
+
 #pragma endregion
 
 #pragma region FPointIO
@@ -398,8 +398,11 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		FORCEINLINE FMutablePoint GetOutPoint(const int32 Index) const { return FMutablePoint(Out, Index, IOIndex); }
 
 		FScope GetInScope(const int32 Start, const int32 Count, const bool bInclusive = true) const;
-		FScope GetOutScope(const int32 Start, const int32 Count, const bool bInclusive = true) const;
+		FScope GetInScope(const PCGExMT::FScope& Scope) const { return GetInScope(Scope.Start, Scope.Count, true); }
 		FScope GetInRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
+
+		FScope GetOutScope(const int32 Start, const int32 Count, const bool bInclusive = true) const;
+		FScope GetOutScope(const PCGExMT::FScope& Scope) const { return GetOutScope(Scope.Start, Scope.Count, true); }
 		FScope GetOutRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
 
 		void SetPoints(const TArray<FPCGPoint>& InPCGPoints);

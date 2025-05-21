@@ -259,19 +259,19 @@ namespace PCGExDiscardByOverlap
 
 	struct PCGEXTENDEDTOOLKIT_API FPointBounds
 	{
-		FPointBounds(const int32 InIndex, const FPCGPoint* InPoint, const FBox& InBounds):
-			Index(InIndex), Point(InPoint), LocalBounds(InBounds), Bounds(InBounds.TransformBy(InPoint->Transform.ToMatrixNoScale()))
+		FPointBounds(const int32 InIndex, const PCGExData::FConstPoint& InPoint, const FBox& InBounds):
+			Index(InIndex), Point(InPoint), LocalBounds(InBounds), Bounds(InBounds.TransformBy(InPoint.GetTransform().ToMatrixNoScale()))
 		{
 		}
 
 		const int32 Index;
-		const FPCGPoint* Point;
+		const PCGExData::FConstPoint Point;
 		FBox LocalBounds;
 		FBoxSphereBounds Bounds;
 
 		FORCEINLINE FBox TransposedBounds(const FMatrix& InMatrix) const
 		{
-			return LocalBounds.TransformBy(Point->Transform.ToMatrixNoScale() * InMatrix);
+			return LocalBounds.TransformBy(Point.GetTransform().ToMatrixNoScale() * InMatrix);
 		}
 	};
 
@@ -281,7 +281,7 @@ namespace PCGExDiscardByOverlap
 	{
 		friend struct FPCGExDiscardByOverlapContext;
 
-		const TArray<FPCGPoint>* InPoints = nullptr;
+		const UPCGBasePointData* InPoints = nullptr;
 		FBox Bounds = FBox(ForceInit);
 
 		TUniquePtr<FPointBoundsOctree> Octree;
@@ -336,8 +336,9 @@ namespace PCGExDiscardByOverlap
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
+		
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 

@@ -245,8 +245,9 @@ namespace PCGExPickClosestClusters
 			Context->TargetForwardHandler->Forward(Picker, VtxDataFacade);
 		}
 
-		Context->TargetAttributesToTags.Tag(Picker, EdgeDataFacade->Source);
-		Context->TargetAttributesToTags.Tag(Picker, VtxDataFacade->Source);
+		const PCGExData::FConstPoint PickerPt = Context->TargetDataFacade->GetInPoint(Picker);
+		Context->TargetAttributesToTags.Tag(PickerPt, EdgeDataFacade->Source);
+		Context->TargetAttributesToTags.Tag(PickerPt, VtxDataFacade->Source);
 	}
 
 	void FBatch::Output()

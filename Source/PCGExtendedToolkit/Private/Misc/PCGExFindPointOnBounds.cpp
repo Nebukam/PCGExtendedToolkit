@@ -33,7 +33,7 @@ bool FPCGExFindPointOnBoundsElement::Boot(FPCGExContext* InContext) const
 		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
 
 		Context->MergedOut->InitializeOutput(PCGExData::EIOInit::New);
-		Context->MergedOut->GetOut()->GetMutablePoints().SetNum(Context->MainPoints->Num());
+		Context->MergedOut->GetOut()->SetNumPoints(Context->MainPoints->Num());
 		Context->MergedOut->GetOutKeys(true);
 
 		if (!AttributeMismatches.IsEmpty() && !Settings->bQuietAttributeMismatchWarning)
@@ -74,7 +74,7 @@ bool FPCGExFindPointOnBoundsElement::ExecuteInternal(FPCGContext* InContext) con
 			Context->BestIndices,
 			*Context->MergedAttributesInfos);
 
-		Context->MergedOut->StageOutput();
+		Context->MergedOut->StageOutput(Context);
 	}
 	else
 	{
@@ -108,7 +108,6 @@ namespace PCGExFindPointOnBounds
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)

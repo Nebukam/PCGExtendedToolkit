@@ -96,22 +96,19 @@ namespace PCGExFuseCollinear
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-#define PCGEX_INSERT_CURRENT_POINT\
-ReadIndices.Add(Index);\
-LastPosition = Path->GetPos(Index);
-
 			if (PointFilterCache[Index])
 			{
 				// Kept point, as per filters
-				PCGEX_INSERT_CURRENT_POINT
-				return;
+				ReadIndices.Add(Index);
+				LastPosition = Path->GetPos(Index);
+				continue;
 			}
 
 			const FVector CurrentPos = Path->GetPos(Index);
 			if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, CurrentPos) <= Context->FuseDistSquared)
 			{
 				// Collocated points
-				return;
+				continue;
 			}
 
 			// Use last position to avoid removing smooth arcs
@@ -120,12 +117,12 @@ LastPosition = Path->GetPos(Index);
 				(Settings->bInvertThreshold && Dot < Context->DotThreshold))
 			{
 				// Collinear with previous, keep moving
-				return;
+				continue;
 			}
 
-			PCGEX_INSERT_CURRENT_POINT
+			ReadIndices.Add(Index);
+			LastPosition = Path->GetPos(Index);
 		}
-#undef PCGEX_INSERT_CURRENT_POINT
 	}
 
 	void FProcessor::CompleteWork()

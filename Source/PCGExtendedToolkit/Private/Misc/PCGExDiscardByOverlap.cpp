@@ -252,9 +252,8 @@ namespace PCGExDiscardByOverlap
 
 		// 1 - Build bounds & octrees
 
-		InPoints = &PointDataFacade->GetIn()->GetPoints();
-
-		NumPoints = InPoints->Num();
+		InPoints = PointDataFacade->GetIn();
+		NumPoints = InPoints->GetNumPoints();
 
 		PCGEx::InitArray(LocalPointBounds, NumPoints);
 
@@ -267,12 +266,14 @@ namespace PCGExDiscardByOverlap
 			{
 				PCGEX_ASYNC_THIS
 
+				TConstPCGValueRange<float> Densities = This->InPoints->GetConstDensityValueRange();
+
 				This->Octree = MakeUnique<FPointBoundsOctree>(This->Bounds.GetCenter(), This->Bounds.GetExtent().Length());
 				for (const TSharedPtr<FPointBounds>& PtBounds : This->LocalPointBounds)
 				{
 					if (!PtBounds) { continue; }
 					This->Octree->AddElement(PtBounds.Get());
-					This->TotalDensity += PtBounds->Point->Density;
+					This->TotalDensity += Densities[PtBounds->Index];
 				}
 
 				This->VolumeDensity = This->NumPoints / This->TotalVolume;
@@ -290,11 +291,9 @@ namespace PCGExDiscardByOverlap
 
 					PCGEX_SCOPE_LOOP(i)
 					{
-						const FPCGPoint* Point = This->InPoints->GetData() + i;
-						This->RegisterPointBounds(
-							i, MakeShared<FPointBounds>(
-								i, Point,
-								PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).ExpandBy(This->Settings->Expansion)));
+						const FBox LocalBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(i).ExpandBy(This->Settings->Expansion);
+						TSharedPtr<FPointBounds> PtBounds = MakeShared<FPointBounds>(i, PCGExData::FConstPoint(This->InPoints, i), LocalBounds);
+						This->RegisterPointBounds(i, PtBounds);
 					}
 				};
 		}
@@ -310,11 +309,9 @@ namespace PCGExDiscardByOverlap
 
 					PCGEX_SCOPE_LOOP(i)
 					{
-						const FPCGPoint* Point = This->InPoints->GetData() + i;
-						This->RegisterPointBounds(
-							i, MakeShared<FPointBounds>(
-								i, Point,
-								PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point).ExpandBy(This->Settings->Expansion)));
+						const FBox LocalBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(i).ExpandBy(This->Settings->Expansion);
+						TSharedPtr<FPointBounds> PtBounds = MakeShared<FPointBounds>(i, PCGExData::FConstPoint(This->InPoints, i), LocalBounds);
+						This->RegisterPointBounds(i, PtBounds);
 					}
 				};
 		}
@@ -330,11 +327,9 @@ namespace PCGExDiscardByOverlap
 
 					PCGEX_SCOPE_LOOP(i)
 					{
-						const FPCGPoint* Point = This->InPoints->GetData() + i;
-						This->RegisterPointBounds(
-							i, MakeShared<FPointBounds>(
-								i, Point,
-								PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point).ExpandBy(This->Settings->Expansion)));
+						const FBox LocalBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(i).ExpandBy(This->Settings->Expansion);
+						TSharedPtr<FPointBounds> PtBounds = MakeShared<FPointBounds>(i, PCGExData::FConstPoint(This->InPoints, i), LocalBounds);
+						This->RegisterPointBounds(i, PtBounds);
 					}
 				};
 		}
@@ -344,71 +339,76 @@ namespace PCGExDiscardByOverlap
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		// For each managed overlap, find per-point intersections
-
-		const TSharedPtr<FOverlap> ManagedOverlap = ManagedOverlaps[Iteration];
-		const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*ParentBatch.Pin()->SubProcessorMap->Find(&ManagedOverlap->GetOther(this)->PointDataFacade->Source.Get()));
-
-		if (Settings->TestMode != EPCGExOverlapTestMode::Sphere)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			Octree->FindElementsWithBoundsTest(
-				FBoxCenterAndExtent(ManagedOverlap->Intersection.GetCenter(), ManagedOverlap->Intersection.GetExtent()),
-				[&](const FPointBounds* OwnedPoint)
-				{
-					const double Length = OwnedPoint->LocalBounds.GetExtent().Length() * 2;
-					const FMatrix InvMatrix = OwnedPoint->Point->Transform.ToMatrixNoScale().Inverse();
+			// For each managed overlap, find per-point intersections
 
-					OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()), [&](const FPointBounds* OtherPoint)
-						{
-							const FBox Intersection = OwnedPoint->LocalBounds.Overlap(OtherPoint->TransposedBounds(InvMatrix));
+			const TSharedPtr<FOverlap> ManagedOverlap = ManagedOverlaps[Index];
+			const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*ParentBatch.Pin()->SubProcessorMap->Find(&ManagedOverlap->GetOther(this)->PointDataFacade->Source.Get()));
 
-							if (!Intersection.IsValid) { return; }
+			const TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
 
-							const double OverlapSize = Intersection.GetExtent().Length() * 2;
-							if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative)
+			if (Settings->TestMode != EPCGExOverlapTestMode::Sphere)
+			{
+				Octree->FindElementsWithBoundsTest(
+					FBoxCenterAndExtent(ManagedOverlap->Intersection.GetCenter(), ManagedOverlap->Intersection.GetExtent()),
+					[&](const FPointBounds* OwnedPoint)
+					{
+						const double Length = OwnedPoint->LocalBounds.GetExtent().Length() * 2;
+						const FMatrix InvMatrix = InTransforms[OwnedPoint->Index].ToMatrixNoScale().Inverse();
+
+						OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
+							FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()), [&](const FPointBounds* OtherPoint)
 							{
-								if ((OverlapSize / Length) < Settings->MinThreshold) { return; }
-							}
-							else
+								const FBox Intersection = OwnedPoint->LocalBounds.Overlap(OtherPoint->TransposedBounds(InvMatrix));
+
+								if (!Intersection.IsValid) { return; }
+
+								const double OverlapSize = Intersection.GetExtent().Length() * 2;
+								if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative)
+								{
+									if ((OverlapSize / Length) < Settings->MinThreshold) { return; }
+								}
+								else
+								{
+									if (OverlapSize < Settings->MinThreshold) { return; }
+								}
+
+								ManagedOverlap->Stats.OverlapCount++;
+								ManagedOverlap->Stats.OverlapVolume += Intersection.GetVolume();
+							});
+					});
+			}
+			else
+			{
+				Octree->FindElementsWithBoundsTest(
+					FBoxCenterAndExtent(ManagedOverlap->Intersection.GetCenter(), ManagedOverlap->Intersection.GetExtent()),
+					[&](const FPointBounds* OwnedPoint)
+					{
+						const FSphere S1 = OwnedPoint->Bounds.GetSphere();
+
+						OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
+							FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()), [&](const FPointBounds* OtherPoint)
 							{
-								if (OverlapSize < Settings->MinThreshold) { return; }
-							}
+								double Overlap = 0;
+								if (!PCGExMath::SphereOverlap(S1, OtherPoint->Bounds.GetSphere(), Overlap)) { return; }
 
-							ManagedOverlap->Stats.OverlapCount++;
-							ManagedOverlap->Stats.OverlapVolume += Intersection.GetVolume();
-						});
-				});
-		}
-		else
-		{
-			Octree->FindElementsWithBoundsTest(
-				FBoxCenterAndExtent(ManagedOverlap->Intersection.GetCenter(), ManagedOverlap->Intersection.GetExtent()),
-				[&](const FPointBounds* OwnedPoint)
-				{
-					const FSphere S1 = OwnedPoint->Bounds.GetSphere();
+								if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative)
+								{
+									if ((Overlap / S1.W) < Settings->MinThreshold) { return; }
+								}
+								else
+								{
+									if (Overlap < Settings->MinThreshold) { return; }
+								}
 
-					OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()), [&](const FPointBounds* OtherPoint)
-						{
-							double Overlap = 0;
-							if (!PCGExMath::SphereOverlap(S1, OtherPoint->Bounds.GetSphere(), Overlap)) { return; }
-
-							if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative)
-							{
-								if ((Overlap / S1.W) < Settings->MinThreshold) { return; }
-							}
-							else
-							{
-								if (Overlap < Settings->MinThreshold) { return; }
-							}
-
-							ManagedOverlap->Stats.OverlapCount++;
-							ManagedOverlap->Stats.OverlapVolume += Overlap;
-						});
-				});
+								ManagedOverlap->Stats.OverlapCount++;
+								ManagedOverlap->Stats.OverlapVolume += Overlap;
+							});
+					});
+			}
 		}
 	}
 

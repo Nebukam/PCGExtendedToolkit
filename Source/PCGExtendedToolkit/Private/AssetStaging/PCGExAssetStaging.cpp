@@ -254,7 +254,7 @@ namespace PCGExAssetStaging
 		const TPCGValueRange<FVector> OutBoundsMax = OutPointData->GetBoundsMaxValueRange();
 		const TPCGValueRange<int32> Seeds = OutPointData->GetSeedValueRange();
 
-		TSharedPtr<PCGExData::TBuffer<int32>> WR = WeightWriter ? WeightWriter : NormalizedWeightWriter ? NormalizedWeightWriter : nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> WR = WeightWriter.IsValid() ? WeightWriter : NormalizedWeightWriter.IsValid() ? NormalizedWeightWriter : nullptr;
 		const TPCGValueRange<float> Densities = OutPointData->GetDensityValueRange(WR ? false : true);
 
 		const TPCGValueRange<int64> MetadataEntries = OutPointData->GetMetadataEntryValueRange();

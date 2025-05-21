@@ -440,6 +440,12 @@ namespace PCGExGraph
 			This->OnEdgeEdgeIntersectionsComplete();
 		};
 
+		BlendEdgeEdgeGroup->OnPrepareSubLoopsCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
+		{
+			PCGEX_ASYNC_THIS
+			This->MetadataBlender->InitScopedTrackers(Loops);
+		};
+
 		BlendEdgeEdgeGroup->OnSubLoopStartCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
@@ -448,7 +454,8 @@ namespace PCGExGraph
 				if (!This->MetadataBlender) { return; }
 				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
 
-				PCGEX_SCOPE_LOOP(i) { This->EdgeEdgeIntersections->BlendIntersection(i, Blender); }
+				TArray<PCGEx::FOpStats>& Trackers = Blender->GetTracking(Scope);
+				PCGEX_SCOPE_LOOP(i) { This->EdgeEdgeIntersections->BlendIntersection(i, Blender, Trackers); }
 			};
 		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->Crossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}

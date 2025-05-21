@@ -14,9 +14,8 @@
 #include "PCGExDetails.h"
 #include "PCGExScopedContainers.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-
 
 #include "PCGExSampleNearestPoint.generated.h"
 

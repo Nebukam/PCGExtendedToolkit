@@ -161,6 +161,11 @@ public:
 	{
 		Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
 	}
+	
+	virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double InWeight)
+	{
+		Blender->Blend(SourceIndexA, SourceIndexB, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
+	}
 
 	virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex)
 	{

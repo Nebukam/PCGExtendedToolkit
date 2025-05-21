@@ -101,6 +101,7 @@ public:
 	FPCGExVectorHashComparisonDetails HashComparison;
 
 	TSharedPtr<PCGExDetails::TSettingValue<FVector>> OperandDirection;
+	TConstPCGValueRange<FTransform> VtxTransforms;
 
 	virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 	virtual bool Test(const PCGExCluster::FNode& Node) const override;

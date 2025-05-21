@@ -522,7 +522,7 @@ namespace PCGExGraph
 			const FVector& PreBlendLocation = Transforms[TargetIndex].GetLocation();
 
 			Blender->Blend(A, B, TargetIndex, 0.5); // TODO : Compute proper lerp
-			
+
 			Transforms[TargetIndex].SetLocation(PreBlendLocation);
 		}
 	}
@@ -711,22 +711,28 @@ namespace PCGExGraph
 	{
 		if (Crossings.IsEmpty()) { return false; }
 
+		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::InsertNodes);
+
 		// Insert new nodes
 		Graph->AddNodes(Crossings.Num());
 
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-		const int32 StartIndex = MutablePoints.Num();
-		MutablePoints.SetNum(Graph->Nodes.Num());
+		UPCGBasePointData* MutablePoints = PointIO->GetOut();
+		const int32 StartIndex = MutablePoints->GetNumPoints();
+
+		MutablePoints->SetNumPoints(Graph->Nodes.Num());
+		const int32 NumPoints = MutablePoints->GetNumPoints();
 
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
-		for (int i = StartIndex; i < MutablePoints.Num(); i++) { Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry); }
+
+		TPCGValueRange<int64> MetadataEntries = PointIO->GetOut()->GetMetadataEntryValueRange();
+		for (int i = StartIndex; i < NumPoints; i++) { Metadata->InitializeOnSet(MetadataEntries[i]); }
 
 		return true;
 	}
 
 	void FEdgeEdgeIntersections::InsertEdges()
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::Insert);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::InsertEdges);
 
 		FEdge NewEdge = FEdge{};
 
@@ -757,28 +763,28 @@ namespace PCGExGraph
 		}
 	}
 
-	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender) const
+	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender, TArray<PCGEx::FOpStats>& Trackers) const
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::BlendIntersection);
 
 		const FEECrossing& Crossing = Crossings[Index];
 
 		const int32 Target = Graph->Nodes[Crossing.NodeIndex].PointIndex;
-		Blender->PrepareForBlending(Target);
+		Blender->BeginMultiBlend(Target, Trackers);
 
 		const int32 A1 = Graph->Nodes[Graph->Edges[Crossing.EdgeA].Start].PointIndex;
 		const int32 A2 = Graph->Nodes[Graph->Edges[Crossing.EdgeA].End].PointIndex;
 		const int32 B1 = Graph->Nodes[Graph->Edges[Crossing.EdgeB].Start].PointIndex;
 		const int32 B2 = Graph->Nodes[Graph->Edges[Crossing.EdgeB].End].PointIndex;
 
-		Blender->Blend(Target, A1, Target, Crossing.Split.TimeA);
-		Blender->Blend(Target, A2, Target, 1 - Crossing.Split.TimeA);
-		Blender->Blend(Target, B1, Target, Crossing.Split.TimeB);
-		Blender->Blend(Target, B2, Target, 1 - Crossing.Split.TimeB);
+		Blender->MultiBlend(A1, Target, Crossing.Split.TimeA, Trackers);
+		Blender->MultiBlend(A2, Target, 1 - Crossing.Split.TimeA, Trackers);
+		Blender->MultiBlend(B1, Target, Crossing.Split.TimeB, Trackers);
+		Blender->MultiBlend(B2, Target, 1 - Crossing.Split.TimeB, Trackers);
 
-		Blender->CompleteBlending(Target, 4, 2);
+		Blender->EndMultiBlend(Target, Trackers);
 
-		PointIO->GetOutPoint(Target).Transform.SetLocation(Crossing.Split.Center);
+		PointIO->GetOutPoint(Target).SetLocation(Crossing.Split.Center);
 	}
 
 	void FindOverlappingEdges(const TSharedRef<FEdgeEdgeIntersections>& InIntersections, const int32 EdgeIndex)

@@ -118,6 +118,7 @@ namespace PCGExPointFilter
 		const TObjectPtr<const UPCGExRandomFilterFactory> TypedFilterFactory;
 
 		int32 RandomSeed;
+		FVector RandomSeedV = FVector::OneVector;
 		TConstPCGValueRange<int32> Seeds;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> WeightBuffer;

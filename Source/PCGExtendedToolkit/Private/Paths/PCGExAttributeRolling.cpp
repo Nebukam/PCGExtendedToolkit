@@ -293,14 +293,13 @@ namespace PCGExAttributeRolling
 
 		if (SourceIndex != -1 && BlendOpsManager)
 		{
-			TArray<FPCGPoint>& PathPoints = PointDataFacade->GetMutablePoints();
 			BlendOpsManager->Blend(SourceIndex, TargetIndex);
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		if(BlendOpsManager){ BlendOpsManager->Cleanup(Context); }
+		if (BlendOpsManager) { BlendOpsManager->Cleanup(Context); }
 		PointDataFacade->Write(AsyncManager);
 	}
 }

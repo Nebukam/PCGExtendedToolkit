@@ -110,14 +110,15 @@ namespace PCGExCluster
 
 		if (SingleEdge != -1)
 		{
-			Graph->InsertEdge(*Cluster->GetEdge(SingleEdge), OutEdge, IOIndex);
+			const FEdge& OriginalEdge = *Cluster->GetEdge(SingleEdge);
+			Graph->InsertEdge(OriginalEdge, OutEdge, IOIndex);
 
 			PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
 			EdgeMetadata.UnionSize = 1;
 
 			if (Graph->EdgesUnion)
 			{
-				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex);
+				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(PCGExData::FPoint(OriginalEdge.Index, IOIndex));
 			}
 		}
 		else

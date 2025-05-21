@@ -57,8 +57,8 @@ bool PCGExPointFilter::FStringSelfCompareFilter::Test(const int32 PointIndex) co
 
 	if (TargetIndex == -1) { return false; }
 
-	const FString A = OperandA->SoftGet(PointIndex, PointDataFacade->Source->GetInPoint(PointIndex), TEXT(""));
-	const FString B = OperandA->SoftGet(TargetIndex, PointDataFacade->Source->GetInPoint(TargetIndex), TEXT(""));
+	const FString A = OperandA->SoftGet(PointDataFacade->Source->GetInPoint(PointIndex), TEXT(""));
+	const FString B = OperandA->SoftGet(PointDataFacade->Source->GetInPoint(TargetIndex), TEXT(""));
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
 }
 

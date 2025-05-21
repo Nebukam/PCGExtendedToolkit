@@ -230,8 +230,6 @@ namespace PCGExAttributeRemap
 				This->PointDataFacade->Fetch(Scope);
 
 				// Find min/max & clamp values
-				const TArray<FPCGPoint>& InPoints = This->PointDataFacade->Source->GetPoints(PCGExData::EIOSide::In);
-				TArray<FPCGPoint>& OutPoints = This->PointDataFacade->Source->GetMutablePoints();
 
 				for (int d = 0; d < This->Dimensions; d++)
 				{
@@ -277,8 +275,6 @@ namespace PCGExAttributeRemap
 	void FProcessor::RemapRange(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::RemapRange);
-
-		TArray<FPCGPoint>& OutPoints = PointDataFacade->Source->GetMutablePoints();
 
 		for (int d = 0; d < Dimensions; d++)
 		{

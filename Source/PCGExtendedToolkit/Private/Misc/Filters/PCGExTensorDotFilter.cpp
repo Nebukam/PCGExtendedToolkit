@@ -57,21 +57,21 @@ bool PCGExPointFilter::FTensorDotFilter::Init(FPCGExContext* InContext, const TS
 
 	// TODO : Validate tensor factories
 
+	InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
+
 	return true;
 }
 
 bool PCGExPointFilter::FTensorDotFilter::Test(const int32 PointIndex) const
 {
-	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
-
 	bool bSuccess = false;
-	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(PointIndex, Point.Transform, bSuccess);
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(PointIndex, InTransforms[PointIndex], bSuccess);
 
 	if (!bSuccess) { return false; }
 
 	return DotComparison.Test(
 		FVector::DotProduct(
-			TypedFilterFactory->Config.bTransformOperandA ? OperandA->Read(PointIndex) : Point.Transform.TransformVectorNoScale(OperandA->Read(PointIndex)),
+			TypedFilterFactory->Config.bTransformOperandA ? OperandA->Read(PointIndex) : InTransforms[PointIndex].TransformVectorNoScale(OperandA->Read(PointIndex)),
 			Sample.DirectionAndSize.GetSafeNormal()),
 		DotComparison.GetComparisonThreshold(PointIndex));
 }

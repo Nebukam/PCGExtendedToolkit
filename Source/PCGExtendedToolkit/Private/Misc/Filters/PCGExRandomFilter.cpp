@@ -103,6 +103,8 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 
 	Seeds = PointDataFacade->GetIn()->GetConstSeedValueRange();
 
+	RandomSeedV = FVector(RandomSeed);
+
 	return true;
 }
 
@@ -116,7 +118,7 @@ bool PCGExPointFilter::FRandomFilter::Test(const int32 PointIndex) const
 
 bool PCGExPointFilter::FRandomFilter::Test(const PCGExData::FProxyPoint& Point) const
 {
-	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandom::GetRandomStreamFromPoint(Point.GetLocation(), RandomSeed)).GetFraction() * WeightRange) / WeightRange);
+	const float RandomValue = WeightCurve->Eval((FRandomStream(PCGExRandom::ComputeSpatialSeed(Point.GetLocation(), RandomSeedV)).GetFraction() * WeightRange) / WeightRange);
 	return TypedFilterFactory->Config.bInvertResult ? RandomValue <= Threshold : RandomValue >= Threshold;
 }
 

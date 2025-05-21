@@ -75,8 +75,8 @@ namespace PCGExCopyToPoints
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		const TArray<FPCGPoint>& Targets = Context->TargetsDataFacade->GetIn()->GetPoints();
-		const int32 NumTargets = Targets.Num();
+		const UPCGBasePointData* Targets = Context->TargetsDataFacade->GetIn();
+		const int32 NumTargets = Targets->GetNumPoints();
 
 		PCGEx::InitArray(Dupes, NumTargets);
 
@@ -85,7 +85,7 @@ namespace PCGExCopyToPoints
 			Dupes[i] = nullptr;
 
 			if (Settings->bDoMatchByTags &&
-				!Context->MatchByTagValue.Matches(PointDataFacade->Source->Tags, Context->TargetsDataFacade->Source->GetInPointRef(i)))
+				!Context->MatchByTagValue.Matches(PointDataFacade->Source->Tags, Context->TargetsDataFacade->GetInPoint(i)))
 			{
 				continue;
 			}
@@ -93,8 +93,10 @@ namespace PCGExCopyToPoints
 			NumCopies++;
 
 			TSharedPtr<PCGExData::FPointIO> Dupe = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Duplicate);
+			Context->TargetsForwardHandler->Forward(i, Dupe->GetOut()->Metadata);
 
 			Dupes[i] = Dupe;
+			
 			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, Dupe, &Context->TransformDetails)
 		}
 

@@ -51,10 +51,12 @@ void FPCGExRefreshSeedTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 {
 	PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::Duplicate)
 
-	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+
+	TPCGValueRange<int32> Seeds = PointIO->GetOut()->GetSeedValueRange();
+	TConstPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetConstTransformValueRange();
 
 	const FVector BaseOffset = FVector(TaskIndex) * 0.001;
-	for (int i = 0; i < PointIO->GetNum(); i++) { MutablePoints[i].Seed = PCGExRandom::ComputeSeed(MutablePoints[i], BaseOffset); }
+	for (int i = 0; i < PointIO->GetNum(); i++) { Seeds[i] = PCGExRandom::ComputeSpatialSeed(Transforms[i].GetLocation(), BaseOffset); }
 }
 
 #undef LOCTEXT_NAMESPACE

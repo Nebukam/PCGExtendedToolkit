@@ -3,30 +3,19 @@
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInheritEnd.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-
+#include "Sampling/PCGExGetTextureData.h"
 
 
 void FPCGExSubPointsBlendInheritEnd::BlendSubPoints(
 	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
 	const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
 {
-	const int32 NumPoints = SubPoints.Num();
-	TArray<double> Weights;
-	TArray<FVector> Locations;
-
-	Weights.Reserve(NumPoints);
-	Locations.Reserve(NumPoints);
-
-	for (const FPCGPoint& Point : SubPoints)
+	for (int i = 0; i < SubPoints.Num(); i++)
 	{
-		Locations.Add(Point.Transform.GetLocation());
-		Weights.Add(1);
+		FVector Location = SubPoints[i].Transform.GetLocation();
+		MetadataBlender->Blend(From.Index, To.Index, StartIndex < 0 ? From.Index : StartIndex, 1);
+		SubPoints[i].Transform.SetLocation(Location);
 	}
-
-	InBlender->BlendRangeFromTo(From, To, StartIndex < 0 ? From.Index : StartIndex, Weights);
-
-	// Restore pre-blend position
-	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }
 }
 
 TSharedPtr<FPCGExSubPointsBlendOperation> UPCGExSubPointsBlendInheritEnd::CreateOperation() const

@@ -383,7 +383,7 @@ namespace PCGExGraph
 		bool InsertNodes() const;
 		void InsertEdges();
 
-		void BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender) const;
+		void BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender, TArray<PCGEx::FOpStats>& Trackers) const;
 
 		~FEdgeEdgeIntersections() = default;
 	};

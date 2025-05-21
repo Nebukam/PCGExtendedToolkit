@@ -58,7 +58,7 @@ bool FPCGExDiscardSameElement::ExecuteInternal(FPCGContext* InContext) const
 			PointIO->Enable();
 		}
 
-		PointIO->StageOutput();
+		PointIO->StageOutput(Context);
 	}
 
 	return Context->TryComplete();
@@ -84,8 +84,8 @@ namespace PCGExDiscardSame
 		TSet<uint32> PositionHashes;
 		const FVector PosCWTolerance = FVector(1 / Settings->TestPositionTolerance);
 
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
-		HashPointsCount = InPoints.Num();
+		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
+		HashPointsCount = InPoints->GetNumPoints();
 
 		if (Settings->bTestPositions) { PositionHashes.Reserve(HashPointsCount); }
 

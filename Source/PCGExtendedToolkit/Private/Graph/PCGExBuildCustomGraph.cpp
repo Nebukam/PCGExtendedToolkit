@@ -342,7 +342,7 @@ namespace PCGExBuildCustomGraph
 			return;
 		}
 
-		PointIO->GetOut()->GetMutablePoints().SetNum(GraphSettings->Idx.Num());
+		PointIO->GetOut()->SetNumPoints(GraphSettings->Idx.Num());
 
 		PCGEX_MAKE_SHARED(NodeDataFacade, PCGExData::FFacade, PointIO.ToSharedRef())
 		PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails)
@@ -393,16 +393,19 @@ namespace PCGExBuildCustomGraph
 				const TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
 				if (!IO) { return; }
 
-				TArray<FPCGPoint>& MutablePoints = IO->GetOut()->GetMutablePoints();
-				IO->GetOutKeys(true); // Generate out keys
+				TArray<FPCGPoint> MutablePoints;
+				PCGExData::GetPoints(IO->GetInScope(Scope), MutablePoints);
 
 				PCGEX_SCOPE_LOOP(i)
 				{
 					FPCGPoint& Point = MutablePoints[i];
 					CustomGraphSettings->UpdateNodePoint(Point, CustomGraphSettings->Idx[i], i, Point);
 				}
+
+				IO->SetPoints(Scope.Start, MutablePoints);
 			};
 
+		PointIO->GetOutKeys(true); // Generate out keys		
 		InitNodesGroup->StartSubLoops(CustomGraphSettings->Idx.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
 }

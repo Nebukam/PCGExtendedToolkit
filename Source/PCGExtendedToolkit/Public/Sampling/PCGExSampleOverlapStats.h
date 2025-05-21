@@ -146,7 +146,7 @@ class FPCGExSampleOverlapStatsElement final : public FPCGExPointsProcessorElemen
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleOverlapStats)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -214,7 +214,7 @@ namespace PCGExSampleOverlapStats
 	{
 		friend struct FPCGExSampleOverlapStatsContext;
 
-		const TArray<FPCGPoint>* InPoints = nullptr;
+		const UPCGBasePointData* InPoints = nullptr;
 		FBox Bounds = FBox(ForceInit);
 
 		TUniquePtr<PCGExDiscardByOverlap::FPointBoundsOctree> Octree;

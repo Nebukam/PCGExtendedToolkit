@@ -147,7 +147,7 @@ namespace PCGExCopyClusters
 
 			if (!EdgeDupe) { continue; }
 
-			Context->TargetsAttributesToClusterTags.Tag(i, EdgeDupe);
+			Context->TargetsAttributesToClusterTags.Tag(Context->TargetsDataFacade->GetInPoint(i), EdgeDupe);
 			Context->TargetsForwardHandler->Forward(i, EdgeDupe->GetOut()->Metadata);
 		}
 
@@ -219,7 +219,7 @@ namespace PCGExCopyClusters
 
 			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, VtxDupe, &Context->TransformDetails)
 
-			Context->TargetsAttributesToClusterTags.Tag(i, VtxDupe);
+			Context->TargetsAttributesToClusterTags.Tag(Context->TargetsDataFacade->GetInPoint(i), VtxDupe);
 			Context->TargetsForwardHandler->Forward(i, VtxDupe->GetOut()->Metadata);
 		}
 
