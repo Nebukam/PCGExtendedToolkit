@@ -45,7 +45,7 @@ namespace PCGExDataBlending
 		template <typename T>
 		void Set(const int32 TargetIndex, const T Value)
 		{
-#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME) else if constexpr (std::is_same_v<T, _TYPE>){ Set##_NAME(TargetIndex, Value); }
+#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) else if constexpr (std::is_same_v<T, _TYPE>){ Set##_NAME(TargetIndex, Value); }
 			if constexpr (false)
 			{
 			}
@@ -54,7 +54,7 @@ namespace PCGExDataBlending
 		}
 
 	protected:
-#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME) virtual void Set##_Name(const int32 TargetIndex, const _TYPE Value) = 0;
+#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void Set##_Name(const int32 TargetIndex, const _TYPE Value) = 0;
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
 #undef PCGEX_DECL_BLEND_BIT
 	};
@@ -91,7 +91,7 @@ namespace PCGExDataBlending
 		virtual TSharedPtr<PCGExData::FBufferBase> GetOutputBuffer() const override { return C ? C->GetBuffer() : nullptr; }
 
 	protected:
-#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME) virtual void Set##_Name(const int32 TargetIndex, const _TYPE Value) override { C->Set(TargetIndex, Value); };
+#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void Set##_Name(const int32 TargetIndex, const _TYPE Value) override { C->Set(TargetIndex, Value); };
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
 #undef PCGEX_DECL_BLEND_BIT
 	};

@@ -167,9 +167,9 @@ public:
 		return Blender->BeginMultiBlend(TargetIndex);
 	}
 
-	virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker)
+	virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, PCGEx::FOpStats& Tracker)
 	{
-		Blender->MultiBlend(SourceIndex, TargetIndex, Weight, Tracker);
+		Blender->MultiBlend(SourceIndex, TargetIndex, InWeight, Tracker);
 	}
 
 	virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker)

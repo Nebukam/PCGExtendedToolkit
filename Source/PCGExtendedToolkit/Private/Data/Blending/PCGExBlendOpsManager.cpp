@@ -126,8 +126,21 @@ namespace PCGExDataBlending
 		return true;
 	}
 
+	void FBlendOpsManager::InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops)
+	{
+		ScopedTrackers = MakeShared<PCGExMT::TScopedArray<PCGEx::FOpStats>>(Loops);
+	}
+
+	TArray<PCGEx::FOpStats>& FBlendOpsManager::GetTracking(const PCGExMT::FScope& Scope)
+	{
+		check(ScopedTrackers.IsValid())
+		return ScopedTrackers->Get_Ref(Scope);
+	}
+
 	void FBlendOpsManager::BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& OutTrackers) const
 	{
+		// TODO : Reuse a shared buffer based on Scope whenever possible
+		// Use a TScopedArray<PCGEx::FOpStats> ?
 		OutTrackers.SetNumUninitialized(Operations->Num());
 		for (int i = 0; i < Operations->Num(); i++) { OutTrackers[i] = (*(Operations->GetData() + i))->BeginMultiBlend(TargetIndex); }
 	}

@@ -23,6 +23,10 @@ void FPCGExOperation::RegisterPrimaryBuffersDependencies(PCGExData::FFacadePrelo
 {
 }
 
+void FPCGExOperation::InitForScopes(const TArray<PCGExMT::FScope>& Loops)
+{
+}
+
 void FPCGExOperation::RegisterAssetDependencies(FPCGExContext* InContext)
 {
 }

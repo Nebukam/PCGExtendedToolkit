@@ -9,6 +9,7 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "Geometry/PCGExGeoPointBox.h"
 
 
 #include "PCGExBoundsFilter.generated.h"

@@ -7,9 +7,8 @@
 #include "PCGExDetailsData.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
-
-#include "PCGExAttributeBlendFactoryProvider.generated.h"
 #include "PCGExBlendOpFactoryProvider.h"
+#include "PCGExScopedContainers.h"
 
 namespace PCGExDataBlending
 {
@@ -66,10 +65,16 @@ namespace PCGExDataBlending
 			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceIndex, TargetIndex, Weight); }
 		}
 
+		void InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops);
+		TArray<PCGEx::FOpStats>& GetTracking(const PCGExMT::FScope& Scope);
+		
 		void BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& OutTrackers) const;
 		void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGEx::FOpStats>& Trackers) const;
 		void EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const;
 
 		void Cleanup(FPCGExContext* InContext);
+
+	protected:
+		TSharedPtr<PCGExMT::TScopedArray<PCGEx::FOpStats>> ScopedTrackers;
 	};
 }

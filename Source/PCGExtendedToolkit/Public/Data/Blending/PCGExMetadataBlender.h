@@ -8,9 +8,7 @@
 
 #include "PCGExDataBlending.h"
 #include "PCGExProxyDataBlending.h"
-
-
-
+#include "PCGExScopedContainers.h"
 
 
 namespace PCGExDataBlending
@@ -32,6 +30,9 @@ namespace PCGExDataBlending
 		void Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double Weight = 1) const;
 		void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight = 1) const;
 
+		void InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops);
+		TArray<PCGEx::FOpStats>& GetTracking(const PCGExMT::FScope& Scope);
+		
 		void BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& OutTrackers) const;
 		void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGEx::FOpStats>& Trackers) const;
 		void EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const;
@@ -43,6 +44,7 @@ namespace PCGExDataBlending
 		TWeakPtr<PCGExData::FFacade> TargetFacadeHandle;
 		
 		TArray<TSharedPtr<FProxyDataBlender>> Blenders;
+		TSharedPtr<PCGExMT::TScopedArray<PCGEx::FOpStats>> ScopedTrackers;
 		
 	};
 }

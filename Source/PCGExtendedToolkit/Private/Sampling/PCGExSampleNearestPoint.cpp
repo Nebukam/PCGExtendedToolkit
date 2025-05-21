@@ -280,6 +280,9 @@ namespace PCGExSampleNearestPoints
 		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 		TConstPCGValueRange<FTransform> TargetTransforms = Context->TargetsFacade->GetIn()->GetConstTransformValueRange();
 
+		TArray<PCGExNearestPoint::FSample> Samples;
+		Samples.Reserve(Context->NumTargets / 2); // Yo that might be excessive
+		
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index])
@@ -296,7 +299,7 @@ namespace PCGExSampleNearestPoints
 
 			if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
-			TArray<PCGExNearestPoint::FSample> Samples;
+			Samples.Reset();
 			PCGExNearestPoint::FSamplesStats Stats;
 
 			auto SampleTarget = [&](const int32 TargetIndex)
@@ -351,7 +354,6 @@ namespace PCGExSampleNearestPoints
 			}
 			else
 			{
-				Samples.Reserve(Context->NumTargets);
 				for (int i = 0; i < Context->NumTargets; i++) { SampleTarget(i); }
 			}
 

@@ -87,10 +87,23 @@ namespace PCGExDataBlending
 		for (int i = 0; i < Blenders.Num(); i++) { Blenders[i]->Blend(SourceIndex, TargetIndex, Weight); }
 	}
 
+	void FMetadataBlender::InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops)
+	{
+		ScopedTrackers = MakeShared<PCGExMT::TScopedArray<PCGEx::FOpStats>>(Loops);
+	}
+
+	TArray<PCGEx::FOpStats>& FMetadataBlender::GetTracking(const PCGExMT::FScope& Scope)
+	{
+		check(ScopedTrackers.IsValid())
+		return ScopedTrackers->Get_Ref(Scope);
+	}
+
 	void FMetadataBlender::BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& OutTrackers) const
 	{
+		// TODO : Reuse a shared buffer based on Scope whenever possible
+		// Use a TScopedArray<PCGEx::FOpStats> ?
 		OutTrackers.SetNumUninitialized(Blenders.Num());
-		for (int i = 0; i < Blenders.Num(); i++) { Blenders[i]->BeginMultiBlend(TargetIndex); }
+		for (int i = 0; i < Blenders.Num(); i++) { OutTrackers[i] = Blenders[i]->BeginMultiBlend(TargetIndex); }
 	}
 
 	void FMetadataBlender::MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGEx::FOpStats>& Trackers) const

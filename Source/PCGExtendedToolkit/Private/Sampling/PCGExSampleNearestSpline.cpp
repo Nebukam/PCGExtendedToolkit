@@ -270,6 +270,9 @@ namespace PCGExSampleNearestSpline
 
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
+		TArray<PCGExPolyLine::FSample> Samples;
+		Samples.Reserve(Context->NumTargets);
+		
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index])
@@ -296,9 +299,8 @@ namespace PCGExSampleNearestSpline
 
 			if (Settings->DepthMode == EPCGExSplineDepthMode::Max || Settings->DepthMode == EPCGExSplineDepthMode::Average) { Depth = 0; }
 
-			TArray<PCGExPolyLine::FSample> Samples;
-			Samples.Reserve(Context->NumTargets);
-
+			Samples.Reset();
+			
 			PCGExPolyLine::FSamplesStats Stats;
 
 			FVector Origin = InTransforms[Index].GetLocation();

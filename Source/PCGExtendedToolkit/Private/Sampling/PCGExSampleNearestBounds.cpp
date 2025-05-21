@@ -256,9 +256,14 @@ namespace PCGExSampleNearestBounds
 		bool bLocalAnySuccess = false;
 
 		TArray<PCGEx::FOpStats> BlendTrackers;
+		TArray<PCGExNearestBounds::FSample> Samples;
+		Samples.Reserve(10);
+
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 
 		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 		TConstPCGValueRange<FTransform> BoundsTransforms = Context->BoundsFacade->GetIn()->GetConstTransformValueRange();
+
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -268,7 +273,7 @@ namespace PCGExSampleNearestBounds
 				return;
 			}
 
-			TArray<PCGExNearestBounds::FSample> Samples;
+			Samples.Reset();
 			PCGExNearestBounds::FSamplesStats Stats;
 			PCGExGeo::FSample CurrentSample;
 
@@ -394,7 +399,11 @@ namespace PCGExSampleNearestBounds
 			const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
 
 			FTransform LookAtTransform = PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign);
-			if (Context->ApplySampling.WantsApply()) { Context->ApplySampling.Apply(Point, WeightedTransform, LookAtTransform); }
+			if (Context->ApplySampling.WantsApply())
+			{
+				PCGExData::FMutablePoint MutablePoint(OutPointData, Index);
+				Context->ApplySampling.Apply(MutablePoint, WeightedTransform, LookAtTransform);
+			}
 
 			SamplingMask[Index] = Stats.IsValid();
 			PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())

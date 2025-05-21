@@ -18,10 +18,13 @@ public:
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
+
+		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
+		
 		const PCGExGeo::FApex Apex = PCGExGeo::FApex(
-			InPointData[PrevIndex].Transform.GetLocation(),
-			InPointData[NextIndex].Transform.GetLocation(),
-			InPointData[Index].Transform.GetLocation());
+			InTransforms[PrevIndex].GetLocation(),
+			InTransforms[NextIndex].GetLocation(),
+			InTransforms[Index].GetLocation());
 
 		OutArrive = Apex.TowardStart * ArriveScale;
 		OutLeave = Apex.TowardEnd * -1 * LeaveScale;

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDataMath.h"
 #include "Data/PCGExData.h"
 #include "PCGExRandom.h"
 

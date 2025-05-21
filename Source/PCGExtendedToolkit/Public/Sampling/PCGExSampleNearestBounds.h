@@ -13,6 +13,7 @@
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Geometry/PCGExGeoPointBox.h"
 
 
 #include "PCGExSampleNearestBounds.generated.h"
