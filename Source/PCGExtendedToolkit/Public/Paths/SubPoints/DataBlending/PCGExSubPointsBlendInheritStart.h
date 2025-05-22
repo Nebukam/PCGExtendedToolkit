@@ -14,7 +14,7 @@ class FPCGExSubPointsBlendInheritStart : public FPCGExSubPointsBlendOperation
 public:
 	virtual void BlendSubPoints(
 		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-		const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex = -1) const override;
+		PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex = -1) const override;
 };
 
 /**

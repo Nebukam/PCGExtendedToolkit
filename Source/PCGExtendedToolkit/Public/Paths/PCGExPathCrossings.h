@@ -178,7 +178,6 @@ namespace PCGExPathCrossings
 		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
 
 		TSet<int32> CrossIOIndices;
-		TSharedPtr<PCGExData::FUnionMetadata> UnionMetadata;
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
 
 		FPCGExPathEdgeIntersectionDetails Details;
@@ -201,8 +200,8 @@ namespace PCGExPathCrossings
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
-		void CollapseCrossing(const int32 Index);
-		void CrossBlendPoint(const int32 Index);
+		void CollapseCrossings(const PCGExMT::FScope& Scope);
+		void CrossBlend(const PCGExMT::FScope& Scope);
 		
 		virtual void CompleteWork() override;
 		virtual void Write() override;

@@ -29,7 +29,7 @@ public:
 	virtual void ProcessSubPoints(
 		const PCGExData::FConstPoint& From,
 		const PCGExData::FConstPoint& To,
-		const TArrayView<FPCGPoint>& SubPoints,
+		PCGExData::FScope& Scope,
 		const PCGExPaths::FPathMetrics& Metrics,
 		const int32 StartIndex = -1) const;
 };

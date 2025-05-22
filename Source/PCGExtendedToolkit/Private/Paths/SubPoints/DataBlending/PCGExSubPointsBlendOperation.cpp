@@ -54,23 +54,23 @@ bool FPCGExSubPointsBlendOperation::PrepareForData(
 
 void FPCGExSubPointsBlendOperation::ProcessSubPoints(
 	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-	const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
+	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
 {
-	BlendSubPoints(From, To, SubPoints, Metrics, StartIndex);
+	BlendSubPoints(From, To, Scope, Metrics, StartIndex);
 }
 
 void FPCGExSubPointsBlendOperation::BlendSubPoints(
 	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-	const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
+	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
 {
 }
 
-void FPCGExSubPointsBlendOperation::BlendSubPoints(TArray<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics) const
+void FPCGExSubPointsBlendOperation::BlendSubPoints(PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
-	const FPCGPoint& Start = SubPoints[0];
-	const int32 LastIndex = SubPoints.Num() - 1;
-	const FPCGPoint& End = SubPoints[LastIndex];
-	BlendSubPoints(PCGExData::FConstPoint(Start, 0), PCGExData::FConstPoint(End, LastIndex), SubPoints, Metrics, 0);
+	const FPCGPoint& Start = Scope[0];
+	const int32 LastIndex = Scope.Num() - 1;
+	const FPCGPoint& End = Scope[LastIndex];
+	BlendSubPoints(PCGExData::FConstPoint(Start, 0), PCGExData::FConstPoint(End, LastIndex), Scope, Metrics, 0);
 }
 
 void UPCGExSubPointsBlendInstancedFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)

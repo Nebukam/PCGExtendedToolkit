@@ -504,7 +504,7 @@ namespace PCGExGraph
 	void FPointEdgeIntersections::BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointEdgeIntersections::BlendIntersection);
-
+		 
 		const FPointEdgeProxy& PointEdgeProxy = Edges[Index];
 
 		if (PointEdgeProxy.CollinearPoints.IsEmpty()) { return; }

@@ -7,7 +7,7 @@
 
 void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-	const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
+	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
 {
 	EPCGExBlendOver SafeBlendOver = TypedFactory->BlendOver;
 	if (TypedFactory->BlendOver == EPCGExBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExBlendOver::Index; }
@@ -15,30 +15,30 @@ void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	if (SafeBlendOver == EPCGExBlendOver::Distance)
 	{
 		PCGExPaths::FPathMetrics PathMetrics = PCGExPaths::FPathMetrics(From.GetLocation());
-		for (int i = 0; i < SubPoints.Num(); i++)
+		for (int i = 0; i < Scope.Num(); i++)
 		{
-			FVector Location = SubPoints[i].Transform.GetLocation();
+			FVector Location = Scope[i].Transform.GetLocation();
 			MetadataBlender->Blend(From.Index, To.Index, StartIndex < 0 ? From.Index : StartIndex, Metrics.GetTime(PathMetrics.Add(Location)));
-			SubPoints[i].Transform.SetLocation(Location);
+			Scope[i].Transform.SetLocation(Location);
 		}
 	}
 	else if (SafeBlendOver == EPCGExBlendOver::Index)
 	{
-		const double Divider = SubPoints.Num();
-		for (int i = 0; i < SubPoints.Num(); i++)
+		const double Divider = Scope.Num();
+		for (int i = 0; i < Scope.Num(); i++)
 		{
-			FVector Location = SubPoints[i].Transform.GetLocation();
+			FVector Location = Scope[i].Transform.GetLocation();
 			MetadataBlender->Blend(From.Index, To.Index, StartIndex < 0 ? From.Index : StartIndex, i / Divider);
-			SubPoints[i].Transform.SetLocation(Location);
+			Scope[i].Transform.SetLocation(Location);
 		}
 	}
 	else if (SafeBlendOver == EPCGExBlendOver::Fixed)
 	{
-		for (int i = 0; i < SubPoints.Num(); i++)
+		for (int i = 0; i < Scope.Num(); i++)
 		{
-			FVector Location = SubPoints[i].Transform.GetLocation();
+			FVector Location = Scope[i].Transform.GetLocation();
 			MetadataBlender->Blend(From.Index, To.Index, StartIndex < 0 ? From.Index : StartIndex, Lerp);
-			SubPoints[i].Transform.SetLocation(Location);
+			Scope[i].Transform.SetLocation(Location);
 		}
 	}
 }

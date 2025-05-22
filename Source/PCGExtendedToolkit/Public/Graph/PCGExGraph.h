@@ -289,7 +289,7 @@ namespace PCGExGraph
 		int32 PointIndex = -1; // Index in the context of the UPCGBasePointData that helds the vtx
 		int32 NumExportedEdges = 0;
 
-		TArray<FLink> Links;
+		TArray<FLink, TInlineAllocator<8>> Links;
 
 		~FNode() = default;
 

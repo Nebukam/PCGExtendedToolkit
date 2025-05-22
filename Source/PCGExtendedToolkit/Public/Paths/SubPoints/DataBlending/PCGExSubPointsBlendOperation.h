@@ -37,13 +37,13 @@ public:
 
 	virtual void ProcessSubPoints(
 		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-		const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex = -1) const override;
+		PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex = -1) const override;
 
 	virtual void BlendSubPoints(
 		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-		const TArrayView<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex = -1) const;
+		PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex = -1) const;
 
-	virtual void BlendSubPoints(TArray<FPCGPoint>& SubPoints, const PCGExPaths::FPathMetrics& Metrics) const;
+	virtual void BlendSubPoints(PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const;
 
 protected:
 	FPCGExBlendingDetails BlendingDetails;

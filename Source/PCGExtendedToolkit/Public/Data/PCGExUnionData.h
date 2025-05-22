@@ -11,7 +11,6 @@
 
 namespace PCGExData
 {
-
 #pragma region Compound
 
 	class PCGEXTENDEDTOOLKIT_API FUnionData : public TSharedFromThis<FUnionData>
@@ -21,13 +20,13 @@ namespace PCGExData
 
 	public:
 		//int32 Index = 0;
-		TSet<int32> IOIndices;
-		TSet<uint64> ItemHashSet;
+		TSet<int32, DefaultKeyFuncs<int32>, TInlineAllocator<8>> IOIndices;
+		TSet<uint64, DefaultKeyFuncs<uint64>, TInlineAllocator<8>> ItemHashSet;
 
 		FUnionData() = default;
 		~FUnionData() = default;
 
-		int32 Num() const { return ItemHashSet.Num(); }
+		FORCEINLINE int32 Num() const { return ItemHashSet.Num(); }
 
 		// Gather data into arrays and return the required iteration count
 		int32 ComputeWeights(
@@ -37,7 +36,10 @@ namespace PCGExData
 			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
 			TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const;
 
+		uint64 Add_Unsafe(const PCGExData::FPoint& Point);
 		uint64 Add(const PCGExData::FPoint& Point);
+		
+		void Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices);
 		void Add(const int32 IOIndex, const TArray<int32>& PointIndices);
 
 		void Reset()
@@ -69,5 +71,4 @@ namespace PCGExData
 	};
 
 #pragma endregion
-
 }

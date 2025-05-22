@@ -57,6 +57,15 @@ namespace PCGExData
 		return Index;
 	}
 
+
+	uint64 FUnionData::Add_Unsafe(const PCGExData::FPoint& Point)
+	{
+		const uint64 H = PCGEx::H64(Point.IO, Point.Index == -1 ? 0 : Point.Index);
+		IOIndices.Add(Point.IO);
+		ItemHashSet.Add(H);
+		return H;
+	}
+
 	uint64 FUnionData::Add(const PCGExData::FPoint& Point)
 	{
 		const uint64 H = PCGEx::H64(Point.IO, Point.Index == -1 ? 0 : Point.Index);
@@ -70,12 +79,17 @@ namespace PCGExData
 		return H;
 	}
 
+
+	void FUnionData::Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices)
+	{
+		IOIndices.Add(IOIndex);
+		for (const int32 A : PointIndices) { ItemHashSet.Add(PCGEx::H64(IOIndex, A)); }
+	}
+
 	void FUnionData::Add(const int32 IOIndex, const TArray<int32>& PointIndices)
 	{
 		FWriteScopeLock WriteScopeLock(UnionLock);
-
-		IOIndices.Add(IOIndex);
-		for (const int32 A : PointIndices) { ItemHashSet.Add(PCGEx::H64(IOIndex, A)); }
+		Add_Unsafe(IOIndex, PointIndices);
 	}
 
 	void FUnionMetadata::SetNum(const int32 InNum)
