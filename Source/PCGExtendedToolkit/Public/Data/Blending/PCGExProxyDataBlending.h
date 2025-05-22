@@ -9,9 +9,9 @@
 #include "PCGExDataBlending.h"
 #include "Data/PCGExProxyData.h"
 
+
 namespace PCGExDataBlending
 {
-
 	/**
 	 * Simple C=AxB blend
 	 */
@@ -22,11 +22,13 @@ namespace PCGExDataBlending
 		{
 		}
 
+		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
+
 		// Target = Target|Target
 		FORCEINLINE virtual void Blend(const int32 TargetIndex, const double Weight = 1) { Blend(TargetIndex, TargetIndex, TargetIndex); }
 
 		// Target = Source|Target
-		FORCEINLINE  virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight = 1) { Blend(SourceIndex, TargetIndex, TargetIndex); }
+		FORCEINLINE virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight = 1) { Blend(SourceIndex, TargetIndex, TargetIndex); }
 
 		// Target = SourceA|SourceB
 		virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight = 1) = 0;
@@ -37,10 +39,14 @@ namespace PCGExDataBlending
 		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) = 0;
 		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) = 0;
 		virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker) = 0;
-
+		
 		virtual void Div(const int32 TargetIndex, const double Divider) = 0;
 
 		virtual TSharedPtr<PCGExData::FBufferBase> GetOutputBuffer() const = 0;
+
+		virtual bool InitFromHeader(
+			FPCGExContext* InContext, const FBlendingHeader& InHeader, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
+			const TSharedPtr<PCGExData::FFacade> InSourceFacade, PCGExData::EIOSide InSide) = 0;
 
 		template <typename T>
 		void Set(const int32 TargetIndex, const T Value)
@@ -67,6 +73,8 @@ namespace PCGExDataBlending
 		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> B;
 		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> C;
 
+		TProxyDataBlenderBase() { UnderlyingType = PCGEx::GetMetadataType<T_WORKING>(); }
+
 		virtual ~TProxyDataBlenderBase() override
 		{
 		}
@@ -84,11 +92,45 @@ namespace PCGExDataBlending
 		virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker) override
 		PCGEX_NOT_IMPLEMENTED(EndMultiBlend(const int32 TargetIndex, FBlendTracker& Tracker))
 
-
 		virtual void Div(const int32 TargetIndex, const double Divider) override
 		PCGEX_NOT_IMPLEMENTED(Div(const int32 TargetIndex, const double Divider))
 
 		virtual TSharedPtr<PCGExData::FBufferBase> GetOutputBuffer() const override { return C ? C->GetBuffer() : nullptr; }
+
+		virtual bool InitFromHeader(
+			FPCGExContext* InContext, const FBlendingHeader& InHeader, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
+			const TSharedPtr<PCGExData::FFacade> InSourceFacade, const PCGExData::EIOSide InSide) override
+		{
+			// Setup a single blender per A/B pair
+			PCGExData::FProxyDescriptor Desc_A = PCGExData::FProxyDescriptor(InSourceFacade);
+			PCGExData::FProxyDescriptor Desc_B = PCGExData::FProxyDescriptor(InTargetFacade);
+
+			if (!Desc_A.Capture(InContext, InHeader.Selector, InSide)) { return false; }
+
+			if (InHeader.bIsNewAttribute)
+			{
+				// Capturing B will fail as it does not exist yet.
+				// Simply copy A
+				Desc_B = Desc_A;
+
+				// Swap B side for Out so the buffer will be initialized
+				Desc_B.Side = PCGExData::EIOSide::Out;
+				Desc_B.DataFacade = InTargetFacade;
+			}
+			else
+			{
+				// Strict capture may fail here, TBD
+				if (!Desc_B.CaptureStrict(InContext, InHeader.Selector, PCGExData::EIOSide::Out)) { return false; }
+			}
+
+			PCGExData::FProxyDescriptor Desc_C = Desc_B;
+
+			A = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, A));
+			B = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, B));
+			C = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, C));
+
+			return A && B && C;
+		}
 
 	protected:
 #define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void Set##_Name(const int32 TargetIndex, const _TYPE Value) override { C->Set(TargetIndex, Value); };
@@ -217,6 +259,20 @@ namespace PCGExDataBlending
 		virtual void Div(const int32 TargetIndex, const double Divider) override { C->Set(TargetIndex, PCGExBlend::Div(C->Get(TargetIndex), Divider)); }
 	};
 
+	template <typename T>
+	static TSharedPtr<TProxyDataBlenderBase<T>> CreateProxyBlender(const EPCGExABBlendingType BlendMode)
+	{
+		TSharedPtr<TProxyDataBlenderBase<T>> OutBlender;
+
+#define PCGEX_CREATE_BLENDER(_BLEND)case EPCGExABBlendingType::_BLEND : \
+OutBlender = MakeShared<TProxyDataBlender<T, EPCGExABBlendingType::_BLEND>>(); \
+break;
+		switch (BlendMode) { PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_CREATE_BLENDER) }
+#undef PCGEX_CREATE_BLENDER
+
+		return OutBlender;
+	}
+
 	static TSharedPtr<FProxyDataBlender> CreateProxyBlender(
 		FPCGExContext* InContext,
 		const EPCGExABBlendingType BlendMode,
@@ -236,13 +292,8 @@ namespace PCGExDataBlending
 			A.WorkingType, [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				TSharedPtr<TProxyDataBlenderBase<T>> TypedBlender;
 
-#define PCGEX_CREATE_BLENDER(_BLEND)case EPCGExABBlendingType::_BLEND : \
-TypedBlender = MakeShared<TProxyDataBlender<T, EPCGExABBlendingType::_BLEND>>(); \
-break;
-				switch (BlendMode) { PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_CREATE_BLENDER) }
-#undef PCGEX_CREATE_BLENDER
+				TSharedPtr<TProxyDataBlenderBase<T>> TypedBlender = CreateProxyBlender<T>(BlendMode);
 
 				if (!TypedBlender) { return; }
 
@@ -263,5 +314,4 @@ break;
 
 		return OutBlender;
 	}
-	
 }

@@ -122,25 +122,50 @@ void FPCGExBlendingDetails::Filter(TArray<PCGEx::FAttributeIdentity>& Identities
 	}
 }
 
+bool FPCGExBlendingDetails::GetBlendingHeader(const FName InName, PCGExDataBlending::FBlendingHeader& OutHeader) const
+{
+	if (!CanBlend(InName)) { return false; }
+
+	OutHeader = PCGExDataBlending::FBlendingHeader{};
+
+	// TODO : Update with information regarding whether this is a new attribute or not
+
+	if (PCGEx::IsPCGExAttribute(InName))
+	{
+		// Don't blend PCGEx stuff
+		OutHeader.SetBlending(EPCGExDataBlendingType::Copy);
+	}
+	else
+	{
+		const EPCGExDataBlendingType* TypePtr = AttributesOverrides.Find(InName);
+		OutHeader.SetBlending(TypePtr ? *TypePtr : DefaultBlending);
+	}
+
+	if (OutHeader.Blending == EPCGExABBlendingType::None) { return false; }
+	return true;
+}
+
+void FPCGExBlendingDetails::GetPointPropertyBlendingHeaders(TArray<PCGExDataBlending::FBlendingHeader>& OutHeaders) const
+{
+	// Emplace all individual properties if they aren't blending to None
+#define PCGEX_SET_POINTPROPERTY(_NAME, ...) \
+	if(const EPCGExDataBlendingType _NAME##Blending = PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending;\
+		_NAME##Blending != EPCGExDataBlendingType::None){ \
+		PCGExDataBlending::FBlendingHeader& _NAME##Header = OutHeaders.Emplace_GetRef();\
+		_NAME##Header.Select(TEXT("$" #_NAME ));\
+		_NAME##Header.SetBlending(PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending);\
+	}
+	PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_POINTPROPERTY)
+#undef PCGEX_SET_POINTPROPERTY
+}
+
 void FPCGExBlendingDetails::GetBlendingHeaders(
 	const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata,
 	TArray<PCGExDataBlending::FBlendingHeader>& OutHeaders,
 	const bool bSkipProperties,
 	const TSet<FName>* IgnoreAttributeSet) const
 {
-	if (!bSkipProperties)
-	{
-		// Emplace all individual properties if they aren't blending to None
-#define PCGEX_SET_POINTPROPERTY(_NAME, ...) \
-		if(const EPCGExDataBlendingType _NAME##Blending = PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending;\
-			_NAME##Blending != EPCGExDataBlendingType::None){ \
-				PCGExDataBlending::FBlendingHeader& _NAME##Header = OutHeaders.Emplace_GetRef();\
-				_NAME##Header.Select(TEXT("$" #_NAME ));\
-				_NAME##Header.SetBlending(PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending);\
-		}
-		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_POINTPROPERTY)
-#undef PCGEX_SET_POINTPROPERTY
-	}
+	if (!bSkipProperties) { GetPointPropertyBlendingHeaders(OutHeaders); }
 
 	TArray<PCGEx::FAttributeIdentity> Identities;
 	PCGEx::FAttributeIdentity::Get(TargetMetadata, Identities);
@@ -197,23 +222,23 @@ void FPCGExBlendingDetails::GetBlendingHeaders(
 
 		if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Name)) { continue; }
 
-		PCGExDataBlending::FBlendingHeader BlendInfos{};
-		BlendInfos.bIsNewAttribute = MissingAttribute.Contains(i);
+		PCGExDataBlending::FBlendingHeader Header{};
+		Header.bIsNewAttribute = MissingAttribute.Contains(i);
 
 		if (PCGEx::IsPCGExAttribute(Identity.Name))
 		{
 			// Don't blend PCGEx stuff
-			BlendInfos.SetBlending(EPCGExDataBlendingType::Copy);
+			Header.SetBlending(EPCGExDataBlendingType::Copy);
 		}
 		else
 		{
 			const EPCGExDataBlendingType* TypePtr = AttributesOverrides.Find(Identity.Name);
 			// TODO : Support global defaults (or ditch support)
-			BlendInfos.SetBlending(TypePtr ? *TypePtr : DefaultBlending);
+			Header.SetBlending(TypePtr ? *TypePtr : DefaultBlending);
 		}
 
-		if (BlendInfos.Blending == EPCGExABBlendingType::None) { continue; }
+		if (Header.Blending == EPCGExABBlendingType::None) { continue; }
 
-		OutHeaders.Add(BlendInfos);
+		OutHeaders.Add(Header);
 	}
 }

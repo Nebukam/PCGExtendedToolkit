@@ -68,7 +68,7 @@ namespace PCGExGraph
 		MutablePoints.SetNum(NumUnionNodes);
 
 		UnionPointsBlender->AddSources(InFacades, &ProtectedClusterAttributes);
-		UnionPointsBlender->PrepareMerge(Context, UnionDataFacade, UnionGraph->NodesUnion);
+		UnionPointsBlender->Init(Context, UnionDataFacade, UnionGraph->NodesUnion);
 
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
 
@@ -102,7 +102,7 @@ namespace PCGExGraph
 					Point.MetadataEntry = Key; // Restore key
 
 					Point.Transform.SetLocation(UnionNode->UpdateCenter(PointsUnion, MainPoints));
-					Blender->MergeSingle(i, Distances);
+					Blender->MergeSingle(i, Distances, TODO);
 				}
 			};
 
@@ -443,7 +443,6 @@ namespace PCGExGraph
 		BlendEdgeEdgeGroup->OnPrepareSubLoopsCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
 		{
 			PCGEX_ASYNC_THIS
-			This->MetadataBlender->InitScopedTrackers(Loops);
 		};
 
 		BlendEdgeEdgeGroup->OnSubLoopStartCallback =

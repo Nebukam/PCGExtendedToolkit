@@ -310,6 +310,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 	bool CanBlend(const FName AttributeName) const;
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const;
 
+	bool GetBlendingHeader(FName InName, PCGExDataBlending::FBlendingHeader& OutHeader) const;
+	void GetPointPropertyBlendingHeaders(TArray<PCGExDataBlending::FBlendingHeader>& OutHeaders) const;
+	
 	// Create a list of attributes & property selector representing the data we want to blend
 	// Takes the reference list from source, 
 	void GetBlendingHeaders(

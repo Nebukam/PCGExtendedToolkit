@@ -65,10 +65,9 @@ namespace PCGExDataBlending
 			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceIndex, TargetIndex, InWeight); }
 		}
 
-		void InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops);
-		TArray<PCGEx::FOpStats>& GetTracking(const PCGExMT::FScope& Scope);
+		void InitTrackers(TArray<PCGEx::FOpStats>& Trackers);
 		
-		void BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& OutTrackers) const;
+		void BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const;
 		void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, TArray<PCGEx::FOpStats>& Trackers) const;
 		void EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const;
 

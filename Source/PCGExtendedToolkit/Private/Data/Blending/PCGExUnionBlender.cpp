@@ -11,62 +11,108 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/PCGExUnionData.h"
-#include "Data/Blending//PCGExDataBlendingProcessors.h"
-#include "Data/Blending/PCGExPropertiesBlender.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 
 namespace PCGExDataBlending
 {
-	FMultiSourceAttribute::FMultiSourceAttribute(const PCGEx::FAttributeIdentity& InIdentity)
+	FMultiSourceBlender::FMultiSourceBlender(const PCGEx::FAttributeIdentity& InIdentity)
 		: Identity(InIdentity)
 	{
 	}
 
-	void FMultiSourceAttribute::PrepareMerge(const EPCGMetadataTypes Type, const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources)
+	bool FMultiSourceBlender::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources)
 	{
 		check(InTargetData);
 
-		Buffer = nullptr;
-
-		if (const FPCGMetadataAttributeBase* ExistingAttribute = InTargetData->FindConstAttribute(Identity.Name);
-			ExistingAttribute && ExistingAttribute->GetTypeId() == static_cast<int16>(Type))
+		if (Header.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
-			// This attribute exists
-			Buffer = InTargetData->GetWritable(Type, ExistingAttribute, PCGExData::EBufferInit::Inherit);
-		}
-		else
-		{
-			Buffer = InTargetData->GetWritable(Type, DefaultValue, PCGExData::EBufferInit::New);
-		}
+			if (Identity.UnderlyingType == EPCGMetadataTypes::Unknown)
+			{
+				// Unknown attribute type
+				return false;
+			}
 
-		for (int i = 0; i < Sources.Num(); i++)
-		{
-			if (const TSharedPtr<FDataBlendingProcessorBase>& SubProc = SubBlendingProcessors[i]) { SubProc->PrepareForData(Buffer, Sources[i]); }
-		}
+			TSharedPtr<PCGExData::FBufferBase> InitializationBuffer = nullptr;
 
-		MainBlendingProcessor->PrepareForData(Buffer, InTargetData, PCGExData::EIOSide::Out);
+			if (const FPCGMetadataAttributeBase* ExistingAttribute = InTargetData->FindConstAttribute(Identity.Name);
+				ExistingAttribute && ExistingAttribute->GetTypeId() == static_cast<int16>(Identity.UnderlyingType))
+			{
+				// This attribute exists on target already
+				InitializationBuffer = InTargetData->GetWritable(Identity.UnderlyingType, ExistingAttribute, PCGExData::EBufferInit::Inherit);
+			}
+			else
+			{
+				// This attribute needs to be initialized
+				InitializationBuffer = InTargetData->GetWritable(Identity.UnderlyingType, DefaultValue, PCGExData::EBufferInit::New);
+			}
+
+			if (!InitializationBuffer)
+			{
+				return false;
+			}
+
+			bool bError = false;
+			PCGEx::ExecuteWithRightType(
+				Identity.UnderlyingType, [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					for (int i = 0; i < Sources.Num(); i++)
+					{
+						TSharedPtr<PCGExData::FFacade> Source = Sources[i];
+						if (!Source) { continue; }
+
+						TSharedPtr<FProxyDataBlender> SubBlender = PCGExDataBlending::CreateProxyBlender<T>(Header.Blending);
+						SubBlenders[i] = SubBlender;
+
+						if (!SubBlender->InitFromHeader(InContext, Header, InTargetData, Sources[i], PCGExData::EIOSide::In))
+						{
+							bError = true;
+							return;
+						}
+
+						bError = MainBlender->InitFromHeader(InContext, Header, InTargetData, InTargetData, PCGExData::EIOSide::Out);
+					}
+				});
+
+			return !bError;
+		}
+		else if (Header.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
+		{
+			// TODO : Init properties
+		}
 	}
 
-	void FMultiSourceAttribute::PrepareSoftMerge(const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources)
+	void FMultiSourceBlender::SoftInit(const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources)
 	{
+		// TODO
+		/*
 		check(InTargetData);
 
 		Buffer = nullptr;
 
 		for (int i = 0; i < Sources.Num(); i++)
 		{
-			if (const TSharedPtr<FDataBlendingProcessorBase>& SrcProc = SubBlendingProcessors[i])
+			if (const TSharedPtr<FDataBlendingProcessorBase>& SrcProc = SubBlenders[i])
 			{
 				SrcProc->SoftPrepareForData(InTargetData, Sources[i]);
 			}
 		}
 
-		MainBlendingProcessor->SoftPrepareForData(InTargetData, InTargetData, PCGExData::EIOSide::Out);
+		MainBlender->SoftPrepareForData(InTargetData, InTargetData, PCGExData::EIOSide::Out);
+		*/
 	}
 
-	FUnionBlender::FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails):
+	FUnionBlender::FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails)
+		:
 		CarryOverDetails(InCarryOverDetails), BlendingDetails(InBlendingDetails)
 	{
+		BlendingDetails->GetPointPropertyBlendingHeaders(PropertyHeaders);
 	}
 
 	FUnionBlender::~FUnionBlender()
@@ -81,35 +127,52 @@ namespace PCGExDataBlending
 
 		UniqueTags.Append(InFacade->Source->Tags->RawTags);
 
-		for (const TSharedPtr<FMultiSourceAttribute>& MultiAttribute : MultiSourceAttributes) { MultiAttribute->SetNum(NumSources); }
+		// Update global source count on all multi attributes
+		for (const TSharedPtr<FMultiSourceBlender>& MultiAttribute : MultiSourceBlender) { MultiAttribute->SetNum(NumSources); }
 
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
 		PCGEx::FAttributeIdentity::Get(InFacade->GetIn()->Metadata, SourceAttributes);
 		CarryOverDetails->Prune(SourceAttributes);
 		BlendingDetails->Filter(SourceAttributes);
 
+		// Check of this new source' attributes
+		// See if it adds any new, non-conflicting one
 		for (const PCGEx::FAttributeIdentity& Identity : SourceAttributes)
 		{
-			if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Name)) { continue; }
+			if (IgnoreAttributeSet && IgnoreAttributeSet
+				->
+				Contains(Identity.Name)
+			)
+			{
+				continue;
+			}
+
+			// First, grab the header for this attribute
+			// Getting a fail means it's filtered out.
+			PCGExDataBlending::FBlendingHeader Header{};
+			if (!BlendingDetails->GetBlendingHeader(Identity.Name, Header)) { continue; }
 
 			const FPCGMetadataAttributeBase* SourceAttribute = InFacade->FindConstAttribute(Identity.Name);
 			if (!SourceAttribute) { continue; }
 
-			const EPCGExDataBlendingType* BlendTypePtr = BlendingDetails->AttributesOverrides.Find(Identity.Name);
-			TSharedPtr<FMultiSourceAttribute> MultiAttribute;
+			TSharedPtr<FMultiSourceBlender> MultiAttribute = nullptr;
 
 			// Search for an existing multi attribute
-			for (const TSharedPtr<FMultiSourceAttribute>& ExistingMultiAttribute : MultiSourceAttributes)
+			// This could be done more efficiently with a map, but we need the array later on
+			for (const TSharedPtr<FMultiSourceBlender>& ExistingMultiSourceBlender : MultiSourceBlender)
 			{
-				if (ExistingMultiAttribute->Identity.Name == Identity.Name)
+				if (ExistingMultiSourceBlender->Identity.Name == Identity.Name)
 				{
-					MultiAttribute = ExistingMultiAttribute;
+					// We found one with the same name
+					MultiAttribute = ExistingMultiSourceBlender;
 					break;
 				}
 			}
 
 			if (MultiAttribute)
 			{
+				// A multi-source blender was found for this attribute!
+
 				if (Identity.UnderlyingType != MultiAttribute->Identity.UnderlyingType)
 				{
 					// Type mismatch, ignore for this source
@@ -120,23 +183,24 @@ namespace PCGExDataBlending
 			else
 			{
 				// Initialize new multi attribute
-
-				MultiAttribute = MultiSourceAttributes.Add_GetRef(MakeShared<FMultiSourceAttribute>(Identity));
-				MultiAttribute->SetNum(NumSources);
-
+				// We give it the first source attribute we found, this will be used
+				// to set the underlying default value of the attribute (as a best guess kind of move) 
+				MultiAttribute = MultiSourceBlender.Add_GetRef(MakeShared<FMultiSourceBlender>(Identity));
+				MultiAttribute->Header = Header;
 				MultiAttribute->DefaultValue = SourceAttribute;
-
-				if (PCGEx::IsPCGExAttribute(Identity.Name)) { MultiAttribute->MainBlendingProcessor = CreateProcessor(EPCGExDataBlendingType::Copy, Identity); }
-				else { MultiAttribute->MainBlendingProcessor = CreateProcessor(BlendTypePtr, BlendingDetails->DefaultBlending, Identity); }
+				MultiAttribute->SetNum(NumSources);
 			}
 
 			check(MultiAttribute)
 
+			// Setup a single blender per A/B pair			
+			MultiAttribute->Sources[SourceIndex] = InFacade;
 			MultiAttribute->Siblings[SourceIndex] = SourceAttribute;
-			MultiAttribute->SubBlendingProcessors[SourceIndex] = CreateProcessor(BlendTypePtr, BlendingDetails->DefaultBlending, Identity);
-
-			if (!SourceAttribute->AllowsInterpolation()) { MultiAttribute->AllowsInterpolation = false; }
 		}
+
+		// TODO : Initialize property blenders here
+		// Weed need Source x Properties blenders :/
+		// Might want to revisit that later
 	}
 
 	void FUnionBlender::AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades, const TSet<FName>* IgnoreAttributeSet)
@@ -144,7 +208,7 @@ namespace PCGExDataBlending
 		for (TSharedRef<PCGExData::FFacade> Facade : InFacades) { AddSource(Facade, IgnoreAttributeSet); }
 	}
 
-	void FUnionBlender::PrepareMerge(
+	void FUnionBlender::Init(
 		FPCGExContext* InContext,
 		const TSharedPtr<PCGExData::FFacade>& TargetData,
 		const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata)
@@ -152,24 +216,29 @@ namespace PCGExDataBlending
 		CurrentUnionMetadata = InUnionMetadata;
 		CurrentTargetData = TargetData;
 
-		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
-		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : MakeUnique<FPropertiesBlender>(PropertiesBlendingDetails);
+		// Create property blender at the last moment
+		// TODO : Create a multiblender per property (x source)
 
 		// Initialize blending operations
-		for (const TSharedPtr<FMultiSourceAttribute>& MultiAttribute : MultiSourceAttributes)
+		for (const TSharedPtr<FMultiSourceBlender>& MultiAttribute : MultiSourceBlender)
 		{
-			MultiAttribute->PrepareMerge(MultiAttribute->Identity.UnderlyingType, CurrentTargetData, Sources);
+			MultiAttribute->Init(InContext, CurrentTargetData, Sources);
 		}
 
 		Validate(InContext, false);
 	}
 
-	void FUnionBlender::MergeSingle(const int32 UnionIndex, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
+	void FUnionBlender::InitTrackers(TArray<PCGEx::FOpStats>& Trackers)
 	{
-		MergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), InDistanceDetails);
+		Trackers.SetNumUninitialized(MultiSourceBlender.Num());
 	}
 
-	void FUnionBlender::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
+	void FUnionBlender::MergeSingle(const int32 UnionIndex, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<PCGEx::FOpStats>& Trackers)
+	{
+		MergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), InDistanceDetails, Trackers);
+	}
+
+	void FUnionBlender::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<PCGEx::FOpStats>& Trackers)
 	{
 		check(InUnionData)
 
@@ -188,39 +257,19 @@ namespace PCGExDataBlending
 
 		if (UnionCount == 0) { return; }
 
-		// Blend Properties
-
-
-		// Blend Properties
-		BlendProperties(Target, IdxIO, IdxPt, Weights);
-
-		// Blend Attributes
-
-		for (const TSharedPtr<FMultiSourceAttribute>& MultiAttribute : MultiSourceAttributes)
+		for (const TSharedPtr<FMultiSourceBlender>& MultiAttribute : MultiSourceBlender)
 		{
-			MultiAttribute->MainBlendingProcessor->PrepareOperation(WriteIndex);
-
-			int32 ValidUnions = 0;
-			double TotalWeight = 0;
+			PCGEx::FOpStats Tracking = MultiAttribute->MainBlender->BeginMultiBlend(WriteIndex);
 
 			for (int k = 0; k < UnionCount; k++)
 			{
-				const TSharedPtr<FDataBlendingProcessorBase>& Operation = MultiAttribute->SubBlendingProcessors[IdxIO[k]];
-				if (!Operation) { continue; }
-
-				const double Weight = Weights[k];
-
-				Operation->DoOperation(
-					WriteIndex, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]),
-					WriteIndex, Weight, k == 0);
-
-				ValidUnions++;
-				TotalWeight += Weight;
+				if (const TSharedPtr<FProxyDataBlender>& Blender = MultiAttribute->SubBlenders[IdxIO[k]])
+				{
+					Blender->MultiBlend(IdxPt[k], WriteIndex, Weights[k], Tracking);
+				}
 			}
 
-			if (ValidUnions == 0) { continue; } // No valid attribute to merge on any union source
-
-			MultiAttribute->MainBlendingProcessor->CompleteOperation(WriteIndex, ValidUnions, TotalWeight);
+			MultiAttribute->MainBlender->EndMultiBlend(WriteIndex, Tracking);
 		}
 	}
 
@@ -240,10 +289,9 @@ namespace PCGExDataBlending
 		CarryOverDetails->Prune(UniqueTags);
 
 		// Initialize blending operations
-		for (const TSharedPtr<FMultiSourceAttribute>& MultiAttribute : MultiSourceAttributes)
+		for (const TSharedPtr<FMultiSourceBlender>& MultiAttribute : MultiSourceBlender)
 		{
-			MultiAttribute->Buffer = nullptr;
-			MultiAttribute->PrepareSoftMerge(CurrentTargetData, Sources);
+			MultiAttribute->SoftInit(CurrentTargetData, Sources);
 		}
 
 		// Strip existing attribute names that may conflict with tags
@@ -291,16 +339,16 @@ namespace PCGExDataBlending
 		BlendProperties(Target, IdxIO, IdxPt, Weights);
 
 		// Blend Attributes
-		for (const TSharedPtr<FMultiSourceAttribute>& MultiAttribute : MultiSourceAttributes)
+		for (const TSharedPtr<FMultiSourceBlender>& MultiAttribute : MultiSourceBlender)
 		{
-			MultiAttribute->MainBlendingProcessor->PrepareOperation(Target.MetadataEntry);
+			MultiAttribute->MainBlender->PrepareOperation(Target.MetadataEntry);
 
 			int32 ValidUnions = 0;
 			double TotalWeight = 0;
 
 			for (int k = 0; k < NumUnions; k++)
 			{
-				const TSharedPtr<FDataBlendingProcessorBase>& Operation = MultiAttribute->SubBlendingProcessors[IdxIO[k]];
+				const TSharedPtr<FDataBlendingProcessorBase>& Operation = MultiAttribute->SubBlenders[IdxIO[k]];
 				if (!Operation) { continue; }
 
 				const double Weight = Weights[k];
@@ -315,7 +363,7 @@ namespace PCGExDataBlending
 
 			if (ValidUnions == 0) { continue; } // No valid attribute to merge on any union source
 
-			MultiAttribute->MainBlendingProcessor->CompleteOperation(Target.MetadataEntry, ValidUnions, TotalWeight);
+			MultiAttribute->MainBlender->CompleteOperation(Target.MetadataEntry, ValidUnions, TotalWeight);
 		}
 
 		// Tag flags
@@ -329,24 +377,6 @@ namespace PCGExDataBlending
 		}
 
 		for (int i = 0; i < TagAttributes.Num(); i++) { TagAttributes[i]->SetValue(Target.MetadataEntry, InheritedTags[i]); }
-	}
-
-	void FUnionBlender::BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights)
-	{
-		if (!PropertiesBlender) { return; }
-
-		PropertiesBlender->PrepareBlending(TargetPoint, TargetPoint);
-
-		const int32 NumUnions = IdxIO.Num();
-		double TotalWeight = 0;
-		for (int k = 0; k < NumUnions; k++)
-		{
-			const double Weight = Weights[k];
-			PropertiesBlender->Blend(TargetPoint, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]), TargetPoint, Weight);
-			TotalWeight += Weight;
-		}
-
-		PropertiesBlender->CompleteBlending(TargetPoint, NumUnions, TotalWeight);
 	}
 
 	bool FUnionBlender::Validate(FPCGExContext* InContext, const bool bQuiet) const

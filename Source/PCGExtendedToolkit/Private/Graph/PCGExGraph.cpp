@@ -402,7 +402,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails);
 			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &ProtectedClusterAttributes);
-			UnionBlender->PrepareMerge(AsyncManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion);
+			UnionBlender->Init(AsyncManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion);
 		}
 
 		if (InBuilder->OutputDetails->bOutputEdgeLength)
@@ -473,7 +473,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				if (const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindRootEdgeMetadata_Unsafe(E.IOIndex))
 				{
 					if (TSharedPtr<PCGExData::FUnionData> UnionData = ParentGraph->EdgesUnion->Get(EdgeMeta->RootIndex);
-						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, Distances); }
+						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, Distances, TODO); }
 
 #define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(EdgeIndex) = EdgeMeta->_ACCESSOR;}
 					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)

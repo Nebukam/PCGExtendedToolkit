@@ -126,23 +126,14 @@ namespace PCGExDataBlending
 		return true;
 	}
 
-	void FBlendOpsManager::InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops)
+	void FBlendOpsManager::InitTrackers(TArray<PCGEx::FOpStats>& Trackers)
 	{
-		ScopedTrackers = MakeShared<PCGExMT::TScopedArray<PCGEx::FOpStats>>(Loops);
+		Trackers.SetNumUninitialized(Operations->Num());
 	}
 
-	TArray<PCGEx::FOpStats>& FBlendOpsManager::GetTracking(const PCGExMT::FScope& Scope)
+	void FBlendOpsManager::BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		check(ScopedTrackers.IsValid())
-		return ScopedTrackers->Get_Ref(Scope);
-	}
-
-	void FBlendOpsManager::BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& OutTrackers) const
-	{
-		// TODO : Reuse a shared buffer based on Scope whenever possible
-		// Use a TScopedArray<PCGEx::FOpStats> ?
-		OutTrackers.SetNumUninitialized(Operations->Num());
-		for (int i = 0; i < Operations->Num(); i++) { OutTrackers[i] = (*(Operations->GetData() + i))->BeginMultiBlend(TargetIndex); }
+		for (int i = 0; i < Operations->Num(); i++) { Trackers[i] = (*(Operations->GetData() + i))->BeginMultiBlend(TargetIndex); }
 	}
 
 	void FBlendOpsManager::MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, TArray<PCGEx::FOpStats>& Trackers) const

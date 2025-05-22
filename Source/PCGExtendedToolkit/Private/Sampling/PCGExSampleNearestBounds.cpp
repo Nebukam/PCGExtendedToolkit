@@ -256,6 +256,8 @@ namespace PCGExSampleNearestBounds
 		bool bLocalAnySuccess = false;
 
 		TArray<PCGEx::FOpStats> BlendTrackers;
+		if(BlendOpsManager){ BlendOpsManager->InitTrackers(BlendTrackers); }
+		
 		TArray<PCGExNearestBounds::FSample> Samples;
 		Samples.Reserve(10);
 

@@ -7,11 +7,20 @@
 #include "UObject/Object.h"
 #include "PCGExDetails.h"
 #include "PCGExDetailsData.h"
+#include "PCGExProxyDataBlending.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/PCGExUnionData.h"
+
+
+
+
+
+
+
+
 
 namespace PCGExDataBlending
 {
@@ -20,30 +29,41 @@ namespace PCGExDataBlending
 
 namespace PCGExDataBlending
 {
-	class PCGEXTENDEDTOOLKIT_API FMultiSourceAttribute : public TSharedFromThis<FMultiSourceAttribute>
+	class PCGEXTENDEDTOOLKIT_API FMultiSourceBlender : public TSharedFromThis<FMultiSourceBlender>
 	{
+		// Cheap trick :
+		// For each attribute that requires blending, we create a blender
+		// Source A : Unique Source (In), Source B : Target (Out), Target : Target (Out)
+		// When comes the time to blend
+		// We initialize a single MultiBlend on the main blender
+		// then loop over each sub-blender using the FOpStats from the main blender
+		// and finally end blend on the main blender using the updated FOpStats
+		
 	public:
+		FBlendingHeader Header;
 		PCGEx::FAttributeIdentity Identity;
-		bool AllowsInterpolation = true;
-
 		const FPCGMetadataAttributeBase* DefaultValue = nullptr;
+
 		TArray<const FPCGMetadataAttributeBase*> Siblings; // Same attribute as it exists from different sources
-		TArray<TSharedPtr<FDataBlendingProcessorBase>> SubBlendingProcessors;
+		TArray<TSharedPtr<PCGExData::FFacade>> Sources; // Sources (null if attribute is not valid on that source)
+		TArray<TSharedPtr<FProxyDataBlender>> SubBlenders; // One blender per source
+		
+		TSharedPtr<FProxyDataBlender> MainBlender; // Finisher, only used to initialize tracker & complete the multiblend 
 
-		TSharedPtr<FDataBlendingProcessorBase> MainBlendingProcessor;
-		TSharedPtr<PCGExData::FBufferBase> Buffer;
+		explicit FMultiSourceBlender(const PCGEx::FAttributeIdentity& InIdentity);
 
-		explicit FMultiSourceAttribute(const PCGEx::FAttributeIdentity& InIdentity);
-
-		~FMultiSourceAttribute() = default;
-
-		void PrepareMerge(const EPCGMetadataTypes Type, const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources);
-		void PrepareSoftMerge(const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources);
+		~FMultiSourceBlender() = default;
+		
+		// Used to initialize an attribute of a given type
+		bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources);
+		
+		void SoftInit(const TSharedPtr<PCGExData::FFacade>& InTargetData, TArray<TSharedPtr<PCGExData::FFacade>>& Sources);
 
 		void SetNum(const int32 InNum)
 		{
 			Siblings.SetNum(InNum);
-			SubBlendingProcessors.SetNum(InNum);
+			Sources.SetNum(InNum);
+			SubBlenders.SetNum(InNum);
 		}
 	};
 
@@ -58,15 +78,16 @@ namespace PCGExDataBlending
 		void AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade, const TSet<FName>* IgnoreAttributeSet = nullptr);
 		void AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades, const TSet<FName>* IgnoreAttributeSet = nullptr);
 
-		void PrepareMerge(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata);
-		void MergeSingle(const int32 UnionIndex, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails);
-		void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails);
+		void Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata);
+
+		void InitTrackers(TArray<PCGEx::FOpStats>& Trackers);
+
+		void MergeSingle(const int32 UnionIndex, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<PCGEx::FOpStats>& Trackers);
+		void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<PCGEx::FOpStats>& Trackers);
 
 		void PrepareSoftMerge(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata);
 		void SoftMergeSingle(const int32 UnionIndex, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails);
 		void SoftMergeSingle(const int32 UnionIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails);
-
-		void BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights);
 
 		bool Validate(FPCGExContext* InContext, const bool bQuiet) const;
 
@@ -75,8 +96,9 @@ namespace PCGExDataBlending
 
 		bool bPreserveAttributesDefaultValue = false;
 		const FPCGExBlendingDetails* BlendingDetails = nullptr;
+		TArray<FBlendingHeader> PropertyHeaders;
 
-		TArray<TSharedPtr<FMultiSourceAttribute>> MultiSourceAttributes;
+		TArray<TSharedPtr<FMultiSourceBlender>> MultiSourceBlender;
 
 		TSet<FString> UniqueTags;
 		TArray<FString> UniqueTagsList;

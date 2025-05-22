@@ -274,6 +274,7 @@ namespace PCGExSampleNearestPoints
 		bool bLocalAnySuccess = false;
 
 		TArray<PCGEx::FOpStats> BlendTrackers;
+		if(BlendOpsManager){ BlendOpsManager->InitTrackers(BlendTrackers); }
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 		

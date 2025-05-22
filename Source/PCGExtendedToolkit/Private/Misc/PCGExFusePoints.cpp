@@ -123,10 +123,13 @@ namespace PCGExFusePoints
 
 		PointDataFacade->Source->InheritProperties(ReadIndices, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);
 
+		TArray<PCGEx::FOpStats> Trackers;
+		UnionBlender->InitTrackers(Trackers);
+		
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			Transforms[Index].SetLocation(UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints));
-			UnionBlender->MergeSingle(Index, Context->Distances);
+			UnionBlender->MergeSingle(Index, Context->Distances, Trackers);
 		}
 	}
 
@@ -137,7 +140,7 @@ namespace PCGExFusePoints
 
 		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
 		UnionBlender->AddSource(PointDataFacade, &PCGExGraph::ProtectedClusterAttributes);
-		UnionBlender->PrepareMerge(Context, PointDataFacade, UnionGraph->NodesUnion);
+		UnionBlender->Init(Context, PointDataFacade, UnionGraph->NodesUnion);
 
 		StartParallelLoopForRange(NumUnionNodes);
 	}
