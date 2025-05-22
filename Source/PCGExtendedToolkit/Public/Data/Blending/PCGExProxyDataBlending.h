@@ -8,6 +8,10 @@
 
 #include "PCGExDataBlending.h"
 #include "Data/PCGExProxyData.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 
 namespace PCGExDataBlending
@@ -39,14 +43,14 @@ namespace PCGExDataBlending
 		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) = 0;
 		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) = 0;
 		virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker) = 0;
-		
+
 		virtual void Div(const int32 TargetIndex, const double Divider) = 0;
 
 		virtual TSharedPtr<PCGExData::FBufferBase> GetOutputBuffer() const = 0;
 
 		virtual bool InitFromHeader(
 			FPCGExContext* InContext, const FBlendingHeader& InHeader, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
-			const TSharedPtr<PCGExData::FFacade> InSourceFacade, PCGExData::EIOSide InSide) = 0;
+			const TSharedPtr<PCGExData::FFacade> InSourceFacade, PCGExData::EIOSide InSide, bool bWantsDirectAccess = false) = 0;
 
 		template <typename T>
 		void Set(const int32 TargetIndex, const T Value)
@@ -99,7 +103,7 @@ namespace PCGExDataBlending
 
 		virtual bool InitFromHeader(
 			FPCGExContext* InContext, const FBlendingHeader& InHeader, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
-			const TSharedPtr<PCGExData::FFacade> InSourceFacade, const PCGExData::EIOSide InSide) override
+			const TSharedPtr<PCGExData::FFacade> InSourceFacade, const PCGExData::EIOSide InSide, const bool bWantsDirectAccess = false) override
 		{
 			// Setup a single blender per A/B pair
 			PCGExData::FProxyDescriptor Desc_A = PCGExData::FProxyDescriptor(InSourceFacade);
@@ -125,9 +129,13 @@ namespace PCGExDataBlending
 
 			PCGExData::FProxyDescriptor Desc_C = Desc_B;
 
-			A = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, A));
-			B = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, B));
-			C = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, C));
+			Desc_A.bWantsDirect = bWantsDirectAccess;
+			Desc_B.bWantsDirect = bWantsDirectAccess;
+			Desc_C.bWantsDirect = bWantsDirectAccess;
+
+			A = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, A));
+			B = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, B));
+			C = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, C));
 
 			return A && B && C;
 		}

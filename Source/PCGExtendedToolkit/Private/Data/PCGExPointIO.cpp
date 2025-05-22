@@ -27,7 +27,7 @@ namespace PCGExData
 #pragma region FPoint
 
 	FPoint::FPoint(const uint64 Hash)
-		: Index(PCGEx::H64A(Hash)), IO(PCGEx::H64A(Hash))
+		: Index(PCGEx::H64A(Hash)), IO(PCGEx::H64B(Hash))
 	{
 	}
 
@@ -36,8 +36,23 @@ namespace PCGExData
 	{
 	}
 
-	FPoint::FPoint(const TSharedPtr<FPointIO> InIO, const uint32 InIndex)
+	FPoint::FPoint(const TSharedPtr<FPointIO>& InIO, const uint32 InIndex)
 		: Index(InIndex), IO(InIO->IOIndex)
+	{
+	}
+
+	FWeightedPoint::FWeightedPoint(const uint64 Hash, const double InWeight)
+		: FPoint(Hash)
+	{
+	}
+
+	FWeightedPoint::FWeightedPoint(const int32 InIndex, const double InWeight, const int32 InIO)
+		: FPoint(InIndex, InIO), Weight(InWeight)
+	{
+	}
+
+	FWeightedPoint::FWeightedPoint(const TSharedPtr<FPointIO>& InIO, const uint32 InIndex, const double InWeight)
+		: FPoint(InIO, InIndex), Weight(InWeight)
 	{
 	}
 
@@ -141,10 +156,16 @@ namespace PCGExData
 	{
 	}
 
+	FConstPoint::FConstPoint(const UPCGBasePointData* InData, const FPoint& InPoint)
+		: FPoint(InPoint.Index, InPoint.IO), Data(InData)
+	{
+	}
+
 	FConstPoint::FConstPoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex)
 		: FPoint(InFacade, InIndex), Data(InFacade->GetIn())
 	{
 	}
+
 
 	FMutablePoint::FMutablePoint(UPCGBasePointData* InData, const uint64 Hash)
 		: FPoint(Hash), Data(InData)

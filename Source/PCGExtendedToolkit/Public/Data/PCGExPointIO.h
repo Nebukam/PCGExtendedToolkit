@@ -72,7 +72,7 @@ namespace PCGExData
 
 		explicit FPoint(const uint64 Hash);
 		explicit FPoint(const int32 InIndex, const int32 InIO = -1);
-		FPoint(const TSharedPtr<FPointIO> InIO, const uint32 InIndex);
+		FPoint(const TSharedPtr<FPointIO>& InIO, const uint32 InIndex);
 
 		FORCEINLINE bool IsValid() const { return Index >= 0; }
 		FORCEINLINE uint64 H64() const { return PCGEx::H64U(Index, IO); }
@@ -96,6 +96,18 @@ namespace PCGExData
 		virtual float GetSteepness() const PCGEX_NOT_IMPLEMENTED_RET(GetSteepness, 1)
 		virtual float GetDensity() const PCGEX_NOT_IMPLEMENTED_RET(GetDensity, 1)
 		virtual int64 GetMetadataEntry() const PCGEX_NOT_IMPLEMENTED_RET(GetMetadataEntry, 0)
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FWeightedPoint : FPoint
+	{
+		double Weight = 0;
+
+		FWeightedPoint() = default;
+		virtual ~FWeightedPoint() = default;
+
+		explicit FWeightedPoint(const uint64 Hash, const double InWeight = 1);
+		explicit FWeightedPoint(const int32 InIndex, const double InWeight = 1, const int32 InIO = -1);
+		FWeightedPoint(const TSharedPtr<FPointIO>& InIO, const uint32 InIndex, const double InWeight = 1);
 	};
 
 #define PCGEX_POINT_PROXY_OVERRIDES \
@@ -158,6 +170,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		FConstPoint(const UPCGBasePointData* InData, const uint64 Hash);
 		FConstPoint(const UPCGBasePointData* InData, const int32 InIndex, const int32 InIO = -1);
+		FConstPoint(const UPCGBasePointData* InData, const FPoint& InPoint);
 		FConstPoint(const TSharedPtr<FPointIO>& InFacade, const int32 InIndex);
 
 		PCGEX_POINT_PROXY_OVERRIDES

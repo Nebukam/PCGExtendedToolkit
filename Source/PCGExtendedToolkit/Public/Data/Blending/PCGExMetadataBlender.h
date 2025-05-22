@@ -24,7 +24,7 @@ namespace PCGExDataBlending
 		void SetSourceData(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In);
 		void SetTargetData(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
-		bool Init(FPCGExContext* InContext, const FPCGExBlendingDetails& InBlendingDetails, const TSet<FName>* IgnoreAttributeSet = nullptr);
+		bool Init(FPCGExContext* InContext, const FPCGExBlendingDetails& InBlendingDetails, const TSet<FName>* IgnoreAttributeSet = nullptr, const bool bWantsDirectAccess = false);
 
 		void Blend(const int32 SourceIndex, const int32 TargetIndex) const;
 		void Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double Weight = 1) const;

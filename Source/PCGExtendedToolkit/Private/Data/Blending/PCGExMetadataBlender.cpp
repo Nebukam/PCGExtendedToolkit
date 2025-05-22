@@ -21,7 +21,7 @@ namespace PCGExDataBlending
 		TargetFacadeHandle = InDataFacade;
 	}
 
-	bool FMetadataBlender::Init(FPCGExContext* InContext, const FPCGExBlendingDetails& InBlendingDetails, const TSet<FName>* IgnoreAttributeSet)
+	bool FMetadataBlender::Init(FPCGExContext* InContext, const FPCGExBlendingDetails& InBlendingDetails, const TSet<FName>* IgnoreAttributeSet, const bool bWantsDirectAccess)
 	{
 		const TSharedPtr<PCGExData::FFacade> SourceFacade = SourceFacadeHandle.Pin();
 		const TSharedPtr<PCGExData::FFacade> TargetFacade = TargetFacadeHandle.Pin();
@@ -63,6 +63,10 @@ namespace PCGExDataBlending
 
 			PCGExData::FProxyDescriptor C = B;
 
+			A.bWantsDirect = bWantsDirectAccess;
+			B.bWantsDirect = bWantsDirectAccess;
+			C.bWantsDirect = bWantsDirectAccess;
+			
 			TSharedPtr<PCGExDataBlending::FProxyDataBlender> Blender = PCGExDataBlending::CreateProxyBlender(InContext, Header.Blending, A, B, C);
 
 			if (!Blender) { return false; }

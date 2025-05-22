@@ -9,15 +9,13 @@ namespace PCGExData
 {
 #pragma region Union Data
 
-	void FUnionData::ComputeWeights(
-		const TArray<TSharedPtr<FFacade>>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,
-		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<int32>& OutIOIdx, TArray<int32>& OutPointsIdx, TArray<double>& OutWeights) const
+	int32 FUnionData::ComputeWeights(
+		const TArray<const UPCGBasePointData*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FConstPoint& Target,
+		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
 	{
 		const int32 NumHashes = ItemHashSet.Num();
 
-		OutPointsIdx.SetNumUninitialized(NumHashes);
-		OutWeights.SetNumUninitialized(NumHashes);
-		OutIOIdx.SetNumUninitialized(NumHashes);
+		OutWeightedPoints.Reset(NumHashes);
 
 		double TotalWeight = 0;
 		int32 Index = 0;
@@ -31,36 +29,32 @@ namespace PCGExData
 			const int32* IOIdx = SourcesIdx.Find(IOIndex);
 			if (!IOIdx) { continue; }
 
-			OutIOIdx[Index] = *IOIdx;
-			OutPointsIdx[Index] = PtIndex;
+			FWeightedPoint& P = OutWeightedPoints.Emplace_GetRef(PtIndex, 0, *IOIdx);
 
-			const double Weight = InDistanceDetails->GetDistSquared(Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target);
-			OutWeights[Index] = Weight;
+			const double Weight = InDistanceDetails->GetDistSquared(FConstPoint(Sources[P.IO], P), Target);
+			P.Weight = Weight;
 			TotalWeight += Weight;
 
 			Index++;
 		}
 
-		if (Index == 0) { return; }
-
-		OutPointsIdx.SetNum(Index);
-		OutWeights.SetNum(Index);
-		OutIOIdx.SetNum(Index);
+		if (Index == 0) { return 0; }
 
 		if (Index == 1)
 		{
-			OutWeights[0] = 1;
-			return;
+			OutWeightedPoints[0].Weight = 1;
+			return 1;
 		}
 
 		if (TotalWeight == 0)
 		{
-			const double StaticWeight = 1 / static_cast<double>(ItemHashSet.Num());
-			for (double& Weight : OutWeights) { Weight = StaticWeight; }
-			return;
+			const double StaticWeight = 1 / static_cast<double>(Index);
+			for (FWeightedPoint& P : OutWeightedPoints) { P.Weight = StaticWeight; }
+			return Index;
 		}
 
-		for (double& Weight : OutWeights) { Weight = 1 - (Weight / TotalWeight); }
+		for (FWeightedPoint& P : OutWeightedPoints) { P.Weight = 1 - (P.Weight / TotalWeight); }
+		return Index;
 	}
 
 	uint64 FUnionData::Add(const PCGExData::FPoint& Point)

@@ -29,14 +29,13 @@ namespace PCGExData
 
 		int32 Num() const { return ItemHashSet.Num(); }
 
-		void ComputeWeights(
-			const TArray<TSharedPtr<FFacade>>& Sources,
+		// Gather data into arrays and return the required iteration count
+		int32 ComputeWeights(
+			const TArray<const UPCGBasePointData*>& Sources,
 			const TMap<uint32, int32>& SourcesIdx,
-			const FPCGPoint& Target,
+			const FConstPoint& Target,
 			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
-			TArray<int32>& OutIOIdx,
-			TArray<int32>& OutPointsIdx,
-			TArray<double>& OutWeights) const;
+			TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const;
 
 		uint64 Add(const PCGExData::FPoint& Point);
 		void Add(const int32 IOIndex, const TArray<int32>& PointIndices);

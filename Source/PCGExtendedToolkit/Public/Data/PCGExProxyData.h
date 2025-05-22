@@ -27,6 +27,7 @@ namespace PCGExData
 		const UPCGBasePointData* PointData = nullptr;
 
 		bool bIsConstant = false;
+		bool bWantsDirect = false;
 
 		FProxyDescriptor()
 		{

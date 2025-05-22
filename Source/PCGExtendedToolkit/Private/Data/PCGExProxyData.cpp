@@ -213,6 +213,12 @@ namespace PCGExData
 
 						if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 						{
+
+							if(InDescriptor.bWantsDirect)
+							{
+								// TODO : use TDirectAttributeProxy instead of TAttributeBufferProxy
+							}
+							
 							if (bSubSelection)
 							{
 								TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, true>> TypedProxy =
