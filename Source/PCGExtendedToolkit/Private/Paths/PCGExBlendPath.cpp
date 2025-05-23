@@ -84,15 +84,18 @@ namespace PCGExBlendPath
 
 		MaxIndex = PointDataFacade->GetNum() - 1;
 
-		Start = PointDataFacade->Source->GetInPoint(0);
-		End = PointDataFacade->Source->GetInPoint(MaxIndex);
+		Start = 0;
+		End = MaxIndex;
 
-		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
-		MetadataBlender->PrepareForData(PointDataFacade);
+		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+		MetadataBlender->SetTargetData(PointDataFacade);
+		MetadataBlender->SetSourceData(PointDataFacade);
+
+		if (!MetadataBlender->Init(Context, Settings->BlendingSettings)) { return false; }
 
 		if (Settings->BlendOver == EPCGExBlendOver::Distance)
 		{
-			Metrics = PCGExPaths::FPathMetrics(Start.GetLocation());
+			Metrics = PCGExPaths::FPathMetrics(PointDataFacade->GetIn()->GetTransform(0).GetLocation());
 			PCGEx::InitArray(Length, PointDataFacade->GetNum());
 
 			const TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
@@ -106,7 +109,6 @@ namespace PCGExBlendPath
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-	
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
@@ -119,8 +121,6 @@ namespace PCGExBlendPath
 			}
 
 			double Alpha = 0.5;
-			const PCGExData::FMutablePoint Current = PointDataFacade->GetOutPoint(Index);
-			MetadataBlender->PrepareForBlending(Current);
 
 			if (Settings->BlendOver == EPCGExBlendOver::Distance)
 			{
@@ -135,8 +135,7 @@ namespace PCGExBlendPath
 				Alpha = LerpCache->Read(Index);
 			}
 
-			MetadataBlender->Blend(Start, End, Current, Alpha);
-			MetadataBlender->CompleteBlending(Current, 2, 1);
+			MetadataBlender->Blend(Start, End, Index, Alpha);
 		}
 	}
 

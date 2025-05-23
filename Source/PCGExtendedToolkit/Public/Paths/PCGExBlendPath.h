@@ -99,8 +99,8 @@ namespace PCGExBlendPath
 		TSharedPtr<PCGExDetails::TSettingValue<double>> LerpCache;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
-		PCGExData::FConstPoint Start;
-		PCGExData::FConstPoint End;
+		int32 Start = -1;
+		int32 End = -1;
 
 		TArray<double> Length;
 
