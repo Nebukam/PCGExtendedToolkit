@@ -22,11 +22,11 @@ namespace PCGExGraph
 		Center = FVector::ZeroVector;
 		const TSharedPtr<PCGExData::FUnionData> UnionData = InUnionMetadata->Get(Index);
 
-		const double Divider = UnionData->ItemHashSet.Num();
+		const double Divider = UnionData->Elements.Num();
 
-		for (const uint64 H : UnionData->ItemHashSet)
+		for (const PCGExData::FElement& H : UnionData->Elements)
 		{
-			Center += IOGroup->Pairs[PCGEx::H64A(H)]->GetIn()->GetTransform(PCGEx::H64B(H)).GetLocation();
+			Center += IOGroup->Pairs[H.IO]->GetIn()->GetTransform(H.Index).GetLocation();
 		}
 
 		Center /= Divider;
@@ -540,7 +540,7 @@ namespace PCGExGraph
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
 			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata_Unsafe(Edge.EdgeIndex)->RootIndex;
-			const TSet<int32>& RootIOIndices = Graph->EdgesUnion->Entries[RootIndex]->IOIndices;
+			const TSet<int32>& RootIOIndices = Graph->EdgesUnion->Entries[RootIndex]->IOSet;
 
 			auto ProcessPointRef = [&](const PCGPointOctree::FPointRef& PointRef)
 			{
@@ -800,7 +800,7 @@ namespace PCGExGraph
 		{
 			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata_Unsafe(Edge.EdgeIndex)->RootIndex;
 			TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion = InIntersections->Graph->EdgesUnion;
-			const TSet<int32>& RootIOIndices = EdgesUnion->Entries[RootIndex]->IOIndices;
+			const TSet<int32>& RootIOIndices = EdgesUnion->Entries[RootIndex]->IOSet;
 
 			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
 			{

@@ -321,3 +321,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 		const bool bSkipProperties = false,
 		const TSet<FName>* IgnoreAttributeSet = nullptr) const;
 };
+
+namespace PCGExDataBlending
+{
+	void AssembleBlendingDetails(
+		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
+		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
+		const TSharedRef<PCGExData::FPointIO>& SourceIO,
+		FPCGExBlendingDetails& OutDetails,
+		TSet<FName>& OutMissingAttributes);
+
+	void AssembleBlendingDetails(
+		const EPCGExDataBlendingType& DefaultBlending,
+		const TArray<FName>& Attributes,
+		const TSharedRef<PCGExData::FPointIO>& SourceIO,
+		FPCGExBlendingDetails& OutDetails,
+		TSet<FName>& OutMissingAttributes);
+}

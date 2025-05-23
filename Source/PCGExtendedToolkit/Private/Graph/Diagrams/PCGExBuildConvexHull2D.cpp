@@ -88,7 +88,7 @@ namespace PCGExConvexHull2D
 
 		TArray<FVector> ActivePositions;
 		TArray<int32> ConvexHullIndices;
-		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 		ConvexHull2D::ComputeConvexHull(ActivePositions, ConvexHullIndices);
 
 		const int32 LastIndex = ConvexHullIndices.Num() - 1;
@@ -98,7 +98,7 @@ namespace PCGExConvexHull2D
 			return false;
 		}
 
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn();
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->PathsIO->Emplace_GetRef(PointDataFacade->GetIn(), PCGExData::EIOInit::New);
 
 		if (!PathIO) { return false; }

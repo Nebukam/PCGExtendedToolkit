@@ -242,3 +242,54 @@ void FPCGExBlendingDetails::GetBlendingHeaders(
 		OutHeaders.Add(Header);
 	}
 }
+
+namespace PCGExDataBlending
+{
+	void AssembleBlendingDetails(
+		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
+		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
+		const TSharedRef<PCGExData::FPointIO>& SourceIO,
+		FPCGExBlendingDetails& OutDetails,
+		TSet<FName>& OutMissingAttributes)
+	{
+		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
+
+		OutDetails = FPCGExBlendingDetails(PropertiesBlending);
+		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
+
+		TArray<FName> SourceAttributesList;
+		PerAttributeBlending.GetKeys(SourceAttributesList);
+
+		AttributesInfos->FindMissing(SourceAttributesList, OutMissingAttributes);
+
+		for (const FName& Id : SourceAttributesList)
+		{
+			if (OutMissingAttributes.Contains(Id)) { continue; }
+
+			OutDetails.AttributesOverrides.Add(Id, *PerAttributeBlending.Find(Id));
+			OutDetails.FilteredAttributes.Add(Id);
+		}
+	}
+
+	void AssembleBlendingDetails(
+		const EPCGExDataBlendingType& DefaultBlending,
+		const TArray<FName>& Attributes,
+		const TSharedRef<PCGExData::FPointIO>& SourceIO,
+		FPCGExBlendingDetails& OutDetails,
+		TSet<FName>& OutMissingAttributes)
+	{
+		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
+		OutDetails = FPCGExBlendingDetails(FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None));
+		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
+
+		AttributesInfos->FindMissing(Attributes, OutMissingAttributes);
+
+		for (const FName& Id : Attributes)
+		{
+			if (OutMissingAttributes.Contains(Id)) { continue; }
+
+			OutDetails.AttributesOverrides.Add(Id, DefaultBlending);
+			OutDetails.FilteredAttributes.Add(Id);
+		}
+	}
+}

@@ -96,7 +96,7 @@ namespace PCGExCopyToPoints
 			Context->TargetsForwardHandler->Forward(i, Dupe->GetOut()->Metadata);
 
 			Dupes[i] = Dupe;
-			
+
 			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, Dupe, &Context->TransformDetails)
 		}
 
@@ -107,8 +107,7 @@ namespace PCGExCopyToPoints
 	{
 		if (NumCopies == 0) { return; }
 
-		const TArray<FPCGPoint>& Targets = Context->TargetsDataFacade->GetIn()->GetPoints();
-		const int32 NumTargets = Targets.Num();
+		const int32 NumTargets = Context->TargetsDataFacade->GetNum();
 
 		// Once work is complete, check if there are cached clusters we can forward
 		for (int i = 0; i < NumTargets; i++)
@@ -117,7 +116,7 @@ namespace PCGExCopyToPoints
 
 			if (!EdgeDupe) { continue; }
 
-			Context->TargetsAttributesToClusterTags.Tag(i, EdgeDupe);
+			Context->TargetsAttributesToClusterTags.Tag(Context->TargetsDataFacade->GetInPoint(i), EdgeDupe);
 			Context->TargetsForwardHandler->Forward(i, EdgeDupe->GetOut()->Metadata);
 		}
 	}

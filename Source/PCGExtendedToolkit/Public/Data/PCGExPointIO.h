@@ -40,47 +40,38 @@ namespace PCGExData
 		Out
 	};
 
-	struct FScope
-	{
-		UPCGBasePointData* Data = nullptr;
-		int32 Start = -1;
-		int32 Count = -1;
-		int32 End = -1;
-
-		FScope() = default;
-
-		FScope(UPCGBasePointData* InData, const int32 InStart, const int32 InCount);
-		FScope(const UPCGBasePointData* InData, const int32 InStart, const int32 InCount);
-
-		~FScope() = default;
-		bool IsValid() const { return Start >= 0 && Count > 0 && Data->GetNumPoints() <= End; }
-		void GetIndices(TArray<int32>& OutIndices) const;
-	};
-
 #pragma region FPoint
 
-	// FPoint is used when we only care about point index
-	// And possibly IOIndex as well, but without the need to track the actual data object.
-	// This makes it a barebone way to track point indices with some additional mapping mechanism with a secondary index
-	struct PCGEXTENDEDTOOLKIT_API FPoint
+	struct PCGEXTENDEDTOOLKIT_API FElement
 	{
 		int32 Index = -1;
 		int32 IO = -1;
 
-		FPoint() = default;
-		virtual ~FPoint() = default;
-
-		explicit FPoint(const uint64 Hash);
-		explicit FPoint(const int32 InIndex, const int32 InIO = -1);
-		FPoint(const TSharedPtr<FPointIO>& InIO, const uint32 InIndex);
+		FElement() = default;
+		explicit FElement(const uint64 Hash);
+		explicit FElement(const int32 InIndex, const int32 InIO = -1);
+		FElement(const TSharedPtr<FPointIO>& InIO, const uint32 InIndex);
 
 		FORCEINLINE bool IsValid() const { return Index >= 0; }
 		FORCEINLINE uint64 H64() const { return PCGEx::H64U(Index, IO); }
 
 		explicit operator int32() const { return Index; }
 
-		bool operator==(const FPoint& Other) const { return Index == Other.Index && IO == Other.IO; }
-		FORCEINLINE friend uint32 GetTypeHash(const FPoint& Key) { return HashCombineFast(Key.Index, Key.IO); }
+		bool operator==(const FElement& Other) const { return Index == Other.Index && IO == Other.IO; }
+		FORCEINLINE friend uint32 GetTypeHash(const FElement& Key) { return HashCombineFast(Key.Index, Key.IO); }
+	};
+
+	// FPoint is used when we only care about point index
+	// And possibly IOIndex as well, but without the need to track the actual data object.
+	// This makes it a barebone way to track point indices with some additional mapping mechanism with a secondary index
+	struct PCGEXTENDEDTOOLKIT_API FPoint : FElement
+	{
+		FPoint() = default;
+		virtual ~FPoint() = default;
+
+		explicit FPoint(const uint64 Hash);
+		explicit FPoint(const int32 InIndex, const int32 InIO = -1);
+		FPoint(const TSharedPtr<FPointIO>& InIO, const uint32 InIndex);
 
 		virtual const FTransform& GetTransform() const PCGEX_NOT_IMPLEMENTED_RET(GetTransform, FTransform::Identity)
 		virtual FVector GetLocation() const PCGEX_NOT_IMPLEMENTED_RET(GetLocation, FVector::OneVector)
@@ -262,6 +253,29 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 	void SetPointProperty(FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
 
 #pragma endregion
+
+	struct FScope
+	{
+		UPCGBasePointData* Data = nullptr;
+		int32 Start = -1;
+		int32 Count = -1;
+		int32 End = -1;
+
+		FScope() = default;
+
+		FScope(UPCGBasePointData* InData, const int32 InStart, const int32 InCount);
+		FScope(const UPCGBasePointData* InData, const int32 InStart, const int32 InCount);
+
+		FORCEINLINE FConstPoint CFirst() const { return FConstPoint(Data, Start); }
+		FORCEINLINE FConstPoint CLast() const { return FConstPoint(Data, End - 1); }
+
+		FORCEINLINE FMutablePoint MFirst() const { return FMutablePoint(Data, Start); }
+		FORCEINLINE FMutablePoint MLast() const { return FMutablePoint(Data, End - 1); }
+
+		~FScope() = default;
+		bool IsValid() const { return Start >= 0 && Count > 0 && Data->GetNumPoints() <= End; }
+		void GetIndices(TArray<int32>& OutIndices) const;
+	};
 
 #pragma region FPointIO
 	/**

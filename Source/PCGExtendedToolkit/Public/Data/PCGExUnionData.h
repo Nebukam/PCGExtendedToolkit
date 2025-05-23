@@ -19,14 +19,16 @@ namespace PCGExData
 		mutable FRWLock UnionLock;
 
 	public:
+		using InlineSparseAllocator = TSetAllocator<TSparseArrayAllocator<TInlineAllocator<8>, TInlineAllocator<8>>, TInlineAllocator<8>>;
+		
 		//int32 Index = 0;
-		TSet<int32, DefaultKeyFuncs<int32>, TInlineAllocator<8>> IOIndices;
-		TSet<uint64, DefaultKeyFuncs<uint64>, TInlineAllocator<8>> ItemHashSet;
+		TSet<int32, DefaultKeyFuncs<int32>, InlineSparseAllocator> IOSet;
+		TSet<FElement, DefaultKeyFuncs<FElement>, InlineSparseAllocator> Elements;
 
 		FUnionData() = default;
 		~FUnionData() = default;
 
-		FORCEINLINE int32 Num() const { return ItemHashSet.Num(); }
+		FORCEINLINE int32 Num() const { return Elements.Num(); }
 
 		// Gather data into arrays and return the required iteration count
 		int32 ComputeWeights(
@@ -36,16 +38,16 @@ namespace PCGExData
 			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
 			TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const;
 
-		uint64 Add_Unsafe(const PCGExData::FPoint& Point);
-		uint64 Add(const PCGExData::FPoint& Point);
-		
+		void Add_Unsafe(const PCGExData::FPoint& Point);
+		void Add(const PCGExData::FPoint& Point);
+
 		void Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices);
 		void Add(const int32 IOIndex, const TArray<int32>& PointIndices);
 
 		void Reset()
 		{
-			IOIndices.Reset();
-			ItemHashSet.Reset();
+			IOSet.Reset();
+			Elements.Reset();
 		}
 	};
 
@@ -64,7 +66,7 @@ namespace PCGExData
 		TSharedPtr<FUnionData> NewEntry_Unsafe(const PCGExData::FConstPoint& Point);
 		TSharedPtr<FUnionData> NewEntryAt_Unsafe(const int32 ItemIndex);
 
-		uint64 Append(const int32 Index, const PCGExData::FPoint& Point);
+		void Append(const int32 Index, const PCGExData::FPoint& Point);
 		bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
 
 		FORCEINLINE TSharedPtr<FUnionData> Get(const int32 Index) const { return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr; }

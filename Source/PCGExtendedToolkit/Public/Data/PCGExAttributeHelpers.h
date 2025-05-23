@@ -662,17 +662,6 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 
 #pragma endregion
 
-#pragma region Attribute copy
-
-	void CopyPoints(
-		const PCGExData::FPointIO* Source,
-		const PCGExData::FPointIO* Target,
-		const TSharedPtr<const TArray<int32>>& SourceIndices,
-		const int32 TargetIndex = 0,
-		const bool bKeepSourceMetadataEntry = false);
-
-#pragma endregion
-
 	TSharedPtr<FAttributesInfos> GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError);
 }
 

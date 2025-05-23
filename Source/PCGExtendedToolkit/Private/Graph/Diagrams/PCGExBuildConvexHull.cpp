@@ -77,7 +77,7 @@ namespace PCGExConvexHull
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
 		Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
 

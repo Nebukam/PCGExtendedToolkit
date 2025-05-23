@@ -224,13 +224,13 @@ namespace PCGExSubdivide
 			ProtectedAttributes.Add(Settings->AlphaAttributeName);
 		}
 
-		if(!SubBlending->PrepareForData(Context, PointDataFacade, &ProtectedAttributes))
+		if (!SubBlending->PrepareForData(Context, PointDataFacade, &ProtectedAttributes))
 		{
 			//
 			bIsProcessorValid = false;
 			return;
 		}
-		
+
 		StartParallelLoopForRange(Subdivisions.Num());
 	}
 
@@ -270,9 +270,8 @@ namespace PCGExSubdivide
 
 			Metrics.Add(End);
 
-			//PointDataFacade->GetOutRange()
-			const TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + SubStart, Sub.NumSubdivisions);
-			SubBlending->ProcessSubPoints(PointDataFacade->GetOutPoint(Sub.OutStart), PointDataFacade->GetOutPoint(Sub.OutEnd), View, Metrics, SubStart);
+			PCGExData::FScope SubScope = PointDataFacade->GetInScope(SubStart, Sub.NumSubdivisions);
+			SubBlending->ProcessSubPoints(PointDataFacade->GetOutPoint(Sub.OutStart), PointDataFacade->GetOutPoint(Sub.OutEnd), SubScope, Metrics, SubStart);
 
 			for (int i = Sub.OutStart + 1; i < Sub.OutEnd; i++) { OutSeeds[i] = PCGExRandom::ComputeSpatialSeed(OutTransforms[i].GetLocation()); }
 		}

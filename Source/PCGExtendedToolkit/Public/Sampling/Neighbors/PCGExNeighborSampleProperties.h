@@ -12,7 +12,6 @@
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExNeighborSampleFactoryProvider.h"
-#include "Data/Blending/PCGExPropertiesBlender.h"
 
 
 #include "PCGExNeighborSampleProperties.generated.h"

@@ -8,7 +8,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-
 bool FPCGExSubPointsBlendOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSet<FName>* IgnoreAttributeSet)
 {
 	return PrepareForData(InContext, InTargetFacade, InTargetFacade, PCGExData::EIOSide::In, IgnoreAttributeSet);
@@ -67,10 +66,7 @@ void FPCGExSubPointsBlendOperation::BlendSubPoints(
 
 void FPCGExSubPointsBlendOperation::BlendSubPoints(PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
-	const FPCGPoint& Start = Scope[0];
-	const int32 LastIndex = Scope.Num() - 1;
-	const FPCGPoint& End = Scope[LastIndex];
-	BlendSubPoints(PCGExData::FConstPoint(Start, 0), PCGExData::FConstPoint(End, LastIndex), Scope, Metrics, 0);
+	BlendSubPoints(Scope.CFirst(), Scope.CLast(), Scope, Metrics, 0);
 }
 
 void UPCGExSubPointsBlendInstancedFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)
@@ -80,9 +76,4 @@ void UPCGExSubPointsBlendInstancedFactory::CopySettingsFrom(const UPCGExInstance
 	{
 		BlendingDetails = TypedOther->BlendingDetails;
 	}
-}
-
-TSharedPtr<FPCGExSubPointsBlendOperation> UPCGExSubPointsBlendInstancedFactory::CreateOperation() const
-{
-	return nullptr;
 }

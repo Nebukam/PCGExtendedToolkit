@@ -254,8 +254,7 @@ namespace PCGExAssetStaging
 		const TPCGValueRange<FVector> OutBoundsMax = OutPointData->GetBoundsMaxValueRange();
 		const TPCGValueRange<int32> Seeds = OutPointData->GetSeedValueRange();
 
-		TSharedPtr<PCGExData::TBuffer<int32>> WR = WeightWriter.IsValid() ? WeightWriter : NormalizedWeightWriter.IsValid() ? NormalizedWeightWriter : nullptr;
-		const TPCGValueRange<float> Densities = OutPointData->GetDensityValueRange(WR ? false : true);
+		const TPCGValueRange<float> Densities = OutPointData->GetDensityValueRange((!WeightWriter && !NormalizedWeightWriter));
 
 		const TPCGValueRange<int64> MetadataEntries = OutPointData->GetMetadataEntryValueRange();
 
@@ -328,7 +327,8 @@ namespace PCGExAssetStaging
 			{
 				double Weight = bNormalizedWeight ? static_cast<double>(Entry->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : Entry->Weight;
 				if (bOneMinusWeight) { Weight = 1 - Weight; }
-				if (WR) { WR->GetMutable(Index) = Weight; }
+				if (WeightWriter) { WeightWriter->GetMutable(Index) = Weight; }
+				if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = Weight; }
 				else { Densities[Index] = Weight; }
 			}
 

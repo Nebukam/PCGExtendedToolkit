@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExDetails.h"
 #include "PCGExDetailsData.h"
 #include "PCGExProxyDataBlending.h"
 #include "Data/PCGExData.h"
@@ -13,9 +12,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/PCGExUnionData.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-
 
 namespace PCGExDataBlending
 {

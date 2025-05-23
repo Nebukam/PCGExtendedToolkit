@@ -10,11 +10,13 @@ void FPCGExSubPointsBlendInheritEnd::BlendSubPoints(
 	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
 	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
 {
-	for (int i = 0; i < Scope.Num(); i++)
+	TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange();
+
+	PCGEX_SCOPE_LOOP(Index)
 	{
-		FVector Location = Scope[i].Transform.GetLocation();
+		FVector Location = OutTransform[Index].GetLocation();
 		MetadataBlender->Blend(From.Index, To.Index, StartIndex < 0 ? From.Index : StartIndex, 1);
-		Scope[i].Transform.SetLocation(Location);
+		OutTransform[Index].SetLocation(Location);
 	}
 }
 

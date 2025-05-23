@@ -39,14 +39,14 @@ bool FPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGExContext* InContex
 
 void FPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
-	const FPCGPoint& Point = PrimaryDataFacade->Source->GetInPoint(Node.PointIndex);
+	const FTransform& PointTransform = PrimaryDataFacade->Source->GetIn()->GetTransform(Node.PointIndex);
 
 	double BestDot = MIN_dbl_neg;
 	int32 IBest = -1;
 	const double DotThreshold = Config.DotComparisonDetails.GetComparisonThreshold(Node.PointIndex);
 
 	FVector NodeDirection = DirCache->Read(Node.PointIndex).GetSafeNormal();
-	if (Config.bTransformDirection) { NodeDirection = Point.Transform.TransformVectorNoScale(NodeDirection); }
+	if (Config.bTransformDirection) { NodeDirection = PointTransform.TransformVectorNoScale(NodeDirection); }
 
 	for (int i = 0; i < Adjacency.Num(); i++)
 	{

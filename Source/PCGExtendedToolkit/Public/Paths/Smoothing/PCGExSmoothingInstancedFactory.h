@@ -8,21 +8,26 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-
-
-
 #include "PCGExSmoothingInstancedFactory.generated.h"
+
+namespace PCGExSmooth
+{
+	class FProcessor;
+}
 
 class FPCGExSmoothingOperation : public FPCGExOperation
 {
+	friend class PCGExSmooth::FProcessor;
+
 public:
-	virtual void SmoothSingle(
-		const TSharedRef<PCGExData::FPointIO>& Path, PCGExData::FConstPoint& Target,
-		const double Smoothing, const double Influence,
-		const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender,
-		const bool bClosedLoop)
+	virtual void SmoothSingle(const int32 TargetIndex, const double Smoothing, const double Influence, TArray<PCGEx::FOpStats>& Trackers)
 	{
 	}
+
+protected:
+	TSharedPtr<PCGExData::FPointIO> Path;
+	TSharedPtr<PCGExDataBlending::FMetadataBlender> Blender;
+	bool bClosedLoop = false;
 };
 
 /**

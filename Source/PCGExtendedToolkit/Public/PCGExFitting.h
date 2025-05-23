@@ -307,11 +307,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingDetailsHandler
 	{
 		//
 		check(TargetDataFacade);
-		const FPCGPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
+		const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
+		const FTransform& InTransform = TargetPoint.GetTransform();
 
-		if constexpr (bWorldSpace) { OutTransform = TargetPoint.Transform; }
+		if constexpr (bWorldSpace) { OutTransform = InTransform; }
 
-		FVector OutScale = TargetPoint.Transform.GetScale3D();
+		FVector OutScale = InTransform.GetScale3D();
 		const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
 		const FBox& OriginalInBounds = InOutBounds;
 
@@ -325,33 +326,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingDetailsHandler
 			FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
 			OutTranslation);
 
-		OutTransform.AddToTranslation(TargetPoint.Transform.GetRotation().RotateVector(OutTranslation));
-		OutTransform.SetScale3D(OutScale);
-	}
-
-	template <bool bWorldSpace = true>
-	void ComputeTransform(const int32 TargetIndex, const FPCGPoint& TargetPoint, FTransform& OutTransform, FBox& InOutBounds) const
-	{
-		//
-		check(TargetDataFacade);
-
-		if constexpr (bWorldSpace) { OutTransform = TargetPoint.Transform; }
-
-		FVector OutScale = TargetPoint.Transform.GetScale3D();
-		const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
-		const FBox& OriginalInBounds = InOutBounds;
-
-		ScaleToFit.Process(TargetPoint, OriginalInBounds, OutScale, InOutBounds);
-
-		//
-
-		FVector OutTranslation = FVector::ZeroVector;
-		Justification.Process(
-			TargetIndex, RefBounds,
-			FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
-			OutTranslation);
-
-		OutTransform.AddToTranslation(TargetPoint.Transform.GetRotation().RotateVector(OutTranslation));
+		OutTransform.AddToTranslation(InTransform.GetRotation().RotateVector(OutTranslation));
 		OutTransform.SetScale3D(OutScale);
 	}
 };
@@ -377,7 +352,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTransformDetails : public FPCGExFittingDetai
 	/** If enabled, copied points will be rotated by the target' rotation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="bInheritScale"))
 	bool bInheritRotation = false;
-	
+
 	/** If enabled, ignore bounds in calculations and only use position. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayAfter="bInheritRotation"))
 	bool bIgnoreBounds = false;

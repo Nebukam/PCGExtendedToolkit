@@ -26,18 +26,33 @@ namespace PCGExData
 
 #pragma region FPoint
 
-	FPoint::FPoint(const uint64 Hash)
+	FElement::FElement(const uint64 Hash)
 		: Index(PCGEx::H64A(Hash)), IO(PCGEx::H64B(Hash))
 	{
 	}
 
-	FPoint::FPoint(const int32 InIndex, const int32 InIO)
+	FElement::FElement(const int32 InIndex, const int32 InIO)
 		: Index(InIndex), IO(InIO)
 	{
 	}
 
-	FPoint::FPoint(const TSharedPtr<FPointIO>& InIO, const uint32 InIndex)
+	FElement::FElement(const TSharedPtr<FPointIO>& InIO, const uint32 InIndex)
 		: Index(InIndex), IO(InIO->IOIndex)
+	{
+	}
+
+	FPoint::FPoint(const uint64 Hash)
+		: FElement(Hash)
+	{
+	}
+
+	FPoint::FPoint(const int32 InIndex, const int32 InIO)
+		: FElement(InIndex, InIO)
+	{
+	}
+
+	FPoint::FPoint(const TSharedPtr<FPointIO>& InIO, const uint32 InIndex)
+		: FElement(InIO, InIndex)
 	{
 	}
 
@@ -508,7 +523,7 @@ namespace PCGExData
 	{
 		check(Out)
 
-#define PCGEX_COPYRANGEIF(_NAME, _TYPE)\
+#define PCGEX_COPYRANGEIF(_NAME, _TYPE, ...)\
 		if (EnumHasAllFlags(Properties, EPCGPointNativeProperties::_NAME)){\
 			const TPCGValueRange<_TYPE> Range = Out->Get##_NAME##ValueRange(false);\
 			for(int i = 0; i < InPCGPoints.Num(); i++){ Range[StartIndex + i] = InPCGPoints[i]._NAME;}\
@@ -669,7 +684,7 @@ namespace PCGExData
 
 		for (int i = 0; i < ReducedNum; i++)
 		{
-#define PCGEX_VALUERANGE_GATHER(_NAME, _TYPE) _NAME##ValueRange[i] = _NAME##ValueRange[InIndices[i]];
+#define PCGEX_VALUERANGE_GATHER(_NAME, _TYPE, ...) _NAME##ValueRange[i] = _NAME##ValueRange[InIndices[i]];
 			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_VALUERANGE_GATHER)
 #undef PCGEX_VALUERANGE_GATHER
 		}

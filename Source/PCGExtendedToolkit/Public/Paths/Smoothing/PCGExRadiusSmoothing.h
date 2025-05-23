@@ -9,48 +9,37 @@
 #include "Data/Blending/PCGExDataBlending.h"
 
 
+
+
 #include "PCGExRadiusSmoothing.generated.h"
 
 class FPCGExRadiusSmoothing : public FPCGExSmoothingOperation
 {
 public:
 	virtual void SmoothSingle(
-		const TSharedRef<PCGExData::FPointIO>& Path, PCGExData::FConstPoint& Target,
-		const double Smoothing, const double Influence,
-		const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender,
-		const bool bClosedLoop) override
+		const int32 TargetIndex,
+		const double Smoothing, const double Influence, TArray<PCGEx::FOpStats>& Trackers) override
 	{
 		const double RadiusSquared = Smoothing * Smoothing;
 
 		if (Influence == 0) { return; }
 
-		const FVector Origin = Target.GetLocation();
-		const UPCGBasePointData* InPointData = Path->GetIn();
-		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
+		TConstPCGValueRange<FTransform> InTransforms = Path->GetIn()->GetConstTransformValueRange();
 
-		TArray<int32> Indices;
-		TArray<double> Weights;
+		const FVector Origin = InTransforms[TargetIndex].GetLocation();
 
-		Indices.Reserve(10);
-		Weights.Reserve(10);
-
-		// TODO : Reuse a shared buffer based on Scope whenever possible
-		// Use a TScopedArray<PCGEx::FOpStats> ?
-		TArray<PCGEx::FOpStats> Tracking;
-		Blender->BeginMultiBlend(Target.Index, Tracking);
+		Blender->BeginMultiBlend(TargetIndex, Trackers);
 
 		Path->GetIn()->GetPointOctree().FindElementsWithBoundsTest(
 			FBoxCenterAndExtent(Origin, FVector(Smoothing)), [&](const PCGPointOctree::FPointRef& PointRef)
 			{
 				const double Dist = FVector::DistSquared(Origin, InTransforms[PointRef.Index].GetLocation());
-				if (Dist >= RadiusSquared || PointRef.Index == Target.Index) { return; }
+				if (Dist >= RadiusSquared || PointRef.Index == TargetIndex) { return; }
 
-				Blender->MultiBlend(PointRef.Index, Target.Index, (1 - (Dist / RadiusSquared)) * Influence, Tracking);
+				Blender->MultiBlend(PointRef.Index, TargetIndex, (1 - (Dist / RadiusSquared)) * Influence, Trackers);
 			});
 
-		if (Indices.IsEmpty()) { return; }
-		
-		Blender->EndMultiBlend(Target.Index, Tracking);
+		Blender->EndMultiBlend(TargetIndex, Trackers);
 	}
 };
 

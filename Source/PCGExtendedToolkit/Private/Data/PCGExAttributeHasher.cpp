@@ -25,8 +25,8 @@ namespace PCGEx
 
 		if (!RequiresCompilation())
 		{
-			const PCGExTypeHash A = ValuesGetter->SoftGet(InPointIO->GetInPointRef(0), 0);
-			const PCGExTypeHash B = ValuesGetter->SoftGet(InPointIO->GetInPointRef(NumValues - 1), 0);
+			const PCGExTypeHash A = ValuesGetter->SoftGet(InPointIO->GetInPoint(0), 0);
+			const PCGExTypeHash B = ValuesGetter->SoftGet(InPointIO->GetInPoint(NumValues - 1), 0);
 
 			if (Config.Scope == EPCGExDataHashScope::First) { OutHash = A; }
 			else if (Config.Scope == EPCGExDataHashScope::Last) { OutHash = B; }

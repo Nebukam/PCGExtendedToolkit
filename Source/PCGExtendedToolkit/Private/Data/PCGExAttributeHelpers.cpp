@@ -388,38 +388,6 @@ namespace PCGEx
 		return InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT("."));
 	}
 
-	void CopyPoints(const PCGExData::FPointIO* Source, const PCGExData::FPointIO* Target, const TSharedPtr<const TArray<int32>>& SourceIndices, const int32 TargetIndex, const bool bKeepSourceMetadataEntry)
-	{
-		const int32 NumIndices = SourceIndices->Num();
-		const TArray<FPCGPoint>& SourceContainer = Source->GetIn()->GetPoints();
-		TArray<FPCGPoint>& TargetContainer = Target->GetMutablePoints();
-
-		if (TargetContainer.Num() < TargetIndex + SourceIndices->Num())
-		{
-			TargetContainer.SetNumUninitialized(TargetContainer.Num() + TargetIndex + SourceIndices->Num());
-		}
-
-		if (bKeepSourceMetadataEntry)
-		{
-			for (int i = 0; i < NumIndices; i++)
-			{
-				TargetContainer[TargetIndex + i] = SourceContainer[*(SourceIndices->GetData() + i)];
-			}
-		}
-		else
-		{
-			for (int i = 0; i < NumIndices; i++)
-			{
-				const int32 WriteIndex = TargetIndex + i;
-				const PCGMetadataEntryKey Key = TargetContainer[WriteIndex].MetadataEntry;
-
-				const FPCGPoint& SourcePt = SourceContainer[*(SourceIndices->GetData() + i)];
-				FPCGPoint& TargetPt = TargetContainer[WriteIndex] = SourcePt;
-				TargetPt.MetadataEntry = Key;
-			}
-		}
-	}
-
 	TSharedPtr<FAttributesInfos> GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError)
 	{
 		TSharedPtr<FAttributesInfos> OutInfos = MakeShared<FAttributesInfos>();

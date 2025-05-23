@@ -95,6 +95,8 @@ public:
 
 	TSharedPtr<PCGExDetails::TSettingValue<FVector>> OperandDirection;
 
+	TConstPCGValueRange<FTransform> InTransforms;
+	
 	virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 	virtual bool Test(const PCGExGraph::FEdge& Edge) const override;
 

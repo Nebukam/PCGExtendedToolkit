@@ -97,6 +97,9 @@ namespace PCGExSmooth
 		if (!Smoothing->Init(Context, PointDataFacade)) { return false; }
 
 		SmoothingOperation = Context->SmoothingMethod->CreateOperation();
+		SmoothingOperation->Path = PointDataFacade->Source;
+		SmoothingOperation->Blender = MetadataBlender;
+		SmoothingOperation->bClosedLoop = bClosedLoop;
 
 		StartParallelLoopForPoints();
 
@@ -108,30 +111,29 @@ namespace PCGExSmooth
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
-		TSharedRef<PCGExDataBlending::FMetadataBlender> BlenderRef = MetadataBlender.ToSharedRef();
+		TArray<PCGEx::FOpStats> Trackers;
+		MetadataBlender->InitTrackers(Trackers);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index]) { continue; }
 
-			const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-
-			PCGExData::FConstPoint PtRef = PointIO->GetOutPoint(Index);
 			const double LocalSmoothing = FMath::Clamp(Smoothing->Read(Index), 0, MAX_dbl) * Settings->ScaleSmoothingAmountAttribute;
 
 			if ((Settings->bPreserveEnd && Index == NumPoints - 1) ||
 				(Settings->bPreserveStart && Index == 0))
 			{
-				SmoothingOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, BlenderRef, bClosedLoop);
+				SmoothingOperation->SmoothSingle(Index, LocalSmoothing, 0, Trackers);
 				continue;
 			}
 
-			SmoothingOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, Influence->Read(Index), BlenderRef, bClosedLoop);
+			SmoothingOperation->SmoothSingle(Index, LocalSmoothing, Influence->Read(Index), Trackers);
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
+		SmoothingOperation.Reset();
 		PointDataFacade->Write(AsyncManager);
 	}
 }

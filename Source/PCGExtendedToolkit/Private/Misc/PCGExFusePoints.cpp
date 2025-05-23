@@ -123,13 +123,12 @@ namespace PCGExFusePoints
 
 		PointDataFacade->Source->InheritProperties(ReadIndices, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);
 
-		TArray<PCGEx::FOpStats> Trackers;
-		UnionBlender->InitTrackers(Trackers);
-		
+		TArray<PCGExData::FWeightedPoint> WeightedPoints;
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			Transforms[Index].SetLocation(UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints));
-			UnionBlender->MergeSingle(Index, Context->Distances, Trackers);
+			UnionBlender->MergeSingle(Index, WeightedPoints);
 		}
 	}
 
@@ -138,9 +137,13 @@ namespace PCGExFusePoints
 		const int32 NumUnionNodes = UnionGraph->Nodes.Num();
 		PointDataFacade->Source->GetOut()->SetNumPoints(NumUnionNodes);
 
-		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
+		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
 		UnionBlender->AddSource(PointDataFacade, &PCGExGraph::ProtectedClusterAttributes);
-		UnionBlender->Init(Context, PointDataFacade, UnionGraph->NodesUnion);
+		if (!UnionBlender->Init(Context, PointDataFacade, UnionGraph->NodesUnion))
+		{
+			bIsProcessorValid = false;
+			return;
+		}
 
 		StartParallelLoopForRange(NumUnionNodes);
 	}

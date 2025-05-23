@@ -8,10 +8,6 @@
 
 #include "PCGExDataBlending.h"
 #include "Data/PCGExProxyData.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 
 namespace PCGExDataBlending
@@ -64,7 +60,7 @@ namespace PCGExDataBlending
 		}
 
 	protected:
-#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void Set##_Name(const int32 TargetIndex, const _TYPE Value) = 0;
+#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void SetValue(const int32 TargetIndex, const _TYPE Value) = 0;
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
 #undef PCGEX_DECL_BLEND_BIT
 	};
@@ -133,15 +129,15 @@ namespace PCGExDataBlending
 			Desc_B.bWantsDirect = bWantsDirectAccess;
 			Desc_C.bWantsDirect = bWantsDirectAccess;
 
-			A = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, A));
-			B = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, B));
-			C = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, C));
+			A = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_A));
+			B = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_B));
+			C = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_C));
 
 			return A && B && C;
 		}
 
 	protected:
-#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void Set##_Name(const int32 TargetIndex, const _TYPE Value) override { C->Set(TargetIndex, Value); };
+#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void SetValue(const int32 TargetIndex, const _TYPE Value) override { C->Set(TargetIndex, PCGEx::Convert<T_WORKING>(Value)); };
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
 #undef PCGEX_DECL_BLEND_BIT
 	};

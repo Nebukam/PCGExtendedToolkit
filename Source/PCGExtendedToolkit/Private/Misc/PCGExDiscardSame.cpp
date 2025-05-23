@@ -91,9 +91,11 @@ namespace PCGExDiscardSame
 
 		FBox Bounds = FBox(ForceInit);
 
-		for (const FPCGPoint& Point : InPoints)
+		TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
+
+		for (const FTransform& InTransform : InTransforms)
 		{
-			const FVector& Pos = Point.Transform.GetLocation();
+			const FVector& Pos = InTransform.GetLocation();
 			Bounds += Pos;
 			if (Settings->bTestPositions) { PositionHashes.Add(PCGEx::GH3(Pos, PosCWTolerance)); }
 		}

@@ -13,23 +13,18 @@ namespace PCGExData
 		const TArray<const UPCGBasePointData*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FConstPoint& Target,
 		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
 	{
-		const int32 NumHashes = ItemHashSet.Num();
-
-		OutWeightedPoints.Reset(NumHashes);
+		const int32 NumElements = Elements.Num();
+		OutWeightedPoints.Reset(NumElements);
 
 		double TotalWeight = 0;
 		int32 Index = 0;
 
-		for (const uint64 Hash : ItemHashSet)
+		for (const FElement& Element : Elements)
 		{
-			uint32 IOIndex;
-			uint32 PtIndex;
-			PCGEx::H64(Hash, IOIndex, PtIndex);
-
-			const int32* IOIdx = SourcesIdx.Find(IOIndex);
+			const int32* IOIdx = SourcesIdx.Find(Element.IO);
 			if (!IOIdx) { continue; }
 
-			FWeightedPoint& P = OutWeightedPoints.Emplace_GetRef(PtIndex, 0, *IOIdx);
+			FWeightedPoint& P = OutWeightedPoints.Emplace_GetRef(Element.Index, 0, *IOIdx);
 
 			const double Weight = InDistanceDetails->GetDistSquared(FConstPoint(Sources[P.IO], P), Target);
 			P.Weight = Weight;
@@ -58,32 +53,24 @@ namespace PCGExData
 	}
 
 
-	uint64 FUnionData::Add_Unsafe(const PCGExData::FPoint& Point)
+	void FUnionData::Add_Unsafe(const PCGExData::FPoint& Point)
 	{
-		const uint64 H = PCGEx::H64(Point.IO, Point.Index == -1 ? 0 : Point.Index);
-		IOIndices.Add(Point.IO);
-		ItemHashSet.Add(H);
-		return H;
+		IOSet.Add(Point.IO);
+		Elements.Add(FElement(Point.Index == -1 ? 0 : Point.Index, Point.IO));
 	}
 
-	uint64 FUnionData::Add(const PCGExData::FPoint& Point)
+	void FUnionData::Add(const PCGExData::FPoint& Point)
 	{
-		const uint64 H = PCGEx::H64(Point.IO, Point.Index == -1 ? 0 : Point.Index);
-
-		{
-			FWriteScopeLock WriteScopeLock(UnionLock);
-			IOIndices.Add(Point.IO);
-			ItemHashSet.Add(H);
-		}
-
-		return H;
+		FWriteScopeLock WriteScopeLock(UnionLock);
+		IOSet.Add(Point.IO);
+		Elements.Add(FElement(Point.Index == -1 ? 0 : Point.Index, Point.IO));
 	}
 
 
 	void FUnionData::Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices)
 	{
-		IOIndices.Add(IOIndex);
-		for (const int32 A : PointIndices) { ItemHashSet.Add(PCGEx::H64(IOIndex, A)); }
+		IOSet.Add(IOIndex);
+		for (const int32 A : PointIndices) { Elements.Add(FElement(A, IOIndex)); }
 	}
 
 	void FUnionData::Add(const int32 IOIndex, const TArray<int32>& PointIndices)
@@ -111,14 +98,14 @@ namespace PCGExData
 		return Entries[ItemIndex];
 	}
 
-	uint64 FUnionMetadata::Append(const int32 Index, const PCGExData::FPoint& Point)
+	void FUnionMetadata::Append(const int32 Index, const PCGExData::FPoint& Point)
 	{
-		return Entries[Index]->Add(Point);
+		Entries[Index]->Add(Point);
 	}
 
 	bool FUnionMetadata::IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices)
 	{
-		const TSet<int32> Overlap = Entries[InIdx]->IOIndices.Intersect(InIndices);
+		const TSet<int32> Overlap = Entries[InIdx]->IOSet.Intersect(InIndices);
 		return Overlap.Num() > 0;
 	}
 

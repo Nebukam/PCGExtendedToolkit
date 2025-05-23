@@ -178,8 +178,13 @@ namespace PCGExResamplePath
 		if (Settings->Mode == EPCGExResampleMode::Sweep)
 		{
 			// Blender will take care of setting all the properties and stuff			
-			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
-			MetadataBlender->PrepareForData(PointDataFacade);
+			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+			MetadataBlender->SetSourceData(PointDataFacade);
+			MetadataBlender->SetTargetData(PointDataFacade);
+			if (!MetadataBlender->Init(Context, Settings->BlendingSettings))
+			{
+				return false;
+			}
 		}
 
 		StartParallelLoopForPoints();
@@ -203,6 +208,9 @@ namespace PCGExResamplePath
 		}
 		else
 		{
+			TArray<PCGEx::FOpStats> Trackers;
+			MetadataBlender->InitTrackers(Trackers);
+
 			PCGEX_SCOPE_LOOP(Index)
 			{
 				const FPointSample& Sample = Samples[Index];

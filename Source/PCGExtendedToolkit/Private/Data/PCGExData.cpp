@@ -183,7 +183,8 @@ namespace PCGExData
 
 	bool FFacade::ValidateOutputsBeforeWriting() const
 	{
-		FPCGExContext* Context = Source->GetContextHandle();
+		PCGEX_SHARED_CONTEXT(Source->GetContextHandle())
+		FPCGExContext* Context = SharedContext.Get();
 
 		// TODO : First check that no writable attempts to write to the same output twice
 		// TODO : Delete writables whose output that have
@@ -367,5 +368,4 @@ namespace PCGExData
 		if (TSharedPtr<FFacade> InternalFacade = InternalDataFacadePtr.Pin()) { InternalFacade->MarkCurrentBuffersReadAsComplete(); }
 		if (OnCompleteCallback) { OnCompleteCallback(); }
 	}
-
 }
