@@ -23,7 +23,7 @@ public:
 
 	virtual void PrepareShape(const PCGExData::FConstPoint& Seed) { Shapes[Seed.Index] = MakeShared<PCGExShapes::FShape>(Seed); }
 
-	virtual void BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const TArrayView<FPCGPoint> PointView)
+	virtual void BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope)
 	{
 	}
 

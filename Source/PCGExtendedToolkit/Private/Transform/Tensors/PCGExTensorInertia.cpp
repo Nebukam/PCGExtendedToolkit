@@ -28,7 +28,7 @@ PCGExTensor::FTensorSample FPCGExTensorInertia::Sample(const int32 InSeedIndex, 
 			if (!ComputeFactor(InPosition, InEffector.Index, Metrics)) { return; }
 
 			Samples.Emplace_GetRef(
-				PCGExMath::GetDirection(PrimaryDataFacade->Source->GetInPoint(InSeedIndex).Transform.GetRotation() * FRotationMatrix::MakeFromX(Metrics.Guide).ToQuat(), Config.Axis),
+				PCGExMath::GetDirection(PrimaryDataFacade->GetIn()->GetTransform(InSeedIndex).GetRotation() * FRotationMatrix::MakeFromX(Metrics.Guide).ToQuat(), Config.Axis),
 				Metrics.Potency, Metrics.Weight);
 		};
 

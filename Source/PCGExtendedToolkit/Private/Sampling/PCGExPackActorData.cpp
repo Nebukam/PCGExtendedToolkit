@@ -307,6 +307,8 @@ namespace PCGExPackActorDatas
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
+		PointMask.Init(1, PointDataFacade->GetNum());
+
 		Packer = GetPrimaryInstancedFactory<UPCGExCustomActorDataPacker>();
 		Packer->UniqueNameGenerator = Context->UniqueNameGenerator;
 		Packer->WriteBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>>(PointDataFacade);
@@ -404,7 +406,11 @@ namespace PCGExPackActorDatas
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			AActor* ActorRef = Packer->InputActors[Index];
-			if (!ActorRef) { continue; }
+			if (!ActorRef)
+			{
+				PointMask[Index] = 0;
+				continue;
+			}
 
 			FPCGPoint& Point = PointsForProcessing[i++];
 			Packer->ProcessEntry(ActorRef, Point, Index, Point);
@@ -427,28 +433,7 @@ namespace PCGExPackActorDatas
 
 	void FProcessor::Write()
 	{
-		TArray<int32> ValidIndices;
-		PCGEx::ArrayOfIndices(ValidIndices, PointDataFacade->Source->GetNum());
-
-		if (Settings->bOmitUnresolvedEntries)
-		{
-			TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
-			const int32 NumPoints = MutablePoints.Num();
-			int32 WriteIndex = 0;
-			for (int32 i = 0; i < NumPoints; i++)
-			{
-				if (Packer->InputActors[i])
-				{
-					ValidIndices[WriteIndex] = i;
-					MutablePoints[WriteIndex++] = MutablePoints[i];
-				}
-			}
-
-			if (MutablePoints.IsEmpty() && Settings->bOmitEmptyOutputs) { return; }
-
-			ValidIndices.SetNum(WriteIndex);
-			MutablePoints.SetNum(WriteIndex);
-		}
+		if (Settings->bOmitUnresolvedEntries) { PointDataFacade->Source->Gather(PointMask); }
 
 		/*
 		UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();

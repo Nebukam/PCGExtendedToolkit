@@ -275,6 +275,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		~FScope() = default;
 		bool IsValid() const { return Start >= 0 && Count > 0 && Data->GetNumPoints() <= End; }
 		void GetIndices(TArray<int32>& OutIndices) const;
+
 	};
 
 #pragma region FPointIO
@@ -474,6 +475,12 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		// !!! Note that this method resizes the data !!!
 		void InheritPoints(const TArrayView<const int32>& SelectedIndices, const int32 StartIndex) const;
 
+		// Copies a single index over to target writes
+		void RepeatPoint(const int32 ReadIndex, const TArrayView<const int32>& WriteIndices, EIOSide ReadSide = EIOSide::In) const;
+
+		// Copies a single index N times starting at write index
+		void RepeatPoint(const int32 ReadIndex, const int32 WriteIndex, const int32 Count, EIOSide ReadSide = EIOSide::In) const;
+		
 		void CopyToNewPoint(const int32 InIndex, int32& OutIndex) const
 		{
 			FWriteScopeLock WriteLock(PointsLock);

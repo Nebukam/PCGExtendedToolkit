@@ -174,8 +174,7 @@ namespace PCGExCreateShapes
 				PCGEX_MAKE_SHARED(IOFacade, PCGExData::FFacade, IO.ToSharedRef())
 				PerSeedFacades.Add(IOFacade);
 
-				TArray<FPCGPoint>& MutablePoints = IOFacade->GetMutablePoints();
-				PCGEx::InitArray(MutablePoints, NumPoints);
+				IOFacade->GetOut()->SetNumPoints(NumPoints);
 
 				for (int j = 0; j < NumBuilders; j++)
 				{
@@ -206,7 +205,7 @@ namespace PCGExCreateShapes
 
 	void FProcessor::Output()
 	{
-		for (const TSharedPtr<PCGExData::FFacade>& IO : PerSeedFacades) { IO->Source->StageOutput(); }
+		for (const TSharedPtr<PCGExData::FFacade>& IO : PerSeedFacades) { IO->Source->StageOutput(Context); }
 	}
 
 	void FBuildShape::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
@@ -214,16 +213,20 @@ namespace PCGExCreateShapes
 		FPCGExCreateShapesContext* Context = AsyncManager->GetContext<FPCGExCreateShapesContext>();
 		PCGEX_SETTINGS(CreateShapes);
 
-		TArrayView<FPCGPoint> ShapePoints = MakeArrayView(ShapeDataFacade->GetMutablePoints().GetData() + Shape->StartIndex, Shape->NumPoints);
+		UPCGBasePointData* ShapePoints = ShapeDataFacade->GetOut();
 
-		for (int i = 0; i < ShapePoints.Num(); i++)
+		ShapeDataFacade->Source->RepeatPoint(Shape->Seed.Index, Shape->StartIndex, Shape->NumPoints);
+		TPCGValueRange<FVector> BoundsMin = ShapePoints->GetBoundsMinValueRange();
+		TPCGValueRange<FVector> BoundsMax = ShapePoints->GetBoundsMaxValueRange();
+
+		PCGExData::FScope SubScope = ShapeDataFacade->Source->GetInScope(Shape->StartIndex, Shape->NumPoints);
+		PCGEX_SUBSCOPE_LOOP(Index)
 		{
-			ShapePoints[i] = *Shape->Seed.Point;
-			ShapePoints[i].BoundsMin = Shape->Extents * -1;
-			ShapePoints[i].BoundsMax = Shape->Extents;
+			BoundsMin[Index] = Shape->Extents * -1;
+			BoundsMax[Index] = Shape->Extents;
 		}
 
-		Operation->BuildShape(Shape, ShapeDataFacade, ShapePoints); // TODO : Use PointIO->GetOutRange so as to get a scope with a reference to the data
+		Operation->BuildShape(Shape, ShapeDataFacade, SubScope); // TODO : Use PointIO->GetOutRange so as to get a scope with a reference to the data
 
 		if (Settings->bWriteShapeId)
 		{
@@ -232,26 +235,30 @@ namespace PCGExCreateShapes
 			for (int i = Shape->StartIndex; i < MaxIndex; i++) { ShapeIdBuffer->GetMutable(i) = Operation->BaseConfig.ShapeId; }
 		}
 
-		FTransform TRA = Operation->Transform;
-		FTransform TRB = Shape->Seed.Point->Transform;
+		const FTransform& TRA = Operation->Transform;
+		FTransform TRB = Shape->Seed.GetTransform();
 
 		TRB.SetScale3D(FVector::OneVector);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, TransformPointsTask);
 
 		TransformPointsTask->OnSubLoopStartCallback =
-			[ShapePoints, TRA, TRB](const PCGExMT::FScope& Scope)
+			[TRA, TRB, SubScope](const PCGExMT::FScope& Scope)
 			{
-				PCGEX_SCOPE_LOOP(i)
+				TPCGValueRange<FTransform> OutTransforms = SubScope.Data->GetTransformValueRange();
+				TPCGValueRange<int32> OutSeeds = SubScope.Data->GetSeedValueRange();
+
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					FPCGPoint& Point = ShapePoints[i];
-					Point.Transform = (Point.Transform * TRB) * TRA;
-					Point.Transform.SetScale3D(FVector::OneVector);
-					Point.Seed = PCGExRandom::ComputeSeed(Point, TRB.GetLocation());
+					const int32 PointIndex = Index + SubScope.Start;
+
+					OutTransforms[PointIndex] = (OutTransforms[PointIndex] * TRB) * TRA;
+					OutTransforms[PointIndex].SetScale3D(FVector::OneVector);
+					OutSeeds[PointIndex] = PCGExRandom::ComputeSpatialSeed(OutTransforms[PointIndex].GetLocation(), TRB.GetLocation());
 				}
 			};
 
-		TransformPointsTask->StartSubLoops(ShapePoints.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		TransformPointsTask->StartSubLoops(SubScope.Count, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 }
 

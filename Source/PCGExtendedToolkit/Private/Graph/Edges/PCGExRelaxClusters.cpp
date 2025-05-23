@@ -95,8 +95,9 @@ namespace PCGExRelaxClusters
 		TArray<FTransform>& PBufferRef = (*PrimaryBuffer);
 		TArray<FTransform>& SBufferRef = (*SecondaryBuffer);
 
-		const TArray<FPCGPoint>& Vtxs = VtxDataFacade->GetIn()->GetPoints();
-		for (int i = 0; i < NumNodes; i++) { PBufferRef[i] = SBufferRef[i] = Vtxs[Cluster->GetNode(i)->PointIndex].Transform; }
+		TArray<PCGExCluster::FNode> NodesRef = *Cluster->Nodes.Get();
+		TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
+		for (int i = 0; i < NumNodes; i++) { PBufferRef[i] = SBufferRef[i] = InTransforms[NodesRef[i].PointIndex]; }
 
 		RelaxOperation->ReadBuffer = PrimaryBuffer.Get();
 		RelaxOperation->WriteBuffer = SecondaryBuffer.Get();
@@ -198,27 +199,25 @@ namespace PCGExRelaxClusters
 	{
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 
+		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange();
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
 
-			// Commit values
-			FPCGPoint& Point = VtxDataFacade->Source->GetOutPoint(Node.PointIndex);
-
-			TArray<FPCGPoint>& MutablePoints = VtxDataFacade->GetOut()->GetMutablePoints();
 			if (InfluenceDetails.bProgressiveInfluence)
 			{
-				Point.Transform = PCGExBlend::Lerp(
-					Point.Transform,
+				OutTransforms[Node.PointIndex] = PCGExBlend::Lerp(
+					OutTransforms[Node.PointIndex],
 					*(RelaxOperation->WriteBuffer->GetData() + Node.Index),
 					InfluenceDetails.GetInfluence(Node.PointIndex));
 			}
 			else
 			{
-				Point.Transform = *(RelaxOperation->WriteBuffer->GetData() + Node.Index);
+				OutTransforms[Node.PointIndex] = *(RelaxOperation->WriteBuffer->GetData() + Node.Index);
 			}
 
-			const FVector DirectionAndSize = Point.Transform.GetLocation() - Cluster->GetPos(Node.Index);
+			const FVector DirectionAndSize = OutTransforms[Node.PointIndex].GetLocation() - Cluster->GetPos(Node.Index);
 
 			PCGEX_OUTPUT_VALUE(DirectionAndSize, Node.PointIndex, DirectionAndSize)
 			PCGEX_OUTPUT_VALUE(Direction, Node.PointIndex, DirectionAndSize.GetSafeNormal())

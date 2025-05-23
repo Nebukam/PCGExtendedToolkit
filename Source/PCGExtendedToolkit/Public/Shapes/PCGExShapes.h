@@ -186,7 +186,7 @@ namespace PCGExShapes
 		int8 bValid = 1;
 
 		FBox Fit = FBox(ForceInit);
-		FVector Extents = FVector::OneVector * 0.5;
+		FVector Extents = FVector::OneVector * 50;
 
 		bool IsValid() const { return bValid && Fit.IsValid && NumPoints > 0; }
 

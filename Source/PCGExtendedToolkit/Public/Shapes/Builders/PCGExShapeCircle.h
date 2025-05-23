@@ -6,6 +6,10 @@
 #include "CoreMinimal.h"
 #include "PCGExDetailsData.h"
 #include "PCGExPointsProcessor.h"
+
+
+
+
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
 #include "Shapes/PCGExShapeBuilderOperation.h"
 
@@ -77,7 +81,7 @@ public:
 
 	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade) override;
 	virtual void PrepareShape(const PCGExData::FConstPoint& Seed) override;
-	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, TArrayView<FPCGPoint> PointView) override;
+	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope) override;
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<double>> StartAngle;

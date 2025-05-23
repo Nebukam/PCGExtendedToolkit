@@ -613,6 +613,25 @@ namespace PCGExData
 		In->CopyPointsTo(Out, SelectedIndices, WriteIndices);
 	}
 
+	void FPointIO::RepeatPoint(const int32 ReadIndex, const TArrayView<const int32>& WriteIndices, const EIOSide ReadSide) const
+	{
+		TArray<int32> SelectedIndices;
+		SelectedIndices.Init(ReadIndex, WriteIndices.Num());
+
+		(ReadSide == EIOSide::In ? In : Out)->CopyPointsTo(Out, SelectedIndices, WriteIndices);
+	}
+
+	void FPointIO::RepeatPoint(const int32 ReadIndex, const int32 WriteIndex, const int32 Count, const EIOSide ReadSide) const
+	{
+		TArray<int32> SelectedIndices;
+		SelectedIndices.Init(ReadIndex, Count);
+
+		TArray<int32> WriteIndices;
+		PCGEx::ArrayOfIndices(WriteIndices, Count, WriteIndex);
+
+		(ReadSide == EIOSide::In ? In : Out)->CopyPointsTo(Out, SelectedIndices, WriteIndices);
+	}
+
 	void FPointIO::ClearCachedKeys()
 	{
 		InKeys.Reset();
