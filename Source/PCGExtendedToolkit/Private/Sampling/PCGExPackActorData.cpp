@@ -404,7 +404,7 @@ namespace PCGExPackActorDatas
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			AActor* ActorRef = Packer->InputActors[Index];
-			if (!ActorRef) { return; }
+			if (!ActorRef) { continue; }
 
 			FPCGPoint& Point = PointsForProcessing[i++];
 			Packer->ProcessEntry(ActorRef, Point, Index, Point);

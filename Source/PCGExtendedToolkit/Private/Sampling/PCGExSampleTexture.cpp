@@ -155,7 +155,7 @@ namespace PCGExSampleTexture
 			if (!PointFilterCache[Index])
 			{
 				if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(); }
-				return;
+				continue;
 			}
 
 			bool bSuccess = false;
@@ -170,7 +170,7 @@ namespace PCGExSampleTexture
 			if (!bSuccess)
 			{
 				SamplingFailed();
-				return;
+				continue;
 			}
 
 			SamplingMask[Index] = bSuccess;

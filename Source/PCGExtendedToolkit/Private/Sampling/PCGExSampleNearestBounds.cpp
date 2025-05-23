@@ -111,7 +111,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
-		Context->Sorter = MakeShared<PCGExSorting::PointSorter<false>>(Context, Context->BoundsFacade.ToSharedRef(), PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
+		Context->Sorter = MakeShared<PCGExSorting::TPointSorter<>>(Context, Context->BoundsFacade.ToSharedRef(), PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
 		Context->Sorter->SortDirection = Settings->SortDirection;
 		Context->Sorter->RegisterBuffersDependencies(*Context->BoundsPreloader);
 	}
@@ -272,7 +272,7 @@ namespace PCGExSampleNearestBounds
 			if (!PointFilterCache[Index])
 			{
 				if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(Index); }
-				return;
+				continue;
 			}
 
 			Samples.Reset();
@@ -315,7 +315,7 @@ namespace PCGExSampleNearestBounds
 			if (Stats.UpdateCount <= 0)
 			{
 				SamplingFailed(Index);
-				return;
+				continue;
 			}
 
 			FTransform WeightedTransform = FTransform::Identity;

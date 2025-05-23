@@ -166,26 +166,20 @@ namespace PCGExSorting
 {
 	const FName SourceSortingRules = TEXT("SortRules");
 
-	template <bool bUsePointIndices = false, bool bSoftMode = false>
-	class PCGEXTENDEDTOOLKIT_API PointSorter : public TSharedFromThis<PointSorter<bUsePointIndices, bSoftMode>>
+	template <bool bSoftMode = false>
+	class PCGEXTENDEDTOOLKIT_API TPointSorter : public TSharedFromThis<TPointSorter<bSoftMode>>
 	{
 	protected:
 		FPCGExContext* ExecutionContext = nullptr;
 		TArray<TSharedRef<FPCGExSortRule>> Rules;
-		TMap<PCGMetadataEntryKey, int32> PointIndices;
 
 	public:
 		EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 		TSharedRef<PCGExData::FFacade> DataFacade;
 
-		explicit PointSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs)
+		explicit TPointSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs)
 			: ExecutionContext(InContext), DataFacade(InDataFacade)
 		{
-			if constexpr (bUsePointIndices)
-			{
-				InDataFacade->Source->PrintOutInKeysMap(PointIndices);
-			}
-
 			const UPCGData* InData = InDataFacade->Source->GetIn();
 			FName Consumable = NAME_None;
 
@@ -255,8 +249,8 @@ namespace PCGExSorting
 				int Result = 0;
 				for (const TSharedRef<FPCGExSortRule>& Rule : Rules)
 				{
-					const double ValueA = Rule->SoftCache->SoftGet(DataFacade->Source->GetInPointRef(A), 0);
-					const double ValueB = Rule->SoftCache->SoftGet(DataFacade->Source->GetInPointRef(B), 0);
+					const double ValueA = Rule->SoftCache->SoftGet(DataFacade->Source->GetInPoint(A), 0);
+					const double ValueB = Rule->SoftCache->SoftGet(DataFacade->Source->GetInPoint(B), 0);
 					Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
 					if (Result != 0)
 					{
@@ -286,11 +280,6 @@ namespace PCGExSorting
 				if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
 				return Result < 0;
 			}
-		}
-
-		bool Sort(const FPCGPoint& A, const FPCGPoint& B)
-		{
-			return Sort(PointIndices[A.MetadataEntry], PointIndices[B.MetadataEntry]);
 		}
 	};
 

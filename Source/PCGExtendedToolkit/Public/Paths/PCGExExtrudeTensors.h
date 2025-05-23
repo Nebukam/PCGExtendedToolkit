@@ -626,7 +626,7 @@ namespace PCGExExtrudeTensors
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExExtrudeTensorsContext, UPCGExExtrudeTensorsSettings>
 	{
 	protected:
-		TSharedPtr<PCGExSorting::PointSorter<true>> Sorter;
+		TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
 
 		FRWLock NewExtrusionLock;
 		int32 RemainingIterations = 0;

@@ -301,7 +301,7 @@ namespace PCGExGetTextureData
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (!PointFilterCache[Index]) { return; }
+			if (!PointFilterCache[Index]) { continue; }
 
 			FSoftObjectPath AssetPath = PathGetter->Read(Index);
 
@@ -309,7 +309,7 @@ namespace PCGExGetTextureData
 			{
 				{
 					FReadScopeLock ReadScopeLock(ReferenceLock);
-					if (MaterialReferences->Contains(AssetPath)) { return; }
+					if (MaterialReferences->Contains(AssetPath)) { continue; }
 				}
 				{
 					FWriteScopeLock WriteScopeLock(ReferenceLock);
@@ -317,7 +317,7 @@ namespace PCGExGetTextureData
 					MaterialReferences->Add(AssetPath, &bAlreadySet);
 					if (!bAlreadySet) { Context->EDITOR_TrackPath(AssetPath); }
 				}
-				return;
+				continue;
 			}
 
 			PCGExTexture::FReference Ref = PCGExTexture::FReference(AssetPath);
@@ -345,7 +345,7 @@ namespace PCGExGetTextureData
 
 			{
 				FReadScopeLock ReadScopeLock(ReferenceLock);
-				if (TextureReferences.Contains(Ref)) { return; }
+				if (TextureReferences.Contains(Ref)) { continue; }
 			}
 			{
 				FWriteScopeLock WriteScopeLock(ReferenceLock);

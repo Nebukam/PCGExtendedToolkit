@@ -115,7 +115,7 @@ namespace PCGExBlendPath
 			if ((Index == 0 && !Settings->bBlendFirstPoint) ||
 				(Index == MaxIndex && !Settings->bBlendLastPoint))
 			{
-				return;
+				continue;
 			}
 
 			double Alpha = 0.5;

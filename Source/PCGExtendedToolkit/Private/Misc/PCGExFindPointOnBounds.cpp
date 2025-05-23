@@ -116,13 +116,13 @@ namespace PCGExFindPointOnBounds
 
 			{
 				FWriteScopeLock WriteLock(BestIndexLock);
-				if (Dist > BestDistance) { return; }
+				if (Dist > BestDistance) { continue; }
 			}
 
 			{
 				FWriteScopeLock WriteLock(BestIndexLock);
 
-				if (Dist > BestDistance) { return; }
+				if (Dist > BestDistance) { continue; }
 
 				BestPosition = InTransforms[Index].GetLocation();
 				BestIndex = Index;

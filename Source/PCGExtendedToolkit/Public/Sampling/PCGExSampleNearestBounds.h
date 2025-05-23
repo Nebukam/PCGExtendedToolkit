@@ -310,7 +310,7 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FFacadePreloader> BoundsPreloader;
 	TSharedPtr<PCGExData::FFacade> BoundsFacade;
 
-	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
+	TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
 

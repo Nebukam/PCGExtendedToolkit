@@ -87,10 +87,7 @@ namespace PCGExBitwiseOperation
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		PCGEX_SCOPE_LOOP(Index)
-		{
-			PCGExBitmask::Do(Op, Writer->GetMutable(Index), Mask->Read(Index));
-		}
+		PCGEX_SCOPE_LOOP(Index) { PCGExBitmask::Do(Op, Writer->GetMutable(Index), Mask->Read(Index)); }
 	}
 
 	void FProcessor::CompleteWork()

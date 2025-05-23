@@ -338,7 +338,7 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const PCGPointOctree::FPointOctree* TargetOctree = nullptr;
 	
-	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
+	TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
 

@@ -135,10 +135,7 @@ namespace PCGExBuildDelaunay
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		PCGEX_SCOPE_LOOP(Index)
-		{
-			HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(Index);
-		}
+		PCGEX_SCOPE_LOOP(Index) { HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(Index); }
 	}
 
 	void FProcessor::CompleteWork()

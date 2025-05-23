@@ -222,7 +222,7 @@ namespace PCGExBoundsAxisToPoints
 					Transforms[B].SetScale3D(Scale);
 				}
 
-				PointAttributesToOutputTags.Tag(Index, NewOutput);
+				PointAttributesToOutputTags.Tag(Point, NewOutput);
 			}
 			else
 			{

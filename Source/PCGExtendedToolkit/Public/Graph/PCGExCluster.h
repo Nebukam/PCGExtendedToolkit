@@ -473,7 +473,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionSettings
 	bool bAscendingDesired = false;
 	TSharedPtr<PCGExData::TBuffer<FVector>> EdgeDirReader;
 
-	TSharedPtr<PCGExSorting::PointSorter<true>> Sorter;
+	TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
 
 	void RegisterBuffersDependencies(
 		FPCGExContext* InContext,

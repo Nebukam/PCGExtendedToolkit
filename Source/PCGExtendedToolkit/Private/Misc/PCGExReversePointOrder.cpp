@@ -87,7 +87,7 @@ namespace PCGExReversePointOrder
 
 		if (Settings->Method == EPCGExPointReverseMethod::SortingRules)
 		{
-			Sorter = MakeShared<PCGExSorting::PointSorter<false, true>>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+			Sorter = MakeShared<PCGExSorting::TPointSorter<true>>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
 			Sorter->SortDirection = Settings->SortDirection;
 			Sorter->RegisterBuffersDependencies(FacadePreloader);
 		}
@@ -187,20 +187,20 @@ namespace PCGExReversePointOrder
 
 					if (WorkingPair.bMultiplyByMinusOne)
 					{
-						PCGEX_SCOPE_LOOP(i)
+						PCGEX_SCOPE_LOOP(Index)
 						{
-							const RawT FirstValue = FirstWriter->GetConst(i);
-							FirstWriter->GetMutable(i) = PCGExMath::DblMult(SecondWriter->GetConst(i), -1);
-							SecondWriter->GetMutable(i) = PCGExMath::DblMult(FirstValue, -1);
+							const RawT FirstValue = FirstWriter->GetConst(Index);
+							FirstWriter->GetMutable(Index) = PCGExMath::DblMult(SecondWriter->GetConst(Index), -1);
+							SecondWriter->GetMutable(Index) = PCGExMath::DblMult(FirstValue, -1);
 						}
 					}
 					else
 					{
-						PCGEX_SCOPE_LOOP(i)
+						PCGEX_SCOPE_LOOP(Index)
 						{
-							const RawT FirstValue = FirstWriter->GetConst(i);
-							FirstWriter->GetMutable(i) = SecondWriter->GetConst(i);
-							SecondWriter->GetMutable(i) = FirstValue;
+							const RawT FirstValue = FirstWriter->GetConst(Index);
+							FirstWriter->GetMutable(Index) = SecondWriter->GetConst(Index);
+							SecondWriter->GetMutable(Index) = FirstValue;
 						}
 					}
 				});

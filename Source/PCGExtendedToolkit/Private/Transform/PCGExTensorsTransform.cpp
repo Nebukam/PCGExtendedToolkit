@@ -128,14 +128,18 @@ namespace PCGExTensorsTransform
 				continue;
 			}
 
-			if (StopFilters && StopFilters->TestRoamingPoint(Index))
+			if (StopFilters)
 			{
-				PointFilterCache[Index] = false;
-				if (Settings->StopConditionHandling == EPCGExTensorStopConditionHandling::Exclude)
+				PCGExData::FProxyPoint ProxyPoint = PCGExData::FProxyPoint(PCGExData::FMutablePoint(PointDataFacade->GetOutPoint(Index))); // Oooof
+				if (StopFilters->Test(ProxyPoint))
 				{
-					// TODO : Not gracefully stopped
-					// TODO : Max iterations not reached
-					continue;
+					PointFilterCache[Index] = false;
+					if (Settings->StopConditionHandling == EPCGExTensorStopConditionHandling::Exclude)
+					{
+						// TODO : Not gracefully stopped
+						// TODO : Max iterations not reached
+						continue;
+					}
 				}
 			}
 
