@@ -223,13 +223,6 @@ namespace PCGEx
 				}, true);
 		}
 	}
-
-	FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints)
-	{
-		FVector Position = FVector::ZeroVector;
-		for (const FPCGPoint& Pt : InPoints) { Position += Pt.Transform.GetLocation(); }
-		return Position / static_cast<double>(InPoints.Num());
-	}
 }
 
 void UPCGExComponentCallback::Callback(UActorComponent* InComponent)

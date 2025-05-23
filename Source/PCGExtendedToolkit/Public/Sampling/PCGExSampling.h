@@ -153,5 +153,4 @@ namespace PCGExSampling
 		const FName ActorReferenceName,
 		TMap<AActor*, int32>& OutActorSet);
 
-	void PruneFailedSamples(TArray<FPCGPoint>& InMutablePoints, const TArray<int8>& InSampleState);
 }

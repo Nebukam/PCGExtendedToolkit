@@ -128,19 +128,18 @@ namespace PCGExPathfinding
 	}
 
 	void FPathQuery::AppendNodePoints(
-		TArray<FPCGPoint>& OutPoints,
+		TArray<int32>& OutPoints,
 		const int32 TruncateStart,
 		const int32 TruncateEnd) const
 	{
 		const int32 Count = PathNodes.Num() - TruncateEnd;
-		for (int i = TruncateStart; i < Count; i++) { OutPoints.Add(*Cluster->GetNodePoint(PathNodes[i])); }
+		for (int i = TruncateStart; i < Count; i++) { OutPoints.Add(Cluster->GetNodePointIndex(PathNodes[i])); }
 	}
 
-	void FPathQuery::AppendEdgePoints(TArray<FPCGPoint>& OutPoints) const
+	void FPathQuery::AppendEdgePoints(TArray<int32>& OutPoints) const
 	{
-		const int32 Count = PathEdges.Num();
-		TSharedPtr<PCGExData::FPointIO> EdgesIO = Cluster->EdgesIO.Pin();
-		for (int i = 0; i < Count; i++) { OutPoints.Add(EdgesIO->GetInPoint(PathEdges[i])); }
+		OutPoints.Reserve(OutPoints.Num() + PathEdges.Num());
+		OutPoints.Append(PathEdges);
 	}
 
 	void FPathQuery::Cleanup()
@@ -159,8 +158,8 @@ namespace PCGExPathfinding
 
 		TSharedPtr<FPathQuery> PrevQuery = MakeShared<FPathQuery>(
 			Cluster,
-			PlotFacade->Source->GetInPointRef(0),
-			PlotFacade->Source->GetInPointRef(1),
+			PlotFacade->Source->GetInPoint(0),
+			PlotFacade->Source->GetInPoint(1),
 			0);
 
 		PrevQuery->ResolvePicks(SeedSelectionDetails, GoalSelectionDetails);
@@ -169,7 +168,7 @@ namespace PCGExPathfinding
 
 		for (int i = 2; i < PlotFacade->GetNum(); i++)
 		{
-			TSharedPtr<FPathQuery> NextQuery = MakeShared<FPathQuery>(Cluster, PrevQuery, PlotFacade->Source->GetInPointRef(i), i - 1);
+			TSharedPtr<FPathQuery> NextQuery = MakeShared<FPathQuery>(Cluster, PrevQuery, PlotFacade->Source->GetInPoint(i), i - 1);
 			NextQuery->ResolvePicks(SeedSelectionDetails, GoalSelectionDetails);
 
 			SubQueries.Add(NextQuery);

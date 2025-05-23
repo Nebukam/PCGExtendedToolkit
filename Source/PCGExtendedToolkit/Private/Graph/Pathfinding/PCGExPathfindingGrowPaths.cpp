@@ -137,7 +137,7 @@ namespace PCGExGrowPaths
 			}
 		}
 
-		Processor->Cluster->NodePositions[GoalNode->Index] = Processor->Cluster->GetPos(NextNode) + GrowthDirection * 10000;
+		Processor->Cluster->VtxTransforms[GoalNode->Index] = Processor->Cluster->GetPos(NextNode) + GrowthDirection * 10000;
 
 		if (Processor->GetSettings()->bUseGrowthStop)
 		{
@@ -179,7 +179,7 @@ namespace PCGExGrowPaths
 	{
 		SeedNode = &(*Processor->Cluster->Nodes)[LastGrowthIndex];
 		GoalNode = MakeUnique<PCGExCluster::FNode>();
-		GoalNode->Index = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 10000);
+		GoalNode->Index = Processor->Cluster->VtxTransforms.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 10000);
 		Metrics.Reset(Processor->Cluster->GetPos(SeedNode));
 		TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupMap>(PCGEx::NH64(-1, -1), 0);
 	}

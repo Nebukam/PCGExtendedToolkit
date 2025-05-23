@@ -134,9 +134,6 @@ namespace PCGExPointFilter
 		ESplineCheckFlags BadFlags = None;
 		ESplineMatch GoodMatch = Any;
 
-		using SplineCheckCallback = std::function<bool(const FPCGPoint&)>;
-		SplineCheckCallback SplineCheck;
-
 		TConstPCGValueRange<FTransform> InTransforms;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;

@@ -138,26 +138,6 @@ void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPosition
 	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i])); }
 }
 
-void FPCGExGeo2DProjectionDetails::Project(const TArray<FPCGPoint>& InPoints, TArray<FVector>& OutPositions) const
-{
-	const int32 NumVectors = InPoints.Num();
-	PCGEx::InitArray(OutPositions, NumVectors);
-
-	if (NormalGetter)
-	{
-		for (int i = 0; i < NumVectors; i++)
-		{
-			OutPositions[i] = FQuat::FindBetweenNormals(
-				NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
-				FVector::UpVector).RotateVector(InPoints[i].Transform.GetLocation());
-		}
-	}
-	else
-	{
-		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.RotateVector(InPoints[i].Transform.GetLocation()); }
-	}
-}
-
 void PCGExGeoTasks::FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	UPCGBasePointData* OutPointData = ToBeTransformedIO->GetOut();

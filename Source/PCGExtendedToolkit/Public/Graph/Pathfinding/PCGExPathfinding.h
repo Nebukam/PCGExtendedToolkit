@@ -176,11 +176,11 @@ namespace PCGExPathfinding
 			const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback);
 
 		void AppendNodePoints(
-			TArray<FPCGPoint>& OutPoints,
+			TArray<int32>& OutPoints,
 			const int32 TruncateStart = 0,
 			const int32 TruncateEnd = 0) const;
 
-		void AppendEdgePoints(TArray<FPCGPoint>& OutPoints) const;
+		void AppendEdgePoints(TArray<int32>& OutPoints) const;
 
 		void Cleanup();
 	};

@@ -92,7 +92,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const;
 	void Project(const TArray<FVector>& InPositions, TArray<FVector2D>& OutPositions) const;
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const;
-	void Project(const TArray<FPCGPoint>& InPoints, TArray<FVector>& OutPositions) const;
 };
 
 USTRUCT(BlueprintType)

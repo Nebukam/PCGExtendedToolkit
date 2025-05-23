@@ -8,11 +8,15 @@
 #define LOCTEXT_NAMESPACE "PCGExPaths"
 #define PCGEX_NAMESPACE PCGExPaths
 
-bool FPCGExPathOutputDetails::Validate(TArray<FPCGPoint>& InPathPoints) const
+bool FPCGExPathOutputDetails::Validate(const UPCGBasePointData* InPathData) const
 {
-	if (InPathPoints.Num() < 2) { return false; }
-	if (bRemoveSmallPaths && InPathPoints.Num() < MinPointCount) { return false; }
-	if (bRemoveLargePaths && InPathPoints.Num() > MaxPointCount) { return false; }
+	const int32 NumPoints = InPathData->GetNumPoints();
+
+	if (NumPoints < 2) { return false; }
+
+	if (bRemoveSmallPaths && NumPoints < MinPointCount) { return false; }
+	if (bRemoveLargePaths && NumPoints > MaxPointCount) { return false; }
+
 	return true;
 }
 

@@ -113,7 +113,6 @@ public:
 
 namespace PCGExHelpers
 {
-	
 	PCGEXTENDEDTOOLKIT_API
 	bool HasDataOnPin(FPCGContext* InContext, FName Pin);
 
@@ -367,8 +366,6 @@ namespace PCGEx
 	private:
 		std::atomic<bool> bIsFlushing{false};
 	};
-
-	FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints);
 
 #pragma region Metadata Type
 

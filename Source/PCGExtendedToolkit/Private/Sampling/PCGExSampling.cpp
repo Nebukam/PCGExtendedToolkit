@@ -151,10 +151,6 @@ namespace PCGExSampling
 		return true;
 	}
 
-	void PruneFailedSamples(TArray<FPCGPoint>& InMutablePoints, const TArray<int8>& InSampleState)
-	{
-		static_assert("Use FPointIO::Gather(Mask) instead");
-	}
 }
 
 namespace PCGEx

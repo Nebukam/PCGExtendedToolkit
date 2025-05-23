@@ -75,7 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathOutputDetails
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveLargePaths", ClampMin=2))
 	int32 MaxPointCount = 500;
 
-	bool Validate(TArray<FPCGPoint>& InPathPoints) const;
+	bool Validate(const UPCGBasePointData* InPathData) const;
 };
 
 USTRUCT(BlueprintType)
