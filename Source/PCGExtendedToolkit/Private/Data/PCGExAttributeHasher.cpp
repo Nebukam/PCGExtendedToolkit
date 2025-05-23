@@ -94,9 +94,9 @@ namespace PCGEx
 	void FAttributeHasher::CompileScope(const PCGExMT::FScope& Scope)
 	{
 		ValuesGetter->Fetch(Values, Scope);
-		PCGEX_SCOPE_LOOP(i)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExTypeHash H = Values[i];
+			PCGExTypeHash H = Values[Index];
 
 			OutHash = HashCombineFast(OutHash, H);
 
@@ -105,7 +105,7 @@ namespace PCGEx
 			if (!bAlreadySet)
 			{
 				CombinedHashUnique = HashCombineFast(CombinedHashUnique, H);
-				UniqueIndices.Add(i);
+				UniqueIndices.Add(Index);
 			}
 		}
 	}

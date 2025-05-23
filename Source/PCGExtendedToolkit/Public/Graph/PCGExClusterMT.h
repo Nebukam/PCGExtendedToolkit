@@ -139,16 +139,12 @@ namespace PCGExClusterMT
 
 		void StartParallelLoopForEdges(const int32 PerLoopIterations = -1);
 		virtual void PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops);
-		virtual void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope);
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope);
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope);
 		virtual void OnEdgesProcessingComplete();
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1);
 		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops);
-		virtual void PrepareSingleLoopScopeForRange(const PCGExMT::FScope& Scope);
 		virtual void ProcessRange(const PCGExMT::FScope& Scope);
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope);
 		virtual void OnRangeProcessingComplete();
 
 #pragma endregion

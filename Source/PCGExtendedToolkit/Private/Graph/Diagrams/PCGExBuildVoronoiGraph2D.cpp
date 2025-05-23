@@ -325,12 +325,12 @@ namespace PCGExBuildVoronoi2D
 				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
-					PCGEX_SCOPE_LOOP(i)
+					PCGEX_SCOPE_LOOP(Index)
 					{
-						const bool bIsWithinBounds = This->IsVtxValid[i];
-						if (This->OpenSiteWriter) { This->OpenSiteWriter->GetMutable(i) = bIsWithinBounds; }
-						if (This->DelaunaySitesInfluenceCount[i] == 0) { continue; }
-						This->SiteDataFacade->GetOut()->GetMutablePoints()[i].Transform.SetLocation(This->DelaunaySitesLocations[i] / This->DelaunaySitesInfluenceCount[i]);
+						const bool bIsWithinBounds = This->IsVtxValid[Index];
+						if (This->OpenSiteWriter) { This->OpenSiteWriter->GetMutable(Index) = bIsWithinBounds; }
+						if (This->DelaunaySitesInfluenceCount[Index] == 0) { continue; }
+						This->SiteDataFacade->GetOut()->GetMutablePoints()[Index].Transform.SetLocation(This->DelaunaySitesLocations[Index] / This->DelaunaySitesInfluenceCount[Index]);
 					}
 				};
 

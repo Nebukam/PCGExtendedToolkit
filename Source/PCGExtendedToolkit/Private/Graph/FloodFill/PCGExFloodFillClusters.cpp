@@ -271,11 +271,14 @@ namespace PCGExClusterDiffusion
 		Grow(); // Move to the next
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const TSharedPtr<PCGExFloodFill::FDiffusion> Diffusion = OngoingDiffusions[Iteration];
-		const int32 CurrentFillRate = FillRate->Read(Diffusion->GetSettingsIndex(Settings->Diffusion.FillRateSource));
-		for (int i = 0; i < CurrentFillRate; i++) { Diffusion->Grow(); }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const TSharedPtr<PCGExFloodFill::FDiffusion> Diffusion = OngoingDiffusions[Index];
+			const int32 CurrentFillRate = FillRate->Read(Diffusion->GetSettingsIndex(Settings->Diffusion.FillRateSource));
+			for (int i = 0; i < CurrentFillRate; i++) { Diffusion->Grow(); }
+		}
 	}
 
 	void FProcessor::OnRangeProcessingComplete()

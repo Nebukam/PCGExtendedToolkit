@@ -364,12 +364,15 @@ namespace PCGExGetTextureData
 		}
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		TexParamLookup->ExtractParamsAndReferences(
-			Iteration,
-			TSoftObjectPtr<UMaterialInterface>(PathGetter->Read(Iteration)).Get(),
-			*ScopedTextureReferences[Scope.LoopIndex].Get());
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			TexParamLookup->ExtractParamsAndReferences(
+				Index,
+				TSoftObjectPtr<UMaterialInterface>(PathGetter->Read(Index)).Get(),
+				*ScopedTextureReferences[Scope.LoopIndex].Get());
+		}
 	}
 
 	void FProcessor::OnRangeProcessingComplete()

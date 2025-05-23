@@ -193,80 +193,85 @@ namespace PCGExCutEdges
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
+		
 		EdgeDataFacade->Fetch(Scope);
 		FilterEdgeScope(Scope);
-	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
-	{
-		if (EdgeFilterCache[EdgeIndex])
+		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (Settings->bInvert) { Edge.bValid = true; }
-			return;
-		}
+			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
 
-		const FVector A1 = VtxDataFacade->Source->GetInPoint(Edge.Start).Transform.GetLocation();
-		const FVector B1 = VtxDataFacade->Source->GetInPoint(Edge.End).Transform.GetLocation();
-		const FVector Dir = (B1 - A1).GetSafeNormal();
+			if (EdgeFilterCache[Index])
+			{
+				if (Settings->bInvert) { Edge.bValid = true; }
+				continue;
+			}
 
-		FBox EdgeBox = FBox(ForceInit);
-		EdgeBox += A1;
-		EdgeBox += B1;
+			const FVector A1 = VtxDataFacade->Source->GetInPoint(Edge.Start).Transform.GetLocation();
+			const FVector B1 = VtxDataFacade->Source->GetInPoint(Edge.End).Transform.GetLocation();
+			const FVector Dir = (B1 - A1).GetSafeNormal();
 
-		for (const TSharedRef<PCGExPaths::FPath>& Path : Context->Paths)
-		{
-			if (!Path->Bounds.Intersect(EdgeBox)) { continue; }
+			FBox EdgeBox = FBox(ForceInit);
+			EdgeBox += A1;
+			EdgeBox += B1;
 
-			// Check paths
-			Path->GetEdgeOctree()->FindFirstElementWithBoundsTest(
-				EdgeBox, [&](const PCGExPaths::FPathEdge* PathEdge)
-				{
-					//if (Settings->bInvert) { if (Edge.bValid) { return false; } }
-					//else if (!Edge.bValid) { return false; }
+			for (const TSharedRef<PCGExPaths::FPath>& Path : Context->Paths)
+			{
+				if (!Path->Bounds.Intersect(EdgeBox)) { continue; }
 
-					if (Context->IntersectionDetails.bUseMinAngle || Context->IntersectionDetails.bUseMaxAngle)
+				// Check paths
+				Path->GetEdgeOctree()->FindFirstElementWithBoundsTest(
+					EdgeBox, [&](const PCGExPaths::FPathEdge* PathEdge)
 					{
-						if (!Context->IntersectionDetails.CheckDot(FMath::Abs(FVector::DotProduct(PathEdge->Dir, Dir))))
+						//if (Settings->bInvert) { if (Edge.bValid) { return false; } }
+						//else if (!Edge.bValid) { return false; }
+
+						if (Context->IntersectionDetails.bUseMinAngle || Context->IntersectionDetails.bUseMaxAngle)
 						{
-							return true;
+							if (!Context->IntersectionDetails.CheckDot(FMath::Abs(FVector::DotProduct(PathEdge->Dir, Dir))))
+							{
+								return true;
+							}
 						}
-					}
 
-					const FVector A2 = Path->GetPos_Unsafe(PathEdge->Start);
-					const FVector B2 = Path->GetPos_Unsafe(PathEdge->End);
-					FVector A = FVector::ZeroVector;
-					FVector B = FVector::ZeroVector;
+						const FVector A2 = Path->GetPos_Unsafe(PathEdge->Start);
+						const FVector B2 = Path->GetPos_Unsafe(PathEdge->End);
+						FVector A = FVector::ZeroVector;
+						FVector B = FVector::ZeroVector;
 
-					FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
-					//if (A == A1 || A == B1 || B == A2 || B == B2) { return true; }
+						FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
+						//if (A == A1 || A == B1 || B == A2 || B == B2) { return true; }
 
-					if (FVector::DistSquared(A, B) >= Context->IntersectionDetails.ToleranceSquared) { return true; }
+						if (FVector::DistSquared(A, B) >= Context->IntersectionDetails.ToleranceSquared) { return true; }
 
-					PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
-					PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
+						PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
+						PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
 
-					if (Settings->bInvert)
-					{
-						FPlatformAtomics::InterlockedExchange(&Edge.bValid, 1);
-						FPlatformAtomics::InterlockedExchange(&StartNode->bValid, 1);
-						FPlatformAtomics::InterlockedExchange(&EndNode->bValid, 1);
-					}
-					else
-					{
-						FPlatformAtomics::InterlockedExchange(&Edge.bValid, 0);
-						if (Settings->bAffectedEdgesAffectEndpoints)
+						if (Settings->bInvert)
 						{
-							FPlatformAtomics::InterlockedExchange(&StartNode->bValid, 0);
-							FPlatformAtomics::InterlockedExchange(&EndNode->bValid, 0);
+							FPlatformAtomics::InterlockedExchange(&Edge.bValid, 1);
+							FPlatformAtomics::InterlockedExchange(&StartNode->bValid, 1);
+							FPlatformAtomics::InterlockedExchange(&EndNode->bValid, 1);
 						}
-					}
+						else
+						{
+							FPlatformAtomics::InterlockedExchange(&Edge.bValid, 0);
+							if (Settings->bAffectedEdgesAffectEndpoints)
+							{
+								FPlatformAtomics::InterlockedExchange(&StartNode->bValid, 0);
+								FPlatformAtomics::InterlockedExchange(&EndNode->bValid, 0);
+							}
+						}
 
-					return false;
-				});
+						return false;
+					});
 
-			if (Edge.bValid == static_cast<int8>(Settings->bInvert)) { return; }
+				if (Edge.bValid == static_cast<int8>(Settings->bInvert)) { continue; }
+			}
 		}
 	}
 
@@ -369,16 +374,19 @@ namespace PCGExCutEdges
 		}
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Iteration);
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Index);
 
-		//if (Edge.bValid)		{			return;		}
+			//if (Edge.bValid)		{			continue;		}
 
-		const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
-		const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
+			const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
+			const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
 
-		if (StartNode->bValid && EndNode->bValid) { Edge.bValid = true; }
+			if (StartNode->bValid && EndNode->bValid) { Edge.bValid = true; }
+		}
 	}
 
 	void FProcessor::CompleteWork()

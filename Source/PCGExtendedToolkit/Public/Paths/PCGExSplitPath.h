@@ -166,7 +166,7 @@ namespace PCGExSplitPath
 		void DoActionPartition(const int32 Index);
 		void DoActionSwitch(const int32 Index);
 
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Output() override;
 	};

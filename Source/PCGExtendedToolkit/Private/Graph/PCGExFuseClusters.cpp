@@ -183,7 +183,6 @@ namespace PCGExFuseClusters
 
 			InsertEdges->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
-				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
 				PCGEX_ASYNC_THIS
 				This->InsertEdges(Scope, false);
 			};

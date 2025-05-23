@@ -153,18 +153,7 @@ namespace PCGExClusterMT
 	{
 	}
 
-	void FClusterProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
-	{
-	}
-
 	void FClusterProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
-	{
-		PrepareSingleLoopScopeForEdges(Scope);
-		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
-		PCGEX_SCOPE_LOOP(i) { ProcessSingleEdge(i, ClusterEdges[i], Scope); }
-	}
-
-	void FClusterProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
 	}
 
@@ -185,17 +174,7 @@ namespace PCGExClusterMT
 	{
 	}
 
-	void FClusterProcessor::PrepareSingleLoopScopeForRange(const PCGExMT::FScope& Scope)
-	{
-	}
-
 	void FClusterProcessor::ProcessRange(const PCGExMT::FScope& Scope)
-	{
-		PrepareSingleLoopScopeForRange(Scope);
-		PCGEX_SCOPE_LOOP(i) { ProcessSingleRangeIteration(i, Scope); }
-	}
-
-	void FClusterProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
 	}
 

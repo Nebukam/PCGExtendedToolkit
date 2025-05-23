@@ -208,92 +208,98 @@ namespace PCGExAttributeRolling
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const int32 TargetIndex = Settings->bReverseRolling ? MaxIndex - Iteration : Iteration;
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const int32 TargetIndex = Settings->bReverseRolling ? MaxIndex - Index : Index;
 
-		if (Settings->ValueControl == EPCGExRollingValueControl::Pin)
-		{
-			if (PinFilterManager->Test(Iteration)) { SourceIndex = Iteration; }
-		}
-		else if (Settings->ValueControl == EPCGExRollingValueControl::Previous)
-		{
-			SourceIndex = Iteration + SourceOffset;
-			if (SourceIndex < 0 || SourceIndex > MaxIndex)
+			if (Settings->ValueControl == EPCGExRollingValueControl::Pin)
 			{
-				// TODO : Handle closed paths?
-				SourceIndex = -1;
+				if (PinFilterManager->Test(Index)) { SourceIndex = Index; }
 			}
-		}
-
-		const bool bPreviousRoll = bRoll;
-		const bool bStart = StartFilterManager->Test(TargetIndex);
-		bool bStop = false;
-
-		if (Settings->RangeControl == EPCGExRollingRangeControl::Toggle)
-		{
-			if (bStart)
+			else if (Settings->ValueControl == EPCGExRollingValueControl::Previous)
 			{
-				bRoll = !bRoll;
-				bStop = !bRoll;
-			}
-		}
-		else
-		{
-			if (StopFilterManager->Test(TargetIndex))
-			{
-				bRoll = false;
-				bStop = true;
-			}
-			else if (bStart)
-			{
-				bRoll = true;
-			}
-		}
-
-		if (bPreviousRoll != bRoll || TargetIndex == FirstIndex)
-		{
-			PCGEX_OUTPUT_VALUE(RangePole, TargetIndex, true)
-
-			if (bRoll)
-			{
-				// New range started
-				RangeIndex++;
-				InternalRangeIndex = -1;
-
-				PCGEX_OUTPUT_VALUE(RangeStart, TargetIndex, true)
-
-				if (Settings->ValueControl == EPCGExRollingValueControl::RangeStart)
+				SourceIndex = Index + SourceOffset;
+				if (SourceIndex < 0 || SourceIndex > MaxIndex)
 				{
-					SourceIndex = TargetIndex;
+					// TODO : Handle closed paths?
+					SourceIndex = -1;
+				}
+			}
+
+			const bool bPreviousRoll = bRoll;
+			const bool bStart = StartFilterManager->Test(TargetIndex);
+			bool bStop = false;
+
+			if (Settings->RangeControl == EPCGExRollingRangeControl::Toggle)
+			{
+				if (bStart)
+				{
+					bRoll = !bRoll;
+					bStop = !bRoll;
 				}
 			}
 			else
 			{
-				// Current range stopped
-
-				PCGEX_OUTPUT_VALUE(RangeStop, TargetIndex, true)
+				if (StopFilterManager->Test(TargetIndex))
+				{
+					bRoll = false;
+					bStop = true;
+				}
+				else if (bStart)
+				{
+					bRoll = true;
+				}
 			}
-		}
 
-		InternalRangeIndex++;
-
-		PCGEX_OUTPUT_VALUE(RangeIndex, TargetIndex, RangeIndex)
-		PCGEX_OUTPUT_VALUE(IndexInsideRange, TargetIndex, InternalRangeIndex)
-		PCGEX_OUTPUT_VALUE(IsInsideRange, TargetIndex, bRoll)
-
-		if (!bRoll && !Settings->bBlendOutsideRange)
-		{
-			if (bStop && Settings->bBlendStopElement)
+			if (bPreviousRoll != bRoll || TargetIndex == FirstIndex)
 			{
-				// Skip that one roll
-			}
-			else { return; }
-		}
+				PCGEX_OUTPUT_VALUE(RangePole, TargetIndex, true)
 
-		if (SourceIndex != -1 && BlendOpsManager)
-		{
-			BlendOpsManager->Blend(SourceIndex, TargetIndex);
+				if (bRoll)
+				{
+					// New range started
+					RangeIndex++;
+					InternalRangeIndex = -1;
+
+					PCGEX_OUTPUT_VALUE(RangeStart, TargetIndex, true)
+
+					if (Settings->ValueControl == EPCGExRollingValueControl::RangeStart)
+					{
+						SourceIndex = TargetIndex;
+					}
+				}
+				else
+				{
+					// Current range stopped
+
+					PCGEX_OUTPUT_VALUE(RangeStop, TargetIndex, true)
+				}
+			}
+
+			InternalRangeIndex++;
+
+			PCGEX_OUTPUT_VALUE(RangeIndex, TargetIndex, RangeIndex)
+			PCGEX_OUTPUT_VALUE(IndexInsideRange, TargetIndex, InternalRangeIndex)
+			PCGEX_OUTPUT_VALUE(IsInsideRange, TargetIndex, bRoll)
+
+			if (!bRoll && !Settings->bBlendOutsideRange)
+			{
+				if (bStop && Settings->bBlendStopElement)
+				{
+					// Don't skip that one roll
+				}
+				else
+				{
+					continue;
+				}
+			}
+
+			if (SourceIndex != -1 && BlendOpsManager)
+			{
+				BlendOpsManager->Blend(SourceIndex, TargetIndex);
+			}
 		}
 	}
 

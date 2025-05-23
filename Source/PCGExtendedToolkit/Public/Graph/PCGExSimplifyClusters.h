@@ -113,7 +113,7 @@ namespace PCGExSimplifyClusters
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 
 		virtual void Cleanup() override;
 	};

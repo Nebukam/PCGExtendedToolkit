@@ -163,8 +163,7 @@ namespace PCGExFilterVtx
 		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
 
-		virtual void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		
 		virtual void CompleteWork() override;
 	};

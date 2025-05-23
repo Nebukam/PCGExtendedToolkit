@@ -208,15 +208,19 @@ namespace PCGExFilterVtx
 		else { Node.bValid = bTestResult; }
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
+		
 		EdgeDataFacade->Fetch(Scope);
 		FilterEdgeScope(Scope);
-	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
-	{
-		Edge.bValid = EdgeFilterCache[EdgeIndex] ? !Settings->bInvertEdgeFilters : Settings->bInvertEdgeFilters;
+		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			Edge.bValid = EdgeFilterCache[Index] ? !Settings->bInvertEdgeFilters : Settings->bInvertEdgeFilters;
+		}
 	}
 
 	void FProcessor::CompleteWork()

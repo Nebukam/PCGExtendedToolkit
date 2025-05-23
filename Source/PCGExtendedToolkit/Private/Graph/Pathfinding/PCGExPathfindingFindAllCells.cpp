@@ -137,11 +137,18 @@ namespace PCGExFindAllCells
 		return true;
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		//Check endpoints
-		FindCell(*Cluster->GetEdgeStart(Edge), Edge);
-		FindCell(*Cluster->GetEdgeEnd(Edge), Edge);
+		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+
+			//Check endpoints
+			FindCell(*Cluster->GetEdgeStart(Edge), Edge);
+			FindCell(*Cluster->GetEdgeEnd(Edge), Edge);
+		}
 	}
 
 	bool FProcessor::FindCell(

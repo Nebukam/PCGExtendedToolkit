@@ -112,10 +112,17 @@ namespace PCGExMergeVertices
 		Node.PointIndex += StartIndexOffset;
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		Edge.Start += StartIndexOffset;
-		Edge.End += StartIndexOffset;
+		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+
+			Edge.Start += StartIndexOffset;
+			Edge.End += StartIndexOffset;
+		}
 	}
 
 	void FProcessor::CompleteWork()

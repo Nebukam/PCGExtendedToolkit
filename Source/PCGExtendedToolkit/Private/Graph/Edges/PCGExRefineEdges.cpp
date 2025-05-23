@@ -216,9 +216,14 @@ namespace PCGExRefineEdges
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		Refinement->ProcessNode(Node);
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+		
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			Refinement->ProcessNode(Nodes[Index]);
+		}
 	}
 
 	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
@@ -232,9 +237,13 @@ namespace PCGExRefineEdges
 		PCGEX_SCOPE_LOOP(i) { Edges[i].bValid = bDefaultValidity; }
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		Refinement->ProcessEdge(Edge);
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Index);
+			Refinement->ProcessEdge(Edge);
+		}
 	}
 
 	void FProcessor::OnEdgesProcessingComplete()

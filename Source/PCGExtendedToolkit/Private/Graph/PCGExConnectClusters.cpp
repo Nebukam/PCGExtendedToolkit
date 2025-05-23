@@ -122,10 +122,6 @@ namespace PCGExBridgeClusters
 		return true;
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
-	{
-	}
-
 	void FProcessor::CompleteWork()
 	{
 		// if mode == filter, loop through generators and find all suitable connectables

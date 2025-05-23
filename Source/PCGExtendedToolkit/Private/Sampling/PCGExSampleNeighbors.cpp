@@ -100,9 +100,15 @@ namespace PCGExSampleNeighbors
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*Cluster->GetNode(Iteration)); }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : OpsWithValueTest)
+			{
+				Op->ValueFilters->Results[Index] = Op->ValueFilters->Test(*Cluster->GetNode(Index));
+			}
+		}
 	}
 
 	void FProcessor::OnRangeProcessingComplete()

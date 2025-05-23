@@ -87,113 +87,116 @@ namespace PCGExSimplifyClusters
 		StartParallelLoopForRange(ChainBuilder->Chains.Num());
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const TSharedPtr<PCGExCluster::FNodeChain> Chain = ChainBuilder->Chains[Iteration];
-		if (!Chain) { return; }
-
-		if (Settings->bPruneLeaves && Chain->bIsLeaf) { return; } // Skip leaf
-
-		const bool bComputeMeta = Settings->EdgeUnionData.WriteAny();
-
-		if (Settings->bOperateOnLeavesOnly && !Chain->bIsLeaf)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			Chain->Dump(Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
-			return;
-		}
+			const TSharedPtr<PCGExCluster::FNodeChain> Chain = ChainBuilder->Chains[Index];
+			if (!Chain) { continue; }
 
-		if (Chain->SingleEdge != -1 || !Settings->bMergeAboveAngularThreshold)
-		{
-			// TODO : When using reduced dump we know in advance the number of edges will be the number of chains (optionally minus leaves)
-			// We can pre-populate the graph union data
-			Chain->DumpReduced(Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
-			return;
-		}
+			if (Settings->bPruneLeaves && Chain->bIsLeaf) { continue; } // Skip leaf
 
-		const double DotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
-		const int32 IOIndex = EdgeDataFacade->Source->IOIndex;
+			const bool bComputeMeta = Settings->EdgeUnionData.WriteAny();
 
-		PCGExGraph::FEdge OutEdge = PCGExGraph::FEdge{};
-
-		const TArray<PCGExGraph::FLink>& Links = Chain->Links;
-
-		int32 LastIndex = Chain->Seed.Node;
-		int32 UnionCount = 0;
-
-		const int32 MaxIndex = Links.Num() - 1;
-		const int32 NumIterations = Links.Num();
-
-		TArray<int32> MergedEdges;
-		MergedEdges.Reserve(NumIterations);
-
-		for (int i = 1; i < NumIterations; ++i)
-		{
-			UnionCount++;
-
-			const PCGExGraph::FLink Lk = Links[i];
-			const FVector A = Cluster->GetDir(Links[i - 1].Node, Lk.Node);
-			const int32 IndexB = (i == MaxIndex && Chain->bIsClosedLoop) ? 0 : i + 1;
-
-			if (!Links.IsValidIndex(IndexB)) { continue; }
-
-			const FVector B = Cluster->GetDir(Lk.Node, Links[IndexB].Node);
-			bool bSkip = false;
-
-			if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { bSkip = true; } }
-			else { if (FVector::DotProduct(A, B) < DotThreshold) { bSkip = true; } }
-
-			if (bSkip)
+			if (Settings->bOperateOnLeavesOnly && !Chain->bIsLeaf)
 			{
-				MergedEdges.Add(Lk.Edge);
+				Chain->Dump(Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
 				continue;
 			}
 
-			GraphBuilder->Graph->InsertEdge(
-				Cluster->GetNode(LastIndex)->PointIndex,
-				Cluster->GetNode(Lk)->PointIndex,
-				OutEdge, IOIndex);
+			if (Chain->SingleEdge != -1 || !Settings->bMergeAboveAngularThreshold)
+			{
+				// TODO : When using reduced dump we know in advance the number of edges will be the number of chains (optionally minus leaves)
+				// We can pre-populate the graph union data
+				Chain->DumpReduced(Cluster.ToSharedRef(), GraphBuilder->Graph, bComputeMeta);
+				continue;
+			}
 
-			PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
-			EdgeMetadata.UnionSize = UnionCount;
-			EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, MergedEdges);
+			const double DotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
+			const int32 IOIndex = EdgeDataFacade->Source->IOIndex;
 
-			UnionCount = 0;
-			MergedEdges.Reset();
+			PCGExGraph::FEdge OutEdge = PCGExGraph::FEdge{};
 
-			LastIndex = Lk.Node;
-		}
+			const TArray<PCGExGraph::FLink>& Links = Chain->Links;
 
-		auto MakeLastEdge = [&](const PCGExGraph::FLink Link)
-		{
-			UnionCount++;
+			int32 LastIndex = Chain->Seed.Node;
+			int32 UnionCount = 0;
 
-			GraphBuilder->Graph->InsertEdge(
-				Cluster->GetNode(LastIndex)->PointIndex,
-				Cluster->GetNode(Link.Node)->PointIndex,
-				OutEdge, IOIndex);
+			const int32 MaxIndex = Links.Num() - 1;
+			const int32 NumIterations = Links.Num();
 
-			MergedEdges.Add(Link.Edge);
+			TArray<int32> MergedEdges;
+			MergedEdges.Reserve(NumIterations);
 
-			PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
-			EdgeMetadata.UnionSize = UnionCount;
-			EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, MergedEdges);
+			for (int i = 1; i < NumIterations; ++i)
+			{
+				UnionCount++;
 
-			UnionCount = 0;
-			MergedEdges.Reset();
-		};
+				const PCGExGraph::FLink Lk = Links[i];
+				const FVector A = Cluster->GetDir(Links[i - 1].Node, Lk.Node);
+				const int32 IndexB = (i == MaxIndex && Chain->bIsClosedLoop) ? 0 : i + 1;
 
-		if (LastIndex != Chain->Links.Last().Node)
-		{
-			// Last processed point is not the last; likely skipped by angular threshold.
-			const int32 LastNode = Chain->Links.Last().Node;
-			MakeLastEdge(Chain->Links.Last());
-			LastIndex = LastNode; // Update last index
-		}
+				if (!Links.IsValidIndex(IndexB)) { continue; }
 
-		if (Chain->bIsClosedLoop)
-		{
-			// Wrap
-			MakeLastEdge(Chain->Seed);
+				const FVector B = Cluster->GetDir(Lk.Node, Links[IndexB].Node);
+				bool bSkip = false;
+
+				if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { bSkip = true; } }
+				else { if (FVector::DotProduct(A, B) < DotThreshold) { bSkip = true; } }
+
+				if (bSkip)
+				{
+					MergedEdges.Add(Lk.Edge);
+					continue;
+				}
+
+				GraphBuilder->Graph->InsertEdge(
+					Cluster->GetNode(LastIndex)->PointIndex,
+					Cluster->GetNode(Lk)->PointIndex,
+					OutEdge, IOIndex);
+
+				PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
+				EdgeMetadata.UnionSize = UnionCount;
+				EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, MergedEdges);
+
+				UnionCount = 0;
+				MergedEdges.Reset();
+
+				LastIndex = Lk.Node;
+			}
+
+			auto MakeLastEdge = [&](const PCGExGraph::FLink Link)
+			{
+				UnionCount++;
+
+				GraphBuilder->Graph->InsertEdge(
+					Cluster->GetNode(LastIndex)->PointIndex,
+					Cluster->GetNode(Link.Node)->PointIndex,
+					OutEdge, IOIndex);
+
+				MergedEdges.Add(Link.Edge);
+
+				PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
+				EdgeMetadata.UnionSize = UnionCount;
+				EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, MergedEdges);
+
+				UnionCount = 0;
+				MergedEdges.Reset();
+			};
+
+			if (LastIndex != Chain->Links.Last().Node)
+			{
+				// Last processed point is not the last; likely skipped by angular threshold.
+				const int32 LastNode = Chain->Links.Last().Node;
+				MakeLastEdge(Chain->Links.Last());
+				LastIndex = LastNode; // Update last index
+			}
+
+			if (Chain->bIsClosedLoop)
+			{
+				// Wrap
+				MakeLastEdge(Chain->Seed);
+			}
 		}
 	}
 

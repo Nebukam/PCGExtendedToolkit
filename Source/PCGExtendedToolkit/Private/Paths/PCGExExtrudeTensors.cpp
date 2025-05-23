@@ -488,12 +488,15 @@ namespace PCGExExtrudeTensors
 		if (UpdateExtrusionQueue()) { StartParallelLoopForRange(ExtrusionQueue.Num(), 32); }
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		if (!ExtrusionQueue[Iteration]->Advance())
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			ExtrusionQueue[Iteration]->Complete();
-			CompletedExtrusions->Get(Scope)->Add(ExtrusionQueue[Iteration]);
+			if (!ExtrusionQueue[Index]->Advance())
+			{
+				ExtrusionQueue[Index]->Complete();
+				CompletedExtrusions->Get(Scope)->Add(ExtrusionQueue[Index]);
+			}
 		}
 	}
 

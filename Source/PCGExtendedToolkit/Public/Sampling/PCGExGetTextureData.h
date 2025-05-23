@@ -169,7 +169,7 @@ namespace PCGExGetTextureData
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
 		virtual void CompleteWork() override;

@@ -131,10 +131,6 @@ namespace PCGExPointsMT
 	{
 	}
 
-	void FPointsProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
-	{
-	}
-
 	void FPointsProcessor::CompleteWork()
 	{
 	}

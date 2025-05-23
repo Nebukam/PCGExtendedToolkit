@@ -147,9 +147,12 @@ namespace PCGExFindPointOnBoundsClusters
 		UpdateCandidate(Cluster->GetPos(Node), Node.PointIndex);
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		UpdateCandidate(Cluster->GetClosestPointOnEdge(EdgeIndex, SearchPosition), EdgeIndex);
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			UpdateCandidate(Cluster->GetClosestPointOnEdge(Index, SearchPosition), Index);
+		}
 	}
 
 	void FProcessor::CompleteWork()

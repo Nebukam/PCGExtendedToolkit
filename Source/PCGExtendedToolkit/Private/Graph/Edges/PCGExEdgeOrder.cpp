@@ -82,28 +82,28 @@ namespace PCGExEdgeOrder
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		FClusterProcessor::PrepareSingleLoopScopeForEdges(Scope);
 		EdgeDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
-	{
-		const PCGExGraph::FEdge PreviousData = Edge;
-		DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
+		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
 
-		const PCGExCluster::FNode& StartNode = *Cluster->GetEdgeStart(Edge);
-		uint32 StartID = 0;
-		uint32 StartAdjacency = 0;
-		PCGEx::H64(VtxEndpointBuffer->Read(StartNode.PointIndex), StartID, StartAdjacency);
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
 
-		const PCGExCluster::FNode& EndNode = *Cluster->GetEdgeEnd(Edge);
-		uint32 EndID = 0;
-		uint32 EndAdjacency = 0;
-		PCGEx::H64(VtxEndpointBuffer->Read(EndNode.PointIndex), EndID, EndAdjacency);
+			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
-		EndpointsBuffer->GetMutable(EdgeIndex) = PCGEx::H64(StartID, EndID); // Rewrite endpoints data as ordered
+			uint32 StartID = 0;
+			uint32 StartAdjacency = 0;
+			PCGEx::H64(VtxEndpointBuffer->Read(Edge.Start), StartID, StartAdjacency);
+
+			uint32 EndID = 0;
+			uint32 EndAdjacency = 0;
+			PCGEx::H64(VtxEndpointBuffer->Read(Edge.End), EndID, EndAdjacency);
+
+			EndpointsBuffer->GetMutable(Index) = PCGEx::H64(StartID, EndID); // Rewrite endpoints data as ordered
+		}
 	}
 
 	void FProcessor::CompleteWork()

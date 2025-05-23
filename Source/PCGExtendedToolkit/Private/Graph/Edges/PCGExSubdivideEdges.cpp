@@ -96,27 +96,34 @@ namespace PCGExSubdivideEdges
 		return true;
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
+		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+			
+			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
-		const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
-		const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
+			const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
+			const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
 
-		// Create subdivision items
-		FSubdivision& Sub = Subdivisions[EdgeIndex];
+			// Create subdivision items
+			FSubdivision& Sub = Subdivisions[Index];
 
-		Sub.NumSubdivisions = 0;
+			Sub.NumSubdivisions = 0;
 
-		// Check if that edge should be subdivided. How depends on the test source
-		// Can be:
-		// - Edge start test
-		// - Edge end test
-		// - Edge itself test
+			// Check if that edge should be subdivided. How depends on the test source
+			// Can be:
+			// - Edge start test
+			// - Edge end test
+			// - Edge itself test
 
-		Sub.Start = Cluster->GetPos(StartNode);
-		Sub.End = Cluster->GetPos(EndNode);
-		Sub.Dist = FVector::Distance(Sub.Start, Sub.End);
+			Sub.Start = Cluster->GetPos(StartNode);
+			Sub.End = Cluster->GetPos(EndNode);
+			Sub.Dist = FVector::Distance(Sub.Start, Sub.End);
+		}
 	}
 
 	void FProcessor::CompleteWork()
