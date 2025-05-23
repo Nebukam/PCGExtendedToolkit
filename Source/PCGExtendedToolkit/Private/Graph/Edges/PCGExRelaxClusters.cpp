@@ -146,10 +146,10 @@ namespace PCGExRelaxClusters
 
 		switch (StepSource)
 		{
-		case EPCGExClusterComponentSource::Vtx:
+		case EPCGExClusterElement::Vtx:
 			IterationGroup->StartSubLoops(NumNodes, 32);
 			break;
-		case EPCGExClusterComponentSource::Edge:
+		case EPCGExClusterElement::Edge:
 			IterationGroup->StartSubLoops(NumEdges, 32);
 			break;
 		}
@@ -171,12 +171,12 @@ namespace PCGExRelaxClusters
 
 		switch (StepSource)
 		{
-		case EPCGExClusterComponentSource::Vtx:
+		case EPCGExClusterElement::Vtx:
 			PCGEX_RELAX_STEP_NODE(1)
 			PCGEX_RELAX_STEP_NODE(2)
 			PCGEX_RELAX_STEP_NODE(3)
 			break;
-		case EPCGExClusterComponentSource::Edge:
+		case EPCGExClusterElement::Edge:
 			PCGEX_RELAX_STEP_EDGE(1)
 			PCGEX_RELAX_STEP_EDGE(2)
 			PCGEX_RELAX_STEP_EDGE(3)

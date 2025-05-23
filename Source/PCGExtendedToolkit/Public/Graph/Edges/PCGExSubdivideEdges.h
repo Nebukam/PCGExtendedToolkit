@@ -50,7 +50,7 @@ public:
 	int32 Count = 10;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="AmountInput!=EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
-	EPCGExClusterComponentSource AmountSource = EPCGExClusterComponentSource::Edge;
+	EPCGExClusterElement AmountSource = EPCGExClusterElement::Edge;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Subdivision (Attr)", EditCondition="AmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SubdivisionAmount;

@@ -99,7 +99,7 @@ public:
 
 	virtual int32 GetNumSteps() override { return 3; }
 
-	virtual EPCGExClusterComponentSource PrepareNextStep(const int32 InStep) override
+	virtual EPCGExClusterElement PrepareNextStep(const int32 InStep) override
 	{
 		// Step 1 : Apply spring forces for each edge
 		if (InStep == 0)
@@ -107,12 +107,12 @@ public:
 			Super::PrepareNextStep(InStep);
 			Forces.Reset(Cluster->Nodes->Num());
 			Forces.Init(FIntVector3(0), Cluster->Nodes->Num());
-			return EPCGExClusterComponentSource::Edge;
+			return EPCGExClusterElement::Edge;
 		}
 
 		// Step 2 : Apply repulsion forces between all pairs of nodes
 		// Step 3 : Update positions based on accumulated forces
-		return EPCGExClusterComponentSource::Vtx;
+		return EPCGExClusterElement::Vtx;
 	}
 
 	virtual void Step1(const PCGExGraph::FEdge& Edge) override

@@ -101,7 +101,7 @@ namespace PCGExWriteEdgeProperties
 		{
 #define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){\
 			SolidificationRad##_AXIS = PCGExDetails::MakeSettingValue(Settings->Radius##_AXIS##Input, Settings->Radius##_AXIS##SourceAttribute, Settings->Radius##_AXIS##Constant);\
-			if(!SolidificationRad##_AXIS->Init(Context, Settings->Radius##_AXIS##Source == EPCGExClusterComponentSource::Edge ? EdgeDataFacade : VtxDataFacade, false)){ return false; } }
+			if(!SolidificationRad##_AXIS->Init(Context, Settings->Radius##_AXIS##Source == EPCGExClusterElement::Edge ? EdgeDataFacade : VtxDataFacade, false)){ return false; } }
 			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_SET_CONST)
 #undef PCGEX_CREATE_LOCAL_AXIS_SET_CONST
 
@@ -195,7 +195,7 @@ TargetBoundsMin._AXIS = (-EdgeLength * BlendWeightEnd) * InvScale._AXIS;\
 TargetBoundsMax._AXIS = (EdgeLength * BlendWeightStart) * InvScale._AXIS;\
 }else if(SolidificationRad##_AXIS){\
 double Rad = 0;\
-if (Settings->Radius##_AXIS##Source == EPCGExClusterComponentSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Edge.Start), SolidificationRad##_AXIS->Read(Edge.End), BlendWeightStart); }\
+if (Settings->Radius##_AXIS##Source == EPCGExClusterElement::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Edge.Start), SolidificationRad##_AXIS->Read(Edge.End), BlendWeightStart); }\
 else { Rad = SolidificationRad##_AXIS->Read(EdgeIndex); }\
 TargetBoundsMin._AXIS = -Rad * InvScale._AXIS;\
 TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\

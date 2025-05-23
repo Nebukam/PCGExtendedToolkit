@@ -47,7 +47,7 @@ struct FPCGExNodeAdjacencyFilterConfig
 
 	/** Source of the Operand B value -- either the neighboring point, or the edge connecting to that point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExClusterComponentSource OperandBSource = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement OperandBSource = EPCGExClusterElement::Vtx;
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, DisplayName="Operand B (Neighbor)"))

@@ -130,7 +130,7 @@ public:
 
 	/** Source from which to fetch the Radius X value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None && RadiusXInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	EPCGExClusterComponentSource RadiusXSource = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement RadiusXSource = EPCGExClusterElement::Vtx;
 
 	/** Attribute read on edge endpoints */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, DisplayName="Radius X (Attr)", EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None && RadiusXInput!=EPCGExInputValueType::Constant", EditConditionHides))
@@ -151,7 +151,7 @@ public:
 
 	/** Source from which to fetch the Radius Y value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None && RadiusYInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	EPCGExClusterComponentSource RadiusYSource = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement RadiusYSource = EPCGExClusterElement::Vtx;
 
 	/** Attribute read on edge endpoints */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, DisplayName="Radius Y (Attr)", EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None && RadiusYInput!=EPCGExInputValueType::Constant", EditConditionHides))
@@ -172,7 +172,7 @@ public:
 
 	/** Source from which to fetch the Radius Z value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	EPCGExClusterComponentSource RadiusZSource = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement RadiusZSource = EPCGExClusterElement::Vtx;
 
 	/** Attribute read on edge endpoints */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, DisplayName="Radius Z (Attr)", EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZInput!=EPCGExInputValueType::Constant", EditConditionHides))

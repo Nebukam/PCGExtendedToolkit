@@ -81,7 +81,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingConfig
 
 	/** Which type of neighbor to sample */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExClusterComponentSource NeighborSource = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement NeighborSource = EPCGExClusterElement::Vtx;
 };
 
 
@@ -107,11 +107,15 @@ public:
 	TSharedRef<PCGExData::FPointIO> GetSourceIO() const;
 	TSharedRef<PCGExData::FFacade> GetSourceDataFacade() const;
 
-	virtual void ProcessNode(const int32 NodeIndex);
-	virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const;
-	virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight);
-	virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight);
-	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight);
+	virtual void PrepareForLoops(const TArray<PCGExMT::FScope>& Loops);
+	
+	virtual void ProcessNode(const int32 NodeIndex, const PCGExMT::FScope& Scope);
+	virtual void PrepareNode(const PCGExCluster::FNode& TargetNode, const PCGExMT::FScope& Scope) const;
+	
+	virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope);
+	virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope);
+	
+	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope);
 	virtual void CompleteOperation();
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;

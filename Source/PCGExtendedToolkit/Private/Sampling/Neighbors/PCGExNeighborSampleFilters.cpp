@@ -59,7 +59,7 @@ void FPCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, co
 		TotalWeightBuffer = VtxDataFacade->GetWritable<int32>(Config.TotalWeightAttributeName, 0, true, PCGExData::EBufferInit::New);
 	}
 
-	if (SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx)
+	if (SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx)
 	{
 		if (!FilterManager->Init(InContext, VtxFilterFactories))
 		{
@@ -78,12 +78,12 @@ void FPCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, co
 	bIsValidOperation = true;
 }
 
-void FPCGExNeighborSampleFilters::PrepareNode(const PCGExCluster::FNode& TargetNode) const
+void FPCGExNeighborSampleFilters::PrepareNode(const PCGExCluster::FNode& TargetNode, const PCGExMT::FScope& Scope) const
 {
-	FPCGExNeighborSampleOperation::PrepareNode(TargetNode);
+	FPCGExNeighborSampleOperation::PrepareNode(TargetNode, Scope);
 }
 
-void FPCGExNeighborSampleFilters::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleFilters::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope)
 {
 	if (FilterManager->Test(*Cluster->GetNode(Lk)))
 	{
@@ -97,7 +97,7 @@ void FPCGExNeighborSampleFilters::SampleNeighborNode(const PCGExCluster::FNode& 
 	}
 }
 
-void FPCGExNeighborSampleFilters::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleFilters::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope)
 {
 	if (FilterManager->Test(*Cluster->GetEdge(Lk)))
 	{
@@ -111,7 +111,7 @@ void FPCGExNeighborSampleFilters::SampleNeighborEdge(const PCGExCluster::FNode& 
 	}
 }
 
-void FPCGExNeighborSampleFilters::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
+void FPCGExNeighborSampleFilters::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope)
 {
 	const int32 WriteIndex = TargetNode.PointIndex;
 	const int32 ReadIndex = TargetNode.Index;
@@ -158,13 +158,13 @@ UPCGExNeighborSampleFiltersSettings::UPCGExNeighborSampleFiltersSettings(const F
 bool UPCGExNeighborSampleFiltersSettings::SupportsVtxFilters(bool& bIsRequired) const
 {
 	bIsRequired = true;
-	return SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx;
+	return SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx;
 }
 
 bool UPCGExNeighborSampleFiltersSettings::SupportsEdgeFilters(bool& bIsRequired) const
 {
 	bIsRequired = true;
-	return SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Edge;
+	return SamplingConfig.NeighborSource == EPCGExClusterElement::Edge;
 }
 
 UPCGExFactoryData* UPCGExNeighborSampleFiltersSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const

@@ -76,29 +76,20 @@ namespace PCGExBlendAttributes
 
 		NumPoints = PointDataFacade->GetNum();
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BlendScopeTask)
-
-		BlendScopeTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->BlendScope(Scope);
-			};
-
-		BlendScopeTask->StartSubLoops(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		StartParallelLoopForRange(NumPoints);
 
 		return true;
 	}
 
-	void FProcessor::BlendScope(const PCGExMT::FScope& InScope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		PointDataFacade->Fetch(InScope);
-		FilterScope(InScope);
+		PointDataFacade->Fetch(Scope);
+		FilterScope(Scope);
 
-		for (int i = InScope.Start; i < InScope.End; i++)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (!PointFilterCache[i]) { continue; }
-			BlendOpsManager->Blend(i);
+			if (!PointFilterCache[Index]) { continue; }
+			BlendOpsManager->Blend(Index);
 		}
 	}
 

@@ -40,7 +40,7 @@ enum class EPCGExAdjacencyDirectionOrigin : uint8
 };
 
 UENUM()
-enum class EPCGExClusterComponentSource : uint8
+enum class EPCGExClusterElement : uint8
 {
 	Vtx  = 0 UMETA(DisplayName = "Point", Tooltip="Value is fetched from the point being evaluated."),
 	Edge = 1 UMETA(DisplayName = "Edge", Tooltip="Value is fetched from the edge connecting to the point being evaluated."),

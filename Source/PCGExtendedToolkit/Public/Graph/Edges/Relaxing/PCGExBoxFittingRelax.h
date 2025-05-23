@@ -33,9 +33,9 @@ public:
 		return true;
 	}
 
-	virtual EPCGExClusterComponentSource PrepareNextStep(const int32 InStep) override
+	virtual EPCGExClusterElement PrepareNextStep(const int32 InStep) override
 	{
-		EPCGExClusterComponentSource Source = Super::PrepareNextStep(InStep); // Super does the buffer swap, needs to happen first
+		EPCGExClusterElement Source = Super::PrepareNextStep(InStep); // Super does the buffer swap, needs to happen first
 		if (InStep == 0)
 		{
 			const int32 NumNodes = Cluster->Nodes->Num();

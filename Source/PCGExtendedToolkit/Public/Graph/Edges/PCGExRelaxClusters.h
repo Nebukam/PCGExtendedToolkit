@@ -111,7 +111,7 @@ namespace PCGExRelaxClusters
 		int32 Iterations = 10;
 		int32 Steps = 10;
 		int32 CurrentStep = 0;
-		EPCGExClusterComponentSource StepSource = EPCGExClusterComponentSource::Vtx;
+		EPCGExClusterElement StepSource = EPCGExClusterElement::Vtx;
 
 		TSharedPtr<PCGExData::TBuffer<double>> InfluenceCache;
 

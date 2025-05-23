@@ -126,6 +126,12 @@ namespace PCGExDataBlending
 		return true;
 	}
 
+	void FBlendOpsManager::InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops)
+	{
+		ScopedTrackers = MakeShared<PCGExMT::TScopedArray<PCGEx::FOpStats>>(Loops);
+		ScopedTrackers->ForEach([&](TArray<PCGEx::FOpStats>& Array) { InitTrackers(Array); });
+	}
+
 	void FBlendOpsManager::InitTrackers(TArray<PCGEx::FOpStats>& Trackers)
 	{
 		Trackers.SetNumUninitialized(Operations->Num());

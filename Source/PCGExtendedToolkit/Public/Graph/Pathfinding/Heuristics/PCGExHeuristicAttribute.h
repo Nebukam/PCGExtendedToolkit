@@ -27,7 +27,7 @@ struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 
 	/** Read the data from either vertices or edges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExClusterComponentSource Source = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement Source = EPCGExClusterElement::Vtx;
 
 	/** Attribute to read modifier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -58,7 +58,7 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 
-	EPCGExClusterComponentSource Source = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement Source = EPCGExClusterElement::Vtx;
 	FPCGAttributePropertyInputSelector Attribute;
 	bool bUseCustomFallback = false;
 	double FallbackValue = 1;

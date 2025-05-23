@@ -14,7 +14,7 @@ void UPCGExNodeAdjacencyFilterFactory::RegisterBuffersDependencies(FPCGExContext
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
 	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Config.OperandA); }
-	if (Config.OperandBSource == EPCGExClusterComponentSource::Vtx) { FacadePreloader.Register<double>(InContext, Config.OperandB); }
+	if (Config.OperandBSource == EPCGExClusterElement::Vtx) { FacadePreloader.Register<double>(InContext, Config.OperandB); }
 }
 
 bool UPCGExNodeAdjacencyFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -37,7 +37,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 {
 	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-	bCaptureFromNodes = TypedFilterFactory->Config.OperandBSource != EPCGExClusterComponentSource::Edge;
+	bCaptureFromNodes = TypedFilterFactory->Config.OperandBSource != EPCGExClusterElement::Edge;
 
 	OperandA = TypedFilterFactory->Config.GetValueSettingOperandA();
 	if (!OperandA->Init(InContext, PointDataFacade, false)) { return false; }
