@@ -145,6 +145,8 @@ namespace PCGExSampleTexture
 
 		bool bAnySuccessLocal = false;
 
+		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
+		
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			auto SamplingFailed = [&]()
@@ -161,10 +163,11 @@ namespace PCGExSampleTexture
 			bool bSuccess = false;
 
 			const FVector2D UV = UVGetter->Read(Index);
+			PCGExData::FConstPoint Point(InPoints, Index);
 
 			for (const TSharedRef<FSampler>& Sampler : Samplers)
 			{
-				if (Sampler->Sample(Index, UV)) { bSuccess = true; }
+				if (Sampler->Sample(Point, UV)) { bSuccess = true; }
 			}
 
 			if (!bSuccess)

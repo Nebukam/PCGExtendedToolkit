@@ -117,7 +117,7 @@ namespace PCGExSampleTexture
 		}
 
 		bool IsValid() const { return bValid; }
-		virtual bool Sample(const int32 Index, const FVector2D& UV) const = 0;
+		virtual bool Sample(const PCGExData::FConstPoint& Point, const FVector2D& UV) const = 0;
 	};
 
 	template <typename T>
@@ -133,12 +133,12 @@ namespace PCGExSampleTexture
 			Buffer = InDataFacade->GetWritable<T>(InConfig.SampleAttributeName, T{}, true, PCGExData::EBufferInit::Inherit);
 		}
 
-		virtual bool Sample(const int32 Index, const FVector2D& UV) const override
+		virtual bool Sample(const PCGExData::FConstPoint& Point, const FVector2D& UV) const override
 		{
 			FVector4 SampledValue = FVector4::Zero();
 			float SampledDensity = 1;
 
-			if (const UPCGBaseTextureData* Tex = this->TextureMap->TryGetTextureData(this->IDGetter->SoftGet(Index, TEXT("")));
+			if (const UPCGBaseTextureData* Tex = this->TextureMap->TryGetTextureData(this->IDGetter->SoftGet(Point, TEXT("")));
 				!Tex ||
 				!Tex->SamplePointLocal(UV, SampledValue, SampledDensity))
 			{
@@ -147,7 +147,7 @@ namespace PCGExSampleTexture
 
 			SampledValue *= Config.Scale;
 
-			T& V = Buffer->GetMutable(Index);
+			T& V = Buffer->GetMutable(Point);
 
 			if constexpr (
 				std::is_same_v<T, float> ||

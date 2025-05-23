@@ -158,7 +158,6 @@ namespace PCGExBuildVoronoi
 				ValidEdges.Add(PCGEx::H64(A, B));
 			}
 
-
 			UPCGBasePointData* CentroidsPoints = PointDataFacade->GetOut();
 			CentroidsPoints->SetNumPoints(Centroids);
 
@@ -166,12 +165,7 @@ namespace PCGExBuildVoronoi
 
 			for (int i = 0; i < RemappedIndices.Num(); i++)
 			{
-				const int32 Idx = RemappedIndices[i];
-
-				if (Idx == -1) { continue; }
-
-				const FVector Location = Voronoi->Circumspheres[i].Center;
-				OutTransforms[Idx].SetLocation(Location);
+				if (const int32 Idx = RemappedIndices[i]; Idx != -1) { OutTransforms[Idx].SetLocation(Voronoi->Circumspheres[i].Center); }
 			}
 
 			RemappedIndices.Empty();
