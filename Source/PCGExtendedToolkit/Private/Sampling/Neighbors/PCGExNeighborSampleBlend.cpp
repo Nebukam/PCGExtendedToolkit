@@ -15,44 +15,14 @@ void FPCGExNeighborSampleBlend::PrepareForCluster(FPCGExContext* InContext, cons
 
 	bIsValidOperation = false;
 
-	if (SourceAttributes.IsEmpty())
-	{
-		PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("No source attribute set."));
-		return;
-	}
+	BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>();
 
-	TSet<FName> MissingAttributes;
+	BlendOpsManager->SetWeightFacade(VtxDataFacade);
+	BlendOpsManager->SetTargetFacade(VtxDataFacade);
+	BlendOpsManager->SetSourceA(Factory->SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx ? VtxDataFacade : EdgeDataFacade);
+	BlendOpsManager->SetSourceB(VtxDataFacade);
 
-	TArray<FName> SourceNames;
-	SourceAttributes.GetSources(SourceNames);
-
-	PCGExDataBlending::AssembleBlendingDetails(Blending, SourceNames, GetSourceIO(), MetadataBlendingDetails, MissingAttributes);
-
-	for (const FName& Id : MissingAttributes)
-	{
-		if (SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on vtx: {0}."), FText::FromName(Id))); }
-		else { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on edges: {0}."), FText::FromName(Id))); }
-	}
-
-	if (MetadataBlendingDetails.FilteredAttributes.IsEmpty())
-	{
-		//PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing all source attribute(s) on Sampler {0}."), FText::FromString(GetClass()->GetName()))); // TODO
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing all source attribute(s) on a Sampler."));
-		return;
-	}
-
-	Blender = MakeShared<PCGExDataBlending::FMetadataBlender>();
-	Blender->bBlendProperties = false;
-	Blender->SetTargetData(InVtxDataFacade);
-	Blender->SetSourceData(GetSourceDataFacade(), PCGExData::EIOSide::In);
-
-	if (!Blender->Init(Context, MetadataBlendingDetails))
-	{
-		// 
-		return;
-	}
-
-	SourceAttributes.SetOutputTargetNames(InVtxDataFacade);
+	if (!BlendOpsManager->Init(Context, Factory->BlendingFactories)) { return; }
 
 	bIsValidOperation = true;
 }

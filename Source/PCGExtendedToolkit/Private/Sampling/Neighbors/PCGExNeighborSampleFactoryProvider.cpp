@@ -63,7 +63,7 @@ void FPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const PCG
 	VisitedNodes.Add(NodeIndex);
 	CurrentNeighbors->Append(Node.Links);
 
-	PrepareNode(Node, TODO);
+	PrepareNode(Node, Scope);
 	const FVector Origin = Cluster->GetPos(Node);
 
 
@@ -90,8 +90,8 @@ void FPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const PCG
 
 			LocalWeight = WeightCurveObj->Eval(LocalWeight);
 
-			if (SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx) { SampleNeighborNode(Node, Lk, LocalWeight, TODO); }
-			else { SampleNeighborEdge(Node, Lk, LocalWeight, TODO); }
+			if (SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx) { SampleNeighborNode(Node, Lk, LocalWeight, Scope); }
+			else { SampleNeighborEdge(Node, Lk, LocalWeight, Scope); }
 
 			Count++;
 			TotalWeight += LocalWeight;
@@ -104,7 +104,7 @@ void FPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const PCG
 		NextNeighbors->Reset();
 		for (const PCGExGraph::FLink& Old : (*CurrentNeighbors))
 		{
-			const TArray<PCGExGraph::FLink>& Neighbors = Cluster->GetNode(Old.Node)->Links;
+			const PCGExGraph::NodeLinks& Neighbors = Cluster->GetNode(Old.Node)->Links;
 			if (ValueFilters)
 			{
 				for (const PCGExGraph::FLink Next : Neighbors)
@@ -132,7 +132,7 @@ void FPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const PCG
 		std::swap(CurrentNeighbors, NextNeighbors);
 	}
 
-	FinalizeNode(Node, Count, TotalWeight, TODO);
+	FinalizeNode(Node, Count, TotalWeight, Scope);
 }
 
 void FPCGExNeighborSampleOperation::PrepareNode(const PCGExCluster::FNode& TargetNode, const PCGExMT::FScope& Scope) const

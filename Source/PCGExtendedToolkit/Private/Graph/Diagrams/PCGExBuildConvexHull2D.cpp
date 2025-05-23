@@ -98,24 +98,21 @@ namespace PCGExConvexHull2D
 			return false;
 		}
 
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn();
+		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->PathsIO->Emplace_GetRef(PointDataFacade->GetIn(), PCGExData::EIOInit::New);
 
 		if (!PathIO) { return false; }
 
 		PathIO->IOIndex = PointDataFacade->Source->IOIndex;
-		TArray<FPCGPoint>& MutablePathPoints = PathIO->GetOut()->GetMutablePoints();
+		UPCGBasePointData* MutablePoints = PathIO->GetOut();
 		TArray<FVector2D> ProjectedPoints;
 
-		MutablePathPoints.Reserve(LastIndex + 1);
+		MutablePoints->SetNumPoints(LastIndex + 1);
 		ProjectedPoints.Reserve(LastIndex + 1);
-
 
 		if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); }
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
-
-		// TODO : Compute winding already
 
 		PCGExGraph::FEdge E;
 		for (int i = 0; i <= LastIndex; i++)
@@ -123,17 +120,16 @@ namespace PCGExConvexHull2D
 			const int32 CurrentIndex = ConvexHullIndices[i];
 			const int32 NextIndex = ConvexHullIndices[i == LastIndex ? 0 : i + 1];
 
-			const FPCGPoint& InPoint = InPoints[CurrentIndex];
-
-			MutablePathPoints.Add(InPoint);
 			ProjectedPoints.Emplace(ActivePositions[CurrentIndex]);
 			GraphBuilder->Graph->InsertEdge(CurrentIndex, NextIndex, E);
 		}
 
 		if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
 		{
-			Algo::Reverse(MutablePathPoints);
+			Algo::Reverse(ConvexHullIndices);
 		}
+
+		PointDataFacade->Source->InheritPoints(ConvexHullIndices, 0);
 
 		ActivePositions.Empty();
 

@@ -19,7 +19,7 @@
 ///
 
 
-USTRUCT(Hidden, BlueprintType)
+USTRUCT(BlueprintType, meta=(Hidden=true))
 struct FPCGExPropertiesSamplerConfigBase
 {
 	GENERATED_BODY()

@@ -157,6 +157,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 
 namespace PCGExGraph
 {
+
+	using NodeLinks = TArray<FLink, TInlineAllocator<8>>;
+	
 	using FGraphCompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
 
 	const FName SourceProbesLabel = TEXT("Probes");
@@ -289,7 +292,7 @@ namespace PCGExGraph
 		int32 PointIndex = -1; // Index in the context of the UPCGBasePointData that helds the vtx
 		int32 NumExportedEdges = 0;
 
-		TArray<FLink, TInlineAllocator<8>> Links;
+		NodeLinks Links;
 
 		~FNode() = default;
 

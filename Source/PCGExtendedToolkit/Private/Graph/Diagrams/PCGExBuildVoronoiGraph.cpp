@@ -98,7 +98,7 @@ namespace PCGExBuildVoronoi
 		// Build voronoi
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 
 		Voronoi = MakeUnique<PCGExGeo::TVoronoi3>();
 
@@ -129,12 +129,11 @@ namespace PCGExBuildVoronoi
 
 		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
 		{
-			TArray<FPCGPoint>& Centroids = PointDataFacade->GetOut()->GetMutablePoints();
+			int32 Centroids = 0;
 
 			const int32 NumSites = Voronoi->Centroids.Num();
 			TArray<int32> RemappedIndices;
 			RemappedIndices.SetNumUninitialized(NumSites);
-			Centroids.Reserve(NumSites);
 
 			for (int i = 0; i < NumSites; i++)
 			{
@@ -145,10 +144,7 @@ namespace PCGExBuildVoronoi
 					continue;
 				}
 
-				RemappedIndices[i] = Centroids.Num();
-				FPCGPoint& NewPoint = Centroids.Emplace_GetRef();
-				NewPoint.Transform.SetLocation(Centroid);
-				NewPoint.Seed = PCGExRandom::ComputeSeed(NewPoint);
+				RemappedIndices[i] = Centroids++;
 			}
 
 			TArray<uint64> ValidEdges;
@@ -162,8 +158,24 @@ namespace PCGExBuildVoronoi
 				ValidEdges.Add(PCGEx::H64(A, B));
 			}
 
+
+			UPCGBasePointData* CentroidsPoints = PointDataFacade->GetOut();
+			CentroidsPoints->SetNumPoints(Centroids);
+
+			TPCGValueRange<FTransform> OutTransforms = CentroidsPoints->GetTransformValueRange();
+
+			for (int i = 0; i < RemappedIndices.Num(); i++)
+			{
+				const int32 Idx = RemappedIndices[i];
+
+				if (Idx == -1) { continue; }
+
+				const FVector Location = Voronoi->Circumspheres[i].Center;
+				OutTransforms[Idx].SetLocation(Location);
+			}
+
 			RemappedIndices.Empty();
-			//ExtractValidSites();
+
 			Voronoi.Reset();
 
 			GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
@@ -173,24 +185,24 @@ namespace PCGExBuildVoronoi
 		}
 		else
 		{
-			TArray<FPCGPoint>& Centroids = PointDataFacade->GetOut()->GetMutablePoints();
+			UPCGBasePointData* Centroids = PointDataFacade->GetOut();
 			const int32 NumSites = Voronoi->Centroids.Num();
-			Centroids.SetNum(NumSites);
+			Centroids->SetNumPoints(NumSites);
+
+			TPCGValueRange<FTransform> OutTransforms = Centroids->GetTransformValueRange();
 
 			if (Settings->Method == EPCGExCellCenter::Circumcenter)
 			{
 				for (int i = 0; i < NumSites; i++)
 				{
-					Centroids[i].Transform.SetLocation(Voronoi->Circumspheres[i].Center);
-					Centroids[i].Seed = PCGExRandom::ComputeSeed(Centroids[i]);
+					OutTransforms[i].SetLocation(Voronoi->Circumspheres[i].Center);
 				}
 			}
 			else if (Settings->Method == EPCGExCellCenter::Centroid)
 			{
 				for (int i = 0; i < NumSites; i++)
 				{
-					Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]);
-					Centroids[i].Seed = PCGExRandom::ComputeSeed(Centroids[i]);
+					OutTransforms[i].SetLocation(Voronoi->Centroids[i]);
 				}
 			}
 			else if (Settings->Method == EPCGExCellCenter::Balanced)
@@ -198,11 +210,11 @@ namespace PCGExBuildVoronoi
 				for (int i = 0; i < NumSites; i++)
 				{
 					FVector Target = Voronoi->Circumspheres[i].Center;
-					if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
-					else { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
-					Centroids[i].Seed = PCGExRandom::ComputeSeed(Centroids[i]);
+					if (Bounds.IsInside(Target)) { OutTransforms[i].SetLocation(Target); }
+					else { OutTransforms[i].SetLocation(Voronoi->Centroids[i]); }
 				}
 			}
+
 
 			GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
@@ -211,13 +223,26 @@ namespace PCGExBuildVoronoi
 			Voronoi.Reset();
 		}
 
+		// Update seeds
+
+		const int32 NumSites = PointDataFacade->GetOut()->GetNumPoints();
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
+		TPCGValueRange<int32> OutSeeds = PointDataFacade->GetOut()->GetSeedValueRange();
+
+		for (int i = 0; i < NumSites; i++)
+		{
+			OutSeeds[i] = PCGExRandom::ComputeSpatialSeed(OutTransforms[i].GetLocation());
+		}
+
+		// Compile graph
+
 		GraphBuilder->CompileAsync(AsyncManager, false);
 
 		return true;
 	}
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
-	{		
+	{
 		//HullMarkPointWriter->Values[Index] = Voronoi->Delaunay->DelaunayHull.Contains(Index);
 	}
 
