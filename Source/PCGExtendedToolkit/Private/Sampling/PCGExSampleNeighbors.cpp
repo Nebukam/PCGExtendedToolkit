@@ -116,9 +116,12 @@ namespace PCGExSampleNeighbors
 		StartParallelLoopForNodes();
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->ProcessNode(Index); }
+		PCGEX_SCOPE_LOOP(Index)
+		{			
+			for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->ProcessNode(Index); }
+		}
 	}
 
 	void FProcessor::Write()

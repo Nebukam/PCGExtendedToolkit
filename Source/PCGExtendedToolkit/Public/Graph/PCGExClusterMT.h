@@ -132,9 +132,7 @@ namespace PCGExClusterMT
 
 		void StartParallelLoopForNodes(const int32 PerLoopIterations = -1);
 		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops);
-		virtual void PrepareSingleLoopScopeForNodes(const PCGExMT::FScope& Scope);
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope);
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope);
 		virtual void OnNodesProcessingComplete();
 
 		void StartParallelLoopForEdges(const int32 PerLoopIterations = -1);

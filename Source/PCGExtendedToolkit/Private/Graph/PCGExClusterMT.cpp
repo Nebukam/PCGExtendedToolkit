@@ -121,19 +121,9 @@ namespace PCGExClusterMT
 	{
 	}
 
-	void FClusterProcessor::PrepareSingleLoopScopeForNodes(const PCGExMT::FScope& Scope)
-	{
-	}
-
 	void FClusterProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		PrepareSingleLoopScopeForNodes(Scope);
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-		PCGEX_SCOPE_LOOP(i) { ProcessSingleNode(i, Nodes[i], Scope); }
-	}
-
-	void FClusterProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
-	{
+		
 	}
 
 	void FClusterProcessor::OnNodesProcessingComplete()

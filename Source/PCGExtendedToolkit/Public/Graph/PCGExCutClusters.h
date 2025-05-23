@@ -148,8 +148,8 @@ namespace PCGExCutEdges
 
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		
-		virtual void PrepareSingleLoopScopeForNodes(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
+		
 		virtual void OnEdgesProcessingComplete() override;
 		virtual void OnNodesProcessingComplete() override;
 		void TryConsolidate();

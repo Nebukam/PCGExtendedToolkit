@@ -107,9 +107,16 @@ namespace PCGExMergeVertices
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		Node.PointIndex += StartIndexOffset;
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExCluster::FNode& Node = Nodes[Index];
+			
+			Node.PointIndex += StartIndexOffset;
+		}
 	}
 
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)

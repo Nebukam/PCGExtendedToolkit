@@ -139,7 +139,7 @@ namespace PCGExRelaxClusters
 		void StartNextStep();
 		void RelaxScope(const PCGExMT::FScope& Scope) const;
 		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
 		virtual void OnNodesProcessingComplete() override;
 	};
 

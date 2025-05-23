@@ -89,15 +89,22 @@ namespace PCGExWriteVtxProperties
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		if (VtxEdgeCountWriter) { VtxEdgeCountWriter->GetMutable(Node.PointIndex) = Node.Num(); }
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 
-		TArray<PCGExCluster::FAdjacencyData> Adjacency;
-		GetAdjacencyData(Cluster.Get(), Node, Adjacency);
-		if (VtxNormalWriter) { Node.ComputeNormal(Cluster.Get(), Adjacency, VtxNormalWriter->GetMutable(Node.PointIndex)); }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExCluster::FNode& Node = Nodes[Index];
 
-		for (const TSharedPtr<FPCGExVtxPropertyOperation>& Op : Operations) { Op->ProcessNode(Node, Adjacency); }
+			if (VtxEdgeCountWriter) { VtxEdgeCountWriter->GetMutable(Node.PointIndex) = Node.Num(); }
+
+			TArray<PCGExCluster::FAdjacencyData> Adjacency;
+			GetAdjacencyData(Cluster.Get(), Node, Adjacency);
+			if (VtxNormalWriter) { Node.ComputeNormal(Cluster.Get(), Adjacency, VtxNormalWriter->GetMutable(Node.PointIndex)); }
+
+			for (const TSharedPtr<FPCGExVtxPropertyOperation>& Op : Operations) { Op->ProcessNode(Node, Adjacency); }
+		}
 	}
 
 	void FProcessor::CompleteWork()

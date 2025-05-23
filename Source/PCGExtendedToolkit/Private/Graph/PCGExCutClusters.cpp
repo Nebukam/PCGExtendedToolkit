@@ -275,69 +275,73 @@ namespace PCGExCutEdges
 		}
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForNodes(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
 		FilterVtxScope(Scope);
-	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
-	{
-		if (IsNodePassingFilters(Node))
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (Settings->bInvert) { Node.bValid = true; }
-			return;
-		}
+			PCGExCluster::FNode& Node = Nodes[Index];
+			
+			if (IsNodePassingFilters(Node))
+			{
+				if (Settings->bInvert) { Node.bValid = true; }
+				continue;
+			}
 
-		const FPCGPoint& NodePoint = VtxDataFacade->Source->GetInPoint(Node.PointIndex);
-		const FVector A1 = NodePoint.Transform.GetLocation();
-		FBox PointBox = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(NodePoint).ExpandBy(Settings->NodeExpansion + Settings->IntersectionDetails.ToleranceSquared).TransformBy(NodePoint.Transform);
+			const FPCGPoint& NodePoint = VtxDataFacade->Source->GetInPoint(Node.PointIndex);
+			const FVector A1 = NodePoint.Transform.GetLocation();
+			FBox PointBox = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(NodePoint).ExpandBy(Settings->NodeExpansion + Settings->IntersectionDetails.ToleranceSquared).TransformBy(NodePoint.Transform);
 
-		for (const TSharedRef<PCGExPaths::FPath>& Path : Context->Paths)
-		{
-			if (!Path->Bounds.Intersect(PointBox)) { continue; }
+			for (const TSharedRef<PCGExPaths::FPath>& Path : Context->Paths)
+			{
+				if (!Path->Bounds.Intersect(PointBox)) { continue; }
 
-			// Check paths
-			Path->GetEdgeOctree()->FindFirstElementWithBoundsTest(
-				PointBox, [&](const PCGExPaths::FPathEdge* PathEdge)
-				{
-					//if (Settings->bInvert) { if (Node.bValid) { return false; } }
-					//else if (!Node.bValid) { return false; }
-
-					const FVector A2 = Path->GetPos_Unsafe(PathEdge->Start);
-					const FVector B2 = Path->GetPos_Unsafe(PathEdge->End);
-
-					const FVector B1 = FMath::ClosestPointOnSegment(A1, A2, B2);
-					const FVector C1 = Context->DistanceDetails->GetSourceCenter(NodePoint, A1, B1);
-
-					if (FVector::DistSquared(B1, C1) >= Context->IntersectionDetails.ToleranceSquared) { return true; }
-
-					if (Settings->bInvert)
+				// Check paths
+				Path->GetEdgeOctree()->FindFirstElementWithBoundsTest(
+					PointBox, [&](const PCGExPaths::FPathEdge* PathEdge)
 					{
-						FPlatformAtomics::InterlockedExchange(&Node.bValid, 1);
-						if (Settings->bAffectedNodesAffectConnectedEdges)
+						//if (Settings->bInvert) { if (Node.bValid) { return false; } }
+						//else if (!Node.bValid) { return false; }
+
+						const FVector A2 = Path->GetPos_Unsafe(PathEdge->Start);
+						const FVector B2 = Path->GetPos_Unsafe(PathEdge->End);
+
+						const FVector B1 = FMath::ClosestPointOnSegment(A1, A2, B2);
+						const FVector C1 = Context->DistanceDetails->GetSourceCenter(NodePoint, A1, B1);
+
+						if (FVector::DistSquared(B1, C1) >= Context->IntersectionDetails.ToleranceSquared) { return true; }
+
+						if (Settings->bInvert)
 						{
-							for (const PCGExGraph::FLink Lk : Node.Links)
+							FPlatformAtomics::InterlockedExchange(&Node.bValid, 1);
+							if (Settings->bAffectedNodesAffectConnectedEdges)
 							{
-								FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(Lk))->bValid, 1);
-								FPlatformAtomics::InterlockedExchange(&Cluster->GetNode(Lk)->bValid, 1);
+								for (const PCGExGraph::FLink Lk : Node.Links)
+								{
+									FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(Lk))->bValid, 1);
+									FPlatformAtomics::InterlockedExchange(&Cluster->GetNode(Lk)->bValid, 1);
+								}
 							}
 						}
-					}
-					else
-					{
-						FPlatformAtomics::InterlockedExchange(&Node.bValid, 0);
-						if (Settings->bAffectedNodesAffectConnectedEdges)
+						else
 						{
-							for (const PCGExGraph::FLink Lk : Node.Links)
+							FPlatformAtomics::InterlockedExchange(&Node.bValid, 0);
+							if (Settings->bAffectedNodesAffectConnectedEdges)
 							{
-								FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(Lk))->bValid, 0);
+								for (const PCGExGraph::FLink Lk : Node.Links)
+								{
+									FPlatformAtomics::InterlockedExchange(&(Cluster->GetEdge(Lk))->bValid, 0);
+								}
 							}
 						}
-					}
-					return false;
-				});
+						return false;
+					});
 
-			if (Node.bValid == static_cast<int8>(Settings->bInvert)) { return; }
+				if (Node.bValid == static_cast<int8>(Settings->bInvert)) { continue; }
+			}
 		}
 	}
 

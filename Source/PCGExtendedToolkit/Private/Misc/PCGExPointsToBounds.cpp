@@ -115,29 +115,38 @@ namespace PCGExPointsToBounds
 	{
 		const UPCGBasePointData* InData = PointDataFacade->GetIn();
 		UPCGBasePointData* OutData = PointDataFacade->GetOut();
+
 		OutData->SetNumPoints(1);
+		PointDataFacade->Source->InheritPoints(0, 0, 1);
 
 		const double NumPoints = InData->GetNumPoints();
 
 		if (Settings->bBlendProperties)
 		{
-			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
-			MetadataBlender->PrepareForData(PointDataFacade);
+			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+			MetadataBlender->SetTargetData(PointDataFacade);
+			MetadataBlender->SetSourceData(PointDataFacade);
+
+			if (!MetadataBlender->Init(Context, Settings->BlendingSettings))
+			{
+				bIsProcessorValid = false;
+				return;
+			}
+
+			TArray<PCGEx::FOpStats> Trackers;
+			MetadataBlender->InitTrackers(Trackers);
+			MetadataBlender->BeginMultiBlend(0, Trackers);
 
 			const PCGExData::FConstPoint Target = PointDataFacade->GetOutPoint(0);
-			MetadataBlender->PrepareForBlending(Target);
-
-			double TotalWeight = 0;
 
 			for (int i = 0; i < NumPoints; i++)
 			{
 				//FVector Location = InPoints[i].Transform.GetLocation();
 				constexpr double Weight = 1; // FVector::DistSquared(Center, Location) / SqrDist;
-				MetadataBlender->Blend(Target, PointDataFacade->Source->GetInPointRef(i), Target, Weight);
-				TotalWeight += Weight;
+				MetadataBlender->MultiBlend(i, 0, Weight, Trackers);
 			}
 
-			MetadataBlender->CompleteBlending(Target, NumPoints, TotalWeight);
+			MetadataBlender->EndMultiBlend(0, Trackers);
 		}
 
 		TPCGValueRange<FTransform> OutTransforms = OutData->GetTransformValueRange();

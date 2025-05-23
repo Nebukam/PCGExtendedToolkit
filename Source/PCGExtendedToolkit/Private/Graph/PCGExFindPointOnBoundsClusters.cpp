@@ -142,9 +142,16 @@ namespace PCGExFindPointOnBoundsClusters
 		}
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		UpdateCandidate(Cluster->GetPos(Node), Node.PointIndex);
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExCluster::FNode& Node = Nodes[Index];
+			
+			UpdateCandidate(Cluster->GetPos(Node), Node.PointIndex);
+		}
 	}
 
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)

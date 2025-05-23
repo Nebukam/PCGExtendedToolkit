@@ -168,7 +168,7 @@ namespace PCGExFilterVtx
 		EdgeFilterFactories = &Context->EdgeFilterFactories; // So filters can be initialized
 
 		bAllowEdgesDataFacadeScopedGet = Context->bScopedAttributeGet;
-		
+
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (!VtxFiltersManager)
@@ -197,25 +197,31 @@ namespace PCGExFilterVtx
 		ScopedFailNum = MakeShared<PCGExMT::TScopedNumericValue<int32>>(Loops, 0);
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		const bool bTestResult = VtxFiltersManager->Test(Node) ? !Settings->bInvert : Settings->bInvert;
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 
-		if (bTestResult) { ScopedPassNum->GetMutable(Scope)++; }
-		else { ScopedFailNum->GetMutable(Scope)++; }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExCluster::FNode& Node = Nodes[Index];
+			
+			const bool bTestResult = VtxFiltersManager->Test(Node) ? !Settings->bInvert : Settings->bInvert;
 
-		if (TestResults) { TestResults->GetMutable(Node.PointIndex) = bTestResult; }
-		else { Node.bValid = bTestResult; }
+			if (bTestResult) { ScopedPassNum->GetMutable(Scope)++; }
+			else { ScopedFailNum->GetMutable(Scope)++; }
+
+			if (TestResults) { TestResults->GetMutable(Node.PointIndex) = bTestResult; }
+			else { Node.bValid = bTestResult; }
+		}
 	}
 
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		
 		EdgeDataFacade->Fetch(Scope);
 		FilterEdgeScope(Scope);
 
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExGraph::FEdge& Edge = ClusterEdges[Index];

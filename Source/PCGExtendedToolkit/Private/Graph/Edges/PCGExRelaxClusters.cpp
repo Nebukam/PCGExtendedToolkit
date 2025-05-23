@@ -194,29 +194,36 @@ namespace PCGExRelaxClusters
 		MaxDistanceValue = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		// Commit values
-		FPCGPoint& Point = VtxDataFacade->Source->GetOutPoint(Node.PointIndex);
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 
-		TArray<FPCGPoint>& MutablePoints = VtxDataFacade->GetOut()->GetMutablePoints();
-		if (InfluenceDetails.bProgressiveInfluence)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			Point.Transform = PCGExBlend::Lerp(
-				Point.Transform,
-				*(RelaxOperation->WriteBuffer->GetData() + Node.Index),
-				InfluenceDetails.GetInfluence(Node.PointIndex));
-		}
-		else
-		{
-			Point.Transform = *(RelaxOperation->WriteBuffer->GetData() + Node.Index);
-		}
+			PCGExCluster::FNode& Node = Nodes[Index];
 
-		const FVector DirectionAndSize = Point.Transform.GetLocation() - Cluster->GetPos(Node.Index);
+			// Commit values
+			FPCGPoint& Point = VtxDataFacade->Source->GetOutPoint(Node.PointIndex);
 
-		PCGEX_OUTPUT_VALUE(DirectionAndSize, Node.PointIndex, DirectionAndSize)
-		PCGEX_OUTPUT_VALUE(Direction, Node.PointIndex, DirectionAndSize.GetSafeNormal())
-		PCGEX_OUTPUT_VALUE(Amplitude, Node.PointIndex, DirectionAndSize.Length())
+			TArray<FPCGPoint>& MutablePoints = VtxDataFacade->GetOut()->GetMutablePoints();
+			if (InfluenceDetails.bProgressiveInfluence)
+			{
+				Point.Transform = PCGExBlend::Lerp(
+					Point.Transform,
+					*(RelaxOperation->WriteBuffer->GetData() + Node.Index),
+					InfluenceDetails.GetInfluence(Node.PointIndex));
+			}
+			else
+			{
+				Point.Transform = *(RelaxOperation->WriteBuffer->GetData() + Node.Index);
+			}
+
+			const FVector DirectionAndSize = Point.Transform.GetLocation() - Cluster->GetPos(Node.Index);
+
+			PCGEX_OUTPUT_VALUE(DirectionAndSize, Node.PointIndex, DirectionAndSize)
+			PCGEX_OUTPUT_VALUE(Direction, Node.PointIndex, DirectionAndSize.GetSafeNormal())
+			PCGEX_OUTPUT_VALUE(Amplitude, Node.PointIndex, DirectionAndSize.Length())
+		}
 	}
 
 	void FProcessor::OnNodesProcessingComplete()
