@@ -32,7 +32,7 @@ void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			FVector Location = OutTransform[Index].GetLocation();
-			MetadataBlender->Blend(From.Index, To.Index, StartIndex < 0 ? From.Index : StartIndex, i / Divider);
+			MetadataBlender->Blend(From.Index, To.Index, StartIndex < 0 ? From.Index : StartIndex, Index / Divider);
 			OutTransform[Index].SetLocation(Location);
 		}
 	}

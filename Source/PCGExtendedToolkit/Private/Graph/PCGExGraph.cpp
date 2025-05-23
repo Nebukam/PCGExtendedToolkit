@@ -15,7 +15,7 @@ void FPCGExBasicEdgeSolidificationDetails::Mutate(PCGExData::FMutablePoint& InEd
 {
 	const FVector A = InStart.GetLocation();
 	const FVector B = InEnd.GetLocation();
-	
+
 	InEdgePoint.SetLocation(FMath::Lerp(A, B, InLerp));
 	if (SolidificationAxis == EPCGExMinimalAxis::None) { return; }
 
@@ -400,9 +400,13 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		if (InBuilder->SourceEdgeFacades && ParentGraph->EdgesUnion)
 		{
-			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails);
+			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, Distances);
 			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &ProtectedClusterAttributes);
-			UnionBlender->Init(AsyncManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion);
+			if (!UnionBlender->Init(AsyncManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion))
+			{
+				// TODO : Log error
+				return;
+			}
 		}
 
 		if (InBuilder->OutputDetails->bOutputEdgeLength)
@@ -459,6 +463,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		const FVector SeedOffset = FVector(EdgesDataFacade->Source->IOIndex);
 		const uint32 BaseGUID = VtxDataFacade->Source->GetOut()->GetUniqueID();
 
+		TArray<PCGExData::FWeightedPoint> WeightedPoints;
+
 		PCGEX_SCOPE_LOOP(i)
 		{
 			const FEdge& E = FlattenedEdges[i];
@@ -473,7 +479,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				if (const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindRootEdgeMetadata_Unsafe(E.IOIndex))
 				{
 					if (TSharedPtr<PCGExData::FUnionData> UnionData = ParentGraph->EdgesUnion->Get(EdgeMeta->RootIndex);
-						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, Distances, TODO); }
+						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, WeightedPoints); }
 
 #define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(EdgeIndex) = EdgeMeta->_ACCESSOR;}
 					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)
@@ -966,7 +972,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			const UPCGBasePointData* InNodeData = NodeDataFacade->GetIn();
 			UPCGBasePointData* OutNodeData = NodeDataFacade->GetOut();
-			
+
 			UPCGMetadata* OutPointsMetadata = OutNodeData->Metadata;
 
 			if (!OutNodeData->IsEmpty())
@@ -1002,7 +1008,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// There are cases where the out* point metadata will have been initialized beforehand
 				// And we might need a way to preserve the original values
 
-				OutNodeData->SetNumPoints(NumValidNodes);            // Shrink output
+				OutNodeData->SetNumPoints(NumValidNodes);               // Shrink output
 				NodeDataFacade->Source->InheritProperties(ReadIndices); // Copy all the things				
 			}
 			else
@@ -1043,7 +1049,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		}
 
 		// TODO : NEED TO INITIALIZE METADATA KEYS !!!!
-		
+
 		// Sort points & update node PointIndex
 
 		{

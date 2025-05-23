@@ -309,7 +309,7 @@ namespace PCGExPathCrossings
 
 		TArray<int32> WriteIndices;
 		WriteIndices.Reserve(InPoints->GetNumPoints());
-		
+
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
 		OutPoints->SetNumPoints(NumPointsFinal);
@@ -344,7 +344,7 @@ namespace PCGExPathCrossings
 		}
 
 		PointIO->InheritPoints(WriteIndices, 0);
-		
+
 		// Flag last so it doesn't get captured by blenders
 		if (Settings->IntersectionDetails.bWriteCrossing)
 		{
@@ -439,7 +439,8 @@ namespace PCGExPathCrossings
 			Metrics.Add(Path->GetPos(Edge.End));
 
 			const int32 EndIndex = Index == Path->LastIndex ? 0 : CrossingStartIndex + NumCrossings;
-			SubBlending->ProcessSubPoints(PointIO->GetOutPoint(CrossingStartIndex - 1), PointIO->GetOutPoint(EndIndex), PointIO->GetOutScope(CrossingStartIndex, NumCrossings), Metrics, CrossingStartIndex);
+			PCGExData::FScope SubScope = PointIO->GetOutScope(CrossingStartIndex, NumCrossings);
+			SubBlending->ProcessSubPoints(PointIO->GetOutPoint(CrossingStartIndex - 1), PointIO->GetOutPoint(EndIndex), SubScope, Metrics, CrossingStartIndex);
 		}
 	}
 
