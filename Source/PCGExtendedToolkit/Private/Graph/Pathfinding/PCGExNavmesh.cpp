@@ -72,5 +72,6 @@ namespace PCGExNavmesh
 		if (bAddSeed) { InRange[OutStartIndex++].SetLocation(SeedGoalPair.SeedPosition); }
 		for (const FVector& Position : Positions) { InRange[OutStartIndex++].SetLocation(Position); }
 		if (bAddGoal) { InRange[OutStartIndex++].SetLocation(SeedGoalPair.GoalPosition); }
+		Positions.Empty();
 	}
 }
