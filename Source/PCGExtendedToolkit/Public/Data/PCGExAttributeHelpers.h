@@ -604,6 +604,7 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 			if (!ProcessingInfos.bIsValid) { return Fallback; }
 
 			const int32 Index = Point.Index;
+			const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
 
 			switch (static_cast<EPCGAttributePropertySelection>(ProcessingInfos))
 			{
@@ -620,21 +621,20 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 
 			case EPCGAttributePropertySelection::Property:
 
-				const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
-
 #define PCGEX_GET_BY_ACCESSOR(_ACCESSOR, _TYPE) return ProcessingInfos.SubSelection.Get<_TYPE, T>(Point.Data->_ACCESSOR);
 				PCGEX_IFELSE_GETPOINTPROPERTY(Property, PCGEX_GET_BY_ACCESSOR)
 #undef PCGEX_GET_BY_ACCESSOR
 
 				return T{};
-				break;
+
 			case EPCGAttributePropertySelection::ExtraProperty:
 
 				switch (static_cast<EPCGExtraProperties>(ProcessingInfos))
 				{
 				case EPCGExtraProperties::Index:
 					return ProcessingInfos.SubSelection.Get<T>(Index);
-				default: ;
+				default:
+					return Fallback;
 				}
 
 			default:

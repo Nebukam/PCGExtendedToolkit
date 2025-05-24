@@ -535,12 +535,26 @@ namespace PCGExData
 	TArray<int32>& FPointIO::GetIdxMapping(const int32 NumElements)
 	{
 		check(Out)
-		if (!IdxMapping)
+		const int32 ExpectedNumElement = NumElements < 0 ? Out->GetNumPoints() : NumElements;
+
 		{
-			IdxMapping = MakeShared<TArray<int32>>();
-			IdxMapping->SetNumUninitialized(NumElements < 0 ? Out->GetNumPoints() : NumElements);
+			FReadScopeLock ReadScopeLock(IdxMappingLock);
+			if (IdxMapping.IsValid())
+			{
+				check(IdxMapping->Num() == ExpectedNumElement)
+				return *IdxMapping.Get();
+			}
 		}
-		return *IdxMapping.Get();
+
+		{
+			FWriteScopeLock WriteScopeLock(IdxMappingLock);
+			if (IdxMapping.IsValid()) { return *IdxMapping.Get(); }
+
+			IdxMapping = MakeShared<TArray<int32>>();
+			IdxMapping->SetNumUninitialized(ExpectedNumElement);
+
+			return *IdxMapping.Get();
+		}
 	}
 
 	void FPointIO::ClearIdxMapping()
@@ -585,6 +599,28 @@ namespace PCGExData
 	void FPointIO::InheritPoints(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices) const
 	{
 		In->CopyPointsTo(Out, ReadIndices, WriteIndices);
+	}
+
+	int32 FPointIO::InheritPoints(const TArrayView<const int8>& Mask, const bool bInvert) const
+	{
+		check(In)
+		check(Out)
+		TArray<int32> WriteIndices;
+		const int32 NumElements = PCGEx::ArrayOfIndices(WriteIndices, Mask, 0, bInvert);
+		Out->SetNumPoints(WriteIndices.Num());
+		InheritPoints(WriteIndices, 0);
+		return NumElements;
+	}
+
+	int32 FPointIO::InheritPoints(const TBitArray<>& Mask, const bool bInvert) const
+	{
+		check(In)
+		check(Out)
+		TArray<int32> WriteIndices;
+		const int32 NumElements = PCGEx::ArrayOfIndices(WriteIndices, Mask, 0, bInvert);
+		Out->SetNumPoints(WriteIndices.Num());
+		InheritPoints(WriteIndices, 0);
+		return NumElements;
 	}
 
 	void FPointIO::InheritPoints(const TArrayView<const int32>& WriteIndices) const
@@ -689,13 +725,13 @@ namespace PCGExData
 		return true;
 	}
 
-	void FPointIO::Gather(const TArrayView<int32> InIndices) const
+	int32 FPointIO::Gather(const TArrayView<int32> InIndices) const
 	{
-		if (!Out) { return; }
+		if (!Out) { return 0; }
 
 		const int32 ReducedNum = InIndices.Num();
 
-		if (ReducedNum == Out->GetNumPoints()) { return; }
+		if (ReducedNum == Out->GetNumPoints()) { return ReducedNum; }
 
 		PCGEX_FOREACH_POINT_NATIVE_PROPERTY_GET(Out)
 
@@ -709,15 +745,29 @@ namespace PCGExData
 		}
 
 		Out->SetNumPoints(ReducedNum);
+		return ReducedNum;
 	}
 
-	void FPointIO::Gather(const TArrayView<int8> InMask, const bool bInvert) const
+	int32 FPointIO::Gather(const TArrayView<int8> InMask, const bool bInvert) const
 	{
 		TArray<int32> Indices;
 		Indices.Reserve(InMask.Num());
+
 		if (bInvert) { for (int i = 0; i < InMask.Num(); i++) { if (!InMask[i]) { Indices.Add(i); } } }
 		else { for (int i = 0; i < InMask.Num(); i++) { if (InMask[i]) { Indices.Add(i); } } }
-		Gather(Indices);
+
+		return Gather(Indices);
+	}
+
+	int32 FPointIO::Gather(const TBitArray<>& InMask, const bool bInvert) const
+	{
+		TArray<int32> Indices;
+		Indices.Reserve(InMask.Num());
+
+		if (bInvert) { for (int i = 0; i < InMask.Num(); i++) { if (!InMask[i]) { Indices.Add(i); } } }
+		else { for (int i = 0; i < InMask.Num(); i++) { if (InMask[i]) { Indices.Add(i); } } }
+
+		return Gather(Indices);
 	}
 
 	void FPointIO::DeleteAttribute(FName AttributeName) const
@@ -863,7 +913,7 @@ namespace PCGExData
 
 		Context->IncreaseStagedOutputReserve(Pairs.Num());
 
-		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(Context); }
+		for (int i = 0; i < Pairs.Num(); i++) { (void)Pairs[i]->StageOutput(Context); }
 	}
 
 	void FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)

@@ -101,8 +101,8 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 		Context->GoodSeeds->Gather(Context->SeedQuality);
 		Context->BadSeeds->Gather(Context->SeedQuality, true);
 
-		Context->GoodSeeds->StageOutput(Context);
-		Context->BadSeeds->StageOutput(Context);
+		(void)Context->GoodSeeds->StageOutput(Context);
+		(void)Context->BadSeeds->StageOutput(Context);
 	}
 
 	Context->Paths->StageOutputs();

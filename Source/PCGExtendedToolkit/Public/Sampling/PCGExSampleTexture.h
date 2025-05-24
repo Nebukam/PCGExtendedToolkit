@@ -147,7 +147,7 @@ namespace PCGExSampleTexture
 
 			SampledValue *= Config.Scale;
 
-			T& V = Buffer->GetMutable(Point);
+			T& V = Buffer->GetMutable(Point.Index);
 
 			if constexpr (
 				std::is_same_v<T, float> ||

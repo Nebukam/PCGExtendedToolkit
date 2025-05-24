@@ -19,8 +19,8 @@ namespace PCGExMath
 		const PCGExData::TBuffer<FVector>* UpVectorCache = nullptr,
 		const FVector& UpVector = FVector::UpVector);
 
-	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, typename T_POINT = PCGExData::FConstPoint>
-	FORCEINLINE static FBox GetLocalBounds(const T_POINT& Point)
+	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, typename PointType>
+	FORCEINLINE static FBox GetLocalBounds(const PointType& Point)
 	{
 		if constexpr (S == EPCGExPointBoundsSource::ScaledBounds)
 		{
@@ -54,9 +54,9 @@ namespace PCGExMath
 
 #pragma region Spatialized distances
 
-	template <typename T_POINT, EPCGExDistance Mode>
+	template <EPCGExDistance Mode, typename PointType>
 	static FVector GetSpatializedCenter(
-		const T_POINT& FromPoint,
+		const PointType& FromPoint,
 		const FVector& FromCenter,
 		const FVector& ToCenter)
 	{

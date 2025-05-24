@@ -14,11 +14,11 @@
 #include "PCGExMacros.h"
 #include "PCGManagedResource.h"
 #include "PCGComponent.h"
-#include "PCGGraph.h"
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "Async/Async.h"
+#include "Data/PCGBasePointData.h"
 
 #include "PCGExHelpers.generated.h"
 
@@ -550,8 +550,21 @@ namespace PCGEx
 
 #pragma endregion
 
-
 #pragma region Array
+
+	template <typename T>
+	static void Reverse(TArrayView<T> View)
+	{
+		const int32 Count = View.Num();
+		for (int32 i = 0; i < Count / 2; ++i) { Swap(View[i], View[Count - 1 - i]); }
+	}
+	
+	template <typename T>
+	static void Reverse(TPCGValueRange<T> Range)
+	{
+		const int32 Count = Range.Num();
+		for (int32 i = 0; i < Count / 2; ++i) { Swap(Range[i], Range[Count - 1 - i]); }
+	}
 
 	template <typename T>
 	static void InitArray(TArray<T>& InArray, const int32 Num)

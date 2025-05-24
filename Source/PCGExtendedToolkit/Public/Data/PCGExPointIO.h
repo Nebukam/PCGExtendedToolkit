@@ -275,7 +275,6 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		~FScope() = default;
 		bool IsValid() const { return Start >= 0 && Count > 0 && Data->GetNumPoints() <= End; }
 		void GetIndices(TArray<int32>& OutIndices) const;
-
 	};
 
 #pragma region FPointIO
@@ -295,6 +294,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		mutable FRWLock InKeysLock;
 		mutable FRWLock OutKeysLock;
 		mutable FRWLock AttributesLock;
+		mutable FRWLock IdxMappingLock;
 
 		bool bWritten = false;
 		int32 NumInPoints = -1;
@@ -465,6 +465,8 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		void InheritPoints(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count) const;
 		void InheritPoints(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices) const;
+		int32 InheritPoints(const TArrayView<const int8>& Mask, const bool bInvert) const;
+		int32 InheritPoints(const TBitArray<>& Mask, const bool bInvert) const;
 
 		// WriteIndices is expected to be the size of in point count here
 		// Shorthand to simplify point insertion in cases where we want to preserve original points
@@ -480,7 +482,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		// Copies a single index N times starting at write index
 		void RepeatPoint(const int32 ReadIndex, const int32 WriteIndex, const int32 Count, EIOSide ReadSide = EIOSide::In) const;
-		
+
 		void CopyToNewPoint(const int32 InIndex, int32& OutIndex) const
 		{
 			FWriteScopeLock WriteLock(PointsLock);
@@ -500,8 +502,9 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		bool StageOutput(FPCGExContext* TargetContext, const int32 MinPointCount, const int32 MaxPointCount) const;
 		bool StageAnyOutput(FPCGExContext* TargetContext) const;
 
-		void Gather(const TArrayView<int32> InIndices) const;
-		void Gather(const TArrayView<int8> InMask, const bool bInvert = false) const;
+		int32 Gather(const TArrayView<int32> InIndices) const;
+		int32 Gather(const TArrayView<int8> InMask, const bool bInvert = false) const;
+		int32 Gather(const TBitArray<>& InMask, const bool bInvert = false) const;
 
 		void DeleteAttribute(FName AttributeName) const;
 

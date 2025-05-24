@@ -195,12 +195,11 @@ namespace PCGExCutEdges
 
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		
 		EdgeDataFacade->Fetch(Scope);
 		FilterEdgeScope(Scope);
 
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
@@ -284,7 +283,7 @@ namespace PCGExCutEdges
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
-			
+
 			if (IsNodePassingFilters(Node))
 			{
 				if (Settings->bInvert) { Node.bValid = true; }

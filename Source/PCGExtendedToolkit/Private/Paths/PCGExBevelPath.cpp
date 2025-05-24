@@ -55,7 +55,7 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 		PCGEx::InitArray(Context->CustomProfilePositions, ProfileTransforms.Num());
 
 		const FVector Start = ProfileTransforms[0].GetLocation();
-		const FVector End = ProfileTransforms[ProfileTransforms.Num()-1].GetLocation();
+		const FVector End = ProfileTransforms[ProfileTransforms.Num() - 1].GetLocation();
 		const double Factor = 1 / FVector::Dist(Start, End);
 
 		const FVector ProjectionNormal = (End - Start).GetSafeNormal(1E-08, FVector::ForwardVector);
@@ -116,13 +116,16 @@ namespace PCGExBevelPath
 	FBevel::FBevel(const int32 InIndex, const FProcessor* InProcessor):
 		Index(InIndex)
 	{
-		const TArray<FPCGPoint>& InPoints = InProcessor->PointDataFacade->GetIn()->GetPoints();
-		ArriveIdx = Index - 1 < 0 ? InPoints.Num() - 1 : Index - 1;
-		LeaveIdx = Index + 1 == InPoints.Num() ? 0 : Index + 1;
+		const UPCGBasePointData* InPoints = InProcessor->PointDataFacade->GetIn();
+		TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
 
-		Corner = InPoints[InIndex].Transform.GetLocation();
-		PrevLocation = InPoints[ArriveIdx].Transform.GetLocation();
-		NextLocation = InPoints[LeaveIdx].Transform.GetLocation();
+		ArriveIdx = Index - 1 < 0 ? InTransforms.Num() - 1 : Index - 1;
+		LeaveIdx = Index + 1 == InTransforms.Num() ? 0 : Index + 1;
+
+
+		Corner = InTransforms[InIndex].GetLocation();
+		PrevLocation = InTransforms[ArriveIdx].GetLocation();
+		NextLocation = InTransforms[LeaveIdx].GetLocation();
 
 		// Pre-compute some data
 
@@ -294,14 +297,9 @@ namespace PCGExBevelPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
-		Positions.SetNumUninitialized(InPoints.Num());
-		const int32 NumPoints = InPoints.Num();
-
-		for (int i = 0; i < NumPoints; i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
-
-		Path = PCGExPaths::MakePath(Positions, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		Path = PCGExPaths::MakePath(InPoints->GetConstTransformValueRange(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 
 		if (Settings->Type == EPCGExBevelProfileType::Custom)
@@ -406,50 +404,69 @@ namespace PCGExBevelPath
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		
+		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+		UPCGMetadata* Metadata = OutPointData->Metadata;
+
+		// Only pin properties we will not be inheriting
+		TConstPCGValueRange<FTransform> InTransform = InPointData->GetConstTransformValueRange();
+		TConstPCGValueRange<int64> InMetadataEntry = InPointData->GetConstMetadataEntryValueRange();
+
+		TPCGValueRange<FTransform> OutTransform = OutPointData->GetTransformValueRange();
+		TPCGValueRange<int64> OutMetadataEntry = OutPointData->GetMetadataEntryValueRange();
+		TPCGValueRange<int32> OutSeeds = OutPointData->GetSeedValueRange();
+
+		TArray<int32> IdxMapping = PointDataFacade->Source->GetIdxMapping();
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const int32 StartIndex = StartIndices[Index];
-
-			const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-
 			const TSharedPtr<FBevel>& Bevel = Bevels[Index];
-			const FPCGPoint& OriginalPoint = PointIO->GetInPoint(Iteration);
-
-			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-			UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
 			if (!Bevel)
 			{
-				MutablePoints[StartIndex] = OriginalPoint;
-				Metadata->InitializeOnSet(MutablePoints[StartIndex].MetadataEntry);
+				IdxMapping[StartIndex] = Index;
+				OutTransform[StartIndex] = InTransform[Index];
+				OutMetadataEntry[StartIndex] = InMetadataEntry[Index];
+				Metadata->InitializeOnSet(OutMetadataEntry[StartIndex]);
 				continue;
 			}
 
-			for (int i = Bevel->StartOutputIndex; i <= Bevel->EndOutputIndex; i++)
+			const int32 A = Bevel->StartOutputIndex;
+			const int32 B = Bevel->EndOutputIndex;
+
+			for (int i = A; i <= B; i++)
 			{
-				MutablePoints[i] = OriginalPoint;
-				Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
+				IdxMapping[i] = Index;
+				OutTransform[i] = InTransform[Index];
+				OutMetadataEntry[i] = InMetadataEntry[Index];
+				Metadata->InitializeOnSet(OutMetadataEntry[i]);
 			}
 
-			FPCGPoint& StartPoint = PointIO->GetOutPoint(Bevel->StartOutputIndex);
-			FPCGPoint& EndPoint = PointIO->GetOutPoint(Bevel->EndOutputIndex);
+			OutTransform[A].SetLocation(Bevel->Arrive);
+			OutTransform[B].SetLocation(Bevel->Leave);
 
-			StartPoint.Transform.SetLocation(Bevel->Arrive);
-			EndPoint.Transform.SetLocation(Bevel->Leave);
-
-			PCGExRandom::ComputeSeed(StartPoint);
-			PCGExRandom::ComputeSeed(EndPoint);
+			OutSeeds[A] = PCGExRandom::ComputeSpatialSeed(OutTransform[A].GetLocation());
+			OutSeeds[B] = PCGExRandom::ComputeSpatialSeed(OutTransform[B].GetLocation());
 
 			if (Bevel->Subdivisions.IsEmpty()) { continue; }
 
 			for (int i = 0; i < Bevel->Subdivisions.Num(); i++)
 			{
-				FPCGPoint& Pt = MutablePoints[Bevel->StartOutputIndex + i + 1];
-				Pt.Transform.SetLocation(Bevel->Subdivisions[i]);
-				PCGExRandom::ComputeSeed(Pt);
+				const int32 SubIndex = A + i + 1;
+				OutTransform[SubIndex].SetLocation(Bevel->Subdivisions[i]);
+				OutSeeds[SubIndex] = PCGExRandom::ComputeSpatialSeed(OutTransform[SubIndex].GetLocation());
 			}
 		}
+	}
+
+	void FProcessor::OnRangeProcessingComplete()
+	{
+		constexpr EPCGPointNativeProperties CarryOverProperties =
+			static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) &
+				~static_cast<uint8>(EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::Seed | EPCGPointNativeProperties::MetadataEntry));
+
+		PointDataFacade->Source->ConsumeIdxMapping(CarryOverProperties);
 	}
 
 	void FProcessor::WriteFlags(const int32 Index)
@@ -479,6 +496,9 @@ namespace PCGExBevelPath
 		int32 NumBevels = 0;
 		int32 NumOutPoints = 0;
 
+		TArray<int32> ReadIndices;
+		ReadIndices.Reserve(NumOutPoints * 4);
+
 		for (int i = 0; i < StartIndices.Num(); i++)
 		{
 			StartIndices[i] = NumOutPoints;
@@ -507,8 +527,11 @@ namespace PCGExBevelPath
 
 		// Build output points
 
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
-		PCGEx::InitArray(MutablePoints, NumOutPoints);
+		UPCGBasePointData* MutablePoints = PointDataFacade->GetOut();
+		MutablePoints->SetNumPoints(NumOutPoints);
+		MutablePoints->AllocateProperties(EPCGPointNativeProperties::All);
+
+		PointDataFacade->Source->GetIdxMapping();
 
 		StartParallelLoopForRange(PointDataFacade->GetNum());
 	}

@@ -58,7 +58,7 @@ bool FPCGExDiscardSameElement::ExecuteInternal(FPCGContext* InContext) const
 			PointIO->Enable();
 		}
 
-		PointIO->StageOutput(Context);
+		(void)PointIO->StageOutput(Context);
 	}
 
 	return Context->TryComplete();

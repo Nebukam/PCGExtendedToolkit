@@ -470,6 +470,17 @@ namespace PCGExCluster
 		}
 	}
 
+	void FCluster::GatherNodesPointIndices(TArray<int32>& OutValidNodesPointIndices, const bool bValidity) const
+	{
+		const TArray<FNode>& NodesRef = *Nodes.Get();
+
+		OutValidNodesPointIndices.Reset();
+		OutValidNodesPointIndices.Reserve(NodesRef.Num());
+		const int8 Mask = bValidity ? 1 : 0;
+
+		for (const FNode& Node : NodesRef) { if (Node.bValid == Mask) { OutValidNodesPointIndices.Add(Node.PointIndex); } }
+	}
+
 	int32 FCluster::FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const int32 MinNeighborCount) const
 	{
 		const TArray<FNode>& NodesRef = *Nodes;

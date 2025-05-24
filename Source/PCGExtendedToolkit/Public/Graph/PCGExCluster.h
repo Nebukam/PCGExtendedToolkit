@@ -220,6 +220,8 @@ namespace PCGExCluster
 		void RebuildEdgeOctree();
 		void RebuildOctree(EPCGExClusterClosestSearchMode Mode, const bool bForceRebuild = false);
 
+		void GatherNodesPointIndices(TArray<int32>& OutValidNodesPointIndices, const bool bValidity) const;
+		
 		template <int32 MinNeighbors = 0>
 		int32 FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode) const
 		{

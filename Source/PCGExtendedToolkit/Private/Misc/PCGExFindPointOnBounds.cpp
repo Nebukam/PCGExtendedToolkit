@@ -74,7 +74,7 @@ bool FPCGExFindPointOnBoundsElement::ExecuteInternal(FPCGContext* InContext) con
 			Context->BestIndices,
 			*Context->MergedAttributesInfos);
 
-		Context->MergedOut->StageOutput(Context);
+		(void)Context->MergedOut->StageOutput(Context);
 	}
 	else
 	{

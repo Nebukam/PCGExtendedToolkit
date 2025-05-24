@@ -68,7 +68,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 	OutPointData->SetNumPoints(NumCompositePoints);
 
 	// TODO : We could not copy metadata if there's no attributes on any of the input data
-	
+
 	OutPointData->SetMetadataEntry(PCGInvalidEntryKey);
 	OutPointData->AllocateProperties(EPCGPointNativeProperties::All);
 	

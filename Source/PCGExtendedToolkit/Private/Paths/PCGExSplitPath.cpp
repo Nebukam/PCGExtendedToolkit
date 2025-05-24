@@ -337,19 +337,23 @@ namespace PCGExSplitPath
 
 			PathsIOs[Index] = PathIO;
 
-			const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
-			TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
-			PCGEx::InitArray(MutablePoints, NumPathPoints);
+			const UPCGBasePointData* OriginalPoints = PointDataFacade->GetIn();
+			UPCGBasePointData* MutablePoints = PathIO->GetOut();
+			MutablePoints->SetNumPoints(NumPathPoints);
 
-			const int32 IndexWrap = OriginalPoints.Num();
-			for (int i = 0; i < NumIterations; i++) { MutablePoints[i] = OriginalPoints[(PathInfos.Start + i) % IndexWrap]; }
+			TArray<int32> IdxMapping = PathIO->GetIdxMapping();
+
+			const int32 IndexWrap = OriginalPoints->GetNumPoints();
+			for (int i = 0; i < NumIterations; i++) { IdxMapping[i] = (PathInfos.Start + i) % IndexWrap; }
 
 			if (bAppendStartPath)
 			{
 				// There was a cut somewhere in the closed path.
 				const FPath& StartPathInfos = Paths[0];
-				for (int i = 0; i < StartPathInfos.Count; i++) { MutablePoints[PathInfos.Count + i] = OriginalPoints[StartPathInfos.Start + i]; }
+				for (int i = 0; i < StartPathInfos.Count; i++) { IdxMapping[PathInfos.Count + i] = StartPathInfos.Start + i; }
 			}
+
+			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
 		}
 	}
 

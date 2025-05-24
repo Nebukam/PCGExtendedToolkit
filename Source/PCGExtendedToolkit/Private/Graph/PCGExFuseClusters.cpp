@@ -123,7 +123,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->UnionProcessor->Execute()) { return false; }
 
-	Context->UnionDataFacade->Source->StageOutput(Context);
+	(void)Context->UnionDataFacade->Source->StageOutput(Context);
 	Context->Done();
 
 	return Context->TryComplete();

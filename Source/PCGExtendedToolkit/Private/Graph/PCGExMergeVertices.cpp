@@ -76,7 +76,7 @@ bool FPCGExMergeVerticesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
-	Context->CompositeDataFacade->Source->StageOutput(Context);
+	(void)Context->CompositeDataFacade->Source->StageOutput(Context);
 	Context->MainEdges->StageOutputs();
 
 	return Context->TryComplete();

@@ -205,7 +205,7 @@ namespace PCGExCreateShapes
 
 	void FProcessor::Output()
 	{
-		for (const TSharedPtr<PCGExData::FFacade>& IO : PerSeedFacades) { IO->Source->StageOutput(Context); }
+		for (const TSharedPtr<PCGExData::FFacade>& IO : PerSeedFacades) { (void)IO->Source->StageOutput(Context); }
 	}
 
 	void FBuildShape::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

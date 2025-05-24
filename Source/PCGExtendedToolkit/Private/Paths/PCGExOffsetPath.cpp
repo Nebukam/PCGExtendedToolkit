@@ -65,11 +65,12 @@ namespace PCGExOffsetPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bCleanupPath ? PCGExData::EIOInit::New : PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		if (Settings->bInvertDirection) { DirectionFactor *= -1; }
 
 		InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		Up = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
@@ -216,17 +217,17 @@ namespace PCGExOffsetPath
 	{
 		if (!Settings->bCleanupPath) { return; }
 
-		// TODO : Revisit cleanup entierely
-		// Need to maintain a list of "valid" points, maybe in the form of FConstPoint to work from?
-		
-		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
+		// We will update OutTransform and do a gather.
+		// It's greedy but any other approach will be a real pain to maintain
 
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
-		TArray<FPCGPoint>& OutPoints = PointDataFacade->GetMutablePoints();
-		OutPoints.Reserve(InPoints.Num());
+		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
+		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange();
+
+		TArray<int8> Mask;
+		Mask.Init(0, OutTransforms.Num());
 
 		TArray<int8> Mutated;
-		Mutated.Reserve(InPoints.Num());
+		Mutated.Reserve(OutTransforms.Num());
 
 		int32 Last = 0;
 
@@ -269,15 +270,14 @@ namespace PCGExOffsetPath
 						// Fallback to next clean edge, as there is no upcoming intersections.
 						const PCGExPaths::FPathEdge& E1 = DirtyPath->Edges[Last];
 						const PCGExPaths::FPathEdge& E2 = DirtyPath->Edges[i];
-						
+
 						FMath::SegmentDistToSegment(
 							OutTransforms[E1.Start].GetLocation(), OutTransforms[E1.End].GetLocation(),
-							OutTransforms[E2.Start].GetLocation(), OutTransforms[E2.End].GetLocation(),
-							A, MutatedPosition);
+							OutTransforms[E2.Start].GetLocation(), OutTransforms[E2.End].GetLocation(), A, MutatedPosition);
 					}
 
-					FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints[i]);
-					OutTransforms[i].SetLocation(MutatedPosition); // FMath::Lerp(A, B, 0.5);
+					Mask[i] = 1;
+					OutTransforms[i].SetLocation(MutatedPosition);
 					Mutated.Add(1);
 
 					Last = i;
@@ -286,11 +286,9 @@ namespace PCGExOffsetPath
 
 				if (CleanEdge[i])
 				{
+					Mask[i] = 1;
 					Mutated.Add(0);
-					FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints[i]);
-					Pt.Transform.SetLocation(InTransforms[i]);
 					Last = i;
-
 
 					if (Settings->bAdditionalIntersectionCheck)
 					{
@@ -298,7 +296,7 @@ namespace PCGExOffsetPath
 						if (FindNextIntersection<true>(DirtyPath->Edges[i], i, MutatedPosition))
 						{
 							// Update next position and keep moving
-							InTransforms[i] = MutatedPosition;
+							OutTransforms[i].SetLocation(MutatedPosition);
 							i--;
 						}
 					}
@@ -314,14 +312,13 @@ namespace PCGExOffsetPath
 			{
 				if (!CleanEdge[i]) { continue; }
 
-				FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints[i]);
-				Pt.Transform.SetLocation(InTransforms[i]);
+				Mask[i] = 1;
 				Mutated.Add(0);
 
 				if (FindNextIntersection<true>(DirtyPath->Edges[i], i, MutatedPosition))
 				{
 					// Update next position and keep moving
-					InTransforms[i] = MutatedPosition;
+					OutTransforms[i].SetLocation(MutatedPosition);
 					i--;
 				}
 			}
@@ -329,11 +326,19 @@ namespace PCGExOffsetPath
 
 		if (!Path->IsClosedLoop())
 		{
-			FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints.Last());
-			Pt.Transform.SetLocation(InTransforms.Last());
+			// TODO : Look into this, not sure it's correct
+			Mask.Last() = 1;
+			Mutated.Add(0);
+
+			// Old behavior
+			//FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints.Last());
+			//Pt.Transform.SetLocation(Positions.Last());
 		}
 
-		if (OutPoints.Num() < 2) { PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None); }
+		if (PointDataFacade->Source->Gather(Mask) < 2)
+		{
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
+		}
 		else if (Settings->bFlagMutatedPoints)
 		{
 			TSharedPtr<PCGExData::TBuffer<bool>> MutatedFlag = PointDataFacade->GetWritable<bool>(Settings->MutatedAttributeName, false, true, PCGExData::EBufferInit::Inherit);

@@ -204,7 +204,7 @@ namespace PCGExFilterVtx
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
-			
+
 			const bool bTestResult = VtxFiltersManager->Test(Node) ? !Settings->bInvert : Settings->bInvert;
 
 			if (bTestResult) { ScopedPassNum->GetMutable(Scope)++; }
@@ -250,8 +250,10 @@ namespace PCGExFilterVtx
 		}
 		else if (Settings->Mode == EPCGExVtxFilterOutput::Points)
 		{
-			const TArray<FPCGPoint>& InPoints = VtxDataFacade->GetIn()->GetPoints();
+			const UPCGBasePointData* InPoints = VtxDataFacade->GetIn();
 			const TArray<PCGExCluster::FNode> Nodes = *Cluster->Nodes.Get();
+
+			TArray<int32> ReadIndices;
 
 			if (PassNum == 0 || FailNum == 0)
 			{
@@ -263,11 +265,13 @@ namespace PCGExFilterVtx
 
 				PCGExGraph::CleanupVtxData(OutIO);
 
-				TArray<FPCGPoint>& MutablePoints = OutIO->GetMutablePoints();
-				MutablePoints.SetNumUninitialized(NumNodes);
-
+				OutIO->GetOut()->SetNumPoints(NumNodes);
 				OutIO->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
-				for (int i = 0; i < NumNodes; i++) { MutablePoints[i] = InPoints[Nodes[i].PointIndex]; }
+
+				ReadIndices.SetNumUninitialized(NumNodes);
+				for (int i = 0; i < NumNodes; i++) { ReadIndices[i] = Nodes[i].PointIndex; }
+
+				OutIO->InheritPoints(ReadIndices, 0);
 
 				return;
 			}
@@ -280,24 +284,18 @@ namespace PCGExFilterVtx
 			PCGExGraph::CleanupVtxData(Inside);
 			PCGExGraph::CleanupVtxData(Outside);
 
-			TArray<FPCGPoint>& MutableInPoints = Inside->GetMutablePoints();
-			TArray<FPCGPoint>& MutableOutPoints = Outside->GetMutablePoints();
-
-			MutableInPoints.SetNumUninitialized(PassNum);
-			MutableOutPoints.SetNumUninitialized(FailNum);
-
-			int32 PassIndex = 0;
-			int32 FailIndex = 0;
-
 			Inside->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
 			Outside->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
 
-			for (int i = 0; i < NumNodes; i++)
+			auto GatherNodes = [&](const TSharedPtr<PCGExData::FPointIO>& IO, const bool bValid)
 			{
-				const PCGExCluster::FNode& Node = Nodes[i];
-				if (Node.bValid) { MutableInPoints[PassIndex++] = InPoints[Node.PointIndex]; }
-				else { MutableOutPoints[FailIndex++] = InPoints[Node.PointIndex]; }
-			}
+				Cluster->GatherNodesPointIndices(ReadIndices, bValid);
+				IO->GetOut()->SetNumPoints(ReadIndices.Num());
+				IO->InheritPoints(ReadIndices, 0);
+			};
+
+			GatherNodes(Inside, true);
+			GatherNodes(Outside, false);
 		}
 	}
 
@@ -347,31 +345,25 @@ namespace PCGExFilterVtx
 		PCGExGraph::CleanupVtxData(Inside);
 		PCGExGraph::CleanupVtxData(Outside);
 
-		TArray<FPCGPoint>& MutableInPoints = Inside->GetMutablePoints();
-		TArray<FPCGPoint>& MutableOutPoints = Outside->GetMutablePoints();
+		TArray<int8> Mask;
+		Mask.SetNumUninitialized(VtxDataFacade->GetNum(PCGExData::EIOSide::In));
 
-		MutableInPoints.SetNumUninitialized(PassNum);
-		MutableOutPoints.SetNumUninitialized(FailNum);
+		for (const TSharedRef<FProcessor>& P : Processors)
+		{
+			const TArray<PCGExCluster::FNode> Nodes = *P->Cluster->Nodes.Get();
 
-		int32 PassIndex = 0;
-		int32 FailIndex = 0;
+			for (int i = 0; i < P->NumNodes; i++)
+			{
+				const PCGExCluster::FNode& Node = Nodes[i];
+				Mask[Node.PointIndex] = Node.bValid ? 1 : 0;
+			}
+		}
 
 		Inside->IOIndex = VtxDataFacade->Source->IOIndex;
 		Outside->IOIndex = VtxDataFacade->Source->IOIndex;
 
-		for (const TSharedRef<FProcessor>& P : Processors)
-		{
-			const TArray<FPCGPoint>& InPoints = VtxDataFacade->GetIn()->GetPoints();
-			const TArray<PCGExCluster::FNode> Nodes = *P->Cluster->Nodes.Get();
-
-			// We need min/max numbers to be updated
-			for (int i = 0; i < P->NumNodes; i++)
-			{
-				const PCGExCluster::FNode& Node = Nodes[i];
-				if (Node.bValid) { MutableInPoints[PassIndex++] = InPoints[Node.PointIndex]; }
-				else { MutableOutPoints[FailIndex++] = InPoints[Node.PointIndex]; }
-			}
-		}
+		(void)Inside->InheritPoints(Mask, false);
+		(void)Outside->InheritPoints(Mask, true);
 	}
 
 	void FBatch::Write()

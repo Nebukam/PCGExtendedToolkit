@@ -166,7 +166,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 #pragma endregion
 
-	if (Settings->bFusePaths) { Context->UnionDataFacade->Source->StageOutput(Context); }
+	if (Settings->bFusePaths) { (void)Context->UnionDataFacade->Source->StageOutput(Context); }
 	else { Context->MainPoints->StageOutputs(); }
 
 	return Context->TryComplete();

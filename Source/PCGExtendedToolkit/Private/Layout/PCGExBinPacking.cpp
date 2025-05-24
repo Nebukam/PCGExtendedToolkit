@@ -45,6 +45,8 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 	int32 NumBins = Context->Bins->Num();
 	int32 NumInputs = Context->MainPoints->Num();
 
+	Context->ValidIOIndices.Reserve(FMath::Max(NumBins, NumInputs));
+
 	if (NumBins != NumInputs)
 	{
 		if (NumBins > NumInputs)
@@ -57,8 +59,7 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 
 			for (int i = 0; i < NumInputs; i++)
 			{
-				Context->MainPoints->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
-				Context->Bins->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
+				Context->ValidIOIndices.Add(Context->MainPoints->Pairs[i]->IOIndex);
 			}
 		}
 		else if (NumInputs > NumBins)
@@ -71,8 +72,7 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 
 			for (int i = 0; i < NumBins; i++)
 			{
-				Context->MainPoints->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
-				Context->Bins->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
+				Context->ValidIOIndices.Add(Context->MainPoints->Pairs[i]->IOIndex);
 			}
 		}
 	}
@@ -80,8 +80,7 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 	{
 		for (int i = 0; i < NumInputs; i++)
 		{
-			Context->MainPoints->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
-			Context->Bins->Pairs[i]->InitializeOutput(PCGExData::EIOInit::Duplicate);
+			Context->ValidIOIndices.Add(Context->MainPoints->Pairs[i]->IOIndex);
 		}
 	}
 
@@ -104,7 +103,7 @@ bool FPCGExBinPackingElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBinPacking::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
-				return Entry->GetOut() != nullptr;
+				return Context->ValidIOIndices.Contains(Entry->IOIndex);
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBinPacking::FProcessor>>& NewBatch)
 			{
@@ -134,13 +133,13 @@ namespace PCGExBinPacking
 		NewSpace.DistanceScore /= MaxDist;
 	}
 
-	FBin::FBin(const FPCGPoint& InBinPoint, const FVector& InSeed, const TSharedPtr<FBinSplit>& InSplitter)
+	FBin::FBin(const PCGExData::FConstPoint& InBinPoint, const FVector& InSeed, const TSharedPtr<FBinSplit>& InSplitter)
 	{
 		Splitter = InSplitter;
 		Seed = InSeed;
 		Bounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(InBinPoint);
 
-		Transform = InBinPoint.Transform;
+		Transform = InBinPoint.GetTransform();
 		Transform.SetScale3D(FVector::OneVector); // Reset scale for later transform
 
 		MaxVolume = Bounds.GetVolume();
@@ -234,10 +233,10 @@ namespace PCGExBinPacking
 		return true;
 	}
 
-	void FBin::UpdatePoint(FPCGPoint& InPoint, const FItem& InItem) const
+	void FBin::UpdatePoint(PCGExData::FMutablePoint& InPoint, const FItem& InItem) const
 	{
-		const FTransform T = FTransform(FQuat::Identity, InItem.Box.GetCenter() - InPoint.GetLocalCenter(), InPoint.Transform.GetScale3D());
-		InPoint.Transform = T * Transform;
+		const FTransform T = FTransform(FQuat::Identity, InItem.Box.GetCenter() - InPoint.GetLocalBounds().GetCenter(), InPoint.GetScale3D());
+		InPoint.SetTransform(T * Transform);
 	}
 
 	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
@@ -260,6 +259,12 @@ namespace PCGExBinPacking
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PointDataFacade->Source->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
+
+		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];
+		PCGEX_INIT_IO(TargetBins, PCGExData::EIOInit::Duplicate)
 
 		PaddingBuffer = Settings->GetValueSettingPadding();
 		if (!PaddingBuffer->Init(Context, PointDataFacade)) { return false; }
@@ -286,8 +291,6 @@ namespace PCGExBinPacking
 		PCGEX_SWITCH_ON_SPLIT_DIRECTION(PCGEX_SWITCH_ON_SPLIT_MODE)
 
 		Fitted.Init(false, PointDataFacade->GetNum());
-
-		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];
 		Bins.Reserve(TargetBins->GetNum());
 
 		bool bRelativeSeed = Settings->SeedMode == EPCGExBinSeedMode::UVWConstant;
@@ -314,36 +317,33 @@ namespace PCGExBinPacking
 			SeedGetter.Reset();
 		}
 
-
-		if (Sorter && Sorter->Init())
-		{
-			PointDataFacade->GetOut()->GetMutablePoints().Sort([&](const FPCGPoint& A, const FPCGPoint& B) { return Sorter->Sort(A, B); });
-		}
+		PCGEx::InitArray(ProcessingOrder, PointDataFacade->GetNum());
+		if (Sorter && Sorter->Init()) { ProcessingOrder.Sort([&](const int32& A, const int32& B) { return Sorter->Sort(A, B); }); }
 
 		if (Settings->bAvoidWastedSpace)
 		{
 			MinOccupation = MAX_dbl;
-			const TArray<FPCGPoint>& InPoints = PointDataFacade->GetOut()->GetPoints();
-			for (const FPCGPoint& P : InPoints)
+			const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
+			for (int i = 0; i < InPoints->GetNumPoints(); i++)
 			{
-				const FVector Size = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(P).GetSize();
+				const FVector Size = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(PCGExData::FConstPoint(InPoints, i)).GetSize();
 				MinOccupation = FMath::Min(MinOccupation, FMath::Min3(Size.X, Size.Y, Size.Z));
 			}
 		}
 
 		for (int i = 0; i < TargetBins->GetNum(); i++)
 		{
-			const FPCGPoint& BinPoint = TargetBins->GetInPoint(i);
+			const PCGExData::FConstPoint BinPoint = TargetBins->GetInPoint(i);
 
 			FVector Seed = FVector::ZeroVector;
 			if (bRelativeSeed)
 			{
 				FBox Box = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(BinPoint);
-				Seed = Box.GetCenter() + (SeedGetter ? SeedGetter->SoftGet(i, FVector::ZeroVector) : Settings->SeedUVW) * Box.GetExtent();
+				Seed = Box.GetCenter() + (SeedGetter ? SeedGetter->SoftGet(BinPoint, FVector::ZeroVector) : Settings->SeedUVW) * Box.GetExtent();
 			}
 			else
 			{
-				Seed = BinPoint.Transform.InverseTransformPositionNoScale(SeedGetter ? SeedGetter->SoftGet(i, FVector::ZeroVector) : Settings->SeedPosition);
+				Seed = BinPoint.GetTransform().InverseTransformPositionNoScale(SeedGetter ? SeedGetter->SoftGet(BinPoint, FVector::ZeroVector) : Settings->SeedPosition);
 			}
 
 			PCGEX_MAKE_SHARED(NewBin, FBin, BinPoint, Seed, Splitter)
@@ -365,13 +365,18 @@ namespace PCGExBinPacking
 	{
 		PointDataFacade->Fetch(Scope);
 
-		PCGEX_SCOPE_LOOP(Index){
-		
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const int32 PointIndex = ProcessingOrder[Index];
+			PCGExData::FMutablePoint Point(OutPointData, PointIndex);
+
 			FItem Item = FItem();
 
-			Item.Index = Index;
+			Item.Index = PointIndex;
 			Item.Box = FBox(FVector::ZeroVector, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).GetSize());
-			Item.Padding = PaddingBuffer->Read(Index);
+			Item.Padding = PaddingBuffer->Read(PointIndex);
 
 			bool bPlaced = false;
 			for (const TSharedPtr<FBin>& Bin : Bins)
@@ -384,7 +389,7 @@ namespace PCGExBinPacking
 				}
 			}
 
-			Fitted[Index] = bPlaced;
+			Fitted[PointIndex] = bPlaced;
 			if (!bPlaced) { bHasUnfitted = true; }
 
 			// TODO : post process pass to move things around based on initial placement
@@ -395,22 +400,12 @@ namespace PCGExBinPacking
 	{
 		if (bHasUnfitted)
 		{
-			const TArray<FPCGPoint>& SourcePoints = PointDataFacade->GetIn()->GetPoints();
-			TArray<FPCGPoint>& FittedPoints = PointDataFacade->GetMutablePoints();
-			TArray<FPCGPoint>& DiscardedPoints = Context->Discarded->Emplace_GetRef(PointDataFacade->GetIn(), PCGExData::EIOInit::New)->GetMutablePoints();
-			const int32 NumPoints = PointDataFacade->GetNum();
-			int32 WriteIndex = 0;
+			(void)PointDataFacade->Source->Gather(Fitted);
 
-			DiscardedPoints.Reserve(NumPoints);
-
-			for (int32 i = 0; i < NumPoints; i++)
+			if (const TSharedPtr<PCGExData::FPointIO> Discarded = Context->Discarded->Emplace_GetRef(PointDataFacade->GetIn(), PCGExData::EIOInit::New))
 			{
-				if (Fitted[i]) { FittedPoints[WriteIndex++] = FittedPoints[i]; }
-				else { DiscardedPoints.Add(SourcePoints[i]); }
+				(void)Discarded->InheritPoints(Fitted, true);
 			}
-
-			FittedPoints.SetNum(WriteIndex);
-			DiscardedPoints.Shrink();
 		}
 	}
 }

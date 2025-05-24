@@ -41,12 +41,38 @@ namespace PCGEx
 
 	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum, const int32 Offset)
 	{
-		{
-			const int32 _num_ = InNum;
-			OutArray.Reserve(_num_);
-			OutArray.SetNum(_num_);
-		}
+		OutArray.Reserve(InNum);
+		OutArray.SetNum(InNum);
+
 		for (int i = 0; i < InNum; i++) { OutArray[i] = Offset + i; }
+	}
+
+	int32 ArrayOfIndices(TArray<int32>& OutArray, const TArrayView<const int8>& Mask, const int32 Offset, const bool bInvert)
+	{
+		const int32 InNum = Mask.Num();
+
+		OutArray.Reset();
+		OutArray.Reserve(InNum);
+
+		if (bInvert) { for (int i = 0; i < InNum; i++) { if (!Mask[i]) { OutArray.Add(Offset + i); } } }
+		else { for (int i = 0; i < InNum; i++) { if (Mask[i]) { OutArray.Add(Offset + i); } } }
+
+		OutArray.Shrink();
+		return OutArray.Num();
+	}
+
+	int32 ArrayOfIndices(TArray<int32>& OutArray, const TBitArray<>& Mask, const int32 Offset, const bool bInvert)
+	{
+		const int32 InNum = Mask.Num();
+
+		OutArray.Reset();
+		OutArray.Reserve(InNum);
+
+		if (bInvert) { for (int i = 0; i < InNum; i++) { if (!Mask[i]) { OutArray.Add(Offset + i); } } }
+		else { for (int i = 0; i < InNum; i++) { if (Mask[i]) { OutArray.Add(Offset + i); } } }
+
+		OutArray.Shrink();
+		return OutArray.Num();
 	}
 
 	FName GetCompoundName(const FName A, const FName B)

@@ -219,10 +219,10 @@ namespace PCGExGeo
 #pragma region Point checks
 
 #define PCGEX_TRANSFORM_LOCALBOUNDS const FBox LocalBox = PCGExMath::GetLocalBounds(Point, BoundsSource).TransformBy(Point.GetTransform().ToMatrixNoScale() * InvMatrix);
-#define PCGEX_TRANSFORM_LOCALBOUNDS_T const FBox LocalBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.GetTransform().ToMatrixNoScale() * InvMatrix);
+#define PCGEX_TRANSFORM_LOCALBOUNDS_T const FBox LocalBox = PCGExMath::GetLocalBounds<S, PointType>(Point).TransformBy(Point.GetTransform().ToMatrixNoScale() * InvMatrix);
 
-		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box>
-		bool Intersect(const PCGExData::FConstPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
+		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool Intersect(const PointType& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.Intersect(LocalBox); }
@@ -231,8 +231,8 @@ namespace PCGExGeo
 			else { return FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox); }
 		}
 
-		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box>
-		bool IsInside(const PCGExData::FConstPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
+		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInside(const PointType& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInside(LocalBox); }
@@ -259,8 +259,8 @@ namespace PCGExGeo
 			}
 		}
 
-		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box>
-		bool IsInsideOrOn(const PCGExData::FConstPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
+		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInsideOrOn(const PointType& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS
 
@@ -288,8 +288,8 @@ namespace PCGExGeo
 			}
 		}
 
-		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box>
-		bool IsInsideOrIntersects(const PCGExData::FConstPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
+		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInsideOrIntersects(const PointType& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInsideOrOn(LocalBox) || Box.Intersect(LocalBox); }
@@ -314,8 +314,8 @@ namespace PCGExGeo
 			}
 		}
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box>
-		bool Intersect(const PCGExData::FConstPoint& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool Intersect(const PointType& Point) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS_T
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.Intersect(LocalBox); }
@@ -324,8 +324,8 @@ namespace PCGExGeo
 			else { return FMath::SphereAABBIntersection(FVector::ZeroVector, RadiusSquaredExpanded, LocalBox); }
 		}
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box>
-		bool IsInside(const PCGExData::FConstPoint& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInside(const PointType& Point) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS_T
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInside(LocalBox); }
@@ -352,8 +352,8 @@ namespace PCGExGeo
 			}
 		}
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box>
-		bool IsInsideOrOn(const PCGExData::FConstPoint& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInsideOrOn(const PointType& Point) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS_T
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInsideOrOn(LocalBox); }
@@ -380,8 +380,8 @@ namespace PCGExGeo
 			}
 		}
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box>
-		bool IsInsideOrIntersects(const PCGExData::FConstPoint& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInsideOrIntersects(const PointType& Point) const
 		{
 			PCGEX_TRANSFORM_LOCALBOUNDS_T
 			if constexpr (Mode == EPCGExBoxCheckMode::Box) { return Box.IsInsideOrOn(LocalBox) || Box.Intersect(LocalBox); }
@@ -615,86 +615,86 @@ namespace PCGExGeo
 #define PCGEX_POINT_BOUNDS_CHECK(_NAME) \
 		bool bResult = false; \
 		Octree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(Point.GetTransform().GetLocation(), Point.GetScaledExtents()), [&](const FPointBox* NearbyBox){ \
-				if (NearbyBox->_NAME<Mode>(Point, BoundsSource)){ bResult = true; return false;} return true; }); return bResult;
+				if (NearbyBox->_NAME<Mode, PointType>(Point, BoundsSource)){ bResult = true; return false;} return true; }); return bResult;
 
 #define PCGEX_POINT_BOUNDS_CHECK_T(_NAME) \
 		bool bResult = false; \
 		Octree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(Point.GetTransform().GetLocation(), Point.GetScaledExtents()), [&](const FPointBox* NearbyBox){ \
-				if (NearbyBox->_NAME<S, Mode>(Point)){ bResult = true; return false;} return true; }); return bResult;
+				if (NearbyBox->_NAME<S, Mode, PointType>(Point)){ bResult = true; return false;} return true; }); return bResult;
 
-		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool Intersect(const T_POINT& Point, const EPCGExPointBoundsSource BoundsSource) const
+		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool Intersect(const PointType& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK(Intersect)
 		}
 
-		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool IsInside(const T_POINT& Point, const EPCGExPointBoundsSource BoundsSource) const
+		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInside(const PointType& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK(IsInside)
 		}
 
-		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool IsInsideOrOn(const T_POINT& Point, const EPCGExPointBoundsSource BoundsSource) const
+		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInsideOrOn(const PointType& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK(IsInsideOrOn)
 		}
 
-		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool IsInsideOrIntersects(const T_POINT& Point, const EPCGExPointBoundsSource BoundsSource) const
+		template <EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInsideOrIntersects(const PointType& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK(IsInsideOrIntersects)
 		}
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool Intersect(const T_POINT& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool Intersect(const PointType& Point) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK_T(Intersect)
 		}
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool IsInside(const T_POINT& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInside(const PointType& Point) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK_T(IsInside)
 		}
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool IsInsideOrOn(const T_POINT& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInsideOrOn(const PointType& Point) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK_T(IsInsideOrOn)
 		}
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool IsInsideOrIntersects(const T_POINT& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInsideOrIntersects(const PointType& Point) const
 		{
 			PCGEX_POINT_BOUNDS_CHECK_T(IsInsideOrIntersects)
 		}
 
 		//
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool IntersectCloud(const T_POINT& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IntersectCloud(const PointType& Point) const
 		{
 			const FBox PtBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.GetTransform().ToMatrixNoScale());
 			return PtBox.Intersect(CloudBounds);
 		}
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool IsInsideCloud(const T_POINT& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInsideCloud(const PointType& Point) const
 		{
 			const FBox PtBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.GetTransform().ToMatrixNoScale());
 			return PtBox.IsInside(CloudBounds);
 		}
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool IsInsideOrOnCloud(const T_POINT& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInsideOrOnCloud(const PointType& Point) const
 		{
 			const FBox PtBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.GetTransform().ToMatrixNoScale());
 			return PtBox.IsInsideOrOn(CloudBounds);
 		}
 
-		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename T_POINT /*= PCGExData::FConstPoint*/>
-		bool IsInsideOrIntersectsCloud(const T_POINT& Point) const
+		template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds, EPCGExBoxCheckMode Mode = EPCGExBoxCheckMode::Box, typename PointType /*= PCGExData::FConstPoint*/>
+		bool IsInsideOrIntersectsCloud(const PointType& Point) const
 		{
 			const FBox PtBox = PCGExMath::GetLocalBounds<S>(Point).TransformBy(Point.GetTransform().ToMatrixNoScale());
 			return PtBox.IsInsideOrOn(CloudBounds) || PtBox.Intersect(CloudBounds);

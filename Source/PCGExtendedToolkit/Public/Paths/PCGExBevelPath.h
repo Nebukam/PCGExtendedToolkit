@@ -261,7 +261,6 @@ namespace PCGExBevelPath
 		TSharedPtr<PCGExDetails::TSettingValue<double>> WidthGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SubdivAmountGetter;
 
-		TArray<FVector> Positions;
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 		TSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>> PathDirection;
@@ -286,6 +285,7 @@ namespace PCGExBevelPath
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
 		
 		void WriteFlags(const int32 Index);
 		virtual void CompleteWork() override;

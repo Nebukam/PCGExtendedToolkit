@@ -91,7 +91,7 @@ bool FPCGExFindPointOnBoundsClustersElement::ExecuteInternal(
 			Context->BestIndices,
 			*Context->MergedAttributesInfos);
 
-		Context->MergedOut->StageOutput(Context);
+		(void)Context->MergedOut->StageOutput(Context);
 	}
 	else
 	{
