@@ -169,11 +169,13 @@ namespace PCGExClusterDiffusion
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				const TArray<FPCGPoint>& Seeds = This->Context->SeedsDataFacade->Source->GetPoints(PCGExData::EIOSide::In);
+
 				const TArray<PCGExCluster::FNode>& Nodes = *This->Cluster->Nodes.Get();
-				PCGEX_SCOPE_LOOP(i)
+				TConstPCGValueRange<FTransform> SeedTransforms = This->Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
+
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					FVector SeedLocation = Seeds[i].Transform.GetLocation();
+					FVector SeedLocation = SeedTransforms[Index].GetLocation();
 					const int32 ClosestIndex = This->Cluster->FindClosestNode(SeedLocation, This->Settings->Seeds.SeedPicking.PickingMethod);
 
 					if (ClosestIndex < 0 ||
@@ -187,7 +189,7 @@ namespace PCGExClusterDiffusion
 					if (!This->Settings->Seeds.SeedPicking.WithinDistance(This->Cluster->GetPos(SeedNode), SeedLocation)) { continue; }
 
 					TSharedPtr<PCGExFloodFill::FDiffusion> NewDiffusion = MakeShared<PCGExFloodFill::FDiffusion>(This->FillControlsHandler, This->Cluster, SeedNode);
-					NewDiffusion->Index = i;
+					NewDiffusion->Index = Index;
 					This->InitialDiffusions->Get(Scope)->Add(NewDiffusion);
 				}
 			};
@@ -372,7 +374,6 @@ namespace PCGExClusterDiffusion
 	void FProcessor::WritePath(const int32 DiffusionIndex, const int32 EndpointNodeIndex)
 	{
 		TSharedPtr<PCGExFloodFill::FDiffusion> Diffusion = Diffusions[DiffusionIndex];
-		const int32 SeedNodeIndex = Diffusion->SeedNode->Index;
 
 		int32 PathNodeIndex = PCGEx::NH64A(Diffusion->TravelStack->Get(EndpointNodeIndex));
 		int32 PathEdgeIndex = -1;
@@ -397,13 +398,11 @@ namespace PCGExClusterDiffusion
 		// Create a copy of the final vtx, so we get all the goodies
 
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
-		const TArray<FPCGPoint>& VtxPoints = VtxDataFacade->Source->GetOut()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 
-		MutablePoints.SetNumUninitialized(PathIndices.Num());
-		for (int i = 0; i < PathIndices.Num(); i++) { MutablePoints[i] = VtxPoints[PathIndices[i]]; }
+		PathIO->GetOut()->SetNumPoints(PathIndices.Num());
+		PathIO->InheritPoints(PathIndices, 0);
 
-		Context->SeedAttributesToPathTags.Tag(Diffusion->SeedIndex, PathIO);
+		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(Diffusion->SeedIndex), PathIO);
 
 		PathIO->IOIndex = Diffusion->SeedIndex * 1000000 + VtxDataFacade->Source->IOIndex * 1000000 + EndpointNodeIndex;
 	}
@@ -455,7 +454,8 @@ namespace PCGExClusterDiffusion
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 
 		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(VtxDataFacade);
-		if(!BlendOpsManager->Init(Context, Context->BlendingFactories)){
+		if (!BlendOpsManager->Init(Context, Context->BlendingFactories))
+		{
 			bIsBatchValid = false;
 			return;
 		}
@@ -492,7 +492,7 @@ namespace PCGExClusterDiffusion
 	void FBatch::Write()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ClusterDiffusion)
-		
+
 		TBatch<FProcessor>::Write();
 		BlendOpsManager->Cleanup(Context);
 		VtxDataFacade->Write(AsyncManager);
