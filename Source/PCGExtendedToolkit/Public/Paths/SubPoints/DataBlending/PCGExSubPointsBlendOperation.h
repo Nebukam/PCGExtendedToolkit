@@ -37,11 +37,11 @@ public:
 
 	virtual void ProcessSubPoints(
 		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-		PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex = -1) const override;
+		PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const override;
 
 	virtual void BlendSubPoints(
 		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-		PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex = -1) const;
+		PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const;
 
 	virtual void BlendSubPoints(PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const;
 
@@ -66,5 +66,4 @@ public:
 
 	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const
 	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
-	
 };

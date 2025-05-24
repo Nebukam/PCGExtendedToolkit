@@ -8,14 +8,12 @@
 #define LOCTEXT_NAMESPACE "PCGExPaths"
 #define PCGEX_NAMESPACE PCGExPaths
 
-bool FPCGExPathOutputDetails::Validate(const UPCGBasePointData* InPathData) const
+bool FPCGExPathOutputDetails::Validate(const int32 NumPathPoints) const
 {
-	const int32 NumPoints = InPathData->GetNumPoints();
+	if (NumPathPoints < 2) { return false; }
 
-	if (NumPoints < 2) { return false; }
-
-	if (bRemoveSmallPaths && NumPoints < MinPointCount) { return false; }
-	if (bRemoveLargePaths && NumPoints > MaxPointCount) { return false; }
+	if (bRemoveSmallPaths && NumPathPoints < MinPointCount) { return false; }
+	if (bRemoveLargePaths && NumPathPoints > MaxPointCount) { return false; }
 
 	return true;
 }

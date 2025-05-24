@@ -223,6 +223,58 @@ namespace PCGEx
 				}, true);
 		}
 	}
+
+	FRWScope::FRWScope(const int32 NumElements, const bool bSetNum)
+	{
+		if (bSetNum)
+		{
+			ReadIndices.Reserve(NumElements);
+			WriteIndices.Reserve(NumElements);
+		}
+		else
+		{
+			ReadIndices.SetNumUninitialized(NumElements);
+			WriteIndices.SetNumUninitialized(NumElements);
+		}
+	}
+
+	int32 FRWScope::Add(const int32 ReadIndex, const int32 WriteIndex)
+	{
+		ReadIndices.Add(ReadIndex);
+		return WriteIndices.Add(WriteIndex);
+	}
+
+	int32 FRWScope::Add(const TArrayView<int32> ReadIndicesRange, int32& OutWriteIndex)
+	{
+		for (const int32 ReadIndex : ReadIndicesRange) { Add(ReadIndex, OutWriteIndex++); }
+		return ReadIndices.Num() - 1;
+	}
+
+	void FRWScope::Set(const int32 Index, const int32 ReadIndex, const int32 WriteIndex)
+	{
+		ReadIndices[Index] = ReadIndex;
+		WriteIndices[Index] = WriteIndex;
+	}
+
+	void FRWScope::CopyPoints(const UPCGBasePointData* Read, UPCGBasePointData* Write, const bool bClean)
+	{
+		Read->CopyPointsTo(Write, ReadIndices, WriteIndices);
+		if (bClean)
+		{
+			ReadIndices.Empty();
+			WriteIndices.Empty();
+		}
+	}
+
+	void FRWScope::CopyProperties(const UPCGBasePointData* Read, UPCGBasePointData* Write, EPCGPointNativeProperties Properties, const bool bClean)
+	{
+		Read->CopyPropertiesTo(Write, ReadIndices, WriteIndices, Properties);
+		if (bClean)
+		{
+			ReadIndices.Empty();
+			WriteIndices.Empty();
+		}
+	}
 }
 
 void UPCGExComponentCallback::Callback(UActorComponent* InComponent)

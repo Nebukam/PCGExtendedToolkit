@@ -24,64 +24,74 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 {
 	PCGEX_SETTINGS_LOCAL(PathfindingEdges)
 
-	const FPCGPoint& Seed = SeedsDataFacade->Source->GetInPoint(Query->Seed.SourceIndex);
-	const FPCGPoint& Goal = GoalsDataFacade->Source->GetInPoint(Query->Goal.SourceIndex);
-
-	TArray<FPCGPoint> MutablePoints;
-	MutablePoints.Reserve(Query->PathNodes.Num() + 2);
+	TArray<int32> PathIndices;
+	int32 ExtraIndices = 0;
+	PathIndices.Reserve(Query->PathNodes.Num() + 2);
 
 	TSharedPtr<PCGExData::FPointIO> ReferenceIO = nullptr;
-
-	if (Settings->bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
 
 	if (Settings->PathComposition == EPCGExPathComposition::Vtx)
 	{
 		ReferenceIO = Query->Cluster->VtxIO.Pin();
-		Query->AppendNodePoints(MutablePoints);
+		Query->AppendNodePoints(PathIndices);
 	}
 	else if (Settings->PathComposition == EPCGExPathComposition::Edges)
 	{
 		ReferenceIO = Query->Cluster->EdgesIO.Pin();
-		Query->AppendEdgePoints(MutablePoints);
+		Query->AppendEdgePoints(PathIndices);
 	}
 	else if (Settings->PathComposition == EPCGExPathComposition::VtxAndEdges)
 	{
 		// TODO : Implement
 	}
-
-	if (Settings->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
 	if (Settings->PathComposition == EPCGExPathComposition::Vtx)
 	{
-		if (MutablePoints.Num() < 2) { return; }
+		if (PathIndices.Num() < 2) { return; }
 	}
 	else if (Settings->PathComposition == EPCGExPathComposition::Edges)
 	{
-		if (MutablePoints.Num() < 1) { return; }
+		if (PathIndices.Num() < 1) { return; }
 	}
 	else if (Settings->PathComposition == EPCGExPathComposition::VtxAndEdges)
 	{
 		// TODO : Implement
 	}
 
-	if (!Settings->PathOutputDetails.Validate(MutablePoints)) { return; }
+	if (Settings->bAddSeedToPath) { ExtraIndices++; }
+	if (Settings->bAddGoalToPath) { ExtraIndices++; }
+
+	if (!Settings->PathOutputDetails.Validate(PathIndices.Num() + ExtraIndices)) { return; }
 
 	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<PCGEX_NEW_POINT_DATA_TYPE>(ReferenceIO, PCGExData::EIOInit::New);
 	if (!PathIO) { return; }
 
 	PathIO->IOIndex = Query->QueryIndex;
+	UPCGBasePointData* PathPoints = PathIO->GetOut();
+
+	PathPoints->SetNumPoints(PathIndices.Num() + ExtraIndices);
+	PathIO->InheritPoints(PathIndices, Settings->bAddSeedToPath ? 1 : 0);
+
+	if (Settings->bAddSeedToPath)
+	{
+		Query->Seed.Point.Data->CopyPropertiesTo(PathPoints, Query->Seed.Point.Index, 0, 1, EPCGPointNativeProperties::All);
+	}
+
+	if (Settings->bAddGoalToPath)
+	{
+		Query->Goal.Point.Data->CopyPropertiesTo(PathPoints, Query->Goal.Point.Index, PathPoints->GetNumPoints() - 1, 1, EPCGPointNativeProperties::All);
+	}
 
 	PCGExGraph::CleanupClusterTags(PathIO);
 	PCGExGraph::CleanupVtxData(PathIO);
 
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
-	PathDataFacade->GetMutablePoints() = MutablePoints;
 
-	SeedAttributesToPathTags.Tag(Query->Seed.SourceIndex, PathIO);
-	GoalAttributesToPathTags.Tag(Query->Goal.SourceIndex, PathIO);
+	SeedAttributesToPathTags.Tag(Query->Seed, PathIO);
+	GoalAttributesToPathTags.Tag(Query->Goal, PathIO);
 
-	SeedForwardHandler->Forward(Query->Seed.SourceIndex, PathDataFacade);
-	GoalForwardHandler->Forward(Query->Goal.SourceIndex, PathDataFacade);
+	SeedForwardHandler->Forward(Query->Seed.Point.Index, PathDataFacade);
+	GoalForwardHandler->Forward(Query->Goal.Point.Index, PathDataFacade);
 
 	PathDataFacade->Write(GetAsyncManager());
 }
@@ -217,8 +227,8 @@ namespace PCGExPathfindingEdge
 		{
 			TSharedPtr<PCGExPathfinding::FPathQuery> Query = MakeShared<PCGExPathfinding::FPathQuery>(
 				Cluster.ToSharedRef(),
-				Context->SeedsDataFacade->Source->GetInPointRef(PCGEx::H64A(Context->SeedGoalPairs[i])),
-				Context->GoalsDataFacade->Source->GetInPointRef(PCGEx::H64B(Context->SeedGoalPairs[i])),
+				Context->SeedsDataFacade->Source->GetInPoint(PCGEx::H64A(Context->SeedGoalPairs[i])),
+				Context->GoalsDataFacade->Source->GetInPoint(PCGEx::H64B(Context->SeedGoalPairs[i])),
 				i);
 
 			Queries[i] = Query;

@@ -3,10 +3,7 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingNavmesh.h"
 
-#include "NavigationSystem.h"
 #include "PCGExPointsProcessor.h"
-
-
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
@@ -131,98 +128,46 @@ void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	FPCGExPathfindingNavmeshContext* Context = AsyncManager->GetContext<FPCGExPathfindingNavmeshContext>();
 	PCGEX_SETTINGS(PathfindingNavmesh)
 
-	UWorld* World = Context->GetWorld();
-	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World);
+	PCGExNavmesh::FNavmeshQuery Query((*Queries)[TaskIndex]);
+	Query.FindPath(Context);
 
-	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return; }
+	if (!Query.IsValid()) { return; }
 
-	PCGExPathfinding::FSeedGoalPair Query = (*Queries)[TaskIndex];
-
-	const UPCGBasePointData* SeedsData =Context->SeedsDataFacade->GetIn(); 
+	const UPCGBasePointData* SeedsData = Context->SeedsDataFacade->GetIn();
 	const UPCGBasePointData* GoalsData = Context->GoalsDataFacade->GetIn();
-	
-	const FPCGPoint* Seed = Context->SeedsDataFacade->Source->TryGetInPoint(Query.Seed);
-	const FPCGPoint* Goal = Context->GoalsDataFacade->Source->TryGetInPoint(Query.Goal);
 
-	if (!Seed || !Goal) { return; }
+	PCGExData::FConstPoint Seed(SeedsData, Query.SeedGoalPair.Seed);
+	PCGExData::FConstPoint Goal(GoalsData, Query.SeedGoalPair.Goal);
 
-	FPathFindingQuery PathFindingQuery = FPathFindingQuery(
-		World, *NavSys->GetDefaultNavDataInstance(),
-		Query.SeedPosition, Query.GoalPosition, nullptr, nullptr,
-		TNumericLimits<FVector::FReal>::Max(),
-		Context->bRequireNavigableEndLocation);
+	const int32 NumPositions = Query.Positions.Num() + Settings->bAddSeedToPath + Settings->bAddGoalToPath;
 
-	PathFindingQuery.NavAgentProperties = Context->NavAgentProperties;
-
-	const FPathFindingResult Result = NavSys->FindPathSync(
-		Context->NavAgentProperties, PathFindingQuery,
-		Context->PathfindingMode == EPCGExPathfindingNavmeshMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
-
-	if (Result.Result != ENavigationQueryResult::Type::Success) { return; } ///
-
-
-	const TArray<FNavPathPoint>& Points = Result.Path->GetPathPoints();
-
-	TArray<FVector> PathLocations;
-	PathLocations.Reserve(Points.Num());
-
-	PathLocations.Add(Query.SeedPosition);
-	for (const FNavPathPoint& PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
-	PathLocations.Add(Query.GoalPosition);
-
-	PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(PathLocations[0]);
-	int32 FuseCountReduce = Settings->bAddGoalToPath ? 2 : 1;
-	for (int i = Settings->bAddSeedToPath; i < PathLocations.Num(); i++)
-	{
-		FVector CurrentLocation = PathLocations[i];
-		if (i > 0 && i < (PathLocations.Num() - FuseCountReduce))
-		{
-			if (Metrics.IsLastWithinRange(CurrentLocation, Context->FuseDistance))
-			{
-				PathLocations.RemoveAt(i);
-				i--;
-				continue;
-			}
-		}
-
-		Metrics.Add(CurrentLocation);
-	}
-
-	if (PathLocations.Num() <= 2) { return; }
-
-	const int32 NumPositions = PathLocations.Num();
-	const int32 LastPosition = NumPositions - 1;
+	if (NumPositions <= 2) { return; }
 
 	TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 	UPCGBasePointData* OutData = PathIO->GetOut();
-	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-	MutablePoints.SetNumUninitialized(NumPositions);
+	OutData->SetNumPoints(NumPositions);
+	OutData->AllocateProperties(EPCGPointNativeProperties::All);
 
-	FVector Location;
-	for (int i = 0; i < LastPosition; i++)
-	{
-		Location = PathLocations[i];
-		(MutablePoints[i] = *Seed).Transform.SetLocation(Location);
-	}
-
-	Location = PathLocations[LastPosition];
-	(MutablePoints[LastPosition] = *Goal).Transform.SetLocation(Location);
+	int32 WriteIndex = 0;
+	TPCGValueRange<FTransform> OutTransforms = OutData->GetTransformValueRange();
+	Query.CopyPositions(OutTransforms, WriteIndex, Settings->bAddGoalToPath, Settings->bAddGoalToPath);
 
 	TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending = Context->Blending->CreateOperation();
 	if (!SubBlending->PrepareForData(Context, PathDataFacade, Context->GoalsDataFacade, PCGExData::EIOSide::In)) { return; }
 
-	SubBlending->BlendSubPoints(MutablePoints, Metrics, TempBlender.Get());
-	
-	if (!Settings->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
-	if (!Settings->bAddGoalToPath) { MutablePoints.Pop(); }
+	// TODO : Need to ensure the metadata blender can pick source A as target IN, if relevant
+	// cause we might try to blend from a point that's technically in the same data but also not
 
-	Context->SeedAttributesToPathTags.Tag(Query.Seed, PathIO);
-	Context->GoalAttributesToPathTags.Tag(Query.Goal, PathIO);
+	PCGExData::FScope SubScope = PathIO->GetInScope(0 + Settings->bAddSeedToPath, NumPositions - (Settings->bAddSeedToPath + Settings->bAddGoalToPath));
+	SubBlending->BlendSubPoints(Seed, Goal, SubScope, Query.SeedGoalMetrics);
 
-	Context->SeedForwardHandler->Forward(Query.Seed, PathDataFacade);
-	Context->GoalForwardHandler->Forward(Query.Goal, PathDataFacade);
+	Context->SeedAttributesToPathTags.Tag(Seed, PathIO);
+	Context->GoalAttributesToPathTags.Tag(Goal, PathIO);
+
+	Context->SeedForwardHandler->Forward(Seed.Index, PathDataFacade);
+	Context->GoalForwardHandler->Forward(Goal.Index, PathDataFacade);
 
 	PathDataFacade->Write(AsyncManager);
 }

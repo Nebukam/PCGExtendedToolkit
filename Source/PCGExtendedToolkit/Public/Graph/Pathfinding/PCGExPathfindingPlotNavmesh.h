@@ -14,19 +14,10 @@
 
 #include "PCGExPathfindingPlotNavmesh.generated.h"
 
+struct FPCGExPathfindingPlotNavmeshContext;
+
 namespace PCGExPathfinding
 {
-	struct PCGEXTENDEDTOOLKIT_API FPlotPoint
-	{
-		int32 PlotIndex;
-		FVector Position;
-		PCGMetadataEntryKey MetadataEntryKey = -1;
-
-		FPlotPoint(const int32 InPlotIndex, const FVector& InPosition, const PCGMetadataEntryKey InMetadataEntryKey)
-			: PlotIndex(InPlotIndex), Position(InPosition), MetadataEntryKey(InMetadataEntryKey)
-		{
-		}
-	};
 }
 
 /**
@@ -104,7 +95,7 @@ public:
 	bool bOmitCompletePathOnFailedPlot = false;
 };
 
-struct FPCGExPathfindingPlotNavmeshContext final : FPCGExPointsProcessorContext
+struct FPCGExPathfindingPlotNavmeshContext final : FPCGExNavmeshContext
 {
 	friend class FPCGExPathfindingPlotNavmeshElement;
 
@@ -114,19 +105,13 @@ struct FPCGExPathfindingPlotNavmeshContext final : FPCGExPointsProcessorContext
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 	bool bAddPlotPointsToPath = true;
-
-	FNavAgentProperties NavAgentProperties;
-
-	bool bRequireNavigableEndLocation = true;
-	EPCGExPathfindingNavmeshMode PathfindingMode;
-	double FuseDistance = 10;
 };
 
 class FPCGExPathfindingPlotNavmeshElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathfindingPlotNavmesh)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

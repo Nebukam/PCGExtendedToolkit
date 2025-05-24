@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExNavmesh.h"
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
@@ -15,14 +16,6 @@
 
 class UPCGExSubPointsBlendInstancedFactory;
 class UPCGExGoalPicker;
-
-
-UENUM()
-enum class EPCGExPathfindingNavmeshMode : uint8
-{
-	Regular      = 0 UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),
-	Hierarchical = 1 UMETA(DisplayName = "HIerarchical", ToolTip="Cell-based pathfinding"),
-};
 
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
@@ -110,7 +103,7 @@ public:
 	FNavAgentProperties NavAgentProperties;
 };
 
-struct FPCGExPathfindingNavmeshContext final : FPCGExPointsProcessorContext
+struct FPCGExPathfindingNavmeshContext final : FPCGExNavmeshContext
 {
 	friend class FPCGExPathfindingNavmeshElement;
 
@@ -123,12 +116,6 @@ struct FPCGExPathfindingNavmeshContext final : FPCGExPointsProcessorContext
 	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 
 	TArray<PCGExPathfinding::FSeedGoalPair> PathQueries;
-
-	FNavAgentProperties NavAgentProperties;
-
-	bool bRequireNavigableEndLocation = true;
-	EPCGExPathfindingNavmeshMode PathfindingMode;
-	double FuseDistance = 10;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	FPCGExAttributeToTagDetails GoalAttributesToPathTags;

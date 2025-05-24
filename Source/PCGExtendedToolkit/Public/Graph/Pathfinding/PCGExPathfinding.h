@@ -83,22 +83,18 @@ namespace PCGExPathfinding
 
 	struct PCGEXTENDEDTOOLKIT_API FNodePick
 	{
-		FNodePick(const int32 InSourceIndex, const FVector& InSourcePosition):
-			SourceIndex(InSourceIndex), SourcePosition(InSourcePosition)
-		{
-		}
-
 		explicit FNodePick(const PCGExData::FConstPoint& InSourcePointRef):
-			SourceIndex(InSourcePointRef.Index), SourcePosition(InSourcePointRef.GetTransform().GetLocation())
+			Point(InSourcePointRef)
 		{
 		}
 
-		int32 SourceIndex = -1;
-		FVector SourcePosition = FVector::ZeroVector;
+		PCGExData::FConstPoint Point;
 		const PCGExCluster::FNode* Node = nullptr;
 
 		bool IsValid() const { return Node != nullptr; };
 		bool ResolveNode(const TSharedRef<PCGExCluster::FCluster>& InCluster, const FPCGExNodeSelectionDetails& SelectionDetails);
+
+		operator PCGExData::FConstPoint() const { return Point; }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSeedGoalPair
@@ -114,6 +110,13 @@ namespace PCGExPathfinding
 			Seed(InSeed), SeedPosition(InSeedPosition), Goal(InGoal), GoalPosition(InGoalPosition)
 		{
 		}
+
+		FSeedGoalPair(const PCGExData::FConstPoint& InSeed, const PCGExData::FConstPoint& InGoal):
+			Seed(InSeed.Index), SeedPosition(InSeed.GetLocation()), Goal(InGoal.Index), GoalPosition(InGoal.GetLocation())
+		{
+		}
+
+		bool IsValid() const { return Seed != -1 && Goal != -1; }
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FPathQuery : public TSharedFromThis<FPathQuery>
@@ -121,10 +124,10 @@ namespace PCGExPathfinding
 	public:
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
-			const PCGExData::FConstPoint& InSeedPointRef,
-			const PCGExData::FConstPoint& InGoalPointRef,
+			const PCGExData::FConstPoint& InSeed,
+			const PCGExData::FConstPoint& InGoal,
 			const int32 InQueryIndex)
-			: Cluster(InCluster), Seed(InSeedPointRef), Goal(InGoalPointRef), QueryIndex(InQueryIndex)
+			: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
 		{
 		}
 

@@ -271,7 +271,7 @@ namespace PCGExSubdivide
 			Metrics.Add(End);
 
 			PCGExData::FScope SubScope = PointDataFacade->GetInScope(SubStart, Sub.NumSubdivisions);
-			SubBlending->ProcessSubPoints(PointDataFacade->GetOutPoint(Sub.OutStart), PointDataFacade->GetOutPoint(Sub.OutEnd), SubScope, Metrics, SubStart);
+			SubBlending->ProcessSubPoints(PointDataFacade->GetOutPoint(Sub.OutStart), PointDataFacade->GetOutPoint(Sub.OutEnd), SubScope, Metrics);
 
 			for (int i = Sub.OutStart + 1; i < Sub.OutEnd; i++) { OutSeeds[i] = PCGExRandom::ComputeSpatialSeed(OutTransforms[i].GetLocation()); }
 		}

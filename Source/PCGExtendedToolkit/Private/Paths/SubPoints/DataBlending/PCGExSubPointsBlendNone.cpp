@@ -18,7 +18,7 @@ bool FPCGExSubPointsBlendNone::PrepareForData(
 
 void FPCGExSubPointsBlendNone::BlendSubPoints(
 	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
+	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
 	// None
 }

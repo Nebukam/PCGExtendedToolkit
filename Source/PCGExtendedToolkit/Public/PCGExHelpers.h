@@ -550,6 +550,25 @@ namespace PCGEx
 
 #pragma endregion
 
+	class FRWScope
+	{
+		TArray<int32> ReadIndices;
+		TArray<int32> WriteIndices;
+
+	public:
+		FRWScope(const int32 NumElements, const bool bSetNum);
+
+		int32 Add(const int32 ReadIndex, const int32 WriteIndex);
+		int32 Add(const TArrayView<int32> ReadIndicesRange, int32& OutWriteIndex);
+		void Set(const int32 Index, const int32 ReadIndex, const int32 WriteIndex);
+
+		void CopyPoints(const UPCGBasePointData* Read, UPCGBasePointData* Write, const bool bClean = true);
+		void CopyProperties(const UPCGBasePointData* Read, UPCGBasePointData* Write, EPCGPointNativeProperties Properties, const bool bClean = true);
+
+		bool IsEmpty() const { return ReadIndices.IsEmpty(); }
+		int32 Num() const { return ReadIndices.Num(); }
+	};
+
 #pragma region Array
 
 	template <typename T>
@@ -558,7 +577,7 @@ namespace PCGEx
 		const int32 Count = View.Num();
 		for (int32 i = 0; i < Count / 2; ++i) { Swap(View[i], View[Count - 1 - i]); }
 	}
-	
+
 	template <typename T>
 	static void Reverse(TPCGValueRange<T> Range)
 	{

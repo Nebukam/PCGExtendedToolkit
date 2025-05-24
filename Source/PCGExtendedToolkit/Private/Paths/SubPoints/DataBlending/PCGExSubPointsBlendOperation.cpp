@@ -53,20 +53,20 @@ bool FPCGExSubPointsBlendOperation::PrepareForData(
 
 void FPCGExSubPointsBlendOperation::ProcessSubPoints(
 	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
+	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
-	BlendSubPoints(From, To, Scope, Metrics, StartIndex);
+	BlendSubPoints(From, To, Scope, Metrics);
 }
 
 void FPCGExSubPointsBlendOperation::BlendSubPoints(
 	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics, const int32 StartIndex) const
+	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
 }
 
 void FPCGExSubPointsBlendOperation::BlendSubPoints(PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
-	BlendSubPoints(Scope.CFirst(), Scope.CLast(), Scope, Metrics, 0);
+	BlendSubPoints(Scope.CFirst(), Scope.CLast(), Scope, Metrics);
 }
 
 void UPCGExSubPointsBlendInstancedFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)
