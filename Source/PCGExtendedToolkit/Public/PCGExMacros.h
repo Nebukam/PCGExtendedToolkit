@@ -129,9 +129,9 @@ else if _PREFIX (_PROPERTY == EPCGPointProperties::ScaledLocalSize){ MACRO(GetSc
 if _PREFIX(_PROPERTY == EPCGPointProperties::Density){ \
 BODY(FVector) TPCGValueRange<float> R = _DATA->GetDensityValueRange(); R[Index] = MACRO(float); } \
 else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ \
-BODY(FVector) TPCGValueRange<FVector> R = _DATA->GetBoundsMinRange(); R[Index] = MACRO(FVector); } \
+BODY(FVector) TPCGValueRange<FVector> R = _DATA->GetBoundsMinValueRange(); R[Index] = MACRO(FVector); } \
 else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMax){ \
-BODY(FVector) TPCGValueRange<FVector> R = _DATA->GetBoundsMaxRange(); R[Index] = MACRO(FVector); } \
+BODY(FVector) TPCGValueRange<FVector> R = _DATA->GetBoundsMaxValueRange(); R[Index] = MACRO(FVector); } \
 else if _PREFIX (_PROPERTY == EPCGPointProperties::Extents){ /* TODO */ } \
 else if _PREFIX (_PROPERTY == EPCGPointProperties::Color){ \
 BODY(FVector) TPCGValueRange<FVector4> R = _DATA->GetColorValueRange(); R[Index] = MACRO(FVector4); } \

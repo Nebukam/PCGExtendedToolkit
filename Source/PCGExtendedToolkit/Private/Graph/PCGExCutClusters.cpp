@@ -199,6 +199,7 @@ namespace PCGExCutEdges
 		FilterEdgeScope(Scope);
 
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+		TConstPCGValueRange<FTransform> InVtxTransforms = VtxDataFacade->Source->GetIn()->GetConstTransformValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -210,8 +211,8 @@ namespace PCGExCutEdges
 				continue;
 			}
 
-			const FVector A1 = VtxDataFacade->Source->GetInPoint(Edge.Start).Transform.GetLocation();
-			const FVector B1 = VtxDataFacade->Source->GetInPoint(Edge.End).Transform.GetLocation();
+			const FVector A1 = InVtxTransforms[Edge.Start].GetLocation();
+			const FVector B1 = InVtxTransforms[Edge.End].GetLocation();
 			const FVector Dir = (B1 - A1).GetSafeNormal();
 
 			FBox EdgeBox = FBox(ForceInit);
@@ -280,6 +281,8 @@ namespace PCGExCutEdges
 
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 
+		const UPCGBasePointData* InVtxPointData = VtxDataFacade->GetIn();
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
@@ -290,9 +293,10 @@ namespace PCGExCutEdges
 				continue;
 			}
 
-			const FPCGPoint& NodePoint = VtxDataFacade->Source->GetInPoint(Node.PointIndex);
-			const FVector A1 = NodePoint.Transform.GetLocation();
-			FBox PointBox = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(NodePoint).ExpandBy(Settings->NodeExpansion + Settings->IntersectionDetails.ToleranceSquared).TransformBy(NodePoint.Transform);
+			const PCGExData::FConstPoint NodePoint(InVtxPointData, Node.PointIndex);
+			const FTransform& NodeTransform = NodePoint.GetTransform();
+			const FVector A1 = NodeTransform.GetLocation();
+			FBox PointBox = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(NodePoint).ExpandBy(Settings->NodeExpansion + Settings->IntersectionDetails.ToleranceSquared).TransformBy(NodeTransform);
 
 			for (const TSharedRef<PCGExPaths::FPath>& Path : Context->Paths)
 			{

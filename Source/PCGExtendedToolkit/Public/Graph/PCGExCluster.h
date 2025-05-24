@@ -143,6 +143,36 @@ namespace PCGExCluster
 		         const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup,
 		         bool bCopyNodes, bool bCopyEdges, bool bCopyLookup);
 
+		class TConstVtxLookup
+		{
+		public:
+			TConstVtxLookup(const TSharedPtr<FCluster>& InCluster) : NodesArray(*InCluster->Nodes.Get())
+			{
+			}
+
+			int32 Num() const { return NodesArray.Num(); }
+			const int32& operator[](const int32 Index) const { return NodesArray[Index].PointIndex; }
+
+		private:
+			const TArray<FNode>& NodesArray;
+		};
+
+		class TVtxLookup
+		{
+		public:
+			TVtxLookup(const TSharedPtr<FCluster>& InCluster) : NodesArray(*InCluster->Nodes.Get())
+			{
+			}
+
+			int32 Num() const { return NodesArray.Num(); }
+
+			int32& operator[](const int32 Index) { return NodesArray[Index].PointIndex; }
+			const int32& operator[](const int32 Index) const { return NodesArray[Index].PointIndex; }
+
+		private:
+			TArray<FNode>& NodesArray;
+		};
+
 		void ClearInheritedForChanges(const bool bClearOwned = false);
 		void WillModifyVtxIO(const bool bClearOwned = false);
 		void WillModifyVtxPositions(const bool bClearOwned = false);
@@ -221,7 +251,7 @@ namespace PCGExCluster
 		void RebuildOctree(EPCGExClusterClosestSearchMode Mode, const bool bForceRebuild = false);
 
 		void GatherNodesPointIndices(TArray<int32>& OutValidNodesPointIndices, const bool bValidity) const;
-		
+
 		template <int32 MinNeighbors = 0>
 		int32 FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode) const
 		{
