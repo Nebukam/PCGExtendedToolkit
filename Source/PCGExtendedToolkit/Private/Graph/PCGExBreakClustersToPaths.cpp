@@ -160,10 +160,10 @@ namespace PCGExBreakClustersToPaths
 			if (!PathIO) { continue; }
 
 			bool bDoReverse = bReverse;
+			PathIO->GetOut()->SetNumPoints(ChainSize);
 
-			TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
-			MutablePoints.SetNumUninitialized(ChainSize);
-			MutablePoints[0] = PathIO->GetInPoint(Cluster->GetNode(Chain->Seed)->PointIndex);
+			TArray<int32> IdxMapping = PathIO->GetIdxMapping();
+			IdxMapping[0] = Cluster->GetNodePointIndex(Chain->Seed);
 
 			if (ProjectedPositions && (!Settings->bWindOnlyClosedLoops || Chain->bIsClosedLoop))
 			{
@@ -171,12 +171,12 @@ namespace PCGExBreakClustersToPaths
 				TArray<FVector2D> ProjectedPoints;
 				ProjectedPoints.SetNumUninitialized(ChainSize);
 
-				ProjectedPoints[0] = PP[Cluster->GetNode(Chain->Seed)->PointIndex];
+				ProjectedPoints[0] = PP[Cluster->GetNodePointIndex(Chain->Seed)];
 
 				for (int i = 1; i < ChainSize; i++)
 				{
-					const int32 PtIndex = Cluster->GetNode(Chain->Links[i - 1])->PointIndex;
-					MutablePoints[i] = PathIO->GetInPoint(PtIndex);
+					const int32 PtIndex = Cluster->GetNodePointIndex(Chain->Links[i - 1]);
+					IdxMapping[i] = PtIndex;
 					ProjectedPoints[i] = PP[PtIndex];
 				}
 
@@ -187,34 +187,39 @@ namespace PCGExBreakClustersToPaths
 			}
 			else
 			{
-				for (int i = 1; i < ChainSize; i++) { MutablePoints[i] = PathIO->GetInPoint(Cluster->GetNode(Chain->Links[i - 1])->PointIndex); }
+				for (int i = 1; i < ChainSize; i++) { IdxMapping[i] = Cluster->GetNodePointIndex(Chain->Links[i - 1]); }
 			}
 
-			if (bDoReverse) { Algo::Reverse(MutablePoints); }
+			if (bDoReverse) { Algo::Reverse(IdxMapping); }
 
 			if (!Chain->bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->AddRaw(Settings->IsOpenPathTag); } }
 			else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); } }
+
+			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
 		}
 	}
 
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
-			
+
 			const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<PCGEX_NEW_POINT_DATA_TYPE>(VtxDataFacade->Source, PCGExData::EIOInit::New);
 			if (!PathIO) { continue; }
 
-			TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
-			MutablePoints.SetNumUninitialized(2);
+			UPCGBasePointData* MutablePoints = PathIO->GetOut();
+			MutablePoints->SetNumPoints(2);
 
 			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
-			MutablePoints[0] = PathIO->GetInPoint(Edge.Start);
-			MutablePoints[1] = PathIO->GetInPoint(Edge.End);
+			TArray<int32> IdxMapping = PathIO->GetIdxMapping();
+			IdxMapping[0] = Edge.Start;
+			IdxMapping[1] = Edge.End;
+
+			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
 		}
 	}
 

@@ -191,6 +191,7 @@ namespace PCGExCluster
 		FORCEINLINE FNode* GetNode(const int32 Index) const { return (Nodes->GetData() + Index); }
 		FORCEINLINE FNode* GetNode(const FLink Lk) const { return (Nodes->GetData() + Lk.Node); }
 		FORCEINLINE int32 GetNodePointIndex(const int32 Index) const { return (Nodes->GetData() + Index)->PointIndex; }
+		FORCEINLINE int32 GetNodePointIndex(const FLink Lk) const { return (Nodes->GetData() + Lk.Node)->PointIndex; }
 		FORCEINLINE FEdge* GetEdge(const int32 Index) const { return (Edges->GetData() + Index); }
 		FORCEINLINE FEdge* GetEdge(const FLink Lk) const { return (Edges->GetData() + Lk.Edge); }
 

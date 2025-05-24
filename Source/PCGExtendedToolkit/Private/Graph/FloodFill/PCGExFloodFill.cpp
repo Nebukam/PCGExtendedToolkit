@@ -168,13 +168,8 @@ namespace PCGExFloodFill
 		const TSharedPtr<PCGExDataBlending::FBlendOpsManager>& InBlendOps,
 		TArray<int32>& OutIndices)
 	{
-		const TArray<FPCGPoint>& InPoints = InVtxFacade->Source->GetPoints(PCGExData::EIOSide::In);
-		TArray<FPCGPoint>& OutPoints = InVtxFacade->Source->GetMutablePoints();
-
 		OutIndices.SetNumUninitialized(Captured.Num());
-
 		const int32 SourceIndex = SeedNode->PointIndex;
-		const FPCGPoint& SourcePoint = InPoints[SourceIndex];
 
 		for (int i = 0; i < OutIndices.Num(); i++)
 		{
@@ -185,10 +180,7 @@ namespace PCGExFloodFill
 
 			if (TargetIndex != SourceIndex)
 			{
-				FPCGPoint& TargetPoint = OutPoints[TargetIndex];
-
 				// TODO : Compute weight based on distance or depth
-
 				InBlendOps->Blend(SourceIndex, TargetIndex);
 			}
 		}
