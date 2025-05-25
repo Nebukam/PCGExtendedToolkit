@@ -485,7 +485,6 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 			{
 				const FSubSelection& S = ProcessingInfos.SubSelection;
 				const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
-				//if (S.bIsValid) { for (int Index = 0; Index < NumPoints; Index++) { Dump.Add(S.Get<_TYPE, T>(InData->_ACCESSOR)); } } \
 				
 #define PCGEX_GET_BY_ACCESSOR(_ACCESSOR, _TYPE)\
 				if (bCaptureMinMax) {\
