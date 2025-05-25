@@ -58,7 +58,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			return Context->CancelExecution(TEXT("Could not find any paths to fuse."));
+			return Context->CancelExecution(TEXT("Could not find any points to fuse."));
 		}
 	}
 

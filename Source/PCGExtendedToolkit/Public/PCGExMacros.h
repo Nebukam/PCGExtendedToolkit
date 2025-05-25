@@ -18,17 +18,22 @@
 
 #pragma region PCGEX MACROS
 
-#define PCGEX_SHARED_CONTEXT_VOID(_HANDLE) \
-FPCGContext::FSharedContext<FPCGExContext> SharedContext(_HANDLE); \
+#define PCGEX_SHARED_TCONTEXT_VOID(_TYPE, _HANDLE) \
+FPCGContext::FSharedContext<FPCGEx##_TYPE> SharedContext(_HANDLE); \
 if(!SharedContext.Get()){ return; }
 
-#define PCGEX_SHARED_CONTEXT(_HANDLE) \
-FPCGContext::FSharedContext<FPCGExContext> SharedContext(_HANDLE); \
+#define PCGEX_SHARED_TCONTEXT(_TYPE, _HANDLE) \
+FPCGContext::FSharedContext<FPCGEx##_TYPE> SharedContext(_HANDLE); \
 if(!SharedContext.Get()){ return false; }
+
+#define PCGEX_SHARED_CONTEXT_VOID(_HANDLE) PCGEX_SHARED_TCONTEXT_VOID(Context, _HANDLE)
+#define PCGEX_SHARED_CONTEXT(_HANDLE) PCGEX_SHARED_TCONTEXT(Context, _HANDLE)
 
 #define PCGEX_SHARED_CONTEXT_RET(_HANDLE, _RET) \
 FPCGContext::FSharedContext<FPCGExContext> SharedContext(_HANDLE); \
 if(!SharedContext.Get()){ return _RET; }
+
+
 
 #define PCGEX_LOG_INVALID_SELECTOR_C(_CTX, _NAME, _SELECTOR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Invalid "#_NAME" attribute: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(_SELECTOR))));
 #define PCGEX_LOG_INVALID_ATTR_C(_CTX, _NAME, _SELECTOR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Invalid "#_NAME" attribute: \"{0}\"."), FText::FromName(_SELECTOR)));

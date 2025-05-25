@@ -51,7 +51,7 @@ bool FPCGExShiftPathElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bPrefetchData = true;
 			}))
 		{
-			return Context->CancelExecution(TEXT("Could not find any paths to fuse."));
+			return Context->CancelExecution(TEXT("Could not find any paths to shift."));
 		}
 	}
 
