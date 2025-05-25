@@ -61,6 +61,7 @@ namespace PCGExData
 			bValid = false;
 		}
 
+		PointData = InFacade->Source->GetData(Side);
 		Selector = InSelector.CopyAndFixLast(InFacade->Source->GetData(Side));
 
 		UpdateSubSelection();
@@ -350,10 +351,15 @@ namespace PCGExData
 					});
 			});
 
-		if (OutProxy && !OutProxy->Validate(InDescriptor))
+		if (OutProxy)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING"));
-			return nullptr;
+			OutProxy->Data = PointData;
+
+			if (!OutProxy->Validate(InDescriptor))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING"));
+				return nullptr;
+			}
 		}
 
 		OutProxy->SubSelection = InDescriptor.SubSelection;
