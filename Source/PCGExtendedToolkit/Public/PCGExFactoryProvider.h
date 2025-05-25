@@ -7,7 +7,6 @@
 
 #include "PCGSettings.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 
 #include "PCGEx.h"
@@ -108,7 +107,6 @@ public:
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) { return false; }
 	virtual bool Prepare(FPCGExContext* InContext) { return true; }
-
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -193,7 +191,7 @@ public:
 		NewContext->SetState(PCGEx::State_InitialExecution);
 		return NewContext;
 	}
-	
+
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
 };
 
@@ -259,7 +257,8 @@ namespace PCGExFactories
 	template <typename T_DEF>
 	static void RegisterConsumableAttributesWithFacade(const TArray<TObjectPtr<const T_DEF>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InFacade)
 	{
-		check(InFacade->Source->GetContextHandle().IsValid())
+		FPCGContext::FSharedContext<FPCGExContext> SharedContext(InFacade->Source->GetContextHandle());
+		check(SharedContext.Get())
 
 		if (!InFacade->GetIn()) { return; }
 
@@ -269,14 +268,15 @@ namespace PCGExFactories
 
 		for (const TObjectPtr<const T_DEF>& Factory : InFactories)
 		{
-			Factory->RegisterConsumableAttributesWithData(InFacade->Source->GetContextHandle(), Data);
+			Factory->RegisterConsumableAttributesWithData(SharedContext.Get(), Data);
 		}
 	}
 
 	template <typename T_DEF>
 	static void RegisterConsumableAttributesWithFacade(const TObjectPtr<const T_DEF>& InFactory, const TSharedPtr<PCGExData::FFacade>& InFacade)
 	{
-		check(InFacade->Source->GetContextHandle().IsValid())
+		FPCGContext::FSharedContext<FPCGExContext> SharedContext(InFacade->Source->GetContextHandle());
+		check(SharedContext.Get())
 
 		if (!InFacade->GetIn()) { return; }
 
@@ -284,7 +284,7 @@ namespace PCGExFactories
 
 		if (!Data) { return; }
 
-		InFactory->RegisterConsumableAttributesWithData(InFacade->Source->GetContextHandle(), Data);
+		InFactory->RegisterConsumableAttributesWithData(SharedContext.Get(), Data);
 	}
 
 #if WITH_EDITOR

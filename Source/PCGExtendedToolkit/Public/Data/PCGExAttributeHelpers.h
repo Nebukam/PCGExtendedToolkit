@@ -67,7 +67,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputConfig
 	void UpdateUserFacingInfos();
 #endif
 	/**
-	 * Bind & cache the current selector for a given UPCGPointData
+	 * Bind & cache the current selector for a given point data
 	 * @param InData 
 	 * @return 
 	 */

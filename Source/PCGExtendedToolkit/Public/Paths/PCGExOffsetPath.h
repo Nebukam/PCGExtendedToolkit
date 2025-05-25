@@ -190,8 +190,8 @@ namespace PCGExOffsetPath
 		template <bool bStrictCheck = false>
 		bool FindNextIntersection(const PCGExPaths::FPathEdge& FromEdge, int32& NextIteration, FVector& OutIntersection) const
 		{
-			const FVector E11 = InTransforms[FromEdge.Start];
-			const FVector E12 = InTransforms[FromEdge.End];
+			const FVector E11 = InTransforms[FromEdge.Start].GetLocation();
+			const FVector E12 = InTransforms[FromEdge.End].GetLocation();
 
 			FVector A = FVector::ZeroVector;
 			FVector B = FVector::ZeroVector;
@@ -209,8 +209,8 @@ namespace PCGExOffsetPath
 					}
 
 					const PCGExPaths::FPathEdge& E2 = DirtyPath->Edges[OtherEdge->Start];
-					const FVector E21 = InTransforms[E2.Start];
-					const FVector E22 = InTransforms[E2.End];
+					const FVector E21 = InTransforms[E2.Start].GetLocation();
+					const FVector E22 = InTransforms[E2.End].GetLocation();
 
 					FMath::SegmentDistToSegment(E11, E12, E21, E22, A, B);
 

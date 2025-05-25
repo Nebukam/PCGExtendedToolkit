@@ -100,28 +100,32 @@ bool FPCGExExtrudeTensorsElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExExtrudeTensors
 {
-	FExtrusion::FExtrusion(const int32 InSeedIndex, const TSharedRef<PCGExData::FFacade>& InFacade, const int32 InMaxIterations) :
-		ExtrudedPoints(InFacade->GetOut()->GetMutablePoints()), SeedIndex(InSeedIndex), RemainingIterations(InMaxIterations), PointDataFacade(InFacade)
+	FExtrusion::FExtrusion(const int32 InSeedIndex, const TSharedRef<PCGExData::FFacade>& InFacade, const int32 InMaxIterations)
+		: SeedIndex(InSeedIndex), RemainingIterations(InMaxIterations), PointDataFacade(InFacade)
 	{
 		ExtrudedPoints.Reserve(InMaxIterations);
 		Origin = InFacade->Source->GetInPoint(SeedIndex);
-		ExtrudedPoints.Add(Origin);
-		SetHead(Origin.Transform);
+		ProxyHead = PCGExData::FProxyPoint(Origin);
+		ExtrudedPoints.Add(Origin.GetTransform());
+		SetHead(ExtrudedPoints.Last());
 	}
 
 	PCGExMath::FSegment FExtrusion::GetHeadSegment() const
 	{
 		return PCGExMath::FSegment(
-			ExtrudedPoints.Last(1).Transform.GetLocation(),
-			ExtrudedPoints.Last().Transform.GetLocation(),
+			ExtrudedPoints.Last(1).GetLocation(),
+			ExtrudedPoints.Last().GetLocation(),
 			Context->ExternalPathIntersections.Tolerance);
 	}
 
 	void FExtrusion::SetHead(const FTransform& InHead)
 	{
 		LastInsertion = InHead.GetLocation();
+
 		Head = InHead;
-		ExtrudedPoints.Last().Transform = Head;
+		ProxyHead.Transform = InHead;
+
+		ExtrudedPoints.Last() = Head;
 		Metrics = PCGExPaths::FPathMetrics(LastInsertion);
 
 		Bounds = FBox(ForceInit);
@@ -136,8 +140,12 @@ namespace PCGExExtrudeTensors
 
 		bIsComplete = true;
 
+		// TODO : Turn Extruded points into data
+		// - Only allocate transform
+		// - Set single value for all other ranges
+
 		ExtrudedPoints.Shrink();
-		bIsValidPath = Settings->PathOutputDetails.Validate(ExtrudedPoints);
+		bIsValidPath = Settings->PathOutputDetails.Validate(ExtrudedPoints.Num());
 
 		if (!bIsValidPath)
 		{
@@ -166,7 +174,7 @@ namespace PCGExExtrudeTensors
 
 	void FExtrusion::CutOff(const FVector& InCutOff)
 	{
-		FVector PrevPos = ExtrudedPoints.Last(1).Transform.GetLocation();
+		FVector PrevPos = ExtrudedPoints.Last(1).GetLocation();
 
 		/*
 		if(PrevPos == InCutOff)
@@ -178,7 +186,7 @@ namespace PCGExExtrudeTensors
 		}
 		*/
 
-		ExtrudedPoints.Last().Transform.SetLocation(InCutOff);
+		ExtrudedPoints.Last().SetLocation(InCutOff);
 		bHitIntersection = true;
 		bHitSelfIntersection = true;
 
@@ -186,7 +194,7 @@ namespace PCGExExtrudeTensors
 
 		FBox OEBox = FBox(ForceInit);
 		OEBox += PrevPos;
-		OEBox += ExtrudedPoints.Last().Transform.GetLocation();
+		OEBox += ExtrudedPoints.Last().GetLocation();
 		OEBox = OEBox.ExpandBy(Context->SelfPathIntersections.ToleranceSquared + 1);
 		SegmentBounds.Last() = OEBox;
 
@@ -195,10 +203,10 @@ namespace PCGExExtrudeTensors
 
 	void FExtrusion::Shorten(const FVector& InCutOff)
 	{
-		const FVector A = ExtrudedPoints.Last(1).Transform.GetLocation();
-		if (FVector::DistSquared(A, InCutOff) < FVector::DistSquared(A, ExtrudedPoints.Last().Transform.GetLocation()))
+		const FVector A = ExtrudedPoints.Last(1).GetLocation();
+		if (FVector::DistSquared(A, InCutOff) < FVector::DistSquared(A, ExtrudedPoints.Last().GetLocation()))
 		{
-			ExtrudedPoints.Last().Transform.SetLocation(InCutOff);
+			ExtrudedPoints.Last().SetLocation(InCutOff);
 		}
 	}
 
@@ -218,8 +226,8 @@ namespace PCGExExtrudeTensors
 		{
 			if (!SegmentBounds[i].Intersect(InSegment.Bounds)) { continue; }
 
-			FVector A = ExtrudedPoints[i].Transform.GetLocation();
-			FVector B = ExtrudedPoints[i + 1].Transform.GetLocation();
+			FVector A = ExtrudedPoints[i].GetLocation();
+			FVector B = ExtrudedPoints[i + 1].GetLocation();
 
 			if (Context->SelfPathIntersections.bWantsDotCheck)
 			{
@@ -293,19 +301,18 @@ namespace PCGExExtrudeTensors
 		return !bIsStopped;
 	}
 
-	void FExtrusion::Insert(const FPCGPoint& InPoint)
+	void FExtrusion::Insert(const FTransform& InPoint)
 	{
 		bAdvancedOnly = false;
 
-		FPCGPoint& NewPoint = ExtrudedPoints.Add_GetRef(InPoint);
-		LastInsertion = NewPoint.Transform.GetLocation();
-		if (Settings->bRefreshSeed) { NewPoint.Seed = PCGExRandom::ComputeSeed(LastInsertion, FVector(Origin.Seed)); }
+		LastInsertion = InPoint.GetLocation();
+		//if (Settings->bRefreshSeed) { NewPoint.Seed = PCGExRandom::ComputeSpatialSeed(LastInsertion, FVector(Origin.GetLocation())); }
 
 		if (Settings->bDoSelfPathIntersections)
 		{
 			FBox OEBox = FBox(ForceInit);
-			OEBox += ExtrudedPoints.Last(1).Transform.GetLocation();
-			OEBox += ExtrudedPoints.Last().Transform.GetLocation();
+			OEBox += ExtrudedPoints.Last(1).GetLocation();
+			OEBox += ExtrudedPoints.Last().GetLocation();
 			OEBox = OEBox.ExpandBy(Context->SelfPathIntersections.ToleranceSquared + 1);
 			SegmentBounds.Add(OEBox);
 
@@ -393,7 +400,8 @@ namespace PCGExExtrudeTensors
 		bool bIsStopped = false;
 		if (StopFilters)
 		{
-			bIsStopped = StopFilters->TestRoamingPoint(PointDataFacade->Source->GetInPoint(InSeedIndex));
+			const PCGExData::FProxyPoint ProxyPoint(PointDataFacade->Source->GetInPoint(InSeedIndex));
+			bIsStopped = StopFilters->Test(ProxyPoint);
 			if (Settings->bIgnoreStoppedSeeds && bIsStopped) { return; }
 		}
 
@@ -702,7 +710,7 @@ namespace PCGExExtrudeTensors
 		if (Settings->bUseMaxPointsCount) { NewExtrusion->MaxPointCount = MaxPointsCount->Read(InSeedIndex); }
 
 		NewExtrusion->PointDataFacade->Source->IOIndex = BatchIndex * 1000000 + InSeedIndex;
-		AttributesToPathTags.Tag(InSeedIndex, Facade->Source);
+		AttributesToPathTags.Tag(PointDataFacade->GetInPoint(InSeedIndex), Facade->Source);
 
 		NewExtrusion->Processor = this;
 		NewExtrusion->Context = Context;

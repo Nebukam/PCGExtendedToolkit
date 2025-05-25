@@ -94,6 +94,8 @@ namespace PCGExGrowPaths
 
 	bool FGrowth::Grow()
 	{
+		return false;
+		/*
 		if (NextGrowthIndex <= -1 || Path.Contains(NextGrowthIndex)) { return false; }
 
 		TravelStack->Set(NextGrowthIndex, PCGEx::NH64(LastGrowthIndex, NextGrowthEdgeIndex));
@@ -147,10 +149,12 @@ namespace PCGExGrowPaths
 		}
 
 		return true;
+		*/
 	}
 
 	void FGrowth::Write()
 	{
+		/*
 		const TSharedPtr<PCGExData::FPointIO> VtxIO = Processor->Cluster->VtxIO.Pin();
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Processor->GetContext()->OutputPaths->Emplace_GetRef<PCGEX_NEW_POINT_DATA_TYPE>(VtxIO->GetIn(), PCGExData::EIOInit::New);
 		if (!VtxIO || !PathIO) { return; }
@@ -173,15 +177,18 @@ namespace PCGExGrowPaths
 		Processor->GetContext()->SeedForwardHandler->Forward(SeedPointIndex, PathDataFacade);
 
 		PathDataFacade->Write(Processor->AsyncManager);
+		*/
 	}
 
 	void FGrowth::Init()
 	{
+		/*
 		SeedNode = &(*Processor->Cluster->Nodes)[LastGrowthIndex];
 		GoalNode = MakeUnique<PCGExCluster::FNode>();
 		GoalNode->Index = Processor->Cluster->VtxTransforms.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 10000);
 		Metrics.Reset(Processor->Cluster->GetPos(SeedNode));
 		TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupMap>(PCGEx::NH64(-1, -1), 0);
+		*/
 	}
 
 	double FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge) const
@@ -315,7 +322,7 @@ namespace PCGExGrowPaths
 		const int32 SeedCount = Context->SeedsDataFacade->Source->GetNum();
 		for (int i = 0; i < SeedCount; i++)
 		{
-			const FVector SeedPosition = Context->SeedsDataFacade->Source->GetInPoint(i).Transform.GetLocation();
+			const FVector SeedPosition = Context->SeedsDataFacade->Source->GetInPoint(i).GetLocation();
 			const int32 NodeIndex = Cluster->FindClosestNode(SeedPosition, Settings->SeedPicking.PickingMethod);
 
 			if (NodeIndex == -1) { continue; }
