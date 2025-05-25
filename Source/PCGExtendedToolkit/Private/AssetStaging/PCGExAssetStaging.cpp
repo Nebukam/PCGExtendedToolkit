@@ -175,6 +175,12 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
+bool FPCGExAssetStagingElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	// Loading collection and/or creating one from attributes
+	return Context->CurrentPhase == EPCGExecutionPhase::PrepareData;
+}
+
 namespace PCGExAssetStaging
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)

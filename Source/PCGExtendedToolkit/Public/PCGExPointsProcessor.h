@@ -262,6 +262,6 @@ protected:
 	virtual bool PostBoot(FPCGExContext* InContext) const;
 	virtual void AbortInternal(FPCGContext* Context) const override;
 
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true) // TODO : Proper refactor to support native multithreading
-	PCGEX_SUPPORT_BASE_POINT_DATA(true)
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
+	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override;
 };

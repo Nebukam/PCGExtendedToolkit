@@ -135,12 +135,12 @@ struct FPCGExGetTextureDataContext final : FPCGExPointsProcessorContext
 class FPCGExGetTextureDataElement final : public FPCGExPointsProcessorElement
 {
 protected:
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-
 	PCGEX_ELEMENT_CREATE_CONTEXT(GetTextureData)
 	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 };
 
 namespace PCGExGetTextureData

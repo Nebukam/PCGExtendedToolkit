@@ -412,4 +412,14 @@ void FPCGExPointsProcessorElement::AbortInternal(FPCGContext* Context) const
 	PCGExContext->CancelExecution(TEXT(""));
 }
 
+bool FPCGExPointsProcessorElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	return Context->CurrentPhase != EPCGExecutionPhase::PrepareData;
+}
+
+bool FPCGExPointsProcessorElement::SupportsBasePointDataInputs(FPCGContext* InContext) const
+{
+	return true;
+}
+
 #undef LOCTEXT_NAMESPACE

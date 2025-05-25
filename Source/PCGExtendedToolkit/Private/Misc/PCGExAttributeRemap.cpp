@@ -106,6 +106,11 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
+bool FPCGExAttributeRemapElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	return Context->CurrentPhase == EPCGExecutionPhase::PrepareData;
+}
+
 namespace PCGExAttributeRemap
 {
 	FProcessor::~FProcessor()

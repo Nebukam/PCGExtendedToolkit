@@ -62,7 +62,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
-	
+
 	if (BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
 		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
@@ -196,6 +196,11 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
+}
+
+bool FPCGExSampleNearestPointElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	return Context->CurrentPhase == EPCGExecutionPhase::PrepareData;
 }
 
 namespace PCGExSampleNearestPoints

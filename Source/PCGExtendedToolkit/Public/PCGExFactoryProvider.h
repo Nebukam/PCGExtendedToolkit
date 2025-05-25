@@ -172,6 +172,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderContext : FPCGExContext
 
 protected:
 	TArray<TSharedPtr<PCGExMT::FDeferredCallbackHandle>> DeferredTasks;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderElement final : public IPCGElement

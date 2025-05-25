@@ -68,7 +68,7 @@ public:
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ToggleTopology)
 	
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-	
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 };
