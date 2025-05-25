@@ -196,12 +196,20 @@ namespace PCGExDataBlending
 
 		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) override
 		{
-			// Some modes need to "start from scratch", or use a sensible default
-			// This is true for Min/Max
-
 			PCGEx::FOpStats Tracker{};
 
 			if constexpr (
+				BLEND_MODE == EPCGExABBlendingType::Average ||
+				BLEND_MODE == EPCGExABBlendingType::Add ||
+				BLEND_MODE == EPCGExABBlendingType::Subtract ||
+				BLEND_MODE == EPCGExABBlendingType::Weight ||
+				BLEND_MODE == EPCGExABBlendingType::WeightedAdd)
+			{
+				// These modes require a zeroed-out value
+				// before the can be properly blended
+				C->Set(TargetIndex, T_WORKING{});
+			}
+			else if constexpr (
 				BLEND_MODE == EPCGExABBlendingType::Min ||
 				BLEND_MODE == EPCGExABBlendingType::Max ||
 				BLEND_MODE == EPCGExABBlendingType::UnsignedMin ||
@@ -211,8 +219,8 @@ namespace PCGExDataBlending
 				BLEND_MODE == EPCGExABBlendingType::Hash ||
 				BLEND_MODE == EPCGExABBlendingType::UnsignedHash)
 			{
-				// TODO : Might need to add a way to overwrite with "defaults"
-				// on top of copying the first value. Or this might simply be enough.
+				// These modes require the first operation to be a copy of the value
+				// before the can be properly blended
 				Tracker.Count = -1;
 			}
 
