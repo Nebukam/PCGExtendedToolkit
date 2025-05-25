@@ -83,6 +83,8 @@ namespace PCGExLloydRelax2D
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::LloydRelax2D::ProcessPoints);
+		
 		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)

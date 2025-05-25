@@ -125,6 +125,7 @@ namespace PCGExAttributeRemap
 
 		InputDescriptor.DataFacade = PointDataFacade;
 		OutputDescriptor.DataFacade = PointDataFacade;
+		OutputDescriptor.Role = PCGExData::EProxyRole::Write;
 
 		if (!InputDescriptor.Capture(Context, Settings->Attributes.GetSourceSelector(), PCGExData::EIOSide::In)) { return false; }
 

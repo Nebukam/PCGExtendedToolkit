@@ -101,6 +101,8 @@ namespace PCGExFlatProjection
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::FlatProjection::ProcessPoints);
+		
 		PointDataFacade->Fetch(Scope);
 
 		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();

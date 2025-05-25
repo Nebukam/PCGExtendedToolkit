@@ -105,6 +105,8 @@ namespace PCGExBoundsToPoints
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BoundsToPoints::ProcessPoints);
+		
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		PCGEX_SCOPE_LOOP(Index)

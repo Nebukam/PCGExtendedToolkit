@@ -233,7 +233,7 @@ namespace PCGExData
 									}
 
 									if (InAttribute) { OutAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute); }
-									
+
 									check(InAttribute);
 								}
 								else if (InDescriptor.Role == EProxyRole::Write)
@@ -241,10 +241,10 @@ namespace PCGExData
 									UPCGMetadata* Metadata = InDataFacade->GetOut()->Metadata;
 									OutAttribute = Metadata->FindOrCreateAttribute(InDescriptor.Selector.GetAttributeName(), T_REAL{});
 									if (OutAttribute) { InAttribute = OutAttribute; }
-									
+
 									check(OutAttribute);
 								}
-								
+
 								if (bSubSelection)
 								{
 									TSharedPtr<TDirectAttributeProxy<T_REAL, T_WORKING, true>> TypedProxy =
@@ -402,9 +402,10 @@ namespace PCGExData
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING"));
 				return nullptr;
 			}
+			
+			OutProxy->SubSelection = InDescriptor.SubSelection;
 		}
 
-		OutProxy->SubSelection = InDescriptor.SubSelection;
 
 		return OutProxy;
 	}

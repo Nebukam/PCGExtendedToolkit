@@ -61,6 +61,13 @@ enum class EPCGExBlendOver : uint8
 	Fixed    = 2 UMETA(DisplayName = "Fixed", ToolTip="Fixed blend lerp/weight value"),
 };
 
+UENUM()
+enum class EPCGExBlendingInterface : uint8
+{
+	Individual = 0 UMETA(DisplayName = "Individual", ToolTip="Uses individual blend operation subnodes to get full control. Best if you're looking to pick only a few specific things."),
+	Monolithic = 1 UMETA(DisplayName = "Monolithic", ToolTip="Blend attributes & properties using monolithic settings. Best if you want to grab everything, or only select things to leave out."),
+};
+
 #define BOOKMARK_BLENDMODE // Bookmark a location in code that need to be updated when adding new blendmodes
 
 UENUM(BlueprintType)
@@ -312,7 +319,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 
 	bool GetBlendingHeader(FName InName, PCGExDataBlending::FBlendingHeader& OutHeader) const;
 	void GetPointPropertyBlendingHeaders(TArray<PCGExDataBlending::FBlendingHeader>& OutHeaders) const;
-	
+
 	// Create a list of attributes & property selector representing the data we want to blend
 	// Takes the reference list from source, 
 	void GetBlendingHeaders(

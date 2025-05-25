@@ -105,6 +105,8 @@ namespace PCGExTensorsTransform
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::TensorTransform::ProcessPoints);
+		
 		if (bIteratedOnce) { return; }
 
 		PointDataFacade->Fetch(Scope);

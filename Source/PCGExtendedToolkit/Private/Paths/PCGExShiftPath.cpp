@@ -149,6 +149,8 @@ namespace PCGExShiftPath
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::ShiftPath::ProcessPoints);
+		
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 	}

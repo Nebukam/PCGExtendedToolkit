@@ -92,6 +92,8 @@ namespace PCGExPathSolidify
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PathSolidify::ProcessPoints);
+		
 		PointDataFacade->Fetch(Scope);
 
 		TPCGValueRange<FTransform> Transforms = PointDataFacade->GetOut()->GetTransformValueRange();

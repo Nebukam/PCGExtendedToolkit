@@ -249,7 +249,8 @@ namespace PCGExConnectPoints
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectPointsElement::ProcessPoints);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::ConnectPoints::ProcessPoints);
+		
 		PointDataFacade->Fetch(Scope);
 
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();

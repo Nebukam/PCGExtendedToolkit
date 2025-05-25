@@ -124,6 +124,8 @@ namespace PCGExCreateSpline
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::CreateSpline::ProcessPoints);
+		
 		PointDataFacade->Fetch(Scope);
 
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();

@@ -69,7 +69,15 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
-	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
+
+	if (BlendingInterface == EPCGExBlendingInterface::Individual)
+	{
+		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
+	}
+	else
+	{
+		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations. These are currently ignored, but will preserve pin connections", Advanced, {})
+	}
 
 	if (SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
@@ -103,9 +111,12 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, false);
+	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
+	{
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
+			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
+			{PCGExFactories::EType::Blending}, false);
+	}
 
 	Context->BoundsPreloader = MakeShared<PCGExData::FFacadePreloader>();
 
@@ -250,6 +261,8 @@ namespace PCGExSampleNearestBounds
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleNearestBounds::ProcessPoints);
+		
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 

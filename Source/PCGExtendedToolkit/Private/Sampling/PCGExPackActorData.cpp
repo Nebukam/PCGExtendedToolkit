@@ -397,6 +397,8 @@ namespace PCGExPackActorDatas
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PackActorData::ProcessPoints);
+		
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 
 		TArray<FPCGPoint> PointsForProcessing;

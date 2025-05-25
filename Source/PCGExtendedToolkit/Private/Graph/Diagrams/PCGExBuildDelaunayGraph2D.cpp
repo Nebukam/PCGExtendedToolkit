@@ -152,6 +152,7 @@ namespace PCGExBuildDelaunay2D
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BuildDelaunayGraph3D::ProcessPoints);
 		PCGEX_SCOPE_LOOP(Index) { HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains((*OutputIndices)[Index]); }
 	}
 

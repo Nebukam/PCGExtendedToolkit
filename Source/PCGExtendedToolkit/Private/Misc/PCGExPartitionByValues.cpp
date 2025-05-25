@@ -233,6 +233,8 @@ namespace PCGExPartitionByValues
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PartitionByValues::ProcessPoints);
+		
 		PointDataFacade->Fetch(Scope);
 
 		PCGEX_SCOPE_LOOP(Index)

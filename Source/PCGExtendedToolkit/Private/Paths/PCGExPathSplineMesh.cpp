@@ -249,6 +249,8 @@ namespace PCGExPathSplineMesh
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PathSplineMesh::ProcessPoints);
+		
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 

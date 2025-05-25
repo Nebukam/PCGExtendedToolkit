@@ -194,6 +194,8 @@ namespace PCGExResamplePath
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::ResamplePath::ProcessPoints);
+		
 		PointDataFacade->Fetch(Scope);
 
 		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();

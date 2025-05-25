@@ -70,6 +70,8 @@ namespace PCGExMovePivot
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::MovePivot::ProcessPoints);
+		
 		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
 		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange();
 		TPCGValueRange<FVector> OutBoundsMin = OutPoints->GetBoundsMinValueRange();

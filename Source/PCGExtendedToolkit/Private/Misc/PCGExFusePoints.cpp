@@ -100,7 +100,10 @@ namespace PCGExFusePoints
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::FusePoints::ProcessPoints);
+		
 		PointDataFacade->Fetch(Scope);
+		
 		PCGEX_SCOPE_LOOP(Index) { UnionGraph->InsertPoint(PointDataFacade->GetInPoint(Index)); }
 	}
 

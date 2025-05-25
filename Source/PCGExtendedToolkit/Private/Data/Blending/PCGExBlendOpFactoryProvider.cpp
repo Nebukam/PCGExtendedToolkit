@@ -300,12 +300,12 @@ TArray<FPCGPinProperties> UPCGExBlendOpFactoryProviderSettings::InputPinProperti
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
-	
+
 	if (Config.bUseOperandB)
 	{
 		PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
 	}
-	
+
 	return PinProperties;
 }
 
@@ -323,6 +323,25 @@ FString UPCGExBlendOpFactoryProviderSettings::GetDisplayName() const
 {
 	if (const UEnum* EnumPtr = StaticEnum<EPCGExABBlendingType>())
 	{
+		FString Str = FString::Printf(TEXT("%s %s"), *EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(Config.BlendMode)).ToString(), *PCGEx::GetSelectorDisplayName(Config.OperandA));
+
+		switch (Config.OutputMode)
+		{
+		case EPCGExBlendOpOutputMode::SameAsA:
+			break;
+		case EPCGExBlendOpOutputMode::SameAsB:
+			if (Config.bUseOperandB) { Str += FString::Printf(TEXT(" ⇌ %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
+			else { Str += FString::Printf(TEXT(" → %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
+			break;
+		case EPCGExBlendOpOutputMode::New:
+			if (Config.bUseOperandB) { Str += FString::Printf(TEXT(" & %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
+			else{ Str += FString::Printf(TEXT(" → %s"), *PCGEx::GetSelectorDisplayName(Config.OutputTo)); }
+			break;
+		case EPCGExBlendOpOutputMode::Transient:
+			if (Config.bUseOperandB) { Str += FString::Printf(TEXT(" & %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
+			Str += FString::Printf(TEXT(" ⇢ %s"), *PCGEx::GetSelectorDisplayName(Config.OutputTo));
+			break;
+		}
 		return FString::Printf(TEXT("Blend Op : %s"), *EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(Config.BlendMode)).ToString());
 	}
 

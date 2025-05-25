@@ -363,6 +363,8 @@ namespace PCGExBinPacking
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BinPacking::ProcessPoints);
+		
 		PointDataFacade->Fetch(Scope);
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();

@@ -62,7 +62,15 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
-	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
+	
+	if (BlendingInterface == EPCGExBlendingInterface::Individual)
+	{
+		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
+	}
+	else
+	{
+		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations. These are currently ignored, but will preserve pin connections", Advanced, {})
+	}
 
 	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
@@ -96,9 +104,12 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	Context->TargetsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceTargetsLabel, false, true);
 	if (!Context->TargetsFacade) { return false; }
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, false);
+	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
+	{
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
+			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
+			{PCGExFactories::EType::Blending}, false);
+	}
 
 	Context->TargetsPreloader = MakeShared<PCGExData::FFacadePreloader>();
 
@@ -266,22 +277,24 @@ namespace PCGExSampleNearestPoints
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleNearestPoint::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
 		bool bLocalAnySuccess = false;
 
 		TArray<PCGEx::FOpStats> BlendTrackers;
-		if(BlendOpsManager){ BlendOpsManager->InitTrackers(BlendTrackers); }
+		if (BlendOpsManager) { BlendOpsManager->InitTrackers(BlendTrackers); }
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
-		
+
 		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 		TConstPCGValueRange<FTransform> TargetTransforms = Context->TargetsFacade->GetIn()->GetConstTransformValueRange();
 
 		TArray<PCGExNearestPoint::FSample> Samples;
 		Samples.Reserve(Context->NumTargets / 2); // Yo that might be excessive
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index])
