@@ -120,7 +120,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	/** If enabled, new attributes will only be created for the duration of the blend, and properties will be restored to their original values once the blend is complete. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bTransactional = false;
-
+	
 	void Init();
 };
 
@@ -144,6 +144,9 @@ public:
 
 	int32 OpIdx = -1;
 	TSharedPtr<TArray<TSharedPtr<FPCGExBlendOperation>>> SiblingOperations;
+
+	bool bSourceAReadOnly = true;
+	bool bSourceBReadOnly = true;
 
 	virtual bool PrepareForData(FPCGExContext* InContext);
 

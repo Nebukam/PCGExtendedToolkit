@@ -71,7 +71,10 @@ namespace PCGExBlendAttributes
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(PointDataFacade);
+		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>();
+		BlendOpsManager->SetSources(PointDataFacade, false); // Source not read only to support the cursed blending
+		BlendOpsManager->SetTargetFacade(PointDataFacade);
+		
 		if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
 
 		NumPoints = PointDataFacade->GetNum();

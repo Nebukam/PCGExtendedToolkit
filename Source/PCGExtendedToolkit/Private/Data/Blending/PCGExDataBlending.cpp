@@ -127,10 +127,12 @@ bool FPCGExBlendingDetails::GetBlendingHeader(const FName InName, PCGExDataBlend
 	if (!CanBlend(InName)) { return false; }
 
 	OutHeader = PCGExDataBlending::FBlendingHeader{};
+	OutHeader.Select(InName.ToString());
 
 	// TODO : Update with information regarding whether this is a new attribute or not
 
-	if (PCGEx::IsPCGExAttribute(InName))
+	if (OutHeader.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute &&
+		PCGEx::IsPCGExAttribute(InName))
 	{
 		// Don't blend PCGEx stuff
 		OutHeader.SetBlending(EPCGExDataBlendingType::Copy);

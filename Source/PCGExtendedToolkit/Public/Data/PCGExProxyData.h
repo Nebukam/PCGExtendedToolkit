@@ -23,7 +23,7 @@ namespace PCGExData
 		TWeakPtr<FFacade> DataFacade;
 
 		// For roaming properties only, isn't widely supported.
-		bool bReadOnly = false;
+		bool bReadOnly = true;
 		const UPCGBasePointData* PointData = nullptr;
 
 		bool bIsConstant = false;

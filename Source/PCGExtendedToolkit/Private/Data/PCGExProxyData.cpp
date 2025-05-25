@@ -213,12 +213,11 @@ namespace PCGExData
 
 						if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 						{
-
-							if(InDescriptor.bWantsDirect)
+							if (InDescriptor.bWantsDirect)
 							{
 								// TODO : use TDirectAttributeProxy instead of TAttributeBufferProxy
 							}
-							
+
 							if (bSubSelection)
 							{
 								TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, true>> TypedProxy =
@@ -227,10 +226,19 @@ namespace PCGExData
 								TSharedPtr<TBuffer<T_REAL>> ExistingBuffer = InDataFacade->FindBuffer<T_REAL>(InDescriptor.Selector.GetAttributeName());
 								TSharedPtr<TBuffer<T_REAL>> Buffer;
 
-								if (InDescriptor.Side == EIOSide::In && ExistingBuffer && ExistingBuffer->IsWritable())
+								if (InDescriptor.Side == EIOSide::In)
 								{
-									// Read from writer
-									Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::Out);
+									if (ExistingBuffer && ExistingBuffer->IsWritable() && !InDescriptor.bReadOnly)
+									{
+										// NOTE : This is super risky
+										// Read from writer
+										Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::Out);
+									}
+									else
+									{
+										// Read from input
+										Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName());
+									}
 								}
 
 								// Fallback to writer, if descriptor isn't flagged as read only

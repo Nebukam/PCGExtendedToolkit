@@ -44,10 +44,12 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 
 	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : Source_A_Facade);
 	A.bIsConstant = A.DataFacade.Pin() != Source_A_Facade;
+	A.bReadOnly = bSourceAReadOnly;
 	if (!A.Capture(InContext, Config.OperandA, PCGExData::EIOSide::Out)) { return false; }
 
 	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : Source_B_Facade);
 	B.bIsConstant = B.DataFacade.Pin() != Source_B_Facade;
+	B.bReadOnly = bSourceBReadOnly;
 	if (!B.Capture(InContext, Config.OperandB, PCGExData::EIOSide::Out)) { return false; }
 
 	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(TargetFacade);

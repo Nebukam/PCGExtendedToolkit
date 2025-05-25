@@ -57,6 +57,9 @@ namespace PCGExDataBlending
 				Identity.UnderlyingType, [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
+
+					MainBlender = PCGExDataBlending::CreateProxyBlender<T>(Header.Blending);
+
 					for (int i = 0; i < Sources.Num(); i++)
 					{
 						TSharedPtr<PCGExData::FFacade> Source = Sources[i];
@@ -70,9 +73,9 @@ namespace PCGExDataBlending
 							bError = true;
 							return;
 						}
-
-						bError = MainBlender->InitFromHeader(InContext, Header, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess);
 					}
+
+					bError = !MainBlender->InitFromHeader(InContext, Header, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess);
 				});
 
 			if (bError) { return false; }

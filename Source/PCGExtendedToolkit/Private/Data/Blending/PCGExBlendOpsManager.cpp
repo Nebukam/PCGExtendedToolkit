@@ -52,7 +52,7 @@ namespace PCGExDataBlending
 	FBlendOpsManager::FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 	{
 		SetWeightFacade(InDataFacade);
-		SetSources(InDataFacade);
+		SetSources(InDataFacade, true);
 		SetTargetFacade(InDataFacade);
 		Operations = MakeShared<TArray<TSharedPtr<FPCGExBlendOperation>>>();
 	}
@@ -67,20 +67,22 @@ namespace PCGExDataBlending
 		WeightFacade = InDataFacade;
 	}
 
-	void FBlendOpsManager::SetSources(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+	void FBlendOpsManager::SetSources(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bReadOnly)
 	{
-		SetSourceA(InDataFacade);
-		SetSourceB(InDataFacade);
+		SetSourceA(InDataFacade, bReadOnly);
+		SetSourceB(InDataFacade, bReadOnly);
 	}
 
-	void FBlendOpsManager::SetSourceA(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+	void FBlendOpsManager::SetSourceA(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bReadOnly)
 	{
 		SourceAFacade = InDataFacade;
+		bSourceAReadOnly = bReadOnly;
 	}
 
-	void FBlendOpsManager::SetSourceB(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+	void FBlendOpsManager::SetSourceB(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bReadOnly)
 	{
 		SourceBFacade = InDataFacade;
+		bSourceBReadOnly = bReadOnly;
 	}
 
 	void FBlendOpsManager::SetTargetFacade(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
@@ -110,8 +112,13 @@ namespace PCGExDataBlending
 
 			// Assign blender facades
 			Op->WeightFacade = WeightFacade;
+			
 			Op->Source_A_Facade = SourceAFacade;
+			Op->bSourceAReadOnly = bSourceAReadOnly;
+			
 			Op->Source_B_Facade = SourceBFacade;
+			Op->bSourceBReadOnly = bSourceBReadOnly;
+			
 			Op->TargetFacade = TargetFacade;
 
 			Op->OpIdx = Operations->Add(Op);
