@@ -190,7 +190,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 
 bool FPCGExSampleNearestBoundsElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
 {
-	return Context->CurrentPhase == EPCGExecutionPhase::PrepareData;
+	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
 }
 
 namespace PCGExSampleNearestBounds

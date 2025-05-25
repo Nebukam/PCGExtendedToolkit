@@ -178,7 +178,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 bool FPCGExAssetStagingElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
 {
 	// Loading collection and/or creating one from attributes
-	return Context->CurrentPhase == EPCGExecutionPhase::PrepareData;
+	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
 }
 
 namespace PCGExAssetStaging

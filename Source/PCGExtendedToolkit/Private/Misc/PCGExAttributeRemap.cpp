@@ -108,7 +108,7 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 
 bool FPCGExAttributeRemapElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
 {
-	return Context->CurrentPhase == EPCGExecutionPhase::PrepareData;
+	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
 }
 
 namespace PCGExAttributeRemap

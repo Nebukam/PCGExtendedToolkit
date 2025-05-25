@@ -190,11 +190,11 @@ class FPCGExDrawAttributesElement final : public FPCGExPointsProcessorElement
 public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
 
-protected:
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-	
+protected:	
 	PCGEX_ELEMENT_CREATE_CONTEXT(DrawAttributes)
 	
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 };

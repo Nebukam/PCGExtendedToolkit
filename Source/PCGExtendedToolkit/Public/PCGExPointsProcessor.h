@@ -78,11 +78,6 @@ public:
 
 	bool SupportsPointFilters() const { return !GetPointFilterPin().IsNone(); }
 
-#if WITH_EDITORONLY_DATA
-	UPROPERTY()
-	bool bDoAsyncProcessing_DEPRECATED = true;
-#endif
-
 	/** Async work priority for this node.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;

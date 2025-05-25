@@ -147,7 +147,7 @@ public:
 	TMap<FName, EPCGExDataBlendingType> TargetAttributes;
 
 	/** Write the sampled distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, InlineEditConditionToggle, EditCondition="BlendingInterface==EPCGExBlendingInterface::Monolithic"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="BlendingInterface==EPCGExBlendingInterface::Monolithic"))
 	bool bBlendPointProperties = false;
 
 	/** The constant to use as Up vector for the look at transform.*/

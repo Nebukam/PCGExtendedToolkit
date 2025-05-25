@@ -414,7 +414,7 @@ void FPCGExPointsProcessorElement::AbortInternal(FPCGContext* Context) const
 
 bool FPCGExPointsProcessorElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
 {
-	return Context->CurrentPhase != EPCGExecutionPhase::PrepareData;
+	return false;
 }
 
 bool FPCGExPointsProcessorElement::SupportsBasePointDataInputs(FPCGContext* InContext) const
