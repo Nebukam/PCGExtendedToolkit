@@ -36,23 +36,35 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 
 	// Fix @Selectors based on siblings 
 	if (!CopyAndFixSiblingSelector(InContext, Config.OperandA)) { return false; }
-	if (!CopyAndFixSiblingSelector(InContext, Config.OperandB)) { return false; }
-	if (!CopyAndFixSiblingSelector(InContext, Config.OutputTo)) { return false; }
+	if (Config.bUseOperandB) { if (!CopyAndFixSiblingSelector(InContext, Config.OperandB)) { return false; } }
+	else { Config.OperandB = Config.OperandA; }
+	switch (Config.OutputMode)
+	{
+	case EPCGExBlendOpOutputMode::SameAsA:
+		Config.OutputTo = Config.OperandA;
+		break;
+	case EPCGExBlendOpOutputMode::SameAsB:
+		Config.OutputTo = Config.OperandB;
+		break;
+	case EPCGExBlendOpOutputMode::New:
+	case EPCGExBlendOpOutputMode::Transient:
+		if (!CopyAndFixSiblingSelector(InContext, Config.OutputTo)) { return false; }
+		break;
+	}
 
 	// TODO : Might be worth re-using the same descriptor if use copy
 
 
-	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : Source_A_Facade);
+	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : Source_A_Facade, PCGExData::EProxyRole::Read);
 	A.bIsConstant = A.DataFacade.Pin() != Source_A_Facade;
-	A.bReadOnly = bSourceAReadOnly;
-	if (!A.Capture(InContext, Config.OperandA, PCGExData::EIOSide::Out)) { return false; }
+	if (!A.Capture(InContext, Config.OperandA, A.bIsConstant ? PCGExData::EIOSide::In : SideA)) { return false; }
 
-	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : Source_B_Facade);
+	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : Source_B_Facade, PCGExData::EProxyRole::Read);
 	B.bIsConstant = B.DataFacade.Pin() != Source_B_Facade;
-	B.bReadOnly = bSourceBReadOnly;
-	if (!B.Capture(InContext, Config.OperandB, PCGExData::EIOSide::Out)) { return false; }
+	if (!B.Capture(InContext, Config.OperandB, B.bIsConstant ? PCGExData::EIOSide::In : SideB)) { return false; } //
 
-	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(TargetFacade);
+	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(TargetFacade, PCGExData::EProxyRole::Write);
+	C.Role = PCGExData::EProxyRole::Write;
 	C.Side = PCGExData::EIOSide::Out;
 
 	Config.OperandA = A.Selector;
@@ -124,7 +136,7 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	C.RealType = RealTypeC;
 	C.WorkingType = WorkingTypeC;
 
-	Blender = PCGExDataBlending::CreateProxyBlender(InContext, Config.BlendMode, A, B, C);
+	Blender = PCGExDataBlending::CreateProxyBlender(InContext, Config.BlendMode, A, B, C, Config.bResetValueBeforeMultiSourceBlend);
 
 	if (!Blender) { return false; }
 	return true;
@@ -136,7 +148,7 @@ void FPCGExBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>
 	{
 		if (TSharedPtr<PCGExData::FBufferBase> OutputBuffer = Blender->GetOutputBuffer())
 		{
-			if (Config.bTransactional)
+			if (Config.OutputMode == EPCGExBlendOpOutputMode::Transient)
 			{
 				OutputBuffer->Disable();
 				OutDisabledBuffers.Add(OutputBuffer);
@@ -218,7 +230,7 @@ bool UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext)
 	if (!Super::Prepare(InContext)) { return false; }
 
 	ConstantA = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantA, true, false);
-	ConstantB = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantB, true, false);
+	if (Config.bUseOperandB) { ConstantB = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantB, true, false); }
 
 	return true;
 }
@@ -286,8 +298,14 @@ void UPCGExBlendOpFactoryProviderSettings::ApplyPreconfiguredSettings(const FPCG
 TArray<FPCGPinProperties> UPCGExBlendOpFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
 	PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
-	PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
+	
+	if (Config.bUseOperandB)
+	{
+		PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
+	}
+	
 	return PinProperties;
 }
 

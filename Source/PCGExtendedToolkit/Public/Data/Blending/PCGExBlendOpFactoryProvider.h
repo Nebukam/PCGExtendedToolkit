@@ -27,6 +27,15 @@ enum class EPCGExOperandAuthority : uint8
 	Auto   = 3 UMETA(DisplayName = "Auto", ToolTip="Takes an informed guess based on settings & existing data. Usually works well, but not fool-proof."),
 };
 
+UENUM()
+enum class EPCGExBlendOpOutputMode : uint8
+{
+	SameAsA         = 0 UMETA(DisplayName = "Same as A", ToolTip="Will write the output value to Operand A' selector."),
+	SameAsB         = 1 UMETA(DisplayName = "Same as B", ToolTip="Will write the output value to Operand B' selector. (Will default to A if B is not set)"),
+	New       = 2 UMETA(DisplayName = "New", ToolTip="Will write the output value to new selector."),
+	Transient = 3 UMETA(DisplayName = "New (Transient)", ToolTip="Will write the output value to a new selector that will only exist for the duration of the blend, but can be referenced by other blend ops."),
+};
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendWeight
 {
@@ -89,7 +98,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))
 	bool bRequiresWeight = false;
 
-	/** Blendmode */
+	/** BlendMode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::Average;
 
@@ -97,33 +106,40 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandA;
 
-	/** Operand B. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bUseOperandB = false;
+
+	/** Operand B. If not enabled, will re-use Operand A' input. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseOperandB"))
 	FPCGAttributePropertyInputSelector OperandB;
 
 	/** Weight settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
 	FPCGExAttributeBlendWeight Weighting;
 
+	/** Choose where to output the result of the A/B blend */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExBlendOpOutputMode OutputMode = EPCGExBlendOpOutputMode::SameAsA;
+
 	/** Output to (AB blend). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Output To", EditCondition="OutputMode==EPCGExBlendOpOutputMode::New || OutputMode==EPCGExBlendOpOutputMode::Transient", EditConditionHides))
 	FPCGAttributePropertyInputSelector OutputTo;
 
+	/** If enabled, when a node uses multiple sources for blending, the value will be reset to 0 for some specific BlendModes so as to not account for inherited values. Default is true, as it is usually the most desirable behavior. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	bool bResetValueBeforeMultiSourceBlend = true;
+	
 	/** Which type should be used for the output value. Only used if the output is not a point property. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
 	EPCGExOperandAuthority OutputType = EPCGExOperandAuthority::Auto;
 
 	/** Which type should be used for the output value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Type", EditCondition="OutputType==EPCGExOperandAuthority::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Type", EditCondition="OutputType==EPCGExOperandAuthority::Custom", EditConditionHides), AdvancedDisplay)
 	EPCGMetadataTypes CustomType = EPCGMetadataTypes::Double;
 
-	/** If enabled, new attributes will only be created for the duration of the blend, and properties will be restored to their original values once the blend is complete. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	bool bTransactional = false;
-	
 	void Init();
 };
-
 
 /**
  * 
@@ -136,7 +152,11 @@ public:
 	TSharedPtr<PCGExData::FFacade> WeightFacade;
 
 	TSharedPtr<PCGExData::FFacade> Source_A_Facade;
+	PCGExData::EIOSide SideA = PCGExData::EIOSide::In;
+
 	TSharedPtr<PCGExData::FFacade> Source_B_Facade;
+	PCGExData::EIOSide SideB = PCGExData::EIOSide::In;
+
 	TSharedPtr<PCGExData::FFacade> TargetFacade;
 
 	TSharedPtr<PCGExData::FFacade> ConstantA;
@@ -144,9 +164,6 @@ public:
 
 	int32 OpIdx = -1;
 	TSharedPtr<TArray<TSharedPtr<FPCGExBlendOperation>>> SiblingOperations;
-
-	bool bSourceAReadOnly = true;
-	bool bSourceBReadOnly = true;
 
 	virtual bool PrepareForData(FPCGExContext* InContext);
 
@@ -164,7 +181,7 @@ public:
 	{
 		Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
 	}
-	
+
 	virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double InWeight)
 	{
 		Blender->Blend(SourceIndexA, SourceIndexB, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));

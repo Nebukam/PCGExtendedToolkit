@@ -40,8 +40,8 @@ namespace PCGExDataBlending
 		{
 			// Setup a single blender per A/B pair
 
-			PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(SourceFacade);
-			PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(TargetFacade);
+			PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(SourceFacade, PCGExData::EProxyRole::Read);
+			PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(TargetFacade, PCGExData::EProxyRole::Read);
 
 			if (!A.Capture(InContext, Header.Selector, SourceSide)) { return false; }
 
@@ -62,6 +62,8 @@ namespace PCGExDataBlending
 			}
 
 			PCGExData::FProxyDescriptor C = B;
+			C.Side = PCGExData::EIOSide::Out;
+			C.Role = PCGExData::EProxyRole::Write;
 
 			A.bWantsDirect = bWantsDirectAccess;
 			B.bWantsDirect = bWantsDirectAccess;

@@ -216,60 +216,131 @@ namespace PCGExData
 						{
 							if (InDescriptor.bWantsDirect)
 							{
-								// TODO : use TDirectAttributeProxy instead of TAttributeBufferProxy
+								const FPCGMetadataAttribute<T_REAL>* InAttribute = nullptr;
+								FPCGMetadataAttribute<T_REAL>* OutAttribute = nullptr;
+
+								if (InDescriptor.Role == EProxyRole::Read)
+								{
+									if (InDescriptor.Side == EIOSide::In)
+									{
+										UPCGMetadata* Metadata = InDataFacade->GetIn()->Metadata;
+										InAttribute = Metadata->GetConstTypedAttribute<T_REAL>(InDescriptor.Selector.GetAttributeName());
+									}
+									else
+									{
+										UPCGMetadata* Metadata = InDataFacade->GetOut()->Metadata;
+										InAttribute = Metadata->GetConstTypedAttribute<T_REAL>(InDescriptor.Selector.GetAttributeName());
+									}
+
+									if (InAttribute) { OutAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute); }
+									
+									check(InAttribute);
+								}
+								else if (InDescriptor.Role == EProxyRole::Write)
+								{
+									UPCGMetadata* Metadata = InDataFacade->GetOut()->Metadata;
+									OutAttribute = Metadata->FindOrCreateAttribute(InDescriptor.Selector.GetAttributeName(), T_REAL{});
+									if (OutAttribute) { InAttribute = OutAttribute; }
+									
+									check(OutAttribute);
+								}
+								
+								if (bSubSelection)
+								{
+									TSharedPtr<TDirectAttributeProxy<T_REAL, T_WORKING, true>> TypedProxy =
+										MakeShared<TDirectAttributeProxy<T_REAL, T_WORKING, true>>();
+
+									TypedProxy->InAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute);
+									TypedProxy->OutAttribute = OutAttribute;
+									OutProxy = TypedProxy;
+								}
+								else
+								{
+									TSharedPtr<TDirectAttributeProxy<T_REAL, T_WORKING, false>> TypedProxy =
+										MakeShared<TDirectAttributeProxy<T_REAL, T_WORKING, false>>();
+
+									TypedProxy->InAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute);
+									TypedProxy->OutAttribute = OutAttribute;
+									OutProxy = TypedProxy;
+								}
+
+								return;
+							}
+
+							// Check if there is an existing buffer with for our attribute
+							TSharedPtr<TBuffer<T_REAL>> ExistingBuffer = InDataFacade->FindBuffer<T_REAL>(InDescriptor.Selector.GetAttributeName());
+							TSharedPtr<TBuffer<T_REAL>> Buffer;
+
+							// Proceed based on side & role
+							// We want to read, but where from?
+							if (InDescriptor.Role == EProxyRole::Read)
+							{
+								if (InDescriptor.Side == EIOSide::In)
+								{
+									// Use existing buffer if possible
+									if (ExistingBuffer && ExistingBuffer->IsReadable()) { Buffer = ExistingBuffer; }
+
+									// Otherwise create read-only buffer
+									if (!Buffer) { Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName()); }
+								}
+								else if (InDescriptor.Side == EIOSide::Out)
+								{
+									// This is the tricky bit.
+									// We want to read from output directly, and we can only do so by converting an existing writable buffer to a readable one.
+									// This is a risky operation because internally it will replace the read value buffer with the write values one.
+									// Value-wise it's not an issue as the write buffer will generally be pre-filled with input values.
+									// However this is a problem if the number of item differs between input & output
+									if (ExistingBuffer)
+									{
+										// This buffer is already set-up to be read from its output data
+										if (ExistingBuffer->IsReadingFromWrite()) { Buffer = ExistingBuffer; }
+
+										if (!Buffer)
+										{
+											// Change buffer state to read from output
+											if (ExistingBuffer->IsWritable())
+											{
+												Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::Out);
+											}
+
+											if (!Buffer)
+											{
+												PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Trying to read from an output buffer that doesn't exist yet."));
+												return;
+											}
+										}
+									}
+									else
+									{
+										PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No existing buffer to read from."));
+										return;
+									}
+								}
+							}
+							// We want to write, so we can only write to out!
+							else if (InDescriptor.Role == EProxyRole::Write)
+							{
+								Buffer = InDataFacade->GetWritable<T_REAL>(InDescriptor.Selector.GetAttributeName(), T_REAL{}, true, EBufferInit::Inherit);
+							}
+
+							if (!Buffer)
+							{
+								PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Failed to initialize proxy buffer."));
+								return;
+							}
+
+							// This makes it so if we only have a writable buffer, it will be made accessible for ->Read
+							// This is also very risky because we intend on reading from that buffer afterward, and we created the readable first, it will break the universe.
+							if (!Buffer->EnsureReadable())
+							{
+								PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure buffer is readable."));
+								return;
 							}
 
 							if (bSubSelection)
 							{
 								TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, true>> TypedProxy =
 									MakeShared<TAttributeBufferProxy<T_REAL, T_WORKING, true>>();
-
-								TSharedPtr<TBuffer<T_REAL>> ExistingBuffer = InDataFacade->FindBuffer<T_REAL>(InDescriptor.Selector.GetAttributeName());
-								TSharedPtr<TBuffer<T_REAL>> Buffer;
-
-								if (InDescriptor.Side == EIOSide::In)
-								{
-									if (ExistingBuffer && ExistingBuffer->IsWritable() && !InDescriptor.bReadOnly)
-									{
-										// NOTE : This is super risky
-										// Read from writer
-										Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::Out);
-									}
-									else
-									{
-										// Read from input
-										Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName());
-									}
-								}
-
-								// Fallback to writer, if descriptor isn't flagged as read only
-								if (!Buffer)
-								{
-									if (!InDescriptor.bReadOnly)
-									{
-										// Fallback, make a writer that inherit data instead
-										// This will create issues if the same name is used with different types
-										Buffer = InDataFacade->GetWritable<T_REAL>(InDescriptor.Selector.GetAttributeName(), T_REAL{}, true, EBufferInit::Inherit);
-									}
-									else
-									{
-										PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Trying to created readable buffer but source attribute does not exist."));
-										return;
-									}
-								}
-
-								if (!Buffer)
-								{
-									// TODO : Identify and log error
-									PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("An attribute is using the same name with different types."));
-									return;
-								}
-
-								if (!Buffer->EnsureReadable())
-								{
-									PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to make buffer readable."));
-									return;
-								}
 
 								TypedProxy->Buffer = Buffer;
 								OutProxy = TypedProxy;
@@ -278,35 +349,6 @@ namespace PCGExData
 							{
 								TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, false>> TypedProxy =
 									MakeShared<TAttributeBufferProxy<T_REAL, T_WORKING, false>>();
-
-								TSharedPtr<TBuffer<T_REAL>> ExistingBuffer = InDataFacade->FindBuffer<T_REAL>(InDescriptor.Selector.GetAttributeName());
-								TSharedPtr<TBuffer<T_REAL>> Buffer;
-
-								if (InDescriptor.Side == EIOSide::In && ExistingBuffer && ExistingBuffer->IsWritable())
-								{
-									// Read from writer
-									Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::Out);
-								}
-
-								if (!Buffer)
-								{
-									// Fallback, make a writer that inherit data instead
-									// This will create issues if the same name is used with different types
-									Buffer = InDataFacade->GetWritable<T_REAL>(InDescriptor.Selector.GetAttributeName(), T_REAL{}, true, EBufferInit::Inherit);
-								}
-
-								if (!Buffer)
-								{
-									// TODO : Identify and log error
-									PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("An attribute is using the same name with different types."));
-									return;
-								}
-
-								if (!Buffer->EnsureReadable())
-								{
-									PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to make buffer readable."));
-									return;
-								}
 
 								TypedProxy->Buffer = Buffer;
 								OutProxy = TypedProxy;

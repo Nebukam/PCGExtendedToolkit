@@ -102,8 +102,8 @@ namespace PCGExDataBlending
 			const TSharedPtr<PCGExData::FFacade> InSourceFacade, const PCGExData::EIOSide InSide, const bool bWantsDirectAccess = false) override
 		{
 			// Setup a single blender per A/B pair
-			PCGExData::FProxyDescriptor Desc_A = PCGExData::FProxyDescriptor(InSourceFacade);
-			PCGExData::FProxyDescriptor Desc_B = PCGExData::FProxyDescriptor(InTargetFacade);
+			PCGExData::FProxyDescriptor Desc_A = PCGExData::FProxyDescriptor(InSourceFacade, PCGExData::EProxyRole::Read);
+			PCGExData::FProxyDescriptor Desc_B = PCGExData::FProxyDescriptor(InTargetFacade, PCGExData::EProxyRole::Read);
 
 			if (!Desc_A.Capture(InContext, InHeader.Selector, InSide)) { return false; }
 
@@ -124,6 +124,8 @@ namespace PCGExDataBlending
 			}
 
 			PCGExData::FProxyDescriptor Desc_C = Desc_B;
+			Desc_C.Side = PCGExData::EIOSide::Out;
+			Desc_C.Role = PCGExData::EProxyRole::Write;
 
 			Desc_A.bWantsDirect = bWantsDirectAccess;
 			Desc_B.bWantsDirect = bWantsDirectAccess;
@@ -142,7 +144,7 @@ namespace PCGExDataBlending
 #undef PCGEX_DECL_BLEND_BIT
 	};
 
-	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE>
+	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend = true>
 	class PCGEXTENDEDTOOLKIT_API TProxyDataBlender : public TProxyDataBlenderBase<T_WORKING>
 	{
 		using TProxyDataBlenderBase<T_WORKING>::A;
@@ -198,18 +200,8 @@ namespace PCGExDataBlending
 		{
 			PCGEx::FOpStats Tracker{};
 
+
 			if constexpr (
-				BLEND_MODE == EPCGExABBlendingType::Average ||
-				BLEND_MODE == EPCGExABBlendingType::Add ||
-				BLEND_MODE == EPCGExABBlendingType::Subtract ||
-				BLEND_MODE == EPCGExABBlendingType::Weight ||
-				BLEND_MODE == EPCGExABBlendingType::WeightedAdd)
-			{
-				// These modes require a zeroed-out value
-				// before the can be properly blended
-				C->Set(TargetIndex, T_WORKING{});
-			}
-			else if constexpr (
 				BLEND_MODE == EPCGExABBlendingType::Min ||
 				BLEND_MODE == EPCGExABBlendingType::Max ||
 				BLEND_MODE == EPCGExABBlendingType::UnsignedMin ||
@@ -222,6 +214,26 @@ namespace PCGExDataBlending
 				// These modes require the first operation to be a copy of the value
 				// before the can be properly blended
 				Tracker.Count = -1;
+			}
+			else if constexpr (
+				BLEND_MODE == EPCGExABBlendingType::Average ||
+				BLEND_MODE == EPCGExABBlendingType::Add ||
+				BLEND_MODE == EPCGExABBlendingType::Subtract ||
+				BLEND_MODE == EPCGExABBlendingType::Weight ||
+				BLEND_MODE == EPCGExABBlendingType::WeightedAdd)
+			{
+				// Some BlendModes can leverage this
+				if constexpr (bResetValueForMultiBlend)
+				{
+					C->Set(TargetIndex, T_WORKING{});
+					Tracker.Count = -1;
+				}
+				else
+				{
+					// Otherwise, bump up original count so EndBlend can use those
+					Tracker.Count = 1;
+					Tracker.Weight = 1;
+				}
 			}
 
 			return Tracker;
@@ -236,7 +248,7 @@ namespace PCGExDataBlending
 			};
 
 #define PCGEX_A A->Get(SourceIndex)
-#define PCGEX_B B->Get(TargetIndex)
+#define PCGEX_B C->Get(TargetIndex) // In the context of multiblend, B is C!
 
 			if (Tracker.Count < 0)
 			{
@@ -272,15 +284,26 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	static TSharedPtr<TProxyDataBlenderBase<T>> CreateProxyBlender(const EPCGExABBlendingType BlendMode)
+	static TSharedPtr<TProxyDataBlenderBase<T>> CreateProxyBlender(const EPCGExABBlendingType BlendMode, const bool bResetValueForMultiBlend = true)
 	{
 		TSharedPtr<TProxyDataBlenderBase<T>> OutBlender;
 
+		if (bResetValueForMultiBlend)
+		{
 #define PCGEX_CREATE_BLENDER(_BLEND)case EPCGExABBlendingType::_BLEND : \
-OutBlender = MakeShared<TProxyDataBlender<T, EPCGExABBlendingType::_BLEND>>(); \
+OutBlender = MakeShared<TProxyDataBlender<T, EPCGExABBlendingType::_BLEND, true>>(); \
 break;
-		switch (BlendMode) { PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_CREATE_BLENDER) }
+			switch (BlendMode) { PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_CREATE_BLENDER) }
 #undef PCGEX_CREATE_BLENDER
+		}
+		else
+		{
+#define PCGEX_CREATE_BLENDER(_BLEND)case EPCGExABBlendingType::_BLEND : \
+OutBlender = MakeShared<TProxyDataBlender<T, EPCGExABBlendingType::_BLEND, false>>(); \
+break;
+			switch (BlendMode) { PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_CREATE_BLENDER) }
+#undef PCGEX_CREATE_BLENDER
+		}
 
 		return OutBlender;
 	}
@@ -290,7 +313,8 @@ break;
 		const EPCGExABBlendingType BlendMode,
 		const PCGExData::FProxyDescriptor& A,
 		const PCGExData::FProxyDescriptor& B,
-		const PCGExData::FProxyDescriptor& C)
+		const PCGExData::FProxyDescriptor& C,
+		const bool bResetValueForMultiBlend = true)
 	{
 		TSharedPtr<FProxyDataBlender> OutBlender;
 
@@ -305,7 +329,7 @@ break;
 			{
 				using T = decltype(DummyValue);
 
-				TSharedPtr<TProxyDataBlenderBase<T>> TypedBlender = CreateProxyBlender<T>(BlendMode);
+				TSharedPtr<TProxyDataBlenderBase<T>> TypedBlender = CreateProxyBlender<T>(BlendMode, bResetValueForMultiBlend);
 
 				if (!TypedBlender) { return; }
 

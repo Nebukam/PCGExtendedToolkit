@@ -30,22 +30,22 @@ namespace PCGExDataBlending
 		TSharedPtr<PCGExData::FFacade> WeightFacade;
 		
 		TSharedPtr<PCGExData::FFacade> SourceAFacade;
-		bool bSourceAReadOnly = false;
+		PCGExData::EIOSide SideA = PCGExData::EIOSide::In;
 		
 		TSharedPtr<PCGExData::FFacade> SourceBFacade;
-		bool bSourceBReadOnly = false;
+		PCGExData::EIOSide SideB = PCGExData::EIOSide::In;
 		
 		TSharedPtr<PCGExData::FFacade> TargetFacade;
 		TSharedPtr<TArray<TSharedPtr<FPCGExBlendOperation>>> Operations;
 
-	public:
+	public:		
 		explicit FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 		explicit FBlendOpsManager();
 
 		void SetWeightFacade(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-		void SetSourceA(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bReadOnly = false);
-		void SetSourceB(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bReadOnly = false);
-		void SetSources(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bReadOnly = false);
+		void SetSourceA(const TSharedPtr<PCGExData::FFacade>& InDataFacade, PCGExData::EIOSide Side = PCGExData::EIOSide::In);
+		void SetSourceB(const TSharedPtr<PCGExData::FFacade>& InDataFacade, PCGExData::EIOSide Side = PCGExData::EIOSide::In);
+		void SetSources(const TSharedPtr<PCGExData::FFacade>& InDataFacade, PCGExData::EIOSide Side = PCGExData::EIOSide::In);
 		void SetTargetFacade(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
 		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExBlendOpFactory>>& InFactories) const;

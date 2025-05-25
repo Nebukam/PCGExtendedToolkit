@@ -345,7 +345,7 @@ namespace PCGExSampleNearestBounds
 				SampleTracker.Count++;
 				SampleTracker.Weight += Weight;
 
-				if (Blender) { Blender->Blend(InSample.Index, Index, Weight); }
+				if (Blender) { Blender->MultiBlend(InSample.Index, Index, Weight, BlendTrackers); }
 			};
 
 			if (bSingleSample)

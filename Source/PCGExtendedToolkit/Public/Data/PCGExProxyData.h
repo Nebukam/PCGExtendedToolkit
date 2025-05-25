@@ -10,20 +10,25 @@
 
 namespace PCGExData
 {
+	enum class EProxyRole : uint8
+	{
+		Read,
+		Write
+	};
+
 	struct PCGEXTENDEDTOOLKIT_API FProxyDescriptor
 	{
 		FPCGAttributePropertyInputSelector Selector;
 		PCGEx::FSubSelection SubSelection;
 
 		EIOSide Side = EIOSide::In;
+		EProxyRole Role = EProxyRole::Read;
 
 		EPCGMetadataTypes RealType = EPCGMetadataTypes::Unknown;
 		EPCGMetadataTypes WorkingType = EPCGMetadataTypes::Unknown;
 
 		TWeakPtr<FFacade> DataFacade;
 
-		// For roaming properties only, isn't widely supported.
-		bool bReadOnly = true;
 		const UPCGBasePointData* PointData = nullptr;
 
 		bool bIsConstant = false;
@@ -33,8 +38,8 @@ namespace PCGExData
 		{
 		}
 
-		explicit FProxyDescriptor(const TSharedPtr<FFacade>& InDataFacade)
-			: DataFacade(InDataFacade)
+		explicit FProxyDescriptor(const TSharedPtr<FFacade>& InDataFacade, const EProxyRole InRole = EProxyRole::Read)
+			: Role(InRole), DataFacade(InDataFacade)
 		{
 		}
 
@@ -242,7 +247,7 @@ namespace PCGExData
 	{
 		// A memory-friendly but super slow proxy version that works with Setter/Getter on the attribute
 		// TODO : Implement support for this to replace old "soft" metadata ops
-		
+
 		using TBufferProxy<T_WORKING>::SubSelection;
 		using TBufferProxy<T_WORKING>::Data;
 

@@ -142,6 +142,7 @@ namespace PCGExData
 		virtual bool IsScoped() { return bScopedBuffer; }
 		virtual bool IsWritable() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::IsWritable, false)
 		virtual bool IsReadable() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::IsReadable, false)
+		virtual bool IsReadingFromWrite() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::IsReadingFromWrite, false)
 
 		virtual void SetTargetOutputName(const FName InName);
 
@@ -202,6 +203,7 @@ namespace PCGExData
 
 		virtual bool IsWritable() override { return OutValues ? true : false; }
 		virtual bool IsReadable() override { return InValues ? true : false; }
+		virtual bool IsReadingFromWrite() override { return InValues == OutValues; }
 
 		/*
 		// See PCGValueRangeHelpers
