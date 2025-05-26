@@ -267,7 +267,7 @@ namespace PCGExDataBlending
 
 		virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker) override
 		{
-#define PCGEX_C C->Get(TargetIndex)
+#define PCGEX_C C->GetCurrent(TargetIndex)
 
 			if (!Tracker.Count) { return; } // Skip division by zero
 

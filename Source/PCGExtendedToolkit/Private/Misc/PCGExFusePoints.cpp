@@ -95,6 +95,8 @@ namespace PCGExFusePoints
 		bDaisyChainProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
+		// TODO : Register readable buffers on input for union blender
+		
 		return true;
 	}
 
