@@ -91,6 +91,21 @@ namespace PCGExData
 		return Cloud;
 	}
 
+	void FFacade::PrepareScopedReadable(const PCGEx::FAttributeIdentity& Identity)
+	{
+		PCGEx::ExecuteWithRightType(
+			Identity.UnderlyingType, [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				GetScopedReadable<T>(Identity.Name);
+			});
+	}
+
+	void FFacade::PrepareScopedReadable(const TArray<PCGEx::FAttributeIdentity>& Identities)
+	{
+		for (const PCGEx::FAttributeIdentity& Identity : Identities) { PrepareScopedReadable(Identity); }
+	}
+
 	void FFacade::MarkCurrentBuffersReadAsComplete()
 	{
 		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)

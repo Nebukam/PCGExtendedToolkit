@@ -58,6 +58,8 @@ namespace PCGExDataBlending
 				SubBlenders.SetNum(InNum);
 			}
 		};
+		
+		void GetSourceIdentities(const UPCGMetadata* InMetadata, TArray<PCGEx::FAttributeIdentity>& OutIdentities, const TSet<FName>* IgnoreAttributeSet = nullptr) const;
 
 		void AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade, const TSet<FName>* IgnoreAttributeSet = nullptr);
 		void AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades, const TSet<FName>* IgnoreAttributeSet = nullptr);

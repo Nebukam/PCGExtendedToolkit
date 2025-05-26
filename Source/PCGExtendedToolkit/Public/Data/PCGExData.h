@@ -751,6 +751,9 @@ namespace PCGExData
 		const UPCGBasePointData* GetIn() const { return Source->GetIn(); }
 		UPCGBasePointData* GetOut() const { return Source->GetOut(); }
 
+		void PrepareScopedReadable(const PCGEx::FAttributeIdentity& Identity);
+		void PrepareScopedReadable(const TArray<PCGEx::FAttributeIdentity>& Identities);
+		
 		void MarkCurrentBuffersReadAsComplete();
 
 		void Flush()

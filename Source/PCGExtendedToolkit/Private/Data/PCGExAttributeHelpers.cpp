@@ -120,29 +120,39 @@ void FPCGExAttributeSourceToTargetList::GetSources(TArray<FName>& OutNames) cons
 
 namespace PCGEx
 {
-	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities)
+	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList)
 	{
 		if (!InMetadata) { return; }
+
 		TArray<FName> Names;
 		TArray<EPCGMetadataTypes> Types;
 		InMetadata->GetAttributes(Names, Types);
+
 		const int32 NumAttributes = Names.Num();
+
+		OutIdentities.Reserve(OutIdentities.Num() + NumAttributes);
+
 		for (int i = 0; i < NumAttributes; i++)
 		{
+			if (OptionalIgnoreList && OptionalIgnoreList->Contains(Names[i])) { continue; }
 			OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i], InMetadata->GetConstAttribute(Names[i])->AllowsInterpolation()));
 		}
 	}
 
-	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
+	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList)
 	{
 		if (!InMetadata) { return; }
+
 		TArray<EPCGMetadataTypes> Types;
 		InMetadata->GetAttributes(OutNames, Types);
+
 		const int32 NumAttributes = OutNames.Num();
+		OutIdentities.Reserve(OutIdentities.Num() + NumAttributes);
 
 		for (int i = 0; i < NumAttributes; i++)
 		{
 			FName Name = OutNames[i];
+			if (OptionalIgnoreList && OptionalIgnoreList->Contains(Name)) { continue; }
 			OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i], InMetadata->GetConstAttribute(Name)->AllowsInterpolation()));
 		}
 	}

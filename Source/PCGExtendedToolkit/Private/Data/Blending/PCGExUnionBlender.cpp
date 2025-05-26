@@ -100,6 +100,13 @@ namespace PCGExDataBlending
 	{
 	}
 
+	void FUnionBlender::GetSourceIdentities(const UPCGMetadata* InMetadata, TArray<PCGEx::FAttributeIdentity>& OutIdentities, const TSet<FName>* IgnoreAttributeSet) const
+	{
+		PCGEx::FAttributeIdentity::Get(InMetadata, OutIdentities, IgnoreAttributeSet);
+		CarryOverDetails->Prune(OutIdentities);
+		BlendingDetails->Filter(OutIdentities);
+	}
+
 	void FUnionBlender::AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade, const TSet<FName>* IgnoreAttributeSet)
 	{
 		const int32 SourceIndex = Sources.Add(InFacade);
@@ -114,16 +121,12 @@ namespace PCGExDataBlending
 		for (const TSharedPtr<FMultiSourceBlender>& MultiAttribute : Blenders) { MultiAttribute->SetNum(NumSources); }
 
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
-		PCGEx::FAttributeIdentity::Get(InFacade->GetIn()->Metadata, SourceAttributes);
-		CarryOverDetails->Prune(SourceAttributes);
-		BlendingDetails->Filter(SourceAttributes);
+		GetSourceIdentities(InFacade->GetIn()->Metadata, SourceAttributes, IgnoreAttributeSet);
 
 		// Check of this new source' attributes
 		// See if it adds any new, non-conflicting one
 		for (const PCGEx::FAttributeIdentity& Identity : SourceAttributes)
 		{
-			if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Name)) { continue; }
-
 			// First, grab the header for this attribute
 			// Getting a fail means it's filtered out.
 			PCGExDataBlending::FBlendingHeader Header{};
