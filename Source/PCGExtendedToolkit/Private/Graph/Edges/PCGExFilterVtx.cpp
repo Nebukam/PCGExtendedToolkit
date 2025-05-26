@@ -265,7 +265,7 @@ namespace PCGExFilterVtx
 
 				PCGExGraph::CleanupVtxData(OutIO);
 
-				OutIO->GetOut()->SetNumPoints(NumNodes);
+				(void)PCGEx::AllocateNumPoints(OutIO->GetOut(), NumNodes);
 				OutIO->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
 
 				ReadIndices.SetNumUninitialized(NumNodes);
@@ -290,7 +290,7 @@ namespace PCGExFilterVtx
 			auto GatherNodes = [&](const TSharedPtr<PCGExData::FPointIO>& IO, const bool bValid)
 			{
 				Cluster->GatherNodesPointIndices(ReadIndices, bValid);
-				IO->GetOut()->SetNumPoints(ReadIndices.Num());
+				(void)PCGEx::AllocateNumPoints(IO->GetOut(), ReadIndices.Num());
 				IO->InheritPoints(ReadIndices, 0);
 			};
 

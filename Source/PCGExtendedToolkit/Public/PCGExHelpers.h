@@ -569,6 +569,9 @@ namespace PCGEx
 		int32 Num() const { return ReadIndices.Num(); }
 	};
 
+	PCGEXTENDEDTOOLKIT_API
+	int32 AllocateNumPoints(UPCGBasePointData* InData, int32 InNumPoints, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
+
 #pragma region Array
 
 	template <typename T>

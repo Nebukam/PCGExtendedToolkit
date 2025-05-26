@@ -88,7 +88,7 @@ namespace PCGExPackClusters
 		UPCGBasePointData* PackedPoints = PackedIO->GetOut();
 
 		PackedPoints->SetNumPoints(VtxStartIndex + NumVtx);
-
+		
 		TArray<int32> WriteIndices;
 		PCGEx::ArrayOfIndices(WriteIndices, NumVtx, VtxStartIndex);
 		VtxPoints->CopyPropertiesTo(PackedPoints, VtxPointSelection, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);

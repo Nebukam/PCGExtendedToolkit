@@ -49,7 +49,8 @@ bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) cons
 		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
 
 		Context->MergedOut->InitializeOutput(PCGExData::EIOInit::New);
-		Context->MergedOut->GetOut()->SetNumPoints(Context->MainEdges->Num()); // There is a risk we allocate too many points here if there's less valid clusters than expected
+		// There is a risk we allocate too many points here if there's less valid clusters than expected
+		(void)PCGEx::AllocateNumPoints(Context->MergedOut->GetOut(), Context->MainEdges->Num());
 		Context->MergedOut->GetOutKeys(true);
 
 		if (!AttributeMismatches.IsEmpty() && !Settings->bQuietAttributeMismatchWarning)
@@ -190,7 +191,7 @@ namespace PCGExFindPointOnBoundsClusters
 		{
 			PCGEX_INIT_IO_VOID(IORef, PCGExData::EIOInit::New)
 
-			IORef->GetOut()->SetNumPoints(1);
+			(void)PCGEx::AllocateNumPoints(IORef->GetOut(), 1);
 			IORef->InheritPoints(BestIndex, 0, 1);
 
 			TPCGValueRange<FTransform> OutTransforms = IORef->GetOut()->GetTransformValueRange();

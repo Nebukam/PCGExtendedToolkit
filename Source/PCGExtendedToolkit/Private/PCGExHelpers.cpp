@@ -275,6 +275,13 @@ namespace PCGEx
 			WriteIndices.Empty();
 		}
 	}
+
+	int32 AllocateNumPoints(UPCGBasePointData* InData, const int32 InNumPoints, const EPCGPointNativeProperties Properties)
+	{
+		InData->SetNumPoints(InNumPoints);
+		InData->AllocateProperties(Properties);
+		return InNumPoints;
+	}
 }
 
 void UPCGExComponentCallback::Callback(UActorComponent* InComponent)

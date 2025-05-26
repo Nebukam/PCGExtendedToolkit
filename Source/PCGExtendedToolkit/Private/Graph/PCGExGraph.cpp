@@ -331,7 +331,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 
 		const UPCGBasePointData* InEdgeData = EdgesDataFacade->GetIn();
 		UPCGBasePointData* OutEdgeData = EdgesDataFacade->GetOut();
-		OutEdgeData->SetNumPoints(NumEdges);
+		(void)PCGEx::AllocateNumPoints(OutEdgeData, NumEdges);
 
 		const TPCGValueRange<int64> OutMetadataEntries = OutEdgeData->GetMetadataEntryValueRange();
 

@@ -399,7 +399,7 @@ namespace PCGExClusterDiffusion
 
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
 
-		PathIO->GetOut()->SetNumPoints(PathIndices.Num());
+		(void)PCGEx::AllocateNumPoints(PathIO->GetOut(), PathIndices.Num());
 		PathIO->InheritPoints(PathIndices, 0);
 
 		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(Diffusion->SeedIndex), PathIO);

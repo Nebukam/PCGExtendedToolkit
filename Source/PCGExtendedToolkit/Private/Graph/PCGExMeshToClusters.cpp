@@ -243,7 +243,7 @@ namespace PCGExMeshToCluster
 		RootVtx->IOIndex = TaskIndex;
 
 		UPCGBasePointData* VtxPoints = RootVtx->GetOut();
-		VtxPoints->SetNumPoints(Mesh->Vertices.Num());
+		(void)PCGEx::AllocateNumPoints(VtxPoints, Mesh->Vertices.Num());
 
 		TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange();
 		for (int i = 0; i < OutTransforms.Num(); i++) { OutTransforms[i].SetLocation(Mesh->Vertices[i]); }

@@ -179,7 +179,7 @@ namespace PCGExBuildDelaunay
 		const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
 		UPCGBasePointData* MutablePoints = SitesIO->GetOut();
 
-		MutablePoints->SetNumPoints(NumSites);
+		(void)PCGEx::AllocateNumPoints(MutablePoints, NumSites);
 		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
 
 		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
@@ -229,7 +229,7 @@ namespace PCGExBuildDelaunay
 		PCGExGeo::TDelaunay3* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 
-		MutablePoints->SetNumPoints(NumSites);
+		(void)PCGEx::AllocateNumPoints(MutablePoints, NumSites);
 		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
 
 		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
