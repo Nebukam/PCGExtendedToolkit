@@ -151,6 +151,8 @@ namespace PCGExPathToClusters
 #pragma region Fusing
 	// Fusing processors
 
+	// TODO : Batch-preload point attributes we'll want to blend
+	
 	class FFusingProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>
 	{
 		bool bClosedLoop = false;

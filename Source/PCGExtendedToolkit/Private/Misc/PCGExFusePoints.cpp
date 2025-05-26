@@ -92,11 +92,12 @@ namespace PCGExFusePoints
 		// TODO : See if we can support scoped get
 		if (!UnionGraph->Init(Context, PointDataFacade, false)) { return false; }
 
-		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
-
 		// Register fetch-able buffers for chunked reads
-		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
-		UnionBlender->GetSourceIdentities(PointDataFacade->GetIn()->Metadata, SourceAttributes);
+		TArray<PCGEx::FAttributeIdentity> SourceAttributes;		
+		PCGExDataBlending::GetFilteredIdentities(
+			PointDataFacade->GetIn()->Metadata, SourceAttributes,
+			&Settings->BlendingDetails, &Context->CarryOverDetails);
+
 		PointDataFacade->PrepareScopedReadable(SourceAttributes);
 
 		bDaisyChainProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
@@ -150,6 +151,7 @@ namespace PCGExFusePoints
 		OutData->SetNumPoints(NumUnionNodes);
 		OutData->AllocateProperties(EPCGPointNativeProperties::All);
 
+		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
 		UnionBlender->AddSource(PointDataFacade, &PCGExGraph::ProtectedClusterAttributes);
 		if (!UnionBlender->Init(Context, PointDataFacade, UnionGraph->NodesUnion))
 		{

@@ -464,7 +464,7 @@ namespace PCGEx
 		case EPCGPointProperties::Position:
 			return EPCGMetadataTypes::Vector;
 		case EPCGPointProperties::Rotation:
-			return EPCGMetadataTypes::Rotator;
+			return EPCGMetadataTypes::Quaternion;
 		case EPCGPointProperties::Scale:
 			return EPCGMetadataTypes::Vector;
 		case EPCGPointProperties::Transform:

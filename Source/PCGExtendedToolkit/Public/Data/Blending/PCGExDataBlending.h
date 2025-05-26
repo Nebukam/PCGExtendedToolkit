@@ -331,6 +331,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 
 namespace PCGExDataBlending
 {
+	PCGEXTENDEDTOOLKIT_API
 	void AssembleBlendingDetails(
 		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
 		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
@@ -338,10 +339,20 @@ namespace PCGExDataBlending
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes);
 
+	PCGEXTENDEDTOOLKIT_API
 	void AssembleBlendingDetails(
 		const EPCGExDataBlendingType& DefaultBlending,
 		const TArray<FName>& Attributes,
 		const TSharedRef<PCGExData::FPointIO>& SourceIO,
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes);
+
+	PCGEXTENDEDTOOLKIT_API
+	void GetFilteredIdentities(
+		const UPCGMetadata* InMetadata,
+		TArray<PCGEx::FAttributeIdentity>& OutIdentities,		
+		const FPCGExBlendingDetails* InBlendingDetails= nullptr,
+		const FPCGExCarryOverDetails* InCarryOverDetails= nullptr,
+		const TSet<FName>* IgnoreAttributeSet = nullptr);
+	
 }

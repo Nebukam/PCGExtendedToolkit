@@ -399,7 +399,7 @@ namespace PCGExData
 
 			if (!OutProxy->Validate(InDescriptor))
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING"));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING : \"{0}\""), FText::FromString(PCGEx::GetSelectorDisplayName(InDescriptor.Selector))));
 				return nullptr;
 			}
 			

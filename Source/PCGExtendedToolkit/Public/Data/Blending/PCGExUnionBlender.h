@@ -31,7 +31,7 @@ namespace PCGExDataBlending
 		class FMultiSourceBlender : public TSharedFromThis<FMultiSourceBlender>
 		{
 			friend FUnionBlender;
-			
+
 		public:
 			FBlendingHeader Header;
 			PCGEx::FAttributeIdentity Identity;
@@ -39,7 +39,8 @@ namespace PCGExDataBlending
 
 			TSharedPtr<FProxyDataBlender> MainBlender; // Finisher, only used to initialize tracker & complete the multiblend 
 
-			explicit FMultiSourceBlender(const PCGEx::FAttributeIdentity& InIdentity);
+			FMultiSourceBlender(const PCGEx::FAttributeIdentity& InIdentity, const TArray<TSharedPtr<PCGExData::FFacade>>& InSources);
+			FMultiSourceBlender(const TArray<TSharedPtr<PCGExData::FFacade>>& InSources);
 
 			~FMultiSourceBlender() = default;
 
@@ -47,19 +48,12 @@ namespace PCGExDataBlending
 			bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetData, const bool bWantsDirectAccess = false);
 
 		protected:
-			TArray<const FPCGMetadataAttributeBase*> Siblings; // Same attribute as it exists from different sources
-			TArray<TSharedPtr<PCGExData::FFacade>> Sources;    // Sources (null if attribute is not valid on that source)
-			TArray<TSharedPtr<FProxyDataBlender>> SubBlenders; // One blender per source
-			
-			void SetNum(const int32 InNum)
-			{
-				Siblings.SetNum(InNum);
-				Sources.SetNum(InNum);
-				SubBlenders.SetNum(InNum);
-			}
+			TSet<int32> SupportedSources;
+			const TArray<TSharedPtr<PCGExData::FFacade>>& Sources; // Sources (null if attribute is not valid on that source)
+			TArray<TSharedPtr<FProxyDataBlender>> SubBlenders;     // One blender per source
+
+			void SetNum(const int32 InNum) { SubBlenders.SetNum(InNum); }
 		};
-		
-		void GetSourceIdentities(const UPCGMetadata* InMetadata, TArray<PCGEx::FAttributeIdentity>& OutIdentities, const TSet<FName>* IgnoreAttributeSet = nullptr) const;
 
 		void AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade, const TSet<FName>* IgnoreAttributeSet = nullptr);
 		void AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades, const TSet<FName>* IgnoreAttributeSet = nullptr);

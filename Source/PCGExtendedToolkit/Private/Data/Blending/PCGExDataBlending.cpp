@@ -294,4 +294,16 @@ namespace PCGExDataBlending
 			OutDetails.FilteredAttributes.Add(Id);
 		}
 	}
+
+	void GetFilteredIdentities(
+		const UPCGMetadata* InMetadata,
+		TArray<PCGEx::FAttributeIdentity>& OutIdentities,
+		const FPCGExBlendingDetails* InBlendingDetails,
+		const FPCGExCarryOverDetails* InCarryOverDetails,
+		const TSet<FName>* IgnoreAttributeSet)
+	{
+		PCGEx::FAttributeIdentity::Get(InMetadata, OutIdentities, IgnoreAttributeSet);
+		if (InCarryOverDetails) { InCarryOverDetails->Prune(OutIdentities); }
+		if (InBlendingDetails) { InBlendingDetails->Filter(OutIdentities); }
+	}
 }
