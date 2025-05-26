@@ -248,7 +248,7 @@ namespace PCGExDataBlending
 			};
 
 #define PCGEX_A A->Get(SourceIndex)
-#define PCGEX_B C->Get(TargetIndex) // In the context of multiblend, B is C!
+#define PCGEX_B C->GetCurrent(TargetIndex) // We read from current value during multiblend
 
 			if (Tracker.Count < 0)
 			{

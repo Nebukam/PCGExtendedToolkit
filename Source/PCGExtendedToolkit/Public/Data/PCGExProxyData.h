@@ -83,6 +83,7 @@ namespace PCGExData
 
 		virtual T_WORKING Get(const int32 Index) const = 0;
 		virtual void Set(const int32 Index, const T_WORKING& Value) const = 0;
+		virtual T_WORKING GetCurrent(const int32 Index) const { return Get(Index); };
 		virtual TSharedPtr<FBufferBase> GetBuffer() const override { return nullptr; }
 	};
 
@@ -125,6 +126,18 @@ namespace PCGExData
 			{
 				SubSelection.template Set<T_REAL, T_WORKING>(Buffer->GetMutable(Index), Value);
 			}
+		}
+
+		virtual T_WORKING GetCurrent(const int32 Index) const override
+		{
+			// i.e get Rotation<FQuat>.Forward<FVector> as <double>
+			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+			if constexpr (!bSubSelection)
+			{
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Buffer->GetConst(Index); }
+				else { return PCGEx::Convert<T_REAL, T_WORKING>(Buffer->GetConst(Index)); }
+			}
+			else { return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->GetConst(Index)); }
 		}
 
 		virtual TSharedPtr<FBufferBase> GetBuffer() const override { return Buffer; }
