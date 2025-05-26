@@ -48,7 +48,7 @@ namespace PCGExDataBlending
 		void SetSources(const TSharedPtr<PCGExData::FFacade>& InDataFacade, PCGExData::EIOSide Side = PCGExData::EIOSide::In);
 		void SetTargetFacade(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
-		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExBlendOpFactory>>& InFactories) const;
+		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExBlendOpFactory>>& InFactories);
 
 		FORCEINLINE void Blend(const int32 Index) const
 		{

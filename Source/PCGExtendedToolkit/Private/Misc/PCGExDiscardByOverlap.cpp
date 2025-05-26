@@ -288,7 +288,7 @@ namespace PCGExDiscardByOverlap
 
 					This->PointDataFacade->Fetch(Scope);
 					This->FilterScope(Scope);
-
+					
 					PCGEX_SCOPE_LOOP(i)
 					{
 						PCGExData::FConstPoint Point(This->InPoints, i);
@@ -413,11 +413,6 @@ namespace PCGExDiscardByOverlap
 					});
 			}
 		}
-	}
-
-	void FProcessor::OnRangeProcessingComplete()
-	{
-		TPointsProcessor<FPCGExDiscardByOverlapContext, UPCGExDiscardByOverlapSettings>::OnRangeProcessingComplete();
 	}
 
 	void FProcessor::CompleteWork()

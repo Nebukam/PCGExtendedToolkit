@@ -90,12 +90,14 @@ namespace PCGExDataBlending
 		TargetFacade = InDataFacade;
 	}
 
-	bool FBlendOpsManager::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExBlendOpFactory>>& InFactories) const
+	bool FBlendOpsManager::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExBlendOpFactory>>& InFactories)
 	{
-		check(WeightFacade)
 		check(SourceAFacade)
 		check(SourceBFacade)
 		check(TargetFacade)
+
+		if (!WeightFacade) { WeightFacade = SourceAFacade; }
+		check(WeightFacade)
 
 		const TSharedRef<PCGExData::FFacade> InDataFacade = SourceAFacade.ToSharedRef();
 

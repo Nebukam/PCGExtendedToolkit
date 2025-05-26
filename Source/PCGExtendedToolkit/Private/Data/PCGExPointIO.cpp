@@ -324,7 +324,9 @@ namespace PCGExData
 				// Input type was not a PointData child, should not happen.
 				check(Out)
 
-				Out->InitializeFromData(In);
+				FPCGInitializeFromDataParams InitializeFromDataParams(In);
+				InitializeFromDataParams.bInheritSpatialData = false;
+				Out->InitializeFromDataWithParams(InitializeFromDataParams);
 			}
 			else
 			{

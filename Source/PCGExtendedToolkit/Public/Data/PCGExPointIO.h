@@ -40,7 +40,7 @@ namespace PCGExData
 		In,
 		Out
 	};
-	
+
 #pragma region FPoint
 
 	struct PCGEXTENDEDTOOLKIT_API FElement
@@ -371,7 +371,12 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 				check(Out)
 
-				if (IsValid(In)) { Out->InitializeFromData(In); }
+				if (IsValid(In))
+				{
+					FPCGInitializeFromDataParams InitializeFromDataParams(In);
+					InitializeFromDataParams.bInheritSpatialData = false;
+					Out->InitializeFromDataWithParams(InitializeFromDataParams);
+				}
 
 				return true;
 			}
@@ -379,17 +384,19 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 			if (InitOut == EIOInit::Duplicate)
 			{
 				check(In)
-				const T* TypedIn = Cast<T>(In);
 
-				if (!TypedIn)
+				if (const T* TypedIn = Cast<T>(In))
 				{
-					T* TypedOut = SharedContext.Get()->ManagedObjects->DuplicateData<T>(In);
+					T* TypedOut = SharedContext.Get()->ManagedObjects->DuplicateData<T>(TypedIn);
 					Out = Cast<UPCGBasePointData>(TypedOut);
 				}
 				else
 				{
-					SharedContext.Get()->ManagedObjects->New<T>();
-					Out->InitializeFromData(In);
+					T* TypedOut = SharedContext.Get()->ManagedObjects->New<T>();
+					Out = Cast<UPCGBasePointData>(TypedOut);
+
+					FPCGInitializeFromDataParams InitializeFromDataParams(In);
+					Out->InitializeFromDataWithParams(InitializeFromDataParams);
 				}
 
 				return true;

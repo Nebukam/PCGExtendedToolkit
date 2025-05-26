@@ -96,7 +96,7 @@ namespace PCGExDataBlending
 
 	void FMetadataBlender::InitTrackers(TArray<PCGEx::FOpStats>& Trackers)
 	{
-		Trackers.SetNumUninitialized(Trackers.Num());
+		Trackers.SetNumUninitialized(Blenders.Num());
 	}
 
 	void FMetadataBlender::BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const

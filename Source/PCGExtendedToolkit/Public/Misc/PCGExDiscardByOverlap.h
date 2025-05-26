@@ -91,7 +91,7 @@ struct FPCGExOverlapScoresWeighting
 namespace PCGExDiscardByOverlap
 {
 	struct FOverlapStats;
-	struct FOverlap;
+	class FOverlap;
 	class FProcessor;
 }
 
@@ -242,8 +242,9 @@ namespace PCGExDiscardByOverlap
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FOverlap
+	class PCGEXTENDEDTOOLKIT_API FOverlap : public TSharedFromThis<FOverlap>
 	{
+	public:
 		uint64 HashID = 0;
 		FBox Intersection = FBox(NoInit);
 		bool IsValid = true;
@@ -337,7 +338,6 @@ namespace PCGExDiscardByOverlap
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
-		virtual void OnRangeProcessingComplete() override;
 		
 		virtual void CompleteWork() override;
 		virtual void Write() override;
