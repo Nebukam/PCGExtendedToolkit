@@ -172,7 +172,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderContext : FPCGExContext
 
 protected:
 	TArray<TSharedPtr<PCGExMT::FDeferredCallbackHandle>> DeferredTasks;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderElement final : public IPCGElement
@@ -194,6 +193,7 @@ public:
 	}
 
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
+	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 };
 
 namespace PCGExFactories

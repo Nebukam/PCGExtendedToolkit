@@ -177,7 +177,7 @@ namespace PCGExFindAllCells
 
 	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell)
 	{
-		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<PCGEX_NEW_POINT_DATA_TYPE>(VtxDataFacade->Source, PCGExData::EIOInit::New);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		if (!PathIO) { return; }
 
 		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts

@@ -67,8 +67,9 @@ public:
 
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ToggleTopology)
-	
+
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-	
+
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
+	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 };

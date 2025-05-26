@@ -91,7 +91,7 @@ bool FPCGExIterationsElement::ExecuteInternal(FPCGContext* InContext) const
 			Data = Context->ManagedObjects->New<UPCGParamData>();
 			break;
 		case EPCGExIterationDataType::Points:
-			Data = Context->ManagedObjects->New<PCGEX_NEW_POINT_DATA_TYPE>();
+			Data = Context->ManagedObjects->New<UPCGPointArrayData>();
 			break;
 		case EPCGExIterationDataType::Spline:
 			Data = Context->ManagedObjects->New<UPCGSplineData>();
@@ -106,7 +106,6 @@ bool FPCGExIterationsElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->StageOutput(OutputLabel, Data, {FString::Printf(TEXT("Iteration:%u"), i), NumIterationsTag}, false, false);
 		}
 	}
-
 
 	Context->Done();
 	return Context->TryComplete();

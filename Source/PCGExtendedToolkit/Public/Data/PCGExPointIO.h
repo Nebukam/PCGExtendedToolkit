@@ -5,7 +5,8 @@
 
 #include "CoreMinimal.h"
 
-#include "Metadata/Accessors//PCGCustomAccessor.h"
+#include "Metadata/Accessors/PCGCustomAccessor.h"
+#include "Data/PCGPointArrayData.h"
 #include "PCGElement.h"
 #include "UObject/Object.h"
 #include "PCGPoint.h"
@@ -735,7 +736,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 				const int64 ParamItemCount = ParamMetadata->GetLocalItemCount();
 				if (ParamItemCount == 0) { return nullptr; }
 
-				UPCGBasePointData* PointData = Context->ManagedObjects->New<PCGEX_NEW_POINT_DATA_TYPE>();
+				UPCGBasePointData* PointData = Cast<UPCGBasePointData>(Context->ManagedObjects->New<UPCGPointArrayData>());
 
 				check(PointData->Metadata);
 

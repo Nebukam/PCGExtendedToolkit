@@ -265,8 +265,6 @@ static void ApplyOffset(_ITEM& Element){ ensureMsgf(false, TEXT("Not implemented
 static void SetElementId(const _ITEM& Element, FOctreeElementId2 OctreeElementID){ }}; \
 using _ITEM##Octree = TOctree2<_ITEM, _ITEM##Semantics>;
 
-#define PCGEX_NEW_POINT_DATA_TYPE UPCGBasePointData
-
 #define PCGEX_REDUCE_INDICES(_OUT, _NUM, _CONDITION)\
 TArray<int32> _OUT; {\
 	int32 ElementIndex = 0;\

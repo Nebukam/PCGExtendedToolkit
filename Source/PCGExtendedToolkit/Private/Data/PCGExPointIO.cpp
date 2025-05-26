@@ -328,7 +328,7 @@ namespace PCGExData
 			}
 			else
 			{
-				Out = SharedContext.Get()->ManagedObjects->New<PCGEX_NEW_POINT_DATA_TYPE>();
+				Out = SharedContext.Get()->ManagedObjects->New<UPCGPointArrayData>();
 			}
 
 			return true;
@@ -337,7 +337,7 @@ namespace PCGExData
 		if (InitOut == EIOInit::Duplicate)
 		{
 			check(In)
-			Out = SharedContext.Get()->ManagedObjects->DuplicateData<PCGEX_NEW_POINT_DATA_TYPE>(In);
+			Out = SharedContext.Get()->ManagedObjects->DuplicateData<UPCGBasePointData>(In);
 		}
 
 		return true;

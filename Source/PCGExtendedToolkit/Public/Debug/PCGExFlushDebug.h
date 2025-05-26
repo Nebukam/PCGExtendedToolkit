@@ -54,8 +54,9 @@ public:
 
 protected:
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
-	
+
 	PCGEX_ELEMENT_CREATE_CONTEXT(Debug)
-	
+
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 };
