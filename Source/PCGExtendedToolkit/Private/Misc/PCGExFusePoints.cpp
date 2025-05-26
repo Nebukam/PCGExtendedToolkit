@@ -101,9 +101,9 @@ namespace PCGExFusePoints
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::FusePoints::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
-		
+
 		PCGEX_SCOPE_LOOP(Index) { UnionGraph->InsertPoint(PointDataFacade->GetInPoint(Index)); }
 	}
 
@@ -138,7 +138,11 @@ namespace PCGExFusePoints
 	void FProcessor::CompleteWork()
 	{
 		const int32 NumUnionNodes = UnionGraph->Nodes.Num();
-		PointDataFacade->Source->GetOut()->SetNumPoints(NumUnionNodes);
+		
+		UPCGBasePointData* OutData = PointDataFacade->Source->GetOut();
+		OutData->SetNumPoints(NumUnionNodes);
+		OutData->AllocateProperties(EPCGPointNativeProperties::All);
+
 
 		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
 		UnionBlender->AddSource(PointDataFacade, &PCGExGraph::ProtectedClusterAttributes);
