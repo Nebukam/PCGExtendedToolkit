@@ -92,7 +92,7 @@ namespace PCGExConvexHull
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		Edges = Delaunay->DelaunayEdges.Array();
 
-		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);		
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;

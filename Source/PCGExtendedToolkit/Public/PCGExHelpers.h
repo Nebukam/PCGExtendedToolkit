@@ -601,7 +601,10 @@ namespace PCGEx
 	};
 
 	PCGEXTENDEDTOOLKIT_API
-	int32 SetNumPointsAllocated(UPCGBasePointData* InData, int32 InNumPoints, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
+	int32 SetNumPointsAllocated(UPCGBasePointData* InData, const int32 InNumPoints, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
+	
+	PCGEXTENDEDTOOLKIT_API
+	bool EnsureMinNumPoints(UPCGBasePointData* InData, const int32 InNumPoints);
 
 #pragma region Array
 
@@ -696,6 +699,9 @@ namespace PCGEx
 		}
 	};
 
+	PCGEXTENDEDTOOLKIT_API
+	void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder);
+	
 	template <typename T>
 	static void ShiftArrayToSmallest(TArray<T>& InArray)
 	{

@@ -188,7 +188,7 @@ namespace PCGExPathToClusters
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
-		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails, 2);
+		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 

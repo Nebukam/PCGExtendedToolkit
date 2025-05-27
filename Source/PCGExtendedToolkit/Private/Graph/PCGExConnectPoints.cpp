@@ -148,7 +148,7 @@ namespace PCGExConnectPoints
 		if (SearchProbes.IsEmpty() && DirectProbes.IsEmpty()) { return false; }
 
 		if (!PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::New)) { return false; }
-		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails, 2);
+		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 
 		CanGenerate.SetNumUninitialized(NumPoints);
 		AcceptConnections.SetNumUninitialized(NumPoints);

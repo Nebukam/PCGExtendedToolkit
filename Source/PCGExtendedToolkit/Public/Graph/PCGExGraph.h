@@ -494,7 +494,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		TSharedRef<PCGExData::FFacade> NodeDataFacade;
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
-
+		
 		// The collection of edges given to the node
 		// We need the full collection even if unrelated, because we track data by index
 		// and those indices are relative to the input data, not the graph context
@@ -506,6 +506,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		TSharedPtr<TArray<int32>> OutputNodeIndices;
 		TSharedPtr<TArray<int32>> OutputPointIndices;
 
+		// A value range we will fetch positions from during compilation
+		// It must have a valid range for Node.PointIndex
+		TConstPCGValueRange<FTransform> NodePointsTransforms;
+
 		// This is true by default, but should be disabled for edge cases where we create new points from scratch
 		// especially if the final amount of points is greater than the number of points we're trying to inherit from.
 		bool bInheritNodeData = true;
@@ -515,8 +519,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		FGraphBuilder(
 			const TSharedRef<PCGExData::FFacade>& InNodeDataFacade,
-			const FPCGExGraphBuilderDetails* InDetails,
-			const int32 NumEdgeReserve = 6);
+			const FPCGExGraphBuilderDetails* InDetails);
 
 		const FGraphMetadataDetails* GetMetadataDetails() const { return MetadataDetailsPtr; }
 

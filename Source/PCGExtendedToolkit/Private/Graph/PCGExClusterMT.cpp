@@ -269,7 +269,7 @@ namespace PCGExClusterMT
 			PCGExGraph::BuildEndpointsLookup(VtxDataFacade->Source, EndpointsLookup, ExpectedAdjacency);
 			if (RequiresGraphBuilder())
 			{
-				GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade, &GraphBuilderDetails, 6);
+				GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade, &GraphBuilderDetails);
 				GraphBuilder->SourceEdgeFacades = EdgesDataFacades;
 			}
 
@@ -300,7 +300,7 @@ namespace PCGExClusterMT
 
 					if (This->RequiresGraphBuilder())
 					{
-						This->GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(This->VtxDataFacade, &This->GraphBuilderDetails, 6);
+						This->GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(This->VtxDataFacade, &This->GraphBuilderDetails);
 						This->GraphBuilder->SourceEdgeFacades = This->EdgesDataFacades;
 					}
 

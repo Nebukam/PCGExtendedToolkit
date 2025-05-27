@@ -130,7 +130,8 @@ namespace PCGExGraph
 		GraphMetadataDetails.EdgesBlendingDetailsPtr = bUseCustomEdgeEdgeBlending ? &CustomEdgeEdgeBlendingDetails : &DefaultEdgesBlendingDetails;
 		GraphMetadataDetails.EdgesCarryOverDetails = EdgesCarryOverDetails;
 
-		GraphBuilder = MakeShared<FGraphBuilder>(UnionDataFacade, &BuilderDetails, 4);
+		GraphBuilder = MakeShared<FGraphBuilder>(UnionDataFacade, &BuilderDetails);
+		GraphBuilder->bInheritNodeData = false;
 		GraphBuilder->SourceEdgeFacades = SourceEdgesIO;
 		GraphBuilder->Graph->NodesUnion = UnionGraph->NodesUnion;
 		GraphBuilder->Graph->EdgesUnion = UnionGraph->EdgesUnion;

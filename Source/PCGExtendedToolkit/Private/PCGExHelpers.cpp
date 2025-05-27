@@ -282,6 +282,62 @@ namespace PCGEx
 		InData->AllocateProperties(Properties);
 		return InNumPoints;
 	}
+
+	bool EnsureMinNumPoints(UPCGBasePointData* InData, const int32 InNumPoints)
+	{
+		if (InData->GetNumPoints() < InNumPoints)
+		{
+			InData->SetNumPoints(InNumPoints);
+			return true;
+		}
+		
+		return false;
+	}
+
+	void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExHelpers::ReorderPointArrayData);
+
+		const int32 NumElements = InOrder.Num();
+		check(NumElements <= InData->GetNumPoints());
+
+		TBitArray<> Visited;
+		Visited.Init(false, NumElements);
+
+#define PCGEX_REORDER_RANGE_DECL(_NAME, _TYPE, ...) TPCGValueRange<_TYPE> _NAME##Range = InData->Get##_NAME##ValueRange();
+		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_RANGE_DECL)
+#undef PCGEX_REORDER_RANGE_DECL
+
+		for (int32 i = 0; i < NumElements; ++i)
+		{
+			if (Visited[i]) { continue; }
+
+			int32 Current = i;
+
+#define PCGEX_REORDER_MOVE_TEMP(_NAME, _TYPE, ...) _TYPE Temp##_NAME =  MoveTemp(_NAME##Range[i]);
+			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_TEMP)
+#undef PCGEX_REORDER_MOVE_TEMP
+
+			while (!Visited[Current])
+			{
+				Visited[Current] = true;
+				int32 Next = InOrder[Current];
+
+				if (Next == i)
+				{
+#define PCGEX_REORDER_MOVE_TEMP(_NAME, _TYPE, ...) _NAME##Range[i] = MoveTemp(Temp##_NAME);
+					PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_TEMP)
+#undef PCGEX_REORDER_MOVE_TEMP
+					break;
+				}
+
+#define PCGEX_REORDER_MOVE_TEMP(_NAME, _TYPE, ...) _NAME##Range[Current] = MoveTemp(_NAME##Range[Next]);
+				PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_TEMP)
+#undef PCGEX_REORDER_MOVE_TEMP
+				Current = Next;
+			}
+		}
+	}
 }
 
 void UPCGExComponentCallback::Callback(UActorComponent* InComponent)

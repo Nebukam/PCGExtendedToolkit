@@ -884,8 +884,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	FGraphBuilder::FGraphBuilder(
 		const TSharedRef<PCGExData::FFacade>& InNodeDataFacade,
-		const FPCGExGraphBuilderDetails* InDetails,
-		const int32 NumEdgeReserve)
+		const FPCGExGraphBuilderDetails* InDetails)
 		: OutputDetails(InDetails),
 		  NodeDataFacade(InNodeDataFacade)
 	{
@@ -896,10 +895,28 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		const UPCGBasePointData* NodePointData = NodeDataFacade->Source->GetOutIn();
 		PairId = NodeDataFacade->Source->Tags->Set<int32>(TagStr_PCGExCluster, NodePointData->GetUniqueID());
 
-		// We should always be initializing from something
-		check(NodePointData->GetNumPoints() > 0)
-		
-		Graph = MakeShared<FGraph>(NodePointData->GetNumPoints());
+
+		// We initialize from the number of output point if it's greater than 0 at init time
+		// Otherwise, init with input points
+
+		const int32 NumOutPoints = NodeDataFacade->Source->GetOut() ? NodeDataFacade->Source->GetNum(PCGExData::EIOSide::Out) : 0;
+		int32 InitialNumNodes = 0;
+
+		if (NumOutPoints != 0)
+		{
+			NodePointsTransforms = NodeDataFacade->Source->GetOut()->GetConstTransformValueRange();
+			InitialNumNodes = NumOutPoints;
+		}
+		else
+		{
+			NodePointsTransforms = NodeDataFacade->Source->GetIn()->GetConstTransformValueRange();
+			InitialNumNodes = NodeDataFacade->Source->GetNum(PCGExData::EIOSide::In);
+		}
+
+		check(InitialNumNodes > 0)
+
+		Graph = MakeShared<FGraph>(InitialNumNodes);
+
 		Graph->bBuildClusters = InDetails->WantsClusters();
 		Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
@@ -920,7 +937,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		// NOTE : We now output nodes to have readable, final positions when we compile the graph, which kindda sucks
 		// It means we need to fully allocate graph data even when ultimately we might prune out a lot of it
-		
+
 		bCompiling = true;
 		AsyncManager = InAsyncManager;
 		MetadataDetailsPtr = MetadataDetails;
@@ -931,6 +948,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		NodeIndexLookup = MakeShared<PCGEx::FIndexLookup>(Graph->Nodes.Num()); // Likely larger than exported size; required for compilation.
 		Graph->NodeIndexLookup = NodeIndexLookup;
 
+		// Building subgraphs isolate connected edge clusters
+		// and invalidate isolated nodes
 		Graph->BuildSubGraphs(*OutputDetails);
 
 		if (Graph->SubGraphs.IsEmpty())
@@ -948,25 +967,24 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		TArray<FNode>& Nodes = Graph->Nodes;
 
-
 		TArray<int32> InternalValidNodes;
-		TArray<int32>& NOrder = InternalValidNodes;
+		TArray<int32>& ValidNodes = InternalValidNodes;
 		TArray<PCGEx::TOrder<int32>> Order;
 
 		int32 NumNodes = Nodes.Num();
 
-		if (OutputNodeIndices) { NOrder = *OutputNodeIndices.Get(); }
+		if (OutputNodeIndices) { ValidNodes = *OutputNodeIndices.Get(); }
 
-		NOrder.Reserve(NumNodes);
+		ValidNodes.Reserve(NumNodes);
 
 		// Filter all valid nodes
 		for (FNode& Node : Nodes)
 		{
 			if (!Node.bValid || Node.IsEmpty()) { continue; }
-			NOrder.Add(Node.Index);
+			ValidNodes.Add(Node.Index);
 		}
 
-		const int32 NumValidNodes = NOrder.Num();
+		const int32 NumValidNodes = ValidNodes.Num();
 
 		TArray<int32> ReadIndices;
 		ReadIndices.SetNumUninitialized(NumValidNodes);
@@ -974,80 +992,77 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints);
 
-			const UPCGBasePointData* InNodeData = NodeDataFacade->GetIn();
 			UPCGBasePointData* OutNodeData = NodeDataFacade->GetOut();
 
-			UPCGMetadata* OutPointsMetadata = OutNodeData->Metadata;
-
-			if (!OutNodeData->IsEmpty() && bInheritNodeData)
+			if (bInheritNodeData)
 			{
-				//Assume points were filled before, and remove them from the current array
-				// We want to isolate old indices and copy them to the new spots
-				check(OutNodeData->GetNumPoints() >= NumNodes)
+				const UPCGBasePointData* InNodeData = NodeDataFacade->GetIn();
 
-				// Sort valid nodes based on outgoing transforms
-				TConstPCGValueRange<FTransform> OutTransforms = OutNodeData->GetConstTransformValueRange();
-				NOrder.Sort(
-					[&](const int32 A, const int32 B)
-					{
-						const FVector V1 = OutTransforms[Nodes[A].PointIndex].GetLocation();
-						const FVector V2 = OutTransforms[Nodes[B].PointIndex].GetLocation();
-						if (V1.X != V2.X) { return V1.X < V2.X; }
-						if (V1.Y != V2.Y) { return V1.Y < V2.Y; }
-						return V1.Z < V2.Z;
-					});
+				// In order to inherit from node data
+				// both input & output must be valid
+				check(!InNodeData->IsEmpty() && !OutNodeData->IsEmpty())
 
+				// the number of valid node may not be greater than any of the data we work with
+				// otherwise it means something created new untracked nodes
+				check(InNodeData->GetNumPoints() <= NumValidNodes)
+				check(OutNodeData->GetNumPoints() <= NumValidNodes)
+
+				// Sort valid nodes by point index
+				// This is probably redundant because nodes are always in point order
+				//ValidNodes.Sort([&](const int32 A, const int32 B) { return Nodes[A].PointIndex < Nodes[B].PointIndex; });
+
+				// Build & remap new point count to node topology
 				for (int32 i = 0; i < NumValidNodes; i++)
 				{
-					FNode& Node = Nodes[NOrder[i]];
-					ReadIndices[i] = Node.PointIndex;
-					Node.PointIndex = i;
+					FNode& Node = Nodes[ValidNodes[i]];
+					ReadIndices[i] = Node.PointIndex; // { NewIndex : InheritedIndex }
+					Node.PointIndex = i;              // Update node point index
 				}
 
-				// TODO : Need to revisit this.
-				// There are cases where the out* point metadata will have been initialized beforehand
-				// And we might need a way to preserve the original values
-
-				// BUG : ReadIndices contains original point indices
-				// However, these indices are based off of the builder' initialization size; which, in some case, is the final size.
-				// But the "In" data is still valid, yet undesirable
-				// This can happen if a graph is creating new nodes (voronoi)
-				// yet we rely on this behavior for everything else (carrying over metadata etc)
-				// This wasn't an issue before because we were copying points...
-				// We'll need ways to mark the builder as "can inherit or "start from scratch"
-				
 				OutNodeData->SetNumPoints(NumValidNodes);               // Shrink output
 				NodeDataFacade->Source->InheritProperties(ReadIndices); // Copy all the things				
 			}
 			else
 			{
-				// We don't have points, this is great!
-				// There's no need for all the original bs, we still need to sort them tho.
+				// We don't have to inherit points, this sounds great
+				// However it makes things harder for us because we need to enforce a deterministic layout for other cluster nodes
+				// We make the assumption that if we don't inherit points, we've introduced new one nodes & edges from different threads
+				// The cheap way to make things deterministic is to sort nodes by spatial position
+
+				// Rough check to make sure we won't have a PointIndex that's outside the desired range
+				check(NodePointsTransforms.Num() >= Nodes.Num())
+
+				// We must have an output size that's at least equal to the number of nodes we have as well, to do the re-order
+				check(OutNodeData->GetNumPoints() >= Nodes.Num())
 
 				// Sort valid nodes based on outgoing transforms
-				TConstPCGValueRange<FTransform> OutTransforms = OutNodeData->GetConstTransformValueRange();
-				NOrder.Sort(
+				ValidNodes.Sort(
 					[&](const int32 A, const int32 B)
 					{
-						const FVector V1 = OutTransforms[Nodes[A].PointIndex].GetLocation();
-						const FVector V2 = OutTransforms[Nodes[B].PointIndex].GetLocation();
+						const FVector V1 = NodePointsTransforms[Nodes[A].PointIndex].GetLocation();
+						const FVector V2 = NodePointsTransforms[Nodes[B].PointIndex].GetLocation();
 						if (V1.X != V2.X) { return V1.X < V2.X; }
 						if (V1.Y != V2.Y) { return V1.Y < V2.Y; }
 						return V1.Z < V2.Z;
 					});
 
-				// Now we have a sorted list of nodes indices, to retrieve the original point from and build a read/write list for
 				for (int32 i = 0; i < NumValidNodes; i++)
 				{
-					FNode& Node = Nodes[NOrder[i]];
+					FNode& Node = Nodes[ValidNodes[i]];
 					ReadIndices[i] = Node.PointIndex;
-					//Node.PointIndex = i; // ok why is this fixing voronoi?
+					Node.PointIndex = i;
 				}
 
-				PCGEx::SetNumPointsAllocated(OutNodeData, NumValidNodes);	
+				// There is no points to inherit from; however we need to reorder the existing data
+				PCGEx::ReorderPointArrayData(OutNodeData, ReadIndices);
 			}
-
 		}
+
+		////////////
+		//  At this point, OutPointData must be up-to-date
+		//  Transforms & Metadata entry must be final and match the Nodes.PointIndex
+		//	Subgraph compilation rely on it.
+		///////////
 
 		// TODO : NEED TO INITIALIZE METADATA KEYS !!!!
 
@@ -1066,7 +1081,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			const uint32 BaseGUID = NodeDataFacade->GetOut()->GetUniqueID();
 
 			TArray<int64>& VtxEndpoints = *VtxEndpointWriter->GetOutValues().Get();
-			for (int i = 0; i < NumValidNodes; i++) { VtxEndpoints[i] = PCGEx::H64(NodeGUID(BaseGUID, i), Nodes[NOrder[i]].NumExportedEdges); }
+			for (const int32 ValidNodeIndex : ValidNodes)
+			{
+				const FNode& Node = Nodes[ValidNodeIndex];
+				VtxEndpoints[Node.PointIndex] = PCGEx::H64(NodeGUID(BaseGUID, Node.PointIndex), Node.NumExportedEdges);
+			}
 		}
 
 		if (MetadataDetails && !Graph->NodeMetadata.IsEmpty())
@@ -1081,7 +1100,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			PCGEX_FOREACH_NODE_METADATA(PCGEX_NODE_METADATA_DECL)
 
-			for (const int32 NodeIndex : NOrder)
+			for (const int32 NodeIndex : ValidNodes)
 			{
 				const FGraphNodeMetadata* NodeMeta = Graph->FindNodeMetadata_Unsafe(NodeIndex);
 
