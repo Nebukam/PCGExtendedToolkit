@@ -1000,12 +1000,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 				// In order to inherit from node data
 				// both input & output must be valid
-				check(!InNodeData->IsEmpty() && !OutNodeData->IsEmpty())
+				check(!InNodeData->IsEmpty())
+				check(InNodeData->GetNumPoints() >= NumValidNodes)
 
-				// the number of valid node may not be greater than any of the data we work with
-				// otherwise it means something created new untracked nodes
-				check(InNodeData->GetNumPoints() <= NumValidNodes)
-				check(OutNodeData->GetNumPoints() <= NumValidNodes)
+				// Ensure we have the required number of nodes in the output
+				PCGEx::EnsureMinNumPoints(OutNodeData, NumValidNodes);
 
 				// Sort valid nodes by point index
 				// This is probably redundant because nodes are always in point order
@@ -1019,7 +1018,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					Node.PointIndex = i;              // Update node point index
 				}
 
-				OutNodeData->SetNumPoints(NumValidNodes);               // Shrink output
+				OutNodeData->SetNumPoints(NumValidNodes);               // Fix output size
 				NodeDataFacade->Source->InheritProperties(ReadIndices); // Copy all the things				
 			}
 			else
