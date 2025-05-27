@@ -372,7 +372,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		mutable FRWLock GraphLock;
 		mutable FRWLock EdgeMetadataLock;
 		mutable FRWLock NodeMetadataLock;
-		const int32 NumEdgesReserve;
 
 	public:
 		bool bBuildClusters = false;
@@ -393,7 +392,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		bool bRefreshEdgeSeed = false;
 
-		explicit FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve = 6);
+		explicit FGraph(const int32 InNumNodes);
 
 		void ReserveForEdges(const int32 UpcomingAdditionCount);
 
@@ -503,6 +502,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		TSharedPtr<TArray<int32>> OutputNodeIndices;
 		TSharedPtr<TArray<int32>> OutputPointIndices;
 
+		bool bInheritNodeData = true;
 		bool bCompiledSuccessfully = false;
 
 		FGraphBuilder(

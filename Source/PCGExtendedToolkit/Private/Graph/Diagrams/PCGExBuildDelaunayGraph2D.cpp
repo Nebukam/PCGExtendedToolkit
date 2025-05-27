@@ -134,7 +134,8 @@ namespace PCGExBuildDelaunay2D
 		}
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
-
+		GraphBuilder->bInheritNodeData = false; // We're creating new points from scratch, we don't want the inheritance.
+		
 		if (Settings->bMarkHull)
 		{
 			OutputIndices = MakeShared<TArray<int32>>();
@@ -153,7 +154,8 @@ namespace PCGExBuildDelaunay2D
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BuildDelaunayGraph3D::ProcessPoints);
-		PCGEX_SCOPE_LOOP(Index) { HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains((*OutputIndices)[Index]); }
+		const TArray<int32>& OutputIndicesRef = *OutputIndices.Get();
+		PCGEX_SCOPE_LOOP(Index) { HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(OutputIndicesRef[Index]); }
 	}
 
 	void FProcessor::CompleteWork()

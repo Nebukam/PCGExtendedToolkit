@@ -421,7 +421,6 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		int32 GetNum() const { return In ? In->GetNumPoints() : Out ? Out->GetNumPoints() : -1; }
 		int32 GetNum(const EIOSide Source) const { return Source == EIOSide::In ? In->GetNumPoints() : Out->GetNumPoints(); }
-		int32 GetOutInNum() const { return Out && !Out->GetNumPoints() ? Out->GetNumPoints() : In ? In->GetNumPoints() : -1; }
 
 		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> GetInKeys();
 		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> GetOutKeys(const bool bEnsureValidKeys = false);

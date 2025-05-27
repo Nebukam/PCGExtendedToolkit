@@ -162,6 +162,7 @@ namespace PCGExBuildVoronoi2D
 
 			SiteDataFacade = MakeShared<PCGExData::FFacade>(Context->SitesOutput->Pairs[PointDataFacade->Source->IOIndex].ToSharedRef());
 			PCGEX_INIT_IO(SiteDataFacade->Source, PCGExData::EIOInit::Duplicate)
+			SiteDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 			if (Settings->bPruneOutOfBounds && !Settings->bPruneOpenSites) { OpenSiteWriter = SiteDataFacade->GetWritable<bool>(Settings->OpenSiteFlag, PCGExData::EBufferInit::New); }
 		}
@@ -170,33 +171,29 @@ namespace PCGExBuildVoronoi2D
 
 		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
 		{
-			int32 Centroids = 0;
+			int32 NumCentroids = 0;
 
 			TArray<int32> RemappedIndices;
-			RemappedIndices.SetNumUninitialized(NumSites);
+			RemappedIndices.Init(-1, NumSites);
 
 			for (int i = 0; i < NumSites; i++)
 			{
 				const FVector Centroid = Voronoi->Circumcenters[i];
 				SitesPositions[i] = Centroid;
 
-				if (!WithinBounds[i])
-				{
-					RemappedIndices[i] = -1;
-					continue;
-				}
+				if (!WithinBounds[i]) { continue; }
 
-				RemappedIndices[i] = Centroids++;
+				RemappedIndices[i] = NumCentroids++;
 			}
 
 			UPCGBasePointData* CentroidsPoints = PointDataFacade->GetOut();
-			(void)PCGEx::SetNumPointsAllocated(CentroidsPoints, Centroids);
+			(void)PCGEx::SetNumPointsAllocated(CentroidsPoints, NumCentroids);
 
 			TPCGValueRange<FTransform> OutTransforms = CentroidsPoints->GetTransformValueRange(false);
 
-			for (int i = 0; i < RemappedIndices.Num(); i++)
+			for (int i = 0; i < NumSites; i++)
 			{
-				if (const int32 Idx = RemappedIndices[i]; Idx != -1) { OutTransforms[Idx].SetLocation(Voronoi->Circumcenters[i]); }
+				if (const int32 Idx = RemappedIndices[i]; Idx != -1) { OutTransforms[Idx].SetLocation(SitesPositions[i]); }
 			}
 
 			TArray<uint64> ValidEdges;

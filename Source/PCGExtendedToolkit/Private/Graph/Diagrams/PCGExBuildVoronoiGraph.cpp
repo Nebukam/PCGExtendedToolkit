@@ -230,6 +230,7 @@ namespace PCGExBuildVoronoi
 
 		// Compile graph
 
+		GraphBuilder->bInheritNodeData = false; // We're creating new points from scratch, we don't want the inheritance.
 		GraphBuilder->CompileAsync(AsyncManager, false);
 
 		return true;

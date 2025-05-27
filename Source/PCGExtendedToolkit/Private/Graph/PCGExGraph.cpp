@@ -524,19 +524,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 #undef PCGEX_FOREACH_EDGE_METADATA
 
-	FGraph::FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve)
-		: NumEdgesReserve(InNumEdgesReserve)
+	FGraph::FGraph(const int32 InNumNodes)
 	{
 		PCGEX_LOG_CTR(FGraph)
-
-		PCGEx::InitArray(Nodes, InNumNodes);
-
-		for (int i = 0; i < InNumNodes; i++)
-		{
-			FNode& Node = Nodes[i];
-			Node.Index = Node.PointIndex = i;
-			Node.Links.Reserve(NumEdgesReserve);
-		}
+		AddNodes(InNumNodes);
 	}
 
 	void FGraph::ReserveForEdges(const int32 UpcomingAdditionCount)
@@ -609,7 +600,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		uint32 A;
 		uint32 B;
 
-		for (const uint64& E : InEdges)
+		UniqueEdges.Reserve(UniqueEdges.Num() + UniqueEdges.Num());
+
+		for (const uint64 E : InEdges)
 		{
 			if (UniqueEdges.Contains(E)) { continue; }
 
@@ -617,12 +610,16 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			check(A != B)
 
-			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
+			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B, -1, InIOIndex);
+
+			//UE_LOG(LogTemp, Warning, TEXT("%"))
+
 			UniqueEdges.Add(E, EdgeIndex);
 			Nodes[A].LinkEdge(EdgeIndex);
 			Nodes[B].LinkEdge(EdgeIndex);
-			Edges[EdgeIndex].IOIndex = InIOIndex;
 		}
+
+		UniqueEdges.Shrink();
 	}
 
 	int32 FGraph::InsertEdges(const TArray<FEdge>& InEdges)
@@ -794,7 +791,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			FNode& Node = Nodes[StartIndex + i];
 			Node.Index = Node.PointIndex = StartIndex + i;
-			Node.Links.Reserve(NumEdgesReserve);
 		}
 
 		return MakeArrayView(Nodes.GetData() + StartIndex, NumNewNodes);
@@ -897,11 +893,13 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		PCGEX_SHARED_CONTEXT_VOID(NodeDataFacade->Source->GetContextHandle())
 
-		PairId = NodeDataFacade->Source->Tags->Set<int32>(TagStr_PCGExCluster, NodeDataFacade->Source->GetOutIn()->GetUniqueID());
+		const UPCGBasePointData* NodePointData = NodeDataFacade->Source->GetOutIn();
+		PairId = NodeDataFacade->Source->Tags->Set<int32>(TagStr_PCGExCluster, NodePointData->GetUniqueID());
 
-		const int32 NumNodes = NodeDataFacade->Source->GetOutInNum();
-
-		Graph = MakeShared<FGraph>(NumNodes, NumEdgeReserve);
+		// We should always be initializing from something
+		check(NodePointData->GetNumPoints() > 0)
+		
+		Graph = MakeShared<FGraph>(NodePointData->GetNumPoints());
 		Graph->bBuildClusters = InDetails->WantsClusters();
 		Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
@@ -954,7 +952,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		int32 NumNodes = Nodes.Num();
 
-		if (OutputNodeIndices) { ValidNodes = *OutputNodeIndices; }
+		if (OutputNodeIndices) { ValidNodes = *OutputNodeIndices.Get(); }
 
 		ValidNodes.Reserve(NumNodes);
 
@@ -967,6 +965,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		const int32 NumValidNodes = ValidNodes.Num();
 
+		TArray<int32> ReadIndices;
+		ReadIndices.SetNumUninitialized(NumValidNodes);
+
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints);
 
@@ -975,7 +976,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			UPCGMetadata* OutPointsMetadata = OutNodeData->Metadata;
 
-			if (!OutNodeData->IsEmpty())
+			if (!OutNodeData->IsEmpty() && bInheritNodeData)
 			{
 				//Assume points were filled before, and remove them from the current array
 				// We want to isolate old indices and copy them to the new spots
@@ -993,10 +994,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 						return V1.Z < V2.Z;
 					});
 
-				// Now we have a sorted list of nodes indices, to retrieve the original point from and build a read/write list for
-				TArray<int32> ReadIndices;
-				ReadIndices.SetNumUninitialized(NumValidNodes);
-
 				for (int32 i = 0; i < NumValidNodes; i++)
 				{
 					FNode& Node = Nodes[ValidNodes[i]];
@@ -1008,12 +1005,21 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// There are cases where the out* point metadata will have been initialized beforehand
 				// And we might need a way to preserve the original values
 
+				// BUG : ReadIndices contains original point indices
+				// However, these indices are based off of the builder' initialization size; which, in some case, is the final size.
+				// But the "In" data is still valid, yet undesirable
+				// This can happen if a graph is creating new nodes (voronoi)
+				// yet we rely on this behavior for everything else (carrying over metadata etc)
+				// This wasn't an issue before because we were copying points...
+				// We'll need ways to mark the builder as "can inherit or "start from scratch"
+				
 				OutNodeData->SetNumPoints(NumValidNodes);               // Shrink output
 				NodeDataFacade->Source->InheritProperties(ReadIndices); // Copy all the things				
 			}
 			else
 			{
-				// We don't have points, this is great! There's no need for all the original bs, we still need to sort them tho.
+				// We don't have points, this is great!
+				// There's no need for all the original bs, we still need to sort them tho.
 
 				// Sort valid nodes based on outgoing transforms
 				TConstPCGValueRange<FTransform> InTransforms = InNodeData->GetConstTransformValueRange();
@@ -1028,9 +1034,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					});
 
 				// Now we have a sorted list of nodes indices, to retrieve the original point from and build a read/write list for
-				TArray<int32> ReadIndices;
-				ReadIndices.SetNumUninitialized(NumValidNodes);
-
 				for (int32 i = 0; i < NumValidNodes; i++)
 				{
 					FNode& Node = Nodes[ValidNodes[i]];
@@ -1038,19 +1041,20 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					Node.PointIndex = i;
 				}
 
-				// There are cases where there will be new points/nodes
-				// So this won't work
-
-				OutNodeData->SetNumPoints(NumValidNodes);
-				NodeDataFacade->Source->InheritProperties(ReadIndices); // Copy all the things		
+				PCGEx::SetNumPointsAllocated(OutNodeData, NumValidNodes);	
 			}
 
-			ValidNodes.Shrink();
 		}
 
 		// TODO : NEED TO INITIALIZE METADATA KEYS !!!!
 
-		// Sort points & update node PointIndex
+		if (OutputPointIndices && OutputPointIndices->Num() == NumValidNodes)
+		{
+			// Reorder output indices if provided
+			// Needed for delaunay etc that rely on original indices to identify sites etc
+			TArray<int32>& OutputPointIndicesRef = *OutputPointIndices.Get();
+			for (int32 i = 0; i < NumValidNodes; i++) { OutputPointIndicesRef[i] = ReadIndices[i]; }
+		}
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::VtxEndpoints);
