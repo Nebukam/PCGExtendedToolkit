@@ -157,9 +157,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 
 namespace PCGExGraph
 {
-
 	using NodeLinks = TArray<FLink, TInlineAllocator<8>>;
-	
+
 	using FGraphCompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
 
 	const FName SourceProbesLabel = TEXT("Probes");
@@ -496,13 +495,22 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		TSharedRef<PCGExData::FFacade> NodeDataFacade;
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
+		// The collection of edges given to the node
+		// We need the full collection even if unrelated, because we track data by index
+		// and those indices are relative to the input data, not the graph context
 		TSharedPtr<PCGExData::FPointIOCollection> EdgesIO;
 		const TArray<TSharedRef<PCGExData::FFacade>>* SourceEdgeFacades = nullptr;
 
+		// Used exclusively by the custom graph builder.
+		// Otherwise a transient array is allocated for the duration of the graph compilation
 		TSharedPtr<TArray<int32>> OutputNodeIndices;
 		TSharedPtr<TArray<int32>> OutputPointIndices;
 
+		// This is true by default, but should be disabled for edge cases where we create new points from scratch
+		// especially if the final amount of points is greater than the number of points we're trying to inherit from.
 		bool bInheritNodeData = true;
+
+		// This will be set to true post-graph compilation, if compilation was a success
 		bool bCompiledSuccessfully = false;
 
 		FGraphBuilder(
