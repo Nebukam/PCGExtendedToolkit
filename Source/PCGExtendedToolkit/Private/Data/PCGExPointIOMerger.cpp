@@ -65,12 +65,11 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointIOMerger::MergeAsync);
 	
 	UPCGBasePointData* OutPointData = UnionDataFacade->GetOut();
-	OutPointData->SetNumPoints(NumCompositePoints);
+	PCGEx::SetNumPointsAllocated(OutPointData, NumCompositePoints);
 
 	// TODO : We could not copy metadata if there's no attributes on any of the input data
 
 	OutPointData->SetMetadataEntry(PCGInvalidEntryKey);
-	OutPointData->AllocateProperties(EPCGPointNativeProperties::All);
 	
 	InCarryOverDetails->Prune(&UnionDataFacade->Source.Get());
 

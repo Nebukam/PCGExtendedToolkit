@@ -78,7 +78,7 @@ namespace PCGExBoundsAxisToPoints
 		}
 		else
 		{
-			PointDataFacade->GetOut()->SetNumPoints(NumPoints * 2);
+			PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), NumPoints * 2);
 			PointDataFacade->Source->InheritProperties(0, NumPoints, NumPoints);
 		}
 
@@ -202,9 +202,9 @@ namespace PCGExBoundsAxisToPoints
 				NewOutput->CopyToNewPoint(Index, A);
 				NewOutput->CopyToNewPoint(Index, B);
 
-				TPCGValueRange<FTransform> Transforms = NewOutput->GetOut()->GetTransformValueRange();
-				TPCGValueRange<FVector> BoundsMin = NewOutput->GetOut()->GetBoundsMinValueRange();
-				TPCGValueRange<FVector> BoundsMax = NewOutput->GetOut()->GetBoundsMaxValueRange();
+				TPCGValueRange<FTransform> Transforms = NewOutput->GetOut()->GetTransformValueRange(false);
+				TPCGValueRange<FVector> BoundsMin = NewOutput->GetOut()->GetBoundsMinValueRange(false);
+				TPCGValueRange<FVector> BoundsMax = NewOutput->GetOut()->GetBoundsMaxValueRange(false);
 
 				if (bSetExtents)
 				{
@@ -228,9 +228,9 @@ namespace PCGExBoundsAxisToPoints
 			}
 			else
 			{
-				TPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetTransformValueRange();
-				TPCGValueRange<FVector> BoundsMin = PointIO->GetOut()->GetBoundsMinValueRange();
-				TPCGValueRange<FVector> BoundsMax = PointIO->GetOut()->GetBoundsMaxValueRange();
+				TPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetTransformValueRange(false);
+				TPCGValueRange<FVector> BoundsMin = PointIO->GetOut()->GetBoundsMinValueRange(false);
+				TPCGValueRange<FVector> BoundsMax = PointIO->GetOut()->GetBoundsMaxValueRange(false);
 
 				int32 A = Index;
 				int32 B = NumPoints + A;

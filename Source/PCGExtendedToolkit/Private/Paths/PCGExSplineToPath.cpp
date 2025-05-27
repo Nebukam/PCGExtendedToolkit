@@ -136,7 +136,7 @@ namespace PCGExSplineToPath
 
 		UPCGBasePointData* MutablePoints = PointDataFacade->Source->GetOut();
 		const int32 LastIndex = Spline.bClosedLoop ? NumSegments - 1 : NumSegments;
-		MutablePoints->SetNumPoints(Spline.bClosedLoop ? NumSegments : NumSegments + 1);
+		PCGEx::SetNumPointsAllocated(MutablePoints, Spline.bClosedLoop ? NumSegments : NumSegments + 1);
 
 		PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_DECL)
 
@@ -145,8 +145,8 @@ namespace PCGExSplineToPath
 			PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_INIT)
 		}
 
-		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange();
-		TPCGValueRange<int32> OutSeeds = MutablePoints->GetSeedValueRange();
+		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange(false);
+		TPCGValueRange<int32> OutSeeds = MutablePoints->GetSeedValueRange(false);
 
 		auto ApplyTransform = [&](const int32 Index, const FTransform& Transform)
 		{

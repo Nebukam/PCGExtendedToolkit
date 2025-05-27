@@ -45,6 +45,7 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExRelaxClusters::FBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
+				NewBatch->AllocateVtxProperties = EPCGPointNativeProperties::Transform;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -97,6 +98,7 @@ namespace PCGExRelaxClusters
 
 		TArray<PCGExCluster::FNode> NodesRef = *Cluster->Nodes.Get();
 		TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
+		
 		for (int i = 0; i < NumNodes; i++) { PBufferRef[i] = SBufferRef[i] = InTransforms[NodesRef[i].PointIndex]; }
 
 		RelaxOperation->ReadBuffer = PrimaryBuffer.Get();
@@ -199,7 +201,7 @@ namespace PCGExRelaxClusters
 	{
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 
-		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

@@ -79,6 +79,7 @@ namespace PCGExTensorsTransform
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		if (!Context->StopFilterFactories.IsEmpty())
 		{
@@ -113,7 +114,7 @@ namespace PCGExTensorsTransform
 		FilterScope(Scope);
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
-		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

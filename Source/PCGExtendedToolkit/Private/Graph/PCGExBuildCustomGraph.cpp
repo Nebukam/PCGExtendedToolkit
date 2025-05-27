@@ -342,7 +342,7 @@ namespace PCGExBuildCustomGraph
 			return;
 		}
 
-		(void)PCGEx::AllocateNumPoints(PointIO->GetOut(), GraphSettings->Idx.Num());
+		(void)PCGEx::SetNumPointsAllocated(PointIO->GetOut(), GraphSettings->Idx.Num());
 
 		PCGEX_MAKE_SHARED(NodeDataFacade, PCGExData::FFacade, PointIO.ToSharedRef())
 		PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails)

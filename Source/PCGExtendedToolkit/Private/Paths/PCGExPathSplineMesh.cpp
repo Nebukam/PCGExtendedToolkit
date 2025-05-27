@@ -297,8 +297,7 @@ namespace PCGExPathSplineMesh
 			const int32 Seed = PCGExRandom::GetSeed(
 				Seeds[Index], Helper->Details.SeedComponents,
 				Helper->Details.LocalSeed, Settings, Context->GetComponent());
-
-
+			
 			Segments[Index] = PCGExPaths::FSplineMeshSegment();
 			PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
 

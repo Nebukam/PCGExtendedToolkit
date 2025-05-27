@@ -87,20 +87,16 @@ namespace PCGExResamplePath
 			if (NumSamples < 2) { return false; }
 
 			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
-
-			UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
-			OutPoints->SetNumPoints(NumSamples);
+			PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), NumSamples);
 		}
 		else
 		{
 			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+			PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 			NumSamples = PointDataFacade->GetNum();
 		}
 
 		SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - 1);
-
-		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
-		OutPoints->SetNumPoints(NumSamples);
 
 		Samples.SetNumUninitialized(NumSamples);
 		bDaisyChainProcessPoints = true;
@@ -195,10 +191,10 @@ namespace PCGExResamplePath
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::ResamplePath::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 
-		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
 
 		if (Settings->Mode == EPCGExResampleMode::Redistribute)
 		{

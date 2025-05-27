@@ -133,7 +133,7 @@ namespace PCGExFuseCollinear
 
 		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-		PointDataFacade->GetOut()->SetNumPoints(ReadIndices.Num());
+		PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), ReadIndices.Num());
 		PointDataFacade->Source->InheritPoints(ReadIndices, 0);
 	}
 }

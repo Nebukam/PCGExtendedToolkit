@@ -33,7 +33,7 @@ bool FPCGExFindPointOnBoundsElement::Boot(FPCGExContext* InContext) const
 		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
 
 		Context->MergedOut->InitializeOutput(PCGExData::EIOInit::New);
-		Context->MergedOut->GetOut()->SetNumPoints(Context->MainPoints->Num());
+		PCGEx::SetNumPointsAllocated(Context->MergedOut->GetOut(), Context->MainPoints->Num());
 		Context->MergedOut->GetOutKeys(true);
 
 		if (!AttributeMismatches.IsEmpty() && !Settings->bQuietAttributeMismatchWarning)
@@ -109,7 +109,7 @@ namespace PCGExFindPointOnBounds
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::FindPointOnBounds::ProcessPoints);
-		
+
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)
@@ -141,8 +141,8 @@ namespace PCGExFindPointOnBounds
 		{
 			const int32 TargetIndex = PointDataFacade->Source->IOIndex;
 
-			TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
-			TPCGValueRange<int64> OutMetadataEntry = PointDataFacade->GetOut()->GetMetadataEntryValueRange();
+			TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+			TPCGValueRange<int64> OutMetadataEntry = PointDataFacade->GetOut()->GetMetadataEntryValueRange(false);
 			const PCGMetadataEntryKey OriginalKey = OutMetadataEntry[TargetIndex];
 
 			PointDataFacade->Source->InheritPoints(BestIndex, TargetIndex, 1);
@@ -153,10 +153,10 @@ namespace PCGExFindPointOnBounds
 		else
 		{
 			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
-			PointDataFacade->Source->GetOut()->SetNumPoints(1);
+			PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), 1);
 
-			TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
-			TPCGValueRange<int64> OutMetadataEntry = PointDataFacade->GetOut()->GetMetadataEntryValueRange();
+			TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+			TPCGValueRange<int64> OutMetadataEntry = PointDataFacade->GetOut()->GetMetadataEntryValueRange(false);
 
 			PointDataFacade->Source->GetOut()->Metadata->InitializeOnSet(OutMetadataEntry[0]);
 			OutTransforms[0].AddToTranslation(Offset);

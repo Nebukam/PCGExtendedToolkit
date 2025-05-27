@@ -68,8 +68,8 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 
 	PathIO->IOIndex = Query->QueryIndex;
 	UPCGBasePointData* PathPoints = PathIO->GetOut();
+	PCGEx::SetNumPointsAllocated(PathPoints, PathIndices.Num() + ExtraIndices);
 
-	PathPoints->SetNumPoints(PathIndices.Num() + ExtraIndices);
 	PathIO->InheritPoints(PathIndices, Settings->bAddSeedToPath ? 1 : 0);
 
 	if (Settings->bAddSeedToPath)

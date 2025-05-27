@@ -480,6 +480,37 @@ namespace PCGEx
 		}
 	}
 
+	constexpr static EPCGPointNativeProperties GetPropertyNativeType(const EPCGPointProperties Property)
+	{
+		switch (Property)
+		{
+		case EPCGPointProperties::Density:
+			return EPCGPointNativeProperties::Density;
+		case EPCGPointProperties::BoundsMin:
+			return EPCGPointNativeProperties::BoundsMin;
+		case EPCGPointProperties::BoundsMax:
+			return EPCGPointNativeProperties::BoundsMax;
+		case EPCGPointProperties::Color:
+			return EPCGPointNativeProperties::Color;
+		case EPCGPointProperties::Position:
+			return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Rotation:
+			return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Scale:
+			return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Transform:
+			return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Steepness:
+			return EPCGPointNativeProperties::Steepness;
+		case EPCGPointProperties::Seed:
+			return EPCGPointNativeProperties::Seed;
+		case EPCGPointProperties::Extents:
+		case EPCGPointProperties::LocalCenter:
+		default:
+			return EPCGPointNativeProperties::None;
+		}
+	}
+
 	constexpr static EPCGMetadataTypes GetPropertyType(const EPCGExtraProperties Property)
 	{
 		switch (Property)
@@ -570,7 +601,7 @@ namespace PCGEx
 	};
 
 	PCGEXTENDEDTOOLKIT_API
-	int32 AllocateNumPoints(UPCGBasePointData* InData, int32 InNumPoints, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
+	int32 SetNumPointsAllocated(UPCGBasePointData* InData, int32 InNumPoints, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
 
 #pragma region Array
 

@@ -15,7 +15,7 @@ void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	if (SafeBlendOver == EPCGExBlendOver::Distance)
 	{
 		PCGExPaths::FPathMetrics PathMetrics = PCGExPaths::FPathMetrics(From.GetLocation());
-		TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -27,7 +27,7 @@ void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	else if (SafeBlendOver == EPCGExBlendOver::Index)
 	{
 		const double Divider = Scope.Count;
-		TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -38,7 +38,7 @@ void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	}
 	else if (SafeBlendOver == EPCGExBlendOver::Fixed)
 	{
-		TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

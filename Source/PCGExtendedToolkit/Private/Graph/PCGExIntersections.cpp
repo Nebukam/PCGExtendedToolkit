@@ -471,7 +471,7 @@ namespace PCGExGraph
 	{
 		FEdge NewEdge = FEdge{};
 
-		TPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetTransformValueRange(Details->bSnapOnEdge);
+		TPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetTransformValueRange(false);
 
 		for (FPointEdgeProxy& PointEdgeProxy : Edges)
 		{
@@ -514,7 +514,7 @@ namespace PCGExGraph
 		const int32 A = SplitEdge.Start;
 		const int32 B = SplitEdge.End;
 
-		const TPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetTransformValueRange();
+		const TPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetTransformValueRange(false);
 
 		for (const FPESplit Split : PointEdgeProxy.CollinearPoints)
 		{
@@ -724,7 +724,7 @@ namespace PCGExGraph
 
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
-		TPCGValueRange<int64> MetadataEntries = PointIO->GetOut()->GetMetadataEntryValueRange();
+		TPCGValueRange<int64> MetadataEntries = PointIO->GetOut()->GetMetadataEntryValueRange(false);
 		for (int i = StartIndex; i < NumPoints; i++) { Metadata->InitializeOnSet(MetadataEntries[i]); }
 
 		return true;

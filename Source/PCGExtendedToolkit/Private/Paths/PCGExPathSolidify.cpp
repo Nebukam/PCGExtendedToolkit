@@ -67,6 +67,13 @@ namespace PCGExPathSolidify
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
+		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointDataFacade->GetOut()->SetNumPoints(Path->LastIndex); }
+
+		PointDataFacade->GetOut()->AllocateProperties(
+			EPCGPointNativeProperties::Transform |
+			EPCGPointNativeProperties::BoundsMin |
+			EPCGPointNativeProperties::BoundsMax);
+
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
@@ -83,8 +90,6 @@ namespace PCGExPathSolidify
 		SolidificationLerp = Settings->GetValueSettingSolidificationLerp();
 		if (!SolidificationLerp->Init(Context, PointDataFacade, false)) { return false; }
 
-		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointIO->GetOut()->SetNumPoints(Path->LastIndex); }
-
 		StartParallelLoopForPoints();
 
 		return true;
@@ -93,12 +98,12 @@ namespace PCGExPathSolidify
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PathSolidify::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 
-		TPCGValueRange<FTransform> Transforms = PointDataFacade->GetOut()->GetTransformValueRange();
-		TPCGValueRange<FVector> BoundsMin = PointDataFacade->GetOut()->GetBoundsMinValueRange();
-		TPCGValueRange<FVector> BoundsMax = PointDataFacade->GetOut()->GetBoundsMaxValueRange();
+		TPCGValueRange<FTransform> Transforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+		TPCGValueRange<FVector> BoundsMin = PointDataFacade->GetOut()->GetBoundsMinValueRange(false);
+		TPCGValueRange<FVector> BoundsMax = PointDataFacade->GetOut()->GetBoundsMaxValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

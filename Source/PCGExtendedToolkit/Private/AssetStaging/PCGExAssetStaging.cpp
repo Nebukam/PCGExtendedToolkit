@@ -238,6 +238,18 @@ namespace PCGExAssetStaging
 			HashWriter = PointDataFacade->GetWritable<int64>(PCGExStaging::Tag_EntryIdx, bInherit ? PCGExData::EBufferInit::Inherit : PCGExData::EBufferInit::New);
 		}
 
+		// Cherry pick native properties allocations
+
+		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
+		
+		AllocateFor |= EPCGPointNativeProperties::BoundsMin;
+		AllocateFor |= EPCGPointNativeProperties::BoundsMax;
+		AllocateFor |= EPCGPointNativeProperties::Transform;
+		if (bOutputWeight && !WeightWriter && !NormalizedWeightWriter) { AllocateFor |= EPCGPointNativeProperties::Density; }
+		AllocateFor |= EPCGPointNativeProperties::MetadataEntry;
+		
+		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
+
 		StartParallelLoopForPoints();
 
 		return true;
@@ -251,20 +263,18 @@ namespace PCGExAssetStaging
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::AssetStaging::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 
-		const TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
-		const TPCGValueRange<FVector> OutBoundsMin = OutPointData->GetBoundsMinValueRange();
-		const TPCGValueRange<FVector> OutBoundsMax = OutPointData->GetBoundsMaxValueRange();
-		const TPCGValueRange<int32> Seeds = OutPointData->GetSeedValueRange();
-
-		const TPCGValueRange<float> Densities = OutPointData->GetDensityValueRange((!WeightWriter && !NormalizedWeightWriter));
-
-		const TPCGValueRange<int64> MetadataEntries = OutPointData->GetMetadataEntryValueRange();
+		const TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange(false);
+		const TPCGValueRange<FVector> OutBoundsMin = OutPointData->GetBoundsMinValueRange(false);
+		const TPCGValueRange<FVector> OutBoundsMax = OutPointData->GetBoundsMaxValueRange(false);
+		const TPCGValueRange<int32> Seeds = OutPointData->GetSeedValueRange(false);
+		const TPCGValueRange<float> Densities = OutPointData->GetDensityValueRange(false);
+		const TPCGValueRange<int64> MetadataEntries = OutPointData->GetMetadataEntryValueRange(false);
 
 		int32 LocalNumInvalid = 0;
 
@@ -414,7 +424,7 @@ namespace PCGExAssetStaging
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const TPCGValueRange<int64> MetadataEntries = PointDataFacade->GetOut()->GetMetadataEntryValueRange();
+		const TPCGValueRange<int64> MetadataEntries = PointDataFacade->GetOut()->GetMetadataEntryValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -452,9 +462,9 @@ namespace PCGExAssetStaging
 
 	void FProcessor::Write()
 	{
-		const TPCGValueRange<int64> MetadataEntries = PointDataFacade->GetOut()->GetMetadataEntryValueRange();
+		const TPCGValueRange<int64> MetadataEntries = PointDataFacade->GetOut()->GetMetadataEntryValueRange(false);
 		PCGEX_REDUCE_INDICES(Indices, MetadataEntries.Num(), MetadataEntries[i] != -2)
-		PointDataFacade->Source->Gather(Indices);
+		(void)PointDataFacade->Source->Gather(Indices);
 	}
 }
 

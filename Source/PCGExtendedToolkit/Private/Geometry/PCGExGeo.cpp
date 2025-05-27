@@ -142,7 +142,6 @@ void PCGExGeoTasks::FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTa
 {
 	UPCGBasePointData* OutPointData = ToBeTransformedIO->GetOut();
 	TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
-
 	FTransform TargetTransform = FTransform::Identity;
 
 	FBox PointBounds = FBox(ForceInit);

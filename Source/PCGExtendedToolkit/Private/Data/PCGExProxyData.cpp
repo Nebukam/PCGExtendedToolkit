@@ -354,14 +354,27 @@ namespace PCGExData
 								OutProxy = TypedProxy;
 							}
 						}
+
 						else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
 						{
+							if (InDescriptor.Role == EProxyRole::Write)
+							{
+								// Ensure we allocate native properties we'll be writing to
+								EPCGPointNativeProperties NativeType = PCGEx::GetPropertyNativeType(InDescriptor.Selector.GetPointProperty());
+								if (NativeType == EPCGPointNativeProperties::None)
+								{
+									PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attempting to write to an unsupported property type."));
+									return;
+								}
+
+								PointData->AllocateProperties(NativeType);
+							}
+
 #define PCGEX_DECL_PROXY(_PROPERTY, _ACCESSOR, _TYPE, _RANGE_TYPE) \
 						case _PROPERTY : \
 						if (bSubSelection) { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, true, _PROPERTY, _RANGE_TYPE>>(); } \
 						else { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, false, _PROPERTY, _RANGE_TYPE>>(); } \
 						break;
-
 							switch (InDescriptor.Selector.GetPointProperty())
 							{
 							PCGEX_FOREACH_POINTPROPERTY(PCGEX_DECL_PROXY)
@@ -402,7 +415,7 @@ namespace PCGExData
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING : \"{0}\""), FText::FromString(PCGEx::GetSelectorDisplayName(InDescriptor.Selector))));
 				return nullptr;
 			}
-			
+
 			OutProxy->SubSelection = InDescriptor.SubSelection;
 		}
 

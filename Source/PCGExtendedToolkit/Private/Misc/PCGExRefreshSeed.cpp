@@ -51,7 +51,6 @@ void FPCGExRefreshSeedTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 {
 	PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::Duplicate)
 
-
 	TPCGValueRange<int32> Seeds = PointIO->GetOut()->GetSeedValueRange();
 	TConstPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetConstTransformValueRange();
 

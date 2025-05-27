@@ -64,11 +64,11 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 
 		Context->GoodSeeds = NewPointIO(Context->SeedsDataFacade->Source, PCGExFindContours::OutputGoodSeedsLabel);
 		Context->GoodSeeds->InitializeOutput(PCGExData::EIOInit::Duplicate);
-		Context->GoodSeeds->GetOut()->SetNumPoints(NumSeeds);
+		PCGEx::SetNumPointsAllocated(Context->GoodSeeds->GetOut(), NumSeeds);
 
 		Context->BadSeeds = NewPointIO(Context->SeedsDataFacade->Source, PCGExFindContours::OutputBadSeedsLabel);
 		Context->BadSeeds->InitializeOutput(PCGExData::EIOInit::Duplicate);
-		Context->BadSeeds->GetOut()->SetNumPoints(NumSeeds);
+		PCGEx::SetNumPointsAllocated(Context->BadSeeds->GetOut(), NumSeeds);
 	}
 
 	return true;
@@ -178,6 +178,9 @@ namespace PCGExFindContours
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		if (!PathIO) { return; }
 
+		const int32 NumCellPoints = InCell->Nodes.Num();
+		PCGEx::SetNumPointsAllocated(PathIO->GetOut(), NumCellPoints);
+
 		PathIO->Tags->Reset();                              // Tag forwarding handled by artifacts
 		PathIO->IOIndex = BatchIndex * 1000000 + SeedIndex; // Enforce seed order for collection output
 
@@ -187,9 +190,10 @@ namespace PCGExFindContours
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 		TArray<int32> ReadIndices;
-		ReadIndices.SetNumUninitialized(InCell->Nodes.Num());
+		ReadIndices.SetNumUninitialized(NumCellPoints);
 
-		for (int i = 0; i < InCell->Nodes.Num(); i++) { ReadIndices[i] = Cluster->GetNode(InCell->Nodes[i])->PointIndex; }
+		for (int i = 0; i < NumCellPoints; i++) { ReadIndices[i] = Cluster->GetNode(InCell->Nodes[i])->PointIndex; }
+
 		PathIO->InheritPoints(ReadIndices, 0);
 		InCell->PostProcessPoints(PathIO->GetOut());
 

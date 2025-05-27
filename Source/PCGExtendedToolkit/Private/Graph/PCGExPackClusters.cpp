@@ -86,15 +86,14 @@ namespace PCGExPackClusters
 		// Copy vtx points after edge points
 		const UPCGBasePointData* VtxPoints = VtxDataFacade->GetIn();
 		UPCGBasePointData* PackedPoints = PackedIO->GetOut();
-
-		PackedPoints->SetNumPoints(VtxStartIndex + NumVtx);
+		PCGEx::SetNumPointsAllocated(PackedPoints, VtxStartIndex + NumVtx);
 		
 		TArray<int32> WriteIndices;
 		PCGEx::ArrayOfIndices(WriteIndices, NumVtx, VtxStartIndex);
 		VtxPoints->CopyPropertiesTo(PackedPoints, VtxPointSelection, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);
 
 		// The following may be redundant
-		TPCGValueRange<int64> MetadataEntries = PackedPoints->GetMetadataEntryValueRange();
+		TPCGValueRange<int64> MetadataEntries = PackedPoints->GetMetadataEntryValueRange(false);
 		for(int32 Index : WriteIndices){ MetadataEntries[Index] = PCGInvalidEntryKey;}
 
 		//

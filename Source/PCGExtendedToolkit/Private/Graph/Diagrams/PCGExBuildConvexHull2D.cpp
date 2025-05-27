@@ -107,7 +107,7 @@ namespace PCGExConvexHull2D
 		UPCGBasePointData* MutablePoints = PathIO->GetOut();
 		TArray<FVector2D> ProjectedPoints;
 
-		(void)PCGEx::AllocateNumPoints(MutablePoints, LastIndex + 1);
+		(void)PCGEx::SetNumPointsAllocated(MutablePoints, LastIndex + 1);
 		ProjectedPoints.Reserve(LastIndex + 1);
 
 		if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); }

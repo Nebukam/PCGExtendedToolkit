@@ -78,6 +78,7 @@ namespace PCGExFlatProjection
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		bWriteAttribute = Settings->bSaveAttributeForRestore;
 		bInverseExistingProjection = Settings->bRestorePreviousProjection;
@@ -105,7 +106,7 @@ namespace PCGExFlatProjection
 		
 		PointDataFacade->Fetch(Scope);
 
-		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
 
 		if (bInverseExistingProjection)
 		{

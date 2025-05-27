@@ -205,20 +205,6 @@ namespace PCGExData
 		virtual bool IsReadable() override { return InValues ? true : false; }
 		virtual bool IsReadingFromWrite() override { return InValues == OutValues; }
 
-		/*
-		// See PCGValueRangeHelpers
-		
-		FORCEINLINE TPCGValueRange<T> GetValueRange()
-		{
-			return TPCGValueRange<T>(OutValues.IsValid() ? MakeStridedView(*OutValues.Get()) : MakeStridedView(sizeof(InternalDefaultValue), &InternalDefaultValue, 1), NumValues);
-		}
-
-		FORCEINLINE TConstPCGValueRange<T> GetConstValueRange() const
-		{
-			return TConstPCGValueRange<T>(OutValues.IsValid() ? MakeConstStridedView(*OutValues.Get()) : MakeConstStridedView(sizeof(InternalDefaultValue), &InternalDefaultValue, 1), NumValues);
-		}
-		*/
-
 		TSharedPtr<TArray<T>> GetInValues() { return InValues; }
 		TSharedPtr<TArray<T>> GetOutValues() { return OutValues; }
 		const FPCGMetadataAttribute<T>* GetTypedInAttribute() const { return TypedInAttribute; }

@@ -226,6 +226,7 @@ namespace PCGExClusterMT
 		bool bSkipCompletion = false;
 		bool bRequiresWriteStep = false;
 		bool bWriteVtxDataFacade = false;
+		EPCGPointNativeProperties AllocateVtxProperties = EPCGPointNativeProperties::None;
 
 		TArray<TSharedPtr<PCGExData::FPointIO>> Edges;
 		TArray<TSharedRef<PCGExData::FFacade>>* EdgesDataFacades = nullptr;
@@ -273,6 +274,9 @@ namespace PCGExClusterMT
 
 		virtual void Output();
 		virtual void Cleanup();
+
+	protected:
+		virtual void AllocateVtxPoints() const;
 	};
 
 	template <typename T>

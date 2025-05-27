@@ -65,7 +65,8 @@ namespace PCGExLloydRelax2D
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)		
+		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
@@ -85,7 +86,7 @@ namespace PCGExLloydRelax2D
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::LloydRelax2D::ProcessPoints);
 		
-		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

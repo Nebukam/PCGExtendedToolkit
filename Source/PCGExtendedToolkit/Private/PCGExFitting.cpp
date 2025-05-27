@@ -330,3 +330,13 @@ bool FPCGExFittingDetailsHandler::Init(FPCGExContext* InContext, const TSharedRe
 	TargetDataFacade = InTargetFacade;
 	return Justification.Init(InContext, InTargetFacade);
 }
+
+bool FPCGExFittingDetailsHandler::WillChangeBounds() const
+{
+	return ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
+}
+
+bool FPCGExFittingDetailsHandler::WillChangeTransform() const
+{
+	return ScaleToFit.ScaleToFitMode != EPCGExFitMode::None || Justification.bDoJustifyX || Justification.bDoJustifyY || Justification.bDoJustifyZ;
+}

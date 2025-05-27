@@ -331,9 +331,9 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 
 		const UPCGBasePointData* InEdgeData = EdgesDataFacade->GetIn();
 		UPCGBasePointData* OutEdgeData = EdgesDataFacade->GetOut();
-		(void)PCGEx::AllocateNumPoints(OutEdgeData, NumEdges);
+		(void)PCGEx::SetNumPointsAllocated(OutEdgeData, NumEdges);
 
-		const TPCGValueRange<int64> OutMetadataEntries = OutEdgeData->GetMetadataEntryValueRange();
+		const TPCGValueRange<int64> OutMetadataEntries = OutEdgeData->GetMetadataEntryValueRange(false);
 
 		UPCGMetadata* Metadata = OutEdgeData->Metadata;
 
@@ -455,9 +455,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		UPCGBasePointData* OutVtxData = VtxDataFacade->GetOut();
 		UPCGBasePointData* OutEdgeData = EdgesDataFacade->GetOut();
 
-		TPCGValueRange<FTransform> VtxTransforms = OutVtxData->GetTransformValueRange();
+		TPCGValueRange<FTransform> VtxTransforms = OutVtxData->GetTransformValueRange(false);
 
-		TPCGValueRange<int32> EdgeSeeds = OutEdgeData->GetSeedValueRange();
+		TPCGValueRange<int32> EdgeSeeds = OutEdgeData->GetSeedValueRange(false);
 
 		const bool bHasUnionMetadata = (MetadataDetails && !ParentGraph->EdgeMetadata.IsEmpty());
 		const FVector SeedOffset = FVector(EdgesDataFacade->Source->IOIndex);

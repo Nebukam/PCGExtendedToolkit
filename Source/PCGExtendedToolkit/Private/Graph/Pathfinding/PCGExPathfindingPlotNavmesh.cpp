@@ -141,8 +141,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 	UPCGBasePointData* OutPathData = PathIO->GetOut();
-	OutPathData->SetNumPoints(NumPoints);
-	OutPathData->AllocateProperties(EPCGPointNativeProperties::All);
+	PCGEx::SetNumPointsAllocated(OutPathData, NumPoints);
 
 	// Copy seed/goal properties
 	PlotScope.CopyPoints(PointIO->GetIn(), PathIO->GetOut());
@@ -150,7 +149,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending = Context->Blending->CreateOperation();
 	if (!SubBlending->PrepareForData(Context, PathDataFacade)) { return; }
 
-	TPCGValueRange<FTransform> OutTransforms;
+	TPCGValueRange<FTransform> OutTransforms = OutPathData->GetTransformValueRange(false);
 
 	const int32 LastPlotIndex = PlotQueries.Num() - 1;
 	int32 WriteIndex = Settings->bAddSeedToPath; // Start at 1 if we added the seed

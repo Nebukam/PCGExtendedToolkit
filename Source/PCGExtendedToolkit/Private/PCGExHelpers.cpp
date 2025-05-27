@@ -276,7 +276,7 @@ namespace PCGEx
 		}
 	}
 
-	int32 AllocateNumPoints(UPCGBasePointData* InData, const int32 InNumPoints, const EPCGPointNativeProperties Properties)
+	int32 SetNumPointsAllocated(UPCGBasePointData* InData, const int32 InNumPoints, const EPCGPointNativeProperties Properties)
 	{
 		InData->SetNumPoints(InNumPoints);
 		InData->AllocateProperties(Properties);

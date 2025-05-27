@@ -295,6 +295,7 @@ namespace PCGExShrinkPath
 					else
 					{
 						PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::New)
+						PCGEx::SetNumPointsAllocated(PointIO->GetOut(), KeptIndices.Num());
 						PointIO->InheritPoints(KeptIndices);
 					}
 				}
@@ -435,11 +436,10 @@ namespace PCGExShrinkPath
 			{
 				if (NumPoints == KeptIndices.Num())
 				{
-					PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::Duplicate)
-
+					PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::Duplicate)					
 					PointIO->InheritProperties(KeptIndices, EPCGPointNativeProperties::Transform);
 
-					TPCGValueRange<FTransform> OutTransforms = PointIO->GetOut()->GetTransformValueRange();
+					TPCGValueRange<FTransform> OutTransforms = PointIO->GetOut()->GetTransformValueRange(false);
 
 					OutTransforms[0].SetLocation(StartPosition);
 					OutTransforms[OutTransforms.Num() - 1].SetLocation(EndPosition);
@@ -447,8 +447,8 @@ namespace PCGExShrinkPath
 				else
 				{
 					PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::New)
-
-					PointIO->InheritPoints(KeptIndices);
+					PCGEx::SetNumPointsAllocated(PointIO->GetOut(), KeptIndices.Num());
+					PointIO->InheritPoints(KeptIndices, 0);
 				}
 			}
 		}

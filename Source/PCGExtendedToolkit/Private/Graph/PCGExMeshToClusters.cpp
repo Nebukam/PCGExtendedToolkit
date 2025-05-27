@@ -243,9 +243,9 @@ namespace PCGExMeshToCluster
 		RootVtx->IOIndex = TaskIndex;
 
 		UPCGBasePointData* VtxPoints = RootVtx->GetOut();
-		(void)PCGEx::AllocateNumPoints(VtxPoints, Mesh->Vertices.Num());
+		(void)PCGEx::SetNumPointsAllocated(VtxPoints, Mesh->Vertices.Num());
 
-		TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);
 		for (int i = 0; i < OutTransforms.Num(); i++) { OutTransforms[i].SetLocation(Mesh->Vertices[i]); }
 
 		PCGEX_MAKE_SHARED(RootVtxFacade, PCGExData::FFacade, RootVtx.ToSharedRef())

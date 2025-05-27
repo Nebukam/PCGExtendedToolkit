@@ -268,7 +268,7 @@ namespace PCGExBridgeClusters
 
 		const int32 NumBridges = Bridges.Num();
 		UPCGBasePointData* EdgeData = CompoundedEdgesDataFacade->Source->GetOut();
-		EdgeData->SetNumPoints(EdgeData->GetNumPoints() + Bridges.Num());
+		PCGEx::SetNumPointsAllocated(EdgeData, EdgeData->GetNumPoints() + Bridges.Num());
 
 		for (int i = 0; i < NumBridges; i++) { NewEdges[i] = EdgeData->GetNumPoints() - (NumBridges - i); }
 
@@ -324,9 +324,8 @@ namespace PCGExBridgeClusters
 		TConstPCGValueRange<int64> VtxMetadataEntries = VtxIO->GetOut()->GetConstMetadataEntryValueRange();
 		TConstPCGValueRange<FTransform> VtxTransforms = VtxIO->GetOut()->GetConstTransformValueRange();
 
-		TPCGValueRange<int64> EdgeMetadataEntries = CompoundedEdgesDataFacade->GetOut()->GetMetadataEntryValueRange();
-		TPCGValueRange<FTransform> EdgeTransforms = CompoundedEdgesDataFacade->GetOut()->GetTransformValueRange();
-
+		TPCGValueRange<int64> EdgeMetadataEntries = CompoundedEdgesDataFacade->GetOut()->GetMetadataEntryValueRange(false);
+		TPCGValueRange<FTransform> EdgeTransforms = CompoundedEdgesDataFacade->GetOut()->GetTransformValueRange(false);
 
 		EdgeTransforms[EdgeIndex].SetLocation(FMath::Lerp(VtxTransforms[IndexA].GetLocation(), VtxTransforms[IndexB].GetLocation(), 0.5));
 

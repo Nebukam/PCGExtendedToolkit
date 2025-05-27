@@ -148,7 +148,7 @@ namespace PCGExUberFilter
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::UberFilter::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
@@ -237,7 +237,7 @@ namespace PCGExUberFilter
 		Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::New);
 		if (!Inside) { return; }
 
-		Inside->GetOut()->SetNumPoints(ReadIndices.Num());
+		PCGEx::SetNumPointsAllocated(Inside->GetOut(), ReadIndices.Num());
 		Inside->InheritProperties(ReadIndices, EPCGPointNativeProperties::All);
 
 		if (Settings->bTagIfAnyPointPassed) { Inside->Tags->AddRaw(Settings->HasAnyPointPassedTag); }
@@ -248,7 +248,7 @@ namespace PCGExUberFilter
 
 		if (!Outside) { return; }
 
-		Outside->GetOut()->SetNumPoints(ReadIndices.Num());
+		PCGEx::SetNumPointsAllocated(Outside->GetOut(), ReadIndices.Num());
 		Outside->InheritProperties(ReadIndices, EPCGPointNativeProperties::All);
 	}
 }

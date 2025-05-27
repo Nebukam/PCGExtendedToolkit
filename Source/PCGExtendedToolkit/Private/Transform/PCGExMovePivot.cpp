@@ -63,6 +63,16 @@ namespace PCGExMovePivot
 		UVW = Settings->UVW;
 		if (!UVW.Init(ExecutionContext, PointDataFacade)) { return false; }
 
+		// Cherry pick native properties allocations
+
+		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
+		
+		AllocateFor |= EPCGPointNativeProperties::BoundsMin;
+		AllocateFor |= EPCGPointNativeProperties::BoundsMax;
+		AllocateFor |= EPCGPointNativeProperties::Transform;
+		
+		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
+		
 		StartParallelLoopForPoints();
 
 		return true;
@@ -73,9 +83,9 @@ namespace PCGExMovePivot
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::MovePivot::ProcessPoints);
 		
 		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
-		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange();
-		TPCGValueRange<FVector> OutBoundsMin = OutPoints->GetBoundsMinValueRange();
-		TPCGValueRange<FVector> OutBoundsMax = OutPoints->GetBoundsMaxValueRange();
+		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
+		TPCGValueRange<FVector> OutBoundsMin = OutPoints->GetBoundsMinValueRange(false);
+		TPCGValueRange<FVector> OutBoundsMax = OutPoints->GetBoundsMaxValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

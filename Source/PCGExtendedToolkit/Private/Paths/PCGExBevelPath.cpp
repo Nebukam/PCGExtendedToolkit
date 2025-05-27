@@ -414,9 +414,9 @@ namespace PCGExBevelPath
 		TConstPCGValueRange<FTransform> InTransform = InPointData->GetConstTransformValueRange();
 		TConstPCGValueRange<int64> InMetadataEntry = InPointData->GetConstMetadataEntryValueRange();
 
-		TPCGValueRange<FTransform> OutTransform = OutPointData->GetTransformValueRange();
-		TPCGValueRange<int64> OutMetadataEntry = OutPointData->GetMetadataEntryValueRange();
-		TPCGValueRange<int32> OutSeeds = OutPointData->GetSeedValueRange();
+		TPCGValueRange<FTransform> OutTransform = OutPointData->GetTransformValueRange(false);
+		TPCGValueRange<int64> OutMetadataEntry = OutPointData->GetMetadataEntryValueRange(false);
+		TPCGValueRange<int32> OutSeeds = OutPointData->GetSeedValueRange(false);
 
 		TArray<int32> IdxMapping = PointDataFacade->Source->GetIdxMapping();
 
@@ -530,8 +530,7 @@ namespace PCGExBevelPath
 		// Build output points
 
 		UPCGBasePointData* MutablePoints = PointDataFacade->GetOut();
-		MutablePoints->SetNumPoints(NumOutPoints);
-		MutablePoints->AllocateProperties(EPCGPointNativeProperties::All);
+		PCGEx::SetNumPointsAllocated(MutablePoints, NumOutPoints);
 
 		PointDataFacade->Source->GetIdxMapping();
 

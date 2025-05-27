@@ -184,7 +184,7 @@ namespace PCGExSubdivide
 
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
-		MutablePoints->SetNumPoints(NumPoints);
+		PCGEx::SetNumPointsAllocated(MutablePoints, NumPoints);
 
 		TConstPCGValueRange<int64> InMetadataEntries = InPoints->GetConstMetadataEntryValueRange();
 		TPCGValueRange<int64> OutMetadataEntries = MutablePoints->GetMetadataEntryValueRange();
@@ -239,8 +239,8 @@ namespace PCGExSubdivide
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
-		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
-		TPCGValueRange<int32> OutSeeds = PointDataFacade->GetOut()->GetSeedValueRange();
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+		TPCGValueRange<int32> OutSeeds = PointDataFacade->GetOut()->GetSeedValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

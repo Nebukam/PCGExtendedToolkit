@@ -147,11 +147,10 @@ void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
 	UPCGBasePointData* OutData = PathIO->GetOut();
-	OutData->SetNumPoints(NumPositions);
-	OutData->AllocateProperties(EPCGPointNativeProperties::All);
+	PCGEx::SetNumPointsAllocated(OutData, NumPositions);
 
 	int32 WriteIndex = 0;
-	TPCGValueRange<FTransform> OutTransforms = OutData->GetTransformValueRange();
+	TPCGValueRange<FTransform> OutTransforms = OutData->GetTransformValueRange(false);
 	Query.CopyPositions(OutTransforms, WriteIndex, Settings->bAddGoalToPath, Settings->bAddGoalToPath);
 
 	TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending = Context->Blending->CreateOperation();

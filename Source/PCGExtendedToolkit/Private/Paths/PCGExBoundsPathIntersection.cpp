@@ -149,8 +149,8 @@ namespace PCGExPathIntersections
 	{
 		const TSharedPtr<PCGExGeo::FIntersections> Intersections = Segmentation->IntersectionsList[Index];
 
-		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->Source->GetOut()->GetTransformValueRange();
-		TPCGValueRange<int32> OutSeeds = PointDataFacade->Source->GetOut()->GetSeedValueRange();
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->Source->GetOut()->GetTransformValueRange(false);
+		TPCGValueRange<int32> OutSeeds = PointDataFacade->Source->GetOut()->GetSeedValueRange(false);
 
 		for (int i = 0; i < Intersections->Cuts.Num(); i++)
 		{
@@ -174,7 +174,7 @@ namespace PCGExPathIntersections
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BoundsPathIntersection::ProcessPoints);
-		
+
 		TConstPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetConstTransformValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)
@@ -218,8 +218,8 @@ namespace PCGExPathIntersections
 
 		const UPCGBasePointData* OriginalPoints = PointDataFacade->GetIn();
 		UPCGBasePointData* MutablePoints = PointDataFacade->GetOut();
+		PCGEx::SetNumPointsAllocated(MutablePoints, OriginalPoints->GetNumPoints() + NumCuts);
 
-		MutablePoints->SetNumPoints(OriginalPoints->GetNumPoints() + NumCuts);
 		TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping();
 
 		TConstPCGValueRange<int64> InMetadataEntries = OriginalPoints->GetConstMetadataEntryValueRange();

@@ -276,7 +276,8 @@ namespace PCGExGeoTasks
 		FTransformPointIO(const int32 InTaskIndex,
 		                  const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                  const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO,
-		                  FPCGExTransformDetails* InTransformDetails) :
+		                  FPCGExTransformDetails* InTransformDetails,
+		                  bool bAllocate = false) :
 			FPCGExIndexedTask(InTaskIndex),
 			PointIO(InPointIO),
 			ToBeTransformedIO(InToBeTransformedIO),

@@ -115,8 +115,8 @@ namespace PCGExPointsToBounds
 	{
 		const UPCGBasePointData* InData = PointDataFacade->GetIn();
 		UPCGBasePointData* OutData = PointDataFacade->GetOut();
+		PCGEx::SetNumPointsAllocated(OutData, 1);
 
-		OutData->SetNumPoints(1);
 		PointDataFacade->Source->InheritPoints(0, 0, 1);
 
 		const double NumPoints = InData->GetNumPoints();
@@ -149,9 +149,9 @@ namespace PCGExPointsToBounds
 			MetadataBlender->EndMultiBlend(0, Trackers);
 		}
 
-		TPCGValueRange<FTransform> OutTransforms = OutData->GetTransformValueRange();
-		TPCGValueRange<FVector> OutBoundsMin = OutData->GetBoundsMinValueRange();
-		TPCGValueRange<FVector> OutBoundsMax = OutData->GetBoundsMaxValueRange();
+		TPCGValueRange<FTransform> OutTransforms = OutData->GetTransformValueRange(false);
+		TPCGValueRange<FVector> OutBoundsMin = OutData->GetBoundsMinValueRange(false);
+		TPCGValueRange<FVector> OutBoundsMax = OutData->GetBoundsMaxValueRange(false);
 
 		if (bOrientedBoxFound)
 		{

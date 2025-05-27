@@ -159,9 +159,9 @@ namespace PCGExBuildVoronoi
 			}
 
 			UPCGBasePointData* CentroidsPoints = PointDataFacade->GetOut();
-			(void)PCGEx::AllocateNumPoints(CentroidsPoints, Centroids);
+			(void)PCGEx::SetNumPointsAllocated(CentroidsPoints, Centroids);
 
-			TPCGValueRange<FTransform> OutTransforms = CentroidsPoints->GetTransformValueRange();
+			TPCGValueRange<FTransform> OutTransforms = CentroidsPoints->GetTransformValueRange(false);
 
 			for (int i = 0; i < RemappedIndices.Num(); i++)
 			{
@@ -181,9 +181,9 @@ namespace PCGExBuildVoronoi
 		{
 			UPCGBasePointData* Centroids = PointDataFacade->GetOut();
 			const int32 NumSites = Voronoi->Centroids.Num();
-			(void)PCGEx::AllocateNumPoints(Centroids, NumSites);
+			(void)PCGEx::SetNumPointsAllocated(Centroids, NumSites);
 
-			TPCGValueRange<FTransform> OutTransforms = Centroids->GetTransformValueRange();
+			TPCGValueRange<FTransform> OutTransforms = Centroids->GetTransformValueRange(false);
 
 			if (Settings->Method == EPCGExCellCenter::Circumcenter)
 			{
@@ -220,8 +220,8 @@ namespace PCGExBuildVoronoi
 		// Update seeds
 
 		const int32 NumSites = PointDataFacade->GetOut()->GetNumPoints();
-		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
-		TPCGValueRange<int32> OutSeeds = PointDataFacade->GetOut()->GetSeedValueRange();
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+		TPCGValueRange<int32> OutSeeds = PointDataFacade->GetOut()->GetSeedValueRange(false);
 
 		for (int i = 0; i < NumSites; i++)
 		{

@@ -75,8 +75,7 @@ namespace PCGExPartitionVertices
 
 		PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		UPCGBasePointData* MutablePoints = PointPartitionIO->GetOut();
-
-		MutablePoints->SetNumPoints(NumNodes);
+		PCGEx::SetNumPointsAllocated(MutablePoints, NumNodes);
 
 		TMap<int32, int32> EndpointsMap;
 		EndpointsMap.Reserve(NumNodes);

@@ -66,11 +66,11 @@ namespace PCGExOffsetPath
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		if (Settings->bInvertDirection) { DirectionFactor *= -1; }
 
 		InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
-		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		Up = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
@@ -121,7 +121,7 @@ namespace PCGExOffsetPath
 			}
 		}
 
-		StartParallelLoopForPoints(Settings->bCleanupPath ? PCGExData::EIOSide::In : PCGExData::EIOSide::Out);
+		StartParallelLoopForPoints();
 		return true;
 	}
 
@@ -132,7 +132,7 @@ namespace PCGExOffsetPath
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
-		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -223,7 +223,7 @@ namespace PCGExOffsetPath
 		// It's greedy but any other approach will be a real pain to maintain
 
 		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
-		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
 
 		TArray<int8> Mask;
 		Mask.Init(0, OutTransforms.Num());

@@ -65,7 +65,7 @@ namespace PCGExGraph
 		Distances = PCGExDetails::MakeDistances(PointPointIntersectionDetails.FuseDetails.SourceDistance, PointPointIntersectionDetails.FuseDetails.TargetDistance);
 
 		UPCGBasePointData* MutablePoints = UnionDataFacade->GetOut();
-		MutablePoints->SetNumPoints(NumUnionNodes);
+		PCGEx::SetNumPointsAllocated(MutablePoints, NumUnionNodes);
 
 		UnionPointsBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, VtxCarryOverDetails, Distances);
 		UnionPointsBlender->AddSources(InFacades, &ProtectedClusterAttributes);
@@ -93,7 +93,7 @@ namespace PCGExGraph
 				TArray<PCGExData::FWeightedPoint> WeightedPoints;
 
 				UPCGBasePointData* OutPoints = This->UnionDataFacade->GetOut();
-				TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange();
+				TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
 
 				PCGEX_SCOPE_LOOP(Index)
 				{

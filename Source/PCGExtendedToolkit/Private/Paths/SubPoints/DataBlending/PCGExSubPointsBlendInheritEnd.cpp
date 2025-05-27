@@ -10,7 +10,7 @@ void FPCGExSubPointsBlendInheritEnd::BlendSubPoints(
 	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
 	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
-	TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange();
+	TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange(false);
 
 	PCGEX_SCOPE_LOOP(Index)
 	{

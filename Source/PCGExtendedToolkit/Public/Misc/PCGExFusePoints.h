@@ -95,6 +95,9 @@ namespace PCGExFusePoints
 		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
 
+		TSharedPtr<PCGExData::TBuffer<bool>> IsUnionWriter;
+		TSharedPtr<PCGExData::TBuffer<int32>> UnionSizeWriter;
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)

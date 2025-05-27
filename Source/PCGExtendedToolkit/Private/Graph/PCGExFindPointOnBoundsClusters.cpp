@@ -50,7 +50,7 @@ bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) cons
 
 		Context->MergedOut->InitializeOutput(PCGExData::EIOInit::New);
 		// There is a risk we allocate too many points here if there's less valid clusters than expected
-		(void)PCGEx::AllocateNumPoints(Context->MergedOut->GetOut(), Context->MainEdges->Num());
+		(void)PCGEx::SetNumPointsAllocated(Context->MergedOut->GetOut(), Context->MainEdges->Num());
 		Context->MergedOut->GetOutKeys(true);
 
 		if (!AttributeMismatches.IsEmpty() && !Settings->bQuietAttributeMismatchWarning)
@@ -173,12 +173,11 @@ namespace PCGExFindPointOnBoundsClusters
 		{
 			const int32 TargetIndex = EdgeDataFacade->Source->IOIndex;
 			Context->IOMergeSources[TargetIndex] = IORef;
-
-
+			
 			IORef->InheritPoints(BestIndex, 0, 1);
 
-			TPCGValueRange<FTransform> OutTransforms = IORef->GetOut()->GetTransformValueRange();
-			TPCGValueRange<int64> OutMetadataEntries = IORef->GetOut()->GetMetadataEntryValueRange();
+			TPCGValueRange<FTransform> OutTransforms = IORef->GetOut()->GetTransformValueRange(false);
+			TPCGValueRange<int64> OutMetadataEntries = IORef->GetOut()->GetMetadataEntryValueRange(false);
 
 			const PCGMetadataEntryKey OriginalKey = Context->MergedOut->GetOut()->GetMetadataEntry(TargetIndex);
 
@@ -190,12 +189,11 @@ namespace PCGExFindPointOnBoundsClusters
 		else
 		{
 			PCGEX_INIT_IO_VOID(IORef, PCGExData::EIOInit::New)
-
-			(void)PCGEx::AllocateNumPoints(IORef->GetOut(), 1);
+			(void)PCGEx::SetNumPointsAllocated(IORef->GetOut(), 1);
 			IORef->InheritPoints(BestIndex, 0, 1);
 
-			TPCGValueRange<FTransform> OutTransforms = IORef->GetOut()->GetTransformValueRange();
-			TPCGValueRange<int64> OutMetadataEntries = IORef->GetOut()->GetMetadataEntryValueRange();
+			TPCGValueRange<FTransform> OutTransforms = IORef->GetOut()->GetTransformValueRange(false);
+			TPCGValueRange<int64> OutMetadataEntries = IORef->GetOut()->GetMetadataEntryValueRange(false);
 
 			OutTransforms[0].AddToTranslation(Offset);
 			IORef->GetOut()->Metadata->InitializeOnSet(OutMetadataEntries[0]);

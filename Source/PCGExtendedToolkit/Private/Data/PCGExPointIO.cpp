@@ -83,50 +83,50 @@ namespace PCGExData
 
 	FTransform& FMutablePoint::GetMutableTransform()
 	{
-		TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange();
+		TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange(false);
 		return Transforms[Index];
 	}
 
 	void FMutablePoint::SetTransform(const FTransform& InValue)
 	{
-		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange();
+		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange(false);
 		Transforms[Index] = InValue;
 	}
 
 	void FMutablePoint::SetLocation(const FVector& InValue)
 	{
-		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange();
+		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange(false);
 		Transforms[Index].SetLocation(InValue);
 	}
 
 	void FMutablePoint::SetScale3D(const FVector& InValue)
 	{
-		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange();
+		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange(false);
 		Transforms[Index].SetScale3D(InValue);
 	}
 
 	void FMutablePoint::SetRotation(const FQuat& InValue)
 	{
-		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange();
+		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange(false);
 		Transforms[Index].SetRotation(InValue);
 	}
 
 	void FMutablePoint::SetBoundsMin(const FVector& InValue)
 	{
-		const TPCGValueRange<FVector> BoundsMin = Data->GetBoundsMinValueRange();
+		const TPCGValueRange<FVector> BoundsMin = Data->GetBoundsMinValueRange(false);
 		BoundsMin[Index] = InValue;
 	}
 
 	void FMutablePoint::SetBoundsMax(const FVector& InValue)
 	{
-		const TPCGValueRange<FVector> BoundsMax = Data->GetBoundsMaxValueRange();
+		const TPCGValueRange<FVector> BoundsMax = Data->GetBoundsMaxValueRange(false);
 		BoundsMax[Index] = InValue;
 	}
 
 	void FMutablePoint::SetExtents(const FVector& InValue, const bool bKeepLocalCenter)
 	{
-		const TPCGValueRange<FVector> BoundsMin = Data->GetBoundsMinValueRange();
-		const TPCGValueRange<FVector> BoundsMax = Data->GetBoundsMaxValueRange();
+		const TPCGValueRange<FVector> BoundsMin = Data->GetBoundsMinValueRange(false);
+		const TPCGValueRange<FVector> BoundsMax = Data->GetBoundsMaxValueRange(false);
 
 		if (bKeepLocalCenter)
 		{
@@ -143,16 +143,16 @@ namespace PCGExData
 
 	void FMutablePoint::SetLocalBounds(const FBox& InValue)
 	{
-		const TPCGValueRange<FVector> BoundsMin = Data->GetBoundsMinValueRange();
+		const TPCGValueRange<FVector> BoundsMin = Data->GetBoundsMinValueRange(false);
 		BoundsMin[Index] = InValue.Min;
 
-		const TPCGValueRange<FVector> BoundsMax = Data->GetBoundsMaxValueRange();
+		const TPCGValueRange<FVector> BoundsMax = Data->GetBoundsMaxValueRange(false);
 		BoundsMax[Index] = InValue.Max;
 	}
 
 	void FMutablePoint::SetMetadataEntry(const int64 InValue)
 	{
-		const TPCGValueRange<int64> MetadataEntries = Data->GetMetadataEntryValueRange();
+		const TPCGValueRange<int64> MetadataEntries = Data->GetMetadataEntryValueRange(false);
 		MetadataEntries[Index] = InValue;
 	}
 
@@ -220,10 +220,10 @@ namespace PCGExData
 
 	void FProxyPoint::CopyTo(UPCGBasePointData* InData) const
 	{
-		TPCGValueRange<FTransform> OutTransform = InData->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransform = InData->GetTransformValueRange(false);
 
-		TPCGValueRange<FVector> OutBoundsMin = InData->GetBoundsMinValueRange();
-		TPCGValueRange<FVector> OutBoundsMax = InData->GetBoundsMinValueRange();
+		TPCGValueRange<FVector> OutBoundsMin = InData->GetBoundsMinValueRange(false);
+		TPCGValueRange<FVector> OutBoundsMax = InData->GetBoundsMinValueRange(false);
 
 		OutTransform[Index] = Transform;
 		OutBoundsMin[Index] = BoundsMin;
@@ -242,32 +242,32 @@ namespace PCGExData
 	{
 		if (InProperty == EPCGExPointPropertyOutput::Density)
 		{
-			TPCGValueRange<float> Density = InPoint.Data->GetDensityValueRange();
+			TPCGValueRange<float> Density = InPoint.Data->GetDensityValueRange(false);
 			Density[InPoint.Index] = InValue;
 		}
 		else if (InProperty == EPCGExPointPropertyOutput::Steepness)
 		{
-			TPCGValueRange<float> Steepness = InPoint.Data->GetSteepnessValueRange();
+			TPCGValueRange<float> Steepness = InPoint.Data->GetSteepnessValueRange(false);
 			Steepness[InPoint.Index] = InValue;
 		}
 		else if (InProperty == EPCGExPointPropertyOutput::ColorR)
 		{
-			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange();
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
 			Color[InPoint.Index].Component(0) = InValue;
 		}
 		else if (InProperty == EPCGExPointPropertyOutput::ColorG)
 		{
-			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange();
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
 			Color[InPoint.Index].Component(1) = InValue;
 		}
 		else if (InProperty == EPCGExPointPropertyOutput::ColorB)
 		{
-			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange();
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
 			Color[InPoint.Index].Component(2) = InValue;
 		}
 		else if (InProperty == EPCGExPointPropertyOutput::ColorA)
 		{
-			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange();
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
 			Color[InPoint.Index].Component(3) = InValue;
 		}
 	}
@@ -435,7 +435,7 @@ namespace PCGExData
 			if (bEnsureValidKeys)
 			{
 				UPCGMetadata* OutMetadata = Out->Metadata;
-				TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange();
+				TPCGValueRange<int64> MetadataEntries = Out->GetMetadataEntryValueRange(true);
 				for (int64& Key : MetadataEntries) { OutMetadata->InitializeOnSet(Key); }
 
 				OutKeys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(Out, false);

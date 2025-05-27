@@ -123,7 +123,6 @@ namespace PCGExClusterMT
 
 	void FClusterProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		
 	}
 
 	void FClusterProcessor::OnNodesProcessingComplete()
@@ -262,6 +261,8 @@ namespace PCGExClusterMT
 		const int32 NumVtx = VtxDataFacade->GetNum();
 		NodeIndexLookup = MakeShared<PCGEx::FIndexLookup>(NumVtx);
 
+		AllocateVtxPoints();
+
 		if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 		{
 			// Trivial
@@ -312,7 +313,9 @@ namespace PCGExClusterMT
 					TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Range);
 
 					PCGEX_ASYNC_THIS
+					
 					const TConstPCGValueRange<int64> MetadataEntries = This->VtxDataFacade->GetIn()->GetConstMetadataEntryValueRange();
+					
 					PCGEX_SCOPE_LOOP(i)
 					{
 						uint32 A;
@@ -402,5 +405,14 @@ namespace PCGExClusterMT
 
 	void FClusterProcessorBatchBase::Cleanup()
 	{
+	}
+
+	void FClusterProcessorBatchBase::AllocateVtxPoints() const
+	{
+		if (AllocateVtxProperties == EPCGPointNativeProperties::None) { return; }
+		if (VtxDataFacade->GetOut() && VtxDataFacade->GetIn() != VtxDataFacade->GetOut())
+		{
+			VtxDataFacade->GetOut()->AllocateProperties(AllocateVtxProperties);
+		}
 	}
 }

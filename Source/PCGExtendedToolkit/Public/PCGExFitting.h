@@ -329,6 +329,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingDetailsHandler
 		OutTransform.AddToTranslation(InTransform.GetRotation().RotateVector(OutTranslation));
 		OutTransform.SetScale3D(OutScale);
 	}
+
+	bool WillChangeBounds() const;
+	bool WillChangeTransform() const;
+	
 };
 
 USTRUCT(BlueprintType)

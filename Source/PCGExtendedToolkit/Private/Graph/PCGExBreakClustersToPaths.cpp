@@ -160,7 +160,7 @@ namespace PCGExBreakClustersToPaths
 			if (!PathIO) { continue; }
 
 			bool bDoReverse = bReverse;
-			(void)PCGEx::AllocateNumPoints(PathIO->GetOut(), ChainSize);
+			(void)PCGEx::SetNumPointsAllocated(PathIO->GetOut(), ChainSize);
 
 			TArray<int32> IdxMapping = PathIO->GetIdxMapping();
 			IdxMapping[0] = Cluster->GetNodePointIndex(Chain->Seed);
@@ -211,7 +211,7 @@ namespace PCGExBreakClustersToPaths
 			if (!PathIO) { continue; }
 
 			UPCGBasePointData* MutablePoints = PathIO->GetOut();
-			(void)PCGEx::AllocateNumPoints(MutablePoints, 2);
+			(void)PCGEx::SetNumPointsAllocated(MutablePoints, 2);
 
 			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 

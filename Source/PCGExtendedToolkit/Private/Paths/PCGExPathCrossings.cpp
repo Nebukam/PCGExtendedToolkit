@@ -306,15 +306,16 @@ namespace PCGExPathCrossings
 
 		const UPCGBasePointData* InPoints = PointIO->GetIn();
 		UPCGBasePointData* OutPoints = PointIO->GetOut();
+		PCGEx::SetNumPointsAllocated(OutPoints, NumPointsFinal);
 
 		TArray<int32> WriteIndices;
 		WriteIndices.Reserve(InPoints->GetNumPoints());
 
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
-		OutPoints->SetNumPoints(NumPointsFinal);
+		
 		TConstPCGValueRange<int64> InMetadataEntries = InPoints->GetConstMetadataEntryValueRange();
-		TPCGValueRange<int64> OutMetadataEntries = OutPoints->GetMetadataEntryValueRange();
+		TPCGValueRange<int64> OutMetadataEntries = OutPoints->GetMetadataEntryValueRange(false);
 
 		int32 Index = 0;
 		for (int i = 0; i < Path->NumEdges; i++)
@@ -397,7 +398,7 @@ namespace PCGExPathCrossings
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		UPCGBasePointData* OutPoints = PointIO->GetOut();
-		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

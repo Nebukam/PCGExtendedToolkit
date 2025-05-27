@@ -133,7 +133,7 @@ namespace PCGExCreateShapes
 			}
 
 			UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
-			OutPointData->SetNumPoints(NumPoints);
+			PCGEx::SetNumPointsAllocated(OutPointData, NumPoints);
 
 			for (int i = 0; i < NumSeeds; i++)
 			{
@@ -176,7 +176,7 @@ namespace PCGExCreateShapes
 				PCGEX_MAKE_SHARED(IOFacade, PCGExData::FFacade, IO.ToSharedRef())
 				PerSeedFacades.Add(IOFacade);
 
-				IOFacade->GetOut()->SetNumPoints(NumPoints);
+				PCGEx::SetNumPointsAllocated(IOFacade->GetOut(), NumPoints);
 
 				for (int j = 0; j < NumBuilders; j++)
 				{
@@ -218,8 +218,8 @@ namespace PCGExCreateShapes
 		UPCGBasePointData* ShapePoints = ShapeDataFacade->GetOut();
 
 		ShapeDataFacade->Source->RepeatPoint(Shape->Seed.Index, Shape->StartIndex, Shape->NumPoints);
-		TPCGValueRange<FVector> BoundsMin = ShapePoints->GetBoundsMinValueRange();
-		TPCGValueRange<FVector> BoundsMax = ShapePoints->GetBoundsMaxValueRange();
+		TPCGValueRange<FVector> BoundsMin = ShapePoints->GetBoundsMinValueRange(false);
+		TPCGValueRange<FVector> BoundsMax = ShapePoints->GetBoundsMaxValueRange(false);
 
 		PCGExData::FScope SubScope = ShapeDataFacade->Source->GetInScope(Shape->StartIndex, Shape->NumPoints);
 		PCGEX_SUBSCOPE_LOOP(Index)
@@ -247,8 +247,8 @@ namespace PCGExCreateShapes
 		TransformPointsTask->OnSubLoopStartCallback =
 			[TRA, TRB, SubScope](const PCGExMT::FScope& Scope)
 			{
-				TPCGValueRange<FTransform> OutTransforms = SubScope.Data->GetTransformValueRange();
-				TPCGValueRange<int32> OutSeeds = SubScope.Data->GetSeedValueRange();
+				TPCGValueRange<FTransform> OutTransforms = SubScope.Data->GetTransformValueRange(false);
+				TPCGValueRange<int32> OutSeeds = SubScope.Data->GetSeedValueRange(false);
 
 				PCGEX_SCOPE_LOOP(Index)
 				{
