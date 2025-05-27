@@ -602,7 +602,7 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API
 	int32 SetNumPointsAllocated(UPCGBasePointData* InData, const int32 InNumPoints, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	bool EnsureMinNumPoints(UPCGBasePointData* InData, const int32 InNumPoints);
 
@@ -654,36 +654,38 @@ namespace PCGEx
 	template <typename T>
 	void ReorderArray(TArray<T>& InArray, const TArray<int32>& InOrder)
 	{
-		check(InArray.Num() == InOrder.Num())
+		const int32 NumElements = InOrder.Num();
+		check(NumElements <= InArray.Num());
 
-		const int32 NumElements = InArray.Num();
 		TBitArray<> Visited;
 		Visited.Init(false, NumElements);
 
 		for (int32 i = 0; i < NumElements; ++i)
 		{
-			if (Visited[i])
+			if (Visited[i]) continue;
+
+			int32 Current = i;
+			int32 Next = InOrder[Current];
+
+			if (Next == Current)
 			{
+				Visited[Current] = true;
 				continue;
 			}
 
-			int32 Current = i;
-			T Temp = MoveTemp(InArray[i]);
+			T Temp = MoveTemp(InArray[Current]);
 
-			while (!Visited[Current])
+			while (!Visited[Next])
 			{
-				Visited[Current] = true;
-				int32 Next = InOrder[Current];
-
-				if (Next == i)
-				{
-					InArray[Current] = MoveTemp(Temp);
-					break;
-				}
-
 				InArray[Current] = MoveTemp(InArray[Next]);
+
+				Visited[Current] = true;
 				Current = Next;
+				Next = InOrder[Current];
 			}
+
+			InArray[Current] = MoveTemp(Temp);
+			Visited[Current] = true;
 		}
 	}
 
@@ -701,7 +703,7 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API
 	void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder);
-	
+
 	template <typename T>
 	static void ShiftArrayToSmallest(TArray<T>& InArray)
 	{

@@ -310,33 +310,39 @@ namespace PCGEx
 
 		for (int32 i = 0; i < NumElements; ++i)
 		{
-			if (Visited[i]) { continue; }
+			if (Visited[i]) continue;
 
 			int32 Current = i;
+			int32 Next = InOrder[Current];
 
-#define PCGEX_REORDER_MOVE_TEMP(_NAME, _TYPE, ...) _TYPE Temp##_NAME =  MoveTemp(_NAME##Range[i]);
-			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_TEMP)
-#undef PCGEX_REORDER_MOVE_TEMP
-
-			while (!Visited[Current])
+			if (Next == Current)
 			{
 				Visited[Current] = true;
-				int32 Next = InOrder[Current];
-
-				if (Next == i)
-				{
-#define PCGEX_REORDER_MOVE_TEMP(_NAME, _TYPE, ...) _NAME##Range[i] = MoveTemp(Temp##_NAME);
-					PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_TEMP)
-#undef PCGEX_REORDER_MOVE_TEMP
-					break;
-				}
-
-#define PCGEX_REORDER_MOVE_TEMP(_NAME, _TYPE, ...) _NAME##Range[Current] = MoveTemp(_NAME##Range[Next]);
-				PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_TEMP)
-#undef PCGEX_REORDER_MOVE_TEMP
-				Current = Next;
+				continue;
 			}
+
+#define PCGEX_REORDER_MOVE_TEMP(_NAME, _TYPE, ...) _TYPE Temp##_NAME = MoveTemp(_NAME##Range[Current]);
+			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_TEMP)
+		#undef PCGEX_REORDER_MOVE_TEMP
+
+			while (!Visited[Next])
+			{
+#define PCGEX_REORDER_MOVE_FORWARD(_NAME, _TYPE, ...) _NAME##Range[Current] = MoveTemp(_NAME##Range[Next]);
+				PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_FORWARD)
+		#undef PCGEX_REORDER_MOVE_FORWARD
+
+				Visited[Current] = true;
+				Current = Next;
+				Next = InOrder[Current];
+			}
+
+#define PCGEX_REORDER_MOVE_BACK(_NAME, _TYPE, ...) _NAME##Range[Current] = MoveTemp(Temp##_NAME);
+			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_BACK)
+		#undef PCGEX_REORDER_MOVE_BACK
+
+			Visited[Current] = true;
 		}
+		
 	}
 }
 

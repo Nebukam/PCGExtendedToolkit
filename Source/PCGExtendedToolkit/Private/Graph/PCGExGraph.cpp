@@ -1011,7 +1011,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				//ValidNodes.Sort([&](const int32 A, const int32 B) { return Nodes[A].PointIndex < Nodes[B].PointIndex; });
 
 				// Build & remap new point count to node topology
-				for (int32 i = 0; i < NumValidNodes; i++)
+				for (int i = 0; i < NumValidNodes; i++)
 				{
 					FNode& Node = Nodes[ValidNodes[i]];
 					ReadIndices[i] = Node.PointIndex; // { NewIndex : InheritedIndex }
@@ -1045,7 +1045,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 						return V1.Z < V2.Z;
 					});
 
-				for (int32 i = 0; i < NumValidNodes; i++)
+				for (int i = 0; i < NumValidNodes; i++)
 				{
 					FNode& Node = Nodes[ValidNodes[i]];
 					ReadIndices[i] = Node.PointIndex;
