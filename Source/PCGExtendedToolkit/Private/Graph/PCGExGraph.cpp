@@ -918,6 +918,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	{
 		check(!bCompiling)
 
+		// NOTE : We now output nodes to have readable, final positions when we compile the graph, which kindda sucks
+		// It means we need to fully allocate graph data even when ultimately we might prune out a lot of it
+		
 		bCompiling = true;
 		AsyncManager = InAsyncManager;
 		MetadataDetailsPtr = MetadataDetails;
@@ -947,23 +950,23 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 
 		TArray<int32> InternalValidNodes;
-		TArray<int32>& ValidNodes = InternalValidNodes;
+		TArray<int32>& NOrder = InternalValidNodes;
 		TArray<PCGEx::TOrder<int32>> Order;
 
 		int32 NumNodes = Nodes.Num();
 
-		if (OutputNodeIndices) { ValidNodes = *OutputNodeIndices.Get(); }
+		if (OutputNodeIndices) { NOrder = *OutputNodeIndices.Get(); }
 
-		ValidNodes.Reserve(NumNodes);
+		NOrder.Reserve(NumNodes);
 
 		// Filter all valid nodes
 		for (FNode& Node : Nodes)
 		{
 			if (!Node.bValid || Node.IsEmpty()) { continue; }
-			ValidNodes.Add(Node.Index);
+			NOrder.Add(Node.Index);
 		}
 
-		const int32 NumValidNodes = ValidNodes.Num();
+		const int32 NumValidNodes = NOrder.Num();
 
 		TArray<int32> ReadIndices;
 		ReadIndices.SetNumUninitialized(NumValidNodes);
@@ -984,7 +987,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 				// Sort valid nodes based on outgoing transforms
 				TConstPCGValueRange<FTransform> OutTransforms = OutNodeData->GetConstTransformValueRange();
-				ValidNodes.Sort(
+				NOrder.Sort(
 					[&](const int32 A, const int32 B)
 					{
 						const FVector V1 = OutTransforms[Nodes[A].PointIndex].GetLocation();
@@ -996,7 +999,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 				for (int32 i = 0; i < NumValidNodes; i++)
 				{
-					FNode& Node = Nodes[ValidNodes[i]];
+					FNode& Node = Nodes[NOrder[i]];
 					ReadIndices[i] = Node.PointIndex;
 					Node.PointIndex = i;
 				}
@@ -1022,12 +1025,12 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// There's no need for all the original bs, we still need to sort them tho.
 
 				// Sort valid nodes based on outgoing transforms
-				TConstPCGValueRange<FTransform> InTransforms = InNodeData->GetConstTransformValueRange();
-				ValidNodes.Sort(
+				TConstPCGValueRange<FTransform> OutTransforms = OutNodeData->GetConstTransformValueRange();
+				NOrder.Sort(
 					[&](const int32 A, const int32 B)
 					{
-						const FVector V1 = InTransforms[Nodes[A].PointIndex].GetLocation();
-						const FVector V2 = InTransforms[Nodes[B].PointIndex].GetLocation();
+						const FVector V1 = OutTransforms[Nodes[A].PointIndex].GetLocation();
+						const FVector V2 = OutTransforms[Nodes[B].PointIndex].GetLocation();
 						if (V1.X != V2.X) { return V1.X < V2.X; }
 						if (V1.Y != V2.Y) { return V1.Y < V2.Y; }
 						return V1.Z < V2.Z;
@@ -1036,9 +1039,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// Now we have a sorted list of nodes indices, to retrieve the original point from and build a read/write list for
 				for (int32 i = 0; i < NumValidNodes; i++)
 				{
-					FNode& Node = Nodes[ValidNodes[i]];
+					FNode& Node = Nodes[NOrder[i]];
 					ReadIndices[i] = Node.PointIndex;
-					Node.PointIndex = i;
+					//Node.PointIndex = i; // ok why is this fixing voronoi?
 				}
 
 				PCGEx::SetNumPointsAllocated(OutNodeData, NumValidNodes);	
@@ -1063,7 +1066,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			const uint32 BaseGUID = NodeDataFacade->GetOut()->GetUniqueID();
 
 			TArray<int64>& VtxEndpoints = *VtxEndpointWriter->GetOutValues().Get();
-			for (int i = 0; i < NumValidNodes; i++) { VtxEndpoints[i] = PCGEx::H64(NodeGUID(BaseGUID, i), Nodes[ValidNodes[i]].NumExportedEdges); }
+			for (int i = 0; i < NumValidNodes; i++) { VtxEndpoints[i] = PCGEx::H64(NodeGUID(BaseGUID, i), Nodes[NOrder[i]].NumExportedEdges); }
 		}
 
 		if (MetadataDetails && !Graph->NodeMetadata.IsEmpty())
@@ -1078,7 +1081,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			PCGEX_FOREACH_NODE_METADATA(PCGEX_NODE_METADATA_DECL)
 
-			for (const int32 NodeIndex : ValidNodes)
+			for (const int32 NodeIndex : NOrder)
 			{
 				const FGraphNodeMetadata* NodeMeta = Graph->FindNodeMetadata_Unsafe(NodeIndex);
 

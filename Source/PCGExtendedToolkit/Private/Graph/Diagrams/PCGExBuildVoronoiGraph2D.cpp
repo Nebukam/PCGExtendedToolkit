@@ -178,11 +178,8 @@ namespace PCGExBuildVoronoi2D
 
 			for (int i = 0; i < NumSites; i++)
 			{
-				const FVector Centroid = Voronoi->Circumcenters[i];
-				SitesPositions[i] = Centroid;
-
+				SitesPositions[i] = Voronoi->Circumcenters[i];
 				if (!WithinBounds[i]) { continue; }
-
 				RemappedIndices[i] = NumCentroids++;
 			}
 
