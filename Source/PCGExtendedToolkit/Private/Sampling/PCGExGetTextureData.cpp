@@ -191,7 +191,11 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 
 			ApplySettings(RTData);
 			RTData->Initialize(RT, Transform);
-			StageOutput(PCGExTexture::OutputTextureDataLabel, RTData, {Ref.GetTag()}, false, false);
+
+			FPCGTaggedData& StagedData = StageOutput(RTData, false, false);
+			StagedData.Pin = PCGExTexture::OutputTextureDataLabel;
+			StagedData.Tags.Add(Ref.GetTag());
+
 
 			MoveToNextTask();
 			return;
@@ -239,7 +243,10 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 		return;
 	}
 
-	StageOutput(PCGExTexture::OutputTextureDataLabel, TexData, {Ref.GetTag()}, false, false);
+	FPCGTaggedData& StagedData = StageOutput(TexData, false, false);
+	StagedData.Pin = PCGExTexture::OutputTextureDataLabel;
+	StagedData.Tags.Add(Ref.GetTag());
+
 	MoveToNextTask();
 
 #pragma endregion
@@ -296,7 +303,7 @@ namespace PCGExGetTextureData
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::GetTextureData::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 

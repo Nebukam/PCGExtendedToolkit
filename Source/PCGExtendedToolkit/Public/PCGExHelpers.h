@@ -273,7 +273,7 @@ namespace PCGEx
 
 	public:
 		TWeakPtr<FPCGContextHandle> WeakHandle;
-		TSet<UObject*> ManagedObjects;
+		TSet<TObjectPtr<UObject>> ManagedObjects;
 
 		bool IsFlushing() const { return bIsFlushing.load(std::memory_order_acquire); }
 
@@ -289,6 +289,8 @@ namespace PCGEx
 		bool Remove(UObject* InObject);
 		void Remove(const TArray<FPCGTaggedData>& InTaggedData);
 
+		void AddExtraStructReferencedObjects(FReferenceCollector& Collector);
+		
 		template <class T, typename... Args>
 		T* New(Args&&... InArgs)
 		{

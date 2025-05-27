@@ -62,8 +62,8 @@ public:
 
 	void IncreaseStagedOutputReserve(const int32 InIncreaseNum);
 
-	void StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, bool bManaged, bool bIsMutable);
-	void StageOutput(const FName Pin, UPCGData* InData, bool bManaged);
+	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged, const bool bIsMutable);
+	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged);
 
 	UWorld* GetWorld() const;
 	const UPCGComponent* GetComponent() const;
@@ -150,6 +150,8 @@ protected:
 	void ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) const;
 
 	bool bExecutionCancelled = false;
+
+	virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override;
 
 public:
 	void AddNotifyActor(AActor* InActor);

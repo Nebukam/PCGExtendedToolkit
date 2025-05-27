@@ -4,6 +4,7 @@
 #include "Data/PCGExPointIO.h"
 
 #include "PCGExContext.h"
+#include "PCGExDetails.h"
 #include "PCGExMT.h"
 
 namespace PCGExData
@@ -685,7 +686,11 @@ namespace PCGExData
 
 		if (!IsEnabled() || !Out || (!bAllowEmptyOutput && Out->IsEmpty())) { return false; }
 
-		TargetContext->StageOutput(OutputPin, Out, Tags->Flatten(), Out != In, bMutable);
+		FPCGTaggedData& StagedData = TargetContext->StageOutput(Out, bMutable);
+		StagedData.Pin = OutputPin;
+		StagedData.Tags.Append(Tags->Flatten());
+		StagedData.bPinlessData = bPinless;
+
 
 		return true;
 	}
@@ -715,7 +720,11 @@ namespace PCGExData
 				UPCGData* MutableData = const_cast<UPCGData*>(InitializationData.Get());
 				if (!MutableData) { return false; }
 
-				TargetContext->StageOutput(OutputPin, MutableData, Tags->Flatten(), false, false);
+				FPCGTaggedData& StagedData = TargetContext->StageOutput(MutableData, false, false);
+				StagedData.Pin = OutputPin;
+				StagedData.Tags.Append(Tags->Flatten());
+				StagedData.bPinlessData = bPinless;
+
 				return true;
 			}
 

@@ -242,7 +242,7 @@ class FPCGExAttributeStatsElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(AttributeStats)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -343,7 +343,12 @@ namespace PCGExAttributeStats
 				if (Settings->bOutputPerUniqueValuesStats)
 				{
 					UniqueValuesParamData = Context->ManagedObjects->New<UPCGParamData>();
-					Context->StageOutput(OutputAttributeUniqueValues, UniqueValuesParamData, {Identifier, Identity.Name.ToString()}, false, false);
+
+					FPCGTaggedData& StagedData = Context->StageOutput(UniqueValuesParamData, false, false);
+					StagedData.Pin = OutputAttributeUniqueValues;
+					StagedData.Tags.Add(Identifier);
+					StagedData.Tags.Add(Identity.Name.ToString());
+
 					InDataFacade->Source->Tags->AddRaw(Identifier);
 				}
 

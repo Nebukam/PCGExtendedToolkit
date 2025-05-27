@@ -67,19 +67,19 @@ namespace PCGExPathSolidify
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
+		
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0, bClosedLoop);
+		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
+		Path->IOIndex = PointDataFacade->Source->IOIndex;
+		
 		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointDataFacade->GetOut()->SetNumPoints(Path->LastIndex); }
 
 		PointDataFacade->GetOut()->AllocateProperties(
 			EPCGPointNativeProperties::Transform |
 			EPCGPointNativeProperties::BoundsMin |
 			EPCGPointNativeProperties::BoundsMax);
-
-		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
-
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0, bClosedLoop);
-		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
-		Path->IOIndex = PointDataFacade->Source->IOIndex;
 
 #define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){\
 		SolidificationRad##_AXIS = PCGExDetails::MakeSettingValue(Settings->Radius##_AXIS##Input, Settings->Radius##_AXIS##SourceAttribute, Settings->Radius##_AXIS##Constant);\

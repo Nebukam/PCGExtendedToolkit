@@ -289,6 +289,8 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 	protected:
 		bool bTransactional = false;
 		bool bMutable = false;
+		bool bPinless = false;
+		
 		TWeakPtr<FPCGContextHandle> ContextHandle;
 
 		mutable FRWLock PointsLock;

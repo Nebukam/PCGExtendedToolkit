@@ -252,7 +252,6 @@ namespace PCGExMeshToCluster
 		PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, RootVtxFacade.ToSharedRef(), &Context->GraphBuilderDetails)
 
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
-
 		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
 		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true);
 	}

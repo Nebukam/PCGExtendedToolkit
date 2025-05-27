@@ -125,12 +125,12 @@ namespace PCGExCreateSpline
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::CreateSpline::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			FVector OutArrive = FVector::ZeroVector;
@@ -189,7 +189,10 @@ namespace PCGExCreateSpline
 
 		// Output spline data
 		SplineData->Initialize(SplinePoints, bClosedLoop, FTransform(PositionOffset));
-		Context->StageOutput(Settings->GetMainOutputPin(), SplineData, PointDataFacade->Source->Tags->Flatten(), true, false);
+
+		FPCGTaggedData& StagedData = Context->StageOutput(SplineData, true, false);
+		StagedData.Pin = Settings->GetMainOutputPin();
+		StagedData.Tags.Append(PointDataFacade->Source->Tags->Flatten());
 
 		// Output spline component
 		if (Settings->Mode != EPCGCreateSplineMode::CreateDataOnly)

@@ -13,24 +13,21 @@
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
-void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable)
+FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged, const bool bIsMutable)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutput);
+	
 	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
 
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
-		Output.Pin = Pin;
 		Output.Data = InData;
-		Output.Tags.Append(InTags);
 	}
 	else
 	{
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
-		Output.Pin = Pin;
 		Output.Data = InData;
-		Output.Tags.Append(InTags);
 	}
 
 	if (bManaged) { ManagedObjects->Add(InData); }
@@ -45,25 +42,26 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 			}
 		}
 	}
+
+	return StagedOutputs.Last();
 }
 
-void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const bool bManaged)
+FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged)
 {
 	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
-		Output.Pin = Pin;
 		Output.Data = InData;
 	}
 	else
 	{
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
-		Output.Pin = Pin;
 		Output.Data = InData;
 	}
 
 	if (bManaged) { ManagedObjects->Add(InData); }
+	return StagedOutputs.Last();
 }
 
 UWorld* FPCGExContext::GetWorld() const { return GetComponent()->GetWorld(); }
@@ -137,6 +135,12 @@ void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) co
 			}
 		}
 	}
+}
+
+void FPCGExContext::AddExtraStructReferencedObjects(FReferenceCollector& Collector)
+{
+	FPCGContext::AddExtraStructReferencedObjects(Collector);
+	ManagedObjects->AddExtraStructReferencedObjects(Collector);
 }
 
 void FPCGExContext::AddNotifyActor(AActor* InActor)

@@ -300,7 +300,11 @@ namespace PCGExAttributesToTags
 	void FProcessor::Output()
 	{
 		TPointsProcessor<FPCGExAttributesToTagsContext, UPCGExAttributesToTagsSettings>::Output();
-		if (OutputSet) { Context->StageOutput(FName("Tags"), OutputSet, false); }
+		if (OutputSet)
+		{
+			FPCGTaggedData& StagedData = Context->StageOutput(OutputSet, false);
+			StagedData.Pin = FName("Tags");
+		}
 	}
 }
 

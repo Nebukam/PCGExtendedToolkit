@@ -377,7 +377,8 @@ void FPCGExConstantEnumElement::StageEnumValuesSeparatePins(
 			ValueAttrib->SetValue(Entry, T.Get<2>());
 		}
 
-		InContext->StageOutput(T.Get<1>(), OutputData, true);
+		FPCGTaggedData& StagedData =InContext->StageOutput(OutputData, true);
+		StagedData.Pin = T.Get<1>();
 	}
 }
 
@@ -428,7 +429,8 @@ void FPCGExConstantEnumElement::StageEnumValuesSinglePin(
 		}
 	}
 
-	InContext->StageOutput(PCGExConstantEnumConstants::SingleOutputPinName, OutputData, true);
+	FPCGTaggedData& StagedData = InContext->StageOutput(OutputData, true);
+	StagedData.Pin = PCGExConstantEnumConstants::SingleOutputPinName;
 }
 
 void FPCGExConstantEnumElement::StageBitFlags(FPCGExContext* InContext, const UPCGExConstantEnumSettings* Settings, FPCGExBitmask& OutBitflags)
@@ -438,5 +440,9 @@ void FPCGExConstantEnumElement::StageBitFlags(FPCGExContext* InContext, const UP
 	UPCGParamData* OutputData = InContext->ManagedObjects->New<UPCGParamData>();
 	OutputData->Metadata->CreateAttribute<int64>(Settings->FlagsName, OutBitflags.Get(), false, false);
 	OutputData->Metadata->AddEntry();
-	InContext->StageOutput(PCGExConstantEnumConstants::BitflagOutputPinName, OutputData, true);
+	
+	FPCGTaggedData& StagedData = InContext->StageOutput(OutputData, true);
+	StagedData.Pin = PCGExConstantEnumConstants::BitflagOutputPinName;
+	
+	
 }

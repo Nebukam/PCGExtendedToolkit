@@ -86,7 +86,8 @@ bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (Context->PathAttributeSet)
 		{
-			Context->StageOutput(PCGExWritePathProperties::OutputPathProperties, Context->PathAttributeSet, {}, false, false);
+			FPCGTaggedData& StagedData = Context->StageOutput(Context->PathAttributeSet, false, false);;
+			StagedData.Pin = PCGExWritePathProperties::OutputPathProperties;
 		}
 		else
 		{
@@ -152,7 +153,7 @@ namespace PCGExWritePathProperties
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::WritePathProperties::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 
 		PCGEX_SCOPE_LOOP(Index)
@@ -284,7 +285,10 @@ namespace PCGExWritePathProperties
 		TPointsProcessor<FPCGExWritePathPropertiesContext, UPCGExWritePathPropertiesSettings>::Output();
 		if (PathAttributeSet && !Context->PathAttributeSet)
 		{
-			Context->StageOutput(OutputPathProperties, PathAttributeSet, {}, false, false);
+			FPCGTaggedData& StagedData = Context->StageOutput(PathAttributeSet, false, false);
+			StagedData.Pin = OutputPathProperties;
+
+			
 		}
 	}
 }

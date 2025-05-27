@@ -118,7 +118,7 @@ namespace PCGEx
 			for (UObject* ObjectPtr : ManagedObjects)
 			{
 				//if (!IsValid(ObjectPtr)) { continue; }
-				ObjectPtr->RemoveFromRoot();
+				///*FCOLLECTOR_IMPL*/ObjectPtr->RemoveFromRoot();
 				RecursivelyClearAsyncFlag_Unsafe(ObjectPtr);
 
 				if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(ObjectPtr)) { ManagedObject->Cleanup(); }
@@ -140,7 +140,7 @@ namespace PCGEx
 		{
 			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 			ManagedObjects.Add(InObject);
-			InObject->AddToRoot();
+			///*FCOLLECTOR_IMPL*/InObject->AddToRoot();
 		}
 	}
 
@@ -155,7 +155,7 @@ namespace PCGEx
 			int32 Removed = ManagedObjects.Remove(InObject);
 			if (Removed == 0) { return false; }
 
-			InObject->RemoveFromRoot();
+			///*FCOLLECTOR_IMPL*/InObject->RemoveFromRoot();
 			RecursivelyClearAsyncFlag_Unsafe(InObject);
 		}
 
@@ -179,12 +179,18 @@ namespace PCGEx
 				{
 					if (ManagedObjects.Remove(InObject) == 0) { continue; }
 
-					InObject->RemoveFromRoot();
+					///*FCOLLECTOR_IMPL*/InObject->RemoveFromRoot();
 					RecursivelyClearAsyncFlag_Unsafe(InObject);
 					if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(InObject)) { ManagedObject->Cleanup(); }
 				}
 			}
 		}
+	}
+
+	void FManagedObjects::AddExtraStructReferencedObjects(FReferenceCollector& Collector)
+	{
+		FReadScopeLock ReadScopeLock(ManagedObjectLock);
+		for (TObjectPtr<UObject>& Object : ManagedObjects) { Collector.AddReferencedObject(Object); }
 	}
 
 	void FManagedObjects::Destroy(UObject* InObject)
@@ -290,7 +296,7 @@ namespace PCGEx
 			InData->SetNumPoints(InNumPoints);
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -323,13 +329,13 @@ namespace PCGEx
 
 #define PCGEX_REORDER_MOVE_TEMP(_NAME, _TYPE, ...) _TYPE Temp##_NAME = MoveTemp(_NAME##Range[Current]);
 			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_TEMP)
-		#undef PCGEX_REORDER_MOVE_TEMP
+#undef PCGEX_REORDER_MOVE_TEMP
 
 			while (!Visited[Next])
 			{
 #define PCGEX_REORDER_MOVE_FORWARD(_NAME, _TYPE, ...) _NAME##Range[Current] = MoveTemp(_NAME##Range[Next]);
 				PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_FORWARD)
-		#undef PCGEX_REORDER_MOVE_FORWARD
+#undef PCGEX_REORDER_MOVE_FORWARD
 
 				Visited[Current] = true;
 				Current = Next;
@@ -338,11 +344,10 @@ namespace PCGEx
 
 #define PCGEX_REORDER_MOVE_BACK(_NAME, _TYPE, ...) _NAME##Range[Current] = MoveTemp(Temp##_NAME);
 			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_BACK)
-		#undef PCGEX_REORDER_MOVE_BACK
+#undef PCGEX_REORDER_MOVE_BACK
 
 			Visited[Current] = true;
 		}
-		
 	}
 }
 

@@ -141,7 +141,9 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	if (InContext->IsDone() && InContext->OutFactory)
 	{
-		InContext->StageOutput(Settings->GetMainOutputPin(), InContext->OutFactory, false);
+		FPCGTaggedData& StagedData = InContext->StageOutput(InContext->OutFactory, false);
+		StagedData.Pin = Settings->GetMainOutputPin();
+		
 	}
 
 	return InContext->TryComplete();

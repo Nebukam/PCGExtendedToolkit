@@ -455,7 +455,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		UPCGBasePointData* OutVtxData = VtxDataFacade->GetOut();
 		UPCGBasePointData* OutEdgeData = EdgesDataFacade->GetOut();
 
-		TPCGValueRange<FTransform> VtxTransforms = OutVtxData->GetTransformValueRange(false);
+		TConstPCGValueRange<FTransform> VtxTransforms = OutVtxData->GetConstTransformValueRange();
 
 		TPCGValueRange<int32> EdgeSeeds = OutEdgeData->GetSeedValueRange(false);
 
@@ -977,10 +977,16 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		ValidNodes.Reserve(NumNodes);
 
+		bool bHasInvalidNodes = false;
+
 		// Filter all valid nodes
 		for (FNode& Node : Nodes)
 		{
-			if (!Node.bValid || Node.IsEmpty()) { continue; }
+			if (!Node.bValid || Node.IsEmpty())
+			{
+				bHasInvalidNodes = true;
+				continue;
+			}
 			ValidNodes.Add(Node.Index);
 		}
 
@@ -992,34 +998,41 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints);
 
+			const UPCGBasePointData* InNodeData = NodeDataFacade->GetIn();
 			UPCGBasePointData* OutNodeData = NodeDataFacade->GetOut();
 
-			if (bInheritNodeData)
+			if (InNodeData && bInheritNodeData)
 			{
-				const UPCGBasePointData* InNodeData = NodeDataFacade->GetIn();
-
 				// In order to inherit from node data
 				// both input & output must be valid
 				check(!InNodeData->IsEmpty())
 				check(InNodeData->GetNumPoints() >= NumValidNodes)
 
-				// Ensure we have the required number of nodes in the output
-				PCGEx::EnsureMinNumPoints(OutNodeData, NumValidNodes);
+				const bool bIsMirror =
+					!bHasInvalidNodes &&
+					NumValidNodes == InNodeData->GetNumPoints() &&
+					NumValidNodes == OutNodeData->GetNumPoints();
 
-				// Sort valid nodes by point index
-				// This is probably redundant because nodes are always in point order
-				//ValidNodes.Sort([&](const int32 A, const int32 B) { return Nodes[A].PointIndex < Nodes[B].PointIndex; });
-
-				// Build & remap new point count to node topology
-				for (int i = 0; i < NumValidNodes; i++)
+				if (!bIsMirror)
 				{
-					FNode& Node = Nodes[ValidNodes[i]];
-					ReadIndices[i] = Node.PointIndex; // { NewIndex : InheritedIndex }
-					Node.PointIndex = i;              // Update node point index
-				}
+					// Ensure we have the required number of nodes in the output
+					PCGEx::EnsureMinNumPoints(OutNodeData, NumValidNodes);
 
-				OutNodeData->SetNumPoints(NumValidNodes);               // Fix output size
-				NodeDataFacade->Source->InheritProperties(ReadIndices); // Copy all the things				
+					// Sort valid nodes by point index
+					// This is probably redundant because nodes are always in point order
+					//ValidNodes.Sort([&](const int32 A, const int32 B) { return Nodes[A].PointIndex < Nodes[B].PointIndex; });
+
+					// Build & remap new point count to node topology
+					for (int i = 0; i < NumValidNodes; i++)
+					{
+						FNode& Node = Nodes[ValidNodes[i]];
+						ReadIndices[i] = Node.PointIndex; // { NewIndex : InheritedIndex }
+						Node.PointIndex = i;              // Update node point index
+					}
+
+					OutNodeData->SetNumPoints(NumValidNodes);               // Fix output size
+					NodeDataFacade->Source->InheritProperties(ReadIndices); // Copy all the things
+				}
 			}
 			else
 			{
