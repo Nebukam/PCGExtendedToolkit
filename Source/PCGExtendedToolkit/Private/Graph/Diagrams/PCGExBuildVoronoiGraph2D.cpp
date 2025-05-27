@@ -321,6 +321,8 @@ namespace PCGExBuildVoronoi2D
 		}
 
 		Voronoi.Reset();
+		
+		GraphBuilder->bInheritNodeData = false;
 		GraphBuilder->CompileAsync(AsyncManager, false);
 
 		if (Settings->bOutputSites)

@@ -134,7 +134,6 @@ namespace PCGExBuildDelaunay2D
 		}
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
-		GraphBuilder->bInheritNodeData = false; // We're creating new points from scratch, we don't want the inheritance.
 		
 		if (Settings->bMarkHull)
 		{
