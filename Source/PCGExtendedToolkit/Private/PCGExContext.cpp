@@ -16,18 +16,21 @@
 FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged, const bool bIsMutable)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutput);
-	
+
+	int32 Index = -1;
 	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
 
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Data = InData;
+		Index = StagedOutputs.Num()-1;
 	}
 	else
 	{
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Data = InData;
+		Index = StagedOutputs.Num()-1;
 	}
 
 	if (bManaged) { ManagedObjects->Add(InData); }
@@ -43,25 +46,28 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 		}
 	}
 
-	return StagedOutputs.Last();
+	return StagedOutputs[Index];
 }
 
 FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged)
 {
+	int32 Index = -1;
 	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Data = InData;
+		Index = StagedOutputs.Num()-1;
 	}
 	else
 	{
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Data = InData;
+		Index = StagedOutputs.Num()-1;
 	}
 
 	if (bManaged) { ManagedObjects->Add(InData); }
-	return StagedOutputs.Last();
+	return StagedOutputs[Index];
 }
 
 UWorld* FPCGExContext::GetWorld() const { return GetComponent()->GetWorld(); }
