@@ -34,6 +34,9 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
+	PCGEX_FWD(ApplySampling)
+	Context->ApplySampling.Init();
+	
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	if (Settings->bWriteRenderMat && Settings->bExtractTextureParameters)
@@ -120,6 +123,17 @@ namespace PCGExSampleSurfaceGuided
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
+		// Allocate edge native properties
+
+		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
+
+		if (Context->ApplySampling.WantsApply())
+		{
+			AllocateFor |= EPCGPointNativeProperties::Transform;
+		}
+
+		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
+		
 		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
 
 		OriginGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Origin);
@@ -177,6 +191,8 @@ namespace PCGExSampleSurfaceGuided
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+		
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)
@@ -237,6 +253,13 @@ namespace PCGExSampleSurfaceGuided
 
 				MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), HitDistance));
 
+				if (Context->ApplySampling.WantsApply())
+				{
+					PCGExData::FMutablePoint MutablePoint(OutPointData, Index);
+					const FTransform OutTransform = FTransform(FRotationMatrix::MakeFromX(Direction).ToQuat(), HitResult.ImpactPoint, FVector::OneVector);
+					Context->ApplySampling.Apply(MutablePoint, OutTransform, OutTransform);
+				}
+				
 				if (Settings->bWriteUVCoords)
 				{
 					FVector2D UVCoords = FVector2D::ZeroVector;

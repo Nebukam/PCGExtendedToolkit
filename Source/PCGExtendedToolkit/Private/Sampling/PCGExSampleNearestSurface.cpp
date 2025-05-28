@@ -22,6 +22,9 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
+	PCGEX_FWD(ApplySampling)
+	Context->ApplySampling.Init();
+	
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	Context->bUseInclude = Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences;
@@ -107,6 +110,17 @@ namespace PCGExSampleNearestSurface
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
+		// Allocate edge native properties
+
+		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
+
+		if (Context->ApplySampling.WantsApply())
+		{
+			AllocateFor |= EPCGPointNativeProperties::Transform;
+		}
+
+		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
+		
 		SurfacesForward = Context->ActorReferenceDataFacade ? Settings->AttributesForwarding.TryGetHandler(Context->ActorReferenceDataFacade, PointDataFacade) : nullptr;
 
 		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
@@ -144,6 +158,8 @@ namespace PCGExSampleNearestSurface
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+		
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		auto SamplingFailed = [&](const int32 Index, const double MaxDistance)
@@ -253,6 +269,13 @@ namespace PCGExSampleNearestSurface
 					PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
 					PCGEX_OUTPUT_VALUE(Success, Index, true)
 					SamplingMask[Index] = true;
+
+					if (Context->ApplySampling.WantsApply())
+					{
+						PCGExData::FMutablePoint MutablePoint(OutPointData, Index);
+						const FTransform OutTransform = FTransform(FRotationMatrix::MakeFromX(Direction).ToQuat(), HitLocation, FVector::OneVector);
+						Context->ApplySampling.Apply(MutablePoint, OutTransform, OutTransform);
+					}
 
 					MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), MinDist));
 

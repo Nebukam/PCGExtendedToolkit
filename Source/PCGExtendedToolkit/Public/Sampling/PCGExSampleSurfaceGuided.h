@@ -96,6 +96,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DistanceInput==EPCGExTraceSampleDistanceInput::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalMaxDistance;
 
+	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	FPCGExApplySamplingDetails ApplySampling;
+	
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
@@ -265,6 +269,8 @@ struct FPCGExSampleSurfaceGuidedContext final : FPCGExPointsProcessorContext
 	TMap<AActor*, int32> IncludedActors;
 
 	FPCGExCollisionDetails CollisionSettings;
+
+	FPCGExApplySamplingDetails ApplySampling;
 
 	TArray<TObjectPtr<const UPCGExTexParamFactoryData>> TexParamsFactories;
 
