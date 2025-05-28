@@ -83,11 +83,6 @@ namespace PCGExPaths
 		Add(InStart);
 	}
 
-	FPathMetrics::FPathMetrics(const TArrayView<FPCGPoint>& Points)
-	{
-		for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
-	}
-
 	void FPathMetrics::Reset(const FVector& InStart)
 	{
 		Start = InStart;

@@ -102,20 +102,6 @@ namespace PCGExBuildVoronoi
 
 		Voronoi = MakeUnique<PCGExGeo::TVoronoi3>();
 
-		/*
-		auto ExtractValidSites = [&]()
-		{
-			const PCGExData::FPointIO* SitesIO = Context->SitesOutput->Pairs[BatchIndex];
-			const TArray<FPCGPoint>& OriginalSites = PointIO->GetIn()->GetPoints();
-			TArray<FPCGPoint>& MutableSites = SitesIO->GetOut()->GetMutablePoints();
-			for (int i = 0; i < OriginalSites.Num(); i++)
-			{
-				if (Voronoi->Delaunay->DelaunayHull.Contains(i)) { continue; }
-				MutableSites.Add(OriginalSites[i]);
-			}
-		};
-		*/
-
 		if (!Voronoi->Process(ActivePositions))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generated invalid results. Are points coplanar? If so, use Voronoi 2D instead."));

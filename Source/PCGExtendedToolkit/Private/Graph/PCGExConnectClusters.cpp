@@ -270,7 +270,13 @@ namespace PCGExBridgeClusters
 		UPCGBasePointData* EdgeData = CompoundedEdgesDataFacade->Source->GetOut();
 		PCGEx::SetNumPointsAllocated(EdgeData, EdgeData->GetNumPoints() + Bridges.Num());
 
-		for (int i = 0; i < NumBridges; i++) { NewEdges[i] = EdgeData->GetNumPoints() - (NumBridges - i); }
+		TPCGValueRange<int64> MetadataEntries = EdgeData->GetMetadataEntryValueRange();
+		for (int i = 0; i < NumBridges; i++)
+		{
+			const int32 EdgeIndex = EdgeData->GetNumPoints() - (NumBridges - i);
+			NewEdges[i] = EdgeIndex;
+			EdgeData->Metadata->InitializeOnSet(MetadataEntries[EdgeIndex]);
+		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, BuildBridges)
 		BuildBridges->OnIterationCallback =

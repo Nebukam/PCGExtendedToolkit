@@ -193,16 +193,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFunctionPrototypes : public UBlueprintFunctio
 
 public:
 	static UFunction* GetPrototypeWithNoParams() { return FindObject<UFunction>(StaticClass(), TEXT("PrototypeWithNoParams")); }
-	static UFunction* GetPrototypeWithPointAndMetadata() { return FindObject<UFunction>(StaticClass(), TEXT("PrototypeWithPointAndMetadata")); }
 
 private:
 	UFUNCTION()
 	void PrototypeWithNoParams()
-	{
-	}
-
-	UFUNCTION()
-	void PrototypeWithPointAndMetadata(FPCGPoint Point, const UPCGMetadata* Metadata)
 	{
 	}
 };

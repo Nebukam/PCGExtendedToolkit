@@ -317,7 +317,7 @@ namespace PCGExBinPacking
 			SeedGetter.Reset();
 		}
 
-		PCGEx::InitArray(ProcessingOrder, PointDataFacade->GetNum());
+		PCGEx::ArrayOfIndices(ProcessingOrder, PointDataFacade->GetNum());
 		if (Sorter && Sorter->Init()) { ProcessingOrder.Sort([&](const int32& A, const int32& B) { return Sorter->Sort(A, B); }); }
 
 		if (Settings->bAvoidWastedSpace)

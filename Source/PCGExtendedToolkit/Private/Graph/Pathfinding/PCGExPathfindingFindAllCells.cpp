@@ -92,23 +92,7 @@ bool FPCGExFindAllCellsElement::ExecuteInternal(
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
-	/*
-	if (Settings->bOutputFilteredSeeds)
-	{
-		const TArray<FPCGPoint>& InSeeds = Context->SeedsDataFacade->Source->GetIn()->GetPoints();
-		TArray<FPCGPoint>& GoodSeeds = Context->GoodSeeds->GetOut()->GetMutablePoints();
-		TArray<FPCGPoint>& BadSeeds = Context->BadSeeds->GetOut()->GetMutablePoints();
-
-		for (int i = 0; i < Context->SeedQuality.Num(); i++)
-		{
-			if (Context->SeedQuality[i]) { GoodSeeds.Add(Context->UdpatedSeedPoints[i]); }
-			else { BadSeeds.Add(InSeeds[i]); }
-		}
-
-		Context->GoodSeeds->StageOutput();
-		Context->BadSeeds->StageOutput();
-	}
-	*/
+	// TODO : Output seeds?
 
 	Context->Paths->StageOutputs();
 

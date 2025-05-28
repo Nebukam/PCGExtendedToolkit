@@ -60,7 +60,6 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 		const int32 NumSeeds = Context->SeedsDataFacade->GetNum();
 
 		Context->SeedQuality.Init(false, NumSeeds);
-		PCGEx::InitArray(Context->UdpatedSeedPoints, NumSeeds);
 
 		Context->GoodSeeds = NewPointIO(Context->SeedsDataFacade->Source, PCGExFindContours::OutputGoodSeedsLabel);
 		Context->GoodSeeds->InitializeOutput(PCGExData::EIOInit::Duplicate);

@@ -265,7 +265,6 @@ namespace PCGExPaths
 	{
 		FPathMetrics() = default;
 		explicit FPathMetrics(const FVector& InStart);
-		explicit FPathMetrics(const TArrayView<FPCGPoint>& Points);
 
 		FVector Start = FVector::ZeroVector;
 		FVector Last = FVector::ZeroVector;

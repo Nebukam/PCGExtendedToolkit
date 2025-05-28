@@ -105,7 +105,6 @@ struct FPCGExFindContoursContext final : FPCGExEdgesProcessorContext
 	TSharedPtr<PCGExData::FPointIO> BadSeeds;
 
 	TArray<int8> SeedQuality;
-	TArray<FPCGPoint> UdpatedSeedPoints;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
