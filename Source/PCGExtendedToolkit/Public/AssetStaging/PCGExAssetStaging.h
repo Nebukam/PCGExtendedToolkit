@@ -144,6 +144,8 @@ namespace PCGExAssetStaging
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
 
+		TArray<int8> Mask;
+		
 		FPCGExFittingDetailsHandler FittingHandler;
 		FPCGExFittingVariationsDetails Variations;
 

@@ -241,14 +241,15 @@ namespace PCGExAssetStaging
 		// Cherry pick native properties allocations
 
 		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
-		
+
 		AllocateFor |= EPCGPointNativeProperties::BoundsMin;
 		AllocateFor |= EPCGPointNativeProperties::BoundsMax;
 		AllocateFor |= EPCGPointNativeProperties::Transform;
 		if (bOutputWeight && !WeightWriter && !NormalizedWeightWriter) { AllocateFor |= EPCGPointNativeProperties::Density; }
-		AllocateFor |= EPCGPointNativeProperties::MetadataEntry;
-		
+
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
+
+		if (Settings->bPruneEmptyPoints) { Mask.Init(1, PointDataFacade->GetNum()); }
 
 		StartParallelLoopForPoints();
 
@@ -272,9 +273,8 @@ namespace PCGExAssetStaging
 		const TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange(false);
 		const TPCGValueRange<FVector> OutBoundsMin = OutPointData->GetBoundsMinValueRange(false);
 		const TPCGValueRange<FVector> OutBoundsMax = OutPointData->GetBoundsMaxValueRange(false);
-		const TPCGValueRange<int32> Seeds = OutPointData->GetSeedValueRange(false);
+		const TConstPCGValueRange<int32> Seeds = OutPointData->GetConstSeedValueRange();
 		const TPCGValueRange<float> Densities = OutPointData->GetDensityValueRange(false);
-		const TPCGValueRange<int64> MetadataEntries = OutPointData->GetMetadataEntryValueRange(false);
 
 		int32 LocalNumInvalid = 0;
 
@@ -284,7 +284,7 @@ namespace PCGExAssetStaging
 
 			if (Settings->bPruneEmptyPoints)
 			{
-				MetadataEntries[Index] = -2;
+				Mask[Index] = 0;
 				LocalNumInvalid++;
 				return;
 			}
@@ -424,13 +424,11 @@ namespace PCGExAssetStaging
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const TPCGValueRange<int64> MetadataEntries = PointDataFacade->GetOut()->GetMetadataEntryValueRange(false);
-
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const int32 Pick = MaterialPick[Index];
 
-			if (Pick == -1 || MetadataEntries[Index] == -2) { continue; }
+			if (Pick == -1 || (Settings->bPruneEmptyPoints && !Mask[Index])) { continue; }
 
 			const FPCGExMeshCollectionEntry* Entry = static_cast<const FPCGExMeshCollectionEntry*>(CachedPicks[Index]);
 			if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::None) { continue; }
@@ -462,9 +460,7 @@ namespace PCGExAssetStaging
 
 	void FProcessor::Write()
 	{
-		const TPCGValueRange<int64> MetadataEntries = PointDataFacade->GetOut()->GetMetadataEntryValueRange(false);
-		PCGEX_REDUCE_INDICES(Indices, MetadataEntries.Num(), MetadataEntries[i] != -2)
-		(void)PointDataFacade->Source->Gather(Indices);
+		(void)PointDataFacade->Source->Gather(Mask);
 	}
 }
 
