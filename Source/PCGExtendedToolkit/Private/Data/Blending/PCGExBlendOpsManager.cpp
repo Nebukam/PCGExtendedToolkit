@@ -99,8 +99,6 @@ namespace PCGExDataBlending
 		if (!WeightFacade) { WeightFacade = SourceAFacade; }
 		check(WeightFacade)
 
-		const TSharedRef<PCGExData::FFacade> InDataFacade = SourceAFacade.ToSharedRef();
-
 		Operations->Reserve(InFactories.Num());
 
 		for (const TObjectPtr<const UPCGExBlendOpFactory>& Factory : InFactories)
@@ -170,9 +168,9 @@ namespace PCGExDataBlending
 		{
 			// If disabled buffer does not exist on input, delete it entierely
 			if (!Buffer->OutAttribute) { continue; }
-			if (!SourceAFacade->GetIn()->Metadata->HasAttribute(Buffer->OutAttribute->Name))
+			if (!TargetFacade->GetIn()->Metadata->HasAttribute(Buffer->OutAttribute->Name))
 			{
-				SourceAFacade->GetOut()->Metadata->DeleteAttribute(Buffer->OutAttribute->Name);
+				TargetFacade->GetOut()->Metadata->DeleteAttribute(Buffer->OutAttribute->Name);
 				// TODO : Check types and make sure we're not deleting something
 			}
 

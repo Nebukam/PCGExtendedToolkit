@@ -136,6 +136,13 @@ namespace PCGExDataBlending
 			A = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_A));
 			B = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_B));
 
+			// Ensure C is readable for MultiBlend, as those will use GetCurrent
+			if (!C->EnsureReadable())
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target buffer is readable."));
+				return false;
+			}
+
 			return A && B && C;
 		}
 
@@ -338,14 +345,20 @@ break;
 				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
 				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
 				TypedBlender->B = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, B));
-
-				if (!TypedBlender) { return; }
+				
 				if (!TypedBlender->A || !TypedBlender->B || !TypedBlender->C)
 				{
 					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Missing at least one proxy."));
 					return;
 				}
 
+				// Ensure C is readable for MultiBlend, as those will use GetCurrent
+				if (!TypedBlender->C->EnsureReadable())
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target buffer is readable."));
+					return false;
+				}
+				
 				OutBlender = TypedBlender;
 			});
 

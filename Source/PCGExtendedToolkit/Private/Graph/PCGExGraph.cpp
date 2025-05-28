@@ -1008,12 +1008,12 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				check(!InNodeData->IsEmpty())
 				check(InNodeData->GetNumPoints() >= NumValidNodes)
 
-				const bool bIsMirror =
+				const bool bOutputIsSameAsInput =
 					!bHasInvalidNodes &&
 					NumValidNodes == InNodeData->GetNumPoints() &&
 					NumValidNodes == OutNodeData->GetNumPoints();
 
-				if (!bIsMirror)
+				if (!bOutputIsSameAsInput)
 				{
 					// Ensure we have the required number of nodes in the output
 					PCGEx::EnsureMinNumPoints(OutNodeData, NumValidNodes);

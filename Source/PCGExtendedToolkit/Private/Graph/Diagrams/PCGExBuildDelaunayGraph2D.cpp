@@ -99,7 +99,7 @@ namespace PCGExBuildDelaunay2D
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
-
+				
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
@@ -139,7 +139,7 @@ namespace PCGExBuildDelaunay2D
 		{
 			OutputIndices = MakeShared<TArray<int32>>();
 			PCGEx::ArrayOfIndices(*OutputIndices, PointDataFacade->GetNum());
-			GraphBuilder->OutputPointIndices = OutputIndices;
+		//	GraphBuilder->OutputPointIndices = OutputIndices;
 		}
 
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
@@ -154,7 +154,7 @@ namespace PCGExBuildDelaunay2D
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BuildDelaunayGraph3D::ProcessPoints);
 		const TArray<int32>& OutputIndicesRef = *OutputIndices.Get();
-		PCGEX_SCOPE_LOOP(Index) { HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(OutputIndicesRef[Index]); }
+		PCGEX_SCOPE_LOOP(Index) { HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(Index); }
 	}
 
 	void FProcessor::CompleteWork()

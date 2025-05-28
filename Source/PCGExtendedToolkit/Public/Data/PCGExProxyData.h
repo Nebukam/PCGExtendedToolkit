@@ -69,6 +69,7 @@ namespace PCGExData
 
 		bool Validate(const FProxyDescriptor& Descriptor) const { return Descriptor.RealType == RealType && Descriptor.WorkingType == WorkingType; }
 		virtual TSharedPtr<FBufferBase> GetBuffer() const { return nullptr; }
+		virtual bool EnsureReadable() const { return true; }
 	};
 
 	template <typename T_WORKING>
@@ -141,6 +142,7 @@ namespace PCGExData
 		}
 
 		virtual TSharedPtr<FBufferBase> GetBuffer() const override { return Buffer; }
+		virtual bool EnsureReadable() const override { return Buffer->EnsureReadable(); }
 	};
 
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGPointProperties PROPERTY, typename T_VALUERANGE>
@@ -296,6 +298,23 @@ namespace PCGExData
 			else
 			{
 				return SubSelection.template Get<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(MetadataEntry));
+			}
+		}
+
+		virtual T_WORKING GetCurrent(const int32 Index) const override
+		{
+			const int64 MetadataEntry = Data->GetMetadataEntry(Index);
+			
+			// i.e get Rotation<FQuat>.Forward<FVector> as <double>
+			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+			if constexpr (!bSubSelection)
+			{
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return OutAttribute->GetValueFromItemKey(MetadataEntry); }
+				else { return PCGEx::Convert<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(MetadataEntry)); }
+			}
+			else
+			{
+				return SubSelection.template Get<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(MetadataEntry));
 			}
 		}
 

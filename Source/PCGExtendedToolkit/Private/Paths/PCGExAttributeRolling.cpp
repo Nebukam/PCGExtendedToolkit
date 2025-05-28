@@ -26,7 +26,7 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 	}
 	else
 	{
-		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceToggleConditionLabel, "...", Required, {})
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceToggleConditionLabel, "...", Normal, {})
 	}
 
 	if (ValueControl == EPCGExRollingValueControl::Pin)
@@ -67,12 +67,9 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		if (!PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
+		PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
 			Context, PCGExPointFilter::SourceToggleConditionLabel, Context->StartFilterFactories,
-			PCGExFactories::PointFilters, true))
-		{
-			return false;
-		}
+			PCGExFactories::PointFilters, false);
 	}
 
 	if (Settings->ValueControl == EPCGExRollingValueControl::Pin)
@@ -193,6 +190,12 @@ namespace PCGExAttributeRolling
 
 		if (Settings->InitialValueMode == EPCGExRollingToggleInitialValue::FromPoint)
 		{
+			if (!StartFilterManager)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Initial toggle from point requires valid filters."));
+				return false;
+			}
+
 			bRoll = StartFilterManager->Test(FirstIndex);
 		}
 		else
@@ -229,7 +232,7 @@ namespace PCGExAttributeRolling
 			}
 
 			const bool bPreviousRoll = bRoll;
-			const bool bStart = StartFilterManager->Test(TargetIndex);
+			const bool bStart = StartFilterManager ? StartFilterManager->Test(TargetIndex) : false;
 			bool bStop = false;
 
 			if (Settings->RangeControl == EPCGExRollingRangeControl::Toggle)

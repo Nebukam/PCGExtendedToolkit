@@ -329,14 +329,6 @@ namespace PCGExData
 								return;
 							}
 
-							// This makes it so if we only have a writable buffer, it will be made accessible for ->Read
-							// This is also very risky because we intend on reading from that buffer afterward, and we created the readable first, it will break the universe.
-							if (!Buffer->EnsureReadable())
-							{
-								PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure buffer is readable."));
-								return;
-							}
-
 							if (bSubSelection)
 							{
 								TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, true>> TypedProxy =
