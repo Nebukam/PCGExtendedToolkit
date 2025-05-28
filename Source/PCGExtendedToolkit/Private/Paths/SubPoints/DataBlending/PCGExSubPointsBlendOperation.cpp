@@ -10,7 +10,7 @@
 
 bool FPCGExSubPointsBlendOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSet<FName>* IgnoreAttributeSet)
 {
-	return PrepareForData(InContext, InTargetFacade, InTargetFacade, PCGExData::EIOSide::In, IgnoreAttributeSet);
+	return PrepareForData(InContext, InTargetFacade, InTargetFacade, PCGExData::EIOSide::Out, IgnoreAttributeSet);
 }
 
 bool FPCGExSubPointsBlendOperation::PrepareForData(
