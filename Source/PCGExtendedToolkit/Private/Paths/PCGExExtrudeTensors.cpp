@@ -305,6 +305,7 @@ namespace PCGExExtrudeTensors
 	{
 		bAdvancedOnly = false;
 
+		ExtrudedPoints.Add(InPoint);		
 		LastInsertion = InPoint.GetLocation();
 		//if (Settings->bRefreshSeed) { NewPoint.Seed = PCGExRandom::ComputeSpatialSeed(LastInsertion, FVector(Origin.GetLocation())); }
 
