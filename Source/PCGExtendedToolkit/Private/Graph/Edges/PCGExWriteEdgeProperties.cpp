@@ -98,7 +98,7 @@ namespace PCGExWriteEdgeProperties
 		bSolidify = Settings->SolidificationAxis != EPCGExMinimalAxis::None;
 
 		// Allocate edge native properties
-		
+
 		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
 
 		if (bSolidify)
@@ -112,7 +112,7 @@ namespace PCGExWriteEdgeProperties
 		}
 
 		EdgeDataFacade->GetOut()->AllocateProperties(AllocateFor);
-		
+
 		if (bSolidify)
 		{
 #define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){\
@@ -146,9 +146,11 @@ namespace PCGExWriteEdgeProperties
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
 		EdgeDataFacade->Fetch(Scope);
 
-		TPCGValueRange<FTransform> Transforms = EdgeDataFacade->GetOut()->GetTransformValueRange(false);
-		TPCGValueRange<FVector> BoundsMin = EdgeDataFacade->GetOut()->GetBoundsMinValueRange(false);
-		TPCGValueRange<FVector> BoundsMax = EdgeDataFacade->GetOut()->GetBoundsMaxValueRange(false);
+		bool bUseRealRanges = bSolidify || Settings->bWriteEdgePosition;
+		
+		TPCGValueRange<FTransform> Transforms = bUseRealRanges ? EdgeDataFacade->GetOut()->GetTransformValueRange(false) : TPCGValueRange<FTransform>();
+		TPCGValueRange<FVector> BoundsMin = bUseRealRanges ? EdgeDataFacade->GetOut()->GetBoundsMinValueRange(false) : TPCGValueRange<FVector>();
+		TPCGValueRange<FVector> BoundsMax = bUseRealRanges ? EdgeDataFacade->GetOut()->GetBoundsMaxValueRange(false) : TPCGValueRange<FVector>();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

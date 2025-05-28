@@ -296,7 +296,7 @@ namespace PCGExShrinkPath
 					{
 						PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::New)
 						PCGEx::SetNumPointsAllocated(PointIO->GetOut(), KeptIndices.Num());
-						PointIO->InheritPoints(KeptIndices);
+						PointIO->InheritPoints(KeptIndices, 0);
 					}
 				}
 			}

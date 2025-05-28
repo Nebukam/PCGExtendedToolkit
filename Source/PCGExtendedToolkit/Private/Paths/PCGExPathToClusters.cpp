@@ -289,12 +289,12 @@ namespace PCGExPathToClusters
 				{
 					if (bClosedLoop)
 					{
-						UnionGraph->InsertEdge_Unsafe(PCGExData::FConstPoint(InPointData, LastIndex), PCGExData::FConstPoint(InPointData, 0));
+						UnionGraph->InsertEdge_Unsafe(PointDataFacade->GetInPoint(LastIndex), PointDataFacade->GetInPoint(0));
 					}
 					return;
 				}
 
-				UnionGraph->InsertEdge_Unsafe(PCGExData::FConstPoint(InPointData, i), PCGExData::FConstPoint(InPointData, NextIndex));
+				UnionGraph->InsertEdge_Unsafe(PointDataFacade->GetInPoint(i), PointDataFacade->GetInPoint(NextIndex));
 			}
 		}
 		else
@@ -307,12 +307,12 @@ namespace PCGExPathToClusters
 				{
 					if (bClosedLoop)
 					{
-						UnionGraph->InsertEdge_Unsafe(PCGExData::FConstPoint(InPointData, LastIndex), PCGExData::FConstPoint(InPointData, 0));
+						UnionGraph->InsertEdge(PointDataFacade->GetInPoint(LastIndex), PointDataFacade->GetInPoint(0));
 					}
 					return;
 				}
 
-				UnionGraph->InsertEdge_Unsafe(PCGExData::FConstPoint(InPointData, i), PCGExData::FConstPoint(InPointData, NextIndex));
+				UnionGraph->InsertEdge(PointDataFacade->GetInPoint(i), PointDataFacade->GetInPoint(NextIndex));
 			}
 		}
 	}

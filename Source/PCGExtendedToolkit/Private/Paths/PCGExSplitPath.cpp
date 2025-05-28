@@ -341,7 +341,7 @@ namespace PCGExSplitPath
 			UPCGBasePointData* MutablePoints = PathIO->GetOut();
 			PCGEx::SetNumPointsAllocated(MutablePoints, NumPathPoints);
 
-			TArray<int32> IdxMapping = PathIO->GetIdxMapping();
+			TArray<int32>& IdxMapping = PathIO->GetIdxMapping();
 
 			const int32 IndexWrap = OriginalPoints->GetNumPoints();
 			for (int i = 0; i < NumIterations; i++) { IdxMapping[i] = (PathInfos.Start + i) % IndexWrap; }

@@ -418,7 +418,7 @@ namespace PCGExBevelPath
 		TPCGValueRange<int64> OutMetadataEntry = OutPointData->GetMetadataEntryValueRange(false);
 		TPCGValueRange<int32> OutSeeds = OutPointData->GetSeedValueRange(false);
 
-		TArray<int32> IdxMapping = PointDataFacade->Source->GetIdxMapping();
+		TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -531,8 +531,6 @@ namespace PCGExBevelPath
 
 		UPCGBasePointData* MutablePoints = PointDataFacade->GetOut();
 		PCGEx::SetNumPointsAllocated(MutablePoints, NumOutPoints);
-
-		PointDataFacade->Source->GetIdxMapping();
 
 		StartParallelLoopForRange(PointDataFacade->GetNum());
 	}

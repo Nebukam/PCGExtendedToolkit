@@ -344,7 +344,7 @@ namespace PCGExPathCrossings
 			Metadata->InitializeOnSet(OutMetadataEntries[Index]);
 		}
 
-		PointIO->InheritPoints(WriteIndices, 0);
+		PointIO->InheritPoints(WriteIndices);
 
 		// Flag last so it doesn't get captured by blenders
 		if (Settings->IntersectionDetails.bWriteCrossing)

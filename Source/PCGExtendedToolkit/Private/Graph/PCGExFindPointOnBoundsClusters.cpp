@@ -174,12 +174,10 @@ namespace PCGExFindPointOnBoundsClusters
 			const int32 TargetIndex = EdgeDataFacade->Source->IOIndex;
 			Context->IOMergeSources[TargetIndex] = IORef;
 			
-			IORef->InheritPoints(BestIndex, 0, 1);
+			TPCGValueRange<FTransform> OutTransforms = Context->MergedOut->GetOut()->GetTransformValueRange(false);
+			TPCGValueRange<int64> OutMetadataEntries = Context->MergedOut->GetOut()->GetMetadataEntryValueRange(false);
 
-			TPCGValueRange<FTransform> OutTransforms = IORef->GetOut()->GetTransformValueRange(false);
-			TPCGValueRange<int64> OutMetadataEntries = IORef->GetOut()->GetMetadataEntryValueRange(false);
-
-			const PCGMetadataEntryKey OriginalKey = Context->MergedOut->GetOut()->GetMetadataEntry(TargetIndex);
+			const PCGMetadataEntryKey OriginalKey = OutMetadataEntries[TargetIndex];
 
 			IORef->GetIn()->CopyPointsTo(Context->MergedOut->GetOut(), BestIndex, TargetIndex, 1);
 
@@ -190,6 +188,7 @@ namespace PCGExFindPointOnBoundsClusters
 		{
 			PCGEX_INIT_IO_VOID(IORef, PCGExData::EIOInit::New)
 			(void)PCGEx::SetNumPointsAllocated(IORef->GetOut(), 1);
+			
 			IORef->InheritPoints(BestIndex, 0, 1);
 
 			TPCGValueRange<FTransform> OutTransforms = IORef->GetOut()->GetTransformValueRange(false);

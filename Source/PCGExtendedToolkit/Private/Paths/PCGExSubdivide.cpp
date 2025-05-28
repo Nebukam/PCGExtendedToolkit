@@ -211,7 +211,6 @@ namespace PCGExSubdivide
 			}
 		}
 
-		if (!bClosedLoop) { WriteIndices.Last() = Subdivisions.Last().OutEnd; }
 		PointDataFacade->Source->InheritPoints(WriteIndices);
 
 		if (Settings->bFlagSubPoints)

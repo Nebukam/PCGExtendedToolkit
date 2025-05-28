@@ -162,7 +162,7 @@ namespace PCGExBreakClustersToPaths
 			bool bDoReverse = bReverse;
 			(void)PCGEx::SetNumPointsAllocated(PathIO->GetOut(), ChainSize);
 
-			TArray<int32> IdxMapping = PathIO->GetIdxMapping();
+			TArray<int32>& IdxMapping = PathIO->GetIdxMapping();
 			IdxMapping[0] = Cluster->GetNodePointIndex(Chain->Seed);
 
 			if (ProjectedPositions && (!Settings->bWindOnlyClosedLoops || Chain->bIsClosedLoop))
@@ -215,7 +215,7 @@ namespace PCGExBreakClustersToPaths
 
 			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
-			TArray<int32> IdxMapping = PathIO->GetIdxMapping();
+			TArray<int32>& IdxMapping = PathIO->GetIdxMapping();
 			IdxMapping[0] = Edge.Start;
 			IdxMapping[1] = Edge.End;
 
