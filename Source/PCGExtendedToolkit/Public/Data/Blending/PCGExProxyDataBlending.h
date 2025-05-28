@@ -356,7 +356,7 @@ break;
 				if (!TypedBlender->C->EnsureReadable())
 				{
 					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target buffer is readable."));
-					return false;
+					return;
 				}
 				
 				OutBlender = TypedBlender;
