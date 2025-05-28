@@ -221,7 +221,7 @@ namespace PCGExCreateShapes
 		TPCGValueRange<FVector> BoundsMin = ShapePoints->GetBoundsMinValueRange(false);
 		TPCGValueRange<FVector> BoundsMax = ShapePoints->GetBoundsMaxValueRange(false);
 
-		PCGExData::FScope SubScope = ShapeDataFacade->Source->GetInScope(Shape->StartIndex, Shape->NumPoints);
+		PCGExData::FScope SubScope = ShapeDataFacade->Source->GetOutScope(Shape->StartIndex, Shape->NumPoints);
 		PCGEX_SUBSCOPE_LOOP(Index)
 		{
 			BoundsMin[Index] = Shape->Extents * -1;

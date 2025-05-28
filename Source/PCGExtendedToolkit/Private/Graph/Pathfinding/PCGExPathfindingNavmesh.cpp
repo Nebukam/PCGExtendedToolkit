@@ -159,7 +159,7 @@ void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	// TODO : Need to ensure the metadata blender can pick source A as target IN, if relevant
 	// cause we might try to blend from a point that's technically in the same data but also not
 
-	PCGExData::FScope SubScope = PathIO->GetInScope(0 + Settings->bAddSeedToPath, NumPositions - (Settings->bAddSeedToPath + Settings->bAddGoalToPath));
+	PCGExData::FScope SubScope = PathIO->GetOutScope(0 + Settings->bAddSeedToPath, NumPositions - (Settings->bAddSeedToPath + Settings->bAddGoalToPath));
 	SubBlending->BlendSubPoints(Seed, Goal, SubScope, Query.SeedGoalMetrics);
 
 	Context->SeedAttributesToPathTags.Tag(Seed, PathIO);
