@@ -6,7 +6,7 @@
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
-#include "Graph/PCGExUnionHelpers.h"
+#include "Graph/PCGExUnionProcessor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathToClustersElement"
 #define PCGEX_NAMESPACE BuildCustomGraph

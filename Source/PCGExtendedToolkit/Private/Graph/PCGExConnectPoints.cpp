@@ -6,7 +6,7 @@
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
-#include "Graph/PCGExUnionHelpers.h"
+#include "Graph/PCGExUnionProcessor.h"
 #include "Graph/Probes/PCGExProbeFactoryProvider.h"
 #include "Graph/Probes/PCGExProbeOperation.h"
 #include "Graph/Probes/PCGExProbing.h"

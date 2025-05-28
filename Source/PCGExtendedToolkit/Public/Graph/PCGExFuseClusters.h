@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
-#include "PCGExUnionHelpers.h"
+#include "PCGExUnionProcessor.h"
 #include "PCGExEdgesProcessor.h"
 #include "PCGExIntersections.h"
 #include "Data/Blending/PCGExUnionBlender.h"

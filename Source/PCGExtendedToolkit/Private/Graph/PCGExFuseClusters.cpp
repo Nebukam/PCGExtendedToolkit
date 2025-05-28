@@ -8,7 +8,7 @@
 
 
 #include "Graph/Data/PCGExClusterData.h"
-#include "Graph/PCGExUnionHelpers.h"
+#include "Graph/PCGExUnionProcessor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

@@ -7,7 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 
-#include "Graph/PCGExUnionHelpers.h"
+#include "Graph/PCGExUnionProcessor.h"
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
