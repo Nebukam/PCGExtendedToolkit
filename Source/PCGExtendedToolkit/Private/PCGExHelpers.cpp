@@ -327,7 +327,7 @@ namespace PCGEx
 		check(NumElements <= InData->GetNumPoints());
 
 		TBitArray<> Visited;
-		Visited.Init(false, NumElements);
+		Visited.Init(false, InData->GetNumPoints());
 
 #define PCGEX_REORDER_RANGE_DECL(_NAME, _TYPE, ...) TPCGValueRange<_TYPE> _NAME##Range = InData->Get##_NAME##ValueRange();
 		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_RANGE_DECL)
