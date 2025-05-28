@@ -44,10 +44,10 @@ namespace PCGExPointsMT
 	{
 		AsyncManager = InAsyncManager;
 
-		InternalFacadePreloader = MakeShared<PCGExData::FFacadePreloader>();
+		InternalFacadePreloader = MakeShared<PCGExData::FFacadePreloader>(PointDataFacade);
 		RegisterBuffersDependencies(*InternalFacadePreloader);
 
-		InternalFacadePreloader->StartLoading(AsyncManager, PointDataFacade, InPrefetchDataTaskGroup);
+		InternalFacadePreloader->StartLoading(AsyncManager, InPrefetchDataTaskGroup);
 	}
 
 	bool FPointsProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)

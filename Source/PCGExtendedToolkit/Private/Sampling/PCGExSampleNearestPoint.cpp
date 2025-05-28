@@ -111,7 +111,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 			{PCGExFactories::EType::Blending}, false);
 	}
 
-	Context->TargetsPreloader = MakeShared<PCGExData::FFacadePreloader>();
+	Context->TargetsPreloader = MakeShared<PCGExData::FFacadePreloader>(Context->TargetsFacade);
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)
 
@@ -187,7 +187,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			}
 		};
 
-		Context->TargetsPreloader->StartLoading(Context->GetAsyncManager(), Context->TargetsFacade.ToSharedRef());
+		Context->TargetsPreloader->StartLoading(Context->GetAsyncManager());
 		return false;
 	}
 

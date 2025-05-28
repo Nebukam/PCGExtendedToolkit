@@ -739,7 +739,7 @@ namespace PCGExData
 
 		void PrepareScopedReadable(const PCGEx::FAttributeIdentity& Identity);
 		void PrepareScopedReadable(const TArray<PCGEx::FAttributeIdentity>& Identities);
-		
+
 		void MarkCurrentBuffersReadAsComplete();
 
 		void Flush()
@@ -823,7 +823,7 @@ namespace PCGExData
 		{
 		}
 
-		bool Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const;
+		bool Validate(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade) const;
 		void Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope) const;
 		void Read(const TSharedRef<FFacade>& InFacade) const;
 	};
@@ -836,24 +836,16 @@ namespace PCGExData
 	public:
 		TArray<FReadableBufferConfig> BufferConfigs;
 
-		FFacadePreloader()
-		{
-		}
+		FFacadePreloader(const TSharedPtr<FFacade>& InDataFacade);
 
 		bool IsEmpty() const { return BufferConfigs.IsEmpty(); }
 		int32 Num() const { return BufferConfigs.Num(); }
 
-		bool Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const;
+		bool Validate(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade) const;
 
-		void Register(FPCGExContext* InContext, const PCGEx::FAttributeIdentity& InIdentity)
-		{
-			for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
-			{
-				if (ExistingConfig.Identity == InIdentity) { return; }
-			}
+		void Register(FPCGExContext* InContext, const PCGEx::FAttributeIdentity& InIdentity);
 
-			BufferConfigs.Emplace(InIdentity.Name, InIdentity.UnderlyingType);
-		}
+		void TryRegister(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector);
 
 		template <typename T>
 		void Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax = false)
@@ -895,7 +887,7 @@ namespace PCGExData
 		using CompletionCallback = std::function<void()>;
 		CompletionCallback OnCompleteCallback;
 
-		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedRef<FFacade>& InDataFacade, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle = nullptr);
+		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle = nullptr);
 
 	protected:
 		void OnLoadingEnd() const;

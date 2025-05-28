@@ -162,6 +162,7 @@ namespace PCGEx
 
 		static void Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList = nullptr);
 		static void Get(const UPCGMetadata* InMetadata, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList = nullptr);
+		static bool Get(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector, FAttributeIdentity& OutIdentity);
 
 		using FForEachFunc = std::function<void (const FAttributeIdentity&, const int32)>;
 		static int32 ForEach(const UPCGMetadata* InMetadata, FForEachFunc&& Func);

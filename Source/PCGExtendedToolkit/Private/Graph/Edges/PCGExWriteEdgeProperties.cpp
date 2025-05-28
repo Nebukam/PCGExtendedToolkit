@@ -144,7 +144,7 @@ namespace PCGExWriteEdgeProperties
 		EdgeDataFacade->Fetch(Scope);
 
 		bool bUseRealRanges = bSolidify || Settings->bWriteEdgePosition;
-		
+
 		TPCGValueRange<FTransform> Transforms = bUseRealRanges ? EdgeDataFacade->GetOut()->GetTransformValueRange(false) : TPCGValueRange<FTransform>();
 		TPCGValueRange<FVector> BoundsMin = bUseRealRanges ? EdgeDataFacade->GetOut()->GetBoundsMinValueRange(false) : TPCGValueRange<FVector>();
 		TPCGValueRange<FVector> BoundsMax = bUseRealRanges ? EdgeDataFacade->GetOut()->GetBoundsMaxValueRange(false) : TPCGValueRange<FVector>();
@@ -271,7 +271,7 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
-		PCGExDataBlending::RegisterBuffersDependencies(Context, FacadePreloader, Context->BlendingFactories);
+		PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, FacadePreloader, Context->BlendingFactories);
 		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 	}
 

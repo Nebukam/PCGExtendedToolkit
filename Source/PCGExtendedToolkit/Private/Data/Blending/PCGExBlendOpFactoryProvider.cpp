@@ -159,8 +159,6 @@ void FPCGExBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>
 				OutDisabledBuffers.Remove(OutputBuffer);
 			}
 		}
-
-		// TODO : Restore point properties to their original values...?
 	}
 }
 
@@ -255,14 +253,18 @@ bool UPCGExBlendOpFactory::RegisterConsumableAttributesWithData(FPCGExContext* I
 void UPCGExBlendOpFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	RegisterBuffersDependenciesForSourceA(InContext, FacadePreloader);
+	RegisterBuffersDependenciesForSourceB(InContext, FacadePreloader);
 }
 
-void UPCGExBlendOpFactory::RegisterBuffersDependenciesForOperandA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
-{
+void UPCGExBlendOpFactory::RegisterBuffersDependenciesForSourceA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{ 
+	FacadePreloader.TryRegister(InContext, Config.OperandA);
 }
 
-void UPCGExBlendOpFactory::RegisterBuffersDependenciesForOperandB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+void UPCGExBlendOpFactory::RegisterBuffersDependenciesForSourceB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
+	FacadePreloader.TryRegister(InContext, Config.OperandB);
 }
 
 #if WITH_EDITOR

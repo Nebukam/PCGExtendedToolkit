@@ -250,7 +250,7 @@ namespace PCGExData
 
 #pragma endregion
 
-	bool FReadableBufferConfig::Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const
+	bool FReadableBufferConfig::Validate(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade) const
 	{
 		return true;
 	}
@@ -300,11 +300,35 @@ namespace PCGExData
 			});
 	}
 
-	bool FFacadePreloader::Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const
+	FFacadePreloader::FFacadePreloader(const TSharedPtr<FFacade>& InDataFacade)
+		: InternalDataFacadePtr(InDataFacade)
+	{
+	}
+
+	bool FFacadePreloader::Validate(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade) const
 	{
 		if (BufferConfigs.IsEmpty()) { return true; }
 		for (const FReadableBufferConfig& Config : BufferConfigs) { if (!Config.Validate(InContext, InFacade)) { return false; } }
 		return true;
+	}
+
+	void FFacadePreloader::Register(FPCGExContext* InContext, const PCGEx::FAttributeIdentity& InIdentity)
+	{
+		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
+		{
+			if (ExistingConfig.Identity == InIdentity) { return; }
+		}
+
+		BufferConfigs.Emplace(InIdentity.Name, InIdentity.UnderlyingType);
+	}
+
+	void FFacadePreloader::TryRegister(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector)
+	{
+		TSharedPtr<FFacade> SourceFacade = InternalDataFacadePtr.Pin();
+		if (!SourceFacade) { return; }
+
+		PCGEx::FAttributeIdentity Identity;
+		if (PCGEx::FAttributeIdentity::Get(SourceFacade->GetIn(), InSelector, Identity)) { Register(InContext, Identity); }
 	}
 
 	void FFacadePreloader::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope) const
@@ -319,14 +343,14 @@ namespace PCGExData
 
 	void FFacadePreloader::StartLoading(
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-		const TSharedRef<FFacade>& InDataFacade,
 		const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle)
 	{
-		InternalDataFacadePtr = InDataFacade;
+		TSharedPtr<FFacade> SourceFacade = InternalDataFacadePtr.Pin();
+		if (!SourceFacade) { return; }
 
 		if (!IsEmpty())
 		{
-			if (!Validate(AsyncManager->GetContext(), InDataFacade))
+			if (!Validate(AsyncManager->GetContext(), SourceFacade))
 			{
 				InternalDataFacadePtr.Reset();
 				OnLoadingEnd();
@@ -343,7 +367,7 @@ namespace PCGExData
 					This->OnLoadingEnd();
 				};
 
-			if (InDataFacade->bSupportsScopedGet)
+			if (SourceFacade->bSupportsScopedGet)
 			{
 				PrefetchAttributesTask->OnSubLoopStartCallback =
 					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
@@ -355,7 +379,7 @@ namespace PCGExData
 						}
 					};
 
-				PrefetchAttributesTask->StartSubLoops(InDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+				PrefetchAttributesTask->StartSubLoops(SourceFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 			}
 			else
 			{

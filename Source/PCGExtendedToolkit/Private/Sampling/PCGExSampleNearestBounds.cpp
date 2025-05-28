@@ -118,7 +118,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 			{PCGExFactories::EType::Blending}, false);
 	}
 
-	Context->BoundsPreloader = MakeShared<PCGExData::FFacadePreloader>();
+	Context->BoundsPreloader = MakeShared<PCGExData::FFacadePreloader>(Context->BoundsFacade);
 
 	if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
@@ -177,7 +177,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 			}
 		};
 
-		Context->BoundsPreloader->StartLoading(Context->GetAsyncManager(), Context->BoundsFacade.ToSharedRef());
+		Context->BoundsPreloader->StartLoading(Context->GetAsyncManager());
 		return false;
 	}
 

@@ -157,6 +157,21 @@ namespace PCGEx
 		}
 	}
 
+	bool FAttributeIdentity::Get(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector, FAttributeIdentity& OutIdentity)
+	{
+		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
+		if (!FixedSelector.IsValid() || FixedSelector.GetSelection() != EPCGAttributePropertySelection::Attribute) { return false; }
+
+		const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(FixedSelector.GetAttributeName());
+		if(!Attribute) { return false; }
+
+		OutIdentity.Name = Attribute->Name;
+		OutIdentity.UnderlyingType = static_cast<EPCGMetadataTypes>(Attribute->GetTypeId());
+		OutIdentity.bAllowsInterpolation = Attribute->AllowsInterpolation();
+
+		return true;
+	}
+
 	int32 FAttributeIdentity::ForEach(const UPCGMetadata* InMetadata, FForEachFunc&& Func)
 	{
 		if (!InMetadata) { return 0; }

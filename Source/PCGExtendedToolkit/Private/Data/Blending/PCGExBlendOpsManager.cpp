@@ -28,7 +28,7 @@ namespace PCGExDataBlending
 	{
 		for (const TObjectPtr<const UPCGExBlendOpFactory>& Factory : Factories)
 		{
-			Factory->RegisterBuffersDependenciesForOperandA(InContext, FacadePreloader);
+			Factory->RegisterBuffersDependenciesForSourceA(InContext, FacadePreloader);
 		}
 	}
 
@@ -36,7 +36,7 @@ namespace PCGExDataBlending
 	{
 		for (const TObjectPtr<const UPCGExBlendOpFactory>& Factory : Factories)
 		{
-			Factory->RegisterBuffersDependenciesForOperandB(InContext, FacadePreloader);
+			Factory->RegisterBuffersDependenciesForSourceB(InContext, FacadePreloader);
 		}
 	}
 
@@ -44,8 +44,8 @@ namespace PCGExDataBlending
 	{
 		for (const TObjectPtr<const UPCGExBlendOpFactory>& Factory : Factories)
 		{
-			Factory->RegisterBuffersDependenciesForOperandA(InContext, FacadePreloader);
-			Factory->RegisterBuffersDependenciesForOperandB(InContext, FacadePreloader);
+			Factory->RegisterBuffersDependenciesForSourceA(InContext, FacadePreloader);
+			Factory->RegisterBuffersDependenciesForSourceB(InContext, FacadePreloader);
 		}
 	}
 
@@ -117,7 +117,7 @@ namespace PCGExDataBlending
 			Op->SideA = SideA;
 
 			Op->Source_B_Facade = SourceBFacade;
-			Op->SideA = SideB;
+			Op->SideB = SideB;
 
 			Op->TargetFacade = TargetFacade;
 

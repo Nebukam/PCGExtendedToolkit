@@ -344,7 +344,7 @@ namespace PCGExClusterMT
 	{
 		PCGEX_CHECK_WORK_PERMIT_OR_VOID(!bIsBatchValid)
 
-		VtxFacadePreloader = MakeShared<PCGExData::FFacadePreloader>();
+		VtxFacadePreloader = MakeShared<PCGExData::FFacadePreloader>(VtxDataFacade);
 		RegisterBuffersDependencies(*VtxFacadePreloader);
 
 		VtxFacadePreloader->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]
@@ -353,7 +353,7 @@ namespace PCGExClusterMT
 			This->Process();
 		};
 
-		VtxFacadePreloader->StartLoading(AsyncManager, VtxDataFacade);
+		VtxFacadePreloader->StartLoading(AsyncManager);
 	}
 
 	void FClusterProcessorBatchBase::Process()
