@@ -144,7 +144,6 @@ namespace PCGExExtrudeTensors
 		// - Only allocate transform
 		// - Set single value for all other ranges
 
-		ExtrudedPoints.Shrink();
 		bIsValidPath = Settings->PathOutputDetails.Validate(ExtrudedPoints.Num());
 
 		if (!bIsValidPath)
@@ -153,6 +152,13 @@ namespace PCGExExtrudeTensors
 			PointDataFacade->Source->Disable();
 			return;
 		}
+
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+		PCGEx::SetNumPointsAllocated(OutPointData, ExtrudedPoints.Num());
+
+		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
+		for (int i = 0; i < ExtrudedPoints.Num(); i++) { OutTransforms[i] = ExtrudedPoints[i]; }
+
 
 		if (!bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PointDataFacade->Source->Tags->AddRaw(Settings->IsOpenPathTag); } }
 		else { if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->AddRaw(Settings->IsClosedLoopTag); } }
@@ -305,7 +311,7 @@ namespace PCGExExtrudeTensors
 	{
 		bAdvancedOnly = false;
 
-		ExtrudedPoints.Add(InPoint);		
+		ExtrudedPoints.Add(InPoint);
 		LastInsertion = InPoint.GetLocation();
 		//if (Settings->bRefreshSeed) { NewPoint.Seed = PCGExRandom::ComputeSpatialSeed(LastInsertion, FVector(Origin.GetLocation())); }
 
@@ -489,7 +495,7 @@ namespace PCGExExtrudeTensors
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::ExtrudeTensors::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		PCGEX_SCOPE_LOOP(Index) { InitExtrusionFromSeed(Index); }
 	}
