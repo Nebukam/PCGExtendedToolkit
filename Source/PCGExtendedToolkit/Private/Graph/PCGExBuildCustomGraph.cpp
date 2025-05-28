@@ -212,14 +212,18 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		bool bSuccessfulInit = false;
 
-		if (!IsInGameThread())
 		{
-			FGCScopeGuard Scope;
-			Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
-		}
-		else
-		{
-			Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
+			//FPCGContextBlueprintScope BlueprintScope(Context); // Uncomment this on 5.6 final
+
+			if (!IsInGameThread())
+			{
+				FGCScopeGuard Scope;
+				Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
+			}
+			else
+			{
+				Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
+			}
 		}
 
 		if (!bSuccessfulInit)
@@ -394,7 +398,7 @@ namespace PCGExBuildCustomGraph
 				if (!IO) { return; }
 
 				TArray<FPCGPoint> MutablePoints;
-				PCGExData::GetPoints(IO->GetInScope(Scope), MutablePoints);
+				PCGExData::GetPoints(IO->GetOutScope(Scope), MutablePoints);
 
 				PCGEX_SCOPE_LOOP(i)
 				{

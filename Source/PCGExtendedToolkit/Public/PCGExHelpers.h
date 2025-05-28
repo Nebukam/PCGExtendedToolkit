@@ -203,6 +203,17 @@ private:
 
 namespace PCGEx
 {
+	class PCGEXTENDEDTOOLKIT_API FPCGExAsyncStateScope
+	{
+	public:
+		explicit FPCGExAsyncStateScope(FPCGContext* InContext, const bool bDesired);
+		~FPCGExAsyncStateScope();
+
+	private:
+		FPCGContext* Context = nullptr;
+		bool bRestoreTo = false;
+	};
+
 	class PCGEXTENDEDTOOLKIT_API FIntTracker final : public TSharedFromThis<FIntTracker>
 	{
 		FRWLock Lock;
@@ -284,7 +295,7 @@ namespace PCGEx
 		void Remove(const TArray<FPCGTaggedData>& InTaggedData);
 
 		void AddExtraStructReferencedObjects(FReferenceCollector& Collector);
-		
+
 		template <class T, typename... Args>
 		T* New(Args&&... InArgs)
 		{
@@ -322,15 +333,10 @@ namespace PCGEx
 			if (!IsInGameThread())
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-
-				// Ensure PCG AsyncState is up to date
-				bool bRestoreTo = SharedContext.Get()->AsyncState.bIsRunningOnMainThread;
-				SharedContext.Get()->AsyncState.bIsRunningOnMainThread = false;
+				FPCGExAsyncStateScope ForceAsyncState(SharedContext.Get(), false);
 
 				// Do the duplicate (uses AnyThread that requires bIsRunningOnMainThread to be up-to-date)
 				Object = Cast<T>(InData->DuplicateData(SharedContext.Get(), true));
-
-				SharedContext.Get()->AsyncState.bIsRunningOnMainThread = bRestoreTo;
 
 				check(Object);
 				{

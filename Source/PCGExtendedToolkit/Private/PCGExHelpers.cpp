@@ -18,6 +18,25 @@
 
 namespace PCGEx
 {
+	FPCGExAsyncStateScope::FPCGExAsyncStateScope(FPCGContext* InContext, const bool bDesired)
+	: Context(InContext)
+	{
+		if (Context)
+		{
+			// Ensure PCG AsyncState is up to date
+			bRestoreTo = Context->AsyncState.bIsRunningOnMainThread;
+			Context->AsyncState.bIsRunningOnMainThread = bDesired;
+		}
+	}
+
+	FPCGExAsyncStateScope::~FPCGExAsyncStateScope()
+	{
+		if (Context)
+		{
+			Context->AsyncState.bIsRunningOnMainThread = bRestoreTo;
+		}
+	}
+	
 	void FIntTracker::IncrementPending(const int32 Count)
 	{
 		{
@@ -234,13 +253,13 @@ namespace PCGEx
 	{
 		if (bSetNum)
 		{
-			ReadIndices.Reserve(NumElements);
-			WriteIndices.Reserve(NumElements);
+			ReadIndices.SetNumUninitialized(NumElements);
+			WriteIndices.SetNumUninitialized(NumElements);
 		}
 		else
 		{
-			ReadIndices.SetNumUninitialized(NumElements);
-			WriteIndices.SetNumUninitialized(NumElements);
+			ReadIndices.Reserve(NumElements);
+			WriteIndices.Reserve(NumElements);
 		}
 	}
 
