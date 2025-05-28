@@ -471,7 +471,8 @@ namespace PCGExGraph
 	{
 		FEdge NewEdge = FEdge{};
 
-		TPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetTransformValueRange(false);
+		UPCGBasePointData* OutPointData = PointIO->GetOut();
+		TPCGValueRange<FTransform> Transforms = OutPointData->GetTransformValueRange(false);
 
 		for (FPointEdgeProxy& PointEdgeProxy : Edges)
 		{
@@ -504,7 +505,7 @@ namespace PCGExGraph
 	void FPointEdgeIntersections::BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointEdgeIntersections::BlendIntersection);
-		 
+
 		const FPointEdgeProxy& PointEdgeProxy = Edges[Index];
 
 		if (PointEdgeProxy.CollinearPoints.IsEmpty()) { return; }

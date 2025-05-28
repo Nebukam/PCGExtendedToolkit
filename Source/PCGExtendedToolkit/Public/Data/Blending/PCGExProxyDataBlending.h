@@ -131,9 +131,10 @@ namespace PCGExDataBlending
 			Desc_B.bWantsDirect = bWantsDirectAccess;
 			Desc_C.bWantsDirect = bWantsDirectAccess;
 
+			// Create output first so we may read from it
+			C = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_C));
 			A = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_A));
 			B = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_B));
-			C = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_C));
 
 			return A && B && C;
 		}
@@ -333,9 +334,10 @@ break;
 
 				if (!TypedBlender) { return; }
 
+				// Create output first so we may read from it
+				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
 				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
 				TypedBlender->B = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, B));
-				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
 
 				if (!TypedBlender) { return; }
 				if (!TypedBlender->A || !TypedBlender->B || !TypedBlender->C)

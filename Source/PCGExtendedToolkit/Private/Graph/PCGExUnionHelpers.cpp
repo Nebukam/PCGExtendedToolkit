@@ -304,6 +304,7 @@ namespace PCGExGraph
 		if (!MetadataBlender->Init(Context, bUseCustomPointEdgeBlending ? CustomPointEdgeBlendingDetails : DefaultPointsBlendingDetails, &ProtectedClusterAttributes))
 		{
 			// Fail
+			Context->CancelExecution(FString("Error initializing Point/Edge blending"));
 			return;
 		}
 
@@ -447,6 +448,7 @@ namespace PCGExGraph
 		if (!MetadataBlender->Init(Context, bUseCustomEdgeEdgeBlending ? CustomEdgeEdgeBlendingDetails : DefaultPointsBlendingDetails, &ProtectedClusterAttributes))
 		{
 			// Fail
+			Context->CancelExecution(FString("Error initializing Edge/Edge blending"));
 			return;
 		}
 
@@ -498,6 +500,8 @@ namespace PCGExGraph
 				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None); }
 				else { This->GraphBuilder->StageEdgesOutputs(); }
 			};
+
+		GraphBuilder->NodePointsTransforms = GraphBuilder->NodeDataFacade->GetOut()->GetConstTransformValueRange();
 		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true, &GraphMetadataDetails);
 	}
 }

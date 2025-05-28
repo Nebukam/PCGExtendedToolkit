@@ -15,7 +15,7 @@ PCGExData::EIOInit UPCGExWriteEdgePropertiesSettings::GetEdgeOutputInitMode() co
 TArray<FPCGPinProperties> UPCGExWriteEdgePropertiesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (bEndpointsBlending) { PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {}) }
+	if (bEndpointsBlending) { PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {}) }
 	if (bWriteHeuristics) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics that will be computed and written.", Required, {}) }
 	return PinProperties;
 }
@@ -32,12 +32,9 @@ bool FPCGExWriteEdgePropertiesElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bEndpointsBlending)
 	{
-		if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-			{PCGExFactories::EType::Blending}, true))
-		{
-			return false;
-		}
+			{PCGExFactories::EType::Blending}, false);
 	}
 
 	return true;
@@ -125,7 +122,7 @@ namespace PCGExWriteEdgeProperties
 			if (!SolidificationLerp->Init(Context, EdgeDataFacade, false)) { return false; }
 		}
 
-		if (Settings->bEndpointsBlending)
+		if (!Context->BlendingFactories.IsEmpty())
 		{
 			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(EdgeDataFacade);
 			BlendOpsManager->SetSources(VtxDataFacade); // We want operands A & B to be the vtx here
@@ -241,17 +238,17 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 				BoundsMin[EdgeIndex] = TargetBoundsMin;
 				BoundsMax[EdgeIndex] = TargetBoundsMax;
 
-				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex); }
+				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex, BlendWeightEnd); }
 			}
 			else if (Settings->bWriteEdgePosition)
 			{
 				Transforms[EdgeIndex].SetLocation(FMath::Lerp(B, A, Settings->EdgePositionLerp));
 
-				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex); }
+				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp); }
 			}
 			else
 			{
-				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex); }
+				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp); }
 			}
 		}
 	}
