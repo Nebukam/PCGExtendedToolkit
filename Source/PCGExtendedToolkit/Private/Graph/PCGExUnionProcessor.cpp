@@ -66,7 +66,7 @@ namespace PCGExGraph
 
 		UPCGBasePointData* MutablePoints = UnionDataFacade->GetOut();
 		PCGEx::SetNumPointsAllocated(MutablePoints, NumUnionNodes);
-
+		
 		UnionPointsBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, VtxCarryOverDetails, Distances);
 		UnionPointsBlender->AddSources(InFacades, &ProtectedClusterAttributes);
 		if (!UnionPointsBlender->Init(Context, UnionDataFacade, UnionGraph->NodesUnion)) { return false; }
@@ -476,6 +476,7 @@ namespace PCGExGraph
 
 				PCGEX_SCOPE_LOOP(Index) { This->EdgeEdgeIntersections->BlendIntersection(Index, Blender, Trackers); }
 			};
+		
 		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->Crossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
 

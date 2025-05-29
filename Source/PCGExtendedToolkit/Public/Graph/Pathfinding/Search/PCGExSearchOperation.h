@@ -8,13 +8,13 @@
 #include "PCGExOperation.h"
 
 #include "Graph/PCGExCluster.h"
+#include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "UObject/Object.h"
 #include "PCGExSearchOperation.generated.h"
 
 namespace PCGExPathfinding
 {
-	class FPathQuery;
 	struct FExtraWeights;
 }
 

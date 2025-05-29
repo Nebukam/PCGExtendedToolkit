@@ -178,9 +178,6 @@ namespace PCGExGraph
 	public:
 		TMap<uint32, TSharedPtr<FUnionNode>> GridTree;
 
-		TSharedPtr<PCGExData::FPointIOCollection> NodesCollection;
-		TSharedPtr<PCGExData::FPointIOCollection> EdgesCollection;
-
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TArray<TSharedPtr<FUnionNode>> Nodes;

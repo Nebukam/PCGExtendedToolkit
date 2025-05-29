@@ -7,7 +7,6 @@
 #include "PCGExMT.h"
 #include "GoalPickers/PCGExGoalPicker.h"
 #include "Graph/PCGExCluster.h"
-#include "Search/PCGExSearchOperation.h"
 
 #include "PCGExPathfinding.generated.h"
 
