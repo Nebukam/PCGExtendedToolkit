@@ -448,7 +448,7 @@ namespace PCGExDiscardByOverlap
 			{
 				PCGEX_ASYNC_THIS
 
-				const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = This->ParentBatch.Pin();
+				const TSharedPtr<PCGExPointsMT::IPointsProcessorBatch> Parent = This->ParentBatch.Pin();
 				const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[Index];
 				if (This->PointDataFacade == OtherFacade) { return; } // Skip self
 

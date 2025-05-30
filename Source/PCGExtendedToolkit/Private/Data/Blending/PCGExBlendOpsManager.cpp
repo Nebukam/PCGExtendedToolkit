@@ -161,10 +161,10 @@ namespace PCGExDataBlending
 
 	void FBlendOpsManager::Cleanup(FPCGExContext* InContext)
 	{
-		TSet<TSharedPtr<PCGExData::FBufferBase>> DisabledBuffers;
+		TSet<TSharedPtr<PCGExData::IBuffer>> DisabledBuffers;
 		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->CompleteWork(DisabledBuffers); }
 
-		for (const TSharedPtr<PCGExData::FBufferBase>& Buffer : DisabledBuffers)
+		for (const TSharedPtr<PCGExData::IBuffer>& Buffer : DisabledBuffers)
 		{
 			// If disabled buffer does not exist on input, delete it entierely
 			if (!Buffer->OutAttribute) { continue; }

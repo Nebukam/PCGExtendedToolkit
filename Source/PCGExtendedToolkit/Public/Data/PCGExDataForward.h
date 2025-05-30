@@ -68,8 +68,8 @@ namespace PCGExData
 		TSharedPtr<FFacade> SourceDataFacade;
 		TSharedPtr<FFacade> TargetDataFacade;
 		TArray<PCGEx::FAttributeIdentity> Identities;
-		TArray<TSharedPtr<FBufferBase>> Readers;
-		TArray<TSharedPtr<FBufferBase>> Writers;
+		TArray<TSharedPtr<IBuffer>> Readers;
+		TArray<TSharedPtr<IBuffer>> Writers;
 
 	public:
 		~FDataForwardHandler() = default;

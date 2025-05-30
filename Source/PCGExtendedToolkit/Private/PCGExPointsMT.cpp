@@ -168,41 +168,41 @@ namespace PCGExPointsMT
 		FilterScope(PCGExMT::FScope(0, PointDataFacade->GetNum()));
 	}
 
-	FPointsProcessorBatchBase::FPointsProcessorBatchBase(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
+	IPointsProcessorBatch::IPointsProcessorBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
 		: ExecutionContext(InContext), PointsCollection(InPointsCollection)
 	{
-		PCGEX_LOG_CTR(FPointsProcessorBatchBase)
+		PCGEX_LOG_CTR(IPointsProcessorBatch)
 		SetExecutionContext(InContext);
 	}
 
-	void FPointsProcessorBatchBase::SetExecutionContext(FPCGExContext* InContext)
+	void IPointsProcessorBatch::SetExecutionContext(FPCGExContext* InContext)
 	{
 		ExecutionContext = InContext;
 		WorkPermit = ExecutionContext->GetWorkPermit();
 	}
 
-	bool FPointsProcessorBatchBase::PrepareProcessing()
+	bool IPointsProcessorBatch::PrepareProcessing()
 	{
 		return true;
 	}
 
-	void FPointsProcessorBatchBase::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	void IPointsProcessorBatch::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 	}
 
-	void FPointsProcessorBatchBase::CompleteWork()
+	void IPointsProcessorBatch::CompleteWork()
 	{
 	}
 
-	void FPointsProcessorBatchBase::Write()
+	void IPointsProcessorBatch::Write()
 	{
 	}
 
-	void FPointsProcessorBatchBase::Output()
+	void IPointsProcessorBatch::Output()
 	{
 	}
 
-	void FPointsProcessorBatchBase::Cleanup()
+	void IPointsProcessorBatch::Cleanup()
 	{
 		ProcessorFacades.Empty();
 	}

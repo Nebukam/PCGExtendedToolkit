@@ -429,7 +429,7 @@ namespace PCGExPackActorDatas
 	void FProcessor::CompleteWork()
 	{
 		Attributes.Reserve(PointDataFacade->Buffers.Num());
-		for (const TSharedPtr<PCGExData::FBufferBase>& Buffer : PointDataFacade->Buffers)
+		for (const TSharedPtr<PCGExData::IBuffer>& Buffer : PointDataFacade->Buffers)
 		{
 			if (!Buffer->IsWritable()) { continue; }
 			Attributes.Add(Buffer->OutAttribute);

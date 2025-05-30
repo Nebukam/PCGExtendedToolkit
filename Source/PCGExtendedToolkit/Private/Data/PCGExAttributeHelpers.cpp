@@ -105,7 +105,7 @@ void FPCGExAttributeSourceToTargetList::SetOutputTargetNames(const TSharedRef<PC
 	{
 		if (!Entry.WantsRemappedOutput()) { continue; }
 
-		const TSharedPtr<PCGExData::FBufferBase> Buffer = InFacade->FindWritableAttributeBuffer(Entry.Source);
+		const TSharedPtr<PCGExData::IBuffer> Buffer = InFacade->FindWritableAttributeBuffer(Entry.Source);
 		if (!Buffer) { continue; }
 
 		Buffer->SetTargetOutputName(Entry.Target);

@@ -20,7 +20,7 @@ namespace PCGExData
 	class PCGEXTENDEDTOOLKIT_API TBufferHelper : public TSharedFromThis<TBufferHelper<Mode>>
 	{
 		TSharedPtr<FFacade> DataFacade;
-		TMap<FName, TSharedPtr<FBufferBase>> BufferMap;
+		TMap<FName, TSharedPtr<IBuffer>> BufferMap;
 		mutable FRWLock BufferLock;
 
 	public:
@@ -33,7 +33,7 @@ namespace PCGExData
 		TSharedPtr<TBuffer<T>> TryGetBuffer(const FName InName)
 		{
 			FReadScopeLock ReadScopeLock(BufferLock);
-			if (TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
+			if (TSharedPtr<IBuffer>* BufferPtr = BufferMap.Find(InName))
 			{
 				if (!(*BufferPtr)->IsA<T>()) { return nullptr; }
 				return StaticCastSharedPtr<TBuffer<T>>(*BufferPtr);
@@ -47,7 +47,7 @@ namespace PCGExData
 		{
 			{
 				FReadScopeLock ReadScopeLock(BufferLock);
-				if (const TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
+				if (const TSharedPtr<IBuffer>* BufferPtr = BufferMap.Find(InName))
 				{
 					if (!(*BufferPtr)->IsA<T>())
 					{
@@ -82,7 +82,7 @@ namespace PCGExData
 					}
 				}
 
-				BufferMap.Add(InName, StaticCastSharedPtr<FBufferBase>(NewBuffer));
+				BufferMap.Add(InName, StaticCastSharedPtr<IBuffer>(NewBuffer));
 				return NewBuffer;
 			}
 		}
@@ -92,7 +92,7 @@ namespace PCGExData
 		{
 			{
 				FReadScopeLock ReadScopeLock(BufferLock);
-				if (const TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
+				if (const TSharedPtr<IBuffer>* BufferPtr = BufferMap.Find(InName))
 				{
 					if (!(*BufferPtr)->IsA<T>())
 					{
@@ -128,7 +128,7 @@ namespace PCGExData
 					}
 				}
 
-				BufferMap.Add(InName, StaticCastSharedPtr<FBufferBase>(NewBuffer));
+				BufferMap.Add(InName, StaticCastSharedPtr<IBuffer>(NewBuffer));
 				return NewBuffer;
 			}
 		}

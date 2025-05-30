@@ -82,7 +82,7 @@ namespace PCGExData
 		return PCGEx::H64(GetTypeHash(FullName), static_cast<int32>(Type));
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FBufferBase : public TSharedFromThis<FBufferBase>
+	class PCGEXTENDEDTOOLKIT_API IBuffer : public TSharedFromThis<IBuffer>
 	{
 		friend class FFacade;
 
@@ -114,10 +114,10 @@ namespace PCGExData
 
 		bool bReadComplete = false;
 
-		FBufferBase(const TSharedRef<FPointIO>& InSource, const FName InFullName):
+		IBuffer(const TSharedRef<FPointIO>& InSource, const FName InFullName):
 			FullName(InFullName), Source(InSource)
 		{
-			PCGEX_LOG_CTR(FBufferBase)
+			PCGEX_LOG_CTR(IBuffer)
 		}
 
 		uint64 GetUID() const { return UID; }
@@ -127,7 +127,7 @@ namespace PCGExData
 		template <typename T>
 		bool IsA() const { return Type == PCGEx::GetMetadataType<T>(); }
 
-		virtual ~FBufferBase() = default;
+		virtual ~IBuffer() = default;
 
 		virtual bool EnsureReadable() { return false; }
 
@@ -162,7 +162,7 @@ namespace PCGExData
 	};
 
 	template <typename T, EBufferLevel BufferLevel = EBufferLevel::Local>
-	class TBuffer final : public FBufferBase
+	class TBuffer final : public IBuffer
 	{
 		friend class FFacade;
 
@@ -184,7 +184,7 @@ namespace PCGExData
 		virtual bool IsScoped() override { return bScopedBuffer || InternalBroadcaster; }
 
 		TBuffer(const TSharedRef<FPointIO>& InSource, const FName InFullName):
-			FBufferBase(InSource, InFullName)
+			IBuffer(InSource, InFullName)
 		{
 			SetType(PCGEx::GetMetadataType<T>());
 		}
@@ -524,8 +524,8 @@ namespace PCGExData
 
 	public:
 		TSharedRef<FPointIO> Source;
-		TArray<TSharedPtr<FBufferBase>> Buffers;
-		TMap<uint64, TSharedPtr<FBufferBase>> BufferMap;
+		TArray<TSharedPtr<IBuffer>> Buffers;
+		TMap<uint64, TSharedPtr<IBuffer>> BufferMap;
 		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
 
 		TMap<FName, FName> WritableRemap; // TODO : Manage remapping in the facade directly to remove the need for dummy attributes
@@ -534,10 +534,10 @@ namespace PCGExData
 
 		int32 GetNum(const EIOSide InSide = EIOSide::In) const { return Source->GetNum(InSide); }
 
-		TSharedPtr<FBufferBase> FindBuffer_Unsafe(const uint64 UID);
-		TSharedPtr<FBufferBase> FindBuffer(const uint64 UID);
-		TSharedPtr<FBufferBase> FindReadableAttributeBuffer(const FName InName);
-		TSharedPtr<FBufferBase> FindWritableAttributeBuffer(const FName InName);
+		TSharedPtr<IBuffer> FindBuffer_Unsafe(const uint64 UID);
+		TSharedPtr<IBuffer> FindBuffer(const uint64 UID);
+		TSharedPtr<IBuffer> FindReadableAttributeBuffer(const FName InName);
+		TSharedPtr<IBuffer> FindWritableAttributeBuffer(const FName InName);
 
 
 		explicit FFacade(const TSharedRef<FPointIO>& InSource):
@@ -555,7 +555,7 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> FindBuffer_Unsafe(const FName FullName)
 		{
-			const TSharedPtr<FBufferBase>& Found = FindBuffer_Unsafe(BufferUID(FullName, PCGEx::GetMetadataType<T>()));
+			const TSharedPtr<IBuffer>& Found = FindBuffer_Unsafe(BufferUID(FullName, PCGEx::GetMetadataType<T>()));
 			if (!Found) { return nullptr; }
 			return StaticCastSharedPtr<TBuffer<T>>(Found);
 		}
@@ -563,7 +563,7 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> FindBuffer(const FName FullName)
 		{
-			const TSharedPtr<FBufferBase> Found = FindBuffer(BufferUID(FullName, PCGEx::GetMetadataType<T>()));
+			const TSharedPtr<IBuffer> Found = FindBuffer(BufferUID(FullName, PCGEx::GetMetadataType<T>()));
 			if (!Found) { return nullptr; }
 			return StaticCastSharedPtr<TBuffer<T>>(Found);
 		}
@@ -583,7 +583,7 @@ namespace PCGExData
 				NewBuffer = MakeShared<TBuffer<T>>(Source, FullName);
 				NewBuffer->BufferIndex = Buffers.Num();
 
-				Buffers.Add(StaticCastSharedPtr<FBufferBase>(NewBuffer));
+				Buffers.Add(StaticCastSharedPtr<IBuffer>(NewBuffer));
 				BufferMap.Add(NewBuffer->UID, NewBuffer);
 
 				return NewBuffer;
@@ -612,8 +612,8 @@ namespace PCGExData
 			return Buffer->PrepareWrite(Init) ? Buffer : nullptr;
 		}
 
-		TSharedPtr<FBufferBase> GetWritable(EPCGMetadataTypes Type, const FPCGMetadataAttributeBase* InAttribute, EBufferInit Init);
-		TSharedPtr<FBufferBase> GetWritable(EPCGMetadataTypes Type, const FName InName, EBufferInit Init);
+		TSharedPtr<IBuffer> GetWritable(EPCGMetadataTypes Type, const FPCGMetadataAttributeBase* InAttribute, EBufferInit Init);
+		TSharedPtr<IBuffer> GetWritable(EPCGMetadataTypes Type, const FName InName, EBufferInit Init);
 
 #pragma endregion
 
@@ -756,7 +756,7 @@ namespace PCGExData
 		void Fetch(const PCGExMT::FScope& Scope)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FFacade::Fetch);
-			for (const TSharedPtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(Scope); }
+			for (const TSharedPtr<IBuffer>& Buffer : Buffers) { Buffer->Fetch(Scope); }
 		}
 
 		FORCEINLINE FConstPoint GetInPoint(const int32 Index) const { return Source->GetInPoint(Index); }
@@ -778,7 +778,7 @@ namespace PCGExData
 		{
 			for (int i = 0; i < Buffers.Num(); i++)
 			{
-				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+				const TSharedPtr<IBuffer> Buffer = Buffers[i];
 				if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
 				Callback(Buffer);
 			}
@@ -786,7 +786,7 @@ namespace PCGExData
 
 		bool ValidateOutputsBeforeWriting() const;
 
-		void Flush(const TSharedPtr<FBufferBase>& Buffer)
+		void Flush(const TSharedPtr<IBuffer>& Buffer)
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
 			Buffers.RemoveAt(Buffer->BufferIndex);
@@ -953,13 +953,13 @@ namespace PCGExData
 	public:
 		PCGEX_ASYNC_TASK_NAME(FWriteTask)
 
-		explicit FWriteBufferTask(const TSharedPtr<FBufferBase>& InBuffer, const bool InEnsureValidKeys = true)
+		explicit FWriteBufferTask(const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true)
 			: FTask(), bEnsureValidKeys(InEnsureValidKeys), Buffer(InBuffer)
 		{
 		}
 
 		bool bEnsureValidKeys = true;
-		TSharedPtr<FBufferBase> Buffer;
+		TSharedPtr<IBuffer> Buffer;
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
@@ -968,7 +968,7 @@ namespace PCGExData
 		}
 	};
 
-	static void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<FBufferBase>& InBuffer, const bool InEnsureValidKeys = true)
+	static void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true)
 	{
 		if (!AsyncManager || !AsyncManager->IsAvailable()) { InBuffer->Write(InEnsureValidKeys); }
 		PCGEX_LAUNCH(FWriteBufferTask, InBuffer, InEnsureValidKeys)

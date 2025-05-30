@@ -252,18 +252,18 @@ namespace PCGExAttributeStats
 	const FName OutputAttributeStats = FName("Stats");
 	const FName OutputAttributeUniqueValues = FName("UniqueValues");
 
-	class FAttributeStatsBase : public TSharedFromThis<FAttributeStatsBase>
+	class IAttributeStats : public TSharedFromThis<IAttributeStats>
 	{
 	public:
 		const PCGEx::FAttributeIdentity Identity;
 		const int64 Key;
 
-		explicit FAttributeStatsBase(const PCGEx::FAttributeIdentity& InIdentity, const int64 InKey)
+		explicit IAttributeStats(const PCGEx::FAttributeIdentity& InIdentity, const int64 InKey)
 			: Identity(InIdentity), Key(InKey)
 		{
 		}
 
-		virtual ~FAttributeStatsBase() = default;
+		virtual ~IAttributeStats() = default;
 
 		virtual void Process(
 			const TSharedRef<PCGExData::FFacade> InDataFacade,
@@ -275,7 +275,7 @@ namespace PCGExAttributeStats
 	};
 
 	template <typename T>
-	class TAttributeStats : public FAttributeStatsBase
+	class TAttributeStats : public IAttributeStats
 	{
 	public:
 		T DefaultValue = T{};
@@ -294,7 +294,7 @@ namespace PCGExAttributeStats
 		int32 DefaultValuesNum = 0;
 
 		explicit TAttributeStats(const PCGEx::FAttributeIdentity& InIdentity, const int64 InKey)
-			: FAttributeStatsBase(InIdentity, InKey)
+			: IAttributeStats(InIdentity, InKey)
 		{
 		}
 
@@ -468,7 +468,7 @@ namespace PCGExAttributeStats
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeStatsContext, UPCGExAttributeStatsSettings>
 	{
-		TArray<TSharedPtr<FAttributeStatsBase>> Stats;
+		TArray<TSharedPtr<IAttributeStats>> Stats;
 		TMap<FName, int32> PerAttributeStatMap;
 		TArray<UPCGParamData*> PerAttributeStats;
 

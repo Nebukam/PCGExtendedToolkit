@@ -38,7 +38,7 @@ namespace PCGExDataBlending
 				return false;
 			}
 
-			TSharedPtr<PCGExData::FBufferBase> InitializationBuffer = nullptr;
+			TSharedPtr<PCGExData::IBuffer> InitializationBuffer = nullptr;
 
 			if (const FPCGMetadataAttributeBase* ExistingAttribute = InTargetData->FindConstAttribute(Identity.Name);
 				ExistingAttribute && ExistingAttribute->GetTypeId() == static_cast<int16>(Identity.UnderlyingType))

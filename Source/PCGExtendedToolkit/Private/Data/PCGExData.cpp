@@ -10,33 +10,33 @@ namespace PCGExData
 {
 #pragma region Pools & cache
 
-	void FBufferBase::SetTargetOutputName(const FName InName)
+	void IBuffer::SetTargetOutputName(const FName InName)
 	{
 		TargetOutputName = InName;
 	}
 
-	bool FBufferBase::OutputsToDifferentName() const
+	bool IBuffer::OutputsToDifferentName() const
 	{
 		return false;
 	}
 
-	TSharedPtr<FBufferBase> FFacade::FindBuffer_Unsafe(const uint64 UID)
+	TSharedPtr<IBuffer> FFacade::FindBuffer_Unsafe(const uint64 UID)
 	{
-		TSharedPtr<FBufferBase>* Found = BufferMap.Find(UID);
+		TSharedPtr<IBuffer>* Found = BufferMap.Find(UID);
 		if (!Found) { return nullptr; }
 		return *Found;
 	}
 
-	TSharedPtr<FBufferBase> FFacade::FindBuffer(const uint64 UID)
+	TSharedPtr<IBuffer> FFacade::FindBuffer(const uint64 UID)
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
 		return FindBuffer_Unsafe(UID);
 	}
 
-	TSharedPtr<FBufferBase> FFacade::FindReadableAttributeBuffer(const FName InName)
+	TSharedPtr<IBuffer> FFacade::FindReadableAttributeBuffer(const FName InName)
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
-		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		for (const TSharedPtr<IBuffer>& Buffer : Buffers)
 		{
 			if (!Buffer->IsReadable()) { continue; }
 			if (Buffer->InAttribute && Buffer->InAttribute->Name == InName) { return Buffer; }
@@ -44,10 +44,10 @@ namespace PCGExData
 		return nullptr;
 	}
 
-	TSharedPtr<FBufferBase> FFacade::FindWritableAttributeBuffer(const FName InName)
+	TSharedPtr<IBuffer> FFacade::FindWritableAttributeBuffer(const FName InName)
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
-		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		for (const TSharedPtr<IBuffer>& Buffer : Buffers)
 		{
 			if (!Buffer->IsWritable()) { continue; }
 			if (Buffer->FullName == InName) { return Buffer; }
@@ -55,7 +55,7 @@ namespace PCGExData
 		return nullptr;
 	}
 
-	TSharedPtr<FBufferBase> FFacade::GetWritable(const EPCGMetadataTypes Type, const FPCGMetadataAttributeBase* InAttribute, EBufferInit Init)
+	TSharedPtr<IBuffer> FFacade::GetWritable(const EPCGMetadataTypes Type, const FPCGMetadataAttributeBase* InAttribute, EBufferInit Init)
 	{
 #define PCGEX_TYPED_WRITABLE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID: return GetWritable<_TYPE>(static_cast<const FPCGMetadataAttribute<_TYPE>*>(InAttribute), Init);
 		switch (Type)
@@ -66,7 +66,7 @@ namespace PCGExData
 #undef PCGEX_TYPED_WRITABLE
 	}
 
-	TSharedPtr<FBufferBase> FFacade::GetWritable(const EPCGMetadataTypes Type, const FName InName, EBufferInit Init)
+	TSharedPtr<IBuffer> FFacade::GetWritable(const EPCGMetadataTypes Type, const FName InName, EBufferInit Init)
 	{
 #define PCGEX_TYPED_WRITABLE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID: return GetWritable<_TYPE>(InName, Init);
 		switch (Type)
@@ -108,7 +108,7 @@ namespace PCGExData
 
 	void FFacade::MarkCurrentBuffersReadAsComplete()
 	{
-		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		for (const TSharedPtr<IBuffer>& Buffer : Buffers)
 		{
 			if (!Buffer.IsValid() || !Buffer->IsReadable()) { continue; }
 			Buffer->bReadComplete = true;
@@ -130,7 +130,7 @@ namespace PCGExData
 
 				for (int i = 0; i < Buffers.Num(); i++)
 				{
-					const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+					const TSharedPtr<IBuffer> Buffer = Buffers[i];
 					if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
 					WriteBuffer(AsyncManager, Buffer, false);
 				}
@@ -158,7 +158,7 @@ namespace PCGExData
 
 			for (int i = 0; i < Buffers.Num(); i++)
 			{
-				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+				const TSharedPtr<IBuffer> Buffer = Buffers[i];
 				if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
 
 				TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); });
@@ -212,7 +212,7 @@ namespace PCGExData
 
 			for (int i = 0; i < Buffers.Num(); i++)
 			{
-				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+				const TSharedPtr<IBuffer> Buffer = Buffers[i];
 				if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
 
 				PCGEx::FAttributeIdentity Identity = Buffer->GetTargetOutputIdentity();

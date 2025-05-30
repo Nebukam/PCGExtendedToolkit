@@ -118,11 +118,11 @@ namespace PCGExData
 		return true;
 	}
 
-	TSharedPtr<FBufferProxyBase> GetProxyBuffer(
+	TSharedPtr<IBufferProxy> GetProxyBuffer(
 		FPCGExContext* InContext,
 		const FProxyDescriptor& InDescriptor)
 	{
-		TSharedPtr<FBufferProxyBase> OutProxy = nullptr;
+		TSharedPtr<IBufferProxy> OutProxy = nullptr;
 		const bool bSubSelection = InDescriptor.SubSelection.bIsValid;
 
 		const TSharedPtr<FFacade> InDataFacade = InDescriptor.DataFacade.Pin();
@@ -423,7 +423,7 @@ namespace PCGExData
 		FPCGExContext* InContext,
 		const FProxyDescriptor& InBaseDescriptor,
 		const int32 NumDesiredFields,
-		TArray<TSharedPtr<FBufferProxyBase>>& OutProxies)
+		TArray<TSharedPtr<IBufferProxy>>& OutProxies)
 	{
 		OutProxies.Reset(NumDesiredFields);
 
@@ -445,7 +445,7 @@ namespace PCGExData
 			// We have a single specific field set within that selection
 			if (InBaseDescriptor.SubSelection.bIsFieldSet)
 			{
-				const TSharedPtr<FBufferProxyBase> Proxy = GetProxyBuffer(InContext, InBaseDescriptor);
+				const TSharedPtr<IBufferProxy> Proxy = GetProxyBuffer(InContext, InBaseDescriptor);
 				if (!Proxy) { return false; }
 
 				// Just use the same pointer on each desired field
@@ -459,7 +459,7 @@ namespace PCGExData
 				FProxyDescriptor SingleFieldCopy = InBaseDescriptor;
 				SingleFieldCopy.SetFieldIndex(FMath::Clamp(i, 0, MaxIndex)); // Clamp field index to a safe max
 
-				const TSharedPtr<FBufferProxyBase> Proxy = GetProxyBuffer(InContext, SingleFieldCopy);
+				const TSharedPtr<IBufferProxy> Proxy = GetProxyBuffer(InContext, SingleFieldCopy);
 				if (!Proxy) { return false; }
 				OutProxies.Add(Proxy);
 			}
@@ -472,7 +472,7 @@ namespace PCGExData
 				FProxyDescriptor SingleFieldCopy = InBaseDescriptor;
 				SingleFieldCopy.SetFieldIndex(FMath::Clamp(i, 0, MaxIndex)); // Clamp field index to a safe max
 
-				const TSharedPtr<FBufferProxyBase> Proxy = GetProxyBuffer(InContext, SingleFieldCopy);
+				const TSharedPtr<IBufferProxy> Proxy = GetProxyBuffer(InContext, SingleFieldCopy);
 				if (!Proxy) { return false; }
 				OutProxies.Add(Proxy);
 			}

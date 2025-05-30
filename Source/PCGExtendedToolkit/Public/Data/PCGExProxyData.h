@@ -56,7 +56,7 @@ namespace PCGExData
 		//static FProxyDescriptor CreateForPointProperty(UPCGBasePointData* PointData);
 	};
 
-	class FBufferProxyBase : public TSharedFromThis<FBufferProxyBase>
+	class IBufferProxy : public TSharedFromThis<IBufferProxy>
 	{
 	public:
 		UPCGBasePointData* Data = nullptr;
@@ -69,20 +69,20 @@ namespace PCGExData
 		FProxyDescriptor Descriptor;
 #endif
 
-		FBufferProxyBase() = default;
-		virtual ~FBufferProxyBase() = default;
+		IBufferProxy() = default;
+		virtual ~IBufferProxy() = default;
 
 		bool Validate(const FProxyDescriptor& InDescriptor) const { return InDescriptor.RealType == RealType && InDescriptor.WorkingType == WorkingType; }
-		virtual TSharedPtr<FBufferBase> GetBuffer() const { return nullptr; }
+		virtual TSharedPtr<IBuffer> GetBuffer() const { return nullptr; }
 		virtual bool EnsureReadable() const { return true; }
 	};
 
 	template <typename T_WORKING>
-	class TBufferProxy : public FBufferProxyBase
+	class TBufferProxy : public IBufferProxy
 	{
 	public:
 		TBufferProxy()
-			: FBufferProxyBase()
+			: IBufferProxy()
 		{
 			WorkingType = PCGEx::GetMetadataType<T_WORKING>();
 		}
@@ -90,7 +90,7 @@ namespace PCGExData
 		virtual T_WORKING Get(const int32 Index) const = 0;
 		virtual void Set(const int32 Index, const T_WORKING& Value) const = 0;
 		virtual T_WORKING GetCurrent(const int32 Index) const { return Get(Index); };
-		virtual TSharedPtr<FBufferBase> GetBuffer() const override { return nullptr; }
+		virtual TSharedPtr<IBuffer> GetBuffer() const override { return nullptr; }
 	};
 
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
@@ -146,7 +146,7 @@ namespace PCGExData
 			else { return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->GetConst(Index)); }
 		}
 
-		virtual TSharedPtr<FBufferBase> GetBuffer() const override { return Buffer; }
+		virtual TSharedPtr<IBuffer> GetBuffer() const override { return Buffer; }
 		virtual bool EnsureReadable() const override { return Buffer->EnsureReadable(); }
 	};
 
@@ -343,12 +343,12 @@ namespace PCGExData
 		}
 	};
 
-	TSharedPtr<FBufferProxyBase> GetProxyBuffer(
+	TSharedPtr<IBufferProxy> GetProxyBuffer(
 		FPCGExContext* InContext,
 		const FProxyDescriptor& InDescriptor);
 
 	template <typename T>
-	TSharedPtr<FBufferProxyBase> GetConstantProxyBuffer(const T& Constant)
+	TSharedPtr<IBufferProxy> GetConstantProxyBuffer(const T& Constant)
 	{
 		TSharedPtr<TConstantProxy<T>> TypedProxy = MakeShared<TConstantProxy<T>>();
 		TypedProxy->SetConstant(Constant);
@@ -359,5 +359,5 @@ namespace PCGExData
 		FPCGExContext* InContext,
 		const FProxyDescriptor& InBaseDescriptor,
 		const int32 NumDesiredFields,
-		TArray<TSharedPtr<FBufferProxyBase>>& OutProxies);
+		TArray<TSharedPtr<IBufferProxy>>& OutProxies);
 }

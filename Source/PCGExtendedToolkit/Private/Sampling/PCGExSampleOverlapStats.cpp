@@ -343,7 +343,7 @@ namespace PCGExSampleOverlapStats
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = This->ParentBatch.Pin();
+				const TSharedPtr<PCGExPointsMT::IPointsProcessorBatch> Parent = This->ParentBatch.Pin();
 				PCGEX_SCOPE_LOOP(i)
 				{
 					const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[i];

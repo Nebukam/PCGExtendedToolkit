@@ -142,11 +142,11 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	return true;
 }
 
-void FPCGExBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers)
+void FPCGExBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::IBuffer>>& OutDisabledBuffers)
 {
 	if (Blender)
 	{
-		if (TSharedPtr<PCGExData::FBufferBase> OutputBuffer = Blender->GetOutputBuffer())
+		if (TSharedPtr<PCGExData::IBuffer> OutputBuffer = Blender->GetOutputBuffer())
 		{
 			if (Config.OutputMode == EPCGExBlendOpOutputMode::Transient)
 			{

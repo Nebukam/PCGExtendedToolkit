@@ -18,7 +18,7 @@
 
 namespace PCGExData
 {
-	class FBufferProxyBase;
+	class IBufferProxy;
 }
 
 USTRUCT(BlueprintType)

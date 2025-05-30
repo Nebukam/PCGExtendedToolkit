@@ -155,7 +155,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 	bool bBatchProcessingEnabled = false;
 	bool ProcessPointsBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync = false);
 
-	TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> MainBatch;
+	TSharedPtr<PCGExPointsMT::IPointsProcessorBatch> MainBatch;
 	TMap<PCGExData::FPointIO*, TSharedRef<PCGExPointsMT::FPointsProcessor>> SubProcessorMap;
 
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>

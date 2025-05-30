@@ -197,7 +197,7 @@ public:
 		Blender->EndMultiBlend(TargetIndex, Tracker);
 	}
 
-	virtual void CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers);
+	virtual void CompleteWork(TSet<TSharedPtr<PCGExData::IBuffer>>& OutDisabledBuffers);
 
 protected:
 	bool CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const;

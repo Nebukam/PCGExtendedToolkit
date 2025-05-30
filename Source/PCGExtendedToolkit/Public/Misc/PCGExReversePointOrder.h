@@ -32,13 +32,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSwapAttributePairDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName FirstAttributeName = NAME_None;
 	PCGEx::FAttributeIdentity* FirstIdentity = nullptr;
-	TSharedPtr<PCGExData::FBufferBase> FirstWriter;
+	TSharedPtr<PCGExData::IBuffer> FirstWriter;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName SecondAttributeName = NAME_None;
 	PCGEx::FAttributeIdentity* SecondIdentity = nullptr;
-	TSharedPtr<PCGExData::FBufferBase> SecondWriter;
+	TSharedPtr<PCGExData::IBuffer> SecondWriter;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

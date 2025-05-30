@@ -63,7 +63,7 @@ namespace PCGExDataBlending
 
 		virtual void Div(const int32 TargetIndex, const double Divider) = 0;
 
-		virtual TSharedPtr<PCGExData::FBufferBase> GetOutputBuffer() const = 0;
+		virtual TSharedPtr<PCGExData::IBuffer> GetOutputBuffer() const = 0;
 
 		virtual bool InitFromHeader(
 			FPCGExContext* InContext, const FBlendingHeader& InHeader, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
@@ -87,16 +87,16 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T_WORKING>
-	class PCGEXTENDEDTOOLKIT_API TProxyDataBlenderBase : public FProxyDataBlender
+	class PCGEXTENDEDTOOLKIT_API IProxyDataBlender : public FProxyDataBlender
 	{
 	public:
 		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> A;
 		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> B;
 		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> C;
 
-		TProxyDataBlenderBase() { UnderlyingType = PCGEx::GetMetadataType<T_WORKING>(); }
+		IProxyDataBlender() { UnderlyingType = PCGEx::GetMetadataType<T_WORKING>(); }
 
-		virtual ~TProxyDataBlenderBase() override
+		virtual ~IProxyDataBlender() override
 		{
 		}
 
@@ -116,7 +116,7 @@ namespace PCGExDataBlending
 		virtual void Div(const int32 TargetIndex, const double Divider) override
 		PCGEX_NOT_IMPLEMENTED(Div(const int32 TargetIndex, const double Divider))
 
-		virtual TSharedPtr<PCGExData::FBufferBase> GetOutputBuffer() const override { return C ? C->GetBuffer() : nullptr; }
+		virtual TSharedPtr<PCGExData::IBuffer> GetOutputBuffer() const override { return C ? C->GetBuffer() : nullptr; }
 
 		virtual bool InitFromHeader(
 			FPCGExContext* InContext, const FBlendingHeader& InHeader, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
@@ -174,11 +174,11 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend = true>
-	class PCGEXTENDEDTOOLKIT_API TProxyDataBlender : public TProxyDataBlenderBase<T_WORKING>
+	class PCGEXTENDEDTOOLKIT_API TProxyDataBlender : public IProxyDataBlender<T_WORKING>
 	{
-		using TProxyDataBlenderBase<T_WORKING>::A;
-		using TProxyDataBlenderBase<T_WORKING>::B;
-		using TProxyDataBlenderBase<T_WORKING>::C;
+		using IProxyDataBlender<T_WORKING>::A;
+		using IProxyDataBlender<T_WORKING>::B;
+		using IProxyDataBlender<T_WORKING>::C;
 
 	public:
 		virtual ~TProxyDataBlender() override
@@ -318,9 +318,9 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	static TSharedPtr<TProxyDataBlenderBase<T>> CreateProxyBlender(const EPCGExABBlendingType BlendMode, const bool bResetValueForMultiBlend = true)
+	static TSharedPtr<IProxyDataBlender<T>> CreateProxyBlender(const EPCGExABBlendingType BlendMode, const bool bResetValueForMultiBlend = true)
 	{
-		TSharedPtr<TProxyDataBlenderBase<T>> OutBlender;
+		TSharedPtr<IProxyDataBlender<T>> OutBlender;
 
 		if (bResetValueForMultiBlend)
 		{
@@ -363,7 +363,7 @@ break;
 			{
 				using T = decltype(DummyValue);
 
-				TSharedPtr<TProxyDataBlenderBase<T>> TypedBlender = CreateProxyBlender<T>(BlendMode, bResetValueForMultiBlend);
+				TSharedPtr<IProxyDataBlender<T>> TypedBlender = CreateProxyBlender<T>(BlendMode, bResetValueForMultiBlend);
 
 				if (!TypedBlender) { return; }
 

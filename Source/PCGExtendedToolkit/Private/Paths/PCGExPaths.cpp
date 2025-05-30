@@ -201,7 +201,7 @@ namespace PCGExPaths
 		return Start == Other->Start || Start == Other->End || End == Other->Start || End == Other->End;
 	}
 
-	void FPathEdgeExtraBase::ProcessingDone(const FPath* Path)
+	void IPathEdgeExtra::ProcessingDone(const FPath* Path)
 	{
 	}
 
@@ -261,19 +261,19 @@ namespace PCGExPaths
 	{
 		if (NumEdges == 1)
 		{
-			for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessSingleEdge(this, Edges[0]); }
+			for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessSingleEdge(this, Edges[0]); }
 		}
 		else
 		{
-			if (Index == 0) { for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessFirstEdge(this, Edges[0]); } }
-			else if (Index == LastEdge) { for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessLastEdge(this, Edges[LastEdge]); } }
-			else { for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessEdge(this, Edges[Index]); } }
+			if (Index == 0) { for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessFirstEdge(this, Edges[0]); } }
+			else if (Index == LastEdge) { for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessLastEdge(this, Edges[LastEdge]); } }
+			else { for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessEdge(this, Edges[Index]); } }
 		}
 	}
 
 	void FPath::ExtraComputingDone()
 	{
-		for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessingDone(this); }
+		for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessingDone(this); }
 		Extras.Empty(); // So we don't update them anymore
 	}
 
@@ -281,13 +281,13 @@ namespace PCGExPaths
 	{
 		if (NumEdges == 1)
 		{
-			for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessSingleEdge(this, Edges[0]); }
+			for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessSingleEdge(this, Edges[0]); }
 		}
 		else
 		{
-			for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessFirstEdge(this, Edges[0]); }
-			for (int i = 1; i < LastEdge; i++) { for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessEdge(this, Edges[i]); } }
-			for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessLastEdge(this, Edges[LastEdge]); }
+			for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessFirstEdge(this, Edges[0]); }
+			for (int i = 1; i < LastEdge; i++) { for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessEdge(this, Edges[i]); } }
+			for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessLastEdge(this, Edges[LastEdge]); }
 		}
 
 		ExtraComputingDone();

@@ -227,21 +227,21 @@ namespace PCGExClusterMT
 		}
 	}
 
-	FClusterProcessorBatchBase::FClusterProcessorBatchBase(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+	IClusterProcessorBatch::IClusterProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 		: ExecutionContext(InContext), WorkPermit(InContext->GetWorkPermit()), VtxDataFacade(MakeShared<PCGExData::FFacade>(InVtx))
 	{
-		PCGEX_LOG_CTR(FClusterProcessorBatchBase)
+		PCGEX_LOG_CTR(IClusterProcessorBatch)
 		SetExecutionContext(InContext);
 		Edges.Append(InEdges);
 	}
 
-	void FClusterProcessorBatchBase::SetExecutionContext(FPCGExContext* InContext)
+	void IClusterProcessorBatch::SetExecutionContext(FPCGExContext* InContext)
 	{
 		ExecutionContext = InContext;
 		WorkPermit = ExecutionContext->GetWorkPermit();
 	}
 
-	void FClusterProcessorBatchBase::PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
+	void IClusterProcessorBatch::PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
 	{
 		PCGEX_CHECK_WORK_PERMIT_VOID
 
@@ -320,7 +320,7 @@ namespace PCGExClusterMT
 		}
 	}
 
-	void FClusterProcessorBatchBase::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	void IClusterProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		if (VtxFilterFactories)
 		{
@@ -330,7 +330,7 @@ namespace PCGExClusterMT
 		// TODO : Preload heuristics that depends on Vtx metadata
 	}
 
-	void FClusterProcessorBatchBase::OnProcessingPreparationComplete()
+	void IClusterProcessorBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_CHECK_WORK_PERMIT_OR_VOID(!bIsBatchValid)
 
@@ -346,26 +346,26 @@ namespace PCGExClusterMT
 		VtxFacadePreloader->StartLoading(AsyncManager);
 	}
 
-	void FClusterProcessorBatchBase::Process()
+	void IClusterProcessorBatch::Process()
 	{
 	}
 
-	void FClusterProcessorBatchBase::CompleteWork()
+	void IClusterProcessorBatch::CompleteWork()
 	{
 	}
 
-	void FClusterProcessorBatchBase::Write()
+	void IClusterProcessorBatch::Write()
 	{
 		PCGEX_CHECK_WORK_PERMIT_VOID
 		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->Write(AsyncManager); }
 	}
 
-	const PCGExGraph::FGraphMetadataDetails* FClusterProcessorBatchBase::GetGraphMetadataDetails()
+	const PCGExGraph::FGraphMetadataDetails* IClusterProcessorBatch::GetGraphMetadataDetails()
 	{
 		return nullptr;
 	}
 
-	void FClusterProcessorBatchBase::CompileGraphBuilder(const bool bOutputToContext)
+	void IClusterProcessorBatch::CompileGraphBuilder(const bool bOutputToContext)
 	{
 		PCGEX_CHECK_WORK_PERMIT_OR_VOID(!GraphBuilder || !bIsBatchValid)
 
@@ -389,15 +389,15 @@ namespace PCGExClusterMT
 		GraphBuilder->CompileAsync(AsyncManager, true, GetGraphMetadataDetails());
 	}
 
-	void FClusterProcessorBatchBase::Output()
+	void IClusterProcessorBatch::Output()
 	{
 	}
 
-	void FClusterProcessorBatchBase::Cleanup()
+	void IClusterProcessorBatch::Cleanup()
 	{
 	}
 
-	void FClusterProcessorBatchBase::AllocateVtxPoints() const
+	void IClusterProcessorBatch::AllocateVtxPoints() const
 	{
 		if (AllocateVtxProperties == EPCGPointNativeProperties::None) { return; }
 		if (VtxDataFacade->GetOut() && VtxDataFacade->GetIn() != VtxDataFacade->GetOut())

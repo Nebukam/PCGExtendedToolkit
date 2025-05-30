@@ -111,7 +111,7 @@ namespace PCGExMergePoints
 				if (!bTryBroadcast) { continue; }
 
 				// Handle type mismatch by broadcasting the value with whatever type was discovered first
-				const TSharedPtr<PCGExData::FBufferBase> UntypedBuffer = Context->CompositeDataFacade->FindReadableAttributeBuffer(AttributeName);
+				const TSharedPtr<PCGExData::IBuffer> UntypedBuffer = Context->CompositeDataFacade->FindReadableAttributeBuffer(AttributeName);
 				if (!UntypedBuffer) { continue; }
 
 				PCGEx::ExecuteWithRightType(

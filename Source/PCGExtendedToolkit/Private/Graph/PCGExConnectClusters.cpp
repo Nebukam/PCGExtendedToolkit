@@ -98,7 +98,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
-	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
+	for (const TSharedPtr<PCGExClusterMT::IClusterProcessorBatch>& Batch : Context->Batches)
 	{
 		const TSharedPtr<PCGExBridgeClusters::FBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FBatch>(Batch);
 		PCGExTags::IDType PairId;

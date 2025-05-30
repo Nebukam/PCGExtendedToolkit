@@ -125,8 +125,8 @@ namespace PCGExAttributeRemap
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		TArray<TSharedPtr<PCGExData::FBufferProxyBase>> UntypedInputProxies;
-		TArray<TSharedPtr<PCGExData::FBufferProxyBase>> UntypedOutputProxies;
+		TArray<TSharedPtr<PCGExData::IBufferProxy>> UntypedInputProxies;
+		TArray<TSharedPtr<PCGExData::IBufferProxy>> UntypedOutputProxies;
 
 		InputDescriptor.DataFacade = PointDataFacade;
 		OutputDescriptor.DataFacade = PointDataFacade;
@@ -165,8 +165,8 @@ namespace PCGExAttributeRemap
 
 		for (int i = 0; i < Dimensions; i++)
 		{
-			TSharedPtr<PCGExData::FBufferProxyBase> InProxy = UntypedInputProxies[i];
-			TSharedPtr<PCGExData::FBufferProxyBase> OutProxy = UntypedOutputProxies[i];
+			TSharedPtr<PCGExData::IBufferProxy> InProxy = UntypedInputProxies[i];
+			TSharedPtr<PCGExData::IBufferProxy> OutProxy = UntypedOutputProxies[i];
 
 			if (InProxy->WorkingType != EPCGMetadataTypes::Double)
 			{

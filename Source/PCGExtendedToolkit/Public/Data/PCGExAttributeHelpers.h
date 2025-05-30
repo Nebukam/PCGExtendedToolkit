@@ -267,22 +267,22 @@ namespace PCGEx
 	PCGEXTENDEDTOOLKIT_API
 	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector);
 
-	class PCGEXTENDEDTOOLKIT_API FAttributeBroadcasterBase : public TSharedFromThis<FAttributeBroadcasterBase>
+	class PCGEXTENDEDTOOLKIT_API IAttributeBroadcaster : public TSharedFromThis<IAttributeBroadcaster>
 	{
 	public:
 		FAttributeProcessingInfos ProcessingInfos = FAttributeProcessingInfos();
-		FAttributeBroadcasterBase() = default;
-		virtual ~FAttributeBroadcasterBase() = default;
+		IAttributeBroadcaster() = default;
+		virtual ~IAttributeBroadcaster() = default;
 
-		FAttributeBroadcasterBase(FAttributeBroadcasterBase&&) = default;
-		FAttributeBroadcasterBase& operator=(FAttributeBroadcasterBase&&) = default;
+		IAttributeBroadcaster(IAttributeBroadcaster&&) = default;
+		IAttributeBroadcaster& operator=(IAttributeBroadcaster&&) = default;
 
-		FAttributeBroadcasterBase(const FAttributeBroadcasterBase&) = delete;
-		FAttributeBroadcasterBase& operator=(const FAttributeBroadcasterBase&) = delete;
+		IAttributeBroadcaster(const IAttributeBroadcaster&) = delete;
+		IAttributeBroadcaster& operator=(const IAttributeBroadcaster&) = delete;
 	};
 
 	template <typename T>
-	class TAttributeBroadcaster : public FAttributeBroadcasterBase
+	class TAttributeBroadcaster : public IAttributeBroadcaster
 	{
 	protected:
 		TSharedPtr<PCGExData::FPointIO> PointIO;

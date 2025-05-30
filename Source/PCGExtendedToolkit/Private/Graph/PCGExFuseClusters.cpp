@@ -113,7 +113,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->VtxFacades.Reserve(NumFacades);
 		Context->UnionProcessor->SourceEdgesIO = &Context->EdgesDataFacades;
 
-		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
+		for (const TSharedPtr<PCGExClusterMT::IClusterProcessorBatch>& Batch : Context->Batches)
 		{
 			Context->VtxFacades.Add(Batch->VtxDataFacade);
 		}

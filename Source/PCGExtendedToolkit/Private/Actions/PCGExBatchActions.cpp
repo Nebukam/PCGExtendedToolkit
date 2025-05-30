@@ -156,7 +156,7 @@ namespace PCGExBatchActions
 	{
 		if (Settings->bDoConsumeProcessedAttributes)
 		{
-			for (const TSharedPtr<PCGExData::FBufferBase>& DataCache : PointDataFacade->Buffers)
+			for (const TSharedPtr<PCGExData::IBuffer>& DataCache : PointDataFacade->Buffers)
 			{
 				if (!DataCache->InAttribute ||
 					!Settings->ConsumeProcessedAttributes.Test(DataCache->InAttribute) ||

@@ -338,18 +338,18 @@ namespace PCGExPaths
 
 	class FPath;
 
-	class FPathEdgeExtraBase : public TSharedFromThis<FPathEdgeExtraBase>
+	class IPathEdgeExtra : public TSharedFromThis<IPathEdgeExtra>
 	{
 	protected:
 		bool bClosedLoop = false;
 
 	public:
-		explicit FPathEdgeExtraBase(const int32 InNumSegments, bool InClosedLoop)
+		explicit IPathEdgeExtra(const int32 InNumSegments, bool InClosedLoop)
 			: bClosedLoop(InClosedLoop)
 		{
 		}
 
-		virtual ~FPathEdgeExtraBase() = default;
+		virtual ~IPathEdgeExtra() = default;
 
 		virtual void ProcessSingleEdge(const FPath* Path, const FPathEdge& Edge) { ProcessFirstEdge(Path, Edge); }
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); };
@@ -360,7 +360,7 @@ namespace PCGExPaths
 	};
 
 	template <typename T>
-	class TPathEdgeExtra : public FPathEdgeExtraBase
+	class TPathEdgeExtra : public IPathEdgeExtra
 	{
 	protected:
 		TArray<T> Data;
@@ -369,7 +369,7 @@ namespace PCGExPaths
 		TArray<T> Values;
 
 		explicit TPathEdgeExtra(const int32 InNumSegments, bool InClosedLoop)
-			: FPathEdgeExtraBase(InNumSegments, InClosedLoop)
+			: IPathEdgeExtra(InNumSegments, InClosedLoop)
 		{
 			PCGEx::InitArray(Data, InNumSegments);
 		}
@@ -390,7 +390,7 @@ namespace PCGExPaths
 		bool bClosedLoop = false;
 		TConstPCGValueRange<FTransform> Positions;
 		TUniquePtr<FPathEdgeOctree> EdgeOctree;
-		TArray<TSharedPtr<FPathEdgeExtraBase>> Extras;
+		TArray<TSharedPtr<IPathEdgeExtra>> Extras;
 
 	public:
 		virtual ~FPath() = default;

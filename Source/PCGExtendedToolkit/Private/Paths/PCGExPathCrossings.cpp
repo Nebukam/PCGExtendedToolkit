@@ -213,7 +213,7 @@ namespace PCGExPathCrossings
 			}
 			else
 			{
-				for (const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
+				for (const TSharedPtr<PCGExPointsMT::IPointsProcessorBatch> Parent = ParentBatch.Pin();
 				     const TSharedRef<PCGExData::FFacade>& Facade : Parent->ProcessorFacades)
 				{
 					const TSharedRef<FPointsProcessor>* OtherProcessorPtr = Parent->SubProcessorMap->Find(&Facade->Source.Get());

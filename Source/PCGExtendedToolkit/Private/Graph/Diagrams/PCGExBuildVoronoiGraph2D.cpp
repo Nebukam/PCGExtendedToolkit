@@ -187,10 +187,15 @@ namespace PCGExBuildVoronoi2D
 			(void)PCGEx::SetNumPointsAllocated(CentroidsPoints, NumCentroids);
 
 			TPCGValueRange<FTransform> OutTransforms = CentroidsPoints->GetTransformValueRange(false);
-
+			TPCGValueRange<int32> OutSeeds = CentroidsPoints->GetSeedValueRange(false);
+			
 			for (int i = 0; i < NumSites; i++)
 			{
-				if (const int32 Idx = RemappedIndices[i]; Idx != -1) { OutTransforms[Idx].SetLocation(SitesPositions[i]); }
+				if (const int32 Idx = RemappedIndices[i]; Idx != -1)
+				{
+					OutTransforms[Idx].SetLocation(SitesPositions[i]);
+					OutSeeds[Idx] = PCGExRandom::ComputeSpatialSeed(SitesPositions[i]);
+				}
 			}
 
 			TArray<uint64> ValidEdges;
