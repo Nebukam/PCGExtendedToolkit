@@ -105,7 +105,7 @@ namespace PCGExPathCrossings
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+		//PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
@@ -125,80 +125,27 @@ namespace PCGExPathCrossings
 
 		Path->IOIndex = PointIO->IOIndex;
 
+		CanCut.Init(true, Path->NumEdges);
+		CanBeCut.Init(true, Path->NumEdges);
 		Crossings.Init(nullptr, Path->NumEdges);
-
-		CanCut.SetNumUninitialized(Path->NumEdges);
-		CanBeCut.SetNumUninitialized(Path->NumEdges);
 
 		SubBlending = Context->Blending->CreateOperation();
 		SubBlending->bClosedLoop = bClosedLoop;
 
 		if (Settings->bOrientCrossing) { SubBlending->bPreserveRotation = true; }
 
-		//TWeakPtr<FProcessor> WeakPtr = SharedThis(this);
-
 		bCanBeCut = PCGEx::IsValidStringTag(Context->CanBeCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanBeCutTag, Settings->bInvertCanBeCutTag) : true;
 		bCanCut = PCGEx::IsValidStringTag(Context->CanCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanCutTag, Settings->bInvertCanCutTag) : true;
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
+		PCGExMT::FScope EdgesScope = Path->GetEdgeScope();
+		if (CanCutFilterManager) { CanCutFilterManager->Test(EdgesScope, CanCut); }
+		if (CanBeCutFilterManager) { CanBeCutFilterManager->Test(EdgesScope, CanBeCut); }
+		Path->ComputeAllEdgeExtra();
 
-		Preparation->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-
-				This->CanCutFilterManager.Reset();
-				This->CanBeCutFilterManager.Reset();
-				This->Path->BuildPartialEdgeOctree(This->CanCut);
-				This->CanCut.Empty();
-			};
-
-		Preparation->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-
-				This->PointDataFacade->Fetch(Scope);
-
-				if (This->CanCutFilterManager && This->CanBeCutFilterManager)
-				{
-					PCGEX_SCOPE_LOOP(i)
-					{
-						This->CanCut[i] = This->CanCutFilterManager->Test(i);
-						This->CanBeCut[i] = This->CanBeCutFilterManager->Test(i);
-						This->Path->ComputeEdgeExtra(i);
-					}
-				}
-				else if (This->CanCutFilterManager)
-				{
-					PCGEX_SCOPE_LOOP(i)
-					{
-						This->CanCut[i] = This->CanCutFilterManager->Test(i);
-						This->CanBeCut[i] = true;
-						This->Path->ComputeEdgeExtra(i);
-					}
-				}
-				else if (This->CanBeCutFilterManager)
-				{
-					PCGEX_SCOPE_LOOP(i)
-					{
-						This->CanCut[i] = true;
-						This->CanBeCut[i] = This->CanBeCutFilterManager->Test(i);
-						This->Path->ComputeEdgeExtra(i);
-					}
-				}
-				else
-				{
-					PCGEX_SCOPE_LOOP(i)
-					{
-						This->CanCut[i] = true;
-						This->CanBeCut[i] = true;
-						This->Path->ComputeEdgeExtra(i);
-					}
-				}
-			};
-
-		Preparation->StartSubLoops(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		CanCutFilterManager.Reset();
+		CanBeCutFilterManager.Reset();
+		Path->BuildPartialEdgeOctree(CanCut);
+		CanCut.Empty();
 
 		return true;
 	}
@@ -303,7 +250,7 @@ namespace PCGExPathCrossings
 
 			NumPointsFinal += Crossing->Crossings.Num();
 		}
-		
+
 		const UPCGBasePointData* InPoints = PointIO->GetIn();
 		UPCGBasePointData* OutPoints = PointIO->GetOut();
 		PCGEx::SetNumPointsAllocated(OutPoints, NumPointsFinal);
@@ -313,7 +260,7 @@ namespace PCGExPathCrossings
 
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
-		
+
 		TConstPCGValueRange<int64> InMetadataEntries = InPoints->GetConstMetadataEntryValueRange();
 		TPCGValueRange<int64> OutMetadataEntries = OutPoints->GetMetadataEntryValueRange(false);
 

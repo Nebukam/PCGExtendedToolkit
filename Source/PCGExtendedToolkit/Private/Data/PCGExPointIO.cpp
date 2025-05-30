@@ -10,19 +10,13 @@
 namespace PCGExData
 {
 	FScope::FScope(UPCGBasePointData* InData, const int32 InStart, const int32 InCount)
-		: Data(InData), Start(InStart), Count(InCount), End(InStart + InCount)
+		: PCGExMT::FScope(InStart, InCount), Data(InData)
 	{
 	}
 
 	FScope::FScope(const UPCGBasePointData* InData, const int32 InStart, const int32 InCount)
-		: Data(const_cast<UPCGBasePointData*>(InData)), Start(InStart), Count(InCount), End(InStart + InCount)
+		: PCGExMT::FScope(InStart, InCount), Data(const_cast<UPCGBasePointData*>(InData))
 	{
-	}
-
-	void FScope::GetIndices(TArray<int32>& OutIndices) const
-	{
-		OutIndices.SetNumUninitialized(Count);
-		for (int i = 0; i < Count; i++) { OutIndices[i] = Start + i; }
 	}
 
 #pragma region FPoint
@@ -304,7 +298,7 @@ namespace PCGExData
 
 		bMutable = false;
 
-		if (InitOut == EIOInit::None) { return true; }
+		if (InitOut == EIOInit::NoInit) { return true; }
 
 		if (InitOut == EIOInit::Forward)
 		{
@@ -838,7 +832,7 @@ namespace PCGExData
 			{
 				// Only allowed for execution-time only
 				// Otherwise find a way to ensure conversion is plugged to the outputs, pin-less
-				check(InitOut == EIOInit::None)
+				check(InitOut == EIOInit::NoInit)
 				SourcePointData = PCGExPointIO::ToPointData(SharedContext.Get(), Source);
 			}
 

@@ -163,7 +163,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_MAKE_SHARED(Plots, PCGExData::FPointIOCollection, Context)
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourcePlotsLabel);
-	Plots->Initialize(Sources, PCGExData::EIOInit::None);
+	Plots->Initialize(Sources, PCGExData::EIOInit::NoInit);
 
 	Context->Plots.Reserve(Plots->Num());
 	for (const TSharedPtr<PCGExData::FPointIO>& PlotIO : Plots->Pairs)

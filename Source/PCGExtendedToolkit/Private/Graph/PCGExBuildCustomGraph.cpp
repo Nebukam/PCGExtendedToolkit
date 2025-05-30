@@ -272,7 +272,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 			else
 			{
 				// Invalidate node IO
-				GraphSettings->GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
+				GraphSettings->GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit);
 			}
 		}
 

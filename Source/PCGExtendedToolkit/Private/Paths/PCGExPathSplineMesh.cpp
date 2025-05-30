@@ -425,7 +425,7 @@ namespace PCGExPathSplineMesh
 
 			if (!Segment.ApplyMesh(SplineMeshComponent))
 			{
-				SplineMeshComponent->MarkAsGarbage();
+				///*Silently deprecated as per Epic dev*/SplineMeshComponent->MarkAsGarbage();
 				continue;
 			}
 

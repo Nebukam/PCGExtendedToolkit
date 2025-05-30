@@ -498,7 +498,7 @@ namespace PCGExGraph
 			[PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)
 			{
 				PCGEX_ASYNC_THIS
-				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None); }
+				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit); }
 				else { This->GraphBuilder->StageEdgesOutputs(); }
 			};
 

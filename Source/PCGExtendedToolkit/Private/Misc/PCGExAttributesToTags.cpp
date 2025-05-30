@@ -68,7 +68,7 @@ bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 	}
 
 	// Converting collection
-	PCGEX_MAKE_SHARED(SourceCollection, PCGExData::FPointIOCollection, InContext, FName("Tags Source"), PCGExData::EIOInit::None, true)
+	PCGEX_MAKE_SHARED(SourceCollection, PCGExData::FPointIOCollection, InContext, FName("Tags Source"), PCGExData::EIOInit::NoInit, true)
 
 	if (SourceCollection->IsEmpty())
 	{
@@ -177,7 +177,7 @@ namespace PCGExAttributesToTags
 
 		if (Settings->Action == EPCGExAttributeToTagsAction::Attribute)
 		{
-			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::None)
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::NoInit)
 		}
 		else
 		{

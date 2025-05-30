@@ -44,4 +44,7 @@ public:
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
 	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const override;
+
+protected:
+	virtual EPCGExDataBlendingType GetDefaultBlending() const override{ return EPCGExDataBlendingType::Lerp; }
 };

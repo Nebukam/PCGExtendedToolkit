@@ -8,7 +8,7 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EIOInit UPCGExMergeVerticesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExMergeVerticesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 PCGExData::EIOInit UPCGExMergeVerticesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 #pragma endregion

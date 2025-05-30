@@ -202,17 +202,7 @@ namespace PCGExClusterMT
 	void FClusterProcessor::FilterVtxScope(const PCGExMT::FScope& Scope)
 	{
 		// Note : Don't forget to prefetch VtxDataFacade buffers
-
-		if (VtxFiltersManager)
-		{
-			TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes.Get();
-			TArray<int8>& CacheRef = *VtxFilterCache.Get();
-			PCGEX_SCOPE_LOOP(i)
-			{
-				PCGExCluster::FNode& Node = NodesRef[i];
-				CacheRef[Node.PointIndex] = VtxFiltersManager->Test(Node);
-			}
-		}
+		if (VtxFiltersManager) { VtxFiltersManager->Test(Scope.GetView(*Cluster->Nodes.Get()), Scope.GetView(*VtxFilterCache.Get())); }
 	}
 
 	bool FClusterProcessor::InitEdgesFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
@@ -233,7 +223,7 @@ namespace PCGExClusterMT
 		if (EdgesFiltersManager)
 		{
 			TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges.Get();
-			PCGEX_SCOPE_LOOP(i) { EdgeFilterCache[i] = EdgesFiltersManager->Test(EdgesRef[i]); }
+			EdgesFiltersManager->Test(Scope.GetView(EdgesRef), Scope.GetView(EdgeFilterCache));
 		}
 	}
 

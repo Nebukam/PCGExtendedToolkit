@@ -148,7 +148,7 @@ namespace PCGExExtrudeTensors
 
 		if (!bIsValidPath)
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit);
 			PointDataFacade->Source->Disable();
 			return;
 		}
@@ -666,7 +666,7 @@ namespace PCGExExtrudeTensors
 
 	TSharedPtr<FExtrusion> FProcessor::CreateExtrusionTemplate(const int32 InSeedIndex, const int32 InMaxIterations)
 	{
-		const TSharedPtr<PCGExData::FPointIO> NewIO = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source->GetIn(), PCGExData::EIOInit::None);
+		const TSharedPtr<PCGExData::FPointIO> NewIO = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source->GetIn(), PCGExData::EIOInit::NoInit);
 		if (!NewIO) { return nullptr; }
 
 		PCGEX_MAKE_SHARED(Facade, PCGExData::FFacade, NewIO.ToSharedRef());

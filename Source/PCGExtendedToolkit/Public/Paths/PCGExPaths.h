@@ -408,6 +408,8 @@ namespace PCGExPaths
 
 		int32 IOIndex = -1;
 
+		PCGExMT::FScope GetEdgeScope(const int32 InLoopIndex = -1) const { return PCGExMT::FScope(0, NumEdges, InLoopIndex); }
+		
 		FORCEINLINE int32 LoopPointIndex(const int32 Index) const { return PCGExMath::Tile(Index, 0, LastIndex); };
 		virtual int32 SafePointIndex(const int32 Index) const = 0;
 
@@ -423,6 +425,7 @@ namespace PCGExPaths
 
 		FVector GetEdgePositionAtAlpha(const FPathEdge& Edge, const double Alpha) const { return FMath::Lerp(Positions[Edge.End].GetLocation(), Positions[Edge.Start].GetLocation(), Alpha); }
 
+		
 		FVector GetEdgePositionAtAlpha(const int32 Index, const double Alpha) const
 		{
 			const FPathEdge& Edge = Edges[Index];
@@ -514,6 +517,7 @@ namespace PCGExPaths
 
 		void BuildEdgeOctree();
 		void BuildPartialEdgeOctree(const TArray<int8>& Filter);
+		void BuildPartialEdgeOctree(const TBitArray<>& Filter);
 
 		const FPathEdgeOctree* GetEdgeOctree() const { return EdgeOctree.Get(); }
 		FORCEINLINE bool IsClosedLoop() const { return bClosedLoop; }

@@ -90,6 +90,12 @@ namespace PCGExMT
 			for (const FScope& S : InScopes) { MaxRange = FMath::Max(MaxRange, S.Count); };
 			return MaxRange;
 		}
+
+		template <typename T>
+		FORCEINLINE TArrayView<T> GetView(TArray<T>& InArray) const { return TArrayView<T>(InArray.GetData() + Start, Count); }
+
+		template <typename T>
+		FORCEINLINE TArrayView<const T> GetView(const TArray<T>& InArray) const { return TArrayView<T>(InArray.GetData() + Start, Count); }
 	};
 
 	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 MaxItems, const int32 RangeSize);

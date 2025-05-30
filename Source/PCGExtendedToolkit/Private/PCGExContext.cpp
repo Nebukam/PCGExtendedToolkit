@@ -96,6 +96,8 @@ void FPCGExContext::CommitStagedOutputs()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::CommitStagedOutputs);
 
+	FWriteScopeLock WriteScopeLock(StagedOutputLock);
+	
 	ManagedObjects->Remove(StagedOutputs);
 
 	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + StagedOutputs.Num());

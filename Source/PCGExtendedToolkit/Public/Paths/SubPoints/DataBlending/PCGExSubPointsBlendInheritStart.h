@@ -27,4 +27,7 @@ class UPCGExSubPointsBlendInheritStart : public UPCGExSubPointsBlendInstancedFac
 
 public:
 	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const override;
+
+protected:
+	virtual EPCGExDataBlendingType GetDefaultBlending() const override{ return EPCGExDataBlendingType::Copy; }
 };

@@ -8,8 +8,8 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EIOInit UPCGExCopyClustersToPointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-PCGExData::EIOInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExCopyClustersToPointsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 #pragma endregion
 
@@ -256,7 +256,7 @@ namespace PCGExCopyClusters
 
 			if (!bValidVtxDupe)
 			{
-				VtxDupes[i]->InitializeOutput(PCGExData::EIOInit::None);
+				VtxDupes[i]->InitializeOutput(PCGExData::EIOInit::NoInit);
 				VtxDupes[i]->Disable();
 				VtxDupes[i] = nullptr;
 			}

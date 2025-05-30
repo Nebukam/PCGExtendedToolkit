@@ -171,8 +171,8 @@ namespace PCGExPathCrossings
 		TSharedPtr<PCGExPointFilter::FManager> CanCutFilterManager;
 		TSharedPtr<PCGExPointFilter::FManager> CanBeCutFilterManager;
 
-		TArray<int8> CanCut;
-		TArray<int8> CanBeCut;
+		TBitArray<> CanCut;
+		TBitArray<> CanBeCut;
 
 		TSet<FName> ProtectedAttributes;
 		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;

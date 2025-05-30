@@ -69,6 +69,12 @@ void FPCGExSubPointsBlendOperation::BlendSubPoints(PCGExData::FScope& Scope, con
 	BlendSubPoints(Scope.CFirst(), Scope.CLast(), Scope, Metrics);
 }
 
+UPCGExSubPointsBlendInstancedFactory::UPCGExSubPointsBlendInstancedFactory(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	if (BlendingDetails.DefaultBlending == EPCGExDataBlendingType::Unset) { BlendingDetails.DefaultBlending = GetDefaultBlending(); }
+}
+
 void UPCGExSubPointsBlendInstancedFactory::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
 	Super::CopySettingsFrom(Other);

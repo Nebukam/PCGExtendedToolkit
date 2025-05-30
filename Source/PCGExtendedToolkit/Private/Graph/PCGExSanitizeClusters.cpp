@@ -9,7 +9,7 @@
 #pragma region UPCGSettings interface
 
 PCGExData::EIOInit UPCGExSanitizeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
-PCGExData::EIOInit UPCGExSanitizeClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExSanitizeClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 #pragma endregion
 
@@ -82,7 +82,7 @@ namespace PCGExSanitizeClusters
 	void FBatch::Output()
 	{
 		if (GraphBuilder->bCompiledSuccessfully) { GraphBuilder->StageEdgesOutputs(); }
-		else { GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None); }
+		else { GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit); }
 	}
 }
 

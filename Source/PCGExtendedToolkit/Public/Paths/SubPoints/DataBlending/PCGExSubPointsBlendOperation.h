@@ -59,11 +59,17 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInstancedFactory : public UPCGE
 	GENERATED_BODY()
 
 public:
+
+	UPCGExSubPointsBlendInstancedFactory(const FObjectInitializer& ObjectInitializer);
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
+	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Unset);
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
 	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const
 	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
+
+protected:
+	virtual EPCGExDataBlendingType GetDefaultBlending() const { return EPCGExDataBlendingType::Lerp; }
 };

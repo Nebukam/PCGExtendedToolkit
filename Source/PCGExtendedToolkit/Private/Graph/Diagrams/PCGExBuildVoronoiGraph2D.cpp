@@ -41,7 +41,7 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGExContext* InContext) const
 
 		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
 		{
-			Context->SitesOutput->Emplace_GetRef(IO, PCGExData::EIOInit::None);
+			Context->SitesOutput->Emplace_GetRef(IO, PCGExData::EIOInit::NoInit);
 		}
 	}
 

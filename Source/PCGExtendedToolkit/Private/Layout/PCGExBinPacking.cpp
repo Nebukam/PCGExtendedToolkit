@@ -39,7 +39,7 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BinPacking)
 
-	Context->Bins = MakeShared<PCGExData::FPointIOCollection>(InContext, PCGExLayout::SourceBinsLabel, PCGExData::EIOInit::None);
+	Context->Bins = MakeShared<PCGExData::FPointIOCollection>(InContext, PCGExLayout::SourceBinsLabel, PCGExData::EIOInit::NoInit);
 	Context->Bins->OutputPin = PCGExLayout::OutputBinsLabel;
 
 	int32 NumBins = Context->Bins->Num();

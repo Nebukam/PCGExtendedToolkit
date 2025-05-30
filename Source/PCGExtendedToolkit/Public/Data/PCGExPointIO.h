@@ -29,7 +29,7 @@ namespace PCGExData
 {
 	enum class EIOInit : uint8
 	{
-		None UMETA(DisplayName = "No Output"),
+		NoInit UMETA(DisplayName = "No Output"),
 		New UMETA(DisplayName = "Create Empty Output Object"),
 		Duplicate UMETA(DisplayName = "Duplicate Input Object"),
 		Forward UMETA(DisplayName = "Forward Input Object")
@@ -255,12 +255,9 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 #pragma endregion
 
-	struct FScope
+	struct FScope : PCGExMT::FScope
 	{
 		UPCGBasePointData* Data = nullptr;
-		int32 Start = -1;
-		int32 Count = -1;
-		int32 End = -1;
 
 		FScope() = default;
 
@@ -275,7 +272,6 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		~FScope() = default;
 		bool IsValid() const { return Start >= 0 && Count > 0 && Data->GetNumPoints() <= End; }
-		void GetIndices(TArray<int32>& OutIndices) const;
 	};
 
 #pragma region FPointIO
@@ -351,10 +347,10 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		              const FName InOutputPin,
 		              const TSet<FString>* InTags = nullptr);
 
-		bool InitializeOutput(EIOInit InitOut = EIOInit::None);
+		bool InitializeOutput(EIOInit InitOut = EIOInit::NoInit);
 
 		template <typename T>
-		bool InitializeOutput(const EIOInit InitOut = EIOInit::None)
+		bool InitializeOutput(const EIOInit InitOut = EIOInit::NoInit)
 		{
 			PCGEX_SHARED_CONTEXT(ContextHandle)
 
@@ -436,10 +432,12 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		FScope GetInScope(const int32 Start, const int32 Count, const bool bInclusive = true) const;
 		FScope GetInScope(const PCGExMT::FScope& Scope) const { return GetInScope(Scope.Start, Scope.Count, true); }
+		FScope GetInFullScope() const { return GetInScope(0, In->GetNumPoints(), true); }
 		FScope GetInRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
 
 		FScope GetOutScope(const int32 Start, const int32 Count, const bool bInclusive = true) const;
 		FScope GetOutScope(const PCGExMT::FScope& Scope) const { return GetOutScope(Scope.Start, Scope.Count, true); }
+		FScope GetOutFullScope() const { return GetOutScope(0, Out->GetNumPoints(), true); }
 		FScope GetOutRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
 
 		void SetPoints(const TArray<FPCGPoint>& InPCGPoints);
@@ -583,8 +581,8 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 	public:
 		explicit FPointIOCollection(FPCGExContext* InContext, bool bIsTransactional = false);
-		FPointIOCollection(FPCGExContext* InContext, FName InputLabel, EIOInit InitOut = EIOInit::None, bool bIsTransactional = false);
-		FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, EIOInit InitOut = EIOInit::None, bool bIsTransactional = false);
+		FPointIOCollection(FPCGExContext* InContext, FName InputLabel, EIOInit InitOut = EIOInit::NoInit, bool bIsTransactional = false);
+		FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, EIOInit InitOut = EIOInit::NoInit, bool bIsTransactional = false);
 
 		~FPointIOCollection();
 
@@ -598,18 +596,18 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		 */
 		void Initialize(
 			TArray<FPCGTaggedData>& Sources,
-			EIOInit InitOut = EIOInit::None);
+			EIOInit InitOut = EIOInit::NoInit);
 
-		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGBasePointData* In, const EIOInit InitOut = EIOInit::None, const TSet<FString>* Tags = nullptr);
+		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGBasePointData* In, const EIOInit InitOut = EIOInit::NoInit, const TSet<FString>* Tags = nullptr);
 		TSharedPtr<FPointIO> Emplace_GetRef(EIOInit InitOut = EIOInit::New);
-		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::None);
+		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::NoInit);
 		TSharedPtr<FPointIO> Insert_Unsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO);
 		TSharedPtr<FPointIO> Add_Unsafe(const TSharedPtr<FPointIO>& PointIO);
 		void Add_Unsafe(const TArray<TSharedPtr<FPointIO>>& IOs);
 
 
 		template <typename T>
-		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGBasePointData* In, const EIOInit InitOut = EIOInit::None, const TSet<FString>* Tags = nullptr)
+		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGBasePointData* In, const EIOInit InitOut = EIOInit::NoInit, const TSet<FString>* Tags = nullptr)
 		{
 			FWriteScopeLock WriteLock(PairsLock);
 			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(ContextHandle, In));
@@ -629,7 +627,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		}
 
 		template <typename T>
-		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::None)
+		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::NoInit)
 		{
 			TSharedPtr<FPointIO> Branch = Emplace_GetRef<T>(PointIO->GetIn(), InitOut);
 			if (!Branch) { return nullptr; }
@@ -768,7 +766,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 	static TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bThrowError)
 	{
 		TSharedPtr<FPointIO> SingleIO;
-		const TSharedPtr<FPointIOCollection> Collection = MakeShared<FPointIOCollection>(InContext, InputPinLabel, EIOInit::None, bTransactional);
+		const TSharedPtr<FPointIOCollection> Collection = MakeShared<FPointIOCollection>(InContext, InputPinLabel, EIOInit::NoInit, bTransactional);
 
 		if (!Collection->Pairs.IsEmpty() && Collection->Pairs[0]->GetNum() > 0)
 		{

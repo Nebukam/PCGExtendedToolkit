@@ -339,7 +339,7 @@ namespace PCGExOffsetPath
 
 		if (PointDataFacade->Source->Gather(Mask) < 2)
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit);
 		}
 		else if (Settings->bFlagMutatedPoints)
 		{

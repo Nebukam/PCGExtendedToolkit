@@ -184,7 +184,13 @@ namespace PCGExPointFilter
 		virtual bool Test(const PCGExCluster::FNode& Node);
 		virtual bool Test(const PCGExGraph::FEdge& Edge);
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection);
-
+		
+		virtual void Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults);
+		virtual void Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults);
+		
+		virtual void Test(TArrayView<PCGExCluster::FNode> Items, TArrayView<int8> OutResults);
+		virtual void Test(TArrayView<PCGExCluster::FEdge> Items, TArrayView<int8> OutResults);
+		
 		virtual ~FManager()
 		{
 		}

@@ -142,7 +142,7 @@ namespace PCGEx
 
 				if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(ObjectPtr)) { ManagedObject->Cleanup(); }
 
-				ObjectPtr->MarkAsGarbage();
+				///*Silently deprecated as per Epic dev*/ObjectPtr->MarkAsGarbage();
 			}
 
 			ManagedObjects.Empty();
@@ -224,7 +224,7 @@ namespace PCGEx
 		}
 
 		Remove(InObject);
-		InObject->MarkAsGarbage();
+		///*Silently deprecated as per Epic dev*/InObject->MarkAsGarbage();
 	}
 
 	void FManagedObjects::RecursivelyClearAsyncFlag_Unsafe(UObject* InObject) const

@@ -169,9 +169,9 @@ namespace PCGExShrinkPath
 		{
 			PCGEX_ASYNC_CHKD_VOID(AsyncManager)
 
-			if (PointIO->GetIn() != PointIO->GetOut() && PointIO->GetNum(PCGExData::EIOSide::Out) <= 1)
+			if (PointIO->GetOut() && PointIO->GetIn() != PointIO->GetOut() && PointIO->GetNum(PCGExData::EIOSide::Out) <= 1)
 			{
-				PointIO->InitializeOutput(PCGExData::EIOInit::None);
+				PointIO->InitializeOutput(PCGExData::EIOInit::NoInit);
 			}
 		};
 
