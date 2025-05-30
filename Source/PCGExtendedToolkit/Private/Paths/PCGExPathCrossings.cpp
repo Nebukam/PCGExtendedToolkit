@@ -303,7 +303,7 @@ namespace PCGExPathCrossings
 
 			NumPointsFinal += Crossing->Crossings.Num();
 		}
-
+		
 		const UPCGBasePointData* InPoints = PointIO->GetIn();
 		UPCGBasePointData* OutPoints = PointIO->GetOut();
 		PCGEx::SetNumPointsAllocated(OutPoints, NumPointsFinal);
@@ -343,6 +343,10 @@ namespace PCGExPathCrossings
 			OutMetadataEntries[Index] = InMetadataEntries[Path->LastIndex];
 			Metadata->InitializeOnSet(OutMetadataEntries[Index]);
 		}
+
+		// BUG : Missing last (or first?) point
+		// We should inherit all points :(
+		ensure(WriteIndices.Num() == InPoints->GetNumPoints());
 
 		PointIO->InheritPoints(WriteIndices);
 

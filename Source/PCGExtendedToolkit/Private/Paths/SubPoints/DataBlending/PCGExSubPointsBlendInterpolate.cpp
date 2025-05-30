@@ -20,7 +20,7 @@ void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			FVector Location = OutTransform[Index].GetLocation();
-			MetadataBlender->Blend(From.Index, To.Index, Scope.Start, Metrics.GetTime(PathMetrics.Add(Location)));
+			MetadataBlender->Blend(From.Index, To.Index, Index, Metrics.GetTime(PathMetrics.Add(Location)));
 			OutTransform[Index].SetLocation(Location);
 		}
 	}
@@ -32,7 +32,7 @@ void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			FVector Location = OutTransform[Index].GetLocation();
-			MetadataBlender->Blend(From.Index, To.Index, Scope.Start, Index / Divider);
+			MetadataBlender->Blend(From.Index, To.Index, Index, Index / Divider);
 			OutTransform[Index].SetLocation(Location);
 		}
 	}
@@ -43,7 +43,7 @@ void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			FVector Location = OutTransform[Index].GetLocation();
-			MetadataBlender->Blend(From.Index, To.Index, Scope.Start, Lerp);
+			MetadataBlender->Blend(From.Index, To.Index, Index, Lerp);
 			OutTransform[Index].SetLocation(Location);
 		}
 	}
