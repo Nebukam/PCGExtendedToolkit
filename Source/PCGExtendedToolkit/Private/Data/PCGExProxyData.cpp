@@ -400,6 +400,10 @@ namespace PCGExData
 
 		if (OutProxy)
 		{
+#if WITH_EDITOR
+			OutProxy->Descriptor = InDescriptor;
+#endif
+			
 			OutProxy->Data = PointData;
 
 			if (!OutProxy->Validate(InDescriptor))

@@ -59,7 +59,7 @@ bool PCGExPointFilter::FGameplayTagsFilter::Test(const int32 PointIndex) const
 	{
 		if (!TypedFilterFactory->Config.bQuietMissingPropertyWarning)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("GameplayTags filter could not resolve target property : \"%s\"."), *TypedFilterFactory->Config.PropertyPath);
+			UE_LOG(LogPCGEx, Warning, TEXT("GameplayTags filter could not resolve target property : \"%s\"."), *TypedFilterFactory->Config.PropertyPath);
 		}
 		return TypedFilterFactory->Config.bFallbackPropertyPath;
 	}

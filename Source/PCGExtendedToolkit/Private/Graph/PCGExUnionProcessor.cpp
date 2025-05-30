@@ -502,6 +502,7 @@ namespace PCGExGraph
 				else { This->GraphBuilder->StageEdgesOutputs(); }
 			};
 
+		// Make sure we provide up-to-date transform range to sort over
 		GraphBuilder->NodePointsTransforms = GraphBuilder->NodeDataFacade->GetOut()->GetConstTransformValueRange();
 		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true, &GraphMetadataDetails);
 	}

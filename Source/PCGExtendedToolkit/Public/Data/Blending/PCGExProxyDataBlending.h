@@ -255,6 +255,11 @@ namespace PCGExDataBlending
 				Tracker.Weight += Weight;
 			};
 
+			// !!!!!!!!!!!!!!!!
+			// BUG : If we only have an Outgoing data (fused clusters)
+			// This reads from the wrong source
+			// We need proxy attribute buffers whose get reads return the OUT value
+			
 #define PCGEX_A A->Get(SourceIndex)
 #define PCGEX_B C->GetCurrent(TargetIndex) // We read from current value during multiblend
 
@@ -266,7 +271,7 @@ namespace PCGExDataBlending
 			}
 
 			if constexpr (BLEND_MODE == EPCGExABBlendingType::Average) { C->Set(TargetIndex, PCGExBlend::Add(PCGEX_A,PCGEX_B)); }
-			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight) { C->Set(TargetIndex, PCGExBlend::Add(PCGEX_A,PCGEX_B)); }
+			else if constexpr (BLEND_MODE == EPCGExABBlendingType::Weight) { C->Set(TargetIndex, PCGExBlend::WeightedAdd(PCGEX_A,PCGEX_B, Weight)); }
 			else { Blend(SourceIndex, TargetIndex, TargetIndex); }
 
 #undef PCGEX_A

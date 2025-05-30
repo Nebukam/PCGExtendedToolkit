@@ -55,13 +55,13 @@ void UPCGExCustomActorDataPacker::AddComponent(
 {
 	if (!IsValid(InActor))
 	{
-		UE_LOG(LogTemp, Error, TEXT("AddComponent target actor is NULL"));
+		UE_LOG(LogPCGEx, Error, TEXT("AddComponent target actor is NULL"));
 		return;
 	}
 
 	if (!ComponentClass || ComponentClass->HasAnyClassFlags(CLASS_Abstract))
 	{
-		UE_LOG(LogTemp, Error, TEXT("AddComponent cannot instantiate an abstract class"));
+		UE_LOG(LogPCGEx, Error, TEXT("AddComponent cannot instantiate an abstract class"));
 		return;
 	}
 

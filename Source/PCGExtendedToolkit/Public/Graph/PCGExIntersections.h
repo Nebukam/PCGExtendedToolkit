@@ -303,13 +303,11 @@ namespace PCGExGraph
 	struct PCGEXTENDEDTOOLKIT_API FEECrossing
 	{
 		int32 NodeIndex = -1;
-		int32 EdgeA = -1;
-		int32 EdgeB = -1;
 		FEESplit Split;
 
 		explicit FEECrossing(const FEESplit& InSplit);
 
-		FORCEINLINE double GetTime(const int32 EdgeIndex) const { return EdgeIndex == EdgeA ? Split.TimeA : Split.TimeB; }
+		FORCEINLINE double GetTime(const int32 EdgeIndex) const { return EdgeIndex == Split.A ? Split.TimeA : Split.TimeB; }
 
 		bool operator==(const FEECrossing& Other) const { return NodeIndex == Other.NodeIndex; }
 	};

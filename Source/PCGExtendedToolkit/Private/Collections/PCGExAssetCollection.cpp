@@ -189,7 +189,7 @@ namespace PCGExAssetCollection
 		UWorld* World = GWorld;
 		if (!World)
 		{
-			UE_LOG(LogTemp, Error, TEXT("No world to compute actor bounds!"));
+			UE_LOG(LogPCGEx, Error, TEXT("No world to compute actor bounds!"));
 			return;
 		}
 
@@ -205,7 +205,7 @@ namespace PCGExAssetCollection
 			AActor* TempActor = World->SpawnActor<AActor>(ActorClass, FTransform(), SpawnParams);
 			if (!TempActor)
 			{
-				UE_LOG(LogTemp, Error, TEXT("Failed to create temp actor!"));
+				UE_LOG(LogPCGEx, Error, TEXT("Failed to create temp actor!"));
 				return;
 			}
 
@@ -222,10 +222,10 @@ namespace PCGExAssetCollection
 		else
 		{
 			// If this throw, it's because a collection has been initialized outside of game thread, which is bad.
-			UE_LOG(LogTemp, Error, TEXT("GetBoundingBoxBySpawning executed outside of game thread."));
+			UE_LOG(LogPCGEx, Error, TEXT("GetBoundingBoxBySpawning executed outside of game thread."));
 		}
 #else
-		UE_LOG(LogTemp, Error, TEXT("GetBoundingBoxBySpawning called in non-editor context."));
+		UE_LOG(LogPCGEx, Error, TEXT("GetBoundingBoxBySpawning called in non-editor context."));
 #endif
 	}
 

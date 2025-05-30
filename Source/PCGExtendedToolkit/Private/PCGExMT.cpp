@@ -273,7 +273,7 @@ namespace PCGExMT
 		// Normally nothing would trigger here
 		if (!IsAvailable())
 		{
-			UE_LOG(LogTemp, Error, TEXT("Attempting to register async work while manager is unavailable. If there's a crash, it's probably because this happened."));
+			UE_LOG(LogPCGEx, Error, TEXT("Attempting to register async work while manager is unavailable. If there's a crash, it's probably because this happened."));
 			return false;
 		}
 

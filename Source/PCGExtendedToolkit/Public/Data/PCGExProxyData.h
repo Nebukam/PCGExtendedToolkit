@@ -64,10 +64,15 @@ namespace PCGExData
 		EPCGMetadataTypes RealType = EPCGMetadataTypes::Unknown;
 		EPCGMetadataTypes WorkingType = EPCGMetadataTypes::Unknown;
 
+#if WITH_EDITOR
+		// This is purely for debugging purposes
+		FProxyDescriptor Descriptor;
+#endif
+
 		FBufferProxyBase() = default;
 		virtual ~FBufferProxyBase() = default;
 
-		bool Validate(const FProxyDescriptor& Descriptor) const { return Descriptor.RealType == RealType && Descriptor.WorkingType == WorkingType; }
+		bool Validate(const FProxyDescriptor& InDescriptor) const { return InDescriptor.RealType == RealType && InDescriptor.WorkingType == WorkingType; }
 		virtual TSharedPtr<FBufferBase> GetBuffer() const { return nullptr; }
 		virtual bool EnsureReadable() const { return true; }
 	};

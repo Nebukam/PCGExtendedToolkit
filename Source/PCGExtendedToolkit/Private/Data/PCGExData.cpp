@@ -119,7 +119,7 @@ namespace PCGExData
 	{
 		if (!AsyncManager || !AsyncManager->IsAvailable() || !Source->GetOut()) { return; }
 
-		//UE_LOG(LogTemp, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
+		//UE_LOG(LogPCGEx, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
 
 		if (ValidateOutputsBeforeWriting())
 		{

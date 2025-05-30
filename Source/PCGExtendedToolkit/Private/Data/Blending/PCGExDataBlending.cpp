@@ -221,9 +221,9 @@ void FPCGExBlendingDetails::GetBlendingHeaders(
 	for (int i = 0; i < Identities.Num(); i++)
 	{
 		const PCGEx::FAttributeIdentity& Identity = Identities[i];
-
+		
 		if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Name)) { continue; }
-
+		
 		PCGExDataBlending::FBlendingHeader Header{};
 		Header.bIsNewAttribute = MissingAttribute.Contains(i);
 
@@ -241,7 +241,9 @@ void FPCGExBlendingDetails::GetBlendingHeaders(
 
 		if (Header.Blending == EPCGExABBlendingType::None) { continue; }
 
+		Header.Selector.Update(Identity.Name.ToString());
 		OutHeaders.Add(Header);
+		
 	}
 }
 

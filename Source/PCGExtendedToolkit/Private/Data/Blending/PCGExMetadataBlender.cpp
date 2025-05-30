@@ -21,7 +21,7 @@ namespace PCGExDataBlending
 		TargetFacadeHandle = InDataFacade;
 	}
 
-	bool FMetadataBlender::Init(FPCGExContext* InContext, const FPCGExBlendingDetails& InBlendingDetails, const TSet<FName>* IgnoreAttributeSet, const bool bWantsDirectAccess)
+	bool FMetadataBlender::Init(FPCGExContext* InContext, const FPCGExBlendingDetails& InBlendingDetails, const TSet<FName>* IgnoreAttributeSet, const bool bWantsDirectAccess, const PCGExData::EIOSide BSide)
 	{
 		const TSharedPtr<PCGExData::FFacade> SourceFacade = SourceFacadeHandle.Pin();
 		const TSharedPtr<PCGExData::FFacade> TargetFacade = TargetFacadeHandle.Pin();
@@ -34,7 +34,7 @@ namespace PCGExDataBlending
 		InBlendingDetails.GetBlendingHeaders(
 			SourceFacade->GetData(SourceSide)->Metadata, TargetFacade->GetOut()->Metadata,
 			BlendingHeaders, !bBlendProperties, IgnoreAttributeSet);
-
+		
 		Blenders.Reserve(BlendingHeaders.Num());
 		for (const FBlendingHeader& Header : BlendingHeaders)
 		{
@@ -58,7 +58,7 @@ namespace PCGExDataBlending
 			else
 			{
 				// Strict capture may fail here, TBD
-				if (!B.CaptureStrict(InContext, Header.Selector, PCGExData::EIOSide::Out)) { return false; }
+				if (!B.CaptureStrict(InContext, Header.Selector, BSide)) { return false; }
 			}
 
 			PCGExData::FProxyDescriptor C = B;

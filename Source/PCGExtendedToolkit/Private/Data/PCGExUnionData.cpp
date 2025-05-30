@@ -16,23 +16,15 @@ namespace PCGExData
 		const int32 NumElements = Elements.Num();
 		OutWeightedPoints.Reset(NumElements);
 
-		UE_LOG(LogTemp, Warning, TEXT("-- ComputeWeights Starts (%d)"),NumElements)
-		
 		double TotalWeight = 0;
 		int32 Index = 0;
 
 		for (const FElement& Element : Elements)
 		{
 			const int32* IOIdx = SourcesIdx.Find(Element.IO);
-			
-			if (!IOIdx)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("++ Missing IO (%d)"),Element.IO)
-				continue;
-			}
 
-			UE_LOG(LogTemp, Warning, TEXT("++ Element @%d : (%d -> %d)"),Element.Index, Element.IO, *IOIdx)
-			
+			if (!IOIdx) { continue; }
+
 			FWeightedPoint& P = OutWeightedPoints.Emplace_GetRef(Element.Index, 0, *IOIdx);
 
 			const double Weight = InDistanceDetails->GetDistSquared(FConstPoint(Sources[P.IO], P), Target);

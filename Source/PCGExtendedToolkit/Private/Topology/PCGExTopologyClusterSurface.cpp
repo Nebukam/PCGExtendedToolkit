@@ -155,7 +155,7 @@ namespace PCGExTopologyClusterSurface
 
 	void FProcessor::CompleteWork()
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Complete %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
+		//UE_LOG(LogPCGEx, Warning, TEXT("Complete %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
 		StartParallelLoopForEdges(128);
 	}
 }

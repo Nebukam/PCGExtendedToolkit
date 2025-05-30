@@ -117,7 +117,7 @@ void UPCGExCustomGraphBuilder::CreateGraphSettings(TSubclassOf<UPCGExCustomGraph
 {
 	if (!SettingsClass || SettingsClass->HasAnyClassFlags(CLASS_Abstract))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Cannot instantiate an abstract class!"));
+		UE_LOG(LogPCGEx, Error, TEXT("Cannot instantiate an abstract class!"));
 		return;
 	}
 

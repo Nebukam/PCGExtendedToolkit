@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorHandlerDetails
 
 	/** If enabled, normalize sampling. This effectively negates the influence of effectors potency. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bNormalize = false;
+	bool bNormalize = true;
 
 	/** Type of Size */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" ├─ Size Input"))
@@ -67,7 +67,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorHandlerDetails
 
 	/** Constant size applied after normalization. This will be scaled */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = " └─ Size", EditCondition="bNormalize && SizeInput==EPCGExInputValueType::Constant", EditConditionHides))
-	double SizeConstant = 1;
+	double SizeConstant = 100;
 
 	PCGEX_SETTING_VALUE_GET(Size, double, SizeInput, SizeAttribute, SizeConstant)
 

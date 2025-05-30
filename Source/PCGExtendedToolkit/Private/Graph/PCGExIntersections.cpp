@@ -694,9 +694,6 @@ namespace PCGExGraph
 		FEECrossing& OutSplit = Crossings.Emplace_GetRef(Split);
 		OutSplit.NodeIndex = Graph->Nodes.Num() + CrossingIndex;
 
-		OutSplit.EdgeA = Split.A;
-		OutSplit.EdgeB = Split.B;
-
 		// Register crossing index to crossed edges
 		Edges[Split.A].Intersections.AddUnique(CrossingIndex);
 		Edges[Split.B].Intersections.AddUnique(CrossingIndex);
@@ -773,10 +770,10 @@ namespace PCGExGraph
 		const int32 Target = Graph->Nodes[Crossing.NodeIndex].PointIndex;
 		Blender->BeginMultiBlend(Target, Trackers);
 
-		const int32 A1 = Graph->Nodes[Graph->Edges[Crossing.EdgeA].Start].PointIndex;
-		const int32 A2 = Graph->Nodes[Graph->Edges[Crossing.EdgeA].End].PointIndex;
-		const int32 B1 = Graph->Nodes[Graph->Edges[Crossing.EdgeB].Start].PointIndex;
-		const int32 B2 = Graph->Nodes[Graph->Edges[Crossing.EdgeB].End].PointIndex;
+		const int32 A1 = Graph->Nodes[Graph->Edges[Crossing.Split.A].Start].PointIndex;
+		const int32 A2 = Graph->Nodes[Graph->Edges[Crossing.Split.A].End].PointIndex;
+		const int32 B1 = Graph->Nodes[Graph->Edges[Crossing.Split.B].Start].PointIndex;
+		const int32 B2 = Graph->Nodes[Graph->Edges[Crossing.Split.B].End].PointIndex;
 
 		Blender->MultiBlend(A1, Target, Crossing.Split.TimeA, Trackers);
 		Blender->MultiBlend(A2, Target, 1 - Crossing.Split.TimeA, Trackers);

@@ -612,8 +612,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B, -1, InIOIndex);
 
-			//UE_LOG(LogTemp, Warning, TEXT("%"))
-
 			UniqueEdges.Add(E, EdgeIndex);
 			Nodes[A].LinkEdge(EdgeIndex);
 			Nodes[B].LinkEdge(EdgeIndex);
@@ -796,7 +794,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		return MakeArrayView(Nodes.GetData() + StartIndex, NumNewNodes);
 	}
 
-
 	void FGraph::BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::BuildSubGraphs);
@@ -949,7 +946,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		Graph->NodeIndexLookup = NodeIndexLookup;
 
 		// Building subgraphs isolate connected edge clusters
-		// and invalidate isolated nodes
+		// and invalidate roaming (isolated) nodes
 		Graph->BuildSubGraphs(*OutputDetails);
 
 		if (Graph->SubGraphs.IsEmpty())
@@ -1018,10 +1015,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					// Ensure we have the required number of nodes in the output
 					PCGEx::EnsureMinNumPoints(OutNodeData, NumValidNodes);
 
-					// Sort valid nodes by point index
-					// This is probably redundant because nodes are always in point order
-					//ValidNodes.Sort([&](const int32 A, const int32 B) { return Nodes[A].PointIndex < Nodes[B].PointIndex; });
-
 					// Build & remap new point count to node topology
 					for (int i = 0; i < NumValidNodes; i++)
 					{
@@ -1030,8 +1023,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 						Node.PointIndex = i;              // Update node point index
 					}
 
-					OutNodeData->SetNumPoints(NumValidNodes);               // Fix output size
-					NodeDataFacade->Source->InheritProperties(ReadIndices); // Copy all the things
+					// Truncate output if need be
+					OutNodeData->SetNumPoints(NumValidNodes);
+					// Copy input to outputs to carry over the right values on the outgoing points
+					NodeDataFacade->Source->InheritProperties(ReadIndices);
 				}
 			}
 			else

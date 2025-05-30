@@ -177,7 +177,7 @@ namespace PCGExResamplePath
 			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
 			MetadataBlender->SetSourceData(PointDataFacade);
 			MetadataBlender->SetTargetData(PointDataFacade);
-			if (!MetadataBlender->Init(Context, Settings->BlendingSettings))
+			if (!MetadataBlender->Init(Context, Settings->BlendingSettings, nullptr, false, PCGExData::EIOSide::In))
 			{
 				return false;
 			}
