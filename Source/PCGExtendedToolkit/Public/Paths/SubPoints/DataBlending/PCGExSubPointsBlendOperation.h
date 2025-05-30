@@ -60,7 +60,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInstancedFactory : public UPCGE
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Lerp);
+	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 
