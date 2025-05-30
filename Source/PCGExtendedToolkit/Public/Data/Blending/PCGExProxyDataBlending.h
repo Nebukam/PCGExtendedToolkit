@@ -52,7 +52,7 @@ namespace PCGExDataBlending
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 
 		// Target = Source|Target
-		FORCEINLINE virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight) { Blend(SourceIndex, TargetIndex, Weight); }
+		FORCEINLINE virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight) { Blend(SourceIndex, TargetIndex, TargetIndex, Weight); }
 
 		// Target = SourceA|SourceB
 		virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight) = 0;
