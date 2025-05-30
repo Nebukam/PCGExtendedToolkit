@@ -30,8 +30,8 @@ enum class EPCGExOperandAuthority : uint8
 UENUM()
 enum class EPCGExBlendOpOutputMode : uint8
 {
-	SameAsA         = 0 UMETA(DisplayName = "Same as A", ToolTip="Will write the output value to Operand A' selector."),
-	SameAsB         = 1 UMETA(DisplayName = "Same as B", ToolTip="Will write the output value to Operand B' selector. (Will default to A if B is not set)"),
+	SameAsA   = 0 UMETA(DisplayName = "Same as A", ToolTip="Will write the output value to Operand A' selector."),
+	SameAsB   = 1 UMETA(DisplayName = "Same as B", ToolTip="Will write the output value to Operand B' selector. (Will default to A if B is not set)"),
 	New       = 2 UMETA(DisplayName = "New", ToolTip="Will write the output value to new selector."),
 	Transient = 3 UMETA(DisplayName = "New (Transient)", ToolTip="Will write the output value to a new selector that will only exist for the duration of the blend, but can be referenced by other blend ops."),
 };
@@ -129,7 +129,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	/** If enabled, when a node uses multiple sources for blending, the value will be reset to 0 for some specific BlendModes so as to not account for inherited values. Default is true, as it is usually the most desirable behavior. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bResetValueBeforeMultiSourceBlend = true;
-	
+
 	/** Which type should be used for the output value. Only used if the output is not a point property. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
 	EPCGExOperandAuthority OutputType = EPCGExOperandAuthority::Auto;
@@ -167,12 +167,7 @@ public:
 
 	virtual bool PrepareForData(FPCGExContext* InContext);
 
-	virtual void Blend(const int32 TargetIndex)
-	{
-		Blender->Blend(TargetIndex, Config.Weighting.ScoreCurveObj->Eval(Weight->Read(TargetIndex)));
-	}
-
-	virtual void Blend(const int32 SourceIndex, const int32 TargetIndex)
+	virtual void BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex)
 	{
 		Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(Weight->Read(SourceIndex)));
 	}

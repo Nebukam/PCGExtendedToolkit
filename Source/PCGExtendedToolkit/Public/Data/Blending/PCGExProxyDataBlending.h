@@ -12,6 +12,33 @@
 
 namespace PCGExDataBlending
 {
+
+	class PCGEXTENDEDTOOLKIT_API IBlender : public TSharedFromThis<IBlender>
+	{
+	public:
+		virtual ~IBlender() = default;
+		// Target = Target|Target
+		FORCEINLINE virtual void Blend(const int32 TargetIndex, const double Weight) const
+		{
+			Blend(TargetIndex, TargetIndex, TargetIndex, Weight);
+		}
+
+		// Target = Source|Target
+		FORCEINLINE virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight) const
+		{
+			Blend(SourceIndex, TargetIndex, TargetIndex, Weight);
+		}
+
+		virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const = 0;
+		
+		// Target = SourceA|SourceB
+		virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight) const = 0;
+
+		virtual void BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const = 0;
+		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGEx::FOpStats>& Tracker) const = 0;
+		virtual void EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Tracker) const = 0;
+	};
+	
 	/**
 	 * Simple C=AxB blend
 	 */
@@ -24,17 +51,11 @@ namespace PCGExDataBlending
 
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 
-		// Target = Target|Target
-		FORCEINLINE virtual void Blend(const int32 TargetIndex, const double Weight = 1) { Blend(TargetIndex, TargetIndex, TargetIndex); }
-
 		// Target = Source|Target
-		FORCEINLINE virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight = 1) { Blend(SourceIndex, TargetIndex, TargetIndex); }
+		FORCEINLINE virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight) { Blend(SourceIndex, TargetIndex, Weight); }
 
 		// Target = SourceA|SourceB
-		virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight = 1) = 0;
-
-		virtual void Blend(TArrayView<const int32> SourceIndices, const int32 TargetIndex, TArrayView<const double> Weights);
-		virtual void Blend(TArrayView<const int32> SourceIndices, const int32 TargetIndex, const double Weight = 1);
+		virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight) = 0;
 
 		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) = 0;
 		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) = 0;

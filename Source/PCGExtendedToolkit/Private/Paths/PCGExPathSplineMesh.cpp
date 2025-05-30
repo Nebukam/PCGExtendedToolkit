@@ -250,7 +250,7 @@ namespace PCGExPathSplineMesh
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PathSplineMesh::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
@@ -297,7 +297,7 @@ namespace PCGExPathSplineMesh
 			const int32 Seed = PCGExRandom::GetSeed(
 				Seeds[Index], Helper->Details.SeedComponents,
 				Helper->Details.LocalSeed, Settings, Context->GetComponent());
-			
+
 			Segments[Index] = PCGExPaths::FSplineMeshSegment();
 			PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
 
@@ -423,11 +423,7 @@ namespace PCGExPathSplineMesh
 			if (Settings->bForceDefaultDescriptor || Settings->CollectionSource == EPCGExCollectionSource::AttributeSet) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
 			else { Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent); }
 
-			if (!Segment.ApplyMesh(SplineMeshComponent))
-			{
-				///*Silently deprecated as per Epic dev*/SplineMeshComponent->MarkAsGarbage();
-				continue;
-			}
+			if (!Segment.ApplyMesh(SplineMeshComponent)) { continue; }
 
 			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
 			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }

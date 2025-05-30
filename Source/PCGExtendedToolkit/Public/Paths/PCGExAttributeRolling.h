@@ -80,7 +80,7 @@ public:
 
 	/** Starting toggle value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InitialValueMode != EPCGExRollingToggleInitialValue::FromPoint"))
-	bool bInitialValue = false;
+	bool bInitialValue = true;
 
 	/** Reverse rolling order */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

@@ -126,69 +126,77 @@ namespace PCGExPointFilter
 
 	void FManager::Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults)
 	{
+		bool bResult = true;
 		PCGEX_SCOPE_LOOP(Index)
 		{
+			bResult = true;
 			for (const TSharedPtr<FFilter>& Handler : ManagedFilters)
 			{
 				if (!Handler->Test(Index))
 				{
-					OutResults[Index] = false;
+					bResult = false;
 					break;
 				}
 			}
-			OutResults[Index] = true;
+			OutResults[Index] = bResult;
 		}
 	}
 
 	void FManager::Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults)
 	{
+		bool bResult = true;
 		PCGEX_SCOPE_LOOP(Index)
 		{
+			bResult = true;
 			for (const TSharedPtr<FFilter>& Handler : ManagedFilters)
 			{
 				if (!Handler->Test(Index))
 				{
-					OutResults[Index] = false;
+					bResult = false;
 					break;
 				}
 			}
-			OutResults[Index] = true;
+			OutResults[Index] = bResult;
 		}
 	}
 
-	void FManager::Test(TArrayView<PCGExCluster::FNode> Items, TArrayView<int8> OutResults)
+	void FManager::Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults)
 	{
 		check(Items.Num() == OutResults.Num());
+		bool bResult = true;
 		for(int i = 0; i < Items.Num(); i++)
 		{
+			bResult = true;
 			const PCGExCluster::FNode& Node = Items[i];
 			for (const TSharedPtr<FFilter>& Handler : ManagedFilters)
 			{
 				if (!Handler->Test(Node))
 				{
-					OutResults[i] = false;
+					bResult = false;
 					break;
 				}
 			}
-			OutResults[i] = true;
+			OutResults[i] = bResult;
 		}
 	}
 
-	void FManager::Test(TArrayView<PCGExCluster::FEdge> Items, TArrayView<int8> OutResults)
+	void FManager::Test(const TArrayView<PCGExCluster::FEdge> Items, const TArrayView<int8> OutResults)
 	{
 		check(Items.Num() == OutResults.Num());
+		bool bResult = true;
 		for(int i = 0; i < Items.Num(); i++)
 		{
+			bResult = true;
 			const PCGExCluster::FEdge& Edge = Items[i];
 			for (const TSharedPtr<FFilter>& Handler : ManagedFilters)
 			{
 				if (!Handler->Test(Edge))
 				{
-					OutResults[i] = false;
+					bResult = false;
 					break;
 				}
 			}
-			OutResults[i] = true;
+			OutResults[i] = bResult;
 		}
 	}
 

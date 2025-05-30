@@ -314,14 +314,14 @@ namespace PCGExPointsMT
 					This->OnProcessingPreparationComplete();
 				};
 
-				ParallelAttributeRead->OnSubLoopStartCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE, ParallelAttributeRead](const PCGExMT::FScope& Scope)
+				ParallelAttributeRead->OnIterationCallback =
+					[PCGEX_ASYNC_THIS_CAPTURE, ParallelAttributeRead](const int32 Index, const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_THIS
-						This->Processors[Scope.Start]->PrefetchData(This->AsyncManager, ParallelAttributeRead);
+						This->Processors[Index]->PrefetchData(This->AsyncManager, ParallelAttributeRead);
 					};
 
-				ParallelAttributeRead->StartSubLoops(Processors.Num(), 1);
+				ParallelAttributeRead->StartIterations(Processors.Num(), 1);
 			}
 			else
 			{

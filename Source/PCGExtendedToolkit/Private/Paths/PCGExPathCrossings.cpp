@@ -186,6 +186,10 @@ namespace PCGExPathCrossings
 				FVector A;
 				FVector B;
 				FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
+
+				// TODO : Collocation is ignored here
+				// Need to account for cases where a foreign point lies exactly on the segment
+				
 				if (A == A1 || A == B1 || B == A2 || B == B2) { return; }
 
 				if (FVector::DistSquared(A, B) >= Details.ToleranceSquared) { return; }

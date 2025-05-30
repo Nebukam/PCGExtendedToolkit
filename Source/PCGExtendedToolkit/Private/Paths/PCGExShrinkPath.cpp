@@ -206,7 +206,7 @@ namespace PCGExShrinkPath
 				break;
 			}
 		}
-
+		
 		if (Settings->ShrinkMode == EPCGExPathShrinkMode::Count)
 		{
 			uint32 StartAmount = 0;
@@ -303,6 +303,9 @@ namespace PCGExShrinkPath
 		}
 		else
 		{
+
+			// BUG : With path of exactly 3 points, something goes wrong
+			
 			double StartAmount = 0;
 			double EndAmount = 0;
 

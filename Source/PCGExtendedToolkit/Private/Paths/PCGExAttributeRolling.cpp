@@ -111,7 +111,7 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>>& NewBatch)
 			{
-				NewBatch->bPrefetchData = true;
+				NewBatch->bPrefetchData = !Context->BlendingFactories.IsEmpty();
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to roll over."));
@@ -179,8 +179,13 @@ namespace PCGExAttributeRolling
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(PointDataFacade);
-			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
+			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>();
+			BlendOpsManager->SetTargetFacade(PointDataFacade);
+			BlendOpsManager->SetSources(PointDataFacade, PCGExData::EIOSide::Out);
+			if (!BlendOpsManager->Init(Context, Context->BlendingFactories))
+			{
+				return false;
+			}
 		}
 
 		MaxIndex = PointDataFacade->GetNum(PCGExData::EIOSide::In) - 1;
@@ -301,7 +306,7 @@ namespace PCGExAttributeRolling
 
 			if (SourceIndex != -1 && BlendOpsManager)
 			{
-				BlendOpsManager->Blend(SourceIndex, TargetIndex);
+				BlendOpsManager->BlendAutoWeight(SourceIndex, TargetIndex);
 			}
 		}
 	}

@@ -79,9 +79,9 @@ namespace PCGExDataBlending
 		return true;
 	}
 
-	void FMetadataBlender::Blend(const int32 SourceIndex, const int32 TargetIndex) const
+	void FMetadataBlender::Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight) const
 	{
-		for (int i = 0; i < Blenders.Num(); i++) { Blenders[i]->Blend(SourceIndex, TargetIndex); }
+		for (int i = 0; i < Blenders.Num(); i++) { Blenders[i]->Blend(SourceIndex, TargetIndex, Weight); }
 	}
 
 	void FMetadataBlender::Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double Weight) const
@@ -89,12 +89,7 @@ namespace PCGExDataBlending
 		for (int i = 0; i < Blenders.Num(); i++) { Blenders[i]->Blend(SourceAIndex, SourceBIndex, TargetIndex, Weight); }
 	}
 
-	void FMetadataBlender::Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight) const
-	{
-		for (int i = 0; i < Blenders.Num(); i++) { Blenders[i]->Blend(SourceIndex, TargetIndex, Weight); }
-	}
-
-	void FMetadataBlender::InitTrackers(TArray<PCGEx::FOpStats>& Trackers)
+	void FMetadataBlender::InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const
 	{
 		Trackers.SetNumUninitialized(Blenders.Num());
 	}

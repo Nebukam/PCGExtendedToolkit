@@ -328,7 +328,10 @@ namespace PCGExData
 		if (!SourceFacade) { return; }
 
 		PCGEx::FAttributeIdentity Identity;
-		if (PCGEx::FAttributeIdentity::Get(SourceFacade->GetIn(), InSelector, Identity)) { Register(InContext, Identity); }
+		if (PCGEx::FAttributeIdentity::Get(SourceFacade->GetIn(), InSelector, Identity))
+		{
+			Register(InContext, Identity);
+		}
 	}
 
 	void FFacadePreloader::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope) const
@@ -383,17 +386,17 @@ namespace PCGExData
 			}
 			else
 			{
-				PrefetchAttributesTask->OnSubLoopStartCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				PrefetchAttributesTask->OnIterationCallback =
+					[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_THIS
 						if (const TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
 						{
-							This->Read(InternalFacade.ToSharedRef(), Scope.Start);
+							This->Read(InternalFacade.ToSharedRef(), Index);
 						}
 					};
 
-				PrefetchAttributesTask->StartSubLoops(Num(), 1);
+				PrefetchAttributesTask->StartIterations(Num(), 1);
 			}
 		}
 		else

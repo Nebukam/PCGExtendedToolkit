@@ -258,13 +258,19 @@ void UPCGExBlendOpFactory::RegisterBuffersDependencies(FPCGExContext* InContext,
 }
 
 void UPCGExBlendOpFactory::RegisterBuffersDependenciesForSourceA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
-{ 
+{
 	FacadePreloader.TryRegister(InContext, Config.OperandA);
 }
 
 void UPCGExBlendOpFactory::RegisterBuffersDependenciesForSourceB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
-	FacadePreloader.TryRegister(InContext, Config.OperandB);
+	if (Config.bUseOperandB)
+	{
+		FacadePreloader.TryRegister(InContext, Config.OperandB);
+	}else
+	{
+		FacadePreloader.TryRegister(InContext, Config.OperandA);
+	}
 }
 
 #if WITH_EDITOR
@@ -337,7 +343,7 @@ FString UPCGExBlendOpFactoryProviderSettings::GetDisplayName() const
 			break;
 		case EPCGExBlendOpOutputMode::New:
 			if (Config.bUseOperandB) { Str += FString::Printf(TEXT(" & %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }
-			else{ Str += FString::Printf(TEXT(" → %s"), *PCGEx::GetSelectorDisplayName(Config.OutputTo)); }
+			else { Str += FString::Printf(TEXT(" → %s"), *PCGEx::GetSelectorDisplayName(Config.OutputTo)); }
 			break;
 		case EPCGExBlendOpOutputMode::Transient:
 			if (Config.bUseOperandB) { Str += FString::Printf(TEXT(" & %s"), *PCGEx::GetSelectorDisplayName(Config.OperandB)); }

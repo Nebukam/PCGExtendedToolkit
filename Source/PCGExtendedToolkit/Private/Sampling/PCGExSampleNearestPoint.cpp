@@ -244,7 +244,7 @@ namespace PCGExSampleNearestPoints
 		}
 
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
-		
+
 		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
 
 		{
@@ -258,6 +258,24 @@ namespace PCGExSampleNearestPoints
 			BlendOpsManager->SetSourceA(Context->TargetsFacade); // We want operands A & B to be the vtx here
 
 			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
+		}
+		else if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
+		{
+			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+			MetadataBlender->SetTargetData(PointDataFacade);
+			MetadataBlender->SetSourceData(Context->TargetsFacade);
+
+			TSet<FName> MissingAttributes;
+			PCGExDataBlending::AssembleBlendingDetails(
+				Settings->PointPropertiesBlendingSettings, Settings->TargetAttributes,
+				PointDataFacade->Source, BlendingDetails, MissingAttributes);
+
+			if (!MetadataBlender->Init(Context, BlendingDetails))
+			{
+				// Fail
+				Context->CancelExecution(FString("Error initializing blending"));
+				return false;
+			}
 		}
 
 		if (Settings->bWriteLookAtTransform)
@@ -301,7 +319,11 @@ namespace PCGExSampleNearestPoints
 		bool bLocalAnySuccess = false;
 
 		TArray<PCGEx::FOpStats> BlendTrackers;
-		if (BlendOpsManager) { BlendOpsManager->InitTrackers(BlendTrackers); }
+		TSharedPtr<PCGExDataBlending::IBlender> BlenderInstance = nullptr;
+		if(BlendOpsManager){BlenderInstance = BlendOpsManager;}
+		else if(MetadataBlender){BlenderInstance = MetadataBlender;}
+
+		if (BlenderInstance) { BlenderInstance->InitTrackers(BlendTrackers); }
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 
@@ -412,7 +434,8 @@ namespace PCGExSampleNearestPoints
 			double WeightedDistance = 0;
 
 			auto ProcessTargetInfos = [&]
-				(const PCGExNearestPoint::FSample& TargetInfos, const double Weight, const TSharedPtr<PCGExDataBlending::FBlendOpsManager> Blender = nullptr)
+				(const PCGExNearestPoint::FSample& TargetInfos, const double Weight,
+				 const TSharedPtr<PCGExDataBlending::IBlender>& Blender = nullptr)
 			{
 				const FTransform& TargetTransform = TargetTransforms[TargetInfos.Index];
 				const FQuat TargetRotation = TargetTransform.GetRotation();
@@ -437,20 +460,20 @@ namespace PCGExSampleNearestPoints
 				const double Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
 				ProcessTargetInfos(TargetInfos, Weight);
 
-				if (BlendOpsManager) { BlendOpsManager->Blend(TargetInfos.Index, Index, Weight); }
+				if (BlenderInstance) { BlenderInstance->Blend(TargetInfos.Index, Index, Weight); }
 			}
 			else
 			{
-				if (BlendOpsManager) { BlendOpsManager->BeginMultiBlend(Index, BlendTrackers); }
+				if (BlenderInstance) { BlenderInstance->BeginMultiBlend(Index, BlendTrackers); }
 
 				for (PCGExNearestPoint::FSample& TargetInfos : Samples)
 				{
 					const double Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
 					if (Weight == 0) { continue; }
-					ProcessTargetInfos(TargetInfos, Weight, BlendOpsManager);
+					ProcessTargetInfos(TargetInfos, Weight, BlenderInstance);
 				}
 
-				if (BlendOpsManager) { BlendOpsManager->EndMultiBlend(Index, BlendTrackers); }
+				if (BlenderInstance) { BlenderInstance->EndMultiBlend(Index, BlendTrackers); }
 			}
 
 

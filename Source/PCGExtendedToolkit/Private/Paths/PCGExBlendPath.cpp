@@ -16,6 +16,13 @@ UPCGExBlendPathSettings::UPCGExBlendPathSettings(
 	bSupportClosedLoops = false;
 }
 
+TArray<FPCGPinProperties> UPCGExBlendPathSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {})
+	return PinProperties;
+}
+
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
 
 bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
@@ -23,6 +30,13 @@ bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendPath)
+
+	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
+		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
+		{PCGExFactories::EType::Blending}, true))
+	{
+		return false;
+	}
 
 	return true;
 }
@@ -78,8 +92,8 @@ namespace PCGExBlendPath
 
 		if (Settings->BlendOver == EPCGExBlendOver::Fixed)
 		{
-			LerpCache = Settings->GetValueSettingLerp();
-			if (!LerpCache->Init(Context, PointDataFacade)) { return false; }
+			LerpGetter = Settings->GetValueSettingLerp();
+			if (!LerpGetter->Init(Context, PointDataFacade)) { return false; }
 		}
 
 		MaxIndex = PointDataFacade->GetNum() - 1;
@@ -87,11 +101,10 @@ namespace PCGExBlendPath
 		Start = 0;
 		End = MaxIndex;
 
-		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
-		MetadataBlender->SetTargetData(PointDataFacade);
-		MetadataBlender->SetSourceData(PointDataFacade);
+		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(PointDataFacade);
+		BlendOpsManager->SetSources(PointDataFacade); // We want operands A & B to be the vtx here
 
-		if (!MetadataBlender->Init(Context, Settings->BlendingSettings)) { return false; }
+		if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
 
 		if (Settings->BlendOver == EPCGExBlendOver::Distance)
 		{
@@ -110,7 +123,7 @@ namespace PCGExBlendPath
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BlendPath::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
@@ -134,15 +147,16 @@ namespace PCGExBlendPath
 			}
 			else
 			{
-				Alpha = LerpCache->Read(Index);
+				Alpha = LerpGetter->Read(Index);
 			}
 
-			MetadataBlender->Blend(Start, End, Index, Alpha);
+			BlendOpsManager->Blend(Start, End, Index, Alpha);
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
+		if (BlendOpsManager) { BlendOpsManager->Cleanup(Context); }
 		PointDataFacade->Write(AsyncManager);
 	}
 }

@@ -14,7 +14,6 @@
 #include "PCGExNeighborSampleFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 
 
 #include "PCGExNeighborSampleBlend.generated.h"

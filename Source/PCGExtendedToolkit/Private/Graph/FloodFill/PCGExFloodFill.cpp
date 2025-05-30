@@ -181,7 +181,7 @@ namespace PCGExFloodFill
 			if (TargetIndex != SourceIndex)
 			{
 				// TODO : Compute weight based on distance or depth
-				InBlendOps->Blend(SourceIndex, TargetIndex);
+				InBlendOps->BlendAutoWeight(SourceIndex, TargetIndex);
 			}
 		}
 	}

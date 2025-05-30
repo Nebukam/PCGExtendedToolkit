@@ -139,7 +139,7 @@ namespace PCGExDataBlending
 		ScopedTrackers->ForEach([&](TArray<PCGEx::FOpStats>& Array) { InitTrackers(Array); });
 	}
 
-	void FBlendOpsManager::InitTrackers(TArray<PCGEx::FOpStats>& Trackers)
+	void FBlendOpsManager::InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const
 	{
 		Trackers.SetNumUninitialized(Operations->Num());
 	}

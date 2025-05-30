@@ -92,7 +92,7 @@ namespace PCGExBlendAttributes
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index]) { continue; }
-			BlendOpsManager->Blend(Index);
+			BlendOpsManager->BlendAutoWeight(Index, Index);
 		}
 	}
 

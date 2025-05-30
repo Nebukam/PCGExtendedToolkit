@@ -234,7 +234,7 @@ namespace PCGExSampleNearestBounds
 		}
 
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
-		
+
 		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
 
 		{
@@ -248,6 +248,24 @@ namespace PCGExSampleNearestBounds
 			BlendOpsManager->SetSourceA(Context->BoundsFacade); // We want operands A & B to be the vtx here
 
 			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
+		}
+		else if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
+		{
+			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+			MetadataBlender->SetTargetData(PointDataFacade);
+			MetadataBlender->SetSourceData(Context->BoundsFacade);
+
+			TSet<FName> MissingAttributes;
+			PCGExDataBlending::AssembleBlendingDetails(
+				Settings->PointPropertiesBlendingSettings, Settings->TargetAttributes,
+				Context->BoundsFacade->Source, BlendingDetails, MissingAttributes);
+
+			if (!MetadataBlender->Init(Context, BlendingDetails))
+			{
+				// Fail
+				Context->CancelExecution(FString("Error initializing blending"));
+				return false;
+			}
 		}
 
 		if (Settings->bWriteLookAtTransform)
@@ -278,15 +296,19 @@ namespace PCGExSampleNearestBounds
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleNearestBounds::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
 		bool bLocalAnySuccess = false;
 
 		TArray<PCGEx::FOpStats> BlendTrackers;
-		if(BlendOpsManager){ BlendOpsManager->InitTrackers(BlendTrackers); }
-		
+		TSharedPtr<PCGExDataBlending::IBlender> BlenderInstance = nullptr;
+		if(BlendOpsManager){BlenderInstance = BlendOpsManager;}
+		else if(MetadataBlender){BlenderInstance = MetadataBlender;}
+
+		if (BlenderInstance) { BlenderInstance->InitTrackers(BlendTrackers); }
+
 		TArray<PCGExNearestBounds::FSample> Samples;
 		Samples.Reserve(10);
 
@@ -357,7 +379,8 @@ namespace PCGExSampleNearestBounds
 			PCGEx::FOpStats SampleTracker{};
 
 			auto ProcessSample = [&]
-				(const PCGExNearestBounds::FSample& InSample, const TSharedPtr<PCGExDataBlending::FBlendOpsManager> Blender = nullptr)
+				(const PCGExNearestBounds::FSample& InSample,
+				 const TSharedPtr<PCGExDataBlending::IBlender>& Blender = nullptr)
 			{
 				const double Weight = InSample.Weight;
 
@@ -366,7 +389,6 @@ namespace PCGExSampleNearestBounds
 
 				WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, Weight);
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExBlend::WeightedAdd(WeightedUp, (LookAtUpGetter ? LookAtUpGetter->Read(InSample.Index) : SafeUpVector), Weight); }
-
 
 				WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
 				WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
@@ -388,33 +410,33 @@ namespace PCGExSampleNearestBounds
 				case EPCGExBoundsSampleMethod::BestCandidate:
 				case EPCGExBoundsSampleMethod::ClosestBounds:
 					ProcessSample(Stats.Closest);
-					if (BlendOpsManager) { BlendOpsManager->Blend(Stats.Closest.Index, Index, Stats.TotalWeight); }
+					if (BlenderInstance) { BlenderInstance->Blend(Stats.Closest.Index, Index, Stats.TotalWeight); }
 					break;
 				case EPCGExBoundsSampleMethod::FarthestBounds:
 					ProcessSample(Stats.Farthest);
-					if (BlendOpsManager) { BlendOpsManager->Blend(Stats.Farthest.Index, Index, Stats.TotalWeight); }
+					if (BlenderInstance) { BlenderInstance->Blend(Stats.Farthest.Index, Index, Stats.TotalWeight); }
 					break;
 				case EPCGExBoundsSampleMethod::LargestBounds:
 					ProcessSample(Stats.Largest);
-					if (BlendOpsManager) { BlendOpsManager->Blend(Stats.Largest.Index, Index, Stats.TotalWeight); }
+					if (BlenderInstance) { BlenderInstance->Blend(Stats.Largest.Index, Index, Stats.TotalWeight); }
 					break;
 				case EPCGExBoundsSampleMethod::SmallestBounds:
 					ProcessSample(Stats.Smallest);
-					if (BlendOpsManager) { BlendOpsManager->Blend(Stats.Smallest.Index, Index, Stats.TotalWeight); }
+					if (BlenderInstance) { BlenderInstance->Blend(Stats.Smallest.Index, Index, Stats.TotalWeight); }
 					break;
 				}
 			}
 			else
 			{
-				if (BlendOpsManager) { BlendOpsManager->BeginMultiBlend(Index, BlendTrackers); }
+				if (BlenderInstance) { BlenderInstance->BeginMultiBlend(Index, BlendTrackers); }
 
 				for (PCGExNearestBounds::FSample& TargetInfos : Samples)
 				{
 					if (TargetInfos.Weight == 0) { continue; }
-					ProcessSample(TargetInfos, BlendOpsManager);
+					ProcessSample(TargetInfos, BlenderInstance);
 				}
 
-				if (BlendOpsManager) { BlendOpsManager->EndMultiBlend(Index, BlendTrackers); }
+				if (BlenderInstance) { BlenderInstance->EndMultiBlend(Index, BlendTrackers); }
 			}
 
 			if (SampleTracker.Weight != 0) // Dodge NaN

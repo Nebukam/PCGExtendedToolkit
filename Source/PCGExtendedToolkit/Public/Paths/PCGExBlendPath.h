@@ -9,8 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
 #include "PCGExPaths.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 
 
 #include "PCGExBlendPath.generated.h"
@@ -41,6 +41,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -77,6 +78,7 @@ public:
 struct FPCGExBlendPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExBlendPathElement;
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 };
 
 class FPCGExBlendPathElement final : public FPCGExPathProcessorElement
@@ -96,8 +98,8 @@ namespace PCGExBlendPath
 
 		PCGExPaths::FPathMetrics Metrics;
 
-		TSharedPtr<PCGExDetails::TSettingValue<double>> LerpCache;
-		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> LerpGetter;
+		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 
 		int32 Start = -1;
 		int32 End = -1;

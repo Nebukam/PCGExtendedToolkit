@@ -13,28 +13,27 @@
 
 namespace PCGExDataBlending
 {
-	class PCGEXTENDEDTOOLKIT_API FMetadataBlender final : public TSharedFromThis<FMetadataBlender>
+	class PCGEXTENDEDTOOLKIT_API FMetadataBlender final : public IBlender
 	{
 	public:
 		bool bBlendProperties = true;
 
 		FMetadataBlender() = default;
-		~FMetadataBlender() = default;
+		virtual ~FMetadataBlender() override = default;
 
 		void SetSourceData(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In);
 		void SetTargetData(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
 		bool Init(FPCGExContext* InContext, const FPCGExBlendingDetails& InBlendingDetails, const TSet<FName>* IgnoreAttributeSet = nullptr, const bool bWantsDirectAccess = false, const PCGExData::EIOSide BSide = PCGExData::EIOSide::Out);
 
-		void Blend(const int32 SourceIndex, const int32 TargetIndex) const;
-		void Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double Weight = 1) const;
-		void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight = 1) const;
+		virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight) const override;
+		virtual void Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double Weight) const override;
 
-		void InitTrackers(TArray<PCGEx::FOpStats>& Trackers);
-		
-		void BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const;
-		void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGEx::FOpStats>& Trackers) const;
-		void EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const;
+		virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const override;
+
+		virtual void BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const override;
+		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGEx::FOpStats>& Trackers) const override;
+		virtual void EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const override;
 		
 	protected:
 		TWeakPtr<PCGExData::FFacade> SourceFacadeHandle;

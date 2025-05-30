@@ -188,8 +188,8 @@ namespace PCGExPointFilter
 		virtual void Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults);
 		virtual void Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults);
 		
-		virtual void Test(TArrayView<PCGExCluster::FNode> Items, TArrayView<int8> OutResults);
-		virtual void Test(TArrayView<PCGExCluster::FEdge> Items, TArrayView<int8> OutResults);
+		virtual void Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults);
+		virtual void Test(const TArrayView<PCGExCluster::FEdge> Items, const TArrayView<int8> OutResults);
 		
 		virtual ~FManager()
 		{
