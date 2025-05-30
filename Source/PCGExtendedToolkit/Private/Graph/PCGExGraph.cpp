@@ -966,7 +966,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		TArray<int32> InternalValidNodes;
 		TArray<int32>& ValidNodes = InternalValidNodes;
-		TArray<PCGEx::TOrder<int32>> Order;
 
 		int32 NumNodes = Nodes.Num();
 
@@ -990,7 +989,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		const int32 NumValidNodes = ValidNodes.Num();
 
 		TArray<int32> ReadIndices;
-		ReadIndices.SetNumUninitialized(NumValidNodes);
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints);
@@ -1000,6 +998,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			if (InNodeData && bInheritNodeData)
 			{
+				ReadIndices.SetNumUninitialized(NumValidNodes);
+
 				// In order to inherit from node data
 				// both input & output must be valid
 				check(!InNodeData->IsEmpty())
@@ -1042,6 +1042,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// We must have an output size that's at least equal to the number of nodes we have as well, to do the re-order
 				check(OutNodeData->GetNumPoints() >= Nodes.Num())
 
+				// Init array of indice as a valid order range first, will be truncated later.
+				// We save a bit of memory by re-using it
+				PCGEx::ArrayOfIndices(ReadIndices, OutNodeData->GetNumPoints());
+				ReadIndices.SetNumUninitialized(OutNodeData->GetNumPoints());
+
 				// Sort valid nodes based on outgoing transforms
 				ValidNodes.Sort(
 					[&](const int32 A, const int32 B)
@@ -1060,8 +1065,13 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					Node.PointIndex = i;
 				}
 
-				// There is no points to inherit from; however we need to reorder the existing data
+				// There is no points to inherit from; meaning we need to reorder the existing data
+				// because it's likely to be fragmented
 				PCGEx::ReorderPointArrayData(OutNodeData, ReadIndices);
+
+				// Truncate output to the number of nodes
+				ReadIndices.SetNum(NumValidNodes);
+				OutNodeData->SetNumPoints(NumValidNodes);
 			}
 		}
 

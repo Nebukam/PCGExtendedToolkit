@@ -43,6 +43,8 @@ bool PCGExPointFilter::FMeanFilter::Init(FPCGExContext* InContext, const TShared
 	DataMin = Target->Min;
 	DataMax = Target->Max;
 
+	bInvert = TypedFilterFactory->Config.bInvert;
+	
 	Values.Reserve(Target->GetInValues()->Num());
 	Values.Append(*Target->GetInValues());
 
@@ -56,7 +58,7 @@ void PCGExPointFilter::FMeanFilter::PostInit()
 
 	double SumValue = 0;
 	for (int i = 0; i < NumPoints; i++) { SumValue += Values[i]; }
-
+	
 	if (TypedFilterFactory->Config.Measure == EPCGExMeanMeasure::Relative)
 	{
 		double RelativeMinEdgeLength = MAX_dbl;
@@ -105,7 +107,7 @@ void PCGExPointFilter::FMeanFilter::PostInit()
 
 bool PCGExPointFilter::FMeanFilter::Test(const int32 PointIndex) const
 {
-	return FMath::IsWithin(Values[PointIndex], ReferenceMin, ReferenceMax);
+	return FMath::IsWithin(Values[PointIndex], ReferenceMin, ReferenceMax) ? !bInvert : bInvert;
 }
 
 PCGEX_CREATE_FILTER_FACTORY(Mean)

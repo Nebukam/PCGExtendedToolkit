@@ -118,7 +118,7 @@ namespace PCGExPointFilter
 
 	bool FSplineInclusionFilter::Test(const PCGExData::FProxyPoint& Point) const
 	{
-		uint8 State = None;
+		ESplineCheckFlags State = None;
 
 		const FVector Pos = Point.Transform.GetLocation();
 
@@ -134,18 +134,18 @@ namespace PCGExPointFilter
 				if (D > ClosestDist) { continue; }
 				ClosestDist = D;
 
-				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
-				else { State &= ~On; }
+				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { EnumAddFlags(State, On); }
+				else { EnumRemoveFlags(State, On); }
 
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold)
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
 				{
-					State |= Inside;
-					State &= ~Outside;
+					EnumAddFlags(State, Inside);
+					EnumRemoveFlags(State, Outside);
 				}
 				else
 				{
-					State |= Outside;
-					State &= ~Inside;
+					EnumRemoveFlags(State, Inside);
+					EnumAddFlags(State, Outside);
 				}
 			}
 		}
@@ -155,21 +155,30 @@ namespace PCGExPointFilter
 			{
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
 				const FVector& TLoc = T.GetLocation();
-				if (const FVector S = T.GetScale3D(); FVector::DistSquared(T.GetLocation(), Pos) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold) { State |= Inside; }
-				else { State |= Outside; }
+				if (const FVector S = T.GetScale3D(); FVector::DistSquared(Pos, TLoc) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared)
+				{
+					EnumAddFlags(State, On);
+				}
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
+				{
+					EnumAddFlags(State, Inside);
+				}
+				else
+				{
+					EnumAddFlags(State, Outside);
+				}
 			}
 		}
 
 		bool bPass = (State & BadFlags) == 0;
-		if (GoodMatch != Skip) { if (bPass) { bPass = GoodMatch == Any ? (State & GoodFlags) != 0 : (State & GoodFlags) == GoodFlags; } }
+		if (GoodMatch != Skip) { if (bPass) { bPass = GoodMatch == Any ? EnumHasAnyFlags(State, GoodFlags) : EnumHasAllFlags(State, GoodFlags); } }
 
 		return TypedFilterFactory->Config.bInvert ? !bPass : bPass;
 	}
 
 	bool FSplineInclusionFilter::Test(const int32 PointIndex) const
 	{
-		uint8 State = None;
+		ESplineCheckFlags State = None;
 
 		const FVector Pos = InTransforms[PointIndex].GetLocation();
 
@@ -185,18 +194,18 @@ namespace PCGExPointFilter
 				if (D > ClosestDist) { continue; }
 				ClosestDist = D;
 
-				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
-				else { State &= ~On; }
+				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { EnumAddFlags(State, On); }
+				else { EnumRemoveFlags(State, On); }
 
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold)
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
 				{
-					State |= Inside;
-					State &= ~Outside;
+					EnumAddFlags(State, Inside);
+					EnumRemoveFlags(State, Outside);
 				}
 				else
 				{
-					State |= Outside;
-					State &= ~Inside;
+					EnumRemoveFlags(State, Inside);
+					EnumAddFlags(State, Outside);
 				}
 			}
 		}
@@ -206,14 +215,23 @@ namespace PCGExPointFilter
 			{
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
 				const FVector& TLoc = T.GetLocation();
-				if (const FVector S = T.GetScale3D(); FVector::DistSquared(T.GetLocation(), Pos) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { State |= On; }
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) > TypedFilterFactory->Config.CurvatureThreshold) { State |= Inside; }
-				else { State |= Outside; }
+				if (const FVector S = T.GetScale3D(); FVector::DistSquared(Pos, TLoc) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared)
+				{
+					EnumAddFlags(State, On);
+				}
+				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
+				{
+					EnumAddFlags(State, Inside);
+				}
+				else
+				{
+					EnumAddFlags(State, Outside);
+				}
 			}
 		}
 
 		bool bPass = (State & BadFlags) == 0;
-		if (GoodMatch != Skip) { if (bPass) { bPass = GoodMatch == Any ? (State & GoodFlags) != 0 : (State & GoodFlags) == GoodFlags; } }
+		if (GoodMatch != Skip) { if (bPass) { bPass = GoodMatch == Any ? EnumHasAnyFlags(State, GoodFlags) : EnumHasAllFlags(State, GoodFlags); } }
 
 		return TypedFilterFactory->Config.bInvert ? !bPass : bPass;
 	}
