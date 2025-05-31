@@ -1,3 +1,7 @@
+---
+icon: message-exclamation
+---
+
 # Changelogs
 
 This group contains changelog information, which used to be on Github releases notes.

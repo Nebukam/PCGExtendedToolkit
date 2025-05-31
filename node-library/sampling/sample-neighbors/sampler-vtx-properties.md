@@ -1,7 +1,7 @@
 ---
-description: 'In editor :: PCGEx | Sampler : Vtx Properties'
+description: 'In editor :: PCGEx | Sampler : Vtx Blend'
 icon: circle-dashed
 ---
 
-# Sampler : Vtx Properties
+# Sampler : Vtx Blend
 
