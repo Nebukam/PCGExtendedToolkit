@@ -130,6 +130,7 @@ namespace PCGExConvexHull2D
 		}
 
 		PointDataFacade->Source->InheritPoints(ConvexHullIndices, 0);
+		PathIO->InheritPoints(ConvexHullIndices, 0);
 
 		ActivePositions.Empty();
 

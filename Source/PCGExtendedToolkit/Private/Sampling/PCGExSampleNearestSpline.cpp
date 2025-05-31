@@ -261,7 +261,7 @@ namespace PCGExSampleNearestSpline
 
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Read(Index)) : Settings->RangeMax;
+		const double FailSafeDist = RangeMaxGetter ? RangeMaxGetter->Read(Index) : Settings->RangeMax;
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Transform, Index, InTransforms[Index])
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, InTransforms[Index])
@@ -315,6 +315,7 @@ namespace PCGExSampleNearestSpline
 			double RangeMax = BaseRangeMax;
 			double Depth = MAX_dbl;
 			double DepthSamples = Settings->DepthMode == EPCGExSplineDepthMode::Average ? 0 : 1;
+			double WeightedDistance = 0;
 
 			if (Settings->DepthMode == EPCGExSplineDepthMode::Max || Settings->DepthMode == EPCGExSplineDepthMode::Average) { Depth = 0; }
 
@@ -493,18 +494,19 @@ ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplin
 			double WeightedTime = 0;
 			double TotalWeight = 0;
 
-			auto ProcessTargetInfos = [&](const PCGExPolyLine::FSample& Sample, const double Weight)
+			auto ProcessTargetInfos = [&](const PCGExPolyLine::FSample& TargetInfos, const double Weight)
 			{
-				const FQuat Quat = Sample.Transform.GetRotation();
+				const FQuat Quat = TargetInfos.Transform.GetRotation();
 
-				WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, Sample.Transform, Weight);
+				WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetInfos.Transform, Weight);
 				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExBlend::WeightedAdd(WeightedUp, PCGExMath::GetDirection(Quat, Settings->LookAtUpAxis), Weight); }
 
 				WeightedSignAxis += PCGExMath::GetDirection(Quat, Settings->SignAxis) * Weight;
 				WeightedAngleAxis += PCGExMath::GetDirection(Quat, Settings->AngleAxis) * Weight;
-				WeightedTangent = PCGExBlend::WeightedAdd(WeightedTangent, Sample.Tangent, Weight);
-				WeightedTime += Sample.Time * Weight;
+				WeightedTangent = PCGExBlend::WeightedAdd(WeightedTangent, TargetInfos.Tangent, Weight);
+				WeightedTime += TargetInfos.Time * Weight;
 				TotalWeight += Weight;
+				WeightedDistance += TargetInfos.Distance;
 
 				NumSampled++;
 			};
@@ -538,11 +540,11 @@ ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplin
 				WeightedTransform = InTransforms[Index];
 			}
 
+			WeightedDistance /= NumSampled;
 			WeightedUp.Normalize();
 
 			const FVector CWDistance = Origin - WeightedTransform.GetLocation();
 			FVector LookAt = CWDistance.GetSafeNormal();
-			const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
 
 			FTransform LookAtTransform = PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign);
 			if (Context->ApplySampling.WantsApply())
