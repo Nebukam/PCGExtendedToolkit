@@ -122,8 +122,6 @@ namespace PCGEx
 				RecursivelyClearAsyncFlag_Unsafe(ObjectPtr);
 
 				if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(ObjectPtr)) { ManagedObject->Cleanup(); }
-
-				ObjectPtr->MarkAsGarbage();
 			}
 
 			ManagedObjects.Empty();
@@ -189,6 +187,9 @@ namespace PCGEx
 
 	void FManagedObjects::Destroy(UObject* InObject)
 	{
+		// ♫ Let it go ♫
+
+		/*
 		check(InObject)
 
 		if (IsFlushing()) { return; } // Will be destroyed anyway
@@ -199,7 +200,7 @@ namespace PCGEx
 		}
 
 		Remove(InObject);
-		InObject->MarkAsGarbage();
+		*/
 	}
 
 	void FManagedObjects::RecursivelyClearAsyncFlag_Unsafe(UObject* InObject) const

@@ -413,11 +413,7 @@ namespace PCGExPathSplineMesh
 			if (Settings->bForceDefaultDescriptor || Settings->CollectionSource == EPCGExCollectionSource::AttributeSet) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
 			else { Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent); }
 
-			if (!Segment.ApplyMesh(SplineMeshComponent))
-			{
-				SplineMeshComponent->MarkAsGarbage();
-				continue;
-			}
+			if (!Segment.ApplyMesh(SplineMeshComponent)){ continue; }
 
 			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
 			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }

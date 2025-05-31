@@ -53,15 +53,6 @@ namespace PCGExDataBlending
 
 		explicit FPropertiesBlender(const FPCGExPropertiesBlendingDetails& InDetails);
 
-		FPropertiesBlender(const FPropertiesBlender& Other):
-#define PCGEX_BLEND_COPY(_TYPE, _NAME, ...) bReset##_NAME(Other.bReset##_NAME), _NAME##Blending(Other._NAME##Blending),
-			PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_COPY)
-#undef PCGEX_BLEND_COPY
-			DefaultBlending(Other.DefaultBlending),
-			bRequiresPrepare(Other.bRequiresPrepare)
-		{
-		}
-
 		void Init(const FPCGExPropertiesBlendingDetails& InDetails);
 
 		void PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const;
