@@ -18,7 +18,7 @@ There are many tool available to create these connections, combine them, refine 
 
 There's a handful of nodes to create graph from scratch, depending on what your initial data looks like, as well as what you want to achieve. Different ways to build clusters are covered in the [Hello Cluster](hello-cluster/) section. You can also create [branching structures](branching-structures.md) from paths — and the best thing, **you can combine and merge cluster together to create more complex, interconnected clusters**.
 
-<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (6).png" alt=""><figcaption></figcaption></figure>
 
 {% hint style="info" %}
 You can even turn static mesh topology into clusters!

@@ -335,3 +335,5 @@
 
 * [FAQ](infos/faq.md)
 * [About](infos/about.md)
+* [Changelogs](infos/changelogs/README.md)
+  * [5.x -> 5.6 Important Changes](infos/changelogs/5.x-greater-than-5.6-important-changes.md)
