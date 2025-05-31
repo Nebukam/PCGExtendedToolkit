@@ -138,8 +138,8 @@ namespace PCGExPathCrossings
 		bCanCut = PCGEx::IsValidStringTag(Context->CanCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanCutTag, Settings->bInvertCanCutTag) : true;
 
 		PCGExMT::FScope EdgesScope = Path->GetEdgeScope();
-		if (CanCutFilterManager) { CanCutFilterManager->Test(EdgesScope, CanCut); }
-		if (CanBeCutFilterManager) { CanBeCutFilterManager->Test(EdgesScope, CanBeCut); }
+		if (CanCutFilterManager) { if (CanCutFilterManager->Test(EdgesScope, CanCut)) { bCanCut = false; } }
+		if (CanBeCutFilterManager) { if (CanBeCutFilterManager->Test(EdgesScope, CanBeCut) == 0) { bCanBeCut = false; } }
 		Path->ComputeAllEdgeExtra();
 
 		CanCutFilterManager.Reset();
@@ -148,6 +148,12 @@ namespace PCGExPathCrossings
 		CanCut.Empty();
 
 		return true;
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		if (!bCanBeCut) { return; }
+		StartParallelLoopForRange(Path->NumEdges);
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
@@ -189,7 +195,7 @@ namespace PCGExPathCrossings
 
 				// TODO : Collocation is ignored here
 				// Need to account for cases where a foreign point lies exactly on the segment
-				
+
 				if (A == A1 || A == B1 || B == A2 || B == B2) { return; }
 
 				if (FVector::DistSquared(A, B) >= Details.ToleranceSquared) { return; }
@@ -290,7 +296,7 @@ namespace PCGExPathCrossings
 
 		if (!Path->IsClosedLoop())
 		{
-			WriteIndices.Add(Path->LastIndex);
+			WriteIndices.Add(Index);
 			OutMetadataEntries[Index] = InMetadataEntries[Path->LastIndex];
 			Metadata->InitializeOnSet(OutMetadataEntries[Index]);
 		}
@@ -436,12 +442,6 @@ namespace PCGExPathCrossings
 				UnionBlender->MergeSingle(Edge.AltStart + i + 1, TempUnion, WeightedPoints);
 			}
 		}
-	}
-
-	void FProcessor::CompleteWork()
-	{
-		if (!bCanBeCut) { return; }
-		StartParallelLoopForRange(Path->NumEdges);
 	}
 
 	void FProcessor::Write()

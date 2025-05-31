@@ -158,14 +158,15 @@ namespace PCGExPointsMT
 		return PrimaryFilters->Init(ExecutionContext, *InFilterFactories);
 	}
 
-	void FPointsProcessor::FilterScope(const PCGExMT::FScope& Scope)
+	int32 FPointsProcessor::FilterScope(const PCGExMT::FScope& Scope)
 	{
-		if (PrimaryFilters) { PrimaryFilters->Test(Scope, PointFilterCache); }
+		if (PrimaryFilters) { return PrimaryFilters->Test(Scope, PointFilterCache); }
+		else{ return DefaultPointFilterValue ? Scope.Count : 0; }
 	}
 
-	void FPointsProcessor::FilterAll()
+	int32 FPointsProcessor::FilterAll()
 	{
-		FilterScope(PCGExMT::FScope(0, PointDataFacade->GetNum()));
+		return FilterScope(PCGExMT::FScope(0, PointDataFacade->GetNum()));
 	}
 
 	IPointsProcessorBatch::IPointsProcessorBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)

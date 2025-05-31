@@ -158,8 +158,8 @@ namespace PCGExPointsMT
 
 	protected:
 		virtual bool InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories);
-		virtual void FilterScope(const PCGExMT::FScope& Scope);
-		virtual void FilterAll();
+		virtual int32 FilterScope(const PCGExMT::FScope& Scope);
+		virtual int32 FilterAll();
 	};
 
 	template <typename TContext, typename TSettings>

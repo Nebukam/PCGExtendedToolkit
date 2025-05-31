@@ -35,7 +35,7 @@ namespace PCGExPointFilter
 
 	bool FFilter::Test(const int32 Index) const
 	PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const int32 Index), false)
-	
+
 	bool FFilter::Test(const PCGExData::FProxyPoint& Point) const
 	PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const PCGExData::FProxyPoint& Point), false)
 
@@ -46,7 +46,7 @@ namespace PCGExPointFilter
 
 	bool FSimpleFilter::Test(const int32 Index) const
 	PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::Test(const PCGExCluster::FNode& Node), false)
-	
+
 	bool FSimpleFilter::Test(const PCGExData::FProxyPoint& Point) const
 	PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::TestRoamingPoint(const PCGExCluster::PCGExData::FProxyPoint& Point), false)
 
@@ -124,9 +124,10 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	void FManager::Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults)
+	int32 FManager::Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults)
 	{
 		bool bResult = true;
+		int32 NumPass = 0;
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			bResult = true;
@@ -139,12 +140,16 @@ namespace PCGExPointFilter
 				}
 			}
 			OutResults[Index] = bResult;
+			NumPass += bResult;
 		}
+
+		return NumPass;
 	}
 
-	void FManager::Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults)
+	int32 FManager::Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults)
 	{
 		bool bResult = true;
+		int32 NumPass = 0;
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			bResult = true;
@@ -157,14 +162,20 @@ namespace PCGExPointFilter
 				}
 			}
 			OutResults[Index] = bResult;
+			NumPass += bResult;
 		}
+
+		return NumPass;
 	}
 
-	void FManager::Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults)
+	int32 FManager::Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults)
 	{
 		check(Items.Num() == OutResults.Num());
+
 		bool bResult = true;
-		for(int i = 0; i < Items.Num(); i++)
+		int32 NumPass = 0;
+
+		for (int i = 0; i < Items.Num(); i++)
 		{
 			bResult = true;
 			const PCGExCluster::FNode& Node = Items[i];
@@ -177,14 +188,19 @@ namespace PCGExPointFilter
 				}
 			}
 			OutResults[i] = bResult;
+			NumPass += bResult;
 		}
+
+		return NumPass;
 	}
 
-	void FManager::Test(const TArrayView<PCGExCluster::FEdge> Items, const TArrayView<int8> OutResults)
+	int32 FManager::Test(const TArrayView<PCGExCluster::FEdge> Items, const TArrayView<int8> OutResults)
 	{
 		check(Items.Num() == OutResults.Num());
 		bool bResult = true;
-		for(int i = 0; i < Items.Num(); i++)
+		int32 NumPass = 0;
+
+		for (int i = 0; i < Items.Num(); i++)
 		{
 			bResult = true;
 			const PCGExCluster::FEdge& Edge = Items[i];
@@ -197,7 +213,10 @@ namespace PCGExPointFilter
 				}
 			}
 			OutResults[i] = bResult;
+			NumPass += bResult;
 		}
+
+		return NumPass;
 	}
 
 	bool FManager::InitFilter(FPCGExContext* InContext, const TSharedPtr<FFilter>& Filter)
