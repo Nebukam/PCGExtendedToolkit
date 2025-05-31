@@ -21,7 +21,7 @@ PCGEX_INITIALIZE_ELEMENT(BevelPath)
 
 void UPCGExBevelPathSettings::InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const
 {
-	if (bFlagEndpoints) { InPointIO->FindOrCreateAttribute(EndpointsFlagName, false); }
+	if (bFlagPoles) { InPointIO->FindOrCreateAttribute(PoleFlagName, false); }
 	if (bFlagStartPoint) { InPointIO->FindOrCreateAttribute(StartPointFlagName, false); }
 	if (bFlagEndPoint) { InPointIO->FindOrCreateAttribute(EndPointFlagName, false); }
 	if (bFlagSubdivision) { InPointIO->FindOrCreateAttribute(SubdivisionFlagName, false); }
@@ -33,7 +33,7 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BevelPath)
 
-	if (Settings->bFlagEndpoints) { PCGEX_VALIDATE_NAME(Settings->EndpointsFlagName) }
+	if (Settings->bFlagPoles) { PCGEX_VALIDATE_NAME(Settings->PoleFlagName) }
 	if (Settings->bFlagStartPoint) { PCGEX_VALIDATE_NAME(Settings->StartPointFlagName) }
 	if (Settings->bFlagEndPoint) { PCGEX_VALIDATE_NAME(Settings->EndPointFlagName) }
 	if (Settings->bFlagSubdivision) { PCGEX_VALIDATE_NAME(Settings->SubdivisionFlagName) }
@@ -97,7 +97,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>& NewBatch)
 			{
-				NewBatch->bRequiresWriteStep = (Settings->bFlagEndpoints || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
+				NewBatch->bRequiresWriteStep = (Settings->bFlagPoles || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to Bevel."));
@@ -537,9 +537,9 @@ namespace PCGExBevelPath
 
 	void FProcessor::Write()
 	{
-		if (Settings->bFlagEndpoints)
+		if (Settings->bFlagPoles)
 		{
-			EndpointsWriter = PointDataFacade->GetWritable<bool>(Settings->EndpointsFlagName, false, true, PCGExData::EBufferInit::New);
+			EndpointsWriter = PointDataFacade->GetWritable<bool>(Settings->PoleFlagName, false, true, PCGExData::EBufferInit::New);
 		}
 
 		if (Settings->bFlagStartPoint)

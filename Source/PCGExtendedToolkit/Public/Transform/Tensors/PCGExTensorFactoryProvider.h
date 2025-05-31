@@ -71,7 +71,7 @@ protected:
 
 public:
 	/** Tensor Priority, only accounted for by if sampler is in any Ordered- mode.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1), AdvancedDisplay)
 	int32 Priority = 0;
 
 	virtual FName GetMainOutputPin() const override { return PCGExTensor::OutputTensorLabel; }

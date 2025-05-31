@@ -49,7 +49,7 @@ public:
 
 	/** Search mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	EPCGExClusterDataSearchMode SearchMode = EPCGExClusterDataSearchMode::VtxFromEdges;
+	EPCGExClusterDataSearchMode SearchMode = EPCGExClusterDataSearchMode::All;
 
 	/** Warning about inputs mismatch and triage */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))

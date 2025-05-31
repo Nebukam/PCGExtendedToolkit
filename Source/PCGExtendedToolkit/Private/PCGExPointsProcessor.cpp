@@ -129,7 +129,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 				PCGExMT::FDeferredCallbackTask,
 				[WeakHandle = GetOrCreateHandle()]()
 				{
-					PCGEX_SHARED_TCONTEXT_VOID(MergePointsContext, WeakHandle)
+					PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
 					SharedContext.Get()->MainBatch->CompleteWork();
 				});
 			return false;
@@ -149,7 +149,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 				PCGExMT::FDeferredCallbackTask,
 				[WeakHandle = GetOrCreateHandle()]()
 				{
-					PCGEX_SHARED_TCONTEXT_VOID(MergePointsContext, WeakHandle)
+					PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
 					SharedContext.Get()->MainBatch->Write();
 				});
 			return false;

@@ -305,6 +305,11 @@ namespace PCGExData
 	{
 	}
 
+	TSharedPtr<FFacade> FFacadePreloader::GetDataFacade() const
+	{
+		return InternalDataFacadePtr.Pin();
+	}
+
 	bool FFacadePreloader::Validate(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade) const
 	{
 		if (BufferConfigs.IsEmpty()) { return true; }
@@ -324,7 +329,7 @@ namespace PCGExData
 
 	void FFacadePreloader::TryRegister(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector)
 	{
-		TSharedPtr<FFacade> SourceFacade = InternalDataFacadePtr.Pin();
+		TSharedPtr<FFacade> SourceFacade = GetDataFacade();
 		if (!SourceFacade) { return; }
 
 		PCGEx::FAttributeIdentity Identity;
@@ -348,7 +353,7 @@ namespace PCGExData
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 		const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle)
 	{
-		TSharedPtr<FFacade> SourceFacade = InternalDataFacadePtr.Pin();
+		TSharedPtr<FFacade> SourceFacade = GetDataFacade();
 		if (!SourceFacade) { return; }
 
 		if (!IsEmpty())
@@ -376,7 +381,7 @@ namespace PCGExData
 					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_THIS
-						if (const TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
+						if (const TSharedPtr<FFacade> InternalFacade = This->GetDataFacade())
 						{
 							This->Fetch(InternalFacade.ToSharedRef(), Scope);
 						}
@@ -390,7 +395,7 @@ namespace PCGExData
 					[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_THIS
-						if (const TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
+						if (const TSharedPtr<FFacade> InternalFacade = This->GetDataFacade())
 						{
 							This->Read(InternalFacade.ToSharedRef(), Index);
 						}
@@ -407,7 +412,7 @@ namespace PCGExData
 
 	void FFacadePreloader::OnLoadingEnd() const
 	{
-		if (TSharedPtr<FFacade> InternalFacade = InternalDataFacadePtr.Pin()) { InternalFacade->MarkCurrentBuffersReadAsComplete(); }
+		if (TSharedPtr<FFacade> InternalFacade = GetDataFacade()) { InternalFacade->MarkCurrentBuffersReadAsComplete(); }
 		if (OnCompleteCallback) { OnCompleteCallback(); }
 	}
 }

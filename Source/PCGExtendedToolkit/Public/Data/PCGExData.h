@@ -840,6 +840,8 @@ namespace PCGExData
 
 		FFacadePreloader(const TSharedPtr<FFacade>& InDataFacade);
 
+		TSharedPtr<FFacade> GetDataFacade() const;
+
 		bool IsEmpty() const { return BufferConfigs.IsEmpty(); }
 		int32 Num() const { return BufferConfigs.Num(); }
 

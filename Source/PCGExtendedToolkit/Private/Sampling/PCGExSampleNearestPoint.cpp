@@ -258,6 +258,8 @@ namespace PCGExSampleNearestPoints
 			BlendOpsManager->SetSourceA(Context->TargetsFacade); // We want operands A & B to be the vtx here
 
 			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
+
+			DataBlender = BlendOpsManager;
 		}
 		else if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
 		{
@@ -276,7 +278,11 @@ namespace PCGExSampleNearestPoints
 				Context->CancelExecution(FString("Error initializing blending"));
 				return false;
 			}
+
+			DataBlender = MetadataBlender;
 		}
+
+		if (!DataBlender) { DataBlender = MakeShared<PCGExDataBlending::FDummyBlender>(); }
 
 		if (Settings->bWriteLookAtTransform)
 		{
@@ -319,11 +325,7 @@ namespace PCGExSampleNearestPoints
 		bool bLocalAnySuccess = false;
 
 		TArray<PCGEx::FOpStats> BlendTrackers;
-		TSharedPtr<PCGExDataBlending::IBlender> BlenderInstance = nullptr;
-		if(BlendOpsManager){BlenderInstance = BlendOpsManager;}
-		else if(MetadataBlender){BlenderInstance = MetadataBlender;}
-
-		if (BlenderInstance) { BlenderInstance->InitTrackers(BlendTrackers); }
+		DataBlender->InitTrackers(BlendTrackers);
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 
@@ -460,20 +462,20 @@ namespace PCGExSampleNearestPoints
 				const double Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
 				ProcessTargetInfos(TargetInfos, Weight);
 
-				if (BlenderInstance) { BlenderInstance->Blend(TargetInfos.Index, Index, Weight); }
+				DataBlender->Blend(TargetInfos.Index, Index, Weight);
 			}
 			else
 			{
-				if (BlenderInstance) { BlenderInstance->BeginMultiBlend(Index, BlendTrackers); }
+				DataBlender->BeginMultiBlend(Index, BlendTrackers);
 
 				for (PCGExNearestPoint::FSample& TargetInfos : Samples)
 				{
 					const double Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
 					if (Weight == 0) { continue; }
-					ProcessTargetInfos(TargetInfos, Weight, BlenderInstance);
+					ProcessTargetInfos(TargetInfos, Weight, DataBlender);
 				}
 
-				if (BlenderInstance) { BlenderInstance->EndMultiBlend(Index, BlendTrackers); }
+				DataBlender->EndMultiBlend(Index, BlendTrackers);
 			}
 
 
@@ -551,7 +553,13 @@ namespace PCGExSampleNearestPoints
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Source->Gather(SamplingMask);
+		(void)PointDataFacade->Source->Gather(SamplingMask);
+	}
+
+	void FProcessor::Cleanup()
+	{
+		TPointsProcessor<FPCGExSampleNearestPointContext, UPCGExSampleNearestPointSettings>::Cleanup();
+		BlendOpsManager.Reset();
 	}
 }
 

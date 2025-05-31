@@ -221,9 +221,9 @@ void FPCGExBlendingDetails::GetBlendingParams(
 	for (int i = 0; i < Identities.Num(); i++)
 	{
 		const PCGEx::FAttributeIdentity& Identity = Identities[i];
-		
+
 		if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Name)) { continue; }
-		
+
 		PCGExDataBlending::FBlendingParam Param{};
 		Param.bIsNewAttribute = MissingAttribute.Contains(i);
 
@@ -243,8 +243,21 @@ void FPCGExBlendingDetails::GetBlendingParams(
 
 		Param.Selector.Update(Identity.Name.ToString());
 		OutParams.Add(Param);
-		
 	}
+}
+
+void FPCGExBlendingDetails::RegisterBuffersDependencies(
+	FPCGExContext* InContext,
+	PCGExData::FFacadePreloader& FacadePreloader, const
+	TSet<FName>* IgnoredAttributes) const
+{
+	TSharedPtr<PCGExData::FFacade> InDataFacade = FacadePreloader.GetDataFacade();
+	if (!InDataFacade) { return; }
+	
+	const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InDataFacade->GetIn()->Metadata, IgnoredAttributes);
+	Filter(Infos->Identities);
+	
+	for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities) { FacadePreloader.Register(InContext, Identity); }
 }
 
 namespace PCGExDataBlending

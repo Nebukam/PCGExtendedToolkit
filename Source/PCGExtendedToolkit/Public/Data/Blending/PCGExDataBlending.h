@@ -328,6 +328,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 		TArray<PCGExDataBlending::FBlendingParam>& OutParams,
 		const bool bSkipProperties = false,
 		const TSet<FName>* IgnoreAttributeSet = nullptr) const;
+
+	void RegisterBuffersDependencies(
+		FPCGExContext* InContext,
+		PCGExData::FFacadePreloader& FacadePreloader,
+		const TSet<FName>* IgnoredAttributes = nullptr) const;
 };
 
 namespace PCGExDataBlending

@@ -22,6 +22,7 @@ TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::OutputPinProperties() co
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
+	PCGEX_PIN_POINTS( FName("BaseMeshData"), "Vtx & edges that have been copied to point. Contains one graph per unique mesh asset.", Advanced, {})
 	return PinProperties;
 }
 
@@ -65,6 +66,9 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 
 	Context->EdgeChildCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->EdgeChildCollection->OutputPin = PCGExGraph::OutputEdgesLabel;
+
+	Context->BaseMeshDataCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->BaseMeshDataCollection->OutputPin = FName("BaseMeshData");
 
 	return true;
 }
@@ -207,6 +211,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	{
 		Context->VtxChildCollection->StageOutputs();
 		Context->EdgeChildCollection->StageOutputs();
+		Context->BaseMeshDataCollection->StageOutputs();
 
 		Context->Done();
 	}
@@ -252,6 +257,18 @@ namespace PCGExMeshToCluster
 		PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, RootVtxFacade.ToSharedRef(), &Context->GraphBuilderDetails)
 
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
+
+		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
+		GraphBuilder->OnCompilationEndCallback =
+			[WeakHandle](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
+			{
+				if (!bSuccess) { return; }
+				PCGEX_SHARED_TCONTEXT_VOID(MeshToClusters, WeakHandle)
+
+				SharedContext.Get()->BaseMeshDataCollection->Add(InBuilder->NodeDataFacade->Source);
+				SharedContext.Get()->BaseMeshDataCollection->Add(InBuilder->EdgesIO->Pairs);
+			};
+
 		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
 		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true);
 	}

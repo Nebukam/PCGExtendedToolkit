@@ -103,6 +103,6 @@ public:
 #endif
 
 	/** Priority for transmutation order. Higher values are processed last. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1), AdvancedDisplay)
 	int32 Priority = 0;
 };

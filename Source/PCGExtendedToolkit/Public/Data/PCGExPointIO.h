@@ -601,9 +601,14 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGBasePointData* In, const EIOInit InitOut = EIOInit::NoInit, const TSet<FString>* Tags = nullptr);
 		TSharedPtr<FPointIO> Emplace_GetRef(EIOInit InitOut = EIOInit::New);
 		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EIOInit InitOut = EIOInit::NoInit);
+
 		TSharedPtr<FPointIO> Insert_Unsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO);
+
 		TSharedPtr<FPointIO> Add_Unsafe(const TSharedPtr<FPointIO>& PointIO);
+		TSharedPtr<FPointIO> Add(const TSharedPtr<FPointIO>& PointIO);
+		
 		void Add_Unsafe(const TArray<TSharedPtr<FPointIO>>& IOs);
+		void Add(const TArray<TSharedPtr<FPointIO>>& IOs);
 
 
 		template <typename T>

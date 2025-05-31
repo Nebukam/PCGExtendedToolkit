@@ -15,7 +15,16 @@ PCGExData::EIOInit UPCGExWriteEdgePropertiesSettings::GetEdgeOutputInitMode() co
 TArray<FPCGPinProperties> UPCGExWriteEdgePropertiesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (bEndpointsBlending) { PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {}) }
+
+	if (bEndpointsBlending && BlendingInterface == EPCGExBlendingInterface::Individual)
+	{
+		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
+	}
+	else
+	{
+		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations. These are currently ignored, but will preserve pin connections", Advanced, {})
+	}
+
 	if (bWriteHeuristics) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics that will be computed and written.", Required, {}) }
 	return PinProperties;
 }
@@ -30,7 +39,7 @@ bool FPCGExWriteEdgePropertiesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	if (Settings->bEndpointsBlending)
+	if (Settings->bEndpointsBlending && Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
 		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
@@ -122,13 +131,38 @@ namespace PCGExWriteEdgeProperties
 			if (!SolidificationLerp->Init(Context, EdgeDataFacade, false)) { return false; }
 		}
 
-		if (!Context->BlendingFactories.IsEmpty())
+		if (Settings->bEndpointsBlending)
 		{
-			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(EdgeDataFacade);
-			BlendOpsManager->SetSources(VtxDataFacade); // We want operands A & B to be the vtx here
+			if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
+			{
+				if (!Context->BlendingFactories.IsEmpty())
+				{
+					BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(EdgeDataFacade);
+					BlendOpsManager->SetSources(VtxDataFacade); // We want operands A & B to be the vtx here
 
-			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
+					if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
+				}
+
+				DataBlender = BlendOpsManager;
+			}
+			else
+			{
+				MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+				MetadataBlender->SetTargetData(EdgeDataFacade);
+				MetadataBlender->SetSourceData(VtxDataFacade);
+
+				if (!MetadataBlender->Init(Context, Settings->BlendingSettings))
+				{
+					// Fail
+					Context->CancelExecution(FString("Error initializing blending"));
+					return false;
+				}
+
+				DataBlender = MetadataBlender;
+			}
 		}
+
+		if (!DataBlender) { DataBlender = MakeShared<PCGExDataBlending::FDummyBlender>(); }
 
 		StartWeight = FMath::Clamp(Settings->EndpointsWeights, 0, 1);
 		EndWeight = 1 - StartWeight;
@@ -238,17 +272,17 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 				BoundsMin[EdgeIndex] = TargetBoundsMin;
 				BoundsMax[EdgeIndex] = TargetBoundsMax;
 
-				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex, BlendWeightEnd); }
+				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, BlendWeightEnd);
 			}
 			else if (Settings->bWriteEdgePosition)
 			{
 				Transforms[EdgeIndex].SetLocation(FMath::Lerp(B, A, Settings->EdgePositionLerp));
 
-				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp); }
+				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp);
 			}
 			else
 			{
-				if (BlendOpsManager) { BlendOpsManager->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp); }
+				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp);
 			}
 		}
 	}
@@ -271,6 +305,7 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
+		Settings->BlendingSettings.RegisterBuffersDependencies(Context, FacadePreloader);
 		PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, FacadePreloader, Context->BlendingFactories);
 		DirectionSettings.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 	}

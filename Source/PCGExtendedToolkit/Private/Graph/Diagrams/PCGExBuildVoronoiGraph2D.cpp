@@ -379,7 +379,7 @@ namespace PCGExBuildVoronoi2D
 
 				for (int32 i = 0; i < Iterations; i++) { if (IsVtxValid[i]) { Mask[i] = 1; } }
 
-				SiteDataFacade->Source->Gather(Mask);
+				(void)SiteDataFacade->Source->Gather(Mask);
 			}
 		}
 

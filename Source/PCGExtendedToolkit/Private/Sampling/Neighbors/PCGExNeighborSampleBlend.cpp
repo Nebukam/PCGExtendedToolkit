@@ -60,7 +60,7 @@ void FPCGExNeighborSampleBlend::CompleteOperation()
 }
 
 #if WITH_EDITOR
-FString UPCGExNeighborSampleBlendSettings::GetDisplayName() const { return TEXT("DEPRECATED"); }
+FString UPCGExNeighborSampleBlendSettings::GetDisplayName() const { return TEXT("TBD"); }
 #endif
 
 TSharedPtr<FPCGExNeighborSampleOperation> UPCGExNeighborSamplerFactoryBlend::CreateOperation(FPCGExContext* InContext) const

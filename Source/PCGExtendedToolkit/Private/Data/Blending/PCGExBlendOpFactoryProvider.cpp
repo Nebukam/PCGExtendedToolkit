@@ -350,7 +350,7 @@ FString UPCGExBlendOpFactoryProviderSettings::GetDisplayName() const
 			Str += FString::Printf(TEXT(" ⇢ %s"), *PCGEx::GetSelectorDisplayName(Config.OutputTo));
 			break;
 		}
-		return FString::Printf(TEXT("Blend Op : %s"), *EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(Config.BlendMode)).ToString());
+		return Str;
 	}
 
 	return TEXT("PCGEx | Blend Op");

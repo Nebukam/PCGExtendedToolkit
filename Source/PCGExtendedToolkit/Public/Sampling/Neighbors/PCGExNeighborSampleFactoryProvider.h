@@ -162,9 +162,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleProviderSettings : public UPCGE
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NeighborSamplerAttribute, "Sampler : Abstract", "Abstract sampler settings.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	//PCGEX_NODE_INFOS_CUSTOM_SUBTITLE( NeighborSamplerAttribute, "Sampler : Abstract", "Abstract sampler settings.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSamplerNeighbor; }
 #endif
 
@@ -186,7 +184,7 @@ public:
 	//~End UPCGExFactoryProviderSettings
 
 	/** Priority for sampling order. Higher values are processed last. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1), AdvancedDisplay)
 	int32 Priority = 0;
 
 	/** Priority for sampling order. Higher values are processed last. */

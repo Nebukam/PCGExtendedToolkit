@@ -12,9 +12,6 @@
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExNeighborSampleFactoryProvider.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-
-
 #include "PCGExNeighborSampleFilters.generated.h"
 
 ///

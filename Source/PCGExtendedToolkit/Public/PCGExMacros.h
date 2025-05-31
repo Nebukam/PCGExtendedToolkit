@@ -19,15 +19,15 @@
 #pragma region PCGEX MACROS
 
 #define PCGEX_SHARED_TCONTEXT_VOID(_TYPE, _HANDLE) \
-FPCGContext::FSharedContext<FPCGEx##_TYPE> SharedContext(_HANDLE); \
+FPCGContext::FSharedContext<FPCGEx##_TYPE##Context> SharedContext(_HANDLE); \
 if(!SharedContext.Get()){ return; }
 
 #define PCGEX_SHARED_TCONTEXT(_TYPE, _HANDLE) \
-FPCGContext::FSharedContext<FPCGEx##_TYPE> SharedContext(_HANDLE); \
+FPCGContext::FSharedContext<FPCGEx##_TYPE##Context> SharedContext(_HANDLE); \
 if(!SharedContext.Get()){ return false; }
 
-#define PCGEX_SHARED_CONTEXT_VOID(_HANDLE) PCGEX_SHARED_TCONTEXT_VOID(Context, _HANDLE)
-#define PCGEX_SHARED_CONTEXT(_HANDLE) PCGEX_SHARED_TCONTEXT(Context, _HANDLE)
+#define PCGEX_SHARED_CONTEXT_VOID(_HANDLE) PCGEX_SHARED_TCONTEXT_VOID(, _HANDLE)
+#define PCGEX_SHARED_CONTEXT(_HANDLE) PCGEX_SHARED_TCONTEXT(, _HANDLE)
 
 #define PCGEX_SHARED_CONTEXT_RET(_HANDLE, _RET) \
 FPCGContext::FSharedContext<FPCGExContext> SharedContext(_HANDLE); \

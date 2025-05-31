@@ -145,11 +145,11 @@ public:
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bFlagEndpoints = false;
+	bool bFlagPoles = false;
 
 	/** Name of the boolean flag to write whether the point is a Bevel endpoint or not (Either start or end) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, EditCondition="bFlagEndpoints"))
-	FName EndpointsFlagName = "IsBevelEndpoint";
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, EditCondition="bFlagPoles"))
+	FName PoleFlagName = "IsBevelPole";
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))

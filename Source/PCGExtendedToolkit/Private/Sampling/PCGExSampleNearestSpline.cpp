@@ -194,8 +194,8 @@ namespace PCGExSampleNearestSpline
 		}
 
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
-		
-		
+
+
 		DistanceDetails = Context->DistanceDetails;
 		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
 
@@ -217,28 +217,22 @@ namespace PCGExSampleNearestSpline
 			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_INIT)
 		}
 
-		if (Settings->bUseLocalRangeMin)
-		{
-			RangeMinGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalRangeMin);
-			if (!RangeMinGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("RangeMin metadata missing")); }
-		}
+		RangeMinGetter = Settings->GetValueSettingRangeMin();
+		if (!RangeMinGetter->Init(Context, PointDataFacade)) { return false; }
 
-		if (Settings->bUseLocalRangeMax)
+		RangeMaxGetter = Settings->GetValueSettingRangeMax();
+		if (!RangeMaxGetter->Init(Context, PointDataFacade)) { return false; }
+
+		if (Settings->bSampleSpecificAlpha)
 		{
-			RangeMaxGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalRangeMax);
-			if (!RangeMaxGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("RangeMax metadata missing")); }
+			SampleAlphaGetter = Settings->GetValueSettingSampleAlpha();
+			if (!SampleAlphaGetter->Init(Context, PointDataFacade)) { return false; }
 		}
 
 		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection == EPCGExSampleSource::Source)
 		{
 			LookAtUpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LookAtUpSource);
 			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("LookAtUp is invalid.")); }
-		}
-
-		if (Settings->bSampleSpecificAlpha && Settings->SampleAlphaInput == EPCGExInputValueType::Attribute)
-		{
-			SampleAlphaGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SampleAlphaAttribute);
-			if (!SampleAlphaGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Sample Alpha is invalid.")); }
 		}
 
 		bSingleSample = Settings->SampleMethod != EPCGExSampleMethod::WithinRange;
@@ -261,7 +255,7 @@ namespace PCGExSampleNearestSpline
 
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		const double FailSafeDist = RangeMaxGetter ? RangeMaxGetter->Read(Index) : Settings->RangeMax;
+		const double FailSafeDist = RangeMaxGetter->Read(Index);
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Transform, Index, InTransforms[Index])
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, InTransforms[Index])
@@ -281,7 +275,7 @@ namespace PCGExSampleNearestSpline
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleNearestSpline::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
@@ -291,7 +285,7 @@ namespace PCGExSampleNearestSpline
 
 		TArray<PCGExPolyLine::FSample> Samples;
 		Samples.Reserve(Context->NumTargets);
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index])
@@ -306,8 +300,8 @@ namespace PCGExSampleNearestSpline
 
 			bool bClosed = false;
 
-			double BaseRangeMin = RangeMinGetter ? RangeMinGetter->Read(Index) : Settings->RangeMin;
-			double BaseRangeMax = RangeMaxGetter ? RangeMaxGetter->Read(Index) : Settings->RangeMax;
+			double BaseRangeMin = RangeMinGetter->Read(Index);
+			double BaseRangeMax = RangeMaxGetter->Read(Index);
 
 			if (BaseRangeMin > BaseRangeMax) { std::swap(BaseRangeMin, BaseRangeMax); }
 
@@ -320,7 +314,7 @@ namespace PCGExSampleNearestSpline
 			if (Settings->DepthMode == EPCGExSplineDepthMode::Max || Settings->DepthMode == EPCGExSplineDepthMode::Average) { Depth = 0; }
 
 			Samples.Reset();
-			
+
 			PCGExPolyLine::FSamplesStats Stats;
 
 			FVector Origin = InTransforms[Index].GetLocation();
@@ -446,7 +440,7 @@ if (Settings->bWrapClosedLoopAlpha && Line.bClosedLoop) { Time = PCGExMath::Tile
 ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges), Time, SMax, Line);}
 
 				// At specific alpha
-				double InputKey = SampleAlphaGetter ? SampleAlphaGetter->Read(Index) : Settings->SampleAlphaConstant;
+				double InputKey = SampleAlphaGetter->Read(Index);
 				switch (Settings->SampleAlphaMode)
 				{
 				default:
@@ -612,7 +606,7 @@ ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplin
 
 	void FProcessor::Write()
 	{
-		if (Settings->bPruneFailedSamples) { PointDataFacade->Source->Gather(SamplingMask); }
+		if (Settings->bPruneFailedSamples) { (void)PointDataFacade->Source->Gather(SamplingMask); }
 	}
 }
 

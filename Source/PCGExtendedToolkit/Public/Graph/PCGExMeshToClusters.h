@@ -100,6 +100,7 @@ struct FPCGExMeshToClustersContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FPointIOCollection> RootVtx;
 	TSharedPtr<PCGExData::FPointIOCollection> VtxChildCollection;
 	TSharedPtr<PCGExData::FPointIOCollection> EdgeChildCollection;
+	TSharedPtr<PCGExData::FPointIOCollection> BaseMeshDataCollection;
 
 	TArray<TSharedPtr<PCGExGraph::FGraphBuilder>> GraphBuilders;
 };

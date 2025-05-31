@@ -440,7 +440,7 @@ namespace PCGExPackActorDatas
 
 	void FProcessor::Write()
 	{
-		if (Settings->bOmitUnresolvedEntries) { PointDataFacade->Source->Gather(PointMask); }
+		if (Settings->bOmitUnresolvedEntries) { (void)PointDataFacade->Source->Gather(PointMask); }
 
 		/*
 		UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();

@@ -357,6 +357,8 @@ namespace PCGExSampleNearestBounds
 
 		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExDataBlending::IBlender> DataBlender;
+		
 		FPCGExBlendingDetails BlendingDetails;
 
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
@@ -385,5 +387,7 @@ namespace PCGExSampleNearestBounds
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;
+
+		virtual void Cleanup() override;
 	};
 }

@@ -889,6 +889,12 @@ namespace PCGExData
 		PointIO->SetInfos(Pairs.Add(PointIO), OutputPin);
 		return PointIO;
 	}
+	
+	TSharedPtr<FPointIO> FPointIOCollection::Add(const TSharedPtr<FPointIO>& PointIO)
+	{
+		FWriteScopeLock WriteLock(PairsLock);
+		return Add_Unsafe(PointIO);
+	}
 
 	void FPointIOCollection::Add_Unsafe(const TArray<TSharedPtr<FPointIO>>& IOs)
 	{
@@ -899,6 +905,12 @@ namespace PCGExData
 			if (!IO) { continue; }
 			Add_Unsafe(IO);
 		}
+	}
+
+	void FPointIOCollection::Add(const TArray<TSharedPtr<FPointIO>>& IOs)
+	{
+		FWriteScopeLock WriteLock(PairsLock);
+		Add_Unsafe(IOs);
 	}
 
 	void FPointIOCollection::IncreaseReserve(const int32 InIncreaseNum)

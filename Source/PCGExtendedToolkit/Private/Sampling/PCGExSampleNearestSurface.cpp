@@ -371,7 +371,7 @@ namespace PCGExSampleNearestSurface
 
 	void FProcessor::Write()
 	{
-		if (Settings->bPruneFailedSamples) { PointDataFacade->Source->Gather(SamplingMask); }
+		if (Settings->bPruneFailedSamples) { (void)PointDataFacade->Source->Gather(SamplingMask); }
 	}
 }
 

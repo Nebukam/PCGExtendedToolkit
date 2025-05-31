@@ -64,10 +64,7 @@ class UPCGExNeighborSampleBlendSettings : public UPCGExNeighborSampleProviderSet
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NeighborSamplerAttribute, "Sampler : Vtx Blend", "Create a vtx attribute sampler that uses blend operations to blend values from neighbors.",
-		PCGEX_FACTORY_NAME_PRIORITY)
-
+	PCGEX_NODE_INFOS(NeighborSamplerAttribute, "Sampler : Vtx Blend", "Create a vtx attribute sampler that uses blend operations to blend values from neighbors.")
 #endif
 	//~End UPCGSettings
 

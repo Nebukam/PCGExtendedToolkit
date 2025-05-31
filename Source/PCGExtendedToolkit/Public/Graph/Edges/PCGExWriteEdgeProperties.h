@@ -8,6 +8,7 @@
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
@@ -76,8 +77,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, EditCondition="bEndpointsBlending && !bWriteEdgePosition && SolidificationAxis == EPCGExMinimalAxis::None", ClampMin=0, ClampMax=1))
 	double EndpointsWeights = 0.5;
 
+	/** How to blend data from sampled points */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bEndpointsBlending"))
+	EPCGExBlendingInterface BlendingInterface = EPCGExBlendingInterface::Individual;
+	
 	/** Defines how fused point properties and attributes are merged together. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(EditCondition="bEndpointsBlending"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(EditCondition="bEndpointsBlending && BlendingInterface==EPCGExBlendingInterface::Monolithic", EditConditionHides))
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
 
 	/** Output Edge Heuristics. */
@@ -214,6 +219,9 @@ namespace PCGExWriteEdgeProperties
 		double EndWeight = 1;
 
 		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
+		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExDataBlending::IBlender> DataBlender;
+		
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerp;
 
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
