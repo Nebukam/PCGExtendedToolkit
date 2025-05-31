@@ -154,9 +154,9 @@ namespace PCGExDataBlending
 	const FName SourceBlendingLabel = TEXT("Blend Ops");
 	const FName OutputBlendingLabel = TEXT("Blend Op");
 
-	struct FBlendingHeader
+	struct FBlendingParam
 	{
-		FBlendingHeader() = default;
+		FBlendingParam() = default;
 
 		FPCGAttributePropertyInputSelector Selector;
 		EPCGExABBlendingType Blending = EPCGExABBlendingType::None;
@@ -318,14 +318,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 	bool CanBlend(const FName AttributeName) const;
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const;
 
-	bool GetBlendingHeader(FName InName, PCGExDataBlending::FBlendingHeader& OutHeader) const;
-	void GetPointPropertyBlendingHeaders(TArray<PCGExDataBlending::FBlendingHeader>& OutHeaders) const;
+	bool GetBlendingParam(FName InName, PCGExDataBlending::FBlendingParam& OutParam) const;
+	void GetPointPropertyBlendingParams(TArray<PCGExDataBlending::FBlendingParam>& OutParams) const;
 
 	// Create a list of attributes & property selector representing the data we want to blend
 	// Takes the reference list from source, 
-	void GetBlendingHeaders(
+	void GetBlendingParams(
 		const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata,
-		TArray<PCGExDataBlending::FBlendingHeader>& OutHeaders,
+		TArray<PCGExDataBlending::FBlendingParam>& OutParams,
 		const bool bSkipProperties = false,
 		const TSet<FName>* IgnoreAttributeSet = nullptr) const;
 };

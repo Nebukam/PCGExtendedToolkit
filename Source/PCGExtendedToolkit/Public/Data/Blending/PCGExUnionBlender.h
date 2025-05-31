@@ -33,7 +33,7 @@ namespace PCGExDataBlending
 			friend FUnionBlender;
 
 		public:
-			FBlendingHeader Header;
+			FBlendingParam Param;
 			PCGEx::FAttributeIdentity Identity;
 			const FPCGMetadataAttributeBase* DefaultValue = nullptr;
 
@@ -74,7 +74,7 @@ namespace PCGExDataBlending
 		const FPCGExBlendingDetails* BlendingDetails = nullptr;
 		const TSharedPtr<PCGExDetails::FDistances> DistanceDetails = nullptr;
 
-		TArray<FBlendingHeader> PropertyHeaders;
+		TArray<FBlendingParam> PropertyParams;
 		TArray<TSharedPtr<FMultiSourceBlender>> Blenders;
 
 		TSet<FString> UniqueTags;

@@ -29,23 +29,23 @@ namespace PCGExDataBlending
 		check(TargetFacade)
 		check(SourceFacade)
 
-		TArray<FBlendingHeader> BlendingHeaders;
+		TArray<FBlendingParam> BlendingParams;
 
-		InBlendingDetails.GetBlendingHeaders(
+		InBlendingDetails.GetBlendingParams(
 			SourceFacade->GetData(SourceSide)->Metadata, TargetFacade->GetOut()->Metadata,
-			BlendingHeaders, !bBlendProperties, IgnoreAttributeSet);
+			BlendingParams, !bBlendProperties, IgnoreAttributeSet);
 		
-		Blenders.Reserve(BlendingHeaders.Num());
-		for (const FBlendingHeader& Header : BlendingHeaders)
+		Blenders.Reserve(BlendingParams.Num());
+		for (const FBlendingParam& Param : BlendingParams)
 		{
 			// Setup a single blender per A/B pair
 
 			PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(SourceFacade, PCGExData::EProxyRole::Read);
 			PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(TargetFacade, PCGExData::EProxyRole::Read);
 
-			if (!A.Capture(InContext, Header.Selector, SourceSide)) { return false; }
+			if (!A.Capture(InContext, Param.Selector, SourceSide)) { return false; }
 
-			if (Header.bIsNewAttribute)
+			if (Param.bIsNewAttribute)
 			{
 				// Capturing B will fail as it does not exist yet.
 				// Simply copy A
@@ -58,7 +58,7 @@ namespace PCGExDataBlending
 			else
 			{
 				// Strict capture may fail here, TBD
-				if (!B.CaptureStrict(InContext, Header.Selector, BSide)) { return false; }
+				if (!B.CaptureStrict(InContext, Param.Selector, BSide)) { return false; }
 			}
 
 			PCGExData::FProxyDescriptor C = B;
@@ -69,7 +69,7 @@ namespace PCGExDataBlending
 			B.bWantsDirect = bWantsDirectAccess;
 			C.bWantsDirect = bWantsDirectAccess;
 			
-			TSharedPtr<PCGExDataBlending::FProxyDataBlender> Blender = PCGExDataBlending::CreateProxyBlender(InContext, Header.Blending, A, B, C);
+			TSharedPtr<PCGExDataBlending::FProxyDataBlender> Blender = PCGExDataBlending::CreateProxyBlender(InContext, Param.Blending, A, B, C);
 
 			if (!Blender) { return false; }
 

@@ -30,7 +30,7 @@ namespace PCGExDataBlending
 	{
 		check(InTargetData);
 
-		if (Header.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+		if (Param.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
 			if (Identity.UnderlyingType == EPCGMetadataTypes::Unknown)
 			{
@@ -64,52 +64,52 @@ namespace PCGExDataBlending
 				{
 					using T = decltype(DummyValue);
 
-					MainBlender = PCGExDataBlending::CreateProxyBlender<T>(Header.Blending);
+					MainBlender = PCGExDataBlending::CreateProxyBlender<T>(Param.Blending);
 
 					for (int i = 0; i < Sources.Num(); i++)
 					{
 						TSharedPtr<PCGExData::FFacade> Source = Sources[i];
 						if (!SupportedSources.Contains(i)) { continue; }
 
-						TSharedPtr<FProxyDataBlender> SubBlender = PCGExDataBlending::CreateProxyBlender<T>(Header.Blending);
+						TSharedPtr<FProxyDataBlender> SubBlender = PCGExDataBlending::CreateProxyBlender<T>(Param.Blending);
 						SubBlenders[i] = SubBlender;
 
-						if (!SubBlender->InitFromHeader(InContext, Header, InTargetData, Sources[i], PCGExData::EIOSide::In, bWantsDirectAccess))
+						if (!SubBlender->InitFromParam(InContext, Param, InTargetData, Sources[i], PCGExData::EIOSide::In, bWantsDirectAccess))
 						{
 							bError = true;
 							return;
 						}
 					}
 
-					bError = !MainBlender->InitFromHeader(InContext, Header, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess);
+					bError = !MainBlender->InitFromParam(InContext, Param, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess);
 				});
 
 			if (bError) { return false; }
 		}
-		else if (Header.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
+		else if (Param.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
 		{
 			bool bError = false;
 			PCGEx::ExecuteWithRightType(
-				PCGEx::GetPropertyType(Header.Selector.GetPointProperty()), [&](auto DummyValue)
+				PCGEx::GetPropertyType(Param.Selector.GetPointProperty()), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 
-					MainBlender = PCGExDataBlending::CreateProxyBlender<T>(Header.Blending);
+					MainBlender = PCGExDataBlending::CreateProxyBlender<T>(Param.Blending);
 
 					for (int i = 0; i < Sources.Num(); i++)
 					{
 						TSharedPtr<PCGExData::FFacade> Source = Sources[i];
-						TSharedPtr<FProxyDataBlender> SubBlender = PCGExDataBlending::CreateProxyBlender<T>(Header.Blending);
+						TSharedPtr<FProxyDataBlender> SubBlender = PCGExDataBlending::CreateProxyBlender<T>(Param.Blending);
 						SubBlenders[i] = SubBlender;
 
-						if (!SubBlender->InitFromHeader(InContext, Header, InTargetData, Sources[i], PCGExData::EIOSide::In, bWantsDirectAccess))
+						if (!SubBlender->InitFromParam(InContext, Param, InTargetData, Sources[i], PCGExData::EIOSide::In, bWantsDirectAccess))
 						{
 							bError = true;
 							return;
 						}
 					}
 
-					bError = !MainBlender->InitFromHeader(InContext, Header, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess);
+					bError = !MainBlender->InitFromParam(InContext, Param, InTargetData, InTargetData, PCGExData::EIOSide::Out, bWantsDirectAccess);
 				});
 
 			if (bError) { return false; }
@@ -128,7 +128,7 @@ namespace PCGExDataBlending
 	FUnionBlender::FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails)
 		: CarryOverDetails(InCarryOverDetails), BlendingDetails(InBlendingDetails), DistanceDetails(InDistanceDetails)
 	{
-		BlendingDetails->GetPointPropertyBlendingHeaders(PropertyHeaders);
+		BlendingDetails->GetPointPropertyBlendingParams(PropertyParams);
 	}
 
 	FUnionBlender::~FUnionBlender()
@@ -157,10 +157,10 @@ namespace PCGExDataBlending
 		// See if it adds any new, non-conflicting one
 		for (const PCGEx::FAttributeIdentity& Identity : SourceAttributes)
 		{
-			// First, grab the header for this attribute
+			// First, grab the Param for this attribute
 			// Getting a fail means it's filtered out.
-			PCGExDataBlending::FBlendingHeader Header{};
-			if (!BlendingDetails->GetBlendingHeader(Identity.Name, Header)) { continue; }
+			PCGExDataBlending::FBlendingParam Param{};
+			if (!BlendingDetails->GetBlendingParam(Identity.Name, Param)) { continue; }
 
 			const FPCGMetadataAttributeBase* SourceAttribute = InFacade->FindConstAttribute(Identity.Name);
 			if (!SourceAttribute) { continue; }
@@ -196,7 +196,7 @@ namespace PCGExDataBlending
 				// We give it the first source attribute we found, this will be used
 				// to set the underlying default value of the attribute (as a best guess kind of move) 
 				MultiAttribute = Blenders.Add_GetRef(MakeShared<FMultiSourceBlender>(Identity, Sources));
-				MultiAttribute->Header = Header;
+				MultiAttribute->Param = Param;
 				MultiAttribute->DefaultValue = SourceAttribute;
 				MultiAttribute->SetNum(NumSources);
 			}
@@ -219,11 +219,11 @@ namespace PCGExDataBlending
 		if (!Validate(InContext, false)) { return false; }
 
 		// Create property blender at the last moment
-		Blenders.Reserve(Blenders.Num() + PropertyHeaders.Num());
-		for (const FBlendingHeader& Header : PropertyHeaders)
+		Blenders.Reserve(Blenders.Num() + PropertyParams.Num());
+		for (const FBlendingParam& Param : PropertyParams)
 		{
 			TSharedPtr<FMultiSourceBlender> MultiAttribute = Blenders.Add_GetRef(MakeShared<FMultiSourceBlender>(Sources));
-			MultiAttribute->Header = Header;
+			MultiAttribute->Param = Param;
 			MultiAttribute->SetNum(Sources.Num());
 		}
 

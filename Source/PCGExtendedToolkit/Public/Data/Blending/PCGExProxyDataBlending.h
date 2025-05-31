@@ -65,8 +65,8 @@ namespace PCGExDataBlending
 
 		virtual TSharedPtr<PCGExData::IBuffer> GetOutputBuffer() const = 0;
 
-		virtual bool InitFromHeader(
-			FPCGExContext* InContext, const FBlendingHeader& InHeader, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
+		virtual bool InitFromParam(
+			FPCGExContext* InContext, const FBlendingParam& InParam, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
 			const TSharedPtr<PCGExData::FFacade> InSourceFacade, PCGExData::EIOSide InSide, bool bWantsDirectAccess = false) = 0;
 
 		template <typename T>
@@ -118,17 +118,17 @@ namespace PCGExDataBlending
 
 		virtual TSharedPtr<PCGExData::IBuffer> GetOutputBuffer() const override { return C ? C->GetBuffer() : nullptr; }
 
-		virtual bool InitFromHeader(
-			FPCGExContext* InContext, const FBlendingHeader& InHeader, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
+		virtual bool InitFromParam(
+			FPCGExContext* InContext, const FBlendingParam& InParam, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
 			const TSharedPtr<PCGExData::FFacade> InSourceFacade, const PCGExData::EIOSide InSide, const bool bWantsDirectAccess = false) override
 		{
 			// Setup a single blender per A/B pair
 			PCGExData::FProxyDescriptor Desc_A = PCGExData::FProxyDescriptor(InSourceFacade, PCGExData::EProxyRole::Read);
 			PCGExData::FProxyDescriptor Desc_B = PCGExData::FProxyDescriptor(InTargetFacade, PCGExData::EProxyRole::Read);
 
-			if (!Desc_A.Capture(InContext, InHeader.Selector, InSide)) { return false; }
+			if (!Desc_A.Capture(InContext, InParam.Selector, InSide)) { return false; }
 
-			if (InHeader.bIsNewAttribute)
+			if (InParam.bIsNewAttribute)
 			{
 				// Capturing B will fail as it does not exist yet.
 				// Simply copy A
@@ -141,7 +141,7 @@ namespace PCGExDataBlending
 			else
 			{
 				// Strict capture may fail here, TBD
-				if (!Desc_B.CaptureStrict(InContext, InHeader.Selector, PCGExData::EIOSide::Out)) { return false; }
+				if (!Desc_B.CaptureStrict(InContext, InParam.Selector, PCGExData::EIOSide::Out)) { return false; }
 			}
 
 			PCGExData::FProxyDescriptor Desc_C = Desc_B;

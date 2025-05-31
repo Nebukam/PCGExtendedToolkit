@@ -138,55 +138,58 @@ void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPosition
 	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i])); }
 }
 
-void PCGExGeoTasks::FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+namespace PCGExGeoTasks
 {
-	UPCGBasePointData* OutPointData = ToBeTransformedIO->GetOut();
-	TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
-	FTransform TargetTransform = FTransform::Identity;
-
-	FBox PointBounds = FBox(ForceInit);
-
-	if (!TransformDetails->bIgnoreBounds)
+	void FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		for (int i = 0; i < OutTransforms.Num(); i++) { PointBounds += OutPointData->GetLocalBounds(i).TransformBy(OutTransforms[i]); }
-	}
-	else
-	{
-		for (const FTransform& Pt : OutTransforms) { PointBounds += Pt.GetLocation(); }
-	}
+		UPCGBasePointData* OutPointData = ToBeTransformedIO->GetOut();
+		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
+		FTransform TargetTransform = FTransform::Identity;
 
-	PointBounds = PointBounds.ExpandBy(0.1); // Avoid NaN
-	TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
+		FBox PointBounds = FBox(ForceInit);
 
-	if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
-	{
-		for (FTransform& Transform : OutTransforms) { Transform *= TargetTransform; }
-	}
-	else
-	{
-		if (TransformDetails->bInheritRotation)
+		if (!TransformDetails->bIgnoreBounds)
 		{
-			for (FTransform& Transform : OutTransforms)
-			{
-				FVector OriginalScale = Transform.GetScale3D();
-				Transform *= TargetTransform;
-				Transform.SetScale3D(OriginalScale);
-			}
-		}
-		else if (TransformDetails->bInheritScale)
-		{
-			for (FTransform& Transform : OutTransforms)
-			{
-				FQuat OriginalRot = Transform.GetRotation();
-				Transform *= TargetTransform;
-				Transform.SetRotation(OriginalRot);
-			}
+			for (int i = 0; i < OutTransforms.Num(); i++) { PointBounds += OutPointData->GetLocalBounds(i).TransformBy(OutTransforms[i]); }
 		}
 		else
 		{
-			for (FTransform& Transform : OutTransforms)
+			for (const FTransform& Pt : OutTransforms) { PointBounds += Pt.GetLocation(); }
+		}
+
+		PointBounds = PointBounds.ExpandBy(0.1); // Avoid NaN
+		TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
+
+		if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
+		{
+			for (FTransform& Transform : OutTransforms) { Transform *= TargetTransform; }
+		}
+		else
+		{
+			if (TransformDetails->bInheritRotation)
 			{
-				Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
+				for (FTransform& Transform : OutTransforms)
+				{
+					FVector OriginalScale = Transform.GetScale3D();
+					Transform *= TargetTransform;
+					Transform.SetScale3D(OriginalScale);
+				}
+			}
+			else if (TransformDetails->bInheritScale)
+			{
+				for (FTransform& Transform : OutTransforms)
+				{
+					FQuat OriginalRot = Transform.GetRotation();
+					Transform *= TargetTransform;
+					Transform.SetRotation(OriginalRot);
+				}
+			}
+			else
+			{
+				for (FTransform& Transform : OutTransforms)
+				{
+					Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
+				}
 			}
 		}
 	}

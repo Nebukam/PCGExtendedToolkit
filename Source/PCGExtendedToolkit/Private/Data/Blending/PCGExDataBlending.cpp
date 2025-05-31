@@ -5,9 +5,9 @@
 
 namespace PCGExDataBlending
 {
-	void FBlendingHeader::Select(const FString& Selection) { Selector.Update(Selection); }
+	void FBlendingParam::Select(const FString& Selection) { Selector.Update(Selection); }
 
-	void FBlendingHeader::SetBlending(const EPCGExDataBlendingType InBlending)
+	void FBlendingParam::SetBlending(const EPCGExDataBlendingType InBlending)
 	{
 		switch (InBlending)
 		{
@@ -122,52 +122,52 @@ void FPCGExBlendingDetails::Filter(TArray<PCGEx::FAttributeIdentity>& Identities
 	}
 }
 
-bool FPCGExBlendingDetails::GetBlendingHeader(const FName InName, PCGExDataBlending::FBlendingHeader& OutHeader) const
+bool FPCGExBlendingDetails::GetBlendingParam(const FName InName, PCGExDataBlending::FBlendingParam& OutParam) const
 {
 	if (!CanBlend(InName)) { return false; }
 
-	OutHeader = PCGExDataBlending::FBlendingHeader{};
-	OutHeader.Select(InName.ToString());
+	OutParam = PCGExDataBlending::FBlendingParam{};
+	OutParam.Select(InName.ToString());
 
 	// TODO : Update with information regarding whether this is a new attribute or not
 
-	if (OutHeader.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute &&
+	if (OutParam.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute &&
 		PCGEx::IsPCGExAttribute(InName))
 	{
 		// Don't blend PCGEx stuff
-		OutHeader.SetBlending(EPCGExDataBlendingType::Copy);
+		OutParam.SetBlending(EPCGExDataBlendingType::Copy);
 	}
 	else
 	{
 		const EPCGExDataBlendingType* TypePtr = AttributesOverrides.Find(InName);
-		OutHeader.SetBlending(TypePtr ? *TypePtr : DefaultBlending);
+		OutParam.SetBlending(TypePtr ? *TypePtr : DefaultBlending);
 	}
 
-	if (OutHeader.Blending == EPCGExABBlendingType::None) { return false; }
+	if (OutParam.Blending == EPCGExABBlendingType::None) { return false; }
 	return true;
 }
 
-void FPCGExBlendingDetails::GetPointPropertyBlendingHeaders(TArray<PCGExDataBlending::FBlendingHeader>& OutHeaders) const
+void FPCGExBlendingDetails::GetPointPropertyBlendingParams(TArray<PCGExDataBlending::FBlendingParam>& OutParams) const
 {
 	// Emplace all individual properties if they aren't blending to None
 #define PCGEX_SET_POINTPROPERTY(_NAME, ...) \
 	if(const EPCGExDataBlendingType _NAME##Blending = PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending;\
 		_NAME##Blending != EPCGExDataBlendingType::None){ \
-		PCGExDataBlending::FBlendingHeader& _NAME##Header = OutHeaders.Emplace_GetRef();\
-		_NAME##Header.Select(TEXT("$" #_NAME ));\
-		_NAME##Header.SetBlending(PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending);\
+		PCGExDataBlending::FBlendingParam& _NAME##Param = OutParams.Emplace_GetRef();\
+		_NAME##Param.Select(TEXT("$" #_NAME ));\
+		_NAME##Param.SetBlending(PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending);\
 	}
 	PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_POINTPROPERTY)
 #undef PCGEX_SET_POINTPROPERTY
 }
 
-void FPCGExBlendingDetails::GetBlendingHeaders(
+void FPCGExBlendingDetails::GetBlendingParams(
 	const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata,
-	TArray<PCGExDataBlending::FBlendingHeader>& OutHeaders,
+	TArray<PCGExDataBlending::FBlendingParam>& OutParams,
 	const bool bSkipProperties,
 	const TSet<FName>* IgnoreAttributeSet) const
 {
-	if (!bSkipProperties) { GetPointPropertyBlendingHeaders(OutHeaders); }
+	if (!bSkipProperties) { GetPointPropertyBlendingParams(OutParams); }
 
 	TArray<PCGEx::FAttributeIdentity> Identities;
 	PCGEx::FAttributeIdentity::Get(TargetMetadata, Identities);
@@ -224,25 +224,25 @@ void FPCGExBlendingDetails::GetBlendingHeaders(
 		
 		if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Name)) { continue; }
 		
-		PCGExDataBlending::FBlendingHeader Header{};
-		Header.bIsNewAttribute = MissingAttribute.Contains(i);
+		PCGExDataBlending::FBlendingParam Param{};
+		Param.bIsNewAttribute = MissingAttribute.Contains(i);
 
 		if (PCGEx::IsPCGExAttribute(Identity.Name))
 		{
 			// Don't blend PCGEx stuff
-			Header.SetBlending(EPCGExDataBlendingType::Copy);
+			Param.SetBlending(EPCGExDataBlendingType::Copy);
 		}
 		else
 		{
 			const EPCGExDataBlendingType* TypePtr = AttributesOverrides.Find(Identity.Name);
 			// TODO : Support global defaults (or ditch support)
-			Header.SetBlending(TypePtr ? *TypePtr : DefaultBlending);
+			Param.SetBlending(TypePtr ? *TypePtr : DefaultBlending);
 		}
 
-		if (Header.Blending == EPCGExABBlendingType::None) { continue; }
+		if (Param.Blending == EPCGExABBlendingType::None) { continue; }
 
-		Header.Selector.Update(Identity.Name.ToString());
-		OutHeaders.Add(Header);
+		Param.Selector.Update(Identity.Name.ToString());
+		OutParams.Add(Param);
 		
 	}
 }
