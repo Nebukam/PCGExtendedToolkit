@@ -300,9 +300,9 @@ namespace PCGExAttributeStats
 			const UPCGExAttributeStatsSettings* Settings,
 			const TArray<int8>& Filter) override
 		{
-			UPCGParamData* ParamData = Context->OutputParamsMap[Identity.Name];
+			UPCGParamData* ParamData = Context->OutputParamsMap[Identity.Identifier.Name];
 
-			FString StrName = Identity.Name.ToString();
+			FString StrName = Identity.Identifier.ToString();
 			UPCGMetadata* PointsMetadata = nullptr;
 
 			if (Settings->OutputToPoints != EPCGExStatsOutputToPoints::None) { PointsMetadata = InDataFacade->GetOut()->Metadata; }
@@ -314,7 +314,7 @@ namespace PCGExAttributeStats
 		FName PrintName = Settings->OutputToPoints == EPCGExStatsOutputToPoints::Prefix ? FName(Settings->_NAME##AttributeName.ToString() + StrName) : FName(StrName + Settings->_NAME##AttributeName.ToString());\
 		if (PointsMetadata->GetConstTypedAttribute<_TYPE>(PrintName)) { PointsMetadata->DeleteAttribute(PrintName); }\
 		PointsMetadata->FindOrCreateAttribute<_TYPE>(PrintName, _VALUE);} }
-			TSharedPtr<PCGExData::TBuffer<T>> Buffer = InDataFacade->GetReadable<T>(Identity.Name);
+			TSharedPtr<PCGExData::TBuffer<T>> Buffer = InDataFacade->GetReadable<T>(Identity.Identifier);
 			PCGExMath::TypeMinMax(MinValue, MaxValue);
 			PCGExMath::TypeMinMax(SetMinValue, SetMaxValue);
 
@@ -343,7 +343,7 @@ namespace PCGExAttributeStats
 					FPCGTaggedData& StagedData = Context->StageOutput(UniqueValuesParamData, false, false);
 					StagedData.Pin = OutputAttributeUniqueValues;
 					StagedData.Tags.Add(Identifier);
-					StagedData.Tags.Add(Identity.Name.ToString());
+					StagedData.Tags.Add(Identity.Identifier.ToString());
 
 					InDataFacade->Source->Tags->AddRaw(Identifier);
 				}

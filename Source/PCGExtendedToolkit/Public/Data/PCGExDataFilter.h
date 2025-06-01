@@ -239,7 +239,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 		if (Attributes.FilterMode == EPCGExAttributeFilter::All) { return; }
 
 		int32 WriteIndex = 0;
-		for (int32 i = 0; i < Identities.Num(); i++) { if (Attributes.Test(Identities[i].Name.ToString())) { Identities[WriteIndex++] = Identities[i]; } }
+		for (int32 i = 0; i < Identities.Num(); i++) { if (Attributes.Test(Identities[i].Identifier.ToString())) { Identities[WriteIndex++] = Identities[i]; } }
 		Identities.SetNum(WriteIndex);
 	}
 
@@ -293,25 +293,25 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 	{
 		if (Attributes.FilterMode == EPCGExAttributeFilter::All) { return; }
 
-		TArray<FName> Names;
+		TArray<FPCGAttributeIdentifier> Identifiers;
 		TArray<EPCGMetadataTypes> Types;
-		Metadata->GetAttributes(Names, Types);
-		for (FName Name : Names) { if (!Attributes.Test(Name.ToString())) { Metadata->DeleteAttribute(Name); } }
+		Metadata->GetAllAttributes(Identifiers, Types);
+		for (const FPCGAttributeIdentifier& Identifier : Identifiers) { if (!Attributes.Test(Identifier.Name.ToString())) { Metadata->DeleteAttribute(Identifier); } }
 	}
 
 	bool Test(const UPCGMetadata* Metadata) const
 	{
 		if (Attributes.FilterMode == EPCGExAttributeFilter::All) { return true; }
 
-		TArray<FName> Names;
+		TArray<FPCGAttributeIdentifier> Identifiers;
 		TArray<EPCGMetadataTypes> Types;
-		Metadata->GetAttributes(Names, Types);
+		Metadata->GetAllAttributes(Identifiers, Types);
 		if (Attributes.FilterMode == EPCGExAttributeFilter::Exclude)
 		{
-			for (FName Name : Names) { if (!Attributes.Test(Name.ToString())) { return false; } }
+			for (const FPCGAttributeIdentifier& Identifier : Identifiers) { if (!Attributes.Test(Identifier.Name.ToString())) { return false; } }
 			return true;
 		}
-		for (FName Name : Names) { if (Attributes.Test(Name.ToString())) { return true; } }
+		for (const FPCGAttributeIdentifier& Identifier : Identifiers) { if (Attributes.Test(Identifier.Name.ToString())) { return true; } }
 		return false;
 	}
 };

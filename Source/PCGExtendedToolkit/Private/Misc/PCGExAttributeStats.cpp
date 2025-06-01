@@ -114,7 +114,7 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 	{
 		UPCGParamData* NewParamData = Context->ManagedObjects->New<UPCGParamData>();
 		Context->OutputParams.Add(NewParamData);
-		Context->OutputParamsMap.Add(Identity.Name, NewParamData);
+		Context->OutputParamsMap.Add(Identity.Identifier.Name, NewParamData);
 
 		for (int i = 0; i < NumRows; i++) { Context->Rows.Add(NewParamData->Metadata->AddEntry()); }
 
@@ -194,7 +194,7 @@ namespace PCGExAttributeStats
 		{
 			const PCGEx::FAttributeIdentity& Identity = Context->AttributesInfos->Identities[i];
 
-			if (Settings->bOutputPerUniqueValuesStats) { PerAttributeStatMap.Add(Identity.Name, i); }
+			if (Settings->bOutputPerUniqueValuesStats) { PerAttributeStatMap.Add(Identity.Identifier.Name, i); }
 
 			PCGEx::ExecuteWithRightType(
 				Identity.UnderlyingType, [&](auto DummyValue)

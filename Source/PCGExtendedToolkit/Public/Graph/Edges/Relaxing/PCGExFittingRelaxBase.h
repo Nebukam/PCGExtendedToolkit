@@ -70,14 +70,17 @@ public:
 
 		if (EdgeFitting == EPCGExRelaxEdgeFitting::Attribute)
 		{
-			EdgeLengthBuffer = SecondaryDataFacade->GetBroadcaster<double>(DesiredEdgeLengthAttribute);
-			if (!EdgeLengthBuffer)
+			const TSharedPtr<PCGExData::TBuffer<double>> Buffer = SecondaryDataFacade->GetBroadcaster<double>(DesiredEdgeLengthAttribute);
+
+			if (!Buffer)
 			{
 				PCGEX_LOG_INVALID_SELECTOR_C(Context, "Edge Length", DesiredEdgeLengthAttribute)
 				return false;
 			}
 
-			EdgeLengths = EdgeLengthBuffer->GetInValues();
+			EdgeLengths = MakeShared<TArray<double>>();
+			EdgeLengths->SetNumUninitialized(Cluster->Edges->Num());
+			Buffer->DumpValues(EdgeLengths);
 		}
 		else
 		{
@@ -151,7 +154,6 @@ public:
 
 protected:
 	TArray<FIntVector3> Forces;
-	TSharedPtr<PCGExData::TBuffer<double>> EdgeLengthBuffer;
 	TSharedPtr<TArray<double>> EdgeLengths;
 
 	void ApplyForces(const int32 AddIndex, const int32 SubtractIndex, const FVector& Delta)

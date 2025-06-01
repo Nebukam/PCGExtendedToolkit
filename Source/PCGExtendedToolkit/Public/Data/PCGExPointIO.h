@@ -519,10 +519,10 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		int32 Gather(const TArrayView<int8> InMask, const bool bInvert = false) const;
 		int32 Gather(const TBitArray<>& InMask, const bool bInvert = false) const;
 
-		void DeleteAttribute(FName AttributeName) const;
+		void DeleteAttribute(const FPCGAttributeIdentifier& AttributeName) const;
 
 		template <typename T>
-		FPCGMetadataAttribute<T>* CreateAttribute(FName AttributeName, const T& DefaultValue, bool bAllowsInterpolation, bool bOverrideParent)
+		FPCGMetadataAttribute<T>* CreateAttribute(const FPCGAttributeIdentifier& AttributeName, const T& DefaultValue, bool bAllowsInterpolation, bool bOverrideParent)
 		{
 			FPCGMetadataAttribute<T>* OutAttribute = nullptr;
 			if (!Out) { return OutAttribute; }
@@ -536,7 +536,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		}
 
 		template <typename T>
-		FPCGMetadataAttribute<T>* FindOrCreateAttribute(FName AttributeName, const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
+		FPCGMetadataAttribute<T>* FindOrCreateAttribute(const FPCGAttributeIdentifier& AttributeName, const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
 		{
 			FPCGMetadataAttribute<T>* OutAttribute = nullptr;
 			if (!Out) { return OutAttribute; }

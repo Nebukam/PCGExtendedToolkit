@@ -222,7 +222,7 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
+			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TElementsBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
 			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
@@ -336,7 +336,7 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
+			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TElementsBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
 			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();

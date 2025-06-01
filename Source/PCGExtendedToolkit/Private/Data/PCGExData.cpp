@@ -10,14 +10,37 @@ namespace PCGExData
 {
 #pragma region cache
 
+	IBuffer::~IBuffer()
+	{
+		Flush();
+	}
+
 	void IBuffer::SetTargetOutputName(const FName InName)
 	{
 		TargetOutputName = InName;
 	}
 
+	PCGEx::FAttributeIdentity IBuffer::GetTargetOutputIdentity()
+	{
+		check(IsWritable() && OutAttribute)
+		return PCGEx::FAttributeIdentity(
+			OutputsToDifferentName() ? TargetOutputName : OutAttribute->Name,
+			Type, OutAttribute->AllowsInterpolation());
+	}
+
 	bool IBuffer::OutputsToDifferentName() const
 	{
+		// Don't consider None, @Source, @Last etc
+		FString StrName = TargetOutputName.ToString();
+		if (TargetOutputName.IsNone() || StrName.IsEmpty() || StrName.StartsWith(TEXT("@"))) { return false; }
+		if (OutAttribute) { return OutAttribute->Name != TargetOutputName; }
 		return false;
+	}
+
+	void IBuffer::SetType(const EPCGMetadataTypes InType)
+	{
+		Type = InType;
+		UID = BufferUID(Identifier, InType);
 	}
 
 	TSharedPtr<IBuffer> FFacade::FindBuffer_Unsafe(const uint64 UID)
@@ -33,24 +56,24 @@ namespace PCGExData
 		return FindBuffer_Unsafe(UID);
 	}
 
-	TSharedPtr<IBuffer> FFacade::FindReadableAttributeBuffer(const FName InName)
+	TSharedPtr<IBuffer> FFacade::FindReadableAttributeBuffer(const FPCGAttributeIdentifier& InIdentifier)
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
 		for (const TSharedPtr<IBuffer>& Buffer : Buffers)
 		{
 			if (!Buffer->IsReadable()) { continue; }
-			if (Buffer->InAttribute && Buffer->InAttribute->Name == InName) { return Buffer; }
+			if (Buffer->InAttribute && Buffer->InAttribute->Name == InIdentifier.Name) { return Buffer; }
 		}
 		return nullptr;
 	}
 
-	TSharedPtr<IBuffer> FFacade::FindWritableAttributeBuffer(const FName InName)
+	TSharedPtr<IBuffer> FFacade::FindWritableAttributeBuffer(const FPCGAttributeIdentifier& InIdentifier)
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
 		for (const TSharedPtr<IBuffer>& Buffer : Buffers)
 		{
 			if (!Buffer->IsWritable()) { continue; }
-			if (Buffer->FullName == InName) { return Buffer; }
+			if (Buffer->Identifier == InIdentifier) { return Buffer; }
 		}
 		return nullptr;
 	}
@@ -97,7 +120,7 @@ namespace PCGExData
 			Identity.UnderlyingType, [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				GetScopedReadable<T>(Identity.Name);
+				GetScopedReadable<T>(Identity.Identifier);
 			});
 	}
 
@@ -217,11 +240,11 @@ namespace PCGExData
 
 				PCGEx::FAttributeIdentity Identity = Buffer->GetTargetOutputIdentity();
 				bool bAlreadySet = false;
-				UniqueOutputs.Add(Identity.Name, &bAlreadySet);
+				UniqueOutputs.Add(Identity.Identifier.Name, &bAlreadySet);
 
 				if (bAlreadySet)
 				{
-					PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Attribute \"{0}\" is used at target output at least twice by different sources."), FText::FromName(Identity.Name)));
+					PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Attribute \"{0}\" is used at target output at least twice by different sources."), FText::FromName(Identity.Identifier.Name)));
 					return false;
 				}
 
@@ -265,10 +288,10 @@ namespace PCGExData
 				switch (Mode)
 				{
 				case EBufferPreloadType::RawAttribute:
-					Reader = InFacade->GetScopedReadable<T>(Identity.Name);
+					Reader = InFacade->GetScopedReadable<T>(Identity.Identifier);
 					break;
 				case EBufferPreloadType::BroadcastFromName:
-					Reader = InFacade->GetScopedBroadcaster<T>(Identity.Name);
+					Reader = InFacade->GetScopedBroadcaster<T>(Identity.Identifier);
 					break;
 				case EBufferPreloadType::BroadcastFromSelector:
 					Reader = InFacade->GetScopedBroadcaster<T>(Selector);
@@ -288,10 +311,10 @@ namespace PCGExData
 				switch (Mode)
 				{
 				case EBufferPreloadType::RawAttribute:
-					Reader = InFacade->GetReadable<T>(Identity.Name);
+					Reader = InFacade->GetReadable<T>(Identity.Identifier);
 					break;
 				case EBufferPreloadType::BroadcastFromName:
-					Reader = InFacade->GetBroadcaster<T>(Identity.Name);
+					Reader = InFacade->GetBroadcaster<T>(Identity.Identifier);
 					break;
 				case EBufferPreloadType::BroadcastFromSelector:
 					Reader = InFacade->GetBroadcaster<T>(Selector);
@@ -324,7 +347,7 @@ namespace PCGExData
 			if (ExistingConfig.Identity == InIdentity) { return; }
 		}
 
-		BufferConfigs.Emplace(InIdentity.Name, InIdentity.UnderlyingType);
+		BufferConfigs.Emplace(InIdentity.Identifier.Name, InIdentity.UnderlyingType);
 	}
 
 	void FFacadePreloader::TryRegister(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector)

@@ -779,7 +779,7 @@ namespace PCGExData
 		return Gather(Indices);
 	}
 
-	void FPointIO::DeleteAttribute(FName AttributeName) const
+	void FPointIO::DeleteAttribute(const FPCGAttributeIdentifier& AttributeName) const
 	{
 		if (!Out) { return; }
 

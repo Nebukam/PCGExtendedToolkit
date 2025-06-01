@@ -30,20 +30,20 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> TryGetBuffer(const FName InName)
+		TSharedPtr<TElementsBuffer<T>> TryGetBuffer(const FName InName)
 		{
 			FReadScopeLock ReadScopeLock(BufferLock);
 			if (TSharedPtr<IBuffer>* BufferPtr = BufferMap.Find(InName))
 			{
 				if (!(*BufferPtr)->IsA<T>()) { return nullptr; }
-				return StaticCastSharedPtr<TBuffer<T>>(*BufferPtr);
+				return StaticCastSharedPtr<TElementsBuffer<T>>(*BufferPtr);
 			}
 
 			return nullptr;
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetBuffer(const FName InName)
+		TSharedPtr<TElementsBuffer<T>> GetBuffer(const FName InName)
 		{
 			{
 				FReadScopeLock ReadScopeLock(BufferLock);
@@ -55,7 +55,7 @@ namespace PCGExData
 						return nullptr;
 					}
 
-					return StaticCastSharedPtr<TBuffer<T>>(*BufferPtr);
+					return StaticCastSharedPtr<TElementsBuffer<T>>(*BufferPtr);
 				}
 			}
 			{
@@ -66,15 +66,15 @@ namespace PCGExData
 					return nullptr;
 				}
 
-				TSharedPtr<TBuffer<T>> NewBuffer;
+				TSharedPtr<TElementsBuffer<T>> NewBuffer;
 
 				if constexpr (Mode == EBufferHelperMode::Write)
 				{
-					NewBuffer = DataFacade->GetWritable<T>(InName, EBufferInit::Inherit);
+					NewBuffer = StaticCastSharedPtr<TElementsBuffer<T>>(DataFacade->GetWritable<T>(InName, EBufferInit::Inherit));
 				}
 				else
 				{
-					NewBuffer = DataFacade->GetReadable<T>(InName);
+					NewBuffer = StaticCastSharedPtr<TElementsBuffer<T>>(DataFacade->GetReadable<T>(InName));
 					if (!NewBuffer)
 					{
 						UE_LOG(LogPCGEx, Error, TEXT("Readable attribute (%s) does not exists."), *InName.ToString())
@@ -88,7 +88,7 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetBuffer(const FName InName, const T& DefaultValue)
+		TSharedPtr<TElementsBuffer<T>> GetBuffer(const FName InName, const T& DefaultValue)
 		{
 			{
 				FReadScopeLock ReadScopeLock(BufferLock);
@@ -100,7 +100,7 @@ namespace PCGExData
 						return nullptr;
 					}
 
-					return StaticCastSharedPtr<TBuffer<T>>(*BufferPtr);
+					return StaticCastSharedPtr<TElementsBuffer<T>>(*BufferPtr);
 				}
 			}
 			{
@@ -112,11 +112,11 @@ namespace PCGExData
 					return nullptr;
 				}
 
-				TSharedPtr<TBuffer<T>> NewBuffer;
+				TSharedPtr<TElementsBuffer<T>> NewBuffer;
 
 				if constexpr (Mode == EBufferHelperMode::Write)
 				{
-					NewBuffer = DataFacade->GetWritable<T>(InName, EBufferInit::Inherit);
+					NewBuffer = StaticCastSharedPtr<TElementsBuffer<T>>(DataFacade->GetWritable<T>(InName, EBufferInit::Inherit));
 				}
 				else
 				{
@@ -136,7 +136,7 @@ namespace PCGExData
 		template <typename T>
 		bool SetValue(const FName& InAttributeName, const int32 InIndex, const T& InValue)
 		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
+			TSharedPtr<TElementsBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
 			if (!Buffer) { return false; }
 
 			if constexpr (Mode == EBufferHelperMode::Write)
@@ -162,7 +162,7 @@ namespace PCGExData
 		template <typename T>
 		bool GetValue(const FName& InAttributeName, const int32 InIndex, T& OutValue)
 		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
+			TSharedPtr<TElementsBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
 			if (!Buffer) { return false; }
 
 			if constexpr (Mode == EBufferHelperMode::Write)

@@ -115,7 +115,7 @@ namespace PCGExPackClusters
 						using T = decltype(DummyValue);
 						TArray<T> RawValues;
 
-						TSharedPtr<PCGExData::TBuffer<T>> InValues = This->VtxDataFacade->GetReadable<T>(Identity.Name);
+						TSharedPtr<PCGExData::TBuffer<T>> InValues = This->VtxDataFacade->GetReadable<T>(Identity.Identifier);
 						TSharedPtr<PCGExData::TBuffer<T>> OutValues = This->PackedIOFacade->GetWritable<T>(InValues->GetTypedInAttribute(), PCGExData::EBufferInit::New);
 
 						const TArray<int32>& VtxSelection = This->VtxPointSelection;

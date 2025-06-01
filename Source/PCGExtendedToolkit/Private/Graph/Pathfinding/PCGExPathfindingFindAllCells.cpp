@@ -179,31 +179,8 @@ namespace PCGExFindAllCells
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
 		PathDataFacade->Write(AsyncManager);
 
-		/*
-		Context->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
-		Context->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
-
-		if (Settings->bFlagLeaves)
-		{
-			const TSharedPtr<PCGExData::TBuffer<bool>> LeavesBuffer = PathDataFacade->GetWritable(Settings->LeafAttributeName, false, true, PCGExData::EBufferInit::New);
-			TArray<bool>& OutValues = *LeavesBuffer->GetOutValues();
-			for (int i = 0; i < Cell->Nodes.Num(); i++) { OutValues[i] = Cluster->GetNode(Cell->Nodes[i])->Num() == 1; }
-		}
-
-		if (!Cell->bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); } }
-		else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); } }
-
-		PathDataFacade->Write(AsyncManager);
-
-		if (Settings->bOutputFilteredSeeds)
-		{
-			Context->SeedQuality[SeedIndex] = true;
-			FPCGPoint SeedPoint = Context->SeedsDataFacade->Source->GetInPoint(SeedIndex);
-			Settings->SeedMutations.ApplyToPoint(Cell.Get(), SeedPoint, MutablePoints);
-			Context->UdpatedSeedPoints[SeedIndex] = SeedPoint;
-		}
-		*/
-
+		// TODO : Create cell centroids here
+		
 		FPlatformAtomics::InterlockedIncrement(&OutputPathsNum);
 	}
 

@@ -119,7 +119,7 @@ bool PCGExGraph::BuildIndexedEdges(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
-	const TUniquePtr<PCGExData::TBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TBuffer<int64>>(EdgeIO.ToSharedRef(), Attr_PCGExEdgeIdx);
+	const TUniquePtr<PCGExData::TElementsBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TElementsBuffer<int64>>(EdgeIO.ToSharedRef(), Attr_PCGExEdgeIdx);
 	if (!EndpointsBuffer->PrepareRead()) { return false; }
 
 	const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
@@ -1095,9 +1095,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::VtxEndpoints);
 
 			const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Attr_PCGExVtxIdx, 0, false, PCGExData::EBufferInit::New);
+			const TSharedPtr<PCGExData::TElementsBuffer<int64>> ElementsVtxEndpointWriter = StaticCastSharedPtr<PCGExData::TElementsBuffer<int64>>(VtxEndpointWriter);
 			const uint32 BaseGUID = NodeDataFacade->GetOut()->GetUniqueID();
 
-			TArray<int64>& VtxEndpoints = *VtxEndpointWriter->GetOutValues().Get();
+			TArray<int64>& VtxEndpoints = *ElementsVtxEndpointWriter->GetOutValues().Get();
 			for (const int32 ValidNodeIndex : ValidNodes)
 			{
 				const FNode& Node = Nodes[ValidNodeIndex];
@@ -1228,7 +1229,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		PCGEx::InitArray(OutAdjacency, InPointIO->GetNum());
 		OutIndices.Empty();
 
-		const TUniquePtr<PCGExData::TBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TBuffer<int64>>(InPointIO.ToSharedRef(), Attr_PCGExVtxIdx);
+		const TUniquePtr<PCGExData::TElementsBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TElementsBuffer<int64>>(InPointIO.ToSharedRef(), Attr_PCGExVtxIdx);
 		if (!IndexBuffer->PrepareRead()) { return false; }
 
 		const TArray<int64>& Indices = *IndexBuffer->GetInValues().Get();

@@ -200,7 +200,7 @@ namespace PCGExCluster
 		Nodes->Empty();
 		Edges->Empty();
 
-		const TUniquePtr<PCGExData::TBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TBuffer<int64>>(PinnedEdgesIO.ToSharedRef(), PCGExGraph::Attr_PCGExEdgeIdx);
+		const TUniquePtr<PCGExData::TElementsBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TElementsBuffer<int64>>(PinnedEdgesIO.ToSharedRef(), PCGExGraph::Attr_PCGExEdgeIdx);
 		if (!EndpointsBuffer->PrepareRead()) { return false; }
 
 		NumRawVtx = InNodePoints->GetNumPoints();

@@ -114,7 +114,7 @@ void FPCGExBlendingDetails::Filter(TArray<PCGEx::FAttributeIdentity>& Identities
 	if (BlendingFilter == EPCGExAttributeFilter::All) { return; }
 	for (int i = 0; i < Identities.Num(); i++)
 	{
-		if (!CanBlend(Identities[i].Name))
+		if (!CanBlend(Identities[i].Identifier.Name))
 		{
 			Identities.RemoveAt(i);
 			i--;
@@ -184,31 +184,31 @@ void FPCGExBlendingDetails::GetBlendingParams(
 		// - Remove type mismatches (we could let the blender handle broadcasting)
 		// - Add any attribute from source that's missing from the target
 
-		TArray<FName> TargetNames;
-		TArray<FName> SourceNames;
+		TArray<FPCGAttributeIdentifier> TargetIdentifiers;
+		TArray<FPCGAttributeIdentifier> SourceIdentifiers;
 
-		TMap<FName, PCGEx::FAttributeIdentity> TargetIdentityMap;
-		TMap<FName, PCGEx::FAttributeIdentity> SourceIdentityMap;
+		TMap<FPCGAttributeIdentifier, PCGEx::FAttributeIdentity> TargetIdentityMap;
+		TMap<FPCGAttributeIdentifier, PCGEx::FAttributeIdentity> SourceIdentityMap;
 
-		PCGEx::FAttributeIdentity::Get(TargetMetadata, TargetNames, TargetIdentityMap);
-		PCGEx::FAttributeIdentity::Get(SourceMetadata, SourceNames, SourceIdentityMap);
+		PCGEx::FAttributeIdentity::Get(TargetMetadata, TargetIdentifiers, TargetIdentityMap);
+		PCGEx::FAttributeIdentity::Get(SourceMetadata, SourceIdentifiers, SourceIdentityMap);
 
-		for (FName TargetName : TargetNames)
+		for (const FPCGAttributeIdentifier& TargetIdentifier : TargetIdentifiers)
 		{
-			const PCGEx::FAttributeIdentity& TargetIdentity = *TargetIdentityMap.Find(TargetName);
+			const PCGEx::FAttributeIdentity& TargetIdentity = *TargetIdentityMap.Find(TargetIdentifier);
 			//An attribute exists on Target but not on Source -- Skip it.
-			if (!SourceIdentityMap.Find(TargetName)) { Identities.Remove(TargetIdentity); }
+			if (!SourceIdentityMap.Find(TargetIdentifier)) { Identities.Remove(TargetIdentity); }
 		}
 
-		for (FName SourceName : SourceNames)
+		for (const FPCGAttributeIdentifier& SourceIdentifier : SourceIdentifiers)
 		{
-			const PCGEx::FAttributeIdentity& SourceIdentity = *SourceIdentityMap.Find(SourceName);
-			if (const PCGEx::FAttributeIdentity* TargetIdentityPtr = TargetIdentityMap.Find(SourceName))
+			const PCGEx::FAttributeIdentity& SourceIdentity = *SourceIdentityMap.Find(SourceIdentifier);
+			if (const PCGEx::FAttributeIdentity* TargetIdentityPtr = TargetIdentityMap.Find(SourceIdentifier))
 			{
 				// Type mismatch -- Simply ignore it
 				if (TargetIdentityPtr->UnderlyingType != SourceIdentity.UnderlyingType) { Identities.Remove(*TargetIdentityPtr); }
 			}
-			else if (CanBlend(SourceIdentity.Name))
+			else if (CanBlend(SourceIdentity.Identifier.Name))
 			{
 				//Attribute exists on source, but not target.
 				MissingAttribute.Add(Identities.Add(SourceIdentity));
@@ -222,26 +222,26 @@ void FPCGExBlendingDetails::GetBlendingParams(
 	{
 		const PCGEx::FAttributeIdentity& Identity = Identities[i];
 
-		if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Name)) { continue; }
+		if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Identifier.Name)) { continue; }
 
 		PCGExDataBlending::FBlendingParam Param{};
 		Param.bIsNewAttribute = MissingAttribute.Contains(i);
 
-		if (PCGEx::IsPCGExAttribute(Identity.Name))
+		if (PCGEx::IsPCGExAttribute(Identity.Identifier.Name))
 		{
 			// Don't blend PCGEx stuff
 			Param.SetBlending(EPCGExDataBlendingType::Copy);
 		}
 		else
 		{
-			const EPCGExDataBlendingType* TypePtr = AttributesOverrides.Find(Identity.Name);
+			const EPCGExDataBlendingType* TypePtr = AttributesOverrides.Find(Identity.Identifier.Name);
 			// TODO : Support global defaults (or ditch support)
 			Param.SetBlending(TypePtr ? *TypePtr : DefaultBlending);
 		}
 
 		if (Param.Blending == EPCGExABBlendingType::None) { continue; }
 
-		Param.Selector.Update(Identity.Name.ToString());
+		Param.Selector.Update(Identity.Identifier.ToString());
 		OutParams.Add(Param);
 	}
 }

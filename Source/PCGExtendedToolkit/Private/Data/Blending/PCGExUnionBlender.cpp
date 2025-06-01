@@ -40,7 +40,7 @@ namespace PCGExDataBlending
 
 			TSharedPtr<PCGExData::IBuffer> InitializationBuffer = nullptr;
 
-			if (const FPCGMetadataAttributeBase* ExistingAttribute = InTargetData->FindConstAttribute(Identity.Name);
+			if (const FPCGMetadataAttributeBase* ExistingAttribute = InTargetData->FindConstAttribute(Identity.Identifier.Name);
 				ExistingAttribute && ExistingAttribute->GetTypeId() == static_cast<int16>(Identity.UnderlyingType))
 			{
 				// This attribute exists on target already
@@ -54,7 +54,7 @@ namespace PCGExDataBlending
 
 			if (!InitializationBuffer)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("FMultiSourceBlender : Cannot create writable output for : \"{0}\""), FText::FromName(Identity.Name)));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("FMultiSourceBlender : Cannot create writable output for : \"{0}\""), FText::FromName(Identity.Identifier.Name)));
 				return false;
 			}
 
@@ -160,9 +160,9 @@ namespace PCGExDataBlending
 			// First, grab the Param for this attribute
 			// Getting a fail means it's filtered out.
 			PCGExDataBlending::FBlendingParam Param{};
-			if (!BlendingDetails->GetBlendingParam(Identity.Name, Param)) { continue; }
+			if (!BlendingDetails->GetBlendingParam(Identity.Identifier.Name, Param)) { continue; }
 
-			const FPCGMetadataAttributeBase* SourceAttribute = InFacade->FindConstAttribute(Identity.Name);
+			const FPCGMetadataAttributeBase* SourceAttribute = InFacade->FindConstAttribute(Identity.Identifier.Name);
 			if (!SourceAttribute) { continue; }
 
 			TSharedPtr<FMultiSourceBlender> MultiAttribute = nullptr;
@@ -171,7 +171,7 @@ namespace PCGExDataBlending
 			// This could be done more efficiently with a map, but we need the array later on
 			for (const TSharedPtr<FMultiSourceBlender>& ExistingMultiSourceBlender : Blenders)
 			{
-				if (ExistingMultiSourceBlender->Identity.Name == Identity.Name)
+				if (ExistingMultiSourceBlender->Identity.Identifier == Identity.Identifier)
 				{
 					// We found one with the same name
 					MultiAttribute = ExistingMultiSourceBlender;
@@ -186,7 +186,7 @@ namespace PCGExDataBlending
 				if (Identity.UnderlyingType != MultiAttribute->Identity.UnderlyingType)
 				{
 					// Type mismatch, ignore for this source
-					TypeMismatches.Add(Identity.Name.ToString());
+					TypeMismatches.Add(Identity.Identifier.ToString());
 					continue;
 				}
 			}

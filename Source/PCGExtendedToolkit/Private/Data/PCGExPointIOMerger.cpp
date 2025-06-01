@@ -92,22 +92,22 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 		PCGEx::FAttributeIdentity::ForEach(
 			Metadata, [&](const PCGEx::FAttributeIdentity& SourceIdentity, const int32)
 			{
-				if (InIgnoredAttributes && InIgnoredAttributes->Contains(SourceIdentity.Name)) { return; }
+				if (InIgnoredAttributes && InIgnoredAttributes->Contains(SourceIdentity.Identifier.Name)) { return; }
 
-				FString StrName = SourceIdentity.Name.ToString();
+				FString StrName = SourceIdentity.Identifier.ToString();
 				if (!InCarryOverDetails->Attributes.Test(StrName)) { return; }
 
 				// TODO : Get attributes in the task
 
-				const int32* ExpectedType = ExpectedTypes.Find(SourceIdentity.Name);
+				const int32* ExpectedType = ExpectedTypes.Find(SourceIdentity.Identifier.Name);
 				if (!ExpectedType)
 				{
 					// No type expectations, we need to register a new attribute ref
 					PCGExPointIOMerger::FIdentityRef SourceRef = SourceIdentity;
-					SourceRef.Attribute = Metadata->GetConstAttribute(SourceIdentity.Name);
+					SourceRef.Attribute = Metadata->GetConstAttribute(SourceIdentity.Identifier);
 					SourceRef.bInitDefault = InCarryOverDetails->bPreserveAttributesDefaultValue;
 
-					ExpectedTypes.Add(SourceRef.Name, UniqueIdentities.Add(SourceRef));
+					ExpectedTypes.Add(SourceRef.Identifier.Name, UniqueIdentities.Add(SourceRef));
 
 					return;
 				}
@@ -115,7 +115,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 				// Notify type/name mismatch if needed
 				if (UniqueIdentities[*ExpectedType].UnderlyingType != SourceIdentity.UnderlyingType)
 				{
-					PCGE_LOG_C(Warning, GraphAndLog, AsyncManager->GetContext(), FText::Format(FTEXT("Mismatching attribute types for: {0}."), FText::FromName(SourceIdentity.Name)));
+					PCGE_LOG_C(Warning, GraphAndLog, AsyncManager->GetContext(), FText::Format(FTEXT("Mismatching attribute types for: {0}."), FText::FromName(SourceIdentity.Identifier.Name)));
 				}
 			});
 	}
@@ -155,18 +155,18 @@ namespace PCGExPointIOMerger
 
 				if (!Buffer)
 				{
-					Buffer = Merger->UnionDataFacade->GetWritable(Identity.Name, T{}, Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
+					Buffer = Merger->UnionDataFacade->GetWritable(Identity.Identifier, T{}, Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
 				}
 
 				for (int i = 0; i < Merger->IOSources.Num(); i++)
 				{
 					TSharedPtr<PCGExData::FPointIO> SourceIO = Merger->IOSources[i];
-					const FPCGMetadataAttributeBase* Attribute = SourceIO->GetIn()->Metadata->GetConstAttribute(Identity.Name);
+					const FPCGMetadataAttributeBase* Attribute = SourceIO->GetIn()->Metadata->GetConstAttribute(Identity.Identifier);
 
 					if (!Attribute) { continue; }                            // Missing attribute
 					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
 
-					PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, Buffer->GetOutValues())
+					PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, Buffer)
 				}
 			});
 	}

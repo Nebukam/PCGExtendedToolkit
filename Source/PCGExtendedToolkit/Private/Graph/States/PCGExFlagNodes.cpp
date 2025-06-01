@@ -121,7 +121,8 @@ namespace PCGExFlagNodes
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
 
 		const TSharedPtr<PCGExData::TBuffer<int64>> Writer = VtxDataFacade->GetWritable(Settings->FlagAttribute, Settings->InitialFlags, false, PCGExData::EBufferInit::Inherit);
-		StateFlags = Writer->GetOutValues();
+		const TSharedPtr<PCGExData::TElementsBuffer<int64>> ElementsWriter = StaticCastSharedPtr<PCGExData::TElementsBuffer<int64>>(Writer);
+		StateFlags = ElementsWriter->GetOutValues();
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}

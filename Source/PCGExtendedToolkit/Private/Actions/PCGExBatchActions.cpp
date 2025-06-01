@@ -160,7 +160,7 @@ namespace PCGExBatchActions
 			{
 				if (!DataCache->InAttribute ||
 					!Settings->ConsumeProcessedAttributes.Test(DataCache->InAttribute) ||
-					PCGEx::IsPCGExAttribute(DataCache->FullName)) { continue; }
+					PCGEx::IsPCGExAttribute(DataCache->Identifier.Name)) { continue; }
 
 				PointDataFacade->Source->DeleteAttribute(DataCache->InAttribute->Name);
 			}

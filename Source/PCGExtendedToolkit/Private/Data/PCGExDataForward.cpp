@@ -121,7 +121,7 @@ namespace PCGExData
 				Identity.UnderlyingType, [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					TSharedPtr<TBuffer<T>> Reader = SourceDataFacade->GetReadable<T>(Identity.Name);
+					TSharedPtr<TBuffer<T>> Reader = SourceDataFacade->GetReadable<T>(Identity.Identifier);
 					TSharedPtr<TBuffer<T>> Writer = TargetDataFacade->GetWritable<T>(Reader->GetTypedInAttribute(), EBufferInit::Inherit);
 
 					if (!Reader || !Writer) { return; }
@@ -168,14 +168,22 @@ namespace PCGExData
 
 						// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 						// ReSharper disable once CppRedundantTemplateKeyword
-						const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
+						const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
 						if (!SourceAtt) { return; }
+
+						const T ForwardValue = SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 						TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::New);
 
-						const T ForwardValue = SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
-						TArray<T>& Values = *Writer->GetOutValues();
-						for (T& Value : Values) { Value = ForwardValue; }
+						if (TSharedPtr<TElementsBuffer<T>> ElementsWriter = StaticCastSharedPtr<TElementsBuffer<T>>(Writer))
+						{
+							TArray<T>& Values = *ElementsWriter->GetOutValues();
+							for (T& Value : Values) { Value = ForwardValue; }
+						}
+						else
+						{
+							Writer->GetMutable(0) = ForwardValue;
+						}
 					});
 			}
 
@@ -191,12 +199,12 @@ namespace PCGExData
 
 					// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 					// ReSharper disable once CppRedundantTemplateKeyword
-					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
+					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
 					if (!SourceAtt) { return; }
 
-					InTargetDataFacade->Source->DeleteAttribute(Identity.Name);
+					InTargetDataFacade->Source->DeleteAttribute(Identity.Identifier);
 					InTargetDataFacade->Source->FindOrCreateAttribute<T>(
-						Identity.Name,
+						Identity.Identifier,
 						SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex)),
 						SourceAtt->AllowsInterpolation(), true, true);
 				});
@@ -218,14 +226,22 @@ namespace PCGExData
 
 					// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 					// ReSharper disable once CppRedundantTemplateKeyword
-					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
+					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
 					if (!SourceAtt) { return; }
+
+					const T ForwardValue = SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 					TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::Inherit);
 
-					const T ForwardValue = SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
-					TArray<T>& Values = *Writer->GetOutValues();
-					for (int i : Indices) { Values[i] = ForwardValue; }
+					if (TSharedPtr<TElementsBuffer<T>> ElementsWriter = StaticCastSharedPtr<TElementsBuffer<T>>(Writer))
+					{
+						TArray<T>& Values = *ElementsWriter->GetOutValues();
+						for (T& Value : Values) { Value = ForwardValue; }
+					}
+					else
+					{
+						Writer->GetMutable(0) = ForwardValue;
+					}
 				});
 		}
 	}
@@ -245,12 +261,12 @@ namespace PCGExData
 
 					// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 					// ReSharper disable once CppRedundantTemplateKeyword
-					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
+					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
 					if (!SourceAtt) { return; }
 
-					InTargetMetadata->DeleteAttribute(Identity.Name);
+					InTargetMetadata->DeleteAttribute(Identity.Identifier);
 					InTargetMetadata->FindOrCreateAttribute<T>(
-						Identity.Name,
+						Identity.Identifier,
 						SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex)),
 						SourceAtt->AllowsInterpolation(), true, true);
 				});

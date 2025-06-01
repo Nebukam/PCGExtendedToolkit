@@ -109,20 +109,20 @@ namespace PCGExFindPointOnBounds
 					Identity.GetTypeId(), [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
-						const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Name);
-						const FPCGMetadataAttributeBase* OutAttributeBase = OutMetadata->GetMutableAttribute(Identity.Name);
+						const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Identifier);
+						const FPCGMetadataAttributeBase* OutAttributeBase = OutMetadata->GetMutableAttribute(Identity.Identifier);
 						FPCGMetadataAttribute<T>* OutAttribute = nullptr;
 
 						if (!OutAttributeBase)
 						{
 							OutAttribute = OutMetadata->FindOrCreateAttribute<T>(
-								Identity.Name,
+								Identity.Identifier,
 								InAttribute->GetValueFromItemKey(PCGDefaultValueKey),
 								InAttribute->AllowsInterpolation());
 						}
 						else
 						{
-							OutAttribute = OutMetadata->GetMutableTypedAttribute<T>(Identity.Name);
+							OutAttribute = OutMetadata->GetMutableTypedAttribute<T>(Identity.Identifier);
 						}
 
 						if (!OutAttribute) { return; }

@@ -136,19 +136,14 @@ namespace PCGEx
 
 	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
 	{
-		FName Name = NAME_None;
+		FPCGAttributeIdentifier Identifier = NAME_None;
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 		bool bAllowsInterpolation = true;
 
 		FAttributeIdentity() = default;
 
-		FAttributeIdentity(const FAttributeIdentity& Other)
-			: Name(Other.Name), UnderlyingType(Other.UnderlyingType), bAllowsInterpolation(Other.bAllowsInterpolation)
-		{
-		}
-
-		FAttributeIdentity(const FName InName, const EPCGMetadataTypes InUnderlyingType, const bool InAllowsInterpolation)
-			: Name(InName), UnderlyingType(InUnderlyingType), bAllowsInterpolation(InAllowsInterpolation)
+		FAttributeIdentity(const FPCGAttributeIdentifier& InIdentifier, const EPCGMetadataTypes InUnderlyingType, const bool InAllowsInterpolation)
+			: Identifier(InIdentifier), UnderlyingType(InUnderlyingType), bAllowsInterpolation(InAllowsInterpolation)
 		{
 		}
 
@@ -156,11 +151,11 @@ namespace PCGEx
 		bool IsA(const int16 InType) const { return GetTypeId() == InType; }
 		bool IsA(const EPCGMetadataTypes InType) const { return UnderlyingType == InType; }
 
-		FString GetDisplayName() const { return FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
-		bool operator==(const FAttributeIdentity& Other) const { return Name == Other.Name; }
+		FString GetDisplayName() const { return FString(Identifier.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
+		bool operator==(const FAttributeIdentity& Other) const { return Identifier == Other.Identifier; }
 
 		static void Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList = nullptr);
-		static void Get(const UPCGMetadata* InMetadata, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList = nullptr);
+		static void Get(const UPCGMetadata* InMetadata, TArray<FPCGAttributeIdentifier>& OutIdentifiers, TMap<FPCGAttributeIdentifier, FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList = nullptr);
 		static bool Get(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector, FAttributeIdentity& OutIdentity);
 
 		using FForEachFunc = std::function<void (const FAttributeIdentity&, const int32)>;
@@ -170,7 +165,7 @@ namespace PCGEx
 	class FAttributesInfos : public TSharedFromThis<FAttributesInfos>
 	{
 	public:
-		TMap<FName, int32> Map;
+		TMap<FPCGAttributeIdentifier, int32> Map;
 		TArray<FAttributeIdentity> Identities;
 		TArray<FPCGMetadataAttributeBase*> Attributes;
 
