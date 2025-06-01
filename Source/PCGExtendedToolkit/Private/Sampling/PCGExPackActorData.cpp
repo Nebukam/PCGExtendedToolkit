@@ -4,6 +4,7 @@
 #include "Sampling/PCGExPackActorData.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Elements/PCGExecuteBlueprint.h"
 #include "PCGExSubSystem.h"
 
 
