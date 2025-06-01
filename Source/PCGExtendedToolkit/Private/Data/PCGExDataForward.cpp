@@ -146,7 +146,7 @@ namespace PCGExData
 					using T = decltype(DummyValue);
 					TSharedPtr<TBuffer<T>> Reader = StaticCastSharedPtr<TBuffer<T>>(Readers[i]);
 					TSharedPtr<TBuffer<T>> Writer = StaticCastSharedPtr<TBuffer<T>>(Writers[i]);
-					Writer->GetMutable(TargetIndex) = Reader->Read(SourceIndex);
+					Writer->SetValue(TargetIndex, Reader->Read(SourceIndex));
 				});
 		}
 	}
@@ -175,14 +175,14 @@ namespace PCGExData
 
 						TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::New);
 
-						if (TSharedPtr<TElementsBuffer<T>> ElementsWriter = StaticCastSharedPtr<TElementsBuffer<T>>(Writer))
+						if (TSharedPtr<TArrayBuffer<T>> ElementsWriter = StaticCastSharedPtr<TArrayBuffer<T>>(Writer))
 						{
 							TArray<T>& Values = *ElementsWriter->GetOutValues();
 							for (T& Value : Values) { Value = ForwardValue; }
 						}
 						else
 						{
-							Writer->GetMutable(0) = ForwardValue;
+							Writer->SetValue(0, ForwardValue);
 						}
 					});
 			}
@@ -233,14 +233,14 @@ namespace PCGExData
 
 					TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::Inherit);
 
-					if (TSharedPtr<TElementsBuffer<T>> ElementsWriter = StaticCastSharedPtr<TElementsBuffer<T>>(Writer))
+					if (TSharedPtr<TArrayBuffer<T>> ElementsWriter = StaticCastSharedPtr<TArrayBuffer<T>>(Writer))
 					{
 						TArray<T>& Values = *ElementsWriter->GetOutValues();
 						for (T& Value : Values) { Value = ForwardValue; }
 					}
 					else
 					{
-						Writer->GetMutable(0) = ForwardValue;
+						Writer->SetValue(0, ForwardValue);
 					}
 				});
 		}

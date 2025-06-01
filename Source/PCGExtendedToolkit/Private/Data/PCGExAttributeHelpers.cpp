@@ -306,8 +306,8 @@ namespace PCGEx
 
 		for (const TPair<FPCGAttributeIdentifier, int32>& Pair : Map)
 		{
-			if (FilterFn(Pair.Key)) { continue; }
-			FilteredOutNames.Add(Pair.Key);
+			if (FilterFn(Pair.Key.Name)) { continue; }
+			FilteredOutNames.Add(Pair.Key.Name);
 		}
 
 		// Filter out identities & attributes

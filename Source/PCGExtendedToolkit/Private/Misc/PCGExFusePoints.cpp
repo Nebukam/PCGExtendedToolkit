@@ -142,8 +142,8 @@ namespace PCGExFusePoints
 		{
 			Transforms[Index].SetLocation(UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints));
 			UnionBlender->MergeSingle(Index, WeightedPoints);
-			if (IsUnionWriter) { IsUnionWriter->GetMutable(Index) = WeightedPoints.Num() > 1; }
-			if (UnionSizeWriter) { UnionSizeWriter->GetMutable(Index) = WeightedPoints.Num(); }
+			if (IsUnionWriter) { IsUnionWriter->SetValue(Index, WeightedPoints.Num() > 1); }
+			if (UnionSizeWriter) { UnionSizeWriter->SetValue(Index, WeightedPoints.Num()); }
 		}
 	}
 

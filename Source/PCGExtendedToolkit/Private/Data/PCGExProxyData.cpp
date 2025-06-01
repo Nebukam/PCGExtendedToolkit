@@ -293,7 +293,7 @@ namespace PCGExData
 									if (ExistingBuffer)
 									{
 										// This buffer is already set-up to be read from its output data
-										if (ExistingBuffer->IsReadingFromWrite()) { Buffer = ExistingBuffer; }
+										if (ExistingBuffer->ReadsFromOutput()) { Buffer = ExistingBuffer; }
 
 										if (!Buffer)
 										{

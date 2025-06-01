@@ -208,7 +208,7 @@ namespace PCGExFilterVtx
 			if (bTestResult) { ScopedPassNum->GetMutable(Scope)++; }
 			else { ScopedFailNum->GetMutable(Scope)++; }
 
-			if (TestResults) { TestResults->GetMutable(Node.PointIndex) = bTestResult; }
+			if (TestResults) { TestResults->SetValue(Node.PointIndex, bTestResult); }
 			else { Node.bValid = bTestResult; }
 		}
 	}

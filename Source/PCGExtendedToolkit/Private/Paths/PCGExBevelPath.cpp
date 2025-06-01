@@ -478,15 +478,15 @@ namespace PCGExBevelPath
 
 		if (EndpointsWriter)
 		{
-			EndpointsWriter->GetMutable(Bevel->StartOutputIndex) = true;
-			EndpointsWriter->GetMutable(Bevel->EndOutputIndex) = true;
+			EndpointsWriter->SetValue(Bevel->StartOutputIndex, true);
+			EndpointsWriter->SetValue(Bevel->EndOutputIndex, true);
 		}
 
-		if (StartPointWriter) { StartPointWriter->GetMutable(Bevel->StartOutputIndex) = true; }
+		if (StartPointWriter) { StartPointWriter->SetValue(Bevel->StartOutputIndex, true); }
 
-		if (EndPointWriter) { EndPointWriter->GetMutable(Bevel->EndOutputIndex) = true; }
+		if (EndPointWriter) { EndPointWriter->SetValue(Bevel->EndOutputIndex, true); }
 
-		if (SubdivisionWriter) { for (int i = 1; i <= Bevel->Subdivisions.Num(); i++) { SubdivisionWriter->GetMutable(Bevel->StartOutputIndex + i) = true; } }
+		if (SubdivisionWriter) { for (int i = 1; i <= Bevel->Subdivisions.Num(); i++) { SubdivisionWriter->SetValue(Bevel->StartOutputIndex + i, true); } }
 	}
 
 	void FProcessor::CompleteWork()

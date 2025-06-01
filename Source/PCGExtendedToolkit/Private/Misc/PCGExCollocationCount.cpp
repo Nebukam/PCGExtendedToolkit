@@ -84,11 +84,11 @@ namespace PCGExCollocationCount
 			const FVector Center = Transforms[Index].GetLocation();
 			const double Tolerance = ToleranceConstant;
 
-			CollocationWriter->GetMutable(Index) = 0;
+			CollocationWriter->SetValue(Index, 0);
 
 			if (LinearOccurencesWriter)
 			{
-				LinearOccurencesWriter->GetMutable(Index) = 0;
+				LinearOccurencesWriter->SetValue(Index, 0);
 				Octree->FindElementsWithBoundsTest(
 					FBoxCenterAndExtent(Center, FVector(Tolerance)),
 					[&](const PCGPointOctree::FPointRef& PointRef)
@@ -96,9 +96,9 @@ namespace PCGExCollocationCount
 						if (PointRef.Index == Index) { return; }
 						if (FVector::Dist(Center, Transforms[PointRef.Index].GetLocation()) > Tolerance) { return; }
 
-						CollocationWriter->GetMutable(Index) += 1;
+						CollocationWriter->SetValue(Index, 1);
 
-						if (PointRef.Index < Index) { LinearOccurencesWriter->GetMutable(Index) += 1; }
+						if (PointRef.Index < Index) { LinearOccurencesWriter->SetValue(Index, 1); }
 					});
 			}
 			else
@@ -110,7 +110,7 @@ namespace PCGExCollocationCount
 						if (PointRef.Index == Index) { return; }
 						if (FVector::Dist(Center, Transforms[PointRef.Index].GetLocation()) > Tolerance) { return; }
 
-						CollocationWriter->GetMutable(Index) += 1;
+						CollocationWriter->SetValue(Index, 1);
 					});
 			}
 		}

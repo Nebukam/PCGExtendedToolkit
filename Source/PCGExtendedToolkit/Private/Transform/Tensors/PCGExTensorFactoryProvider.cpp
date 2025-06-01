@@ -64,7 +64,7 @@ bool UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
 	EffectorsArray = GetEffectorsArray();
 
 	// Bulk of the work happens here
-	EffectorsArray->Init(InContext, this);
+	if (!EffectorsArray->Init(InContext, this)) { return false; }
 
 	InputDataFacade->Flush(); // Flush cached buffers
 	InputDataFacade.Reset();

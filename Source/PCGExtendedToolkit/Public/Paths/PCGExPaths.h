@@ -610,7 +610,7 @@ namespace PCGExPaths
 
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override
 		{
-			this->GetMutable(Edge.Start) = ProcessEdgeCallback(Path, Edge);
+			this->SetValue(Edge.Start, ProcessEdgeCallback(Path, Edge));
 		}
 	};
 

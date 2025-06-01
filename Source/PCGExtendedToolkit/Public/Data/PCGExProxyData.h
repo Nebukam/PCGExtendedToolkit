@@ -125,12 +125,14 @@ namespace PCGExData
 			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
 			if constexpr (!bSubSelection)
 			{
-				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { Buffer->GetMutable(Index) = Value; }
-				else { Buffer->GetMutable(Index) = PCGEx::Convert<T_WORKING, T_REAL>(Value); }
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { Buffer->SetValue(Index, Value); }
+				else { Buffer->SetValue(Index, PCGEx::Convert<T_WORKING, T_REAL>(Value)); }
 			}
 			else
 			{
-				SubSelection.template Set<T_REAL, T_WORKING>(Buffer->GetMutable(Index), Value);
+				T_REAL V = Buffer->GetValue(Index);
+				SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
+				Buffer->SetValue(Index, V);
 			}
 		}
 
@@ -140,10 +142,10 @@ namespace PCGExData
 			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
 			if constexpr (!bSubSelection)
 			{
-				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Buffer->GetConst(Index); }
-				else { return PCGEx::Convert<T_REAL, T_WORKING>(Buffer->GetConst(Index)); }
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Buffer->GetValue(Index); }
+				else { return PCGEx::Convert<T_REAL, T_WORKING>(Buffer->GetValue(Index)); }
 			}
-			else { return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->GetConst(Index)); }
+			else { return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->GetValue(Index)); }
 		}
 
 		virtual TSharedPtr<IBuffer> GetBuffer() const override { return Buffer; }

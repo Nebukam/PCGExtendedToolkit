@@ -119,8 +119,8 @@ bool PCGExGraph::BuildIndexedEdges(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
-	const TUniquePtr<PCGExData::TElementsBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TElementsBuffer<int64>>(EdgeIO.ToSharedRef(), Attr_PCGExEdgeIdx);
-	if (!EndpointsBuffer->PrepareRead()) { return false; }
+	const TUniquePtr<PCGExData::TArrayBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(EdgeIO.ToSharedRef(), Attr_PCGExEdgeIdx);
+	if (!EndpointsBuffer->InitForRead()) { return false; }
 
 	const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
 	const int32 EdgeIOIndex = EdgeIO->IOIndex;
@@ -481,20 +481,20 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					if (TSharedPtr<PCGExData::FUnionData> UnionData = ParentGraph->EdgesUnion->Get(EdgeMeta->RootIndex);
 						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, WeightedPoints); }
 
-#define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(EdgeIndex) = EdgeMeta->_ACCESSOR;}
+#define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->SetValue(EdgeIndex, EdgeMeta->_ACCESSOR);}
 					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)
 #undef PCGEX_EDGE_METADATA_OUTPUT
 				}
 			}
 
-			EdgeEndpointsWriter->GetMutable(EdgeIndex) = PCGEx::H64(NodeGUID(BaseGUID, E.Start), NodeGUID(BaseGUID, E.End));
+			EdgeEndpointsWriter->SetValue(EdgeIndex, PCGEx::H64(NodeGUID(BaseGUID, E.Start), NodeGUID(BaseGUID, E.End)));
 
 			if (Builder->OutputDetails->bWriteEdgePosition)
 			{
 				Builder->OutputDetails->BasicEdgeSolidification.Mutate(EdgePt, StartPt, EndPt, Builder->OutputDetails->EdgePosition);
 			}
 
-			if (EdgeLength) { EdgeLength->GetMutable(EdgeIndex) = FVector::Dist(VtxTransforms[StartPt.Index].GetLocation(), VtxTransforms[EndPt.Index].GetLocation()); }
+			if (EdgeLength) { EdgeLength->SetValue(EdgeIndex, FVector::Dist(VtxTransforms[StartPt.Index].GetLocation(), VtxTransforms[EndPt.Index].GetLocation())); }
 
 			if (EdgeSeeds[EdgeIndex] == 0 || ParentGraph->bRefreshEdgeSeed) { EdgeSeeds[EdgeIndex] = PCGExRandom::ComputeSpatialSeed(EdgePt.GetLocation(), SeedOffset); }
 		}
@@ -1095,7 +1095,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::VtxEndpoints);
 
 			const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Attr_PCGExVtxIdx, 0, false, PCGExData::EBufferInit::New);
-			const TSharedPtr<PCGExData::TElementsBuffer<int64>> ElementsVtxEndpointWriter = StaticCastSharedPtr<PCGExData::TElementsBuffer<int64>>(VtxEndpointWriter);
+			const TSharedPtr<PCGExData::TArrayBuffer<int64>> ElementsVtxEndpointWriter = StaticCastSharedPtr<PCGExData::TArrayBuffer<int64>>(VtxEndpointWriter);
 			const uint32 BaseGUID = NodeDataFacade->GetOut()->GetUniqueID();
 
 			TArray<int64>& VtxEndpoints = *ElementsVtxEndpointWriter->GetOutValues().Get();
@@ -1114,7 +1114,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			MACRO(IsIntersector, bool, false, IsIntersector()) \
 			MACRO(Crossing, bool, false, IsCrossing())
 #define PCGEX_NODE_METADATA_DECL(_NAME, _TYPE, _DEFAULT, _ACCESSOR) const TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Buffer = MetadataDetails->bWrite##_NAME ? NodeDataFacade->GetWritable<_TYPE>(MetadataDetails->_NAME##AttributeName, _DEFAULT, true, PCGExData::EBufferInit::New) : nullptr;
-#define PCGEX_NODE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(PointIndex) = NodeMeta->_ACCESSOR;}
+#define PCGEX_NODE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->SetValue(PointIndex, NodeMeta->_ACCESSOR);}
 
 			PCGEX_FOREACH_NODE_METADATA(PCGEX_NODE_METADATA_DECL)
 
@@ -1229,8 +1229,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		PCGEx::InitArray(OutAdjacency, InPointIO->GetNum());
 		OutIndices.Empty();
 
-		const TUniquePtr<PCGExData::TElementsBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TElementsBuffer<int64>>(InPointIO.ToSharedRef(), Attr_PCGExVtxIdx);
-		if (!IndexBuffer->PrepareRead()) { return false; }
+		const TUniquePtr<PCGExData::TArrayBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(InPointIO.ToSharedRef(), Attr_PCGExVtxIdx);
+		if (!IndexBuffer->InitForRead()) { return false; }
 
 		const TArray<int64>& Indices = *IndexBuffer->GetInValues().Get();
 

@@ -133,9 +133,9 @@ namespace PCGExOrient
 			if (Path->IsValidEdgeIndex(Index)) { Path->ComputeEdgeExtra(Index); }
 
 			const FTransform OutT = Orient->ComputeOrientation(PointDataFacade->GetOutPoint(Index), PointFilterCache[Index] ? -1 : 1);
-			if (Settings->bOutputDot) { DotWriter->GetMutable(Index) = FVector::DotProduct(Path->DirToPrevPoint(Index) * -1, Path->DirToNextPoint(Index)); }
+			if (Settings->bOutputDot) { DotWriter->SetValue(Index, FVector::DotProduct(Path->DirToPrevPoint(Index) * -1, Path->DirToNextPoint(Index))); }
 
-			if (TransformWriter) { TransformWriter->GetMutable(Index) = OutT; }
+			if (TransformWriter) { TransformWriter->SetValue(Index, OutT); }
 			else { OutTransform[Index] = OutT; }
 		}
 	}

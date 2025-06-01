@@ -76,14 +76,14 @@ struct FPCGExSimpleEdgeOutputSettings
 
 	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir) const
 	{
-		if (DirWriter) { DirWriter->GetMutable(EntryIndex) = bInvertDirection ? InDir * -1 : InDir; }
-		if (LengthWriter) { LengthWriter->GetMutable(EntryIndex) = InLength; }
+		if (DirWriter) { DirWriter->SetValue(EntryIndex, bInvertDirection ? InDir * -1 : InDir); }
+		if (LengthWriter) { LengthWriter->SetValue(EntryIndex, InLength); }
 	}
 
 	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const
 	{
-		if (DirWriter) { DirWriter->GetMutable(EntryIndex) = bInvertDirection ? Data.Direction * -1 : Data.Direction; }
-		if (LengthWriter) { LengthWriter->GetMutable(EntryIndex) = Data.Length; }
+		if (DirWriter) { DirWriter->SetValue(EntryIndex, bInvertDirection ? Data.Direction * -1 : Data.Direction); }
+		if (LengthWriter) { LengthWriter->SetValue(EntryIndex, Data.Length); }
 	}
 };
 
@@ -152,22 +152,22 @@ struct FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
 	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex, const int32 NeighborCount) const
 	{
 		FPCGExSimpleEdgeOutputSettings::Set(EntryIndex, InLength, InDir);
-		if (EIdxWriter) { EIdxWriter->GetMutable(EntryIndex) = EIndex; }
-		if (VIdxWriter) { VIdxWriter->GetMutable(EntryIndex) = VIndex; }
-		if (NCountWriter) { NCountWriter->GetMutable(EntryIndex) = NeighborCount; }
+		if (EIdxWriter) { EIdxWriter->SetValue(EntryIndex, EIndex); }
+		if (VIdxWriter) { VIdxWriter->SetValue(EntryIndex, VIndex); }
+		if (NCountWriter) { NCountWriter->SetValue(EntryIndex, NeighborCount); }
 	}
 
 	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const override
 	{
 		FPCGExSimpleEdgeOutputSettings::Set(EntryIndex, Data);
-		if (EIdxWriter) { EIdxWriter->GetMutable(EntryIndex) = Data.EdgeIndex; }
-		if (VIdxWriter) { VIdxWriter->GetMutable(EntryIndex) = Data.NodePointIndex; }
+		if (EIdxWriter) { EIdxWriter->SetValue(EntryIndex, Data.EdgeIndex); }
+		if (VIdxWriter) { VIdxWriter->SetValue(EntryIndex, Data.NodePointIndex); }
 	}
 
 	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data, const int32 NeighborCount)
 	{
 		Set(EntryIndex, Data);
-		if (NCountWriter) { NCountWriter->GetMutable(EntryIndex) = NeighborCount; }
+		if (NCountWriter) { NCountWriter->SetValue(EntryIndex, NeighborCount); }
 	}
 };
 

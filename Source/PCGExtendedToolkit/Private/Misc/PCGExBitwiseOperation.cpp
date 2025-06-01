@@ -89,7 +89,12 @@ namespace PCGExBitwiseOperation
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BitwiseOperation::ProcessPoints);
 		
-		PCGEX_SCOPE_LOOP(Index) { PCGExBitmask::Do(Op, Writer->GetMutable(Index), Mask->Read(Index)); }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			int64 OutValue = Writer->GetValue(Index);
+			PCGExBitmask::Do(Op, OutValue, Mask->Read(Index));
+			Writer->SetValue(Index, OutValue);
+		}
 	}
 
 	void FProcessor::CompleteWork()

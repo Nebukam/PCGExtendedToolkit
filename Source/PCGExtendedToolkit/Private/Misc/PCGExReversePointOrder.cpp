@@ -191,18 +191,18 @@ namespace PCGExReversePointOrder
 					{
 						PCGEX_SCOPE_LOOP(Index)
 						{
-							const RawT FirstValue = FirstWriter->GetConst(Index);
-							FirstWriter->GetMutable(Index) = PCGExMath::DblMult(SecondWriter->GetConst(Index), -1);
-							SecondWriter->GetMutable(Index) = PCGExMath::DblMult(FirstValue, -1);
+							const RawT FirstValue = FirstWriter->GetValue(Index);
+							FirstWriter->SetValue(Index, PCGExMath::DblMult(SecondWriter->GetValue(Index), -1));
+							SecondWriter->SetValue(Index, PCGExMath::DblMult(FirstValue, -1));
 						}
 					}
 					else
 					{
 						PCGEX_SCOPE_LOOP(Index)
 						{
-							const RawT FirstValue = FirstWriter->GetConst(Index);
-							FirstWriter->GetMutable(Index) = SecondWriter->GetConst(Index);
-							SecondWriter->GetMutable(Index) = FirstValue;
+							const RawT FirstValue = FirstWriter->GetValue(Index);
+							FirstWriter->SetValue(Index, SecondWriter->GetValue(Index));
+							SecondWriter->SetValue(Index, FirstValue);
 						}
 					}
 				});

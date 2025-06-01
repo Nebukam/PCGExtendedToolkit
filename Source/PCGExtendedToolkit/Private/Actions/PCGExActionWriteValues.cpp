@@ -51,7 +51,7 @@ void FPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index)
 			AttributeBase->GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				static_cast<PCGExData::TBuffer<T>*>(SuccessWriters[i].Get())->GetMutable(Index) = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey);
+				static_cast<PCGExData::TBuffer<T>*>(SuccessWriters[i].Get())->SetValue(Index, static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey));
 			});
 	}
 }
@@ -65,7 +65,7 @@ void FPCGExActionWriteValuesOperation::OnMatchFail(int32 Index)
 			AttributeBase->GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				static_cast<PCGExData::TBuffer<T>*>(FailWriters[i].Get())->GetMutable(Index) = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey);
+				static_cast<PCGExData::TBuffer<T>*>(FailWriters[i].Get())->SetValue(Index, static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey));
 			});
 	}
 }

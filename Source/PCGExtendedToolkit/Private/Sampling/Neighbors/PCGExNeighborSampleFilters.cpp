@@ -116,21 +116,21 @@ void FPCGExNeighborSampleFilters::FinalizeNode(const PCGExCluster::FNode& Target
 	const int32 WriteIndex = TargetNode.PointIndex;
 	const int32 ReadIndex = TargetNode.Index;
 
-	if (NumInsideBuffer) { NumInsideBuffer->GetMutable(WriteIndex) = Inside[ReadIndex]; }
-	else if (NormalizedNumInsideBuffer) { NormalizedNumInsideBuffer->GetMutable(WriteIndex) = static_cast<double>(Inside[ReadIndex]) / static_cast<double>(Count); }
+	if (NumInsideBuffer) { NumInsideBuffer->SetValue(WriteIndex, Inside[ReadIndex]); }
+	else if (NormalizedNumInsideBuffer) { NormalizedNumInsideBuffer->SetValue(WriteIndex, static_cast<double>(Inside[ReadIndex]) / static_cast<double>(Count)); }
 
-	if (NumOutsideBuffer) { NumOutsideBuffer->GetMutable(WriteIndex) = Outside[ReadIndex]; }
-	else if (NormalizedNumOutsideBuffer) { NormalizedNumOutsideBuffer->GetMutable(WriteIndex) = static_cast<double>(Outside[ReadIndex]) / static_cast<double>(Count); }
+	if (NumOutsideBuffer) { NumOutsideBuffer->SetValue(WriteIndex, Outside[ReadIndex]); }
+	else if (NormalizedNumOutsideBuffer) { NormalizedNumOutsideBuffer->SetValue(WriteIndex, static_cast<double>(Outside[ReadIndex]) / static_cast<double>(Count)); }
 
-	if (TotalNumBuffer) { TotalNumBuffer->GetMutable(WriteIndex) = Count; }
+	if (TotalNumBuffer) { TotalNumBuffer->SetValue(WriteIndex, Count); }
 
-	if (WeightInsideBuffer) { WeightInsideBuffer->GetMutable(WriteIndex) = InsideWeight[ReadIndex]; }
-	else if (NormalizedWeightInsideBuffer) { NormalizedWeightInsideBuffer->GetMutable(WriteIndex) = InsideWeight[ReadIndex] / TotalWeight; }
+	if (WeightInsideBuffer) { WeightInsideBuffer->SetValue(WriteIndex, InsideWeight[ReadIndex]); }
+	else if (NormalizedWeightInsideBuffer) { NormalizedWeightInsideBuffer->SetValue(WriteIndex, InsideWeight[ReadIndex] / TotalWeight); }
 
-	if (WeightOutsideBuffer) { WeightOutsideBuffer->GetMutable(WriteIndex) = Outside[ReadIndex]; }
-	else if (NormalizedWeightOutsideBuffer) { NormalizedWeightOutsideBuffer->GetMutable(WriteIndex) = OutsideWeight[ReadIndex] / TotalWeight; }
+	if (WeightOutsideBuffer) { WeightOutsideBuffer->SetValue(WriteIndex, Outside[ReadIndex]); }
+	else if (NormalizedWeightOutsideBuffer) { NormalizedWeightOutsideBuffer->SetValue(WriteIndex, OutsideWeight[ReadIndex] / TotalWeight); }
 
-	if (TotalWeightBuffer) { TotalWeightBuffer->GetMutable(WriteIndex) = TotalWeight; }
+	if (TotalWeightBuffer) { TotalWeightBuffer->SetValue(WriteIndex, TotalWeight); }
 }
 
 void FPCGExNeighborSampleFilters::CompleteOperation()

@@ -177,7 +177,7 @@ namespace PCGExUberFilter
 				if (bPass) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
 				else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
 
-				Results->GetMutable(Index) = bPass ? !Settings->bSwap : Settings->bSwap;
+				Results->SetValue(Index, bPass ? !Settings->bSwap : Settings->bSwap);
 			}
 		}
 	}

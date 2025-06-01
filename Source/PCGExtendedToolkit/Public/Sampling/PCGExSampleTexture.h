@@ -147,13 +147,14 @@ namespace PCGExSampleTexture
 
 			SampledValue *= Config.Scale;
 
-			T& V = Buffer->GetMutable(Point.Index);
+			T V = Buffer->GetValue(Point.Index);
 
 			if constexpr (
 				std::is_same_v<T, float> ||
 				std::is_same_v<T, double>)
 			{
 				for (const int32 C : Config.OutChannels) { V = SampledValue[C]; }
+				Buffer->SetValue(Point.Index, V);
 				return true;
 			}
 			else if constexpr (
@@ -162,6 +163,7 @@ namespace PCGExSampleTexture
 				std::is_same_v<T, FVector4>)
 			{
 				for (int i = 0; i < Config.OutChannels.Num(); i++) { V[i] = SampledValue[Config.OutChannels[i]]; }
+				Buffer->SetValue(Point.Index, V);
 				return true;
 			}
 			else
@@ -193,7 +195,7 @@ namespace PCGExSampleTexture
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-		
+
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

@@ -137,7 +137,7 @@ namespace PCGExBuildDelaunay
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BuildDelaunayGraph::ProcessPoints);
 		
-		PCGEX_SCOPE_LOOP(Index) { HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(Index); }
+		PCGEX_SCOPE_LOOP(Index) { HullMarkPointWriter->SetValue(Index, Delaunay->DelaunayHull.Contains(Index)); }
 	}
 
 	void FProcessor::CompleteWork()
@@ -203,8 +203,8 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TElementsBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
-			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
+			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TArrayBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
+			HullBuffer->InitForWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 				for (int i = 0; i < NumSites; i++) { OutValues[i] = static_cast<bool>(Delaunay->Sites[i].bOnHull); }
@@ -253,8 +253,8 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TElementsBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
-			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
+			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TArrayBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
+			HullBuffer->InitForWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 				for (int i = 0; i < NumSites; i++) { OutValues[i] = static_cast<bool>(Delaunay->Sites[i].bOnHull); }

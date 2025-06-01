@@ -278,27 +278,41 @@ namespace PCGExData
 		return true;
 	}
 
-	void FReadableBufferConfig::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope) const
+	void FReadableBufferConfig::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope)
 	{
-		PCGEx::ExecuteWithRightType(
-			Identity.UnderlyingType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				TSharedPtr<TBuffer<T>> Reader = nullptr;
-				switch (Mode)
+		TSharedPtr<IBuffer> Reader = nullptr;
+
+		{
+			FReadScopeLock ReadScopeLock(ReaderLock);
+			Reader = WeakReader.Pin();
+		}
+
+		if (!Reader)
+		{
+			PCGEx::ExecuteWithRightType(
+				Identity.UnderlyingType, [&](auto DummyValue)
 				{
-				case EBufferPreloadType::RawAttribute:
-					Reader = InFacade->GetScopedReadable<T>(Identity.Identifier);
-					break;
-				case EBufferPreloadType::BroadcastFromName:
-					Reader = InFacade->GetScopedBroadcaster<T>(Identity.Identifier);
-					break;
-				case EBufferPreloadType::BroadcastFromSelector:
-					Reader = InFacade->GetScopedBroadcaster<T>(Selector);
-					break;
-				}
-				Reader->Fetch(Scope);
-			});
+					using T = decltype(DummyValue);
+					FWriteScopeLock WriteScopeLock(ReaderLock);
+
+					switch (Mode)
+					{
+					case EBufferPreloadType::RawAttribute:
+						Reader = InFacade->GetScopedReadable<T>(Identity.Identifier);
+						break;
+					case EBufferPreloadType::BroadcastFromName:
+						Reader = InFacade->GetScopedBroadcaster<T>(Identity.Identifier);
+						break;
+					case EBufferPreloadType::BroadcastFromSelector:
+						Reader = InFacade->GetScopedBroadcaster<T>(Selector);
+						break;
+					}
+
+					WeakReader = Reader;
+				});
+		}
+
+		Reader->Fetch(Scope);
 	}
 
 	void FReadableBufferConfig::Read(const TSharedRef<FFacade>& InFacade) const
@@ -362,9 +376,9 @@ namespace PCGExData
 		}
 	}
 
-	void FFacadePreloader::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope) const
+	void FFacadePreloader::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope)
 	{
-		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs) { ExistingConfig.Fetch(InFacade, Scope); }
+		for (FReadableBufferConfig& ExistingConfig : BufferConfigs) { ExistingConfig.Fetch(InFacade, Scope); }
 	}
 
 	void FFacadePreloader::Read(const TSharedRef<FFacade>& InFacade, const int32 ConfigIndex) const

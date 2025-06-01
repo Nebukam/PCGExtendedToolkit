@@ -341,7 +341,7 @@ namespace PCGExBuildVoronoi2D
 					PCGEX_SCOPE_LOOP(Index)
 					{
 						const bool bIsWithinBounds = This->IsVtxValid[Index];
-						if (This->OpenSiteWriter) { This->OpenSiteWriter->GetMutable(Index) = bIsWithinBounds; }
+						if (This->OpenSiteWriter) { This->OpenSiteWriter->SetValue(Index, bIsWithinBounds); }
 						if (This->DelaunaySitesInfluenceCount[Index] == 0) { continue; }
 						OutTransforms[Index].SetLocation(This->DelaunaySitesLocations[Index] / This->DelaunaySitesInfluenceCount[Index]);
 					}

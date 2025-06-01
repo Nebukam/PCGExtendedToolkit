@@ -140,7 +140,7 @@ void UPCGExCustomActorDataPacker::PreloadObjectPaths(const FName& InAttributeNam
 
 	if (Identity->UnderlyingType == EPCGMetadataTypes::String)
 	{
-		if (TSharedPtr<PCGExData::TElementsBuffer<FString>> Buffer = ReadBuffers->GetBuffer<FString>(InAttributeName))
+		if (TSharedPtr<PCGExData::TArrayBuffer<FString>> Buffer = ReadBuffers->GetBuffer<FString>(InAttributeName))
 		{
 			const TArray<FString>& Values = *Buffer->GetInValues().Get();
 			for (const FString& V : Values) { RequiredAssetsPaths.Add(FSoftObjectPath(V)); }
@@ -149,7 +149,7 @@ void UPCGExCustomActorDataPacker::PreloadObjectPaths(const FName& InAttributeNam
 
 	if (Identity->UnderlyingType == EPCGMetadataTypes::SoftObjectPath)
 	{
-		if (TSharedPtr<PCGExData::TElementsBuffer<FSoftObjectPath>> Buffer = ReadBuffers->GetBuffer<FSoftObjectPath>(InAttributeName))
+		if (TSharedPtr<PCGExData::TArrayBuffer<FSoftObjectPath>> Buffer = ReadBuffers->GetBuffer<FSoftObjectPath>(InAttributeName))
 		{
 			const TArray<FSoftObjectPath>& Values = *Buffer->GetInValues().Get();
 			for (const FSoftObjectPath& V : Values) { RequiredAssetsPaths.Add(V); }

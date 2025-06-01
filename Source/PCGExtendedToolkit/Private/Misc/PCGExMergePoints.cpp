@@ -105,7 +105,7 @@ namespace PCGExMergePoints
 							return;
 						}
 
-						for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->GetMutable(i) = Value; }
+						for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, Value); }
 					});
 
 				if (!bTryBroadcast) { continue; }
@@ -135,7 +135,7 @@ namespace PCGExMergePoints
 							return;
 						}
 
-						for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->GetMutable(i) = Value; }
+						for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, Value); }
 					});
 
 				if (!bTryBroadcast) { continue; }
@@ -175,7 +175,7 @@ namespace PCGExMergePoints
 
 			if (!Buffer) { continue; }
 
-			for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->GetMutable(i) = true; }
+			for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, true); }
 		}
 	}
 

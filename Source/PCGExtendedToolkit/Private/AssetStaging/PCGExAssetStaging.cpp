@@ -289,13 +289,13 @@ namespace PCGExAssetStaging
 				return;
 			}
 
-			if (PathWriter) { PathWriter->GetMutable(Index) = FSoftObjectPath{}; }
-			else { HashWriter->GetMutable(Index) = -1; }
+			if (PathWriter) { PathWriter->SetValue(Index, FSoftObjectPath{}); }
+			else { HashWriter->SetValue(Index, -1); }
 
 			if (bOutputWeight)
 			{
-				if (WeightWriter) { WeightWriter->GetMutable(Index) = -1; }
-				else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = -1; }
+				if (WeightWriter) { WeightWriter->SetValue(Index, -1); }
+				else if (NormalizedWeightWriter) { NormalizedWeightWriter->SetValue(Index, -1); }
 			}
 
 			if (Context->bPickMaterials) { MaterialPick[Index] = -1; }
@@ -345,13 +345,13 @@ namespace PCGExAssetStaging
 			{
 				double Weight = bNormalizedWeight ? static_cast<double>(Entry->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : Entry->Weight;
 				if (bOneMinusWeight) { Weight = 1 - Weight; }
-				if (WeightWriter) { WeightWriter->GetMutable(Index) = Weight; }
-				if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = Weight; }
+				if (WeightWriter) { WeightWriter->SetValue(Index, Weight); }
+				if (NormalizedWeightWriter) { NormalizedWeightWriter->SetValue(Index, Weight); }
 				else { Densities[Index] = Weight; }
 			}
 
-			if (PathWriter) { PathWriter->GetMutable(Index) = Entry->Staging.Path; }
-			else { HashWriter->GetMutable(Index) = Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Entry->Staging.InternalIndex); }
+			if (PathWriter) { PathWriter->SetValue(Index, Entry->Staging.Path); }
+			else { HashWriter->SetValue(Index, Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Entry->Staging.InternalIndex)); }
 
 			FBox OutBounds = Entry->Staging.Bounds;
 			PCGExData::FProxyPoint ProxyPoint(MutablePoint);
@@ -435,7 +435,7 @@ namespace PCGExAssetStaging
 			if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Single)
 			{
 				if (!MaterialWriters.IsValidIndex(Entry->SlotIndex)) { continue; }
-				MaterialWriters[Entry->SlotIndex]->GetMutable(Index) = Entry->MaterialOverrideVariants[Pick].Material.ToSoftObjectPath();
+				MaterialWriters[Entry->SlotIndex]->SetValue(Index, Entry->MaterialOverrideVariants[Pick].Material.ToSoftObjectPath());
 			}
 			else if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Multi)
 			{
@@ -447,7 +447,7 @@ namespace PCGExAssetStaging
 
 					const int32 SlotIndex = SlotEntry.SlotIndex == -1 ? 0 : SlotEntry.SlotIndex;
 					if (!MaterialWriters.IsValidIndex(SlotIndex)) { continue; }
-					MaterialWriters[SlotIndex]->GetMutable(Index) = SlotEntry.Material.ToSoftObjectPath();
+					MaterialWriters[SlotIndex]->SetValue(Index, SlotEntry.Material.ToSoftObjectPath());
 				}
 			}
 		}

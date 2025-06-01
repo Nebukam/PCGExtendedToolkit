@@ -137,22 +137,22 @@ void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TA
 
 		if (Config.SignOutputMode != EPCGExVtxAmplitudeSignOutput::Sign)
 		{
-			AmpSignBuffer->GetMutable(Node.PointIndex) = Config.bAbsoluteSign ? FMath::Abs(Sign) : Sign;
+			AmpSignBuffer->SetValue(Node.PointIndex, Config.bAbsoluteSign ? FMath::Abs(Sign) : Sign);
 		}
 		else
 		{
-			AmpSignBuffer->GetMutable(Node.PointIndex) = Config.bAbsoluteSign ? FMath::Abs(FMath::Sign(Sign)) : FMath::Sign(Sign);
+			AmpSignBuffer->SetValue(Node.PointIndex, Config.bAbsoluteSign ? FMath::Abs(FMath::Sign(Sign)) : FMath::Sign(Sign));
 		}
 	}
 
-	if (AmpRangeBuffer) { AmpRangeBuffer->GetMutable(Node.PointIndex) = Config.bAbsoluteRange ? PCGExMath::Abs(AmplitudeRange) : AmplitudeRange; }
-	if (AmpRangeLengthBuffer) { AmpRangeLengthBuffer->GetMutable(Node.PointIndex) = AmplitudeRange.Length(); }
+	if (AmpRangeBuffer) { AmpRangeBuffer->SetValue(Node.PointIndex, Config.bAbsoluteRange ? PCGExMath::Abs(AmplitudeRange) : AmplitudeRange); }
+	if (AmpRangeLengthBuffer) { AmpRangeLengthBuffer->SetValue(Node.PointIndex, AmplitudeRange.Length()); }
 
-	if (MinAmpLengthBuffer) { AmpRangeLengthBuffer->GetMutable(Node.PointIndex) = MinAmplitude.Length(); }
-	if (MinAmpBuffer) { MinAmpBuffer->GetMutable(Node.PointIndex) = MinAmplitude; }
+	if (MinAmpLengthBuffer) { AmpRangeLengthBuffer->SetValue(Node.PointIndex,MinAmplitude.Length()); }
+	if (MinAmpBuffer) { MinAmpBuffer->SetValue(Node.PointIndex, MinAmplitude); }
 
-	if (MaxAmpLengthBuffer) { MaxAmpLengthBuffer->GetMutable(Node.PointIndex) = MaxAmplitude.Length(); }
-	if (MaxAmpBuffer) { MaxAmpBuffer->GetMutable(Node.PointIndex) = MaxAmplitude; }
+	if (MaxAmpLengthBuffer) { MaxAmpLengthBuffer->SetValue(Node.PointIndex, MaxAmplitude.Length()); }
+	if (MaxAmpBuffer) { MaxAmpBuffer->SetValue(Node.PointIndex, MaxAmplitude); }
 }
 
 #if WITH_EDITOR

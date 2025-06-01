@@ -97,11 +97,11 @@ namespace PCGExWriteVtxProperties
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
 
-			if (VtxEdgeCountWriter) { VtxEdgeCountWriter->GetMutable(Node.PointIndex) = Node.Num(); }
+			if (VtxEdgeCountWriter) { VtxEdgeCountWriter->SetValue(Node.PointIndex, Node.Num()); }
 
 			TArray<PCGExCluster::FAdjacencyData> Adjacency;
 			GetAdjacencyData(Cluster.Get(), Node, Adjacency);
-			if (VtxNormalWriter) { Node.ComputeNormal(Cluster.Get(), Adjacency, VtxNormalWriter->GetMutable(Node.PointIndex)); }
+			if (VtxNormalWriter) { VtxNormalWriter->SetValue(Node.PointIndex, Node.ComputeNormal(Cluster.Get(), Adjacency)); }
 
 			for (const TSharedPtr<FPCGExVtxPropertyOperation>& Op : Operations) { Op->ProcessNode(Node, Adjacency); }
 		}

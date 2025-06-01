@@ -39,17 +39,13 @@ namespace PCGExCluster
 		return Centroid;
 	}
 
-	void FNode::ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData, FVector& OutNormal) const
+	FVector FNode::ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData) const
 	{
 		const int32 NumNeighbors = AdjacencyData.Num();
 
-		OutNormal = FVector::ZeroVector;
+		FVector OutNormal = FVector::ZeroVector;
 
-		if (AdjacencyData.IsEmpty())
-		{
-			OutNormal = FVector::UpVector;
-			return;
-		}
+		if (AdjacencyData.IsEmpty()) { return OutNormal; }
 
 		for (const FAdjacencyData& A : AdjacencyData)
 		{
@@ -58,6 +54,8 @@ namespace PCGExCluster
 		}
 
 		OutNormal /= NumNeighbors;
+
+		return OutNormal;
 	}
 
 	int32 FNode::ValidEdges(const FCluster* InCluster)
@@ -200,8 +198,8 @@ namespace PCGExCluster
 		Nodes->Empty();
 		Edges->Empty();
 
-		const TUniquePtr<PCGExData::TElementsBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TElementsBuffer<int64>>(PinnedEdgesIO.ToSharedRef(), PCGExGraph::Attr_PCGExEdgeIdx);
-		if (!EndpointsBuffer->PrepareRead()) { return false; }
+		const TUniquePtr<PCGExData::TArrayBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(PinnedEdgesIO.ToSharedRef(), PCGExGraph::Attr_PCGExEdgeIdx);
+		if (!EndpointsBuffer->InitForRead()) { return false; }
 
 		NumRawVtx = InNodePoints->GetNumPoints();
 		NumRawEdges = PinnedEdgesIO->GetNum();

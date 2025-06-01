@@ -13,11 +13,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-
-
-
-
-
 #include "PCGExIntersections.generated.h"
 
 #define PCGEX_FOREACH_FIELD_INTERSECTION(MACRO)\
@@ -125,21 +120,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 	void SetIsInside(const int32 PointIndex, const bool bIsInside, const int32 BoundIndex) const
 	{
 		if (InsideForwardHandler && bIsInside) { InsideForwardHandler->Forward(BoundIndex, PointIndex); }
-		if (IsInsideWriter) { IsInsideWriter->GetMutable(PointIndex) = bIsInside; }
+		if (IsInsideWriter) { IsInsideWriter->SetValue(PointIndex, bIsInside); }
 	}
 
 	void SetIsInside(const int32 PointIndex, const bool bIsInside) const
 	{
-		if (IsInsideWriter) { IsInsideWriter->GetMutable(PointIndex) = bIsInside; }
+		if (IsInsideWriter) { IsInsideWriter->SetValue(PointIndex, bIsInside); }
 	}
 
 	void SetIntersection(const int32 PointIndex, const FVector& Normal, const int32 BoundIndex) const
 	{
 		if (IntersectionForwardHandler) { IntersectionForwardHandler->Forward(BoundIndex, PointIndex); }
 
-		if (IsIntersectionWriter) { IsIntersectionWriter->GetMutable(PointIndex) = true; }
-		if (NormalWriter) { NormalWriter->GetMutable(PointIndex) = Normal; }
-		if (BoundIndexWriter) { BoundIndexWriter->GetMutable(PointIndex) = BoundIndex; }
+		if (IsIntersectionWriter) { IsIntersectionWriter->SetValue(PointIndex, true); }
+		if (NormalWriter) { NormalWriter->SetValue(PointIndex, Normal); }
+		if (BoundIndexWriter) { BoundIndexWriter->SetValue(PointIndex, BoundIndex); }
 	}
 };
 

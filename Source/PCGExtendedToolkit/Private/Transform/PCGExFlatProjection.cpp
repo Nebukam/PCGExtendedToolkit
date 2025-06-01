@@ -116,7 +116,7 @@ namespace PCGExFlatProjection
 		{
 			if (bWriteAttribute)
 			{
-				PCGEX_SCOPE_LOOP(Index) { TransformWriter->GetMutable(Index) = OutTransforms[Index]; }
+				PCGEX_SCOPE_LOOP(Index) { TransformWriter->SetValue(Index, OutTransforms[Index]); }
 			}
 
 			if (bProjectLocalTransform)

@@ -265,12 +265,12 @@ namespace PCGExPathSplineMesh
 
 		auto InvalidPoint = [&](const int32 Index)
 		{
-			PathWriter->GetMutable(Index) = FSoftObjectPath{};
+			PathWriter->SetValue(Index, FSoftObjectPath{});
 
 			if (bOutputWeight)
 			{
-				if (WeightWriter) { WeightWriter->GetMutable(Index) = -1; }
-				else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = -1; }
+				if (WeightWriter) { WeightWriter->SetValue(Index, -1); }
+				else if (NormalizedWeightWriter) { NormalizedWeightWriter->SetValue(Index, -1); }
 				else { Density[Index] = 0; }
 			}
 		};
@@ -322,12 +322,12 @@ namespace PCGExPathSplineMesh
 			{
 				double Weight = bNormalizedWeight ? static_cast<double>(MeshEntry->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : MeshEntry->Weight;
 				if (bOneMinusWeight) { Weight = 1 - Weight; }
-				if (WeightWriter) { WeightWriter->GetMutable(Index) = Weight; }
-				else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = Weight; }
+				if (WeightWriter) { WeightWriter->SetValue(Index, Weight); }
+				else if (NormalizedWeightWriter) { NormalizedWeightWriter->SetValue(Index, Weight); }
 				else { Density[Index] = Weight; }
 			}
 
-			PathWriter->GetMutable(Index) = MeshEntry->Staging.Path;
+			PathWriter->SetValue(Index, MeshEntry->Staging.Path);
 
 			//
 

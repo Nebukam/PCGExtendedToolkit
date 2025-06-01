@@ -241,7 +241,7 @@ namespace PCGEx
 	static FName GetSelectorFullName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 	{
 		if (!InData) { return FName(TEXT("NULL_DATA")); }
-
+		
 		if constexpr (bInitialized)
 		{
 			if (InSelector.GetExtraNames().IsEmpty()) { return FName(InSelector.GetName().ToString()); }

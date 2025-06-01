@@ -163,8 +163,8 @@ namespace PCGExWriteGUID
 			FGuid GUID = FGuid();
 			Config.GetGUID(Index, PointDataFacade->GetInPoint(Index), GUID);
 
-			if (IntegerGUIDWriter) { IntegerGUIDWriter->GetMutable(Index) = GetTypeHash(GUID.ToString(Config.GUIDFormat)); }
-			else { StringGUIDWriter->GetMutable(Index) = GUID.ToString(Config.GUIDFormat); }
+			if (IntegerGUIDWriter) { IntegerGUIDWriter->SetValue(Index, GetTypeHash(GUID.ToString(Config.GUIDFormat))); }
+			else { StringGUIDWriter->SetValue(Index, GUID.ToString(Config.GUIDFormat)); }
 		}
 	}
 

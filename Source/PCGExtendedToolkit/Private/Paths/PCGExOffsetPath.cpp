@@ -341,7 +341,7 @@ namespace PCGExOffsetPath
 		else if (Settings->bFlagMutatedPoints)
 		{
 			TSharedPtr<PCGExData::TBuffer<bool>> MutatedFlag = PointDataFacade->GetWritable<bool>(Settings->MutatedAttributeName, false, true, PCGExData::EBufferInit::Inherit);
-			for (int i = 0; i < Mutated.Num(); i++) { MutatedFlag->GetMutable(i) = Mutated[i] ? true : false; }
+			for (int i = 0; i < Mutated.Num(); i++) { MutatedFlag->SetValue(i, Mutated[i] ? true : false); }
 			PointDataFacade->Write(AsyncManager);
 		}
 	}

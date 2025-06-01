@@ -245,8 +245,8 @@ namespace PCGExSubdivide
 		{
 			const FSubdivision& Sub = Subdivisions[Index];
 
-			if (FlagWriter) { FlagWriter->GetMutable(Sub.OutStart) = false; }
-			if (AlphaWriter) { AlphaWriter->GetMutable(Sub.OutStart) = Settings->DefaultAlpha; }
+			if (FlagWriter) { FlagWriter->SetValue(Sub.OutStart, false); }
+			if (AlphaWriter) { AlphaWriter->SetValue(Sub.OutStart, Settings->DefaultAlpha); }
 
 			if (Sub.NumSubdivisions == 0) { continue; }
 
@@ -261,12 +261,12 @@ namespace PCGExSubdivide
 			{
 				const int32 SubIndex = SubStart + s;
 
-				if (FlagWriter) { FlagWriter->GetMutable(SubIndex) = true; }
+				if (FlagWriter) { FlagWriter->SetValue(SubIndex, true); }
 
 				const FVector Position = Start + Dir * (Sub.StartOffset + s * Sub.StepSize);
 				OutTransforms[SubIndex].SetLocation(Position);
 				const double Alpha = Metrics.Add(Position) / Sub.Dist;
-				if (AlphaWriter) { AlphaWriter->GetMutable(SubStart + s) = Alpha; }
+				if (AlphaWriter) { AlphaWriter->SetValue(SubStart + s, Alpha); }
 			}
 
 			Metrics.Add(End);

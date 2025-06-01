@@ -366,9 +366,9 @@ namespace PCGExPathCrossings
 			const FCrossing* Crossing = Crossings[Index].Get();
 			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
 
-			if (FlagWriter) { FlagWriter->GetMutable(Edge.AltStart) = false; }
-			if (AlphaWriter) { AlphaWriter->GetMutable(Edge.AltStart) = Settings->DefaultAlpha; }
-			if (CrossWriter) { CrossWriter->GetMutable(Edge.AltStart) = Settings->DefaultCrossDirection; }
+			if (FlagWriter) { FlagWriter->SetValue(Edge.AltStart, false); }
+			if (AlphaWriter) { AlphaWriter->SetValue(Edge.AltStart, Settings->DefaultAlpha); }
+			if (CrossWriter) { CrossWriter->SetValue(Edge.AltStart, Settings->DefaultCrossDirection); }
 
 			if (!Crossing) { continue; }
 
@@ -388,9 +388,9 @@ namespace PCGExPathCrossings
 				const FVector& V = Crossing->Positions[LocalIndex];
 				const FVector CrossDir = Crossing->CrossingDirections[LocalIndex];
 
-				if (FlagWriter) { FlagWriter->GetMutable(PointIndex) = true; }
-				if (AlphaWriter) { AlphaWriter->GetMutable(PointIndex) = Crossing->Alphas[LocalIndex]; }
-				if (CrossWriter) { CrossWriter->GetMutable(PointIndex) = CrossDir; }
+				if (FlagWriter) { FlagWriter->SetValue(PointIndex, true); }
+				if (AlphaWriter) { AlphaWriter->SetValue(PointIndex, Crossing->Alphas[LocalIndex]); }
+				if (CrossWriter) { CrossWriter->SetValue(PointIndex, CrossDir); }
 
 				if (Settings->bOrientCrossing) { OutTransforms[PointIndex].SetRotation(PCGExMath::MakeDirection(Settings->CrossingOrientAxis, CrossDir)); }
 				OutTransforms[PointIndex].SetLocation(V);

@@ -234,7 +234,7 @@ namespace PCGExCreateShapes
 		{
 			const TSharedPtr<PCGExData::TBuffer<double>> ShapeIdBuffer = ShapeDataFacade->GetWritable<double>(Settings->ShapeIdAttributeName, PCGExData::EBufferInit::New);
 			const int32 MaxIndex = Shape->StartIndex + Shape->NumPoints;
-			for (int i = Shape->StartIndex; i < MaxIndex; i++) { ShapeIdBuffer->GetMutable(i) = Operation->BaseConfig.ShapeId; }
+			for (int i = Shape->StartIndex; i < MaxIndex; i++) { ShapeIdBuffer->SetValue(i, Operation->BaseConfig.ShapeId); }
 		}
 
 		const FTransform& TRA = Operation->Transform;

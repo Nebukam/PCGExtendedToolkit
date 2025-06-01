@@ -431,7 +431,7 @@ void FPCGExCellArtifactsDetails::Process(
 	for (int i = 0; i < NumNodes; i++)
 	{
 		int32 NodeIdx = InCell->Nodes[i];
-		if (TerminalBuffer) { TerminalBuffer->GetMutable(i) = InCluster->GetNode(NodeIdx)->IsLeaf(); }
-		if (RepeatBuffer) { RepeatBuffer->GetMutable(i) = NumRepeats[NodeIdx] - 1; }
+		if (TerminalBuffer) { TerminalBuffer->SetValue(i, InCluster->GetNode(NodeIdx)->IsLeaf()); }
+		if (RepeatBuffer) { RepeatBuffer->SetValue(i, NumRepeats[NodeIdx] - 1); }
 	}
 }

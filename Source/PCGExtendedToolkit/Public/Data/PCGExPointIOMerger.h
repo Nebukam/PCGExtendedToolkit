@@ -54,7 +54,7 @@ namespace PCGExPointIOMerger
 	{
 		UPCGMetadata* InMetadata = SourceIO->GetIn()->Metadata;
 
-		if (TSharedPtr<PCGExData::TElementsBuffer<T>> OutElementsBuffer = StaticCastSharedPtr<PCGExData::TElementsBuffer<T>>(OutBuffer))
+		if (TSharedPtr<PCGExData::TArrayBuffer<T>> OutElementsBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(OutBuffer))
 		{
 			// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 			// ReSharper disable once CppRedundantTemplateKeyword

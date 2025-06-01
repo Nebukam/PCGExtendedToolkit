@@ -161,13 +161,13 @@ namespace PCGExWriteIndex
 		{
 			if (Settings->bOneMinus)
 			{
-				if (DoubleWriter) { DoubleWriter->GetMutable(Index) = 1 - (static_cast<double>(Index) / MaxIndex); }
-				else if (IntWriter) { IntWriter->GetMutable(Index) = MaxIndex - Index; }
+				if (DoubleWriter) { DoubleWriter->SetValue(Index,1 - (static_cast<double>(Index) / MaxIndex)); }
+				else if (IntWriter) { IntWriter->SetValue(Index, MaxIndex - Index); }
 			}
 			else
 			{
-				if (DoubleWriter) { DoubleWriter->GetMutable(Index) = static_cast<double>(Index) / MaxIndex; }
-				else if (IntWriter) { IntWriter->GetMutable(Index) = Index; }
+				if (DoubleWriter) { DoubleWriter->SetValue(Index, static_cast<double>(Index) / MaxIndex); }
+				else if (IntWriter) { IntWriter->SetValue(Index, Index); }
 			}
 		}
 	}

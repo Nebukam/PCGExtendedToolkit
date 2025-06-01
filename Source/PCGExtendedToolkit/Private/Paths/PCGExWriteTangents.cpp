@@ -189,8 +189,8 @@ namespace PCGExWriteTangents
 				}
 			}
 
-			ArriveWriter->GetMutable(Index) = OutArrive;
-			LeaveWriter->GetMutable(Index) = OutLeave;
+			ArriveWriter->SetValue(Index, OutArrive);
+			LeaveWriter->SetValue(Index, OutLeave);
 		}
 	}
 

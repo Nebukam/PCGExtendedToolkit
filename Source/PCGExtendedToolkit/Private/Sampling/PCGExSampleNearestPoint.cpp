@@ -528,16 +528,16 @@ namespace PCGExSampleNearestPoints
 		{
 			for (int i = 0; i < NumPoints; i++)
 			{
-				double& D = DistanceWriter->GetMutable(i);
-				D = (1 - (D / MaxDistance)) * Settings->DistanceScale;
+				const double D = DistanceWriter->GetValue(i);
+				DistanceWriter->SetValue(i, (1 - (D / MaxDistance)) * Settings->DistanceScale);
 			}
 		}
 		else
 		{
 			for (int i = 0; i < NumPoints; i++)
 			{
-				double& D = DistanceWriter->GetMutable(i);
-				D = (D / MaxDistance) * Settings->DistanceScale;
+				const double D = DistanceWriter->GetValue(i);
+				DistanceWriter->SetValue(i, (D / MaxDistance) * Settings->DistanceScale);
 			}
 		}
 	}

@@ -102,7 +102,7 @@ namespace PCGExEdgeOrder
 			uint32 EndAdjacency = 0;
 			PCGEx::H64(VtxEndpointBuffer->Read(Edge.End), EndID, EndAdjacency);
 
-			EndpointsBuffer->GetMutable(Index) = PCGEx::H64(StartID, EndID); // Rewrite endpoints data as ordered
+			EndpointsBuffer->SetValue(Index, PCGEx::H64(StartID, EndID)); // Rewrite endpoints data as ordered
 		}
 	}
 
