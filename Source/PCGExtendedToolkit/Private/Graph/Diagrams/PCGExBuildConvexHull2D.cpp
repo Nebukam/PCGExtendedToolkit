@@ -87,10 +87,13 @@ namespace PCGExConvexHull2D
 		// Build convex hull
 
 		TArray<FVector> ActivePositions;
-		TArray<int32> ConvexHullIndices;
+		
 		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn()->GetPoints(), ActivePositions);
+		ProjectionDetails.Project(ActivePositions, ActivePositions);
+		
+		TArray<int32> ConvexHullIndices;
 		ConvexHull2D::ComputeConvexHull(ActivePositions, ConvexHullIndices);
-
+		
 		const int32 LastIndex = ConvexHullIndices.Num() - 1;
 		if (LastIndex < 0)
 		{
