@@ -9,10 +9,6 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 
-
-#include "Sampling/PCGExSampling.h"
-
-
 #include "PCGExAttributeStats.generated.h"
 
 UENUM()

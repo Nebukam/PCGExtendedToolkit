@@ -146,7 +146,6 @@ struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 
 	TSharedPtr<PCGEx::TAssetLoader<UStaticMesh>> StaticMeshLoader;
 
-	UPROPERTY()
 	TObjectPtr<UStaticMesh> StaticMesh;
 };
 

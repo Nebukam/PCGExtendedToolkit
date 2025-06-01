@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDetailsData.h"
+#include "PCGExOperation.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
 

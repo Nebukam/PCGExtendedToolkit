@@ -4,10 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExBroadcast.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 
 namespace PCGExMT

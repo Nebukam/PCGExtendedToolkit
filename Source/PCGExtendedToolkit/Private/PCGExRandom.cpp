@@ -6,7 +6,6 @@
 #include "PCGComponent.h"
 #include "PCGExMath.h"
 #include "PCGSettings.h"
-#include "Data/PCGExPointIO.h"
 
 namespace PCGExRandom
 {

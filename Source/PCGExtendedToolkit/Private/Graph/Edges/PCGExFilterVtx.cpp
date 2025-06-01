@@ -3,9 +3,7 @@
 
 #include "Graph/Edges/PCGExFilterVtx.h"
 
-
 #include "Graph/PCGExGraph.h"
-#include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFilterVtx"
@@ -250,7 +248,6 @@ namespace PCGExFilterVtx
 		}
 		else if (Settings->Mode == EPCGExVtxFilterOutput::Points)
 		{
-			const UPCGBasePointData* InPoints = VtxDataFacade->GetIn();
 			const TArray<PCGExCluster::FNode> Nodes = *Cluster->Nodes.Get();
 
 			TArray<int32> ReadIndices;

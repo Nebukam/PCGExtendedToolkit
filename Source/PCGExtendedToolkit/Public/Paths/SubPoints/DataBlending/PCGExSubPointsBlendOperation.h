@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGPoint.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
 #include "PCGExSubPointsBlendOperation.generated.h"

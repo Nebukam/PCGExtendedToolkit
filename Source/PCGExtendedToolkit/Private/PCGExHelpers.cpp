@@ -19,7 +19,7 @@
 namespace PCGEx
 {
 	FPCGExAsyncStateScope::FPCGExAsyncStateScope(FPCGContext* InContext, const bool bDesired)
-	: Context(InContext)
+		: Context(InContext)
 	{
 		if (Context)
 		{
@@ -36,7 +36,7 @@ namespace PCGEx
 			Context->AsyncState.bIsRunningOnMainThread = bRestoreTo;
 		}
 	}
-	
+
 	void FIntTracker::IncrementPending(const int32 Count)
 	{
 		{
@@ -148,17 +148,20 @@ namespace PCGEx
 		}
 	}
 
-	void FManagedObjects::Add(UObject* InObject)
+	bool FManagedObjects::Add(UObject* InObject)
 	{
 		check(!IsFlushing())
 
-		if (!IsValid(InObject)) { return; }
+		if (!IsValid(InObject)) { return false; }
 
+		bool bIsAlreadyInSet = false;
 		{
 			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-			ManagedObjects.Add(InObject);
+			ManagedObjects.Add(InObject, &bIsAlreadyInSet);
 			///*FCOLLECTOR_IMPL*/InObject->AddToRoot();
 		}
+
+		return !bIsAlreadyInSet;
 	}
 
 	bool FManagedObjects::Remove(UObject* InObject)
@@ -213,7 +216,7 @@ namespace PCGEx
 	void FManagedObjects::Destroy(UObject* InObject)
 	{
 		// ♫ Let it go ♫
-		
+
 		/*
 		check(InObject)
 

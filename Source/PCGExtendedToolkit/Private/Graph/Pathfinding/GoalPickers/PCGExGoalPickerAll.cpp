@@ -4,9 +4,6 @@
 
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerAll.h"
 
-#include "PCGExMath.h"
-
-
 void UPCGExGoalPickerAll::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
 	Super::CopySettingsFrom(Other);

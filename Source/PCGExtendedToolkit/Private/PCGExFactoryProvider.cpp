@@ -3,7 +3,6 @@
 
 #include "PCGExFactoryProvider.h"
 
-#include "PCGComponent.h"
 #include "PCGExContext.h"
 #include "PCGPin.h"
 #include "Tasks/Task.h"

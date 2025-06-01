@@ -3,9 +3,6 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindAllCells.h"
 
-#include "PCGExCompare.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExFindAllCells"
 #define PCGEX_NAMESPACE FindAllCells
 

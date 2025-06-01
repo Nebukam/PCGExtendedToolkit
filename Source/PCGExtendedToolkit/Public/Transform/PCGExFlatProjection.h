@@ -73,6 +73,7 @@ namespace PCGExFlatProjection
 		bool bWriteAttribute = false;
 		bool bInverseExistingProjection = false;
 		bool bProjectLocalTransform = false;
+		
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;

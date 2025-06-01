@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathfinding.h"
+#include "PCGExPointsProcessor.h"
 #include "Paths/PCGExPaths.h"
 
 UENUM()

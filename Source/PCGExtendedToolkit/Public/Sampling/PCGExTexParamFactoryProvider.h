@@ -9,8 +9,6 @@
 #include "PCGExFactoryProvider.h"
 #include "Graph/PCGExGraph.h"
 
-#include "Graph/Filters/PCGExClusterFilter.h"
-
 #include "PCGExTexParamFactoryProvider.generated.h"
 
 class UPCGBaseTextureData;

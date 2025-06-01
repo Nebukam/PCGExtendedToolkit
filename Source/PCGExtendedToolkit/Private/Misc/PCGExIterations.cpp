@@ -3,7 +3,6 @@
 
 #include "Misc/PCGExIterations.h"
 
-#include "PCGComponent.h"
 #include "PCGGraph.h"
 #include "PCGPin.h"
 #include "Data/PCGSplineData.h"

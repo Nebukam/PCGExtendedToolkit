@@ -42,13 +42,10 @@ protected:
 
 	TSharedPtr<PCGEx::FWorkPermit> WorkPermit;
 	
-	TArray<FPCGTaggedData> StagedOutputs;
 	bool bFlattenOutput = false;
 
 	TSet<FName> ConsumableAttributesSet;
 	TSet<FName> ProtectedAttributesSet;
-
-	void CommitStagedOutputs();
 
 public:
 	TWeakPtr<PCGEx::FWorkPermit> GetWorkPermit() { return WorkPermit; }

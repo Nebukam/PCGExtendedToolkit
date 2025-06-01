@@ -3,9 +3,6 @@
 
 #include "Paths/PCGExPathSolidify.h"
 
-#include "PCGExDataMath.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExPathSolidifyElement"
 #define PCGEX_NAMESPACE PathSolidify
 

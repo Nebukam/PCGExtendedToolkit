@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExPolygonInclusionFilter.h"
 
 #include "GeomTools.h"
+#include "Paths/PCGExPaths.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExPolygonInclusionFilterDefinition"

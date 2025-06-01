@@ -10,8 +10,6 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
-#include "Paths/PCGExPaths.h"
-
 #include "PCGExPolygonInclusionFilter.generated.h"
 
 USTRUCT(BlueprintType)

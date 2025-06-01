@@ -3,9 +3,7 @@
 
 #include "Graph/PCGExCutClusters.h"
 
-
 #include "Graph/PCGExGraph.h"
-#include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCutEdges"

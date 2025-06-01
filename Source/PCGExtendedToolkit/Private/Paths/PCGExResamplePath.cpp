@@ -3,9 +3,6 @@
 
 #include "Paths/PCGExResamplePath.h"
 
-#include "PCGExDataMath.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExResamplePathElement"
 #define PCGEX_NAMESPACE ResamplePath
 

@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExInstancedFactory.h"
-#include "PCGPoint.h"
 #include "PCGExOperation.h"
 
 #include "Paths/PCGExPaths.h"

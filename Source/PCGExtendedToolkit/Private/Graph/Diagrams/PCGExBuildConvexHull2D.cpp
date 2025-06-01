@@ -4,6 +4,7 @@
 #include "Graph/Diagrams/PCGExBuildConvexHull2D.h"
 
 
+#include "Curve/CurveUtil.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Math/ConvexHull2d.h"
 #include "Graph/PCGExCluster.h"
@@ -87,10 +88,12 @@ namespace PCGExConvexHull2D
 		// Build convex hull
 
 		TArray<FVector> ActivePositions;
-		TArray<int32> ConvexHullIndices;
 		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
-		ConvexHull2D::ComputeConvexHull(ActivePositions, ConvexHullIndices);
+		ProjectionDetails.Project(ActivePositions, ActivePositions);
 
+		TArray<int32> ConvexHullIndices;
+		ConvexHull2D::ComputeConvexHull(ActivePositions, ConvexHullIndices);
+		
 		const int32 LastIndex = ConvexHullIndices.Num() - 1;
 		if (LastIndex < 0)
 		{
@@ -98,9 +101,7 @@ namespace PCGExConvexHull2D
 			return false;
 		}
 
-		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->PathsIO->Emplace_GetRef(PointDataFacade->GetIn(), PCGExData::EIOInit::New);
-
 		if (!PathIO) { return false; }
 
 		PathIO->IOIndex = PointDataFacade->Source->IOIndex;

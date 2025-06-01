@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 
 #include "PCGExAttributeHelpers.h"
+#include "PCGExCompare.h"
 #include "PCGExPointIO.h"
 
 #include "PCGExDataFilter.generated.h"
@@ -20,15 +21,6 @@ enum class EPCGExAttributeFilter : uint8
 	All     = 0 UMETA(DisplayName = "All", ToolTip="All attributes"),
 	Exclude = 1 UMETA(DisplayName = "Exclude", ToolTip="Exclude listed attributes"),
 	Include = 2 UMETA(DisplayName = "Include", ToolTip="Only listed attributes"),
-};
-
-UENUM()
-enum class EPCGExStringMatchMode : uint8
-{
-	Equals     = 0 UMETA(DisplayName = "Equals", ToolTip=""),
-	Contains   = 1 UMETA(DisplayName = "Contains", ToolTip=""),
-	StartsWith = 2 UMETA(DisplayName = "Starts with", ToolTip=""),
-	EndsWith   = 3 UMETA(DisplayName = "Ends with", ToolTip=""),
 };
 
 USTRUCT(BlueprintType)
@@ -175,6 +167,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 		if (bInvert) { InAttributeInfos.Filter([&](const FName& InName) { return Test(InName.ToString()); }); }
 		else { InAttributeInfos.Filter([&](const FName& InName) { return !Test(InName.ToString()); }); }
 	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
+{
+	GENERATED_BODY()
+
+	FPCGExAttributeGatherDetails()
+	{
+		bPreservePCGExData = false;
+	}
+
+	// TODO : Expose how to handle overlaps
 };
 
 USTRUCT(BlueprintType)

@@ -7,7 +7,6 @@
 #include "Data/PCGExDataFilter.h"
 #include "Engine/Level.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "PCGData.h"
 
 #include "PCGExSubSystem.generated.h"
 

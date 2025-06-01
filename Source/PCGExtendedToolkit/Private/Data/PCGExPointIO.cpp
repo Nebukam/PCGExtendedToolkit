@@ -298,7 +298,11 @@ namespace PCGExData
 
 		bMutable = false;
 
-		if (InitOut == EIOInit::NoInit) { return true; }
+		if (InitOut == EIOInit::NoInit)
+		{
+			Out = nullptr;
+			return true;
+		}
 
 		if (InitOut == EIOInit::Forward)
 		{

@@ -8,7 +8,7 @@
 
 namespace PCGExData
 {
-#pragma region Pools & cache
+#pragma region cache
 
 	void IBuffer::SetTargetOutputName(const FName InName)
 	{

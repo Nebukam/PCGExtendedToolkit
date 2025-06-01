@@ -10,7 +10,6 @@
 #include "PCGExSorting.h"
 #include "Data/PCGExAttributeHelpers.h"
 
-
 #include "PCGExSortPoints.generated.h"
 
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")

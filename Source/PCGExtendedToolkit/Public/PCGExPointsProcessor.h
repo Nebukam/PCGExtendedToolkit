@@ -11,7 +11,6 @@
 #include "PCGExMT.h"
 #include "PCGExMacros.h"
 #include "Data/PCGExPointIO.h"
-#include "PCGExOperation.h"
 #include "PCGExPointsMT.h"
 
 #include "PCGComponent.h"

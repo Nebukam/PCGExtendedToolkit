@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExInstancedFactory.h"
+#include "PCGExOperation.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 

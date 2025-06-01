@@ -3,8 +3,6 @@
 
 #include "Topology/PCGExTopology.h"
 
-#include "PCGExCompare.h"
-
 void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InCell, PCGExData::FMutablePoint& OutSeedPoint, const UPCGBasePointData* CellPoints) const
 {
 	switch (Location)

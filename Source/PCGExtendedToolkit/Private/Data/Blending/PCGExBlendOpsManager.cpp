@@ -2,11 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Data/Blending/PCGExBlendOpsManager.h"
-
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
-
 #include "PCGExDetailsData.h"
-#include "Data/Blending/PCGExProxyDataBlending.h"
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 

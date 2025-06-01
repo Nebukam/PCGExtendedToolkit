@@ -75,6 +75,15 @@ enum class EPCGExStringComparison : uint8
 };
 
 UENUM()
+enum class EPCGExStringMatchMode : uint8
+{
+	Equals     = 0 UMETA(DisplayName = "Equals", ToolTip=""),
+	Contains   = 1 UMETA(DisplayName = "Contains", ToolTip=""),
+	StartsWith = 2 UMETA(DisplayName = "Starts with", ToolTip=""),
+	EndsWith   = 3 UMETA(DisplayName = "Ends with", ToolTip=""),
+};
+
+UENUM()
 enum class EPCGExBitflagComparison : uint8
 {
 	MatchPartial   = 0 UMETA(DisplayName = "Match (any)", Tooltip="Value & Mask != 0 (At least some flags in the mask are set)"),

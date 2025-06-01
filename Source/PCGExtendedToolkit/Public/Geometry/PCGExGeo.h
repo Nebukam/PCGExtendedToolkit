@@ -7,7 +7,6 @@
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "PCGExFitting.h"
-#include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 
 
@@ -54,7 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	FQuat ProjectionQuat = FQuat::Identity;
 	FQuat ProjectionInverseQuat = FQuat::Identity;
 
-	bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
+	bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
 
 	~FPCGExGeo2DProjectionDetails()
 	{
@@ -89,8 +88,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	}
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const;
-	void Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const;
-	void Project(const TArray<FVector>& InPositions, TArray<FVector2D>& OutPositions) const;
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const;
 };
 

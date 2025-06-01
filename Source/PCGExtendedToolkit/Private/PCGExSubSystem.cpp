@@ -3,8 +3,6 @@
 
 #include "PCGExSubSystem.h"
 
-#include "PCGComponent.h"
-#include "Algo/Count.h"
 #include "Data/PCGExDataSharing.h"
 #include "Data/PCGExGridTracking.h"
 

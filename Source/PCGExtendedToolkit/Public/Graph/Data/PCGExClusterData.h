@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
 #include "Data/PCGExPointData.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"

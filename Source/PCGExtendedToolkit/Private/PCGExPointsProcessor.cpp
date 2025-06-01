@@ -5,13 +5,11 @@
 
 #include "Styling/SlateStyle.h"
 #include "PCGPin.h"
-#include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 
 
 #include "Helpers/PCGSettingsHelpers.h"
 #include "Misc/PCGExMergePoints.h"
-#include "UObject/FastReferenceCollector.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

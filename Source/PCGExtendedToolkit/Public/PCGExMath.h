@@ -5,9 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExtendedToolkit.h"
 #include "PCGEx.h"
-#include "PCGExH.h"
 
 #include "PCGExMath.generated.h"
 

@@ -7,7 +7,6 @@
 #include "PCGExInstancedFactory.h"
 
 #include "PCGExMT.h"
-#include "PCGExOperation.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 

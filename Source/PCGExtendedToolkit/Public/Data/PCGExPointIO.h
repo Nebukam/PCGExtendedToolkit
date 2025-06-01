@@ -16,9 +16,8 @@
 #include "PCGEx.h"
 #include "PCGExContext.h"
 #include "PCGExDataTag.h"
+#include "PCGExH.h"
 #include "PCGParamData.h"
-
-#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
 namespace PCGExData
 {
@@ -360,6 +359,13 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 				Out = nullptr;
 			}
 
+			if (InitOut == EIOInit::NoInit)
+			{
+				bMutable = false;
+				Out = nullptr;
+				return true;
+			}
+			
 			bMutable = true;
 
 			if (InitOut == EIOInit::New)

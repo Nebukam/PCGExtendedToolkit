@@ -11,12 +11,8 @@
 #include "PCGExMath.h"
 #include "PCGExPointIO.h"
 #include "PCGExAttributeHelpers.h"
-#include "PCGExDataFilter.h"
-#include "PCGExDetails.h"
 #include "PCGExMT.h"
 #include "Data/PCGPointData.h"
-
-#include "PCGExData.generated.h"
 
 #pragma region DATA MACROS
 
@@ -37,19 +33,6 @@ namespace PCGExGeo
 	class FPointBoxCloud;
 }
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
-{
-	GENERATED_BODY()
-
-	FPCGExAttributeGatherDetails()
-	{
-		bPreservePCGExData = false;
-	}
-
-	// TODO : Expose how to handle overlaps
-};
-
 namespace PCGExData
 {
 	enum class EBufferPreloadType : uint8
@@ -65,21 +48,19 @@ namespace PCGExData
 		New,
 	};
 
-	enum class EBufferLevel : uint8
+	enum class EBufferDomain : uint8
 	{
-		Local = 0, // Per point data
-		Global     // Per dataset data (Tags etc)
+		Element = 0, // Per point data
+		Data    = 1  // Per dataset data (Tags etc)
 	};
 
-	PCGEX_CTX_STATE(State_MergingData);
-
-#pragma region Pool & Buffers
+#pragma region Buffers
 
 	class FFacade;
 
-	static uint64 BufferUID(const FName FullName, const EPCGMetadataTypes Type)
+	static uint64 BufferUID(const FName FullName, const EPCGMetadataTypes Type, const EBufferDomain Domain = EBufferDomain::Element)
 	{
-		return PCGEx::H64(GetTypeHash(FullName), static_cast<int32>(Type));
+		return PCGEx::H64(GetTypeHash(FullName), HashCombineFast(static_cast<int32>(Domain), static_cast<int32>(Type)));
 	};
 
 	class PCGEXTENDEDTOOLKIT_API IBuffer : public TSharedFromThis<IBuffer>
@@ -88,11 +69,12 @@ namespace PCGExData
 
 	protected:
 		mutable FRWLock BufferLock;
-		mutable FRWLock WriteLock;
 
-		bool bScopedBuffer = false;
+		bool bSparseBuffer = false;
 
 		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
+		EBufferDomain Domain = EBufferDomain::Element;
+
 		uint64 UID = 0;
 
 		bool bIsNewOutput = false;
@@ -139,7 +121,7 @@ namespace PCGExData
 		{
 		}
 
-		virtual bool IsScoped() { return bScopedBuffer; }
+		virtual bool IsSparse() { return bSparseBuffer; }
 		virtual bool IsWritable() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::IsWritable, false)
 		virtual bool IsReadable() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::IsReadable, false)
 		virtual bool IsReadingFromWrite() PCGEX_NOT_IMPLEMENTED_RET(FBuffer::IsReadingFromWrite, false)
@@ -161,8 +143,8 @@ namespace PCGExData
 		}
 	};
 
-	template <typename T, EBufferLevel BufferLevel = EBufferLevel::Local>
-	class TBuffer final : public IBuffer
+	template <typename T>
+	class TBuffer : public IBuffer
 	{
 		friend class FFacade;
 
@@ -173,15 +155,15 @@ namespace PCGExData
 		TSharedPtr<TArray<T>> InValues;
 		TSharedPtr<TArray<T>> OutValues;
 
-		T InternalDefaultValue = T{};
+		// Used to read from an attribute as another type
+		TSharedPtr<PCGEx::TAttributeBroadcaster<T>> InternalBroadcaster;
 
 	public:
 		T Min = T{};
 		T Max = T{};
 
-		TSharedPtr<PCGEx::TAttributeBroadcaster<T>> InternalBroadcaster;
 
-		virtual bool IsScoped() override { return bScopedBuffer || InternalBroadcaster; }
+		virtual bool IsSparse() override { return bSparseBuffer || InternalBroadcaster; }
 
 		TBuffer(const TSharedRef<FPointIO>& InSource, const FName InFullName):
 			IBuffer(InSource, InFullName)
@@ -210,11 +192,11 @@ namespace PCGExData
 		const FPCGMetadataAttribute<T>* GetTypedInAttribute() const { return TypedInAttribute; }
 		FPCGMetadataAttribute<T>* GetTypedOutAttribute() { return TypedOutAttribute; }
 
-		T& GetMutable(const int32 Index) { return *(OutValues->GetData() + Index); }
-		const T& GetConst(const int32 Index) { return *(OutValues->GetData() + Index); }
-		const T& Read(const int32 Index) const { return *(InValues->GetData() + Index); }
+		virtual T& GetMutable(const int32 Index) { return *(OutValues->GetData() + Index); }
+		virtual const T& GetConst(const int32 Index) { return *(OutValues->GetData() + Index); }
+		virtual const T& Read(const int32 Index) const { return *(InValues->GetData() + Index); }
 
-		void Set(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
+		virtual void Set(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
 
 		virtual PCGEx::FAttributeIdentity GetTargetOutputIdentity() override
 		{
@@ -244,7 +226,7 @@ namespace PCGExData
 			InAttribute = Attribute;
 			TypedInAttribute = Attribute ? static_cast<const FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
 
-			bScopedBuffer = bScoped;
+			bSparseBuffer = bScoped;
 		}
 
 		void PrepareWriteInternal(FPCGMetadataAttributeBase* Attribute, const T& InDefaultValue, const EBufferInit Init)
@@ -265,12 +247,12 @@ namespace PCGExData
 
 			if (InValues)
 			{
-				if (bScopedBuffer && !bScoped)
+				if (bSparseBuffer && !bScoped)
 				{
 					// Un-scoping reader.
 					Fetch(PCGExMT::FScope(0, InValues->Num()));
 					bReadComplete = true;
-					bScopedBuffer = false;
+					bSparseBuffer = false;
 				}
 
 				if (InSide == EIOSide::In && OutValues && InValues == OutValues)
@@ -312,7 +294,7 @@ namespace PCGExData
 
 			PrepareReadInternal(bScoped, TypedInAttribute);
 
-			if (!bScopedBuffer && !bReadComplete)
+			if (!bSparseBuffer && !bReadComplete)
 			{
 				TArrayView<T> InRange = MakeArrayView(InValues->GetData(), InValues->Num());
 				InAccessor->GetRange<T>(InRange, 0, *Source->GetInKeys());
@@ -329,12 +311,12 @@ namespace PCGExData
 
 			if (InValues)
 			{
-				if (bScopedBuffer && !bScoped)
+				if (bSparseBuffer && !bScoped)
 				{
 					// Un-scoping reader.
 					InternalBroadcaster->GrabAndDump(*InValues, bCaptureMinMax, Min, Max);
 					bReadComplete = true;
-					bScopedBuffer = false;
+					bSparseBuffer = false;
 					InternalBroadcaster.Reset();
 				}
 
@@ -359,7 +341,7 @@ namespace PCGExData
 
 			PrepareReadInternal(bScoped, InternalBroadcaster->GetAttribute());
 
-			if (!bScopedBuffer && !bReadComplete)
+			if (!bSparseBuffer && !bReadComplete)
 			{
 				InternalBroadcaster->GrabAndDump(*InValues, bCaptureMinMax, Min, Max);
 				bReadComplete = true;
@@ -492,7 +474,7 @@ namespace PCGExData
 
 		virtual void Fetch(const PCGExMT::FScope& Scope) override
 		{
-			if (!IsScoped() || bReadComplete || !IsEnabled()) { return; }
+			if (!IsSparse() || bReadComplete || !IsEnabled()) { return; }
 			if (InternalBroadcaster) { InternalBroadcaster->Fetch(*InValues, Scope); }
 
 			if (TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, Source->GetIn()->Metadata);

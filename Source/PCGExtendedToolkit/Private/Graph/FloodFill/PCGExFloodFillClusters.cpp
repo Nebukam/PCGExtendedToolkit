@@ -3,7 +3,6 @@
 
 #include "Graph/FloodFill/PCGExFloodFillClusters.h"
 
-#include "GeometryCollection/Facades/CollectionConstraintOverrideFacade.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 #include "Paths/PCGExPaths.h"

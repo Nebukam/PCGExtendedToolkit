@@ -22,31 +22,38 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
 
-		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
+		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
 		Output.Data = InData;
-		Index = StagedOutputs.Num()-1;
+		Index = OutputData.TaggedData.Num() - 1;
 	}
 	else
 	{
-		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
+		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
 		Output.Data = InData;
-		Index = StagedOutputs.Num()-1;
+		Index = OutputData.TaggedData.Num() - 1;
 	}
 
-	if (bManaged) { ManagedObjects->Add(InData); }
-	if (bIsMutable && bCleanupConsumableAttributes)
+	bool bIsNewlyManaged = false;
+
+	if (bManaged) { bIsNewlyManaged = ManagedObjects->Add(InData); }
+	if (bIsMutable)
 	{
-		if (UPCGMetadata* Metadata = InData->MutableMetadata())
+		if (bCleanupConsumableAttributes)
 		{
-			for (const FName ConsumableName : ConsumableAttributesSet)
+			if (UPCGMetadata* Metadata = InData->MutableMetadata())
 			{
-				if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
-				Metadata->DeleteAttribute(ConsumableName);
+				for (const FName ConsumableName : ConsumableAttributesSet)
+				{
+					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+					Metadata->DeleteAttribute(ConsumableName);
+				}
 			}
 		}
+
+		if (bFlattenOutput && bIsNewlyManaged) { InData->Flatten(); }
 	}
 
-	return StagedOutputs[Index];
+	return OutputData.TaggedData[Index];
 }
 
 FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged)
@@ -55,19 +62,19 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
-		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
+		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
 		Output.Data = InData;
-		Index = StagedOutputs.Num()-1;
+		Index = OutputData.TaggedData.Num() - 1;
 	}
 	else
 	{
-		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
+		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
 		Output.Data = InData;
-		Index = StagedOutputs.Num()-1;
+		Index = OutputData.TaggedData.Num() - 1;
 	}
 
 	if (bManaged) { ManagedObjects->Add(InData); }
-	return StagedOutputs[Index];
+	return OutputData.TaggedData[Index];
 }
 
 UWorld* FPCGExContext::GetWorld() const { return GetComponent()->GetWorld(); }
@@ -92,20 +99,6 @@ void FPCGExContext::UnpauseContext()
 	bIsPaused = false;
 }
 
-void FPCGExContext::CommitStagedOutputs()
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::CommitStagedOutputs);
-
-	FWriteScopeLock WriteScopeLock(StagedOutputLock);
-	
-	ManagedObjects->Remove(StagedOutputs);
-
-	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + StagedOutputs.Num());
-	OutputData.TaggedData.Append(StagedOutputs);
-
-	StagedOutputs.Empty();
-}
-
 FPCGExContext::FPCGExContext()
 {
 	WorkPermit = MakeShared<PCGEx::FWorkPermit>();
@@ -123,7 +116,7 @@ FPCGExContext::~FPCGExContext()
 void FPCGExContext::IncreaseStagedOutputReserve(const int32 InIncreaseNum)
 {
 	FWriteScopeLock WriteScopeLock(StagedOutputLock);
-	StagedOutputs.Reserve(StagedOutputs.Max() + InIncreaseNum);
+	OutputData.TaggedData.Reserve(OutputData.TaggedData.Max() + InIncreaseNum);
 }
 
 void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) const
@@ -162,19 +155,10 @@ void FPCGExContext::AddNotifyActor(AActor* InActor)
 
 void FPCGExContext::OnComplete()
 {
-	CommitStagedOutputs();
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::OnComplete);
 
-	if (bFlattenOutput)
-	{
-		TSet<uint64> InputUIDs;
-		InputUIDs.Reserve(OutputData.TaggedData.Num());
-		for (FPCGTaggedData& InTaggedData : InputData.TaggedData) { if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InTaggedData.Data)) { InputUIDs.Add(SpatialData->UID); } }
-
-		for (FPCGTaggedData& OutTaggedData : OutputData.TaggedData)
-		{
-			if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(OutTaggedData.Data); SpatialData && !InputUIDs.Contains(SpatialData->UID)) { SpatialData->Metadata->Flatten(); }
-		}
-	}
+	FWriteScopeLock WriteScopeLock(StagedOutputLock);
+	ManagedObjects->Remove(OutputData.TaggedData);
 }
 
 

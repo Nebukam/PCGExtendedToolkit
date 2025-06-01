@@ -30,6 +30,9 @@ enum class EPCGExMergeByTagFallbackBehavior : uint8
 
 namespace PCPGExMergePointsByTag
 {
+	
+	PCGEX_CTX_STATE(State_MergingData);
+	
 	class FMergeList
 	{
 	public:

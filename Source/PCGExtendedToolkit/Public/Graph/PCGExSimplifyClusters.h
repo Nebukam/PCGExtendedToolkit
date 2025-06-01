@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExChain.h"
-#include "PCGExCluster.h"
 #include "PCGExClusterMT.h"
 #include "PCGExEdgesProcessor.h"
 

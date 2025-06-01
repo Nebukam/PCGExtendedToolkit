@@ -3,9 +3,6 @@
 
 #include "Paths/PCGExOffsetPath.h"
 
-#include "PCGExDataMath.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath
 

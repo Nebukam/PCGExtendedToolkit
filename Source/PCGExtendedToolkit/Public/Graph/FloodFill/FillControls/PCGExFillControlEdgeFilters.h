@@ -9,8 +9,6 @@
 #include "PCGExFillControlOperation.h"
 #include "PCGExFillControlsFactoryProvider.h"
 
-
-#include "Graph/PCGExCluster.h"
 #include "PCGExFillControlEdgeFilters.generated.h"
 
 USTRUCT(BlueprintType)

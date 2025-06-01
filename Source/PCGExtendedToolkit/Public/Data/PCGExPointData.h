@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMacros.h"
 #include "Data/PCGPointArrayData.h"
 #include "Data/PCGPointData.h"
 #include "PCGExPointData.generated.h"

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDataMath.h"
+#include "PCGExDetails.h"
 #include "PCGExMacros.h"
 #include "Data/PCGExData.h"
 

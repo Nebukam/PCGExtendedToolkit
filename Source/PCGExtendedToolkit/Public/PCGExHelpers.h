@@ -290,7 +290,7 @@ namespace PCGEx
 
 		void Flush();
 
-		void Add(UObject* InObject);
+		bool Add(UObject* InObject);
 		bool Remove(UObject* InObject);
 		void Remove(const TArray<FPCGTaggedData>& InTaggedData);
 
