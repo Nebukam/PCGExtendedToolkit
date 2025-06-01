@@ -19,8 +19,7 @@ void FPCGExNeighborSampleBlend::PrepareForCluster(FPCGExContext* InContext, cons
 
 	BlendOpsManager->SetWeightFacade(VtxDataFacade);
 	BlendOpsManager->SetTargetFacade(VtxDataFacade);
-	BlendOpsManager->SetSourceA(Factory->SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx ? VtxDataFacade : EdgeDataFacade);
-	BlendOpsManager->SetSourceB(VtxDataFacade);
+	BlendOpsManager->SetSources(Factory->SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx ? VtxDataFacade : EdgeDataFacade);
 
 	if (!BlendOpsManager->Init(Context, Factory->BlendingFactories)) { return; }
 
