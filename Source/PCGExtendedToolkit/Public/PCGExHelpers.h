@@ -203,6 +203,68 @@ private:
 
 namespace PCGEx
 {
+	const FName InvalidName = "INVALID_DATA";
+	
+	template <bool bInitialized>
+	static FName GetLongNameFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
+	{
+		// This return a domain-less unique identifier for the provided selector
+		// It's mostly used to create uniquely identified value buffers
+
+		if (!InData) { return InvalidName; }
+
+		if constexpr (bInitialized)
+		{
+			if (InSelector.GetExtraNames().IsEmpty()) { return FName(InSelector.GetName().ToString()); }
+			return FName(InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT(".")));
+		}
+		else
+		{
+			if (InSelector.GetSelection() == EPCGAttributePropertySelection::Attribute && InSelector.GetName() == "@Last")
+			{
+				return GetLongNameFromSelector<true>(InSelector.CopyAndFixLast(InData), InData);
+			}
+
+			return GetLongNameFromSelector<true>(InSelector, InData);
+		}
+	}
+
+	template <bool bInitialized>
+	static FPCGAttributeIdentifier GetAttributeIdentifier(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
+	{
+		// This return an identifier suitable to be used for data facade
+
+		FPCGAttributeIdentifier Identifier;
+
+		if (!InData) { return FPCGAttributeIdentifier(InvalidName, EPCGMetadataDomainFlag::Invalid); }
+
+		if constexpr (bInitialized)
+		{
+			FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
+
+			check(FixedSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+
+			Identifier.Name = FixedSelector.GetAttributeName();
+			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);
+		}
+		else
+		{
+			Identifier.Name = InSelector.GetAttributeName();
+			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(InSelector);
+		}
+
+
+		return Identifier;
+	}
+
+	static FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName, const UPCGData* InData)
+	{
+		FPCGAttributePropertyInputSelector Selector;
+		Selector.Update(InName.ToString());
+		Selector = Selector.CopyAndFixLast(InData);
+		return GetAttributeIdentifier<true>(Selector, InData);
+	}
+	
 	class PCGEXTENDEDTOOLKIT_API FPCGExAsyncStateScope
 	{
 	public:

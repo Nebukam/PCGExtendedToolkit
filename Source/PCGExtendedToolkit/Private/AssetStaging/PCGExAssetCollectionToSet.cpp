@@ -79,10 +79,10 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 	// Output actor as FSoftClassPath
 	if (Cast<UPCGExActorCollection>(MainCollection)) { bOutputAssetPath = false; }
 	else { bOutputAssetClass = false; }
-
+	
 #define PCGEX_DECLARE_ATT(_NAME, _TYPE, _DEFAULT, _VALUE) \
 	FPCGMetadataAttribute<_TYPE>* _NAME##Attribute = nullptr; \
-	if(bOutput##_NAME){PCGEX_VALIDATE_NAME(Settings->_NAME##AttributeName) _NAME##Attribute = OutputSet->Metadata->FindOrCreateAttribute<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT, false, true);}
+	if(bOutput##_NAME){PCGEX_VALIDATE_NAME(Settings->_NAME##AttributeName) _NAME##Attribute = OutputSet->Metadata->FindOrCreateAttribute<_TYPE>(PCGEx::GetAttributeIdentifier(Settings->_NAME##AttributeName, OutputSet), _DEFAULT, false, true);}
 	PCGEX_FOREACH_COL_FIELD(PCGEX_DECLARE_ATT);
 #undef PCGEX_DECLARE_ATT
 

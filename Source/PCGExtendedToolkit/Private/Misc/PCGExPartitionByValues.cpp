@@ -142,23 +142,15 @@ bool FPCGExPartitionByValuesBaseElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bWriteKeySum) { PCGEX_VALIDATE_NAME(Settings->KeySumAttributeName) }
 
+	Context->RulesConfigs.Reserve(Configs.Num());
+
 	for (const FPCGExPartitonRuleConfig& Config : Configs)
 	{
 		if (!Config.bEnabled) { continue; }
 
-		FPCGExPartitonRuleConfig& ConfigCopy = Context->RulesConfigs.Add_GetRef(Config);
-
-		if (Config.bWriteKey && !FPCGMetadataAttributeBase::IsValidName(Config.KeyAttributeName))
-		{
-			PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Key Partition name {0} is invalid."), FText::FromName(Config.KeyAttributeName)));
-			ConfigCopy.bWriteKey = false;
-		}
-
-		if (Config.bWriteTag && !FPCGMetadataAttributeBase::IsValidName(Config.TagPrefixName))
-		{
-			PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Tag Partition name {0} is invalid."), FText::FromName(Config.TagPrefixName)));
-			ConfigCopy.bWriteTag = false;
-		}
+		PCGEX_VALIDATE_NAME_CONDITIONAL(Config.bWriteKey, Config.KeyAttributeName)
+		PCGEX_VALIDATE_NAME_CONDITIONAL(Config.bWriteTag, Config.TagPrefixName)
+		Context->RulesConfigs.Add(Config);
 	}
 
 	if (Context->RulesConfigs.IsEmpty())
@@ -234,7 +226,7 @@ namespace PCGExPartitionByValues
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PartitionByValues::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 
 		PCGEX_SCOPE_LOOP(Index)

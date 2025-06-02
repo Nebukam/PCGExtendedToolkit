@@ -71,7 +71,7 @@ void FPCGExAttributeToTagDetails::Tag(const PCGExData::FConstPoint& TagSource, U
 {
 	if (bAddIndexTag)
 	{
-		if (PCGEx::IsValidName(FName(IndexTagPrefix)))
+		if (PCGEx::IsWritableAttributeName(FName(IndexTagPrefix)))
 		{
 			InMetadata->FindOrCreateAttribute<FString>(FName(IndexTagPrefix), IndexTagPrefix + ":" + FString::Printf(TEXT("%d"), TagSource.Index));
 		}

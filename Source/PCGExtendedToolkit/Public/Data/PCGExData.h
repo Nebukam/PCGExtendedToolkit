@@ -51,7 +51,7 @@ namespace PCGExData
 	enum class EDomainType : uint8
 	{
 		Unknown         = 0,
-		FirstValue     = 1,
+		FirstValue      = 1,
 		MultipleEntries = 2,
 	};
 
@@ -59,31 +59,12 @@ namespace PCGExData
 
 	class FFacade;
 
-	static uint64 BufferUID(const FPCGAttributeIdentifier& Identifier, const EPCGMetadataTypes Type)
-	{
-		EPCGMetadataDomainFlag SaneFlagForUID = Identifier.MetadataDomain.Flag;
-		if (SaneFlagForUID == EPCGMetadataDomainFlag::Default) { SaneFlagForUID = EPCGMetadataDomainFlag::Elements; }
-		return PCGEx::H64(HashCombine(GetTypeHash(Identifier.Name), GetTypeHash(SaneFlagForUID)), static_cast<int32>(Type));
-	};
-
-	static FPCGAttributeIdentifier GetBufferIdentifierFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
-	{
-		// This return an identifier suitable to be used for data facade
-
-		FPCGAttributeIdentifier Identifier;
-
-		if (!InData) { return FPCGAttributeIdentifier(PCGEx::InvalidName, EPCGMetadataDomainFlag::Invalid); }
-
-		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
-
-		if (InSelector.GetExtraNames().IsEmpty()) { Identifier.Name = FixedSelector.GetName(); }
-		else { Identifier.Name = FName(FixedSelector.GetName().ToString() + TEXT(".") + FString::Join(FixedSelector.GetExtraNames(), TEXT("."))); }
-
-		Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);
-
-		return Identifier;
-	}
-
+	PCGEXTENDEDTOOLKIT_API
+	uint64 BufferUID(const FPCGAttributeIdentifier& Identifier, const EPCGMetadataTypes Type);
+	
+	PCGEXTENDEDTOOLKIT_API
+	FPCGAttributeIdentifier GetBufferIdentifierFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData);
+	
 	class PCGEXTENDEDTOOLKIT_API IBuffer : public TSharedFromThis<IBuffer>
 	{
 		friend class FFacade;
@@ -797,6 +778,12 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetBuffer(const FPCGAttributeIdentifier& InIdentifier)
 		{
+			if (InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Invalid)
+			{
+				UE_LOG(LogPCGEx, Error, TEXT("GetBuffer : Invalid MetadataDomain for : '%s'"), *InIdentifier.Name.ToString());
+				return nullptr;
+			}
+
 			TSharedPtr<TBuffer<T>> Buffer = FindBuffer<T>(InIdentifier);
 			if (Buffer) { return Buffer; }
 
@@ -835,13 +822,17 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetWritable(const FPCGAttributeIdentifier& InIdentifier, T DefaultValue, bool bAllowInterpolation, EBufferInit Init)
 		{
-			if (InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Invalid)
+			TSharedPtr<TBuffer<T>> Buffer = nullptr;
+
+			if (InIdentifier.MetadataDomain.DebugName.IsNone())
 			{
-				UE_LOG(LogPCGEx, Error, TEXT("GetWritable : Invalid domain with '%s'"), *InIdentifier.Name.ToString());
-				return nullptr;
+				Buffer = GetBuffer<T>(PCGEx::GetAttributeIdentifier(InIdentifier.Name, Source->GetOut()));
+			}
+			else
+			{
+				Buffer = GetBuffer<T>(InIdentifier);
 			}
 
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InIdentifier);
 			if (!Buffer || !Buffer->InitForWrite(DefaultValue, bAllowInterpolation, Init)) { return nullptr; }
 			return Buffer;
 		}
@@ -857,12 +848,17 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetWritable(const FPCGAttributeIdentifier& InIdentifier, EBufferInit Init)
 		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InIdentifier);
+			TSharedPtr<TBuffer<T>> Buffer = nullptr;
 
-			if (InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Invalid)
+			if (InIdentifier.MetadataDomain.DebugName.IsNone())
 			{
-				UE_LOG(LogPCGEx, Error, TEXT("GetWritable : Invalid domain with '%s'"), *InIdentifier.Name.ToString());
-				return nullptr;
+				// Identifier created from FName, need to sanitize it
+				// We'll do so using a selector, this is expensive but quick and future proof
+				Buffer = GetBuffer<T>(PCGEx::GetAttributeIdentifier(InIdentifier.Name, Source->GetOut()));
+			}
+			else
+			{
+				Buffer = GetBuffer<T>(InIdentifier);
 			}
 
 			if (!Buffer || !Buffer->InitForWrite(Init)) { return nullptr; }
@@ -879,7 +875,19 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetReadable(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In, const bool bSupportScoped = false)
 		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InIdentifier);
+			TSharedPtr<TBuffer<T>> Buffer = nullptr;
+
+			if (InIdentifier.MetadataDomain.DebugName.IsNone())
+			{
+				// Identifier created from FName, need to sanitize it
+				// We'll do so using a selector, this is expensive but quick and future proof
+				Buffer = GetBuffer<T>(PCGEx::GetAttributeIdentifier(InIdentifier.Name, Source->GetIn()));
+			}
+			else
+			{
+				Buffer = GetBuffer<T>(InIdentifier);
+			}
+
 			if (!Buffer || !Buffer->InitForRead(InSide, bSupportsScopedGet ? bSupportScoped : false))
 			{
 				Flush(Buffer);
@@ -1144,15 +1152,16 @@ namespace PCGExData
 	template <typename T>
 	static FPCGMetadataAttribute<T>* WriteMark(const TSharedRef<FPointIO>& PointIO, const FName MarkID, T MarkValue)
 	{
-		PointIO->DeleteAttribute(MarkID);
-		FPCGMetadataAttribute<T>* Mark = PointIO->CreateAttribute<T>(MarkID, MarkValue, false, true);
+		const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(MarkID, PointIO->GetIn());
+		PointIO->DeleteAttribute(Identifier);
+		FPCGMetadataAttribute<T>* Mark = PointIO->CreateAttribute<T>(Identifier, MarkValue, false, true);
 		Mark->SetDefaultValue(MarkValue);
 		return Mark;
 	}
 
 
 	template <typename T>
-	static bool TryReadMark(UPCGMetadata* Metadata, const FName MarkID, T& OutMark)
+	static bool TryReadMark(UPCGMetadata* Metadata, const FPCGAttributeIdentifier& MarkID, T& OutMark)
 	{
 		// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 		// ReSharper disable once CppRedundantTemplateKeyword
@@ -1165,7 +1174,8 @@ namespace PCGExData
 	template <typename T>
 	static bool TryReadMark(const TSharedRef<FPointIO>& PointIO, const FName MarkID, T& OutMark)
 	{
-		return TryReadMark(PointIO->GetIn() ? PointIO->GetIn()->Metadata : PointIO->GetOut()->Metadata, MarkID, OutMark);
+		const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(MarkID, PointIO->GetIn());
+		return TryReadMark(PointIO->GetIn() ? PointIO->GetIn()->Metadata : PointIO->GetOut()->Metadata, Identifier, OutMark);
 	}
 
 	static void WriteId(const TSharedRef<FPointIO>& PointIO, const FName IdName, const int64 Id)

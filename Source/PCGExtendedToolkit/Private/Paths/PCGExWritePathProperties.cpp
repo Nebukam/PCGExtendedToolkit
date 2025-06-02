@@ -11,7 +11,7 @@
 bool UPCGExWritePathPropertiesSettings::WriteAnyPathData() const
 {
 #define PCGEX_PATH_MARK_TRUE(_NAME, _TYPE, _DEFAULT) if(bWrite##_NAME){return true;}
-	PCGEX_FOREACH_FIELD_PATH_MARKS(PCGEX_PATH_MARK_TRUE)
+	PCGEX_FOREACH_FIELD_PATH(PCGEX_PATH_MARK_TRUE)
 #undef PCGEX_PATH_MARK_TRUE
 
 	return false;
@@ -20,7 +20,7 @@ bool UPCGExWritePathPropertiesSettings::WriteAnyPathData() const
 TArray<FPCGPinProperties> UPCGExWritePathPropertiesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if (WriteAnyPathData()) { PCGEX_PIN_PARAMS(PCGExWritePathProperties::OutputPathProperties, "...", Required, {}) }
+	if (WriteAnyPathData()) { PCGEX_PIN_PARAMS(PCGExWritePathProperties::OutputPathProperties, "...", Advanced, {}) }
 	return PinProperties;
 }
 
@@ -32,8 +32,8 @@ bool FPCGExWritePathPropertiesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WritePathProperties)
 
+	PCGEX_FOREACH_FIELD_PATH_POINT(PCGEX_OUTPUT_VALIDATE_NAME)
 	PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_VALIDATE_NAME)
-	PCGEX_FOREACH_FIELD_PATH_MARKS(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	if (Settings->PathAttributePackingMode == EPCGExAttributeSetPackingMode::Merged &&
 		Settings->WriteAnyPathData())
@@ -123,7 +123,7 @@ namespace PCGExWritePathProperties
 
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
-			PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_INIT)
+			PCGEX_FOREACH_FIELD_PATH_POINT(PCGEX_OUTPUT_INIT)
 		}
 
 		///
@@ -230,7 +230,7 @@ namespace PCGExWritePathProperties
 
 #define PCGEX_OUTPUT_PATH_VALUE(_NAME, _TYPE, _VALUE) if(Context->bWrite##_NAME){\
 	if (Settings->bWritePathDataToPoints) { WriteMark(PointIO, Settings->_NAME##AttributeName, _VALUE);}\
-			PathAttributeSet->Metadata->FindOrCreateAttribute<_TYPE>(Settings->_NAME##AttributeName, _VALUE)->SetValue(Key, _VALUE); }
+			PathAttributeSet->Metadata->FindOrCreateAttribute<_TYPE>(PCGEx::GetAttributeIdentifier(Settings->_NAME##AttributeName, PathAttributeSet).Name, _VALUE)->SetValue(Key, _VALUE); }
 
 			PCGEX_OUTPUT_PATH_VALUE(PathLength, double, PathLength->TotalLength)
 			PCGEX_OUTPUT_PATH_VALUE(PathDirection, FVector, (PathDir / Path->NumPoints).GetSafeNormal())

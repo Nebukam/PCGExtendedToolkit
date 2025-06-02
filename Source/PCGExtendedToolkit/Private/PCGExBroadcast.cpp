@@ -186,8 +186,8 @@ namespace PCGEx
 	{
 		OutType = EPCGMetadataTypes::Unknown;
 		const UPCGBasePointData* Data = InOutSide == PCGExData::EIOSide::In ?
-			                            InDataFacade->Source->GetInOut(InOutSide) :
-			                            InDataFacade->Source->GetOutIn(InOutSide);
+			                                InDataFacade->Source->GetInOut(InOutSide) :
+			                                InDataFacade->Source->GetOutIn(InOutSide);
 
 		if (!Data) { return false; }
 
@@ -196,6 +196,7 @@ namespace PCGEx
 
 		if (FixedSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
+			// TODO : Try the other way around if we don't find it at first 
 			if (!Data->Metadata) { return false; }
 			if (const FPCGMetadataAttributeBase* AttributeBase = Data->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(FixedSelector, Data)))
 			{

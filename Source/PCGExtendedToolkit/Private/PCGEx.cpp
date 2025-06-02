@@ -7,13 +7,21 @@
 
 namespace PCGEx
 {
-	bool IsPCGExAttribute(const FString& InStr) { return InStr.StartsWith(PCGExPrefix); }
+	bool IsPCGExAttribute(const FString& InStr) { return InStr.Contains(PCGExPrefix); }
 
 	bool IsPCGExAttribute(const FName InName) { return IsPCGExAttribute(InName.ToString()); }
 
 	bool IsPCGExAttribute(const FText& InText) { return IsPCGExAttribute(InText.ToString()); }
 
-	bool IsValidName(const FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
+	bool IsWritableAttributeName(const FName Name)
+	{
+		// This is a very expensive check, however it's also futureproofing 
+		if (Name.IsNone()) { return false; }
+		
+		FPCGAttributePropertyInputSelector DummySelector;
+		if (!DummySelector.Update(Name.ToString())) { return false; }
+		return DummySelector.GetSelection() == EPCGAttributePropertySelection::Attribute && DummySelector.IsValid();
+	}
 
 	FString StringTagFromName(const FName Name)
 	{

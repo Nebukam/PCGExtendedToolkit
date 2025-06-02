@@ -411,7 +411,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		if (InBuilder->OutputDetails->bOutputEdgeLength)
 		{
-			if (!PCGEx::IsValidName(InBuilder->OutputDetails->EdgeLengthName))
+			if (!PCGEx::IsWritableAttributeName(InBuilder->OutputDetails->EdgeLengthName))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, AsyncManager->GetContext(), FTEXT("Invalid user-defined attribute name for Edge Length."));
 			}

@@ -56,8 +56,7 @@ bool FPCGExAttributeSourceToTargetDetails::ValidateNames(FPCGExContext* InContex
 
 bool FPCGExAttributeSourceToTargetDetails::ValidateNamesOrProperties(FPCGExContext* InContext) const
 {
-	FPCGAttributePropertySelector Selector;
-
+	FPCGAttributePropertyInputSelector Selector;
 	Selector.Update(Source.ToString());
 	if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
@@ -217,7 +216,7 @@ namespace PCGEx
 		bool bAnyMissing = false;
 		for (const FName& Id : Checklist)
 		{
-			if (!Contains(Id) || !IsValidName(Id))
+			if (!Contains(Id) || !IsWritableAttributeName(Id))
 			{
 				OutMissing.Add(Id);
 				bAnyMissing = true;
@@ -231,7 +230,7 @@ namespace PCGEx
 		bool bAnyMissing = false;
 		for (const FName& Id : Checklist)
 		{
-			if (!Contains(Id) || !IsValidName(Id))
+			if (!Contains(Id) || !IsWritableAttributeName(Id))
 			{
 				OutMissing.Add(Id);
 				bAnyMissing = true;

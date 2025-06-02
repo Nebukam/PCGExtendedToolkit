@@ -211,7 +211,7 @@ namespace PCGEx
 	static FName MakePCGExAttributeName(const FString& Str0, const FString& Str1) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}/{2}")), FText::FromString(PCGExPrefix), FText::FromString(Str0), FText::FromString(Str1)).ToString()); }
 
 	PCGEXTENDEDTOOLKIT_API
-	bool IsValidName(const FName Name);
+	bool IsWritableAttributeName(const FName Name);
 	PCGEXTENDEDTOOLKIT_API
 	FString StringTagFromName(const FName Name);
 	PCGEXTENDEDTOOLKIT_API

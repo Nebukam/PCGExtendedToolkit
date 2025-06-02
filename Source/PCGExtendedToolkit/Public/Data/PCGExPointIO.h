@@ -285,7 +285,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		bool bTransactional = false;
 		bool bMutable = false;
 		bool bPinless = false;
-		
+
 		TWeakPtr<FPCGContextHandle> ContextHandle;
 
 		mutable FRWLock PointsLock;
@@ -365,7 +365,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 				Out = nullptr;
 				return true;
 			}
-			
+
 			bMutable = true;
 
 			if (InitOut == EIOInit::New)
@@ -522,28 +522,43 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		void DeleteAttribute(const FPCGAttributeIdentifier& AttributeName) const;
 
 		template <typename T>
-		FPCGMetadataAttribute<T>* CreateAttribute(const FPCGAttributeIdentifier& AttributeName, const T& DefaultValue, bool bAllowsInterpolation, bool bOverrideParent)
+		FPCGMetadataAttribute<T>* CreateAttribute(const FPCGAttributeIdentifier& Identifier, const T& DefaultValue, bool bAllowsInterpolation, bool bOverrideParent)
 		{
 			FPCGMetadataAttribute<T>* OutAttribute = nullptr;
 			if (!Out) { return OutAttribute; }
 
 			{
 				FWriteScopeLock WriteScopeLock(AttributesLock);
-				OutAttribute = Out->Metadata->CreateAttribute(AttributeName, DefaultValue, bAllowsInterpolation, bOverrideParent);
+				if (Identifier.MetadataDomain.DebugName.IsNone())
+				{
+					OutAttribute = Out->Metadata->CreateAttribute(PCGEx::GetAttributeIdentifier(Identifier.Name, Out), DefaultValue, bAllowsInterpolation, bOverrideParent);
+				}
+				else
+				{
+					OutAttribute = Out->Metadata->CreateAttribute(Identifier, DefaultValue, bAllowsInterpolation, bOverrideParent);
+				}
 			}
 
 			return OutAttribute;
 		}
 
 		template <typename T>
-		FPCGMetadataAttribute<T>* FindOrCreateAttribute(const FPCGAttributeIdentifier& AttributeName, const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
+		FPCGMetadataAttribute<T>* FindOrCreateAttribute(const FPCGAttributeIdentifier& Identifier, const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
 		{
 			FPCGMetadataAttribute<T>* OutAttribute = nullptr;
 			if (!Out) { return OutAttribute; }
 
 			{
 				FWriteScopeLock WriteScopeLock(AttributesLock);
-				OutAttribute = Out->Metadata->FindOrCreateAttribute(AttributeName, DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+
+				if (Identifier.MetadataDomain.DebugName.IsNone())
+				{
+					OutAttribute = Out->Metadata->FindOrCreateAttribute(PCGEx::GetAttributeIdentifier(Identifier.Name, Out), DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+				}
+				else
+				{
+					OutAttribute = Out->Metadata->FindOrCreateAttribute(Identifier, DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+				}
 			}
 
 			return OutAttribute;
@@ -612,7 +627,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		TSharedPtr<FPointIO> Add_Unsafe(const TSharedPtr<FPointIO>& PointIO);
 		TSharedPtr<FPointIO> Add(const TSharedPtr<FPointIO>& PointIO);
-		
+
 		void Add_Unsafe(const TArray<TSharedPtr<FPointIO>>& IOs);
 		void Add(const TArray<TSharedPtr<FPointIO>>& IOs);
 
