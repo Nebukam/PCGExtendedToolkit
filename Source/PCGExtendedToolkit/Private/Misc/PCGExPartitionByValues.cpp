@@ -214,7 +214,7 @@ namespace PCGExPartitionByValues
 
 		for (FPCGExPartitonRuleConfig& Config : Context->RulesConfigs)
 		{
-			const TSharedPtr<PCGExData::TBuffer<double>> DataCache = PointDataFacade->GetScopedBroadcaster<double>(Config.Selector);
+			const TSharedPtr<PCGExData::TBuffer<double>> DataCache = PointDataFacade->GetBroadcaster<double>(Config.Selector, true);
 			if (!DataCache) { continue; }
 
 			if (PCGExHelpers::TryGetAttributeName(Config.Selector, PointDataFacade->Source->GetIn(), Consumable)) { Context->AddConsumableAttributeName(Consumable); }

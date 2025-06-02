@@ -136,7 +136,7 @@ namespace PCGExPathSplineMeshSimple
 
 		if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Attribute)
 		{
-			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->SplineMeshUpVectorAttribute);
+			UpGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->SplineMeshUpVectorAttribute, true);
 
 			if (!UpGetter)
 			{
@@ -147,7 +147,7 @@ namespace PCGExPathSplineMeshSimple
 
 		if (Settings->AssetType == EPCGExInputValueType::Attribute)
 		{
-			AssetPathReader = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName);
+			AssetPathReader = PointDataFacade->GetBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName, true);
 			if (!AssetPathReader)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("AssetPath attribute is missing on some inputs.."));

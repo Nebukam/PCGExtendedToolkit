@@ -71,7 +71,7 @@ bool FPCGExSingleJustifyDetails::Init(FPCGExContext* InContext, const TSharedRef
 {
 	if (From == EPCGExJustifyFrom::Custom && FromInput == EPCGExInputValueType::Attribute)
 	{
-		FromGetter = InDataFacade->GetScopedBroadcaster<double>(FromSourceAttribute);
+		FromGetter = InDataFacade->GetBroadcaster<double>(FromSourceAttribute, true);
 		if (!FromGetter)
 		{
 			if (SharedFromGetter)
@@ -115,7 +115,7 @@ bool FPCGExSingleJustifyDetails::Init(FPCGExContext* InContext, const TSharedRef
 
 	if (To == EPCGExJustifyTo::Custom && FromInput == EPCGExInputValueType::Attribute)
 	{
-		ToGetter = InDataFacade->GetScopedBroadcaster<double>(FromSourceAttribute);
+		ToGetter = InDataFacade->GetBroadcaster<double>(FromSourceAttribute, true);
 		if (!ToGetter)
 		{
 			if (SharedToGetter)
@@ -212,12 +212,12 @@ bool FPCGExJustificationDetails::Init(FPCGExContext* InContext, const TSharedRef
 {
 	if (bSharedCustomFromAttribute)
 	{
-		SharedFromGetter = InDataFacade->GetScopedBroadcaster<FVector>(CustomFromVectorAttribute);
+		SharedFromGetter = InDataFacade->GetBroadcaster<FVector>(CustomFromVectorAttribute, true);
 	}
 
 	if (bSharedCustomToAttribute)
 	{
-		SharedToGetter = InDataFacade->GetScopedBroadcaster<FVector>(CustomToVectorAttribute);
+		SharedToGetter = InDataFacade->GetBroadcaster<FVector>(CustomToVectorAttribute, true);
 	}
 
 	if (bDoJustifyX)

@@ -132,6 +132,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetList
 
 namespace PCGEx
 {
+	const FName InvalidName = "INVALID_DATA";
+
 #pragma region Attribute identity
 
 	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
@@ -238,10 +240,13 @@ namespace PCGEx
 #pragma region Attribute Broadcaster
 
 	template <bool bInitialized>
-	static FName GetSelectorFullName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
+	static FName GetLongNameFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 	{
-		if (!InData) { return FName(TEXT("NULL_DATA")); }
-		
+		// This return a domain-less unique identifier for the provided selector
+		// It's mostly used to create uniquely identified value buffers
+
+		if (!InData) { return InvalidName; }
+
 		if constexpr (bInitialized)
 		{
 			if (InSelector.GetExtraNames().IsEmpty()) { return FName(InSelector.GetName().ToString()); }
@@ -251,11 +256,29 @@ namespace PCGEx
 		{
 			if (InSelector.GetSelection() == EPCGAttributePropertySelection::Attribute && InSelector.GetName() == "@Last")
 			{
-				return GetSelectorFullName<true>(InSelector.CopyAndFixLast(InData), InData);
+				return GetLongNameFromSelector<true>(InSelector.CopyAndFixLast(InData), InData);
 			}
 
-			return GetSelectorFullName<true>(InSelector, InData);
+			return GetLongNameFromSelector<true>(InSelector, InData);
 		}
+	}
+
+	static FPCGAttributeIdentifier GetIdentifierFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
+	{
+		// This return an identifier suitable to be used for data facade
+
+		FPCGAttributeIdentifier Identifier;
+
+		if (!InData) { return FPCGAttributeIdentifier(InvalidName, EPCGMetadataDomainFlag::Invalid); }
+
+		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
+
+		if (InSelector.GetExtraNames().IsEmpty()) { Identifier.Name = FixedSelector.GetName(); }
+		else { Identifier.Name = FName(FixedSelector.GetName().ToString() + TEXT(".") + FString::Join(FixedSelector.GetExtraNames(), TEXT("."))); }
+
+		Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);
+
+		return Identifier;
 	}
 
 	PCGEXTENDEDTOOLKIT_API
@@ -294,7 +317,7 @@ namespace PCGEx
 
 			if (!ProcessingInfos.bIsValid) { return false; }
 
-			FullName = GetSelectorFullName<true>(ProcessingInfos.Selector, InData);
+			FullName = GetLongNameFromSelector<true>(ProcessingInfos.Selector, InData);
 
 			if (ProcessingInfos.Attribute)
 			{
@@ -480,7 +503,7 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 			{
 				const FSubSelection& S = ProcessingInfos.SubSelection;
 				const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
-				
+
 #define PCGEX_GET_BY_ACCESSOR(_ACCESSOR, _TYPE)\
 				if (bCaptureMinMax) {\
 				if (S.bIsValid){ for (int Index = 0; Index < NumPoints; Index++) { T V = S.Get<_TYPE, T>(InData->_ACCESSOR); OutMin = PCGExBlend::Min(V, OutMin); OutMax = PCGExBlend::Max(V, OutMax); Dump[Index] = V; } } \

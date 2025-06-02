@@ -100,6 +100,19 @@ namespace PCGExData
 #undef PCGEX_TYPED_WRITABLE
 	}
 
+	TSharedPtr<IBuffer> FFacade::GetReadable(const PCGEx::FAttributeIdentity& Identity, const EIOSide InSide, const bool bSupportScoped)
+	{
+		TSharedPtr<IBuffer> Buffer = nullptr;
+		PCGEx::ExecuteWithRightType(
+			Identity.UnderlyingType, [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				Buffer = GetReadable<T>(Identity.Identifier, InSide, bSupportScoped);
+			});
+
+		return Buffer;
+	}
+
 #pragma endregion
 
 #pragma region FFacade
@@ -114,19 +127,9 @@ namespace PCGExData
 		return Cloud;
 	}
 
-	void FFacade::PrepareScopedReadable(const PCGEx::FAttributeIdentity& Identity)
+	void FFacade::CreateReadables(const TArray<PCGEx::FAttributeIdentity>& Identities, const bool bWantsScoped)
 	{
-		PCGEx::ExecuteWithRightType(
-			Identity.UnderlyingType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				GetScopedReadable<T>(Identity.Identifier);
-			});
-	}
-
-	void FFacade::PrepareScopedReadable(const TArray<PCGEx::FAttributeIdentity>& Identities)
-	{
-		for (const PCGEx::FAttributeIdentity& Identity : Identities) { PrepareScopedReadable(Identity); }
+		for (const PCGEx::FAttributeIdentity& Identity : Identities) { GetReadable(Identity, EIOSide::In, bWantsScoped); }
 	}
 
 	void FFacade::MarkCurrentBuffersReadAsComplete()
@@ -298,13 +301,13 @@ namespace PCGExData
 					switch (Mode)
 					{
 					case EBufferPreloadType::RawAttribute:
-						Reader = InFacade->GetScopedReadable<T>(Identity.Identifier);
+						Reader = InFacade->GetReadable<T>(Identity.Identifier, EIOSide::In, true);
 						break;
 					case EBufferPreloadType::BroadcastFromName:
-						Reader = InFacade->GetScopedBroadcaster<T>(Identity.Identifier);
+						Reader = InFacade->GetBroadcaster<T>(Identity.Identifier.Name, true);
 						break;
 					case EBufferPreloadType::BroadcastFromSelector:
-						Reader = InFacade->GetScopedBroadcaster<T>(Selector);
+						Reader = InFacade->GetBroadcaster<T>(Selector, true);
 						break;
 					}
 
@@ -328,7 +331,7 @@ namespace PCGExData
 					Reader = InFacade->GetReadable<T>(Identity.Identifier);
 					break;
 				case EBufferPreloadType::BroadcastFromName:
-					Reader = InFacade->GetBroadcaster<T>(Identity.Identifier);
+					Reader = InFacade->GetBroadcaster<T>(Identity.Identifier.Name);
 					break;
 				case EBufferPreloadType::BroadcastFromSelector:
 					Reader = InFacade->GetBroadcaster<T>(Selector);

@@ -105,7 +105,7 @@ namespace PCGExSampleTexture
 
 		SamplingMask.Init(false, PointDataFacade->GetNum());
 
-		UVGetter = PointDataFacade->GetScopedBroadcaster<FVector2D>(Settings->UVSource);
+		UVGetter = PointDataFacade->GetBroadcaster<FVector2D>(Settings->UVSource, true);
 
 		if (!UVGetter)
 		{

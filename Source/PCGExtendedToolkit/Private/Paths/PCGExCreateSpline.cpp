@@ -94,8 +94,8 @@ namespace PCGExCreateSpline
 
 		if (Settings->bApplyCustomTangents)
 		{
-			ArriveTangent = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->ArriveTangentAttribute);
-			LeaveTangent = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LeaveTangentAttribute);
+			ArriveTangent = PointDataFacade->GetBroadcaster<FVector>(Settings->ArriveTangentAttribute, true);
+			LeaveTangent = PointDataFacade->GetBroadcaster<FVector>(Settings->LeaveTangentAttribute, true);
 			if (!ArriveTangent || !LeaveTangent)
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Missing tangent attributes"));
@@ -105,7 +105,7 @@ namespace PCGExCreateSpline
 
 		if (Settings->bApplyCustomPointType)
 		{
-			CustomPointType = PointDataFacade->GetScopedBroadcaster<int32>(Settings->PointTypeAttribute);
+			CustomPointType = PointDataFacade->GetBroadcaster<int32>(Settings->PointTypeAttribute, true);
 			if (!CustomPointType)
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Missing custom point type attribute"));

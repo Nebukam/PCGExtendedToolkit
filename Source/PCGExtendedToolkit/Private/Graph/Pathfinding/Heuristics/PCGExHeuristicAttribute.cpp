@@ -19,7 +19,7 @@ void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 	CachedScores.SetNumZeroed(NumPoints);
 
 	// Grab all attribute values
-	const TSharedPtr<PCGExData::TBuffer<double>> Values = DataFacade->GetBroadcaster<double>(Attribute, true);
+	const TSharedPtr<PCGExData::TBuffer<double>> Values = DataFacade->GetBroadcaster<double>(Attribute, false, true);
 
 	if (!Values)
 	{

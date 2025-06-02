@@ -287,7 +287,7 @@ namespace PCGExGetTextureData
 			}
 		}
 
-		PathGetter = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->SourceAttributeName);
+		PathGetter = PointDataFacade->GetBroadcaster<FSoftObjectPath>(Settings->SourceAttributeName, true);
 
 		if (!PathGetter)
 		{

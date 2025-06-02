@@ -86,7 +86,7 @@ namespace PCGExFlatProjection
 
 		if (bInverseExistingProjection)
 		{
-			TransformReader = PointDataFacade->GetScopedReadable<FTransform>(Context->CachedTransformAttributeName);
+			TransformReader = PointDataFacade->GetReadable<FTransform>(Context->CachedTransformAttributeName, PCGExData::EIOSide::In, true);
 		}
 		else if (bWriteAttribute)
 		{

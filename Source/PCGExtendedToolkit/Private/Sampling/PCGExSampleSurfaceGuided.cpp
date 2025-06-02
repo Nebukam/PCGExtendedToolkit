@@ -136,7 +136,7 @@ namespace PCGExSampleSurfaceGuided
 		
 		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
 
-		OriginGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Origin);
+		OriginGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->Origin, true);
 
 		if (!OriginGetter)
 		{
@@ -144,7 +144,7 @@ namespace PCGExSampleSurfaceGuided
 			return false;
 		}
 
-		DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Direction);
+		DirectionGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->Direction, true);
 
 		if (!DirectionGetter)
 		{
@@ -164,7 +164,7 @@ namespace PCGExSampleSurfaceGuided
 
 		if (Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Attribute)
 		{
-			MaxDistanceGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalMaxDistance);
+			MaxDistanceGetter = PointDataFacade->GetBroadcaster<double>(Settings->LocalMaxDistance, true);
 			if (!MaxDistanceGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("LocalMaxDistance missing"));

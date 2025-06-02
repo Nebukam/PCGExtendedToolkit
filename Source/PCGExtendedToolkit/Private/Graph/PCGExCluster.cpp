@@ -881,7 +881,7 @@ bool FPCGExEdgeDirectionSettings::InitFromParent(
 
 	if (DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
 	{
-		EdgeDirReader = InEdgeDataFacade->GetScopedBroadcaster<FVector>(DirSourceAttribute);
+		EdgeDirReader = InEdgeDataFacade->GetBroadcaster<FVector>(DirSourceAttribute, true);
 		if (!EdgeDirReader)
 		{
 			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Dir Source (Edges)", DirSourceAttribute)

@@ -132,7 +132,7 @@ namespace PCGExSampleNearestSurface
 
 		if (Settings->bUseLocalMaxDistance)
 		{
-			MaxDistanceGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalMaxDistance);
+			MaxDistanceGetter = PointDataFacade->GetBroadcaster<double>(Settings->LocalMaxDistance, true);
 			if (!MaxDistanceGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("LocalMaxDistance missing"));

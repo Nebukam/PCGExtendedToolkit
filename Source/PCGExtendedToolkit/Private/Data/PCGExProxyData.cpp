@@ -281,7 +281,7 @@ namespace PCGExData
 									if (ExistingBuffer && ExistingBuffer->IsReadable()) { Buffer = ExistingBuffer; }
 
 									// Otherwise create read-only buffer
-									if (!Buffer) { Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName()); }
+									if (!Buffer) { Buffer = InDataFacade->GetReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::In, true); }
 								}
 								else if (InDescriptor.Side == EIOSide::Out)
 								{
@@ -300,7 +300,7 @@ namespace PCGExData
 											// Change buffer state to read from output
 											if (ExistingBuffer->IsWritable())
 											{
-												Buffer = InDataFacade->GetScopedReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::Out);
+												Buffer = InDataFacade->GetReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::Out, true);
 											}
 
 											if (!Buffer)
@@ -383,7 +383,7 @@ namespace PCGExData
 								TSharedPtr<TPointExtraPropertyProxy<int32, T_WORKING, true, EPCGExtraProperties::Index>> TypedProxy =
 									MakeShared<TPointExtraPropertyProxy<int32, T_WORKING, true, EPCGExtraProperties::Index>>();
 
-								//TypedProxy->Buffer = InDataFacade->GetScopedBroadcaster<int32>(InDescriptor.Selector);
+								//TypedProxy->Buffer = InDataFacade->GetBroadcaster<int32>(InDescriptor.Selector, true);
 								OutProxy = TypedProxy;
 							}
 							else
@@ -391,7 +391,7 @@ namespace PCGExData
 								TSharedPtr<TPointExtraPropertyProxy<int32, T_WORKING, false, EPCGExtraProperties::Index>> TypedProxy =
 									MakeShared<TPointExtraPropertyProxy<int32, T_WORKING, false, EPCGExtraProperties::Index>>();
 
-								//TypedProxy->Buffer = InDataFacade->GetScopedBroadcaster<int32>(InDescriptor.Selector);
+								//TypedProxy->Buffer = InDataFacade->GetBroadcaster<int32>(InDescriptor.Selector, true);
 								OutProxy = TypedProxy;
 							}
 						}

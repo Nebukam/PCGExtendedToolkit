@@ -18,7 +18,7 @@ bool FPCGExProbeClosest::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>&
 	}
 	else
 	{
-		MaxConnectionsCache = PrimaryDataFacade->GetScopedBroadcaster<int32>(Config.MaxConnectionsAttribute);
+		MaxConnectionsCache = PrimaryDataFacade->GetBroadcaster<int32>(Config.MaxConnectionsAttribute, true);
 
 		if (!MaxConnectionsCache)
 		{

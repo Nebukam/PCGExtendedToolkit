@@ -88,7 +88,7 @@ namespace PCGExOffsetPath
 
 		if (Settings->DirectionType == EPCGExInputValueType::Attribute)
 		{
-			DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->DirectionAttribute);
+			DirectionGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->DirectionAttribute, true);
 			if (!DirectionGetter)
 			{
 				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, "Direction", Settings->DirectionAttribute)

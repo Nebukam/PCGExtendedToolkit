@@ -46,7 +46,7 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Init(FPCGExContext* InConte
 
 	Distances = TypedFilterFactory->Config.DistanceDetails.MakeDistances();
 
-	OperandA = TargetDataFacade->GetScopedBroadcaster<double>(TypedFilterFactory->Config.OperandA);
+	OperandA = TargetDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandA, true);
 
 	if (!OperandA)
 	{

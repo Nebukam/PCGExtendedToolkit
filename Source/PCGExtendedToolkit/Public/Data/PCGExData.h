@@ -61,7 +61,9 @@ namespace PCGExData
 
 	static uint64 BufferUID(const FPCGAttributeIdentifier& Identifier, const EPCGMetadataTypes Type)
 	{
-		return PCGEx::H64(GetTypeHash(Identifier), static_cast<int32>(Type));
+		EPCGMetadataDomainFlag SaneFlagForUID = Identifier.MetadataDomain.Flag;
+		if (SaneFlagForUID == EPCGMetadataDomainFlag::Default) { SaneFlagForUID = EPCGMetadataDomainFlag::Elements; }
+		return PCGEx::H64(HashCombine(GetTypeHash(Identifier.Name), GetTypeHash(SaneFlagForUID)), static_cast<int32>(Type));
 	};
 
 	class PCGEXTENDEDTOOLKIT_API IBuffer : public TSharedFromThis<IBuffer>
@@ -206,6 +208,7 @@ namespace PCGExData
 		TArrayBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier):
 			TBuffer<T>(InSource, InIdentifier)
 		{
+			check(InIdentifier.MetadataDomain.Flag != EPCGMetadataDomainFlag::Data)
 			this->UnderlyingDomain = EDomainType::MultipleEntries;
 		}
 
@@ -535,7 +538,9 @@ namespace PCGExData
 		TSingleValueBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier):
 			TBuffer<T>(InSource, InIdentifier)
 		{
+			check(InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data)
 			this->UnderlyingDomain = EDomainType::SingleEntry;
+			UE_LOG(LogPCGEx, Error, TEXT("@Data domain currently not supported!"));
 		}
 
 		virtual bool IsWritable() override { return bWriteInitialized; }
@@ -866,6 +871,12 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetWritable(const FPCGAttributeIdentifier& InIdentifier, T DefaultValue, bool bAllowInterpolation, EBufferInit Init)
 		{
+			if (InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Invalid)
+			{
+				UE_LOG(LogPCGEx, Error, TEXT("GetWritable : Invalid domain with '%s'"), *InIdentifier.Name.ToString());
+				return nullptr;
+			}
+
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InIdentifier);
 			if (!Buffer || !Buffer->InitForWrite(DefaultValue, bAllowInterpolation, Init)) { return nullptr; }
 			return Buffer;
@@ -874,13 +885,22 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetWritable(const FPCGMetadataAttribute<T>* InAttribute, EBufferInit Init)
 		{
-			return GetWritable(InAttribute->Name, InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), Init);
+			return GetWritable(
+				FPCGAttributeIdentifier(InAttribute->Name, InAttribute->GetMetadataDomain()->GetDomainID()),
+				InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), Init);
 		}
 
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetWritable(const FPCGAttributeIdentifier& InIdentifier, EBufferInit Init)
 		{
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InIdentifier);
+
+			if (InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Invalid)
+			{
+				UE_LOG(LogPCGEx, Error, TEXT("GetWritable : Invalid domain with '%s'"), *InIdentifier.Name.ToString());
+				return nullptr;
+			}
+
 			if (!Buffer || !Buffer->InitForWrite(Init)) { return nullptr; }
 			return Buffer;
 		}
@@ -893,10 +913,10 @@ namespace PCGExData
 #pragma region Readable
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetReadable(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In)
+		TSharedPtr<TBuffer<T>> GetReadable(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In, const bool bSupportScoped = false)
 		{
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InIdentifier);
-			if (!Buffer || !Buffer->InitForRead(InSide, false))
+			if (!Buffer || !Buffer->InitForRead(InSide, bSupportsScopedGet ? bSupportScoped : false))
 			{
 				Flush(Buffer);
 				return nullptr;
@@ -905,31 +925,27 @@ namespace PCGExData
 			return Buffer;
 		}
 
-		template <typename T>
-		TSharedPtr<TBuffer<T>> GetScopedReadable(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In)
-		{
-			if (!bSupportsScopedGet) { return GetReadable<T>(InIdentifier, InSide); }
-
-			// Careful when reading from ESource::Out, make sure a writer already exists!!
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InIdentifier);
-			if (!Buffer || !Buffer->InitForRead(InSide, true))
-			{
-				Flush(Buffer);
-				return nullptr;
-			}
-
-			return Buffer;
-		}
+		TSharedPtr<IBuffer> GetReadable(const PCGEx::FAttributeIdentity& Identity, const EIOSide InSide = EIOSide::In, const bool bSupportScoped = false);
 
 #pragma endregion
 
 #pragma region Broadcasters
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false)
+		TSharedPtr<TBuffer<T>> GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bSupportScoped = false, const bool bCaptureMinMax = false)
 		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(PCGEx::GetSelectorFullName<false>(InSelector, Source->GetIn()));
-			if (!Buffer || !Buffer->InitForBroadcast(InSelector, bCaptureMinMax, false))
+			// Build a proper identifier from the selector
+			// We'll use it to get a unique buffer ID as well as domain, which is conditional to finding the right buffer class to use
+
+			FPCGAttributeIdentifier Identifier = PCGEx::GetIdentifierFromSelector(InSelector, Source->GetIn());
+			if (Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Invalid)
+			{
+				UE_LOG(LogPCGEx, Error, TEXT("GetBroadcaster : Invalid domain with '%s'"), *Identifier.Name.ToString());
+				return nullptr;
+			}
+
+			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(Identifier);
+			if (!Buffer || !Buffer->InitForBroadcast(InSelector, bCaptureMinMax, bCaptureMinMax || !bSupportsScopedGet ? false : bSupportScoped))
 			{
 				Flush(Buffer);
 				return nullptr;
@@ -939,34 +955,14 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const bool bCaptureMinMax = false)
+		TSharedPtr<TBuffer<T>> GetBroadcaster(const FName InName, const bool bSupportScoped = false, const bool bCaptureMinMax = false)
 		{
+			// Create a selector from the identifier.
+			// This is a bit backward but the user may have added domain prefixes to the name such as @Data.
 			FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
-			Selector.SetAttributeName(InIdentifier.Name);
-			return GetBroadcaster<T>(Selector, bCaptureMinMax);
-		}
+			Selector.Update(InName.ToString());
 
-		template <typename T>
-		TSharedPtr<TBuffer<T>> GetScopedBroadcaster(const FPCGAttributePropertyInputSelector& InSelector)
-		{
-			if (!bSupportsScopedGet) { return GetBroadcaster<T>(InSelector); }
-
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(PCGEx::GetSelectorFullName<true>(InSelector, Source->GetIn()));
-			if (!Buffer || !Buffer->InitForBroadcast(InSelector, false, false))
-			{
-				Flush(Buffer);
-				return nullptr;
-			}
-
-			return Buffer;
-		}
-
-		template <typename T>
-		TSharedPtr<TBuffer<T>> GetScopedBroadcaster(const FPCGAttributeIdentifier& InIdentifier)
-		{
-			FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
-			Selector.SetAttributeName(InIdentifier.Name);
-			return GetScopedBroadcaster<T>(Selector);
+			return GetBroadcaster<T>(Selector, bSupportScoped, bCaptureMinMax);
 		}
 
 #pragma endregion
@@ -1010,8 +1006,7 @@ namespace PCGExData
 		const UPCGBasePointData* GetIn() const { return Source->GetIn(); }
 		UPCGBasePointData* GetOut() const { return Source->GetOut(); }
 
-		void PrepareScopedReadable(const PCGEx::FAttributeIdentity& Identity);
-		void PrepareScopedReadable(const TArray<PCGEx::FAttributeIdentity>& Identities);
+		void CreateReadables(const TArray<PCGEx::FAttributeIdentity>& Identities, const bool bWantsScoped = true);
 
 		void MarkCurrentBuffersReadAsComplete();
 

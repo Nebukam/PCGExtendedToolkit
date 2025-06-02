@@ -189,7 +189,7 @@ namespace PCGExPathSplineMesh
 
 		if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Attribute)
 		{
-			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->SplineMeshUpVectorAttribute);
+			UpGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->SplineMeshUpVectorAttribute, true);
 
 			if (!UpGetter)
 			{

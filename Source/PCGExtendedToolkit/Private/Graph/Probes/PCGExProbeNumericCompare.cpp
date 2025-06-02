@@ -12,7 +12,7 @@ bool FPCGExProbeNumericCompare::PrepareForPoints(const TSharedPtr<PCGExData::FPo
 {
 	if (!FPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
 
-	ValuesBuffer = PrimaryDataFacade->GetScopedBroadcaster<double>(Config.Attribute);
+	ValuesBuffer = PrimaryDataFacade->GetBroadcaster<double>(Config.Attribute, true);
 
 	if (!ValuesBuffer)
 	{

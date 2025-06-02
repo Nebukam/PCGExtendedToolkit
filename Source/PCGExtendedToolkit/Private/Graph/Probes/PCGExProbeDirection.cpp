@@ -24,7 +24,7 @@ bool FPCGExProbeDirection::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO
 	}
 	else
 	{
-		DirectionCache = PrimaryDataFacade->GetScopedBroadcaster<FVector>(Config.DirectionAttribute);
+		DirectionCache = PrimaryDataFacade->GetBroadcaster<FVector>(Config.DirectionAttribute, true);
 
 		if (!DirectionCache)
 		{

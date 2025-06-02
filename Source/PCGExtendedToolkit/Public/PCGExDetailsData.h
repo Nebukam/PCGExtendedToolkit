@@ -55,8 +55,7 @@ namespace PCGExDetails
 		{
 			PCGEX_VALIDATE_NAME_C(InContext, Name)
 
-			if (bSupportScoped && InDataFacade->bSupportsScopedGet) { Buffer = InDataFacade->GetScopedReadable<T>(Name); }
-			else { Buffer = InDataFacade->GetReadable<T>(Name); }
+			Buffer = InDataFacade->GetReadable<T>(Name, PCGExData::EIOSide::In, bSupportScoped);
 
 			if (!Buffer)
 			{
@@ -87,8 +86,7 @@ namespace PCGExDetails
 
 		virtual bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
 		{
-			if (bSupportScoped && InDataFacade->bSupportsScopedGet && !bCaptureMinMax) { Buffer = InDataFacade->GetScopedBroadcaster<T>(Selector); }
-			else { Buffer = InDataFacade->GetBroadcaster<T>(Selector, bCaptureMinMax); }
+			Buffer = InDataFacade->GetBroadcaster<T>(Selector, bSupportScoped && !bCaptureMinMax, bCaptureMinMax);
 
 			if (!Buffer)
 			{

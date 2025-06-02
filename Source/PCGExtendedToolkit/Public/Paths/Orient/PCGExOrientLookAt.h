@@ -28,7 +28,7 @@ public:
 
 		if (LookAt == EPCGExOrientLookAtMode::Direction || LookAt == EPCGExOrientLookAtMode::Position)
 		{
-			LookAtGetter = InDataFacade->GetScopedBroadcaster<FVector>(LookAtAttribute);
+			LookAtGetter = InDataFacade->GetBroadcaster<FVector>(LookAtAttribute, true);
 			if (!LookAtGetter)
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("LookAt Attribute ({0}) is not valid."), FText::FromString(PCGEx::GetSelectorDisplayName(LookAtAttribute))));

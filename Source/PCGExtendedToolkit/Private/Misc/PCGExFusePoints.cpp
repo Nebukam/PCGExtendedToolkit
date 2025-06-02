@@ -100,7 +100,7 @@ namespace PCGExFusePoints
 			PointDataFacade->GetIn()->Metadata, SourceAttributes,
 			&Settings->BlendingDetails, &Context->CarryOverDetails);
 
-		PointDataFacade->PrepareScopedReadable(SourceAttributes);
+		PointDataFacade->CreateReadables(SourceAttributes);
 
 		bDaisyChainProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
