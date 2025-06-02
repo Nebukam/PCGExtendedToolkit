@@ -51,7 +51,7 @@ namespace PCGExData
 	enum class EDomainType : uint8
 	{
 		Unknown         = 0,
-		SingleEntry     = 1,
+		FirstValue     = 1,
 		MultipleEntries = 2,
 	};
 
@@ -65,6 +65,24 @@ namespace PCGExData
 		if (SaneFlagForUID == EPCGMetadataDomainFlag::Default) { SaneFlagForUID = EPCGMetadataDomainFlag::Elements; }
 		return PCGEx::H64(HashCombine(GetTypeHash(Identifier.Name), GetTypeHash(SaneFlagForUID)), static_cast<int32>(Type));
 	};
+
+	static FPCGAttributeIdentifier GetBufferIdentifierFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
+	{
+		// This return an identifier suitable to be used for data facade
+
+		FPCGAttributeIdentifier Identifier;
+
+		if (!InData) { return FPCGAttributeIdentifier(PCGEx::InvalidName, EPCGMetadataDomainFlag::Invalid); }
+
+		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
+
+		if (InSelector.GetExtraNames().IsEmpty()) { Identifier.Name = FixedSelector.GetName(); }
+		else { Identifier.Name = FName(FixedSelector.GetName().ToString() + TEXT(".") + FString::Join(FixedSelector.GetExtraNames(), TEXT("."))); }
+
+		Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);
+
+		return Identifier;
+	}
 
 	class PCGEXTENDEDTOOLKIT_API IBuffer : public TSharedFromThis<IBuffer>
 	{
@@ -456,36 +474,27 @@ namespace PCGExData
 			if (OutputsToDifferentName())
 			{
 				// If we want to output to a different name, ensure the new attribute exists and hope we did proper validations beforehand
+				FPCGAttributeIdentifier OutputIdentifier = Identifier;
+				OutputIdentifier.Name = TargetOutputName;
 
 				// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 				// ReSharper disable once CppRedundantTemplateKeyword
-				TypedOutAttribute = Source->GetOut()->Metadata->template FindOrCreateAttribute<T>(TargetOutputName, TypedOutAttribute->GetValueFromItemKey(PCGInvalidEntryKey), TypedOutAttribute->AllowsInterpolation());
-
-				TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
-
-				if (!OutAccessor.IsValid()) { return; }
-
-				// Assume that if we write data, it's not to delete it.
-				SharedContext.Get()->AddProtectedAttributeName(TargetOutputName);
-
-				// Output value to fresh attribute	
-				TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
-				OutAccessor->SetRange(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
+				TypedOutAttribute = Source->GetOut()->Metadata->template FindOrCreateAttribute<T>(
+					OutputIdentifier,
+					TypedOutAttribute->GetValueFromItemKey(PCGDefaultValueKey), TypedOutAttribute->AllowsInterpolation());
 			}
-			else if (TypedOutAttribute)
-			{
-				// if we're not writing to a different name, then go through the usual flow
 
-				TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
-				if (!OutAccessor.IsValid()) { return; }
+			if (!TypedOutAttribute) { return; }
 
-				// Assume that if we write data, it's not to delete it.
-				SharedContext.Get()->AddProtectedAttributeName(TypedOutAttribute->Name);
+			TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
+			if (!OutAccessor.IsValid()) { return; }
 
-				// Output value			
-				TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
-				OutAccessor->SetRange<T>(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
-			}
+			// Assume that if we write data, it's not to delete it.
+			SharedContext.Get()->AddProtectedAttributeName(TypedOutAttribute->Name);
+
+			// Output value			
+			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
+			OutAccessor->SetRange<T>(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
 		}
 
 		virtual void Fetch(const PCGExMT::FScope& Scope) override
@@ -510,7 +519,7 @@ namespace PCGExData
 	};
 
 	template <typename T>
-	class TSingleValueBuffer : public TBuffer<T>
+	class TFirstValueBuffer : public TBuffer<T>
 	{
 		PCGEX_USING_TBUFFER
 
@@ -535,12 +544,11 @@ namespace PCGExData
 			return bReadInitialized;
 		}
 
-		TSingleValueBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier):
+		TFirstValueBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier):
 			TBuffer<T>(InSource, InIdentifier)
 		{
 			check(InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data)
-			this->UnderlyingDomain = EDomainType::SingleEntry;
-			UE_LOG(LogPCGEx, Error, TEXT("@Data domain currently not supported!"));
+			this->UnderlyingDomain = EDomainType::FirstValue;
 		}
 
 		virtual bool IsWritable() override { return bWriteInitialized; }
@@ -628,27 +636,21 @@ namespace PCGExData
 				}
 			}
 
-			// TODO : Read & convert
+			UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
+			check(InMetadata)
 
-			bReadInitialized = true;
-
-			/*
-			InternalBroadcaster = MakeShared<PCGEx::TAttributeBroadcaster<T>>();
-			if (!InternalBroadcaster->Prepare(InSelector, Source))
+			if (const FPCGMetadataAttributeBase* SourceAttribute = InMetadata->GetConstAttribute(Identifier))
 			{
-				TypedInAttribute = nullptr;
-				return false;
-			}
+				PCGEx::ExecuteWithRightType(
+					SourceAttribute->GetTypeId(), [&](auto DummyValue)
+					{
+						using T_VALUE = decltype(DummyValue);
+						const FPCGMetadataAttribute<T_VALUE>* TypedSource = static_cast<const FPCGMetadataAttribute<T_VALUE>*>(SourceAttribute);
+						InValue = PCGEx::Convert<T_VALUE, T>(TypedSource->GetValue(PCGFirstEntryKey));
+					});
 
-			PrepareReadInternal(bScoped, InternalBroadcaster->GetAttribute());
-
-			if (!bSparseBuffer && !bReadComplete)
-			{
-				InternalBroadcaster->GrabAndDump(*InValues, bCaptureMinMax, this->Min, this->Max);
-				bReadComplete = true;
-				InternalBroadcaster.Reset();
+				bReadInitialized = true;
 			}
-			*/
 
 			return bReadInitialized;
 		}
@@ -661,43 +663,25 @@ namespace PCGExData
 
 			this->bIsNewOutput = !Source->GetOut()->Metadata->HasAttribute(Identifier);
 
-			// TODO : Need to adapt this
 			TypedOutAttribute = Source->FindOrCreateAttribute(Identifier, DefaultValue, bAllowInterpolation);
 
+			if (!TypedOutAttribute) { return false; }
+
+			OutAttribute = TypedOutAttribute;
 			bWriteInitialized = true;
 
-			/*
-			if (!TypedOutAttribute)
-			{
-				return false;
-			}
-
-			TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
-
-			if (!TypedOutAttribute || !OutAccessor.IsValid())
-			{
-				TypedOutAttribute = nullptr;
-				return false;
-			}
-
-			PrepareWriteInternal(TypedOutAttribute, DefaultValue, Init);
+			OutValue = DefaultValue;
 
 			const int32 ExistingEntryCount = TypedOutAttribute->GetNumberOfEntries();
 			const bool bHasIn = Source->GetIn() ? true : false;
 
 			auto GrabExistingValues = [&]()
 			{
-				TUniquePtr<FPCGAttributeAccessorKeysPointIndices> TempOutKeys = MakeUnique<FPCGAttributeAccessorKeysPointIndices>(Source->GetOut(), false);
-				TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), OutValues->Num());
-				if (!OutAccessor->GetRange<T>(OutRange, 0, *TempOutKeys.Get()))
-				{
-					// TODO : Log
-				}
+				OutValue = TypedOutAttribute->GetValue(PCGFirstEntryKey);
 			};
 
 			if (Init == EBufferInit::Inherit) { GrabExistingValues(); }
 			else if (!bHasIn && ExistingEntryCount != 0) { GrabExistingValues(); }
-			*/
 
 			return bWriteInitialized;
 		}
@@ -716,7 +700,7 @@ namespace PCGExData
 				if (const FPCGMetadataAttribute<T>* ExistingAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identifier))
 				{
 					return InitForWrite(
-						ExistingAttribute->GetValue(PCGDefaultValueKey),
+						ExistingAttribute->GetValue(PCGFirstEntryKey),
 						ExistingAttribute->AllowsInterpolation(),
 						Init);
 				}
@@ -731,7 +715,6 @@ namespace PCGExData
 
 			if (!IsWritable() || !IsEnabled()) { return; }
 
-			/*
 			if (!Source->GetOut())
 			{
 				UE_LOG(LogPCGEx, Error, TEXT("Attempting to write data to an output that's not initialized!"));
@@ -745,37 +728,18 @@ namespace PCGExData
 			if (OutputsToDifferentName())
 			{
 				// If we want to output to a different name, ensure the new attribute exists and hope we did proper validations beforehand
+				FPCGAttributeIdentifier OutputIdentifier = Identifier;
+				OutputIdentifier.Name = TargetOutputName;
 
 				// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 				// ReSharper disable once CppRedundantTemplateKeyword
-				TypedOutAttribute = Source->GetOut()->Metadata->template FindOrCreateAttribute<T>(TargetOutputName, TypedOutAttribute->GetValueFromItemKey(PCGInvalidEntryKey), TypedOutAttribute->AllowsInterpolation());
-
-				TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
-
-				if (!OutAccessor.IsValid()) { return; }
-
-				// Assume that if we write data, it's not to delete it.
-				SharedContext.Get()->AddProtectedAttributeName(TargetOutputName);
-
-				// Output value to fresh attribute	
-				TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
-				OutAccessor->SetRange(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
+				TypedOutAttribute = Source->GetOut()->Metadata->template FindOrCreateAttribute<T>(
+					OutputIdentifier,
+					TypedOutAttribute->GetValueFromItemKey(PCGDefaultValueKey), TypedOutAttribute->AllowsInterpolation());
 			}
-			else if (TypedOutAttribute)
-			{
-				// if we're not writing to a different name, then go through the usual flow
 
-				TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
-				if (!OutAccessor.IsValid()) { return; }
-
-				// Assume that if we write data, it's not to delete it.
-				SharedContext.Get()->AddProtectedAttributeName(TypedOutAttribute->Name);
-
-				// Output value			
-				TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
-				OutAccessor->SetRange<T>(View, 0, *Source->GetOutKeys(bEnsureValidKeys).Get());
-			}
-			*/
+			if (!TypedOutAttribute) { return; }
+			TypedOutAttribute->SetValue(PCGFirstEntryKey, OutValue);
 		}
 	};
 
@@ -849,7 +813,7 @@ namespace PCGExData
 				}
 				else if (InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data)
 				{
-					Buffer = MakeShared<TSingleValueBuffer<T>>(Source, InIdentifier);
+					Buffer = MakeShared<TFirstValueBuffer<T>>(Source, InIdentifier);
 				}
 				else
 				{
@@ -937,7 +901,7 @@ namespace PCGExData
 			// Build a proper identifier from the selector
 			// We'll use it to get a unique buffer ID as well as domain, which is conditional to finding the right buffer class to use
 
-			FPCGAttributeIdentifier Identifier = PCGEx::GetIdentifierFromSelector(InSelector, Source->GetIn());
+			const FPCGAttributeIdentifier Identifier = GetBufferIdentifierFromSelector(InSelector, Source->GetIn());
 			if (Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Invalid)
 			{
 				UE_LOG(LogPCGEx, Error, TEXT("GetBroadcaster : Invalid domain with '%s'"), *Identifier.Name.ToString());
@@ -967,37 +931,37 @@ namespace PCGExData
 
 #pragma endregion
 
-		FPCGMetadataAttributeBase* FindMutableAttribute(const FName InName, const EIOSide InSide = EIOSide::In) const
+		FPCGMetadataAttributeBase* FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
 			const UPCGBasePointData* Data = Source->GetData(InSide);
 			if (!Data) { return nullptr; }
-			return Data->Metadata->GetMutableAttribute(InName);
+			return Data->Metadata->GetMutableAttribute(InIdentifier);
 		}
 
-		const FPCGMetadataAttributeBase* FindConstAttribute(const FName InName, const EIOSide InSide = EIOSide::In) const
+		const FPCGMetadataAttributeBase* FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
 			const UPCGBasePointData* Data = Source->GetData(InSide);
 			if (!Data) { return nullptr; }
-			return Data->Metadata->GetConstAttribute(InName);
-		}
-
-		template <typename T>
-		FPCGMetadataAttribute<T>* FindMutableAttribute(const FName InName, const EIOSide InSide = EIOSide::In) const
-		{
-			const UPCGBasePointData* Data = Source->GetData(InSide);
-			if (!Data) { return nullptr; }
-			return Data->Metadata->GetMutableTypedAttribute<T>(InName);
+			return Data->Metadata->GetConstAttribute(InIdentifier);
 		}
 
 		template <typename T>
-		const FPCGMetadataAttribute<T>* FindConstAttribute(const FName InName, const EIOSide InSide = EIOSide::In) const
+		FPCGMetadataAttribute<T>* FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
+		{
+			const UPCGBasePointData* Data = Source->GetData(InSide);
+			if (!Data) { return nullptr; }
+			return Data->Metadata->GetMutableTypedAttribute<T>(InIdentifier);
+		}
+
+		template <typename T>
+		const FPCGMetadataAttribute<T>* FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
 			const UPCGBasePointData* Data = Source->GetData(InSide);
 			if (!Data) { return nullptr; }
 
 			// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 			// ReSharper disable once CppRedundantTemplateKeyword
-			return Data->Metadata->template GetConstTypedAttribute<T>(InName);
+			return Data->Metadata->template GetConstTypedAttribute<T>(InIdentifier);
 		}
 
 		TSharedPtr<PCGExGeo::FPointBoxCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON);
@@ -1194,7 +1158,7 @@ namespace PCGExData
 		// ReSharper disable once CppRedundantTemplateKeyword
 		const FPCGMetadataAttribute<T>* Mark = Metadata->template GetConstTypedAttribute<T>(MarkID);
 		if (!Mark) { return false; }
-		OutMark = Mark->GetValue(PCGInvalidEntryKey);
+		OutMark = Mark->GetValue(PCGDefaultValueKey);
 		return true;
 	}
 

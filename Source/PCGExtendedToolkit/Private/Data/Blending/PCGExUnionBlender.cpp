@@ -40,7 +40,7 @@ namespace PCGExDataBlending
 
 			TSharedPtr<PCGExData::IBuffer> InitializationBuffer = nullptr;
 
-			if (const FPCGMetadataAttributeBase* ExistingAttribute = InTargetData->FindConstAttribute(Identity.Identifier.Name);
+			if (const FPCGMetadataAttributeBase* ExistingAttribute = InTargetData->FindConstAttribute(Identity.Identifier);
 				ExistingAttribute && ExistingAttribute->GetTypeId() == static_cast<int16>(Identity.UnderlyingType))
 			{
 				// This attribute exists on target already
@@ -162,7 +162,7 @@ namespace PCGExDataBlending
 			PCGExDataBlending::FBlendingParam Param{};
 			if (!BlendingDetails->GetBlendingParam(Identity.Identifier.Name, Param)) { continue; }
 
-			const FPCGMetadataAttributeBase* SourceAttribute = InFacade->FindConstAttribute(Identity.Identifier.Name);
+			const FPCGMetadataAttributeBase* SourceAttribute = InFacade->FindConstAttribute(Identity.Identifier);
 			if (!SourceAttribute) { continue; }
 
 			TSharedPtr<FMultiSourceBlender> MultiAttribute = nullptr;

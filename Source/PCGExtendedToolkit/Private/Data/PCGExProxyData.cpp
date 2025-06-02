@@ -173,7 +173,7 @@ namespace PCGExData
 
 							if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 							{
-								const FPCGMetadataAttribute<T_REAL>* Attribute = InDataFacade->GetIn()->Metadata->GetConstTypedAttribute<T_REAL>(InDescriptor.Selector.GetAttributeName());
+								const FPCGMetadataAttribute<T_REAL>* Attribute = InDataFacade->GetIn()->Metadata->GetConstTypedAttribute<T_REAL>(PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
 								if (!Attribute)
 								{
 									TypedProxy->SetConstant(0);
@@ -224,12 +224,12 @@ namespace PCGExData
 									if (InDescriptor.Side == EIOSide::In)
 									{
 										UPCGMetadata* Metadata = InDataFacade->GetIn()->Metadata;
-										InAttribute = Metadata->GetConstTypedAttribute<T_REAL>(InDescriptor.Selector.GetAttributeName());
+										InAttribute = Metadata->GetConstTypedAttribute<T_REAL>(PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
 									}
 									else
 									{
 										UPCGMetadata* Metadata = InDataFacade->GetOut()->Metadata;
-										InAttribute = Metadata->GetConstTypedAttribute<T_REAL>(InDescriptor.Selector.GetAttributeName());
+										InAttribute = Metadata->GetConstTypedAttribute<T_REAL>(PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
 									}
 
 									if (InAttribute) { OutAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute); }
@@ -239,7 +239,7 @@ namespace PCGExData
 								else if (InDescriptor.Role == EProxyRole::Write)
 								{
 									UPCGMetadata* Metadata = InDataFacade->GetOut()->Metadata;
-									OutAttribute = Metadata->FindOrCreateAttribute(InDescriptor.Selector.GetAttributeName(), T_REAL{});
+									OutAttribute = Metadata->FindOrCreateAttribute(PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetOut()), T_REAL{});
 									if (OutAttribute) { InAttribute = OutAttribute; }
 
 									check(OutAttribute);
@@ -267,8 +267,10 @@ namespace PCGExData
 								return;
 							}
 
+							const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDescriptor.Side == EIOSide::In ? InDataFacade->GetIn() : InDataFacade->GetOut());
+
 							// Check if there is an existing buffer with for our attribute
-							TSharedPtr<TBuffer<T_REAL>> ExistingBuffer = InDataFacade->FindBuffer<T_REAL>(InDescriptor.Selector.GetAttributeName());
+							TSharedPtr<TBuffer<T_REAL>> ExistingBuffer = InDataFacade->FindBuffer<T_REAL>(Identifier);
 							TSharedPtr<TBuffer<T_REAL>> Buffer;
 
 							// Proceed based on side & role
@@ -281,7 +283,7 @@ namespace PCGExData
 									if (ExistingBuffer && ExistingBuffer->IsReadable()) { Buffer = ExistingBuffer; }
 
 									// Otherwise create read-only buffer
-									if (!Buffer) { Buffer = InDataFacade->GetReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::In, true); }
+									if (!Buffer) { Buffer = InDataFacade->GetReadable<T_REAL>(Identifier, EIOSide::In, true); }
 								}
 								else if (InDescriptor.Side == EIOSide::Out)
 								{
@@ -300,7 +302,7 @@ namespace PCGExData
 											// Change buffer state to read from output
 											if (ExistingBuffer->IsWritable())
 											{
-												Buffer = InDataFacade->GetReadable<T_REAL>(InDescriptor.Selector.GetAttributeName(), EIOSide::Out, true);
+												Buffer = InDataFacade->GetReadable<T_REAL>(Identifier, EIOSide::Out, true);
 											}
 
 											if (!Buffer)
@@ -312,15 +314,24 @@ namespace PCGExData
 									}
 									else
 									{
-										PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No existing buffer to read from."));
-										return;
+										/*
+										// Create a writable... Not ideal, will likely create a whole bunch of problems
+										Buffer = InDataFacade->GetWritable<T_REAL>(Identifier, T_REAL{}, true, EBufferInit::Inherit);
+										if (Buffer) { Buffer->EnsureReadable(); }
+										else
+										{
+										}
+										*/
+											// No existing buffer yet
+											PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No existing buffer to read from."));
+											return;
 									}
 								}
 							}
 							// We want to write, so we can only write to out!
 							else if (InDescriptor.Role == EProxyRole::Write)
 							{
-								Buffer = InDataFacade->GetWritable<T_REAL>(InDescriptor.Selector.GetAttributeName(), T_REAL{}, true, EBufferInit::Inherit);
+								Buffer = InDataFacade->GetWritable<T_REAL>(Identifier, T_REAL{}, true, EBufferInit::Inherit);
 							}
 
 							if (!Buffer)
@@ -403,7 +414,7 @@ namespace PCGExData
 #if WITH_EDITOR
 			OutProxy->Descriptor = InDescriptor;
 #endif
-			
+
 			OutProxy->Data = PointData;
 
 			if (!OutProxy->Validate(InDescriptor))

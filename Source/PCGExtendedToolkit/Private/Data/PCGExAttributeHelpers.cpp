@@ -32,7 +32,7 @@ bool FPCGExInputConfig::Validate(const UPCGData* InData)
 	Selector = Selector.CopyAndFixLast(InData);
 	if (GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
-		Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(GetName()) : nullptr;
+		Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(PCGEx::GetAttributeIdentifier<true>(Selector, InData)) : nullptr;
 		UnderlyingType = Attribute ? Attribute->GetTypeId() : static_cast<int16>(EPCGMetadataTypes::Unknown);
 		return Attribute != nullptr;
 	}
@@ -163,7 +163,7 @@ namespace PCGEx
 		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
 		if (!FixedSelector.IsValid() || FixedSelector.GetSelection() != EPCGAttributePropertySelection::Attribute) { return false; }
 
-		const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(FixedSelector.GetAttributeName());
+		const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(FixedSelector, InData));
 		if(!Attribute) { return false; }
 
 		OutIdentity.Identifier = Attribute->Name;
@@ -179,15 +179,15 @@ namespace PCGEx
 		
 		if (!InMetadata) { return 0; }
 		
-		TArray<FPCGAttributeIdentifier> Names;
+		TArray<FPCGAttributeIdentifier> Identifiers;
 		TArray<EPCGMetadataTypes> Types;
 
-		InMetadata->GetAllAttributes(Names, Types);
-		const int32 NumAttributes = Names.Num();
+		InMetadata->GetAllAttributes(Identifiers, Types);
+		const int32 NumAttributes = Identifiers.Num();
 		
 		for (int i = 0; i < NumAttributes; i++)
 		{
-			const FAttributeIdentity Identity = FAttributeIdentity(Names[i], Types[i], InMetadata->GetConstAttribute(Names[i])->AllowsInterpolation());
+			const FAttributeIdentity Identity = FAttributeIdentity(Identifiers[i], Types[i], InMetadata->GetConstAttribute(Identifiers[i])->AllowsInterpolation());
 			Func(Identity, i);
 		}
 		
@@ -408,7 +408,7 @@ namespace PCGEx
 
 			if (const UPCGSpatialData* AsSpatial = Cast<UPCGSpatialData>(InData))
 			{
-				Attribute = AsSpatial->Metadata->GetConstAttribute(Selector.GetAttributeName());
+				Attribute = AsSpatial->Metadata->GetConstAttribute(GetAttributeIdentifier<true>(Selector, InData));
 				bIsValid = Attribute ? true : false;
 			}
 		}

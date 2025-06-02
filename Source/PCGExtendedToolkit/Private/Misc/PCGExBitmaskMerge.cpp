@@ -52,7 +52,7 @@ bool FPCGExBitmaskMergeElement::ExecuteInternal(FPCGContext* Context) const
 		{
 			if (Infos->Identities[i].UnderlyingType != EPCGMetadataTypes::Integer64) { continue; }
 
-			const int64 InputMask = static_cast<FPCGMetadataAttribute<int64>*>(Infos->Attributes[i])->GetValue(PCGInvalidEntryKey);
+			const int64 InputMask = static_cast<FPCGMetadataAttribute<int64>*>(Infos->Attributes[i])->GetValue(PCGDefaultValueKey);
 
 			if (!bInitialized)
 			{

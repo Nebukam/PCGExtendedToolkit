@@ -61,7 +61,7 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 
 	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : Source_B_Facade, PCGExData::EProxyRole::Read);
 	B.bIsConstant = B.DataFacade.Pin() != Source_B_Facade;
-	if (!B.Capture(InContext, Config.OperandB, B.bIsConstant ? PCGExData::EIOSide::In : SideB)) { return false; } //
+	if (!B.Capture(InContext, Config.OperandB, B.bIsConstant ? PCGExData::EIOSide::In : SideB)) { return false; } // TODO : We need to favor reading from IN when possible
 
 	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(TargetFacade, PCGExData::EProxyRole::Write);
 	C.Role = PCGExData::EProxyRole::Write;
@@ -89,7 +89,7 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 		else if (Config.OutputType == EPCGExOperandAuthority::Custom) { RealTypeC = Config.CustomType; }
 		else if (Config.OutputType == EPCGExOperandAuthority::Auto)
 		{
-			if (const FPCGMetadataAttributeBase* OutAttribute = TargetFacade->GetOut()->Metadata->GetConstAttribute(Config.OutputTo.GetAttributeName()))
+			if (const FPCGMetadataAttributeBase* OutAttribute = TargetFacade->GetOut()->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(Config.OutputTo, TargetFacade->GetOut())))
 			{
 				// First, check for an existing attribute
 				RealTypeC = static_cast<EPCGMetadataTypes>(OutAttribute->GetTypeId());

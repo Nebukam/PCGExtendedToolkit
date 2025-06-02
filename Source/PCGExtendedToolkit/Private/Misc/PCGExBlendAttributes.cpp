@@ -72,7 +72,7 @@ namespace PCGExBlendAttributes
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>();
-		BlendOpsManager->SetSources(PointDataFacade, PCGExData::EIOSide::Out);
+		BlendOpsManager->SetSources(PointDataFacade); //PCGExData::EIOSide::Out
 		BlendOpsManager->SetTargetFacade(PointDataFacade);
 		
 		if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }

@@ -263,7 +263,8 @@ namespace PCGEx
 		}
 	}
 
-	static FPCGAttributeIdentifier GetIdentifierFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
+	template <bool bInitialized>
+	static FPCGAttributeIdentifier GetAttributeIdentifier(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 	{
 		// This return an identifier suitable to be used for data facade
 
@@ -271,15 +272,25 @@ namespace PCGEx
 
 		if (!InData) { return FPCGAttributeIdentifier(InvalidName, EPCGMetadataDomainFlag::Invalid); }
 
-		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
+		if constexpr (bInitialized)
+		{
+			FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
 
-		if (InSelector.GetExtraNames().IsEmpty()) { Identifier.Name = FixedSelector.GetName(); }
-		else { Identifier.Name = FName(FixedSelector.GetName().ToString() + TEXT(".") + FString::Join(FixedSelector.GetExtraNames(), TEXT("."))); }
+			check(FixedSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 
-		Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);
+			Identifier.Name = FixedSelector.GetAttributeName();
+			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);
+		}
+		else
+		{
+			Identifier.Name = InSelector.GetAttributeName();
+			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(InSelector);
+		}
+
 
 		return Identifier;
 	}
+
 
 	PCGEXTENDEDTOOLKIT_API
 	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector);

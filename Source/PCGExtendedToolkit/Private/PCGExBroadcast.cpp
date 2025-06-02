@@ -197,7 +197,7 @@ namespace PCGEx
 		if (FixedSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
 			if (!Data->Metadata) { return false; }
-			if (const FPCGMetadataAttributeBase* AttributeBase = Data->Metadata->GetConstAttribute(FixedSelector.GetName()))
+			if (const FPCGMetadataAttributeBase* AttributeBase = Data->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(FixedSelector, Data)))
 			{
 				OutType = static_cast<EPCGMetadataTypes>(AttributeBase->GetTypeId());
 			}
