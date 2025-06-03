@@ -402,9 +402,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphBuilder : public UPCGExInstancedFa
 	GENERATED_BODY()
 
 public:
-
 	virtual bool WantsPerDataInstance() override { return true; }
-	
+
 	/**
 	 * Main initialization function. Called once, and is responsible for populating graph builder settings.
 	 * At least one setting is expected to be found in the GraphSettings array. This is executed on the main thread.
@@ -515,7 +514,7 @@ class FPCGExBuildCustomGraphElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BuildCustomGraph)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

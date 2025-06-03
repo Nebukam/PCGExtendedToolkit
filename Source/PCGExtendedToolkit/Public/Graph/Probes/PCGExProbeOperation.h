@@ -47,7 +47,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 	double SearchRadiusConstant = 100;
 
 	PCGEX_SETTING_VALUE_GET(SearchRadius, double, SearchRadiusInput, SearchRadiusAttribute, SearchRadiusConstant)
-	
 };
 
 /**

@@ -141,14 +141,14 @@ namespace PCGExSampleTexture
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleTexture::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
 		bool bAnySuccessLocal = false;
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			auto SamplingFailed = [&]()

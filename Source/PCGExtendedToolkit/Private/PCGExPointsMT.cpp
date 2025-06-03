@@ -161,7 +161,7 @@ namespace PCGExPointsMT
 	int32 FPointsProcessor::FilterScope(const PCGExMT::FScope& Scope)
 	{
 		if (PrimaryFilters) { return PrimaryFilters->Test(Scope, PointFilterCache); }
-		else{ return DefaultPointFilterValue ? Scope.Count : 0; }
+		return DefaultPointFilterValue ? Scope.Count : 0;
 	}
 
 	int32 FPointsProcessor::FilterAll()

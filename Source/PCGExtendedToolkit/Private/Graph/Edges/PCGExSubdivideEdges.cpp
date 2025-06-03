@@ -99,11 +99,11 @@ namespace PCGExSubdivideEdges
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
-			
+
 			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
 			const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);

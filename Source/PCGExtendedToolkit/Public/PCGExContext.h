@@ -41,7 +41,7 @@ protected:
 	mutable FRWLock AssetDependenciesLock;
 
 	TSharedPtr<PCGEx::FWorkPermit> WorkPermit;
-	
+
 	bool bFlattenOutput = false;
 
 	TSet<FName> ConsumableAttributesSet;

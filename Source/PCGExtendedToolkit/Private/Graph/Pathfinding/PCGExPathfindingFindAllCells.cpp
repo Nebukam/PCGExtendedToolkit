@@ -121,7 +121,7 @@ namespace PCGExFindAllCells
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
@@ -180,7 +180,7 @@ namespace PCGExFindAllCells
 		PathDataFacade->Write(AsyncManager);
 
 		// TODO : Create cell centroids here
-		
+
 		FPlatformAtomics::InterlockedIncrement(&OutputPathsNum);
 	}
 

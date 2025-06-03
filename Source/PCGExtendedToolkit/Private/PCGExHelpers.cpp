@@ -339,7 +339,10 @@ namespace PCGEx
 
 		for (int32 i = 0; i < NumElements; ++i)
 		{
-			if (Visited[i]) continue;
+			if (Visited[i])
+			{
+				continue;
+			}
 
 			int32 Current = i;
 			int32 Next = InOrder[Current];

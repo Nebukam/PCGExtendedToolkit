@@ -73,8 +73,6 @@ bool FPCGExGetGUIDElement::ExecuteInternal(FPCGContext* InContext) const
 
 			FPCGTaggedData& StagedData = Context->StageOutput(GuidData, true);
 			StagedData.Pin = FName("GUID");
-			
-			
 		}
 
 		Context->Done();

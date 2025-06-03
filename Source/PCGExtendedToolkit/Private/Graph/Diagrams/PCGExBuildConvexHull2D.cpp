@@ -93,7 +93,7 @@ namespace PCGExConvexHull2D
 
 		TArray<int32> ConvexHullIndices;
 		ConvexHull2D::ComputeConvexHull(ActivePositions, ConvexHullIndices);
-		
+
 		const int32 LastIndex = ConvexHullIndices.Num() - 1;
 		if (LastIndex < 0)
 		{

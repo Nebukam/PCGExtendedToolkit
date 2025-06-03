@@ -398,7 +398,7 @@ namespace PCGExBuildCustomGraph
 				if (!IO) { return; }
 
 				TArray<FPCGPoint> MutablePoints;
-				PCGExData::GetPoints(IO->GetOutScope(Scope), MutablePoints);
+				GetPoints(IO->GetOutScope(Scope), MutablePoints);
 
 				PCGEX_SCOPE_LOOP(i)
 				{

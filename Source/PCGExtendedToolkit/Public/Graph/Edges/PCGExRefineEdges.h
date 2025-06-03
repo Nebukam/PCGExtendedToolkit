@@ -134,7 +134,7 @@ namespace PCGExRefineEdges
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
-		
+
 		void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope);
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		virtual void OnEdgesProcessingComplete() override;

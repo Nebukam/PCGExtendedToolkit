@@ -99,7 +99,7 @@ namespace PCGExBuildDelaunay2D
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
-				
+
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
@@ -134,12 +134,12 @@ namespace PCGExBuildDelaunay2D
 		}
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
-		
+
 		if (Settings->bMarkHull)
 		{
 			OutputIndices = MakeShared<TArray<int32>>();
 			PCGEx::ArrayOfIndices(*OutputIndices, PointDataFacade->GetNum());
-		//	GraphBuilder->OutputPointIndices = OutputIndices;
+			//	GraphBuilder->OutputPointIndices = OutputIndices;
 		}
 
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);

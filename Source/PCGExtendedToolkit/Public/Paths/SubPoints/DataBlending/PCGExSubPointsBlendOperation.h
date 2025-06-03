@@ -58,9 +58,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInstancedFactory : public UPCGE
 	GENERATED_BODY()
 
 public:
-
 	UPCGExSubPointsBlendInstancedFactory(const FObjectInitializer& ObjectInitializer);
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Unset);
 

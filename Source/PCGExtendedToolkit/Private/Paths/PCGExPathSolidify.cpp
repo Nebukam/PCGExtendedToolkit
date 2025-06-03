@@ -66,11 +66,11 @@ namespace PCGExPathSolidify
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
-		
+
 		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0, bClosedLoop);
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
-		
+
 		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointDataFacade->GetOut()->SetNumPoints(Path->LastIndex); }
 
 		PointDataFacade->GetOut()->AllocateProperties(

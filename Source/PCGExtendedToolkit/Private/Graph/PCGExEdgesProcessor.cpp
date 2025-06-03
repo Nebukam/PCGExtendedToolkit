@@ -430,7 +430,7 @@ void FPCGExEdgesProcessorElement::OnContextInitialized(FPCGExPointsProcessorCont
 	FPCGExPointsProcessorElement::OnContextInitialized(InContext);
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
-	
+
 	Context->bScopedIndexLookupBuild = Settings->WantsScopedIndexLookupBuild();
 }
 

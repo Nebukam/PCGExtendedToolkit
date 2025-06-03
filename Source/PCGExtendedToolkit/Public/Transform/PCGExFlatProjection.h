@@ -61,7 +61,7 @@ class FPCGExFlatProjectionElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FlatProjection)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -73,7 +73,7 @@ namespace PCGExFlatProjection
 		bool bWriteAttribute = false;
 		bool bInverseExistingProjection = false;
 		bool bProjectLocalTransform = false;
-		
+
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;

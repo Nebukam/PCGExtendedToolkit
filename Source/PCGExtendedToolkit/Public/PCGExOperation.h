@@ -37,7 +37,7 @@ public:
 	virtual void RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const;
 
 	virtual void InitForScopes(const TArray<PCGExMT::FScope>& Loops);
-	
+
 protected:
 	FPCGExContext* Context = nullptr;
 

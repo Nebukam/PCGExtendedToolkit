@@ -288,7 +288,7 @@ namespace PCGExDiscardByOverlap
 
 					This->PointDataFacade->Fetch(Scope);
 					This->FilterScope(Scope);
-					
+
 					PCGEX_SCOPE_LOOP(i)
 					{
 						PCGExData::FConstPoint Point(This->InPoints, i);

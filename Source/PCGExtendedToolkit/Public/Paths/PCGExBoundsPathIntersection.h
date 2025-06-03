@@ -53,7 +53,7 @@ class FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElem
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BoundsPathIntersection)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

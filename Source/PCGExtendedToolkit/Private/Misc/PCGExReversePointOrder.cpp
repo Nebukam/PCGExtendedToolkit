@@ -177,7 +177,7 @@ namespace PCGExReversePointOrder
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::ReversePointOrder::ProcessPoints);
-		
+
 		for (const FPCGExSwapAttributePairDetails& WorkingPair : SwapPairs)
 		{
 			PCGEx::ExecuteWithRightType(

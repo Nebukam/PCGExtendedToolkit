@@ -136,7 +136,7 @@ namespace PCGExBuildDelaunay
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BuildDelaunayGraph::ProcessPoints);
-		
+
 		PCGEX_SCOPE_LOOP(Index) { HullMarkPointWriter->SetValue(Index, Delaunay->DelaunayHull.Contains(Index)); }
 	}
 
@@ -179,7 +179,7 @@ namespace PCGExBuildDelaunay
 		const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
 		UPCGBasePointData* MutablePoints = SitesIO->GetOut();
 		(void)PCGEx::SetNumPointsAllocated(MutablePoints, NumSites);
-		
+
 		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
 
 		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();

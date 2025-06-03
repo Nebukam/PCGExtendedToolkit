@@ -70,7 +70,7 @@ bool PCGExPointFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSh
 	if (!DistanceThresholdGetter->Init(InContext, InPointDataFacade)) { return false; }
 
 	InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
-	
+
 	return true;
 }
 

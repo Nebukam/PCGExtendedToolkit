@@ -80,7 +80,7 @@ class FPCGExFindPointOnBoundsClustersElement final : public FPCGExEdgesProcessor
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FindPointOnBoundsClusters)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

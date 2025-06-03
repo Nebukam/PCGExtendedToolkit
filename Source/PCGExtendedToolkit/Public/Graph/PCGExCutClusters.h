@@ -120,7 +120,7 @@ class FPCGExCutEdgesElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(CutEdges)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -147,9 +147,9 @@ namespace PCGExCutEdges
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
-		
+
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
-		
+
 		virtual void OnEdgesProcessingComplete() override;
 		virtual void OnNodesProcessingComplete() override;
 		void TryConsolidate();

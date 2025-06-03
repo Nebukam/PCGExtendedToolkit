@@ -47,7 +47,7 @@ namespace PCGExMath
 
 	PCGEXTENDEDTOOLKIT_API
 	FBox GetLocalBounds(const PCGExData::FConstPoint& Point, const EPCGExPointBoundsSource Source);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	FBox GetLocalBounds(const PCGExData::FProxyPoint& Point, const EPCGExPointBoundsSource Source);
 

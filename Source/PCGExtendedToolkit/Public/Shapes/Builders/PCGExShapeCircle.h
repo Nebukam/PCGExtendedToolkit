@@ -8,8 +8,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
 #include "Shapes/PCGExShapeBuilderOperation.h"
 

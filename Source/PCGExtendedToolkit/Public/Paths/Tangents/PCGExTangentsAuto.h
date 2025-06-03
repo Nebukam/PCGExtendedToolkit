@@ -10,7 +10,6 @@
 
 class FPCGExTangentsAuto : public FPCGExTangentsOperation
 {
-	
 public:
 	virtual void ProcessPoint(
 		const UPCGBasePointData* InPointData,
@@ -18,9 +17,8 @@ public:
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
-
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
-		
+
 		const PCGExGeo::FApex Apex = PCGExGeo::FApex(
 			InTransforms[PrevIndex].GetLocation(),
 			InTransforms[NextIndex].GetLocation(),

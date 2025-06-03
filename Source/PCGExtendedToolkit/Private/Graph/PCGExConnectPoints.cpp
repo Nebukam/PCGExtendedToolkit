@@ -204,10 +204,9 @@ namespace PCGExConnectPoints
 
 	void FProcessor::OnPreparationComplete()
 	{
-
-		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();		
+		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		const TConstPCGValueRange<FTransform> OriginalTransforms = InPointData->GetConstTransformValueRange();
-		
+
 		const int32 NumPoints = OriginalTransforms.Num();
 
 		if (!SearchProbes.IsEmpty())
@@ -250,7 +249,7 @@ namespace PCGExConnectPoints
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::ConnectPoints::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
@@ -258,7 +257,6 @@ namespace PCGExConnectPoints
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			
 			if (!CanGenerate[Index]) { continue; } // Not a generator
 
 			TSet<uint64>* UniqueEdges = ScopedEdges->Get(Scope).Get();

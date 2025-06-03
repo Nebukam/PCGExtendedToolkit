@@ -74,7 +74,7 @@ namespace PCGExPointFilter
 		ToleranceSquared = FMath::Square(TypedFilterFactory->Config.Tolerance);
 
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
-		
+
 		switch (TypedFilterFactory->Config.CheckType)
 		{
 		case EPCGExSplineCheckType::IsInside:

@@ -49,7 +49,7 @@ bool FNodeEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<P
 	}
 
 	VtxTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
-	
+
 	return true;
 }
 

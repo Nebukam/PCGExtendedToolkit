@@ -10,7 +10,6 @@
 
 class FPCGExTangentsFromNeighbors : public FPCGExTangentsOperation
 {
-	
 public:
 	virtual void ProcessPoint(
 		const UPCGBasePointData* InPointData,
@@ -19,7 +18,7 @@ public:
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
-		
+
 		const FVector PrevDir = (InTransforms[PrevIndex].GetLocation() - InTransforms[Index].GetLocation()) * -1;
 		const FVector NextDir = InTransforms[NextIndex].GetLocation() - InTransforms[Index].GetLocation();
 		const FVector Dir = FMath::Lerp(PrevDir, NextDir, 0.5);

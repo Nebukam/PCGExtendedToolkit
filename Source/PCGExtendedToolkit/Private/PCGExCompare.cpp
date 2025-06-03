@@ -9,7 +9,6 @@
 #include "Data/PCGExDataTag.h"
 
 
-
 namespace PCGExCompare
 {
 	FString ToString(const EPCGExComparison Comparison)

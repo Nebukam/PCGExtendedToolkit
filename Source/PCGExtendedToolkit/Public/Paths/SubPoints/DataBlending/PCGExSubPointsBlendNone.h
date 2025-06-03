@@ -7,8 +7,6 @@
 #include "PCGExSubPointsBlendOperation.h"
 
 
-
-
 #include "PCGExSubPointsBlendNone.generated.h"
 
 class FPCGExSubPointsBlendNone : public FPCGExSubPointsBlendOperation

@@ -8,7 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 
-#include "Utils/PCGPointOctree.h" 
+#include "Utils/PCGPointOctree.h"
 
 #include "PCGExSampling.h"
 #include "PCGExDetails.h"
@@ -123,7 +123,7 @@ public:
 	FPCGAttributePropertyInputSelector LocalRangeMin;
 
 	PCGEX_SETTING_VALUE_GET_BOOL(RangeMin, double, bUseLocalRangeMin, LocalRangeMin, RangeMin)
-		
+
 	/** Use a per-point maximum range*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalRangeMax = false;
@@ -133,7 +133,7 @@ public:
 	FPCGAttributePropertyInputSelector LocalRangeMax;
 
 	PCGEX_SETTING_VALUE_GET_BOOL(RangeMax, double, bUseLocalRangeMax, LocalRangeMax, RangeMax)
-	
+
 	/** Which mode to use to compute weights. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleWeightMode WeightMode = EPCGExSampleWeightMode::Distance;
@@ -163,11 +163,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute && !bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
-	
+
 	/** How to blend data from sampled points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable))
 	EPCGExBlendingInterface BlendingInterface = EPCGExBlendingInterface::Individual;
-	
+
 	/** Attributes to sample from the targets */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="BlendingInterface==EPCGExBlendingInterface::Monolithic"))
 	TMap<FName, EPCGExDataBlendingType> TargetAttributes;
@@ -180,7 +180,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties && BlendingInterface==EPCGExBlendingInterface::Monolithic"))
 	FPCGExPropertiesBlendingDetails PointPropertiesBlendingSettings = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
 
-	
+
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
@@ -227,7 +227,7 @@ public:
 	FVector LookAtUpConstant = FVector::UpVector;
 
 	PCGEX_SETTING_VALUE_GET(LookAtUp, FVector, LookAtUpSelection == EPCGExSampleSource::Constant ? EPCGExInputValueType::Constant : EPCGExInputValueType::Attribute, LookAtUpSource, LookAtUpConstant)
-	
+
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistance = false;
@@ -340,11 +340,11 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 	friend class FPCGExSampleNearestPointElement;
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
-	
+
 	TSharedPtr<PCGExData::FFacadePreloader> TargetsPreloader;
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const PCGPointOctree::FPointOctree* TargetOctree = nullptr;
-	
+
 	TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
@@ -366,7 +366,7 @@ class FPCGExSampleNearestPointElement final : public FPCGExPointsProcessorElemen
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleNearestPoint)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
@@ -385,7 +385,7 @@ namespace PCGExSampleNearestPoints
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMinGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMaxGetter;
-		
+
 		FVector SafeUpVector = FVector::UpVector;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter;
 
@@ -393,7 +393,7 @@ namespace PCGExSampleNearestPoints
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		FPCGExBlendingDetails BlendingDetails;
 		TSharedPtr<PCGExDataBlending::IBlender> DataBlender;
-		
+
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxDistance = 0;
 

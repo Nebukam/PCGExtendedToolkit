@@ -66,13 +66,13 @@ namespace PCGExMovePivot
 		// Cherry pick native properties allocations
 
 		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
-		
+
 		AllocateFor |= EPCGPointNativeProperties::BoundsMin;
 		AllocateFor |= EPCGPointNativeProperties::BoundsMax;
 		AllocateFor |= EPCGPointNativeProperties::Transform;
-		
+
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
-		
+
 		StartParallelLoopForPoints();
 
 		return true;
@@ -81,7 +81,7 @@ namespace PCGExMovePivot
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::MovePivot::ProcessPoints);
-		
+
 		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
 		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
 		TPCGValueRange<FVector> OutBoundsMin = OutPoints->GetBoundsMinValueRange(false);

@@ -41,7 +41,7 @@ bool FPCGExBitmaskElement::ExecuteInternal(FPCGContext* InContext) const
 
 	FPCGTaggedData& StagedData = Context->StageOutput(BitmaskData, true);
 	StagedData.Pin = FName("Bitmask");
-	
+
 	Context->Done();
 	return Context->TryComplete();
 }

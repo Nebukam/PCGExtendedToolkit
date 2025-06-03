@@ -95,7 +95,7 @@ namespace PCGExPointFilter
 		TArray<double> Values;
 
 		bool bInvert = false;
-		
+
 		double DataMin = 0;
 		double DataMax = 0;
 

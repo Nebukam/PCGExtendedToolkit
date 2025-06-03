@@ -148,7 +148,7 @@ namespace PCGExMath
 			return true;
 		}
 	};
-	
+
 #pragma region basics
 
 	FORCEINLINE static double DegreesToDot(const double Angle)
@@ -665,5 +665,4 @@ namespace PCGExMath
 	/** Distance from C to AB */
 	PCGEXTENDEDTOOLKIT_API
 	double GetPerpendicularDistance(const FVector& A, const FVector& B, const FVector& C);
-
 }

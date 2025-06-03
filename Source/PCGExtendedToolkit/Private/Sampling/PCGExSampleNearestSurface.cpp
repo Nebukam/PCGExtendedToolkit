@@ -24,7 +24,7 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
-	
+
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	Context->bUseInclude = Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences;
@@ -120,7 +120,7 @@ namespace PCGExSampleNearestSurface
 		}
 
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
-		
+
 		SurfacesForward = Context->ActorReferenceDataFacade ? Settings->AttributesForwarding.TryGetHandler(Context->ActorReferenceDataFacade, PointDataFacade) : nullptr;
 
 		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
@@ -154,12 +154,12 @@ namespace PCGExSampleNearestSurface
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleNearestSurface::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
-		
+
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		auto SamplingFailed = [&](const int32 Index, const double MaxDistance)

@@ -66,7 +66,7 @@ namespace PCGExTopologyClusterSurface
 		FilterConstrainedEdgeScope(Scope);
 
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExGraph::FEdge& Edge = ClusterEdges[Index];

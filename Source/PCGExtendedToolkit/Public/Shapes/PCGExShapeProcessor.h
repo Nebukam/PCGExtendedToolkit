@@ -52,6 +52,6 @@ class PCGEXTENDEDTOOLKIT_API FPCGExShapeProcessorElement : public FPCGExPointsPr
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ShapeProcessor)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 };

@@ -7,8 +7,6 @@
 #include "PCGExSmoothingInstancedFactory.h"
 
 
-
-
 #include "PCGExMovingAverageSmoothing.generated.h"
 
 class FPCGExMovingAverageSmoothing : public FPCGExSmoothingOperation

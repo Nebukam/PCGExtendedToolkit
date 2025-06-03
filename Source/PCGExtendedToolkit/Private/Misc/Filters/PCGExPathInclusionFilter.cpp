@@ -75,7 +75,7 @@ namespace PCGExPointFilter
 		ToleranceSquared = FMath::Square(TypedFilterFactory->Config.Tolerance);
 
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
-		
+
 		switch (TypedFilterFactory->Config.CheckType)
 		{
 		case EPCGExSplineCheckType::IsInside:
@@ -139,7 +139,6 @@ namespace PCGExPointFilter
 				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { EnumAddFlags(State, On); }
 				else { EnumRemoveFlags(State, On); }
 
-				
 
 				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
 				{

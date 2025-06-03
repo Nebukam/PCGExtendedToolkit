@@ -17,7 +17,7 @@ class FPCGExTangentsOperation : public FPCGExOperation
 {
 public:
 	bool bClosedLoop = false;
-	
+
 	virtual bool PrepareForData(FPCGExContext* InContext)
 	{
 		return true;
@@ -28,9 +28,8 @@ public:
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const
 	{
-
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
-		
+
 		const FVector A = InTransforms[0].GetLocation();
 		const FVector B = InTransforms[1].GetLocation();
 		const FVector Dir = (B - A).GetSafeNormal() * (FVector::Dist(A, B));
@@ -43,16 +42,14 @@ public:
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const
 	{
-
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 		const int32 LastIndex = InPointData->GetNumPoints() - 1;
-		
+
 		const FVector A = InTransforms[LastIndex].GetLocation();
-		const FVector B = InTransforms[LastIndex-1].GetLocation();
+		const FVector B = InTransforms[LastIndex - 1].GetLocation();
 		const FVector Dir = (A - B).GetSafeNormal() * (FVector::Dist(A, B));
 		OutArrive = Dir * ArriveScale;
 		OutLeave = Dir * LeaveScale;
-		
 	}
 
 	virtual void ProcessPoint(

@@ -242,7 +242,7 @@ namespace PCGExRefineEdges
 	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
 		PrepareSingleLoopScopeForEdges(Scope);
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Index);

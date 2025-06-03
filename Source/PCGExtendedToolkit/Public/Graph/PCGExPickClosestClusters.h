@@ -101,7 +101,7 @@ class FPCGExPickClosestClustersElement final : public FPCGExEdgesProcessorElemen
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PickClosestClusters)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

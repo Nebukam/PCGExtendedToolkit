@@ -108,13 +108,13 @@ public:
 	TSharedRef<PCGExData::FFacade> GetSourceDataFacade() const;
 
 	virtual void PrepareForLoops(const TArray<PCGExMT::FScope>& Loops);
-	
+
 	virtual void ProcessNode(const int32 NodeIndex, const PCGExMT::FScope& Scope);
 	virtual void PrepareNode(const PCGExCluster::FNode& TargetNode, const PCGExMT::FScope& Scope) const;
-	
+
 	virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope);
 	virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope);
-	
+
 	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope);
 	virtual void CompleteOperation();
 

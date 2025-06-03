@@ -186,12 +186,13 @@ namespace PCGExData
 				{
 #define PCGEX_PROPERTY_VALUE(_TYPE) Value
 					PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Data, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
-	#undef PCGEX_PROPERTY_VALUE
-				}else
+#undef PCGEX_PROPERTY_VALUE
+				}
+				else
 				{
 #define PCGEX_PROPERTY_VALUE(_TYPE) PCGEx::Convert<T_WORKING, _TYPE>(Value)
 					PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Data, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
-	#undef PCGEX_PROPERTY_VALUE
+#undef PCGEX_PROPERTY_VALUE
 				}
 			}
 			else
@@ -311,7 +312,7 @@ namespace PCGExData
 		virtual T_WORKING GetCurrent(const int32 Index) const override
 		{
 			const int64 MetadataEntry = Data->GetMetadataEntry(Index);
-			
+
 			// i.e get Rotation<FQuat>.Forward<FVector> as <double>
 			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
 			if constexpr (!bSubSelection)

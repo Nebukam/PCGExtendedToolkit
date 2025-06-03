@@ -188,7 +188,7 @@ namespace PCGExBuildVoronoi2D
 
 			TPCGValueRange<FTransform> OutTransforms = CentroidsPoints->GetTransformValueRange(false);
 			TPCGValueRange<int32> OutSeeds = CentroidsPoints->GetSeedValueRange(false);
-			
+
 			for (int i = 0; i < NumSites; i++)
 			{
 				if (const int32 Idx = RemappedIndices[i]; Idx != -1)
@@ -323,7 +323,7 @@ namespace PCGExBuildVoronoi2D
 		}
 
 		Voronoi.Reset();
-		
+
 		GraphBuilder->bInheritNodeData = false;
 		GraphBuilder->CompileAsync(AsyncManager, false);
 

@@ -34,7 +34,7 @@ namespace PCGExDataBlending
 		InBlendingDetails.GetBlendingParams(
 			SourceFacade->GetData(SourceSide)->Metadata, TargetFacade->GetOut()->Metadata,
 			BlendingParams, !bBlendProperties, IgnoreAttributeSet);
-		
+
 		Blenders.Reserve(BlendingParams.Num());
 		for (const FBlendingParam& Param : BlendingParams)
 		{
@@ -68,8 +68,8 @@ namespace PCGExDataBlending
 			A.bWantsDirect = bWantsDirectAccess;
 			B.bWantsDirect = bWantsDirectAccess;
 			C.bWantsDirect = bWantsDirectAccess;
-			
-			TSharedPtr<PCGExDataBlending::FProxyDataBlender> Blender = PCGExDataBlending::CreateProxyBlender(InContext, Param.Blending, A, B, C);
+
+			TSharedPtr<FProxyDataBlender> Blender = CreateProxyBlender(InContext, Param.Blending, A, B, C);
 
 			if (!Blender) { return false; }
 

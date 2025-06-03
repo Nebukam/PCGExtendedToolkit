@@ -11,7 +11,7 @@ namespace PCGExData
 
 	int32 FUnionData::ComputeWeights(
 		const TArray<const UPCGBasePointData*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FConstPoint& Target,
-		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
+		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<FWeightedPoint>& OutWeightedPoints) const
 	{
 		const int32 NumElements = Elements.Num();
 		OutWeightedPoints.Reset(NumElements);
@@ -54,13 +54,13 @@ namespace PCGExData
 	}
 
 
-	void FUnionData::Add_Unsafe(const PCGExData::FPoint& Point)
+	void FUnionData::Add_Unsafe(const FPoint& Point)
 	{
 		IOSet.Add(Point.IO);
 		Elements.Add(FElement(Point.Index == -1 ? 0 : Point.Index, Point.IO));
 	}
 
-	void FUnionData::Add(const PCGExData::FPoint& Point)
+	void FUnionData::Add(const FPoint& Point)
 	{
 		FWriteScopeLock WriteScopeLock(UnionLock);
 		IOSet.Add(Point.IO);
@@ -86,7 +86,7 @@ namespace PCGExData
 		Entries.Init(nullptr, InNum);
 	}
 
-	TSharedPtr<FUnionData> FUnionMetadata::NewEntry_Unsafe(const PCGExData::FConstPoint& Point)
+	TSharedPtr<FUnionData> FUnionMetadata::NewEntry_Unsafe(const FConstPoint& Point)
 	{
 		TSharedPtr<FUnionData> NewUnionData = Entries.Add_GetRef(MakeShared<FUnionData>());
 		NewUnionData->Add(Point);
@@ -99,7 +99,7 @@ namespace PCGExData
 		return Entries[ItemIndex];
 	}
 
-	void FUnionMetadata::Append(const int32 Index, const PCGExData::FPoint& Point)
+	void FUnionMetadata::Append(const int32 Index, const FPoint& Point)
 	{
 		Entries[Index]->Add(Point);
 	}

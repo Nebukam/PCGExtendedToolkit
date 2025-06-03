@@ -156,12 +156,12 @@ namespace PCGExWriteIndex
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::WriteIndex::ProcessPoints);
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (Settings->bOneMinus)
 			{
-				if (DoubleWriter) { DoubleWriter->SetValue(Index,1 - (static_cast<double>(Index) / MaxIndex)); }
+				if (DoubleWriter) { DoubleWriter->SetValue(Index, 1 - (static_cast<double>(Index) / MaxIndex)); }
 				else if (IntWriter) { IntWriter->SetValue(Index, MaxIndex - Index); }
 			}
 			else

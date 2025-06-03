@@ -394,7 +394,7 @@ namespace PCGExBevelPath
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BevelPath::ProcessPoints);
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const TSharedPtr<FBevel>& Bevel = Bevels[Index];

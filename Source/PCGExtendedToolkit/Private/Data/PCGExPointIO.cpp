@@ -492,11 +492,8 @@ namespace PCGExData
 			FScope Scope = bInclusive ? FScope(In, Start, End - Start) : FScope(In, Start + 1, (End - Start) - 2);
 			return Scope;
 		}
-		else
-		{
-			FScope Scope = bInclusive ? FScope(In, End, Start - End) : FScope(In, End + 1, (Start - End) - 2);
-			return Scope;
-		}
+		FScope Scope = bInclusive ? FScope(In, End, Start - End) : FScope(In, End + 1, (Start - End) - 2);
+		return Scope;
 	}
 
 	FScope FPointIO::GetOutRange(const int32 Start, const int32 End, const bool bInclusive) const
@@ -506,11 +503,8 @@ namespace PCGExData
 			FScope Scope = bInclusive ? FScope(Out, Start, End - Start) : FScope(Out, Start + 1, (End - Start) - 2);
 			return Scope;
 		}
-		else
-		{
-			FScope Scope = bInclusive ? FScope(Out, End, Start - End) : FScope(Out, End + 1, (Start - End) - 2);
-			return Scope;
-		}
+		FScope Scope = bInclusive ? FScope(Out, End, Start - End) : FScope(Out, End + 1, (Start - End) - 2);
+		return Scope;
 	}
 
 	void FPointIO::SetPoints(const TArray<FPCGPoint>& InPCGPoints)
@@ -893,7 +887,7 @@ namespace PCGExData
 		PointIO->SetInfos(Pairs.Add(PointIO), OutputPin);
 		return PointIO;
 	}
-	
+
 	TSharedPtr<FPointIO> FPointIOCollection::Add(const TSharedPtr<FPointIO>& PointIO)
 	{
 		FWriteScopeLock WriteLock(PairsLock);

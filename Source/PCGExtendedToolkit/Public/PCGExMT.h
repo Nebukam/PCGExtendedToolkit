@@ -87,7 +87,7 @@ namespace PCGExMT
 		static int32 GetMaxRange(const TArray<FScope>& InScopes)
 		{
 			int32 MaxRange = 0;
-			for (const FScope& S : InScopes) { MaxRange = FMath::Max(MaxRange, S.Count); };
+			for (const FScope& S : InScopes) { MaxRange = FMath::Max(MaxRange, S.Count); }
 			return MaxRange;
 		}
 

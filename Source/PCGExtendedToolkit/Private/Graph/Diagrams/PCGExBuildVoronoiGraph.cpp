@@ -194,7 +194,7 @@ namespace PCGExBuildVoronoi
 					else { OutTransforms[i].SetLocation(Voronoi->Centroids[i]); }
 				}
 			}
-			
+
 			GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 

@@ -148,7 +148,7 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 		PCGExSubsystem->RegisterBeginTickAction(
 			[CtxHandle = GetOrCreateHandle(), Idx = Index + 1]()
 			{
-				const FPCGContext::FSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
+				const FSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
 				if (FPCGExGetTextureDataContext* Ctx = SharedContext.Get())
 				{
 					Ctx->AdvanceProcessing(Idx);
@@ -221,7 +221,7 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 		PCGExSubsystem->RegisterBeginTickAction(
 			[CtxHandle = GetOrCreateHandle(), Idx = Index]()
 			{
-				const FPCGContext::FSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
+				const FSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
 				if (FPCGExGetTextureDataContext* Ctx = SharedContext.Get())
 				{
 					Ctx->AdvanceProcessing(Idx);

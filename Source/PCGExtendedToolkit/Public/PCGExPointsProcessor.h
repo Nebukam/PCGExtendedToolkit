@@ -112,7 +112,7 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 protected:
-	virtual bool IsCacheable() const { return false; }
+	virtual bool IsCacheable() const override { return false; }
 	virtual bool ShouldCache() const;
 	virtual bool WantsScopedAttributeGet() const;
 };

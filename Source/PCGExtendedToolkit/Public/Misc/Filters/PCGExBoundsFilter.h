@@ -118,7 +118,7 @@ namespace PCGExPointFilter
 
 		using BoundCheckProxyCallback = std::function<bool(const PCGExData::FProxyPoint&)>;
 		BoundCheckProxyCallback BoundCheckProxy;
-		
+
 		using BoundCheckCallback = std::function<bool(const PCGExData::FConstPoint&)>;
 		BoundCheckCallback BoundCheck;
 

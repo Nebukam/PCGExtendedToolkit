@@ -93,15 +93,16 @@ public:
 	void PollEvent(UPCGComponent* InSource, EPCGExSubsystemEventType InEventType, uint32 InEventId);
 
 #pragma region Indices buffer
+
 protected:
 	void EnsureIndexBufferSize(const int32 Count);
 
 public:
 	TArrayView<const int32> GetIndexRange(const int32 Start, const int32 Count);
 
-	
-#pragma endregion 
-	
+
+#pragma endregion
+
 protected:
 	TArray<int32> IndexBuffer;
 	bool bWantsTick = false;

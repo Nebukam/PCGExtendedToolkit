@@ -143,7 +143,7 @@ namespace PCGExBatchActions
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BatchActions::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 
 		PCGEX_SCOPE_LOOP(Index)

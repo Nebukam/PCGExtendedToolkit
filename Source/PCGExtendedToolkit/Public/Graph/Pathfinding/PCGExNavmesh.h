@@ -34,10 +34,9 @@ namespace PCGExNavmesh
 
 		FNavmeshQuery() = default;
 		FNavmeshQuery(const PCGExPathfinding::FSeedGoalPair& InSeedGoalPair);
-		
+
 		bool IsValid() const { return !Positions.IsEmpty(); }
 		void FindPath(FPCGExNavmeshContext* InContext);
 		void CopyPositions(const TPCGValueRange<FTransform>& InRange, int32& OutStartIndex, const bool bAddSeed, const bool bAddGoal);
 	};
 }
-

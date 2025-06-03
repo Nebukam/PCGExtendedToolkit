@@ -34,15 +34,14 @@ namespace PCGExDataBlending
 		virtual void BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const override;
 		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGEx::FOpStats>& Trackers) const override;
 		virtual void EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const override;
-		
+
 	protected:
 		TWeakPtr<PCGExData::FFacade> SourceFacadeHandle;
 		PCGExData::EIOSide SourceSide = PCGExData::EIOSide::In;
-		
+
 		TWeakPtr<PCGExData::FFacade> TargetFacadeHandle;
-		
+
 		TArray<TSharedPtr<FProxyDataBlender>> Blenders;
 		TSharedPtr<PCGExMT::TScopedArray<PCGEx::FOpStats>> ScopedTrackers;
-		
 	};
 }

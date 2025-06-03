@@ -89,7 +89,7 @@ class FPCGExSubdivideElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(Subdivide)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -106,7 +106,7 @@ namespace PCGExSubdivide
 		int32 OutEnd = -1;
 
 		double Dist = 0;
-		
+
 		double StepSize = 0;
 		double StartOffset = 0;
 	};
@@ -139,10 +139,10 @@ namespace PCGExSubdivide
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-		
+
 		virtual void CompleteWork() override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
-		
+
 		virtual void Write() override;
 	};
 }

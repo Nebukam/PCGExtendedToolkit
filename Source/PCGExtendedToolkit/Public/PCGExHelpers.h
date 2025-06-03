@@ -204,7 +204,7 @@ private:
 namespace PCGEx
 {
 	const FName InvalidName = "INVALID_DATA";
-	
+
 	template <bool bInitialized>
 	static FName GetLongNameFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 	{
@@ -264,7 +264,7 @@ namespace PCGEx
 		Selector = Selector.CopyAndFixLast(InData);
 		return GetAttributeIdentifier<true>(Selector, InData);
 	}
-	
+
 	class PCGEXTENDEDTOOLKIT_API FPCGExAsyncStateScope
 	{
 	public:
@@ -726,7 +726,10 @@ namespace PCGEx
 
 		for (int32 i = 0; i < NumElements; ++i)
 		{
-			if (Visited[i]) continue;
+			if (Visited[i])
+			{
+				continue;
+			}
 
 			int32 Current = i;
 			int32 Next = InOrder[Current];

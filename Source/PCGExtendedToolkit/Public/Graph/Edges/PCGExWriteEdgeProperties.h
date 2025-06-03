@@ -80,7 +80,7 @@ public:
 	/** How to blend data from sampled points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bEndpointsBlending"))
 	EPCGExBlendingInterface BlendingInterface = EPCGExBlendingInterface::Individual;
-	
+
 	/** Defines how fused point properties and attributes are merged together. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(EditCondition="bEndpointsBlending && BlendingInterface==EPCGExBlendingInterface::Monolithic", EditConditionHides))
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
@@ -221,7 +221,7 @@ namespace PCGExWriteEdgeProperties
 		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		TSharedPtr<PCGExDataBlending::IBlender> DataBlender;
-		
+
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerp;
 
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)

@@ -147,12 +147,12 @@ namespace PCGExWriteTangents
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::WriteTangents::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
 		const UPCGBasePointData* InPoints = PointDataFacade->Source->GetIn();
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index]) { continue; }

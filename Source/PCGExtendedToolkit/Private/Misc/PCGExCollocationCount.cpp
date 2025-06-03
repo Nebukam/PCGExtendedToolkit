@@ -76,7 +76,7 @@ namespace PCGExCollocationCount
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::CollocationCount::ProcessPoints);
-		
+
 		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)

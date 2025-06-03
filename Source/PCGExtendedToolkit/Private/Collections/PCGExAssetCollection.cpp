@@ -19,7 +19,6 @@ namespace PCGExAssetCollection
 
 	int32 FCategory::GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const
 	{
-		
 		switch (PickMode)
 		{
 		default:

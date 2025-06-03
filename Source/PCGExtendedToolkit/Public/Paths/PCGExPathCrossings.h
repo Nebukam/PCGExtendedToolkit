@@ -134,7 +134,7 @@ class FPCGExPathCrossingsElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathCrossings)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -203,7 +203,7 @@ namespace PCGExPathCrossings
 
 		void CollapseCrossings(const PCGExMT::FScope& Scope);
 		void CrossBlend(const PCGExMT::FScope& Scope);
-		
+
 		virtual void Write() override;
 	};
 }

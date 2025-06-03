@@ -10,7 +10,6 @@
 
 class FPCGExTangentsCatmullRom : public FPCGExTangentsOperation
 {
-	
 public:
 	virtual void ProcessPoint(
 		const UPCGBasePointData* InPointData,
@@ -19,7 +18,7 @@ public:
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
-		
+
 		const FVector A = InTransforms[PrevIndex].GetLocation();
 		//const FVector B = InPoints[Index].Transform.GetLocation();
 		const FVector C = InTransforms[NextIndex].GetLocation();

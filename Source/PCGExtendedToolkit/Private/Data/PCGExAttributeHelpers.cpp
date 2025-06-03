@@ -163,7 +163,7 @@ namespace PCGEx
 		if (!FixedSelector.IsValid() || FixedSelector.GetSelection() != EPCGAttributePropertySelection::Attribute) { return false; }
 
 		const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(FixedSelector, InData));
-		if(!Attribute) { return false; }
+		if (!Attribute) { return false; }
 
 		OutIdentity.Identifier = Attribute->Name;
 		OutIdentity.UnderlyingType = static_cast<EPCGMetadataTypes>(Attribute->GetTypeId());
@@ -175,21 +175,21 @@ namespace PCGEx
 	int32 FAttributeIdentity::ForEach(const UPCGMetadata* InMetadata, FForEachFunc&& Func)
 	{
 		// BUG : This does not account for metadata domains
-		
+
 		if (!InMetadata) { return 0; }
-		
+
 		TArray<FPCGAttributeIdentifier> Identifiers;
 		TArray<EPCGMetadataTypes> Types;
 
 		InMetadata->GetAllAttributes(Identifiers, Types);
 		const int32 NumAttributes = Identifiers.Num();
-		
+
 		for (int i = 0; i < NumAttributes; i++)
 		{
 			const FAttributeIdentity Identity = FAttributeIdentity(Identifiers[i], Types[i], InMetadata->GetConstAttribute(Identifiers[i])->AllowsInterpolation());
 			Func(Identity, i);
 		}
-		
+
 		return NumAttributes;
 	}
 

@@ -629,7 +629,7 @@ namespace PCGExPackActorDatas
 		TSharedPtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences;
 
 		TArray<int8> PointMask;
-		
+
 		TWeakPtr<PCGExMT::FAsyncToken> LoadToken;
 		TSharedPtr<FStreamableHandle> LoadHandle;
 
@@ -643,9 +643,9 @@ namespace PCGExPackActorDatas
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void StartProcessing();
-		
+
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-		
+
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 		virtual void Output() override;

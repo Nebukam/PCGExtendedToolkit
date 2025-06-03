@@ -128,7 +128,7 @@ struct FPCGExBinPackingContext final : FPCGExPointsProcessorContext
 	friend class FPCGExBinPackingElement;
 
 	TSet<int32> ValidIOIndices;
-	
+
 	TSharedPtr<PCGExData::FPointIOCollection> Bins;
 	TArray<FPCGExUVW> BinsUVW;
 
@@ -139,7 +139,7 @@ class FPCGExBinPackingElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BinPacking)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -184,7 +184,7 @@ namespace PCGExBinPacking
 		int32 MaxItems = 0;
 		FBox Bounds;
 		FTransform Transform;
-		
+
 		const UPCGExBinPackingSettings* Settings = nullptr;
 		FVector WastedSpaceThresholds = FVector::ZeroVector;
 		TArray<FItem> Items;

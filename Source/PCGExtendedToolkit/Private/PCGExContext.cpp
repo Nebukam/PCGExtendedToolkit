@@ -86,7 +86,7 @@ const UPCGComponent* FPCGExContext::GetComponent() const
 
 UPCGComponent* FPCGExContext::GetMutableComponent() const
 {
-	return const_cast<UPCGComponent*>(Cast<UPCGComponent>(ExecutionSource.Get()));
+	return Cast<UPCGComponent>(ExecutionSource.Get());
 }
 
 void FPCGExContext::PauseContext()

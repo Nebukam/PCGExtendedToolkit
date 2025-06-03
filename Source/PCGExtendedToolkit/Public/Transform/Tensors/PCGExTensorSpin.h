@@ -46,10 +46,10 @@ namespace PCGExTensor
 	{
 		FPCGExTensorSpinConfig Config;
 		TSharedPtr<PCGExData::TBuffer<FVector>> AxisBuffer;
-		
+
 	public:
 		virtual bool Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory) override;
-		
+
 	protected:
 		virtual void PrepareSinglePoint(const int32 Index) override;
 	};
@@ -77,7 +77,6 @@ class UPCGExTensorSpinFactory : public UPCGExTensorPointFactoryData
 public:
 	FPCGExTensorSpinConfig Config;
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
-
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")

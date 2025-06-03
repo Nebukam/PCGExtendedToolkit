@@ -127,8 +127,8 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 				PCGExMT::FDeferredCallbackTask,
 				[WeakHandle = GetOrCreateHandle()]()
 				{
-					PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
-					SharedContext.Get()->MainBatch->CompleteWork();
+				PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
+				SharedContext.Get()->MainBatch->CompleteWork();
 				});
 			return false;
 		}
@@ -138,7 +138,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::WorkComplete);
 		BatchProcessing_WorkComplete();
-		
+
 		if (MainBatch->bRequiresWriteStep)
 		{
 			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
@@ -147,8 +147,8 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 				PCGExMT::FDeferredCallbackTask,
 				[WeakHandle = GetOrCreateHandle()]()
 				{
-					PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
-					SharedContext.Get()->MainBatch->Write();
+				PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
+				SharedContext.Get()->MainBatch->Write();
 				});
 			return false;
 		}

@@ -322,9 +322,9 @@ namespace PCGExData
 										{
 										}
 										*/
-											// No existing buffer yet
-											PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No existing buffer to read from."));
-											return;
+										// No existing buffer yet
+										PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No existing buffer to read from."));
+										return;
 									}
 								}
 							}

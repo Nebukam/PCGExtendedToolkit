@@ -188,9 +188,9 @@ namespace PCGExDataBlending
 			Desc_C.bWantsDirect = bWantsDirectAccess;
 
 			// Create output first so we may read from it
-			C = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_C));
-			A = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_A));
-			B = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(PCGExData::GetProxyBuffer(InContext, Desc_B));
+			C = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, Desc_C));
+			A = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, Desc_A));
+			B = StaticCastSharedPtr<PCGExData::TBufferProxy<T_WORKING>>(GetProxyBuffer(InContext, Desc_B));
 
 			// Ensure C is readable for MultiBlend, as those will use GetCurrent
 			if (!C->EnsureReadable())

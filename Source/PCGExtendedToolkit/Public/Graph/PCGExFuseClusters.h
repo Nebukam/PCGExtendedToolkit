@@ -127,7 +127,7 @@ namespace PCGExFuseClusters
 {
 	// TODO : Batch-preload vtx & edges attributes we'll want to blend
 	// We'll need a custom FBatch to handle it
-	
+
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFuseClustersContext, UPCGExFuseClustersSettings>
 	{
 		int32 VtxIOIndex = 0;
@@ -150,5 +150,4 @@ namespace PCGExFuseClusters
 		void InsertEdges(const PCGExMT::FScope& Scope, bool bUnsafe);
 		void OnInsertionComplete();
 	};
-	
 }

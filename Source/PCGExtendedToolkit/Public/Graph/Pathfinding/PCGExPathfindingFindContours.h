@@ -114,7 +114,7 @@ class FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FindContours)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -148,7 +148,7 @@ namespace PCGExFindContours
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
-		
+
 		void ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell);
 		virtual void CompleteWork() override;
 		virtual void Cleanup() override;

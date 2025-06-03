@@ -152,5 +152,4 @@ namespace PCGExSampling
 		const TSharedRef<PCGExData::FFacade>& InFacade,
 		const FName ActorReferenceName,
 		TMap<AActor*, int32>& OutActorSet);
-
 }

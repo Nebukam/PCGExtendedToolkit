@@ -42,7 +42,7 @@ public:
 
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(TopologyClusterSurface)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
