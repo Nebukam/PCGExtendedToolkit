@@ -202,6 +202,15 @@ namespace PCGEx
 			{
 				OutType = static_cast<EPCGMetadataTypes>(AttributeBase->GetTypeId());
 			}
+			else if (const UPCGBasePointData* OutData = InDataFacade->Source->GetOut(); InOutSide == PCGExData::EIOSide::In)
+			{
+				// Failed to find attribute on input, try to find it on output if there is one
+				if (const FPCGMetadataAttributeBase* OutAttributeBase = OutData->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(FixedSelector, OutData)))
+				{
+					OutType = static_cast<EPCGMetadataTypes>(OutAttributeBase->GetTypeId());
+					InOutSide = PCGExData::EIOSide::Out;
+				}
+			}
 		}
 		else if (FixedSelector.GetSelection() == EPCGAttributePropertySelection::ExtraProperty)
 		{
