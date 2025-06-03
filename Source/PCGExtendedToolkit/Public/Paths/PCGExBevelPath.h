@@ -195,7 +195,7 @@ class FPCGExBevelPathElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BevelPath)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -283,10 +283,10 @@ namespace PCGExBevelPath
 		void PrepareSinglePoint(const int32 Index);
 
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-		
+
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
-		
+
 		void WriteFlags(const int32 Index);
 		virtual void CompleteWork() override;
 		virtual void Write() override;

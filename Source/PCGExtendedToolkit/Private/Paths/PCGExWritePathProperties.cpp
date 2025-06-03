@@ -84,7 +84,7 @@ bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (Context->PathAttributeSet)
 		{
-			FPCGTaggedData& StagedData = Context->StageOutput(Context->PathAttributeSet, false, false);;
+			FPCGTaggedData& StagedData = Context->StageOutput(Context->PathAttributeSet, false, false);
 			StagedData.Pin = PCGExWritePathProperties::OutputPathProperties;
 		}
 		else
@@ -285,8 +285,6 @@ namespace PCGExWritePathProperties
 		{
 			FPCGTaggedData& StagedData = Context->StageOutput(PathAttributeSet, false, false);
 			StagedData.Pin = OutputPathProperties;
-
-			
 		}
 	}
 }

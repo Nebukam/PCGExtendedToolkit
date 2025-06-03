@@ -52,7 +52,7 @@ namespace PCGExMath
 		Bounds += B;
 		Bounds = Bounds.ExpandBy(Expansion);
 	}
-	
+
 	double ConvertStringToDouble(const FString& StringToConvert)
 	{
 		const TCHAR* CharArray = *StringToConvert;

@@ -138,7 +138,9 @@ namespace PCGExMergePoints
 						for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, Value); }
 					});
 
-				if (!bTryBroadcast) { continue; }
+				if (!bTryBroadcast)
+				{
+				}
 
 				continue; // This is a value tag, not a simple tag, stop processing here.
 			}

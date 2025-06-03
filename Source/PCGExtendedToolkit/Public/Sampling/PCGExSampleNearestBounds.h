@@ -137,11 +137,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName="Weight Remap", EditCondition = "!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightRemap;
 
-	
+
 	/** How to blend data from sampled points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable))
 	EPCGExBlendingInterface BlendingInterface = EPCGExBlendingInterface::Individual;
-	
+
 	/** Attributes to sample from the targets */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="BlendingInterface==EPCGExBlendingInterface::Monolithic"))
 	TMap<FName, EPCGExDataBlendingType> TargetAttributes;
@@ -154,7 +154,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties && BlendingInterface==EPCGExBlendingInterface::Monolithic"))
 	FPCGExPropertiesBlendingDetails PointPropertiesBlendingSettings = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
 
-	
+
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
@@ -338,7 +338,6 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
-	
 };
 
 namespace PCGExSampleNearestBounds
@@ -358,7 +357,7 @@ namespace PCGExSampleNearestBounds
 		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		TSharedPtr<PCGExDataBlending::IBlender> DataBlender;
-		
+
 		FPCGExBlendingDetails BlendingDetails;
 
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;

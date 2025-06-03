@@ -94,7 +94,7 @@ namespace PCGExData
 		double Weight = 0;
 
 		FWeightedPoint() = default;
-		virtual ~FWeightedPoint() = default;
+		virtual ~FWeightedPoint() override = default;
 
 		explicit FWeightedPoint(const uint64 Hash, const double InWeight = 1);
 		explicit FWeightedPoint(const int32 InIndex, const double InWeight = 1, const int32 InIO = -1);

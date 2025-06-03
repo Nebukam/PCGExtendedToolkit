@@ -99,7 +99,7 @@ class FPCGExCreateSplineElement final : public FPCGExPathProcessorElement
 
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(CreateSpline)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;

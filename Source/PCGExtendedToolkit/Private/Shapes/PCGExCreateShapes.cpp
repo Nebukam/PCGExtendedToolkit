@@ -88,7 +88,7 @@ namespace PCGExCreateShapes
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::CreateShapes::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 
 		PCGEX_SCOPE_LOOP(Index)

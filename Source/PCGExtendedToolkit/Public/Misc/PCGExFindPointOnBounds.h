@@ -78,7 +78,7 @@ class FPCGExFindPointOnBoundsElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FindPointOnBounds)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -102,7 +102,7 @@ namespace PCGExFindPointOnBounds
 			PCGMetadataEntryKey InKey = IO->GetIn()->GetMetadataEntry(BestIndices[i]);
 			PCGMetadataEntryKey OutKey = Target->GetOut()->GetMetadataEntry(i);
 			UPCGMetadata* InMetadata = IO->GetIn()->Metadata;
-			
+
 			for (const PCGEx::FAttributeIdentity& Identity : InAttributesInfos.Identities)
 			{
 				PCGEx::ExecuteWithRightType(

@@ -49,9 +49,6 @@ struct FPCGExDebugContext final : FPCGExContext
 
 class FPCGExDebugElement final : public IPCGElement
 {
-public:
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
-
 protected:
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 

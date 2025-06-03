@@ -58,7 +58,7 @@ class FPCGExSampleNeighborsElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleNeighbors)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -85,7 +85,7 @@ namespace PCGExSampleNeighbors
 
 		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
-		
+
 		virtual void Write() override;
 		virtual void Cleanup() override;
 	};

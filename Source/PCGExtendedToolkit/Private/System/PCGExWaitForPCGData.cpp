@@ -692,7 +692,6 @@ namespace PCGExWaitForPCGData
 				FPCGTaggedData& StagedData = Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), false, false);
 				StagedData.Pin = TaggedData.Pin;
 				StagedData.Tags.Append(DataTags);
-				
 			}
 		}
 		else
@@ -724,8 +723,6 @@ namespace PCGExWaitForPCGData
 					FPCGTaggedData& StagedData = Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), false, false);
 					StagedData.Pin = TaggedData.Pin;
 					StagedData.Tags.Append(DataTags);
-
-					
 				}
 			}
 		}

@@ -493,7 +493,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		TSharedRef<PCGExData::FFacade> NodeDataFacade;
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
-		
+
 		// The collection of edges given to the node
 		// We need the full collection even if unrelated, because we track data by index
 		// and those indices are relative to the input data, not the graph context

@@ -8,8 +8,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-
-
 #include "PCGExSubPointsBlendInterpolate.generated.h"
 
 
@@ -46,5 +44,5 @@ public:
 	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const override;
 
 protected:
-	virtual EPCGExDataBlendingType GetDefaultBlending() const override{ return EPCGExDataBlendingType::Lerp; }
+	virtual EPCGExDataBlendingType GetDefaultBlending() const override { return EPCGExDataBlendingType::Lerp; }
 };

@@ -173,7 +173,7 @@ namespace PCGExTexture
 			for (int i = 0; i < Factories.Num(); i++)
 			{
 				if (!Buffers[i]) { continue; }
-				Buffers[i]->SetValue(PointIndex, FSoftObjectPath{});;
+				Buffers[i]->SetValue(PointIndex, FSoftObjectPath{});
 			}
 
 			return;

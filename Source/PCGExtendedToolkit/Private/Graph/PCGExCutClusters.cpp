@@ -268,7 +268,9 @@ namespace PCGExCutEdges
 						return false;
 					});
 
-				if (Edge.bValid == static_cast<int8>(Settings->bInvert)) { continue; }
+				if (Edge.bValid == static_cast<int8>(Settings->bInvert))
+				{
+				}
 			}
 		}
 	}
@@ -341,7 +343,9 @@ namespace PCGExCutEdges
 						return false;
 					});
 
-				if (Node.bValid == static_cast<int8>(Settings->bInvert)) { continue; }
+				if (Node.bValid == static_cast<int8>(Settings->bInvert))
+				{
+				}
 			}
 		}
 	}

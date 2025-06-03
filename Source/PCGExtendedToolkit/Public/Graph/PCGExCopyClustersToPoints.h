@@ -87,7 +87,7 @@ class FPCGExCopyClustersToPointsElement final : public FPCGExEdgesProcessorEleme
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(CopyClustersToPoints)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

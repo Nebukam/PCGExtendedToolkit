@@ -165,5 +165,4 @@ protected:
 
 public:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
 };

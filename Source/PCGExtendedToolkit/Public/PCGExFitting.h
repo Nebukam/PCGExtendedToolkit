@@ -333,7 +333,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingDetailsHandler
 
 	bool WillChangeBounds() const;
 	bool WillChangeTransform() const;
-	
 };
 
 USTRUCT(BlueprintType)

@@ -10,7 +10,7 @@
 #include "PCGExCompare.h"
 #include "PCGExDetailsData.h"
 
-#include "Utils/PCGPointOctree.h" 
+#include "Utils/PCGPointOctree.h"
 
 #include "PCGExFilterFactoryProvider.h"
 
@@ -110,14 +110,14 @@ namespace PCGExPointFilter
 		TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
 		TArray<const UPCGBasePointData*> TargetsPtr;
 		const UPCGBasePointData* SelfPtr = nullptr;
-		
+
 		bool bIgnoreSelf = false;
 		int32 NumTargets = -1;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceThresholdGetter;
 
 		TConstPCGValueRange<FTransform> InTransforms;
-		
+
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;

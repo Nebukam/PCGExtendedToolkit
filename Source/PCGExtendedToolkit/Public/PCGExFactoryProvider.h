@@ -117,6 +117,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFactoryProviderSettings : public UPCGSettings
 	friend class FPCGExFactoryProviderElement;
 
 public:
+	//~Begin UObject interface
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+	
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	//PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FactoryProvider, "Factory : Provider", "Creates an abstract factory provider.", FName(GetDisplayName()))
@@ -141,6 +147,10 @@ public:
 #endif
 	//~End UPCGExFactoryProviderSettings
 
+	/** A dummy property used to drive cache invalidation on settings changes */
+	UPROPERTY()
+	int32 InternalCacheInvalidator = 0;
+		
 	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	EPCGExOptionState CachingBehavior = EPCGExOptionState::Default;
@@ -154,7 +164,6 @@ public:
 	bool bQuietMissingInputError = false;
 
 protected:
-	virtual bool IsCacheable() const { return false; } // Until I find a way to properly cache factories :(
 	virtual bool ShouldCache() const;
 };
 

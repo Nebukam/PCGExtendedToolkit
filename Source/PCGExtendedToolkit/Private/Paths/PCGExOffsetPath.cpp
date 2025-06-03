@@ -125,7 +125,7 @@ namespace PCGExOffsetPath
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::OffsetPath::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 

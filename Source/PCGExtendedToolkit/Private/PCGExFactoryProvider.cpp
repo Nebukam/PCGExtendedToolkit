@@ -32,6 +32,14 @@ void UPCGExFactoryData::RegisterBuffersDependencies(FPCGExContext* InContext, PC
 {
 }
 
+#if WITH_EDITOR
+void UPCGExFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	InternalCacheInvalidator++;
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif
+
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -140,6 +148,10 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	if (InContext->IsDone() && InContext->OutFactory)
 	{
+		// We use a dummy attribute to update the factory CRC
+		FPCGAttributeIdentifier CacheInvalidation(FName("PCGEx/CRC"), PCGMetadataDomainID::Data);
+		InContext->OutFactory->Metadata->CreateAttribute<int32>(CacheInvalidation, Settings->InternalCacheInvalidator, false, false);
+
 		FPCGTaggedData& StagedData = InContext->StageOutput(InContext->OutFactory, false);
 		StagedData.Pin = Settings->GetMainOutputPin();
 	}

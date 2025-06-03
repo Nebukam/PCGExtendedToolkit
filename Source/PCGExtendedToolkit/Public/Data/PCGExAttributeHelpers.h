@@ -132,7 +132,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetList
 
 namespace PCGEx
 {
-
 #pragma region Attribute identity
 
 	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
@@ -362,7 +361,7 @@ namespace PCGEx
 			else if (ProcessingInfos == EPCGAttributePropertySelection::Property)
 			{
 				const FSubSelection& S = ProcessingInfos.SubSelection;
-				const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
+				const EPCGPointProperties Property = ProcessingInfos;
 
 #define PCGEX_GET_BY_ACCESSOR(_ACCESSOR, _TYPE)\
 if (S.bIsValid) { PCGEX_SCOPE_LOOP(Index) { Dump[Index] =S.Get<_TYPE, T>(InData->_ACCESSOR); } } \
@@ -459,7 +458,7 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 			else if (ProcessingInfos == EPCGAttributePropertySelection::Property)
 			{
 				const FSubSelection& S = ProcessingInfos.SubSelection;
-				const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
+				const EPCGPointProperties Property = ProcessingInfos;
 
 #define PCGEX_GET_BY_ACCESSOR(_ACCESSOR, _TYPE)\
 				if (bCaptureMinMax) {\
@@ -522,7 +521,7 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 			else if (ProcessingInfos == EPCGAttributePropertySelection::Property)
 			{
 				const FSubSelection& S = ProcessingInfos.SubSelection;
-				const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
+				const EPCGPointProperties Property = ProcessingInfos;
 
 #define PCGEX_GET_BY_ACCESSOR(_ACCESSOR, _TYPE)\
 				if (S.bIsValid) { for (int Index = 0; Index < NumPoints; Index++) { Dump.Add(S.Get<_TYPE, T>(InData->_ACCESSOR)); } } \
@@ -578,7 +577,7 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 			if (!ProcessingInfos.bIsValid) { return Fallback; }
 
 			const int32 Index = Point.Index;
-			const EPCGPointProperties Property = static_cast<EPCGPointProperties>(ProcessingInfos);
+			const EPCGPointProperties Property = ProcessingInfos;
 
 			switch (static_cast<EPCGAttributePropertySelection>(ProcessingInfos))
 			{

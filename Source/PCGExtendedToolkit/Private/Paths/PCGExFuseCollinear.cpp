@@ -88,7 +88,7 @@ namespace PCGExFuseCollinear
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::FuseCollinear::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 

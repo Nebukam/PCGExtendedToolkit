@@ -119,7 +119,7 @@ class FPCGExPathToClustersElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathToClusters)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -152,7 +152,7 @@ namespace PCGExPathToClusters
 	// Fusing processors
 
 	// TODO : Batch-preload point attributes we'll want to blend
-	
+
 	class FFusingProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>
 	{
 		bool bClosedLoop = false;

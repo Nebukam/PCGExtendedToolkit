@@ -76,7 +76,7 @@ class FPCGExConnectPointsElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ConnectPoints)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -94,7 +94,7 @@ namespace PCGExConnectPoints
 		TArray<TSharedPtr<FPCGExProbeOperation>> DirectProbes;
 		TArray<TSharedPtr<FPCGExProbeOperation>> ChainProbeOperations;
 		TArray<TSharedPtr<FPCGExProbeOperation>> SharedProbeOperations;
-		
+
 		bool bUseVariableRadius = false;
 		int32 NumChainedOps = 0;
 		double SharedSearchRadius = 0;

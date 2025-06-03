@@ -89,7 +89,7 @@ namespace PCGExFlagNodes
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
-			
+
 			StateManager->Test(Node);
 		}
 	}

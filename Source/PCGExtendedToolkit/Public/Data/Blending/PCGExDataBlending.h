@@ -91,7 +91,7 @@ enum class EPCGExDataBlendingType : uint8
 	CopyOther        = 15 UMETA(DisplayName = "Copy (Source)", ToolTip="Copy source data (first value)"),
 	Hash             = 16 UMETA(DisplayName = "Hash", ToolTip="Combine the values into a hash"),
 	UnsignedHash     = 17 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Combine the values into a hash but sort the values first to create an order-independent hash."),
-	Unset             = 200 UMETA(Hidden),
+	Unset            = 200 UMETA(Hidden),
 };
 
 // This is a different blending list that makes more sense for AxB blending
@@ -356,9 +356,8 @@ namespace PCGExDataBlending
 	PCGEXTENDEDTOOLKIT_API
 	void GetFilteredIdentities(
 		const UPCGMetadata* InMetadata,
-		TArray<PCGEx::FAttributeIdentity>& OutIdentities,		
-		const FPCGExBlendingDetails* InBlendingDetails= nullptr,
-		const FPCGExCarryOverDetails* InCarryOverDetails= nullptr,
+		TArray<PCGEx::FAttributeIdentity>& OutIdentities,
+		const FPCGExBlendingDetails* InBlendingDetails = nullptr,
+		const FPCGExCarryOverDetails* InCarryOverDetails = nullptr,
 		const TSet<FName>* IgnoreAttributeSet = nullptr);
-	
 }

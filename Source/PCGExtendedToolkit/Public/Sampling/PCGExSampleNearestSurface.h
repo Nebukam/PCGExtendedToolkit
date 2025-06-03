@@ -76,7 +76,7 @@ public:
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
-	
+
 	/** Write whether the sampling was successful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
@@ -194,9 +194,9 @@ struct FPCGExSampleNearestSurfaceContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FFacade> ActorReferenceDataFacade;
 
 	FPCGExCollisionDetails CollisionSettings;
-	
+
 	FPCGExApplySamplingDetails ApplySampling;
-	
+
 	bool bUseInclude = false;
 	TMap<AActor*, int32> IncludedActors;
 	TArray<UPrimitiveComponent*> IncludedPrimitives;
@@ -208,7 +208,7 @@ class FPCGExSampleNearestSurfaceElement final : public FPCGExPointsProcessorElem
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleNearestSurface)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

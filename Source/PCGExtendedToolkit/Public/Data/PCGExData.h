@@ -61,10 +61,10 @@ namespace PCGExData
 
 	PCGEXTENDEDTOOLKIT_API
 	uint64 BufferUID(const FPCGAttributeIdentifier& Identifier, const EPCGMetadataTypes Type);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	FPCGAttributeIdentifier GetBufferIdentifierFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData);
-	
+
 	class PCGEXTENDEDTOOLKIT_API IBuffer : public TSharedFromThis<IBuffer>
 	{
 		friend class FFacade;
@@ -166,7 +166,6 @@ namespace PCGExData
 		// Unsafe set value in output
 		virtual void SetValue(const int32 Index, const T& Value) = 0;
 
-	public:
 		virtual bool InitForRead(const EIOSide InSide = EIOSide::In, const bool bScoped = false) = 0;
 		virtual bool InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false, const bool bScoped = false) = 0;
 		virtual bool InitForWrite(const T& DefaultValue, bool bAllowInterpolation, EBufferInit Init = EBufferInit::Inherit) = 0;
@@ -554,7 +553,6 @@ namespace PCGExData
 			if (bReadFromOutput) { InValue = Value; }
 		}
 
-	public:
 		virtual bool InitForRead(const EIOSide InSide = EIOSide::In, const bool bScoped = false) override
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);

@@ -17,7 +17,7 @@ namespace PCGEx
 	{
 		// This is a very expensive check, however it's also futureproofing 
 		if (Name.IsNone()) { return false; }
-		
+
 		FPCGAttributePropertyInputSelector DummySelector;
 		if (!DummySelector.Update(Name.ToString())) { return false; }
 		return DummySelector.GetSelection() == EPCGAttributePropertySelection::Attribute && DummySelector.IsValid();

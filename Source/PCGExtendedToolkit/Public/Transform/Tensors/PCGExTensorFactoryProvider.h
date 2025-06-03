@@ -44,7 +44,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTensorFactoryData : public UPCGExFactoryData
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Tensor; }
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const;
-	
+
 	FPCGExTensorConfigBase BaseConfig;
 	virtual bool Prepare(FPCGExContext* InContext) override;
 
@@ -87,17 +87,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTensorPointFactoryData : public UPCGExTensorF
 public:
 	TSharedPtr<PCGExData::FFacade> InputDataFacade;
 	TSharedPtr<PCGExTensor::FEffectorsArray> EffectorsArray;
-	
+
 protected:
-	
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
 
 	virtual TSharedPtr<PCGExTensor::FEffectorsArray> GetEffectorsArray() const;
-	
+
 	virtual bool InitInternalFacade(FPCGExContext* InContext);
 	virtual void PrepareSinglePoint(int32 Index) const;
-
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

@@ -94,7 +94,7 @@ namespace PCGExPointFilter
 		if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
 
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
-		
+
 		return true;
 	}
 

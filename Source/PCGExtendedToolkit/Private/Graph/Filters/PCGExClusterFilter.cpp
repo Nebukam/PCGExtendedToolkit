@@ -38,12 +38,15 @@ namespace PCGExClusterFilter
 
 	bool FVtxFilter::Test(const int32 Index) const { return FFilter::Test(*Cluster->GetNode(Index)); }
 	bool FVtxFilter::Test(const PCGExCluster::FNode& Node) const { return FFilter::Test(Node); }
+
 	bool FVtxFilter::Test(const PCGExGraph::FEdge& Edge) const
 	PCGEX_NOT_IMPLEMENTED_RET(TVtxFilter::Test(const PCGExGraph::FIndexedEdge& Edge), false)
 
 	bool FEdgeFilter::Test(const int32 Index) const { return FFilter::Test(*Cluster->GetEdge(Index)); }
+
 	bool FEdgeFilter::Test(const PCGExCluster::FNode& Node) const
 	PCGEX_NOT_IMPLEMENTED_RET(TEdgeFilter::Test(const PCGExCluster::FNode& Node), false)
+
 	bool FEdgeFilter::Test(const PCGExGraph::FEdge& Edge) const { return FFilter::Test(Edge); }
 
 	FManager::FManager(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)

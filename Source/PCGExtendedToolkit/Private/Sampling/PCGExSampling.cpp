@@ -150,7 +150,6 @@ namespace PCGExSampling
 
 		return true;
 	}
-
 }
 
 namespace PCGEx

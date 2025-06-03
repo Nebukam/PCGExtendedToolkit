@@ -172,7 +172,7 @@ namespace PCGEx
 
 	constexpr EPCGPointNativeProperties AllPointNativePropertiesButTransform =
 		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::Transform));
-	
+
 	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMetaAndTransform =
 		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Transform));
 

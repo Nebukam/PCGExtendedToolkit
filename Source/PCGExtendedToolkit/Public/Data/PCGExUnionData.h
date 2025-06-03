@@ -20,7 +20,7 @@ namespace PCGExData
 
 	public:
 		using InlineSparseAllocator = TSetAllocator<TSparseArrayAllocator<TInlineAllocator<8>, TInlineAllocator<8>>, TInlineAllocator<8>>;
-		
+
 		//int32 Index = 0;
 		TSet<int32, DefaultKeyFuncs<int32>, InlineSparseAllocator> IOSet;
 		TSet<FElement, DefaultKeyFuncs<FElement>, InlineSparseAllocator> Elements;
@@ -36,10 +36,10 @@ namespace PCGExData
 			const TMap<uint32, int32>& SourcesIdx,
 			const FConstPoint& Target,
 			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
-			TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const;
+			TArray<FWeightedPoint>& OutWeightedPoints) const;
 
-		void Add_Unsafe(const PCGExData::FPoint& Point);
-		void Add(const PCGExData::FPoint& Point);
+		void Add_Unsafe(const FPoint& Point);
+		void Add(const FPoint& Point);
 
 		void Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices);
 		void Add(const int32 IOIndex, const TArray<int32>& PointIndices);
@@ -63,10 +63,10 @@ namespace PCGExData
 		int32 Num() const { return Entries.Num(); }
 		void SetNum(const int32 InNum);
 
-		TSharedPtr<FUnionData> NewEntry_Unsafe(const PCGExData::FConstPoint& Point);
+		TSharedPtr<FUnionData> NewEntry_Unsafe(const FConstPoint& Point);
 		TSharedPtr<FUnionData> NewEntryAt_Unsafe(const int32 ItemIndex);
 
-		void Append(const int32 Index, const PCGExData::FPoint& Point);
+		void Append(const int32 Index, const FPoint& Point);
 		bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
 
 		FORCEINLINE TSharedPtr<FUnionData> Get(const int32 Index) const { return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr; }

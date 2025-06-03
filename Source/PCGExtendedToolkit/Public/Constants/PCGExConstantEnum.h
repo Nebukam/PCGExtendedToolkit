@@ -171,5 +171,4 @@ protected:
 		FPCGExBitmask& OutBitflags);
 
 	virtual FPCGContext* CreateContext() override { return new FPCGExContext(); }
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
 };

@@ -149,7 +149,7 @@ namespace PCGExDataBlending
 		for (const TSharedPtr<FMultiSourceBlender>& MultiAttribute : Blenders) { MultiAttribute->SetNum(NumSources); }
 
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
-		PCGExDataBlending::GetFilteredIdentities(
+		GetFilteredIdentities(
 			InFacade->GetIn()->Metadata, SourceAttributes,
 			BlendingDetails, CarryOverDetails, IgnoreAttributeSet);
 
@@ -159,7 +159,7 @@ namespace PCGExDataBlending
 		{
 			// First, grab the Param for this attribute
 			// Getting a fail means it's filtered out.
-			PCGExDataBlending::FBlendingParam Param{};
+			FBlendingParam Param{};
 			if (!BlendingDetails->GetBlendingParam(Identity.Identifier.Name, Param)) { continue; }
 
 			const FPCGMetadataAttributeBase* SourceAttribute = InFacade->FindConstAttribute(Identity.Identifier);

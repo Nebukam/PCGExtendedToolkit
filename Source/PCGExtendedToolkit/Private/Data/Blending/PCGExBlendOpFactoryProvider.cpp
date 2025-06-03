@@ -267,7 +267,8 @@ void UPCGExBlendOpFactory::RegisterBuffersDependenciesForSourceB(FPCGExContext* 
 	if (Config.bUseOperandB)
 	{
 		FacadePreloader.TryRegister(InContext, Config.OperandB);
-	}else
+	}
+	else
 	{
 		FacadePreloader.TryRegister(InContext, Config.OperandA);
 	}

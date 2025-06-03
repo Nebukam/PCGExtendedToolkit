@@ -187,9 +187,6 @@ struct FPCGExDrawAttributesContext final : FPCGExPointsProcessorContext
 
 class FPCGExDrawAttributesElement final : public FPCGExPointsProcessorElement
 {
-public:
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
-
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(DrawAttributes)
 

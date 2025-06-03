@@ -253,10 +253,10 @@ void FPCGExBlendingDetails::RegisterBuffersDependencies(
 {
 	TSharedPtr<PCGExData::FFacade> InDataFacade = FacadePreloader.GetDataFacade();
 	if (!InDataFacade) { return; }
-	
+
 	const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(InDataFacade->GetIn()->Metadata, IgnoredAttributes);
 	Filter(Infos->Identities);
-	
+
 	for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities) { FacadePreloader.Register(InContext, Identity); }
 }
 

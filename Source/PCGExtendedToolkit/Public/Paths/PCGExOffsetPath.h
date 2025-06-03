@@ -149,7 +149,7 @@ class FPCGExOffsetPathElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(OffsetPath)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -183,7 +183,7 @@ namespace PCGExOffsetPath
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-		
+
 		virtual void OnPointsProcessingComplete() override;
 		virtual void CompleteWork() override;
 

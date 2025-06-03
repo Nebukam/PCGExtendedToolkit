@@ -194,21 +194,23 @@ namespace PCGExTopologyEdges
 			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
 			UPCGExDynamicMeshComponent* DynamicMeshComponent = NewObject<UPCGExDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UPCGExDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
-			Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
-
-			DynamicMeshComponent->SetDynamicMesh(InternalMesh);
-			if (UMaterialInterface* Material = Settings->Topology.Material.Get())
-			{
-				DynamicMeshComponent->SetMaterial(0, Material);
-			}
+			// Needed otherwise triggers updates in a loop
+			Context->GetMutableComponent()->IgnoreChangeOriginDuringGenerationWithScope(
+				DynamicMeshComponent, [&]()
+				{
+					Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
+					DynamicMeshComponent->SetDynamicMesh(InternalMesh);
+					if (UMaterialInterface* Material = Settings->Topology.Material.Get())
+					{
+						DynamicMeshComponent->SetMaterial(0, Material);
+					}
+				});
 
 			DynamicMeshComponent->ComponentTags.Reserve(DynamicMeshComponent->ComponentTags.Num() + Context->ComponentTags.Num());
 			for (const FString& ComponentTag : Context->ComponentTags) { DynamicMeshComponent->ComponentTags.Add(FName(ComponentTag)); }
 
 			Context->ManagedObjects->Remove(InternalMesh);
-
 			Context->AttachManagedComponent(TargetActor, DynamicMeshComponent, Settings->AttachmentRules.GetRules());
-
 			Context->AddNotifyActor(TargetActor);
 		}
 

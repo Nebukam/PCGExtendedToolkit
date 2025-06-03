@@ -19,7 +19,7 @@ public:
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
-		
+
 		const FVector Dir = PCGExMath::GetDirection(InTransforms[0].GetRotation(), Axis) * -1;
 		OutArrive = Dir * ArriveScale;
 		OutLeave = Dir * LeaveScale;
@@ -32,7 +32,7 @@ public:
 	{
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 		const int32 LastIndex = InPointData->GetNumPoints() - 1;
-		
+
 		const FVector Dir = PCGExMath::GetDirection(InTransforms[LastIndex].GetRotation(), Axis) * -1;
 		OutArrive = Dir * ArriveScale;
 		OutLeave = Dir * LeaveScale;
@@ -45,7 +45,7 @@ public:
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
-		
+
 		const FVector Dir = PCGExMath::GetDirection(InTransforms[Index].GetRotation(), Axis) * -1;
 		OutArrive = Dir * ArriveScale;
 		OutLeave = Dir * LeaveScale;

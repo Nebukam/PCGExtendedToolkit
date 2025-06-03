@@ -790,7 +790,7 @@ namespace PCGExCluster
 		const int32 NodeIndex = Nodes->Add(FNode(Nodes->Num(), PointIndex));
 		InLookup.Insert(PointIndex, NodeIndex);
 
-		Bounds += VtxTransforms[PointIndex].GetLocation();;
+		Bounds += VtxTransforms[PointIndex].GetLocation();
 
 		return NodeIndex;
 	}

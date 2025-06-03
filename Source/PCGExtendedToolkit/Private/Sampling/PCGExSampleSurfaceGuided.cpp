@@ -36,7 +36,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
-	
+
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	if (Settings->bWriteRenderMat && Settings->bExtractTextureParameters)
@@ -133,7 +133,7 @@ namespace PCGExSampleSurfaceGuided
 		}
 
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
-		
+
 		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
 
 		OriginGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->Origin, true);
@@ -187,12 +187,12 @@ namespace PCGExSampleSurfaceGuided
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleSurfaceGuided::ProcessPoints);
-		
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
-		
+
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)
@@ -259,7 +259,7 @@ namespace PCGExSampleSurfaceGuided
 					const FTransform OutTransform = FTransform(FRotationMatrix::MakeFromX(Direction).ToQuat(), HitResult.ImpactPoint, FVector::OneVector);
 					Context->ApplySampling.Apply(MutablePoint, OutTransform, OutTransform);
 				}
-				
+
 				if (Settings->bWriteUVCoords)
 				{
 					FVector2D UVCoords = FVector2D::ZeroVector;

@@ -65,7 +65,7 @@ namespace PCGExPackClusters
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		if (!TProcessor::Process(InAsyncManager)) { return false; }
-		
+
 		// TODO : Refactor because we're actually partitioning indices, which is bad as we don't preserve the original data layout
 
 		VtxPointSelection.SetNumUninitialized(NumNodes);
@@ -76,7 +76,7 @@ namespace PCGExPackClusters
 
 		if (VtxStartIndex <= 0) { return false; }
 		if (NumVtx <= 0) { return false; }
-		
+
 		PackedIO = Context->PackedClusters->Emplace_GetRef(EdgeDataFacade->Source, PCGExData::EIOInit::Duplicate);
 		PackedIOFacade = MakeShared<PCGExData::FFacade>(PackedIO.ToSharedRef());
 
@@ -87,14 +87,14 @@ namespace PCGExPackClusters
 		const UPCGBasePointData* VtxPoints = VtxDataFacade->GetIn();
 		UPCGBasePointData* PackedPoints = PackedIO->GetOut();
 		PCGEx::SetNumPointsAllocated(PackedPoints, VtxStartIndex + NumVtx);
-		
+
 		TArray<int32> WriteIndices;
 		PCGEx::ArrayOfIndices(WriteIndices, NumVtx, VtxStartIndex);
 		VtxPoints->CopyPropertiesTo(PackedPoints, VtxPointSelection, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);
 
 		// The following may be redundant
 		TPCGValueRange<int64> MetadataEntries = PackedPoints->GetMetadataEntryValueRange(false);
-		for(int32 Index : WriteIndices){ MetadataEntries[Index] = PCGInvalidEntryKey;}
+		for (int32 Index : WriteIndices) { MetadataEntries[Index] = PCGInvalidEntryKey; }
 
 		//
 		VtxAttributes = PCGEx::FAttributesInfos::Get(VtxDataFacade->GetIn()->Metadata);

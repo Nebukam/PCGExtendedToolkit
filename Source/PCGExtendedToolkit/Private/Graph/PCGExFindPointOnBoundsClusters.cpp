@@ -150,7 +150,7 @@ namespace PCGExFindPointOnBoundsClusters
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
-			
+
 			UpdateCandidate(Cluster->GetPos(Node), Node.PointIndex);
 		}
 	}
@@ -173,7 +173,7 @@ namespace PCGExFindPointOnBoundsClusters
 		{
 			const int32 TargetIndex = EdgeDataFacade->Source->IOIndex;
 			Context->IOMergeSources[TargetIndex] = IORef;
-			
+
 			TPCGValueRange<FTransform> OutTransforms = Context->MergedOut->GetOut()->GetTransformValueRange(false);
 			TPCGValueRange<int64> OutMetadataEntries = Context->MergedOut->GetOut()->GetMetadataEntryValueRange(false);
 
@@ -188,7 +188,7 @@ namespace PCGExFindPointOnBoundsClusters
 		{
 			PCGEX_INIT_IO_VOID(IORef, PCGExData::EIOInit::New)
 			(void)PCGEx::SetNumPointsAllocated(IORef->GetOut(), 1);
-			
+
 			IORef->InheritPoints(BestIndex, 0, 1);
 
 			TPCGValueRange<FTransform> OutTransforms = IORef->GetOut()->GetTransformValueRange(false);

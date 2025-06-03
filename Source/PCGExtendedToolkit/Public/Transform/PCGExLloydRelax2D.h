@@ -79,7 +79,7 @@ namespace PCGExLloydRelax2D
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-		
+
 		virtual void CompleteWork() override;
 	};
 

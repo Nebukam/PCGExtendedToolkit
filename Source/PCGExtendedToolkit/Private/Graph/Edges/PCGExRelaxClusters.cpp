@@ -98,7 +98,7 @@ namespace PCGExRelaxClusters
 
 		TArray<PCGExCluster::FNode> NodesRef = *Cluster->Nodes.Get();
 		TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
-		
+
 		for (int i = 0; i < NumNodes; i++) { PBufferRef[i] = SBufferRef[i] = InTransforms[NodesRef[i].PointIndex]; }
 
 		RelaxOperation->ReadBuffer = PrimaryBuffer.Get();

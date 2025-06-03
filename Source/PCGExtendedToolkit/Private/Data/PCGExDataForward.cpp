@@ -60,7 +60,7 @@ void FPCGExAttributeToTagDetails::Tag(const PCGExData::FConstPoint& TagSource, T
 	}
 }
 
-void FPCGExAttributeToTagDetails::Tag(const ::PCGExData::FConstPoint& TagSource, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
+void FPCGExAttributeToTagDetails::Tag(const PCGExData::FConstPoint& TagSource, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
 {
 	TSet<FString> Tags;
 	Tag(TagSource, Tags);

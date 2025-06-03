@@ -94,11 +94,6 @@ protected:
 
 class FPCGExBitmaskElement final : public IPCGElement
 {
-public:
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
-
-	//virtual void DisabledPassThroughData(FPCGContext* Context) const override;
-
 protected:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

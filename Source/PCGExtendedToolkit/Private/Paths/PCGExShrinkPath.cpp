@@ -206,7 +206,7 @@ namespace PCGExShrinkPath
 				break;
 			}
 		}
-		
+
 		if (Settings->ShrinkMode == EPCGExPathShrinkMode::Count)
 		{
 			uint32 StartAmount = 0;
@@ -303,9 +303,8 @@ namespace PCGExShrinkPath
 		}
 		else
 		{
-
 			// BUG : With path of exactly 3 points, something goes wrong
-			
+
 			double StartAmount = 0;
 			double EndAmount = 0;
 
@@ -439,7 +438,7 @@ namespace PCGExShrinkPath
 			{
 				if (NumPoints == KeptIndices.Num())
 				{
-					PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::Duplicate)					
+					PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::Duplicate)
 					PointIO->InheritProperties(KeptIndices, EPCGPointNativeProperties::Transform);
 
 					TPCGValueRange<FTransform> OutTransforms = PointIO->GetOut()->GetTransformValueRange(false);

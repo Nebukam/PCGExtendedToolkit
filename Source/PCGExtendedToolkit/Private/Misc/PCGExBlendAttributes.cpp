@@ -37,7 +37,7 @@ bool FPCGExBlendAttributesElement::Boot(FPCGExContext* InContext) const
 bool FPCGExBlendAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBlendAttributesElement::Execute);
-	
+
 	PCGEX_CONTEXT(BlendAttributes)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
@@ -74,7 +74,7 @@ namespace PCGExBlendAttributes
 		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>();
 		BlendOpsManager->SetSources(PointDataFacade); //PCGExData::EIOSide::Out
 		BlendOpsManager->SetTargetFacade(PointDataFacade);
-		
+
 		if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
 
 		NumPoints = PointDataFacade->GetNum();
