@@ -239,7 +239,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 		if (Attributes.FilterMode == EPCGExAttributeFilter::All) { return; }
 
 		int32 WriteIndex = 0;
-		for (int32 i = 0; i < Identities.Num(); i++) { if (Attributes.Test(Identities[i].Identifier.ToString())) { Identities[WriteIndex++] = Identities[i]; } }
+		for (int32 i = 0; i < Identities.Num(); i++) { if (Attributes.Test(Identities[i].Identifier.Name.ToString())) { Identities[WriteIndex++] = Identities[i]; } }
 		Identities.SetNum(WriteIndex);
 	}
 

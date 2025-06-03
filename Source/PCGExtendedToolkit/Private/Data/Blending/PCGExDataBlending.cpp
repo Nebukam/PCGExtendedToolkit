@@ -241,7 +241,7 @@ void FPCGExBlendingDetails::GetBlendingParams(
 
 		if (Param.Blending == EPCGExABBlendingType::None) { continue; }
 
-		Param.Selector.Update(Identity.Identifier.ToString());
+		Param.Selector.Update(Identity.Identifier.Name.ToString());
 		OutParams.Add(Param);
 	}
 }

@@ -93,7 +93,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 			{
 				if (InIgnoredAttributes && InIgnoredAttributes->Contains(SourceIdentity.Identifier.Name)) { return; }
 
-				FString StrName = SourceIdentity.Identifier.ToString();
+				FString StrName = SourceIdentity.Identifier.Name.ToString();
 				if (!InCarryOverDetails->Attributes.Test(StrName)) { return; }
 
 				// TODO : Get attributes in the task

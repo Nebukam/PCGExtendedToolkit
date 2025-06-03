@@ -302,7 +302,7 @@ namespace PCGExAttributeStats
 		{
 			UPCGParamData* ParamData = Context->OutputParamsMap[Identity.Identifier.Name];
 
-			FString StrName = Identity.Identifier.ToString();
+			FString StrName = Identity.Identifier.Name.ToString();
 			UPCGMetadata* PointsMetadata = nullptr;
 
 			if (Settings->OutputToPoints != EPCGExStatsOutputToPoints::None) { PointsMetadata = InDataFacade->GetOut()->Metadata; }
@@ -343,7 +343,7 @@ namespace PCGExAttributeStats
 					FPCGTaggedData& StagedData = Context->StageOutput(UniqueValuesParamData, false, false);
 					StagedData.Pin = OutputAttributeUniqueValues;
 					StagedData.Tags.Add(Identifier);
-					StagedData.Tags.Add(Identity.Identifier.ToString());
+					StagedData.Tags.Add(Identity.Identifier.Name.ToString());
 
 					InDataFacade->Source->Tags->AddRaw(Identifier);
 				}

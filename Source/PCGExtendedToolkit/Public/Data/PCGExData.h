@@ -822,7 +822,7 @@ namespace PCGExData
 		{
 			TSharedPtr<TBuffer<T>> Buffer = nullptr;
 
-			if (InIdentifier.MetadataDomain.DebugName.IsNone())
+			if (InIdentifier.MetadataDomain.IsDefault())
 			{
 				Buffer = GetBuffer<T>(PCGEx::GetAttributeIdentifier(InIdentifier.Name, Source->GetOut()));
 			}
@@ -848,7 +848,7 @@ namespace PCGExData
 		{
 			TSharedPtr<TBuffer<T>> Buffer = nullptr;
 
-			if (InIdentifier.MetadataDomain.DebugName.IsNone())
+			if (InIdentifier.MetadataDomain.IsDefault())
 			{
 				// Identifier created from FName, need to sanitize it
 				// We'll do so using a selector, this is expensive but quick and future proof
@@ -875,7 +875,7 @@ namespace PCGExData
 		{
 			TSharedPtr<TBuffer<T>> Buffer = nullptr;
 
-			if (InIdentifier.MetadataDomain.DebugName.IsNone())
+			if (InIdentifier.MetadataDomain.IsDefault())
 			{
 				// Identifier created from FName, need to sanitize it
 				// We'll do so using a selector, this is expensive but quick and future proof

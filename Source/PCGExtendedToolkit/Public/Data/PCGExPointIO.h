@@ -529,7 +529,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 			{
 				FWriteScopeLock WriteScopeLock(AttributesLock);
-				if (Identifier.MetadataDomain.DebugName.IsNone())
+				if (Identifier.MetadataDomain.IsDefault())
 				{
 					OutAttribute = Out->Metadata->CreateAttribute(PCGEx::GetAttributeIdentifier(Identifier.Name, Out), DefaultValue, bAllowsInterpolation, bOverrideParent);
 				}
@@ -551,7 +551,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 			{
 				FWriteScopeLock WriteScopeLock(AttributesLock);
 
-				if (Identifier.MetadataDomain.DebugName.IsNone())
+				if (Identifier.MetadataDomain.IsDefault())
 				{
 					OutAttribute = Out->Metadata->FindOrCreateAttribute(PCGEx::GetAttributeIdentifier(Identifier.Name, Out), DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
 				}

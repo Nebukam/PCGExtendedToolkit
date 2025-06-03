@@ -186,7 +186,7 @@ namespace PCGExDataBlending
 				if (Identity.UnderlyingType != MultiAttribute->Identity.UnderlyingType)
 				{
 					// Type mismatch, ignore for this source
-					TypeMismatches.Add(Identity.Identifier.ToString());
+					TypeMismatches.Add(Identity.Identifier.Name.ToString());
 					continue;
 				}
 			}

@@ -153,7 +153,7 @@ namespace PCGEx
 		{
 			const FPCGAttributeIdentifier& Identifier = OutIdentifiers[i];
 			if (OptionalIgnoreList && OptionalIgnoreList->Contains(Identifier.Name)) { continue; }
-			OutIdentities.Add(Identifier.Name, FAttributeIdentity(Identifier, Types[i], InMetadata->GetConstAttribute(Identifier)->AllowsInterpolation()));
+			OutIdentities.Add(Identifier, FAttributeIdentity(Identifier, Types[i], InMetadata->GetConstAttribute(Identifier)->AllowsInterpolation()));
 		}
 	}
 
@@ -245,7 +245,7 @@ namespace PCGEx
 		{
 			const FAttributeIdentity& OtherId = Other->Identities[i];
 
-			if (!InGatherDetails.Test(OtherId.Identifier.ToString())) { continue; }
+			if (!InGatherDetails.Test(OtherId.Identifier.Name.ToString())) { continue; }
 
 			if (const int32* Index = Map.Find(OtherId.Identifier))
 			{

@@ -151,7 +151,7 @@ namespace PCGEx
 		bool IsA(const int16 InType) const { return GetTypeId() == InType; }
 		bool IsA(const EPCGMetadataTypes InType) const { return UnderlyingType == InType; }
 
-		FString GetDisplayName() const { return FString(Identifier.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
+		FString GetDisplayName() const { return FString(Identifier.Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
 		bool operator==(const FAttributeIdentity& Other) const { return Identifier == Other.Identifier; }
 
 		static void Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList = nullptr);

@@ -213,7 +213,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 		bool bSuccessfulInit = false;
 
 		{
-			//FPCGContextBlueprintScope BlueprintScope(Context); // Uncomment this on 5.6 final
+			FPCGContextBlueprintScope BlueprintScope(Context);
 
 			if (!IsInGameThread())
 			{

@@ -334,7 +334,7 @@ namespace PCGExPackActorDatas
 		bool bSuccess = false;
 
 		{
-			//FPCGContextBlueprintScope BlueprintScope(Context); // Uncomment this on 5.6 final
+			FPCGContextBlueprintScope BlueprintScope(Context);
 
 			if (!IsInGameThread())
 			{

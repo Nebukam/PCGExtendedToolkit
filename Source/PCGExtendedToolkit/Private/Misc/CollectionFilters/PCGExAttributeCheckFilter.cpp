@@ -22,7 +22,7 @@ bool PCGExPointFilter::FAttributeCheckFilter::Test(const TSharedPtr<PCGExData::F
 	{
 		for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities)
 		{
-			const FString Str = Identity.Identifier.ToString();
+			const FString Str = Identity.Identifier.Name.ToString();
 			bool bMatches = false;
 
 			switch (TypedFilterFactory->Config.Match)
@@ -51,7 +51,7 @@ bool PCGExPointFilter::FAttributeCheckFilter::Test(const TSharedPtr<PCGExData::F
 	{
 		for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities)
 		{
-			const FString Str = Identity.Identifier.ToString();
+			const FString Str = Identity.Identifier.Name.ToString();
 			bool bMatches = false;
 
 			switch (TypedFilterFactory->Config.Match)

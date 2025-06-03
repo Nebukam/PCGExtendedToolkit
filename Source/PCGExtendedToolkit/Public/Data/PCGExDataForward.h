@@ -45,7 +45,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 		if (FilterMode == EPCGExAttributeFilter::All) { return; }
 		for (int i = 0; i < Identities.Num(); i++)
 		{
-			if (!Test(Identities[i].Identifier.ToString()))
+			if (!Test(Identities[i].Identifier.Name.ToString()))
 			{
 				Identities.RemoveAt(i);
 				i--;
