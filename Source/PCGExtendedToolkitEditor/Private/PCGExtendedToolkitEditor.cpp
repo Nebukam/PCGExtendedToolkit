@@ -22,9 +22,13 @@ Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContent
 #include "AssetToolsModule.h"
 #include "ContentBrowserMenuContexts.h"
 #include "IAssetTools.h"
+#include "PCGDataVisualizationRegistry.h"
 #include "PCGExEditorMenuUtils.h"
 #include "PCGGraph.h"
+#include "PCGModule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "Data/PCGSpatialData.h"
+#include "DataViz/PCGExSpatialDataVisualization.h"
 
 namespace PCGExEditor
 {
@@ -129,6 +133,11 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
 
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FPCGExtendedToolkitEditorModule::RegisterMenuExtensions));
+
+	// Overriding debug so it's persistent.
+	// Epic staff forces us to take this hacky approach.
+	FPCGDataVisualizationRegistry& DataVisRegistry = FPCGModule::GetMutablePCGDataVisualizationRegistry();
+	DataVisRegistry.RegisterPCGDataVisualization(UPCGSpatialData::StaticClass(), MakeUnique<const IPCGExSpatialDataVisualization>());
 }
 
 #undef PCGEX_ADD_ICON
