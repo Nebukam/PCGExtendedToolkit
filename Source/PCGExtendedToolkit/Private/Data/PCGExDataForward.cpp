@@ -236,7 +236,7 @@ namespace PCGExData
 					if (TSharedPtr<TArrayBuffer<T>> ElementsWriter = StaticCastSharedPtr<TArrayBuffer<T>>(Writer))
 					{
 						TArray<T>& Values = *ElementsWriter->GetOutValues();
-						for (T& Value : Values) { Value = ForwardValue; }
+						for (int32 Index : Indices){ Values[Index] = ForwardValue; }
 					}
 					else
 					{

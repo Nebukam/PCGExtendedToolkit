@@ -32,6 +32,20 @@ void UPCGExFactoryData::RegisterBuffersDependencies(FPCGExContext* InContext, PC
 {
 }
 
+void UPCGExFactoryData::AddDataDependency(const UPCGData* InData)
+{
+	bool bAlreadyInSet = false;
+	UPCGData* MutableData = const_cast<UPCGData*>(InData);
+	DataDependencies.Add(MutableData, &bAlreadyInSet);
+	if (!bAlreadyInSet) { MutableData->AddToRoot(); }
+}
+
+void UPCGExFactoryData::BeginDestroy()
+{
+	for (UPCGData* DataDependency : DataDependencies) { DataDependency->RemoveFromRoot(); }
+	Super::BeginDestroy();
+}
+
 #if WITH_EDITOR
 void UPCGExFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -148,6 +162,14 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	if (InContext->IsDone() && InContext->OutFactory)
 	{
+		// Register declared dependencies to root them
+		TArray<FPCGPinProperties> InputPins = Settings->InputPinProperties();
+		for (const FPCGPinProperties& Pin : InputPins)
+		{
+			const TArray<FPCGTaggedData>& InputData = Context->InputData.GetInputsByPin(Pin.Label);
+			for (const FPCGTaggedData& TaggedData : InputData) { InContext->OutFactory->AddDataDependency(TaggedData.Data); }
+		}
+
 		// We use a dummy attribute to update the factory CRC
 		FPCGAttributeIdentifier CacheInvalidation(FName("PCGEx/CRC"), PCGMetadataDomainID::Data);
 		InContext->OutFactory->Metadata->CreateAttribute<int32>(CacheInvalidation, Settings->InternalCacheInvalidator, false, false);

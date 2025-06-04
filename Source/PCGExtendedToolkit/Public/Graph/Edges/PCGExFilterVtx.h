@@ -180,7 +180,7 @@ namespace PCGExFilterVtx
 
 			bRequiresGraphBuilder = Settings->Mode == EPCGExVtxFilterOutput::Clusters;
 			bRequiresWriteStep = Settings->Mode == EPCGExVtxFilterOutput::Attribute;
-			bAllowVtxDataFacadeScopedGet = true;
+			//bAllowVtxDataFacadeScopedGet = true;
 		}
 
 		virtual void CompleteWork() override;

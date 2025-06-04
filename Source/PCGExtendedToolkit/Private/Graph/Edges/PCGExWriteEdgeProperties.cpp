@@ -177,11 +177,9 @@ namespace PCGExWriteEdgeProperties
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
 		EdgeDataFacade->Fetch(Scope);
 
-		bool bUseRealRanges = bSolidify || Settings->bWriteEdgePosition;
-
-		TPCGValueRange<FTransform> Transforms = bUseRealRanges ? EdgeDataFacade->GetOut()->GetTransformValueRange(false) : TPCGValueRange<FTransform>();
-		TPCGValueRange<FVector> BoundsMin = bUseRealRanges ? EdgeDataFacade->GetOut()->GetBoundsMinValueRange(false) : TPCGValueRange<FVector>();
-		TPCGValueRange<FVector> BoundsMax = bUseRealRanges ? EdgeDataFacade->GetOut()->GetBoundsMaxValueRange(false) : TPCGValueRange<FVector>();
+		TPCGValueRange<FTransform> Transforms = (bSolidify || Settings->bWriteEdgePosition) ? EdgeDataFacade->GetOut()->GetTransformValueRange(false) : TPCGValueRange<FTransform>();
+		TPCGValueRange<FVector> BoundsMin = bSolidify ? EdgeDataFacade->GetOut()->GetBoundsMinValueRange(false) : TPCGValueRange<FVector>();
+		TPCGValueRange<FVector> BoundsMax = bSolidify ? EdgeDataFacade->GetOut()->GetBoundsMaxValueRange(false) : TPCGValueRange<FVector>();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

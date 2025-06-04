@@ -130,7 +130,7 @@ public:
 #pragma endregion
 
 	/** Which Seed attributes to forward on the vtx they diffused to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="Seeds==EPCGExFloodFillSource::Points"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable))
 	FPCGExForwardDetails SeedForwarding = FPCGExForwardDetails(true);
 
 

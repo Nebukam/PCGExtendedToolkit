@@ -879,7 +879,7 @@ namespace PCGExData
 			{
 				// Identifier created from FName, need to sanitize it
 				// We'll do so using a selector, this is expensive but quick and future proof
-				Buffer = GetBuffer<T>(PCGEx::GetAttributeIdentifier(InIdentifier.Name, Source->GetIn()));
+				Buffer = GetBuffer<T>(PCGEx::GetAttributeIdentifier(InIdentifier.Name, Source->GetData(InSide)));
 			}
 			else
 			{
@@ -1150,7 +1150,7 @@ namespace PCGExData
 	template <typename T>
 	static FPCGMetadataAttribute<T>* WriteMark(const TSharedRef<FPointIO>& PointIO, const FName MarkID, T MarkValue)
 	{
-		const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(MarkID, PointIO->GetIn());
+		const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(MarkID, PointIO->GetOut());
 		PointIO->DeleteAttribute(Identifier);
 		FPCGMetadataAttribute<T>* Mark = PointIO->CreateAttribute<T>(Identifier, MarkValue, false, true);
 		Mark->SetDefaultValue(MarkValue);

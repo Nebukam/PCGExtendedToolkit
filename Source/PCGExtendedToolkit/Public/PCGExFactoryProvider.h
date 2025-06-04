@@ -107,6 +107,15 @@ public:
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) { return false; }
 	virtual bool Prepare(FPCGExContext* InContext) { return true; }
+
+	virtual void AddDataDependency(const UPCGData* InData);
+	virtual void BeginDestroy() override;
+	
+protected:
+	
+	UPROPERTY()
+	TSet<UPCGData*> DataDependencies;
+	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -244,7 +253,7 @@ namespace PCGExFactories
 		}
 
 		OutFactories.Sort([](const T_DEF& A, const T_DEF& B) { return A.Priority < B.Priority; });
-
+		
 		return true;
 	}
 

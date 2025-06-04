@@ -59,13 +59,20 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	A.bIsConstant = A.DataFacade.Pin() != Source_A_Facade;
 	if (!A.Capture(InContext, Config.OperandA, A.bIsConstant ? PCGExData::EIOSide::In : SideA)) { return false; }
 
-	PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : Source_B_Facade, PCGExData::EProxyRole::Read);
-	B.bIsConstant = B.DataFacade.Pin() != Source_B_Facade;
-	if (!B.Capture(InContext, Config.OperandB, B.bIsConstant ? PCGExData::EIOSide::In : SideB)) { return false; } // TODO : We need to favor reading from IN when possible
+	PCGExData::FProxyDescriptor B;
+
+	if (Config.BlendMode != EPCGExABBlendingType::CopySource)
+	{
+		B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : Source_B_Facade, PCGExData::EProxyRole::Read);
+		B.bIsConstant = B.DataFacade.Pin() != Source_B_Facade;
+		if (!B.Capture(InContext, Config.OperandB, B.bIsConstant ? PCGExData::EIOSide::In : SideB)) { return false; } // TODO : We need to favor reading from IN when possible
+	}
 
 	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(TargetFacade, PCGExData::EProxyRole::Write);
 	C.Role = PCGExData::EProxyRole::Write;
 	C.Side = PCGExData::EIOSide::Out;
+
+	if (Config.BlendMode == EPCGExABBlendingType::CopySource) { B = C; }
 
 	Config.OperandA = A.Selector;
 	Config.OperandB = B.Selector;
@@ -135,6 +142,8 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 
 	C.RealType = RealTypeC;
 	C.WorkingType = WorkingTypeC;
+
+	if (Config.BlendMode == EPCGExABBlendingType::CopySource) { B = C; }
 
 	Blender = PCGExDataBlending::CreateProxyBlender(InContext, Config.BlendMode, A, B, C, Config.bResetValueBeforeMultiSourceBlend);
 
@@ -289,7 +298,7 @@ void UPCGExBlendOpFactoryProviderSettings::PostEditChangeProperty(FPropertyChang
 TArray<FPCGPreConfiguredSettingsInfo> UPCGExBlendOpFactoryProviderSettings::GetPreconfiguredInfo() const
 {
 	const TSet ValuesToSkip = {EPCGExABBlendingType::None};
-	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExABBlendingType>(ValuesToSkip, FTEXT("Blend : "));
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExABBlendingType>(ValuesToSkip, FTEXT("Blend : {0}"));
 }
 #endif
 

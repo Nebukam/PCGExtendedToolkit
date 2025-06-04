@@ -118,6 +118,7 @@ bool FPCGExFilterVtxElement::ExecuteInternal(
 			[&](const TSharedPtr<PCGExFilterVtx::FBatch>& NewBatch)
 			{
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
+				NewBatch->VtxFilterFactories = &Context->FilterFactories;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));

@@ -245,7 +245,7 @@ namespace PCGExSampleNearestBounds
 		if (!Context->BlendingFactories.IsEmpty())
 		{
 			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(PointDataFacade);
-			BlendOpsManager->SetSourceA(Context->BoundsFacade); // We want operands A & B to be the vtx here
+			BlendOpsManager->SetSourceA(Context->BoundsFacade);
 
 			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
 
