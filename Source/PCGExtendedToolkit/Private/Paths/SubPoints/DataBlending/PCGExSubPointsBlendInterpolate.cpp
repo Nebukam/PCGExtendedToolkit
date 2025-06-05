@@ -4,6 +4,51 @@
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
+
+void FPCGExSubPointsBlendInterpolate::BlendSubPoints(
+	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
+	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
+{
+	EPCGExBlendOver SafeBlendOver = TypedFactory->BlendOver;
+	if (TypedFactory->BlendOver == EPCGExBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExBlendOver::Index; }
+
+	if (SafeBlendOver == EPCGExBlendOver::Distance)
+	{
+		PCGExPaths::FPathMetrics PathMetrics = PCGExPaths::FPathMetrics(From.GetLocation());
+		TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange(false);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			FVector Location = OutTransform[Index].GetLocation();
+			MetadataBlender->Blend(From.Index, To.Index, Index, Metrics.GetTime(PathMetrics.Add(Location)));
+			OutTransform[Index].SetLocation(Location);
+		}
+	}
+	else if (SafeBlendOver == EPCGExBlendOver::Index)
+	{
+		const double Divider = Scope.Count;
+		TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange(false);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			FVector Location = OutTransform[Index].GetLocation();
+			MetadataBlender->Blend(From.Index, To.Index, Index, Index / Divider);
+			OutTransform[Index].SetLocation(Location);
+		}
+	}
+	else if (SafeBlendOver == EPCGExBlendOver::Fixed)
+	{
+		TPCGValueRange<FTransform> OutTransform = Scope.Data->GetTransformValueRange(false);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			FVector Location = OutTransform[Index].GetLocation();
+			MetadataBlender->Blend(From.Index, To.Index, Index, Lerp);
+			OutTransform[Index].SetLocation(Location);
+		}
+	}
+}
+
 void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {
 	Super::CopySettingsFrom(Other);
@@ -14,65 +59,10 @@ void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(const UPCGExInstancedFact
 	}
 }
 
-void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
-	const PCGExData::FPointRef& From,
-	const PCGExData::FPointRef& To,
-	const TArrayView<FPCGPoint>& SubPoints,
-	const PCGExPaths::FPathMetrics& Metrics,
-	PCGExDataBlending::FMetadataBlender* InBlender,
-	const int32 StartIndex) const
+TSharedPtr<FPCGExSubPointsBlendOperation> UPCGExSubPointsBlendInterpolate::CreateOperation() const
 {
-	const int32 NumPoints = SubPoints.Num();
-
-	EPCGExBlendOver SafeBlendOver = BlendOver;
-	if (BlendOver == EPCGExBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExBlendOver::Index; }
-
-	TArray<double> Weights;
-	TArray<FVector> Locations;
-
-	Weights.SetNumUninitialized(NumPoints);
-	Locations.SetNumUninitialized(NumPoints);
-
-	if (SafeBlendOver == EPCGExBlendOver::Distance)
-	{
-		PCGExPaths::FPathMetrics PathMetrics = PCGExPaths::FPathMetrics(From.Point->Transform.GetLocation());
-		for (int i = 0; i < NumPoints; i++)
-		{
-			const FVector Location = SubPoints[i].Transform.GetLocation();
-			Locations[i] = Location;
-			Weights[i] = Metrics.GetTime(PathMetrics.Add(Location));
-		}
-	}
-	else if (SafeBlendOver == EPCGExBlendOver::Index)
-	{
-		for (int i = 0; i < NumPoints; i++)
-		{
-			Locations[i] = SubPoints[i].Transform.GetLocation();
-			Weights[i] = static_cast<double>(i) / NumPoints;
-		}
-	}
-	else if (SafeBlendOver == EPCGExBlendOver::Fixed)
-	{
-		for (int i = 0; i < NumPoints; i++)
-		{
-			Locations[i] = SubPoints[i].Transform.GetLocation();
-			Weights[i] = Lerp;
-		}
-	}
-
-	InBlender->BlendRangeFromTo(From, To, StartIndex < 0 ? From.Index : StartIndex, Weights);
-
-	// Restore pre-blend position
-	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }
-}
-
-TSharedPtr<PCGExDataBlending::FMetadataBlender> UPCGExSubPointsBlendInterpolate::CreateBlender(
-	const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
-	const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
-	const PCGExData::ESource SecondarySource,
-	const TSet<FName>* IgnoreAttributeSet)
-{
-	PCGEX_MAKE_SHARED(NewBlender, PCGExDataBlending::FMetadataBlender, &BlendingDetails)
-	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, true, IgnoreAttributeSet);
-	return NewBlender;
+	PCGEX_CREATE_SUBPOINTBLEND_OPERATION(Interpolate)
+	NewOperation->TypedFactory = this;
+	NewOperation->Lerp = Lerp;
+	return NewOperation;
 }

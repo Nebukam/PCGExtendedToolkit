@@ -5,8 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "Graph/Filters/PCGExAdjacency.h"
-#include "PCGExDetails.h"
-
 
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -109,6 +107,4 @@ public:
 	virtual FString GetDisplayName() const override;
 #endif
 
-protected:
-	virtual bool IsCacheable() const override { return true; }
 };

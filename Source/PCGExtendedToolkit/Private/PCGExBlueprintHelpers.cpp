@@ -3,5 +3,4 @@
 
 #include "PCGExBlueprintHelpers.h"
 
-#include "PCGExSubSystem.h"
 #include "Engine/World.h"

@@ -158,27 +158,25 @@ namespace PCGExStaging
 			return (*Collection)->GetEntryAt(OutEntry, EntryIndex, EntryHost);
 		}
 
-		bool BuildPartitions(const UPCGPointData* InPointData)
+		bool BuildPartitions(const UPCGBasePointData* InPointData)
 		{
-
 			FPCGAttributePropertyInputSelector HashSelector;
 			HashSelector.Update(Tag_EntryIdx.ToString());
-			
+
 			TUniquePtr<const IPCGAttributeAccessor> HashAttributeAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InPointData, HashSelector);
 			TUniquePtr<const IPCGAttributeAccessorKeys> HashKeys = PCGAttributeAccessorHelpers::CreateConstKeys(InPointData, HashSelector);
-			
+
 			if (!HashAttributeAccessor || !HashKeys) { return false; }
 
 			TArray<int64> Hashes;
 			Hashes.SetNumUninitialized(HashKeys->GetNum());
-			
-			if(!HashAttributeAccessor->GetRange<int64>(Hashes, 0, *HashKeys, EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+
+			if (!HashAttributeAccessor->GetRange<int64>(Hashes, 0, *HashKeys, EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
 			{
 				return false;
 			}
-			
-			const TArray<FPCGPoint>& InPoints = InPointData->GetPoints();
-			const int32 NumPoints = InPoints.Num();
+
+			const int32 NumPoints = InPointData->GetNumPoints();
 
 			// Build partitions
 			for (int i = 0; i < NumPoints; i++)

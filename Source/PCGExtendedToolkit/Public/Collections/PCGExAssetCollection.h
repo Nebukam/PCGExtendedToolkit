@@ -987,15 +987,15 @@ protected:
 
 		if (PathIdentity->UnderlyingType == EPCGMetadataTypes::SoftObjectPath)
 		{
-			PCGEX_FOREACH_COLLECTION_ENTRY(FSoftObjectPath, PathIdentity->Name, { SetEntryPath(i, V); })
+			PCGEX_FOREACH_COLLECTION_ENTRY(FSoftObjectPath, PathIdentity->Identifier, { SetEntryPath(i, V); })
 		}
 		else if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
 		{
-			PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V)); })
+			PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Identifier, { SetEntryPath(i, FSoftObjectPath(V)); })
 		}
 		else
 		{
-			PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V.ToString())); })
+			PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Identifier, { SetEntryPath(i, FSoftObjectPath(V.ToString())); })
 		}
 
 
@@ -1004,7 +1004,7 @@ protected:
 		{
 #define PCGEX_ATT_TOINT32(_NAME, _TYPE)\
 			if (WeightIdentity->UnderlyingType == EPCGMetadataTypes::_NAME){ \
-				PCGEX_FOREACH_COLLECTION_ENTRY(_TYPE, WeightIdentity->Name, {  InCollection->Entries[i].Weight = static_cast<int32>(V); }) }
+				PCGEX_FOREACH_COLLECTION_ENTRY(_TYPE, WeightIdentity->Identifier, {  InCollection->Entries[i].Weight = static_cast<int32>(V); }) }
 
 			PCGEX_ATT_TOINT32(Integer32, int32)
 			else
@@ -1022,11 +1022,11 @@ protected:
 		{
 			if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::String)
 			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FString, WeightIdentity->Name, { InCollection->Entries[i].Category = FName(V); })
+				PCGEX_FOREACH_COLLECTION_ENTRY(FString, WeightIdentity->Identifier, { InCollection->Entries[i].Category = FName(V); })
 			}
 			else if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::Name)
 			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FName, WeightIdentity->Name, { InCollection->Entries[i].Category = V; })
+				PCGEX_FOREACH_COLLECTION_ENTRY(FName, WeightIdentity->Identifier, { InCollection->Entries[i].Category = V; })
 			}
 		}
 

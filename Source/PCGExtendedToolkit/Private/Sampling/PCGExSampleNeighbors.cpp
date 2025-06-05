@@ -100,9 +100,15 @@ namespace PCGExSampleNeighbors
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*Cluster->GetNode(Iteration)); }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : OpsWithValueTest)
+			{
+				Op->ValueFilters->Results[Index] = Op->ValueFilters->Test(*Cluster->GetNode(Index));
+			}
+		}
 	}
 
 	void FProcessor::OnRangeProcessingComplete()
@@ -110,9 +116,17 @@ namespace PCGExSampleNeighbors
 		StartParallelLoopForNodes();
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops)
 	{
-		for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->ProcessNode(Index); }
+		for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->PrepareForLoops(Loops); }
+	}
+
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
+	{
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->ProcessNode(Index, Scope); }
+		}
 	}
 
 	void FProcessor::Write()

@@ -52,7 +52,7 @@ enum class EPCGExBevelCustomProfileScaling : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/bevel"))
 class UPCGExBevelPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -145,11 +145,11 @@ public:
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bFlagEndpoints = false;
+	bool bFlagPoles = false;
 
 	/** Name of the boolean flag to write whether the point is a Bevel endpoint or not (Either start or end) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, EditCondition="bFlagEndpoints"))
-	FName EndpointsFlagName = "IsBevelEndpoint";
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, EditCondition="bFlagPoles"))
+	FName PoleFlagName = "IsBevelPole";
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -195,7 +195,7 @@ class FPCGExBevelPathElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BevelPath)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -261,7 +261,6 @@ namespace PCGExBevelPath
 		TSharedPtr<PCGExDetails::TSettingValue<double>> WidthGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SubdivAmountGetter;
 
-		TArray<FVector> Positions;
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 		TSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>> PathDirection;
@@ -282,8 +281,12 @@ namespace PCGExBevelPath
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void PrepareSinglePoint(const int32 Index);
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
+
 		void WriteFlags(const int32 Index);
 		virtual void CompleteWork() override;
 		virtual void Write() override;

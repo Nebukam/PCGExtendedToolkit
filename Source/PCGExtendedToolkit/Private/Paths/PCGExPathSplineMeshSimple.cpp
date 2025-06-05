@@ -136,7 +136,7 @@ namespace PCGExPathSplineMeshSimple
 
 		if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Attribute)
 		{
-			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->SplineMeshUpVectorAttribute);
+			UpGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->SplineMeshUpVectorAttribute, true);
 
 			if (!UpGetter)
 			{
@@ -147,7 +147,7 @@ namespace PCGExPathSplineMeshSimple
 
 		if (Settings->AssetType == EPCGExInputValueType::Attribute)
 		{
-			AssetPathReader = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName);
+			AssetPathReader = PointDataFacade->GetBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName, true);
 			if (!AssetPathReader)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("AssetPath attribute is missing on some inputs.."));
@@ -204,86 +204,90 @@ namespace PCGExPathSplineMeshSimple
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PathSplineMeshSimple::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
 		auto InvalidPoint = [&]()
 		{
 			// Do nothing
 		};
 
-		if (Index == LastIndex && !bClosedLoop)
-		{
-			// Ignore last index, only used for maths reasons
-			InvalidPoint();
-			return;
-		}
+		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
+		TConstPCGValueRange<FTransform> Transforms = InPointData->GetConstTransformValueRange();
 
-		if (!PointFilterCache[Index])
+		PCGEX_SCOPE_LOOP(Index)
 		{
+			if (Index == LastIndex && !bClosedLoop)
+			{
+				// Ignore last index, only used for maths reasons
+				InvalidPoint();
+				continue;
+			}
+
+			if (!PointFilterCache[Index])
+			{
+				Segments[Index] = PCGExPaths::FSplineMeshSegment();
+				InvalidPoint();
+				continue;
+			}
+
+			TObjectPtr<UStaticMesh>* SM = AssetPathReader ? Context->StaticMeshLoader->GetAsset(AssetPathReader->Read(Index)) : &Context->StaticMesh;
+
+			if (!SM)
+			{
+				InvalidPoint();
+				continue;
+			}
+
+			Meshes[Index] = *SM;
 			Segments[Index] = PCGExPaths::FSplineMeshSegment();
-			InvalidPoint();
-			return;
+			PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
+
+			//
+
+			Segment.SplineMeshAxis = SplineMeshAxisConstant;
+
+			const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
+
+			//
+
+			FVector OutScale = Transforms[Index].GetScale3D();
+
+			//
+
+			Segment.Params.StartPos = Transforms[Index].GetLocation();
+			Segment.Params.StartScale = FVector2D(OutScale[C1], OutScale[C2]);
+			Segment.Params.StartRoll = Transforms[Index].GetRotation().Rotator().Roll;
+
+			const FVector Scale = Transforms[NextIndex].GetScale3D();
+			Segment.Params.EndPos = Transforms[NextIndex].GetLocation();
+			Segment.Params.EndScale = FVector2D(Scale[C1], Scale[C2]);
+			Segment.Params.EndRoll = Transforms[NextIndex].GetRotation().Rotator().Roll;
+
+			Segment.Params.StartOffset = StartOffset->Read(Index);
+			Segment.Params.EndOffset = EndOffset->Read(Index);
+
+			if (Settings->bApplyCustomTangents)
+			{
+				Segment.Params.StartTangent = LeaveReader->Read(Index);
+				Segment.Params.EndTangent = ArriveReader->Read(NextIndex);
+			}
+			else
+			{
+				Segment.Params.StartTangent = Transforms[Index].GetRotation().GetForwardVector();
+				Segment.Params.EndTangent = Transforms[NextIndex].GetRotation().GetForwardVector();
+			}
+
+			if (UpGetter) { Segment.UpVector = UpGetter->Read(Index); }
+			else if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant) { Segment.UpVector = Settings->SplineMeshUpVector; }
+			else { Segment.ComputeUpVectorFromTangents(); }
+
+			MutationDetails.Mutate(Index, Segment);
 		}
-
-		TObjectPtr<UStaticMesh>* SM = AssetPathReader ? Context->StaticMeshLoader->GetAsset(AssetPathReader->Read(Index)) : &Context->StaticMesh;
-
-		if (!SM)
-		{
-			InvalidPoint();
-			return;
-		}
-
-		Meshes[Index] = *SM;
-		Segments[Index] = PCGExPaths::FSplineMeshSegment();
-		PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
-
-		//
-
-		Segment.SplineMeshAxis = SplineMeshAxisConstant;
-
-		const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
-		const FPCGPoint& NextPoint = PointDataFacade->Source->GetInPoint(NextIndex);
-
-		//
-
-		FVector OutScale = Point.Transform.GetScale3D();
-
-		//
-
-		Segment.Params.StartPos = Point.Transform.GetLocation();
-		Segment.Params.StartScale = FVector2D(OutScale[C1], OutScale[C2]);
-		Segment.Params.StartRoll = Point.Transform.GetRotation().Rotator().Roll;
-
-		const FVector Scale = NextPoint.Transform.GetScale3D();
-		Segment.Params.EndPos = NextPoint.Transform.GetLocation();
-		Segment.Params.EndScale = FVector2D(Scale[C1], Scale[C2]);
-		Segment.Params.EndRoll = NextPoint.Transform.GetRotation().Rotator().Roll;
-
-		Segment.Params.StartOffset = StartOffset->Read(Index);
-		Segment.Params.EndOffset = EndOffset->Read(Index);
-
-		if (Settings->bApplyCustomTangents)
-		{
-			Segment.Params.StartTangent = LeaveReader->Read(Index);
-			Segment.Params.EndTangent = ArriveReader->Read(NextIndex);
-		}
-		else
-		{
-			Segment.Params.StartTangent = Point.Transform.GetRotation().GetForwardVector();
-			Segment.Params.EndTangent = NextPoint.Transform.GetRotation().GetForwardVector();
-		}
-
-		if (UpGetter) { Segment.UpVector = UpGetter->Read(Index); }
-		else if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant) { Segment.UpVector = Settings->SplineMeshUpVector; }
-		else { Segment.ComputeUpVectorFromTangents(); }
-
-		MutationDetails.Mutate(Index, Segment);
 	}
 
 	void FProcessor::CompleteWork()

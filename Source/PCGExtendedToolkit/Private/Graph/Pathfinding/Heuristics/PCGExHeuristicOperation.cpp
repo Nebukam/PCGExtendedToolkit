@@ -13,8 +13,8 @@ void FPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExClu
 	bHasCustomLocalWeightMultiplier = false;
 	if (bUseLocalWeightMultiplier)
 	{
-		const TSharedPtr<PCGExData::FPointIO> PointIO = LocalWeightMultiplierSource == EPCGExClusterComponentSource::Vtx ? InCluster->VtxIO.Pin() : InCluster->EdgesIO.Pin();
-		const TSharedPtr<PCGExData::FFacade> DataFacade = LocalWeightMultiplierSource == EPCGExClusterComponentSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
+		const TSharedPtr<PCGExData::FPointIO> PointIO = LocalWeightMultiplierSource == EPCGExClusterElement::Vtx ? InCluster->VtxIO.Pin() : InCluster->EdgesIO.Pin();
+		const TSharedPtr<PCGExData::FFacade> DataFacade = LocalWeightMultiplierSource == EPCGExClusterElement::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
 
 		const int32 NumPoints = PointIO->GetNum();
 		const TSharedPtr<PCGExData::TBuffer<double>> LocalWeightCache = DataFacade->GetBroadcaster<double>(WeightMultiplierAttribute);
@@ -25,7 +25,7 @@ void FPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExClu
 			return;
 		}
 
-		if (LocalWeightMultiplierSource == EPCGExClusterComponentSource::Vtx)
+		if (LocalWeightMultiplierSource == EPCGExClusterElement::Vtx)
 		{
 			LocalWeightMultiplier.SetNumZeroed(InCluster->Nodes->Num());
 			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes)) { LocalWeightMultiplier[Node.Index] = LocalWeightCache->Read(Node.PointIndex); }
@@ -54,7 +54,7 @@ double FPCGExHeuristicOperation::GetCustomWeightMultiplier(const int32 PointInde
 {
 	//TODO Rewrite this
 	if (!bUseLocalWeightMultiplier || LocalWeightMultiplier.IsEmpty()) { return 1; }
-	return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExClusterComponentSource::Vtx ? PointIndex : EdgeIndex]);
+	return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExClusterElement::Vtx ? PointIndex : EdgeIndex]);
 }
 
 double FPCGExHeuristicOperation::GetScoreInternal(const double InTime) const

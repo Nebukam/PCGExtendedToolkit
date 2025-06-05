@@ -6,10 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExHeuristicFeedback.h"
 #include "PCGExHeuristicsFactoryProvider.h"
-
-
-#include "Graph/Pathfinding/PCGExPathfinding.h"
-
 #include "PCGExHeuristics.generated.h"
 
 UENUM()

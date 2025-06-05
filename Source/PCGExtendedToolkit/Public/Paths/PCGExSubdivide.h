@@ -10,14 +10,14 @@
 #include "PCGExDetails.h"
 
 
-#include "Paths/SubPoints/PCGExSubPointsOperation.h"
+#include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivide.generated.h"
 
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/subdivide"))
 class UPCGExSubdivideSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -60,7 +60,7 @@ public:
 	bool bRedistributeEvenly = false;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagSubPoints = false;
@@ -82,14 +82,14 @@ struct FPCGExSubdivideContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSubdivideElement;
 
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 };
 
 class FPCGExSubdivideElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(Subdivide)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -99,16 +99,16 @@ namespace PCGExSubdivide
 	struct FSubdivision
 	{
 		int32 NumSubdivisions = 0;
+
 		int32 InStart = -1;
 		int32 InEnd = -1;
 		int32 OutStart = -1;
 		int32 OutEnd = -1;
+
 		double Dist = 0;
+
 		double StepSize = 0;
 		double StartOffset = 0;
-		FVector Start = FVector::ZeroVector;
-		FVector End = FVector::ZeroVector;
-		FVector Dir = FVector::ZeroVector;
 	};
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSubdivideContext, UPCGExSubdivideSettings>
@@ -118,7 +118,7 @@ namespace PCGExSubdivide
 		bool bClosedLoop = false;
 
 		TSet<FName> ProtectedAttributes;
-		UPCGExSubPointsBlendOperation* Blending = nullptr;
+		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
@@ -138,10 +138,11 @@ namespace PCGExSubdivide
 		virtual bool IsTrivial() const override { return false; } // Force non-trivial
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+
 		virtual void CompleteWork() override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+
 		virtual void Write() override;
 	};
 }

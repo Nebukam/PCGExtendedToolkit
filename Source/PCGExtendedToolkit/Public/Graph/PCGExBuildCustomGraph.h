@@ -60,30 +60,27 @@ public:
 
 	/**
 	 * Initialization method. It is called right before Build Graph -- this is where you must set the max number of nodes.
-	 * @param InContext Context of the execution
 	 * @param OutSuccess The maximum number of node this graph will be working with.
 	 * @param OutNodeReserve Number of nodes to reserve. This is mostly for memory optimization purpose. Try to be as close as possible if you can; slightly more is better than slightly less.
 	 * @param OutEdgeReserve Number of edges to reserve. This is mostly for memory optimization purpose. Try to be as close as possible if you can; slightly more is better than slightly less.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void InitializeSettings(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess, int32& OutNodeReserve, int32& OutEdgeReserve);
+	void InitializeSettings(bool& OutSuccess, int32& OutNodeReserve, int32& OutEdgeReserve);
 
 	/**
 	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.
-	 * @param InContext Context of the execution
 	 * @param OutSuccess Whether building was successful or not
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void BuildGraph(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
+	void BuildGraph(bool& OutSuccess);
 
 	/**
 	 * This function is called after BuildGraph, when the point metadata has been initialized, so you can initialized default attribute values here.
 	 * Non-initialized attribute will still work, but the default value under the hood will be the first one set, which is not deterministic due to the multhreaded nature of the processing.
-	 * @param InContext Context of the execution
 	 * @param OutSuccess Whether initialization was successful or not
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void InitPointAttributes(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
+	void InitPointAttributes(bool& OutSuccess);
 
 	/**
 	 * Update Node Point is called on each node point after BuildGraph has been, and edges added. This method is executed in a multi-threaded context.
@@ -402,14 +399,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphBuilder : public UPCGExInstancedFa
 	GENERATED_BODY()
 
 public:
+	virtual bool WantsPerDataInstance() override { return true; }
+
 	/**
 	 * Main initialization function. Called once, and is responsible for populating graph builder settings.
 	 * At least one setting is expected to be found in the GraphSettings array. This is executed on the main thread.
-	 * @param InContext - Context of the initialization
 	 * @param OutSuccess
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void InitializeWithContext(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
+	void Initialize(bool& OutSuccess);
 
 	/**
 	 * Create a Graph Setting object that will be processed individually and generate its own cluster(s)
@@ -421,12 +419,11 @@ public:
 
 	/**
 	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.
-	 * @param InContext - Context of the execution
 	 * @param InCustomGraphSettings
 	 * @param OutSuccess
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void BuildGraph(UPARAM(ref)const FPCGContext& InContext, UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess);
+	void BuildGraph(UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess);
 
 	virtual void Cleanup() override
 	{
@@ -512,7 +509,7 @@ class FPCGExBuildCustomGraphElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BuildCustomGraph)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

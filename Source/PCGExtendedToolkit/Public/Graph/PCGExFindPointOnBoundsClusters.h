@@ -80,7 +80,7 @@ class FPCGExFindPointOnBoundsClustersElement final : public FPCGExEdgesProcessor
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FindPointOnBoundsClusters)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -108,8 +108,8 @@ namespace PCGExFindPointOnBoundsClusters
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void UpdateCandidate(const FVector& InPosition, const int32 InIndex);
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};
 }

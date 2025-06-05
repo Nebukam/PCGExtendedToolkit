@@ -11,20 +11,19 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
-void FPCGExBasicEdgeSolidificationDetails::Mutate(FPCGPoint& InEdgePoint, const FPCGPoint& InStart, const FPCGPoint& InEnd, const double InLerp) const
+void FPCGExBasicEdgeSolidificationDetails::Mutate(PCGExData::FMutablePoint& InEdgePoint, const PCGExData::FConstPoint& InStart, const PCGExData::FConstPoint& InEnd, const double InLerp) const
 {
-	const FVector A = InStart.Transform.GetLocation();
-	const FVector B = InEnd.Transform.GetLocation();
+	const FVector A = InStart.GetLocation();
+	const FVector B = InEnd.GetLocation();
 
-
-	InEdgePoint.Transform.SetLocation(FMath::Lerp(A, B, InLerp));
+	InEdgePoint.SetLocation(FMath::Lerp(A, B, InLerp));
 	if (SolidificationAxis == EPCGExMinimalAxis::None) { return; }
 
 	const FVector EdgeDirection = (A - B).GetSafeNormal();
 
 	const double EdgeLength = FVector::Dist(A, B);
 	const double StartRadius = InStart.GetScaledExtents().Size();
-	const double EndRadius = InStart.GetScaledExtents().Size();
+	const double EndRadius = InEnd.GetScaledExtents().Size();
 
 	double Rad = 0;
 
@@ -52,7 +51,7 @@ void FPCGExBasicEdgeSolidificationDetails::Mutate(FPCGPoint& InEdgePoint, const 
 	FVector BoundsMin = FVector(-Rad);
 	FVector BoundsMax = FVector(Rad);
 
-	const FVector PtScale = InEdgePoint.Transform.GetScale3D();
+	const FVector PtScale = InEdgePoint.GetScale3D();
 	const FVector InvScale = FVector::One() / PtScale;
 
 	const double LerpInv = 1 - InLerp;
@@ -81,10 +80,10 @@ void FPCGExBasicEdgeSolidificationDetails::Mutate(FPCGPoint& InEdgePoint, const 
 		break;
 	}
 
-	InEdgePoint.Transform = FTransform(EdgeRot, FMath::Lerp(B, A, LerpInv), InEdgePoint.Transform.GetScale3D());
+	InEdgePoint.SetTransform(FTransform(EdgeRot, FMath::Lerp(B, A, LerpInv), InEdgePoint.GetScale3D()));
 
-	InEdgePoint.BoundsMin = BoundsMin;
-	InEdgePoint.BoundsMax = BoundsMax;
+	InEdgePoint.SetBoundsMin(BoundsMin);
+	InEdgePoint.SetBoundsMax(BoundsMax);
 }
 
 FPCGExGraphBuilderDetails::FPCGExGraphBuilderDetails(const EPCGExMinimalAxis InDefaultSolidificationAxis)
@@ -120,8 +119,8 @@ bool PCGExGraph::BuildIndexedEdges(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
-	const TUniquePtr<PCGExData::TBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TBuffer<int64>>(EdgeIO.ToSharedRef(), Attr_PCGExEdgeIdx);
-	if (!EndpointsBuffer->PrepareRead()) { return false; }
+	const TUniquePtr<PCGExData::TArrayBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(EdgeIO.ToSharedRef(), Attr_PCGExEdgeIdx);
+	if (!EndpointsBuffer->InitForRead()) { return false; }
 
 	const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
 	const int32 EdgeIOIndex = EdgeIO->IOIndex;
@@ -321,40 +320,68 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		WeakBuilder = InBuilder;
 		WeakAsyncManager = AsyncManager;
 
+		const int32 NumEdges = Edges.Num();
+
 		TArray<int32> EdgeDump = Edges.Array();
-		const int32 NumEdges = EdgeDump.Num();
+
+		// Might not be needed but adds predictability
+		EdgeDump.Sort([](const int32 A, const int32 B) { return A < B; });
 
 		PCGEx::InitArray(FlattenedEdges, NumEdges);
 
-		TArray<FPCGPoint>& MutablePoints = EdgesDataFacade->Source->GetOut()->GetMutablePoints();
-		MutablePoints.SetNum(NumEdges);
+		const UPCGBasePointData* InEdgeData = EdgesDataFacade->GetIn();
+		UPCGBasePointData* OutEdgeData = EdgesDataFacade->GetOut();
+		(void)PCGEx::SetNumPointsAllocated(OutEdgeData, NumEdges);
 
-		if (EdgesDataFacade->Source->GetIn())
+		const TPCGValueRange<int64> OutMetadataEntries = OutEdgeData->GetMetadataEntryValueRange(false);
+
+		UPCGMetadata* Metadata = OutEdgeData->Metadata;
+
+		if (InEdgeData)
 		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::GatherPreExistingPoints);
+			// We'll cherry pick existing edges
+			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::CherryPickInheritedEdges);
 
-			// Copy any existing point properties first
-			UPCGMetadata* Metadata = EdgesDataFacade->Source->GetOut()->Metadata;
-			const TArray<FPCGPoint>& InPoints = EdgesDataFacade->Source->GetIn()->GetPoints();
+			TArray<int32> InEdgeIndices;
+			TArray<int32> OutEdgeIndices;
+
+			InEdgeIndices.Reserve(NumEdges);
+			OutEdgeIndices.Reserve(NumEdges);
+
+			const TConstPCGValueRange<int64> InMetadataEntries = InEdgeData->GetConstMetadataEntryValueRange();
+
 			for (int i = 0; i < NumEdges; i++)
 			{
 				const FEdge& OE = ParentGraph->Edges[EdgeDump[i]];
-				FlattenedEdges[i] = FEdge(i, ParentGraph->Nodes[OE.Start].PointIndex, ParentGraph->Nodes[OE.End].PointIndex, i, OE.Index); // Use flat edge IOIndex to store original edge index
-				if (InPoints.IsValidIndex(OE.PointIndex)) { MutablePoints[i] = InPoints[OE.PointIndex]; }
-				Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
+
+				// Hijack edge IOIndex to store original edge index in the flattened
+				FlattenedEdges[i] = FEdge(i, ParentGraph->Nodes[OE.Start].PointIndex, ParentGraph->Nodes[OE.End].PointIndex, i, OE.Index);
+
+				const int32 OriginalPointIndex = OE.PointIndex;
+				int64& EdgeMetadataEntry = OutMetadataEntries[i];
+
+				if (InMetadataEntries.IsValidIndex(OriginalPointIndex))
+				{
+					// Grab existing metadata entry & cache read/write indices
+					EdgeMetadataEntry = InMetadataEntries[OriginalPointIndex];
+					InEdgeIndices.Add(OriginalPointIndex);
+					OutEdgeIndices.Add(i);
+				}
+
+				Metadata->InitializeOnSet(EdgeMetadataEntry);
 			}
+
+			InEdgeData->CopyPropertiesTo(OutEdgeData, InEdgeIndices, OutEdgeIndices, PCGEx::AllPointNativePropertiesButMeta);
 		}
 		else
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::CreatePoints);
 
-			UPCGMetadata* Metadata = EdgesDataFacade->Source->GetOut()->Metadata;
-
 			for (int i = 0; i < NumEdges; i++)
 			{
 				const FEdge& E = ParentGraph->Edges[EdgeDump[i]];
 				FlattenedEdges[i] = FEdge(i, ParentGraph->Nodes[E.Start].PointIndex, ParentGraph->Nodes[E.End].PointIndex, i, E.Index);
-				Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
+				Metadata->InitializeOnSet(OutMetadataEntries[i]);
 			}
 		}
 
@@ -373,14 +400,18 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		if (InBuilder->SourceEdgeFacades && ParentGraph->EdgesUnion)
 		{
-			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails);
+			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(MetadataDetails->EdgesBlendingDetailsPtr, MetadataDetails->EdgesCarryOverDetails, Distances);
 			UnionBlender->AddSources(*InBuilder->SourceEdgeFacades, &ProtectedClusterAttributes);
-			UnionBlender->PrepareMerge(AsyncManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion);
+			if (!UnionBlender->Init(AsyncManager->GetContext(), EdgesDataFacade, ParentGraph->EdgesUnion))
+			{
+				// TODO : Log error
+				return;
+			}
 		}
 
 		if (InBuilder->OutputDetails->bOutputEdgeLength)
 		{
-			if (!PCGEx::IsValidName(InBuilder->OutputDetails->EdgeLengthName))
+			if (!PCGEx::IsWritableAttributeName(InBuilder->OutputDetails->EdgeLengthName))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, AsyncManager->GetContext(), FTEXT("Invalid user-defined attribute name for Edge Length."));
 			}
@@ -420,46 +451,52 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = EdgesDataFacade->GetWritable<int64>(Attr_PCGExEdgeIdx, -1, false, PCGExData::EBufferInit::New);
 
-		const TArray<FPCGPoint>& Vertices = VtxDataFacade->GetOut()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = EdgesDataFacade->Source->GetOut()->GetMutablePoints();
+
+		UPCGBasePointData* OutVtxData = VtxDataFacade->GetOut();
+		UPCGBasePointData* OutEdgeData = EdgesDataFacade->GetOut();
+
+		TConstPCGValueRange<FTransform> VtxTransforms = OutVtxData->GetConstTransformValueRange();
+
+		TPCGValueRange<int32> EdgeSeeds = OutEdgeData->GetSeedValueRange(false);
 
 		const bool bHasUnionMetadata = (MetadataDetails && !ParentGraph->EdgeMetadata.IsEmpty());
 		const FVector SeedOffset = FVector(EdgesDataFacade->Source->IOIndex);
 		const uint32 BaseGUID = VtxDataFacade->Source->GetOut()->GetUniqueID();
 
-		for (int i = Scope.Start; i < Scope.End; i++)
+		TArray<PCGExData::FWeightedPoint> WeightedPoints;
+
+		PCGEX_SCOPE_LOOP(i)
 		{
 			const FEdge& E = FlattenedEdges[i];
-			const int32 EdgeIndex = E.Index;
+			const int32 EdgeIndex = E.Index; // TODO : This is now i, anyway?
 
-			FPCGPoint& EdgePt = MutablePoints[EdgeIndex];
-			const FPCGPoint& StartPt = Vertices[E.Start];
-			const FPCGPoint& EndPt = Vertices[E.End];
+			PCGExData::FMutablePoint EdgePt = EdgesDataFacade->GetOutPoint(EdgeIndex);
+			const PCGExData::FConstPoint StartPt = VtxDataFacade->GetOutPoint(E.Start);
+			const PCGExData::FConstPoint EndPt = VtxDataFacade->GetOutPoint(E.End);
 
 			if (bHasUnionMetadata)
 			{
 				if (const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindRootEdgeMetadata_Unsafe(E.IOIndex))
 				{
 					if (TSharedPtr<PCGExData::FUnionData> UnionData = ParentGraph->EdgesUnion->Get(EdgeMeta->RootIndex);
-						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, Distances); }
+						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, WeightedPoints); }
 
-#define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(EdgeIndex) = EdgeMeta->_ACCESSOR;}
+#define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->SetValue(EdgeIndex, EdgeMeta->_ACCESSOR);}
 					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)
 #undef PCGEX_EDGE_METADATA_OUTPUT
 				}
 			}
 
-			EdgeEndpointsWriter->GetMutable(EdgeIndex) = PCGEx::H64(NodeGUID(BaseGUID, E.Start), NodeGUID(BaseGUID, E.End));
+			EdgeEndpointsWriter->SetValue(EdgeIndex, PCGEx::H64(NodeGUID(BaseGUID, E.Start), NodeGUID(BaseGUID, E.End)));
 
 			if (Builder->OutputDetails->bWriteEdgePosition)
 			{
 				Builder->OutputDetails->BasicEdgeSolidification.Mutate(EdgePt, StartPt, EndPt, Builder->OutputDetails->EdgePosition);
 			}
 
-			if (EdgeLength) { EdgeLength->GetMutable(EdgeIndex) = FVector::Dist(StartPt.Transform.GetLocation(), EndPt.Transform.GetLocation()); }
+			if (EdgeLength) { EdgeLength->SetValue(EdgeIndex, FVector::Dist(VtxTransforms[StartPt.Index].GetLocation(), VtxTransforms[EndPt.Index].GetLocation())); }
 
-
-			if (EdgePt.Seed == 0 || ParentGraph->bRefreshEdgeSeed) { EdgePt.Seed = PCGExRandom::ComputeSeed(EdgePt, SeedOffset); }
+			if (EdgeSeeds[EdgeIndex] == 0 || ParentGraph->bRefreshEdgeSeed) { EdgeSeeds[EdgeIndex] = PCGExRandom::ComputeSpatialSeed(EdgePt.GetLocation(), SeedOffset); }
 		}
 	}
 
@@ -487,19 +524,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 #undef PCGEX_FOREACH_EDGE_METADATA
 
-	FGraph::FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve)
-		: NumEdgesReserve(InNumEdgesReserve)
+	FGraph::FGraph(const int32 InNumNodes)
 	{
 		PCGEX_LOG_CTR(FGraph)
-
-		PCGEx::InitArray(Nodes, InNumNodes);
-
-		for (int i = 0; i < InNumNodes; i++)
-		{
-			FNode& Node = Nodes[i];
-			Node.Index = Node.PointIndex = i;
-			Node.Links.Reserve(NumEdgesReserve);
-		}
+		AddNodes(InNumNodes);
 	}
 
 	void FGraph::ReserveForEdges(const int32 UpcomingAdditionCount)
@@ -572,7 +600,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		uint32 A;
 		uint32 B;
 
-		for (const uint64& E : InEdges)
+		UniqueEdges.Reserve(UniqueEdges.Num() + UniqueEdges.Num());
+
+		for (const uint64 E : InEdges)
 		{
 			if (UniqueEdges.Contains(E)) { continue; }
 
@@ -580,12 +610,14 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			check(A != B)
 
-			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
+			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B, -1, InIOIndex);
+
 			UniqueEdges.Add(E, EdgeIndex);
 			Nodes[A].LinkEdge(EdgeIndex);
 			Nodes[B].LinkEdge(EdgeIndex);
-			Edges[EdgeIndex].IOIndex = InIOIndex;
 		}
+
+		UniqueEdges.Shrink();
 	}
 
 	int32 FGraph::InsertEdges(const TArray<FEdge>& InEdges)
@@ -757,12 +789,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		{
 			FNode& Node = Nodes[StartIndex + i];
 			Node.Index = Node.PointIndex = StartIndex + i;
-			Node.Links.Reserve(NumEdgesReserve);
 		}
 
 		return MakeArrayView(Nodes.GetData() + StartIndex, NumNewNodes);
 	}
-
 
 	void FGraph::BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits)
 	{
@@ -851,22 +881,43 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	FGraphBuilder::FGraphBuilder(
 		const TSharedRef<PCGExData::FFacade>& InNodeDataFacade,
-		const FPCGExGraphBuilderDetails* InDetails,
-		const int32 NumEdgeReserve)
+		const FPCGExGraphBuilderDetails* InDetails)
 		: OutputDetails(InDetails),
 		  NodeDataFacade(InNodeDataFacade)
 	{
 		PCGEX_LOG_CTR(FGraphBuilder)
 
-		PairId = NodeDataFacade->Source->Tags->Set<int32>(TagStr_PCGExCluster, NodeDataFacade->Source->GetOutIn()->GetUniqueID());
+		PCGEX_SHARED_CONTEXT_VOID(NodeDataFacade->Source->GetContextHandle())
 
-		const int32 NumNodes = NodeDataFacade->Source->GetOutInNum();
+		const UPCGBasePointData* NodePointData = NodeDataFacade->Source->GetOutIn();
+		PairId = NodeDataFacade->Source->Tags->Set<int32>(TagStr_PCGExCluster, NodePointData->GetUniqueID());
 
-		Graph = MakeShared<FGraph>(NumNodes, NumEdgeReserve);
+
+		// We initialize from the number of output point if it's greater than 0 at init time
+		// Otherwise, init with input points
+
+		const int32 NumOutPoints = NodeDataFacade->Source->GetOut() ? NodeDataFacade->Source->GetNum(PCGExData::EIOSide::Out) : 0;
+		int32 InitialNumNodes = 0;
+
+		if (NumOutPoints != 0)
+		{
+			NodePointsTransforms = NodeDataFacade->Source->GetOut()->GetConstTransformValueRange();
+			InitialNumNodes = NumOutPoints;
+		}
+		else
+		{
+			NodePointsTransforms = NodeDataFacade->Source->GetIn()->GetConstTransformValueRange();
+			InitialNumNodes = NodeDataFacade->Source->GetNum(PCGExData::EIOSide::In);
+		}
+
+		check(InitialNumNodes > 0)
+
+		Graph = MakeShared<FGraph>(InitialNumNodes);
+
 		Graph->bBuildClusters = InDetails->WantsClusters();
 		Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
-		EdgesIO = MakeShared<PCGExData::FPointIOCollection>(NodeDataFacade->Source->GetContext());
+		EdgesIO = MakeShared<PCGExData::FPointIOCollection>(SharedContext.Get());
 		EdgesIO->OutputPin = OutputEdgesLabel;
 	}
 
@@ -881,6 +932,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	{
 		check(!bCompiling)
 
+		// NOTE : We now output nodes to have readable, final positions when we compile the graph, which kindda sucks
+		// It means we need to fully allocate graph data even when ultimately we might prune out a lot of it
+
 		bCompiling = true;
 		AsyncManager = InAsyncManager;
 		MetadataDetailsPtr = MetadataDetails;
@@ -891,6 +945,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		NodeIndexLookup = MakeShared<PCGEx::FIndexLookup>(Graph->Nodes.Num()); // Likely larger than exported size; required for compilation.
 		Graph->NodeIndexLookup = NodeIndexLookup;
 
+		// Building subgraphs isolate connected edge clusters
+		// and invalidate roaming (isolated) nodes
 		Graph->BuildSubGraphs(*OutputDetails);
 
 		if (Graph->SubGraphs.IsEmpty())
@@ -904,103 +960,149 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			return;
 		}
 
-		NodeDataFacade->Source->CleanupKeys(); //Ensure fresh keys later on
+		NodeDataFacade->Source->ClearCachedKeys(); //Ensure fresh keys later on
 
 		TArray<FNode>& Nodes = Graph->Nodes;
 
-
 		TArray<int32> InternalValidNodes;
 		TArray<int32>& ValidNodes = InternalValidNodes;
-		TArray<PCGEx::TOrder<FVector>> Order;
 
 		int32 NumNodes = Nodes.Num();
 
-		if (OutputNodeIndices) { ValidNodes = *OutputNodeIndices; }
+		if (OutputNodeIndices) { ValidNodes = *OutputNodeIndices.Get(); }
 
 		ValidNodes.Reserve(NumNodes);
-		Order.Reserve(NumNodes);
+
+		bool bHasInvalidNodes = false;
+
+		// Filter all valid nodes
+		for (FNode& Node : Nodes)
+		{
+			if (!Node.bValid || Node.IsEmpty())
+			{
+				bHasInvalidNodes = true;
+				continue;
+			}
+			ValidNodes.Add(Node.Index);
+		}
+
+		const int32 NumValidNodes = ValidNodes.Num();
+
+		TArray<int32> ReadIndices;
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints);
 
-			UPCGMetadata* OutPointsMetadata = NodeDataFacade->Source->GetOut()->Metadata;
+			const UPCGBasePointData* InNodeData = NodeDataFacade->GetIn();
+			UPCGBasePointData* OutNodeData = NodeDataFacade->GetOut();
 
-			// Rebuild point list with only the one used
-			// to know which are used, we need to prune subgraphs first
-			TArray<FPCGPoint>& MutablePoints = NodeDataFacade->GetOut()->GetMutablePoints();
-
-			if (!MutablePoints.IsEmpty())
+			if (InNodeData && bInheritNodeData)
 			{
-				//Assume points were filled before, and remove them from the current array
-				TArray<FPCGPoint> PrunedPoints;
-				PrunedPoints.Reserve(MutablePoints.Num());
+				ReadIndices.SetNumUninitialized(NumValidNodes);
 
-				for (FNode& Node : Nodes)
+				// In order to inherit from node data
+				// both input & output must be valid
+				check(!InNodeData->IsEmpty())
+				check(InNodeData->GetNumPoints() >= NumValidNodes)
+
+				const bool bOutputIsSameAsInput =
+					!bHasInvalidNodes &&
+					NumValidNodes == InNodeData->GetNumPoints() &&
+					NumValidNodes == OutNodeData->GetNumPoints();
+
+				if (!bOutputIsSameAsInput)
 				{
-					if (!Node.bValid || Node.IsEmpty()) { continue; }
-					Node.PointIndex = PrunedPoints.Add(MutablePoints[Node.PointIndex]);
+					// Ensure we have the required number of nodes in the output
+					PCGEx::EnsureMinNumPoints(OutNodeData, NumValidNodes);
 
-					Order.Emplace(ValidNodes.Add(Node.Index), MutablePoints[Node.PointIndex].Transform.GetLocation());
+					// Build & remap new point count to node topology
+					for (int i = 0; i < NumValidNodes; i++)
+					{
+						FNode& Node = Nodes[ValidNodes[i]];
+						ReadIndices[i] = Node.PointIndex; // { NewIndex : InheritedIndex }
+						Node.PointIndex = i;              // Update node point index
+					}
+
+					// Truncate output if need be
+					OutNodeData->SetNumPoints(NumValidNodes);
+					// Copy input to outputs to carry over the right values on the outgoing points
+					NodeDataFacade->Source->InheritProperties(ReadIndices);
 				}
-
-				NodeDataFacade->GetOut()->SetPoints(PrunedPoints);
-				//TArray<FPCGPoint>& ValidPoints = NodeDataFacade->GetOut()->GetMutablePoints();
-				//for (FPCGPoint& ValidPoint : ValidPoints) { OutPointsMetadata->InitializeOnSet(ValidPoint.MetadataEntry); }
 			}
 			else
 			{
-				MutablePoints.Reserve(NumNodes);
+				// We don't have to inherit points, this sounds great
+				// However it makes things harder for us because we need to enforce a deterministic layout for other cluster nodes
+				// We make the assumption that if we don't inherit points, we've introduced new one nodes & edges from different threads
+				// The cheap way to make things deterministic is to sort nodes by spatial position
 
-				const TArray<FPCGPoint> OriginalPoints = NodeDataFacade->GetIn()->GetPoints();
+				// Rough check to make sure we won't have a PointIndex that's outside the desired range
+				check(NodePointsTransforms.Num() >= Nodes.Num())
 
-				for (FNode& Node : Nodes)
-				{
-					if (!Node.bValid || Node.IsEmpty()) { continue; }
-					Node.PointIndex = MutablePoints.Add(OriginalPoints[Node.PointIndex]);
-					//OutPointsMetadata->InitializeOnSet(MutablePoints.Last().MetadataEntry);
+				// We must have an output size that's at least equal to the number of nodes we have as well, to do the re-order
+				check(OutNodeData->GetNumPoints() >= Nodes.Num())
 
-					Order.Emplace(ValidNodes.Add(Node.Index), MutablePoints[Node.PointIndex].Transform.GetLocation());
-				}
-			}
+				// Init array of indice as a valid order range first, will be truncated later.
+				// We save a bit of memory by re-using it
+				PCGEx::ArrayOfIndices(ReadIndices, OutNodeData->GetNumPoints());
+				ReadIndices.SetNumUninitialized(OutNodeData->GetNumPoints());
 
-			ValidNodes.Shrink();
-			Order.Shrink();
-
-			NumNodes = ValidNodes.Num();
-
-			{
-				TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::SortPoints);
-
-				Order.Sort(
-					[](const PCGEx::TOrder<FVector>& A, const PCGEx::TOrder<FVector>& B)
+				// Sort valid nodes based on outgoing transforms
+				ValidNodes.Sort(
+					[&](const int32 A, const int32 B)
 					{
-						if (A.Det.X != B.Det.X) { return A.Det.X < B.Det.X; }
-						if (A.Det.Y != B.Det.Y) { return A.Det.Y < B.Det.Y; }
-						return A.Det.Z < B.Det.Z;
+						const FVector V1 = NodePointsTransforms[Nodes[A].PointIndex].GetLocation();
+						const FVector V2 = NodePointsTransforms[Nodes[B].PointIndex].GetLocation();
+						if (V1.X != V2.X) { return V1.X < V2.X; }
+						if (V1.Y != V2.Y) { return V1.Y < V2.Y; }
+						return V1.Z < V2.Z;
 					});
 
-				// Reorder output points
-				ReorderArray(MutablePoints, Order);
-				// Reorder output indices if provided
-				// Needed for delaunay etc that rely on original indices to identify sites etc
-				if (OutputPointIndices && OutputPointIndices->Num() == MutablePoints.Num()) { ReorderArray(*OutputPointIndices, Order); }
+				for (int i = 0; i < NumValidNodes; i++)
+				{
+					FNode& Node = Nodes[ValidNodes[i]];
+					ReadIndices[i] = Node.PointIndex;
+					Node.PointIndex = i;
+				}
+
+				// There is no points to inherit from; meaning we need to reorder the existing data
+				// because it's likely to be fragmented
+				PCGEx::ReorderPointArrayData(OutNodeData, ReadIndices);
+
+				// Truncate output to the number of nodes
+				ReadIndices.SetNum(NumValidNodes);
+				OutNodeData->SetNumPoints(NumValidNodes);
 			}
 		}
 
-		// Sort points & update node PointIndex
+		////////////
+		//  At this point, OutPointData must be up-to-date
+		//  Transforms & Metadata entry must be final and match the Nodes.PointIndex
+		//	Subgraph compilation rely on it.
+		///////////
 
-		const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Attr_PCGExVtxIdx, 0, false, PCGExData::EBufferInit::New);
+		// TODO : NEED TO INITIALIZE METADATA KEYS !!!!
 
-		const uint32 BaseGUID = NodeDataFacade->GetOut()->GetUniqueID();
+		if (OutputPointIndices && OutputPointIndices->Num() == NumValidNodes)
+		{
+			// Reorder output indices if provided
+			// Needed for delaunay etc that rely on original indices to identify sites etc
+			TArray<int32>& OutputPointIndicesRef = *OutputPointIndices.Get();
+			for (int32 i = 0; i < NumValidNodes; i++) { OutputPointIndicesRef[i] = ReadIndices[i]; }
+		}
 
 		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::RemapNodes);
+			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::VtxEndpoints);
 
-			for (int i = 0; i < NumNodes; i++)
+			const TSharedPtr<PCGExData::TBuffer<int64>> VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Attr_PCGExVtxIdx, 0, false, PCGExData::EBufferInit::New);
+			const TSharedPtr<PCGExData::TArrayBuffer<int64>> ElementsVtxEndpointWriter = StaticCastSharedPtr<PCGExData::TArrayBuffer<int64>>(VtxEndpointWriter);
+			const uint32 BaseGUID = NodeDataFacade->GetOut()->GetUniqueID();
+
+			TArray<int64>& VtxEndpoints = *ElementsVtxEndpointWriter->GetOutValues().Get();
+			for (const int32 ValidNodeIndex : ValidNodes)
 			{
-				FNode& Node = Nodes[ValidNodes[Order[i].Index]];
-				Node.PointIndex = i;
-				VtxEndpointWriter->GetMutable(Node.PointIndex) = PCGEx::H64(NodeGUID(BaseGUID, Node.PointIndex), Node.NumExportedEdges);
+				const FNode& Node = Nodes[ValidNodeIndex];
+				VtxEndpoints[Node.PointIndex] = PCGEx::H64(NodeGUID(BaseGUID, Node.PointIndex), Node.NumExportedEdges);
 			}
 		}
 
@@ -1012,7 +1114,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			MACRO(IsIntersector, bool, false, IsIntersector()) \
 			MACRO(Crossing, bool, false, IsCrossing())
 #define PCGEX_NODE_METADATA_DECL(_NAME, _TYPE, _DEFAULT, _ACCESSOR) const TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Buffer = MetadataDetails->bWrite##_NAME ? NodeDataFacade->GetWritable<_TYPE>(MetadataDetails->_NAME##AttributeName, _DEFAULT, true, PCGExData::EBufferInit::New) : nullptr;
-#define PCGEX_NODE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(PointIndex) = NodeMeta->_ACCESSOR;}
+#define PCGEX_NODE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->SetValue(PointIndex, NodeMeta->_ACCESSOR);}
 
 			PCGEX_FOREACH_NODE_METADATA(PCGEX_NODE_METADATA_DECL)
 
@@ -1127,8 +1229,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		PCGEx::InitArray(OutAdjacency, InPointIO->GetNum());
 		OutIndices.Empty();
 
-		const TUniquePtr<PCGExData::TBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TBuffer<int64>>(InPointIO.ToSharedRef(), Attr_PCGExVtxIdx);
-		if (!IndexBuffer->PrepareRead()) { return false; }
+		const TUniquePtr<PCGExData::TArrayBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TArrayBuffer<int64>>(InPointIO.ToSharedRef(), Attr_PCGExVtxIdx);
+		if (!IndexBuffer->InitForRead()) { return false; }
 
 		const TArray<int64>& Indices = *IndexBuffer->GetInValues().Get();
 

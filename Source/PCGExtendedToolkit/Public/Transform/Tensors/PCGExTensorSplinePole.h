@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExTensor.h"
-#include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
 #include "PCGExTensorSplineFactoryProvider.h"
 
@@ -59,7 +58,7 @@ public:
 	virtual bool Prepare(FPCGExContext* InContext) override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-spline-pole"))
 class UPCGExCreateTensorSplinePoleSettings : public UPCGExTensorSplineFactoryProviderSettings
 {
 	GENERATED_BODY()

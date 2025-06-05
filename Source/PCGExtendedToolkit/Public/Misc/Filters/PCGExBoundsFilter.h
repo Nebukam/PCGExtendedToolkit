@@ -9,6 +9,7 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "Geometry/PCGExGeoPointBox.h"
 
 
 #include "PCGExBoundsFilter.generated.h"
@@ -86,7 +87,7 @@ public:
 	TArray<TSharedPtr<PCGExData::FFacade>> BoundsDataFacades;
 	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
 
-	virtual bool SupportsDirectEvaluation() const override { return true; }
+	virtual bool SupportsProxyEvaluation() const override { return true; }
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
@@ -115,11 +116,14 @@ namespace PCGExPointFilter
 		EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;
 		bool bIgnoreSelf = false;
 
-		using BoundCheckCallback = std::function<bool(const FPCGPoint&)>;
+		using BoundCheckProxyCallback = std::function<bool(const PCGExData::FProxyPoint&)>;
+		BoundCheckProxyCallback BoundCheckProxy;
+
+		using BoundCheckCallback = std::function<bool(const PCGExData::FConstPoint&)>;
 		BoundCheckCallback BoundCheck;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-		virtual bool Test(const FPCGPoint& Point) const override { return BoundCheck(Point); }
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override { return BoundCheckProxy(Point); }
 		virtual bool Test(const int32 PointIndex) const override { return BoundCheck(PointDataFacade->Source->GetInPoint(PointIndex)); }
 
 		virtual ~FBoundsFilter() override

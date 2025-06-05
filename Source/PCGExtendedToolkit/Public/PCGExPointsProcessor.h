@@ -11,7 +11,6 @@
 #include "PCGExMT.h"
 #include "PCGExMacros.h"
 #include "Data/PCGExPointIO.h"
-#include "PCGExOperation.h"
 #include "PCGExPointsMT.h"
 
 #include "PCGComponent.h"
@@ -78,11 +77,6 @@ public:
 
 	bool SupportsPointFilters() const { return !GetPointFilterPin().IsNone(); }
 
-#if WITH_EDITORONLY_DATA
-	UPROPERTY()
-	bool bDoAsyncProcessing_DEPRECATED = true;
-#endif
-
 	/** Async work priority for this node.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
@@ -118,7 +112,6 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 protected:
-	virtual bool IsCacheable() const { return false; }
 	virtual bool ShouldCache() const;
 	virtual bool WantsScopedAttributeGet() const;
 };
@@ -160,7 +153,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 	bool bBatchProcessingEnabled = false;
 	bool ProcessPointsBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync = false);
 
-	TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> MainBatch;
+	TSharedPtr<PCGExPointsMT::IPointsProcessorBatch> MainBatch;
 	TMap<PCGExData::FPointIO*, TSharedRef<PCGExPointsMT::FPointsProcessor>> SubProcessorMap;
 
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
@@ -262,5 +255,6 @@ protected:
 	virtual bool PostBoot(FPCGExContext* InContext) const;
 	virtual void AbortInternal(FPCGContext* Context) const override;
 
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true) // TODO : Proper refactor to support native multithreading
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
+	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override;
 };

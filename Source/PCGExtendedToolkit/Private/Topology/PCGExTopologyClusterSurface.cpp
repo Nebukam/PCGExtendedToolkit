@@ -60,20 +60,24 @@ namespace PCGExTopologyClusterSurface
 		}
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
 		EdgeDataFacade->Fetch(Scope);
 		FilterConstrainedEdgeScope(Scope);
-	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
-	{
-		if (EdgeFilterCache[EdgeIndex]) { return; }
+		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
 
-		PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
 
-		FindCell(*Cluster->GetEdgeStart(Edge), Edge, Scope.LoopIndex);
-		FindCell(*Cluster->GetEdgeEnd(Edge), Edge, Scope.LoopIndex);
+			if (EdgeFilterCache[Index]) { return; }
+
+			PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
+
+			FindCell(*Cluster->GetEdgeStart(Edge), Edge, Scope.LoopIndex);
+			FindCell(*Cluster->GetEdgeEnd(Edge), Edge, Scope.LoopIndex);
+		}
 	}
 
 	bool FProcessor::FindCell(
@@ -151,7 +155,7 @@ namespace PCGExTopologyClusterSurface
 
 	void FProcessor::CompleteWork()
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Complete %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
+		//UE_LOG(LogPCGEx, Warning, TEXT("Complete %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
 		StartParallelLoopForEdges(128);
 	}
 }

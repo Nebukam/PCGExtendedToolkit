@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExChain.h"
-#include "PCGExCluster.h"
 #include "PCGExClusterMT.h"
 #include "PCGExEdgesProcessor.h"
 
@@ -84,7 +83,7 @@ class FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SimplifyClusters)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -113,7 +112,7 @@ namespace PCGExSimplifyClusters
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 
 		virtual void Cleanup() override;
 	};

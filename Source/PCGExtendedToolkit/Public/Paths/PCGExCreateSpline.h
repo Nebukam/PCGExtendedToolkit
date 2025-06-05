@@ -11,7 +11,7 @@
 
 
 #include "Elements/PCGCreateSpline.h"
-#include "Tangents/PCGExTangentsOperation.h"
+#include "Tangents/PCGExTangentsInstancedFactory.h"
 #include "Transform/PCGExTransform.h"
 
 #include "PCGExCreateSpline.generated.h"
@@ -26,7 +26,7 @@ enum class EPCGExSplinePointType : uint8
 	CurveCustomTangent = 4 UMETA(DisplayName = "CurveCustomTangent (4)", Tooltip="CurveCustomTangent (4).")
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="paths/create-spline"))
 class UPCGExCreateSplineSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -99,7 +99,7 @@ class FPCGExCreateSplineElement final : public FPCGExPathProcessorElement
 
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(CreateSpline)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
@@ -136,8 +136,7 @@ namespace PCGExCreateSpline
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void Output() override;
 		virtual void Cleanup() override;
 	};

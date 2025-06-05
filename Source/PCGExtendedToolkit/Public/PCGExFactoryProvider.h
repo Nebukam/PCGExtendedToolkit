@@ -7,13 +7,13 @@
 
 #include "PCGSettings.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 
 #include "PCGEx.h"
 #include "PCGExContext.h"
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
+#include "Data/PCGExPointData.h"
 
 #include "PCGExFactoryProvider.generated.h"
 
@@ -108,10 +108,14 @@ public:
 	virtual bool WantsPreparation(FPCGExContext* InContext) { return false; }
 	virtual bool Prepare(FPCGExContext* InContext) { return true; }
 
+	virtual void AddDataDependency(const UPCGData* InData);
+	virtual void BeginDestroy() override;
+	
 protected:
-	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode) override;
-	virtual void InitializeFromFactory(const UPCGExFactoryData* InFactoryData);
-	virtual void HandleFailedInitializationFromFactory(const UPCGPointData* InPointData);
+	
+	UPROPERTY()
+	TSet<UPCGData*> DataDependencies;
+	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -122,11 +126,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFactoryProviderSettings : public UPCGSettings
 	friend class FPCGExFactoryProviderElement;
 
 public:
+	//~Begin UObject interface
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+	
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FactoryProvider, "Factory : Provider", "Creates an abstract factory provider.",
-		FName(GetDisplayName()))
+	//PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FactoryProvider, "Factory : Provider", "Creates an abstract factory provider.", FName(GetDisplayName()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilter; }
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
@@ -148,6 +156,10 @@ public:
 #endif
 	//~End UPCGExFactoryProviderSettings
 
+	/** A dummy property used to drive cache invalidation on settings changes */
+	UPROPERTY()
+	int32 InternalCacheInvalidator = 0;
+		
 	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	EPCGExOptionState CachingBehavior = EPCGExOptionState::Default;
@@ -161,7 +173,6 @@ public:
 	bool bQuietMissingInputError = false;
 
 protected:
-	virtual bool IsCacheable() const { return false; } // Until I find a way to properly cache factories :(
 	virtual bool ShouldCache() const;
 };
 
@@ -196,8 +207,9 @@ public:
 		NewContext->SetState(PCGEx::State_InitialExecution);
 		return NewContext;
 	}
-	
+
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
+	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 };
 
 namespace PCGExFactories
@@ -241,7 +253,7 @@ namespace PCGExFactories
 		}
 
 		OutFactories.Sort([](const T_DEF& A, const T_DEF& B) { return A.Priority < B.Priority; });
-
+		
 		return true;
 	}
 
@@ -262,7 +274,8 @@ namespace PCGExFactories
 	template <typename T_DEF>
 	static void RegisterConsumableAttributesWithFacade(const TArray<TObjectPtr<const T_DEF>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InFacade)
 	{
-		check(InFacade->Source->GetContext())
+		FPCGContext::FSharedContext<FPCGExContext> SharedContext(InFacade->Source->GetContextHandle());
+		check(SharedContext.Get())
 
 		if (!InFacade->GetIn()) { return; }
 
@@ -272,14 +285,15 @@ namespace PCGExFactories
 
 		for (const TObjectPtr<const T_DEF>& Factory : InFactories)
 		{
-			Factory->RegisterConsumableAttributesWithData(InFacade->Source->GetContext(), Data);
+			Factory->RegisterConsumableAttributesWithData(SharedContext.Get(), Data);
 		}
 	}
 
 	template <typename T_DEF>
 	static void RegisterConsumableAttributesWithFacade(const TObjectPtr<const T_DEF>& InFactory, const TSharedPtr<PCGExData::FFacade>& InFacade)
 	{
-		check(InFacade->Source->GetContext())
+		FPCGContext::FSharedContext<FPCGExContext> SharedContext(InFacade->Source->GetContextHandle());
+		check(SharedContext.Get())
 
 		if (!InFacade->GetIn()) { return; }
 
@@ -287,7 +301,7 @@ namespace PCGExFactories
 
 		if (!Data) { return; }
 
-		InFactory->RegisterConsumableAttributesWithData(InFacade->Source->GetContext(), Data);
+		InFactory->RegisterConsumableAttributesWithData(SharedContext.Get(), Data);
 	}
 
 #if WITH_EDITOR

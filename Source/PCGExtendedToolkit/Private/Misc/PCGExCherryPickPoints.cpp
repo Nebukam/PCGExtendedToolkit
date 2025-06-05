@@ -76,75 +76,65 @@ namespace PCGExCherryPickPoints
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		PointDataFacade->Source->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
+
 		TSet<int32> UniqueIndices;
 
-		for (const TObjectPtr<const UPCGExPickerFactoryData>& Op : Context->PickerFactories)
-		{
-			Op->AddPicks(PointDataFacade->GetNum(), UniqueIndices);
-		}
+		// Grab picks
+		for (const TObjectPtr<const UPCGExPickerFactoryData>& Op : Context->PickerFactories) { Op->AddPicks(PointDataFacade->GetNum(), UniqueIndices); }
 
 		if (UniqueIndices.IsEmpty())
 		{
-			PointDataFacade->Source->Disable();
+			if (Settings->bOutputDiscardedPoints)
+			{
+				if (!Settings->bInvert) { PointDataFacade->Source->OutputPin = PCGExDiscardByPointCount::OutputDiscardedLabel; }
+				PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
+			}
+			else
+			{
+				if (Settings->bInvert) { PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward); }
+				else { PointDataFacade->Source->Disable(); }
+			}
 			return true;
 		}
 
 		if (!PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::New)) { return false; }
 
-		PointDataFacade->Source->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
-
-		const TArray<FPCGPoint>& SourcePoints = PointDataFacade->GetIn()->GetPoints();
-
-		const int32 NumPoints = SourcePoints.Num();
+		const UPCGBasePointData* SourcePoints = PointDataFacade->GetIn();
+		const int32 NumPoints = SourcePoints->GetNumPoints();
 		const int32 NumPicks = FMath::Min(UniqueIndices.Num(), NumPoints);
 
-		if (Settings->bInvert || Settings->bOutputDiscardedPoints)
+		TArray<int32> PickedIndices;
+		TArray<int32> DiscardedIndices;
+
+		PickedIndices.Reserve(NumPicks);
+		DiscardedIndices.Reserve(NumPoints - NumPicks);
+
+		if (Settings->bInvert)
 		{
-			// Work from set
-
-			if (Settings->bOutputDiscardedPoints)
+			for (int i = 0; i < NumPoints; i++)
 			{
-				const TSharedPtr<PCGExData::FPointIO> Discarded = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::New);
-
-				if (!Discarded) { return false; }
-
-				Discarded->OutputPin = PCGExDiscardByPointCount::OutputDiscardedLabel;
-				Discarded->IOIndex = PointDataFacade->Source->IOIndex;
-
-				Discarded->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
-
-				TArray<FPCGPoint>& PickedPoints = Settings->bInvert ? Discarded->GetMutablePoints() : PointDataFacade->GetMutablePoints();
-				TArray<FPCGPoint>& DiscardedPoints = Settings->bInvert ? PointDataFacade->GetMutablePoints() : Discarded->GetMutablePoints();
-
-				PickedPoints.Reserve(NumPicks);
-				DiscardedPoints.Reserve(NumPoints - NumPicks);
-
-				for (int32 i = 0; i < NumPoints; i++)
-				{
-					if (UniqueIndices.Contains(i)) { PickedPoints.Add(SourcePoints[i]); }
-					else { DiscardedPoints.Add(SourcePoints[i]); }
-				}
-			}
-			else
-			{
-				TArray<FPCGPoint>& PickedPoints = PointDataFacade->GetMutablePoints();
-				PickedPoints.Reserve(NumPoints - NumPicks);
-				for (int32 i = 0; i < NumPoints; i++) { if (!UniqueIndices.Contains(i)) { PickedPoints.Add(SourcePoints[i]); } }
+				if (!UniqueIndices.Contains(i)) { PickedIndices.Add(i); }
+				else { DiscardedIndices.Add(i); }
 			}
 		}
 		else
 		{
-			// Work from indices
+			for (int i = 0; i < NumPoints; i++)
+			{
+				if (UniqueIndices.Contains(i)) { PickedIndices.Add(i); }
+				else { DiscardedIndices.Add(i); }
+			}
+		}
 
-			TArray<FPCGPoint>& PickedPoints = PointDataFacade->GetMutablePoints();
+		PointDataFacade->Source->InheritPoints(PickedIndices, 0);
 
-			TArray<int32> PickedIndices = UniqueIndices.Array();
-			PickedIndices.Sort();
-
-
-			PickedPoints.Reserve(NumPicks);
-
-			for (int32 i = 0; i < NumPicks; i++) { PickedPoints.Add(SourcePoints[PickedIndices[i]]); }
+		if (Settings->bOutputDiscardedPoints)
+		{
+			if (TSharedPtr<PCGExData::FPointIO> Discarded = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::New))
+			{
+				PointDataFacade->Source->InheritPoints(DiscardedIndices, 0);
+			}
 		}
 
 		return true;

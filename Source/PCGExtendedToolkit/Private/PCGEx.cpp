@@ -7,13 +7,21 @@
 
 namespace PCGEx
 {
-	bool IsPCGExAttribute(const FString& InStr) { return InStr.StartsWith(PCGExPrefix); }
+	bool IsPCGExAttribute(const FString& InStr) { return InStr.Contains(PCGExPrefix); }
 
 	bool IsPCGExAttribute(const FName InName) { return IsPCGExAttribute(InName.ToString()); }
 
 	bool IsPCGExAttribute(const FText& InText) { return IsPCGExAttribute(InText.ToString()); }
 
-	bool IsValidName(const FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
+	bool IsWritableAttributeName(const FName Name)
+	{
+		// This is a very expensive check, however it's also futureproofing 
+		if (Name.IsNone()) { return false; }
+
+		FPCGAttributePropertyInputSelector DummySelector;
+		if (!DummySelector.Update(Name.ToString())) { return false; }
+		return DummySelector.GetSelection() == EPCGAttributePropertySelection::Attribute && DummySelector.IsValid();
+	}
 
 	FString StringTagFromName(const FName Name)
 	{
@@ -39,14 +47,40 @@ namespace PCGEx
 		}
 	}
 
-	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum)
+	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum, const int32 Offset)
 	{
-		{
-			const int32 _num_ = InNum;
-			OutArray.Reserve(_num_);
-			OutArray.SetNum(_num_);
-		}
-		for (int i = 0; i < InNum; i++) { OutArray[i] = i; }
+		OutArray.Reserve(InNum);
+		OutArray.SetNum(InNum);
+
+		for (int i = 0; i < InNum; i++) { OutArray[i] = Offset + i; }
+	}
+
+	int32 ArrayOfIndices(TArray<int32>& OutArray, const TArrayView<const int8>& Mask, const int32 Offset, const bool bInvert)
+	{
+		const int32 InNum = Mask.Num();
+
+		OutArray.Reset();
+		OutArray.Reserve(InNum);
+
+		if (bInvert) { for (int i = 0; i < InNum; i++) { if (!Mask[i]) { OutArray.Add(Offset + i); } } }
+		else { for (int i = 0; i < InNum; i++) { if (Mask[i]) { OutArray.Add(Offset + i); } } }
+
+		OutArray.Shrink();
+		return OutArray.Num();
+	}
+
+	int32 ArrayOfIndices(TArray<int32>& OutArray, const TBitArray<>& Mask, const int32 Offset, const bool bInvert)
+	{
+		const int32 InNum = Mask.Num();
+
+		OutArray.Reset();
+		OutArray.Reserve(InNum);
+
+		if (bInvert) { for (int i = 0; i < InNum; i++) { if (!Mask[i]) { OutArray.Add(Offset + i); } } }
+		else { for (int i = 0; i < InNum; i++) { if (Mask[i]) { OutArray.Add(Offset + i); } } }
+
+		OutArray.Shrink();
+		return OutArray.Num();
 	}
 
 	FName GetCompoundName(const FName A, const FName B)

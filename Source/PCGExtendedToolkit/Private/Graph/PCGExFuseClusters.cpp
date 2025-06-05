@@ -8,14 +8,14 @@
 
 
 #include "Graph/Data/PCGExClusterData.h"
-#include "Graph/PCGExUnionHelpers.h"
+#include "Graph/PCGExUnionProcessor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
 
-PCGExData::EIOInit UPCGExFuseClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
-PCGExData::EIOInit UPCGExFuseClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExFuseClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExFuseClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 #pragma endregion
 
@@ -113,7 +113,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->VtxFacades.Reserve(NumFacades);
 		Context->UnionProcessor->SourceEdgesIO = &Context->EdgesDataFacades;
 
-		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
+		for (const TSharedPtr<PCGExClusterMT::IClusterProcessorBatch>& Batch : Context->Batches)
 		{
 			Context->VtxFacades.Add(Batch->VtxDataFacade);
 		}
@@ -123,7 +123,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->UnionProcessor->Execute()) { return false; }
 
-	Context->UnionDataFacade->Source->StageOutput();
+	(void)Context->UnionDataFacade->Source->StageOutput(Context);
 	Context->Done();
 
 	return Context->TryComplete();
@@ -158,8 +158,6 @@ namespace PCGExFuseClusters
 			NumEdges = Cluster->Edges->Num();
 		}
 
-		InPoints = &VtxDataFacade->Source->GetIn()->GetPoints();
-
 		bInvalidEdges = false;
 		UnionGraph = Context->UnionGraph;
 
@@ -185,7 +183,6 @@ namespace PCGExFuseClusters
 
 			InsertEdges->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
-				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
 				PCGEX_ASYNC_THIS
 				This->InsertEdges(Scope, false);
 			};
@@ -200,29 +197,26 @@ namespace PCGExFuseClusters
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::FProcessor::InsertEdges);
 
-		const TArray<FPCGPoint>& InNodePts = *InPoints;
 		if (Cluster)
 		{
 			if (bUnsafe)
 			{
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
 					UnionGraph->InsertEdge_Unsafe(
-						InNodePts[Edge->Start], VtxIOIndex, Edge->Start,
-						InNodePts[Edge->End], VtxIOIndex, Edge->End,
-						EdgesIOIndex, Edge->PointIndex);
+						VtxDataFacade->GetInPoint(Edge->Start), VtxDataFacade->GetInPoint(Edge->End),
+						EdgeDataFacade->GetInPoint(Edge->PointIndex));
 				}
 			}
 			else
 			{
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge* Edge = Cluster->GetEdge(i);
 					UnionGraph->InsertEdge(
-						InNodePts[Edge->Start], VtxIOIndex, Edge->Start,
-						InNodePts[Edge->End], VtxIOIndex, Edge->End,
-						EdgesIOIndex, Edge->PointIndex);
+						VtxDataFacade->GetInPoint(Edge->Start), VtxDataFacade->GetInPoint(Edge->End),
+						EdgeDataFacade->GetInPoint(Edge->PointIndex));
 				}
 			}
 		}
@@ -230,24 +224,22 @@ namespace PCGExFuseClusters
 		{
 			if (bUnsafe)
 			{
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge& Edge = IndexedEdges[i];
 					UnionGraph->InsertEdge_Unsafe(
-						InNodePts[Edge.Start], VtxIOIndex, Edge.Start,
-						InNodePts[Edge.End], VtxIOIndex, Edge.End,
-						EdgesIOIndex, Edge.PointIndex);
+						VtxDataFacade->GetInPoint(Edge.Start), VtxDataFacade->GetInPoint(Edge.End),
+						EdgeDataFacade->GetInPoint(Edge.PointIndex));
 				}
 			}
 			else
 			{
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					const PCGExGraph::FEdge& Edge = IndexedEdges[i];
 					UnionGraph->InsertEdge(
-						InNodePts[Edge.Start], VtxIOIndex, Edge.Start,
-						InNodePts[Edge.End], VtxIOIndex, Edge.End,
-						EdgesIOIndex, Edge.PointIndex);
+						VtxDataFacade->GetInPoint(Edge.Start), VtxDataFacade->GetInPoint(Edge.End),
+						EdgeDataFacade->GetInPoint(Edge.PointIndex));
 				}
 			}
 		}

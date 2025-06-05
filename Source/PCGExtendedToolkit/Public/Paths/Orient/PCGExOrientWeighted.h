@@ -7,11 +7,41 @@
 #include "PCGExOrientOperation.h"
 #include "PCGExOrientWeighted.generated.h"
 
+class FPCGExOrientWeighted : public FPCGExOrientOperation
+{
+public:
+	bool bInverseWeight = false;
+
+	virtual FTransform ComputeOrientation(
+		const PCGExData::FConstPoint& Point,
+		const double DirectionMultiplier) const override
+	{
+		FTransform OutT = Point.GetTransform();
+
+		const FVector A = Path->GetPos(Point.Index - 1);
+		const FVector B = Path->GetPos(Point.Index);
+		const FVector C = Path->GetPos(Point.Index + 1);
+
+		const double AB = FVector::DistSquared(A, B);
+		const double BC = FVector::DistSquared(B, C);
+
+		const double Weight = (AB + BC) / FMath::Min(AB, BC);
+
+		OutT.SetRotation(
+			PCGExMath::MakeDirection(
+				Factory->OrientAxis,
+				FMath::Lerp(Path->DirToPrevPoint(Point.Index), Path->DirToNextPoint(Point.Index), bInverseWeight ? 1 - Weight : Weight).GetSafeNormal() * DirectionMultiplier,
+				PCGExMath::GetDirection(Factory->UpAxis)));
+
+		return OutT;
+	}
+};
+
 /**
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Weighted")
-class UPCGExOrientWeighted : public UPCGExOrientOperation
+class UPCGExOrientWeighted : public UPCGExOrientInstancedFactory
 {
 	GENERATED_BODY()
 
@@ -28,27 +58,11 @@ public:
 		}
 	}
 
-	virtual FTransform ComputeOrientation(
-		const PCGExData::FPointRef& Point,
-		const double DirectionMultiplier) const override
+	virtual TSharedPtr<FPCGExOrientOperation> CreateOperation() const override
 	{
-		FTransform OutT = Point.MutablePoint().Transform;
-
-		const FVector A = Path->GetPos(Point.Index - 1);
-		const FVector B = Path->GetPos(Point.Index);
-		const FVector C = Path->GetPos(Point.Index + 1);
-
-		const double AB = FVector::DistSquared(A, B);
-		const double BC = FVector::DistSquared(B, C);
-
-		const double Weight = (AB + BC) / FMath::Min(AB, BC);
-
-		OutT.SetRotation(
-			PCGExMath::MakeDirection(
-				OrientAxis,
-				FMath::Lerp(Path->DirToPrevPoint(Point.Index), Path->DirToNextPoint(Point.Index), bInverseWeight ? 1 - Weight : Weight).GetSafeNormal() * DirectionMultiplier,
-				PCGExMath::GetDirection(UpAxis)));
-
-		return OutT;
+		PCGEX_FACTORY_NEW_OPERATION(OrientWeighted)
+		NewOperation->Factory = this;
+		NewOperation->bInverseWeight = bInverseWeight;
+		return NewOperation;
 	}
 };

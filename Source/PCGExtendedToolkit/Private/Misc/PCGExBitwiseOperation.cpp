@@ -85,9 +85,16 @@ namespace PCGExBitwiseOperation
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		PCGExBitmask::Do(Op, Writer->GetMutable(Index), Mask->Read(Index));
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BitwiseOperation::ProcessPoints);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			int64 OutValue = Writer->GetValue(Index);
+			PCGExBitmask::Do(Op, OutValue, Mask->Read(Index));
+			Writer->SetValue(Index, OutValue);
+		}
 	}
 
 	void FProcessor::CompleteWork()

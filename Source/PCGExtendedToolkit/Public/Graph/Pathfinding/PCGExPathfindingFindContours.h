@@ -105,7 +105,6 @@ struct FPCGExFindContoursContext final : FPCGExEdgesProcessorContext
 	TSharedPtr<PCGExData::FPointIO> BadSeeds;
 
 	TArray<int8> SeedQuality;
-	TArray<FPCGPoint> UdpatedSeedPoints;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
@@ -115,7 +114,7 @@ class FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FindContours)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -148,7 +147,8 @@ namespace PCGExFindContours
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSingleRangeIteration(int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+
 		void ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell);
 		virtual void CompleteWork() override;
 		virtual void Cleanup() override;

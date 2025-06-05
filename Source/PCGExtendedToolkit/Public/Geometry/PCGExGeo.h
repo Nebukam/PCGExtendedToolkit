@@ -7,7 +7,6 @@
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "PCGExFitting.h"
-#include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 
 
@@ -54,7 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	FQuat ProjectionQuat = FQuat::Identity;
 	FQuat ProjectionInverseQuat = FQuat::Identity;
 
-	bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
+	bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
 
 	~FPCGExGeo2DProjectionDetails()
 	{
@@ -72,27 +71,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	template <typename T>
 	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions) const
 	{
-		const TArray<FPCGPoint>& InPoints = InFacade->Source->GetInOut()->GetPoints();
-		const int32 NumVectors = InPoints.Num();
+		const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
+		const int32 NumVectors = Transforms.Num();
 		PCGEx::InitArray(OutPositions, NumVectors);
-		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = T(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
+		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
 	}
 
 	template <typename T>
 	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const PCGExMT::FScope& Scope) const
 	{
-		const TArray<FPCGPoint>& InPoints = InFacade->Source->GetInOut()->GetPoints();
-		const int32 NumVectors = InPoints.Num();
+		const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
+		const int32 NumVectors = Transforms.Num();
 		if (OutPositions.Num() < NumVectors) { PCGEx::InitArray(OutPositions, NumVectors); }
 
-		for (int i = Scope.Start; i < Scope.End; i++) { OutPositions[i] = T(ProjectFlat(InPoints[i].Transform.GetLocation(), i)); }
+		PCGEX_SCOPE_LOOP(i) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
 	}
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const;
-	void Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const;
-	void Project(const TArray<FVector>& InPositions, TArray<FVector2D>& OutPositions) const;
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const;
-	void Project(const TArray<FPCGPoint>& InPoints, TArray<FVector>& OutPositions) const;
 };
 
 USTRUCT(BlueprintType)
@@ -181,7 +177,7 @@ namespace PCGExGeo
 	void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCentroid);
 	void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], uint64& Edge);
 	void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], uint64& Edge);
-	void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector>& OutPositions);
+	void PointsToPositions(const UPCGBasePointData* InPointData, TArray<FVector>& OutPositions);
 	FVector GetBarycentricCoordinates(const FVector& Point, const FVector& A, const FVector& B, const FVector& C);
 	bool IsPointInTriangle(const FVector& P, const FVector& A, const FVector& B, const FVector& C);
 
@@ -277,7 +273,8 @@ namespace PCGExGeoTasks
 		FTransformPointIO(const int32 InTaskIndex,
 		                  const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                  const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO,
-		                  FPCGExTransformDetails* InTransformDetails) :
+		                  FPCGExTransformDetails* InTransformDetails,
+		                  bool bAllocate = false) :
 			FPCGExIndexedTask(InTaskIndex),
 			PointIO(InPointIO),
 			ToBeTransformedIO(InToBeTransformedIO),

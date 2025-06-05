@@ -4,13 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
-
+#include "Data/Blending/PCGExBlendOpsManager.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExFloodFill.generated.h"
 
-class FPCGExAttributeBlendOperation;
+class FPCGExBlendOperation;
 class UPCGExFillControlsFactoryData;
 class FPCGExFillControlOperation;
 
@@ -124,7 +123,7 @@ namespace PCGExFloodFill
 		int32 SeedIndex = -1;
 		TSet<int32> Endpoints;
 
-		TSharedPtr<PCGEx::FMapHashLookup> TravelStack; // Required for FillControls & Heuristics
+		TSharedPtr<PCGEx::FHashLookupMap> TravelStack; // Required for FillControls & Heuristics
 		TSharedPtr<PCGExCluster::FCluster> Cluster;
 
 		TArray<FCandidate> Candidates;

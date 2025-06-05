@@ -3,7 +3,6 @@
 
 #include "Graph/States/PCGExFlagNodes.h"
 
-#include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/States/PCGExClusterStates.h"
 
@@ -83,9 +82,16 @@ namespace PCGExFlagNodes
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		StateManager->Test(Node);
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExCluster::FNode& Node = Nodes[Index];
+
+			StateManager->Test(Node);
+		}
 	}
 
 	void FProcessor::CompleteWork()
@@ -115,7 +121,8 @@ namespace PCGExFlagNodes
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
 
 		const TSharedPtr<PCGExData::TBuffer<int64>> Writer = VtxDataFacade->GetWritable(Settings->FlagAttribute, Settings->InitialFlags, false, PCGExData::EBufferInit::Inherit);
-		StateFlags = Writer->GetOutValues();
+		const TSharedPtr<PCGExData::TArrayBuffer<int64>> ElementsWriter = StaticCastSharedPtr<PCGExData::TArrayBuffer<int64>>(Writer);
+		StateFlags = ElementsWriter->GetOutValues();
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}

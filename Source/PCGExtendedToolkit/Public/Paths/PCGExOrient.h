@@ -21,17 +21,17 @@ enum class EPCGExOrientUsage : uint8
 
 namespace PCGExOrient
 {
-	static double DotProduct(const PCGExData::FPointRef& CurrentPt, const PCGExData::FPointRef& PreviousPt, const PCGExData::FPointRef& NextPt)
+	static double DotProduct(const PCGExData::FConstPoint& CurrentPt, const PCGExData::FConstPoint& PreviousPt, const PCGExData::FConstPoint& NextPt)
 	{
-		const FVector Mid = CurrentPt.Point->Transform.GetLocation();
-		return FVector::DotProduct((PreviousPt.Point->Transform.GetLocation() - Mid).GetSafeNormal(), (Mid - NextPt.Point->Transform.GetLocation()).GetSafeNormal());
+		const FVector Mid = CurrentPt.GetTransform().GetLocation();
+		return FVector::DotProduct((PreviousPt.GetTransform().GetLocation() - Mid).GetSafeNormal(), (Mid - NextPt.GetTransform().GetLocation()).GetSafeNormal());
 	}
 }
 
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/orient"))
 class UPCGExOrientSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -61,7 +61,7 @@ public:
 	EPCGExAxis UpAxis = EPCGExAxis::Up;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExOrientOperation> Orientation;
+	TObjectPtr<UPCGExOrientInstancedFactory> Orientation;
 
 	/** Default value, can be overriden per-point through filters. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -88,14 +88,14 @@ struct FPCGExOrientContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExOrientElement;
 
-	UPCGExOrientOperation* Orientation;
+	UPCGExOrientInstancedFactory* Orientation;
 };
 
 class FPCGExOrientElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(Orient)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -110,7 +110,7 @@ namespace PCGExOrient
 
 		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> DotWriter;
-		UPCGExOrientOperation* Orient = nullptr;
+		TSharedPtr<FPCGExOrientOperation> Orient;
 		int32 LastIndex = 0;
 
 	public:
@@ -122,8 +122,7 @@ namespace PCGExOrient
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};
 }

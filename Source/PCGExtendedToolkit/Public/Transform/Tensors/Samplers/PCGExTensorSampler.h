@@ -7,7 +7,6 @@
 #include "PCGExInstancedFactory.h"
 #include "UObject/Object.h"
 
-#include "PCGExOperation.h"
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"
 

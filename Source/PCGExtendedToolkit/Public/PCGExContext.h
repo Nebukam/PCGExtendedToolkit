@@ -37,35 +37,17 @@ namespace PCGEx
 struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 {
 protected:
-	TSharedPtr<PCGEx::FWorkPermit> WorkPermit;
-
 	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetDependenciesLock;
 
-	TArray<FPCGTaggedData> StagedOutputs;
+	TSharedPtr<PCGEx::FWorkPermit> WorkPermit;
+
 	bool bFlattenOutput = false;
 
 	TSet<FName> ConsumableAttributesSet;
 	TSet<FName> ProtectedAttributesSet;
 
-	void CommitStagedOutputs();
-
 public:
-	template <typename T>
-	class FPCGExSharedContext
-	{
-	public:
-		FPCGExSharedContext(const TWeakPtr<FPCGContextHandle>& WeakHandle)
-		{
-			SharedHandle = WeakHandle.Pin();
-		}
-
-		T* Get() const { return SharedHandle.IsValid() ? static_cast<T*>(SharedHandle->GetContext()) : nullptr; }
-
-	private:
-		TSharedPtr<FPCGContextHandle> SharedHandle;
-	};
-
 	TWeakPtr<PCGEx::FWorkPermit> GetWorkPermit() { return WorkPermit; }
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
 
@@ -77,8 +59,8 @@ public:
 
 	void IncreaseStagedOutputReserve(const int32 InIncreaseNum);
 
-	void StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, bool bManaged, bool bIsMutable);
-	void StageOutput(const FName Pin, UPCGData* InData, bool bManaged);
+	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged, const bool bIsMutable);
+	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged);
 
 	UWorld* GetWorld() const;
 	const UPCGComponent* GetComponent() const;
@@ -165,6 +147,8 @@ protected:
 	void ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) const;
 
 	bool bExecutionCancelled = false;
+
+	virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override;
 
 public:
 	void AddNotifyActor(AActor* InActor);

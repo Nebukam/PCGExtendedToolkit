@@ -10,7 +10,7 @@
 #include "PCGExTopologyEdgesProcessor.h"
 #include "PCGExTopologyClusterSurface.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "collision"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "collision"), meta=(PCGExNodeLibraryDoc="tensors/clusters/topology/cluster-surface"))
 class UPCGExTopologyClusterSurfaceSettings : public UPCGExTopologyEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -41,10 +41,8 @@ public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 
 protected:
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-
 	PCGEX_ELEMENT_CREATE_CONTEXT(TopologyClusterSurface)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -70,8 +68,7 @@ namespace PCGExTopologyClusterSurface
 
 		virtual void CompleteWork() override;
 		virtual void PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		bool FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, int32 LoopIdx, const bool bSkipBinary = true);
 		void EnsureRoamingClosedLoopProcessing();
 		virtual void OnEdgesProcessingComplete() override;

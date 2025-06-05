@@ -7,7 +7,7 @@
 #include "PCGExCompare.h"
 #include "PCGExDetailsData.h"
 
-#include "Utils/PCGPointOctree.h" 
+#include "Utils/PCGPointOctree.h"
 
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"

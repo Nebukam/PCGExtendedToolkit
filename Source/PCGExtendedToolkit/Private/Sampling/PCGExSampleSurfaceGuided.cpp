@@ -34,6 +34,9 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
+	PCGEX_FWD(ApplySampling)
+	Context->ApplySampling.Init();
+
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	if (Settings->bWriteRenderMat && Settings->bExtractTextureParameters)
@@ -120,9 +123,20 @@ namespace PCGExSampleSurfaceGuided
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
+		// Allocate edge native properties
 
-		OriginGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Origin);
+		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
+
+		if (Context->ApplySampling.WantsApply())
+		{
+			AllocateFor |= EPCGPointNativeProperties::Transform;
+		}
+
+		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
+
+		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
+
+		OriginGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->Origin, true);
 
 		if (!OriginGetter)
 		{
@@ -130,7 +144,7 @@ namespace PCGExSampleSurfaceGuided
 			return false;
 		}
 
-		DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Direction);
+		DirectionGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->Direction, true);
 
 		if (!DirectionGetter)
 		{
@@ -150,7 +164,7 @@ namespace PCGExSampleSurfaceGuided
 
 		if (Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Attribute)
 		{
-			MaxDistanceGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalMaxDistance);
+			MaxDistanceGetter = PointDataFacade->GetBroadcaster<double>(Settings->LocalMaxDistance, true);
 			if (!MaxDistanceGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("LocalMaxDistance missing"));
@@ -170,189 +184,212 @@ namespace PCGExSampleSurfaceGuided
 		MaxDistanceValue = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleSurfaceGuided::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		const FVector Direction = DirectionGetter->Read(Index).GetSafeNormal();
-		const FVector Origin = OriginGetter->Read(Index);
-		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Constant ? Settings->MaxDistance : Direction.Length();
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 
-		auto SamplingFailed = [&]()
+		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			SampleState[Index] = false;
+			const FVector Direction = DirectionGetter->Read(Index).GetSafeNormal();
+			const FVector Origin = OriginGetter->Read(Index);
+			const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Constant ? Settings->MaxDistance : Direction.Length();
 
-			PCGEX_OUTPUT_VALUE(Location, Index, Point.Transform.GetLocation())
-			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1)
-			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
-			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
-			//PCGEX_OUTPUT_VALUE(UVCoords, Index, FVector2D::ZeroVector)
-			//PCGEX_OUTPUT_VALUE(FaceIndex, Index, -1)
-			//PCGEX_OUTPUT_VALUE(RenderMat, Index, -1)
-			//PCGEX_OUTPUT_VALUE(IsInside, Index, false)
-			//PCGEX_OUTPUT_VALUE(Success, Index, false)
-			//PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
-			//PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
-			if (TexParamLookup) { TexParamLookup->ExtractParams(Index, nullptr); }
-		};
+			auto SamplingFailed = [&]()
+			{
+				SamplingMask[Index] = false;
 
-		if (!PointFilterCache[Index])
-		{
-			if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(); }
-			return;
+				PCGEX_OUTPUT_VALUE(Location, Index, InTransforms[Index].GetLocation())
+				PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1)
+				PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
+				PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
+				//PCGEX_OUTPUT_VALUE(UVCoords, Index, FVector2D::ZeroVector)
+				//PCGEX_OUTPUT_VALUE(FaceIndex, Index, -1)
+				//PCGEX_OUTPUT_VALUE(RenderMat, Index, -1)
+				//PCGEX_OUTPUT_VALUE(IsInside, Index, false)
+				//PCGEX_OUTPUT_VALUE(Success, Index, false)
+				//PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
+				//PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
+				if (TexParamLookup) { TexParamLookup->ExtractParams(Index, nullptr); }
+			};
+
+
+			if (!PointFilterCache[Index])
+			{
+				if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(); }
+				continue;
+			}
+
+			FCollisionQueryParams CollisionParams;
+			Context->CollisionSettings.Update(CollisionParams);
+			CollisionParams.bReturnPhysicalMaterial = Settings->bWritePhysMat;
+			CollisionParams.bReturnFaceIndex = Settings->bWriteFaceIndex || Settings->bWriteUVCoords;
+
+			const FVector Trace = Direction * MaxDistance;
+			const FVector End = Origin + Trace;
+
+			bool bSuccess = false;
+			int32* HitIndex = nullptr;
+			FHitResult HitResult;
+			TArray<FHitResult> HitResults;
+
+			auto ProcessTraceResult = [&]()
+			{
+				bSuccess = true;
+
+				const double HitDistance = FVector::Distance(HitResult.ImpactPoint, Origin);
+				PCGEX_OUTPUT_VALUE(Location, Index, HitResult.ImpactPoint)
+				PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
+				PCGEX_OUTPUT_VALUE(Normal, Index, HitResult.ImpactNormal)
+				PCGEX_OUTPUT_VALUE(Distance, Index, HitDistance)
+				PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.Normal) > 0)
+				PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
+
+				MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), HitDistance));
+
+				if (Context->ApplySampling.WantsApply())
+				{
+					PCGExData::FMutablePoint MutablePoint(OutPointData, Index);
+					const FTransform OutTransform = FTransform(FRotationMatrix::MakeFromX(Direction).ToQuat(), HitResult.ImpactPoint, FVector::OneVector);
+					Context->ApplySampling.Apply(MutablePoint, OutTransform, OutTransform);
+				}
+
+				if (Settings->bWriteUVCoords)
+				{
+					FVector2D UVCoords = FVector2D::ZeroVector;
+					if (UGameplayStatics::FindCollisionUV(HitResult, Settings->UVChannel, UVCoords)) { PCGEX_OUTPUT_VALUE(UVCoords, Index, UVCoords) }
+					else { PCGEX_OUTPUT_VALUE(UVCoords, Index, FVector2D::ZeroVector) }
+				}
+
+				PCGEX_OUTPUT_VALUE(FaceIndex, Index, HitResult.FaceIndex)
+
+				SamplingMask[Index] = bSuccess;
+
+				if (const AActor* HitActor = HitResult.GetActor())
+				{
+					HitIndex = Context->IncludedActors.Find(HitActor);
+					PCGEX_OUTPUT_VALUE(ActorReference, Index, FSoftObjectPath(HitActor->GetPathName()))
+				}
+
+				if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, FSoftObjectPath(PhysMat->GetPathName())) }
+				if (const UPrimitiveComponent* HitComponent = HitResult.GetComponent())
+				{
+					PCGEX_OUTPUT_VALUE(HitComponentReference, Index, FSoftObjectPath(HitComponent->GetPathName()))
+					UMaterialInterface* RenderMat = HitComponent->GetMaterial(Settings->RenderMaterialIndex);
+					PCGEX_OUTPUT_VALUE(RenderMat, Index, FSoftObjectPath(RenderMat ? RenderMat->GetPathName() : TEXT("")))
+					if (TexParamLookup) { TexParamLookup->ExtractParams(Index, RenderMat); }
+				}
+
+				if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
+
+				FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
+			};
+
+			auto ProcessMultipleTraceResult = [&]()
+			{
+				for (const FHitResult& Hit : HitResults)
+				{
+					if (Context->IncludedActors.Contains(Hit.GetActor()))
+					{
+						HitResult = Hit;
+						ProcessTraceResult();
+						return;
+					}
+				}
+			};
+
+			switch (Context->CollisionSettings.CollisionType)
+			{
+			case EPCGExCollisionFilterType::Channel:
+				if (Context->bUseInclude)
+				{
+					if (World->LineTraceMultiByChannel(
+						HitResults, Origin, End,
+						Context->CollisionSettings.CollisionChannel, CollisionParams))
+					{
+						ProcessMultipleTraceResult();
+					}
+				}
+				else
+				{
+					if (World->LineTraceSingleByChannel(
+						HitResult, Origin, End,
+						Context->CollisionSettings.CollisionChannel, CollisionParams))
+					{
+						ProcessTraceResult();
+					}
+				}
+				break;
+			case EPCGExCollisionFilterType::ObjectType:
+				if (Context->bUseInclude)
+				{
+					if (World->LineTraceMultiByObjectType(
+						HitResults, Origin, End,
+						FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams))
+					{
+						ProcessMultipleTraceResult();
+					}
+				}
+				else
+				{
+					if (World->LineTraceSingleByObjectType(
+						HitResult, Origin, End,
+						FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams)) { ProcessTraceResult(); }
+				}
+				break;
+			case EPCGExCollisionFilterType::Profile:
+				if (Context->bUseInclude)
+				{
+					if (World->LineTraceMultiByProfile(
+						HitResults, Origin, End,
+						Context->CollisionSettings.CollisionProfileName, CollisionParams))
+					{
+						ProcessMultipleTraceResult();
+					}
+				}
+				else
+				{
+					if (World->LineTraceSingleByProfile(
+						HitResult, Origin, End,
+						Context->CollisionSettings.CollisionProfileName, CollisionParams)) { ProcessTraceResult(); }
+				}
+				break;
+			default:
+				break;
+			}
+
+			if (!bSuccess) { SamplingFailed(); }
 		}
-
-		FCollisionQueryParams CollisionParams;
-		Context->CollisionSettings.Update(CollisionParams);
-		CollisionParams.bReturnPhysicalMaterial = Settings->bWritePhysMat;
-		CollisionParams.bReturnFaceIndex = Settings->bWriteFaceIndex || Settings->bWriteUVCoords;
-
-		const FVector Trace = Direction * MaxDistance;
-		const FVector End = Origin + Trace;
-
-		bool bSuccess = false;
-		int32* HitIndex = nullptr;
-		FHitResult HitResult;
-		TArray<FHitResult> HitResults;
-
-		auto ProcessTraceResult = [&]()
-		{
-			bSuccess = true;
-
-			const double HitDistance = FVector::Distance(HitResult.ImpactPoint, Origin);
-			PCGEX_OUTPUT_VALUE(Location, Index, HitResult.ImpactPoint)
-			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
-			PCGEX_OUTPUT_VALUE(Normal, Index, HitResult.ImpactNormal)
-			PCGEX_OUTPUT_VALUE(Distance, Index, HitDistance)
-			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.Normal) > 0)
-			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
-
-			MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), HitDistance));
-
-			if (Settings->bWriteUVCoords)
-			{
-				FVector2D UVCoords = FVector2D::ZeroVector;
-				if (UGameplayStatics::FindCollisionUV(HitResult, Settings->UVChannel, UVCoords)) { PCGEX_OUTPUT_VALUE(UVCoords, Index, UVCoords) }
-				else { PCGEX_OUTPUT_VALUE(UVCoords, Index, FVector2D::ZeroVector) }
-			}
-
-			PCGEX_OUTPUT_VALUE(FaceIndex, Index, HitResult.FaceIndex)
-
-			SampleState[Index] = bSuccess;
-
-			if (const AActor* HitActor = HitResult.GetActor())
-			{
-				HitIndex = Context->IncludedActors.Find(HitActor);
-				PCGEX_OUTPUT_VALUE(ActorReference, Index, FSoftObjectPath(HitActor->GetPathName()))
-			}
-
-			if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, FSoftObjectPath(PhysMat->GetPathName())) }
-			if (const UPrimitiveComponent* HitComponent = HitResult.GetComponent())
-			{
-				PCGEX_OUTPUT_VALUE(HitComponentReference, Index, FSoftObjectPath(HitComponent->GetPathName()))
-				UMaterialInterface* RenderMat = HitComponent->GetMaterial(Settings->RenderMaterialIndex);
-				PCGEX_OUTPUT_VALUE(RenderMat, Index, FSoftObjectPath(RenderMat ? RenderMat->GetPathName() : TEXT("")))
-				if (TexParamLookup) { TexParamLookup->ExtractParams(Index, RenderMat); }
-			}
-
-			if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
-
-			FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
-		};
-
-		auto ProcessMultipleTraceResult = [&]()
-		{
-			for (const FHitResult& Hit : HitResults)
-			{
-				if (Context->IncludedActors.Contains(Hit.GetActor()))
-				{
-					HitResult = Hit;
-					ProcessTraceResult();
-					return;
-				}
-			}
-		};
-
-		switch (Context->CollisionSettings.CollisionType)
-		{
-		case EPCGExCollisionFilterType::Channel:
-			if (Context->bUseInclude)
-			{
-				if (World->LineTraceMultiByChannel(
-					HitResults, Origin, End,
-					Context->CollisionSettings.CollisionChannel, CollisionParams))
-				{
-					ProcessMultipleTraceResult();
-				}
-			}
-			else
-			{
-				if (World->LineTraceSingleByChannel(
-					HitResult, Origin, End,
-					Context->CollisionSettings.CollisionChannel, CollisionParams))
-				{
-					ProcessTraceResult();
-				}
-			}
-			break;
-		case EPCGExCollisionFilterType::ObjectType:
-			if (Context->bUseInclude)
-			{
-				if (World->LineTraceMultiByObjectType(
-					HitResults, Origin, End,
-					FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams))
-				{
-					ProcessMultipleTraceResult();
-				}
-			}
-			else
-			{
-				if (World->LineTraceSingleByObjectType(
-					HitResult, Origin, End,
-					FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams)) { ProcessTraceResult(); }
-			}
-			break;
-		case EPCGExCollisionFilterType::Profile:
-			if (Context->bUseInclude)
-			{
-				if (World->LineTraceMultiByProfile(
-					HitResults, Origin, End,
-					Context->CollisionSettings.CollisionProfileName, CollisionParams))
-				{
-					ProcessMultipleTraceResult();
-				}
-			}
-			else
-			{
-				if (World->LineTraceSingleByProfile(
-					HitResult, Origin, End,
-					Context->CollisionSettings.CollisionProfileName, CollisionParams)) { ProcessTraceResult(); }
-			}
-			break;
-		default:
-			break;
-		}
-
-		if (!bSuccess) { SamplingFailed(); }
 	}
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
 		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
-		MaxSampledDistance = MaxDistanceValue->Max();
-		StartParallelLoopForRange(PointDataFacade->GetNum());
-	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
-	{
-		double& D = DistanceWriter->GetMutable(Iteration);
-		D /= MaxSampledDistance;
-		if (Settings->bOutputOneMinusDistance) { D = 1 - D; }
-		D *= Settings->DistanceScale;
+		const int32 NumPoints = PointDataFacade->GetNum();
+
+		if (Settings->bOutputOneMinusDistance)
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				const double D = DistanceWriter->GetValue(i);
+				DistanceWriter->SetValue(i, (1 - (D / MaxSampledDistance)) * Settings->DistanceScale);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				const double D = DistanceWriter->GetValue(i);
+				DistanceWriter->SetValue(i, (D / MaxSampledDistance) * Settings->DistanceScale);
+			}
+		}
 	}
 
 	void FProcessor::CompleteWork()
@@ -365,7 +402,7 @@ namespace PCGExSampleSurfaceGuided
 
 	void FProcessor::Write()
 	{
-		PCGExSampling::PruneFailedSamples(PointDataFacade->GetMutablePoints(), SampleState);
+		if (Settings->bPruneFailedSamples) { (void)PointDataFacade->Source->Gather(SamplingMask); }
 	}
 }
 

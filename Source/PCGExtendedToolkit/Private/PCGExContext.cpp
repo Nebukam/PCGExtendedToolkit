@@ -13,57 +13,68 @@
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
-void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable)
+FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged, const bool bIsMutable)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutput);
+
+	int32 Index = -1;
 	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
 
-		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
-		Output.Pin = Pin;
+		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
 		Output.Data = InData;
-		Output.Tags.Append(InTags);
+		Index = OutputData.TaggedData.Num() - 1;
 	}
 	else
 	{
-		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
-		Output.Pin = Pin;
+		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
 		Output.Data = InData;
-		Output.Tags.Append(InTags);
+		Index = OutputData.TaggedData.Num() - 1;
 	}
 
-	if (bManaged) { ManagedObjects->Add(InData); }
-	if (bIsMutable && bCleanupConsumableAttributes)
+	bool bIsNewlyManaged = false;
+
+	if (bManaged) { bIsNewlyManaged = ManagedObjects->Add(InData); }
+	if (bIsMutable)
 	{
-		if (UPCGMetadata* Metadata = InData->MutableMetadata())
+		if (bCleanupConsumableAttributes)
 		{
-			for (const FName ConsumableName : ConsumableAttributesSet)
+			if (UPCGMetadata* Metadata = InData->MutableMetadata())
 			{
-				if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
-				Metadata->DeleteAttribute(ConsumableName);
+				for (const FName ConsumableName : ConsumableAttributesSet)
+				{
+					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+					Metadata->DeleteAttribute(ConsumableName);
+				}
 			}
 		}
+
+		if (bFlattenOutput && bIsNewlyManaged) { InData->Flatten(); }
 	}
+
+	return OutputData.TaggedData[Index];
 }
 
-void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const bool bManaged)
+FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged)
 {
+	int32 Index = -1;
 	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
-		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
-		Output.Pin = Pin;
+		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
 		Output.Data = InData;
+		Index = OutputData.TaggedData.Num() - 1;
 	}
 	else
 	{
-		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
-		Output.Pin = Pin;
+		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
 		Output.Data = InData;
+		Index = OutputData.TaggedData.Num() - 1;
 	}
 
 	if (bManaged) { ManagedObjects->Add(InData); }
+	return OutputData.TaggedData[Index];
 }
 
 UWorld* FPCGExContext::GetWorld() const { return GetComponent()->GetWorld(); }
@@ -75,7 +86,7 @@ const UPCGComponent* FPCGExContext::GetComponent() const
 
 UPCGComponent* FPCGExContext::GetMutableComponent() const
 {
-	return const_cast<UPCGComponent*>(Cast<UPCGComponent>(ExecutionSource.Get()));
+	return Cast<UPCGComponent>(ExecutionSource.Get());
 }
 
 void FPCGExContext::PauseContext()
@@ -88,22 +99,10 @@ void FPCGExContext::UnpauseContext()
 	bIsPaused = false;
 }
 
-void FPCGExContext::CommitStagedOutputs()
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::CommitStagedOutputs);
-
-	ManagedObjects->Remove(StagedOutputs);
-
-	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + StagedOutputs.Num());
-	OutputData.TaggedData.Append(StagedOutputs);
-
-	StagedOutputs.Empty();
-}
-
 FPCGExContext::FPCGExContext()
 {
 	WorkPermit = MakeShared<PCGEx::FWorkPermit>();
-	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this, WorkPermit);
+	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this);
 	UniqueNameGenerator = MakeShared<PCGEx::FUniqueNameGenerator>();
 }
 
@@ -117,7 +116,7 @@ FPCGExContext::~FPCGExContext()
 void FPCGExContext::IncreaseStagedOutputReserve(const int32 InIncreaseNum)
 {
 	FWriteScopeLock WriteScopeLock(StagedOutputLock);
-	StagedOutputs.Reserve(StagedOutputs.Max() + InIncreaseNum);
+	OutputData.TaggedData.Reserve(OutputData.TaggedData.Max() + InIncreaseNum);
 }
 
 void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) const
@@ -139,6 +138,12 @@ void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) co
 	}
 }
 
+void FPCGExContext::AddExtraStructReferencedObjects(FReferenceCollector& Collector)
+{
+	FPCGContext::AddExtraStructReferencedObjects(Collector);
+	ManagedObjects->AddExtraStructReferencedObjects(Collector);
+}
+
 void FPCGExContext::AddNotifyActor(AActor* InActor)
 {
 	if (IsValid(InActor))
@@ -150,19 +155,10 @@ void FPCGExContext::AddNotifyActor(AActor* InActor)
 
 void FPCGExContext::OnComplete()
 {
-	CommitStagedOutputs();
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::OnComplete);
 
-	if (bFlattenOutput)
-	{
-		TSet<uint64> InputUIDs;
-		InputUIDs.Reserve(OutputData.TaggedData.Num());
-		for (FPCGTaggedData& InTaggedData : InputData.TaggedData) { if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InTaggedData.Data)) { InputUIDs.Add(SpatialData->UID); } }
-
-		for (FPCGTaggedData& OutTaggedData : OutputData.TaggedData)
-		{
-			if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(OutTaggedData.Data); SpatialData && !InputUIDs.Contains(SpatialData->UID)) { SpatialData->Metadata->Flatten(); }
-		}
-	}
+	FWriteScopeLock WriteScopeLock(StagedOutputLock);
+	ManagedObjects->Remove(OutputData.TaggedData);
 }
 
 
@@ -263,8 +259,8 @@ void FPCGExContext::LoadAssets()
 			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 				RequiredAssets->Array(), [CtxHandle]()
 				{
-					const FPCGExContext::FPCGExSharedContext<FPCGExContext> SharedContext(CtxHandle);
-					if (FPCGExContext* NestedThis = SharedContext.Get()) { NestedThis->UnpauseContext(); }
+					PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+					SharedContext.Get()->UnpauseContext();
 				});
 
 			if (!LoadHandle || !LoadHandle->IsActive())
@@ -287,15 +283,15 @@ void FPCGExContext::LoadAssets()
 			AsyncTask(
 				ENamedThreads::GameThread, [CtxHandle]()
 				{
-					const FPCGExContext::FPCGExSharedContext<FPCGExContext> SharedContext(CtxHandle);
+					PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+
 					FPCGExContext* This = SharedContext.Get();
-					if (!This) { return; }
 
 					This->LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 						This->RequiredAssets->Array(), [CtxHandle]()
 						{
-							const FPCGExContext::FPCGExSharedContext<FPCGExContext> SharedContext(CtxHandle);
-							if (FPCGExContext* NestedThis = SharedContext.Get()) { NestedThis->UnpauseContext(); }
+							PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+							SharedContext.Get()->UnpauseContext();
 						});
 
 					if (!This->LoadHandle || !This->LoadHandle->IsActive())

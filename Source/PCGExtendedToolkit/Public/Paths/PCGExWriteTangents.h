@@ -9,13 +9,13 @@
 #include "PCGExPointsProcessor.h"
 
 
-#include "Tangents/PCGExTangentsOperation.h"
+#include "Tangents/PCGExTangentsInstancedFactory.h"
 #include "PCGExWriteTangents.generated.h"
 
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/write-tangents"))
 class UPCGExWriteTangentsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -43,13 +43,13 @@ public:
 	FName LeaveName = "LeaveTangent";
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExTangentsOperation> Tangents;
+	TObjectPtr<UPCGExTangentsInstancedFactory> Tangents;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExTangentsOperation> StartTangents;
+	TObjectPtr<UPCGExTangentsInstancedFactory> StartTangents;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExTangentsOperation> EndTangents;
+	TObjectPtr<UPCGExTangentsInstancedFactory> EndTangents;
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scaling", meta=(PCG_NotOverridable))
@@ -79,16 +79,16 @@ struct FPCGExWriteTangentsContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExWriteTangentsElement;
 
-	UPCGExTangentsOperation* Tangents = nullptr;
-	UPCGExTangentsOperation* StartTangents = nullptr;
-	UPCGExTangentsOperation* EndTangents = nullptr;
+	UPCGExTangentsInstancedFactory* Tangents = nullptr;
+	UPCGExTangentsInstancedFactory* StartTangents = nullptr;
+	UPCGExTangentsInstancedFactory* EndTangents = nullptr;
 };
 
 class FPCGExWriteTangentsElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(WriteTangents)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -111,9 +111,9 @@ namespace PCGExWriteTangents
 		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveWriter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveWriter;
 
-		UPCGExTangentsOperation* Tangents = nullptr;
-		UPCGExTangentsOperation* StartTangents = nullptr;
-		UPCGExTangentsOperation* EndTangents = nullptr;
+		TSharedPtr<FPCGExTangentsOperation> Tangents;
+		TSharedPtr<FPCGExTangentsOperation> StartTangents;
+		TSharedPtr<FPCGExTangentsOperation> EndTangents;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -124,8 +124,8 @@ namespace PCGExWriteTangents
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+
 		virtual void CompleteWork() override;
 	};
 }

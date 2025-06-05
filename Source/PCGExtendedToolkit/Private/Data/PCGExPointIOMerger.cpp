@@ -64,8 +64,13 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointIOMerger::MergeAsync);
 
-	TArray<FPCGPoint>& MutablePoints = UnionDataFacade->GetOut()->GetMutablePoints();
-	MutablePoints.Reserve(NumCompositePoints);
+	UPCGBasePointData* OutPointData = UnionDataFacade->GetOut();
+	PCGEx::SetNumPointsAllocated(OutPointData, NumCompositePoints);
+
+	// TODO : We could not copy metadata if there's no attributes on any of the input data
+
+	OutPointData->SetMetadataEntry(PCGInvalidEntryKey);
+
 	InCarryOverDetails->Prune(&UnionDataFacade->Source.Get());
 
 	TMap<FName, int32> ExpectedTypes;
@@ -74,33 +79,34 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	for (int i = 0; i < NumSources; i++)
 	{
+		const PCGExMT::FScope SourceScope = Scopes[i];
+
 		const TSharedPtr<PCGExData::FPointIO> Source = IOSources[i];
 		UnionDataFacade->Source->Tags->Append(Source->Tags.ToSharedRef());
 
-		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
-		for (const FPCGPoint& SourcePt : SourcePoints) { MutablePoints.Add_GetRef(SourcePt).MetadataEntry = PCGInvalidEntryKey; }
+		Source->GetIn()->CopyPropertiesTo(OutPointData, 0, SourceScope.Start, SourceScope.Count, PCGEx::AllPointNativePropertiesButMeta);
 
 		// Discover attributes
 		UPCGMetadata* Metadata = Source->GetIn()->Metadata;
 		PCGEx::FAttributeIdentity::ForEach(
 			Metadata, [&](const PCGEx::FAttributeIdentity& SourceIdentity, const int32)
 			{
-				if (InIgnoredAttributes && InIgnoredAttributes->Contains(SourceIdentity.Name)) { return; }
+				if (InIgnoredAttributes && InIgnoredAttributes->Contains(SourceIdentity.Identifier.Name)) { return; }
 
-				FString StrName = SourceIdentity.Name.ToString();
+				FString StrName = SourceIdentity.Identifier.Name.ToString();
 				if (!InCarryOverDetails->Attributes.Test(StrName)) { return; }
 
 				// TODO : Get attributes in the task
 
-				const int32* ExpectedType = ExpectedTypes.Find(SourceIdentity.Name);
+				const int32* ExpectedType = ExpectedTypes.Find(SourceIdentity.Identifier.Name);
 				if (!ExpectedType)
 				{
 					// No type expectations, we need to register a new attribute ref
 					PCGExPointIOMerger::FIdentityRef SourceRef = SourceIdentity;
-					SourceRef.Attribute = Metadata->GetConstAttribute(SourceIdentity.Name);
+					SourceRef.Attribute = Metadata->GetConstAttribute(SourceIdentity.Identifier);
 					SourceRef.bInitDefault = InCarryOverDetails->bPreserveAttributesDefaultValue;
 
-					ExpectedTypes.Add(SourceRef.Name, UniqueIdentities.Add(SourceRef));
+					ExpectedTypes.Add(SourceRef.Identifier.Name, UniqueIdentities.Add(SourceRef));
 
 					return;
 				}
@@ -108,7 +114,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 				// Notify type/name mismatch if needed
 				if (UniqueIdentities[*ExpectedType].UnderlyingType != SourceIdentity.UnderlyingType)
 				{
-					PCGE_LOG_C(Warning, GraphAndLog, AsyncManager->GetContext(), FText::Format(FTEXT("Mismatching attribute types for: {0}."), FText::FromName(SourceIdentity.Name)));
+					PCGE_LOG_C(Warning, GraphAndLog, AsyncManager->GetContext(), FText::Format(FTEXT("Mismatching attribute types for: {0}."), FText::FromName(SourceIdentity.Identifier.Name)));
 				}
 			});
 	}
@@ -148,18 +154,18 @@ namespace PCGExPointIOMerger
 
 				if (!Buffer)
 				{
-					Buffer = Merger->UnionDataFacade->GetWritable(Identity.Name, T{}, Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
+					Buffer = Merger->UnionDataFacade->GetWritable(Identity.Identifier, T{}, Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
 				}
 
 				for (int i = 0; i < Merger->IOSources.Num(); i++)
 				{
 					TSharedPtr<PCGExData::FPointIO> SourceIO = Merger->IOSources[i];
-					const FPCGMetadataAttributeBase* Attribute = SourceIO->GetIn()->Metadata->GetConstAttribute(Identity.Name);
+					const FPCGMetadataAttributeBase* Attribute = SourceIO->GetIn()->Metadata->GetConstAttribute(Identity.Identifier);
 
 					if (!Attribute) { continue; }                            // Missing attribute
 					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
 
-					PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, Buffer->GetOutValues())
+					PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, Buffer)
 				}
 			});
 	}

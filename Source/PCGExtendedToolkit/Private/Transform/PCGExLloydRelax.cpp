@@ -65,11 +65,12 @@ namespace PCGExLloydRelax
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
 		PCGEX_SHARED_THIS_DECL
 		PCGEX_LAUNCH(FLloydRelaxTask, 0, ThisPtr, &InfluenceDetails, Settings->Iterations)
@@ -77,12 +78,21 @@ namespace PCGExLloydRelax
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		Point.Transform.SetLocation(
-			InfluenceDetails.bProgressiveInfluence ?
-				ActivePositions[Index] :
-				FMath::Lerp(Point.Transform.GetLocation(), ActivePositions[Index], InfluenceDetails.GetInfluence(Index)));
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::LloydRelax::ProcessPoints);
+
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			FTransform Transform = OutTransforms[Index];
+
+			Transform.SetLocation(
+				InfluenceDetails.bProgressiveInfluence ?
+					ActivePositions[Index] :
+					FMath::Lerp(Transform.GetLocation(), ActivePositions[Index], InfluenceDetails.GetInfluence(Index)));
+		}
 	}
 
 	void FProcessor::CompleteWork()

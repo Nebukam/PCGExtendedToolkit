@@ -89,7 +89,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(PCG_NotOverridable, HideInDetailPanel, EditCondition="false", EditConditionHides))
 	bool bSupportMutations = false;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=-1))
 	double TensorWeight = 1;

@@ -18,6 +18,25 @@
 
 namespace PCGEx
 {
+	FPCGExAsyncStateScope::FPCGExAsyncStateScope(FPCGContext* InContext, const bool bDesired)
+		: Context(InContext)
+	{
+		if (Context)
+		{
+			// Ensure PCG AsyncState is up to date
+			bRestoreTo = Context->AsyncState.bIsRunningOnMainThread;
+			Context->AsyncState.bIsRunningOnMainThread = bDesired;
+		}
+	}
+
+	FPCGExAsyncStateScope::~FPCGExAsyncStateScope()
+	{
+		if (Context)
+		{
+			Context->AsyncState.bIsRunningOnMainThread = bRestoreTo;
+		}
+	}
+
 	void FIntTracker::IncrementPending(const int32 Count)
 	{
 		{
@@ -91,8 +110,8 @@ namespace PCGEx
 		return Get(BaseName.ToString());
 	}
 
-	FManagedObjects::FManagedObjects(FPCGContext* InContext, const TSharedPtr<FWorkPermit>& InLifeline)
-		: Context(InContext), WorkPermit(InLifeline)
+	FManagedObjects::FManagedObjects(FPCGContext* InContext)
+		: WeakHandle(InContext->GetOrCreateHandle())
 	{
 	}
 
@@ -104,7 +123,7 @@ namespace PCGEx
 	bool FManagedObjects::IsAvailable() const
 	{
 		FReadScopeLock WriteScopeLock(ManagedObjectLock);
-		return WorkPermit.IsValid() && !IsFlushing();
+		return WeakHandle.IsValid() && !IsFlushing();
 	}
 
 	void FManagedObjects::Flush()
@@ -118,7 +137,7 @@ namespace PCGEx
 			for (UObject* ObjectPtr : ManagedObjects)
 			{
 				//if (!IsValid(ObjectPtr)) { continue; }
-				ObjectPtr->RemoveFromRoot();
+				///*FCOLLECTOR_IMPL*/ObjectPtr->RemoveFromRoot();
 				RecursivelyClearAsyncFlag_Unsafe(ObjectPtr);
 
 				if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(ObjectPtr)) { ManagedObject->Cleanup(); }
@@ -129,17 +148,20 @@ namespace PCGEx
 		}
 	}
 
-	void FManagedObjects::Add(UObject* InObject)
+	bool FManagedObjects::Add(UObject* InObject)
 	{
 		check(!IsFlushing())
 
-		if (!IsValid(InObject)) { return; }
+		if (!IsValid(InObject)) { return false; }
 
+		bool bIsAlreadyInSet = false;
 		{
 			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-			ManagedObjects.Add(InObject);
-			InObject->AddToRoot();
+			ManagedObjects.Add(InObject, &bIsAlreadyInSet);
+			///*FCOLLECTOR_IMPL*/InObject->AddToRoot();
 		}
+
+		return !bIsAlreadyInSet;
 	}
 
 	bool FManagedObjects::Remove(UObject* InObject)
@@ -153,7 +175,7 @@ namespace PCGEx
 			int32 Removed = ManagedObjects.Remove(InObject);
 			if (Removed == 0) { return false; }
 
-			InObject->RemoveFromRoot();
+			///*FCOLLECTOR_IMPL*/InObject->RemoveFromRoot();
 			RecursivelyClearAsyncFlag_Unsafe(InObject);
 		}
 
@@ -177,12 +199,18 @@ namespace PCGEx
 				{
 					if (ManagedObjects.Remove(InObject) == 0) { continue; }
 
-					InObject->RemoveFromRoot();
+					///*FCOLLECTOR_IMPL*/InObject->RemoveFromRoot();
 					RecursivelyClearAsyncFlag_Unsafe(InObject);
 					if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(InObject)) { ManagedObject->Cleanup(); }
 				}
 			}
 		}
+	}
+
+	void FManagedObjects::AddExtraStructReferencedObjects(FReferenceCollector& Collector)
+	{
+		FReadScopeLock ReadScopeLock(ManagedObjectLock);
+		for (TObjectPtr<UObject>& Object : ManagedObjects) { Collector.AddReferencedObject(Object); }
 	}
 
 	void FManagedObjects::Destroy(UObject* InObject)
@@ -225,11 +253,127 @@ namespace PCGEx
 		}
 	}
 
-	FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints)
+	FRWScope::FRWScope(const int32 NumElements, const bool bSetNum)
 	{
-		FVector Position = FVector::ZeroVector;
-		for (const FPCGPoint& Pt : InPoints) { Position += Pt.Transform.GetLocation(); }
-		return Position / static_cast<double>(InPoints.Num());
+		if (bSetNum)
+		{
+			ReadIndices.SetNumUninitialized(NumElements);
+			WriteIndices.SetNumUninitialized(NumElements);
+		}
+		else
+		{
+			ReadIndices.Reserve(NumElements);
+			WriteIndices.Reserve(NumElements);
+		}
+	}
+
+	int32 FRWScope::Add(const int32 ReadIndex, const int32 WriteIndex)
+	{
+		ReadIndices.Add(ReadIndex);
+		return WriteIndices.Add(WriteIndex);
+	}
+
+	int32 FRWScope::Add(const TArrayView<int32> ReadIndicesRange, int32& OutWriteIndex)
+	{
+		for (const int32 ReadIndex : ReadIndicesRange) { Add(ReadIndex, OutWriteIndex++); }
+		return ReadIndices.Num() - 1;
+	}
+
+	void FRWScope::Set(const int32 Index, const int32 ReadIndex, const int32 WriteIndex)
+	{
+		ReadIndices[Index] = ReadIndex;
+		WriteIndices[Index] = WriteIndex;
+	}
+
+	void FRWScope::CopyPoints(const UPCGBasePointData* Read, UPCGBasePointData* Write, const bool bClean)
+	{
+		Read->CopyPointsTo(Write, ReadIndices, WriteIndices);
+		if (bClean)
+		{
+			ReadIndices.Empty();
+			WriteIndices.Empty();
+		}
+	}
+
+	void FRWScope::CopyProperties(const UPCGBasePointData* Read, UPCGBasePointData* Write, EPCGPointNativeProperties Properties, const bool bClean)
+	{
+		Read->CopyPropertiesTo(Write, ReadIndices, WriteIndices, Properties);
+		if (bClean)
+		{
+			ReadIndices.Empty();
+			WriteIndices.Empty();
+		}
+	}
+
+	int32 SetNumPointsAllocated(UPCGBasePointData* InData, const int32 InNumPoints, const EPCGPointNativeProperties Properties)
+	{
+		InData->SetNumPoints(InNumPoints);
+		InData->AllocateProperties(Properties);
+		return InNumPoints;
+	}
+
+	bool EnsureMinNumPoints(UPCGBasePointData* InData, const int32 InNumPoints)
+	{
+		if (InData->GetNumPoints() < InNumPoints)
+		{
+			InData->SetNumPoints(InNumPoints);
+			return true;
+		}
+
+		return false;
+	}
+
+	void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExHelpers::ReorderPointArrayData);
+
+		const int32 NumElements = InOrder.Num();
+		check(NumElements == InData->GetNumPoints());
+
+		TBitArray<> Visited;
+		Visited.Init(false, NumElements);
+
+#define PCGEX_REORDER_RANGE_DECL(_NAME, _TYPE, ...) TPCGValueRange<_TYPE> _NAME##Range = InData->Get##_NAME##ValueRange();
+		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_RANGE_DECL)
+#undef PCGEX_REORDER_RANGE_DECL
+
+		for (int32 i = 0; i < NumElements; ++i)
+		{
+			if (Visited[i])
+			{
+				continue;
+			}
+
+			int32 Current = i;
+			int32 Next = InOrder[Current];
+
+			if (Next == Current)
+			{
+				Visited[Current] = true;
+				continue;
+			}
+
+#define PCGEX_REORDER_MOVE_TEMP(_NAME, _TYPE, ...) _TYPE Temp##_NAME = MoveTemp(_NAME##Range[Current]);
+			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_TEMP)
+#undef PCGEX_REORDER_MOVE_TEMP
+
+			while (!Visited[Next])
+			{
+#define PCGEX_REORDER_MOVE_FORWARD(_NAME, _TYPE, ...) _NAME##Range[Current] = MoveTemp(_NAME##Range[Next]);
+				PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_FORWARD)
+#undef PCGEX_REORDER_MOVE_FORWARD
+
+				Visited[Current] = true;
+				Current = Next;
+				Next = InOrder[Current];
+			}
+
+#define PCGEX_REORDER_MOVE_BACK(_NAME, _TYPE, ...) _NAME##Range[Current] = MoveTemp(Temp##_NAME);
+			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_BACK)
+#undef PCGEX_REORDER_MOVE_BACK
+
+			Visited[Current] = true;
+		}
 	}
 }
 
@@ -382,34 +526,6 @@ namespace PCGExHelpers
 		}
 
 		return true;
-	}
-
-	void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
-	{
-		switch (InProperty)
-		{
-		default:
-		case EPCGExPointPropertyOutput::None:
-			break;
-		case EPCGExPointPropertyOutput::Density:
-			InPoint.Density = InValue;
-			break;
-		case EPCGExPointPropertyOutput::Steepness:
-			InPoint.Steepness = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorR:
-			InPoint.Color.Component(0) = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorG:
-			InPoint.Color.Component(1) = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorB:
-			InPoint.Color.Component(2) = InValue;
-			break;
-		case EPCGExPointPropertyOutput::ColorA:
-			InPoint.Color.Component(3) = InValue;
-			break;
-		}
 	}
 
 	TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString)

@@ -42,7 +42,7 @@ bool FPCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, 
 	return true;
 }
 
-void FPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
+void FPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index)
 {
 	for (int i = 0; i < SuccessAttributes.Num(); i++)
 	{
@@ -51,12 +51,12 @@ void FPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index, const FPCGPoi
 			AttributeBase->GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				static_cast<PCGExData::TBuffer<T>*>(SuccessWriters[i].Get())->GetMutable(Index) = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey);
+				static_cast<PCGExData::TBuffer<T>*>(SuccessWriters[i].Get())->SetValue(Index, static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey));
 			});
 	}
 }
 
-void FPCGExActionWriteValuesOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
+void FPCGExActionWriteValuesOperation::OnMatchFail(int32 Index)
 {
 	for (int i = 0; i < FailAttributes.Num(); i++)
 	{
@@ -65,7 +65,7 @@ void FPCGExActionWriteValuesOperation::OnMatchFail(int32 Index, const FPCGPoint&
 			AttributeBase->GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				static_cast<PCGExData::TBuffer<T>*>(FailWriters[i].Get())->GetMutable(Index) = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey);
+				static_cast<PCGExData::TBuffer<T>*>(FailWriters[i].Get())->SetValue(Index, static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey));
 			});
 	}
 }

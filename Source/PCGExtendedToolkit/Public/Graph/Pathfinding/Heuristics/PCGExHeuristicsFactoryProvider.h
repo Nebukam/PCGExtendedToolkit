@@ -87,7 +87,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
 
 	/** Local multiplier attribute source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
-	EPCGExClusterComponentSource LocalWeightMultiplierSource = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement LocalWeightMultiplierSource = EPCGExClusterElement::Vtx;
 
 	/** Attribute to read multiplier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))

@@ -52,7 +52,7 @@ class FPCGExBoundsClustersIntersectionElement final : public FPCGExEdgesProcesso
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BoundsClustersIntersection)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

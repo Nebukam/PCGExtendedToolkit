@@ -7,9 +7,8 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
-#include "Data/Blending/PCGExDataBlending.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExAttributeRolling.generated.h"
@@ -48,7 +47,7 @@ enum class EPCGExRollingValueControl : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "range"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "range", PCGExNodeLibraryDoc="paths/attribute-rolling"))
 class UPCGExAttributeRollingSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -81,7 +80,7 @@ public:
 
 	/** Starting toggle value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="InitialValueMode != EPCGExRollingToggleInitialValue::FromPoint"))
-	bool bInitialValue = false;
+	bool bInitialValue = true;
 
 	/** Reverse rolling order */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -157,7 +156,7 @@ struct FPCGExAttributeRollingContext final : FPCGExPathProcessorContext
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StartFilterFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
 
-	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 
 	PCGEX_FOREACH_FIELD_ATTRIBUTE_ROLL(PCGEX_OUTPUT_DECL_TOGGLE)
 };
@@ -166,7 +165,7 @@ class FPCGExAttributeRollingElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(AttributeRolling)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -204,7 +203,7 @@ namespace PCGExAttributeRolling
 		virtual ~FProcessor() override;
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};
 }

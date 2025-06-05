@@ -14,11 +14,11 @@
 #include "PCGExMacros.h"
 #include "PCGManagedResource.h"
 #include "PCGComponent.h"
-#include "PCGGraph.h"
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "Async/Async.h"
+#include "Data/PCGBasePointData.h"
 
 #include "PCGExHelpers.generated.h"
 
@@ -173,9 +173,6 @@ namespace PCGExHelpers
 	bool CopyProperties(UObject* Target, const UObject* Source, const TSet<FString>* Exclusions = nullptr);
 
 	PCGEXTENDEDTOOLKIT_API
-	void SetPointProperty(FPCGPoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
-
-	PCGEXTENDEDTOOLKIT_API
 	TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString);
 
 	PCGEXTENDEDTOOLKIT_API
@@ -196,27 +193,87 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFunctionPrototypes : public UBlueprintFunctio
 
 public:
 	static UFunction* GetPrototypeWithNoParams() { return FindObject<UFunction>(StaticClass(), TEXT("PrototypeWithNoParams")); }
-	static UFunction* GetPrototypeWithPointAndMetadata() { return FindObject<UFunction>(StaticClass(), TEXT("PrototypeWithPointAndMetadata")); }
 
 private:
 	UFUNCTION()
 	void PrototypeWithNoParams()
 	{
 	}
-
-	UFUNCTION()
-	void PrototypeWithPointAndMetadata(FPCGPoint Point, const UPCGMetadata* Metadata)
-	{
-	}
 };
 
 namespace PCGEx
 {
-	class PCGEXTENDEDTOOLKIT_API FWorkPermit final : public TSharedFromThis<FWorkPermit>
+	const FName InvalidName = "INVALID_DATA";
+
+	template <bool bInitialized>
+	static FName GetLongNameFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
+	{
+		// This return a domain-less unique identifier for the provided selector
+		// It's mostly used to create uniquely identified value buffers
+
+		if (!InData) { return InvalidName; }
+
+		if constexpr (bInitialized)
+		{
+			if (InSelector.GetExtraNames().IsEmpty()) { return FName(InSelector.GetName().ToString()); }
+			return FName(InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT(".")));
+		}
+		else
+		{
+			if (InSelector.GetSelection() == EPCGAttributePropertySelection::Attribute && InSelector.GetName() == "@Last")
+			{
+				return GetLongNameFromSelector<true>(InSelector.CopyAndFixLast(InData), InData);
+			}
+
+			return GetLongNameFromSelector<true>(InSelector, InData);
+		}
+	}
+
+	template <bool bInitialized>
+	static FPCGAttributeIdentifier GetAttributeIdentifier(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
+	{
+		// This return an identifier suitable to be used for data facade
+
+		FPCGAttributeIdentifier Identifier;
+
+		if (!InData) { return FPCGAttributeIdentifier(InvalidName, EPCGMetadataDomainFlag::Invalid); }
+
+		if constexpr (bInitialized)
+		{
+			FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
+
+			check(FixedSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+
+			Identifier.Name = FixedSelector.GetAttributeName();
+			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);
+		}
+		else
+		{
+			Identifier.Name = InSelector.GetAttributeName();
+			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(InSelector);
+		}
+
+
+		return Identifier;
+	}
+
+	static FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName, const UPCGData* InData)
+	{
+		FPCGAttributePropertyInputSelector Selector;
+		Selector.Update(InName.ToString());
+		Selector = Selector.CopyAndFixLast(InData);
+		return GetAttributeIdentifier<true>(Selector, InData);
+	}
+
+	class PCGEXTENDEDTOOLKIT_API FPCGExAsyncStateScope
 	{
 	public:
-		FWorkPermit() = default;
-		~FWorkPermit() = default;
+		explicit FPCGExAsyncStateScope(FPCGContext* InContext, const bool bDesired);
+		~FPCGExAsyncStateScope();
+
+	private:
+		FPCGContext* Context = nullptr;
+		bool bRestoreTo = false;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FIntTracker final : public TSharedFromThis<FIntTracker>
@@ -268,6 +325,13 @@ namespace PCGEx
 		FName Get(const FName& BaseName);
 	};
 
+	class PCGEXTENDEDTOOLKIT_API FWorkPermit final : public TSharedFromThis<FWorkPermit>
+	{
+	public:
+		FWorkPermit() = default;
+		~FWorkPermit() = default;
+	};
+
 	class PCGEXTENDEDTOOLKIT_API FManagedObjects : public TSharedFromThis<FManagedObjects>
 	{
 	protected:
@@ -275,13 +339,12 @@ namespace PCGEx
 		mutable FRWLock DuplicatedObjectLock;
 
 	public:
-		FPCGContext* Context = nullptr;
-		TWeakPtr<FWorkPermit> WorkPermit;
-		TSet<UObject*> ManagedObjects;
+		TWeakPtr<FPCGContextHandle> WeakHandle;
+		TSet<TObjectPtr<UObject>> ManagedObjects;
 
 		bool IsFlushing() const { return bIsFlushing.load(std::memory_order_acquire); }
 
-		explicit FManagedObjects(FPCGContext* InContext, const TSharedPtr<FWorkPermit>& InLifeline);
+		explicit FManagedObjects(FPCGContext* InContext);
 
 		~FManagedObjects();
 
@@ -289,14 +352,16 @@ namespace PCGEx
 
 		void Flush();
 
-		void Add(UObject* InObject);
+		bool Add(UObject* InObject);
 		bool Remove(UObject* InObject);
 		void Remove(const TArray<FPCGTaggedData>& InTaggedData);
+
+		void AddExtraStructReferencedObjects(FReferenceCollector& Collector);
 
 		template <class T, typename... Args>
 		T* New(Args&&... InArgs)
 		{
-			check(WorkPermit.IsValid())
+			check(WeakHandle.IsValid())
 			if (IsFlushing()) { UE_LOG(LogPCGEx, Error, TEXT("Attempting to create a managed object while flushing!")) }
 
 			T* Object = nullptr;
@@ -318,25 +383,22 @@ namespace PCGEx
 		}
 
 		template <class T>
-		T* Duplicate(const UPCGData* InData)
+		T* DuplicateData(const UPCGData* InData)
 		{
-			check(WorkPermit.IsValid())
+			check(WeakHandle.IsValid())
 			check(!IsFlushing())
+
+			FPCGContext::FSharedContext<FPCGContext> SharedContext(WeakHandle);
 
 			T* Object = nullptr;
 
 			if (!IsInGameThread())
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-
-				// Ensure PCG AsyncState is up to date
-				bool bRestoreTo = Context->AsyncState.bIsRunningOnMainThread;
-				Context->AsyncState.bIsRunningOnMainThread = false;
+				FPCGExAsyncStateScope ForceAsyncState(SharedContext.Get(), false);
 
 				// Do the duplicate (uses AnyThread that requires bIsRunningOnMainThread to be up-to-date)
-				Object = Cast<T>(InData->DuplicateData(Context, true));
-
-				Context->AsyncState.bIsRunningOnMainThread = bRestoreTo;
+				Object = Cast<T>(InData->DuplicateData(SharedContext.Get(), true));
 
 				check(Object);
 				{
@@ -347,7 +409,7 @@ namespace PCGEx
 			else
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-				Object = Cast<T>(InData->DuplicateData(Context, true));
+				Object = Cast<T>(InData->DuplicateData(SharedContext.Get(), true));
 				check(Object);
 				{
 					FWriteScopeLock DupeLock(DuplicatedObjectLock);
@@ -368,8 +430,6 @@ namespace PCGEx
 	private:
 		std::atomic<bool> bIsFlushing{false};
 	};
-
-	FVector GetPointsCentroid(const TArray<FPCGPoint>& InPoints);
 
 #pragma region Metadata Type
 
@@ -468,7 +528,7 @@ namespace PCGEx
 		case EPCGPointProperties::Position:
 			return EPCGMetadataTypes::Vector;
 		case EPCGPointProperties::Rotation:
-			return EPCGMetadataTypes::Rotator;
+			return EPCGMetadataTypes::Quaternion;
 		case EPCGPointProperties::Scale:
 			return EPCGMetadataTypes::Vector;
 		case EPCGPointProperties::Transform:
@@ -481,6 +541,37 @@ namespace PCGEx
 			return EPCGMetadataTypes::Integer32;
 		default:
 			return EPCGMetadataTypes::Unknown;
+		}
+	}
+
+	constexpr static EPCGPointNativeProperties GetPropertyNativeType(const EPCGPointProperties Property)
+	{
+		switch (Property)
+		{
+		case EPCGPointProperties::Density:
+			return EPCGPointNativeProperties::Density;
+		case EPCGPointProperties::BoundsMin:
+			return EPCGPointNativeProperties::BoundsMin;
+		case EPCGPointProperties::BoundsMax:
+			return EPCGPointNativeProperties::BoundsMax;
+		case EPCGPointProperties::Color:
+			return EPCGPointNativeProperties::Color;
+		case EPCGPointProperties::Position:
+			return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Rotation:
+			return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Scale:
+			return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Transform:
+			return EPCGPointNativeProperties::Transform;
+		case EPCGPointProperties::Steepness:
+			return EPCGPointNativeProperties::Steepness;
+		case EPCGPointProperties::Seed:
+			return EPCGPointNativeProperties::Seed;
+		case EPCGPointProperties::Extents:
+		case EPCGPointProperties::LocalCenter:
+		default:
+			return EPCGPointNativeProperties::None;
 		}
 	}
 
@@ -554,7 +645,46 @@ namespace PCGEx
 
 #pragma endregion
 
+	class FRWScope
+	{
+		TArray<int32> ReadIndices;
+		TArray<int32> WriteIndices;
+
+	public:
+		FRWScope(const int32 NumElements, const bool bSetNum);
+
+		int32 Add(const int32 ReadIndex, const int32 WriteIndex);
+		int32 Add(const TArrayView<int32> ReadIndicesRange, int32& OutWriteIndex);
+		void Set(const int32 Index, const int32 ReadIndex, const int32 WriteIndex);
+
+		void CopyPoints(const UPCGBasePointData* Read, UPCGBasePointData* Write, const bool bClean = true);
+		void CopyProperties(const UPCGBasePointData* Read, UPCGBasePointData* Write, EPCGPointNativeProperties Properties, const bool bClean = true);
+
+		bool IsEmpty() const { return ReadIndices.IsEmpty(); }
+		int32 Num() const { return ReadIndices.Num(); }
+	};
+
+	PCGEXTENDEDTOOLKIT_API
+	int32 SetNumPointsAllocated(UPCGBasePointData* InData, const int32 InNumPoints, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
+
+	PCGEXTENDEDTOOLKIT_API
+	bool EnsureMinNumPoints(UPCGBasePointData* InData, const int32 InNumPoints);
+
 #pragma region Array
+
+	template <typename T>
+	static void Reverse(TArrayView<T> View)
+	{
+		const int32 Count = View.Num();
+		for (int32 i = 0; i < Count / 2; ++i) { Swap(View[i], View[Count - 1 - i]); }
+	}
+
+	template <typename T>
+	static void Reverse(TPCGValueRange<T> Range)
+	{
+		const int32 Count = Range.Num();
+		for (int32 i = 0; i < Count / 2; ++i) { Swap(Range[i], Range[Count - 1 - i]); }
+	}
 
 	template <typename T>
 	static void InitArray(TArray<T>& InArray, const int32 Num)
@@ -588,9 +718,9 @@ namespace PCGEx
 	template <typename T>
 	void ReorderArray(TArray<T>& InArray, const TArray<int32>& InOrder)
 	{
-		check(InArray.Num() == InOrder.Num())
+		const int32 NumElements = InOrder.Num();
+		check(NumElements <= InArray.Num());
 
-		const int32 NumElements = InArray.Num();
 		TBitArray<> Visited;
 		Visited.Init(false, NumElements);
 
@@ -602,22 +732,27 @@ namespace PCGEx
 			}
 
 			int32 Current = i;
-			T Temp = MoveTemp(InArray[i]);
+			int32 Next = InOrder[Current];
 
-			while (!Visited[Current])
+			if (Next == Current)
 			{
 				Visited[Current] = true;
-				int32 Next = InOrder[Current];
-
-				if (Next == i)
-				{
-					InArray[Current] = MoveTemp(Temp);
-					break;
-				}
-
-				InArray[Current] = MoveTemp(InArray[Next]);
-				Current = Next;
+				continue;
 			}
+
+			T Temp = MoveTemp(InArray[Current]);
+
+			while (!Visited[Next])
+			{
+				InArray[Current] = MoveTemp(InArray[Next]);
+
+				Visited[Current] = true;
+				Current = Next;
+				Next = InOrder[Current];
+			}
+
+			InArray[Current] = MoveTemp(Temp);
+			Visited[Current] = true;
 		}
 	}
 
@@ -632,6 +767,9 @@ namespace PCGEx
 		{
 		}
 	};
+
+	PCGEXTENDEDTOOLKIT_API
+	void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder);
 
 	template <typename T>
 	static void ShiftArrayToSmallest(TArray<T>& InArray)

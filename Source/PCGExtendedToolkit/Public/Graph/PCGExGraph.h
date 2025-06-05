@@ -8,7 +8,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExMT.h"
 #include "PCGExEdge.h"
-#include "PCGExDetails.h"
 #include "PCGExDetailsIntersection.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExUnionBlender.h"
@@ -40,7 +39,7 @@ enum class EPCGExAdjacencyDirectionOrigin : uint8
 };
 
 UENUM()
-enum class EPCGExClusterComponentSource : uint8
+enum class EPCGExClusterElement : uint8
 {
 	Vtx  = 0 UMETA(DisplayName = "Point", Tooltip="Value is fetched from the point being evaluated."),
 	Edge = 1 UMETA(DisplayName = "Edge", Tooltip="Value is fetched from the edge connecting to the point being evaluated."),
@@ -88,7 +87,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBasicEdgeSolidificationDetails
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable, EditCondition="RadiusType!=EPCGExBasicEdgeRadius::Fixed", EditConditionHides))
 	double RadiusScale = 1;
 
-	void Mutate(FPCGPoint& InEdgePoint, const FPCGPoint& InStart, const FPCGPoint& InEnd, const double InLerp) const;
+	void Mutate(PCGExData::FMutablePoint& InEdgePoint, const PCGExData::FConstPoint& InStart, const PCGExData::FConstPoint& InEnd, const double InLerp) const;
 };
 
 USTRUCT(BlueprintType)
@@ -157,6 +156,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 
 namespace PCGExGraph
 {
+	using NodeLinks = TArray<FLink, TInlineAllocator<8>>;
+
 	using FGraphCompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
 
 	const FName SourceProbesLabel = TEXT("Probes");
@@ -286,10 +287,10 @@ namespace PCGExGraph
 		int8 bValid = 1; // int for atomic operations
 
 		int32 Index = -1;      // Index in the context of the list that helds the node
-		int32 PointIndex = -1; // Index in the context of the UPCGPointData that helds the vtx
+		int32 PointIndex = -1; // Index in the context of the UPCGBasePointData that helds the vtx
 		int32 NumExportedEdges = 0;
 
-		TArray<FLink> Links;
+		NodeLinks Links;
 
 		~FNode() = default;
 
@@ -369,7 +370,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		mutable FRWLock GraphLock;
 		mutable FRWLock EdgeMetadataLock;
 		mutable FRWLock NodeMetadataLock;
-		const int32 NumEdgesReserve;
 
 	public:
 		bool bBuildClusters = false;
@@ -390,7 +390,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		bool bRefreshEdgeSeed = false;
 
-		explicit FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve = 6);
+		explicit FGraph(const int32 InNumNodes);
 
 		void ReserveForEdges(const int32 UpcomingAdditionCount);
 
@@ -494,18 +494,31 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		TSharedRef<PCGExData::FFacade> NodeDataFacade;
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
+		// The collection of edges given to the node
+		// We need the full collection even if unrelated, because we track data by index
+		// and those indices are relative to the input data, not the graph context
 		TSharedPtr<PCGExData::FPointIOCollection> EdgesIO;
 		const TArray<TSharedRef<PCGExData::FFacade>>* SourceEdgeFacades = nullptr;
 
+		// Used exclusively by the custom graph builder.
+		// Otherwise a transient array is allocated for the duration of the graph compilation
 		TSharedPtr<TArray<int32>> OutputNodeIndices;
 		TSharedPtr<TArray<int32>> OutputPointIndices;
 
+		// A value range we will fetch positions from during compilation
+		// It must have a valid range for Node.PointIndex
+		TConstPCGValueRange<FTransform> NodePointsTransforms;
+
+		// This is true by default, but should be disabled for edge cases where we create new points from scratch
+		// especially if the final amount of points is greater than the number of points we're trying to inherit from.
+		bool bInheritNodeData = true;
+
+		// This will be set to true post-graph compilation, if compilation was a success
 		bool bCompiledSuccessfully = false;
 
 		FGraphBuilder(
 			const TSharedRef<PCGExData::FFacade>& InNodeDataFacade,
-			const FPCGExGraphBuilderDetails* InDetails,
-			const int32 NumEdgeReserve = 6);
+			const FPCGExGraphBuilderDetails* InDetails);
 
 		const FGraphMetadataDetails* GetMetadataDetails() const { return MetadataDetailsPtr; }
 

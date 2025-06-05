@@ -6,6 +6,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Geometry/PCGExGeoPointBox.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestBoundsElement"
@@ -66,11 +67,23 @@ UPCGExSampleNearestBoundsSettings::UPCGExSampleNearestBoundsSettings(
 TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
 	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
+
+	if (BlendingInterface == EPCGExBlendingInterface::Individual)
+	{
+		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
+	}
+	else
+	{
+		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations. These are currently ignored, but will preserve pin connections", Advanced, {})
+	}
+
 	if (SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
 		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
 	}
+
 	return PinProperties;
 }
 
@@ -96,27 +109,25 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	Context->BoundsFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceBoundsLabel, false, true);
 	if (!Context->BoundsFacade) { return false; }
 
-	TSet<FName> MissingTargetAttributes;
-	PCGExDataBlending::AssembleBlendingDetails(
-		Settings->bBlendPointProperties ? Settings->PointPropertiesBlendingSettings : FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None),
-		Settings->TargetAttributes, Context->BoundsFacade->Source, Context->BlendingDetails, MissingTargetAttributes);
-
-	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on targets: {0}."), FText::FromName(Id))); }
-
-
 	PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	Context->BoundsPoints = &Context->BoundsFacade->Source->GetIn()->GetPoints();
-	Context->BoundsPreloader = MakeShared<PCGExData::FFacadePreloader>();
+	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
+	{
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
+			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
+			{PCGExFactories::EType::Blending}, false);
+	}
+
+	Context->BoundsPreloader = MakeShared<PCGExData::FFacadePreloader>(Context->BoundsFacade);
 
 	if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
-		Context->Sorter = MakeShared<PCGExSorting::PointSorter<false>>(Context, Context->BoundsFacade.ToSharedRef(), PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
+		Context->Sorter = MakeShared<PCGExSorting::TPointSorter<>>(Context, Context->BoundsFacade.ToSharedRef(), PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
 		Context->Sorter->SortDirection = Settings->SortDirection;
 		Context->Sorter->RegisterBuffersDependencies(*Context->BoundsPreloader);
 	}
 
-	Context->BlendingDetails.RegisterBuffersDependencies(Context, Context->BoundsFacade, *Context->BoundsPreloader);
+	PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, *Context->BoundsPreloader, Context->BlendingFactories);
 
 	return true;
 }
@@ -159,14 +170,14 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestBounds::FProcessor>>& NewBatch)
 				{
-					if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
+					NewBatch->bRequiresWriteStep = Settings->bPruneFailedSamples;
 				}))
 			{
 				Context->CancelExecution(TEXT("Could not find any points to sample."));
 			}
 		};
 
-		Context->BoundsPreloader->StartLoading(Context->GetAsyncManager(), Context->BoundsFacade.ToSharedRef());
+		Context->BoundsPreloader->StartLoading(Context->GetAsyncManager());
 		return false;
 	}
 
@@ -177,20 +188,27 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 	return Context->TryComplete();
 }
 
+bool FPCGExSampleNearestBoundsElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
+}
+
 namespace PCGExSampleNearestBounds
 {
 	FProcessor::~FProcessor()
 	{
 	}
 
-	void FProcessor::SamplingFailed(const int32 Index, const FPCGPoint& Point)
+	void FProcessor::SamplingFailed(const int32 Index)
 	{
-		SampleState[Index] = false;
+		SamplingMask[Index] = false;
+
+		const TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		constexpr double FailSafeDist = -1;
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
-		PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
-		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
+		PCGEX_OUTPUT_VALUE(Transform, Index, Transforms[Index])
+		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Transforms[Index])
 		PCGEX_OUTPUT_VALUE(Distance, Index, Settings->bOutputNormalizedDistance ? FailSafeDist : FailSafeDist * Settings->DistanceScale)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist * Settings->SignedDistanceScale)
 		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, FVector(FailSafeDist))
@@ -206,25 +224,65 @@ namespace PCGExSampleNearestBounds
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		SampleState.SetNumUninitialized(PointDataFacade->GetNum());
+		// Allocate edge native properties
+
+		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
+
+		if (Context->ApplySampling.WantsApply())
+		{
+			AllocateFor |= EPCGPointNativeProperties::Transform;
+		}
+
+		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
+
+		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
 
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_INIT)
 		}
 
-		if (Context->BlendingDetails.HasAnyBlending())
+		if (!Context->BlendingFactories.IsEmpty())
 		{
-			Blender = MakeShared<PCGExDataBlending::FMetadataBlender>(&Context->BlendingDetails);
-			Blender->PrepareForData(PointDataFacade, Context->BoundsFacade.ToSharedRef());
+			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(PointDataFacade);
+			BlendOpsManager->SetSourceA(Context->BoundsFacade);
+
+			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
+
+			DataBlender = BlendOpsManager;
+		}
+		else if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
+		{
+			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+			MetadataBlender->SetTargetData(PointDataFacade);
+			MetadataBlender->SetSourceData(Context->BoundsFacade);
+
+			TSet<FName> MissingAttributes;
+			PCGExDataBlending::AssembleBlendingDetails(
+				Settings->PointPropertiesBlendingSettings, Settings->TargetAttributes,
+				Context->BoundsFacade->Source, BlendingDetails, MissingAttributes);
+
+			if (!MetadataBlender->Init(Context, BlendingDetails))
+			{
+				// Fail
+				Context->CancelExecution(FString("Error initializing blending"));
+				return false;
+			}
+
+			DataBlender = MetadataBlender;
 		}
 
-		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection != EPCGExSampleSource::Constant)
-		{
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { LookAtUpGetter = Context->BoundsFacade->GetScopedBroadcaster<FVector>(Settings->LookAtUpSource); }
-			else { LookAtUpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LookAtUpSource); }
+		if (!DataBlender) { DataBlender = MakeShared<PCGExDataBlending::FDummyBlender>(); }
 
-			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("LookAtUp is invalid.")); }
+		if (Settings->bWriteLookAtTransform)
+		{
+			LookAtUpGetter = Settings->GetValueSettingLookAtUp();
+			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { if (!LookAtUpGetter->Init(Context, Context->BoundsFacade, false)) { return false; } }
+			else { if (!LookAtUpGetter->Init(Context, PointDataFacade)) { return false; } }
+		}
+		else
+		{
+			LookAtUpGetter = PCGExDetails::MakeSettingValue(Settings->LookAtUpConstant);
 		}
 
 		bSingleSample = Settings->SampleMethod != EPCGExBoundsSampleMethod::WithinRange;
@@ -241,175 +299,210 @@ namespace PCGExSampleNearestBounds
 		MaxDistanceValue = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleNearestBounds::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		if (!PointFilterCache[Index])
-		{
-			if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(Index, Point); }
-			return;
-		}
+		bool bLocalAnySuccess = false;
+
+		TArray<PCGEx::FOpStats> BlendTrackers;
+
+		if (DataBlender) { DataBlender->InitTrackers(BlendTrackers); }
 
 		TArray<PCGExNearestBounds::FSample> Samples;
-		PCGExNearestBounds::FSamplesStats Stats;
-		PCGExGeo::FSample CurrentSample;
+		Samples.Reserve(10);
 
-		const FVector Origin = Point.Transform.GetLocation();
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 
-		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Origin, PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
-		Cloud->GetOctree()->FindElementsWithBoundsTest(
-			BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)
+		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+		TConstPCGValueRange<FTransform> BoundsTransforms = Context->BoundsFacade->GetIn()->GetConstTransformValueRange();
+
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			if (!PointFilterCache[Index])
 			{
-				NearbyBox->Sample(Point, CurrentSample);
-				if (!CurrentSample.bIsInside) { return; }
+				if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(Index); }
+				continue;
+			}
 
-				CurrentSample.Weight = Context->WeightCurve->Eval(CurrentSample.Weight);
+			Samples.Reset();
+			PCGExNearestBounds::FSamplesStats Stats;
+			PCGExGeo::FSample CurrentSample;
 
+			const PCGExData::FMutablePoint Point = PointDataFacade->GetOutPoint(Index);
+			const FVector Origin = Transforms[Index].GetLocation();
 
-				if (bSingleSample)
+			const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Origin, PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
+			Cloud->GetOctree()->FindElementsWithBoundsTest(
+				BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)
 				{
-					if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate && Stats.IsValid())
+					NearbyBox->Sample(Origin, CurrentSample);
+					if (!CurrentSample.bIsInside) { return; }
+
+					CurrentSample.Weight = Context->WeightCurve->Eval(CurrentSample.Weight);
+
+
+					if (bSingleSample)
 					{
-						if (!Context->Sorter->Sort(NearbyBox->Index, Stats.Closest.Index)) { return; }
-						Stats.Replace(PCGExNearestBounds::FSample(CurrentSample, NearbyBox->RadiusSquared));
+						if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate && Stats.IsValid())
+						{
+							if (!Context->Sorter->Sort(NearbyBox->Index, Stats.Closest.Index)) { return; }
+							Stats.Replace(PCGExNearestBounds::FSample(CurrentSample, NearbyBox->RadiusSquared));
+						}
+						else
+						{
+							Stats.Update(PCGExNearestBounds::FSample(CurrentSample, NearbyBox->RadiusSquared));
+						}
 					}
 					else
 					{
-						Stats.Update(PCGExNearestBounds::FSample(CurrentSample, NearbyBox->RadiusSquared));
+						const PCGExNearestBounds::FSample& Infos = Samples.Emplace_GetRef(CurrentSample, NearbyBox->RadiusSquared);
+						Stats.Update(Infos);
 					}
-				}
-				else
+				});
+
+			// Compound never got updated, meaning we couldn't find target in range
+			if (Stats.UpdateCount <= 0)
+			{
+				SamplingFailed(Index);
+				continue;
+			}
+
+			FTransform WeightedTransform = FTransform::Identity;
+			WeightedTransform.SetScale3D(FVector::ZeroVector);
+			FVector WeightedUp = SafeUpVector;
+			if (Settings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
+
+			FVector WeightedSignAxis = FVector::Zero();
+			FVector WeightedAngleAxis = FVector::Zero();
+			PCGEx::FOpStats SampleTracker{};
+
+			auto ProcessSample = [&]
+				(const PCGExNearestBounds::FSample& InSample,
+				 const TSharedPtr<PCGExDataBlending::IBlender>& Blender = nullptr)
+			{
+				const double Weight = InSample.Weight;
+
+				const FTransform& TargetTransform = BoundsTransforms[InSample.Index];
+				const FQuat TargetRotation = TargetTransform.GetRotation();
+
+				WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, Weight);
+				if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExBlend::WeightedAdd(WeightedUp, (LookAtUpGetter ? LookAtUpGetter->Read(InSample.Index) : SafeUpVector), Weight); }
+
+				WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
+				WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
+
+				SampleTracker.Count++;
+				SampleTracker.Weight += Weight;
+
+				if (Blender) { Blender->MultiBlend(InSample.Index, Index, Weight, BlendTrackers); }
+			};
+
+			if (bSingleSample)
+			{
+				switch (Settings->SampleMethod)
 				{
-					const PCGExNearestBounds::FSample& Infos = Samples.Emplace_GetRef(CurrentSample, NearbyBox->RadiusSquared);
-					Stats.Update(Infos);
+				default: ;
+				case EPCGExBoundsSampleMethod::WithinRange:
+					// Ignore
+					break;
+				case EPCGExBoundsSampleMethod::BestCandidate:
+				case EPCGExBoundsSampleMethod::ClosestBounds:
+					ProcessSample(Stats.Closest);
+					DataBlender->Blend(Stats.Closest.Index, Index, Stats.TotalWeight);
+					break;
+				case EPCGExBoundsSampleMethod::FarthestBounds:
+					ProcessSample(Stats.Farthest);
+					DataBlender->Blend(Stats.Farthest.Index, Index, Stats.TotalWeight);
+					break;
+				case EPCGExBoundsSampleMethod::LargestBounds:
+					ProcessSample(Stats.Largest);
+					DataBlender->Blend(Stats.Largest.Index, Index, Stats.TotalWeight);
+					break;
+				case EPCGExBoundsSampleMethod::SmallestBounds:
+					ProcessSample(Stats.Smallest);
+					DataBlender->Blend(Stats.Smallest.Index, Index, Stats.TotalWeight);
+					break;
 				}
-			});
-
-		// Compound never got updated, meaning we couldn't find target in range
-		if (Stats.UpdateCount <= 0)
-		{
-			SamplingFailed(Index, Point);
-			return;
-		}
-
-		FTransform WeightedTransform = FTransform::Identity;
-		WeightedTransform.SetScale3D(FVector::ZeroVector);
-		FVector WeightedUp = SafeUpVector;
-		if (Settings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
-
-		FVector WeightedSignAxis = FVector::Zero();
-		FVector WeightedAngleAxis = FVector::Zero();
-		double TotalWeight = 0;
-		double TotalSamples = 0;
-
-		auto ProcessSample = [&]
-			(const PCGExNearestBounds::FSample& InSample)
-		{
-			const double Weight = InSample.Weight;
-			const FPCGPoint& Target = Context->BoundsFacade->Source->GetInPoint(InSample.Index);
-
-			const FTransform TargetTransform = Target.Transform;
-			const FQuat TargetRotation = TargetTransform.GetRotation();
-
-			WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, Weight);
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { PCGExBlend::WeightedAdd(WeightedUp, (LookAtUpGetter ? LookAtUpGetter->Read(InSample.Index) : SafeUpVector), Weight); }
-
-
-			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
-			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
-
-			TotalWeight += Weight;
-			TotalSamples++;
-
-			if (Blender) { Blender->Blend(Index, InSample.Index, Index, Weight); }
-		};
-
-		if (Blender) { Blender->PrepareForBlending(Index, &Point); }
-
-		if (bSingleSample)
-		{
-			switch (Settings->SampleMethod)
-			{
-			default: ;
-			case EPCGExBoundsSampleMethod::WithinRange:
-				// Ignore
-				break;
-			case EPCGExBoundsSampleMethod::BestCandidate:
-			case EPCGExBoundsSampleMethod::ClosestBounds:
-				ProcessSample(Stats.Closest);
-				break;
-			case EPCGExBoundsSampleMethod::FarthestBounds:
-				ProcessSample(Stats.Farthest);
-				break;
-			case EPCGExBoundsSampleMethod::LargestBounds:
-				ProcessSample(Stats.Largest);
-				break;
-			case EPCGExBoundsSampleMethod::SmallestBounds:
-				ProcessSample(Stats.Smallest);
-				break;
 			}
-		}
-		else
-		{
-			for (PCGExNearestBounds::FSample& TargetInfos : Samples)
+			else
 			{
-				if (TargetInfos.Weight == 0) { continue; }
-				ProcessSample(TargetInfos);
+				DataBlender->BeginMultiBlend(Index, BlendTrackers);
+
+				for (PCGExNearestBounds::FSample& TargetInfos : Samples)
+				{
+					if (TargetInfos.Weight == 0) { continue; }
+					ProcessSample(TargetInfos, DataBlender);
+				}
+
+				DataBlender->EndMultiBlend(Index, BlendTrackers);
 			}
+
+			if (SampleTracker.Weight != 0) // Dodge NaN
+			{
+				WeightedUp /= SampleTracker.Weight;
+				WeightedTransform = PCGExBlend::Div(WeightedTransform, SampleTracker.Weight);
+			}
+
+			WeightedUp.Normalize();
+
+			const FVector CWDistance = Origin - WeightedTransform.GetLocation();
+			FVector LookAt = CWDistance.GetSafeNormal();
+			const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
+
+			FTransform LookAtTransform = PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign);
+			if (Context->ApplySampling.WantsApply())
+			{
+				PCGExData::FMutablePoint MutablePoint(OutPointData, Index);
+				Context->ApplySampling.Apply(MutablePoint, WeightedTransform, LookAtTransform);
+			}
+
+			SamplingMask[Index] = Stats.IsValid();
+			PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
+			PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
+			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, LookAtTransform)
+			PCGEX_OUTPUT_VALUE(Distance, Index, Settings->bOutputNormalizedDistance ? WeightedDistance : WeightedDistance * Settings->DistanceScale)
+			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance * Settings->SignedDistanceScale)
+			PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, Settings->bAbsoluteComponentWiseDistance ? PCGExMath::Abs(CWDistance) : CWDistance)
+			PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
+			PCGEX_OUTPUT_VALUE(NumSamples, Index, SampleTracker.Count)
+			PCGEX_OUTPUT_VALUE(SampledIndex, Index, Stats.IsValid() ? Stats.Closest.Index : -1)
+
+			MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), WeightedDistance));
+			bLocalAnySuccess = true;
 		}
 
-		if (Blender) { Blender->CompleteBlending(Index, TotalSamples, TotalWeight); }
-
-		if (TotalWeight != 0) // Dodge NaN
-		{
-			WeightedUp /= TotalWeight;
-
-			WeightedTransform = PCGExBlend::Div(WeightedTransform, TotalWeight);
-		}
-
-		WeightedUp.Normalize();
-
-		const FVector CWDistance = Origin - WeightedTransform.GetLocation();
-		FVector LookAt = CWDistance.GetSafeNormal();
-		const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
-
-		FTransform LookAtTransform = PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign);
-		if (Context->ApplySampling.WantsApply()) { Context->ApplySampling.Apply(Point, WeightedTransform, LookAtTransform); }
-
-		SampleState[Index] = Stats.IsValid();
-		PCGEX_OUTPUT_VALUE(Success, Index, Stats.IsValid())
-		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
-		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, LookAtTransform)
-		PCGEX_OUTPUT_VALUE(Distance, Index, Settings->bOutputNormalizedDistance ? WeightedDistance : WeightedDistance * Settings->DistanceScale)
-		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance * Settings->SignedDistanceScale)
-		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, Settings->bAbsoluteComponentWiseDistance ? PCGExMath::Abs(CWDistance) : CWDistance)
-		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
-		PCGEX_OUTPUT_VALUE(NumSamples, Index, TotalSamples)
-		PCGEX_OUTPUT_VALUE(SampledIndex, Index, Stats.IsValid() ? Stats.Closest.Index : -1)
-
-		MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), WeightedDistance));
-
-		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
+		if (bLocalAnySuccess) { FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1); }
 	}
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
 		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
-		MaxDistance = MaxDistanceValue->Max();
-		StartParallelLoopForRange(PointDataFacade->GetNum());
-	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
-	{
-		double& D = DistanceWriter->GetMutable(Iteration);
-		D /= MaxDistance;
-		if (Settings->bOutputOneMinusDistance) { D = 1 - D; }
-		D *= Settings->DistanceScale;
+		MaxDistance = MaxDistanceValue->Max();
+
+		const int32 NumPoints = PointDataFacade->GetNum();
+
+		if (Settings->bOutputOneMinusDistance)
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				const double D = DistanceWriter->GetValue(i);
+				DistanceWriter->SetValue(i, (1 - (D / MaxDistance)) * Settings->DistanceScale);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				const double D = DistanceWriter->GetValue(i);
+				DistanceWriter->SetValue(i, (D / MaxDistance) * Settings->DistanceScale);
+			}
+		}
 	}
 
 	void FProcessor::CompleteWork()
@@ -422,7 +515,13 @@ namespace PCGExSampleNearestBounds
 
 	void FProcessor::Write()
 	{
-		PCGExSampling::PruneFailedSamples(PointDataFacade->GetMutablePoints(), SampleState);
+		(void)PointDataFacade->Source->Gather(SamplingMask);
+	}
+
+	void FProcessor::Cleanup()
+	{
+		TPointsProcessor<FPCGExSampleNearestBoundsContext, UPCGExSampleNearestBoundsSettings>::Cleanup();
+		BlendOpsManager.Reset();
 	}
 }
 

@@ -10,7 +10,7 @@
 #include "PCGExCompare.h"
 #include "PCGExDetailsData.h"
 
-#include "Utils/PCGPointOctree.h" 
+#include "Utils/PCGPointOctree.h"
 
 #include "PCGExFilterFactoryProvider.h"
 
@@ -43,15 +43,15 @@ struct FPCGExDistanceFilterConfig
 	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distance Threshold (Attr)", EditCondition="CompareAgainst!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distance Threshold (Attr)", EditCondition="CompareAgainst != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector DistanceThreshold;
 
 	/** Operand B for testing */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distance Threshold", EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distance Threshold", EditCondition="CompareAgainst == EPCGExInputValueType::Constant", EditConditionHides))
 	double DistanceThresholdConstant = 0;
 
 	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	/** If enabled, a collection will never be tested against itself */
@@ -75,9 +75,9 @@ public:
 	FPCGExDistanceFilterConfig Config;
 
 	TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
-	TArray<const TArray<FPCGPoint>*> TargetsPtr;
+	TArray<const UPCGBasePointData*> TargetsPtr;
 
-	virtual bool SupportsDirectEvaluation() const override;
+	virtual bool SupportsProxyEvaluation() const override;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 
@@ -108,16 +108,19 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGExDetails::FDistances> Distances;
 
 		TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
-		TArray<const TArray<FPCGPoint>*> TargetsPtr;
-		uintptr_t SelfPtr = 0;
+		TArray<const UPCGBasePointData*> TargetsPtr;
+		const UPCGBasePointData* SelfPtr = nullptr;
+
 		bool bIgnoreSelf = false;
 		int32 NumTargets = -1;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceThresholdGetter;
 
+		TConstPCGValueRange<FTransform> InTransforms;
+
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 
-		virtual bool Test(const FPCGPoint& Point) const override;
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FDistanceFilter() override
@@ -145,6 +148,7 @@ public:
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
+public:
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExDistanceFilterConfig Config;
@@ -154,4 +158,7 @@ protected:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+protected:
+	virtual bool IsCacheable() const override { return false; }
 };

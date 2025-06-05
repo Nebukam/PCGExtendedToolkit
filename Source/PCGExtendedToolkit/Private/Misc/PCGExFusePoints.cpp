@@ -37,6 +37,8 @@ bool FPCGExFusePointsElement::Boot(FPCGExContext* InContext) const
 
 	Context->Distances = PCGExDetails::MakeDistances(Settings->PointPointIntersectionDetails.FuseDetails.SourceDistance, Settings->PointPointIntersectionDetails.FuseDetails.TargetDistance);
 
+	if (!Settings->PointPointIntersectionDetails.SanityCheck(Context)) { return false; }
+
 	PCGEX_FWD(CarryOverDetails)
 	Context->CarryOverDetails.Init();
 
@@ -58,7 +60,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			return Context->CancelExecution(TEXT("Could not find any paths to fuse."));
+			return Context->CancelExecution(TEXT("Could not find any points to fuse."));
 		}
 	}
 
@@ -92,45 +94,87 @@ namespace PCGExFusePoints
 		// TODO : See if we can support scoped get
 		if (!UnionGraph->Init(Context, PointDataFacade, false)) { return false; }
 
+		// Register fetch-able buffers for chunked reads
+		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
+		PCGExDataBlending::GetFilteredIdentities(
+			PointDataFacade->GetIn()->Metadata, SourceAttributes,
+			&Settings->BlendingDetails, &Context->CarryOverDetails);
+
+		PointDataFacade->CreateReadables(SourceAttributes);
+
 		bDaisyChainProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::FusePoints::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
+
+		PCGEX_SCOPE_LOOP(Index) { UnionGraph->InsertPoint(PointDataFacade->GetInPoint(Index)); }
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		UnionGraph->InsertPoint(Point, PointDataFacade->Source->IOIndex, Index);
-	}
+		TPCGValueRange<FTransform> Transforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
-	{
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+		TArray<int32> ReadIndices;
+		TArray<int32> WriteIndices;
 
-		const TSharedPtr<PCGExGraph::FUnionNode> UnionNode = UnionGraph->Nodes[Iteration];
-		const PCGMetadataEntryKey Key = MutablePoints[Iteration].MetadataEntry;
-		MutablePoints[Iteration] = UnionNode->Point; // Copy "original" point properties, in case there's only one
+		ReadIndices.SetNumUninitialized(Scope.Count);
+		WriteIndices.SetNumUninitialized(Scope.Count);
 
-		FPCGPoint& Point = MutablePoints[Iteration];
-		Point.MetadataEntry = Key; // Restore key
+		for (int i = 0; i < Scope.Count; ++i)
+		{
+			const int32 Idx = Scope.Start + i;
+			ReadIndices[i] = UnionGraph->Nodes[Idx]->Point.Index;
+			WriteIndices[i] = Idx;
+		}
 
-		Point.Transform.SetLocation(UnionNode->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints));
-		UnionBlender->MergeSingle(Iteration, Context->Distances);
+		PointDataFacade->Source->InheritProperties(ReadIndices, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);
+
+		TArray<PCGExData::FWeightedPoint> WeightedPoints;
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			Transforms[Index].SetLocation(UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints));
+			UnionBlender->MergeSingle(Index, WeightedPoints);
+			if (IsUnionWriter) { IsUnionWriter->SetValue(Index, WeightedPoints.Num() > 1); }
+			if (UnionSizeWriter) { UnionSizeWriter->SetValue(Index, WeightedPoints.Num()); }
+		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		const int32 NumUnionNodes = UnionGraph->Nodes.Num();
-		PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(NumUnionNodes);
 
-		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
+		UPCGBasePointData* OutData = PointDataFacade->Source->GetOut();
+		PCGEx::SetNumPointsAllocated(OutData, NumUnionNodes);
+
+		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
 		UnionBlender->AddSource(PointDataFacade, &PCGExGraph::ProtectedClusterAttributes);
-		UnionBlender->PrepareMerge(Context, PointDataFacade, UnionGraph->NodesUnion);
+		if (!UnionBlender->Init(Context, PointDataFacade, UnionGraph->NodesUnion))
+		{
+			bIsProcessorValid = false;
+			return;
+		}
+
+		// Initialize writables AFTER we initialize Union Blender, so these don't get captured in the mix
+
+		const FPCGExPointUnionMetadataDetails& PtUnionDetails = Settings->PointPointIntersectionDetails.PointUnionData;
+
+		if (PtUnionDetails.bWriteIsUnion)
+		{
+			IsUnionWriter = PointDataFacade->GetWritable<bool>(PtUnionDetails.IsUnionAttributeName, false, true, PCGExData::EBufferInit::New);
+		}
+
+		if (PtUnionDetails.bWriteUnionSize)
+		{
+			UnionSizeWriter = PointDataFacade->GetWritable<int32>(PtUnionDetails.UnionSizeAttributeName, 1, true, PCGExData::EBufferInit::New);
+		}
 
 		StartParallelLoopForRange(NumUnionNodes);
 	}

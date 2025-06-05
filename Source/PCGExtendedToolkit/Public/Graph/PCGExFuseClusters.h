@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
-#include "PCGExUnionHelpers.h"
+#include "PCGExUnionProcessor.h"
 #include "PCGExEdgesProcessor.h"
 #include "PCGExIntersections.h"
 #include "Data/Blending/PCGExUnionBlender.h"
@@ -118,19 +118,21 @@ class FPCGExFuseClustersElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FuseClusters)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
 namespace PCGExFuseClusters
 {
+	// TODO : Batch-preload vtx & edges attributes we'll want to blend
+	// We'll need a custom FBatch to handle it
+
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFuseClustersContext, UPCGExFuseClustersSettings>
 	{
 		int32 VtxIOIndex = 0;
 		int32 EdgesIOIndex = 0;
 		TArray<PCGExGraph::FEdge> IndexedEdges;
-		const TArray<FPCGPoint>* InPoints = nullptr;
 
 	public:
 		bool bInvalidEdges = true;

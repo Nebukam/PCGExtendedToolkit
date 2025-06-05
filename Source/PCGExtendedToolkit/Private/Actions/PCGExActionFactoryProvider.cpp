@@ -19,17 +19,17 @@ bool FPCGExActionOperation::PrepareForData(FPCGExContext* InContext, const TShar
 	return true;
 }
 
-void FPCGExActionOperation::ProcessPoint(const int32 Index, const FPCGPoint& Point)
+void FPCGExActionOperation::ProcessPoint(const int32 Index)
 {
-	if (FilterManager->Test(Index)) { OnMatchSuccess(Index, Point); }
-	else { OnMatchFail(Index, Point); }
+	if (FilterManager->Test(Index)) { OnMatchSuccess(Index); }
+	else { OnMatchFail(Index); }
 }
 
-void FPCGExActionOperation::OnMatchSuccess(int32 Index, const FPCGPoint& Point)
+void FPCGExActionOperation::OnMatchSuccess(int32 Index)
 {
 }
 
-void FPCGExActionOperation::OnMatchFail(int32 Index, const FPCGPoint& Point)
+void FPCGExActionOperation::OnMatchFail(int32 Index)
 {
 }
 

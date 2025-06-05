@@ -10,8 +10,6 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExRandom.h"
-
 
 #include "PCGExRandomFilter.generated.h"
 
@@ -96,7 +94,7 @@ public:
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool SupportsCollectionEvaluation() const override;
-	virtual bool SupportsDirectEvaluation() const override;
+	virtual bool SupportsProxyEvaluation() const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
@@ -118,6 +116,8 @@ namespace PCGExPointFilter
 		const TObjectPtr<const UPCGExRandomFilterFactory> TypedFilterFactory;
 
 		int32 RandomSeed;
+		FVector RandomSeedV = FVector::OneVector;
+		TConstPCGValueRange<int32> Seeds;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> WeightBuffer;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> ThresholdBuffer;
@@ -134,7 +134,7 @@ namespace PCGExPointFilter
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;
-		virtual bool Test(const FPCGPoint& Point) const override;
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 
 
@@ -168,6 +168,4 @@ public:
 	virtual FString GetDisplayName() const override;
 #endif
 
-protected:
-	virtual bool IsCacheable() const override { return true; }
 };

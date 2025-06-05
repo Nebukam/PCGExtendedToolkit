@@ -3,7 +3,6 @@
 
 #include "Shapes/Builders/PCGExShapeCircle.h"
 
-
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderCircle"
 #define PCGEX_NAMESPACE CreateBuilderCircle
 
@@ -20,7 +19,7 @@ bool FPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const T
 	return true;
 }
 
-void FPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
+void FPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 {
 	PCGEX_MAKE_SHARED(Circle, PCGExShapes::FCircle, Seed)
 
@@ -40,7 +39,7 @@ void FPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FPointRef& Seed)
 	Shapes[Seed.Index] = StaticCastSharedPtr<PCGExShapes::FShape>(Circle);
 }
 
-void FPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const TArrayView<FPCGPoint> PointView)
+void FPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope)
 {
 	const TSharedPtr<PCGExShapes::FCircle> Circle = StaticCastSharedPtr<PCGExShapes::FCircle>(InShape);
 
@@ -49,6 +48,8 @@ void FPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 
 	const FVector Extents = Circle->Fit.GetExtent();
 	const FVector Center = Circle->Fit.GetCenter();
+
+	TPCGValueRange<FTransform> OutTransforms = Scope.Data->GetTransformValueRange(false);
 
 	for (int32 i = 0; i < Circle->NumPoints; i++)
 	{
@@ -61,7 +62,7 @@ void FPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 			Target = Center + FVector(Extents.X * FMath::Cos(A + 0.001), Extents.Y * FMath::Sin(A + 0.001), 0);
 		}
 
-		PointView[i].Transform = FTransform(
+		OutTransforms[Scope.Start + i] = FTransform(
 			PCGExMath::MakeLookAtTransform(P - Target, FVector::UpVector, Config.LookAtAxis).GetRotation(),
 			P, FVector::OneVector);
 	}

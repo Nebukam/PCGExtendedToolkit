@@ -33,7 +33,7 @@ bool FPCGExFindPointOnBoundsElement::Boot(FPCGExContext* InContext) const
 		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
 
 		Context->MergedOut->InitializeOutput(PCGExData::EIOInit::New);
-		Context->MergedOut->GetOut()->GetMutablePoints().SetNum(Context->MainPoints->Num());
+		PCGEx::SetNumPointsAllocated(Context->MergedOut->GetOut(), Context->MainPoints->Num());
 		Context->MergedOut->GetOutKeys(true);
 
 		if (!AttributeMismatches.IsEmpty() && !Settings->bQuietAttributeMismatchWarning)
@@ -74,7 +74,7 @@ bool FPCGExFindPointOnBoundsElement::ExecuteInternal(FPCGContext* InContext) con
 			Context->BestIndices,
 			*Context->MergedAttributesInfos);
 
-		Context->MergedOut->StageOutput();
+		(void)Context->MergedOut->StageOutput(Context);
 	}
 	else
 	{
@@ -101,28 +101,35 @@ namespace PCGExFindPointOnBounds
 		const FBox Bounds = PointDataFacade->Source->GetIn()->GetBounds();
 		SearchPosition = Bounds.GetCenter() + Bounds.GetExtent() * Settings->UVW;
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		const double Dist = FVector::Dist(Point.Transform.GetLocation(), SearchPosition);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::FindPointOnBounds::ProcessPoints);
 
+		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			FWriteScopeLock WriteLock(BestIndexLock);
-			if (Dist > BestDistance) { return; }
-		}
+			const double Dist = FVector::Dist(InTransforms[Index].GetLocation(), SearchPosition);
 
-		{
-			FWriteScopeLock WriteLock(BestIndexLock);
+			{
+				FWriteScopeLock WriteLock(BestIndexLock);
+				if (Dist > BestDistance) { continue; }
+			}
 
-			if (Dist > BestDistance) { return; }
+			{
+				FWriteScopeLock WriteLock(BestIndexLock);
 
-			BestPosition = Point.Transform.GetLocation();
-			BestIndex = Index;
-			BestDistance = Dist;
+				if (Dist > BestDistance) { continue; }
+
+				BestPosition = InTransforms[Index].GetLocation();
+				BestIndex = Index;
+				BestDistance = Dist;
+			}
 		}
 	}
 
@@ -132,19 +139,27 @@ namespace PCGExFindPointOnBounds
 
 		if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
 		{
-			const PCGMetadataEntryKey OriginalKey = Context->MergedOut->GetOut()->GetMutablePoints()[PointDataFacade->Source->IOIndex].MetadataEntry;
-			FPCGPoint& OutPoint = (Context->MergedOut->GetOut()->GetMutablePoints()[PointDataFacade->Source->IOIndex] = PointDataFacade->Source->GetInPoint(BestIndex));
-			OutPoint.MetadataEntry = OriginalKey;
-			OutPoint.Transform.AddToTranslation(Offset);
+			const int32 TargetIndex = PointDataFacade->Source->IOIndex;
+
+			TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+			TPCGValueRange<int64> OutMetadataEntry = PointDataFacade->GetOut()->GetMetadataEntryValueRange(false);
+			const PCGMetadataEntryKey OriginalKey = OutMetadataEntry[TargetIndex];
+
+			PointDataFacade->Source->InheritPoints(BestIndex, TargetIndex, 1);
+
+			OutTransforms[TargetIndex].AddToTranslation(Offset);
+			OutMetadataEntry[TargetIndex] = OriginalKey;
 		}
 		else
 		{
 			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
-			PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(1);
+			PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), 1);
 
-			FPCGPoint& OutPoint = (PointDataFacade->Source->GetOut()->GetMutablePoints()[0] = PointDataFacade->Source->GetInPoint(BestIndex));
-			PointDataFacade->Source->GetOut()->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-			OutPoint.Transform.AddToTranslation(Offset);
+			TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+			TPCGValueRange<int64> OutMetadataEntry = PointDataFacade->GetOut()->GetMetadataEntryValueRange(false);
+
+			PointDataFacade->Source->GetOut()->Metadata->InitializeOnSet(OutMetadataEntry[0]);
+			OutTransforms[0].AddToTranslation(Offset);
 		}
 	}
 }

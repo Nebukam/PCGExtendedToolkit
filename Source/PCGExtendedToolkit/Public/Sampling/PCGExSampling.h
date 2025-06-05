@@ -17,11 +17,11 @@
 // Simply validate name from settings
 #define PCGEX_OUTPUT_VALIDATE_NAME(_NAME, _TYPE, _DEFAULT_VALUE)\
 Context->bWrite##_NAME = Settings->bWrite##_NAME; \
-if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
+if(Context->bWrite##_NAME && !PCGEx::IsWritableAttributeName(Settings->_NAME##AttributeName))\
 { PCGE_LOG(Warning, GraphAndLog, FTEXT("Invalid output attribute name for " #_NAME )); Context->bWrite##_NAME = false; }
 
 #define PCGEX_OUTPUT_INIT(_NAME, _TYPE, _DEFAULT_VALUE) if(Context->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWritable<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT_VALUE, true, PCGExData::EBufferInit::Inherit); }
-#define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){_NAME##Writer->GetMutable(_INDEX) = _VALUE; }
+#define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){_NAME##Writer->SetValue(_INDEX, _VALUE); }
 
 UENUM()
 enum class EPCGExSurfaceSource : uint8
@@ -136,7 +136,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExApplySamplingDetails
 
 	void Init();
 
-	void Apply(FPCGPoint& InPoint, const FTransform& InTransform, const FTransform& InLookAt);
+	void Apply(PCGExData::FMutablePoint& InPoint, const FTransform& InTransform, const FTransform& InLookAt);
 };
 
 namespace PCGExSampling
@@ -152,6 +152,4 @@ namespace PCGExSampling
 		const TSharedRef<PCGExData::FFacade>& InFacade,
 		const FName ActorReferenceName,
 		TMap<AActor*, int32>& OutActorSet);
-
-	void PruneFailedSamples(TArray<FPCGPoint>& InMutablePoints, const TArray<int8>& InSampleState);
 }

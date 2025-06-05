@@ -71,7 +71,9 @@ public class PCGExtendedToolkitEditor : ModuleRules
 				"TypedElementRuntime",
 				"UnrealEd",
 				"LevelEditor",
-				"SceneOutliner"
+				"SceneOutliner", 
+				"AdvancedPreviewScene",
+				"PCGEditor"
 			}
 		);
 		

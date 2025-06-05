@@ -3,7 +3,6 @@
 
 #include "PCGExSubSystem.h"
 
-#include "PCGComponent.h"
 #include "Data/PCGExDataSharing.h"
 #include "Data/PCGExGridTracking.h"
 
@@ -101,6 +100,28 @@ void UPCGExSubSystem::PollEvent(UPCGComponent* InSource, const EPCGExSubsystemEv
 	FWriteScopeLock WriteScopeLock(SubsystemLock);
 	bWantsTick = true;
 	PolledEvents.Add(PCGEx::FPolledEvent(InSource, InEventType, InEventId));
+}
+
+void UPCGExSubSystem::EnsureIndexBufferSize(const int32 Count)
+{
+	{
+		FReadScopeLock ReadScopeLock(IndexBufferLock);
+		if (IndexBuffer.Num() >= Count) { return; }
+	}
+	{
+		FWriteScopeLock WriteScopeLock(IndexBufferLock);
+		if (IndexBuffer.Num() >= Count) { return; }
+
+		const int32 StartIndex = IndexBuffer.Num();
+		IndexBuffer.SetNumUninitialized(Count + 1024);
+		for (int i = StartIndex; i < Count; i++) { IndexBuffer[i] = i; }
+	}
+}
+
+TArrayView<const int32> UPCGExSubSystem::GetIndexRange(const int32 Start, const int32 Count)
+{
+	EnsureIndexBufferSize(Start + Count);
+	return TArrayView<const int32>(IndexBuffer.GetData() + Start, Count);
 }
 
 void UPCGExSubSystem::ExecuteBeginTickActions()

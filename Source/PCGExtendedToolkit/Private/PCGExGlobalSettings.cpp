@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGPin.h"
-#include "PCGExMacros.h"
 
 // Define static members
 TArray<PCGEx::FPinInfos> UPCGExGlobalSettings::InPinInfos;

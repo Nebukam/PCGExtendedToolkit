@@ -49,7 +49,7 @@ public:
 
 	/** Search mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	EPCGExClusterDataSearchMode SearchMode = EPCGExClusterDataSearchMode::VtxFromEdges;
+	EPCGExClusterDataSearchMode SearchMode = EPCGExClusterDataSearchMode::All;
 
 	/** Warning about inputs mismatch and triage */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
@@ -73,7 +73,7 @@ class FPCGExFindClustersDataElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FindClustersData)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

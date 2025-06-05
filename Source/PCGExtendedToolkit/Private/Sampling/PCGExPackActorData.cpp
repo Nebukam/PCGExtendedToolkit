@@ -4,6 +4,7 @@
 #include "Sampling/PCGExPackActorData.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Elements/PCGExecuteBlueprint.h"
 #include "PCGExSubSystem.h"
 
 
@@ -31,7 +32,7 @@ MACRO(Name, FName)
 //MACRO(SoftObjectPath, FSoftObjectPath) \
 //MACRO(SoftClassPath, FSoftClassPath)
 
-void UPCGExCustomActorDataPacker::InitializeWithContext_Implementation(const FPCGContext& InContext, bool& OutSuccess)
+void UPCGExCustomActorDataPacker::Initialize_Implementation(bool& OutSuccess)
 {
 }
 
@@ -55,13 +56,13 @@ void UPCGExCustomActorDataPacker::AddComponent(
 {
 	if (!IsValid(InActor))
 	{
-		UE_LOG(LogTemp, Error, TEXT("AddComponent target actor is NULL"));
+		UE_LOG(LogPCGEx, Error, TEXT("AddComponent target actor is NULL"));
 		return;
 	}
 
 	if (!ComponentClass || ComponentClass->HasAnyClassFlags(CLASS_Abstract))
 	{
-		UE_LOG(LogTemp, Error, TEXT("AddComponent cannot instantiate an abstract class"));
+		UE_LOG(LogPCGEx, Error, TEXT("AddComponent cannot instantiate an abstract class"));
 		return;
 	}
 
@@ -139,7 +140,7 @@ void UPCGExCustomActorDataPacker::PreloadObjectPaths(const FName& InAttributeNam
 
 	if (Identity->UnderlyingType == EPCGMetadataTypes::String)
 	{
-		if (TSharedPtr<PCGExData::TBuffer<FString>> Buffer = ReadBuffers->GetBuffer<FString>(InAttributeName))
+		if (TSharedPtr<PCGExData::TArrayBuffer<FString>> Buffer = ReadBuffers->GetBuffer<FString>(InAttributeName))
 		{
 			const TArray<FString>& Values = *Buffer->GetInValues().Get();
 			for (const FString& V : Values) { RequiredAssetsPaths.Add(FSoftObjectPath(V)); }
@@ -148,7 +149,7 @@ void UPCGExCustomActorDataPacker::PreloadObjectPaths(const FName& InAttributeNam
 
 	if (Identity->UnderlyingType == EPCGMetadataTypes::SoftObjectPath)
 	{
-		if (TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> Buffer = ReadBuffers->GetBuffer<FSoftObjectPath>(InAttributeName))
+		if (TSharedPtr<PCGExData::TArrayBuffer<FSoftObjectPath>> Buffer = ReadBuffers->GetBuffer<FSoftObjectPath>(InAttributeName))
 		{
 			const TArray<FSoftObjectPath>& Values = *Buffer->GetInValues().Get();
 			for (const FSoftObjectPath& V : Values) { RequiredAssetsPaths.Add(V); }
@@ -268,7 +269,7 @@ bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPackActorDatas::FProcessor>>& NewBatch)
 			{
-				NewBatch->PrimaryOperation = Context->Packer;
+				NewBatch->PrimaryInstancedFactory = Context->Packer;
 				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
@@ -305,9 +306,12 @@ namespace PCGExPackActorDatas
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		Packer = static_cast<UPCGExCustomActorDataPacker*>(PrimaryOperation);
+		PointMask.Init(1, PointDataFacade->GetNum());
+
+		Packer = GetPrimaryInstancedFactory<UPCGExCustomActorDataPacker>();
 		Packer->UniqueNameGenerator = Context->UniqueNameGenerator;
 		Packer->WriteBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>>(PointDataFacade);
 		Packer->ReadBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Read>>(PointDataFacade);
@@ -329,18 +333,16 @@ namespace PCGExPackActorDatas
 		for (int i = 0; i < ActorReferences->Values.Num(); i++) { Packer->InputActors[i] = Cast<AActor>(ActorReferences->Values[i].ResolveObject()); }
 
 		bool bSuccess = false;
-		
+
 		{
-			//FPCGContextBlueprintScope BlueprintScope(Context); // Uncomment this on 5.6 final
-		
 			if (!IsInGameThread())
 			{
 				FGCScopeGuard Scope;
-				Packer->InitializeWithContext(*Context, bSuccess);
+				Packer->Initialize(bSuccess);
 			}
 			else
 			{
-				Packer->InitializeWithContext(*Context, bSuccess);
+				Packer->Initialize(bSuccess);
 			}
 		}
 
@@ -348,7 +350,7 @@ namespace PCGExPackActorDatas
 		{
 			if (!Settings->bQuietUninitializedPackerWarning)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some data could not be initialized. Make sure to override the packer 'InitializeWithContext' so it returns true. If that's intended, you can mute this warning in the node settings."));
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some data could not be initialized. Make sure to override the packer 'Initialize' so it returns true. If that's intended, you can mute this warning in the node settings."));
 			}
 
 			return false;
@@ -398,18 +400,36 @@ namespace PCGExPackActorDatas
 		StartParallelLoopForPoints();
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		AActor* ActorRef = Packer->InputActors[Index];
-		if (!ActorRef) { return; }
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PackActorData::ProcessPoints);
 
-		Packer->ProcessEntry(ActorRef, Point, Index, Point);
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+
+		TArray<FPCGPoint> PointsForProcessing;
+		GetPoints(PointDataFacade->GetOutScope(Scope), PointsForProcessing);
+
+		int i = 0;
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			AActor* ActorRef = Packer->InputActors[Index];
+			if (!ActorRef)
+			{
+				PointMask[Index] = 0;
+				continue;
+			}
+
+			FPCGPoint& Point = PointsForProcessing[i++];
+			Packer->ProcessEntry(ActorRef, Point, Index, Point);
+		}
+
+		PointDataFacade->Source->SetPoints(Scope.Start, PointsForProcessing, EPCGPointNativeProperties::All);
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		Attributes.Reserve(PointDataFacade->Buffers.Num());
-		for (const TSharedPtr<PCGExData::FBufferBase>& Buffer : PointDataFacade->Buffers)
+		for (const TSharedPtr<PCGExData::IBuffer>& Buffer : PointDataFacade->Buffers)
 		{
 			if (!Buffer->IsWritable()) { continue; }
 			Attributes.Add(Buffer->OutAttribute);
@@ -420,28 +440,7 @@ namespace PCGExPackActorDatas
 
 	void FProcessor::Write()
 	{
-		TArray<int32> ValidIndices;
-		PCGEx::ArrayOfIndices(ValidIndices, PointDataFacade->Source->GetNum());
-
-		if (Settings->bOmitUnresolvedEntries)
-		{
-			TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
-			const int32 NumPoints = MutablePoints.Num();
-			int32 WriteIndex = 0;
-			for (int32 i = 0; i < NumPoints; i++)
-			{
-				if (Packer->InputActors[i])
-				{
-					ValidIndices[WriteIndex] = i;
-					MutablePoints[WriteIndex++] = MutablePoints[i];
-				}
-			}
-
-			if (MutablePoints.IsEmpty() && Settings->bOmitEmptyOutputs) { return; }
-
-			ValidIndices.SetNum(WriteIndex);
-			MutablePoints.SetNum(WriteIndex);
-		}
+		if (Settings->bOmitUnresolvedEntries) { (void)PointDataFacade->Source->Gather(PointMask); }
 
 		/*
 		UPCGParamData* ParamData = Context->ManagedObjects->New<UPCGParamData>();

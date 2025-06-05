@@ -8,8 +8,8 @@
 #define LOCTEXT_NAMESPACE "PCGExPickClosestClusters"
 #define PCGEX_NAMESPACE PickClosestClusters
 
-PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
-PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 TArray<FPCGPinProperties> UPCGExPickClosestClustersSettings::InputPinProperties() const
 {
@@ -157,12 +157,12 @@ namespace PCGExPickClosestClusters
 
 					This->Distances[Index] = MAX_dbl;
 
-					const FPCGPoint& Point = This->Context->TargetDataFacade->Source->GetInPoint(Index);
-					const FVector TargetLocation = Point.Transform.GetLocation();
+					const UPCGBasePointData* TargetsData = This->Context->TargetDataFacade->GetIn();
+					const FVector TargetLocation = TargetsData->GetTransform(Index).GetLocation();
 
 					bool bFound = false;
 					This->Cluster->GetEdgeOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(TargetLocation, Point.GetScaledExtents() + FVector(This->Settings->TargetBoundsExpansion)),
+						FBoxCenterAndExtent(TargetLocation, TargetsData->GetScaledExtents(Index) + FVector(This->Settings->TargetBoundsExpansion)),
 						[&](const PCGEx::FIndexedItem& Item)
 						{
 							This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetClosestPointOnEdge(Item.Index, TargetLocation)));
@@ -189,12 +189,12 @@ namespace PCGExPickClosestClusters
 
 					This->Distances[Index] = MAX_dbl;
 
-					const FPCGPoint& Point = This->Context->TargetDataFacade->Source->GetInPoint(Index);
-					const FVector TargetLocation = Point.Transform.GetLocation();
+					const UPCGBasePointData* TargetsData = This->Context->TargetDataFacade->GetIn();
+					const FVector TargetLocation = TargetsData->GetTransform(Index).GetLocation();
 
 					bool bFound = false;
 					This->Cluster->NodeOctree->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(TargetLocation, Point.GetScaledExtents() + FVector(This->Settings->TargetBoundsExpansion)),
+						FBoxCenterAndExtent(TargetLocation, TargetsData->GetScaledExtents(Index) + FVector(This->Settings->TargetBoundsExpansion)),
 						[&](const PCGEx::FIndexedItem& Item)
 						{
 							This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetPos(Item.Index)));
@@ -245,8 +245,9 @@ namespace PCGExPickClosestClusters
 			Context->TargetForwardHandler->Forward(Picker, VtxDataFacade);
 		}
 
-		Context->TargetAttributesToTags.Tag(Picker, EdgeDataFacade->Source);
-		Context->TargetAttributesToTags.Tag(Picker, VtxDataFacade->Source);
+		const PCGExData::FConstPoint PickerPt = Context->TargetDataFacade->GetInPoint(Picker);
+		Context->TargetAttributesToTags.Tag(PickerPt, EdgeDataFacade->Source);
+		Context->TargetAttributesToTags.Tag(PickerPt, VtxDataFacade->Source);
 	}
 
 	void FBatch::Output()

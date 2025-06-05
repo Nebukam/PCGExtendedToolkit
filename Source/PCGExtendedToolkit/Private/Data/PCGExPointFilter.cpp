@@ -5,6 +5,7 @@
 
 
 #include "Graph/PCGExCluster.h"
+#include "Paths/PCGExShiftPath.h"
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExFilterFactoryData::CreateFilter() const
 {
@@ -32,16 +33,22 @@ namespace PCGExPointFilter
 		Results.Init(false, NumResults);
 	}
 
-	bool FFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const int32 Index), false)
-	bool FFilter::Test(const FPCGPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const FPCGPoint& Point), false)
+	bool FFilter::Test(const int32 Index) const
+	PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const int32 Index), false)
+
+	bool FFilter::Test(const PCGExData::FProxyPoint& Point) const
+	PCGEX_NOT_IMPLEMENTED_RET(FFilter::Test(const PCGExData::FProxyPoint& Point), false)
 
 	bool FFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool FFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
 
 	bool FFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const { return bCollectionTestResult; }
 
-	bool FSimpleFilter::Test(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::Test(const PCGExCluster::FNode& Node), false)
-	bool FSimpleFilter::Test(const FPCGPoint& Point) const PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::Test(const PCGExCluster::FPCGPoint& Point), false)
+	bool FSimpleFilter::Test(const int32 Index) const
+	PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::Test(const PCGExCluster::FNode& Node), false)
+
+	bool FSimpleFilter::Test(const PCGExData::FProxyPoint& Point) const
+	PCGEX_NOT_IMPLEMENTED_RET(FSimpleFilter::TestRoamingPoint(const PCGExCluster::PCGExData::FProxyPoint& Point), false)
 
 	bool FSimpleFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool FSimpleFilter::Test(const PCGExGraph::FEdge& Edge) const { return Test(Edge.PointIndex); }
@@ -56,12 +63,13 @@ namespace PCGExPointFilter
 	}
 
 	bool FCollectionFilter::Test(const int32 Index) const { return bCollectionTestResult; }
-	bool FCollectionFilter::Test(const FPCGPoint& Point) const { return bCollectionTestResult; }
+	bool FCollectionFilter::Test(const PCGExData::FProxyPoint& Point) const { return bCollectionTestResult; }
 
 	bool FCollectionFilter::Test(const PCGExCluster::FNode& Node) const { return bCollectionTestResult; }
 	bool FCollectionFilter::Test(const PCGExGraph::FEdge& Edge) const { return bCollectionTestResult; }
 
-	bool FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const PCGEX_NOT_IMPLEMENTED_RET(FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO), false)
+	bool FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+	PCGEX_NOT_IMPLEMENTED_RET(FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO), false)
 
 	FManager::FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
@@ -92,7 +100,7 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool FManager::Test(const FPCGPoint& Point)
+	bool FManager::Test(const PCGExData::FProxyPoint& Point)
 	{
 		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->Test(Point)) { return false; } }
 		return true;
@@ -114,6 +122,101 @@ namespace PCGExPointFilter
 	{
 		for (const TSharedPtr<FFilter>& Handler : ManagedFilters) { if (!Handler->Test(IO, ParentCollection)) { return false; } }
 		return true;
+	}
+
+	int32 FManager::Test(const PCGExMT::FScope Scope, TArray<int8>& OutResults)
+	{
+		bool bResult = true;
+		int32 NumPass = 0;
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			bResult = true;
+			for (const TSharedPtr<FFilter>& Handler : ManagedFilters)
+			{
+				if (!Handler->Test(Index))
+				{
+					bResult = false;
+					break;
+				}
+			}
+			OutResults[Index] = bResult;
+			NumPass += bResult;
+		}
+
+		return NumPass;
+	}
+
+	int32 FManager::Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults)
+	{
+		bool bResult = true;
+		int32 NumPass = 0;
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			bResult = true;
+			for (const TSharedPtr<FFilter>& Handler : ManagedFilters)
+			{
+				if (!Handler->Test(Index))
+				{
+					bResult = false;
+					break;
+				}
+			}
+			OutResults[Index] = bResult;
+			NumPass += bResult;
+		}
+
+		return NumPass;
+	}
+
+	int32 FManager::Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults)
+	{
+		check(Items.Num() == OutResults.Num());
+
+		bool bResult = true;
+		int32 NumPass = 0;
+
+		for (int i = 0; i < Items.Num(); i++)
+		{
+			bResult = true;
+			const PCGExCluster::FNode& Node = Items[i];
+			for (const TSharedPtr<FFilter>& Handler : ManagedFilters)
+			{
+				if (!Handler->Test(Node))
+				{
+					bResult = false;
+					break;
+				}
+			}
+			OutResults[i] = bResult;
+			NumPass += bResult;
+		}
+
+		return NumPass;
+	}
+
+	int32 FManager::Test(const TArrayView<PCGExCluster::FEdge> Items, const TArrayView<int8> OutResults)
+	{
+		check(Items.Num() == OutResults.Num());
+		bool bResult = true;
+		int32 NumPass = 0;
+
+		for (int i = 0; i < Items.Num(); i++)
+		{
+			bResult = true;
+			const PCGExCluster::FEdge& Edge = Items[i];
+			for (const TSharedPtr<FFilter>& Handler : ManagedFilters)
+			{
+				if (!Handler->Test(Edge))
+				{
+					bResult = false;
+					break;
+				}
+			}
+			OutResults[i] = bResult;
+			NumPass += bResult;
+		}
+
+		return NumPass;
 	}
 
 	bool FManager::InitFilter(FPCGExContext* InContext, const TSharedPtr<FFilter>& Filter)

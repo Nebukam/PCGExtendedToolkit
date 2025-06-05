@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExScopedContainers.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 
@@ -102,7 +103,7 @@ class FPCGExUberFilterElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(UberFilter)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -113,6 +114,9 @@ namespace PCGExUberFilter
 	{
 		int32 NumInside = 0;
 		int32 NumOutside = 0;
+
+		TSharedPtr<PCGExMT::TScopedArray<int32>> IndicesInside;
+		TSharedPtr<PCGExMT::TScopedArray<int32>> IndicesOutside;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> Results;
 
@@ -128,9 +132,11 @@ namespace PCGExUberFilter
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+
 		TSharedPtr<PCGExData::FPointIO> CreateIO(const TSharedRef<PCGExData::FPointIOCollection>& InCollection, const PCGExData::EIOInit InitMode) const;
+
 		virtual void CompleteWork() override;
 	};
 }

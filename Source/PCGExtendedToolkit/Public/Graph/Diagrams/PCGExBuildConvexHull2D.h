@@ -6,9 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
-
 #include "Geometry/PCGExGeo.h"
-#include "Geometry/PCGExGeoDelaunay.h"
 #include "PCGExBuildConvexHull2D.generated.h"
 
 /**
@@ -73,7 +71,7 @@ class FPCGExBuildConvexHull2DElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BuildConvexHull2D)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

@@ -4,7 +4,6 @@
 #include "Collections/PCGExComponentDescriptors.h"
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInterface.h"
-#include "PCGExMacros.h"
 
 FPCGExPrimitiveComponentDescriptor::FPCGExPrimitiveComponentDescriptor()
 	: FPCGExPrimitiveComponentDescriptor(NoInit)

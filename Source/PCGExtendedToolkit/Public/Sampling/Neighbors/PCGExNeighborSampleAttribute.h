@@ -8,42 +8,14 @@
 
 #include "PCGExFactoryProvider.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
 
 #include "PCGExNeighborSampleFactoryProvider.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-
 
 #include "PCGExNeighborSampleAttribute.generated.h"
 
 ///
 
-/**
- * 
- */
-class FPCGExNeighborSampleAttribute : public FPCGExNeighborSampleOperation
-{
-public:
-	TSharedPtr<PCGExDataBlending::FMetadataBlender> Blender;
-
-	FPCGExAttributeSourceToTargetList SourceAttributes;
-	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;
-
-	virtual void PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade) override;
-
-	virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override;
-	virtual void SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override;
-	virtual void SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight) override;
-	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) override;
-	virtual void CompleteOperation() override;
-
-protected:
-	FPCGExBlendingDetails MetadataBlendingDetails;
-};
-
-
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType, meta=(Hidden=true))
 struct FPCGExAttributeSamplerConfigBase
 {
 	GENERATED_BODY()
@@ -61,20 +33,16 @@ struct FPCGExAttributeSamplerConfigBase
 	FPCGExAttributeSourceToTargetList SourceAttributes;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class UPCGExNeighborSamplerFactoryAttribute : public UPCGExNeighborSamplerFactoryData
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExAttributeSamplerConfigBase Config;
 	virtual TSharedPtr<FPCGExNeighborSampleOperation> CreateOperation(FPCGExContext* InContext) const override;
-
-	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const override;
-	virtual void RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")
 class UPCGExNeighborSampleAttributeSettings : public UPCGExNeighborSampleProviderSettings
 {
 	GENERATED_BODY()

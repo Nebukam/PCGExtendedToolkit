@@ -79,6 +79,7 @@ namespace PCGExTensorsTransform
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		if (!Context->StopFilterFactories.IsEmpty())
 		{
@@ -98,69 +99,76 @@ namespace PCGExTensorsTransform
 		Metrics.SetNum(PointDataFacade->GetNum());
 		Pings.Init(0, PointDataFacade->GetNum());
 
-		StartParallelLoopForPoints(PCGExData::ESource::Out, 64);
+		StartParallelLoopForPoints(PCGExData::EIOSide::Out, 64);
 
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::TensorTransform::ProcessPoints);
+
 		if (bIteratedOnce) { return; }
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		if (!PointFilterCache[Index]) { return; }
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange(false);
 
-		const FTransform Probe = Point.Transform;
-		const FVector SamplePosition = Probe.GetLocation();
-
-		bool bSuccess = false;
-		const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, Probe, bSuccess);
-		PointFilterCache[Index] = bSuccess;
-
-		if (!bSuccess)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			// TODO : Gracefully stopped
-			// TODO : Max iterations not reached
-			return;
-		}
+			if (!PointFilterCache[Index]) { continue; }
 
-		if (StopFilters && StopFilters->Test(Point))
-		{
-			PointFilterCache[Index] = false;
-			if (Settings->StopConditionHandling == EPCGExTensorStopConditionHandling::Exclude)
+			bool bSuccess = false;
+			const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, OutTransforms[Index], bSuccess);
+			PointFilterCache[Index] = bSuccess;
+
+			if (!bSuccess)
 			{
-				// TODO : Not gracefully stopped
+				// TODO : Gracefully stopped
 				// TODO : Max iterations not reached
-				return;
+				continue;
 			}
-		}
 
-		Metrics[Index].Add(SamplePosition);
-		Pings[Index] += Sample.Effectors;
+			if (StopFilters)
+			{
+				PCGExData::FProxyPoint ProxyPoint = PCGExData::FProxyPoint(PCGExData::FMutablePoint(PointDataFacade->GetOutPoint(Index))); // Oooof
+				if (StopFilters->Test(ProxyPoint))
+				{
+					PointFilterCache[Index] = false;
+					if (Settings->StopConditionHandling == EPCGExTensorStopConditionHandling::Exclude)
+					{
+						// TODO : Not gracefully stopped
+						// TODO : Max iterations not reached
+						continue;
+					}
+				}
+			}
 
-		if (Settings->bTransformRotation)
-		{
-			if (Settings->Rotation == EPCGExTensorTransformMode::Absolute)
-			{
-				Point.Transform.SetRotation(Sample.Rotation);
-			}
-			else if (Settings->Rotation == EPCGExTensorTransformMode::Relative)
-			{
-				Point.Transform.SetRotation(Sample.Rotation * Point.Transform.GetRotation());
-			}
-			else if (Settings->Rotation == EPCGExTensorTransformMode::Align)
-			{
-				Point.Transform.SetRotation(PCGExMath::MakeDirection(Settings->AlignAxis, Sample.DirectionAndSize.GetSafeNormal() * -1, Point.Transform.GetRotation().GetUpVector()));
-			}
-		}
+			Metrics[Index].Add(OutTransforms[Index].GetLocation());
+			Pings[Index] += Sample.Effectors;
 
-		if (Settings->bTransformPosition)
-		{
-			Point.Transform.SetLocation(Point.Transform.GetLocation() + Sample.DirectionAndSize);
+			if (Settings->bTransformRotation)
+			{
+				if (Settings->Rotation == EPCGExTensorTransformMode::Absolute)
+				{
+					OutTransforms[Index].SetRotation(Sample.Rotation);
+				}
+				else if (Settings->Rotation == EPCGExTensorTransformMode::Relative)
+				{
+					OutTransforms[Index].SetRotation(Sample.Rotation * OutTransforms[Index].GetRotation());
+				}
+				else if (Settings->Rotation == EPCGExTensorTransformMode::Align)
+				{
+					OutTransforms[Index].SetRotation(PCGExMath::MakeDirection(Settings->AlignAxis, Sample.DirectionAndSize.GetSafeNormal() * -1, OutTransforms[Index].GetRotation().GetUpVector()));
+				}
+			}
+
+			if (Settings->bTransformPosition)
+			{
+				OutTransforms[Index].SetLocation(OutTransforms[Index].GetLocation() + Sample.DirectionAndSize);
+			}
 		}
 	}
 
@@ -168,20 +176,23 @@ namespace PCGExTensorsTransform
 	{
 		bIteratedOnce = true;
 		RemainingIterations--;
-		if (RemainingIterations > 0) { StartParallelLoopForPoints(PCGExData::ESource::Out, 32); }
+		if (RemainingIterations > 0) { StartParallelLoopForPoints(PCGExData::EIOSide::Out, 32); }
 		else { StartParallelLoopForRange(PointDataFacade->GetNum()); }
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const PCGExPaths::FPathMetrics& Metric = Metrics[Iteration];
-		const int32 UpdateCount = Metric.Count;
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const PCGExPaths::FPathMetrics& Metric = Metrics[Index];
+			const int32 UpdateCount = Metric.Count;
 
-		PCGEX_OUTPUT_VALUE(EffectorsPings, Iteration, Pings[Iteration])
-		PCGEX_OUTPUT_VALUE(UpdateCount, Iteration, UpdateCount)
-		PCGEX_OUTPUT_VALUE(TraveledDistance, Iteration, Metric.Length)
-		PCGEX_OUTPUT_VALUE(GracefullyStopped, Iteration, UpdateCount < Settings->Iterations)
-		PCGEX_OUTPUT_VALUE(MaxIterationsReached, Iteration, UpdateCount == Settings->Iterations)
+			PCGEX_OUTPUT_VALUE(EffectorsPings, Index, Pings[Index])
+			PCGEX_OUTPUT_VALUE(UpdateCount, Index, UpdateCount)
+			PCGEX_OUTPUT_VALUE(TraveledDistance, Index, Metric.Length)
+			PCGEX_OUTPUT_VALUE(GracefullyStopped, Index, UpdateCount < Settings->Iterations)
+			PCGEX_OUTPUT_VALUE(MaxIterationsReached, Index, UpdateCount == Settings->Iterations)
+		}
 	}
 
 	void FProcessor::CompleteWork()

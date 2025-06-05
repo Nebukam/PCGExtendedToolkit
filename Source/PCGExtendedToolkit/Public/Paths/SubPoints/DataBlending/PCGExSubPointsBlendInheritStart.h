@@ -5,22 +5,29 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSubPointsBlendOperation.h"
+
+
 #include "PCGExSubPointsBlendInheritStart.generated.h"
+
+class FPCGExSubPointsBlendInheritStart : public FPCGExSubPointsBlendOperation
+{
+public:
+	virtual void BlendSubPoints(
+		const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
+		PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const override;
+};
 
 /**
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Inherit First")
-class UPCGExSubPointsBlendInheritStart : public UPCGExSubPointsBlendOperation
+class UPCGExSubPointsBlendInheritStart : public UPCGExSubPointsBlendInstancedFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual void BlendSubPoints(
-		const PCGExData::FPointRef& From,
-		const PCGExData::FPointRef& To,
-		const TArrayView<FPCGPoint>& SubPoints,
-		const PCGExPaths::FPathMetrics& Metrics,
-		PCGExDataBlending::FMetadataBlender* InBlender,
-		const int32 StartIndex) const override;
+	virtual TSharedPtr<FPCGExSubPointsBlendOperation> CreateOperation() const override;
+
+protected:
+	virtual EPCGExDataBlendingType GetDefaultBlending() const override { return EPCGExDataBlendingType::Copy; }
 };

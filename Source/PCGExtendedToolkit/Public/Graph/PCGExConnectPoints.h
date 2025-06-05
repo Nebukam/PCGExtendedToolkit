@@ -76,7 +76,7 @@ class FPCGExConnectPointsElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ConnectPoints)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -94,6 +94,7 @@ namespace PCGExConnectPoints
 		TArray<TSharedPtr<FPCGExProbeOperation>> DirectProbes;
 		TArray<TSharedPtr<FPCGExProbeOperation>> ChainProbeOperations;
 		TArray<TSharedPtr<FPCGExProbeOperation>> SharedProbeOperations;
+
 		bool bUseVariableRadius = false;
 		int32 NumChainedOps = 0;
 		double SharedSearchRadius = 0;
@@ -102,8 +103,7 @@ namespace PCGExConnectPoints
 		TArray<int8> AcceptConnections;
 		TUniquePtr<PCGEx::FIndexedItemOctree> Octree;
 
-		const TArray<FPCGPoint>* InPoints = nullptr;
-		TArray<FTransform> CachedTransforms;
+		TArray<FTransform> WorkingTransforms;
 
 		TSharedPtr<PCGExMT::TScopedSet<uint64>> ScopedEdges;
 
@@ -124,8 +124,7 @@ namespace PCGExConnectPoints
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void OnPreparationComplete();
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 

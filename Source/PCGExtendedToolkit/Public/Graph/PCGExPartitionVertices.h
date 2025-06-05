@@ -48,7 +48,7 @@ class FPCGExPartitionVerticesElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PartitionVertices)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -63,8 +63,6 @@ namespace PCGExPartitionVertices
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 
 		TSharedPtr<PCGExData::FPointIO> PointPartitionIO;
-		TMap<int32, int32> Remapping;
-		TArray<int32> KeptIndices;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
@@ -73,8 +71,6 @@ namespace PCGExPartitionVertices
 		}
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};
 }

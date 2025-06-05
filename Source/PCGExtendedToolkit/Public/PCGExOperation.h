@@ -4,10 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExBroadcast.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 
 namespace PCGExMT
@@ -37,6 +35,8 @@ public:
 
 	virtual void RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const;
 	virtual void RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const;
+
+	virtual void InitForScopes(const TArray<PCGExMT::FScope>& Loops);
 
 protected:
 	FPCGExContext* Context = nullptr;

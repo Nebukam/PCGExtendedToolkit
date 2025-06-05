@@ -51,7 +51,7 @@ bool FPCGExShiftPathElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bPrefetchData = true;
 			}))
 		{
-			return Context->CancelExecution(TEXT("Could not find any paths to fuse."));
+			return Context->CancelExecution(TEXT("Could not find any paths to shift."));
 		}
 	}
 
@@ -77,7 +77,7 @@ namespace PCGExShiftPath
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
+		MaxIndex = PointDataFacade->GetNum(PCGExData::EIOSide::In) - 1;
 		PivotIndex = Settings->bReverseShift ? MaxIndex : 0;
 
 		if (Settings->InputMode == EPCGExShiftPathMode::Relative)
@@ -129,7 +129,7 @@ namespace PCGExShiftPath
 				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
-					This->PrepareSingleLoopScopeForPoints(Scope);
+					This->ProcessPoints(Scope);
 				};
 
 			FilterTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -147,12 +147,13 @@ namespace PCGExShiftPath
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::ShiftPath::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 	}
-
 
 	void FProcessor::CompleteWork()
 	{
@@ -164,51 +165,35 @@ namespace PCGExShiftPath
 			return;
 		}
 
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetMutablePoints();
+		TArray<int32> Indices;
+		PCGEx::ArrayOfIndices(Indices, PointDataFacade->GetIn()->GetNumPoints());
 
 		if (Settings->bReverseShift)
 		{
-			PCGExMath::ReverseRange(MutablePoints, 0, PivotIndex);
-			PCGExMath::ReverseRange(MutablePoints, PivotIndex + 1, MaxIndex);
+			PCGExMath::ReverseRange(Indices, 0, PivotIndex);
+			PCGExMath::ReverseRange(Indices, PivotIndex + 1, MaxIndex);
 		}
 		else
 		{
-			PCGExMath::ReverseRange(MutablePoints, 0, PivotIndex - 1);
-			PCGExMath::ReverseRange(MutablePoints, PivotIndex, MaxIndex);
+			PCGExMath::ReverseRange(Indices, 0, PivotIndex - 1);
+			PCGExMath::ReverseRange(Indices, PivotIndex, MaxIndex);
 		}
 
-		Algo::Reverse(MutablePoints);
+		Algo::Reverse(Indices);
 
 		if (Settings->ShiftType == EPCGExShiftType::Index) { return; }
 
-		const int32 NumPoints = MutablePoints.Num();
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
-
 		if (Settings->ShiftType == EPCGExShiftType::Metadata)
 		{
-			for (int i = 0; i < NumPoints; i++)
-			{
-				FPCGPoint& OutPoint = MutablePoints[i];
-				const FPCGPoint& InPoint = InPoints[i];
-				const PCGMetadataEntryKey OutKey = MutablePoints[i].MetadataEntry;
-				OutPoint = InPoint;
-				OutPoint.MetadataEntry = OutKey;
-			}
+			PointDataFacade->Source->InheritProperties(Indices, EPCGPointNativeProperties::MetadataEntry);
 		}
 		else if (Settings->ShiftType == EPCGExShiftType::Properties)
 		{
-			for (int i = 0; i < NumPoints; i++)
-			{
-				FPCGPoint& OutPoint = MutablePoints[i];
-				OutPoint.MetadataEntry = InPoints[i].MetadataEntry;
-			}
+			PointDataFacade->Source->InheritProperties(Indices, PCGEx::AllPointNativePropertiesButMeta);
 		}
 		else if (Settings->ShiftType == EPCGExShiftType::MetadataAndProperties)
 		{
-			for (int i = 0; i < NumPoints; i++)
-			{
-				MutablePoints[i].Transform = InPoints[i].Transform;
-			}
+			PointDataFacade->Source->InheritProperties(Indices);
 		}
 	}
 }

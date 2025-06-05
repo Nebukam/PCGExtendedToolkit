@@ -78,7 +78,7 @@ class FPCGExFindPointOnBoundsElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FindPointOnBounds)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -99,29 +99,30 @@ namespace PCGExFindPointOnBounds
 
 			if (BestIndices[i] == -1 || !IO) { continue; }
 
-			PCGMetadataEntryKey InKey = IO->GetInPoint(BestIndices[i]).MetadataEntry;
-			PCGMetadataEntryKey OutKey = Target->GetOutPoint(i).MetadataEntry;
+			PCGMetadataEntryKey InKey = IO->GetIn()->GetMetadataEntry(BestIndices[i]);
+			PCGMetadataEntryKey OutKey = Target->GetOut()->GetMetadataEntry(i);
 			UPCGMetadata* InMetadata = IO->GetIn()->Metadata;
+
 			for (const PCGEx::FAttributeIdentity& Identity : InAttributesInfos.Identities)
 			{
 				PCGEx::ExecuteWithRightType(
 					Identity.GetTypeId(), [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
-						const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Name);
-						const FPCGMetadataAttributeBase* OutAttributeBase = OutMetadata->GetMutableAttribute(Identity.Name);
+						const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Identifier);
+						const FPCGMetadataAttributeBase* OutAttributeBase = OutMetadata->GetMutableAttribute(Identity.Identifier);
 						FPCGMetadataAttribute<T>* OutAttribute = nullptr;
 
 						if (!OutAttributeBase)
 						{
 							OutAttribute = OutMetadata->FindOrCreateAttribute<T>(
-								Identity.Name,
+								Identity.Identifier,
 								InAttribute->GetValueFromItemKey(PCGDefaultValueKey),
 								InAttribute->AllowsInterpolation());
 						}
 						else
 						{
-							OutAttribute = OutMetadata->GetMutableTypedAttribute<T>(Identity.Name);
+							OutAttribute = OutMetadata->GetMutableTypedAttribute<T>(Identity.Identifier);
 						}
 
 						if (!OutAttribute) { return; }
@@ -150,7 +151,7 @@ namespace PCGExFindPointOnBounds
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};
 }

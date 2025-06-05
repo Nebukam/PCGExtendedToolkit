@@ -133,7 +133,7 @@ namespace PCGExTexture
 			for (int i = 0; i < Factories.Num(); i++)
 			{
 				if (!Buffers[i]) { continue; }
-				Buffers[i]->GetMutable(PointIndex) = TEXT("");
+				Buffers[i]->SetValue(PointIndex, FSoftObjectPath{});
 			}
 
 			return;
@@ -147,7 +147,7 @@ namespace PCGExTexture
 
 			if (UTexture* FoundTexture = nullptr; InMaterial->GetTextureParameterValue(Factory->Infos, FoundTexture))
 			{
-				Buffers[i]->GetMutable(PointIndex) = FoundTexture->GetPathName();
+				Buffers[i]->SetValue(PointIndex, FSoftObjectPath(FoundTexture->GetPathName()));
 			}
 		}
 	}
@@ -173,7 +173,7 @@ namespace PCGExTexture
 			for (int i = 0; i < Factories.Num(); i++)
 			{
 				if (!Buffers[i]) { continue; }
-				Buffers[i]->GetMutable(PointIndex) = TEXT("");
+				Buffers[i]->SetValue(PointIndex, FSoftObjectPath{});
 			}
 
 			return;
@@ -187,7 +187,7 @@ namespace PCGExTexture
 
 			if (UTexture* FoundTexture = nullptr; InMaterial->GetTextureParameterValue(Factory->Infos, FoundTexture))
 			{
-				Buffers[i]->GetMutable(PointIndex) = FoundTexture->GetPathName();
+				Buffers[i]->SetValue(PointIndex, FSoftObjectPath(FoundTexture->GetPathName()));
 				References.Add(FReference(FoundTexture->GetPathName(), Factory->Config.TextureIndex));
 			}
 		}

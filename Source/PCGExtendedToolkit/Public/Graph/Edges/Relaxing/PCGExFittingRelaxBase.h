@@ -70,14 +70,17 @@ public:
 
 		if (EdgeFitting == EPCGExRelaxEdgeFitting::Attribute)
 		{
-			EdgeLengthBuffer = SecondaryDataFacade->GetBroadcaster<double>(DesiredEdgeLengthAttribute);
-			if (!EdgeLengthBuffer)
+			const TSharedPtr<PCGExData::TBuffer<double>> Buffer = SecondaryDataFacade->GetBroadcaster<double>(DesiredEdgeLengthAttribute);
+
+			if (!Buffer)
 			{
 				PCGEX_LOG_INVALID_SELECTOR_C(Context, "Edge Length", DesiredEdgeLengthAttribute)
 				return false;
 			}
 
-			EdgeLengths = EdgeLengthBuffer->GetInValues();
+			EdgeLengths = MakeShared<TArray<double>>();
+			EdgeLengths->SetNumUninitialized(Cluster->Edges->Num());
+			Buffer->DumpValues(EdgeLengths);
 		}
 		else
 		{
@@ -99,7 +102,7 @@ public:
 
 	virtual int32 GetNumSteps() override { return 3; }
 
-	virtual EPCGExClusterComponentSource PrepareNextStep(const int32 InStep) override
+	virtual EPCGExClusterElement PrepareNextStep(const int32 InStep) override
 	{
 		// Step 1 : Apply spring forces for each edge
 		if (InStep == 0)
@@ -107,12 +110,12 @@ public:
 			Super::PrepareNextStep(InStep);
 			Forces.Reset(Cluster->Nodes->Num());
 			Forces.Init(FIntVector3(0), Cluster->Nodes->Num());
-			return EPCGExClusterComponentSource::Edge;
+			return EPCGExClusterElement::Edge;
 		}
 
 		// Step 2 : Apply repulsion forces between all pairs of nodes
 		// Step 3 : Update positions based on accumulated forces
-		return EPCGExClusterComponentSource::Vtx;
+		return EPCGExClusterElement::Vtx;
 	}
 
 	virtual void Step1(const PCGExGraph::FEdge& Edge) override
@@ -151,7 +154,6 @@ public:
 
 protected:
 	TArray<FIntVector3> Forces;
-	TSharedPtr<PCGExData::TBuffer<double>> EdgeLengthBuffer;
 	TSharedPtr<TArray<double>> EdgeLengths;
 
 	void ApplyForces(const int32 AddIndex, const int32 SubtractIndex, const FVector& Delta)

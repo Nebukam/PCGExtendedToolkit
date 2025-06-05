@@ -93,7 +93,7 @@ namespace PCGExBuildDelaunay
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 
 		Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
 
@@ -133,9 +133,11 @@ namespace PCGExBuildDelaunay
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(Index);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BuildDelaunayGraph::ProcessPoints);
+
+		PCGEX_SCOPE_LOOP(Index) { HullMarkPointWriter->SetValue(Index, Delaunay->DelaunayHull.Contains(Index)); }
 	}
 
 	void FProcessor::CompleteWork()
@@ -171,30 +173,38 @@ namespace PCGExBuildDelaunay
 
 		Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
 
-		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
 		PCGExGeo::TDelaunay3* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 
-		MutablePoints.SetNumUninitialized(NumSites);
+		const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
+		UPCGBasePointData* MutablePoints = SitesIO->GetOut();
+		(void)PCGEx::SetNumPointsAllocated(MutablePoints, NumSites);
+
+		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
+
+		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange(false);
+
 		for (int i = 0; i < NumSites; i++)
 		{
 			const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
-			FVector Centroid = OriginalPoints[Site.Vtx[0]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[1]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[2]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[3]].Transform.GetLocation();
+			FVector Centroid = InTransforms[Site.Vtx[0]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[1]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[2]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[3]].GetLocation();
 			Centroid /= 4;
 
-			MutablePoints[i] = OriginalPoints[Site.Vtx[0]];
-			MutablePoints[i].Transform.SetLocation(Centroid);
+			IdxMapping[i] = Site.Vtx[0];
+			OutTransforms[i].SetLocation(Centroid);
 		}
+
+		SitesIO->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButTransform);
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
-			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
+			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TArrayBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
+			HullBuffer->InitForWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 				for (int i = 0; i < NumSites; i++) { OutValues[i] = static_cast<bool>(Delaunay->Sites[i].bOnHull); }
@@ -213,30 +223,38 @@ namespace PCGExBuildDelaunay
 
 		Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
 
-		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
+		const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
+		UPCGBasePointData* MutablePoints = SitesIO->GetOut();
+
 		PCGExGeo::TDelaunay3* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 
-		MutablePoints.SetNumUninitialized(NumSites);
+		(void)PCGEx::SetNumPointsAllocated(MutablePoints, NumSites);
+		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
+
+		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
+		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange();
+
 		for (int i = 0; i < NumSites; i++)
 		{
 			const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
-			FVector Centroid = OriginalPoints[Site.Vtx[0]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[1]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[2]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[3]].Transform.GetLocation();
+			FVector Centroid = InTransforms[Site.Vtx[0]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[1]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[2]].GetLocation();
+			Centroid += InTransforms[Site.Vtx[3]].GetLocation();
 			Centroid /= 4;
 
-			MutablePoints[i] = OriginalPoints[Site.Vtx[0]];
-			MutablePoints[i].Transform.SetLocation(Centroid);
+			IdxMapping[i] = Site.Vtx[0];
+			OutTransforms[i].SetLocation(Centroid);
 		}
+
+		SitesIO->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButTransform);
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
-			HullBuffer->PrepareWrite(false, true, PCGExData::EBufferInit::New);
+			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TArrayBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
+			HullBuffer->InitForWrite(false, true, PCGExData::EBufferInit::New);
 			{
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 				for (int i = 0; i < NumSites; i++) { OutValues[i] = static_cast<bool>(Delaunay->Sites[i].bOnHull); }

@@ -3,7 +3,6 @@
 
 #include "PCGExFactoryProvider.h"
 
-#include "PCGComponent.h"
 #include "PCGExContext.h"
 #include "PCGPin.h"
 #include "Tasks/Task.h"
@@ -33,27 +32,27 @@ void UPCGExFactoryData::RegisterBuffersDependencies(FPCGExContext* InContext, PC
 {
 }
 
-void UPCGExFactoryData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EIOInit InitMode)
+void UPCGExFactoryData::AddDataDependency(const UPCGData* InData)
 {
-	Super::InitializeFromPCGExData(InPCGExPointData, InitMode);
-	if (const UPCGExFactoryData* FactoryData = Cast<UPCGExFactoryData>(InPCGExPointData))
-	{
-		InitializeFromFactory(FactoryData);
-	}
-	else
-	{
-		HandleFailedInitializationFromFactory(InPCGExPointData);
-	}
+	bool bAlreadyInSet = false;
+	UPCGData* MutableData = const_cast<UPCGData*>(InData);
+	DataDependencies.Add(MutableData, &bAlreadyInSet);
+	if (!bAlreadyInSet) { MutableData->AddToRoot(); }
 }
 
-void UPCGExFactoryData::InitializeFromFactory(const UPCGExFactoryData* InFactoryData)
+void UPCGExFactoryData::BeginDestroy()
 {
+	for (UPCGData* DataDependency : DataDependencies) { DataDependency->RemoveFromRoot(); }
+	Super::BeginDestroy();
 }
 
-void UPCGExFactoryData::HandleFailedInitializationFromFactory(const UPCGPointData* InPointData)
+#if WITH_EDITOR
+void UPCGExFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	UE_LOG(LogTemp, Error, TEXT("Attempted to create a copy of a Factory from invalid or unrelated data!"));
+	InternalCacheInvalidator++;
+	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() const
 {
@@ -139,7 +138,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 			InContext->LaunchDeferredCallback(
 				[CtxHandle = InContext->GetOrCreateHandle()]()
 				{
-					const FPCGExContext::FPCGExSharedContext<FPCGExFactoryProviderContext> SharedContext(CtxHandle);
+					const FPCGContext::FSharedContext<FPCGExFactoryProviderContext> SharedContext(CtxHandle);
 					FPCGExFactoryProviderContext* Ctx = SharedContext.Get();
 					if (!Ctx) { return; }
 
@@ -163,7 +162,20 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	if (InContext->IsDone() && InContext->OutFactory)
 	{
-		InContext->StageOutput(Settings->GetMainOutputPin(), InContext->OutFactory, false);
+		// Register declared dependencies to root them
+		TArray<FPCGPinProperties> InputPins = Settings->InputPinProperties();
+		for (const FPCGPinProperties& Pin : InputPins)
+		{
+			const TArray<FPCGTaggedData>& InputData = Context->InputData.GetInputsByPin(Pin.Label);
+			for (const FPCGTaggedData& TaggedData : InputData) { InContext->OutFactory->AddDataDependency(TaggedData.Data); }
+		}
+
+		// We use a dummy attribute to update the factory CRC
+		FPCGAttributeIdentifier CacheInvalidation(FName("PCGEx/CRC"), PCGMetadataDomainID::Data);
+		InContext->OutFactory->Metadata->CreateAttribute<int32>(CacheInvalidation, Settings->InternalCacheInvalidator, false, false);
+
+		FPCGTaggedData& StagedData = InContext->StageOutput(InContext->OutFactory, false);
+		StagedData.Pin = Settings->GetMainOutputPin();
 	}
 
 	return InContext->TryComplete();

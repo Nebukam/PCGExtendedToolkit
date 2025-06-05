@@ -32,19 +32,21 @@ bool PCGExPointFilter::FMeanFilter::Init(FPCGExContext* InContext, const TShared
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	const TSharedPtr<PCGExData::TBuffer<double>> Target = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, true);
+	const TSharedPtr<PCGExData::TBuffer<double>> Buffer = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, false, true);
 
-	if (!Target)
+	if (!Buffer)
 	{
 		PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Target", TypedFilterFactory->Config.Target)
 		return false;
 	}
 
-	DataMin = Target->Min;
-	DataMax = Target->Max;
+	DataMin = Buffer->Min;
+	DataMax = Buffer->Max;
 
-	Values.Reserve(Target->GetInValues()->Num());
-	Values.Append(*Target->GetInValues());
+	bInvert = TypedFilterFactory->Config.bInvert;
+
+	Values.SetNumUninitialized(InPointDataFacade->GetNum());
+	Buffer->DumpValues(Values);
 
 	return true;
 }
@@ -105,7 +107,7 @@ void PCGExPointFilter::FMeanFilter::PostInit()
 
 bool PCGExPointFilter::FMeanFilter::Test(const int32 PointIndex) const
 {
-	return FMath::IsWithin(Values[PointIndex], ReferenceMin, ReferenceMax);
+	return FMath::IsWithin(Values[PointIndex], ReferenceMin, ReferenceMax) ? !bInvert : bInvert;
 }
 
 PCGEX_CREATE_FILTER_FACTORY(Mean)

@@ -5,9 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExtendedToolkit.h"
 #include "PCGEx.h"
-#include "PCGExH.h"
 
 #include "PCGExMath.generated.h"
 
@@ -150,64 +148,6 @@ namespace PCGExMath
 			return true;
 		}
 	};
-	
-	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
-	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point)
-	{
-		if constexpr (S == EPCGExPointBoundsSource::ScaledBounds)
-		{
-			const FVector Scale = Point.Transform.GetScale3D();
-			return FBox(Point.BoundsMin * Scale, Point.BoundsMax * Scale);
-		}
-		else if constexpr (S == EPCGExPointBoundsSource::Bounds)
-		{
-			return Point.GetLocalBounds();
-		}
-		else if constexpr (S == EPCGExPointBoundsSource::DensityBounds)
-		{
-			return Point.GetLocalDensityBounds();
-		}
-		else if constexpr (S == EPCGExPointBoundsSource::Center)
-		{
-			return FBox(FVector(-0.5), FVector(0.5));
-		}
-		else
-		{
-			return FBox(FVector::OneVector * -1, FVector::OneVector);
-		}
-	}
-
-	template <EPCGExPointBoundsSource S = EPCGExPointBoundsSource::ScaledBounds>
-	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint* Point)
-	{
-		if constexpr (S == EPCGExPointBoundsSource::ScaledBounds)
-		{
-			const FBox LocalBounds = Point->GetLocalBounds();
-			const FVector Scale = Point->Transform.GetScale3D();
-			return FBox(LocalBounds.Min * Scale, LocalBounds.Max * Scale);
-		}
-		else if constexpr (S == EPCGExPointBoundsSource::Bounds)
-		{
-			return Point->GetLocalBounds();
-		}
-		else if constexpr (S == EPCGExPointBoundsSource::DensityBounds)
-		{
-			return Point->GetLocalDensityBounds();
-		}
-		else if constexpr (S == EPCGExPointBoundsSource::Center)
-		{
-			return FBox(FVector(-0.5), FVector(0.5));
-		}
-		else
-		{
-			return FBox(FVector::OneVector * -1, FVector::OneVector);
-		}
-	}
-
-	PCGEXTENDEDTOOLKIT_API
-	FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source);
-	PCGEXTENDEDTOOLKIT_API
-	FBox GetLocalBounds(const FPCGPoint* Point, const EPCGExPointBoundsSource Source);
 
 #pragma region basics
 
@@ -725,45 +665,4 @@ namespace PCGExMath
 	/** Distance from C to AB */
 	PCGEXTENDEDTOOLKIT_API
 	double GetPerpendicularDistance(const FVector& A, const FVector& B, const FVector& C);
-
-
-#pragma region Spatialized distances
-
-	template <EPCGExDistance Mode>
-	static FVector GetSpatializedCenter(
-		const FPCGPoint& FromPoint,
-		const FVector& FromCenter,
-		const FVector& ToCenter)
-	{
-		if constexpr (Mode == EPCGExDistance::None)
-		{
-			return FVector::OneVector;
-		}
-		else if constexpr (Mode == EPCGExDistance::SphereBounds)
-		{
-			FVector Dir = ToCenter - FromCenter;
-			Dir.Normalize();
-
-			return FromCenter + Dir * FromPoint.GetScaledExtents().Length();
-		}
-		else if constexpr (Mode == EPCGExDistance::BoxBounds)
-		{
-			const FVector LocalTargetCenter = FromPoint.Transform.InverseTransformPosition(ToCenter);
-
-			const double DistanceSquared = ComputeSquaredDistanceFromBoxToPoint(FromPoint.BoundsMin, FromPoint.BoundsMax, LocalTargetCenter);
-
-			FVector Dir = -LocalTargetCenter;
-			Dir.Normalize();
-
-			const FVector LocalClosestPoint = LocalTargetCenter + Dir * FMath::Sqrt(DistanceSquared);
-
-			return FromPoint.Transform.TransformPosition(LocalClosestPoint);
-		}
-		else
-		{
-			return FromCenter;
-		}
-	}
-
-#pragma endregion
 }

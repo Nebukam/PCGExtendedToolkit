@@ -288,10 +288,10 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		if (Context->FallbackMergeList) { Context->FallbackMergeList->Merge(Context->GetAsyncManager(), &Context->CarryOverDetails); }
 		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists) { List->Merge(Context->GetAsyncManager(), &Context->CarryOverDetails); }
-		Context->SetAsyncState(PCGExData::State_MergingData);
+		Context->SetAsyncState(PCPGExMergePointsByTag::State_MergingData);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGExData::State_MergingData)
+	PCGEX_ON_ASYNC_STATE_READY(PCPGExMergePointsByTag::State_MergingData)
 	{
 		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists) { List->Write(Context->GetAsyncManager()); }
 		Context->SetAsyncState(PCGEx::State_Writing);

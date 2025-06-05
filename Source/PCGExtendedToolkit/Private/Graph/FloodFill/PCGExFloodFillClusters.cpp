@@ -3,7 +3,6 @@
 
 #include "Graph/FloodFill/PCGExFloodFillClusters.h"
 
-#include "GeometryCollection/Facades/CollectionConstraintOverrideFacade.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 #include "Paths/PCGExPaths.h"
@@ -47,7 +46,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
 		{PCGExFactories::EType::Blending}, false);
 
@@ -169,11 +168,13 @@ namespace PCGExClusterDiffusion
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				const TArray<FPCGPoint>& Seeds = This->Context->SeedsDataFacade->Source->GetPoints(PCGExData::ESource::In);
+
 				const TArray<PCGExCluster::FNode>& Nodes = *This->Cluster->Nodes.Get();
-				for (int i = Scope.Start; i < Scope.End; i++)
+				TConstPCGValueRange<FTransform> SeedTransforms = This->Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
+
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					FVector SeedLocation = Seeds[i].Transform.GetLocation();
+					FVector SeedLocation = SeedTransforms[Index].GetLocation();
 					const int32 ClosestIndex = This->Cluster->FindClosestNode(SeedLocation, This->Settings->Seeds.SeedPicking.PickingMethod);
 
 					if (ClosestIndex < 0 ||
@@ -187,7 +188,7 @@ namespace PCGExClusterDiffusion
 					if (!This->Settings->Seeds.SeedPicking.WithinDistance(This->Cluster->GetPos(SeedNode), SeedLocation)) { continue; }
 
 					TSharedPtr<PCGExFloodFill::FDiffusion> NewDiffusion = MakeShared<PCGExFloodFill::FDiffusion>(This->FillControlsHandler, This->Cluster, SeedNode);
-					NewDiffusion->Index = i;
+					NewDiffusion->Index = Index;
 					This->InitialDiffusions->Get(Scope)->Add(NewDiffusion);
 				}
 			};
@@ -244,7 +245,7 @@ namespace PCGExClusterDiffusion
 				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 				{
 					PCGEX_ASYNC_THIS
-					for (int i = Scope.Start; i < Scope.End; i++) { This->Grow(); }
+					PCGEX_SCOPE_LOOP(i) { This->Grow(); }
 				};
 
 			GrowDiffusions->StartSubLoops(OngoingDiffusions.Num(), 1);
@@ -271,11 +272,14 @@ namespace PCGExClusterDiffusion
 		Grow(); // Move to the next
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const TSharedPtr<PCGExFloodFill::FDiffusion> Diffusion = OngoingDiffusions[Iteration];
-		const int32 CurrentFillRate = FillRate->Read(Diffusion->GetSettingsIndex(Settings->Diffusion.FillRateSource));
-		for (int i = 0; i < CurrentFillRate; i++) { Diffusion->Grow(); }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const TSharedPtr<PCGExFloodFill::FDiffusion> Diffusion = OngoingDiffusions[Index];
+			const int32 CurrentFillRate = FillRate->Read(Diffusion->GetSettingsIndex(Settings->Diffusion.FillRateSource));
+			for (int i = 0; i < CurrentFillRate; i++) { Diffusion->Grow(); }
+		}
 	}
 
 	void FProcessor::OnRangeProcessingComplete()
@@ -369,7 +373,6 @@ namespace PCGExClusterDiffusion
 	void FProcessor::WritePath(const int32 DiffusionIndex, const int32 EndpointNodeIndex)
 	{
 		TSharedPtr<PCGExFloodFill::FDiffusion> Diffusion = Diffusions[DiffusionIndex];
-		const int32 SeedNodeIndex = Diffusion->SeedNode->Index;
 
 		int32 PathNodeIndex = PCGEx::NH64A(Diffusion->TravelStack->Get(EndpointNodeIndex));
 		int32 PathEdgeIndex = -1;
@@ -394,13 +397,11 @@ namespace PCGExClusterDiffusion
 		// Create a copy of the final vtx, so we get all the goodies
 
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
-		const TArray<FPCGPoint>& VtxPoints = VtxDataFacade->Source->GetOut()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 
-		MutablePoints.SetNumUninitialized(PathIndices.Num());
-		for (int i = 0; i < PathIndices.Num(); i++) { MutablePoints[i] = VtxPoints[PathIndices[i]]; }
+		(void)PCGEx::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num());
+		PathIO->InheritPoints(PathIndices, 0);
 
-		Context->SeedAttributesToPathTags.Tag(Diffusion->SeedIndex, PathIO);
+		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(Diffusion->SeedIndex), PathIO);
 
 		PathIO->IOIndex = Diffusion->SeedIndex * 1000000 + VtxDataFacade->Source->IOIndex * 1000000 + EndpointNodeIndex;
 	}
@@ -438,10 +439,7 @@ namespace PCGExClusterDiffusion
 			PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_INIT)
 		}
 
-		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
-		{
-			Factory->RegisterBuffersDependencies(Context, FacadePreloader);
-		}
+		PCGExDataBlending::RegisterBuffersDependencies(Context, FacadePreloader, Context->BlendingFactories);
 
 		for (const TObjectPtr<const UPCGExFillControlsFactoryData>& Factory : Context->FillControlFactories)
 		{
@@ -455,7 +453,8 @@ namespace PCGExClusterDiffusion
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ClusterDiffusion)
 
 		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(VtxDataFacade);
-		if(!BlendOpsManager->Init(Context, Context->BlendingFactories)){
+		if (!BlendOpsManager->Init(Context, Context->BlendingFactories))
+		{
 			bIsBatchValid = false;
 			return;
 		}
@@ -492,7 +491,7 @@ namespace PCGExClusterDiffusion
 	void FBatch::Write()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ClusterDiffusion)
-		
+
 		TBatch<FProcessor>::Write();
 		BlendOpsManager->Cleanup(Context);
 		VtxDataFacade->Write(AsyncManager);

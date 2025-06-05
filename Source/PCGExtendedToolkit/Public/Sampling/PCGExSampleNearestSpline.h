@@ -105,7 +105,7 @@ namespace PCGExPolyLine
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-spline"))
 class UPCGExSampleNearestSplineSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -157,6 +157,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMin"))
 	FPCGAttributePropertyInputSelector LocalRangeMin;
 
+	PCGEX_SETTING_VALUE_GET_BOOL(RangeMin, double, bUseLocalRangeMin, LocalRangeMin, RangeMin)
+
 	/** Use a per-point maximum range*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalRangeMax = false;
@@ -165,6 +167,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax"))
 	FPCGAttributePropertyInputSelector LocalRangeMax;
 
+	PCGEX_SETTING_VALUE_GET_BOOL(RangeMax, double, bUseLocalRangeMax, LocalRangeMax, RangeMax)
 
 	/** Whether spline should be sampled at a specific alpha */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
@@ -190,6 +193,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" └─ Sample Alpha", EditCondition="bSampleSpecificAlpha && SampleAlphaInput==EPCGExInputValueType::Constant", EditConditionHides))
 	double SampleAlphaConstant = 0.5;
 
+	PCGEX_SETTING_VALUE_GET_BOOL(SampleAlpha, double, bSampleSpecificAlpha, SampleAlphaAttribute, SampleAlphaConstant)
 
 	/** Distance method to be used for source points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
@@ -260,6 +264,8 @@ public:
 	/** The constant to use as Up vector for the look at transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides))
 	FVector LookAtUpConstant = FVector::UpVector;
+
+	PCGEX_SETTING_VALUE_GET(LookAtUp, FVector, LookAtUpSelection == EPCGExSampleSource::Constant ? EPCGExInputValueType::Constant : EPCGExInputValueType::Attribute, LookAtUpSource, LookAtUpConstant)
 
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -454,10 +460,12 @@ class FPCGExSampleNearestSplineElement final : public FPCGExPointsProcessorEleme
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleNearestSpline)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
 };
 
 namespace PCGExSampleNearestSpline
@@ -466,14 +474,16 @@ namespace PCGExSampleNearestSpline
 	{
 		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
-		TArray<int8> SampleState;
+		TArray<int8> SamplingMask;
 
-		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
-		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;
-		TSharedPtr<PCGExData::TBuffer<double>> SampleAlphaGetter;
-		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMinGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMaxGetter;
+
+		TSharedPtr<PCGExDetails::TSettingValue<double>> SampleAlphaGetter;
 
 		FVector SafeUpVector = FVector::UpVector;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
+
 		int8 bAnySuccess = 0;
 
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
@@ -496,14 +506,10 @@ namespace PCGExSampleNearestSpline
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-
-		void SamplingFailed(const int32 Index, const FPCGPoint& Point, double InDepth = 0);
-
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		void SamplingFailed(const int32 Index, double InDepth = 0);
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void OnPointsProcessingComplete() override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;

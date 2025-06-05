@@ -87,7 +87,7 @@ namespace PCGExReversePointOrder
 
 		if (Settings->Method == EPCGExPointReverseMethod::SortingRules)
 		{
-			Sorter = MakeShared<PCGExSorting::PointSorter<false, true>>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+			Sorter = MakeShared<PCGExSorting::TPointSorter<true>>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
 			Sorter->SortDirection = Settings->SortDirection;
 			Sorter->RegisterBuffersDependencies(FacadePreloader);
 		}
@@ -138,8 +138,9 @@ namespace PCGExReversePointOrder
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
-		Algo::Reverse(MutablePoints);
+#define PCGEX_NATIVE_REVERSE(_NAME, _TYPE, ...) PCGEx::Reverse(PointDataFacade->GetOut()->Get##_NAME##ValueRange());
+		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_NATIVE_REVERSE)
+#undef PCGEX_NATIVE_REVERSE
 
 		if (SwapPairs.IsEmpty()) { return true; } // Swap pairs are built during data prefetch
 
@@ -173,9 +174,10 @@ namespace PCGExReversePointOrder
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		FPointsProcessor::PrepareSingleLoopScopeForPoints(Scope);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::ReversePointOrder::ProcessPoints);
+
 		for (const FPCGExSwapAttributePairDetails& WorkingPair : SwapPairs)
 		{
 			PCGEx::ExecuteWithRightType(
@@ -187,20 +189,20 @@ namespace PCGExReversePointOrder
 
 					if (WorkingPair.bMultiplyByMinusOne)
 					{
-						for (int i = Scope.Start; i < Scope.End; i++)
+						PCGEX_SCOPE_LOOP(Index)
 						{
-							const RawT FirstValue = FirstWriter->GetConst(i);
-							FirstWriter->GetMutable(i) = PCGExMath::DblMult(SecondWriter->GetConst(i), -1);
-							SecondWriter->GetMutable(i) = PCGExMath::DblMult(FirstValue, -1);
+							const RawT FirstValue = FirstWriter->GetValue(Index);
+							FirstWriter->SetValue(Index, PCGExMath::DblMult(SecondWriter->GetValue(Index), -1));
+							SecondWriter->SetValue(Index, PCGExMath::DblMult(FirstValue, -1));
 						}
 					}
 					else
 					{
-						for (int i = Scope.Start; i < Scope.End; i++)
+						PCGEX_SCOPE_LOOP(Index)
 						{
-							const RawT FirstValue = FirstWriter->GetConst(i);
-							FirstWriter->GetMutable(i) = SecondWriter->GetConst(i);
-							SecondWriter->GetMutable(i) = FirstValue;
+							const RawT FirstValue = FirstWriter->GetValue(Index);
+							FirstWriter->SetValue(Index, SecondWriter->GetValue(Index));
+							SecondWriter->SetValue(Index, FirstValue);
 						}
 					}
 				});

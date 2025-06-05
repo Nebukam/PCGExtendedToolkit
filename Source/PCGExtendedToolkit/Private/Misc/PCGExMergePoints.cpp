@@ -57,7 +57,7 @@ bool FPCGExMergePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
-	Context->CompositeDataFacade->Source->StageOutput();
+	(void)Context->CompositeDataFacade->Source->StageOutput(Context);
 
 	return Context->TryComplete();
 }
@@ -81,70 +81,75 @@ namespace PCGExMergePoints
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		FName AttributeName = ConvertedTagsList[Iteration];
-		FString Tag = AttributeName.ToString();
-
-		if (const TSharedPtr<PCGExTags::FTagValue> TagValue = PointDataFacade->Source->Tags->GetValue(Tag))
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			bool bTryBroadcast = false;
-			PCGEx::ExecuteWithRightType(
-				TagValue->UnderlyingType, [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					const T Value = StaticCastSharedPtr<PCGExTags::TTagValue<T>>(TagValue)->Value;
-					TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);
+			FName AttributeName = ConvertedTagsList[Index];
+			FString Tag = AttributeName.ToString();
 
-					// Value type mismatch
-					if (!Buffer)
+			if (const TSharedPtr<PCGExTags::FTagValue> TagValue = PointDataFacade->Source->Tags->GetValue(Tag))
+			{
+				bool bTryBroadcast = false;
+				PCGEx::ExecuteWithRightType(
+					TagValue->UnderlyingType, [&](auto DummyValue)
 					{
-						bTryBroadcast = true;
-						return;
-					}
+						using T = decltype(DummyValue);
+						const T Value = StaticCastSharedPtr<PCGExTags::TTagValue<T>>(TagValue)->Value;
+						TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);
 
-					for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->GetMutable(i) = Value; }
-				});
-
-			if (!bTryBroadcast) { return; }
-
-			// Handle type mismatch by broadcasting the value with whatever type was discovered first
-			const TSharedPtr<PCGExData::FBufferBase> UntypedBuffer = Context->CompositeDataFacade->FindReadableAttributeBuffer(AttributeName);
-			if (!UntypedBuffer) { return; }
-
-			PCGEx::ExecuteWithRightType(
-				UntypedBuffer->GetType(), [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					T Value = T{};
-
-					PCGEx::ExecuteWithRightType(
-						TagValue->UnderlyingType, [&](auto DummyValue2)
+						// Value type mismatch
+						if (!Buffer)
 						{
-							using RawT = decltype(DummyValue2);
-							Value = PCGEx::FSubSelection().Get<T>(StaticCastSharedPtr<PCGExTags::TTagValue<RawT>>(TagValue)->Value);
-						});
+							bTryBroadcast = true;
+							return;
+						}
 
-					TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);
+						for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, Value); }
+					});
 
-					if (!Buffer)
+				if (!bTryBroadcast) { continue; }
+
+				// Handle type mismatch by broadcasting the value with whatever type was discovered first
+				const TSharedPtr<PCGExData::IBuffer> UntypedBuffer = Context->CompositeDataFacade->FindReadableAttributeBuffer(AttributeName);
+				if (!UntypedBuffer) { continue; }
+
+				PCGEx::ExecuteWithRightType(
+					UntypedBuffer->GetType(), [&](auto DummyValue)
 					{
-						bTryBroadcast = false;
-						return;
-					}
+						using T = decltype(DummyValue);
+						T Value = T{};
 
-					for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->GetMutable(i) = Value; }
-				});
+						PCGEx::ExecuteWithRightType(
+							TagValue->UnderlyingType, [&](auto DummyValue2)
+							{
+								using RawT = decltype(DummyValue2);
+								Value = PCGEx::FSubSelection().Get<T>(StaticCastSharedPtr<PCGExTags::TTagValue<RawT>>(TagValue)->Value);
+							});
 
-			if (!bTryBroadcast) { return; }
+						TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);
 
-			return; // This is a value tag, not a simple tag, stop processing here.
-		}
+						if (!Buffer)
+						{
+							bTryBroadcast = false;
+							return;
+						}
 
-		if (PointDataFacade->Source->Tags->IsTagged(Tag))
-		{
-			FWriteScopeLock WriteScopeLock(SimpleTagsLock);
-			SimpleTags.Add(FName(AttributeName));
+						for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, Value); }
+					});
+
+				if (!bTryBroadcast)
+				{
+				}
+
+				continue; // This is a value tag, not a simple tag, stop processing here.
+			}
+
+			if (PointDataFacade->Source->Tags->IsTagged(Tag))
+			{
+				FWriteScopeLock WriteScopeLock(SimpleTagsLock);
+				SimpleTags.Add(FName(AttributeName));
+			}
 		}
 	}
 
@@ -172,7 +177,7 @@ namespace PCGExMergePoints
 
 			if (!Buffer) { continue; }
 
-			for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->GetMutable(i) = true; }
+			for (int i = OutScope.Start; i < OutScope.End; i++) { Buffer->SetValue(i, true); }
 		}
 	}
 

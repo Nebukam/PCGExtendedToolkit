@@ -7,7 +7,6 @@
 #include "Data/PCGExDataFilter.h"
 #include "Engine/Level.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "PCGData.h"
 
 #include "PCGExSubSystem.generated.h"
 
@@ -56,6 +55,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubSystem : public UTickableWorldSubsystem
 	GENERATED_BODY()
 
 	FRWLock SubsystemLock;
+	FRWLock IndexBufferLock;
 
 public:
 	UPCGExSubSystem();
@@ -92,7 +92,19 @@ public:
 
 	void PollEvent(UPCGComponent* InSource, EPCGExSubsystemEventType InEventType, uint32 InEventId);
 
+#pragma region Indices buffer
+
 protected:
+	void EnsureIndexBufferSize(const int32 Count);
+
+public:
+	TArrayView<const int32> GetIndexRange(const int32 Start, const int32 Count);
+
+
+#pragma endregion
+
+protected:
+	TArray<int32> IndexBuffer;
 	bool bWantsTick = false;
 
 	/** Functions will be executed at the beginning of the tick and then removed from this array. */

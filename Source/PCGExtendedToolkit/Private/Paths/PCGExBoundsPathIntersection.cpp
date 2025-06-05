@@ -112,7 +112,7 @@ namespace PCGExPathIntersections
 				This->PointDataFacade->Fetch(Scope);
 				This->FilterScope(Scope);
 
-				for (int i = Scope.Start; i < Scope.End; i++) { This->FindIntersections(i); }
+				PCGEX_SCOPE_LOOP(i) { This->FindIntersections(i); }
 			};
 
 		FindIntersectionsTaskGroup->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -130,8 +130,10 @@ namespace PCGExPathIntersections
 			else { return; }
 		}
 
-		const FVector StartPosition = PointDataFacade->Source->GetInPoint(Index).Transform.GetLocation();
-		const FVector EndPosition = PointDataFacade->Source->GetInPoint(NextIndex).Transform.GetLocation();
+		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->Source->GetIn()->GetConstTransformValueRange();
+
+		const FVector StartPosition = InTransforms[Index].GetLocation();
+		const FVector EndPosition = InTransforms[NextIndex].GetLocation();
 
 		const TSharedPtr<PCGExGeo::FIntersections> Intersections = MakeShared<PCGExGeo::FIntersections>(
 			StartPosition, EndPosition, Index, NextIndex);
@@ -146,16 +148,18 @@ namespace PCGExPathIntersections
 	void FProcessor::InsertIntersections(const int32 Index) const
 	{
 		const TSharedPtr<PCGExGeo::FIntersections> Intersections = Segmentation->IntersectionsList[Index];
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->Source->GetOut()->GetTransformValueRange(false);
+		TPCGValueRange<int32> OutSeeds = PointDataFacade->Source->GetOut()->GetSeedValueRange(false);
+
 		for (int i = 0; i < Intersections->Cuts.Num(); i++)
 		{
 			const int32 Idx = Intersections->Start + i;
 
-			FPCGPoint& Point = MutablePoints[Idx];
 			PCGExGeo::FCut& Cut = Intersections->Cuts[i];
-			Point.Transform.SetLocation(Cut.Position);
+			OutTransforms[Idx].SetLocation(Cut.Position);
 
-			Point.Seed = PCGExRandom::ComputeSeed(Point);
+			OutSeeds[Idx] = PCGExRandom::ComputeSpatialSeed(Cut.Position);
 
 			Details.SetIntersection(Idx, Cut.Normal, Cut.BoxIndex);
 		}
@@ -167,17 +171,24 @@ namespace PCGExPathIntersections
 		StartParallelLoopForPoints();
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		if (Details.InsideForwardHandler)
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BoundsPathIntersection::ProcessPoints);
+
+		TConstPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetConstTransformValueRange();
+
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			TArray<TSharedPtr<PCGExGeo::FPointBox>> Overlaps;
-			const bool bContained = Cloud->IsInside<EPCGExBoxCheckMode::ExpandedBox>(Point.Transform.GetLocation(), Overlaps); // Avoid intersections being captured
-			Details.SetIsInside(Index, bContained, bContained ? Overlaps[0]->Index : -1);
-		}
-		else
-		{
-			Details.SetIsInside(Index, Cloud->IsInside<EPCGExBoxCheckMode::ExpandedBox>(Point.Transform.GetLocation()));
+			if (Details.InsideForwardHandler)
+			{
+				TArray<TSharedPtr<PCGExGeo::FPointBox>> Overlaps;
+				const bool bContained = Cloud->IsInside<EPCGExBoxCheckMode::ExpandedBox>(OutTransforms[Index].GetLocation(), Overlaps); // Avoid intersections being captured
+				Details.SetIsInside(Index, bContained, bContained ? Overlaps[0]->Index : -1);
+			}
+			else
+			{
+				Details.SetIsInside(Index, Cloud->IsInside<EPCGExBoxCheckMode::ExpandedBox>(OutTransforms[Index].GetLocation()));
+			}
 		}
 	}
 
@@ -205,10 +216,14 @@ namespace PCGExPathIntersections
 
 		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+		const UPCGBasePointData* OriginalPoints = PointDataFacade->GetIn();
+		UPCGBasePointData* MutablePoints = PointDataFacade->GetOut();
+		PCGEx::SetNumPointsAllocated(MutablePoints, OriginalPoints->GetNumPoints() + NumCuts);
 
-		PCGEx::InitArray(MutablePoints, OriginalPoints.Num() + NumCuts);
+		TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping();
+
+		TConstPCGValueRange<int64> InMetadataEntries = OriginalPoints->GetConstMetadataEntryValueRange();
+		TPCGValueRange<int64> OutMetadataEntries = MutablePoints->GetMetadataEntryValueRange();
 
 		UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
 
@@ -216,23 +231,27 @@ namespace PCGExPathIntersections
 
 		for (int i = 0; i < LastIndex; i++)
 		{
-			const FPCGPoint& OriginalPoint = OriginalPoints[i];
-			MutablePoints[Idx++] = OriginalPoint;
+			OutMetadataEntries[Idx] = InMetadataEntries[i];
+			IdxMapping[Idx++] = i;
 
 			if (const TSharedPtr<PCGExGeo::FIntersections> Intersections = Segmentation->Find(PCGEx::H64U(i, i + 1)))
 			{
 				Intersections->Start = Idx;
 				for (int j = 0; j < Intersections->Cuts.Num(); j++)
 				{
-					FPCGPoint& NewPoint = MutablePoints[Idx++] = OriginalPoint;
-					NewPoint.MetadataEntry = PCGInvalidEntryKey;
-					Metadata->InitializeOnSet(NewPoint.MetadataEntry);
+					OutMetadataEntries[Idx] = PCGInvalidEntryKey;
+					Metadata->InitializeOnSet(OutMetadataEntries[Idx]);
+
+					IdxMapping[Idx++] = i;
 				}
 			}
 		}
 
-		const FPCGPoint& OriginalPoint = OriginalPoints[LastIndex];
-		MutablePoints[Idx++] = OriginalPoint;
+		OutMetadataEntries[Idx] = InMetadataEntries[LastIndex];
+		IdxMapping[Idx++] = LastIndex;
+
+
+		// TODO : Inherit properties, but metadata
 
 		if (bClosedLoop)
 		{
@@ -241,14 +260,19 @@ namespace PCGExPathIntersections
 				Intersections->Start = Idx;
 				for (int j = 0; j < Intersections->Cuts.Num(); j++)
 				{
-					FPCGPoint& NewPoint = MutablePoints[Idx++] = OriginalPoint;
-					NewPoint.MetadataEntry = PCGInvalidEntryKey;
-					Metadata->InitializeOnSet(NewPoint.MetadataEntry);
+					OutMetadataEntries[Idx] = PCGInvalidEntryKey;
+					Metadata->InitializeOnSet(OutMetadataEntries[Idx]);
+
+					IdxMapping[Idx++] = LastIndex;
 				}
 			}
 		}
 
-		PointDataFacade->Source->CleanupKeys();
+		// Copy point properties, we'll do blending & inheriting right after
+		// At this point we want to preserve metadata entries
+		PointDataFacade->Source->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButMeta);
+
+		PointDataFacade->Source->ClearCachedKeys();
 		Details.Init(PointDataFacade, Context->BoundsDataFacade);
 
 		Segmentation->ReduceToArray();
@@ -266,7 +290,7 @@ namespace PCGExPathIntersections
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++) { This->InsertIntersections(i); }
+				PCGEX_SCOPE_LOOP(i) { This->InsertIntersections(i); }
 			};
 
 		InsertionTaskGroup->StartSubLoops(Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());

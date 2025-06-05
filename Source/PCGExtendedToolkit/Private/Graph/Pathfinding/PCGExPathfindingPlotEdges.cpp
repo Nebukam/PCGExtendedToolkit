@@ -48,9 +48,11 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	int32 NumPoints = Query->SubQueries.Num() + 2;
 	int32 ValidPlotIndex = 0;
 
+	int32 MaxQueryNumPoints = 0;
 	for (const TSharedPtr<PCGExPathfinding::FPathQuery>& PathQuery : Query->SubQueries)
 	{
 		if (!PathQuery->IsQuerySuccessful()) { continue; }
+		MaxQueryNumPoints = FMath::Max(MaxQueryNumPoints, PathQuery->PathNodes.Num());
 		NumPoints += PathQuery->PathNodes.Num();
 		ValidPlotIndex++;
 	}
@@ -59,20 +61,21 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 
 	//
 
-	TArray<FPCGPoint> MutablePoints;
-	MutablePoints.Reserve(NumPoints);
+	TArray<int32> IndicesBuffer;
+	IndicesBuffer.Reserve(MaxQueryNumPoints);
 
-	auto AddPlotPoint = [&](int32 Index)
-	{
-		MutablePoints.Add_GetRef(Query->PlotFacade->Source->GetInPoint(Index)).MetadataEntry = PCGInvalidEntryKey;
-	};
+	// Create easy-to-track scopes for indices
+	PCGEx::FRWScope PlotScope(ValidPlotIndex + 2, false);
+	PCGEx::FRWScope ClusterScope(NumPoints, false);
 
-	if (Settings->bAddSeedToPath) { AddPlotPoint(Query->SubQueries[0]->Seed.SourceIndex); }
+	int32 WriteIndex = 0;
+
+	if (Settings->bAddSeedToPath) { PlotScope.Add(Query->SubQueries[0]->Seed.Point.Index, WriteIndex++); }
 
 	for (int i = 0; i < Query->SubQueries.Num(); i++)
 	{
 		TSharedPtr<PCGExPathfinding::FPathQuery> PathQuery = Query->SubQueries[i];
-		if (Settings->bAddPlotPointsToPath && i != 0) { AddPlotPoint(PathQuery->Seed.SourceIndex); }
+		if (Settings->bAddPlotPointsToPath && i != 0) { PlotScope.Add(PathQuery->Seed.Point.Index, WriteIndex++); }
 
 		if (!PathQuery->IsQuerySuccessful()) { continue; }
 
@@ -88,30 +91,34 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 
 		if (Settings->PathComposition == EPCGExPathComposition::Vtx)
 		{
-			PathQuery->AppendNodePoints(MutablePoints, TruncateStart, TruncateEnd);
+			PathQuery->AppendNodePoints(IndicesBuffer, TruncateStart, TruncateEnd);
 		}
 		else if (Settings->PathComposition == EPCGExPathComposition::Edges)
 		{
-			PathQuery->AppendEdgePoints(MutablePoints);
+			PathQuery->AppendEdgePoints(IndicesBuffer);
 		}
 		else if (Settings->PathComposition == EPCGExPathComposition::VtxAndEdges)
 		{
 			// TODO : Implement
 		}
+
+		ClusterScope.Add(IndicesBuffer, WriteIndex);
+		IndicesBuffer.Reset();
 	}
 
-	if (bAddGoal) { AddPlotPoint(Query->SubQueries.Last()->Goal.SourceIndex); }
+	if (bAddGoal) { PlotScope.Add(Query->SubQueries.Last()->Goal.Point.Index, WriteIndex++); }
+
+	// Grab the source we want to copy from
 
 	TSharedPtr<PCGExData::FPointIO> ReferenceIO = nullptr;
-
 	if (Settings->PathComposition == EPCGExPathComposition::Vtx)
 	{
-		if (MutablePoints.Num() < 2) { return; }
+		if (ClusterScope.Num() < 2) { return; }
 		ReferenceIO = Query->Cluster->VtxIO.Pin();
 	}
 	else if (Settings->PathComposition == EPCGExPathComposition::Edges)
 	{
-		if (MutablePoints.Num() < 1) { return; }
+		if (ClusterScope.Num() < 1) { return; }
 		ReferenceIO = Query->Cluster->EdgesIO.Pin();
 	}
 	else if (Settings->PathComposition == EPCGExPathComposition::VtxAndEdges)
@@ -119,15 +126,19 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 		// TODO : Implement
 	}
 
-	if (!Settings->PathOutputDetails.Validate(MutablePoints)) { return; }
+	if (!Settings->PathOutputDetails.Validate(WriteIndex)) { return; }
 
-	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(ReferenceIO->GetIn(), PCGExData::EIOInit::New);
+	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointArrayData>(ReferenceIO->GetIn(), PCGExData::EIOInit::New);
 	if (!PathIO) { return; }
 
 	PathIO->IOIndex = Query->QueryIndex;
 
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
-	PathDataFacade->GetMutablePoints() = MutablePoints;
+	PCGEx::SetNumPointsAllocated(PathIO->GetOut(), ClusterScope.Num() + PlotScope.Num());
+
+	// Commit read/write scopes
+	PlotScope.CopyPoints(Query->PlotFacade->GetIn(), PathIO->GetOut());
+	ClusterScope.CopyProperties(PathIO->GetIn(), PathIO->GetOut(), EPCGPointNativeProperties::All);
 
 	PCGExGraph::CleanupClusterTags(PathIO);
 	PCGExGraph::CleanupVtxData(PathIO);
@@ -146,13 +157,13 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
-	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation, PCGExPathfinding::SourceOverridesSearch)
+	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchInstancedFactory, PCGExPathfinding::SourceOverridesSearch)
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	PCGEX_MAKE_SHARED(Plots, PCGExData::FPointIOCollection, Context)
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourcePlotsLabel);
-	Plots->Initialize(Sources, PCGExData::EIOInit::None);
+	Plots->Initialize(Sources, PCGExData::EIOInit::NoInit);
 
 	Context->Plots.Reserve(Plots->Num());
 	for (const TSharedPtr<PCGExData::FPointIO>& PlotIO : Plots->Pairs)
@@ -167,7 +178,6 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing valid Plots."));
 		return false;
 	}
-
 
 	return true;
 }
@@ -224,7 +234,7 @@ namespace PCGExPathfindingPlotEdge
 			}
 		}
 
-		SearchOperation = Context->SearchAlgorithm->CreateNewInstance<UPCGExSearchOperation>(); // Create a local copy
+		SearchOperation = Context->SearchAlgorithm->CreateOperation(); // Create a local copy
 		SearchOperation->PrepareForCluster(Cluster.Get());
 
 		PCGEx::InitArray(Queries, Context->Plots.Num());

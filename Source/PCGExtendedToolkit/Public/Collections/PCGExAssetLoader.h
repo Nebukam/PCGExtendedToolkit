@@ -23,16 +23,16 @@ namespace PCGEx
 	template <typename T>
 	class TDiscoverAssetsTask;
 
-	class PCGEXTENDEDTOOLKIT_API FAssetLoaderBase : public TSharedFromThis<FAssetLoaderBase>
+	class PCGEXTENDEDTOOLKIT_API IAssetLoader : public TSharedFromThis<IAssetLoader>
 	{
 	public:
-		FAssetLoaderBase()
+		IAssetLoader()
 		{
 		}
 	};
 
 	template <typename T>
-	class TAssetLoader : public FAssetLoaderBase
+	class TAssetLoader : public IAssetLoader
 	{
 	protected:
 		bool bBypass = false;
@@ -53,7 +53,7 @@ namespace PCGEx
 			FPCGExContext* InContext,
 			const TSharedRef<PCGExData::FPointIOCollection>& InIOCollection,
 			const TArray<FName>& InAttributeNames)
-			: FAssetLoaderBase(),
+			: IAssetLoader(),
 			  AttributeNames(InAttributeNames),
 			  Context(InContext),
 			  IOCollection(InIOCollection)

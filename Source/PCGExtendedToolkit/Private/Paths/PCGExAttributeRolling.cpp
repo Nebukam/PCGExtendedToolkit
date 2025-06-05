@@ -3,7 +3,7 @@
 
 #include "Paths/PCGExAttributeRolling.h"
 
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
 #define PCGEX_NAMESPACE AttributeRolling
@@ -26,7 +26,7 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 	}
 	else
 	{
-		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceToggleConditionLabel, "...", Required, {})
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceToggleConditionLabel, "...", Normal, {})
 	}
 
 	if (ValueControl == EPCGExRollingValueControl::Pin)
@@ -67,12 +67,9 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		if (!PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
+		PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
 			Context, PCGExPointFilter::SourceToggleConditionLabel, Context->StartFilterFactories,
-			PCGExFactories::PointFilters, true))
-		{
-			return false;
-		}
+			PCGExFactories::PointFilters, false);
 	}
 
 	if (Settings->ValueControl == EPCGExRollingValueControl::Pin)
@@ -85,7 +82,7 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	PCGExFactories::GetInputFactories<UPCGExAttributeBlendFactory>(
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
 		{PCGExFactories::EType::Blending}, false);
 
@@ -114,10 +111,10 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>>& NewBatch)
 			{
-				NewBatch->bPrefetchData = true;
+				NewBatch->bPrefetchData = !Context->BlendingFactories.IsEmpty();
 			}))
 		{
-			return Context->CancelExecution(TEXT("Could not find any paths to fuse."));
+			return Context->CancelExecution(TEXT("Could not find any points to roll over."));
 		}
 	}
 
@@ -141,11 +138,7 @@ namespace PCGExAttributeRolling
 
 		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->StartFilterFactories, FacadePreloader);
 		PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->StopFilterFactories, FacadePreloader);
-
-		for (const TObjectPtr<const UPCGExAttributeBlendFactory>& Factory : Context->BlendingFactories)
-		{
-			Factory->RegisterBuffersDependencies(Context, FacadePreloader);
-		}
+		PCGExDataBlending::RegisterBuffersDependencies(Context, FacadePreloader, Context->BlendingFactories);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
@@ -186,17 +179,28 @@ namespace PCGExAttributeRolling
 
 		if (!Context->BlendingFactories.IsEmpty())
 		{
-			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(PointDataFacade);
-			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
+			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>();
+			BlendOpsManager->SetTargetFacade(PointDataFacade);
+			BlendOpsManager->SetSources(PointDataFacade, PCGExData::EIOSide::Out);
+			if (!BlendOpsManager->Init(Context, Context->BlendingFactories))
+			{
+				return false;
+			}
 		}
 
-		MaxIndex = PointDataFacade->GetNum(PCGExData::ESource::In) - 1;
+		MaxIndex = PointDataFacade->GetNum(PCGExData::EIOSide::In) - 1;
 
 		FirstIndex = Settings->bReverseRolling ? MaxIndex : 0;
 		RangeIndex += Settings->RangeIndexOffset;
 
 		if (Settings->InitialValueMode == EPCGExRollingToggleInitialValue::FromPoint)
 		{
+			if (!StartFilterManager)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Initial toggle from point requires valid filters."));
+				return false;
+			}
+
 			bRoll = StartFilterManager->Test(FirstIndex);
 		}
 		else
@@ -212,99 +216,104 @@ namespace PCGExAttributeRolling
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const int32 TargetIndex = Settings->bReverseRolling ? MaxIndex - Iteration : Iteration;
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const int32 TargetIndex = Settings->bReverseRolling ? MaxIndex - Index : Index;
 
-		if (Settings->ValueControl == EPCGExRollingValueControl::Pin)
-		{
-			if (PinFilterManager->Test(Iteration)) { SourceIndex = Iteration; }
-		}
-		else if (Settings->ValueControl == EPCGExRollingValueControl::Previous)
-		{
-			SourceIndex = Iteration + SourceOffset;
-			if (SourceIndex < 0 || SourceIndex > MaxIndex)
+			if (Settings->ValueControl == EPCGExRollingValueControl::Pin)
 			{
-				// TODO : Handle closed paths?
-				SourceIndex = -1;
+				if (PinFilterManager->Test(Index)) { SourceIndex = Index; }
 			}
-		}
-
-		const bool bPreviousRoll = bRoll;
-		const bool bStart = StartFilterManager->Test(TargetIndex);
-		bool bStop = false;
-
-		if (Settings->RangeControl == EPCGExRollingRangeControl::Toggle)
-		{
-			if (bStart)
+			else if (Settings->ValueControl == EPCGExRollingValueControl::Previous)
 			{
-				bRoll = !bRoll;
-				bStop = !bRoll;
-			}
-		}
-		else
-		{
-			if (StopFilterManager->Test(TargetIndex))
-			{
-				bRoll = false;
-				bStop = true;
-			}
-			else if (bStart)
-			{
-				bRoll = true;
-			}
-		}
-
-		if (bPreviousRoll != bRoll || TargetIndex == FirstIndex)
-		{
-			PCGEX_OUTPUT_VALUE(RangePole, TargetIndex, true)
-
-			if (bRoll)
-			{
-				// New range started
-				RangeIndex++;
-				InternalRangeIndex = -1;
-
-				PCGEX_OUTPUT_VALUE(RangeStart, TargetIndex, true)
-
-				if (Settings->ValueControl == EPCGExRollingValueControl::RangeStart)
+				SourceIndex = Index + SourceOffset;
+				if (SourceIndex < 0 || SourceIndex > MaxIndex)
 				{
-					SourceIndex = TargetIndex;
+					// TODO : Handle closed paths?
+					SourceIndex = -1;
+				}
+			}
+
+			const bool bPreviousRoll = bRoll;
+			const bool bStart = StartFilterManager ? StartFilterManager->Test(TargetIndex) : false;
+			bool bStop = false;
+
+			if (Settings->RangeControl == EPCGExRollingRangeControl::Toggle)
+			{
+				if (bStart)
+				{
+					bRoll = !bRoll;
+					bStop = !bRoll;
 				}
 			}
 			else
 			{
-				// Current range stopped
-
-				PCGEX_OUTPUT_VALUE(RangeStop, TargetIndex, true)
+				if (StopFilterManager->Test(TargetIndex))
+				{
+					bRoll = false;
+					bStop = true;
+				}
+				else if (bStart)
+				{
+					bRoll = true;
+				}
 			}
-		}
 
-		InternalRangeIndex++;
-
-		PCGEX_OUTPUT_VALUE(RangeIndex, TargetIndex, RangeIndex)
-		PCGEX_OUTPUT_VALUE(IndexInsideRange, TargetIndex, InternalRangeIndex)
-		PCGEX_OUTPUT_VALUE(IsInsideRange, TargetIndex, bRoll)
-
-		if (!bRoll && !Settings->bBlendOutsideRange)
-		{
-			if (bStop && Settings->bBlendStopElement)
+			if (bPreviousRoll != bRoll || TargetIndex == FirstIndex)
 			{
-				// Skip that one roll
-			}
-			else { return; }
-		}
+				PCGEX_OUTPUT_VALUE(RangePole, TargetIndex, true)
 
-		if (SourceIndex != -1 && BlendOpsManager)
-		{
-			TArray<FPCGPoint>& PathPoints = PointDataFacade->GetMutablePoints();
-			BlendOpsManager->Blend(SourceIndex, PathPoints[SourceIndex], TargetIndex, PathPoints[TargetIndex]);
+				if (bRoll)
+				{
+					// New range started
+					RangeIndex++;
+					InternalRangeIndex = -1;
+
+					PCGEX_OUTPUT_VALUE(RangeStart, TargetIndex, true)
+
+					if (Settings->ValueControl == EPCGExRollingValueControl::RangeStart)
+					{
+						SourceIndex = TargetIndex;
+					}
+				}
+				else
+				{
+					// Current range stopped
+
+					PCGEX_OUTPUT_VALUE(RangeStop, TargetIndex, true)
+				}
+			}
+
+			InternalRangeIndex++;
+
+			PCGEX_OUTPUT_VALUE(RangeIndex, TargetIndex, RangeIndex)
+			PCGEX_OUTPUT_VALUE(IndexInsideRange, TargetIndex, InternalRangeIndex)
+			PCGEX_OUTPUT_VALUE(IsInsideRange, TargetIndex, bRoll)
+
+			if (!bRoll && !Settings->bBlendOutsideRange)
+			{
+				if (bStop && Settings->bBlendStopElement)
+				{
+					// Don't skip that one roll
+				}
+				else
+				{
+					continue;
+				}
+			}
+
+			if (SourceIndex != -1 && BlendOpsManager)
+			{
+				BlendOpsManager->BlendAutoWeight(SourceIndex, TargetIndex);
+			}
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		if(BlendOpsManager){ BlendOpsManager->Cleanup(Context); }
+		if (BlendOpsManager) { BlendOpsManager->Cleanup(Context); }
 		PointDataFacade->Write(AsyncManager);
 	}
 }

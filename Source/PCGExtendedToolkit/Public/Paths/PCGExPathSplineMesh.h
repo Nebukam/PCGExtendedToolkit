@@ -10,7 +10,7 @@
 #include "PCGExScopedContainers.h"
 #include "Collections/PCGExMeshCollection.h"
 
-#include "Tangents/PCGExTangentsOperation.h"
+#include "Tangents/PCGExTangentsInstancedFactory.h"
 #include "Components/SplineMeshComponent.h"
 
 
@@ -19,7 +19,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/spline-mesh"))
 class UPCGExPathSplineMeshSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -150,14 +150,14 @@ public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 
 protected:
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathSplineMesh)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 };
 
 namespace PCGExPathSplineMesh
@@ -208,8 +208,7 @@ namespace PCGExPathSplineMesh
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void OnPointsProcessingComplete() override;
 

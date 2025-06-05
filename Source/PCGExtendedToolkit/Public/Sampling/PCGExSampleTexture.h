@@ -22,7 +22,7 @@ class UPCGExFilterFactoryData;
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="sampling/textures/sample-texture"))
 class UPCGExSampleTextureSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -117,7 +117,7 @@ namespace PCGExSampleTexture
 		}
 
 		bool IsValid() const { return bValid; }
-		virtual bool Sample(const int32 Index, FPCGPoint& Point, const FVector2D& UV) const = 0;
+		virtual bool Sample(const PCGExData::FConstPoint& Point, const FVector2D& UV) const = 0;
 	};
 
 	template <typename T>
@@ -133,12 +133,12 @@ namespace PCGExSampleTexture
 			Buffer = InDataFacade->GetWritable<T>(InConfig.SampleAttributeName, T{}, true, PCGExData::EBufferInit::Inherit);
 		}
 
-		virtual bool Sample(const int32 Index, FPCGPoint& Point, const FVector2D& UV) const override
+		virtual bool Sample(const PCGExData::FConstPoint& Point, const FVector2D& UV) const override
 		{
 			FVector4 SampledValue = FVector4::Zero();
 			float SampledDensity = 1;
 
-			if (const UPCGBaseTextureData* Tex = this->TextureMap->TryGetTextureData(this->IDGetter->SoftGet(Index, Point, TEXT("")));
+			if (const UPCGBaseTextureData* Tex = this->TextureMap->TryGetTextureData(this->IDGetter->SoftGet(Point, TEXT("")));
 				!Tex ||
 				!Tex->SamplePointLocal(UV, SampledValue, SampledDensity))
 			{
@@ -147,13 +147,14 @@ namespace PCGExSampleTexture
 
 			SampledValue *= Config.Scale;
 
-			T& V = Buffer->GetMutable(Index);
+			T V = Buffer->GetValue(Point.Index);
 
 			if constexpr (
 				std::is_same_v<T, float> ||
 				std::is_same_v<T, double>)
 			{
 				for (const int32 C : Config.OutChannels) { V = SampledValue[C]; }
+				Buffer->SetValue(Point.Index, V);
 				return true;
 			}
 			else if constexpr (
@@ -162,6 +163,7 @@ namespace PCGExSampleTexture
 				std::is_same_v<T, FVector4>)
 			{
 				for (int i = 0; i < Config.OutChannels.Num(); i++) { V[i] = SampledValue[Config.OutChannels[i]]; }
+				Buffer->SetValue(Point.Index, V);
 				return true;
 			}
 			else
@@ -173,7 +175,7 @@ namespace PCGExSampleTexture
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleTextureContext, UPCGExSampleTextureSettings>
 	{
-		TArray<int8> SampleState;
+		TArray<int8> SamplingMask;
 
 		TSharedPtr<PCGExTexture::FLookup> TexParamLookup;
 		TSharedPtr<PCGExData::TBuffer<FVector2D>> UVGetter;
@@ -192,8 +194,8 @@ namespace PCGExSampleTexture
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

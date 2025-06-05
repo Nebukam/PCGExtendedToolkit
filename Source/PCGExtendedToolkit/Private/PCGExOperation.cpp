@@ -2,7 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExOperation.h"
-#include "PCGParamData.h"
 
 void FPCGExOperation::BindContext(FPCGExContext* InContext)
 {
@@ -20,6 +19,10 @@ void FPCGExOperation::RegisterConsumableAttributesWithFacade(FPCGExContext* InCo
 }
 
 void FPCGExOperation::RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const
+{
+}
+
+void FPCGExOperation::InitForScopes(const TArray<PCGExMT::FScope>& Loops)
 {
 }
 

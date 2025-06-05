@@ -3,7 +3,6 @@
 
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
-#include "Paths/PCGExPaths.h"
 #include "Paths/PCGExSplineToPath.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"
 
@@ -65,7 +64,7 @@ bool UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
 	EffectorsArray = GetEffectorsArray();
 
 	// Bulk of the work happens here
-	EffectorsArray->Init(InContext, this);
+	if (!EffectorsArray->Init(InContext, this)) { return false; }
 
 	InputDataFacade->Flush(); // Flush cached buffers
 	InputDataFacade.Reset();
@@ -85,7 +84,7 @@ bool UPCGExTensorPointFactoryData::InitInternalFacade(FPCGExContext* InContext)
 	return true;
 }
 
-void UPCGExTensorPointFactoryData::PrepareSinglePoint(const int32 Index, FPCGPoint& InPoint) const
+void UPCGExTensorPointFactoryData::PrepareSinglePoint(const int32 Index) const
 {
 }
 

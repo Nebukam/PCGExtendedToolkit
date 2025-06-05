@@ -21,7 +21,7 @@ PCGEX_INITIALIZE_ELEMENT(BevelPath)
 
 void UPCGExBevelPathSettings::InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const
 {
-	if (bFlagEndpoints) { InPointIO->FindOrCreateAttribute(EndpointsFlagName, false); }
+	if (bFlagPoles) { InPointIO->FindOrCreateAttribute(PoleFlagName, false); }
 	if (bFlagStartPoint) { InPointIO->FindOrCreateAttribute(StartPointFlagName, false); }
 	if (bFlagEndPoint) { InPointIO->FindOrCreateAttribute(EndPointFlagName, false); }
 	if (bFlagSubdivision) { InPointIO->FindOrCreateAttribute(SubdivisionFlagName, false); }
@@ -33,7 +33,7 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BevelPath)
 
-	if (Settings->bFlagEndpoints) { PCGEX_VALIDATE_NAME(Settings->EndpointsFlagName) }
+	if (Settings->bFlagPoles) { PCGEX_VALIDATE_NAME(Settings->PoleFlagName) }
 	if (Settings->bFlagStartPoint) { PCGEX_VALIDATE_NAME(Settings->StartPointFlagName) }
 	if (Settings->bFlagEndPoint) { PCGEX_VALIDATE_NAME(Settings->EndPointFlagName) }
 	if (Settings->bFlagSubdivision) { PCGEX_VALIDATE_NAME(Settings->SubdivisionFlagName) }
@@ -51,19 +51,19 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 
 		Context->CustomProfileFacade = MakeShared<PCGExData::FFacade>(CustomProfileIO.ToSharedRef());
 
-		const TArray<FPCGPoint>& ProfilePoints = CustomProfileIO->GetIn()->GetPoints();
-		PCGEx::InitArray(Context->CustomProfilePositions, ProfilePoints.Num());
+		TConstPCGValueRange<FTransform> ProfileTransforms = CustomProfileIO->GetIn()->GetConstTransformValueRange();
+		PCGEx::InitArray(Context->CustomProfilePositions, ProfileTransforms.Num());
 
-		const FVector Start = ProfilePoints[0].Transform.GetLocation();
-		const FVector End = ProfilePoints.Last().Transform.GetLocation();
+		const FVector Start = ProfileTransforms[0].GetLocation();
+		const FVector End = ProfileTransforms[ProfileTransforms.Num() - 1].GetLocation();
 		const double Factor = 1 / FVector::Dist(Start, End);
 
 		const FVector ProjectionNormal = (End - Start).GetSafeNormal(1E-08, FVector::ForwardVector);
 		const FQuat ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::ForwardVector);
 
-		for (int i = 0; i < ProfilePoints.Num(); i++)
+		for (int i = 0; i < ProfileTransforms.Num(); i++)
 		{
-			Context->CustomProfilePositions[i] = ProjectionQuat.RotateVector((ProfilePoints[i].Transform.GetLocation() - Start) * Factor);
+			Context->CustomProfilePositions[i] = ProjectionQuat.RotateVector((ProfileTransforms[i].GetLocation() - Start) * Factor);
 		}
 	}
 
@@ -97,7 +97,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>& NewBatch)
 			{
-				NewBatch->bRequiresWriteStep = (Settings->bFlagEndpoints || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
+				NewBatch->bRequiresWriteStep = (Settings->bFlagPoles || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to Bevel."));
@@ -116,13 +116,16 @@ namespace PCGExBevelPath
 	FBevel::FBevel(const int32 InIndex, const FProcessor* InProcessor):
 		Index(InIndex)
 	{
-		const TArray<FPCGPoint>& InPoints = InProcessor->PointDataFacade->GetIn()->GetPoints();
-		ArriveIdx = Index - 1 < 0 ? InPoints.Num() - 1 : Index - 1;
-		LeaveIdx = Index + 1 == InPoints.Num() ? 0 : Index + 1;
+		const UPCGBasePointData* InPoints = InProcessor->PointDataFacade->GetIn();
+		TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
 
-		Corner = InPoints[InIndex].Transform.GetLocation();
-		PrevLocation = InPoints[ArriveIdx].Transform.GetLocation();
-		NextLocation = InPoints[LeaveIdx].Transform.GetLocation();
+		ArriveIdx = Index - 1 < 0 ? InTransforms.Num() - 1 : Index - 1;
+		LeaveIdx = Index + 1 == InTransforms.Num() ? 0 : Index + 1;
+
+
+		Corner = InTransforms[InIndex].GetLocation();
+		PrevLocation = InTransforms[ArriveIdx].GetLocation();
+		NextLocation = InTransforms[LeaveIdx].GetLocation();
 
 		// Pre-compute some data
 
@@ -294,14 +297,9 @@ namespace PCGExBevelPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
-		Positions.SetNumUninitialized(InPoints.Num());
-		const int32 NumPoints = InPoints.Num();
-
-		for (int i = 0; i < NumPoints; i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
-
-		Path = PCGExPaths::MakePath(Positions, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		Path = PCGExPaths::MakePath(InPoints->GetConstTransformValueRange(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 
 		if (Settings->Type == EPCGExBevelProfileType::Custom)
@@ -358,7 +356,7 @@ namespace PCGExBevelPath
 					This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
 				}
 
-				This->StartParallelLoopForPoints(PCGExData::ESource::In);
+				This->StartParallelLoopForPoints(PCGExData::EIOSide::In);
 			};
 
 		Preparation->OnSubLoopStartCallback =
@@ -376,7 +374,7 @@ namespace PCGExBevelPath
 					This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
 				}
 
-				for (int i = Scope.Start; i < Scope.End; i++) { This->PrepareSinglePoint(i); }
+				PCGEX_SCOPE_LOOP(i) { This->PrepareSinglePoint(i); }
 			};
 
 		Preparation->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchChunkSize);
@@ -393,56 +391,84 @@ namespace PCGExBevelPath
 		Bevels[Index]->CustomCrossAxisScale = Settings->CrossAxisScale;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		const TSharedPtr<FBevel>& Bevel = Bevels[Index];
-		if (!Bevel) { return; }
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BevelPath::ProcessPoints);
 
-		Bevel->Compute(this);
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const TSharedPtr<FBevel>& Bevel = Bevels[Index];
+			if (!Bevel) { continue; }
+
+			Bevel->Compute(this);
+		}
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const int32 StartIndex = StartIndices[Iteration];
+		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+		UPCGMetadata* Metadata = OutPointData->Metadata;
 
-		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		// Only pin properties we will not be inheriting
+		TConstPCGValueRange<FTransform> InTransform = InPointData->GetConstTransformValueRange();
+		TConstPCGValueRange<int64> InMetadataEntry = InPointData->GetConstMetadataEntryValueRange();
 
-		const TSharedPtr<FBevel>& Bevel = Bevels[Iteration];
-		const FPCGPoint& OriginalPoint = PointIO->GetInPoint(Iteration);
+		TPCGValueRange<FTransform> OutTransform = OutPointData->GetTransformValueRange(false);
+		TPCGValueRange<int64> OutMetadataEntry = OutPointData->GetMetadataEntryValueRange(false);
+		TPCGValueRange<int32> OutSeeds = OutPointData->GetSeedValueRange(false);
 
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+		TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping();
 
-		if (!Bevel)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			MutablePoints[StartIndex] = OriginalPoint;
-			Metadata->InitializeOnSet(MutablePoints[StartIndex].MetadataEntry);
-			return;
+			const int32 StartIndex = StartIndices[Index];
+			const TSharedPtr<FBevel>& Bevel = Bevels[Index];
+
+			if (!Bevel)
+			{
+				IdxMapping[StartIndex] = Index;
+				OutTransform[StartIndex] = InTransform[Index];
+				OutMetadataEntry[StartIndex] = InMetadataEntry[Index];
+				Metadata->InitializeOnSet(OutMetadataEntry[StartIndex]);
+				continue;
+			}
+
+			const int32 A = Bevel->StartOutputIndex;
+			const int32 B = Bevel->EndOutputIndex;
+
+			for (int i = A; i <= B; i++)
+			{
+				IdxMapping[i] = Index;
+				OutTransform[i] = InTransform[Index];
+				OutMetadataEntry[i] = InMetadataEntry[Index];
+				Metadata->InitializeOnSet(OutMetadataEntry[i]);
+			}
+
+			OutTransform[A].SetLocation(Bevel->Arrive);
+			OutTransform[B].SetLocation(Bevel->Leave);
+
+			OutSeeds[A] = PCGExRandom::ComputeSpatialSeed(OutTransform[A].GetLocation());
+			OutSeeds[B] = PCGExRandom::ComputeSpatialSeed(OutTransform[B].GetLocation());
+
+			if (Bevel->Subdivisions.IsEmpty()) { continue; }
+
+			for (int i = 0; i < Bevel->Subdivisions.Num(); i++)
+			{
+				const int32 SubIndex = A + i + 1;
+				OutTransform[SubIndex].SetLocation(Bevel->Subdivisions[i]);
+				OutSeeds[SubIndex] = PCGExRandom::ComputeSpatialSeed(OutTransform[SubIndex].GetLocation());
+			}
 		}
+	}
 
-		for (int i = Bevel->StartOutputIndex; i <= Bevel->EndOutputIndex; i++)
-		{
-			MutablePoints[i] = OriginalPoint;
-			Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
-		}
+	void FProcessor::OnRangeProcessingComplete()
+	{
+		constexpr EPCGPointNativeProperties CarryOverProperties =
+			static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) &
+				~static_cast<uint8>(EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::Seed | EPCGPointNativeProperties::MetadataEntry));
 
-		FPCGPoint& StartPoint = PointIO->GetMutablePoint(Bevel->StartOutputIndex);
-		FPCGPoint& EndPoint = PointIO->GetMutablePoint(Bevel->EndOutputIndex);
-
-		StartPoint.Transform.SetLocation(Bevel->Arrive);
-		EndPoint.Transform.SetLocation(Bevel->Leave);
-
-		PCGExRandom::ComputeSeed(StartPoint);
-		PCGExRandom::ComputeSeed(EndPoint);
-
-		if (Bevel->Subdivisions.IsEmpty()) { return; }
-
-		for (int i = 0; i < Bevel->Subdivisions.Num(); i++)
-		{
-			FPCGPoint& Pt = MutablePoints[Bevel->StartOutputIndex + i + 1];
-			Pt.Transform.SetLocation(Bevel->Subdivisions[i]);
-			PCGExRandom::ComputeSeed(Pt);
-		}
+		PointDataFacade->Source->ConsumeIdxMapping(CarryOverProperties);
 	}
 
 	void FProcessor::WriteFlags(const int32 Index)
@@ -452,15 +478,15 @@ namespace PCGExBevelPath
 
 		if (EndpointsWriter)
 		{
-			EndpointsWriter->GetMutable(Bevel->StartOutputIndex) = true;
-			EndpointsWriter->GetMutable(Bevel->EndOutputIndex) = true;
+			EndpointsWriter->SetValue(Bevel->StartOutputIndex, true);
+			EndpointsWriter->SetValue(Bevel->EndOutputIndex, true);
 		}
 
-		if (StartPointWriter) { StartPointWriter->GetMutable(Bevel->StartOutputIndex) = true; }
+		if (StartPointWriter) { StartPointWriter->SetValue(Bevel->StartOutputIndex, true); }
 
-		if (EndPointWriter) { EndPointWriter->GetMutable(Bevel->EndOutputIndex) = true; }
+		if (EndPointWriter) { EndPointWriter->SetValue(Bevel->EndOutputIndex, true); }
 
-		if (SubdivisionWriter) { for (int i = 1; i <= Bevel->Subdivisions.Num(); i++) { SubdivisionWriter->GetMutable(Bevel->StartOutputIndex + i) = true; } }
+		if (SubdivisionWriter) { for (int i = 1; i <= Bevel->Subdivisions.Num(); i++) { SubdivisionWriter->SetValue(Bevel->StartOutputIndex + i, true); } }
 	}
 
 	void FProcessor::CompleteWork()
@@ -471,6 +497,9 @@ namespace PCGExBevelPath
 
 		int32 NumBevels = 0;
 		int32 NumOutPoints = 0;
+
+		TArray<int32> ReadIndices;
+		ReadIndices.Reserve(NumOutPoints * 4);
 
 		for (int i = 0; i < StartIndices.Num(); i++)
 		{
@@ -500,17 +529,17 @@ namespace PCGExBevelPath
 
 		// Build output points
 
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
-		PCGEx::InitArray(MutablePoints, NumOutPoints);
+		UPCGBasePointData* MutablePoints = PointDataFacade->GetOut();
+		PCGEx::SetNumPointsAllocated(MutablePoints, NumOutPoints);
 
 		StartParallelLoopForRange(PointDataFacade->GetNum());
 	}
 
 	void FProcessor::Write()
 	{
-		if (Settings->bFlagEndpoints)
+		if (Settings->bFlagPoles)
 		{
-			EndpointsWriter = PointDataFacade->GetWritable<bool>(Settings->EndpointsFlagName, false, true, PCGExData::EBufferInit::New);
+			EndpointsWriter = PointDataFacade->GetWritable<bool>(Settings->PoleFlagName, false, true, PCGExData::EBufferInit::New);
 		}
 
 		if (Settings->bFlagStartPoint)
@@ -540,7 +569,7 @@ namespace PCGExBevelPath
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					if (!This->PointFilterCache[i]) { continue; }
 					This->WriteFlags(i);

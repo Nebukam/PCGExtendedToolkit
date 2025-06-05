@@ -67,6 +67,7 @@ public:
 	FPCGExNumericCompareFilterConfig Config;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
@@ -121,6 +122,4 @@ public:
 	virtual FString GetDisplayName() const override;
 #endif
 
-protected:
-	virtual bool IsCacheable() const override { return true; }
 };

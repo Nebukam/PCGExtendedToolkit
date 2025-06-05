@@ -16,7 +16,7 @@ bool FPCGExFillControlOperation::PrepareForDiffusions(FPCGExContext* InContext, 
 
 bool FPCGExFillControlOperation::ChecksCapture() const
 {
-	return (Factory->ConfigBase.Steps & static_cast<uint8>(EPCGExFloodFillControlStepsFlags::Capture)) != 0;
+	return EnumHasAnyFlags(static_cast<EPCGExFloodFillControlStepsFlags>(Factory->ConfigBase.Steps), EPCGExFloodFillControlStepsFlags::Capture);
 }
 
 bool FPCGExFillControlOperation::IsValidCapture(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
@@ -26,7 +26,7 @@ bool FPCGExFillControlOperation::IsValidCapture(const PCGExFloodFill::FDiffusion
 
 bool FPCGExFillControlOperation::ChecksProbe() const
 {
-	return (Factory->ConfigBase.Steps & static_cast<uint8>(EPCGExFloodFillControlStepsFlags::Probing)) != 0;
+	return EnumHasAnyFlags(static_cast<EPCGExFloodFillControlStepsFlags>(Factory->ConfigBase.Steps), EPCGExFloodFillControlStepsFlags::Probing);
 }
 
 bool FPCGExFillControlOperation::IsValidProbe(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& Candidate)
@@ -36,7 +36,7 @@ bool FPCGExFillControlOperation::IsValidProbe(const PCGExFloodFill::FDiffusion* 
 
 bool FPCGExFillControlOperation::ChecksCandidate() const
 {
-	return (Factory->ConfigBase.Steps & static_cast<uint8>(EPCGExFloodFillControlStepsFlags::Candidate)) != 0;
+	return EnumHasAnyFlags(static_cast<EPCGExFloodFillControlStepsFlags>(Factory->ConfigBase.Steps), EPCGExFloodFillControlStepsFlags::Candidate);
 }
 
 bool FPCGExFillControlOperation::IsValidCandidate(const PCGExFloodFill::FDiffusion* Diffusion, const PCGExFloodFill::FCandidate& From, const PCGExFloodFill::FCandidate& Candidate)

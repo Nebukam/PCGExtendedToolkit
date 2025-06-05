@@ -63,6 +63,8 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 		if (!HashComparison.Init(InContext, InEdgeDataFacade)) { return false; }
 	}
 
+	InTransforms = PointDataFacade->Source->GetIn()->GetConstTransformValueRange();
+
 	return true;
 }
 
@@ -78,21 +80,18 @@ bool FIsoEdgeDirectionFilter::Test(const PCGExGraph::FEdge& Edge) const
 
 bool FIsoEdgeDirectionFilter::TestDot(const int32 PtIndex, const FVector& EdgeDir) const
 {
-	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PtIndex);
 	const FVector RefDir = OperandDirection->Read(PtIndex).GetSafeNormal();
 	return DotComparison.Test(
 		FVector::DotProduct(
-			TypedFilterFactory->Config.bTransformDirection ? Point.Transform.TransformVectorNoScale(RefDir) : RefDir,
+			TypedFilterFactory->Config.bTransformDirection ? InTransforms[PtIndex].TransformVectorNoScale(RefDir) : RefDir,
 			EdgeDir),
 		PtIndex);
 }
 
 bool FIsoEdgeDirectionFilter::TestHash(const int32 PtIndex, const FVector& EdgeDir) const
 {
-	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PtIndex);
-
 	FVector RefDir = OperandDirection->Read(PtIndex);
-	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir); }
+	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = InTransforms[PtIndex].TransformVectorNoScale(RefDir); }
 
 	RefDir.Normalize();
 

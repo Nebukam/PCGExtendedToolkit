@@ -80,30 +80,32 @@ namespace PCGExTensor
 		TSharedPtr<PCGExDetails::TSettingValue<double>> WeightValue = InFactory->BaseConfig.GetValueSettingWeight(InFactory->bQuietMissingInputError);
 		if (!WeightValue->Init(InContext, InFactory->InputDataFacade, false)) { return false; }
 
-		const TArray<FPCGPoint>& InPoints = InFactory->InputDataFacade->GetIn()->GetPoints();
+		const UPCGBasePointData* InPoints = InFactory->InputDataFacade->GetIn();
+		const int32 NumEffectors = InPoints->GetNumPoints();
 
 		const FBox InBounds = InFactory->InputDataFacade->GetIn()->GetBounds();
 		Octree = MakeShared<PCGEx::FIndexedItemOctree>(InBounds.GetCenter(), (InBounds.GetExtent() + FVector(10)).Length());
 
-		PCGEx::InitArray(Transforms, InPoints.Num());
-		PCGEx::InitArray(Radiuses, InPoints.Num());
-		PCGEx::InitArray(Potencies, InPoints.Num());
-		PCGEx::InitArray(Weights, InPoints.Num());
-		
-		// Pack per-point data
-		for (int i = 0; i < InPoints.Num(); i++)
-		{
-			const FPCGPoint& Effector = InPoints[i];
+		PCGEx::InitArray(Transforms, NumEffectors);
+		PCGEx::InitArray(Radiuses, NumEffectors);
+		PCGEx::InitArray(Potencies, NumEffectors);
+		PCGEx::InitArray(Weights, NumEffectors);
 
-			const FTransform& Transform = Effector.Transform;
-			Transforms[i] = Transform;
+		TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
+
+		// Pack per-point data
+		for (int i = 0; i < NumEffectors; i++)
+		{
+			const FTransform& Transform = InTransforms[i];
+			Transforms[i] = InTransforms[i];
 			Potencies[i] = PotencyValue->Read(i);
 			Weights[i] = WeightValue->Read(i);
-			
+
 			PrepareSinglePoint(i);
 
-			Radiuses[i] = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Effector).GetExtent().SquaredLength();
-			Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Effector).TransformBy(Transform)))); // Fetch to max
+			PCGExData::FConstPoint Point(InPoints, i);
+			Radiuses[i] = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).GetExtent().SquaredLength();
+			Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point).TransformBy(Transform)))); // Fetch to max
 		}
 
 		return true;

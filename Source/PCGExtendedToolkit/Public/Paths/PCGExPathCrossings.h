@@ -18,7 +18,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/crossings"))
 class UPCGExPathCrossingsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -61,7 +61,7 @@ public:
 
 	/** Blending applied on intersecting points along the path prev and next point. This is different from inheriting from external properties. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cross Blending", meta=(PCG_Overridable))
 	bool bDoCrossBlending = false;
@@ -124,7 +124,7 @@ struct FPCGExPathCrossingsContext final : FPCGExPathProcessorContext
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> CanCutFilterFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> CanBeCutFilterFactories;
 
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 
 	TSharedPtr<PCGExDetails::FDistances> Distances;
 	FPCGExBlendingDetails CrossingBlending;
@@ -134,7 +134,7 @@ class FPCGExPathCrossingsElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathCrossings)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -171,14 +171,13 @@ namespace PCGExPathCrossings
 		TSharedPtr<PCGExPointFilter::FManager> CanCutFilterManager;
 		TSharedPtr<PCGExPointFilter::FManager> CanBeCutFilterManager;
 
-		TArray<int8> CanCut;
-		TArray<int8> CanBeCut;
+		TBitArray<> CanCut;
+		TBitArray<> CanBeCut;
 
 		TSet<FName> ProtectedAttributes;
-		UPCGExSubPointsBlendOperation* Blending = nullptr;
+		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
 
 		TSet<int32> CrossIOIndices;
-		TSharedPtr<PCGExData::FUnionMetadata> UnionMetadata;
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
 
 		FPCGExPathEdgeIntersectionDetails Details;
@@ -198,11 +197,13 @@ namespace PCGExPathCrossings
 		const PCGExPaths::FPathEdgeOctree* GetEdgeOctree() const { return Path->GetEdgeOctree(); }
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
-		virtual void OnRangeProcessingComplete() override;
-		void CollapseCrossing(const int32 Index);
-		void CrossBlendPoint(const int32 Index);
 		virtual void CompleteWork() override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
+
+		void CollapseCrossings(const PCGExMT::FScope& Scope);
+		void CrossBlend(const PCGExMT::FScope& Scope);
+
 		virtual void Write() override;
 	};
 }

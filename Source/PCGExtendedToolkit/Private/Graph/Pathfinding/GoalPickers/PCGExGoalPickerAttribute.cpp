@@ -53,12 +53,12 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 	return true;
 }
 
-int32 UPCGExGoalPickerAttribute::GetGoalIndex(const PCGExData::FPointRef& Seed) const
+int32 UPCGExGoalPickerAttribute::GetGoalIndex(const PCGExData::FConstPoint& Seed) const
 {
 	return PCGExMath::SanitizeIndex(SingleGetter ? SingleGetter->Read(Seed.Index) : -1, MaxGoalIndex, IndexSafety);
 }
 
-void UPCGExGoalPickerAttribute::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const
+void UPCGExGoalPickerAttribute::GetGoalIndices(const PCGExData::FConstPoint& Seed, TArray<int32>& OutIndices) const
 {
 	for (const TSharedPtr<PCGExData::TBuffer<int32>>& Getter : AttributeGetters)
 	{

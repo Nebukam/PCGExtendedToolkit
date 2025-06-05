@@ -5,10 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-
-#include "PCGExOperation.h"
 #include "PCGExTensorSampler.h"
-
 
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"

@@ -94,27 +94,30 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 
 	PCGEX_SETTING_VALUE_GET(W, double, WInput, WAttribute, WConstant)
 
-	TSharedPtr<PCGExDetails::TSettingValue<double>> UGetter;
-	TSharedPtr<PCGExDetails::TSettingValue<double>> VGetter;
-	TSharedPtr<PCGExDetails::TSettingValue<double>> WGetter;
-
 	bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 
 	// Without axis
 
 	FORCEINLINE FVector GetUVW(const int32 PointIndex) const { return FVector(UGetter->Read(PointIndex), VGetter->Read(PointIndex), WGetter->Read(PointIndex)); }
 
-	FVector GetPosition(const PCGExData::FPointRef& PointRef) const;
+	FVector GetPosition(const int32 PointIndex) const;
 
-	FVector GetPosition(const PCGExData::FPointRef& PointRef, FVector& OutOffset) const;
+	FVector GetPosition(const int32 PointIndex, FVector& OutOffset) const;
 
 	// With axis
 
 	FVector GetUVW(const int32 PointIndex, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
 
-	FVector GetPosition(const PCGExData::FPointRef& PointRef, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
+	FVector GetPosition(const int32 PointIndex, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
 
-	FVector GetPosition(const PCGExData::FPointRef& PointRef, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
+	FVector GetPosition(const int32 PointIndex, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
+
+protected:
+	TSharedPtr<PCGExDetails::TSettingValue<double>> UGetter;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> VGetter;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> WGetter;
+
+	const UPCGBasePointData* PointData = nullptr;
 };
 
 USTRUCT(BlueprintType)
@@ -144,15 +147,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConstantUVW
 
 	FORCEINLINE FVector GetUVW() const { return FVector(U, V, W); }
 
-	FVector GetPosition(const PCGExData::FPointRef& PointRef) const;
+	FVector GetPosition(const PCGExData::FConstPoint& Point) const;
 
-	FVector GetPosition(const PCGExData::FPointRef& PointRef, FVector& OutOffset) const;
+	FVector GetPosition(const PCGExData::FConstPoint& Point, FVector& OutOffset) const;
 
 	// With axis
 
 	FVector GetUVW(const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
 
-	FVector GetPosition(const PCGExData::FPointRef& PointRef, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
+	FVector GetPosition(const PCGExData::FConstPoint& Point, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
 
-	FVector GetPosition(const PCGExData::FPointRef& PointRef, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
+	FVector GetPosition(const PCGExData::FConstPoint& Point, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const;
 };

@@ -50,13 +50,13 @@ public:
 	int32 Count = 10;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="AmountInput!=EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
-	EPCGExClusterComponentSource AmountSource = EPCGExClusterComponentSource::Edge;
+	EPCGExClusterElement AmountSource = EPCGExClusterElement::Edge;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Subdivision (Attr)", EditCondition="AmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagSubVtx = false;
@@ -87,14 +87,14 @@ struct FPCGExSubdivideEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExSubdivideEdgesElement;
 
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 };
 
 class FPCGExSubdivideEdgesElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SubdivideEdges)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -119,7 +119,7 @@ namespace PCGExSubdivideEdges
 		TArray<FSubdivision> Subdivisions;
 
 		TSet<FName> ProtectedAttributes;
-		UPCGExSubPointsBlendOperation* Blending = nullptr;
+		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
@@ -140,7 +140,7 @@ namespace PCGExSubdivideEdges
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};
@@ -155,7 +155,6 @@ namespace PCGExSubdivideEdges
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 			: TBatchWithGraphBuilder(InContext, InVtx, InEdges)
 		{
-			bAllowVtxDataFacadeScopedGet = true;
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;

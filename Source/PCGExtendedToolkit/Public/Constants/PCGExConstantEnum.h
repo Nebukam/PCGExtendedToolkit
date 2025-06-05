@@ -7,7 +7,6 @@
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExContext.h"
-#include "PCGParamData.h"
 #include "Elements/ControlFlow/PCGControlFlow.h"
 #include "PCGExConstantEnum.generated.h"
 
@@ -172,5 +171,4 @@ protected:
 		FPCGExBitmask& OutBitflags);
 
 	virtual FPCGContext* CreateContext() override { return new FPCGExContext(); }
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
 };

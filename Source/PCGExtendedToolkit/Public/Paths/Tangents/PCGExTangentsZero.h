@@ -4,20 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExTangentsOperation.h"
-#include "PCGExZeroTangents.generated.h"
+#include "PCGExTangentsInstancedFactory.h"
+#include "PCGExTangentsZero.generated.h"
 
-/**
- * 
- */
-UCLASS(MinimalAPI, DisplayName="Zero")
-class UPCGExZeroTangents : public UPCGExTangentsOperation
+class FPCGExTangentsZero : public FPCGExTangentsOperation
 {
-	GENERATED_BODY()
-
 public:
 	FORCEINLINE virtual void ProcessFirstPoint(
-		const TArray<FPCGPoint>& InPoints,
+		const UPCGBasePointData* InPointData,
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
@@ -26,7 +20,7 @@ public:
 	}
 
 	FORCEINLINE virtual void ProcessLastPoint(
-		const TArray<FPCGPoint>& InPoints,
+		const UPCGBasePointData* InPointData,
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
@@ -35,12 +29,28 @@ public:
 	}
 
 	FORCEINLINE virtual void ProcessPoint(
-		const TArray<FPCGPoint>& InPoints,
+		const UPCGBasePointData* InPointData,
 		const int32 Index, const int32 NextIndex, const int32 PrevIndex,
 		const FVector& ArriveScale, FVector& OutArrive,
 		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		OutArrive = FVector::ZeroVector;
 		OutLeave = FVector::ZeroVector;
+	}
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, DisplayName="Zero")
+class UPCGExZeroTangents : public UPCGExTangentsInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual TSharedPtr<FPCGExTangentsOperation> CreateOperation() const override
+	{
+		PCGEX_FACTORY_NEW_OPERATION(TangentsZero)
+		return NewOperation;
 	}
 };

@@ -9,8 +9,6 @@
 
 #include "PCGExPartition.generated.h"
 
-struct FPCGPoint;
-
 USTRUCT(BlueprintType)
 struct FPCGExPartitonRuleConfig : public FPCGExInputConfig
 {

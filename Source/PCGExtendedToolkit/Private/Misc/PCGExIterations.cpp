@@ -3,7 +3,6 @@
 
 #include "Misc/PCGExIterations.h"
 
-#include "PCGComponent.h"
 #include "PCGGraph.h"
 #include "PCGPin.h"
 #include "Data/PCGSplineData.h"
@@ -77,7 +76,11 @@ bool FPCGExIterationsElement::ExecuteInternal(FPCGContext* InContext) const
 			Metadata->FindOrCreateAttribute<double>(FName("Progress"), Progress);
 
 			Metadata->AddEntry();
-			Context->StageOutput(OutputLabel, Data, {FString::Printf(TEXT("Iteration:%u"), i), NumIterationsTag}, false, false);
+
+			FPCGTaggedData& StagedData = Context->StageOutput(Data, false, false);
+			StagedData.Pin = OutputLabel;
+			StagedData.Tags.Add(FString::Printf(TEXT("Iteration:%u"), i));
+			StagedData.Tags.Add(NumIterationsTag);
 		}
 	}
 	else
@@ -91,7 +94,7 @@ bool FPCGExIterationsElement::ExecuteInternal(FPCGContext* InContext) const
 			Data = Context->ManagedObjects->New<UPCGParamData>();
 			break;
 		case EPCGExIterationDataType::Points:
-			Data = Context->ManagedObjects->New<UPCGPointData>();
+			Data = Context->ManagedObjects->New<UPCGPointArrayData>();
 			break;
 		case EPCGExIterationDataType::Spline:
 			Data = Context->ManagedObjects->New<UPCGSplineData>();
@@ -103,10 +106,12 @@ bool FPCGExIterationsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		for (int i = 0; i < NumIterations; i++)
 		{
-			Context->StageOutput(OutputLabel, Data, {FString::Printf(TEXT("Iteration:%u"), i), NumIterationsTag}, false, false);
+			FPCGTaggedData& StagedData = Context->StageOutput(Data, false, false);
+			StagedData.Pin = OutputLabel;
+			StagedData.Tags.Add(FString::Printf(TEXT("Iteration:%u"), i));
+			StagedData.Tags.Add(NumIterationsTag);
 		}
 	}
-
 
 	Context->Done();
 	return Context->TryComplete();

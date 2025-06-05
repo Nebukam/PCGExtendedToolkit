@@ -11,17 +11,28 @@
 #include "PCGExSearchAStar.generated.h"
 
 class FPCGExHeuristicOperation;
-/**
- * 
- */
-UCLASS(MinimalAPI, DisplayName = "A*", meta=(ToolTip ="A* Search. Returns early with the least possible amount of traversed nodes."))
-class UPCGExSearchAStar : public UPCGExSearchOperation
-{
-	GENERATED_BODY()
 
+class FPCGExSearchOperationAStar : public FPCGExSearchOperation
+{
 public:
 	virtual bool ResolveQuery(
 		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
 		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
-		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const override;
+		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const override;
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, DisplayName = "A*", meta=(ToolTip ="A* Search. Returns early with the least possible amount of traversed nodes."))
+class UPCGExSearchAStar : public UPCGExSearchInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual TSharedPtr<FPCGExSearchOperation> CreateOperation() const override
+	{
+		PCGEX_FACTORY_NEW_OPERATION(SearchOperationAStar)
+		return NewOperation;
+	}
 };

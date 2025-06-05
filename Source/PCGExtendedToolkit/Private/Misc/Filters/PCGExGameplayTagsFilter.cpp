@@ -35,7 +35,7 @@ bool PCGExPointFilter::FGameplayTagsFilter::Init(FPCGExContext* InContext, const
 	PathSegments.Reserve(PropertyPath.GetNumSegments());
 	for (int i = 0; i < PropertyPath.GetNumSegments(); i++) { PathSegments.Add(PropertyPath.GetSegment(i).Name.ToString()); }
 
-	ActorReferences = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(TypedFilterFactory->Config.ActorReference);
+	ActorReferences = PointDataFacade->GetBroadcaster<FSoftObjectPath>(TypedFilterFactory->Config.ActorReference, true);
 
 	if (!ActorReferences)
 	{
@@ -59,7 +59,7 @@ bool PCGExPointFilter::FGameplayTagsFilter::Test(const int32 PointIndex) const
 	{
 		if (!TypedFilterFactory->Config.bQuietMissingPropertyWarning)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("GameplayTags filter could not resolve target property : \"%s\"."), *TypedFilterFactory->Config.PropertyPath);
+			UE_LOG(LogPCGEx, Warning, TEXT("GameplayTags filter could not resolve target property : \"%s\"."), *TypedFilterFactory->Config.PropertyPath);
 		}
 		return TypedFilterFactory->Config.bFallbackPropertyPath;
 	}

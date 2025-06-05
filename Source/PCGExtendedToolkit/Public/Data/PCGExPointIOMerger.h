@@ -50,19 +50,26 @@ protected:
 namespace PCGExPointIOMerger
 {
 	template <typename T>
-	static void ScopeMerge(const PCGExMT::FScope& Scope, const PCGEx::FAttributeIdentity& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, TArray<T>& OutValues)
+	static void ScopeMerge(const PCGExMT::FScope& Scope, const PCGEx::FAttributeIdentity& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, const TSharedPtr<PCGExData::TBuffer<T>>& OutBuffer)
 	{
 		UPCGMetadata* InMetadata = SourceIO->GetIn()->Metadata;
 
-		// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-		// ReSharper disable once CppRedundantTemplateKeyword
-		const FPCGMetadataAttribute<T>* TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(Identity.Name);
-		TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, InMetadata);
+		if (TSharedPtr<PCGExData::TArrayBuffer<T>> OutElementsBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(OutBuffer))
+		{
+			// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
+			// ReSharper disable once CppRedundantTemplateKeyword
+			const FPCGMetadataAttribute<T>* TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(Identity.Identifier);
+			TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, InMetadata);
 
-		if (!TypedInAttribute || !InAccessor.IsValid()) { return; }
+			if (!TypedInAttribute || !InAccessor.IsValid()) { return; }
 
-		TArrayView<T> InRange = MakeArrayView(OutValues.GetData() + Scope.Start, Scope.Count);
-		InAccessor->GetRange<T>(InRange, 0, *SourceIO->GetInKeys());
+			TArrayView<T> InRange = MakeArrayView(OutElementsBuffer->GetOutValues()->GetData() + Scope.Start, Scope.Count);
+			InAccessor->GetRange<T>(InRange, 0, *SourceIO->GetInKeys());
+		}
+		else
+		{
+			// TODO : Copy/overwrite data values
+		}
 	}
 
 	class PCGEXTENDEDTOOLKIT_API FCopyAttributeTask final : public PCGExMT::FPCGExIndexedTask
@@ -84,23 +91,23 @@ namespace PCGExPointIOMerger
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const PCGExMT::FScope& InScope,
 			const PCGEx::FAttributeIdentity& InIdentity,
-			const TSharedPtr<TArray<T>>& InOutValues)
+			const TSharedPtr<PCGExData::TBuffer<T>>& InOutBuffer)
 			: FTask(),
 			  PointIO(InPointIO),
 			  Scope(InScope),
 			  Identity(InIdentity),
-			  OutValues(InOutValues)
+			  OutBuffer(InOutBuffer)
 		{
 		}
 
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		const PCGExMT::FScope Scope;
 		const PCGEx::FAttributeIdentity Identity;
-		TSharedPtr<TArray<T>> OutValues;
+		const TSharedPtr<PCGExData::TBuffer<T>> OutBuffer;
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
-			ScopeMerge<T>(Scope, Identity, PointIO, *OutValues.Get());
+			ScopeMerge<T>(Scope, Identity, PointIO, OutBuffer);
 		}
 	};
 }

@@ -3,9 +3,6 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindAllCells.h"
 
-#include "PCGExCompare.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExFindAllCells"
 #define PCGEX_NAMESPACE FindAllCells
 
@@ -24,8 +21,8 @@ TArray<FPCGPinProperties> UPCGExFindAllCellsSettings::OutputPinProperties() cons
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExFindAllCellsSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
-PCGExData::EIOInit UPCGExFindAllCellsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExFindAllCellsSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExFindAllCellsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 PCGEX_INITIALIZE_ELEMENT(FindAllCells)
 
@@ -92,23 +89,7 @@ bool FPCGExFindAllCellsElement::ExecuteInternal(
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
-	/*
-	if (Settings->bOutputFilteredSeeds)
-	{
-		const TArray<FPCGPoint>& InSeeds = Context->SeedsDataFacade->Source->GetIn()->GetPoints();
-		TArray<FPCGPoint>& GoodSeeds = Context->GoodSeeds->GetOut()->GetMutablePoints();
-		TArray<FPCGPoint>& BadSeeds = Context->BadSeeds->GetOut()->GetMutablePoints();
-
-		for (int i = 0; i < Context->SeedQuality.Num(); i++)
-		{
-			if (Context->SeedQuality[i]) { GoodSeeds.Add(Context->UdpatedSeedPoints[i]); }
-			else { BadSeeds.Add(InSeeds[i]); }
-		}
-
-		Context->GoodSeeds->StageOutput();
-		Context->BadSeeds->StageOutput();
-	}
-	*/
+	// TODO : Output seeds?
 
 	Context->Paths->StageOutputs();
 
@@ -137,11 +118,18 @@ namespace PCGExFindAllCells
 		return true;
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		//Check endpoints
-		FindCell(*Cluster->GetEdgeStart(Edge), Edge);
-		FindCell(*Cluster->GetEdgeEnd(Edge), Edge);
+		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+
+			//Check endpoints
+			FindCell(*Cluster->GetEdgeStart(Edge), Edge);
+			FindCell(*Cluster->GetEdgeEnd(Edge), Edge);
+		}
 	}
 
 	bool FProcessor::FindCell(
@@ -170,7 +158,7 @@ namespace PCGExFindAllCells
 
 	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell)
 	{
-		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		if (!PathIO) { return; }
 
 		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts
@@ -181,42 +169,17 @@ namespace PCGExFindAllCells
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
-		TArray<FPCGPoint> MutablePoints;
-		MutablePoints.Reserve(InCell->Nodes.Num());
+		TArray<int32> ReadIndices;
+		ReadIndices.SetNumUninitialized(InCell->Nodes.Num());
 
-		const TArray<FPCGPoint>& InPoints = PathIO->GetIn()->GetPoints();
-		for (int i = 0; i < InCell->Nodes.Num(); i++) { MutablePoints.Add(InPoints[Cluster->GetNode(InCell->Nodes[i])->PointIndex]); }
-		InCell->PostProcessPoints(MutablePoints);
-
-		PathIO->GetOut()->SetPoints(MutablePoints);
+		for (int i = 0; i < InCell->Nodes.Num(); i++) { ReadIndices[i] = Cluster->GetNode(InCell->Nodes[i])->PointIndex; }
+		PathIO->InheritPoints(ReadIndices, 0);
+		InCell->PostProcessPoints(PathIO->GetOut());
 
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
 		PathDataFacade->Write(AsyncManager);
 
-		/*
-		Context->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
-		Context->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
-
-		if (Settings->bFlagLeaves)
-		{
-			const TSharedPtr<PCGExData::TBuffer<bool>> LeavesBuffer = PathDataFacade->GetWritable(Settings->LeafAttributeName, false, true, PCGExData::EBufferInit::New);
-			TArray<bool>& OutValues = *LeavesBuffer->GetOutValues();
-			for (int i = 0; i < Cell->Nodes.Num(); i++) { OutValues[i] = Cluster->GetNode(Cell->Nodes[i])->Num() == 1; }
-		}
-
-		if (!Cell->bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); } }
-		else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); } }
-
-		PathDataFacade->Write(AsyncManager);
-
-		if (Settings->bOutputFilteredSeeds)
-		{
-			Context->SeedQuality[SeedIndex] = true;
-			FPCGPoint SeedPoint = Context->SeedsDataFacade->Source->GetInPoint(SeedIndex);
-			Settings->SeedMutations.ApplyToPoint(Cell.Get(), SeedPoint, MutablePoints);
-			Context->UdpatedSeedPoints[SeedIndex] = SeedPoint;
-		}
-		*/
+		// TODO : Create cell centroids here
 
 		FPlatformAtomics::InterlockedIncrement(&OutputPathsNum);
 	}

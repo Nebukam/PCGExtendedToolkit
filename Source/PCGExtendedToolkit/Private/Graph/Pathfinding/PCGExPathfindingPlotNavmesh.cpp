@@ -3,11 +3,7 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingPlotNavmesh.h"
 
-#include "NavigationSystem.h"
-
 #include "PCGExPointsProcessor.h"
-
-
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
@@ -45,7 +41,7 @@ bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotNavmesh)
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation, PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 
@@ -94,171 +90,90 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	FPCGExPathfindingPlotNavmeshContext* Context = AsyncManager->GetContext<FPCGExPathfindingPlotNavmeshContext>();
 	PCGEX_SETTINGS(PathfindingPlotNavmesh)
 
-	UWorld* World = Context->GetWorld();
-	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World);
-
-	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return; }
-
 	const int32 NumPlots = PointIO->GetNum();
 
-	TArray<PCGExPathfinding::FPlotPoint> PathLocations;
-	const FPCGPoint& FirstPoint = PointIO->GetInPoint(0);
-	PathLocations.Emplace(0, FirstPoint.Transform.GetLocation(), FirstPoint.MetadataEntry);
-	FVector LastPosition = FVector::ZeroVector;
+	TArray<PCGExNavmesh::FNavmeshQuery> PlotQueries;
+	PlotQueries.Reserve(NumPlots);
 
-	//int32 MaxIterations = Settings->bClosedLoop ? NumPlots : NumPlots - 1;
+	auto PlotQuery = [&](const int32 SeedIndex, const int32 GoalIndex)-> PCGExNavmesh::FNavmeshQuery& {
+		PCGExNavmesh::FNavmeshQuery& Query = PlotQueries.Emplace_GetRef(PCGExPathfinding::FSeedGoalPair(PointIO->GetInPoint(SeedIndex), PointIO->GetInPoint(GoalIndex)));
+		Query.FindPath(Context);
+		return Query;
+	};
+
+
+	PCGEx::FRWScope PlotScope(NumPlots + 2, false);
+
+	// First, compute the final number of points
+	int32 NumPoints = 0;
+
 	for (int i = 0; i < NumPlots - 1; i++)
 	{
-		FPCGPoint SeedPoint;
-		FPCGPoint GoalPoint;
+		PCGExNavmesh::FNavmeshQuery& Query = PlotQuery(i, i + 1);
 
-		if (Settings->bClosedLoop && i == NumPlots - 1)
+		if (i == 0 && Settings->bAddSeedToPath)
 		{
-			SeedPoint = PointIO->GetInPoint(i);
-			GoalPoint = PointIO->GetInPoint(0);
-		}
-		else
-		{
-			SeedPoint = PointIO->GetInPoint(i);
-			GoalPoint = PointIO->GetInPoint(i + 1);
+			// First query and we want seed in the mix
+			PlotScope.Add(Query.SeedGoalPair.Seed, NumPoints++);
 		}
 
-		FVector SeedPosition = SeedPoint.Transform.GetLocation();
-		FVector GoalPosition = GoalPoint.Transform.GetLocation();
+		NumPoints += Query.Positions.Num();
 
-		bool bAddGoal = Context->bAddPlotPointsToPath && i != NumPlots - 2;
-		///
-
-		FPathFindingQuery PathFindingQuery = FPathFindingQuery(
-			World, *NavSys->GetDefaultNavDataInstance(),
-			SeedPosition, GoalPosition, nullptr, nullptr,
-			TNumericLimits<FVector::FReal>::Max(),
-			Context->bRequireNavigableEndLocation);
-
-		PathFindingQuery.NavAgentProperties = Context->NavAgentProperties;
-
-		const FPathFindingResult Result = NavSys->FindPathSync(
-			Context->NavAgentProperties, PathFindingQuery,
-			Context->PathfindingMode == EPCGExPathfindingNavmeshMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
-
-		if (Result.Result == ENavigationQueryResult::Type::Success)
+		if (Settings->bAddPlotPointsToPath || (i == NumPlots - 2 && !Settings->bClosedLoop && Settings->bAddGoalToPath))
 		{
-			for (const FNavPathPoint& PathPoint : Result.Path->GetPathPoints())
-			{
-				if (PathPoint.Location == LastPosition) { continue; } // When plotting, end from prev path == start from new path
-				PathLocations.Emplace(i, PathPoint.Location, PCGInvalidEntryKey);
-			}
-
-			LastPosition = PathLocations.Last().Position;
-
-			if (bAddGoal) { PathLocations.Emplace(i, GoalPosition, PCGInvalidEntryKey); }
-
-			PathLocations.Last().MetadataEntryKey = GoalPoint.MetadataEntry;
+			// Either last query & we want goals,
+			// or we want plot points, in which case we insert goals (since any non-last goal is the next query' seed)
+			PlotScope.Add(Query.SeedGoalPair.Goal, NumPoints++);
 		}
-		else if (Settings->bOmitCompletePathOnFailedPlot)
-		{
-			return;
-		}
-		else if (bAddGoal)
-		{
-			PathLocations.Emplace(i, GoalPosition, GoalPoint.MetadataEntry);
-		}
-
-		PathLocations.Last().PlotIndex = i + 1;
 	}
 
 	if (Settings->bClosedLoop)
 	{
-		const FPCGPoint& LastPoint = PointIO->GetInPoint(0);
-		PathLocations.Emplace(0, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
-	}
-	else
-	{
-		const FPCGPoint& LastPoint = PointIO->GetInPoint(NumPlots - 1);
-		PathLocations.Emplace(NumPlots - 1, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
+		PCGExNavmesh::FNavmeshQuery& Query = PlotQuery(NumPlots - 1, 0);
+		NumPoints += Query.Positions.Num();
+		// No extras, it's a wrapping path
 	}
 
+	if (NumPoints <= 2) { return; }
 
-	int32 LastPlotIndex = -1;
-	TArray<int32> Milestones;
-	TArray<PCGExPaths::FPathMetrics> MilestonesMetrics;
-
-	PCGExPaths::FPathMetrics* CurrentMetrics = nullptr;
-
-	PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(PathLocations[0].Position);
-	int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
-	for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
-	{
-		PCGExPathfinding::FPlotPoint PPoint = PathLocations[i];
-		FVector CurrentLocation = PPoint.Position;
-
-		if (LastPlotIndex != PPoint.PlotIndex)
-		{
-			LastPlotIndex = PPoint.PlotIndex;
-			Milestones.Add(i);
-			CurrentMetrics = &MilestonesMetrics.Emplace_GetRef(CurrentLocation);
-		}
-		else if (i > 0 && i < (PathLocations.Num() - FuseCountReduce) && PPoint.MetadataEntryKey == PCGInvalidEntryKey)
-		{
-			if (Metrics.IsLastWithinRange(CurrentLocation, Context->FuseDistance))
-			{
-				PathLocations.RemoveAt(i);
-				i--;
-				continue;
-			}
-		}
-
-		Metrics.Add(CurrentLocation);
-		CurrentMetrics->Add(CurrentLocation);
-	}
-
-	if (PathLocations.Num() <= PointIO->GetNum()) { return; } //
-	if (PathLocations.Num() < 2) { return; }
-
-	const int32 NumPositions = PathLocations.Num();
-
+	// Initialize data
 	TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
-	UPCGPointData* OutData = PathIO->GetOut();
-	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
+	UPCGBasePointData* OutPathData = PathIO->GetOut();
+	PCGEx::SetNumPointsAllocated(OutPathData, NumPoints);
 
-	MutablePoints.SetNumUninitialized(NumPositions);
+	// Copy seed/goal properties
+	PlotScope.CopyPoints(PointIO->GetIn(), PathIO->GetOut());
 
-	for (int i = 0; i < NumPositions; i++)
+	TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending = Context->Blending->CreateOperation();
+	if (!SubBlending->PrepareForData(Context, PathDataFacade)) { return; }
+
+	TPCGValueRange<FTransform> OutTransforms = OutPathData->GetTransformValueRange(false);
+
+	const int32 LastPlotIndex = PlotQueries.Num() - 1;
+	int32 WriteIndex = Settings->bAddSeedToPath; // Start at 1 if we added the seed
+	for (int i = 0; i < PlotQueries.Num(); i++)
 	{
-		PCGExPathfinding::FPlotPoint PPoint = PathLocations[i];
-		FPCGPoint& NewPoint = (MutablePoints[i] = PointIO->GetInPoint(PPoint.PlotIndex));
-		NewPoint.Transform.SetLocation(PPoint.Position);
-		NewPoint.MetadataEntry = PPoint.MetadataEntryKey;
-	}
-	PathLocations.Empty();
+		PCGExNavmesh::FNavmeshQuery& Query = PlotQueries[i];
 
-	TSharedPtr<PCGExDataBlending::FMetadataBlender> TempBlender =
-		Context->Blending->CreateBlender(PathDataFacade.ToSharedRef(), PathDataFacade.ToSharedRef(), PCGExData::ESource::Out);
+		const int32 StartIndex = WriteIndex;
+		Query.CopyPositions(OutTransforms, WriteIndex, false, false);
 
-	for (int i = 0; i < Milestones.Num() - 1; i++)
-	{
-		int32 StartIndex = Milestones[i] - 1;
-		int32 EndIndex = Milestones[i + 1] + 1;
-		int32 Range = EndIndex - StartIndex - 1;
+		PCGExData::FScope SubScope(PathIO->GetOut(), StartIndex, Query.Positions.Num());
+		if (SubScope.IsValid())
+		{
+			SubBlending->BlendSubPoints(
+				PointIO->GetInPoint(Query.SeedGoalPair.Seed),
+				PointIO->GetInPoint(Query.SeedGoalPair.Goal),
+				SubScope, Query.SeedGoalMetrics);
+		}
 
-		const FPCGPoint* EndPoint = PathIO->TryGetOutPoint(EndIndex);
-		if (!EndPoint) { continue; }
-
-		const FPCGPoint& StartPoint = PathIO->GetOutPoint(StartIndex);
-
-		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, Range);
-		Context->Blending->BlendSubPoints(
-			PCGExData::FPointRef(StartPoint, StartIndex), PCGExData::FPointRef(EndPoint, EndIndex),
-			View, MilestonesMetrics[i], TempBlender.Get(), StartIndex);
+		// Pad index if we inserted plot points
+		if (i != LastPlotIndex && Settings->bAddPlotPointsToPath) { WriteIndex++; }
 	}
 
 	PathDataFacade->Write(AsyncManager);
-	MilestonesMetrics.Empty();
-
-	if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
-	if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
 }
 
 #undef LOCTEXT_NAMESPACE

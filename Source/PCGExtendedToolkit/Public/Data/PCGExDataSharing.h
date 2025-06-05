@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGData.h"
 #include "PCGExSharedDataComponent.h"
-#include "PCGPin.h"
 #include "UObject/Object.h"
 #include <functional>
 

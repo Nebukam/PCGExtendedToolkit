@@ -22,6 +22,7 @@ TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::OutputPinProperties() co
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
+	PCGEX_PIN_POINTS(FName("BaseMeshData"), "Vtx & edges that have been copied to point. Contains one graph per unique mesh asset.", Advanced, {})
 	return PinProperties;
 }
 
@@ -66,6 +67,9 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	Context->EdgeChildCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->EdgeChildCollection->OutputPin = PCGExGraph::OutputEdgesLabel;
 
+	Context->BaseMeshDataCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->BaseMeshDataCollection->OutputPin = FName("BaseMeshData");
+
 	return true;
 }
 
@@ -109,10 +113,11 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 				return false;
 			}
 
-			const TArray<FPCGPoint>& TargetPoints = Context->CurrentIO->GetIn()->GetPoints();
-			for (int i = 0; i < TargetPoints.Num(); i++)
+			const UPCGBasePointData* TargetPoints = Context->CurrentIO->GetIn();
+			const int32 NumTargets = TargetPoints->GetNumPoints();
+			for (int i = 0; i < NumTargets; i++)
 			{
-				FSoftObjectPath Path = PathGetter->SoftGet(i, TargetPoints[i], FSoftObjectPath());
+				FSoftObjectPath Path = PathGetter->SoftGet(PCGExData::FConstPoint(TargetPoints, i), FSoftObjectPath());
 
 				if (!Path.IsValid())
 				{
@@ -192,13 +197,12 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 
 		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
-		const TArray<FPCGPoint>& Targets = Context->CurrentIO->GetIn()->GetPoints();
-		for (int i = 0; i < Targets.Num(); i++)
+
+		const int32 NumTargets = Context->CurrentIO->GetIn()->GetNumPoints();
+		for (int i = 0; i < NumTargets; i++)
 		{
 			const int32 MeshIdx = Context->MeshIdx[i];
-
 			if (MeshIdx == -1) { continue; }
-
 			PCGEX_LAUNCH(PCGExGraphTask::FCopyGraphToPoint, i, Context->CurrentIO, Context->GraphBuilders[MeshIdx], Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformDetails)
 		}
 	}
@@ -207,6 +211,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	{
 		Context->VtxChildCollection->StageOutputs();
 		Context->EdgeChildCollection->StageOutputs();
+		Context->BaseMeshDataCollection->StageOutputs();
 
 		Context->Done();
 	}
@@ -241,19 +246,28 @@ namespace PCGExMeshToCluster
 		if (!RootVtx) { return; }
 
 		RootVtx->IOIndex = TaskIndex;
-		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();
-		VtxPoints.SetNum(Mesh->Vertices.Num());
+
+		UPCGBasePointData* VtxPoints = RootVtx->GetOut();
+		(void)PCGEx::SetNumPointsAllocated(VtxPoints, Mesh->Vertices.Num());
+
+		TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);
+		for (int i = 0; i < OutTransforms.Num(); i++) { OutTransforms[i].SetLocation(Mesh->Vertices[i]); }
 
 		PCGEX_MAKE_SHARED(RootVtxFacade, PCGExData::FFacade, RootVtx.ToSharedRef())
-
 		PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, RootVtxFacade.ToSharedRef(), &Context->GraphBuilderDetails)
+
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
-		for (int i = 0; i < VtxPoints.Num(); i++)
-		{
-			FPCGPoint& NewVtx = VtxPoints[i];
-			NewVtx.Transform.SetLocation(Mesh->Vertices[i]);
-		}
+		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
+		GraphBuilder->OnCompilationEndCallback =
+			[WeakHandle](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
+			{
+				if (!bSuccess) { return; }
+				PCGEX_SHARED_TCONTEXT_VOID(MeshToClusters, WeakHandle)
+
+				SharedContext.Get()->BaseMeshDataCollection->Add(InBuilder->NodeDataFacade->Source);
+				SharedContext.Get()->BaseMeshDataCollection->Add(InBuilder->EdgesIO->Pairs);
+			};
 
 		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
 		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true);

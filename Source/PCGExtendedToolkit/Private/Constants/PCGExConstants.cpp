@@ -3,10 +3,8 @@
 
 #include "Constants/PCGExConstants.h"
 #include "CoreMinimal.h"
-#include "PCGComponent.h"
 #include "PCGContext.h"
 #include "PCGExContext.h"
-#include "PCGParamData.h"
 #include "PCGPin.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 

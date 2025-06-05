@@ -8,8 +8,8 @@
 #define LOCTEXT_NAMESPACE "PCGExFindPointOnBoundsClusters"
 #define PCGEX_NAMESPACE FindPointOnBoundsClusters
 
-PCGExData::EIOInit UPCGExFindPointOnBoundsClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
-PCGExData::EIOInit UPCGExFindPointOnBoundsClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExFindPointOnBoundsClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExFindPointOnBoundsClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 void FPCGExFindPointOnBoundsClustersContext::ClusterProcessing_InitialProcessingDone()
 {
@@ -49,7 +49,8 @@ bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) cons
 		Context->CarryOverDetails.Attributes.Prune(AttributeMismatches);
 
 		Context->MergedOut->InitializeOutput(PCGExData::EIOInit::New);
-		Context->MergedOut->GetOut()->GetMutablePoints().SetNum(Context->MainEdges->Num());
+		// There is a risk we allocate too many points here if there's less valid clusters than expected
+		(void)PCGEx::SetNumPointsAllocated(Context->MergedOut->GetOut(), Context->MainEdges->Num());
 		Context->MergedOut->GetOutKeys(true);
 
 		if (!AttributeMismatches.IsEmpty() && !Settings->bQuietAttributeMismatchWarning)
@@ -91,7 +92,7 @@ bool FPCGExFindPointOnBoundsClustersElement::ExecuteInternal(
 			Context->BestIndices,
 			*Context->MergedAttributesInfos);
 
-		Context->MergedOut->StageOutput();
+		(void)Context->MergedOut->StageOutput(Context);
 	}
 	else
 	{
@@ -142,14 +143,24 @@ namespace PCGExFindPointOnBoundsClusters
 		}
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		UpdateCandidate(Cluster->GetPos(Node), Node.PointIndex);
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExCluster::FNode& Node = Nodes[Index];
+
+			UpdateCandidate(Cluster->GetPos(Node), Node.PointIndex);
+		}
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		UpdateCandidate(Cluster->GetClosestPointOnEdge(EdgeIndex, SearchPosition), EdgeIndex);
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			UpdateCandidate(Cluster->GetClosestPointOnEdge(Index, SearchPosition), Index);
+		}
 	}
 
 	void FProcessor::CompleteWork()
@@ -160,22 +171,31 @@ namespace PCGExFindPointOnBoundsClusters
 
 		if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
 		{
-			const int32 SourceIndex = EdgeDataFacade->Source->IOIndex;
-			Context->IOMergeSources[SourceIndex] = IORef;
+			const int32 TargetIndex = EdgeDataFacade->Source->IOIndex;
+			Context->IOMergeSources[TargetIndex] = IORef;
 
-			const PCGMetadataEntryKey OriginalKey = Context->MergedOut->GetOut()->GetMutablePoints()[SourceIndex].MetadataEntry;
-			FPCGPoint& OutPoint = (Context->MergedOut->GetOut()->GetMutablePoints()[SourceIndex] = IORef->GetInPoint(BestIndex));
-			OutPoint.MetadataEntry = OriginalKey;
-			OutPoint.Transform.AddToTranslation(Offset);
+			TPCGValueRange<FTransform> OutTransforms = Context->MergedOut->GetOut()->GetTransformValueRange(false);
+			TPCGValueRange<int64> OutMetadataEntries = Context->MergedOut->GetOut()->GetMetadataEntryValueRange(false);
+
+			const PCGMetadataEntryKey OriginalKey = OutMetadataEntries[TargetIndex];
+
+			IORef->GetIn()->CopyPointsTo(Context->MergedOut->GetOut(), BestIndex, TargetIndex, 1);
+
+			OutTransforms[TargetIndex].AddToTranslation(Offset);
+			OutMetadataEntries[TargetIndex] = OriginalKey;
 		}
 		else
 		{
 			PCGEX_INIT_IO_VOID(IORef, PCGExData::EIOInit::New)
-			IORef->GetOut()->GetMutablePoints().SetNum(1);
+			(void)PCGEx::SetNumPointsAllocated(IORef->GetOut(), 1);
 
-			FPCGPoint& OutPoint = (IORef->GetOut()->GetMutablePoints()[0] = IORef->GetInPoint(BestIndex));
-			IORef->GetOut()->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-			OutPoint.Transform.AddToTranslation(Offset);
+			IORef->InheritPoints(BestIndex, 0, 1);
+
+			TPCGValueRange<FTransform> OutTransforms = IORef->GetOut()->GetTransformValueRange(false);
+			TPCGValueRange<int64> OutMetadataEntries = IORef->GetOut()->GetMetadataEntryValueRange(false);
+
+			OutTransforms[0].AddToTranslation(Offset);
+			IORef->GetOut()->Metadata->InitializeOnSet(OutMetadataEntries[0]);
 		}
 	}
 }

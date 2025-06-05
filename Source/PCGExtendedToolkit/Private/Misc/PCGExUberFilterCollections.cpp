@@ -139,21 +139,23 @@ namespace PCGExUberFilterCollections
 			}
 		}
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::UberFilterCollections::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		if (PointFilterCache[Index]) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
-		else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			if (PointFilterCache[Index]) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
+			else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
+		}
 	}
 
 	void FProcessor::Output()

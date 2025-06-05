@@ -46,7 +46,7 @@ enum class EPCGExAxisConstraintSorting : uint8
 	DirectionMatters = 1 UMETA(DisplayName = "Direction matters more", ToolTip="..."),
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/bounds-axis-to-points"))
 class UPCGExBoundsAxisToPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -132,7 +132,7 @@ class FPCGExBoundsAxisToPointsElement final : public FPCGExPointsProcessorElemen
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BoundsAxisToPoints)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -163,7 +163,7 @@ namespace PCGExBoundsAxisToPoints
 		TArray<TSharedPtr<PCGExData::FPointIO>> NewOutputs;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};
 }

@@ -57,6 +57,10 @@ struct FPCGExMeanFilterConfig
 	/** Maximum threshold. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoExcludeAboveMean"))
 	double ExcludeAbove = 0.2;
+
+	/** If enabled, invert the result of the test */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
 };
 
 /**
@@ -89,6 +93,8 @@ namespace PCGExPointFilter
 		const TObjectPtr<const UPCGExMeanFilterFactory> TypedFilterFactory;
 
 		TArray<double> Values;
+
+		bool bInvert = false;
 
 		double DataMin = 0;
 		double DataMax = 0;
@@ -134,6 +140,4 @@ public:
 	virtual FString GetDisplayName() const override;
 #endif
 
-protected:
-	virtual bool IsCacheable() const override { return true; }
 };

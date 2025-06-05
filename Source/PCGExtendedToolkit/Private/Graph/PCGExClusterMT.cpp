@@ -121,18 +121,7 @@ namespace PCGExClusterMT
 	{
 	}
 
-	void FClusterProcessor::PrepareSingleLoopScopeForNodes(const PCGExMT::FScope& Scope)
-	{
-	}
-
 	void FClusterProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
-	{
-		PrepareSingleLoopScopeForNodes(Scope);
-		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-		for (int i = Scope.Start; i < Scope.End; i++) { ProcessSingleNode(i, Nodes[i], Scope); }
-	}
-
-	void FClusterProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
 	{
 	}
 
@@ -153,18 +142,7 @@ namespace PCGExClusterMT
 	{
 	}
 
-	void FClusterProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
-	{
-	}
-
 	void FClusterProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
-	{
-		PrepareSingleLoopScopeForEdges(Scope);
-		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
-		for (int i = Scope.Start; i < Scope.End; i++) { ProcessSingleEdge(i, ClusterEdges[i], Scope); }
-	}
-
-	void FClusterProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
 	{
 	}
 
@@ -185,17 +163,7 @@ namespace PCGExClusterMT
 	{
 	}
 
-	void FClusterProcessor::PrepareSingleLoopScopeForRange(const PCGExMT::FScope& Scope)
-	{
-	}
-
 	void FClusterProcessor::ProcessRange(const PCGExMT::FScope& Scope)
-	{
-		PrepareSingleLoopScopeForRange(Scope);
-		for (int i = Scope.Start; i < Scope.End; i++) { ProcessSingleRangeIteration(i, Scope); }
-	}
-
-	void FClusterProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
 	{
 	}
 
@@ -234,17 +202,7 @@ namespace PCGExClusterMT
 	void FClusterProcessor::FilterVtxScope(const PCGExMT::FScope& Scope)
 	{
 		// Note : Don't forget to prefetch VtxDataFacade buffers
-
-		if (VtxFiltersManager)
-		{
-			TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes.Get();
-			TArray<int8>& CacheRef = *VtxFilterCache.Get();
-			for (int i = Scope.Start; i < Scope.End; i++)
-			{
-				PCGExCluster::FNode& Node = NodesRef[i];
-				CacheRef[Node.PointIndex] = VtxFiltersManager->Test(Node);
-			}
-		}
+		if (VtxFiltersManager) { VtxFiltersManager->Test(Scope.GetView(*Cluster->Nodes.Get()), Scope.GetView(*VtxFilterCache.Get())); }
 	}
 
 	bool FClusterProcessor::InitEdgesFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
@@ -265,25 +223,25 @@ namespace PCGExClusterMT
 		if (EdgesFiltersManager)
 		{
 			TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges.Get();
-			for (int i = Scope.Start; i < Scope.End; i++) { EdgeFilterCache[i] = EdgesFiltersManager->Test(EdgesRef[i]); }
+			EdgesFiltersManager->Test(Scope.GetView(EdgesRef), Scope.GetView(EdgeFilterCache));
 		}
 	}
 
-	FClusterProcessorBatchBase::FClusterProcessorBatchBase(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+	IClusterProcessorBatch::IClusterProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 		: ExecutionContext(InContext), WorkPermit(InContext->GetWorkPermit()), VtxDataFacade(MakeShared<PCGExData::FFacade>(InVtx))
 	{
-		PCGEX_LOG_CTR(FClusterProcessorBatchBase)
+		PCGEX_LOG_CTR(IClusterProcessorBatch)
 		SetExecutionContext(InContext);
 		Edges.Append(InEdges);
 	}
 
-	void FClusterProcessorBatchBase::SetExecutionContext(FPCGExContext* InContext)
+	void IClusterProcessorBatch::SetExecutionContext(FPCGExContext* InContext)
 	{
 		ExecutionContext = InContext;
 		WorkPermit = ExecutionContext->GetWorkPermit();
 	}
 
-	void FClusterProcessorBatchBase::PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
+	void IClusterProcessorBatch::PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
 	{
 		PCGEX_CHECK_WORK_PERMIT_VOID
 
@@ -293,13 +251,15 @@ namespace PCGExClusterMT
 		const int32 NumVtx = VtxDataFacade->GetNum();
 		NodeIndexLookup = MakeShared<PCGEx::FIndexLookup>(NumVtx);
 
+		AllocateVtxPoints();
+
 		if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 		{
 			// Trivial
 			PCGExGraph::BuildEndpointsLookup(VtxDataFacade->Source, EndpointsLookup, ExpectedAdjacency);
 			if (RequiresGraphBuilder())
 			{
-				GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade, &GraphBuilderDetails, 6);
+				GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade, &GraphBuilderDetails);
 				GraphBuilder->SourceEdgeFacades = EdgesDataFacades;
 			}
 
@@ -330,7 +290,7 @@ namespace PCGExClusterMT
 
 					if (This->RequiresGraphBuilder())
 					{
-						This->GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(This->VtxDataFacade, &This->GraphBuilderDetails, 6);
+						This->GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(This->VtxDataFacade, &This->GraphBuilderDetails);
 						This->GraphBuilder->SourceEdgeFacades = This->EdgesDataFacades;
 					}
 
@@ -343,12 +303,14 @@ namespace PCGExClusterMT
 					TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Range);
 
 					PCGEX_ASYNC_THIS
-					const TArray<FPCGPoint>& InKeys = This->VtxDataFacade->GetIn()->GetPoints();
-					for (int i = Scope.Start; i < Scope.End; i++)
+
+					const TConstPCGValueRange<int64> MetadataEntries = This->VtxDataFacade->GetIn()->GetConstMetadataEntryValueRange();
+
+					PCGEX_SCOPE_LOOP(i)
 					{
 						uint32 A;
 						uint32 B;
-						PCGEx::H64(This->RawLookupAttribute->GetValueFromItemKey(InKeys[i].MetadataEntry), A, B);
+						PCGEx::H64(This->RawLookupAttribute->GetValueFromItemKey(MetadataEntries[i]), A, B);
 
 						This->ReverseLookup[i] = A;
 						This->ExpectedAdjacency[i] = B;
@@ -358,7 +320,7 @@ namespace PCGExClusterMT
 		}
 	}
 
-	void FClusterProcessorBatchBase::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	void IClusterProcessorBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		if (VtxFilterFactories)
 		{
@@ -368,11 +330,11 @@ namespace PCGExClusterMT
 		// TODO : Preload heuristics that depends on Vtx metadata
 	}
 
-	void FClusterProcessorBatchBase::OnProcessingPreparationComplete()
+	void IClusterProcessorBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_CHECK_WORK_PERMIT_OR_VOID(!bIsBatchValid)
 
-		VtxFacadePreloader = MakeShared<PCGExData::FFacadePreloader>();
+		VtxFacadePreloader = MakeShared<PCGExData::FFacadePreloader>(VtxDataFacade);
 		RegisterBuffersDependencies(*VtxFacadePreloader);
 
 		VtxFacadePreloader->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]
@@ -381,29 +343,29 @@ namespace PCGExClusterMT
 			This->Process();
 		};
 
-		VtxFacadePreloader->StartLoading(AsyncManager, VtxDataFacade);
+		VtxFacadePreloader->StartLoading(AsyncManager);
 	}
 
-	void FClusterProcessorBatchBase::Process()
+	void IClusterProcessorBatch::Process()
 	{
 	}
 
-	void FClusterProcessorBatchBase::CompleteWork()
+	void IClusterProcessorBatch::CompleteWork()
 	{
 	}
 
-	void FClusterProcessorBatchBase::Write()
+	void IClusterProcessorBatch::Write()
 	{
 		PCGEX_CHECK_WORK_PERMIT_VOID
 		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->Write(AsyncManager); }
 	}
 
-	const PCGExGraph::FGraphMetadataDetails* FClusterProcessorBatchBase::GetGraphMetadataDetails()
+	const PCGExGraph::FGraphMetadataDetails* IClusterProcessorBatch::GetGraphMetadataDetails()
 	{
 		return nullptr;
 	}
 
-	void FClusterProcessorBatchBase::CompileGraphBuilder(const bool bOutputToContext)
+	void IClusterProcessorBatch::CompileGraphBuilder(const bool bOutputToContext)
 	{
 		PCGEX_CHECK_WORK_PERMIT_OR_VOID(!GraphBuilder || !bIsBatchValid)
 
@@ -427,11 +389,20 @@ namespace PCGExClusterMT
 		GraphBuilder->CompileAsync(AsyncManager, true, GetGraphMetadataDetails());
 	}
 
-	void FClusterProcessorBatchBase::Output()
+	void IClusterProcessorBatch::Output()
 	{
 	}
 
-	void FClusterProcessorBatchBase::Cleanup()
+	void IClusterProcessorBatch::Cleanup()
 	{
+	}
+
+	void IClusterProcessorBatch::AllocateVtxPoints() const
+	{
+		if (AllocateVtxProperties == EPCGPointNativeProperties::None) { return; }
+		if (VtxDataFacade->GetOut() && VtxDataFacade->GetIn() != VtxDataFacade->GetOut())
+		{
+			VtxDataFacade->GetOut()->AllocateProperties(AllocateVtxProperties);
+		}
 	}
 }

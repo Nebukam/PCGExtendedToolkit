@@ -47,10 +47,10 @@ public:
 	UPCGExActionFactoryData* Factory = nullptr;
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
-	virtual void ProcessPoint(int32 Index, const FPCGPoint& Point);
+	virtual void ProcessPoint(int32 Index);
 
-	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point);
-	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point);
+	virtual void OnMatchSuccess(int32 Index);
+	virtual void OnMatchFail(int32 Index);
 
 protected:
 	TSharedPtr<PCGExPointFilter::FManager> FilterManager;
@@ -103,6 +103,6 @@ public:
 #endif
 
 	/** Priority for transmutation order. Higher values are processed last. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1), AdvancedDisplay)
 	int32 Priority = 0;
 };

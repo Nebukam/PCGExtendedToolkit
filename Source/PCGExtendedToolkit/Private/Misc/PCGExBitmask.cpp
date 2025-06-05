@@ -3,7 +3,6 @@
 
 #include "Misc/PCGExBitmask.h"
 
-#include "PCGComponent.h"
 #include "PCGGraph.h"
 #include "PCGPin.h"
 
@@ -40,7 +39,8 @@ bool FPCGExBitmaskElement::ExecuteInternal(FPCGContext* InContext) const
 	BitmaskData->Metadata->CreateAttribute<int64>(FName("Bitmask"), Bitmask, false, true);
 	BitmaskData->Metadata->AddEntry();
 
-	Context->StageOutput(FName("Bitmask"), BitmaskData, true);
+	FPCGTaggedData& StagedData = Context->StageOutput(BitmaskData, true);
+	StagedData.Pin = FName("Bitmask");
 
 	Context->Done();
 	return Context->TryComplete();

@@ -30,14 +30,14 @@ public:
 	UPCGExActionWriteValuesFactory* TypedFactory = nullptr;
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point) override;
-	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point) override;
+	virtual void OnMatchSuccess(int32 Index) override;
+	virtual void OnMatchFail(int32 Index) override;
 
 protected:
 	TArray<FPCGMetadataAttributeBase*> SuccessAttributes;
-	TArray<TSharedPtr<PCGExData::FBufferBase>> SuccessWriters;
+	TArray<TSharedPtr<PCGExData::IBuffer>> SuccessWriters;
 	TArray<FPCGMetadataAttributeBase*> FailAttributes;
-	TArray<TSharedPtr<PCGExData::FBufferBase>> FailWriters;
+	TArray<TSharedPtr<PCGExData::IBuffer>> FailWriters;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

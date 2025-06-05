@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExInstancedFactory.h"
-#include "PCGExOperation.h"
 #include "Graph/PCGExCluster.h"
 #include "PCGExRelaxClusterOperation.generated.h"
 
@@ -41,13 +40,13 @@ public:
 	}
 
 	virtual int32 GetNumSteps() { return 1; }
-	virtual EPCGExClusterComponentSource GetStepSource(const int32 InStep) { return EPCGExClusterComponentSource::Vtx; }
+	virtual EPCGExClusterElement GetStepSource(const int32 InStep) { return EPCGExClusterElement::Vtx; }
 
 
-	virtual EPCGExClusterComponentSource PrepareNextStep(const int32 InStep)
+	virtual EPCGExClusterElement PrepareNextStep(const int32 InStep)
 	{
 		if (InStep == 0) { std::swap(ReadBuffer, WriteBuffer); }
-		return EPCGExClusterComponentSource::Vtx;
+		return EPCGExClusterElement::Vtx;
 	}
 
 	// Node steps

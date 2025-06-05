@@ -25,8 +25,8 @@ namespace PCGEx
 
 		if (!RequiresCompilation())
 		{
-			const PCGExTypeHash A = ValuesGetter->SoftGet(InPointIO->GetInPointRef(0), 0);
-			const PCGExTypeHash B = ValuesGetter->SoftGet(InPointIO->GetInPointRef(NumValues - 1), 0);
+			const PCGExTypeHash A = ValuesGetter->SoftGet(InPointIO->GetInPoint(0), 0);
+			const PCGExTypeHash B = ValuesGetter->SoftGet(InPointIO->GetInPoint(NumValues - 1), 0);
 
 			if (Config.Scope == EPCGExDataHashScope::First) { OutHash = A; }
 			else if (Config.Scope == EPCGExDataHashScope::Last) { OutHash = B; }
@@ -94,9 +94,9 @@ namespace PCGEx
 	void FAttributeHasher::CompileScope(const PCGExMT::FScope& Scope)
 	{
 		ValuesGetter->Fetch(Values, Scope);
-		for (int i = Scope.Start; i < Scope.End; i++)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExTypeHash H = Values[i];
+			PCGExTypeHash H = Values[Index];
 
 			OutHash = HashCombineFast(OutHash, H);
 
@@ -105,7 +105,7 @@ namespace PCGEx
 			if (!bAlreadySet)
 			{
 				CombinedHashUnique = HashCombineFast(CombinedHashUnique, H);
-				UniqueIndices.Add(i);
+				UniqueIndices.Add(Index);
 			}
 		}
 	}

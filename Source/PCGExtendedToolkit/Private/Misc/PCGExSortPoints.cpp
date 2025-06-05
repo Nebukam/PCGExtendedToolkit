@@ -75,7 +75,7 @@ namespace PCGExSortPoints
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
 		Settings->GetSortingRules(ExecutionContext, RuleConfigs);
 
-		Sorter = MakeShared<PCGExSorting::PointSorter<true>>(Context, PointDataFacade, RuleConfigs);
+		Sorter = MakeShared<PCGExSorting::TPointSorter<>>(Context, PointDataFacade, RuleConfigs);
 		Sorter->SortDirection = Settings->SortDirection;
 		Sorter->RegisterBuffersDependencies(FacadePreloader);
 	}
@@ -94,7 +94,12 @@ namespace PCGExSortPoints
 			return false;
 		}
 
-		PointDataFacade->GetOut()->GetMutablePoints().Sort([&](const FPCGPoint& A, const FPCGPoint& B) { return Sorter->Sort(A, B); });
+		TArray<int32> Order;
+		PCGEx::ArrayOfIndices(Order, PointDataFacade->GetNum());
+		Order.Sort([&](const int32 A, const int32 B) { return Sorter->Sort(A, B); });
+
+		PointDataFacade->Source->InheritPoints(Order, 0);
+
 		return true;
 	}
 

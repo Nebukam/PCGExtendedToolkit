@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExDetailsData.h"
 #include "PCGExPointsProcessor.h"
+
+
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
 #include "Shapes/PCGExShapeBuilderOperation.h"
 
@@ -60,7 +62,7 @@ namespace PCGExShapes
 		double EndAngle = TWO_PI;
 		double AngleRange = TWO_PI;
 
-		explicit FCircle(const PCGExData::FPointRef& InPointRef)
+		explicit FCircle(const PCGExData::FConstPoint& InPointRef)
 			: FShape(InPointRef)
 		{
 		}
@@ -76,8 +78,8 @@ public:
 	FPCGExShapeCircleConfig Config;
 
 	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade) override;
-	virtual void PrepareShape(const PCGExData::FPointRef& Seed) override;
-	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, TArrayView<FPCGPoint> PointView) override;
+	virtual void PrepareShape(const PCGExData::FConstPoint& Seed) override;
+	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope) override;
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<double>> StartAngle;
@@ -97,7 +99,7 @@ public:
 	virtual TSharedPtr<FPCGExShapeBuilderOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Builder|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Builder|Params", meta=(PCGExNodeLibraryDoc="misc/shapes/shape-circle"))
 class UPCGExCreateShapeCircleSettings : public UPCGExShapeBuilderFactoryProviderSettings
 {
 	GENERATED_BODY()
