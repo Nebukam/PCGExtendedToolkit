@@ -64,7 +64,7 @@ public:
 	 * @param OutSuccess
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void InitializeWithContext(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
+	void Initialize(bool& OutSuccess);
 
 	/**
 	 * Process an actor reference. This method is executed in a multi-threaded context

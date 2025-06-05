@@ -12,12 +12,12 @@
 #define LOCTEXT_NAMESPACE "PCGExBuildCustomGraphElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
-void UPCGExCustomGraphBuilder::InitializeWithContext_Implementation(const FPCGContext& InContext, bool& OutSuccess)
+void UPCGExCustomGraphBuilder::Initialize_Implementation(bool& OutSuccess)
 {
 	OutSuccess = false;
 }
 
-void UPCGExCustomGraphSettings::InitializeSettings_Implementation(const FPCGContext& InContext, bool& OutSuccess, int32& OutNodeReserve, int32& OutEdgeReserve)
+void UPCGExCustomGraphSettings::InitializeSettings_Implementation(bool& OutSuccess, int32& OutNodeReserve, int32& OutEdgeReserve)
 {
 }
 
@@ -41,12 +41,12 @@ void UPCGExCustomGraphSettings::RemoveEdge(const int64 InStartIdx, const int64 I
 	UniqueEdges.Remove(PCGEx::H64U(GetOrCreateNode(InStartIdx), GetOrCreateNode(InEndIdx)));
 }
 
-void UPCGExCustomGraphSettings::InitPointAttributes_Implementation(const FPCGContext& InContext, bool& OutSuccess)
+void UPCGExCustomGraphSettings::InitPointAttributes_Implementation(bool& OutSuccess)
 {
 	OutSuccess = true;
 }
 
-void UPCGExCustomGraphSettings::BuildGraph_Implementation(const FPCGContext& InContext, bool& OutSuccess)
+void UPCGExCustomGraphSettings::BuildGraph_Implementation(bool& OutSuccess)
 {
 	OutSuccess = false;
 }
@@ -127,9 +127,9 @@ void UPCGExCustomGraphBuilder::CreateGraphSettings(TSubclassOf<UPCGExCustomGraph
 	OutSettings = NewSettings;
 }
 
-void UPCGExCustomGraphBuilder::BuildGraph_Implementation(const FPCGContext& InContext, UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess)
+void UPCGExCustomGraphBuilder::BuildGraph_Implementation(UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess)
 {
-	InCustomGraphSettings->BuildGraph(InContext, OutSuccess);
+	InCustomGraphSettings->BuildGraph(OutSuccess);
 }
 
 TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::InputPinProperties() const
@@ -213,16 +213,14 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 		bool bSuccessfulInit = false;
 
 		{
-			FPCGContextBlueprintScope BlueprintScope(Context);
-
 			if (!IsInGameThread())
 			{
 				FGCScopeGuard Scope;
-				Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
+				Context->Builder->Initialize(bSuccessfulInit);
 			}
 			else
 			{
-				Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
+				Context->Builder->Initialize(bSuccessfulInit);
 			}
 		}
 
@@ -297,17 +295,15 @@ namespace PCGExBuildCustomGraph
 		int32 NodeReserveNum = 0;
 		int32 EdgeReserveNum = 0;
 
-		{
-			FPCGContextBlueprintScope BlueprintScope(Context);
-			
+		{			
 			if (!IsInGameThread())
 			{
 				FGCScopeGuard Scope;
-				GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
+				GraphSettings->InitializeSettings(bInitSuccess, NodeReserveNum, EdgeReserveNum);
 			}
 			else
 			{
-				GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
+				GraphSettings->InitializeSettings(bInitSuccess, NodeReserveNum, EdgeReserveNum);
 			}
 		}
 
@@ -338,7 +334,7 @@ namespace PCGExBuildCustomGraph
 		}
 
 		bool bSuccessfulBuild = false;
-		Builder->BuildGraph(*Context, GraphSettings, bSuccessfulBuild);
+		Builder->BuildGraph(GraphSettings, bSuccessfulBuild);
 
 		if (!bSuccessfulBuild)
 		{
@@ -362,16 +358,15 @@ namespace PCGExBuildCustomGraph
 
 		bool bSuccessfulAttrInit = false;
 
-		{
-			FPCGContextBlueprintScope BlueprintScope(Context);
+		{			
 			if (!IsInGameThread())
 			{
 				FGCScopeGuard Scope;
-				GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
+				GraphSettings->InitPointAttributes(bSuccessfulAttrInit);
 			}
 			else
 			{
-				GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
+				GraphSettings->InitPointAttributes(bSuccessfulAttrInit);
 			}
 		}
 

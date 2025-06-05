@@ -155,7 +155,6 @@ namespace PCGExRefineEdges
 		{
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
 			bRequiresGraphBuilder = !Settings->bOutputEdgesOnly;
-			bAllowVtxDataFacadeScopedGet = true;
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;

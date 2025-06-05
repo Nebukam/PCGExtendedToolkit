@@ -86,7 +86,7 @@ namespace PCGExEdgeOrder
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch(InContext, InVtx, InEdges)
 		{
-			bAllowVtxDataFacadeScopedGet = true;
+			
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;

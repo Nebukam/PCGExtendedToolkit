@@ -32,7 +32,7 @@ MACRO(Name, FName)
 //MACRO(SoftObjectPath, FSoftObjectPath) \
 //MACRO(SoftClassPath, FSoftClassPath)
 
-void UPCGExCustomActorDataPacker::InitializeWithContext_Implementation(const FPCGContext& InContext, bool& OutSuccess)
+void UPCGExCustomActorDataPacker::Initialize_Implementation(bool& OutSuccess)
 {
 }
 
@@ -306,6 +306,7 @@ namespace PCGExPackActorDatas
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		PointMask.Init(1, PointDataFacade->GetNum());
@@ -334,16 +335,14 @@ namespace PCGExPackActorDatas
 		bool bSuccess = false;
 
 		{
-			FPCGContextBlueprintScope BlueprintScope(Context);
-
 			if (!IsInGameThread())
 			{
 				FGCScopeGuard Scope;
-				Packer->InitializeWithContext(*Context, bSuccess);
+				Packer->Initialize(bSuccess);
 			}
 			else
 			{
-				Packer->InitializeWithContext(*Context, bSuccess);
+				Packer->Initialize(bSuccess);
 			}
 		}
 
@@ -351,7 +350,7 @@ namespace PCGExPackActorDatas
 		{
 			if (!Settings->bQuietUninitializedPackerWarning)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some data could not be initialized. Make sure to override the packer 'InitializeWithContext' so it returns true. If that's intended, you can mute this warning in the node settings."));
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some data could not be initialized. Make sure to override the packer 'Initialize' so it returns true. If that's intended, you can mute this warning in the node settings."));
 			}
 
 			return false;
