@@ -295,7 +295,7 @@ namespace PCGExShrinkPath
 					else
 					{
 						PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::New)
-						PCGEx::SetNumPointsAllocated(PointIO->GetOut(), KeptIndices.Num());
+						PCGEx::SetNumPointsAllocated(PointIO->GetOut(), KeptIndices.Num(), PointIO->GetAllocations());
 						PointIO->InheritPoints(KeptIndices, 0);
 					}
 				}
@@ -449,7 +449,7 @@ namespace PCGExShrinkPath
 				else
 				{
 					PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::New)
-					PCGEx::SetNumPointsAllocated(PointIO->GetOut(), KeptIndices.Num());
+					PCGEx::SetNumPointsAllocated(PointIO->GetOut(), KeptIndices.Num(), PointIO->GetAllocations());
 					PointIO->InheritPoints(KeptIndices, 0);
 				}
 			}

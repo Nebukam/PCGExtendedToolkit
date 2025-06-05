@@ -184,7 +184,7 @@ namespace PCGExSubdivide
 
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
-		PCGEx::SetNumPointsAllocated(MutablePoints, NumPoints);
+		PCGEx::SetNumPointsAllocated(MutablePoints, NumPoints, InPoints->GetAllocatedProperties());
 
 		TConstPCGValueRange<int64> InMetadataEntries = InPoints->GetConstMetadataEntryValueRange();
 		TPCGValueRange<int64> OutMetadataEntries = MutablePoints->GetMetadataEntryValueRange();

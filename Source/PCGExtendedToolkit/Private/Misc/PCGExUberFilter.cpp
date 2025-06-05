@@ -237,8 +237,8 @@ namespace PCGExUberFilter
 		Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::New);
 		if (!Inside) { return; }
 
-		PCGEx::SetNumPointsAllocated(Inside->GetOut(), ReadIndices.Num(), Inside->GetIn()->GetAllocatedProperties());
-		Inside->InheritProperties(ReadIndices, Inside->GetIn()->GetAllocatedProperties());
+		PCGEx::SetNumPointsAllocated(Inside->GetOut(), ReadIndices.Num(), Inside->GetAllocations());
+		Inside->InheritProperties(ReadIndices, Inside->GetAllocations());
 
 		if (Settings->bTagIfAnyPointPassed) { Inside->Tags->AddRaw(Settings->HasAnyPointPassedTag); }
 
@@ -250,8 +250,8 @@ namespace PCGExUberFilter
 
 		if (!Outside) { return; }
 
-		PCGEx::SetNumPointsAllocated(Outside->GetOut(), ReadIndices.Num(), Outside->GetIn()->GetAllocatedProperties());
-		Outside->InheritProperties(ReadIndices, Outside->GetIn()->GetAllocatedProperties());
+		PCGEx::SetNumPointsAllocated(Outside->GetOut(), ReadIndices.Num(), Outside->GetAllocations());
+		Outside->InheritProperties(ReadIndices, Outside->GetAllocations());
 	}
 }
 

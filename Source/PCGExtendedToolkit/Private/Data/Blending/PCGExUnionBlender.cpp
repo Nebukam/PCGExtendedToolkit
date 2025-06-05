@@ -143,6 +143,8 @@ namespace PCGExDataBlending
 		SourcesData.Add(InFacade->GetIn());
 		IOIndices.Add(InFacade->Source->IOIndex, SourceIndex);
 
+		EnumAddFlags(AllocatedProperties, InFacade->GetAllocations());
+
 		UniqueTags.Append(InFacade->Source->Tags->RawTags);
 
 		// Update global source count on all multi attributes
@@ -222,6 +224,12 @@ namespace PCGExDataBlending
 		Blenders.Reserve(Blenders.Num() + PropertyParams.Num());
 		for (const FBlendingParam& Param : PropertyParams)
 		{
+			if (!EnumHasAnyFlags(AllocatedProperties, PCGEx::GetPropertyNativeType(Param.Selector.GetPointProperty())))
+			{
+				// Don't create a blender for properties that no source has allocated
+				continue;
+			}
+			
 			TSharedPtr<FMultiSourceBlender> MultiAttribute = Blenders.Add_GetRef(MakeShared<FMultiSourceBlender>(Sources));
 			MultiAttribute->Param = Param;
 			MultiAttribute->SetNum(Sources.Num());

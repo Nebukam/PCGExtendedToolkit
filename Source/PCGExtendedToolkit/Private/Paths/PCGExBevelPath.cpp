@@ -530,7 +530,7 @@ namespace PCGExBevelPath
 		// Build output points
 
 		UPCGBasePointData* MutablePoints = PointDataFacade->GetOut();
-		PCGEx::SetNumPointsAllocated(MutablePoints, NumOutPoints);
+		PCGEx::SetNumPointsAllocated(MutablePoints, NumOutPoints, PointDataFacade->GetAllocations());
 
 		StartParallelLoopForRange(PointDataFacade->GetNum());
 	}

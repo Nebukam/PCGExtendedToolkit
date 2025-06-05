@@ -598,8 +598,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietUninitializedPackerWarning = false;
 
-protected:
-	virtual bool IsCacheable() const override { return false; }
 };
 
 struct FPCGExPackActorDataContext final : FPCGExPointsProcessorContext

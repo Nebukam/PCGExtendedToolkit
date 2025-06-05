@@ -218,7 +218,7 @@ namespace PCGExPathIntersections
 
 		const UPCGBasePointData* OriginalPoints = PointDataFacade->GetIn();
 		UPCGBasePointData* MutablePoints = PointDataFacade->GetOut();
-		PCGEx::SetNumPointsAllocated(MutablePoints, OriginalPoints->GetNumPoints() + NumCuts);
+		PCGEx::SetNumPointsAllocated(MutablePoints, OriginalPoints->GetNumPoints() + NumCuts, OriginalPoints->GetAllocatedProperties());
 
 		TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping();
 

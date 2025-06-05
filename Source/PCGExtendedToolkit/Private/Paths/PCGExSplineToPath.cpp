@@ -136,7 +136,8 @@ namespace PCGExSplineToPath
 
 		UPCGBasePointData* MutablePoints = PointDataFacade->Source->GetOut();
 		const int32 LastIndex = Spline.bClosedLoop ? NumSegments - 1 : NumSegments;
-		PCGEx::SetNumPointsAllocated(MutablePoints, Spline.bClosedLoop ? NumSegments : NumSegments + 1);
+		PCGEx::SetNumPointsAllocated(MutablePoints, Spline.bClosedLoop ? NumSegments : NumSegments + 1,
+			EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::Seed);
 
 		PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_DECL)
 

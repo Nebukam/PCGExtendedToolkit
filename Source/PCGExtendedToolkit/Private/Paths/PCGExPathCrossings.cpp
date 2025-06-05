@@ -263,7 +263,7 @@ namespace PCGExPathCrossings
 
 		const UPCGBasePointData* InPoints = PointIO->GetIn();
 		UPCGBasePointData* OutPoints = PointIO->GetOut();
-		PCGEx::SetNumPointsAllocated(OutPoints, NumPointsFinal);
+		PCGEx::SetNumPointsAllocated(OutPoints, NumPointsFinal, InPoints->GetAllocatedProperties());
 
 		TArray<int32> WriteIndices;
 		WriteIndices.Reserve(InPoints->GetNumPoints());

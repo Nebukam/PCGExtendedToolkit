@@ -134,7 +134,7 @@ namespace PCGExFusePoints
 			WriteIndices[i] = Idx;
 		}
 
-		PointDataFacade->Source->InheritProperties(ReadIndices, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);
+		PointDataFacade->Source->InheritProperties(ReadIndices, WriteIndices, PointDataFacade->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
 
 		TArray<PCGExData::FWeightedPoint> WeightedPoints;
 
@@ -151,8 +151,8 @@ namespace PCGExFusePoints
 	{
 		const int32 NumUnionNodes = UnionGraph->Nodes.Num();
 
-		UPCGBasePointData* OutData = PointDataFacade->Source->GetOut();
-		PCGEx::SetNumPointsAllocated(OutData, NumUnionNodes);
+		UPCGBasePointData* OutData = PointDataFacade->GetOut();
+		PCGEx::SetNumPointsAllocated(OutData, NumUnionNodes, PointDataFacade->GetAllocations());
 
 		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
 		UnionBlender->AddSource(PointDataFacade, &PCGExGraph::ProtectedClusterAttributes);

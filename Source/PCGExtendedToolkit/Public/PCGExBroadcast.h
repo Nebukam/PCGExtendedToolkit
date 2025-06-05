@@ -1058,7 +1058,6 @@ namespace PCGEx
 					case EPCGExSingleField::Volume:
 					case EPCGExSingleField::Sum:
 						return;
-						break;
 					}
 				}
 				else if constexpr (std::is_same_v<T, FRotator>)
@@ -1076,7 +1075,6 @@ namespace PCGEx
 						break;
 					case EPCGExSingleField::W:
 						return;
-						break;
 					case EPCGExSingleField::Length:
 						Target = Target.GetNormalized() * V;
 						break;
@@ -1086,7 +1084,6 @@ namespace PCGEx
 					case EPCGExSingleField::Volume:
 					case EPCGExSingleField::Sum:
 						return;
-						break;
 					}
 				}
 				else if constexpr (std::is_same_v<T, FQuat>)

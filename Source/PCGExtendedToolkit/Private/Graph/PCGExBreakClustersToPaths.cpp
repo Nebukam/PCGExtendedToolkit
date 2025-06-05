@@ -211,7 +211,7 @@ namespace PCGExBreakClustersToPaths
 			if (!PathIO) { continue; }
 
 			UPCGBasePointData* MutablePoints = PathIO->GetOut();
-			(void)PCGEx::SetNumPointsAllocated(MutablePoints, 2, PathIO->GetIn()->GetAllocatedProperties());
+			(void)PCGEx::SetNumPointsAllocated(MutablePoints, 2, PathIO->GetAllocations());
 
 			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 

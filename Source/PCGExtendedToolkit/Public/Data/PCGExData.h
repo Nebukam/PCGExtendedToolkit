@@ -744,6 +744,7 @@ namespace PCGExData
 		TSharedPtr<IBuffer> FindReadableAttributeBuffer(const FPCGAttributeIdentifier& InIdentifier);
 		TSharedPtr<IBuffer> FindWritableAttributeBuffer(const FPCGAttributeIdentifier& InIdentifier);
 
+		EPCGPointNativeProperties GetAllocations() const { return Source->GetAllocations(); }
 
 		explicit FFacade(const TSharedRef<FPointIO>& InSource):
 			Source(InSource)

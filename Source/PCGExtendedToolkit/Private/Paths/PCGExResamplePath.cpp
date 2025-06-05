@@ -84,7 +84,7 @@ namespace PCGExResamplePath
 			if (NumSamples < 2) { return false; }
 
 			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
-			PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), NumSamples);
+			PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), NumSamples, PointDataFacade->GetAllocations());
 		}
 		else
 		{

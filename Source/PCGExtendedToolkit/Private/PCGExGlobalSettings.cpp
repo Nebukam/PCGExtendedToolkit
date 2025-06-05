@@ -72,6 +72,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 #define PCGEX_MAP_PIN_OUT(_ID) OutPinInfosMap.Add(FName(TEXT(_ID)), PinIndex);
 
 	int32 PinIndex = -1;
+	
 	// Out pin map
 	PCGEX_EMPLACE_PIN_OUT(OUT_Filter, "PCGEx Filter");
 	PCGEX_MAP_PIN_OUT("Filter")

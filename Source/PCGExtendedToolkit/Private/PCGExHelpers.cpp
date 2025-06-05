@@ -137,7 +137,7 @@ namespace PCGEx
 			for (UObject* ObjectPtr : ManagedObjects)
 			{
 				//if (!IsValid(ObjectPtr)) { continue; }
-				///*FCOLLECTOR_IMPL*/ObjectPtr->RemoveFromRoot();
+				/*FCOLLECTOR_IMPL*/ObjectPtr->RemoveFromRoot();
 				RecursivelyClearAsyncFlag_Unsafe(ObjectPtr);
 
 				if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(ObjectPtr)) { ManagedObject->Cleanup(); }
@@ -158,7 +158,7 @@ namespace PCGEx
 		{
 			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 			ManagedObjects.Add(InObject, &bIsAlreadyInSet);
-			///*FCOLLECTOR_IMPL*/InObject->AddToRoot();
+			/*FCOLLECTOR_IMPL*/InObject->AddToRoot();
 		}
 
 		return !bIsAlreadyInSet;
@@ -175,7 +175,7 @@ namespace PCGEx
 			int32 Removed = ManagedObjects.Remove(InObject);
 			if (Removed == 0) { return false; }
 
-			///*FCOLLECTOR_IMPL*/InObject->RemoveFromRoot();
+			/*FCOLLECTOR_IMPL*/InObject->RemoveFromRoot();
 			RecursivelyClearAsyncFlag_Unsafe(InObject);
 		}
 
@@ -199,7 +199,7 @@ namespace PCGEx
 				{
 					if (ManagedObjects.Remove(InObject) == 0) { continue; }
 
-					///*FCOLLECTOR_IMPL*/InObject->RemoveFromRoot();
+					/*FCOLLECTOR_IMPL*/InObject->RemoveFromRoot();
 					RecursivelyClearAsyncFlag_Unsafe(InObject);
 					if (IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(InObject)) { ManagedObject->Cleanup(); }
 				}

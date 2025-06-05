@@ -200,7 +200,7 @@ namespace PCGExBuildDelaunay2D
 		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 
-		(void)PCGEx::SetNumPointsAllocated(MutablePoints, NumSites, SitesIO->GetIn()->GetAllocatedProperties());
+		(void)PCGEx::SetNumPointsAllocated(MutablePoints, NumSites, SitesIO->GetAllocations());
 		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
 
 		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
@@ -251,7 +251,7 @@ namespace PCGExBuildDelaunay2D
 		const int32 NumSites = Delaunay->Sites.Num();
 
 		// TODO : Revisit this to avoid allocating so much memory when we only need a subset
-		(void)PCGEx::SetNumPointsAllocated(MutablePoints, NumSites, SitesIO->GetIn()->GetAllocatedProperties());
+		(void)PCGEx::SetNumPointsAllocated(MutablePoints, NumSites, SitesIO->GetAllocations());
 		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
 
 		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
