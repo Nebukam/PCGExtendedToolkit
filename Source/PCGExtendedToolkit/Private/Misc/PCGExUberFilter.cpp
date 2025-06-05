@@ -17,7 +17,7 @@ TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_POINTS(PCGExPointFilter::OutputInsideFiltersLabel, "Points that passed the filters.", Required, {})
-	PCGEX_PIN_POINTS(PCGExPointFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.", Required, {})
+	if (bOutputDiscardedElements) { PCGEX_PIN_POINTS(PCGExPointFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.", Required, {}) }
 	return PinProperties;
 }
 
@@ -213,6 +213,7 @@ namespace PCGExUberFilter
 		{
 			if (NumInside == 0)
 			{
+				if (!Settings->bOutputDiscardedElements) { return; }
 				Outside = CreateIO(Context->Outside.ToSharedRef(), PCGExData::EIOInit::Forward);
 				if (!Outside) { return; }
 				if (Settings->bTagIfNoPointPassed) { Outside->Tags->AddRaw(Settings->NoPointPassedTag); }
@@ -237,10 +238,12 @@ namespace PCGExUberFilter
 		Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::New);
 		if (!Inside) { return; }
 
-		PCGEx::SetNumPointsAllocated(Inside->GetOut(), ReadIndices.Num());
-		Inside->InheritProperties(ReadIndices, EPCGPointNativeProperties::All);
+		PCGEx::SetNumPointsAllocated(Inside->GetOut(), ReadIndices.Num(), Inside->GetIn()->GetAllocatedProperties());
+		Inside->InheritProperties(ReadIndices, Inside->GetIn()->GetAllocatedProperties());
 
 		if (Settings->bTagIfAnyPointPassed) { Inside->Tags->AddRaw(Settings->HasAnyPointPassedTag); }
+
+		if (!Settings->bOutputDiscardedElements) { return; }
 
 		ReadIndices.Reset();
 		IndicesOutside->Collapse(ReadIndices);
@@ -248,8 +251,8 @@ namespace PCGExUberFilter
 
 		if (!Outside) { return; }
 
-		PCGEx::SetNumPointsAllocated(Outside->GetOut(), ReadIndices.Num());
-		Outside->InheritProperties(ReadIndices, EPCGPointNativeProperties::All);
+		PCGEx::SetNumPointsAllocated(Outside->GetOut(), ReadIndices.Num(), Outside->GetIn()->GetAllocatedProperties());
+		Outside->InheritProperties(ReadIndices,  Outside->GetIn()->GetAllocatedProperties());
 	}
 }
 
