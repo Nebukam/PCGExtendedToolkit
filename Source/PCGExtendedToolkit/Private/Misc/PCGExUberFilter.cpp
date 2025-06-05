@@ -47,12 +47,6 @@ bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 	Context->Inside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
 	Context->Outside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
 
-	if (Settings->bSwap)
-	{
-		Context->Inside->OutputPin = PCGExPointFilter::OutputOutsideFiltersLabel;
-		Context->Outside->OutputPin = PCGExPointFilter::OutputInsideFiltersLabel;
-	}
-
 	return true;
 }
 
@@ -152,6 +146,11 @@ namespace PCGExUberFilter
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
+		if (Settings->bSwap)
+		{
+			PCGEX_SCOPE_LOOP(Index) { PointFilterCache[Index] = !PointFilterCache[Index]; }
+		}
+
 		if (!Results)
 		{
 			TArray<int32>& IndicesInsideRef = IndicesInside->Get_Ref(Scope);
@@ -177,7 +176,7 @@ namespace PCGExUberFilter
 				if (bPass) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
 				else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
 
-				Results->SetValue(Index, bPass ? !Settings->bSwap : Settings->bSwap);
+				Results->SetValue(Index, bPass ? true : false);
 			}
 		}
 	}
@@ -198,8 +197,8 @@ namespace PCGExUberFilter
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
-			const bool bHasAnyPass = Settings->bSwap ? NumOutside != 0 : NumInside != 0;
-			const bool bAllPass = Settings->bSwap ? NumOutside == PointDataFacade->GetNum() : NumInside == PointDataFacade->GetNum();
+			const bool bHasAnyPass = NumInside != 0;
+			const bool bAllPass = NumInside == PointDataFacade->GetNum();
 			if (bHasAnyPass && Settings->bTagIfAnyPointPassed) { PointDataFacade->Source->Tags->AddRaw(Settings->HasAnyPointPassedTag); }
 			if (bAllPass && Settings->bTagIfAllPointsPassed) { PointDataFacade->Source->Tags->AddRaw(Settings->AllPointsPassedTag); }
 			if (!bHasAnyPass && Settings->bTagIfNoPointPassed) { PointDataFacade->Source->Tags->AddRaw(Settings->NoPointPassedTag); }
@@ -252,7 +251,7 @@ namespace PCGExUberFilter
 		if (!Outside) { return; }
 
 		PCGEx::SetNumPointsAllocated(Outside->GetOut(), ReadIndices.Num(), Outside->GetIn()->GetAllocatedProperties());
-		Outside->InheritProperties(ReadIndices,  Outside->GetIn()->GetAllocatedProperties());
+		Outside->InheritProperties(ReadIndices, Outside->GetIn()->GetAllocatedProperties());
 	}
 }
 

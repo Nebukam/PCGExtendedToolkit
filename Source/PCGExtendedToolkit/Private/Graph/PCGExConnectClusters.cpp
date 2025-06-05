@@ -268,7 +268,7 @@ namespace PCGExBridgeClusters
 
 		const int32 NumBridges = Bridges.Num();
 		UPCGBasePointData* EdgeData = CompoundedEdgesDataFacade->Source->GetOut();
-		PCGEx::SetNumPointsAllocated(EdgeData, EdgeData->GetNumPoints() + Bridges.Num());
+		EdgeData->SetNumPoints(EdgeData->GetNumPoints() + Bridges.Num());
 
 		TPCGValueRange<int64> MetadataEntries = EdgeData->GetMetadataEntryValueRange();
 		for (int i = 0; i < NumBridges; i++)

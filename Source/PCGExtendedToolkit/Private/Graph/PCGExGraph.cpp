@@ -331,7 +331,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 
 		const UPCGBasePointData* InEdgeData = EdgesDataFacade->GetIn();
 		UPCGBasePointData* OutEdgeData = EdgesDataFacade->GetOut();
-		(void)PCGEx::SetNumPointsAllocated(OutEdgeData, NumEdges);
+		(void)PCGEx::SetNumPointsAllocated(OutEdgeData, NumEdges, InEdgeData ? InEdgeData->GetAllocatedProperties() : EPCGPointNativeProperties::MetadataEntry);
 
 		const TPCGValueRange<int64> OutMetadataEntries = OutEdgeData->GetMetadataEntryValueRange(false);
 
@@ -342,11 +342,11 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 			// We'll cherry pick existing edges
 			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::CherryPickInheritedEdges);
 
-			TArray<int32> InEdgeIndices;
-			TArray<int32> OutEdgeIndices;
+			TArray<int32> ReadEdgeIndices;
+			TArray<int32> WriteEdgeIndices;
 
-			InEdgeIndices.Reserve(NumEdges);
-			OutEdgeIndices.Reserve(NumEdges);
+			ReadEdgeIndices.Reserve(NumEdges);
+			WriteEdgeIndices.Reserve(NumEdges);
 
 			const TConstPCGValueRange<int64> InMetadataEntries = InEdgeData->GetConstMetadataEntryValueRange();
 
@@ -364,14 +364,14 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 				{
 					// Grab existing metadata entry & cache read/write indices
 					EdgeMetadataEntry = InMetadataEntries[OriginalPointIndex];
-					InEdgeIndices.Add(OriginalPointIndex);
-					OutEdgeIndices.Add(i);
+					ReadEdgeIndices.Add(OriginalPointIndex);
+					WriteEdgeIndices.Add(i);
 				}
 
 				Metadata->InitializeOnSet(EdgeMetadataEntry);
 			}
 
-			InEdgeData->CopyPropertiesTo(OutEdgeData, InEdgeIndices, OutEdgeIndices, PCGEx::AllPointNativePropertiesButMeta);
+			EdgesDataFacade->Source->InheritProperties(ReadEdgeIndices, WriteEdgeIndices, PCGEx::AllPointNativePropertiesButMeta);
 		}
 		else
 		{
@@ -420,6 +420,21 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				EdgeLength = EdgesDataFacade->GetWritable<double>(InBuilder->OutputDetails->EdgeLengthName, 0, true, PCGExData::EBufferInit::New);
 			}
 		}
+
+		EPCGPointNativeProperties AllocateProperties = EPCGPointNativeProperties::None;
+		if (InBuilder->OutputDetails->bWriteEdgePosition)
+		{
+			AllocateProperties |= EPCGPointNativeProperties::Transform;
+		}
+
+		if (InBuilder->OutputDetails->BasicEdgeSolidification.SolidificationAxis != EPCGExMinimalAxis::None)
+		{
+			AllocateProperties |= EPCGPointNativeProperties::Transform;
+			AllocateProperties |= EPCGPointNativeProperties::BoundsMin;
+			AllocateProperties |= EPCGPointNativeProperties::BoundsMax;
+		}
+
+		EdgesDataFacade->GetOut()->AllocateProperties(AllocateProperties);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphEdges)
 

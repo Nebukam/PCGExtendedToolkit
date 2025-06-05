@@ -70,7 +70,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGlobalSettings : public UObject
 public:
 	/** Value applied by default to node caching when `Default` is selected -- note that some nodes may stop working as expected when working with cached data.*/
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
-	bool bDefaultCacheNodeOutput = false;
+	bool bDefaultCacheNodeOutput = true;
 
 	/** Value applied by default to node caching when `Default` is selected*/
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")

@@ -568,12 +568,12 @@ namespace PCGExData
 
 	void FPointIO::InheritProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties) const
 	{
-		In->CopyPropertiesTo(Out, ReadStartIndex, WriteStartIndex, Count, Properties);
+		In->CopyPropertiesTo(Out, ReadStartIndex, WriteStartIndex, Count, Properties & In->GetAllocatedProperties());
 	}
 
 	void FPointIO::InheritProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties) const
 	{
-		In->CopyPropertiesTo(Out, ReadIndices, WriteIndices, Properties);
+		In->CopyPropertiesTo(Out, ReadIndices, WriteIndices, Properties & In->GetAllocatedProperties());
 	}
 
 	void FPointIO::InheritProperties(const TArrayView<const int32>& ReadIndices, const EPCGPointNativeProperties Properties) const
@@ -583,7 +583,7 @@ namespace PCGExData
 		TArray<int32> WriteIndices;
 		PCGEx::ArrayOfIndices(WriteIndices, ReadIndices.Num());
 
-		In->CopyPropertiesTo(Out, ReadIndices, WriteIndices, Properties);
+		In->CopyPropertiesTo(Out, ReadIndices, WriteIndices, Properties & In->GetAllocatedProperties());
 	}
 
 	void FPointIO::InheritPoints(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count) const
@@ -628,10 +628,15 @@ namespace PCGExData
 
 		TArray<int32> ReadIndices;
 		PCGEx::ArrayOfIndices(ReadIndices, NumReads);
-		In->CopyPointsTo(Out, ReadIndices, WriteIndices);
+
+		const EPCGPointNativeProperties EnsureAllocated = In->GetAllocatedProperties();
+		Out->AllocateProperties(EnsureAllocated);
+		In->CopyPropertiesTo(Out, ReadIndices, WriteIndices, EnsureAllocated);
+		
+
 	}
 
-	void FPointIO::InheritPoints(const TArrayView<const int32>& SelectedIndices, const int32 StartIndex) const
+	void FPointIO::InheritPoints(const TArrayView<const int32>& SelectedIndices, const int32 StartIndex, const EPCGPointNativeProperties Properties) const
 	{
 		check(In)
 		check(Out)
@@ -641,7 +646,10 @@ namespace PCGExData
 
 		TArray<int32> WriteIndices;
 		PCGEx::ArrayOfIndices(WriteIndices, SelectedIndices.Num(), StartIndex);
-		In->CopyPointsTo(Out, SelectedIndices, WriteIndices);
+
+		const EPCGPointNativeProperties EnsureAllocated = Properties & In->GetAllocatedProperties();
+		Out->AllocateProperties(EnsureAllocated);
+		In->CopyPropertiesTo(Out, SelectedIndices, WriteIndices, EnsureAllocated);
 	}
 
 	void FPointIO::RepeatPoint(const int32 ReadIndex, const TArrayView<const int32>& WriteIndices, const EIOSide ReadSide) const

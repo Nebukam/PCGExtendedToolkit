@@ -45,6 +45,7 @@ public:
 
 protected:
 	int32 NumCompositePoints = 0;
+	EPCGPointNativeProperties AllocateProperties = EPCGPointNativeProperties::None;
 };
 
 namespace PCGExPointIOMerger

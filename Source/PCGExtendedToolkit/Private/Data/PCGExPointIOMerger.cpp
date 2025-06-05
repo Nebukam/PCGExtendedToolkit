@@ -46,6 +46,7 @@ PCGExMT::FScope FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO
 	const int32 Start = NumCompositePoints;
 	IOSources.Add(InData);
 	NumCompositePoints += NumPoints;
+	EnumAddFlags(AllocateProperties, InData->GetIn()->GetAllocatedProperties());
 
 	return Scopes.Add_GetRef(PCGExMT::FScope(Start, NumPoints));
 }
@@ -64,8 +65,10 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointIOMerger::MergeAsync);
 
+	EnumAddFlags(AllocateProperties, EPCGPointNativeProperties::MetadataEntry);
+	
 	UPCGBasePointData* OutPointData = UnionDataFacade->GetOut();
-	PCGEx::SetNumPointsAllocated(OutPointData, NumCompositePoints);
+	PCGEx::SetNumPointsAllocated(OutPointData, NumCompositePoints, AllocateProperties);
 
 	// TODO : We could not copy metadata if there's no attributes on any of the input data
 
@@ -84,7 +87,8 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 		const TSharedPtr<PCGExData::FPointIO> Source = IOSources[i];
 		UnionDataFacade->Source->Tags->Append(Source->Tags.ToSharedRef());
 
-		Source->GetIn()->CopyPropertiesTo(OutPointData, 0, SourceScope.Start, SourceScope.Count, PCGEx::AllPointNativePropertiesButMeta);
+		
+		Source->GetIn()->CopyPropertiesTo(OutPointData, 0, SourceScope.Start, SourceScope.Count, Source->GetIn()->GetAllocatedProperties() & ~EPCGPointNativeProperties::MetadataEntry);
 
 		// Discover attributes
 		UPCGMetadata* Metadata = Source->GetIn()->Metadata;
@@ -120,7 +124,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 	}
 
 	InCarryOverDetails->Prune(&UnionDataFacade->Source.Get());
-
+	
 	PCGEX_SHARED_THIS_DECL
 	for (int i = 0; i < UniqueIdentities.Num(); i++)
 	{

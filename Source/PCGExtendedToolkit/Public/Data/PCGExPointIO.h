@@ -488,7 +488,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		// ReadIndices is expected to the size of OUT point counts
 		// Shorthand to simplify point insertion in cases where we want to copy a subset of the original points
 		// !!! Note that this method resizes the data !!!
-		void InheritPoints(const TArrayView<const int32>& SelectedIndices, const int32 StartIndex) const;
+		void InheritPoints(const TArrayView<const int32>& SelectedIndices, const int32 StartIndex, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
 
 		// Copies a single index over to target writes
 		void RepeatPoint(const int32 ReadIndex, const TArrayView<const int32>& WriteIndices, EIOSide ReadSide = EIOSide::In) const;
