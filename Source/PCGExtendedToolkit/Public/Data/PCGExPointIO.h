@@ -340,6 +340,8 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 			Tags = MakeShared<FTags>(TagDump);
 		}
 
+		EPCGPointNativeProperties GetAllocations() const { return In ? In->GetAllocatedProperties() : EPCGPointNativeProperties::None; }
+		
 		TWeakPtr<FPCGContextHandle> GetContextHandle() const { return ContextHandle; }
 
 		void SetInfos(const int32 InIndex,

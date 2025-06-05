@@ -158,7 +158,7 @@ namespace PCGExExtrudeTensors
 		}
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
-		PCGEx::SetNumPointsAllocated(OutPointData, ExtrudedPoints.Num());
+		PCGEx::SetNumPointsAllocated(OutPointData, ExtrudedPoints.Num(), PointDataFacade->GetAllocations());
 
 		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
 		for (int i = 0; i < ExtrudedPoints.Num(); i++) { OutTransforms[i] = ExtrudedPoints[i]; }

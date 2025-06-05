@@ -66,9 +66,9 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointArrayData>(ReferenceIO, PCGExData::EIOInit::New);
 	if (!PathIO) { return; }
 
-	EPCGPointNativeProperties AllocateProperties = ReferenceIO->GetIn()->GetAllocatedProperties();
-	EnumAddFlags(AllocateProperties, SeedsDataFacade->GetIn()->GetAllocatedProperties());
-	EnumAddFlags(AllocateProperties, GoalsDataFacade->GetIn()->GetAllocatedProperties());
+	EPCGPointNativeProperties AllocateProperties = ReferenceIO->GetAllocations();
+	EnumAddFlags(AllocateProperties, SeedsDataFacade->GetAllocations());
+	EnumAddFlags(AllocateProperties, GoalsDataFacade->GetAllocations());
 	
 	PathIO->IOIndex = Query->QueryIndex;
 	UPCGBasePointData* PathPoints = PathIO->GetOut();

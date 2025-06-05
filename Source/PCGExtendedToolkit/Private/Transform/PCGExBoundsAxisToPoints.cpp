@@ -100,7 +100,7 @@ namespace PCGExBoundsAxisToPoints
 			PCGExData::FConstPoint Point = PointIO->GetInPoint(Index);
 
 			const FVector E = PCGExMath::GetLocalBounds(PointIO->GetInPoint(Index), Settings->BoundsReference).GetExtent();
-			FPCGExConstantUVW UVW;
+			PCGExTransform::FPCGExConstantUVW UVW;
 			UVW.BoundsReference = Settings->BoundsReference;
 
 			EPCGExMinimalAxis Axis = EPCGExMinimalAxis::None;

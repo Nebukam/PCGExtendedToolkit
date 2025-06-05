@@ -263,7 +263,7 @@ namespace PCGExFilterVtx
 
 				PCGExGraph::CleanupVtxData(OutIO);
 
-				(void)PCGEx::SetNumPointsAllocated(OutIO->GetOut(), NumNodes, OutIO->GetIn()->GetAllocatedProperties());
+				(void)PCGEx::SetNumPointsAllocated(OutIO->GetOut(), NumNodes, OutIO->GetAllocations());
 				OutIO->IOIndex = VtxDataFacade->Source->IOIndex * 100000 + BatchIndex;
 
 				ReadIndices.SetNumUninitialized(NumNodes);

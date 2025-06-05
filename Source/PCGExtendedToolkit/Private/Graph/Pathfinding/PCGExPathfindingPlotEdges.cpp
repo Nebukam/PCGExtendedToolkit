@@ -134,7 +134,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	PathIO->IOIndex = Query->QueryIndex;
 
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
-	PCGEx::SetNumPointsAllocated(PathIO->GetOut(), ClusterScope.Num() + PlotScope.Num());
+	PCGEx::SetNumPointsAllocated(PathIO->GetOut(), ClusterScope.Num() + PlotScope.Num(), PathIO->GetAllocations());
 
 	// Commit read/write scopes
 	PlotScope.CopyPoints(Query->PlotFacade->GetIn(), PathIO->GetOut());

@@ -46,7 +46,7 @@ PCGExMT::FScope FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO
 	const int32 Start = NumCompositePoints;
 	IOSources.Add(InData);
 	NumCompositePoints += NumPoints;
-	EnumAddFlags(AllocateProperties, InData->GetIn()->GetAllocatedProperties());
+	EnumAddFlags(AllocateProperties, InData->GetAllocations());
 
 	return Scopes.Add_GetRef(PCGExMT::FScope(Start, NumPoints));
 }
@@ -88,7 +88,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 		UnionDataFacade->Source->Tags->Append(Source->Tags.ToSharedRef());
 
 		
-		Source->GetIn()->CopyPropertiesTo(OutPointData, 0, SourceScope.Start, SourceScope.Count, Source->GetIn()->GetAllocatedProperties() & ~EPCGPointNativeProperties::MetadataEntry);
+		Source->GetIn()->CopyPropertiesTo(OutPointData, 0, SourceScope.Start, SourceScope.Count, Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
 
 		// Discover attributes
 		UPCGMetadata* Metadata = Source->GetIn()->Metadata;

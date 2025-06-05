@@ -66,7 +66,7 @@ namespace PCGExGraph
 		Distances = PCGExDetails::MakeDistances(PointPointIntersectionDetails.FuseDetails.SourceDistance, PointPointIntersectionDetails.FuseDetails.TargetDistance);
 
 		UPCGBasePointData* MutablePoints = UnionDataFacade->GetOut();
-		PCGEx::SetNumPointsAllocated(MutablePoints, NumUnionNodes);
+		PCGEx::SetNumPointsAllocated(MutablePoints, NumUnionNodes); // TODO : Proper Allocation
 
 		UnionPointsBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, VtxCarryOverDetails, Distances);
 		UnionPointsBlender->AddSources(InFacades, &ProtectedClusterAttributes);

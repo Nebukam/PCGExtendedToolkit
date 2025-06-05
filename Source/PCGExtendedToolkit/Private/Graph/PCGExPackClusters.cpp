@@ -68,6 +68,8 @@ namespace PCGExPackClusters
 
 		// TODO : Refactor because we're actually partitioning indices, which is bad as we don't preserve the original data layout
 
+		EPCGPointNativeProperties AllocateProperties = VtxDataFacade->GetAllocations() | EdgeDataFacade->GetAllocations();
+		
 		VtxPointSelection.SetNumUninitialized(NumNodes);
 		for (int i = 0; i < NumNodes; i++) { VtxPointSelection[i] = Cluster->GetNodePointIndex(i); }
 
@@ -86,11 +88,11 @@ namespace PCGExPackClusters
 		// Copy vtx points after edge points
 		const UPCGBasePointData* VtxPoints = VtxDataFacade->GetIn();
 		UPCGBasePointData* PackedPoints = PackedIO->GetOut();
-		PCGEx::SetNumPointsAllocated(PackedPoints, VtxStartIndex + NumVtx);
+		PCGEx::SetNumPointsAllocated(PackedPoints, VtxStartIndex + NumVtx, AllocateProperties);
 
 		TArray<int32> WriteIndices;
 		PCGEx::ArrayOfIndices(WriteIndices, NumVtx, VtxStartIndex);
-		VtxPoints->CopyPropertiesTo(PackedPoints, VtxPointSelection, WriteIndices, PCGEx::AllPointNativePropertiesButMeta);
+		VtxPoints->CopyPropertiesTo(PackedPoints, VtxPointSelection, WriteIndices, AllocateProperties & ~EPCGPointNativeProperties::MetadataEntry);
 
 		// The following may be redundant
 		TPCGValueRange<int64> MetadataEntries = PackedPoints->GetMetadataEntryValueRange(false);
