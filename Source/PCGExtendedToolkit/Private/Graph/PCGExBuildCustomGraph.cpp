@@ -297,15 +297,18 @@ namespace PCGExBuildCustomGraph
 		int32 NodeReserveNum = 0;
 		int32 EdgeReserveNum = 0;
 
-		//TSharedPtr<FPCGContextHandle> Handle = Context->Handle;
-		if (!IsInGameThread())
 		{
-			FGCScopeGuard Scope;
-			GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
-		}
-		else
-		{
-			GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
+			FPCGContextBlueprintScope BlueprintScope(Context);
+			
+			if (!IsInGameThread())
+			{
+				FGCScopeGuard Scope;
+				GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
+			}
+			else
+			{
+				GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
+			}
 		}
 
 		if (!bInitSuccess)
@@ -359,14 +362,17 @@ namespace PCGExBuildCustomGraph
 
 		bool bSuccessfulAttrInit = false;
 
-		if (!IsInGameThread())
 		{
-			FGCScopeGuard Scope;
-			GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
-		}
-		else
-		{
-			GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
+			FPCGContextBlueprintScope BlueprintScope(Context);
+			if (!IsInGameThread())
+			{
+				FGCScopeGuard Scope;
+				GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
+			}
+			else
+			{
+				GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
+			}
 		}
 
 		if (!bSuccessfulAttrInit)
