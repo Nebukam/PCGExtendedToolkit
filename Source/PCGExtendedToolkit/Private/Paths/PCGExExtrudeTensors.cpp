@@ -132,6 +132,10 @@ namespace PCGExExtrudeTensors
 		Bounds += (Metrics.Last + FVector::OneVector * 1);
 		Bounds += (Metrics.Last + FVector::OneVector * -1);
 		if (Context) { Bounds = Bounds.ExpandBy(Context->SelfPathIntersections.Tolerance); }
+
+		///
+		///
+		
 	}
 
 	void FExtrusion::Complete()
@@ -509,10 +513,11 @@ namespace PCGExExtrudeTensors
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (!ExtrusionQueue[Index]->Advance())
+			if (TSharedPtr<FExtrusion> Extrusion = ExtrusionQueue[Index];
+				Extrusion && !Extrusion->Advance())
 			{
-				ExtrusionQueue[Index]->Complete();
-				CompletedExtrusions->Get(Scope)->Add(ExtrusionQueue[Index]);
+				Extrusion->Complete();
+				CompletedExtrusions->Get(Scope)->Add(Extrusion);
 			}
 		}
 	}
@@ -617,7 +622,7 @@ namespace PCGExExtrudeTensors
 		int32 WriteIndex = 0;
 		for (int i = 0; i < ExtrusionQueue.Num(); i++)
 		{
-			if (!ExtrusionQueue[i]->bIsComplete) { ExtrusionQueue[WriteIndex++] = ExtrusionQueue[i]; }
+			if (TSharedPtr<FExtrusion> E = ExtrusionQueue[i]; E && !E->bIsComplete) { ExtrusionQueue[WriteIndex++] = E; }
 		}
 
 		ExtrusionQueue.SetNum(WriteIndex);

@@ -94,8 +94,6 @@ namespace PCGExGrowPaths
 
 	bool FGrowth::Grow()
 	{
-		return false;
-		/*
 		if (NextGrowthIndex <= -1 || Path.Contains(NextGrowthIndex)) { return false; }
 
 		TravelStack->Set(NextGrowthIndex, PCGEx::NH64(LastGrowthIndex, NextGrowthEdgeIndex));
@@ -139,7 +137,7 @@ namespace PCGExGrowPaths
 			}
 		}
 
-		Processor->Cluster->VtxTransforms[GoalNode->Index] = Processor->Cluster->GetPos(NextNode) + GrowthDirection * 10000;
+		//Processor->Cluster->VtxTransforms[GoalNode->Index] = Processor->Cluster->GetPos(NextNode) + GrowthDirection * 10000;
 
 		if (Processor->GetSettings()->bUseGrowthStop)
 		{
@@ -149,51 +147,43 @@ namespace PCGExGrowPaths
 		}
 
 		return true;
-		*/
 	}
 
 	void FGrowth::Write()
 	{
-		/*
 		const TSharedPtr<PCGExData::FPointIO> VtxIO = Processor->Cluster->VtxIO.Pin();
-		const TSharedPtr<PCGExData::FPointIO> PathIO = Processor->GetContext()->OutputPaths->Emplace_GetRef<PCGEX_NEW_POINT_DATA_TYPE>(VtxIO->GetIn(), PCGExData::EIOInit::New);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Processor->GetContext()->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxIO->GetIn(), PCGExData::EIOInit::New);
 		if (!VtxIO || !PathIO) { return; }
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 
-		UPCGBasePointData* OutData = PathIO->GetOut();
-
 		PCGExGraph::CleanupVtxData(PathIO);
 
-		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
+		PCGEx::SetNumPointsAllocated(PathIO->GetOut(), Path.Num());
+		TArray<int32>& IdxMapping = PathIO->GetIdxMapping();
 
-		MutablePoints.Reserve(Path.Num());
-
-		for (const int32 VtxIndex : Path) { MutablePoints.Add(*Processor->Cluster->GetNodePoint(VtxIndex)); }
+		for (int i = 0; i < Path.Num(); i++) { IdxMapping[i] = Processor->Cluster->GetNodePointIndex(Path[i]); }
+		PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
 
 		PathIO->Tags->Append(VtxIO->Tags.ToSharedRef());
 
-		Processor->GetContext()->SeedAttributesToPathTags.Tag(SeedPointIndex, PathIO);
-		Processor->GetContext()->SeedForwardHandler->Forward(SeedPointIndex, PathDataFacade);
+		FPCGExPathfindingGrowPathsContext* Context = Processor->GetContext();
+		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(SeedPointIndex), PathIO);
+		Context->SeedForwardHandler->Forward(SeedPointIndex, PathDataFacade);
 
 		PathDataFacade->Write(Processor->AsyncManager);
-		*/
 	}
 
 	void FGrowth::Init()
 	{
-		/*
 		SeedNode = &(*Processor->Cluster->Nodes)[LastGrowthIndex];
-		GoalNode = MakeUnique<PCGExCluster::FNode>();
-		GoalNode->Index = Processor->Cluster->VtxTransforms.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 10000);
 		Metrics.Reset(Processor->Cluster->GetPos(SeedNode));
 		TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupMap>(PCGEx::NH64(-1, -1), 0);
-		*/
 	}
 
 	double FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge) const
 	{
-		return Processor->HeuristicsHandler->GetEdgeScore(From, To, Edge, *SeedNode, *GoalNode.Get(), nullptr, TravelStack);
+		return Processor->HeuristicsHandler->GetEdgeScore(From, To, Edge, *SeedNode, To, nullptr, TravelStack);
 	}
 }
 

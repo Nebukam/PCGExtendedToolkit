@@ -51,7 +51,6 @@ namespace PCGExGrowPaths
 	public:
 		const TSharedPtr<FProcessor> Processor;
 		const PCGExCluster::FNode* SeedNode = nullptr;
-		TUniquePtr<PCGExCluster::FNode> GoalNode;
 		TSharedPtr<PCGEx::FHashLookup> TravelStack;
 
 		int32 SeedPointIndex = -1;
