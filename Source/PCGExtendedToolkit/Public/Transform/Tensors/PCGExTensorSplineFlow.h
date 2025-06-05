@@ -61,7 +61,7 @@ public:
 	virtual bool Prepare(FPCGExContext* InContext) override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-spline-flow"))
 class UPCGExCreateTensorSplineFlowSettings : public UPCGExTensorSplineFactoryProviderSettings
 {
 	GENERATED_BODY()

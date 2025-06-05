@@ -31,7 +31,7 @@ class UPCGExFilterFactoryData;
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-surface"))
 class UPCGExSampleNearestSurfaceSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

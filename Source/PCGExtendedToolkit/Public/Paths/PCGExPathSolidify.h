@@ -13,7 +13,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/solidify"))
 class UPCGExPathSolidifySettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

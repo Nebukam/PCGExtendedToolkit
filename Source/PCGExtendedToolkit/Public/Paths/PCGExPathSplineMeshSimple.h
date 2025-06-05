@@ -19,7 +19,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/spline-mesh/spline-mesh-simple"))
 class UPCGExPathSplineMeshSimpleSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

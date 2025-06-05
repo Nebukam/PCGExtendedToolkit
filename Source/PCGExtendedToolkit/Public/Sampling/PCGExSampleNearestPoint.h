@@ -72,7 +72,7 @@ namespace PCGExNearestPoint
 	};
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-point"))
 class UPCGExSampleNearestPointSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

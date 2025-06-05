@@ -88,7 +88,7 @@ namespace PCGExNearestBounds
 	};
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-bounds"))
 class UPCGExSampleNearestBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

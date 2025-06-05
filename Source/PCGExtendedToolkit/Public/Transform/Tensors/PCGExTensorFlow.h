@@ -83,7 +83,7 @@ protected:
 	virtual TSharedPtr<PCGExTensor::FEffectorsArray> GetEffectorsArray() const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-inertia-constant"))
 class UPCGExCreateTensorFlowSettings : public UPCGExTensorPointFactoryProviderSettings
 {
 	GENERATED_BODY()

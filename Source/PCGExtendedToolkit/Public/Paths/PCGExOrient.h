@@ -31,7 +31,7 @@ namespace PCGExOrient
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/orient"))
 class UPCGExOrientSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

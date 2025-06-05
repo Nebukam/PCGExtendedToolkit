@@ -46,7 +46,7 @@ enum class EPCGExAxisConstraintSorting : uint8
 	DirectionMatters = 1 UMETA(DisplayName = "Direction matters more", ToolTip="..."),
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/bounds-axis-to-points"))
 class UPCGExBoundsAxisToPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

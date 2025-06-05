@@ -15,7 +15,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/smooth"))
 class UPCGExSmoothSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

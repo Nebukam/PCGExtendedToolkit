@@ -26,7 +26,7 @@ enum class EPCGExSplinePointType : uint8
 	CurveCustomTangent = 4 UMETA(DisplayName = "CurveCustomTangent (4)", Tooltip="CurveCustomTangent (4).")
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="paths/create-spline"))
 class UPCGExCreateSplineSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

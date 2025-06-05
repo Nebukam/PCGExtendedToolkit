@@ -58,7 +58,7 @@ protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-constant"))
 class UPCGExCreateTensorConstantSettings : public UPCGExTensorFactoryProviderSettings
 {
 	GENERATED_BODY()

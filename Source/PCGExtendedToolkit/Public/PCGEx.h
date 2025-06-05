@@ -167,6 +167,11 @@ enum class EPCGExTruncateMode : uint8
 
 namespace PCGEx
 {
+
+#if WITH_EDITOR
+	const FString META_PCGExDocURL = TEXT("PCGExNodeLibraryDoc");
+#endif
+	
 	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMeta =
 		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::MetadataEntry));
 

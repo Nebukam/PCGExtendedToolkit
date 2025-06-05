@@ -38,7 +38,7 @@ enum class EPCGExPathSplitInitialValue : uint8
 /**
  * 
  */
-UCLASS()
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/split"))
 class UPCGExSplitPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

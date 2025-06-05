@@ -15,7 +15,7 @@
 
 class FPCGExComputeIOBounds;
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/bounds-to-points"))
 class UPCGExBoundsToPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

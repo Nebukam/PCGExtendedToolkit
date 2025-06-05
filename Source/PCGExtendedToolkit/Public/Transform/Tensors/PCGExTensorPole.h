@@ -52,7 +52,7 @@ protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-pole"))
 class UPCGExCreateTensorPoleSettings : public UPCGExTensorPointFactoryProviderSettings
 {
 	GENERATED_BODY()

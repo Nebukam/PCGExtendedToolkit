@@ -34,7 +34,7 @@ enum class EPCGExSelfIntersectionPriority : uint8
 	Merge    = 1 UMETA(DisplayName = "Favor Merge", Tooltip="Resolve merge first, then crossing"),
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="tensors/extrude-tensors"))
 class UPCGExExtrudeTensorsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -194,11 +194,11 @@ public:
 	bool bDetectClosedLoops = false;
 
 	/** Range at which the first point must be located to check angle */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)|Closing Loops", meta=(PCG_Overridable, DisplayName=" ├─ Search Distance", EditCondition="bCloseLoops"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)|Closing Loops", meta=(PCG_Overridable, DisplayName=" ├─ Search Distance", EditCondition="bDetectClosedLoops"))
 	double ClosedLoopSearchDistance = 100;
 
 	/** Angle at which the loop will be closed, if within range */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)|Closing Loops", meta=(PCG_Overridable, DisplayName=" └─ Search Angle", EditCondition="bCloseLoops", Units="Degrees", ClampMin=0, ClampMax=90))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Self)|Closing Loops", meta=(PCG_Overridable, DisplayName=" └─ Search Angle", EditCondition="bDetectClosedLoops", Units="Degrees", ClampMin=0, ClampMax=90))
 	double ClosedLoopSearchAngle = 11.25;
 
 	/** TBD */

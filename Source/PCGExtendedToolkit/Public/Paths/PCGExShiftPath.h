@@ -32,7 +32,7 @@ enum class EPCGExShiftPathMode : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/shift"))
 class UPCGExShiftPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

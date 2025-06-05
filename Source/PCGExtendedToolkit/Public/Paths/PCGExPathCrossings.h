@@ -18,7 +18,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/crossings"))
 class UPCGExPathCrossingsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

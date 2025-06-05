@@ -32,7 +32,7 @@ enum class EPCGExTextureFilter : uint8
 
 class UPCGExFilterFactoryData;
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/textures/get-texture-data"))
 class UPCGExGetTextureDataSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

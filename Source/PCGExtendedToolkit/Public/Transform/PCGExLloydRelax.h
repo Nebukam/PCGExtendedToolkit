@@ -15,7 +15,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/lloyd-relax-3d"))
 class UPCGExLloydRelaxSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

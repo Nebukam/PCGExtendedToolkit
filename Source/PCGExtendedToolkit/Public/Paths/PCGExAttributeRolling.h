@@ -47,7 +47,7 @@ enum class EPCGExRollingValueControl : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "range"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "range", PCGExNodeLibraryDoc="paths/attribute-rolling"))
 class UPCGExAttributeRollingSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

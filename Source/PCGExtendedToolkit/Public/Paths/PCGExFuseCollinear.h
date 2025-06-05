@@ -13,7 +13,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/fuse-collinear"))
 class UPCGExFuseCollinearSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

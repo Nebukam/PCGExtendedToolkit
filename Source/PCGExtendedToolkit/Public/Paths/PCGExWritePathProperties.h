@@ -40,7 +40,7 @@ MACRO(DirectionToPrev, FVector, FVector::OneVector)
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/path-properties"))
 class UPCGExWritePathPropertiesSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

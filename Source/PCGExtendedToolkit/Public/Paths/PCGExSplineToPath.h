@@ -22,7 +22,7 @@ MACRO(Alpha, double, 0)
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/spline-to-path"))
 class UPCGExSplineToPathSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

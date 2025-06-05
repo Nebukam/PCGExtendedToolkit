@@ -35,7 +35,7 @@ enum class EPCGExTensorTransformMode : uint8
 	Align    = 2 UMETA(DisplayName = "Align", ToolTip="Align rotation with movement direction."),
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="tensors/tensors-transform"))
 class UPCGExTensorsTransformSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

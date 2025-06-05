@@ -56,7 +56,7 @@ public:
 	virtual void RegisterVtxBuffersDependencies(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample", meta=(PCGExNodeLibraryDoc="sampling/sample-neighbors/sampler-vtx-properties"))
 class UPCGExNeighborSampleBlendSettings : public UPCGExNeighborSampleProviderSettings
 {
 	GENERATED_BODY()

@@ -610,7 +610,6 @@ namespace PCGExGraph
 		End = InEnd;
 
 		EdgeIndex = InEdgeIndex;
-		ToleranceSquared = Tolerance * Tolerance;
 
 		Box = FBox(ForceInit);
 		Box += Start;
@@ -623,7 +622,7 @@ namespace PCGExGraph
 		Direction = (Start - End).GetSafeNormal();
 	}
 
-	bool FEdgeEdgeProxy::FindSplit(const FEdgeEdgeProxy& OtherEdge, TArray<FEESplit>& OutSplits) const
+	bool FEdgeEdgeProxy::FindSplit(const FEdgeEdgeProxy& OtherEdge, TArray<FEESplit>& OutSplits, const FPCGExEdgeEdgeIntersectionDetails* InIntersectionDetails) const
 	{
 		if (!Box.Intersect(OtherEdge.Box) || Start == OtherEdge.Start || Start == OtherEdge.End ||
 			End == OtherEdge.End || End == OtherEdge.Start) { return false; }
@@ -637,7 +636,10 @@ namespace PCGExGraph
 			OtherEdge.Start, OtherEdge.End,
 			A, B);
 
-		if (FVector::DistSquared(A, B) >= ToleranceSquared) { return false; }
+		if (FVector::DistSquared(A, B) >= InIntersectionDetails->ToleranceSquared) { return false; }
+
+		// We're being strict about edge/edge, ignore this intersection otherwise
+		if (A == Start || A == End || B == OtherEdge.Start || B == OtherEdge.End) { return false; }
 
 		FEESplit& NewSplit = OutSplits.Emplace_GetRef();
 		NewSplit.A = EdgeIndex;
@@ -814,7 +816,7 @@ namespace PCGExGraph
 				// Check overlap last as it's the most expensive op
 				if (EdgesUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadata_Unsafe(OtherEdge.EdgeIndex)->RootIndex, RootIOIndices)) { return; }
 
-				if (!Edge.FindSplit(OtherEdge, OutSplits))
+				if (!Edge.FindSplit(OtherEdge, OutSplits, InIntersections->Details))
 				{
 				}
 			};
@@ -829,7 +831,7 @@ namespace PCGExGraph
 
 				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
 				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
-				if (!Edge.FindSplit(OtherEdge, OutSplits))
+				if (!Edge.FindSplit(OtherEdge, OutSplits, InIntersections->Details))
 				{
 				}
 			};

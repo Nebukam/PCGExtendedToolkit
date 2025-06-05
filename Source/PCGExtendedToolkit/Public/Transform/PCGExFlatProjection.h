@@ -12,7 +12,7 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExFlatProjection.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/flat-projection"))
 class UPCGExFlatProjectionSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -42,11 +42,11 @@ public:
 	bool bSaveAttributeForRestore = true;
 
 	/** Whether this is a new projection or an old one*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bInverseExistingProjection"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bRestorePreviousProjection"))
 	bool bAlignLocalTransform = false;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bInverseExistingProjection", DisplayName="Projection"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bRestorePreviousProjection", DisplayName="Projection"))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 };
 

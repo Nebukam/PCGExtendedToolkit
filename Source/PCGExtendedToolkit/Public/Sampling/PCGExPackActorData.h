@@ -550,7 +550,7 @@ public:
 };
 
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="quality-of-life/pack-actor-data"))
 class UPCGExPackActorDataSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

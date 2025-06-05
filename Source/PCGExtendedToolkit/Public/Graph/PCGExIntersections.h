@@ -312,7 +312,6 @@ namespace PCGExGraph
 		TArray<int32> Intersections;
 
 		double LengthSquared = -1;
-		double ToleranceSquared = -1;
 		FBox Box = FBox(NoInit);
 		FBoxSphereBounds Bounds = FBoxSphereBounds{};
 
@@ -339,7 +338,7 @@ namespace PCGExGraph
 
 		~FEdgeEdgeProxy() = default;
 
-		bool FindSplit(const FEdgeEdgeProxy& OtherEdge, TArray<FEESplit>& OutSplits) const;
+		bool FindSplit(const FEdgeEdgeProxy& OtherEdge, TArray<FEESplit>& OutSplits, const FPCGExEdgeEdgeIntersectionDetails* InIntersectionDetails) const;
 	};
 
 	PCGEX_OCTREE_SEMANTICS(FEdgeEdgeProxy, { return Element->Bounds;}, { return A == B; })

@@ -43,6 +43,7 @@ namespace PCGExGraph
 	{
 		bDoEdgeEdge = true;
 		EdgeEdgeIntersectionDetails = InDetails;
+		EdgeEdgeIntersectionDetails.Init();
 		bUseCustomEdgeEdgeBlending = bUseCustom;
 		if (InOverride) { CustomEdgeEdgeBlendingDetails = *InOverride; }
 	}
