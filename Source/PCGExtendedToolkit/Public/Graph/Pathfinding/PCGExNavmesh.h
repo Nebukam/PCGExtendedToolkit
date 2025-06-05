@@ -33,7 +33,7 @@ namespace PCGExNavmesh
 		PCGExPaths::FPathMetrics SeedGoalMetrics; // Metrics that go from seed to goal
 
 		FNavmeshQuery() = default;
-		FNavmeshQuery(const PCGExPathfinding::FSeedGoalPair& InSeedGoalPair);
+		explicit FNavmeshQuery(const PCGExPathfinding::FSeedGoalPair& InSeedGoalPair);
 
 		bool IsValid() const { return !Positions.IsEmpty(); }
 		void FindPath(FPCGExNavmeshContext* InContext);
