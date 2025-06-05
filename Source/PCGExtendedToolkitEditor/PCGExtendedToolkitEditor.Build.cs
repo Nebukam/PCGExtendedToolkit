@@ -19,6 +19,7 @@ public class PCGExtendedToolkitEditor : ModuleRules
 				"PlacementMode",
 				"PCG",
 				"PCGExtendedToolkit",
+				"PCGEditor",
 			}
 		);
 
