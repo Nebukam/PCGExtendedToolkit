@@ -35,7 +35,7 @@ struct FPCGExTensorFlowConfig : public FPCGExTensorConfigBase
 	/** Direction axis, read from the input points' transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Direction", EditCondition="DirectionInput == EPCGExInputValueType::Constant", EditConditionHides))
 	EPCGExAxis DirectionConstant = EPCGExAxis::Forward;
-	
+
 	/** Whether the direction is absolute or should be transformed by the owner' transform .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
 	EPCGExTransformMode DirectionTransform = EPCGExTransformMode::Relative;
@@ -59,10 +59,10 @@ namespace PCGExTensor
 	{
 		FPCGExTensorFlowConfig Config;
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionBuffer;
-		
+
 	public:
 		virtual bool Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory) override;
-		
+
 	protected:
 		virtual void PrepareSinglePoint(const int32 Index) override;
 	};
@@ -83,7 +83,7 @@ protected:
 	virtual TSharedPtr<PCGExTensor::FEffectorsArray> GetEffectorsArray() const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-inertia-constant"))
 class UPCGExCreateTensorFlowSettings : public UPCGExTensorPointFactoryProviderSettings
 {
 	GENERATED_BODY()
@@ -102,6 +102,4 @@ public:
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
-protected:
-	virtual bool IsCacheable() const override { return true; }
 };

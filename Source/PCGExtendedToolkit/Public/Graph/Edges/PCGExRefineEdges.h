@@ -133,10 +133,10 @@ namespace PCGExRefineEdges
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
 
-		virtual void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
+		void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope);
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		virtual void OnEdgesProcessingComplete() override;
 		void Sanitize();
 		void InsertEdges() const;
@@ -155,7 +155,6 @@ namespace PCGExRefineEdges
 		{
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
 			bRequiresGraphBuilder = !Settings->bOutputEdgesOnly;
-			bAllowVtxDataFacadeScopedGet = true;
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;

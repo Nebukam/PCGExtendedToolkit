@@ -13,7 +13,7 @@
 #include "PCGExPathfindingPlotEdges.generated.h"
 
 class FPCGExHeuristicOperation;
-class UPCGExSearchOperation;
+class UPCGExSearchInstancedFactory;
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
@@ -73,7 +73,7 @@ public:
 
 	/** Search algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
+	TObjectPtr<UPCGExSearchInstancedFactory> SearchAlgorithm;
 
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -115,7 +115,7 @@ struct FPCGExPathfindingPlotEdgesContext final : FPCGExEdgesProcessorContext
 	TArray<TSharedPtr<PCGExData::FFacade>> Plots;
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
-	UPCGExSearchOperation* SearchAlgorithm = nullptr;
+	UPCGExSearchInstancedFactory* SearchAlgorithm = nullptr;
 
 	void BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query) const;
 };
@@ -124,7 +124,7 @@ class FPCGExPathfindingPlotEdgesElement final : public FPCGExEdgesProcessorEleme
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathfindingPlotEdges)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -143,7 +143,7 @@ namespace PCGExPathfindingPlotEdge
 
 		virtual ~FProcessor() override;
 
-		UPCGExSearchOperation* SearchOperation = nullptr;
+		TSharedPtr<FPCGExSearchOperation> SearchOperation;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 	};

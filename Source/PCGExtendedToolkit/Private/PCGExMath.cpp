@@ -53,30 +53,6 @@ namespace PCGExMath
 		Bounds = Bounds.ExpandBy(Expansion);
 	}
 
-	FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
-	{
-		switch (Source)
-		{
-		case EPCGExPointBoundsSource::ScaledBounds: return GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point);
-		case EPCGExPointBoundsSource::DensityBounds: return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point);
-		case EPCGExPointBoundsSource::Bounds: return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point);
-		case EPCGExPointBoundsSource::Center: return GetLocalBounds<EPCGExPointBoundsSource::Center>(Point);
-		default: return FBox(FVector::OneVector * -1, FVector::OneVector);
-		}
-	}
-
-	FBox GetLocalBounds(const FPCGPoint* Point, const EPCGExPointBoundsSource Source)
-	{
-		switch (Source)
-		{
-		case EPCGExPointBoundsSource::ScaledBounds: return GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point);
-		case EPCGExPointBoundsSource::DensityBounds: return GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Point);
-		case EPCGExPointBoundsSource::Bounds: return GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point);
-		case EPCGExPointBoundsSource::Center: return GetLocalBounds<EPCGExPointBoundsSource::Center>(Point);
-		default: return FBox(FVector::OneVector * -1, FVector::OneVector);
-		}
-	}
-
 	double ConvertStringToDouble(const FString& StringToConvert)
 	{
 		const TCHAR* CharArray = *StringToConvert;

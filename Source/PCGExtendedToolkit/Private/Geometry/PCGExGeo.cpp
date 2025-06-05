@@ -10,7 +10,7 @@
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 
-bool FPCGExGeo2DProjectionDetails::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
+bool FPCGExGeo2DProjectionDetails::Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
 {
 	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
 	ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::UpVector);
@@ -100,37 +100,6 @@ void FPCGExGeo2DProjectionDetails::Project(const TArray<FVector>& InPositions, T
 	}
 }
 
-void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const
-{
-	const int32 NumVectors = InPositions.Num();
-	PCGEx::InitArray(OutPositions, NumVectors);
-	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.RotateVector(InPositions[i]); }
-}
-
-void FPCGExGeo2DProjectionDetails::Project(const TArray<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
-{
-	const int32 NumVectors = InPositions.Num();
-	PCGEx::InitArray(OutPositions, NumVectors);
-
-	if (NormalGetter)
-	{
-		for (int i = 0; i < NumVectors; i++)
-		{
-			OutPositions[i] = FVector2D(
-				FQuat::FindBetweenNormals(
-					NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
-					FVector::UpVector).RotateVector(InPositions[i]));
-		}
-	}
-	else
-	{
-		for (int i = 0; i < NumVectors; i++)
-		{
-			OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i]));
-		}
-	}
-}
-
 void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
 {
 	const int32 NumVectors = InPositions.Num();
@@ -138,66 +107,58 @@ void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPosition
 	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i])); }
 }
 
-void FPCGExGeo2DProjectionDetails::Project(const TArray<FPCGPoint>& InPoints, TArray<FVector>& OutPositions) const
+namespace PCGExGeoTasks
 {
-	const int32 NumVectors = InPoints.Num();
-	PCGEx::InitArray(OutPositions, NumVectors);
-
-	if (NormalGetter)
+	void FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		for (int i = 0; i < NumVectors; i++)
+		UPCGBasePointData* OutPointData = ToBeTransformedIO->GetOut();
+		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
+		FTransform TargetTransform = FTransform::Identity;
+
+		FBox PointBounds = FBox(ForceInit);
+
+		if (!TransformDetails->bIgnoreBounds)
 		{
-			OutPositions[i] = FQuat::FindBetweenNormals(
-				NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
-				FVector::UpVector).RotateVector(InPoints[i].Transform.GetLocation());
-		}
-	}
-	else
-	{
-		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.RotateVector(InPoints[i].Transform.GetLocation()); }
-	}
-}
-
-void PCGExGeoTasks::FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-{
-	TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetMutablePoints();
-
-	FTransform TargetTransform = FTransform::Identity;
-
-	FBox PointBounds = FBox(ForceInit);
-	for (const FPCGPoint& Pt : MutableTargets) { PointBounds += PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(Pt).TransformBy(Pt.Transform); }
-	PointBounds = PointBounds.ExpandBy(1); // Avoid NaN
-	TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
-
-	if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
-	{
-		for (FPCGPoint& InPoint : MutableTargets) { InPoint.Transform *= TargetTransform; }
-	}
-	else
-	{
-		if (TransformDetails->bInheritRotation)
-		{
-			for (FPCGPoint& InPoint : MutableTargets)
-			{
-				FVector OriginalScale = InPoint.Transform.GetScale3D();
-				InPoint.Transform *= TargetTransform;
-				InPoint.Transform.SetScale3D(OriginalScale);
-			}
-		}
-		else if (TransformDetails->bInheritScale)
-		{
-			for (FPCGPoint& InPoint : MutableTargets)
-			{
-				FQuat OriginalRot = InPoint.Transform.GetRotation();
-				InPoint.Transform *= TargetTransform;
-				InPoint.Transform.SetRotation(OriginalRot);
-			}
+			for (int i = 0; i < OutTransforms.Num(); i++) { PointBounds += OutPointData->GetLocalBounds(i).TransformBy(OutTransforms[i]); }
 		}
 		else
 		{
-			for (FPCGPoint& InPoint : MutableTargets)
+			for (const FTransform& Pt : OutTransforms) { PointBounds += Pt.GetLocation(); }
+		}
+
+		PointBounds = PointBounds.ExpandBy(0.1); // Avoid NaN
+		TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
+
+		if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
+		{
+			for (FTransform& Transform : OutTransforms) { Transform *= TargetTransform; }
+		}
+		else
+		{
+			if (TransformDetails->bInheritRotation)
 			{
-				InPoint.Transform.SetLocation(TargetTransform.TransformPosition(InPoint.Transform.GetLocation()));
+				for (FTransform& Transform : OutTransforms)
+				{
+					FVector OriginalScale = Transform.GetScale3D();
+					Transform *= TargetTransform;
+					Transform.SetScale3D(OriginalScale);
+				}
+			}
+			else if (TransformDetails->bInheritScale)
+			{
+				for (FTransform& Transform : OutTransforms)
+				{
+					FQuat OriginalRot = Transform.GetRotation();
+					Transform *= TargetTransform;
+					Transform.SetRotation(OriginalRot);
+				}
+			}
+			else
+			{
+				for (FTransform& Transform : OutTransforms)
+				{
+					Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
+				}
 			}
 		}
 	}
@@ -346,11 +307,12 @@ namespace PCGExGeo
 		}
 	}
 
-	void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector>& OutPositions)
+	void PointsToPositions(const UPCGBasePointData* InPointData, TArray<FVector>& OutPositions)
 	{
-		const int32 NumPoints = Points.Num();
+		const int32 NumPoints = InPointData->GetNumPoints();
+		const TConstPCGValueRange<FTransform> Transforms = InPointData->GetConstTransformValueRange();
 		PCGEx::InitArray(OutPositions, NumPoints);
-		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Points[i].Transform.GetLocation(); }
+		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Transforms[i].GetLocation(); }
 	}
 
 	FVector GetBarycentricCoordinates(const FVector& Point, const FVector& A, const FVector& B, const FVector& C)

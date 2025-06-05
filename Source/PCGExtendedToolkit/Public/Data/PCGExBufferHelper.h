@@ -20,7 +20,7 @@ namespace PCGExData
 	class PCGEXTENDEDTOOLKIT_API TBufferHelper : public TSharedFromThis<TBufferHelper<Mode>>
 	{
 		TSharedPtr<FFacade> DataFacade;
-		TMap<FName, TSharedPtr<FBufferBase>> BufferMap;
+		TMap<FName, TSharedPtr<IBuffer>> BufferMap;
 		mutable FRWLock BufferLock;
 
 	public:
@@ -30,24 +30,24 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> TryGetBuffer(const FName InName)
+		TSharedPtr<TArrayBuffer<T>> TryGetBuffer(const FName InName)
 		{
 			FReadScopeLock ReadScopeLock(BufferLock);
-			if (TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
+			if (TSharedPtr<IBuffer>* BufferPtr = BufferMap.Find(InName))
 			{
 				if (!(*BufferPtr)->IsA<T>()) { return nullptr; }
-				return StaticCastSharedPtr<TBuffer<T>>(*BufferPtr);
+				return StaticCastSharedPtr<TArrayBuffer<T>>(*BufferPtr);
 			}
 
 			return nullptr;
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetBuffer(const FName InName)
+		TSharedPtr<TArrayBuffer<T>> GetBuffer(const FName InName)
 		{
 			{
 				FReadScopeLock ReadScopeLock(BufferLock);
-				if (const TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
+				if (const TSharedPtr<IBuffer>* BufferPtr = BufferMap.Find(InName))
 				{
 					if (!(*BufferPtr)->IsA<T>())
 					{
@@ -55,7 +55,7 @@ namespace PCGExData
 						return nullptr;
 					}
 
-					return StaticCastSharedPtr<TBuffer<T>>(*BufferPtr);
+					return StaticCastSharedPtr<TArrayBuffer<T>>(*BufferPtr);
 				}
 			}
 			{
@@ -66,15 +66,15 @@ namespace PCGExData
 					return nullptr;
 				}
 
-				TSharedPtr<TBuffer<T>> NewBuffer;
+				TSharedPtr<TArrayBuffer<T>> NewBuffer;
 
 				if constexpr (Mode == EBufferHelperMode::Write)
 				{
-					NewBuffer = DataFacade->GetWritable<T>(InName, EBufferInit::Inherit);
+					NewBuffer = StaticCastSharedPtr<TArrayBuffer<T>>(DataFacade->GetWritable<T>(InName, EBufferInit::Inherit));
 				}
 				else
 				{
-					NewBuffer = DataFacade->GetReadable<T>(InName);
+					NewBuffer = StaticCastSharedPtr<TArrayBuffer<T>>(DataFacade->GetReadable<T>(InName));
 					if (!NewBuffer)
 					{
 						UE_LOG(LogPCGEx, Error, TEXT("Readable attribute (%s) does not exists."), *InName.ToString())
@@ -82,17 +82,17 @@ namespace PCGExData
 					}
 				}
 
-				BufferMap.Add(InName, StaticCastSharedPtr<FBufferBase>(NewBuffer));
+				BufferMap.Add(InName, StaticCastSharedPtr<IBuffer>(NewBuffer));
 				return NewBuffer;
 			}
 		}
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetBuffer(const FName InName, const T& DefaultValue)
+		TSharedPtr<TArrayBuffer<T>> GetBuffer(const FName InName, const T& DefaultValue)
 		{
 			{
 				FReadScopeLock ReadScopeLock(BufferLock);
-				if (const TSharedPtr<FBufferBase>* BufferPtr = BufferMap.Find(InName))
+				if (const TSharedPtr<IBuffer>* BufferPtr = BufferMap.Find(InName))
 				{
 					if (!(*BufferPtr)->IsA<T>())
 					{
@@ -100,7 +100,7 @@ namespace PCGExData
 						return nullptr;
 					}
 
-					return StaticCastSharedPtr<TBuffer<T>>(*BufferPtr);
+					return StaticCastSharedPtr<TArrayBuffer<T>>(*BufferPtr);
 				}
 			}
 			{
@@ -112,11 +112,11 @@ namespace PCGExData
 					return nullptr;
 				}
 
-				TSharedPtr<TBuffer<T>> NewBuffer;
+				TSharedPtr<TArrayBuffer<T>> NewBuffer;
 
 				if constexpr (Mode == EBufferHelperMode::Write)
 				{
-					NewBuffer = DataFacade->GetWritable<T>(InName, EBufferInit::Inherit);
+					NewBuffer = StaticCastSharedPtr<TArrayBuffer<T>>(DataFacade->GetWritable<T>(InName, EBufferInit::Inherit));
 				}
 				else
 				{
@@ -128,7 +128,7 @@ namespace PCGExData
 					}
 				}
 
-				BufferMap.Add(InName, StaticCastSharedPtr<FBufferBase>(NewBuffer));
+				BufferMap.Add(InName, StaticCastSharedPtr<IBuffer>(NewBuffer));
 				return NewBuffer;
 			}
 		}
@@ -136,18 +136,18 @@ namespace PCGExData
 		template <typename T>
 		bool SetValue(const FName& InAttributeName, const int32 InIndex, const T& InValue)
 		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
+			TSharedPtr<TArrayBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
 			if (!Buffer) { return false; }
 
 			if constexpr (Mode == EBufferHelperMode::Write)
 			{
-				Buffer->GetMutable(InIndex) = InValue;
+				Buffer->SetValue(InIndex, InValue);
 			}
 			else
 			{
 				if (Buffer->IsWritable())
 				{
-					Buffer->GetMutable(InIndex) = InValue;
+					Buffer->SetValue(InIndex, InValue);
 				}
 				else
 				{
@@ -162,12 +162,12 @@ namespace PCGExData
 		template <typename T>
 		bool GetValue(const FName& InAttributeName, const int32 InIndex, T& OutValue)
 		{
-			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
+			TSharedPtr<TArrayBuffer<T>> Buffer = GetBuffer<T>(InAttributeName);
 			if (!Buffer) { return false; }
 
 			if constexpr (Mode == EBufferHelperMode::Write)
 			{
-				OutValue = Buffer->GetConst(InIndex);
+				OutValue = Buffer->GetValue(InIndex);
 			}
 			else
 			{

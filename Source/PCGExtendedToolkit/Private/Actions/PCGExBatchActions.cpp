@@ -140,25 +140,27 @@ namespace PCGExBatchActions
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		PointDataFacade->Fetch(Scope);
-	}
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BatchActions::ProcessPoints);
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		for (const TSharedPtr<FPCGExActionOperation>& Op : Operations) { Op->ProcessPoint(Index, Point); }
+		PointDataFacade->Fetch(Scope);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			for (const TSharedPtr<FPCGExActionOperation>& Op : Operations) { Op->ProcessPoint(Index); }
+		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		if (Settings->bDoConsumeProcessedAttributes)
 		{
-			for (const TSharedPtr<PCGExData::FBufferBase>& DataCache : PointDataFacade->Buffers)
+			for (const TSharedPtr<PCGExData::IBuffer>& DataCache : PointDataFacade->Buffers)
 			{
 				if (!DataCache->InAttribute ||
 					!Settings->ConsumeProcessedAttributes.Test(DataCache->InAttribute) ||
-					PCGEx::IsPCGExAttribute(DataCache->FullName)) { continue; }
+					PCGEx::IsPCGExAttribute(DataCache->Identifier.Name)) { continue; }
 
 				PointDataFacade->Source->DeleteAttribute(DataCache->InAttribute->Name);
 			}

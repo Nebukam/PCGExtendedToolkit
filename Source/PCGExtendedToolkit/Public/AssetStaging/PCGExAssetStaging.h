@@ -122,14 +122,14 @@ struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 class FPCGExAssetStagingElement final : public FPCGExPointsProcessorElement
 {
 protected:
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-	
 	PCGEX_ELEMENT_CREATE_CONTEXT(AssetStaging)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
 };
 
 namespace PCGExAssetStaging
@@ -137,11 +137,14 @@ namespace PCGExAssetStaging
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAssetStagingContext, UPCGExAssetStagingSettings>
 	{
 		int32 NumPoints = 0;
+		int32 NumInvalid = 0;
 
 		bool bInherit = false;
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
+
+		TArray<int8> Mask;
 
 		FPCGExFittingDetailsHandler FittingHandler;
 		FPCGExFittingVariationsDetails Variations;
@@ -174,10 +177,12 @@ namespace PCGExAssetStaging
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+
 		virtual void CompleteWork() override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+
 		virtual void OnRangeProcessingComplete() override;
 
 

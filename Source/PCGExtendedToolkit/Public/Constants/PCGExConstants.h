@@ -147,7 +147,7 @@ protected:
 	template <typename T>
 	void StageConstant(FPCGExContext* InContext, const FName InName, const T& InValue, const UPCGExConstantsSettings* Settings) const
 	{
-		if (!PCGEx::IsValidName(InName))
+		if (!PCGEx::IsWritableAttributeName(InName))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("\"{0}\" is not a valid attribute name."), FText::FromName(InName)));
 			return;
@@ -159,10 +159,10 @@ protected:
 		FPCGMetadataAttribute<T>* Attrib = OutputData->Metadata->CreateAttribute<T>(InName, InValue, true, false);
 		Attrib->SetValue(OutputData->Metadata->AddEntry(), InValue);
 
-		InContext->StageOutput(InName, OutputData, true);
+		FPCGTaggedData& StagedData = InContext->StageOutput(OutputData, true);
+		StagedData.Pin = InName;
 	}
 
 public:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
 };

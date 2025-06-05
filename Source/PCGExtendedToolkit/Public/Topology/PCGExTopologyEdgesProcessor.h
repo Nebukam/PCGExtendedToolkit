@@ -84,8 +84,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorContext : FPCGExEdgesP
 class PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorElement : public FPCGExEdgesProcessorElement
 {
 protected:
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
 	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 };
 
 namespace PCGExTopologyEdges
@@ -194,21 +194,23 @@ namespace PCGExTopologyEdges
 			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
 			UPCGExDynamicMeshComponent* DynamicMeshComponent = NewObject<UPCGExDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UPCGExDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
-			Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
-
-			DynamicMeshComponent->SetDynamicMesh(InternalMesh);
-			if (UMaterialInterface* Material = Settings->Topology.Material.Get())
-			{
-				DynamicMeshComponent->SetMaterial(0, Material);
-			}
+			// Needed otherwise triggers updates in a loop
+			Context->GetMutableComponent()->IgnoreChangeOriginDuringGenerationWithScope(
+				DynamicMeshComponent, [&]()
+				{
+					Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
+					DynamicMeshComponent->SetDynamicMesh(InternalMesh);
+					if (UMaterialInterface* Material = Settings->Topology.Material.Get())
+					{
+						DynamicMeshComponent->SetMaterial(0, Material);
+					}
+				});
 
 			DynamicMeshComponent->ComponentTags.Reserve(DynamicMeshComponent->ComponentTags.Num() + Context->ComponentTags.Num());
 			for (const FString& ComponentTag : Context->ComponentTags) { DynamicMeshComponent->ComponentTags.Add(FName(ComponentTag)); }
 
 			Context->ManagedObjects->Remove(InternalMesh);
-
 			Context->AttachManagedComponent(TargetActor, DynamicMeshComponent, Settings->AttachmentRules.GetRules());
-
 			Context->AddNotifyActor(TargetActor);
 		}
 
@@ -222,7 +224,7 @@ namespace PCGExTopologyEdges
 		void FilterConstrainedEdgeScope(const PCGExMT::FScope& Scope)
 		{
 			int32 LocalConstrainedEdgesNum = 0;
-			for (int i = Scope.Start; i < Scope.End; i++) { if (EdgeFilterCache[i]) { LocalConstrainedEdgesNum++; } }
+			PCGEX_SCOPE_LOOP(i) { if (EdgeFilterCache[i]) { LocalConstrainedEdgesNum++; } }
 			FPlatformAtomics::InterlockedAdd(&ConstrainedEdgesNum, LocalConstrainedEdgesNum);
 		}
 
@@ -232,9 +234,9 @@ namespace PCGExTopologyEdges
 				[&](FDynamicMesh3& InMesh)
 				{
 					const int32 VtxCount = InMesh.MaxVertexID();
-					const TArray<FPCGPoint>& InPoints = VtxDataFacade->GetIn()->GetPoints();
+					const TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
+					const TConstPCGValueRange<FVector4> InColors = VtxDataFacade->GetIn()->GetConstColorValueRange();
 					const TMap<uint32, int32>& HashMapRef = *ProjectedHashMap;
-
 
 					FVector4f DefaultVertexColor = FVector4f(Settings->Topology.DefaultVertexColor);
 
@@ -250,9 +252,9 @@ namespace PCGExTopologyEdges
 						const int32* WP = HashMapRef.Find(PCGEx::GH2(InMesh.GetVertex(i), CWTolerance));
 						if (WP)
 						{
-							const FPCGPoint& Point = InPoints[*WP];
-							InMesh.SetVertex(i, Point.Transform.GetLocation());
-							ElemIDs[i] = Colors->AppendElement(FVector4f(Point.Color));
+							const int32 PointIndex = *WP;
+							InMesh.SetVertex(i, InTransforms[PointIndex].GetLocation());
+							ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[PointIndex]));
 						}
 						else
 						{

@@ -18,7 +18,7 @@ namespace PCGExNeighborSample
 class UPCGExNeighborSamplerFactoryData;
 class FPCGExNeighborSampleOperation;
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="sampling/sample-neighbors"))
 class UPCGExSampleNeighborsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -58,7 +58,7 @@ class FPCGExSampleNeighborsElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleNeighbors)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -79,9 +79,13 @@ namespace PCGExSampleNeighbors
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
+
+		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;
+		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
+
 		virtual void Write() override;
 		virtual void Cleanup() override;
 	};

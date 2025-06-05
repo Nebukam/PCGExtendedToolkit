@@ -148,7 +148,7 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 		PCGExSubsystem->RegisterBeginTickAction(
 			[CtxHandle = GetOrCreateHandle(), Idx = Index + 1]()
 			{
-				const FPCGExContext::FPCGExSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
+				const FSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
 				if (FPCGExGetTextureDataContext* Ctx = SharedContext.Get())
 				{
 					Ctx->AdvanceProcessing(Idx);
@@ -158,11 +158,7 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 
 	auto ApplySettings = [&](UPCGBaseTextureData* InTex)
 	{
-#if PCGEX_ENGINE_VERSION >= 505
 		InTex->Filter = Settings->Filter == EPCGExTextureFilter::Bilinear ? EPCGTextureFilter::Bilinear : EPCGTextureFilter::Point;
-#else
-		InTex->DensityFunction = EPCGTextureDensityFunction::Multiply;
-#endif
 
 		InTex->ColorChannel = Settings->ColorChannel;
 		InTex->TexelSize = Settings->TexelSize;
@@ -195,7 +191,11 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 
 			ApplySettings(RTData);
 			RTData->Initialize(RT, Transform);
-			StageOutput(PCGExTexture::OutputTextureDataLabel, RTData, {Ref.GetTag()}, false, false);
+
+			FPCGTaggedData& StagedData = StageOutput(RTData, false, false);
+			StagedData.Pin = PCGExTexture::OutputTextureDataLabel;
+			StagedData.Tags.Add(Ref.GetTag());
+
 
 			MoveToNextTask();
 			return;
@@ -208,18 +208,11 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 		TexData = ManagedObjects->New<UPCGTextureData>();
 		TextureDataList[Index] = TexData;
 
-#if PCGEX_ENGINE_VERSION == 504
-		auto PostInitializeCallback = [&]() { TextureReady[Index] = true; };
-		TexData->Initialize(Texture.Get(), Ref.TextureIndex, Transform, PostInitializeCallback);
-#elif PCGEX_ENGINE_VERSION >= 505
 		TextureReady[Index] = TexData->Initialize(Texture.Get(), Ref.TextureIndex, Transform);
-#endif
 	}
 	else
 	{
-#if PCGEX_ENGINE_VERSION >= 505
 		TextureReady[Index] = TexData->Initialize(Texture.Get(), Ref.TextureIndex, Transform);
-#endif
 	}
 
 	if (!TextureReady[Index])
@@ -228,7 +221,7 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 		PCGExSubsystem->RegisterBeginTickAction(
 			[CtxHandle = GetOrCreateHandle(), Idx = Index]()
 			{
-				const FPCGExContext::FPCGExSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
+				const FSharedContext<FPCGExGetTextureDataContext> SharedContext(CtxHandle);
 				if (FPCGExGetTextureDataContext* Ctx = SharedContext.Get())
 				{
 					Ctx->AdvanceProcessing(Idx);
@@ -238,13 +231,11 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 		return;
 	}
 
-#if PCGEX_ENGINE_VERSION >= 505
 	if (!TexData->IsSuccessfullyInitialized())
 	{
 		MoveToNextTask();
 		return;
 	}
-#endif
 
 	if (!TexData->IsValid())
 	{
@@ -252,7 +243,10 @@ void FPCGExGetTextureDataContext::AdvanceProcessing(const int32 Index)
 		return;
 	}
 
-	StageOutput(PCGExTexture::OutputTextureDataLabel, TexData, {Ref.GetTag()}, false, false);
+	FPCGTaggedData& StagedData = StageOutput(TexData, false, false);
+	StagedData.Pin = PCGExTexture::OutputTextureDataLabel;
+	StagedData.Tags.Add(Ref.GetTag());
+
 	MoveToNextTask();
 
 #pragma endregion
@@ -293,7 +287,7 @@ namespace PCGExGetTextureData
 			}
 		}
 
-		PathGetter = PointDataFacade->GetScopedBroadcaster<FSoftObjectPath>(Settings->SourceAttributeName);
+		PathGetter = PointDataFacade->GetBroadcaster<FSoftObjectPath>(Settings->SourceAttributeName, true);
 
 		if (!PathGetter)
 		{
@@ -306,63 +300,65 @@ namespace PCGExGetTextureData
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::GetTextureData::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		if (!PointFilterCache[Index]) { return; }
-
-		FSoftObjectPath AssetPath = PathGetter->Read(Index);
-
-		if (Settings->SourceType == EPCGExGetTexturePathType::MaterialPath)
+		PCGEX_SCOPE_LOOP(Index)
 		{
+			if (!PointFilterCache[Index]) { continue; }
+
+			FSoftObjectPath AssetPath = PathGetter->Read(Index);
+
+			if (Settings->SourceType == EPCGExGetTexturePathType::MaterialPath)
+			{
+				{
+					FReadScopeLock ReadScopeLock(ReferenceLock);
+					if (MaterialReferences->Contains(AssetPath)) { continue; }
+				}
+				{
+					FWriteScopeLock WriteScopeLock(ReferenceLock);
+					bool bAlreadySet = false;
+					MaterialReferences->Add(AssetPath, &bAlreadySet);
+					if (!bAlreadySet) { Context->EDITOR_TrackPath(AssetPath); }
+				}
+				continue;
+			}
+
+			PCGExTexture::FReference Ref = PCGExTexture::FReference(AssetPath);
+
+			// See if the path breaks down as a path:index textureArray2D path
+			int32 LastColonIndex;
+			if (const FString Str = AssetPath.ToString(); Str.FindLastChar(TEXT(':'), LastColonIndex))
+			{
+				const FString PotentialIndex = Str.Mid(LastColonIndex + 1);
+				const FString Prefix = Str.Left(LastColonIndex);
+
+				// Check if the part after the last ":" is numeric
+				if (PotentialIndex.IsNumeric())
+				{
+					int32 N = FCString::Atoi(*PotentialIndex);
+					if (N >= 0 && N < 64)
+					{
+						// TextureArray2D don't support more entries, so if it's greater it's not that.
+						// This is a very weak check :(
+						Ref.TexturePath = Prefix;
+						Ref.TextureIndex = FCString::Atoi(*PotentialIndex);
+					}
+				}
+			}
+
 			{
 				FReadScopeLock ReadScopeLock(ReferenceLock);
-				if (MaterialReferences->Contains(AssetPath)) { return; }
+				if (TextureReferences.Contains(Ref)) { continue; }
 			}
 			{
 				FWriteScopeLock WriteScopeLock(ReferenceLock);
-				bool bAlreadySet = false;
-				MaterialReferences->Add(AssetPath, &bAlreadySet);
-				if (!bAlreadySet) { Context->EDITOR_TrackPath(AssetPath); }
+				TextureReferences.Add(Ref);
 			}
-			return;
-		}
-
-		PCGExTexture::FReference Ref = PCGExTexture::FReference(AssetPath);
-
-		// See if the path breaks down as a path:index textureArray2D path
-		int32 LastColonIndex;
-		if (const FString Str = AssetPath.ToString(); Str.FindLastChar(TEXT(':'), LastColonIndex))
-		{
-			const FString PotentialIndex = Str.Mid(LastColonIndex + 1);
-			const FString Prefix = Str.Left(LastColonIndex);
-
-			// Check if the part after the last ":" is numeric
-			if (PotentialIndex.IsNumeric())
-			{
-				int32 N = FCString::Atoi(*PotentialIndex);
-				if (N >= 0 && N < 64)
-				{
-					// TextureArray2D don't support more entries, so if it's greater it's not that.
-					// This is a very weak check :(
-					Ref.TexturePath = Prefix;
-					Ref.TextureIndex = FCString::Atoi(*PotentialIndex);
-				}
-			}
-		}
-
-		{
-			FReadScopeLock ReadScopeLock(ReferenceLock);
-			if (TextureReferences.Contains(Ref)) { return; }
-		}
-		{
-			FWriteScopeLock WriteScopeLock(ReferenceLock);
-			TextureReferences.Add(Ref);
 		}
 	}
 
@@ -376,12 +372,15 @@ namespace PCGExGetTextureData
 		}
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		TexParamLookup->ExtractParamsAndReferences(
-			Iteration,
-			TSoftObjectPtr<UMaterialInterface>(PathGetter->Read(Iteration)).Get(),
-			*ScopedTextureReferences[Scope.LoopIndex].Get());
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			TexParamLookup->ExtractParamsAndReferences(
+				Index,
+				TSoftObjectPtr<UMaterialInterface>(PathGetter->Read(Index)).Get(),
+				*ScopedTextureReferences[Scope.LoopIndex].Get());
+		}
 	}
 
 	void FProcessor::OnRangeProcessingComplete()

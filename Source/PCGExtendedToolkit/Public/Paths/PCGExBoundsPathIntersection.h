@@ -7,6 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Geometry/PCGExGeoPointBox.h"
 
 
 #include "Graph/PCGExIntersections.h"
@@ -15,7 +16,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/path-bounds-intersection"))
 class UPCGExBoundsPathIntersectionSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -52,7 +53,7 @@ class FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElem
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BoundsPathIntersection)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -81,7 +82,7 @@ namespace PCGExPathIntersections
 		void InsertIntersections(const int32 Index) const;
 		void OnInsertionComplete();
 
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;

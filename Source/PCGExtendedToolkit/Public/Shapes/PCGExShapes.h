@@ -53,7 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 
 	/** Resolution mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable))
-	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Distance;
+	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Fixed;
 
 	/** Resolution input type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable))
@@ -179,18 +179,18 @@ namespace PCGExShapes
 	{
 	public:
 		virtual ~FShape() = default;
-		PCGExData::FPointRef Seed;
+		PCGExData::FConstPoint Seed;
 
 		int32 StartIndex = 0;
 		int32 NumPoints = 0;
 		int8 bValid = 1;
 
 		FBox Fit = FBox(ForceInit);
-		FVector Extents = FVector::OneVector * 0.5;
+		FVector Extents = FVector::OneVector * 50;
 
 		bool IsValid() const { return bValid && Fit.IsValid && NumPoints > 0; }
 
-		explicit FShape(const PCGExData::FPointRef& InPointRef)
+		explicit FShape(const PCGExData::FConstPoint& InPointRef)
 			: Seed(InPointRef)
 		{
 		}

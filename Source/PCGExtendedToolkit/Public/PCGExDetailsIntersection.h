@@ -3,8 +3,6 @@
 
 #pragma once
 
-#define PCGEX_SOFT_VALIDATE_NAME_DETAILS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
-
 #include "CoreMinimal.h"
 #include "PCGExMacros.h"
 #include "PCGExDetailsData.h"
@@ -33,6 +31,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUnionMetadataDetails
 	FName UnionSizeAttributeName = "UnionSize";
 
 	bool WriteAny() const { return bWriteIsUnion || bWriteUnionSize; }
+
+	bool SanityCheck(FPCGExContext* InContext) const
+	{
+		if (bWriteIsUnion) { PCGEX_VALIDATE_NAME_C(InContext, IsUnionAttributeName) }
+		if (bWriteUnionSize) { PCGEX_VALIDATE_NAME_C(InContext, UnionSizeAttributeName) }
+		return true;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -77,6 +82,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 	FPCGExEdgeUnionMetadataDetails EdgeUnionData;
 
 	bool WriteAny() const { return bSupportsEdges ? (PointUnionData.WriteAny() || EdgeUnionData.WriteAny()) : PointUnionData.WriteAny(); }
+
+	bool SanityCheck(FPCGExContext* InContext) const
+	{
+		if (bSupportsEdges) { if (!EdgeUnionData.SanityCheck(InContext)) { return false; } }
+		if (!PointUnionData.SanityCheck(InContext)) { return false; }
+		return true;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -168,5 +180,3 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionDetails
 
 	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
 };
-
-#undef PCGEX_SOFT_VALIDATE_NAME_DETAILS

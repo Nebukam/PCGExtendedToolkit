@@ -51,6 +51,8 @@ class UPCGExCustomActorDataPacker : public UPCGExInstancedFactory
 	TMap<AActor*, TSharedPtr<TArray<FComponentInfos>>> ComponentsMap;
 
 public:
+	virtual bool WantsPerDataInstance() override { return true; }
+
 	TSharedPtr<PCGEx::FUniqueNameGenerator> UniqueNameGenerator;
 	bool bIsPreviewMode = false;
 	bool bIsProcessing = false;
@@ -62,7 +64,7 @@ public:
 	 * @param OutSuccess
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "PCGEx|Execution")
-	void InitializeWithContext(UPARAM(ref)const FPCGContext& InContext, bool& OutSuccess);
+	void Initialize(bool& OutSuccess);
 
 	/**
 	 * Process an actor reference. This method is executed in a multi-threaded context
@@ -548,7 +550,7 @@ public:
 };
 
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="quality-of-life/pack-actor-data"))
 class UPCGExPackActorDataSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -611,7 +613,7 @@ class FPCGExPackActorDataElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PackActorData)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -626,6 +628,8 @@ namespace PCGExPackActorDatas
 		UPCGExCustomActorDataPacker* Packer = nullptr;
 		TSharedPtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences;
 
+		TArray<int8> PointMask;
+
 		TWeakPtr<PCGExMT::FAsyncToken> LoadToken;
 		TSharedPtr<FStreamableHandle> LoadHandle;
 
@@ -639,7 +643,9 @@ namespace PCGExPackActorDatas
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void StartProcessing();
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 		virtual void Output() override;

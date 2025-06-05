@@ -30,6 +30,8 @@ enum class EPCGExMergeByTagFallbackBehavior : uint8
 
 namespace PCPGExMergePointsByTag
 {
+	PCGEX_CTX_STATE(State_MergingData);
+
 	class FMergeList
 	{
 	public:
@@ -126,7 +128,7 @@ class FPCGExMergePointsByTagElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(MergePointsByTag)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

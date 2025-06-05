@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExNavmesh.h"
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
@@ -13,16 +14,8 @@
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "PCGExPathfindingNavmesh.generated.h"
 
-class UPCGExSubPointsBlendOperation;
+class UPCGExSubPointsBlendInstancedFactory;
 class UPCGExGoalPicker;
-
-
-UENUM()
-enum class EPCGExPathfindingNavmeshMode : uint8
-{
-	Regular      = 0 UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),
-	Hierarchical = 1 UMETA(DisplayName = "HIerarchical", ToolTip="Cell-based pathfinding"),
-};
 
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
@@ -82,7 +75,7 @@ public:
 
 	/** Controls how path points blend from seed to goal. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Blending", Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -110,7 +103,7 @@ public:
 	FNavAgentProperties NavAgentProperties;
 };
 
-struct FPCGExPathfindingNavmeshContext final : FPCGExPointsProcessorContext
+struct FPCGExPathfindingNavmeshContext final : FPCGExNavmeshContext
 {
 	friend class FPCGExPathfindingNavmeshElement;
 
@@ -120,15 +113,9 @@ struct FPCGExPathfindingNavmeshContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 
 	TArray<PCGExPathfinding::FSeedGoalPair> PathQueries;
-
-	FNavAgentProperties NavAgentProperties;
-
-	bool bRequireNavigableEndLocation = true;
-	EPCGExPathfindingNavmeshMode PathfindingMode;
-	double FuseDistance = 10;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
@@ -141,7 +128,7 @@ class FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElemen
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathfindingNavmesh)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

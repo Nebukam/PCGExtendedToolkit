@@ -4,12 +4,12 @@
 
 #include "PCGExFitting.h"
 
-void FPCGExScaleToFitDetails::Process(const FPCGPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const
+void FPCGExScaleToFitDetails::Process(const PCGExData::FConstPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const
 {
 	if (ScaleToFitMode == EPCGExFitMode::None) { return; }
 
 	const FVector PtSize = InPoint.GetLocalBounds().GetSize();
-	const FVector ScaledPtSize = InPoint.GetLocalBounds().GetSize() * InPoint.Transform.GetScale3D();
+	const FVector ScaledPtSize = InPoint.GetLocalBounds().GetSize() * InPoint.GetTransform().GetScale3D();
 	const FVector StSize = InBounds.GetSize();
 
 	const double XFactor = ScaledPtSize.X / StSize.X;
@@ -24,7 +24,7 @@ void FPCGExScaleToFitDetails::Process(const FPCGPoint& InPoint, const FBox& InBo
 	OutBounds.Min = InBounds.Min;
 	OutBounds.Max = InBounds.Max;
 
-	const FVector InScale = InPoint.Transform.GetScale3D();
+	const FVector InScale = InPoint.GetTransform().GetScale3D();
 
 	if (ScaleToFitMode == EPCGExFitMode::Uniform)
 	{
@@ -71,7 +71,7 @@ bool FPCGExSingleJustifyDetails::Init(FPCGExContext* InContext, const TSharedRef
 {
 	if (From == EPCGExJustifyFrom::Custom && FromInput == EPCGExInputValueType::Attribute)
 	{
-		FromGetter = InDataFacade->GetScopedBroadcaster<double>(FromSourceAttribute);
+		FromGetter = InDataFacade->GetBroadcaster<double>(FromSourceAttribute, true);
 		if (!FromGetter)
 		{
 			if (SharedFromGetter)
@@ -115,7 +115,7 @@ bool FPCGExSingleJustifyDetails::Init(FPCGExContext* InContext, const TSharedRef
 
 	if (To == EPCGExJustifyTo::Custom && FromInput == EPCGExInputValueType::Attribute)
 	{
-		ToGetter = InDataFacade->GetScopedBroadcaster<double>(FromSourceAttribute);
+		ToGetter = InDataFacade->GetBroadcaster<double>(FromSourceAttribute, true);
 		if (!ToGetter)
 		{
 			if (SharedToGetter)
@@ -212,12 +212,12 @@ bool FPCGExJustificationDetails::Init(FPCGExContext* InContext, const TSharedRef
 {
 	if (bSharedCustomFromAttribute)
 	{
-		SharedFromGetter = InDataFacade->GetScopedBroadcaster<FVector>(CustomFromVectorAttribute);
+		SharedFromGetter = InDataFacade->GetBroadcaster<FVector>(CustomFromVectorAttribute, true);
 	}
 
 	if (bSharedCustomToAttribute)
 	{
-		SharedToGetter = InDataFacade->GetScopedBroadcaster<FVector>(CustomToVectorAttribute);
+		SharedToGetter = InDataFacade->GetBroadcaster<FVector>(CustomToVectorAttribute, true);
 	}
 
 	if (bDoJustifyX)
@@ -271,9 +271,9 @@ void FPCGExFittingVariationsDetails::Init(const int InSeed)
 	bEnabledAfter = (Offset == EPCGExVariationMode::After || Rotation == EPCGExVariationMode::After || Scale == EPCGExVariationMode::After);
 }
 
-void FPCGExFittingVariationsDetails::Apply(FPCGPoint& InPoint, const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const
+void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, PCGExData::FProxyPoint& InPoint, const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const
 {
-	FRandomStream RandomSource(PCGExRandom::ComputeSeed(Seed, InPoint.Seed));
+	FRandomStream RandomSource(PCGExRandom::ComputeSeed(Seed, BaseSeed));
 
 	const FTransform SourceTransform = InPoint.Transform;
 	FTransform FinalTransform = SourceTransform;
@@ -329,4 +329,14 @@ bool FPCGExFittingDetailsHandler::Init(FPCGExContext* InContext, const TSharedRe
 {
 	TargetDataFacade = InTargetFacade;
 	return Justification.Init(InContext, InTargetFacade);
+}
+
+bool FPCGExFittingDetailsHandler::WillChangeBounds() const
+{
+	return ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
+}
+
+bool FPCGExFittingDetailsHandler::WillChangeTransform() const
+{
+	return ScaleToFit.ScaleToFitMode != EPCGExFitMode::None || Justification.bDoJustifyX || Justification.bDoJustifyY || Justification.bDoJustifyZ;
 }

@@ -15,7 +15,7 @@ bool FPCGExProbeAnisotropic::PrepareForPoints(const TSharedPtr<PCGExData::FPoint
 	return true;
 }
 
-void FPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
 	const double R = GetSearchRadius(Index);
@@ -35,7 +35,7 @@ void FPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 	{
 		for (int d = 0; d < 16; d++)
 		{
-			D[d] = Point.Transform.TransformVectorNoScale(Directions[d]);
+			D[d] = WorkingTransform.TransformVectorNoScale(Directions[d]);
 			BestDot[d] = MinDot;
 		}
 	}

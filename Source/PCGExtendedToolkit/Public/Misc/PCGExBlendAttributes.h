@@ -7,7 +7,8 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 
 
 #include "PCGExBlendAttributes.generated.h"
@@ -40,15 +41,14 @@ public:
 struct FPCGExBlendAttributesContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBlendAttributesElement;
-
-	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 };
 
 class FPCGExBlendAttributesElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BlendAttributes)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -71,7 +71,7 @@ namespace PCGExBlendAttributes
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		void BlendScope(const PCGExMT::FScope& InScope);
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Cleanup() override;
 	};

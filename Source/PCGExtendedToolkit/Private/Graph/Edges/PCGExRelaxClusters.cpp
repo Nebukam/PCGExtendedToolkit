@@ -45,6 +45,7 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExRelaxClusters::FBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
+				NewBatch->AllocateVtxProperties = EPCGPointNativeProperties::Transform;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -95,8 +96,10 @@ namespace PCGExRelaxClusters
 		TArray<FTransform>& PBufferRef = (*PrimaryBuffer);
 		TArray<FTransform>& SBufferRef = (*SecondaryBuffer);
 
-		const TArray<FPCGPoint>& Vtxs = VtxDataFacade->GetIn()->GetPoints();
-		for (int i = 0; i < NumNodes; i++) { PBufferRef[i] = SBufferRef[i] = Vtxs[Cluster->GetNode(i)->PointIndex].Transform; }
+		TArray<PCGExCluster::FNode> NodesRef = *Cluster->Nodes.Get();
+		TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
+
+		for (int i = 0; i < NumNodes; i++) { PBufferRef[i] = SBufferRef[i] = InTransforms[NodesRef[i].PointIndex]; }
 
 		RelaxOperation->ReadBuffer = PrimaryBuffer.Get();
 		RelaxOperation->WriteBuffer = SecondaryBuffer.Get();
@@ -146,10 +149,10 @@ namespace PCGExRelaxClusters
 
 		switch (StepSource)
 		{
-		case EPCGExClusterComponentSource::Vtx:
+		case EPCGExClusterElement::Vtx:
 			IterationGroup->StartSubLoops(NumNodes, 32);
 			break;
-		case EPCGExClusterComponentSource::Edge:
+		case EPCGExClusterElement::Edge:
 			IterationGroup->StartSubLoops(NumEdges, 32);
 			break;
 		}
@@ -162,21 +165,21 @@ namespace PCGExRelaxClusters
 
 #define PCGEX_RELAX_PROGRESS WBufferRef[i] = PCGExBlend::Lerp( RBufferRef[i], WBufferRef[i], InfluenceDetails.GetInfluence(Node.PointIndex));
 #define PCGEX_RELAX_STEP_NODE(_STEP) if (CurrentStep == _STEP-1){if(bLastStep){ \
-		for (int i = Scope.Start; i < Scope.End; i++){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_PROGRESS } \
-		}else{ for (int i = Scope.Start; i < Scope.End; i++){ RelaxOperation->Step##_STEP(*Cluster->GetNode(i)); }} return; }
+		PCGEX_SCOPE_LOOP(i){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_PROGRESS } \
+		}else{ PCGEX_SCOPE_LOOP(i){ RelaxOperation->Step##_STEP(*Cluster->GetNode(i)); }} return; }
 
-#define PCGEX_RELAX_STEP_EDGE(_STEP) if (CurrentStep == _STEP-1){ for (int i = Scope.Start; i < Scope.End; i++){ RelaxOperation->Step##_STEP(*Cluster->GetEdge(i)); } return; }
+#define PCGEX_RELAX_STEP_EDGE(_STEP) if (CurrentStep == _STEP-1){ PCGEX_SCOPE_LOOP(i){ RelaxOperation->Step##_STEP(*Cluster->GetEdge(i)); } return; }
 
 		const bool bLastStep = (CurrentStep == Steps) && InfluenceDetails.bProgressiveInfluence;
 
 		switch (StepSource)
 		{
-		case EPCGExClusterComponentSource::Vtx:
+		case EPCGExClusterElement::Vtx:
 			PCGEX_RELAX_STEP_NODE(1)
 			PCGEX_RELAX_STEP_NODE(2)
 			PCGEX_RELAX_STEP_NODE(3)
 			break;
-		case EPCGExClusterComponentSource::Edge:
+		case EPCGExClusterElement::Edge:
 			PCGEX_RELAX_STEP_EDGE(1)
 			PCGEX_RELAX_STEP_EDGE(2)
 			PCGEX_RELAX_STEP_EDGE(3)
@@ -194,29 +197,34 @@ namespace PCGExRelaxClusters
 		MaxDistanceValue = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		// Commit values
-		FPCGPoint& Point = VtxDataFacade->Source->GetMutablePoint(Node.PointIndex);
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 
-		TArray<FPCGPoint>& MutablePoints = VtxDataFacade->GetOut()->GetMutablePoints();
-		if (InfluenceDetails.bProgressiveInfluence)
+		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange(false);
+
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			Point.Transform = PCGExBlend::Lerp(
-				Point.Transform,
-				*(RelaxOperation->WriteBuffer->GetData() + Node.Index),
-				InfluenceDetails.GetInfluence(Node.PointIndex));
-		}
-		else
-		{
-			Point.Transform = *(RelaxOperation->WriteBuffer->GetData() + Node.Index);
-		}
+			PCGExCluster::FNode& Node = Nodes[Index];
 
-		const FVector DirectionAndSize = Point.Transform.GetLocation() - Cluster->GetPos(Node.Index);
+			if (InfluenceDetails.bProgressiveInfluence)
+			{
+				OutTransforms[Node.PointIndex] = PCGExBlend::Lerp(
+					OutTransforms[Node.PointIndex],
+					*(RelaxOperation->WriteBuffer->GetData() + Node.Index),
+					InfluenceDetails.GetInfluence(Node.PointIndex));
+			}
+			else
+			{
+				OutTransforms[Node.PointIndex] = *(RelaxOperation->WriteBuffer->GetData() + Node.Index);
+			}
 
-		PCGEX_OUTPUT_VALUE(DirectionAndSize, Node.PointIndex, DirectionAndSize)
-		PCGEX_OUTPUT_VALUE(Direction, Node.PointIndex, DirectionAndSize.GetSafeNormal())
-		PCGEX_OUTPUT_VALUE(Amplitude, Node.PointIndex, DirectionAndSize.Length())
+			const FVector DirectionAndSize = OutTransforms[Node.PointIndex].GetLocation() - Cluster->GetPos(Node.Index);
+
+			PCGEX_OUTPUT_VALUE(DirectionAndSize, Node.PointIndex, DirectionAndSize)
+			PCGEX_OUTPUT_VALUE(Direction, Node.PointIndex, DirectionAndSize.GetSafeNormal())
+			PCGEX_OUTPUT_VALUE(Amplitude, Node.PointIndex, DirectionAndSize.Length())
+		}
 	}
 
 	void FProcessor::OnNodesProcessingComplete()

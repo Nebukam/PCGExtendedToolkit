@@ -24,11 +24,7 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SplineToPath)
 
-#if PCGEX_ENGINE_VERSION < 506
-	if (Context->InputData.GetInputs().IsEmpty()) { return false; } //Get rid of errors and warning when there is no input
-#else
 	if (Context->InputData.GetAllInputs().IsEmpty()) { return false; } //Get rid of errors and warning when there is no input
-#endif
 
 	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGExSplineToPath::SourceSplineLabel);
 	PCGEX_FWD(TagForwarding)
@@ -138,9 +134,9 @@ namespace PCGExSplineToPath
 		const int32 NumSegments = Spline.GetNumberOfSplineSegments();
 		const double TotalLength = Spline.GetSplineLength();
 
-		TArray<FPCGPoint>& MutablePoints = PointDataFacade->Source->GetOut()->GetMutablePoints();
+		UPCGBasePointData* MutablePoints = PointDataFacade->Source->GetOut();
 		const int32 LastIndex = Spline.bClosedLoop ? NumSegments - 1 : NumSegments;
-		MutablePoints.SetNum(Spline.bClosedLoop ? NumSegments : NumSegments + 1);
+		PCGEx::SetNumPointsAllocated(MutablePoints, Spline.bClosedLoop ? NumSegments : NumSegments + 1);
 
 		PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_DECL)
 
@@ -149,28 +145,31 @@ namespace PCGExSplineToPath
 			PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_INIT)
 		}
 
-		auto ApplyTransform = [&](FPCGPoint& Point, const FTransform& Transform)
+		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange(false);
+		TPCGValueRange<int32> OutSeeds = MutablePoints->GetSeedValueRange(false);
+
+		auto ApplyTransform = [&](const int32 Index, const FTransform& Transform)
 		{
 			if (Settings->TransformDetails.bInheritRotation && Settings->TransformDetails.bInheritScale)
 			{
-				Point.Transform = Transform;
+				OutTransforms[Index] = Transform;
 			}
 			else if (Settings->TransformDetails.bInheritRotation)
 			{
-				Point.Transform.SetLocation(Transform.GetLocation());
-				Point.Transform.SetRotation(Transform.GetRotation());
+				OutTransforms[Index].SetLocation(Transform.GetLocation());
+				OutTransforms[Index].SetRotation(Transform.GetRotation());
 			}
 			else if (Settings->TransformDetails.bInheritScale)
 			{
-				Point.Transform.SetLocation(Transform.GetLocation());
-				Point.Transform.SetScale3D(Transform.GetScale3D());
+				OutTransforms[Index].SetLocation(Transform.GetLocation());
+				OutTransforms[Index].SetScale3D(Transform.GetScale3D());
 			}
 			else
 			{
-				Point.Transform.SetLocation(Transform.GetLocation());
+				OutTransforms[Index].SetLocation(Transform.GetLocation());
 			}
 
-			Point.Seed = PCGExRandom::ComputeSeed(Point);
+			OutSeeds[Index] = PCGExRandom::ComputeSpatialSeed(OutTransforms[Index].GetLocation());
 		};
 
 		auto GetPointType = [](EInterpCurveMode Mode)-> int32
@@ -194,7 +193,7 @@ namespace PCGExSplineToPath
 			const double LengthAtPoint = Spline.GetDistanceAlongSplineAtSplinePoint(i);
 			const FTransform SplineTransform = Spline.GetTransform();
 
-			ApplyTransform(MutablePoints[i], Spline.GetTransformAtDistanceAlongSpline(LengthAtPoint, ESplineCoordinateSpace::Type::World, true));
+			ApplyTransform(i, Spline.GetTransformAtDistanceAlongSpline(LengthAtPoint, ESplineCoordinateSpace::Type::World, true));
 
 			int32 PtType = -1;
 
@@ -213,7 +212,7 @@ namespace PCGExSplineToPath
 		{
 			if (Settings->bTagIfOpenSpline) { PointDataFacade->Source->Tags->AddRaw(Settings->IsOpenSplineTag); }
 
-			ApplyTransform(MutablePoints.Last(), Spline.GetTransformAtDistanceAlongSpline(TotalLength, ESplineCoordinateSpace::Type::World, true));
+			ApplyTransform(MutablePoints->GetNumPoints() - 1, Spline.GetTransformAtDistanceAlongSpline(TotalLength, ESplineCoordinateSpace::Type::World, true));
 
 			PCGEX_OUTPUT_VALUE(LengthAtPoint, LastIndex, TotalLength);
 			PCGEX_OUTPUT_VALUE(Alpha, LastIndex, 1);

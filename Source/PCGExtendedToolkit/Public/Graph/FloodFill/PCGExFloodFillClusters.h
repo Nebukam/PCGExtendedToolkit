@@ -7,7 +7,7 @@
 #include "PCGExDetailsData.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExDataForward.h"
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"
@@ -130,7 +130,7 @@ public:
 #pragma endregion
 
 	/** Which Seed attributes to forward on the vtx they diffused to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable, EditCondition="Seeds==EPCGExFloodFillSource::Points"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta = (PCG_Overridable))
 	FPCGExForwardDetails SeedForwarding = FPCGExForwardDetails(true);
 
 
@@ -155,7 +155,7 @@ struct FPCGExClusterDiffusionContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExClusterDiffusionElement;
 
-	TArray<TObjectPtr<const UPCGExAttributeBlendFactory>> BlendingFactories;
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 	TArray<TObjectPtr<const UPCGExFillControlsFactoryData>> FillControlFactories;
 
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
@@ -173,7 +173,7 @@ class FPCGExClusterDiffusionElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ClusterDiffusion)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -222,7 +222,7 @@ namespace PCGExClusterDiffusion
 		void StartGrowth();
 		void Grow();
 
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
 		virtual void CompleteWork() override;

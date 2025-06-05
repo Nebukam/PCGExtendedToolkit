@@ -74,75 +74,67 @@ namespace PCGExFuseCollinear
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 
-		Path = PCGExPaths::MakePath(
-			PointDataFacade->Source->GetIn()->GetPoints(), 0,
-			Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
-
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
-		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
-		OutPoints->Reserve(Path->NumPoints);
-
+		ReadIndices.Reserve(Path->NumPoints);
 		LastPosition = Path->GetPos(0);
 
 		bDaisyChainProcessPoints = true;
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::FuseCollinear::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
 		// Preserve start & end
 		PointFilterCache[0] = true;
 		if (!Path->IsClosedLoop()) { PointFilterCache[Path->LastIndex] = true; } // Don't force-preserve last point if closed loop
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-#define PCGEX_INSERT_CURRENT_POINT\
-		OutPoints->Add(Point);\
-		LastPosition = Path->GetPos(Index);
-
-		if (PointFilterCache[Index])
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			// Kept point, as per filters
-			PCGEX_INSERT_CURRENT_POINT
-			return;
+			if (PointFilterCache[Index])
+			{
+				// Kept point, as per filters
+				ReadIndices.Add(Index);
+				LastPosition = Path->GetPos(Index);
+				continue;
+			}
+
+			const FVector CurrentPos = Path->GetPos(Index);
+			if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, CurrentPos) <= Context->FuseDistSquared)
+			{
+				// Collocated points
+				continue;
+			}
+
+			// Use last position to avoid removing smooth arcs
+			const double Dot = FVector::DotProduct((CurrentPos - LastPosition).GetSafeNormal(), Path->DirToNextPoint(Index));
+			if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
+				(Settings->bInvertThreshold && Dot < Context->DotThreshold))
+			{
+				// Collinear with previous, keep moving
+				continue;
+			}
+
+			ReadIndices.Add(Index);
+			LastPosition = Path->GetPos(Index);
 		}
-
-		const FVector CurrentPos = Path->GetPos(Index);
-		if (Settings->bFuseCollocated && FVector::DistSquared(LastPosition, CurrentPos) <= Context->FuseDistSquared)
-		{
-			// Collocated points
-			return;
-		}
-
-		// Use last position to avoid removing smooth arcs
-		const double Dot = FVector::DotProduct((CurrentPos - LastPosition).GetSafeNormal(), Path->DirToNextPoint(Index));
-		if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
-			(Settings->bInvertThreshold && Dot < Context->DotThreshold))
-		{
-			// Collinear with previous, keep moving
-			return;
-		}
-
-		PCGEX_INSERT_CURRENT_POINT
-
-#undef PCGEX_INSERT_CURRENT_POINT
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		OutPoints->Shrink();
-		if (Settings->bOmitInvalidPathsFromOutput && OutPoints->Num() < 2)
-		{
-			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
-		}
+		if (ReadIndices.Num() < 2) { return; }
+
+		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
+
+		PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), ReadIndices.Num());
+		PointDataFacade->Source->InheritPoints(ReadIndices, 0);
 	}
 }
 

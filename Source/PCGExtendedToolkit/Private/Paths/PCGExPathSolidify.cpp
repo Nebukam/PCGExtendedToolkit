@@ -3,9 +3,6 @@
 
 #include "Paths/PCGExPathSolidify.h"
 
-#include "PCGExDataMath.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExPathSolidifyElement"
 #define PCGEX_NAMESPACE PathSolidify
 
@@ -70,87 +67,94 @@ namespace PCGExPathSolidify
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn()->GetPoints(), 0, bClosedLoop);
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0, bClosedLoop);
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 
+		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointDataFacade->GetOut()->SetNumPoints(Path->LastIndex); }
+
+		PointDataFacade->GetOut()->AllocateProperties(
+			EPCGPointNativeProperties::Transform |
+			EPCGPointNativeProperties::BoundsMin |
+			EPCGPointNativeProperties::BoundsMax);
+
 #define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){\
 		SolidificationRad##_AXIS = PCGExDetails::MakeSettingValue(Settings->Radius##_AXIS##Input, Settings->Radius##_AXIS##SourceAttribute, Settings->Radius##_AXIS##Constant);\
-		if (SolidificationRad##_AXIS && !SolidificationRad##_AXIS->Init(Context, PointDataFacade, false)){ return false; }}
+		if (!SolidificationRad##_AXIS->Init(Context, PointDataFacade, false)){ return false; }}
 		PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_SET_CONST)
 #undef PCGEX_CREATE_LOCAL_AXIS_SET_CONST
 
 		SolidificationLerp = Settings->GetValueSettingSolidificationLerp();
 		if (!SolidificationLerp->Init(Context, PointDataFacade, false)) { return false; }
 
-		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointIO->GetOut()->GetMutablePoints().RemoveAt(Path->LastIndex); }
-
 		StartParallelLoopForPoints();
 
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PathSolidify::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		if (!Path->IsValidEdgeIndex(Index)) { return; }
+		TPCGValueRange<FTransform> Transforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+		TPCGValueRange<FVector> BoundsMin = PointDataFacade->GetOut()->GetBoundsMinValueRange(false);
+		TPCGValueRange<FVector> BoundsMax = PointDataFacade->GetOut()->GetBoundsMaxValueRange(false);
 
-		const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
-		Path->ComputeEdgeExtra(Index);
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			if (!Path->IsValidEdgeIndex(Index)) { continue; }
 
-		const double Length = PathLength->Get(Index);
+			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
+			Path->ComputeEdgeExtra(Index);
 
-		FRotator EdgeRot;
-		FVector TargetBoundsMin = Point.BoundsMin;
-		FVector TargetBoundsMax = Point.BoundsMax;
+			const double Length = PathLength->Get(Index);
 
-		const double EdgeLerp = FMath::Clamp(SolidificationLerp->Read(Index), 0, 1);
-		const double EdgeLerpInv = 1 - EdgeLerp;
-		bool bProcessAxis;
+			FRotator EdgeRot;
+			FVector TargetBoundsMin = BoundsMin[Index];
+			FVector TargetBoundsMax = BoundsMax[Index];
 
-		const FVector PtScale = Point.Transform.GetScale3D();
-		const FVector InvScale = FVector::One() / PtScale;
+			const double EdgeLerp = FMath::Clamp(SolidificationLerp->Read(Index), 0, 1);
+			const double EdgeLerpInv = 1 - EdgeLerp;
 
-		//SolidificationRad##_AXIS.IsValid();
+			const FVector PtScale = Transforms[Index].GetScale3D();
+			const FVector InvScale = FVector::One() / PtScale;
+
+			//SolidificationRad##_AXIS.IsValid();
 
 #define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
-		bProcessAxis = Settings->bWriteRadius##_AXIS || Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS; \
-		if (bProcessAxis){\
-			if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
-				TargetBoundsMin._AXIS = (-Length * EdgeLerp)* InvScale._AXIS;\
-				TargetBoundsMax._AXIS = (Length * EdgeLerpInv) * InvScale._AXIS;\
-			}else{\
-				const double Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Index), SolidificationRad##_AXIS->Read(Index), EdgeLerpInv); \
-				TargetBoundsMin._AXIS = (-Rad) * InvScale._AXIS;\
-				TargetBoundsMax._AXIS = (Rad) * InvScale._AXIS;\
-			}\
-		}
+if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
+TargetBoundsMin._AXIS = (-Length * EdgeLerp)* InvScale._AXIS;\
+TargetBoundsMax._AXIS = (Length * EdgeLerpInv) * InvScale._AXIS;\
+}else if(Settings->bWriteRadius##_AXIS){\
+const double Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Index), SolidificationRad##_AXIS->Read(Index), EdgeLerpInv); \
+TargetBoundsMin._AXIS = (-Rad) * InvScale._AXIS;\
+TargetBoundsMax._AXIS = (Rad) * InvScale._AXIS;\
+}
 
-		PCGEX_FOREACH_XYZ(PCGEX_SOLIDIFY_DIMENSION)
+			PCGEX_FOREACH_XYZ(PCGEX_SOLIDIFY_DIMENSION)
 #undef PCGEX_SOLIDIFY_DIMENSION
 
-		switch (Settings->SolidificationAxis)
-		{
-		default:
-		case EPCGExMinimalAxis::X:
-			EdgeRot = FRotationMatrix::MakeFromX(Edge.Dir).Rotator();
-			break;
-		case EPCGExMinimalAxis::Y:
-			EdgeRot = FRotationMatrix::MakeFromY(Edge.Dir).Rotator();
-			break;
-		case EPCGExMinimalAxis::Z:
-			EdgeRot = FRotationMatrix::MakeFromZ(Edge.Dir).Rotator();
-			break;
+			switch (Settings->SolidificationAxis)
+			{
+			default:
+			case EPCGExMinimalAxis::X:
+				EdgeRot = FRotationMatrix::MakeFromX(Edge.Dir).Rotator();
+				break;
+			case EPCGExMinimalAxis::Y:
+				EdgeRot = FRotationMatrix::MakeFromY(Edge.Dir).Rotator();
+				break;
+			case EPCGExMinimalAxis::Z:
+				EdgeRot = FRotationMatrix::MakeFromZ(Edge.Dir).Rotator();
+				break;
+			}
+
+			Transforms[Index] = FTransform(EdgeRot, Path->GetEdgePositionAtAlpha(Index, EdgeLerp), Transforms[Index].GetScale3D());
+
+			BoundsMin[Index] = TargetBoundsMin;
+			BoundsMax[Index] = TargetBoundsMax;
 		}
-
-		Point.Transform = FTransform(EdgeRot, Path->GetEdgePositionAtAlpha(Index, EdgeLerp), Point.Transform.GetScale3D());
-
-		Point.BoundsMin = TargetBoundsMin;
-		Point.BoundsMax = TargetBoundsMax;
 	}
 }
 

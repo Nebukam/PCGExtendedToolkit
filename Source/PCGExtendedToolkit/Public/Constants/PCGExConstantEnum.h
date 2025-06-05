@@ -7,7 +7,6 @@
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExContext.h"
-#include "PCGParamData.h"
 #include "Elements/ControlFlow/PCGControlFlow.h"
 #include "PCGExConstantEnum.generated.h"
 
@@ -66,11 +65,7 @@ public:
 #endif
 
 	virtual void FillEnabledExportValues();
-
-#if PCGEX_ENGINE_VERSION >= 505
-	// This does not exist in 5.4
 	virtual void OnOverrideSettingsDuplicatedInternal(bool bSkippedPostLoad) override;
-#endif
 
 	virtual bool HasDynamicPins() const override { return true; };
 
@@ -176,5 +171,4 @@ protected:
 		FPCGExBitmask& OutBitflags);
 
 	virtual FPCGContext* CreateContext() override { return new FPCGExContext(); }
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
 };

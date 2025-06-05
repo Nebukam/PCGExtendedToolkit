@@ -8,7 +8,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
-bool UPCGExSearchAStar::ResolveQuery(
+bool FPCGExSearchOperationAStar::ResolveQuery(
 	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
 	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
 	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
@@ -28,7 +28,7 @@ bool UPCGExSearchAStar::ResolveQuery(
 	TBitArray<> Visited;
 	Visited.Init(false, NumNodes);
 
-	const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FArrayHashLookup>(PCGEx::NH64(-1, -1), NumNodes);
+	const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupArray>(PCGEx::NH64(-1, -1), NumNodes);
 
 	TArray<double> GScore;
 	GScore.Init(-1, NumNodes);

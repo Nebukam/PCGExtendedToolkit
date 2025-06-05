@@ -98,7 +98,7 @@ namespace PCGExSplitPath
 					PCGEX_ASYNC_THIS \
 					This->PointDataFacade->Fetch(Scope);\
 					This->FilterScope(Scope);\
-					for (int i = Scope.Start; i < Scope.End; i++) { This->_NAME(i); } };
+					PCGEX_SCOPE_LOOP(i) { This->_NAME(i); } };
 
 		if (Settings->SplitAction == EPCGExPathSplitAction::Partition ||
 			Settings->SplitAction == EPCGExPathSplitAction::Switch)
@@ -307,46 +307,53 @@ namespace PCGExSplitPath
 		ClosePath();
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const FPath& PathInfos = Paths[Iteration];
-
-		//if (PathInfos.Count < 1 || PathInfos.Start == -1) { return; }                                    // This should never happen
-		//if (PathInfos.End == -1 && (PathInfos.Start + PathInfos.Count) != PointIO->GetNum()) { return; } // This should never happen
-
-		if (Iteration == 0 && bWrapLastPath) { return; }
-		const bool bLastPath = PathInfos.End == -1;
-
-		const bool bAppendStartPath = bWrapLastPath && bLastPath;
-		int32 NumPathPoints = bAppendStartPath ? PathInfos.Count + Paths[0].Count : PathInfos.Count;
-		int32 NumIterations = PathInfos.Count;
-
-		if (!bAppendStartPath && bLastPath && bClosedLoop)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			// First point added last
-			NumPathPoints++;
-			NumIterations++;
-		}
+			const FPath& PathInfos = Paths[Index];
 
-		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
+			//if (PathInfos.Count < 1 || PathInfos.Start == -1) { continue; }                                    // This should never happen
+			//if (PathInfos.End == -1 && (PathInfos.Start + PathInfos.Count) != PointIO->GetNum()) { continue; } // This should never happen
 
-		const TSharedPtr<PCGExData::FPointIO> PathIO = NewPointIO(PointDataFacade->Source);
-		PCGEX_INIT_IO_VOID(PathIO, PCGExData::EIOInit::New)
+			if (Index == 0 && bWrapLastPath) { continue; }
+			const bool bLastPath = PathInfos.End == -1;
 
-		PathsIOs[Iteration] = PathIO;
+			const bool bAppendStartPath = bWrapLastPath && bLastPath;
+			int32 NumPathPoints = bAppendStartPath ? PathInfos.Count + Paths[0].Count : PathInfos.Count;
+			int32 NumIterations = PathInfos.Count;
 
-		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
-		PCGEx::InitArray(MutablePoints, NumPathPoints);
+			if (!bAppendStartPath && bLastPath && bClosedLoop)
+			{
+				// First point added last
+				NumPathPoints++;
+				NumIterations++;
+			}
 
-		const int32 IndexWrap = OriginalPoints.Num();
-		for (int i = 0; i < NumIterations; i++) { MutablePoints[i] = OriginalPoints[(PathInfos.Start + i) % IndexWrap]; }
+			if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { continue; }
 
-		if (bAppendStartPath)
-		{
-			// There was a cut somewhere in the closed path.
-			const FPath& StartPathInfos = Paths[0];
-			for (int i = 0; i < StartPathInfos.Count; i++) { MutablePoints[PathInfos.Count + i] = OriginalPoints[StartPathInfos.Start + i]; }
+			const TSharedPtr<PCGExData::FPointIO> PathIO = NewPointIO(PointDataFacade->Source);
+			PCGEX_INIT_IO_VOID(PathIO, PCGExData::EIOInit::New)
+
+			PathsIOs[Index] = PathIO;
+
+			const UPCGBasePointData* OriginalPoints = PointDataFacade->GetIn();
+			UPCGBasePointData* MutablePoints = PathIO->GetOut();
+			PCGEx::SetNumPointsAllocated(MutablePoints, NumPathPoints);
+
+			TArray<int32>& IdxMapping = PathIO->GetIdxMapping();
+
+			const int32 IndexWrap = OriginalPoints->GetNumPoints();
+			for (int i = 0; i < NumIterations; i++) { IdxMapping[i] = (PathInfos.Start + i) % IndexWrap; }
+
+			if (bAppendStartPath)
+			{
+				// There was a cut somewhere in the closed path.
+				const FPath& StartPathInfos = Paths[0];
+				for (int i = 0; i < StartPathInfos.Count; i++) { IdxMapping[PathInfos.Count + i] = StartPathInfos.Start + i; }
+			}
+
+			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
 		}
 	}
 

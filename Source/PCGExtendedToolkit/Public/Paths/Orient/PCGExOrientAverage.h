@@ -7,26 +7,37 @@
 #include "PCGExOrientOperation.h"
 #include "PCGExOrientAverage.generated.h"
 
-/**
- * 
- */
-UCLASS(MinimalAPI, DisplayName = "Average")
-class UPCGExOrientAverage : public UPCGExOrientOperation
+class FPCGExOrientAverage : public FPCGExOrientOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual FTransform ComputeOrientation(
-		const PCGExData::FPointRef& Point,
+		const PCGExData::FConstPoint& Point,
 		const double DirectionMultiplier) const override
 	{
 		const FVector A = Path->DirToNextPoint(Point.Index);
 		const FVector B = Path->DirToPrevPoint(Point.Index) * -1;
-		FTransform OutT = Point.Point->Transform;
+		FTransform OutT = Point.GetTransform();
 		OutT.SetRotation(
 			PCGExMath::MakeDirection(
-				OrientAxis, FMath::Lerp(A, B, 0.5).GetSafeNormal() * DirectionMultiplier,
-				PCGExMath::GetDirection(UpAxis)));
+				Factory->OrientAxis, FMath::Lerp(A, B, 0.5).GetSafeNormal() * DirectionMultiplier,
+				PCGExMath::GetDirection(Factory->UpAxis)));
 		return OutT;
+	}
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, DisplayName = "Average")
+class UPCGExOrientAverage : public UPCGExOrientInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual TSharedPtr<FPCGExOrientOperation> CreateOperation() const override
+	{
+		PCGEX_FACTORY_NEW_OPERATION(OrientAverage)
+		NewOperation->Factory = this;
+		return NewOperation;
 	}
 };

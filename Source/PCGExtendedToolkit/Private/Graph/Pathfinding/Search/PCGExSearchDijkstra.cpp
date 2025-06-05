@@ -9,12 +9,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
-void UPCGExSearchDijkstra::CopySettingsFrom(const UPCGExInstancedFactory* Other)
-{
-	Super::CopySettingsFrom(Other);
-}
-
-bool UPCGExSearchDijkstra::ResolveQuery(
+bool FPCGExSearchOperationDijkstra::ResolveQuery(
 	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
 	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
 	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
@@ -34,7 +29,7 @@ bool UPCGExSearchDijkstra::ResolveQuery(
 	TBitArray<> Visited;
 	Visited.Init(false, NumNodes);
 
-	const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FArrayHashLookup>(PCGEx::NH64(-1, -1), NumNodes);
+	const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupArray>(PCGEx::NH64(-1, -1), NumNodes);
 
 	const TUniquePtr<PCGExSearch::FScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::FScoredQueue>(
 		NumNodes, SeedNode.Index, 0);

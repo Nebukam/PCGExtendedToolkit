@@ -167,6 +167,20 @@ enum class EPCGExTruncateMode : uint8
 
 namespace PCGEx
 {
+
+#if WITH_EDITOR
+	const FString META_PCGExDocURL = TEXT("PCGExNodeLibraryDoc");
+#endif
+	
+	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMeta =
+		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::MetadataEntry));
+
+	constexpr EPCGPointNativeProperties AllPointNativePropertiesButTransform =
+		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::Transform));
+
+	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMetaAndTransform =
+		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Transform));
+
 	const FName PreviousAttributeName = TEXT("#Previous");
 	const FName PreviousNameAttributeName = TEXT("#PreviousName");
 
@@ -202,7 +216,7 @@ namespace PCGEx
 	static FName MakePCGExAttributeName(const FString& Str0, const FString& Str1) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}/{2}")), FText::FromString(PCGExPrefix), FText::FromString(Str0), FText::FromString(Str1)).ToString()); }
 
 	PCGEXTENDEDTOOLKIT_API
-	bool IsValidName(const FName Name);
+	bool IsWritableAttributeName(const FName Name);
 	PCGEXTENDEDTOOLKIT_API
 	FString StringTagFromName(const FName Name);
 	PCGEXTENDEDTOOLKIT_API
@@ -212,7 +226,11 @@ namespace PCGEx
 	double TruncateDbl(const double Value, const EPCGExTruncateMode Mode);
 
 	PCGEXTENDEDTOOLKIT_API
-	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum);
+	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum, const int32 Offset = 0);
+	PCGEXTENDEDTOOLKIT_API
+	int32 ArrayOfIndices(TArray<int32>& OutArray, const TArrayView<const int8>& Mask, const int32 Offset, const bool bInvert = false);
+	PCGEXTENDEDTOOLKIT_API
+	int32 ArrayOfIndices(TArray<int32>& OutArray, const TBitArray<>& Mask, const int32 Offset, const bool bInvert = false);
 
 	PCGEXTENDEDTOOLKIT_API
 	FName GetCompoundName(const FName A, const FName B);
@@ -221,6 +239,12 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API
 	void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes);
+
+	struct PCGEXTENDEDTOOLKIT_API FOpStats
+	{
+		int32 Count = 0;
+		double Weight = 0;
+	};
 
 	struct PCGEXTENDEDTOOLKIT_API FIndexedItem
 	{

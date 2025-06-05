@@ -32,13 +32,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSwapAttributePairDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName FirstAttributeName = NAME_None;
 	PCGEx::FAttributeIdentity* FirstIdentity = nullptr;
-	TSharedPtr<PCGExData::FBufferBase> FirstWriter;
+	TSharedPtr<PCGExData::IBuffer> FirstWriter;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName SecondAttributeName = NAME_None;
 	PCGEx::FAttributeIdentity* SecondIdentity = nullptr;
-	TSharedPtr<PCGExData::FBufferBase> SecondWriter;
+	TSharedPtr<PCGExData::IBuffer> SecondWriter;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -117,7 +117,7 @@ class FPCGExReversePointOrderElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ReversePointOrder)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -127,7 +127,7 @@ namespace PCGExReversePointOrder
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExReversePointOrderContext, UPCGExReversePointOrderSettings>
 	{
 		TArray<FPCGExSwapAttributePairDetails> SwapPairs;
-		TSharedPtr<PCGExSorting::PointSorter<false, true>> Sorter;
+		TSharedPtr<PCGExSorting::TPointSorter<true>> Sorter;
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
@@ -146,7 +146,7 @@ namespace PCGExReversePointOrder
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};
 }

@@ -8,10 +8,10 @@
 #include "PCGExGraph.h"
 #include "PCGExEdge.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+
 
 #include "PCGExIntersections.generated.h"
 
@@ -120,21 +120,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 	void SetIsInside(const int32 PointIndex, const bool bIsInside, const int32 BoundIndex) const
 	{
 		if (InsideForwardHandler && bIsInside) { InsideForwardHandler->Forward(BoundIndex, PointIndex); }
-		if (IsInsideWriter) { IsInsideWriter->GetMutable(PointIndex) = bIsInside; }
+		if (IsInsideWriter) { IsInsideWriter->SetValue(PointIndex, bIsInside); }
 	}
 
 	void SetIsInside(const int32 PointIndex, const bool bIsInside) const
 	{
-		if (IsInsideWriter) { IsInsideWriter->GetMutable(PointIndex) = bIsInside; }
+		if (IsInsideWriter) { IsInsideWriter->SetValue(PointIndex, bIsInside); }
 	}
 
 	void SetIntersection(const int32 PointIndex, const FVector& Normal, const int32 BoundIndex) const
 	{
 		if (IntersectionForwardHandler) { IntersectionForwardHandler->Forward(BoundIndex, PointIndex); }
 
-		if (IsIntersectionWriter) { IsIntersectionWriter->GetMutable(PointIndex) = true; }
-		if (NormalWriter) { NormalWriter->GetMutable(PointIndex) = Normal; }
-		if (BoundIndexWriter) { BoundIndexWriter->GetMutable(PointIndex) = BoundIndex; }
+		if (IsIntersectionWriter) { IsIntersectionWriter->SetValue(PointIndex, true); }
+		if (NormalWriter) { NormalWriter->SetValue(PointIndex, Normal); }
+		if (BoundIndexWriter) { BoundIndexWriter->SetValue(PointIndex, BoundIndex); }
 	}
 };
 
@@ -150,14 +150,14 @@ namespace PCGExGraph
 		mutable FRWLock AdjacencyLock;
 
 	public:
-		const FPCGPoint Point;
+		const PCGExData::FConstPoint Point;
 		FVector Center;
 		FBoxSphereBounds Bounds;
 		int32 Index;
 
 		TSet<int32> Adjacency;
 
-		FUnionNode(const FPCGPoint& InPoint, const FVector& InCenter, const int32 InIndex);
+		FUnionNode(const PCGExData::FConstPoint& InPoint, const FVector& InCenter, const int32 InIndex);
 		~FUnionNode() = default;
 
 		FVector UpdateCenter(const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup);
@@ -196,14 +196,10 @@ namespace PCGExGraph
 		int32 NumNodes() const { return NodesUnion->Num(); }
 		int32 NumEdges() const { return EdgesUnion->Num(); }
 
-		TSharedPtr<FUnionNode> InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		TSharedPtr<FUnionNode> InsertPoint_Unsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		TSharedPtr<PCGExData::FUnionData> InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                             const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                             const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
-		TSharedPtr<PCGExData::FUnionData> InsertEdge_Unsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                                    const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                                    const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		TSharedPtr<FUnionNode> InsertPoint(const PCGExData::FConstPoint& Point);
+		TSharedPtr<FUnionNode> InsertPoint_Unsafe(const PCGExData::FConstPoint& Point);
+		TSharedPtr<PCGExData::FUnionData> InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
+		TSharedPtr<PCGExData::FUnionData> InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
 		void GetUniqueEdges(TArray<FEdge>& OutEdges);
 		void WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const;
@@ -283,7 +279,7 @@ namespace PCGExGraph
 	void FindCollinearNodes(
 		const TSharedPtr<FPointEdgeIntersections>& InIntersections,
 		const int32 EdgeIndex,
-		const UPCGPointData* PointsData);
+		const UPCGBasePointData* PointsData);
 
 #pragma endregion
 
@@ -301,13 +297,11 @@ namespace PCGExGraph
 	struct PCGEXTENDEDTOOLKIT_API FEECrossing
 	{
 		int32 NodeIndex = -1;
-		int32 EdgeA = -1;
-		int32 EdgeB = -1;
 		FEESplit Split;
 
 		explicit FEECrossing(const FEESplit& InSplit);
 
-		FORCEINLINE double GetTime(const int32 EdgeIndex) const { return EdgeIndex == EdgeA ? Split.TimeA : Split.TimeB; }
+		FORCEINLINE double GetTime(const int32 EdgeIndex) const { return EdgeIndex == Split.A ? Split.TimeA : Split.TimeB; }
 
 		bool operator==(const FEECrossing& Other) const { return NodeIndex == Other.NodeIndex; }
 	};
@@ -318,7 +312,6 @@ namespace PCGExGraph
 		TArray<int32> Intersections;
 
 		double LengthSquared = -1;
-		double ToleranceSquared = -1;
 		FBox Box = FBox(NoInit);
 		FBoxSphereBounds Bounds = FBoxSphereBounds{};
 
@@ -345,7 +338,7 @@ namespace PCGExGraph
 
 		~FEdgeEdgeProxy() = default;
 
-		bool FindSplit(const FEdgeEdgeProxy& OtherEdge, TArray<FEESplit>& OutSplits) const;
+		bool FindSplit(const FEdgeEdgeProxy& OtherEdge, TArray<FEESplit>& OutSplits, const FPCGExEdgeEdgeIntersectionDetails* InIntersectionDetails) const;
 	};
 
 	PCGEX_OCTREE_SEMANTICS(FEdgeEdgeProxy, { return Element->Bounds;}, { return A == B; })
@@ -378,7 +371,7 @@ namespace PCGExGraph
 		bool InsertNodes() const;
 		void InsertEdges();
 
-		void BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender) const;
+		void BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender, TArray<PCGEx::FOpStats>& Trackers) const;
 
 		~FEdgeEdgeIntersections() = default;
 	};

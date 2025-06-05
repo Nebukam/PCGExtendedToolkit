@@ -594,15 +594,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStaticMeshComponentDescriptor : public FPCGE
 	virtual void InitComponent(UPrimitiveComponent* InComponent) const override;
 };
 
-
-UENUM(BlueprintType)
-enum class EPCGExDynamicMeshComponentDistanceFieldMode : uint8
-{
-	NoDistanceField       = 0 UMETA(DisplayName = "No Distance Field"),
-	AsyncCPUDistanceField = 1 UMETA(DisplayName = "Async CPU Distance Field"),
-};
-
-
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Dynamic Mesh Component Descriptor")
 struct PCGEXTENDEDTOOLKIT_API FPCGExDynamicMeshDescriptor : public FPCGExMeshComponentDescriptor
 {
@@ -616,9 +607,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDynamicMeshDescriptor : public FPCGExMeshCom
 	FPCGExDynamicMeshDescriptor();
 
 #pragma region Properties
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Dynamic Mesh Component|Rendering", meta = (PCG_Overridable))
-	EPCGExDynamicMeshComponentDistanceFieldMode DistanceFieldMode = EPCGExDynamicMeshComponentDistanceFieldMode::NoDistanceField;
 
 	/**
 	 *	Controls whether the physics cooking should be done off the game thread.

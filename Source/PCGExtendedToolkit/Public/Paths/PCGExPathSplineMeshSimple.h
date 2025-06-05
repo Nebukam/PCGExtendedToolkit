@@ -10,7 +10,7 @@
 #include "Collections/PCGExAssetLoader.h"
 #include "Collections/PCGExMeshCollection.h"
 
-#include "Tangents/PCGExTangentsOperation.h"
+#include "Tangents/PCGExTangentsInstancedFactory.h"
 #include "Components/SplineMeshComponent.h"
 
 
@@ -19,7 +19,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/spline-mesh/spline-mesh-simple"))
 class UPCGExPathSplineMeshSimpleSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -146,7 +146,6 @@ struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 
 	TSharedPtr<PCGEx::TAssetLoader<UStaticMesh>> StaticMeshLoader;
 
-	UPROPERTY()
 	TObjectPtr<UStaticMesh> StaticMesh;
 };
 
@@ -201,8 +200,8 @@ namespace PCGExPathSplineMeshSimple
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+
 		virtual void CompleteWork() override;
 
 		virtual void Output() override;

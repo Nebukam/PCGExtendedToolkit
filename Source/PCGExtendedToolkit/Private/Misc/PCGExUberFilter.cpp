@@ -115,7 +115,7 @@ namespace PCGExUberFilter
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, Settings->Mode == EPCGExUberFilterMode::Write ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::None)
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->Mode == EPCGExUberFilterMode::Write ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::NoInit)
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
@@ -126,32 +126,68 @@ namespace PCGExUberFilter
 			PCGEx::InitArray(PointFilterCache, PointDataFacade->GetNum());
 		}
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
-		PointDataFacade->Fetch(Scope);
-		FilterScope(Scope);
+		if (!Results)
+		{
+			const int32 MaxRange = PCGExMT::FScope::GetMaxRange(Loops);
+
+			IndicesInside = MakeShared<PCGExMT::TScopedArray<int32>>(Loops);
+			IndicesInside->Reserve(MaxRange);
+
+			IndicesOutside = MakeShared<PCGExMT::TScopedArray<int32>>(Loops);
+			IndicesOutside->Reserve(MaxRange);
+		}
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		int8 bPass = PointFilterCache[Index];
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::UberFilter::ProcessPoints);
 
-		if (bPass) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
-		else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
+		PointDataFacade->Fetch(Scope);
+		FilterScope(Scope);
 
-		if (!Results) { return; }
-		Results->GetMutable(Index) = bPass ? !Settings->bSwap : Settings->bSwap;
+		if (!Results)
+		{
+			TArray<int32>& IndicesInsideRef = IndicesInside->Get_Ref(Scope);
+			TArray<int32>& IndicesOutsideRef = IndicesOutside->Get_Ref(Scope);
+
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				const int8 bPass = PointFilterCache[Index];
+
+				if (bPass) { IndicesInsideRef.Add(Index); }
+				else { IndicesOutsideRef.Add(Index); }
+
+				if (bPass) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
+				else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
+			}
+		}
+		else
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				const int8 bPass = PointFilterCache[Index];
+
+				if (bPass) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
+				else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
+
+				Results->SetValue(Index, bPass ? !Settings->bSwap : Settings->bSwap);
+			}
+		}
 	}
 
 	TSharedPtr<PCGExData::FPointIO> FProcessor::CreateIO(const TSharedRef<PCGExData::FPointIOCollection>& InCollection, const PCGExData::EIOInit InitMode) const
 	{
 		TSharedPtr<PCGExData::FPointIO> NewPointIO = PCGExData::NewPointIO(PointDataFacade->Source, InCollection->OutputPin);
+
 		if (!NewPointIO->InitializeOutput(InitMode)) { return nullptr; }
+
 		InCollection->Pairs[BatchIndex] = NewPointIO;
 		return NewPointIO;
 	}
@@ -195,28 +231,25 @@ namespace PCGExUberFilter
 		TArray<int32> Indices;
 		PCGEx::InitArray(Indices, NumPoints);
 
-		NumInside = NumOutside = 0;
-		for (int i = 0; i < NumPoints; i++) { Indices[i] = PointFilterCache[i] ? NumInside++ : NumOutside++; }
-
-		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
+		TArray<int32> ReadIndices;
+		IndicesInside->Collapse(ReadIndices);
 
 		Inside = CreateIO(Context->Inside.ToSharedRef(), PCGExData::EIOInit::New);
 		if (!Inside) { return; }
-		TArray<FPCGPoint>& InsidePoints = Inside->GetOut()->GetMutablePoints();
-		PCGEx::InitArray(InsidePoints, NumInside);
 
-		Outside = CreateIO(Context->Outside.ToSharedRef(), PCGExData::EIOInit::New);
-		if (!Outside) { return; }
-		TArray<FPCGPoint>& OutsidePoints = Outside->GetOut()->GetMutablePoints();
-		PCGEx::InitArray(OutsidePoints, NumOutside);
+		PCGEx::SetNumPointsAllocated(Inside->GetOut(), ReadIndices.Num());
+		Inside->InheritProperties(ReadIndices, EPCGPointNativeProperties::All);
 
 		if (Settings->bTagIfAnyPointPassed) { Inside->Tags->AddRaw(Settings->HasAnyPointPassedTag); }
 
-		for (int i = 0; i < NumPoints; i++)
-		{
-			if (PointFilterCache[i]) { InsidePoints[Indices[i]] = OriginalPoints[i]; }
-			else { OutsidePoints[Indices[i]] = OriginalPoints[i]; }
-		}
+		ReadIndices.Reset();
+		IndicesOutside->Collapse(ReadIndices);
+		Outside = CreateIO(Context->Outside.ToSharedRef(), PCGExData::EIOInit::New);
+
+		if (!Outside) { return; }
+
+		PCGEx::SetNumPointsAllocated(Outside->GetOut(), ReadIndices.Num());
+		Outside->InheritProperties(ReadIndices, EPCGPointNativeProperties::All);
 	}
 }
 

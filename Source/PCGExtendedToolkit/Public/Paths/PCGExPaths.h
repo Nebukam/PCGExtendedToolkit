@@ -75,7 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathOutputDetails
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveLargePaths", ClampMin=2))
 	int32 MaxPointCount = 500;
 
-	bool Validate(TArray<FPCGPoint>& InPathPoints) const;
+	bool Validate(int32 NumPathPoints) const;
 };
 
 USTRUCT(BlueprintType)
@@ -265,7 +265,6 @@ namespace PCGExPaths
 	{
 		FPathMetrics() = default;
 		explicit FPathMetrics(const FVector& InStart);
-		explicit FPathMetrics(const TArrayView<FPCGPoint>& Points);
 
 		FVector Start = FVector::ZeroVector;
 		FVector Last = FVector::ZeroVector;
@@ -328,9 +327,9 @@ namespace PCGExPaths
 
 		int32 AltStart = -1;
 
-		FPathEdge(const int32 InStart, const int32 InEnd, const TArrayView<const FVector>& Positions, const double Expansion = 0);
+		FPathEdge(const int32 InStart, const int32 InEnd, const TConstPCGValueRange<FTransform>& Positions, const double Expansion = 0);
 
-		void Update(const TArrayView<const FVector>& Positions, const double Expansion = 0);
+		void Update(const TConstPCGValueRange<FTransform>& Positions, const double Expansion = 0);
 
 		bool ShareIndices(const FPathEdge& Other) const;
 		bool Connects(const FPathEdge& Other) const;
@@ -339,18 +338,18 @@ namespace PCGExPaths
 
 	class FPath;
 
-	class FPathEdgeExtraBase : public TSharedFromThis<FPathEdgeExtraBase>
+	class IPathEdgeExtra : public TSharedFromThis<IPathEdgeExtra>
 	{
 	protected:
 		bool bClosedLoop = false;
 
 	public:
-		explicit FPathEdgeExtraBase(const int32 InNumSegments, bool InClosedLoop)
+		explicit IPathEdgeExtra(const int32 InNumSegments, bool InClosedLoop)
 			: bClosedLoop(InClosedLoop)
 		{
 		}
 
-		virtual ~FPathEdgeExtraBase() = default;
+		virtual ~IPathEdgeExtra() = default;
 
 		virtual void ProcessSingleEdge(const FPath* Path, const FPathEdge& Edge) { ProcessFirstEdge(Path, Edge); }
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); };
@@ -361,7 +360,7 @@ namespace PCGExPaths
 	};
 
 	template <typename T>
-	class TPathEdgeExtra : public FPathEdgeExtraBase
+	class TPathEdgeExtra : public IPathEdgeExtra
 	{
 	protected:
 		TArray<T> Data;
@@ -370,7 +369,7 @@ namespace PCGExPaths
 		TArray<T> Values;
 
 		explicit TPathEdgeExtra(const int32 InNumSegments, bool InClosedLoop)
-			: FPathEdgeExtraBase(InNumSegments, InClosedLoop)
+			: IPathEdgeExtra(InNumSegments, InClosedLoop)
 		{
 			PCGEx::InitArray(Data, InNumSegments);
 		}
@@ -389,12 +388,13 @@ namespace PCGExPaths
 	{
 	protected:
 		bool bClosedLoop = false;
-		TArray<FVector> Positions;
+		TConstPCGValueRange<FTransform> Positions;
 		TUniquePtr<FPathEdgeOctree> EdgeOctree;
-		TArray<TSharedPtr<FPathEdgeExtraBase>> Extras;
+		TArray<TSharedPtr<IPathEdgeExtra>> Extras;
 
 	public:
 		virtual ~FPath() = default;
+
 		FBox Bounds = FBox(ForceInit);
 		TArray<FPathEdge> Edges;
 		int32 NumPoints = 0;
@@ -408,13 +408,13 @@ namespace PCGExPaths
 
 		int32 IOIndex = -1;
 
-		FORCEINLINE const TArray<FVector>& GetPositions() const { return Positions; }
+		PCGExMT::FScope GetEdgeScope(const int32 InLoopIndex = -1) const { return PCGExMT::FScope(0, NumEdges, InLoopIndex); }
 
 		FORCEINLINE int32 LoopPointIndex(const int32 Index) const { return PCGExMath::Tile(Index, 0, LastIndex); };
 		virtual int32 SafePointIndex(const int32 Index) const = 0;
 
-		FORCEINLINE virtual const FVector& GetPos(const int32 Index) const { return Positions[SafePointIndex(Index)]; }
-		FORCEINLINE virtual const FVector& GetPos_Unsafe(const int32 Index) const { return Positions[Index]; }
+		FORCEINLINE virtual FVector GetPos(const int32 Index) const { return Positions[SafePointIndex(Index)].GetLocation(); }
+		FORCEINLINE virtual FVector GetPos_Unsafe(const int32 Index) const { return Positions[Index].GetLocation(); }
 		FORCEINLINE bool IsValidEdgeIndex(const int32 Index) const { return Index >= 0 && Index < NumEdges; }
 
 		virtual FVector DirToNextPoint(const int32 Index) const = 0;
@@ -423,12 +423,13 @@ namespace PCGExPaths
 		virtual int32 NextPointIndex(const int32 Index) const { return SafePointIndex(Index + 1); }
 		virtual int32 PrevPointIndex(const int32 Index) const { return SafePointIndex(Index - 1); }
 
-		FVector GetEdgePositionAtAlpha(const FPathEdge& Edge, const double Alpha) const { return FMath::Lerp(Positions[Edge.End], Positions[Edge.Start], Alpha); }
+		FVector GetEdgePositionAtAlpha(const FPathEdge& Edge, const double Alpha) const { return FMath::Lerp(Positions[Edge.End].GetLocation(), Positions[Edge.Start].GetLocation(), Alpha); }
+
 
 		FVector GetEdgePositionAtAlpha(const int32 Index, const double Alpha) const
 		{
 			const FPathEdge& Edge = Edges[Index];
-			return FMath::Lerp(Positions[Edge.Start], Positions[Edge.End], Alpha);
+			return FMath::Lerp(Positions[Edge.Start].GetLocation(), Positions[Edge.End].GetLocation(), Alpha);
 		}
 
 		virtual bool IsEdgeValid(const FPathEdge& Edge) const { return FVector::DistSquared(GetPos_Unsafe(Edge.Start), GetPos_Unsafe(Edge.End)) > 0; }
@@ -516,6 +517,7 @@ namespace PCGExPaths
 
 		void BuildEdgeOctree();
 		void BuildPartialEdgeOctree(const TArray<int8>& Filter);
+		void BuildPartialEdgeOctree(const TBitArray<>& Filter);
 
 		const FPathEdgeOctree* GetEdgeOctree() const { return EdgeOctree.Get(); }
 		FORCEINLINE bool IsClosedLoop() const { return bClosedLoop; }
@@ -561,9 +563,6 @@ namespace PCGExPaths
 		virtual void ExtraComputingDone();
 		virtual void ComputeAllEdgeExtra();
 
-		virtual void UpdateEdges(const TArray<FPCGPoint>& InPoints, const double Expansion);
-		virtual void UpdateEdges(const TArrayView<const FVector> InPositions, const double Expansion);
-
 	protected:
 		void BuildPath(const double Expansion);
 	};
@@ -572,28 +571,14 @@ namespace PCGExPaths
 	class TPath final : public FPath
 	{
 	public:
-		explicit TPath(const TArrayView<const FPCGPoint>& InPoints, const double Expansion = 0)
+		explicit TPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion = 0)
 		{
 			bClosedLoop = ClosedLoop;
+			Positions = InTransforms;
 
-			NumPoints = InPoints.Num();
+			NumPoints = InTransforms.Num();
 			LastIndex = NumPoints - 1;
 
-			Positions.SetNumUninitialized(NumPoints);
-			for (int i = 0; i < NumPoints; i++) { *(Positions.GetData() + i) = InPoints[i].Transform.GetLocation(); }
-
-			BuildPath(Expansion);
-		}
-
-		explicit TPath(const TArrayView<const FVector> InPositions, const double Expansion = 0)
-		{
-			bClosedLoop = ClosedLoop;
-
-			NumPoints = InPositions.Num();
-			LastIndex = NumPoints - 1;
-
-			Positions.Reset(NumPoints);
-			Positions.Append(InPositions);
 
 			BuildPath(Expansion);
 		}
@@ -625,7 +610,7 @@ namespace PCGExPaths
 
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override
 		{
-			this->GetMutable(Edge.Start) = ProcessEdgeCallback(Path, Edge);
+			this->SetValue(Edge.Start, ProcessEdgeCallback(Path, Edge));
 		}
 	};
 
@@ -731,13 +716,13 @@ namespace PCGExPaths
 		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
-	TSharedPtr<FPath> MakePath(const TArrayView<const FPCGPoint> InPoints, const double Expansion, const bool bClosedLoop);
-	TSharedPtr<FPath> MakePath(const TArrayView<const FVector> InPositions, const double Expansion, const bool bClosedLoop);
+	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion, const bool bClosedLoop);
+	TSharedPtr<FPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop);
 
 	FTransform GetClosestTransform(const FPCGSplineStruct& InSpline, const FVector& InLocation, const bool bUseScale = true);
 	FTransform GetClosestTransform(const TSharedPtr<const FPCGSplineStruct>& InSpline, const FVector& InLocation, const bool bUseScale = true);
 
-	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGPointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop);
+	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGBasePointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop);
 
 	template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
 	PCGExMath::FClosestPosition FindClosestIntersection(

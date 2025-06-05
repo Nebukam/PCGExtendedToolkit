@@ -94,8 +94,8 @@ namespace PCGExCreateSpline
 
 		if (Settings->bApplyCustomTangents)
 		{
-			ArriveTangent = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->ArriveTangentAttribute);
-			LeaveTangent = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LeaveTangentAttribute);
+			ArriveTangent = PointDataFacade->GetBroadcaster<FVector>(Settings->ArriveTangentAttribute, true);
+			LeaveTangent = PointDataFacade->GetBroadcaster<FVector>(Settings->LeaveTangentAttribute, true);
 			if (!ArriveTangent || !LeaveTangent)
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Missing tangent attributes"));
@@ -105,7 +105,7 @@ namespace PCGExCreateSpline
 
 		if (Settings->bApplyCustomPointType)
 		{
-			CustomPointType = PointDataFacade->GetScopedBroadcaster<int32>(Settings->PointTypeAttribute);
+			CustomPointType = PointDataFacade->GetBroadcaster<int32>(Settings->PointTypeAttribute, true);
 			if (!CustomPointType)
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Missing custom point type attribute"));
@@ -117,66 +117,70 @@ namespace PCGExCreateSpline
 		SplineData = Context->ManagedObjects->New<UPCGSplineData>();
 		PCGEx::InitArray(SplinePoints, PointDataFacade->GetNum());
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		TPointsProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::PrepareSingleLoopScopeForPoints(Scope);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::CreateSpline::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		FVector OutArrive = FVector::ZeroVector;
-		FVector OutLeave = FVector::ZeroVector;
+		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
+		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 
-		if (Settings->bApplyCustomTangents)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			OutArrive = ArriveTangent->Read(Index);
-			OutLeave = LeaveTangent->Read(Index);
+			FVector OutArrive = FVector::ZeroVector;
+			FVector OutLeave = FVector::ZeroVector;
+
+			if (Settings->bApplyCustomTangents)
+			{
+				OutArrive = ArriveTangent->Read(Index);
+				OutLeave = LeaveTangent->Read(Index);
+			}
+
+			const FTransform& TR = InTransforms[Index];
+
+			EPCGExSplinePointType PointTypeProxy = Settings->DefaultPointType;
+			ESplinePointType::Type PointType = ESplinePointType::Curve;
+
+			if (CustomPointType)
+			{
+				const int32 Value = CustomPointType->Read(Index);
+				if (FMath::IsWithinInclusive(Value, 0, 4)) { PointTypeProxy = static_cast<EPCGExSplinePointType>(static_cast<uint8>(Value)); }
+			}
+
+			switch (PointTypeProxy)
+			{
+			case EPCGExSplinePointType::Linear:
+				PointType = ESplinePointType::Linear;
+				break;
+			case EPCGExSplinePointType::Curve:
+				PointType = ESplinePointType::Curve;
+				break;
+			case EPCGExSplinePointType::Constant:
+				PointType = ESplinePointType::Constant;
+				break;
+			case EPCGExSplinePointType::CurveClamped:
+				PointType = ESplinePointType::CurveClamped;
+				break;
+			case EPCGExSplinePointType::CurveCustomTangent:
+				PointType = ESplinePointType::CurveCustomTangent;
+				break;
+			}
+
+			SplinePoints[Index] = FSplinePoint(
+				static_cast<float>(Index),
+				TR.GetLocation() - PositionOffset,
+				OutArrive,
+				OutLeave,
+				TR.GetRotation().Rotator(),
+				TR.GetScale3D(),
+				PointType);
 		}
-
-		const FTransform& TR = Point.Transform;
-
-		EPCGExSplinePointType PointTypeProxy = Settings->DefaultPointType;
-		ESplinePointType::Type PointType = ESplinePointType::Curve;
-
-		if (CustomPointType)
-		{
-			const int32 Value = CustomPointType->Read(Index);
-			if (FMath::IsWithinInclusive(Value, 0, 4)) { PointTypeProxy = static_cast<EPCGExSplinePointType>(static_cast<uint8>(Value)); }
-		}
-
-		switch (PointTypeProxy)
-		{
-		case EPCGExSplinePointType::Linear:
-			PointType = ESplinePointType::Linear;
-			break;
-		case EPCGExSplinePointType::Curve:
-			PointType = ESplinePointType::Curve;
-			break;
-		case EPCGExSplinePointType::Constant:
-			PointType = ESplinePointType::Constant;
-			break;
-		case EPCGExSplinePointType::CurveClamped:
-			PointType = ESplinePointType::CurveClamped;
-			break;
-		case EPCGExSplinePointType::CurveCustomTangent:
-			PointType = ESplinePointType::CurveCustomTangent;
-			break;
-		}
-
-		SplinePoints[Index] = FSplinePoint(
-			static_cast<float>(Index),
-			TR.GetLocation() - PositionOffset,
-			OutArrive,
-			OutLeave,
-			TR.GetRotation().Rotator(),
-			TR.GetScale3D(),
-			PointType);
 	}
 
 	void FProcessor::Output()
@@ -185,7 +189,10 @@ namespace PCGExCreateSpline
 
 		// Output spline data
 		SplineData->Initialize(SplinePoints, bClosedLoop, FTransform(PositionOffset));
-		Context->StageOutput(Settings->GetMainOutputPin(), SplineData, PointDataFacade->Source->Tags->Flatten(), true, false);
+
+		FPCGTaggedData& StagedData = Context->StageOutput(SplineData, true, false);
+		StagedData.Pin = Settings->GetMainOutputPin();
+		StagedData.Tags.Append(PointDataFacade->Source->Tags->Flatten());
 
 		// Output spline component
 		if (Settings->Mode != EPCGCreateSplineMode::CreateDataOnly)

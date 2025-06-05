@@ -4,57 +4,106 @@
 #include "Data/PCGExData.h"
 
 #include "PCGExPointsMT.h"
+#include "Geometry/PCGExGeoPointBox.h"
 
 namespace PCGExData
 {
-#pragma region Pools & cache
+#pragma region cache
 
-	void FBufferBase::SetTargetOutputName(const FName InName)
+	uint64 BufferUID(const FPCGAttributeIdentifier& Identifier, const EPCGMetadataTypes Type)
+	{
+		EPCGMetadataDomainFlag SaneFlagForUID = Identifier.MetadataDomain.Flag;
+		if (SaneFlagForUID == EPCGMetadataDomainFlag::Default) { SaneFlagForUID = EPCGMetadataDomainFlag::Elements; }
+		return PCGEx::H64(HashCombine(GetTypeHash(Identifier.Name), GetTypeHash(SaneFlagForUID)), static_cast<int32>(Type));
+	}
+
+	FPCGAttributeIdentifier GetBufferIdentifierFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
+	{
+		// This return an identifier suitable to be used for data facade
+
+		FPCGAttributeIdentifier Identifier;
+
+		if (!InData) { return FPCGAttributeIdentifier(PCGEx::InvalidName, EPCGMetadataDomainFlag::Invalid); }
+
+		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
+
+		if (InSelector.GetExtraNames().IsEmpty()) { Identifier.Name = FixedSelector.GetName(); }
+		else { Identifier.Name = FName(FixedSelector.GetName().ToString() + TEXT(".") + FString::Join(FixedSelector.GetExtraNames(), TEXT("."))); }
+
+		Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);
+
+		return Identifier;
+	}
+
+	IBuffer::~IBuffer()
+	{
+		Flush();
+	}
+
+	void IBuffer::SetTargetOutputName(const FName InName)
 	{
 		TargetOutputName = InName;
 	}
 
-	bool FBufferBase::OutputsToDifferentName() const
+	PCGEx::FAttributeIdentity IBuffer::GetTargetOutputIdentity()
 	{
+		check(IsWritable() && OutAttribute)
+		return PCGEx::FAttributeIdentity(
+			OutputsToDifferentName() ? TargetOutputName : OutAttribute->Name,
+			Type, OutAttribute->AllowsInterpolation());
+	}
+
+	bool IBuffer::OutputsToDifferentName() const
+	{
+		// Don't consider None, @Source, @Last etc
+		FString StrName = TargetOutputName.ToString();
+		if (TargetOutputName.IsNone() || StrName.IsEmpty() || StrName.StartsWith(TEXT("@"))) { return false; }
+		if (OutAttribute) { return OutAttribute->Name != TargetOutputName; }
 		return false;
 	}
 
-	TSharedPtr<FBufferBase> FFacade::FindBuffer_Unsafe(const uint64 UID)
+	void IBuffer::SetType(const EPCGMetadataTypes InType)
 	{
-		TSharedPtr<FBufferBase>* Found = BufferMap.Find(UID);
+		Type = InType;
+		UID = BufferUID(Identifier, InType);
+	}
+
+	TSharedPtr<IBuffer> FFacade::FindBuffer_Unsafe(const uint64 UID)
+	{
+		TSharedPtr<IBuffer>* Found = BufferMap.Find(UID);
 		if (!Found) { return nullptr; }
 		return *Found;
 	}
 
-	TSharedPtr<FBufferBase> FFacade::FindBuffer(const uint64 UID)
+	TSharedPtr<IBuffer> FFacade::FindBuffer(const uint64 UID)
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
 		return FindBuffer_Unsafe(UID);
 	}
 
-	TSharedPtr<FBufferBase> FFacade::FindReadableAttributeBuffer(const FName InName)
+	TSharedPtr<IBuffer> FFacade::FindReadableAttributeBuffer(const FPCGAttributeIdentifier& InIdentifier)
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
-		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		for (const TSharedPtr<IBuffer>& Buffer : Buffers)
 		{
 			if (!Buffer->IsReadable()) { continue; }
-			if (Buffer->InAttribute && Buffer->InAttribute->Name == InName) { return Buffer; }
+			if (Buffer->InAttribute && Buffer->InAttribute->Name == InIdentifier.Name) { return Buffer; }
 		}
 		return nullptr;
 	}
 
-	TSharedPtr<FBufferBase> FFacade::FindWritableAttributeBuffer(const FName InName)
+	TSharedPtr<IBuffer> FFacade::FindWritableAttributeBuffer(const FPCGAttributeIdentifier& InIdentifier)
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
-		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		for (const TSharedPtr<IBuffer>& Buffer : Buffers)
 		{
 			if (!Buffer->IsWritable()) { continue; }
-			if (Buffer->FullName == InName) { return Buffer; }
+			if (Buffer->Identifier == InIdentifier) { return Buffer; }
 		}
 		return nullptr;
 	}
 
-	TSharedPtr<FBufferBase> FFacade::GetWritable(const EPCGMetadataTypes Type, const FPCGMetadataAttributeBase* InAttribute, EBufferInit Init)
+	TSharedPtr<IBuffer> FFacade::GetWritable(const EPCGMetadataTypes Type, const FPCGMetadataAttributeBase* InAttribute, EBufferInit Init)
 	{
 #define PCGEX_TYPED_WRITABLE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID: return GetWritable<_TYPE>(static_cast<const FPCGMetadataAttribute<_TYPE>*>(InAttribute), Init);
 		switch (Type)
@@ -65,7 +114,7 @@ namespace PCGExData
 #undef PCGEX_TYPED_WRITABLE
 	}
 
-	TSharedPtr<FBufferBase> FFacade::GetWritable(const EPCGMetadataTypes Type, const FName InName, EBufferInit Init)
+	TSharedPtr<IBuffer> FFacade::GetWritable(const EPCGMetadataTypes Type, const FName InName, EBufferInit Init)
 	{
 #define PCGEX_TYPED_WRITABLE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID: return GetWritable<_TYPE>(InName, Init);
 		switch (Type)
@@ -76,13 +125,41 @@ namespace PCGExData
 #undef PCGEX_TYPED_WRITABLE
 	}
 
+	TSharedPtr<IBuffer> FFacade::GetReadable(const PCGEx::FAttributeIdentity& Identity, const EIOSide InSide, const bool bSupportScoped)
+	{
+		TSharedPtr<IBuffer> Buffer = nullptr;
+		PCGEx::ExecuteWithRightType(
+			Identity.UnderlyingType, [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				Buffer = GetReadable<T>(Identity.Identifier, InSide, bSupportScoped);
+			});
+
+		return Buffer;
+	}
+
 #pragma endregion
 
 #pragma region FFacade
 
+	TSharedPtr<PCGExGeo::FPointBoxCloud> FFacade::GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion)
+	{
+		FWriteScopeLock WriteScopeLock(CloudLock);
+
+		if (Cloud) { return Cloud; }
+
+		Cloud = MakeShared<PCGExGeo::FPointBoxCloud>(GetIn(), BoundsSource, Expansion);
+		return Cloud;
+	}
+
+	void FFacade::CreateReadables(const TArray<PCGEx::FAttributeIdentity>& Identities, const bool bWantsScoped)
+	{
+		for (const PCGEx::FAttributeIdentity& Identity : Identities) { GetReadable(Identity, EIOSide::In, bWantsScoped); }
+	}
+
 	void FFacade::MarkCurrentBuffersReadAsComplete()
 	{
-		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		for (const TSharedPtr<IBuffer>& Buffer : Buffers)
 		{
 			if (!Buffer.IsValid() || !Buffer->IsReadable()) { continue; }
 			Buffer->bReadComplete = true;
@@ -93,7 +170,7 @@ namespace PCGExData
 	{
 		if (!AsyncManager || !AsyncManager->IsAvailable() || !Source->GetOut()) { return; }
 
-		//UE_LOG(LogTemp, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
+		//UE_LOG(LogPCGEx, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
 
 		if (ValidateOutputsBeforeWriting())
 		{
@@ -104,7 +181,7 @@ namespace PCGExData
 
 				for (int i = 0; i < Buffers.Num(); i++)
 				{
-					const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+					const TSharedPtr<IBuffer> Buffer = Buffers[i];
 					if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
 					WriteBuffer(AsyncManager, Buffer, false);
 				}
@@ -132,7 +209,7 @@ namespace PCGExData
 
 			for (int i = 0; i < Buffers.Num(); i++)
 			{
-				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+				const TSharedPtr<IBuffer> Buffer = Buffers[i];
 				if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
 
 				TaskGroup->AddSimpleCallback([BufferRef = Buffer]() { BufferRef->Write(); });
@@ -172,7 +249,8 @@ namespace PCGExData
 
 	bool FFacade::ValidateOutputsBeforeWriting() const
 	{
-		FPCGExContext* Context = Source->GetContext();
+		PCGEX_SHARED_CONTEXT(Source->GetContextHandle())
+		FPCGExContext* Context = SharedContext.Get();
 
 		// TODO : First check that no writable attempts to write to the same output twice
 		// TODO : Delete writables whose output that have
@@ -185,16 +263,16 @@ namespace PCGExData
 
 			for (int i = 0; i < Buffers.Num(); i++)
 			{
-				const TSharedPtr<FBufferBase> Buffer = Buffers[i];
+				const TSharedPtr<IBuffer> Buffer = Buffers[i];
 				if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
 
 				PCGEx::FAttributeIdentity Identity = Buffer->GetTargetOutputIdentity();
 				bool bAlreadySet = false;
-				UniqueOutputs.Add(Identity.Name, &bAlreadySet);
+				UniqueOutputs.Add(Identity.Identifier.Name, &bAlreadySet);
 
 				if (bAlreadySet)
 				{
-					PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Attribute \"{0}\" is used at target output at least twice by different sources."), FText::FromName(Identity.Name)));
+					PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Attribute \"{0}\" is used at target output at least twice by different sources."), FText::FromName(Identity.Identifier.Name)));
 					return false;
 				}
 
@@ -223,32 +301,46 @@ namespace PCGExData
 
 #pragma endregion
 
-	bool FReadableBufferConfig::Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const
+	bool FReadableBufferConfig::Validate(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade) const
 	{
 		return true;
 	}
 
-	void FReadableBufferConfig::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope) const
+	void FReadableBufferConfig::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope)
 	{
-		PCGEx::ExecuteWithRightType(
-			Identity.UnderlyingType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				TSharedPtr<TBuffer<T>> Reader = nullptr;
-				switch (Mode)
+		TSharedPtr<IBuffer> Reader = nullptr;
+
+		{
+			FReadScopeLock ReadScopeLock(ReaderLock);
+			Reader = WeakReader.Pin();
+		}
+
+		if (!Reader)
+		{
+			PCGEx::ExecuteWithRightType(
+				Identity.UnderlyingType, [&](auto DummyValue)
 				{
-				case EBufferPreloadType::RawAttribute:
-					Reader = InFacade->GetScopedReadable<T>(Identity.Name);
-					break;
-				case EBufferPreloadType::BroadcastFromName:
-					Reader = InFacade->GetScopedBroadcaster<T>(Identity.Name);
-					break;
-				case EBufferPreloadType::BroadcastFromSelector:
-					Reader = InFacade->GetScopedBroadcaster<T>(Selector);
-					break;
-				}
-				Reader->Fetch(Scope);
-			});
+					using T = decltype(DummyValue);
+					FWriteScopeLock WriteScopeLock(ReaderLock);
+
+					switch (Mode)
+					{
+					case EBufferPreloadType::RawAttribute:
+						Reader = InFacade->GetReadable<T>(Identity.Identifier, EIOSide::In, true);
+						break;
+					case EBufferPreloadType::BroadcastFromName:
+						Reader = InFacade->GetBroadcaster<T>(Identity.Identifier.Name, true);
+						break;
+					case EBufferPreloadType::BroadcastFromSelector:
+						Reader = InFacade->GetBroadcaster<T>(Selector, true);
+						break;
+					}
+
+					WeakReader = Reader;
+				});
+		}
+
+		Reader->Fetch(Scope);
 	}
 
 	void FReadableBufferConfig::Read(const TSharedRef<FFacade>& InFacade) const
@@ -261,10 +353,10 @@ namespace PCGExData
 				switch (Mode)
 				{
 				case EBufferPreloadType::RawAttribute:
-					Reader = InFacade->GetReadable<T>(Identity.Name);
+					Reader = InFacade->GetReadable<T>(Identity.Identifier);
 					break;
 				case EBufferPreloadType::BroadcastFromName:
-					Reader = InFacade->GetBroadcaster<T>(Identity.Name);
+					Reader = InFacade->GetBroadcaster<T>(Identity.Identifier.Name);
 					break;
 				case EBufferPreloadType::BroadcastFromSelector:
 					Reader = InFacade->GetBroadcaster<T>(Selector);
@@ -273,16 +365,48 @@ namespace PCGExData
 			});
 	}
 
-	bool FFacadePreloader::Validate(FPCGExContext* InContext, const TSharedRef<FFacade>& InFacade) const
+	FFacadePreloader::FFacadePreloader(const TSharedPtr<FFacade>& InDataFacade)
+		: InternalDataFacadePtr(InDataFacade)
+	{
+	}
+
+	TSharedPtr<FFacade> FFacadePreloader::GetDataFacade() const
+	{
+		return InternalDataFacadePtr.Pin();
+	}
+
+	bool FFacadePreloader::Validate(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade) const
 	{
 		if (BufferConfigs.IsEmpty()) { return true; }
 		for (const FReadableBufferConfig& Config : BufferConfigs) { if (!Config.Validate(InContext, InFacade)) { return false; } }
 		return true;
 	}
 
-	void FFacadePreloader::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope) const
+	void FFacadePreloader::Register(FPCGExContext* InContext, const PCGEx::FAttributeIdentity& InIdentity)
 	{
-		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs) { ExistingConfig.Fetch(InFacade, Scope); }
+		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
+		{
+			if (ExistingConfig.Identity == InIdentity) { return; }
+		}
+
+		BufferConfigs.Emplace(InIdentity.Identifier.Name, InIdentity.UnderlyingType);
+	}
+
+	void FFacadePreloader::TryRegister(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector)
+	{
+		TSharedPtr<FFacade> SourceFacade = GetDataFacade();
+		if (!SourceFacade) { return; }
+
+		PCGEx::FAttributeIdentity Identity;
+		if (PCGEx::FAttributeIdentity::Get(SourceFacade->GetIn(), InSelector, Identity))
+		{
+			Register(InContext, Identity);
+		}
+	}
+
+	void FFacadePreloader::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope)
+	{
+		for (FReadableBufferConfig& ExistingConfig : BufferConfigs) { ExistingConfig.Fetch(InFacade, Scope); }
 	}
 
 	void FFacadePreloader::Read(const TSharedRef<FFacade>& InFacade, const int32 ConfigIndex) const
@@ -292,14 +416,14 @@ namespace PCGExData
 
 	void FFacadePreloader::StartLoading(
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-		const TSharedRef<FFacade>& InDataFacade,
 		const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle)
 	{
-		InternalDataFacadePtr = InDataFacade;
+		TSharedPtr<FFacade> SourceFacade = GetDataFacade();
+		if (!SourceFacade) { return; }
 
 		if (!IsEmpty())
 		{
-			if (!Validate(AsyncManager->GetContext(), InDataFacade))
+			if (!Validate(AsyncManager->GetContext(), SourceFacade))
 			{
 				InternalDataFacadePtr.Reset();
 				OnLoadingEnd();
@@ -316,33 +440,33 @@ namespace PCGExData
 					This->OnLoadingEnd();
 				};
 
-			if (InDataFacade->bSupportsScopedGet)
+			if (SourceFacade->bSupportsScopedGet)
 			{
 				PrefetchAttributesTask->OnSubLoopStartCallback =
 					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_THIS
-						if (const TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
+						if (const TSharedPtr<FFacade> InternalFacade = This->GetDataFacade())
 						{
 							This->Fetch(InternalFacade.ToSharedRef(), Scope);
 						}
 					};
 
-				PrefetchAttributesTask->StartSubLoops(InDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+				PrefetchAttributesTask->StartSubLoops(SourceFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 			}
 			else
 			{
-				PrefetchAttributesTask->OnSubLoopStartCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				PrefetchAttributesTask->OnIterationCallback =
+					[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
 					{
 						PCGEX_ASYNC_THIS
-						if (const TSharedPtr<FFacade> InternalFacade = This->InternalDataFacadePtr.Pin())
+						if (const TSharedPtr<FFacade> InternalFacade = This->GetDataFacade())
 						{
-							This->Read(InternalFacade.ToSharedRef(), Scope.Start);
+							This->Read(InternalFacade.ToSharedRef(), Index);
 						}
 					};
 
-				PrefetchAttributesTask->StartSubLoops(Num(), 1);
+				PrefetchAttributesTask->StartIterations(Num(), 1);
 			}
 		}
 		else
@@ -353,143 +477,7 @@ namespace PCGExData
 
 	void FFacadePreloader::OnLoadingEnd() const
 	{
-		if (TSharedPtr<FFacade> InternalFacade = InternalDataFacadePtr.Pin()) { InternalFacade->MarkCurrentBuffersReadAsComplete(); }
+		if (TSharedPtr<FFacade> InternalFacade = GetDataFacade()) { InternalFacade->MarkCurrentBuffersReadAsComplete(); }
 		if (OnCompleteCallback) { OnCompleteCallback(); }
 	}
-
-#pragma region Union Data
-
-	void FUnionData::ComputeWeights(
-		const TArray<TSharedPtr<FFacade>>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,
-		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<int32>& OutIOIdx, TArray<int32>& OutPointsIdx, TArray<double>& OutWeights) const
-	{
-		const int32 NumHashes = ItemHashSet.Num();
-
-		OutPointsIdx.SetNumUninitialized(NumHashes);
-		OutWeights.SetNumUninitialized(NumHashes);
-		OutIOIdx.SetNumUninitialized(NumHashes);
-
-		double TotalWeight = 0;
-		int32 Index = 0;
-
-		for (const uint64 Hash : ItemHashSet)
-		{
-			uint32 IOIndex;
-			uint32 PtIndex;
-			PCGEx::H64(Hash, IOIndex, PtIndex);
-
-			const int32* IOIdx = SourcesIdx.Find(IOIndex);
-			if (!IOIdx) { continue; }
-
-			OutIOIdx[Index] = *IOIdx;
-			OutPointsIdx[Index] = PtIndex;
-
-			const double Weight = InDistanceDetails->GetDistSquared(Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target);
-			OutWeights[Index] = Weight;
-			TotalWeight += Weight;
-
-			Index++;
-		}
-
-		if (Index == 0) { return; }
-
-		OutPointsIdx.SetNum(Index);
-		OutWeights.SetNum(Index);
-		OutIOIdx.SetNum(Index);
-
-		if (Index == 1)
-		{
-			OutWeights[0] = 1;
-			return;
-		}
-
-		if (TotalWeight == 0)
-		{
-			const double StaticWeight = 1 / static_cast<double>(ItemHashSet.Num());
-			for (double& Weight : OutWeights) { Weight = StaticWeight; }
-			return;
-		}
-
-		for (double& Weight : OutWeights) { Weight = 1 - (Weight / TotalWeight); }
-	}
-
-	uint64 FUnionData::Add(const int32 IOIndex, const int32 PointIndex)
-	{
-		const uint64 H = PCGEx::H64(IOIndex, PointIndex);
-
-		{
-			FWriteScopeLock WriteScopeLock(UnionLock);
-			IOIndices.Add(IOIndex);
-			ItemHashSet.Add(H);
-		}
-
-		return H;
-	}
-
-	void FUnionData::Add(const int32 IOIndex, const TArray<int32>& PointIndices)
-	{
-		FWriteScopeLock WriteScopeLock(UnionLock);
-
-		IOIndices.Add(IOIndex);
-		for (const int32 A : PointIndices) { ItemHashSet.Add(PCGEx::H64(IOIndex, A)); }
-	}
-
-	void FUnionMetadata::SetNum(const int32 InNum)
-	{
-		// To be used only with NewEntryAt / NewEntryAt_Unsafe
-		Entries.Init(nullptr, InNum);
-	}
-
-	TSharedPtr<FUnionData> FUnionMetadata::NewEntry_Unsafe(const int32 IOIndex, const int32 ItemIndex)
-	{
-		TSharedPtr<FUnionData> NewUnionData = Entries.Add_GetRef(MakeShared<FUnionData>());
-		NewUnionData->Add(IOIndex, ItemIndex);
-		return NewUnionData;
-	}
-
-	TSharedPtr<FUnionData> FUnionMetadata::NewEntryAt_Unsafe(const int32 ItemIndex)
-	{
-		Entries[ItemIndex] = MakeShared<FUnionData>();
-		return Entries[ItemIndex];
-	}
-
-	uint64 FUnionMetadata::Append(const int32 Index, const int32 IOIndex, const int32 ItemIndex)
-	{
-		return Entries[Index]->Add(IOIndex, ItemIndex);
-	}
-
-	bool FUnionMetadata::IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices)
-	{
-		const TSet<int32> Overlap = Entries[InIdx]->IOIndices.Intersect(InIndices);
-		return Overlap.Num() > 0;
-	}
-
-	TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bThrowError)
-	{
-		TSharedPtr<FFacade> SingleFacade;
-		if (const TSharedPtr<FPointIO> SingleIO = TryGetSingleInput(InContext, InputPinLabel, bTransactional, bThrowError))
-		{
-			SingleFacade = MakeShared<FFacade>(SingleIO.ToSharedRef());
-		}
-
-		return SingleFacade;
-	}
-
-	bool TryGetFacades(FPCGExContext* InContext, const FName InputPinLabel, TArray<TSharedPtr<FFacade>>& OutFacades, const bool bThrowError, const bool bIsTransactional)
-	{
-		TSharedPtr<FPointIOCollection> TargetsCollection = MakeShared<FPointIOCollection>(InContext, InputPinLabel, EIOInit::None, bIsTransactional);
-		if (TargetsCollection->IsEmpty())
-		{
-			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FText::FromString(TEXT("Missing or zero-points '{0}' inputs")), FText::FromName(InputPinLabel))); }
-			return false;
-		}
-
-		OutFacades.Reserve(OutFacades.Num() + TargetsCollection->Num());
-		for (const TSharedPtr<FPointIO>& IO : TargetsCollection->Pairs) { OutFacades.Add(MakeShared<FFacade>(IO.ToSharedRef())); }
-
-		return true;
-	}
-
-
-#pragma endregion
 }

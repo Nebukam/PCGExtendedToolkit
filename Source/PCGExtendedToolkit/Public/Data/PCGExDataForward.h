@@ -7,7 +7,6 @@
 #include "PCGExPointIO.h"
 #include "PCGExAttributeHelpers.h"
 #include "PCGExDataFilter.h"
-#include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 #include "PCGExData.h"
 
@@ -46,7 +45,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 		if (FilterMode == EPCGExAttributeFilter::All) { return; }
 		for (int i = 0; i < Identities.Num(); i++)
 		{
-			if (!Test(Identities[i].Name.ToString()))
+			if (!Test(Identities[i].Identifier.Name.ToString()))
 			{
 				Identities.RemoveAt(i);
 				i--;
@@ -68,8 +67,8 @@ namespace PCGExData
 		TSharedPtr<FFacade> SourceDataFacade;
 		TSharedPtr<FFacade> TargetDataFacade;
 		TArray<PCGEx::FAttributeIdentity> Identities;
-		TArray<TSharedPtr<FBufferBase>> Readers;
-		TArray<TSharedPtr<FBufferBase>> Writers;
+		TArray<TSharedPtr<IBuffer>> Readers;
+		TArray<TSharedPtr<IBuffer>> Writers;
 
 	public:
 		~FDataForwardHandler() = default;
@@ -116,7 +115,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagDetails
 	TArray<TSharedPtr<PCGEx::TAttributeBroadcaster<FString>>> Getters;
 
 	bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade);
-	void Tag(const int32 TagIndex, TSet<FString>& InTags) const;
-	void Tag(const int32 TagIndex, const TSharedPtr<PCGExData::FPointIO>& PointIO) const;
-	void Tag(const int32 TagIndex, UPCGMetadata* InMetadata) const;
+	void Tag(const PCGExData::FConstPoint& TagSource, TSet<FString>& InTags) const;
+	void Tag(const PCGExData::FConstPoint& TagSource, const TSharedPtr<PCGExData::FPointIO>& PointIO) const;
+	void Tag(const PCGExData::FConstPoint& TagSource, UPCGMetadata* InMetadata) const;
 };

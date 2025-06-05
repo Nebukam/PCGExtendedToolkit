@@ -16,11 +16,85 @@ enum class EPCGExOrientLookAtMode : uint8
 	Position      = 3 UMETA(DisplayName = "Position", ToolTip="Use a local vector attribtue as a world position to look at"),
 };
 
+class FPCGExOrientLookAt : public FPCGExOrientOperation
+{
+public:
+	EPCGExOrientLookAtMode LookAt = EPCGExOrientLookAtMode::NextPoint;
+	FPCGAttributePropertyInputSelector LookAtAttribute;
+
+	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade, const TSharedRef<PCGExPaths::FPath>& InPath) override
+	{
+		if (!FPCGExOrientOperation::PrepareForData(InDataFacade, InPath)) { return false; }
+
+		if (LookAt == EPCGExOrientLookAtMode::Direction || LookAt == EPCGExOrientLookAtMode::Position)
+		{
+			LookAtGetter = InDataFacade->GetBroadcaster<FVector>(LookAtAttribute, true);
+			if (!LookAtGetter)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("LookAt Attribute ({0}) is not valid."), FText::FromString(PCGEx::GetSelectorDisplayName(LookAtAttribute))));
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	virtual FTransform ComputeOrientation(const PCGExData::FConstPoint& Point, const double DirectionMultiplier) const override
+	{
+		switch (LookAt)
+		{
+		default:
+		case EPCGExOrientLookAtMode::NextPoint:
+			return LookAtAxis(Point.GetTransform(), Path->DirToNextPoint(Point.Index), DirectionMultiplier);
+		case EPCGExOrientLookAtMode::PreviousPoint:
+			return LookAtAxis(Point.GetTransform(), Path->DirToPrevPoint(Point.Index), DirectionMultiplier);
+		case EPCGExOrientLookAtMode::Direction:
+			return LookAtDirection(Point.GetTransform(), Point.Index, DirectionMultiplier);
+		case EPCGExOrientLookAtMode::Position:
+			return LookAtPosition(Point.GetTransform(), Point.Index, DirectionMultiplier);
+		}
+	}
+
+	virtual FTransform LookAtAxis(const FTransform& InT, const FVector& InAxis, const double DirectionMultiplier) const
+	{
+		FTransform OutT = InT;
+		OutT.SetRotation(
+			PCGExMath::MakeDirection(
+				Factory->OrientAxis,
+				InAxis * DirectionMultiplier,
+				PCGExMath::GetDirection(Factory->UpAxis)));
+		return OutT;
+	}
+
+	virtual FTransform LookAtDirection(const FTransform& InT, const int32 Index, const double DirectionMultiplier) const
+	{
+		FTransform OutT = InT;
+		OutT.SetRotation(
+			PCGExMath::MakeDirection(
+				Factory->OrientAxis, LookAtGetter->Read(Index).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
+		return OutT;
+	}
+
+	virtual FTransform LookAtPosition(const FTransform& InT, const int32 Index, const double DirectionMultiplier) const
+	{
+		FTransform OutT = InT;
+		const FVector Current = OutT.GetLocation();
+		const FVector Position = LookAtGetter->Read(Index);
+		OutT.SetRotation(
+			PCGExMath::MakeDirection(
+				Factory->OrientAxis, (Position - Current).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
+		return OutT;
+	}
+
+protected:
+	TSharedPtr<PCGExData::TBuffer<FVector>> LookAtGetter;
+};
+
 /**
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Look At")
-class UPCGExOrientLookAt : public UPCGExOrientOperation
+class UPCGExOrientLookAt : public UPCGExOrientInstancedFactory
 {
 	GENERATED_BODY()
 
@@ -43,76 +117,12 @@ public:
 		}
 	}
 
-	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade, const TSharedRef<PCGExPaths::FPath>& InPath) override
+	virtual TSharedPtr<FPCGExOrientOperation> CreateOperation() const override
 	{
-		if (!Super::PrepareForData(InDataFacade, InPath)) { return false; }
-
-		if (LookAt == EPCGExOrientLookAtMode::Direction || LookAt == EPCGExOrientLookAtMode::Position)
-		{
-			LookAtGetter = InDataFacade->GetScopedBroadcaster<FVector>(LookAtAttribute);
-			if (!LookAtGetter)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("LookAt Attribute ({0}) is not valid."), FText::FromString(PCGEx::GetSelectorDisplayName(LookAtAttribute))));
-				return false;
-			}
-		}
-
-		return true;
+		PCGEX_FACTORY_NEW_OPERATION(OrientLookAt)
+		NewOperation->Factory = this;
+		NewOperation->LookAt = LookAt;
+		NewOperation->LookAtAttribute = LookAtAttribute;
+		return NewOperation;
 	}
-
-	virtual FTransform ComputeOrientation(const PCGExData::FPointRef& Point, const double DirectionMultiplier) const override
-	{
-		switch (LookAt)
-		{
-		default:
-		case EPCGExOrientLookAtMode::NextPoint:
-			return LookAtAxis(Point.Point->Transform, Path->DirToNextPoint(Point.Index), DirectionMultiplier);
-		case EPCGExOrientLookAtMode::PreviousPoint:
-			return LookAtAxis(Point.Point->Transform, Path->DirToPrevPoint(Point.Index), DirectionMultiplier);
-		case EPCGExOrientLookAtMode::Direction:
-			return LookAtDirection(Point.Point->Transform, Point.Index, DirectionMultiplier);
-		case EPCGExOrientLookAtMode::Position:
-			return LookAtPosition(Point.Point->Transform, Point.Index, DirectionMultiplier);
-		}
-	}
-
-	virtual FTransform LookAtAxis(FTransform InT, const FVector& InAxis, const double DirectionMultiplier) const
-	{
-		FTransform OutT = InT;
-		OutT.SetRotation(
-			PCGExMath::MakeDirection(
-				OrientAxis,
-				InAxis * DirectionMultiplier,
-				PCGExMath::GetDirection(UpAxis)));
-		return OutT;
-	}
-
-	virtual FTransform LookAtDirection(FTransform InT, const int32 Index, const double DirectionMultiplier) const
-	{
-		FTransform OutT = InT;
-		OutT.SetRotation(
-			PCGExMath::MakeDirection(
-				OrientAxis, LookAtGetter->Read(Index).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(UpAxis)));
-		return OutT;
-	}
-
-	virtual FTransform LookAtPosition(FTransform InT, const int32 Index, const double DirectionMultiplier) const
-	{
-		FTransform OutT = InT;
-		const FVector Current = OutT.GetLocation();
-		const FVector Position = LookAtGetter->Read(Index);
-		OutT.SetRotation(
-			PCGExMath::MakeDirection(
-				OrientAxis, (Position - Current).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(UpAxis)));
-		return OutT;
-	}
-
-	virtual void Cleanup() override
-	{
-		LookAtGetter.Reset();
-		Super::Cleanup();
-	}
-
-protected:
-	TSharedPtr<PCGExData::TBuffer<FVector>> LookAtGetter;
 };

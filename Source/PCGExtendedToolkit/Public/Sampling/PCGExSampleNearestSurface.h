@@ -31,7 +31,7 @@ class UPCGExFilterFactoryData;
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-surface"))
 class UPCGExSampleNearestSurfaceSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -72,6 +72,10 @@ public:
 	/** Attribute or property to read the local max distance from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalMaxDistance"))
 	FPCGAttributePropertyInputSelector LocalMaxDistance;
+
+	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	FPCGExApplySamplingDetails ApplySampling;
 
 	/** Write whether the sampling was successful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -191,6 +195,8 @@ struct FPCGExSampleNearestSurfaceContext final : FPCGExPointsProcessorContext
 
 	FPCGExCollisionDetails CollisionSettings;
 
+	FPCGExApplySamplingDetails ApplySampling;
+
 	bool bUseInclude = false;
 	TMap<AActor*, int32> IncludedActors;
 	TArray<UPrimitiveComponent*> IncludedPrimitives;
@@ -202,7 +208,7 @@ class FPCGExSampleNearestSurfaceElement final : public FPCGExPointsProcessorElem
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleNearestSurface)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -211,7 +217,7 @@ namespace PCGExSampleNearestSurface
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestSurfaceContext, UPCGExSampleNearestSurfaceSettings>
 	{
-		TArray<int8> SampleState;
+		TArray<int8> SamplingMask;
 
 		TSharedPtr<PCGExData::FDataForwardHandler> SurfacesForward;
 
@@ -233,11 +239,9 @@ namespace PCGExSampleNearestSurface
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void OnPointsProcessingComplete() override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;

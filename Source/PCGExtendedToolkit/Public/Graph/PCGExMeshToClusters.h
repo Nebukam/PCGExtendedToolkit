@@ -100,6 +100,7 @@ struct FPCGExMeshToClustersContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FPointIOCollection> RootVtx;
 	TSharedPtr<PCGExData::FPointIOCollection> VtxChildCollection;
 	TSharedPtr<PCGExData::FPointIOCollection> EdgeChildCollection;
+	TSharedPtr<PCGExData::FPointIOCollection> BaseMeshDataCollection;
 
 	TArray<TSharedPtr<PCGExGraph::FGraphBuilder>> GraphBuilders;
 };
@@ -108,12 +109,12 @@ struct FPCGExMeshToClustersContext final : FPCGExPointsProcessorContext
 class FPCGExMeshToClustersElement final : public FPCGExPointsProcessorElement
 {
 protected:
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-	
 	PCGEX_ELEMENT_CREATE_CONTEXT(MeshToClusters)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 };
 
 namespace PCGExMeshToCluster

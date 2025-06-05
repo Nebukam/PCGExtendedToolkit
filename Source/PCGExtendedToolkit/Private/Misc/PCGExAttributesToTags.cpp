@@ -68,7 +68,7 @@ bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 	}
 
 	// Converting collection
-	PCGEX_MAKE_SHARED(SourceCollection, PCGExData::FPointIOCollection, InContext, FName("Tags Source"), PCGExData::EIOInit::None, true)
+	PCGEX_MAKE_SHARED(SourceCollection, PCGExData::FPointIOCollection, InContext, FName("Tags Source"), PCGExData::EIOInit::NoInit, true)
 
 	if (SourceCollection->IsEmpty())
 	{
@@ -164,8 +164,9 @@ namespace PCGExAttributesToTags
 {
 	void FProcessor::Tag(const FPCGExAttributeToTagDetails& InDetails, const int32 Index) const
 	{
-		if (OutputSet) { InDetails.Tag(Index, OutputSet->Metadata); }
-		else { InDetails.Tag(Index, PointDataFacade->Source); }
+		const PCGExData::FConstPoint Point = PointDataFacade->GetInPoint(Index);
+		if (OutputSet) { InDetails.Tag(Point, OutputSet->Metadata); }
+		else { InDetails.Tag(Point, PointDataFacade->Source); }
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
@@ -176,7 +177,7 @@ namespace PCGExAttributesToTags
 
 		if (Settings->Action == EPCGExAttributeToTagsAction::Attribute)
 		{
-			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::None)
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::NoInit)
 		}
 		else
 		{
@@ -299,7 +300,11 @@ namespace PCGExAttributesToTags
 	void FProcessor::Output()
 	{
 		TPointsProcessor<FPCGExAttributesToTagsContext, UPCGExAttributesToTagsSettings>::Output();
-		if (OutputSet) { Context->StageOutput(FName("Tags"), OutputSet, false); }
+		if (OutputSet)
+		{
+			FPCGTaggedData& StagedData = Context->StageOutput(OutputSet, false);
+			StagedData.Pin = FName("Tags");
+		}
 	}
 }
 

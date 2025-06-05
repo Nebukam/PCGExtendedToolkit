@@ -6,6 +6,7 @@
 #include <functional>
 #include <atomic>
 #include "CoreMinimal.h"
+#include "PCGExContext.h"
 
 #include "Misc/ScopeRWLock.h"
 #include "UObject/ObjectPtr.h"
@@ -13,13 +14,12 @@
 #include "Templates/SharedPointerFwd.h"
 #include "Async/AsyncWork.h"
 #include "Misc/QueuedThreadPool.h"
+#include "Tasks/Task.h"
 
 #include "PCGExtendedToolkit.h"
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
-#include "Data/PCGExPointIO.h"
-#include "Tasks/Task.h"
-
+#include "PCGExHelpers.h"
 
 #pragma region MT MACROS
 
@@ -55,6 +55,9 @@
 #define PCGEX_LAUNCH(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); AsyncManager->Launch<_CLASS>(Task);
 #define PCGEX_LAUNCH_INTERNAL(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); Launch<_CLASS>(Task);
 
+#define PCGEX_SCOPE_LOOP(_VAR) for(int _VAR = Scope.Start; _VAR < Scope.End; _VAR++)
+#define PCGEX_SUBSCOPE_LOOP(_VAR) for(int _VAR = SubScope.Start; _VAR < SubScope.End; _VAR++)
+
 #endif
 #pragma endregion
 
@@ -77,8 +80,22 @@ namespace PCGExMT
 		FScope(const int32 InStart, const int32 InCount, const int32 InLoopIndex = -1);
 
 		~FScope() = default;
-		bool IsValid() const;
-		int32 GetNextScopeIndex() const;
+		bool IsValid() const { return Start != -1 && Count > 0; }
+		int32 GetNextScopeIndex() const { return LoopIndex + 1; }
+		void GetIndices(TArray<int32>& OutIndices) const;
+
+		static int32 GetMaxRange(const TArray<FScope>& InScopes)
+		{
+			int32 MaxRange = 0;
+			for (const FScope& S : InScopes) { MaxRange = FMath::Max(MaxRange, S.Count); }
+			return MaxRange;
+		}
+
+		template <typename T>
+		FORCEINLINE TArrayView<T> GetView(TArray<T>& InArray) const { return TArrayView<T>(InArray.GetData() + Start, Count); }
+
+		template <typename T>
+		FORCEINLINE TArrayView<const T> GetView(const TArray<T>& InArray) const { return TArrayView<T>(InArray.GetData() + Start, Count); }
 	};
 
 	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 MaxItems, const int32 RangeSize);
@@ -195,6 +212,7 @@ namespace PCGExMT
 		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
 
 		FPCGExContext* Context = nullptr;
+		TWeakPtr<FPCGContextHandle> ContextHandle;
 
 	public:
 		UE::Tasks::ETaskPriority WorkPriority = UE::Tasks::ETaskPriority::Default;

@@ -9,8 +9,6 @@
 #include "PCGExFactoryProvider.h"
 #include "Graph/PCGExGraph.h"
 
-#include "Graph/Filters/PCGExClusterFilter.h"
-
 #include "PCGExTexParamFactoryProvider.generated.h"
 
 class UPCGBaseTextureData;
@@ -109,7 +107,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTextureParamConfig
 	void Init();
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="sampling/textures/texture-param"))
 class UPCGExTexParamFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()

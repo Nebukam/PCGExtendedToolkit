@@ -51,7 +51,6 @@ namespace PCGExGrowPaths
 	public:
 		const TSharedPtr<FProcessor> Processor;
 		const PCGExCluster::FNode* SeedNode = nullptr;
-		TUniquePtr<PCGExCluster::FNode> GoalNode;
 		TSharedPtr<PCGEx::FHashLookup> TravelStack;
 
 		int32 SeedPointIndex = -1;
@@ -93,7 +92,7 @@ namespace PCGExGrowPaths
 }
 
 class FPCGExHeuristicOperation;
-class UPCGExSearchOperation;
+class UPCGExSearchInstancedFactory;
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
@@ -261,7 +260,7 @@ class FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorEleme
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathfindingGrowPaths)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

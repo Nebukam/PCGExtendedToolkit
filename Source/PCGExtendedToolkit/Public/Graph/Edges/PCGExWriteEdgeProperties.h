@@ -5,10 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDetailsData.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-
-
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
@@ -77,8 +77,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, EditCondition="bEndpointsBlending && !bWriteEdgePosition && SolidificationAxis == EPCGExMinimalAxis::None", ClampMin=0, ClampMax=1))
 	double EndpointsWeights = 0.5;
 
+	/** How to blend data from sampled points */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bEndpointsBlending"))
+	EPCGExBlendingInterface BlendingInterface = EPCGExBlendingInterface::Individual;
+
 	/** Defines how fused point properties and attributes are merged together. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(EditCondition="bEndpointsBlending"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(EditCondition="bEndpointsBlending && BlendingInterface==EPCGExBlendingInterface::Monolithic", EditConditionHides))
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
 
 	/** Output Edge Heuristics. */
@@ -131,7 +135,7 @@ public:
 
 	/** Source from which to fetch the Radius X value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None && RadiusXInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	EPCGExClusterComponentSource RadiusXSource = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement RadiusXSource = EPCGExClusterElement::Vtx;
 
 	/** Attribute read on edge endpoints */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, DisplayName="Radius X (Attr)", EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None && RadiusXInput!=EPCGExInputValueType::Constant", EditConditionHides))
@@ -152,7 +156,7 @@ public:
 
 	/** Source from which to fetch the Radius Y value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None && RadiusYInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	EPCGExClusterComponentSource RadiusYSource = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement RadiusYSource = EPCGExClusterElement::Vtx;
 
 	/** Attribute read on edge endpoints */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, DisplayName="Radius Y (Attr)", EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None && RadiusYInput!=EPCGExInputValueType::Constant", EditConditionHides))
@@ -173,7 +177,7 @@ public:
 
 	/** Source from which to fetch the Radius Z value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZInput!=EPCGExInputValueType::Constant", EditConditionHides))
-	EPCGExClusterComponentSource RadiusZSource = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement RadiusZSource = EPCGExClusterElement::Vtx;
 
 	/** Attribute read on edge endpoints */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, DisplayName="Radius Z (Attr)", EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZInput!=EPCGExInputValueType::Constant", EditConditionHides))
@@ -192,13 +196,15 @@ struct FPCGExWriteEdgePropertiesContext final : FPCGExEdgesProcessorContext
 	friend class FPCGExWriteEdgePropertiesElement;
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
+
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 };
 
 class FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(WriteEdgeProperties)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -212,7 +218,9 @@ namespace PCGExWriteEdgeProperties
 		double StartWeight = 0;
 		double EndWeight = 1;
 
+		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExDataBlending::IBlender> DataBlender;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerp;
 
@@ -233,9 +241,9 @@ namespace PCGExWriteEdgeProperties
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
+		virtual void Cleanup() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

@@ -8,7 +8,7 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EIOInit UPCGExMergeVerticesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExMergeVerticesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 PCGExData::EIOInit UPCGExMergeVerticesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 #pragma endregion
@@ -76,7 +76,7 @@ bool FPCGExMergeVerticesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
-	Context->CompositeDataFacade->Source->StageOutput();
+	(void)Context->CompositeDataFacade->Source->StageOutput(Context);
 	Context->MainEdges->StageOutputs();
 
 	return Context->TryComplete();
@@ -107,15 +107,29 @@ namespace PCGExMergeVertices
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		Node.PointIndex += StartIndexOffset;
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExCluster::FNode& Node = Nodes[Index];
+
+			Node.PointIndex += StartIndexOffset;
+		}
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		Edge.Start += StartIndexOffset;
-		Edge.End += StartIndexOffset;
+		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
+
+			Edge.Start += StartIndexOffset;
+			Edge.End += StartIndexOffset;
+		}
 	}
 
 	void FProcessor::CompleteWork()
@@ -127,7 +141,7 @@ namespace PCGExMergeVertices
 	void FProcessor::Write()
 	{
 		Cluster->VtxIO = Context->CompositeDataFacade->Source;
-		Cluster->NumRawVtx = Context->CompositeDataFacade->Source->GetNum(PCGExData::ESource::Out);
+		Cluster->NumRawVtx = Context->CompositeDataFacade->Source->GetNum(PCGExData::EIOSide::Out);
 
 		PCGEX_INIT_IO_VOID(EdgeDataFacade->Source, PCGExData::EIOInit::Forward)
 

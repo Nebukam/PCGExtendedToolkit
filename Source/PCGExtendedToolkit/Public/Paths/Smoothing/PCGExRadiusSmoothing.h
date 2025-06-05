@@ -4,68 +4,53 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExSmoothingOperation.h"
-#include "Data/Blending/PCGExDataBlending.h"
-
+#include "PCGExFactoryProvider.h"
+#include "PCGExSmoothingInstancedFactory.h"
 
 #include "PCGExRadiusSmoothing.generated.h"
 
-/**
- * 
- */
-UCLASS(MinimalAPI, DisplayName = "Radius")
-class UPCGExRadiusSmoothing : public UPCGExSmoothingOperation
+class FPCGExRadiusSmoothing : public FPCGExSmoothingOperation
 {
-	GENERATED_BODY()
-
 public:
 	virtual void SmoothSingle(
-		const TSharedRef<PCGExData::FPointIO>& Path,
-		PCGExData::FPointRef& Target,
-		const double Smoothing,
-		const double Influence,
-		PCGExDataBlending::FMetadataBlender* MetadataBlender,
-		const bool bClosedLoop) override
+		const int32 TargetIndex,
+		const double Smoothing, const double Influence, TArray<PCGEx::FOpStats>& Trackers) override
 	{
 		const double RadiusSquared = Smoothing * Smoothing;
 
 		if (Influence == 0) { return; }
 
-		const FVector Origin = Target.Point->Transform.GetLocation();
-		const TArray<FPCGPoint>& PathPoints = Path->GetIn()->GetPoints();
+		TConstPCGValueRange<FTransform> InTransforms = Path->GetIn()->GetConstTransformValueRange();
 
-		TArray<int32> Indices;
-		TArray<double> Weights;
+		const FVector Origin = InTransforms[TargetIndex].GetLocation();
 
-		Indices.Reserve(10);
-		Weights.Reserve(10);
+		Blender->BeginMultiBlend(TargetIndex, Trackers);
 
-		double TotalWeight = 0;
-		Path->GetIn()->PCGEX_POINT_OCTREE_GET().FindElementsWithBoundsTest(
-			FBoxCenterAndExtent(Origin, FVector(Smoothing)), [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+		Path->GetIn()->GetPointOctree().FindElementsWithBoundsTest(
+			FBoxCenterAndExtent(Origin, FVector(Smoothing)), [&](const PCGPointOctree::FPointRef& PointRef)
 			{
-#if PCGEX_ENGINE_VERSION < 506
-				const int32 OtherIndex = static_cast<int32>(PointRef.Point - PathPoints.GetData());
-#else
-				const int32 OtherIndex = PointRef.Index;
-#endif
-				const double Dist = FVector::DistSquared(Origin, PathPoints[OtherIndex].Transform.GetLocation());
-				if (Dist >= RadiusSquared || OtherIndex == Target.Index) { return; }
+				const double Dist = FVector::DistSquared(Origin, InTransforms[PointRef.Index].GetLocation());
+				if (Dist >= RadiusSquared || PointRef.Index == TargetIndex) { return; }
 
-				Indices.Add(OtherIndex);
-				Weights.Add((1 - (Dist / RadiusSquared)) * Influence);
+				Blender->MultiBlend(PointRef.Index, TargetIndex, (1 - (Dist / RadiusSquared)) * Influence, Trackers);
 			});
 
-		if (Indices.IsEmpty()) { return; }
+		Blender->EndMultiBlend(TargetIndex, Trackers);
+	}
+};
 
-		MetadataBlender->PrepareForBlending(Target);
+/**
+ * 
+ */
+UCLASS(MinimalAPI, DisplayName = "Radius")
+class UPCGExRadiusSmoothing : public UPCGExSmoothingInstancedFactory
+{
+	GENERATED_BODY()
 
-		for (int i = 0; i < Indices.Num(); i++)
-		{
-			MetadataBlender->Blend(Target, Path->GetInPointRef(Indices[i]), Target, Weights[i]);
-			TotalWeight += Weights[i];
-		}
-
-		MetadataBlender->CompleteBlending(Target, Indices.Num(), TotalWeight);
+public:
+	virtual TSharedPtr<FPCGExSmoothingOperation> CreateOperation() const override
+	{
+		PCGEX_FACTORY_NEW_OPERATION(RadiusSmoothing)
+		return NewOperation;
 	}
 };

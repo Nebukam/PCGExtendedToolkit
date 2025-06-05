@@ -63,17 +63,37 @@ namespace PCGExMovePivot
 		UVW = Settings->UVW;
 		if (!UVW.Init(ExecutionContext, PointDataFacade)) { return false; }
 
+		// Cherry pick native properties allocations
+
+		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
+
+		AllocateFor |= EPCGPointNativeProperties::BoundsMin;
+		AllocateFor |= EPCGPointNativeProperties::BoundsMax;
+		AllocateFor |= EPCGPointNativeProperties::Transform;
+
+		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
+
 		StartParallelLoopForPoints();
 
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		FVector Offset;
-		Point.Transform.SetLocation(UVW.GetPosition(PCGExData::FPointRef(Point, Index), Offset));
-		Point.BoundsMin += Offset;
-		Point.BoundsMax += Offset;
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::MovePivot::ProcessPoints);
+
+		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
+		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
+		TPCGValueRange<FVector> OutBoundsMin = OutPoints->GetBoundsMinValueRange(false);
+		TPCGValueRange<FVector> OutBoundsMax = OutPoints->GetBoundsMaxValueRange(false);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			FVector Offset;
+			OutTransforms[Index].SetLocation(UVW.GetPosition(Index, Offset));
+			OutBoundsMin[Index] += Offset;
+			OutBoundsMax[Index] += Offset;
+		}
 	}
 }
 

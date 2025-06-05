@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExPathAlphaFilterDefinition"
 #define PCGEX_NAMESPACE PCGExPathAlphaFilterDefinition
 
-bool UPCGExPathAlphaFilterFactory::SupportsDirectEvaluation() const
+bool UPCGExPathAlphaFilterFactory::SupportsProxyEvaluation() const
 {
 	return Config.CompareAgainst == EPCGExInputValueType::Constant;
 }
@@ -39,7 +39,7 @@ bool UPCGExPathAlphaFilterFactory::Prepare(FPCGExContext* InContext)
 	{
 		for (const FPCGTaggedData& TaggedData : Targets)
 		{
-			const UPCGPointData* PathData = Cast<UPCGPointData>(TaggedData.Data);
+			const UPCGBasePointData* PathData = Cast<UPCGBasePointData>(TaggedData.Data);
 			if (!PathData) { continue; }
 
 			const bool bIsClosedLoop = Config.ClosedLoop.IsClosedLoop(TaggedData);
@@ -93,10 +93,12 @@ namespace PCGExPointFilter
 		OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
 		if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
 
+		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
+
 		return true;
 	}
 
-	bool FPathAlphaFilter::Test(const FPCGPoint& Point) const
+	bool FPathAlphaFilter::Test(const PCGExData::FProxyPoint& Point) const
 	{
 		const TArray<TSharedPtr<FPCGSplineStruct>>& SplinesRef = *Splines.Get();
 		const TArray<double>& SegmentsNumRef = *SegmentsNum.Get();
@@ -161,7 +163,7 @@ namespace PCGExPointFilter
 		const TArray<TSharedPtr<FPCGSplineStruct>>& SplinesRef = *Splines.Get();
 		const TArray<double>& SegmentsNumRef = *SegmentsNum.Get();
 
-		const FVector Pos = PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation();
+		const FVector Pos = InTransforms[PointIndex].GetLocation();
 		double Time = 0;
 
 		if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Min) { Time = MAX_dbl; }

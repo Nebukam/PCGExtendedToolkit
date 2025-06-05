@@ -7,7 +7,7 @@
 #include "PCGExCompare.h"
 #include "PCGExDetailsData.h"
 
-#include PCGEX_POINT_OCTREE_H
+#include "Utils/PCGPointOctree.h"
 
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
@@ -96,7 +96,7 @@ namespace PCGExPointFilter
 
 		TSharedPtr<PCGExDetails::FDistances> Distances;
 
-		const PCGEX_POINT_OCTREE_TYPE* TargetOctree = nullptr;
+		const PCGPointOctree::FPointOctree* TargetOctree = nullptr;
 		TSharedPtr<PCGExData::FFacade> TargetDataFacade;
 
 		TSharedPtr<PCGExData::TBuffer<double>> OperandA;

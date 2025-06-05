@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-bool UPCGExDistanceFilterFactory::SupportsDirectEvaluation() const
+bool UPCGExDistanceFilterFactory::SupportsProxyEvaluation() const
 {
 	return Config.CompareAgainst == EPCGExInputValueType::Constant;
 }
@@ -43,8 +43,8 @@ bool UPCGExDistanceFilterFactory::Prepare(FPCGExContext* InContext)
 
 	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : PointIOCollection->Pairs)
 	{
-		OctreesPtr.Add(&PointIO->GetIn()->PCGEX_POINT_OCTREE_GET());
-		TargetsPtr.Add(&PointIO->GetIn()->GetPoints());
+		OctreesPtr.Add(&PointIO->GetIn()->GetPointOctree());
+		TargetsPtr.Add(PointIO->GetIn());
 	}
 
 	return Super::Prepare(InContext);
@@ -63,19 +63,20 @@ bool PCGExPointFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSh
 
 	NumTargets = OctreesPtr.Num();
 
-	SelfPtr = reinterpret_cast<uintptr_t>(InPointDataFacade->GetIn()->GetPoints().GetData());
+	SelfPtr = InPointDataFacade->GetIn();
 	Distances = TypedFilterFactory->Config.DistanceDetails.MakeDistances();
 
 	DistanceThresholdGetter = TypedFilterFactory->Config.GetValueSettingDistanceThreshold();
 	if (!DistanceThresholdGetter->Init(InContext, InPointDataFacade)) { return false; }
 
+	InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
+
 	return true;
 }
 
 #define PCGEX_DIST_REINTERP_CAST \
-const TArray<FPCGPoint>* TargetPoints = TargetsPtr[i]; \
-const uintptr_t Current = reinterpret_cast<uintptr_t>(TargetPoints->GetData()); \
-const PCGEX_POINT_OCTREE_TYPE* TargetOctree = OctreesPtr[i];
+const UPCGBasePointData* TargetPoints = TargetsPtr[i]; \
+const PCGPointOctree::FPointOctree* TargetOctree = OctreesPtr[i];
 
 #if PCGEX_ENGINE_VERSION < 506
 #define PCGEX_POINTREF_INDEX const int32 OtherIndex = static_cast<int32>(PointRef.Point - TargetPoints->GetData());
@@ -83,10 +84,10 @@ const PCGEX_POINT_OCTREE_TYPE* TargetOctree = OctreesPtr[i];
 #define PCGEX_POINTREF_INDEX const int32 OtherIndex = PointRef.Index;
 #endif
 
-bool PCGExPointFilter::FDistanceFilter::Test(const FPCGPoint& Point) const
+bool PCGExPointFilter::FDistanceFilter::Test(const PCGExData::FProxyPoint& Point) const
 {
 	double BestDist = MAX_dbl;
-	const FVector Origin = Point.Transform.GetLocation();
+	const FVector Origin = Point.GetLocation();
 
 	if (Distances->bOverlapIsZero)
 	{
@@ -95,16 +96,16 @@ bool PCGExPointFilter::FDistanceFilter::Test(const FPCGPoint& Point) const
 		{
 			PCGEX_DIST_REINTERP_CAST
 
-			if (Current == SelfPtr)
+			if (TargetPoints == SelfPtr)
 			{
 				if (bIgnoreSelf) { continue; }
 
 				// Ignore current point when testing against self
 				TargetOctree->FindNearbyElements(
-					Origin, [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+					Origin, [&](const PCGPointOctree::FPointRef& PointRef)
 					{
 						PCGEX_POINTREF_INDEX
-						double Dist = Distances->GetDistSquared(Point, *(TargetPoints->GetData() + OtherIndex), bOverlap);
+						double Dist = Distances->GetDistSquared(Point, PCGExData::FConstPoint(TargetPoints, OtherIndex), bOverlap);
 						if (bOverlap) { Dist = 0; }
 						if (Dist > BestDist) { return; }
 						BestDist = Dist;
@@ -113,10 +114,10 @@ bool PCGExPointFilter::FDistanceFilter::Test(const FPCGPoint& Point) const
 			else
 			{
 				TargetOctree->FindNearbyElements(
-					Origin, [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+					Origin, [&](const PCGPointOctree::FPointRef& PointRef)
 					{
 						PCGEX_POINTREF_INDEX
-						double Dist = Distances->GetDistSquared(Point, *(TargetPoints->GetData() + OtherIndex), bOverlap);
+						double Dist = Distances->GetDistSquared(Point, PCGExData::FConstPoint(TargetPoints, OtherIndex), bOverlap);
 						if (bOverlap) { Dist = 0; }
 						if (Dist > BestDist) { return; }
 						BestDist = Dist;
@@ -130,16 +131,16 @@ bool PCGExPointFilter::FDistanceFilter::Test(const FPCGPoint& Point) const
 		{
 			PCGEX_DIST_REINTERP_CAST
 
-			if (Current == SelfPtr)
+			if (TargetPoints == SelfPtr)
 			{
 				if (bIgnoreSelf) { continue; }
 
 				// Ignore current point when testing against self
 				TargetOctree->FindNearbyElements(
-					Origin, [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+					Origin, [&](const PCGPointOctree::FPointRef& PointRef)
 					{
 						PCGEX_POINTREF_INDEX
-						const double Dist = Distances->GetDistSquared(Point, *(TargetPoints->GetData() + OtherIndex));
+						const double Dist = Distances->GetDistSquared(Point, PCGExData::FConstPoint(TargetPoints, OtherIndex));
 						if (Dist > BestDist) { return; }
 						BestDist = Dist;
 					});
@@ -147,10 +148,10 @@ bool PCGExPointFilter::FDistanceFilter::Test(const FPCGPoint& Point) const
 			else
 			{
 				TargetOctree->FindNearbyElements(
-					Origin, [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+					Origin, [&](const PCGPointOctree::FPointRef& PointRef)
 					{
 						PCGEX_POINTREF_INDEX
-						const double Dist = Distances->GetDistSquared(Point, *(TargetPoints->GetData() + OtherIndex));
+						const double Dist = Distances->GetDistSquared(Point, PCGExData::FConstPoint(TargetPoints, OtherIndex));
 						if (Dist > BestDist) { return; }
 						BestDist = Dist;
 					});
@@ -165,8 +166,8 @@ bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 {
 	const double B = DistanceThresholdGetter->Read(PointIndex);
 
-	const FPCGPoint& SourcePt = PointDataFacade->Source->GetInPoint(PointIndex);
-	const FVector Origin = SourcePt.Transform.GetLocation();
+	const PCGExData::FConstPoint& SourcePt = PointDataFacade->Source->GetInPoint(PointIndex);
+	const FVector Origin = InTransforms[PointIndex].GetLocation();
 
 	double BestDist = MAX_dbl;
 
@@ -177,18 +178,18 @@ bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 		{
 			PCGEX_DIST_REINTERP_CAST
 
-			if (Current == SelfPtr)
+			if (TargetPoints == SelfPtr)
 			{
 				if (bIgnoreSelf) { continue; }
 
 				// Ignore current point when testing against self
 				TargetOctree->FindNearbyElements(
-					Origin, [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+					Origin, [&](const PCGPointOctree::FPointRef& PointRef)
 					{
 						PCGEX_POINTREF_INDEX
 						if (OtherIndex == PointIndex) { return; }
 
-						double Dist = Distances->GetDistSquared(SourcePt, *(TargetPoints->GetData() + OtherIndex), bOverlap);
+						double Dist = Distances->GetDistSquared(SourcePt, PCGExData::FConstPoint(TargetPoints, OtherIndex), bOverlap);
 						if (bOverlap) { Dist = 0; }
 						if (Dist > BestDist) { return; }
 						BestDist = Dist;
@@ -197,10 +198,10 @@ bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 			else
 			{
 				TargetOctree->FindNearbyElements(
-					Origin, [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+					Origin, [&](const PCGPointOctree::FPointRef& PointRef)
 					{
 						PCGEX_POINTREF_INDEX
-						double Dist = Distances->GetDistSquared(SourcePt, *(TargetPoints->GetData() + OtherIndex), bOverlap);
+						double Dist = Distances->GetDistSquared(SourcePt, PCGExData::FConstPoint(TargetPoints, OtherIndex), bOverlap);
 						if (bOverlap) { Dist = 0; }
 						if (Dist > BestDist) { return; }
 						BestDist = Dist;
@@ -214,18 +215,18 @@ bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 		{
 			PCGEX_DIST_REINTERP_CAST
 
-			if (Current == SelfPtr)
+			if (TargetPoints == SelfPtr)
 			{
 				if (bIgnoreSelf) { continue; }
 
 				// Ignore current point when testing against self
 				TargetOctree->FindNearbyElements(
-					Origin, [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+					Origin, [&](const PCGPointOctree::FPointRef& PointRef)
 					{
 						PCGEX_POINTREF_INDEX
 						if (OtherIndex == PointIndex) { return; }
 
-						const double Dist = Distances->GetDistSquared(SourcePt, *(TargetPoints->GetData() + OtherIndex));
+						const double Dist = Distances->GetDistSquared(SourcePt, PCGExData::FConstPoint(TargetPoints, OtherIndex));
 						if (Dist > BestDist) { return; }
 						BestDist = Dist;
 					});
@@ -233,10 +234,10 @@ bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 			else
 			{
 				TargetOctree->FindNearbyElements(
-					Origin, [&](const PCGEX_POINT_OCTREE_REF& PointRef)
+					Origin, [&](const PCGPointOctree::FPointRef& PointRef)
 					{
 						PCGEX_POINTREF_INDEX
-						const double Dist = Distances->GetDistSquared(SourcePt, *(TargetPoints->GetData() + OtherIndex));
+						const double Dist = Distances->GetDistSquared(SourcePt, PCGExData::FConstPoint(TargetPoints, OtherIndex));
 						if (Dist > BestDist) { return; }
 						BestDist = Dist;
 					});

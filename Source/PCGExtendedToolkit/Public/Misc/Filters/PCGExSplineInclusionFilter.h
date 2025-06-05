@@ -87,7 +87,7 @@ public:
 	UPROPERTY()
 	FPCGExSplineInclusionFilterConfig Config;
 
-	virtual bool SupportsDirectEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
+	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
 	TSharedPtr<TArray<FPCGSplineStruct>> Splines;
 	virtual bool Init(FPCGExContext* InContext) override;
@@ -134,11 +134,10 @@ namespace PCGExPointFilter
 		ESplineCheckFlags BadFlags = None;
 		ESplineMatch GoodMatch = Any;
 
-		using SplineCheckCallback = std::function<bool(const FPCGPoint&)>;
-		SplineCheckCallback SplineCheck;
+		TConstPCGValueRange<FTransform> InTransforms;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-		virtual bool Test(const FPCGPoint& Point) const override;
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FSplineInclusionFilter() override

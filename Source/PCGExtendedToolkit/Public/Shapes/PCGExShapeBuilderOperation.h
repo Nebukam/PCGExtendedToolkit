@@ -21,16 +21,16 @@ public:
 	FTransform Transform;
 	FPCGExShapeConfigBase BaseConfig;
 
-	virtual void PrepareShape(const PCGExData::FPointRef& Seed) { Shapes[Seed.Index] = MakeShared<PCGExShapes::FShape>(Seed); }
+	virtual void PrepareShape(const PCGExData::FConstPoint& Seed) { Shapes[Seed.Index] = MakeShared<PCGExShapes::FShape>(Seed); }
 
-	virtual void BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const TArrayView<FPCGPoint> PointView)
+	virtual void BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope)
 	{
 	}
 
 protected:
 	virtual void ValidateShape(const TSharedPtr<PCGExShapes::FShape> Shape);
 
-	FORCEINLINE double GetResolution(const PCGExData::FPointRef& Seed) const
+	FORCEINLINE double GetResolution(const PCGExData::FConstPoint& Seed) const
 	{
 		if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance) { return FMath::Abs(Resolution->Read(Seed.Index)) * 0.01; }
 		return FMath::Abs(Resolution->Read(Seed.Index));

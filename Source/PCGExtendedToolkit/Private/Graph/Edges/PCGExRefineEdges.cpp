@@ -41,8 +41,8 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return bOutputEdgesOnly ? PCGExData::EIOInit::None : PCGExData::EIOInit::New; }
-PCGExData::EIOInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return bOutputEdgesOnly ? PCGExData::EIOInit::NoInit : PCGExData::EIOInit::New; }
+PCGExData::EIOInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
 
@@ -83,6 +83,8 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bOutputEdgesOnly)
 	{
+		// TODO : Revisit this
+
 		Context->KeptEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
 		Context->KeptEdges->OutputPin = PCGExGraph::OutputKeptEdgesLabel;
 
@@ -216,9 +218,14 @@ namespace PCGExRefineEdges
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
-		Refinement->ProcessNode(Node);
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			Refinement->ProcessNode(Nodes[Index]);
+		}
 	}
 
 	void FProcessor::PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope)
@@ -229,12 +236,18 @@ namespace PCGExRefineEdges
 		TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
 
 		const bool bDefaultValidity = Refinement->GetDefaultEdgeValidity();
-		for (int i = Scope.Start; i < Scope.End; i++) { Edges[i].bValid = bDefaultValidity; }
+		PCGEX_SCOPE_LOOP(i) { Edges[i].bValid = bDefaultValidity; }
 	}
 
-	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
 	{
-		Refinement->ProcessEdge(Edge);
+		PrepareSingleLoopScopeForEdges(Scope);
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			PCGExGraph::FEdge& Edge = *Cluster->GetEdge(Index);
+			Refinement->ProcessEdge(Edge);
+		}
 	}
 
 	void FProcessor::OnEdgesProcessingComplete()
@@ -248,7 +261,7 @@ namespace PCGExRefineEdges
 			{
 				PCGEX_ASYNC_THIS
 				const PCGExCluster::FCluster* LocalCluster = This->Cluster.Get();
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					if (PCGExCluster::FNode* Node = LocalCluster->GetNode(i); !Node->HasAnyValidEdges(LocalCluster)) { Node->bValid = false; }
 				}
@@ -265,7 +278,7 @@ namespace PCGExRefineEdges
 						PCGEX_ASYNC_NESTED_THIS
 						const PCGExCluster::FCluster* LocalCluster = NestedThis->Cluster.Get();
 
-						for (int i = Scope.Start; i < Scope.End; i++)
+						PCGEX_SCOPE_LOOP(i)
 						{
 							PCGExGraph::FEdge* Edge = LocalCluster->GetEdge(i);
 							if (Edge->bValid) { continue; }
@@ -304,7 +317,7 @@ namespace PCGExRefineEdges
 					const TSharedPtr<PCGExCluster::FCluster> LocalCluster = This->Cluster;
 					const TSharedPtr<PCGExClusterFilter::FManager> SanitizationFilters = This->SanitizationFilterManager;
 
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						PCGExGraph::FEdge& Edge = *LocalCluster->GetEdge(i);
 						if (SanitizationFilters->Test(Edge)) { Edge.bValid = true; }
@@ -334,24 +347,16 @@ namespace PCGExRefineEdges
 			return;
 		}
 
-		const TArray<FPCGPoint>& OriginalEdges = EdgeDataFacade->GetIn()->GetPoints();
-		const int32 EdgesNum = OriginalEdges.Num();
+		const UPCGBasePointData* OriginalEdges = EdgeDataFacade->GetIn();
 
-		TArray<FPCGPoint>& KeptEdges = Context->KeptEdges->Pairs[EdgeDataFacade->Source->IOIndex]->GetMutablePoints();
-		TArray<FPCGPoint>& RemovedEdges = Context->RemovedEdges->Pairs[EdgeDataFacade->Source->IOIndex]->GetMutablePoints();
-
-		KeptEdges.Reserve(EdgesNum);
-		RemovedEdges.Reserve(EdgesNum);
+		TBitArray<> Mask;
+		Mask.Init(false, OriginalEdges->GetNumPoints());
 
 		const TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
-		for (int i = 0; i < EdgesNum; i++)
-		{
-			if (Edges[i].bValid) { KeptEdges.Add(OriginalEdges[i]); }
-			else { RemovedEdges.Add(OriginalEdges[i]); }
-		}
+		for (int i = 0; i < Mask.Num(); ++i) { Mask[i] = Edges[i].bValid ? true : false; }
 
-		KeptEdges.SetNum(KeptEdges.Num());
-		RemovedEdges.SetNum(RemovedEdges.Num());
+		(void)Context->KeptEdges->Pairs[EdgeDataFacade->Source->IOIndex]->InheritPoints(Mask, false);
+		(void)Context->RemovedEdges->Pairs[EdgeDataFacade->Source->IOIndex]->InheritPoints(Mask, true);
 	}
 
 	void FProcessor::CompleteWork()
@@ -403,7 +408,7 @@ namespace PCGExRefineEdges
 
 		if (Processor->Sanitization == EPCGExRefineSanitization::Longest)
 		{
-			for (int i = Scope.Start; i < Scope.End; i++)
+			PCGEX_SCOPE_LOOP(i)
 			{
 				const PCGExCluster::FNode* Node = (Processor->Cluster->GetNode(i));
 
@@ -425,7 +430,7 @@ namespace PCGExRefineEdges
 		}
 		else if (Processor->Sanitization == EPCGExRefineSanitization::Shortest)
 		{
-			for (int i = Scope.Start; i < Scope.End; i++)
+			PCGEX_SCOPE_LOOP(i)
 			{
 				const PCGExCluster::FNode* Node = Processor->Cluster->GetNode(i);
 

@@ -22,7 +22,7 @@ public:
 	bool bUseLocalWeightMultiplier = false;
 	FVector UVWSeed = FVector::OneVector * -1;
 	FVector UVWGoal = FVector::OneVector;
-	EPCGExClusterComponentSource LocalWeightMultiplierSource = EPCGExClusterComponentSource::Vtx;
+	EPCGExClusterElement LocalWeightMultiplierSource = EPCGExClusterElement::Vtx;
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
 
 	const FRichCurve* ScoreCurve = nullptr;

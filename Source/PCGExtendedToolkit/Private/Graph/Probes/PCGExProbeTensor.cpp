@@ -52,7 +52,7 @@ bool FPCGExProbeTensor::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& 
 	return true;
 }
 
-void FPCGExProbeTensor::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeTensor::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
 	const double R = GetSearchRadius(Index);
@@ -61,7 +61,7 @@ void FPCGExProbeTensor::ProcessCandidates(const int32 Index, const FPCGPoint& Po
 	int32 BestCandidateIndex = -1;
 
 	bool bSuccess = false;
-	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, Point.Transform, bSuccess);
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, WorkingTransform, bSuccess);
 
 	if (!bSuccess) { return; }
 
@@ -116,18 +116,18 @@ void FPCGExProbeTensor::ProcessCandidates(const int32 Index, const FPCGPoint& Po
 	}
 }
 
-void FPCGExProbeTensor::PrepareBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate)
+void FPCGExProbeTensor::PrepareBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate)
 {
 	InBestCandidate.BestIndex = -1;
 	InBestCandidate.BestPrimaryValue = -1;
 	InBestCandidate.BestSecondaryValue = MAX_dbl;
 }
 
-void FPCGExProbeTensor::ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
+void FPCGExProbeTensor::ProcessCandidateChained(const int32 Index, const FTransform& WorkingTransform, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
 {
 	const double R = GetSearchRadius(Index);
 	bool bSuccess = false;
-	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, Point.Transform, bSuccess);
+	const PCGExTensor::FTensorSample Sample = TensorsHandler->Sample(Index, WorkingTransform, bSuccess);
 
 	if (!bSuccess) { return; }
 
@@ -167,7 +167,7 @@ void FPCGExProbeTensor::ProcessCandidateChained(const int32 Index, const FPCGPoi
 	}
 }
 
-void FPCGExProbeTensor::ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeTensor::ProcessBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	if (InBestCandidate.BestIndex == -1) { return; }
 

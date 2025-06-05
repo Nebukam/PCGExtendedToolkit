@@ -26,7 +26,7 @@ bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSha
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	FlagsReader = PointDataFacade->GetScopedReadable<int64>(TypedFilterFactory->Config.FlagsAttribute);
+	FlagsReader = PointDataFacade->GetReadable<int64>(TypedFilterFactory->Config.FlagsAttribute, PCGExData::EIOSide::In, true);
 
 	if (!FlagsReader)
 	{

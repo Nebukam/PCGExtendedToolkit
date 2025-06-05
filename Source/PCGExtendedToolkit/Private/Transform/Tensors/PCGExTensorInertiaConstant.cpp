@@ -21,7 +21,7 @@ PCGExTensor::FTensorSample FPCGExTensorInertiaConstant::Sample(const int32 InSee
 	if (Config.bSetInertiaOnce)
 	{
 		Samples.Emplace_GetRef(
-			PCGExMath::GetDirection(PrimaryDataFacade->Source->GetInPoint(InSeedIndex).Transform.GetRotation() * Offset, Config.Axis),
+			PCGExMath::GetDirection(PrimaryDataFacade->GetIn()->GetTransform(InSeedIndex).GetRotation() * Offset, Config.Axis),
 			Config.Potency,
 			Config.Weight);
 	}

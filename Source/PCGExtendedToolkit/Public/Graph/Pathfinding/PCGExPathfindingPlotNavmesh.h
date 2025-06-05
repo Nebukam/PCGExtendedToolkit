@@ -14,19 +14,10 @@
 
 #include "PCGExPathfindingPlotNavmesh.generated.h"
 
+struct FPCGExPathfindingPlotNavmeshContext;
+
 namespace PCGExPathfinding
 {
-	struct PCGEXTENDEDTOOLKIT_API FPlotPoint
-	{
-		int32 PlotIndex;
-		FVector Position;
-		PCGMetadataEntryKey MetadataEntryKey = -1;
-
-		FPlotPoint(const int32 InPlotIndex, const FVector& InPosition, const PCGMetadataEntryKey InMetadataEntryKey)
-			: PlotIndex(InPlotIndex), Position(InPosition), MetadataEntryKey(InMetadataEntryKey)
-		{
-		}
-	};
 }
 
 /**
@@ -90,7 +81,7 @@ public:
 
 	/** Controls how path points blend from seed to goal. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	TObjectPtr<UPCGExSubPointsBlendInstancedFactory> Blending;
 
 	/** Pathfinding mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -104,29 +95,23 @@ public:
 	bool bOmitCompletePathOnFailedPlot = false;
 };
 
-struct FPCGExPathfindingPlotNavmeshContext final : FPCGExPointsProcessorContext
+struct FPCGExPathfindingPlotNavmeshContext final : FPCGExNavmeshContext
 {
 	friend class FPCGExPathfindingPlotNavmeshElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 	bool bAddPlotPointsToPath = true;
-
-	FNavAgentProperties NavAgentProperties;
-
-	bool bRequireNavigableEndLocation = true;
-	EPCGExPathfindingNavmeshMode PathfindingMode;
-	double FuseDistance = 10;
 };
 
 class FPCGExPathfindingPlotNavmeshElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathfindingPlotNavmesh)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

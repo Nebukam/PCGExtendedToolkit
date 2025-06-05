@@ -59,7 +59,7 @@ void FPCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, co
 		TotalWeightBuffer = VtxDataFacade->GetWritable<int32>(Config.TotalWeightAttributeName, 0, true, PCGExData::EBufferInit::New);
 	}
 
-	if (SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx)
+	if (SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx)
 	{
 		if (!FilterManager->Init(InContext, VtxFilterFactories))
 		{
@@ -78,12 +78,12 @@ void FPCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, co
 	bIsValidOperation = true;
 }
 
-void FPCGExNeighborSampleFilters::PrepareNode(const PCGExCluster::FNode& TargetNode) const
+void FPCGExNeighborSampleFilters::PrepareNode(const PCGExCluster::FNode& TargetNode, const PCGExMT::FScope& Scope) const
 {
-	FPCGExNeighborSampleOperation::PrepareNode(TargetNode);
+	FPCGExNeighborSampleOperation::PrepareNode(TargetNode, Scope);
 }
 
-void FPCGExNeighborSampleFilters::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleFilters::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope)
 {
 	if (FilterManager->Test(*Cluster->GetNode(Lk)))
 	{
@@ -97,7 +97,7 @@ void FPCGExNeighborSampleFilters::SampleNeighborNode(const PCGExCluster::FNode& 
 	}
 }
 
-void FPCGExNeighborSampleFilters::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight)
+void FPCGExNeighborSampleFilters::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope)
 {
 	if (FilterManager->Test(*Cluster->GetEdge(Lk)))
 	{
@@ -111,26 +111,26 @@ void FPCGExNeighborSampleFilters::SampleNeighborEdge(const PCGExCluster::FNode& 
 	}
 }
 
-void FPCGExNeighborSampleFilters::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight)
+void FPCGExNeighborSampleFilters::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope)
 {
 	const int32 WriteIndex = TargetNode.PointIndex;
 	const int32 ReadIndex = TargetNode.Index;
 
-	if (NumInsideBuffer) { NumInsideBuffer->GetMutable(WriteIndex) = Inside[ReadIndex]; }
-	else if (NormalizedNumInsideBuffer) { NormalizedNumInsideBuffer->GetMutable(WriteIndex) = static_cast<double>(Inside[ReadIndex]) / static_cast<double>(Count); }
+	if (NumInsideBuffer) { NumInsideBuffer->SetValue(WriteIndex, Inside[ReadIndex]); }
+	else if (NormalizedNumInsideBuffer) { NormalizedNumInsideBuffer->SetValue(WriteIndex, static_cast<double>(Inside[ReadIndex]) / static_cast<double>(Count)); }
 
-	if (NumOutsideBuffer) { NumOutsideBuffer->GetMutable(WriteIndex) = Outside[ReadIndex]; }
-	else if (NormalizedNumOutsideBuffer) { NormalizedNumOutsideBuffer->GetMutable(WriteIndex) = static_cast<double>(Outside[ReadIndex]) / static_cast<double>(Count); }
+	if (NumOutsideBuffer) { NumOutsideBuffer->SetValue(WriteIndex, Outside[ReadIndex]); }
+	else if (NormalizedNumOutsideBuffer) { NormalizedNumOutsideBuffer->SetValue(WriteIndex, static_cast<double>(Outside[ReadIndex]) / static_cast<double>(Count)); }
 
-	if (TotalNumBuffer) { TotalNumBuffer->GetMutable(WriteIndex) = Count; }
+	if (TotalNumBuffer) { TotalNumBuffer->SetValue(WriteIndex, Count); }
 
-	if (WeightInsideBuffer) { WeightInsideBuffer->GetMutable(WriteIndex) = InsideWeight[ReadIndex]; }
-	else if (NormalizedWeightInsideBuffer) { NormalizedWeightInsideBuffer->GetMutable(WriteIndex) = InsideWeight[ReadIndex] / TotalWeight; }
+	if (WeightInsideBuffer) { WeightInsideBuffer->SetValue(WriteIndex, InsideWeight[ReadIndex]); }
+	else if (NormalizedWeightInsideBuffer) { NormalizedWeightInsideBuffer->SetValue(WriteIndex, InsideWeight[ReadIndex] / TotalWeight); }
 
-	if (WeightOutsideBuffer) { WeightOutsideBuffer->GetMutable(WriteIndex) = Outside[ReadIndex]; }
-	else if (NormalizedWeightOutsideBuffer) { NormalizedWeightOutsideBuffer->GetMutable(WriteIndex) = OutsideWeight[ReadIndex] / TotalWeight; }
+	if (WeightOutsideBuffer) { WeightOutsideBuffer->SetValue(WriteIndex, Outside[ReadIndex]); }
+	else if (NormalizedWeightOutsideBuffer) { NormalizedWeightOutsideBuffer->SetValue(WriteIndex, OutsideWeight[ReadIndex] / TotalWeight); }
 
-	if (TotalWeightBuffer) { TotalWeightBuffer->GetMutable(WriteIndex) = TotalWeight; }
+	if (TotalWeightBuffer) { TotalWeightBuffer->SetValue(WriteIndex, TotalWeight); }
 }
 
 void FPCGExNeighborSampleFilters::CompleteOperation()
@@ -158,13 +158,13 @@ UPCGExNeighborSampleFiltersSettings::UPCGExNeighborSampleFiltersSettings(const F
 bool UPCGExNeighborSampleFiltersSettings::SupportsVtxFilters(bool& bIsRequired) const
 {
 	bIsRequired = true;
-	return SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Vtx;
+	return SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx;
 }
 
 bool UPCGExNeighborSampleFiltersSettings::SupportsEdgeFilters(bool& bIsRequired) const
 {
 	bIsRequired = true;
-	return SamplingConfig.NeighborSource == EPCGExClusterComponentSource::Edge;
+	return SamplingConfig.NeighborSource == EPCGExClusterElement::Edge;
 }
 
 UPCGExFactoryData* UPCGExNeighborSampleFiltersSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const

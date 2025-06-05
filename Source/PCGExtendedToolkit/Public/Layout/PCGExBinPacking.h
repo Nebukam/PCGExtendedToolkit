@@ -126,6 +126,9 @@ public:
 struct FPCGExBinPackingContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBinPackingElement;
+
+	TSet<int32> ValidIOIndices;
+
 	TSharedPtr<PCGExData::FPointIOCollection> Bins;
 	TArray<FPCGExUVW> BinsUVW;
 
@@ -136,7 +139,7 @@ class FPCGExBinPackingElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BinPacking)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -186,14 +189,14 @@ namespace PCGExBinPacking
 		FVector WastedSpaceThresholds = FVector::ZeroVector;
 		TArray<FItem> Items;
 
-		explicit FBin(const FPCGPoint& InBinPoint, const FVector& InSeed, const TSharedPtr<FBinSplit>& InSplitter);
+		FBin(const PCGExData::FConstPoint& InBinPoint, const FVector& InSeed, const TSharedPtr<FBinSplit>& InSplitter);
 		~FBin() = default;
 
 		bool IsFull() const { return Items.Num() <= MaxItems; }
 		int32 GetBestSpaceScore(const FItem& InItem, double& OutScore, FRotator& OutRotator) const;
 		void AddItem(int32 SpaceIndex, FItem& InItem);
 		bool Insert(FItem& InItem);
-		void UpdatePoint(FPCGPoint& InPoint, const FItem& InItem) const;
+		void UpdatePoint(PCGExData::FMutablePoint& InPoint, const FItem& InItem) const;
 	};
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBinPackingContext, UPCGExBinPackingSettings>
@@ -201,11 +204,13 @@ namespace PCGExBinPacking
 	protected:
 		TSharedPtr<FBinSplit> Splitter;
 		double MinOccupation = 0;
-		TSharedPtr<PCGExSorting::PointSorter<true>> Sorter;
+		TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
 		TArray<TSharedPtr<FBin>> Bins;
 		TBitArray<> Fitted;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> PaddingBuffer;
 		bool bHasUnfitted = false;
+
+		TArray<int32> ProcessingOrder;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -221,8 +226,7 @@ namespace PCGExBinPacking
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};
 }

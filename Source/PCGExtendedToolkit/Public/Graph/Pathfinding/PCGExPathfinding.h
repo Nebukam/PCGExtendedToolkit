@@ -15,7 +15,7 @@ namespace PCGExHeuristics
 	class FLocalFeedbackHandler;
 }
 
-class UPCGExSearchOperation;
+class FPCGExSearchOperation;
 
 namespace PCGExHeuristics
 {
@@ -82,22 +82,18 @@ namespace PCGExPathfinding
 
 	struct PCGEXTENDEDTOOLKIT_API FNodePick
 	{
-		FNodePick(const int32 InSourceIndex, const FVector& InSourcePosition):
-			SourceIndex(InSourceIndex), SourcePosition(InSourcePosition)
+		explicit FNodePick(const PCGExData::FConstPoint& InSourcePointRef):
+			Point(InSourcePointRef)
 		{
 		}
 
-		explicit FNodePick(const PCGExData::FPointRef& InSourcePointRef):
-			SourceIndex(InSourcePointRef.Index), SourcePosition(InSourcePointRef.Point->Transform.GetLocation())
-		{
-		}
-
-		int32 SourceIndex = -1;
-		FVector SourcePosition = FVector::ZeroVector;
+		PCGExData::FConstPoint Point;
 		const PCGExCluster::FNode* Node = nullptr;
 
 		bool IsValid() const { return Node != nullptr; };
 		bool ResolveNode(const TSharedRef<PCGExCluster::FCluster>& InCluster, const FPCGExNodeSelectionDetails& SelectionDetails);
+
+		operator PCGExData::FConstPoint() const { return Point; }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSeedGoalPair
@@ -113,6 +109,13 @@ namespace PCGExPathfinding
 			Seed(InSeed), SeedPosition(InSeedPosition), Goal(InGoal), GoalPosition(InGoalPosition)
 		{
 		}
+
+		FSeedGoalPair(const PCGExData::FConstPoint& InSeed, const PCGExData::FConstPoint& InGoal):
+			Seed(InSeed.Index), SeedPosition(InSeed.GetLocation()), Goal(InGoal.Index), GoalPosition(InGoal.GetLocation())
+		{
+		}
+
+		bool IsValid() const { return Seed != -1 && Goal != -1; }
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FPathQuery : public TSharedFromThis<FPathQuery>
@@ -120,17 +123,17 @@ namespace PCGExPathfinding
 	public:
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
-			const PCGExData::FPointRef& InSeedPointRef,
-			const PCGExData::FPointRef& InGoalPointRef,
+			const PCGExData::FConstPoint& InSeed,
+			const PCGExData::FConstPoint& InGoal,
 			const int32 InQueryIndex)
-			: Cluster(InCluster), Seed(InSeedPointRef), Goal(InGoalPointRef), QueryIndex(InQueryIndex)
+			: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
 		{
 		}
 
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
 			const TSharedPtr<FPathQuery>& PreviousQuery,
-			const PCGExData::FPointRef& InGoalPointRef,
+			const PCGExData::FConstPoint& InGoalPointRef,
 			const int32 InQueryIndex)
 			: Cluster(InCluster), Seed(PreviousQuery->Goal), Goal(InGoalPointRef), QueryIndex(InQueryIndex)
 		{
@@ -170,16 +173,16 @@ namespace PCGExPathfinding
 		void SetResolution(const EPathfindingResolution InResolution);
 
 		void FindPath(
-			const UPCGExSearchOperation* SearchOperation,
+			const TSharedPtr<FPCGExSearchOperation>& SearchOperation,
 			const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler,
 			const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback);
 
 		void AppendNodePoints(
-			TArray<FPCGPoint>& OutPoints,
+			TArray<int32>& OutPoints,
 			const int32 TruncateStart = 0,
 			const int32 TruncateEnd = 0) const;
 
-		void AppendEdgePoints(TArray<FPCGPoint>& OutPoints) const;
+		void AppendEdgePoints(TArray<int32>& OutPoints) const;
 
 		void Cleanup();
 	};
@@ -211,7 +214,7 @@ namespace PCGExPathfinding
 
 		void FindPaths(
 			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-			const UPCGExSearchOperation* SearchOperation,
+			const TSharedPtr<FPCGExSearchOperation>& SearchOperation,
 			const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler);
 
 		void Cleanup();

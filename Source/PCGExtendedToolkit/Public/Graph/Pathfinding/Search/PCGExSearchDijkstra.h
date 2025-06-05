@@ -11,19 +11,28 @@
 #include "PCGExSearchDijkstra.generated.h"
 
 class FPCGExHeuristicOperation;
+
+class FPCGExSearchOperationDijkstra : public FPCGExSearchOperation
+{
+public:
+	virtual bool ResolveQuery(
+		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
+		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
+		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const override;
+};
+
 /**
  * 
  */
 UCLASS(MinimalAPI, DisplayName = "Dijkstra", meta=(ToolTip ="Dijkstra search. Slower than A* but more respectful of modifiers and weights."))
-class UPCGExSearchDijkstra : public UPCGExSearchOperation
+class UPCGExSearchDijkstra : public UPCGExSearchInstancedFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
-
-	virtual bool ResolveQuery(
-		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
-		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const override;
+	virtual TSharedPtr<FPCGExSearchOperation> CreateOperation() const override
+	{
+		PCGEX_FACTORY_NEW_OPERATION(SearchOperationDijkstra)
+		return NewOperation;
+	}
 };

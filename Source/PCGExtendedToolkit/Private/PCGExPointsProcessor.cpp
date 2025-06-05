@@ -5,13 +5,11 @@
 
 #include "Styling/SlateStyle.h"
 #include "PCGPin.h"
-#include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 
 
 #include "Helpers/PCGSettingsHelpers.h"
 #include "Misc/PCGExMergePoints.h"
-#include "UObject/FastReferenceCollector.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -66,7 +64,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::None; }
+PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 bool UPCGExPointsProcessorSettings::ShouldCache() const
 {
@@ -97,7 +95,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 
 bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 {
-	if (bCleanupKeys && CurrentIO) { CurrentIO->CleanupKeys(); }
+	if (bCleanupKeys && CurrentIO) { CurrentIO->ClearCachedKeys(); }
 
 	if (MainPoints->Pairs.IsValidIndex(++CurrentPointIOIndex))
 	{
@@ -129,8 +127,8 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 				PCGExMT::FDeferredCallbackTask,
 				[WeakHandle = GetOrCreateHandle()]()
 				{
-				const FPCGExContext::FPCGExSharedContext<FPCGExMergePointsContext> SharedContext(WeakHandle);
-				if(const FPCGExMergePointsContext* Ctx = SharedContext.Get()){Ctx->MainBatch->CompleteWork();}
+				PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
+				SharedContext.Get()->MainBatch->CompleteWork();
 				});
 			return false;
 		}
@@ -140,6 +138,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::WorkComplete);
 		BatchProcessing_WorkComplete();
+
 		if (MainBatch->bRequiresWriteStep)
 		{
 			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
@@ -148,8 +147,8 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 				PCGExMT::FDeferredCallbackTask,
 				[WeakHandle = GetOrCreateHandle()]()
 				{
-				const FPCGExContext::FPCGExSharedContext<FPCGExMergePointsContext> SharedContext(WeakHandle);
-				if(const FPCGExMergePointsContext* Ctx = SharedContext.Get()){Ctx->MainBatch->Write();}
+				PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
+				SharedContext.Get()->MainBatch->Write();
 				});
 			return false;
 		}
@@ -293,33 +292,12 @@ bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) c
 	return IPCGElement::PrepareDataInternal(Context);
 }
 
-#if PCGEX_ENGINE_VERSION <= 505
-FPCGContext* FPCGExPointsProcessorElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(CreateContext());
-
-	if (!SourceComponent.IsValid())
-	{
-		// Fail gracefully
-		Context->CancelExecution("SourceComponent is trash, call Adrien!");
-		return Context;
-	}
-
-	Context->SourceComponent = SourceComponent;
-	Context->InputData = InputData;
-	Context->Node = Node;
-
-	OnContextInitialized(Context);
-	return Context;
-}
-#else
 FPCGContext* FPCGExPointsProcessorElement::Initialize(const FPCGInitializeElementParams& InParams)
 {
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(IPCGElement::Initialize(InParams));
 	OnContextInitialized(Context);
 	return Context;
 }
-#endif
 
 bool FPCGExPointsProcessorElement::IsCacheable(const UPCGSettings* InSettings) const
 {
@@ -376,11 +354,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-#if PCGEX_ENGINE_VERSION < 506
-	if (Context->InputData.GetInputs().IsEmpty() && !Settings->IsInputless()) { return false; } //Get rid of errors and warning when there is no input
-#else
 	if (Context->InputData.GetAllInputs().IsEmpty() && !Settings->IsInputless()) { return false; } //Get rid of errors and warning when there is no input
-#endif
 
 	Context->MainPoints = MakeShared<PCGExData::FPointIOCollection>(Context, Settings->GetIsMainTransactional());
 	Context->MainPoints->OutputPin = Settings->GetMainOutputPin();
@@ -435,6 +409,16 @@ void FPCGExPointsProcessorElement::AbortInternal(FPCGContext* Context) const
 
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
 	PCGExContext->CancelExecution(TEXT(""));
+}
+
+bool FPCGExPointsProcessorElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	return false;
+}
+
+bool FPCGExPointsProcessorElement::SupportsBasePointDataInputs(FPCGContext* InContext) const
+{
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

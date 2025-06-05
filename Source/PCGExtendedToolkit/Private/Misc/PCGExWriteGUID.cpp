@@ -74,14 +74,14 @@ bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFa
 	return true;
 }
 
-void FPCGExGUIDDetails::GetGUID(const int32 Index, const FPCGPoint& InPoint, FGuid& OutGUID) const
+void FPCGExGUIDDetails::GetGUID(const int32 Index, const PCGExData::FConstPoint& InPoint, FGuid& OutGUID) const
 {
-	const uint32 SeededBase = bUseSeed ? InPoint.Seed : 0;
+	const uint32 SeededBase = bUseSeed ? InPoint.Data->GetSeed(InPoint.Index) : 0;
 	OutGUID = FGuid(
 		GridHash,
 		bUseIndex ? Index : -1,
 		UniqueKeyReader->IsConstant() ? HashCombine(SeededBase, static_cast<uint32>(UniqueKeyReader->Read(Index))) : SeededBase,
-		bUsePosition ? PCGEx::GH3(InPoint.Transform.GetLocation() + PositionHashOffset, AdjustedPositionHashCollision) : 0);
+		bUsePosition ? PCGEx::GH3(InPoint.GetLocation() + PositionHashOffset, AdjustedPositionHashCollision) : 0);
 }
 
 PCGEX_INITIALIZE_ELEMENT(WriteGUID)
@@ -152,19 +152,20 @@ namespace PCGExWriteGUID
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		TPointsProcessor::PrepareSingleLoopScopeForPoints(Scope);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::WriteGUID::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		FGuid GUID = FGuid();
-		Config.GetGUID(Index, Point, GUID);
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			FGuid GUID = FGuid();
+			Config.GetGUID(Index, PointDataFacade->GetInPoint(Index), GUID);
 
-		if (IntegerGUIDWriter) { IntegerGUIDWriter->GetMutable(Index) = GetTypeHash(GUID.ToString(Config.GUIDFormat)); }
-		else { StringGUIDWriter->GetMutable(Index) = GUID.ToString(Config.GUIDFormat); }
+			if (IntegerGUIDWriter) { IntegerGUIDWriter->SetValue(Index, GetTypeHash(GUID.ToString(Config.GUIDFormat))); }
+			else { StringGUIDWriter->SetValue(Index, GUID.ToString(Config.GUIDFormat)); }
+		}
 	}
 
 	void FProcessor::CompleteWork()

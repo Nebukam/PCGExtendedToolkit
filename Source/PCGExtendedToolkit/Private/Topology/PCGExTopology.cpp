@@ -3,9 +3,7 @@
 
 #include "Topology/PCGExTopology.h"
 
-#include "PCGExCompare.h"
-
-void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InCell, FPCGPoint& OutPoint, const TArray<FPCGPoint>& CellPoints) const
+void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InCell, PCGExData::FMutablePoint& OutSeedPoint, const UPCGBasePointData* CellPoints) const
 {
 	switch (Location)
 	{
@@ -13,33 +11,33 @@ void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InC
 	case EPCGExCellSeedLocation::Original:
 		break;
 	case EPCGExCellSeedLocation::Centroid:
-		OutPoint.Transform.SetLocation(InCell->Data.Centroid);
+		OutSeedPoint.SetLocation(InCell->Data.Centroid);
 		break;
 	case EPCGExCellSeedLocation::PathBoundsCenter:
-		OutPoint.Transform.SetLocation(InCell->Data.Bounds.GetCenter());
+		OutSeedPoint.SetLocation(InCell->Data.Bounds.GetCenter());
 		break;
 	case EPCGExCellSeedLocation::FirstNode:
-		OutPoint.Transform.SetLocation(CellPoints[0].Transform.GetLocation());
+		OutSeedPoint.SetLocation(CellPoints->GetTransform(0).GetLocation());
 		break;
 	case EPCGExCellSeedLocation::LastNode:
-		OutPoint.Transform.SetLocation(CellPoints.Last().Transform.GetLocation());
+		OutSeedPoint.SetLocation(CellPoints->GetTransform(CellPoints->GetNumPoints() - 1).GetLocation());
 		break;
 	}
 
-	if (bResetScale) { OutPoint.Transform.SetScale3D(FVector::OneVector); }
+	if (bResetScale) { OutSeedPoint.SetScale3D(FVector::OneVector); }
 
-	if (bResetRotation) { OutPoint.Transform.SetRotation(FQuat::Identity); }
+	if (bResetRotation) { OutSeedPoint.SetRotation(FQuat::Identity); }
 
 	if (bMatchCellBounds)
 	{
-		FVector Offset = OutPoint.Transform.GetLocation();
-		OutPoint.BoundsMin = InCell->Data.Bounds.Min - Offset;
-		OutPoint.BoundsMax = InCell->Data.Bounds.Max - Offset;
+		const FVector Offset = OutSeedPoint.GetLocation();
+		OutSeedPoint.SetBoundsMin(InCell->Data.Bounds.Min - Offset);
+		OutSeedPoint.SetBoundsMax(InCell->Data.Bounds.Max - Offset);
 	}
 
-	PCGExHelpers::SetPointProperty(OutPoint, InCell->Data.Area, AreaTo);
-	PCGExHelpers::SetPointProperty(OutPoint, InCell->Data.Perimeter, PerimeterTo);
-	PCGExHelpers::SetPointProperty(OutPoint, InCell->Data.Compactness, CompactnessTo);
+	SetPointProperty(OutSeedPoint, InCell->Data.Area, AreaTo);
+	SetPointProperty(OutSeedPoint, InCell->Data.Perimeter, PerimeterTo);
+	SetPointProperty(OutSeedPoint, InCell->Data.Compactness, CompactnessTo);
 }
 
 namespace PCGExTopology
@@ -360,7 +358,7 @@ namespace PCGExTopology
 		return ECellResult::Unknown;
 	}
 
-	void FCell::PostProcessPoints(TArray<FPCGPoint>& InMutablePoints)
+	void FCell::PostProcessPoints(UPCGBasePointData* InMutablePoints)
 	{
 	}
 }
@@ -433,7 +431,7 @@ void FPCGExCellArtifactsDetails::Process(
 	for (int i = 0; i < NumNodes; i++)
 	{
 		int32 NodeIdx = InCell->Nodes[i];
-		if (TerminalBuffer) { TerminalBuffer->GetMutable(i) = InCluster->GetNode(NodeIdx)->IsLeaf(); }
-		if (RepeatBuffer) { RepeatBuffer->GetMutable(i) = NumRepeats[NodeIdx] - 1; }
+		if (TerminalBuffer) { TerminalBuffer->SetValue(i, InCluster->GetNode(NodeIdx)->IsLeaf()); }
+		if (RepeatBuffer) { RepeatBuffer->SetValue(i, NumRepeats[NodeIdx] - 1); }
 	}
 }

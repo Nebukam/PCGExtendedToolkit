@@ -22,7 +22,7 @@ MACRO(Alpha, double, 0)
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/spline-to-path"))
 class UPCGExSplineToPathSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -134,7 +134,7 @@ class FPCGExSplineToPathElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SplineToPath)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

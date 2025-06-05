@@ -69,11 +69,13 @@ namespace PCGExGraph
 
 		constexpr FLink() = default;
 
-		constexpr explicit FLink(const uint64 Hash) : Node(PCGEx::H64A(Hash)), Edge(PCGEx::H64A(Hash))
+		constexpr explicit FLink(const uint64 Hash)
+			: Node(PCGEx::H64A(Hash)), Edge(PCGEx::H64A(Hash))
 		{
 		}
 
-		constexpr FLink(const uint32 InNode, const uint32 InEdge) : Node(InNode), Edge(InEdge)
+		constexpr FLink(const uint32 InNode, const uint32 InEdge)
+			: Node(InNode), Edge(InEdge)
 		{
 		}
 

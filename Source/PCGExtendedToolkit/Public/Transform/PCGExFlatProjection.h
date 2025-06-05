@@ -12,7 +12,7 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExFlatProjection.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/flat-projection"))
 class UPCGExFlatProjectionSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -42,11 +42,11 @@ public:
 	bool bSaveAttributeForRestore = true;
 
 	/** Whether this is a new projection or an old one*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bInverseExistingProjection"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bRestorePreviousProjection"))
 	bool bAlignLocalTransform = false;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bInverseExistingProjection", DisplayName="Projection"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bRestorePreviousProjection", DisplayName="Projection"))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 };
 
@@ -61,7 +61,7 @@ class FPCGExFlatProjectionElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FlatProjection)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -73,6 +73,7 @@ namespace PCGExFlatProjection
 		bool bWriteAttribute = false;
 		bool bInverseExistingProjection = false;
 		bool bProjectLocalTransform = false;
+
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;
@@ -89,8 +90,7 @@ namespace PCGExFlatProjection
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 	};
 }

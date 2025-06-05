@@ -49,13 +49,11 @@ struct FPCGExDebugContext final : FPCGExContext
 
 class FPCGExDebugElement final : public IPCGElement
 {
-public:
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
-
 protected:
-	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(true)
-	
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
+
 	PCGEX_ELEMENT_CREATE_CONTEXT(Debug)
-	
+
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 };

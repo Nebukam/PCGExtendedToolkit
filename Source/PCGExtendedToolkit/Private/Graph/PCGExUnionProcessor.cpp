@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExUnionHelpers.h"
+#include "Graph/PCGExUnionProcessor.h"
 
 namespace PCGExGraph
 {
@@ -11,13 +11,13 @@ namespace PCGExGraph
 		TSharedRef<FUnionGraph> InUnionGraph,
 		FPCGExPointPointIntersectionDetails InPointPointIntersectionSettings,
 		FPCGExBlendingDetails InDefaultPointsBlending,
-		FPCGExBlendingDetails InDefaultEdgesBlending):
-		Context(InContext),
-		UnionDataFacade(InUnionDataFacade),
-		UnionGraph(InUnionGraph),
-		PointPointIntersectionDetails(InPointPointIntersectionSettings),
-		DefaultPointsBlendingDetails(InDefaultPointsBlending),
-		DefaultEdgesBlendingDetails(InDefaultEdgesBlending)
+		FPCGExBlendingDetails InDefaultEdgesBlending)
+		: Context(InContext),
+		  UnionDataFacade(InUnionDataFacade),
+		  UnionGraph(InUnionGraph),
+		  PointPointIntersectionDetails(InPointPointIntersectionSettings),
+		  DefaultPointsBlendingDetails(InDefaultPointsBlending),
+		  DefaultEdgesBlendingDetails(InDefaultEdgesBlending)
 	{
 	}
 
@@ -43,6 +43,7 @@ namespace PCGExGraph
 	{
 		bDoEdgeEdge = true;
 		EdgeEdgeIntersectionDetails = InDetails;
+		EdgeEdgeIntersectionDetails.Init();
 		bUseCustomEdgeEdgeBlending = bUseCustom;
 		if (InOverride) { CustomEdgeEdgeBlendingDetails = *InOverride; }
 	}
@@ -62,13 +63,14 @@ namespace PCGExGraph
 
 		Context->SetAsyncState(State_ProcessingUnion);
 
-		UnionPointsBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, VtxCarryOverDetails);
+		Distances = PCGExDetails::MakeDistances(PointPointIntersectionDetails.FuseDetails.SourceDistance, PointPointIntersectionDetails.FuseDetails.TargetDistance);
 
-		TArray<FPCGPoint>& MutablePoints = UnionDataFacade->GetOut()->GetMutablePoints();
-		MutablePoints.SetNum(NumUnionNodes);
+		UPCGBasePointData* MutablePoints = UnionDataFacade->GetOut();
+		PCGEx::SetNumPointsAllocated(MutablePoints, NumUnionNodes);
 
+		UnionPointsBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, VtxCarryOverDetails, Distances);
 		UnionPointsBlender->AddSources(InFacades, &ProtectedClusterAttributes);
-		UnionPointsBlender->PrepareMerge(Context, UnionDataFacade, UnionGraph->NodesUnion);
+		if (!UnionPointsBlender->Init(Context, UnionDataFacade, UnionGraph->NodesUnion)) { return false; }
 
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
 
@@ -76,6 +78,7 @@ namespace PCGExGraph
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
+				This->UnionPointsBlender.Reset();
 				This->OnNodesProcessingComplete();
 			};
 
@@ -88,21 +91,23 @@ namespace PCGExGraph
 				const TSharedPtr<PCGExData::FPointIOCollection> MainPoints = This->Context->MainPoints;
 				const TSharedPtr<PCGExDataBlending::FUnionBlender> Blender = This->UnionPointsBlender;
 
-				TSharedPtr<PCGExDetails::FDistances> Distances = PCGExDetails::MakeDistances(This->PointPointIntersectionDetails.FuseDetails.SourceDistance, This->PointPointIntersectionDetails.FuseDetails.TargetDistance);
+				TArray<PCGExData::FWeightedPoint> WeightedPoints;
 
-				TArray<FPCGPoint>& Points = This->UnionDataFacade->GetOut()->GetMutablePoints();
+				UPCGBasePointData* OutPoints = This->UnionDataFacade->GetOut();
+				TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
 
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					TSharedPtr<FUnionNode> UnionNode = This->UnionGraph->Nodes[i];
-					const PCGMetadataEntryKey Key = Points[i].MetadataEntry;
-					Points[i] = UnionNode->Point; // Copy "original" point properties, in case  there's only one
+					TSharedPtr<FUnionNode> UnionNode = This->UnionGraph->Nodes[Index];
 
-					FPCGPoint& Point = Points[i];
-					Point.MetadataEntry = Key; // Restore key
+					//const PCGMetadataEntryKey Key = OutPoints[i].MetadataEntry;
+					//OutPoints[Index] = UnionNode->Point; // Copy "original" point properties, in case  there's only one
 
-					Point.Transform.SetLocation(UnionNode->UpdateCenter(PointsUnion, MainPoints));
-					Blender->MergeSingle(i, Distances);
+					//FPCGPoint& Point = OutPoints[Index];
+					//Point.MetadataEntry = Key; // Restore key
+
+					OutTransforms[Index].SetLocation(UnionNode->UpdateCenter(PointsUnion, MainPoints));
+					Blender->MergeSingle(Index, WeightedPoints);
 				}
 			};
 
@@ -126,7 +131,8 @@ namespace PCGExGraph
 		GraphMetadataDetails.EdgesBlendingDetailsPtr = bUseCustomEdgeEdgeBlending ? &CustomEdgeEdgeBlendingDetails : &DefaultEdgesBlendingDetails;
 		GraphMetadataDetails.EdgesCarryOverDetails = EdgesCarryOverDetails;
 
-		GraphBuilder = MakeShared<FGraphBuilder>(UnionDataFacade, &BuilderDetails, 4);
+		GraphBuilder = MakeShared<FGraphBuilder>(UnionDataFacade, &BuilderDetails);
+		GraphBuilder->bInheritNodeData = false;
 		GraphBuilder->SourceEdgeFacades = SourceEdgesIO;
 		GraphBuilder->Graph->NodesUnion = UnionGraph->NodesUnion;
 		GraphBuilder->Graph->EdgesUnion = UnionGraph->EdgesUnion;
@@ -235,11 +241,11 @@ namespace PCGExGraph
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					const FEdge& Edge = This->GraphBuilder->Graph->Edges[i];
+					const FEdge& Edge = This->GraphBuilder->Graph->Edges[Index];
 					if (!Edge.bValid) { continue; }
-					FindCollinearNodes(This->PointEdgeIntersections, i, This->UnionDataFacade->Source->GetOut());
+					FindCollinearNodes(This->PointEdgeIntersections, Index, This->UnionDataFacade->Source->GetOut());
 				}
 			};
 		FindPointEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
@@ -262,9 +268,9 @@ namespace PCGExGraph
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					FPointEdgeProxy& PointEdgeProxy = This->PointEdgeIntersections->Edges[i];
+					FPointEdgeProxy& PointEdgeProxy = This->PointEdgeIntersections->Edges[Index];
 					const int32 CollinearNum = PointEdgeProxy.CollinearPoints.Num();
 
 					if (!CollinearNum) { continue; }
@@ -290,12 +296,18 @@ namespace PCGExGraph
 		NewEdgesNum = 0;
 
 		PointEdgeIntersections->Insert(); // TODO : Async?
-		UnionDataFacade->Source->CleanupKeys();
+		UnionDataFacade->Source->ClearCachedKeys();
 
-		if (bUseCustomPointEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomPointEdgeBlendingDetails); }
-		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
+		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+		MetadataBlender->SetTargetData(UnionDataFacade);
+		MetadataBlender->SetSourceData(UnionDataFacade, PCGExData::EIOSide::Out);
 
-		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &ProtectedClusterAttributes);
+		if (!MetadataBlender->Init(Context, bUseCustomPointEdgeBlending ? CustomPointEdgeBlendingDetails : DefaultPointsBlendingDetails, &ProtectedClusterAttributes))
+		{
+			// Fail
+			Context->CancelExecution(FString("Error initializing Point/Edge blending"));
+			return;
+		}
 
 		BlendPointEdgeGroup->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
@@ -312,11 +324,12 @@ namespace PCGExGraph
 				if (!This->MetadataBlender) { return; }
 				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
 
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(Index)
 				{
 					// TODO
 				}
 			};
+
 		BlendPointEdgeGroup->StartSubLoops(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
 
@@ -354,11 +367,11 @@ namespace PCGExGraph
 				if (!This->EdgeEdgeIntersections) { return; }
 				const TSharedRef<FEdgeEdgeIntersections> EEI = This->EdgeEdgeIntersections.ToSharedRef();
 
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					const FEdge& Edge = This->GraphBuilder->Graph->Edges[i];
+					const FEdge& Edge = This->GraphBuilder->Graph->Edges[Index];
 					if (!Edge.bValid) { continue; }
-					FindOverlappingEdges(EEI, i);
+					FindOverlappingEdges(EEI, Index);
 				}
 			};
 
@@ -385,14 +398,14 @@ namespace PCGExGraph
 			{
 				PCGEX_ASYNC_THIS
 				if (!This->EdgeEdgeIntersections) { return; }
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					FEdgeEdgeProxy& EdgeProxy = This->EdgeEdgeIntersections->Edges[i];
-					const int32 IntersectionsNum = EdgeProxy.Intersections.Num();
+					FEdgeEdgeProxy& EdgeProxy = This->EdgeEdgeIntersections->Edges[Index];
+					const int32 NumIntersections = EdgeProxy.Intersections.Num();
 
-					if (!IntersectionsNum) { continue; }
+					if (!NumIntersections) { continue; }
 
-					FPlatformAtomics::InterlockedAdd(&This->NewEdgesNum, (IntersectionsNum + 1));
+					FPlatformAtomics::InterlockedAdd(&This->NewEdgesNum, (NumIntersections + 1));
 
 					This->GraphBuilder->Graph->Edges[EdgeProxy.EdgeIndex].bValid = false; // Invalidate existing edge
 
@@ -427,17 +440,28 @@ namespace PCGExGraph
 		// use range prep to cache these and rebuild metadata and everything then.
 
 		EdgeEdgeIntersections->InsertEdges(); // TODO : Async?
-		UnionDataFacade->Source->CleanupKeys();
+		UnionDataFacade->Source->ClearCachedKeys();
 
-		if (bUseCustomEdgeEdgeBlending) { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&CustomEdgeEdgeBlendingDetails); }
-		else { MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
+		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+		MetadataBlender->SetTargetData(UnionDataFacade);
+		MetadataBlender->SetSourceData(UnionDataFacade, PCGExData::EIOSide::Out);
 
-		MetadataBlender->PrepareForData(UnionDataFacade, PCGExData::ESource::Out, true, &ProtectedClusterAttributes);
+		if (!MetadataBlender->Init(Context, bUseCustomEdgeEdgeBlending ? CustomEdgeEdgeBlendingDetails : DefaultPointsBlendingDetails, &ProtectedClusterAttributes))
+		{
+			// Fail
+			Context->CancelExecution(FString("Error initializing Edge/Edge blending"));
+			return;
+		}
 
 		BlendEdgeEdgeGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
 			PCGEX_ASYNC_THIS
 			This->OnEdgeEdgeIntersectionsComplete();
+		};
+
+		BlendEdgeEdgeGroup->OnPrepareSubLoopsCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
+		{
+			PCGEX_ASYNC_THIS
 		};
 
 		BlendEdgeEdgeGroup->OnSubLoopStartCallback =
@@ -448,8 +472,12 @@ namespace PCGExGraph
 				if (!This->MetadataBlender) { return; }
 				const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = This->MetadataBlender.ToSharedRef();
 
-				for (int i = Scope.Start; i < Scope.End; i++) { This->EdgeEdgeIntersections->BlendIntersection(i, Blender); }
+				TArray<PCGEx::FOpStats> Trackers;
+				Blender->InitTrackers(Trackers);
+
+				PCGEX_SCOPE_LOOP(Index) { This->EdgeEdgeIntersections->BlendIntersection(Index, Blender, Trackers); }
 			};
+
 		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->Crossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
 
@@ -471,9 +499,12 @@ namespace PCGExGraph
 			[PCGEX_ASYNC_THIS_CAPTURE](const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)
 			{
 				PCGEX_ASYNC_THIS
-				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None); }
+				if (!bSuccess) { This->UnionDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit); }
 				else { This->GraphBuilder->StageEdgesOutputs(); }
 			};
+
+		// Make sure we provide up-to-date transform range to sort over
+		GraphBuilder->NodePointsTransforms = GraphBuilder->NodeDataFacade->GetOut()->GetConstTransformValueRange();
 		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true, &GraphMetadataDetails);
 	}
 }

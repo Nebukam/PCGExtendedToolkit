@@ -8,14 +8,15 @@
 
 #include "PCGExPointsProcessor.h"
 
-#include PCGEX_POINT_OCTREE_H
+#include "Utils/PCGPointOctree.h"
 
 #include "PCGExSampling.h"
 #include "PCGExDetails.h"
 #include "PCGExScopedContainers.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-
 
 #include "PCGExSampleNearestPoint.generated.h"
 
@@ -71,7 +72,7 @@ namespace PCGExNearestPoint
 	};
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-point"))
 class UPCGExSampleNearestPointSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -121,6 +122,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMin"))
 	FPCGAttributePropertyInputSelector LocalRangeMin;
 
+	PCGEX_SETTING_VALUE_GET_BOOL(RangeMin, double, bUseLocalRangeMin, LocalRangeMin, RangeMin)
+
 	/** Use a per-point maximum range*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalRangeMax = false;
@@ -128,6 +131,8 @@ public:
 	/** Attribute or property to read the maximum range from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax"))
 	FPCGAttributePropertyInputSelector LocalRangeMax;
+
+	PCGEX_SETTING_VALUE_GET_BOOL(RangeMax, double, bUseLocalRangeMax, LocalRangeMax, RangeMax)
 
 	/** Which mode to use to compute weights. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
@@ -158,17 +163,23 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute && !bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
-	/** Attributes to sample from the targets */
+
+	/** How to blend data from sampled points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable))
+	EPCGExBlendingInterface BlendingInterface = EPCGExBlendingInterface::Individual;
+
+	/** Attributes to sample from the targets */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="BlendingInterface==EPCGExBlendingInterface::Monolithic"))
 	TMap<FName, EPCGExDataBlendingType> TargetAttributes;
 
 	/** Write the sampled distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="BlendingInterface==EPCGExBlendingInterface::Monolithic"))
 	bool bBlendPointProperties = false;
 
 	/** The constant to use as Up vector for the look at transform.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties && BlendingInterface==EPCGExBlendingInterface::Monolithic"))
 	FPCGExPropertiesBlendingDetails PointPropertiesBlendingSettings = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
+
 
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -214,6 +225,8 @@ public:
 	/** The constant to use as Up vector for the look at transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides))
 	FVector LookAtUpConstant = FVector::UpVector;
+
+	PCGEX_SETTING_VALUE_GET(LookAtUp, FVector, LookAtUpSelection == EPCGExSampleSource::Constant ? EPCGExInputValueType::Constant : EPCGExInputValueType::Attribute, LookAtUpSource, LookAtUpConstant)
 
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -326,16 +339,17 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestPointElement;
 
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
+
 	TSharedPtr<PCGExData::FFacadePreloader> TargetsPreloader;
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
-	const PCGEX_POINT_OCTREE_TYPE* TargetOctree = nullptr;
-	TSharedPtr<PCGExSorting::PointSorter<false>> Sorter;
+	const PCGPointOctree::FPointOctree* TargetOctree = nullptr;
+
+	TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
 
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
-	FPCGExBlendingDetails BlendingDetails;
-	const TArray<FPCGPoint>* TargetPoints = nullptr;
 	int32 NumTargets = 0;
 
 	FRuntimeFloatCurve RuntimeWeightCurve;
@@ -352,28 +366,34 @@ class FPCGExSampleNearestPointElement final : public FPCGExPointsProcessorElemen
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleNearestPoint)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
 };
 
 namespace PCGExSampleNearestPoints
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestPointContext, UPCGExSampleNearestPointSettings>
 	{
-		TArray<int8> SampleState;
+		TArray<int8> SamplingMask;
 
 		bool bSingleSample = false;
 		bool bSampleClosest = false;
 
-		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
-		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;
-		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMinGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMaxGetter;
 
 		FVector SafeUpVector = FVector::UpVector;
+		TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter;
 
-		TSharedPtr<PCGExDataBlending::FMetadataBlender> Blender;
+		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
+		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		FPCGExBlendingDetails BlendingDetails;
+		TSharedPtr<PCGExDataBlending::IBlender> DataBlender;
+
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxDistance = 0;
 
@@ -390,17 +410,17 @@ namespace PCGExSampleNearestPoints
 
 		virtual ~FProcessor() override;
 
-		void SamplingFailed(const int32 Index, const FPCGPoint& Point);
+		void SamplingFailed(const int32 Index);
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void OnPointsProcessingComplete() override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;
+
+		virtual void Cleanup() override;
 	};
 }

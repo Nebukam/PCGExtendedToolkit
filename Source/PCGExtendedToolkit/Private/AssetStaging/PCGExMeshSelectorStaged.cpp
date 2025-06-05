@@ -77,8 +77,6 @@ bool UPCGExMeshSelectorStaged::SelectInstances(
 
 	TArray<FPCGMeshInstanceList>* InstanceListPtr = &OutMeshInstances;
 
-#if PCGEX_ENGINE_VERSION >= 505
-
 	if (Context.CurrentPointIndex == 0)
 	{
 		// Kickstart async work
@@ -97,7 +95,7 @@ bool UPCGExMeshSelectorStaged::SelectInstances(
 						OutPointData->SetPoints(InPointData->GetPoints());
 					}
 
-					const FPCGExContext::FPCGExSharedContext<FPCGStaticMeshSpawnerContext> SharedContext(CtxHandle);
+					const FPCGContext::FSharedContext<FPCGStaticMeshSpawnerContext> SharedContext(CtxHandle);
 					FPCGStaticMeshSpawnerContext* Ctx = SharedContext.Get();
 					if (!Ctx) { return; }
 
@@ -173,63 +171,6 @@ bool UPCGExMeshSelectorStaged::SelectInstances(
 	}
 
 	return false;
-
-#else
-
-	FPCGStaticMeshSpawnerContext* Ctx = &Context;
-
-	TSharedPtr<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> CollectionMap =
-		MakeShared<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>();
-
-	CollectionMap->UnpackPin(Ctx, PCGPinConstants::DefaultParamsLabel);
-
-	if (!CollectionMap->HasValidMapping())
-	{
-		PCGE_LOG_C(Error, GraphAndLog, Ctx, FTEXT( "Unable to find Staging Map data in overrides"));
-		return true;
-	}
-
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SelectEntries);
-
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::FindPartitions);
-
-			if (!CollectionMap->BuildPartitions(InPointData))
-			{
-				PCGE_LOG_C(Error, GraphAndLog, Ctx, FTEXT( "Unable to build any partitions"));
-				return true;
-			}
-		}
-
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::FillInstances);
-			const TArray<FPCGPoint>& InPoints = InPointData->GetPoints();
-
-			for (const TPair<int64, TSharedPtr<TArray<int32>>>& Partition : CollectionMap->HashedPartitions)
-			{
-				const FPCGExMeshCollectionEntry* Entry = nullptr;
-				if (!CollectionMap->ResolveEntry(Partition.Key, Entry)) { continue; }
-
-				const TArray<int32>& Indices = *Partition.Value.Get();
-				TArray<FTransform> Instances;
-				const int32 PartitionSize = Indices.Num();
-				PCGEx::InitArray(Instances, PartitionSize);
-
-				for (int i = 0; i < PartitionSize; i++) { Instances[i] = InPoints[Indices[i]].Transform; }
-
-				FSoftISMComponentDescriptor TemplateDescriptor = FSoftISMComponentDescriptor(Entry->ISMDescriptor);
-				FPCGMeshInstanceList& NewInstanceList = InstanceListPtr->Emplace_GetRef(TemplateDescriptor);
-				NewInstanceList.Descriptor = TemplateDescriptor;
-				NewInstanceList.Instances = Instances;
-			}
-		}
-	}
-
-	Ctx->CurrentPointIndex = -200;
-	return false;
-
-#endif
 }
 
 #undef LOCTEXT_NAMESPACE

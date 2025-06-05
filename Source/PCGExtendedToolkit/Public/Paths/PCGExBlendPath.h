@@ -9,13 +9,13 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
 #include "PCGExPaths.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 
 
 #include "PCGExBlendPath.generated.h"
 
-class UPCGExSubPointsBlendOperation;
+class UPCGExSubPointsBlendInstancedFactory;
 
 UENUM()
 enum class EPCGExPathBlendMode : uint8
@@ -27,7 +27,7 @@ enum class EPCGExPathBlendMode : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/blend"))
 class UPCGExBlendPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -41,6 +41,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -77,13 +78,14 @@ public:
 struct FPCGExBlendPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExBlendPathElement;
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 };
 
 class FPCGExBlendPathElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BlendPath)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -96,11 +98,11 @@ namespace PCGExBlendPath
 
 		PCGExPaths::FPathMetrics Metrics;
 
-		TSharedPtr<PCGExDetails::TSettingValue<double>> LerpCache;
-		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> LerpGetter;
+		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 
-		TSharedPtr<PCGExData::FPointRef> Start;
-		TSharedPtr<PCGExData::FPointRef> End;
+		int32 Start = -1;
+		int32 End = -1;
 
 		TArray<double> Length;
 
@@ -113,8 +115,8 @@ namespace PCGExBlendPath
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+
 		virtual void CompleteWork() override;
 	};
 }

@@ -97,7 +97,7 @@ class FPCGExRelaxClustersElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(RelaxClusters)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -111,7 +111,7 @@ namespace PCGExRelaxClusters
 		int32 Iterations = 10;
 		int32 Steps = 10;
 		int32 CurrentStep = 0;
-		EPCGExClusterComponentSource StepSource = EPCGExClusterComponentSource::Vtx;
+		EPCGExClusterElement StepSource = EPCGExClusterElement::Vtx;
 
 		TSharedPtr<PCGExData::TBuffer<double>> InfluenceCache;
 
@@ -139,7 +139,7 @@ namespace PCGExRelaxClusters
 		void StartNextStep();
 		void RelaxScope(const PCGExMT::FScope& Scope) const;
 		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
 		virtual void OnNodesProcessingComplete() override;
 	};
 

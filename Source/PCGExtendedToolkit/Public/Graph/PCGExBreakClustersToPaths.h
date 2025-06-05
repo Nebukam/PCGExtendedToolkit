@@ -120,7 +120,7 @@ class FPCGExBreakClustersToPathsElement final : public FPCGExEdgesProcessorEleme
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BreakClustersToPaths)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -146,8 +146,8 @@ namespace PCGExBreakClustersToPaths
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		bool BuildChains();
 		virtual void CompleteWork() override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 
 		virtual void Cleanup() override;
 	};
@@ -165,7 +165,6 @@ namespace PCGExBreakClustersToPaths
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch(InContext, InVtx, InEdges)
 		{
-			bAllowVtxDataFacadeScopedGet = true;
 			DefaultVtxFilterValue = false;
 		}
 

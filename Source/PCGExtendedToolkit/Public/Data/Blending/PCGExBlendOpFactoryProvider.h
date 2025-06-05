@@ -5,14 +5,15 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDetailsData.h"
+#include "PCGExOperation.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
 
-#include "PCGExAttributeBlendFactoryProvider.generated.h"
+#include "PCGExBlendOpFactoryProvider.generated.h"
 
 namespace PCGExDataBlending
 {
-	class FProxyDataBlenderBase;
+	class FProxyDataBlender;
 
 	const FName SourceConstantA = FName("Constant A");
 	const FName SourceConstantB = FName("Constant B");
@@ -25,6 +26,15 @@ enum class EPCGExOperandAuthority : uint8
 	B      = 1 UMETA(DisplayName = "Operand B", ToolTip="Type of operand B will drive the output type, thus converting operand A to the same type for the operation."),
 	Custom = 2 UMETA(DisplayName = "Custom", ToolTip="Select a specific type to output the result to."),
 	Auto   = 3 UMETA(DisplayName = "Auto", ToolTip="Takes an informed guess based on settings & existing data. Usually works well, but not fool-proof."),
+};
+
+UENUM()
+enum class EPCGExBlendOpOutputMode : uint8
+{
+	SameAsA   = 0 UMETA(DisplayName = "Same as A", ToolTip="Will write the output value to Operand A' selector."),
+	SameAsB   = 1 UMETA(DisplayName = "Same as B", ToolTip="Will write the output value to Operand B' selector. (Will default to A if B is not set)"),
+	New       = 2 UMETA(DisplayName = "New", ToolTip="Will write the output value to new selector."),
+	Transient = 3 UMETA(DisplayName = "New (Transient)", ToolTip="Will write the output value to a new selector that will only exist for the duration of the blend, but can be referenced by other blend ops."),
 };
 
 USTRUCT(BlueprintType)
@@ -89,84 +99,116 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	UPROPERTY(meta=(PCG_NotOverridable, HideInDetailPanel))
 	bool bRequiresWeight = false;
 
-	/** Blendmode */
+	/** BlendMode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::CopySource;
+	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::Average;
 
 	/** Operand A. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandA;
 
-	/** Operand B. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bUseOperandB = false;
+
+	/** Operand B. If not enabled, will re-use Operand A' input. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseOperandB"))
 	FPCGAttributePropertyInputSelector OperandB;
 
 	/** Weight settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
 	FPCGExAttributeBlendWeight Weighting;
 
+	/** Choose where to output the result of the A/B blend */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExBlendOpOutputMode OutputMode = EPCGExBlendOpOutputMode::SameAsA;
+
 	/** Output to (AB blend). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Output To", EditCondition="OutputMode==EPCGExBlendOpOutputMode::New || OutputMode==EPCGExBlendOpOutputMode::Transient", EditConditionHides))
 	FPCGAttributePropertyInputSelector OutputTo;
 
+	/** If enabled, when a node uses multiple sources for blending, the value will be reset to 0 for some specific BlendModes so as to not account for inherited values. Default is true, as it is usually the most desirable behavior. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	bool bResetValueBeforeMultiSourceBlend = true;
+
 	/** Which type should be used for the output value. Only used if the output is not a point property. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
 	EPCGExOperandAuthority OutputType = EPCGExOperandAuthority::Auto;
 
 	/** Which type should be used for the output value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Type", EditCondition="OutputType==EPCGExOperandAuthority::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Type", EditCondition="OutputType==EPCGExOperandAuthority::Custom", EditConditionHides), AdvancedDisplay)
 	EPCGMetadataTypes CustomType = EPCGMetadataTypes::Double;
-
-	/** If enabled, new attributes will only be created for the duration of the blend, and properties will be restored to their original values once the blend is complete. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	bool bTransactional = false;
 
 	void Init();
 };
 
-
 /**
  * 
  */
-class PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendOperation : public FPCGExOperation
+class PCGEXTENDEDTOOLKIT_API FPCGExBlendOperation : public FPCGExOperation
 {
 public:
 	FPCGExAttributeBlendConfig Config;
+
+	TSharedPtr<PCGExData::FFacade> WeightFacade;
+
+	TSharedPtr<PCGExData::FFacade> Source_A_Facade;
+	PCGExData::EIOSide SideA = PCGExData::EIOSide::In;
+
+	TSharedPtr<PCGExData::FFacade> Source_B_Facade;
+	PCGExData::EIOSide SideB = PCGExData::EIOSide::In;
+
+	TSharedPtr<PCGExData::FFacade> TargetFacade;
 
 	TSharedPtr<PCGExData::FFacade> ConstantA;
 	TSharedPtr<PCGExData::FFacade> ConstantB;
 
 	int32 OpIdx = -1;
-	TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> SiblingOperations;
+	TSharedPtr<TArray<TSharedPtr<FPCGExBlendOperation>>> SiblingOperations;
 
-	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
+	virtual bool PrepareForData(FPCGExContext* InContext);
 
-	virtual void Blend(const int32 Index, FPCGPoint& Point)
+	virtual void BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex)
 	{
-		Blender->Blend(Index, Point, Config.Weighting.ScoreCurveObj->Eval(Weight->Read(Index)));
+		Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(Weight->Read(SourceIndex)));
 	}
 
-	virtual void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint)
+	virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight)
 	{
-		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint, Config.Weighting.ScoreCurveObj->Eval(Weight->Read(SourceIndex)));
+		Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
 	}
 
-	virtual void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint, const double InWeight)
+	virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double InWeight)
 	{
-		Blender->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint, Config.Weighting.ScoreCurveObj->Eval(InWeight));
+		Blender->Blend(SourceIndexA, SourceIndexB, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
 	}
 
-	virtual void CompleteWork(TSet<TSharedPtr<PCGExData::FBufferBase>>& OutDisabledBuffers);
+	virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex)
+	{
+		return Blender->BeginMultiBlend(TargetIndex);
+	}
+
+	virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, PCGEx::FOpStats& Tracker)
+	{
+		Blender->MultiBlend(SourceIndex, TargetIndex, InWeight, Tracker);
+	}
+
+	virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker)
+	{
+		Blender->EndMultiBlend(TargetIndex, Tracker);
+	}
+
+	virtual void CompleteWork(TSet<TSharedPtr<PCGExData::IBuffer>>& OutDisabledBuffers);
 
 protected:
 	bool CopyAndFixSiblingSelector(FPCGExContext* InContext, FPCGAttributePropertyInputSelector& Selector) const;
 
 	TSharedPtr<PCGExDetails::TSettingValue<double>> Weight;
-	TSharedPtr<PCGExDataBlending::FProxyDataBlenderBase> Blender;
+	TSharedPtr<PCGExDataBlending::FProxyDataBlender> Blender;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
-class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendFactory : public UPCGExFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExBlendOpFactory : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
@@ -176,7 +218,7 @@ public:
 	TSharedPtr<PCGExData::FFacade> ConstantB;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Blending; }
-	virtual TSharedPtr<FPCGExAttributeBlendOperation> CreateOperation(FPCGExContext* InContext) const;
+	virtual TSharedPtr<FPCGExBlendOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override
 	{
@@ -189,10 +231,14 @@ public:
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
+
+	virtual void RegisterBuffersDependenciesForSourceA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
+	virtual void RegisterBuffersDependenciesForSourceB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
-class PCGEXTENDEDTOOLKIT_API UPCGExAttributeBlendFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBlendOpFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -239,43 +285,4 @@ public:
 	virtual FString GetDisplayName() const override;
 #endif
 
-protected:
-	virtual bool IsCacheable() const override { return true; }
 };
-
-namespace PCGExDataBlending
-{
-	bool PrepareBlendOps(
-		FPCGExContext* InContext,
-		const TSharedRef<PCGExData::FFacade>& InDataFacade,
-		const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories,
-		const TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>>& OutOperations);
-
-	class FBlendOpsManager : public TSharedFromThis<FBlendOpsManager>
-	{
-	protected:
-		TSharedPtr<PCGExData::FFacade> DataFacade;
-		TSharedPtr<TArray<TSharedPtr<FPCGExAttributeBlendOperation>>> Operations;
-
-	public:
-		explicit FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExAttributeBlendFactory>>& InFactories);
-
-		FORCEINLINE void Blend(const int32 Index, FPCGPoint& Point) const
-		{
-			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(Index, Point); }
-		}
-
-		FORCEINLINE void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint) const
-		{
-			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint); }
-		}
-
-		FORCEINLINE void Blend(const int32 SourceIndex, const FPCGPoint& SourcePoint, const int32 TargetIndex, FPCGPoint& TargetPoint, const double InWeight) const
-		{
-			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint, InWeight); }
-		}
-
-		void Cleanup(FPCGExContext* InContext);
-	};
-}

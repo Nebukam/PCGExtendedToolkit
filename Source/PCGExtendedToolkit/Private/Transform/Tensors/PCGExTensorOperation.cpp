@@ -28,6 +28,6 @@ bool PCGExTensorPointOperation::Init(FPCGExContext* InContext, const UPCGExTenso
 
 	const UPCGExTensorPointFactoryData* PointFactoryData = Cast<UPCGExTensorPointFactoryData>(InFactory);
 	Effectors = PointFactoryData->EffectorsArray;
-	
+
 	return true;
 }

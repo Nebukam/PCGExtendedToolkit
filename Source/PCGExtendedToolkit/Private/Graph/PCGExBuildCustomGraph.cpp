@@ -6,18 +6,18 @@
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
-#include "Graph/PCGExUnionHelpers.h"
-#include "Graph/Probes/PCGExProbeOperation.h"
+#include "Graph/PCGExUnionProcessor.h"
+#include "Elements/PCGExecuteBlueprint.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBuildCustomGraphElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
-void UPCGExCustomGraphBuilder::InitializeWithContext_Implementation(const FPCGContext& InContext, bool& OutSuccess)
+void UPCGExCustomGraphBuilder::Initialize_Implementation(bool& OutSuccess)
 {
 	OutSuccess = false;
 }
 
-void UPCGExCustomGraphSettings::InitializeSettings_Implementation(const FPCGContext& InContext, bool& OutSuccess, int32& OutNodeReserve, int32& OutEdgeReserve)
+void UPCGExCustomGraphSettings::InitializeSettings_Implementation(bool& OutSuccess, int32& OutNodeReserve, int32& OutEdgeReserve)
 {
 }
 
@@ -41,12 +41,12 @@ void UPCGExCustomGraphSettings::RemoveEdge(const int64 InStartIdx, const int64 I
 	UniqueEdges.Remove(PCGEx::H64U(GetOrCreateNode(InStartIdx), GetOrCreateNode(InEndIdx)));
 }
 
-void UPCGExCustomGraphSettings::InitPointAttributes_Implementation(const FPCGContext& InContext, bool& OutSuccess)
+void UPCGExCustomGraphSettings::InitPointAttributes_Implementation(bool& OutSuccess)
 {
 	OutSuccess = true;
 }
 
-void UPCGExCustomGraphSettings::BuildGraph_Implementation(const FPCGContext& InContext, bool& OutSuccess)
+void UPCGExCustomGraphSettings::BuildGraph_Implementation(bool& OutSuccess)
 {
 	OutSuccess = false;
 }
@@ -118,7 +118,7 @@ void UPCGExCustomGraphBuilder::CreateGraphSettings(TSubclassOf<UPCGExCustomGraph
 {
 	if (!SettingsClass || SettingsClass->HasAnyClassFlags(CLASS_Abstract))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Cannot instantiate an abstract class!"));
+		UE_LOG(LogPCGEx, Error, TEXT("Cannot instantiate an abstract class!"));
 		return;
 	}
 
@@ -127,9 +127,9 @@ void UPCGExCustomGraphBuilder::CreateGraphSettings(TSubclassOf<UPCGExCustomGraph
 	OutSettings = NewSettings;
 }
 
-void UPCGExCustomGraphBuilder::BuildGraph_Implementation(const FPCGContext& InContext, UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess)
+void UPCGExCustomGraphBuilder::BuildGraph_Implementation(UPCGExCustomGraphSettings* InCustomGraphSettings, bool& OutSuccess)
 {
-	InCustomGraphSettings->BuildGraph(InContext, OutSuccess);
+	InCustomGraphSettings->BuildGraph(OutSuccess);
 }
 
 TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::InputPinProperties() const
@@ -212,14 +212,16 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		bool bSuccessfulInit = false;
 
-		if (!IsInGameThread())
 		{
-			FGCScopeGuard Scope;
-			Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
-		}
-		else
-		{
-			Context->Builder->InitializeWithContext(*Context, bSuccessfulInit);
+			if (!IsInGameThread())
+			{
+				FGCScopeGuard Scope;
+				Context->Builder->Initialize(bSuccessfulInit);
+			}
+			else
+			{
+				Context->Builder->Initialize(bSuccessfulInit);
+			}
 		}
 
 		if (!bSuccessfulInit)
@@ -269,7 +271,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 			else
 			{
 				// Invalidate node IO
-				GraphSettings->GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None);
+				GraphSettings->GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit);
 			}
 		}
 
@@ -293,15 +295,16 @@ namespace PCGExBuildCustomGraph
 		int32 NodeReserveNum = 0;
 		int32 EdgeReserveNum = 0;
 
-		//TSharedPtr<FPCGContextHandle> Handle = Context->Handle;
-		if (!IsInGameThread())
-		{
-			FGCScopeGuard Scope;
-			GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
-		}
-		else
-		{
-			GraphSettings->InitializeSettings(*Context, bInitSuccess, NodeReserveNum, EdgeReserveNum);
+		{			
+			if (!IsInGameThread())
+			{
+				FGCScopeGuard Scope;
+				GraphSettings->InitializeSettings(bInitSuccess, NodeReserveNum, EdgeReserveNum);
+			}
+			else
+			{
+				GraphSettings->InitializeSettings(bInitSuccess, NodeReserveNum, EdgeReserveNum);
+			}
 		}
 
 		if (!bInitSuccess)
@@ -331,7 +334,7 @@ namespace PCGExBuildCustomGraph
 		}
 
 		bool bSuccessfulBuild = false;
-		Builder->BuildGraph(*Context, GraphSettings, bSuccessfulBuild);
+		Builder->BuildGraph(GraphSettings, bSuccessfulBuild);
 
 		if (!bSuccessfulBuild)
 		{
@@ -342,7 +345,7 @@ namespace PCGExBuildCustomGraph
 			return;
 		}
 
-		PointIO->GetOut()->GetMutablePoints().SetNum(GraphSettings->Idx.Num());
+		(void)PCGEx::SetNumPointsAllocated(PointIO->GetOut(), GraphSettings->Idx.Num());
 
 		PCGEX_MAKE_SHARED(NodeDataFacade, PCGExData::FFacade, PointIO.ToSharedRef())
 		PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails)
@@ -355,14 +358,16 @@ namespace PCGExBuildCustomGraph
 
 		bool bSuccessfulAttrInit = false;
 
-		if (!IsInGameThread())
-		{
-			FGCScopeGuard Scope;
-			GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
-		}
-		else
-		{
-			GraphSettings->InitPointAttributes(*Context, bSuccessfulAttrInit);
+		{			
+			if (!IsInGameThread())
+			{
+				FGCScopeGuard Scope;
+				GraphSettings->InitPointAttributes(bSuccessfulAttrInit);
+			}
+			else
+			{
+				GraphSettings->InitPointAttributes(bSuccessfulAttrInit);
+			}
 		}
 
 		if (!bSuccessfulAttrInit)
@@ -393,16 +398,19 @@ namespace PCGExBuildCustomGraph
 				const TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
 				if (!IO) { return; }
 
-				TArray<FPCGPoint>& MutablePoints = IO->GetOut()->GetMutablePoints();
-				IO->GetOutKeys(true); // Generate out keys
+				TArray<FPCGPoint> MutablePoints;
+				GetPoints(IO->GetOutScope(Scope), MutablePoints);
 
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					FPCGPoint& Point = MutablePoints[i];
 					CustomGraphSettings->UpdateNodePoint(Point, CustomGraphSettings->Idx[i], i, Point);
 				}
+
+				IO->SetPoints(Scope.Start, MutablePoints);
 			};
 
+		PointIO->GetOutKeys(true); // Generate out keys		
 		InitNodesGroup->StartSubLoops(CustomGraphSettings->Idx.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
 }

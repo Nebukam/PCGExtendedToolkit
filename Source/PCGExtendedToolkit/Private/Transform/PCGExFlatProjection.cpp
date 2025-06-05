@@ -78,6 +78,7 @@ namespace PCGExFlatProjection
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		bWriteAttribute = Settings->bSaveAttributeForRestore;
 		bInverseExistingProjection = Settings->bRestorePreviousProjection;
@@ -85,7 +86,7 @@ namespace PCGExFlatProjection
 
 		if (bInverseExistingProjection)
 		{
-			TransformReader = PointDataFacade->GetScopedReadable<FTransform>(Context->CachedTransformAttributeName);
+			TransformReader = PointDataFacade->GetReadable<FTransform>(Context->CachedTransformAttributeName, PCGExData::EIOSide::In, true);
 		}
 		else if (bWriteAttribute)
 		{
@@ -99,28 +100,32 @@ namespace PCGExFlatProjection
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		PointDataFacade->Fetch(Scope);
-	}
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::FlatProjection::ProcessPoints);
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
+		PointDataFacade->Fetch(Scope);
+
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+
 		if (bInverseExistingProjection)
 		{
-			Point.Transform = TransformReader->Read(Index);
+			PCGEX_SCOPE_LOOP(Index) { OutTransforms[Index] = TransformReader->Read(Index); }
 		}
 		else if (bWriteAttribute)
 		{
-			TransformWriter->GetMutable(Index) = Point.Transform;
+			if (bWriteAttribute)
+			{
+				PCGEX_SCOPE_LOOP(Index) { TransformWriter->SetValue(Index, OutTransforms[Index]); }
+			}
 
 			if (bProjectLocalTransform)
 			{
-				Point.Transform = ProjectionDetails.ProjectFlat(Point.Transform);
+				PCGEX_SCOPE_LOOP(Index) { OutTransforms[Index] = ProjectionDetails.ProjectFlat(OutTransforms[Index]); }
 			}
 			else
 			{
-				Point.Transform.SetLocation(ProjectionDetails.ProjectFlat(Point.Transform.GetLocation(), Index));
+				PCGEX_SCOPE_LOOP(Index) { OutTransforms[Index].SetLocation(ProjectionDetails.ProjectFlat(OutTransforms[Index].GetLocation(), Index)); }
 			}
 		}
 	}

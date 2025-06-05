@@ -9,10 +9,6 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 
-
-#include "Sampling/PCGExSampling.h"
-
-
 #include "PCGExAttributeStats.generated.h"
 
 UENUM()
@@ -242,7 +238,7 @@ class FPCGExAttributeStatsElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(AttributeStats)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -252,18 +248,18 @@ namespace PCGExAttributeStats
 	const FName OutputAttributeStats = FName("Stats");
 	const FName OutputAttributeUniqueValues = FName("UniqueValues");
 
-	class FAttributeStatsBase : public TSharedFromThis<FAttributeStatsBase>
+	class IAttributeStats : public TSharedFromThis<IAttributeStats>
 	{
 	public:
 		const PCGEx::FAttributeIdentity Identity;
 		const int64 Key;
 
-		explicit FAttributeStatsBase(const PCGEx::FAttributeIdentity& InIdentity, const int64 InKey)
+		explicit IAttributeStats(const PCGEx::FAttributeIdentity& InIdentity, const int64 InKey)
 			: Identity(InIdentity), Key(InKey)
 		{
 		}
 
-		virtual ~FAttributeStatsBase() = default;
+		virtual ~IAttributeStats() = default;
 
 		virtual void Process(
 			const TSharedRef<PCGExData::FFacade> InDataFacade,
@@ -275,7 +271,7 @@ namespace PCGExAttributeStats
 	};
 
 	template <typename T>
-	class TAttributeStats : public FAttributeStatsBase
+	class TAttributeStats : public IAttributeStats
 	{
 	public:
 		T DefaultValue = T{};
@@ -294,7 +290,7 @@ namespace PCGExAttributeStats
 		int32 DefaultValuesNum = 0;
 
 		explicit TAttributeStats(const PCGEx::FAttributeIdentity& InIdentity, const int64 InKey)
-			: FAttributeStatsBase(InIdentity, InKey)
+			: IAttributeStats(InIdentity, InKey)
 		{
 		}
 
@@ -304,9 +300,9 @@ namespace PCGExAttributeStats
 			const UPCGExAttributeStatsSettings* Settings,
 			const TArray<int8>& Filter) override
 		{
-			UPCGParamData* ParamData = Context->OutputParamsMap[Identity.Name];
+			UPCGParamData* ParamData = Context->OutputParamsMap[Identity.Identifier.Name];
 
-			FString StrName = Identity.Name.ToString();
+			FString StrName = Identity.Identifier.Name.ToString();
 			UPCGMetadata* PointsMetadata = nullptr;
 
 			if (Settings->OutputToPoints != EPCGExStatsOutputToPoints::None) { PointsMetadata = InDataFacade->GetOut()->Metadata; }
@@ -318,7 +314,7 @@ namespace PCGExAttributeStats
 		FName PrintName = Settings->OutputToPoints == EPCGExStatsOutputToPoints::Prefix ? FName(Settings->_NAME##AttributeName.ToString() + StrName) : FName(StrName + Settings->_NAME##AttributeName.ToString());\
 		if (PointsMetadata->GetConstTypedAttribute<_TYPE>(PrintName)) { PointsMetadata->DeleteAttribute(PrintName); }\
 		PointsMetadata->FindOrCreateAttribute<_TYPE>(PrintName, _VALUE);} }
-			TSharedPtr<PCGExData::TBuffer<T>> Buffer = InDataFacade->GetReadable<T>(Identity.Name);
+			TSharedPtr<PCGExData::TBuffer<T>> Buffer = InDataFacade->GetReadable<T>(Identity.Identifier);
 			PCGExMath::TypeMinMax(MinValue, MaxValue);
 			PCGExMath::TypeMinMax(SetMinValue, SetMaxValue);
 
@@ -343,7 +339,12 @@ namespace PCGExAttributeStats
 				if (Settings->bOutputPerUniqueValuesStats)
 				{
 					UniqueValuesParamData = Context->ManagedObjects->New<UPCGParamData>();
-					Context->StageOutput(OutputAttributeUniqueValues, UniqueValuesParamData, {Identifier, Identity.Name.ToString()}, false, false);
+
+					FPCGTaggedData& StagedData = Context->StageOutput(UniqueValuesParamData, false, false);
+					StagedData.Pin = OutputAttributeUniqueValues;
+					StagedData.Tags.Add(Identifier);
+					StagedData.Tags.Add(Identity.Identifier.Name.ToString());
+
 					InDataFacade->Source->Tags->AddRaw(Identifier);
 				}
 
@@ -463,7 +464,7 @@ namespace PCGExAttributeStats
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeStatsContext, UPCGExAttributeStatsSettings>
 	{
-		TArray<TSharedPtr<FAttributeStatsBase>> Stats;
+		TArray<TSharedPtr<IAttributeStats>> Stats;
 		TMap<FName, int32> PerAttributeStatMap;
 		TArray<UPCGParamData*> PerAttributeStats;
 

@@ -8,11 +8,13 @@
 #define LOCTEXT_NAMESPACE "PCGExPaths"
 #define PCGEX_NAMESPACE PCGExPaths
 
-bool FPCGExPathOutputDetails::Validate(TArray<FPCGPoint>& InPathPoints) const
+bool FPCGExPathOutputDetails::Validate(const int32 NumPathPoints) const
 {
-	if (InPathPoints.Num() < 2) { return false; }
-	if (bRemoveSmallPaths && InPathPoints.Num() < MinPointCount) { return false; }
-	if (bRemoveLargePaths && InPathPoints.Num() > MaxPointCount) { return false; }
+	if (NumPathPoints < 2) { return false; }
+
+	if (bRemoveSmallPaths && NumPathPoints < MinPointCount) { return false; }
+	if (bRemoveLargePaths && NumPathPoints > MaxPointCount) { return false; }
+
 	return true;
 }
 
@@ -79,11 +81,6 @@ namespace PCGExPaths
 	FPathMetrics::FPathMetrics(const FVector& InStart)
 	{
 		Add(InStart);
-	}
-
-	FPathMetrics::FPathMetrics(const TArrayView<FPCGPoint>& Points)
-	{
-		for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
 	}
 
 	void FPathMetrics::Reset(const FVector& InStart)
@@ -174,19 +171,19 @@ namespace PCGExPaths
 		return true;
 	}
 
-	FPathEdge::FPathEdge(const int32 InStart, const int32 InEnd, const TArrayView<const FVector>& Positions, const double Expansion)
+	FPathEdge::FPathEdge(const int32 InStart, const int32 InEnd, const TConstPCGValueRange<FTransform>& Positions, const double Expansion)
 		: Start(InStart), End(InEnd), AltStart(InStart)
 	{
 		Update(Positions, Expansion);
 	}
 
-	void FPathEdge::Update(const TArrayView<const FVector>& Positions, const double Expansion)
+	void FPathEdge::Update(const TConstPCGValueRange<FTransform>& Positions, const double Expansion)
 	{
 		FBox Box = FBox(ForceInit);
-		Box += Positions[Start];
-		Box += Positions[End];
+		Box += Positions[Start].GetLocation();
+		Box += Positions[End].GetLocation();
 		Bounds = Box.ExpandBy(Expansion);
-		Dir = (Positions[End] - Positions[Start]).GetSafeNormal();
+		Dir = (Positions[End].GetLocation() - Positions[Start].GetLocation()).GetSafeNormal();
 	}
 
 	bool FPathEdge::ShareIndices(const FPathEdge& Other) const
@@ -204,7 +201,7 @@ namespace PCGExPaths
 		return Start == Other->Start || Start == Other->End || End == Other->Start || End == Other->End;
 	}
 
-	void FPathEdgeExtraBase::ProcessingDone(const FPath* Path)
+	void IPathEdgeExtra::ProcessingDone(const FPath* Path)
 	{
 	}
 
@@ -231,6 +228,18 @@ namespace PCGExPaths
 		}
 	}
 
+	void FPath::BuildPartialEdgeOctree(const TBitArray<>& Filter)
+	{
+		if (EdgeOctree) { return; }
+		EdgeOctree = MakeUnique<FPathEdgeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10);
+		for (int i = 0; i < Edges.Num(); i++)
+		{
+			FPathEdge& Edge = Edges[i];
+			if (!Filter[i] || !IsEdgeValid(Edge)) { continue; } // Skip filtered out & zero-length edges
+			EdgeOctree->AddElement(&Edge);                      // Might be a problem if edges gets reallocated
+		}
+	}
+
 	void FPath::UpdateConvexity(const int32 Index)
 	{
 		if (!bIsConvex) { return; }
@@ -244,7 +253,7 @@ namespace PCGExPaths
 		}
 
 		PCGExMath::CheckConvex(
-			Positions[A], Positions[Index], Positions[B],
+			Positions[A].GetLocation(), Positions[Index].GetLocation(), Positions[B].GetLocation(),
 			bIsConvex, ConvexitySign);
 	}
 
@@ -252,19 +261,19 @@ namespace PCGExPaths
 	{
 		if (NumEdges == 1)
 		{
-			for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessSingleEdge(this, Edges[0]); }
+			for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessSingleEdge(this, Edges[0]); }
 		}
 		else
 		{
-			if (Index == 0) { for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessFirstEdge(this, Edges[0]); } }
-			else if (Index == LastEdge) { for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessLastEdge(this, Edges[LastEdge]); } }
-			else { for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessEdge(this, Edges[Index]); } }
+			if (Index == 0) { for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessFirstEdge(this, Edges[0]); } }
+			else if (Index == LastEdge) { for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessLastEdge(this, Edges[LastEdge]); } }
+			else { for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessEdge(this, Edges[Index]); } }
 		}
 	}
 
 	void FPath::ExtraComputingDone()
 	{
-		for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessingDone(this); }
+		for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessingDone(this); }
 		Extras.Empty(); // So we don't update them anymore
 	}
 
@@ -272,48 +281,16 @@ namespace PCGExPaths
 	{
 		if (NumEdges == 1)
 		{
-			for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessSingleEdge(this, Edges[0]); }
+			for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessSingleEdge(this, Edges[0]); }
 		}
 		else
 		{
-			for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessFirstEdge(this, Edges[0]); }
-			for (int i = 1; i < LastEdge; i++) { for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessEdge(this, Edges[i]); } }
-			for (const TSharedPtr<FPathEdgeExtraBase>& Extra : Extras) { Extra->ProcessLastEdge(this, Edges[LastEdge]); }
+			for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessFirstEdge(this, Edges[0]); }
+			for (int i = 1; i < LastEdge; i++) { for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessEdge(this, Edges[i]); } }
+			for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessLastEdge(this, Edges[LastEdge]); }
 		}
 
 		ExtraComputingDone();
-	}
-
-	void FPath::UpdateEdges(const TArray<FPCGPoint>& InPoints, const double Expansion)
-	{
-		Bounds = FBox(ForceInit);
-		EdgeOctree.Reset();
-
-		check(Positions.Num() == InPoints.Num())
-
-		Positions.SetNumUninitialized(NumPoints);
-		for (int i = 0; i < NumPoints; ++i) { Positions[i] = InPoints[i].Transform.GetLocation(); }
-		for (FPathEdge& Edge : Edges)
-		{
-			Edge.Update(Positions, Expansion);
-			Bounds += Edge.Bounds.GetBox();
-		}
-	}
-
-	void FPath::UpdateEdges(const TArrayView<const FVector> InPositions, const double Expansion)
-	{
-		Bounds = FBox(ForceInit);
-		EdgeOctree.Reset();
-
-		check(Positions.Num() == InPositions.Num())
-		Positions.Reset(NumPoints);
-		Positions.Append(InPositions);
-
-		for (FPathEdge& Edge : Edges)
-		{
-			Edge.Update(Positions, Expansion);
-			Bounds += Edge.Bounds.GetBox();
-		}
 	}
 
 	void FPath::BuildPath(const double Expansion)
@@ -505,27 +482,20 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = PI;
 	}
 
-	TSharedPtr<FPath> MakePath(const TArrayView<const FPCGPoint> InPoints, const double Expansion, const bool bClosedLoop)
+	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion, const bool bClosedLoop)
 	{
-		if (bClosedLoop)
-		{
-			PCGEX_MAKE_SHARED(P, TPath<true>, InPoints, Expansion)
-			return StaticCastSharedPtr<FPath>(P);
-		}
-
-		PCGEX_MAKE_SHARED(P, TPath<false>, InPoints, Expansion)
-		return StaticCastSharedPtr<FPath>(P);
+		return MakePath(InPointData->GetConstTransformValueRange(), Expansion, bClosedLoop);
 	}
 
-	TSharedPtr<FPath> MakePath(const TArrayView<const FVector> InPositions, const double Expansion, const bool bClosedLoop)
+	TSharedPtr<FPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop)
 	{
 		if (bClosedLoop)
 		{
-			PCGEX_MAKE_SHARED(P, TPath<true>, InPositions, Expansion)
+			PCGEX_MAKE_SHARED(P, TPath<true>, InTransforms, Expansion)
 			return StaticCastSharedPtr<FPath>(P);
 		}
 
-		PCGEX_MAKE_SHARED(P, TPath<false>, InPositions, Expansion)
+		PCGEX_MAKE_SHARED(P, TPath<false>, InTransforms, Expansion)
 		return StaticCastSharedPtr<FPath>(P);
 	}
 
@@ -539,12 +509,10 @@ namespace PCGExPaths
 		return InSpline->GetTransformAtSplineInputKey(InSpline->FindInputKeyClosestToWorldLocation(InLocation), ESplineCoordinateSpace::World, bUseScale);
 	}
 
-	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGPointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop)
+	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGBasePointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop)
 	{
-		const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-		if (InPoints.Num() < 2) { return nullptr; }
-
-		const int32 NumPoints = InPoints.Num();
+		const int32 NumPoints = InData->GetNumPoints();
+		if (NumPoints < 2) { return nullptr; }
 
 		TArray<FSplinePoint> SplinePoints;
 		PCGEx::InitArray(SplinePoints, NumPoints);
@@ -569,8 +537,7 @@ namespace PCGExPaths
 			break;
 		}
 
-		TArray<FTransform> PointTransforms;
-		PCGExData::GetTransforms(InPoints, PointTransforms);
+		TConstPCGValueRange<FTransform> Transforms = InData->GetConstTransformValueRange();
 
 		if (bComputeTangents)
 		{
@@ -578,11 +545,11 @@ namespace PCGExPaths
 
 			for (int i = 0; i < NumPoints; i++)
 			{
-				const FTransform TR = PointTransforms[i];
+				const FTransform TR = Transforms[i];
 				const FVector PtLoc = TR.GetLocation();
 
-				const FVector PrevDir = (PointTransforms[i == 0 ? bClosedLoop ? MaxIndex : 0 : i - 1].GetLocation() - PtLoc) * -1;
-				const FVector NextDir = PointTransforms[i == MaxIndex ? bClosedLoop ? 0 : i : i + 1].GetLocation() - PtLoc;
+				const FVector PrevDir = (Transforms[i == 0 ? bClosedLoop ? MaxIndex : 0 : i - 1].GetLocation() - PtLoc) * -1;
+				const FVector NextDir = Transforms[i == MaxIndex ? bClosedLoop ? 0 : i : i + 1].GetLocation() - PtLoc;
 				const FVector Tangent = FMath::Lerp(PrevDir, NextDir, 0.5).GetSafeNormal() * 0.01;
 
 				SplinePoints[i] = FSplinePoint(
@@ -599,7 +566,7 @@ namespace PCGExPaths
 		{
 			for (int i = 0; i < NumPoints; i++)
 			{
-				const FTransform TR = PointTransforms[i];
+				const FTransform TR = Transforms[i];
 				SplinePoints[i] = FSplinePoint(
 					static_cast<float>(i),
 					TR.GetLocation(),

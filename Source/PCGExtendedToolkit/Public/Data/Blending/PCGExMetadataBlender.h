@@ -7,82 +7,41 @@
 #include "UObject/Object.h"
 
 #include "PCGExDataBlending.h"
-#include "PCGExPropertiesBlender.h"
+#include "PCGExProxyDataBlending.h"
+#include "PCGExScopedContainers.h"
+
 
 namespace PCGExDataBlending
 {
-	class PCGEXTENDEDTOOLKIT_API FMetadataBlender final : public TSharedFromThis<FMetadataBlender>
+	class PCGEXTENDEDTOOLKIT_API FMetadataBlender final : public IBlender
 	{
 	public:
 		bool bBlendProperties = true;
 
-		TMap<FName, FDataBlendingProcessorBase*> OperationIdMap;
+		FMetadataBlender() = default;
+		virtual ~FMetadataBlender() override = default;
 
-		~FMetadataBlender() = default;
+		void SetSourceData(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In);
+		void SetTargetData(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
-		explicit FMetadataBlender(const FPCGExBlendingDetails* InBlendingDetails);
-		explicit FMetadataBlender(const FMetadataBlender* ReferenceBlender);
+		bool Init(FPCGExContext* InContext, const FPCGExBlendingDetails& InBlendingDetails, const TSet<FName>* IgnoreAttributeSet = nullptr, const bool bWantsDirectAccess = false, const PCGExData::EIOSide BSide = PCGExData::EIOSide::Out);
 
-		void PrepareForData(
-			const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
-			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
-			const bool bInitFirstOperation = true,
-			const TSet<FName>* IgnoreAttributeSet = nullptr,
-			const bool bSoftMode = false);
+		virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight) const override;
+		virtual void Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double Weight) const override;
 
-		void PrepareForData(
-			const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
-			const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
-			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
-			const bool bInitFirstOperation = true,
-			const TSet<FName>* IgnoreAttributeSet = nullptr,
-			const bool bSoftMode = false);
+		virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const override;
 
-
-		void PrepareForBlending(const PCGExData::FPointRef& Target, const FPCGPoint* Defaults = nullptr) const;
-		void PrepareForBlending(const int32 PrimaryIndex, const FPCGPoint* Defaults = nullptr) const;
-
-		void Blend(const PCGExData::FPointRef& A, const PCGExData::FPointRef& B, const PCGExData::FPointRef& Target, const double Weight);
-		void Blend(const int32 PrimaryIndex, const int32 SecondaryIndex, const int32 TargetIndex, const double Weight);
-
-		void Copy(const int32 TargetIndex, const int32 SecondaryIndex);
-
-		void CompleteBlending(const PCGExData::FPointRef& Target, const int32 Count, const double TotalWeight) const;
-		void CompleteBlending(const int32 PrimaryIndex, const int32 Count, const double TotalWeight) const;
-
-		void PrepareRangeForBlending(const int32 StartIndex, const int32 Range) const;
-		void BlendRange(const PCGExData::FPointRef& A, const PCGExData::FPointRef& B, const int32 StartIndex, const int32 Range, const TArrayView<double>& Weights);
-		void CompleteRangeBlending(const int32 StartIndex, const int32 Range, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const;
-
-		void BlendRangeFromTo(const PCGExData::FPointRef& From, const PCGExData::FPointRef& To, const int32 StartIndex, const TArrayView<double>& Weights);
-
-		// Soft ops
-
-		void PrepareForBlending(FPCGPoint& Target, const FPCGPoint* Defaults = nullptr) const;
-
-		void Copy(const FPCGPoint& Target, const FPCGPoint& Source);
-		void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Weight, const bool bIsFirstOperation = false);
-		void CompleteBlending(FPCGPoint& Target, const int32 Count, const double TotalWeight) const;
-
-		void Cleanup();
+		virtual void BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const override;
+		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGEx::FOpStats>& Trackers) const override;
+		virtual void EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const override;
 
 	protected:
-		const FPCGExBlendingDetails* BlendingDetails = nullptr;
-		TUniquePtr<FPropertiesBlender> PropertiesBlender;
-		bool bSkipProperties = false;
-		TArray<TSharedPtr<FDataBlendingProcessorBase>> Operations;
+		TWeakPtr<PCGExData::FFacade> SourceFacadeHandle;
+		PCGExData::EIOSide SourceSide = PCGExData::EIOSide::In;
 
-		TArray<FPCGPoint>* PrimaryPoints = nullptr;
-		const TArray<FPCGPoint>* SecondaryPoints = nullptr;
+		TWeakPtr<PCGExData::FFacade> TargetFacadeHandle;
 
-		TArray<int8> FirstPointOperation;
-
-		void InternalPrepareForData(
-			const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
-			const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
-			const PCGExData::ESource SecondarySource,
-			const bool bInitFirstOperation,
-			const TSet<FName>* IgnoreAttributeSet,
-			const bool bSoftMode = false);
+		TArray<TSharedPtr<FProxyDataBlender>> Blenders;
+		TSharedPtr<PCGExMT::TScopedArray<PCGEx::FOpStats>> ScopedTrackers;
 	};
 }

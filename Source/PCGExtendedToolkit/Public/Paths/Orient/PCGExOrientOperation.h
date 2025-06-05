@@ -4,32 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Paths/SubPoints/PCGExSubPointsOperation.h"
+#include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
 #include "PCGExOrientOperation.generated.h"
 
-/**
- * 
- */
-UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExOrientOperation : public UPCGExInstancedFactory
+class UPCGExOrientInstancedFactory;
+
+class FPCGExOrientOperation : public FPCGExOperation
 {
-	GENERATED_BODY()
-
 public:
-	EPCGExAxis OrientAxis = EPCGExAxis::Forward;
-	EPCGExAxis UpAxis = EPCGExAxis::Up;
-
+	const UPCGExOrientInstancedFactory* Factory = nullptr;
 	TSharedPtr<PCGExPaths::FPath> Path;
-
-	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
-	{
-		Super::CopySettingsFrom(Other);
-		if (const UPCGExOrientOperation* TypedOther = Cast<UPCGExOrientOperation>(Other))
-		{
-			OrientAxis = TypedOther->OrientAxis;
-			UpAxis = TypedOther->UpAxis;
-		}
-	}
 
 	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade, const TSharedRef<PCGExPaths::FPath>& InPath)
 	{
@@ -38,9 +22,35 @@ public:
 	}
 
 	virtual FTransform ComputeOrientation(
-		const PCGExData::FPointRef& Point,
+		const PCGExData::FConstPoint& Point,
 		const double DirectionMultiplier) const
 	{
-		return Point.Point->Transform;
+		return Point.GetTransform();
 	}
+};
+
+/**
+ * 
+ */
+UCLASS(Abstract)
+class PCGEXTENDEDTOOLKIT_API UPCGExOrientInstancedFactory : public UPCGExInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	EPCGExAxis OrientAxis = EPCGExAxis::Forward;
+	EPCGExAxis UpAxis = EPCGExAxis::Up;
+
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExOrientInstancedFactory* TypedOther = Cast<UPCGExOrientInstancedFactory>(Other))
+		{
+			OrientAxis = TypedOther->OrientAxis;
+			UpAxis = TypedOther->UpAxis;
+		}
+	}
+
+	virtual TSharedPtr<FPCGExOrientOperation> CreateOperation() const
+	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
 };

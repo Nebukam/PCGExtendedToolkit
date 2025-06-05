@@ -3,9 +3,6 @@
 
 #include "Paths/PCGExOffsetPath.h"
 
-#include "PCGExDataMath.h"
-
-
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath
 
@@ -65,20 +62,18 @@ namespace PCGExOffsetPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bCleanupPath ? PCGExData::EIOInit::New : PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		if (Settings->bInvertDirection) { DirectionFactor *= -1; }
 
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+		InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		Up = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
 
-		Positions.SetNumUninitialized(InPoints.Num());
-		for (int i = 0; i < InPoints.Num(); i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
-
 		ToleranceSquared = Settings->IntersectionTolerance * Settings->IntersectionTolerance;
-		Path = PCGExPaths::MakePath(Positions, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		Path = PCGExPaths::MakePath(InTransforms, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
 
 		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
 		{
@@ -93,7 +88,7 @@ namespace PCGExOffsetPath
 
 		if (Settings->DirectionType == EPCGExInputValueType::Attribute)
 		{
-			DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->DirectionAttribute);
+			DirectionGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->DirectionAttribute, true);
 			if (!DirectionGetter)
 			{
 				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, "Direction", Settings->DirectionAttribute)
@@ -123,79 +118,82 @@ namespace PCGExOffsetPath
 			}
 		}
 
-		StartParallelLoopForPoints(Settings->bCleanupPath ? PCGExData::ESource::In : PCGExData::ESource::Out);
+		StartParallelLoopForPoints();
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::OffsetPath::ProcessPoints);
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope)
-	{
-		const int32 EdgeIndex = (!Path->IsClosedLoop() && Index == Path->LastIndex) ? Path->LastEdge : Index;
-		Path->ComputeEdgeExtra(EdgeIndex);
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
 
-		FVector Dir = (OffsetDirection ? OffsetDirection->Get(EdgeIndex) : DirectionGetter->Read(Index)) * DirectionFactor;
-		double Offset = OffsetGetter->Read(Index);
-
-		if (Settings->bApplyPointScaleToOffset) { Dir *= Point.Transform.GetScale3D(); }
-
-		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (PathAngles)
+			const int32 EdgeIndex = (!Path->IsClosedLoop() && Index == Path->LastIndex) ? Path->LastEdge : Index;
+			Path->ComputeEdgeExtra(EdgeIndex);
+
+			FVector Dir = (OffsetDirection ? OffsetDirection->Get(EdgeIndex) : DirectionGetter->Read(Index)) * DirectionFactor;
+			double Offset = OffsetGetter->Read(Index);
+
+			if (Settings->bApplyPointScaleToOffset) { Dir *= InTransforms[Index].GetScale3D(); }
+
+			if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
 			{
-				if (Settings->Adjustment == EPCGExOffsetAdjustment::SmoothCustom)
+				if (PathAngles)
 				{
-					Offset *= (1 + Settings->AdjustmentScale * FMath::Cos(PathAngles->Get(EdgeIndex)));
+					if (Settings->Adjustment == EPCGExOffsetAdjustment::SmoothCustom)
+					{
+						Offset *= (1 + Settings->AdjustmentScale * FMath::Cos(PathAngles->Get(EdgeIndex)));
+					}
+					else if (Settings->Adjustment == EPCGExOffsetAdjustment::SmoothAuto)
+					{
+						const double Dot = FMath::Clamp(FVector::DotProduct(Path->DirToPrevPoint(Index) * -1, Path->DirToNextPoint(Index)), -1, 0);
+						Offset *= 1 + (FMath::Abs(Dot) * FMath::Acos(Dot)) * FMath::Abs(Dot);
+					}
+					else if (Settings->Adjustment == EPCGExOffsetAdjustment::Mitre)
+					{
+						double MitreLength = Offset / FMath::Sin(PathAngles->Get(EdgeIndex) / 2);
+						if (MitreLength > Settings->MitreLimit * Offset) { Offset *= Settings->MitreLimit; } // Should bevel :(
+					}
 				}
-				else if (Settings->Adjustment == EPCGExOffsetAdjustment::SmoothAuto)
-				{
-					const double Dot = FMath::Clamp(FVector::DotProduct(Path->DirToPrevPoint(Index) * -1, Path->DirToNextPoint(Index)), -1, 0);
-					Offset *= 1 + (FMath::Abs(Dot) * FMath::Acos(Dot)) * FMath::Abs(Dot);
-				}
-				else if (Settings->Adjustment == EPCGExOffsetAdjustment::Mitre)
-				{
-					double MitreLength = Offset / FMath::Sin(PathAngles->Get(EdgeIndex) / 2);
-					if (MitreLength > Settings->MitreLimit * Offset) { Offset *= Settings->MitreLimit; } // Should bevel :(
-				}
-			}
 
-			Positions[Index] = Path->GetPos_Unsafe(Index) + (Dir * Offset);
-		}
-		else
-		{
-			const int32 PrevIndex = Path->SafePointIndex(Index - 1);
-			const FVector PlaneDir = ((OffsetDirection ? OffsetDirection->Get(PrevIndex) : DirectionGetter->Read(PrevIndex)) * DirectionFactor).GetSafeNormal();
-			const FVector PlaneOrigin = Path->GetPos_Unsafe(PrevIndex) + (PlaneDir * OffsetGetter->Read(PrevIndex));
-
-			const FVector A = Path->GetPos_Unsafe(Index) + (Dir * Offset);
-			const double Dot = FMath::Clamp(FMath::Abs(FVector::DotProduct(Path->DirToPrevPoint(Index), Path->DirToNextPoint(Index))), 0, 1);
-
-
-			if (FMath::IsNearlyZero(1 - Dot))
-			{
-				Positions[Index] = A;
+				OutTransforms[Index].SetLocation(Path->GetPos_Unsafe(Index) + (Dir * Offset));
 			}
 			else
 			{
-				const FVector Candidate = FMath::LinePlaneIntersection(A, A + Path->DirToNextPoint(Index) * 10, PlaneOrigin, PlaneDir * -1);
-				if (Candidate.ContainsNaN()) { Positions[Index] = A; }
-				else { Positions[Index] = Candidate; }
-			}
-		}
+				const int32 PrevIndex = Path->SafePointIndex(Index - 1);
+				const FVector PlaneDir = ((OffsetDirection ? OffsetDirection->Get(PrevIndex) : DirectionGetter->Read(PrevIndex)) * DirectionFactor).GetSafeNormal();
+				const FVector PlaneOrigin = Path->GetPos_Unsafe(PrevIndex) + (PlaneDir * OffsetGetter->Read(PrevIndex));
 
-		if (!PointFilterCache[Index]) { Positions[Index] = Point.Transform.GetLocation(); }
-		if (!Settings->bCleanupPath) { Point.Transform.SetLocation(Positions[Index]); }
+				const FVector A = Path->GetPos_Unsafe(Index) + (Dir * Offset);
+				const double Dot = FMath::Clamp(FMath::Abs(FVector::DotProduct(Path->DirToPrevPoint(Index), Path->DirToNextPoint(Index))), 0, 1);
+
+
+				if (FMath::IsNearlyZero(1 - Dot))
+				{
+					OutTransforms[Index].SetLocation(A);
+				}
+				else
+				{
+					const FVector Candidate = FMath::LinePlaneIntersection(A, A + Path->DirToNextPoint(Index) * 10, PlaneOrigin, PlaneDir * -1);
+					if (Candidate.ContainsNaN()) { OutTransforms[Index].SetLocation(A); }
+					else { OutTransforms[Index].SetLocation(Candidate); }
+				}
+			}
+
+			if (!PointFilterCache[Index]) { OutTransforms[Index].SetLocation(InTransforms[Index].GetLocation()); }
+		}
 	}
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
 		if (!Settings->bCleanupPath) { return; }
 
-		DirtyPath = PCGExPaths::MakePath(Positions, ToleranceSquared, Path->IsClosedLoop());
+		DirtyPath = PCGExPaths::MakePath(InTransforms, ToleranceSquared, Path->IsClosedLoop());
 		CleanEdge.Init(false, DirtyPath->NumEdges);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FlipTestTask)
@@ -204,7 +202,7 @@ namespace PCGExOffsetPath
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
-				for (int i = Scope.Start; i < Scope.End; i++)
+				PCGEX_SCOPE_LOOP(i)
 				{
 					This->DirtyPath->ComputeEdgeExtra(i);
 					This->CleanEdge[i] = FVector::DotProduct(This->Path->Edges[i].Dir, This->DirtyPath->Edges[i].Dir) > 0;
@@ -218,12 +216,17 @@ namespace PCGExOffsetPath
 	{
 		if (!Settings->bCleanupPath) { return; }
 
-		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
-		TArray<FPCGPoint>& OutPoints = PointDataFacade->GetMutablePoints();
-		OutPoints.Reserve(InPoints.Num());
+		// We will update OutTransform and do a gather.
+		// It's greedy but any other approach will be a real pain to maintain
+
+		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
+		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
+
+		TArray<int8> Mask;
+		Mask.Init(0, OutTransforms.Num());
 
 		TArray<int8> Mutated;
-		Mutated.Reserve(InPoints.Num());
+		Mutated.Reserve(OutTransforms.Num());
 
 		int32 Last = 0;
 
@@ -265,17 +268,15 @@ namespace PCGExOffsetPath
 					{
 						// Fallback to next clean edge, as there is no upcoming intersections.
 						const PCGExPaths::FPathEdge& E1 = DirtyPath->Edges[Last];
-
-						const FVector E11 = Positions[E1.Start];
-						const FVector E12 = Positions[E1.End];
-
 						const PCGExPaths::FPathEdge& E2 = DirtyPath->Edges[i];
-						FMath::SegmentDistToSegment(E11, E12, Positions[E2.Start], Positions[E2.End], A, MutatedPosition);
+
+						FMath::SegmentDistToSegment(
+							OutTransforms[E1.Start].GetLocation(), OutTransforms[E1.End].GetLocation(),
+							OutTransforms[E2.Start].GetLocation(), OutTransforms[E2.End].GetLocation(), A, MutatedPosition);
 					}
 
-					FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints[i]);
-					Positions[i] = MutatedPosition; // FMath::Lerp(A, B, 0.5);
-					Pt.Transform.SetLocation(Positions[i]);
+					Mask[i] = 1;
+					OutTransforms[i].SetLocation(MutatedPosition);
 					Mutated.Add(1);
 
 					Last = i;
@@ -284,11 +285,9 @@ namespace PCGExOffsetPath
 
 				if (CleanEdge[i])
 				{
+					Mask[i] = 1;
 					Mutated.Add(0);
-					FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints[i]);
-					Pt.Transform.SetLocation(Positions[i]);
 					Last = i;
-
 
 					if (Settings->bAdditionalIntersectionCheck)
 					{
@@ -296,7 +295,7 @@ namespace PCGExOffsetPath
 						if (FindNextIntersection<true>(DirtyPath->Edges[i], i, MutatedPosition))
 						{
 							// Update next position and keep moving
-							Positions[i] = MutatedPosition;
+							OutTransforms[i].SetLocation(MutatedPosition);
 							i--;
 						}
 					}
@@ -312,14 +311,13 @@ namespace PCGExOffsetPath
 			{
 				if (!CleanEdge[i]) { continue; }
 
-				FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints[i]);
-				Pt.Transform.SetLocation(Positions[i]);
+				Mask[i] = 1;
 				Mutated.Add(0);
 
 				if (FindNextIntersection<true>(DirtyPath->Edges[i], i, MutatedPosition))
 				{
 					// Update next position and keep moving
-					Positions[i] = MutatedPosition;
+					OutTransforms[i].SetLocation(MutatedPosition);
 					i--;
 				}
 			}
@@ -327,15 +325,23 @@ namespace PCGExOffsetPath
 
 		if (!Path->IsClosedLoop())
 		{
-			FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints.Last());
-			Pt.Transform.SetLocation(Positions.Last());
+			// TODO : Look into this, not sure it's correct
+			Mask.Last() = 1;
+			Mutated.Add(0);
+
+			// Old behavior
+			//FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints.Last());
+			//Pt.Transform.SetLocation(Positions.Last());
 		}
 
-		if (OutPoints.Num() < 2) { PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::None); }
+		if (PointDataFacade->Source->Gather(Mask) < 2)
+		{
+			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit);
+		}
 		else if (Settings->bFlagMutatedPoints)
 		{
 			TSharedPtr<PCGExData::TBuffer<bool>> MutatedFlag = PointDataFacade->GetWritable<bool>(Settings->MutatedAttributeName, false, true, PCGExData::EBufferInit::Inherit);
-			for (int i = 0; i < Mutated.Num(); i++) { MutatedFlag->GetMutable(i) = Mutated[i] ? true : false; }
+			for (int i = 0; i < Mutated.Num(); i++) { MutatedFlag->SetValue(i, Mutated[i] ? true : false); }
 			PointDataFacade->Write(AsyncManager);
 		}
 	}

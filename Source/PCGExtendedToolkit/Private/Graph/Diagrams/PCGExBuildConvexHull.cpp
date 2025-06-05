@@ -77,7 +77,7 @@ namespace PCGExConvexHull
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
 		Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
 
@@ -98,25 +98,28 @@ namespace PCGExConvexHull
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		PCGExGraph::FEdge E;
-		const uint64 Edge = Edges[Iteration];
-
-		uint32 A;
-		uint32 B;
-		PCGEx::H64(Edge, A, B);
-		const bool bAIsOnHull = Delaunay->DelaunayHull.Contains(A);
-		const bool bBIsOnHull = Delaunay->DelaunayHull.Contains(B);
-
-		if (!bAIsOnHull || !bBIsOnHull)
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (!bAIsOnHull) { GraphBuilder->Graph->Nodes[A].bValid = false; }
-			if (!bBIsOnHull) { GraphBuilder->Graph->Nodes[B].bValid = false; }
-			return;
-		}
+			PCGExGraph::FEdge E;
+			const uint64 Edge = Edges[Index];
 
-		GraphBuilder->Graph->InsertEdge(A, B, E);
+			uint32 A;
+			uint32 B;
+			PCGEx::H64(Edge, A, B);
+			const bool bAIsOnHull = Delaunay->DelaunayHull.Contains(A);
+			const bool bBIsOnHull = Delaunay->DelaunayHull.Contains(B);
+
+			if (!bAIsOnHull || !bBIsOnHull)
+			{
+				if (!bAIsOnHull) { GraphBuilder->Graph->Nodes[A].bValid = false; }
+				if (!bBIsOnHull) { GraphBuilder->Graph->Nodes[B].bValid = false; }
+				continue;
+			}
+
+			GraphBuilder->Graph->InsertEdge(A, B, E);
+		}
 	}
 
 	void FProcessor::CompleteWork()

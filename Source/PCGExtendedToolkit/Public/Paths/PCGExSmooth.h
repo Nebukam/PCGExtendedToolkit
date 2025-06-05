@@ -9,13 +9,13 @@
 #include "PCGExPointsProcessor.h"
 
 
-#include "Smoothing/PCGExSmoothingOperation.h"
+#include "Smoothing/PCGExSmoothingInstancedFactory.h"
 #include "PCGExSmooth.generated.h"
 
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/smooth"))
 class UPCGExSmoothSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -43,7 +43,7 @@ public:
 	bool bPreserveEnd = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSmoothingOperation> SmoothingMethod;
+	TObjectPtr<UPCGExSmoothingInstancedFactory> SmoothingMethod;
 
 	/** Fetch the influence from a local attribute.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -79,21 +79,21 @@ public:
 
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Weight);
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
 };
 
 struct FPCGExSmoothContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSmoothElement;
 
-	UPCGExSmoothingOperation* SmoothingMethod = nullptr;
+	UPCGExSmoothingInstancedFactory* SmoothingMethod = nullptr;
 };
 
 class FPCGExSmoothElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(Smooth)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -110,7 +110,7 @@ namespace PCGExSmooth
 		TSharedPtr<PCGExDetails::TSettingValue<double>> Smoothing;
 
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
-		UPCGExSmoothingOperation* TypedOperation = nullptr;
+		TSharedPtr<FPCGExSmoothingOperation> SmoothingOperation;
 		bool bClosedLoop = false;
 
 	public:
@@ -122,8 +122,8 @@ namespace PCGExSmooth
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+
 		virtual void CompleteWork() override;
 	};
 }

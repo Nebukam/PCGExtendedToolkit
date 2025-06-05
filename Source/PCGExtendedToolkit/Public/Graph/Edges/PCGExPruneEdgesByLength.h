@@ -39,6 +39,6 @@ class FPCGExPruneEdgesByLengthElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PruneEdgesByLength)
-	
+
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

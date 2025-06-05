@@ -13,13 +13,13 @@ void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 {
 	FPCGExHeuristicOperation::PrepareForCluster(InCluster);
 
-	const TSharedPtr<PCGExData::FFacade> DataFacade = Source == EPCGExClusterComponentSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
+	const TSharedPtr<PCGExData::FFacade> DataFacade = Source == EPCGExClusterElement::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
 
-	const int32 NumPoints = Source == EPCGExClusterComponentSource::Vtx ? InCluster->Nodes->Num() : InCluster->Edges->Num();
+	const int32 NumPoints = Source == EPCGExClusterElement::Vtx ? InCluster->Nodes->Num() : InCluster->Edges->Num();
 	CachedScores.SetNumZeroed(NumPoints);
 
 	// Grab all attribute values
-	const TSharedPtr<PCGExData::TBuffer<double>> Values = DataFacade->GetBroadcaster<double>(Attribute, true);
+	const TSharedPtr<PCGExData::TBuffer<double>> Values = DataFacade->GetBroadcaster<double>(Attribute, false, true);
 
 	if (!Values)
 	{
@@ -45,7 +45,7 @@ void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 	}
 	else
 	{
-		if (Source == EPCGExClusterComponentSource::Vtx)
+		if (Source == EPCGExClusterElement::Vtx)
 		{
 			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
 			{
@@ -72,7 +72,7 @@ double FPCGExHeuristicAttribute::GetEdgeScore(
 	const PCGExCluster::FNode& Goal,
 	const TSharedPtr<PCGEx::FHashLookup> TravelStack) const
 {
-	return CachedScores[Source == EPCGExClusterComponentSource::Edge ? Edge.PointIndex : To.Index];
+	return CachedScores[Source == EPCGExClusterElement::Edge ? Edge.PointIndex : To.Index];
 }
 
 TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
@@ -91,7 +91,7 @@ PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(Attribute, {})
 void UPCGExHeuristicsFactoryAttribute::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
-	if (Config.Source == EPCGExClusterComponentSource::Vtx)
+	if (Config.Source == EPCGExClusterElement::Vtx)
 	{
 		FacadePreloader.Register<double>(InContext, Config.Attribute);
 	}

@@ -7,7 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 
-#include "Graph/PCGExUnionHelpers.h"
+#include "Graph/PCGExUnionProcessor.h"
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
@@ -21,7 +21,7 @@ namespace PCGExPathToClusters
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="clusters/paths-interop/path-to-clusters"))
 class UPCGExPathToClustersSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -29,7 +29,7 @@ class UPCGExPathToClustersSettings : public UPCGExPathProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathsToEdgeClusters, "Path : To Clusters", "Merge paths to edge clusters for glorious pathfinding inception");
+	PCGEX_NODE_INFOS(PathsToClusters, "Path : To Clusters", "Merge paths to edge clusters for glorious pathfinding inception");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -119,7 +119,7 @@ class FPCGExPathToClustersElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathToClusters)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
@@ -151,14 +151,14 @@ namespace PCGExPathToClusters
 #pragma region Fusing
 	// Fusing processors
 
+	// TODO : Batch-preload point attributes we'll want to blend
+
 	class FFusingProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>
 	{
 		bool bClosedLoop = false;
 
 		int32 IOIndex = 0;
 		int32 LastIndex = 0;
-
-		const TArray<FPCGPoint>* InPoints = nullptr;
 
 	public:
 		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
@@ -172,7 +172,6 @@ namespace PCGExPathToClusters
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void InsertEdges(const PCGExMT::FScope& Scope, bool bUnsafe);
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const PCGExMT::FScope& Scope) override;
 	};
 
 #pragma endregion

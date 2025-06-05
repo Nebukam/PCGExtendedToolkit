@@ -106,6 +106,11 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
+bool FPCGExAttributeRemapElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
+}
+
 namespace PCGExAttributeRemap
 {
 	FProcessor::~FProcessor()
@@ -120,13 +125,14 @@ namespace PCGExAttributeRemap
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		TArray<TSharedPtr<PCGExData::FBufferProxyBase>> UntypedInputProxies;
-		TArray<TSharedPtr<PCGExData::FBufferProxyBase>> UntypedOutputProxies;
+		TArray<TSharedPtr<PCGExData::IBufferProxy>> UntypedInputProxies;
+		TArray<TSharedPtr<PCGExData::IBufferProxy>> UntypedOutputProxies;
 
 		InputDescriptor.DataFacade = PointDataFacade;
 		OutputDescriptor.DataFacade = PointDataFacade;
+		OutputDescriptor.Role = PCGExData::EProxyRole::Write;
 
-		if (!InputDescriptor.Capture(Context, Settings->Attributes.GetSourceSelector(), PCGExData::ESource::In)) { return false; }
+		if (!InputDescriptor.Capture(Context, Settings->Attributes.GetSourceSelector(), PCGExData::EIOSide::In)) { return false; }
 
 		// Number of dimensions to be remapped
 		UnderlyingType = InputDescriptor.WorkingType;
@@ -135,7 +141,7 @@ namespace PCGExAttributeRemap
 		// Get per-field proxies for input
 		if (!GetPerFieldProxyBuffers(Context, InputDescriptor, Dimensions, UntypedInputProxies)) { return false; }
 
-		if (!OutputDescriptor.CaptureStrict(Context, Settings->Attributes.GetTargetSelector(), PCGExData::ESource::Out, false))
+		if (!OutputDescriptor.CaptureStrict(Context, Settings->Attributes.GetTargetSelector(), PCGExData::EIOSide::Out, false))
 		{
 			// This might be expected if the destination does not exist
 			OutputDescriptor.RealType = InputDescriptor.RealType;
@@ -159,8 +165,8 @@ namespace PCGExAttributeRemap
 
 		for (int i = 0; i < Dimensions; i++)
 		{
-			TSharedPtr<PCGExData::FBufferProxyBase> InProxy = UntypedInputProxies[i];
-			TSharedPtr<PCGExData::FBufferProxyBase> OutProxy = UntypedOutputProxies[i];
+			TSharedPtr<PCGExData::IBufferProxy> InProxy = UntypedInputProxies[i];
+			TSharedPtr<PCGExData::IBufferProxy> OutProxy = UntypedOutputProxies[i];
 
 			if (InProxy->WorkingType != EPCGMetadataTypes::Double)
 			{
@@ -230,8 +236,6 @@ namespace PCGExAttributeRemap
 				This->PointDataFacade->Fetch(Scope);
 
 				// Find min/max & clamp values
-				const TArray<FPCGPoint>& InPoints = This->PointDataFacade->Source->GetPoints(PCGExData::ESource::In);
-				TArray<FPCGPoint>& OutPoints = This->PointDataFacade->Source->GetMutablePoints();
 
 				for (int d = 0; d < This->Dimensions; d++)
 				{
@@ -245,22 +249,22 @@ namespace PCGExAttributeRemap
 
 					if (Rule.RemapDetails.bUseAbsoluteRange)
 					{
-						for (int i = Scope.Start; i < Scope.End; i++)
+						PCGEX_SCOPE_LOOP(i)
 						{
-							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i, InPoints[i]));
+							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i));
 							Min = FMath::Min(Min, FMath::Abs(V));
 							Max = FMath::Max(Max, FMath::Abs(V));
-							OutProxy->Set(i, OutPoints[i], V);
+							OutProxy->Set(i, V);
 						}
 					}
 					else
 					{
-						for (int i = Scope.Start; i < Scope.End; i++)
+						PCGEX_SCOPE_LOOP(i)
 						{
-							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i, InPoints[i]));
+							double V = Rule.InputClampDetails.GetClampedValue(InProxy->Get(i));
 							Min = FMath::Min(Min, V);
 							Max = FMath::Max(Max, V);
-							OutProxy->Set(i, OutPoints[i], V);
+							OutProxy->Set(i, V);
 						}
 					}
 
@@ -278,8 +282,6 @@ namespace PCGExAttributeRemap
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::RemapRange);
 
-		TArray<FPCGPoint>& OutPoints = PointDataFacade->Source->GetMutablePoints();
-
 		for (int d = 0; d < Dimensions; d++)
 		{
 			FPCGExComponentRemapRule& Rule = Rules[d];
@@ -289,24 +291,22 @@ namespace PCGExAttributeRemap
 			{
 				if (Rule.RemapDetails.bPreserveSign)
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
-						double V = OutProxy->Get(i, OutPoints[i]);
+						double V = OutProxy->Get(i);
 						OutProxy->Set(
-							i, OutPoints[i],
-							Rule.OutputClampDetails.GetClampedValue(
+							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(FMath::Abs(V)) * PCGExMath::SignPlus(V)));
 					}
 				}
 				else
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						OutProxy->Set(
-							i, OutPoints[i],
-							Rule.OutputClampDetails.GetClampedValue(
+							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(
-									FMath::Abs(OutProxy->Get(i, OutPoints[i])))));
+									FMath::Abs(OutProxy->Get(i)))));
 					}
 				}
 			}
@@ -314,24 +314,22 @@ namespace PCGExAttributeRemap
 			{
 				if (Rule.RemapDetails.bPreserveSign)
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						OutProxy->Set(
-							i, OutPoints[i],
-							Rule.OutputClampDetails.GetClampedValue(
+							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(
-									OutProxy->Get(i, OutPoints[i]))));
+									OutProxy->Get(i))));
 					}
 				}
 				else
 				{
-					for (int i = Scope.Start; i < Scope.End; i++)
+					PCGEX_SCOPE_LOOP(i)
 					{
 						OutProxy->Set(
-							i, OutPoints[i],
-							Rule.OutputClampDetails.GetClampedValue(
+							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(
-									FMath::Abs(OutProxy->Get(i, OutPoints[i])))));
+									FMath::Abs(OutProxy->Get(i)))));
 					}
 				}
 			}

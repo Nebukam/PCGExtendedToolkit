@@ -666,7 +666,7 @@ namespace PCGExWaitForPCGData
 		if (Settings->bDedupeData)
 		{
 			TSet<FString> PointsTags;
-			TargetAttributesToDataTags.Tag(Points[0], PointsTags); // Only grab first one otherwise we may end up with too many tags
+			TargetAttributesToDataTags.Tag(PointDataFacade->GetInPoint(Points[0]), PointsTags); // Only grab first one otherwise we may end up with too many tags
 			if (Settings->bCarryOverTargetTags) { PointDataFacade->Source->Tags->DumpTo(PointsTags); }
 
 			Context->IncreaseStagedOutputReserve(GraphOutput.TaggedData.Num());
@@ -680,16 +680,18 @@ namespace PCGExWaitForPCGData
 				{
 					if (Settings->bOutputRoaming)
 					{
-						Context->StageOutput(
-							Settings->RoamingPin, const_cast<UPCGData*>(TaggedData.Data.Get()), // const_cast is fine here, we don't modify the data.
-							DataTags, false, false);
+						FPCGTaggedData& StagedData = Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), false, false);
+						StagedData.Pin = Settings->RoamingPin;
+						StagedData.Tags.Append(DataTags);
+
+						// const_cast is fine here, we don't modify the data.
 					}
 					continue;
 				}
 
-				Context->StageOutput(
-					TaggedData.Pin, const_cast<UPCGData*>(TaggedData.Data.Get()), // const_cast is fine here, we don't modify the data.
-					DataTags, false, false);
+				FPCGTaggedData& StagedData = Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), false, false);
+				StagedData.Pin = TaggedData.Pin;
+				StagedData.Tags.Append(DataTags);
 			}
 		}
 		else
@@ -699,7 +701,7 @@ namespace PCGExWaitForPCGData
 			for (const int32 PtIndex : Points)
 			{
 				TSet<FString> PointsTags;
-				TargetAttributesToDataTags.Tag(PtIndex, PointsTags);
+				TargetAttributesToDataTags.Tag(PointDataFacade->GetInPoint(Points[PtIndex]), PointsTags);
 				if (Settings->bCarryOverTargetTags) { PointDataFacade->Source->Tags->DumpTo(PointsTags); }
 
 				for (const FPCGTaggedData& TaggedData : GraphOutput.TaggedData)
@@ -711,16 +713,16 @@ namespace PCGExWaitForPCGData
 					{
 						if (Settings->bOutputRoaming)
 						{
-							Context->StageOutput(
-								Settings->RoamingPin, const_cast<UPCGData*>(TaggedData.Data.Get()), // const_cast is fine here, we don't modify the data.
-								DataTags, false, false);
+							FPCGTaggedData& StagedData = Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), false, false);
+							StagedData.Pin = Settings->RoamingPin;
+							StagedData.Tags.Append(DataTags);
 						}
 						continue;
 					}
 
-					Context->StageOutput(
-						TaggedData.Pin, const_cast<UPCGData*>(TaggedData.Data.Get()), // const_cast is fine here, we don't modify the data.
-						DataTags, false, false);
+					FPCGTaggedData& StagedData = Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), false, false);
+					StagedData.Pin = TaggedData.Pin;
+					StagedData.Tags.Append(DataTags);
 				}
 			}
 		}

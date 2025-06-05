@@ -59,11 +59,11 @@ public:
 	/** Invert the filter result */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
-	
+
 	/** Invert the edge filters result */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExVtxFilterOutput::Clusters", EditConditionHides))
 	bool bInvertEdgeFilters = false;
-	
+
 	/** Name of the attribute to write the filter result to. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode==EPCGExVtxFilterOutput::Attribute", EditConditionHides))
 	FName ResultAttributeName = FName("PassFilters");
@@ -126,7 +126,7 @@ class FPCGExFilterVtxElement final : public FPCGExEdgesProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FilterVtx)
-	
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
@@ -153,19 +153,17 @@ namespace PCGExFilterVtx
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
-			
 		}
 
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		
-		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const PCGExMT::FScope& Scope) override;
 
-		virtual void PrepareSingleLoopScopeForEdges(const PCGExMT::FScope& Scope) override;
-		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FEdge& Edge, const PCGExMT::FScope& Scope) override;
-		
+		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;
+		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
+
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
+
 		virtual void CompleteWork() override;
 	};
 
@@ -182,7 +180,6 @@ namespace PCGExFilterVtx
 
 			bRequiresGraphBuilder = Settings->Mode == EPCGExVtxFilterOutput::Clusters;
 			bRequiresWriteStep = Settings->Mode == EPCGExVtxFilterOutput::Attribute;
-			bAllowVtxDataFacadeScopedGet = true;
 		}
 
 		virtual void CompleteWork() override;

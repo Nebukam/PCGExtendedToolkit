@@ -3,7 +3,7 @@
 
 #include "Graph/FloodFill/PCGExFloodFill.h"
 
-#include "Data/Blending/PCGExAttributeBlendFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 #include "Graph/FloodFill/FillControls/PCGExFillControlOperation.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
@@ -19,7 +19,7 @@ namespace PCGExFloodFill
 		const PCGExCluster::FNode* InSeedNode):
 		FillControlsHandler(InFillControlsHandler), SeedNode(InSeedNode), Cluster(InCluster)
 	{
-		TravelStack = MakeShared<PCGEx::FMapHashLookup>(0, 0);
+		TravelStack = MakeShared<PCGEx::FHashLookupMap>(0, 0);
 	}
 
 	void FDiffusion::Init(const int32 InSeedIndex)
@@ -168,13 +168,8 @@ namespace PCGExFloodFill
 		const TSharedPtr<PCGExDataBlending::FBlendOpsManager>& InBlendOps,
 		TArray<int32>& OutIndices)
 	{
-		const TArray<FPCGPoint>& InPoints = InVtxFacade->Source->GetPoints(PCGExData::ESource::In);
-		TArray<FPCGPoint>& OutPoints = InVtxFacade->Source->GetMutablePoints();
-
 		OutIndices.SetNumUninitialized(Captured.Num());
-
 		const int32 SourceIndex = SeedNode->PointIndex;
-		const FPCGPoint& SourcePoint = InPoints[SourceIndex];
 
 		for (int i = 0; i < OutIndices.Num(); i++)
 		{
@@ -185,11 +180,8 @@ namespace PCGExFloodFill
 
 			if (TargetIndex != SourceIndex)
 			{
-				FPCGPoint& TargetPoint = OutPoints[TargetIndex];
-
 				// TODO : Compute weight based on distance or depth
-
-				InBlendOps->Blend(SourceIndex, SourcePoint, TargetIndex, TargetPoint);
+				InBlendOps->BlendAutoWeight(SourceIndex, TargetIndex);
 			}
 		}
 	}

@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExPolygonInclusionFilter.h"
 
 #include "GeomTools.h"
+#include "Paths/PCGExPaths.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExPolygonInclusionFilterDefinition"
@@ -32,19 +33,19 @@ bool UPCGExPolygonInclusionFilterFactory::Prepare(FPCGExContext* InContext)
 	{
 		for (const FPCGTaggedData& TaggedData : Targets)
 		{
-			const UPCGPointData* PathData = Cast<UPCGPointData>(TaggedData.Data);
+			const UPCGBasePointData* PathData = Cast<UPCGBasePointData>(TaggedData.Data);
 			if (!PathData) { continue; }
 
 			// Flatten points
-			const TArray<FPCGPoint>& InPoints = PathData->GetPoints();
+			TConstPCGValueRange<FTransform> InTransforms = PathData->GetConstTransformValueRange();
 			const TSharedPtr<TArray<FVector2D>> Polygon = MakeShared<TArray<FVector2D>>();
 
 			FBox Box = FBox(FVector::OneVector * -1, FVector::OneVector);
 
-			Polygon->SetNumUninitialized(InPoints.Num());
-			for (int i = 0; i < InPoints.Num(); i++)
+			Polygon->SetNumUninitialized(InTransforms.Num());
+			for (int i = 0; i < InTransforms.Num(); i++)
 			{
-				FVector Pos = InPoints[i].Transform.GetLocation();
+				FVector Pos = InTransforms[i].GetLocation();
 				Pos.Z = 0;
 				Box += Pos;
 				*(Polygon->GetData() + i) = FVector2D(Pos.X, Pos.Y);
@@ -81,10 +82,11 @@ namespace PCGExPointFilter
 	bool FPolygonInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
 		return true;
 	}
 
-	bool FPolygonInclusionFilter::Test(const FPCGPoint& Point) const
+	bool FPolygonInclusionFilter::Test(const PCGExData::FProxyPoint& Point) const
 	{
 		FVector Pos = Point.Transform.GetLocation();
 		Pos.Z = 0;
@@ -149,7 +151,7 @@ namespace PCGExPointFilter
 
 	bool FPolygonInclusionFilter::Test(const int32 PointIndex) const
 	{
-		FVector Pos = PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation();
+		FVector Pos = InTransforms[PointIndex].GetLocation();
 		Pos.Z = 0;
 
 		const FVector2D Pos2D = FVector2D(Pos.X, Pos.Y);

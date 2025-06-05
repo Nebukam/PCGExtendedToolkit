@@ -34,54 +34,20 @@ namespace PCGEx
 	PCGEX_CTX_STATE(State_UnionWriting)
 }
 
-#if PCGEX_ENGINE_VERSION < 505
-struct PCGEXTENDEDTOOLKIT_API FPCGContextHandle : public TSharedFromThis<FPCGContextHandle>
-{
-public:
-	FPCGContextHandle(FPCGContext* InContext)
-		: Context(InContext)
-	{
-	}
-
-	FPCGContext* GetContext() { return Context; }
-
-private:
-	FPCGContext* Context = nullptr;
-};
-#endif
-
 struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 {
 protected:
-	TSharedPtr<PCGEx::FWorkPermit> WorkPermit;
-
 	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetDependenciesLock;
 
-	TArray<FPCGTaggedData> StagedOutputs;
+	TSharedPtr<PCGEx::FWorkPermit> WorkPermit;
+
 	bool bFlattenOutput = false;
 
 	TSet<FName> ConsumableAttributesSet;
 	TSet<FName> ProtectedAttributesSet;
 
-	void CommitStagedOutputs();
-
 public:
-	template <typename T>
-	class FPCGExSharedContext
-	{
-	public:
-		FPCGExSharedContext(const TWeakPtr<FPCGContextHandle>& WeakHandle)
-		{
-			SharedHandle = WeakHandle.Pin();
-		}
-
-		T* Get() const { return SharedHandle.IsValid() ? static_cast<T*>(SharedHandle->GetContext()) : nullptr; }
-
-	private:
-		TSharedPtr<FPCGContextHandle> SharedHandle;
-	};
-
 	TWeakPtr<PCGEx::FWorkPermit> GetWorkPermit() { return WorkPermit; }
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
 
@@ -93,8 +59,8 @@ public:
 
 	void IncreaseStagedOutputReserve(const int32 InIncreaseNum);
 
-	void StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, bool bManaged, bool bIsMutable);
-	void StageOutput(const FName Pin, UPCGData* InData, bool bManaged);
+	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged, const bool bIsMutable);
+	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged);
 
 	UWorld* GetWorld() const;
 	const UPCGComponent* GetComponent() const;
@@ -126,19 +92,6 @@ protected:
 	std::atomic<PCGEx::ContextState> CurrentState;
 
 #pragma endregion
-
-#if PCGEX_ENGINE_VERSION < 505
-
-	// Lazy initialized shared handle pointer that can be used in lambda captures to test if Context is still valid before accessing it
-	TSharedPtr<FPCGContextHandle> Handle;
-
-public:
-	TWeakPtr<FPCGContextHandle> GetOrCreateHandle()
-	{
-		if (!Handle) { Handle = MakeShared<FPCGContextHandle>(this); }
-		return Handle.ToWeakPtr();
-	}
-#endif
 
 #pragma region Async resource management
 
@@ -194,6 +147,8 @@ protected:
 	void ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) const;
 
 	bool bExecutionCancelled = false;
+
+	virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override;
 
 public:
 	void AddNotifyActor(AActor* InActor);

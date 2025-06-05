@@ -49,7 +49,7 @@ bool FPCGExGetGUIDElement::ExecuteInternal(FPCGContext* InContext) const
 
 			Facade->bSupportsScopedGet = true;
 
-			if (!FacadeRef->Source->GetIn()->GetPoints().IsValidIndex(TargetIndex)) { return Context->CancelExecution(TEXT("Selected index is invalid.")); }
+			if (!FacadeRef->Source->GetIn()->GetConstDensityValueRange().IsValidIndex(TargetIndex)) { return Context->CancelExecution(TEXT("Selected index is invalid.")); }
 			if (!Config.Init(Context, FacadeRef)) { return Context->CancelExecution(TEXT("")); }
 
 			PCGExMT::FScope FetchScope = PCGExMT::FScope(TargetIndex, 1);
@@ -70,7 +70,9 @@ bool FPCGExGetGUIDElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 
 			GuidData->Metadata->AddEntry();
-			Context->StageOutput(FName("GUID"), GuidData, true);
+
+			FPCGTaggedData& StagedData = Context->StageOutput(GuidData, true);
+			StagedData.Pin = FName("GUID");
 		}
 
 		Context->Done();
