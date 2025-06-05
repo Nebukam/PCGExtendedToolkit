@@ -466,11 +466,11 @@ namespace PCGExExtrudeTensors
 				}
 			}
 
-			Head = ExtrudedPoints.Last();
+			//Head = ExtrudedPoints.Last();
 
 			if constexpr (Supports(InternalFlags, EExtrusionFlags::Bounded))
 			{
-				ProxyHead.Transform = Head;
+				ProxyHead.Transform = ActiveTransform;
 				if (StopFilters->Test(ProxyHead))
 				{
 					if (bIsExtruding && !bIsComplete)
