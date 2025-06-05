@@ -173,13 +173,13 @@ namespace PCGEx
 #endif
 	
 	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMeta =
-		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::MetadataEntry));
+		EPCGPointNativeProperties::All & ~EPCGPointNativeProperties::MetadataEntry;
 
 	constexpr EPCGPointNativeProperties AllPointNativePropertiesButTransform =
-		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::Transform));
+		EPCGPointNativeProperties::All & ~EPCGPointNativeProperties::Transform;
 
 	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMetaAndTransform =
-		static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Transform));
+		EPCGPointNativeProperties::All & ~(EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Transform);
 
 	const FName PreviousAttributeName = TEXT("#Previous");
 	const FName PreviousNameAttributeName = TEXT("#PreviousName");

@@ -66,20 +66,24 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointArrayData>(ReferenceIO, PCGExData::EIOInit::New);
 	if (!PathIO) { return; }
 
+	EPCGPointNativeProperties AllocateProperties = ReferenceIO->GetIn()->GetAllocatedProperties();
+	EnumAddFlags(AllocateProperties, SeedsDataFacade->GetIn()->GetAllocatedProperties());
+	EnumAddFlags(AllocateProperties, GoalsDataFacade->GetIn()->GetAllocatedProperties());
+	
 	PathIO->IOIndex = Query->QueryIndex;
 	UPCGBasePointData* PathPoints = PathIO->GetOut();
-	PCGEx::SetNumPointsAllocated(PathPoints, PathIndices.Num() + ExtraIndices);
+	PCGEx::SetNumPointsAllocated(PathPoints, PathIndices.Num() + ExtraIndices, AllocateProperties);
 
 	PathIO->InheritPoints(PathIndices, Settings->bAddSeedToPath ? 1 : 0);
 
 	if (Settings->bAddSeedToPath)
 	{
-		Query->Seed.Point.Data->CopyPropertiesTo(PathPoints, Query->Seed.Point.Index, 0, 1, EPCGPointNativeProperties::All);
+		Query->Seed.Point.Data->CopyPropertiesTo(PathPoints, Query->Seed.Point.Index, 0, 1, AllocateProperties);
 	}
 
 	if (Settings->bAddGoalToPath)
 	{
-		Query->Goal.Point.Data->CopyPropertiesTo(PathPoints, Query->Goal.Point.Index, PathPoints->GetNumPoints() - 1, 1, EPCGPointNativeProperties::All);
+		Query->Goal.Point.Data->CopyPropertiesTo(PathPoints, Query->Goal.Point.Index, PathPoints->GetNumPoints() - 1, 1, AllocateProperties);
 	}
 
 	PCGExGraph::CleanupClusterTags(PathIO);

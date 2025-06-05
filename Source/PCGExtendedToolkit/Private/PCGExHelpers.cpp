@@ -333,7 +333,11 @@ namespace PCGEx
 		TBitArray<> Visited;
 		Visited.Init(false, NumElements);
 
-#define PCGEX_REORDER_RANGE_DECL(_NAME, _TYPE, ...) TPCGValueRange<_TYPE> _NAME##Range = InData->Get##_NAME##ValueRange();
+		EPCGPointNativeProperties AllocatedProperties = InData->GetAllocatedProperties();
+		
+#define PCGEX_REORDER_RANGE_DECL(_NAME, _TYPE, ...)\
+		const bool bProcess##_NAME = EnumHasAnyFlags(AllocatedProperties, EPCGPointNativeProperties::_NAME);\
+		TPCGValueRange<_TYPE> _NAME##Range = InData->Get##_NAME##ValueRange(bProcess##_NAME);
 		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_RANGE_DECL)
 #undef PCGEX_REORDER_RANGE_DECL
 
@@ -353,13 +357,13 @@ namespace PCGEx
 				continue;
 			}
 
-#define PCGEX_REORDER_MOVE_TEMP(_NAME, _TYPE, ...) _TYPE Temp##_NAME = MoveTemp(_NAME##Range[Current]);
+#define PCGEX_REORDER_MOVE_TEMP(_NAME, _TYPE, ...) _TYPE Temp##_NAME = bProcess##_NAME ? MoveTemp(_NAME##Range[Current]) : _TYPE{};
 			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_TEMP)
 #undef PCGEX_REORDER_MOVE_TEMP
 
 			while (!Visited[Next])
 			{
-#define PCGEX_REORDER_MOVE_FORWARD(_NAME, _TYPE, ...) _NAME##Range[Current] = MoveTemp(_NAME##Range[Next]);
+#define PCGEX_REORDER_MOVE_FORWARD(_NAME, _TYPE, ...) if(bProcess##_NAME){ _NAME##Range[Current] = MoveTemp(_NAME##Range[Next]); };
 				PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_FORWARD)
 #undef PCGEX_REORDER_MOVE_FORWARD
 
@@ -368,7 +372,7 @@ namespace PCGEx
 				Next = InOrder[Current];
 			}
 
-#define PCGEX_REORDER_MOVE_BACK(_NAME, _TYPE, ...) _NAME##Range[Current] = MoveTemp(Temp##_NAME);
+#define PCGEX_REORDER_MOVE_BACK(_NAME, _TYPE, ...) if(bProcess##_NAME){ _NAME##Range[Current] = MoveTemp(Temp##_NAME); }
 			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_MOVE_BACK)
 #undef PCGEX_REORDER_MOVE_BACK
 

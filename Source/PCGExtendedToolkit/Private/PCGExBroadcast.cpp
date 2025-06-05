@@ -189,7 +189,7 @@ namespace PCGEx
 			                                InDataFacade->Source->GetInOut(InOutSide) :
 			                                InDataFacade->Source->GetOutIn(InOutSide);
 
-		if (!Data) { return false; }
+		if (!IsValid(Data)) { return false; }
 
 		const FPCGAttributePropertyInputSelector FixedSelector = InputSelector.CopyAndFixLast(Data);
 		if (!FixedSelector.IsValid()) { return false; }

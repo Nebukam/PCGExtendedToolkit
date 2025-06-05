@@ -184,10 +184,10 @@ namespace PCGExBuildVoronoi2D
 			}
 
 			UPCGBasePointData* CentroidsPoints = PointDataFacade->GetOut();
-			(void)PCGEx::SetNumPointsAllocated(CentroidsPoints, NumCentroids);
+			(void)PCGEx::SetNumPointsAllocated(CentroidsPoints, NumCentroids, PointDataFacade->GetIn()->GetAllocatedProperties());
 
-			TPCGValueRange<FTransform> OutTransforms = CentroidsPoints->GetTransformValueRange(false);
-			TPCGValueRange<int32> OutSeeds = CentroidsPoints->GetSeedValueRange(false);
+			TPCGValueRange<FTransform> OutTransforms = CentroidsPoints->GetTransformValueRange(true);
+			TPCGValueRange<int32> OutSeeds = CentroidsPoints->GetSeedValueRange(true);
 
 			for (int i = 0; i < NumSites; i++)
 			{
@@ -266,10 +266,10 @@ namespace PCGExBuildVoronoi2D
 		{
 			UPCGBasePointData* Centroids = PointDataFacade->GetOut();
 			const int32 NumCentroids = Voronoi->Centroids.Num();
-			(void)PCGEx::SetNumPointsAllocated(Centroids, NumCentroids);
+			(void)PCGEx::SetNumPointsAllocated(Centroids, NumCentroids, PointDataFacade->GetIn()->GetAllocatedProperties());
 
-			TPCGValueRange<FTransform> OutTransforms = Centroids->GetTransformValueRange(false);
-			TPCGValueRange<int32> OutSeeds = Centroids->GetSeedValueRange(false);
+			TPCGValueRange<FTransform> OutTransforms = Centroids->GetTransformValueRange(true);
+			TPCGValueRange<int32> OutSeeds = Centroids->GetSeedValueRange(true);
 
 #define PCGEX_UPDATE_VSITE_DATA\
 			SitesPositions[i] = CC;\
