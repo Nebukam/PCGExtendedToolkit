@@ -252,9 +252,6 @@ namespace PCGExData
 		PCGEX_SHARED_CONTEXT(Source->GetContextHandle())
 		FPCGExContext* Context = SharedContext.Get();
 
-		// TODO : First check that no writable attempts to write to the same output twice
-		// TODO : Delete writables whose output that have
-
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
 

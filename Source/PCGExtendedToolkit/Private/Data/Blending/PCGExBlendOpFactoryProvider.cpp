@@ -53,9 +53,6 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 		break;
 	}
 
-	// TODO : Might be worth re-using the same descriptor if use copy
-
-
 	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : Source_A_Facade, PCGExData::EProxyRole::Read);
 	A.bIsConstant = A.DataFacade.Pin() != Source_A_Facade;
 	if (!A.Capture(InContext, Config.OperandA, A.bIsConstant ? PCGExData::EIOSide::In : SideA)) { return false; }
@@ -66,7 +63,7 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	{
 		B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : Source_B_Facade, PCGExData::EProxyRole::Read);
 		B.bIsConstant = B.DataFacade.Pin() != Source_B_Facade;
-		if (!B.Capture(InContext, Config.OperandB, B.bIsConstant ? PCGExData::EIOSide::In : SideB)) { return false; } // TODO : We need to favor reading from IN when possible
+		if (!B.Capture(InContext, Config.OperandB, B.bIsConstant ? PCGExData::EIOSide::In : SideB)) { return false; }
 	}
 
 	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(TargetFacade, PCGExData::EProxyRole::Write);
