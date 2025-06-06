@@ -408,16 +408,28 @@ break;
 				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
 				TypedBlender->B = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, B));
 
-				if (!TypedBlender->A || !TypedBlender->B || !TypedBlender->C)
+				if (!TypedBlender->A)
 				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Missing at least one proxy."));
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand A."));
+					return;
+				}
+
+				if (!TypedBlender->B)
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand B."));
+					return;
+				}
+
+				if (!TypedBlender->C)
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Output."));
 					return;
 				}
 
 				// Ensure C is readable for MultiBlend, as those will use GetCurrent
 				if (!TypedBlender->C->EnsureReadable())
 				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target buffer is readable."));
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target write buffer is also readable."));
 					return;
 				}
 
