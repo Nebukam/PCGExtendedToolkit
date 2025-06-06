@@ -65,11 +65,12 @@ namespace PCGExGraph
 
 		Distances = PCGExDetails::MakeDistances(PointPointIntersectionDetails.FuseDetails.SourceDistance, PointPointIntersectionDetails.FuseDetails.TargetDistance);
 
-		UPCGBasePointData* MutablePoints = UnionDataFacade->GetOut();
-		PCGEx::SetNumPointsAllocated(MutablePoints, NumUnionNodes); // TODO : Proper Allocation
-
 		UnionPointsBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, VtxCarryOverDetails, Distances);
 		UnionPointsBlender->AddSources(InFacades, &ProtectedClusterAttributes);
+
+		UPCGBasePointData* MutablePoints = UnionDataFacade->GetOut();
+		PCGEx::SetNumPointsAllocated(MutablePoints, NumUnionNodes, UnionPointsBlender->GetAllocatedProperties()); // TODO : Proper Allocation
+		
 		if (!UnionPointsBlender->Init(Context, UnionDataFacade, UnionGraph->NodesUnion)) { return false; }
 
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
