@@ -68,49 +68,14 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 		return true;
 	}
 
-	if (Context.CurrentPointIndex == -200)
+	if (!InPointData->Metadata->GetConstTypedAttribute<int64>(PCGExStaging::Tag_EntryIdx))
 	{
-		// Success!
-		// Clean entry idx attribute from output data
-		if (OutPointData) { OutPointData->Metadata->DeleteAttribute(PCGExStaging::Tag_EntryIdx); }
+		PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to get hash attribute from input"));
 		return true;
-	}
-
-	if (Context.CurrentPointIndex == -404)
-	{
-		// Something failed!
-		return true;
-	}
-
-	if (Context.CurrentPointIndex == -1)
-	{
-		// Doing async work
-		return false;
 	}
 
 	if (Context.CurrentPointIndex == 0)
 	{
-		// Basic initialization, no matter what engine version we're on
-		if (!InPointData)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Missing input data"));
-			return true;
-		}
-
-		if (!InPointData->Metadata)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to get metadata from input"));
-			return true;
-		}
-
-		if (!InPointData->Metadata->GetConstTypedAttribute<int64>(PCGExStaging::Tag_EntryIdx))
-		{
-			PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to get hash attribute from input"));
-			return true;
-		}
-
-		TArray<FPCGMeshInstanceList>* InstanceListPtr = &OutMeshInstances;
-
 		if (OutPointData)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SetupOutPointData);
@@ -122,9 +87,7 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 			OutPointData->Metadata->DeleteAttribute(PCGExStaging::Tag_EntryIdx);
 		}
 
-		auto Exit = [&](const bool bSuccess) { Context.CurrentPointIndex = bSuccess ? -200 : -404; };
-
-		//  3- Build collection map from override attribute set		
+		// 1- Build collection map from override attribute set		
 		TSharedPtr<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> CollectionMap =
 			MakeShared<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>();
 
@@ -133,86 +96,43 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 		if (!CollectionMap->HasValidMapping())
 		{
 			PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to find Staging Map data in overrides"));
-			Exit(false);
 			return true;
 		}
 
 		// 2- Partition points
-
+		if (!CollectionMap->BuildPartitions(InPointData, OutMeshInstances))
 		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::FindPartitions);
-
-			// TODO : Revisit this to leverage context' AttributeOverridePartition
-			if (!CollectionMap->BuildPartitions(InPointData))
-			{
-				PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to build any partitions"));
-				return true;
-			}
+			PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to build any partitions"));
+			return true;
 		}
 
-		// 3- Select & apply entries for each partition
-
+		// 3- Resolve & apply entries for each partition
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SelectEntries);
 
-			const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
+			TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 
-			for (const TPair<int64, TSharedPtr<TArray<int32>>>& Partition : CollectionMap->HashedPartitions)
+			for (const TPair<int64, int32>& Partition : CollectionMap->IndexedPartitions)
 			{
 				const FPCGExMeshCollectionEntry* Entry = nullptr;
 				int16 MaterialPick = -1;
 
 				if (!CollectionMap->ResolveEntry(Partition.Key, Entry, MaterialPick)) { continue; }
 
-				const TArray<int32>& Indices = *Partition.Value.Get();
-				TArray<FTransform> Instances;
-				const int32 PartitionSize = Indices.Num();
-				PCGEx::InitArray(Instances, PartitionSize);
+				FPCGMeshInstanceList& InstanceList = OutMeshInstances[Partition.Value];
 
-				for (int i = 0; i < PartitionSize; i++) { Instances[i] = InTransforms[Indices[i]]; }
+				FPCGSoftISMComponentDescriptor& Descriptor = InstanceList.Descriptor;
+				Entry->InitPCGSoftISMDescriptor(Descriptor);
+				Entry->ApplyMaterials(MaterialPick, Descriptor);
 
-				FPCGSoftISMComponentDescriptor TemplateDescriptor = FPCGSoftISMComponentDescriptor();
-				Entry->InitPCGSoftISMDescriptor(TemplateDescriptor);
-
-				//
-
-				if (MaterialPick != -1)
-				{
-					TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::RetrieveMaterials);
-
-					if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::None) { continue; }
-					if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Single)
-					{
-						TemplateDescriptor.OverrideMaterials.SetNum(Entry->SlotIndex + 1);
-						TemplateDescriptor.OverrideMaterials[Entry->SlotIndex] = Entry->MaterialOverrideVariants[MaterialPick].Material;
-					}
-					else if (Entry->MaterialVariants == EPCGExMaterialVariantsMode::Multi)
-					{
-						const FPCGExMaterialOverrideCollection& MEntry = Entry->MaterialOverrideVariantsList[MaterialPick];
-
-						const int32 HiIndex = MEntry.GetHighestIndex();
-						TemplateDescriptor.OverrideMaterials.SetNum(HiIndex == -1 ? 1 : HiIndex + 1);
-
-						for (int i = 0; i < MEntry.Overrides.Num(); i++)
-						{
-							const FPCGExMaterialOverrideEntry& SlotEntry = MEntry.Overrides[i];
-							const int32 SlotIndex = SlotEntry.SlotIndex == -1 ? 0 : SlotEntry.SlotIndex;
-							TemplateDescriptor.OverrideMaterials[SlotIndex] = SlotEntry.Material;
-						}
-					}
-				}
-
-				FPCGMeshInstanceList& NewInstanceList = InstanceListPtr->Emplace_GetRef(TemplateDescriptor);
-				NewInstanceList.Descriptor = TemplateDescriptor;
-				NewInstanceList.PointData = InPointData;
-				NewInstanceList.Instances = Instances;
+				const TArray<int32>& InstanceIndices = InstanceList.InstancesIndices;
+				InstanceList.Instances.Reserve(InstanceIndices.Num());
+				for (const int32 i : InstanceIndices) { InstanceList.Instances.Emplace(InTransforms[i]); }
 			}
 		}
-
-		Exit(true);
 	}
 
-	return false;
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

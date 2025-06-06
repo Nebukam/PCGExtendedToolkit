@@ -52,7 +52,7 @@ public:
 
 	/** The name of the attribute/tag to write the collection index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Collection Index", EditCondition="bOutputCollectionIndex"))
-	FName CollectionIndexAttributeName = "CollectionIndex";
+	FName CollectionIndexAttributeName = "@Data.CollectionIndex";
 
 	/** If enabled, output the collection index to the points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Output to points", EditCondition="bOutputCollectionIndex", HideEditConditionToggle))

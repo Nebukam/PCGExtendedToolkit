@@ -103,8 +103,6 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 
 	if (Entries.IsEmpty()) { return OutputToPin(); }
 
-	// TODO : Sort StagingDataList according to sorting parameters
-
 	for (const FPCGExAssetCollectionEntry* E : Entries)
 	{
 		const int64 Key = OutputSet->Metadata->AddEntry();

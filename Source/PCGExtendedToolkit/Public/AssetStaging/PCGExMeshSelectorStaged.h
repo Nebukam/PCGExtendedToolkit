@@ -18,10 +18,4 @@ public:
 		const UPCGBasePointData* InPointData,
 		TArray<FPCGMeshInstanceList>& OutMeshInstances,
 		UPCGBasePointData* OutPointData) const override;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta = (InlineEditConditionToggle))
-	bool bUseAttributeMaterialOverrides = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, DisplayName = "By Attribute Material Overrides", Category = MeshSelector, meta = (EditCondition = "bUseAttributeMaterialOverrides"))
-	TArray<FName> MaterialOverrideAttributes;
 };
