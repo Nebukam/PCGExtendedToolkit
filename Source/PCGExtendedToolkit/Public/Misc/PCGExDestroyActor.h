@@ -12,7 +12,7 @@
 
 #include "PCGExDestroyActor.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExDestroyActorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

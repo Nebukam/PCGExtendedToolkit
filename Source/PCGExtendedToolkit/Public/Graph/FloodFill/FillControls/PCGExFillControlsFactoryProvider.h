@@ -66,7 +66,7 @@ public:
 	virtual TSharedPtr<FPCGExFillControlOperation> CreateOperation(FPCGExContext* InContext) const;
 };
 
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
 class PCGEXTENDEDTOOLKIT_API UPCGExFillControlsFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()

@@ -4,14 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Blending/PCGExDataBlending.h"
 
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
-#include "Sampling/PCGExSampling.h"
 #include "PCGExEdgeOrder.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExEdgeOrderSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

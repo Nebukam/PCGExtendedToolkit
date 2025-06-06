@@ -172,6 +172,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingInputError = false;
 
+#if WITH_EDITOR
+	/** Open browse. */
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Node Documentation", ShortToolTip="Open a browser and naviguate to that node' documentation page", DisplayOrder=-1))
+	void EDITOR_OpenNodeDocumentation() const;
+#endif
+	
 protected:
 	virtual bool ShouldCache() const;
 };

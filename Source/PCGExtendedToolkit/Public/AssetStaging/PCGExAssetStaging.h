@@ -22,7 +22,7 @@ enum class EPCGExStagingOutputMode : uint8
 	CollectionMap = 1 UMETA(DisplayName = "Collection Map", ToolTip="Write collection reference & pick for later use"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage prepare spawn proxy"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage prepare spawn proxy", PCGExNodeLibraryDoc="TBD"))
 class UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

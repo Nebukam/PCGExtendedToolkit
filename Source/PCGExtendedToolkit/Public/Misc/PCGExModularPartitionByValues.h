@@ -23,7 +23,7 @@ public:
 	FPCGExPartitonRuleConfig Config;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExPartitionRuleProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()

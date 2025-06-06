@@ -55,7 +55,7 @@ public:
 	virtual TSharedPtr<FPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExVtxPropertySpecialNeighborsSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()

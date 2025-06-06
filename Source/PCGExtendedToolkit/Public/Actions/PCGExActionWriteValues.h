@@ -56,7 +56,7 @@ protected:
 	FPCGExAttributeGatherDetails FailAttributesFilter;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ActionWriteValues")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ActionWriteValues", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExActionWriteValuesProviderSettings : public UPCGExActionProviderSettings
 {
 	GENERATED_BODY()

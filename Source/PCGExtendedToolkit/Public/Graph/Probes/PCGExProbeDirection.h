@@ -91,7 +91,7 @@ protected:
 
 ////
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExProbeFactoryDirection : public UPCGExProbeFactoryData
 {
 	GENERATED_BODY()

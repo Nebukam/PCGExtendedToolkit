@@ -19,7 +19,7 @@ enum class EPCGExStatsOutputToPoints : uint8
 	Suffix = 2 UMETA(DisplayName = "Suffix", ToolTip="Uss specified name as a suffix to the attribute' name"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExAttributeStatsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

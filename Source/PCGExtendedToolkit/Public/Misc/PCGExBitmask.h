@@ -65,7 +65,7 @@ namespace PCGExBitmask
 	}
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExBitmaskSettings : public UPCGSettings
 {
 	GENERATED_BODY()

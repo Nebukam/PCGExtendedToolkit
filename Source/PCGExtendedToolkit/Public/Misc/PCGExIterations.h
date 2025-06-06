@@ -22,7 +22,7 @@ enum class EPCGExIterationDataType : uint8
 	Texture = 4 UMETA(DisplayName = "Texture", Tooltip="Output dummy iteration data of type Texture."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExIterationsSettings : public UPCGSettings
 {
 	GENERATED_BODY()

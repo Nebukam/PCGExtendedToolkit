@@ -17,7 +17,7 @@ TArray<FPCGPinProperties> UPCGExSmoothSettings::InputPinProperties() const
 
 	if (BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
-		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {})
+		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
 	}
 	else
 	{

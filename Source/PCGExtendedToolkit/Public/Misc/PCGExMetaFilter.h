@@ -24,7 +24,7 @@ enum class EPCGExMetaFilterMode : uint8
 //
 //
 
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExMetaFilterSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

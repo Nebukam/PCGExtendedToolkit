@@ -110,7 +110,13 @@ public:
 	bool bQuietMissingInputError = false;
 
 	//~End UPCGExPointsProcessorSettings
-
+	
+#if WITH_EDITOR
+	/** Open browse. */
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Node Documentation", ShortToolTip="Open a browser and naviguate to that node' documentation page", DisplayOrder=-1))
+	void EDITOR_OpenNodeDocumentation() const;
+#endif
+		
 protected:
 	virtual bool ShouldCache() const;
 	virtual bool WantsScopedAttributeGet() const;

@@ -66,6 +66,14 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 
 PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
+#if WITH_EDITOR
+void UPCGExPointsProcessorSettings::EDITOR_OpenNodeDocumentation() const
+{
+	const FString URL = PCGEx::META_PCGExDocNodeLibraryBaseURL +  GetClass()->GetMetaData(*PCGEx::META_PCGExDocURL);
+	FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+}
+#endif
+
 bool UPCGExPointsProcessorSettings::ShouldCache() const
 {
 	if (!IsCacheable()) { return false; }

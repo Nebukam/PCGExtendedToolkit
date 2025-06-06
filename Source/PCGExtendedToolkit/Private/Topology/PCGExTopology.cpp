@@ -122,6 +122,7 @@ namespace PCGExTopology
 		PCGEX_MAKE_SHARED(TempConstraints, FCellConstraints)
 		TempConstraints->bKeepCellsWithLeaves = bKeepCellsWithLeaves;
 		TempConstraints->bDuplicateLeafPoints = bDuplicateLeafPoints;
+		TempConstraints->Winding = Winding;
 
 		WrapperCell = MakeShared<FCell>(TempConstraints.ToSharedRef());
 		if (WrapperCell->BuildFromCluster(SeedWP, InCluster, ProjectedPositions) != ECellResult::Success) { WrapperCell = nullptr; }

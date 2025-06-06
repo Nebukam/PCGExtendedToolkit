@@ -22,7 +22,7 @@ namespace PCGExWriteVtxProperties
 	class FBatch;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExWriteVtxPropertiesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

@@ -13,7 +13,7 @@
 
 ///
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|FilterGroup")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|FilterGroup", meta=(PCGExNodeLibraryDoc="TBD"))
 class PCGEXTENDEDTOOLKIT_API UPCGExFilterGroupProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()

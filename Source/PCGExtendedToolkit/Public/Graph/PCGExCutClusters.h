@@ -26,7 +26,7 @@ namespace PCGExCutEdges
 	const FName SourceEdgeFilters = FName("EdgeFilters");
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExCutEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
