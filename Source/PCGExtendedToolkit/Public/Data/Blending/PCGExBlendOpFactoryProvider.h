@@ -115,10 +115,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseOperandB"))
 	FPCGAttributePropertyInputSelector OperandB;
 
-	/** Weight settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
-	FPCGExAttributeBlendWeight Weighting;
-
 	/** Choose where to output the result of the A/B blend */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExBlendOpOutputMode OutputMode = EPCGExBlendOpOutputMode::SameAsA;
@@ -138,6 +134,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	/** Which type should be used for the output value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Type", EditCondition="OutputType==EPCGExOperandAuthority::Custom", EditConditionHides), AdvancedDisplay)
 	EPCGMetadataTypes CustomType = EPCGMetadataTypes::Double;
+	
+	/** Weight settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
+	FPCGExAttributeBlendWeight Weighting;
 
 	void Init();
 };
@@ -190,7 +190,7 @@ public:
 
 	virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, PCGEx::FOpStats& Tracker)
 	{
-		Blender->MultiBlend(SourceIndex, TargetIndex, InWeight, Tracker);
+		Blender->MultiBlend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight), Tracker);
 	}
 
 	virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker)
