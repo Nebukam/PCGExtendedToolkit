@@ -239,6 +239,18 @@ bool UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext)
 	ConstantA = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantA, true, false);
 	if (Config.bUseOperandB) { ConstantB = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantB, true, false); }
 
+	if (ConstantA)
+	{
+		InContext->ManagedObjects->Remove(const_cast<UPCGBasePointData*>(ConstantA->Source->GetIn()));
+		AddDataDependency(ConstantA->Source->GetIn());
+	}
+
+	if (ConstantB)
+	{
+		InContext->ManagedObjects->Remove(const_cast<UPCGBasePointData*>(ConstantB->Source->GetIn()));
+		AddDataDependency(ConstantB->Source->GetIn());
+	}
+	
 	return true;
 }
 

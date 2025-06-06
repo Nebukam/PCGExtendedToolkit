@@ -314,17 +314,15 @@ namespace PCGExData
 									}
 									else
 									{
-										/*
 										// Create a writable... Not ideal, will likely create a whole bunch of problems
 										Buffer = InDataFacade->GetWritable<T_REAL>(Identifier, T_REAL{}, true, EBufferInit::Inherit);
 										if (Buffer) { Buffer->EnsureReadable(); }
 										else
 										{
+											// No existing buffer yet
+											PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Could not create read/write buffer."));
+											return;
 										}
-										*/
-										// No existing buffer yet
-										PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No existing buffer to read from."));
-										return;
 									}
 								}
 							}

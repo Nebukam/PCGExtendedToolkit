@@ -147,8 +147,10 @@ namespace PCGExBlend
 	}
 
 	template <typename T>
-	FORCEINLINE static T ModSimple(const T& A, const double& Modulo)
+	FORCEINLINE static T ModSimple(const T& A, const double InModulo)
 	{
+		double Modulo = std::abs(InModulo) < MIN_dbl ? MIN_dbl : InModulo; // Sanitize 0
+		
 		if constexpr (std::is_same_v<T, FVector2D>)
 		{
 			return FVector2D(ModSimple(A.X, Modulo), ModSimple(A.Y, Modulo));
@@ -185,8 +187,8 @@ namespace PCGExBlend
 		{
 			if constexpr (std::is_same_v<T, float>) { return FMath::Fmod(A, static_cast<float>(Modulo)); }
 			else if constexpr (std::is_same_v<T, double>) { return FMath::Fmod(A, Modulo); }
-			else if constexpr (std::is_same_v<T, int32>) { return A % static_cast<int32>(Modulo); }
-			else if constexpr (std::is_same_v<T, int64>) { return A % static_cast<int64>(Modulo); }
+			else if constexpr (std::is_same_v<T, int32>) { return A % FMath::CeilToInt32(Modulo); }
+			else if constexpr (std::is_same_v<T, int64>) { return A % FMath::CeilToInt64(Modulo); }
 			else
 			{
 				return A;
