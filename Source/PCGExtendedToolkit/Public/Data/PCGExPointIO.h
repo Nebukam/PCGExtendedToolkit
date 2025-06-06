@@ -341,7 +341,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		}
 
 		EPCGPointNativeProperties GetAllocations() const { return In ? In->GetAllocatedProperties() : EPCGPointNativeProperties::None; }
-		
+
 		TWeakPtr<FPCGContextHandle> GetContextHandle() const { return ContextHandle; }
 
 		void SetInfos(const int32 InIndex,
@@ -766,26 +766,26 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 			if (const UPCGParamData* ParamData = Cast<UPCGParamData>(Source.Data))
 			{
 				const UPCGMetadata* ParamMetadata = ParamData->Metadata;
-
 				const int64 ParamItemCount = ParamMetadata->GetLocalItemCount();
-				if (ParamItemCount == 0) { return nullptr; }
 
-				UPCGBasePointData* PointData = Cast<UPCGBasePointData>(Context->ManagedObjects->New<UPCGPointArrayData>());
+				if (ParamItemCount != 0)
+				{
+					UPCGBasePointData* PointData = Cast<UPCGBasePointData>(Context->ManagedObjects->New<UPCGPointArrayData>());
+					check(PointData->Metadata);
+					PointData->Metadata->Initialize(ParamMetadata);
+					PointData->SetNumPoints(ParamItemCount);
+					PointData->AllocateProperties(EPCGPointNativeProperties::MetadataEntry);
+					TPCGValueRange<int64> MetadataEntryRange = PointData->GetMetadataEntryValueRange(/*bAllocate=*/false);
 
-				check(PointData->Metadata);
+					for (int PointIndex = 0; PointIndex < ParamItemCount; ++PointIndex) { MetadataEntryRange[PointIndex] = PointIndex; }
 
-				PointData->Metadata->Initialize(ParamMetadata);
-				PointData->SetNumPoints(ParamItemCount);
-
-				const TPCGValueRange<int64> MetadataEntries = PointData->GetMetadataEntryValueRange();
-
-				for (int i = 0; i < ParamItemCount; ++i) { MetadataEntries[i] = i; }
-
-				return PointData;
+					return PointData;
+				}
 			}
 
 			return nullptr;
 		}
+		
 	}
 
 	PCGEXTENDEDTOOLKIT_API

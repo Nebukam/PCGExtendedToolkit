@@ -235,6 +235,7 @@ public:
 
 	virtual void RegisterBuffersDependenciesForSourceA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 	virtual void RegisterBuffersDependenciesForSourceB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
+	
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
