@@ -14,7 +14,18 @@
 TArray<FPCGPinProperties> UPCGExSmoothSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
+	if (BlendingInterface == EPCGExBlendingInterface::Individual)
+	{
+		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Required, {})
+	}
+	else
+	{
+		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations. These are currently ignored, but will preserve pin connections", Advanced, {})
+	}
+
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExSmooth::SourceOverridesSmoothing)
+
 	return PinProperties;
 }
 
@@ -26,6 +37,13 @@ bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(Smooth)
 	PCGEX_OPERATION_BIND(SmoothingMethod, UPCGExSmoothingInstancedFactory, PCGExSmooth::SourceOverridesSmoothing)
+
+	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
+	{
+		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
+			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
+			{PCGExFactories::EType::Blending}, false);
+	}
 
 	return true;
 }
@@ -84,11 +102,26 @@ namespace PCGExSmooth
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		NumPoints = PointDataFacade->GetNum();
 
-		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
-		MetadataBlender->SetTargetData(PointDataFacade);
-		MetadataBlender->SetSourceData(PointDataFacade);
+		if (!Context->BlendingFactories.IsEmpty())
+		{
+			BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>(PointDataFacade);
 
-		if (!MetadataBlender->Init(Context, Settings->BlendingSettings)) { return false; }
+			if (!BlendOpsManager->Init(Context, Context->BlendingFactories)) { return false; }
+
+			DataBlender = BlendOpsManager;
+		}
+		else if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
+		{
+			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
+			MetadataBlender->SetTargetData(PointDataFacade);
+			MetadataBlender->SetSourceData(PointDataFacade);
+
+			if (!MetadataBlender->Init(Context, Settings->BlendingSettings)) { return false; }
+
+			DataBlender = MetadataBlender;
+		}
+
+		if (!DataBlender) { DataBlender = MakeShared<PCGExDataBlending::FDummyBlender>(); }
 
 		Influence = Settings->GetValueSettingInfluence();
 		if (!Influence->Init(Context, PointDataFacade)) { return false; }
@@ -98,7 +131,7 @@ namespace PCGExSmooth
 
 		SmoothingOperation = Context->SmoothingMethod->CreateOperation();
 		SmoothingOperation->Path = PointDataFacade->Source;
-		SmoothingOperation->Blender = MetadataBlender;
+		SmoothingOperation->Blender = DataBlender;
 		SmoothingOperation->bClosedLoop = bClosedLoop;
 
 		StartParallelLoopForPoints();
@@ -114,7 +147,7 @@ namespace PCGExSmooth
 		FilterScope(Scope);
 
 		TArray<PCGEx::FOpStats> Trackers;
-		MetadataBlender->InitTrackers(Trackers);
+		DataBlender->InitTrackers(Trackers);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -135,8 +168,12 @@ namespace PCGExSmooth
 
 	void FProcessor::CompleteWork()
 	{
+		if (BlendOpsManager) { BlendOpsManager->Cleanup(Context); }
+
 		SmoothingOperation.Reset();
 		PointDataFacade->Write(AsyncManager);
+
+		BlendOpsManager.Reset();
 	}
 }
 #undef LOCTEXT_NAMESPACE

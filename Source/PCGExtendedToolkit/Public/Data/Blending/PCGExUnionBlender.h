@@ -66,9 +66,11 @@ namespace PCGExDataBlending
 		void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints);
 		void MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints);
 
+		FORCEINLINE EPCGPointNativeProperties GetAllocatedProperties() const { return AllocatedProperties; }
+
 	protected:
 		EPCGPointNativeProperties AllocatedProperties = EPCGPointNativeProperties::None;
-		
+
 		TSet<FString> TypeMismatches;
 		bool Validate(FPCGExContext* InContext, const bool bQuiet) const;
 
