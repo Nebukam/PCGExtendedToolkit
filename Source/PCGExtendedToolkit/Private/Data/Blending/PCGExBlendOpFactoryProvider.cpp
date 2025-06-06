@@ -245,7 +245,7 @@ bool UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext)
 void UPCGExBlendOpFactory::RegisterAssetDependencies(FPCGExContext* InContext) const
 {
 	Super::RegisterAssetDependencies(InContext);
-	if (Config.bRequiresWeight && !Config.Weighting.bUseLocalCurve) { InContext->AddAssetDependency(Config.Weighting.WeightCurve.ToSoftObjectPath()); }
+	if (!Config.Weighting.bUseLocalCurve) { InContext->AddAssetDependency(Config.Weighting.WeightCurve.ToSoftObjectPath()); }
 }
 
 bool UPCGExBlendOpFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
