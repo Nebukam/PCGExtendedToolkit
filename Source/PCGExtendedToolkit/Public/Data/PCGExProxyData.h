@@ -72,7 +72,7 @@ namespace PCGExData
 		IBufferProxy() = default;
 		virtual ~IBufferProxy() = default;
 
-		bool Validate(const FProxyDescriptor& InDescriptor) const { return InDescriptor.RealType == RealType && InDescriptor.WorkingType == WorkingType; }
+		virtual bool Validate(const FProxyDescriptor& InDescriptor) const { return InDescriptor.RealType == RealType && InDescriptor.WorkingType == WorkingType; }
 		virtual TSharedPtr<IBuffer> GetBuffer() const { return nullptr; }
 		virtual bool EnsureReadable() const { return true; }
 	};
@@ -271,6 +271,8 @@ namespace PCGExData
 			// This should never happen, check the callstack
 			check(false)
 		}
+
+		virtual bool Validate(const FProxyDescriptor& InDescriptor) const override { return InDescriptor.WorkingType == this->WorkingType; }
 	};
 
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection>

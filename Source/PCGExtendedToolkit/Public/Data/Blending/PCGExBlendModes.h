@@ -147,10 +147,10 @@ namespace PCGExBlend
 	}
 
 	template <typename T>
-	FORCEINLINE static T ModSimple(const T& A, const double InModulo)
+	FORCEINLINE static T ModSimple(const T& A, const double Modulo)
 	{
-		double Modulo = std::abs(InModulo) < DOUBLE_KINDA_SMALL_NUMBER ? DOUBLE_KINDA_SMALL_NUMBER : InModulo; // Sanitize 0
-		
+		if (FMath::IsNearlyZero(Modulo)) { return A; }
+
 		if constexpr (std::is_same_v<T, FVector2D>)
 		{
 			return FVector2D(ModSimple(A.X, Modulo), ModSimple(A.Y, Modulo));
