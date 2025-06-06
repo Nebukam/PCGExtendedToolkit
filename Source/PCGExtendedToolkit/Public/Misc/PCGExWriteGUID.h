@@ -118,7 +118,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGUIDDetails
 	void GetGUID(const int32 Index, const PCGExData::FConstPoint& InPoint, FGuid& OutGUID) const;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExWriteGUIDSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

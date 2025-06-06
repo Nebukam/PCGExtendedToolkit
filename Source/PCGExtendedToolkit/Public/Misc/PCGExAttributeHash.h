@@ -11,7 +11,7 @@
 
 #include "PCGExAttributeHash.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExAttributeHashSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -37,15 +37,15 @@ public:
 
 	/** Name to output the hash to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName OutputName = FName("Hash");
+	FName OutputName = FName("@Data.Hash");
 
 	/** Whether to add the hash as a tag */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bOutputToTags = true;
+	bool bOutputToTags = false;
 
 	/** Whether to add the hash as an attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bOutputToAttribute = false;
+	bool bOutputToAttribute = true;
 };
 
 struct FPCGExAttributeHashContext final : FPCGExPointsProcessorContext

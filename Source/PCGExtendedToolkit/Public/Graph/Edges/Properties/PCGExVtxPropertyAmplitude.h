@@ -174,7 +174,7 @@ public:
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExVtxPropertyAmplitudeSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()

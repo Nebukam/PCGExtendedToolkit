@@ -22,7 +22,7 @@ enum class EPCGExMeshAttributeHandling : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExMeshToClustersSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

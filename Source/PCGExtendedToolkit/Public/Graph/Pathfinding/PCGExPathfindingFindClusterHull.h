@@ -10,32 +10,23 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Topology/PCGExTopology.h"
 
-#include "PCGExPathfindingFindContours.generated.h"
+#include "PCGExPathfindingFindClusterHull.generated.h"
 
-namespace PCGExFindContours
+namespace PCGExFindClusterHull
 {
 	class FProcessor;
-	const FName OutputGoodSeedsLabel = TEXT("SeedGenSuccess");
-	const FName OutputBadSeedsLabel = TEXT("SeedGenFailed");
 }
 
-UENUM()
-enum class EPCGExContourShapeTypeOutput : uint8
-{
-	Both        = 0 UMETA(DisplayName = "Convex & Concave", ToolTip="Output both convex and concave paths"),
-	ConvexOnly  = 1 UMETA(DisplayName = "Convex Only", ToolTip="Output only convex paths"),
-	ConcaveOnly = 2 UMETA(DisplayName = "Concave Only", ToolTip="Output only concave paths")
-};
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
-class UPCGExFindContoursSettings : public UPCGExEdgesProcessorSettings
+class UPCGExFindClusterHullSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FindContours, "Pathfinding : Find Contours", "Attempts to find a closed contour of connected edges around seed points.");
+	PCGEX_NODE_INFOS(FindClusterHull, "Pathfinding : Find Cluster Hull", "Output a single hull per cluster, as a path.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPathfinding; }
 #endif
 
@@ -52,10 +43,6 @@ public:
 
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
-	/** Drive how a seed selects a node. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExNodeSelectionDetails SeedPicking;
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellConstraintsDetails Constraints = FPCGExCellConstraintsDetails(true);
 
@@ -64,79 +51,58 @@ public:
 	FPCGExCellArtifactsDetails Artifacts;
 
 	/** Output a filtered set of points containing only seeds that generated a valid path */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bOutputFilteredSeeds = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOutputFilteredSeeds"))
-	FPCGExCellSeedMutationDetails SeedMutations = FPCGExCellSeedMutationDetails(true);
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	//bool bOutputSeeds = false;
 
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding")
-	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
-
-	/** Which Seed attributes to forward on paths. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding")
-	FPCGExForwardDetails SeedForwarding;
-
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bUseOctreeSearch = false;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
+	bool bQuietFailedToFindHullWarning = false;
+
 private:
-	friend class FPCGExFindContoursElement;
+	friend class FPCGExFindClusterHullElement;
 };
 
-struct FPCGExFindContoursContext final : FPCGExEdgesProcessorContext
+struct FPCGExFindClusterHullContext final : FPCGExEdgesProcessorContext
 {
-	friend class FPCGExFindContoursElement;
+	friend class FPCGExFindClusterHullElement;
 	friend class FPCGExCreateBridgeTask;
 
 	FPCGExCellArtifactsDetails Artifacts;
 
-	FPCGExGeo2DProjectionDetails ProjectionDetails;
-	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
-
 	TSharedPtr<PCGExData::FPointIOCollection> Paths;
-	TSharedPtr<PCGExData::FPointIO> GoodSeeds;
-	TSharedPtr<PCGExData::FPointIO> BadSeeds;
-
-	TArray<int8> SeedQuality;
-
-	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
-	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
+	
+	mutable FRWLock SeedOutputLock;
 };
 
-class FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
+class FPCGExFindClusterHullElement final : public FPCGExEdgesProcessorElement
 {
 protected:
-	PCGEX_ELEMENT_CREATE_CONTEXT(FindContours)
+	PCGEX_ELEMENT_CREATE_CONTEXT(FindClusterHull)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExFindContours
+namespace PCGExFindClusterHull
 {
-	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindContoursContext, UPCGExFindContoursSettings>
+	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindClusterHullContext, UPCGExFindClusterHullSettings>
 	{
 		friend class FBatch;
 
 	protected:
-		FRWLock WrappedSeedLock;
-
-		double ClosestSeedDist = MAX_dbl;
-		int32 WrapperSeed = -1;
-
-		bool bBuildExpandedNodes = false;
-		int32 OutputPathNum = 0;
 		TSharedPtr<PCGExTopology::FCell> WrapperCell;
 
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
+
 		TSharedPtr<TArray<FVector>> ProjectedPositions;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
@@ -147,10 +113,7 @@ namespace PCGExFindContours
 		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
-		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
-
-		void ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell);
-		virtual void CompleteWork() override;
+		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell);
 		virtual void Cleanup() override;
 	};
 

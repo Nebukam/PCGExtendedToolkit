@@ -170,6 +170,7 @@ namespace PCGEx
 
 #if WITH_EDITOR
 	const FString META_PCGExDocURL = TEXT("PCGExNodeLibraryDoc");
+	const FString META_PCGExDocNodeLibraryBaseURL = TEXT("https://pcgex.gitbook.io/pcgex/node-library/");
 #endif
 	
 	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMeta =

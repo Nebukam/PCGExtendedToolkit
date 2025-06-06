@@ -9,7 +9,7 @@
 
 #include "PCGExMakeClustersUnique.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExMakeClustersUniqueSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

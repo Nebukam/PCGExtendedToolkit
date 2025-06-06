@@ -78,7 +78,7 @@ public:
 	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExProbeAnisotropicProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()

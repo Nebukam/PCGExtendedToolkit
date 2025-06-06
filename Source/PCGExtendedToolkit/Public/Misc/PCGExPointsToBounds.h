@@ -17,7 +17,7 @@
 
 #include "PCGExPointsToBounds.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExPointsToBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

@@ -39,7 +39,7 @@ enum class EPCGExCollectionEntrySelection : uint8
 	PickerLast  = 5 UMETA(DisplayName = "Picker (Last)", ToolTip="Uses the last valid index using pickers")
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExAttributesToTagsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

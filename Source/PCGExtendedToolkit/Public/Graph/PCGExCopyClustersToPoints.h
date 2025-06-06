@@ -21,7 +21,7 @@ enum class EPCGExClusterComponentTagMatchMode : uint8
 	Both  = 3 UMETA(DisplayName = "Vtx and Edges", ToolTip="Match no vtx and edges"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExCopyClustersToPointsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

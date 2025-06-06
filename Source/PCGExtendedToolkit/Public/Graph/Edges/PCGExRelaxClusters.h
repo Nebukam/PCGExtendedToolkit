@@ -18,7 +18,7 @@ MACRO(DirectionAndSize, FVector, FVector::ZeroVector)\
 MACRO(Direction, FVector, FVector::ZeroVector)\
 MACRO(Amplitude, double, 0)
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExRelaxClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

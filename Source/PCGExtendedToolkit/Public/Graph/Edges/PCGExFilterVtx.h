@@ -26,7 +26,7 @@ namespace PCGExFilterVtx
 	const FName SourceSanitizeEdgeFilters = FName("SanitizeFilters");
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExFilterVtxSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

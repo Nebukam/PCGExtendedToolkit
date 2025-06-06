@@ -9,7 +9,7 @@
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivideEdges.generated.h"
 
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExSubdivideEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

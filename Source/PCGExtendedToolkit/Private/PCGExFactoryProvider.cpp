@@ -88,6 +88,13 @@ bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName&
 	}
 	return true;
 }
+
+
+void UPCGExFactoryProviderSettings::EDITOR_OpenNodeDocumentation() const
+{
+	const FString URL = PCGEx::META_PCGExDocNodeLibraryBaseURL + GetClass()->GetMetaData(*PCGEx::META_PCGExDocURL);
+	FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+}
 #endif
 
 bool UPCGExFactoryProviderSettings::ShouldCache() const

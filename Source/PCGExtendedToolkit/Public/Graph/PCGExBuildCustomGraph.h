@@ -23,7 +23,7 @@ enum class EPCGExCustomGraphActorSourceMode : uint8
 /**
  * 
  */
-UCLASS(Blueprintable, BlueprintType, Abstract, DisplayName = "[PCGEx] Custom Graph Settings")
+UCLASS(Blueprintable, BlueprintType, Abstract, DisplayName = "[PCGEx] Custom Graph Settings", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExCustomGraphSettings : public UObject
 {
 	GENERATED_BODY()

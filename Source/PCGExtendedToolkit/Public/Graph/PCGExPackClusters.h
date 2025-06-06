@@ -9,7 +9,7 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExPackClusters.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExPackClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

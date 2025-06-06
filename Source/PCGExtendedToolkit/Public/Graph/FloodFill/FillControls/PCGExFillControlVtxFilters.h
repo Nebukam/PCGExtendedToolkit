@@ -60,7 +60,7 @@ public:
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExFillControlsVtxFiltersProviderSettings : public UPCGExFillControlsFactoryProviderSettings
 {
 	GENERATED_BODY()

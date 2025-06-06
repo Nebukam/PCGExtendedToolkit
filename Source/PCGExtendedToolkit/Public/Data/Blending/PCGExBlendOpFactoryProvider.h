@@ -238,7 +238,7 @@ public:
 	
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending", meta=(PCGExNodeLibraryDoc="TBD"))
 class PCGEXTENDEDTOOLKIT_API UPCGExBlendOpFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()

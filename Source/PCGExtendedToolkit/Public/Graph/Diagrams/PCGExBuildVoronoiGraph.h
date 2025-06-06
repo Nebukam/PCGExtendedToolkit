@@ -15,7 +15,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExBuildVoronoiGraphSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

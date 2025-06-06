@@ -21,7 +21,7 @@ enum class EPCGExUberFilterCollectionsMode : uint8
 	Partial = 2 UMETA(DisplayName = "Partial", ToolTip="A given amount of points must pass the filter."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExUberFilterCollectionsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

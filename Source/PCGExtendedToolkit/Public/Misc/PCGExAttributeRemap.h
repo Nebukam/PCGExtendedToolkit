@@ -182,7 +182,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
 	TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxCache;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExAttributeRemapSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

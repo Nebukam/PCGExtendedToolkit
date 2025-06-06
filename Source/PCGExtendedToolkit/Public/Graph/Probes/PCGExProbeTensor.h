@@ -102,7 +102,7 @@ public:
 	virtual bool Prepare(FPCGExContext* InContext) override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExProbeTensorProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()

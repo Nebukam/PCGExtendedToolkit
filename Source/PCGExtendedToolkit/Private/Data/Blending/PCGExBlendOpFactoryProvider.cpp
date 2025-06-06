@@ -38,6 +38,7 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	if (!CopyAndFixSiblingSelector(InContext, Config.OperandA)) { return false; }
 	if (Config.bUseOperandB) { if (!CopyAndFixSiblingSelector(InContext, Config.OperandB)) { return false; } }
 	else { Config.OperandB = Config.OperandA; }
+	
 	switch (Config.OutputMode)
 	{
 	case EPCGExBlendOpOutputMode::SameAsA:

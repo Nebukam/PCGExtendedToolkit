@@ -52,7 +52,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSwapAttributePairDetails
 	}
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExReversePointOrderSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

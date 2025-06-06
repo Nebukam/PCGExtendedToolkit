@@ -11,7 +11,7 @@
 
 #include "PCGExSimplifyClusters.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExSimplifyClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

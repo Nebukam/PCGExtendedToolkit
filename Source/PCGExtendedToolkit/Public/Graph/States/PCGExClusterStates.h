@@ -118,7 +118,7 @@ namespace PCGExClusterStates
 	};
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
 class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()

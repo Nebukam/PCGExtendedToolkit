@@ -106,7 +106,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExTagValueFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

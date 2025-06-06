@@ -9,7 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExBitmaskMerge.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExBitmaskMergeSettings : public UPCGSettings
 {
 	GENERATED_BODY()

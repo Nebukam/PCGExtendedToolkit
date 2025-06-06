@@ -33,7 +33,7 @@ private:
 	friend class FPCGExSortPointsBaseElement;
 };
 
-UCLASS(MinimalAPI, BlueprintType, Hidden, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(MinimalAPI, BlueprintType, Hidden, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExSortPointsSettings : public UPCGExSortPointsBaseSettings
 {
 	GENERATED_BODY()

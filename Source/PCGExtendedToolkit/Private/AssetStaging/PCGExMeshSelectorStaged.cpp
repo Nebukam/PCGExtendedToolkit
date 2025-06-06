@@ -18,15 +18,15 @@
 
 #define LOCTEXT_NAMESPACE "PCGExMeshSelectorStaged"
 
-bool UPCGExMeshSelectorStaged::SelectInstances(
-	FPCGStaticMeshSpawnerContext& Context,
-	const UPCGStaticMeshSpawnerSettings* Settings,
-	const UPCGPointData* InPointData,
-	TArray<FPCGMeshInstanceList>& OutMeshInstances,
-	UPCGPointData* OutPointData) const
+bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext& Context, const UPCGStaticMeshSpawnerSettings* Settings, const UPCGBasePointData* InPointData, TArray<FPCGMeshInstanceList>& OutMeshInstances, UPCGBasePointData* OutPointData) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SelectInstances);
 
+	PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "PCGEx Mesh Selector Staged is being refactored and is not supported yet for 5.6."));
+	
+	return true;
+	/*
+	
 	if (Context.CurrentPointIndex == -200)
 	{
 		// Success!
@@ -92,7 +92,12 @@ bool UPCGExMeshSelectorStaged::SelectInstances(
 					if (OutPointData)
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SetupOutPointData);
-						OutPointData->SetPoints(InPointData->GetPoints());
+
+						const int32 NumPoints = InPointData->GetNumPoints();
+						OutPointData->SetNumPoints(NumPoints);
+						InPointData->CopyPointsTo(OutPointData, 0, 0, InPointData->GetNumPoints());
+
+						OutPointData->Metadata->DeleteAttribute(PCGExStaging::Tag_EntryIdx);
 					}
 
 					const FPCGContext::FSharedContext<FPCGStaticMeshSpawnerContext> SharedContext(CtxHandle);
@@ -131,7 +136,7 @@ bool UPCGExMeshSelectorStaged::SelectInstances(
 							}
 						}
 
-						const TArray<FPCGPoint>& InPoints = InPointData->GetPoints();
+						const TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 
 						{
 							TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::FillInstances);
@@ -145,7 +150,7 @@ bool UPCGExMeshSelectorStaged::SelectInstances(
 								const int32 PartitionSize = Indices.Num();
 								PCGEx::InitArray(Instances, PartitionSize);
 
-								for (int i = 0; i < PartitionSize; i++) { Instances[i] = InPoints[Indices[i]].Transform; }
+								for (int i = 0; i < PartitionSize; i++) { Instances[i] = InTransforms[Indices[i]]; }
 
 								if (!CtxHandle.IsValid()) { return; }
 
@@ -171,6 +176,7 @@ bool UPCGExMeshSelectorStaged::SelectInstances(
 	}
 
 	return false;
+	*/
 }
 
 #undef LOCTEXT_NAMESPACE
