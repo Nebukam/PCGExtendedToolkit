@@ -106,7 +106,7 @@ namespace PCGExExtrudeTensors
 		ExtrudedPoints.Reserve(InMaxIterations);
 		Origin = InFacade->Source->GetInPoint(SeedIndex);
 		ProxyHead = PCGExData::FProxyPoint(Origin);
-		ExtrudedPoints.Add(Origin.GetTransform());
+		ExtrudedPoints.Emplace(Origin.GetTransform());
 		SetHead(ExtrudedPoints.Last());
 	}
 
@@ -315,7 +315,7 @@ namespace PCGExExtrudeTensors
 	{
 		bAdvancedOnly = false;
 
-		ExtrudedPoints.Add(InPoint);
+		ExtrudedPoints.Emplace(InPoint);
 		LastInsertion = InPoint.GetLocation();
 		//if (Settings->bRefreshSeed) { NewPoint.Seed = PCGExRandom::ComputeSpatialSeed(LastInsertion, FVector(Origin.GetLocation())); }
 
@@ -325,7 +325,7 @@ namespace PCGExExtrudeTensors
 			OEBox += ExtrudedPoints.Last(1).GetLocation();
 			OEBox += ExtrudedPoints.Last().GetLocation();
 			OEBox = OEBox.ExpandBy(Context->SelfPathIntersections.ToleranceSquared + 1);
-			SegmentBounds.Add(OEBox);
+			SegmentBounds.Emplace(OEBox);
 
 			Bounds += OEBox;
 		}

@@ -69,9 +69,11 @@ namespace PCGExStaging
 	class PCGEXTENDEDTOOLKIT_API TPickUnpacker : public TSharedFromThis<TPickUnpacker<C, A>>
 	{
 		TMap<uint32, C*> CollectionMap;
+		int32 NumUniqueEntries = 0;
 
 	public:
 		TMap<int64, TSharedPtr<TArray<int32>>> HashedPartitions;
+		TMap<int64, int32> IndexedPartitions;
 
 		TPickUnpacker()
 		{
@@ -121,6 +123,7 @@ namespace PCGExStaging
 				}
 
 				CollectionMap.Add(Idx, Collection);
+				NumUniqueEntries += Collection->GetValidEntryNum();
 			}
 
 			return true;
@@ -168,6 +171,8 @@ namespace PCGExStaging
 
 		bool BuildPartitions(const UPCGBasePointData* InPointData)
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(TPickUnpacker::BuildPartitions_Hashed);
+
 			FPCGAttributePropertyInputSelector HashSelector;
 			HashSelector.Update(Tag_EntryIdx.ToString());
 
@@ -205,6 +210,51 @@ namespace PCGExStaging
 			}
 
 			return !HashedPartitions.IsEmpty();
+		}
+
+		bool BuildPartitions(const UPCGBasePointData* InPointData, TArray<FPCGMeshInstanceList>& InstanceList)
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(TPickUnpacker::BuildPartitions_Indexed);
+
+			FPCGAttributePropertyInputSelector HashSelector;
+			HashSelector.Update(Tag_EntryIdx.ToString());
+
+			TUniquePtr<const IPCGAttributeAccessor> HashAttributeAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InPointData, HashSelector);
+			TUniquePtr<const IPCGAttributeAccessorKeys> HashKeys = PCGAttributeAccessorHelpers::CreateConstKeys(InPointData, HashSelector);
+
+			if (!HashAttributeAccessor || !HashKeys) { return false; }
+
+			TArray<int64> Hashes;
+			Hashes.SetNumUninitialized(HashKeys->GetNum());
+
+			if (!HashAttributeAccessor->GetRange<int64>(Hashes, 0, *HashKeys, EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+			{
+				return false;
+			}
+
+			const int32 NumPoints = InPointData->GetNumPoints();
+			const int32 SafeReserve = NumPoints / (NumUniqueEntries * 2);
+
+			// Build partitions
+			for (int i = 0; i < NumPoints; i++)
+			{
+				const uint64 EntryHash = Hashes[i];
+				if (const int32* Index = IndexedPartitions.Find(EntryHash); !Index)
+				{
+					FPCGMeshInstanceList& NewInstanceList = InstanceList.Emplace_GetRef();
+					NewInstanceList.PointData = InPointData;
+					NewInstanceList.InstancesIndices.Reserve(SafeReserve);
+					NewInstanceList.InstancesIndices.Emplace(i);
+
+					IndexedPartitions.Add(EntryHash, InstanceList.Num() - 1);
+				}
+				else
+				{
+					InstanceList[*Index].InstancesIndices.Emplace(i);
+				}
+			}
+
+			return !IndexedPartitions.IsEmpty();
 		}
 	};
 }

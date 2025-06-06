@@ -221,6 +221,31 @@ void FPCGExMeshCollectionEntry::ApplyMaterials(const int32 PickIndex, UStaticMes
 	}
 }
 
+void FPCGExMeshCollectionEntry::ApplyMaterials(const int32 PickIndex, FPCGSoftISMComponentDescriptor& Descriptor) const
+{
+	if (PickIndex == -1 || MaterialVariants == EPCGExMaterialVariantsMode::None) { return; }
+
+	if (MaterialVariants == EPCGExMaterialVariantsMode::Single)
+	{
+		const int32 WriteSlotIndex = SlotIndex == -1 ? 0 : SlotIndex;
+		Descriptor.OverrideMaterials.SetNum(WriteSlotIndex + 1);
+		Descriptor.OverrideMaterials[WriteSlotIndex] = MaterialOverrideVariants[PickIndex].Material;
+	}
+	else if (MaterialVariants == EPCGExMaterialVariantsMode::Multi)
+	{
+		const FPCGExMaterialOverrideCollection& SubList = MaterialOverrideVariantsList[PickIndex];
+
+		const int32 HiIndex = SubList.GetHighestIndex();
+		Descriptor.OverrideMaterials.SetNum(HiIndex == -1 ? 1 : HiIndex + 1);
+
+		for (int i = 0; i < SubList.Overrides.Num(); i++)
+		{
+			const FPCGExMaterialOverrideEntry& SlotEntry = SubList.Overrides[i];
+			Descriptor.OverrideMaterials[SlotEntry.SlotIndex == -1 ? 0 : SlotEntry.SlotIndex] = SlotEntry.Material;
+		}
+	}
+}
+
 bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
 	if (!bIsSubCollection)

@@ -154,7 +154,7 @@ void FPCGExAssetCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 
 void FPCGExAssetCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
-	OutPaths.Add(Staging.Path);
+	OutPaths.Emplace(Staging.Path);
 }
 
 void FPCGExAssetCollectionEntry::BuildMacroCache()
