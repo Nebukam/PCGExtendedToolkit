@@ -31,6 +31,7 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 	if (Settings->IntersectionDetails.bWriteCrossing) { PCGEX_VALIDATE_NAME(Settings->IntersectionDetails.CrossingAttributeName) }
 	if (Settings->bWriteAlpha) { PCGEX_VALIDATE_NAME(Settings->CrossingAlphaAttributeName) }
 	if (Settings->bWriteCrossDirection) { PCGEX_VALIDATE_NAME(Settings->CrossDirectionAttributeName) }
+	if (Settings->bWriteIsPointCrossing) { PCGEX_VALIDATE_NAME(Settings->IsPointCrossingAttributeName) }
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
 
@@ -193,17 +194,18 @@ namespace PCGExPathCrossings
 				FVector B;
 				FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
 
-				// TODO : Collocation is ignored here
-				// Need to account for cases where a foreign point lies exactly on the segment
+				if (A == A1 || A == B1) { return; } // On local point
 
-				if (A == A1 || A == B1 || B == A2 || B == B2) { return; }
-
-				if (FVector::DistSquared(A, B) >= Details.ToleranceSquared) { return; }
+				const double Dist = FVector::DistSquared(A, B);
+				const bool bColloc = (B == A2 || B == B2); // On crossing point
+				
+				if (Dist >= Details.ToleranceSquared) { return; }
 
 				NewCrossing->Crossings.Add(PCGEx::H64(E2.Start, CurrentIOIndex));
 				NewCrossing->Positions.Add(FMath::Lerp(A, B, 0.5));
 				NewCrossing->CrossingDirections.Add(CrossDir);
 				NewCrossing->Alphas.Add(FVector::Dist(A1, A) / PathLength->Get(Edge));
+				NewCrossing->IsPoint.Add(bColloc);
 			};
 
 			// Find crossings
@@ -326,6 +328,12 @@ namespace PCGExPathCrossings
 			ProtectedAttributes.Add(Settings->CrossDirectionAttributeName);
 		}
 
+		if (Settings->bWriteIsPointCrossing)
+		{
+			IsPointCrossingWriter = PointDataFacade->GetWritable<bool>(Settings->IsPointCrossingAttributeName, false, true, PCGExData::EBufferInit::New);
+			ProtectedAttributes.Add(Settings->IsPointCrossingAttributeName);
+		}
+
 		if (!SubBlending->PrepareForData(Context, PointDataFacade, &ProtectedAttributes))
 		{
 			bIsProcessorValid = false;
@@ -367,6 +375,7 @@ namespace PCGExPathCrossings
 			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
 
 			if (FlagWriter) { FlagWriter->SetValue(Edge.AltStart, false); }
+			if (IsPointCrossingWriter) { IsPointCrossingWriter->SetValue(Edge.AltStart, false); }
 			if (AlphaWriter) { AlphaWriter->SetValue(Edge.AltStart, Settings->DefaultAlpha); }
 			if (CrossWriter) { CrossWriter->SetValue(Edge.AltStart, Settings->DefaultCrossDirection); }
 
@@ -391,6 +400,7 @@ namespace PCGExPathCrossings
 				if (FlagWriter) { FlagWriter->SetValue(PointIndex, true); }
 				if (AlphaWriter) { AlphaWriter->SetValue(PointIndex, Crossing->Alphas[LocalIndex]); }
 				if (CrossWriter) { CrossWriter->SetValue(PointIndex, CrossDir); }
+				if (IsPointCrossingWriter) { IsPointCrossingWriter->SetValue(PointIndex, Crossing->IsPoint[LocalIndex] ? true : false); }
 
 				if (Settings->bOrientCrossing) { OutTransforms[PointIndex].SetRotation(PCGExMath::MakeDirection(Settings->CrossingOrientAxis, CrossDir)); }
 				OutTransforms[PointIndex].SetLocation(V);
