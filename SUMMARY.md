@@ -200,6 +200,7 @@
   * [Contours](node-library/pathfinding/contours/README.md)
     * [Find Contours](node-library/pathfinding/contours/find-contours.md)
     * [Find All Cells](node-library/pathfinding/contours/find-all-cells.md)
+    * [Find Cluster Hull](node-library/pathfinding/contours/find-all-cells-1.md)
   * [Navmesh](node-library/pathfinding/navmesh/README.md)
     * [Pathfinding : Navmesh](node-library/pathfinding/navmesh/pathfinding-navmesh.md)
     * [Pathfinding : Plot Navmesh](node-library/pathfinding/navmesh/pathfinding-plot-navmesh.md)
