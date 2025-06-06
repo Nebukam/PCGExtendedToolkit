@@ -32,22 +32,22 @@ namespace PCGExStaging
 			BaseHash = static_cast<uint16>(InContext->GetInputSettings<UPCGSettings>()->UID);
 		}
 
-		uint64 GetPickIdx(const UPCGExAssetCollection* InCollection, const int32 InIndex)
+		uint64 GetPickIdx(const UPCGExAssetCollection* InCollection, const int16 InIndex, const int16 InSecondaryIndex)
 		{
-			// TODO : Pack index pick + material pick here
+			const uint32 ItemHash = PCGEx::H32(InIndex, InSecondaryIndex + 1);
 
 			{
 				FReadScopeLock ReadScopeLock(AssetCollectionsLock);
-				if (const uint32* ColIdxPtr = CollectionMap.Find(InCollection)) { return PCGEx::H64(*ColIdxPtr, InIndex); }
+				if (const uint32* ColIdxPtr = CollectionMap.Find(InCollection)) { return PCGEx::H64(*ColIdxPtr, ItemHash); }
 			}
 
 			{
 				FWriteScopeLock WriteScopeLock(AssetCollectionsLock);
-				if (const uint32* ColIdxPtr = CollectionMap.Find(InCollection)) { return PCGEx::H64(*ColIdxPtr, InIndex); }
+				if (const uint32* ColIdxPtr = CollectionMap.Find(InCollection)) { return PCGEx::H64(*ColIdxPtr, ItemHash); }
 
 				uint32 ColIndex = PCGEx::H32(BaseHash, AssetCollections.Add(InCollection));
 				CollectionMap.Add(InCollection, ColIndex);
-				return PCGEx::H64(ColIndex, InIndex);
+				return PCGEx::H64(ColIndex, ItemHash);
 			}
 		}
 
@@ -144,13 +144,21 @@ namespace PCGExStaging
 
 		bool HasValidMapping() const { return !CollectionMap.IsEmpty(); }
 
-		bool ResolveEntry(uint64 EntryHash, const A*& OutEntry)
+		bool ResolveEntry(uint64 EntryHash, const A*& OutEntry, int16& OutSecondaryIndex)
 		{
 			const UPCGExAssetCollection* EntryHost = nullptr;
 
 			uint32 CollectionIdx = 0;
-			uint32 EntryIndex = 0;
-			PCGEx::H64(EntryHash, CollectionIdx, EntryIndex);
+			uint32 OutEntryIndices = 0;
+
+			uint16 EntryIndex = 0;
+			uint16 SecondaryIndex = 0;
+
+			PCGEx::H64(EntryHash, CollectionIdx, OutEntryIndices);
+			PCGEx::H32(OutEntryIndices, EntryIndex, SecondaryIndex);
+			OutSecondaryIndex = SecondaryIndex - 1; // minus one because we do +1 during packing
+
+			// TODO : Store material entry pick as part of the index
 
 			C** Collection = CollectionMap.Find(CollectionIdx);
 			if (!Collection || !(*Collection)->IsValidIndex(EntryIndex)) { return false; }

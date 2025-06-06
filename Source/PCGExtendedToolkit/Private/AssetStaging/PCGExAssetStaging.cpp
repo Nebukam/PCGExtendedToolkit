@@ -326,19 +326,25 @@ namespace PCGExAssetStaging
 				continue;
 			}
 
-			if (Context->bPickMaterials)
+			int16 SecondaryIndex = -1;
+
+			if (Entry->MacroCache && Entry->MacroCache->GetType() == PCGExAssetCollection::EType::Mesh)
 			{
-				if (Entry->MacroCache && Entry->MacroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+				TSharedPtr<PCGExMeshCollection::FMacroCache> EntryMacroCache = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(Entry->MacroCache);
+				if (Context->bPickMaterials)
 				{
-					TSharedPtr<PCGExMeshCollection::FMacroCache> EntryMacroCache = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(Entry->MacroCache);
 					MaterialPick[Index] = EntryMacroCache->GetPickRandomWeighted(Seed);
 					HighestSlotIndex->Set(Scope, FMath::Max(FMath::Max(0, EntryMacroCache->GetHighestIndex()), HighestSlotIndex->Get(Scope)));
 					CachedPicks[Index] = Entry;
 				}
 				else
 				{
-					MaterialPick[Index] = -1;
+					SecondaryIndex = EntryMacroCache->GetPickRandomWeighted(Seed);
 				}
+			}
+			else if (Context->bPickMaterials)
+			{
+				MaterialPick[Index] = -1;
 			}
 
 			if (bOutputWeight)
@@ -351,7 +357,7 @@ namespace PCGExAssetStaging
 			}
 
 			if (PathWriter) { PathWriter->SetValue(Index, Entry->Staging.Path); }
-			else { HashWriter->SetValue(Index, Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Entry->Staging.InternalIndex)); }
+			else { HashWriter->SetValue(Index, Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Entry->Staging.InternalIndex, SecondaryIndex)); }
 
 			FBox OutBounds = Entry->Staging.Bounds;
 			PCGExData::FProxyPoint ProxyPoint(MutablePoint);
@@ -368,11 +374,11 @@ namespace PCGExAssetStaging
 					Variations.Apply(Seed, ProxyPoint, Entry->Variations, EPCGExVariationMode::Before);
 				}
 
-				FittingHandler.ComputeTransform(Index, OutTransforms[Index], OutBounds);
+				FittingHandler.ComputeTransform(Index, ProxyPoint.Transform, OutBounds);
 			}
 			else
 			{
-				FittingHandler.ComputeTransform(Index, OutTransforms[Index], OutBounds);
+				FittingHandler.ComputeTransform(Index, ProxyPoint.Transform, OutBounds);
 			}
 
 			OutBoundsMin[Index] = OutBounds.Min;
@@ -390,6 +396,8 @@ namespace PCGExAssetStaging
 					Variations.Apply(Seed, ProxyPoint, Entry->Variations, EPCGExVariationMode::After);
 				}
 			}
+			
+			OutTransforms[Index] = ProxyPoint.Transform;
 		}
 
 		FPlatformAtomics::InterlockedAdd(&NumInvalid, LocalNumInvalid);
