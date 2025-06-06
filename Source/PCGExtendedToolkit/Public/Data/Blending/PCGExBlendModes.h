@@ -149,7 +149,7 @@ namespace PCGExBlend
 	template <typename T>
 	FORCEINLINE static T ModSimple(const T& A, const double InModulo)
 	{
-		double Modulo = std::abs(InModulo) < MIN_dbl ? MIN_dbl : InModulo; // Sanitize 0
+		double Modulo = std::abs(InModulo) < DOUBLE_KINDA_SMALL_NUMBER ? DOUBLE_KINDA_SMALL_NUMBER : InModulo; // Sanitize 0
 		
 		if constexpr (std::is_same_v<T, FVector2D>)
 		{
