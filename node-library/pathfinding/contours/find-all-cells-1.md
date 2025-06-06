@@ -1,5 +1,5 @@
 ---
-description: 'In editor :: PCGEx | Cluster : Find Hull'
+description: 'In editor :: PCGEx | Pathfinding : Find Cluster Hull'
 icon: circle
 ---
 
