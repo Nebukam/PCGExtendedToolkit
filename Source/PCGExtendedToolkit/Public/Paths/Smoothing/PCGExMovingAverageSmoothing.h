@@ -12,7 +12,7 @@
 class FPCGExMovingAverageSmoothing : public FPCGExSmoothingOperation
 {
 public:
-	bool bEndpointClamp = false;
+	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Ignore;
 
 	virtual void SmoothSingle(const int32 TargetIndex, const double Smoothing, const double Influence, TArray<PCGEx::FOpStats>& Trackers) override
 	{
@@ -37,25 +37,14 @@ public:
 		}
 		else
 		{
-			if (bEndpointClamp)
+			for (int i = -SafeWindowSize; i <= SafeWindowSize; i++)
 			{
-				for (int i = -SafeWindowSize; i <= SafeWindowSize; i++)
-				{
-					const int32 Index = FMath::Clamp(TargetIndex + i, 0, MaxIndex);
-					const double Weight = (1 - (static_cast<double>(FMath::Abs(i)) / SafeWindowSize)) * Influence;
-					Blender->MultiBlend(Index, TargetIndex, Weight, Trackers);
-				}
-			}
-			else
-			{
-				for (int i = -SafeWindowSize; i <= SafeWindowSize; i++)
-				{
-					const int32 Index = TargetIndex + i;
-					if (!FMath::IsWithin(Index, 0, NumPoints)) { continue; }
+				const int32 Index = PCGExMath::SanitizeIndex(TargetIndex + i, MaxIndex, IndexSafety);
 
-					const double Weight = (1 - (static_cast<double>(FMath::Abs(i)) / SafeWindowSize)) * Influence;
-					Blender->MultiBlend(Index, TargetIndex, Weight, Trackers);
-				}
+				if (!FMath::IsWithin(Index, 0, NumPoints)) { continue; }
+
+				const double Weight = (1 - (static_cast<double>(FMath::Abs(i)) / SafeWindowSize)) * Influence;
+				Blender->MultiBlend(Index, TargetIndex, Weight, Trackers);
 			}
 		}
 
@@ -75,10 +64,10 @@ public:
 	virtual TSharedPtr<FPCGExSmoothingOperation> CreateOperation() const override
 	{
 		PCGEX_FACTORY_NEW_OPERATION(MovingAverageSmoothing)
-		NewOperation->bEndpointClamp = bEndpointClamp;
+		NewOperation->IndexSafety = IndexSafety;
 		return NewOperation;
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bEndpointClamp = false;
+	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Ignore;
 };
