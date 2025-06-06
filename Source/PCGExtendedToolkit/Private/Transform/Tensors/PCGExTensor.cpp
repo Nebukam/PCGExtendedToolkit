@@ -92,6 +92,7 @@ namespace PCGExTensor
 		PCGEx::InitArray(Weights, NumEffectors);
 
 		TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
+		TConstPCGValueRange<float> InSteepness = InPoints->GetConstSteepnessValueRange();
 
 		// Pack per-point data
 		for (int i = 0; i < NumEffectors; i++)
@@ -104,8 +105,12 @@ namespace PCGExTensor
 			PrepareSinglePoint(i);
 
 			PCGExData::FConstPoint Point(InPoints, i);
-			Radiuses[i] = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).GetExtent().SquaredLength();
-			Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::DensityBounds>(Point).TransformBy(Transform)))); // Fetch to max
+			FVector Extents = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).GetExtent();
+
+			Radiuses[i] = Extents.SquaredLength();
+			
+			const float Steepness = InSteepness[i];
+			Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(FBox((2 - Steepness) * (Extents * -1), (2 - Steepness) * Extents).TransformBy(Transform)))); // Fetch to max
 		}
 
 		return true;

@@ -185,7 +185,6 @@ namespace PCGExAssetStaging
 
 		virtual void OnRangeProcessingComplete() override;
 
-
 		virtual void Write() override;
 	};
 }
