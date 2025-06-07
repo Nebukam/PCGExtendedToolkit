@@ -95,6 +95,5 @@ namespace PCGExCopyToPoints
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void CompleteWork() override;
 	};
 }

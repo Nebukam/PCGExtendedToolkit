@@ -172,8 +172,8 @@ namespace PCGExGraph
 	const FName SourceVerticesLabel = TEXT("Vtx");
 	const FName OutputVerticesLabel = TEXT("Vtx");
 
-	const FName Tag_PackedClusterPointCount = FName(PCGEx::PCGExPrefix + TEXT("PackedClusterPointCount"));
-	const FName Tag_PackedClusterEdgeCount = FName(PCGEx::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
+	const FName Tag_PackedClusterEdgeCount_LEGACY = FName(PCGEx::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
+	const FName Tag_PackedClusterEdgeCount = FName(TEXT("@Data.") + PCGEx::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
 
 	const FName SourceSeedsLabel = TEXT("Seeds");
 	const FName SourceGoalsLabel = TEXT("Goals");

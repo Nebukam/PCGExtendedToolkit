@@ -68,14 +68,28 @@ void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 	const FPCGExUnpackClustersContext* Context = AsyncManager->GetContext<FPCGExUnpackClustersContext>();
 	PCGEX_SETTINGS(UnpackClusters)
 
-	const FPCGMetadataAttribute<int32>* EdgeCount = PointIO->GetIn()->Metadata->GetConstTypedAttribute<int32>(PCGExGraph::Tag_PackedClusterEdgeCount);
+	FPCGAttributeIdentifier EdgeCountIdentifier = PCGEx::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount, PointIO->GetIn());
+	const FPCGMetadataAttribute<int32>* EdgeCount = PointIO->GetIn()->Metadata->GetConstTypedAttribute<int32>(EdgeCountIdentifier);
+	int32 NumEdges = -1;
+
 	if (!EdgeCount)
+	{
+		// Support for legacy data that was storing the edge count as a point index
+		EdgeCountIdentifier = PCGEx::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount_LEGACY, PointIO->GetIn());
+		EdgeCount = PointIO->GetIn()->Metadata->GetConstTypedAttribute<int32>(EdgeCountIdentifier);
+		if (EdgeCount) { NumEdges = EdgeCount->GetValue(PCGDefaultValueKey); }
+	}
+	else
+	{
+		NumEdges = EdgeCount->GetValue(PCGFirstEntryKey);
+	}
+
+	if (NumEdges == -1)
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some input points have no packing metadata."));
 		return;
 	}
 
-	const int32 NumEdges = EdgeCount->GetValue(PCGDefaultValueKey);
 	const int32 NumVtx = PointIO->GetNum() - NumEdges;
 
 	if (NumEdges > PointIO->GetNum() || NumVtx <= 0)
@@ -86,14 +100,13 @@ void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 
 	const UPCGBasePointData* PackedPoints = PointIO->GetIn();
 	EPCGPointNativeProperties AllocateProperties = PackedPoints->GetAllocatedProperties();
-	
+
 	const TSharedPtr<PCGExData::FPointIO> NewEdges = Context->OutEdges->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
 	UPCGBasePointData* MutableEdgePoints = NewEdges->GetOut();
 	PCGEx::SetNumPointsAllocated(MutableEdgePoints, NumEdges, AllocateProperties);
 	NewEdges->InheritPoints(0, 0, NumEdges);
 
-	NewEdges->DeleteAttribute(PCGExGraph::Tag_PackedClusterEdgeCount);
-	NewEdges->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
+	NewEdges->DeleteAttribute(EdgeCountIdentifier);
 	NewEdges->DeleteAttribute(PCGExGraph::Attr_PCGExVtxIdx);
 
 	const TSharedPtr<PCGExData::FPointIO> NewVtx = Context->OutPoints->Emplace_GetRef(PointIO, PCGExData::EIOInit::New);
@@ -101,8 +114,7 @@ void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 	PCGEx::SetNumPointsAllocated(MutableVtxPoints, NumVtx, AllocateProperties);
 	NewVtx->InheritPoints(NumEdges, 0, NumVtx);
 
-	NewVtx->DeleteAttribute(PCGExGraph::Tag_PackedClusterEdgeCount);
-	NewVtx->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
+	NewVtx->DeleteAttribute(EdgeCountIdentifier);
 	NewVtx->DeleteAttribute(PCGExGraph::Attr_PCGExEdgeIdx);
 
 	const PCGExTags::IDType PairId = PointIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster);

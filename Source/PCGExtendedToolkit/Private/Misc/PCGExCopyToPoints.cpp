@@ -102,24 +102,6 @@ namespace PCGExCopyToPoints
 
 		return true;
 	}
-
-	void FProcessor::CompleteWork()
-	{
-		if (NumCopies == 0) { return; }
-
-		const int32 NumTargets = Context->TargetsDataFacade->GetNum();
-
-		// Once work is complete, check if there are cached clusters we can forward
-		for (int i = 0; i < NumTargets; i++)
-		{
-			TSharedPtr<PCGExData::FPointIO> EdgeDupe = Dupes[i];
-
-			if (!EdgeDupe) { continue; }
-
-			Context->TargetsAttributesToClusterTags.Tag(Context->TargetsDataFacade->GetInPoint(i), EdgeDupe);
-			Context->TargetsForwardHandler->Forward(i, EdgeDupe->GetOut()->Metadata);
-		}
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

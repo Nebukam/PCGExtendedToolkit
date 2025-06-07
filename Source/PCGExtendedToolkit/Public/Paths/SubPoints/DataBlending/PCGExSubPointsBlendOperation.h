@@ -61,7 +61,7 @@ public:
 	UPCGExSubPointsBlendInstancedFactory(const FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Unset);
+	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Unset, EPCGExDataBlendingType::None);
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;
 

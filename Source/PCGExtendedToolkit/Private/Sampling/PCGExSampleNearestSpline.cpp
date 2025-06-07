@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
 
-namespace PCGExPolyLine
+namespace PCGExPolyPath
 {
 	void FSamplesStats::Update(const FSample& Infos, bool& IsNewClosest, bool& IsNewFarthest)
 	{
@@ -283,7 +283,7 @@ namespace PCGExSampleNearestSpline
 
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		TArray<PCGExPolyLine::FSample> Samples;
+		TArray<PCGExPolyPath::FSample> Samples;
 		Samples.Reserve(Context->NumTargets);
 
 		PCGEX_SCOPE_LOOP(Index)
@@ -315,7 +315,7 @@ namespace PCGExSampleNearestSpline
 
 			Samples.Reset();
 
-			PCGExPolyLine::FSamplesStats Stats;
+			PCGExPolyPath::FSamplesStats Stats;
 
 			FVector Origin = InTransforms[Index].GetLocation();
 			PCGExData::FConstPoint Point = PointDataFacade->GetInPoint(Index);
@@ -370,7 +370,7 @@ namespace PCGExSampleNearestSpline
 				bool IsNewFarthest = false;
 
 				const double NormalizedTime = Time / static_cast<double>(NumSegments);
-				PCGExPolyLine::FSample Infos(Transform, Dist, NormalizedTime);
+				PCGExPolyPath::FSample Infos(Transform, Dist, NormalizedTime);
 
 				if (Context->bComputeTangents)
 				{
@@ -488,7 +488,7 @@ ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplin
 			double WeightedTime = 0;
 			double TotalWeight = 0;
 
-			auto ProcessTargetInfos = [&](const PCGExPolyLine::FSample& TargetInfos, const double Weight)
+			auto ProcessTargetInfos = [&](const PCGExPolyPath::FSample& TargetInfos, const double Weight)
 			{
 				const FQuat Quat = TargetInfos.Transform.GetRotation();
 
@@ -509,13 +509,13 @@ ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplin
 			if (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 				Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 			{
-				const PCGExPolyLine::FSample& TargetInfos = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? Stats.Closest : Stats.Farthest;
+				const PCGExPolyPath::FSample& TargetInfos = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? Stats.Closest : Stats.Farthest;
 				const double Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
 				ProcessTargetInfos(TargetInfos, Weight);
 			}
 			else
 			{
-				for (PCGExPolyLine::FSample& TargetInfos : Samples)
+				for (PCGExPolyPath::FSample& TargetInfos : Samples)
 				{
 					const double Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
 					if (Weight == 0) { continue; }

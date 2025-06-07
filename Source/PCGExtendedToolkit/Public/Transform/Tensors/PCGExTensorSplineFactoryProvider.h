@@ -23,6 +23,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTensorSplineFactoryData : public UPCGExTensor
 public:
 	FPCGExPathClosedLoopDetails ClosedLoop;
 	EPCGExSplinePointTypeRedux PointType = EPCGExSplinePointTypeRedux::Linear;
+	bool bSmoothLinear = true;
 	bool bBuildFromPaths = false;
 
 protected:

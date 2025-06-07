@@ -57,7 +57,7 @@ public:
 
 	/** Attribute to write points count to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bWritePointsCount"))
-	FName PointsCountAttributeName = NAME_None;
+	FName PointsCountAttributeName = "@Data.MergedPointsCount";
 
 private:
 	friend class FPCGExPointsToBoundsElement;
