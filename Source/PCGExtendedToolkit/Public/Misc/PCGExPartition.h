@@ -63,7 +63,7 @@ struct FPCGExPartitonRuleConfig : public FPCGExInputConfig
 
 	/** Name of the int64 attribute to write the partition Key to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKey"))
-	FName KeyAttributeName = "PartitionKey";
+	FName KeyAttributeName = "@Data.PartitionKey";
 
 	/** Output the partition index instead of the value used for partitioning. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKey"))

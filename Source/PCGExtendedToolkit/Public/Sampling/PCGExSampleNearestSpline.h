@@ -59,7 +59,7 @@ enum class EPCGExSplineSampleAlphaMode : uint8
 	Distance = 2 UMETA(DisplayName = "Distance", ToolTip="Distance on the simple to sample value at"),
 };
 
-namespace PCGExPolyLine
+namespace PCGExPolyPath
 {
 	struct FSample
 	{

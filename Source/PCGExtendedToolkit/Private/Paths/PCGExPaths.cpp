@@ -509,7 +509,7 @@ namespace PCGExPaths
 		return InSpline->GetTransformAtSplineInputKey(InSpline->FindInputKeyClosestToWorldLocation(InLocation), ESplineCoordinateSpace::World, bUseScale);
 	}
 
-	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGBasePointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop)
+	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGBasePointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop, const bool bSmoothLinear)
 	{
 		const int32 NumPoints = InData->GetNumPoints();
 		if (NumPoints < 2) { return nullptr; }
@@ -518,13 +518,16 @@ namespace PCGExPaths
 		PCGEx::InitArray(SplinePoints, NumPoints);
 
 		ESplinePointType::Type PointType = ESplinePointType::Linear;
-
 		bool bComputeTangents = false;
+
 		switch (InPointType)
 		{
 		case EPCGExSplinePointTypeRedux::Linear:
-			PointType = ESplinePointType::CurveCustomTangent;
-			bComputeTangents = true;
+			if (bSmoothLinear)
+			{
+				PointType = ESplinePointType::CurveCustomTangent;
+				bComputeTangents = true;
+			}
 			break;
 		case EPCGExSplinePointTypeRedux::Curve:
 			PointType = ESplinePointType::Curve;

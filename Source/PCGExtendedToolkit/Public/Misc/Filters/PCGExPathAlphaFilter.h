@@ -36,6 +36,10 @@ struct FPCGExPathAlphaFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplinePointTypeRedux PointType = EPCGExSplinePointTypeRedux::Linear;
 
+	/** If enabled, Linear spline will in fact have a very very small tangent, which fixes some math issues. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Smooth Linear", EditCondition="PointType==EPCGExSplinePointTypeRedux::Linear", EditConditionHides))
+	bool bSmoothLinear = true;
+	
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;

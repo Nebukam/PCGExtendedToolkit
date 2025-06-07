@@ -32,6 +32,9 @@ struct FPCGExTensorPathPoleConfig : public FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplinePointTypeRedux PointType = EPCGExSplinePointTypeRedux::Linear;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Smooth Linear", EditCondition="PointType==EPCGExSplinePointTypeRedux::Linear", EditConditionHides))
+	bool bSmoothLinear = true;
+
 	/** Sample inputs.*/
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;

@@ -69,7 +69,7 @@ public:
 
 	/** The name of the attribute/tag to write the collection num entries to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Num Entries", EditCondition="bOutputCollectionNumEntries"))
-	FName NumEntriesAttributeName = "NumEntries";
+	FName NumEntriesAttributeName = "@Data.NumEntries";
 
 	/** If enabled, output the collection num entries to the points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Output to points", EditCondition="bOutputCollectionNumEntries", HideEditConditionToggle))

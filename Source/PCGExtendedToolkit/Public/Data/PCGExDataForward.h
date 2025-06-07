@@ -36,6 +36,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
 	bool bEnabled = false;
 
+	/** Whether to forward point attributes to data domain when applicable. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
+	bool bElementDomainToDataDomain = true;
+
 	/** If enabled, will preserve the initial attribute default value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0, EditCondition="bEnabled"))
 	bool bPreserveAttributesDefaultValue = false;
