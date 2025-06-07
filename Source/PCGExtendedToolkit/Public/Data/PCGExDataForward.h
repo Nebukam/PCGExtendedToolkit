@@ -36,7 +36,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
 	bool bEnabled = false;
 
-	/** Whether to forward point attributes to data domain when applicable. */
+	/** Whether to forward point attributes to data domain when applicable.
+	 * Often seed will forward their attribute to entire element list, and if there's no merging it simply makes more sense to make those data-level infos
+	 * It will be tremendously less aggressive on memory
+	 */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
 	bool bElementDomainToDataDomain = true;
 
