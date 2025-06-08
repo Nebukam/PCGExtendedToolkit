@@ -18,6 +18,9 @@ bool PCGExPointFilter::FAttributeCheckFilter::Test(const TSharedPtr<PCGExData::F
 
 	bool bResult = false;
 
+	const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(FName(TypedFilterFactory->Config.AttributeName), IO->GetIn());
+	const FString IdentifierStr = Identifier.Name.ToString();
+	
 	if (TypedFilterFactory->Config.bDoCheckType)
 	{
 		for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities)
@@ -25,25 +28,33 @@ bool PCGExPointFilter::FAttributeCheckFilter::Test(const TSharedPtr<PCGExData::F
 			const FString Str = Identity.Identifier.Name.ToString();
 			bool bMatches = false;
 
+			if (TypedFilterFactory->Config.Domain != EPCGExAttribtueDomainCheck::Any)
+			{
+				if (TypedFilterFactory->Config.Domain == EPCGExAttribtueDomainCheck::Data && Identity.Identifier.MetadataDomain.Flag != EPCGMetadataDomainFlag::Data) { continue; }
+				if (TypedFilterFactory->Config.Domain == EPCGExAttribtueDomainCheck::Elements && Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data) { continue; }
+				if (TypedFilterFactory->Config.Domain == EPCGExAttribtueDomainCheck::Match && Identity.Identifier.MetadataDomain != Identifier.MetadataDomain) { continue; }
+			}
+
 			switch (TypedFilterFactory->Config.Match)
 			{
 			case EPCGExStringMatchMode::Equals:
-				if (Str == TypedFilterFactory->Config.AttributeName) { bMatches = true; }
+				if (Identity.Identifier.Name == Identifier.Name) { bMatches = true; }
 				break;
 			case EPCGExStringMatchMode::Contains:
-				if (Str.Contains(TypedFilterFactory->Config.AttributeName)) { bMatches = true; }
+				if (Str.Contains(IdentifierStr)) { bMatches = true; }
 				break;
 			case EPCGExStringMatchMode::StartsWith:
-				if (Str.StartsWith(TypedFilterFactory->Config.AttributeName)) { bMatches = true; }
+				if (Str.StartsWith(IdentifierStr)) { bMatches = true; }
 				break;
 			case EPCGExStringMatchMode::EndsWith:
-				if (Str.EndsWith(TypedFilterFactory->Config.AttributeName)) { bMatches = true; }
+				if (Str.EndsWith(IdentifierStr)) { bMatches = true; }
 				break;
 			}
 
 			if (bMatches && Identity.UnderlyingType == TypedFilterFactory->Config.Type)
 			{
 				bResult = true;
+				break;
 			}
 		}
 	}
@@ -54,19 +65,26 @@ bool PCGExPointFilter::FAttributeCheckFilter::Test(const TSharedPtr<PCGExData::F
 			const FString Str = Identity.Identifier.Name.ToString();
 			bool bMatches = false;
 
+			if (TypedFilterFactory->Config.Domain != EPCGExAttribtueDomainCheck::Any)
+			{
+				if (TypedFilterFactory->Config.Domain == EPCGExAttribtueDomainCheck::Data && Identity.Identifier.MetadataDomain.Flag != EPCGMetadataDomainFlag::Data) { continue; }
+				if (TypedFilterFactory->Config.Domain == EPCGExAttribtueDomainCheck::Elements && Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data) { continue; }
+				if (TypedFilterFactory->Config.Domain == EPCGExAttribtueDomainCheck::Match && Identity.Identifier.MetadataDomain != Identifier.MetadataDomain) { continue; }
+			}
+
 			switch (TypedFilterFactory->Config.Match)
 			{
 			case EPCGExStringMatchMode::Equals:
-				if (Str == TypedFilterFactory->Config.AttributeName) { bMatches = true; }
+				if (Str == IdentifierStr) { bMatches = true; }
 				break;
 			case EPCGExStringMatchMode::Contains:
-				if (Str.Contains(TypedFilterFactory->Config.AttributeName)) { bMatches = true; }
+				if (Str.Contains(IdentifierStr)) { bMatches = true; }
 				break;
 			case EPCGExStringMatchMode::StartsWith:
-				if (Str.StartsWith(TypedFilterFactory->Config.AttributeName)) { bMatches = true; }
+				if (Str.StartsWith(IdentifierStr)) { bMatches = true; }
 				break;
 			case EPCGExStringMatchMode::EndsWith:
-				if (Str.EndsWith(TypedFilterFactory->Config.AttributeName)) { bMatches = true; }
+				if (Str.EndsWith(IdentifierStr)) { bMatches = true; }
 				break;
 			}
 

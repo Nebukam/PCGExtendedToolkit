@@ -5,7 +5,20 @@
 
 namespace PCGExDataBlending
 {
-	void FBlendingParam::Select(const FString& Selection) { Selector.Update(Selection); }
+	void FBlendingParam::SelectFromString(const FString& Selection)
+	{
+		Identifier = FName(*Selection);
+		Selector.Update(Selection);
+	}
+
+	void FBlendingParam::Select(const FPCGAttributeIdentifier& InIdentifier)
+	{
+		Identifier = InIdentifier;
+		Selector.Update(InIdentifier.Name.ToString());
+
+		if (InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data) { Selector.SetDomainName(PCGDataConstants::DataDomainName); }
+		else { Selector.SetDomainName(PCGDataConstants::DefaultDomainName); }
+	}
 
 	void FBlendingParam::SetBlending(const EPCGExDataBlendingType InBlending)
 	{
@@ -122,24 +135,24 @@ void FPCGExBlendingDetails::Filter(TArray<PCGEx::FAttributeIdentity>& Identities
 	}
 }
 
-bool FPCGExBlendingDetails::GetBlendingParam(const FName InName, PCGExDataBlending::FBlendingParam& OutParam) const
+bool FPCGExBlendingDetails::GetBlendingParam(const FPCGAttributeIdentifier& InIdentifer, PCGExDataBlending::FBlendingParam& OutParam) const
 {
-	if (!CanBlend(InName)) { return false; }
+	if (!CanBlend(InIdentifer.Name)) { return false; }
 
 	OutParam = PCGExDataBlending::FBlendingParam{};
-	OutParam.Select(InName.ToString());
+	OutParam.Select(InIdentifer);
 
 	// TODO : Update with information regarding whether this is a new attribute or not
 
 	if (OutParam.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute &&
-		PCGEx::IsPCGExAttribute(InName))
+		PCGEx::IsPCGExAttribute(InIdentifer.Name))
 	{
 		// Don't blend PCGEx stuff
 		OutParam.SetBlending(EPCGExDataBlendingType::Copy);
 	}
 	else
 	{
-		const EPCGExDataBlendingType* TypePtr = AttributesOverrides.Find(InName);
+		const EPCGExDataBlendingType* TypePtr = AttributesOverrides.Find(InIdentifer.Name);
 		OutParam.SetBlending(TypePtr ? *TypePtr : DefaultBlending);
 	}
 
@@ -154,7 +167,7 @@ void FPCGExBlendingDetails::GetPointPropertyBlendingParams(TArray<PCGExDataBlend
 	if(const EPCGExDataBlendingType _NAME##Blending = PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending;\
 		_NAME##Blending != EPCGExDataBlendingType::None){ \
 		PCGExDataBlending::FBlendingParam& _NAME##Param = OutParams.Emplace_GetRef();\
-		_NAME##Param.Select(TEXT("$" #_NAME ));\
+		_NAME##Param.SelectFromString(TEXT("$" #_NAME ));\
 		_NAME##Param.SetBlending(PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending);\
 	}
 	PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_POINTPROPERTY)
@@ -241,7 +254,7 @@ void FPCGExBlendingDetails::GetBlendingParams(
 
 		if (Param.Blending == EPCGExABBlendingType::None) { continue; }
 
-		Param.Selector.Update(Identity.Identifier.Name.ToString());
+		Param.Select(Identity.Identifier);
 		OutParams.Add(Param);
 	}
 }

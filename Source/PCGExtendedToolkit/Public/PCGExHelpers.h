@@ -433,6 +433,12 @@ namespace PCGEx
 
 #pragma region Metadata Type
 
+	static bool HasAttribute(const UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier)
+	{
+		if (!InMetadata->GetConstMetadataDomain(Identifier.MetadataDomain)) { return false; }
+		return InMetadata->HasAttribute(Identifier);
+	}
+
 	constexpr static int32 GetMetadataSize(const EPCGMetadataTypes InType)
 	{
 		switch (InType)

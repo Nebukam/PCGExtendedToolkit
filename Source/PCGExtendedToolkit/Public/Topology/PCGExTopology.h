@@ -92,7 +92,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 
 	/** Omit cells with areas that closely match the computed wrapper. 0 to disable. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Classification Tolerance", EditCondition="bOmitWrappingBounds", ClampMin=0, HideInDetailPanel))
-	double WrapperClassificationTolerance = 0;
+	double WrapperClassificationTolerance = 0.1;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Keep if Sole", EditCondition="bOmitWrappingBounds", EditConditionHides))

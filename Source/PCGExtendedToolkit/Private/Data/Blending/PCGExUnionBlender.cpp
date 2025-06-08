@@ -162,7 +162,7 @@ namespace PCGExDataBlending
 			// First, grab the Param for this attribute
 			// Getting a fail means it's filtered out.
 			FBlendingParam Param{};
-			if (!BlendingDetails->GetBlendingParam(Identity.Identifier.Name, Param)) { continue; }
+			if (!BlendingDetails->GetBlendingParam(Identity.Identifier, Param)) { continue; }
 
 			const FPCGMetadataAttributeBase* SourceAttribute = InFacade->FindConstAttribute(Identity.Identifier);
 			if (!SourceAttribute) { continue; }

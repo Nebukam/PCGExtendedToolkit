@@ -1045,6 +1045,7 @@ namespace PCGExData
 	{
 	protected:
 		FRWLock ReaderLock;
+		int8 Status = 0;
 		TWeakPtr<IBuffer> WeakReader;
 
 	public:

@@ -55,21 +55,54 @@ namespace PCGExPointIOMerger
 	{
 		UPCGMetadata* InMetadata = SourceIO->GetIn()->Metadata;
 
-		if (TSharedPtr<PCGExData::TArrayBuffer<T>> OutElementsBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(OutBuffer))
+		// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
+		// ReSharper disable once CppRedundantTemplateKeyword
+		const FPCGMetadataAttribute<T>* TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(Identity.Identifier);
+
+		if (!TypedInAttribute) { return; }
+
+		TSharedPtr<PCGExData::TArrayBuffer<T>> OutElementsBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(OutBuffer);
+		TSharedPtr<PCGExData::TFirstValueBuffer<T>> OutDataBuffer = StaticCastSharedPtr<PCGExData::TFirstValueBuffer<T>>(OutBuffer);
+
+		// TODO : We may want to transfer data-level to element-level
+		
+		if (OutElementsBuffer)
 		{
-			// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-			// ReSharper disable once CppRedundantTemplateKeyword
-			const FPCGMetadataAttribute<T>* TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(Identity.Identifier);
-			TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, InMetadata);
+			// We are writing to elements domain
+			
+			if (TypedInAttribute->GetNumberOfEntries() == 1)
+			{
+				// From a data domain
+				const T Value = TypedInAttribute->GetValue(PCGFirstEntryKey);
+				PCGEX_SCOPE_LOOP(Index) { OutElementsBuffer->SetValue(Index, Value); }
+			}
+			else
+			{
+				// From elements domain
+				TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, InMetadata);
 
-			if (!TypedInAttribute || !InAccessor.IsValid()) { return; }
+				if (!InAccessor.IsValid()) { return; }
 
-			TArrayView<T> InRange = MakeArrayView(OutElementsBuffer->GetOutValues()->GetData() + Scope.Start, Scope.Count);
-			InAccessor->GetRange<T>(InRange, 0, *SourceIO->GetInKeys());
+				TArrayView<T> InRange = MakeArrayView(OutElementsBuffer->GetOutValues()->GetData() + Scope.Start, Scope.Count);
+				InAccessor->GetRange<T>(InRange, 0, *SourceIO->GetInKeys());
+			}
 		}
-		else
+		else if (OutDataBuffer)
 		{
-			// TODO : Copy/overwrite data values
+			// We are writing to data domain
+			
+			if (TypedInAttribute->GetNumberOfEntries() == 1)
+			{
+				// From data domain
+				OutDataBuffer->SetValue(0, TypedInAttribute->GetValue(PCGFirstEntryKey));
+			}
+			else
+			{
+				// From elements domain
+				TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, InMetadata);
+				if (!InAccessor.IsValid()) { return; }
+				if (T Value = T{}; InAccessor->Get(Value, *SourceIO->GetInKeys())) { OutDataBuffer->SetValue(0, Value); }
+			}
 		}
 	}
 

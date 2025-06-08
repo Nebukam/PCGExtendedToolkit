@@ -5,24 +5,24 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointData.h"
 
-TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const
+TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const bool bForwardToDataDomain) const
 {
-	return MakeShared<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade);
+	return MakeShared<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade, bForwardToDataDomain);
 }
 
-TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const
+TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade, const bool bForwardToDataDomain) const
 {
-	return MakeShared<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade, InTargetDataFacade);
+	return MakeShared<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade, InTargetDataFacade, bForwardToDataDomain);
 }
 
-TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const
+TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const bool bForwardToDataDomain) const
 {
-	return bEnabled ? GetHandler(InSourceDataFacade) : nullptr;
+	return bEnabled ? GetHandler(InSourceDataFacade, bForwardToDataDomain) : nullptr;
 }
 
-TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const
+TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade, const bool bForwardToDataDomain) const
 {
-	return bEnabled ? GetHandler(InSourceDataFacade, InTargetDataFacade) : nullptr;
+	return bEnabled ? GetHandler(InSourceDataFacade, InTargetDataFacade, bForwardToDataDomain) : nullptr;
 }
 
 bool FPCGExAttributeToTagDetails::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade)
@@ -91,8 +91,8 @@ void FPCGExAttributeToTagDetails::Tag(const PCGExData::FConstPoint& TagSource, U
 
 namespace PCGExData
 {
-	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade):
-		Details(InDetails), SourceDataFacade(InSourceDataFacade), TargetDataFacade(nullptr)
+	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade, const bool ElementDomainToDataDomain):
+		Details(InDetails), SourceDataFacade(InSourceDataFacade), TargetDataFacade(nullptr), bElementDomainToDataDomain(ElementDomainToDataDomain)
 	{
 		if (!Details.bEnabled) { return; }
 
@@ -101,8 +101,8 @@ namespace PCGExData
 		Details.Filter(Identities);
 	}
 
-	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade, const TSharedPtr<FFacade>& InTargetDataFacade):
-		Details(InDetails), SourceDataFacade(InSourceDataFacade), TargetDataFacade(InTargetDataFacade)
+	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade, const TSharedPtr<FFacade>& InTargetDataFacade, const bool ElementDomainToDataDomain):
+		Details(InDetails), SourceDataFacade(InSourceDataFacade), TargetDataFacade(InTargetDataFacade), bElementDomainToDataDomain(ElementDomainToDataDomain)
 	{
 		Details.Init();
 		PCGEx::FAttributeIdentity::Get(InSourceDataFacade->GetIn()->Metadata, Identities);
@@ -171,9 +171,23 @@ namespace PCGExData
 						const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
 						if (!SourceAtt) { return; }
 
-						const T ForwardValue = SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+						const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
+							                       SourceAtt->GetValue(PCGFirstEntryKey) :
+							                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
-						TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::New);
+						TSharedPtr<TBuffer<T>> Writer = nullptr;
+
+						if (bElementDomainToDataDomain)
+						{
+							const FPCGAttributeIdentifier ToDataIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data);
+							Writer = InTargetDataFacade->GetWritable<T>(ToDataIdentifier, EBufferInit::New);
+						}
+						else
+						{
+							Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::New);
+						}
+
+						if (!Writer) { return; }
 
 						if (TSharedPtr<TArrayBuffer<T>> ElementsWriter = StaticCastSharedPtr<TArrayBuffer<T>>(Writer))
 						{
@@ -202,16 +216,19 @@ namespace PCGExData
 					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
 					if (!SourceAtt) { return; }
 
-					InTargetDataFacade->Source->DeleteAttribute(Identity.Identifier);
-					InTargetDataFacade->Source->FindOrCreateAttribute<T>(
-						Identity.Identifier,
-						SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex)),
-						SourceAtt->AllowsInterpolation(), true, true);
+					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
+						                       SourceAtt->GetValue(PCGFirstEntryKey) :
+						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+
+					const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;
+
+					InTargetDataFacade->Source->DeleteAttribute(Identifier);
+					InTargetDataFacade->Source->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation(), true, true);
 				});
 		}
 	}
 
-	void FDataForwardHandler::Forward(int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade, const TArray<int32>& Indices)
+	void FDataForwardHandler::Forward(const int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade, const TArray<int32>& Indices)
 	{
 		if (Identities.IsEmpty()) { return; }
 
@@ -229,14 +246,16 @@ namespace PCGExData
 					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
 					if (!SourceAtt) { return; }
 
-					const T ForwardValue = SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
+						                       SourceAtt->GetValue(PCGFirstEntryKey) :
+						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 					TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::Inherit);
 
 					if (TSharedPtr<TArrayBuffer<T>> ElementsWriter = StaticCastSharedPtr<TArrayBuffer<T>>(Writer))
 					{
 						TArray<T>& Values = *ElementsWriter->GetOutValues();
-						for (int32 Index : Indices){ Values[Index] = ForwardValue; }
+						for (int32 Index : Indices) { Values[Index] = ForwardValue; }
 					}
 					else
 					{
@@ -264,11 +283,14 @@ namespace PCGExData
 					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
 					if (!SourceAtt) { return; }
 
-					InTargetMetadata->DeleteAttribute(Identity.Identifier);
-					InTargetMetadata->FindOrCreateAttribute<T>(
-						Identity.Identifier,
-						SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex)),
-						SourceAtt->AllowsInterpolation(), true, true);
+					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
+						                       SourceAtt->GetValue(PCGFirstEntryKey) :
+						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
+
+					const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;
+
+					InTargetMetadata->DeleteAttribute(Identifier);
+					InTargetMetadata->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation(), true, true);
 				});
 		}
 	}

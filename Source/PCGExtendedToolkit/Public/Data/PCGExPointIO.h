@@ -521,7 +521,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		int32 Gather(const TArrayView<int8> InMask, const bool bInvert = false) const;
 		int32 Gather(const TBitArray<>& InMask, const bool bInvert = false) const;
 
-		void DeleteAttribute(const FPCGAttributeIdentifier& AttributeName) const;
+		void DeleteAttribute(const FPCGAttributeIdentifier& Identifier) const;
 
 		template <typename T>
 		FPCGMetadataAttribute<T>* CreateAttribute(const FPCGAttributeIdentifier& Identifier, const T& DefaultValue, bool bAllowsInterpolation, bool bOverrideParent)

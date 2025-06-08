@@ -27,18 +27,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 	{
 	}
 
-	explicit FPCGExForwardDetails(bool InEnabled)
+	explicit FPCGExForwardDetails(const bool InEnabled)
+		: bEnabled(InEnabled)
 	{
-		bEnabled = InEnabled;
 	}
 
 	/** Is forwarding enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
 	bool bEnabled = false;
-
-	/** Whether to forward point attributes to data domain when applicable. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
-	bool bElementDomainToDataDomain = true;
 
 	/** If enabled, will preserve the initial attribute default value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0, EditCondition="bEnabled"))
@@ -57,10 +53,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 		}
 	}
 
-	TSharedPtr<PCGExData::FDataForwardHandler> GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const;
-	TSharedPtr<PCGExData::FDataForwardHandler> GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const;
-	TSharedPtr<PCGExData::FDataForwardHandler> TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const;
-	TSharedPtr<PCGExData::FDataForwardHandler> TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const;
+	TSharedPtr<PCGExData::FDataForwardHandler> GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, bool bForwardToDataDomain = true) const;
+	TSharedPtr<PCGExData::FDataForwardHandler> GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade, bool bForwardToDataDomain = true) const;
+	TSharedPtr<PCGExData::FDataForwardHandler> TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, bool bForwardToDataDomain = true) const;
+	TSharedPtr<PCGExData::FDataForwardHandler> TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade, bool bForwardToDataDomain = true) const;
 };
 
 namespace PCGExData
@@ -73,16 +69,17 @@ namespace PCGExData
 		TArray<PCGEx::FAttributeIdentity> Identities;
 		TArray<TSharedPtr<IBuffer>> Readers;
 		TArray<TSharedPtr<IBuffer>> Writers;
+		bool bElementDomainToDataDomain = false;
 
 	public:
 		~FDataForwardHandler() = default;
-		FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade);
-		FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade, const TSharedPtr<FFacade>& InTargetDataFacade);
+		FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade, const bool ElementDomainToDataDomain = false);
+		FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade, const TSharedPtr<FFacade>& InTargetDataFacade, const bool ElementDomainToDataDomain = false);
 		bool IsEmpty() const { return Identities.IsEmpty(); }
 		void Forward(const int32 SourceIndex, const int32 TargetIndex);
-		void Forward(int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade);
-		void Forward(int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade, const TArray<int32>& Indices);
-		void Forward(int32 SourceIndex, UPCGMetadata* InTargetMetadata);
+		void Forward(const int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade);
+		void Forward(const int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade, const TArray<int32>& Indices);
+		void Forward(const int32 SourceIndex, UPCGMetadata* InTargetMetadata);
 	};
 }
 

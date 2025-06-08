@@ -67,7 +67,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 		Context->Paths->OutputPin = PCGExPaths::OutputPathsLabel;
 	}
 
-	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
+	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade, false);
 
 	return true;
 }
@@ -398,7 +398,7 @@ namespace PCGExClusterDiffusion
 
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
 
-		(void)PCGEx::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetAllocations());
+		(void)PCGEx::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
 		PathIO->InheritPoints(PathIndices, 0);
 
 		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(Diffusion->SeedIndex), PathIO);

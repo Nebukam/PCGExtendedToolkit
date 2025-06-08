@@ -18,6 +18,14 @@
 
 #include "PCGExAttributeCheckFilter.generated.h"
 
+UENUM()
+enum class EPCGExAttribtueDomainCheck : uint8
+{
+	Any      = 0 UMETA(DisplayName = "Any", Tooltip="Ignore domain check"),
+	Data     = 1 UMETA(DisplayName = "Data", Tooltip="Check data domain"),
+	Elements = 2 UMETA(DisplayName = "Elements", Tooltip="Check elements domain"),
+	Match    = 3 UMETA(DisplayName = "Match", Tooltip="Domains must match (must be set as part of the attribute name)"),
+};
 
 USTRUCT(BlueprintType)
 struct FPCGExAttributeCheckFilterConfig
@@ -31,6 +39,9 @@ struct FPCGExAttributeCheckFilterConfig
 	/** Constant tag name value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Attribute Name"))
 	FString AttributeName = TEXT("Name");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExAttribtueDomainCheck Domain = EPCGExAttribtueDomainCheck::Any;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Match"))
 	EPCGExStringMatchMode Match = EPCGExStringMatchMode::Equals;
@@ -106,5 +117,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

@@ -305,6 +305,8 @@ namespace PCGExData
 
 	void FReadableBufferConfig::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope)
 	{
+		if (Status == -1) { return; }
+
 		TSharedPtr<IBuffer> Reader = nullptr;
 
 		{
@@ -335,6 +337,16 @@ namespace PCGExData
 
 					WeakReader = Reader;
 				});
+
+			if (!Reader)
+			{
+				Status = -1;
+				return;
+			}
+			else
+			{
+				Status = 1;
+			}
 		}
 
 		Reader->Fetch(Scope);
