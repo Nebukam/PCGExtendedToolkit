@@ -10,19 +10,36 @@ If you're upgrading from 5.x to 5.6, make sure to check[ this page](5.x-5.6-impo
 
 ## New Nodes
 
-### Clusters / Pathfinding:
+#### Clusters / Pathfinding:
 
-#### [Find Cluster Hull](../../../node-library/pathfinding/contours/find-all-cells-1.md)
+### [Find Cluster Hull](../../../node-library/pathfinding/contours/find-all-cells-1.md)
 
 Find cluster hull is a very handy shortcut node to automatically find the wrapping hull of any and all clusters.
 
-### Sampling:
+#### Sampling:
 
-[Sample Nearest Path](../../../node-library/sampling/nearest-spline-1.md)
+### [Sample Nearest Path](../../../node-library/sampling/nearest-spline-1.md)
 
 Sample nearest path is similar to Sample nearest spline, but allows to sample path point attributes and path data-level domain values.
 
-## New Filters
+## Filters
+
+{% hint style="success" %}
+All regular filters that relies on @Data domain are now going through the optimized code path that's internal to the [Uber Filter (Collection)](../../../node-library/filters/uber-filter-collection.md) node — in other words, it will skip per-point evaluation.
+{% endhint %}
+
+This optimization affects the following filters:
+
+* Bitmask
+* Bool Compare&#x20;
+* Dot
+* Modulo Compare
+* Numeric Compare
+* String Compare
+* Random
+* Within Range
+
+Additionally, the Attribute Check filter now support additional constraints relative to domains.
 
 ## Tweaks
 
@@ -32,8 +49,7 @@ Sample nearest path is similar to Sample nearest spline, but allows to sample pa
 * [Path Crossings](../../../node-library/paths/crossings.md) now properly detect if a crossing happens when precisely intersecting with another path' point as opposed to segment, as well as optionally flagging those specific cases. \
   &#xNAN;_&#x50;reviously that specific situation would simply be ignored and the crossing discarded._
 * [Path Smoothing' Moving Average](../../../node-library/paths/smooth/smooth-moving-average.md) now support different ways to deal with out-of-bounds indices.
-
-Documentation shortcut wishful thinking
+* Documentation wishful thinking : each node now has a button that opens the matching documentation page on gitbook!
 
 
 
