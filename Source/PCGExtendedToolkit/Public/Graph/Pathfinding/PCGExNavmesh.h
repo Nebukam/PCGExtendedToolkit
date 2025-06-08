@@ -7,6 +7,7 @@
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
 #include "Paths/PCGExPaths.h"
+#include "AI/Navigation/NavigationTypes.h"
 
 UENUM()
 enum class EPCGExPathfindingNavmeshMode : uint8
