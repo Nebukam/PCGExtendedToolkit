@@ -63,8 +63,6 @@ struct FPCGExBuildConvexHull2DContext final : FPCGExPointsProcessorContext
 	friend class FPCGExBuildConvexHull2DElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> PathsIO;
-
-	void BuildPath(const PCGExGraph::FGraphBuilder* GraphBuilder) const;
 };
 
 class FPCGExBuildConvexHull2DElement final : public FPCGExPointsProcessorElement

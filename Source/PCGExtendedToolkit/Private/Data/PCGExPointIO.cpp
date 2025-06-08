@@ -632,8 +632,6 @@ namespace PCGExData
 		const EPCGPointNativeProperties EnsureAllocated = In->GetAllocatedProperties();
 		Out->AllocateProperties(EnsureAllocated);
 		In->CopyPropertiesTo(Out, ReadIndices, WriteIndices, EnsureAllocated);
-		
-
 	}
 
 	void FPointIO::InheritPoints(const TArrayView<const int32>& SelectedIndices, const int32 StartIndex, const EPCGPointNativeProperties Properties) const
@@ -690,7 +688,6 @@ namespace PCGExData
 		StagedData.Pin = OutputPin;
 		StagedData.Tags.Append(Tags->Flatten());
 		StagedData.bPinlessData = bPinless;
-
 
 		return true;
 	}
@@ -781,13 +778,13 @@ namespace PCGExData
 		return Gather(Indices);
 	}
 
-	void FPointIO::DeleteAttribute(const FPCGAttributeIdentifier& AttributeName) const
+	void FPointIO::DeleteAttribute(const FPCGAttributeIdentifier& Identifier) const
 	{
 		if (!Out) { return; }
 
 		{
 			FWriteScopeLock WriteScopeLock(AttributesLock);
-			if (Out->Metadata->HasAttribute(AttributeName)) { Out->Metadata->DeleteAttribute(AttributeName); }
+			if (PCGEx::HasAttribute(Out->Metadata, Identifier)) { Out->Metadata->DeleteAttribute(Identifier); }
 		}
 	}
 
@@ -935,8 +932,7 @@ namespace PCGExData
 		Sort();
 
 		Context->IncreaseStagedOutputReserve(Pairs.Num());
-
-		for (int i = 0; i < Pairs.Num(); i++) { (void)Pairs[i]->StageOutput(Context); }
+		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { (void)IO->StageOutput(Context); } }
 	}
 
 	void FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
@@ -950,7 +946,7 @@ namespace PCGExData
 		Sort();
 
 		Context->IncreaseStagedOutputReserve(Pairs.Num());
-		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageOutput(Context, MinPointCount, MaxPointCount); }
+		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { (void)IO->StageOutput(Context, MinPointCount, MaxPointCount); } }
 	}
 
 	void FPointIOCollection::StageAnyOutputs()

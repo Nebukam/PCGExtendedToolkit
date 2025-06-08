@@ -158,11 +158,13 @@ namespace PCGExDataBlending
 	{
 		FBlendingParam() = default;
 
+		FPCGAttributeIdentifier Identifier;
 		FPCGAttributePropertyInputSelector Selector;
 		EPCGExABBlendingType Blending = EPCGExABBlendingType::None;
 		bool bIsNewAttribute = false;
 
-		void Select(const FString& Selection);
+		void SelectFromString(const FString& Selection);
+		void Select(const FPCGAttributeIdentifier& InIdentifier);
 
 		// Conversion from old blendmode to extended list
 		void SetBlending(EPCGExDataBlendingType InBlending);
@@ -318,7 +320,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 	bool CanBlend(const FName AttributeName) const;
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const;
 
-	bool GetBlendingParam(FName InName, PCGExDataBlending::FBlendingParam& OutParam) const;
+	bool GetBlendingParam(const FPCGAttributeIdentifier& InIdentifer, PCGExDataBlending::FBlendingParam& OutParam) const;
 	void GetPointPropertyBlendingParams(TArray<PCGExDataBlending::FBlendingParam>& OutParams) const;
 
 	// Create a list of attributes & property selector representing the data we want to blend
