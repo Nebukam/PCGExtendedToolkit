@@ -199,12 +199,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExNameFiltersDetails Attributes = FPCGExNameFiltersDetails(false);
 
+	/** If enabled, will convert data domain attributes to elements domain ones. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Data domain to Elements"))
+	bool bDataDomainToElements = true;
+	
 	/** Tags to carry over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExNameFiltersDetails Tags = FPCGExNameFiltersDetails(false);
 
 	/** If enabled, will test full tag with its value ('Tag:Value'), otherwise only test the left part ignoring the right `:Value` ('Tag'). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Flatten tag value"))
 	bool bTestTagsWithValues = false;
 
 	void Init()

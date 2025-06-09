@@ -119,6 +119,15 @@ namespace PCGExHelpers
 	PCGEXTENDEDTOOLKIT_API
 	bool TryGetAttributeName(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, FName& OutName);
 
+	PCGEXTENDEDTOOLKIT_API
+	bool IsDataDomainAttribute(const FName& InName);
+
+	PCGEXTENDEDTOOLKIT_API
+	bool IsDataDomainAttribute(const FString& InName);
+
+	PCGEXTENDEDTOOLKIT_API
+	bool IsDataDomainAttribute(const FPCGAttributePropertyInputSelector& InputSelector);
+
 	template <typename T>
 	static TObjectPtr<T> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
 	{
@@ -240,17 +249,17 @@ namespace PCGEx
 
 		if constexpr (bInitialized)
 		{
+			Identifier.Name = InSelector.GetAttributeName();
+			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(InSelector);
+		}
+		else
+		{
 			FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
 
 			check(FixedSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 
 			Identifier.Name = FixedSelector.GetAttributeName();
 			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);
-		}
-		else
-		{
-			Identifier.Name = InSelector.GetAttributeName();
-			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(InSelector);
 		}
 
 
@@ -435,8 +444,51 @@ namespace PCGEx
 
 	static bool HasAttribute(const UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier)
 	{
+		if (!InMetadata) { return false; }
 		if (!InMetadata->GetConstMetadataDomain(Identifier.MetadataDomain)) { return false; }
 		return InMetadata->HasAttribute(Identifier);
+	}
+
+	static bool HasAttribute(const UPCGData* InData, const FPCGAttributeIdentifier& Identifier)
+	{
+		if (!InData) { return false; }
+		return HasAttribute(InData->ConstMetadata(), Identifier);
+	}
+
+	template <typename T>
+	static const FPCGMetadataAttribute<T>* TryGetConstAttribute(const UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier)
+	{
+		if (!InMetadata) { return nullptr; }
+		if (!InMetadata->GetConstMetadataDomain(Identifier.MetadataDomain)) { return nullptr; }
+
+		// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
+		// ReSharper disable once CppRedundantTemplateKeyword
+		return InMetadata->template GetConstTypedAttribute<T>(Identifier);
+	}
+
+	template <typename T>
+	static const FPCGMetadataAttribute<T>* TryGetConstAttribute(const UPCGData* InData, const FPCGAttributeIdentifier& Identifier)
+	{
+		if (!InData) { return nullptr; }
+		return TryGetConstAttribute<T>(InData->ConstMetadata(), Identifier);
+	}
+
+	template <typename T>
+	static FPCGMetadataAttribute<T>* TryGetMutableAttribute(UPCGMetadata* InMetadata, const FPCGAttributeIdentifier& Identifier)
+	{
+		if (!InMetadata) { return nullptr; }
+		if (!InMetadata->GetConstMetadataDomain(Identifier.MetadataDomain)) { return nullptr; }
+
+		// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
+		// ReSharper disable once CppRedundantTemplateKeyword
+		return InMetadata->template GetMutableTypedAttribute<T>(Identifier);
+	}
+
+	template <typename T>
+	static FPCGMetadataAttribute<T>* TryGetMutableAttribute(UPCGData* InData, const FPCGAttributeIdentifier& Identifier)
+	{
+		if (!InData) { return nullptr; }
+		return TryGetMutableAttribute<T>(InData->MutableMetadata(), Identifier);
 	}
 
 	constexpr static int32 GetMetadataSize(const EPCGMetadataTypes InType)

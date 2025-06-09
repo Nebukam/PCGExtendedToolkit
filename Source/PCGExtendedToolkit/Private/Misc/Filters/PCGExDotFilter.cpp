@@ -14,6 +14,15 @@ bool UPCGExDotFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
+bool UPCGExDotFilterFactory::DomainCheck()
+{
+	return
+		PCGExHelpers::IsDataDomainAttribute(Config.OperandA) &&
+		(Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB)) &&
+		Config.DotComparisonDetails.GetOnlyUseDataDomain() &&
+		!Config.bTransformOperandA && !Config.bTransformOperandB;
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExDotFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FDotFilter>(this);
@@ -58,6 +67,29 @@ bool PCGExPointFilter::FDotFilter::Test(const int32 PointIndex) const
 			TypedFilterFactory->Config.bTransformOperandA ? InTransforms[PointIndex].TransformVectorNoScale(OperandA->Read(PointIndex)) : OperandA->Read(PointIndex),
 			TypedFilterFactory->Config.bTransformOperandB ? InTransforms[PointIndex].TransformVectorNoScale(B) : B),
 		PointIndex);
+}
+
+bool PCGExPointFilter::FDotFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+{
+	PCGEX_SHARED_CONTEXT(IO->GetContextHandle())
+
+	FVector A = FVector::ZeroVector;
+	FVector B = FVector::ZeroVector;
+
+	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB, TypedFilterFactory->Config.OperandBConstant, B)) { return false; }
+	B = B.GetSafeNormal();
+
+	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A)) { return false; }
+	A = A.GetSafeNormal();
+
+	FPCGExDotComparisonDetails TempComparison = TypedFilterFactory->Config.DotComparisonDetails;
+	PCGEX_MAKE_SHARED(TempFacade, PCGExData::FFacade, IO.ToSharedRef())
+	if (!TempComparison.Init(SharedContext.Get(), TempFacade.ToSharedRef()))
+	{
+		return false;
+	}
+
+	return TempComparison.Test(FVector::DotProduct(A, B), 0);
 }
 
 PCGEX_CREATE_FILTER_FACTORY(Dot)

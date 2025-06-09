@@ -4,6 +4,14 @@
 #include "Data/PCGExPointFilter.h"
 
 
+
+
+
+
+
+
+
+
 #include "Graph/PCGExCluster.h"
 #include "Paths/PCGExShiftPath.h"
 
@@ -13,8 +21,14 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExFilterFactoryData::CreateFilter() co
 }
 
 
+bool UPCGExFilterFactoryData::DomainCheck()
+{
+	return false;
+}
+
 bool UPCGExFilterFactoryData::Init(FPCGExContext* InContext)
 {
+	bOnlyUseDataDomain = DomainCheck(); // Will check selectors for @Data domain
 	return true;
 }
 
@@ -69,7 +83,7 @@ namespace PCGExPointFilter
 	bool FCollectionFilter::Test(const PCGExGraph::FEdge& Edge) const { return bCollectionTestResult; }
 
 	bool FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
-	PCGEX_NOT_IMPLEMENTED_RET(FCollectionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO), false)
+	PCGEX_NOT_IMPLEMENTED_RET(FCollectionFilter::Test(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection), false)
 
 	FManager::FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
@@ -81,6 +95,7 @@ namespace PCGExPointFilter
 		for (const UPCGExFilterFactoryData* Factory : InFactories)
 		{
 			TSharedPtr<FFilter> NewFilter = Factory->CreateFilter();
+			NewFilter->bUseDataDomainSelectorsOnly = Factory->GetOnlyUseDataDomain();
 			NewFilter->bCacheResults = bCacheResultsPerFilter;
 			NewFilter->bUseEdgeAsPrimary = bUseEdgeAsPrimary;
 			if (!InitFilter(InContext, NewFilter))

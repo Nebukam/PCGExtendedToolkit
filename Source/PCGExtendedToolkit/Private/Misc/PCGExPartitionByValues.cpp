@@ -305,7 +305,7 @@ namespace PCGExPartitionByValues
 			for (int i = 0; i < Partitions.Num(); i++)
 			{
 				Partitions[i]->IOIndex = InsertOffset + i;
-				Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::New);
+				Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Duplicate);
 				SumPts += Partitions[i]->Points.Num();
 			}
 

@@ -7,6 +7,11 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
+bool UPCGExWithinRangeFilterFactory::DomainCheck()
+{
+	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA);
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExWithinRangeFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FWithinRangeFilter>(this);
@@ -37,6 +42,13 @@ bool PCGExPointFilter::FWithinRangeFilter::Test(const int32 PointIndex) const
 {
 	if (!bInclusive) { return FMath::IsWithin(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert; }
 	return FMath::IsWithinInclusive(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert;
+}
+
+bool PCGExPointFilter::FWithinRangeFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+{
+	double A = 0;
+	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A)) { return false; }
+	return FMath::IsWithinInclusive(A, RealMin, RealMax) ? !bInvert : bInvert;
 }
 
 PCGEX_CREATE_FILTER_FACTORY(WithinRange)

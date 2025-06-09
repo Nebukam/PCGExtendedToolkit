@@ -63,6 +63,8 @@ class UPCGExGameplayTagsFilterFactory : public UPCGExFilterFactoryData
 public:
 	FPCGExGameplayTagsFilterConfig Config;
 
+	virtual bool SupportsCollectionEvaluation() const override { return false; }
+	
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };

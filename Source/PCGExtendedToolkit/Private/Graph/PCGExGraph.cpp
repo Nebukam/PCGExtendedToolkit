@@ -1265,12 +1265,12 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	bool IsPointDataVtxReady(const UPCGMetadata* Metadata)
 	{
-		return Metadata->GetConstTypedAttribute<int64>(Attr_PCGExVtxIdx) ? true : false;
+		return PCGEx::TryGetConstAttribute<int64>(Metadata, Attr_PCGExVtxIdx) ? true : false;
 	}
 
 	bool IsPointDataEdgeReady(const UPCGMetadata* Metadata)
 	{
-		return Metadata->GetConstTypedAttribute<int64>(Attr_PCGExEdgeIdx) ? true : false;
+		return PCGEx::TryGetConstAttribute<int64>(Metadata, Attr_PCGExEdgeIdx) ? true : false;
 	}
 
 	void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO)

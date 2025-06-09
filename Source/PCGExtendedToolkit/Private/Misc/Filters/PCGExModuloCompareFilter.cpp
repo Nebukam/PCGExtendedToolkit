@@ -7,6 +7,14 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
+bool UPCGExModuloCompareFilterFactory::DomainCheck()
+{
+	return
+		PCGExHelpers::IsDataDomainAttribute(Config.OperandA) &&
+		(Config.OperandBSource == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB)) &&
+		(Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandC));
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExModuloCompareFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FModuloComparisonFilter>(this);
@@ -50,6 +58,20 @@ bool PCGExPointFilter::FModuloComparisonFilter::Test(const int32 PointIndex) con
 	const double A = OperandA->Read(PointIndex);
 	const double B = OperandB->Read(PointIndex);
 	const double C = OperandC->Read(PointIndex);
+	if (A == 0 || B == 0) { return TypedFilterFactory->Config.ZeroResult; }
+	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Fmod(A, B), C, TypedFilterFactory->Config.Tolerance);
+}
+
+bool PCGExPointFilter::FModuloComparisonFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+{
+	double A = 0;
+	double B = 0;
+	double C = 0;
+
+	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A)) { return false; }
+	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.OperandBSource, TypedFilterFactory->Config.OperandB, TypedFilterFactory->Config.OperandBConstant, B)) { return false; }
+	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandC, TypedFilterFactory->Config.OperandCConstant, C)) { return false; }
+
 	if (A == 0 || B == 0) { return TypedFilterFactory->Config.ZeroResult; }
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Fmod(A, B), C, TypedFilterFactory->Config.Tolerance);
 }

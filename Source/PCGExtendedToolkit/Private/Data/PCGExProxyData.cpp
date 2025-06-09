@@ -35,7 +35,7 @@ namespace PCGExData
 
 		if (!PCGEx::TryGetTypeAndSource(Selector, InFacade, RealType, Side))
 		{
-			if (bThrowError) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Attribute, Selector) }
+			if (bThrowError) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, , Selector) }
 			bValid = false;
 		}
 
@@ -57,7 +57,7 @@ namespace PCGExData
 
 		if (!PCGEx::TryGetTypeAndSource(InSelector, InFacade, RealType, Side))
 		{
-			if (bThrowError) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Attribute, InSelector) }
+			if (bThrowError) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, , InSelector) }
 			bValid = false;
 		}
 
@@ -173,7 +173,7 @@ namespace PCGExData
 
 							if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 							{
-								const FPCGMetadataAttribute<T_REAL>* Attribute = InDataFacade->GetIn()->Metadata->GetConstTypedAttribute<T_REAL>(PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
+								const FPCGMetadataAttribute<T_REAL>* Attribute = PCGEx::TryGetConstAttribute<T_REAL>(InDataFacade->GetIn(), PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
 								if (!Attribute)
 								{
 									TypedProxy->SetConstant(0);
@@ -223,13 +223,11 @@ namespace PCGExData
 								{
 									if (InDescriptor.Side == EIOSide::In)
 									{
-										UPCGMetadata* Metadata = InDataFacade->GetIn()->Metadata;
-										InAttribute = Metadata->GetConstTypedAttribute<T_REAL>(PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
+										InAttribute = PCGEx::TryGetConstAttribute<T_REAL>(InDataFacade->GetIn(), PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
 									}
 									else
 									{
-										UPCGMetadata* Metadata = InDataFacade->GetOut()->Metadata;
-										InAttribute = Metadata->GetConstTypedAttribute<T_REAL>(PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
+										InAttribute = PCGEx::TryGetConstAttribute<T_REAL>(InDataFacade->GetOut(), PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
 									}
 
 									if (InAttribute) { OutAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute); }
@@ -238,30 +236,27 @@ namespace PCGExData
 								}
 								else if (InDescriptor.Role == EProxyRole::Write)
 								{
-									UPCGMetadata* Metadata = InDataFacade->GetOut()->Metadata;
-									OutAttribute = Metadata->FindOrCreateAttribute(PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetOut()), T_REAL{});
+									OutAttribute = InDataFacade->Source->FindOrCreateAttribute(PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetOut()), T_REAL{});
 									if (OutAttribute) { InAttribute = OutAttribute; }
 
 									check(OutAttribute);
 								}
 
-								if (bSubSelection)
-								{
-									TSharedPtr<TDirectAttributeProxy<T_REAL, T_WORKING, true>> TypedProxy =
-										MakeShared<TDirectAttributeProxy<T_REAL, T_WORKING, true>>();
+#define PCGEX_DIRECT_PROXY(_SUBSELECTION, _DATA)\
+TSharedPtr<TDirect##_DATA##AttributeProxy<T_REAL, T_WORKING, _SUBSELECTION>> TypedProxy = MakeShared<TDirect##_DATA##AttributeProxy<T_REAL, T_WORKING, _SUBSELECTION>>();\
+TypedProxy->InAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute);\
+TypedProxy->OutAttribute = OutAttribute;\
+OutProxy = TypedProxy;
 
-									TypedProxy->InAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute);
-									TypedProxy->OutAttribute = OutAttribute;
-									OutProxy = TypedProxy;
+								if (InAttribute->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data)
+								{
+									if (bSubSelection) { PCGEX_DIRECT_PROXY(true, Data) }
+									else { PCGEX_DIRECT_PROXY(false, Data) }
 								}
 								else
 								{
-									TSharedPtr<TDirectAttributeProxy<T_REAL, T_WORKING, false>> TypedProxy =
-										MakeShared<TDirectAttributeProxy<T_REAL, T_WORKING, false>>();
-
-									TypedProxy->InAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute);
-									TypedProxy->OutAttribute = OutAttribute;
-									OutProxy = TypedProxy;
+									if (bSubSelection) { PCGEX_DIRECT_PROXY(true,) }
+									else { PCGEX_DIRECT_PROXY(false,) }
 								}
 
 								return;

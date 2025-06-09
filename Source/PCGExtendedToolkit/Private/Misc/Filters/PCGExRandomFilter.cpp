@@ -4,6 +4,11 @@
 #include "Misc/Filters/PCGExRandomFilter.h"
 
 
+
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
@@ -15,12 +20,12 @@ bool UPCGExRandomFilterFactory::Init(FPCGExContext* InContext)
 
 bool UPCGExRandomFilterFactory::SupportsCollectionEvaluation() const
 {
-	return !Config.bPerPointWeight && Config.ThresholdInput == EPCGExInputValueType::Constant;
+	return (!Config.bPerPointWeight && Config.ThresholdInput == EPCGExInputValueType::Constant) || bOnlyUseDataDomain;
 }
 
 bool UPCGExRandomFilterFactory::SupportsProxyEvaluation() const
 {
-	return SupportsCollectionEvaluation();
+	return !Config.bPerPointWeight && Config.ThresholdInput == EPCGExInputValueType::Constant;
 }
 
 void UPCGExRandomFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const

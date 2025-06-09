@@ -7,6 +7,13 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
+bool UPCGExBooleanCompareFilterFactory::DomainCheck()
+{
+	return
+		PCGExHelpers::IsDataDomainAttribute(Config.OperandA) &&
+		(Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB));
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExBooleanCompareFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FBooleanCompareFilter>(this);
@@ -45,6 +52,17 @@ bool PCGExPointFilter::FBooleanCompareFilter::Test(const int32 PointIndex) const
 {
 	const double A = OperandA->Read(PointIndex);
 	const double B = OperandB->Read(PointIndex);
+	return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
+}
+
+bool PCGExPointFilter::FBooleanCompareFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+{
+	bool A = false;
+	bool B = false;
+
+	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A)) { return false; }
+	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB, TypedFilterFactory->Config.OperandBConstant, B)) { return false; }
+
 	return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
 }
 

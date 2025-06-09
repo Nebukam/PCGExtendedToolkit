@@ -9,6 +9,26 @@
 #include "PCGExFactoryProvider.h"
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExPointFilter.generated.h"
@@ -60,13 +80,20 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryData : public UPCGExFactoryData
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
-	virtual bool SupportsCollectionEvaluation() const { return false; }
+
+	virtual bool DomainCheck();
+	virtual bool GetOnlyUseDataDomain() const { return bOnlyUseDataDomain; }
+	
+	virtual bool SupportsCollectionEvaluation() const { return bOnlyUseDataDomain; }
 	virtual bool SupportsProxyEvaluation() const { return false; }
 
 	virtual bool Init(FPCGExContext* InContext);
 
 	int32 Priority = 0;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const;
+
+protected:
+	bool bOnlyUseDataDomain = false;
 };
 
 namespace PCGExPointFilter
@@ -99,6 +126,7 @@ namespace PCGExPointFilter
 		{
 		}
 
+		bool bUseDataDomainSelectorsOnly = false;
 		bool bCollectionTestResult = true;
 		bool bUseEdgeAsPrimary = false; // This shouldn't be there but...
 
@@ -114,7 +142,6 @@ namespace PCGExPointFilter
 		virtual PCGExFilters::EType GetFilterType() const { return PCGExFilters::EType::Point; }
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
-
 		virtual void PostInit();
 
 		virtual bool Test(const int32 Index) const;
