@@ -18,7 +18,7 @@ Find cluster hull is a very handy shortcut node to automatically find the wrappi
 
 #### Sampling:
 
-### [Sample Nearest Path](../../../node-library/sampling/nearest-spline-1.md)
+### [Sample Nearest Path](../../../node-library/sampling/nearest-spline-1.md) (WIP)
 
 Sample nearest path is similar to Sample nearest spline, but allows to sample path point attributes and path data-level domain values.
 
