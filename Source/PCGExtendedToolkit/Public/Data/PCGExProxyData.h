@@ -348,6 +348,73 @@ namespace PCGExData
 		}
 	};
 
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	class TDirectDataAttributeProxy : public TBufferProxy<T_WORKING>
+	{
+		// A memory-friendly but super slow proxy version that works with Setter/Getter on the attribute
+		// TODO : Implement support for this to replace old "soft" metadata ops
+
+		using TBufferProxy<T_WORKING>::SubSelection;
+		using TBufferProxy<T_WORKING>::Data;
+
+	public:
+		FPCGMetadataAttribute<T_REAL>* InAttribute = nullptr;
+		FPCGMetadataAttribute<T_REAL>* OutAttribute = nullptr;
+
+		TDirectDataAttributeProxy()
+			: TBufferProxy<T_WORKING>()
+		{
+			this->RealType = PCGEx::GetMetadataType<T_REAL>();
+		}
+
+		virtual T_WORKING Get(const int32 Index) const override
+		{
+			// i.e get Rotation<FQuat>.Forward<FVector> as <double>
+			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+			if constexpr (!bSubSelection)
+			{
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return InAttribute->GetValueFromItemKey(PCGDefaultValueKey); }
+				else { return PCGEx::Convert<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(PCGDefaultValueKey)); }
+			}
+			else
+			{
+				return SubSelection.template Get<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(PCGDefaultValueKey));
+			}
+		}
+
+		virtual T_WORKING GetCurrent(const int32 Index) const override
+		{
+			// i.e get Rotation<FQuat>.Forward<FVector> as <double>
+			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+			if constexpr (!bSubSelection)
+			{
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return OutAttribute->GetValueFromItemKey(PCGDefaultValueKey); }
+				else { return PCGEx::Convert<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(PCGDefaultValueKey)); }
+			}
+			else
+			{
+				return SubSelection.template Get<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(PCGDefaultValueKey));
+			}
+		}
+
+		virtual void Set(const int32 Index, const T_WORKING& Value) const override
+		{
+			// i.e set Rotation<FQuat>.Forward<FVector> from <FRotator>
+			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+			if constexpr (!bSubSelection)
+			{
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { OutAttribute->SetDefaultValue(Value); }
+				else { OutAttribute->SetDefaultValue(PCGEx::Convert<T_WORKING, T_REAL>(Value)); }
+			}
+			else
+			{
+				T_REAL V = OutAttribute->GetValueFromItemKey(PCGDefaultValueKey);
+				SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
+				OutAttribute->SetDefaultValue(V);
+			}
+		}
+	};
+
 	TSharedPtr<IBufferProxy> GetProxyBuffer(
 		FPCGExContext* InContext,
 		const FProxyDescriptor& InDescriptor);

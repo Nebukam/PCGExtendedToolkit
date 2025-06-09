@@ -79,6 +79,7 @@ public:
 	UPROPERTY()
 	FPCGExPathInclusionFilterConfig Config;
 
+	virtual bool SupportsCollectionEvaluation() const override { return false; }
 	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
 	TSharedPtr<TArray<TSharedPtr<FPCGSplineStruct>>> Splines;

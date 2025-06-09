@@ -77,6 +77,7 @@ public:
 	TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
 	TArray<const UPCGBasePointData*> TargetsPtr;
 
+	virtual bool SupportsCollectionEvaluation() const override { return false; }
 	virtual bool SupportsProxyEvaluation() const override;
 
 	virtual bool Init(FPCGExContext* InContext) override;

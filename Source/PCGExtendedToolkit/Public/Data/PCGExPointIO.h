@@ -522,23 +522,22 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		int32 Gather(const TBitArray<>& InMask, const bool bInvert = false) const;
 
 		void DeleteAttribute(const FPCGAttributeIdentifier& Identifier) const;
+		void DeleteAttribute(const FPCGMetadataAttributeBase* Attribute) const;
 
 		template <typename T>
-		FPCGMetadataAttribute<T>* CreateAttribute(const FPCGAttributeIdentifier& Identifier, const T& DefaultValue, bool bAllowsInterpolation, bool bOverrideParent)
+		FPCGMetadataAttribute<T>* CreateAttribute(const FPCGAttributeIdentifier& Identifier, const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true)
 		{
 			FPCGMetadataAttribute<T>* OutAttribute = nullptr;
 			if (!Out) { return OutAttribute; }
 
+			FPCGAttributeIdentifier SanitizedIdentifier =
+				Identifier.MetadataDomain.IsDefault() ?
+					PCGEx::GetAttributeIdentifier(Identifier.Name, Out) :
+					Identifier;
+
 			{
 				FWriteScopeLock WriteScopeLock(AttributesLock);
-				if (Identifier.MetadataDomain.IsDefault())
-				{
-					OutAttribute = Out->Metadata->CreateAttribute(PCGEx::GetAttributeIdentifier(Identifier.Name, Out), DefaultValue, bAllowsInterpolation, bOverrideParent);
-				}
-				else
-				{
-					OutAttribute = Out->Metadata->CreateAttribute(Identifier, DefaultValue, bAllowsInterpolation, bOverrideParent);
-				}
+				OutAttribute = Out->Metadata->CreateAttribute(SanitizedIdentifier, DefaultValue, bAllowsInterpolation, bOverrideParent);
 			}
 
 			return OutAttribute;
@@ -550,17 +549,14 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 			FPCGMetadataAttribute<T>* OutAttribute = nullptr;
 			if (!Out) { return OutAttribute; }
 
+			FPCGAttributeIdentifier SanitizedIdentifier =
+				Identifier.MetadataDomain.IsDefault() ?
+					PCGEx::GetAttributeIdentifier(Identifier.Name, Out) :
+					Identifier;
+
 			{
 				FWriteScopeLock WriteScopeLock(AttributesLock);
-
-				if (Identifier.MetadataDomain.IsDefault())
-				{
-					OutAttribute = Out->Metadata->FindOrCreateAttribute(PCGEx::GetAttributeIdentifier(Identifier.Name, Out), DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
-				}
-				else
-				{
-					OutAttribute = Out->Metadata->FindOrCreateAttribute(Identifier, DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
-				}
+				OutAttribute = Out->Metadata->FindOrCreateAttribute(SanitizedIdentifier, DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
 			}
 
 			return OutAttribute;
@@ -785,7 +781,6 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 			return nullptr;
 		}
-		
 	}
 
 	PCGEXTENDEDTOOLKIT_API

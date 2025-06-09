@@ -16,6 +16,7 @@ namespace PCGExPointIOMerger
 	struct PCGEXTENDEDTOOLKIT_API FIdentityRef : PCGEx::FAttributeIdentity
 	{
 		const FPCGMetadataAttributeBase* Attribute = nullptr;
+		FPCGAttributeIdentifier ElementsIdentifier;
 		bool bInitDefault = false;
 
 		FIdentityRef();
@@ -43,7 +44,10 @@ public:
 	void Append(const TSharedRef<PCGExData::FPointIOCollection>& InCollection);
 	void MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* InIgnoredAttributes = nullptr);
 
+	bool WantsDataToElements() const { return bDataDomainToElements; }
+
 protected:
+	bool bDataDomainToElements = false;
 	int32 NumCompositePoints = 0;
 	EPCGPointNativeProperties AllocateProperties = EPCGPointNativeProperties::None;
 };
@@ -51,29 +55,24 @@ protected:
 namespace PCGExPointIOMerger
 {
 	template <typename T>
-	static void ScopeMerge(const PCGExMT::FScope& Scope, const PCGEx::FAttributeIdentity& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, const TSharedPtr<PCGExData::TBuffer<T>>& OutBuffer)
+	static void ScopeMerge(const PCGExMT::FScope& Scope, const FIdentityRef& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, const TSharedPtr<PCGExData::TBuffer<T>>& OutBuffer)
 	{
 		UPCGMetadata* InMetadata = SourceIO->GetIn()->Metadata;
 
-		// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-		// ReSharper disable once CppRedundantTemplateKeyword
-		const FPCGMetadataAttribute<T>* TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(Identity.Identifier);
-
+		const FPCGMetadataAttribute<T>* TypedInAttribute = PCGEx::TryGetConstAttribute<T>(InMetadata, Identity.Identifier);
 		if (!TypedInAttribute) { return; }
 
 		TSharedPtr<PCGExData::TArrayBuffer<T>> OutElementsBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(OutBuffer);
-		TSharedPtr<PCGExData::TFirstValueBuffer<T>> OutDataBuffer = StaticCastSharedPtr<PCGExData::TFirstValueBuffer<T>>(OutBuffer);
+		TSharedPtr<PCGExData::TSingleValueBuffer<T>> OutDataBuffer = StaticCastSharedPtr<PCGExData::TSingleValueBuffer<T>>(OutBuffer);
 
-		// TODO : We may want to transfer data-level to element-level
-		
 		if (OutElementsBuffer)
 		{
 			// We are writing to elements domain
-			
-			if (TypedInAttribute->GetNumberOfEntries() == 1)
+
+			if (TypedInAttribute->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data)
 			{
 				// From a data domain
-				const T Value = TypedInAttribute->GetValue(PCGFirstEntryKey);
+				const T Value = TypedInAttribute->GetValue(PCGDefaultValueKey);
 				PCGEX_SCOPE_LOOP(Index) { OutElementsBuffer->SetValue(Index, Value); }
 			}
 			else
@@ -90,11 +89,11 @@ namespace PCGExPointIOMerger
 		else if (OutDataBuffer)
 		{
 			// We are writing to data domain
-			
-			if (TypedInAttribute->GetNumberOfEntries() == 1)
+
+			if (TypedInAttribute->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data)
 			{
 				// From data domain
-				OutDataBuffer->SetValue(0, TypedInAttribute->GetValue(PCGFirstEntryKey));
+				OutDataBuffer->SetValue(0, TypedInAttribute->GetValue(PCGDefaultValueKey));
 			}
 			else
 			{
@@ -124,7 +123,7 @@ namespace PCGExPointIOMerger
 		FWriteAttributeScopeTask(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const PCGExMT::FScope& InScope,
-			const PCGEx::FAttributeIdentity& InIdentity,
+			const FIdentityRef& InIdentity,
 			const TSharedPtr<PCGExData::TBuffer<T>>& InOutBuffer)
 			: FTask(),
 			  PointIO(InPointIO),
@@ -136,7 +135,7 @@ namespace PCGExPointIOMerger
 
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		const PCGExMT::FScope Scope;
-		const PCGEx::FAttributeIdentity Identity;
+		const FIdentityRef Identity;
 		const TSharedPtr<PCGExData::TBuffer<T>> OutBuffer;
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override

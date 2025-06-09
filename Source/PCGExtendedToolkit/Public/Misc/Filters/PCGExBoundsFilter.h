@@ -60,7 +60,7 @@ struct FPCGExBoundsFilterConfig
 	EPCGExBoxCheckMode TestMode = EPCGExBoxCheckMode::Box;
 
 	/** Epsilon value used to slightly expand target bounds. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="TestMode==EPCGExBoxCheckMode::ExpandedBox || TestMode==EPCGExBoxCheckMode::ExpandedSphere", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="TestMode == EPCGExBoxCheckMode::ExpandedBox || TestMode == EPCGExBoxCheckMode::ExpandedSphere", EditConditionHides))
 	double Expansion = 10;
 
 	/** If enabled, invert the result of the test */
@@ -87,6 +87,7 @@ public:
 	TArray<TSharedPtr<PCGExData::FFacade>> BoundsDataFacades;
 	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
 
+	virtual bool SupportsCollectionEvaluation() const override { return false; }
 	virtual bool SupportsProxyEvaluation() const override { return true; }
 
 	virtual bool Init(FPCGExContext* InContext) override;

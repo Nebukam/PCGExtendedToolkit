@@ -11,6 +11,7 @@
 #include "PCGExMath.h"
 #include "PCGExPointIO.h"
 #include "PCGExAttributeHelpers.h"
+#include "PCGExDataHelpers.h"
 #include "PCGExMT.h"
 #include "Data/PCGPointData.h"
 
@@ -50,9 +51,9 @@ namespace PCGExData
 
 	enum class EDomainType : uint8
 	{
-		Unknown         = 0,
-		FirstValue      = 1,
-		MultipleEntries = 2,
+		Unknown  = 0,
+		Data     = 1,
+		Elements = 2,
 	};
 
 #pragma region Buffers
@@ -79,7 +80,6 @@ namespace PCGExData
 
 		bool bIsNewOutput = false;
 		std::atomic<bool> bIsEnabled{true}; // BUG : Need to have a better look at why we hang when this is false
-		FName TargetOutputName = NAME_None;
 		bool bReadComplete = false;
 
 	public:
@@ -122,10 +122,6 @@ namespace PCGExData
 		virtual bool IsWritable() = 0;
 		virtual bool IsReadable() = 0;
 		virtual bool ReadsFromOutput() = 0;
-		virtual void SetTargetOutputName(const FName InName);
-
-		PCGEx::FAttributeIdentity GetTargetOutputIdentity();
-		virtual bool OutputsToDifferentName() const;
 
 		virtual void Flush()
 		{
@@ -185,9 +181,7 @@ namespace PCGExData
 	using TBuffer<T>::OutAttribute;\
 	using TBuffer<T>::TypedOutAttribute;\
 	using TBuffer<T>::bReadComplete;\
-	using TBuffer<T>::IsEnabled;\
-	using TBuffer<T>::OutputsToDifferentName;\
-	using TBuffer<T>::TargetOutputName;
+	using TBuffer<T>::IsEnabled;
 
 	template <typename T>
 	class TArrayBuffer : public TBuffer<T>
@@ -207,7 +201,7 @@ namespace PCGExData
 			TBuffer<T>(InSource, InIdentifier)
 		{
 			check(InIdentifier.MetadataDomain.Flag != EPCGMetadataDomainFlag::Data)
-			this->UnderlyingDomain = EDomainType::MultipleEntries;
+			this->UnderlyingDomain = EDomainType::Elements;
 		}
 
 		virtual bool IsSparse() const override { return bSparseBuffer || InternalBroadcaster; }
@@ -290,13 +284,15 @@ namespace PCGExData
 				return true;
 			}
 
+			TypedInAttribute = PCGEx::TryGetConstAttribute<T>(Source->GetIn(), Identifier);
+			if (!TypedInAttribute)
+			{
+				// Wrong type
+				return false;
+			}
+
 			UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
 			check(InMetadata)
-
-			// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-			// ReSharper disable once CppRedundantTemplateKeyword
-			TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(Identifier);
-			if (!TypedInAttribute) { return false; }
 
 			TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, InMetadata);
 
@@ -375,13 +371,12 @@ namespace PCGExData
 				return true;
 			}
 
-			this->bIsNewOutput = !Source->GetOut()->Metadata->HasAttribute(Identifier);
-			TypedOutAttribute = Source->FindOrCreateAttribute(Identifier, DefaultValue, bAllowInterpolation);
+			this->bIsNewOutput = !PCGEx::HasAttribute(Source->GetOut(), Identifier);
 
-			if (!TypedOutAttribute)
-			{
-				return false;
-			}
+			if (this->bIsNewOutput) { TypedOutAttribute = Source->CreateAttribute(Identifier, DefaultValue, bAllowInterpolation); }
+			else { TypedOutAttribute = Source->FindOrCreateAttribute(Identifier, DefaultValue, bAllowInterpolation); }
+
+			if (!TypedOutAttribute) { return false; }
 
 			TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
 
@@ -419,17 +414,12 @@ namespace PCGExData
 				if (OutValues) { return true; }
 			}
 
-			if (Source->GetIn())
+			if (const FPCGMetadataAttribute<T>* ExistingAttribute = PCGEx::TryGetConstAttribute<T>(Source->GetIn(), Identifier))
 			{
-				// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-				// ReSharper disable once CppRedundantTemplateKeyword
-				if (const FPCGMetadataAttribute<T>* ExistingAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identifier))
-				{
-					return InitForWrite(
-						ExistingAttribute->GetValue(PCGDefaultValueKey),
-						ExistingAttribute->AllowsInterpolation(),
-						Init);
-				}
+				return InitForWrite(
+					ExistingAttribute->GetValue(PCGDefaultValueKey),
+					ExistingAttribute->AllowsInterpolation(),
+					Init);
 			}
 
 			return InitForWrite(T{}, true, Init);
@@ -437,6 +427,8 @@ namespace PCGExData
 
 		virtual void Write(const bool bEnsureValidKeys = true) override
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(TBuffer::Write);
+
 			PCGEX_SHARED_CONTEXT_VOID(Source->GetContextHandle())
 
 			if (!IsWritable() || !OutValues || !IsEnabled()) { return; }
@@ -445,23 +437,6 @@ namespace PCGExData
 			{
 				UE_LOG(LogPCGEx, Error, TEXT("Attempting to write data to an output that's not initialized!"));
 				return;
-			}
-
-			TRACE_CPUPROFILER_EVENT_SCOPE(TBuffer::Write);
-
-			// If we reach that point, data has been cleaned up and we're expected to create a new attribute here.
-
-			if (OutputsToDifferentName())
-			{
-				// If we want to output to a different name, ensure the new attribute exists and hope we did proper validations beforehand
-				FPCGAttributeIdentifier OutputIdentifier = Identifier;
-				OutputIdentifier.Name = TargetOutputName;
-
-				// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-				// ReSharper disable once CppRedundantTemplateKeyword
-				TypedOutAttribute = Source->GetOut()->Metadata->template FindOrCreateAttribute<T>(
-					OutputIdentifier,
-					TypedOutAttribute->GetValueFromItemKey(PCGDefaultValueKey), TypedOutAttribute->AllowsInterpolation());
 			}
 
 			if (!TypedOutAttribute) { return; }
@@ -499,7 +474,7 @@ namespace PCGExData
 	};
 
 	template <typename T>
-	class TFirstValueBuffer : public TBuffer<T>
+	class TSingleValueBuffer : public TBuffer<T>
 	{
 		PCGEX_USING_TBUFFER
 
@@ -524,11 +499,11 @@ namespace PCGExData
 			return bReadInitialized;
 		}
 
-		TFirstValueBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier):
+		TSingleValueBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier):
 			TBuffer<T>(InSource, InIdentifier)
 		{
 			check(InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data)
-			this->UnderlyingDomain = EDomainType::FirstValue;
+			this->UnderlyingDomain = EDomainType::Data;
 		}
 
 		virtual bool IsWritable() override { return bWriteInitialized; }
@@ -581,18 +556,13 @@ namespace PCGExData
 				return true;
 			}
 
-			UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
-			check(InMetadata)
-
-			// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-			// ReSharper disable once CppRedundantTemplateKeyword
-			TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(Identifier);
+			TypedInAttribute = PCGEx::TryGetConstAttribute<T>(Source->GetIn(), Identifier);
 			if (TypedInAttribute)
 			{
 				bReadInitialized = true;
 
 				InAttribute = TypedInAttribute;
-				InValue = TypedInAttribute->GetValue(PCGFirstEntryKey);
+				InValue = TypedInAttribute->GetValue(PCGDefaultValueKey);
 			}
 
 			return bReadInitialized;
@@ -615,21 +585,8 @@ namespace PCGExData
 				}
 			}
 
-			UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
-			check(InMetadata)
-
-			if (const FPCGMetadataAttributeBase* SourceAttribute = InMetadata->GetConstAttribute(Identifier))
-			{
-				PCGEx::ExecuteWithRightType(
-					SourceAttribute->GetTypeId(), [&](auto DummyValue)
-					{
-						using T_VALUE = decltype(DummyValue);
-						const FPCGMetadataAttribute<T_VALUE>* TypedSource = static_cast<const FPCGMetadataAttribute<T_VALUE>*>(SourceAttribute);
-						InValue = PCGEx::Convert<T_VALUE, T>(TypedSource->GetValue(PCGFirstEntryKey));
-					});
-
-				bReadInitialized = true;
-			}
+			PCGEX_SHARED_CONTEXT(Source->GetContextHandle())
+			bReadInitialized = PCGExDataHelpers::TryReadDataValue(SharedContext.Get(), Source->GetIn(), InSelector, InValue);
 
 			return bReadInitialized;
 		}
@@ -640,9 +597,10 @@ namespace PCGExData
 
 			if (bWriteInitialized) { return true; }
 
-			this->bIsNewOutput = !Source->GetOut()->Metadata->HasAttribute(Identifier);
+			this->bIsNewOutput = !PCGEx::HasAttribute(Source->GetOut(), Identifier);
 
-			TypedOutAttribute = Source->FindOrCreateAttribute(Identifier, DefaultValue, bAllowInterpolation);
+			if (this->bIsNewOutput) { TypedOutAttribute = Source->CreateAttribute(Identifier, DefaultValue, bAllowInterpolation); }
+			else { TypedOutAttribute = Source->FindOrCreateAttribute(Identifier, DefaultValue, bAllowInterpolation); }
 
 			if (!TypedOutAttribute) { return false; }
 
@@ -656,7 +614,7 @@ namespace PCGExData
 
 			auto GrabExistingValues = [&]()
 			{
-				OutValue = TypedOutAttribute->GetValue(PCGFirstEntryKey);
+				OutValue = TypedOutAttribute->GetValue(PCGDefaultValueKey);
 			};
 
 			if (Init == EBufferInit::Inherit) { GrabExistingValues(); }
@@ -672,17 +630,12 @@ namespace PCGExData
 				if (bWriteInitialized) { return true; }
 			}
 
-			if (Source->GetIn())
+			if (const FPCGMetadataAttribute<T>* ExistingAttribute = PCGEx::TryGetConstAttribute<T>(Source->GetIn(), Identifier))
 			{
-				// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-				// ReSharper disable once CppRedundantTemplateKeyword
-				if (const FPCGMetadataAttribute<T>* ExistingAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identifier))
-				{
-					return InitForWrite(
-						ExistingAttribute->GetValue(PCGFirstEntryKey),
-						ExistingAttribute->AllowsInterpolation(),
-						Init);
-				}
+				return InitForWrite(
+					ExistingAttribute->GetValue(PCGDefaultValueKey),
+					ExistingAttribute->AllowsInterpolation(),
+					Init);
 			}
 
 			return InitForWrite(T{}, true, Init);
@@ -690,6 +643,8 @@ namespace PCGExData
 
 		virtual void Write(const bool bEnsureValidKeys = true) override
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(TBuffer::Write);
+
 			PCGEX_SHARED_CONTEXT_VOID(Source->GetContextHandle())
 
 			if (!IsWritable() || !IsEnabled()) { return; }
@@ -700,25 +655,9 @@ namespace PCGExData
 				return;
 			}
 
-			TRACE_CPUPROFILER_EVENT_SCOPE(TBuffer::Write);
-
-			// If we reach that point, data has been cleaned up and we're expected to create a new attribute here.
-
-			if (OutputsToDifferentName())
-			{
-				// If we want to output to a different name, ensure the new attribute exists and hope we did proper validations beforehand
-				FPCGAttributeIdentifier OutputIdentifier = Identifier;
-				OutputIdentifier.Name = TargetOutputName;
-
-				// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-				// ReSharper disable once CppRedundantTemplateKeyword
-				TypedOutAttribute = Source->GetOut()->Metadata->template FindOrCreateAttribute<T>(
-					OutputIdentifier,
-					TypedOutAttribute->GetValueFromItemKey(PCGDefaultValueKey), TypedOutAttribute->AllowsInterpolation());
-			}
-
 			if (!TypedOutAttribute) { return; }
-			TypedOutAttribute->SetValue(PCGFirstEntryKey, OutValue);
+
+			TypedOutAttribute->SetDefaultValue(OutValue);
 		}
 	};
 
@@ -799,7 +738,7 @@ namespace PCGExData
 				}
 				else if (InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data)
 				{
-					Buffer = MakeShared<TFirstValueBuffer<T>>(Source, InIdentifier);
+					Buffer = MakeShared<TSingleValueBuffer<T>>(Source, InIdentifier);
 				}
 				else
 				{
@@ -941,34 +880,27 @@ namespace PCGExData
 		FPCGMetadataAttributeBase* FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
 			const UPCGBasePointData* Data = Source->GetData(InSide);
-			if (!Data) { return nullptr; }
+			if (!Data || !PCGEx::HasAttribute(Data, InIdentifier)) { return nullptr; }
 			return Data->Metadata->GetMutableAttribute(InIdentifier);
 		}
 
 		const FPCGMetadataAttributeBase* FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
 			const UPCGBasePointData* Data = Source->GetData(InSide);
-			if (!Data) { return nullptr; }
+			if (!Data || !PCGEx::HasAttribute(Data, InIdentifier)) { return nullptr; }
 			return Data->Metadata->GetConstAttribute(InIdentifier);
 		}
 
 		template <typename T>
 		FPCGMetadataAttribute<T>* FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
-			const UPCGBasePointData* Data = Source->GetData(InSide);
-			if (!Data) { return nullptr; }
-			return Data->Metadata->GetMutableTypedAttribute<T>(InIdentifier);
+			return PCGEx::TryGetMutableAttribute<T>(Source->GetData(InSide), InIdentifier);
 		}
 
 		template <typename T>
 		const FPCGMetadataAttribute<T>* FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
-			const UPCGBasePointData* Data = Source->GetData(InSide);
-			if (!Data) { return nullptr; }
-
-			// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-			// ReSharper disable once CppRedundantTemplateKeyword
-			return Data->Metadata->template GetConstTypedAttribute<T>(InIdentifier);
+			return PCGEx::TryGetConstAttribute<T>(Source->GetData(InSide), InIdentifier);
 		}
 
 		TSharedPtr<PCGExGeo::FPointBoxCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON);
@@ -1154,7 +1086,7 @@ namespace PCGExData
 	{
 		const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(MarkID, PointIO->GetOut());
 		PointIO->DeleteAttribute(Identifier);
-		FPCGMetadataAttribute<T>* Mark = PointIO->CreateAttribute<T>(Identifier, MarkValue, false, true);
+		FPCGMetadataAttribute<T>* Mark = PointIO->CreateAttribute<T>(Identifier, MarkValue);
 		Mark->SetDefaultValue(MarkValue);
 		return Mark;
 	}
@@ -1165,7 +1097,7 @@ namespace PCGExData
 	{
 		// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
 		// ReSharper disable once CppRedundantTemplateKeyword
-		const FPCGMetadataAttribute<T>* Mark = Metadata->template GetConstTypedAttribute<T>(MarkID);
+		const FPCGMetadataAttribute<T>* Mark = PCGEx::TryGetConstAttribute<T>(Metadata, MarkID);
 		if (!Mark) { return false; }
 		OutMark = Mark->GetValue(PCGDefaultValueKey);
 		return true;
@@ -1222,7 +1154,16 @@ namespace PCGExData
 
 	static void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true)
 	{
-		if (!AsyncManager || !AsyncManager->IsAvailable()) { InBuffer->Write(InEnsureValidKeys); }
-		PCGEX_LAUNCH(FWriteBufferTask, InBuffer, InEnsureValidKeys)
+		if (InBuffer->GetUnderlyingDomain() == EDomainType::Data)
+		{
+			// Immediately write data values
+			// Note : let's hope this won't put async in limbo 
+			InBuffer->Write(InEnsureValidKeys);
+		}
+		else
+		{
+			if (!AsyncManager || !AsyncManager->IsAvailable()) { InBuffer->Write(InEnsureValidKeys); }
+			PCGEX_LAUNCH(FWriteBufferTask, InBuffer, InEnsureValidKeys)
+		}
 	}
 }

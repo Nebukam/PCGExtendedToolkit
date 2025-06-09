@@ -788,6 +788,12 @@ namespace PCGExData
 		}
 	}
 
+	void FPointIO::DeleteAttribute(const FPCGMetadataAttributeBase* Attribute) const
+	{
+		const FPCGAttributeIdentifier Identifier(Attribute->Name, Attribute->GetMetadataDomain()->GetDomainID());
+		DeleteAttribute(Identifier);
+	}
+
 #pragma endregion
 
 #pragma region FPointIOCollection

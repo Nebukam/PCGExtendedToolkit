@@ -3,7 +3,6 @@
 
 #include "Misc/CollectionFilters/PCGExTagCheckFilter.h"
 
-
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 

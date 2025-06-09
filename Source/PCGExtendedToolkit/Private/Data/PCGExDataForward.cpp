@@ -166,13 +166,11 @@ namespace PCGExData
 					{
 						using T = decltype(DummyValue);
 
-						// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-						// ReSharper disable once CppRedundantTemplateKeyword
-						const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
+						const FPCGMetadataAttribute<T>* SourceAtt = PCGEx::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 						if (!SourceAtt) { return; }
 
 						const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
-							                       SourceAtt->GetValue(PCGFirstEntryKey) :
+							                       SourceAtt->GetValue(PCGDefaultValueKey) :
 							                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 						TSharedPtr<TBuffer<T>> Writer = nullptr;
@@ -189,8 +187,9 @@ namespace PCGExData
 
 						if (!Writer) { return; }
 
-						if (TSharedPtr<TArrayBuffer<T>> ElementsWriter = StaticCastSharedPtr<TArrayBuffer<T>>(Writer))
+						if (Writer->GetUnderlyingDomain() == EDomainType::Elements)
 						{
+							TSharedPtr<TArrayBuffer<T>> ElementsWriter = StaticCastSharedPtr<TArrayBuffer<T>>(Writer);
 							TArray<T>& Values = *ElementsWriter->GetOutValues();
 							for (T& Value : Values) { Value = ForwardValue; }
 						}
@@ -211,19 +210,17 @@ namespace PCGExData
 				{
 					using T = decltype(DummyValue);
 
-					// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-					// ReSharper disable once CppRedundantTemplateKeyword
-					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
+					const FPCGMetadataAttribute<T>* SourceAtt = PCGEx::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 					if (!SourceAtt) { return; }
 
 					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
-						                       SourceAtt->GetValue(PCGFirstEntryKey) :
+						                       SourceAtt->GetValue(PCGDefaultValueKey) :
 						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 					const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;
 
 					InTargetDataFacade->Source->DeleteAttribute(Identifier);
-					InTargetDataFacade->Source->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation(), true, true);
+					InTargetDataFacade->Source->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation());
 				});
 		}
 	}
@@ -241,19 +238,17 @@ namespace PCGExData
 				{
 					using T = decltype(DummyValue);
 
-					// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-					// ReSharper disable once CppRedundantTemplateKeyword
-					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
+					const FPCGMetadataAttribute<T>* SourceAtt = PCGEx::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 					if (!SourceAtt) { return; }
 
 					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
-						                       SourceAtt->GetValue(PCGFirstEntryKey) :
+						                       SourceAtt->GetValue(PCGDefaultValueKey) :
 						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 					TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::Inherit);
-
-					if (TSharedPtr<TArrayBuffer<T>> ElementsWriter = StaticCastSharedPtr<TArrayBuffer<T>>(Writer))
+					if (Writer->GetUnderlyingDomain() == EDomainType::Elements)
 					{
+						TSharedPtr<TArrayBuffer<T>> ElementsWriter = StaticCastSharedPtr<TArrayBuffer<T>>(Writer);
 						TArray<T>& Values = *ElementsWriter->GetOutValues();
 						for (int32 Index : Indices) { Values[Index] = ForwardValue; }
 					}
@@ -278,13 +273,11 @@ namespace PCGExData
 				{
 					using T = decltype(DummyValue);
 
-					// 'template' spec required for clang on mac, and rider keeps removing it without the comment below.
-					// ReSharper disable once CppRedundantTemplateKeyword
-					const FPCGMetadataAttribute<T>* SourceAtt = InSourceData->Metadata->template GetConstTypedAttribute<T>(Identity.Identifier);
+					const FPCGMetadataAttribute<T>* SourceAtt = PCGEx::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 					if (!SourceAtt) { return; }
 
 					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
-						                       SourceAtt->GetValue(PCGFirstEntryKey) :
+						                       SourceAtt->GetValue(PCGDefaultValueKey) :
 						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 					const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;

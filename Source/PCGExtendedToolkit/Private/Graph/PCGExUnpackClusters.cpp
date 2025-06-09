@@ -69,19 +69,19 @@ void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 	PCGEX_SETTINGS(UnpackClusters)
 
 	FPCGAttributeIdentifier EdgeCountIdentifier = PCGEx::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount, PointIO->GetIn());
-	const FPCGMetadataAttribute<int32>* EdgeCount = PointIO->GetIn()->Metadata->GetConstTypedAttribute<int32>(EdgeCountIdentifier);
+	const FPCGMetadataAttribute<int32>* EdgeCount = PCGEx::TryGetConstAttribute<int32>(PointIO->GetIn(), EdgeCountIdentifier);
 	int32 NumEdges = -1;
 
 	if (!EdgeCount)
 	{
 		// Support for legacy data that was storing the edge count as a point index
 		EdgeCountIdentifier = PCGEx::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount_LEGACY, PointIO->GetIn());
-		EdgeCount = PointIO->GetIn()->Metadata->GetConstTypedAttribute<int32>(EdgeCountIdentifier);
+		EdgeCount = PCGEx::TryGetConstAttribute<int32>(PointIO->GetIn(), EdgeCountIdentifier);
 		if (EdgeCount) { NumEdges = EdgeCount->GetValue(PCGDefaultValueKey); }
 	}
 	else
 	{
-		NumEdges = EdgeCount->GetValue(PCGFirstEntryKey);
+		NumEdges = EdgeCount->GetValue(PCGDefaultValueKey);
 	}
 
 	if (NumEdges == -1)

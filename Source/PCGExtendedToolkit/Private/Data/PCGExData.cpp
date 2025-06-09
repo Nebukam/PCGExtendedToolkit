@@ -40,28 +40,6 @@ namespace PCGExData
 		Flush();
 	}
 
-	void IBuffer::SetTargetOutputName(const FName InName)
-	{
-		TargetOutputName = InName;
-	}
-
-	PCGEx::FAttributeIdentity IBuffer::GetTargetOutputIdentity()
-	{
-		check(IsWritable() && OutAttribute)
-		return PCGEx::FAttributeIdentity(
-			OutputsToDifferentName() ? TargetOutputName : OutAttribute->Name,
-			Type, OutAttribute->AllowsInterpolation());
-	}
-
-	bool IBuffer::OutputsToDifferentName() const
-	{
-		// Don't consider None, @Source, @Last etc
-		FString StrName = TargetOutputName.ToString();
-		if (TargetOutputName.IsNone() || StrName.IsEmpty() || StrName.StartsWith(TEXT("@"))) { return false; }
-		if (OutAttribute) { return OutAttribute->Name != TargetOutputName; }
-		return false;
-	}
-
 	void IBuffer::SetType(const EPCGMetadataTypes InType)
 	{
 		Type = InType;
@@ -255,42 +233,22 @@ namespace PCGExData
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
 
-			TSet<FName> UniqueOutputs;
-			//TSet<FName> DeprecatedOutputs;
-
+			TSet<FPCGAttributeIdentifier> UniqueOutputs;
 			for (int i = 0; i < Buffers.Num(); i++)
 			{
 				const TSharedPtr<IBuffer> Buffer = Buffers[i];
 				if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
 
-				PCGEx::FAttributeIdentity Identity = Buffer->GetTargetOutputIdentity();
+				FPCGAttributeIdentifier Identifier = Buffer->Identifier;
 				bool bAlreadySet = false;
-				UniqueOutputs.Add(Identity.Identifier.Name, &bAlreadySet);
+				UniqueOutputs.Add(Identifier, &bAlreadySet);
 
 				if (bAlreadySet)
 				{
-					PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Attribute \"{0}\" is used at target output at least twice by different sources."), FText::FromName(Identity.Identifier.Name)));
+					PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Attribute \"{0}\" is written to at least twice by different buffers."), FText::FromName(Identifier.Name)));
 					return false;
 				}
-
-				if (Buffer->OutputsToDifferentName())
-				{
-					// Get rid of new attributes that are being redirected at the time of writing
-					// This is not elegant, but it's while waiting for a proper refactor
-
-					if (Buffer->bIsNewOutput && Buffer->OutAttribute)
-					{
-						// Note : there will be a problem if an output an attribute to a different name a different type than the original one
-						// i.e, From@A<double>, To@B<FVector>
-						// Although this should never be an issue due to templating
-						//DeprecatedOutputs.Add(Buffer->OutAttribute->Name);
-						Source->DeleteAttribute(Buffer->OutAttribute->Name);
-					}
-				}
 			}
-
-			// Make sure we don't deprecate any output that will be written to ?
-			// UniqueOutputs > DeprecatedOutputs
 		}
 
 		return true;

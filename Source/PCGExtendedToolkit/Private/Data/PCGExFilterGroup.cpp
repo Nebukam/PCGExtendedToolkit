@@ -40,6 +40,7 @@ namespace PCGExFilterGroup
 		for (const UPCGExFilterFactoryData* ManagedFactory : *ManagedFactories)
 		{
 			TSharedPtr<PCGExPointFilter::FFilter> NewFilter = ManagedFactory->CreateFilter();
+			NewFilter->bUseDataDomainSelectorsOnly = ManagedFactory->GetOnlyUseDataDomain();
 			NewFilter->bCacheResults = false;
 			if (!InitManagedFilter(InContext, NewFilter)) { continue; }
 			ManagedFilters.Add(NewFilter);

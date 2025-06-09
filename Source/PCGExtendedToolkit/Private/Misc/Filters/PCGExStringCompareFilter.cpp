@@ -7,6 +7,13 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
+bool UPCGExStringCompareFilterFactory::DomainCheck()
+{
+	return
+		PCGExHelpers::IsDataDomainAttribute(Config.OperandA) &&
+		(Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB));
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExStringCompareFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FStringCompareFilter>(this);
@@ -51,6 +58,17 @@ bool PCGExPointFilter::FStringCompareFilter::Test(const int32 PointIndex) const
 	const PCGExData::FConstPoint Point = PointDataFacade->Source->GetInPoint(PointIndex);
 	const FString A = OperandA->SoftGet(Point, TEXT(""));
 	const FString B = TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute ? OperandB->SoftGet(Point, TEXT("")) : TypedFilterFactory->Config.OperandBConstant;
+	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
+}
+
+bool PCGExPointFilter::FStringCompareFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+{
+	FString A = TEXT("");
+	FString B = TEXT("");
+
+	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A)) { return false; }
+	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB, TypedFilterFactory->Config.OperandBConstant, B)) { return false; }
+
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
 }
 

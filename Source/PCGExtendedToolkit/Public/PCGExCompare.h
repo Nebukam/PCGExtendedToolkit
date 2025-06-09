@@ -475,6 +475,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 	FVector GetCWTolerance(const int32 PointIndex) const;
 
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
+	bool GetOnlyUseDataDomain() const;
+	
 	bool Test(const FVector& A, const FVector& B, const int32 PointIndex) const;
 };
 
@@ -552,6 +554,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	}
 
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
+	bool GetOnlyUseDataDomain() const;
 };
 
 USTRUCT(BlueprintType)
@@ -611,6 +614,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagComparisonDetails
 	bool Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FConstPoint& SourcePoint) const;
 
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
+	bool GetOnlyUseDataDomain() const;
 };
 
 UENUM()

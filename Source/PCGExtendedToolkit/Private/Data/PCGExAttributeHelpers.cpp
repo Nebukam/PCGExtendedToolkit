@@ -99,19 +99,6 @@ bool FPCGExAttributeSourceToTargetList::ValidateNames(FPCGExContext* InContext) 
 	return true;
 }
 
-void FPCGExAttributeSourceToTargetList::SetOutputTargetNames(const TSharedRef<PCGExData::FFacade>& InFacade) const
-{
-	for (const FPCGExAttributeSourceToTargetDetails& Entry : Attributes)
-	{
-		if (!Entry.WantsRemappedOutput()) { continue; }
-
-		const TSharedPtr<PCGExData::IBuffer> Buffer = InFacade->FindWritableAttributeBuffer(Entry.Source);
-		if (!Buffer) { continue; }
-
-		Buffer->SetTargetOutputName(Entry.Target);
-	}
-}
-
 void FPCGExAttributeSourceToTargetList::GetSources(TArray<FName>& OutNames) const
 {
 	OutNames.Reserve(OutNames.Num() + Attributes.Num());

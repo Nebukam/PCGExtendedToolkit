@@ -4,17 +4,17 @@
 #include "Misc/Filters/PCGExConstantFilter.h"
 
 
+
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
 bool UPCGExConstantFilterFactory::Init(FPCGExContext* InContext)
 {
 	return Super::Init(InContext);
-}
-
-bool UPCGExConstantFilterFactory::SupportsCollectionEvaluation() const
-{
-	return true;
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExConstantFilterFactory::CreateFilter() const
@@ -36,6 +36,11 @@ bool PCGExPointFilter::FConstantFilter::Test(const int32 PointIndex) const
 }
 
 bool PCGExPointFilter::FConstantFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+{
+	return ConstantValue;
+}
+
+bool PCGExPointFilter::FConstantFilter::Test(const PCGExData::FProxyPoint& Point) const
 {
 	return ConstantValue;
 }

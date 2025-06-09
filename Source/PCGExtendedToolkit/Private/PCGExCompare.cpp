@@ -281,6 +281,11 @@ void FPCGExVectorHashComparisonDetails::RegisterConsumableAttributesWithData(FPC
 	PCGEX_CONSUMABLE_CONDITIONAL(HashToleranceInput == EPCGExInputValueType::Attribute, HashToleranceAttribute, Consumable)
 }
 
+bool FPCGExVectorHashComparisonDetails::GetOnlyUseDataDomain() const
+{
+	return HashToleranceInput == EPCGExInputValueType::Constant;
+}
+
 bool FPCGExVectorHashComparisonDetails::Test(const FVector& A, const FVector& B, const int32 PointIndex) const
 {
 	const FVector CWTolerance = GetCWTolerance(PointIndex);
@@ -302,6 +307,11 @@ void FPCGExDotComparisonDetails::RegisterConsumableAttributesWithData(FPCGExCont
 {
 	FName Consumable = NAME_None;
 	PCGEX_CONSUMABLE_CONDITIONAL(ThresholdInput == EPCGExInputValueType::Attribute, ThresholdAttribute, Consumable)
+}
+
+bool FPCGExDotComparisonDetails::GetOnlyUseDataDomain() const
+{
+	return ThresholdInput == EPCGExInputValueType::Constant;
 }
 
 bool FPCGExAttributeToTagComparisonDetails::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade)
@@ -380,6 +390,12 @@ void FPCGExAttributeToTagComparisonDetails::RegisterConsumableAttributesWithData
 
 	FName Consumable = NAME_None;
 	PCGEX_CONSUMABLE_SELECTOR(ValueAttribute, Consumable)
+}
+
+bool FPCGExAttributeToTagComparisonDetails::GetOnlyUseDataDomain() const
+{
+	return TagNameInput == EPCGExInputValueType::Constant &&
+		PCGExHelpers::IsDataDomainAttribute(ValueAttribute);
 }
 
 int64 FPCGExBitmask::Get() const

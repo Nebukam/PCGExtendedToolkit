@@ -11,6 +11,9 @@
 #include "PCGExPointsProcessor.h"
 
 
+
+
+
 #include "PCGExConstantFilter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -45,7 +48,8 @@ public:
 	FPCGExConstantFilterConfig Config;
 
 	virtual bool Init(FPCGExContext* InContext) override;
-	virtual bool SupportsCollectionEvaluation() const override;
+	virtual bool SupportsCollectionEvaluation() const override { return true; }
+	virtual bool SupportsProxyEvaluation() const override { return true; }
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
@@ -67,6 +71,7 @@ namespace PCGExPointFilter
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 
 		virtual ~FConstantFilter() override
 		{

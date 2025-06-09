@@ -123,8 +123,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetList
 	int32 Num() const { return Attributes.Num(); }
 
 	bool ValidateNames(FPCGExContext* InContext) const;
-	void SetOutputTargetNames(const TSharedRef<PCGExData::FFacade>& InFacade) const;
-
 	void GetSources(TArray<FName>& OutNames) const;
 };
 

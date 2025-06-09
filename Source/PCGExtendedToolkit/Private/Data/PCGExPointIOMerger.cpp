@@ -65,8 +65,10 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointIOMerger::MergeAsync);
 
+	bDataDomainToElements = InCarryOverDetails->bDataDomainToElements;
+
 	EnumAddFlags(AllocateProperties, EPCGPointNativeProperties::MetadataEntry);
-	
+
 	UPCGBasePointData* OutPointData = UnionDataFacade->GetOut();
 	PCGEx::SetNumPointsAllocated(OutPointData, NumCompositePoints, AllocateProperties);
 
@@ -76,7 +78,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	InCarryOverDetails->Prune(&UnionDataFacade->Source.Get());
 
-	TMap<FName, int32> ExpectedTypes;
+	TMap<FPCGAttributeIdentifier, int32> ExpectedTypes;
 
 	const int32 NumSources = IOSources.Num();
 
@@ -87,7 +89,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 		const TSharedPtr<PCGExData::FPointIO> Source = IOSources[i];
 		UnionDataFacade->Source->Tags->Append(Source->Tags.ToSharedRef());
 
-		
+
 		Source->GetIn()->CopyPropertiesTo(OutPointData, 0, SourceScope.Start, SourceScope.Count, Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
 
 		// Discover attributes
@@ -100,17 +102,18 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 				FString StrName = SourceIdentity.Identifier.Name.ToString();
 				if (!InCarryOverDetails->Attributes.Test(StrName)) { return; }
 
-				// TODO : Get attributes in the task
-
-				const int32* ExpectedType = ExpectedTypes.Find(SourceIdentity.Identifier.Name);
+				const int32* ExpectedType = ExpectedTypes.Find(SourceIdentity.Identifier);
 				if (!ExpectedType)
 				{
 					// No type expectations, we need to register a new attribute ref
-					PCGExPointIOMerger::FIdentityRef SourceRef = SourceIdentity;
+					PCGExPointIOMerger::FIdentityRef& SourceRef = UniqueIdentities.Emplace_GetRef(SourceIdentity);
 					SourceRef.Attribute = Metadata->GetConstAttribute(SourceIdentity.Identifier);
 					SourceRef.bInitDefault = InCarryOverDetails->bPreserveAttributesDefaultValue;
 
-					ExpectedTypes.Add(SourceRef.Identifier.Name, UniqueIdentities.Add(SourceRef));
+					SourceRef.ElementsIdentifier.Name = SourceIdentity.Identifier.Name;
+					SourceRef.ElementsIdentifier.MetadataDomain = PCGMetadataDomainID::Elements;
+
+					ExpectedTypes.Add(SourceRef.Identifier, UniqueIdentities.Num()-1);
 
 					return;
 				}
@@ -124,7 +127,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 	}
 
 	InCarryOverDetails->Prune(&UnionDataFacade->Source.Get());
-	
+
 	PCGEX_SHARED_THIS_DECL
 	for (int i = 0; i < UniqueIdentities.Num(); i++)
 	{
@@ -149,17 +152,10 @@ namespace PCGExPointIOMerger
 			{
 				using T = decltype(DummyValue);
 
-				TSharedPtr<PCGExData::TBuffer<T>> Buffer;
-
-				if (Identity.bInitDefault)
-				{
-					Buffer = Merger->UnionDataFacade->GetWritable(static_cast<const FPCGMetadataAttribute<T>*>(Identity.Attribute), PCGExData::EBufferInit::New);
-				}
-
-				if (!Buffer)
-				{
-					Buffer = Merger->UnionDataFacade->GetWritable(Identity.Identifier, T{}, Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
-				}
+				TSharedPtr<PCGExData::TBuffer<T>> Buffer = Merger->UnionDataFacade->GetWritable(
+					Merger->WantsDataToElements() ? Identity.ElementsIdentifier : Identity.Identifier,
+					Identity.bInitDefault ? static_cast<const FPCGMetadataAttribute<T>*>(Identity.Attribute)->GetValue(PCGDefaultValueKey) : T{},
+					Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
 
 				for (int i = 0; i < Merger->IOSources.Num(); i++)
 				{
