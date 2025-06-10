@@ -366,7 +366,7 @@ namespace PCGExFilterVtx
 
 	void FBatch::Write()
 	{
-		VtxDataFacade->Write(AsyncManager);
+		VtxDataFacade->WriteFastest(AsyncManager);
 	}
 }
 

@@ -97,7 +97,7 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 	SeedForwardHandler->Forward(Query->Seed.Point.Index, PathDataFacade);
 	GoalForwardHandler->Forward(Query->Goal.Point.Index, PathDataFacade);
 
-	PathDataFacade->Write(GetAsyncManager());
+	PathDataFacade->WriteFastest(GetAsyncManager());
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)

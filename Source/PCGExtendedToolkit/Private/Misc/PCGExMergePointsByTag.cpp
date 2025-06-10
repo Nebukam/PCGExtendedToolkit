@@ -30,7 +30,7 @@ namespace PCPGExMergePointsByTag
 
 	void FMergeList::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const
 	{
-		CompositeDataFacade->Write(AsyncManager);
+		CompositeDataFacade->WriteFastest(AsyncManager);
 	}
 
 	FTagBucket::FTagBucket(const FString& InTag): Tag(InTag)

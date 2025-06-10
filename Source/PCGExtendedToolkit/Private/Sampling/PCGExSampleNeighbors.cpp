@@ -132,7 +132,7 @@ namespace PCGExSampleNeighbors
 	void FProcessor::Write()
 	{
 		for (const TSharedPtr<FPCGExNeighborSampleOperation>& Op : SamplingOperations) { Op->CompleteOperation(); }
-		EdgeDataFacade->Write(AsyncManager);
+		EdgeDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FProcessor::Cleanup()

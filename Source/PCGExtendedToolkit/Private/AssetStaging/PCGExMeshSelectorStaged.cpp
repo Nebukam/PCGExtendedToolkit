@@ -68,7 +68,9 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 		return true;
 	}
 
-	if (!InPointData->Metadata->GetConstTypedAttribute<int64>(PCGExStaging::Tag_EntryIdx))
+	const FPCGMetadataAttribute<int64>* HashAttribute = PCGEx::TryGetConstAttribute<int64>(InPointData->Metadata, PCGExStaging::Tag_EntryIdx);
+
+	if (!HashAttribute)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to get hash attribute from input"));
 		return true;
@@ -76,7 +78,9 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 
 	if (Context.CurrentPointIndex == 0)
 	{
-		if (OutPointData)
+		// First time init
+
+		if (OutPointData && bOutputPoints)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SetupOutPointData);
 
@@ -86,49 +90,69 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 
 			OutPointData->Metadata->DeleteAttribute(PCGExStaging::Tag_EntryIdx);
 		}
+	}
 
-		// 1- Build collection map from override attribute set		
-		TSharedPtr<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> CollectionMap =
-			MakeShared<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>();
+	// 1- Build collection map from override attribute set		
+	TSharedPtr<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> CollectionMap =
+		MakeShared<PCGExStaging::TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>();
 
-		CollectionMap->UnpackPin(&Context, PCGPinConstants::DefaultParamsLabel);
+	CollectionMap->UnpackPin(&Context, PCGPinConstants::DefaultParamsLabel);
 
-		if (!CollectionMap->HasValidMapping())
-		{
-			PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to find Staging Map data in overrides"));
-			return true;
-		}
+	if (!CollectionMap->HasValidMapping())
+	{
+		PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to find Staging Map data in overrides"));
+		return true;
+	}
 
-		// 2- Partition points
+	if (!bUseTimeSlicing)
+	{
+		// Partition & write points in one go
 		if (!CollectionMap->BuildPartitions(InPointData, OutMeshInstances))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, &Context, FTEXT( "Unable to build any partitions"));
 			return true;
 		}
+	}
+	else
+	{
+		// Retrieve existing partitions
+		CollectionMap->RetrievePartitions(InPointData, OutMeshInstances);
 
-		// 3- Resolve & apply entries for each partition
+		const int32 NumPoints = InPointData->GetNumPoints();
+
+		if (Context.CurrentPointIndex != NumPoints)
 		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SelectEntries);
-
-			TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
-
-			for (const TPair<int64, int32>& Partition : CollectionMap->IndexedPartitions)
+			TConstPCGValueRange<int64> MetadataEntries = InPointData->GetConstMetadataEntryValueRange();
+			while (Context.CurrentPointIndex < NumPoints)
 			{
-				const FPCGExMeshCollectionEntry* Entry = nullptr;
-				int16 MaterialPick = -1;
-
-				if (!CollectionMap->ResolveEntry(Partition.Key, Entry, MaterialPick)) { continue; }
-
-				FPCGMeshInstanceList& InstanceList = OutMeshInstances[Partition.Value];
-
-				FPCGSoftISMComponentDescriptor& Descriptor = InstanceList.Descriptor;
-				Entry->InitPCGSoftISMDescriptor(Descriptor);
-				Entry->ApplyMaterials(MaterialPick, Descriptor);
-
-				const TArray<int32>& InstanceIndices = InstanceList.InstancesIndices;
-				InstanceList.Instances.Reserve(InstanceIndices.Num());
-				for (const int32 i : InstanceIndices) { InstanceList.Instances.Emplace(InTransforms[i]); }
+				CollectionMap->InsertEntry(HashAttribute->GetValueFromItemKey(MetadataEntries[Context.CurrentPointIndex]), Context.CurrentPointIndex, OutMeshInstances);
+				Context.CurrentPointIndex++;
+				if (Context.ShouldStop()) { return false; }
 			}
+		}
+	}
+
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExMeshSelectorStaged::SelectEntries);
+
+		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
+
+		for (const TPair<int64, int32>& Partition : CollectionMap->IndexedPartitions)
+		{
+			const FPCGExMeshCollectionEntry* Entry = nullptr;
+			int16 MaterialPick = -1;
+
+			if (!CollectionMap->ResolveEntry(Partition.Key, Entry, MaterialPick)) { continue; }
+
+			FPCGMeshInstanceList& InstanceList = OutMeshInstances[Partition.Value];
+
+			FPCGSoftISMComponentDescriptor& Descriptor = InstanceList.Descriptor;
+			Entry->InitPCGSoftISMDescriptor(Descriptor);
+			if (bApplyMaterialOverrides) { Entry->ApplyMaterials(MaterialPick, Descriptor); }
+
+			const TArray<int32>& InstanceIndices = InstanceList.InstancesIndices;
+			InstanceList.Instances.Reserve(InstanceIndices.Num());
+			for (const int32 i : InstanceIndices) { InstanceList.Instances.Emplace(InTransforms[i]); }
 		}
 	}
 

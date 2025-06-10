@@ -368,7 +368,7 @@ namespace PCGExSampleOverlapStats
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
-				This->PointDataFacade->Write(This->AsyncManager);
+				This->PointDataFacade->WriteFastest(This->AsyncManager);
 				if (This->Settings->bTagIfHasAnyOverlap && This->bAnyOverlap) { This->PointDataFacade->Source->Tags->AddRaw(This->Settings->HasAnyOverlapTag); }
 				if (This->Settings->bTagIfHasNoOverlap && !This->bAnyOverlap) { This->PointDataFacade->Source->Tags->AddRaw(This->Settings->HasNoOverlapTag); }
 			};

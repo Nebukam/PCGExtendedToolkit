@@ -435,7 +435,7 @@ namespace PCGExPackActorDatas
 			Attributes.Add(Buffer->OutAttribute);
 		}
 
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FProcessor::Write()

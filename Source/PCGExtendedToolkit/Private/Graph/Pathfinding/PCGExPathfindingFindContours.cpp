@@ -197,7 +197,7 @@ namespace PCGExFindContours
 		Context->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
 
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
-		PathDataFacade->Write(AsyncManager);
+		PathDataFacade->WriteFastest(AsyncManager);
 
 		if (Settings->bOutputFilteredSeeds)
 		{

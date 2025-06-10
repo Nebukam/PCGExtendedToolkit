@@ -275,7 +275,7 @@ namespace PCGExWritePathProperties
 			if (Settings->bTagConvex && Path->bIsConvex) { PointIO->Tags->AddRaw(Settings->ConvexTag); }
 		}
 
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FProcessor::Output()

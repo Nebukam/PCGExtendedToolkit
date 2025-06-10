@@ -562,7 +562,7 @@ namespace PCGExBevelPath
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
-				This->PointDataFacade->Write(This->AsyncManager);
+				This->PointDataFacade->WriteFastest(This->AsyncManager);
 			};
 
 		WriteFlagsTask->OnSubLoopStartCallback =

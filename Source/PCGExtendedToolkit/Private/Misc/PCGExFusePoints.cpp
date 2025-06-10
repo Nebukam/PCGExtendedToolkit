@@ -181,7 +181,7 @@ namespace PCGExFusePoints
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 }
 

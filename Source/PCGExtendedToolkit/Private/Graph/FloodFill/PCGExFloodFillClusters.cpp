@@ -494,7 +494,7 @@ namespace PCGExClusterDiffusion
 
 		TBatch<FProcessor>::Write();
 		BlendOpsManager->Cleanup(Context);
-		VtxDataFacade->Write(AsyncManager);
+		VtxDataFacade->WriteFastest(AsyncManager);
 	}
 }
 

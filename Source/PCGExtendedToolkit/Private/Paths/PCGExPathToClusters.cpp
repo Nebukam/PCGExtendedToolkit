@@ -226,7 +226,7 @@ namespace PCGExPathToClusters
 		}
 
 		GraphBuilder->StageEdgesOutputs();
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 
 #pragma endregion

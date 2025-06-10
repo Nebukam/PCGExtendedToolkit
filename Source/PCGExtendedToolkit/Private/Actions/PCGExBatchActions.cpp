@@ -166,7 +166,7 @@ namespace PCGExBatchActions
 			}
 		}
 
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FProcessor::Cleanup()

@@ -292,7 +292,7 @@ namespace PCGExPathSplineMeshSimple
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FProcessor::Output()

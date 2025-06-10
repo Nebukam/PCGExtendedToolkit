@@ -328,6 +328,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 	void GetBlendingParams(
 		const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata,
 		TArray<PCGExDataBlending::FBlendingParam>& OutParams,
+		TArray<FPCGAttributeIdentifier>& OutAttributeIdentifiers,
 		const bool bSkipProperties = false,
 		const TSet<FName>* IgnoreAttributeSet = nullptr) const;
 

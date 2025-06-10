@@ -391,7 +391,7 @@ namespace PCGExGetTextureData
 			Context->TextureReferences.Append(*Set.Get());
 		}
 
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FProcessor::CompleteWork()

@@ -240,7 +240,7 @@ namespace PCGExBuildVoronoi
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 }
 

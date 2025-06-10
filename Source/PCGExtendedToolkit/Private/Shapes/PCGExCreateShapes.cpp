@@ -194,13 +194,13 @@ namespace PCGExCreateShapes
 	{
 		if (Settings->OutputMode == EPCGExShapeOutputMode::PerDataset)
 		{
-			PointDataFacade->Write(AsyncManager);
+			PointDataFacade->WriteFastest(AsyncManager);
 		}
 		else
 		{
 			for (const TSharedPtr<PCGExData::FFacade>& Facade : PerSeedFacades)
 			{
-				Facade->Write(AsyncManager);
+				Facade->WriteFastest(AsyncManager);
 			}
 		}
 	}

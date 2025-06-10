@@ -148,8 +148,6 @@ namespace PCGExData
 	{
 		if (!AsyncManager || !AsyncManager->IsAvailable() || !Source->GetOut()) { return; }
 
-		//UE_LOG(LogPCGEx, Warning, TEXT("{%lld} Facade -> Write"), AsyncManager->Context->GetInputSettings<UPCGSettings>()->UID)
-
 		if (ValidateOutputsBeforeWriting())
 		{
 			if (bEnsureValidKeys) { Source->GetOutKeys(true); }
@@ -223,6 +221,41 @@ namespace PCGExData
 		}
 
 		WriteBuffersWithCallback->StartSimpleCallbacks();
+	}
+
+	int32 FFacade::WriteSynchronous(const bool bEnsureValidKeys)
+	{
+		if (!Source->GetOut()) { return -1; }
+
+		int32 WritableCount = 0;
+
+		if (ValidateOutputsBeforeWriting())
+		{
+			if (bEnsureValidKeys) { Source->GetOutKeys(true); }
+
+			{
+				FWriteScopeLock WriteScopeLock(BufferLock);
+
+				for (int i = 0; i < Buffers.Num(); i++)
+				{
+					const TSharedPtr<IBuffer> Buffer = Buffers[i];
+					if (!Buffer.IsValid() || !Buffer->IsWritable() || !Buffer->IsEnabled()) { continue; }
+					Buffer->Write(false);
+					WritableCount++;
+				}
+			}
+		}
+
+		Flush();
+		return WritableCount;
+	}
+
+	void FFacade::WriteFastest(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const bool bEnsureValidKeys)
+	{
+		if (!Source->GetOut()) { return; }
+
+		if (Source->GetNum(EIOSide::Out) < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize) { WriteSynchronous(bEnsureValidKeys); }
+		else { Write(AsyncManager, bEnsureValidKeys); }
 	}
 
 	bool FFacade::ValidateOutputsBeforeWriting() const

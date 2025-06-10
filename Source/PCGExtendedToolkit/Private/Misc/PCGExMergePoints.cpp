@@ -232,7 +232,7 @@ namespace PCGExMergePoints
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FBatch::Write);
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
-		Context->CompositeDataFacade->Write(AsyncManager);
+		Context->CompositeDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FBatch::StartMerge()

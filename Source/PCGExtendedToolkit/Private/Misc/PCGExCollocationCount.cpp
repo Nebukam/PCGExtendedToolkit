@@ -118,7 +118,7 @@ namespace PCGExCollocationCount
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 }
 

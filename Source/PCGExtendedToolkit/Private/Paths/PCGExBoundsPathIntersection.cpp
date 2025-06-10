@@ -301,7 +301,7 @@ namespace PCGExPathIntersections
 	void FProcessor::Write()
 	{
 		FPointsProcessor::Write();
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 }
 

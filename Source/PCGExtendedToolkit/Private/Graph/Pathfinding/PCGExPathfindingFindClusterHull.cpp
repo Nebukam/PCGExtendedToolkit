@@ -119,7 +119,7 @@ namespace PCGExFindClusterHull
 		InCell->PostProcessPoints(PathIO->GetOut());
 
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
-		PathDataFacade->Write(AsyncManager);
+		PathDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FProcessor::Cleanup()

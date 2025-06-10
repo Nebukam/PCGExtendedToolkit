@@ -534,7 +534,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		}
 
 		if (OnSubGraphPostProcess) { OnSubGraphPostProcess(ThisPtr.ToSharedRef()); }
-		EdgesDataFacade->Write(AsyncManager);
+		EdgesDataFacade->WriteFastest(AsyncManager);
 	}
 
 #undef PCGEX_FOREACH_EDGE_METADATA
@@ -1212,7 +1212,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					}
 					else if (This->bCompiledSuccessfully)
 					{
-						This->NodeDataFacade->Write(This->AsyncManager);
+						This->NodeDataFacade->WriteFastest(This->AsyncManager);
 					}
 				}
 				else if (This->OnCompilationEndCallback)

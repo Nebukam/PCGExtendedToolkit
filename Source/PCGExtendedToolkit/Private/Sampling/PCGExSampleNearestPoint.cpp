@@ -545,7 +545,7 @@ namespace PCGExSampleNearestPoints
 	void FProcessor::CompleteWork()
 	{
 		if (BlendOpsManager) { BlendOpsManager->Cleanup(Context); }
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasNoSuccessesTag); }

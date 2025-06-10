@@ -369,7 +369,7 @@ namespace PCGExBuildVoronoi2D
 
 		if (SiteDataFacade)
 		{
-			if (!Settings->bPruneOpenSites) { SiteDataFacade->Write(AsyncManager); }
+			if (!Settings->bPruneOpenSites) { SiteDataFacade->WriteFastest(AsyncManager); }
 			else
 			{
 				const int32 Iterations = SiteDataFacade->GetOut()->GetNumPoints();
@@ -389,7 +389,7 @@ namespace PCGExBuildVoronoi2D
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 }
 

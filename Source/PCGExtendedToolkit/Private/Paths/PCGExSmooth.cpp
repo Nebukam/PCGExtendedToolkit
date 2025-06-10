@@ -171,7 +171,7 @@ namespace PCGExSmooth
 		if (BlendOpsManager) { BlendOpsManager->Cleanup(Context); }
 
 		SmoothingOperation.Reset();
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 
 		BlendOpsManager.Reset();
 	}

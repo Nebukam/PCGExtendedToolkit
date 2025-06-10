@@ -270,7 +270,7 @@ namespace PCGExRelaxClusters
 	void FBatch::Write()
 	{
 		TBatch<FProcessor>::Write();
-		VtxDataFacade->Write(AsyncManager);
+		VtxDataFacade->WriteFastest(AsyncManager);
 	}
 }
 

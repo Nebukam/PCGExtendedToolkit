@@ -39,7 +39,6 @@ namespace PCGExClusterStates
 		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		Manager = MakeShared<PCGExClusterFilter::FManager>(InCluster, PointDataFacade.ToSharedRef(), EdgeDataFacade.ToSharedRef());
-		Manager->bCacheResults = true;
 		return true;
 	}
 
@@ -51,21 +50,18 @@ namespace PCGExClusterStates
 	bool FState::Test(const int32 Index) const
 	{
 		const bool bResult = Manager->Test(Index);
-		Manager->Results[Index] = bResult;
 		return bResult;
 	}
 
 	bool FState::Test(const PCGExCluster::FNode& Node) const
 	{
 		const bool bResult = Manager->Test(Node);
-		Manager->Results[Node.Index] = bResult;
 		return bResult;
 	}
 
 	bool FState::Test(const PCGExGraph::FEdge& Edge) const
 	{
 		const bool bResult = Manager->Test(Edge);
-		Manager->Results[Edge.PointIndex] = bResult;
 		return bResult;
 	}
 
