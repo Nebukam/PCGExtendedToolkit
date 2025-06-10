@@ -44,6 +44,9 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
+	DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
+	if (!DotComparison.Init(InContext, InPointDataFacade.ToSharedRef())) { return false; }
+
 	OperandA = PointDataFacade->GetBroadcaster<FVector>(TypedFilterFactory->Config.OperandA, true);
 	if (!OperandA)
 	{
@@ -97,7 +100,7 @@ PCGEX_CREATE_FILTER_FACTORY(Dot)
 #if WITH_EDITOR
 FString UPCGExDotFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + " ⋅ ";
+	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + TEXT(" ⋅ ");
 
 	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandB); }
 	else { DisplayName += " (Constant)"; }
