@@ -40,7 +40,7 @@ bool UPCGExTensorSplineFactoryData::InitInternalData(FPCGExContext* InContext)
 				if (SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
 				if (SampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { continue; }
 
-				if (TSharedPtr<FPCGSplineStruct> SplineStruct = PCGExPaths::MakeSplineFromPoints(PathData, PointType, bIsClosedLoop, bSmoothLinear))
+				if (TSharedPtr<FPCGSplineStruct> SplineStruct = PCGExPaths::MakeSplineFromPoints(PathData->GetConstTransformValueRange(), PointType, bIsClosedLoop, bSmoothLinear))
 				{
 					ManagedSplines.Add(SplineStruct);
 				}

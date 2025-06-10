@@ -91,26 +91,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const;
 };
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExLloydSettings
-{
-	GENERATED_BODY()
-
-	FPCGExLloydSettings()
-	{
-	}
-
-	/** The number of Lloyd iteration to apply prior to generating the graph. Very expensive!*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bLloydRelax"))
-	int32 Iterations = 3;
-
-	/** The influence of each iteration. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bLloydRelax", ClampMin=0, ClampMax=1))
-	double Influence = 1;
-
-	FORCEINLINE bool IsValid() const { return Iterations > 0 && Influence > 0; }
-};
-
 UENUM()
 enum class EPCGExCellCenter : uint8
 {
