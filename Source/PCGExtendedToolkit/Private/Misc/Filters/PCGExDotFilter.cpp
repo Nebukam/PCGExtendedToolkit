@@ -44,6 +44,9 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 {
 	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
+	DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
+	if (!DotComparison.Init(InContext, InPointDataFacade.ToSharedRef())) { return false; }
+
 	OperandA = PointDataFacade->GetBroadcaster<FVector>(TypedFilterFactory->Config.OperandA, true);
 	if (!OperandA)
 	{
