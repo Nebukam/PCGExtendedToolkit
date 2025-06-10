@@ -81,7 +81,7 @@ PCGEX_CREATE_FILTER_FACTORY(TensorDot)
 #if WITH_EDITOR
 FString UPCGExTensorDotFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + " ⋅ Tensor";
+	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + TEXT(" ⋅ Tensor");
 	return DisplayName;
 }
 #endif
