@@ -4,9 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GeomTools.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Components/SplineMeshComponent.h"
+#include "Curve/CurveUtil.h"
 #include "Data/PCGSplineStruct.h"
+#include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdge.h"
 
 #include "PCGExPaths.generated.h"
@@ -585,6 +588,8 @@ namespace PCGExPaths
 		}
 	};
 
+#pragma region Edge Extras
+
 	template <typename T>
 	class FPathEdgeCustomData : public TPathEdgeExtra<T>
 	{
@@ -705,13 +710,15 @@ namespace PCGExPaths
 		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
+#pragma endregion
+
 	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion, const bool bClosedLoop);
 	TSharedPtr<FPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop);
 
 	FTransform GetClosestTransform(const FPCGSplineStruct& InSpline, const FVector& InLocation, const bool bUseScale = true);
 	FTransform GetClosestTransform(const TSharedPtr<const FPCGSplineStruct>& InSpline, const FVector& InLocation, const bool bUseScale = true);
 
-	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGBasePointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop, bool bSmoothLinear);
+	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const TConstPCGValueRange<FTransform>& InTransforms, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop, bool bSmoothLinear);
 
 	template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
 	PCGExMath::FClosestPosition FindClosestIntersection(
@@ -762,22 +769,51 @@ namespace PCGExPaths
 	{
 		using TPath<ClosedLoop>::bClosedLoop;
 		using TPath<ClosedLoop>::Positions;
-		// A path that has multiple representations
-		// - a FPCGSpline
-		// - a 2D projected version
-		// - shorthands to check if a point is inside or outside the projected polygon that will apply the projection transform
 
 		TSharedPtr<FPCGSplineStruct> Spline;
 		TArray<FVector2D> ProjectedPoints;
-		FTransform Projection;
-		
+		FQuat Projection;
+		FBox ProjectedBox;
+
 	public:
-		explicit TPolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion = 0)
+		explicit TPolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const FVector& ProjectionUp, const double Expansion = 0)
 			: TPath<ClosedLoop>(InTransforms, Expansion)
 		{
-			// TODO : Build projected polygon
+			Projection = FQuat::FindBetweenNormals(ProjectionUp.GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector);
+
+			const int32 NumPts = InTransforms.Num();
+
+			ProjectedPoints.SetNumUninitialized(NumPts);
+			for (int i = 0; i < NumPts; i++) { ProjectedPoints[i] = FVector2D(Projection.RotateVector(InTransforms[i].GetLocation())); }
+
+			if constexpr (ClosedLoop) { Spline = MakeSplineFromPoints(InTransforms, EPCGExSplinePointTypeRedux::Linear, true, false); }
+			else { Spline = MakeSplineFromPoints(InTransforms, EPCGExSplinePointTypeRedux::Linear, false, false); }
+		}
+
+		void EnsureWinding(const EPCGExWinding Winding = EPCGExWinding::CounterClockwise)
+		{
+			if (!PCGExGeo::IsWinded(Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
+			{
+				Algo::Reverse(ProjectedPoints);
+			}
+		}
+
+		bool IsInsideProjection(const FTransform& InTransform) const
+		{
+			return FGeomTools2D::IsPointInPolygon(FVector2D(Projection.RotateVector(InTransform.GetLocation())), ProjectedPoints);
+		}
+
+		FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp) const
+		{
+			const float ClosestKey = Spline->FindInputKeyClosestToWorldLocation(WorldPosition);
+			OutEdgeIndex = FMath::FloorToInt32(ClosestKey);
+			OutLerp = ClosestKey - OutEdgeIndex;
+			return Spline->GetTransformAtSplineInputKey(ClosestKey, ESplineCoordinateSpace::World, false);
 		}
 	};
+
+	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp = FVector::UpVector);
+	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp = FVector::UpVector);
 }
 
 

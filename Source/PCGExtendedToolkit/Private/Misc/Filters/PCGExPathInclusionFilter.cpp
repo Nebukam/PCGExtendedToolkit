@@ -39,7 +39,7 @@ bool UPCGExPathInclusionFilterFactory::Prepare(FPCGExContext* InContext)
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { continue; }
 
-			if (TSharedPtr<FPCGSplineStruct> SplineStruct = PCGExPaths::MakeSplineFromPoints(PathData, Config.PointType, bIsClosedLoop, true))
+			if (TSharedPtr<FPCGSplineStruct> SplineStruct = PCGExPaths::MakeSplineFromPoints(PathData->GetConstTransformValueRange(), Config.PointType, bIsClosedLoop, true))
 			{
 				Splines->Add(SplineStruct);
 			}

@@ -307,6 +307,8 @@ namespace PCGExPaths
 		}
 	}
 
+#pragma region Edge extras
+	
 #pragma region FPathEdgeLength
 
 	void FPathEdgeLength::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
@@ -509,9 +511,9 @@ namespace PCGExPaths
 		return InSpline->GetTransformAtSplineInputKey(InSpline->FindInputKeyClosestToWorldLocation(InLocation), ESplineCoordinateSpace::World, bUseScale);
 	}
 
-	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const UPCGBasePointData* InData, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop, const bool bSmoothLinear)
+	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const TConstPCGValueRange<FTransform>& InTransforms, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop, const bool bSmoothLinear)
 	{
-		const int32 NumPoints = InData->GetNumPoints();
+		const int32 NumPoints = InTransforms.Num();
 		if (NumPoints < 2) { return nullptr; }
 
 		TArray<FSplinePoint> SplinePoints;
@@ -540,19 +542,17 @@ namespace PCGExPaths
 			break;
 		}
 
-		TConstPCGValueRange<FTransform> Transforms = InData->GetConstTransformValueRange();
-
 		if (bComputeTangents)
 		{
 			const int32 MaxIndex = NumPoints - 1;
 
 			for (int i = 0; i < NumPoints; i++)
 			{
-				const FTransform TR = Transforms[i];
+				const FTransform TR = InTransforms[i];
 				const FVector PtLoc = TR.GetLocation();
 
-				const FVector PrevDir = (Transforms[i == 0 ? bClosedLoop ? MaxIndex : 0 : i - 1].GetLocation() - PtLoc) * -1;
-				const FVector NextDir = Transforms[i == MaxIndex ? bClosedLoop ? 0 : i : i + 1].GetLocation() - PtLoc;
+				const FVector PrevDir = (InTransforms[i == 0 ? bClosedLoop ? MaxIndex : 0 : i - 1].GetLocation() - PtLoc) * -1;
+				const FVector NextDir = InTransforms[i == MaxIndex ? bClosedLoop ? 0 : i : i + 1].GetLocation() - PtLoc;
 				const FVector Tangent = FMath::Lerp(PrevDir, NextDir, 0.5).GetSafeNormal() * 0.01;
 
 				SplinePoints[i] = FSplinePoint(
@@ -569,7 +569,7 @@ namespace PCGExPaths
 		{
 			for (int i = 0; i < NumPoints; i++)
 			{
-				const FTransform TR = Transforms[i];
+				const FTransform TR = InTransforms[i];
 				SplinePoints[i] = FSplinePoint(
 					static_cast<float>(i),
 					TR.GetLocation(),
@@ -587,6 +587,26 @@ namespace PCGExPaths
 	}
 
 #pragma endregion
+
+#pragma endregion
+
+	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp)
+	{
+		return MakePolyPath(InPointData->GetConstTransformValueRange(), Expansion, bClosedLoop, ProjectionUp);
+	}
+
+	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp)
+	{
+		if (bClosedLoop)
+		{
+			PCGEX_MAKE_SHARED(P, TPolyPath<true>, InTransforms, ProjectionUp, Expansion)
+			return StaticCastSharedPtr<FPath>(P);
+		}
+
+		PCGEX_MAKE_SHARED(P, TPolyPath<false>, InTransforms, ProjectionUp, Expansion)
+		return StaticCastSharedPtr<FPath>(P);
+	}
+	
 }
 
 
