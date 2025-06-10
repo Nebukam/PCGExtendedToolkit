@@ -288,7 +288,7 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 	void FProcessor::CompleteWork()
 	{
 		if (BlendOpsManager) { BlendOpsManager->Cleanup(Context); }
-		EdgeDataFacade->Write(AsyncManager);
+		EdgeDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FProcessor::Cleanup()

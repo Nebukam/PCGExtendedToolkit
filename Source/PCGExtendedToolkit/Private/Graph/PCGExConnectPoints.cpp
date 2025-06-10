@@ -358,7 +358,7 @@ namespace PCGExConnectPoints
 			return;
 		}
 
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 		GraphBuilder->StageEdgesOutputs();
 	}
 

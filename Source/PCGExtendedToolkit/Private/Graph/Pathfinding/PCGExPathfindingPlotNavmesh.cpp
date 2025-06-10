@@ -173,7 +173,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		if (i != LastPlotIndex && Settings->bAddPlotPointsToPath) { WriteIndex++; }
 	}
 
-	PathDataFacade->Write(AsyncManager);
+	PathDataFacade->WriteFastest(AsyncManager);
 }
 
 #undef LOCTEXT_NAMESPACE

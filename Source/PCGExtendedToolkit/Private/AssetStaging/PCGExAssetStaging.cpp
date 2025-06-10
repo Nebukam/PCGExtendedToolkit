@@ -427,7 +427,7 @@ namespace PCGExAssetStaging
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("No material were picked -- no attribute will be written."));
 		}
 
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
@@ -463,7 +463,7 @@ namespace PCGExAssetStaging
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FProcessor::Write()

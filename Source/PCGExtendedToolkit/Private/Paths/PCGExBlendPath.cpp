@@ -157,7 +157,7 @@ namespace PCGExBlendPath
 	void FProcessor::CompleteWork()
 	{
 		if (BlendOpsManager) { BlendOpsManager->Cleanup(Context); }
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 }
 

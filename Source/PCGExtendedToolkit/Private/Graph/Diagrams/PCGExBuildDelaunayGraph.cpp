@@ -160,7 +160,7 @@ namespace PCGExBuildDelaunay
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FOutputDelaunaySites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

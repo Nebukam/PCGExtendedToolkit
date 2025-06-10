@@ -138,7 +138,7 @@ namespace PCGExFlatProjection
 		}
 		else if (bWriteAttribute)
 		{
-			PointDataFacade->Write(AsyncManager);
+			PointDataFacade->WriteFastest(AsyncManager);
 		}
 	}
 }

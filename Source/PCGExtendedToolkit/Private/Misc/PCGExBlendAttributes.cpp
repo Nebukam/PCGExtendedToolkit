@@ -99,7 +99,7 @@ namespace PCGExBlendAttributes
 	void FProcessor::CompleteWork()
 	{
 		BlendOpsManager->Cleanup(Context);
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FProcessor::Cleanup()

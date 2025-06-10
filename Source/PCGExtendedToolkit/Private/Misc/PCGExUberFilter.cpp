@@ -204,7 +204,7 @@ namespace PCGExUberFilter
 			if (!bHasAnyPass && Settings->bTagIfNoPointPassed) { PointDataFacade->Source->Tags->AddRaw(Settings->NoPointPassedTag); }
 
 
-			PointDataFacade->Write(AsyncManager);
+			PointDataFacade->WriteFastest(AsyncManager);
 			return;
 		}
 

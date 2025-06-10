@@ -213,7 +213,7 @@ namespace PCGExReversePointOrder
 	{
 		if (bReversed)
 		{
-			if (!SwapPairs.IsEmpty()) { PointDataFacade->Write(AsyncManager); }
+			if (!SwapPairs.IsEmpty()) { PointDataFacade->WriteFastest(AsyncManager); }
 			if (Settings->bTagIfReversed) { PointDataFacade->Source->Tags->AddRaw(Settings->IsReversedTag); }
 		}
 		else

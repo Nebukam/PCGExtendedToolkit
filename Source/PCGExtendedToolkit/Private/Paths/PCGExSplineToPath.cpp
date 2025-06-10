@@ -222,7 +222,7 @@ namespace PCGExSplineToPath
 			PCGEX_OUTPUT_VALUE(PointType, LastIndex, GetPointType(SplinePositions.Points[NumSegments].InterpMode));
 		}
 
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 }
 

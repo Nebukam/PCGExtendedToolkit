@@ -34,7 +34,7 @@ void FPCGExMergeVerticesContext::ClusterProcessing_InitialProcessingDone()
 
 void FPCGExMergeVerticesContext::ClusterProcessing_WorkComplete()
 {
-	CompositeDataFacade->Write(GetAsyncManager());
+	CompositeDataFacade->WriteFastest(GetAsyncManager());
 }
 
 PCGEX_INITIALIZE_ELEMENT(MergeVertices)

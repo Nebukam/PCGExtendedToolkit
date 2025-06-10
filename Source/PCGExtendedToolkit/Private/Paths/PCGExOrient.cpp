@@ -142,7 +142,7 @@ namespace PCGExOrient
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManager);
+		PointDataFacade->WriteFastest(AsyncManager);
 	}
 }
 

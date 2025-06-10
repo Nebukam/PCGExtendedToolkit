@@ -357,7 +357,7 @@ namespace PCGExClusterMT
 	void IClusterProcessorBatch::Write()
 	{
 		PCGEX_CHECK_WORK_PERMIT_VOID
-		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->Write(AsyncManager); }
+		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->WriteFastest(AsyncManager); }
 	}
 
 	const PCGExGraph::FGraphMetadataDetails* IClusterProcessorBatch::GetGraphMetadataDetails()

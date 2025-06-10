@@ -25,7 +25,6 @@ namespace PCGExPointStates
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 		Manager = MakeShared<PCGExPointFilter::FManager>(InPointDataFacade.ToSharedRef());
-		Manager->bCacheResults = true;
 		return true;
 	}
 
@@ -37,7 +36,6 @@ namespace PCGExPointStates
 	bool FState::Test(const int32 Index) const
 	{
 		const bool bResult = Manager->Test(Index);
-		Manager->Results[Index] = bResult;
 		return bResult;
 	}
 

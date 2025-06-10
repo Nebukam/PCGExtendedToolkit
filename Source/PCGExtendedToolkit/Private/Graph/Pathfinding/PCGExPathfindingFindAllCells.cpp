@@ -177,7 +177,7 @@ namespace PCGExFindAllCells
 		InCell->PostProcessPoints(PathIO->GetOut());
 
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
-		PathDataFacade->Write(AsyncManager);
+		PathDataFacade->WriteFastest(AsyncManager);
 
 		// TODO : Create cell centroids here
 

@@ -170,7 +170,7 @@ namespace PCGExBridgeClusters
 
 		if (ValidClusters.IsEmpty()) { return; } // Skip work completion entirely
 
-		CompoundedEdgesDataFacade->Write(AsyncManager); // Write base attributes value while finding bridges
+		CompoundedEdgesDataFacade->WriteFastest(AsyncManager); // Write base attributes value while finding bridges
 
 		const int32 NumBounds = ValidClusters.Num();
 		EPCGExBridgeClusterMethod SafeMethod = Settings->BridgeMethod;

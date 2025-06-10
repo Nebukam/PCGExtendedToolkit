@@ -342,7 +342,7 @@ namespace PCGExOffsetPath
 		{
 			TSharedPtr<PCGExData::TBuffer<bool>> MutatedFlag = PointDataFacade->GetWritable<bool>(Settings->MutatedAttributeName, false, true, PCGExData::EBufferInit::Inherit);
 			for (int i = 0; i < Mutated.Num(); i++) { MutatedFlag->SetValue(i, Mutated[i] ? true : false); }
-			PointDataFacade->Write(AsyncManager);
+			PointDataFacade->WriteFastest(AsyncManager);
 		}
 	}
 }

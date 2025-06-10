@@ -18,4 +18,13 @@ public:
 		const UPCGBasePointData* InPointData,
 		TArray<FPCGMeshInstanceList>& OutMeshInstances,
 		UPCGBasePointData* OutPointData) const override;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta = (PCG_Overridable))
+	bool bApplyMaterialOverrides = true;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta = (PCG_Overridable))
+	bool bUseTimeSlicing = false;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta = (PCG_Overridable))
+	bool bOutputPoints = true;
 };

@@ -135,7 +135,7 @@ namespace PCGExPackClusters
 	void FProcessor::CompleteWork()
 	{
 		TProcessor<FPCGExPackClustersContext, UPCGExPackClustersSettings>::CompleteWork();
-		PackedIOFacade->Write(AsyncManager);
+		PackedIOFacade->WriteFastest(AsyncManager);
 	}
 }
 

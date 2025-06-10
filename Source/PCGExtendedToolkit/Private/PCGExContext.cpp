@@ -116,7 +116,7 @@ FPCGExContext::~FPCGExContext()
 void FPCGExContext::IncreaseStagedOutputReserve(const int32 InIncreaseNum)
 {
 	FWriteScopeLock WriteScopeLock(StagedOutputLock);
-	OutputData.TaggedData.Reserve(OutputData.TaggedData.Max() + InIncreaseNum);
+	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + InIncreaseNum);
 }
 
 void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) const

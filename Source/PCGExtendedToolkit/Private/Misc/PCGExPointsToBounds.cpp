@@ -11,6 +11,34 @@
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
+void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsData, const UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers) const
+{
+	if (!AttributeIdentifiers.IsEmpty())
+	{
+		for (const FPCGAttributeIdentifier& AttributeIdentifier : AttributeIdentifiers)
+		{
+			// Only carry over non-data attributes
+			if (AttributeIdentifier.MetadataDomain.Flag != EPCGMetadataDomainFlag::Elements) { continue; }
+
+			const FPCGMetadataAttributeBase* Source = InBoundsData->Metadata->GetConstAttribute(AttributeIdentifier);
+
+			PCGEx::ExecuteWithRightType(
+				Source->GetTypeId(), [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					const FPCGMetadataAttribute<T>* TypedSource = static_cast<const FPCGMetadataAttribute<T>*>(Source);
+
+					FPCGAttributeIdentifier DataIdentifier = FPCGAttributeIdentifier(AttributeIdentifier.Name, PCGMetadataDomainID::Data);
+					const T Value = TypedSource->GetValue(PCGFirstEntryKey);
+					FPCGMetadataAttribute<T>* Target = OutData->Metadata->FindOrCreateAttribute(DataIdentifier, Value);
+					Target->SetDefaultValue(Value);
+				});
+		}
+	}
+	
+	// TODO : Forward point properties
+}
+
 PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
 
 bool FPCGExPointsToBoundsElement::Boot(FPCGExContext* InContext) const
@@ -62,7 +90,20 @@ namespace PCGExPointsToBounds
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
+		if (Settings->OutputMode == EPCGExPointsToBoundsOutputMode::Collapse)
+		{
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
+			OutputIO = PointDataFacade->Source;
+			OutputFacade = PointDataFacade;
+		}
+		else
+		{
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+			OutputIO = MakeShared<PCGExData::FPointIO>(PointDataFacade->Source);
+			OutputIO->InitializeOutput(PCGExData::EIOInit::New);
+			OutputIO->Disable();
+			OutputFacade = MakeShared<PCGExData::FFacade>(OutputIO.ToSharedRef());
+		}
 
 		Bounds = FBox(ForceInit);
 
@@ -86,7 +127,7 @@ namespace PCGExPointsToBounds
 			MinBoxTask->StartSimpleCallbacks();
 		}
 
-		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
+		const UPCGBasePointData* InPointData = OutputIO->GetIn();
 		const int32 NumPoints = InPointData->GetNumPoints();
 
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
@@ -113,31 +154,33 @@ namespace PCGExPointsToBounds
 
 	void FProcessor::CompleteWork()
 	{
-		const UPCGBasePointData* InData = PointDataFacade->GetIn();
-		UPCGBasePointData* OutData = PointDataFacade->GetOut();
+		const UPCGBasePointData* InData = OutputIO->GetIn();
+		UPCGBasePointData* OutData = OutputIO->GetOut();
 		PCGEx::SetNumPointsAllocated(OutData, 1);
 
-		PointDataFacade->Source->InheritPoints(0, 0, 1);
+		OutputIO->InheritPoints(0, 0, 1);
 
 		const double NumPoints = InData->GetNumPoints();
 
 		if (Settings->bBlendProperties)
 		{
 			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
-			MetadataBlender->SetTargetData(PointDataFacade);
+			MetadataBlender->SetTargetData(OutputFacade);
 			MetadataBlender->SetSourceData(PointDataFacade);
-
+			
 			if (!MetadataBlender->Init(Context, Settings->BlendingSettings))
 			{
 				bIsProcessorValid = false;
 				return;
 			}
 
+			BlendedAttributes = MetadataBlender->GetAttributeIdentifiers();
+
 			TArray<PCGEx::FOpStats> Trackers;
 			MetadataBlender->InitTrackers(Trackers);
 			MetadataBlender->BeginMultiBlend(0, Trackers);
 
-			const PCGExData::FConstPoint Target = PointDataFacade->GetOutPoint(0);
+			const PCGExData::FConstPoint Target = OutputIO->GetOutPoint(0);
 
 			for (int i = 0; i < NumPoints; i++)
 			{
@@ -156,22 +199,27 @@ namespace PCGExPointsToBounds
 		if (bOrientedBoxFound)
 		{
 			const FVector Extents = OrientedBox.Extents;
-			OutTransforms[0].SetLocation(OrientedBox.Center());
-			OutTransforms[0].SetRotation(FQuat(OrientedBox.Frame.Rotation));
+			OutTransforms[0] = FTransform(FQuat(OrientedBox.Frame.Rotation),OrientedBox.Center());
 			OutBoundsMin[0] = -Extents;
 			OutBoundsMax[0] = Extents;
 		}
 		else
 		{
 			const FVector Center = Bounds.GetCenter();
-			OutTransforms[0].SetLocation(Center);
+			OutTransforms[0]= FTransform(FQuat::Identity,Center);
 			OutBoundsMin[0] = Bounds.Min - Center;
 			OutBoundsMax[0] = Bounds.Max - Center;
 		}
 
-		if (Settings->bWritePointsCount) { WriteMark(PointDataFacade->Source, Settings->PointsCountAttributeName, NumPoints); }
+		if (Settings->bWritePointsCount) { WriteMark(OutputFacade->Source, Settings->PointsCountAttributeName, NumPoints); }
 
-		PointDataFacade->Write(AsyncManager);
+		OutputFacade->WriteSynchronous();
+
+
+		if (Settings->OutputMode == EPCGExPointsToBoundsOutputMode::WriteData)
+		{
+			Settings->DataDetails.Output(OutputFacade->GetOut(), PointDataFacade->GetOut(), BlendedAttributes);
+		}
 	}
 }
 

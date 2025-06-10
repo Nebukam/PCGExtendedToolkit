@@ -168,7 +168,7 @@ void FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	Context->SeedForwardHandler->Forward(Seed.Index, PathDataFacade);
 	Context->GoalForwardHandler->Forward(Goal.Index, PathDataFacade);
 
-	PathDataFacade->Write(AsyncManager);
+	PathDataFacade->WriteFastest(AsyncManager);
 }
 
 #undef LOCTEXT_NAMESPACE

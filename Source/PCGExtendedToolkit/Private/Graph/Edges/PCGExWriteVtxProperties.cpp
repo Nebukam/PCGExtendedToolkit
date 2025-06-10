@@ -151,7 +151,7 @@ namespace PCGExWriteVtxProperties
 
 	void FBatch::Write()
 	{
-		VtxDataFacade->Write(AsyncManager);
+		VtxDataFacade->WriteFastest(AsyncManager);
 		TBatch<FProcessor>::Write();
 	}
 }

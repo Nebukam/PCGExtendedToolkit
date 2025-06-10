@@ -171,7 +171,7 @@ namespace PCGExGrowPaths
 		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(SeedPointIndex), PathIO);
 		Context->SeedForwardHandler->Forward(SeedPointIndex, PathDataFacade);
 
-		PathDataFacade->Write(Processor->AsyncManager);
+		PathDataFacade->WriteFastest(Processor->AsyncManager);
 	}
 
 	void FGrowth::Init()

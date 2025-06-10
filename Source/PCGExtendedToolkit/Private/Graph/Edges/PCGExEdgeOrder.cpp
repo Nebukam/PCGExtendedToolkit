@@ -108,7 +108,7 @@ namespace PCGExEdgeOrder
 
 	void FProcessor::CompleteWork()
 	{
-		EdgeDataFacade->Write(AsyncManager);
+		EdgeDataFacade->WriteFastest(AsyncManager);
 		ForwardCluster();
 	}
 

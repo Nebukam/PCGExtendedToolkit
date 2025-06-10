@@ -336,7 +336,7 @@ namespace PCGExGraph
 
 	void FUnionProcessor::OnPointEdgeIntersectionsComplete() const
 	{
-		if (MetadataBlender) { UnionDataFacade->Write(Context->GetAsyncManager()); }
+		if (MetadataBlender) { UnionDataFacade->WriteFastest(Context->GetAsyncManager()); }
 	}
 
 #pragma endregion
@@ -484,7 +484,7 @@ namespace PCGExGraph
 
 	void FUnionProcessor::OnEdgeEdgeIntersectionsComplete() const
 	{
-		UnionDataFacade->Write(Context->GetAsyncManager());
+		UnionDataFacade->WriteFastest(Context->GetAsyncManager());
 	}
 
 #pragma endregion

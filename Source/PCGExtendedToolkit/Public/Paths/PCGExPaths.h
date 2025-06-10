@@ -92,7 +92,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathClosedLoopDetails
 	bool bClosedLoop = false;
 
 	/** Comma separated tags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Scope!=EPCGExInputScope::All", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Scope != EPCGExInputScope::All", EditConditionHides))
 	FString CommaSeparatedTags = TEXT("ClosedLoop");
 
 	TArray<FString> Tags;
@@ -193,7 +193,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathFilterSettings
 	EPCGExEdgeDirectionChoice DirectionChoice = EPCGExEdgeDirectionChoice::SmallestToGreatest;
 
 	/** Attribute picker for the selected Direction Method.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector DirSourceAttribute;
 
 	bool bAscendingDesired = false;
@@ -281,17 +281,6 @@ namespace PCGExPaths
 		double DistToLast(const FVector& Location) const { return FVector::Dist(Last, Location); }
 		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
 	};
-
-	struct PCGEXTENDEDTOOLKIT_API FMetadata
-	{
-		double Position = 0;
-		double TotalLength = 0;
-
-		double GetAlpha() const { return Position / TotalLength; }
-		double GetInvertedAlpha() const { return 1 - (Position / TotalLength); }
-	};
-
-	constexpr FMetadata InvalidMetadata = FMetadata();
 
 	struct PCGEXTENDEDTOOLKIT_API FSplineMeshSegment
 	{
@@ -568,7 +557,7 @@ namespace PCGExPaths
 	};
 
 	template <bool ClosedLoop = false>
-	class TPath final : public FPath
+	class TPath : public FPath
 	{
 	public:
 		explicit TPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion = 0)
@@ -767,6 +756,28 @@ namespace PCGExPaths
 
 		return Intersection;
 	}
+
+	template <bool ClosedLoop = false>
+	class TPolyPath : public TPath<ClosedLoop>
+	{
+		using TPath<ClosedLoop>::bClosedLoop;
+		using TPath<ClosedLoop>::Positions;
+		// A path that has multiple representations
+		// - a FPCGSpline
+		// - a 2D projected version
+		// - shorthands to check if a point is inside or outside the projected polygon that will apply the projection transform
+
+		TSharedPtr<FPCGSplineStruct> Spline;
+		TArray<FVector2D> ProjectedPoints;
+		FTransform Projection;
+		
+	public:
+		explicit TPolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion = 0)
+			: TPath<ClosedLoop>(InTransforms, Expansion)
+		{
+			// TODO : Build projected polygon
+		}
+	};
 }
 
 
@@ -786,11 +797,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	EPCGExInputValueType StartPushInput = EPCGExInputValueType::Constant;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount (Attr)", EditCondition="bPushStart && StartPushInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount (Attr)", EditCondition="bPushStart && StartPushInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector StartPushInputAttribute;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushStart && StartPushInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushStart && StartPushInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double StartPushConstant = 0.1;
 
 	PCGEX_SETTING_VALUE_GET(StartPush, double, StartPushInput, StartPushInputAttribute, StartPushConstant)
@@ -808,11 +819,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	EPCGExInputValueType EndPushInput = EPCGExInputValueType::Constant;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount (Attr)", EditCondition="bPushEnd && EndPushInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount (Attr)", EditCondition="bPushEnd && EndPushInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector EndPushInputAttribute;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushEnd && EndPushInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushEnd && EndPushInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double EndPushConstant = 0.1;
 
 	PCGEX_SETTING_VALUE_GET(EndPush, double, EndPushInput, EndPushInputAttribute, EndPushConstant)

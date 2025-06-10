@@ -177,6 +177,7 @@ void FPCGExBlendingDetails::GetPointPropertyBlendingParams(TArray<PCGExDataBlend
 void FPCGExBlendingDetails::GetBlendingParams(
 	const UPCGMetadata* SourceMetadata, UPCGMetadata* TargetMetadata,
 	TArray<PCGExDataBlending::FBlendingParam>& OutParams,
+	TArray<FPCGAttributeIdentifier>& OutAttributeIdentifiers,
 	const bool bSkipProperties,
 	const TSet<FName>* IgnoreAttributeSet) const
 {
@@ -231,6 +232,8 @@ void FPCGExBlendingDetails::GetBlendingParams(
 
 	// We now have a list of attribute identities we can process
 
+	OutAttributeIdentifiers.Reserve(Identities.Num());
+
 	for (int i = 0; i < Identities.Num(); i++)
 	{
 		const PCGEx::FAttributeIdentity& Identity = Identities[i];
@@ -254,6 +257,7 @@ void FPCGExBlendingDetails::GetBlendingParams(
 
 		if (Param.Blending == EPCGExABBlendingType::None) { continue; }
 
+		OutAttributeIdentifiers.Add(Identity.Identifier);
 		Param.Select(Identity.Identifier);
 		OutParams.Add(Param);
 	}
