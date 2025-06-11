@@ -16,6 +16,12 @@ PCGExData::EIOInit UPCGExSimplifyClustersSettings::GetMainOutputInitMode() const
 PCGExData::EIOInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 #pragma endregion
+TArray<FPCGPinProperties> UPCGExSimplifyClustersSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeFiltersLabel, "Optional edge filters.", Normal, {})
+	return PinProperties;
+}
 
 PCGEX_INITIALIZE_ELEMENT(SimplifyClusters)
 
@@ -29,6 +35,10 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(EdgeCarryOverDetails)
 
 	Context->EdgeCarryOverDetails.Init();
+
+	GetInputFactories(
+		Context, PCGExGraph::SourceEdgeFiltersLabel,
+		Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 
 	return true;
 }
@@ -68,17 +78,66 @@ namespace PCGExSimplifyClusters
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::Process);
 
+		if (Settings->bMergeAboveAngularThreshold && Settings->bFuseCollocated)
+		{
+			FuseDistance = FMath::Square(Settings->FuseDistance);
+		}
+
+		EdgeDataFacade->bSupportsScopedGet = true;
+		if (!Context->EdgeFilterFactories.IsEmpty()) { EdgeFilterFactories = &Context->EdgeFilterFactories; }
+
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
+		if (!Context->EdgeFilterFactories.IsEmpty()) { StartParallelLoopForEdges(); }
+		else { CompileChains(); }
+
+		return true;
+	}
+
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
+	{
+		EdgeDataFacade->Fetch(Scope);
+		FilterEdgeScope(Scope);
+
+		TArray<int8>& BreakpointsRef = *Breakpoints.Get();
+
+		if (Settings->EdgeFilterRole == EPCGExSimplifyClusterEdgeFilterRole::Collapse)
+		{
+			// Collapse endpoints
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				if (!EdgeFilterCache[Index]) { continue; }
+				PCGExGraph::FEdge* Edge = Cluster->GetEdge(Index);
+				FPlatformAtomics::InterlockedExchange(&BreakpointsRef[Edge->Start], 0);
+				FPlatformAtomics::InterlockedExchange(&BreakpointsRef[Edge->End], 0);
+			}
+		}
+		else
+		{
+			// Restore endpoints
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				if (!EdgeFilterCache[Index]) { continue; }
+				PCGExGraph::FEdge* Edge = Cluster->GetEdge(Index);
+				FPlatformAtomics::InterlockedExchange(&BreakpointsRef[Edge->Start], 1);
+				FPlatformAtomics::InterlockedExchange(&BreakpointsRef[Edge->End], 1);
+			}
+		}
+	}
+
+	void FProcessor::OnEdgesProcessingComplete()
+	{
+		CompileChains();
+	}
+
+	void FProcessor::CompileChains()
+	{
 		ChainBuilder = MakeShared<PCGExCluster::FNodeChainBuilder>(Cluster.ToSharedRef());
 		ChainBuilder->Breakpoints = Breakpoints;
 		bIsProcessorValid = ChainBuilder->Compile(AsyncManager);
 
 		EdgesUnion = GraphBuilder->Graph->EdgesUnion;
-
-		return true;
 	}
-
 
 	void FProcessor::CompleteWork()
 	{
@@ -128,6 +187,8 @@ namespace PCGExSimplifyClusters
 			TArray<int32> MergedEdges;
 			MergedEdges.Reserve(NumIterations);
 
+			FVector LastPosition = Cluster->GetPos(LastIndex);
+
 			for (int i = 1; i < NumIterations; ++i)
 			{
 				UnionCount++;
@@ -138,17 +199,23 @@ namespace PCGExSimplifyClusters
 
 				if (!Links.IsValidIndex(IndexB)) { continue; }
 
+
+				const FVector CurrentPosition = Cluster->GetPos(Lk);
 				const FVector B = Cluster->GetDir(Lk.Node, Links[IndexB].Node);
 				bool bSkip = false;
 
 				if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { bSkip = true; } }
 				else { if (FVector::DotProduct(A, B) < DotThreshold) { bSkip = true; } }
 
+				if (!bSkip && FuseDistance > 0) { bSkip = FVector::DistSquared(LastPosition, CurrentPosition) <= FuseDistance; }
+
 				if (bSkip)
 				{
 					MergedEdges.Add(Lk.Edge);
 					continue;
 				}
+
+				LastPosition = CurrentPosition;
 
 				GraphBuilder->Graph->InsertEdge(
 					Cluster->GetNode(LastIndex)->PointIndex,
@@ -232,10 +299,11 @@ namespace PCGExSimplifyClusters
 
 		const int32 NumPoints = VtxDataFacade->GetNum();
 		Breakpoints = MakeShared<TArray<int8>>();
-		Breakpoints->Init(false, NumPoints);
 
 		if (Context->FilterFactories.IsEmpty())
 		{
+			Breakpoints->Init(false, NumPoints);
+
 			// Process breakpoint filters
 			PCGEX_MAKE_SHARED(FilterManager, PCGExPointFilter::FManager, VtxDataFacade)
 			TArray<int8>& Breaks = *Breakpoints;
@@ -243,6 +311,11 @@ namespace PCGExSimplifyClusters
 			{
 				for (int i = 0; i < NumPoints; i++) { Breaks[i] = FilterManager->Test(i); }
 			}
+		}
+		else
+		{
+			if (Context->EdgeFilterFactories.IsEmpty()) { Breakpoints->Init(false, NumPoints); }
+			else { Breakpoints->Init(Settings->EdgeFilterRole == EPCGExSimplifyClusterEdgeFilterRole::Collapse, NumPoints); }
 		}
 
 		TBatch<FProcessor>::Process();

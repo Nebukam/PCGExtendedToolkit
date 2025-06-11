@@ -82,7 +82,7 @@ public:
 	EPCGExBevelProfileType Type = EPCGExBevelProfileType::Line;
 
 	/** Whether to keep the corner point or not. If enabled, subdivision is ignored. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Type != EPCGExBevelProfileType::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Type == EPCGExBevelProfileType::Line", EditConditionHides))
 	bool bKeepCornerPoint = false;
 
 	/** Define how the custom profile will be scaled on the main axis. */
@@ -123,24 +123,24 @@ public:
 
 
 	/** Whether to subdivide the profile */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="!bKeepCornerPoint && Type != EPCGExBevelProfileType::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="Type != EPCGExBevelProfileType::Custom", EditConditionHides))
 	bool bSubdivide = false;
 
 	/** Subdivision method */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom", EditConditionHides))
 	EPCGExSubdivideMode SubdivideMethod = EPCGExSubdivideMode::Count;
 
 	/** Whether to subdivide the profile */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom", EditConditionHides))
 	EPCGExInputValueType SubdivisionAmountInput = EPCGExInputValueType::Constant;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod==EPCGExSubdivideMode::Distance && SubdivisionAmountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod==EPCGExSubdivideMode::Distance && SubdivisionAmountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.1))
 	double SubdivisionDistance = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod==EPCGExSubdivideMode::Count && SubdivisionAmountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod==EPCGExSubdivideMode::Count && SubdivisionAmountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 SubdivisionCount = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, DisplayName="Subdividion (Attr)", EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivisionAmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, DisplayName="Subdividion (Attr)", EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivisionAmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
 	/**  */
@@ -243,7 +243,7 @@ namespace PCGExBevelPath
 		void Balance(const FProcessor* InProcessor);
 		void Compute(const FProcessor* InProcessor);
 
-		void SubdivideLine(const double Factor, bool bIsCount);
+		void SubdivideLine(const double Factor, bool bIsCount, const bool bKeepCorner);
 		void SubdivideArc(const double Factor, bool bIsCount);
 		void SubdivideCustom(const FProcessor* InProcessor);
 	};
@@ -255,6 +255,7 @@ namespace PCGExBevelPath
 		TArray<TSharedPtr<FBevel>> Bevels;
 		TArray<int32> StartIndices;
 
+		bool bKeepCorner = false;
 		bool bSubdivide = false;
 		bool bSubdivideCount = false;
 		bool bArc = false;

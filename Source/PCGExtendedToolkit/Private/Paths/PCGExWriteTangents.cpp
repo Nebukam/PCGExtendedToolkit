@@ -44,8 +44,8 @@ bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_VALIDATE_NAME(Settings->LeaveName)
 
 	PCGEX_OPERATION_BIND(Tangents, UPCGExTangentsInstancedFactory, PCGExWriteTangents::SourceOverridesTangents)
-	if (Settings->StartTangents) { Context->StartTangents = Context->RegisterOperation<UPCGExTangentsInstancedFactory>(Settings->StartTangents, PCGExWriteTangents::SourceOverridesTangentsStart); }
-	if (Settings->EndTangents) { Context->EndTangents = Context->RegisterOperation<UPCGExTangentsInstancedFactory>(Settings->EndTangents, PCGExWriteTangents::SourceOverridesTangentsEnd); }
+	if (Settings->StartTangents) { PCGEX_OPERATION_BIND(StartTangents, UPCGExTangentsInstancedFactory, PCGExWriteTangents::SourceOverridesTangentsStart) }
+	if (Settings->EndTangents) {PCGEX_OPERATION_BIND(EndTangents, UPCGExTangentsInstancedFactory, PCGExWriteTangents::SourceOverridesTangentsEnd) }
 
 	return true;
 }

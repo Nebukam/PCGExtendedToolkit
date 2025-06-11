@@ -11,6 +11,13 @@
 
 #include "PCGExSimplifyClusters.generated.h"
 
+UENUM()
+enum class EPCGExSimplifyClusterEdgeFilterRole : uint8
+{
+	Preserve = 0 UMETA(DisplayName = "Preserve", ToolTip="Preserve endpoints of edges that pass the filters"),
+	Collapse = 1 UMETA(DisplayName = "Collapse", ToolTip="Collapse endpoints of edges that pass the filters"),
+};
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExSimplifyClustersSettings : public UPCGExEdgesProcessorSettings
 {
@@ -24,6 +31,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -38,6 +46,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOperateOnLeavesOnly = false;
 
+	/**  Define the behavior of connected edge filters, if any */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExSimplifyClusterEdgeFilterRole EdgeFilterRole = EPCGExSimplifyClusterEdgeFilterRole::Preserve;
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bMergeAboveAngularThreshold = false;
@@ -47,8 +59,16 @@ public:
 	double AngularThreshold = 10;
 
 	/** Removes hard angles instead of collinear ones. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="bMergeAboveAngularThreshold", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Invert", EditCondition="bMergeAboveAngularThreshold", EditConditionHides, HideEditConditionToggle))
 	bool bInvertAngularThreshold = false;
+
+	/** If enabled, will consider collocated binary nodes for collocation and remove them as part of the simplification. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Fuse Collocated", EditCondition="bMergeAboveAngularThreshold", EditConditionHides, HideEditConditionToggle))
+	bool bFuseCollocated = true;
+
+	/** Distance used to consider point to be overlapping. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", ClampMin=0.001, EditCondition="bMergeAboveAngularThreshold && bFuseCollocated", EditConditionHides, HideEditConditionToggle))
+	double FuseDistance = 0.001;
 
 	/** If enabled, prune dead ends. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -77,6 +97,8 @@ struct FPCGExSimplifyClustersContext : FPCGExEdgesProcessorContext
 	friend class FPCGExSimplifyClustersElement;
 
 	FPCGExCarryOverDetails EdgeCarryOverDetails;
+
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
 };
 
 class FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement
@@ -99,6 +121,8 @@ namespace PCGExSimplifyClusters
 		TSharedPtr<TArray<int8>> Breakpoints;
 		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
 
+		double FuseDistance = -1;
+
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -110,6 +134,10 @@ namespace PCGExSimplifyClusters
 		// TODO : Register edge facade attribute dependencies
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
+		virtual void OnEdgesProcessingComplete() override;
+		
+		void CompileChains();
 		virtual void CompleteWork() override;
 
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
