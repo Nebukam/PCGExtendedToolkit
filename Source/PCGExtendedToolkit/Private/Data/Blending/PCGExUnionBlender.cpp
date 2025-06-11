@@ -135,83 +135,86 @@ namespace PCGExDataBlending
 	{
 	}
 
-	void FUnionBlender::AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade, const TSet<FName>* IgnoreAttributeSet)
+	void FUnionBlender::AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InSources, const TSet<FName>* IgnoreAttributeSet)
 	{
-		const int32 SourceIndex = Sources.Add(InFacade);
-		const int32 NumSources = Sources.Num();
+		int32 MaxIndex = 0;
+		for (const TSharedRef<PCGExData::FFacade>& Src : InSources) { MaxIndex = FMath::Max(Src->Source->IOIndex, MaxIndex); }
+		IOLookup = MakeShared<PCGEx::FIndexLookup>(MaxIndex + 1);
 
-		SourcesData.Add(InFacade->GetIn());
-		IOIndices.Add(InFacade->Source->IOIndex, SourceIndex);
+		const int32 NumSources = InSources.Num();
+		Sources.Reserve(NumSources);
+		SourcesData.SetNumUninitialized(NumSources);
 
-		EnumAddFlags(AllocatedProperties, InFacade->GetAllocations());
-
-		UniqueTags.Append(InFacade->Source->Tags->RawTags);
-
-		// Update global source count on all multi attributes
-		for (const TSharedPtr<FMultiSourceBlender>& MultiAttribute : Blenders) { MultiAttribute->SetNum(NumSources); }
-
-		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
-		GetFilteredIdentities(
-			InFacade->GetIn()->Metadata, SourceAttributes,
-			BlendingDetails, CarryOverDetails, IgnoreAttributeSet);
-
-		// Check of this new source' attributes
-		// See if it adds any new, non-conflicting one
-		for (const PCGEx::FAttributeIdentity& Identity : SourceAttributes)
+		for (int i = 0; i < InSources.Num(); i++)
 		{
-			// First, grab the Param for this attribute
-			// Getting a fail means it's filtered out.
-			FBlendingParam Param{};
-			if (!BlendingDetails->GetBlendingParam(Identity.Identifier, Param)) { continue; }
+			const TSharedRef<PCGExData::FFacade>& Facade = InSources[i];
 
-			const FPCGMetadataAttributeBase* SourceAttribute = InFacade->FindConstAttribute(Identity.Identifier);
-			if (!SourceAttribute) { continue; }
+			Sources.Add(Facade);
+			SourcesData[i] = Facade->GetIn();
+			IOLookup->Set(Facade->Source->IOIndex, i);
 
-			TSharedPtr<FMultiSourceBlender> MultiAttribute = nullptr;
+			EnumAddFlags(AllocatedProperties, Facade->GetAllocations());
 
-			// Search for an existing multi attribute
-			// This could be done more efficiently with a map, but we need the array later on
-			for (const TSharedPtr<FMultiSourceBlender>& ExistingMultiSourceBlender : Blenders)
+			UniqueTags.Append(Facade->Source->Tags->RawTags);
+
+			TArray<PCGEx::FAttributeIdentity> SourceAttributes;
+			GetFilteredIdentities(
+				Facade->GetIn()->Metadata, SourceAttributes,
+				BlendingDetails, CarryOverDetails, IgnoreAttributeSet);
+
+			// Check of this new source' attributes
+			// See if it adds any new, non-conflicting one
+			for (const PCGEx::FAttributeIdentity& Identity : SourceAttributes)
 			{
-				if (ExistingMultiSourceBlender->Identity.Identifier == Identity.Identifier)
+				// First, grab the Param for this attribute
+				// Getting a fail means it's filtered out.
+				FBlendingParam Param{};
+				if (!BlendingDetails->GetBlendingParam(Identity.Identifier, Param)) { continue; }
+
+				const FPCGMetadataAttributeBase* SourceAttribute = Facade->FindConstAttribute(Identity.Identifier);
+				if (!SourceAttribute) { continue; }
+
+				TSharedPtr<FMultiSourceBlender> MultiAttribute = nullptr;
+
+				// Search for an existing multi attribute
+				// This could be done more efficiently with a map, but we need the array later on
+				for (const TSharedPtr<FMultiSourceBlender>& ExistingMultiSourceBlender : Blenders)
 				{
-					// We found one with the same name
-					MultiAttribute = ExistingMultiSourceBlender;
-					break;
+					if (ExistingMultiSourceBlender->Identity.Identifier == Identity.Identifier)
+					{
+						// We found one with the same name
+						MultiAttribute = ExistingMultiSourceBlender;
+						break;
+					}
 				}
-			}
 
-			if (MultiAttribute)
-			{
-				// A multi-source blender was found for this attribute!
-
-				if (Identity.UnderlyingType != MultiAttribute->Identity.UnderlyingType)
+				if (MultiAttribute)
 				{
-					// Type mismatch, ignore for this source
-					TypeMismatches.Add(Identity.Identifier.Name.ToString());
-					continue;
+					// A multi-source blender was found for this attribute!
+
+					if (Identity.UnderlyingType != MultiAttribute->Identity.UnderlyingType)
+					{
+						// Type mismatch, ignore for this source
+						TypeMismatches.Add(Identity.Identifier.Name.ToString());
+						continue;
+					}
 				}
-			}
-			else
-			{
-				// Initialize new multi attribute
-				// We give it the first source attribute we found, this will be used
-				// to set the underlying default value of the attribute (as a best guess kind of move) 
-				MultiAttribute = Blenders.Add_GetRef(MakeShared<FMultiSourceBlender>(Identity, Sources));
-				MultiAttribute->Param = Param;
-				MultiAttribute->DefaultValue = SourceAttribute;
-				MultiAttribute->SetNum(NumSources);
-			}
+				else
+				{
+					// Initialize new multi attribute
+					// We give it the first source attribute we found, this will be used
+					// to set the underlying default value of the attribute (as a best guess kind of move) 
+					MultiAttribute = Blenders.Add_GetRef(MakeShared<FMultiSourceBlender>(Identity, Sources));
+					MultiAttribute->Param = Param;
+					MultiAttribute->DefaultValue = SourceAttribute;
+					MultiAttribute->SetNum(NumSources);
+				}
 
-			check(MultiAttribute)
+				check(MultiAttribute)
 
-			MultiAttribute->SupportedSources.Add(SourceIndex);
+				MultiAttribute->SupportedSources.Add(i);
+			}
 		}
-	}
-
-	void FUnionBlender::AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades, const TSet<FName>* IgnoreAttributeSet)
-	{
-		for (TSharedRef<PCGExData::FFacade> Facade : InFacades) { AddSource(Facade, IgnoreAttributeSet); }
 	}
 
 	bool FUnionBlender::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const bool bWantsDirectAccess)
@@ -229,7 +232,7 @@ namespace PCGExDataBlending
 				// Don't create a blender for properties that no source has allocated
 				continue;
 			}
-			
+
 			TSharedPtr<FMultiSourceBlender> MultiAttribute = Blenders.Add_GetRef(MakeShared<FMultiSourceBlender>(Sources));
 			MultiAttribute->Param = Param;
 			MultiAttribute->SetNum(Sources.Num());
@@ -254,12 +257,12 @@ namespace PCGExDataBlending
 		return Init(InContext, TargetData, bWantsDirectAccess);
 	}
 
-	void FUnionBlender::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints)
+	void FUnionBlender::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
 	{
 		check(InUnionData)
 
 		PCGExData::FConstPoint Target = CurrentTargetData->Source->GetOutPoint(WriteIndex);
-		const int32 UnionCount = InUnionData->ComputeWeights(SourcesData, IOIndices, Target, DistanceDetails, OutWeightedPoints);
+		const int32 UnionCount = InUnionData->ComputeWeights(SourcesData, IOLookup, Target, DistanceDetails, OutWeightedPoints);
 
 		if (UnionCount == 0) { return; }
 
@@ -281,9 +284,9 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void FUnionBlender::MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints)
+	void FUnionBlender::MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		MergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), OutWeightedPoints);
+		MergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), OutWeightedPoints, Trackers);
 	}
 
 	bool FUnionBlender::Validate(FPCGExContext* InContext, const bool bQuiet) const

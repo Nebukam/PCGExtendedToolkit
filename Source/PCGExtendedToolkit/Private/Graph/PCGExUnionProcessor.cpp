@@ -65,13 +65,16 @@ namespace PCGExGraph
 
 		Distances = PCGExDetails::MakeDistances(PointPointIntersectionDetails.FuseDetails.SourceDistance, PointPointIntersectionDetails.FuseDetails.TargetDistance);
 
-		UnionPointsBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, VtxCarryOverDetails, Distances);
-		UnionPointsBlender->AddSources(InFacades, &ProtectedClusterAttributes);
+
+		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, VtxCarryOverDetails, Distances);
+		UnionBlender = TypedBlender;
+
+		TypedBlender->AddSources(InFacades, &ProtectedClusterAttributes);
 
 		UPCGBasePointData* MutablePoints = UnionDataFacade->GetOut();
-		PCGEx::SetNumPointsAllocated(MutablePoints, NumUnionNodes, UnionPointsBlender->GetAllocatedProperties()); // TODO : Proper Allocation
-		
-		if (!UnionPointsBlender->Init(Context, UnionDataFacade, UnionGraph->NodesUnion)) { return false; }
+		PCGEx::SetNumPointsAllocated(MutablePoints, NumUnionNodes, UnionBlender->GetAllocatedProperties()); // TODO : Proper Allocation
+
+		if (!TypedBlender->Init(Context, UnionDataFacade, UnionGraph->NodesUnion)) { return false; }
 
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
 
@@ -79,7 +82,7 @@ namespace PCGExGraph
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
-				This->UnionPointsBlender.Reset();
+				This->UnionBlender.Reset();
 				This->OnNodesProcessingComplete();
 			};
 
@@ -90,9 +93,11 @@ namespace PCGExGraph
 
 				const TSharedPtr<PCGExData::FUnionMetadata> PointsUnion = This->UnionGraph->NodesUnion;
 				const TSharedPtr<PCGExData::FPointIOCollection> MainPoints = This->Context->MainPoints;
-				const TSharedPtr<PCGExDataBlending::FUnionBlender> Blender = This->UnionPointsBlender;
+				const TSharedPtr<PCGExDataBlending::IUnionBlender> Blender = This->UnionBlender;
 
 				TArray<PCGExData::FWeightedPoint> WeightedPoints;
+				TArray<PCGEx::FOpStats> Trackers;
+				Blender->InitTrackers(Trackers);
 
 				UPCGBasePointData* OutPoints = This->UnionDataFacade->GetOut();
 				TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
@@ -108,7 +113,7 @@ namespace PCGExGraph
 					//Point.MetadataEntry = Key; // Restore key
 
 					OutTransforms[Index].SetLocation(UnionNode->UpdateCenter(PointsUnion, MainPoints));
-					Blender->MergeSingle(Index, WeightedPoints);
+					Blender->MergeSingle(Index, WeightedPoints, Trackers);
 				}
 			};
 
@@ -122,7 +127,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::OnNodesProcessingComplete);
 
-		UnionPointsBlender.Reset();
+		UnionBlender.Reset();
 
 		bRunning = true;
 

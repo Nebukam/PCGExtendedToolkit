@@ -65,58 +65,44 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
+	TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(
+		Context, PCGEx::SourceTargetsLabel, PCGExData::EIOInit::NoInit, true);
 
-	// TODO :
-	// For each input path
-	// - Create a linear spline object
-	// - Project the positions
-	// - Setup a union blender
-	
-	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
-
-	Context->DistanceDetails = PCGExDetails::MakeDistances(Settings->DistanceSettings, Settings->DistanceSettings);
-
-	if (!Targets.IsEmpty())
+	if (Targets->IsEmpty())
 	{
-		for (const FPCGTaggedData& TaggedData : Targets)
-		{
-			const UPCGSplineData* SplineData = Cast<UPCGSplineData>(TaggedData.Data);
-			if (!SplineData || SplineData->SplineStruct.GetNumberOfSplineSegments() <= 0) { continue; }
+		if (!Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (no input matches criteria or empty dataset)")); }
+	}
 
-			switch (Settings->SampleInputs)
-			{
-			default:
-			case EPCGExPathSamplingIncludeMode::All:
-				Context->Targets.Add(SplineData);
-				break;
-			case EPCGExPathSamplingIncludeMode::ClosedLoopOnly:
-				if (SplineData->SplineStruct.bClosedLoop) { Context->Targets.Add(SplineData); }
-				break;
-			case EPCGExPathSamplingIncludeMode::OpenSplineOnly:
-				if (!SplineData->SplineStruct.bClosedLoop) { Context->Targets.Add(SplineData); }
-				break;
-			}
+	FPCGExPathClosedLoopDetails ClosedLoopDetails = Settings->ClosedLoop;
+	ClosedLoopDetails.Init();
+
+	Context->TargetFacades.Reserve(Targets->Pairs.Num());
+	Context->Paths.Reserve(Targets->Pairs.Num());
+
+	for (const TSharedPtr<PCGExData::FPointIO>& IO : Targets->Pairs)
+	{
+		const bool bClosedLoop = ClosedLoopDetails.IsClosedLoop(IO);
+
+		switch (Settings->SampleInputs)
+		{
+		default:
+		case EPCGExPathSamplingIncludeMode::All:
+			break;
+		case EPCGExPathSamplingIncludeMode::ClosedLoopOnly:
+			if (!bClosedLoop) { continue; }
+			break;
+		case EPCGExPathSamplingIncludeMode::OpenSplineOnly:
+			if (bClosedLoop) { continue; }
+			break;
 		}
 
-		Context->NumTargets = Context->Targets.Num();
+		TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
+		TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePolyPath(IO->GetIn(), 1, bClosedLoop, FVector::UpVector);
+		Context->TargetFacades.Add(TargetFacade);
+		Context->Paths.Add(Path);
 	}
 
-	if (Context->NumTargets <= 0)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("No targets (no input matches criteria or empty dataset)"));
-		return false;
-	}
-
-	Context->Splines.Reserve(Context->NumTargets);
-	for (const UPCGSplineData* SplineData : Context->Targets) { Context->Splines.Add(SplineData->SplineStruct); }
-
-	Context->SegmentCounts.SetNumUninitialized(Context->NumTargets);
-	Context->Lengths.SetNumUninitialized(Context->NumTargets);
-	for (int i = 0; i < Context->NumTargets; i++)
-	{
-		Context->SegmentCounts[i] = Context->Targets[i]->SplineStruct.GetNumberOfSplineSegments();
-		Context->Lengths[i] = Context->Targets[i]->SplineStruct.GetSplineLength();
-	}
+	Context->DistanceDetails = PCGExDetails::MakeDistances(Settings->DistanceSettings, Settings->DistanceSettings);
 
 	PCGEX_FOREACH_FIELD_NEARESTPATH(PCGEX_OUTPUT_VALIDATE_NAME)
 
@@ -286,7 +272,7 @@ namespace PCGExSampleNearestPath
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		TArray<PCGExPolyLine::FSample> Samples;
-		Samples.Reserve(Context->NumTargets);
+		Samples.Reserve(Context->Paths.Num());
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -302,13 +288,10 @@ namespace PCGExSampleNearestPath
 
 			bool bClosed = false;
 
-			double BaseRangeMin = RangeMinGetter->Read(Index);
-			double BaseRangeMax = RangeMaxGetter->Read(Index);
+			double RangeMin = RangeMinGetter->Read(Index);
+			double RangeMax = RangeMaxGetter->Read(Index);
+			if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
-			if (BaseRangeMin > BaseRangeMax) { std::swap(BaseRangeMin, BaseRangeMax); }
-
-			double RangeMin = BaseRangeMin;
-			double RangeMax = BaseRangeMax;
 			double WeightedDistance = 0;
 
 			Samples.Reset();
@@ -324,18 +307,7 @@ namespace PCGExSampleNearestPath
 				const FVector ModifiedOrigin = DistanceDetails->GetSourceCenter(Point, Origin, SampleLocation);
 				const double Dist = FVector::Dist(ModifiedOrigin, SampleLocation);
 
-				double RMin = BaseRangeMin;
-				double RMax = BaseRangeMax;
-
-				if (Settings->bSplineScalesRanges)
-				{
-					const FVector S = Transform.GetScale3D();
-					const double RScale = FVector2D(S.Y, S.Z).Length();
-					RMin *= RScale;
-					RMax *= RScale;
-				}
-
-				if (RMax > 0 && (Dist < RMin || Dist > RMax)) { return; }
+				if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
 
 				int32 NumInsideIncrement = 0;
 
@@ -351,7 +323,7 @@ namespace PCGExSampleNearestPath
 				PCGExPolyLine::FSample Infos(Transform, Dist, NormalizedTime);
 
 				////////
-				
+
 				const int32 PrevIndex = FMath::FloorToInt(Time);
 				const int32 NextIndex = InSpline.bClosedLoop ? PCGExMath::Tile(PrevIndex + 1, 0, NumSegments - 1) : FMath::Clamp(PrevIndex + 1, 0, NumSegments);
 
@@ -369,9 +341,6 @@ namespace PCGExSampleNearestPath
 
 					NumInside = NumInsideIncrement;
 					NumInClosed = NumInsideIncrement;
-
-					RangeMin = RMin;
-					RangeMax = RMax;
 				}
 				else
 				{
@@ -385,9 +354,6 @@ namespace PCGExSampleNearestPath
 					}
 
 					NumInside += NumInsideIncrement;
-
-					RangeMin = FMath::Min(RangeMin, RMin);
-					RangeMax = FMath::Max(RangeMax, RMax);
 				}
 			};
 
@@ -395,13 +361,11 @@ namespace PCGExSampleNearestPath
 			if (!Settings->bSampleSpecificAlpha)
 			{
 				// At closest alpha
-				for (int i = 0; i < Context->NumTargets; i++)
+				for (int i = 0; i < Context->Paths.Num(); i++)
 				{
-					const FPCGSplineStruct& Line = Context->Splines[i];
-					double Time = Line.FindInputKeyClosestToWorldLocation(Origin);
-					ProcessTarget(
-						Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges),
-						Time, Context->SegmentCounts[i], Line);
+					const TSharedPtr<PCGExPaths::FPath>& Path = Context->Paths[i];
+					double Time = 0; // TODO Line.FindInputKeyClosestToWorldLocation(Origin);
+					//ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges), Time, Context->SegmentCounts[i], Line);
 				}
 			}
 			else
@@ -420,13 +384,13 @@ ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplin
 				{
 				default:
 				case EPCGExPathSampleAlphaMode::Alpha:
-					PCGEX_SAMPLE_SPLINE_AT(InputKey * Context->SegmentCounts[i])
+					//PCGEX_SAMPLE_SPLINE_AT(InputKey * Context->Paths[i]->NumEdges)
 					break;
 				case EPCGExPathSampleAlphaMode::Time:
-					PCGEX_SAMPLE_SPLINE_AT(InputKey / Context->SegmentCounts[i])
+					//PCGEX_SAMPLE_SPLINE_AT(InputKey / Context->Paths[i]->NumEdges)
 					break;
 				case EPCGExPathSampleAlphaMode::Distance:
-					PCGEX_SAMPLE_SPLINE_AT((Context->Lengths[i] / InputKey) * SMax)
+					//PCGEX_SAMPLE_SPLINE_AT((Context->Paths[i]->TotalLength / InputKey) * SMax)
 					break;
 				}
 
@@ -441,7 +405,7 @@ ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplin
 			}
 
 			// Compute individual target weight
-			if (Settings->WeightMethod == EPCGExRangeType::FullRange && BaseRangeMax > 0)
+			if (Settings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0)
 			{
 				// Reset compounded infos to full range
 				Stats.SampledRangeMin = RangeMin;

@@ -44,7 +44,7 @@ namespace PCGExGraph
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 
-		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionPointsBlender;
+		TSharedPtr<PCGExDataBlending::IUnionBlender> UnionBlender;
 
 		explicit FUnionProcessor(
 			FPCGExPointsProcessorContext* InContext,

@@ -186,7 +186,7 @@ namespace PCGExPathCrossings
 		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
 
 		TSet<int32> CrossIOIndices;
-		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
+		TSharedPtr<PCGExDataBlending::IUnionBlender> UnionBlender;
 
 		FPCGExPathEdgeIntersectionDetails Details;
 

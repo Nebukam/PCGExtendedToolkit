@@ -8,6 +8,7 @@
 
 #include "PCGExDataBlending.h"
 #include "Data/PCGExProxyData.h"
+#include "Data/PCGExUnionData.h"
 
 
 namespace PCGExDataBlending
@@ -38,7 +39,7 @@ namespace PCGExDataBlending
 		virtual void EndMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Tracker) const = 0;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FDummyBlender : public IBlender
+	class PCGEXTENDEDTOOLKIT_API FDummyBlender final : public IBlender
 	{
 	public:
 		virtual ~FDummyBlender() override = default;
@@ -74,6 +75,31 @@ namespace PCGExDataBlending
 		}
 	};
 
+	class PCGEXTENDEDTOOLKIT_API IUnionBlender : public TSharedFromThis<IUnionBlender>
+	{
+	public:
+		virtual ~IUnionBlender() = default;
+
+		virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const = 0;
+		virtual void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const = 0;
+		virtual void MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const = 0;
+
+		FORCEINLINE EPCGPointNativeProperties GetAllocatedProperties() const { return AllocatedProperties; }
+
+	protected:
+		EPCGPointNativeProperties AllocatedProperties = EPCGPointNativeProperties::None;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FDummyUnionBlender final : public IUnionBlender
+	{
+	public:
+		virtual ~FDummyUnionBlender() override = default;
+		
+		virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const override {};
+		virtual void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override{};
+		virtual void MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override{};
+	};
+	
 	/**
 	 * Simple C=AxB blend
 	 */

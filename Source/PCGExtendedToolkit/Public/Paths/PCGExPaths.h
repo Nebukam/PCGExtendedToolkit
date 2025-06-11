@@ -555,6 +555,15 @@ namespace PCGExPaths
 		virtual void ExtraComputingDone();
 		virtual void ComputeAllEdgeExtra();
 
+		virtual void EnsureWinding(const EPCGExWinding Winding = EPCGExWinding::CounterClockwise)
+		PCGEX_NOT_IMPLEMENTED(EnsureWinding(const EPCGExWinding Winding = EPCGExWinding::CounterClockwise))
+
+		virtual bool IsInsideProjection(const FTransform& InTransform) const
+		PCGEX_NOT_IMPLEMENTED_RET(IsInsideProjection(const FTransform& InTransform), false)
+
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp) const
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp), FTransform::Identity)
+
 	protected:
 		void BuildPath(const double Expansion);
 	};
@@ -790,7 +799,7 @@ namespace PCGExPaths
 			else { Spline = MakeSplineFromPoints(InTransforms, EPCGExSplinePointTypeRedux::Linear, false, false); }
 		}
 
-		void EnsureWinding(const EPCGExWinding Winding = EPCGExWinding::CounterClockwise)
+		virtual void EnsureWinding(const EPCGExWinding Winding = EPCGExWinding::CounterClockwise) override
 		{
 			if (!PCGExGeo::IsWinded(Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
 			{
@@ -798,12 +807,12 @@ namespace PCGExPaths
 			}
 		}
 
-		bool IsInsideProjection(const FTransform& InTransform) const
+		virtual bool IsInsideProjection(const FTransform& InTransform) const override
 		{
 			return FGeomTools2D::IsPointInPolygon(FVector2D(Projection.RotateVector(InTransform.GetLocation())), ProjectedPoints);
 		}
 
-		FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp) const
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp) const override
 		{
 			const float ClosestKey = Spline->FindInputKeyClosestToWorldLocation(WorldPosition);
 			OutEdgeIndex = FMath::FloorToInt32(ClosestKey);

@@ -10,7 +10,7 @@ namespace PCGExData
 #pragma region Union Data
 
 	int32 FUnionData::ComputeWeights(
-		const TArray<const UPCGBasePointData*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FConstPoint& Target,
+		const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const FConstPoint& Target,
 		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<FWeightedPoint>& OutWeightedPoints) const
 	{
 		const int32 NumElements = Elements.Num();
@@ -21,11 +21,10 @@ namespace PCGExData
 
 		for (const FElement& Element : Elements)
 		{
-			const int32* IOIdx = SourcesIdx.Find(Element.IO);
+			const int32 IOIdx = IdxLookup->Get(Element.IO);
+			if (IOIdx == -1) { continue; }
 
-			if (!IOIdx) { continue; }
-
-			FWeightedPoint& P = OutWeightedPoints.Emplace_GetRef(Element.Index, 0, *IOIdx);
+			FWeightedPoint& P = OutWeightedPoints.Emplace_GetRef(Element.Index, 0, IOIdx);
 
 			const double Weight = InDistanceDetails->GetDistSquared(FConstPoint(Sources[P.IO], P), Target);
 			P.Weight = Weight;

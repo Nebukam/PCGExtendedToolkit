@@ -137,11 +137,13 @@ namespace PCGExFusePoints
 		PointDataFacade->Source->InheritProperties(ReadIndices, WriteIndices, PointDataFacade->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
 
 		TArray<PCGExData::FWeightedPoint> WeightedPoints;
+		TArray<PCGEx::FOpStats> Trackers;
+		UnionBlender->InitTrackers(Trackers);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			Transforms[Index].SetLocation(UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints));
-			UnionBlender->MergeSingle(Index, WeightedPoints);
+			UnionBlender->MergeSingle(Index, WeightedPoints, Trackers);
 			if (IsUnionWriter) { IsUnionWriter->SetValue(Index, WeightedPoints.Num() > 1); }
 			if (UnionSizeWriter) { UnionSizeWriter->SetValue(Index, WeightedPoints.Num()); }
 		}
@@ -154,9 +156,14 @@ namespace PCGExFusePoints
 		UPCGBasePointData* OutData = PointDataFacade->GetOut();
 		PCGEx::SetNumPointsAllocated(OutData, NumUnionNodes, PointDataFacade->GetAllocations());
 
-		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
-		UnionBlender->AddSource(PointDataFacade, &PCGExGraph::ProtectedClusterAttributes);
-		if (!UnionBlender->Init(Context, PointDataFacade, UnionGraph->NodesUnion))
+		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
+		UnionBlender = TypedBlender;
+		
+		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;
+		UnionSources.Add(PointDataFacade);
+
+		TypedBlender->AddSources(UnionSources, &PCGExGraph::ProtectedClusterAttributes);
+		if (!TypedBlender->Init(Context, PointDataFacade, UnionGraph->NodesUnion))
 		{
 			bIsProcessorValid = false;
 			return;
