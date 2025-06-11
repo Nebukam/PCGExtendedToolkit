@@ -300,7 +300,7 @@ namespace PCGExSimplifyClusters
 		const int32 NumPoints = VtxDataFacade->GetNum();
 		Breakpoints = MakeShared<TArray<int8>>();
 
-		if (Context->FilterFactories.IsEmpty())
+		if (!Context->FilterFactories.IsEmpty())
 		{
 			Breakpoints->Init(false, NumPoints);
 
