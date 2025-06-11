@@ -17,9 +17,6 @@ bool UPCGExPathAlphaFilterFactory::SupportsProxyEvaluation() const
 bool UPCGExPathAlphaFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
-
-	Config.ClosedLoop.Init();
-
 	return true;
 }
 
@@ -42,7 +39,7 @@ bool UPCGExPathAlphaFilterFactory::Prepare(FPCGExContext* InContext)
 			const UPCGBasePointData* PathData = Cast<UPCGBasePointData>(TaggedData.Data);
 			if (!PathData) { continue; }
 
-			const bool bIsClosedLoop = Config.ClosedLoop.IsClosedLoop(TaggedData);
+			const bool bIsClosedLoop = PCGExPaths::GetClosedLoop(PathData);
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { continue; }
 

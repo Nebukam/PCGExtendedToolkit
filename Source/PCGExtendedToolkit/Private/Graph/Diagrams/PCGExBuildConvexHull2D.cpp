@@ -111,7 +111,7 @@ namespace PCGExConvexHull2D
 		(void)PCGEx::SetNumPointsAllocated(MutablePoints, LastIndex + 1, PointDataFacade->GetAllocations());
 		ProjectedPoints.Reserve(LastIndex + 1);
 
-		if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); }
+		PCGExPaths::SetClosedLoop(PathIO->GetOut(), true);
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 

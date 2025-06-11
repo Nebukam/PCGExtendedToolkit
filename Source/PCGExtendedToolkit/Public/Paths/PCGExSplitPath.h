@@ -86,10 +86,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOmitSinglePointOutputs = true;
 
-	/** When processing closed loop paths, paths that aren't looping anymore will be tagged. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta = (PCG_Overridable))
-	FPCGExPathClosedLoopUpdateDetails UpdateTags;
-
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfEvenSplit = true;
@@ -110,8 +106,6 @@ public:
 struct FPCGExSplitPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSplitPathElement;
-
-	FPCGExPathClosedLoopUpdateDetails UpdateTags;
 };
 
 class FPCGExSplitPathElement final : public FPCGExPathProcessorElement

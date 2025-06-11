@@ -113,10 +113,6 @@ protected:
 public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
-
-	/** Closed loop handling.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	FPCGExPathClosedLoopDetails ClosedLoop;
 	
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))

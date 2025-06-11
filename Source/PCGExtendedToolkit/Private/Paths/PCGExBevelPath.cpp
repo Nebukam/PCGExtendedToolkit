@@ -321,7 +321,7 @@ namespace PCGExBevelPath
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
-		Path = PCGExPaths::MakePath(InPoints->GetConstTransformValueRange(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		Path = PCGExPaths::MakePath(InPoints, 0);
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 
 		if (Settings->Type == EPCGExBevelProfileType::Custom)

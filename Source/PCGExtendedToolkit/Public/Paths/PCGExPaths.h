@@ -82,53 +82,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathOutputDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathClosedLoopDetails
-{
-	GENERATED_BODY()
-
-	/** Define whether the input dataset should be considered open or closed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExInputScope Scope = EPCGExInputScope::AllButTagged;
-
-	/** Whether the paths are closed loops. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bClosedLoop = false;
-
-	/** Comma separated tags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Scope != EPCGExInputScope::All", EditConditionHides))
-	FString CommaSeparatedTags = TEXT("ClosedLoop");
-
-	TArray<FString> Tags;
-
-	void Init();
-
-	bool IsClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const;
-	bool IsClosedLoop(const FPCGTaggedData& InTaggedData) const;
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathClosedLoopUpdateDetails
-{
-	GENERATED_BODY()
-
-	/** Tags to be added to closed paths that are broken into open paths */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Add Open Tags"))
-	FString CommaSeparatedAddTags = TEXT("OpenPath");
-
-	/** Tags to be removed from closed paths that are broken into open paths */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Remove Open Tags"))
-	FString CommaSeparatedRemoveTags = TEXT("ClosedLoop");
-
-	TArray<FString> AddTags;
-	TArray<FString> RemoveTags;
-	TArray<FString> Tags;
-
-	void Init();
-
-	void Update(const TSharedPtr<PCGExData::FPointIO>& InPointIO);
-};
-
-USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathEdgeIntersectionDetails
 {
 	GENERATED_BODY()
@@ -264,6 +217,14 @@ namespace PCGExPaths
 	const FName SourceTriggerFilters = TEXT("Trigger Conditions");
 	const FName SourceShiftFilters = TEXT("Shift Conditions");
 
+	const FPCGAttributeIdentifier ClosedLoopIdentifier = FPCGAttributeIdentifier(FName("IsClosed"), PCGMetadataDomainID::Data);
+
+	PCGEXTENDEDTOOLKIT_API
+	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop);
+
+	PCGEXTENDEDTOOLKIT_API
+	bool GetClosedLoop(const UPCGData* InData);
+	
 	struct PCGEXTENDEDTOOLKIT_API FPathMetrics
 	{
 		FPathMetrics() = default;
@@ -721,7 +682,7 @@ namespace PCGExPaths
 
 #pragma endregion
 
-	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion, const bool bClosedLoop);
+	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion);
 	TSharedPtr<FPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop);
 
 	FTransform GetClosestTransform(const FPCGSplineStruct& InSpline, const FVector& InLocation, const bool bUseScale = true);
@@ -821,7 +782,7 @@ namespace PCGExPaths
 		}
 	};
 
-	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp = FVector::UpVector);
+	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const FVector& ProjectionUp = FVector::UpVector);
 	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp = FVector::UpVector);
 }
 

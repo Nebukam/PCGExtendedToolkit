@@ -86,22 +86,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bOmitCompletePathOnFailedPlot = false;
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
-	bool bTagIfClosedLoop = true;
-
-	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfClosedLoop"))
-	FString IsClosedLoopTag = TEXT("ClosedLoop");
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
-	bool bTagIfOpenPath = false;
-
-	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfOpenPath"))
-	FString IsOpenPathTag = TEXT("OpenPath");
-
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Paths Output Settings"))
 	FPCGExPathOutputDetails PathOutputDetails;

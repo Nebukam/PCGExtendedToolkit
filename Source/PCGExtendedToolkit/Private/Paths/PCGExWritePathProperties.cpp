@@ -114,8 +114,8 @@ namespace PCGExWritePathProperties
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0, bClosedLoop);
+		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0);
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>(true); // Force compute length
 		if (Settings->bWritePointNormal || Settings->bWritePointBinormal) { PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Settings->UpVector); }

@@ -85,7 +85,7 @@ namespace PCGExSubdivide
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
+		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetOut());
 
 		AmountGetter = Settings->GetValueSettingSubdivisionAmount();
 		if (!AmountGetter->Init(Context, PointDataFacade)) { return false; }

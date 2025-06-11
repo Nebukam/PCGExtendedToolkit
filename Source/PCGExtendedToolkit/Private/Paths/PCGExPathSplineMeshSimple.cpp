@@ -155,7 +155,7 @@ namespace PCGExPathSplineMeshSimple
 			}
 		}
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
+		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 		bUseTags = Settings->TaggingDetails.IsEnabled();
 
 		if (Settings->bApplyCustomTangents)

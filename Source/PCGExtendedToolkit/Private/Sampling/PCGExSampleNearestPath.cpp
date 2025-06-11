@@ -73,15 +73,12 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 		if (!Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (no input matches criteria or empty dataset)")); }
 	}
 
-	FPCGExPathClosedLoopDetails ClosedLoopDetails = Settings->ClosedLoop;
-	ClosedLoopDetails.Init();
-
 	Context->TargetFacades.Reserve(Targets->Pairs.Num());
 	Context->Paths.Reserve(Targets->Pairs.Num());
 
 	for (const TSharedPtr<PCGExData::FPointIO>& IO : Targets->Pairs)
 	{
-		const bool bClosedLoop = ClosedLoopDetails.IsClosedLoop(IO);
+		const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
 
 		switch (Settings->SampleInputs)
 		{
@@ -97,7 +94,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 		}
 
 		TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
-		TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePolyPath(IO->GetIn(), 1, bClosedLoop, FVector::UpVector);
+		TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePolyPath(IO->GetIn(), 1, FVector::UpVector);
 		Context->TargetFacades.Add(TargetFacade);
 		Context->Paths.Add(Path);
 	}

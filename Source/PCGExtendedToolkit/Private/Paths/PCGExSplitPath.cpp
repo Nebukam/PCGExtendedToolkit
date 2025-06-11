@@ -27,9 +27,6 @@ bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SplitPath)
 
-	PCGEX_FWD(UpdateTags)
-	Context->UpdateTags.Init();
-
 	Context->MainPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->MainPaths->OutputPin = Settings->GetMainOutputPin();
 
@@ -86,7 +83,7 @@ namespace PCGExSplitPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
+		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
@@ -388,7 +385,8 @@ namespace PCGExSplitPath
 		for (const TSharedPtr<PCGExData::FPointIO>& PathIO : PathsIOs)
 		{
 			if (!PathIO) { continue; }
-			if (bAddOpenTag) { Context->UpdateTags.Update(PathIO); }
+
+			PCGExPaths::SetClosedLoop(PathIO->GetOut(), false);
 
 			if ((OddEven & 1) == 0) { if (Settings->bTagIfEvenSplit) { PathIO->Tags->AddRaw(Settings->IsEvenTag); } }
 			else if (Settings->bTagIfOddSplit) { PathIO->Tags->AddRaw(Settings->IsOddTag); }

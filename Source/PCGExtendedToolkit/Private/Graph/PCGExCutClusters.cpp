@@ -87,10 +87,6 @@ bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	PCGEX_FWD(ClosedLoop)
-	Context->ClosedLoop.Init();
-
-
 	return true;
 }
 
@@ -110,7 +106,7 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 			[Context](const PCGExMT::FScope& Scope)
 			{
 				const TSharedRef<PCGExData::FFacade> PathFacade = Context->PathFacades[Scope.Start];
-				const TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(PathFacade->GetIn(), 0, Context->ClosedLoop.IsClosedLoop(PathFacade->Source));
+				const TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(PathFacade->GetIn(), 0);
 
 				Path->BuildEdgeOctree();
 

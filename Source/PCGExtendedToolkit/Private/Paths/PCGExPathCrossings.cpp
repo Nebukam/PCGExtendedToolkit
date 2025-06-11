@@ -110,7 +110,7 @@ namespace PCGExPathCrossings
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
 		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;
 		Details = Settings->IntersectionDetails;
 		Details.Init();
@@ -121,7 +121,7 @@ namespace PCGExPathCrossings
 		CanBeCutFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
 		if (!CanBeCutFilterManager->Init(ExecutionContext, Context->CanBeCutFilterFactories)) { CanBeCutFilterManager.Reset(); }
 
-		Path = PCGExPaths::MakePath(PointIO->GetIn(), Details.Tolerance * 2, bClosedLoop);
+		Path = PCGExPaths::MakePath(PointIO->GetIn(), Details.Tolerance * 2);
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 
 		Path->IOIndex = PointIO->IOIndex;

@@ -74,7 +74,7 @@ namespace PCGExFuseCollinear
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0);
 
 		ReadIndices.Reserve(Path->NumPoints);
 		LastPosition = Path->GetPos(0);
