@@ -19,12 +19,19 @@ public:
 		TArray<FPCGMeshInstanceList>& OutMeshInstances,
 		UPCGBasePointData* OutPointData) const override;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta = (PCG_Overridable))
+	UPROPERTY(EditAnywhere, Category = MeshSelector)
 	bool bApplyMaterialOverrides = true;
+
+	UPROPERTY(EditAnywhere, Category = MeshSelector, meta=(InlineEditConditionToggle))
+	bool bUseTemplateDescriptor = true;
+
+	/** If enabled, will ignore the collection descriptor details and only push mesh, materials & tags from the collection. */
+	UPROPERTY(EditAnywhere, Category = MeshSelector, meta=(EditCondition="bUseTemplateDescriptor"))
+	FPCGSoftISMComponentDescriptor TemplateDescriptor;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta = (PCG_Overridable))
+	UPROPERTY(EditAnywhere, Category = MeshSelector)
 	bool bUseTimeSlicing = false;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta = (PCG_Overridable))
+	UPROPERTY(EditAnywhere, Category = MeshSelector)
 	bool bOutputPoints = true;
 };

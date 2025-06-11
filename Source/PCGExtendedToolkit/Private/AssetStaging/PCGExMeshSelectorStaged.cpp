@@ -146,9 +146,20 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 
 			FPCGMeshInstanceList& InstanceList = OutMeshInstances[Partition.Value];
 
-			FPCGSoftISMComponentDescriptor& Descriptor = InstanceList.Descriptor;
-			Entry->InitPCGSoftISMDescriptor(Descriptor);
-			if (bApplyMaterialOverrides) { Entry->ApplyMaterials(MaterialPick, Descriptor); }
+			InstanceList.Descriptor = TemplateDescriptor;
+			FPCGSoftISMComponentDescriptor& OutDescriptor = InstanceList.Descriptor;
+
+			if (bUseTemplateDescriptor)
+			{
+				OutDescriptor.ComponentTags.Append(Entry->Tags.Array());
+				OutDescriptor.StaticMesh = Entry->StaticMesh;
+			}
+			else
+			{
+				Entry->InitPCGSoftISMDescriptor(OutDescriptor);
+			}
+
+			if (bApplyMaterialOverrides) { Entry->ApplyMaterials(MaterialPick, OutDescriptor); }
 
 			const TArray<int32>& InstanceIndices = InstanceList.InstancesIndices;
 			InstanceList.Instances.Reserve(InstanceIndices.Num());

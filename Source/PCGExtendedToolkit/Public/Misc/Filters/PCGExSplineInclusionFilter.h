@@ -49,15 +49,7 @@ struct FPCGExSplineInclusionFilterConfig
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
-
-	/** If enabled, project the spline on a plane to check inside/outside as a polygon. Uses the spline transform Up axis as a projection vector. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bTestInclusionOnProjection = true;
-
-	/** When projecting, defines the resolution of the polygon created from the spline. Lower values means higher fidelity, but slower execution. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Fidelity", EditCondition="bTestInclusionOnProjection", ClampMin=1))
-	double Fidelity = 100;
-
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSplineCheckType CheckType = EPCGExSplineCheckType::IsInside;
@@ -74,11 +66,6 @@ struct FPCGExSplineInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSplineScalesTolerance = false;
 
-	/**  Min dot product threshold for a point to be considered inside the spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1, ClampMax=1, EditCondition="!bTestInclusionOnProjection", EditConditionHides))
-	double CurvatureThreshold = 0.5;
-
-	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseMinInclusionCount = false;
@@ -95,10 +82,28 @@ struct FPCGExSplineInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxInclusionCount"))
 	int32 MaxInclusionCount = 10;
 
-	
+
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
+
+	
+	/** Optimize spatial partitioning, but limit the "reach" of splines to their bounding box. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	bool bUseOctree = true;
+
+	/** If enabled, project the spline on a plane to check inside/outside as a polygon. Uses the spline transform Up axis as a projection vector. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	bool bTestInclusionOnProjection = true;
+
+	/** When projecting, defines the resolution of the polygon created from the spline. Lower values means higher fidelity, but slower execution. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Fidelity", EditCondition="bTestInclusionOnProjection", ClampMin=1), AdvancedDisplay)
+	double Fidelity = 100;
+
+	/**  Min dot product threshold for a point to be considered inside the spline. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, ClampMin=-1, ClampMax=1, EditCondition="!bTestInclusionOnProjection"), AdvancedDisplay)
+	double CurvatureThreshold = 0.5;
+	
 };
 
 /**
@@ -119,7 +124,8 @@ public:
 	TSharedPtr<TArray<FPCGSplineStruct>> Splines;
 	TSharedPtr<TArray<TArray<FVector2D>>> Polygons;
 	TSharedPtr<TArray<FQuat>> Projections;
-	
+	TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
+
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
 	virtual bool Prepare(FPCGExContext* InContext) override;
@@ -155,6 +161,7 @@ namespace PCGExPointFilter
 			Splines = TypedFilterFactory->Splines;
 			Polygons = TypedFilterFactory->Polygons;
 			Projections = TypedFilterFactory->Projections;
+			Octree = TypedFilterFactory->Octree;
 		}
 
 		const TObjectPtr<const UPCGExSplineInclusionFilterFactory> TypedFilterFactory;
@@ -162,6 +169,7 @@ namespace PCGExPointFilter
 		TSharedPtr<TArray<FPCGSplineStruct>> Splines;
 		TSharedPtr<TArray<TArray<FVector2D>>> Polygons;
 		TSharedPtr<TArray<FQuat>> Projections;
+		TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
 
 		double ToleranceSquared = MAX_dbl;
 		ESplineCheckFlags GoodFlags = None;
@@ -172,8 +180,13 @@ namespace PCGExPointFilter
 		TConstPCGValueRange<FTransform> InTransforms;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
+		
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
+
+		void UpdateInclusionFast(const FVector& Pos, const int32 TargetIndex, ESplineCheckFlags& OutFlags, int32& OutInclusionsCount) const;
+		void UpdateInclusionClosest(const FVector& Pos, const int32 TargetIndex, ESplineCheckFlags& OutFlags, double& OutClosestDist) const;
+		void UpdateInclusion(const FVector& Pos, const int32 TargetIndex, ESplineCheckFlags& OutFlags, int32& OutInclusionsCount) const;
 
 		virtual ~FSplineInclusionFilter() override
 		{
