@@ -196,14 +196,13 @@ namespace PCGExBevelPath
 
 		const double Amount = InProcessor->SubdivAmountGetter->Read(Index);
 
-		if (!InProcessor->bArc) { SubdivideLine(Amount, InProcessor->bSubdivideCount); }
+		if (!InProcessor->bArc) { SubdivideLine(Amount, InProcessor->bSubdivideCount, InProcessor->bKeepCorner); }
 		else { SubdivideArc(Amount, InProcessor->bSubdivideCount); }
 	}
 
-	void FBevel::SubdivideLine(const double Factor, const bool bIsCount)
+	void FBevel::SubdivideLine(const double Factor, const bool bIsCount, const bool bKeepCorner)
 	{
-		const double Dist = FVector::Dist(Arrive, Leave);
-		const FVector Dir = (Leave - Arrive).GetSafeNormal();
+		const double Dist = FVector::Dist(Arrive, bKeepCorner ? Corner : Leave);
 
 		int32 SubdivCount = Factor;
 		double StepSize = 0;
@@ -219,10 +218,33 @@ namespace PCGExBevelPath
 		}
 
 		SubdivCount = FMath::Max(0, SubdivCount);
-		PCGEx::InitArray(Subdivisions, SubdivCount);
 
+		if (bKeepCorner)
+		{
+			PCGEx::InitArray(Subdivisions, SubdivCount * 2 + 1);
 
-		for (int i = 0; i < SubdivCount; i++) { Subdivisions[i] = Arrive + Dir * (StepSize + i * StepSize); }
+			if (SubdivCount == 0)
+			{
+				Subdivisions[0] = Corner;
+			}
+			else
+			{
+				int32 WriteIndex = 0;
+				FVector Dir = (Corner - Arrive).GetSafeNormal();
+				for (int i = 0; i < SubdivCount; i++) { Subdivisions[WriteIndex++] = Arrive + Dir * (StepSize + i * StepSize); }
+
+				Subdivisions[WriteIndex++] = Corner;
+
+				Dir = (Leave - Corner).GetSafeNormal();
+				for (int i = 0; i < SubdivCount; i++) { Subdivisions[WriteIndex++] = Corner + Dir * (StepSize + i * StepSize); }
+			}
+		}
+		else
+		{
+			PCGEx::InitArray(Subdivisions, SubdivCount);
+			const FVector Dir = (Leave - Arrive).GetSafeNormal();
+			for (int i = 0; i < SubdivCount; i++) { Subdivisions[i] = Arrive + Dir * (StepSize + i * StepSize); }
+		}
 	}
 
 	void FBevel::SubdivideArc(const double Factor, const bool bIsCount)
@@ -232,7 +254,7 @@ namespace PCGExBevelPath
 		if (Arc.bIsLine)
 		{
 			// Fallback to line since we can't infer a proper radius
-			SubdivideLine(Factor, bIsCount);
+			SubdivideLine(Factor, bIsCount, false);
 			return;
 		}
 
@@ -329,9 +351,11 @@ namespace PCGExBevelPath
 		WidthGetter = Settings->GetValueSettingWidth();
 		if (!WidthGetter->Init(Context, PointDataFacade)) { return false; }
 
+		bKeepCorner = Settings->bKeepCornerPoint;
+
 		if (Settings->bSubdivide)
 		{
-			bSubdivide = !Settings->bKeepCornerPoint && Settings->Type != EPCGExBevelProfileType::Custom;
+			bSubdivide = Settings->Type != EPCGExBevelProfileType::Custom;
 			if (bSubdivide)
 			{
 				bSubdivideCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
@@ -339,6 +363,13 @@ namespace PCGExBevelPath
 				SubdivAmountGetter = Settings->GetValueSettingSubdivisions();
 				if (!SubdivAmountGetter->Init(Context, PointDataFacade)) { return false; }
 			}
+		}
+		else if (bKeepCorner && Settings->Type == EPCGExBevelProfileType::Line)
+		{
+			// This is to force line to go through subdiv flow
+			bSubdivide = true;
+			bSubdivideCount = true;
+			SubdivAmountGetter = PCGExDetails::MakeSettingValue<double>(0);
 		}
 
 		bArc = Settings->Type == EPCGExBevelProfileType::Arc;
