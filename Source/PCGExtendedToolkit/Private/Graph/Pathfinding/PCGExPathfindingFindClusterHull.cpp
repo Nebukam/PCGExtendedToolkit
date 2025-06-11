@@ -118,6 +118,8 @@ namespace PCGExFindClusterHull
 		PathIO->InheritPoints(ReadIndices, 0);
 		InCell->PostProcessPoints(PathIO->GetOut());
 
+		PCGExPaths::SetClosedLoop(PathDataFacade->GetOut(), true);
+
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
 		PathDataFacade->WriteFastest(AsyncManager);
 	}

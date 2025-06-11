@@ -20,13 +20,13 @@ namespace PCGExDataBlending
 
 namespace PCGExDataBlending
 {
-	class PCGEXTENDEDTOOLKIT_API FUnionBlender final : public TSharedFromThis<FUnionBlender>
+	class PCGEXTENDEDTOOLKIT_API FUnionBlender final : public IUnionBlender
 	{
 	public:
 		const FPCGExCarryOverDetails* CarryOverDetails;
 
-		explicit FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails);
-		~FUnionBlender();
+		FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails);
+		virtual ~FUnionBlender() override;
 
 		class FMultiSourceBlender : public TSharedFromThis<FMultiSourceBlender>
 		{
@@ -40,7 +40,7 @@ namespace PCGExDataBlending
 			TSharedPtr<FProxyDataBlender> MainBlender; // Finisher, only used to initialize tracker & complete the multiblend 
 
 			FMultiSourceBlender(const PCGEx::FAttributeIdentity& InIdentity, const TArray<TSharedPtr<PCGExData::FFacade>>& InSources);
-			FMultiSourceBlender(const TArray<TSharedPtr<PCGExData::FFacade>>& InSources);
+			explicit FMultiSourceBlender(const TArray<TSharedPtr<PCGExData::FFacade>>& InSources);
 
 			~FMultiSourceBlender() = default;
 
@@ -55,22 +55,20 @@ namespace PCGExDataBlending
 			void SetNum(const int32 InNum) { SubBlenders.SetNum(InNum); }
 		};
 
-		void AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade, const TSet<FName>* IgnoreAttributeSet = nullptr);
-		void AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InFacades, const TSet<FName>* IgnoreAttributeSet = nullptr);
+		void AddSources(const TArray<TSharedRef<PCGExData::FFacade>>& InSources, const TSet<FName>* IgnoreAttributeSet = nullptr);
 
 		// bWantsDirectAccess replaces the previous "soft blending" concept
 		// Blenders will be initialized with an attribute instead of a buffer if it is enabled
 		bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const bool bWantsDirectAccess = false);
 		bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const bool bWantsDirectAccess = false);
 
-		void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints);
-		void MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints);
-
-		FORCEINLINE EPCGPointNativeProperties GetAllocatedProperties() const { return AllocatedProperties; }
+		virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const override
+		{
+		};
+		virtual void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override;
+		virtual void MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override;
 
 	protected:
-		EPCGPointNativeProperties AllocatedProperties = EPCGPointNativeProperties::None;
-
 		TSet<FString> TypeMismatches;
 		bool Validate(FPCGExContext* InContext, const bool bQuiet) const;
 
@@ -84,7 +82,7 @@ namespace PCGExDataBlending
 		TSet<FString> UniqueTags;
 		TArray<FString> UniqueTagsList;
 		TArray<FPCGMetadataAttribute<bool>*> TagAttributes;
-		TMap<uint32, int32> IOIndices;
+		TSharedPtr<PCGEx::FIndexLookup> IOLookup;
 
 		TArray<TSharedPtr<PCGExData::FFacade>> Sources;
 		TArray<const UPCGBasePointData*> SourcesData;

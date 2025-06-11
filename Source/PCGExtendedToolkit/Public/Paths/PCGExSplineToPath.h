@@ -93,23 +93,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Point Type", PCG_Overridable, EditCondition="bWritePointType"))
 	FName PointTypeAttributeName = FName("PointType");
 
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
-	bool bTagIfClosedLoop = true;
-
-	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfClosedLoop"))
-	FString IsClosedLoopTag = TEXT("ClosedLoop");
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
-	bool bTagIfOpenSpline = false;
-
-	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfOpenSpline"))
-	FString IsOpenSplineTag = TEXT("OpenPath");
-
 	/** Tags to be forwarded from source splines */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable))
 	FPCGExNameFiltersDetails TagForwarding;

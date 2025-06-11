@@ -147,10 +147,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Ext)", meta=(PCG_Overridable, EditCondition="bDoExternalPathIntersections"))
 	bool bIgnoreIntersectionOnOrigin = true;
 
-	/** Closed loop handling for external paths.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Ext)", meta=(PCG_Overridable, EditCondition="bDoExternalPathIntersections"))
-	FPCGExPathClosedLoopDetails ClosedLoop;
-
 	/** Intersection settings  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections (Ext)", meta=(PCG_Overridable, EditCondition="bDoExternalPathIntersections"))
 	FPCGExPathIntersectionDetails ExternalPathIntersections;
@@ -253,22 +249,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsFollowUp"))
 	FString IsFollowUpTag = TEXT("IsFollowUp");
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
-	bool bTagIfClosedLoop = true;
-
-	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfClosedLoop"))
-	FString IsClosedLoopTag = TEXT("ClosedLoop");
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
-	bool bTagIfOpenPath = false;
-
-	/** ... */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfOpenPath"))
-	FString IsOpenPathTag = TEXT("OpenPath");
-
+	
 	/** Tensor sampling settings. Note that these are applied on the flattened sample, e.g after & on top of individual tensors' mutations. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Tensor Sampling Settings"))
 	FPCGExTensorHandlerDetails TensorHandlerDetails;
@@ -300,7 +281,6 @@ struct FPCGExExtrudeTensorsContext final : FPCGExPointsProcessorContext
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
 
-	FPCGExPathClosedLoopDetails ClosedLoop;
 	FPCGExPathIntersectionDetails ExternalPathIntersections;
 	FPCGExPathIntersectionDetails SelfPathIntersections;
 	FPCGExPathIntersectionDetails MergeDetails;

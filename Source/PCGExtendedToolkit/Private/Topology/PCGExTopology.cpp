@@ -361,6 +361,7 @@ namespace PCGExTopology
 
 	void FCell::PostProcessPoints(UPCGBasePointData* InMutablePoints)
 	{
+		
 	}
 }
 
@@ -396,6 +397,7 @@ void FPCGExCellArtifactsDetails::Process(
 				i--;
 			}
 		}
+		
 		TagForwarding.Prune(Tags);
 		InDataFacade->Source->Tags->Append(Tags);
 	};
@@ -404,7 +406,7 @@ void FPCGExCellArtifactsDetails::Process(
 	FwdTags(InCluster->VtxIO.Pin()->Tags->Flatten());
 	FwdTags(InCluster->EdgesIO.Pin()->Tags->Flatten());
 
-	if (bTagIfClosedLoop) { InDataFacade->Source->Tags->AddRaw(IsClosedLoopTag); }
+	PCGExPaths::SetClosedLoop(InDataFacade->GetOut(), true);
 
 	if (InCell->Data.bIsConvex) { if (bTagConvex) { InDataFacade->Source->Tags->AddRaw(ConvexTag); } }
 	else { if (bTagConcave) { InDataFacade->Source->Tags->AddRaw(ConcaveTag); } }

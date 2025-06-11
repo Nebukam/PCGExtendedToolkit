@@ -479,7 +479,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		const uint32 BaseGUID = VtxDataFacade->Source->GetOut()->GetUniqueID();
 
 		TArray<PCGExData::FWeightedPoint> WeightedPoints;
-
+		TArray<PCGEx::FOpStats> Trackers;
 		PCGEX_SCOPE_LOOP(i)
 		{
 			const FEdge& E = FlattenedEdges[i];
@@ -494,7 +494,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				if (const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindRootEdgeMetadata_Unsafe(E.IOIndex))
 				{
 					if (TSharedPtr<PCGExData::FUnionData> UnionData = ParentGraph->EdgesUnion->Get(EdgeMeta->RootIndex);
-						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, WeightedPoints); }
+						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, WeightedPoints, Trackers); }
 
 #define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->SetValue(EdgeIndex, EdgeMeta->_ACCESSOR);}
 					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)

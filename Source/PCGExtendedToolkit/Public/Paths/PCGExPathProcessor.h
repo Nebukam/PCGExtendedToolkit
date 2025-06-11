@@ -51,10 +51,6 @@ public:
 	UPROPERTY()
 	bool bSupportClosedLoops = true;
 
-	/** Closed loop handling.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="bSupportClosedLoops", EditConditionHides, HideEditConditionToggle))
-	FPCGExPathClosedLoopDetails ClosedLoop;
-
 	/** If enabled, collections that have less than 2 points won't be processed and be omitted from the output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bOmitInvalidPathsOutputs = true;
@@ -63,8 +59,6 @@ public:
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathProcessorElement;
-
-	FPCGExPathClosedLoopDetails ClosedLoop;
 	TSharedPtr<PCGExData::FPointIOCollection> MainPaths;
 };
 

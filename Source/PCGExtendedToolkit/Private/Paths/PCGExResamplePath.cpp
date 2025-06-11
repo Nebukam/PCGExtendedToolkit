@@ -64,7 +64,7 @@ namespace PCGExResamplePath
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
-		Path = PCGExPaths::MakePath(InPoints, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		Path = PCGExPaths::MakePath(InPoints, 0);
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>(true); // Force compute length
 

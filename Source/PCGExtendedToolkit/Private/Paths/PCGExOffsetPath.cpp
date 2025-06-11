@@ -73,7 +73,7 @@ namespace PCGExOffsetPath
 		OffsetConstant = Settings->OffsetConstant;
 
 		ToleranceSquared = Settings->IntersectionTolerance * Settings->IntersectionTolerance;
-		Path = PCGExPaths::MakePath(InTransforms, 0, Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source));
+		Path = PCGExPaths::MakePath(InTransforms, 0, PCGExPaths::GetClosedLoop(PointDataFacade->GetIn()));
 
 		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
 		{

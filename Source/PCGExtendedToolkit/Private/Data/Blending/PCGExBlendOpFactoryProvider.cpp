@@ -38,7 +38,7 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	if (!CopyAndFixSiblingSelector(InContext, Config.OperandA)) { return false; }
 	if (Config.bUseOperandB) { if (!CopyAndFixSiblingSelector(InContext, Config.OperandB)) { return false; } }
 	else { Config.OperandB = Config.OperandA; }
-	
+
 	switch (Config.OutputMode)
 	{
 	case EPCGExBlendOpOutputMode::SameAsA:
@@ -89,36 +89,51 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	}
 	if (Config.OutputTo.GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
-		if (Config.OutputType == EPCGExOperandAuthority::A) { RealTypeC = A.RealType; }
-		else if (Config.OutputType == EPCGExOperandAuthority::B) { RealTypeC = B.RealType; }
-		else if (Config.OutputType == EPCGExOperandAuthority::Custom) { RealTypeC = Config.CustomType; }
-		else if (Config.OutputType == EPCGExOperandAuthority::Auto)
+		const FPCGMetadataAttributeBase* OutAttribute = TargetFacade->GetOut()->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(Config.OutputTo, TargetFacade->GetOut()));
+		if (OutAttribute)
 		{
-			if (const FPCGMetadataAttributeBase* OutAttribute = TargetFacade->GetOut()->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(Config.OutputTo, TargetFacade->GetOut())))
+			RealTypeC = static_cast<EPCGMetadataTypes>(OutAttribute->GetTypeId());
+
+			if ((Config.OutputType == EPCGExOperandAuthority::A && RealTypeC != A.RealType) ||
+				(Config.OutputType == EPCGExOperandAuthority::B && RealTypeC != B.RealType) ||
+				(Config.OutputType == EPCGExOperandAuthority::Custom && RealTypeC != Config.CustomType))
 			{
-				// First, check for an existing attribute
-				RealTypeC = static_cast<EPCGMetadataTypes>(OutAttribute->GetTypeId());
-				// TODO : Account for possible desired cast to a different type in the blend stack
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("An output attribute existing type will differ from its desired type."));
 			}
-
-			if (OutputSubselection.bIsValid && RealTypeC == EPCGMetadataTypes::Unknown)
+		}
+		else
+		{
+			if (Config.OutputType == EPCGExOperandAuthority::A) { RealTypeC = A.RealType; }
+			else if (Config.OutputType == EPCGExOperandAuthority::B) { RealTypeC = B.RealType; }
+			else if (Config.OutputType == EPCGExOperandAuthority::Custom) { RealTypeC = Config.CustomType; }
+			else if (Config.OutputType == EPCGExOperandAuthority::Auto)
 			{
-				// Take a wild guess based on subselection, if any
-				RealTypeC = OutputSubselection.PossibleSourceType;
-			}
+				if (OutAttribute)
+				{
+					// First, check for an existing attribute
+					RealTypeC = static_cast<EPCGMetadataTypes>(OutAttribute->GetTypeId());
+					// TODO : Account for possible desired cast to a different type in the blend stack
+				}
 
-			if (RealTypeC == EPCGMetadataTypes::Unknown)
-			{
-				// Ok we really have little to work with,
-				// take a guess based on other attribute types and pick the broader type
+				if (OutputSubselection.bIsValid && RealTypeC == EPCGMetadataTypes::Unknown)
+				{
+					// Take a wild guess based on subselection, if any
+					RealTypeC = OutputSubselection.PossibleSourceType;
+				}
 
-				EPCGMetadataTypes TypeA = A.SubSelection.bIsValid && A.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : A.RealType;
-				EPCGMetadataTypes TypeB = B.SubSelection.bIsValid && B.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : B.RealType;
+				if (RealTypeC == EPCGMetadataTypes::Unknown)
+				{
+					// Ok we really have little to work with,
+					// take a guess based on other attribute types and pick the broader type
 
-				int32 RatingA = PCGEx::GetMetadataRating(TypeA);
-				int32 RatingB = PCGEx::GetMetadataRating(TypeB);
+					EPCGMetadataTypes TypeA = A.SubSelection.bIsValid && A.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : A.RealType;
+					EPCGMetadataTypes TypeB = B.SubSelection.bIsValid && B.SubSelection.bIsFieldSet ? EPCGMetadataTypes::Double : B.RealType;
 
-				RealTypeC = RatingA > RatingB ? TypeA : TypeB;
+					int32 RatingA = PCGEx::GetMetadataRating(TypeA);
+					int32 RatingB = PCGEx::GetMetadataRating(TypeB);
+
+					RealTypeC = RatingA > RatingB ? TypeA : TypeB;
+				}
 			}
 		}
 	}
@@ -248,7 +263,7 @@ bool UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext)
 		InContext->ManagedObjects->Remove(const_cast<UPCGBasePointData*>(ConstantB->Source->GetIn()));
 		AddDataDependency(ConstantB->Source->GetIn());
 	}
-	
+
 	return true;
 }
 

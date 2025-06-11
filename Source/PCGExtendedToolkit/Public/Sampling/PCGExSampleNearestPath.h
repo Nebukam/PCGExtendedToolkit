@@ -13,6 +13,7 @@
 
 
 #include "Misc/PCGExSortPoints.h"
+#include "Paths/PCGExPaths.h"
 
 
 #include "PCGExSampleNearestPath.generated.h"
@@ -112,7 +113,7 @@ protected:
 public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
-
+	
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExPathSamplingIncludeMode SampleInputs = EPCGExPathSamplingIncludeMode::All;
@@ -128,10 +129,6 @@ public:
 	/** Maximum target range. Used as fallback if LocalRangeMax is enabled but missing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
 	double RangeMax = 300;
-
-	/** If enabled, spline scale affect range. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
-	bool bSplineScalesRanges = false;
 
 	/** Use a per-point minimum range*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -390,13 +387,9 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 
 	FPCGExApplySamplingDetails ApplySampling;
 
-	TArray<const UPCGSplineData*> Targets;
-	TArray<FPCGSplineStruct> Splines;
-	TArray<double> SegmentCounts;
-	TArray<double> Lengths;
-
-	int64 NumTargets = 0;
-
+	TArray<TSharedPtr<PCGExData::FFacade>> TargetFacades;
+	TArray<TSharedPtr<PCGExPaths::FPath>> Paths;
+	
 	FRuntimeFloatCurve RuntimeWeightCurve;
 	const FRichCurve* WeightCurve = nullptr;
 

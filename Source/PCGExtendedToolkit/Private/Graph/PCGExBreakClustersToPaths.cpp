@@ -192,8 +192,7 @@ namespace PCGExBreakClustersToPaths
 
 			if (bDoReverse) { Algo::Reverse(IdxMapping); }
 
-			if (!Chain->bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->AddRaw(Settings->IsOpenPathTag); } }
-			else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); } }
+			PCGExPaths::SetClosedLoop(PathIO->GetOut(), Chain->bIsClosedLoop);
 
 			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
 		}

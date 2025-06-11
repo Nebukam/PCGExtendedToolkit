@@ -110,7 +110,7 @@ namespace PCGExPathCrossings
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
 		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;
 		Details = Settings->IntersectionDetails;
 		Details.Init();
@@ -121,7 +121,7 @@ namespace PCGExPathCrossings
 		CanBeCutFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
 		if (!CanBeCutFilterManager->Init(ExecutionContext, Context->CanBeCutFilterFactories)) { CanBeCutFilterManager.Reset(); }
 
-		Path = PCGExPaths::MakePath(PointIO->GetIn(), Details.Tolerance * 2, bClosedLoop);
+		Path = PCGExPaths::MakePath(PointIO->GetIn(), Details.Tolerance * 2);
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 
 		Path->IOIndex = PointIO->IOIndex;
@@ -198,7 +198,7 @@ namespace PCGExPathCrossings
 
 				const double Dist = FVector::DistSquared(A, B);
 				const bool bColloc = (B == A2 || B == B2); // On crossing point
-				
+
 				if (Dist >= Details.ToleranceSquared) { return; }
 
 				NewCrossing->Crossings.Add(PCGEx::H64(E2.Start, CurrentIOIndex));
@@ -420,6 +420,7 @@ namespace PCGExPathCrossings
 	{
 		TArray<int32> Order;
 		TArray<PCGExData::FWeightedPoint> WeightedPoints;
+		TArray<PCGEx::FOpStats> Trackers;
 
 		const TSharedPtr<PCGExData::FUnionData> TempUnion = MakeShared<PCGExData::FUnionData>();
 
@@ -449,7 +450,7 @@ namespace PCGExPathCrossings
 				TempUnion->Reset();
 				TempUnion->Add(PCGExData::FPoint(PtIdx, IOIdx));
 				TempUnion->Add(PCGExData::FPoint(SecondIndex, IOIdx));
-				UnionBlender->MergeSingle(Edge.AltStart + i + 1, TempUnion, WeightedPoints);
+				UnionBlender->MergeSingle(Edge.AltStart + i + 1, TempUnion, WeightedPoints, Trackers);
 			}
 		}
 	}
@@ -462,16 +463,21 @@ namespace PCGExPathCrossings
 			return;
 		}
 
-		UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver, Context->Distances);
+
+		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver, Context->Distances);
+		UnionBlender = TypedBlender;
+		
+		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;
+		UnionSources.Reserve(Context->MainPoints->Pairs.Num());
+
 		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
 		{
-			if (IO && CrossIOIndices.Contains(IO->IOIndex))
-			{
-				UnionBlender->AddSource(Context->SubProcessorMap[IO.Get()]->PointDataFacade, &ProtectedAttributes);
-			}
+			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { UnionSources.Add(Context->SubProcessorMap[IO.Get()]->PointDataFacade); }
 		}
 
-		if (!UnionBlender->Init(Context, PointDataFacade, true))
+		TypedBlender->AddSources(UnionSources, &ProtectedAttributes);
+
+		if (!TypedBlender->Init(Context, PointDataFacade, true))
 		{
 			// TODO : Log error
 			bIsProcessorValid = false;

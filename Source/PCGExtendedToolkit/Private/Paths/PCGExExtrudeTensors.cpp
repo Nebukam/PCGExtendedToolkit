@@ -41,9 +41,6 @@ bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ExtrudeTensors)
 
-	PCGEX_FWD(ClosedLoop)
-	Context->ClosedLoop.Init();
-
 	PCGEX_FWD(ExternalPathIntersections)
 	Context->ExternalPathIntersections.Init();
 
@@ -135,7 +132,6 @@ namespace PCGExExtrudeTensors
 
 		///
 		///
-		
 	}
 
 	void FExtrusion::Complete()
@@ -158,14 +154,15 @@ namespace PCGExExtrudeTensors
 		}
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+		PCGExPaths::SetClosedLoop(OutPointData, false);
+
 		PCGEx::SetNumPointsAllocated(OutPointData, ExtrudedPoints.Num(), PointDataFacade->GetAllocations());
 
 		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
 		for (int i = 0; i < ExtrudedPoints.Num(); i++) { OutTransforms[i] = ExtrudedPoints[i]; }
 
 
-		if (!bIsClosedLoop) { if (Settings->bTagIfOpenPath) { PointDataFacade->Source->Tags->AddRaw(Settings->IsOpenPathTag); } }
-		else { if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->AddRaw(Settings->IsClosedLoopTag); } }
+		PCGExPaths::SetClosedLoop(PointDataFacade->GetOut(), bIsClosedLoop);
 
 		if (Settings->bTagIfIsStoppedByFilters && bHitStopFilters) { PointDataFacade->Source->Tags->AddRaw(Settings->IsStoppedByFiltersTag); }
 		if (bHitIntersection)
@@ -649,7 +646,7 @@ namespace PCGExExtrudeTensors
 
 						if (!E->bIsValidPath) { continue; }
 
-						TSharedPtr<PCGExPaths::FPath> StaticPath = PCGExPaths::MakePath(E->PointDataFacade->GetOut(), Settings->ExternalPathIntersections.Tolerance, false);
+						TSharedPtr<PCGExPaths::FPath> StaticPath = PCGExPaths::MakePath(E->PointDataFacade->GetOut(), Settings->ExternalPathIntersections.Tolerance);
 						StaticPath->BuildEdgeOctree();
 						StaticPaths.Get()->Add(StaticPath);
 					}
@@ -754,11 +751,7 @@ namespace PCGExExtrudeTensors
 				Context->ExternalPaths.Reserve(Context->PathsFacades.Num());
 				for (const TSharedPtr<PCGExData::FFacade>& Facade : Context->PathsFacades)
 				{
-					TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(
-						Facade->GetIn(),
-						Settings->ExternalPathIntersections.Tolerance,
-						Context->ClosedLoop.IsClosedLoop(Facade->Source));
-
+					TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(Facade->GetIn(), Settings->ExternalPathIntersections.Tolerance);
 					Context->ExternalPaths.Add(Path);
 					Path->BuildEdgeOctree();
 				}

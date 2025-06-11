@@ -18,39 +18,6 @@ bool FPCGExPathOutputDetails::Validate(const int32 NumPathPoints) const
 	return true;
 }
 
-void FPCGExPathClosedLoopDetails::Init()
-{
-	Tags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedTags);
-}
-
-bool FPCGExPathClosedLoopDetails::IsClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const
-{
-	if (Scope == EPCGExInputScope::All) { return bClosedLoop; }
-	if (Tags.IsEmpty()) { return !bClosedLoop; }
-	for (const FString& Tag : Tags) { if (InPointIO->Tags->IsTagged(Tag)) { return !bClosedLoop; } }
-	return bClosedLoop;
-}
-
-bool FPCGExPathClosedLoopDetails::IsClosedLoop(const FPCGTaggedData& InTaggedData) const
-{
-	if (Scope == EPCGExInputScope::All) { return bClosedLoop; }
-	if (Tags.IsEmpty()) { return !bClosedLoop; }
-	for (const FString& Tag : Tags) { if (InTaggedData.Tags.Contains(Tag)) { return !bClosedLoop; } }
-	return bClosedLoop;
-}
-
-void FPCGExPathClosedLoopUpdateDetails::Init()
-{
-	AddTags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedAddTags);
-	RemoveTags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedRemoveTags);
-}
-
-void FPCGExPathClosedLoopUpdateDetails::Update(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
-{
-	for (const FString& Add : AddTags) { InPointIO->Tags->AddRaw(Add); }
-	for (const FString& Rem : RemoveTags) { InPointIO->Tags->Remove(Rem); }
-}
-
 void FPCGExPathEdgeIntersectionDetails::Init()
 {
 	MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
@@ -78,6 +45,19 @@ FPCGExPathIntersectionDetails::FPCGExPathIntersectionDetails(const double InTole
 
 namespace PCGExPaths
 {
+	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop)
+	{
+		FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetMutableAttribute<bool>(InData, ClosedLoopIdentifier);
+		if (!Attr) { InData->Metadata->CreateAttribute<bool>(ClosedLoopIdentifier, bIsClosedLoop, true, true); }
+		else { Attr->SetDefaultValue(bIsClosedLoop); }
+	}
+
+	bool GetClosedLoop(const UPCGData* InData)
+	{
+		const FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetConstAttribute<bool>(InData, ClosedLoopIdentifier);
+		return Attr ? Attr->GetValue(PCGDefaultValueKey) : false;
+	}
+
 	FPathMetrics::FPathMetrics(const FVector& InStart)
 	{
 		Add(InStart);
@@ -308,7 +288,7 @@ namespace PCGExPaths
 	}
 
 #pragma region Edge extras
-	
+
 #pragma region FPathEdgeLength
 
 	void FPathEdgeLength::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
@@ -484,9 +464,9 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = PI;
 	}
 
-	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion, const bool bClosedLoop)
+	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion)
 	{
-		return MakePath(InPointData->GetConstTransformValueRange(), Expansion, bClosedLoop);
+		return MakePath(InPointData->GetConstTransformValueRange(), Expansion, GetClosedLoop(InPointData));
 	}
 
 	TSharedPtr<FPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop)
@@ -590,9 +570,9 @@ namespace PCGExPaths
 
 #pragma endregion
 
-	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp)
+	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const FVector& ProjectionUp)
 	{
-		return MakePolyPath(InPointData->GetConstTransformValueRange(), Expansion, bClosedLoop, ProjectionUp);
+		return MakePolyPath(InPointData->GetConstTransformValueRange(), Expansion, GetClosedLoop(InPointData), ProjectionUp);
 	}
 
 	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp)
@@ -606,7 +586,6 @@ namespace PCGExPaths
 		PCGEX_MAKE_SHARED(P, TPolyPath<false>, InTransforms, ProjectionUp, Expansion)
 		return StaticCastSharedPtr<FPath>(P);
 	}
-	
 }
 
 

@@ -145,8 +145,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 
 	PathIO->Tags->Append(Query->PlotFacade->Source->Tags.ToSharedRef());
 
-	if (!Settings->bClosedLoop) { if (Settings->bTagIfOpenPath) { PathIO->Tags->AddRaw(Settings->IsOpenPathTag); } }
-	else { if (Settings->bTagIfClosedLoop) { PathIO->Tags->AddRaw(Settings->IsClosedLoopTag); } }
+	PCGExPaths::SetClosedLoop(PathIO->GetOut(), Settings->bClosedLoop);
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)

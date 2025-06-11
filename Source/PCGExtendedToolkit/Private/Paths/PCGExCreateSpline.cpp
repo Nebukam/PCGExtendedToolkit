@@ -90,7 +90,7 @@ namespace PCGExCreateSpline
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
+		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 
 		if (Settings->bApplyCustomTangents)
 		{

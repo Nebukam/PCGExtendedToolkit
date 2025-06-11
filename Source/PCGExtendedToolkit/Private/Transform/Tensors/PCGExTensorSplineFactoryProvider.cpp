@@ -27,7 +27,6 @@ bool UPCGExTensorSplineFactoryData::InitInternalData(FPCGExContext* InContext)
 		if (!InitInternalFacade(InContext)) { return false; }
 
 		TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(PCGExPaths::SourcePathsLabel);
-		ClosedLoop.Init();
 
 		if (!Targets.IsEmpty())
 		{
@@ -36,7 +35,7 @@ bool UPCGExTensorSplineFactoryData::InitInternalData(FPCGExContext* InContext)
 				const UPCGBasePointData* PathData = Cast<UPCGBasePointData>(TaggedData.Data);
 				if (!PathData) { continue; }
 
-				const bool bIsClosedLoop = ClosedLoop.IsClosedLoop(TaggedData);
+				const bool bIsClosedLoop = PCGExPaths::GetClosedLoop(PathData);
 				if (SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
 				if (SampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { continue; }
 

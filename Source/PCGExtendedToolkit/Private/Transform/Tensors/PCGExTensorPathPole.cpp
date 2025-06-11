@@ -33,7 +33,6 @@ PCGEX_TENSOR_BOILERPLATE(
 	NewFactory->bBuildFromPaths = GetBuildFromPoints();
 	NewFactory->PointType = NewFactory->Config.PointType;
 	NewFactory->bSmoothLinear = NewFactory->Config.bSmoothLinear;
-	NewFactory->ClosedLoop = NewFactory->Config.ClosedLoop;
 	}, {
 	NewOperation->Splines = &ManagedSplines;
 	})

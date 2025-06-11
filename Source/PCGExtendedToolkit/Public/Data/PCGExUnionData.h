@@ -33,7 +33,7 @@ namespace PCGExData
 		// Gather data into arrays and return the required iteration count
 		int32 ComputeWeights(
 			const TArray<const UPCGBasePointData*>& Sources,
-			const TMap<uint32, int32>& SourcesIdx,
+			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
 			const FConstPoint& Target,
 			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
 			TArray<FWeightedPoint>& OutWeightedPoints) const;

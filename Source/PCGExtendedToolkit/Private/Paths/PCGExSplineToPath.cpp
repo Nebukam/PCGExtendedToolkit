@@ -4,6 +4,7 @@
 #include "Paths/PCGExSplineToPath.h"
 
 
+#include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSplineToPathElement"
@@ -136,7 +137,8 @@ namespace PCGExSplineToPath
 
 		UPCGBasePointData* MutablePoints = PointDataFacade->Source->GetOut();
 		const int32 LastIndex = Spline.bClosedLoop ? NumSegments - 1 : NumSegments;
-		PCGEx::SetNumPointsAllocated(MutablePoints, Spline.bClosedLoop ? NumSegments : NumSegments + 1,
+		PCGEx::SetNumPointsAllocated(
+			MutablePoints, Spline.bClosedLoop ? NumSegments : NumSegments + 1,
 			EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::Seed);
 
 		PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_DECL)
@@ -205,14 +207,10 @@ namespace PCGExSplineToPath
 			PCGEX_OUTPUT_VALUE(PointType, i, GetPointType(SplinePositions.Points[i].InterpMode));
 		}
 
-		if (Spline.bClosedLoop)
-		{
-			if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->AddRaw(Settings->IsClosedLoopTag); }
-		}
-		else
-		{
-			if (Settings->bTagIfOpenSpline) { PointDataFacade->Source->Tags->AddRaw(Settings->IsOpenSplineTag); }
+		PCGExPaths::SetClosedLoop(PointDataFacade->GetOut(), Spline.bClosedLoop);
 
+		if (!Spline.bClosedLoop)
+		{
 			ApplyTransform(MutablePoints->GetNumPoints() - 1, Spline.GetTransformAtDistanceAlongSpline(TotalLength, ESplineCoordinateSpace::Type::World, true));
 
 			PCGEX_OUTPUT_VALUE(LengthAtPoint, LastIndex, TotalLength);

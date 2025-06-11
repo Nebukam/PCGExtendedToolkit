@@ -49,11 +49,6 @@ public:
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	/** Closed loop handling.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExPathClosedLoopDetails ClosedLoop;
-
-
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails = FPCGExPathEdgeIntersectionDetails(false);
@@ -103,7 +98,6 @@ struct FPCGExCutEdgesContext final : FPCGExEdgesProcessorContext
 
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
-	FPCGExPathClosedLoopDetails ClosedLoop;
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
 
 	bool bWantsVtxProcessing = false;

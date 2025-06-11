@@ -95,7 +95,7 @@ namespace PCGExPathIntersections
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
+		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 		LastIndex = PointDataFacade->GetNum() - 1;
 		Segmentation = MakeShared<PCGExGeo::FSegmentation>();
 		Cloud = Context->BoundsDataFacade->GetCloud(Settings->OutputSettings.BoundsSource, Settings->OutputSettings.InsideExpansion);
