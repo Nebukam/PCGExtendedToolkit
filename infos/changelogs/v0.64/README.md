@@ -41,6 +41,14 @@ This optimization affects the following filters:
 
 Additionally, the Attribute Check filter now support additional constraints relative to domains.
 
+### Spline & Path inclusions
+
+[Spline](../../../node-library/filters/filters-points/spatial/spline-inclusion.md) & [Path](../../../node-library/filters/filters-points/spatial/path-inclusion.md) inclusions filter have been pimped to allow to test inside/outside based on a polygonal projection as opposed to pure spatial detection. This is now the default behavior for new & existing  inclusions filters.&#x20;
+
+> In the case of splines, an appximative polygon representation is generated from the spline, so it's important to fine-tune the `Fidelity` parameter if you work with very curvy splines with few control points and extreme tangents.
+
+Additionally, they now have the same min/max inclusion counter found on the [polygon 2D inclusion](../../../node-library/filters/filters-points/spatial/polygon-2d-inclusion.md) filter — which remains faster for these tasks.
+
 ## Tweaks
 
 * Make sure to check [5.x to 5.6 Important Changes](5.x-5.6-important-changes.md)!
