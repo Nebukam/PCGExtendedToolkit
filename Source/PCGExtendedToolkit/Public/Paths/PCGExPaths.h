@@ -770,6 +770,7 @@ namespace PCGExPaths
 
 		virtual bool IsInsideProjection(const FTransform& InTransform) const override
 		{
+			// Projection.RotateVector(InTransform.GetLocation())
 			return FGeomTools2D::IsPointInPolygon(FVector2D(Projection.RotateVector(InTransform.GetLocation())), ProjectedPoints);
 		}
 

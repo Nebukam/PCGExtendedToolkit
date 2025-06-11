@@ -13,8 +13,6 @@
 bool UPCGExSplineInclusionFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
-
-
 	return true;
 }
 
@@ -33,6 +31,11 @@ bool UPCGExSplineInclusionFilterFactory::Prepare(FPCGExContext* InContext)
 	if (!Super::Prepare(InContext)) { return false; }
 
 	Splines = MakeShared<TArray<FPCGSplineStruct>>();
+	if (Config.bTestInclusionOnProjection)
+	{
+		Polygons = MakeShared<TArray<TArray<FVector2D>>>();
+		Projections = MakeShared<TArray<FQuat>>();
+	}
 
 	if (TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(FName("Splines"));
 		!Targets.IsEmpty())
@@ -45,6 +48,20 @@ bool UPCGExSplineInclusionFilterFactory::Prepare(FPCGExContext* InContext)
 			const bool bIsClosedLoop = SplineData->SplineStruct.bClosedLoop;
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { continue; }
+
+			if (Config.bTestInclusionOnProjection)
+			{
+				TArray<FVector> SplinePoints;
+
+				SplineData->SplineStruct.ConvertSplineToPolyLine(ESplineCoordinateSpace::World, FMath::Square(Config.Fidelity), SplinePoints);
+				TArray<FVector2D>& Polygon = Polygons->Emplace_GetRef();
+
+				Polygon.SetNumUninitialized(SplinePoints.Num());
+				const FQuat& Projection = Projections->Emplace_GetRef(FQuat::FindBetweenNormals(SplineData->GetTransform().GetRotation().GetUpVector(), FVector::UpVector));
+
+				for (int i = 0; i < SplinePoints.Num(); i++) { Polygon[i] = FVector2D(Projection.RotateVector(SplinePoints[i])); }
+				if (!PCGExGeo::IsWinded(EPCGExWinding::CounterClockwise, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(Polygon) < 0)) { Algo::Reverse(Polygon); }
+			}
 
 			Splines->Add(SplineData->SplineStruct);
 		}
@@ -81,6 +98,7 @@ namespace PCGExPointFilter
 			GoodFlags = Inside;
 			BadFlags = On;
 			GoodMatch = Any;
+			bFastInclusionCheck = TypedFilterFactory->Config.bTestInclusionOnProjection && TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::All;
 			break;
 		case EPCGExSplineCheckType::IsInsideOrOn:
 			GoodFlags = static_cast<ESplineCheckFlags>(Inside | On);
@@ -94,6 +112,7 @@ namespace PCGExPointFilter
 			GoodFlags = Outside;
 			BadFlags = On;
 			GoodMatch = Any;
+			bFastInclusionCheck = TypedFilterFactory->Config.bTestInclusionOnProjection && TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::All;
 			break;
 		case EPCGExSplineCheckType::IsOutsideOrOn:
 			GoodFlags = static_cast<ESplineCheckFlags>(Outside | On);
@@ -120,13 +139,34 @@ namespace PCGExPointFilter
 	{
 		ESplineCheckFlags State = None;
 
+		int32 InclusionsCount = 0;
+
 		const FVector Pos = Point.Transform.GetLocation();
 
-		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
+		if (bFastInclusionCheck)
+		{
+			for (int i = 0; i < Splines->Num(); i++)
+			{
+				const FPCGSplineStruct& Spline = *(Splines->GetData() + i);
+				if (FGeomTools2D::IsPointInPolygon(FVector2D((Projections->GetData() + i)->RotateVector(Pos)), *(Polygons->GetData() + i)))
+				{
+					InclusionsCount++;
+					EnumAddFlags(State, Inside);
+				}
+				else { EnumAddFlags(State, Outside); }
+
+				if (TypedFilterFactory->Config.bUseMaxInclusionCount && InclusionsCount > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
+			}
+
+			if (TypedFilterFactory->Config.bUseMinInclusionCount && InclusionsCount < TypedFilterFactory->Config.MinInclusionCount) { return TypedFilterFactory->Config.bInvert; }
+		}
+		else if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
 		{
 			double ClosestDist = MAX_dbl;
-			for (const FPCGSplineStruct& Spline : *Splines)
+			for (int i = 0; i < Splines->Num(); i++)
 			{
+				const FPCGSplineStruct& Spline = *(Splines->GetData() + i);
+
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
 				const FVector& TLoc = T.GetLocation();
 				const double D = FVector::DistSquared(Pos, TLoc);
@@ -137,38 +177,71 @@ namespace PCGExPointFilter
 				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { EnumAddFlags(State, On); }
 				else { EnumRemoveFlags(State, On); }
 
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
+				if (!TypedFilterFactory->Config.bTestInclusionOnProjection)
 				{
-					EnumAddFlags(State, Inside);
-					EnumRemoveFlags(State, Outside);
+					if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
+					{
+						EnumAddFlags(State, Inside);
+						EnumRemoveFlags(State, Outside);
+					}
+					else
+					{
+						EnumRemoveFlags(State, Inside);
+						EnumAddFlags(State, Outside);
+					}
 				}
 				else
 				{
-					EnumRemoveFlags(State, Inside);
-					EnumAddFlags(State, Outside);
+					if (FGeomTools2D::IsPointInPolygon(FVector2D((Projections->GetData() + i)->RotateVector(Pos)), *(Polygons->GetData() + i)))
+					{
+						EnumAddFlags(State, Inside);
+						EnumRemoveFlags(State, Outside);
+					}
+					else
+					{
+						EnumRemoveFlags(State, Inside);
+						EnumAddFlags(State, Outside);
+					}
 				}
 			}
 		}
 		else
 		{
-			for (const FPCGSplineStruct& Spline : *Splines)
+			for (int i = 0; i < Splines->Num(); i++)
 			{
+				const FPCGSplineStruct& Spline = *(Splines->GetData() + i);
+
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
 				const FVector& TLoc = T.GetLocation();
 				if (const FVector S = T.GetScale3D(); FVector::DistSquared(Pos, TLoc) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared)
 				{
 					EnumAddFlags(State, On);
 				}
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
+
+				if (!TypedFilterFactory->Config.bTestInclusionOnProjection)
 				{
-					EnumAddFlags(State, Inside);
+					if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
+					{
+						InclusionsCount++;
+						EnumAddFlags(State, Inside);
+					}
+					else { EnumAddFlags(State, Outside); }
 				}
 				else
 				{
-					EnumAddFlags(State, Outside);
+					if (FGeomTools2D::IsPointInPolygon(FVector2D((Projections->GetData() + i)->RotateVector(Pos)), *(Polygons->GetData() + i)))
+					{
+						InclusionsCount++;
+						EnumAddFlags(State, Inside);
+					}
+					else { EnumAddFlags(State, Outside); }
 				}
 			}
+
+			if (TypedFilterFactory->Config.bUseMaxInclusionCount && InclusionsCount > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
 		}
+
+		if (TypedFilterFactory->Config.bUseMinInclusionCount && InclusionsCount < TypedFilterFactory->Config.MinInclusionCount) { return TypedFilterFactory->Config.bInvert; }
 
 		bool bPass = (State & BadFlags) == 0;
 		if (GoodMatch != Skip) { if (bPass) { bPass = GoodMatch == Any ? EnumHasAnyFlags(State, GoodFlags) : EnumHasAllFlags(State, GoodFlags); } }
@@ -179,14 +252,33 @@ namespace PCGExPointFilter
 	bool FSplineInclusionFilter::Test(const int32 PointIndex) const
 	{
 		ESplineCheckFlags State = None;
-
+		int32 InclusionsCount = 0;
 		const FVector Pos = InTransforms[PointIndex].GetLocation();
 
-		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
+		if (bFastInclusionCheck)
+		{
+			for (int i = 0; i < Splines->Num(); i++)
+			{
+				const FPCGSplineStruct& Spline = *(Splines->GetData() + i);
+				if (FGeomTools2D::IsPointInPolygon(FVector2D((Projections->GetData() + i)->RotateVector(Pos)), *(Polygons->GetData() + i)))
+				{
+					InclusionsCount++;
+					EnumAddFlags(State, Inside);
+				}
+				else { EnumAddFlags(State, Outside); }
+
+				if (TypedFilterFactory->Config.bUseMaxInclusionCount && InclusionsCount > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
+			}
+
+			if (TypedFilterFactory->Config.bUseMinInclusionCount && InclusionsCount < TypedFilterFactory->Config.MinInclusionCount) { return TypedFilterFactory->Config.bInvert; }
+		}
+		else if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
 		{
 			double ClosestDist = MAX_dbl;
-			for (const FPCGSplineStruct& Spline : *Splines)
+			for (int i = 0; i < Splines->Num(); i++)
 			{
+				const FPCGSplineStruct& Spline = *(Splines->GetData() + i);
+
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
 				const FVector& TLoc = T.GetLocation();
 				const double D = FVector::DistSquared(Pos, TLoc);
@@ -197,37 +289,73 @@ namespace PCGExPointFilter
 				if (const FVector S = T.GetScale3D(); D < FVector2D(S.Y, S.Z).Length() * ToleranceSquared) { EnumAddFlags(State, On); }
 				else { EnumRemoveFlags(State, On); }
 
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
+				if (!TypedFilterFactory->Config.bTestInclusionOnProjection)
 				{
-					EnumAddFlags(State, Inside);
-					EnumRemoveFlags(State, Outside);
+					if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
+					{
+						EnumAddFlags(State, Inside);
+						EnumRemoveFlags(State, Outside);
+					}
+					else
+					{
+						EnumRemoveFlags(State, Inside);
+						EnumAddFlags(State, Outside);
+					}
 				}
 				else
 				{
-					EnumRemoveFlags(State, Inside);
-					EnumAddFlags(State, Outside);
+					if (FGeomTools2D::IsPointInPolygon(FVector2D((Projections->GetData() + i)->RotateVector(Pos)), *(Polygons->GetData() + i)))
+					{
+						EnumRemoveFlags(State, Inside);
+						EnumAddFlags(State, Inside);
+					}
+					else
+					{
+						EnumRemoveFlags(State, Inside);
+						EnumAddFlags(State, Outside);
+					}
 				}
 			}
 		}
 		else
 		{
-			for (const FPCGSplineStruct& Spline : *Splines)
+			for (int i = 0; i < Splines->Num(); i++)
 			{
+				const FPCGSplineStruct& Spline = *(Splines->GetData() + i);
+
 				const FTransform T = PCGExPaths::GetClosestTransform(Spline, Pos, TypedFilterFactory->Config.bSplineScalesTolerance);
 				const FVector& TLoc = T.GetLocation();
 				if (const FVector S = T.GetScale3D(); FVector::DistSquared(Pos, TLoc) < FVector2D(S.Y, S.Z).Length() * ToleranceSquared)
 				{
 					EnumAddFlags(State, On);
 				}
-				if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
+
+				if (!TypedFilterFactory->Config.bTestInclusionOnProjection)
 				{
-					EnumAddFlags(State, Inside);
+					if (FVector::DotProduct(T.GetRotation().GetRightVector(), (TLoc - Pos).GetSafeNormal()) < TypedFilterFactory->Config.CurvatureThreshold)
+					{
+						InclusionsCount++;
+						EnumAddFlags(State, Inside);
+					}
+					else
+					{
+						EnumAddFlags(State, Outside);
+					}
 				}
 				else
 				{
-					EnumAddFlags(State, Outside);
+					if (FGeomTools2D::IsPointInPolygon(FVector2D((Projections->GetData() + i)->RotateVector(Pos)), *(Polygons->GetData() + i)))
+					{
+						InclusionsCount++;
+						EnumAddFlags(State, Inside);
+					}
+					else { EnumAddFlags(State, Outside); }
 				}
+
+				if (TypedFilterFactory->Config.bUseMaxInclusionCount && InclusionsCount > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
 			}
+
+			if (TypedFilterFactory->Config.bUseMinInclusionCount && InclusionsCount < TypedFilterFactory->Config.MinInclusionCount) { return TypedFilterFactory->Config.bInvert; }
 		}
 
 		bool bPass = (State & BadFlags) == 0;
