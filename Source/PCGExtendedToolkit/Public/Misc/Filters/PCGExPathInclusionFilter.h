@@ -31,6 +31,10 @@ struct FPCGExPathInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplinePointTypeRedux PointType = EPCGExSplinePointTypeRedux::Linear;
 
+	/** If enabled, project the spline on a plane to check inside/outside as a polygon. Uses the spline transform Up axis as a projection vector. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bTestInclusionOnProjection = true;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Smooth Linear", EditCondition="PointType==EPCGExSplinePointTypeRedux::Linear", EditConditionHides))
 	bool bSmoothLinear = true;
 	
@@ -55,9 +59,27 @@ struct FPCGExPathInclusionFilterConfig
 	bool bSplineScalesTolerance = false;
 
 	/**  Min dot product threshold for a point to be considered inside the spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1, ClampMax=1, EditCondition="bTestInclusionOnProjection", EditConditionHides))
 	double CurvatureThreshold = 0.5;
 
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMinInclusionCount = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinInclusionCount"))
+	int32 MinInclusionCount = 2;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMaxInclusionCount = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxInclusionCount"))
+	int32 MaxInclusionCount = 10;
+
+	
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
@@ -79,6 +101,7 @@ public:
 	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
 	TSharedPtr<TArray<TSharedPtr<FPCGSplineStruct>>> Splines;
+	TSharedPtr<TArray<TArray<FVector2D>>> Polygons;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
@@ -98,16 +121,19 @@ namespace PCGExPointFilter
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Splines = TypedFilterFactory->Splines;
+			Polygons = TypedFilterFactory->Polygons;
 		}
 
 		const TObjectPtr<const UPCGExPathInclusionFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<TArray<TSharedPtr<FPCGSplineStruct>>> Splines;
+		TSharedPtr<TArray<TArray<FVector2D>>> Polygons;
 
 		double ToleranceSquared = MAX_dbl;
 		ESplineCheckFlags GoodFlags = None;
 		ESplineCheckFlags BadFlags = None;
 		ESplineMatch GoodMatch = Any;
+		bool bFastInclusionCheck = false;
 
 		TConstPCGValueRange<FTransform> InTransforms;
 
