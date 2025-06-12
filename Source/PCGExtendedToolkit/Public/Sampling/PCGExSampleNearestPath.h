@@ -389,6 +389,7 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 
 	TArray<TSharedPtr<PCGExData::FFacade>> TargetFacades;
 	TArray<TSharedPtr<PCGExPaths::FPath>> Paths;
+	TSharedPtr<PCGEx::FIndexedItemOctree> PathsOctree;
 	
 	FRuntimeFloatCurve RuntimeWeightCurve;
 	const FRichCurve* WeightCurve = nullptr;

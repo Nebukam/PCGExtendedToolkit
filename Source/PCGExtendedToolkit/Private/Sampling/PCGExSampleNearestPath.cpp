@@ -70,11 +70,14 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 
 	if (Targets->IsEmpty())
 	{
-		if (!Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (no input matches criteria or empty dataset)")); }
+		if (!Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (empty datasets)")); }
+		return false;
 	}
 
 	Context->TargetFacades.Reserve(Targets->Pairs.Num());
 	Context->Paths.Reserve(Targets->Pairs.Num());
+
+	FBox OctreeBounds = FBox(ForceInit);
 
 	for (const TSharedPtr<PCGExData::FPointIO>& IO : Targets->Pairs)
 	{
@@ -97,9 +100,20 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 		TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePolyPath(IO->GetIn(), 1, FVector::UpVector);
 		Context->TargetFacades.Add(TargetFacade);
 		Context->Paths.Add(Path);
+
+		OctreeBounds += Path->Bounds;
+	}
+
+	if (Context->Paths.IsEmpty())
+	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (no input matches criteria)"));
+		return false;
 	}
 
 	Context->DistanceDetails = PCGExDetails::MakeDistances(Settings->DistanceSettings, Settings->DistanceSettings);
+
+	Context->PathsOctree = MakeShared<PCGEx::FIndexedItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
+	for (int i = 0; i < Context->Paths.Num(); ++i) { Context->PathsOctree->AddElement(PCGEx::FIndexedItem(i, Context->Paths[i]->Bounds)); }
 
 	PCGEX_FOREACH_FIELD_NEARESTPATH(PCGEX_OUTPUT_VALIDATE_NAME)
 
@@ -367,31 +381,34 @@ namespace PCGExSampleNearestPath
 			}
 			else
 			{
-#define PCGEX_SAMPLE_SPLINE_AT(_BODY)\
-for (int i = 0; i < Context->NumTargets; i++){\
-const FPCGSplineStruct& Line = Context->Splines[i];\
-const double SMax = Context->SegmentCounts[i];\
-double Time = _BODY;\
-if (Settings->bWrapClosedLoopAlpha && Line.bClosedLoop) { Time = PCGExMath::Tile(Time, 0.0, SMax); }\
-ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges), Time, SMax, Line);}
-
+				/*
 				// At specific alpha
-				double InputKey = SampleAlphaGetter->Read(Index);
-				switch (Settings->SampleAlphaMode)
+				const double InputKey = SampleAlphaGetter->Read(Index);
+				for (int i = 0; i < Context->NumTargets; i++)
 				{
-				default:
-				case EPCGExPathSampleAlphaMode::Alpha:
-					//PCGEX_SAMPLE_SPLINE_AT(InputKey * Context->Paths[i]->NumEdges)
-					break;
-				case EPCGExPathSampleAlphaMode::Time:
-					//PCGEX_SAMPLE_SPLINE_AT(InputKey / Context->Paths[i]->NumEdges)
-					break;
-				case EPCGExPathSampleAlphaMode::Distance:
-					//PCGEX_SAMPLE_SPLINE_AT((Context->Paths[i]->TotalLength / InputKey) * SMax)
-					break;
-				}
+					const FPCGSplineStruct& Line = Context->Splines[i];
+					const double SMax = Context->SegmentCounts[i];
+					double Time = 0;
 
-#undef PCGEX_SAMPLE_SPLINE_AT
+					switch (Settings->SampleAlphaMode)
+					{
+					default:
+					case EPCGExSplineSampleAlphaMode::Alpha:
+						Time = InputKey * Context->SegmentCounts[i];
+						break;
+					case EPCGExSplineSampleAlphaMode::Time:
+						Time = InputKey / Context->SegmentCounts[i];
+						break;
+					case EPCGExSplineSampleAlphaMode::Distance:
+						Time = (Context->Lengths[i] / InputKey) * SMax;
+						break;
+					}
+
+					if (Settings->bWrapClosedLoopAlpha && Line.bClosedLoop) { Time = PCGExMath::Tile(Time, 0.0, SMax); }
+					ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges), Time, SMax, Line);
+					
+				}
+				*/
 			}
 
 			// Compound never got updated, meaning we couldn't find target in range
