@@ -42,7 +42,7 @@ UPCGExSampleNearestPathSettings::UPCGExSampleNearestPathSettings(
 TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POLYLINES(PCGEx::SourceTargetsLabel, "The spline data set to check against.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "The spline data set to check against.", Required, {})
 	return PinProperties;
 }
 
@@ -66,7 +66,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 	Context->ApplySampling.Init();
 
 	TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(
-		Context, PCGEx::SourceTargetsLabel, PCGExData::EIOInit::NoInit, true);
+		Context, PCGExPaths::SourcePathsLabel, PCGExData::EIOInit::NoInit, true);
 
 	if (Targets->IsEmpty())
 	{

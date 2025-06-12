@@ -176,6 +176,7 @@ namespace PCGExPointFilter
 					{
 						UpdateInclusionFast(Pos, Item.Index, State, InclusionsCount);
 					});
+				if (InclusionsCount == 0) { EnumAddFlags(State, Outside); }
 
 				PCGEX_CHECK_MAX
 			}
@@ -195,12 +196,17 @@ namespace PCGExPointFilter
 			double ClosestDist = MAX_dbl;
 			if (Octree)
 			{
+				int32 Ping = 0;
+				
 				Octree->FindElementsWithBoundsTest(
 					FBoxCenterAndExtent(Pos, FVector::OneVector), [&](
 					const PCGEx::FIndexedItem& Item)
 					{
+						Ping++;
 						UpdateInclusionClosest(Pos, Item.Index, State, ClosestDist);
 					});
+				
+				if (Ping == 0) { EnumAddFlags(State, Outside); }
 			}
 			else
 			{
@@ -217,6 +223,7 @@ namespace PCGExPointFilter
 					{
 						UpdateInclusion(Pos, Item.Index, State, InclusionsCount);
 					});
+				if (InclusionsCount == 0) { EnumAddFlags(State, Outside); }
 
 				PCGEX_CHECK_MAX
 			}
@@ -255,6 +262,7 @@ namespace PCGExPointFilter
 					{
 						UpdateInclusionFast(Pos, Item.Index, State, InclusionsCount);
 					});
+				if (InclusionsCount == 0) { EnumAddFlags(State, Outside); }
 
 				PCGEX_CHECK_MAX
 			}
@@ -274,12 +282,17 @@ namespace PCGExPointFilter
 			double ClosestDist = MAX_dbl;
 			if (Octree)
 			{
+				int32 Ping = 0;
+
 				Octree->FindElementsWithBoundsTest(
 					FBoxCenterAndExtent(Pos, FVector::OneVector), [&](
 					const PCGEx::FIndexedItem& Item)
 					{
+						Ping++;
 						UpdateInclusionClosest(Pos, Item.Index, State, ClosestDist);
 					});
+
+				if (Ping == 0) { EnumAddFlags(State, Outside); }
 			}
 			else
 			{
@@ -296,6 +309,8 @@ namespace PCGExPointFilter
 					{
 						UpdateInclusion(Pos, Item.Index, State, InclusionsCount);
 					});
+
+				if (InclusionsCount == 0) { EnumAddFlags(State, Outside); }
 
 				PCGEX_CHECK_MAX
 			}
