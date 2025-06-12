@@ -37,6 +37,10 @@ struct FPCGExPolygonInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxInclusionCount"))
 	int32 MaxInclusionCount = 10;
 
+	/** When defines the resolution of the polygon created from spline data. Lower values means higher fidelity, but slower execution. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Spline fidelity", ClampMin=1), AdvancedDisplay)
+	double Fidelity = 50;
+
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
@@ -56,8 +60,8 @@ public:
 
 	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
-	TSharedPtr<TArray<FBox>> Bounds;
 	TSharedPtr<TArray<TSharedPtr<TArray<FVector2D>>>> Polygons;
+	TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
@@ -76,14 +80,14 @@ namespace PCGExPointFilter
 		explicit FPolygonInclusionFilter(const TObjectPtr<const UPCGExPolygonInclusionFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Bounds = TypedFilterFactory->Bounds;
 			Polygons = TypedFilterFactory->Polygons;
+			Octree = TypedFilterFactory->Octree;
 		}
 
 		const TObjectPtr<const UPCGExPolygonInclusionFilterFactory> TypedFilterFactory;
 
-		TSharedPtr<TArray<FBox>> Bounds;
 		TSharedPtr<TArray<TSharedPtr<TArray<FVector2D>>>> Polygons;
+		TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
 
 		TConstPCGValueRange<FTransform> InTransforms;
 

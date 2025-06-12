@@ -43,6 +43,7 @@ bool UPCGExSplineInclusionFilterFactory::Prepare(FPCGExContext* InContext)
 	if (TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(FName("Splines"));
 		!Targets.IsEmpty())
 	{
+		TArray<FVector> SplinePoints;
 		BoundsList.Reserve(Targets.Num());
 
 		for (const FPCGTaggedData& TaggedData : Targets)
@@ -53,8 +54,6 @@ bool UPCGExSplineInclusionFilterFactory::Prepare(FPCGExContext* InContext)
 			const bool bIsClosedLoop = SplineData->SplineStruct.bClosedLoop;
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
 			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { continue; }
-
-			TArray<FVector> SplinePoints;
 
 			if (Config.bUseOctree || Config.bTestInclusionOnProjection)
 			{

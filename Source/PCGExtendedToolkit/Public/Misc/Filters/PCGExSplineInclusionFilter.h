@@ -98,7 +98,7 @@ struct FPCGExSplineInclusionFilterConfig
 
 	/** When projecting, defines the resolution of the polygon created from the spline. Lower values means higher fidelity, but slower execution. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Fidelity", EditCondition="bTestInclusionOnProjection", ClampMin=1), AdvancedDisplay)
-	double Fidelity = 100;
+	double Fidelity = 50;
 
 	/**  Min dot product threshold for a point to be considered inside the spline. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, ClampMin=-1, ClampMax=1, EditCondition="!bTestInclusionOnProjection"), AdvancedDisplay)

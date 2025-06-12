@@ -430,6 +430,10 @@ public:
 	/** If enabled, points that failed to sample anything will be pruned. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bPruneFailedSamples = false;
+
+	/** Optimize spatial partitioning, but limit the "reach" of splines to their bounding box. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
+	bool bUseOctree = false;
 };
 
 struct FPCGExSampleNearestSplineContext final : FPCGExPointsProcessorContext
@@ -444,6 +448,9 @@ struct FPCGExSampleNearestSplineContext final : FPCGExPointsProcessorContext
 	TArray<FPCGSplineStruct> Splines;
 	TArray<double> SegmentCounts;
 	TArray<double> Lengths;
+
+	FBox OctreeBounds = FBox(ForceInit);
+	TSharedPtr<PCGEx::FIndexedItemOctree> SplineOctree;
 
 	int64 NumTargets = 0;
 

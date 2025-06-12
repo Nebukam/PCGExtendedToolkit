@@ -219,6 +219,7 @@ namespace PCGExBreakClustersToPaths
 			IdxMapping[1] = Edge.End;
 
 			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
+			PCGExPaths::SetClosedLoop(PathIO->GetOut(), false);
 		}
 	}
 

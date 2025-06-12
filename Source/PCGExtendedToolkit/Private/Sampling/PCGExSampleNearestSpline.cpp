@@ -3,6 +3,8 @@
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 
+#include "DiffUtils.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
@@ -103,12 +105,33 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 	Context->Splines.Reserve(Context->NumTargets);
 	for (const UPCGSplineData* SplineData : Context->Targets) { Context->Splines.Add(SplineData->SplineStruct); }
 
+	TArray<FBox> SplineBounds;
+
+	SplineBounds.Reserve(Context->NumTargets);
 	Context->SegmentCounts.SetNumUninitialized(Context->NumTargets);
 	Context->Lengths.SetNumUninitialized(Context->NumTargets);
+
+	TArray<FVector> SplinePoints;
 	for (int i = 0; i < Context->NumTargets; i++)
 	{
-		Context->SegmentCounts[i] = Context->Targets[i]->SplineStruct.GetNumberOfSplineSegments();
-		Context->Lengths[i] = Context->Targets[i]->SplineStruct.GetSplineLength();
+		const FPCGSplineStruct& Spline = Context->Targets[i]->SplineStruct;
+		Context->SegmentCounts[i] = Spline.GetNumberOfSplineSegments();
+		Context->Lengths[i] = Spline.GetSplineLength();
+
+		if (Settings->bUseOctree)
+		{
+			Spline.ConvertSplineToPolyLine(ESplineCoordinateSpace::World, FMath::Square(50), SplinePoints);
+
+			FBox& Box = SplineBounds.Emplace_GetRef(ForceInit);
+			for (const FVector& Point : SplinePoints) { Box += Point; }
+			Context->OctreeBounds += Box;
+		}
+	}
+
+	if (Settings->bUseOctree)
+	{
+		Context->SplineOctree = MakeShared<PCGEx::FIndexedItemOctree>(Context->OctreeBounds.GetCenter(), Context->OctreeBounds.GetExtent().Length());
+		for (int i = 0; i < Context->NumTargets; i++) { Context->SplineOctree->AddElement(PCGEx::FIndexedItem(i, SplineBounds[i])); }
 	}
 
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_VALIDATE_NAME)
@@ -374,7 +397,6 @@ namespace PCGExSampleNearestSpline
 
 				if (Context->bComputeTangents)
 				{
-					
 					const int32 PrevIndex = FMath::FloorToInt(Time);
 					const int32 NextIndex = InSpline.bClosedLoop ? PCGExMath::Tile(PrevIndex + 1, 0, NumSegments - 1) : FMath::Clamp(PrevIndex + 1, 0, NumSegments);
 
@@ -431,31 +453,31 @@ namespace PCGExSampleNearestSpline
 			}
 			else
 			{
-#define PCGEX_SAMPLE_SPLINE_AT(_BODY)\
-for (int i = 0; i < Context->NumTargets; i++){\
-const FPCGSplineStruct& Line = Context->Splines[i];\
-const double SMax = Context->SegmentCounts[i];\
-double Time = _BODY;\
-if (Settings->bWrapClosedLoopAlpha && Line.bClosedLoop) { Time = PCGExMath::Tile(Time, 0.0, SMax); }\
-ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges), Time, SMax, Line);}
-
 				// At specific alpha
-				double InputKey = SampleAlphaGetter->Read(Index);
-				switch (Settings->SampleAlphaMode)
+				const double InputKey = SampleAlphaGetter->Read(Index);
+				for (int i = 0; i < Context->NumTargets; i++)
 				{
-				default:
-				case EPCGExSplineSampleAlphaMode::Alpha:
-					PCGEX_SAMPLE_SPLINE_AT(InputKey * Context->SegmentCounts[i])
-					break;
-				case EPCGExSplineSampleAlphaMode::Time:
-					PCGEX_SAMPLE_SPLINE_AT(InputKey / Context->SegmentCounts[i])
-					break;
-				case EPCGExSplineSampleAlphaMode::Distance:
-					PCGEX_SAMPLE_SPLINE_AT((Context->Lengths[i] / InputKey) * SMax)
-					break;
-				}
+					const FPCGSplineStruct& Line = Context->Splines[i];
+					const double SMax = Context->SegmentCounts[i];
+					double Time = 0;
 
-#undef PCGEX_SAMPLE_SPLINE_AT
+					switch (Settings->SampleAlphaMode)
+					{
+					default:
+					case EPCGExSplineSampleAlphaMode::Alpha:
+						Time = InputKey * Context->SegmentCounts[i];
+						break;
+					case EPCGExSplineSampleAlphaMode::Time:
+						Time = InputKey / Context->SegmentCounts[i];
+						break;
+					case EPCGExSplineSampleAlphaMode::Distance:
+						Time = (Context->Lengths[i] / InputKey) * SMax;
+						break;
+					}
+
+					if (Settings->bWrapClosedLoopAlpha && Line.bClosedLoop) { Time = PCGExMath::Tile(Time, 0.0, SMax); }
+					ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges), Time, SMax, Line);
+				}
 			}
 
 			Depth /= DepthSamples;

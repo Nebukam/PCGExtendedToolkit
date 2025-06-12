@@ -68,6 +68,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	Context->MainBatch->Output();
 
 	Context->MainPaths->StageOutputs();
+	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
 }
@@ -356,7 +357,12 @@ namespace PCGExSplitPath
 
 	void FProcessor::CompleteWork()
 	{
-		if (Paths.IsEmpty()) { return; }
+		if (Paths.IsEmpty() || (Paths.Num() == 1 && Paths[0].Count == PointDataFacade->GetNum()))
+		{
+			// No splits, forward
+			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
+			return;
+		}
 
 		if (bClosedLoop)
 		{
