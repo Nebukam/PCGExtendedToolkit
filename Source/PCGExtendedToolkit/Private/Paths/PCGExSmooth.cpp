@@ -29,6 +29,13 @@ TArray<FPCGPinProperties> UPCGExSmoothSettings::InputPinProperties() const
 	return PinProperties;
 }
 
+bool UPCGExSmoothSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual; }
+	return Super::IsPinUsedByNodeExecution(InPin);
+}
+
+
 PCGEX_INITIALIZE_ELEMENT(Smooth)
 
 bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const

@@ -69,15 +69,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
-
-	if (BlendingInterface == EPCGExBlendingInterface::Individual)
-	{
-		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
-	}
-	else
-	{
-		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations. These are currently ignored, but will preserve pin connections", Advanced, {})
-	}
+	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations, used by Individual (non-monolithic) blending interface.", Normal, {})
 
 	if (SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
@@ -85,6 +77,12 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 	}
 
 	return PinProperties;
+}
+
+bool UPCGExSampleNearestBoundsSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual; }
+	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
 void FPCGExSampleNearestBoundsContext::RegisterAssetDependencies()

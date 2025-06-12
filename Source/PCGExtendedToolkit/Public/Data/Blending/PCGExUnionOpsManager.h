@@ -33,6 +33,8 @@ namespace PCGExDataBlending
 		virtual void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override;
 		virtual void MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override;
 
+		void Cleanup(FPCGExContext* InContext);
+		
 	protected:
 		const TArray<TObjectPtr<const UPCGExBlendOpFactory>>* BlendingFactories = nullptr;
 

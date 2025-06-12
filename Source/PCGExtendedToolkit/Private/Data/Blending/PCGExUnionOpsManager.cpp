@@ -68,4 +68,9 @@ namespace PCGExDataBlending
 	{
 		MergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), OutWeightedPoints, Trackers);
 	}
+
+	void FUnionOpsManager::Cleanup(FPCGExContext* InContext)
+	{
+		for (const TSharedPtr<FBlendOpsManager>& Blender : Blenders) { Blender->Cleanup(InContext); }
+	}
 }

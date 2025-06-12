@@ -42,7 +42,10 @@ UPCGExSampleNearestPathSettings::UPCGExSampleNearestPathSettings(
 TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "The spline data set to check against.", Required, {})
+
+	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "The paths to sample.", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
+
 	return PinProperties;
 }
 
@@ -64,6 +67,10 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
+
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
+		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
+		{PCGExFactories::EType::Blending}, false);
 
 	TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(
 		Context, PCGExPaths::SourcePathsLabel, PCGExData::EIOInit::NoInit, true);
@@ -98,7 +105,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 
 		TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 		TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePolyPath(IO->GetIn(), 1, FVector::UpVector);
-		Context->TargetFacades.Add(TargetFacade);
+		Context->TargetFacades.Add(TargetFacade.ToSharedRef());
 		Context->Paths.Add(Path);
 
 		OctreeBounds += Path->Bounds;
@@ -213,6 +220,17 @@ namespace PCGExSampleNearestPath
 		}
 
 		SafeUpVector = Settings->LookAtUpConstant;
+
+		if (!Context->BlendingFactories.IsEmpty())
+		{
+			UnionBlendOpsManager = MakeShared<PCGExDataBlending::FUnionOpsManager>(&Context->BlendingFactories, DistanceDetails);
+			UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetFacades);
+			Blender = UnionBlendOpsManager;
+		}
+		else
+		{
+			Blender = MakeShared<PCGExDataBlending::FDummyUnionBlender>();
+		}
 
 		{
 			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
@@ -544,6 +562,8 @@ namespace PCGExSampleNearestPath
 
 	void FProcessor::CompleteWork()
 	{
+		if (UnionBlendOpsManager) { UnionBlendOpsManager->Cleanup(Context); }
+
 		PointDataFacade->WriteFastest(AsyncManager);
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasSuccessesTag); }

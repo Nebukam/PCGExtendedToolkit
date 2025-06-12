@@ -217,7 +217,7 @@ public:
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
@@ -433,7 +433,7 @@ public:
 
 	/** Optimize spatial partitioning, but limit the "reach" of splines to their bounding box. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
-	bool bUseOctree = false;
+	bool bUseOctree = true;
 };
 
 struct FPCGExSampleNearestSplineContext final : FPCGExPointsProcessorContext

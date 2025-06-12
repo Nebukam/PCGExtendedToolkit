@@ -62,15 +62,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
-
-	if (BlendingInterface == EPCGExBlendingInterface::Individual)
-	{
-		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
-	}
-	else
-	{
-		PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations. These are currently ignored, but will preserve pin connections", Advanced, {})
-	}
+	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations, used by Individual (non-monolithic) blending interface.", Normal, {})
 
 	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
@@ -80,6 +72,12 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced, {})
 
 	return PinProperties;
+}
+
+bool UPCGExSampleNearestPointSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual; }
+	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
 void FPCGExSampleNearestPointContext::RegisterAssetDependencies()
