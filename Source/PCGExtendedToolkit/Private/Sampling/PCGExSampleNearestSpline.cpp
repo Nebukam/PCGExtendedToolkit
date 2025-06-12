@@ -322,11 +322,10 @@ namespace PCGExSampleNearestSpline
 
 			double BaseRangeMin = RangeMinGetter->Read(Index);
 			double BaseRangeMax = RangeMaxGetter->Read(Index);
-
 			if (BaseRangeMin > BaseRangeMax) { std::swap(BaseRangeMin, BaseRangeMax); }
 
-			double RangeMin = BaseRangeMin;
-			double RangeMax = BaseRangeMax;
+			double MinSampledRange = BaseRangeMin;
+			double MaxSampledRange = BaseRangeMax;
 			double Depth = MAX_dbl;
 			double DepthSamples = Settings->DepthMode == EPCGExSplineDepthMode::Average ? 0 : 1;
 			double WeightedDistance = 0;
@@ -346,16 +345,16 @@ namespace PCGExSampleNearestSpline
 				const FVector ModifiedOrigin = DistanceDetails->GetSourceCenter(Point, Origin, SampleLocation);
 				const double Dist = FVector::Dist(ModifiedOrigin, SampleLocation);
 
-				double RMin = BaseRangeMin;
-				double RMax = BaseRangeMax;
+				double LocalRangeMin = BaseRangeMin;
+				double LocalRangeMax = BaseRangeMax;
 				double DepthRange = Settings->DepthRange;
 
 				if (Settings->bSplineScalesRanges)
 				{
 					const FVector S = Transform.GetScale3D();
 					const double RScale = FVector2D(S.Y, S.Z).Length();
-					RMin *= RScale;
-					RMax *= RScale;
+					LocalRangeMin *= RScale;
+					LocalRangeMax *= RScale;
 					DepthRange *= RScale;
 				}
 
@@ -377,7 +376,7 @@ namespace PCGExSampleNearestSpline
 					}
 				}
 
-				if (RMax > 0 && (Dist < RMin || Dist > RMax)) { return; }
+				if (LocalRangeMax > 0 && (Dist < LocalRangeMin || Dist > LocalRangeMax)) { return; }
 
 				int32 NumInsideIncrement = 0;
 
@@ -414,8 +413,8 @@ namespace PCGExSampleNearestSpline
 					NumInside = NumInsideIncrement;
 					NumInClosed = NumInsideIncrement;
 
-					RangeMin = RMin;
-					RangeMax = RMax;
+					MinSampledRange = LocalRangeMin;
+					MaxSampledRange = LocalRangeMax;
 				}
 				else
 				{
@@ -430,50 +429,72 @@ namespace PCGExSampleNearestSpline
 
 					NumInside += NumInsideIncrement;
 
-					RangeMin = FMath::Min(RangeMin, RMin);
-					RangeMax = FMath::Max(RangeMax, RMax);
+					MinSampledRange = FMath::Min(MinSampledRange, LocalRangeMin);
+					MaxSampledRange = FMath::Max(MaxSampledRange, LocalRangeMax);
 				}
 			};
 
-			// First: Sample all possible targets
+			// First: Sample all valid targets
 			if (!Settings->bSampleSpecificAlpha)
 			{
-				// At closest alpha
-				for (int i = 0; i < Context->NumTargets; i++)
+				auto ProcessClosestAlpha = [&](const int32 TargetIndex)
 				{
-					const FPCGSplineStruct& Line = Context->Splines[i];
-					double Time = Line.FindInputKeyClosestToWorldLocation(Origin);
+					const FPCGSplineStruct& Line = Context->Splines[TargetIndex];
+					const double Time = Line.FindInputKeyClosestToWorldLocation(Origin);
 					ProcessTarget(
 						Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges),
-						Time, Context->SegmentCounts[i], Line);
+						Time, Context->SegmentCounts[TargetIndex], Line);
+				};
+
+				// At closest alpha
+				if (Settings->bUseOctree)
+				{
+					Context->SplineOctree->FindElementsWithBoundsTest(
+						FBox(Origin - FVector(BaseRangeMax), Origin + FVector(BaseRangeMax)),
+						[&](const PCGEx::FIndexedItem& Item) { ProcessClosestAlpha(Item.Index); });
+				}
+				else
+				{
+					for (int i = 0; i < Context->NumTargets; i++) { ProcessClosestAlpha(i); }
 				}
 			}
 			else
 			{
-				// At specific alpha
 				const double InputKey = SampleAlphaGetter->Read(Index);
-				for (int i = 0; i < Context->NumTargets; i++)
+				auto ProcessSpecificAlpha = [&](const int32 TargetIndex)
 				{
-					const FPCGSplineStruct& Line = Context->Splines[i];
-					const double SMax = Context->SegmentCounts[i];
+					const FPCGSplineStruct& Line = Context->Splines[TargetIndex];
+					const double SMax = Context->SegmentCounts[TargetIndex];
 					double Time = 0;
 
 					switch (Settings->SampleAlphaMode)
 					{
 					default:
 					case EPCGExSplineSampleAlphaMode::Alpha:
-						Time = InputKey * Context->SegmentCounts[i];
+						Time = InputKey * Context->SegmentCounts[TargetIndex];
 						break;
 					case EPCGExSplineSampleAlphaMode::Time:
-						Time = InputKey / Context->SegmentCounts[i];
+						Time = InputKey / Context->SegmentCounts[TargetIndex];
 						break;
 					case EPCGExSplineSampleAlphaMode::Distance:
-						Time = (Context->Lengths[i] / InputKey) * SMax;
+						Time = (Context->Lengths[TargetIndex] / InputKey) * SMax;
 						break;
 					}
 
 					if (Settings->bWrapClosedLoopAlpha && Line.bClosedLoop) { Time = PCGExMath::Tile(Time, 0.0, SMax); }
 					ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges), Time, SMax, Line);
+				};
+
+				// At specific alpha
+				if (Settings->bUseOctree)
+				{
+					Context->SplineOctree->FindElementsWithBoundsTest(
+						FBox(Origin - FVector(BaseRangeMax), Origin + FVector(BaseRangeMax)),
+						[&](const PCGEx::FIndexedItem& Item) { ProcessSpecificAlpha(Item.Index); });
+				}
+				else
+				{
+					for (int i = 0; i < Context->NumTargets; i++) { ProcessSpecificAlpha(i); }
 				}
 			}
 
@@ -490,9 +511,9 @@ namespace PCGExSampleNearestSpline
 			if (Settings->WeightMethod == EPCGExRangeType::FullRange && BaseRangeMax > 0)
 			{
 				// Reset compounded infos to full range
-				Stats.SampledRangeMin = RangeMin;
-				Stats.SampledRangeMax = RangeMax;
-				Stats.SampledRangeWidth = RangeMax - RangeMin;
+				Stats.SampledRangeMin = MinSampledRange;
+				Stats.SampledRangeMax = MaxSampledRange;
+				Stats.SampledRangeWidth = MaxSampledRange - MinSampledRange;
 			}
 
 			FTransform WeightedTransform = FTransform::Identity;

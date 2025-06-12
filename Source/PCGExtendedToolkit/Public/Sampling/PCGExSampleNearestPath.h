@@ -10,9 +10,8 @@
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGSplineData.h"
+#include "Data/Blending/PCGExUnionOpsManager.h"
 
-
-#include "Misc/PCGExSortPoints.h"
 #include "Paths/PCGExPaths.h"
 
 
@@ -113,7 +112,7 @@ protected:
 public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
-	
+
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExPathSamplingIncludeMode SampleInputs = EPCGExPathSamplingIncludeMode::All;
@@ -198,7 +197,7 @@ public:
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
@@ -383,14 +382,16 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestPathElement;
 
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
+	
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	FPCGExApplySamplingDetails ApplySampling;
 
-	TArray<TSharedPtr<PCGExData::FFacade>> TargetFacades;
+	TArray<TSharedRef<PCGExData::FFacade>> TargetFacades;
 	TArray<TSharedPtr<PCGExPaths::FPath>> Paths;
 	TSharedPtr<PCGEx::FIndexedItemOctree> PathsOctree;
-	
+
 	FRuntimeFloatCurve RuntimeWeightCurve;
 	const FRichCurve* WeightCurve = nullptr;
 
@@ -431,6 +432,9 @@ namespace PCGExSampleNearestPath
 
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxDistance = 0;
+
+		TSharedPtr<PCGExDataBlending::FUnionOpsManager> UnionBlendOpsManager;
+		TSharedPtr<PCGExDataBlending::IUnionBlender> Blender;
 
 		bool bSingleSample = false;
 		bool bClosestSample = false;

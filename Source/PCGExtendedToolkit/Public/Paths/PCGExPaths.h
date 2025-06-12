@@ -709,7 +709,7 @@ namespace PCGExPaths
 
 		return Intersection;
 	}
-
+	
 	template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
 	PCGExMath::FClosestPosition FindClosestIntersection(
 		const TArray<TSharedPtr<FPath>>& Paths,

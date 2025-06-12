@@ -9,11 +9,12 @@
 
 void FPCGExOverlapScoresWeighting::Init()
 {
-	StaticWeightSum = FMath::Abs(NumPoints) + FMath::Abs(Volume) + FMath::Abs(VolumeDensity) + FMath::Abs(CustomTagScore);
+	StaticWeightSum = FMath::Abs(NumPoints) + FMath::Abs(Volume) + FMath::Abs(VolumeDensity) + FMath::Abs(CustomTagScore) + FMath::Abs(DataScore);
 	NumPoints /= StaticWeightSum;
 	Volume /= StaticWeightSum;
 	VolumeDensity /= StaticWeightSum;
 	CustomTagWeight /= StaticWeightSum;
+	DataScoreWeight /= StaticWeightSum;
 
 	DynamicWeightSum = FMath::Abs(OverlapCount) + FMath::Abs(OverlapSubCount) + FMath::Abs(OverlapVolume) + FMath::Abs(OverlapVolumeDensity);
 	OverlapCount /= DynamicWeightSum;
@@ -35,7 +36,8 @@ void FPCGExOverlapScoresWeighting::ResetMin()
 		NumPoints =
 		Volume =
 		VolumeDensity =
-		CustomTagScore = MIN_dbl;
+		CustomTagScore =
+		DataScore = MIN_dbl;
 }
 
 void FPCGExOverlapScoresWeighting::Max(const FPCGExOverlapScoresWeighting& Other)
@@ -48,6 +50,7 @@ void FPCGExOverlapScoresWeighting::Max(const FPCGExOverlapScoresWeighting& Other
 	Volume = FMath::Max(Volume, Other.Volume);
 	VolumeDensity = FMath::Max(VolumeDensity, Other.VolumeDensity);
 	CustomTagScore = FMath::Max(CustomTagScore, Other.CustomTagScore);
+	DataScore = FMath::Max(DataScore, Other.DataScore);
 }
 
 TSharedPtr<PCGExDiscardByOverlap::FOverlap> FPCGExDiscardByOverlapContext::RegisterOverlap(
@@ -491,9 +494,18 @@ namespace PCGExDiscardByOverlap
 		RawScores.VolumeDensity = VolumeDensity;
 
 		RawScores.CustomTagScore = 0;
+		RawScores.DataScore = 0;
+		
 		for (const TPair<FString, double>& TagScore : Settings->Weighting.TagScores)
 		{
 			if (PointDataFacade->Source->Tags->IsTagged(TagScore.Key)) { RawScores.CustomTagScore += TagScore.Value; }
+		}
+
+		for (const FName Name : Settings->Weighting.DataScores)
+		{
+			double S = 0;
+			PCGExDataHelpers::TryReadDataValue(Context, PointDataFacade->GetIn(), Name, S);
+			RawScores.DataScore += S;
 		}
 
 		UpdateWeightValues();
@@ -516,6 +528,7 @@ namespace PCGExDiscardByOverlap
 		StaticWeight += (RawScores.Volume / InMax.Volume) * W.Volume;
 		StaticWeight += (RawScores.VolumeDensity / InMax.VolumeDensity) * W.VolumeDensity;
 		StaticWeight += (RawScores.CustomTagScore / InMax.CustomTagScore) * W.CustomTagWeight;
+		StaticWeight += (RawScores.DataScore / InMax.DataScore) * W.DataScoreWeight;
 
 		DynamicWeight = 0;
 		DynamicWeight += (RawScores.OverlapCount / InMax.OverlapCount) * W.OverlapCount;

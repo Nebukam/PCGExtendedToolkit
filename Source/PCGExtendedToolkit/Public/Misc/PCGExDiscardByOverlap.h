@@ -78,7 +78,16 @@ struct FPCGExOverlapScoresWeighting
 	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
 	TMap<FString, double> TagScores;
 
+	/** Weight of custom tags scores, if any. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
+	double DataScoreWeight = 0;
+	
+	/** Lets you add extra custom 'score' using @Data attributes. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
+	TArray<FName> DataScores;
+
 	double CustomTagScore = 0;
+	double DataScore = 0;
 
 	double StaticWeightSum = 0;
 	double DynamicWeightSum = 0;

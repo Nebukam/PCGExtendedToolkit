@@ -88,6 +88,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -163,6 +164,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute && !bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
+	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
+	FPCGExApplySamplingDetails ApplySampling;
+	
 
 	/** How to blend data from sampled points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable))
@@ -180,10 +185,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties && BlendingInterface==EPCGExBlendingInterface::Monolithic", EditConditionHides))
 	FPCGExPropertiesBlendingDetails PointPropertiesBlendingSettings = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
 
-
-	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	FPCGExApplySamplingDetails ApplySampling;
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
