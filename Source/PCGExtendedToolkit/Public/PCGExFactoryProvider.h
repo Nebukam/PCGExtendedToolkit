@@ -106,7 +106,7 @@ public:
 protected:
 	
 	UPROPERTY()
-	TSet<UPCGData*> DataDependencies;
+	TSet<TObjectPtr<UPCGData>> DataDependencies;
 	
 };
 
