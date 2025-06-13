@@ -403,6 +403,10 @@ namespace PCGExSampleNearestPoints
 
 		const TSharedPtr<PCGExData::FUnionDataWeighted> Union = MakeShared<PCGExData::FUnionDataWeighted>();
 
+		// TODO : We can probably ditch samples and use the Union data instead.
+		// It contains everything we need
+		// We can store Dist to Weight, anyway there's internal maths to do normalize things
+		
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			Union->Reset();

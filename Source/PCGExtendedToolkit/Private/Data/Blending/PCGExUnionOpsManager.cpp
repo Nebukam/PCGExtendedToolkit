@@ -34,7 +34,7 @@ namespace PCGExDataBlending
 			IOLookup->Set(Src->Source->IOIndex, SourcesData.Add(Src->GetIn()));
 
 			TSharedPtr<FBlendOpsManager> BlendOpsManager = MakeShared<FBlendOpsManager>(TargetData);
-			BlendOpsManager->SetSources(Src, PCGExData::EIOSide::In);
+			BlendOpsManager->SetSourceA(Src, PCGExData::EIOSide::In);
 
 			// TODO : Allow to be more permissive with some ops if they can't be processed, just ignore them
 
