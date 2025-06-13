@@ -133,7 +133,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
 
-
 	/** How to blend data from sampled points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable))
 	EPCGExBlendingInterface BlendingInterface = EPCGExBlendingInterface::Individual;
@@ -313,9 +312,9 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 	TArray<const PCGPointOctree::FPointOctree*> TargetOctrees;
 	TArray<TSharedPtr<PCGExData::TBuffer<double>>> TargetWeights;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
-	
+
 	TSharedPtr<PCGEx::FIndexedItemOctree> TargetsOctree;
-	
+
 	TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
@@ -362,7 +361,7 @@ namespace PCGExSampleNearestPoints
 
 		TSharedPtr<PCGExDataBlending::FUnionBlender> UnionBlender;
 		TSharedPtr<PCGExDataBlending::FUnionOpsManager> UnionBlendOpsManager;
-		TSharedPtr<PCGExDataBlending::IUnionBlender> DataBlender;		
+		TSharedPtr<PCGExDataBlending::IUnionBlender> DataBlender;
 
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxDistance = 0;

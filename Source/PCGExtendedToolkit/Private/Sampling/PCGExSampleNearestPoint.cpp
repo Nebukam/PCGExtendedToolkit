@@ -70,9 +70,15 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
+		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
+		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
+
 		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
 			{PCGExFactories::EType::Blending}, false);
+	}
+	else
+	{
 	}
 
 	FBox OctreeBounds = FBox(ForceInit);
@@ -492,10 +498,12 @@ namespace PCGExSampleNearestPoints
 			for (PCGExData::FWeightedPoint& P : OutWeightedPoints)
 			{
 				const double W = Context->WeightCurve->Eval(P.Weight);
-				P.Weight = W;
+
+				// Don't remap blending if we use external blend ops; they have their own curve
+				if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic) { P.Weight = W; }
 
 				SampleTracker.Count++;
-				SampleTracker.Weight += P.Weight;
+				SampleTracker.Weight += W;
 
 				const FTransform& TargetTransform = Context->TargetFacades[P.IO]->GetIn()->GetTransform(P.Index);
 				const FQuat TargetRotation = TargetTransform.GetRotation();

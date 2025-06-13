@@ -53,30 +53,37 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 		break;
 	}
 
+	// Build output descriptor
+	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(TargetFacade, PCGExData::EProxyRole::Write);
+	C.Role = PCGExData::EProxyRole::Write;
+	C.Side = PCGExData::EIOSide::Out;
+
+	Config.OutputTo = C.Selector = Config.OutputTo.CopyAndFixLast(TargetFacade->Source->GetOut());
+	C.UpdateSubSelection();
+
+	// Build main source descriptor
 	PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(ConstantA ? ConstantA : Source_A_Facade, PCGExData::EProxyRole::Read);
 	A.bIsConstant = A.DataFacade.Pin() != Source_A_Facade;
 	if (!A.Capture(InContext, Config.OperandA, A.bIsConstant ? PCGExData::EIOSide::In : SideA)) { return false; }
 
+	// Build secondary source descriptor
+	bool bSkipSourceB = false;
 	PCGExData::FProxyDescriptor B;
 
-	if (Config.BlendMode != EPCGExABBlendingType::CopySource)
+	if (bUsedForMultiBlendOnly || Config.BlendMode == EPCGExABBlendingType::CopySource)
+	{
+		bSkipSourceB = true;
+		B = C;
+	}
+	else
 	{
 		B = PCGExData::FProxyDescriptor(ConstantB ? ConstantB : Source_B_Facade, PCGExData::EProxyRole::Read);
 		B.bIsConstant = B.DataFacade.Pin() != Source_B_Facade;
 		if (!B.Capture(InContext, Config.OperandB, B.bIsConstant ? PCGExData::EIOSide::In : SideB)) { return false; }
 	}
 
-	PCGExData::FProxyDescriptor C = PCGExData::FProxyDescriptor(TargetFacade, PCGExData::EProxyRole::Write);
-	C.Role = PCGExData::EProxyRole::Write;
-	C.Side = PCGExData::EIOSide::Out;
-
-	if (Config.BlendMode == EPCGExABBlendingType::CopySource) { B = C; }
-
 	Config.OperandA = A.Selector;
 	Config.OperandB = B.Selector;
-
-	Config.OutputTo = C.Selector = Config.OutputTo.CopyAndFixLast(TargetFacade->Source->GetOut());
-	C.UpdateSubSelection();
 
 	PCGEx::FSubSelection OutputSubselection(Config.OutputTo);
 	EPCGMetadataTypes RealTypeC = EPCGMetadataTypes::Unknown;
@@ -156,9 +163,9 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	C.RealType = RealTypeC;
 	C.WorkingType = WorkingTypeC;
 
-	if (Config.BlendMode == EPCGExABBlendingType::CopySource) { B = C; }
+	if (bSkipSourceB) { Blender = PCGExDataBlending::CreateProxyBlender(InContext, Config.BlendMode, A, C, Config.bResetValueBeforeMultiSourceBlend); }
+	else { Blender = PCGExDataBlending::CreateProxyBlender(InContext, Config.BlendMode, A, B, C, Config.bResetValueBeforeMultiSourceBlend); }
 
-	Blender = PCGExDataBlending::CreateProxyBlender(InContext, Config.BlendMode, A, B, C, Config.bResetValueBeforeMultiSourceBlend);
 
 	if (!Blender) { return false; }
 	return true;

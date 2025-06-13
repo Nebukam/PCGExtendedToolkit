@@ -274,7 +274,7 @@ namespace PCGExDataBlending
 			BOOKMARK_BLENDMODE
 
 			check(A)
-			check(B)
+			if constexpr (BLEND_MODE != EPCGExABBlendingType::CopySource){ check(B) }
 			check(C)
 
 #define PCGEX_A A->Get(SourceIndexA)
@@ -311,8 +311,9 @@ namespace PCGExDataBlending
 
 		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) override
 		{
+			check(C)
+			
 			PCGEx::FOpStats Tracker{};
-
 
 			if constexpr (
 				BLEND_MODE == EPCGExABBlendingType::Min ||
@@ -343,7 +344,7 @@ namespace PCGExDataBlending
 				}
 				else
 				{
-					// Otherwise, bump up original count so EndBlend can use those
+					// Otherwise, bump up original count so EndBlend can account for pre-existing value as "one blend step"
 					Tracker.Count = 1;
 					Tracker.Weight = 1;
 				}
@@ -354,6 +355,10 @@ namespace PCGExDataBlending
 
 		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) override
 		{
+
+			check(A)
+			check(C)
+			
 			ON_SCOPE_EXIT
 			{
 				Tracker.Count++;
@@ -402,6 +407,9 @@ namespace PCGExDataBlending
 
 		virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker) override
 		{
+			check(A)
+			check(C)
+			
 #define PCGEX_C C->GetCurrent(TargetIndex)
 
 			if (!Tracker.Count) { return; } // Skip division by zero
@@ -507,4 +515,61 @@ break;
 
 		return OutBlender;
 	}
+
+	static TSharedPtr<FProxyDataBlender> CreateProxyBlender(
+		FPCGExContext* InContext,
+		const EPCGExABBlendingType BlendMode,
+		const PCGExData::FProxyDescriptor& A,
+		const PCGExData::FProxyDescriptor& C,
+		const bool bResetValueForMultiBlend = true)
+	{
+		TSharedPtr<FProxyDataBlender> OutBlender;
+
+		if (A.WorkingType != C.WorkingType)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : T_WORKING mismatch."));
+			return nullptr;
+		}
+
+		PCGEx::ExecuteWithRightType(
+			A.WorkingType, [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+
+				TSharedPtr<IProxyDataBlender<T>> TypedBlender = CreateProxyBlender<T>(BlendMode, bResetValueForMultiBlend);
+
+				if (!TypedBlender) { return; }
+
+				// Create output first so we may read from it
+				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
+				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
+				TypedBlender->B = nullptr;
+
+				if (!TypedBlender->A)
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand A."));
+					return;
+				}
+
+				if (!TypedBlender->C)
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Output."));
+					return;
+				}
+
+				// Ensure C is readable for MultiBlend, as those will use GetCurrent
+				if (!TypedBlender->C->EnsureReadable())
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target write buffer is also readable."));
+					return;
+				}
+
+				OutBlender = TypedBlender;
+			});
+
+
+		return OutBlender;
+	}
+
+	
 }
