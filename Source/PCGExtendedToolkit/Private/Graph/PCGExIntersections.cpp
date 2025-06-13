@@ -20,7 +20,7 @@ namespace PCGExGraph
 	FVector FUnionNode::UpdateCenter(const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSharedPtr<PCGExData::FPointIOCollection>& IOGroup)
 	{
 		Center = FVector::ZeroVector;
-		const TSharedPtr<PCGExData::FUnionData> UnionData = InUnionMetadata->Get(Index);
+		const TSharedPtr<PCGExData::IUnionData> UnionData = InUnionMetadata->Get(Index);
 
 		const double Divider = UnionData->Elements.Num();
 
@@ -233,9 +233,9 @@ namespace PCGExGraph
 		return Node;
 	}
 
-	TSharedPtr<PCGExData::FUnionData> FUnionGraph::InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge)
+	TSharedPtr<PCGExData::IUnionData> FUnionGraph::InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionData::InsertEdge);
+		TRACE_CPUPROFILER_EVENT_SCOPE(IUnionData::InsertEdge);
 
 		const TSharedPtr<FUnionNode> StartVtx = InsertPoint(From);
 		const TSharedPtr<FUnionNode> EndVtx = InsertPoint(To);
@@ -245,7 +245,7 @@ namespace PCGExGraph
 		StartVtx->Add(EndVtx->Index);
 		EndVtx->Add(StartVtx->Index);
 
-		TSharedPtr<PCGExData::FUnionData> EdgeUnion;
+		TSharedPtr<PCGExData::IUnionData> EdgeUnion;
 
 		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);
 
@@ -299,7 +299,7 @@ namespace PCGExGraph
 		return EdgeUnion;
 	}
 
-	TSharedPtr<PCGExData::FUnionData> FUnionGraph::InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge)
+	TSharedPtr<PCGExData::IUnionData> FUnionGraph::InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge)
 	{
 		const TSharedPtr<FUnionNode> StartVtx = InsertPoint_Unsafe(From);
 		const TSharedPtr<FUnionNode> EndVtx = InsertPoint_Unsafe(To);
@@ -310,7 +310,7 @@ namespace PCGExGraph
 		EndVtx->Adjacency.Add(StartVtx->Index);
 
 		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);
-		TSharedPtr<PCGExData::FUnionData> EdgeUnion;
+		TSharedPtr<PCGExData::IUnionData> EdgeUnion;
 
 		if (Edge.IO == -1)
 		{
@@ -376,7 +376,7 @@ namespace PCGExGraph
 
 		for (const TSharedPtr<FUnionNode>& Node : Nodes)
 		{
-			const TSharedPtr<PCGExData::FUnionData>& UnionData = NodesUnion->Entries[Node->Index];
+			const TSharedPtr<PCGExData::IUnionData>& UnionData = NodesUnion->Entries[Node->Index];
 			FGraphNodeMetadata& NodeMeta = InGraph->GetOrCreateNodeMetadata_Unsafe(Node->Index);
 			NodeMeta.UnionSize = UnionData->Num();
 		}
@@ -389,7 +389,7 @@ namespace PCGExGraph
 
 		for (int i = 0; i < NumEdges; i++)
 		{
-			const TSharedPtr<PCGExData::FUnionData>& UnionData = EdgesUnion->Entries[i];
+			const TSharedPtr<PCGExData::IUnionData>& UnionData = EdgesUnion->Entries[i];
 			FGraphEdgeMetadata& EdgeMetadata = InGraph->GetOrCreateEdgeMetadata_Unsafe(i);
 			EdgeMetadata.UnionSize = UnionData->Num();
 		}
@@ -397,7 +397,7 @@ namespace PCGExGraph
 		for (const TPair<uint64, FIndexedEdge>& Pair : Edges)
 		{
 			const int32 Index = Pair.Value.EdgeIndex;
-			const TUniquePtr<PCGExData::FUnionData>& UnionData = EdgesUnion->Items[Index];
+			const TUniquePtr<PCGExData::IUnionData>& UnionData = EdgesUnion->Items[Index];
 			FGraphEdgeMetadata& EdgeMetadata = FGraphEdgeMetadata::GetOrCreate(Index, nullptr, OutMetadata);
 			EdgeMetadata.UnionSize = UnionData->Num();
 		}

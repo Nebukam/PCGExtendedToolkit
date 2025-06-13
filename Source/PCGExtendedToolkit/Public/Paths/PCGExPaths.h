@@ -8,6 +8,7 @@
 #include "Collections/PCGExMeshCollection.h"
 #include "Components/SplineMeshComponent.h"
 #include "Curve/CurveUtil.h"
+#include "Data/PCGExDataPreloader.h"
 #include "Data/PCGSplineStruct.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdge.h"
@@ -224,7 +225,7 @@ namespace PCGExPaths
 
 	PCGEXTENDEDTOOLKIT_API
 	bool GetClosedLoop(const UPCGData* InData);
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FPathMetrics
 	{
 		FPathMetrics() = default;
@@ -284,9 +285,11 @@ namespace PCGExPaths
 
 		void Update(const TConstPCGValueRange<FTransform>& Positions, const double Expansion = 0);
 
+
 		bool ShareIndices(const FPathEdge& Other) const;
 		bool Connects(const FPathEdge& Other) const;
 		bool ShareIndices(const FPathEdge* Other) const;
+		double GetLength(const TConstPCGValueRange<FTransform>& Positions) const;
 	};
 
 	class FPath;
@@ -354,12 +357,13 @@ namespace PCGExPaths
 		int32 NumEdges = 0;
 		int32 LastIndex = 0;
 		int32 LastEdge = 0;
-		int32 Id = -1;
+		int32 Idx = -1;
 
 		int32 ConvexitySign = 0;
 		bool bIsConvex = true;
 
 		int32 IOIndex = -1;
+		double TotalLength = 0;
 
 		PCGExMT::FScope GetEdgeScope(const int32 InLoopIndex = -1) const { return PCGExMT::FScope(0, NumEdges, InLoopIndex); }
 
@@ -377,7 +381,6 @@ namespace PCGExPaths
 		virtual int32 PrevPointIndex(const int32 Index) const { return SafePointIndex(Index - 1); }
 
 		FVector GetEdgePositionAtAlpha(const FPathEdge& Edge, const double Alpha) const { return FMath::Lerp(Positions[Edge.End].GetLocation(), Positions[Edge.Start].GetLocation(), Alpha); }
-
 
 		FVector GetEdgePositionAtAlpha(const int32 Index, const double Alpha) const
 		{
@@ -525,6 +528,12 @@ namespace PCGExPaths
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp) const
 		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp), FTransform::Identity)
 
+		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestEdge(const FVector& WorldPosition, float& OutLerp), -1)
+
+		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestEdge(const double InTime, float& OutLerp), -1)
+		
 	protected:
 		void BuildPath(const double Expansion);
 	};
@@ -682,12 +691,22 @@ namespace PCGExPaths
 
 #pragma endregion
 
+	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion);
+
+	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<FPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop);
 
+	PCGEXTENDEDTOOLKIT_API
+	double GetPathLength(const TSharedPtr<FPath>& InPath);
+
+	PCGEXTENDEDTOOLKIT_API
 	FTransform GetClosestTransform(const FPCGSplineStruct& InSpline, const FVector& InLocation, const bool bUseScale = true);
+
+	PCGEXTENDEDTOOLKIT_API
 	FTransform GetClosestTransform(const TSharedPtr<const FPCGSplineStruct>& InSpline, const FVector& InLocation, const bool bUseScale = true);
 
+	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const TConstPCGValueRange<FTransform>& InTransforms, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop, bool bSmoothLinear);
 
 	template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
@@ -709,7 +728,7 @@ namespace PCGExPaths
 
 		return Intersection;
 	}
-	
+
 	template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
 	PCGExMath::FClosestPosition FindClosestIntersection(
 		const TArray<TSharedPtr<FPath>>& Paths,
@@ -780,6 +799,21 @@ namespace PCGExPaths
 			OutEdgeIndex = FMath::FloorToInt32(ClosestKey);
 			OutLerp = ClosestKey - OutEdgeIndex;
 			return Spline->GetTransformAtSplineInputKey(ClosestKey, ESplineCoordinateSpace::World, false);
+		}
+
+		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const override
+		{
+			const float ClosestKey = Spline->FindInputKeyClosestToWorldLocation(WorldPosition);
+			const int32 OutEdgeIndex = FMath::FloorToInt32(ClosestKey);
+			OutLerp = ClosestKey - OutEdgeIndex;
+			return OutEdgeIndex;
+		}
+		
+		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const override
+		{			
+			const int32 OutEdgeIndex = FMath::FloorToInt32(InTime * this->NumEdges);
+			OutLerp = InTime - OutEdgeIndex;
+			return OutEdgeIndex;
 		}
 	};
 

@@ -119,14 +119,14 @@ protected:
 
 namespace PCGExSplitPath
 {
-	struct PCGEXTENDEDTOOLKIT_API FPath
+	struct PCGEXTENDEDTOOLKIT_API FSubPath
 	{
 		bool bEven = false;
 		int32 Start = -1;
 		int32 End = -1;
 		int32 Count = 0;
 
-		FPath()
+		FSubPath()
 		{
 		}
 	};
@@ -135,8 +135,8 @@ namespace PCGExSplitPath
 	{
 		bool bClosedLoop = false;
 
-		TArray<FPath> Paths;
-		TArray<TSharedPtr<PCGExData::FPointIO>> PathsIOs;
+		TArray<FSubPath> SubPaths;
+		TArray<TSharedPtr<PCGExData::FPointIO>> SubPathsIOs;
 
 		bool bWrapLastPath = false;
 		bool bAddOpenTag = false;
@@ -144,7 +144,7 @@ namespace PCGExSplitPath
 		bool bEven = true;
 
 		int32 LastIndex = -1;
-		int32 CurrentPath = -1;
+		int32 CurrentSubPath = -1;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)

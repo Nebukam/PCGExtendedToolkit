@@ -6,6 +6,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
+#include "Data/PCGExDataPreloader.h"
 
 #include "PCGExDataBlending.generated.h"
 

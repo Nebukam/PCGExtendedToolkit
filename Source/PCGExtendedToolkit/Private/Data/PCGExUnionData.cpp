@@ -9,7 +9,7 @@ namespace PCGExData
 {
 #pragma region Union Data
 
-	int32 FUnionData::ComputeWeights(
+	int32 IUnionData::ComputeWeights(
 		const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const FConstPoint& Target,
 		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<FWeightedPoint>& OutWeightedPoints) const
 	{
@@ -53,13 +53,13 @@ namespace PCGExData
 	}
 
 
-	void FUnionData::Add_Unsafe(const FPoint& Point)
+	void IUnionData::Add_Unsafe(const FPoint& Point)
 	{
 		IOSet.Add(Point.IO);
 		Elements.Add(FElement(Point.Index == -1 ? 0 : Point.Index, Point.IO));
 	}
 
-	void FUnionData::Add(const FPoint& Point)
+	void IUnionData::Add(const FPoint& Point)
 	{
 		FWriteScopeLock WriteScopeLock(UnionLock);
 		IOSet.Add(Point.IO);
@@ -67,16 +67,58 @@ namespace PCGExData
 	}
 
 
-	void FUnionData::Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices)
+	void IUnionData::Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices)
 	{
 		IOSet.Add(IOIndex);
 		for (const int32 A : PointIndices) { Elements.Add(FElement(A, IOIndex)); }
 	}
 
-	void FUnionData::Add(const int32 IOIndex, const TArray<int32>& PointIndices)
+	void IUnionData::Add(const int32 IOIndex, const TArray<int32>& PointIndices)
 	{
 		FWriteScopeLock WriteScopeLock(UnionLock);
 		Add_Unsafe(IOIndex, PointIndices);
+	}
+
+	int32 FUnionDataWeighted::ComputeWeights(const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const FConstPoint& Target, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<FWeightedPoint>& OutWeightedPoints) const
+	{
+		const int32 NumElements = Elements.Num();
+		OutWeightedPoints.Reset(NumElements);
+
+		double TotalWeight = 0;
+		int32 Index = 0;
+
+		for (const FElement& Element : Elements)
+		{
+			const int32 IOIdx = IdxLookup->Get(Element.IO);
+			if (IOIdx == -1) { continue; }
+
+			const double Weight = Weights[Element];
+			OutWeightedPoints.Emplace(Element.Index, Weight, IOIdx);
+			TotalWeight += Weight;
+			Index++;
+		}
+
+		if (Index == 0) { return 0; }
+		if (TotalWeight == 0)
+		{
+			const double StaticWeight = 1 / static_cast<double>(Index);
+			for (FWeightedPoint& P : OutWeightedPoints) { P.Weight = StaticWeight; }
+			return Index;
+		}
+
+		for (FWeightedPoint& P : OutWeightedPoints) { P.Weight = 1 - (P.Weight / TotalWeight); }
+		return Index;
+	}
+
+	void FUnionDataWeighted::AddWeight_Unsafe(const FElement& Element, const double InWeight)
+	{
+		Weights.Add(Element, InWeight);
+	}
+
+	void FUnionDataWeighted::AddWeight(const FElement& Element, const double InWeight)
+	{
+		FWriteScopeLock WriteScopeLock(UnionLock);
+		Weights.Add(Element, InWeight);
 	}
 
 	void FUnionMetadata::SetNum(const int32 InNum)
@@ -85,16 +127,16 @@ namespace PCGExData
 		Entries.Init(nullptr, InNum);
 	}
 
-	TSharedPtr<FUnionData> FUnionMetadata::NewEntry_Unsafe(const FConstPoint& Point)
+	TSharedPtr<IUnionData> FUnionMetadata::NewEntry_Unsafe(const FConstPoint& Point)
 	{
-		TSharedPtr<FUnionData> NewUnionData = Entries.Add_GetRef(MakeShared<FUnionData>());
+		TSharedPtr<IUnionData> NewUnionData = Entries.Add_GetRef(MakeShared<IUnionData>());
 		NewUnionData->Add(Point);
 		return NewUnionData;
 	}
 
-	TSharedPtr<FUnionData> FUnionMetadata::NewEntryAt_Unsafe(const int32 ItemIndex)
+	TSharedPtr<IUnionData> FUnionMetadata::NewEntryAt_Unsafe(const int32 ItemIndex)
 	{
-		Entries[ItemIndex] = MakeShared<FUnionData>();
+		Entries[ItemIndex] = MakeShared<IUnionData>();
 		return Entries[ItemIndex];
 	}
 

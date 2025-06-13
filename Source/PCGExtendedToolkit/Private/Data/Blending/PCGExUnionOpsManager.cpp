@@ -20,13 +20,28 @@ namespace PCGExDataBlending
 
 	bool FUnionOpsManager::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& TargetData, const TArray<TSharedRef<PCGExData::FFacade>>& InSources)
 	{
-		// Create an OpBlenderManager per Source/target pair
+		CurrentTargetData = TargetData;
 
 		int32 MaxIndex = 0;
+
+		Blenders.Reserve(BlendingFactories->Num());
+
 		for (const TSharedRef<PCGExData::FFacade>& Src : InSources) { MaxIndex = FMath::Max(Src->Source->IOIndex, MaxIndex); }
 		IOLookup = MakeShared<PCGEx::FIndexLookup>(MaxIndex + 1);
 
-		for (const TSharedRef<PCGExData::FFacade>& Src : InSources) { IOLookup->Set(Src->Source->IOIndex, SourcesData.Add(Src->GetIn())); }
+		for (const TSharedRef<PCGExData::FFacade>& Src : InSources)
+		{
+			IOLookup->Set(Src->Source->IOIndex, SourcesData.Add(Src->GetIn()));
+
+			TSharedPtr<FBlendOpsManager> BlendOpsManager = MakeShared<FBlendOpsManager>(TargetData);
+			BlendOpsManager->SetSources(Src, PCGExData::EIOSide::In);
+
+			// TODO : Allow to be more permissive with some ops if they can't be processed, just ignore them
+
+			if (!BlendOpsManager->Init(InContext, *BlendingFactories)) { return false; }
+
+			Blenders.Add(BlendOpsManager);
+		}
 
 		return true;
 	}
@@ -40,27 +55,26 @@ namespace PCGExDataBlending
 	void FUnionOpsManager::InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const
 	{
 		check(!Blenders.IsEmpty())
+
+		const int32 NumBlenders = Blenders.Num();
+		Trackers.Reserve(NumBlenders);
+		Trackers.Reset(NumBlenders);
+
 		Blenders[0]->InitTrackers(Trackers);
 	}
 
-	void FUnionOpsManager::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
+	void FUnionOpsManager::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
 	{
 		check(InUnionData)
 		check(!Blenders.IsEmpty())
 
-		PCGExData::FConstPoint Target = CurrentTargetData->Source->GetOutPoint(WriteIndex);
-		const int32 UnionCount = InUnionData->ComputeWeights(SourcesData, IOLookup, Target, DistanceDetails, OutWeightedPoints);
+		const PCGExData::FConstPoint Target = CurrentTargetData->Source->GetOutPoint(WriteIndex);
 
-		if (UnionCount == 0) { return; }
+		const int32 NumBlenders = Blenders.Num();
+		if (!InUnionData->ComputeWeights(SourcesData, IOLookup, Target, DistanceDetails, OutWeightedPoints)) { return; }
 
 		Blenders[0]->BeginMultiBlend(WriteIndex, Trackers);
-
-		// For each point in the union, check if there is an attribute blender for that source; and if so, add it to the blend
-		for (const PCGExData::FWeightedPoint& P : OutWeightedPoints)
-		{
-			Blenders[P.IO]->MultiBlend(P.Index, WriteIndex, P.Weight, Trackers);
-		}
-
+		for (const PCGExData::FWeightedPoint& P : OutWeightedPoints) { Blenders[P.IO]->MultiBlend(P.Index, WriteIndex, P.Weight, Trackers); }
 		Blenders[0]->EndMultiBlend(WriteIndex, Trackers);
 	}
 

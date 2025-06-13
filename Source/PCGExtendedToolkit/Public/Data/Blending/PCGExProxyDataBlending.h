@@ -81,7 +81,7 @@ namespace PCGExDataBlending
 		virtual ~IUnionBlender() = default;
 
 		virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const = 0;
-		virtual void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const = 0;
+		virtual void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const = 0;
 		virtual void MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const = 0;
 
 		FORCEINLINE EPCGPointNativeProperties GetAllocatedProperties() const { return AllocatedProperties; }
@@ -96,7 +96,7 @@ namespace PCGExDataBlending
 		virtual ~FDummyUnionBlender() override = default;
 		
 		virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const override {};
-		virtual void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override{};
+		virtual void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override{};
 		virtual void MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override{};
 	};
 	

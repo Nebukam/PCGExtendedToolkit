@@ -23,7 +23,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FUnionBlender final : public IUnionBlender
 	{
 	public:
-		const FPCGExCarryOverDetails* CarryOverDetails;
+		const FPCGExCarryOverDetails* CarryOverDetails = nullptr;
 
 		FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails);
 		virtual ~FUnionBlender() override;
@@ -65,7 +65,7 @@ namespace PCGExDataBlending
 		virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const override
 		{
 		};
-		virtual void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override;
+		virtual void MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override;
 		virtual void MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const override;
 
 	protected:

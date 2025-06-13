@@ -153,80 +153,80 @@ namespace PCGExSplitPath
 	{
 		if (!PointFilterCache[Index])
 		{
-			if (CurrentPath == -1)
+			if (CurrentSubPath == -1)
 			{
-				CurrentPath = Paths.Emplace();
-				FPath& NewPath = Paths[CurrentPath];
+				CurrentSubPath = SubPaths.Emplace();
+				FSubPath& NewPath = SubPaths[CurrentSubPath];
 				NewPath.Start = Index;
 			}
 
-			FPath& Path = Paths[CurrentPath];
-			Path.Count++;
+			FSubPath& SubPath = SubPaths[CurrentSubPath];
+			SubPath.Count++;
 			return;
 		}
 
-		if (CurrentPath != -1)
+		if (CurrentSubPath != -1)
 		{
-			FPath& ClosedPath = Paths[CurrentPath];
+			FSubPath& ClosedPath = SubPaths[CurrentSubPath];
 			ClosedPath.End = Index;
 			ClosedPath.Count++;
 		}
 
-		CurrentPath = Paths.Emplace();
-		FPath& NewPath = Paths[CurrentPath];
-		NewPath.Start = Index;
-		NewPath.Count++;
+		CurrentSubPath = SubPaths.Emplace();
+		FSubPath& NewSubPath = SubPaths[CurrentSubPath];
+		NewSubPath.Start = Index;
+		NewSubPath.Count++;
 	}
 
 	void FProcessor::DoActionRemove(const int32 Index)
 	{
 		if (!PointFilterCache[Index])
 		{
-			if (CurrentPath == -1)
+			if (CurrentSubPath == -1)
 			{
-				CurrentPath = Paths.Emplace();
-				FPath& NewPath = Paths[CurrentPath];
-				NewPath.Start = Index;
+				CurrentSubPath = SubPaths.Emplace();
+				FSubPath& NewSubPath = SubPaths[CurrentSubPath];
+				NewSubPath.Start = Index;
 			}
 
-			FPath& Path = Paths[CurrentPath];
-			Path.Count++;
+			FSubPath& SubPath = SubPaths[CurrentSubPath];
+			SubPath.Count++;
 			return;
 		}
 
-		if (CurrentPath != -1)
+		if (CurrentSubPath != -1)
 		{
-			FPath& Path = Paths[CurrentPath];
+			FSubPath& Path = SubPaths[CurrentSubPath];
 			Path.End = Index - 1;
 		}
 
-		CurrentPath = -1;
+		CurrentSubPath = -1;
 	}
 
 	void FProcessor::DoActionDisconnect(const int32 Index)
 	{
 		if (!PointFilterCache[Index])
 		{
-			if (CurrentPath == -1)
+			if (CurrentSubPath == -1)
 			{
-				CurrentPath = Paths.Emplace();
-				FPath& NewPath = Paths[CurrentPath];
-				NewPath.Start = Index;
+				CurrentSubPath = SubPaths.Emplace();
+				FSubPath& NewSubPath = SubPaths[CurrentSubPath];
+				NewSubPath.Start = Index;
 			}
 
-			FPath& Path = Paths[CurrentPath];
-			Path.Count++;
+			FSubPath& SubPath = SubPaths[CurrentSubPath];
+			SubPath.Count++;
 			return;
 		}
 
-		if (CurrentPath != -1)
+		if (CurrentSubPath != -1)
 		{
-			FPath& ClosedPath = Paths[CurrentPath];
-			ClosedPath.End = Index;
-			ClosedPath.Count++;
+			FSubPath& ClosedSubPath = SubPaths[CurrentSubPath];
+			ClosedSubPath.End = Index;
+			ClosedSubPath.Count++;
 		}
 
-		CurrentPath = -1;
+		CurrentSubPath = -1;
 	}
 
 	void FProcessor::DoActionPartition(const int32 Index)
@@ -235,91 +235,91 @@ namespace PCGExSplitPath
 		{
 			bLastResult = !bLastResult;
 
-			if (CurrentPath != -1)
+			if (CurrentSubPath != -1)
 			{
-				FPath& ClosedPath = Paths[CurrentPath];
+				FSubPath& ClosedSubPath = SubPaths[CurrentSubPath];
 				if (Settings->bInclusive)
 				{
-					ClosedPath.End = Index;
-					ClosedPath.Count++;
+					ClosedSubPath.End = Index;
+					ClosedSubPath.Count++;
 				}
 				else
 				{
-					ClosedPath.End = Index - 1;
+					ClosedSubPath.End = Index - 1;
 				}
 
-				CurrentPath = -1;
+				CurrentSubPath = -1;
 			}
 		}
 
-		if (CurrentPath == -1)
+		if (CurrentSubPath == -1)
 		{
-			CurrentPath = Paths.Emplace();
-			FPath& NewPath = Paths[CurrentPath];
-			NewPath.bEven = bEven;
+			CurrentSubPath = SubPaths.Emplace();
+			FSubPath& NewSubPath = SubPaths[CurrentSubPath];
+			NewSubPath.bEven = bEven;
 			bEven = !bEven;
-			NewPath.Start = Index;
+			NewSubPath.Start = Index;
 		}
 
-		FPath& Path = Paths[CurrentPath];
-		Path.Count++;
+		FSubPath& SubPath = SubPaths[CurrentSubPath];
+		SubPath.Count++;
 	}
 
 	void FProcessor::DoActionSwitch(const int32 Index)
 	{
-		auto ClosePath = [&]()
+		auto CloseSubPath = [&]()
 		{
-			if (CurrentPath != -1)
+			if (CurrentSubPath != -1)
 			{
-				FPath& ClosedPath = Paths[CurrentPath];
+				FSubPath& ClosedSubPath = SubPaths[CurrentSubPath];
 				if (Settings->bInclusive)
 				{
-					ClosedPath.End = Index;
-					ClosedPath.Count++;
+					ClosedSubPath.End = Index;
+					ClosedSubPath.Count++;
 				}
 				else
 				{
-					ClosedPath.End = Index - 1;
+					ClosedSubPath.End = Index - 1;
 				}
 			}
 
-			CurrentPath = -1;
+			CurrentSubPath = -1;
 		};
 
 		if (PointFilterCache[Index]) { bLastResult = !bLastResult; }
 
 		if (bLastResult)
 		{
-			if (CurrentPath == -1)
+			if (CurrentSubPath == -1)
 			{
-				CurrentPath = Paths.Emplace();
-				FPath& NewPath = Paths[CurrentPath];
-				NewPath.Start = Index;
+				CurrentSubPath = SubPaths.Emplace();
+				FSubPath& NewSubPath = SubPaths[CurrentSubPath];
+				NewSubPath.Start = Index;
 			}
 
-			FPath& Path = Paths[CurrentPath];
-			Path.Count++;
+			FSubPath& SubPath = SubPaths[CurrentSubPath];
+			SubPath.Count++;
 			return;
 		}
 
-		ClosePath();
+		CloseSubPath();
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const FPath& PathInfos = Paths[Index];
+			const FSubPath& SubPath = SubPaths[Index];
 
 			//if (PathInfos.Count < 1 || PathInfos.Start == -1) { continue; }                                    // This should never happen
 			//if (PathInfos.End == -1 && (PathInfos.Start + PathInfos.Count) != PointIO->GetNum()) { continue; } // This should never happen
 
 			if (Index == 0 && bWrapLastPath) { continue; }
-			const bool bLastPath = PathInfos.End == -1;
+			const bool bLastPath = SubPath.End == -1;
 
 			const bool bAppendStartPath = bWrapLastPath && bLastPath;
-			int32 NumPathPoints = bAppendStartPath ? PathInfos.Count + Paths[0].Count : PathInfos.Count;
-			int32 NumIterations = PathInfos.Count;
+			int32 NumPathPoints = bAppendStartPath ? SubPath.Count + SubPaths[0].Count : SubPath.Count;
+			int32 NumIterations = SubPath.Count;
 
 			if (!bAppendStartPath && bLastPath && bClosedLoop)
 			{
@@ -330,34 +330,34 @@ namespace PCGExSplitPath
 
 			if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { continue; }
 
-			const TSharedPtr<PCGExData::FPointIO> PathIO = NewPointIO(PointDataFacade->Source);
-			PCGEX_INIT_IO_VOID(PathIO, PCGExData::EIOInit::New)
+			const TSharedPtr<PCGExData::FPointIO> SubPathIO = NewPointIO(PointDataFacade->Source);
+			PCGEX_INIT_IO_VOID(SubPathIO, PCGExData::EIOInit::New)
 
-			PathsIOs[Index] = PathIO;
+			SubPathsIOs[Index] = SubPathIO;
 
 			const UPCGBasePointData* OriginalPoints = PointDataFacade->GetIn();
-			UPCGBasePointData* MutablePoints = PathIO->GetOut();
+			UPCGBasePointData* MutablePoints = SubPathIO->GetOut();
 			PCGEx::SetNumPointsAllocated(MutablePoints, NumPathPoints, OriginalPoints->GetAllocatedProperties());
 
-			TArray<int32>& IdxMapping = PathIO->GetIdxMapping();
+			TArray<int32>& IdxMapping = SubPathIO->GetIdxMapping();
 
 			const int32 IndexWrap = OriginalPoints->GetNumPoints();
-			for (int i = 0; i < NumIterations; i++) { IdxMapping[i] = (PathInfos.Start + i) % IndexWrap; }
+			for (int i = 0; i < NumIterations; i++) { IdxMapping[i] = (SubPath.Start + i) % IndexWrap; }
 
 			if (bAppendStartPath)
 			{
 				// There was a cut somewhere in the closed path.
-				const FPath& StartPathInfos = Paths[0];
-				for (int i = 0; i < StartPathInfos.Count; i++) { IdxMapping[PathInfos.Count + i] = StartPathInfos.Start + i; }
+				const FSubPath& StartPathInfos = SubPaths[0];
+				for (int i = 0; i < StartPathInfos.Count; i++) { IdxMapping[SubPath.Count + i] = StartPathInfos.Start + i; }
 			}
 
-			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
+			SubPathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		if (Paths.IsEmpty() || (Paths.Num() == 1 && Paths[0].Count == PointDataFacade->GetNum()))
+		if (SubPaths.IsEmpty() || (SubPaths.Num() == 1 && SubPaths[0].Count == PointDataFacade->GetNum()))
 		{
 			// No splits, forward
 			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
@@ -366,20 +366,20 @@ namespace PCGExSplitPath
 
 		if (bClosedLoop)
 		{
-			if (Paths.Num() > 1)
+			if (SubPaths.Num() > 1)
 			{
-				bWrapLastPath = Paths[0].Start == 0 && Paths.Last().End == -1 && !PointFilterCache[0];
+				bWrapLastPath = SubPaths[0].Start == 0 && SubPaths.Last().End == -1 && !PointFilterCache[0];
 			}
 
-			if (Paths.Num() > 1 || Paths[0].End != -1 || Paths[0].Start != 0)
+			if (SubPaths.Num() > 1 || SubPaths[0].End != -1 || SubPaths[0].Start != 0)
 			{
 				bAddOpenTag = true;
 			}
 		}
 
-		PathsIOs.Init(nullptr, Paths.Num());
+		SubPathsIOs.Init(nullptr, SubPaths.Num());
 
-		StartParallelLoopForRange(Paths.Num());
+		StartParallelLoopForRange(SubPaths.Num());
 
 		//TODO : If closed path is enabled, and if the first & last points are not removed after the split
 		//re-order them and join them so as to recreate the "missing" edge
@@ -388,7 +388,7 @@ namespace PCGExSplitPath
 	void FProcessor::Output()
 	{
 		int32 OddEven = 0;
-		for (const TSharedPtr<PCGExData::FPointIO>& PathIO : PathsIOs)
+		for (const TSharedPtr<PCGExData::FPointIO>& PathIO : SubPathsIOs)
 		{
 			if (!PathIO) { continue; }
 
@@ -400,7 +400,7 @@ namespace PCGExSplitPath
 			OddEven++;
 		}
 
-		PathsIOs.Empty();
+		SubPathsIOs.Empty();
 	}
 }
 

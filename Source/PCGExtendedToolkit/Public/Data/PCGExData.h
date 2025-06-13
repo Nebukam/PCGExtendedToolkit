@@ -36,13 +36,6 @@ namespace PCGExGeo
 
 namespace PCGExData
 {
-	enum class EBufferPreloadType : uint8
-	{
-		RawAttribute = 0,
-		BroadcastFromName,
-		BroadcastFromSelector,
-	};
-
 	enum class EBufferInit : uint8
 	{
 		Inherit = 0,
@@ -665,8 +658,10 @@ namespace PCGExData
 	{
 		mutable FRWLock BufferLock;
 		mutable FRWLock CloudLock;
-
+		
 	public:
+		int32 Idx = -1;
+		
 		TSharedRef<FPointIO> Source;
 		TArray<TSharedPtr<IBuffer>> Buffers;
 		TMap<uint64, TSharedPtr<IBuffer>> BufferMap;
@@ -969,114 +964,6 @@ namespace PCGExData
 				for (int i = 0; i < Buffers.Num(); i++) { Buffers[i].Get()->BufferIndex = i; }
 			}
 		}
-	};
-
-#pragma endregion
-
-#pragma region Facade prep
-
-	struct PCGEXTENDEDTOOLKIT_API FReadableBufferConfig
-	{
-	protected:
-		FRWLock ReaderLock;
-		int8 Status = 0;
-		TWeakPtr<IBuffer> WeakReader;
-
-	public:
-		EBufferPreloadType Mode = EBufferPreloadType::RawAttribute;
-		FPCGAttributePropertyInputSelector Selector;
-		PCGEx::FAttributeIdentity Identity;
-
-		FReadableBufferConfig(const FReadableBufferConfig& Other)
-			: Mode(Other.Mode), Selector(Other.Selector), Identity(Other.Identity)
-		{
-		}
-
-		FReadableBufferConfig(const PCGEx::FAttributeIdentity& InIdentity, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute)
-			: Mode(InMode), Identity(InIdentity)
-		{
-		}
-
-		FReadableBufferConfig(const FName InName, const EPCGMetadataTypes InUnderlyingType, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute)
-			: Mode(InMode), Identity(InName, InUnderlyingType, false)
-		{
-		}
-
-		FReadableBufferConfig(const FPCGAttributePropertyInputSelector& InSelector, const EPCGMetadataTypes InUnderlyingType)
-			: Mode(EBufferPreloadType::BroadcastFromSelector), Selector(InSelector), Identity(InSelector.GetName(), InUnderlyingType, false)
-		{
-		}
-
-		bool Validate(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade) const;
-		void Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope);
-		void Read(const TSharedRef<FFacade>& InFacade) const;
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FFacadePreloader : public TSharedFromThis<FFacadePreloader>
-	{
-	protected:
-		TWeakPtr<FFacade> InternalDataFacadePtr;
-
-	public:
-		TArray<FReadableBufferConfig> BufferConfigs;
-
-		FFacadePreloader(const TSharedPtr<FFacade>& InDataFacade);
-
-		TSharedPtr<FFacade> GetDataFacade() const;
-
-		bool IsEmpty() const { return BufferConfigs.IsEmpty(); }
-		int32 Num() const { return BufferConfigs.Num(); }
-
-		bool Validate(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade) const;
-
-		void Register(FPCGExContext* InContext, const PCGEx::FAttributeIdentity& InIdentity);
-
-		void TryRegister(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector);
-
-		template <typename T>
-		void Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax = false)
-		{
-			EPCGMetadataTypes Type = PCGEx::GetMetadataType<T>();
-			for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
-			{
-				if (ExistingConfig.Selector == InSelector &&
-					ExistingConfig.Identity.UnderlyingType == Type)
-				{
-					return;
-				}
-			}
-
-			BufferConfigs.Emplace(InSelector, Type);
-		}
-
-		template <typename T>
-		void Register(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode = EBufferPreloadType::RawAttribute)
-		{
-			EPCGMetadataTypes Type = PCGEx::GetMetadataType<T>();
-			for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
-			{
-				if (ExistingConfig.Identity.Identifier.Name == InName &&
-					ExistingConfig.Identity.UnderlyingType == Type)
-				{
-					return;
-				}
-			}
-
-			BufferConfigs.Emplace(InName, Type, InMode);
-		}
-
-		void Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope);
-		void Read(const TSharedRef<FFacade>& InFacade, const int32 ConfigIndex) const;
-
-		///
-
-		using CompletionCallback = std::function<void()>;
-		CompletionCallback OnCompleteCallback;
-
-		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle = nullptr);
-
-	protected:
-		void OnLoadingEnd() const;
 	};
 
 #pragma endregion

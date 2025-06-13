@@ -38,9 +38,9 @@ class UPCGExFilterFactoryData;
 UENUM()
 enum class EPCGExSplineSamplingIncludeMode : uint8
 {
-	All            = 0 UMETA(DisplayName = "All", ToolTip="Sample all input splines"),
+	All            = 0 UMETA(DisplayName = "All", ToolTip="Sample all inputs"),
 	ClosedLoopOnly = 1 UMETA(DisplayName = "Closed loops only", ToolTip="Sample only closed loops"),
-	OpenSplineOnly = 2 UMETA(DisplayName = "Open splines only", ToolTip="Sample only open splines"),
+	OpenSplineOnly = 2 UMETA(DisplayName = "Open lines only", ToolTip="Sample only open lines"),
 };
 
 UENUM()
@@ -56,7 +56,7 @@ enum class EPCGExSplineSampleAlphaMode : uint8
 {
 	Alpha    = 0 UMETA(DisplayName = "Alpha", ToolTip="0 - 1 value"),
 	Time     = 1 UMETA(DisplayName = "Time", ToolTip="0 - N value, where N is the number of segments"),
-	Distance = 2 UMETA(DisplayName = "Distance", ToolTip="Distance on the simple to sample value at"),
+	Distance = 2 UMETA(DisplayName = "Distance", ToolTip="Distance on the spline to sample value at"),
 };
 
 namespace PCGExPolyPath
@@ -137,38 +137,42 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 
-	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
-	double RangeMin = 0;
-
-	/** Maximum target range. Used as fallback if LocalRangeMax is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
-	double RangeMax = 300;
-
 	/** If enabled, spline scale affect range. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
 	bool bSplineScalesRanges = false;
 
-	/** Use a per-point minimum range*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalRangeMin = false;
+#pragma region Sampling Range
+	
+	/** Type of Range Min */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType RangeMinInput = EPCGExInputValueType::Constant;
 
-	/** Attribute or property to read the minimum range from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMin"))
-	FPCGAttributePropertyInputSelector LocalRangeMin;
+	/** Minimum target range to sample targets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Range Min (Attr)", EditCondition="RangeMinInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector RangeMinAttribute;
 
-	PCGEX_SETTING_VALUE_GET_BOOL(RangeMin, double, bUseLocalRangeMin, LocalRangeMin, RangeMin)
+	/** Minimum target range to sample targets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMinInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	double RangeMin = 0;
 
-	/** Use a per-point maximum range*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalRangeMax = false;
+	PCGEX_SETTING_VALUE_GET(RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
 
-	/** Attribute or property to read the maximum range from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax"))
-	FPCGAttributePropertyInputSelector LocalRangeMax;
+	/** Type of Range Min */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType RangeMaxInput = EPCGExInputValueType::Constant;
 
-	PCGEX_SETTING_VALUE_GET_BOOL(RangeMax, double, bUseLocalRangeMax, LocalRangeMax, RangeMax)
+	/** Maximum target range to sample targets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Range Max (Attr)", EditCondition="RangeMaxInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector RangeMaxAttribute;
 
+	/** Maximum target range to sample targets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMaxInput == EPCGExInputValueType::Constant", ClampMin=0))
+	double RangeMax = 300;
+
+	PCGEX_SETTING_VALUE_GET(RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
+
+#pragma endregion
+	
 	/** Whether spline should be sampled at a specific alpha */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	bool bSampleSpecificAlpha = false;

@@ -257,7 +257,7 @@ namespace PCGExDataBlending
 		return Init(InContext, TargetData, bWantsDirectAccess);
 	}
 
-	void FUnionBlender::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::FUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
+	void FUnionBlender::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
 	{
 		check(InUnionData)
 
