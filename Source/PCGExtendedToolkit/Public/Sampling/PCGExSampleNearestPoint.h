@@ -32,47 +32,6 @@ MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(SampledIndex, int32, -1)
 
-namespace PCGExNearestPoint
-{
-	struct FSample
-	{
-		FSample()
-		{
-		}
-
-		FSample(const int32 InIOIndex, const int32 InIndex, const double InDistance):
-			IOIndex(InIOIndex), Index(InIndex), Distance(InDistance)
-		{
-		}
-
-		int32 IOIndex = -1;
-		int32 Index = -1;
-		double Distance = 0;
-	};
-
-	struct FSamplesStats
-	{
-		FSamplesStats()
-		{
-		}
-
-		int32 NumTargets = 0;
-		double TotalWeight = 0;
-		double SampledRangeMin = MAX_dbl;
-		double SampledRangeMax = 0;
-		double SampledRangeWidth = 0;
-		int32 UpdateCount = 0;
-
-		FSample Closest;
-		FSample Farthest;
-
-		void Update(const FSample& InSample);
-		void Replace(const FSample& InSample);
-
-		FORCEINLINE double GetRangeRatio(const double Distance) const { return (Distance - SampledRangeMin) / SampledRangeWidth; }
-		FORCEINLINE bool IsValid() const { return UpdateCount > 0; }
-	};
-}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-point"))
 class UPCGExSampleNearestPointSettings : public UPCGExPointsProcessorSettings
@@ -362,7 +321,7 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 	FPCGExApplySamplingDetails ApplySampling;
 
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
-	int32 NumTargets = 0;
+	int32 NumMaxTargets = 0;
 
 	FRuntimeFloatCurve RuntimeWeightCurve;
 	const FRichCurve* WeightCurve = nullptr;

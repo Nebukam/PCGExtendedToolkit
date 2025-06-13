@@ -63,24 +63,36 @@ namespace PCGExDataBlending
 		Blenders[0]->InitTrackers(Trackers);
 	}
 
-	void FUnionOpsManager::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
+	int32 FUnionOpsManager::ComputeWeights(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
 	{
-		check(InUnionData)
+		const PCGExData::FConstPoint Target = CurrentTargetData->Source->GetOutPoint(WriteIndex);
+		return InUnionData->ComputeWeights(SourcesData, IOLookup, Target, DistanceDetails, OutWeightedPoints);
+	}
+
+	void FUnionOpsManager::Blend(const int32 WriteIndex, const TArray<PCGExData::FWeightedPoint>& InWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
+	{
 		check(!Blenders.IsEmpty())
 
 		const PCGExData::FConstPoint Target = CurrentTargetData->Source->GetOutPoint(WriteIndex);
 
-		const int32 NumBlenders = Blenders.Num();
-		if (!InUnionData->ComputeWeights(SourcesData, IOLookup, Target, DistanceDetails, OutWeightedPoints)) { return; }
+		if (InWeightedPoints.IsEmpty()) { return; }
 
 		Blenders[0]->BeginMultiBlend(WriteIndex, Trackers);
-		for (const PCGExData::FWeightedPoint& P : OutWeightedPoints) { Blenders[P.IO]->MultiBlend(P.Index, WriteIndex, P.Weight, Trackers); }
+		for (const PCGExData::FWeightedPoint& P : InWeightedPoints) { Blenders[P.IO]->MultiBlend(P.Index, WriteIndex, P.Weight, Trackers); }
 		Blenders[0]->EndMultiBlend(WriteIndex, Trackers);
+	}
+
+	void FUnionOpsManager::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
+	{
+		check(InUnionData)
+		if (!ComputeWeights(WriteIndex, InUnionData, OutWeightedPoints)) { return; }
+		Blend(WriteIndex, OutWeightedPoints, Trackers);
 	}
 
 	void FUnionOpsManager::MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		MergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), OutWeightedPoints, Trackers);
+		if (!ComputeWeights(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), OutWeightedPoints)) { return; }
+		Blend(UnionIndex, OutWeightedPoints, Trackers);
 	}
 
 	void FUnionOpsManager::Cleanup(FPCGExContext* InContext)

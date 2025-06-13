@@ -61,7 +61,7 @@ UPCGExSampleNearestBoundsSettings::UPCGExSampleNearestBoundsSettings(
 	: Super(ObjectInitializer)
 {
 	if (LookAtUpSource.GetName() == FName("@Last")) { LookAtUpSource.Update(TEXT("$Transform.Up")); }
-	if (!WeightRemap) { WeightRemap = PCGEx::WeightDistributionLinearInv; }
+	if (!WeightRemap) { WeightRemap = PCGEx::WeightDistributionLinear; }
 }
 
 TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties() const

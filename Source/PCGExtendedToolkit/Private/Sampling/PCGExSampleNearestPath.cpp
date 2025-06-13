@@ -36,7 +36,7 @@ UPCGExSampleNearestPathSettings::UPCGExSampleNearestPathSettings(
 	: Super(ObjectInitializer)
 {
 	if (LookAtUpSource.GetName() == FName("@Last")) { LookAtUpSource.Update(TEXT("$Transform.Up")); }
-	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinearInv; }
+	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinear; }
 }
 
 TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::InputPinProperties() const
@@ -247,9 +247,12 @@ namespace PCGExSampleNearestPath
 			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetFacades)) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}
-		else
+
+		if (!DataBlender)
 		{
-			DataBlender = MakeShared<PCGExDataBlending::FDummyUnionBlender>();
+			TSharedPtr<PCGExDataBlending::FDummyUnionBlender> DummyUnionBlender = MakeShared<PCGExDataBlending::FDummyUnionBlender>();
+			DummyUnionBlender->Init(PointDataFacade, Context->TargetFacades);
+			DataBlender = DummyUnionBlender;
 		}
 
 		{
@@ -323,7 +326,7 @@ namespace PCGExSampleNearestPath
 		TArray<PCGExPolyLine::FSample> Samples;
 		Samples.Reserve(Context->Paths.Num());
 
-		const TSharedPtr<PCGExData::FUnionDataWeighted> Union = MakeShared<PCGExData::FUnionDataWeighted>();
+		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -490,11 +493,8 @@ namespace PCGExSampleNearestPath
 				const PCGExData::FPoint A(Path->Edges[TargetInfos.EdgeIndex].Start, Path->IOIndex);
 				const PCGExData::FPoint B(Path->Edges[TargetInfos.EdgeIndex].End, Path->IOIndex);
 
-				Union->Add_Unsafe(A);
-				Union->AddWeight_Unsafe(A, TargetInfos.Lerp * Weight);
-
-				Union->Add_Unsafe(B);
-				Union->AddWeight_Unsafe(B, (1 - TargetInfos.Lerp) * Weight);
+				Union->AddWeighted_Unsafe(A, TargetInfos.Lerp * Weight);
+				Union->AddWeighted_Unsafe(B, (1 - TargetInfos.Lerp) * Weight);
 
 				TConstPCGValueRange<FTransform> PathTransforms = Context->TargetFacades[Path->Idx]->GetIn()->GetConstTransformValueRange();
 				const FTransform EdgeTransform = PCGExBlend::Lerp(PathTransforms[A.Index], PathTransforms[B.Index], TargetInfos.Lerp);

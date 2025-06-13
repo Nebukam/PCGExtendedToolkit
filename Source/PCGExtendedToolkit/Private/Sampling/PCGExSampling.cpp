@@ -150,8 +150,93 @@ namespace PCGExSampling
 
 		return true;
 	}
-}
 
-namespace PCGEx
-{
+
+	int32 FSampingUnionData::ComputeWeights(
+		const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
+		const PCGExData::FConstPoint& Target, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
+		TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
+	{
+		const int32 NumElements = Elements.Num();
+		OutWeightedPoints.Reset(NumElements);
+
+		double TotalWeight = 0;
+		int32 Index = 0;
+
+		if (WeightRange == -1)
+		{
+			double InternalRange = 0;
+			for (const TPair<PCGExData::FElement, double>& W : Weights) { InternalRange = FMath::Max(InternalRange, W.Value); }
+
+			// Remap weight to available max
+			for (const PCGExData::FElement& Element : Elements)
+			{
+				const int32 IOIdx = IdxLookup->Get(Element.IO);
+				if (IOIdx == -1) { continue; }
+
+				const double Weight = 1 - (Weights[Element] / InternalRange);
+				OutWeightedPoints.Emplace(Element.Index, Weight, IOIdx);
+				TotalWeight += Weight;
+				Index++;
+			}
+		}
+		else
+		{
+			// Remap weight to specified max
+			for (const PCGExData::FElement& Element : Elements)
+			{
+				const int32 IOIdx = IdxLookup->Get(Element.IO);
+				if (IOIdx == -1) { continue; }
+
+				const double Weight = 1 - (Weights[Element] / WeightRange);
+				OutWeightedPoints.Emplace(Element.Index, Weight, IOIdx);
+				TotalWeight += Weight;
+				Index++;
+			}
+		}
+
+
+		if (Index == 0) { return 0; }
+		if (TotalWeight == 0)
+		{
+			const double FixedWeight = 1 / static_cast<double>(Index);
+			for (PCGExData::FWeightedPoint& P : OutWeightedPoints) { P.Weight = FixedWeight; }
+			return Index;
+		}
+
+		// Normalize weights
+		//for (PCGExData::FWeightedPoint& P : OutWeightedPoints) { P.Weight /= TotalWeight; }
+		return Index;
+	}
+
+	void FSampingUnionData::AddWeighted_Unsafe(const PCGExData::FElement& Element, const double InWeight)
+	{
+		Add_Unsafe(Element);
+		Weights.Add(Element, InWeight);
+	}
+
+	void FSampingUnionData::AddWeighted(const PCGExData::FElement& Element, const double InWeight)
+	{
+		FWriteScopeLock WriteScopeLock(UnionLock);
+		Add_Unsafe(Element);
+		Weights.Add(Element, InWeight);
+	}
+
+	double FSampingUnionData::GetWeightAverage() const
+	{
+		if (Weights.Num() == 0) { return 0; }
+
+		double Average = 0;
+		for (const TPair<PCGExData::FElement, double>& Pair : Weights) { Average += Pair.Value; }
+		return Average / Weights.Num();
+	}
+
+	double FSampingUnionData::GetSqrtWeightAverage() const
+	{
+		if (Weights.Num() == 0) { return 0; }
+
+		double Average = 0;
+		for (const TPair<PCGExData::FElement, double>& Pair : Weights) { Average += FMath::Sqrt(Pair.Value); }
+		return Average / Weights.Num();
+	}
 }

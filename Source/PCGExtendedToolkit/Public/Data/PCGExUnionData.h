@@ -23,7 +23,7 @@ namespace PCGExData
 
 		//int32 Index = 0;
 		TSet<int32, DefaultKeyFuncs<int32>, InlineSparseAllocator> IOSet;
-		TSet<FElement, DefaultKeyFuncs<FElement>, InlineSparseAllocator> Elements;
+		TArray<FElement, TInlineAllocator<8>> Elements;
 
 		IUnionData() = default;
 		virtual ~IUnionData() = default;
@@ -38,11 +38,13 @@ namespace PCGExData
 			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
 			TArray<FWeightedPoint>& OutWeightedPoints) const;
 
-		void Add_Unsafe(const FPoint& Point);
-		void Add(const FPoint& Point);
+		void Add_Unsafe(const FElement& Point);
+		void Add(const FElement& Point);
 
 		void Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices);
 		void Add(const int32 IOIndex, const TArray<int32>& PointIndices);
+
+		bool IsEmpty() const { return Elements.IsEmpty(); }
 
 		virtual void Reset()
 		{
@@ -51,31 +53,7 @@ namespace PCGExData
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FUnionDataWeighted : public IUnionData
-	{
-	public:
-		TMap<FElement, double> Weights;
-
-		FUnionDataWeighted() = default;
-		virtual ~FUnionDataWeighted() override = default;
-
-		// Gather data into arrays and return the required iteration count
-		virtual int32 ComputeWeights(
-			const TArray<const UPCGBasePointData*>& Sources,
-			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
-			const FConstPoint& Target,
-			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
-			TArray<FWeightedPoint>& OutWeightedPoints) const override;
-
-		void AddWeight_Unsafe(const FElement& Element, const double InWeight);
-		void AddWeight(const FElement& Element, const double InWeight);
-
-		virtual void Reset() override
-		{
-			IUnionData::Reset();
-			Weights.Reset();
-		}
-	};
+	
 
 	class PCGEXTENDEDTOOLKIT_API FUnionMetadata : public TSharedFromThis<FUnionMetadata>
 	{

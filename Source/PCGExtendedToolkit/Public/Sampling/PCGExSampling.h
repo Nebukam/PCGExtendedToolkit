@@ -5,6 +5,7 @@
 
 #include "PCGEx.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExUnionData.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 
 #include "PCGExSampling.generated.h"
@@ -152,4 +153,35 @@ namespace PCGExSampling
 		const TSharedRef<PCGExData::FFacade>& InFacade,
 		const FName ActorReferenceName,
 		TMap<AActor*, int32>& OutActorSet);
+
+	class PCGEXTENDEDTOOLKIT_API FSampingUnionData : public PCGExData::IUnionData
+	{
+	public:
+		TMap<PCGExData::FElement, double> Weights;
+
+		FSampingUnionData() = default;
+		virtual ~FSampingUnionData() override = default;
+
+		double WeightRange = -1;
+
+		// Gather data into arrays and return the required iteration count
+		virtual int32 ComputeWeights(
+			const TArray<const UPCGBasePointData*>& Sources,
+			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
+			const PCGExData::FConstPoint& Target,
+			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
+			TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const override;
+
+		void AddWeighted_Unsafe(const PCGExData::FElement& Element, const double InWeight);
+		void AddWeighted(const PCGExData::FElement& Element, const double InWeight);
+
+		double GetWeightAverage() const;
+		double GetSqrtWeightAverage() const;
+		
+		virtual void Reset() override
+		{
+			IUnionData::Reset();
+			Weights.Reset();
+		}
+	};
 }

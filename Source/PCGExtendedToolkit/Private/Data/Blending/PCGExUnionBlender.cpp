@@ -257,14 +257,15 @@ namespace PCGExDataBlending
 		return Init(InContext, TargetData, bWantsDirectAccess);
 	}
 
-	void FUnionBlender::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
+	int32 FUnionBlender::ComputeWeights(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
 	{
-		check(InUnionData)
+		const PCGExData::FConstPoint Target = CurrentTargetData->Source->GetOutPoint(WriteIndex);
+		return InUnionData->ComputeWeights(SourcesData, IOLookup, Target, DistanceDetails, OutWeightedPoints);
+	}
 
-		PCGExData::FConstPoint Target = CurrentTargetData->Source->GetOutPoint(WriteIndex);
-		const int32 UnionCount = InUnionData->ComputeWeights(SourcesData, IOLookup, Target, DistanceDetails, OutWeightedPoints);
-
-		if (UnionCount == 0) { return; }
+	void FUnionBlender::Blend(const int32 WriteIndex, const TArray<PCGExData::FWeightedPoint>& InWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
+	{
+		if (InWeightedPoints.IsEmpty()) { return; }
 
 		// For each attribute/property we want to blend
 		for (const TSharedPtr<FMultiSourceBlender>& MultiAttribute : Blenders)
@@ -272,7 +273,7 @@ namespace PCGExDataBlending
 			PCGEx::FOpStats Tracking = MultiAttribute->MainBlender->BeginMultiBlend(WriteIndex);
 
 			// For each point in the union, check if there is an attribute blender for that source; and if so, add it to the blend
-			for (const PCGExData::FWeightedPoint& P : OutWeightedPoints)
+			for (const PCGExData::FWeightedPoint& P : InWeightedPoints)
 			{
 				if (const TSharedPtr<FProxyDataBlender>& Blender = MultiAttribute->SubBlenders[P.IO])
 				{
@@ -284,9 +285,17 @@ namespace PCGExDataBlending
 		}
 	}
 
+	void FUnionBlender::MergeSingle(const int32 WriteIndex, const TSharedPtr<PCGExData::IUnionData>& InUnionData, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
+	{
+		check(InUnionData)
+		if (!ComputeWeights(WriteIndex, InUnionData, OutWeightedPoints)) { return; }
+		Blend(WriteIndex, OutWeightedPoints, Trackers);
+	}
+
 	void FUnionBlender::MergeSingle(const int32 UnionIndex, TArray<PCGExData::FWeightedPoint>& OutWeightedPoints, TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		MergeSingle(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), OutWeightedPoints, Trackers);
+		if (!ComputeWeights(UnionIndex, CurrentUnionMetadata->Get(UnionIndex), OutWeightedPoints)) { return; }
+		Blend(UnionIndex, OutWeightedPoints, Trackers);
 	}
 
 	bool FUnionBlender::Validate(FPCGExContext* InContext, const bool bQuiet) const
