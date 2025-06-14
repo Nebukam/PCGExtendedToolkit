@@ -136,6 +136,8 @@ namespace PCGExData
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 		const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle)
 	{
+		WeakHandle = AsyncManager->GetContext()->GetOrCreateHandle();
+
 		TSharedPtr<FFacade> SourceFacade = GetDataFacade();
 		if (!SourceFacade) { return; }
 
@@ -196,7 +198,11 @@ namespace PCGExData
 	void FFacadePreloader::OnLoadingEnd()
 	{
 		if (bLoaded) { return; }
+
+		PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
+
 		bLoaded = true;
+
 		if (TSharedPtr<FFacade> InternalFacade = GetDataFacade()) { InternalFacade->MarkCurrentBuffersReadAsComplete(); }
 		if (OnCompleteCallback) { OnCompleteCallback(); }
 	}
@@ -234,6 +240,7 @@ namespace PCGExData
 
 	void FMultiFacadePreloader::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle)
 	{
+		WeakHandle = AsyncManager->GetContext()->GetOrCreateHandle();
 		for (const TSharedPtr<FFacadePreloader>& Preloader : Preloaders)
 		{
 			Preloader->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
@@ -253,6 +260,7 @@ namespace PCGExData
 
 	void FMultiFacadePreloader::OnLoadingEnd() const
 	{
+		PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 		if (OnCompleteCallback) { OnCompleteCallback(); }
 	}
 }

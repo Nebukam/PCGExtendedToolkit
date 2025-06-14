@@ -123,6 +123,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 
+	/** Sort direction */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_Overridable, EditCondition="SampleMethod == EPCGExSampleMethod::BestCandidate", EditConditionHides))
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
 #pragma region Sampling Range
 	
@@ -400,6 +403,8 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 	TArray<TSharedRef<PCGExData::FFacade>> TargetFacades;
 	TArray<TSharedPtr<PCGExPaths::FPath>> Paths;
 	TSharedPtr<PCGEx::FIndexedItemOctree> PathsOctree;
+
+	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
 
 	FRuntimeFloatCurve RuntimeWeightCurve;
 	const FRichCurve* WeightCurve = nullptr;
