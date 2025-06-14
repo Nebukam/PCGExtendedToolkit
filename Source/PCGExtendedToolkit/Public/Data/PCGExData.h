@@ -658,10 +658,10 @@ namespace PCGExData
 	{
 		mutable FRWLock BufferLock;
 		mutable FRWLock CloudLock;
-		
+
 	public:
 		int32 Idx = -1;
-		
+
 		TSharedRef<FPointIO> Source;
 		TArray<TSharedPtr<IBuffer>> Buffers;
 		TMap<uint64, TSharedPtr<IBuffer>> BufferMap;

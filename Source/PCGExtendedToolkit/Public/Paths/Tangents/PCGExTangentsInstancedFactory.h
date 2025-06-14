@@ -32,7 +32,7 @@ public:
 
 		const FVector A = InTransforms[0].GetLocation();
 		const FVector B = InTransforms[1].GetLocation();
-		const FVector Dir = (B - A);//.GetSafeNormal() * (FVector::Dist(A, B));
+		const FVector Dir = (B - A); //.GetSafeNormal() * (FVector::Dist(A, B));
 		OutArrive = Dir * ArriveScale;
 		OutLeave = Dir * LeaveScale;
 	}
@@ -47,7 +47,7 @@ public:
 
 		const FVector A = InTransforms[LastIndex].GetLocation();
 		const FVector B = InTransforms[LastIndex - 1].GetLocation();
-		const FVector Dir = (A - B);//.GetSafeNormal() * (FVector::Dist(A, B));
+		const FVector Dir = (A - B); //.GetSafeNormal() * (FVector::Dist(A, B));
 		OutArrive = Dir * ArriveScale;
 		OutLeave = Dir * LeaveScale;
 	}

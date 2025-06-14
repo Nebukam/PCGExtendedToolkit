@@ -24,6 +24,7 @@ Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContent
 #include "IAssetTools.h"
 #include "PCGDataVisualizationRegistry.h"
 #include "PCGExEditorMenuUtils.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGGraph.h"
 #include "PCGModule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -127,17 +128,18 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Tensor)
 
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Picker)
-	
+
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_FillControl)
 
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
 
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FPCGExtendedToolkitEditorModule::RegisterMenuExtensions));
 
-	// Overriding debug so it's persistent.
-	// Epic staff forces us to take this hacky approach.
-	FPCGDataVisualizationRegistry& DataVisRegistry = FPCGModule::GetMutablePCGDataVisualizationRegistry();
-	DataVisRegistry.RegisterPCGDataVisualization(UPCGSpatialData::StaticClass(), MakeUnique<const IPCGExSpatialDataVisualization>());
+	if (GetDefault<UPCGExGlobalSettings>()->bPersistentDebug)
+	{
+		FPCGDataVisualizationRegistry& DataVisRegistry = FPCGModule::GetMutablePCGDataVisualizationRegistry();
+		DataVisRegistry.RegisterPCGDataVisualization(UPCGSpatialData::StaticClass(), MakeUnique<const IPCGExSpatialDataVisualization>());
+	}
 }
 
 #undef PCGEX_ADD_ICON
@@ -155,19 +157,20 @@ void FPCGExtendedToolkitEditorModule::RegisterMenuExtensions()
 	if (UToolMenu* WorldAssetMenu = UToolMenus::Get()->ExtendMenu("ContentBrowser.AssetContextMenu.AssetActionsSubMenu"))
 	{
 		// Use a dynamic section here because we might have plugins registering at a later time
-		FToolMenuSection& Section = WorldAssetMenu->AddDynamicSection("PCGEx", FNewToolMenuDelegate::CreateLambda([this](UToolMenu* ToolMenu)
-		{
-			if (!GEditor || GEditor->GetPIEWorldContext() || !ToolMenu)
-			{
-				return;
-			}
+		FToolMenuSection& Section = WorldAssetMenu->AddDynamicSection(
+			"PCGEx", FNewToolMenuDelegate::CreateLambda(
+				[this](UToolMenu* ToolMenu)
+				{
+					if (!GEditor || GEditor->GetPIEWorldContext() || !ToolMenu)
+					{
+						return;
+					}
 
-			if (UContentBrowserAssetContextMenuContext* AssetMenuContext = ToolMenu->Context.FindContext<UContentBrowserAssetContextMenuContext>())
-			{
-				PCGExEditorMenuUtils::CreateOrUpdatePCGExAssetCollectionsFromMenu(ToolMenu, AssetMenuContext->SelectedAssets);
-			}
-
-		}), FToolMenuInsert(NAME_None, EToolMenuInsertType::Default));
+					if (UContentBrowserAssetContextMenuContext* AssetMenuContext = ToolMenu->Context.FindContext<UContentBrowserAssetContextMenuContext>())
+					{
+						PCGExEditorMenuUtils::CreateOrUpdatePCGExAssetCollectionsFromMenu(ToolMenu, AssetMenuContext->SelectedAssets);
+					}
+				}), FToolMenuInsert(NAME_None, EToolMenuInsertType::Default));
 	}
 }
 

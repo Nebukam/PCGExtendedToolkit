@@ -66,11 +66,11 @@ public:
 	FName SourceAttributeName = FName("AssetPath");
 
 	/** If enabled, will write resolved texture paths as per their definitions. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SourceType==EPCGExGetTexturePathType::MaterialPath", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SourceType == EPCGExGetTexturePathType::MaterialPath", EditConditionHides))
 	bool bOutputTextureIds = true;
 
 	/** If enabled, will build PCG Texture data for each unique texture reference found. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SourceType==EPCGExGetTexturePathType::MaterialPath", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SourceType == EPCGExGetTexturePathType::MaterialPath", EditConditionHides))
 	bool bBuildTextureData = true;
 
 

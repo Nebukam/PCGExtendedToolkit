@@ -326,11 +326,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceDetails
 	EPCGExInputValueType InfluenceInput = EPCGExInputValueType::Constant;
 
 	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Influence (Attr)", EditCondition="InfluenceInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Influence (Attr)", EditCondition="InfluenceInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalInfluence;
 
 	/** Draw size. What it means depends on the selected debug type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Influence", EditCondition="InfluenceInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=-1, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Influence", EditCondition="InfluenceInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=-1, ClampMax=1))
 	double Influence = 1.0;
 
 	PCGEX_SETTING_VALUE_GET(Influence, double, InfluenceInput, LocalInfluence, Influence)
@@ -513,7 +513,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Voxel;
 
 	/** Offset the voxelized grid by an amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Voxel", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod == EPCGExFuseMethod::Voxel", EditConditionHides))
 	FVector VoxelGridOffset = FVector::ZeroVector;
 
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;

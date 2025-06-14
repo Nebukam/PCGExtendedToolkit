@@ -35,7 +35,7 @@ void FPCGExVtxPropertySpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const
 	int32 IShortest = -1;
 
 	double LAverage = 0;
-	FVector VAverage = FVector::Zero();
+	FVector VAverage = FVector::ZeroVector;
 
 	for (int i = 0; i < Adjacency.Num(); i++)
 	{

@@ -15,7 +15,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/diagrams/voronoi-3d"))
 class UPCGExBuildVoronoiGraphSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -46,7 +46,7 @@ public:
 	double ExpandBounds = 100;
 
 	/** Prune points outside bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Method==EPCGExCellCenter::Circumcenter"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Method == EPCGExCellCenter::Circumcenter"))
 	bool bPruneOutOfBounds = false;
 
 	/** Mark points & edges that lie on the hull */

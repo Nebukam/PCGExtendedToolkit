@@ -18,7 +18,7 @@ class UPCGExSearchInstancedFactory;
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="pathfinding/pathfinding-edges"))
 class UPCGExPathfindingEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

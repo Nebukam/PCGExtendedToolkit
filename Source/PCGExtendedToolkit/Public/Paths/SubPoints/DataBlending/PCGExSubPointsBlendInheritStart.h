@@ -20,7 +20,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Inherit First")
+UCLASS(MinimalAPI, meta=(DisplayName = "Inherit First", PCGExNodeLibraryDoc="paths/sub-point-blending/inherit-first"))
 class UPCGExSubPointsBlendInheritStart : public UPCGExSubPointsBlendInstancedFactory
 {
 	GENERATED_BODY()

@@ -64,7 +64,7 @@ public:
 	FPCGExGameplayTagsFilterConfig Config;
 
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
-	
+
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
@@ -96,7 +96,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/gameplay-tags"))
 class UPCGExGameplayTagsFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

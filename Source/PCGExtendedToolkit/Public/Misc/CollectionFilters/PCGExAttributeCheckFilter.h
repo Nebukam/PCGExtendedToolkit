@@ -13,10 +13,6 @@
 #include "Data/PCGExFilterGroup.h"
 
 
-
-
-
-
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
 
@@ -67,7 +63,7 @@ struct FPCGExAttributeCheckFilterConfig
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-collections/attribute-check"))
 class UPCGExAttributeCheckFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()

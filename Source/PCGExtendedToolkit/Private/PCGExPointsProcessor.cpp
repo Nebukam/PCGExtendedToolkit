@@ -69,7 +69,7 @@ PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const 
 #if WITH_EDITOR
 void UPCGExPointsProcessorSettings::EDITOR_OpenNodeDocumentation() const
 {
-	const FString URL = PCGEx::META_PCGExDocNodeLibraryBaseURL +  GetClass()->GetMetaData(*PCGEx::META_PCGExDocURL);
+	const FString URL = PCGEx::META_PCGExDocNodeLibraryBaseURL + GetClass()->GetMetaData(*PCGEx::META_PCGExDocURL);
 	FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
 }
 #endif

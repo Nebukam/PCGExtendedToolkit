@@ -108,7 +108,7 @@ namespace PCGExTensor
 			FVector Extents = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(Point).GetExtent();
 
 			Radiuses[i] = Extents.SquaredLength();
-			
+
 			const float Steepness = InSteepness[i];
 			Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(FBox((2 - Steepness) * (Extents * -1), (2 - Steepness) * Extents).TransformBy(Transform)))); // Fetch to max
 		}

@@ -19,9 +19,8 @@
 
 namespace PCGExData
 {
-
 	PCGEX_CTX_STATE(State_PreloadingData)
-	
+
 	enum class EBufferPreloadType : uint8
 	{
 		RawAttribute = 0,
@@ -140,11 +139,11 @@ namespace PCGExData
 	class PCGEXTENDEDTOOLKIT_API FMultiFacadePreloader : public TSharedFromThis<FMultiFacadePreloader>
 	{
 		FRWLock LoadingLock;
-		
+
 		TArray<TSharedPtr<FFacadePreloader>> Preloaders;
 		TWeakPtr<FPCGContextHandle> WeakHandle;
 		bool bLoaded = false;
-		
+
 	public:
 		FMultiFacadePreloader(const TArray<TSharedPtr<FFacade>>& InDataFacades);
 		FMultiFacadePreloader(const TArray<TSharedRef<FFacade>>& InDataFacades);
@@ -160,7 +159,7 @@ namespace PCGExData
 
 		bool Validate(FPCGExContext* InContext);
 		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle = nullptr);
-		
+
 	protected:
 		void OnSubloadComplete();
 		void OnLoadingEnd();

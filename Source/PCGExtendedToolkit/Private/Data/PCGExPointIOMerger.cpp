@@ -113,7 +113,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 					SourceRef.ElementsIdentifier.Name = SourceIdentity.Identifier.Name;
 					SourceRef.ElementsIdentifier.MetadataDomain = PCGMetadataDomainID::Elements;
 
-					ExpectedTypes.Add(SourceRef.Identifier, UniqueIdentities.Num()-1);
+					ExpectedTypes.Add(SourceRef.Identifier, UniqueIdentities.Num() - 1);
 
 					return;
 				}

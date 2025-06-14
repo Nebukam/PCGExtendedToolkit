@@ -282,11 +282,11 @@ namespace PCGExPaths
 	{
 		if (bClosedLoop) { NumEdges = NumPoints; }
 		else { NumEdges = LastIndex; }
-		
+
 		LastEdge = NumEdges - 1;
 
 		Edges.SetNumUninitialized(NumEdges);
-		
+
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const FPathEdge& E = (Edges[i] = FPathEdge(i, (i + 1) % NumPoints, Positions, Expansion));

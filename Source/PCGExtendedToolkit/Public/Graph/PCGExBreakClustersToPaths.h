@@ -27,7 +27,7 @@ enum class EPCGExBreakClusterLeavesHandling : uint8
 	Only    = 2 UMETA(DisplayName = "Only Leaves", ToolTip="Only process leaves."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/paths-interop/break-cluster-to-paths"))
 class UPCGExBreakClustersToPathsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -73,7 +73,7 @@ public:
 	bool bWindOnlyClosedLoops = true;
 
 	/** Projection settings. Winding is computed on a 2D plane. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Winding!=EPCGExWindingMutation::Unchanged", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Winding != EPCGExWindingMutation::Unchanged", EditConditionHides))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails();
 
 	/** Do not output paths that have less points that this value */

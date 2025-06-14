@@ -69,7 +69,7 @@ namespace PCGExPackClusters
 		// TODO : Refactor because we're actually partitioning indices, which is bad as we don't preserve the original data layout
 
 		EPCGPointNativeProperties AllocateProperties = VtxDataFacade->GetAllocations() | EdgeDataFacade->GetAllocations();
-		
+
 		VtxPointSelection.SetNumUninitialized(NumNodes);
 		for (int i = 0; i < NumNodes; i++) { VtxPointSelection[i] = Cluster->GetNodePointIndex(i); }
 

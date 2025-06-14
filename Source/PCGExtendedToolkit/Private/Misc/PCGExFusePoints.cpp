@@ -158,7 +158,7 @@ namespace PCGExFusePoints
 
 		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
 		UnionBlender = TypedBlender;
-		
+
 		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;
 		UnionSources.Add(PointDataFacade);
 

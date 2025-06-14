@@ -4,11 +4,6 @@
 #include "Misc/Filters/PCGExConstantFilter.h"
 
 
-
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 

@@ -55,7 +55,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Moving Average")
+UCLASS(MinimalAPI, meta=(DisplayName = "Moving Average", PCGExNodeLibraryDoc="paths/smooth/smooth-moving-average"))
 class UPCGExMovingAverageSmoothing : public UPCGExSmoothingInstancedFactory
 {
 	GENERATED_BODY()

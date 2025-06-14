@@ -70,7 +70,7 @@ namespace PCPGExMergePointsByTag
 	};
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/merge-points-by-tag"))
 class UPCGExMergePointsByTagSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -92,11 +92,11 @@ public:
 	EPCGExMergeByTagOverlapResolutionMode Mode = EPCGExMergeByTagOverlapResolutionMode::Strict;
 
 	/** Sorting direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode!=EPCGExMergeByTagOverlapResolutionMode::Flatten", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExMergeByTagOverlapResolutionMode::Flatten", EditConditionHides))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Descending;
 
 	/** Fallback behavior */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExMergeByTagOverlapResolutionMode::Flatten", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExMergeByTagOverlapResolutionMode::Flatten", EditConditionHides))
 	EPCGExMergeByTagFallbackBehavior FallbackBehavior = EPCGExMergeByTagFallbackBehavior::Omit;
 
 	/** Tags to be processed or ignored. */

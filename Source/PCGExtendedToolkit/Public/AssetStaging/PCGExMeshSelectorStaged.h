@@ -28,10 +28,10 @@ public:
 	/** If enabled, will ignore the collection descriptor details and only push mesh, materials & tags from the collection. */
 	UPROPERTY(EditAnywhere, Category = MeshSelector, meta=(EditCondition="bUseTemplateDescriptor"))
 	FPCGSoftISMComponentDescriptor TemplateDescriptor;
-	
+
 	UPROPERTY(EditAnywhere, Category = MeshSelector)
 	bool bUseTimeSlicing = false;
-	
+
 	UPROPERTY(EditAnywhere, Category = MeshSelector)
 	bool bOutputPoints = true;
 };

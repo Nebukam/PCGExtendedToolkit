@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, meta=(DisplayName="Force Directed"))
+UCLASS(MinimalAPI, meta=(DisplayName="Force Directed", PCGExNodeLibraryDoc="clusters/relax-cluster/force-directed"))
 class UPCGExForceDirectedRelax : public UPCGExRelaxClusterOperation
 {
 	GENERATED_BODY()
@@ -29,7 +29,7 @@ public:
 	virtual void Step1(const PCGExCluster::FNode& Node) override
 	{
 		const FVector Position = (ReadBuffer->GetData() + Node.Index)->GetLocation();
-		FVector Force = FVector::Zero();
+		FVector Force = FVector::ZeroVector;
 
 		for (const PCGExGraph::FLink& Lk : Node.Links)
 		{

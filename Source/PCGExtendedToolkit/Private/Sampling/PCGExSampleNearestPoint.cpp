@@ -158,7 +158,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
 		{
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
-			
+
 			// Prep weights
 			if (Settings->WeightMode != EPCGExSampleWeightMode::Distance)
 			{
@@ -180,6 +180,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			{
 				for (const TSharedRef<PCGExData::FFacade>& Facade : Context->TargetFacades)
 				{
+					// TODO : Preload if relevant
 					TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
 					if (!LookAtUpGetter->Init(Context, Facade, false))
 					{
@@ -356,9 +357,6 @@ namespace PCGExSampleNearestPoints
 				continue;
 			}
 
-			const PCGExData::FMutablePoint Point = PointDataFacade->GetOutPoint(Index);
-			const FVector Origin = Transforms[Index].GetLocation();
-
 			double RangeMin = FMath::Square(RangeMinGetter->Read(Index));
 			double RangeMax = FMath::Square(RangeMaxGetter->Read(Index));
 
@@ -366,8 +364,10 @@ namespace PCGExSampleNearestPoints
 
 			if (RangeMax == 0) { Union->Elements.Reserve(Context->NumMaxTargets); }
 
+			const PCGExData::FMutablePoint Point = PointDataFacade->GetOutPoint(Index);
+			const FVector Origin = Transforms[Index].GetLocation();
+			
 			PCGExData::FElement SinglePick(-1, -1);
-			PCGExData::FElement BestPick(-1, -1);
 			double Det = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
 
 			auto SampleTarget = [&](const PCGExData::FPoint& Sample)
@@ -455,11 +455,12 @@ namespace PCGExSampleNearestPoints
 
 			FTransform WeightedTransform = FTransform::Identity;
 			WeightedTransform.SetScale3D(FVector::ZeroVector);
+			
 			FVector WeightedUp = SafeUpVector;
 			if (Settings->LookAtUpSelection == EPCGExSampleSource::Source) { WeightedUp = LookAtUpGetter->Read(Index); }
 
-			FVector WeightedSignAxis = FVector::Zero();
-			FVector WeightedAngleAxis = FVector::Zero();
+			FVector WeightedSignAxis = FVector::ZeroVector;
+			FVector WeightedAngleAxis = FVector::ZeroVector;
 
 			double WeightedDistance = Union->GetSqrtWeightAverage();
 

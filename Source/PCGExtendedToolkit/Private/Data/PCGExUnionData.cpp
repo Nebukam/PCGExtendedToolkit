@@ -28,7 +28,7 @@ namespace PCGExData
 			FWeightedPoint& P = OutWeightedPoints.Emplace_GetRef(Element.Index, 0, IOIdx);
 			const double Dist = InDistanceDetails->GetDistSquared(FConstPoint(Sources[P.IO], P), Target);
 			P.Weight = Dist;
-			
+
 			MaxWeight = FMath::Max(MaxWeight, Dist);
 			Index++;
 		}

@@ -21,7 +21,7 @@ enum class EPCGExGoalPickAttributeAmount : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Index Attribute")
+UCLASS(MinimalAPI, meta=(DisplayName = "Index Attribute", PCGExNodeLibraryDoc="pathfinding/pathfinding-edges/goal-picker-attribute"))
 class UPCGExGoalPickerAttribute : public UPCGExGoalPicker
 {
 	GENERATED_BODY()
@@ -30,15 +30,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGoalPickAttributeAmount GoalCount = EPCGExGoalPickAttributeAmount::Single;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::Single", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount == EPCGExGoalPickAttributeAmount::Single", EditConditionHides))
 	FPCGAttributePropertyInputSelector SingleSelector;
 	TSharedPtr<PCGExData::TBuffer<int32>> SingleGetter;
 
 	/** A list of attribute names separated by a comma, for easy overrides. They will be added to the in-place array of selectors. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::List"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="GoalCount == EPCGExGoalPickAttributeAmount::List"))
 	FString CommaSeparatedNames = TEXT("");
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::List", EditConditionHides, TitleProperty="{TitlePropertyName}"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount == EPCGExGoalPickAttributeAmount::List", EditConditionHides, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGAttributePropertyInputSelector> AttributeSelectors;
 	TArray<TSharedPtr<PCGExData::TBuffer<int32>>> AttributeGetters;
 

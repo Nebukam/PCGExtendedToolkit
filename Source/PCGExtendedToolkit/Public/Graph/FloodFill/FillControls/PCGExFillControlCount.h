@@ -26,11 +26,11 @@ struct FPCGExFillControlConfigCount : public FPCGExFillControlConfigBase
 	EPCGExInputValueType MaxCountInput = EPCGExInputValueType::Constant;
 
 	/** Max Count Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Count (Attr)", EditCondition="MaxCountInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Count (Attr)", EditCondition="MaxCountInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FName MaxCountAttribute = FName("MaxCount");
 
 	/** Max Count Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Count", EditCondition="MaxCountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Count", EditCondition="MaxCountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 MaxCount = 10;
 
 	PCGEX_SETTING_VALUE_GET(MaxCount, int32, MaxCountInput, MaxCountAttribute, MaxCount)
@@ -70,7 +70,7 @@ public:
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/flood-fill/fc-count"))
 class UPCGExFillControlsCountProviderSettings : public UPCGExFillControlsFactoryProviderSettings
 {
 	GENERATED_BODY()

@@ -30,7 +30,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName="From Neighbors")
+UCLASS(MinimalAPI, meta=(DisplayName = "From Neighbors", PCGExNodeLibraryDoc="paths/write-tangents/tangents-neighbors"))
 class UPCGExFromNeighborsTangents : public UPCGExTangentsInstancedFactory
 {
 	GENERATED_BODY()

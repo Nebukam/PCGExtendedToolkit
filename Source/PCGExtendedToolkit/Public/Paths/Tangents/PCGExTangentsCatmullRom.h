@@ -33,7 +33,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName="Catmull-Rom")
+UCLASS(MinimalAPI, meta=(DisplayName = "Catmull-Rom", PCGExNodeLibraryDoc="paths/write-tangents/tangents-catmull-rom"))
 class UPCGExCatmullRomTangents : public UPCGExTangentsInstancedFactory
 {
 	GENERATED_BODY()

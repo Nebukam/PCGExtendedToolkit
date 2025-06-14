@@ -11,7 +11,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Longest"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Longest", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-length"))
 class UPCGExEdgeRemoveLongest : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

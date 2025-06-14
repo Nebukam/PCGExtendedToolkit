@@ -645,7 +645,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDynamicMeshDescriptor : public FPCGExMeshCom
 	/**
 	 * Constant Color used when Override Color Mode is set to Constant
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dynamic Mesh Component|Rendering", meta = (DisplayName = "Constant Color", EditCondition = "ColorMode==EDynamicMeshComponentColorOverrideMode::Constant"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dynamic Mesh Component|Rendering", meta = (DisplayName = "Constant Color", EditCondition = "ColorMode == EDynamicMeshComponentColorOverrideMode::Constant"))
 	FColor ConstantColor = FColor::White;
 
 	/**

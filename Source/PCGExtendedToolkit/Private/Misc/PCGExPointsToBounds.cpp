@@ -35,7 +35,7 @@ void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsDa
 				});
 		}
 	}
-	
+
 	// TODO : Forward point properties
 }
 
@@ -167,7 +167,7 @@ namespace PCGExPointsToBounds
 			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
 			MetadataBlender->SetTargetData(OutputFacade);
 			MetadataBlender->SetSourceData(PointDataFacade);
-			
+
 			if (!MetadataBlender->Init(Context, Settings->BlendingSettings))
 			{
 				bIsProcessorValid = false;
@@ -199,14 +199,14 @@ namespace PCGExPointsToBounds
 		if (bOrientedBoxFound)
 		{
 			const FVector Extents = OrientedBox.Extents;
-			OutTransforms[0] = FTransform(FQuat(OrientedBox.Frame.Rotation),OrientedBox.Center());
+			OutTransforms[0] = FTransform(FQuat(OrientedBox.Frame.Rotation), OrientedBox.Center());
 			OutBoundsMin[0] = -Extents;
 			OutBoundsMax[0] = Extents;
 		}
 		else
 		{
 			const FVector Center = Bounds.GetCenter();
-			OutTransforms[0]= FTransform(FQuat::Identity,Center);
+			OutTransforms[0] = FTransform(FQuat::Identity, Center);
 			OutBoundsMin[0] = Bounds.Min - Center;
 			OutBoundsMax[0] = Bounds.Max - Center;
 		}

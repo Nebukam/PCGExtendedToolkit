@@ -13,7 +13,7 @@
 #include "PCGExMergeVertices.generated.h"
 
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/packing/merge-vtx"))
 class UPCGExMergeVerticesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

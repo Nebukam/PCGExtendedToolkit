@@ -79,11 +79,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGUIDDetails
 	EPCGExInputValueType UniqueKeyInput = EPCGExInputValueType::Constant;
 
 	/** A base value for the GUID. Treat it like a seed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Unique Key (Attr)", EditCondition="UniqueKeyInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Unique Key (Attr)", EditCondition="UniqueKeyInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector UniqueKeyAttribute;
 
 	/** A base value for the GUID. Treat it like a seed.  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Unique Key", EditCondition="UniqueKeyInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Unique Key", EditCondition="UniqueKeyInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	int32 UniqueKeyConstant = 42;
 
 	PCGEX_SETTING_VALUE_GET(UniqueKey, int32, UniqueKeyInput, UniqueKeyAttribute, UniqueKeyConstant)
@@ -118,7 +118,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGUIDDetails
 	void GetGUID(const int32 Index, const PCGExData::FConstPoint& InPoint, FGuid& OutGUID) const;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/write-guid"))
 class UPCGExWriteGUIDSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

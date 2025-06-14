@@ -16,6 +16,7 @@ enum class EPCGExOrientLookAtMode : uint8
 	Position      = 3 UMETA(DisplayName = "Position", ToolTip="Use a local vector attribtue as a world position to look at"),
 };
 
+
 class FPCGExOrientLookAt : public FPCGExOrientOperation
 {
 public:
@@ -93,7 +94,7 @@ protected:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Look At")
+UCLASS(MinimalAPI, meta=(DisplayName = "Look At", PCGExNodeLibraryDoc="paths/orient/orient-look-at"))
 class UPCGExOrientLookAt : public UPCGExOrientInstancedFactory
 {
 	GENERATED_BODY()
@@ -104,7 +105,7 @@ public:
 	EPCGExOrientLookAtMode LookAt = EPCGExOrientLookAtMode::NextPoint;
 
 	/** Vector attribute representing either a direction or world position, depending on selected mode. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAtMode::Direction || LookAt==EPCGExOrientLookAtMode::Position", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt == EPCGExOrientLookAtMode::Direction || LookAt == EPCGExOrientLookAtMode::Position", EditConditionHides))
 	FPCGAttributePropertyInputSelector LookAtAttribute;
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override

@@ -9,7 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExBitmaskMerge.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="metadata/bitmasks/bitmask-merge"))
 class UPCGExBitmaskMergeSettings : public UPCGSettings
 {
 	GENERATED_BODY()
@@ -40,7 +40,7 @@ class FPCGExBitmaskMergeElement final : public IPCGElement
 {
 public:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
-	
+
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

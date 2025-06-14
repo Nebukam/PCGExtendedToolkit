@@ -11,7 +11,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Gabriel"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Gabriel", PCGExNodeLibraryDoc="clusters/refine-cluster/gabriel"))
 class UPCGExEdgeRefineGabriel : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

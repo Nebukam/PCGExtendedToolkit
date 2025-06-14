@@ -100,28 +100,28 @@ enum class EPCGExDataBlendingType : uint8
 UENUM(BlueprintType)
 enum class EPCGExABBlendingType : uint8
 {
-	None             = 0 UMETA(Hidden, DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
-	Average          = 1 UMETA(DisplayName = "Average", ToolTip="(A + B) / 2"),
-	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="(A + B) / Weight"),
-	Multiply         = 3 UMETA(DisplayName = "Multiply", ToolTip="A * B"),
-	Divide           = 4 UMETA(DisplayName = "Divide", ToolTip="A / B"),
-	Min              = 5 UMETA(DisplayName = "Min", ToolTip="Min(A, B)"),
-	Max              = 6 UMETA(DisplayName = "Max", ToolTip="Max(A, B)"),
-	CopyTarget       = 7 UMETA(DisplayName = "Copy (Target)", ToolTip = "= B"),
-	CopySource       = 8 UMETA(DisplayName = "Copy (Source)", ToolTip="= A"),
-	Add              = 9 UMETA(DisplayName = "Add", ToolTip = "A + B"),
-	Subtract         = 10 UMETA(DisplayName = "Subtract", ToolTip="A - B"),
-	WeightedAdd      = 11 UMETA(DisplayName = "Weighted Add", ToolTip = "A + (B * Weight)"),
-	WeightedSubtract = 12 UMETA(DisplayName = "Weighted Subtract", ToolTip="A - (B * Weight)"),
-	Lerp             = 13 UMETA(DisplayName = "Lerp", ToolTip="Lerp(A, B, Weight)"),
-	UnsignedMin      = 14 UMETA(DisplayName = "Unsigned Min", ToolTip="Min(A, B) * Sign"),
-	UnsignedMax      = 15 UMETA(DisplayName = "Unsigned Max", ToolTip="Max(A, B) * Sign"),
-	AbsoluteMin      = 16 UMETA(DisplayName = "Absolute Min", ToolTip="+Min(A, B)"),
-	AbsoluteMax      = 17 UMETA(DisplayName = "Absolute Max", ToolTip="+Max(A, B)"),
-	Hash             = 18 UMETA(DisplayName = "Hash", ToolTip="Hash(A, B)"),
-	UnsignedHash     = 19 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Hash(Min(A, B), Max(A, B))"),
-	Mod              = 20 UMETA(DisplayName = "Modulo (Simple)", ToolTip="FMod(A, cast(B))"),
-	ModCW            = 21 UMETA(DisplayName = "Modulo (Component Wise)", ToolTip="FMod(A, B)")
+	None             = 0 UMETA(Hidden, DisplayName = "None", ToolTip="No blending is applied, keep the original value.", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	Average          = 1 UMETA(DisplayName = "Average", ToolTip="(A + B) / 2", ActionIcon="PCGEx.Pin.OUT_Blend", SearchHints = "Average"),
+	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="(A + B) / Weight", ActionIcon="PCGEx.Pin.OUT_Blend", SearchHints = "Weight"),
+	Multiply         = 3 UMETA(DisplayName = "Multiply", ToolTip="A * B", ActionIcon="PCGEx.Pin.OUT_Blend", SearchHints = "*"),
+	Divide           = 4 UMETA(DisplayName = "Divide", ToolTip="A / B", ActionIcon="PCGEx.Pin.OUT_Blend", SearchHints = "Average"),
+	Min              = 5 UMETA(DisplayName = "Min", ToolTip="Min(A, B)", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	Max              = 6 UMETA(DisplayName = "Max", ToolTip="Max(A, B)", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	CopyTarget       = 7 UMETA(DisplayName = "Copy (Target)", ToolTip = "= B", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	CopySource       = 8 UMETA(DisplayName = "Copy (Source)", ToolTip="= A", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	Add              = 9 UMETA(DisplayName = "Add", ToolTip = "A + B", ActionIcon="PCGEx.Pin.OUT_Blend", SearchHints = "+"),
+	Subtract         = 10 UMETA(DisplayName = "Subtract", ToolTip="A - B", ActionIcon="PCGEx.Pin.OUT_Blend", SearchHints = "-"),
+	WeightedAdd      = 11 UMETA(DisplayName = "Weighted Add", ToolTip = "A + (B * Weight)", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	WeightedSubtract = 12 UMETA(DisplayName = "Weighted Subtract", ToolTip="A - (B * Weight)", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	Lerp             = 13 UMETA(DisplayName = "Lerp", ToolTip="Lerp(A, B, Weight)", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	UnsignedMin      = 14 UMETA(DisplayName = "Unsigned Min", ToolTip="Min(A, B) * Sign", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	UnsignedMax      = 15 UMETA(DisplayName = "Unsigned Max", ToolTip="Max(A, B) * Sign", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	AbsoluteMin      = 16 UMETA(DisplayName = "Absolute Min", ToolTip="+Min(A, B)", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	AbsoluteMax      = 17 UMETA(DisplayName = "Absolute Max", ToolTip="+Max(A, B)", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	Hash             = 18 UMETA(DisplayName = "Hash", ToolTip="Hash(A, B)", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	UnsignedHash     = 19 UMETA(DisplayName = "Hash (Unsigned)", ToolTip="Hash(Min(A, B), Max(A, B))", ActionIcon="PCGEx.Pin.OUT_Blend"),
+	Mod              = 20 UMETA(DisplayName = "Modulo (Simple)", ToolTip="FMod(A, cast(B))", ActionIcon="PCGEx.Pin.OUT_Blend", SearchHints = "%"),
+	ModCW            = 21 UMETA(DisplayName = "Modulo (Component Wise)", ToolTip="FMod(A, B)", ActionIcon="PCGEx.Pin.OUT_Blend", SearchHints = "%")
 };
 
 #define PCGEX_FOREACH_PROXYBLENDMODE(MACRO)\
@@ -304,7 +304,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExAttributeFilter BlendingFilter = EPCGExAttributeFilter::All;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="BlendingFilter!=EPCGExAttributeFilter::All", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="BlendingFilter != EPCGExAttributeFilter::All", EditConditionHides))
 	TArray<FName> FilteredAttributes;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))

@@ -48,7 +48,10 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplay(FPCGContext* Context, c
 		return;
 	}
 
-	ExecuteDebugDisplayHelper(Data, SettingsInterface->DebugSettings, Context, TargetActor, SettingsInterface->GetSettings()->GetSettingsCrc(), [](UInstancedStaticMeshComponent*) {});
+	ExecuteDebugDisplayHelper(
+		Data, SettingsInterface->DebugSettings, Context, TargetActor, SettingsInterface->GetSettings()->GetSettingsCrc(), [](UInstancedStaticMeshComponent*)
+		{
+		});
 }
 
 void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
@@ -63,8 +66,9 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 
 	if (!Mesh)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(LOCTEXT("UnableToLoadMesh", "Debug display was unable to load mesh '{0}'."),
-			FText::FromString(DebugSettings.PointMesh.ToString())));
+		PCGE_LOG_C(
+			Error, GraphAndLog, Context, FText::Format(LOCTEXT("UnableToLoadMesh", "Debug display was unable to load mesh '{0}'."),
+				FText::FromString(DebugSettings.PointMesh.ToString())));
 		return;
 	}
 
@@ -83,7 +87,7 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 		return;
 	}
 
-	const int NumCustomData = 8;
+	constexpr int NumCustomData = 8;
 	const int32 NumPoints = PointData->GetNumPoints();
 
 	TArray<FTransform> ForwardInstances;
@@ -153,13 +157,13 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 	Params[0].Descriptor.bAffectDynamicIndirectLightingWhileHidden = false;
 	Params[0].Descriptor.bCastContactShadow = false;
 	Params[0].Descriptor.bCastDynamicShadow = false;
-	Params[0].Descriptor.bCastShadow = false;	
+	Params[0].Descriptor.bCastShadow = false;
 	Params[0].Descriptor.bCastStaticShadow = false;
 	Params[0].Descriptor.bGenerateOverlapEvents = false;
 	Params[0].Descriptor.bIncludeInHLOD = false;
 	Params[0].Descriptor.bReceivesDecals = false;
 	Params[0].Descriptor.bVisibleInRayTracing = false;
-	
+
 	// If the root actor we're binding to is movable, then the ISMC should be movable by default
 	USceneComponent* SceneComponent = TargetActor ? TargetActor->GetRootComponent() : nullptr;
 	if (SceneComponent)
@@ -184,7 +188,7 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 		}
 
 		UInstancedStaticMeshComponent* ISMC = nullptr;
-		
+
 		if (TargetActor && SourceComponent)
 		{
 			ISMC = UPCGActorHelpers::GetOrCreateISMC(TargetActor, SourceComponent, Params[Direction], Context);
@@ -233,7 +237,7 @@ void IPCGExSpatialDataVisualization::ExecuteDebugDisplayHelper(
 			const FVector4& Color = ValueRanges.ColorRange[PointIndex];
 			const FVector Extents = PCGPointHelpers::GetExtents(ValueRanges.BoundsMinRange[PointIndex], ValueRanges.BoundsMaxRange[PointIndex]);
 			InstanceCustomData.Add(ValueRanges.DensityRange[PointIndex]);
-			
+
 			InstanceCustomData.Add(Extents[0]);
 			InstanceCustomData.Add(Extents[1]);
 			InstanceCustomData.Add(Extents[2]);
@@ -299,7 +303,7 @@ FPCGTableVisualizerInfo IPCGExSpatialDataVisualization::GetTableVisualizerInfoWi
 				return;
 			}
 
-			FBox BoundingBox(EForceInit::ForceInit);
+			FBox BoundingBox(ForceInit);
 			if (Indices.IsEmpty())
 			{
 				BoundingBox = PointData->GetBounds();
@@ -337,19 +341,16 @@ const UPCGPointData* IPCGExSpatialDataVisualization::CollapseToDebugPointData(FP
 }
 
 const UPCGBasePointData* IPCGExSpatialDataVisualization::CollapseToDebugBasePointData(FPCGContext* Context, const UPCGData* Data) const
-{	
+{
 	if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Data))
 	{
 		if (CVarPCGEnablePointArrayData.GetValueOnAnyThread())
 		{
 			return SpatialData->ToPointArrayData(Context);
 		}
-		else
-		{
-PRAGMA_DISABLE_DEPRECATION_WARNINGS
-			return CollapseToDebugPointData(Context, Data);
-PRAGMA_ENABLE_DEPRECATION_WARNINGS
-		}
+		PRAGMA_DISABLE_DEPRECATION_WARNINGS
+		return CollapseToDebugPointData(Context, Data);
+		PRAGMA_ENABLE_DEPRECATION_WARNINGS
 	}
 
 	return nullptr;
@@ -361,11 +362,8 @@ FString IPCGExSpatialDataVisualization::GetDomainDisplayNameForInspection(const 
 	{
 		return IPCGDataVisualization::GetDomainDisplayNameForInspection(Data, DomainID);
 	}
-	else
-	{
-		// For sampled points, clearly indicate that it is the default sampled points and not just "points"
-		return TEXT("Default Sampled Points");
-	}
+	// For sampled points, clearly indicate that it is the default sampled points and not just "points"
+	return TEXT("Default Sampled Points");
 }
 
 TArray<FPCGMetadataDomainID> IPCGExSpatialDataVisualization::GetAllSupportedDomainsForInspection(const UPCGData* Data) const
@@ -390,34 +388,34 @@ FPCGSetupSceneFunc IPCGExSpatialDataVisualization::GetViewportSetupFunc(const UP
 		bool bInitializedBounds = false;
 
 		ExecuteDebugDisplayHelper(
-			WeakData.Get(),
-			FPCGDebugVisualizationSettings(),
-			nullptr,
-			nullptr,
-			FPCGCrc(),
-			[&InOutParams, &bInitializedBounds, &BoundsMin, &BoundsMax](UInstancedStaticMeshComponent* ISMC)
-			{
-				check(ISMC);
-
-				InOutParams.ManagedResources.Add(ISMC);
-				InOutParams.Scene->AddComponent(ISMC, FTransform::Identity);
-
-				const FVector CurrentBoundsMin = ISMC->Bounds.Origin - ISMC->Bounds.BoxExtent;
-				const FVector CurrentBoundsMax = ISMC->Bounds.Origin + ISMC->Bounds.BoxExtent;
-
-				if (!bInitializedBounds)
+				WeakData.Get(),
+				FPCGDebugVisualizationSettings(),
+				nullptr,
+				nullptr,
+				FPCGCrc(),
+				[&InOutParams, &bInitializedBounds, &BoundsMin, &BoundsMax](UInstancedStaticMeshComponent* ISMC)
 				{
-					BoundsMin = CurrentBoundsMin;
-					BoundsMax = CurrentBoundsMax;
-					bInitializedBounds = true;
+					check(ISMC);
+
+					InOutParams.ManagedResources.Add(ISMC);
+					InOutParams.Scene->AddComponent(ISMC, FTransform::Identity);
+
+					const FVector CurrentBoundsMin = ISMC->Bounds.Origin - ISMC->Bounds.BoxExtent;
+					const FVector CurrentBoundsMax = ISMC->Bounds.Origin + ISMC->Bounds.BoxExtent;
+
+					if (!bInitializedBounds)
+					{
+						BoundsMin = CurrentBoundsMin;
+						BoundsMax = CurrentBoundsMax;
+						bInitializedBounds = true;
+					}
+					else
+					{
+						BoundsMin = BoundsMin.ComponentMin(CurrentBoundsMin);
+						BoundsMax = BoundsMax.ComponentMax(CurrentBoundsMax);
+					}
 				}
-				else
-				{
-					BoundsMin = BoundsMin.ComponentMin(CurrentBoundsMin);
-					BoundsMax = BoundsMax.ComponentMax(CurrentBoundsMax);
-				}
-			}
-		);
+			);
 
 		if (bInitializedBounds)
 		{

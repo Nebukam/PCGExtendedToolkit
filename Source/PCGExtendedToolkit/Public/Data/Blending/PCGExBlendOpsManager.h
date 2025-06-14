@@ -39,9 +39,8 @@ namespace PCGExDataBlending
 		TSharedPtr<TArray<TSharedPtr<FPCGExBlendOperation>>> Operations;
 
 		bool bUsedForMultiBlendOnly = false;
-		
+
 	public:
-		
 		explicit FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool MultiBlendOnly = false);
 		explicit FBlendOpsManager(const bool MultiBlendOnly = false);
 		virtual ~FBlendOpsManager() override = default;

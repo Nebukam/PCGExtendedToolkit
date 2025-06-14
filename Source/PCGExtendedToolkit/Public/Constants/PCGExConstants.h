@@ -24,7 +24,7 @@ enum class EPCGExNumericOutput : uint8
 	Int64  = 3,
 };
 
-UCLASS(BlueprintType, ClassGroup=(Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(BlueprintType, ClassGroup=(Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/constants"))
 class UPCGExConstantsSettings : public UPCGSettings
 {
 public:

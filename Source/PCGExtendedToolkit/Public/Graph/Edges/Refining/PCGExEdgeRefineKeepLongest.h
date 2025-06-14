@@ -14,7 +14,7 @@ class FPCGExHeuristicDistance;
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Keep Longest"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Keep Longest", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-length"))
 class UPCGExEdgeKeepLongest : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

@@ -65,7 +65,6 @@ namespace PCGExEditorMenuUtils
 				{
 					TempActorCollections.Add(Collection);
 				}
-				continue;
 			}
 		}
 

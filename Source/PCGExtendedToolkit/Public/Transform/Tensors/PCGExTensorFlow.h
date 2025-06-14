@@ -101,5 +101,4 @@ public:
 	FPCGExTensorFlowConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
-
 };

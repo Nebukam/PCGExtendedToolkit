@@ -44,7 +44,7 @@ protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Pickers|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Pickers|Params", meta=(PCGExNodeLibraryDoc="filters/cherry-pick-points/picker-constant"))
 class UPCGExPickerConstantSettings : public UPCGExPickerFactoryProviderSettings
 {
 	GENERATED_BODY()
@@ -68,5 +68,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

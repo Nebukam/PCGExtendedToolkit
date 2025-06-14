@@ -27,7 +27,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Interpolate")
+UCLASS(MinimalAPI, meta=(DisplayName = "Interpolate", PCGExNodeLibraryDoc="paths/sub-point-blending/interpolate"))
 class UPCGExSubPointsBlendInterpolate : public UPCGExSubPointsBlendInstancedFactory
 {
 	GENERATED_BODY()
@@ -36,7 +36,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExBlendOver BlendOver = EPCGExBlendOver::Distance;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver==EPCGExBlendOver::Fixed", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver == EPCGExBlendOver::Fixed", EditConditionHides))
 	double Lerp = 0.5;
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;

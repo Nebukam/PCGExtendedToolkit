@@ -9,26 +9,6 @@
 #include "PCGExFactoryProvider.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExPointFilter.generated.h"
@@ -83,7 +63,7 @@ public:
 
 	virtual bool DomainCheck();
 	virtual bool GetOnlyUseDataDomain() const { return bOnlyUseDataDomain; }
-	
+
 	virtual bool SupportsCollectionEvaluation() const { return bOnlyUseDataDomain; }
 	virtual bool SupportsProxyEvaluation() const { return false; }
 

@@ -45,5 +45,4 @@ public:
 
 	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputProbeLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
-
 };

@@ -12,7 +12,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : MST (Prim)"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : MST (Prim)", PCGExNodeLibraryDoc="clusters/refine-cluster/mst-prim"))
 class UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

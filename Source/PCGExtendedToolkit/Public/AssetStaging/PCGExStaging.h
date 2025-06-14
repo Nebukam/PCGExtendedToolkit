@@ -219,9 +219,9 @@ namespace PCGExStaging
 		void RetrievePartitions(const UPCGBasePointData* InPointData, TArray<FPCGMeshInstanceList>& InstanceLists)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(TPickUnpacker::BuildPartitions_Indexed);
-			
+
 			PointData = InPointData;
-			
+
 			for (FPCGMeshInstanceList& InstanceList : InstanceLists)
 			{
 				IndexedPartitions.Add(InstanceList.AttributePartitionIndex, InstanceLists.Num() - 1);

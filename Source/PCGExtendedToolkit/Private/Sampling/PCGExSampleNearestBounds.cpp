@@ -25,7 +25,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
-	
+
 	if (SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
 		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
@@ -144,7 +144,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		Context->SetAsyncState(PCGEx::State_FacadePreloading);
-		
+
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
 		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
 		{
@@ -154,6 +154,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 			{
 				for (const TSharedRef<PCGExData::FFacade>& Facade : Context->TargetFacades)
 				{
+					// TODO : Preload if relevant
 					TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
 					if (!LookAtUpGetter->Init(Context, Facade, false))
 					{
@@ -424,8 +425,8 @@ namespace PCGExSampleNearestBounds
 			FVector WeightedUp = SafeUpVector;
 			if (Settings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
 
-			FVector WeightedSignAxis = FVector::Zero();
-			FVector WeightedAngleAxis = FVector::Zero();
+			FVector WeightedSignAxis = FVector::ZeroVector;
+			FVector WeightedAngleAxis = FVector::ZeroVector;
 
 			// Post-process weighted points and compute local data
 			PCGEx::FOpStats SampleTracker{};
@@ -451,7 +452,7 @@ namespace PCGExSampleNearestBounds
 
 				WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * W;
 				WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * W;
-			};
+			}
 
 			// Blend using updated weighted points
 			DataBlender->Blend(Index, OutWeightedPoints, Trackers);

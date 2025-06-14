@@ -23,7 +23,7 @@ enum class EPCGExCustomGraphActorSourceMode : uint8
 /**
  * 
  */
-UCLASS(Blueprintable, BlueprintType, Abstract, DisplayName = "[PCGEx] Custom Graph Settings", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(Blueprintable, BlueprintType, Abstract, DisplayName = "[PCGEx] Custom Graph Settings", meta=(PCGExNodeLibraryDoc="clusters/build-custom-graph"))
 class UPCGExCustomGraphSettings : public UObject
 {
 	GENERATED_BODY()
@@ -415,7 +415,8 @@ public:
 	 * @param OutSettings
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution", meta=(DeterminesOutputType="SettingsClass", DynamicOutputParam="OutSettings"))
-	void CreateGraphSettings(UPARAM(meta = (AllowAbstract = "false"))TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, UPCGExCustomGraphSettings*& OutSettings);
+	void CreateGraphSettings(UPARAM(meta = (AllowAbstract = "false"))
+	                         TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, UPCGExCustomGraphSettings*& OutSettings);
 
 	/**
 	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.
@@ -479,7 +480,7 @@ public:
 	EPCGExCustomGraphActorSourceMode Mode = EPCGExCustomGraphActorSourceMode::Owner;
 
 	/** Actor reference */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode==EPCGExCustomGraphActorSourceMode::ActorReferences", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode == EPCGExCustomGraphActorSourceMode::ActorReferences", EditConditionHides))
 	FName ActorReferenceAttribute = FName(TEXT("ActorReference"));
 
 	/** Builder instance. */

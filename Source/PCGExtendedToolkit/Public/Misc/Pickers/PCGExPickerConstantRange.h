@@ -41,7 +41,7 @@ struct FPCGExPickerConstantRangeConfig : public FPCGExPickerConfigBase
 	double RelativeEndIndex = 0;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="filters/cherry-pick-points/picker-range"))
 class UPCGExPickerConstantRangeFactory : public UPCGExPickerFactoryData
 {
 	GENERATED_BODY()
@@ -80,5 +80,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

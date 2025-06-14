@@ -97,7 +97,7 @@ namespace PCGExMeshCollectionUtils
 
 		if (!TargetCollection)
 		{
-			const EObjectFlags Flags = RF_Public | RF_Standalone | RF_Transactional;
+			constexpr EObjectFlags Flags = RF_Public | RF_Standalone | RF_Transactional;
 			TargetCollection = NewObject<UPCGExMeshCollection>(Package, UPCGExMeshCollection::StaticClass(), FName(*CollectionAssetName), Flags);
 		}
 

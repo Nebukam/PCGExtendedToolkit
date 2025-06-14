@@ -41,7 +41,7 @@ namespace PCGExConstantEnumConstants
 	static const FName DescriptionAttribute = "Description";
 }
 
-UCLASS(BlueprintType, ClassGroup=(Procedural), meta=(AutoExpandCategories="Settings|Output Attributes", PCGExNodeLibraryDoc="TBD"))
+UCLASS(BlueprintType, ClassGroup=(Procedural), meta=(AutoExpandCategories="Settings|Output Attributes", PCGExNodeLibraryDoc="quality-of-life/enum"))
 class UPCGExConstantEnumSettings : public UPCGSettings
 {
 	GENERATED_BODY()
@@ -79,7 +79,7 @@ public:
 		BlueprintReadWrite, EditAnywhere, Category="Settings", EditFixedSize,
 		meta=(
 			ReadOnlyKeys,
-			EditCondition="OutputMode==EPCGExEnumOutputMode::EEOM_Selection||OutputMode==EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins",
+			EditCondition="OutputMode == EPCGExEnumOutputMode::EEOM_Selection || OutputMode == EPCGExEnumOutputMode::EEOM_SelectionToMultiplePins",
 			EditConditionHides
 		)
 	)

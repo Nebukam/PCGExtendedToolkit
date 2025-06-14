@@ -273,7 +273,7 @@ namespace PCGExClusterMT
 			PCGEx::InitArray(ReverseLookup, NumVtx);
 			PCGEx::InitArray(ExpectedAdjacency, NumVtx);
 
-			RawLookupAttribute = PCGEx::TryGetConstAttribute<int64>(VtxDataFacade->GetIn(),PCGExGraph::Attr_PCGExVtxIdx);
+			RawLookupAttribute = PCGEx::TryGetConstAttribute<int64>(VtxDataFacade->GetIn(), PCGExGraph::Attr_PCGExVtxIdx);
 			if (!RawLookupAttribute) { return; } // FAIL
 
 			BuildEndpointLookupTask->OnCompleteCallback =

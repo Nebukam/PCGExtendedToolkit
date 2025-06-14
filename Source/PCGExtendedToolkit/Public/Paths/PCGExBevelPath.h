@@ -134,13 +134,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom", EditConditionHides))
 	EPCGExInputValueType SubdivisionAmountInput = EPCGExInputValueType::Constant;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod==EPCGExSubdivideMode::Distance && SubdivisionAmountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod == EPCGExSubdivideMode::Distance && SubdivisionAmountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.1))
 	double SubdivisionDistance = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod==EPCGExSubdivideMode::Count && SubdivisionAmountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod == EPCGExSubdivideMode::Count && SubdivisionAmountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 SubdivisionCount = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, DisplayName="Subdividion (Attr)", EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivisionAmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, DisplayName="Subdividion (Attr)", EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivisionAmountInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
 	/**  */

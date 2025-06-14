@@ -57,7 +57,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFloodFillSeedPickingDetails
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/flood-fill"))
 class UPCGExClusterDiffusionSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

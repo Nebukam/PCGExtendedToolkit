@@ -172,10 +172,7 @@ namespace PCGExSorting
 					PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
 					break;
 				}
-				else
-				{
-					Rule->Buffers[InFacade->Idx] = Buffer;
-				}
+				Rule->Buffers[InFacade->Idx] = Buffer;
 			}
 		}
 

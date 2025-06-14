@@ -177,7 +177,7 @@ namespace PCGExSampling
 
 		double GetWeightAverage() const;
 		double GetSqrtWeightAverage() const;
-		
+
 		virtual void Reset() override
 		{
 			IUnionData::Reset();

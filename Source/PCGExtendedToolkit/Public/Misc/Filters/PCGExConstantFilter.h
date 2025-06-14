@@ -11,9 +11,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
-
 #include "PCGExConstantFilter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -81,7 +78,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/constant"))
 class UPCGExConstantFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

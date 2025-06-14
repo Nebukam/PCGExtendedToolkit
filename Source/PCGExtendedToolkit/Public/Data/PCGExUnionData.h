@@ -53,7 +53,6 @@ namespace PCGExData
 		}
 	};
 
-	
 
 	class PCGEXTENDEDTOOLKIT_API FUnionMetadata : public TSharedFromThis<FUnionMetadata>
 	{

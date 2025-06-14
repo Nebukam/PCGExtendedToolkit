@@ -55,7 +55,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName="From Transform")
+UCLASS(MinimalAPI, meta=(DisplayName = "From Transform", PCGExNodeLibraryDoc="paths/write-tangents/tangents-transform"))
 class UPCGExFromTransformTangents : public UPCGExTangentsInstancedFactory
 {
 	GENERATED_BODY()

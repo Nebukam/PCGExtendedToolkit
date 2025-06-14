@@ -18,7 +18,7 @@ enum class EPCGExSimplifyClusterEdgeFilterRole : uint8
 	Collapse = 1 UMETA(DisplayName = "Collapse", ToolTip="Collapse endpoints of edges that pass the filters"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/simplify"))
 class UPCGExSimplifyClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -136,7 +136,7 @@ namespace PCGExSimplifyClusters
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		virtual void OnEdgesProcessingComplete() override;
-		
+
 		void CompileChains();
 		virtual void CompleteWork() override;
 

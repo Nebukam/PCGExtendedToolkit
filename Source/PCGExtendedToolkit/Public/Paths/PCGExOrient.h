@@ -72,7 +72,7 @@ public:
 	EPCGExOrientUsage Output = EPCGExOrientUsage::ApplyToPoint;
 
 	/**  */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Output==EPCGExOrientUsage::OutputToAttribute", EditConditionHides))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Output == EPCGExOrientUsage::OutputToAttribute", EditConditionHides))
 	FName OutputAttribute = "Orient";
 
 	/** */

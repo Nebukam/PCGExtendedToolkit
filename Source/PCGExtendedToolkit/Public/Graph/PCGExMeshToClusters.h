@@ -22,7 +22,7 @@ enum class EPCGExMeshAttributeHandling : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/mesh-to-clusters"))
 class UPCGExMeshToClustersSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -55,15 +55,15 @@ public:
 	EPCGExInputValueType StaticMeshInput = EPCGExInputValueType::Constant;
 
 	/** Static mesh path attribute -- Either FString, FName or FSoftObjectPath*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Static Mesh (Attr)", EditCondition="StaticMeshInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Static Mesh (Attr)", EditCondition="StaticMeshInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FName StaticMeshAttribute;
 
 	/** Static mesh constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Static Mesh", EditCondition="StaticMeshInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Static Mesh", EditCondition="StaticMeshInput == EPCGExInputValueType::Constant", EditConditionHides))
 	TSoftObjectPtr<UStaticMesh> StaticMeshConstant;
 
 	/** Static mesh path attribute type*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshInput != EPCGExInputValueType::Constant", EditConditionHides))
 	EPCGExMeshAttributeHandling AttributeHandling; // TODO : Refactor this to support both. We care about primitives, not where they come from.
 
 	/** Target inherit behavior */

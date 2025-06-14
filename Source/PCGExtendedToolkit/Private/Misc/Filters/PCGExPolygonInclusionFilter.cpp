@@ -141,31 +141,28 @@ namespace PCGExPointFilter
 
 			return bResult;
 		}
-		else
-		{
-			int32 Inclusions = 0;
-			
-			Octree->FindElementsWithBoundsTest(
-				Box,
-				[&](const PCGEx::FIndexedItem& Item)
-				{
-					if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + Item.Index)->Get())) { Inclusions++; }
-				});
+		int32 Inclusions = 0;
 
-			if (TypedFilterFactory->Config.bUseMinInclusionCount && TypedFilterFactory->Config.bUseMaxInclusionCount)
+		Octree->FindElementsWithBoundsTest(
+			Box,
+			[&](const PCGEx::FIndexedItem& Item)
 			{
-				if (Inclusions > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
-				return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
-			}
-			if (TypedFilterFactory->Config.bUseMaxInclusionCount)
-			{
-				if (Inclusions > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
-				return Inclusions > 0 ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
-			}
-			if (TypedFilterFactory->Config.bUseMinInclusionCount)
-			{
-				return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
-			}
+				if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + Item.Index)->Get())) { Inclusions++; }
+			});
+
+		if (TypedFilterFactory->Config.bUseMinInclusionCount && TypedFilterFactory->Config.bUseMaxInclusionCount)
+		{
+			if (Inclusions > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
+			return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
+		}
+		if (TypedFilterFactory->Config.bUseMaxInclusionCount)
+		{
+			if (Inclusions > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
+			return Inclusions > 0 ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
+		}
+		if (TypedFilterFactory->Config.bUseMinInclusionCount)
+		{
+			return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 		}
 
 
@@ -197,31 +194,28 @@ namespace PCGExPointFilter
 
 			return bResult;
 		}
-		else
-		{
-			int32 Inclusions = 0;
-			
-			Octree->FindElementsWithBoundsTest(
-				Box,
-				[&](const PCGEx::FIndexedItem& Item)
-				{
-					if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + Item.Index)->Get())) { Inclusions++; }
-				});
+		int32 Inclusions = 0;
 
-			if (TypedFilterFactory->Config.bUseMinInclusionCount && TypedFilterFactory->Config.bUseMaxInclusionCount)
+		Octree->FindElementsWithBoundsTest(
+			Box,
+			[&](const PCGEx::FIndexedItem& Item)
 			{
-				if (Inclusions > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
-				return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
-			}
-			if (TypedFilterFactory->Config.bUseMaxInclusionCount)
-			{
-				if (Inclusions > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
-				return Inclusions > 0 ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
-			}
-			if (TypedFilterFactory->Config.bUseMinInclusionCount)
-			{
-				return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
-			}
+				if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + Item.Index)->Get())) { Inclusions++; }
+			});
+
+		if (TypedFilterFactory->Config.bUseMinInclusionCount && TypedFilterFactory->Config.bUseMaxInclusionCount)
+		{
+			if (Inclusions > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
+			return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
+		}
+		if (TypedFilterFactory->Config.bUseMaxInclusionCount)
+		{
+			if (Inclusions > TypedFilterFactory->Config.MaxInclusionCount) { return TypedFilterFactory->Config.bInvert; }
+			return Inclusions > 0 ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
+		}
+		if (TypedFilterFactory->Config.bUseMinInclusionCount)
+		{
+			return Inclusions > TypedFilterFactory->Config.MinInclusionCount ? !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 		}
 
 		return TypedFilterFactory->Config.bInvert;

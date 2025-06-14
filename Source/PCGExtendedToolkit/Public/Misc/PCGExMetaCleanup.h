@@ -10,7 +10,7 @@
 #include "Data/PCGExDataFilter.h"
 #include "PCGExMetaCleanup.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="quality-of-life/meta-cleanup"))
 class UPCGExMetaCleanupSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

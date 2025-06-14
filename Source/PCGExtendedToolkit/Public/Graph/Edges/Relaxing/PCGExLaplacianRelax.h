@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Laplacian (Poisson)")
+UCLASS(MinimalAPI, meta=(DisplayName = "Laplacian (Poisson)", PCGExNodeLibraryDoc="clusters/relax-cluster/laplacian-poisson"))
 class UPCGExLaplacianRelax : public UPCGExRelaxClusterOperation
 {
 	GENERATED_BODY()
@@ -19,7 +19,7 @@ public:
 	virtual void Step1(const PCGExCluster::FNode& Node) override
 	{
 		const FVector Position = (ReadBuffer->GetData() + Node.Index)->GetLocation();
-		FVector Force = FVector::Zero();
+		FVector Force = FVector::ZeroVector;
 
 		for (const PCGExGraph::FLink& Lk : Node.Links)
 		{

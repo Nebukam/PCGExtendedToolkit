@@ -40,7 +40,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Weighted")
+UCLASS(MinimalAPI, meta=(DisplayName = "Weighted", PCGExNodeLibraryDoc="paths/orient/orient-weighted"))
 class UPCGExOrientWeighted : public UPCGExOrientInstancedFactory
 {
 	GENERATED_BODY()

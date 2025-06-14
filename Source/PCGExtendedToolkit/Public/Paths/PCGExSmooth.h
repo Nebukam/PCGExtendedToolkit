@@ -82,9 +82,9 @@ public:
 	/** How to blend data from sampled points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable))
 	EPCGExBlendingInterface BlendingInterface = EPCGExBlendingInterface::Individual;
-	
+
 	/** Blending settings used to smooth attributes.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="BlendingInterface==EPCGExBlendingInterface::Monolithic", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="BlendingInterface == EPCGExBlendingInterface::Monolithic", EditConditionHides))
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
 };
 
@@ -93,7 +93,7 @@ struct FPCGExSmoothContext final : FPCGExPathProcessorContext
 	friend class FPCGExSmoothElement;
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
-	
+
 	UPCGExSmoothingInstancedFactory* SmoothingMethod = nullptr;
 };
 
@@ -120,9 +120,9 @@ namespace PCGExSmooth
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 		TSharedPtr<PCGExDataBlending::IBlender> DataBlender;
-		
+
 		TSharedPtr<FPCGExSmoothingOperation> SmoothingOperation;
-		
+
 		bool bClosedLoop = false;
 
 	public:

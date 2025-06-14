@@ -19,7 +19,7 @@ bool PCGExPointFilter::FAttributeCheckFilter::Test(const TSharedPtr<PCGExData::F
 
 	const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(FName(TypedFilterFactory->Config.AttributeName), IO->GetIn());
 	const FString IdentifierStr = Identifier.Name.ToString();
-	
+
 	if (TypedFilterFactory->Config.bDoCheckType)
 	{
 		for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities)

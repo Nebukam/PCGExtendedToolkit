@@ -55,11 +55,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendWeight
 	EPCGExInputValueType WeightInput = EPCGExInputValueType::Constant;
 
 	/** Attribute to read weight value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight (Attr)", EditCondition="WeightInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight (Attr)", EditCondition="WeightInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector WeightAttribute;
 
 	/** Constant weight value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double Weight = 0.5;
 
 	/** Whether to use in-editor curve or an external asset. */
@@ -120,7 +120,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	EPCGExBlendOpOutputMode OutputMode = EPCGExBlendOpOutputMode::SameAsA;
 
 	/** Output to (AB blend). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Output To", EditCondition="OutputMode==EPCGExBlendOpOutputMode::New || OutputMode==EPCGExBlendOpOutputMode::Transient", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Output To", EditCondition="OutputMode == EPCGExBlendOpOutputMode::New || OutputMode == EPCGExBlendOpOutputMode::Transient", EditConditionHides))
 	FPCGAttributePropertyInputSelector OutputTo;
 
 	/** If enabled, when a node uses multiple sources for blending, the value will be reset to 0 for some specific BlendModes so as to not account for inherited values. Default is true, as it is usually the most desirable behavior. */
@@ -132,9 +132,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	EPCGExOperandAuthority OutputType = EPCGExOperandAuthority::Auto;
 
 	/** Which type should be used for the output value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Type", EditCondition="OutputType==EPCGExOperandAuthority::Custom", EditConditionHides), AdvancedDisplay)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Type", EditCondition="OutputType == EPCGExOperandAuthority::Custom", EditConditionHides), AdvancedDisplay)
 	EPCGMetadataTypes CustomType = EPCGMetadataTypes::Double;
-	
+
 	/** Weight settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
 	FPCGExAttributeBlendWeight Weighting;
@@ -237,10 +237,9 @@ public:
 
 	virtual void RegisterBuffersDependenciesForSourceA(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 	virtual void RegisterBuffersDependenciesForSourceB(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
-	
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending", meta=(PCGExNodeLibraryDoc="metadata/uber-blend/blend-op"))
 class PCGEXTENDEDTOOLKIT_API UPCGExBlendOpFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
@@ -287,5 +286,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };
