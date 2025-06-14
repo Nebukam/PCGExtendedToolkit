@@ -42,7 +42,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName="Zero")
+UCLASS(MinimalAPI, meta=(DisplayName = "Zero", PCGExNodeLibraryDoc="paths/write-tangents/tangents-zero"))
 class UPCGExZeroTangents : public UPCGExTangentsInstancedFactory
 {
 	GENERATED_BODY()

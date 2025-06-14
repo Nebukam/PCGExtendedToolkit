@@ -48,10 +48,10 @@ struct FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType IndexInput = EPCGExInputValueType::Constant;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index (Attr)", EditCondition="IndexInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index (Attr)", EditCondition="IndexInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector IndexAttribute;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index", ClampMin=0, EditCondition="IndexInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index", ClampMin=0, EditCondition="IndexInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 IndexConstant = 1;
 
 	PCGEX_SETTING_VALUE_GET(Index, int32, IndexInput, IndexAttribute, IndexConstant)
@@ -83,7 +83,7 @@ protected:
 
 ////
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="clusters/connect-points/probe-index"))
 class UPCGExProbeFactoryIndex : public UPCGExProbeFactoryData
 {
 	GENERATED_BODY()

@@ -120,7 +120,7 @@ public:
 	EPCGExOffsetCleanupMode CleanupMode = EPCGExOffsetCleanupMode::Balanced;
 
 	/** Even unflipped edges look for upcoming intersections */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cleanup", meta = (PCG_Overridable, EditCondition="bCleanupPath && CleanupMode==EPCGExOffsetCleanupMode::Balanced", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cleanup", meta = (PCG_Overridable, EditCondition="bCleanupPath && CleanupMode == EPCGExOffsetCleanupMode::Balanced", EditConditionHides))
 	bool bAdditionalIntersectionCheck = false;
 
 	/** During cleanup, used as a tolerance to consider valid path segments as overlapping or not. */

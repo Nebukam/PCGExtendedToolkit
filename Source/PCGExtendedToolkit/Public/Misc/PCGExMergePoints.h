@@ -13,7 +13,7 @@
 #include "PCGExMergePoints.generated.h"
 
 // Hidden for now because buggy, concurrent writing occurs and I don't know why; need to look into it
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/merge-points"))
 class UPCGExMergePointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

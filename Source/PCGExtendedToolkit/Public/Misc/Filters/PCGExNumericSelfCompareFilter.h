@@ -34,7 +34,7 @@ struct FPCGExNumericSelfCompareFilterConfig
 	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
 
 	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	/** Index mode */
@@ -46,11 +46,11 @@ struct FPCGExNumericSelfCompareFilterConfig
 	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
 
 	/** Index value to use according to the selected Index Mode -- Will be translated to `int32` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index (Attr)", EditCondition="CompareAgainst!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index (Attr)", EditCondition="CompareAgainst != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector IndexAttribute;
 
 	/** Const Index value to use according to the selected Index Mode */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index", EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index", EditCondition="CompareAgainst == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 IndexConstant = -1;
 
 	/** Index safety */
@@ -106,7 +106,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/self-comparisons/numeric"))
 class UPCGExNumericSelfCompareFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
@@ -129,5 +129,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

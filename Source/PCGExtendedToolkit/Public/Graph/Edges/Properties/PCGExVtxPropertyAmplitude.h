@@ -56,7 +56,7 @@ struct FPCGExAmplitudeConfig
 	FName MinAmplitudeAttributeName = "MinAmplitude";
 
 	/** Up vector to use for amplitude sign */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Absolute", EditCondition="bWriteMinAmplitude && MinMode==EPCGExVtxAmplitudeMode::Individual", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Absolute", EditCondition="bWriteMinAmplitude && MinMode == EPCGExVtxAmplitudeMode::Individual", EditConditionHides, HideEditConditionToggle))
 	bool bAbsoluteMin = true;
 
 	/** */
@@ -72,7 +72,7 @@ struct FPCGExAmplitudeConfig
 	FName MaxAmplitudeAttributeName = "MaxAmplitude";
 
 	/** Up vector to use for amplitude sign */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Absolute", EditCondition="bWriteMaxAmplitude && MaxMode==EPCGExVtxAmplitudeMode::Individual", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Absolute", EditCondition="bWriteMaxAmplitude && MaxMode == EPCGExVtxAmplitudeMode::Individual", EditConditionHides, HideEditConditionToggle))
 	bool bAbsoluteMax = true;
 
 	/** */
@@ -88,7 +88,7 @@ struct FPCGExAmplitudeConfig
 	FName AmplitudeRangeAttributeName = "AmplitudeRange";
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Absolute", EditCondition="bWriteAmplitudeRange && RangeMode==EPCGExVtxAmplitudeMode::Individual", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Absolute", EditCondition="bWriteAmplitudeRange && RangeMode == EPCGExVtxAmplitudeMode::Individual", EditConditionHides, HideEditConditionToggle))
 	bool bAbsoluteRange = true;
 
 	/** */
@@ -116,15 +116,15 @@ struct FPCGExAmplitudeConfig
 	EPCGExVtxAmplitudeUpMode UpMode = EPCGExVtxAmplitudeUpMode::Average;
 
 	/** Up vector source.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Up Input Type", EditCondition="bWriteAmplitudeSign && UpMode==EPCGExVtxAmplitudeUpMode::UpVector", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Up Input Type", EditCondition="bWriteAmplitudeSign && UpMode == EPCGExVtxAmplitudeUpMode::UpVector", EditConditionHides, HideEditConditionToggle))
 	EPCGExInputValueType UpSelection = EPCGExInputValueType::Constant;
 
 	/** Up vector to use for amplitude sign */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Up Vector (Attr)", EditCondition="bWriteAmplitudeSign && UpMode==EPCGExVtxAmplitudeUpMode::UpVector && UpSelection!=EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Up Vector (Attr)", EditCondition="bWriteAmplitudeSign && UpMode == EPCGExVtxAmplitudeUpMode::UpVector && UpSelection != EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
 	FPCGAttributePropertyInputSelector UpSource;
 
 	/** Up vector to use for amplitude sign */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteAmplitudeSign && UpMode==EPCGExVtxAmplitudeUpMode::UpVector && UpSelection==EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteAmplitudeSign && UpMode == EPCGExVtxAmplitudeUpMode::UpVector && UpSelection == EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
 	FVector UpConstant = FVector::UpVector;
 
 	bool Validate(const FPCGExContext* InContext) const;
@@ -174,7 +174,7 @@ public:
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty", meta=(PCGExNodeLibraryDoc="clusters/metadata/vtx-properties/vtx-amplitude"))
 class UPCGExVtxPropertyAmplitudeSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()

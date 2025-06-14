@@ -49,7 +49,7 @@ struct FPCGExSplineInclusionFilterConfig
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSplineCheckType CheckType = EPCGExSplineCheckType::IsInside;
@@ -87,7 +87,7 @@ struct FPCGExSplineInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
-	
+
 	/** Optimize spatial partitioning, but limit the "reach" of splines to their bounding box. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bUseOctree = true;
@@ -103,7 +103,6 @@ struct FPCGExSplineInclusionFilterConfig
 	/**  Min dot product threshold for a point to be considered inside the spline. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, ClampMin=-1, ClampMax=1, EditCondition="!bTestInclusionOnProjection"), AdvancedDisplay)
 	double CurvatureThreshold = 0.5;
-	
 };
 
 /**
@@ -180,7 +179,7 @@ namespace PCGExPointFilter
 		TConstPCGValueRange<FTransform> InTransforms;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-		
+
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 
@@ -196,7 +195,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/spline-inclusion"))
 class UPCGExSplineInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

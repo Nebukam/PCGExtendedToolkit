@@ -52,7 +52,7 @@ struct FPCGExEdgeNeighborsCountFilterConfig
 	EPCGExComparison Comparison = EPCGExComparison::StrictlyGreater;
 
 	/** Rounding mode for approx. comparison modes */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	int32 Tolerance = 0;
 
 	/** */
@@ -102,7 +102,7 @@ namespace PCGExEdgeNeighborsCount
 
 
 /** Outputs a single GraphParam to be consumed by other nodes */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/neighbors-count"))
 class UPCGExEdgeNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
@@ -128,5 +128,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

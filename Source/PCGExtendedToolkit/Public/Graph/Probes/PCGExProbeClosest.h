@@ -30,10 +30,10 @@ struct FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType MaxConnectionsInput = EPCGExInputValueType::Constant;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Connections (Attr)", EditCondition="MaxConnectionsInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Connections (Attr)", EditCondition="MaxConnectionsInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector MaxConnectionsAttribute;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Connections", ClampMin=0, EditCondition="MaxConnectionsInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Connections", ClampMin=0, EditCondition="MaxConnectionsInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	int32 MaxConnectionsConstant = 1;
 
 	/** Attempts to prevent connections that are roughly in the same direction */
@@ -78,7 +78,7 @@ public:
 	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/connect-points/probe-closest"))
 class UPCGExProbeClosestProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()

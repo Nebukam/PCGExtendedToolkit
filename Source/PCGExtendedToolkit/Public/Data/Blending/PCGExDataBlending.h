@@ -304,7 +304,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExAttributeFilter BlendingFilter = EPCGExAttributeFilter::All;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="BlendingFilter!=EPCGExAttributeFilter::All", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="BlendingFilter != EPCGExAttributeFilter::All", EditConditionHides))
 	TArray<FName> FilteredAttributes;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))

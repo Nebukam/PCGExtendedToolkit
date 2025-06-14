@@ -18,7 +18,7 @@ namespace PCGExFindClusterHull
 }
 
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="pathfinding/contours/find-all-cells-1"))
 class UPCGExFindClusterHullSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -78,7 +78,7 @@ struct FPCGExFindClusterHullContext final : FPCGExEdgesProcessorContext
 	FPCGExCellArtifactsDetails Artifacts;
 
 	TSharedPtr<PCGExData::FPointIOCollection> Paths;
-	
+
 	mutable FRWLock SeedOutputLock;
 };
 

@@ -12,10 +12,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
-
-
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
 
@@ -40,7 +36,7 @@ struct FPCGExEntryCountFilterConfig
 	int32 OperandB = 0;
 
 	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 };
 
@@ -82,7 +78,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-collections/entry-count"))
 class UPCGExEntryCountFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
@@ -106,5 +102,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

@@ -73,7 +73,7 @@ public:
 	EPCGExSurfaceSource SurfaceSource = EPCGExSurfaceSource::ActorReferences;
 
 	/** Name of the attribute that contains a path to an actor in the level, usually from a GetActorData PCG Node in point mode.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="SurfaceSource == EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FName ActorReference = FName("ActorReference");
 
 	/** The origin of the trace */
@@ -89,11 +89,11 @@ public:
 	EPCGExTraceSampleDistanceInput DistanceInput = EPCGExTraceSampleDistanceInput::Constant;
 
 	/** Trace max distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="DistanceInput==EPCGExTraceSampleDistanceInput::Constant", EditConditionHides, CLampMin=0.001))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="DistanceInput == EPCGExTraceSampleDistanceInput::Constant", EditConditionHides, CLampMin=0.001))
 	double MaxDistance = 1000;
 
 	/** Attribute or property to read the local size from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="DistanceInput==EPCGExTraceSampleDistanceInput::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="DistanceInput == EPCGExTraceSampleDistanceInput::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalMaxDistance;
 
 	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
@@ -221,7 +221,7 @@ public:
 	bool bExtractTextureParameters = false;
 
 	/** Which actor reference points attributes to forward on points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(EditCondition="SurfaceSource == EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FPCGExForwardDetails AttributesForwarding;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

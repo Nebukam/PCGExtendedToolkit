@@ -13,7 +13,7 @@
 
 #include "PCGExBitwiseOperation.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/bitmasks/bitmask-operation"))
 class UPCGExBitwiseOperationSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -44,11 +44,11 @@ public:
 	EPCGExInputValueType MaskInput = EPCGExInputValueType::Constant;
 
 	/** Mask -- Must be int64. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask (Attr)", EditCondition="MaskInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask (Attr)", EditCondition="MaskInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FName MaskAttribute;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int64 Bitmask;
 
 	PCGEX_SETTING_VALUE_GET(Mask, int64, MaskInput, MaskAttribute, Bitmask)

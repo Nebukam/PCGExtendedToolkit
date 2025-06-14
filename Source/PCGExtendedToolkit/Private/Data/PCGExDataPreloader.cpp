@@ -51,10 +51,7 @@ namespace PCGExData
 				Status = -1;
 				return;
 			}
-			else
-			{
-				Status = 1;
-			}
+			Status = 1;
 		}
 
 		Reader->Fetch(Scope);
@@ -259,7 +256,7 @@ namespace PCGExData
 			if (bLoaded) { return; }
 			for (const TSharedPtr<FFacadePreloader>& Preloader : Preloaders) { if (!Preloader->IsLoaded()) { return; } }
 		}
-		
+
 		OnLoadingEnd();
 	}
 

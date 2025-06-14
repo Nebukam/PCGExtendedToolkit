@@ -40,7 +40,7 @@ struct FPCGExEdgeEndpointsCompareNumFilterConfig
 	EPCGExComparison Comparison = EPCGExComparison::StrictlyGreater;
 
 	/** Rounding mode for approx. comparison modes */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	/** */
@@ -89,7 +89,7 @@ namespace PCGExEdgeEndpointsCompareNum
 
 
 /** Outputs a single GraphParam to be consumed by other nodes */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/endpoints-compare-numeric"))
 class UPCGExEdgeEndpointsCompareNumFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
@@ -115,5 +115,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

@@ -96,11 +96,11 @@ public:
 	EPCGExInputValueType MaxLengthInput = EPCGExInputValueType::Constant;
 
 	/** Max length Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Length (Attr)", EditCondition="bUseMaxLength && MaxLengthInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Length (Attr)", EditCondition="bUseMaxLength && MaxLengthInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FName MaxLengthAttribute = FName("MaxLength");
 
 	/** Max length Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Length", EditCondition="bUseMaxLength && MaxLengthInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Length", EditCondition="bUseMaxLength && MaxLengthInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	double MaxLength = 100;
 
 	PCGEX_SETTING_VALUE_GET(MaxLength, double, MaxLengthInput, MaxLengthAttribute, MaxLength)
@@ -114,11 +114,11 @@ public:
 	EPCGExInputValueType MaxPointsCountInput = EPCGExInputValueType::Constant;
 
 	/** Max length Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Points Count (Attr)", EditCondition="bUseMaxPointsCount && MaxPointsCountInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Points Count (Attr)", EditCondition="bUseMaxPointsCount && MaxPointsCountInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FName MaxPointsCountAttribute = FName("MaxPointsCount");
 
 	/** Max length Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Points Count", EditCondition="bUseMaxPointsCount && MaxPointsCountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Points Count", EditCondition="bUseMaxPointsCount && MaxPointsCountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 MaxPointsCount = 100;
 
 	PCGEX_SETTING_VALUE_GET(MaxPointsCount, int32, MaxPointsCountInput, MaxPointsCountAttribute, MaxPointsCount)
@@ -249,7 +249,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagIfIsFollowUp"))
 	FString IsFollowUpTag = TEXT("IsFollowUp");
 
-	
+
 	/** Tensor sampling settings. Note that these are applied on the flattened sample, e.g after & on top of individual tensors' mutations. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Tensor Sampling Settings"))
 	FPCGExTensorHandlerDetails TensorHandlerDetails;

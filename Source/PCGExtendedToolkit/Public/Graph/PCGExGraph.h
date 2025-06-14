@@ -80,11 +80,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBasicEdgeSolidificationDetails
 	EPCGExBasicEdgeRadius RadiusType = EPCGExBasicEdgeRadius::Lerp;
 
 	/** Fixed edge radius */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable, EditCondition="RadiusType==EPCGExBasicEdgeRadius::Fixed", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable, EditCondition="RadiusType == EPCGExBasicEdgeRadius::Fixed", EditConditionHides))
 	double RadiusConstant = 5;
 
 	/** Scale the computed radius by a factor */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable, EditCondition="RadiusType!=EPCGExBasicEdgeRadius::Fixed", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable, EditCondition="RadiusType != EPCGExBasicEdgeRadius::Fixed", EditConditionHides))
 	double RadiusScale = 1;
 
 	void Mutate(PCGExData::FMutablePoint& InEdgePoint, const PCGExData::FConstPoint& InStart, const PCGExData::FConstPoint& InEnd, const double InLerp) const;

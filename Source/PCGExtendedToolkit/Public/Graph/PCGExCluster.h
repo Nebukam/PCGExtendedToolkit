@@ -492,7 +492,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionSettings
 	EPCGExEdgeDirectionMethod DirectionMethod = EPCGExEdgeDirectionMethod::EndpointsOrder;
 
 	/** Attribute picker for the selected Direction Method.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector DirSourceAttribute;
 
 	/** Further refine the direction method. Not all methods make use of this property.*/

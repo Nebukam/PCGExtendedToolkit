@@ -22,7 +22,7 @@ enum class EPCGExGoalPickRandomAmount : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "Random")
+UCLASS(MinimalAPI, meta=(DisplayName = "Random", PCGExNodeLibraryDoc="pathfinding/pathfinding-edges/goal-picker-random"))
 class UPCGExGoalPickerRandom : public UPCGExGoalPicker
 {
 	GENERATED_BODY()
@@ -38,10 +38,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExInputValueType NumGoalsType = EPCGExInputValueType::Constant;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Num Goals (Attr)", EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && NumGoalsType!=EPCGExInputValueType::Constant"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Num Goals (Attr)", EditCondition="GoalCount != EPCGExGoalPickRandomAmount::Single && NumGoalsType != EPCGExInputValueType::Constant"))
 	FPCGAttributePropertyInputSelector NumGoalAttribute;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Num Goals", EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && NumGoalsType==EPCGExInputValueType::Constant", ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Num Goals", EditCondition="GoalCount != EPCGExGoalPickRandomAmount::Single && NumGoalsType == EPCGExInputValueType::Constant", ClampMin=1))
 	int32 NumGoals = 5;
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override;

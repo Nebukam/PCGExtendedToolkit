@@ -89,7 +89,7 @@ namespace PCGExFindClusterHull
 		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(SeedWP, Cluster.ToSharedRef(), *ProjectedPositions);
 		if (Result != PCGExTopology::ECellResult::Success)
 		{
-			if (!Settings->bQuietFailedToFindHullWarning){ PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Failed to find the hull of a cluster.")); }
+			if (!Settings->bQuietFailedToFindHullWarning) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Failed to find the hull of a cluster.")); }
 			return false;
 		}
 

@@ -26,7 +26,7 @@ namespace PCGExCutEdges
 	const FName SourceEdgeFilters = FName("EdgeFilters");
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/paths-interop/cut-clusters"))
 class UPCGExCutEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -65,23 +65,23 @@ public:
 	//bool bConservative = false;
 
 	/** Expansion factor of node points to check for initial overlap. Uses scaled bounds expanded by the specified value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode!=EPCGExCutEdgesMode::Edges"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExCutEdgesMode::Edges"))
 	double NodeExpansion = 1;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode!=EPCGExCutEdgesMode::Edges"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExCutEdgesMode::Edges"))
 	EPCGExDistance NodeDistanceSettings = EPCGExDistance::Center;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode!=EPCGExCutEdgesMode::Edges"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExCutEdgesMode::Edges"))
 	bool bAffectedNodesAffectConnectedEdges = false;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bInvert && Mode!=EPCGExCutEdgesMode::Nodes"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bInvert && Mode != EPCGExCutEdgesMode::Nodes"))
 	bool bAffectedEdgesAffectEndpoints = false;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bInvert && Mode!=EPCGExCutEdgesMode::Edges"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bInvert && Mode != EPCGExCutEdgesMode::Edges"))
 	bool bKeepEdgesThatConnectValidNodes = false;
 
 	/** Graph & Edges output properties */

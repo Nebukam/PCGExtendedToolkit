@@ -28,11 +28,11 @@ struct FPCGExFillControlConfigKeepDirection : public FPCGExFillControlConfigBase
 	EPCGExInputValueType WindowSizeInput = EPCGExInputValueType::Constant;
 
 	/** Window Size Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Window Size (Attr)", EditCondition="WindowSizeInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Window Size (Attr)", EditCondition="WindowSizeInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector WindowSizeAttribute;
 
 	/** Window Size Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Window Size", EditCondition="WindowSizeInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Window Size", EditCondition="WindowSizeInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 WindowSize = 1;
 
 	PCGEX_SETTING_VALUE_GET(WindowSize, int32, WindowSizeInput, WindowSizeAttribute, WindowSize)
@@ -77,7 +77,7 @@ public:
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/flood-fill/fc-keep-direction"))
 class UPCGExFillControlsKeepDirectionProviderSettings : public UPCGExFillControlsFactoryProviderSettings
 {
 	GENERATED_BODY()

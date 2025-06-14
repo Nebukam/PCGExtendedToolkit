@@ -270,7 +270,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionDetails
 	EPCGExDistribution Distribution = EPCGExDistribution::WeightedRandom;
 
 	/** Index settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, EditCondition="Distribution == EPCGExDistribution::Index"))
 	FPCGExAssetDistributionIndexDetails IndexSettings;
 
 	/** Note that this is only accounted for if selected in the seed component. */

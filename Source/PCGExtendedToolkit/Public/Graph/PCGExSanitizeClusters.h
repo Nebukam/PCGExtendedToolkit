@@ -11,7 +11,7 @@
 #include "PCGExSanitizeClusters.generated.h"
 
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/sanitize"))
 class UPCGExSanitizeClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

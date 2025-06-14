@@ -33,15 +33,15 @@ struct FPCGExNodeNeighborsCountFilterConfig
 	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
 
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand A (Attr)", EditCondition="CompareAgainst!=EPCGExInputValueType::Constant", EditConditionHides, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand A (Attr)", EditCondition="CompareAgainst != EPCGExInputValueType::Constant", EditConditionHides, ShowOnlyInnerProperties))
 	FPCGAttributePropertyInputSelector LocalCount;
 
 	/** Constant Operand A for testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand A", EditCondition="CompareAgainst==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand A", EditCondition="CompareAgainst == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 Count = 0;
 
 	/** Rounding mode for near measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	PCGEX_SETTING_VALUE_GET(LocalCount, double, CompareAgainst, LocalCount, Count)
@@ -88,7 +88,7 @@ namespace PCGExNodeNeighborsCount
 
 
 /** Outputs a single GraphParam to be consumed by other nodes */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-vtx-nodes/neighbors-count"))
 class UPCGExNodeNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
@@ -114,5 +114,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

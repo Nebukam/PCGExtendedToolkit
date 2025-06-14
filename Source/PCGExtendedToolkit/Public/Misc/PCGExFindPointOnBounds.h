@@ -21,7 +21,7 @@ enum class EPCGExPointOnBoundsOutputMode : uint8
 	Individual = 1 UMETA(DisplayName = "Per-point dataset", Tooltip="..."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/find-point-on-bounds"))
 class UPCGExFindPointOnBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

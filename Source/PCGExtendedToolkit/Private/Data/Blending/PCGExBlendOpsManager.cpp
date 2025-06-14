@@ -110,7 +110,7 @@ namespace PCGExDataBlending
 			}
 
 			Op->bUsedForMultiBlendOnly = bUsedForMultiBlendOnly;
-			
+
 			// Assign blender facades
 			Op->WeightFacade = WeightFacade;
 

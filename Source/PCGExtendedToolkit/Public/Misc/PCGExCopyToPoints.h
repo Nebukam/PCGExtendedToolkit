@@ -12,7 +12,7 @@
 
 #include "PCGExCopyToPoints.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/copy-to-points"))
 class UPCGExCopyToPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

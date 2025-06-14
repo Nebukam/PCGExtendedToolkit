@@ -97,7 +97,7 @@ namespace PCGExActorCollectionUtils
 
 		if (!TargetCollection)
 		{
-			const EObjectFlags Flags = RF_Public | RF_Standalone | RF_Transactional;
+			constexpr EObjectFlags Flags = RF_Public | RF_Standalone | RF_Transactional;
 			TargetCollection = NewObject<UPCGExActorCollection>(Package, UPCGExActorCollection::StaticClass(), FName(*CollectionAssetName), Flags);
 		}
 

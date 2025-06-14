@@ -135,7 +135,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/bounds"))
 class UPCGExBoundsFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

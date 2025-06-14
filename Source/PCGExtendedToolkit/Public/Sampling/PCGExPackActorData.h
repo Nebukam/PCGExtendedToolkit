@@ -89,7 +89,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution", meta=(DeterminesOutputType="ComponentClass", DynamicOutputParam="OutComponent"))
 	void AddComponent(
 		AActor* InActor,
-		UPARAM(meta = (AllowAbstract = "false"))TSubclassOf<UActorComponent> ComponentClass,
+		UPARAM(meta = (AllowAbstract = "false"))
+		TSubclassOf<UActorComponent> ComponentClass,
 		EAttachmentRule InLocationRule,
 		EAttachmentRule InRotationRule,
 		EAttachmentRule InScaleRule,
@@ -544,7 +545,8 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(DeterminesOutputType="ObjectClass", DynamicOutputParam="OutObject"))
 	void ResolveObjectPath(const FName& InAttributeName, const int32 InPointIndex,
-	                       UPARAM(meta = (AllowAbstract = "true"))TSubclassOf<UObject> ObjectClass, UObject*& OutObject, bool& OutIsValid);
+	                       UPARAM(meta = (AllowAbstract = "true"))
+	                       TSubclassOf<UObject> ObjectClass, UObject*& OutObject, bool& OutIsValid);
 
 #pragma endregion
 };
@@ -597,7 +599,6 @@ public:
 	/** If enabled, will turn off uninitialized packer warning. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietUninitializedPackerWarning = false;
-
 };
 
 struct FPCGExPackActorDataContext final : FPCGExPointsProcessorContext

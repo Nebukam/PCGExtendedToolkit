@@ -44,19 +44,19 @@ public:
 	EPCGExResampleMode Mode = EPCGExResampleMode::Sweep;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExResampleMode::Sweep"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep"))
 	bool bPreserveLastPoint = true;
 
 	/** Resolution mode */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode==EPCGExResampleMode::Sweep"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExResampleMode::Sweep"))
 	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Distance;
 
 	/** Resolution Constant. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExResampleMode::Sweep", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep", EditConditionHides, ClampMin=0))
 	double Resolution = 10;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode==EPCGExResampleMode::Sweep", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep", EditConditionHides))
 	EPCGExTruncateMode Truncate = EPCGExTruncateMode::Round;
 
 	/** Blending settings used to smooth attributes.*/

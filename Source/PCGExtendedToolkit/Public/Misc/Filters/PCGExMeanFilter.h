@@ -35,11 +35,11 @@ struct FPCGExMeanFilterConfig
 	EPCGExMeanMethod MeanMethod = EPCGExMeanMethod::Average;
 
 	/** Minimum value threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="MeanMethod==EPCGExMeanMethod::Fixed", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="MeanMethod == EPCGExMeanMethod::Fixed", ClampMin=0))
 	double MeanValue = 0;
 
 	/** Used to estimate the mode value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="MeanMethod==EPCGExMeanMethod::ModeMin || MeanMethod==EPCGExMeanMethod::ModeMax", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="MeanMethod == EPCGExMeanMethod::ModeMin || MeanMethod == EPCGExMeanMethod::ModeMax", ClampMin=0))
 	double ModeTolerance = 5;
 
 	/** Exclude if value is below a specific threshold. */
@@ -76,7 +76,7 @@ public:
 	FPCGExMeanFilterConfig Config;
 
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
-	
+
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
@@ -118,7 +118,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/math-checks/mean-value"))
 class UPCGExMeanFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
@@ -141,5 +141,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

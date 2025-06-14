@@ -15,7 +15,7 @@ class UPCGExActionFactoryData;
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="quality-of-life/batch-actions"))
 class UPCGExBatchActionsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

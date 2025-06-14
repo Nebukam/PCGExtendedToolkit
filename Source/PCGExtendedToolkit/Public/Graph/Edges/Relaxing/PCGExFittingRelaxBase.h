@@ -40,19 +40,19 @@ public:
 	EPCGExRelaxEdgeFitting EdgeFitting = EPCGExRelaxEdgeFitting::Existing;
 
 	/** The desired edge length. Low priority in the algorithm, but help keep edge topology more consistent. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Desired Edge Length", EditCondition="EdgeFitting==EPCGExRelaxEdgeFitting::Fixed", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Desired Edge Length", EditCondition="EdgeFitting == EPCGExRelaxEdgeFitting::Fixed", EditConditionHides))
 	double DesiredEdgeLength = 100;
 
 	/** Per-edge attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Desired Edge Length", EditCondition="EdgeFitting==EPCGExRelaxEdgeFitting::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Desired Edge Length", EditCondition="EdgeFitting == EPCGExRelaxEdgeFitting::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector DesiredEdgeLengthAttribute;
 
 	/** Scale factor applied to the edge length. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Scale", EditCondition="EdgeFitting==EPCGExRelaxEdgeFitting::Attribute || EdgeFitting==EPCGExRelaxEdgeFitting::Existing", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Scale", EditCondition="EdgeFitting == EPCGExRelaxEdgeFitting::Attribute || EdgeFitting == EPCGExRelaxEdgeFitting::Existing", EditConditionHides))
 	double Scale = 2;
 
 	/** Stiffness of the edges. Lower values yield better placement (less overlap), but edge topology may be affected. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="EdgeFitting!=EPCGExRelaxEdgeFitting::Ignore", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="EdgeFitting != EPCGExRelaxEdgeFitting::Ignore", EditConditionHides))
 	double SpringConstant = 0.1;
 
 	/** If this was a physic simulation, represent the time advance each iteration */

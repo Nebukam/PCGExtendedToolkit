@@ -91,7 +91,7 @@ namespace PCGExPolyLine
 	};
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-spline"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-spline-1"))
 class UPCGExSampleNearestPathSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -128,7 +128,7 @@ public:
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
 #pragma region Sampling Range
-	
+
 	/** Type of Range Min */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType RangeMinInput = EPCGExInputValueType::Constant;
@@ -158,7 +158,7 @@ public:
 	PCGEX_SETTING_VALUE_GET(RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
 
 #pragma endregion
-	
+
 	/** Whether spline should be sampled at a specific alpha */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	bool bSampleSpecificAlpha = false;
@@ -393,7 +393,7 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 	friend class FPCGExSampleNearestPathElement;
 
 	TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
-	
+
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;

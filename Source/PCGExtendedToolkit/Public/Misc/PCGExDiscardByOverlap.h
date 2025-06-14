@@ -81,7 +81,7 @@ struct FPCGExOverlapScoresWeighting
 	/** Weight of custom tags scores, if any. */
 	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
 	double DataScoreWeight = 0;
-	
+
 	/** Lets you add extra custom 'score' using @Data attributes. */
 	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
 	TArray<FName> DataScores;
@@ -104,7 +104,7 @@ namespace PCGExDiscardByOverlap
 	class FProcessor;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="filters/discard-by-overlap"))
 class UPCGExDiscardByOverlapSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

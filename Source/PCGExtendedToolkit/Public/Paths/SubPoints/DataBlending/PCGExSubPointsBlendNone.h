@@ -25,7 +25,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "No Blending")
+UCLASS(MinimalAPI, meta=(DisplayName = "No Blending", PCGExNodeLibraryDoc="paths/sub-point-blending/none"))
 class UPCGExSubPointsBlendNone : public UPCGExSubPointsBlendInstancedFactory
 {
 	GENERATED_BODY()

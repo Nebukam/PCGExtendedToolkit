@@ -97,7 +97,7 @@ class UPCGExSearchInstancedFactory;
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="pathfinding/pathfinding-grow-paths"))
 class UPCGExPathfindingGrowPathsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

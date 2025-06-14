@@ -32,7 +32,7 @@ enum class EPCGExPlacementFavor : uint8
 	Space         = 1 UMETA(DisplayName = "Space Conservation", ToolTip="Favor space conservation over seed proximity"),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/layout/bin-packing"))
 class UPCGExBinPackingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -60,16 +60,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExBinSeedMode SeedMode = EPCGExBinSeedMode::UVWConstant;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode==EPCGExBinSeedMode::UVWConstant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::UVWConstant", EditConditionHides))
 	FVector SeedUVW = FVector(0, 0, -1);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode==EPCGExBinSeedMode::UVWAttribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::UVWAttribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector SeedUVWAttribute;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode==EPCGExBinSeedMode::PositionConstant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::PositionConstant", EditConditionHides))
 	FVector SeedPosition = FVector(0, 0, 0);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode==EPCGExBinSeedMode::PositionAttribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SeedMode == EPCGExBinSeedMode::PositionAttribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector SeedPositionAttribute;
 
 	/** Will attempt to infer the split axis from relative seed positioning, and fall back to selected axis if it can't find one. */
@@ -99,11 +99,11 @@ public:
 	EPCGExInputValueType OccupationPaddingInput = EPCGExInputValueType::Constant;
 
 	/** Occupation padding attribute -- Will be broadcast to FVector. Occupation padding is an amount by which the bounds of a placed point will be expanded by after placement. This yield to greater fragmentation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, DisplayName="Occupation Padding (Attr)", EditCondition="OccupationPaddingInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, DisplayName="Occupation Padding (Attr)", EditCondition="OccupationPaddingInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector OccupationPaddingAttribute;
 
 	/** Occupation padding. Occupation padding is an amount by which the bounds of a placed point will be expanded by after placement. This yield to greater fragmentation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, DisplayName="Occupation Padding", EditCondition="OccupationPaddingInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta = (PCG_Overridable, DisplayName="Occupation Padding", EditCondition="OccupationPaddingInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector OccupationPadding = FVector::ZeroVector;
 
 	/** If enabled, the padding will not be relative (rotated) if the item is rotated. */

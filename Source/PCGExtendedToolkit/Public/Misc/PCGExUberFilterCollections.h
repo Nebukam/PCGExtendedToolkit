@@ -21,7 +21,7 @@ enum class EPCGExUberFilterCollectionsMode : uint8
 	Partial = 2 UMETA(DisplayName = "Partial", ToolTip="A given amount of points must pass the filter."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="filters/uber-filter-collection"))
 class UPCGExUberFilterCollectionsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -56,23 +56,23 @@ public:
 	EPCGExUberFilterCollectionsMode Mode = EPCGExUberFilterCollectionsMode::All;
 
 	/** Partial value type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExUberFilterCollectionsMode::Partial", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExUberFilterCollectionsMode::Partial", EditConditionHides))
 	EPCGExMeanMeasure Measure = EPCGExMeanMeasure::Relative;
 
 	/** Partial value comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExUberFilterCollectionsMode::Partial", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExUberFilterCollectionsMode::Partial", EditConditionHides))
 	EPCGExComparison Comparison = EPCGExComparison::EqualOrGreater;
 
 	/** Partial value type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExUberFilterCollectionsMode::Partial && Measure==EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExUberFilterCollectionsMode::Partial && Measure == EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
 	double DblThreshold = 0.5;
 
 	/** Partial value type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExUberFilterCollectionsMode::Partial && Measure==EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExUberFilterCollectionsMode::Partial && Measure == EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
 	int32 IntThreshold = 10;
 
 	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	/** Invert the filter result */

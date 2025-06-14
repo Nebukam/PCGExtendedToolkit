@@ -127,7 +127,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Tensor)
 
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Picker)
-	
+
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_FillControl)
 
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
@@ -155,19 +155,20 @@ void FPCGExtendedToolkitEditorModule::RegisterMenuExtensions()
 	if (UToolMenu* WorldAssetMenu = UToolMenus::Get()->ExtendMenu("ContentBrowser.AssetContextMenu.AssetActionsSubMenu"))
 	{
 		// Use a dynamic section here because we might have plugins registering at a later time
-		FToolMenuSection& Section = WorldAssetMenu->AddDynamicSection("PCGEx", FNewToolMenuDelegate::CreateLambda([this](UToolMenu* ToolMenu)
-		{
-			if (!GEditor || GEditor->GetPIEWorldContext() || !ToolMenu)
-			{
-				return;
-			}
+		FToolMenuSection& Section = WorldAssetMenu->AddDynamicSection(
+			"PCGEx", FNewToolMenuDelegate::CreateLambda(
+				[this](UToolMenu* ToolMenu)
+				{
+					if (!GEditor || GEditor->GetPIEWorldContext() || !ToolMenu)
+					{
+						return;
+					}
 
-			if (UContentBrowserAssetContextMenuContext* AssetMenuContext = ToolMenu->Context.FindContext<UContentBrowserAssetContextMenuContext>())
-			{
-				PCGExEditorMenuUtils::CreateOrUpdatePCGExAssetCollectionsFromMenu(ToolMenu, AssetMenuContext->SelectedAssets);
-			}
-
-		}), FToolMenuInsert(NAME_None, EToolMenuInsertType::Default));
+					if (UContentBrowserAssetContextMenuContext* AssetMenuContext = ToolMenu->Context.FindContext<UContentBrowserAssetContextMenuContext>())
+					{
+						PCGExEditorMenuUtils::CreateOrUpdatePCGExAssetCollectionsFromMenu(ToolMenu, AssetMenuContext->SelectedAssets);
+					}
+				}), FToolMenuInsert(NAME_None, EToolMenuInsertType::Default));
 	}
 }
 

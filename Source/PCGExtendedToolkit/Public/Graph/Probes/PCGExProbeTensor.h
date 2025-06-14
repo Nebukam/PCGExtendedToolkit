@@ -102,7 +102,7 @@ public:
 	virtual bool Prepare(FPCGExContext* InContext) override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/connect-points/probe-direction-1"))
 class UPCGExProbeTensorProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()
@@ -130,5 +130,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

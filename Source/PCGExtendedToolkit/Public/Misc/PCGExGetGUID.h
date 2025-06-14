@@ -11,7 +11,7 @@
 
 #include "PCGExGetGUID.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/get-guid"))
 class UPCGExGetGUIDSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

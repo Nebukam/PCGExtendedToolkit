@@ -18,7 +18,7 @@ namespace PCGExDiscardByPointCount
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="filters/discard-by-point-count"))
 class UPCGExDiscardByPointCountSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

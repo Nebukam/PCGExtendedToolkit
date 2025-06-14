@@ -533,7 +533,7 @@ namespace PCGExPaths
 
 		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const
 		PCGEX_NOT_IMPLEMENTED_RET(GetClosestEdge(const double InTime, float& OutLerp), -1)
-		
+
 	protected:
 		void BuildPath(const double Expansion);
 	};
@@ -808,9 +808,9 @@ namespace PCGExPaths
 			OutLerp = ClosestKey - OutEdgeIndex;
 			return OutEdgeIndex;
 		}
-		
+
 		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const override
-		{			
+		{
 			const int32 OutEdgeIndex = FMath::FloorToInt32(InTime * this->NumEdges);
 			OutLerp = InTime - OutEdgeIndex;
 			return OutEdgeIndex;

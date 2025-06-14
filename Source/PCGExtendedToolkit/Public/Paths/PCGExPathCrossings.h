@@ -73,7 +73,7 @@ public:
 	/** If enabled, blend in properties & attributes from external sources. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Cross Blending", meta=(PCG_Overridable, EditCondition="bDoCrossBlending"))
 	FPCGExBlendingDetails CrossingBlending = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAlpha = false;
 
@@ -100,13 +100,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteCrossDirection", EditConditionHides, HideEditConditionToggle))
 	FVector DefaultCrossDirection = FVector::ZeroVector;
 
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIsPointCrossing = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Is Point Crossing", EditCondition="bWriteIsPointCrossing"))
 	FName IsPointCrossingAttributeName = "IsPointCrossing";
-	
+
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfHasCrossing = false;

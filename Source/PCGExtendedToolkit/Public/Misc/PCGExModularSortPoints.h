@@ -10,7 +10,7 @@
 
 #include "PCGExModularSortPoints.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/sort-points"))
 class UPCGExModularSortPointsSettings : public UPCGExSortPointsBaseSettings
 {
 	GENERATED_BODY()

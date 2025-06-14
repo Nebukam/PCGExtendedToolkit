@@ -274,7 +274,7 @@ namespace PCGExDataBlending
 			BOOKMARK_BLENDMODE
 
 			check(A)
-			if constexpr (BLEND_MODE != EPCGExABBlendingType::CopySource){ check(B) }
+			if constexpr (BLEND_MODE != EPCGExABBlendingType::CopySource) { check(B) }
 			check(C)
 
 #define PCGEX_A A->Get(SourceIndexA)
@@ -312,7 +312,7 @@ namespace PCGExDataBlending
 		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) override
 		{
 			check(C)
-			
+
 			PCGEx::FOpStats Tracker{};
 
 			if constexpr (
@@ -355,10 +355,9 @@ namespace PCGExDataBlending
 
 		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) override
 		{
-
 			check(A)
 			check(C)
-			
+
 			ON_SCOPE_EXIT
 			{
 				Tracker.Count++;
@@ -409,7 +408,7 @@ namespace PCGExDataBlending
 		{
 			check(A)
 			check(C)
-			
+
 #define PCGEX_C C->GetCurrent(TargetIndex)
 
 			if (!Tracker.Count) { return; } // Skip division by zero
@@ -570,6 +569,4 @@ break;
 
 		return OutBlender;
 	}
-
-	
 }

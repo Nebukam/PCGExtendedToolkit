@@ -21,7 +21,7 @@ enum class EPCGExCherryPickSource : uint8
 	Sources = 1 UMETA(DisplayName = "Sources", ToolTip="Read indices from a list of sources inputs."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="filters/cherry-pick-points"))
 class UPCGExCherryPickPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

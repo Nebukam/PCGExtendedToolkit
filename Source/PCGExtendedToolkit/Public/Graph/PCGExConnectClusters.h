@@ -21,7 +21,7 @@ enum class EPCGExBridgeClusterMethod : uint8
 	Filters    = 4 UMETA(DisplayName = "Node Filters", ToolTip="Isolate nodes in each cluster as generators & connectable and connect by proximity.", Hidden),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/connect-clusters"))
 class UPCGExConnectClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -51,7 +51,7 @@ public:
 	EPCGExBridgeClusterMethod BridgeMethod = EPCGExBridgeClusterMethod::Delaunay3D;
 
 	/** Projection settings. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="BridgeMethod==EPCGExBridgeClusterMethod::Delaunay2D", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="BridgeMethod == EPCGExBridgeClusterMethod::Delaunay2D", EditConditionHides))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
 
 	/** Meta filter settings. */

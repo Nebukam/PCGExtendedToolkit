@@ -15,7 +15,7 @@ class FPCGExHeuristicDistance;
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Keep Lowest Score"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Keep Lowest Score", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-score"))
 class UPCGExEdgeKeepLowestScore : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

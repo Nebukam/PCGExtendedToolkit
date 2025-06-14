@@ -22,7 +22,7 @@ enum class EPCGExIterationDataType : uint8
 	Texture = 4 UMETA(DisplayName = "Texture", Tooltip="Output dummy iteration data of type Texture."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/iterations"))
 class UPCGExIterationsSettings : public UPCGSettings
 {
 	GENERATED_BODY()
@@ -53,7 +53,7 @@ protected:
 	int32 Iterations = 0;
 
 	/** Output per-iteration params with useful values. Less optimized than the non-value version */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Type=EPCGExIterationDataType::Params"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Type = EPCGExIterationDataType::Params"))
 	bool bOutputUtils = false;
 };
 

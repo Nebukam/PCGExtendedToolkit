@@ -26,7 +26,7 @@ namespace PCGExFilterVtx
 	const FName SourceSanitizeEdgeFilters = FName("SanitizeFilters");
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/find-clusters-data-1"))
 class UPCGExFilterVtxSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -61,19 +61,19 @@ public:
 	bool bInvert = false;
 
 	/** Invert the edge filters result */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExVtxFilterOutput::Clusters", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExVtxFilterOutput::Clusters", EditConditionHides))
 	bool bInvertEdgeFilters = false;
 
 	/** Name of the attribute to write the filter result to. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode==EPCGExVtxFilterOutput::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExVtxFilterOutput::Attribute", EditConditionHides))
 	FName ResultAttributeName = FName("PassFilters");
 
 	/** If enabled, inside/outside groups will be partitioned by initial edge connectivity. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode==EPCGExVtxFilterOutput::Points", EditConditionHides))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExVtxFilterOutput::Points", EditConditionHides))
 	bool bSplitOutputsByConnectivity = true;
 
 	/** Swap Inside & Outside content */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExVtxFilterOutput::Points", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExVtxFilterOutput::Points", EditConditionHides))
 	bool bSwap = false;
 
 	/** */
@@ -102,7 +102,7 @@ public:
 
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="Mode==EPCGExVtxFilterOutput::Clusters", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="Mode == EPCGExVtxFilterOutput::Clusters", EditConditionHides))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 private:

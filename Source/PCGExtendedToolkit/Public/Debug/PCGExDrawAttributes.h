@@ -43,10 +43,10 @@ struct FPCGExAttributeDebugDrawConfig : public FPCGExInputConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDebugExpression ExpressedAs = EPCGExDebugExpression::Direction;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ExpressedAs==EPCGExDebugExpression::ConnectionToIndex||ExpressedAs==EPCGExDebugExpression::ConnectionToPosition||ExpressedAs==EPCGExDebugExpression::Point", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ExpressedAs == EPCGExDebugExpression::ConnectionToIndex || ExpressedAs == EPCGExDebugExpression::ConnectionToPosition || ExpressedAs == EPCGExDebugExpression::Point", EditConditionHides))
 	bool bAsOffset = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ExpressedAs==EPCGExDebugExpression::Direction", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ExpressedAs == EPCGExDebugExpression::Direction", EditConditionHides))
 	bool bNormalizeBeforeSizing = true;
 
 	/** Draw line thickness. */
@@ -69,7 +69,7 @@ struct FPCGExAttributeDebugDrawConfig : public FPCGExInputConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Color, meta=(PCG_Overridable))
 	FColor Color = FColor(255, 0, 0); /** Draw color. */
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Color, meta=(PCG_Overridable, EditConditionHides, EditCondition="ExpressedAs==EPCGExDebugExpression::Boolean"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Color, meta=(PCG_Overridable, EditConditionHides, EditCondition="ExpressedAs == EPCGExDebugExpression::Boolean"))
 	FColor SecondaryColor = FColor(0, 255, 0);
 
 	/** Fetch the color from a local attribute.*/

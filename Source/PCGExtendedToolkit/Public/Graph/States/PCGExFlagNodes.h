@@ -14,7 +14,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/metadata/flag-nodes"))
 class UPCGExFlagNodesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

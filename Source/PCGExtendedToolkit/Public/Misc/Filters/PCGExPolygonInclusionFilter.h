@@ -103,7 +103,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/polygon-2d-inclusion"))
 class UPCGExPolygonInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

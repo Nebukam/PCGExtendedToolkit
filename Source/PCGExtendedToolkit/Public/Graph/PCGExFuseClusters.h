@@ -18,7 +18,7 @@ namespace PCGExFuseClusters
 	class FProcessor;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/fuse-clusters"))
 class UPCGExFuseClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

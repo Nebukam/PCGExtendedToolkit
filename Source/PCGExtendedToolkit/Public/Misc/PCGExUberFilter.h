@@ -19,7 +19,7 @@ enum class EPCGExUberFilterMode : uint8
 	Write     = 1 UMETA(DisplayName = "Write result", ToolTip="Simply write filter result to an attribute but doesn't change point structure."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="filters/uber-filter"))
 class UPCGExUberFilterSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -54,7 +54,7 @@ public:
 	EPCGExUberFilterMode Mode = EPCGExUberFilterMode::Partition;
 
 	/** Name of the attribute to write result to */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="PassFilter", PCG_Overridable, EditCondition="Mode==EPCGExUberFilterMode::Write", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="PassFilter", PCG_Overridable, EditCondition="Mode == EPCGExUberFilterMode::Write", EditConditionHides))
 	FName ResultAttributeName = FName("PassFilter");
 
 	/** Invert the filter result */
@@ -64,7 +64,7 @@ public:
 	/** If enabled, will output discarded elements, otherwise omit creating the data entierely. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOutputDiscardedElements = true;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
 	bool bTagIfAnyPointPassed = false;

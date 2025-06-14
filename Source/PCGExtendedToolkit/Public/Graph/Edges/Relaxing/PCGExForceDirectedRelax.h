@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, meta=(DisplayName="Force Directed"))
+UCLASS(MinimalAPI, meta=(DisplayName="Force Directed", PCGExNodeLibraryDoc="clusters/relax-cluster/force-directed"))
 class UPCGExForceDirectedRelax : public UPCGExRelaxClusterOperation
 {
 	GENERATED_BODY()

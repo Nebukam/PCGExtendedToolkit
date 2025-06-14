@@ -13,10 +13,6 @@
 #include "Data/PCGExFilterGroup.h"
 
 
-
-
-
-
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
 
@@ -44,23 +40,23 @@ struct FPCGExTagValueFilterConfig
 	EPCGExComparisonDataType ValueType = EPCGExComparisonDataType::Numeric;
 
 	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Comparison", EditCondition="ValueType==EPCGExComparisonDataType::Numeric", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Comparison", EditCondition="ValueType == EPCGExComparisonDataType::Numeric", EditConditionHides))
 	EPCGExComparison NumericComparison = EPCGExComparison::NearlyEqual;
 
 	/** Constant tag string value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B (Numeric)", EditCondition="ValueType==EPCGExComparisonDataType::Numeric", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B (Numeric)", EditCondition="ValueType == EPCGExComparisonDataType::Numeric", EditConditionHides, HideEditConditionToggle))
 	double NumericOperandB = 0;
 
 	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ValueType==EPCGExComparisonDataType::Numeric && (NumericComparison==EPCGExComparison::NearlyEqual || NumericComparison==EPCGExComparison::NearlyNotEqual)", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ValueType == EPCGExComparisonDataType::Numeric && (NumericComparison == EPCGExComparison::NearlyEqual || NumericComparison == EPCGExComparison::NearlyNotEqual)", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Comparison", EditCondition="ValueType==EPCGExComparisonDataType::String", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Comparison", EditCondition="ValueType == EPCGExComparisonDataType::String", EditConditionHides))
 	EPCGExStringComparison StringComparison = EPCGExStringComparison::Contains;
 
 	/** Constant tag string value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B (String)", EditCondition="ValueType==EPCGExComparisonDataType::String", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B (String)", EditCondition="ValueType == EPCGExComparisonDataType::String", EditConditionHides, HideEditConditionToggle))
 	FString StringOperandB = TEXT("Tag");
 
 	/** OR only requires a single match to pass, AND requires all matches to pass. */
@@ -110,7 +106,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-collections/tag-value"))
 class UPCGExTagValueFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
@@ -134,5 +130,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

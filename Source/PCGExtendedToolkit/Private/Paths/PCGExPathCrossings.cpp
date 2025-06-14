@@ -423,7 +423,7 @@ namespace PCGExPathCrossings
 		TArray<PCGEx::FOpStats> Trackers;
 
 		UnionBlender->InitTrackers(Trackers);
-		
+
 		const TSharedPtr<PCGExData::IUnionData> TempUnion = MakeShared<PCGExData::IUnionData>();
 
 		PCGEX_SCOPE_LOOP(Index)
@@ -468,7 +468,7 @@ namespace PCGExPathCrossings
 
 		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver, Context->Distances);
 		UnionBlender = TypedBlender;
-		
+
 		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;
 		UnionSources.Reserve(Context->MainPoints->Pairs.Num());
 

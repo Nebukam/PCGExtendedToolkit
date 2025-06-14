@@ -9,7 +9,7 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExEdgeOrder.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/metadata/edge-order"))
 class UPCGExEdgeOrderSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -84,7 +84,6 @@ namespace PCGExEdgeOrder
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch(InContext, InVtx, InEdges)
 		{
-			
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;

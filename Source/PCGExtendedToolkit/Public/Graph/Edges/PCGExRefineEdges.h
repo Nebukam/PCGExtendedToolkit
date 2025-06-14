@@ -27,7 +27,7 @@ enum class EPCGExRefineSanitization : uint8
 	Filters  = 3 UMETA(DisplayName = "Filters", ToolTip="Use filters to find edges that must be preserved."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "filter edge mst minimum spanning tree skeleton gabriel"), meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "filter edge mst minimum spanning tree skeleton gabriel"), meta=(PCGExNodeLibraryDoc="clusters/refine-cluster"))
 class UPCGExRefineEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

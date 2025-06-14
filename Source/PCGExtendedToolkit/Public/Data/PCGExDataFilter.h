@@ -44,7 +44,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 	EPCGExAttributeFilter FilterMode = EPCGExAttributeFilter::All;
 
 	/** List of matches that will be checked. Any success is a pass. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="FilterMode!=EPCGExAttributeFilter::All", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="FilterMode != EPCGExAttributeFilter::All", EditConditionHides))
 	TMap<FString, EPCGExStringMatchMode> Matches;
 
 	/** A list of names separated by a comma, for easy overrides. The limitation is that they all use the same shared filter mode. */
@@ -52,7 +52,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 	FString CommaSeparatedNames;
 
 	/** Unique filter mode applied to comma separated names */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="FilterMode!=EPCGExAttributeFilter::All", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="FilterMode != EPCGExAttributeFilter::All", EditConditionHides))
 	EPCGExStringMatchMode CommaSeparatedNameFilter = EPCGExStringMatchMode::Equals;
 
 	/** If enabled, PCGEx attributes & tags won't be affected.  Cluster-related nodes rely on these to work! */
@@ -202,7 +202,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 	/** If enabled, will convert data domain attributes to elements domain ones. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Data domain to Elements"))
 	bool bDataDomainToElements = true;
-	
+
 	/** Tags to carry over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExNameFiltersDetails Tags = FPCGExNameFiltersDetails(false);

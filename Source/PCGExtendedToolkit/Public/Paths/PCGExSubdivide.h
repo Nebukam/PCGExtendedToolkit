@@ -45,18 +45,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType AmountInput = EPCGExInputValueType::Constant;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Distance)", EditCondition="SubdivideMethod==EPCGExSubdivideMode::Distance && AmountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Distance)", EditCondition="SubdivideMethod == EPCGExSubdivideMode::Distance && AmountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.1))
 	double Distance = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Count)", EditCondition="SubdivideMethod==EPCGExSubdivideMode::Count && AmountInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Count)", EditCondition="SubdivideMethod == EPCGExSubdivideMode::Count && AmountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 Count = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Attr)", EditCondition="AmountInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Attr)", EditCondition="AmountInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
 	PCGEX_SETTING_VALUE_GET(SubdivisionAmount, double, AmountInput, SubdivisionAmount, SubdivideMethod == EPCGExSubdivideMode::Count ? Count : Distance)
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod==EPCGExSubdivideMode::Distance", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod == EPCGExSubdivideMode::Distance", EditConditionHides))
 	bool bRedistributeEvenly = false;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))

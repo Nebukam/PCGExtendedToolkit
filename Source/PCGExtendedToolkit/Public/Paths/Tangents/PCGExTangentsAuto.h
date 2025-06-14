@@ -32,7 +32,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName="Auto")
+UCLASS(MinimalAPI, meta=(DisplayName = "Auto", PCGExNodeLibraryDoc="paths/write-tangents/tangents-auto"))
 class UPCGExAutoTangents : public UPCGExTangentsInstancedFactory
 {
 	GENERATED_BODY()

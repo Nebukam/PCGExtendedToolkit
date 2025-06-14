@@ -37,7 +37,7 @@ struct FPCGExProbeConfigNumericCompare : public FPCGExProbeConfigBase
 	EPCGExComparison Comparison = EPCGExComparison::StrictlyGreater;
 
 	/** Rounding mode for approx. comparison modes */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	/** Attempts to prevent connections that are roughly in the same direction */
@@ -81,7 +81,7 @@ public:
 	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/connect-points/probe-compare"))
 class UPCGExProbeNumericCompareProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()

@@ -361,7 +361,6 @@ namespace PCGExTopology
 
 	void FCell::PostProcessPoints(UPCGBasePointData* InMutablePoints)
 	{
-		
 	}
 }
 
@@ -397,7 +396,7 @@ void FPCGExCellArtifactsDetails::Process(
 				i--;
 			}
 		}
-		
+
 		TagForwarding.Prune(Tags);
 		InDataFacade->Source->Tags->Append(Tags);
 	};

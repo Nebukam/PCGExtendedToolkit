@@ -8,7 +8,7 @@
 #include "Misc/PCGExFindPointOnBounds.h"
 #include "PCGExFindPointOnBoundsClusters.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/find-point-on-bounds"))
 class UPCGExFindPointOnBoundsClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

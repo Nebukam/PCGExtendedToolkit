@@ -13,7 +13,7 @@
 /**
  * 
  */
-UCLASS(DisplayName = "Default")
+UCLASS(meta=(DisplayName = "Default", PCGExNodeLibraryDoc="pathfinding/pathfinding-edges/goal-picker-default"))
 class PCGEXTENDEDTOOLKIT_API UPCGExGoalPicker : public UPCGExInstancedFactory
 {
 	GENERATED_BODY()

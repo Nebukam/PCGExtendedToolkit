@@ -396,7 +396,7 @@ namespace PCGExAssetStaging
 					Variations.Apply(Seed, ProxyPoint, Entry->Variations, EPCGExVariationMode::After);
 				}
 			}
-			
+
 			OutTransforms[Index] = ProxyPoint.Transform;
 		}
 

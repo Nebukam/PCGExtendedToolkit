@@ -25,7 +25,7 @@ namespace PCGExDiscardSame
 	class FProcessor;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="filters/discard-same"))
 class UPCGExDiscardSameSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

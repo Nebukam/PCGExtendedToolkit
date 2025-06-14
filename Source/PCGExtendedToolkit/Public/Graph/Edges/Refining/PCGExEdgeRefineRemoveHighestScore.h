@@ -11,7 +11,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Highest Score"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Highest Score", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-score"))
 class UPCGExEdgeRemoveHighestScore : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

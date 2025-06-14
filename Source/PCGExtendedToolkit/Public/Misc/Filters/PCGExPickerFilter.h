@@ -12,10 +12,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
-
-
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
 #include "PCGExPickerFilter.generated.h"
@@ -85,7 +81,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/picker"))
 class UPCGExPickerFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

@@ -13,7 +13,7 @@
 
 #include "PCGExBlendAttributes.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/uber-blend"))
 class UPCGExBlendAttributesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -27,7 +27,7 @@ public:
 #endif
 
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
-	
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;

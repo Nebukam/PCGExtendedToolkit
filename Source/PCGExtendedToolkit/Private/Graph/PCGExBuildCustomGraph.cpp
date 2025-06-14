@@ -295,7 +295,7 @@ namespace PCGExBuildCustomGraph
 		int32 NodeReserveNum = 0;
 		int32 EdgeReserveNum = 0;
 
-		{			
+		{
 			if (!IsInGameThread())
 			{
 				FGCScopeGuard Scope;
@@ -358,7 +358,7 @@ namespace PCGExBuildCustomGraph
 
 		bool bSuccessfulAttrInit = false;
 
-		{			
+		{
 			if (!IsInGameThread())
 			{
 				FGCScopeGuard Scope;

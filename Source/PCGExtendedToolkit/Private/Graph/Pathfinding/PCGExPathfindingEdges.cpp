@@ -69,7 +69,7 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 	EPCGPointNativeProperties AllocateProperties = ReferenceIO->GetAllocations();
 	EnumAddFlags(AllocateProperties, SeedsDataFacade->GetAllocations());
 	EnumAddFlags(AllocateProperties, GoalsDataFacade->GetAllocations());
-	
+
 	PathIO->IOIndex = Query->QueryIndex;
 	UPCGBasePointData* PathPoints = PathIO->GetOut();
 	PCGEx::SetNumPointsAllocated(PathPoints, PathIndices.Num() + ExtraIndices, AllocateProperties);

@@ -59,11 +59,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingConfig
 	EPCGExBlendOver BlendOver = EPCGExBlendOver::Index;
 
 	/** Max dist */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver==EPCGExBlendOver::Distance", EditConditionHides, ClampMin=0.001))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver == EPCGExBlendOver::Distance", EditConditionHides, ClampMin=0.001))
 	double MaxDistance = 300;
 
 	/** The fixed blending value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001, EditCondition="bSupportsBlending && BlendOver==EPCGExBlendOver::Fixed", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001, EditCondition="bSupportsBlending && BlendOver == EPCGExBlendOver::Fixed", EditConditionHides, HideEditConditionToggle))
 	double FixedBlend = 1;
 
 	/** Whether to use in-editor curve or an external asset. */

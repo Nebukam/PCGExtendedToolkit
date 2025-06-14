@@ -9,7 +9,7 @@
 namespace PCGExNavmesh
 {
 	FNavmeshQuery::FNavmeshQuery(const PCGExPathfinding::FSeedGoalPair& InSeedGoalPair)
-		:SeedGoalPair(InSeedGoalPair)
+		: SeedGoalPair(InSeedGoalPair)
 	{
 	}
 

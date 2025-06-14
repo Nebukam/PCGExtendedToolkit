@@ -14,7 +14,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/diagrams/delaunay-3d"))
 class UPCGExBuildDelaunayGraphSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

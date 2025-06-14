@@ -29,11 +29,11 @@ struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBas
 	EPCGExInputValueType WindowSizeInput = EPCGExInputValueType::Constant;
 
 	/** Window Size Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Window Size (Attr)", EditCondition="WindowSizeInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Window Size (Attr)", EditCondition="WindowSizeInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector WindowSizeAttribute;
 
 	/** Window Size Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Window Size", EditCondition="WindowSizeInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Window Size", EditCondition="WindowSizeInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 WindowSize = 10;
 
 	PCGEX_SETTING_VALUE_GET(WindowSize, int32, WindowSizeInput, WindowSizeAttribute, WindowSize)
@@ -43,11 +43,11 @@ struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBas
 	EPCGExInputValueType ToleranceInput = EPCGExInputValueType::Constant;
 
 	/** Tolerance Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tolerance (Attr)", EditCondition="ToleranceInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tolerance (Attr)", EditCondition="ToleranceInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FName ToleranceAttribute = FName("Tolerance");
 
 	/** Tolerance Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tolerance", EditCondition="ToleranceInput==EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tolerance", EditCondition="ToleranceInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	double Tolerance = 10;
 
 	PCGEX_SETTING_VALUE_GET(Tolerance, double, ToleranceInput, ToleranceAttribute, Tolerance)
@@ -78,7 +78,7 @@ protected:
 	TSharedPtr<PCGExData::TBuffer<double>> Operand;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="flood-fill/fc-running-average"))
 class UPCGExFillControlsFactoryRunningAverage : public UPCGExFillControlsFactoryData
 {
 	GENERATED_BODY()

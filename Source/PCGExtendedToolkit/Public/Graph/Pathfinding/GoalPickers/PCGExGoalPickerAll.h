@@ -13,7 +13,7 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "All")
+UCLASS(MinimalAPI, meta=(DisplayName = "All", PCGExNodeLibraryDoc="pathfinding/pathfinding-edges/goal-picker-all"))
 class UPCGExGoalPickerAll : public UPCGExGoalPicker
 {
 	GENERATED_BODY()

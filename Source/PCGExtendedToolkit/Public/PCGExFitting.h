@@ -75,16 +75,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExScaleToFitDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFitMode ScaleToFitMode = EPCGExFitMode::Uniform;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode==EPCGExFitMode::Uniform", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode == EPCGExFitMode::Uniform", EditConditionHides))
 	EPCGExScaleToFit ScaleToFit = EPCGExScaleToFit::Min;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode==EPCGExFitMode::Individual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode == EPCGExFitMode::Individual", EditConditionHides))
 	EPCGExScaleToFit ScaleToFitX = EPCGExScaleToFit::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode==EPCGExFitMode::Individual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode == EPCGExFitMode::Individual", EditConditionHides))
 	EPCGExScaleToFit ScaleToFitY = EPCGExScaleToFit::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode==EPCGExFitMode::Individual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode == EPCGExFitMode::Individual", EditConditionHides))
 	EPCGExScaleToFit ScaleToFitZ = EPCGExScaleToFit::None;
 
 	void Process(
@@ -120,15 +120,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleJustifyDetails
 	EPCGExJustifyFrom From = EPCGExJustifyFrom::Center;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="From==EPCGExJustifyFrom::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="From == EPCGExJustifyFrom::Custom", EditConditionHides))
 	EPCGExInputValueType FromInput = EPCGExInputValueType::Constant;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="From (Attr)", EditCondition="From==EPCGExJustifyFrom::Custom && FromInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="From (Attr)", EditCondition="From == EPCGExJustifyFrom::Custom && FromInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector FromSourceAttribute;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="From", EditCondition="From==EPCGExJustifyFrom::Custom && FromInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="From", EditCondition="From == EPCGExJustifyFrom::Custom && FromInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double FromConstant = 0.5;
 
 	TSharedPtr<PCGExData::TBuffer<double>> FromGetter;
@@ -139,15 +139,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleJustifyDetails
 	EPCGExJustifyTo To = EPCGExJustifyTo::Same;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="To==EPCGExJustifyTo::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="To == EPCGExJustifyTo::Custom", EditConditionHides))
 	EPCGExInputValueType ToInput = EPCGExInputValueType::Constant;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="To (Attr)", EditCondition="To==EPCGExJustifyTo::Custom && ToInput!=EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="To (Attr)", EditCondition="To == EPCGExJustifyTo::Custom && ToInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector ToSourceAttribute;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="To", EditCondition="To==EPCGExJustifyTo::Custom && ToInput==EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="To", EditCondition="To == EPCGExJustifyTo::Custom && ToInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double ToConstant = 0.5;
 
 	TSharedPtr<PCGExData::TBuffer<double>> ToGetter;

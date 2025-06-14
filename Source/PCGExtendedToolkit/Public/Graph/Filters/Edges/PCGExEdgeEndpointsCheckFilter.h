@@ -39,7 +39,7 @@ struct FPCGExEdgeEndpointsCheckFilterConfig
 	EPCGExEdgeEndpointsCheckMode Mode = EPCGExEdgeEndpointsCheckMode::Both;
 
 	/** The expected result of the filter, in regard to the selected mode. i.e, if mode = "Both" and Expects = "Pass", both edge' endpoints must pass the filters for the check to pass, otherwise it fails. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Comparison", EditCondition="Mode!=EPCGExEdgeEndpointsCheckMode::SeeSaw"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Comparison", EditCondition="Mode != EPCGExEdgeEndpointsCheckMode::SeeSaw"))
 	EPCGExFilterResult Expects = EPCGExFilterResult::Pass;
 
 	/** */
@@ -94,7 +94,7 @@ namespace PCGExEdgeEndpointsCheck
 
 
 /** Outputs a single GraphParam to be consumed by other nodes */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/endpoints-check"))
 class UPCGExEdgeEndpointsCheckFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
@@ -124,5 +124,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

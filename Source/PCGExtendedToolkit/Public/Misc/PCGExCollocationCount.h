@@ -13,7 +13,7 @@
 
 #include "PCGExCollocationCount.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/collocation-count"))
 class UPCGExCollocationCountSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

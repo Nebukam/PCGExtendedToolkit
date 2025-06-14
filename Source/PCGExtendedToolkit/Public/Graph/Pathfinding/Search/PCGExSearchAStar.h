@@ -24,7 +24,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, DisplayName = "A*", meta=(ToolTip ="A* Search. Returns early with the least possible amount of traversed nodes."))
+UCLASS(MinimalAPI, meta=(DisplayName = "A*", ToolTip ="A* Search. Returns early with the least possible amount of traversed nodes.", PCGExNodeLibraryDoc="pathfinding/search-algorithms/a-a-star"))
 class UPCGExSearchAStar : public UPCGExSearchInstancedFactory
 {
 	GENERATED_BODY()

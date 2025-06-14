@@ -197,7 +197,7 @@ namespace PCGExPointFilter
 			if (Octree)
 			{
 				int32 Ping = 0;
-				
+
 				Octree->FindElementsWithBoundsTest(
 					FBoxCenterAndExtent(Pos, FVector::OneVector), [&](
 					const PCGEx::FIndexedItem& Item)
@@ -205,7 +205,7 @@ namespace PCGExPointFilter
 						Ping++;
 						UpdateInclusionClosest(Pos, Item.Index, State, ClosestDist);
 					});
-				
+
 				if (Ping == 0) { EnumAddFlags(State, Outside); }
 			}
 			else
