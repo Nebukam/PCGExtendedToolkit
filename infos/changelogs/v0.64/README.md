@@ -16,11 +16,23 @@ If you're upgrading from 5.x to 5.6, make sure to check[ this page](5.x-5.6-impo
 
 Find cluster hull is a very handy shortcut node to automatically find the wrapping hull of any and all clusters.
 
+<figure><img src="../../../.gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
+
 #### Sampling:
 
 ### [Sample Nearest Path](../../../node-library/sampling/nearest-spline-1.md) (WIP)
 
 Sample nearest path is similar to Sample nearest spline, but allows to sample path point attributes and path data-level domain values.
+
+<figure><img src="../../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+{% hint style="success" %}
+Lowkey update on two other sampling nodes ([_Nearest point_](../../../node-library/sampling/nearest-point.md)_,_ [_Nearest bounds_](../../../node-library/sampling/nearest-bounds.md)) now **support multiple data as inputs**, and `Best Candidate` also support cross-data sorting.
+
+_This assume that all input targets have the necessary attributes you want to sample etc._
+{% endhint %}
+
+<figure><img src="../../../.gitbook/assets/image (1).png" alt=""><figcaption><p>This was important to be able to sample the @Data domain</p></figcaption></figure>
 
 ## Filters
 
@@ -45,7 +57,7 @@ Additionally, the Attribute Check filter now support additional constraints rela
 
 [Spline](../../../node-library/filters/filters-points/spatial/spline-inclusion.md) & [Path](../../../node-library/filters/filters-points/spatial/path-inclusion.md) inclusions filter have been pimped to allow to test inside/outside based on a polygonal projection as opposed to pure spatial detection. This is now the default behavior for new & existing  inclusions filters.&#x20;
 
-> In the case of splines, an appximative polygon representation is generated from the spline, so it's important to fine-tune the `Fidelity` parameter if you work with very curvy splines with few control points and extreme tangents.
+> In the case of splines, an approximative polygon representation is generated from the spline, so it's important to fine-tune the `Fidelity` parameter if you work with very curvy splines with few control points and extreme tangents.
 
 Additionally, they now have the same min/max inclusion counter found on the [polygon 2D inclusion](../../../node-library/filters/filters-points/spatial/polygon-2d-inclusion.md) filter — which remains faster for these tasks.
 
@@ -61,7 +73,7 @@ Additionally, they now have the same min/max inclusion counter found on the [pol
 * [Simplify Cluster](../../../node-library/clusters/simplify.md) now supports edge filters to drive keep/preserve nodes, as well as fusing collocated points within a given distance.
 * Documentation wishful thinking : each node now has a button that opens the matching documentation page on gitbook!
 
-
+<figure><img src="../../../.gitbook/assets/image (2).png" alt=""><figcaption><p>Blend ops now have icons to make them easily identifiable!</p></figcaption></figure>
 
 ## Bugfixes
 

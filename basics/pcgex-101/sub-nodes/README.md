@@ -26,7 +26,7 @@ The major advantage of sub-nodes is all-over flexibility, inversion of control, 
 * They can be rerouted
 * They can be passed around using subgraph pins
 
-<figure><img src="../../../.gitbook/assets/image (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../../.gitbook/assets/image (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 {% hint style="info" %}
 In order to pass sub-nodes through a subgraph pin, `Attribute Set` type is preferred, but `Any` and `Point or Params` should work fine.
@@ -59,7 +59,7 @@ Sub-nodes are identified using a custom extra icon that's the same on both outpu
 It's also worth nothing that whenever this pattern is used, **these input pins always support multiple sub-nodes**.
 {% endhint %}
 
-<figure><img src="../../../.gitbook/assets/image (3) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../../.gitbook/assets/image (3) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 ### Technical Notes
 
