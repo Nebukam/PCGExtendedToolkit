@@ -261,14 +261,14 @@ namespace PCGExGeo
 
 	void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid)
 	{
-		OutCentroid = FVector::Zero();
+		OutCentroid = FVector::ZeroVector;
 		for (int i = 0; i < 4; i++) { OutCentroid += Positions[Vtx[i]]; }
 		OutCentroid /= 4;
 	}
 
 	void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCentroid)
 	{
-		OutCentroid = FVector::Zero();
+		OutCentroid = FVector::ZeroVector;
 		for (int i = 0; i < 3; i++) { OutCentroid += Positions[Vtx[i]]; }
 		OutCentroid /= 3;
 	}

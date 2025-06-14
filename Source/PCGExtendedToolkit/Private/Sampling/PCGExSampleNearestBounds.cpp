@@ -154,6 +154,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 			{
 				for (const TSharedRef<PCGExData::FFacade>& Facade : Context->TargetFacades)
 				{
+					// TODO : Preload if relevant
 					TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
 					if (!LookAtUpGetter->Init(Context, Facade, false))
 					{
@@ -424,8 +425,8 @@ namespace PCGExSampleNearestBounds
 			FVector WeightedUp = SafeUpVector;
 			if (Settings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
 
-			FVector WeightedSignAxis = FVector::Zero();
-			FVector WeightedAngleAxis = FVector::Zero();
+			FVector WeightedSignAxis = FVector::ZeroVector;
+			FVector WeightedAngleAxis = FVector::ZeroVector;
 
 			// Post-process weighted points and compute local data
 			PCGEx::FOpStats SampleTracker{};

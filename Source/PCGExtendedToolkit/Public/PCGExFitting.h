@@ -227,10 +227,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariations
 
 	/** Index picking mode*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FVector OffsetMin = FVector::Zero();
+	FVector OffsetMin = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FVector OffsetMax = FVector::Zero();
+	FVector OffsetMax = FVector::ZeroVector;
 
 	/** Set offset in world space */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

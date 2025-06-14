@@ -10,9 +10,7 @@
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Geometry/PCGExGeoPointBox.h"
 
