@@ -117,6 +117,7 @@
     * [Probe : Anisotropic](node-library/clusters/connect-points/probe-anisotropic.md)
     * [Probe : Closest](node-library/clusters/connect-points/probe-closest.md)
     * [Probe : Direction](node-library/clusters/connect-points/probe-direction.md)
+    * [Probe : Tensor](node-library/clusters/connect-points/probe-direction-1.md)
     * [Probe : Index](node-library/clusters/connect-points/probe-index.md)
     * [Probe : Compare](node-library/clusters/connect-points/probe-compare.md)
   * [Paths Interop](node-library/clusters/paths-interop/README.md)
