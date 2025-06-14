@@ -254,12 +254,22 @@ namespace PCGExData
 
 	void FMultiFacadePreloader::OnSubloadComplete()
 	{
-		for (const TSharedPtr<FFacadePreloader>& Preloader : Preloaders) { if (!Preloader->IsLoaded()) { return; } }
+		{
+			FReadScopeLock ReadScopeLock(LoadingLock);
+			if (bLoaded) { return; }
+			for (const TSharedPtr<FFacadePreloader>& Preloader : Preloaders) { if (!Preloader->IsLoaded()) { return; } }
+		}
+		
 		OnLoadingEnd();
 	}
 
-	void FMultiFacadePreloader::OnLoadingEnd() const
+	void FMultiFacadePreloader::OnLoadingEnd()
 	{
+		FWriteScopeLock WriteScopeLock(LoadingLock);
+
+		if (bLoaded) { return; }
+		bLoaded = true;
+
 		PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 		if (OnCompleteCallback) { OnCompleteCallback(); }
 	}

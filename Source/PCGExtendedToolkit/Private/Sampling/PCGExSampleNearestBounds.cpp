@@ -144,9 +144,11 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		Context->SetAsyncState(PCGEx::State_FacadePreloading);
-		Context->PauseContext();
-		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context]()
+		
+		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
+		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
 		{
+			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 			// Prep look up getters
 			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 			{
