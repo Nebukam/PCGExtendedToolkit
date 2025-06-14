@@ -139,9 +139,12 @@ namespace PCGExData
 
 	class PCGEXTENDEDTOOLKIT_API FMultiFacadePreloader : public TSharedFromThis<FMultiFacadePreloader>
 	{
+		FRWLock LoadingLock;
+		
 		TArray<TSharedPtr<FFacadePreloader>> Preloaders;
 		TWeakPtr<FPCGContextHandle> WeakHandle;
-
+		bool bLoaded = false;
+		
 	public:
 		FMultiFacadePreloader(const TArray<TSharedPtr<FFacade>>& InDataFacades);
 		FMultiFacadePreloader(const TArray<TSharedRef<FFacade>>& InDataFacades);
@@ -160,6 +163,6 @@ namespace PCGExData
 		
 	protected:
 		void OnSubloadComplete();
-		void OnLoadingEnd() const;
+		void OnLoadingEnd();
 	};
 }

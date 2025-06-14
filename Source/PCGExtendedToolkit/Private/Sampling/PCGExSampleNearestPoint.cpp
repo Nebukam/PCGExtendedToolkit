@@ -153,8 +153,12 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		Context->SetAsyncState(PCGEx::State_FacadePreloading);
-		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context]()
+
+		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
+		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
 		{
+			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
+			
 			// Prep weights
 			if (Settings->WeightMode != EPCGExSampleWeightMode::Distance)
 			{
