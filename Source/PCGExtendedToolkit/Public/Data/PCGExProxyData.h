@@ -75,7 +75,12 @@ namespace PCGExData
 		virtual bool Validate(const FProxyDescriptor& InDescriptor) const { return InDescriptor.RealType == RealType && InDescriptor.WorkingType == WorkingType; }
 		virtual TSharedPtr<IBuffer> GetBuffer() const { return nullptr; }
 		virtual bool EnsureReadable() const { return true; }
+
+#define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) FORCEINLINE virtual _TYPE ReadAs##_NAME(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(ReadAs##_NAME, _TYPE{})
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
+#undef PCGEX_CONVERTING_READ
 	};
+
 
 	template <typename T_WORKING>
 	class TBufferProxy : public IBufferProxy
@@ -91,6 +96,13 @@ namespace PCGExData
 		virtual void Set(const int32 Index, const T_WORKING& Value) const = 0;
 		virtual T_WORKING GetCurrent(const int32 Index) const { return Get(Index); };
 		virtual TSharedPtr<IBuffer> GetBuffer() const override { return nullptr; }
+
+#define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) FORCEINLINE virtual _TYPE ReadAs##_NAME(const int32 Index) const override { \
+		if constexpr (std::is_same_v<_TYPE, T_WORKING>) { return Get(Index); } \
+		else { return PCGEx::Convert<T_WORKING, _TYPE>(Get(Index)); } \
+	}
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
+#undef PCGEX_CONVERTING_READ
 	};
 
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection>

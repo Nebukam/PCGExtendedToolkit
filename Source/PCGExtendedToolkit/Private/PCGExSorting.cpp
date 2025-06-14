@@ -90,24 +90,77 @@ UPCGExFactoryData* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGExContex
 FString UPCGExSortingRuleProviderSettings::GetDisplayName() const { return Config.GetDisplayName(); }
 #endif
 
-TArray<FPCGExSortRuleConfig> PCGExSorting::GetSortingRules(FPCGExContext* InContext, const FName InLabel)
+namespace PCGExSorting
 {
-	TArray<FPCGExSortRuleConfig> OutRules;
-	TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
-	if (!PCGExFactories::GetInputFactories(InContext, InLabel, Factories, {PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
-	for (const UPCGExSortingRule* Factory : Factories) { OutRules.Add(Factory->Config); }
+	FPointSorter::FPointSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs)
+		: ExecutionContext(InContext), DataFacade(InDataFacade)
+	{
+		const UPCGData* InData = InDataFacade->Source->GetIn();
+		FName Consumable = NAME_None;
 
-	return OutRules;
-}
+		for (const FPCGExSortRuleConfig& RuleConfig : InRuleConfigs)
+		{
+			PCGEX_MAKE_SHARED(NewRule, FPCGExSortRule, RuleConfig)
+			Rules.Add(NewRule);
 
-void PCGExSorting::PrepareRulesAttributeBuffers(FPCGExContext* InContext, const FName InLabel, PCGExData::FFacadePreloader& FacadePreloader)
-{
-	TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
-	if (!PCGExFactories::GetInputFactories(InContext, InLabel, Factories, {PCGExFactories::EType::RuleSort}, false)) { return; }
-	for (const UPCGExSortingRule* Factory : Factories) { FacadePreloader.Register<double>(InContext, Factory->Config.Selector); }
-}
+			if (InContext->bCleanupConsumableAttributes && InData) { PCGEX_CONSUMABLE_SELECTOR(RuleConfig.Selector, Consumable) }
+		}
+	}
 
-void PCGExSorting::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>& InRuleConfigs)
-{
-	for (const FPCGExSortRuleConfig& Rule : InRuleConfigs) { FacadePreloader.Register<double>(InContext, Rule.Selector); }
+	bool FPointSorter::Init(FPCGExContext* InContext)
+	{
+		for (int i = 0; i < Rules.Num(); i++)
+		{
+			const TSharedPtr<FPCGExSortRule> Rule = Rules[i];
+
+			TSharedPtr<PCGExData::IBufferProxy> Buffer = nullptr;
+
+			PCGExData::FProxyDescriptor Descriptor(DataFacade);
+			Descriptor.bWantsDirect = true;
+
+			if (Descriptor.CaptureStrict(InContext, Rule->Selector, PCGExData::EIOSide::In)) { Buffer = PCGExData::GetProxyBuffer(InContext, Descriptor); }
+
+			if (!Buffer)
+			{
+				Rules.RemoveAt(i);
+				i--;
+
+				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
+				continue;
+			}
+
+			Rule->Buffer = Buffer;
+		}
+
+		return !Rules.IsEmpty();
+	}
+
+	bool FPointSorter::Sort(const int32 A, const int32 B)
+	{
+		int Result = 0;
+		for (const TSharedPtr<FPCGExSortRule>& Rule : Rules)
+		{
+			const double ValueA = Rule->Buffer->ReadAsDouble(A);
+			const double ValueB = Rule->Buffer->ReadAsDouble(B);
+			Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
+			if (Result != 0)
+			{
+				if (Rule->bInvertRule) { Result *= -1; }
+				break;
+			}
+		}
+
+		if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
+		return Result < 0;
+	}
+
+	TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel)
+	{
+		TArray<FPCGExSortRuleConfig> OutRules;
+		TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
+		if (!PCGExFactories::GetInputFactories(InContext, InLabel, Factories, {PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
+		for (const UPCGExSortingRule* Factory : Factories) { OutRules.Add(Factory->Config); }
+
+		return OutRules;
+	}
 }

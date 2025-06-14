@@ -307,19 +307,18 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
+	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
+	TSharedPtr<PCGEx::FIndexedItemOctree> TargetsOctree;
 	TArray<TSharedRef<PCGExData::FFacade>> TargetFacades;
 	TArray<const PCGPointOctree::FPointOctree*> TargetOctrees;
 	TArray<TSharedPtr<PCGExData::TBuffer<double>>> TargetWeights;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
 
-	TSharedPtr<PCGEx::FIndexedItemOctree> TargetsOctree;
-
-	TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
+	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
 
-	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 	int32 NumMaxTargets = 0;
 
 	FRuntimeFloatCurve RuntimeWeightCurve;

@@ -163,7 +163,21 @@ namespace PCGExSampling
 		double TotalWeight = 0;
 		int32 Index = 0;
 
-		if (WeightRange == -1)
+		if (WeightRange == -2)
+		{
+			// Don't remap weight
+			for (const PCGExData::FElement& Element : Elements)
+			{
+				const int32 IOIdx = IdxLookup->Get(Element.IO);
+				if (IOIdx == -1) { continue; }
+
+				const double Weight = Weights[Element];
+				OutWeightedPoints.Emplace(Element.Index, Weight, IOIdx);
+				TotalWeight += Weight;
+				Index++;
+			}
+		}
+		else if (WeightRange == -1)
 		{
 			double InternalRange = 0;
 			for (const TPair<PCGExData::FElement, double>& W : Weights) { InternalRange = FMath::Max(InternalRange, W.Value); }

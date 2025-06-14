@@ -87,9 +87,8 @@ namespace PCGExReversePointOrder
 
 		if (Settings->Method == EPCGExPointReverseMethod::SortingRules)
 		{
-			Sorter = MakeShared<PCGExSorting::TPointSorter<true>>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+			Sorter = MakeShared<PCGExSorting::FPointSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
 			Sorter->SortDirection = Settings->SortDirection;
-			Sorter->RegisterBuffersDependencies(FacadePreloader);
 		}
 		else if (Settings->Method == EPCGExPointReverseMethod::Winding && Settings->ProjectionDetails.bLocalProjectionNormal)
 		{
@@ -110,7 +109,7 @@ namespace PCGExReversePointOrder
 
 		if (Sorter)
 		{
-			if (!Sorter->Init())
+			if (!Sorter->Init(Context))
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some sorting rules could not be processed."));
 				bReversed = false;

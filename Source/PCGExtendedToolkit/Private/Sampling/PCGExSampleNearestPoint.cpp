@@ -68,17 +68,13 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
+	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)
+
 	if (Settings->BlendingInterface == EPCGExBlendingInterface::Individual)
 	{
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
-		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
-
 		PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 			Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
 			{PCGExFactories::EType::Blending}, false);
-	}
-	else
-	{
 	}
 
 	FBox OctreeBounds = FBox(ForceInit);
@@ -131,15 +127,12 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 
 	Context->TargetsPreloader = MakeShared<PCGExData::FMultiFacadePreloader>(Context->TargetFacades);
 
-	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)
-
 	Context->DistanceDetails = Settings->DistanceDetails.MakeDistances();
 
 	if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
-		Context->Sorter = MakeShared<PCGExSorting::TPointSorter<>>(Context, Context->TargetFacades[0], PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+		Context->Sorter = MakeShared<PCGExSorting::FPointSorter>(Context, Context->TargetFacades[0], PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
 		Context->Sorter->SortDirection = Settings->SortDirection;
-		Context->TargetsPreloader->ForEach([&](PCGExData::FFacadePreloader& Preloader) { Context->Sorter->RegisterBuffersDependencies(Preloader); });
 	}
 
 	Context->TargetsPreloader->ForEach(
@@ -213,7 +206,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 				}
 			}
 
-			if (Context->Sorter && !Context->Sorter->Init())
+			if (Context->Sorter && !Context->Sorter->Init(Context))
 			{
 				Context->CancelExecution(TEXT("Invalid sort rules"));
 				return;
@@ -280,12 +273,7 @@ namespace PCGExSampleNearestPoints
 		// Allocate edge native properties
 
 		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
-
-		if (Context->ApplySampling.WantsApply())
-		{
-			AllocateFor |= EPCGPointNativeProperties::Transform;
-		}
-
+		if (Context->ApplySampling.WantsApply()) { AllocateFor |= EPCGPointNativeProperties::Transform; }
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
 
 		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
@@ -323,10 +311,7 @@ namespace PCGExSampleNearestPoints
 
 		if (Settings->bWriteLookAtTransform)
 		{
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
-			{
-			}
-			else
+			if (Settings->LookAtUpSelection != EPCGExSampleSource::Target)
 			{
 				LookAtUpGetter = Settings->GetValueSettingLookAtUp();
 				if (!LookAtUpGetter->Init(Context, PointDataFacade)) { return false; }
@@ -371,7 +356,6 @@ namespace PCGExSampleNearestPoints
 		DataBlender->InitTrackers(Trackers);
 
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
-
 		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
@@ -398,7 +382,7 @@ namespace PCGExSampleNearestPoints
 			if (RangeMax == 0) { Union->Elements.Reserve(Context->NumMaxTargets); }
 
 			PCGExData::FPoint SinglePick(-1, -1);
-			double MinMaxDist = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
+			double Det = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
 
 			auto SampleTarget = [&](const PCGExData::FPoint& Sample)
 			{
@@ -429,11 +413,11 @@ namespace PCGExSampleNearestPoints
 					{
 						if (!Union->IsEmpty()) { bReplaceWithCurrent = Context->Sorter->Sort(Sample.Index, Union->Elements[0].Index); }
 					}
-					else if (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget && MinMaxDist > DistSquared)
+					else if (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget && Det > DistSquared)
 					{
 						bReplaceWithCurrent = true;
 					}
-					else if (Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget && MinMaxDist < DistSquared)
+					else if (Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget && Det < DistSquared)
 					{
 						bReplaceWithCurrent = true;
 					}
@@ -441,7 +425,7 @@ namespace PCGExSampleNearestPoints
 					if (bReplaceWithCurrent)
 					{
 						SinglePick = Sample;
-						MinMaxDist = DistSquared;
+						Det = DistSquared;
 						Union->Reset();
 						Union->AddWeighted_Unsafe(Sample, DistSquared);
 					}
