@@ -65,6 +65,8 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestPath)
 
+	PCGEX_FOREACH_FIELD_NEARESTPATH(PCGEX_OUTPUT_VALIDATE_NAME)
+	
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
@@ -125,8 +127,12 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 	Context->PathsOctree = MakeShared<PCGEx::FIndexedItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
 	for (int i = 0; i < Context->Paths.Num(); ++i) { Context->PathsOctree->AddElement(PCGEx::FIndexedItem(i, Context->Paths[i]->Bounds)); }
 
-	PCGEX_FOREACH_FIELD_NEARESTPATH(PCGEX_OUTPUT_VALIDATE_NAME)
-
+	if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
+	{
+		Context->Sorter = MakeShared<PCGExSorting::FPointSorter>(PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
+		Context->Sorter->SortDirection = Settings->SortDirection;
+	}
+	
 	Context->TargetsPreloader = MakeShared<PCGExData::FMultiFacadePreloader>(Context->TargetFacades);
 	if (!Context->BlendingFactories.IsEmpty())
 	{
@@ -169,6 +175,13 @@ bool FPCGExSampleNearestPathElement::ExecuteInternal(FPCGContext* InContext) con
 		Context->SetAsyncState(PCGEx::State_FacadePreloading);
 		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context]()
 		{
+		
+			if (Context->Sorter && !Context->Sorter->Init(Context, Context->TargetFacades))
+			{
+				Context->CancelExecution(TEXT("Invalid sort rules"));
+				return;
+			}
+			
 			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestPath::FProcessor>>(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestPath::FProcessor>>& NewBatch)
@@ -323,6 +336,10 @@ namespace PCGExSampleNearestPath
 
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
+		TArray<PCGExData::FWeightedPoint> OutWeightedPoints;
+		TArray<PCGEx::FOpStats> Trackers;
+		DataBlender->InitTrackers(Trackers);
+		
 		TArray<PCGExPolyLine::FSample> Samples;
 		Samples.Reserve(Context->Paths.Num());
 
@@ -346,6 +363,7 @@ namespace PCGExSampleNearestPath
 
 			double RangeMin = RangeMinGetter->Read(Index);
 			double RangeMax = RangeMaxGetter->Read(Index);
+			
 			if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
 			double WeightedDistance = 0;
