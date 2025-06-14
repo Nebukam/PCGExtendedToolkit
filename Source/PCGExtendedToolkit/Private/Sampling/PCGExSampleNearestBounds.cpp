@@ -24,14 +24,11 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
+	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
+	
 	if (SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
-		PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "The point data set to check against.", Required, {})
 		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
-	}
-	else
-	{
-		PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
 	}
 
 	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations, used by Individual (non-monolithic) blending interface.", Normal, {})
@@ -75,43 +72,29 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	FBox OctreeBounds = FBox(ForceInit);
 
-	if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
+
+	TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(
+		Context, PCGEx::SourceBoundsLabel, PCGExData::EIOInit::NoInit, true);
+
+	if (Targets->IsEmpty())
 	{
-		// Only grab the first target
-		if (TSharedPtr<PCGExData::FFacade> SingleFacade = PCGExData::TryGetSingleFacade(Context, PCGEx::SourceBoundsLabel, true, true))
-		{
-			SingleFacade->Idx = 0;
-
-			Context->TargetFacades.Add(SingleFacade.ToSharedRef());
-			Context->Clouds.Add(SingleFacade->GetCloud(Settings->BoundsSource));
-
-			OctreeBounds += SingleFacade->GetIn()->GetBounds();
-		}
+		if (!Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (empty datasets)")); }
+		return false;
 	}
-	else
+
+	Context->TargetFacades.Reserve(Targets->Pairs.Num());
+
+	for (const TSharedPtr<PCGExData::FPointIO>& IO : Targets->Pairs)
 	{
-		TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(
-			Context, PCGEx::SourceBoundsLabel, PCGExData::EIOInit::NoInit, true);
+		TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
+		TargetFacade->Idx = Context->TargetFacades.Num();
 
-		if (Targets->IsEmpty())
-		{
-			if (!Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (empty datasets)")); }
-			return false;
-		}
+		Context->TargetFacades.Add(TargetFacade.ToSharedRef());
+		Context->Clouds.Add(TargetFacade->GetCloud(Settings->BoundsSource));
 
-		Context->TargetFacades.Reserve(Targets->Pairs.Num());
-
-		for (const TSharedPtr<PCGExData::FPointIO>& IO : Targets->Pairs)
-		{
-			TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
-			TargetFacade->Idx = Context->TargetFacades.Num() - 1;
-
-			Context->TargetFacades.Add(TargetFacade.ToSharedRef());
-			Context->Clouds.Add(TargetFacade->GetCloud(Settings->BoundsSource));
-
-			OctreeBounds += TargetFacade->GetIn()->GetBounds();
-		}
+		OctreeBounds += TargetFacade->GetIn()->GetBounds();
 	}
+
 
 	Context->TargetsOctree = MakeShared<PCGEx::FIndexedItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
 	for (int i = 0; i < Context->TargetFacades.Num(); ++i) { Context->TargetsOctree->AddElement(PCGEx::FIndexedItem(i, Context->TargetFacades[i]->GetIn()->GetBounds())); }
@@ -122,7 +105,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
-		Context->Sorter = MakeShared<PCGExSorting::FPointSorter>(Context, Context->TargetFacades[0], PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
+		Context->Sorter = MakeShared<PCGExSorting::FPointSorter>(PCGExSorting::GetSortingRules(InContext, PCGExSorting::SourceSortingRules));
 		Context->Sorter->SortDirection = Settings->SortDirection;
 	}
 
@@ -180,7 +163,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 				}
 			}
 
-			if (Context->Sorter && !Context->Sorter->Init(Context))
+			if (Context->Sorter && !Context->Sorter->Init(Context, Context->TargetFacades))
 			{
 				Context->CancelExecution(TEXT("Invalid sort rules"));
 				return;
@@ -361,7 +344,7 @@ namespace PCGExSampleNearestBounds
 				continue;
 			}
 
-			PCGExData::FPoint SinglePick(-1, -1);
+			PCGExData::FElement SinglePick(-1, -1);
 			double Det = DefaultDet;
 
 			const PCGExData::FMutablePoint Point = PointDataFacade->GetOutPoint(Index);
@@ -378,7 +361,7 @@ namespace PCGExSampleNearestBounds
 							NearbyBox->Sample(Origin, CloudSample);
 							if (!CloudSample.bIsInside) { return; }
 
-							const PCGExData::FPoint Current(NearbyBox->Index, Item.Index);
+							const PCGExData::FElement Current(NearbyBox->Index, Item.Index);
 
 							if (bSingleSample)
 							{
@@ -389,7 +372,7 @@ namespace PCGExSampleNearestBounds
 								{
 								case EPCGExBoundsSampleMethod::BestCandidate:
 									DetCandidate = NearbyBox->Index;
-									if (!Union->IsEmpty() && Det != DefaultDet) { bReplaceWithCurrent = Context->Sorter->Sort(DetCandidate, Det); }
+									if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(Current, SinglePick); }
 									else { bReplaceWithCurrent = true; }
 									break;
 								default:

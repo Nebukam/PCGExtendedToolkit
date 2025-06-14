@@ -158,6 +158,7 @@ namespace PCGExSorting
 		}
 
 		TSharedPtr<PCGExData::IBufferProxy> Buffer;
+		TArray<TSharedPtr<PCGExData::IBufferProxy>> Buffers;
 
 		FPCGAttributePropertyInputSelector Selector;
 
@@ -174,12 +175,15 @@ namespace PCGExSorting
 
 	public:
 		EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
-		TSharedRef<PCGExData::FFacade> DataFacade;
+		TSharedPtr<PCGExData::FFacade> DataFacade;
 
-		explicit FPointSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs);
+		FPointSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs);
+		explicit FPointSorter(TArray<FPCGExSortRuleConfig> InRuleConfigs);
 
 		bool Init(FPCGExContext* InContext);
+		bool Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InDataFacades);
 		bool Sort(const int32 A, const int32 B);
+		bool Sort(const PCGExData::FElement A, const PCGExData::FElement B);
 	};
 
 	PCGEXTENDEDTOOLKIT_API
