@@ -18,13 +18,19 @@ Find cluster hull is a very handy shortcut node to automatically find the wrappi
 
 <figure><img src="../../../.gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
 
+<figure><img src="../../../.gitbook/assets/image (1).png" alt=""><figcaption><p>No more seed woes with Find Contours and unnecessary processing using Find All Cells!</p></figcaption></figure>
+
 #### Sampling:
 
 ### [Sample Nearest Path](../../../node-library/sampling/nearest-spline-1.md) (WIP)
 
 Sample nearest path is similar to Sample nearest spline, but allows to sample path point attributes and path data-level domain values.
 
+<figure><img src="../../../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+
 <figure><img src="../../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+What's neat about it is that it does support Best Candidate picking, meaning you can use @Data domain path values to sort over, and for example, have points only sample values from "_the shortest path they're inside of_".
 
 {% hint style="success" %}
 Lowkey update on two other sampling nodes ([_Nearest point_](../../../node-library/sampling/nearest-point.md)_,_ [_Nearest bounds_](../../../node-library/sampling/nearest-bounds.md)) now **support multiple data as inputs**, and `Best Candidate` also support cross-data sorting.
@@ -32,7 +38,7 @@ Lowkey update on two other sampling nodes ([_Nearest point_](../../../node-libra
 _This assume that all input targets have the necessary attributes you want to sample etc._
 {% endhint %}
 
-<figure><img src="../../../.gitbook/assets/image (1).png" alt=""><figcaption><p>This was important to be able to sample the @Data domain</p></figcaption></figure>
+<figure><img src="../../../.gitbook/assets/image (1) (1).png" alt=""><figcaption><p>This was important to be able to sample the @Data domain!</p></figcaption></figure>
 
 ## Filters
 
@@ -73,7 +79,7 @@ Additionally, they now have the same min/max inclusion counter found on the [pol
 * [Simplify Cluster](../../../node-library/clusters/simplify.md) now supports edge filters to drive keep/preserve nodes, as well as fusing collocated points within a given distance.
 * Documentation wishful thinking : each node now has a button that opens the matching documentation page on gitbook!
 
-<figure><img src="../../../.gitbook/assets/image (2).png" alt=""><figcaption><p>Blend ops now have icons to make them easily identifiable!</p></figcaption></figure>
+<figure><img src="../../../.gitbook/assets/image (2) (1).png" alt=""><figcaption><p>Blend ops now have icons to make them easily identifiable!</p></figcaption></figure>
 
 ## Bugfixes
 
