@@ -846,9 +846,6 @@ void FPCGExEdgeDirectionSettings::RegisterBuffersDependencies(FPCGExContext* InC
 	{
 		FacadePreloader.Register<double>(InContext, DirSourceAttribute);
 	}
-
-	if (Sorter) { Sorter->RegisterBuffersDependencies(FacadePreloader); }
-	else if (InSortingRules) { PCGExSorting::RegisterBuffersDependencies(InContext, FacadePreloader, *InSortingRules); }
 }
 
 bool FPCGExEdgeDirectionSettings::Init(
@@ -861,9 +858,9 @@ bool FPCGExEdgeDirectionSettings::Init(
 	{
 		if (!InSortingRules) { return false; }
 
-		Sorter = MakeShared<PCGExSorting::TPointSorter<>>(InContext, InVtxDataFacade, *InSortingRules);
+		Sorter = MakeShared<PCGExSorting::FPointSorter>(InContext, InVtxDataFacade, *InSortingRules);
 		Sorter->SortDirection = DirectionChoice == EPCGExEdgeDirectionChoice::GreatestToSmallest ? EPCGExSortDirection::Descending : EPCGExSortDirection::Ascending;
-		if (!Sorter->Init()) { return false; }
+		if (!Sorter->Init(InContext)) { return false; }
 	}
 	return true;
 }

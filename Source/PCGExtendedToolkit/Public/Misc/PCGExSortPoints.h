@@ -73,7 +73,7 @@ namespace PCGExSortPoints
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPointsProcessorContext, UPCGExSortPointsBaseSettings>
 	{
-		TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
+		TSharedPtr<PCGExSorting::FPointSorter> Sorter;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

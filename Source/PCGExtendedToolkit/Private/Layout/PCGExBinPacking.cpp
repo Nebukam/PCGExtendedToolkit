@@ -246,9 +246,8 @@ namespace PCGExBinPacking
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
 		if (Settings->GetSortingRules(ExecutionContext, RuleConfigs) && !RuleConfigs.IsEmpty())
 		{
-			Sorter = MakeShared<PCGExSorting::TPointSorter<>>(Context, PointDataFacade, RuleConfigs);
+			Sorter = MakeShared<PCGExSorting::FPointSorter>(Context, PointDataFacade, RuleConfigs);
 			Sorter->SortDirection = Settings->SortDirection;
-			Sorter->RegisterBuffersDependencies(FacadePreloader);
 		}
 	}
 
@@ -318,7 +317,7 @@ namespace PCGExBinPacking
 		}
 
 		PCGEx::ArrayOfIndices(ProcessingOrder, PointDataFacade->GetNum());
-		if (Sorter && Sorter->Init()) { ProcessingOrder.Sort([&](const int32& A, const int32& B) { return Sorter->Sort(A, B); }); }
+		if (Sorter && Sorter->Init(Context)) { ProcessingOrder.Sort([&](const int32& A, const int32& B) { return Sorter->Sort(A, B); }); }
 
 		if (Settings->bAvoidWastedSpace)
 		{

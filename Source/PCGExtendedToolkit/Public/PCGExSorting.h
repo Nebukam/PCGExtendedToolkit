@@ -8,6 +8,7 @@
 
 #include "Data/PCGExData.h"
 #include "PCGExFactoryProvider.h"
+#include "Data/PCGExProxyData.h"
 
 #include "PCGExSorting.generated.h"
 
@@ -45,28 +46,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleConfig : public FPCGExInputConfig
 	/** Compare absolute value. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	//bool bAbsolute = false;
-};
-
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule
-{
-	FPCGExSortRule()
-	{
-	}
-
-	explicit FPCGExSortRule(const FPCGExSortRuleConfig& Config):
-		Selector(Config.Selector),
-		Tolerance(Config.Tolerance),
-		bInvertRule(Config.bInvertRule)
-	{
-	}
-
-	TSharedPtr<PCGExData::TBuffer<double>> Cache;
-	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> SoftCache;
-
-	FPCGAttributePropertyInputSelector Selector;
-	double Tolerance = DBL_COMPARE_TOLERANCE;
-	bool bInvertRule = false;
-	bool bAbsolute = false;
 };
 
 USTRUCT(BlueprintType)
@@ -166,131 +145,49 @@ namespace PCGExSorting
 {
 	const FName SourceSortingRules = TEXT("SortRules");
 
-	template <bool bSoftMode = false>
-	class PCGEXTENDEDTOOLKIT_API TPointSorter : public TSharedFromThis<TPointSorter<bSoftMode>>
+	class PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public TSharedFromThis<FPCGExSortRule>
+	{
+	public:
+		FPCGExSortRule() = default;
+
+		explicit FPCGExSortRule(const FPCGExSortRuleConfig& Config):
+			Selector(Config.Selector),
+			Tolerance(Config.Tolerance),
+			bInvertRule(Config.bInvertRule)
+		{
+		}
+
+		TSharedPtr<PCGExData::IBufferProxy> Buffer;
+		TArray<TSharedPtr<PCGExData::IBufferProxy>> Buffers;
+
+		FPCGAttributePropertyInputSelector Selector;
+
+		double Tolerance = DBL_COMPARE_TOLERANCE;
+		bool bInvertRule = false;
+		bool bAbsolute = false;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FPointSorter : public TSharedFromThis<FPointSorter>
 	{
 	protected:
 		FPCGExContext* ExecutionContext = nullptr;
-		TArray<TSharedRef<FPCGExSortRule>> Rules;
+		TArray<TSharedPtr<FPCGExSortRule>> Rules;
 
 	public:
 		EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
-		TSharedRef<PCGExData::FFacade> DataFacade;
+		TSharedPtr<PCGExData::FFacade> DataFacade;
 
-		explicit TPointSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs)
-			: ExecutionContext(InContext), DataFacade(InDataFacade)
-		{
-			const UPCGData* InData = InDataFacade->Source->GetIn();
-			FName Consumable = NAME_None;
+		FPointSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs);
+		explicit FPointSorter(TArray<FPCGExSortRuleConfig> InRuleConfigs);
 
-			for (const FPCGExSortRuleConfig& RuleConfig : InRuleConfigs)
-			{
-				PCGEX_MAKE_SHARED(NewRule, FPCGExSortRule, RuleConfig)
-				Rules.Add(NewRule.ToSharedRef());
-
-				if (InContext->bCleanupConsumableAttributes && InData) { PCGEX_CONSUMABLE_SELECTOR(RuleConfig.Selector, Consumable) }
-			}
-		}
-
-		void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
-		{
-			if constexpr (!bSoftMode) { for (const TSharedRef<FPCGExSortRule>& Rule : Rules) { FacadePreloader.Register<double>(ExecutionContext, Rule->Selector); } }
-		}
-
-		bool Init()
-		{
-			if constexpr (bSoftMode)
-			{
-				for (int i = 0; i < Rules.Num(); i++)
-				{
-					const TSharedPtr<FPCGExSortRule> Rule = Rules[i];
-					PCGEX_MAKE_SHARED(SoftCache, PCGEx::TAttributeBroadcaster<double>)
-
-					if (!SoftCache->Prepare(Rule->Selector, DataFacade->Source))
-					{
-						Rules.RemoveAt(i);
-						i--;
-
-						PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
-						continue;
-					}
-
-					Rule->SoftCache = SoftCache;
-				}
-			}
-			else
-			{
-				for (int i = 0; i < Rules.Num(); i++)
-				{
-					const TSharedPtr<FPCGExSortRule> Rule = Rules[i];
-					const TSharedPtr<PCGExData::TBuffer<double>> Cache = DataFacade->GetBroadcaster<double>(Rule->Selector);
-
-					if (!Cache)
-					{
-						Rules.RemoveAt(i);
-						i--;
-
-						PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
-						continue;
-					}
-
-					Rule->Cache = Cache;
-				}
-			}
-
-
-			return !Rules.IsEmpty();
-		}
-
-		bool Sort(const int32 A, const int32 B)
-		{
-			if constexpr (bSoftMode)
-			{
-				int Result = 0;
-				for (const TSharedRef<FPCGExSortRule>& Rule : Rules)
-				{
-					const double ValueA = Rule->SoftCache->SoftGet(DataFacade->Source->GetInPoint(A), 0);
-					const double ValueB = Rule->SoftCache->SoftGet(DataFacade->Source->GetInPoint(B), 0);
-					Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
-					if (Result != 0)
-					{
-						if (Rule->bInvertRule) { Result *= -1; }
-						break;
-					}
-				}
-
-				if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
-				return Result < 0;
-			}
-			else
-			{
-				int Result = 0;
-				for (const TSharedRef<FPCGExSortRule>& Rule : Rules)
-				{
-					const double ValueA = Rule->Cache->Read(A);
-					const double ValueB = Rule->Cache->Read(B);
-					Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
-					if (Result != 0)
-					{
-						if (Rule->bInvertRule) { Result *= -1; }
-						break;
-					}
-				}
-
-				if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
-				return Result < 0;
-			}
-		}
+		bool Init(FPCGExContext* InContext);
+		bool Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InDataFacades);
+		bool Sort(const int32 A, const int32 B);
+		bool Sort(const PCGExData::FElement A, const PCGExData::FElement B);
 	};
 
 	PCGEXTENDEDTOOLKIT_API
 	TArray<FPCGExSortRuleConfig> GetSortingRules(FPCGExContext* InContext, const FName InLabel);
-
-	PCGEXTENDEDTOOLKIT_API
-	void PrepareRulesAttributeBuffers(FPCGExContext* InContext, const FName InLabel, PCGExData::FFacadePreloader& FacadePreloader);
-
-	PCGEXTENDEDTOOLKIT_API
-	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>& InRuleConfigs);
 }
 
 #undef PCGEX_UNSUPPORTED_STRING_TYPES

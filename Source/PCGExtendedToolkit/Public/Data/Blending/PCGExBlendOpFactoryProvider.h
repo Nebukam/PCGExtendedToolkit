@@ -163,6 +163,8 @@ public:
 	TSharedPtr<PCGExData::FFacade> ConstantA;
 	TSharedPtr<PCGExData::FFacade> ConstantB;
 
+	bool bUsedForMultiBlendOnly = false;
+
 	int32 OpIdx = -1;
 	TSharedPtr<TArray<TSharedPtr<FPCGExBlendOperation>>> SiblingOperations;
 

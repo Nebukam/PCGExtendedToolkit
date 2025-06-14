@@ -609,7 +609,7 @@ namespace PCGExExtrudeTensors
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExExtrudeTensorsContext, UPCGExExtrudeTensorsSettings>
 	{
 	protected:
-		TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
+		TSharedPtr<PCGExSorting::FPointSorter> Sorter;
 
 		FRWLock NewExtrusionLock;
 		int32 RemainingIterations = 0;

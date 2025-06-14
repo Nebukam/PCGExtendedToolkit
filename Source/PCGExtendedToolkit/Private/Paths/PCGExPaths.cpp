@@ -181,6 +181,11 @@ namespace PCGExPaths
 		return Start == Other->Start || Start == Other->End || End == Other->Start || End == Other->End;
 	}
 
+	double FPathEdge::GetLength(const TConstPCGValueRange<FTransform>& Positions) const
+	{
+		return FVector::Dist(Positions[Start].GetLocation(), Positions[End].GetLocation());
+	}
+
 	void IPathEdgeExtra::ProcessingDone(const FPath* Path)
 	{
 	}
@@ -277,12 +282,15 @@ namespace PCGExPaths
 	{
 		if (bClosedLoop) { NumEdges = NumPoints; }
 		else { NumEdges = LastIndex; }
+		
 		LastEdge = NumEdges - 1;
 
 		Edges.SetNumUninitialized(NumEdges);
+		
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const FPathEdge& E = (Edges[i] = FPathEdge(i, (i + 1) % NumPoints, Positions, Expansion));
+			TotalLength += E.GetLength(Positions);
 			Bounds += E.Bounds.GetBox();
 		}
 	}
@@ -479,6 +487,14 @@ namespace PCGExPaths
 
 		PCGEX_MAKE_SHARED(P, TPath<false>, InTransforms, Expansion)
 		return StaticCastSharedPtr<FPath>(P);
+	}
+
+	double GetPathLength(const TSharedPtr<FPath>& InPath)
+	{
+		FPathMetrics Metrics(InPath->GetPos(0));
+		for (int i = 0; i < InPath->NumPoints; i++) { Metrics.Add(InPath->GetPos(i)); }
+		if (InPath->IsClosedLoop()) { Metrics.Add(InPath->GetPos(0)); }
+		return Metrics.Length;
 	}
 
 	FTransform GetClosestTransform(const FPCGSplineStruct& InSpline, const FVector& InLocation, const bool bUseScale)

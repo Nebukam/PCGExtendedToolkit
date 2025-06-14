@@ -318,7 +318,7 @@ namespace PCGExSampleNearestSpline
 			int32 NumSampled = 0;
 			int32 NumInClosed = 0;
 
-			bool bClosed = false;
+			bool bSampledClosedLoop = false;
 
 			double BaseRangeMin = RangeMinGetter->Read(Index);
 			double BaseRangeMax = RangeMaxGetter->Read(Index);
@@ -408,7 +408,7 @@ namespace PCGExSampleNearestSpline
 
 					if ((bClosestSample && !IsNewClosest) || !IsNewFarthest) { return; }
 
-					bClosed = InSpline.bClosedLoop;
+					bSampledClosedLoop = InSpline.bClosedLoop;
 
 					NumInside = NumInsideIncrement;
 					NumInClosed = NumInsideIncrement;
@@ -423,8 +423,8 @@ namespace PCGExSampleNearestSpline
 
 					if (InSpline.bClosedLoop)
 					{
-						bClosed = true;
-						NumInClosed++;
+						bSampledClosedLoop = true;
+						NumInClosed += NumInsideIncrement;
 					}
 
 					NumInside += NumInsideIncrement;
@@ -464,25 +464,25 @@ namespace PCGExSampleNearestSpline
 				auto ProcessSpecificAlpha = [&](const int32 TargetIndex)
 				{
 					const FPCGSplineStruct& Line = Context->Splines[TargetIndex];
-					const double SMax = Context->SegmentCounts[TargetIndex];
+					const double NumSegments = Context->SegmentCounts[TargetIndex];
 					double Time = 0;
 
 					switch (Settings->SampleAlphaMode)
 					{
 					default:
 					case EPCGExSplineSampleAlphaMode::Alpha:
-						Time = InputKey * Context->SegmentCounts[TargetIndex];
+						Time = InputKey * NumSegments;
 						break;
 					case EPCGExSplineSampleAlphaMode::Time:
-						Time = InputKey / Context->SegmentCounts[TargetIndex];
+						Time = InputKey / NumSegments;
 						break;
 					case EPCGExSplineSampleAlphaMode::Distance:
-						Time = (Context->Lengths[TargetIndex] / InputKey) * SMax;
+						Time = (InputKey / Context->Lengths[TargetIndex]) * NumSegments;
 						break;
 					}
 
-					if (Settings->bWrapClosedLoopAlpha && Line.bClosedLoop) { Time = PCGExMath::Tile(Time, 0.0, SMax); }
-					ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges), Time, SMax, Line);
+					if (Settings->bWrapClosedLoopAlpha && Line.bClosedLoop) { Time = PCGExMath::Tile(Time, 0.0, NumSegments); }
+					ProcessTarget(Line.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, Settings->bSplineScalesRanges), Time, NumSegments, Line);
 				};
 
 				// At specific alpha
@@ -601,7 +601,7 @@ namespace PCGExSampleNearestSpline
 			PCGEX_OUTPUT_VALUE(Time, Index, WeightedTime)
 			PCGEX_OUTPUT_VALUE(NumInside, Index, NumInside)
 			PCGEX_OUTPUT_VALUE(NumSamples, Index, NumSampled)
-			PCGEX_OUTPUT_VALUE(ClosedLoop, Index, bClosed)
+			PCGEX_OUTPUT_VALUE(ClosedLoop, Index, bSampledClosedLoop)
 
 			MaxDistanceValue->Set(Scope, FMath::Max(MaxDistanceValue->Get(Scope), WeightedDistance));
 			bAnySuccessLocal = true;

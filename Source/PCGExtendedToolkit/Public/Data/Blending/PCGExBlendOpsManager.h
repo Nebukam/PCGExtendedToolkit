@@ -38,9 +38,12 @@ namespace PCGExDataBlending
 		TSharedPtr<PCGExData::FFacade> TargetFacade;
 		TSharedPtr<TArray<TSharedPtr<FPCGExBlendOperation>>> Operations;
 
+		bool bUsedForMultiBlendOnly = false;
+		
 	public:
-		explicit FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-		explicit FBlendOpsManager();
+		
+		explicit FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool MultiBlendOnly = false);
+		explicit FBlendOpsManager(const bool MultiBlendOnly = false);
 		virtual ~FBlendOpsManager() override = default;
 
 		void SetWeightFacade(const TSharedPtr<PCGExData::FFacade>& InDataFacade);

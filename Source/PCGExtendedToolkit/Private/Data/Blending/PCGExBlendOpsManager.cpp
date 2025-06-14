@@ -46,7 +46,8 @@ namespace PCGExDataBlending
 		}
 	}
 
-	FBlendOpsManager::FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+	FBlendOpsManager::FBlendOpsManager(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool MultiBlendOnly)
+		: bUsedForMultiBlendOnly(MultiBlendOnly)
 	{
 		SetWeightFacade(InDataFacade);
 		SetSources(InDataFacade);
@@ -54,7 +55,8 @@ namespace PCGExDataBlending
 		Operations = MakeShared<TArray<TSharedPtr<FPCGExBlendOperation>>>();
 	}
 
-	FBlendOpsManager::FBlendOpsManager()
+	FBlendOpsManager::FBlendOpsManager(const bool MultiBlendOnly)
+		: bUsedForMultiBlendOnly(MultiBlendOnly)
 	{
 		Operations = MakeShared<TArray<TSharedPtr<FPCGExBlendOperation>>>();
 	}
@@ -107,6 +109,8 @@ namespace PCGExDataBlending
 				return false; // FAIL
 			}
 
+			Op->bUsedForMultiBlendOnly = bUsedForMultiBlendOnly;
+			
 			// Assign blender facades
 			Op->WeightFacade = WeightFacade;
 

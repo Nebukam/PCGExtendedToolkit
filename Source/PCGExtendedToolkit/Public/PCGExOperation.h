@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataPreloader.h"
 
 namespace PCGExMT
 {
