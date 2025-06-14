@@ -75,9 +75,8 @@ namespace PCGExSortPoints
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
 		Settings->GetSortingRules(ExecutionContext, RuleConfigs);
 
-		Sorter = MakeShared<PCGExSorting::TPointSorter<>>(Context, PointDataFacade, RuleConfigs);
+		Sorter = MakeShared<PCGExSorting::FPointSorter>(Context, PointDataFacade, RuleConfigs);
 		Sorter->SortDirection = Settings->SortDirection;
-		Sorter->RegisterBuffersDependencies(FacadePreloader);
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
@@ -88,7 +87,7 @@ namespace PCGExSortPoints
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		if (!Sorter->Init())
+		if (!Sorter->Init(Context))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some dataset have no valid sorting rules, they won't be sorted."));
 			return false;

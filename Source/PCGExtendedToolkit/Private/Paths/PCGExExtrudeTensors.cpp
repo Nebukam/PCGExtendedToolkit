@@ -339,9 +339,8 @@ namespace PCGExExtrudeTensors
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
 		if (Settings->GetSortingRules(ExecutionContext, RuleConfigs) && !RuleConfigs.IsEmpty())
 		{
-			Sorter = MakeShared<PCGExSorting::TPointSorter<>>(Context, PointDataFacade, RuleConfigs);
+			Sorter = MakeShared<PCGExSorting::FPointSorter>(Context, PointDataFacade, RuleConfigs);
 			Sorter->SortDirection = Settings->SortDirection;
-			Sorter->RegisterBuffersDependencies(FacadePreloader);
 		}
 	}
 
@@ -353,7 +352,7 @@ namespace PCGExExtrudeTensors
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		if (Sorter && !Sorter->Init()) { Sorter.Reset(); }
+		if (Sorter && !Sorter->Init(Context)) { Sorter.Reset(); }
 
 		StaticPaths = MakeShared<TArray<TSharedPtr<PCGExPaths::FPath>>>();
 

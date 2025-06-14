@@ -28,16 +28,16 @@ MACRO(Angle, double, 0)\
 MACRO(Time, double, 0)\
 MACRO(NumInside, int32, 0)\
 MACRO(NumSamples, int32, 0)\
-MACRO(ClosedLoop, bool, false)
+MACRO(ClosedLoop, int32, false)
 
 class UPCGExFilterFactoryData;
 
 UENUM()
 enum class EPCGExPathSamplingIncludeMode : uint8
 {
-	All            = 0 UMETA(DisplayName = "All", ToolTip="Sample all input splines"),
+	All            = 0 UMETA(DisplayName = "All", ToolTip="Sample all inputs"),
 	ClosedLoopOnly = 1 UMETA(DisplayName = "Closed loops only", ToolTip="Sample only closed loops"),
-	OpenSplineOnly = 2 UMETA(DisplayName = "Open splines only", ToolTip="Sample only open splines"),
+	OpenLoopsOnly  = 2 UMETA(DisplayName = "Open lines only", ToolTip="Sample only open lines"),
 };
 
 UENUM()
@@ -45,7 +45,7 @@ enum class EPCGExPathSampleAlphaMode : uint8
 {
 	Alpha    = 0 UMETA(DisplayName = "Alpha", ToolTip="0 - 1 value"),
 	Time     = 1 UMETA(DisplayName = "Time", ToolTip="0 - N value, where N is the number of segments"),
-	Distance = 2 UMETA(DisplayName = "Distance", ToolTip="Distance on the simple to sample value at"),
+	Distance = 2 UMETA(DisplayName = "Distance", ToolTip="Distance on the path to sample value at"),
 };
 
 namespace PCGExPolyLine
@@ -56,13 +56,15 @@ namespace PCGExPolyLine
 		{
 		}
 
-		FSample(const FTransform& InTransform, const double InDistance, const double InTime):
-			Transform(InTransform), Distance(InDistance), Time(InTime)
+		FSample(const int32 InPathIndex, const int32 InEdgeIndex, const double InDistance, const double InLerp, const double InTime):
+			PathIndex(InPathIndex), EdgeIndex(InEdgeIndex), Distance(InDistance), Lerp(InLerp), Time(InTime)
 		{
 		}
 
-		FTransform Transform;
+		int32 PathIndex = -1;
+		int32 EdgeIndex = -1;
 		double Distance = 0;
+		double Lerp = 0;
 		double Time = 0;
 	};
 
@@ -121,34 +123,39 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 
-	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
+
+#pragma region Sampling Range
+	
+	/** Type of Range Min */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType RangeMinInput = EPCGExInputValueType::Constant;
+
+	/** Minimum target range to sample targets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Range Min (Attr)", EditCondition="RangeMinInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector RangeMinAttribute;
+
+	/** Minimum target range to sample targets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMinInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	double RangeMin = 0;
 
-	/** Maximum target range. Used as fallback if LocalRangeMax is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
+	PCGEX_SETTING_VALUE_GET(RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
+
+	/** Type of Range Min */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType RangeMaxInput = EPCGExInputValueType::Constant;
+
+	/** Maximum target range to sample targets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Range Max (Attr)", EditCondition="RangeMaxInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector RangeMaxAttribute;
+
+	/** Maximum target range to sample targets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMaxInput == EPCGExInputValueType::Constant", ClampMin=0))
 	double RangeMax = 300;
 
-	/** Use a per-point minimum range*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalRangeMin = false;
+	PCGEX_SETTING_VALUE_GET(RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
 
-	/** Attribute or property to read the minimum range from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMin"))
-	FPCGAttributePropertyInputSelector LocalRangeMin;
-
-	PCGEX_SETTING_VALUE_GET_BOOL(RangeMin, double, bUseLocalRangeMin, LocalRangeMin, RangeMin)
-
-	/** Use a per-point maximum range*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalRangeMax = false;
-
-	/** Attribute or property to read the maximum range from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax"))
-	FPCGAttributePropertyInputSelector LocalRangeMax;
-
-	PCGEX_SETTING_VALUE_GET_BOOL(RangeMax, double, bUseLocalRangeMax, LocalRangeMax, RangeMax)
-
+#pragma endregion
+	
 	/** Whether spline should be sampled at a specific alpha */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	bool bSampleSpecificAlpha = false;
@@ -382,8 +389,10 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestPathElement;
 
-	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
+	TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
 	
+	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
+
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	FPCGExApplySamplingDetails ApplySampling;
@@ -434,7 +443,7 @@ namespace PCGExSampleNearestPath
 		double MaxDistance = 0;
 
 		TSharedPtr<PCGExDataBlending::FUnionOpsManager> UnionBlendOpsManager;
-		TSharedPtr<PCGExDataBlending::IUnionBlender> Blender;
+		TSharedPtr<PCGExDataBlending::IUnionBlender> DataBlender;
 
 		bool bSingleSample = false;
 		bool bClosestSample = false;
@@ -460,5 +469,7 @@ namespace PCGExSampleNearestPath
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;
+
+		virtual void Cleanup() override;
 	};
 }

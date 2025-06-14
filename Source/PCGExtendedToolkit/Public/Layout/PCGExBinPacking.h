@@ -204,7 +204,7 @@ namespace PCGExBinPacking
 	protected:
 		TSharedPtr<FBinSplit> Splitter;
 		double MinOccupation = 0;
-		TSharedPtr<PCGExSorting::TPointSorter<>> Sorter;
+		TSharedPtr<PCGExSorting::FPointSorter> Sorter;
 		TArray<TSharedPtr<FBin>> Bins;
 		TBitArray<> Fitted;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> PaddingBuffer;

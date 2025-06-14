@@ -422,7 +422,9 @@ namespace PCGExPathCrossings
 		TArray<PCGExData::FWeightedPoint> WeightedPoints;
 		TArray<PCGEx::FOpStats> Trackers;
 
-		const TSharedPtr<PCGExData::FUnionData> TempUnion = MakeShared<PCGExData::FUnionData>();
+		UnionBlender->InitTrackers(Trackers);
+		
+		const TSharedPtr<PCGExData::IUnionData> TempUnion = MakeShared<PCGExData::IUnionData>();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

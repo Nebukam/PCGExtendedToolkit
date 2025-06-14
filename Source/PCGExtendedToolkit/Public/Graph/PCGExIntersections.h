@@ -198,8 +198,8 @@ namespace PCGExGraph
 
 		TSharedPtr<FUnionNode> InsertPoint(const PCGExData::FConstPoint& Point);
 		TSharedPtr<FUnionNode> InsertPoint_Unsafe(const PCGExData::FConstPoint& Point);
-		TSharedPtr<PCGExData::FUnionData> InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
-		TSharedPtr<PCGExData::FUnionData> InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
+		TSharedPtr<PCGExData::IUnionData> InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
+		TSharedPtr<PCGExData::IUnionData> InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
 		void GetUniqueEdges(TArray<FEdge>& OutEdges);
 		void WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const;
