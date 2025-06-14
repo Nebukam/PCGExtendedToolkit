@@ -22,6 +22,11 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::InputPinProperties() 
 	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "The paths to sample.", Required, {})
 	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
 
+	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
+	{
+		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+	}
+	
 	return PinProperties;
 }
 
@@ -84,7 +89,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 		TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 		TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePolyPath(IO->GetIn(), 1, FVector::UpVector);
 		Path->IOIndex = IO->IOIndex;
-		Path->Idx = Context->Paths.Num();
+		TargetFacade->Idx = Path->Idx = Context->Paths.Num();
 
 		Context->TargetFacades.Add(TargetFacade.ToSharedRef());
 		Context->Paths.Add(Path);
