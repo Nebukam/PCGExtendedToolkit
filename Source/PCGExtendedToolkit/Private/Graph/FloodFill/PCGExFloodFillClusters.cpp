@@ -370,33 +370,67 @@ namespace PCGExClusterDiffusion
 				};
 
 			PathsTaskGroup->StartIterations(Diffusions.Num(), 1);
-			//return;
-		}
-
-		/*
-		if (Settings->PathOutput == EPCGExFloodFillPathOutput::PartialLong)
-		{
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PathsTaskGroup)
-			PathsTaskGroup->OnIterationCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
-				{
-					PCGEX_ASYNC_THIS
-					TSharedPtr<PCGExFloodFill::FDiffusion> Diff = This->Diffusions[Index];
-
-					TSet<int32> Visited;
-					Visited.Reserve(Diff->Captured.Num());
-					TArray<int32> SortedEndpointsCandidates;
-					// First, sort endpoints, then start capturing them recursively and add them to the visited stack.
-					// Stop recording and commit as soon as a point has already been visited; profit.
-					
-					for (const int32 EndpointIndex : Diff->Endpoints) { This->WriteFullPath(Index, Diff->Captured[EndpointIndex].Node->Index); }
-				};
-
-			PathsTaskGroup->StartIterations(Diffusions.Num(), 1);
 			return;
 		}
-		*/
-		
+
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PathsTaskGroup)
+		PathsTaskGroup->OnIterationCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE, SortMode = Settings->PathOutput](const int32 Index, const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				TSharedPtr<PCGExFloodFill::FDiffusion> Diff = This->Diffusions[Index];
+				const TArray<PCGExFloodFill::FCandidate>& Captured = Diff->Captured;
+
+				TSet<int32> Visited;
+				Visited.Reserve(Captured.Num());
+
+				TArray<int32> PathIndices;
+				PathIndices.Reserve(Captured.Num());
+
+				TArray<int32> Endpoints = Diff->Endpoints.Array();
+				
+				if (SortMode == EPCGExFloodFillPathOutput::PartialLong)
+				{
+					Endpoints.Sort([&](const int32 A, const int32 B) { return Captured[A].PathDistance > Captured[B].PathDistance; });
+				}
+				else if (SortMode == EPCGExFloodFillPathOutput::PartialShort)
+				{
+					Endpoints.Sort([&](const int32 A, const int32 B) { return Captured[A].PathDistance < Captured[B].PathDistance; });
+				}
+				// First, sort endpoints, then start capturing them recursively and add them to the visited stack.
+				// Stop recording and commit as soon as a point has already been visited; profit.
+
+				for (const int32 EndpointIndex : Endpoints)
+				{
+					PathIndices.Reset();
+
+					const int32 EndpointNodeIndex = Captured[EndpointIndex].Node->Index;
+
+					int32 PathNodeIndex = PCGEx::NH64A(Diff->TravelStack->Get(EndpointNodeIndex));
+					int32 PathEdgeIndex = -1;
+
+					if (PathNodeIndex != -1)
+					{
+						PathIndices.Add(This->Cluster->GetNode(EndpointNodeIndex)->PointIndex);
+
+						while (PathNodeIndex != -1)
+						{
+							const int32 CurrentIndex = PathNodeIndex;
+							PCGEx::NH64(Diff->TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
+							const int32 PathPointIndex = This->Cluster->GetNode(CurrentIndex)->PointIndex;
+							PathIndices.Add(PathPointIndex);
+
+							bool bIsAlreadyVisited = false;
+							Visited.Add(PathPointIndex, &bIsAlreadyVisited);
+							if (bIsAlreadyVisited) { PathNodeIndex = -1; }
+						}
+					}
+
+					This->WritePath(Index, PathIndices);
+				}
+			};
+
+		PathsTaskGroup->StartIterations(Diffusions.Num(), 1);
 	}
 
 	void FProcessor::WriteFullPath(const int32 DiffusionIndex, const int32 EndpointNodeIndex)
@@ -435,9 +469,24 @@ namespace PCGExClusterDiffusion
 		PathIO->IOIndex = Diffusion->SeedIndex * 1000000 + VtxDataFacade->Source->IOIndex * 1000000 + EndpointNodeIndex;
 	}
 
-	void FProcessor::WritePath(const int32 DiffusionIndex, const TArray<int32>& Points)
+	void FProcessor::WritePath(const int32 DiffusionIndex, TArray<int32>& PathIndices)
 	{
-		
+		TSharedPtr<PCGExFloodFill::FDiffusion> Diffusion = Diffusions[DiffusionIndex];
+
+		if (PathIndices.Num() < 2) { return; }
+
+		Algo::Reverse(PathIndices);
+
+		// Create a copy of the final vtx, so we get all the goodies
+
+		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
+
+		(void)PCGEx::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
+		PathIO->InheritPoints(PathIndices, 0);
+
+		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(Diffusion->SeedIndex), PathIO);
+
+		PathIO->IOIndex = Diffusion->SeedIndex * 1000000 + VtxDataFacade->Source->IOIndex * 1000000 + PathIndices[0];
 	}
 
 	void FProcessor::Cleanup()
