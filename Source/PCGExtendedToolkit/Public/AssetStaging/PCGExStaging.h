@@ -172,7 +172,7 @@ namespace PCGExStaging
 			TArray<int64> Hashes;
 			Hashes.SetNumUninitialized(HashKeys->GetNum());
 			
-			if(!HashAttributeAccessor->GetRange<int64>(Hashes, 0, *HashKeys, EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible))
+			if(!HashAttributeAccessor->GetRange<int64>(Hashes, 0, *HashKeys, EPCGAttributeAccessorFlags::AllowBroadcast))
 			{
 				return false;
 			}
