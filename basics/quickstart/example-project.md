@@ -43,3 +43,6 @@ That's pretty much all there is about it.
 The example project has a lot of "utilitary" subgraphs that handle boilerplate tasks — **these are not part of the plugin itself**, they just exist to make my life easier when making examples with a consistent format and avoid cluttering the graphs with that shouldn't be the focus.
 {% endhint %}
 
+{% hint style="danger" %}
+Note that **the example project is only maintained for the latest version of the engine**. If you're interested in older version, they are preserved in their own branch on git and do not represent the breadth of what's available on latest.
+{% endhint %}
