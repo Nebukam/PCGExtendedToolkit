@@ -38,10 +38,17 @@ enum class EPCGExFloodFillProcessing : uint8
 UENUM()
 enum class EPCGExFloodFillPathOutput : uint8
 {
-	None         = 0 UMETA(DisplayName = "None", ToolTip="Don't output any paths."),
-	Full         = 1 UMETA(DisplayName = "Full", ToolTip="Output full paths, from seed to end point -- generate a lot of overlap."),
-	PartialLong  = 2 UMETA(DisplayName = "Partial (Long)", ToolTip="Output partial paths, only endpoints will overlap. Favors longest paths first."),
-	PartialShort = 3 UMETA(DisplayName = "Partial (Short)", ToolTip="Output full paths, only endpoints will overlap. Favors shortest paths first."),
+	None       = 0 UMETA(DisplayName = "None", ToolTip="Don't output any paths."),
+	Full       = 1 UMETA(DisplayName = "Full", ToolTip="Output full paths, from seed to end point -- generate a lot of overlap."),
+	Partitions = 2 UMETA(DisplayName = "Partitions", ToolTip="Output partial paths, only endpoints will overlap. "),
+};
+
+UENUM()
+enum class EPCGExFloodFillPathPartitions : uint8
+{
+	Length = 0 UMETA(DisplayName = "Length", ToolTip="TBD"),
+	Score  = 1 UMETA(DisplayName = "Score", ToolTip="TBD"),
+	Depth  = 2 UMETA(DisplayName = "Depth", ToolTip="TBD"),
 };
 
 USTRUCT(BlueprintType)
@@ -146,6 +153,14 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths")
 	EPCGExFloodFillPathOutput PathOutput = EPCGExFloodFillPathOutput::None;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(DisplayName=" ├─ Partition over", EditCondition="PathOutput == EPCGExFloodFillPathOutput::Partitions"))
+	EPCGExFloodFillPathPartitions PathPartitions = EPCGExFloodFillPathPartitions::Length;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(DisplayName=" └─ Sorting", EditCondition="PathOutput == EPCGExFloodFillPathOutput::Partitions"))
+	EPCGExSortDirection PartitionSorting = EPCGExSortDirection::Ascending;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(EditCondition="PathOutput != EPCGExFloodFillPathOutput::None"))

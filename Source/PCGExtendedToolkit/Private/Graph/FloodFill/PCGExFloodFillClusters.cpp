@@ -375,7 +375,7 @@ namespace PCGExClusterDiffusion
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PathsTaskGroup)
 		PathsTaskGroup->OnIterationCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE, SortMode = Settings->PathOutput](const int32 Index, const PCGExMT::FScope& Scope)
+			[PCGEX_ASYNC_THIS_CAPTURE, SortOver = Settings->PathPartitions, SortOrder = Settings->PartitionSorting](const int32 Index, const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				TSharedPtr<PCGExFloodFill::FDiffusion> Diff = This->Diffusions[Index];
@@ -388,17 +388,22 @@ namespace PCGExClusterDiffusion
 				PathIndices.Reserve(Captured.Num());
 
 				TArray<int32> Endpoints = Diff->Endpoints.Array();
-				
-				if (SortMode == EPCGExFloodFillPathOutput::PartialLong)
+
+				switch (SortOver)
 				{
-					Endpoints.Sort([&](const int32 A, const int32 B) { return Captured[A].PathDistance > Captured[B].PathDistance; });
+				case EPCGExFloodFillPathPartitions::Length:
+					if (SortOrder == EPCGExSortDirection::Ascending) { Endpoints.Sort([&](const int32 A, const int32 B) { return Captured[A].PathDistance < Captured[B].PathDistance; }); }
+					else { Endpoints.Sort([&](const int32 A, const int32 B) { return Captured[A].PathDistance > Captured[B].PathDistance; }); }
+					break;
+				case EPCGExFloodFillPathPartitions::Score:
+					if (SortOrder == EPCGExSortDirection::Ascending) { Endpoints.Sort([&](const int32 A, const int32 B) { return Captured[A].PathScore < Captured[B].PathScore; }); }
+					else { Endpoints.Sort([&](const int32 A, const int32 B) { return Captured[A].PathScore > Captured[B].PathScore; }); }
+					break;
+				case EPCGExFloodFillPathPartitions::Depth:
+					if (SortOrder == EPCGExSortDirection::Ascending) { Endpoints.Sort([&](const int32 A, const int32 B) { return Captured[A].Depth < Captured[B].Depth; }); }
+					else { Endpoints.Sort([&](const int32 A, const int32 B) { return Captured[A].Depth > Captured[B].Depth; }); }
+					break;
 				}
-				else if (SortMode == EPCGExFloodFillPathOutput::PartialShort)
-				{
-					Endpoints.Sort([&](const int32 A, const int32 B) { return Captured[A].PathDistance < Captured[B].PathDistance; });
-				}
-				// First, sort endpoints, then start capturing them recursively and add them to the visited stack.
-				// Stop recording and commit as soon as a point has already been visited; profit.
 
 				for (const int32 EndpointIndex : Endpoints)
 				{
@@ -411,17 +416,21 @@ namespace PCGExClusterDiffusion
 
 					if (PathNodeIndex != -1)
 					{
-						PathIndices.Add(This->Cluster->GetNode(EndpointNodeIndex)->PointIndex);
+						int32 PathPointIndex = This->Cluster->GetNode(EndpointNodeIndex)->PointIndex;
+						PathIndices.Add(PathPointIndex);
+						Visited.Add(PathPointIndex);
 
 						while (PathNodeIndex != -1)
 						{
 							const int32 CurrentIndex = PathNodeIndex;
 							PCGEx::NH64(Diff->TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
-							const int32 PathPointIndex = This->Cluster->GetNode(CurrentIndex)->PointIndex;
+
+							PathPointIndex = This->Cluster->GetNode(CurrentIndex)->PointIndex;
 							PathIndices.Add(PathPointIndex);
 
 							bool bIsAlreadyVisited = false;
 							Visited.Add(PathPointIndex, &bIsAlreadyVisited);
+
 							if (bIsAlreadyVisited) { PathNodeIndex = -1; }
 						}
 					}
