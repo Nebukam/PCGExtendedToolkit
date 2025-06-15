@@ -7,7 +7,7 @@ icon: question
 
 The simplest, most straightforward way to get some edges going is using a [diagram](../../../node-library/clusters/diagrams/) node:
 
-<figure><img src="../../../.gitbook/assets/image (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../../.gitbook/assets/image (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 ## Oh hai!
 

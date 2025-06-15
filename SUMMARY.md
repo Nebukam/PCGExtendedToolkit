@@ -341,5 +341,7 @@
 * [FAQ](infos/faq.md)
 * [About](infos/about.md)
 * [Changelogs](infos/changelogs/README.md)
+  * [v0.65 - Cooking](infos/changelogs/v0.65-cooking.md)
   * [v0.64](infos/changelogs/v0.64/README.md)
     * [5.x → 5.6 Important Changes](infos/changelogs/v0.64/5.x-5.6-important-changes.md)
+  * [Changelog](infos/changelogs/changelog.md)
