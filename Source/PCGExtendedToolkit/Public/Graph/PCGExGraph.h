@@ -526,6 +526,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
 
 		void StageEdgesOutputs() const;
+		void MoveEdgesOutputs(const TSharedPtr<PCGExData::FPointIOCollection>& To, const int32 IndexOffset) const;
 
 		~FGraphBuilder() = default;
 	};

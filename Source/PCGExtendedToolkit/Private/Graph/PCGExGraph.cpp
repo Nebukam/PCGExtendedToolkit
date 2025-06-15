@@ -350,8 +350,8 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 			TArray<FEdgeSortKey> EdgeSortKeys;
 			EdgeSortKeys.SetNumUninitialized(NumEdges);
 
-			 if (NumEdges < 1024){
-			
+			if (NumEdges < 1024)
+			{
 				for (int i = 0; i < NumEdges; i++)
 				{
 					const int32 Index = EdgeDump[i];
@@ -360,7 +360,6 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 					const int32 B = ParentGraph->Nodes[E.End].PointIndex;
 					EdgeSortKeys[i] = FEdgeSortKey(Index, A, B);
 				}
-			
 			}
 			else
 			{
@@ -1288,6 +1287,18 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	void FGraphBuilder::StageEdgesOutputs() const
 	{
 		EdgesIO->StageOutputs();
+	}
+
+	void FGraphBuilder::MoveEdgesOutputs(const TSharedPtr<PCGExData::FPointIOCollection>& To, const int32 IndexOffset) const
+	{
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : EdgesIO->Pairs)
+		{
+			const int32 DesiredIndex = IO->IOIndex + IndexOffset;
+			To->Add(IO);
+			IO->IOIndex = DesiredIndex;
+		}
+
+		EdgesIO->Pairs.Empty();
 	}
 
 	bool BuildEndpointsLookup(const TSharedPtr<PCGExData::FPointIO>& InPointIO, TMap<uint32, int32>& OutIndices, TArray<int32>& OutAdjacency)

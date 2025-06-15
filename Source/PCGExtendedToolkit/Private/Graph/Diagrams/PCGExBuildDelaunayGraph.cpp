@@ -78,6 +78,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		Context->MainSites->PruneNullEntries(true);
 		Context->MainSites->StageOutputs();
 	}
+	Context->MainBatch->Output();
 
 	return Context->TryComplete();
 }
@@ -149,8 +150,6 @@ namespace PCGExBuildDelaunay
 			return;
 		}
 
-		GraphBuilder->StageEdgesOutputs();
-
 		if (Settings->bMarkHull)
 		{
 			HullMarkPointWriter = PointDataFacade->GetWritable<bool>(Settings->HullAttributeName, false, true, PCGExData::EBufferInit::New);
@@ -161,6 +160,11 @@ namespace PCGExBuildDelaunay
 	void FProcessor::Write()
 	{
 		PointDataFacade->WriteFastest(AsyncManager);
+	}
+
+	void FProcessor::Output()
+	{
+		GraphBuilder->StageEdgesOutputs();
 	}
 
 	void FOutputDelaunaySites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
