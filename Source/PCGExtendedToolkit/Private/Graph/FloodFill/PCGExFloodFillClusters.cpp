@@ -29,7 +29,7 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::OutputPinProperties() 
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 
-	if (bOutputPaths)
+	if (PathOutput != EPCGExFloodFillPathOutput::None)
 	{
 		PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "High density, overlapping paths representing individual flood lanes", Normal, {})
 	}
@@ -58,7 +58,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 	Context->SeedsDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExGraph::SourceSeedsLabel, false, true);
 	if (!Context->SeedsDataFacade) { return false; }
 
-	if (Settings->bOutputPaths)
+	if (Settings->PathOutput != EPCGExFloodFillPathOutput::None)
 	{
 		PCGEX_FWD(SeedAttributesToPathTags)
 		if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
@@ -91,7 +91,7 @@ bool FPCGExClusterDiffusionElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 	}
 
-	if (Settings->bOutputPaths)
+	if (Settings->PathOutput != EPCGExFloodFillPathOutput::None)
 	{
 		PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_ReadyForNextPoints)
 
@@ -340,14 +340,14 @@ namespace PCGExClusterDiffusion
 				PCGEX_OUTPUT_VALUE(DiffusionDepth, TargetIndex, Candidate.Depth);
 				PCGEX_OUTPUT_VALUE(DiffusionDistance, TargetIndex, Candidate.PathDistance);
 				PCGEX_OUTPUT_VALUE(DiffusionOrder, TargetIndex, i);
-				PCGEX_OUTPUT_VALUE(DiffusionEnding, TargetIndex, Diffusion->Endpoints.Contains(Candidate.Node->Index));
+				PCGEX_OUTPUT_VALUE(DiffusionEnding, TargetIndex, Diffusion->Endpoints.Contains(Candidate.CaptureIndex));
 			}
 
 			// Forward seed values to diffusion
 			if (Diffusion->SeedIndex != -1) { Context->SeedForwardHandler->Forward(Diffusion->SeedIndex, VtxDataFacade, Indices); }
 		}
 
-		Diffusion->Captured.Empty();
+		// Diffusion->Captured.Empty(); // We need it for paths, TODO : turn diff data into shared vtx arrays on the batch instead.
 		Diffusion->Candidates.Empty();
 
 		// TODO : Cleanup the diffusion if we don't want paths
@@ -356,21 +356,50 @@ namespace PCGExClusterDiffusion
 	void FProcessor::Output()
 	{
 		if (ExpectedPathCount == 0) { return; }
-		Context->ExpectedPathCount += ExpectedPathCount;
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PathsTaskGroup)
-		PathsTaskGroup->OnIterationCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				TSharedPtr<PCGExFloodFill::FDiffusion> Diff = This->Diffusions[Index];
-				for (const int32 EndpointIndex : Diff->Endpoints) { This->WritePath(Index, EndpointIndex); }
-			};
+		if (Settings->PathOutput == EPCGExFloodFillPathOutput::Full)
+		{
+			// Output full path, rather straightforward
+			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PathsTaskGroup)
+			PathsTaskGroup->OnIterationCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+				{
+					PCGEX_ASYNC_THIS
+					TSharedPtr<PCGExFloodFill::FDiffusion> Diff = This->Diffusions[Index];
+					for (const int32 EndpointIndex : Diff->Endpoints) { This->WriteFullPath(Index, Diff->Captured[EndpointIndex].Node->Index); }
+				};
 
-		PathsTaskGroup->StartIterations(Diffusions.Num(), 1);
+			PathsTaskGroup->StartIterations(Diffusions.Num(), 1);
+			//return;
+		}
+
+		/*
+		if (Settings->PathOutput == EPCGExFloodFillPathOutput::PartialLong)
+		{
+			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PathsTaskGroup)
+			PathsTaskGroup->OnIterationCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+				{
+					PCGEX_ASYNC_THIS
+					TSharedPtr<PCGExFloodFill::FDiffusion> Diff = This->Diffusions[Index];
+
+					TSet<int32> Visited;
+					Visited.Reserve(Diff->Captured.Num());
+					TArray<int32> SortedEndpointsCandidates;
+					// First, sort endpoints, then start capturing them recursively and add them to the visited stack.
+					// Stop recording and commit as soon as a point has already been visited; profit.
+					
+					for (const int32 EndpointIndex : Diff->Endpoints) { This->WriteFullPath(Index, Diff->Captured[EndpointIndex].Node->Index); }
+				};
+
+			PathsTaskGroup->StartIterations(Diffusions.Num(), 1);
+			return;
+		}
+		*/
+		
 	}
 
-	void FProcessor::WritePath(const int32 DiffusionIndex, const int32 EndpointNodeIndex)
+	void FProcessor::WriteFullPath(const int32 DiffusionIndex, const int32 EndpointNodeIndex)
 	{
 		TSharedPtr<PCGExFloodFill::FDiffusion> Diffusion = Diffusions[DiffusionIndex];
 
@@ -404,6 +433,11 @@ namespace PCGExClusterDiffusion
 		Context->SeedAttributesToPathTags.Tag(Context->SeedsDataFacade->GetInPoint(Diffusion->SeedIndex), PathIO);
 
 		PathIO->IOIndex = Diffusion->SeedIndex * 1000000 + VtxDataFacade->Source->IOIndex * 1000000 + EndpointNodeIndex;
+	}
+
+	void FProcessor::WritePath(const int32 DiffusionIndex, const TArray<int32>& Points)
+	{
+		
 	}
 
 	void FProcessor::Cleanup()
