@@ -239,7 +239,7 @@ namespace PCGExClusterDiffusion
 
 		virtual void Output() override;
 		void WriteFullPath(const int32 DiffusionIndex, const int32 EndpointNodeIndex);
-		void WritePath(const int32 DiffusionIndex, const TArray<int32>& Points);
+		void WritePath(const int32 DiffusionIndex, TArray<int32>& PathIndices);
 
 		virtual void Cleanup() override;
 	};
