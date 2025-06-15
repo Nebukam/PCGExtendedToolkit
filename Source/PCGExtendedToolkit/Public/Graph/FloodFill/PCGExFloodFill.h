@@ -94,6 +94,7 @@ namespace PCGExFloodFill
 	{
 		const PCGExCluster::FNode* Node = nullptr;
 		PCGExGraph::FLink Link;
+		int32 CaptureIndex = -1;
 		int32 Depth = 0;
 		double PathScore = 0;
 		double Score = 0;

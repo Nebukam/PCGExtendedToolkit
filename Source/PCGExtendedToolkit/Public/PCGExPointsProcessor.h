@@ -112,7 +112,7 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 #if WITH_EDITOR
-	/** /** Open a browser and navigate to that node' documentation page. */
+	/** Open a browser and navigate to that node' documentation page. */
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Node Documentation", ShortToolTip="Open a browser and navigate to that node' documentation page", DisplayOrder=-1))
 	void EDITOR_OpenNodeDocumentation() const;
 #endif

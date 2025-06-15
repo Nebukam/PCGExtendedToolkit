@@ -31,6 +31,7 @@ namespace PCGExFloodFill
 		FCandidate& SeedCandidate = Captured.Emplace_GetRef();
 		SeedCandidate.Link = PCGExGraph::FLink(-1, -1);
 		SeedCandidate.Node = SeedNode;
+		SeedCandidate.CaptureIndex = 0;
 
 		Probe(SeedCandidate);
 	}
@@ -70,6 +71,8 @@ namespace PCGExFloodFill
 				nullptr, TravelStack);
 
 			FCandidate Candidate = FCandidate{};
+			Candidate.CaptureIndex = From.CaptureIndex;
+			
 			Candidate.Link = PCGExGraph::FLink(FromNode.Index, Lk.Edge);
 			Candidate.Node = OtherNode;
 
@@ -122,11 +125,13 @@ namespace PCGExFloodFill
 			MaxDepth = FMath::Max(MaxDepth, Candidate.Depth);
 			MaxDistance = FMath::Max(MaxDistance, Candidate.PathDistance);
 
-			Captured.Add(Candidate);
+			FCandidate& CapturedCandidate = Captured.Add_GetRef(Candidate);
+			CapturedCandidate.CaptureIndex = Captured.Num()-1;
+			
 			TravelStack->Set(Candidate.Node->Index, PCGEx::NH64(Candidate.Link.Node, Candidate.Link.Edge));
 
-			Endpoints.Add(Candidate.Node->Index);
-			Endpoints.Remove(Candidate.Link.Node);
+			Endpoints.Add(CapturedCandidate.CaptureIndex);
+			Endpoints.Remove(Candidate.CaptureIndex);
 
 			PostGrow();
 

@@ -35,6 +35,15 @@ enum class EPCGExFloodFillProcessing : uint8
 	Sequence = 1 UMETA(DisplayName = "Sequential", ToolTip="Diffuse each vtx until it stops before moving to the next one, and so on."),
 };
 
+UENUM()
+enum class EPCGExFloodFillPathOutput : uint8
+{
+	None         = 0 UMETA(DisplayName = "None", ToolTip="Don't output any paths."),
+	Full         = 1 UMETA(DisplayName = "Full", ToolTip="Output full paths, from seed to end point -- generate a lot of overlap."),
+	PartialLong  = 2 UMETA(DisplayName = "Partial (Long)", ToolTip="Output partial paths, only endpoints will overlap. Favors longest paths first."),
+	PartialShort = 3 UMETA(DisplayName = "Partial (Short)", ToolTip="Output full paths, only endpoints will overlap. Favors shortest paths first."),
+};
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExFloodFillSeedPickingDetails
 {
@@ -136,10 +145,10 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths")
-	bool bOutputPaths = false;
+	EPCGExFloodFillPathOutput PathOutput = EPCGExFloodFillPathOutput::None;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(EditCondition="bOutputPaths"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs - Paths", meta=(EditCondition="PathOutput != EPCGExFloodFillPathOutput::None"))
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 
 
@@ -229,7 +238,8 @@ namespace PCGExClusterDiffusion
 		void Diffuse(const TSharedPtr<PCGExFloodFill::FDiffusion>& Diffusion);
 
 		virtual void Output() override;
-		void WritePath(const int32 DiffusionIndex, const int32 EndpointNodeIndex);
+		void WriteFullPath(const int32 DiffusionIndex, const int32 EndpointNodeIndex);
+		void WritePath(const int32 DiffusionIndex, const TArray<int32>& Points);
 
 		virtual void Cleanup() override;
 	};
