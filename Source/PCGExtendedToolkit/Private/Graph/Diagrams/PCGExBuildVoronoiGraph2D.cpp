@@ -82,6 +82,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 
 	Context->MainPoints->StageOutputs();
 	if (Context->SitesOutput) { Context->SitesOutput->StageOutputs(); }
+	Context->MainBatch->Output();
 
 	return Context->TryComplete();
 }
@@ -369,8 +370,8 @@ namespace PCGExBuildVoronoi2D
 
 		if (SiteDataFacade)
 		{
-			if (!Settings->bPruneOpenSites) { SiteDataFacade->WriteFastest(AsyncManager); }
-			else
+			SiteDataFacade->WriteFastest(AsyncManager);
+			if (Settings->bPruneOpenSites)
 			{
 				const int32 Iterations = SiteDataFacade->GetOut()->GetNumPoints();
 
@@ -383,13 +384,17 @@ namespace PCGExBuildVoronoi2D
 			}
 		}
 
-		GraphBuilder->StageEdgesOutputs();
 		if (SiteDataFacade) { SiteDataFacade->Source->Tags->Append(PointDataFacade->Source->Tags.ToSharedRef()); }
 	}
 
 	void FProcessor::Write()
 	{
 		PointDataFacade->WriteFastest(AsyncManager);
+	}
+
+	void FProcessor::Output()
+	{
+		GraphBuilder->StageEdgesOutputs();
 	}
 }
 

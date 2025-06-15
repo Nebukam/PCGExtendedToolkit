@@ -80,5 +80,6 @@ namespace PCGExConvexHull
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
+		virtual void Output() override;
 	};
 }

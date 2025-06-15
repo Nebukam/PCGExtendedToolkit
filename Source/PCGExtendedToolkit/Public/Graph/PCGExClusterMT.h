@@ -229,6 +229,7 @@ namespace PCGExClusterMT
 
 		TArray<TSharedPtr<PCGExData::FPointIO>> Edges;
 		TArray<TSharedRef<PCGExData::FFacade>>* EdgesDataFacades = nullptr;
+		TWeakPtr<PCGExData::FPointIOCollection> GraphEdgeOutputCollection;
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		FPCGExGraphBuilderDetails GraphBuilderDetails;

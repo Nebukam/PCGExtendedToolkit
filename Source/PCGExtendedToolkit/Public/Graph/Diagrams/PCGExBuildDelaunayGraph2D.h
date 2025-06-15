@@ -133,6 +133,7 @@ namespace PCGExBuildDelaunay2D
 		virtual void CompleteWork() override;
 
 		virtual void Write() override;
+		virtual void Output() override;
 	};
 
 	class FOutputDelaunaySites2D final : public PCGExMT::FTask

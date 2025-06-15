@@ -81,6 +81,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 	Context->MainPoints->StageOutputs();
 	if (Context->MainSites) { Context->MainSites->StageOutputs(); }
+	Context->MainBatch->Output();
 
 	return Context->TryComplete();
 }
@@ -164,7 +165,6 @@ namespace PCGExBuildDelaunay2D
 			return;
 		}
 
-		GraphBuilder->StageEdgesOutputs();
 
 		if (Settings->bMarkHull)
 		{
@@ -176,6 +176,11 @@ namespace PCGExBuildDelaunay2D
 	void FProcessor::Write()
 	{
 		PointDataFacade->WriteFastest(AsyncManager);
+	}
+
+	void FProcessor::Output()
+	{
+		GraphBuilder->StageEdgesOutputs();
 	}
 
 	void FOutputDelaunaySites2D::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

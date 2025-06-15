@@ -382,7 +382,8 @@ namespace PCGExClusterMT
 						return;
 					}
 
-					InBuilder->StageEdgesOutputs();
+					if (TSharedPtr<PCGExData::FPointIOCollection> OutCollection = This->GraphEdgeOutputCollection.Pin()) { InBuilder->MoveEdgesOutputs(OutCollection, This->VtxDataFacade->Source->IOIndex * 100000); }
+					else { InBuilder->StageEdgesOutputs(); }
 				};
 		}
 

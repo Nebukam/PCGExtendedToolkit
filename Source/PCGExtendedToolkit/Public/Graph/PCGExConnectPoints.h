@@ -127,6 +127,7 @@ namespace PCGExConnectPoints
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
+		virtual void Output() override;
 
 		virtual void Cleanup() override;
 	};

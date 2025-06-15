@@ -62,6 +62,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
+	Context->MainBatch->Output();
 
 	return Context->TryComplete();
 }
@@ -137,6 +138,11 @@ namespace PCGExConvexHull
 		}
 
 		PointDataFacade->WriteFastest(AsyncManager);
+		
+	}
+
+	void FProcessor::Output()
+	{
 		GraphBuilder->StageEdgesOutputs();
 	}
 }

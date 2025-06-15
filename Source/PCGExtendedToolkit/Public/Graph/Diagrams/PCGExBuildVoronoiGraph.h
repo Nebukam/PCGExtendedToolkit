@@ -111,5 +111,6 @@ namespace PCGExBuildVoronoi
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;
+		virtual void Output() override;
 	};
 }

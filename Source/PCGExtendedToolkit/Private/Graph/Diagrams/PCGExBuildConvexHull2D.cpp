@@ -68,6 +68,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	Context->MainPoints->StageOutputs();
 	Context->PathsIO->StageOutputs();
+	Context->MainBatch->Output(); // Edges in order
 
 	return Context->TryComplete();
 }
@@ -142,15 +143,15 @@ namespace PCGExConvexHull2D
 
 	void FProcessor::CompleteWork()
 	{
-		if (!GraphBuilder) { return; }
-
-		if (!GraphBuilder->bCompiledSuccessfully)
+		if (!GraphBuilder || !GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
 			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
-			return;
-		}
+		}		
+	}
 
+	void FProcessor::Output()
+	{
 		GraphBuilder->StageEdgesOutputs();
 	}
 }

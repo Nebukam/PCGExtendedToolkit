@@ -90,6 +90,7 @@ bool FPCGExConnectPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
+	Context->MainBatch->Output();
 
 	return Context->TryComplete();
 }
@@ -359,6 +360,10 @@ namespace PCGExConnectPoints
 		}
 
 		PointDataFacade->WriteFastest(AsyncManager);
+	}
+
+	void FProcessor::Output()
+	{
 		GraphBuilder->StageEdgesOutputs();
 	}
 

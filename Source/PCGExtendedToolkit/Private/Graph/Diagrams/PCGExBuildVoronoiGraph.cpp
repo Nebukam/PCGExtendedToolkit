@@ -79,6 +79,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 
 	Context->MainPoints->StageOutputs();
 	//Context->SitesOutput->OutputToContext();
+	Context->MainBatch->Output();
 
 	return Context->TryComplete();
 }
@@ -234,13 +235,16 @@ namespace PCGExBuildVoronoi
 			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
 			return;
 		}
-
-		GraphBuilder->StageEdgesOutputs();
 	}
 
 	void FProcessor::Write()
 	{
 		PointDataFacade->WriteFastest(AsyncManager);
+	}
+
+	void FProcessor::Output()
+	{
+		GraphBuilder->StageEdgesOutputs();
 	}
 }
 
