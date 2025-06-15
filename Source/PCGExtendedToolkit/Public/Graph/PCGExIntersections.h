@@ -308,6 +308,7 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FEdgeEdgeProxy
 	{
+		bool bIsValid = false;
 		int32 EdgeIndex = -1;
 		TArray<int32> Intersections;
 

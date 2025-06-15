@@ -684,10 +684,7 @@ namespace PCGExData
 
 		if (!IsEnabled() || !Out || (!bAllowEmptyOutput && Out->IsEmpty())) { return false; }
 
-		FPCGTaggedData& StagedData = TargetContext->StageOutput(Out, bMutable);
-		StagedData.Pin = OutputPin;
-		StagedData.Tags.Append(Tags->Flatten());
-		StagedData.bPinlessData = bPinless;
+		TargetContext->StageOutput(Out, OutputPin, Tags->Flatten(), Out != In, bMutable, bPinless);
 
 		return true;
 	}

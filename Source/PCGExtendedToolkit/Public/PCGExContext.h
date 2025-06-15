@@ -60,6 +60,7 @@ public:
 	void IncreaseStagedOutputReserve(const int32 InIncreaseNum);
 
 	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged, const bool bIsMutable);
+	void StageOutput(UPCGData* InData, const FName& InPin, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable, const bool bPinless);
 	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged);
 
 	UWorld* GetWorld() const;

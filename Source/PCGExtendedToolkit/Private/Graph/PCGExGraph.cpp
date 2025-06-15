@@ -726,7 +726,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	FGraphEdgeMetadata& FGraph::GetOrCreateEdgeMetadata_Unsafe(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent)
 	{
 		if (FGraphEdgeMetadata* MetadataPtr = EdgeMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
-		return EdgeMetadata.Add(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, Parent));
+		return EdgeMetadata.Emplace(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, Parent));
 	}
 
 	FGraphEdgeMetadata& FGraph::GetOrCreateEdgeMetadata(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent)

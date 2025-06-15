@@ -80,11 +80,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
-	if (Context->MainSites)
-	{
-		Context->MainSites->PruneNullEntries(true);
-		Context->MainSites->StageOutputs();
-	}
+	if (Context->MainSites) { Context->MainSites->StageOutputs(); }
 
 	return Context->TryComplete();
 }

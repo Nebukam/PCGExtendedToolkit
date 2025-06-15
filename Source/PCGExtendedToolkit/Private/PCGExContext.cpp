@@ -32,10 +32,8 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 		Output.Data = InData;
 		Index = OutputData.TaggedData.Num() - 1;
 	}
-
-	bool bIsNewlyManaged = false;
-
-	if (bManaged) { bIsNewlyManaged = ManagedObjects->Add(InData); }
+	
+	if (bManaged) { ManagedObjects->Add(InData); }
 	if (bIsMutable)
 	{
 		if (bCleanupConsumableAttributes)
@@ -50,10 +48,52 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 			}
 		}
 
-		if (bFlattenOutput && bIsNewlyManaged) { InData->Flatten(); }
+		if (bFlattenOutput) { InData->Flatten(); }
 	}
 
 	return OutputData.TaggedData[Index];
+}
+
+void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable, const bool bPinless)
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutputComplex);
+
+	if (!IsInGameThread())
+	{
+		FWriteScopeLock WriteScopeLock(StagedOutputLock);
+
+		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
+		Output.Data = InData;
+		Output.Pin = InPin;
+		Output.Tags.Append(InTags);
+		Output.bPinlessData = bPinless;
+	}
+	else
+	{
+		FPCGTaggedData& Output = OutputData.TaggedData.Emplace_GetRef();
+		Output.Data = InData;
+		Output.Pin = InPin;
+		Output.Tags.Append(InTags);
+		Output.bPinlessData = bPinless;
+	}
+
+	if (bManaged) { ManagedObjects->Add(InData); }
+	if (bIsMutable)
+	{
+		if (bCleanupConsumableAttributes)
+		{
+			if (UPCGMetadata* Metadata = InData->MutableMetadata())
+			{
+				for (const FName ConsumableName : ConsumableAttributesSet)
+				{
+					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+					Metadata->DeleteAttribute(ConsumableName);
+				}
+			}
+		}
+
+		if (bFlattenOutput) { InData->Flatten(); }
+	}
 }
 
 FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged)

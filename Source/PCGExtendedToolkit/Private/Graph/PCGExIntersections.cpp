@@ -620,6 +620,8 @@ namespace PCGExGraph
 		Bounds = Box;
 
 		Direction = (Start - End).GetSafeNormal();
+
+		bIsValid = !FMath::IsNearlyZero(LengthSquared);
 	}
 
 	bool FEdgeEdgeProxy::FindSplit(const FEdgeEdgeProxy& OtherEdge, TArray<FEESplit>& OutSplits, const FPCGExEdgeEdgeIntersectionDetails* InIntersectionDetails) const
@@ -794,6 +796,8 @@ namespace PCGExGraph
 		const FEdgeEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
 		TArray<FEESplit> OutSplits;
 
+		if (!Edge.bIsValid) { return; }
+
 		// Find all split points then register crossings that don't exist already
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
@@ -805,6 +809,7 @@ namespace PCGExGraph
 			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
 			{
 				const FEdgeEdgeProxy& OtherEdge = *Proxy;
+				if (!OtherEdge.bIsValid) { return; }
 
 				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
 				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }

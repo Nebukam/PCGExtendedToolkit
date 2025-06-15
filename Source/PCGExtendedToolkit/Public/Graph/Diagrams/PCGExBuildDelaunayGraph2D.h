@@ -50,19 +50,19 @@ public:
 	bool bUrquhart = false;
 
 	/** Output delaunay sites */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
 	bool bOutputSites = false;
 
 	/** Mark points & edges that lie on the hull */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkSiteHull = false;
 
 	/** Name of the attribute to output the Hull boolean to. True if point is on the hull, otherwise false. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable, EditCondition="bMarkSiteHull"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditCondition="bMarkSiteHull"))
 	FName SiteHullAttributeName = "bIsOnHull";
 
 	/** Merge adjacent sites into a single point */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable, EditCondition="bUrquhart && bOutputSites", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditCondition="bUrquhart && bOutputSites", EditConditionHides))
 	EPCGExUrquhartSiteMergeMode UrquhartSitesMerge = EPCGExUrquhartSiteMergeMode::None;
 
 	/** Mark points & edges that lie on the hull */
