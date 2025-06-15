@@ -7,7 +7,6 @@
 #include "PCGExRandom.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -349,20 +348,35 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 			};
 
 			TArray<FEdgeSortKey> EdgeSortKeys;
-			EdgeSortKeys.SetNumUninitialized(EdgeDump.Num());
+			EdgeSortKeys.SetNumUninitialized(NumEdges);
 
-			ParallelFor(
-				EdgeDump.Num(), [&](int32 i)
+			 if (NumEdges < 1024){
+			
+				for (int i = 0; i < NumEdges; i++)
 				{
-					int32 Index = EdgeDump[i];
+					const int32 Index = EdgeDump[i];
 					const FEdge& E = ParentGraph->Edges[Index];
 					const int32 A = ParentGraph->Nodes[E.Start].PointIndex;
 					const int32 B = ParentGraph->Nodes[E.End].PointIndex;
 					EdgeSortKeys[i] = FEdgeSortKey(Index, A, B);
-				});
+				}
+			
+			}
+			else
+			{
+				ParallelFor(
+					NumEdges, [&](int32 i)
+					{
+						const int32 Index = EdgeDump[i];
+						const FEdge& E = ParentGraph->Edges[Index];
+						const int32 A = ParentGraph->Nodes[E.Start].PointIndex;
+						const int32 B = ParentGraph->Nodes[E.End].PointIndex;
+						EdgeSortKeys[i] = FEdgeSortKey(Index, A, B);
+					});
+			}
 
 			EdgeSortKeys.Sort();
-			for (int32 i = 0; i < EdgeSortKeys.Num(); ++i) { EdgeDump[i] = EdgeSortKeys[i].Index; }
+			for (int32 i = 0; i < NumEdges; ++i) { EdgeDump[i] = EdgeSortKeys[i].Index; }
 		}
 
 		PCGEx::InitArray(FlattenedEdges, NumEdges);

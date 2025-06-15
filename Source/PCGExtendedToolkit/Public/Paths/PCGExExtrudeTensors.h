@@ -125,7 +125,7 @@ public:
 
 	/** Whether to limit path length or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, ClampMin=0.001))
-	double FuseDistance = 0.01;
+	double FuseDistance = DBL_COLLOCATION_TOLERANCE;
 
 	/** How to deal with points that are stopped */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable))

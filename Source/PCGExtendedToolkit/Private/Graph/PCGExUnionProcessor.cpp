@@ -301,7 +301,7 @@ namespace PCGExGraph
 		GraphBuilder->Graph->ReserveForEdges(NewEdgesNum);
 		NewEdgesNum = 0;
 
-		PointEdgeIntersections->Insert(); // TODO : Async?
+		PointEdgeIntersections->Insert();
 		UnionDataFacade->Source->ClearCachedKeys();
 
 		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
