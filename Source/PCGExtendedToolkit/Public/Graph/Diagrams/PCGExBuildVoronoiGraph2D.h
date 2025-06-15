@@ -51,7 +51,7 @@ public:
 
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bMarkHull = true;
+	bool bMarkHull = false;
 
 	/** Name of the attribute to output the Hull boolean to. True if point is on the hull, otherwise false. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bMarkHull"))

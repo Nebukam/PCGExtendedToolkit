@@ -7,9 +7,10 @@
 #include "PCGExRandom.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
+
+#include "Async/ParallelFor.h"
 
 void FPCGExBasicEdgeSolidificationDetails::Mutate(PCGExData::FMutablePoint& InEdgePoint, const PCGExData::FConstPoint& InStart, const PCGExData::FConstPoint& InEnd, const double InLerp) const
 {
@@ -321,11 +322,62 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		WeakAsyncManager = AsyncManager;
 
 		const int32 NumEdges = Edges.Num();
-
 		TArray<int32> EdgeDump = Edges.Array();
 
-		// Might not be needed but adds predictability
-		EdgeDump.Sort([](const int32 A, const int32 B) { return A < B; });
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::EdgeSorting);
+
+
+			struct FEdgeSortKey
+			{
+				int32 Index;
+				uint64 PackedKey;
+
+				FEdgeSortKey(int32 InIndex, int32 A, int32 B)
+					: Index(InIndex)
+				{
+					const int32 Min = FMath::Min(A, B);
+					const int32 Max = FMath::Max(A, B);
+					PackedKey = (static_cast<uint64>(Min) << 32) | static_cast<uint64>(Max);
+				}
+
+				bool operator<(const FEdgeSortKey& Other) const
+				{
+					return PackedKey < Other.PackedKey;
+				}
+			};
+
+			TArray<FEdgeSortKey> EdgeSortKeys;
+			EdgeSortKeys.SetNumUninitialized(NumEdges);
+
+			 if (NumEdges < 1024){
+			
+				for (int i = 0; i < NumEdges; i++)
+				{
+					const int32 Index = EdgeDump[i];
+					const FEdge& E = ParentGraph->Edges[Index];
+					const int32 A = ParentGraph->Nodes[E.Start].PointIndex;
+					const int32 B = ParentGraph->Nodes[E.End].PointIndex;
+					EdgeSortKeys[i] = FEdgeSortKey(Index, A, B);
+				}
+			
+			}
+			else
+			{
+				ParallelFor(
+					NumEdges, [&](int32 i)
+					{
+						const int32 Index = EdgeDump[i];
+						const FEdge& E = ParentGraph->Edges[Index];
+						const int32 A = ParentGraph->Nodes[E.Start].PointIndex;
+						const int32 B = ParentGraph->Nodes[E.End].PointIndex;
+						EdgeSortKeys[i] = FEdgeSortKey(Index, A, B);
+					});
+			}
+
+			EdgeSortKeys.Sort();
+			for (int32 i = 0; i < NumEdges; ++i) { EdgeDump[i] = EdgeSortKeys[i].Index; }
+		}
 
 		PCGEx::InitArray(FlattenedEdges, NumEdges);
 
@@ -1098,8 +1150,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		//  Transforms & Metadata entry must be final and match the Nodes.PointIndex
 		//	Subgraph compilation rely on it.
 		///////////
-
-		// TODO : NEED TO INITIALIZE METADATA KEYS !!!!
 
 		if (OutputPointIndices && OutputPointIndices->Num() == NumValidNodes)
 		{
