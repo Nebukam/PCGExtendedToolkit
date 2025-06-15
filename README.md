@@ -27,7 +27,7 @@ The PCG Extended Toolkit (_PCGEx for short_) is an open source plugin that exten
 It also comes with a lot of quality of life nodes, with support for a wide range of situations — even some very unique and niche things.
 
 {% hint style="success" %}
-PCGEx is available for Unreal **5.3**, **5.4**, **5.5**, and soon **5.6**.
+PCGEx is available for Unreal **5.3**, **5.4**, **5.5**, and **5.6**.
 {% endhint %}
 
 ### Jump right in
