@@ -362,21 +362,7 @@ namespace PCGExPaths
 
 		GetMutable(Edge.Start) = D;
 	}
-
-	void FPathEdgeBinormal::ProcessLastEdge(const FPath* Path, const FPathEdge& Edge)
-	{
-		if (Path->IsClosedLoop())
-		{
-			ProcessEdge(Path, Edge);
-			return;
-		}
-
-		const FVector C = FVector::CrossProduct(Up, Edge.Dir).GetSafeNormal();
-
-		Normals[Edge.Start] = C;
-		GetMutable(Edge.Start) = C;
-	}
-
+	
 #pragma endregion
 
 #pragma region FPathEdgeAvgNormal
@@ -399,17 +385,6 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = FMath::Lerp(A, B, 0.5).GetSafeNormal();
 	}
 
-	void FPathEdgeAvgNormal::ProcessLastEdge(const FPath* Path, const FPathEdge& Edge)
-	{
-		if (Path->IsClosedLoop())
-		{
-			ProcessEdge(Path, Edge);
-			return;
-		}
-
-		GetMutable(Edge.Start) = FVector::CrossProduct(Up, Edge.Dir).GetSafeNormal();
-	}
-
 #pragma endregion
 
 #pragma region FPathEdgeHalfAngle
@@ -430,17 +405,6 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = FMath::Acos(FVector::DotProduct(Path->DirToPrevPoint(Edge.Start), Edge.Dir));
 	}
 
-	void FPathEdgeHalfAngle::ProcessLastEdge(const FPath* Path, const FPathEdge& Edge)
-	{
-		if (Path->IsClosedLoop())
-		{
-			ProcessEdge(Path, Edge);
-			return;
-		}
-
-		GetMutable(Edge.Start) = PI;
-	}
-
 #pragma endregion
 
 #pragma region FPathEdgeAngle
@@ -453,23 +417,12 @@ namespace PCGExPaths
 			return;
 		}
 
-		GetMutable(Edge.Start) = PI;
+		GetMutable(Edge.Start) = 0;
 	}
 
 	void FPathEdgeFullAngle::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
 	{
 		GetMutable(Edge.Start) = PCGExMath::GetAngle(Path->DirToPrevPoint(Edge.Start) * -1, Edge.Dir);
-	}
-
-	void FPathEdgeFullAngle::ProcessLastEdge(const FPath* Path, const FPathEdge& Edge)
-	{
-		if (Path->IsClosedLoop())
-		{
-			ProcessEdge(Path, Edge);
-			return;
-		}
-
-		GetMutable(Edge.Start) = PI;
 	}
 
 	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion)

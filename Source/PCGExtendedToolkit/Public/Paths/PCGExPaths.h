@@ -641,7 +641,6 @@ namespace PCGExPaths
 
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
 	class FPathEdgeAvgNormal : public TPathEdgeExtra<FVector>
@@ -656,7 +655,6 @@ namespace PCGExPaths
 
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
 	class FPathEdgeHalfAngle : public TPathEdgeExtra<double>
@@ -671,7 +669,6 @@ namespace PCGExPaths
 
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
 	class FPathEdgeFullAngle : public TPathEdgeExtra<double>
@@ -686,7 +683,6 @@ namespace PCGExPaths
 
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
 #pragma endregion
