@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExPathCrossings.h"
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
@@ -160,12 +161,18 @@ namespace PCGExOffsetPath
 	{
 		TConstPCGValueRange<FTransform> InTransforms;
 
+		FPCGExPathEdgeIntersectionDetails CrossingSettings;
+		
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeHalfAngle> PathAngles;
 		TSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>> OffsetDirection;
 
-		TArray<int8> CleanEdge;
+		TBitArray<> CleanEdge;
+		TArray<TSharedPtr<PCGExPaths::FCrossing>> Crossings;
+		
+		int32 FirstFlippedEdge = -1;
 		TSharedPtr<PCGExPaths::FPath> DirtyPath;
+		TSharedPtr<PCGExPaths::FPathEdgeLength> DirtyLength;
 
 		double DirectionFactor = -1; // Default to -1 because the normal maths changed at some point, inverting all existing value. Sorry for the lack of elegance.
 		double OffsetConstant = 0;

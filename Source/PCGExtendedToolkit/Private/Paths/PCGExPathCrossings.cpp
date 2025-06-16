@@ -122,6 +122,7 @@ namespace PCGExPathCrossings
 		if (!CanBeCutFilterManager->Init(ExecutionContext, Context->CanBeCutFilterFactories)) { CanBeCutFilterManager.Reset(); }
 
 		Path = PCGExPaths::MakePath(PointIO->GetIn(), Details.Tolerance * 2);
+		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 
 		Path->IOIndex = PointIO->IOIndex;
@@ -167,56 +168,16 @@ namespace PCGExPathCrossings
 			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
 			if (!Path->IsEdgeValid(Edge)) { continue; }
 
-			const PCGExPaths::FPath* OtherPath = nullptr;
-
-			int32 CurrentIOIndex = PointDataFacade->Source->IOIndex;
-
-			const TSharedPtr<FCrossing> NewCrossing = MakeShared<FCrossing>(Index);
-
-			auto FindSplit = [&](const PCGExPaths::FPathEdge& E2)
-			{
-				if (!OtherPath->IsEdgeValid(E2)) { return; }
-
-				const FVector& A1 = Path->GetPos(Edge.Start);
-				const FVector& B1 = Path->GetPos(Edge.End);
-				const FVector& A2 = OtherPath->GetPos(E2.Start);
-				const FVector& B2 = OtherPath->GetPos(E2.End);
-				if (A1 == A2 || A1 == B2 || A2 == B1 || B2 == B1) { return; }
-
-				const FVector CrossDir = (B2 - A2).GetSafeNormal();
-
-				if (Details.bUseMinAngle || Details.bUseMaxAngle)
-				{
-					if (!Details.CheckDot(FMath::Abs(FVector::DotProduct((B1 - A1).GetSafeNormal(), CrossDir)))) { return; }
-				}
-
-				FVector A;
-				FVector B;
-				FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
-
-				if (A == A1 || A == B1) { return; } // On local point
-
-				const double Dist = FVector::DistSquared(A, B);
-				const bool bColloc = (B == A2 || B == B2); // On crossing point
-
-				if (Dist >= Details.ToleranceSquared) { return; }
-
-				NewCrossing->Crossings.Add(PCGEx::H64(E2.Start, CurrentIOIndex));
-				NewCrossing->Positions.Add(FMath::Lerp(A, B, 0.5));
-				NewCrossing->CrossingDirections.Add(CrossDir);
-				NewCrossing->Alphas.Add(FVector::Dist(A1, A) / PathLength->Get(Edge));
-				NewCrossing->IsPoint.Add(bColloc);
-			};
+			const TSharedPtr<PCGExPaths::FCrossing> NewCrossing = MakeShared<PCGExPaths::FCrossing>(Index);
 
 			// Find crossings
 			if (bSelfIntersectionOnly)
 			{
-				OtherPath = Path.Get();
 				Path->GetEdgeOctree()->FindElementsWithBoundsTest(
 					Edge.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
 					{
 						if (Edge.ShareIndices(OtherEdge)) { return; }
-						FindSplit(*OtherEdge);
+						NewCrossing->FindSplit(Path, Edge, PathLength, Path, *OtherEdge, Details);
 					});
 			}
 			else
@@ -233,14 +194,16 @@ namespace PCGExPathCrossings
 					const TSharedRef<FProcessor> TypedProcessor = StaticCastSharedRef<FProcessor>(OtherProcessor);
 					if (!TypedProcessor->bCanCut) { continue; }
 
-					CurrentIOIndex = TypedProcessor->PointDataFacade->Source->IOIndex;
-
-					OtherPath = TypedProcessor->Path.Get();
-					TypedProcessor->GetEdgeOctree()->FindElementsWithBoundsTest(Edge.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge) { FindSplit(*OtherEdge); });
+					TypedProcessor->GetEdgeOctree()->FindElementsWithBoundsTest(
+						Edge.Bounds.GetBox(),
+						[&](const PCGExPaths::FPathEdge* OtherEdge)
+						{
+							NewCrossing->FindSplit(Path, Edge, PathLength, TypedProcessor->Path, *OtherEdge, Details);
+						});
 				}
 			}
 
-			if (!NewCrossing->Crossings.IsEmpty()) { Crossings[Index] = NewCrossing; }
+			if (!NewCrossing->IsEmpty()) { Crossings[Index] = NewCrossing; }
 		}
 	}
 
@@ -257,7 +220,7 @@ namespace PCGExPathCrossings
 
 			if (!Path->IsClosedLoop() && i == Path->LastIndex) { continue; }
 
-			const FCrossing* Crossing = Crossings[i].Get();
+			const PCGExPaths::FCrossing* Crossing = Crossings[i].Get();
 			if (!Crossing) { continue; }
 
 			NumPointsFinal += Crossing->Crossings.Num();
@@ -285,7 +248,7 @@ namespace PCGExPathCrossings
 			OutMetadataEntries[Index] = InMetadataEntries[i];
 			Metadata->InitializeOnSet(OutMetadataEntries[Index++]);
 
-			const FCrossing* Crossing = Crossings[i].Get();
+			const PCGExPaths::FCrossing* Crossing = Crossings[i].Get();
 			if (!Crossing) { continue; }
 
 			for (const uint64 Hash : Crossing->Crossings)
@@ -371,7 +334,7 @@ namespace PCGExPathCrossings
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const FCrossing* Crossing = Crossings[Index].Get();
+			const PCGExPaths::FCrossing* Crossing = Crossings[Index].Get();
 			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
 
 			if (FlagWriter) { FlagWriter->SetValue(Edge.AltStart, false); }
@@ -428,7 +391,7 @@ namespace PCGExPathCrossings
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const FCrossing* Crossing = Crossings[Index].Get();
+			const PCGExPaths::FCrossing* Crossing = Crossings[Index].Get();
 			if (!Crossing) { continue; }
 
 			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];

@@ -362,7 +362,7 @@ namespace PCGExPaths
 
 		GetMutable(Edge.Start) = D;
 	}
-	
+
 #pragma endregion
 
 #pragma region FPathEdgeAvgNormal
@@ -554,6 +554,70 @@ namespace PCGExPaths
 
 		PCGEX_MAKE_SHARED(P, TPolyPath<false>, InTransforms, ProjectionUp, Expansion)
 		return StaticCastSharedPtr<FPath>(P);
+	}
+
+	bool FCrossing::FindSplit(
+		const TSharedPtr<FPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength,
+		const TSharedPtr<FPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails)
+	{
+		if (!OtherPath->IsEdgeValid(OtherEdge)) { return false; }
+
+		const FVector& A1 = Path->GetPos(Edge.Start);
+		const FVector& B1 = Path->GetPos(Edge.End);
+		const FVector& A2 = OtherPath->GetPos(OtherEdge.Start);
+		const FVector& B2 = OtherPath->GetPos(OtherEdge.End);
+
+		if (A1 == A2 || A1 == B2 || A2 == B1 || B2 == B1) { return false; }
+
+		const FVector CrossDir = (B2 - A2).GetSafeNormal();
+
+		if (InIntersectionDetails.bUseMinAngle || InIntersectionDetails.bUseMaxAngle)
+		{
+			if (!InIntersectionDetails.CheckDot(FMath::Abs(FVector::DotProduct((B1 - A1).GetSafeNormal(), CrossDir)))) { return false; }
+		}
+
+		FVector A;
+		FVector B;
+		FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
+
+		if (A == A1 || A == B1) { return false; } // On local point
+
+		const double Dist = FVector::DistSquared(A, B);
+		const bool bColloc = (B == A2 || B == B2); // On crossing point
+
+		if (Dist >= InIntersectionDetails.ToleranceSquared) { return false; }
+
+		Crossings.Add(PCGEx::H64(OtherEdge.Start, OtherPath->IOIndex));
+		Positions.Add(FMath::Lerp(A, B, 0.5));
+		CrossingDirections.Add(CrossDir);
+		Alphas.Add(FVector::Dist(A1, A) / PathLength->Get(Edge));
+		IsPoint.Add(bColloc);
+
+		return true;
+	}
+
+	bool FCrossing::RemoveCrossing(const int32 EdgeStartIndex, const int32 IOIndex)
+	{
+		const int32 I = Crossings.Find(PCGEx::H64(EdgeStartIndex, IOIndex));
+		if (I == -1) { return false; }
+
+		Crossings.RemoveAt(I);
+		Positions.RemoveAt(I);
+		CrossingDirections.RemoveAt(I);
+		Alphas.RemoveAt(I);
+		IsPoint.RemoveAt(I);
+
+		return true;
+	}
+
+	bool FCrossing::RemoveCrossing(const TSharedPtr<FPath>& Path, const int32 EdgeStartIndex)
+	{
+		return RemoveCrossing(EdgeStartIndex, Path->IOIndex);
+	}
+
+	bool FCrossing::RemoveCrossing(const TSharedPtr<FPath>& Path, const FPathEdge& Edge)
+	{
+		return RemoveCrossing(Edge.Start, Path->IOIndex);
 	}
 }
 

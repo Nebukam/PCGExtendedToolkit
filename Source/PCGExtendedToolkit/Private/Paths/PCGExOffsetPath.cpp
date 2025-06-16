@@ -3,6 +3,8 @@
 
 #include "Paths/PCGExOffsetPath.h"
 
+#include "Paths/PCGExPathCrossings.h"
+
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath
 
@@ -64,6 +66,8 @@ namespace PCGExOffsetPath
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
+
+		CrossingSettings.Init();
 
 		if (Settings->bInvertDirection) { DirectionFactor *= -1; }
 
@@ -193,28 +197,71 @@ namespace PCGExOffsetPath
 	{
 		if (!Settings->bCleanupPath) { return; }
 
-		DirtyPath = PCGExPaths::MakePath(InTransforms, ToleranceSquared, Path->IsClosedLoop());
+		const TConstPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetConstTransformValueRange();
+
+		DirtyPath = PCGExPaths::MakePath(OutTransforms, ToleranceSquared, Path->IsClosedLoop());
+		DirtyLength = DirtyPath->AddExtra<PCGExPaths::FPathEdgeLength>();
+		DirtyPath->BuildEdgeOctree();
+
 		CleanEdge.Init(false, DirtyPath->NumEdges);
+		Crossings.Init(nullptr, DirtyPath->NumEdges);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FlipTestTask)
+		// Mark edges that have been flipped
+		for (int i = 0; i < DirtyPath->NumEdges; i++)
+		{
+			DirtyPath->ComputeEdgeExtra(i);
+			CleanEdge[i] = FVector::DotProduct(Path->Edges[i].Dir, DirtyPath->Edges[i].Dir) > 0;
+			if (FirstFlippedEdge == -1 && !CleanEdge[i]) { FirstFlippedEdge = i; }
+		}
 
-		FlipTestTask->OnSubLoopStartCallback =
+		// Find all crossings
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FindCrossings)
+
+		FindCrossings->OnSubLoopStartCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
+
+				const TSharedPtr<PCGExPaths::FPath> P = This->DirtyPath;
+				const TSharedPtr<PCGExPaths::FPathEdgeLength> L = This->DirtyLength;
+
 				PCGEX_SCOPE_LOOP(i)
 				{
-					This->DirtyPath->ComputeEdgeExtra(i);
-					This->CleanEdge[i] = FVector::DotProduct(This->Path->Edges[i].Dir, This->DirtyPath->Edges[i].Dir) > 0;
+					TSharedPtr<PCGExPaths::FCrossing> NewCrossing = MakeShared<PCGExPaths::FCrossing>(i);
+					const PCGExPaths::FPathEdge& E = P->Edges[i];
+					P->GetEdgeOctree()->FindElementsWithBoundsTest(
+						E.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
+						{
+							if (E.ShareIndices(OtherEdge)) { return; }
+							NewCrossing->FindSplit(P, E, L, P, *OtherEdge, This->CrossingSettings);
+						});
+
+					if (!NewCrossing->IsEmpty()) { This->Crossings[i] = NewCrossing; }
 				}
 			};
 
-		FlipTestTask->StartSubLoops(DirtyPath->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		FindCrossings->StartSubLoops(DirtyPath->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		if (!Settings->bCleanupPath) { return; }
+
+		// We assume that any flipped edge is between two crossing points.
+		// There are edge cases where this isn't true tho; but we won't care about those.
+
+		// Two modes :
+		// - only remove points between intersection if the section contains a flipped edge
+		// - remove all points between intersections
+		//		- We need to be iterative with this approach, as removing all edges between a pair of intersection may "invalidate" other intersections.
+
+		TArray<int32> Gather;
+		Gather.Reserve(Path->NumPoints);
+
+		bool bSearchingForNextCrossing = CleanEdge[0];
+		if (!CleanEdge[0])
+		{
+		}
 
 		// We will update OutTransform and do a gather.
 		// It's greedy but any other approach will be a real pain to maintain

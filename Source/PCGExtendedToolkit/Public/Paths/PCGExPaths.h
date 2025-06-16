@@ -815,6 +815,32 @@ namespace PCGExPaths
 
 	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const FVector& ProjectionUp = FVector::UpVector);
 	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp = FVector::UpVector);
+
+	struct PCGEXTENDEDTOOLKIT_API FCrossing
+	{
+		int32 Index = -1;
+
+		TArray<uint64, TInlineAllocator<1>> Crossings; // Point Index | IO Index
+		TArray<FVector, TInlineAllocator<1>> Positions;
+		TArray<double, TInlineAllocator<1>> Alphas;
+		TArray<int8, TInlineAllocator<1>> IsPoint;
+		TArray<FVector, TInlineAllocator<1>> CrossingDirections;
+
+		explicit FCrossing(const int32 InIndex):
+			Index(InIndex)
+		{
+		}
+
+		FORCEINLINE bool IsEmpty() const { return Crossings.IsEmpty(); }
+
+		bool FindSplit(
+			const TSharedPtr<FPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength,
+			const TSharedPtr<FPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails);
+
+		bool RemoveCrossing(const int32 EdgeStartIndex, const int32 IOIndex);
+		bool RemoveCrossing(const TSharedPtr<FPath>& Path, const int32 EdgeStartIndex);
+		bool RemoveCrossing(const TSharedPtr<FPath>& Path, const FPathEdge& Edge);
+	};
 }
 
 

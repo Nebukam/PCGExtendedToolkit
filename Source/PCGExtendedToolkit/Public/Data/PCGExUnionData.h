@@ -11,6 +11,7 @@
 
 namespace PCGExData
 {
+	
 #pragma region Compound
 
 	class PCGEXTENDEDTOOLKIT_API IUnionData : public TSharedFromThis<IUnionData>
@@ -19,8 +20,6 @@ namespace PCGExData
 		mutable FRWLock UnionLock;
 
 	public:
-		using InlineSparseAllocator = TSetAllocator<TSparseArrayAllocator<TInlineAllocator<8>, TInlineAllocator<8>>, TInlineAllocator<8>>;
-
 		//int32 Index = 0;
 		TSet<int32, DefaultKeyFuncs<int32>, InlineSparseAllocator> IOSet;
 		TArray<FElement, TInlineAllocator<8>> Elements;
