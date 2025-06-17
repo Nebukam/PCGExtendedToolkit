@@ -69,6 +69,9 @@ namespace PCGExOffsetPath
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
+		CrossingSettings.Tolerance = Settings->IntersectionTolerance;
+		CrossingSettings.bUseMinAngle = false;
+		CrossingSettings.bUseMaxAngle = false;
 		CrossingSettings.Init();
 
 		if (Settings->bInvertDirection) { DirectionFactor *= -1; }
@@ -78,7 +81,6 @@ namespace PCGExOffsetPath
 		Up = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
 
-		ToleranceSquared = Settings->IntersectionTolerance * Settings->IntersectionTolerance;
 		Path = PCGExPaths::MakePath(InTransforms, 0, PCGExPaths::GetClosedLoop(PointDataFacade->GetIn()));
 
 		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
@@ -203,7 +205,7 @@ namespace PCGExOffsetPath
 		{
 			if (Settings->bFlagFlippedPoints)
 			{
-				DirtyPath = PCGExPaths::MakePath(OutTransforms, ToleranceSquared, Path->IsClosedLoop());
+				DirtyPath = PCGExPaths::MakePath(OutTransforms, CrossingSettings.Tolerance * 2, Path->IsClosedLoop());
 				TSharedPtr<PCGExData::TBuffer<bool>> FlippedEdgeBuffer = PointDataFacade->GetWritable<bool>(Settings->FlippedAttributeName, false, true, PCGExData::EBufferInit::New);
 				for (int i = 0; i < DirtyPath->NumEdges; i++) { FlippedEdgeBuffer->SetValue(i, !(FVector::DotProduct(Path->Edges[i].Dir, DirtyPath->Edges[i].Dir) > 0)); }
 				PointDataFacade->WriteFastest(AsyncManager);
@@ -211,7 +213,7 @@ namespace PCGExOffsetPath
 			return;
 		}
 
-		DirtyPath = PCGExPaths::MakePath(OutTransforms, ToleranceSquared, Path->IsClosedLoop());
+		DirtyPath = PCGExPaths::MakePath(OutTransforms, CrossingSettings.Tolerance * 2, Path->IsClosedLoop());
 		DirtyLength = DirtyPath->AddExtra<PCGExPaths::FPathEdgeLength>();
 
 		CleanEdge.Init(false, DirtyPath->NumEdges);
@@ -330,7 +332,7 @@ namespace PCGExOffsetPath
 		}
 
 		// TODO : Deal with closed loops properly
-		if (Path->IsClosedLoop())
+		if (!Path->IsClosedLoop())
 		{
 			// Append last point (end point of last edge)
 			KeptPoints.Add(Path->LastIndex);

@@ -176,7 +176,6 @@ namespace PCGExOffsetPath
 		double DirectionFactor = -1; // Default to -1 because the normal maths changed at some point, inverting all existing value. Sorry for the lack of elegance.
 		double OffsetConstant = 0;
 		FVector Up = FVector::UpVector;
-		double ToleranceSquared = 1;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> OffsetGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
