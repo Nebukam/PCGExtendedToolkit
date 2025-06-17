@@ -11,7 +11,7 @@ bool UPCGExNumericCompareFilterFactory::DomainCheck()
 {
 	return
 		PCGExHelpers::IsDataDomainAttribute(Config.OperandA) &&
-		Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB);
+		(Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB));
 }
 
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExNumericCompareFilterFactory::CreateFilter() const
