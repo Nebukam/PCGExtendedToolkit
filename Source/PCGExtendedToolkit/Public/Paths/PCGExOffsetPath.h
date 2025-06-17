@@ -192,8 +192,9 @@ namespace PCGExOffsetPath
 		virtual void OnPointsProcessingComplete() override;
 		virtual void CompleteWork() override;
 
+		int32 CollapseFrom(const int32 StartIndex, TArray<int32>& KeptPoints, const bool bFlippedOnly);
 		void CollapseSections(const bool bFlippedOnly);
-
+		
 		void MarkMutated();
 	};
 }

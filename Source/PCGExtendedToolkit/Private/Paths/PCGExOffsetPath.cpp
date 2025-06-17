@@ -280,16 +280,13 @@ namespace PCGExOffsetPath
 		}
 	}
 
-	void FProcessor::CollapseSections(const bool bFlippedOnly)
+	int32 FProcessor::CollapseFrom(const int32 StartIndex, TArray<int32>& KeptPoints, const bool bFlippedOnly)
 	{
-		TArray<int32> KeptPoints;
-		KeptPoints.Reserve(Path->NumPoints);
-		Mutated.Init(false, Path->NumPoints);
-
-		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
-
-		for (int i = 0; i < Path->NumEdges; i++)
+		int32 FirstItx = -1;
+		for (int i = StartIndex; i < Path->NumEdges; i++)
 		{
+			if (!CleanEdge[i]) { continue; }
+
 			KeptPoints.Add(i);
 
 			TSharedPtr<PCGExPaths::FPathEdgeCrossings> Crossings = EdgeCrossings[i];
@@ -300,6 +297,7 @@ namespace PCGExOffsetPath
 
 			const PCGExPaths::FCrossing Crossing = Crossings->Crossings.Last();
 			const int32 OtherEdge = PCGEx::H64A(Crossing.Hash);
+			if (FirstItx == -1) { FirstItx = i; }
 
 			// That crossing is from earlier edges
 			if (OtherEdge < i) { continue; }
@@ -308,7 +306,7 @@ namespace PCGExOffsetPath
 			{
 				// Make sure the section contains flipped elements
 				bool bContainsFlippedEdge = false;
-				for (int e = i+1; e < OtherEdge; e++)
+				for (int e = i + 1; e < OtherEdge; e++)
 				{
 					if (!CleanEdge[e])
 					{
@@ -320,27 +318,55 @@ namespace PCGExOffsetPath
 				if (!bContainsFlippedEdge)
 				{
 					for (int e = i + 1; e < OtherEdge; e++) { KeptPoints.Add(e); }
-					i = OtherEdge-1;
+					i = OtherEdge - 1;
 					continue;
 				}
 			}
 
 			// Move the other edge' point to the crossing location
-			OutTransforms[OtherEdge].SetLocation(Crossing.Location);
 			Mutated[OtherEdge] = true;
-			i = OtherEdge-1;
+			i = OtherEdge - 1;
 		}
 
-		// TODO : Deal with closed loops properly
 		if (!Path->IsClosedLoop())
 		{
 			// Append last point (end point of last edge)
 			KeptPoints.Add(Path->LastIndex);
 		}
 
-		MarkMutated();
+		return FirstItx;
+	}
 
-		if (KeptPoints.Num() == Path->NumPoints) { return; }
+	void FProcessor::CollapseSections(const bool bFlippedOnly)
+	{
+		TArray<int32> KeptPoints;
+		KeptPoints.Reserve(Path->NumPoints);
+		Mutated.Init(false, Path->NumPoints);
+
+		int32 StartItx = CollapseFrom(0, KeptPoints, bFlippedOnly);
+		
+		if (Path->IsClosedLoop() && KeptPoints[0] == 0 && KeptPoints.Last() != Path->LastIndex)
+		{
+			// We started inside the part of a loop that's being pruned
+			// We need to start again from the first intersection this time.
+			KeptPoints.Reset();
+			Mutated.Init(false, Path->NumPoints);
+			CollapseFrom(StartItx + 1, KeptPoints, bFlippedOnly);
+		}
+
+		if (KeptPoints.Num() == Path->NumPoints)
+		{
+			MarkMutated();
+			return;
+		}
+
+		// TODO : Revisit this
+		
+		// Commit transforms
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
+		for (int i = 0; i < Path->NumEdges; i++) { if (Mutated[i] && EdgeCrossings[i]) { OutTransforms[i].SetLocation(EdgeCrossings[i]->Crossings.Last().Location); } }
+		
+		MarkMutated();
 
 		(void)PointDataFacade->Source->Gather(KeptPoints);
 	}
