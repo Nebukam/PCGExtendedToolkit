@@ -142,7 +142,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 	{
 		BaseOperation->BindContext(this); // Temp so Copy doesn't crash
 
-		T* RetValue = BaseOperation->CreateNewInstance<T>();
+		T* RetValue = BaseOperation->CreateNewInstance<T>(ManagedObjects.Get());
+		if (!RetValue) { return nullptr; }
 		InternalOperations.Add(RetValue);
 		RetValue->InitializeInContext(this, OverridePinLabel);
 		return RetValue;

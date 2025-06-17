@@ -47,9 +47,10 @@ public:
 	TSharedPtr<PCGExData::FFacade> SecondaryDataFacade;
 
 	template <typename T>
-	T* CreateNewInstance() const
+	T* CreateNewInstance(PCGEx::FManagedObjects* InManagedObjects) const
 	{
-		T* TypedInstance = Context->ManagedObjects->New<T>(GetTransientPackage(), this->GetClass());
+		if (!InManagedObjects) { return nullptr; }
+		T* TypedInstance = InManagedObjects->New<T>(GetTransientPackage(), this->GetClass());
 
 		check(TypedInstance)
 

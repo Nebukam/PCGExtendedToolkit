@@ -285,6 +285,7 @@ namespace PCGExAttributeRemap
 		for (int d = 0; d < Dimensions; d++)
 		{
 			FPCGExComponentRemapRule& Rule = Rules[d];
+			TSharedPtr<PCGExData::TBufferProxy<double>> InProxy = InputProxies[d];
 			TSharedPtr<PCGExData::TBufferProxy<double>> OutProxy = OutputProxies[d];
 
 			if (Rule.RemapDetails.bUseAbsoluteRange)
@@ -293,7 +294,7 @@ namespace PCGExAttributeRemap
 				{
 					PCGEX_SCOPE_LOOP(i)
 					{
-						double V = OutProxy->Get(i);
+						double V = InProxy->Get(i);
 						OutProxy->Set(
 							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(FMath::Abs(V)) * PCGExMath::SignPlus(V)));
@@ -306,7 +307,7 @@ namespace PCGExAttributeRemap
 						OutProxy->Set(
 							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(
-									FMath::Abs(OutProxy->Get(i)))));
+									FMath::Abs(InProxy->Get(i)))));
 					}
 				}
 			}
@@ -319,7 +320,7 @@ namespace PCGExAttributeRemap
 						OutProxy->Set(
 							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(
-									OutProxy->Get(i))));
+									InProxy->Get(i))));
 					}
 				}
 				else
@@ -329,7 +330,7 @@ namespace PCGExAttributeRemap
 						OutProxy->Set(
 							i, Rule.OutputClampDetails.GetClampedValue(
 								Rule.RemapDetails.GetRemappedValue(
-									FMath::Abs(OutProxy->Get(i)))));
+									FMath::Abs(InProxy->Get(i)))));
 					}
 				}
 			}
