@@ -363,20 +363,6 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = D;
 	}
 
-	void FPathEdgeBinormal::ProcessLastEdge(const FPath* Path, const FPathEdge& Edge)
-	{
-		if (Path->IsClosedLoop())
-		{
-			ProcessEdge(Path, Edge);
-			return;
-		}
-
-		const FVector C = FVector::CrossProduct(Up, Edge.Dir).GetSafeNormal();
-
-		Normals[Edge.Start] = C;
-		GetMutable(Edge.Start) = C;
-	}
-
 #pragma endregion
 
 #pragma region FPathEdgeAvgNormal
@@ -399,17 +385,6 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = FMath::Lerp(A, B, 0.5).GetSafeNormal();
 	}
 
-	void FPathEdgeAvgNormal::ProcessLastEdge(const FPath* Path, const FPathEdge& Edge)
-	{
-		if (Path->IsClosedLoop())
-		{
-			ProcessEdge(Path, Edge);
-			return;
-		}
-
-		GetMutable(Edge.Start) = FVector::CrossProduct(Up, Edge.Dir).GetSafeNormal();
-	}
-
 #pragma endregion
 
 #pragma region FPathEdgeHalfAngle
@@ -430,17 +405,6 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = FMath::Acos(FVector::DotProduct(Path->DirToPrevPoint(Edge.Start), Edge.Dir));
 	}
 
-	void FPathEdgeHalfAngle::ProcessLastEdge(const FPath* Path, const FPathEdge& Edge)
-	{
-		if (Path->IsClosedLoop())
-		{
-			ProcessEdge(Path, Edge);
-			return;
-		}
-
-		GetMutable(Edge.Start) = PI;
-	}
-
 #pragma endregion
 
 #pragma region FPathEdgeAngle
@@ -453,23 +417,12 @@ namespace PCGExPaths
 			return;
 		}
 
-		GetMutable(Edge.Start) = PI;
+		GetMutable(Edge.Start) = 0;
 	}
 
 	void FPathEdgeFullAngle::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
 	{
 		GetMutable(Edge.Start) = PCGExMath::GetAngle(Path->DirToPrevPoint(Edge.Start) * -1, Edge.Dir);
-	}
-
-	void FPathEdgeFullAngle::ProcessLastEdge(const FPath* Path, const FPathEdge& Edge)
-	{
-		if (Path->IsClosedLoop())
-		{
-			ProcessEdge(Path, Edge);
-			return;
-		}
-
-		GetMutable(Edge.Start) = PI;
 	}
 
 	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion)
@@ -601,6 +554,83 @@ namespace PCGExPaths
 
 		PCGEX_MAKE_SHARED(P, TPolyPath<false>, InTransforms, ProjectionUp, Expansion)
 		return StaticCastSharedPtr<FPath>(P);
+	}
+
+	bool FPathEdgeCrossings::FindSplit(
+		const TSharedPtr<FPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength,
+		const TSharedPtr<FPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails)
+	{
+		if (!OtherPath->IsEdgeValid(OtherEdge)) { return false; }
+
+		const FVector& A1 = Path->GetPos(Edge.Start);
+		const FVector& B1 = Path->GetPos(Edge.End);
+		const FVector& A2 = OtherPath->GetPos(OtherEdge.Start);
+		const FVector& B2 = OtherPath->GetPos(OtherEdge.End);
+
+		if (A1 == A2 || A1 == B2 || A2 == B1 || B2 == B1) { return false; }
+
+		const FVector CrossDir = (B2 - A2).GetSafeNormal();
+
+		if (InIntersectionDetails.bUseMinAngle || InIntersectionDetails.bUseMaxAngle)
+		{
+			if (!InIntersectionDetails.CheckDot(FMath::Abs(FVector::DotProduct((B1 - A1).GetSafeNormal(), CrossDir)))) { return false; }
+		}
+
+		FVector A;
+		FVector B;
+		FMath::SegmentDistToSegment(A1, B1, A2, B2, A, B);
+
+		if (A == A1 || A == B1) { return false; } // On local point
+
+		const double Dist = FVector::DistSquared(A, B);
+		const bool bColloc = (B == A2 || B == B2); // On crossing point
+
+		if (Dist >= InIntersectionDetails.ToleranceSquared) { return false; }
+
+		Crossings.Emplace(
+			PCGEx::H64(OtherEdge.Start, OtherPath->IOIndex),
+			FMath::Lerp(A, B, 0.5),
+			FVector::Dist(A1, A) / PathLength->Get(Edge),
+			bColloc,
+			CrossDir);
+
+		return true;
+	}
+
+	bool FPathEdgeCrossings::RemoveCrossing(const int32 EdgeStartIndex, const int32 IOIndex)
+	{
+		const uint64 H = PCGEx::H64(EdgeStartIndex, IOIndex);
+		for (int i = 0; i < Crossings.Num(); i++)
+		{
+			if (Crossings[i].Hash == H)
+			{
+				Crossings.RemoveAt(i);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool FPathEdgeCrossings::RemoveCrossing(const TSharedPtr<FPath>& Path, const int32 EdgeStartIndex)
+	{
+		return RemoveCrossing(EdgeStartIndex, Path->IOIndex);
+	}
+
+	bool FPathEdgeCrossings::RemoveCrossing(const TSharedPtr<FPath>& Path, const FPathEdge& Edge)
+	{
+		return RemoveCrossing(Edge.Start, Path->IOIndex);
+	}
+
+	void FPathEdgeCrossings::SortByAlpha()
+	{
+		if (Crossings.Num() <= 1) { return; }
+		Crossings.Sort([&](const PCGExPaths::FCrossing& A, const PCGExPaths::FCrossing& B) { return A.Alpha < B.Alpha; });
+	}
+
+	void FPathEdgeCrossings::SortByHash()
+	{
+		if (Crossings.Num() <= 1) { return; }
+		Crossings.Sort([&](const PCGExPaths::FCrossing& A, const PCGExPaths::FCrossing& B) { return PCGEx::H64A(A.Hash) < PCGEx::H64A(B.Hash); });
 	}
 }
 

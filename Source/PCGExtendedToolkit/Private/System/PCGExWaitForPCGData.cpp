@@ -680,18 +680,14 @@ namespace PCGExWaitForPCGData
 				{
 					if (Settings->bOutputRoaming)
 					{
-						FPCGTaggedData& StagedData = Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), false, false);
-						StagedData.Pin = Settings->RoamingPin;
-						StagedData.Tags.Append(DataTags);
+						Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), Settings->RoamingPin, DataTags, false, false, false);
 
 						// const_cast is fine here, we don't modify the data.
 					}
 					continue;
 				}
 
-				FPCGTaggedData& StagedData = Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), false, false);
-				StagedData.Pin = TaggedData.Pin;
-				StagedData.Tags.Append(DataTags);
+				Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), TaggedData.Pin, DataTags, false, false, false);
 			}
 		}
 		else
@@ -713,16 +709,12 @@ namespace PCGExWaitForPCGData
 					{
 						if (Settings->bOutputRoaming)
 						{
-							FPCGTaggedData& StagedData = Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), false, false);
-							StagedData.Pin = Settings->RoamingPin;
-							StagedData.Tags.Append(DataTags);
+							Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), Settings->RoamingPin, DataTags, false, false, false);
 						}
 						continue;
 					}
 
-					FPCGTaggedData& StagedData = Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), false, false);
-					StagedData.Pin = TaggedData.Pin;
-					StagedData.Tags.Append(DataTags);
+					Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), TaggedData.Pin, DataTags, false, false, false);
 				}
 			}
 		}

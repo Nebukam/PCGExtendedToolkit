@@ -641,7 +641,6 @@ namespace PCGExPaths
 
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
 	class FPathEdgeAvgNormal : public TPathEdgeExtra<FVector>
@@ -656,7 +655,6 @@ namespace PCGExPaths
 
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
 	class FPathEdgeHalfAngle : public TPathEdgeExtra<double>
@@ -671,7 +669,6 @@ namespace PCGExPaths
 
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
 	class FPathEdgeFullAngle : public TPathEdgeExtra<double>
@@ -686,7 +683,6 @@ namespace PCGExPaths
 
 		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
 		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) override;
 	};
 
 #pragma endregion
@@ -819,6 +815,40 @@ namespace PCGExPaths
 
 	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const FVector& ProjectionUp = FVector::UpVector);
 	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp = FVector::UpVector);
+
+	struct PCGEXTENDEDTOOLKIT_API FCrossing
+	{
+		uint64 Hash;      // Point Index | IO Index
+		FVector Location; // Position in between edges
+		double Alpha;     // Position along the edge
+		bool bIsPoint;    // Is crossing a point
+		FVector Dir;      // Direction of the crossing edge
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FPathEdgeCrossings
+	{
+		int32 Index = -1;
+
+		TArray<FCrossing> Crossings;
+
+		explicit FPathEdgeCrossings(const int32 InIndex):
+			Index(InIndex)
+		{
+		}
+
+		FORCEINLINE bool IsEmpty() const { return Crossings.IsEmpty(); }
+
+		bool FindSplit(
+			const TSharedPtr<FPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength,
+			const TSharedPtr<FPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails);
+
+		bool RemoveCrossing(const int32 EdgeStartIndex, const int32 IOIndex);
+		bool RemoveCrossing(const TSharedPtr<FPath>& Path, const int32 EdgeStartIndex);
+		bool RemoveCrossing(const TSharedPtr<FPath>& Path, const FPathEdge& Edge);
+
+		void SortByAlpha();
+		void SortByHash();
+	};
 }
 
 

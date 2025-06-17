@@ -148,22 +148,6 @@ protected:
 
 namespace PCGExPathCrossings
 {
-	struct PCGEXTENDEDTOOLKIT_API FCrossing
-	{
-		int32 Index = -1;
-
-		TArray<uint64> Crossings; // Point Index | IO Index
-		TArray<FVector> Positions;
-		TArray<double> Alphas;
-		TArray<int8> IsPoint;
-		TArray<FVector> CrossingDirections;
-
-		explicit FCrossing(const int32 InIndex):
-			Index(InIndex)
-		{
-		}
-	};
-
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathCrossingsContext, UPCGExPathCrossingsSettings>
 	{
 		bool bClosedLoop = false;
@@ -174,7 +158,7 @@ namespace PCGExPathCrossings
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 
-		TArray<TSharedPtr<FCrossing>> Crossings;
+		TArray<TSharedPtr<PCGExPaths::FPathEdgeCrossings>> EdgeCrossings;
 
 		TSharedPtr<PCGExPointFilter::FManager> CanCutFilterManager;
 		TSharedPtr<PCGExPointFilter::FManager> CanBeCutFilterManager;

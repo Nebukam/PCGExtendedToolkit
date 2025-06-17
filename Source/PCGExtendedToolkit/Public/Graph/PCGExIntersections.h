@@ -155,7 +155,7 @@ namespace PCGExGraph
 		FBoxSphereBounds Bounds;
 		int32 Index;
 
-		TSet<int32> Adjacency;
+		TSet<int32, DefaultKeyFuncs<int32>, InlineSparseAllocator> Adjacency;
 
 		FUnionNode(const PCGExData::FConstPoint& InPoint, const FVector& InCenter, const int32 InIndex);
 		~FUnionNode() = default;
