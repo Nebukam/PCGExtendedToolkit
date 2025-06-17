@@ -330,7 +330,7 @@ namespace PCGExOffsetPath
 		}
 
 		// TODO : Deal with closed loops properly
-		if (Path->IsClosedLoop())
+		if (!Path->IsClosedLoop())
 		{
 			// Append last point (end point of last edge)
 			KeptPoints.Add(Path->LastIndex);
