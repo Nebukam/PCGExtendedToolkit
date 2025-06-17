@@ -140,9 +140,14 @@ namespace PCGExFusePoints
 		TArray<PCGEx::FOpStats> Trackers;
 		UnionBlender->InitTrackers(Trackers);
 
+		bool bUpdateCenter = Settings->BlendingDetails.PropertiesOverrides.bOverridePosition && Settings->BlendingDetails.PropertiesOverrides.PositionBlending == EPCGExDataBlendingType::None;
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			Transforms[Index].SetLocation(UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints));
+			const FVector Center = UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints);
+
+			if (bUpdateCenter) { Transforms[Index].SetLocation(Center); }
+			
 			UnionBlender->MergeSingle(Index, WeightedPoints, Trackers);
 			if (IsUnionWriter) { IsUnionWriter->SetValue(Index, WeightedPoints.Num() > 1); }
 			if (UnionSizeWriter) { UnionSizeWriter->SetValue(Index, WeightedPoints.Num()); }
