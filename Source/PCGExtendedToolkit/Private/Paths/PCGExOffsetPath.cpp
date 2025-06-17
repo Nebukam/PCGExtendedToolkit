@@ -16,7 +16,9 @@ bool FPCGExOffsetPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(OffsetPath)
 
-	if (Settings->bCleanupPath && Settings->bFlagMutatedPoints) { PCGEX_VALIDATE_NAME(Settings->MutatedAttributeName) }
+	if (Settings->bFlagFlippedPoints) { PCGEX_VALIDATE_NAME(Settings->FlippedAttributeName) }
+	if (Settings->bFlagMutatedPoints) { PCGEX_VALIDATE_NAME(Settings->MutatedAttributeName) }
+	if (Settings->CleanupMode != EPCGExOffsetCleanupMode::None && Settings->bFlagMutatedPoints) { PCGEX_VALIDATE_NAME(Settings->MutatedAttributeName) }
 
 	return true;
 }
@@ -195,16 +197,25 @@ namespace PCGExOffsetPath
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
-		if (!Settings->bCleanupPath) { return; }
-
 		const TConstPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetConstTransformValueRange();
+
+		if (Settings->CleanupMode == EPCGExOffsetCleanupMode::None)
+		{
+			if (Settings->bFlagFlippedPoints)
+			{
+				DirtyPath = PCGExPaths::MakePath(OutTransforms, ToleranceSquared, Path->IsClosedLoop());
+				TSharedPtr<PCGExData::TBuffer<bool>> FlippedEdgeBuffer = PointDataFacade->GetWritable<bool>(Settings->FlippedAttributeName, false, true, PCGExData::EBufferInit::New);
+				for (int i = 0; i < DirtyPath->NumEdges; i++) { FlippedEdgeBuffer->SetValue(i, !(FVector::DotProduct(Path->Edges[i].Dir, DirtyPath->Edges[i].Dir) > 0)); }
+				PointDataFacade->WriteFastest(AsyncManager);
+			}
+			return;
+		}
 
 		DirtyPath = PCGExPaths::MakePath(OutTransforms, ToleranceSquared, Path->IsClosedLoop());
 		DirtyLength = DirtyPath->AddExtra<PCGExPaths::FPathEdgeLength>();
-		DirtyPath->BuildEdgeOctree();
 
 		CleanEdge.Init(false, DirtyPath->NumEdges);
-		Crossings.Init(nullptr, DirtyPath->NumEdges);
+		EdgeCrossings.Init(nullptr, DirtyPath->NumEdges);
 
 		// Mark edges that have been flipped
 		for (int i = 0; i < DirtyPath->NumEdges; i++)
@@ -213,6 +224,8 @@ namespace PCGExOffsetPath
 			CleanEdge[i] = FVector::DotProduct(Path->Edges[i].Dir, DirtyPath->Edges[i].Dir) > 0;
 			if (FirstFlippedEdge == -1 && !CleanEdge[i]) { FirstFlippedEdge = i; }
 		}
+
+		DirtyPath->BuildEdgeOctree();
 
 		// Find all crossings
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FindCrossings)
@@ -227,7 +240,7 @@ namespace PCGExOffsetPath
 
 				PCGEX_SCOPE_LOOP(i)
 				{
-					TSharedPtr<PCGExPaths::FCrossing> NewCrossing = MakeShared<PCGExPaths::FCrossing>(i);
+					TSharedPtr<PCGExPaths::FPathEdgeCrossings> NewCrossing = MakeShared<PCGExPaths::FPathEdgeCrossings>(i);
 					const PCGExPaths::FPathEdge& E = P->Edges[i];
 					P->GetEdgeOctree()->FindElementsWithBoundsTest(
 						E.Bounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
@@ -236,7 +249,11 @@ namespace PCGExOffsetPath
 							NewCrossing->FindSplit(P, E, L, P, *OtherEdge, This->CrossingSettings);
 						});
 
-					if (!NewCrossing->IsEmpty()) { This->Crossings[i] = NewCrossing; }
+					if (!NewCrossing->IsEmpty())
+					{
+						NewCrossing->SortByHash();
+						This->EdgeCrossings[i] = NewCrossing;
+					}
 				}
 			};
 
@@ -245,152 +262,94 @@ namespace PCGExOffsetPath
 
 	void FProcessor::CompleteWork()
 	{
-		if (!Settings->bCleanupPath) { return; }
+		if (Settings->CleanupMode == EPCGExOffsetCleanupMode::None) { return; }
 
-		// We assume that any flipped edge is between two crossing points.
-		// There are edge cases where this isn't true tho; but we won't care about those.
-
-		// Two modes :
-		// - only remove points between intersection if the section contains a flipped edge
-		// - remove all points between intersections
-		//		- We need to be iterative with this approach, as removing all edges between a pair of intersection may "invalidate" other intersections.
-
-		TArray<int32> Gather;
-		Gather.Reserve(Path->NumPoints);
-
-		bool bSearchingForNextCrossing = CleanEdge[0];
-		if (!CleanEdge[0])
+		switch (Settings->CleanupMode)
 		{
+		case EPCGExOffsetCleanupMode::CollapseFlipped:
+			(void)PointDataFacade->Source->Gather(CleanEdge);
+			break;
+		case EPCGExOffsetCleanupMode::SectionsFlipped:
+			CollapseSections(true);
+			break;
+		case EPCGExOffsetCleanupMode::Sections:
+			CollapseSections(false);
+			break;
 		}
+	}
 
-		// We will update OutTransform and do a gather.
-		// It's greedy but any other approach will be a real pain to maintain
+	void FProcessor::CollapseSections(const bool bFlippedOnly)
+	{
+		TArray<int32> KeptPoints;
+		KeptPoints.Reserve(Path->NumPoints);
+		Mutated.Init(false, Path->NumPoints);
 
-		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
-		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
 
-		TArray<int8> Mask;
-		Mask.Init(0, OutTransforms.Num());
-
-		TArray<int8> Mutated;
-		Mutated.Reserve(OutTransforms.Num());
-
-		int32 Last = 0;
-
-		if (DirtyPath->IsClosedLoop() && !CleanEdge[0])
+		for (int i = 0; i < Path->NumEdges; i++)
 		{
-			//Starting with a flipped edge, should only ever happen with closed loops.
-			// Go back in the path until we find a valid end
-			for (int i = 0; i < CleanEdge.Num(); i++)
+			KeptPoints.Add(i);
+
+			TSharedPtr<PCGExPaths::FPathEdgeCrossings> Crossings = EdgeCrossings[i];
+			if (!Crossings || Crossings->IsEmpty()) { continue; }
+
+			// There's a crossing
+			// Jump to the highest index segment
+
+			const PCGExPaths::FCrossing Crossing = Crossings->Crossings.Last();
+			const int32 OtherEdge = PCGEx::H64A(Crossing.Hash);
+
+			// That crossing is from earlier edges
+			if (OtherEdge < i) { continue; }
+
+			if (bFlippedOnly)
 			{
-				if (CleanEdge[i])
+				// Make sure the section contains flipped elements
+				bool bContainsFlippedEdge = false;
+				for (int e = i+1; e < OtherEdge; e++)
 				{
-					Last = i;
-					break;
-				}
-			}
-		}
-
-		FVector A = FVector::ZeroVector;
-		FVector MutatedPosition = FVector::ZeroVector;
-
-		DirtyPath->BuildPartialEdgeOctree(CleanEdge);
-
-		if (Settings->CleanupMode == EPCGExOffsetCleanupMode::Balanced)
-		{
-			bool bWaitingForCleanEdge = false;
-
-			for (int i = Last; i < CleanEdge.Num(); i++)
-			{
-				if (bWaitingForCleanEdge)
-				{
-					if (!CleanEdge[i]) { continue; }
-
-					bWaitingForCleanEdge = false;
-
-					// Try to find if there is any upcoming intersection
-					// if not, resolve with current
-
-					if (!FindNextIntersection<false>(DirtyPath->Edges[i], i, MutatedPosition))
+					if (!CleanEdge[e])
 					{
-						// Fallback to next clean edge, as there is no upcoming intersections.
-						const PCGExPaths::FPathEdge& E1 = DirtyPath->Edges[Last];
-						const PCGExPaths::FPathEdge& E2 = DirtyPath->Edges[i];
-
-						FMath::SegmentDistToSegment(
-							OutTransforms[E1.Start].GetLocation(), OutTransforms[E1.End].GetLocation(),
-							OutTransforms[E2.Start].GetLocation(), OutTransforms[E2.End].GetLocation(), A, MutatedPosition);
+						bContainsFlippedEdge = true;
+						break;
 					}
+				}
 
-					Mask[i] = 1;
-					OutTransforms[i].SetLocation(MutatedPosition);
-					Mutated.Add(1);
-
-					Last = i;
+				if (!bContainsFlippedEdge)
+				{
+					for (int e = i + 1; e < OtherEdge; e++) { KeptPoints.Add(e); }
+					i = OtherEdge-1;
 					continue;
 				}
-
-				if (CleanEdge[i])
-				{
-					Mask[i] = 1;
-					Mutated.Add(0);
-					Last = i;
-
-					if (Settings->bAdditionalIntersectionCheck)
-					{
-						// Additional intersection check on clean edge; will update the next starting position.
-						if (FindNextIntersection<true>(DirtyPath->Edges[i], i, MutatedPosition))
-						{
-							// Update next position and keep moving
-							OutTransforms[i].SetLocation(MutatedPosition);
-							i--;
-						}
-					}
-					continue;
-				}
-
-				bWaitingForCleanEdge = true;
 			}
+
+			// Move the other edge' point to the crossing location
+			OutTransforms[OtherEdge].SetLocation(Crossing.Location);
+			Mutated[OtherEdge] = true;
+			i = OtherEdge-1;
 		}
-		else
+
+		// TODO : Deal with closed loops properly
+		if (Path->IsClosedLoop())
 		{
-			for (int i = Last; i < CleanEdge.Num(); i++)
-			{
-				if (!CleanEdge[i]) { continue; }
-
-				Mask[i] = 1;
-				Mutated.Add(0);
-
-				if (FindNextIntersection<true>(DirtyPath->Edges[i], i, MutatedPosition))
-				{
-					// Update next position and keep moving
-					OutTransforms[i].SetLocation(MutatedPosition);
-					i--;
-				}
-			}
+			// Append last point (end point of last edge)
+			KeptPoints.Add(Path->LastIndex);
 		}
 
-		if (!Path->IsClosedLoop())
-		{
-			// TODO : Look into this, not sure it's correct
-			Mask.Last() = 1;
-			Mutated.Add(0);
+		MarkMutated();
 
-			// Old behavior
-			//FPCGPoint& Pt = OutPoints.Add_GetRef(InPoints.Last());
-			//Pt.Transform.SetLocation(Positions.Last());
-		}
+		if (KeptPoints.Num() == Path->NumPoints) { return; }
 
-		if (PointDataFacade->Source->Gather(Mask) < 2)
-		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit);
-		}
-		else if (Settings->bFlagMutatedPoints)
-		{
-			TSharedPtr<PCGExData::TBuffer<bool>> MutatedFlag = PointDataFacade->GetWritable<bool>(Settings->MutatedAttributeName, false, true, PCGExData::EBufferInit::Inherit);
-			for (int i = 0; i < Mutated.Num(); i++) { MutatedFlag->SetValue(i, Mutated[i] ? true : false); }
-			PointDataFacade->WriteFastest(AsyncManager);
-		}
+		(void)PointDataFacade->Source->Gather(KeptPoints);
+	}
+
+	void FProcessor::MarkMutated()
+	{
+		if (!Settings->bFlagMutatedPoints) { return; }
+
+		TSharedPtr<PCGExData::TBuffer<bool>> MutatedBuffer = PointDataFacade->GetWritable<bool>(Settings->FlippedAttributeName, false, true, PCGExData::EBufferInit::New);
+		for (int i = 0; i < DirtyPath->NumEdges; i++) { MutatedBuffer->SetValue(i, Mutated[i]); }
+		PointDataFacade->WriteSynchronous();
 	}
 }
 

@@ -129,7 +129,7 @@ namespace PCGExPathCrossings
 
 		CanCut.Init(true, Path->NumEdges);
 		CanBeCut.Init(true, Path->NumEdges);
-		Crossings.Init(nullptr, Path->NumEdges);
+		EdgeCrossings.Init(nullptr, Path->NumEdges);
 
 		SubBlending = Context->Blending->CreateOperation();
 		SubBlending->bClosedLoop = bClosedLoop;
@@ -162,13 +162,13 @@ namespace PCGExPathCrossings
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			Crossings[Index] = nullptr;
+			EdgeCrossings[Index] = nullptr;
 			if (!CanBeCut[Index]) { continue; }
 
 			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
 			if (!Path->IsEdgeValid(Edge)) { continue; }
 
-			const TSharedPtr<PCGExPaths::FCrossing> NewCrossing = MakeShared<PCGExPaths::FCrossing>(Index);
+			const TSharedPtr<PCGExPaths::FPathEdgeCrossings> NewCrossing = MakeShared<PCGExPaths::FPathEdgeCrossings>(Index);
 
 			// Find crossings
 			if (bSelfIntersectionOnly)
@@ -203,7 +203,11 @@ namespace PCGExPathCrossings
 				}
 			}
 
-			if (!NewCrossing->IsEmpty()) { Crossings[Index] = NewCrossing; }
+			if (!NewCrossing->IsEmpty())
+			{
+				NewCrossing->SortByAlpha();
+				EdgeCrossings[Index] = NewCrossing;
+			}
 		}
 	}
 
@@ -220,7 +224,7 @@ namespace PCGExPathCrossings
 
 			if (!Path->IsClosedLoop() && i == Path->LastIndex) { continue; }
 
-			const PCGExPaths::FCrossing* Crossing = Crossings[i].Get();
+			const PCGExPaths::FPathEdgeCrossings* Crossing = EdgeCrossings[i].Get();
 			if (!Crossing) { continue; }
 
 			NumPointsFinal += Crossing->Crossings.Num();
@@ -248,12 +252,12 @@ namespace PCGExPathCrossings
 			OutMetadataEntries[Index] = InMetadataEntries[i];
 			Metadata->InitializeOnSet(OutMetadataEntries[Index++]);
 
-			const PCGExPaths::FCrossing* Crossing = Crossings[i].Get();
+			const PCGExPaths::FPathEdgeCrossings* Crossing = EdgeCrossings[i].Get();
 			if (!Crossing) { continue; }
 
-			for (const uint64 Hash : Crossing->Crossings)
+			for (const PCGExPaths::FCrossing X : Crossing->Crossings)
 			{
-				CrossIOIndices.Add(PCGEx::H64B(Hash));
+				CrossIOIndices.Add(PCGEx::H64B(X.Hash));
 				OutMetadataEntries[Index] = InMetadataEntries[i];
 				Metadata->InitializeOnSet(OutMetadataEntries[Index++]);
 			}
@@ -334,7 +338,7 @@ namespace PCGExPathCrossings
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const PCGExPaths::FCrossing* Crossing = Crossings[Index].Get();
+			PCGExPaths::FPathEdgeCrossings* Crossing = EdgeCrossings[Index].Get();
 			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
 
 			if (FlagWriter) { FlagWriter->SetValue(Edge.AltStart, false); }
@@ -349,26 +353,21 @@ namespace PCGExPathCrossings
 
 			PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Path->GetPos(Edge.Start));
 
-			PCGEx::ArrayOfIndices(Order, NumCrossings);
-			Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
 
 			for (int i = 0; i < NumCrossings; i++)
 			{
+				const PCGExPaths::FCrossing& Itx = Crossing->Crossings[i];
 				const int32 PointIndex = CrossingStartIndex + i;
-				const int32 LocalIndex = Order[i];
-
-				const FVector& V = Crossing->Positions[LocalIndex];
-				const FVector CrossDir = Crossing->CrossingDirections[LocalIndex];
 
 				if (FlagWriter) { FlagWriter->SetValue(PointIndex, true); }
-				if (AlphaWriter) { AlphaWriter->SetValue(PointIndex, Crossing->Alphas[LocalIndex]); }
-				if (CrossWriter) { CrossWriter->SetValue(PointIndex, CrossDir); }
-				if (IsPointCrossingWriter) { IsPointCrossingWriter->SetValue(PointIndex, Crossing->IsPoint[LocalIndex] ? true : false); }
+				if (AlphaWriter) { AlphaWriter->SetValue(PointIndex, Itx.Alpha); }
+				if (CrossWriter) { CrossWriter->SetValue(PointIndex, Itx.Dir); }
+				if (IsPointCrossingWriter) { IsPointCrossingWriter->SetValue(PointIndex, Itx.bIsPoint); }
 
-				if (Settings->bOrientCrossing) { OutTransforms[PointIndex].SetRotation(PCGExMath::MakeDirection(Settings->CrossingOrientAxis, CrossDir)); }
-				OutTransforms[PointIndex].SetLocation(V);
+				if (Settings->bOrientCrossing) { OutTransforms[PointIndex].SetRotation(PCGExMath::MakeDirection(Settings->CrossingOrientAxis, Itx.Dir)); }
+				OutTransforms[PointIndex].SetLocation(Itx.Location);
 
-				Metrics.Add(V);
+				Metrics.Add(Itx.Location);
 			}
 
 			Metrics.Add(Path->GetPos(Edge.End));
@@ -391,30 +390,26 @@ namespace PCGExPathCrossings
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const PCGExPaths::FCrossing* Crossing = Crossings[Index].Get();
+			const PCGExPaths::FPathEdgeCrossings* Crossing = EdgeCrossings[Index].Get();
 			if (!Crossing) { continue; }
 
 			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
-
 			const int32 NumCrossings = Crossing->Crossings.Num();
-
-			// Sorting again, ugh
-			Order.Reset(NumCrossings);
-			PCGEx::ArrayOfIndices(Order, NumCrossings);
-
-			Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
 
 			for (int i = 0; i < NumCrossings; i++)
 			{
+				const PCGExPaths::FCrossing& Itx = Crossing->Crossings[i];
+
 				uint32 PtIdx;
 				uint32 IOIdx;
-				PCGEx::H64(Crossing->Crossings[Order[i]], PtIdx, IOIdx);
+				PCGEx::H64(Itx.Hash, PtIdx, IOIdx);
 
 				const int32 SecondIndex = PtIdx + 1 >= static_cast<uint32>(Context->MainPoints->Pairs[IOIdx]->GetNum(PCGExData::EIOSide::In)) ? 0 : PtIdx + 1;
 
 				TempUnion->Reset();
 				TempUnion->Add(PCGExData::FPoint(PtIdx, IOIdx));
 				TempUnion->Add(PCGExData::FPoint(SecondIndex, IOIdx));
+
 				UnionBlender->MergeSingle(Edge.AltStart + i + 1, TempUnion, WeightedPoints, Trackers);
 			}
 		}
@@ -427,7 +422,6 @@ namespace PCGExPathCrossings
 			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 			return;
 		}
-
 
 		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver, Context->Distances);
 		UnionBlender = TypedBlender;

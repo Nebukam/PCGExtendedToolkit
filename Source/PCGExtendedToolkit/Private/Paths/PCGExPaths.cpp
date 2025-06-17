@@ -556,7 +556,7 @@ namespace PCGExPaths
 		return StaticCastSharedPtr<FPath>(P);
 	}
 
-	bool FCrossing::FindSplit(
+	bool FPathEdgeCrossings::FindSplit(
 		const TSharedPtr<FPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength,
 		const TSharedPtr<FPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails)
 	{
@@ -587,37 +587,50 @@ namespace PCGExPaths
 
 		if (Dist >= InIntersectionDetails.ToleranceSquared) { return false; }
 
-		Crossings.Add(PCGEx::H64(OtherEdge.Start, OtherPath->IOIndex));
-		Positions.Add(FMath::Lerp(A, B, 0.5));
-		CrossingDirections.Add(CrossDir);
-		Alphas.Add(FVector::Dist(A1, A) / PathLength->Get(Edge));
-		IsPoint.Add(bColloc);
+		Crossings.Emplace(
+			PCGEx::H64(OtherEdge.Start, OtherPath->IOIndex),
+			FMath::Lerp(A, B, 0.5),
+			FVector::Dist(A1, A) / PathLength->Get(Edge),
+			bColloc,
+			CrossDir);
 
 		return true;
 	}
 
-	bool FCrossing::RemoveCrossing(const int32 EdgeStartIndex, const int32 IOIndex)
+	bool FPathEdgeCrossings::RemoveCrossing(const int32 EdgeStartIndex, const int32 IOIndex)
 	{
-		const int32 I = Crossings.Find(PCGEx::H64(EdgeStartIndex, IOIndex));
-		if (I == -1) { return false; }
-
-		Crossings.RemoveAt(I);
-		Positions.RemoveAt(I);
-		CrossingDirections.RemoveAt(I);
-		Alphas.RemoveAt(I);
-		IsPoint.RemoveAt(I);
-
-		return true;
+		const uint64 H = PCGEx::H64(EdgeStartIndex, IOIndex);
+		for (int i = 0; i < Crossings.Num(); i++)
+		{
+			if (Crossings[i].Hash == H)
+			{
+				Crossings.RemoveAt(i);
+				return true;
+			}
+		}
+		return false;
 	}
 
-	bool FCrossing::RemoveCrossing(const TSharedPtr<FPath>& Path, const int32 EdgeStartIndex)
+	bool FPathEdgeCrossings::RemoveCrossing(const TSharedPtr<FPath>& Path, const int32 EdgeStartIndex)
 	{
 		return RemoveCrossing(EdgeStartIndex, Path->IOIndex);
 	}
 
-	bool FCrossing::RemoveCrossing(const TSharedPtr<FPath>& Path, const FPathEdge& Edge)
+	bool FPathEdgeCrossings::RemoveCrossing(const TSharedPtr<FPath>& Path, const FPathEdge& Edge)
 	{
 		return RemoveCrossing(Edge.Start, Path->IOIndex);
+	}
+
+	void FPathEdgeCrossings::SortByAlpha()
+	{
+		if (Crossings.Num() <= 1) { return; }
+		Crossings.Sort([&](const PCGExPaths::FCrossing& A, const PCGExPaths::FCrossing& B) { return A.Alpha < B.Alpha; });
+	}
+
+	void FPathEdgeCrossings::SortByHash()
+	{
+		if (Crossings.Num() <= 1) { return; }
+		Crossings.Sort([&](const PCGExPaths::FCrossing& A, const PCGExPaths::FCrossing& B) { return PCGEx::H64A(A.Hash) < PCGEx::H64A(B.Hash); });
 	}
 }
 

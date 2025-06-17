@@ -818,15 +818,20 @@ namespace PCGExPaths
 
 	struct PCGEXTENDEDTOOLKIT_API FCrossing
 	{
+		uint64 Hash;      // Point Index | IO Index
+		FVector Location; // Position in between edges
+		double Alpha;     // Position along the edge
+		bool bIsPoint;    // Is crossing a point
+		FVector Dir;      // Direction of the crossing edge
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FPathEdgeCrossings
+	{
 		int32 Index = -1;
 
-		TArray<uint64, TInlineAllocator<1>> Crossings; // Point Index | IO Index
-		TArray<FVector, TInlineAllocator<1>> Positions;
-		TArray<double, TInlineAllocator<1>> Alphas;
-		TArray<int8, TInlineAllocator<1>> IsPoint;
-		TArray<FVector, TInlineAllocator<1>> CrossingDirections;
+		TArray<FCrossing> Crossings;
 
-		explicit FCrossing(const int32 InIndex):
+		explicit FPathEdgeCrossings(const int32 InIndex):
 			Index(InIndex)
 		{
 		}
@@ -840,6 +845,9 @@ namespace PCGExPaths
 		bool RemoveCrossing(const int32 EdgeStartIndex, const int32 IOIndex);
 		bool RemoveCrossing(const TSharedPtr<FPath>& Path, const int32 EdgeStartIndex);
 		bool RemoveCrossing(const TSharedPtr<FPath>& Path, const FPathEdge& Edge);
+
+		void SortByAlpha();
+		void SortByHash();
 	};
 }
 

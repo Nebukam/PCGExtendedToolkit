@@ -158,7 +158,7 @@ namespace PCGExPathCrossings
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 
-		TArray<TSharedPtr<PCGExPaths::FCrossing>> Crossings;
+		TArray<TSharedPtr<PCGExPaths::FPathEdgeCrossings>> EdgeCrossings;
 
 		TSharedPtr<PCGExPointFilter::FManager> CanCutFilterManager;
 		TSharedPtr<PCGExPointFilter::FManager> CanBeCutFilterManager;
