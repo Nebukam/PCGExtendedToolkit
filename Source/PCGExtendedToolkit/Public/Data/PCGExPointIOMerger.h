@@ -72,7 +72,7 @@ namespace PCGExPointIOMerger
 			if (TypedInAttribute->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data)
 			{
 				// From a data domain
-				const T Value = TypedInAttribute->GetValue(PCGDefaultValueKey);
+				const T Value = PCGEX_READ_DATA_ENTRY(TypedInAttribute);
 				PCGEX_SCOPE_LOOP(Index) { OutElementsBuffer->SetValue(Index, Value); }
 			}
 			else
@@ -93,7 +93,7 @@ namespace PCGExPointIOMerger
 			if (TypedInAttribute->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data)
 			{
 				// From data domain
-				OutDataBuffer->SetValue(0, TypedInAttribute->GetValue(PCGDefaultValueKey));
+				OutDataBuffer->SetValue(0, PCGEX_READ_DATA_ENTRY(TypedInAttribute));
 			}
 			else
 			{

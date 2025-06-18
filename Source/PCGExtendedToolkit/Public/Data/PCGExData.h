@@ -555,7 +555,7 @@ namespace PCGExData
 				bReadInitialized = true;
 
 				InAttribute = TypedInAttribute;
-				InValue = TypedInAttribute->GetValue(PCGDefaultValueKey);
+				InValue = PCGEX_READ_DATA_ENTRY(TypedInAttribute);
 			}
 
 			return bReadInitialized;
@@ -607,7 +607,7 @@ namespace PCGExData
 
 			auto GrabExistingValues = [&]()
 			{
-				OutValue = TypedOutAttribute->GetValue(PCGDefaultValueKey);
+				OutValue = PCGEX_READ_DATA_ENTRY(TypedOutAttribute);
 			};
 
 			if (Init == EBufferInit::Inherit) { GrabExistingValues(); }
@@ -626,7 +626,7 @@ namespace PCGExData
 			if (const FPCGMetadataAttribute<T>* ExistingAttribute = PCGEx::TryGetConstAttribute<T>(Source->GetIn(), Identifier))
 			{
 				return InitForWrite(
-					ExistingAttribute->GetValue(PCGDefaultValueKey),
+					PCGEX_READ_DATA_ENTRY(ExistingAttribute),
 					ExistingAttribute->AllowsInterpolation(),
 					Init);
 			}
@@ -988,7 +988,7 @@ namespace PCGExData
 		// ReSharper disable once CppRedundantTemplateKeyword
 		const FPCGMetadataAttribute<T>* Mark = PCGEx::TryGetConstAttribute<T>(Metadata, MarkID);
 		if (!Mark) { return false; }
-		OutMark = Mark->GetValue(PCGDefaultValueKey);
+		OutMark = PCGEX_READ_DATA_ENTRY(Mark);
 		return true;
 	}
 

@@ -32,7 +32,7 @@ namespace PCGExDataHelpers
 					using T_VALUE = decltype(DummyValue);
 
 					const FPCGMetadataAttribute<T_VALUE>* TypedSource = static_cast<const FPCGMetadataAttribute<T_VALUE>*>(SourceAttribute);
-					const T_VALUE Value = TypedSource->GetValue(PCGDefaultValueKey);
+					const T_VALUE Value = PCGEX_READ_DATA_ENTRY(TypedSource);
 
 					if (SubSelection.bIsValid) { OutValue = SubSelection.Get<T_VALUE, T>(Value); }
 					else { OutValue = PCGEx::Convert<T_VALUE, T>(Value); }

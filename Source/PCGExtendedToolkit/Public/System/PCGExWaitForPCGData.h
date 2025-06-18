@@ -68,9 +68,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName ActorReferenceAttribute = FName(TEXT("ActorReference"));
 
+	/** Actor reference that we will be waiting for PCG Components with the target graph. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExDataInputValueType TemplateInput = EPCGExDataInputValueType::Constant;
+
 	/** Graph instance to look for. Will wait until a PCGComponent is found with that instance set, and its output generated. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="TemplateInput == EPCGExDataInputValueType::Constant"))
 	TSoftObjectPtr<UPCGGraph> TemplateGraph;
+
+	/** Graph instance to look for. Will wait until a PCGComponent is found with that instance set, and its output generated. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="TemplateInput == EPCGExDataInputValueType::Attribute"))
+	FName TemplateGraphAttributeName = FName("@Data.TemplateGraph");
 
 	/** If enabled, will skip components which graph instances is not the same as the specified template. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Filtering", meta = (PCG_Overridable))
@@ -168,9 +176,15 @@ public:
 struct FPCGExWaitForPCGDataContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExWaitForPCGDataElement;
+
+	virtual void RegisterAssetDependencies() override;
+	
 	TArray<FPCGPinProperties> RequiredPinProperties;
 	TSet<FName> AllLabels;
 	TSet<FName> RequiredLabels;
+
+	TArray<FSoftObjectPath> GraphInstancePaths;
+	TArray<UPCGGraph*> GraphInstances;
 };
 
 class FPCGExWaitForPCGDataElement final : public FPCGExPointsProcessorElement
@@ -179,6 +193,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(WaitForPCGData)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
@@ -190,6 +205,8 @@ namespace PCGExWaitForPCGData
 
 		FRWLock ValidComponentLock;
 
+		TObjectPtr<UPCGGraph> TemplateGraph;
+		
 		TWeakPtr<PCGExMT::FAsyncToken> SearchComponentsToken;
 		TWeakPtr<PCGExMT::FAsyncToken> SearchActorsToken;
 		TWeakPtr<PCGExMT::FAsyncToken> WatchToken;

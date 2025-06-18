@@ -170,7 +170,7 @@ namespace PCGExData
 						if (!SourceAtt) { return; }
 
 						const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
-							                       SourceAtt->GetValue(PCGDefaultValueKey) :
+							                       PCGEX_READ_DATA_ENTRY(SourceAtt) :
 							                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 						TSharedPtr<TBuffer<T>> Writer = nullptr;
@@ -214,7 +214,7 @@ namespace PCGExData
 					if (!SourceAtt) { return; }
 
 					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
-						                       SourceAtt->GetValue(PCGDefaultValueKey) :
+						                       PCGEX_READ_DATA_ENTRY(SourceAtt) :
 						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 					const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;
@@ -242,7 +242,7 @@ namespace PCGExData
 					if (!SourceAtt) { return; }
 
 					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
-						                       SourceAtt->GetValue(PCGDefaultValueKey) :
+						                       PCGEX_READ_DATA_ENTRY(SourceAtt) :
 						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 					TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, EBufferInit::Inherit);
@@ -277,7 +277,7 @@ namespace PCGExData
 					if (!SourceAtt) { return; }
 
 					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
-						                       SourceAtt->GetValue(PCGDefaultValueKey) :
+						                       PCGEX_READ_DATA_ENTRY(SourceAtt) :
 						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
 					const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;
