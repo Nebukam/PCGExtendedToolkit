@@ -255,7 +255,7 @@ namespace PCGExPathCrossings
 			const PCGExPaths::FPathEdgeCrossings* Crossing = EdgeCrossings[i].Get();
 			if (!Crossing) { continue; }
 
-			for (const PCGExPaths::FCrossing X : Crossing->Crossings)
+			for (const PCGExPaths::FCrossing& X : Crossing->Crossings)
 			{
 				CrossIOIndices.Add(PCGEx::H64B(X.Hash));
 				OutMetadataEntries[Index] = InMetadataEntries[i];

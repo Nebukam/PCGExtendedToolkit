@@ -11,7 +11,6 @@
 #include "Tasks/Task.h"
 #include "Async/Async.h"
 
-
 #define LOCTEXT_NAMESPACE "PCGExWaitForPCGDataElement"
 #define PCGEX_NAMESPACE WaitForPCGData
 
@@ -63,6 +62,31 @@ void UPCGExWaitForPCGDataSettings::EDITOR_RefreshPins()
 	PostEditChangeProperty(EmptyEvent);
 	MarkPackageDirty();
 }
+
+void FPCGExWaitForPCGDataContext::RegisterAssetDependencies()
+{
+	PCGEX_SETTINGS_LOCAL(WaitForPCGData)
+
+	GraphInstancePaths.Reserve(MainPoints->Pairs.Num());
+
+	if (Settings->TemplateInput == EPCGExDataInputValueType::Attribute)
+	{
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : MainPoints->Pairs)
+		{
+			FSoftObjectPath Path = FSoftObjectPath();
+			if (PCGExDataHelpers::TryReadDataValue(this, IO->GetIn(), Settings->TemplateGraphAttributeName, Path)) { AddAssetDependency(Path); }
+			GraphInstancePaths.Add(Path);
+		}
+	}
+	else
+	{
+		FSoftObjectPath Path = Settings->TemplateGraph.ToSoftObjectPath();
+		AddAssetDependency(Path);
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : MainPoints->Pairs) { GraphInstancePaths.Add(Path); }
+	}
+
+	FPCGExPointsProcessorContext::RegisterAssetDependencies();
+}
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(WaitForPCGData)
@@ -94,10 +118,7 @@ bool FPCGExWaitForPCGDataElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(WaitForPCGData)
 
 	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ActorReferenceAttribute)
-
-	UPCGGraph* GraphData = PCGExHelpers::LoadBlocking_AnyThread(Settings->TemplateGraph);
-	if (!GraphData) { return false; }
-
+	if (Settings->TemplateInput == EPCGExDataInputValueType::Attribute) { PCGEX_VALIDATE_NAME(Settings->TemplateGraphAttributeName) }
 
 	for (FPCGPinProperties Pin : Settings->CachedPins)
 	{
@@ -108,6 +129,25 @@ bool FPCGExWaitForPCGDataElement::Boot(FPCGExContext* InContext) const
 			Context->RequiredPinProperties.Add(Pin);
 			Context->RequiredLabels.Add(Pin.Label);
 		}
+	}
+
+	return true;
+}
+
+bool FPCGExWaitForPCGDataElement::PostBoot(FPCGExContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElement::PostBoot(InContext)) { return false; }
+
+	FPCGExWaitForPCGDataContext* Context = static_cast<FPCGExWaitForPCGDataContext*>(InContext);
+	for (const FSoftObjectPath& Path : Context->GraphInstancePaths)
+	{
+		TSoftObjectPtr<UPCGGraph> Graph = TSoftObjectPtr<UPCGGraph>(Path);
+		if (!Graph.Get())
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Some graph could not be loaded."));
+			return false;
+		}
+		Context->GraphInstances.Add(Graph.Get());
 	}
 
 	return true;
@@ -147,6 +187,8 @@ namespace PCGExWaitForPCGData
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWaitForPCGData::Process);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+
+		TemplateGraph = Context->GraphInstances[PointDataFacade->Source->IOIndex];
 
 		TargetAttributesToDataTags = Settings->TargetAttributesToDataTags;
 		if (Settings->bDedupeData) { TargetAttributesToDataTags.bAddIndexTag = false; }
@@ -335,7 +377,7 @@ namespace PCGExWaitForPCGData
 		{
 			for (const AActor* Actor : QueuedActors)
 			{
-				FString Rel = TEXT("TIMEOUT : ") + Actor->GetName() + TEXT(" does not have ") + Settings->TemplateGraph.GetAssetName();
+				FString Rel = TEXT("TIMEOUT : ") + Actor->GetName() + TEXT(" does not have ") + TemplateGraph.GetName();
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::FromString(Rel));
 			}
 		}
@@ -386,7 +428,7 @@ namespace PCGExWaitForPCGData
 			const UPCGGraph* CandidateGraph = Candidate->GetGraph();
 			if (!CandidateGraph || !Candidate->bActivated ||
 				(Self && Candidate == Self) ||
-				(Settings->bMustMatchTemplate && CandidateGraph != Settings->TemplateGraph.Get()) ||
+				(Settings->bMustMatchTemplate && CandidateGraph != TemplateGraph.Get()) ||
 				(bHasTag && !Candidate->ComponentHasTag(Settings->MustHaveTag)))
 			{
 				FoundComponents.RemoveAt(i);
