@@ -26,6 +26,7 @@ MACRO(SignedDistance, double, 0)\
 MACRO(ComponentWiseDistance, FVector, FVector::ZeroVector)\
 MACRO(Angle, double, 0)\
 MACRO(Time, double, 0)\
+MACRO(SegmentTime, double, 0)\
 MACRO(NumInside, int32, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(ClosedLoop, int32, false)
@@ -64,6 +65,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -155,7 +157,7 @@ public:
 	EPCGExDistance DistanceSettings = EPCGExDistance::Center;
 
 	/** Weight method used for blending */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
 	/** Whether to use in-editor curve or an external asset. */
@@ -298,6 +300,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Time", PCG_Overridable, EditCondition="bWriteTime"))
 	FName TimeAttributeName = FName("WeightedTime");
 
+	/** Write the sampled time (spline space). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteSegmentTime = false;
+
+	/** Name of the 'double' attribute to write sampled spline Time to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Segment Time", PCG_Overridable, EditCondition="bWriteSegmentTime"))
+	FName SegmentTimeAttributeName = FName("WeightedSegmentTime");
 
 	/** Write the inside/outside status of the point toward any sampled spline. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))

@@ -51,7 +51,7 @@ void UPCGExInstancedFactory::RegisterConsumableAttributesWithFacade(FPCGExContex
 {
 }
 
-void UPCGExInstancedFactory::RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const
+void UPCGExInstancedFactory::RegisterPrimaryBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 }
 

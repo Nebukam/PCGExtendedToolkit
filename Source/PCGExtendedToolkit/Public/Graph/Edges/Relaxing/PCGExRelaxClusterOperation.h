@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExInstancedFactory.h"
+
+
 #include "Graph/PCGExCluster.h"
 #include "PCGExRelaxClusterOperation.generated.h"
 
@@ -33,7 +35,7 @@ public:
 		//if (const UPCGExRelaxClusterOperation* TypedOther = Cast<UPCGExRelaxClusterOperation>(Other))		{		}
 	}
 
-	virtual bool PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster)
+	virtual bool PrepareForCluster(::FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster)
 	{
 		Cluster = InCluster;
 		return true;

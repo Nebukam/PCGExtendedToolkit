@@ -36,6 +36,8 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRelaxClustersElement::Execute);
 
+	// TODO : Support filters to set influence to 0 on those.
+	
 	PCGEX_CONTEXT_AND_SETTINGS(RelaxClusters)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
@@ -87,7 +89,7 @@ namespace PCGExRelaxClusters
 		RelaxOperation->PrimaryDataFacade = VtxDataFacade;
 		RelaxOperation->SecondaryDataFacade = EdgeDataFacade;
 
-		if (!RelaxOperation->PrepareForCluster(Cluster)) { return false; }
+		if (!RelaxOperation->PrepareForCluster(ExecutionContext, Cluster)) { return false; }
 
 		PrimaryBuffer = MakeShared<TArray<FTransform>>();
 		SecondaryBuffer = MakeShared<TArray<FTransform>>();
@@ -248,7 +250,7 @@ namespace PCGExRelaxClusters
 	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
-		GetContext<FPCGExRelaxClustersContext>()->Relaxing->RegisterPrimaryBuffersDependencies(FacadePreloader);
+		GetContext<FPCGExRelaxClustersContext>()->Relaxing->RegisterPrimaryBuffersDependencies(ExecutionContext, FacadePreloader);
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RelaxClusters)
 

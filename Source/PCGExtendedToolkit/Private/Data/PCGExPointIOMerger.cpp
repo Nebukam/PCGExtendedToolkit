@@ -37,28 +37,42 @@ FPCGExPointIOMerger::~FPCGExPointIOMerger()
 {
 }
 
+void FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExMT::FScope ReadScope, const PCGExMT::FScope WriteScope)
+{
+	const int32 NumPoints = InData->GetNum();
+
+	check(ReadScope.IsValid());
+	check(NumPoints > 0);
+	check(ReadScope.End <= NumPoints);
+	check(ReadScope.Count == WriteScope.Count)
+
+	IOSources.Add(InData);
+
+	ReadScopes.Add(ReadScope);
+	WriteScopes.Add(WriteScope);
+	
+	NumCompositePoints = FMath::Max(NumCompositePoints, WriteScope.End);
+
+	EnumAddFlags(AllocateProperties, InData->GetAllocations());
+}
+
 PCGExMT::FScope FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData)
 {
 	const int32 NumPoints = InData->GetNum();
 
 	if (NumPoints <= 0) { return PCGExMT::FScope(); }
 
-	const int32 Start = NumCompositePoints;
-	IOSources.Add(InData);
-	NumCompositePoints += NumPoints;
-	EnumAddFlags(AllocateProperties, InData->GetAllocations());
+	PCGExMT::FScope ReadScope = PCGExMT::FScope(0, NumPoints);
+	PCGExMT::FScope WriteScope = PCGExMT::FScope(NumCompositePoints, NumPoints);
 
-	return Scopes.Add_GetRef(PCGExMT::FScope(Start, NumPoints));
+	Append(InData, ReadScope, WriteScope);
+
+	return WriteScope;
 }
 
 void FPCGExPointIOMerger::Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& InData)
 {
 	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : InData) { Append(PointIO); }
-}
-
-void FPCGExPointIOMerger::Append(const TSharedRef<PCGExData::FPointIOCollection>& InCollection)
-{
-	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : InCollection->Pairs) { Append(PointIO); }
 }
 
 void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* InIgnoredAttributes)
@@ -84,13 +98,13 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	for (int i = 0; i < NumSources; i++)
 	{
-		const PCGExMT::FScope SourceScope = Scopes[i];
+		const PCGExMT::FScope ReadScope = ReadScopes[i];
+		const PCGExMT::FScope WriteScope = WriteScopes[i];
 
 		const TSharedPtr<PCGExData::FPointIO> Source = IOSources[i];
 		UnionDataFacade->Source->Tags->Append(Source->Tags.ToSharedRef());
 
-
-		Source->GetIn()->CopyPropertiesTo(OutPointData, 0, SourceScope.Start, SourceScope.Count, Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
+		Source->GetIn()->CopyPropertiesTo(OutPointData, ReadScope.Start, WriteScope.Start, WriteScope.Count, Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
 
 		// Discover attributes
 		UPCGMetadata* Metadata = Source->GetIn()->Metadata;
@@ -152,6 +166,9 @@ namespace PCGExPointIOMerger
 			{
 				using T = decltype(DummyValue);
 
+				const PCGExMT::FScope ReadScope = Merger->ReadScopes[TaskIndex];
+				const PCGExMT::FScope WriteScope = Merger->WriteScopes[TaskIndex];
+
 				TSharedPtr<PCGExData::TBuffer<T>> Buffer = Merger->UnionDataFacade->GetWritable(
 					Merger->WantsDataToElements() ? Identity.ElementsIdentifier : Identity.Identifier,
 					Identity.bInitDefault ? static_cast<const FPCGMetadataAttribute<T>*>(Identity.Attribute)->GetValue(PCGDefaultValueKey) : T{},
@@ -165,7 +182,7 @@ namespace PCGExPointIOMerger
 					if (!Attribute) { continue; }                            // Missing attribute
 					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
 
-					PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, Buffer)
+					PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->ReadScopes[i], Merger->WriteScopes[i], Identity, Buffer)
 				}
 			});
 	}

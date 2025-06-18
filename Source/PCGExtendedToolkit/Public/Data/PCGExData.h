@@ -651,6 +651,7 @@ namespace PCGExData
 			if (!TypedOutAttribute) { return; }
 
 			TypedOutAttribute->SetDefaultValue(OutValue);
+			TypedOutAttribute->SetValue(0, OutValue);
 		}
 	};
 

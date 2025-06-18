@@ -59,7 +59,7 @@ public:
 	}
 
 	virtual void RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const;
-	virtual void RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const;
+	virtual void RegisterPrimaryBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 
 	virtual void BeginDestroy() override;
 	virtual bool CanOnlyExecuteOnMainThread() const { return false; }
