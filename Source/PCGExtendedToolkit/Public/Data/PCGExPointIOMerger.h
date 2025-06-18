@@ -34,14 +34,15 @@ public:
 	TArray<PCGExPointIOMerger::FIdentityRef> UniqueIdentities;
 	TSharedRef<PCGExData::FFacade> UnionDataFacade;
 	TArray<TSharedPtr<PCGExData::FPointIO>> IOSources;
-	TArray<PCGExMT::FScope> Scopes;
+	TArray<PCGExMT::FScope> ReadScopes;
+	TArray<PCGExMT::FScope> WriteScopes;
 
 	explicit FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InUnionDataFacade);
 	~FPCGExPointIOMerger();
 
+	void Append(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExMT::FScope ReadScope, const PCGExMT::FScope WriteScope);
 	PCGExMT::FScope Append(const TSharedPtr<PCGExData::FPointIO>& InData);
 	void Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& InData);
-	void Append(const TSharedRef<PCGExData::FPointIOCollection>& InCollection);
 	void MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* InIgnoredAttributes = nullptr);
 
 	bool WantsDataToElements() const { return bDataDomainToElements; }
@@ -55,7 +56,7 @@ protected:
 namespace PCGExPointIOMerger
 {
 	template <typename T>
-	static void ScopeMerge(const PCGExMT::FScope& Scope, const FIdentityRef& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, const TSharedPtr<PCGExData::TBuffer<T>>& OutBuffer)
+	static void ScopeMerge(const PCGExMT::FScope& ReadScope, const PCGExMT::FScope& WriteScope, const FIdentityRef& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, const TSharedPtr<PCGExData::TBuffer<T>>& OutBuffer)
 	{
 		UPCGMetadata* InMetadata = SourceIO->GetIn()->Metadata;
 
@@ -73,7 +74,7 @@ namespace PCGExPointIOMerger
 			{
 				// From a data domain
 				const T Value = PCGEX_READ_DATA_ENTRY(TypedInAttribute);
-				PCGEX_SCOPE_LOOP(Index) { OutElementsBuffer->SetValue(Index, Value); }
+				for(int Index = WriteScope.Start; Index < WriteScope.End; Index++) { OutElementsBuffer->SetValue(Index, Value); }
 			}
 			else
 			{
@@ -82,8 +83,8 @@ namespace PCGExPointIOMerger
 
 				if (!InAccessor.IsValid()) { return; }
 
-				TArrayView<T> InRange = MakeArrayView(OutElementsBuffer->GetOutValues()->GetData() + Scope.Start, Scope.Count);
-				InAccessor->GetRange<T>(InRange, 0, *SourceIO->GetInKeys());
+				TArrayView<T> InRange = MakeArrayView(OutElementsBuffer->GetOutValues()->GetData() + WriteScope.Start, WriteScope.Count);
+				InAccessor->GetRange<T>(InRange, ReadScope.Start, *SourceIO->GetInKeys());
 			}
 		}
 		else if (OutDataBuffer)
@@ -100,7 +101,7 @@ namespace PCGExPointIOMerger
 				// From elements domain
 				TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, InMetadata);
 				if (!InAccessor.IsValid()) { return; }
-				if (T Value = T{}; InAccessor->Get(Value, *SourceIO->GetInKeys())) { OutDataBuffer->SetValue(0, Value); }
+				if (T Value = T{}; InAccessor->Get(Value, ReadScope.Start, *SourceIO->GetInKeys())) { OutDataBuffer->SetValue(0, Value); }
 			}
 		}
 	}
@@ -122,25 +123,28 @@ namespace PCGExPointIOMerger
 
 		FWriteAttributeScopeTask(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const PCGExMT::FScope& InScope,
+			const PCGExMT::FScope& InReadScope,
+			const PCGExMT::FScope& InWriteScope,
 			const FIdentityRef& InIdentity,
 			const TSharedPtr<PCGExData::TBuffer<T>>& InOutBuffer)
 			: FTask(),
 			  PointIO(InPointIO),
-			  Scope(InScope),
+			  ReadScope(InReadScope),
+			  WriteScope(InWriteScope),
 			  Identity(InIdentity),
 			  OutBuffer(InOutBuffer)
 		{
 		}
 
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
-		const PCGExMT::FScope Scope;
+		const PCGExMT::FScope ReadScope;
+		const PCGExMT::FScope WriteScope;
 		const FIdentityRef Identity;
 		const TSharedPtr<PCGExData::TBuffer<T>> OutBuffer;
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
-			ScopeMerge<T>(Scope, Identity, PointIO, OutBuffer);
+			ScopeMerge<T>(ReadScope, WriteScope, Identity, PointIO, OutBuffer);
 		}
 	};
 }
