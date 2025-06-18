@@ -26,8 +26,18 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::InputPinProperties() 
 	{
 		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
 	}
-	
+	else
+	{
+		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Advanced, {})
+	}
+
 	return PinProperties;
+}
+
+bool UPCGExSampleNearestPathSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExSampleMethod::BestCandidate; }
+	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
 void FPCGExSampleNearestPathContext::RegisterAssetDependencies()
@@ -320,6 +330,7 @@ namespace PCGExSampleNearestPath
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist * Settings->SignedDistanceScale)
 		PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, FVector(FailSafeDist))
 		PCGEX_OUTPUT_VALUE(Angle, Index, 0)
+		PCGEX_OUTPUT_VALUE(SegmentTime, Index, -1)
 		PCGEX_OUTPUT_VALUE(Time, Index, -1)
 		PCGEX_OUTPUT_VALUE(NumInside, Index, -1)
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
@@ -374,6 +385,9 @@ namespace PCGExSampleNearestPath
 			PCGExData::FElement SinglePick(-1, -1);
 			double WeightedDistance = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
 
+			double WeightedTime = 0;
+			double WeightedSegmentTime = 0;
+
 			auto SampleTarget = [&](const int32 EdgeIndex, const double& Lerp, const TSharedPtr<PCGExPaths::FPath>& InPath)
 			{
 				const PCGExData::FElement EdgeElement(EdgeIndex, InPath->Idx);
@@ -387,7 +401,10 @@ namespace PCGExSampleNearestPath
 				int32 NumInsideIncrement = 0;
 				if (bIsInside) { if (!bOnlyIncrementInsideNumIfClosed || InPath->IsClosedLoop()) { NumInsideIncrement = 1; } }
 
-				const FVector SampleLocation = FMath::Lerp(InPath->GetPos(A.Index), InPath->GetPos(B.Index), Lerp);
+				const FVector PosA = InPath->GetPos(A.Index);
+				const FVector PosB = InPath->GetPos(B.Index);
+
+				const FVector SampleLocation = FMath::Lerp(PosA, PosB, Lerp);
 
 				const FVector ModifiedOrigin = DistanceDetails->GetSourceCenter(Point, Origin, SampleLocation);
 				const double DistSquared = FVector::DistSquared(ModifiedOrigin, SampleLocation);
@@ -425,25 +442,31 @@ namespace PCGExSampleNearestPath
 
 						// TODO : Adjust dist based on edge lerp
 						Union->Reset();
-						Union->AddWeighted_Unsafe(A, DistSquared);
-						Union->AddWeighted_Unsafe(B, DistSquared);
+						Union->AddWeighted_Unsafe(A, FVector::DistSquared(PosA, Origin));
+						Union->AddWeighted_Unsafe(B, FVector::DistSquared(PosB, Origin));
 
 						NumInside = NumInsideIncrement;
 						NumInClosed = bSampledClosedLoop = InPath->IsClosedLoop();
+
+						WeightedTime = Time;
+						WeightedSegmentTime = Lerp;
 					}
 				}
 				else
 				{
 					// TODO : Adjust dist based on edge lerp
 					WeightedDistance += DistSquared;
-					Union->AddWeighted_Unsafe(A, DistSquared);
-					Union->AddWeighted_Unsafe(B, DistSquared);
+					Union->AddWeighted_Unsafe(A, FVector::DistSquared(PosA, Origin));
+					Union->AddWeighted_Unsafe(B, FVector::DistSquared(PosB, Origin));
 
 					if (InPath->IsClosedLoop())
 					{
 						bSampledClosedLoop = true;
 						NumInClosed += NumInsideIncrement;
 					}
+
+					WeightedTime += Time;
+					WeightedSegmentTime += Lerp;
 
 					NumInside += NumInsideIncrement;
 				}
@@ -515,9 +538,11 @@ namespace PCGExSampleNearestPath
 			FVector WeightedSignAxis = FVector::ZeroVector;
 			FVector WeightedAngleAxis = FVector::ZeroVector;
 
-			WeightedDistance /= (Union->Num() * 0.5); // We have two points per samples
+			const double NumSampledEdges = (static_cast<double>(Union->Num()) * 0.5);
+			WeightedDistance /= NumSampledEdges; // We have two points per samples
+			WeightedTime /= NumSampledEdges;
+			WeightedSegmentTime /= NumSampledEdges;
 
-			double WeightedTime = 0;
 			double TotalWeight = 0;
 
 			// Post-process weighted points and compute local data
@@ -544,6 +569,8 @@ namespace PCGExSampleNearestPath
 
 				WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * W;
 				WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * W;
+
+				TotalWeight += W;
 			}
 
 			// Blend using updated weighted points
@@ -580,6 +607,7 @@ namespace PCGExSampleNearestPath
 			PCGEX_OUTPUT_VALUE(SignedDistance, Index, (!bOnlySignIfClosed || NumInClosed > 0) ? FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance : WeightedDistance * Settings->SignedDistanceScale)
 			PCGEX_OUTPUT_VALUE(ComponentWiseDistance, Index, Settings->bAbsoluteComponentWiseDistance ? PCGExMath::Abs(CWDistance) : CWDistance)
 			PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
+			PCGEX_OUTPUT_VALUE(SegmentTime, Index, WeightedSegmentTime)
 			PCGEX_OUTPUT_VALUE(Time, Index, WeightedTime)
 			PCGEX_OUTPUT_VALUE(NumInside, Index, NumInside)
 			PCGEX_OUTPUT_VALUE(NumSamples, Index, NumSampled)

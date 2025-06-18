@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExRelaxClusterOperation.h"
+
+
 #include "PCGExFittingRelaxBase.generated.h"
 
 UENUM()
@@ -63,9 +65,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Floating Point Precision"), AdvancedDisplay)
 	double Precision = 100;
 
-	virtual bool PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
+	virtual bool PrepareForCluster(::FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
 	{
-		if (!Super::PrepareForCluster(InCluster)) { return false; }
+		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 		Forces.Init(FIntVector3(0), Cluster->Nodes->Num());
 
 		if (EdgeFitting == EPCGExRelaxEdgeFitting::Attribute)
@@ -156,14 +158,16 @@ protected:
 	TArray<FIntVector3> Forces;
 	TSharedPtr<TArray<double>> EdgeLengths;
 
+	void AddForces(const int32 Index, const FVector& Delta)
+	{
+		FPlatformAtomics::InterlockedAdd(&Forces[Index].X, Delta.X);
+		FPlatformAtomics::InterlockedAdd(&Forces[Index].Y, Delta.Y);
+		FPlatformAtomics::InterlockedAdd(&Forces[Index].Z, Delta.Z);
+	}
+
 	void ApplyForces(const int32 AddIndex, const int32 SubtractIndex, const FVector& Delta)
 	{
-		FPlatformAtomics::InterlockedAdd(&Forces[AddIndex].X, Delta.X);
-		FPlatformAtomics::InterlockedAdd(&Forces[AddIndex].Y, Delta.Y);
-		FPlatformAtomics::InterlockedAdd(&Forces[AddIndex].Z, Delta.Z);
-
-		FPlatformAtomics::InterlockedAdd(&Forces[SubtractIndex].X, -Delta.X);
-		FPlatformAtomics::InterlockedAdd(&Forces[SubtractIndex].Y, -Delta.Y);
-		FPlatformAtomics::InterlockedAdd(&Forces[SubtractIndex].Z, -Delta.Z);
+		AddForces(AddIndex, Delta);
+		AddForces(SubtractIndex, -Delta);
 	}
 };

@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExFittingRelaxBase.h"
 #include "PCGExRelaxClusterOperation.h"
+
+
 #include "PCGExBoxFittingRelax.generated.h"
 
 /**
@@ -26,9 +28,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Padding = 10;
 
-	virtual bool PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
+	virtual bool PrepareForCluster(::FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
 	{
-		if (!Super::PrepareForCluster(InCluster)) { return false; }
+		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 		PCGEx::InitArray(BoxBuffer, Cluster->Nodes->Num());
 		return true;
 	}

@@ -802,14 +802,14 @@ namespace PCGExPaths
 			const float ClosestKey = Spline->FindInputKeyClosestToWorldLocation(WorldPosition);
 			const int32 OutEdgeIndex = FMath::FloorToInt32(ClosestKey);
 			OutLerp = ClosestKey - OutEdgeIndex;
-			return OutEdgeIndex;
+			return FMath::Min(OutEdgeIndex, this->LastEdge);
 		}
 
 		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const override
 		{
 			const int32 OutEdgeIndex = FMath::FloorToInt32(InTime * this->NumEdges);
 			OutLerp = InTime - OutEdgeIndex;
-			return OutEdgeIndex;
+			return FMath::Min(OutEdgeIndex, this->LastEdge);
 		}
 	};
 
