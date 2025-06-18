@@ -297,6 +297,7 @@
   * [Destroy Actor](node-library/misc/destroy-actor.md)
   * [Bounds to Points](node-library/misc/bounds-to-points.md)
   * [Bounds Axis To Points](node-library/misc/bounds-axis-to-points.md)
+  * [Wait for PCG Data](node-library/misc/wait-for-pcg-data.md)
 * [Quality of Life](node-library/quality-of-life/README.md)
   * [Iterations](node-library/quality-of-life/iterations.md)
   * [Constants](node-library/quality-of-life/constants.md)
