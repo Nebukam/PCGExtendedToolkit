@@ -275,6 +275,7 @@
   * [Get GUID](node-library/metadata/get-guid.md)
   * [Uber Blend](node-library/metadata/uber-blend/README.md)
     * [Blend Op](node-library/metadata/uber-blend/blend-op.md)
+  * [Reduce Data](node-library/metadata/reduce-data.md)
 * [Misc](node-library/misc/README.md)
   * [Layout](node-library/misc/layout/README.md)
     * [Bin Packing](node-library/misc/layout/bin-packing.md)
