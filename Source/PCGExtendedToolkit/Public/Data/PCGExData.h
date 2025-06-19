@@ -875,28 +875,24 @@ namespace PCGExData
 
 		FPCGMetadataAttributeBase* FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
-			const UPCGBasePointData* Data = Source->GetData(InSide);
-			if (!Data || !PCGEx::HasAttribute(Data, InIdentifier)) { return nullptr; }
-			return Data->Metadata->GetMutableAttribute(InIdentifier);
+			return Source->FindMutableAttribute(InIdentifier, InSide);
 		}
 
 		const FPCGMetadataAttributeBase* FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
-			const UPCGBasePointData* Data = Source->GetData(InSide);
-			if (!Data || !PCGEx::HasAttribute(Data, InIdentifier)) { return nullptr; }
-			return Data->Metadata->GetConstAttribute(InIdentifier);
+			return Source->FindConstAttribute(InIdentifier, InSide);
 		}
 
 		template <typename T>
 		FPCGMetadataAttribute<T>* FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
-			return PCGEx::TryGetMutableAttribute<T>(Source->GetData(InSide), InIdentifier);
+			return Source->FindMutableAttribute<T>(InIdentifier, InSide);
 		}
 
 		template <typename T>
 		const FPCGMetadataAttribute<T>* FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
-			return PCGEx::TryGetConstAttribute<T>(Source->GetData(InSide), InIdentifier);
+			return Source->FindConstAttribute<T>(InIdentifier, InSide);
 		}
 
 		TSharedPtr<PCGExGeo::FPointBoxCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON);
@@ -978,6 +974,7 @@ namespace PCGExData
 		PointIO->DeleteAttribute(Identifier);
 		FPCGMetadataAttribute<T>* Mark = PointIO->CreateAttribute<T>(Identifier, MarkValue);
 		Mark->SetDefaultValue(MarkValue);
+		Mark->SetValue(PCGFirstEntryKey, MarkValue);
 		return Mark;
 	}
 

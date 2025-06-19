@@ -44,6 +44,10 @@ struct FPCGExPolygonInclusionFilterConfig
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
+
+	/** If enabled, when used with a collection filter, will use collection bounds as a proxy point instead of per-point testing */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bCheckAgainstDataBounds = false;
 };
 
 /**
@@ -58,6 +62,7 @@ public:
 	UPROPERTY()
 	FPCGExPolygonInclusionFilterConfig Config;
 
+	virtual bool SupportsCollectionEvaluation() const override{ return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
 	TSharedPtr<TArray<TSharedPtr<TArray<FVector2D>>>> Polygons;
@@ -90,10 +95,12 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
 
 		TConstPCGValueRange<FTransform> InTransforms;
+		bool bCheckAgainstDataBounds = false;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 
 		virtual ~FPolygonInclusionFilter() override
 		{

@@ -791,6 +791,29 @@ namespace PCGExData
 		DeleteAttribute(Identifier);
 	}
 
+	void FPointIO::GetDataAsProxyPoint(FProxyPoint& OutPoint, const EIOSide Side) const
+	{
+		const FBox BoundsBox = Side == EIOSide::In ? In->GetBounds() : Out->GetBounds();
+		const FVector Extents = BoundsBox.GetExtent();
+		OutPoint.Transform.SetLocation(BoundsBox.GetCenter());
+		OutPoint.BoundsMin = -Extents;
+		OutPoint.BoundsMax = Extents;
+	}
+
+	FPCGMetadataAttributeBase* FPointIO::FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide) const
+	{
+		const UPCGBasePointData* Data = GetData(InSide);
+		if (!Data || !PCGEx::HasAttribute(Data, InIdentifier)) { return nullptr; }
+		return Data->Metadata->GetMutableAttribute(InIdentifier);
+	}
+
+	const FPCGMetadataAttributeBase* FPointIO::FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide) const
+	{
+		const UPCGBasePointData* Data = GetData(InSide);
+		if (!Data || !PCGEx::HasAttribute(Data, InIdentifier)) { return nullptr; }
+		return Data->Metadata->GetConstAttribute(InIdentifier);
+	}
+
 #pragma endregion
 
 #pragma region FPointIOCollection
@@ -844,6 +867,7 @@ namespace PCGExData
 
 			if (!SourcePointData || SourcePointData->IsEmpty()) { continue; }
 			const TSharedPtr<FPointIO> NewIO = Emplace_GetRef(SourcePointData, InitOut, &Source.Tags);
+			NewIO->OriginalIn = Source.Data;
 			NewIO->bTransactional = bTransactional;
 			NewIO->InitializationIndex = i;
 			NewIO->InitializationData = Source.Data;

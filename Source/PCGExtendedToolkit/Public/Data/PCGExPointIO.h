@@ -300,6 +300,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> InKeys; // Shared because reused by duplicates
 		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> OutKeys;
 
+		const UPCGData* OriginalIn = nullptr;  // Input PointData	
 		const UPCGBasePointData* In = nullptr; // Input PointData	
 		UPCGBasePointData* Out = nullptr;      // Output PointData
 
@@ -524,6 +525,8 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		void DeleteAttribute(const FPCGAttributeIdentifier& Identifier) const;
 		void DeleteAttribute(const FPCGMetadataAttributeBase* Attribute) const;
 
+		void GetDataAsProxyPoint(FProxyPoint& OutPoint, const EIOSide Side = EIOSide::In) const;
+
 		template <typename T>
 		FPCGMetadataAttribute<T>* CreateAttribute(const FPCGAttributeIdentifier& Identifier, const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true)
 		{
@@ -560,6 +563,22 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 			}
 
 			return OutAttribute;
+		}
+
+		const FPCGMetadataAttributeBase* FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const;
+
+		template <typename T>
+		FPCGMetadataAttribute<T>* FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
+		{
+			return PCGEx::TryGetMutableAttribute<T>(GetData(InSide), InIdentifier);
+		}
+
+		FPCGMetadataAttributeBase* FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const;
+
+		template <typename T>
+		const FPCGMetadataAttribute<T>* FindConstAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
+		{
+			return PCGEx::TryGetConstAttribute<T>(GetData(InSide), InIdentifier);
 		}
 	};
 

@@ -61,10 +61,21 @@ bool PCGExPointFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSh
 
 	if (OctreesPtr.IsEmpty()) { return false; }
 
+	bCheckAgainstDataBounds = TypedFilterFactory->Config.bCheckAgainstDataBounds;
 	NumTargets = OctreesPtr.Num();
 
-	SelfPtr = InPointDataFacade->GetIn();
 	Distances = TypedFilterFactory->Config.DistanceDetails.MakeDistances();
+
+	if (bCheckAgainstDataBounds)
+	{
+		SelfPtr = nullptr;
+		PCGExData::FProxyPoint ProxyPoint;
+		InPointDataFacade->Source->GetDataAsProxyPoint(ProxyPoint);
+		bCollectionTestResult = Test(ProxyPoint);
+		return true;
+	}
+
+	SelfPtr = InPointDataFacade->GetIn();
 
 	DistanceThresholdGetter = TypedFilterFactory->Config.GetValueSettingDistanceThreshold();
 	if (!DistanceThresholdGetter->Init(InContext, InPointDataFacade)) { return false; }
@@ -164,6 +175,8 @@ bool PCGExPointFilter::FDistanceFilter::Test(const PCGExData::FProxyPoint& Point
 
 bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 {
+	if (bCheckAgainstDataBounds) { return bCollectionTestResult; }
+
 	const double B = DistanceThresholdGetter->Read(PointIndex);
 
 	const PCGExData::FConstPoint& SourcePt = PointDataFacade->Source->GetInPoint(PointIndex);
@@ -246,6 +259,13 @@ bool PCGExPointFilter::FDistanceFilter::Test(const int32 PointIndex) const
 	}
 
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Sqrt(BestDist), B, TypedFilterFactory->Config.Tolerance);
+}
+
+bool PCGExPointFilter::FDistanceFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+{
+	PCGExData::FProxyPoint ProxyPoint;
+	IO->GetDataAsProxyPoint(ProxyPoint);
+	return Test(ProxyPoint);
 }
 
 #undef PCGEX_POINTREF_INDEX
