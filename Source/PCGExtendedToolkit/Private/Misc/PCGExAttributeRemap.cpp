@@ -144,7 +144,19 @@ namespace PCGExAttributeRemap
 		if (!OutputDescriptor.CaptureStrict(Context, Settings->Attributes.GetTargetSelector(), PCGExData::EIOSide::Out, false))
 		{
 			// This might be expected if the destination does not exist
-			OutputDescriptor.RealType = InputDescriptor.RealType;
+
+			if (Dimensions == 1 &&
+				Settings->Attributes.WantsRemappedOutput() &&
+				!OutputDescriptor.SubSelection.bIsValid)
+			{
+				// We're remapping a component to a single value with no subselection
+				OutputDescriptor.RealType = InputDescriptor.WorkingType;
+			}
+			else
+			{
+				// We're remapping to a component within the same larger type
+				OutputDescriptor.RealType = InputDescriptor.RealType;
+			}
 
 			if (Settings->bAutoCastIntegerToDouble &&
 				(OutputDescriptor.RealType == EPCGMetadataTypes::Integer32 || OutputDescriptor.RealType == EPCGMetadataTypes::Integer64))
