@@ -6,18 +6,18 @@
 #include "CoreMinimal.h"
 #include "PCGExBoxFittingRelax.h"
 #include "PCGExRelaxClusterOperation.h"
-#include "PCGExVelocityFittingRelax.generated.h"
+#include "PCGExVelocityRelax.generated.h"
 
 /**
  * 
  */
-UCLASS(MinimalAPI, meta=(DisplayName = "Velocity Fitting", PCGExNodeLibraryDoc="clusters/relax-cluster/velocity-fitting"))
-class UPCGExVelocityFittingRelax : public UPCGExFittingRelaxBase
+UCLASS(Hidden, MinimalAPI, meta=(DisplayName = "Velocity (Gravity)", PCGExNodeLibraryDoc="clusters/relax-cluster/velocity"))
+class UPCGExVelocityRelax : public UPCGExFittingRelaxBase
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExVelocityFittingRelax(const FObjectInitializer& ObjectInitializer)
+	UPCGExVelocityRelax(const FObjectInitializer& ObjectInitializer)
 		: Super(ObjectInitializer)
 	{
 	}
