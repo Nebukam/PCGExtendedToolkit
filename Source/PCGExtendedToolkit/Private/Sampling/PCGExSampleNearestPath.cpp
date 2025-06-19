@@ -442,8 +442,8 @@ namespace PCGExSampleNearestPath
 
 						// TODO : Adjust dist based on edge lerp
 						Union->Reset();
-						Union->AddWeighted_Unsafe(A, FVector::DistSquared(PosA, Origin));
-						Union->AddWeighted_Unsafe(B, FVector::DistSquared(PosB, Origin));
+						Union->AddWeighted_Unsafe(A, DistSquared);
+						Union->AddWeighted_Unsafe(B, DistSquared);
 
 						NumInside = NumInsideIncrement;
 						NumInClosed = bSampledClosedLoop = InPath->IsClosedLoop();
@@ -456,8 +456,8 @@ namespace PCGExSampleNearestPath
 				{
 					// TODO : Adjust dist based on edge lerp
 					WeightedDistance += DistSquared;
-					Union->AddWeighted_Unsafe(A, FVector::DistSquared(PosA, Origin));
-					Union->AddWeighted_Unsafe(B, FVector::DistSquared(PosB, Origin));
+					Union->AddWeighted_Unsafe(A, DistSquared);
+					Union->AddWeighted_Unsafe(B, DistSquared);
 
 					if (InPath->IsClosedLoop())
 					{
