@@ -62,6 +62,7 @@ void UPCGExWaitForPCGDataSettings::EDITOR_RefreshPins()
 	PostEditChangeProperty(EmptyEvent);
 	MarkPackageDirty();
 }
+#endif
 
 void FPCGExWaitForPCGDataContext::RegisterAssetDependencies()
 {
@@ -87,7 +88,6 @@ void FPCGExWaitForPCGDataContext::RegisterAssetDependencies()
 
 	FPCGExPointsProcessorContext::RegisterAssetDependencies();
 }
-#endif
 
 PCGEX_INITIALIZE_ELEMENT(WaitForPCGData)
 
