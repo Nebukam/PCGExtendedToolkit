@@ -974,7 +974,7 @@ namespace PCGExData
 		PointIO->DeleteAttribute(Identifier);
 		FPCGMetadataAttribute<T>* Mark = PointIO->CreateAttribute<T>(Identifier, MarkValue);
 		Mark->SetDefaultValue(MarkValue);
-		Mark->SetValue(PCGFirstEntryKey, MarkValue);
+		Mark->AddValue(MarkValue);
 		return Mark;
 	}
 

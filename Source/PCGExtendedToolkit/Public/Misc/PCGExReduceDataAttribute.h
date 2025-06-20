@@ -20,7 +20,7 @@ enum class EPCGExReduceDataDomainMethod : uint8
 	Join    = 4 UMETA(DisplayName = "Join", ToolTip=""),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/write-index"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/reduce-data"))
 class UPCGExReduceDataAttributeSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

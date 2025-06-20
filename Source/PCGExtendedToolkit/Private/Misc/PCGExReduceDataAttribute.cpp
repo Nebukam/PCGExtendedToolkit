@@ -149,7 +149,7 @@ bool FPCGExReduceDataAttributeElement::ExecuteInternal(FPCGContext* InContext) c
 
 			OutValue = FString::Join(StringsToJoin, *Settings->JoinDelimiter);
 			FPCGMetadataAttribute<FString>* OutAtt = OutMetadata->FindOrCreateAttribute(Context->WriteIdentifier, OutValue);
-			OutAtt->SetValue(PCGFirstEntryKey, OutValue);
+			OutAtt->AddValue(OutValue);
 		}
 		else
 		{
@@ -197,7 +197,7 @@ bool FPCGExReduceDataAttributeElement::ExecuteInternal(FPCGContext* InContext) c
 					}
 
 					FPCGMetadataAttribute<T>* OutAtt = OutMetadata->FindOrCreateAttribute(Context->WriteIdentifier, ReducedValue);
-					OutAtt->SetValue(PCGFirstEntryKey, ReducedValue);
+					OutAtt->AddValue(ReducedValue);
 				});
 		}
 	}
