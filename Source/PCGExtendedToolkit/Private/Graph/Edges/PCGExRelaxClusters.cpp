@@ -86,6 +86,7 @@ namespace PCGExRelaxClusters
 		RelaxOperation = Context->Relaxing->CreateNewInstance<UPCGExRelaxClusterOperation>(Context->ManagedObjects.Get());
 		if (!RelaxOperation) { return false; }
 		
+		RelaxOperation->InfluenceDetails = &InfluenceDetails;
 		RelaxOperation->PrimaryDataFacade = VtxDataFacade;
 		RelaxOperation->SecondaryDataFacade = EdgeDataFacade;
 
