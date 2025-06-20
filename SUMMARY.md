@@ -147,7 +147,7 @@
   * [Filter Vtx](node-library/clusters/find-clusters-data-1.md)
   * [Fuse Clusters](node-library/clusters/fuse-clusters.md)
   * [Relax Cluster](node-library/clusters/relax-cluster/README.md)
-    * [Velocity](node-library/clusters/relax-cluster/velocity.md)
+    * [Verlet](node-library/clusters/relax-cluster/verlet.md)
     * [Box Fitting](node-library/clusters/relax-cluster/box-fitting.md)
     * [Radius Fitting](node-library/clusters/relax-cluster/radius-fitting.md)
     * [Force Directed](node-library/clusters/relax-cluster/force-directed.md)
