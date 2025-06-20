@@ -35,9 +35,9 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite); }
 #endif
 
-	virtual FName GetMainInputPin() const override{ return PCGPinConstants::DefaultInputLabel; }
-	virtual FName GetMainOutputPin() const override{ return PCGPinConstants::DefaultOutputLabel; }
-	
+	virtual FName GetMainInputPin() const override { return PCGPinConstants::DefaultInputLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGPinConstants::DefaultOutputLabel; }
+
 protected:
 	virtual bool IsInputless() const override { return true; }
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -48,19 +48,19 @@ protected:
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAttributeSourceToTargetDetails Attributes;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExReduceDataDomainMethod Method = EPCGExReduceDataDomainMethod::Min;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputType;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOutputType"))
 	EPCGMetadataTypes OutputType = EPCGMetadataTypes::Integer32;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Method==EPCGExReduceDataDomainMethod::Join", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Method == EPCGExReduceDataDomainMethod::Join", EditConditionHides))
 	FString JoinDelimiter = FString(", ");
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietMissingAttribute = false;
