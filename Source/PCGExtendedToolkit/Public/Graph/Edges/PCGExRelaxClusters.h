@@ -113,8 +113,6 @@ namespace PCGExRelaxClusters
 		int32 CurrentStep = 0;
 		EPCGExClusterElement StepSource = EPCGExClusterElement::Vtx;
 
-		TSharedPtr<PCGExData::TBuffer<double>> InfluenceCache;
-
 		UPCGExRelaxClusterOperation* RelaxOperation = nullptr;
 
 		TSharedPtr<TArray<FTransform>> PrimaryBuffer;
