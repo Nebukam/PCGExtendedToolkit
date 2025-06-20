@@ -118,6 +118,8 @@ namespace PCGExPointFilter
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
+		bCheckAgainstDataBounds = TypedFilterFactory->Config.bCheckAgainstDataBounds;
+		
 		ToleranceSquared = FMath::Square(TypedFilterFactory->Config.Tolerance);
 
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
@@ -160,6 +162,13 @@ namespace PCGExPointFilter
 			BadFlags = On;
 			GoodMatch = Skip;
 			break;
+		}
+
+		if (bCheckAgainstDataBounds)
+		{
+			PCGExData::FProxyPoint ProxyPoint;
+			InPointDataFacade->Source->GetDataAsProxyPoint(ProxyPoint);
+			bCollectionTestResult = Test(ProxyPoint);
 		}
 
 		return true;
@@ -260,6 +269,8 @@ namespace PCGExPointFilter
 
 	bool FSplineInclusionFilter::Test(const int32 PointIndex) const
 	{
+		if (bCheckAgainstDataBounds) { return bCollectionTestResult; }
+		
 		ESplineCheckFlags State = None;
 		int32 InclusionsCount = 0;
 		const FVector Pos = InTransforms[PointIndex].GetLocation();
@@ -344,6 +355,13 @@ namespace PCGExPointFilter
 		if (GoodMatch != Skip) { if (bPass) { bPass = GoodMatch == Any ? EnumHasAnyFlags(State, GoodFlags) : EnumHasAllFlags(State, GoodFlags); } }
 
 		return TypedFilterFactory->Config.bInvert ? !bPass : bPass;
+	}
+
+	bool FSplineInclusionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+	{
+		PCGExData::FProxyPoint ProxyPoint;
+		IO->GetDataAsProxyPoint(ProxyPoint);
+		return Test(ProxyPoint);
 	}
 
 #undef PCGEX_CHECK_MAX

@@ -70,6 +70,10 @@ struct FPCGExBoundsFilterConfig
 	/** If enabled, a collection will never be tested against itself */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bIgnoreSelf = false;
+
+	/** If enabled, when used with a collection filter, will use collection bounds as a proxy point instead of per-point testing */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bCheckAgainstDataBounds = false;
 };
 
 /**
@@ -87,7 +91,7 @@ public:
 	TArray<TSharedPtr<PCGExData::FFacade>> BoundsDataFacades;
 	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
 
-	virtual bool SupportsCollectionEvaluation() const override { return false; }
+	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override { return true; }
 
 	virtual bool Init(FPCGExContext* InContext) override;
@@ -116,6 +120,7 @@ namespace PCGExPointFilter
 
 		EPCGExPointBoundsSource BoundsTarget = EPCGExPointBoundsSource::ScaledBounds;
 		bool bIgnoreSelf = false;
+		bool bCheckAgainstDataBounds = false;
 
 		using BoundCheckProxyCallback = std::function<bool(const PCGExData::FProxyPoint&)>;
 		BoundCheckProxyCallback BoundCheckProxy;
@@ -126,6 +131,7 @@ namespace PCGExPointFilter
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const override { return BoundCheckProxy(Point); }
 		virtual bool Test(const int32 PointIndex) const override { return BoundCheck(PointDataFacade->Source->GetInPoint(PointIndex)); }
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 
 		virtual ~FBoundsFilter() override
 		{

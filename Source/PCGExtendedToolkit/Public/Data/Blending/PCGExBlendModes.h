@@ -19,11 +19,11 @@ namespace PCGExBlend
 		}
 		else if constexpr (std::is_same_v<T, FVector2D>)
 		{
-			return FVector2D(FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y));
+			return FVector2D::Min(A, B);
 		}
 		else if constexpr (std::is_same_v<T, FVector>)
 		{
-			return FVector(FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y), FMath::Min(A.Z, B.Z));
+			return FVector::Max(A, B);
 		}
 		else if constexpr (std::is_same_v<T, FVector4>)
 		{
@@ -71,11 +71,11 @@ namespace PCGExBlend
 		}
 		else if constexpr (std::is_same_v<T, FVector2D>)
 		{
-			return FVector2D(FMath::Max(A.X, B.X), FMath::Max(A.Y, B.Y));
+			return FVector2D::Max(A, B);
 		}
 		else if constexpr (std::is_same_v<T, FVector>)
 		{
-			return FVector(FMath::Max(A.X, B.X), FMath::Max(A.Y, B.Y), FMath::Max(A.Z, B.Z));
+			return FVector::Max(A, B);
 		}
 		else if constexpr (std::is_same_v<T, FVector4>)
 		{

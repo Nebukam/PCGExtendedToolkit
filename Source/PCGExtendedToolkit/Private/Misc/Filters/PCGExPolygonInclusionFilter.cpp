@@ -113,6 +113,16 @@ namespace PCGExPointFilter
 	{
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
+
+		bCheckAgainstDataBounds = TypedFilterFactory->Config.bCheckAgainstDataBounds;
+		
+		if (bCheckAgainstDataBounds)
+		{
+			PCGExData::FProxyPoint ProxyPoint;
+			InPointDataFacade->Source->GetDataAsProxyPoint(ProxyPoint);
+			bCollectionTestResult = Test(ProxyPoint);
+		}
+		
 		return true;
 	}
 
@@ -171,6 +181,8 @@ namespace PCGExPointFilter
 
 	bool FPolygonInclusionFilter::Test(const int32 PointIndex) const
 	{
+		if (bCheckAgainstDataBounds) { return bCollectionTestResult; }
+		
 		FVector Pos = InTransforms[PointIndex].GetLocation();
 		Pos.Z = 0;
 
@@ -219,6 +231,13 @@ namespace PCGExPointFilter
 		}
 
 		return TypedFilterFactory->Config.bInvert;
+	}
+
+	bool FPolygonInclusionFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+	{
+		PCGExData::FProxyPoint ProxyPoint;
+		IO->GetDataAsProxyPoint(ProxyPoint);
+		return Test(ProxyPoint);
 	}
 }
 

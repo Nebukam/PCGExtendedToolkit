@@ -58,6 +58,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Output to points", EditCondition="bOutputCollectionIndex", HideEditConditionToggle))
 	bool bOutputCollectionIndexToPoints = true;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" │ ├─ Type", EditCondition="bOutputCollectionIndex && bOutputCollectionIndexToPoints", HideEditConditionToggle))
+	EPCGExNumericOutput CollectionIndexOutputType = EPCGExNumericOutput::Int32;
+	
 	/** If enabled, output the collection index as a tag */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Output to tags", EditCondition="bOutputCollectionIndex", HideEditConditionToggle))
 	bool bOutputCollectionIndexToTags = false;
@@ -75,6 +79,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Output to points", EditCondition="bOutputCollectionNumEntries", HideEditConditionToggle))
 	bool bOutputNumEntriesToPoints = false;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" │ ├─ Type", EditCondition="bOutputCollectionNumEntries && bOutputNumEntriesToPoints", HideEditConditionToggle))
+	EPCGExNumericOutput NumEntriesOutputType = EPCGExNumericOutput::Int32;
+	
 	/** If enabled, output the collection num entries to the points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" │ └─ Normalized", EditCondition="bOutputCollectionNumEntries && bOutputNumEntriesToPoints", HideEditConditionToggle))
 	bool bOutputNormalizedNumEntriesToPoints = false;

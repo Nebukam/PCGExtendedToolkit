@@ -103,6 +103,10 @@ struct FPCGExSplineInclusionFilterConfig
 	/**  Min dot product threshold for a point to be considered inside the spline. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, ClampMin=-1, ClampMax=1, EditCondition="!bTestInclusionOnProjection"), AdvancedDisplay)
 	double CurvatureThreshold = 0.5;
+
+	/** If enabled, when used with a collection filter, will use collection bounds as a proxy point instead of per-point testing */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bCheckAgainstDataBounds = false;
 };
 
 /**
@@ -117,7 +121,7 @@ public:
 	UPROPERTY()
 	FPCGExSplineInclusionFilterConfig Config;
 
-	virtual bool SupportsCollectionEvaluation() const override { return false; }
+	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
 	TSharedPtr<TArray<FPCGSplineStruct>> Splines;
@@ -175,6 +179,7 @@ namespace PCGExPointFilter
 		ESplineCheckFlags BadFlags = None;
 		ESplineMatch GoodMatch = Any;
 		bool bFastInclusionCheck = false;
+		bool bCheckAgainstDataBounds = false;
 
 		TConstPCGValueRange<FTransform> InTransforms;
 
@@ -182,6 +187,7 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 
 		void UpdateInclusionFast(const FVector& Pos, const int32 TargetIndex, ESplineCheckFlags& OutFlags, int32& OutInclusionsCount) const;
 		void UpdateInclusionClosest(const FVector& Pos, const int32 TargetIndex, ESplineCheckFlags& OutFlags, double& OutClosestDist) const;

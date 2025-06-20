@@ -15,14 +15,7 @@
 #include "PCGParamData.h"
 #include "PCGExConstants.generated.h"
 
-UENUM(BlueprintType)
-enum class EPCGExNumericOutput : uint8
-{
-	Double = 0,
-	Float  = 1,
-	Int32  = 2,
-	Int64  = 3,
-};
+
 
 UCLASS(BlueprintType, ClassGroup=(Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/constants"))
 class UPCGExConstantsSettings : public UPCGSettings

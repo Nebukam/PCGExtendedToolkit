@@ -11,8 +11,35 @@
 #include "PCGExAttributeHelpers.h"
 #include "PCGExDetails.h"
 
+UENUM(BlueprintType)
+enum class EPCGExNumericOutput : uint8
+{
+	Double = 0,
+	Float  = 1,
+	Int32  = 2,
+	Int64  = 3,
+};
+
 namespace PCGExDataHelpers
 {
+
+	constexpr static EPCGMetadataTypes GetNumericType(const EPCGExNumericOutput InType)
+	{
+		switch (InType)
+		{
+		case EPCGExNumericOutput::Double:
+			return EPCGMetadataTypes::Double;
+		case EPCGExNumericOutput::Float:
+			return EPCGMetadataTypes::Float;
+		case EPCGExNumericOutput::Int32:
+			return EPCGMetadataTypes::Integer32;
+		case EPCGExNumericOutput::Int64:
+			return EPCGMetadataTypes::Integer64;
+		}
+
+		return EPCGMetadataTypes::Unknown;
+	}
+	
 	template <typename T>
 	static bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector, T& OutValue)
 	{

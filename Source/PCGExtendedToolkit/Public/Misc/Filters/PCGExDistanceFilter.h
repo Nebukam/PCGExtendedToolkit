@@ -59,6 +59,10 @@ struct FPCGExDistanceFilterConfig
 	bool bIgnoreSelf = false;
 
 	PCGEX_SETTING_VALUE_GET(DistanceThreshold, double, CompareAgainst, DistanceThreshold, DistanceThresholdConstant)
+
+	/** If enabled, when used with a collection filter, will use collection bounds as a proxy point instead of per-point testing */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bCheckAgainstDataBounds = false;
 };
 
 
@@ -77,7 +81,7 @@ public:
 	TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
 	TArray<const UPCGBasePointData*> TargetsPtr;
 
-	virtual bool SupportsCollectionEvaluation() const override { return false; }
+	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override;
 
 	virtual bool Init(FPCGExContext* InContext) override;
@@ -113,6 +117,7 @@ namespace PCGExPointFilter
 		const UPCGBasePointData* SelfPtr = nullptr;
 
 		bool bIgnoreSelf = false;
+		bool bCheckAgainstDataBounds = false;
 		int32 NumTargets = -1;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceThresholdGetter;
@@ -123,6 +128,7 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 
 		virtual ~FDistanceFilter() override
 		{

@@ -121,19 +121,29 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputCollectionIndex && Settings->bOutputCollectionIndexToPoints)
 		{
-			WriteMark(PointDataFacade->Source, Settings->CollectionIndexAttributeName, BatchIndex);
+			PCGEx::ExecuteWithRightType(
+				PCGExDataHelpers::GetNumericType(Settings->CollectionIndexOutputType), [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					WriteMark<T>(PointDataFacade->Source, Settings->CollectionIndexAttributeName, PCGEx::Convert<T>(BatchIndex));
+				});
 		}
 
 		if (Settings->bOutputCollectionNumEntries && Settings->bOutputNumEntriesToPoints)
 		{
-			if (Settings->bOutputNormalizedNumEntriesToPoints)
-			{
-				WriteMark(PointDataFacade->Source, Settings->NumEntriesAttributeName, static_cast<double>(PointDataFacade->GetNum()) / Context->MaxNumEntries);
-			}
-			else
-			{
-				WriteMark(PointDataFacade->Source, Settings->NumEntriesAttributeName, PointDataFacade->GetNum());
-			}
+			PCGEx::ExecuteWithRightType(
+				PCGExDataHelpers::GetNumericType(Settings->NumEntriesOutputType), [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					if (Settings->bOutputNormalizedNumEntriesToPoints)
+					{
+						WriteMark<T>(PointDataFacade->Source, Settings->NumEntriesAttributeName, PCGEx::Convert<T>(static_cast<double>(PointDataFacade->GetNum()) / Context->MaxNumEntries));
+					}
+					else
+					{
+						WriteMark<T>(PointDataFacade->Source, Settings->NumEntriesAttributeName, PCGEx::Convert<T>(PointDataFacade->GetNum()));
+					}
+				});
 		}
 
 		if (Settings->bOutputPointIndex)
