@@ -333,6 +333,7 @@
     * [Get Texture Data](node-library/sampling/textures/get-texture-data.md)
     * [Sample Texture](node-library/sampling/textures/sample-texture.md)
     * [Texture Param](node-library/sampling/textures/texture-param.md)
+  * [Vtx by ID](node-library/sampling/vtx-by-id.md)
 * [Transform](node-library/transform/README.md)
   * [Flat Projection](node-library/transform/flat-projection.md)
   * [Lloyd Relax 2D](node-library/transform/lloyd-relax-2d.md)
