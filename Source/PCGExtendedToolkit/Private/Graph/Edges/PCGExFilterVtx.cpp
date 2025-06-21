@@ -118,7 +118,8 @@ bool FPCGExFilterVtxElement::ExecuteInternal(
 			[&](const TSharedPtr<PCGExFilterVtx::FBatch>& NewBatch)
 			{
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
-				NewBatch->VtxFilterFactories = &Context->FilterFactories;
+				NewBatch->VtxFilterFactories = &Context->VtxFilterFactories;
+				NewBatch->EdgeFilterFactories = &Context->EdgeFilterFactories;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -163,9 +164,6 @@ namespace PCGExFilterVtx
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFilterVtx::Process);
 
-		VtxFilterFactories = &Context->VtxFilterFactories;   // So filters can be initialized
-		EdgeFilterFactories = &Context->EdgeFilterFactories; // So filters can be initialized
-
 		bAllowEdgesDataFacadeScopedGet = Context->bScopedAttributeGet;
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
@@ -199,7 +197,7 @@ namespace PCGExFilterVtx
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-
+		
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];

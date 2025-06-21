@@ -64,6 +64,22 @@ public:
 
 	PCGEX_SETTING_VALUE_GET(Friction, double, FrictionInput, FrictionAttribute, Friction)
 
+
+	/** Type of Edge Scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType EdgeScalingInput = EPCGExInputValueType::Constant;
+
+	/** Attribute to read edge scaling value from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Scaling (Attr)", EditCondition="EdgeScalingInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector EdgeScalingAttribute;
+
+	/** Constant Edge scaling value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Scaling", EditCondition="EdgeScalingInput == EPCGExInputValueType::Constant", EditConditionHides))
+	double EdgeScaling = 1;
+
+	PCGEX_SETTING_VALUE_GET(EdgeScaling, double, EdgeScalingInput, EdgeScalingAttribute, EdgeScaling)
+
+
 	/** Type of Edge stiffness */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType EdgeStiffnessInput = EPCGExInputValueType::Constant;
@@ -91,6 +107,9 @@ public:
 
 		FrictionBuffer = GetValueSettingFriction();
 		if (!FrictionBuffer->Init(InContext, PrimaryDataFacade)) { return false; }
+
+		ScalingBuffer = GetValueSettingEdgeScaling();
+		if (!ScalingBuffer->Init(InContext, SecondaryDataFacade)) { return false; }
 
 		StiffnessBuffer = GetValueSettingEdgeStiffness();
 		if (!StiffnessBuffer->Init(InContext, SecondaryDataFacade)) { return false; }
@@ -154,7 +173,7 @@ public:
 		const FVector PA = (*WriteBuffer)[A].GetLocation();
 		const FVector PB = (*WriteBuffer)[B].GetLocation();
 
-		const double RestLength = *(EdgeLengths->GetData() + Edge.Index);
+		const double RestLength = *(EdgeLengths->GetData() + Edge.Index) * ScalingBuffer->Read(Edge.PointIndex);
 		const double L = FVector::Dist(PA, PB);
 
 		const double Stiffness = (StiffnessBuffer->Read(Edge.Index)) * 0.32;
@@ -176,10 +195,9 @@ protected:
 	TSharedPtr<TArray<double>> EdgeLengths;
 	TSharedPtr<PCGExDetails::TSettingValue<FVector>> GravityBuffer;
 	TSharedPtr<PCGExDetails::TSettingValue<double>> StiffnessBuffer;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> ScalingBuffer;
 	TSharedPtr<PCGExDetails::TSettingValue<double>> FrictionBuffer;
 
 	TArray<int8> Hits;
 	TArray<FVector> HitLocations;
-
-	
 };
