@@ -237,6 +237,7 @@ namespace PCGExClusterMT
 		TArray<TSharedPtr<PCGExCluster::FCluster>> ValidClusters;
 
 		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* VtxFilterFactories = nullptr;
+		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* EdgeFilterFactories = nullptr;
 		bool DefaultVtxFilterValue = true;
 		TSharedPtr<TArray<int8>> VtxFilterCache;
 
@@ -332,6 +333,7 @@ namespace PCGExClusterMT
 				NewProcessor->SetExecutionContext(ExecutionContext);
 				NewProcessor->ParentBatch = SelfPtr;
 				NewProcessor->VtxFilterFactories = VtxFilterFactories;
+				NewProcessor->EdgeFilterFactories = EdgeFilterFactories;
 				NewProcessor->VtxFilterCache = VtxFilterCache;
 
 				NewProcessor->NodeIndexLookup = NodeIndexLookup;

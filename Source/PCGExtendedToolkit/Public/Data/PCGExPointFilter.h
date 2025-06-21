@@ -196,6 +196,7 @@ namespace PCGExPointFilter
 		virtual int32 Test(const PCGExMT::FScope Scope, TBitArray<>& OutResults);
 
 		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults);
+		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResults);
 		virtual int32 Test(const TArrayView<PCGExCluster::FEdge> Items, const TArrayView<int8> OutResults);
 
 		virtual ~FManager()

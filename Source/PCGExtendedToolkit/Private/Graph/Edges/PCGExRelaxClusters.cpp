@@ -15,6 +15,7 @@ PCGExData::EIOInit UPCGExRelaxClustersSettings::GetEdgeOutputInitMode() const { 
 TArray<FPCGPinProperties> UPCGExRelaxClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Normal, {})
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExRelaxClusters::SourceOverridesRelaxing)
 	return PinProperties;
 }
@@ -29,6 +30,10 @@ bool FPCGExRelaxClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FOREACH_FIELD_RELAX_CLUSTER(PCGEX_OUTPUT_VALIDATE_NAME)
 	PCGEX_OPERATION_BIND(Relaxing, UPCGExRelaxClusterOperation, PCGExRelaxClusters::SourceOverridesRelaxing)
 
+	GetInputFactories(
+		Context, PCGExGraph::SourceVtxFiltersLabel,
+		Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+
 	return true;
 }
 
@@ -37,7 +42,7 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRelaxClustersElement::Execute);
 
 	// TODO : Support filters to set influence to 0 on those.
-	
+
 	PCGEX_CONTEXT_AND_SETTINGS(RelaxClusters)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
@@ -48,6 +53,7 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				NewBatch->bRequiresWriteStep = true;
 				NewBatch->AllocateVtxProperties = EPCGPointNativeProperties::Transform;
+				NewBatch->VtxFilterFactories = &Context->VtxFilterFactories;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -85,7 +91,7 @@ namespace PCGExRelaxClusters
 
 		RelaxOperation = Context->Relaxing->CreateNewInstance<UPCGExRelaxClusterOperation>(Context->ManagedObjects.Get());
 		if (!RelaxOperation) { return false; }
-		
+
 		RelaxOperation->PrimaryDataFacade = VtxDataFacade;
 		RelaxOperation->SecondaryDataFacade = EdgeDataFacade;
 
@@ -112,7 +118,32 @@ namespace PCGExRelaxClusters
 
 		Steps = RelaxOperation->GetNumSteps();
 		CurrentStep = -1;
-		StartNextStep();
+
+		if (VtxFiltersManager)
+		{
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, VtxTesting)
+
+			VtxTesting->OnCompleteCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE]()
+				{
+					PCGEX_ASYNC_THIS
+					This->StartNextStep();
+				};
+
+			VtxTesting->OnSubLoopStartCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				{
+					PCGEX_ASYNC_THIS
+					This->FilterVtxScope(Scope);
+				};
+
+			VtxTesting->StartSubLoops(NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		}
+		else
+		{
+			StartNextStep();
+		}
+
 		return true;
 	}
 
@@ -168,16 +199,18 @@ namespace PCGExRelaxClusters
 		TArray<FTransform>& WBufferRef = (*RelaxOperation->WriteBuffer);
 
 #define PCGEX_RELAX_PROGRESS WBufferRef[i] = PCGExBlend::Lerp( RBufferRef[i], WBufferRef[i], InfluenceDetails.GetInfluence(Node.PointIndex));
+#define PCGEX_RELAX_FILTER if(!IsNodePassingFilters(Node)){ WBufferRef[i] = RBufferRef[i]; }else
 #define PCGEX_RELAX_STEP_NODE(_STEP) if (CurrentStep == _STEP-1){\
 		if(bLastStep){ \
-			PCGEX_SCOPE_LOOP(i){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_PROGRESS } \
+			if(InfluenceDetails.bProgressiveInfluence){PCGEX_SCOPE_LOOP(i){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_FILTER{ PCGEX_RELAX_PROGRESS }} } \
+			else{ PCGEX_SCOPE_LOOP(i){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_FILTER{} } } \
 		}else{ \
 			PCGEX_SCOPE_LOOP(i){ RelaxOperation->Step##_STEP(*Cluster->GetNode(i)); \
 		}} return; }
 
 #define PCGEX_RELAX_STEP_EDGE(_STEP) if (CurrentStep == _STEP-1){ PCGEX_SCOPE_LOOP(i){ RelaxOperation->Step##_STEP(*Cluster->GetEdge(i)); } return; }
 
-		const bool bLastStep = (CurrentStep == (Steps-1)) && InfluenceDetails.bProgressiveInfluence;
+		const bool bLastStep = (CurrentStep == (Steps - 1));
 
 		switch (StepSource)
 		{
@@ -211,7 +244,7 @@ namespace PCGExRelaxClusters
 		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange(false);
 
 		TArray<FTransform>& WBufferRef = (*RelaxOperation->WriteBuffer);
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];

@@ -91,6 +91,9 @@ struct FPCGExRelaxClustersContext final : FPCGExEdgesProcessorContext
 	PCGEX_FOREACH_FIELD_RELAX_CLUSTER(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	UPCGExRelaxClusterOperation* Relaxing = nullptr;
+
+	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
+	
 };
 
 class FPCGExRelaxClustersElement final : public FPCGExEdgesProcessorElement

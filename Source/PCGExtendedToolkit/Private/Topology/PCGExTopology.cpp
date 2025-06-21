@@ -419,7 +419,6 @@ void FPCGExCellArtifactsDetails::Process(
 	TMap<int32, int32> NumRepeats;
 	const TSharedPtr<PCGExData::TBuffer<int32>> RepeatBuffer = bWriteNumRepeat ? InDataFacade->GetWritable(NumRepeatAttributeName, 0, true, PCGExData::EBufferInit::New) : nullptr;
 
-	const TSharedPtr<PCGExData::TBuffer<int32>> VtxIDBuffer = bWriteVtxId ? InDataFacade->GetWritable(VtxIdAttributeName, 0, true, PCGExData::EBufferInit::New) : nullptr;
 
 	if (bWriteNumRepeat)
 	{
@@ -439,6 +438,7 @@ void FPCGExCellArtifactsDetails::Process(
 		if (RepeatBuffer) { RepeatBuffer->SetValue(i, NumRepeats[NodeIdx] - 1); }
 	}
 
+	const TSharedPtr<PCGExData::TBuffer<int32>> VtxIDBuffer = bWriteVtxId ? InDataFacade->GetWritable(VtxIdAttributeName, 0, true, PCGExData::EBufferInit::New) : nullptr;
 	if (VtxIDBuffer)
 	{
 		TSharedPtr<PCGExData::FPointIO> VtxIO = InCluster->VtxIO.Pin();
@@ -447,7 +447,11 @@ void FPCGExCellArtifactsDetails::Process(
 		if (VtxIO && VtxIDAttr)
 		{
 			TConstPCGValueRange<int64> MetadataEntries = VtxIO->GetIn()->GetConstMetadataEntryValueRange();
-			for (int i = 0; i < NumNodes; i++) { VtxIDBuffer->SetValue(i, VtxIDAttr->GetValueFromItemKey(MetadataEntries[InCluster->GetNodePointIndex(InCell->Nodes[i])])); }
+			for (int i = 0; i < NumNodes; i++)
+			{
+				const int32 PointIndex = InCluster->GetNodePointIndex(InCell->Nodes[i]);
+				VtxIDBuffer->SetValue(i, PCGEx::H64A(VtxIDAttr->GetValueFromItemKey(MetadataEntries[PointIndex])));
+			}
 		}
 	}
 }

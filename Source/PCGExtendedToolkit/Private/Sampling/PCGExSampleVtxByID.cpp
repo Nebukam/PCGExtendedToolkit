@@ -38,6 +38,8 @@ bool FPCGExSampleVtxByIDElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleVtxByID)
 
+	PCGEX_VALIDATE_NAME(Settings->VtxIdSource)
+
 	PCGEX_FWD(ApplySampling)
 	Context->ApplySampling.Init();
 
@@ -58,6 +60,8 @@ bool FPCGExSampleVtxByIDElement::Boot(FPCGExContext* InContext) const
 
 	for (const TSharedPtr<PCGExData::FPointIO>& IO : Targets->Pairs)
 	{
+		if (!IO->FindConstAttribute<int64>(PCGExGraph::Attr_PCGExVtxIdx)) { continue; }
+
 		TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 		TargetFacade->Idx = Context->TargetFacades.Num();
 
@@ -96,7 +100,18 @@ bool FPCGExSampleVtxByIDElement::ExecuteInternal(FPCGContext* InContext) const
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
 		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
 		{
-			// TODO Build Idx :: <index|IO> lookup map
+			// TODO : Need to revisit this, it's likely way too slow
+			for (const TSharedRef<PCGExData::FFacade>& TargetFacade : Context->TargetFacades)
+			{
+				const TConstPCGValueRange<int64> MetadataEntries = TargetFacade->GetIn()->GetConstMetadataEntryValueRange();
+				const FPCGMetadataAttribute<int64>* Attr = TargetFacade->FindConstAttribute<int64>(PCGExGraph::Attr_PCGExVtxIdx);
+
+				for (int i = 0; i < MetadataEntries.Num(); i++)
+				{
+					uint32 VtxID = PCGEx::H64A(Attr->GetValueFromItemKey(MetadataEntries[i]));
+					Context->VtxLookup.Add(VtxID, PCGEx::H64(i, TargetFacade->Idx));
+				}
+			}
 
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 
@@ -143,6 +158,8 @@ namespace PCGExSampleVtxByIDs
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleVtxByIDs::Process);
 
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
@@ -152,6 +169,22 @@ namespace PCGExSampleVtxByIDs
 		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
 		if (Context->ApplySampling.WantsApply()) { AllocateFor |= EPCGPointNativeProperties::Transform; }
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
+
+		LookAtUpGetter = Settings->GetValueSettingLookAtUp();
+		if (!LookAtUpGetter->Init(Context, PointDataFacade)) { return false; }
+
+		VtxID32Getter = PointDataFacade->GetReadable<int32>(Settings->VtxIdSource, PCGExData::EIOSide::In, true);
+		if (!VtxID32Getter)
+		{
+			VtxID64Getter = PointDataFacade->GetReadable<int64>(Settings->VtxIdSource, PCGExData::EIOSide::In, true);
+		}
+
+		if (!VtxID32Getter && !VtxID64Getter)
+		{
+			PCGEX_LOG_INVALID_ATTR_C(Context, "VtxId", Settings->VtxIdSource)
+			return false;
+		}
+
 
 		SamplingMask.SetNumUninitialized(PointDataFacade->GetNum());
 
@@ -203,60 +236,35 @@ namespace PCGExSampleVtxByIDs
 				continue;
 			}
 
-			FVector WeightedUp = LookAtUpGetter->Read(Index);
-			const PCGExData::FMutablePoint Point = PointDataFacade->GetOutPoint(Index);
-
-			PCGExData::FElement SinglePick(-1, -1);
-
-			// TODO : Find matching Vtx
-
-			if (Union->IsEmpty())
+			const uint64* Hash = Context->VtxLookup.Find(VtxID32Getter ? VtxID32Getter->Read(Index) : PCGEx::H64A(VtxID64Getter->Read(Index)));
+			if (!Hash)
 			{
 				SamplingFailed(Index);
 				continue;
 			}
 
+			PCGExData::FElement Element(PCGEx::H64A(*Hash), PCGEx::H64B(*Hash));
+			Union->AddWeighted_Unsafe(Element, 1);
+
+			const FVector Origin = Transforms[Index].GetLocation();
+			const FVector LookAtUp = LookAtUpGetter->Read(Index).GetSafeNormal();
+
 			DataBlender->ComputeWeights(Index, Union, OutWeightedPoints);
 
-			FTransform WeightedTransform = FTransform::Identity;
-			WeightedTransform.SetScale3D(FVector::ZeroVector);
-
-			double WeightedDistance = Union->GetSqrtWeightAverage();
-
-			// Post-process weighted points and compute local data
-			PCGEx::FOpStats SampleTracker{};
-			for (PCGExData::FWeightedPoint& P : OutWeightedPoints)
-			{
-				const double W = P.Weight;
-
-				SampleTracker.Count++;
-				SampleTracker.Weight += W;
-
-				const FTransform& TargetTransform = Context->TargetFacades[P.IO]->GetIn()->GetTransform(P.Index);
-				const FQuat TargetRotation = TargetTransform.GetRotation();
-
-				WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, W);
-			}
+			FTransform VtxTransform = Context->TargetFacades[Element.IO]->GetIn()->GetTransform(Element.Index);
+			double Distance = FVector::Dist(Origin, VtxTransform.GetLocation());
 
 			// Blend using updated weighted points
 			DataBlender->Blend(Index, OutWeightedPoints, Trackers);
 
-			if (SampleTracker.Weight != 0) // Dodge NaN
-			{
-				WeightedUp /= SampleTracker.Weight;
-				WeightedTransform = PCGExBlend::Div(WeightedTransform, SampleTracker.Weight);
-			}
-
-			WeightedUp.Normalize();
-
-			const FVector CWDistance = Origin - WeightedTransform.GetLocation();
+			const FVector CWDistance = Origin - VtxTransform.GetLocation();
 			FVector LookAt = CWDistance.GetSafeNormal();
 
-			FTransform LookAtTransform = PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign);
+			FTransform LookAtTransform = PCGExMath::MakeLookAtTransform(LookAt, LookAtUp, Settings->LookAtAxisAlign);
 			if (Context->ApplySampling.WantsApply())
 			{
 				PCGExData::FMutablePoint MutablePoint(OutPointData, Index);
-				Context->ApplySampling.Apply(MutablePoint, WeightedTransform, LookAtTransform);
+				Context->ApplySampling.Apply(MutablePoint, VtxTransform, LookAtTransform);
 			}
 
 			SamplingMask[Index] = !Union->IsEmpty();

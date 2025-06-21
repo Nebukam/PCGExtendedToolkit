@@ -41,6 +41,10 @@ public:
 
 	//~End UPCGExPointsProcessorSettings
 
+	/** Name of the attribute that stores the vtx id (first 32 bits of the PCGEx/VData) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	FName VtxIdSource = FName("VtxId");
+	
 	/** Whether and how to apply sampled result directly (not mutually exclusive with blending)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
@@ -51,16 +55,18 @@ public:
 
 	/** Up vector source.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Use Up from..."))
-	EPCGExInputValueType LookAtUpSelection = EPCGExInputValueType::Constant;
+	EPCGExInputValueType LookAtUpInput = EPCGExInputValueType::Constant;
 
 	/** The attribute or property on selected source to use as Up vector for the look at transform.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector (Attr)", EditCondition="LookAtUpSelection != EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector (Attr)", EditCondition="LookAtUpInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector LookAtUpSource;
 
 	/** The constant to use as Up vector for the look at transform.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="LookAtUpSelection == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="LookAtUpInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector LookAtUpConstant = FVector::UpVector;
 
+	PCGEX_SETTING_VALUE_GET(LookAtUp, FVector, LookAtUpInput, LookAtUpSource, LookAtUpConstant)
+	
 	//
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))
@@ -95,6 +101,7 @@ struct FPCGExSampleVtxByIDContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
 
 	TArray<TSharedRef<PCGExData::FFacade>> TargetFacades;
+	TMap<uint32, uint64> VtxLookup; // Vtx ID :: PointIndex << IOIndex
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
@@ -122,6 +129,8 @@ namespace PCGExSampleVtxByIDs
 
 		FVector SafeUpVector = FVector::UpVector;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter;
+		TSharedPtr<PCGExData::TBuffer<int32>> VtxID32Getter;
+		TSharedPtr<PCGExData::TBuffer<int64>> VtxID64Getter;
 
 		FPCGExBlendingDetails BlendingDetails;
 

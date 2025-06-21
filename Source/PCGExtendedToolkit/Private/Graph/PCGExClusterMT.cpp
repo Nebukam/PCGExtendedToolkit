@@ -202,7 +202,7 @@ namespace PCGExClusterMT
 	void FClusterProcessor::FilterVtxScope(const PCGExMT::FScope& Scope)
 	{
 		// Note : Don't forget to prefetch VtxDataFacade buffers
-		if (VtxFiltersManager) { VtxFiltersManager->Test(Scope.GetView(*Cluster->Nodes.Get()), Scope.GetView(*VtxFilterCache.Get())); }
+		if (VtxFiltersManager) { VtxFiltersManager->Test(Scope.GetView(*Cluster->Nodes.Get()), VtxFilterCache); }
 	}
 
 	bool FClusterProcessor::InitEdgesFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)

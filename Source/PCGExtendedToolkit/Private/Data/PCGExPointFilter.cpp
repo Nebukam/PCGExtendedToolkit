@@ -201,6 +201,32 @@ namespace PCGExPointFilter
 		return NumPass;
 	}
 
+	int32 FManager::Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResults)
+	{
+		bool bResult = true;
+		int32 NumPass = 0;
+		TArray<int8>& OutResultsRef = *OutResults.Get();
+
+		for (int i = 0; i < Items.Num(); i++)
+		{
+			bResult = true;
+			const PCGExCluster::FNode& Node = Items[i];
+			for (const TSharedPtr<FFilter>& Handler : ManagedFilters)
+			{
+				if (!Handler->Test(Node))
+				{
+					bResult = false;
+					break;
+				}
+			}
+
+			OutResultsRef[Node.PointIndex] = bResult;
+			NumPass += bResult;
+		}
+
+		return NumPass;
+	}
+
 	int32 FManager::Test(const TArrayView<PCGExCluster::FEdge> Items, const TArrayView<int8> OutResults)
 	{
 		check(Items.Num() == OutResults.Num());
