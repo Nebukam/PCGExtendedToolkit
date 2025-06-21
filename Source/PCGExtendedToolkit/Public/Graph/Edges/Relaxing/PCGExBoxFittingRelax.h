@@ -81,7 +81,7 @@ public:
 			// Overlap resolution
 			FVector OverlapSize = CurrentBox.GetExtent() + OtherBox.GetExtent() - PCGExMath::Abs(Delta);
 
-			ApplyForces(OtherNode->Index, Node.Index, (RepulsionConstant * OverlapSize * (Delta / Distance)) * Precision);
+			AddDelta(OtherNode->Index, Node.Index, (RepulsionConstant * OverlapSize * (Delta / Distance)));
 		}
 	}
 

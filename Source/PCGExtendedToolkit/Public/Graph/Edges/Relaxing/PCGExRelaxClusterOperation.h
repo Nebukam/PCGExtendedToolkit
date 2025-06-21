@@ -79,7 +79,6 @@ public:
 	{
 	}
 
-	const FPCGExInfluenceDetails* InfluenceDetails = nullptr;
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
 	TArray<FTransform>* ReadBuffer = nullptr;
 	TArray<FTransform>* WriteBuffer = nullptr;

@@ -21,10 +21,7 @@ public:
 		const FVector Position = (ReadBuffer->GetData() + Node.Index)->GetLocation();
 		FVector Force = FVector::ZeroVector;
 
-		for (const PCGExGraph::FLink& Lk : Node.Links)
-		{
-			Force += (ReadBuffer->GetData() + Lk.Node)->GetLocation() - Position;
-		}
+		for (const PCGExGraph::FLink& Lk : Node.Links) { Force += (ReadBuffer->GetData() + Lk.Node)->GetLocation() - Position; }
 
 		(*WriteBuffer)[Node.Index].SetLocation(Position + Force / static_cast<double>(Node.Links.Num()));
 	}
