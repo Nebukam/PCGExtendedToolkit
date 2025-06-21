@@ -68,25 +68,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType EdgeStiffnessInput = EPCGExInputValueType::Constant;
 
-	/** Attribute to read edge stiffness value from. */
+	/** Attribute to read edge stiffness value from. Note that this value is expected to be in the [0..1] range and will be divided by 3 internally. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Stiffness (Attr)", EditCondition="EdgeStiffnessInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector EdgeStiffnessAttribute;
 
-	/** Constant Edge stiffness value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Stiffness", EditCondition="EdgeStiffnessInput == EPCGExInputValueType::Constant", EditConditionHides))
-	double EdgeStiffness = 0.1;
+	/** Constant Edge stiffness value. Note that this value is expected to be in the [0..1] range and will be divided by 3 internally.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Stiffness", EditCondition="EdgeStiffnessInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0, ClampMax=1, UIMin=0, UIMax=1))
+	double EdgeStiffness = 0.5;
 
 	PCGEX_SETTING_VALUE_GET(EdgeStiffness, double, EdgeStiffnessInput, EdgeStiffnessAttribute, EdgeStiffness)
 
-
 	/** If this was a physic simulation, represent the time advance each iteration */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	double TimeStep = 0.01;
-
-	/** Under the hood updates are operated on a FIntVector3. The regular FVector value is multiplied by this factor, and later divided by it. Default value of 100 means .00 precision. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Floating Point Precision"), AdvancedDisplay)
-	double Precision = 100;
-
+	double TimeStep = 0.1;
 
 	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
 	{
@@ -103,9 +97,6 @@ public:
 
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 		Deltas.Init(FIntVector3(0), Cluster->Nodes->Num());
-
-		OldPositions.SetNumUninitialized(Cluster->Nodes->Num());
-		for (int i = 0; i < OldPositions.Num(); i++) { OldPositions[i] = Cluster->GetPos(i); }
 
 		Cluster->ComputeEdgeLengths();
 		EdgeLengths = Cluster->EdgeLengths;
@@ -142,9 +133,13 @@ public:
 
 		const FVector G = GravityBuffer->Read(Node.PointIndex);
 		const FVector P = (*ReadBuffer)[Node.Index].GetLocation();
-		const FVector V = (P - OldPositions[Node.Index]) * F;
-		OldPositions[Node.Index] = P;
-		(*WriteBuffer)[Node.Index].SetLocation(P + V + (G * TimeStep));
+		AddDelta(Node.Index, G * (TimeStep * TimeStep)); // Add delta of force
+
+		// Write buffer is the old position at this point
+		const FVector V = (P - (*WriteBuffer)[Node.Index].GetLocation()) * F;
+
+		// Compute predicted position, NOT accounting for deltas, only verlet velocity
+		(*WriteBuffer)[Node.Index].SetLocation(P + V);
 	}
 
 	virtual void Step2(const PCGExGraph::FEdge& Edge) override
@@ -162,7 +157,7 @@ public:
 		const double RestLength = *(EdgeLengths->GetData() + Edge.Index);
 		const double L = FVector::Dist(PA, PB);
 
-		const double Stiffness = StiffnessBuffer->Read(Edge.Index);
+		const double Stiffness = (StiffnessBuffer->Read(Edge.Index)) * 0.32;
 
 		FVector Correction = (L > RestLength ? (PA - PB) : (PB - PA)).GetSafeNormal() * FMath::Abs(L - RestLength);
 
@@ -183,28 +178,8 @@ protected:
 	TSharedPtr<PCGExDetails::TSettingValue<double>> StiffnessBuffer;
 	TSharedPtr<PCGExDetails::TSettingValue<double>> FrictionBuffer;
 
-	TArray<FVector> OldPositions;
-	TArray<FIntVector3> Deltas;
-
 	TArray<int8> Hits;
 	TArray<FVector> HitLocations;
 
-	FVector GetDelta(const int32 Index)
-	{
-		const FIntVector3& P = Deltas[Index];
-		return FVector(P.X, P.Y, P.Z) / Precision;
-	}
-
-	void AddDelta(const int32 Index, const FVector& Delta)
-	{
-		FPlatformAtomics::InterlockedAdd(&Deltas[Index].X, Delta.X * Precision);
-		FPlatformAtomics::InterlockedAdd(&Deltas[Index].Y, Delta.Y * Precision);
-		FPlatformAtomics::InterlockedAdd(&Deltas[Index].Z, Delta.Z * Precision);
-	}
-
-	void AddDelta(const int32 AddIndex, const int32 SubtractIndex, const FVector& Delta)
-	{
-		AddDelta(AddIndex, Delta);
-		AddDelta(SubtractIndex, -Delta);
-	}
+	
 };

@@ -61,10 +61,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double TimeStep = 0.01;
 
-	/** Under the hood updates are operated on a FIntVector3. The regular FVector value is multiplied by this factor, and later divided by it. Default value of 100 means .00 precision. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Floating Point Precision"), AdvancedDisplay)
-	double Precision = 100;
-
 	virtual bool PrepareForCluster(::FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
 	{
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
@@ -152,25 +148,11 @@ public:
 	}
 
 protected:
-	TArray<FIntVector3> Deltas;
 	TSharedPtr<TArray<double>> EdgeLengths;
 
 	FVector GetDelta(const int32 Index) const
 	{
 		const FIntVector3& P = Deltas[Index];
 		return FVector(P.X, P.Y, P.Z) / Precision;
-	}
-	
-	void AddDelta(const int32 Index, const FVector& Delta)
-	{
-		FPlatformAtomics::InterlockedAdd(&Deltas[Index].X, Delta.X * Precision);
-		FPlatformAtomics::InterlockedAdd(&Deltas[Index].Y, Delta.Y * Precision);
-		FPlatformAtomics::InterlockedAdd(&Deltas[Index].Z, Delta.Z * Precision);
-	}
-
-	void AddDelta(const int32 AddIndex, const int32 SubtractIndex, const FVector& Delta)
-	{
-		AddDelta(AddIndex, Delta);
-		AddDelta(SubtractIndex, -Delta);
 	}
 };
