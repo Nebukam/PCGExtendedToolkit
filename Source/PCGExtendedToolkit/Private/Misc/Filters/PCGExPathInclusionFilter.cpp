@@ -256,7 +256,7 @@ namespace PCGExPointFilter
 
 	bool FPathInclusionFilter::Test(const int32 PointIndex) const
 	{
-		if (bCollectionTestResult) { return bCollectionTestResult; }
+		if (bCheckAgainstDataBounds) { return bCollectionTestResult; }
 
 		ESplineCheckFlags State = None;
 
