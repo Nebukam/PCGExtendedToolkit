@@ -119,7 +119,7 @@ bool FPCGExFilterVtxElement::ExecuteInternal(
 			{
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 				NewBatch->VtxFilterFactories = &Context->VtxFilterFactories;
-				NewBatch->EdgeFilterFactories = &Context->EdgeFilterFactories;
+				if (!Context->EdgeFilterFactories.IsEmpty()) { NewBatch->EdgeFilterFactories = &Context->EdgeFilterFactories; }
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -197,7 +197,7 @@ namespace PCGExFilterVtx
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
