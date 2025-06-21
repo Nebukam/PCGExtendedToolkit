@@ -367,11 +367,12 @@ namespace PCGExTopology
 
 bool FPCGExCellArtifactsDetails::WriteAny() const
 {
-	return bFlagTerminalPoint || bWriteNumRepeat;
+	return bWriteVtxId || bFlagTerminalPoint || bWriteNumRepeat;
 }
 
 bool FPCGExCellArtifactsDetails::Init(FPCGExContext* InContext)
 {
+	if (bWriteVtxId) { PCGEX_VALIDATE_NAME_C(InContext, VtxIdAttributeName); }
 	if (bFlagTerminalPoint) { PCGEX_VALIDATE_NAME_C(InContext, TerminalFlagAttributeName); }
 	if (bWriteNumRepeat) { PCGEX_VALIDATE_NAME_C(InContext, NumRepeatAttributeName); }
 	TagForwarding.bFilterToRemove = true;
@@ -416,8 +417,8 @@ void FPCGExCellArtifactsDetails::Process(
 	const TSharedPtr<PCGExData::TBuffer<bool>> TerminalBuffer = bFlagTerminalPoint ? InDataFacade->GetWritable(TerminalFlagAttributeName, false, true, PCGExData::EBufferInit::New) : nullptr;
 
 	TMap<int32, int32> NumRepeats;
-
 	const TSharedPtr<PCGExData::TBuffer<int32>> RepeatBuffer = bWriteNumRepeat ? InDataFacade->GetWritable(NumRepeatAttributeName, 0, true, PCGExData::EBufferInit::New) : nullptr;
+
 
 	if (bWriteNumRepeat)
 	{
@@ -435,5 +436,22 @@ void FPCGExCellArtifactsDetails::Process(
 		int32 NodeIdx = InCell->Nodes[i];
 		if (TerminalBuffer) { TerminalBuffer->SetValue(i, InCluster->GetNode(NodeIdx)->IsLeaf()); }
 		if (RepeatBuffer) { RepeatBuffer->SetValue(i, NumRepeats[NodeIdx] - 1); }
+	}
+
+	const TSharedPtr<PCGExData::TBuffer<int32>> VtxIDBuffer = bWriteVtxId ? InDataFacade->GetWritable(VtxIdAttributeName, 0, true, PCGExData::EBufferInit::New) : nullptr;
+	if (VtxIDBuffer)
+	{
+		TSharedPtr<PCGExData::FPointIO> VtxIO = InCluster->VtxIO.Pin();
+		const FPCGMetadataAttribute<int64>* VtxIDAttr = VtxIO ? VtxIO->FindConstAttribute<int64>(PCGExGraph::Attr_PCGExVtxIdx) : nullptr;
+
+		if (VtxIO && VtxIDAttr)
+		{
+			TConstPCGValueRange<int64> MetadataEntries = VtxIO->GetIn()->GetConstMetadataEntryValueRange();
+			for (int i = 0; i < NumNodes; i++)
+			{
+				const int32 PointIndex = InCluster->GetNodePointIndex(InCell->Nodes[i]);
+				VtxIDBuffer->SetValue(i, PCGEx::H64A(VtxIDAttr->GetValueFromItemKey(MetadataEntries[PointIndex])));
+			}
+		}
 	}
 }

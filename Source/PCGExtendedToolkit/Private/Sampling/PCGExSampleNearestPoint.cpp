@@ -256,6 +256,8 @@ namespace PCGExSampleNearestPoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestPoints::Process);
 
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+		
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)

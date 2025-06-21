@@ -123,6 +123,7 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 			[&](const TSharedPtr<PCGExCutEdges::FBatch>& NewBatch)
 			{
 				if (Context->bWantsVtxProcessing) { NewBatch->VtxFilterFactories = &Context->VtxFilterFactories; }
+				if (Context->bWantsEdgesProcessing) { NewBatch->EdgeFilterFactories = &Context->EdgeFilterFactories; }
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 			}))
 		{
@@ -158,9 +159,6 @@ namespace PCGExCutEdges
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCutEdges::Process);
-
-		if (Context->bWantsEdgesProcessing) { EdgeFilterFactories = &Context->EdgeFilterFactories; }
-		if (Context->bWantsVtxProcessing) { VtxFilterFactories = &Context->VtxFilterFactories; }
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
