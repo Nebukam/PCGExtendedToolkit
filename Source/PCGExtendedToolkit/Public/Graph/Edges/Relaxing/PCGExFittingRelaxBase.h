@@ -61,14 +61,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double TimeStep = 0.01;
 
-	/** Under the hood updates are operated on a FIntVector3. The regular FVector value is multiplied by this factor, and later divided by it. Default value of 100 means .00 precision. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Floating Point Precision"), AdvancedDisplay)
-	double Precision = 100;
-
 	virtual bool PrepareForCluster(::FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
 	{
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
-		Forces.Init(FIntVector3(0), Cluster->Nodes->Num());
+		Deltas.Init(FIntVector3(0), Cluster->Nodes->Num());
 
 		if (EdgeFitting == EPCGExRelaxEdgeFitting::Attribute)
 		{
@@ -110,8 +106,8 @@ public:
 		if (InStep == 0)
 		{
 			Super::PrepareNextStep(InStep);
-			Forces.Reset(Cluster->Nodes->Num());
-			Forces.Init(FIntVector3(0), Cluster->Nodes->Num());
+			Deltas.Reset(Cluster->Nodes->Num());
+			Deltas.Init(FIntVector3(0), Cluster->Nodes->Num());
 			return EPCGExClusterElement::Edge;
 		}
 
@@ -141,33 +137,22 @@ public:
 		const FVector Direction = Delta / CurrentLength;
 		const double Displacement = CurrentLength - (*(EdgeLengths->GetData() + Edge.Index) * Scale);
 
-		ApplyForces(Start, End, (SpringConstant * Displacement * Direction) * Precision);
+		AddDelta(Start, End, (SpringConstant * Displacement * Direction));
 	}
 
 	virtual void Step3(const PCGExCluster::FNode& Node) override
 	{
 		// Update positions based on accumulated forces
-		const FIntVector3 F = Forces[Node.Index];
 		const FVector Position = (ReadBuffer->GetData() + Node.Index)->GetLocation();
-		const FVector Force = FVector(F.X, F.Y, F.Z) / Precision;
-
-		(*WriteBuffer)[Node.Index].SetLocation(Position + Force * TimeStep);
+		(*WriteBuffer)[Node.Index].SetLocation(Position + GetDelta(Node.Index) * TimeStep);
 	}
 
 protected:
-	TArray<FIntVector3> Forces;
 	TSharedPtr<TArray<double>> EdgeLengths;
 
-	void AddForces(const int32 Index, const FVector& Delta)
+	FVector GetDelta(const int32 Index) const
 	{
-		FPlatformAtomics::InterlockedAdd(&Forces[Index].X, Delta.X);
-		FPlatformAtomics::InterlockedAdd(&Forces[Index].Y, Delta.Y);
-		FPlatformAtomics::InterlockedAdd(&Forces[Index].Z, Delta.Z);
-	}
-
-	void ApplyForces(const int32 AddIndex, const int32 SubtractIndex, const FVector& Delta)
-	{
-		AddForces(AddIndex, Delta);
-		AddForces(SubtractIndex, -Delta);
+		const FIntVector3& P = Deltas[Index];
+		return FVector(P.X, P.Y, P.Z) / Precision;
 	}
 };

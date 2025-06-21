@@ -29,6 +29,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRelaxClusterOperation : public UPCGExInstance
 	GENERATED_BODY()
 
 public:
+	/** Under the hood updates are operated on a FIntVector3. The regular FVector value is multiplied by this factor, and later divided by it. Default value of 100 means .00 precision. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Floating Point Precision"), AdvancedDisplay)
+	double Precision = 100;
+	
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
 	{
 		Super::CopySettingsFrom(Other);
@@ -79,7 +83,6 @@ public:
 	{
 	}
 
-	const FPCGExInfluenceDetails* InfluenceDetails = nullptr;
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
 	TArray<FTransform>* ReadBuffer = nullptr;
 	TArray<FTransform>* WriteBuffer = nullptr;
@@ -92,5 +95,27 @@ public:
 		WriteBuffer = nullptr;
 
 		Super::Cleanup();
+	}
+
+protected:
+	TArray<FIntVector3> Deltas;
+	
+	FVector GetDelta(const int32 Index)
+	{
+		const FIntVector3& P = Deltas[Index];
+		return FVector(P.X, P.Y, P.Z) / Precision;
+	}
+
+	void AddDelta(const int32 Index, const FVector& Delta)
+	{
+		FPlatformAtomics::InterlockedAdd(&Deltas[Index].X, Delta.X * Precision);
+		FPlatformAtomics::InterlockedAdd(&Deltas[Index].Y, Delta.Y * Precision);
+		FPlatformAtomics::InterlockedAdd(&Deltas[Index].Z, Delta.Z * Precision);
+	}
+
+	void AddDelta(const int32 AddIndex, const int32 SubtractIndex, const FVector& Delta)
+	{
+		AddDelta(AddIndex, Delta);
+		AddDelta(SubtractIndex, -Delta);
 	}
 };

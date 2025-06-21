@@ -73,9 +73,9 @@ public:
 
 			if (Overlap <= 0 || Distance <= KINDA_SMALL_NUMBER) { continue; }
 
-			ApplyForces(
+			AddDelta(
 				OtherNode->Index, Node.Index,
-				(RepulsionConstant * (Overlap / FMath::Square(Distance)) * (Delta / Distance)) * Precision);
+				(RepulsionConstant * (Overlap / FMath::Square(Distance)) * (Delta / Distance)));
 		}
 	}
 

@@ -86,7 +86,6 @@ namespace PCGExRelaxClusters
 		RelaxOperation = Context->Relaxing->CreateNewInstance<UPCGExRelaxClusterOperation>(Context->ManagedObjects.Get());
 		if (!RelaxOperation) { return false; }
 		
-		RelaxOperation->InfluenceDetails = &InfluenceDetails;
 		RelaxOperation->PrimaryDataFacade = VtxDataFacade;
 		RelaxOperation->SecondaryDataFacade = EdgeDataFacade;
 
@@ -169,13 +168,16 @@ namespace PCGExRelaxClusters
 		TArray<FTransform>& WBufferRef = (*RelaxOperation->WriteBuffer);
 
 #define PCGEX_RELAX_PROGRESS WBufferRef[i] = PCGExBlend::Lerp( RBufferRef[i], WBufferRef[i], InfluenceDetails.GetInfluence(Node.PointIndex));
-#define PCGEX_RELAX_STEP_NODE(_STEP) if (CurrentStep == _STEP-1){if(bLastStep){ \
-		PCGEX_SCOPE_LOOP(i){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_PROGRESS } \
-		}else{ PCGEX_SCOPE_LOOP(i){ RelaxOperation->Step##_STEP(*Cluster->GetNode(i)); }} return; }
+#define PCGEX_RELAX_STEP_NODE(_STEP) if (CurrentStep == _STEP-1){\
+		if(bLastStep){ \
+			PCGEX_SCOPE_LOOP(i){ PCGExCluster::FNode& Node = *Cluster->GetNode(i); RelaxOperation->Step##_STEP(Node); PCGEX_RELAX_PROGRESS } \
+		}else{ \
+			PCGEX_SCOPE_LOOP(i){ RelaxOperation->Step##_STEP(*Cluster->GetNode(i)); \
+		}} return; }
 
 #define PCGEX_RELAX_STEP_EDGE(_STEP) if (CurrentStep == _STEP-1){ PCGEX_SCOPE_LOOP(i){ RelaxOperation->Step##_STEP(*Cluster->GetEdge(i)); } return; }
 
-		const bool bLastStep = (CurrentStep == Steps) && InfluenceDetails.bProgressiveInfluence;
+		const bool bLastStep = (CurrentStep == (Steps-1)) && InfluenceDetails.bProgressiveInfluence;
 
 		switch (StepSource)
 		{
@@ -208,20 +210,22 @@ namespace PCGExRelaxClusters
 
 		TPCGValueRange<FTransform> OutTransforms = VtxDataFacade->GetOut()->GetTransformValueRange(false);
 
+		TArray<FTransform>& WBufferRef = (*RelaxOperation->WriteBuffer);
+		
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
 
-			if (InfluenceDetails.bProgressiveInfluence)
+			if (!InfluenceDetails.bProgressiveInfluence)
 			{
 				OutTransforms[Node.PointIndex] = PCGExBlend::Lerp(
 					OutTransforms[Node.PointIndex],
-					*(RelaxOperation->WriteBuffer->GetData() + Node.Index),
+					WBufferRef[Node.Index],
 					InfluenceDetails.GetInfluence(Node.PointIndex));
 			}
 			else
 			{
-				OutTransforms[Node.PointIndex] = *(RelaxOperation->WriteBuffer->GetData() + Node.Index);
+				OutTransforms[Node.PointIndex] = WBufferRef[Node.Index];
 			}
 
 			const FVector DirectionAndSize = OutTransforms[Node.PointIndex].GetLocation() - Cluster->GetPos(Node.Index);

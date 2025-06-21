@@ -18,7 +18,7 @@ enum class EPCGExRelaxEdgeRestLength : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, meta=(DisplayName = "Verlet (Gravity)", PCGExNodeLibraryDoc="clusters/relax-cluster/Velocity"))
+UCLASS(MinimalAPI, meta=(DisplayName = "Verlet (Gravity)", PCGExNodeLibraryDoc="clusters/relax-cluster/Gravity"))
 class UPCGExVerletRelax : public UPCGExRelaxClusterOperation
 {
 	GENERATED_BODY()
@@ -32,131 +32,74 @@ public:
 	virtual void RegisterPrimaryBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override
 	{
 		Super::RegisterPrimaryBuffersDependencies(InContext, FacadePreloader);
-		if (VelocityInput == EPCGExInputValueType::Attribute) { FacadePreloader.Register<FVector>(InContext, VelocityAttribute); }
-		if (MassInput == EPCGExInputValueType::Attribute) { FacadePreloader.Register<FVector>(InContext, MassAttribute); }
+		if (GravityInput == EPCGExInputValueType::Attribute) { FacadePreloader.Register<FVector>(InContext, GravityAttribute); }
+		if (FrictionInput == EPCGExInputValueType::Attribute) { FacadePreloader.Register<FVector>(InContext, FrictionAttribute); }
 	}
 
-	/** Type of Velocity */
+	/** Type of Gravity */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExInputValueType VelocityInput = EPCGExInputValueType::Constant;
+	EPCGExInputValueType GravityInput = EPCGExInputValueType::Constant;
 
 	/** Attribute to read weight value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Velocity (Attr)", EditCondition="VelocityInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector VelocityAttribute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Gravity (Attr)", EditCondition="GravityInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector GravityAttribute;
 
-	/** Constant Velocity value. Think of it as gravity vector. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Velocity", EditCondition="VelocityInput == EPCGExInputValueType::Constant", EditConditionHides))
-	FVector Velocity = FVector::DownVector;
+	/** Constant Gravity value. Think of it as gravity vector. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Gravity", EditCondition="GravityInput == EPCGExInputValueType::Constant", EditConditionHides))
+	FVector Gravity = FVector(0, 0, -100);
 
-	PCGEX_SETTING_VALUE_GET(Velocity, FVector, VelocityInput, VelocityAttribute, Velocity)
+	PCGEX_SETTING_VALUE_GET(Gravity, FVector, GravityInput, GravityAttribute, Gravity)
 
-	/** Type of Mass */
+	/** Type of Friction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExInputValueType MassInput = EPCGExInputValueType::Constant;
+	EPCGExInputValueType FrictionInput = EPCGExInputValueType::Constant;
 
-	/** Attribute to read mass (weight) value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Mass (Attr)", EditCondition="MassInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector MassAttribute;
+	/** Attribute to read friction value from. Expected to be in the [0..1] range. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Friction (Attr)", EditCondition="FrictionInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector FrictionAttribute;
 
-	/** Constant mass (weight) value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Mass", EditCondition="MassInput == EPCGExInputValueType::Constant", EditConditionHides))
-	double Mass = 100;
+	/** Constant friction value. Expected to be in the [0..1] range. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Friction", EditCondition="FrictionInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0, ClampMax=1, UIMin=0, UIMax=1))
+	double Friction = 0;
 
-	PCGEX_SETTING_VALUE_GET(Mass, double, MassInput, MassAttribute, Mass)
-
-	/** Which edge length should the computation attempt to preserve. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExRelaxEdgeRestLength EdgeRestLength = EPCGExRelaxEdgeRestLength::Existing;
-
-	/** The desired edge length. Low priority in the algorithm, but help keep edge topology more consistent. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Desired Edge Length", EditCondition="EdgeRestLength == EPCGExRelaxEdgeRestLength::Fixed", EditConditionHides))
-	double DesiredEdgeLength = 100;
-
-	/** Per-edge attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Desired Edge Length", EditCondition="EdgeRestLength == EPCGExRelaxEdgeRestLength::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector DesiredEdgeLengthAttribute;
-
-	/** Scale factor applied to the edge length. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Scale", EditCondition="EdgeRestLength == EPCGExRelaxEdgeRestLength::Attribute || EdgeRestLength == EPCGExRelaxEdgeRestLength::Existing", EditConditionHides))
-	double Scale = 1;
-
+	PCGEX_SETTING_VALUE_GET(Friction, double, FrictionInput, FrictionAttribute, Friction)
 
 	/** Type of Edge stiffness */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType EdgeStiffnessInput = EPCGExInputValueType::Constant;
 
-	/** Attribute to read edge stiffness value from. */
+	/** Attribute to read edge stiffness value from. Note that this value is expected to be in the [0..1] range and will be divided by 3 internally. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Stiffness (Attr)", EditCondition="EdgeStiffnessInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector EdgeStiffnessAttribute;
 
-	/** Constant Edge stiffness value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Stiffness", EditCondition="EdgeStiffnessInput == EPCGExInputValueType::Constant", EditConditionHides))
+	/** Constant Edge stiffness value. Note that this value is expected to be in the [0..1] range and will be divided by 3 internally.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Stiffness", EditCondition="EdgeStiffnessInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0, ClampMax=1, UIMin=0, UIMax=1))
 	double EdgeStiffness = 0.5;
 
 	PCGEX_SETTING_VALUE_GET(EdgeStiffness, double, EdgeStiffnessInput, EdgeStiffnessAttribute, EdgeStiffness)
-
 
 	/** If this was a physic simulation, represent the time advance each iteration */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double TimeStep = 0.1;
 
-	/** Under the hood updates are operated on a FIntVector3. The regular FVector value is multiplied by this factor, and later divided by it. Default value of 100 means .00 precision. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Floating Point Precision"), AdvancedDisplay)
-	double Precision = 100;
-
-
 	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
 	{
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 
-		VelocityBuffer = GetValueSettingVelocity();
-		if (!VelocityBuffer->Init(InContext, PrimaryDataFacade)) { return false; }
+		GravityBuffer = GetValueSettingGravity();
+		if (!GravityBuffer->Init(InContext, PrimaryDataFacade)) { return false; }
 
-		MassBuffer = GetValueSettingMass();
-		if (!MassBuffer->Init(InContext, PrimaryDataFacade)) { return false; }
+		FrictionBuffer = GetValueSettingFriction();
+		if (!FrictionBuffer->Init(InContext, PrimaryDataFacade)) { return false; }
 
 		StiffnessBuffer = GetValueSettingEdgeStiffness();
 		if (!StiffnessBuffer->Init(InContext, SecondaryDataFacade)) { return false; }
 
-		Forces.Reset(Cluster->Nodes->Num());
-		Forces.Init(FIntVector3(0), Cluster->Nodes->Num());
-
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
-		Forces.Init(FIntVector3(0), Cluster->Nodes->Num());
+		Deltas.Init(FIntVector3(0), Cluster->Nodes->Num());
 
-		for (int i = 0; i < Cluster->Nodes->Num(); i++) { const double M = MassBuffer->Read(Cluster->GetNodePointIndex(i)); }
-
-		if (EdgeRestLength == EPCGExRelaxEdgeRestLength::Attribute)
-		{
-			const TSharedPtr<PCGExData::TBuffer<double>> Buffer = SecondaryDataFacade->GetBroadcaster<double>(DesiredEdgeLengthAttribute);
-
-			if (!Buffer)
-			{
-				PCGEX_LOG_INVALID_SELECTOR_C(Context, "Edge Length", DesiredEdgeLengthAttribute)
-				return false;
-			}
-
-			EdgeLengths = MakeShared<TArray<double>>();
-			EdgeLengths->SetNumUninitialized(Cluster->Edges->Num());
-			Buffer->DumpValues(EdgeLengths);
-		}
-		else
-		{
-			if (EdgeRestLength == EPCGExRelaxEdgeRestLength::Fixed)
-			{
-				EdgeLengths = MakeShared<TArray<double>>();
-				EdgeLengths->Init(DesiredEdgeLength, Cluster->Edges->Num());
-				Scale = 1;
-			}
-			else if (EdgeRestLength == EPCGExRelaxEdgeRestLength::Existing)
-			{
-				Cluster->ComputeEdgeLengths();
-				EdgeLengths = Cluster->EdgeLengths;
-			}
-		}
-
-		Forces.Init(FIntVector3(0), Cluster->Nodes->Num());
-
+		Cluster->ComputeEdgeLengths();
+		EdgeLengths = Cluster->EdgeLengths;
 
 		return true;
 	}
@@ -165,12 +108,12 @@ public:
 
 	virtual EPCGExClusterElement PrepareNextStep(const int32 InStep) override
 	{
-		// Step 1 : Apply Velocity Force on each node
+		// Step 1 : Apply Gravity Force on each node
 		if (InStep == 0)
 		{
 			Super::PrepareNextStep(InStep);
-			Forces.Reset(Cluster->Nodes->Num());
-			Forces.Init(FIntVector3(0), Cluster->Nodes->Num());
+			Deltas.Reset(Cluster->Nodes->Num());
+			Deltas.Init(FIntVector3(0), Cluster->Nodes->Num());
 			return EPCGExClusterElement::Vtx;
 		}
 
@@ -186,80 +129,57 @@ public:
 
 	virtual void Step1(const PCGExCluster::FNode& Node) override
 	{
-		const double M = MassBuffer->Read(Node.PointIndex) *  InfluenceDetails->GetInfluence(Node.PointIndex);
+		const double F = (1 - FrictionBuffer->Read(Node.PointIndex)) * 0.99;
 
-		if (M <= 0) { return; }
+		const FVector G = GravityBuffer->Read(Node.PointIndex);
+		const FVector P = (*ReadBuffer)[Node.Index].GetLocation();
+		AddDelta(Node.Index, G * (TimeStep * TimeStep)); // Add delta of force
 
-		const FVector Accel = VelocityBuffer->Read(Node.PointIndex) * M;
+		// Write buffer is the old position at this point
+		const FVector V = (P - (*WriteBuffer)[Node.Index].GetLocation()) * F;
 
-		// Apply raw gravity force
-		(*WriteBuffer)[Node.Index].SetLocation((*ReadBuffer)[Node.Index].GetLocation() + Accel * TimeStep);
+		// Compute predicted position, NOT accounting for deltas, only verlet velocity
+		(*WriteBuffer)[Node.Index].SetLocation(P + V);
 	}
 
 	virtual void Step2(const PCGExGraph::FEdge& Edge) override
 	{
 		// Compute position corrections based on edges
-		const PCGExCluster::FNode* Start = Cluster->GetEdgeStart(Edge);
-		const PCGExCluster::FNode* End = Cluster->GetEdgeEnd(Edge);
+		const PCGExCluster::FNode* NodeA = Cluster->GetEdgeStart(Edge);
+		const PCGExCluster::FNode* NodeB = Cluster->GetEdgeEnd(Edge);
 
-		const FVector StartPos = (*WriteBuffer)[Start->Index].GetLocation();
-		const FVector EndPos = (*WriteBuffer)[End->Index].GetLocation();
+		const int32 A = NodeA->Index;
+		const int32 B = NodeB->Index;
 
-		const FVector Delta = EndPos - StartPos;
-		const double CurrentLength = Delta.Size();
+		const FVector PA = (*WriteBuffer)[A].GetLocation();
+		const FVector PB = (*WriteBuffer)[B].GetLocation();
 
-		if (CurrentLength < KINDA_SMALL_NUMBER) { return; }
+		const double RestLength = *(EdgeLengths->GetData() + Edge.Index);
+		const double L = FVector::Dist(PA, PB);
 
-		const double RestLength = *(EdgeLengths->GetData() + Edge.Index) * Scale;
-		const double Diff = (CurrentLength - RestLength) / CurrentLength;
-		const FVector Correction = Delta * StiffnessBuffer->Read(Edge.Index) * Diff;
-		
-		const double MassA = MassBuffer->Read(Start->PointIndex);
-		const double MassB = MassBuffer->Read(End->PointIndex);
+		const double Stiffness = (StiffnessBuffer->Read(Edge.Index)) * 0.32;
 
-		if (const double TotalMass = MassA + MassB; TotalMass > 0.f)
-		{
-			const FVector RatioA = Correction * (MassA / TotalMass);
-			const FVector RatioB = Correction * (MassB / TotalMass);
+		FVector Correction = (L > RestLength ? (PA - PB) : (PB - PA)).GetSafeNormal() * FMath::Abs(L - RestLength);
 
-			AddDelta(Start->Index, RatioA);
-			AddDelta(End->Index, -RatioB);
-		}
+		AddDelta(A, Correction * -Stiffness);
+		AddDelta(B, Correction * Stiffness);
 	}
 
 	virtual void Step3(const PCGExCluster::FNode& Node) override
 	{
 		// Update positions based on accumulated forces
-		(*WriteBuffer)[Node.Index].SetLocation((*WriteBuffer)[Node.Index].GetLocation() + GetForce(Node.Index));
+		if (FrictionBuffer->Read(Node.Index) >= 1) { return; }
+		(*WriteBuffer)[Node.Index].SetLocation((*WriteBuffer)[Node.Index].GetLocation() + GetDelta(Node.Index));
 	}
 
 protected:
 	TSharedPtr<TArray<double>> EdgeLengths;
-	TSharedPtr<PCGExDetails::TSettingValue<FVector>> VelocityBuffer;
-	TSharedPtr<PCGExDetails::TSettingValue<double>> MassBuffer;
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> GravityBuffer;
 	TSharedPtr<PCGExDetails::TSettingValue<double>> StiffnessBuffer;
-
-	TArray<FIntVector3> Forces;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> FrictionBuffer;
 
 	TArray<int8> Hits;
 	TArray<FVector> HitLocations;
 
-	FVector GetForce(const int32 Index)
-	{
-		const FIntVector3& P = Forces[Index];
-		return FVector(P.X, P.Y, P.Z) / Precision;
-	}
-
-	void AddDelta(const int32 Index, const FVector& Delta)
-	{
-		FPlatformAtomics::InterlockedAdd(&Forces[Index].X, Delta.X * Precision);
-		FPlatformAtomics::InterlockedAdd(&Forces[Index].Y, Delta.Y * Precision);
-		FPlatformAtomics::InterlockedAdd(&Forces[Index].Z, Delta.Z * Precision);
-	}
-
-	void ApplyDeleta(const int32 AddIndex, const int32 SubtractIndex, const FVector& Delta)
-	{
-		AddDelta(AddIndex, Delta);
-		AddDelta(SubtractIndex, -Delta);
-	}
+	
 };
