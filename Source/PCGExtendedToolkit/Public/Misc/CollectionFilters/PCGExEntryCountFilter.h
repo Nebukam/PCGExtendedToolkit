@@ -45,7 +45,7 @@ struct FPCGExEntryCountFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExEntryCountFilterFactory : public UPCGExFilterFactoryData
+class UPCGExEntryCountFilterFactory : public UPCGExFilterCollectionFactoryData
 {
 	GENERATED_BODY()
 

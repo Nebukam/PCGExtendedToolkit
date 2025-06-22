@@ -12,6 +12,16 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExFilterFactoryData::CreateFilter() co
 	return nullptr;
 }
 
+bool UPCGExFilterCollectionFactoryData::DomainCheck()
+{
+	return true;
+}
+
+bool UPCGExFilterCollectionFactoryData::SupportsCollectionEvaluation() const
+{
+	return true;
+}
+
 
 bool UPCGExFilterFactoryData::DomainCheck()
 {

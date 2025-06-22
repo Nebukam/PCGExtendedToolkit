@@ -77,7 +77,6 @@ struct FPCGExUberBranchContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExUberBranchElement;
 
-	TArray<TArray<TObjectPtr<const UPCGExFilterFactoryData>>> Filters;
 	TArray<TSharedPtr<PCGExPointFilter::FManager>> Managers;
 	TArray<TSharedPtr<PCGExData::FFacade>> Facades;
 

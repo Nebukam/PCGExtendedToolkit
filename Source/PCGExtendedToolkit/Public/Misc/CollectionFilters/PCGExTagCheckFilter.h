@@ -49,7 +49,7 @@ struct FPCGExTagCheckFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExTagCheckFilterFactory : public UPCGExFilterFactoryData
+class UPCGExTagCheckFilterFactory : public UPCGExFilterCollectionFactoryData
 {
 	GENERATED_BODY()
 

@@ -65,33 +65,33 @@ bool FPCGExUberBranchElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberBranch)
 
-	Context->Filters.Reserve(Settings->NumBranches);
-
 	for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
 	{
+		IO->InitializeOutput(PCGExData::EIOInit::Forward);
 		PCGEX_MAKE_SHARED(Facade, PCGExData::FFacade, IO.ToSharedRef())
 		Context->Facades.Add(Facade);
 	}
 
 	for (int i = 0; i < Settings->NumBranches; i++)
 	{
-		TArray<TObjectPtr<const UPCGExFilterFactoryData>>& Factories = Context->Filters.Emplace_GetRef();
-		if (!GetInputFactories(Context, Settings->InputLabels[i], Factories, Settings->GetPointFilterTypes(), !Settings->bQuietMissingFilters)) { continue; }
-		for (int f = 0; f < Factories.Num(); f++)
+		TArray<TObjectPtr<const UPCGExFilterFactoryData>> Factories;
+		if (GetInputFactories(Context, Settings->InputLabels[i], Factories, PCGExFactories::PointFilters, !Settings->bQuietMissingFilters))
 		{
-			TObjectPtr<const UPCGExFilterFactoryData> Factory = Factories[f];
-			if (!Factory->SupportsCollectionEvaluation())
+			for (int f = 0; f < Factories.Num(); f++)
 			{
-				if (!Settings->bQuietInvalidFilters)
+				TObjectPtr<const UPCGExFilterFactoryData> Factory = Factories[f];
+				if (!Factory->SupportsCollectionEvaluation())
 				{
-					PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Unsupported filter : {0}"), FText::FromString(Factory->GetName())));
-				}
+					if (!Settings->bQuietInvalidFilters)
+					{
+						PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Unsupported filter : {0}"), FText::FromString(Factory->GetName())));
+					}
 
-				Factories.RemoveAt(f);
-				f--;
+					Factories.RemoveAt(f);
+					f--;
+				}
 			}
 		}
-
 
 		if (Factories.IsEmpty())
 		{
@@ -104,7 +104,7 @@ bool FPCGExUberBranchElement::Boot(FPCGExContext* InContext) const
 			{
 				// Attempt to initialize with all data until hopefully one works
 				PCGEX_MAKE_SHARED(Manager, PCGExPointFilter::FManager, Facade.ToSharedRef())
-				bInitialized = Manager->Init(Context, Context->FilterFactories);
+				bInitialized = Manager->Init(Context, Factories);
 				if (bInitialized)
 				{
 					Context->Managers.Add(Manager);
@@ -144,11 +144,11 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 
 			if (!bDistributed) { Facade->Source->OutputPin = Settings->GetMainOutputPin(); }
 		}
-
-		Context->Done();
 	}
 
 	Context->MainPoints->StageOutputs();
+	
+	Context->Done();
 	return Context->TryComplete();
 }
 

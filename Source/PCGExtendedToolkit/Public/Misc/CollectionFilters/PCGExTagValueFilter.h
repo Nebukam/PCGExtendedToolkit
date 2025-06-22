@@ -73,7 +73,7 @@ struct FPCGExTagValueFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExTagValueFilterFactory : public UPCGExFilterFactoryData
+class UPCGExTagValueFilterFactory : public UPCGExFilterCollectionFactoryData
 {
 	GENERATED_BODY()
 

@@ -18,7 +18,7 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 	if (TArray<TSharedPtr<PCGExData::FTagValue>> TagValues;
 		PCGExCompare::GetMatchingValueTags(IO->Tags, TypedFilterFactory->Config.Tag, TypedFilterFactory->Config.Match, TagValues))
 	{
-		bResult = TypedFilterFactory->Config.MultiMatch == EPCGExFilterGroupMode::AND;
+		bool bAtLeastOneMatch = false;
 
 		if (TypedFilterFactory->Config.ValueType == EPCGExComparisonDataType::Numeric)
 		{
@@ -28,8 +28,12 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 			{
 				if (!PCGExCompare::Compare(TypedFilterFactory->Config.NumericComparison, TagValue, B, TypedFilterFactory->Config.Tolerance))
 				{
-					bResult = !bCollectionTestResult;
+					bResult = false;
 					break;
+				}
+				else
+				{
+					bAtLeastOneMatch = true;
 				}
 			}
 		}
@@ -40,10 +44,19 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 			{
 				if (!PCGExCompare::Compare(TypedFilterFactory->Config.StringComparison, TagValue, B))
 				{
-					bResult = !bCollectionTestResult;
+					bResult = false;
 					break;
 				}
+				else
+				{
+					bAtLeastOneMatch = true;
+				}
 			}
+		}
+
+		if (TypedFilterFactory->Config.MultiMatch == EPCGExFilterGroupMode::OR && bAtLeastOneMatch)
+		{
+			bResult = true;
 		}
 	}
 
@@ -59,12 +72,12 @@ FString UPCGExTagValueFilterProviderSettings::GetDisplayName() const
 	{
 		FString DisplayName = Config.Tag + TEXT(" ") + PCGExCompare::ToString(Config.NumericComparison);
 		DisplayName += FString::Printf(TEXT("%.1f"), Config.NumericOperandB);
-		DisplayName += Config.MultiMatch == EPCGExFilterGroupMode::OR ? TEXT(" (OR)") : TEXT(" (AND)");
+		DisplayName += Config.MultiMatch == EPCGExFilterGroupMode::OR ? TEXT(" (Any)") : TEXT(" (All)");
 		return DisplayName;
 	}
 	FString DisplayName = Config.Tag + TEXT(" ") + PCGExCompare::ToString(Config.StringComparison);
 	DisplayName += FString::Printf(TEXT(" %s"), *Config.StringOperandB);
-	DisplayName += Config.MultiMatch == EPCGExFilterGroupMode::OR ? TEXT(" (OR)") : TEXT(" (AND)");
+	DisplayName += Config.MultiMatch == EPCGExFilterGroupMode::OR ? TEXT(" (Any)") : TEXT(" (All)");
 	return DisplayName;
 }
 #endif
