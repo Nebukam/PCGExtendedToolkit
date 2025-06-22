@@ -167,7 +167,12 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	Context->Plots.Reserve(Plots->Num());
 	for (const TSharedPtr<PCGExData::FPointIO>& PlotIO : Plots->Pairs)
 	{
-		if (PlotIO->GetNum() < 2) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points.")); }
+		if (PlotIO->GetNum() < 2)
+		{
+			if (!Settings->bQuietInvalidPlotWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points.")); }
+			continue;
+		}
+
 		TSharedPtr<PCGExData::FFacade> PlotFacade = MakeShared<PCGExData::FFacade>(PlotIO.ToSharedRef());
 		Context->Plots.Add(PlotFacade);
 	}

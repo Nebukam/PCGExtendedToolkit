@@ -89,6 +89,10 @@ public:
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Paths Output Settings"))
 	FPCGExPathOutputDetails PathOutputDetails;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
+	bool bQuietInvalidPlotWarning = false;
 };
 
 
