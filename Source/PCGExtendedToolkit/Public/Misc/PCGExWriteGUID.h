@@ -88,26 +88,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGUIDDetails
 
 	PCGEX_SETTING_VALUE_GET(UniqueKey, int32, UniqueKeyInput, UniqueKeyAttribute, UniqueKeyConstant)
 
-	/** Whether the created attribute allows interpolation or not.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
-	bool bAllowInterpolation = true;
-
 	EGuidFormats GUIDFormat = EGuidFormats::Digits;
 	TSharedPtr<PCGExDetails::TSettingValue<int32>> UniqueKeyReader;
 
 	uint32 GridHash = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Hashes", meta=(PCG_Overridable), AdvancedDisplay)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Hashes", meta=(PCG_Overridable))
 	FVector GridHashCollision = FVector(0.001);
 	FVector AdjustedGridHashCollision = FVector(1 / 0.001);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Hashes", meta=(PCG_Overridable), AdvancedDisplay)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Hashes", meta=(PCG_Overridable))
 	FVector PositionHashCollision = FVector(0.001);
 	FVector AdjustedPositionHashCollision = FVector(1 / 0.001);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Hashes", meta=(PCG_Overridable), AdvancedDisplay)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Hashes", meta=(PCG_Overridable))
 	FVector PositionHashOffset = FVector(0);
 
+	/** Whether the created attribute allows interpolation or not.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bAllowInterpolation = true;
+	
 	bool bUseIndex = false;
 	bool bUseSeed = false;
 	bool bUsePosition = false;
