@@ -37,7 +37,7 @@ FPCGExPointIOMerger::~FPCGExPointIOMerger()
 {
 }
 
-void FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExMT::FScope ReadScope, const PCGExMT::FScope WriteScope)
+PCGExPointIOMerger::FMergeScope& FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExMT::FScope ReadScope, const PCGExMT::FScope WriteScope)
 {
 	const int32 NumPoints = InData->GetNum();
 
@@ -48,26 +48,27 @@ void FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData, 
 
 	IOSources.Add(InData);
 
-	ReadScopes.Add(ReadScope);
-	WriteScopes.Add(WriteScope);
-	
+	PCGExPointIOMerger::FMergeScope& Scope = Scopes.Emplace_GetRef();
+	Scope.Read = ReadScope;
+	Scope.Write = WriteScope;
+
+	MaxNumElements = FMath::Max(MaxNumElements, ReadScope.End);
 	NumCompositePoints = FMath::Max(NumCompositePoints, WriteScope.End);
 
 	EnumAddFlags(AllocateProperties, InData->GetAllocations());
+	return Scope;
 }
 
-PCGExMT::FScope FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData)
+PCGExPointIOMerger::FMergeScope& FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData)
 {
 	const int32 NumPoints = InData->GetNum();
 
-	if (NumPoints <= 0) { return PCGExMT::FScope(); }
+	if (NumPoints <= 0) { return NullScope; }
 
-	PCGExMT::FScope ReadScope = PCGExMT::FScope(0, NumPoints);
-	PCGExMT::FScope WriteScope = PCGExMT::FScope(NumCompositePoints, NumPoints);
+	const PCGExMT::FScope ReadScope = PCGExMT::FScope(0, NumPoints);
+	const PCGExMT::FScope WriteScope = PCGExMT::FScope(NumCompositePoints, NumPoints);
 
-	Append(InData, ReadScope, WriteScope);
-
-	return WriteScope;
+	return Append(InData, ReadScope, WriteScope);
 }
 
 void FPCGExPointIOMerger::Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& InData)
@@ -86,7 +87,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 	UPCGBasePointData* OutPointData = UnionDataFacade->GetOut();
 	PCGEx::SetNumPointsAllocated(OutPointData, NumCompositePoints, AllocateProperties);
 
-	// TODO : We could not copy metadata if there's no attributes on any of the input data
+	// We could not copy metadata if there's no attributes on any of the input data
 
 	OutPointData->SetMetadataEntry(PCGInvalidEntryKey);
 
@@ -96,15 +97,41 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	const int32 NumSources = IOSources.Num();
 
+	for (PCGExPointIOMerger::FMergeScope& Scope : Scopes)
+	{
+		if (Scope.bReverse)
+		{
+			if (ReverseIndices.IsEmpty())
+			{
+				// Create a single reverse array of indices the size of the maximum number of elements
+				PCGEx::ArrayOfIndices(ReverseIndices, MaxNumElements);
+				Algo::Reverse(ReverseIndices);
+			}
+			Scope.ReadIndices = MakeArrayView(ReverseIndices.GetData() + (ReverseIndices.Num() - Scope.Read.End), Scope.Read.Count);
+		}
+	}
+
 	for (int i = 0; i < NumSources; i++)
 	{
-		const PCGExMT::FScope ReadScope = ReadScopes[i];
-		const PCGExMT::FScope WriteScope = WriteScopes[i];
-
+		const PCGExPointIOMerger::FMergeScope& Scope = Scopes[i];
 		const TSharedPtr<PCGExData::FPointIO> Source = IOSources[i];
 		UnionDataFacade->Source->Tags->Append(Source->Tags.ToSharedRef());
 
-		Source->GetIn()->CopyPropertiesTo(OutPointData, ReadScope.Start, WriteScope.Start, WriteScope.Count, Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
+		if (Scope.bReverse)
+		{
+			TArray<int32> TempWriteIndices;
+			PCGEx::ArrayOfIndices(TempWriteIndices, Scope.Write.Count, Scope.Write.Start);
+
+			Source->GetIn()->CopyPropertiesTo(
+				OutPointData, Scope.ReadIndices, TempWriteIndices,
+				Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
+		}
+		else
+		{
+			Source->GetIn()->CopyPropertiesTo(
+				OutPointData, Scope.Read.Start, Scope.Write.Start, Scope.Write.Count,
+				Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
+		}
 
 		// Discover attributes
 		UPCGMetadata* Metadata = Source->GetIn()->Metadata;
@@ -179,7 +206,7 @@ namespace PCGExPointIOMerger
 					if (!Attribute) { continue; }                            // Missing attribute
 					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
 
-					PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->ReadScopes[i], Merger->WriteScopes[i], Identity, Buffer)
+					PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, Buffer)
 				}
 			});
 	}

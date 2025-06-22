@@ -202,7 +202,7 @@ namespace PCGExMergePoints
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
 
-		PointsProcessor->OutScope = Merger->Append(PointsProcessor->PointDataFacade->Source);
+		PointsProcessor->OutScope = Merger->Append(PointsProcessor->PointDataFacade->Source).Write;
 		PointsProcessor->ConvertedTags = ConvertedTags;
 
 		if (Settings->bTagToAttributes)

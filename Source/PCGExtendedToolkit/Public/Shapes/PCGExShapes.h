@@ -47,9 +47,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 	{
 	}
 
+	explicit FPCGExShapeConfigBase(const bool InThreeDimensions)
+		: bThreeDimensions(InThreeDimensions)
+	{
+	}
+
 	virtual ~FPCGExShapeConfigBase()
 	{
 	}
+
+	UPROPERTY()
+	bool bThreeDimensions = false;
 
 	/** Resolution mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable))
@@ -64,10 +72,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 	FPCGAttributePropertyInputSelector ResolutionAttribute;
 
 	/** Resolution Constant. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, DisplayName="Resolution", EditCondition="ResolutionInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, DisplayName="Resolution", EditCondition="ResolutionInput == EPCGExInputValueType::Constant && !bThreeDimensions", EditConditionHides, ClampMin=0))
 	double ResolutionConstant = 10;
 
+	/** Resolution Constant. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, DisplayName="Resolution (Vector)", EditCondition="ResolutionInput == EPCGExInputValueType::Constant && bThreeDimensions", EditConditionHides, ClampMin=0))
+	FVector ResolutionConstantVector = FVector(10);
+	
 	PCGEX_SETTING_VALUE_GET(Resolution, double, ResolutionInput, ResolutionAttribute, ResolutionConstant)
+	PCGEX_SETTING_VALUE_GET(ResolutionVector, FVector, ResolutionInput, ResolutionAttribute, ResolutionConstantVector)
 
 	/** Fitting details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -89,10 +102,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable))
 	EPCGExAxisAlign LookAtAxis = EPCGExAxisAlign::Forward;
 
-
-	/** Axis used to align the look at rotation */
+	
+	/** Default point extnets */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data", meta=(PCG_Overridable))
-	FVector DefaultExtents = FVector::OneVector * 0.5;
+	FVector DefaultExtents = FVector::OneVector * 50;
 
 	/** Shape ID used to identify this specific shape' points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data", meta=(PCG_Overridable))
