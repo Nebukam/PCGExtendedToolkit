@@ -11,7 +11,7 @@
 
 #include "PCGExFitting.generated.h"
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExFitMode : uint8
 {
 	None       = 0 UMETA(DisplayName = "None", ToolTip="No fitting"),
@@ -19,7 +19,7 @@ enum class EPCGExFitMode : uint8
 	Individual = 2 UMETA(DisplayName = "Individual", ToolTip="Per-component fit"),
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExScaleToFit : uint8
 {
 	None = 0 UMETA(DisplayName = "None", ToolTip="No fitting"),
@@ -29,7 +29,7 @@ enum class EPCGExScaleToFit : uint8
 	Avg  = 4 UMETA(DisplayName = "Average", ToolTip="..."),
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExJustifyFrom : uint8
 {
 	Min    = 0 UMETA(DisplayName = "Min", ToolTip="..."),
@@ -39,7 +39,7 @@ enum class EPCGExJustifyFrom : uint8
 	Custom = 4 UMETA(DisplayName = "Custom", ToolTip="..."),
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExJustifyTo : uint8
 {
 	Same   = 0 UMETA(DisplayName = "Same", ToolTip="..."),
@@ -50,7 +50,7 @@ enum class EPCGExJustifyTo : uint8
 	Custom = 5 UMETA(DisplayName = "Custom", ToolTip="..."),
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExVariationMode : uint8
 {
 	Disabled = 0 UMETA(DisplayName = "Disabled", ToolTip="..."),
