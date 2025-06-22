@@ -31,7 +31,7 @@ enum class EPCGExShapePointLookAt : uint8
 	Seed = 1 UMETA(DisplayName = "Seed", ToolTip="Look At Seed"),
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExResolutionMode : uint8
 {
 	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Points-per-meter"),
@@ -56,11 +56,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 	{
 	}
 
-	UPROPERTY()
+	UPROPERTY(meta = (PCG_NotOverridable))
 	bool bThreeDimensions = false;
 
 	/** Resolution mode */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta = (PCG_Overridable))
 	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Fixed;
 
 	/** Resolution input type */
