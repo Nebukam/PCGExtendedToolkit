@@ -13,8 +13,8 @@
 UENUM()
 enum class EPCGExEnumConstantSourceType : uint8
 {
-	Picker   = 0 UMETA(DisplayName="Picker", Tooltip="Object picker. Less options, more choices. Use this to see blueprint enums."),
-	Selector = 1 UMETA(DisplayName="Selector", ToolTip="Canon PCG Selector, support Single pick."),
+	Picker   = 0 UMETA(DisplayName="Picker", Tooltip="Browse through Blueprint enums."),
+	Selector = 1 UMETA(DisplayName="Selector", ToolTip="Browse through CPP enums."),
 };
 
 UENUM(BlueprintType)
