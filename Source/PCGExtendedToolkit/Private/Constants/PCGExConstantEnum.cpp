@@ -12,7 +12,7 @@ FString UPCGExConstantEnumSettings::GetDisplayName() const
 	const FName Name = GetEnumName();
 	if (Name.IsNone()) { return TEXT("..."); }
 
-	if (OutputMode == EPCGExEnumOutputMode::EEOM_Single)
+	if (Source == EPCGExEnumConstantSourceType::Selector && OutputMode == EPCGExEnumOutputMode::EEOM_Single)
 	{
 		return Name.ToString() +
 			"::" +
@@ -63,15 +63,17 @@ void UPCGExConstantEnumSettings::PostEditChangeProperty(struct FPropertyChangedE
 	FName Prop = PropertyChangedEvent.GetMemberPropertyName();
 
 	if (Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantEnumSettings, SelectedEnum) ||
+		Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantEnumSettings, PickerEnum) ||
 		Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantEnumSettings, OutputMode) ||
 		Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantEnumSettings, OutputType))
 	{
 		CachePinLabels();
 	}
 
-	if (Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantEnumSettings, SelectedEnum))
+	if (Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantEnumSettings, SelectedEnum) ||
+		Prop == GET_MEMBER_NAME_CHECKED(UPCGExConstantEnumSettings, PickerEnum))
 	{
-		if (SelectedEnum.Class)
+		if (GetEnumClass())
 		{
 			FillEnabledExportValues();
 		}
@@ -91,6 +93,12 @@ void UPCGExConstantEnumSettings::OnOverrideSettingsDuplicatedInternal(bool bSkip
 			FillEnabledExportValues();
 		}
 	}
+}
+
+TObjectPtr<UEnum> UPCGExConstantEnumSettings::GetEnumClass() const
+{
+	if (Source == EPCGExEnumConstantSourceType::Picker) { return PickerEnum; }
+	else { return SelectedEnum.Class; }
 }
 
 void UPCGExConstantEnumSettings::FillEnabledExportValues()
@@ -120,30 +128,32 @@ TArray<PCGExConstantEnumConstants::FMapping> UPCGExConstantEnumSettings::GetEnum
 	// - PCG Switch behaves like this
 	// ...so we're going to convert the description into a name and hope there aren't any emojis
 
+	const TObjectPtr<UEnum> EnumClass = GetEnumClass();
+
 	TArray<PCGExConstantEnumConstants::FMapping> Out;
-	if (!SelectedEnum.Class)
+	if (!EnumClass)
 	{
 		return Out;
 	}
 
 	// Adapted from PCGControlFlow.cpp
 	// -1 to bypass the MAX value
-	for (int32 Index = 0; SelectedEnum.Class && Index < SelectedEnum.Class->NumEnums() - 1; ++Index)
+	for (int32 Index = 0; EnumClass && Index < EnumClass->NumEnums() - 1; ++Index)
 	{
 		bool bHidden = false;
 #if WITH_EDITOR
-		bHidden = SelectedEnum.Class->HasMetaData(TEXT("Hidden"), Index) || SelectedEnum.Class->HasMetaData(TEXT("Spacer"), Index);
+		bHidden = EnumClass->HasMetaData(TEXT("Hidden"), Index) || EnumClass->HasMetaData(TEXT("Spacer"), Index);
 #endif
 
 		if (!bHidden)
 		{
-			Out.Push(
+			Out.Add(
 				{
 					StripEnumNamespaceFromKey ? // Key
-						FName(SelectedEnum.Class->GetNameStringByIndex(Index)) :
-						SelectedEnum.Class->GetNameByIndex(Index),
-					FName(SelectedEnum.Class->GetDisplayNameTextByIndex(Index).BuildSourceString()), // Description
-					SelectedEnum.Class->GetValueByIndex(Index),                                      // Value
+						FName(EnumClass->GetNameStringByIndex(Index)) :
+						EnumClass->GetNameByIndex(Index),
+					FName(EnumClass->GetDisplayNameTextByIndex(Index).BuildSourceString()), // Description
+					EnumClass->GetValueByIndex(Index),                                      // Value
 					Index                                                                            // Index
 				});
 		}
@@ -154,11 +164,8 @@ TArray<PCGExConstantEnumConstants::FMapping> UPCGExConstantEnumSettings::GetEnum
 
 FName UPCGExConstantEnumSettings::GetEnumName() const
 {
-	if (SelectedEnum.Class)
-	{
-		return FName(SelectedEnum.Class->GetName());
-	}
-	return FName("");
+	if (const TObjectPtr<UEnum> E = GetEnumClass()) { return FName(E->GetName()); }
+	return FName("(No Source)");
 }
 
 #if WITH_EDITOR
@@ -182,7 +189,9 @@ TArray<FPCGPinProperties> UPCGExConstantEnumSettings::OutputPinProperties() cons
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	if (!SelectedEnum.Class) { return PinProperties; }
+	const TObjectPtr<UEnum> EnumClass = GetEnumClass();
+	
+	if (!EnumClass) { return PinProperties; }
 	const auto EnumName = GetEnumName();
 
 	FText ToolTip = FText::GetEmpty();
@@ -193,8 +202,11 @@ TArray<FPCGPinProperties> UPCGExConstantEnumSettings::OutputPinProperties() cons
 	switch (OutputMode)
 	{
 	case EPCGExEnumOutputMode::EEOM_Single:
-		ToolTip = MAKE_TOOLTIP_FOR_VALUE(SelectedEnum.Class->GetNameByValue(SelectedEnum.Value), SelectedEnum.Value);
-		PinProperties.Emplace(PCGExConstantEnumConstants::SingleOutputPinName, EPCGDataType::Param, true, false, ToolTip);
+		if (Source == EPCGExEnumConstantSourceType::Selector)
+		{
+			ToolTip = MAKE_TOOLTIP_FOR_VALUE(EnumClass->GetNameByValue(SelectedEnum.Value), SelectedEnum.Value);
+			PinProperties.Emplace(PCGExConstantEnumConstants::SingleOutputPinName, EPCGDataType::Param, true, false, ToolTip);
+		}
 		break;
 
 	case EPCGExEnumOutputMode::EEOM_All:
@@ -241,6 +253,7 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(ConstantEnum)
 
+	
 	auto ValidateNames = [&]()-> bool
 	{
 		// Validating names, will throw an error
@@ -254,8 +267,10 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!ValidateNames()) { return true; }
 
+	const TObjectPtr<UEnum> EnumClass = Settings->GetEnumClass();
+	
 	// No class selected, so can't output anything
-	if (!Settings->SelectedEnum.Class)
+	if (!EnumClass)
 	{
 		return true;
 	}
@@ -284,6 +299,12 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 	// Just output the one selected
 	case EPCGExEnumOutputMode::EEOM_Single:
 		{
+			if (Settings->Source == EPCGExEnumConstantSourceType::Picker)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Single output not supported with the selected source mode."));
+				return true;
+			}
+			
 			for (int i = 0; i < Unfiltered.Num(); i++)
 			{
 				if (Unfiltered[i].Get<2>() == Settings->SelectedEnum.Value)

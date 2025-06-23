@@ -22,6 +22,12 @@ enum class EPCGExNumericOutput : uint8
 
 namespace PCGExDataHelpers
 {
+	template <typename T>
+	static T ReadDataValue(const FPCGMetadataAttribute<T>* Attribute)
+	{
+		check(Attribute->GetMetadataDomain()->GetDomainID() == PCGMetadataDomainID::Data)
+		return Attribute->GetValueFromItemKey(0);
+	}
 
 	constexpr static EPCGMetadataTypes GetNumericType(const EPCGExNumericOutput InType)
 	{
@@ -39,7 +45,7 @@ namespace PCGExDataHelpers
 
 		return EPCGMetadataTypes::Unknown;
 	}
-	
+
 	template <typename T>
 	static bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector, T& OutValue)
 	{
@@ -59,7 +65,7 @@ namespace PCGExDataHelpers
 					using T_VALUE = decltype(DummyValue);
 
 					const FPCGMetadataAttribute<T_VALUE>* TypedSource = static_cast<const FPCGMetadataAttribute<T_VALUE>*>(SourceAttribute);
-					const T_VALUE Value = PCGEX_READ_DATA_ENTRY(TypedSource);
+					const T_VALUE Value = ReadDataValue(TypedSource);
 
 					if (SubSelection.bIsValid) { OutValue = SubSelection.Get<T_VALUE, T>(Value); }
 					else { OutValue = PCGEx::Convert<T_VALUE, T>(Value); }

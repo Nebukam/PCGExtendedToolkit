@@ -120,7 +120,7 @@ bool FPCGExReduceDataAttributeElement::ExecuteInternal(FPCGContext* InContext) c
 						{
 							using T_ATTR = decltype(ValueType);
 							const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
-							T_ATTR Value = PCGEX_READ_DATA_ENTRY(TypedAtt);
+							T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
 
 							PCGEx::ExecuteWithRightType(
 								Settings->OutputType, [&](auto DummyValue)
@@ -141,7 +141,7 @@ bool FPCGExReduceDataAttributeElement::ExecuteInternal(FPCGContext* InContext) c
 						{
 							using T_ATTR = decltype(ValueType);
 							const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
-							T_ATTR Value = PCGEX_READ_DATA_ENTRY(TypedAtt);
+							T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
 							StringsToJoin.Add(PCGEx::Convert<FString>(Value));
 						});
 				}
@@ -166,7 +166,7 @@ bool FPCGExReduceDataAttributeElement::ExecuteInternal(FPCGContext* InContext) c
 							{
 								using T_ATTR = decltype(ValueType);
 								const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
-								T_ATTR Value = PCGEX_READ_DATA_ENTRY(TypedAtt);
+								T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
 
 								switch (Settings->Method)
 								{

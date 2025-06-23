@@ -64,7 +64,7 @@ struct FPCGExAttributeCheckFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-collections/attribute-check"))
-class UPCGExAttributeCheckFilterFactory : public UPCGExFilterFactoryData
+class UPCGExAttributeCheckFilterFactory : public UPCGExFilterCollectionFactoryData
 {
 	GENERATED_BODY()
 

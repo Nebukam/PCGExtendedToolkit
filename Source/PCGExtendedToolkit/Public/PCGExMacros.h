@@ -211,8 +211,6 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_CHECK_WORK_PERMIT(_RET) if(!WorkPermit.IsValid()){return _RET;}
 #define PCGEX_CHECK_WORK_PERMIT_OR(_OR, _RET) if(!WorkPermit.IsValid() || _OR){return _RET;}
 
-#define PCGEX_READ_DATA_ENTRY(_ATTR) _ATTR->GetNumberOfEntries() != 0 ? _ATTR->GetValue(PCGFirstEntryKey) : _ATTR->GetValue(PCGDefaultValueKey)
-
 #define PCGEX_GET_OPTION_STATE(_OPTION, _DEFAULT)\
 switch (_OPTION){ \
 default: case EPCGExOptionState::Default: return GetDefault<UPCGExGlobalSettings>()->_DEFAULT; \

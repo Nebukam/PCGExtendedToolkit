@@ -258,6 +258,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterCollectionFactoryData : public UPCGExFi
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterCollection; }
-	virtual bool SupportsCollectionEvaluation() const override { return true; }
+	virtual bool DomainCheck() override;
+	virtual bool SupportsCollectionEvaluation() const override;
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override { return nullptr; }
 };

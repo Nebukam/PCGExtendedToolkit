@@ -381,7 +381,7 @@ namespace PCGExData
 
 			InitForWriteInternal(TypedOutAttribute, DefaultValue, Init);
 
-			const int32 ExistingEntryCount = TypedOutAttribute->GetNumberOfEntries();
+			const int32 ExistingEntryCount = TypedOutAttribute->GetNumberOfEntriesWithParents();
 			const bool bHasIn = Source->GetIn() ? true : false;
 
 			auto GrabExistingValues = [&]()
@@ -555,7 +555,7 @@ namespace PCGExData
 				bReadInitialized = true;
 
 				InAttribute = TypedInAttribute;
-				InValue = PCGEX_READ_DATA_ENTRY(TypedInAttribute);
+				InValue = PCGExDataHelpers::ReadDataValue(TypedInAttribute);
 			}
 
 			return bReadInitialized;
@@ -602,12 +602,12 @@ namespace PCGExData
 
 			OutValue = DefaultValue;
 
-			const int32 ExistingEntryCount = TypedOutAttribute->GetNumberOfEntries();
+			const int32 ExistingEntryCount = TypedOutAttribute->GetNumberOfEntriesWithParents();
 			const bool bHasIn = Source->GetIn() ? true : false;
 
 			auto GrabExistingValues = [&]()
 			{
-				OutValue = PCGEX_READ_DATA_ENTRY(TypedOutAttribute);
+				OutValue = PCGExDataHelpers::ReadDataValue(TypedOutAttribute);
 			};
 
 			if (Init == EBufferInit::Inherit) { GrabExistingValues(); }
@@ -626,7 +626,7 @@ namespace PCGExData
 			if (const FPCGMetadataAttribute<T>* ExistingAttribute = PCGEx::TryGetConstAttribute<T>(Source->GetIn(), Identifier))
 			{
 				return InitForWrite(
-					PCGEX_READ_DATA_ENTRY(ExistingAttribute),
+					PCGExDataHelpers::ReadDataValue(ExistingAttribute),
 					ExistingAttribute->AllowsInterpolation(),
 					Init);
 			}
@@ -986,7 +986,7 @@ namespace PCGExData
 		// ReSharper disable once CppRedundantTemplateKeyword
 		const FPCGMetadataAttribute<T>* Mark = PCGEx::TryGetConstAttribute<T>(Metadata, MarkID);
 		if (!Mark) { return false; }
-		OutMark = PCGEX_READ_DATA_ENTRY(Mark);
+		OutMark = PCGExDataHelpers::ReadDataValue(Mark);
 		return true;
 	}
 

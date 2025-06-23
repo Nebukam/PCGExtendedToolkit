@@ -77,11 +77,11 @@ void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 		// Support for legacy data that was storing the edge count as a point index
 		EdgeCountIdentifier = PCGEx::GetAttributeIdentifier(PCGExGraph::Tag_PackedClusterEdgeCount_LEGACY, PointIO->GetIn());
 		EdgeCount = PCGEx::TryGetConstAttribute<int32>(PointIO->GetIn(), EdgeCountIdentifier);
-		if (EdgeCount) { NumEdges = PCGEX_READ_DATA_ENTRY(EdgeCount); }
+		if (EdgeCount) { NumEdges = PCGExDataHelpers::ReadDataValue(EdgeCount); }
 	}
 	else
 	{
-		NumEdges = PCGEX_READ_DATA_ENTRY(EdgeCount);
+		NumEdges = PCGExDataHelpers::ReadDataValue(EdgeCount);
 	}
 
 	if (NumEdges == -1)

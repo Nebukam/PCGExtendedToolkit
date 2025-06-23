@@ -10,6 +10,13 @@
 #include "Elements/ControlFlow/PCGControlFlow.h"
 #include "PCGExConstantEnum.generated.h"
 
+UENUM()
+enum class EPCGExEnumConstantSourceType : uint8
+{
+	Picker   = 0 UMETA(DisplayName="Picker", Tooltip="Browse through Blueprint enums."),
+	Selector = 1 UMETA(DisplayName="Selector", ToolTip="Browse through CPP enums."),
+};
+
 UENUM(BlueprintType)
 enum class EPCGExEnumConstantOutputType : uint8
 {
@@ -69,10 +76,18 @@ public:
 
 	virtual bool HasDynamicPins() const override { return true; };
 
+	TObjectPtr<UEnum> GetEnumClass() const;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings")
+	EPCGExEnumConstantSourceType Source = EPCGExEnumConstantSourceType::Selector;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings")
 	EPCGExEnumOutputMode OutputMode = EPCGExEnumOutputMode::EEOM_All;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ShowOnlyInnerProperties), Category="Settings")
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(EditCondition="Source == EPCGExEnumConstantSourceType::Picker", EditConditionHides), Category="Settings")
+	TObjectPtr<UEnum> PickerEnum;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(EditCondition="Source == EPCGExEnumConstantSourceType::Selector", EditConditionHides, ShowOnlyInnerProperties), Category="Settings")
 	FEnumSelector SelectedEnum;
 
 	UPROPERTY(
@@ -84,7 +99,6 @@ public:
 		)
 	)
 	TMap<FName, bool> EnabledExportValues;
-
 
 	// Hidden for now
 	UPROPERTY(/*BlueprintReadWrite, EditAnywhere, Category=Settings*/)
