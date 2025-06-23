@@ -55,7 +55,7 @@ namespace PCGExPaths
 	bool GetClosedLoop(const UPCGData* InData)
 	{
 		const FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetConstAttribute<bool>(InData, ClosedLoopIdentifier);
-		return Attr ? PCGEX_READ_DATA_ENTRY(Attr) : false;
+		return Attr ? PCGExDataHelpers::ReadDataValue(Attr) : false;
 	}
 
 	FPathMetrics::FPathMetrics(const FVector& InStart)

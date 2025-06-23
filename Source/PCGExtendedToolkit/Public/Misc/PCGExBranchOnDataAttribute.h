@@ -118,27 +118,30 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="SelectionMode == EPCGExControlFlowSelectionMode::UserDefined", EditConditionHides))
 	TArray<FPCGExBranchOnDataPin> Branches;
+
+	UPROPERTY(meta = (PCG_NotOverridable))
 	TArray<FPCGExBranchOnDataPin> InternalBranches;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings", meta=(PCG_NotOverridable, EditCondition="SelectionMode != EPCGExControlFlowSelectionMode::UserDefined", EditConditionHides))
+	EPCGExEnumConstantSourceType EnumSource = EPCGExEnumConstantSourceType::Selector;
+	
 	/** Determines which Enum be used. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_NotOverridable, EditCondition="SelectionMode != EPCGExControlFlowSelectionMode::UserDefined && !bAdvancedPicker", EditConditionHides, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_NotOverridable, EditCondition="SelectionMode != EPCGExControlFlowSelectionMode::UserDefined && EnumSource == EPCGExEnumConstantSourceType::Picker", EditConditionHides))
 	TObjectPtr<UEnum> EnumClass;
 
 	/** Determines which Enum be used. Enum selection is ignored here, it's only using the class value internally. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_NotOverridable, EditCondition="SelectionMode != EPCGExControlFlowSelectionMode::UserDefined && bAdvancedPicker", EditConditionHides, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_NotOverridable, EditCondition="SelectionMode != EPCGExControlFlowSelectionMode::UserDefined && EnumSource == EPCGExEnumConstantSourceType::Selector", EditConditionHides, ShowOnlyInnerProperties))
 	FEnumSelector EnumPicker;
 
 	/** Name of the default/fallback output pin. This is exposed because to allow easy disambiguation when 'default' is a valid switch. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, AdvancedDisplay)
 	FName DefaultPinName = FName("Default");
 
-	/** Branch the enum picker to the advanced one, which reveals otherwise hidden enums. However that picker shows a value which is super confusing so it's disabled by default; assuming that if you check this you know what you're doing and won't be confused :D */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, AdvancedDisplay)
-	bool bAdvancedPicker = false;
-
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietMissingAttribute = false;
+
+	TObjectPtr<UEnum> GetEnumClass() const;
 };
 
 struct FPCGExBranchOnDataAttributeContext final : FPCGExPointsProcessorContext

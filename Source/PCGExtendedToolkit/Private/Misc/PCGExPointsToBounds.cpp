@@ -29,7 +29,7 @@ void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsDa
 					const FPCGMetadataAttribute<T>* TypedSource = static_cast<const FPCGMetadataAttribute<T>*>(Source);
 
 					FPCGAttributeIdentifier DataIdentifier = FPCGAttributeIdentifier(AttributeIdentifier.Name, PCGMetadataDomainID::Data);
-					const T Value = TypedSource->GetValue(PCGFirstEntryKey);
+					const T Value = TypedSource->GetValueFromItemKey(PCGFirstEntryKey);
 					FPCGMetadataAttribute<T>* Target = OutData->Metadata->FindOrCreateAttribute(DataIdentifier, Value);
 					Target->SetDefaultValue(Value);
 				});

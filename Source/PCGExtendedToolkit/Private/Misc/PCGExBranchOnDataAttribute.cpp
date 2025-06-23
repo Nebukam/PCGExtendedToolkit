@@ -13,25 +13,24 @@ void UPCGExBranchOnDataAttributeSettings::PostEditChangeProperty(FPropertyChange
 	{
 		InternalBranches.Reset();
 
-		TObjectPtr<UEnum> EClass = bAdvancedPicker ? EnumPicker.Class : EnumClass;
-		if (EClass)
+		if (const TObjectPtr<UEnum> Enum = GetEnumClass())
 		{
 			// -1 to bypass the MAX value
-			for (int32 Index = 0; EClass && Index < EClass->NumEnums() - 1; ++Index)
+			for (int32 Index = 0; Enum && Index < Enum->NumEnums() - 1; ++Index)
 			{
 				bool bHidden = false;
 #if WITH_EDITOR
 				// HasMetaData is editor only, so there will be extra pins at runtime, but that should be okay
-				bHidden = EClass->HasMetaData(TEXT("Hidden"), Index) || EClass->HasMetaData(TEXT("Spacer"), Index);
+				bHidden = Enum->HasMetaData(TEXT("Hidden"), Index) || Enum->HasMetaData(TEXT("Spacer"), Index);
 #endif // WITH_EDITOR
 
 				if (!bHidden)
 				{
 					FPCGExBranchOnDataPin& Pin = InternalBranches.Emplace_GetRef(SelectionMode == EPCGExControlFlowSelectionMode::EnumInteger);
-					Pin.StringValue = EClass->GetDisplayNameTextByIndex(Index).BuildSourceString();
+					Pin.StringValue = Enum->GetDisplayNameTextByIndex(Index).BuildSourceString();
 					Pin.Label = FName(Pin.StringValue);
 					Pin.Check = SelectionMode == EPCGExControlFlowSelectionMode::EnumInteger ? EPCGExUserDefinedCheckType::Numeric : EPCGExUserDefinedCheckType::Text;
-					Pin.NumericValue = EClass->GetValueByIndex(Index);
+					Pin.NumericValue = Enum->GetValueByIndex(Index);
 					Pin.NumericCompare = EPCGExComparison::StrictlyEqual;
 					Pin.StringCompare = EPCGExStringComparison::StrictlyEqual;
 				}
@@ -45,6 +44,7 @@ void UPCGExBranchOnDataAttributeSettings::PostEditChangeProperty(FPropertyChange
 	}
 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
+	MarkPackageDirty();
 }
 #endif
 
@@ -71,6 +71,12 @@ TArray<FPCGPinProperties> UPCGExBranchOnDataAttributeSettings::OutputPinProperti
 
 PCGEX_INITIALIZE_ELEMENT(BranchOnDataAttribute)
 
+TObjectPtr<UEnum> UPCGExBranchOnDataAttributeSettings::GetEnumClass() const
+{
+	if (EnumSource == EPCGExEnumConstantSourceType::Picker) { return EnumClass; }
+	else { return EnumPicker.Class; }
+}
+
 bool FPCGExBranchOnDataAttributeElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
@@ -91,7 +97,11 @@ bool FPCGExBranchOnDataAttributeElement::ExecuteInternal(FPCGContext* InContext)
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		FPCGAttributeIdentifier ReadIdentifier = Settings->BranchSource;
+		FPCGAttributePropertyInputSelector DummySelector;
+		DummySelector.Update(Settings->BranchSource.ToString());
+
+		FPCGAttributeIdentifier ReadIdentifier;
+		ReadIdentifier.Name = DummySelector.GetAttributeName();
 		ReadIdentifier.MetadataDomain = PCGMetadataDomainID::Data;
 
 		TArray<FPCGTaggedData> Inputs = Context->InputData.GetInputsByPin(Settings->GetMainInputPin());
@@ -103,6 +113,7 @@ bool FPCGExBranchOnDataAttributeElement::ExecuteInternal(FPCGContext* InContext)
 
 			if (PCGEx::HasAttribute(TaggedData.Data, ReadIdentifier)) { Attr = TaggedData.Data->Metadata->GetConstAttribute(ReadIdentifier); }
 
+			FName OutputPin = Settings->GetMainOutputPin();
 			bool bDistributed = false;
 
 			if (!Attr)
@@ -114,35 +125,35 @@ bool FPCGExBranchOnDataAttributeElement::ExecuteInternal(FPCGContext* InContext)
 			}
 			else
 			{
-				for (const FPCGExBranchOnDataPin& Pin : Settings->InternalBranches)
-				{
-					PCGEx::ExecuteWithRightType(
-						Attr->GetTypeId(), [&](auto ValueType)
-						{
-							using T_ATTR = decltype(ValueType);
-							const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Attr);
-							T_ATTR Value = PCGEX_READ_DATA_ENTRY(TypedAtt);
-
-							if (Pin.Check == EPCGExUserDefinedCheckType::Numeric) { bDistributed = PCGExCompare::Compare(Pin.NumericCompare, static_cast<double>(Pin.NumericValue), PCGEx::Convert<double>(Value), Pin.Tolerance); }
-							else { bDistributed = PCGExCompare::Compare(Pin.StringCompare, Pin.StringValue, PCGEx::Convert<FString>(Value)); }
-						});
-
-					if (bDistributed)
+				PCGEx::ExecuteWithRightType(
+					Attr->GetTypeId(), [&](auto ValueType)
 					{
-						Context->StageOutput(
-							const_cast<UPCGData*>(TaggedData.Data.Get()), Pin.Label,
-							TaggedData.Tags, false, false, false);
-						break;
-					}
-				}
+						using T_ATTR = decltype(ValueType);
+						const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Attr);
+
+						T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
+
+						const double AsNumeric = PCGEx::Convert<double>(Value);
+						const FString AsString = PCGEx::Convert<FString>(Value);
+
+						// Loop AFTER the cast, dummy
+						for (const FPCGExBranchOnDataPin& Pin : Settings->InternalBranches)
+						{
+							if (Pin.Check == EPCGExUserDefinedCheckType::Numeric) { bDistributed = PCGExCompare::Compare(Pin.NumericCompare, static_cast<double>(Pin.NumericValue), AsNumeric, Pin.Tolerance); }
+							else { bDistributed = PCGExCompare::Compare(Pin.StringCompare, Pin.StringValue, AsString); }
+
+							if (bDistributed)
+							{
+								OutputPin = Pin.Label;
+								break;
+							}
+						}
+					});
 			}
 
-			if (!bDistributed)
-			{
-				Context->StageOutput(
-					const_cast<UPCGData*>(TaggedData.Data.Get()), Settings->GetMainOutputPin(),
-					TaggedData.Tags, false, false, false);
-			}
+			Context->StageOutput(
+				const_cast<UPCGData*>(TaggedData.Data.Get()), OutputPin,
+				TaggedData.Tags, false, false, false);
 		}
 	}
 

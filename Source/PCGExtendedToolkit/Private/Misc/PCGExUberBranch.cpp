@@ -125,14 +125,58 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberBranch)
 	PCGEX_EXECUTION_CHECK
-	PCGEX_ON_INITIAL_EXECUTION
+	if (Settings->AsyncChunkSize > 0)
+	{
+		PCGEX_ON_INITIAL_EXECUTION
+		{
+			TWeakPtr<FPCGContextHandle> Handle = Context->GetOrCreateHandle();
+
+			Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+			PCGEX_ASYNC_GROUP_CHKD_CUSTOM(Context->GetAsyncManager(), BranchTask, true)
+
+			BranchTask->OnSubLoopStartCallback =
+				[Handle, Settings](const PCGExMT::FScope& Scope)
+				{
+					PCGEX_SHARED_TCONTEXT_VOID(UberBranch, Handle)
+					PCGEX_SCOPE_LOOP(Index)
+					{
+						const TSharedPtr<PCGExData::FFacade>& Facade = SharedContext.Get()->Facades[Index];
+
+						bool bDistributed = false;
+						for (int i = 0; i < Settings->NumBranches; i++)
+						{
+							const TSharedPtr<PCGExPointFilter::FManager> Manager = SharedContext.Get()->Managers[i];
+							if (!Manager) { continue; }
+							if (Manager->Test(Facade->Source, SharedContext.Get()->MainPoints))
+							{
+								Facade->Source->OutputPin = Settings->OutputLabels[i];
+								bDistributed = true;
+								break;
+							}
+						}
+
+						if (!bDistributed) { Facade->Source->OutputPin = Settings->GetMainOutputPin(); }
+					}
+				};
+
+			BranchTask->StartSubLoops(Context->Facades.Num(), Settings->AsyncChunkSize);
+			return false;
+		}
+
+		PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
+		{
+			Context->MainPoints->StageOutputs();
+			Context->Done();
+		}
+	}
+	else
 	{
 		for (const TSharedPtr<PCGExData::FFacade>& Facade : Context->Facades)
 		{
 			bool bDistributed = false;
 			for (int i = 0; i < Settings->NumBranches; i++)
 			{
-				TSharedPtr<PCGExPointFilter::FManager> Manager = Context->Managers[i];
+				const TSharedPtr<PCGExPointFilter::FManager> Manager = Context->Managers[i];
 				if (!Manager) { continue; }
 				if (Manager->Test(Facade->Source, Context->MainPoints))
 				{
@@ -144,11 +188,11 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 
 			if (!bDistributed) { Facade->Source->OutputPin = Settings->GetMainOutputPin(); }
 		}
+
+		Context->MainPoints->StageOutputs();
+		Context->Done();
 	}
 
-	Context->MainPoints->StageOutputs();
-	
-	Context->Done();
 	return Context->TryComplete();
 }
 

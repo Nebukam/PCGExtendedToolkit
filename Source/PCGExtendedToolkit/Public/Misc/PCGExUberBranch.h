@@ -61,6 +61,10 @@ public:
 	UPROPERTY(meta=(PCG_NotOverridable))
 	TArray<FName> OutputLabels = {TEXT("0 →"), TEXT("1 →"), TEXT("2 →")};
 
+	/** Number of collections to check for in parallel. Use 0 to force execution in a single go. Can be beneficial if filters are simple enough. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	int32 AsyncChunkSize = 32;
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietMissingFilters = false;
@@ -68,7 +72,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietInvalidFilters = false;
-	
+
 private:
 	friend class FPCGExUberBranchElement;
 };
