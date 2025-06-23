@@ -73,7 +73,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBranchOnDataPin
 	}
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/BranchOn-data"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="quality-of-life/branch-on-data"))
 class UPCGExBranchOnDataAttributeSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
