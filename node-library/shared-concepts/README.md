@@ -15,7 +15,7 @@ There is a handful of recurring settings blocs that are exposed by a lot of diff
 
 A lot of parameters support either a constant value or can grab a per-point value from the attributes. This is often presented as a dropdown that swaps two fields:
 
-<figure><img src="../../.gitbook/assets/image (2) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (2) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 Selecting `Constant` will read value from the constant field, which can be overridden with the pin of the same name; while selecting `Attribute` will read the value from the specified attribute. Attribute selection can be overridden using the override pin named `{property} (Attr)`
 
