@@ -96,8 +96,6 @@ namespace PCGExFindPointOnBounds
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
-
 		const FBox Bounds = PointDataFacade->Source->GetIn()->GetBounds();
 		SearchPosition = Bounds.GetCenter() + Bounds.GetExtent() * Settings->UVW;
 
@@ -141,11 +139,11 @@ namespace PCGExFindPointOnBounds
 		{
 			const int32 TargetIndex = PointDataFacade->Source->IOIndex;
 
-			TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
-			TPCGValueRange<int64> OutMetadataEntry = PointDataFacade->GetOut()->GetMetadataEntryValueRange(false);
+			TPCGValueRange<FTransform> OutTransforms = Context->MergedOut->GetOut()->GetTransformValueRange(false);
+			TPCGValueRange<int64> OutMetadataEntry = Context->MergedOut->GetOut()->GetMetadataEntryValueRange(false);
 			const PCGMetadataEntryKey OriginalKey = OutMetadataEntry[TargetIndex];
 
-			PointDataFacade->Source->InheritPoints(BestIndex, TargetIndex, 1);
+			PointDataFacade->Source->GetIn()->CopyPointsTo(Context->MergedOut->GetOut(), BestIndex, TargetIndex, 1);
 
 			OutTransforms[TargetIndex].AddToTranslation(Offset);
 			OutMetadataEntry[TargetIndex] = OriginalKey;
