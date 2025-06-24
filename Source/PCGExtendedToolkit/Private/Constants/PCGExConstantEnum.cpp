@@ -98,7 +98,7 @@ void UPCGExConstantEnumSettings::OnOverrideSettingsDuplicatedInternal(bool bSkip
 TObjectPtr<UEnum> UPCGExConstantEnumSettings::GetEnumClass() const
 {
 	if (Source == EPCGExEnumConstantSourceType::Picker) { return PickerEnum; }
-	else { return SelectedEnum.Class; }
+	return SelectedEnum.Class;
 }
 
 void UPCGExConstantEnumSettings::FillEnabledExportValues()
@@ -154,7 +154,7 @@ TArray<PCGExConstantEnumConstants::FMapping> UPCGExConstantEnumSettings::GetEnum
 						EnumClass->GetNameByIndex(Index),
 					FName(EnumClass->GetDisplayNameTextByIndex(Index).BuildSourceString()), // Description
 					EnumClass->GetValueByIndex(Index),                                      // Value
-					Index                                                                            // Index
+					Index                                                                   // Index
 				});
 		}
 	}
@@ -190,7 +190,7 @@ TArray<FPCGPinProperties> UPCGExConstantEnumSettings::OutputPinProperties() cons
 	TArray<FPCGPinProperties> PinProperties;
 
 	const TObjectPtr<UEnum> EnumClass = GetEnumClass();
-	
+
 	if (!EnumClass) { return PinProperties; }
 	const auto EnumName = GetEnumName();
 
@@ -253,7 +253,7 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(ConstantEnum)
 
-	
+
 	auto ValidateNames = [&]()-> bool
 	{
 		// Validating names, will throw an error
@@ -268,7 +268,7 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 	if (!ValidateNames()) { return true; }
 
 	const TObjectPtr<UEnum> EnumClass = Settings->GetEnumClass();
-	
+
 	// No class selected, so can't output anything
 	if (!EnumClass)
 	{
@@ -304,7 +304,7 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Single output not supported with the selected source mode."));
 				return true;
 			}
-			
+
 			for (int i = 0; i < Unfiltered.Num(); i++)
 			{
 				if (Unfiltered[i].Get<2>() == Settings->SelectedEnum.Value)

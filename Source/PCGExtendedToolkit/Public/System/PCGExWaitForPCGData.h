@@ -177,7 +177,7 @@ struct FPCGExWaitForPCGDataContext final : FPCGExPointsProcessorContext
 	friend class FPCGExWaitForPCGDataElement;
 
 	virtual void RegisterAssetDependencies() override;
-	
+
 	TArray<FPCGPinProperties> RequiredPinProperties;
 	TSet<FName> AllLabels;
 	TSet<FName> RequiredLabels;
@@ -205,7 +205,7 @@ namespace PCGExWaitForPCGData
 		FRWLock ValidComponentLock;
 
 		TObjectPtr<UPCGGraph> TemplateGraph;
-		
+
 		TWeakPtr<PCGExMT::FAsyncToken> SearchComponentsToken;
 		TWeakPtr<PCGExMT::FAsyncToken> SearchActorsToken;
 		TWeakPtr<PCGExMT::FAsyncToken> WatchToken;

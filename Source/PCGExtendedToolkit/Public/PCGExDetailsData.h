@@ -26,7 +26,7 @@ namespace PCGExDetails
 	public:
 		bool bQuietErrors = false;
 		virtual ~TSettingValue() = default;
-		virtual bool Init(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) = 0;
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) = 0;
 		FORCEINLINE virtual void SetConstant(T InConstant)
 		{
 		}
@@ -50,7 +50,7 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
 		{
 			PCGEX_VALIDATE_NAME_C(InContext, Name)
 
@@ -83,7 +83,7 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
 		{
 			Buffer = InDataFacade->GetBroadcaster<T>(Selector, bSupportScoped && !bCaptureMinMax, bCaptureMinMax);
 
@@ -114,7 +114,7 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override { return true; }
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override { return true; }
 
 		FORCEINLINE virtual bool IsConstant() override { return true; }
 		FORCEINLINE virtual void SetConstant(T InConstant) override { Constant = InConstant; };

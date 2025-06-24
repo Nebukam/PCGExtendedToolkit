@@ -10,8 +10,6 @@
 #include "PCGExProbeOperation.h"
 
 
-
-
 #include "PCGExProbeClosest.generated.h"
 
 namespace PCGExProbing
@@ -39,7 +37,7 @@ struct FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 	int32 MaxConnectionsConstant = 1;
 
 	PCGEX_SETTING_VALUE_GET(MaxConnections, int32, MaxConnectionsInput, MaxConnectionsAttribute, MaxConnectionsConstant)
-	
+
 	/** Attempts to prevent connections that are roughly in the same direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bPreventCoincidence = true;
@@ -55,7 +53,7 @@ struct FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 class FPCGExProbeClosest : public FPCGExProbeOperation
 {
 public:
-	virtual bool PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
+	virtual bool PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
 	virtual void ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
 	virtual void ProcessNode(const int32 Index, const FTransform& WorkingTransform, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections) override;
 

@@ -233,7 +233,6 @@ namespace PCGExBuildVoronoi
 		{
 			bIsProcessorValid = false;
 			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
-			return;
 		}
 	}
 

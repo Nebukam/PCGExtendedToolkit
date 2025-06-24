@@ -107,7 +107,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGUIDDetails
 	/** Whether the created attribute allows interpolation or not.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAllowInterpolation = true;
-	
+
 	bool bUseIndex = false;
 	bool bUseSeed = false;
 	bool bUsePosition = false;

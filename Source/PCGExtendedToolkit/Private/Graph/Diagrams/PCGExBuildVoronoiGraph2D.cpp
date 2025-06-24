@@ -403,16 +403,16 @@ namespace PCGExBuildVoronoi2D
 
 					TPCGValueRange<FTransform> OutTransforms = This->SiteDataFacade->GetOut()->GetTransformValueRange(false);
 
-					const TArray<FVector>& SitesPositions = This->SitesOutputDetails.Locations;
-					const TArray<int32>& SitesInfluenceCount = This->SitesOutputDetails.Influences;
+					const TArray<FVector>& SitesPositionsDetails = This->SitesOutputDetails.Locations;
+					const TArray<int32>& SitesInfluenceCountDetails = This->SitesOutputDetails.Influences;
 
 					PCGEX_SCOPE_LOOP(Index)
 					{
 						const bool bIsWithinBounds = This->IsVtxValid[Index];
 						if (This->OpenSiteWriter) { This->OpenSiteWriter->SetValue(Index, bIsWithinBounds); }
 						This->SitesOutputDetails.Output(Index);
-						if (SitesInfluenceCount[Index] == 0) { continue; }
-						OutTransforms[Index].SetLocation(SitesPositions[Index] / SitesInfluenceCount[Index]);
+						if (SitesInfluenceCountDetails[Index] == 0) { continue; }
+						OutTransforms[Index].SetLocation(SitesPositionsDetails[Index] / SitesInfluenceCountDetails[Index]);
 					}
 				};
 

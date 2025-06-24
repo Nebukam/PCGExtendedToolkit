@@ -62,7 +62,7 @@ public:
 	UPROPERTY()
 	FPCGExPolygonInclusionFilterConfig Config;
 
-	virtual bool SupportsCollectionEvaluation() const override{ return Config.bCheckAgainstDataBounds; }
+	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
 	TSharedPtr<TArray<TSharedPtr<TArray<FVector2D>>>> Polygons;

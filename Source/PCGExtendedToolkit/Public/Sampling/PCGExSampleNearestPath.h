@@ -95,7 +95,7 @@ public:
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
 #pragma region Sampling Range
-	
+
 	/** Type of Range Min */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExInputValueType RangeMinInput = EPCGExInputValueType::Constant;

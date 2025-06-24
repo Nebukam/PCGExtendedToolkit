@@ -78,7 +78,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 	/** Resolution Constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, DisplayName="Resolution (Vector)", EditCondition="ResolutionInput == EPCGExInputValueType::Constant && bThreeDimensions", EditConditionHides, ClampMin=0))
 	FVector ResolutionConstantVector = FVector(10);
-	
+
 	PCGEX_SETTING_VALUE_GET(Resolution, double, ResolutionInput, ResolutionAttribute, ResolutionConstant)
 	PCGEX_SETTING_VALUE_GET(ResolutionVector, FVector, ResolutionInput, ResolutionAttribute, ResolutionConstantVector)
 
@@ -102,7 +102,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Align", meta=(PCG_Overridable))
 	EPCGExAxisAlign LookAtAxis = EPCGExAxisAlign::Forward;
 
-	
+
 	/** Default point extnets */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data", meta=(PCG_Overridable))
 	FVector DefaultExtents = FVector::OneVector * 50;

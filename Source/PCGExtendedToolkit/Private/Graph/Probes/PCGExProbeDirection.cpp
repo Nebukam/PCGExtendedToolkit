@@ -10,7 +10,7 @@ PCGEX_CREATE_PROBE_FACTORY(Direction, {}, {})
 
 bool FPCGExProbeDirection::RequiresChainProcessing() { return Config.bDoChainedProcessing; }
 
-bool FPCGExProbeDirection::PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeDirection::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
 

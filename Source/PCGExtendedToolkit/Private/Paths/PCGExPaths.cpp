@@ -624,13 +624,13 @@ namespace PCGExPaths
 	void FPathEdgeCrossings::SortByAlpha()
 	{
 		if (Crossings.Num() <= 1) { return; }
-		Crossings.Sort([&](const PCGExPaths::FCrossing& A, const PCGExPaths::FCrossing& B) { return A.Alpha < B.Alpha; });
+		Crossings.Sort([&](const FCrossing& A, const FCrossing& B) { return A.Alpha < B.Alpha; });
 	}
 
 	void FPathEdgeCrossings::SortByHash()
 	{
 		if (Crossings.Num() <= 1) { return; }
-		Crossings.Sort([&](const PCGExPaths::FCrossing& A, const PCGExPaths::FCrossing& B) { return PCGEx::H64A(A.Hash) < PCGEx::H64A(B.Hash); });
+		Crossings.Sort([&](const FCrossing& A, const FCrossing& B) { return PCGEx::H64A(A.Hash) < PCGEx::H64A(B.Hash); });
 	}
 }
 

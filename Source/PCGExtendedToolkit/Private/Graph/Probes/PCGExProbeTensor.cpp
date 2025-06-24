@@ -4,8 +4,6 @@
 #include "Graph/Probes/PCGExProbeTensor.h"
 
 
-
-
 #include "Graph/Probes/PCGExProbing.h"
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
@@ -38,7 +36,7 @@ bool UPCGExProbeFactoryTensor::Prepare(FPCGExContext* InContext)
 
 bool FPCGExProbeTensor::RequiresChainProcessing() { return Config.bDoChainedProcessing; }
 
-bool FPCGExProbeTensor::PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeTensor::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!TensorFactories) { return false; }
 

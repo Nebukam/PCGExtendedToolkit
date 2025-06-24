@@ -77,7 +77,7 @@ namespace PCGExPointsMT
 			if (PrimaryInstancedFactory->WantsPerDataInstance())
 			{
 				PrimaryInstancedFactory = PrimaryInstancedFactory->CreateNewInstance<UPCGExInstancedFactory>(ExecutionContext->ManagedObjects.Get());
-				if (!PrimaryInstancedFactory){return false;}
+				if (!PrimaryInstancedFactory) { return false; }
 				PrimaryInstancedFactory->PrimaryDataFacade = PointDataFacade;
 			}
 		}

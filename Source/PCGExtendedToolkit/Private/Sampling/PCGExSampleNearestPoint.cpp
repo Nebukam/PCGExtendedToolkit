@@ -32,7 +32,8 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
 	{
 		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
-	}else
+	}
+	else
 	{
 		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Advanced, {})
 	}
@@ -257,7 +258,7 @@ namespace PCGExSampleNearestPoints
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestPoints::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
-		
+
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
@@ -372,7 +373,7 @@ namespace PCGExSampleNearestPoints
 
 			const PCGExData::FMutablePoint Point = PointDataFacade->GetOutPoint(Index);
 			const FVector Origin = Transforms[Index].GetLocation();
-			
+
 			PCGExData::FElement SinglePick(-1, -1);
 			double Det = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
 
@@ -461,7 +462,7 @@ namespace PCGExSampleNearestPoints
 
 			FTransform WeightedTransform = FTransform::Identity;
 			WeightedTransform.SetScale3D(FVector::ZeroVector);
-			
+
 			FVector WeightedUp = SafeUpVector;
 			if (Settings->LookAtUpSelection == EPCGExSampleSource::Source) { WeightedUp = LookAtUpGetter->Read(Index); }
 

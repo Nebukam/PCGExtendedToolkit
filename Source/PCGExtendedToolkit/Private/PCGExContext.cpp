@@ -32,7 +32,7 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 		Output.Data = InData;
 		Index = OutputData.TaggedData.Num() - 1;
 	}
-	
+
 	if (bManaged) { ManagedObjects->Add(InData); }
 	if (bIsMutable)
 	{

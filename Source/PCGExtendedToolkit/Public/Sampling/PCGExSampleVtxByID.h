@@ -44,7 +44,7 @@ public:
 	/** Name of the attribute that stores the vtx id (first 32 bits of the PCGEx/VData) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FName VtxIdSource = FName("VtxId");
-	
+
 	/** Whether and how to apply sampled result directly (not mutually exclusive with blending)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
@@ -66,7 +66,7 @@ public:
 	FVector LookAtUpConstant = FVector::UpVector;
 
 	PCGEX_SETTING_VALUE_GET(LookAtUp, FVector, LookAtUpInput, LookAtUpSource, LookAtUpConstant)
-	
+
 	//
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(InlineEditConditionToggle))

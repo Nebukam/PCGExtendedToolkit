@@ -31,7 +31,7 @@ namespace PCGExPointIOMerger
 		PCGExMT::FScope Write;
 		bool bReverse = false;
 		TArrayView<int32> ReadIndices;
-		
+
 		FMergeScope() = default;
 	};
 }
@@ -107,7 +107,7 @@ namespace PCGExPointIOMerger
 
 					int32 WriteIndex = Scope.Write.Start;
 
-					for (int i = ReadData.Num() - 1; i >= 0; i--) { InRange[WriteIndex++] = ReadData[i]; }
+					for (int i = ReadData.Num() - 1; i >= 0; --i) { InRange[WriteIndex++] = ReadData[i]; }
 				}
 				else
 				{

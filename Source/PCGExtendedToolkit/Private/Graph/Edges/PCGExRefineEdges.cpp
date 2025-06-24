@@ -169,7 +169,7 @@ namespace PCGExRefineEdges
 
 		Refinement = Context->Refinement->CreateNewInstance<UPCGExEdgeRefineOperation>(Context->ManagedObjects.Get());
 		if (!Refinement) { return false; }
-		
+
 		Refinement->PrimaryDataFacade = VtxDataFacade;
 		Refinement->SecondaryDataFacade = EdgeDataFacade;
 

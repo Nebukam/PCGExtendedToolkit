@@ -32,14 +32,14 @@ public:
 	/** Under the hood updates are operated on a FIntVector3. The regular FVector value is multiplied by this factor, and later divided by it. Default value of 100 means .00 precision. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Floating Point Precision"), AdvancedDisplay)
 	double Precision = 100;
-	
+
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		//if (const UPCGExRelaxClusterOperation* TypedOther = Cast<UPCGExRelaxClusterOperation>(Other))		{		}
 	}
 
-	virtual bool PrepareForCluster(::FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster)
+	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster)
 	{
 		Cluster = InCluster;
 		return true;
@@ -86,7 +86,7 @@ public:
 	TSharedPtr<PCGExCluster::FCluster> Cluster;
 	TArray<FTransform>* ReadBuffer = nullptr;
 	TArray<FTransform>* WriteBuffer = nullptr;
-	
+
 
 	virtual void Cleanup() override
 	{
@@ -99,7 +99,7 @@ public:
 
 protected:
 	TArray<FIntVector3> Deltas;
-	
+
 	FVector GetDelta(const int32 Index)
 	{
 		const FIntVector3& P = Deltas[Index];

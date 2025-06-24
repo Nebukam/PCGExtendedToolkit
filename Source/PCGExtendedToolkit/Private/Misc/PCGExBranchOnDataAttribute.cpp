@@ -70,7 +70,7 @@ PCGEX_INITIALIZE_ELEMENT(BranchOnDataAttribute)
 TObjectPtr<UEnum> UPCGExBranchOnDataAttributeSettings::GetEnumClass() const
 {
 	if (EnumSource == EPCGExEnumConstantSourceType::Picker) { return EnumClass; }
-	else { return EnumPicker.Class; }
+	return EnumPicker.Class;
 }
 
 bool FPCGExBranchOnDataAttributeElement::Boot(FPCGExContext* InContext) const
