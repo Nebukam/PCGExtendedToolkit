@@ -50,10 +50,12 @@ void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FTransform
 		{
 			if (PCGExMath::IsDirectionWithinTolerance(Dir, C.Direction, Config.MaxAngles)) { continue; }
 			Dot = FVector::DotProduct(Dir, C.Direction);
+			if (Config.bUnsignedCheck) { Dot = FMath::Abs(Dot); }
 		}
 		else
 		{
 			Dot = FVector::DotProduct(Dir, C.Direction);
+			if (Config.bUnsignedCheck) { Dot = FMath::Abs(Dot); }
 			if (Dot < MinDot) { continue; }
 		}
 
@@ -101,10 +103,12 @@ void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FTra
 	{
 		if (PCGExMath::IsDirectionWithinTolerance(Dir, Candidate.Direction, Config.MaxAngles)) { return; }
 		Dot = FVector::DotProduct(Dir, Candidate.Direction);
+		if (Config.bUnsignedCheck) { Dot = FMath::Abs(Dot); }
 	}
 	else
 	{
 		Dot = FVector::DotProduct(Dir, Candidate.Direction);
+		if (Config.bUnsignedCheck) { Dot = FMath::Abs(Dot); }
 		if (Dot < MinDot) { return; }
 	}
 
