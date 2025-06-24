@@ -36,6 +36,12 @@ bool FPCGExCopyToPointsElement::Boot(FPCGExContext* InContext) const
 		if (!Context->MatchByTagValue.Init(Context, Context->TargetsDataFacade.ToSharedRef())) { return false; }
 	}
 
+	if (Settings->bDoMatchByData)
+	{
+		PCGEX_FWD(MatchByDataValue)
+		if (!Context->MatchByDataValue.Init(Context, Context->TargetsDataFacade.ToSharedRef())) { return false; }
+	}
+
 	Context->TargetsForwardHandler = Settings->TargetsForwarding.GetHandler(Context->TargetsDataFacade);
 
 	return true;
@@ -80,15 +86,18 @@ namespace PCGExCopyToPoints
 
 		PCGEx::InitArray(Dupes, NumTargets);
 
+		const bool bMatchAll = Settings->bDoMatchByTags && Settings->bDoMatchByData;
+
 		for (int i = 0; i < NumTargets; i++)
 		{
 			Dupes[i] = nullptr;
 
-			if (Settings->bDoMatchByTags &&
-				!Context->MatchByTagValue.Matches(PointDataFacade->Source->Tags, Context->TargetsDataFacade->GetInPoint(i)))
-			{
-				continue;
-			}
+			PCGExData::FConstPoint TargetPoint = Context->TargetsDataFacade->GetInPoint(i);
+			const bool bMatchTagPass = Settings->bDoMatchByTags ? Context->MatchByTagValue.Matches(PointDataFacade->Source, TargetPoint) : true;
+			const bool bMatchDataPass = Settings->bDoMatchByData ? Context->MatchByDataValue.Matches(PointDataFacade->Source, TargetPoint) : true;
+
+			if (bMatchAll && Settings->Mode == EPCGExFilterGroupMode::OR) { if (!bMatchTagPass && !bMatchDataPass) { continue; } }
+			else if (!bMatchTagPass || !bMatchDataPass) { continue; }
 
 			NumCopies++;
 

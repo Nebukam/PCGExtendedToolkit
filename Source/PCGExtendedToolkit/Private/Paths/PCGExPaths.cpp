@@ -48,8 +48,8 @@ namespace PCGExPaths
 	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop)
 	{
 		FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetMutableAttribute<bool>(InData, ClosedLoopIdentifier);
-		if (!Attr) { InData->Metadata->CreateAttribute<bool>(ClosedLoopIdentifier, bIsClosedLoop, true, true); }
-		else { Attr->SetDefaultValue(bIsClosedLoop); }
+		if (!Attr) { Attr = InData->Metadata->CreateAttribute<bool>(ClosedLoopIdentifier, bIsClosedLoop, true, true); }
+		PCGExDataHelpers::SetDataValue(Attr, bIsClosedLoop);
 	}
 
 	bool GetClosedLoop(const UPCGData* InData)

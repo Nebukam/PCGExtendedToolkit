@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
+
+
 #include "Graph/PCGExCluster.h"
 #include "UObject/Object.h"
 #include "PCGExProbeOperation.generated.h"
@@ -55,7 +57,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 class PCGEXTENDEDTOOLKIT_API FPCGExProbeOperation : public FPCGExOperation
 {
 public:
-	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO);
+	virtual bool PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO);
 	virtual bool RequiresOctree();
 	virtual bool RequiresChainProcessing();
 	virtual void ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges);

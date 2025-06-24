@@ -10,6 +10,9 @@
 #include "PCGExDetailsData.h"
 #include "Data/PCGExData.h"
 
+
+
+
 #include "PCGExCompare.generated.h"
 
 #define PCGEX_UNSUPPORTED_STRING_TYPES(MACRO)\
@@ -471,7 +474,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 
 	PCGEX_SETTING_VALUE_GET(Tolerance, double, HashToleranceInput, HashToleranceAttribute, HashToleranceConstant)
 
-	bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade);
+	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade);
 	FVector GetCWTolerance(const int32 PointIndex) const;
 
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
@@ -531,7 +534,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 
 	double ComparisonTolerance = 0;
 
-	bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache);
+	bool Init(::FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache);
 
 	FORCEINLINE double GetComparisonThreshold(const int32 PointIndex) const
 	{
@@ -558,7 +561,30 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagComparisonDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExMatchAndCompareDetails
+{
+	GENERATED_BODY()
+	virtual ~FPCGExMatchAndCompareDetails() = default;
+
+	FPCGExMatchAndCompareDetails()
+	{
+	}
+
+	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade)
+	PCGEX_NOT_IMPLEMENTED_RET(Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade), false);
+	
+	virtual bool Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const
+	PCGEX_NOT_IMPLEMENTED_RET(Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FConstPoint& SourcePoint), false);
+	
+	virtual void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+	PCGEX_NOT_IMPLEMENTED(RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData));
+	
+	virtual bool GetOnlyUseDataDomain() const
+	PCGEX_NOT_IMPLEMENTED_RET(GetOnlyUseDataDomain(), false);
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagComparisonDetails : public FPCGExMatchAndCompareDetails
 {
 	GENERATED_BODY()
 
@@ -609,12 +635,69 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagComparisonDetails
 	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> NumericValueGetter;
 	TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> StringValueGetter;
 
-	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade);
+	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade) override;
+	virtual bool Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const override;
+	virtual void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
+	virtual bool GetOnlyUseDataDomain() const override;
+};
 
-	bool Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FConstPoint& SourcePoint) const;
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToDataComparisonDetails : public FPCGExMatchAndCompareDetails
+{
+	GENERATED_BODY()
 
-	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
-	bool GetOnlyUseDataDomain() const;
+	FPCGExAttributeToDataComparisonDetails()
+	{
+	}
+
+	/** Type of Data Name value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType DataNameInput = EPCGExInputValueType::Constant;
+
+	/** Attribute to read data name value from. This attribute should contain the name of a @Data attribute to look for on matched data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Data Name (Attr)", EditCondition="DataNameInput != EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
+	FName DataNameAttribute = FName("Key");
+
+	/** Constant Data name value. This attribute must be present on matched data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Data Name", EditCondition="DataNameInput == EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
+	FName DataName = TEXT("@Data.Value");
+
+	/** Attribute to read data value from. This attribute value will be compared against the matched data' `@Data` attribute as defined above. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Value Name"))
+	FName ValueNameAttribute = FName("Value");
+
+	/** How should the data be compared. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExComparisonDataType Check = EPCGExComparisonDataType::Numeric;
+
+	/** Comparison */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Comparison", EditCondition="Check == EPCGExComparisonDataType::Numeric", EditConditionHides))
+	EPCGExComparison NumericCompare = EPCGExComparison::StrictlyEqual;
+
+	/** Value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Value", EditCondition="Check == EPCGExComparisonDataType::Numeric", EditConditionHides))
+	int64 NumericValue = 0;
+
+	/** Rounding mode for near measures */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Check == EPCGExComparisonDataType::Numeric && NumericCompare == EPCGExComparison::NearlyEqual || NumericCompare == EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	double Tolerance = DBL_COMPARE_TOLERANCE;
+
+	/** Comparison */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Comparison", EditCondition="Check == EPCGExComparisonDataType::String", EditConditionHides))
+	EPCGExStringComparison StringCompare = EPCGExStringComparison::StrictlyEqual;
+
+	/** Value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Value", EditCondition="Check == EPCGExComparisonDataType::String", EditConditionHides))
+	FString StringValue = TEXT("");
+
+	TSharedPtr<PCGEx::TAttributeBroadcaster<FName>> DataNameGetter;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> NumericValueGetter;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> StringValueGetter;
+
+	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade) override;
+	virtual bool Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const override;
+	virtual void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
+	virtual bool GetOnlyUseDataDomain() const override;
 };
 
 UENUM()

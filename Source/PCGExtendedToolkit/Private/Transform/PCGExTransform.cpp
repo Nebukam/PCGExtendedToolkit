@@ -10,7 +10,7 @@ FAttachmentTransformRules FPCGExAttachmentRules::GetRules() const
 	return FAttachmentTransformRules(LocationRule, RotationRule, ScaleRule, bWeldSimulatedBodies);
 }
 
-bool FPCGExUVW::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
+bool FPCGExUVW::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
 	UGetter = GetValueSettingU();
 	if (!UGetter->Init(InContext, InDataFacade)) { return false; }

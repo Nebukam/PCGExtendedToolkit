@@ -23,7 +23,7 @@ namespace PCGExBlend
 		}
 		else if constexpr (std::is_same_v<T, FVector>)
 		{
-			return FVector::Max(A, B);
+			return FVector::Min(A, B);
 		}
 		else if constexpr (std::is_same_v<T, FVector4>)
 		{

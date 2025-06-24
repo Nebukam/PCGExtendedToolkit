@@ -127,7 +127,7 @@ struct FPCGExAmplitudeConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteAmplitudeSign && UpMode == EPCGExVtxAmplitudeUpMode::UpVector && UpSelection == EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
 	FVector UpConstant = FVector::UpVector;
 
-	bool Validate(const FPCGExContext* InContext) const;
+	bool Validate(FPCGExContext* InContext) const;
 };
 
 /**
@@ -141,7 +141,7 @@ public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
 
 	virtual bool PrepareForCluster(
-		const FPCGExContext* InContext,
+		FPCGExContext* InContext,
 		TSharedPtr<PCGExCluster::FCluster> InCluster,
 		const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
 		const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;

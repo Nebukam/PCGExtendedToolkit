@@ -29,7 +29,7 @@ void UPCGExBranchOnDataAttributeSettings::PostEditChangeProperty(FPropertyChange
 					FPCGExBranchOnDataPin& Pin = InternalBranches.Emplace_GetRef(SelectionMode == EPCGExControlFlowSelectionMode::EnumInteger);
 					Pin.StringValue = Enum->GetDisplayNameTextByIndex(Index).BuildSourceString();
 					Pin.Label = FName(Pin.StringValue);
-					Pin.Check = SelectionMode == EPCGExControlFlowSelectionMode::EnumInteger ? EPCGExUserDefinedCheckType::Numeric : EPCGExUserDefinedCheckType::Text;
+					Pin.Check = SelectionMode == EPCGExControlFlowSelectionMode::EnumInteger ? EPCGExComparisonDataType::Numeric : EPCGExComparisonDataType::String;
 					Pin.NumericValue = Enum->GetValueByIndex(Index);
 					Pin.NumericCompare = EPCGExComparison::StrictlyEqual;
 					Pin.StringCompare = EPCGExStringComparison::StrictlyEqual;
@@ -139,7 +139,7 @@ bool FPCGExBranchOnDataAttributeElement::ExecuteInternal(FPCGContext* InContext)
 						// Loop AFTER the cast, dummy
 						for (const FPCGExBranchOnDataPin& Pin : Settings->InternalBranches)
 						{
-							if (Pin.Check == EPCGExUserDefinedCheckType::Numeric) { bDistributed = PCGExCompare::Compare(Pin.NumericCompare, static_cast<double>(Pin.NumericValue), AsNumeric, Pin.Tolerance); }
+							if (Pin.Check == EPCGExComparisonDataType::Numeric) { bDistributed = PCGExCompare::Compare(Pin.NumericCompare, static_cast<double>(Pin.NumericValue), AsNumeric, Pin.Tolerance); }
 							else { bDistributed = PCGExCompare::Compare(Pin.StringCompare, Pin.StringValue, AsString); }
 
 							if (bDistributed)

@@ -1102,7 +1102,7 @@ namespace PCGExAssetCollection
 		{
 		}
 
-		bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
+		bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 		{
 			if (Collection->LoadCache()->IsEmpty())
 			{

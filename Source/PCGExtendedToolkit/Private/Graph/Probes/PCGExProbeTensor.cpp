@@ -4,6 +4,8 @@
 #include "Graph/Probes/PCGExProbeTensor.h"
 
 
+
+
 #include "Graph/Probes/PCGExProbing.h"
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
@@ -36,11 +38,11 @@ bool UPCGExProbeFactoryTensor::Prepare(FPCGExContext* InContext)
 
 bool FPCGExProbeTensor::RequiresChainProcessing() { return Config.bDoChainedProcessing; }
 
-bool FPCGExProbeTensor::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeTensor::PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!TensorFactories) { return false; }
 
-	if (!FPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
 
 	bUseBestDot = (Config.Favor == EPCGExProbeDirectionPriorization::Dot);
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);

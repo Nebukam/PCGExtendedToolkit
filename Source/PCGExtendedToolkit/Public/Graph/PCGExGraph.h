@@ -23,7 +23,8 @@ namespace PCGExGraph
 	class FGraphBuilder;
 	class FSubGraph;
 
-	using SubGraphPostProcessCallback = std::function<void(const TSharedRef<FSubGraph>& InSubGraph)>;
+	using FGraphCompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
+	using FSubGraphPostProcessCallback = std::function<void(const TSharedRef<FSubGraph>& InSubGraph)>;
 }
 
 namespace PCGExCluster
@@ -157,8 +158,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 namespace PCGExGraph
 {
 	using NodeLinks = TArray<FLink, TInlineAllocator<8>>;
-
-	using FGraphCompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
 
 	const FName SourceProbesLabel = TEXT("Probes");
 	const FName OutputProbeLabel = TEXT("Probe");
@@ -320,7 +319,7 @@ namespace PCGExGraph
 		TSharedPtr<PCGExData::FFacade> EdgesDataFacade;
 		TArray<FEdge> FlattenedEdges;
 		int32 UID = 0;
-		SubGraphPostProcessCallback OnSubGraphPostProcess;
+		FSubGraphPostProcessCallback OnSubGraphPostProcess;
 
 
 		FSubGraph() = default;
@@ -485,8 +484,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		const FPCGExGraphBuilderDetails* OutputDetails = nullptr;
 
 		FGraphCompilationEndCallback OnCompilationEndCallback;
-
-		SubGraphPostProcessCallback OnSubGraphPostProcess;
+		FSubGraphPostProcessCallback OnSubGraphPostProcess;
 
 		PCGExTags::IDType PairId;
 		TSharedPtr<FGraph> Graph;

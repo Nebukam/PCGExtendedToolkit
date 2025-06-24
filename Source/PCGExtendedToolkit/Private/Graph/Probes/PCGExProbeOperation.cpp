@@ -4,13 +4,15 @@
 
 #include "Graph/Probes/PCGExProbeOperation.h"
 
+
+
 #include "Graph/Probes/PCGExProbing.h"
 
 bool FPCGExProbeOperation::RequiresOctree() { return true; }
 
 bool FPCGExProbeOperation::RequiresChainProcessing() { return false; }
 
-bool FPCGExProbeOperation::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeOperation::PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	PointIO = InPointIO;
 

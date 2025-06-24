@@ -127,7 +127,7 @@ namespace PCGExConnectPoints
 			NewOperation->BindContext(ExecutionContext);
 			NewOperation->PrimaryDataFacade = PointDataFacade;
 
-			if (!NewOperation->PrepareForPoints(PointDataFacade->Source)) { continue; }
+			if (!NewOperation->PrepareForPoints(Context, PointDataFacade->Source)) { continue; }
 
 			if (!NewOperation->RequiresOctree())
 			{

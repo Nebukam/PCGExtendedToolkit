@@ -4,13 +4,15 @@
 #include "Graph/Probes/PCGExProbeNumericCompare.h"
 
 
+
+
 #include "Graph/Probes/PCGExProbing.h"
 
 PCGEX_CREATE_PROBE_FACTORY(NumericCompare, {}, {})
 
-bool FPCGExProbeNumericCompare::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeNumericCompare::PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!FPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
 
 	ValuesBuffer = PrimaryDataFacade->GetBroadcaster<double>(Config.Attribute, true);
 

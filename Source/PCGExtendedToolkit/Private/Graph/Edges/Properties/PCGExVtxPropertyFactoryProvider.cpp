@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteVtxProperties"
 #define PCGEX_NAMESPACE PCGExWriteVtxProperties
 
-bool FPCGExVtxPropertyOperation::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool FPCGExVtxPropertyOperation::PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	PrimaryDataFacade = InVtxDataFacade;
 	SecondaryDataFacade = InEdgeDataFacade;

@@ -5,7 +5,7 @@
 
 #include "PCGComponent.h"
 
-void FPCGExCollisionDetails::Init(const FPCGExContext* InContext)
+void FPCGExCollisionDetails::Init(FPCGExContext* InContext)
 {
 	World = InContext->GetWorld();
 

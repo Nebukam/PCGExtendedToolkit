@@ -177,7 +177,7 @@ struct FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
 class FPCGExVtxPropertyOperation : public FPCGExOperation
 {
 public:
-	virtual bool PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
+	virtual bool PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
 	virtual bool IsOperationValid();
 
 	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
