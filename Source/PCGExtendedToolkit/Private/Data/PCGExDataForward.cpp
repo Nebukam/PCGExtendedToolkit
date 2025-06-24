@@ -220,7 +220,8 @@ namespace PCGExData
 					const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;
 
 					InTargetDataFacade->Source->DeleteAttribute(Identifier);
-					InTargetDataFacade->Source->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation());
+					FPCGMetadataAttribute<T>* TargetAtt = InTargetDataFacade->Source->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation());
+					if (bElementDomainToDataDomain) { PCGExDataHelpers::SetDataValue(TargetAtt, ForwardValue); }
 				});
 		}
 	}
@@ -283,7 +284,8 @@ namespace PCGExData
 					const FPCGAttributeIdentifier Identifier = bElementDomainToDataDomain ? FPCGAttributeIdentifier(Identity.Identifier.Name, PCGMetadataDomainID::Data) : Identity.Identifier;
 
 					InTargetMetadata->DeleteAttribute(Identifier);
-					InTargetMetadata->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation(), true, true);
+					FPCGMetadataAttribute<T>* TargetAtt = InTargetMetadata->FindOrCreateAttribute<T>(Identifier, ForwardValue, SourceAtt->AllowsInterpolation(), true, true);
+					if (bElementDomainToDataDomain) { PCGExDataHelpers::SetDataValue(TargetAtt, ForwardValue); }
 				});
 		}
 	}

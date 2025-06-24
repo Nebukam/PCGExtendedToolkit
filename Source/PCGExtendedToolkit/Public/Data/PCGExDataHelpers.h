@@ -39,7 +39,7 @@ namespace PCGExDataHelpers
 				}
 			}
 		}
-		return Attr->GetValueFromItemKey(PCGFirstEntryKey);
+		return !Attr->GetNumberOfEntries() ? Attr->GetValue(PCGDefaultValueKey) : Attr->GetValueFromItemKey(PCGFirstEntryKey);
 	}
 
 	template <typename T>
