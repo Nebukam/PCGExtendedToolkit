@@ -14,6 +14,70 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildVoronoiGraph2D
 
+bool FPCGExVoronoiSitesOutputDetails::Validate(FPCGExContext* InContext) const
+{
+	if (bWriteInfluencesCount) { PCGEX_VALIDATE_NAME_C(InContext, InfluencesCountAttributeName) }
+	if (bWriteMinRadius) { PCGEX_VALIDATE_NAME_C(InContext, MinRadiusAttributeName) }
+	if (bWriteMaxRadius) { PCGEX_VALIDATE_NAME_C(InContext, MaxRadiusAttributeName) }
+	return true;
+}
+
+void FPCGExVoronoiSitesOutputDetails::Init(const TSharedPtr<PCGExData::FFacade>& InSiteFacade)
+{
+	InTransforms = InSiteFacade->GetIn()->GetConstTransformValueRange();
+	const int32 NumSites = InTransforms.Num();
+
+	Locations.Init(FVector::ZeroVector, NumSites);
+	Influences.Init(0, NumSites);
+
+	if (bWriteMinRadius)
+	{
+		MinRadiusWriter = InSiteFacade->GetWritable<double>(MinRadiusAttributeName, 0, true, PCGExData::EBufferInit::New);
+		MinRadius = StaticCastSharedPtr<PCGExData::TArrayBuffer<double>>(MinRadiusWriter)->GetOutValues();
+		bWantsDist = true;
+	}
+
+	if (bWriteMaxRadius)
+	{
+		MaxRadiusWriter = InSiteFacade->GetWritable<double>(MaxRadiusAttributeName, 0, true, PCGExData::EBufferInit::New);
+		MaxRadius = StaticCastSharedPtr<PCGExData::TArrayBuffer<double>>(MaxRadiusWriter)->GetOutValues();
+		bWantsDist = true;
+	}
+
+	if (bWriteInfluencesCount)
+	{
+		InfluenceCountWriter = InSiteFacade->GetWritable<int32>(InfluencesCountAttributeName, 0, true, PCGExData::EBufferInit::New);
+	}
+}
+
+void FPCGExVoronoiSitesOutputDetails::AddInfluence(const int32 SiteIndex, const FVector& SitePosition)
+{
+	Locations[SiteIndex] += SitePosition;
+	Influences[SiteIndex] += 1;
+
+	if (bWantsDist)
+	{
+		const double Dist = FVector::Distance(SitePosition, InTransforms[SiteIndex].GetLocation());
+
+		if (bWriteMinRadius)
+		{
+			double& Min = *(MinRadius->GetData() + SiteIndex);
+			Min = FMath::Min(Min, Dist);
+		}
+
+		if (bWriteMaxRadius)
+		{
+			double& Max = *(MaxRadius->GetData() + SiteIndex);
+			Max = FMath::Max(Max, Dist);
+		}
+	}
+}
+
+void FPCGExVoronoiSitesOutputDetails::Output(const int32 SiteIndex)
+{
+	if (InfluenceCountWriter) { InfluenceCountWriter->SetValue(SiteIndex, Influences[SiteIndex]); }
+}
+
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraph2DSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
@@ -31,6 +95,7 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
+	if (!Settings->SitesOutputDetails.Validate(Context)) { return false; }
 
 	if (Settings->bOutputSites)
 	{
@@ -101,6 +166,8 @@ namespace PCGExBuildVoronoi2D
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
+		SitesOutputDetails = Settings->SitesOutputDetails;
+
 		ProjectionDetails = Settings->ProjectionDetails;
 		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
 
@@ -116,6 +183,7 @@ namespace PCGExBuildVoronoi2D
 
 		bSuccess = Voronoi->Process(ActivePositions, ProjectionDetails, Bounds, WithinBounds);
 
+
 		if (!bSuccess)
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generated invalid results."));
@@ -127,6 +195,7 @@ namespace PCGExBuildVoronoi2D
 		ActivePositions.Empty();
 
 		SitesPositions.SetNumUninitialized(NumSites);
+
 
 		using UpdatePositionCallback = std::function<void(const int32)>;
 		UpdatePositionCallback UpdateSitePosition = [](const int32 SiteIndex)
@@ -143,8 +212,6 @@ namespace PCGExBuildVoronoi2D
 
 		if (Settings->bOutputSites)
 		{
-			DelaunaySitesLocations.Init(FVector::ZeroVector, DelaunaySitesNum);
-			DelaunaySitesInfluenceCount.Init(0, DelaunaySitesNum);
 			IsVtxValid.Init(true, DelaunaySitesNum);
 
 			for (int i = 0; i < IsVtxValid.Num(); i++) { IsVtxValid[i] = !Voronoi->Delaunay->DelaunayHull.Contains(i); }
@@ -153,17 +220,14 @@ namespace PCGExBuildVoronoi2D
 			{
 				const PCGExGeo::FDelaunaySite2& Site = Voronoi->Delaunay->Sites[SiteIndex];
 				const FVector& SitePos = SitesPositions[SiteIndex];
-				for (int i = 0; i < 3; i++)
-				{
-					const int32 DelSiteIndex = Site.Vtx[i];
-					DelaunaySitesLocations[DelSiteIndex] += SitePos;
-					DelaunaySitesInfluenceCount[DelSiteIndex] += 1;
-				}
+				for (int i = 0; i < 3; i++) { SitesOutputDetails.AddInfluence(Site.Vtx[i], SitePos); }
 			};
 
 			SiteDataFacade = MakeShared<PCGExData::FFacade>(Context->SitesOutput->Pairs[PointDataFacade->Source->IOIndex].ToSharedRef());
 			PCGEX_INIT_IO(SiteDataFacade->Source, PCGExData::EIOInit::Duplicate)
 			SiteDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
+
+			SitesOutputDetails.Init(SiteDataFacade);
 
 			if (Settings->bPruneOutOfBounds && !Settings->bPruneOpenSites) { OpenSiteWriter = SiteDataFacade->GetWritable<bool>(Settings->OpenSiteFlag, PCGExData::EBufferInit::New); }
 		}
@@ -339,12 +403,16 @@ namespace PCGExBuildVoronoi2D
 
 					TPCGValueRange<FTransform> OutTransforms = This->SiteDataFacade->GetOut()->GetTransformValueRange(false);
 
+					const TArray<FVector>& SitesPositions = This->SitesOutputDetails.Locations;
+					const TArray<int32>& SitesInfluenceCount = This->SitesOutputDetails.Influences;
+
 					PCGEX_SCOPE_LOOP(Index)
 					{
 						const bool bIsWithinBounds = This->IsVtxValid[Index];
 						if (This->OpenSiteWriter) { This->OpenSiteWriter->SetValue(Index, bIsWithinBounds); }
-						if (This->DelaunaySitesInfluenceCount[Index] == 0) { continue; }
-						OutTransforms[Index].SetLocation(This->DelaunaySitesLocations[Index] / This->DelaunaySitesInfluenceCount[Index]);
+						This->SitesOutputDetails.Output(Index);
+						if (SitesInfluenceCount[Index] == 0) { continue; }
+						OutTransforms[Index].SetLocation(SitesPositions[Index] / SitesInfluenceCount[Index]);
 					}
 				};
 
