@@ -11,8 +11,6 @@
 #include "Data/PCGExData.h"
 
 
-
-
 #include "PCGExCompare.generated.h"
 
 #define PCGEX_UNSUPPORTED_STRING_TYPES(MACRO)\
@@ -534,7 +532,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 
 	double ComparisonTolerance = 0;
 
-	bool Init(::FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache);
+	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache);
 
 	FORCEINLINE double GetComparisonThreshold(const int32 PointIndex) const
 	{
@@ -572,13 +570,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchAndCompareDetails
 
 	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade)
 	PCGEX_NOT_IMPLEMENTED_RET(Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade), false);
-	
+
 	virtual bool Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const
 	PCGEX_NOT_IMPLEMENTED_RET(Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FConstPoint& SourcePoint), false);
-	
+
 	virtual void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 	PCGEX_NOT_IMPLEMENTED(RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData));
-	
+
 	virtual bool GetOnlyUseDataDomain() const
 	PCGEX_NOT_IMPLEMENTED_RET(GetOnlyUseDataDomain(), false);
 };

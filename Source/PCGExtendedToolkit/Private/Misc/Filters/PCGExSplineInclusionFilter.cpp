@@ -119,7 +119,7 @@ namespace PCGExPointFilter
 		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 		bCheckAgainstDataBounds = TypedFilterFactory->Config.bCheckAgainstDataBounds;
-		
+
 		ToleranceSquared = FMath::Square(TypedFilterFactory->Config.Tolerance);
 
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
@@ -270,7 +270,7 @@ namespace PCGExPointFilter
 	bool FSplineInclusionFilter::Test(const int32 PointIndex) const
 	{
 		if (bCheckAgainstDataBounds) { return bCollectionTestResult; }
-		
+
 		ESplineCheckFlags State = None;
 		int32 InclusionsCount = 0;
 		const FVector Pos = InTransforms[PointIndex].GetLocation();

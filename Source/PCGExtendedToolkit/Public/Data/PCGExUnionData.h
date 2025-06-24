@@ -11,7 +11,6 @@
 
 namespace PCGExData
 {
-	
 #pragma region Compound
 
 	class PCGEXTENDEDTOOLKIT_API IUnionData : public TSharedFromThis<IUnionData>

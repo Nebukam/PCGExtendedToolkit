@@ -28,7 +28,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Padding = 10;
 
-	virtual bool PrepareForCluster(::FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
+	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
 	{
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 		PCGEx::InitArray(BoxBuffer, Cluster->Nodes->Num());

@@ -72,7 +72,7 @@ namespace PCGExFloodFill
 
 			FCandidate Candidate = FCandidate{};
 			Candidate.CaptureIndex = From.CaptureIndex;
-			
+
 			Candidate.Link = PCGExGraph::FLink(FromNode.Index, Lk.Edge);
 			Candidate.Node = OtherNode;
 
@@ -126,8 +126,8 @@ namespace PCGExFloodFill
 			MaxDistance = FMath::Max(MaxDistance, Candidate.PathDistance);
 
 			FCandidate& CapturedCandidate = Captured.Add_GetRef(Candidate);
-			CapturedCandidate.CaptureIndex = Captured.Num()-1;
-			
+			CapturedCandidate.CaptureIndex = Captured.Num() - 1;
+
 			TravelStack->Set(Candidate.Node->Index, PCGEx::NH64(Candidate.Link.Node, Candidate.Link.Edge));
 
 			Endpoints.Add(CapturedCandidate.CaptureIndex);

@@ -64,7 +64,7 @@ public:
 	/** Number of collections to check for in parallel. Use 0 to force execution in a single go. Can be beneficial if filters are simple enough. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	int32 AsyncChunkSize = 32;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietMissingFilters = false;
@@ -83,7 +83,6 @@ struct FPCGExUberBranchContext final : FPCGExPointsProcessorContext
 
 	TArray<TSharedPtr<PCGExPointFilter::FManager>> Managers;
 	TArray<TSharedPtr<PCGExData::FFacade>> Facades;
-
 };
 
 class FPCGExUberBranchElement final : public FPCGExPointsProcessorElement
@@ -94,4 +93,3 @@ protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
-

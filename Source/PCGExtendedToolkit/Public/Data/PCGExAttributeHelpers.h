@@ -145,6 +145,7 @@ namespace PCGEx
 		{
 		}
 
+		bool InDataDomain() const { return Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data; }
 		int16 GetTypeId() const { return static_cast<int16>(UnderlyingType); }
 		bool IsA(const int16 InType) const { return GetTypeId() == InType; }
 		bool IsA(const EPCGMetadataTypes InType) const { return UnderlyingType == InType; }

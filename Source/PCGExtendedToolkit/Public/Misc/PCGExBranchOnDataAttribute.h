@@ -117,7 +117,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings", meta=(PCG_NotOverridable, EditCondition="SelectionMode != EPCGExControlFlowSelectionMode::UserDefined", EditConditionHides))
 	EPCGExEnumConstantSourceType EnumSource = EPCGExEnumConstantSourceType::Selector;
-	
+
 	/** Determines which Enum be used. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_NotOverridable, EditCondition="SelectionMode != EPCGExControlFlowSelectionMode::UserDefined && EnumSource == EPCGExEnumConstantSourceType::Picker", EditConditionHides))
 	TObjectPtr<UEnum> EnumClass;

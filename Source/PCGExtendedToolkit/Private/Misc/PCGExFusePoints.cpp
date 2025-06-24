@@ -147,7 +147,7 @@ namespace PCGExFusePoints
 			const FVector Center = UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints);
 
 			if (bUpdateCenter) { Transforms[Index].SetLocation(Center); }
-			
+
 			UnionBlender->MergeSingle(Index, WeightedPoints, Trackers);
 			if (IsUnionWriter) { IsUnionWriter->SetValue(Index, WeightedPoints.Num() > 1); }
 			if (UnionSizeWriter) { UnionSizeWriter->SetValue(Index, WeightedPoints.Num()); }

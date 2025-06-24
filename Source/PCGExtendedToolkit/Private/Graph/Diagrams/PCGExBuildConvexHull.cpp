@@ -138,7 +138,6 @@ namespace PCGExConvexHull
 		}
 
 		PointDataFacade->WriteFastest(AsyncManager);
-		
 	}
 
 	void FProcessor::Output()

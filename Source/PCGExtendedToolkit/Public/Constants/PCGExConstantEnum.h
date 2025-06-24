@@ -77,16 +77,16 @@ public:
 	virtual bool HasDynamicPins() const override { return true; };
 
 	TObjectPtr<UEnum> GetEnumClass() const;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings")
 	EPCGExEnumConstantSourceType Source = EPCGExEnumConstantSourceType::Selector;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings")
 	EPCGExEnumOutputMode OutputMode = EPCGExEnumOutputMode::EEOM_All;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(EditCondition="Source == EPCGExEnumConstantSourceType::Picker", EditConditionHides), Category="Settings")
 	TObjectPtr<UEnum> PickerEnum;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(EditCondition="Source == EPCGExEnumConstantSourceType::Selector", EditConditionHides, ShowOnlyInnerProperties), Category="Settings")
 	FEnumSelector SelectedEnum;
 

@@ -448,12 +448,9 @@ bool FPCGExAttributeToDataComparisonDetails::Matches(const TSharedPtr<PCGExData:
 			NumericCompare, PCGExDataHelpers::ReadDataValue<double>(Attribute, 0),
 			NumericValueGetter->SoftGet(SourcePoint, 0), Tolerance);
 	}
-	else
-	{
-		return PCGExCompare::Compare(
-			StringCompare, PCGExDataHelpers::ReadDataValue<FString>(Attribute, TEXT("")),
-			StringValueGetter->SoftGet(SourcePoint, TEXT("")));
-	}
+	return PCGExCompare::Compare(
+		StringCompare, PCGExDataHelpers::ReadDataValue<FString>(Attribute, TEXT("")),
+		StringValueGetter->SoftGet(SourcePoint, TEXT("")));
 }
 
 void FPCGExAttributeToDataComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -466,7 +463,6 @@ bool FPCGExAttributeToDataComparisonDetails::GetOnlyUseDataDomain() const
 {
 	return DataNameInput == EPCGExInputValueType::Constant &&
 		PCGExHelpers::IsDataDomainAttribute(ValueNameAttribute);
-	
 }
 
 int64 FPCGExBitmask::Get() const

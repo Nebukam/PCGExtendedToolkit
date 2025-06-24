@@ -26,7 +26,6 @@ struct FPCGExShapeGridConfig : public FPCGExShapeConfigBase
 	/** Start angle source. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	//bool StartAngleInput = EPCGExInputValueType::Constant;
-
 };
 
 namespace PCGExShapes

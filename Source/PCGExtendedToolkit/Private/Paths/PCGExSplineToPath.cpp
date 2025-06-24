@@ -31,6 +31,9 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(TagForwarding)
 	Context->TagForwarding.Init();
 
+	PCGEX_FWD(CarryOverDetails)
+	Context->CarryOverDetails.Init();
+
 	Context->MainPoints = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->MainPoints->OutputPin = Settings->GetMainOutputPin();
 
@@ -218,6 +221,60 @@ namespace PCGExSplineToPath
 			PCGEX_OUTPUT_VALUE(ArriveTangent, LastIndex, SplinePositions.Points[NumSegments].ArriveTangent);
 			PCGEX_OUTPUT_VALUE(LeaveTangent, LastIndex, SplinePositions.Points[NumSegments].LeaveTangent);
 			PCGEX_OUTPUT_VALUE(PointType, LastIndex, GetPointType(SplinePositions.Points[NumSegments].InterpMode));
+		}
+
+		// Copy attributes
+
+		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
+		PCGEx::FAttributeIdentity::Get(SplineData->Metadata, SourceAttributes, nullptr);
+		Context->CarryOverDetails.Prune(SourceAttributes);
+
+		if (!SourceAttributes.IsEmpty())
+		{
+			//TSharedPtr<FPCGAttributeAccessorKeysSplineDataEntries> InKeys = MakeShared<FPCGAttributeAccessorKeysSplineDataEntries>(SplineData);
+			TPCGValueRange<int64> OutMeta = MutablePoints->GetMetadataEntryValueRange();
+
+			for (int64& Key : OutMeta) { MutablePoints->Metadata->InitializeOnSet(Key); }
+
+			for (PCGEx::FAttributeIdentity Identity : SourceAttributes)
+			{
+				PCGEx::ExecuteWithRightType(
+					Identity.UnderlyingType, [&](auto DummyValue)
+					{
+						using T = decltype(DummyValue);
+						const FPCGMetadataAttribute<T>* SourceAttr = SplineData->Metadata->GetConstTypedAttribute<T>(Identity.Identifier);
+
+						if (!SourceAttr) { return; }
+
+						TSharedPtr<PCGExData::TBuffer<T>> OutBuffer = PointDataFacade->GetWritable<T>(SourceAttr, PCGExData::EBufferInit::New);
+
+						if (Identity.InDataDomain())
+						{
+							OutBuffer->SetValue(0, PCGExDataHelpers::ReadDataValue(SourceAttr));
+							return;
+						}
+
+						TSharedPtr<PCGExData::TArrayBuffer<T>> OutArrayBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(OutBuffer);
+						TArrayView<T> InRange = MakeArrayView(OutArrayBuffer->GetOutValues()->GetData(), OutArrayBuffer->GetOutValues()->Num());
+
+						FPCGAttributePropertyInputSelector Selector;
+
+						Selector.Update(Identity.Identifier.Name.ToString());
+						Selector.SetDomainName(PCGMetadataDomainID::Elements.DebugName);
+
+						TSharedPtr<FPCGAttributeAccessorKeysEntries> Keys = MakeShared<FPCGAttributeAccessorKeysEntries>(SplineData->Metadata);
+
+						if (Keys)
+						{
+							TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(SourceAttr, SplineData->Metadata);
+							InAccessor->GetRange(InRange, 0, *Keys.Get());
+						}
+						else
+						{
+							//PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Attribute {0} could not be copied."), FText::FromName(Identity.Identifier.Name)));
+						}
+					});
+			}
 		}
 
 		PointDataFacade->WriteFastest(AsyncManager);

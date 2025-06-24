@@ -147,7 +147,7 @@ namespace PCGExConvexHull2D
 		{
 			bIsProcessorValid = false;
 			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
-		}		
+		}
 	}
 
 	void FProcessor::Output()

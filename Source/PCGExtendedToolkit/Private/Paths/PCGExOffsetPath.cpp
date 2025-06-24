@@ -351,7 +351,7 @@ namespace PCGExOffsetPath
 			(void)PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit);
 			return;
 		}
-		
+
 		if (Path->IsClosedLoop() && KeptPoints[0] == 0 && KeptPoints.Last() != Path->LastIndex)
 		{
 			// We started inside the part of a loop that's being pruned
@@ -368,11 +368,11 @@ namespace PCGExOffsetPath
 		}
 
 		// TODO : Revisit this
-		
+
 		// Commit transforms
 		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange();
 		for (int i = 0; i < Path->NumEdges; i++) { if (Mutated[i] && EdgeCrossings[i]) { OutTransforms[i].SetLocation(EdgeCrossings[i]->Crossings.Last().Location); } }
-		
+
 		MarkMutated();
 
 		(void)PointDataFacade->Source->Gather(KeptPoints);

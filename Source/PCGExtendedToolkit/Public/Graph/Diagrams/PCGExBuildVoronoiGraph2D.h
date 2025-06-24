@@ -46,7 +46,7 @@ struct FPCGExVoronoiSitesOutputDetails
 
 	TArray<FVector> Locations;
 	TArray<int32> Influences;
-	
+
 	void Init(const TSharedPtr<PCGExData::FFacade>& InSiteFacade);
 	void AddInfluence(const int32 SiteIndex, const FVector& SitePosition);
 	void Output(const int32 SiteIndex);
@@ -54,14 +54,13 @@ struct FPCGExVoronoiSitesOutputDetails
 protected:
 	bool bWantsDist = false;
 	TConstPCGValueRange<FTransform> InTransforms;
-	
+
 	TSharedPtr<TArray<double>> MinRadius;
 	TSharedPtr<TArray<double>> MaxRadius;
-	
+
 	TSharedPtr<PCGExData::TBuffer<double>> MinRadiusWriter;
 	TSharedPtr<PCGExData::TBuffer<double>> MaxRadiusWriter;
 	TSharedPtr<PCGExData::TBuffer<int32>> InfluenceCountWriter;
-	
 };
 
 /**
@@ -169,7 +168,7 @@ namespace PCGExBuildVoronoi2D
 		TBitArray<> IsVtxValid;
 
 		TArray<FVector> SitesPositions;
-		
+
 		TSharedPtr<TArray<int32>> OutputIndices;
 		TUniquePtr<PCGExGeo::TVoronoi2> Voronoi;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;

@@ -45,7 +45,7 @@ public:
 
 	PCGEX_SETTING_VALUE_GET(Radius, double, RadiusInput, RadiusAttribute, Radius)
 
-	virtual bool PrepareForCluster(::FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
+	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
 	{
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 

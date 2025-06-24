@@ -169,7 +169,7 @@ namespace PCGExData
 						const FPCGMetadataAttribute<T>* SourceAtt = PCGEx::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 						if (!SourceAtt) { return; }
 
-						const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
+						const T ForwardValue = Identity.InDataDomain() ?
 							                       PCGExDataHelpers::ReadDataValue(SourceAtt) :
 							                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
@@ -213,7 +213,7 @@ namespace PCGExData
 					const FPCGMetadataAttribute<T>* SourceAtt = PCGEx::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 					if (!SourceAtt) { return; }
 
-					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
+					const T ForwardValue = Identity.InDataDomain() ?
 						                       PCGExDataHelpers::ReadDataValue(SourceAtt) :
 						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
@@ -242,7 +242,7 @@ namespace PCGExData
 					const FPCGMetadataAttribute<T>* SourceAtt = PCGEx::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 					if (!SourceAtt) { return; }
 
-					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
+					const T ForwardValue = Identity.InDataDomain() ?
 						                       PCGExDataHelpers::ReadDataValue(SourceAtt) :
 						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 
@@ -277,7 +277,7 @@ namespace PCGExData
 					const FPCGMetadataAttribute<T>* SourceAtt = PCGEx::TryGetConstAttribute<T>(InSourceData, Identity.Identifier);
 					if (!SourceAtt) { return; }
 
-					const T ForwardValue = Identity.Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data ?
+					const T ForwardValue = Identity.InDataDomain() ?
 						                       PCGExDataHelpers::ReadDataValue(SourceAtt) :
 						                       SourceAtt->GetValueFromItemKey(InSourceData->GetMetadataEntry(SourceIndex));
 

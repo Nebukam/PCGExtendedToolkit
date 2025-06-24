@@ -819,11 +819,12 @@ namespace PCGExPaths
 	struct PCGEXTENDEDTOOLKIT_API FCrossing
 	{
 		FCrossing() = default;
+
 		FCrossing(const uint64 InHash, const FVector& InLocation, const double InAlpha, const bool InIsPoint, const FVector& InDir)
-			:Hash(InHash), Location(InLocation), Alpha(InAlpha), bIsPoint(InIsPoint), Dir(InDir)
+			: Hash(InHash), Location(InLocation), Alpha(InAlpha), bIsPoint(InIsPoint), Dir(InDir)
 		{
-			
 		}
+
 		uint64 Hash;      // Point Index | IO Index
 		FVector Location; // Position in between edges
 		double Alpha;     // Position along the edge

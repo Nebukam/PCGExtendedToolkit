@@ -159,7 +159,7 @@ if(TypedFilterFactory->Config.bInvert){\
 		bCollectionTestResult = Test(ProxyPoint);
 		return true;
 	}
-	
+
 	return true;
 }
 

@@ -31,10 +31,7 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 					bResult = false;
 					break;
 				}
-				else
-				{
-					bAtLeastOneMatch = true;
-				}
+				bAtLeastOneMatch = true;
 			}
 		}
 		else
@@ -47,10 +44,7 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 					bResult = false;
 					break;
 				}
-				else
-				{
-					bAtLeastOneMatch = true;
-				}
+				bAtLeastOneMatch = true;
 			}
 		}
 

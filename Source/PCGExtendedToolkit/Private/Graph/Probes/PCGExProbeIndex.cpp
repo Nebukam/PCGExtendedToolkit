@@ -5,13 +5,11 @@
 #include "PCGExMath.h"
 
 
-
-
 PCGEX_CREATE_PROBE_FACTORY(Index, {}, {})
 
 bool FPCGExProbeIndex::RequiresOctree() { return false; }
 
-bool FPCGExProbeIndex::PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeIndex::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
 

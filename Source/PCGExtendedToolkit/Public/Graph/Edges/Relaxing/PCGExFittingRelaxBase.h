@@ -61,7 +61,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double TimeStep = 0.01;
 
-	virtual bool PrepareForCluster(::FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
+	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
 	{
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 		Deltas.Init(FIntVector3(0), Cluster->Nodes->Num());

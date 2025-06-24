@@ -96,6 +96,10 @@ public:
 	/** Tags to be forwarded from source splines */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable))
 	FPCGExNameFiltersDetails TagForwarding;
+
+	/** Meta filter settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	FPCGExCarryOverDetails CarryOverDetails;
 };
 
 struct FPCGExSplineToPathContext final : FPCGExPointsProcessorContext
@@ -105,6 +109,7 @@ struct FPCGExSplineToPathContext final : FPCGExPointsProcessorContext
 	PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	FPCGExNameFiltersDetails TagForwarding;
+	FPCGExCarryOverDetails CarryOverDetails;
 
 	TArray<const UPCGSplineData*> Targets;
 	TArray<TArray<FString>> Tags;

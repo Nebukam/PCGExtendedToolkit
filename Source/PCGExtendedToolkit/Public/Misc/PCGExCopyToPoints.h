@@ -56,11 +56,11 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoMatchByTags && bDoMatchByData"))
 	EPCGExFilterGroupMode Mode = EPCGExFilterGroupMode::AND;
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExAttributeToTagDetails TargetsAttributesToClusterTags;
-	
+
 	/** Which target attributes to forward on copied points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExForwardDetails TargetsForwarding;
