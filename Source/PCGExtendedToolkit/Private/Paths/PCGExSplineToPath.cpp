@@ -257,14 +257,7 @@ namespace PCGExSplineToPath
 						TSharedPtr<PCGExData::TArrayBuffer<T>> OutArrayBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(OutBuffer);
 						TArrayView<T> InRange = MakeArrayView(OutArrayBuffer->GetOutValues()->GetData(), OutArrayBuffer->GetOutValues()->Num());
 
-						FPCGAttributePropertyInputSelector Selector;
-
-						Selector.Update(Identity.Identifier.Name.ToString());
-						Selector.SetDomainName(PCGMetadataDomainID::Elements.DebugName);
-
-						TSharedPtr<FPCGAttributeAccessorKeysEntries> Keys = MakeShared<FPCGAttributeAccessorKeysEntries>(SplineData->Metadata);
-
-						if (Keys)
+						if (const TSharedPtr<FPCGAttributeAccessorKeysEntries> Keys = MakeShared<FPCGAttributeAccessorKeysEntries>(SplineData->Metadata))
 						{
 							TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(SourceAttr, SplineData->Metadata);
 							InAccessor->GetRange(InRange, 0, *Keys.Get());
