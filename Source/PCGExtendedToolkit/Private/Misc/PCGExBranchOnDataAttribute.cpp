@@ -51,11 +51,7 @@ void UPCGExBranchOnDataAttributeSettings::PostEditChangeProperty(FPropertyChange
 TArray<FPCGPinProperties> UPCGExBranchOnDataAttributeSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-
-	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(GetMainInputPin(), EPCGDataType::Any);
-	Pin.Tooltip = FTEXT("Inputs");
-	Pin.PinStatus = EPCGPinStatus::Required;
-
+	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required, {})
 	return PinProperties;
 }
 
