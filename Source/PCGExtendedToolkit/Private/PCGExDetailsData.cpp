@@ -44,7 +44,7 @@ TSharedPtr<PCGExDetails::FDistances> FPCGExDistanceDetails::MakeDistances() cons
 	return PCGExDetails::MakeDistances(Source, Target);
 }
 
-bool FPCGExInfluenceDetails::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+bool FPCGExInfluenceDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 {
 	InfluenceBuffer = GetValueSettingInfluence();
 	return InfluenceBuffer->Init(InContext, InPointDataFacade, false);

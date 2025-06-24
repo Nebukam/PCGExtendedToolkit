@@ -11,6 +11,8 @@
 #include "PCGExProbeOperation.h"
 
 
+
+
 #include "PCGExProbeIndex.generated.h"
 
 namespace PCGExProbing
@@ -53,7 +55,7 @@ struct FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index", ClampMin=0, EditCondition="IndexInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 IndexConstant = 1;
-
+	
 	PCGEX_SETTING_VALUE_GET(Index, int32, IndexInput, IndexAttribute, IndexConstant)
 };
 
@@ -64,7 +66,7 @@ class FPCGExProbeIndex : public FPCGExProbeOperation
 {
 public:
 	virtual bool RequiresOctree() override;
-	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
+	virtual bool PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
 
 	virtual void ProcessNode(const int32 Index, const FTransform& WorkingTransform, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections) override
 	{

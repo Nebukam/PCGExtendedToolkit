@@ -94,7 +94,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 
 	PCGEX_SETTING_VALUE_GET(W, double, WInput, WAttribute, WConstant)
 
-	bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
+	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 
 	// Without axis
 

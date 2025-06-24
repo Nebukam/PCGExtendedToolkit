@@ -12,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyAmplitude"
 #define PCGEX_NAMESPACE PCGExVtxPropertyAmplitude
 
-bool FPCGExAmplitudeConfig::Validate(const FPCGExContext* InContext) const
+bool FPCGExAmplitudeConfig::Validate(FPCGExContext* InContext) const
 {
 #define PCGEX_VALIDATE_AMP_NAME(_NAME) if(bWrite##_NAME){ PCGEX_VALIDATE_NAME_C(InContext, _NAME##AttributeName) }
 
@@ -25,7 +25,7 @@ bool FPCGExAmplitudeConfig::Validate(const FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExVtxPropertyAmplitude::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool FPCGExVtxPropertyAmplitude::PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!FPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
@@ -148,7 +148,7 @@ void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TA
 	if (AmpRangeBuffer) { AmpRangeBuffer->SetValue(Node.PointIndex, Config.bAbsoluteRange ? PCGExMath::Abs(AmplitudeRange) : AmplitudeRange); }
 	if (AmpRangeLengthBuffer) { AmpRangeLengthBuffer->SetValue(Node.PointIndex, AmplitudeRange.Length()); }
 
-	if (MinAmpLengthBuffer) { AmpRangeLengthBuffer->SetValue(Node.PointIndex, MinAmplitude.Length()); }
+	if (MinAmpLengthBuffer) { MinAmpLengthBuffer->SetValue(Node.PointIndex, MinAmplitude.Length()); }
 	if (MinAmpBuffer) { MinAmpBuffer->SetValue(Node.PointIndex, MinAmplitude); }
 
 	if (MaxAmpLengthBuffer) { MaxAmpLengthBuffer->SetValue(Node.PointIndex, MaxAmplitude.Length()); }

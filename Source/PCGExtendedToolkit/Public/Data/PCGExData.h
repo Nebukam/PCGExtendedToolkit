@@ -650,8 +650,7 @@ namespace PCGExData
 
 			if (!TypedOutAttribute) { return; }
 
-			TypedOutAttribute->SetDefaultValue(OutValue);
-			TypedOutAttribute->SetValue(0, OutValue);
+			PCGExDataHelpers::SetDataValue(TypedOutAttribute, OutValue);
 		}
 	};
 
@@ -973,8 +972,7 @@ namespace PCGExData
 		const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(MarkID, PointIO->GetOut());
 		PointIO->DeleteAttribute(Identifier);
 		FPCGMetadataAttribute<T>* Mark = PointIO->CreateAttribute<T>(Identifier, MarkValue);
-		Mark->SetDefaultValue(MarkValue);
-		Mark->AddValue(MarkValue);
+		PCGExDataHelpers::SetDataValue(Mark, MarkValue);
 		return Mark;
 	}
 

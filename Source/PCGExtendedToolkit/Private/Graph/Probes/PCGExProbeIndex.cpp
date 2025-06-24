@@ -5,13 +5,15 @@
 #include "PCGExMath.h"
 
 
+
+
 PCGEX_CREATE_PROBE_FACTORY(Index, {}, {})
 
 bool FPCGExProbeIndex::RequiresOctree() { return false; }
 
-bool FPCGExProbeIndex::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeIndex::PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!FPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
 
 	MaxIndex = PointIO->GetNum() - 1;
 

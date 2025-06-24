@@ -5,12 +5,64 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
-
-
 #include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoVoronoi.h"
 
 #include "PCGExBuildVoronoiGraph2D.generated.h"
+
+/** Parameters for conducting a sweep with a specified shape against the physical world. */
+USTRUCT(BlueprintType)
+struct FPCGExVoronoiSitesOutputDetails
+{
+	GENERATED_BODY()
+
+	FPCGExVoronoiSitesOutputDetails() = default;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteInfluencesCount = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bWriteInfluencesCount"))
+	FName InfluencesCountAttributeName = "InfluencesCount";
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteMinRadius = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bWriteMinRadius"))
+	FName MinRadiusAttributeName = "MinRadius";
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteMaxRadius = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bWriteMaxRadius"))
+	FName MaxRadiusAttributeName = "MaxRadius";
+
+	bool Validate(FPCGExContext* InContext) const;
+
+	TArray<FVector> Locations;
+	TArray<int32> Influences;
+	
+	void Init(const TSharedPtr<PCGExData::FFacade>& InSiteFacade);
+	void AddInfluence(const int32 SiteIndex, const FVector& SitePosition);
+	void Output(const int32 SiteIndex);
+
+protected:
+	bool bWantsDist = false;
+	TConstPCGValueRange<FTransform> InTransforms;
+	
+	TSharedPtr<TArray<double>> MinRadius;
+	TSharedPtr<TArray<double>> MaxRadius;
+	
+	TSharedPtr<PCGExData::TBuffer<double>> MinRadiusWriter;
+	TSharedPtr<PCGExData::TBuffer<double>> MaxRadiusWriter;
+	TSharedPtr<PCGExData::TBuffer<int32>> InfluenceCountWriter;
+	
+};
 
 /**
  * 
@@ -73,6 +125,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable))
 	bool bOutputSites = true;
 
+
 	/** If enabled, sites that belong to an removed (out-of-bound) cell will be removed from the output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bOutputSites && bPruneOutOfBounds"))
 	bool bPruneOpenSites = true;
@@ -80,6 +133,10 @@ public:
 	/** Flag sites belonging to an open cell with a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bOutputSites && bPruneOutOfBounds && !bPruneOpenSites"))
 	FName OpenSiteFlag = "OpenSite";
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bOutputSites", ShowOnlyInnerProperties))
+	FPCGExVoronoiSitesOutputDetails SitesOutputDetails;
 
 private:
 	friend class FPCGExBuildVoronoiGraph2DElement;
@@ -112,9 +169,7 @@ namespace PCGExBuildVoronoi2D
 		TBitArray<> IsVtxValid;
 
 		TArray<FVector> SitesPositions;
-		TArray<FVector> DelaunaySitesLocations;
-		TArray<double> DelaunaySitesInfluenceCount;
-
+		
 		TSharedPtr<TArray<int32>> OutputIndices;
 		TUniquePtr<PCGExGeo::TVoronoi2> Voronoi;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
@@ -122,6 +177,8 @@ namespace PCGExBuildVoronoi2D
 		TSharedPtr<PCGExData::FFacade> SiteDataFacade;
 		TSharedPtr<PCGExData::TBuffer<bool>> HullMarkPointWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> OpenSiteWriter;
+
+		FPCGExVoronoiSitesOutputDetails SitesOutputDetails;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

@@ -10,7 +10,7 @@
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 
-bool FPCGExGeo2DProjectionDetails::Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
+bool FPCGExGeo2DProjectionDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
 {
 	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
 	ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::UpVector);

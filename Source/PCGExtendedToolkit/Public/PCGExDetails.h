@@ -82,7 +82,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollisionDetails
 
 	UWorld* World = nullptr;
 
-	void Init(const FPCGExContext* InContext);
+	void Init(FPCGExContext* InContext);
 	void Update(FCollisionQueryParams& InCollisionParams) const;
 	bool Linecast(const FVector& From, const FVector& To, FHitResult& HitResult) const;
 };

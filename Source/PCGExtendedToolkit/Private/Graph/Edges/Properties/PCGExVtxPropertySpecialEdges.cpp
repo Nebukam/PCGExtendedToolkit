@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialEdges"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialEdges
 
-bool FPCGExVtxPropertySpecialEdges::PrepareForCluster(const FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool FPCGExVtxPropertySpecialEdges::PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!FPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 

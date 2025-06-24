@@ -10,28 +10,15 @@ PCGEX_CREATE_PROBE_FACTORY(Direction, {}, {})
 
 bool FPCGExProbeDirection::RequiresChainProcessing() { return Config.bDoChainedProcessing; }
 
-bool FPCGExProbeDirection::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeDirection::PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!FPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
 
 	bUseBestDot = Config.Favor == EPCGExProbeDirectionPriorization::Dot;
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
 
-	if (Config.DirectionInput == EPCGExInputValueType::Constant)
-	{
-		Direction = Config.DirectionConstant.GetSafeNormal();
-		bUseConstantDir = true;
-	}
-	else
-	{
-		DirectionCache = PrimaryDataFacade->GetBroadcaster<FVector>(Config.DirectionAttribute, true);
-
-		if (!DirectionCache)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(Context, "Direction", Config.DirectionAttribute)
-			return false;
-		}
-	}
+	Direction = Config.GetValueSettingDirection();
+	if (!Direction->Init(InContext, PrimaryDataFacade)) { return false; }
 
 	return true;
 }
@@ -44,8 +31,7 @@ void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FTransform
 	double BestDist = MAX_dbl;
 	int32 BestCandidateIndex = -1;
 
-	FVector Dir = DirectionCache ? DirectionCache->Read(Index).GetSafeNormal() : Direction;
-	if (Config.bTransformDirection) { Dir = WorkingTransform.TransformVectorNoScale(Dir); }
+	const FVector Dir = Config.bTransformDirection ? WorkingTransform.TransformVectorNoScale(Direction->Read(Index).GetSafeNormal()) : Direction->Read(Index).GetSafeNormal();
 
 	const int32 MaxIndex = Candidates.Num() - 1;
 	for (int i = 0; i <= MaxIndex; i++)
@@ -106,8 +92,7 @@ void FPCGExProbeDirection::PrepareBestCandidate(const int32 Index, const FTransf
 void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FTransform& WorkingTransform, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
 {
 	const double R = GetSearchRadius(Index);
-	FVector Dir = DirectionCache ? DirectionCache->Read(Index).GetSafeNormal() : Direction;
-	if (Config.bTransformDirection) { Dir = WorkingTransform.TransformVectorNoScale(Dir); }
+	const FVector Dir = Config.bTransformDirection ? WorkingTransform.TransformVectorNoScale(Direction->Read(Index).GetSafeNormal()) : Direction->Read(Index).GetSafeNormal();
 
 	if (Candidate.Distance > R) { return; }
 

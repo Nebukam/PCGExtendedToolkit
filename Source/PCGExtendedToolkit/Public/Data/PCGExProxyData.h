@@ -415,14 +415,14 @@ namespace PCGExData
 			//					^ T_REAL	  ^ Sub		      ^ T_WORKING
 			if constexpr (!bSubSelection)
 			{
-				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { OutAttribute->SetDefaultValue(Value); }
-				else { OutAttribute->SetDefaultValue(PCGEx::Convert<T_WORKING, T_REAL>(Value)); }
+				if constexpr (std::is_same_v<T_REAL, T_WORKING>) { PCGExDataHelpers::SetDataValue(OutAttribute, Value); }
+				else { PCGExDataHelpers::SetDataValue(OutAttribute, PCGEx::Convert<T_WORKING, T_REAL>(Value)); }
 			}
 			else
 			{
 				T_REAL V = OutAttribute->GetValueFromItemKey(PCGDefaultValueKey);
 				SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
-				OutAttribute->SetDefaultValue(V);
+				PCGExDataHelpers::SetDataValue(OutAttribute, V);
 			}
 		}
 	};

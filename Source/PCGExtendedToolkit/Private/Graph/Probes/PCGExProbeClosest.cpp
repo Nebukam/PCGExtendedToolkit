@@ -8,24 +8,12 @@
 
 PCGEX_CREATE_PROBE_FACTORY(Closest, {}, {})
 
-bool FPCGExProbeClosest::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeClosest::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!FPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
 
-	if (Config.MaxConnectionsInput == EPCGExInputValueType::Constant)
-	{
-		MaxConnections = Config.MaxConnectionsConstant;
-	}
-	else
-	{
-		MaxConnectionsCache = PrimaryDataFacade->GetBroadcaster<int32>(Config.MaxConnectionsAttribute, true);
-
-		if (!MaxConnectionsCache)
-		{
-			PCGEX_LOG_INVALID_SELECTOR_C(Context, "Max Connections", Config.MaxConnectionsAttribute)
-			return false;
-		}
-	}
+	MaxConnections = Config.GetValueSettingMaxConnections();
+	if (!MaxConnections->Init(InContext, PrimaryDataFacade)) { return false; }
 
 	CWCoincidenceTolerance = FVector(1 / Config.CoincidencePreventionTolerance);
 
@@ -35,7 +23,7 @@ bool FPCGExProbeClosest::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>&
 void FPCGExProbeClosest::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
-	const int32 MaxIterations = FMath::Min(MaxConnectionsCache ? MaxConnectionsCache->Read(Index) : MaxConnections, Candidates.Num());
+	const int32 MaxIterations = FMath::Min(MaxConnections->Read(Index), Candidates.Num());
 	const double R = GetSearchRadius(Index);
 
 	if (MaxIterations <= 0) { return; }

@@ -105,11 +105,11 @@ namespace PCGExCopyClusters
 					break;
 				case EPCGExClusterComponentTagMatchMode::Both:
 				case EPCGExClusterComponentTagMatchMode::Edges:
-					if (!Context->MatchByTagValue.Matches(EdgeDataFacade->Source->Tags, SourcePoint)) { continue; }
+					if (!Context->MatchByTagValue.Matches(EdgeDataFacade->Source, SourcePoint)) { continue; }
 					break;
 				case EPCGExClusterComponentTagMatchMode::Any:
-					if (Context->MatchByTagValue.Matches(VtxDataFacade->Source->Tags, SourcePoint) ||
-						Context->MatchByTagValue.Matches(EdgeDataFacade->Source->Tags, SourcePoint))
+					if (Context->MatchByTagValue.Matches(VtxDataFacade->Source, SourcePoint) ||
+						Context->MatchByTagValue.Matches(EdgeDataFacade->Source, SourcePoint))
 					{
 						continue;
 					}
@@ -197,7 +197,7 @@ namespace PCGExCopyClusters
 				{
 				case EPCGExClusterComponentTagMatchMode::Vtx:
 				case EPCGExClusterComponentTagMatchMode::Both:
-					if (!Context->MatchByTagValue.Matches(VtxDataFacade->Source->Tags, SourcePoint)) { continue; }
+					if (!Context->MatchByTagValue.Matches(VtxDataFacade->Source, SourcePoint)) { continue; }
 					break;
 				case EPCGExClusterComponentTagMatchMode::Edges:
 				case EPCGExClusterComponentTagMatchMode::Any:

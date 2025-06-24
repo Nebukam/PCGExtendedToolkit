@@ -19,13 +19,6 @@ enum class EPCGExControlFlowSelectionMode : uint8
 	EnumName    = 2,
 };
 
-UENUM()
-enum class EPCGExUserDefinedCheckType : uint8
-{
-	Numeric = 0,
-	Text    = 1,
-};
-
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExBranchOnDataPin
 {
@@ -43,28 +36,28 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBranchOnDataPin
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName Label = FName("None");
 
-	/** Name of the output pin */
+	/** How should the data be compared. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExUserDefinedCheckType Check = EPCGExUserDefinedCheckType::Numeric;
+	EPCGExComparisonDataType Check = EPCGExComparisonDataType::Numeric;
 
 	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Comparison", EditCondition="Check == EPCGExUserDefinedCheckType::Numeric", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Comparison", EditCondition="Check == EPCGExComparisonDataType::Numeric", EditConditionHides))
 	EPCGExComparison NumericCompare = EPCGExComparison::StrictlyEqual;
 
 	/** Value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Value", EditCondition="Check == EPCGExUserDefinedCheckType::Numeric", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Value", EditCondition="Check == EPCGExComparisonDataType::Numeric", EditConditionHides))
 	int64 NumericValue = 0;
 
 	/** Rounding mode for near measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Check == EPCGExUserDefinedCheckType::Numeric && NumericCompare == EPCGExComparison::NearlyEqual || NumericCompare == EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Check == EPCGExComparisonDataType::Numeric && NumericCompare == EPCGExComparison::NearlyEqual || NumericCompare == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Comparison", EditCondition="Check == EPCGExUserDefinedCheckType::Text", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Comparison", EditCondition="Check == EPCGExComparisonDataType::String", EditConditionHides))
 	EPCGExStringComparison StringCompare = EPCGExStringComparison::StrictlyEqual;
 
 	/** Value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Value", EditCondition="Check == EPCGExUserDefinedCheckType::Text", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Value", EditCondition="Check == EPCGExComparisonDataType::String", EditConditionHides))
 	FString StringValue = TEXT("");
 
 

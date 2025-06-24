@@ -53,7 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	FQuat ProjectionQuat = FQuat::Identity;
 	FQuat ProjectionInverseQuat = FQuat::Identity;
 
-	bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
+	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
 
 	~FPCGExGeo2DProjectionDetails()
 	{

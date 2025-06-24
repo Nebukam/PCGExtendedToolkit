@@ -7,6 +7,7 @@
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExProxyData.h"
 
 
 namespace PCGExCompare
@@ -262,7 +263,7 @@ namespace PCGExCompare
 	}
 }
 
-bool FPCGExVectorHashComparisonDetails::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
+bool FPCGExVectorHashComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
 {
 	Tolerance = GetValueSettingTolerance();
 	if (!Tolerance->Init(InContext, InPrimaryDataFacade, false)) { return false; }
@@ -292,7 +293,7 @@ bool FPCGExVectorHashComparisonDetails::Test(const FVector& A, const FVector& B,
 	return PCGEx::I323(A, CWTolerance) == PCGEx::I323(B, CWTolerance);
 }
 
-bool FPCGExDotComparisonDetails::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
+bool FPCGExDotComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
 {
 	ThresholdGetter = GetValueSettingThreshold();
 	if (!ThresholdGetter->Init(InContext, InPrimaryDataCache, false)) { return false; }
@@ -351,18 +352,18 @@ bool FPCGExAttributeToTagComparisonDetails::Init(const FPCGContext* InContext, c
 	return true;
 }
 
-bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FConstPoint& SourcePoint) const
+bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const
 {
 	const FString TestTagName = TagNameGetter ? TagNameGetter->SoftGet(SourcePoint, TEXT("")) : TagName;
 
 	if (!bDoValueMatch)
 	{
-		return PCGExCompare::HasMatchingTags(InTags, TagNameGetter ? TagNameGetter->SoftGet(SourcePoint, TEXT("")) : TagName, NameMatch);
+		return PCGExCompare::HasMatchingTags(InData->Tags, TagNameGetter ? TagNameGetter->SoftGet(SourcePoint, TEXT("")) : TagName, NameMatch);
 	}
 
 
 	TArray<TSharedPtr<PCGExData::FTagValue>> TagValues;
-	if (!PCGExCompare::GetMatchingValueTags(InTags, TestTagName, NameMatch, TagValues)) { return false; }
+	if (!PCGExCompare::GetMatchingValueTags(InData->Tags, TestTagName, NameMatch, TagValues)) { return false; }
 
 	if (ValueType == EPCGExComparisonDataType::Numeric)
 	{
@@ -396,6 +397,76 @@ bool FPCGExAttributeToTagComparisonDetails::GetOnlyUseDataDomain() const
 {
 	return TagNameInput == EPCGExInputValueType::Constant &&
 		PCGExHelpers::IsDataDomainAttribute(ValueAttribute);
+}
+
+bool FPCGExAttributeToDataComparisonDetails::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade)
+{
+	if (DataNameInput == EPCGExInputValueType::Attribute)
+	{
+		DataNameGetter = MakeShared<PCGEx::TAttributeBroadcaster<FName>>();
+		if (!DataNameGetter->Prepare(DataNameAttribute, InSourceDataFacade->Source))
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag name attribute."));
+			return false;
+		}
+	}
+
+	switch (Check)
+	{
+	case EPCGExComparisonDataType::Numeric:
+		NumericValueGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
+		if (!NumericValueGetter->Prepare(ValueNameAttribute, InSourceDataFacade->Source))
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag value attribute."));
+			return false;
+		}
+		break;
+	case EPCGExComparisonDataType::String:
+		StringValueGetter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
+		if (!StringValueGetter->Prepare(ValueNameAttribute, InSourceDataFacade->Source))
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag value attribute."));
+			return false;
+		}
+		break;
+	}
+
+	return true;
+}
+
+bool FPCGExAttributeToDataComparisonDetails::Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const
+{
+	FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(DataNameGetter ? DataNameGetter->SoftGet(SourcePoint, NAME_None) : DataName, InData->GetIn());
+	Identifier.MetadataDomain = PCGMetadataDomainID::Data;
+
+	const FPCGMetadataAttributeBase* Attribute = InData->FindConstAttribute(Identifier);
+	if (!Attribute) { return false; }
+
+	if (Check == EPCGExComparisonDataType::Numeric)
+	{
+		return PCGExCompare::Compare(
+			NumericCompare, PCGExDataHelpers::ReadDataValue<double>(Attribute, 0),
+			NumericValueGetter->SoftGet(SourcePoint, 0), Tolerance);
+	}
+	else
+	{
+		return PCGExCompare::Compare(
+			StringCompare, PCGExDataHelpers::ReadDataValue<FString>(Attribute, TEXT("")),
+			StringValueGetter->SoftGet(SourcePoint, TEXT("")));
+	}
+}
+
+void FPCGExAttributeToDataComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
+{
+	InContext->AddConsumableAttributeName(DataNameAttribute);
+	InContext->AddConsumableAttributeName(ValueNameAttribute);
+}
+
+bool FPCGExAttributeToDataComparisonDetails::GetOnlyUseDataDomain() const
+{
+	return DataNameInput == EPCGExInputValueType::Constant &&
+		PCGExHelpers::IsDataDomainAttribute(ValueNameAttribute);
+	
 }
 
 int64 FPCGExBitmask::Get() const

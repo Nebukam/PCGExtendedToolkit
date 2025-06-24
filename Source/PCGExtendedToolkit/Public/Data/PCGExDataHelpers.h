@@ -25,8 +25,41 @@ namespace PCGExDataHelpers
 	template <typename T>
 	static T ReadDataValue(const FPCGMetadataAttribute<T>* Attribute)
 	{
-		check(Attribute->GetMetadataDomain()->GetDomainID() == PCGMetadataDomainID::Data)
-		return Attribute->GetValueFromItemKey(0);
+		const FPCGMetadataAttribute<T>* Attr = Attribute;
+		if (!Attr->GetNumberOfEntries())
+		{
+			const FPCGMetadataAttribute<T>* Parent = Attr->GetParent();
+			while (Parent)
+			{
+				if (!Parent->GetNumberOfEntries()) { Parent = Parent->GetParent(); }
+				else
+				{
+					Attr = Parent;
+					Parent = nullptr;
+				}
+			}
+		}
+		return Attr->GetValueFromItemKey(PCGFirstEntryKey);
+	}
+
+	template <typename T>
+	static T ReadDataValue(const FPCGMetadataAttributeBase* Attribute, T Fallback)
+	{
+		T Value = Fallback;
+		PCGEx::ExecuteWithRightType(
+			Attribute->GetTypeId(), [&](auto DummyValue)
+			{
+				using T_VALUE = decltype(DummyValue);
+				Value = PCGEx::Convert<T>(ReadDataValue(static_cast<const FPCGMetadataAttribute<T>*>(Attribute)));
+			});
+		return Value;
+	}
+
+	template <typename T>
+	static void SetDataValue(FPCGMetadataAttribute<T>* Attribute, const T Value)
+	{
+		Attribute->SetValue(PCGFirstEntryKey, Value);
+		Attribute->SetDefaultValue(Value);
 	}
 
 	constexpr static EPCGMetadataTypes GetNumericType(const EPCGExNumericOutput InType)

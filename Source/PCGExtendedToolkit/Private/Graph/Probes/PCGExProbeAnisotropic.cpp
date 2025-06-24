@@ -4,13 +4,15 @@
 #include "Graph/Probes/PCGExProbeAnisotropic.h"
 
 
+
+
 #include "Graph/Probes/PCGExProbing.h"
 
 PCGEX_CREATE_PROBE_FACTORY(Anisotropic, {}, {})
 
-bool FPCGExProbeAnisotropic::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+bool FPCGExProbeAnisotropic::PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
-	if (!FPCGExProbeOperation::PrepareForPoints(InPointIO)) { return false; }
+	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
 	return true;
 }

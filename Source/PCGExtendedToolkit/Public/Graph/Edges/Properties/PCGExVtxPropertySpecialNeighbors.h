@@ -38,7 +38,7 @@ public:
 	FPCGExSpecialNeighborsConfig Config;
 
 	virtual bool PrepareForCluster(
-		const FPCGExContext* InContext,
+		FPCGExContext* InContext,
 		TSharedPtr<PCGExCluster::FCluster> InCluster,
 		const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
 		const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;

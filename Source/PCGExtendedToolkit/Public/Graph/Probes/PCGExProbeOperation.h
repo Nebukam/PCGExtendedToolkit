@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
+
+
 #include "Graph/PCGExCluster.h"
 #include "UObject/Object.h"
 #include "PCGExProbeOperation.generated.h"
@@ -46,6 +48,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Search Radius", ClampMin=0, EditCondition="bSupportRadius && SearchRadiusInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double SearchRadiusConstant = 100;
 
+	/** A convenient static offset added to the attribute value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Offset", EditCondition="bSupportRadius && SearchRadiusInput != EPCGExInputValueType::Constant", EditConditionHides))
+	double SearchRadiusOffset = 0;
+
 	PCGEX_SETTING_VALUE_GET(SearchRadius, double, SearchRadiusInput, SearchRadiusAttribute, SearchRadiusConstant)
 };
 
@@ -55,7 +61,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 class PCGEXTENDEDTOOLKIT_API FPCGExProbeOperation : public FPCGExOperation
 {
 public:
-	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO);
+	virtual bool PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO);
 	virtual bool RequiresOctree();
 	virtual bool RequiresChainProcessing();
 	virtual void ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges);
@@ -68,7 +74,8 @@ public:
 
 	FPCGExProbeConfigBase* BaseConfig = nullptr;
 
-	FORCEINLINE double GetSearchRadius(const int32 Index) const { return FMath::Square(SearchRadius->Read(Index)); }
+	double SearchRadiusOffset = 0;
+	FORCEINLINE double GetSearchRadius(const int32 Index) const { return FMath::Square(SearchRadius->Read(Index) + SearchRadiusOffset); }
 	TSharedPtr<PCGExDetails::TSettingValue<double>> SearchRadius;
 
 protected:

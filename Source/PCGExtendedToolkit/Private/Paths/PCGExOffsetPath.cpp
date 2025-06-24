@@ -344,6 +344,13 @@ namespace PCGExOffsetPath
 		Mutated.Init(false, Path->NumPoints);
 
 		int32 StartItx = CollapseFrom(0, KeptPoints, bFlippedOnly);
+
+		if (KeptPoints.IsEmpty())
+		{
+			// Collapse led to no point? 
+			(void)PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::NoInit);
+			return;
+		}
 		
 		if (Path->IsClosedLoop() && KeptPoints[0] == 0 && KeptPoints.Last() != Path->LastIndex)
 		{

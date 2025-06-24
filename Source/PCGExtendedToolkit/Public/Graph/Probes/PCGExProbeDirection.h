@@ -10,6 +10,8 @@
 #include "PCGExProbeOperation.h"
 
 
+
+
 #include "PCGExProbeDirection.generated.h"
 
 UENUM()
@@ -52,6 +54,8 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction", EditCondition="DirectionInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector DirectionConstant = FVector::ForwardVector;
 
+	PCGEX_SETTING_VALUE_GET(Direction, FVector, DirectionInput, DirectionAttribute, DirectionConstant)
+	
 	/** Transform the direction with the point's */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTransformDirection = true;
@@ -72,7 +76,7 @@ class FPCGExProbeDirection : public FPCGExProbeOperation
 {
 public:
 	virtual bool RequiresChainProcessing() override;
-	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
+	virtual bool PrepareForPoints(::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
 	virtual void ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	virtual void PrepareBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate) override;
@@ -85,8 +89,8 @@ protected:
 	bool bUseConstantDir = false;
 	double MinDot = 0;
 	bool bUseBestDot = false;
-	FVector Direction = FVector::ForwardVector;
-	TSharedPtr<PCGExData::TBuffer<FVector>> DirectionCache;
+	
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> Direction;
 };
 
 ////
