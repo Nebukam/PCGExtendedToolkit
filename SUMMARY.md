@@ -352,3 +352,4 @@
   * [v0.64](infos/changelogs/v0.64/README.md)
     * [5.x → 5.6 Important Changes](infos/changelogs/v0.64/5.x-5.6-important-changes.md)
   * [Changelog](infos/changelogs/changelog.md)
+* [Assets](infos/assets.md)
