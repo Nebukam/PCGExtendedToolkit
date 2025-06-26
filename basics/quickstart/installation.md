@@ -11,7 +11,7 @@ The easiest way to install PCGEx is to get it from FAB. (it's free!)
 
 <a href="https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624" class="button primary">PCGEx on FAB</a>
 
-<figure><img src="../../.gitbook/assets/EpicMarketplace-Splash-1080.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/EpicMarketplace-Splash-1080 (2).png" alt=""><figcaption></figcaption></figure>
 
 
 
