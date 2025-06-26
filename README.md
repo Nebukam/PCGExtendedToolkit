@@ -1,7 +1,7 @@
 ---
 icon: hand-wave
-cover: .gitbook/assets/splosh.png
-coverY: -239.24468922108574
+cover: .gitbook/assets/Patreon.png
+coverY: -13.592233009708737
 layout:
   cover:
     visible: true
@@ -27,7 +27,7 @@ The PCG Extended Toolkit (_PCGEx for short_) is an open source plugin that exten
 It also comes with a lot of quality of life nodes, with support for a wide range of situations — even some very unique and niche things.
 
 {% hint style="success" %}
-PCGEx is available for Unreal **5.3**, **5.4**, **5.5**, and **5.6**.
+PCGEx is available for Unreal **5.6, 5.5**, **5.4**, and **5.3**
 {% endhint %}
 
 ### Jump right in
