@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExBroadcast.h"
+#include "PCGExDataValue.h"
 #include "UObject/Object.h"
 
 #include "PCGExMacros.h"
@@ -32,113 +33,8 @@ enum class EPCGExSupportedTagValue : uint8
 	Vector4       = 5 UMETA(DisplayName = "Vector 4", ToolTip="Vector 4"),
 };
 
-namespace PCGExTags
-{
-	class PCGEXTENDEDTOOLKIT_API FTagValue : public TSharedFromThis<FTagValue>
-	{
-	public:
-		virtual ~FTagValue() = default;
-		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
-
-		explicit FTagValue()
-		{
-		}
-
-		virtual FString Flatten(const FString& LeftSide) = 0;
-
-		virtual bool IsNumeric() const = 0;
-		virtual bool IsText() const = 0;
-
-		virtual double AsDouble() const = 0;
-		virtual FString AsString() const = 0;
-
-		bool SameValue(const TSharedPtr<FTagValue>& Other) const;
-
-		template <typename T>
-		T GetValue() const
-		{
-			if (IsNumeric()) { return PCGEx::Convert<T>(AsDouble()); }
-			return PCGEx::Convert<T>(AsString());
-		}
-	};
-
-	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TTagValue : public FTagValue
-	{
-	public:
-		T Value;
-
-		explicit TTagValue(const T& InValue)
-			: FTagValue(), Value(InValue)
-		{
-			UnderlyingType = PCGEx::GetMetadataType<T>();
-		}
-
-		virtual FString Flatten(const FString& LeftSide) override
-		{
-			if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
-			{
-				return FString::Printf(TEXT("%s:%.2f"), *LeftSide, Value);
-			}
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64>)
-			{
-				return FString::Printf(TEXT("%s:%d"), *LeftSide, Value);
-			}
-			else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4>)
-			{
-				return FString::Printf(TEXT("%s:%s"), *LeftSide, *Value.ToString());
-			}
-			else if constexpr (std::is_same_v<T, FString>)
-			{
-				return FString::Printf(TEXT("%s:%s"), *LeftSide, *Value);
-			}
-			else
-			{
-				return LeftSide;
-			}
-		}
-
-		virtual bool IsNumeric() const override
-		{
-			if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return true; }
-			else { return false; }
-		}
-
-		virtual bool IsText() const override
-		{
-			if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FName>) { return true; }
-			else { return false; }
-		}
-
-		virtual double AsDouble() const override
-		{
-			if constexpr (std::is_same_v<T, bool>) { return Value ? 1 : 0; }
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<double>(Value); }
-			else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4>) { return Value.X; }
-			else { return 0; }
-		}
-
-		virtual FString AsString() const override
-		{
-			if constexpr (std::is_same_v<T, bool>) { return Value ? TEXT("true") : TEXT("false"); }
-			else if constexpr (std::is_same_v<T, FName>) { return Value.ToString(); }
-			else if constexpr (std::is_same_v<T, FString>) { return Value; }
-			else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) { return FString::Printf(TEXT("%.2f"), Value); }
-			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64>) { return FString::Printf(TEXT("%d"), Value); }
-			else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4>) { return FString::Printf(TEXT("%s"), *Value.ToString()); }
-			else if constexpr (std::is_same_v<T, FString>) { return FString::Printf(TEXT("%s"), *Value); }
-			else { return TEXT(""); }
-		}
-	};
-
-	TSharedPtr<FTagValue> TryGetValueTag(const FString& InTag, FString& OutLeftSide);
-
-	using IDType = TSharedPtr<TTagValue<int32>>;
-}
-
 namespace PCGExData
 {
-	using namespace PCGExTags;
 	const FString TagSeparator = FSTRING(":");
 
 	class PCGEXTENDEDTOOLKIT_API FTags : public TSharedFromThis<FTags>
@@ -147,7 +43,7 @@ namespace PCGExData
 
 	public:
 		TSet<FString> RawTags;                          // Contains all data tag
-		TMap<FString, TSharedPtr<FTagValue>> ValueTags; // Prefix:ValueTag
+		TMap<FString, TSharedPtr<IDataValue>> ValueTags; // Prefix:ValueTag
 
 		int32 Num() const;
 		bool IsEmpty() const;
@@ -177,39 +73,40 @@ namespace PCGExData
 		void AddRaw(const FString& Key);
 
 		template <typename T>
-		TSharedPtr<TTagValue<T>> GetOrSet(const FString& Key, const T& Value)
+		TSharedPtr<TDataValue<T>> GetOrSet(const FString& Key, const T& Value)
 		{
 			{
 				FReadScopeLock ReadScopeLock(TagsLock);
 
 				TArray<T> ValuesForKey;
-				if (const TSharedPtr<FTagValue>* ValueTagPtr = ValueTags.Find(Key))
+				if (const TSharedPtr<IDataValue>* ValueTagPtr = ValueTags.Find(Key))
 				{
 					if ((*ValueTagPtr)->UnderlyingType == PCGEx::GetMetadataType<T>())
 					{
-						return StaticCastSharedPtr<TTagValue<T>>(*ValueTagPtr);
+						return StaticCastSharedPtr<TDataValue<T>>(*ValueTagPtr);
 					}
 				}
 			}
+			
 			{
 				FWriteScopeLock WriteScopeLock(TagsLock);
 
-				const TSharedPtr<TTagValue<T>> ValueTag = MakeShared<TTagValue<T>>(Value);
+				const TSharedPtr<TDataValue<T>> ValueTag = MakeShared<TDataValue<T>>(Value);
 				ValueTags.Add(Key, ValueTag);
 				return ValueTag;
 			}
 		}
 
 		template <typename T>
-		TSharedPtr<TTagValue<T>> Set(const FString& Key, const T& Value)
+		TSharedPtr<TDataValue<T>> Set(const FString& Key, const T& Value)
 		{
-			const TSharedPtr<TTagValue<T>> ValueTag = GetOrSet(Key, Value);
+			const TSharedPtr<TDataValue<T>> ValueTag = GetOrSet(Key, Value);
 			ValueTag->Value = Value;
 			return ValueTag;
 		}
 
 		template <typename T>
-		TSharedPtr<TTagValue<T>> Set(const FString& Key, const TSharedPtr<TTagValue<T>>& Value)
+		TSharedPtr<TDataValue<T>> Set(const FString& Key, const TSharedPtr<TDataValue<T>>& Value)
 		{
 			return Set<T>(Key, Value->Value);
 		}
@@ -219,27 +116,27 @@ namespace PCGExData
 		void Remove(const TSet<FName>& InSet);
 
 		template <typename T>
-		TSharedPtr<TTagValue<T>> GetTypedValue(const FString& Key) const
+		TSharedPtr<TDataValue<T>> GetTypedValue(const FString& Key) const
 		{
 			FReadScopeLock ReadScopeLock(TagsLock);
 
-			if (const TSharedPtr<FTagValue>* ValueTagPtr = ValueTags.Find(Key))
+			if (const TSharedPtr<IDataValue>* ValueTagPtr = ValueTags.Find(Key))
 			{
 				if ((*ValueTagPtr)->UnderlyingType == PCGEx::GetMetadataType<T>())
 				{
-					return StaticCastSharedPtr<TTagValue<T>>(*ValueTagPtr);
+					return StaticCastSharedPtr<TDataValue<T>>(*ValueTagPtr);
 				}
 			}
 
 			return nullptr;
 		}
 
-		TSharedPtr<FTagValue> GetValue(const FString& Key) const;
+		TSharedPtr<IDataValue> GetValue(const FString& Key) const;
 
 		template <typename T>
 		T GetValue(const FString& Key, const T FallbackValue) const
 		{
-			if (const TSharedPtr<FTagValue> Value = GetValue(Key)) { return Value->GetValue<T>(); }
+			if (const TSharedPtr<IDataValue> Value = GetValue(Key)) { return Value->GetValue<T>(); }
 			return FallbackValue;
 		}
 

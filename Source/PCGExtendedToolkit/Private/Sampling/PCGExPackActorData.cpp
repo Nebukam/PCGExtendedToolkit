@@ -462,9 +462,9 @@ namespace PCGExPackActorDatas
 				PCGEx::ExecuteWithRightType(
 					OutAttribute->GetTypeId(), [&](auto DummyValue)
 					{
-						using RawT = decltype(DummyValue);
-						FPCGMetadataAttribute<RawT>* A = static_cast<FPCGMetadataAttribute<RawT>*>(OutAttribute);
-						FPCGMetadataAttribute<RawT>* B = ParamMetadata->FindOrCreateAttribute(A->Name, A->GetValueFromItemKey(PCGDefaultValueKey), A->AllowsInterpolation());
+						using T_REAL = decltype(DummyValue);
+						FPCGMetadataAttribute<T_REAL>* A = static_cast<FPCGMetadataAttribute<T_REAL>*>(OutAttribute);
+						FPCGMetadataAttribute<T_REAL>* B = ParamMetadata->FindOrCreateAttribute(A->Name, A->GetValueFromItemKey(PCGDefaultValueKey), A->AllowsInterpolation());
 						B->SetValue(Key, A->GetValueFromItemKey(ItemKey));
 					});
 			}

@@ -1047,7 +1047,7 @@ namespace PCGExData
 
 	bool FPointIOTaggedDictionary::CreateKey(const TSharedRef<FPointIO>& PointIOKey)
 	{
-		IDType TagValue = PointIOKey->Tags->GetOrSet<int32>(TagId, PointIOKey->GetInOut()->GetUniqueID());
+		DataIDType TagValue = PointIOKey->Tags->GetOrSet<int32>(TagId, PointIOKey->GetInOut()->GetUniqueID());
 		for (const TSharedPtr<FPointIOTaggedEntries>& Binding : Entries)
 		{
 			// TagValue shouldn't exist already
@@ -1060,7 +1060,7 @@ namespace PCGExData
 
 	bool FPointIOTaggedDictionary::TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry)
 	{
-		const IDType TagValue = PointIOEntry->Tags->GetTypedValue<int32>(TagId);
+		const DataIDType TagValue = PointIOEntry->Tags->GetTypedValue<int32>(TagId);
 		if (!TagValue) { return false; }
 
 		if (const int32* Index = TagMap.Find(TagValue->Value))

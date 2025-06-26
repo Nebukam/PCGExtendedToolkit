@@ -112,7 +112,7 @@ namespace PCGExPartitionVertices
 
 	void FProcessor::CompleteWork()
 	{
-		PCGExTags::IDType OutId;
+		PCGExData::DataIDType OutId;
 		PCGExGraph::SetClusterVtx(PointPartitionIO, OutId);
 		PCGExGraph::MarkClusterEdges(EdgeDataFacade->Source, OutId);
 

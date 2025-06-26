@@ -395,15 +395,10 @@ namespace PCGEx
 			if (const UPCGSpatialData* AsSpatial = Cast<UPCGSpatialData>(InData))
 			{
 				Attribute = AsSpatial->Metadata->GetConstAttribute(GetAttributeIdentifier<true>(Selector, InData));
+				bIsDataDomain = Attribute ? Attribute->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data : false;
 				bIsValid = Attribute ? true : false;
 			}
 		}
-	}
-
-	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector)
-	{
-		if (InSelector.GetExtraNames().IsEmpty()) { return InSelector.GetName().ToString(); }
-		return InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT("."));
 	}
 
 	TSharedPtr<FAttributesInfos> GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError)

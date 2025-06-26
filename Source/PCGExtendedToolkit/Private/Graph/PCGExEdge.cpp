@@ -5,28 +5,28 @@
 
 namespace PCGExGraph
 {
-	void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExTags::IDType& OutId)
+	void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExData::DataIDType& OutId)
 	{
 		OutId = IO->Tags->Set<int32>(TagStr_PCGExCluster, IO->GetOutIn()->GetUniqueID());
 		IO->Tags->AddRaw(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}
 
-	void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExTags::IDType& Id)
+	void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExData::DataIDType& Id)
 	{
 		IO->Tags->Set(TagStr_PCGExCluster, Id);
 		IO->Tags->AddRaw(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}
 
-	void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExTags::IDType& Id)
+	void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExData::DataIDType& Id)
 	{
 		IO->Tags->Set(TagStr_PCGExCluster, Id);
 		IO->Tags->AddRaw(TagStr_PCGExEdges);
 		IO->Tags->Remove(TagStr_PCGExVtx);
 	}
 
-	void MarkClusterEdges(const TArrayView<TSharedRef<PCGExData::FPointIO>> Edges, const PCGExTags::IDType& Id)
+	void MarkClusterEdges(const TArrayView<TSharedRef<PCGExData::FPointIO>> Edges, const PCGExData::DataIDType& Id)
 	{
 		for (const TSharedRef<PCGExData::FPointIO>& IO : Edges) { MarkClusterEdges(IO, Id); }
 	}

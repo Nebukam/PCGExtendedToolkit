@@ -8,7 +8,6 @@
 
 #include "PCGExHelpers.h"
 #include "PCGExPointIO.h"
-#include "PCGExAttributeHelpers.h"
 #include "PCGExDetails.h"
 
 UENUM(BlueprintType)
@@ -108,7 +107,7 @@ namespace PCGExDataHelpers
 		}
 		else
 		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, , InSelector)
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid attribute: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(InSelector))));
 			return false;
 		}
 

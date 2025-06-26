@@ -383,6 +383,12 @@ namespace PCGEx
 			Visited[Current] = true;
 		}
 	}
+
+	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector)
+	{
+		if (InSelector.GetExtraNames().IsEmpty()) { return InSelector.GetName().ToString(); }
+		return InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT("."));
+	}
 }
 
 void UPCGExComponentCallback::Callback(UActorComponent* InComponent)

@@ -13,6 +13,7 @@
 #include "PCGExMacros.h"
 #include "PCGEx.h"
 #include "PCGExBroadcast.h"
+#include "PCGExDataHelpers.h"
 #include "PCGExHelpers.h"
 #include "PCGExMath.h"
 #include "PCGExMT.h"
@@ -202,6 +203,7 @@ namespace PCGEx
 	struct PCGEXTENDEDTOOLKIT_API FAttributeProcessingInfos
 	{
 		bool bIsValid = false;
+		bool bIsDataDomain = false;
 
 		FAttributeIdentity SourceIdentity = FAttributeIdentity();
 		FAttributeIdentity TargetIdentity = FAttributeIdentity();
@@ -236,9 +238,6 @@ namespace PCGEx
 
 #pragma region Attribute Broadcaster
 
-	PCGEXTENDEDTOOLKIT_API
-	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector);
-
 	class PCGEXTENDEDTOOLKIT_API IAttributeBroadcaster : public TSharedFromThis<IAttributeBroadcaster>
 	{
 	public:
@@ -265,6 +264,7 @@ namespace PCGEx
 		EPCGExTransformComponent Component = EPCGExTransformComponent::Position;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
 		EPCGExSingleField Field = EPCGExSingleField::X;
+		TSharedPtr<PCGExData::IDataValue> DataValue;
 
 		bool ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 		{
@@ -279,8 +279,15 @@ namespace PCGEx
 				PCGEx::ExecuteWithRightType(
 					ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
 					{
-						using RawT = decltype(DummyValue);
-						InternalAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(static_cast<const FPCGMetadataAttribute<RawT>*>(ProcessingInfos.Attribute), Cast<UPCGSpatialData>(InData)->Metadata);
+						using T_REAL = decltype(DummyValue);
+						if (ProcessingInfos.bIsDataDomain)
+						{
+							DataValue = MakeShared<PCGExData::TDataValue<T_REAL>>(PCGExDataHelpers::ReadDataValue(static_cast<const FPCGMetadataAttribute<T_REAL>*>(ProcessingInfos.Attribute)));
+						}
+						else
+						{
+							InternalAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(static_cast<const FPCGMetadataAttribute<T_REAL>*>(ProcessingInfos.Attribute), Cast<UPCGSpatialData>(InData)->Metadata);
+						}
 					});
 			}
 
@@ -341,20 +348,29 @@ namespace PCGEx
 				PCGEx::ExecuteWithRightType(
 					ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
 					{
-						using RawT = decltype(DummyValue);
-
-						TArray<RawT> RawValues;
-						PCGEx::InitArray(RawValues, Scope.Count);
-
-						TArrayView<RawT> RawView(RawValues);
-						if (!InternalAccessor->GetRange<RawT>(RawView, Scope.Start, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast))
-						{
-							// TODO : Log error
-						}
+						using T_REAL = decltype(DummyValue);
 
 						const FSubSelection& S = ProcessingInfos.SubSelection;
-						if (S.bIsValid) { for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = S.Get<RawT, T>(RawValues[i]); } }
-						else { for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = PCGEx::Convert<RawT, T>(RawValues[i]); } }
+
+						if (DataValue)
+						{
+							const T ConvertedValue = S.bIsValid ? S.Get<T_REAL, T>(DataValue->GetValue<T_REAL>()) : PCGEx::Convert<T_REAL, T>(DataValue->GetValue<T_REAL>());
+							for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = ConvertedValue; }
+							return;
+						}
+
+						TArray<T_REAL> RawValues;
+						PCGEx::InitArray(RawValues, Scope.Count);
+
+						TArrayView<T_REAL> RawView(RawValues);
+						if (!InternalAccessor->GetRange<T_REAL>(RawView, Scope.Start, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast))
+						{
+							// TODO : Log error
+							return;
+						}
+
+						if (S.bIsValid) { for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = S.Get<T_REAL, T>(RawValues[i]); } }
+						else { for (int i = 0; i < Scope.Count; i++) { Dump[Scope.Start + i] = PCGEx::Convert<T_REAL, T>(RawValues[i]); } }
 					});
 			}
 			else if (ProcessingInfos == EPCGAttributePropertySelection::Property)
@@ -409,18 +425,36 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 				PCGEx::ExecuteWithRightType(
 					ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
 					{
-						using RawT = decltype(DummyValue);
-						TArray<RawT> RawValues;
+						using T_REAL = decltype(DummyValue);
+
+						const FSubSelection& S = ProcessingInfos.SubSelection;
+
+						if (DataValue)
+						{
+							const T ConvertedValue = S.bIsValid ? S.Get<T_REAL, T>(DataValue->GetValue<T_REAL>()) : PCGEx::Convert<T_REAL, T>(DataValue->GetValue<T_REAL>());
+
+							if (bCaptureMinMax)
+							{
+								OutMin = ConvertedValue;
+								OutMax = ConvertedValue;
+							}
+
+							for (int i = 0; i < NumPoints; i++) { Dump[i] = ConvertedValue; }
+
+							return;
+						}
+
+						TArray<T_REAL> RawValues;
 
 						PCGEx::InitArray(RawValues, NumPoints);
 
-						TArrayView<RawT> View(RawValues);
-						if (!InternalAccessor->GetRange<RawT>(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast))
+						TArrayView<T_REAL> View(RawValues);
+						if (!InternalAccessor->GetRange<T_REAL>(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast))
 						{
 							// TODO : Log error
+							return;
 						}
 
-						const FSubSelection& S = ProcessingInfos.SubSelection;
 
 						if (bCaptureMinMax)
 						{
@@ -428,7 +462,7 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 							{
 								for (int i = 0; i < NumPoints; i++)
 								{
-									T V = S.Get<RawT, T>(RawValues[i]);
+									T V = S.Get<T_REAL, T>(RawValues[i]);
 									OutMin = PCGExBlend::Min(V, OutMin);
 									OutMax = PCGExBlend::Max(V, OutMax);
 									Dump[i] = V;
@@ -438,7 +472,7 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 							{
 								for (int i = 0; i < NumPoints; i++)
 								{
-									T V = PCGEx::Convert<RawT, T>(RawValues[i]);
+									T V = PCGEx::Convert<T_REAL, T>(RawValues[i]);
 									OutMin = PCGExBlend::Min(V, OutMin);
 									OutMax = PCGExBlend::Max(V, OutMax);
 									Dump[i] = V;
@@ -447,8 +481,8 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 						}
 						else
 						{
-							if (S.bIsValid) { for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<RawT, T>(RawValues[i]); } }
-							else { for (int i = 0; i < NumPoints; i++) { Dump[i] = PCGEx::Convert<RawT, T>(RawValues[i]); } }
+							if (S.bIsValid) { for (int i = 0; i < NumPoints; i++) { Dump[i] = S.Get<T_REAL, T>(RawValues[i]); } }
+							else { for (int i = 0; i < NumPoints; i++) { Dump[i] = PCGEx::Convert<T_REAL, T>(RawValues[i]); } }
 						}
 
 						RawValues.Empty();
@@ -499,20 +533,29 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 				PCGEx::ExecuteWithRightType(
 					ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
 					{
-						using RawT = decltype(DummyValue);
-						TArray<RawT> RawValues;
+						using T_REAL = decltype(DummyValue);
+						const FSubSelection& S = ProcessingInfos.SubSelection;
+
+						if (DataValue)
+						{
+							const T ConvertedValue = S.bIsValid ? S.Get<T_REAL, T>(DataValue->GetValue<T_REAL>()) : PCGEx::Convert<T_REAL, T>(DataValue->GetValue<T_REAL>());
+							for (int i = 0; i < NumPoints; i++) { Dump.Add(ConvertedValue); }
+							return;
+						}
+
+						TArray<T_REAL> RawValues;
 
 						PCGEx::InitArray(RawValues, NumPoints);
 
-						TArrayView<RawT> View(RawValues);
-						if (!InternalAccessor->GetRange<RawT>(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast))
+						TArrayView<T_REAL> View(RawValues);
+						if (!InternalAccessor->GetRange<T_REAL>(View, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcast))
 						{
 							// TODO : Log error
+							return;
 						}
 
-						const FSubSelection& S = ProcessingInfos.SubSelection;
-						if (S.bIsValid) { for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<RawT, T>(RawValues[i])); } }
-						else { for (int i = 0; i < NumPoints; i++) { Dump.Add(PCGEx::Convert<RawT, T>(RawValues[i])); } }
+						if (S.bIsValid) { for (int i = 0; i < NumPoints; i++) { Dump.Add(S.Get<T_REAL, T>(RawValues[i])); } }
+						else { for (int i = 0; i < NumPoints; i++) { Dump.Add(PCGEx::Convert<T_REAL, T>(RawValues[i])); } }
 
 						RawValues.Empty();
 					});
@@ -586,9 +629,9 @@ else{ PCGEX_SCOPE_LOOP(Index){ Dump[Index] =PCGEx::Convert<_TYPE, T>(InData->_AC
 					ProcessingInfos.Attribute->GetTypeId(),
 					[&](auto DummyValue) -> T
 					{
-						using RawT = decltype(DummyValue);
-						const FPCGMetadataAttribute<RawT>* TypedAttribute = static_cast<const FPCGMetadataAttribute<RawT>*>(ProcessingInfos.Attribute);
-						return ProcessingInfos.SubSelection.Get<RawT, T>(TypedAttribute->GetValueFromItemKey(Point.GetMetadataEntry()));
+						using T_REAL = decltype(DummyValue);
+						const FPCGMetadataAttribute<T_REAL>* TypedAttribute = static_cast<const FPCGMetadataAttribute<T_REAL>*>(ProcessingInfos.Attribute);
+						return ProcessingInfos.SubSelection.Get<T_REAL, T>(TypedAttribute->GetValueFromItemKey(Point.GetMetadataEntry()));
 					});
 
 			case EPCGAttributePropertySelection::Property:

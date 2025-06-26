@@ -3,6 +3,8 @@
 
 #include "PCGExSorting.h"
 
+#include "PCGExCompare.h"
+
 #define LOCTEXT_NAMESPACE "PCGExModularSortPoints"
 #define PCGEX_NAMESPACE ModularSortPoints
 
@@ -34,7 +36,7 @@ void FPCGExCollectionSortingDetails::Sort(const FPCGContext* InContext, const TS
 		for (int i = 0; i < Pairs.Num(); i++)
 		{
 			Pairs[i]->IOIndex = i;
-			if (const TSharedPtr<PCGExTags::FTagValue> Value = Pairs[i]->Tags->GetValue(TagNameStr))
+			if (const TSharedPtr<PCGExData::IDataValue> Value = Pairs[i]->Tags->GetValue(TagNameStr))
 			{
 				Scores[i] = Value->GetValue<double>();
 			}
@@ -99,8 +101,8 @@ namespace PCGExSorting
 
 		for (const FPCGExSortRuleConfig& RuleConfig : InRuleConfigs)
 		{
-			PCGEX_MAKE_SHARED(NewRule, FPCGExSortRule, RuleConfig)
-			Rules.Add(NewRule);
+			PCGEX_MAKE_SHARED(NewRule, FRuleHandler, RuleConfig)
+			RuleHandlers.Add(NewRule);
 
 			if (InContext->bCleanupConsumableAttributes && InData) { PCGEX_CONSUMABLE_SELECTOR(RuleConfig.Selector, Consumable) }
 		}
@@ -110,37 +112,37 @@ namespace PCGExSorting
 	{
 		for (const FPCGExSortRuleConfig& RuleConfig : InRuleConfigs)
 		{
-			PCGEX_MAKE_SHARED(NewRule, FPCGExSortRule, RuleConfig)
-			Rules.Add(NewRule);
+			PCGEX_MAKE_SHARED(NewRule, FRuleHandler, RuleConfig)
+			RuleHandlers.Add(NewRule);
 		}
 	}
 
 	bool FPointSorter::Init(FPCGExContext* InContext)
 	{
-		for (int i = 0; i < Rules.Num(); i++)
+		for (int i = 0; i < RuleHandlers.Num(); i++)
 		{
-			const TSharedPtr<FPCGExSortRule> Rule = Rules[i];
+			const TSharedPtr<FRuleHandler> RuleHandler = RuleHandlers[i];
 
 			TSharedPtr<PCGExData::IBufferProxy> Buffer = nullptr;
 
 			PCGExData::FProxyDescriptor Descriptor(DataFacade);
 			Descriptor.bWantsDirect = true;
 
-			if (Descriptor.CaptureStrict(InContext, Rule->Selector, PCGExData::EIOSide::In)) { Buffer = PCGExData::GetProxyBuffer(InContext, Descriptor); }
+			if (Descriptor.CaptureStrict(InContext, RuleHandler->Selector, PCGExData::EIOSide::In)) { Buffer = PCGExData::GetProxyBuffer(InContext, Descriptor); }
 
 			if (!Buffer)
 			{
-				Rules.RemoveAt(i);
+				RuleHandlers.RemoveAt(i);
 				i--;
 
-				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing required sorting attribute : {0}."), FText::FromString(PCGEx::GetSelectorDisplayName(RuleHandler->Selector))));
 				continue;
 			}
 
-			Rule->Buffer = Buffer;
+			RuleHandler->Buffer = Buffer;
 		}
 
-		return !Rules.IsEmpty();
+		return !RuleHandlers.IsEmpty();
 	}
 
 	bool FPointSorter::Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InDataFacades)
@@ -149,10 +151,10 @@ namespace PCGExSorting
 		for (const TSharedRef<PCGExData::FFacade>& Facade : InDataFacades) { MaxIndex = FMath::Max(Facade->Idx, MaxIndex); }
 		MaxIndex++;
 
-		for (int i = 0; i < Rules.Num(); i++)
+		for (int i = 0; i < RuleHandlers.Num(); i++)
 		{
-			const TSharedPtr<FPCGExSortRule> Rule = Rules[i];
-			Rule->Buffers.SetNum(MaxIndex);
+			const TSharedPtr<FRuleHandler> RuleHandler = RuleHandlers[i];
+			RuleHandler->Buffers.SetNum(MaxIndex);
 
 			for (int f = 0; f < InDataFacades.Num(); f++)
 			{
@@ -162,34 +164,67 @@ namespace PCGExSorting
 
 				TSharedPtr<PCGExData::IBufferProxy> Buffer = nullptr;
 
-				if (Descriptor.CaptureStrict(InContext, Rule->Selector, PCGExData::EIOSide::In)) { Buffer = PCGExData::GetProxyBuffer(InContext, Descriptor); }
+				if (Descriptor.CaptureStrict(InContext, RuleHandler->Selector, PCGExData::EIOSide::In)) { Buffer = PCGExData::GetProxyBuffer(InContext, Descriptor); }
 
 				if (!Buffer)
 				{
-					Rules.RemoveAt(i);
+					RuleHandlers.RemoveAt(i);
 					i--;
 
-					PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing required sorting attribute : {0}."), FText::FromString(PCGEx::GetSelectorDisplayName(RuleHandler->Selector))));
 					break;
 				}
-				Rule->Buffers[InFacade->Idx] = Buffer;
+				RuleHandler->Buffers[InFacade->Idx] = Buffer;
 			}
 		}
 
-		return !Rules.IsEmpty();
+		return !RuleHandlers.IsEmpty();
+	}
+
+	bool FPointSorter::Init(FPCGExContext* InContext, const TArray<FPCGTaggedData>& InTaggedDatas)
+	{
+		IdxMap.Reserve(InTaggedDatas.Num());
+		for (int i = 0; i < InTaggedDatas.Num(); i++) { IdxMap.Add(InTaggedDatas[i].Data->GetUniqueID(), i); }
+
+		for (int i = 0; i < RuleHandlers.Num(); i++)
+		{
+			const TSharedPtr<FRuleHandler> RuleHandler = RuleHandlers[i];
+			RuleHandler->DataValues.SetNum(InTaggedDatas.Num());
+
+			for (int f = 0; f < InTaggedDatas.Num(); f++)
+			{
+				const UPCGData* Data = InTaggedDatas[f].Data;
+				const int32 DataIdx = IdxMap[Data->GetUniqueID()];
+
+				TSharedPtr<PCGExData::IDataValue> DataValue = PCGExData::TryGetValueFromData(Data, RuleHandler->Selector);
+
+				if (!DataValue)
+				{
+					RuleHandlers.RemoveAt(i);
+					i--;
+
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing required sorting attribute : {0}."), FText::FromString(PCGEx::GetSelectorDisplayName(RuleHandler->Selector))));
+					break;
+				}
+
+				RuleHandler->DataValues[DataIdx] = DataValue;
+			}
+		}
+
+		return !RuleHandlers.IsEmpty();
 	}
 
 	bool FPointSorter::Sort(const int32 A, const int32 B)
 	{
 		int Result = 0;
-		for (const TSharedPtr<FPCGExSortRule>& Rule : Rules)
+		for (const TSharedPtr<FRuleHandler>& RuleHandler : RuleHandlers)
 		{
-			const double ValueA = Rule->Buffer->ReadAsDouble(A);
-			const double ValueB = Rule->Buffer->ReadAsDouble(B);
-			Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
+			const double ValueA = RuleHandler->Buffer->ReadAsDouble(A);
+			const double ValueB = RuleHandler->Buffer->ReadAsDouble(B);
+			Result = FMath::IsNearlyEqual(ValueA, ValueB, RuleHandler->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
 			if (Result != 0)
 			{
-				if (Rule->bInvertRule) { Result *= -1; }
+				if (RuleHandler->bInvertRule) { Result *= -1; }
 				break;
 			}
 		}
@@ -201,14 +236,48 @@ namespace PCGExSorting
 	bool FPointSorter::Sort(const PCGExData::FElement A, const PCGExData::FElement B)
 	{
 		int Result = 0;
-		for (const TSharedPtr<FPCGExSortRule>& Rule : Rules)
+		for (const TSharedPtr<FRuleHandler>& RuleHandler : RuleHandlers)
 		{
-			const double ValueA = Rule->Buffers[A.IO]->ReadAsDouble(A.Index);
-			const double ValueB = Rule->Buffers[B.IO]->ReadAsDouble(B.Index);
-			Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
+			const double ValueA = RuleHandler->Buffers[A.IO]->ReadAsDouble(A.Index);
+			const double ValueB = RuleHandler->Buffers[B.IO]->ReadAsDouble(B.Index);
+			Result = FMath::IsNearlyEqual(ValueA, ValueB, RuleHandler->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
 			if (Result != 0)
 			{
-				if (Rule->bInvertRule) { Result *= -1; }
+				if (RuleHandler->bInvertRule) { Result *= -1; }
+				break;
+			}
+		}
+
+		if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
+		return Result < 0;
+	}
+
+	bool FPointSorter::SortData(const int32 A, const int32 B)
+	{
+		int Result = 0;
+		for (const TSharedPtr<FRuleHandler>& RuleHandler : RuleHandlers)
+		{
+			const TSharedPtr<PCGExData::IDataValue> DataValueA = RuleHandler->DataValues[A];
+			const TSharedPtr<PCGExData::IDataValue> DataValueB = RuleHandler->DataValues[B];
+
+			if (DataValueA->IsNumeric() || DataValueB->IsNumeric())
+			{
+				const double ValueA = DataValueA->AsDouble();
+				const double ValueB = DataValueB->AsDouble();
+
+				Result = FMath::IsNearlyEqual(ValueA, ValueB, RuleHandler->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
+			}
+			else
+			{
+				const FString ValueA = DataValueA->AsString();
+				const FString ValueB = DataValueB->AsString();
+
+				Result = PCGExCompare::StrictlyEqual(ValueA, ValueB) ? 0 : ValueA < ValueB ? -1 : 1;
+			}
+
+			if (Result != 0)
+			{
+				if (RuleHandler->bInvertRule) { Result *= -1; }
 				break;
 			}
 		}

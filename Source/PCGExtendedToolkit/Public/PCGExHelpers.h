@@ -727,7 +727,7 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API
 	bool EnsureMinNumPoints(UPCGBasePointData* InData, const int32 InNumPoints);
-
+	
 #pragma region Array
 
 	template <typename T>
@@ -907,4 +907,7 @@ namespace PCGEx
 	}
 
 #pragma endregion
+
+	PCGEXTENDEDTOOLKIT_API
+	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector);
 }

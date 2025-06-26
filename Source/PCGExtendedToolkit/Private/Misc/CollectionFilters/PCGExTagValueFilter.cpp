@@ -15,7 +15,7 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 {
 	bool bResult = false;
 
-	if (TArray<TSharedPtr<PCGExData::FTagValue>> TagValues;
+	if (TArray<TSharedPtr<PCGExData::IDataValue>> TagValues;
 		PCGExCompare::GetMatchingValueTags(IO->Tags, TypedFilterFactory->Config.Tag, TypedFilterFactory->Config.Match, TagValues))
 	{
 		bool bAtLeastOneMatch = false;
@@ -24,7 +24,7 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 		{
 			double B = TypedFilterFactory->Config.NumericOperandB;
 
-			for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
+			for (const TSharedPtr<PCGExData::IDataValue>& TagValue : TagValues)
 			{
 				if (!PCGExCompare::Compare(TypedFilterFactory->Config.NumericComparison, TagValue, B, TypedFilterFactory->Config.Tolerance))
 				{
@@ -37,7 +37,7 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 		else
 		{
 			FString B = TypedFilterFactory->Config.StringOperandB;
-			for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
+			for (const TSharedPtr<PCGExData::IDataValue>& TagValue : TagValues)
 			{
 				if (!PCGExCompare::Compare(TypedFilterFactory->Config.StringComparison, TagValue, B))
 				{

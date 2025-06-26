@@ -115,9 +115,9 @@ namespace PCGExGraph
 		FORCEINLINE uint32 GetTypeHash(const FLink& Key) { return HashCombineFast(Key.Node, Key.Edge); }
 	};
 
-	void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExTags::IDType& OutId);
-	void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExTags::IDType& Id);
-	void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExTags::IDType& Id);
-	void MarkClusterEdges(const TArrayView<TSharedRef<PCGExData::FPointIO>> Edges, const PCGExTags::IDType& Id);
+	void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExData::DataIDType& OutId);
+	void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExData::DataIDType& Id);
+	void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExData::DataIDType& Id);
+	void MarkClusterEdges(const TArrayView<TSharedRef<PCGExData::FPointIO>> Edges, const PCGExData::DataIDType& Id);
 	void CleanupClusterTags(const TSharedPtr<PCGExData::FPointIO>& IO, const bool bKeepPairTag = false);
 }

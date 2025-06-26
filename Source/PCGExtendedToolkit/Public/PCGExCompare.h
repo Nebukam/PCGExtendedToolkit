@@ -150,7 +150,7 @@ namespace PCGExCompare
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
-			return A.Len() >= B.Len();
+			return A.Compare(B, ESearchCase::IgnoreCase) >= 0;
 		}
 		else if constexpr (
 			std::is_same_v<T, FName> ||
@@ -197,7 +197,7 @@ namespace PCGExCompare
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
-			return A.Len() <= B.Len();
+			return A.Compare(B, ESearchCase::IgnoreCase) <= 0;
 		}
 		else if constexpr (
 			std::is_same_v<T, FName> ||
@@ -244,7 +244,7 @@ namespace PCGExCompare
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
-			return A.Len() > B.Len();
+			return A.Compare(B, ESearchCase::IgnoreCase) > 0;
 		}
 		else if constexpr (
 			std::is_same_v<T, FName> ||
@@ -291,7 +291,7 @@ namespace PCGExCompare
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
-			return A.Len() < B.Len();
+			return A.Compare(B, ESearchCase::IgnoreCase) < 0;
 		}
 		else if constexpr (
 			std::is_same_v<T, FName> ||
@@ -395,12 +395,12 @@ namespace PCGExCompare
 		}
 	}
 
-	bool Compare(const EPCGExComparison Method, const TSharedPtr<PCGExData::FTagValue>& A, const double B, const double Tolerance = DBL_COMPARE_TOLERANCE);
-	bool Compare(const EPCGExStringComparison Method, const TSharedPtr<PCGExData::FTagValue>& A, const FString B);
+	bool Compare(const EPCGExComparison Method, const TSharedPtr<PCGExData::IDataValue>& A, const double B, const double Tolerance = DBL_COMPARE_TOLERANCE);
+	bool Compare(const EPCGExStringComparison Method, const TSharedPtr<PCGExData::IDataValue>& A, const FString B);
 	bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask);
 
 	bool HasMatchingTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, const bool bStrict = true);
-	bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<TSharedPtr<PCGExData::FTagValue>>& OutValues);
+	bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<TSharedPtr<PCGExData::IDataValue>>& OutValues);
 }
 
 USTRUCT(BlueprintType)
