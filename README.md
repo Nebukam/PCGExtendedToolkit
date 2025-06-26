@@ -1,7 +1,7 @@
 ---
 icon: hand-wave
-cover: .gitbook/assets/Patreon.png
-coverY: -13.592233009708737
+cover: .gitbook/assets/1080Alpha.png
+coverY: 0
 layout:
   cover:
     visible: true
