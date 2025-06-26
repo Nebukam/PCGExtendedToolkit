@@ -705,10 +705,10 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 	{
 	public:
 		FString TagId;
-		IDType TagValue;
+		DataIDType TagValue;
 		TArray<TSharedRef<FPointIO>> Entries;
 
-		FPointIOTaggedEntries(const FString& InTagId, const IDType& InTagValue)
+		FPointIOTaggedEntries(const FString& InTagId, const DataIDType& InTagValue)
 			: TagId(InTagId), TagValue(InTagValue)
 		{
 		}

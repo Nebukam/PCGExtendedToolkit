@@ -145,12 +145,12 @@ namespace PCGExSorting
 {
 	const FName SourceSortingRules = TEXT("SortRules");
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public TSharedFromThis<FPCGExSortRule>
+	class PCGEXTENDEDTOOLKIT_API FRuleHandler : public TSharedFromThis<FRuleHandler>
 	{
 	public:
-		FPCGExSortRule() = default;
+		FRuleHandler() = default;
 
-		explicit FPCGExSortRule(const FPCGExSortRuleConfig& Config):
+		explicit FRuleHandler(const FPCGExSortRuleConfig& Config):
 			Selector(Config.Selector),
 			Tolerance(Config.Tolerance),
 			bInvertRule(Config.bInvertRule)
@@ -159,6 +159,7 @@ namespace PCGExSorting
 
 		TSharedPtr<PCGExData::IBufferProxy> Buffer;
 		TArray<TSharedPtr<PCGExData::IBufferProxy>> Buffers;
+		TArray<TSharedPtr<PCGExData::IDataValue>> DataValues;
 
 		FPCGAttributePropertyInputSelector Selector;
 
@@ -171,7 +172,8 @@ namespace PCGExSorting
 	{
 	protected:
 		FPCGExContext* ExecutionContext = nullptr;
-		TArray<TSharedPtr<FPCGExSortRule>> Rules;
+		TArray<TSharedPtr<FRuleHandler>> RuleHandlers;
+		TMap<uint32, int32> IdxMap;
 
 	public:
 		EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
@@ -182,8 +184,11 @@ namespace PCGExSorting
 
 		bool Init(FPCGExContext* InContext);
 		bool Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InDataFacades);
+		bool Init(FPCGExContext* InContext, const TArray<FPCGTaggedData>& InTaggedDatas);
+		
 		bool Sort(const int32 A, const int32 B);
 		bool Sort(const PCGExData::FElement A, const PCGExData::FElement B);
+		bool SortData(const int32 A, const int32 B);
 	};
 
 	PCGEXTENDEDTOOLKIT_API

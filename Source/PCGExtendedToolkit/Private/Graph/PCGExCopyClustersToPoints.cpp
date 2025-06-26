@@ -211,7 +211,7 @@ namespace PCGExCopyClusters
 			// Create a vtx copy per target point
 			TSharedPtr<PCGExData::FPointIO> VtxDupe = Context->MainPoints->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::Duplicate);
 
-			PCGExTags::IDType OutId;
+			PCGExData::DataIDType OutId;
 			PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
 			VtxDupes[i] = VtxDupe;

@@ -117,7 +117,7 @@ void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 	NewVtx->DeleteAttribute(EdgeCountIdentifier);
 	NewVtx->DeleteAttribute(PCGExGraph::Attr_PCGExEdgeIdx);
 
-	const PCGExTags::IDType PairId = PointIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster);
+	const PCGExData::DataIDType PairId = PointIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster);
 
 	PCGExGraph::MarkClusterVtx(NewVtx, PairId);
 	PCGExGraph::MarkClusterEdges(NewEdges, PairId);

@@ -198,8 +198,8 @@ namespace PCGExAttributeStats
 			PCGEx::ExecuteWithRightType(
 				Identity.UnderlyingType, [&](auto DummyValue)
 				{
-					using RawT = decltype(DummyValue);
-					PCGEX_MAKE_SHARED(S, TAttributeStats<RawT>, Identity, Key)
+					using T_REAL = decltype(DummyValue);
+					PCGEX_MAKE_SHARED(S, TAttributeStats<T_REAL>, Identity, Key)
 					Stats.Add(StaticCastSharedPtr<IAttributeStats>(S));
 				});
 		}

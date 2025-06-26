@@ -486,7 +486,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		FGraphCompilationEndCallback OnCompilationEndCallback;
 		FSubGraphPostProcessCallback OnSubGraphPostProcess;
 
-		PCGExTags::IDType PairId;
+		PCGExData::DataIDType PairId;
 		TSharedPtr<FGraph> Graph;
 
 		TSharedRef<PCGExData::FFacade> NodeDataFacade;

@@ -140,13 +140,13 @@ namespace PCGExCompare
 		}
 	}
 
-	bool Compare(const EPCGExComparison Method, const TSharedPtr<PCGExData::FTagValue>& A, const double B, const double Tolerance)
+	bool Compare(const EPCGExComparison Method, const TSharedPtr<PCGExData::IDataValue>& A, const double B, const double Tolerance)
 	{
 		if (!A->IsNumeric()) { return false; }
 		return Compare(Method, A->AsDouble(), B, Tolerance);
 	}
 
-	bool Compare(const EPCGExStringComparison Method, const TSharedPtr<PCGExData::FTagValue>& A, const FString B)
+	bool Compare(const EPCGExStringComparison Method, const TSharedPtr<PCGExData::IDataValue>& A, const FString B)
 	{
 		if (!A->IsText()) { return false; }
 		return Compare(Method, A->AsString(), B);
@@ -174,7 +174,7 @@ namespace PCGExCompare
 	{
 		if (bStrict)
 		{
-			for (const TPair<FString, TSharedPtr<PCGExData::FTagValue>>& Pair : InTags->ValueTags)
+			for (const TPair<FString, TSharedPtr<PCGExData::IDataValue>>& Pair : InTags->ValueTags)
 			{
 				switch (MatchMode)
 				{
@@ -238,9 +238,9 @@ namespace PCGExCompare
 		return false;
 	}
 
-	bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<TSharedPtr<PCGExData::FTagValue>>& OutValues)
+	bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<TSharedPtr<PCGExData::IDataValue>>& OutValues)
 	{
-		for (const TPair<FString, TSharedPtr<PCGExData::FTagValue>>& Pair : InTags->ValueTags)
+		for (const TPair<FString, TSharedPtr<PCGExData::IDataValue>>& Pair : InTags->ValueTags)
 		{
 			switch (MatchMode)
 			{
@@ -362,13 +362,13 @@ bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::
 	}
 
 
-	TArray<TSharedPtr<PCGExData::FTagValue>> TagValues;
+	TArray<TSharedPtr<PCGExData::IDataValue>> TagValues;
 	if (!PCGExCompare::GetMatchingValueTags(InData->Tags, TestTagName, NameMatch, TagValues)) { return false; }
 
 	if (ValueType == EPCGExComparisonDataType::Numeric)
 	{
 		const double OperandBNumeric = NumericValueGetter->SoftGet(SourcePoint, 0);
-		for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
+		for (const TSharedPtr<PCGExData::IDataValue>& TagValue : TagValues)
 		{
 			if (!PCGExCompare::Compare(NumericComparison, TagValue, OperandBNumeric, Tolerance)) { return false; }
 		}
@@ -376,7 +376,7 @@ bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::
 	else
 	{
 		const FString OperandBString = StringValueGetter->SoftGet(SourcePoint, TEXT(""));
-		for (const TSharedPtr<PCGExData::FTagValue>& TagValue : TagValues)
+		for (const TSharedPtr<PCGExData::IDataValue>& TagValue : TagValues)
 		{
 			if (!PCGExCompare::Compare(StringComparison, TagValue, OperandBString)) { return false; }
 		}

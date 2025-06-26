@@ -94,7 +94,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 			if (!InputIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges)) { continue; }
 
-			const PCGExTags::IDType OtherKey = InputIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster);
+			const PCGExData::DataIDType OtherKey = InputIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster);
 			if (!OtherKey || OtherKey->Value != Context->SearchKey->Value) { continue; }
 
 			// Remove found edges from main points
@@ -135,7 +135,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 			if (!InputIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx)) { continue; }
 
-			const PCGExTags::IDType OtherKey = InputIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster);
+			const PCGExData::DataIDType OtherKey = InputIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster);
 			if (!OtherKey || OtherKey->Value != Context->SearchKey->Value) { continue; }
 
 			// Output vtx
@@ -237,7 +237,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		TSharedPtr<PCGExData::FPointIOTaggedEntries> EdgesEntries;
 
 
-		if (const PCGExTags::IDType CurrentPairId = Vtx->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster))
+		if (const PCGExData::DataIDType CurrentPairId = Vtx->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster))
 		{
 			EdgesEntries = InputDictionary->GetEntries(CurrentPairId->Value);
 			if (!EdgesEntries || EdgesEntries->Entries.IsEmpty()) { EdgesEntries = nullptr; }

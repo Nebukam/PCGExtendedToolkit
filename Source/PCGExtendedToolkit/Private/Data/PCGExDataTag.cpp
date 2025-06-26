@@ -3,63 +3,6 @@
 
 #include "Data/PCGExDataTag.h"
 
-namespace PCGExTags
-{
-	bool FTagValue::SameValue(const TSharedPtr<FTagValue>& Other) const
-	{
-		if (IsNumeric() && Other->IsNumeric()) { return AsDouble() == Other->AsDouble(); }
-		if (IsText() && Other->IsText()) { return AsString() == Other->AsString(); }
-		return false;
-	}
-
-	TSharedPtr<FTagValue> TryGetValueTag(const FString& InTag, FString& OutLeftSide)
-	{
-		int32 DividerPosition = INDEX_NONE;
-		if (!InTag.FindChar(':', DividerPosition))
-		{
-			return nullptr;
-		}
-
-		OutLeftSide = InTag.Left(DividerPosition);
-		FString RightSide = InTag.RightChop(DividerPosition + 1);
-
-		if (OutLeftSide.IsEmpty())
-		{
-			return nullptr;
-		}
-		if (RightSide.IsEmpty())
-		{
-			return nullptr;
-		}
-		if (RightSide.IsNumeric())
-		{
-			int32 FloatingPointPosition = INDEX_NONE;
-			if (InTag.FindChar('.', FloatingPointPosition))
-			{
-				return MakeShared<TTagValue<double>>(FCString::Atod(*RightSide));
-			}
-			return MakeShared<TTagValue<int32>>(FCString::Atoi(*RightSide));
-		}
-
-		if (FVector ParsedVector; ParsedVector.InitFromString(RightSide))
-		{
-			return MakeShared<TTagValue<FVector>>(ParsedVector);
-		}
-
-		if (FVector2D ParsedVector2D; ParsedVector2D.InitFromString(RightSide))
-		{
-			return MakeShared<TTagValue<FVector2D>>(ParsedVector2D);
-		}
-
-		if (FVector4 ParsedVector4; ParsedVector4.InitFromString(RightSide))
-		{
-			return MakeShared<TTagValue<FVector4>>(ParsedVector4);
-		}
-
-		return MakeShared<TTagValue<FString>>(RightSide);
-	}
-}
-
 namespace PCGExData
 {
 	int32 FTags::Num() const
@@ -126,8 +69,8 @@ namespace PCGExData
 
 		InTags.Reserve(InTags.Num() + Num());
 		InTags.Append(RawTags);
-		if (bFlatten) { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { InTags.Add(Pair.Value->Flatten(Pair.Key)); } }
-		else { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { InTags.Add(Pair.Key); } }
+		if (bFlatten) { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { InTags.Add(Pair.Value->Flatten(Pair.Key)); } }
+		else { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { InTags.Add(Pair.Key); } }
 	}
 
 	void FTags::DumpTo(TArray<FName>& InTags, const bool bFlatten) const
@@ -144,7 +87,7 @@ namespace PCGExData
 		TSet<FString> Flattened;
 		Flattened.Reserve(Num());
 		Flattened.Append(RawTags);
-		for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(Pair.Value->Flatten(Pair.Key)); }
+		for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { Flattened.Add(Pair.Value->Flatten(Pair.Key)); }
 		return Flattened;
 	}
 
@@ -155,8 +98,8 @@ namespace PCGExData
 		TArray<FString> Flattened;
 		Flattened.Reserve(Num());
 		for (const FString& Key : RawTags) { Flattened.Add(Key); }
-		if (bIncludeValue) { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(Pair.Value->Flatten(Pair.Key)); } }
-		else { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(Pair.Key); } }
+		if (bIncludeValue) { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { Flattened.Add(Pair.Value->Flatten(Pair.Key)); } }
+		else { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { Flattened.Add(Pair.Key); } }
 		return Flattened;
 	}
 
@@ -167,8 +110,8 @@ namespace PCGExData
 		TArray<FName> Flattened;
 		Flattened.Reserve(Num());
 		for (const FString& Key : RawTags) { Flattened.Add(FName(Key)); }
-		if (bIncludeValue) { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Value->Flatten(Pair.Key))); } }
-		else { for (const TPair<FString, TSharedPtr<FTagValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Key)); } }
+		if (bIncludeValue) { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Value->Flatten(Pair.Key))); } }
+		else { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Key)); } }
 		return Flattened;
 	}
 
@@ -206,10 +149,10 @@ namespace PCGExData
 		}
 	}
 
-	TSharedPtr<FTagValue> FTags::GetValue(const FString& Key) const
+	TSharedPtr<IDataValue> FTags::GetValue(const FString& Key) const
 	{
 		FReadScopeLock ReadScopeLock(TagsLock);
-		if (const TSharedPtr<FTagValue>* ValueTagPtr = ValueTags.Find(Key)) { return *ValueTagPtr; }
+		if (const TSharedPtr<IDataValue>* ValueTagPtr = ValueTags.Find(Key)) { return *ValueTagPtr; }
 		return nullptr;
 	}
 
@@ -229,7 +172,7 @@ namespace PCGExData
 	{
 		FString InKey = TEXT("");
 
-		if (const TSharedPtr<FTagValue> TagValue = TryGetValueTag(InTag, InKey))
+		if (const TSharedPtr<IDataValue> TagValue = TryGetValueFromTag(InTag, InKey))
 		{
 			ValueTags.Add(InKey, TagValue);
 			return;

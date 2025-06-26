@@ -162,9 +162,9 @@ namespace PCGExReversePointOrder
 				PCGEx::ExecuteWithRightType(
 					WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
 					{
-						using RawT = decltype(DummyValue);
-						WorkingPair.FirstWriter = This->PointDataFacade->GetWritable<RawT>(WorkingPair.FirstAttributeName, PCGExData::EBufferInit::Inherit);
-						WorkingPair.SecondWriter = This->PointDataFacade->GetWritable<RawT>(WorkingPair.SecondAttributeName, PCGExData::EBufferInit::Inherit);
+						using T_REAL = decltype(DummyValue);
+						WorkingPair.FirstWriter = This->PointDataFacade->GetWritable<T_REAL>(WorkingPair.FirstAttributeName, PCGExData::EBufferInit::Inherit);
+						WorkingPair.SecondWriter = This->PointDataFacade->GetWritable<T_REAL>(WorkingPair.SecondAttributeName, PCGExData::EBufferInit::Inherit);
 					});
 			};
 
@@ -182,15 +182,15 @@ namespace PCGExReversePointOrder
 			PCGEx::ExecuteWithRightType(
 				WorkingPair.FirstIdentity->UnderlyingType, [&](auto DummyValue)
 				{
-					using RawT = decltype(DummyValue);
-					TSharedPtr<PCGExData::TBuffer<RawT>> FirstWriter = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(WorkingPair.FirstWriter);
-					TSharedPtr<PCGExData::TBuffer<RawT>> SecondWriter = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(WorkingPair.SecondWriter);
+					using T_REAL = decltype(DummyValue);
+					TSharedPtr<PCGExData::TBuffer<T_REAL>> FirstWriter = StaticCastSharedPtr<PCGExData::TBuffer<T_REAL>>(WorkingPair.FirstWriter);
+					TSharedPtr<PCGExData::TBuffer<T_REAL>> SecondWriter = StaticCastSharedPtr<PCGExData::TBuffer<T_REAL>>(WorkingPair.SecondWriter);
 
 					if (WorkingPair.bMultiplyByMinusOne)
 					{
 						PCGEX_SCOPE_LOOP(Index)
 						{
-							const RawT FirstValue = FirstWriter->GetValue(Index);
+							const T_REAL FirstValue = FirstWriter->GetValue(Index);
 							FirstWriter->SetValue(Index, PCGExMath::DblMult(SecondWriter->GetValue(Index), -1));
 							SecondWriter->SetValue(Index, PCGExMath::DblMult(FirstValue, -1));
 						}
@@ -199,7 +199,7 @@ namespace PCGExReversePointOrder
 					{
 						PCGEX_SCOPE_LOOP(Index)
 						{
-							const RawT FirstValue = FirstWriter->GetValue(Index);
+							const T_REAL FirstValue = FirstWriter->GetValue(Index);
 							FirstWriter->SetValue(Index, SecondWriter->GetValue(Index));
 							SecondWriter->SetValue(Index, FirstValue);
 						}

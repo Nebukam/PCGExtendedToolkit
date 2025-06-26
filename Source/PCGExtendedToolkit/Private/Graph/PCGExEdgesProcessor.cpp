@@ -89,14 +89,14 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 	if (!FPCGExPointsProcessorContext::AdvancePointsIO(bCleanupKeys)) { return false; }
 
-	if (const PCGExTags::IDType TagValue = CurrentIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster))
+	if (const PCGExData::DataIDType TagValue = CurrentIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster))
 	{
 		int32 PreUpdateKey = TagValue->Value;
 		TaggedEdges = InputDictionary->GetEntries(PreUpdateKey);
 
 		if (TaggedEdges && !TaggedEdges->Entries.IsEmpty())
 		{
-			PCGExTags::IDType OutId;
+			PCGExData::DataIDType OutId;
 			PCGExGraph::SetClusterVtx(CurrentIO, OutId); // Update key
 			PCGExGraph::MarkClusterEdges(TaggedEdges->Entries, OutId);
 		}

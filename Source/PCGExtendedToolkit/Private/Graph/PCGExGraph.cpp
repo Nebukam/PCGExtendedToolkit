@@ -1375,7 +1375,7 @@ namespace PCGExGraphTask
 
 		VtxDupe->IOIndex = TaskIndex;
 
-		PCGExTags::IDType OutId;
+		PCGExData::DataIDType OutId;
 		PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
 		PCGEX_MAKE_SHARED(VtxTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, VtxDupe, TransformDetails);
