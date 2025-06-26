@@ -24,12 +24,12 @@ PCGEx uses [**Blogger Sans** by FirstSiteGuide](https://www.behance.net/gallery/
 #### Default version
 
 {% tabs %}
-{% tab title="PNG" %}
-<figure><img src="../.gitbook/assets/PCGEx_Logo_Default.png" alt=""><figcaption></figcaption></figure>
-{% endtab %}
-
 {% tab title="SVG" %}
 <figure><img src="../.gitbook/assets/PCGEx_Logo_Default.svg" alt=""><figcaption></figcaption></figure>
+{% endtab %}
+
+{% tab title="PNG" %}
+<figure><img src="../.gitbook/assets/PCGEx_Logo_Default.png" alt=""><figcaption></figcaption></figure>
 {% endtab %}
 {% endtabs %}
 
@@ -38,36 +38,36 @@ PCGEx uses [**Blogger Sans** by FirstSiteGuide](https://www.behance.net/gallery/
 Feel free to use any color fill or mask over images things that will better fit within your branding!
 
 {% tabs %}
-{% tab title="PNG" %}
-<figure><img src="../.gitbook/assets/PCGEx_Logo_Fill (1).png" alt=""><figcaption></figcaption></figure>
-{% endtab %}
-
 {% tab title="SVG" %}
 <figure><img src="../.gitbook/assets/PCGEx_Logo_Fill (1).svg" alt=""><figcaption></figcaption></figure>
+{% endtab %}
+
+{% tab title="PNG" %}
+<figure><img src="../.gitbook/assets/PCGEx_Logo_Fill (1).png" alt=""><figcaption></figcaption></figure>
 {% endtab %}
 {% endtabs %}
 
 #### Accent version
 
 {% tabs %}
-{% tab title="PNG" %}
-<figure><img src="../.gitbook/assets/PCGEx_Logo_Accent.png" alt=""><figcaption></figcaption></figure>
-{% endtab %}
-
 {% tab title="SVG" %}
 <figure><img src="../.gitbook/assets/PCGEx_Logo_Accent.svg" alt=""><figcaption></figcaption></figure>
+{% endtab %}
+
+{% tab title="PNG" %}
+<figure><img src="../.gitbook/assets/PCGEx_Logo_Accent.png" alt=""><figcaption></figcaption></figure>
 {% endtab %}
 {% endtabs %}
 
 #### Square/no-text version
 
 {% tabs %}
-{% tab title="PNG" %}
-<figure><img src="../.gitbook/assets/PCGEx_Logo_Square.png" alt=""><figcaption></figcaption></figure>
-{% endtab %}
-
 {% tab title="SVG" %}
 <figure><img src="../.gitbook/assets/PCGEx_Logo_Square.svg" alt=""><figcaption></figcaption></figure>
+{% endtab %}
+
+{% tab title="PNG" %}
+<figure><img src="../.gitbook/assets/PCGEx_Logo_Square.png" alt=""><figcaption></figcaption></figure>
 {% endtab %}
 {% endtabs %}
 
