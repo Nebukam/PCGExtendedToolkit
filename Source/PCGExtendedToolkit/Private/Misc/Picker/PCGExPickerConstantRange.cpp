@@ -30,28 +30,28 @@ FString UPCGExPickerConstantRangeSettings::GetDisplayName() const
 }
 #endif
 
-void UPCGExPickerConstantRangeFactory::AddPicks(const int32 InNum, TSet<int32>& OutPicks) const
+void UPCGExPickerConstantRangeFactory::AddPicksFromConfig(const FPCGExPickerConstantRangeConfig& InConfig, int32 InNum, TSet<int32>& OutPicks)
 {
 	int32 TargetStartIndex = 0;
 	int32 TargetEndIndex = 0;
 	const int32 MaxIndex = InNum - 1;
 
-	if (!Config.bTreatAsNormalized)
+	if (!InConfig.bTreatAsNormalized)
 	{
-		TargetStartIndex = Config.DiscreteStartIndex;
-		TargetEndIndex = Config.DiscreteEndIndex;
+		TargetStartIndex = InConfig.DiscreteStartIndex;
+		TargetEndIndex = InConfig.DiscreteEndIndex;
 	}
 	else
 	{
-		TargetStartIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * Config.RelativeStartIndex, Config.TruncateMode);
-		TargetEndIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * Config.RelativeEndIndex, Config.TruncateMode);
+		TargetStartIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * InConfig.RelativeStartIndex, InConfig.TruncateMode);
+		TargetEndIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * InConfig.RelativeEndIndex, InConfig.TruncateMode);
 	}
 
 	if (TargetStartIndex < 0) { TargetStartIndex = InNum + TargetStartIndex; }
-	TargetStartIndex = PCGExMath::SanitizeIndex(TargetStartIndex, MaxIndex, Config.Safety);
+	TargetStartIndex = PCGExMath::SanitizeIndex(TargetStartIndex, MaxIndex, InConfig.Safety);
 
 	if (TargetEndIndex < 0) { TargetEndIndex = InNum + TargetEndIndex; }
-	TargetEndIndex = PCGExMath::SanitizeIndex(TargetEndIndex, MaxIndex, Config.Safety);
+	TargetEndIndex = PCGExMath::SanitizeIndex(TargetEndIndex, MaxIndex, InConfig.Safety);
 
 	if (!FMath::IsWithin(TargetStartIndex, 0, InNum) ||
 		!FMath::IsWithin(TargetEndIndex, 0, InNum)) { return; }
@@ -62,6 +62,11 @@ void UPCGExPickerConstantRangeFactory::AddPicks(const int32 InNum, TSet<int32>& 
 
 	OutPicks.Reserve(OutPicks.Num() + TargetEndIndex - TargetStartIndex + 1);
 	for (int i = TargetStartIndex; i <= TargetEndIndex; i++) { OutPicks.Add(i); }
+}
+
+void UPCGExPickerConstantRangeFactory::AddPicks(const int32 InNum, TSet<int32>& OutPicks) const
+{
+	AddPicksFromConfig(Config, InNum, OutPicks);
 }
 
 bool UPCGExPickerConstantRangeFactory::InitInternalData(FPCGExContext* InContext)

@@ -20,10 +20,6 @@ struct FPCGExPickerConstantRangeConfig : public FPCGExPickerConfigBase
 	{
 	}
 
-	/**  If enabled, ensure that whatever values are used for start and end, they are ordered to form a valid range. i.e, [5,1] will be processed as [1,5] */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bAutoSortRange = true;
-
 	/**  Use negative values to select from the end. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bTreatAsNormalized", EditConditionHides, DisplayAfter="bTreatAsNormalized"))
 	int32 DiscreteStartIndex = 0;
@@ -50,8 +46,9 @@ public:
 	UPROPERTY()
 	FPCGExPickerConstantRangeConfig Config;
 
+	static void AddPicksFromConfig(const FPCGExPickerConstantRangeConfig& InConfig, int32 InNum, TSet<int32>& OutPicks);
 	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const override;
-
+	
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
 };
