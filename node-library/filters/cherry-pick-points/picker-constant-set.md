@@ -1,7 +1,7 @@
 ---
-description: 'In editor :: PCGEx | Picker : Constant Set'
+description: 'In editor :: PCGEx | Picker : Indices from Set'
 icon: circle-dashed
 ---
 
-# Picker : Constant Set
+# Picker : Indices from Set
 
