@@ -13,27 +13,27 @@
 #include "PCGExPointsProcessor.h"
 
 
-#include "PCGExPathAngleFilter.generated.h"
+#include "PCGExAngleFilter.generated.h"
 
 UENUM()
-enum class EPCGExPathAngleFilterMode : uint8
+enum class EPCGExAngleFilterMode : uint8
 {
 	Curvature = 0 UMETA(DisplayName = "Curvature", Tooltip="Check against the dot product of (Prev to Current) -> (Current to Next)"),
 	Spread    = 1 UMETA(DisplayName = "Spread", Tooltip="Check against the dot product of (Current to Prev) -> (Current to Next)"),
 };
 
 USTRUCT(BlueprintType)
-struct FPCGExPathAngleFilterConfig
+struct FPCGExAngleFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExPathAngleFilterConfig()
+	FPCGExAngleFilterConfig()
 	{
 	}
 
 	/** Filter mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExPathAngleFilterMode Mode = EPCGExPathAngleFilterMode::Curvature;
+	EPCGExAngleFilterMode Mode = EPCGExAngleFilterMode::Curvature;
 
 	/** What should this filter return when dealing with first points? (if the data doesn't have @Data.IsClosed = true, otherwise wraps) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
@@ -60,13 +60,13 @@ struct FPCGExPathAngleFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExPathAngleFilterFactory : public UPCGExFilterFactoryData
+class UPCGExAngleFilterFactory : public UPCGExFilterFactoryData
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY()
-	FPCGExPathAngleFilterConfig Config;
+	FPCGExAngleFilterConfig Config;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 
@@ -79,18 +79,20 @@ public:
 
 namespace PCGExPointFilter
 {
-	class FPathAngleFilter final : public FSimpleFilter
+	class FAngleFilter final : public FSimpleFilter
 	{
 	public:
-		explicit FPathAngleFilter(const TObjectPtr<const UPCGExPathAngleFilterFactory>& InFactory)
+		explicit FAngleFilter(const TObjectPtr<const UPCGExAngleFilterFactory>& InFactory)
 			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 		}
 
-		const TObjectPtr<const UPCGExPathAngleFilterFactory> TypedFilterFactory;
+		const TObjectPtr<const UPCGExAngleFilterFactory> TypedFilterFactory;
 
-		bool bIsClosed = false;
+		bool bClosedLoop = false;
+		int32 LastIndex = -1;
+
 		FPCGExDotComparisonDetails DotComparison;
 		TConstPCGValueRange<FTransform> InTransforms;
 
@@ -98,7 +100,7 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const int32 PointIndex) const override;
 
-		virtual ~FPathAngleFilter() override
+		virtual ~FAngleFilter() override
 		{
 		}
 	};
@@ -106,27 +108,21 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/math-checks/dot-product"))
-class UPCGExPathAngleFilterProviderSettings : public UPCGExFilterProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/self-comparisons/numeric-1"))
+class UPCGExAngleFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		PathAngleFilterFactory, "Filter : Path Angle", "Creates a filter definition that compares dot value of the direction of a point toward its previous and next points.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS(AngleFilterFactory, "Filter : Angle", "Creates a filter definition that compares dot value of the direction of a point toward its previous and next points.")
 #endif
 	//~End UPCGSettings
 
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExPathAngleFilterConfig Config;
+	FPCGExAngleFilterConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
-
-#if WITH_EDITOR
-	virtual FString GetDisplayName() const override;
-#endif
 };

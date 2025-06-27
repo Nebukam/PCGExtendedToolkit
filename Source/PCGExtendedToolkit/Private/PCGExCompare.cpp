@@ -284,7 +284,7 @@ void FPCGExVectorHashComparisonDetails::RegisterConsumableAttributesWithData(FPC
 
 bool FPCGExVectorHashComparisonDetails::GetOnlyUseDataDomain() const
 {
-	return HashToleranceInput == EPCGExInputValueType::Constant;
+	return HashToleranceInput == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(HashToleranceAttribute);
 }
 
 bool FPCGExVectorHashComparisonDetails::Test(const FVector& A, const FVector& B, const int32 PointIndex) const
@@ -298,10 +298,28 @@ bool FPCGExDotComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef
 	ThresholdGetter = GetValueSettingThreshold();
 	if (!ThresholdGetter->Init(InContext, InPrimaryDataCache, false)) { return false; }
 
-	if (Domain == EPCGExAngularDomain::Degrees) { ComparisonTolerance = PCGExMath::DegreesToDot(DegreesTolerance); }
+	if (Domain == EPCGExAngularDomain::Degrees) { ComparisonTolerance = (1 + PCGExMath::DegreesToDot(180 - DegreesTolerance)) * 0.5; }
 	else { ComparisonTolerance = DotTolerance; }
 
 	return true;
+}
+
+double FPCGExDotComparisonDetails::GetComparisonThreshold(const int32 PointIndex) const
+{
+	if (Domain == EPCGExAngularDomain::Amplitude) { return ThresholdGetter->Read(PointIndex); }
+	return PCGExMath::DegreesToDot(180 - ThresholdGetter->Read(PointIndex));
+}
+
+bool FPCGExDotComparisonDetails::Test(const double A, const double B) const
+{
+	return bUnsignedComparison ?
+		       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(B), ComparisonTolerance) :
+		       PCGExCompare::Compare(Comparison, (1 + A) * 0.5, (1 + B) * 0.5, ComparisonTolerance);
+}
+
+bool FPCGExDotComparisonDetails::Test(const double A, const int32 Index) const
+{
+	return Test(A, GetComparisonThreshold(Index));
 }
 
 void FPCGExDotComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -312,7 +330,7 @@ void FPCGExDotComparisonDetails::RegisterConsumableAttributesWithData(FPCGExCont
 
 bool FPCGExDotComparisonDetails::GetOnlyUseDataDomain() const
 {
-	return ThresholdInput == EPCGExInputValueType::Constant;
+	return ThresholdInput == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(ThresholdAttribute);
 }
 
 bool FPCGExAttributeToTagComparisonDetails::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade)

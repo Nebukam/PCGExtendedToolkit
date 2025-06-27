@@ -151,16 +151,11 @@ namespace PCGExMath
 
 #pragma region basics
 
-	FORCEINLINE static double DegreesToDot(const double Angle)
+	FORCEINLINE static double DegreesToDot(const double AngleInDegrees)
 	{
-		return FMath::Cos(FMath::Clamp(FMath::Abs(Angle), 0, 180.0) * (PI / 180.0));
+		return FMath::Cos(FMath::DegreesToRadians(AngleInDegrees));
 	}
-
-	FORCEINLINE static double DegreesToDotForComparison(const double Angle)
-	{
-		return FMath::Cos((180 - FMath::Clamp(FMath::Abs(Angle), 0, 180.0)) * (PI / 180.0));
-	}
-
+	
 	PCGEXTENDEDTOOLKIT_API
 	double ConvertStringToDouble(const FString& StringToConvert);
 
