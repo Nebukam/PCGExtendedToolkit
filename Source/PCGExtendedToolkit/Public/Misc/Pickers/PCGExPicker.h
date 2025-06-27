@@ -36,6 +36,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPickerConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexSafety Safety = EPCGExIndexSafety::Ignore;
 
+
+	virtual void Sanitize()
+	{
+	}
+
 	virtual void Init()
 	{
 	}

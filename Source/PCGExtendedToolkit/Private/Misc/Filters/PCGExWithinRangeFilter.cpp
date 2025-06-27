@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExWithinRangeFilter.h"
 
+#include "Misc/Pickers/PCGExPickerAttributeSetRanges.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
@@ -12,9 +14,38 @@ bool UPCGExWithinRangeFilterFactory::DomainCheck()
 	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA);
 }
 
+bool UPCGExWithinRangeFilterFactory::Init(FPCGExContext* InContext)
+{
+	if (Config.Source == EPCGExRangeSource::AttributeSet)
+	{
+		FPCGExPickerAttributeSetRangesConfig DummyConfig;
+		DummyConfig.Attributes = Config.Attributes;
+		if (!UPCGExPickerAttributeSetRangesFactory::GetUniqueRanges(InContext, FName("Ranges"), DummyConfig, Ranges)) { return false; }
+	}
+	else
+	{
+		FPCGExPickerConstantRangeConfig& Range = Ranges.Emplace_GetRef();
+		Range.RelativeStartIndex = Config.RangeMin;
+		Range.RelativeEndIndex = Config.RangeMax;
+		Range.Sanitize();
+	}
+
+	return Super::Init(InContext);
+}
+
 TSharedPtr<PCGExPointFilter::FFilter> UPCGExWithinRangeFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FWithinRangeFilter>(this);
+}
+
+TArray<FPCGPinProperties> UPCGExWithinRangeFilterProviderSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
+	if (Config.Source == EPCGExRangeSource::AttributeSet) { PCGEX_PIN_ANY(FName("Ranges"), "Data to read attribute ranges from", Required, {}) }
+	else { PCGEX_PIN_ANY(FName("Ranges"), "Data to read attribute ranges from", Advanced, {}) }
+
+	return PinProperties;
 }
 
 bool PCGExPointFilter::FWithinRangeFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
@@ -29,9 +60,6 @@ bool PCGExPointFilter::FWithinRangeFilter::Init(FPCGExContext* InContext, const 
 		return false;
 	}
 
-	RealMin = FMath::Min(TypedFilterFactory->Config.RangeMin, TypedFilterFactory->Config.RangeMax);
-	RealMax = FMath::Max(TypedFilterFactory->Config.RangeMin, TypedFilterFactory->Config.RangeMax);
-
 	bInclusive = TypedFilterFactory->Config.bInclusive;
 	bInvert = TypedFilterFactory->Config.bInvert;
 
@@ -40,15 +68,41 @@ bool PCGExPointFilter::FWithinRangeFilter::Init(FPCGExContext* InContext, const 
 
 bool PCGExPointFilter::FWithinRangeFilter::Test(const int32 PointIndex) const
 {
-	if (!bInclusive) { return FMath::IsWithin(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert; }
-	return FMath::IsWithinInclusive(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert;
+	const double A = OperandA->Read(PointIndex);
+
+	if (bInclusive)
+	{
+		for (const FPCGExPickerConstantRangeConfig& Range : Ranges) { if (Range.IsWithinInclusive(A)) { return !bInvert; } }
+		return bInvert;
+	}
+	else
+	{
+		for (const FPCGExPickerConstantRangeConfig& Range : Ranges) { if (Range.IsWithin(A)) { return !bInvert; } }
+		return bInvert;
+	}
 }
 
 bool PCGExPointFilter::FWithinRangeFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 {
 	double A = 0;
 	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A)) { return false; }
-	return FMath::IsWithinInclusive(A, RealMin, RealMax) ? !bInvert : bInvert;
+
+	if (bInclusive)
+	{
+		for (const FPCGExPickerConstantRangeConfig& Range : Ranges) { if (Range.IsWithinInclusive(A)) { return !bInvert; } }
+		return bInvert;
+	}
+	else
+	{
+		for (const FPCGExPickerConstantRangeConfig& Range : Ranges) { if (Range.IsWithin(A)) { return !bInvert; } }
+		return bInvert;
+	}
+}
+
+bool UPCGExWithinRangeFilterProviderSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (InPin->Properties.Label == FName("Ranges")) { return Config.Source == EPCGExRangeSource::AttributeSet; }
+	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
 PCGEX_CREATE_FILTER_FACTORY(WithinRange)
@@ -56,6 +110,11 @@ PCGEX_CREATE_FILTER_FACTORY(WithinRange)
 #if WITH_EDITOR
 FString UPCGExWithinRangeFilterProviderSettings::GetDisplayName() const
 {
+	if (Config.Source == EPCGExRangeSource::AttributeSet)
+	{
+		return GetDefaultNodeTitle().ToString();
+	}
+	
 	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + TEXT("[");
 
 	DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.RangeMin) / 1000.0));

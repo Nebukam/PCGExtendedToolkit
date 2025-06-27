@@ -16,6 +16,7 @@ class UPCGExPickerOperation;
 UPCGExFactoryData* UPCGExPicker##_PICKER##Settings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const{ \
 UPCGExPicker##_PICKER##Factory* NewFactory = InContext->ManagedObjects->New<UPCGExPicker##_PICKER##Factory>(); \
 NewFactory->Config = Config; \
+NewFactory->Config.Sanitize(); \
 Super::CreateFactory(InContext, NewFactory); /* Super factory to grab custom override settings before body */ \
 _NEW_FACTORY \
 return NewFactory; }

@@ -35,6 +35,12 @@ struct FPCGExPickerConstantRangeConfig : public FPCGExPickerConfigBase
 	/**  Use negative values to select from the end. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTreatAsNormalized", EditConditionHides, DisplayAfter="bTreatAsNormalized"))
 	double RelativeEndIndex = 0;
+
+	virtual void Sanitize() override;
+	
+	bool IsWithin(double Value) const;
+	bool IsWithinInclusive(double Value) const;
+	
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="filters/cherry-pick-points/picker-range"))
