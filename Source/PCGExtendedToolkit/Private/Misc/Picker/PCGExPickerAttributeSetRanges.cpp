@@ -26,19 +26,14 @@ FString UPCGExPickerAttributeSetRangesSettings::GetDisplayName() const
 }
 #endif
 
-void UPCGExPickerAttributeSetRangesFactory::AddPicks(const int32 InNum, TSet<int32>& OutPicks) const
+bool UPCGExPickerAttributeSetRangesFactory::GetUniqueRanges(
+	FPCGExContext* InContext, const FName InPinLabel,
+	const FPCGExPickerAttributeSetRangesConfig& InConfig, TArray<FPCGExPickerConstantRangeConfig>& OutRanges)
 {
-	for (const FPCGExPickerConstantRangeConfig& RangeConfig : Ranges) { UPCGExPickerConstantRangeFactory::AddPicksFromConfig(RangeConfig, InNum, OutPicks); }
-}
-
-bool UPCGExPickerAttributeSetRangesFactory::InitInternalData(FPCGExContext* InContext)
-{
-	if (!Super::InitInternalData(InContext)) { return false; }
-
 	TArray<TSharedPtr<PCGExData::FFacade>> Facades;
-	if (!TryGetFacades(InContext, FName("Indices"), Facades, false, true))
+	if (!TryGetFacades(InContext, InPinLabel, Facades, false, true))
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No valid data was found for indices."));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No valid data was found."));
 		return false;
 	}
 
@@ -46,7 +41,7 @@ bool UPCGExPickerAttributeSetRangesFactory::InitInternalData(FPCGExContext* InCo
 
 	for (const TSharedPtr<PCGExData::FFacade>& Facade : Facades)
 	{
-		if (Config.Attributes.IsEmpty())
+		if (InConfig.Attributes.IsEmpty())
 		{
 			const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Facade->Source->GetIn()->Metadata);
 			if (Infos->Attributes.IsEmpty())
@@ -61,7 +56,7 @@ bool UPCGExPickerAttributeSetRangesFactory::InitInternalData(FPCGExContext* InCo
 		}
 		else
 		{
-			for (const FPCGAttributePropertyInputSelector& Selector : Config.Attributes)
+			for (const FPCGAttributePropertyInputSelector& Selector : InConfig.Attributes)
 			{
 				const TSharedPtr<PCGEx::TAttributeBroadcaster<FVector2D>> Values = PCGEx::TAttributeBroadcaster<FVector2D>::Make(Selector, Facade->Source);
 				if (!Values) { continue; }
@@ -70,29 +65,44 @@ bool UPCGExPickerAttributeSetRangesFactory::InitInternalData(FPCGExContext* InCo
 		}
 	}
 
+	if (UniqueRanges.IsEmpty()) { return false; }
+
 	// Create a range config per unique range found
 	for (const FVector2D& Range : UniqueRanges)
 	{
-		FPCGExPickerConstantRangeConfig& RangeConfig = Ranges.Emplace_GetRef();
+		FPCGExPickerConstantRangeConfig& RangeConfig = OutRanges.Emplace_GetRef();
 
-		RangeConfig.bTreatAsNormalized = Config.bTreatAsNormalized;
-		RangeConfig.TruncateMode = Config.TruncateMode;
-		RangeConfig.Safety = Config.Safety;
+		RangeConfig.bTreatAsNormalized = InConfig.bTreatAsNormalized;
+		RangeConfig.TruncateMode = InConfig.TruncateMode;
+		RangeConfig.Safety = InConfig.Safety;
 
 		RangeConfig.DiscreteStartIndex = Range.X;
 		RangeConfig.RelativeStartIndex = Range.X;
 
 		RangeConfig.DiscreteEndIndex = Range.Y;
 		RangeConfig.RelativeEndIndex = Range.Y;
+
+		RangeConfig.Sanitize();
 	}
 
 	return true;
 }
 
+void UPCGExPickerAttributeSetRangesFactory::AddPicks(const int32 InNum, TSet<int32>& OutPicks) const
+{
+	for (const FPCGExPickerConstantRangeConfig& RangeConfig : Ranges) { UPCGExPickerConstantRangeFactory::AddPicksFromConfig(RangeConfig, InNum, OutPicks); }
+}
+
+bool UPCGExPickerAttributeSetRangesFactory::InitInternalData(FPCGExContext* InContext)
+{
+	if (!Super::InitInternalData(InContext)) { return false; }
+	return GetUniqueRanges(InContext, FName("Ranges"), Config, Ranges);
+}
+
 TArray<FPCGPinProperties> UPCGExPickerAttributeSetRangesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(FName("Indices"), "Data to read attribute from", Required, {})
+	PCGEX_PIN_ANY(FName("Ranges"), "Data to read attribute from", Required, {})
 	return PinProperties;
 }
 

@@ -9,10 +9,17 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "Misc/Pickers/PCGExPickerConstantRange.h"
 
 
 #include "PCGExWithinRangeFilter.generated.h"
 
+UENUM()
+enum class EPCGExRangeSource : uint8
+{
+	Constant     = 0 UMETA(DisplayName = "Constant", ToolTip="Constant"),
+	AttributeSet = 1 UMETA(DisplayName = "Attribute Set", ToolTip="Reading FVector2 attributes from an external attribute set"),
+};
 
 USTRUCT(BlueprintType)
 struct FPCGExWithinRangeFilterConfig
@@ -26,13 +33,21 @@ struct FPCGExWithinRangeFilterConfig
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandA;
+	
+	/** Where to read ranges from */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExRangeSource Source = EPCGExRangeSource::Constant;
+
+	/** List of attributes to read ranges from FVector2. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Source == EPCGExRangeSource::AttributeSet", EditConditionHides))
+	TArray<FPCGAttributePropertyInputSelector> Attributes;
 
 	/** Range min value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Source == EPCGExRangeSource::Constant", EditConditionHides))
 	double RangeMin = -100;
 
 	/** Range max value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Source == EPCGExRangeSource::Constant", EditConditionHides))
 	double RangeMax = 100;
 
 	/** Whether the test should be inclusive of min/max values */
@@ -57,7 +72,10 @@ public:
 	UPROPERTY()
 	FPCGExWithinRangeFilterConfig Config;
 
+	TArray<FPCGExPickerConstantRangeConfig> Ranges;
+
 	virtual bool DomainCheck() override;
+	virtual bool Init(FPCGExContext* InContext) override;
 
 	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
 };
@@ -70,13 +88,14 @@ namespace PCGExPointFilter
 		explicit FWithinRangeFilter(const UPCGExWithinRangeFilterFactory* InDefinition)
 			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
+			Ranges = InDefinition->Ranges;
 		}
 
 		const UPCGExWithinRangeFilterFactory* TypedFilterFactory;
 
 		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
-		double RealMin = 0;
-		double RealMax = 0;
+		
+		TArray<FPCGExPickerConstantRangeConfig> Ranges;
 
 		bool bInclusive = false;
 		bool bInvert = false;
@@ -99,6 +118,9 @@ class UPCGExWithinRangeFilterProviderSettings : public UPCGExFilterProviderSetti
 {
 	GENERATED_BODY()
 
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
@@ -108,10 +130,12 @@ public:
 #endif
 	//~End UPCGSettings
 
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
+	
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExWithinRangeFilterConfig Config;
-
+	
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR

@@ -30,6 +30,24 @@ FString UPCGExPickerConstantRangeSettings::GetDisplayName() const
 }
 #endif
 
+void FPCGExPickerConstantRangeConfig::Sanitize()
+{
+	FPCGExPickerConfigBase::Sanitize();
+
+	if (DiscreteStartIndex > DiscreteEndIndex) { std::swap(DiscreteStartIndex, DiscreteEndIndex); }
+	if (RelativeStartIndex > RelativeEndIndex) { std::swap(RelativeStartIndex, RelativeEndIndex); }
+}
+
+bool FPCGExPickerConstantRangeConfig::IsWithin(const double Value) const
+{
+	return FMath::IsWithin(Value, RelativeStartIndex, RelativeEndIndex);
+}
+
+bool FPCGExPickerConstantRangeConfig::IsWithinInclusive(const double Value) const
+{
+	return FMath::IsWithinInclusive(Value, RelativeStartIndex, RelativeEndIndex);
+}
+
 void UPCGExPickerConstantRangeFactory::AddPicksFromConfig(const FPCGExPickerConstantRangeConfig& InConfig, int32 InNum, TSet<int32>& OutPicks)
 {
 	int32 TargetStartIndex = 0;
@@ -55,8 +73,6 @@ void UPCGExPickerConstantRangeFactory::AddPicksFromConfig(const FPCGExPickerCons
 
 	if (!FMath::IsWithin(TargetStartIndex, 0, InNum) ||
 		!FMath::IsWithin(TargetEndIndex, 0, InNum)) { return; }
-
-	if (TargetStartIndex > TargetEndIndex) { std::swap(TargetStartIndex, TargetEndIndex); }
 
 	if ((TargetEndIndex - TargetStartIndex) == 0) { return; }
 
