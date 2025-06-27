@@ -34,6 +34,23 @@ enum class EPCGExPointPropertyOutput : uint8
 	ColorA    = 6 UMETA(DisplayName = "A Channel", Tooltip="..."),
 };
 
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Native Point Properties"))
+enum class EPCGExPointNativeProperties : uint8
+{
+	None          = 0,
+	Transform     = 1 << 0 UMETA(DisplayName = "Transform"),
+	Density       = 1 << 1 UMETA(DisplayName = "Density"),
+	BoundsMin     = 1 << 2 UMETA(DisplayName = "BoundsMin"),
+	BoundsMax     = 1 << 3 UMETA(DisplayName = "BoundsMax"),
+	Color         = 1 << 4 UMETA(DisplayName = "Color"),
+	Steepness     = 1 << 5 UMETA(DisplayName = "Steepness"),
+	Seed          = 1 << 6 UMETA(DisplayName = "Seed"),
+	MetadataEntry = 1 << 7 UMETA(DisplayName = "MetadataEntry"),
+};
+
+ENUM_CLASS_FLAGS(EPCGExPointNativeProperties)
+using EPCGExEPCGExNativePointPropertiesBitmask = TEnumAsByte<EPCGExPointNativeProperties>;
+
 UCLASS(Hidden)
 class PCGEXTENDEDTOOLKIT_API UPCGExComponentCallback : public UObject
 {
@@ -213,6 +230,23 @@ private:
 namespace PCGEx
 {
 	const FName InvalidName = "INVALID_DATA";
+
+	static EPCGPointNativeProperties GetPointNativeProperties(uint8 Flags)
+	{
+		const EPCGExPointNativeProperties InFlags = static_cast<EPCGExPointNativeProperties>(Flags);
+		EPCGPointNativeProperties OutFlags = EPCGPointNativeProperties::None;
+
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Transform)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Transform); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Density)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Density); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::BoundsMin)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::BoundsMin); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::BoundsMax)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::BoundsMax); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Color)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Color); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Steepness)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Steepness); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Seed)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Seed); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::MetadataEntry)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::MetadataEntry); }
+
+		return OutFlags;
+	}
 
 	template <bool bInitialized>
 	static FName GetLongNameFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
@@ -727,7 +761,7 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API
 	bool EnsureMinNumPoints(UPCGBasePointData* InData, const int32 InNumPoints);
-	
+
 #pragma region Array
 
 	template <typename T>

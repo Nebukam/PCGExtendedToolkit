@@ -18,7 +18,8 @@ enum class EPCGExShiftType : uint8
 	Index                 = 0 UMETA(DisplayName = "Index", ToolTip="..."),
 	Metadata              = 1 UMETA(DisplayName = "Metadata", ToolTip="..."),
 	Properties            = 2 UMETA(DisplayName = "Properties", ToolTip="..."),
-	MetadataAndProperties = 3 UMETA(DisplayName = "Metadata and Properties", ToolTip="...")
+	MetadataAndProperties = 3 UMETA(DisplayName = "Metadata and Properties", ToolTip="..."),
+	CherryPick            = 4 UMETA(DisplayName = "CherryPick", ToolTip="...")
 };
 
 UENUM()
@@ -63,7 +64,7 @@ public:
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExShiftType ShiftType = EPCGExShiftType::Index;
+	EPCGExShiftType ShiftType = EPCGExShiftType::MetadataAndProperties;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -88,12 +89,26 @@ public:
 	/** Reverse shift order */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bReverseShift = false;
+
+	/** Point properties to be shifted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="ShiftType == EPCGExShiftType::CherryPick", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExPointNativeProperties"))
+	uint8 CherryPickedProperties = 0;
+
+	/** Attributes to be shifted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="ShiftType == EPCGExShiftType::CherryPick", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExPointNativeProperties"))
+	TArray<FName> CherryPickedAttributes;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
+	bool bQuietDoubleShiftWarning = false;
 };
 
 struct FPCGExShiftPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExShiftPathElement;
 	FPCGExBlendingDetails BlendingSettings;
+	EPCGPointNativeProperties ShiftedProperties;
+	TArray<FPCGAttributeIdentifier> ShiftedAttributes;
 };
 
 class FPCGExShiftPathElement final : public FPCGExPathProcessorElement
@@ -111,6 +126,10 @@ namespace PCGExShiftPath
 	{
 		int32 MaxIndex = 0;
 		int32 PivotIndex = -1;
+
+		TArray<int32> Indices;
+
+		TArray<TSharedPtr<PCGExData::IBuffer>> Buffers;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
