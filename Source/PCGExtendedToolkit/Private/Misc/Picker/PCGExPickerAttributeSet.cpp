@@ -1,15 +1,15 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/Pickers/PCGExPickerConstantSet.h"
+#include "Misc/Pickers/PCGExPickerAttributeSet.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreatePickerConstantSet"
 #define PCGEX_NAMESPACE CreatePickerConstantSet
 
-PCGEX_PICKER_BOILERPLATE(ConstantSet, {}, {})
+PCGEX_PICKER_BOILERPLATE(AttributeSet, {}, {})
 
 #if WITH_EDITOR
-FString UPCGExPickerConstantSetSettings::GetDisplayName() const
+FString UPCGExPickerAttributeSetSettings::GetDisplayName() const
 {
 	FString DisplayName = TEXT("Pick Set(s)");
 
@@ -26,7 +26,7 @@ FString UPCGExPickerConstantSetSettings::GetDisplayName() const
 }
 #endif
 
-void UPCGExPickerConstantSetFactory::AddPicks(const int32 InNum, TSet<int32>& OutPicks) const
+void UPCGExPickerAttributeSetFactory::AddPicks(const int32 InNum, TSet<int32>& OutPicks) const
 {
 	int32 TargetIndex = 0;
 	const int32 MaxIndex = InNum - 1;
@@ -59,7 +59,7 @@ void UPCGExPickerConstantSetFactory::AddPicks(const int32 InNum, TSet<int32>& Ou
 	}
 }
 
-bool UPCGExPickerConstantSetFactory::InitInternalData(FPCGExContext* InContext)
+bool UPCGExPickerAttributeSetFactory::InitInternalData(FPCGExContext* InContext)
 {
 	if (!Super::InitInternalData(InContext)) { return false; }
 
@@ -136,7 +136,7 @@ bool UPCGExPickerConstantSetFactory::InitInternalData(FPCGExContext* InContext)
 	return true;
 }
 
-TArray<FPCGPinProperties> UPCGExPickerConstantSetSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExPickerAttributeSetSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_ANY(FName("Indices"), "Data to read attribute from", Required, {})
