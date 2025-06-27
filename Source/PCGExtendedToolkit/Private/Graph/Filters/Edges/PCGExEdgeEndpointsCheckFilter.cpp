@@ -108,8 +108,7 @@ namespace PCGExEdgeEndpointsCheck
 			break;
 		}
 
-		if (TypedFilterFactory->Config.bInvert) { bPass = !bPass; }
-		return bPass;
+		return TypedFilterFactory->Config.bInvert ? !bPass : bPass;
 	}
 
 	FNeighborsCountFilter::~FNeighborsCountFilter()

@@ -512,7 +512,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 
 	/** Dot value use for comparison (In raw -1/1 range) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amplitude", EditCondition="ThresholdInput == EPCGExInputValueType::Constant && Domain == EPCGExAngularDomain::Amplitude", EditConditionHides, ClampMin=-1, ClampMax=1))
-	double DotConstant = 1;
+	double DotConstant = 0.5;
 
 	/** Tolerance for dot comparison. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Amplitude", EditConditionHides, ClampMin=0, ClampMax=1))
@@ -520,7 +520,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 
 	/** Dot value use for comparison (In degrees) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Degrees", EditCondition="ThresholdInput == EPCGExInputValueType::Constant && Domain == EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
-	double DegreesConstant = 0;
+	double DegreesConstant = 90;
 
 	/** Tolerance for dot comparison. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
@@ -534,26 +534,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache);
 
-	FORCEINLINE double GetComparisonThreshold(const int32 PointIndex) const
-	{
-		if (Domain == EPCGExAngularDomain::Amplitude) { return ThresholdGetter->Read(PointIndex); }
-		return PCGExMath::DegreesToDot(ThresholdGetter->Read(PointIndex) * 0.5);
-	}
-
-	FORCEINLINE bool Test(const double A, const double B) const
-	{
-		return bUnsignedComparison ?
-			       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(B), ComparisonTolerance) :
-			       PCGExCompare::Compare(Comparison, A, B, ComparisonTolerance);
-	}
-
-	FORCEINLINE bool Test(const double A, const int32 Index) const
-	{
-		return bUnsignedComparison ?
-			       PCGExCompare::Compare(Comparison, FMath::Abs(A), FMath::Abs(GetComparisonThreshold(Index)), ComparisonTolerance) :
-			       PCGExCompare::Compare(Comparison, A, GetComparisonThreshold(Index), ComparisonTolerance);
-	}
-
+	double GetComparisonThreshold(const int32 PointIndex) const;
+	
+	bool Test(const double A, const double B) const;	
+	bool Test(const double A, const int32 Index) const;
+	
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
 	bool GetOnlyUseDataDomain() const;
 };

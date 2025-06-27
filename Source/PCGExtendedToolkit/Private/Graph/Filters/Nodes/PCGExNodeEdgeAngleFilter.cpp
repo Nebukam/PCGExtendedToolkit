@@ -12,9 +12,7 @@
 bool UPCGExNodeEdgeAngleFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
 	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
-
 	Config.DotComparisonDetails.RegisterConsumableAttributesWithData(InContext, InData);
-
 	return true;
 }
 
