@@ -28,6 +28,40 @@ bool FPCGExShiftPathElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ShiftPath)
+
+	if (Settings->ShiftType != EPCGExShiftType::CherryPick) { return true; }
+
+	Context->ShiftedProperties = PCGEx::GetPointNativeProperties(Settings->CherryPickedProperties);
+
+	TSet<FName> UniqueNames;
+
+	UniqueNames.Reserve(Settings->CherryPickedAttributes.Num());
+	Context->ShiftedAttributes.Reserve(Settings->CherryPickedAttributes.Num());
+
+	for (FName Property : Settings->CherryPickedAttributes)
+	{
+		bool bAlreadyInSet = false;
+		UniqueNames.Add(Property, &bAlreadyInSet);
+
+		if (bAlreadyInSet) { continue; }
+
+		FPCGAttributePropertyInputSelector Selector;
+		Selector.Update(Property.ToString());
+
+		if (Selector.GetSelection() != EPCGAttributePropertySelection::Attribute) { continue; }
+
+		FPCGAttributeIdentifier& Identifier = Context->ShiftedAttributes.Add_GetRef(Selector.GetAttributeName());
+		Identifier.MetadataDomain = PCGMetadataDomainID::Elements;
+	}
+
+	if (!Context->ShiftedAttributes.IsEmpty() && EnumHasAnyFlags(Context->ShiftedProperties, EPCGPointNativeProperties::MetadataEntry))
+	{
+		if (!Settings->bQuietDoubleShiftWarning)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Shifting both attributes AND metadata entry property will result in a double shift of attributes. If that's intended, you can silence this warning in the settings."));
+		}
+	}
+
 	return true;
 }
 
@@ -144,6 +178,28 @@ namespace PCGExShiftPath
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::FromString(TEXT("Some data has invalid pivot index.")));
 		}
 
+		if (Settings->ShiftType == EPCGExShiftType::CherryPick && !Context->ShiftedAttributes.IsEmpty())
+		{
+			Buffers.Init(nullptr, Context->ShiftedAttributes.Num());
+
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, InitBuffers)
+
+			InitBuffers->OnIterationCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+				{
+					PCGEX_ASYNC_THIS
+					const FPCGMetadataAttributeBase* Attr = This->PointDataFacade->FindConstAttribute(This->GetContext()->ShiftedAttributes[Index]);
+
+					if (!Attr) { return; }
+
+					TSharedPtr<PCGExData::IBuffer> Buffer = This->PointDataFacade->GetWritable(
+						static_cast<EPCGMetadataTypes>(Attr->GetTypeId()), Attr, PCGExData::EBufferInit::Inherit);
+					This->Buffers[Index] = Buffer;
+				};
+
+			InitBuffers->StartIterations(Context->ShiftedAttributes.Num(), 1);
+		}
+
 		return true;
 	}
 
@@ -165,7 +221,6 @@ namespace PCGExShiftPath
 			return;
 		}
 
-		TArray<int32> Indices;
 		PCGEx::ArrayOfIndices(Indices, PointDataFacade->GetIn()->GetNumPoints());
 
 		if (Settings->bReverseShift)
@@ -189,11 +244,50 @@ namespace PCGExShiftPath
 		}
 		else if (Settings->ShiftType == EPCGExShiftType::Properties)
 		{
-			PointDataFacade->Source->InheritProperties(Indices, PCGEx::AllPointNativePropertiesButMeta);
+			PointDataFacade->Source->InheritProperties(Indices, PointDataFacade->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
 		}
 		else if (Settings->ShiftType == EPCGExShiftType::MetadataAndProperties)
 		{
-			PointDataFacade->Source->InheritProperties(Indices);
+			PointDataFacade->Source->InheritProperties(Indices, PointDataFacade->GetAllocations());
+		}
+		else if (Settings->ShiftType == EPCGExShiftType::CherryPick)
+		{
+			if (Context->ShiftedProperties != EPCGPointNativeProperties::None) { PointDataFacade->Source->InheritProperties(Indices, Context->ShiftedProperties); }
+
+			if (!Buffers.IsEmpty())
+			{
+				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InitBuffers)
+
+				InitBuffers->OnCompleteCallback =
+					[PCGEX_ASYNC_THIS_CAPTURE]()
+					{
+						PCGEX_ASYNC_THIS
+						This->PointDataFacade->WriteFastest(This->AsyncManager);
+					};
+
+				InitBuffers->OnIterationCallback =
+					[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+					{
+						PCGEX_ASYNC_THIS
+						TSharedPtr<PCGExData::IBuffer> Buffer = This->Buffers[Index];
+
+						if (!Buffer || Buffer->GetUnderlyingDomain() != PCGExData::EDomainType::Elements) { return; }
+
+						PCGEx::ExecuteWithRightType(
+							Buffer->GetType(), [&](auto DummyValue)
+							{
+								using T = decltype(DummyValue);
+								TSharedPtr<PCGExData::TArrayBuffer<T>> TypedBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(This->Buffers[Index]);
+
+								if (!TypedBuffer) { return; }
+
+								TArray<T>& Values = *TypedBuffer->GetOutValues().Get();
+								PCGEx::ReorderArray(Values, This->Indices);
+							});
+					};
+
+				InitBuffers->StartIterations(Buffers.Num(), 1);
+			}
 		}
 	}
 }
