@@ -67,6 +67,7 @@
       * [Within Range](node-library/filters/filters-points/simple-comparisons/within-range.md)
     * [Self Comparisons](node-library/filters/filters-points/self-comparisons/README.md)
       * [Numeric](node-library/filters/filters-points/self-comparisons/numeric.md)
+      * [Angle](node-library/filters/filters-points/self-comparisons/numeric-1.md)
       * [String](node-library/filters/filters-points/self-comparisons/string.md)
     * [Math Checks](node-library/filters/filters-points/math-checks/README.md)
       * [Modulo Comparison](node-library/filters/filters-points/math-checks/modulo-comparison.md)
