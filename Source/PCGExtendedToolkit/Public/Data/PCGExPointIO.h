@@ -383,6 +383,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 					FPCGInitializeFromDataParams InitializeFromDataParams(In);
 					InitializeFromDataParams.bInheritSpatialData = false;
 					Out->InitializeFromDataWithParams(InitializeFromDataParams);
+					PCGExHelpers::CopyBaseNativeProperties(In, Out);
 				}
 
 				return true;
@@ -404,6 +405,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 					FPCGInitializeFromDataParams InitializeFromDataParams(In);
 					Out->InitializeFromDataWithParams(InitializeFromDataParams);
+					PCGExHelpers::CopyBaseNativeProperties(In, Out);
 				}
 
 				return true;
@@ -470,7 +472,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		TArray<int32>& GetIdxMapping(const int32 NumElements = -1);
 		void ClearIdxMapping();
 		void ConsumeIdxMapping(const EPCGPointNativeProperties Properties, const bool bClear = true);
-
+		
 		// In -> Out
 		void InheritProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
 		void InheritProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;

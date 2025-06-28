@@ -15,6 +15,7 @@
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
 #include "Async/Async.h"
+#include "Data/PCGPointArrayData.h"
 
 namespace PCGEx
 {
@@ -464,6 +465,21 @@ namespace PCGExHelpers
 	{
 		return InputSelector.GetDomainName() == PCGDataConstants::DataDomainName ||
 			IsDataDomainAttribute(InputSelector.GetName());
+	}
+
+	void CopyBaseNativeProperties(const UPCGData* From, UPCGData* To, EPCGPointNativeProperties Properties)
+	{
+		const UPCGPointArrayData* FromPoints = Cast<UPCGPointArrayData>(From);
+		UPCGPointArrayData* ToPoints = Cast<UPCGPointArrayData>(To);
+		
+		if (!FromPoints || !ToPoints) { return; }
+
+#define PCGEX_COPY_SINGLE_VALUE(_NAME, _TYPE, ...) if(EnumHasAnyFlags(Properties, EPCGPointNativeProperties::_NAME)){ \
+		TConstPCGValueRange<_TYPE> Range = FromPoints->GetConst##_NAME##ValueRange(); \
+		if (Range.GetSingleValue().IsSet()) { ToPoints->Get##_NAME##ValueRange(false).GetSingleValue().Emplace(Range.GetSingleValue().GetValue()); } \
+		}
+		
+		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_COPY_SINGLE_VALUE)
 	}
 
 	void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths)
