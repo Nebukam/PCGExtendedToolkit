@@ -63,7 +63,7 @@ void UPCGExGoalPickerAttribute::GetGoalIndices(const PCGExData::FConstPoint& See
 	for (const TSharedPtr<PCGExData::TBuffer<int32>>& Getter : AttributeGetters)
 	{
 		if (!Getter) { continue; }
-		OutIndices.Add(PCGExMath::SanitizeIndex(Getter->Read(Seed.Index), MaxGoalIndex, IndexSafety));
+		OutIndices.Emplace(PCGExMath::SanitizeIndex(Getter->Read(Seed.Index), MaxGoalIndex, IndexSafety));
 	}
 }
 

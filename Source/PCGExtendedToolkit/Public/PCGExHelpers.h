@@ -145,6 +145,9 @@ namespace PCGExHelpers
 	PCGEXTENDEDTOOLKIT_API
 	bool IsDataDomainAttribute(const FPCGAttributePropertyInputSelector& InputSelector);
 
+	PCGEXTENDEDTOOLKIT_API
+	void CopyBaseNativeProperties(const UPCGData* From, UPCGData* To, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
+
 	template <typename T>
 	static TObjectPtr<T> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
 	{
