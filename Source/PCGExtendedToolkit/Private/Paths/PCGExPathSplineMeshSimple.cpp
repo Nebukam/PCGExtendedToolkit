@@ -11,6 +11,19 @@
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshSimpleElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
+#if WITH_EDITOR
+void UPCGExPathSplineMeshSimpleSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	if (SplineMeshAxisConstant_DEPRECATED != EPCGExMinimalAxis::None)
+	{
+		StaticMeshDescriptor.SplineMeshAxis = static_cast<EPCGExSplineMeshAxis>(SplineMeshAxisConstant_DEPRECATED);
+		SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::None;
+	}
+
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
+
 PCGEX_INITIALIZE_ELEMENT(PathSplineMeshSimple)
 
 UPCGExPathSplineMeshSimpleSettings::UPCGExPathSplineMeshSimpleSettings(
@@ -180,25 +193,6 @@ namespace PCGExPathSplineMeshSimple
 		PCGEx::InitArray(Segments, bClosedLoop ? LastIndex + 1 : LastIndex);
 		Meshes.Init(nullptr, Segments.Num());
 
-		switch (Settings->SplineMeshAxisConstant)
-		{
-		default:
-		case EPCGExMinimalAxis::None:
-		case EPCGExMinimalAxis::X:
-			SplineMeshAxisConstant = ESplineMeshAxis::X;
-			break;
-		case EPCGExMinimalAxis::Y:
-			C1 = 0;
-			C2 = 2;
-			SplineMeshAxisConstant = ESplineMeshAxis::Y;
-			break;
-		case EPCGExMinimalAxis::Z:
-			C1 = 1;
-			C2 = 0;
-			SplineMeshAxisConstant = ESplineMeshAxis::Z;
-			break;
-		}
-
 		StartParallelLoopForPoints();
 
 		return true;
@@ -249,8 +243,6 @@ namespace PCGExPathSplineMeshSimple
 
 			//
 
-			Segment.SplineMeshAxis = SplineMeshAxisConstant;
-
 			const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
 
 			//
@@ -258,6 +250,10 @@ namespace PCGExPathSplineMeshSimple
 			FVector OutScale = Transforms[Index].GetScale3D();
 
 			//
+
+			int32 C1 = 1;
+			int32 C2 = 2;
+			PCGExPaths::GetAxisForEntry(Settings->StaticMeshDescriptor, Segment.SplineMeshAxis, C1, C2, EPCGExSplineMeshAxis::X);
 
 			Segment.Params.StartPos = Transforms[Index].GetLocation();
 			Segment.Params.StartScale = FVector2D(OutScale[C1], OutScale[C2]);

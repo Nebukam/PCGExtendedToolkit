@@ -32,8 +32,10 @@ public:
 	PCGEX_NODE_INFOS(PathSplineMeshSimple, "Path : Spline Mesh (Simple)", "Create spline mesh components from paths.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spawner; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(UPCGExPathProcessorSettings::GetNodeTitleColor()); }
-#endif
 
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+#endif
+	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -120,10 +122,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Mesh Up Vector", EditCondition="SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant", EditConditionHides))
 	FVector SplineMeshUpVector = FVector::UpVector;
 
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Axis Align"))
-	EPCGExMinimalAxis SplineMeshAxisConstant = EPCGExMinimalAxis::X;
-
+#if WITH_EDITORONLY_DATA
+	UPROPERTY()
+	EPCGExMinimalAxis SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::X;
+#endif	
+	
 	/** Tagging details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;
@@ -175,9 +178,6 @@ namespace PCGExPathSplineMeshSimple
 
 		int32 LastIndex = 0;
 
-		int32 C1 = 1;
-		int32 C2 = 2;
-
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> StartOffset;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> EndOffset;
@@ -190,8 +190,6 @@ namespace PCGExPathSplineMeshSimple
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 		TArray<TObjectPtr<UStaticMesh>> Meshes;
 		//TArray<USplineMeshComponent*> SplineMeshComponents;
-
-		ESplineMeshAxis::Type SplineMeshAxisConstant = ESplineMeshAxis::Type::X;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

@@ -51,10 +51,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideCollection
 
 	FPCGExMaterialOverrideCollection() = default;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition = "bEnabled", ClampMin=1))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(ClampMin=1))
 	int32 Weight = 1;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition = "bEnabled"))
+	UPROPERTY(EditAnywhere, Category = Settings)
 	TArray<FPCGExMaterialOverrideEntry> Overrides;
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
@@ -77,10 +77,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideSingleEntry
 
 	FPCGExMaterialOverrideSingleEntry() = default;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition = "bEnabled", ClampMin=1))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(ClampMin=1))
 	int32 Weight = 1;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition = "bEnabled"))
+	UPROPERTY(EditAnywhere, Category = Settings)
 	TSoftObjectPtr<UMaterialInterface> Material = nullptr;
 
 #if WITH_EDITORONLY_DATA

@@ -221,6 +221,9 @@ namespace PCGExPaths
 	const FPCGAttributeIdentifier ClosedLoopIdentifier = FPCGAttributeIdentifier(FName("IsClosed"), PCGMetadataDomainID::Data);
 
 	PCGEXTENDEDTOOLKIT_API
+	void GetAxisForEntry(const FPCGExStaticMeshComponentDescriptor& InDescriptor, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default = EPCGExSplineMeshAxis::X);
+	
+	PCGEXTENDEDTOOLKIT_API
 	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop);
 
 	PCGEXTENDEDTOOLKIT_API
