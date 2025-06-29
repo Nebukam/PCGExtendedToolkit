@@ -32,6 +32,8 @@ public:
 	PCGEX_NODE_INFOS(PathSplineMesh, "Path : Spline Mesh", "Create spline mesh components from paths.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spawner; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(UPCGExPathProcessorSettings::GetNodeTitleColor()); }
+
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 #endif
 
 protected:
@@ -39,6 +41,7 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
+	
 public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 
@@ -71,10 +74,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
 	FName LeaveTangentAttribute = "LeaveTangent";
 
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Axis Align"))
-	EPCGExMinimalAxis SplineMeshAxisConstant = EPCGExMinimalAxis::X;
-
+#if WITH_EDITORONLY_DATA
+	UPROPERTY()
+	EPCGExMinimalAxis SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::X;
+#endif
+	
 	/** If enabled, will break scaling interpolation across the spline. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExScaleToFitDetails ScaleToFit = FPCGExScaleToFitDetails(EPCGExFitMode::None);
@@ -176,9 +180,6 @@ namespace PCGExPathSplineMesh
 
 		int32 LastIndex = 0;
 
-		int32 C1 = 1;
-		int32 C2 = 2;
-
 		TUniquePtr<PCGExAssetCollection::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> Helper;
 		FPCGExJustificationDetails Justification;
 		FPCGExSplineMeshMutationDetails SegmentMutationDetails;
@@ -197,8 +198,6 @@ namespace PCGExPathSplineMesh
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 
-		ESplineMeshAxis::Type SplineMeshAxisConstant = ESplineMeshAxis::Type::X;
-
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
@@ -206,7 +205,7 @@ namespace PCGExPathSplineMesh
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-
+		
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
@@ -215,5 +214,6 @@ namespace PCGExPathSplineMesh
 		virtual void CompleteWork() override;
 
 		virtual void Output() override;
+		
 	};
 }

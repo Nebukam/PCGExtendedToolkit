@@ -11,6 +11,19 @@
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
+#if WITH_EDITOR
+void UPCGExPathSplineMeshSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	if (SplineMeshAxisConstant_DEPRECATED != EPCGExMinimalAxis::None)
+	{
+		DefaultDescriptor.SplineMeshAxis = static_cast<EPCGExSplineMeshAxis>(SplineMeshAxisConstant_DEPRECATED);
+		SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::None;
+	}
+	
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
+
 PCGEX_INITIALIZE_ELEMENT(PathSplineMesh)
 
 UPCGExPathSplineMeshSettings::UPCGExPathSplineMeshSettings(
@@ -202,25 +215,6 @@ namespace PCGExPathSplineMesh
 
 		PCGEx::InitArray(Segments, bClosedLoop ? LastIndex + 1 : LastIndex);
 
-		switch (Settings->SplineMeshAxisConstant)
-		{
-		default:
-		case EPCGExMinimalAxis::None:
-		case EPCGExMinimalAxis::X:
-			SplineMeshAxisConstant = ESplineMeshAxis::X;
-			break;
-		case EPCGExMinimalAxis::Y:
-			C1 = 0;
-			C2 = 2;
-			SplineMeshAxisConstant = ESplineMeshAxis::Y;
-			break;
-		case EPCGExMinimalAxis::Z:
-			C1 = 1;
-			C2 = 0;
-			SplineMeshAxisConstant = ESplineMeshAxis::Z;
-			break;
-		}
-
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
 		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
 		bOneMinusWeight = Settings->WeightToAttribute == EPCGExWeightOutputMode::NormalizedInverted || Settings->WeightToAttribute == EPCGExWeightOutputMode::NormalizedInvertedToDensity;
@@ -331,8 +325,6 @@ namespace PCGExPathSplineMesh
 
 			//
 
-			Segment.SplineMeshAxis = SplineMeshAxisConstant;
-
 			const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
 
 			//
@@ -350,6 +342,10 @@ namespace PCGExPathSplineMesh
 			Justification.Process(Index, InBounds, OutBounds, OutTranslation);
 
 			//
+
+			int32 C1 = 1;
+			int32 C2 = 2;
+			PCGExPaths::GetAxisForEntry(MeshEntry->SMDescriptor, Segment.SplineMeshAxis, C1, C2, Settings->DefaultDescriptor.SplineMeshAxis);
 
 			Segment.Params.StartPos = Transforms[Index].GetLocation();
 			Segment.Params.StartScale = FVector2D(OutScale[C1], OutScale[C2]);

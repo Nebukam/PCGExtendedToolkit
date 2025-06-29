@@ -27,6 +27,7 @@ void FPCGExPathEdgeIntersectionDetails::Init()
 
 void FPCGExPathFilterSettings::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
+	
 }
 
 bool FPCGExPathFilterSettings::Init(FPCGExContext* InContext)
@@ -45,6 +46,33 @@ FPCGExPathIntersectionDetails::FPCGExPathIntersectionDetails(const double InTole
 
 namespace PCGExPaths
 {
+	void GetAxisForEntry(const FPCGExStaticMeshComponentDescriptor& InDescriptor, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default)
+	{
+		EPCGExSplineMeshAxis Axis = InDescriptor.SplineMeshAxis;
+		if (Axis == EPCGExSplineMeshAxis::Default) { Axis = Default; }
+
+		switch (Axis)
+		{
+		default:
+		case EPCGExSplineMeshAxis::Default:
+		case EPCGExSplineMeshAxis::X:
+			OutAxis = ESplineMeshAxis::X;
+			OutC1 = 1;
+			OutC2 = 2;
+			break;
+		case EPCGExSplineMeshAxis::Y:
+			OutC1 = 0;
+			OutC2 = 2;
+			OutAxis = ESplineMeshAxis::Y;
+			break;
+		case EPCGExSplineMeshAxis::Z:
+			OutC1 = 1;
+			OutC2 = 0;
+			OutAxis = ESplineMeshAxis::Z;
+			break;
+		}
+	}
+
 	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop)
 	{
 		FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetMutableAttribute<bool>(InData, ClosedLoopIdentifier);

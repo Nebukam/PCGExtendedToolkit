@@ -14,6 +14,14 @@
 
 #include "PCGExComponentDescriptors.generated.h"
 
+UENUM()
+enum class EPCGExSplineMeshAxis : uint8
+{
+	Default = 0 UMETA(Hidden),
+	X     = 1 UMETA(DisplayName = "X", ToolTip="X Axis"),
+	Y     = 2 UMETA(DisplayName = "Y", ToolTip="Y Axis"),
+	Z     = 3 UMETA(DisplayName = "Z", ToolTip="Z Axis"),
+};
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Primitive Component Descriptor")
 struct PCGEXTENDEDTOOLKIT_API FPCGExPrimitiveComponentDescriptor
@@ -457,6 +465,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStaticMeshComponentDescriptor : public FPCGE
 	}
 
 #pragma region Properties
+
+	/** Relevant when used with PCGEx' spline mesh nodes */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Mesh Axis"))
+	EPCGExSplineMeshAxis SplineMeshAxis = EPCGExSplineMeshAxis::Default;
 
 	/** If 0, auto-select LOD level. if >0, force to (ForcedLodModel-1). */
 	UPROPERTY(EditAnywhere, AdvancedDisplay, BlueprintReadOnly, Category=LOD)
