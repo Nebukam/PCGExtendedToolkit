@@ -46,7 +46,7 @@ namespace PCGExFilterGroup
 		{
 			if (SupportedFactoriesTypes && !SupportedFactoriesTypes->Contains(ManagedFactory->GetFactoryType()))
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A grouped filter is of an unexpected type : {0}."), ManagedFactory->GetClass()->GetDisplayNameText()));
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A grouped filter is of an unexpected type : {0}."), PCGExHelpers::GetClassDisplayName(ManagedFactory->GetClass())));
 				continue;
 			}
 			
