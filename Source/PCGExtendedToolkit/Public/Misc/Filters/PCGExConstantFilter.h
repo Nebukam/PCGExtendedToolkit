@@ -48,16 +48,16 @@ public:
 	virtual bool SupportsCollectionEvaluation() const override { return true; }
 	virtual bool SupportsProxyEvaluation() const override { return true; }
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FConstantFilter final : public FSimpleFilter
+	class FConstantFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FConstantFilter(const TObjectPtr<const UPCGExConstantFilterFactory>& InDefinition)
-			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: ISimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 

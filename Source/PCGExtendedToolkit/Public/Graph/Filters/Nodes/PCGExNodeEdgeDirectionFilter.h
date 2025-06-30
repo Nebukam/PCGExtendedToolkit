@@ -76,15 +76,15 @@ public:
 	UPROPERTY()
 	FPCGExNodeEdgeDirectionFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
-class FNodeEdgeDirectionFilter final : public PCGExClusterFilter::FVtxFilter
+class FNodeEdgeDirectionFilter final : public PCGExClusterFilter::IVtxFilter
 {
 public:
 	explicit FNodeEdgeDirectionFilter(const UPCGExNodeEdgeDirectionFilterFactory* InFactory)
-		: FVtxFilter(InFactory), TypedFilterFactory(InFactory)
+		: IVtxFilter(InFactory), TypedFilterFactory(InFactory)
 	{
 		Adjacency = InFactory->Config.Adjacency;
 		DotComparison = InFactory->Config.DotComparisonDetails;

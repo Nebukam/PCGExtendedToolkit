@@ -66,17 +66,17 @@ public:
 
 	virtual bool DomainCheck() override;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FBitmaskFilter final : public FSimpleFilter
+	class FBitmaskFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FBitmaskFilter(const TObjectPtr<const UPCGExBitmaskFilterFactory>& InDefinition)
-			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition), Bitmask(InDefinition->Config.Bitmask)
+			: ISimpleFilter(InDefinition), TypedFilterFactory(InDefinition), Bitmask(InDefinition->Config.Bitmask)
 		{
 		}
 

@@ -74,17 +74,17 @@ public:
 	virtual bool Init(FPCGExContext* InContext) override;
 
 	virtual bool DomainCheck() override;
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FDotFilter final : public FSimpleFilter
+	class FDotFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FDotFilter(const TObjectPtr<const UPCGExDotFilterFactory>& InFactory)
-			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 		}

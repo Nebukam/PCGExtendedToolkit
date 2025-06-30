@@ -94,7 +94,7 @@ public:
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
 	virtual bool Prepare(FPCGExContext* InContext) override;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
 
@@ -103,11 +103,11 @@ public:
 
 namespace PCGExPointFilter
 {
-	class FSplineAlphaFilter final : public FSimpleFilter
+	class FSplineAlphaFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FSplineAlphaFilter(const TObjectPtr<const UPCGExSplineAlphaFilterFactory>& InFactory)
-			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Splines = TypedFilterFactory->Splines;
 			SegmentsNum = TypedFilterFactory->SegmentsNum;

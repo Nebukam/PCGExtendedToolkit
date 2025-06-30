@@ -133,7 +133,7 @@ public:
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
 	virtual bool Prepare(FPCGExContext* InContext) override;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
 };
@@ -155,11 +155,11 @@ namespace PCGExPointFilter
 		Skip
 	};
 
-	class FSplineInclusionFilter final : public FSimpleFilter
+	class FSplineInclusionFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FSplineInclusionFilter(const TObjectPtr<const UPCGExSplineInclusionFilterFactory>& InFactory)
-			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Splines = TypedFilterFactory->Splines;
 			Polygons = TypedFilterFactory->Polygons;

@@ -77,18 +77,18 @@ public:
 
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FMeanFilter final : public FSimpleFilter
+	class FMeanFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FMeanFilter(const TObjectPtr<const UPCGExMeanFilterFactory>& InFactory)
-			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 

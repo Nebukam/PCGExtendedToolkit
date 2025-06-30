@@ -62,16 +62,16 @@ public:
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 };
 
 namespace PCGExNodeNeighborsCount
 {
-	class FNeighborsCountFilter final : public PCGExClusterFilter::FVtxFilter
+	class FNeighborsCountFilter final : public PCGExClusterFilter::IVtxFilter
 	{
 	public:
 		explicit FNeighborsCountFilter(const UPCGExNodeNeighborsCountFilterFactory* InFactory)
-			: FVtxFilter(InFactory), TypedFilterFactory(InFactory)
+			: IVtxFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 

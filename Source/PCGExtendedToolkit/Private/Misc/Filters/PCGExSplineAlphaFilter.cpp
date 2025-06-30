@@ -59,7 +59,7 @@ bool UPCGExSplineAlphaFilterFactory::Prepare(FPCGExContext* InContext)
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExSplineAlphaFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExSplineAlphaFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FSplineAlphaFilter>(this);
 }
@@ -85,7 +85,7 @@ namespace PCGExPointFilter
 {
 	bool FSplineAlphaFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
-		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 		OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
 		if (!OperandB->Init(InContext, PointDataFacade)) { return false; }

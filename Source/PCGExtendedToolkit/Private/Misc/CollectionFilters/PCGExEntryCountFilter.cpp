@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExEntryCountFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExEntryCountFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FEntryCountFilter>(this);
 }

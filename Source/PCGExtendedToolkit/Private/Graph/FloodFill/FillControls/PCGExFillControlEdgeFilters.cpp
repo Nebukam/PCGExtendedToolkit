@@ -15,6 +15,7 @@ bool FPCGExFillControlEdgeFilters::PrepareForDiffusions(FPCGExContext* InContext
 	const UPCGExFillControlsFactoryEdgeFilters* TypedFactory = Cast<UPCGExFillControlsFactoryEdgeFilters>(Factory);
 
 	EdgeFilterManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), InHandler->VtxDataFacade.ToSharedRef(), InHandler->EdgeDataFacade.ToSharedRef());
+	EdgeFilterManager->SetSupportedTypes(&PCGExFactories::ClusterEdgeFilters);
 	EdgeFilterManager->bUseEdgeAsPrimary = true;
 
 	return EdgeFilterManager->Init(InContext, TypedFactory->FilterFactories);

@@ -25,7 +25,7 @@ bool UPCGExEdgeEndpointsCompareNumFilterFactory::RegisterConsumableAttributesWit
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExEdgeEndpointsCompareNumFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExEdgeEndpointsCompareNumFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExEdgeEndpointsCompareNum::FNeighborsCountFilter>(this);
 }
@@ -34,7 +34,7 @@ namespace PCGExEdgeEndpointsCompareNum
 {
 	bool FNeighborsCountFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
-		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		NumericBuffer = InPointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Attribute);
 		if (!NumericBuffer)

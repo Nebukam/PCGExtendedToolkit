@@ -43,7 +43,7 @@ bool UPCGExEdgeEndpointsCheckFilterFactory::RegisterConsumableAttributesWithData
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExEdgeEndpointsCheckFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExEdgeEndpointsCheckFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExEdgeEndpointsCheck::FNeighborsCountFilter>(this);
 }
@@ -52,9 +52,10 @@ namespace PCGExEdgeEndpointsCheck
 {
 	bool FNeighborsCountFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
-		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		VtxFiltersManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), InPointDataFacade, InEdgeDataFacade);
+		VtxFiltersManager->SetSupportedTypes(&PCGExFactories::ClusterNodeFilters);
 		if (!VtxFiltersManager->Init(InContext, TypedFilterFactory->FilterFactories)) { return false; }
 
 		ResultCache.Init(-1, Cluster->Nodes->Num());

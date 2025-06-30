@@ -53,14 +53,14 @@ public:
 
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 };
 
-class FNodeEdgeAngleFilter final : public PCGExClusterFilter::FVtxFilter
+class FNodeEdgeAngleFilter final : public PCGExClusterFilter::IVtxFilter
 {
 public:
 	explicit FNodeEdgeAngleFilter(const UPCGExNodeEdgeAngleFilterFactory* InFactory)
-		: FVtxFilter(InFactory), TypedFilterFactory(InFactory)
+		: IVtxFilter(InFactory), TypedFilterFactory(InFactory)
 	{
 		DotComparison = InFactory->Config.DotComparisonDetails;
 	}

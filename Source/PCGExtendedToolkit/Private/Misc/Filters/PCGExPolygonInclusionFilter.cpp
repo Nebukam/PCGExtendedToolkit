@@ -95,7 +95,7 @@ bool UPCGExPolygonInclusionFilterFactory::Prepare(FPCGExContext* InContext)
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExPolygonInclusionFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExPolygonInclusionFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FPolygonInclusionFilter>(this);
 }
@@ -111,7 +111,7 @@ namespace PCGExPointFilter
 {
 	bool FPolygonInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
-		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		bCheckAgainstDataBounds = TypedFilterFactory->Config.bCheckAgainstDataBounds;

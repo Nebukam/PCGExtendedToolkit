@@ -95,7 +95,7 @@ public:
 	virtual bool SupportsProxyEvaluation() const override { return true; }
 
 	virtual bool Init(FPCGExContext* InContext) override;
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
 	virtual bool Prepare(FPCGExContext* InContext) override;
@@ -105,11 +105,11 @@ public:
 
 namespace PCGExPointFilter
 {
-	class FBoundsFilter final : public FSimpleFilter
+	class FBoundsFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FBoundsFilter(const TObjectPtr<const UPCGExBoundsFilterFactory>& InFactory)
-			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Clouds = &TypedFilterFactory->Clouds;
 			bIgnoreSelf = TypedFilterFactory->Config.bIgnoreSelf;

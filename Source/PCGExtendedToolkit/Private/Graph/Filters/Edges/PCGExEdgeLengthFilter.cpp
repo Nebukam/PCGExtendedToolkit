@@ -20,7 +20,7 @@ bool UPCGExEdgeLengthFilterFactory::RegisterConsumableAttributesWithData(FPCGExC
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExEdgeLengthFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExEdgeLengthFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExEdgeLength::FLengthFilter>(this);
 }
@@ -29,7 +29,7 @@ namespace PCGExEdgeLength
 {
 	bool FLengthFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
-		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		ThresholdBuffer = TypedFilterFactory->Config.GetValueSettingThreshold();
 		if (!ThresholdBuffer->Init(InContext, PointDataFacade)) { return false; }

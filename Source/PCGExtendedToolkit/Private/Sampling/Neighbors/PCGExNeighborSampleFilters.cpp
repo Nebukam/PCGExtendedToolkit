@@ -18,7 +18,6 @@ void FPCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, co
 
 	FilterManager = MakeShared<PCGExClusterFilter::FManager>(InCluster, InVtxDataFacade, InEdgeDataFacade);
 
-
 	const int32 NumNodes = Cluster->Nodes->Num();
 	Inside.Init(0, NumNodes);
 	InsideWeight.Init(0, NumNodes);
@@ -61,6 +60,7 @@ void FPCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, co
 
 	if (SamplingConfig.NeighborSource == EPCGExClusterElement::Vtx)
 	{
+		FilterManager->SetSupportedTypes(&PCGExFactories::ClusterNodeFilters);
 		if (!FilterManager->Init(InContext, VtxFilterFactories))
 		{
 			return;
@@ -69,6 +69,7 @@ void FPCGExNeighborSampleFilters::PrepareForCluster(FPCGExContext* InContext, co
 	else
 	{
 		FilterManager->bUseEdgeAsPrimary = true;
+		FilterManager->SetSupportedTypes(&PCGExFactories::ClusterEdgeFilters);
 		if (!FilterManager->Init(InContext, EdgesFilterFactories))
 		{
 			return;

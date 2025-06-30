@@ -21,7 +21,7 @@ namespace PCGExGraph
 
 namespace PCGExPointFilter
 {
-	class FFilter;
+	class IFilter;
 }
 
 /**
@@ -62,11 +62,11 @@ public:
 
 namespace PCGExClusterFilter
 {
-	class PCGEXTENDEDTOOLKIT_API FFilter : public PCGExPointFilter::FFilter
+	class PCGEXTENDEDTOOLKIT_API IFilter : public PCGExPointFilter::IFilter
 	{
 	public:
-		explicit FFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
-			PCGExPointFilter::FFilter(InFactory)
+		explicit IFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
+			PCGExPointFilter::IFilter(InFactory)
 		{
 		}
 
@@ -81,11 +81,11 @@ namespace PCGExClusterFilter
 		virtual void PostInit() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FVtxFilter : public FFilter
+	class PCGEXTENDEDTOOLKIT_API IVtxFilter : public IFilter
 	{
 	public:
-		explicit FVtxFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
-			FFilter(InFactory)
+		explicit IVtxFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
+			IFilter(InFactory)
 		{
 		}
 
@@ -95,11 +95,11 @@ namespace PCGExClusterFilter
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FEdgeFilter : public FFilter
+	class PCGEXTENDEDTOOLKIT_API IEdgeFilter : public IFilter
 	{
 	public:
-		explicit FEdgeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
-			FFilter(InFactory)
+		explicit IEdgeFilter(const TObjectPtr<const UPCGExClusterFilterFactoryData>& InFactory):
+			IFilter(InFactory)
 		{
 		}
 
@@ -122,7 +122,7 @@ namespace PCGExClusterFilter
 		}
 
 	protected:
-		virtual bool InitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& Filter) override;
+		virtual bool InitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& Filter) override;
 		virtual void InitCache() override;
 	};
 }

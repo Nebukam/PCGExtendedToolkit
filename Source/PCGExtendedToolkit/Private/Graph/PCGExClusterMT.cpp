@@ -196,6 +196,7 @@ namespace PCGExClusterMT
 		if (InFilterFactories->IsEmpty()) { return true; }
 
 		VtxFiltersManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
+		VtxFiltersManager->SetSupportedTypes(&PCGExFactories::ClusterNodeFilters);
 		return VtxFiltersManager->Init(ExecutionContext, *InFilterFactories);
 	}
 
@@ -213,6 +214,7 @@ namespace PCGExClusterMT
 
 		EdgesFiltersManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 		EdgesFiltersManager->bUseEdgeAsPrimary = true;
+		EdgesFiltersManager->SetSupportedTypes(&PCGExFactories::ClusterEdgeFilters);
 		return EdgesFiltersManager->Init(ExecutionContext, *InFilterFactories);
 	}
 

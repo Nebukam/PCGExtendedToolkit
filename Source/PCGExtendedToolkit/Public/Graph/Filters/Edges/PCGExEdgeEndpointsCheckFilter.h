@@ -66,16 +66,16 @@ public:
 	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 };
 
 namespace PCGExEdgeEndpointsCheck
 {
-	class FNeighborsCountFilter final : public PCGExClusterFilter::FEdgeFilter
+	class FNeighborsCountFilter final : public PCGExClusterFilter::IEdgeFilter
 	{
 	public:
 		explicit FNeighborsCountFilter(const UPCGExEdgeEndpointsCheckFilterFactory* InFactory)
-			: FEdgeFilter(InFactory), TypedFilterFactory(InFactory)
+			: IEdgeFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 

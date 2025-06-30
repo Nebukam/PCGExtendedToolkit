@@ -53,16 +53,16 @@ public:
 	UPROPERTY()
 	FPCGExEntryCountFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FEntryCountFilter final : public FCollectionFilter
+	class FEntryCountFilter final : public ICollectionFilter
 	{
 	public:
 		explicit FEntryCountFilter(const TObjectPtr<const UPCGExEntryCountFilterFactory>& InDefinition)
-			: FCollectionFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: ICollectionFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
