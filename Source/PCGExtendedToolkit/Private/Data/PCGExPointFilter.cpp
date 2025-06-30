@@ -98,7 +98,7 @@ namespace PCGExPointFilter
 		{
 			if (SupportedFactoriesTypes && !SupportedFactoriesTypes->Contains(Factory->GetFactoryType()))
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter is of an unexpected type : {0}."), Factory->GetClass()->GetDisplayNameText()));
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter is of an unexpected type : {0}."), PCGExHelpers::GetClassDisplayName(Factory->GetClass())));
 				continue;
 			}
 
@@ -110,7 +110,7 @@ namespace PCGExPointFilter
 
 			if (!InitFilter(InContext, NewFilter))
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter failed to initialize properly : {0}."), Factory->GetClass()->GetDisplayNameText()));
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter failed to initialize properly : {0}."), PCGExHelpers::GetClassDisplayName(Factory->GetClass())));
 				continue;
 			}
 			ManagedFilters.Add(NewFilter);

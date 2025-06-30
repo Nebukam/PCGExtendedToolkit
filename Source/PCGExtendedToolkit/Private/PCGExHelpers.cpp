@@ -436,6 +436,16 @@ void UPCGExPCGComponentCallback::BeginDestroy()
 
 namespace PCGExHelpers
 {
+	FText GetClassDisplayName(const UClass* InClass)
+	{
+#if WITH_EDITOR
+		return InClass->GetDisplayNameText();
+#else
+		return FText::FromString(InClass->GetName());
+#endif
+		
+	}
+
 	bool HasDataOnPin(FPCGContext* InContext, const FName Pin)
 	{
 		for (const FPCGTaggedData& TaggedData : InContext->InputData.TaggedData) { if (TaggedData.Pin == Pin) { return true; } }
