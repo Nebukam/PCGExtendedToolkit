@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExStringSelfCompareFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExStringSelfCompareFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FStringSelfCompareFilter>(this);
 }
@@ -30,7 +30,7 @@ bool UPCGExStringSelfCompareFilterFactory::RegisterConsumableAttributesWithData(
 
 bool PCGExPointFilter::FStringSelfCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	bOffset = TypedFilterFactory->Config.IndexMode == EPCGExIndexMode::Offset;
 	MaxIndex = PointDataFacade->Source->GetNum() - 1;

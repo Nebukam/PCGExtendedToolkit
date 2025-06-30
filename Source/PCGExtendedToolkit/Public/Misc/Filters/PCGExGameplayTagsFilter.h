@@ -65,17 +65,17 @@ public:
 
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FGameplayTagsFilter final : public FSimpleFilter
+	class FGameplayTagsFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FGameplayTagsFilter(const TObjectPtr<const UPCGExGameplayTagsFilterFactory>& InDefinition)
-			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: ISimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 

@@ -72,18 +72,18 @@ public:
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
 	virtual bool Prepare(FPCGExContext* InContext) override;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
 };
 
 namespace PCGExPointFilter
 {
-	class FPolygonInclusionFilter final : public FSimpleFilter
+	class FPolygonInclusionFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FPolygonInclusionFilter(const TObjectPtr<const UPCGExPolygonInclusionFilterFactory>& InFactory)
-			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Polygons = TypedFilterFactory->Polygons;
 			Octree = TypedFilterFactory->Octree;

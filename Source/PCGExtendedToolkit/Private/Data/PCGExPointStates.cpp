@@ -4,7 +4,7 @@
 #include "Data/PCGExPointStates.h"
 
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExPointStateFactoryData::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExPointStateFactoryData::CreateFilter() const
 {
 	return Super::CreateFilter();
 }
@@ -22,7 +22,7 @@ namespace PCGExPointStates
 
 	bool FState::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
-		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 		Manager = MakeShared<PCGExPointFilter::FManager>(InPointDataFacade.ToSharedRef());
 		return true;
@@ -50,7 +50,7 @@ namespace PCGExPointStates
 		FlagsCache = InFlags;
 	}
 
-	void FStateManager::PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter)
+	void FStateManager::PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& InFilter)
 	{
 		const TSharedPtr<FState> State = StaticCastSharedPtr<FState>(InFilter);
 		State->InitInternalManager(InContext, State->StateFactory->FilterFactories);

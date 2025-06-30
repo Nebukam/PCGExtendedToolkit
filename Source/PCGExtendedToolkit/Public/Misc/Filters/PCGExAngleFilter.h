@@ -72,18 +72,18 @@ public:
 
 	virtual bool DomainCheck() override;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FAngleFilter final : public FSimpleFilter
+	class FAngleFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FAngleFilter(const TObjectPtr<const UPCGExAngleFilterFactory>& InFactory)
-			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 		}

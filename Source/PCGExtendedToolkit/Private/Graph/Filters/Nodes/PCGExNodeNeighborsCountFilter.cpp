@@ -25,7 +25,7 @@ bool UPCGExNodeNeighborsCountFilterFactory::RegisterConsumableAttributesWithData
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeNeighborsCountFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExNodeNeighborsCountFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExNodeNeighborsCount::FNeighborsCountFilter>(this);
 }
@@ -34,7 +34,7 @@ namespace PCGExNodeNeighborsCount
 {
 	bool FNeighborsCountFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
-		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		LocalCount = TypedFilterFactory->Config.GetValueSettingLocalCount();
 		if (!LocalCount->Init(InContext, PointDataFacade, false)) { return false; }

@@ -16,7 +16,7 @@ bool UPCGExSplineInclusionFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExSplineInclusionFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExSplineInclusionFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FSplineInclusionFilter>(this);
 }
@@ -116,7 +116,7 @@ namespace PCGExPointFilter
 {
 	bool FSplineInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
-		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 		bCheckAgainstDataBounds = TypedFilterFactory->Config.bCheckAgainstDataBounds;
 

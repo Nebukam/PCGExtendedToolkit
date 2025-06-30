@@ -91,7 +91,7 @@ bool UPCGExPathInclusionFilterFactory::Prepare(FPCGExContext* InContext)
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExPathInclusionFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExPathInclusionFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FPathInclusionFilter>(this);
 }
@@ -106,7 +106,7 @@ namespace PCGExPointFilter
 {
 	bool FPathInclusionFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 	{
-		if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 		ToleranceSquared = FMath::Square(TypedFilterFactory->Config.Tolerance);
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();

@@ -15,6 +15,7 @@ bool FPCGExFillControlVtxFilters::PrepareForDiffusions(FPCGExContext* InContext,
 	const UPCGExFillControlsFactoryVtxFilters* TypedFactory = Cast<UPCGExFillControlsFactoryVtxFilters>(Factory);
 
 	VtxFilterManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), InHandler->VtxDataFacade.ToSharedRef(), InHandler->EdgeDataFacade.ToSharedRef());
+	VtxFilterManager->SetSupportedTypes(&PCGExFactories::ClusterNodeFilters);
 	return VtxFilterManager->Init(InContext, TypedFactory->FilterFactories);
 }
 

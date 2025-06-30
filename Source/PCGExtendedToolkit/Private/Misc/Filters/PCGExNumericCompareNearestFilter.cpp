@@ -17,7 +17,7 @@ bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExNumericCompareNearestFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExNumericCompareNearestFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FNumericCompareNearestFilter>(this);
 }
@@ -40,7 +40,7 @@ void UPCGExNumericCompareNearestFilterFactory::BeginDestroy()
 
 bool PCGExPointFilter::FNumericCompareNearestFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	if (!TargetDataFacade) { return false; }
 

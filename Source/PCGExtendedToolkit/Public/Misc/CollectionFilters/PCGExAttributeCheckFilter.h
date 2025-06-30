@@ -72,16 +72,16 @@ public:
 	UPROPERTY()
 	FPCGExAttributeCheckFilterConfig Config;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FAttributeCheckFilter final : public FCollectionFilter
+	class FAttributeCheckFilter final : public ICollectionFilter
 	{
 	public:
 		explicit FAttributeCheckFilter(const TObjectPtr<const UPCGExAttributeCheckFilterFactory>& InDefinition)
-			: FCollectionFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: ICollectionFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 

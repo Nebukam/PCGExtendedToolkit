@@ -47,7 +47,7 @@ bool UPCGExRandomFilterFactory::RegisterConsumableAttributesWithData(FPCGExConte
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExRandomFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExRandomFilterFactory::CreateFilter() const
 {
 	PCGEX_MAKE_SHARED(Filter, PCGExPointFilter::FRandomFilter, this)
 	Filter->WeightCurve = Config.LocalWeightCurve.GetRichCurveConst();
@@ -56,7 +56,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExRandomFilterFactory::CreateFilter() 
 
 bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	Threshold = TypedFilterFactory->Config.Threshold;
 

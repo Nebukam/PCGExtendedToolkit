@@ -21,7 +21,7 @@ bool UPCGExAngleFilterFactory::DomainCheck()
 	return Config.DotComparisonDetails.GetOnlyUseDataDomain();
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExAngleFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExAngleFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FAngleFilter>(this);
 }
@@ -35,7 +35,7 @@ bool UPCGExAngleFilterFactory::RegisterConsumableAttributesWithData(FPCGExContex
 
 bool PCGExPointFilter::FAngleFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 	if (!DotComparison.Init(InContext, InPointDataFacade.ToSharedRef())) { return false; }

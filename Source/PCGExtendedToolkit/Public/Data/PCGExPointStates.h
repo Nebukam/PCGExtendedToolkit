@@ -61,21 +61,21 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
 };
 
 namespace PCGExPointStates
 {
-	class PCGEXTENDEDTOOLKIT_API FState final : public PCGExPointFilter::FFilter
+	class PCGEXTENDEDTOOLKIT_API FState final : public PCGExPointFilter::IFilter
 	{
 	public:
 		FPCGExStateConfigBase* BaseConfig = nullptr;
 		const UPCGExPointStateFactoryData* StateFactory = nullptr;
 
 		explicit FState(const TObjectPtr<const UPCGExPointStateFactoryData>& InFactory):
-			FFilter(InFactory), StateFactory(InFactory)
+			IFilter(InFactory), StateFactory(InFactory)
 		{
 		}
 
@@ -103,7 +103,7 @@ namespace PCGExPointStates
 		virtual bool Test(const int32 Index) override;
 
 	protected:
-		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter) override;
+		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& InFilter) override;
 	};
 };
 

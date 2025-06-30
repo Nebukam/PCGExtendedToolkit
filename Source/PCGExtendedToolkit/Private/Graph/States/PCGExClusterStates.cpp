@@ -7,7 +7,7 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExClusterStateFactoryData::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExClusterStateFactoryData::CreateFilter() const
 {
 	PCGEX_MAKE_SHARED(NewState, PCGExClusterStates::FState, this)
 	NewState->Config = Config;
@@ -36,9 +36,10 @@ namespace PCGExClusterStates
 	{
 		Config.Init();
 
-		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		Manager = MakeShared<PCGExClusterFilter::FManager>(InCluster, PointDataFacade.ToSharedRef(), EdgeDataFacade.ToSharedRef());
+		Manager->SetSupportedTypes(&PCGExFactories::ClusterNodeFilters);
 		return true;
 	}
 
@@ -81,7 +82,7 @@ namespace PCGExClusterStates
 		FlagsCache = InFlags;
 	}
 
-	void FStateManager::PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter)
+	void FStateManager::PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& InFilter)
 	{
 		const TSharedPtr<FState>& State = StaticCastSharedPtr<FState>(InFilter);
 		State->InitInternalManager(InContext, State->StateFactory->FilterFactories);

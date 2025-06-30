@@ -12,7 +12,7 @@ bool UPCGExConstantFilterFactory::Init(FPCGExContext* InContext)
 	return Super::Init(InContext);
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExConstantFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExConstantFilterFactory::CreateFilter() const
 {
 	PCGEX_MAKE_SHARED(Filter, PCGExPointFilter::FConstantFilter, this)
 	return Filter;
@@ -20,7 +20,7 @@ TSharedPtr<PCGExPointFilter::FFilter> UPCGExConstantFilterFactory::CreateFilter(
 
 bool PCGExPointFilter::FConstantFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 	ConstantValue = TypedFilterFactory->Config.bInvert ? !TypedFilterFactory->Config.Value : TypedFilterFactory->Config.Value;
 	return true;
 }

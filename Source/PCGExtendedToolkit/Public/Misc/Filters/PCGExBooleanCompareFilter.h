@@ -63,17 +63,17 @@ public:
 
 	virtual bool DomainCheck() override;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FBooleanCompareFilter final : public FSimpleFilter
+	class FBooleanCompareFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FBooleanCompareFilter(const TObjectPtr<const UPCGExBooleanCompareFilterFactory>& InDefinition)
-			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: ISimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 

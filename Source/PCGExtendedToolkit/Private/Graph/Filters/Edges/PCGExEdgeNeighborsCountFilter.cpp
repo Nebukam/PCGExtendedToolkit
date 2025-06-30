@@ -20,7 +20,7 @@ bool UPCGExEdgeNeighborsCountFilterFactory::RegisterConsumableAttributesWithData
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExEdgeNeighborsCountFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExEdgeNeighborsCountFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExEdgeNeighborsCount::FNeighborsCountFilter>(this);
 }
@@ -29,7 +29,7 @@ namespace PCGExEdgeNeighborsCount
 {
 	bool FNeighborsCountFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
-		if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		ThresholdBuffer = TypedFilterFactory->Config.GetValueSettingThreshold();
 		if (!ThresholdBuffer->Init(InContext, PointDataFacade)) { return false; }

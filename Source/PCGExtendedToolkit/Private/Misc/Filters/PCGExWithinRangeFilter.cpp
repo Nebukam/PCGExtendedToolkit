@@ -33,7 +33,7 @@ bool UPCGExWithinRangeFilterFactory::Init(FPCGExContext* InContext)
 	return Super::Init(InContext);
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExWithinRangeFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExWithinRangeFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FWithinRangeFilter>(this);
 }
@@ -50,7 +50,7 @@ TArray<FPCGPinProperties> UPCGExWithinRangeFilterProviderSettings::InputPinPrope
 
 bool PCGExPointFilter::FWithinRangeFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	OperandA = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandA, true);
 

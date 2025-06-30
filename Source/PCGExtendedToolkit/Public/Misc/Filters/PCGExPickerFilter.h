@@ -51,16 +51,16 @@ public:
 
 	virtual bool SupportsCollectionEvaluation() const override { return true; }
 	virtual bool Init(FPCGExContext* InContext) override;
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FPickerFilter final : public FSimpleFilter
+	class FPickerFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FPickerFilter(const TObjectPtr<const UPCGExPickerFilterFactory>& InFactory)
-			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 

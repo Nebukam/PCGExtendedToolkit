@@ -18,7 +18,7 @@ bool UPCGExDistanceFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExDistanceFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExDistanceFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FDistanceFilter>(this);
 }
@@ -57,7 +57,7 @@ void UPCGExDistanceFilterFactory::BeginDestroy()
 
 bool PCGExPointFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	if (OctreesPtr.IsEmpty()) { return false; }
 

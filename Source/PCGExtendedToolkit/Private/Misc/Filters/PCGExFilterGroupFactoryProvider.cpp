@@ -20,9 +20,9 @@ FString UPCGExFilterGroupProviderSettings::GetDisplayName() const { return Mode 
 TArray<FPCGPreConfiguredSettingsInfo> UPCGExFilterGroupProviderSettings::GetPreconfiguredInfo() const
 {
 	TArray<FPCGPreConfiguredSettingsInfo> Infos;
-	Infos.Emplace(0, FTEXT("PCGEx | Filter AND"));
-	Infos.Emplace(1, FTEXT("PCGEx | Filter OR"));
-	return Infos;
+
+	const TSet<EPCGExFilterGroupMode> ValuesToSkip = {};
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExFilterGroupMode>(ValuesToSkip, FTEXT("PCGEx | Filter {0}"));
 }
 #endif
 

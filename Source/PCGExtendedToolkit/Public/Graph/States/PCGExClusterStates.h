@@ -45,7 +45,7 @@ public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::NodeState; }
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual void BeginDestroy() override;
@@ -53,7 +53,7 @@ public:
 
 namespace PCGExClusterStates
 {
-	class PCGEXTENDEDTOOLKIT_API FState final : public PCGExClusterFilter::FFilter
+	class PCGEXTENDEDTOOLKIT_API FState final : public PCGExClusterFilter::IFilter
 	{
 	public:
 		FPCGExClusterStateConfigBase Config;
@@ -61,7 +61,7 @@ namespace PCGExClusterStates
 		const UPCGExClusterStateFactoryData* StateFactory = nullptr;
 
 		explicit FState(const UPCGExClusterStateFactoryData* InFactory):
-			FFilter(InFactory), StateFactory(InFactory)
+			IFilter(InFactory), StateFactory(InFactory)
 		{
 		}
 
@@ -114,7 +114,7 @@ namespace PCGExClusterStates
 		}
 
 	protected:
-		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::FFilter>& InFilter) override;
+		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& InFilter) override;
 	};
 };
 

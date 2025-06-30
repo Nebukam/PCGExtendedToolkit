@@ -14,7 +14,7 @@ bool UPCGExNumericCompareFilterFactory::DomainCheck()
 		(Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB));
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExNumericCompareFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExNumericCompareFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FNumericCompareFilter>(this);
 }
@@ -37,7 +37,7 @@ bool UPCGExNumericCompareFilterFactory::RegisterConsumableAttributesWithData(FPC
 
 bool PCGExPointFilter::FNumericCompareFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	OperandA = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandA, true);
 

@@ -67,17 +67,17 @@ public:
 
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FTensorDotFilter final : public FSimpleFilter
+	class FTensorDotFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FTensorDotFilter(const TObjectPtr<const UPCGExTensorDotFilterFactory>& InFactory)
-			: FSimpleFilter(InFactory), TypedFilterFactory(InFactory)
+			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 			TensorsHandler = TypedFilterFactory->TensorsHandler;

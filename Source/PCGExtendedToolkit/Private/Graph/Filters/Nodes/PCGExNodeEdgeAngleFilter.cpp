@@ -16,14 +16,14 @@ bool UPCGExNodeEdgeAngleFilterFactory::RegisterConsumableAttributesWithData(FPCG
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExNodeEdgeAngleFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExNodeEdgeAngleFilterFactory::CreateFilter() const
 {
 	return MakeShared<FNodeEdgeAngleFilter>(this);
 }
 
 bool FNodeEdgeAngleFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 	if (!DotComparison.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 

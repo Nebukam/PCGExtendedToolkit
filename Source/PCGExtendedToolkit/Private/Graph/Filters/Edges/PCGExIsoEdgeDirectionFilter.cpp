@@ -27,13 +27,13 @@ bool UPCGExIsoEdgeDirectionFilterFactory::RegisterConsumableAttributesWithData(F
 	return true;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExIsoEdgeDirectionFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExIsoEdgeDirectionFilterFactory::CreateFilter() const
 {
 	return MakeShared<FIsoEdgeDirectionFilter>(this);
 }
 
 FIsoEdgeDirectionFilter::FIsoEdgeDirectionFilter(const UPCGExIsoEdgeDirectionFilterFactory* InFactory)
-	: FEdgeFilter(InFactory), TypedFilterFactory(InFactory)
+	: IEdgeFilter(InFactory), TypedFilterFactory(InFactory)
 {
 	DotComparison = InFactory->Config.DotComparisonDetails;
 	HashComparison = InFactory->Config.HashComparisonDetails;
@@ -42,7 +42,7 @@ FIsoEdgeDirectionFilter::FIsoEdgeDirectionFilter(const UPCGExIsoEdgeDirectionFil
 
 bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
-	if (!FFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 	// Init for vtx
 	if (!DirectionSettings.Init(InContext, InPointDataFacade, &TypedFilterFactory->EdgeSortingRules))

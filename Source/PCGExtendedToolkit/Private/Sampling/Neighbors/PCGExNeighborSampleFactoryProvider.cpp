@@ -19,12 +19,14 @@ void FPCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, 
 	if (!VtxFilterFactories.IsEmpty())
 	{
 		PointFilters = MakeShared<PCGExClusterFilter::FManager>(InCluster, InVtxDataFacade, InEdgeDataFacade);
+		PointFilters->SetSupportedTypes(&PCGExFactories::ClusterNodeFilters);
 		PointFilters->Init(InContext, VtxFilterFactories);
 	}
 
 	if (!ValueFilterFactories.IsEmpty())
 	{
 		ValueFilters = MakeShared<PCGExClusterFilter::FManager>(InCluster, InVtxDataFacade, InEdgeDataFacade);
+		ValueFilters->SetSupportedTypes(&PCGExFactories::ClusterNodeFilters);
 		ValueFilters->Init(InContext, ValueFilterFactories);
 	}
 }

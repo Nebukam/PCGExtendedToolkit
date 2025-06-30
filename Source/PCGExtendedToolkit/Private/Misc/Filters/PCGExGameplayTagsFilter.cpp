@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExGameplayTagsFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExGameplayTagsFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FGameplayTagsFilter>(this);
 }
@@ -23,7 +23,7 @@ bool UPCGExGameplayTagsFilterFactory::RegisterConsumableAttributesWithData(FPCGE
 
 bool PCGExPointFilter::FGameplayTagsFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	PropertyPath = FCachedPropertyPath(TypedFilterFactory->Config.PropertyPath);
 	if (!PropertyPath.IsValid())

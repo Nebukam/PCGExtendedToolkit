@@ -86,7 +86,7 @@ public:
 
 	virtual bool Init(FPCGExContext* InContext) override;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
@@ -97,11 +97,11 @@ public:
 
 namespace PCGExPointFilter
 {
-	class FDistanceFilter final : public FSimpleFilter
+	class FDistanceFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FDistanceFilter(const TObjectPtr<const UPCGExDistanceFilterFactory>& InDefinition)
-			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: ISimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 			OctreesPtr = TypedFilterFactory->OctreesPtr;
 			TargetsPtr = TypedFilterFactory->TargetsPtr;

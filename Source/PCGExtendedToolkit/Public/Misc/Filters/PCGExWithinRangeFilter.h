@@ -77,16 +77,16 @@ public:
 	virtual bool DomainCheck() override;
 	virtual bool Init(FPCGExContext* InContext) override;
 
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointFilter
 {
-	class FWithinRangeFilter final : public FSimpleFilter
+	class FWithinRangeFilter final : public ISimpleFilter
 	{
 	public:
 		explicit FWithinRangeFilter(const UPCGExWithinRangeFilterFactory* InDefinition)
-			: FSimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: ISimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 			Ranges = InDefinition->Ranges;
 		}

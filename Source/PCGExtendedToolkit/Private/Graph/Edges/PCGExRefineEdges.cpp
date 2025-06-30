@@ -185,6 +185,7 @@ namespace PCGExRefineEdges
 			{
 				SanitizationFilterManager = MakeShared<PCGExClusterFilter::FManager>(Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 				SanitizationFilterManager->bUseEdgeAsPrimary = true;
+				SanitizationFilterManager->SetSupportedTypes(&PCGExFactories::ClusterEdgeFilters);
 				if (!SanitizationFilterManager->Init(ExecutionContext, Context->SanitizationFilterFactories)) { return false; }
 			}
 		}

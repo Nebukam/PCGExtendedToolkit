@@ -23,7 +23,7 @@ bool UPCGExDotFilterFactory::DomainCheck()
 		!Config.bTransformOperandA && !Config.bTransformOperandB;
 }
 
-TSharedPtr<PCGExPointFilter::FFilter> UPCGExDotFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExDotFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FDotFilter>(this);
 }
@@ -42,7 +42,7 @@ bool UPCGExDotFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext*
 
 bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
-	if (!FFilter::Init(InContext, InPointDataFacade)) { return false; }
+	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 	if (!DotComparison.Init(InContext, InPointDataFacade.ToSharedRef())) { return false; }

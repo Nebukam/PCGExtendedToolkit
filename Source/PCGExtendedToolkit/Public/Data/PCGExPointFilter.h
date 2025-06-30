@@ -34,7 +34,7 @@ namespace PCGExGraph
 
 namespace PCGExPointFilter
 {
-	class FFilter;
+	class IFilter;
 }
 
 namespace PCGExFilters
@@ -70,7 +70,7 @@ public:
 	virtual bool Init(FPCGExContext* InContext);
 
 	int32 Priority = 0;
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const;
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const;
 
 protected:
 	bool bOnlyUseDataDomain = false;
@@ -98,10 +98,10 @@ namespace PCGExPointFilter
 	const FName OutputInsideFiltersLabel = FName("Inside");
 	const FName OutputOutsideFiltersLabel = FName("Outside");
 
-	class PCGEXTENDEDTOOLKIT_API FFilter : public TSharedFromThis<FFilter>
+	class PCGEXTENDEDTOOLKIT_API IFilter : public TSharedFromThis<IFilter>
 	{
 	public:
-		explicit FFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
+		explicit IFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
 			Factory(InFactory)
 		{
 		}
@@ -131,15 +131,16 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const; // destined for collection only, is expected to test internal PointDataFacade directly.
 
+		virtual void SetSupportedTypes(const TSet<PCGExFactories::EType>* InTypes){}
 
-		virtual ~FFilter() = default;
+		virtual ~IFilter() = default;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FSimpleFilter : public FFilter
+	class PCGEXTENDEDTOOLKIT_API ISimpleFilter : public IFilter
 	{
 	public:
-		explicit FSimpleFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
-			FFilter(InFactory)
+		explicit ISimpleFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
+			IFilter(InFactory)
 		{
 		}
 
@@ -150,11 +151,11 @@ namespace PCGExPointFilter
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCollectionFilter : public FFilter
+	class PCGEXTENDEDTOOLKIT_API ICollectionFilter : public IFilter
 	{
 	public:
-		explicit FCollectionFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
-			FFilter(InFactory)
+		explicit ICollectionFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
+			IFilter(InFactory)
 		{
 		}
 
@@ -167,13 +168,14 @@ namespace PCGExPointFilter
 		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
+
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FManager : public TSharedFromThis<FManager>
 	{
 	public:
 		explicit FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
-
+		
 		bool bUseEdgeAsPrimary = false; // This shouldn't be there...
 
 		bool bCacheResultsPerFilter = false;
@@ -203,12 +205,16 @@ namespace PCGExPointFilter
 		{
 		}
 
-	protected:
-		TArray<TSharedPtr<FFilter>> ManagedFilters;
+		void SetSupportedTypes(const TSet<PCGExFactories::EType>* InTypes);
+		const TSet<PCGExFactories::EType>* GetSupportedTypes() const;
 
-		virtual bool InitFilter(FPCGExContext* InContext, const TSharedPtr<FFilter>& Filter);
+	protected:
+		const TSet<PCGExFactories::EType>* SupportedFactoriesTypes = nullptr;
+		TArray<TSharedPtr<IFilter>> ManagedFilters;
+
+		virtual bool InitFilter(FPCGExContext* InContext, const TSharedPtr<IFilter>& Filter);
 		virtual bool PostInit(FPCGExContext* InContext);
-		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<FFilter>& InFilter);
+		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<IFilter>& InFilter);
 
 		virtual void InitCache();
 	};
@@ -260,5 +266,5 @@ public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterCollection; }
 	virtual bool DomainCheck() override;
 	virtual bool SupportsCollectionEvaluation() const override;
-	virtual TSharedPtr<PCGExPointFilter::FFilter> CreateFilter() const override { return nullptr; }
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override { return nullptr; }
 };
