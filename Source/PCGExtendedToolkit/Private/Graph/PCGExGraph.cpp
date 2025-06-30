@@ -596,7 +596,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	FGraph::FGraph(const int32 InNumNodes)
 	{
 		PCGEX_LOG_CTR(FGraph)
-		AddNodes(InNumNodes);
+		
+		int32 StartNodeIndex = 0;
+		AddNodes(InNumNodes, StartNodeIndex);
 	}
 
 	void FGraph::ReserveForEdges(const int32 UpcomingAdditionCount)
@@ -850,17 +852,18 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		InsertEdges_Unsafe(InEdges, InIOIndex);
 	}
 
-	TArrayView<FNode> FGraph::AddNodes(const int32 NumNewNodes)
+	TArrayView<FNode> FGraph::AddNodes(const int32 NumNewNodes, int32& OutStartIndex)
 	{
-		const int32 StartIndex = Nodes.Num();
-		Nodes.SetNum(StartIndex + NumNewNodes);
+		FWriteScopeLock WriteLock(GraphLock);
+		OutStartIndex = Nodes.Num();
+		Nodes.SetNum(OutStartIndex + NumNewNodes);
 		for (int i = 0; i < NumNewNodes; i++)
 		{
-			FNode& Node = Nodes[StartIndex + i];
-			Node.Index = Node.PointIndex = StartIndex + i;
+			FNode& Node = Nodes[OutStartIndex + i];
+			Node.Index = Node.PointIndex = OutStartIndex + i;
 		}
 
-		return MakeArrayView(Nodes.GetData() + StartIndex, NumNewNodes);
+		return MakeArrayView(Nodes.GetData() + OutStartIndex, NumNewNodes);
 	}
 
 	void FGraph::BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits)

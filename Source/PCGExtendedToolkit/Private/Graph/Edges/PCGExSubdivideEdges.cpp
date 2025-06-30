@@ -100,29 +100,40 @@ namespace PCGExSubdivideEdges
 	{
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
 
+		EdgeDataFacade->Fetch(Scope);
+		FilterEdgeScope(Scope);
+
+#define PCGEX_PROCESS_EDGE \
+		if (!EdgeFilterCache[Index]) { continue; } \
+		PCGExGraph::FEdge& Edge = ClusterEdges[Index]; \
+		DirectionSettings.SortEndpoints(Cluster.Get(), Edge); \
+		const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge); \
+		const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge); \
+		FSubdivision& Sub = Subdivisions[Index];
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
-
-			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
-
-			const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
-			const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
-
-			// Create subdivision items
-			FSubdivision& Sub = Subdivisions[Index];
+			PCGEX_PROCESS_EDGE
 
 			Sub.NumSubdivisions = 0;
+			
+			Sub.Dir = Cluster->GetPos(EndNode) - Cluster->GetPos(StartNode);
+			
+		}
+	}
 
-			// Check if that edge should be subdivided. How depends on the test source
-			// Can be:
-			// - Edge start test
-			// - Edge end test
-			// - Edge itself test
+	void FProcessor::OnEdgesProcessingComplete()
+	{
+		// TODO : Append new points
+		for (FSubdivision& Subdivision : Subdivisions)
+		{
+			if (Subdivision.NumSubdivisions == 0) { continue; }
 
-			Sub.Start = Cluster->GetPos(StartNode);
-			Sub.End = Cluster->GetPos(EndNode);
-			Sub.Dist = FVector::Distance(Sub.Start, Sub.End);
+			int32 StartNodeIndex = -1;
+			GraphBuilder->Graph->AddNodes(Subdivision.NumSubdivisions, StartNodeIndex);
+
+			Subdivision.StartNodeIndex = StartNodeIndex;
+			NewNodesNum += Subdivision.NumSubdivisions;
 		}
 	}
 
