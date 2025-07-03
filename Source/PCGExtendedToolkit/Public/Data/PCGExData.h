@@ -48,7 +48,7 @@ namespace PCGExData
 		Data     = 1,
 		Elements = 2,
 	};
-	
+
 #pragma region Buffers
 
 	class FFacade;
@@ -967,13 +967,23 @@ namespace PCGExData
 #pragma region Data Marking
 
 	template <typename T>
+	static FPCGMetadataAttribute<T>* WriteMark(UPCGData* InData, const FPCGAttributeIdentifier& MarkID, T MarkValue)
+	{
+		UPCGMetadata* Metadata = InData->MutableMetadata();
+
+		if (!Metadata) { return nullptr; }
+
+		Metadata->DeleteAttribute(MarkID);
+		FPCGMetadataAttribute<T>* Mark = Metadata->CreateAttribute<T>(MarkID, MarkValue, true, true);
+		PCGExDataHelpers::SetDataValue(Mark, MarkValue);
+		return Mark;
+	}
+
+	template <typename T>
 	static FPCGMetadataAttribute<T>* WriteMark(const TSharedRef<FPointIO>& PointIO, const FName MarkID, T MarkValue)
 	{
 		const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(MarkID, PointIO->GetOut());
-		PointIO->DeleteAttribute(Identifier);
-		FPCGMetadataAttribute<T>* Mark = PointIO->CreateAttribute<T>(Identifier, MarkValue);
-		PCGExDataHelpers::SetDataValue(Mark, MarkValue);
-		return Mark;
+		return WriteMark<T>(PointIO->GetMutableData(EIOSide::Out), Identifier, MarkValue);
 	}
 
 
