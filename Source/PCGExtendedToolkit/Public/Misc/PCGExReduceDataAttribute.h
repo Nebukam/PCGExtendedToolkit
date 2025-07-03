@@ -53,9 +53,9 @@ public:
 	EPCGExReduceDataDomainMethod Method = EPCGExReduceDataDomainMethod::Min;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bOutputType;
+	bool bCustomOutputType;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOutputType"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bCustomOutputType"))
 	EPCGMetadataTypes OutputType = EPCGMetadataTypes::Integer32;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Method == EPCGExReduceDataDomainMethod::Join", EditConditionHides))

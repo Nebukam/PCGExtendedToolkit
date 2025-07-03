@@ -26,6 +26,9 @@ public:
 #endif
 
 protected:
+	virtual bool HasDynamicPins() const override;
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -44,7 +47,7 @@ public:
 
 	/** Whether to write the index as a normalized output value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Normalized", EditCondition="bOutputPointIndex", HideEditConditionToggle))
-	bool bOutputNormalizedIndex = false;
+	bool bNormalizedEntryIndex = false;
 
 	/** Whether to output the collection index. .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -54,12 +57,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Collection Index", EditCondition="bOutputCollectionIndex"))
 	FName CollectionIndexAttributeName = "@Data.CollectionIndex";
 
-	/** If enabled, output the collection index to the points */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Output to points", EditCondition="bOutputCollectionIndex", HideEditConditionToggle))
-	bool bOutputCollectionIndexToPoints = true;
-
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" │ ├─ Type", EditCondition="bOutputCollectionIndex && bOutputCollectionIndexToPoints", HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Type", EditCondition="bOutputCollectionIndex", HideEditConditionToggle))
 	EPCGExNumericOutput CollectionIndexOutputType = EPCGExNumericOutput::Int32;
 
 	/** If enabled, output the collection index as a tag */
@@ -75,25 +74,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Num Entries", EditCondition="bOutputCollectionNumEntries"))
 	FName NumEntriesAttributeName = "@Data.NumEntries";
 
-	/** If enabled, output the collection num entries to the points */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Output to points", EditCondition="bOutputCollectionNumEntries", HideEditConditionToggle))
-	bool bOutputNumEntriesToPoints = false;
-
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" │ ├─ Type", EditCondition="bOutputCollectionNumEntries && bOutputNumEntriesToPoints", HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Type", EditCondition="bOutputCollectionNumEntries", HideEditConditionToggle))
 	EPCGExNumericOutput NumEntriesOutputType = EPCGExNumericOutput::Int32;
 
-	/** If enabled, output the collection num entries to the points */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" │ └─ Normalized", EditCondition="bOutputCollectionNumEntries && bOutputNumEntriesToPoints", HideEditConditionToggle))
-	bool bOutputNormalizedNumEntriesToPoints = false;
+	/** If enabled, output the normalized collection num entries to the points */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Normalized", EditCondition="bOutputCollectionNumEntries", HideEditConditionToggle))
+	bool bNormalizeNumEntries = false;
 
 	/** If enabled, output the collection num entries as a tag */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Output to tags", EditCondition="bOutputCollectionNumEntries", HideEditConditionToggle))
-	bool bOutputNumEntriesToTags = true;
-
-	/** If enabled, output the normalized collection num entries to the points */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="   └─ Normalized", EditCondition="bOutputCollectionNumEntries && bOutputNumEntriesToTags", HideEditConditionToggle))
-	bool bOutputNormalizedNumEntriesToTags = false;
+	bool bOutputNumEntriesToTags = false;
 
 
 	/** Whether the created attributes allows interpolation or not.*/
@@ -101,13 +92,27 @@ public:
 	bool bAllowInterpolation = true;
 
 	void TagPointIO(const TSharedPtr<PCGExData::FPointIO>& InPointIO, double MaxNumEntries) const;
+	void TagData(const int32 Index, FPCGTaggedData& InTaggedData, double NumEntries, double MaxNumEntries) const;
+
+	bool CollectionLevelOutputOnly() const;
+
+	virtual bool IsInputless() const override{ return CollectionLevelOutputOnly(); }
+	
 };
 
 struct FPCGExWriteIndexContext final : FPCGExPointsProcessorContext
-{
+{	
 	friend class FPCGExWriteIndexElement;
-	bool bTagsOnly = true;
+	bool bCollectionLevelOutputOnly = false;
 	double MaxNumEntries = 0;
+
+	TArray<FPCGTaggedData> WorkingData;
+	TArray<double> NumEntries;
+
+	FPCGAttributeIdentifier EntryIndexIdentifier;
+	FPCGAttributeIdentifier NumEntriesIdentifier;
+	FPCGAttributeIdentifier CollectionIndexIdentifier;
+	
 };
 
 class FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement

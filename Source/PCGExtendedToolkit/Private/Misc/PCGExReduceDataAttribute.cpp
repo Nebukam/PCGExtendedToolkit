@@ -110,7 +110,7 @@ bool FPCGExReduceDataAttributeElement::ExecuteInternal(FPCGContext* InContext) c
 			StringsToJoin.Reserve(Context->Attributes.Num());
 			FString OutValue = TEXT("");
 
-			if (Settings->bOutputType)
+			if (Settings->bCustomOutputType)
 			{
 				for (int i = 0; i < Context->Attributes.Num(); i++)
 				{
