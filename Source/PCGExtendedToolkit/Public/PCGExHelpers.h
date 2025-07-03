@@ -307,14 +307,12 @@ namespace PCGEx
 		return Identifier;
 	}
 
-	static FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName, const UPCGData* InData)
-	{
-		FPCGAttributePropertyInputSelector Selector;
-		Selector.Update(InName.ToString());
-		Selector = Selector.CopyAndFixLast(InData);
-		return GetAttributeIdentifier<true>(Selector, InData);
-	}
-
+	PCGEXTENDEDTOOLKIT_API
+	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName, const UPCGData* InData);
+	
+	PCGEXTENDEDTOOLKIT_API
+	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName);
+	
 	class PCGEXTENDEDTOOLKIT_API FPCGExAsyncStateScope
 	{
 	public:

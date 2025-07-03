@@ -19,6 +19,22 @@
 
 namespace PCGEx
 {
+	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName, const UPCGData* InData)
+	{
+		FPCGAttributePropertyInputSelector Selector;
+		Selector.Update(InName.ToString());
+		Selector = Selector.CopyAndFixLast(InData);
+		return GetAttributeIdentifier<true>(Selector, InData);
+	}
+
+	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName)
+	{
+		FString StrName = InName.ToString();
+		FPCGAttributePropertyInputSelector Selector;
+		Selector.Update(InName.ToString());
+		return FPCGAttributeIdentifier(Selector.GetAttributeName(), StrName.StartsWith(TEXT("@Data.")) ? PCGMetadataDomainID::Data : PCGMetadataDomainID::Elements);
+	}
+
 	FPCGExAsyncStateScope::FPCGExAsyncStateScope(FPCGContext* InContext, const bool bDesired)
 		: Context(InContext)
 	{
@@ -443,7 +459,6 @@ namespace PCGExHelpers
 #else
 		return FText::FromString(InClass->GetName());
 #endif
-		
 	}
 
 	bool HasDataOnPin(FPCGContext* InContext, const FName Pin)
@@ -481,14 +496,14 @@ namespace PCGExHelpers
 	{
 		const UPCGPointArrayData* FromPoints = Cast<UPCGPointArrayData>(From);
 		UPCGPointArrayData* ToPoints = Cast<UPCGPointArrayData>(To);
-		
+
 		if (!FromPoints || !ToPoints) { return; }
 
 #define PCGEX_COPY_SINGLE_VALUE(_NAME, _TYPE, ...) if(EnumHasAnyFlags(Properties, EPCGPointNativeProperties::_NAME)){ \
 		TConstPCGValueRange<_TYPE> Range = FromPoints->GetConst##_NAME##ValueRange(); \
 		if (Range.GetSingleValue().IsSet()) { ToPoints->Get##_NAME##ValueRange(false).GetSingleValue().Emplace(Range.GetSingleValue().GetValue()); } \
 		}
-		
+
 		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_COPY_SINGLE_VALUE)
 	}
 
