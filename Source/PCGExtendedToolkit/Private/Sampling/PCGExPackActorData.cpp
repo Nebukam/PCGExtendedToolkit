@@ -216,7 +216,6 @@ UPCGExPackActorDataSettings::UPCGExPackActorDataSettings(
 TArray<FPCGPinProperties> UPCGExPackActorDataSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_DEPENDENCIES
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPackActorDatas::SourceOverridesPacker)
 	return PinProperties;
 }

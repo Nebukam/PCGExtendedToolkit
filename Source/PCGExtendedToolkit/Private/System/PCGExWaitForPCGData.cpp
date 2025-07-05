@@ -36,13 +36,6 @@ void UPCGExWaitForPCGDataSettings::PostEditChangeProperty(FPropertyChangedEvent&
 }
 #endif
 
-TArray<FPCGPinProperties> UPCGExWaitForPCGDataSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_DEPENDENCIES
-	return PinProperties;
-}
-
 TArray<FPCGPinProperties> UPCGExWaitForPCGDataSettings::OutputPinProperties() const
 {
 	if (!bOutputRoaming) { return CachedPins; }
