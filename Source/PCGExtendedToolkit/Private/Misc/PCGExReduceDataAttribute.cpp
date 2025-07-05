@@ -6,6 +6,28 @@
 #define LOCTEXT_NAMESPACE "PCGExReduceDataAttributeElement"
 #define PCGEX_NAMESPACE ReduceDataAttribute
 
+#if WITH_EDITOR
+TArray<FPCGPreConfiguredSettingsInfo> UPCGExReduceDataAttributeSettings::GetPreconfiguredInfo() const
+{
+	TArray<FPCGPreConfiguredSettingsInfo> Infos;
+
+	const TSet<EPCGExReduceDataDomainMethod> ValuesToSkip = {};
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExReduceDataDomainMethod>(ValuesToSkip, FTEXT("PCGEx | Reduce Data : {0}"));
+}
+#endif
+
+void UPCGExReduceDataAttributeSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
+{
+	Super::ApplyPreconfiguredSettings(PreconfigureInfo);
+	if (const UEnum* EnumPtr = StaticEnum<EPCGExReduceDataDomainMethod>())
+	{
+		if (EnumPtr->IsValidEnumValue(PreconfigureInfo.PreconfiguredIndex))
+		{
+			Method = static_cast<EPCGExReduceDataDomainMethod>(PreconfigureInfo.PreconfiguredIndex);
+		}
+	}
+}
+
 TArray<FPCGPinProperties> UPCGExReduceDataAttributeSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -21,6 +43,18 @@ TArray<FPCGPinProperties> UPCGExReduceDataAttributeSettings::OutputPinProperties
 }
 
 PCGEX_INITIALIZE_ELEMENT(ReduceDataAttribute)
+
+#if WITH_EDITOR
+FString UPCGExReduceDataAttributeSettings::GetDisplayName() const
+{
+	if (const UEnum* EnumPtr = StaticEnum<EPCGExReduceDataDomainMethod>())
+	{
+		FString DisplayName = EnumPtr->GetNameStringByValue(static_cast<int64>(Method)) + TEXT(" @Data.") + Attributes.Source.ToString();
+		return DisplayName;
+	}
+	return GetDefaultNodeTitle().ToString();
+}
+#endif
 
 bool FPCGExReduceDataAttributeElement::Boot(FPCGExContext* InContext) const
 {
@@ -168,25 +202,27 @@ bool FPCGExReduceDataAttributeElement::ExecuteInternal(FPCGContext* InContext) c
 								const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
 								T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
 
-								switch (Settings->Method)
+								if (i == 0) { ReducedValue = PCGEx::Convert<T>(Value); }
+								else
 								{
-								case EPCGExReduceDataDomainMethod::Min:
-									if (i == 0) { ReducedValue = PCGEx::Convert<T>(ReducedValue); }
-									else { ReducedValue = PCGExBlend::Min(ReducedValue, PCGEx::Convert<T>(ReducedValue)); }
-									break;
-								case EPCGExReduceDataDomainMethod::Max:
-									if (i == 0) { ReducedValue = PCGEx::Convert<T>(ReducedValue); }
-									else { ReducedValue = PCGExBlend::Max(ReducedValue, PCGEx::Convert<T>(ReducedValue)); }
-									break;
-								case EPCGExReduceDataDomainMethod::Sum:
-									ReducedValue = PCGExBlend::Add(ReducedValue, PCGEx::Convert<T>(ReducedValue));
-									break;
-								case EPCGExReduceDataDomainMethod::Average:
-									ReducedValue = PCGExBlend::Add(ReducedValue, PCGEx::Convert<T>(ReducedValue));
-									break;
-								default:
-								case EPCGExReduceDataDomainMethod::Join:
-									break;
+									switch (Settings->Method)
+									{
+									case EPCGExReduceDataDomainMethod::Min:
+										ReducedValue = PCGExBlend::Min(ReducedValue, PCGEx::Convert<T>(Value));
+										break;
+									case EPCGExReduceDataDomainMethod::Max:
+										ReducedValue = PCGExBlend::Max(ReducedValue, PCGEx::Convert<T>(Value));
+										break;
+									case EPCGExReduceDataDomainMethod::Sum:
+										ReducedValue = PCGExBlend::Add(ReducedValue, PCGEx::Convert<T>(Value));
+										break;
+									case EPCGExReduceDataDomainMethod::Average:
+										ReducedValue = PCGExBlend::Add(ReducedValue, PCGEx::Convert<T>(Value));
+										break;
+									default:
+									case EPCGExReduceDataDomainMethod::Join:
+										break;
+									}
 								}
 							});
 					}
