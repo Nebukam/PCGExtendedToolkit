@@ -19,13 +19,6 @@ UPCGExDestroyActorSettings::UPCGExDestroyActorSettings(
 {
 }
 
-TArray<FPCGPinProperties> UPCGExDestroyActorSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_DEPENDENCIES
-	return PinProperties;
-}
-
 PCGExData::EIOInit UPCGExDestroyActorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 PCGEX_INITIALIZE_ELEMENT(DestroyActor)
