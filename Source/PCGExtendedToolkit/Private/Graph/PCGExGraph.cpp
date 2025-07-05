@@ -473,6 +473,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		}
 
 		EPCGPointNativeProperties AllocateProperties = EPCGPointNativeProperties::None;
+		
 		if (InBuilder->OutputDetails->bWriteEdgePosition)
 		{
 			AllocateProperties |= EPCGPointNativeProperties::Transform;
@@ -483,6 +484,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			AllocateProperties |= EPCGPointNativeProperties::Transform;
 			AllocateProperties |= EPCGPointNativeProperties::BoundsMin;
 			AllocateProperties |= EPCGPointNativeProperties::BoundsMax;
+		}
+
+		if (ParentGraph->bRefreshEdgeSeed || InBuilder->OutputDetails->bRefreshEdgeSeed)
+		{
+			AllocateProperties |= EPCGPointNativeProperties::Seed;
 		}
 
 		EdgesDataFacade->GetOut()->AllocateProperties(AllocateProperties);
