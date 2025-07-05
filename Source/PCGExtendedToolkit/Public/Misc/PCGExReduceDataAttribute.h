@@ -14,7 +14,7 @@ UENUM()
 enum class EPCGExReduceDataDomainMethod : uint8
 {
 	Min     = 0 UMETA(DisplayName = "Min", ToolTip=""),
-	Max     = 1 UMETA(DisplayName = "Min", ToolTip=""),
+	Max     = 1 UMETA(DisplayName = "Max", ToolTip=""),
 	Sum     = 2 UMETA(DisplayName = "Sum", ToolTip=""),
 	Average = 3 UMETA(DisplayName = "Average", ToolTip=""),
 	Join    = 4 UMETA(DisplayName = "Join", ToolTip=""),
@@ -30,11 +30,14 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		ReduceDataAttribute, "Reduce Data", "Reduce @Data domain attribute.",
-		Attributes.Source);
+		FName(GetDisplayName()));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite); }
+	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
 
+	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
+	
 	virtual FName GetMainInputPin() const override { return PCGPinConstants::DefaultInputLabel; }
 	virtual FName GetMainOutputPin() const override { return PCGPinConstants::DefaultOutputLabel; }
 
@@ -64,6 +67,10 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietMissingAttribute = false;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const;
+#endif
 };
 
 struct FPCGExReduceDataAttributeContext final : FPCGExPointsProcessorContext

@@ -205,6 +205,7 @@ namespace PCGExPathCrossings
 
 			if (!NewCrossing->IsEmpty())
 			{
+				FPlatformAtomics::InterlockedIncrement(&FoundCrossingsNum);
 				NewCrossing->SortByAlpha();
 				EdgeCrossings[Index] = NewCrossing;
 			}
@@ -213,6 +214,17 @@ namespace PCGExPathCrossings
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
+		if (!Settings->bCreatePointAtCrossings)
+		{
+			const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+			PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::Forward)
+
+			if (FoundCrossingsNum > 0) { if (Settings->bTagIfHasCrossing) { PointIO->Tags->AddRaw(Settings->HasCrossingsTag); } }
+			else { if (Settings->bTagIfHasNoCrossings) { PointIO->Tags->AddRaw(Settings->HasNoCrossingsTag); } }
+
+			return;
+		}
+
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::New)
 
@@ -238,7 +250,6 @@ namespace PCGExPathCrossings
 		WriteIndices.Reserve(InPoints->GetNumPoints());
 
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
-
 
 		TConstPCGValueRange<int64> InMetadataEntries = InPoints->GetConstMetadataEntryValueRange();
 		TPCGValueRange<int64> OutMetadataEntries = OutPoints->GetMetadataEntryValueRange(false);

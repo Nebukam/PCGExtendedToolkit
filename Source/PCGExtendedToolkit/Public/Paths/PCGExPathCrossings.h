@@ -55,6 +55,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Invert", PCG_NotOverridable, EditCondition="!bSelfIntersectionOnly", EditConditionHides))
 	bool bInvertCanCutTag = false;
 
+	/** If enabled, a point will be created at the crossing' location. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bCreatePointAtCrossings = true;
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
@@ -178,6 +182,8 @@ namespace PCGExPathCrossings
 		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> CrossWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> IsPointCrossingWriter;
+
+		int32 FoundCrossingsNum = 0;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
