@@ -28,7 +28,7 @@ MACRO(NumSamples, int32, 0)
 
 class UPCGExFilterFactoryData;
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-spline-1"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-spline-2"))
 class UPCGExSampleInsidePathSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -51,10 +51,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings
 public:
-	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
-	//~End UPCGExPointsProcessorSettings
 
 	/** Process inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
@@ -150,18 +147,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("@Data.WeightedDistance");
 
-	/** Whether to output normalized distance or not*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Normalized", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
-	bool bOutputNormalizedDistance = false;
-
-	/** Whether to do a OneMinus on the normalized distance value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" │ └─ OneMinus", EditCondition="bWriteDistance && bOutputNormalizedDistance", EditConditionHides, HideEditConditionToggle))
-	bool bOutputOneMinusDistance = false;
-
-	/** Scale factor applied to the distance output; allows to easily invert it using -1 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteDistance", EditConditionHides, HideEditConditionToggle))
-	double DistanceScale = 1;
-
 	/** Write the sampled Signed distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSignedDistance = false;
@@ -204,7 +189,7 @@ public:
 	FName NumInsideAttributeName = FName("@Data.NumInside");
 
 	/** Only increment num inside count when comes from a bClosedLoop spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Only if Closed Spline", EditCondition="bWriteNumInside && ProcessInputs == EPCGExPathSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Only if Closed Path", EditCondition="bWriteNumInside && ProcessInputs == EPCGExPathSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
 	bool bOnlyIncrementInsideNumIfClosed = false;
 
 	/** Write the sampled distance. */
@@ -283,17 +268,17 @@ namespace PCGExSampleInsidePath
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleInsidePathContext, UPCGExSampleInsidePathSettings>
 	{
+
+		TSharedPtr<PCGExPaths::FPath> Path;
+		
 		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 		TArray<int8> SamplingMask;
 
-		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMinGetter;
-		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMaxGetter;
+		double RangeMin = 0;
+		double RangeMax = 0;
 
 		int8 bAnySuccess = 0;
-
-		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
-		double MaxDistance = 0;
 
 		TSharedPtr<PCGExDataBlending::FUnionOpsManager> UnionBlendOpsManager;
 		TSharedPtr<PCGExDataBlending::IUnionBlender> DataBlender;
@@ -305,6 +290,8 @@ namespace PCGExSampleInsidePath
 
 		PCGEX_FOREACH_FIELD_InsidePath(PCGEX_OUTPUT_DECL)
 
+		FBox SampleBox = FBox(ForceInit);
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TPointsProcessor(InPointDataFacade)
@@ -314,11 +301,9 @@ namespace PCGExSampleInsidePath
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
+		void ProcessPath();
+		
 		void SamplingFailed(const int32 Index);
-		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-
-		virtual void OnPointsProcessingComplete() override;
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;
