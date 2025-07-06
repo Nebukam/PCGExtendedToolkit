@@ -366,7 +366,6 @@ namespace PCGExSampleNearestPath
 			}
 
 			int32 NumInside = 0;
-			int32 NumSampled = 0;
 			int32 NumInClosed = 0;
 
 			bool bSampledClosedLoop = false;
@@ -538,10 +537,10 @@ namespace PCGExSampleNearestPath
 			FVector WeightedSignAxis = FVector::ZeroVector;
 			FVector WeightedAngleAxis = FVector::ZeroVector;
 
-			const double NumSampledEdges = (static_cast<double>(Union->Num()) * 0.5);
-			WeightedDistance /= NumSampledEdges; // We have two points per samples
-			WeightedTime /= NumSampledEdges;
-			WeightedSegmentTime /= NumSampledEdges;
+			const double NumSampled = Union->Num() * 0.5;
+			WeightedDistance /= NumSampled; // We have two points per samples
+			WeightedTime /= NumSampled;
+			WeightedSegmentTime /= NumSampled;
 
 			double TotalWeight = 0;
 

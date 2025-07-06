@@ -257,7 +257,7 @@ public:
 	EPCGExAxis SignAxis = EPCGExAxis::Forward;
 
 	/** Only sign the distance if at least one sampled spline is a bClosedLoop spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Only if Closed Spline", EditCondition="bWriteSignedDistance && SampleInputs == EPCGExPathSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Only if Closed Path", EditCondition="bWriteSignedDistance && SampleInputs == EPCGExPathSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
 	bool bOnlySignIfClosed = false;
 
 	/** Scale factor applied to the signed distance output; allows to easily invert it using -1 */
