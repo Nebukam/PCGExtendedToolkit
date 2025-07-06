@@ -3,6 +3,8 @@
 
 #include "Sampling/PCGExSampleInsidePath.h"
 
+#include "Misc/PCGExDiscardByPointCount.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExSampleInsidePathElement"
 #define PCGEX_NAMESPACE SampleInsidePath
@@ -34,6 +36,16 @@ TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::InputPinProperties() c
 		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Advanced, {})
 	}
 
+	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	if (OutputMode == EPCGExSampleInsidePathOutput::Split)
+	{
+		PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "", Normal, {})
+	}
 	return PinProperties;
 }
 
@@ -275,7 +287,7 @@ namespace PCGExSampleInsidePath
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
-		
+
 		bSingleSample = Settings->SampleMethod != EPCGExSampleMethod::WithinRange;
 		bClosestSample = Settings->SampleMethod != EPCGExSampleMethod::FarthestTarget;
 
@@ -414,7 +426,7 @@ namespace PCGExSampleInsidePath
 		FTransform WeightedTransform = FTransform::Identity;
 		WeightedTransform.SetScale3D(FVector::ZeroVector);
 
-		const double NumSampled = Union->Num();
+		NumSampled = Union->Num();
 		WeightedDistance /= NumSampled; // We have two points per samples
 		WeightedTime /= NumSampled;
 		WeightedSegmentTime /= NumSampled;
@@ -452,7 +464,6 @@ namespace PCGExSampleInsidePath
 			WeightedTransform = InTransforms[Index];
 		}
 
-		PCGEX_OUTPUT_VALUE(Success, Index, !Union->IsEmpty())
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)
 		PCGEX_OUTPUT_VALUE(NumInside, Index, NumInside)
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, NumSampled)
@@ -462,8 +473,13 @@ namespace PCGExSampleInsidePath
 
 	void FProcessor::SamplingFailed(const int32 Index)
 	{
+		if (NumSampled == 0 && Settings->OutputMode == EPCGExSampleInsidePathOutput::SuccessOnly)
+		{
+			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
+			return;
+		}
+
 		const double FailSafeDist = RangeMax;
-		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
 		PCGEX_OUTPUT_VALUE(NumInside, Index, -1)
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
@@ -471,6 +487,8 @@ namespace PCGExSampleInsidePath
 
 	void FProcessor::CompleteWork()
 	{
+		if (NumSampled == 0 && Settings->OutputMode == EPCGExSampleInsidePathOutput::SuccessOnly) { return; }
+
 		for (const TSharedPtr<PCGExData::IBuffer>& Buffer : PointDataFacade->Buffers) { if (Buffer->IsWritable()) { Buffer->bResetWithFirstValue = true; } }
 
 		if (UnionBlendOpsManager) { UnionBlendOpsManager->Cleanup(Context); }
@@ -479,6 +497,11 @@ namespace PCGExSampleInsidePath
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasNoSuccessesTag); }
+
+		if (NumSampled == 0 && Settings->OutputMode == EPCGExSampleInsidePathOutput::Split)
+		{
+			PointDataFacade->Source->OutputPin = PCGExDiscardByPointCount::OutputDiscardedLabel;
+		}
 	}
 
 	void FProcessor::Cleanup()
