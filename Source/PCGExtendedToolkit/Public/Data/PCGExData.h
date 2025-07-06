@@ -77,6 +77,7 @@ namespace PCGExData
 
 	public:
 		FPCGAttributeIdentifier Identifier;
+		bool bResetWithFirstValue = false;
 
 		bool IsEnabled() const { return bIsEnabled.load(std::memory_order_acquire); }
 		void Disable() { bIsEnabled.store(false, std::memory_order_release); }
@@ -433,6 +434,13 @@ namespace PCGExData
 			}
 
 			if (!TypedOutAttribute) { return; }
+
+			if (this->bResetWithFirstValue)
+			{
+				TypedOutAttribute->Reset();
+				TypedOutAttribute->SetDefaultValue(*OutValues->GetData());
+				return;
+			}
 
 			TUniquePtr<IPCGAttributeAccessor> OutAccessor = PCGAttributeAccessorHelpers::CreateAccessor(TypedOutAttribute, Source->GetOut()->Metadata);
 			if (!OutAccessor.IsValid()) { return; }
@@ -1049,7 +1057,7 @@ namespace PCGExData
 
 	static void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true)
 	{
-		if (InBuffer->GetUnderlyingDomain() == EDomainType::Data)
+		if (InBuffer->GetUnderlyingDomain() == EDomainType::Data || InBuffer->bResetWithFirstValue)
 		{
 			// Immediately write data values
 			// Note : let's hope this won't put async in limbo 
