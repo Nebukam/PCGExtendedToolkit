@@ -18,11 +18,9 @@
 
 #include "PCGExSampleInsidePath.generated.h"
 
-#define PCGEX_FOREACH_FIELD_InsidePath(MACRO)\
+#define PCGEX_FOREACH_FIELD_INSIDEPATH(MACRO)\
 MACRO(Success, bool, false)\
 MACRO(Distance, double, 0)\
-MACRO(SignedDistance, double, 0)\
-MACRO(ComponentWiseDistance, FVector, FVector::ZeroVector)\
 MACRO(NumInside, int32, 0)\
 MACRO(NumSamples, int32, 0)
 
@@ -52,7 +50,6 @@ protected:
 	//~End UPCGSettings
 
 public:
-
 	/** Process inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExPathSamplingIncludeMode ProcessInputs = EPCGExPathSamplingIncludeMode::All;
@@ -105,10 +102,6 @@ public:
 
 #pragma endregion
 
-	/** Distance method to be used for source points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	EPCGExDistance DistanceSettings = EPCGExDistance::Center;
-
 	/** Weight method used for blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
@@ -147,57 +140,25 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("@Data.WeightedDistance");
 
-	/** Write the sampled Signed distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteSignedDistance = false;
-
-	/** Name of the 'double' attribute to write sampled Signed distance to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="SignedDistance", PCG_Overridable, EditCondition="bWriteSignedDistance"))
-	FName SignedDistanceAttributeName = FName("@Data.WeightedSignedDistance");
-
-	/** Axis to use to calculate the distance' sign*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Axis", EditCondition="bWriteSignedDistance", EditConditionHides, HideEditConditionToggle))
-	EPCGExAxis SignAxis = EPCGExAxis::Forward;
-
-	/** Only sign the distance if at least one sampled spline is a bClosedLoop spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Only if Closed Spline", EditCondition="bWriteSignedDistance && ProcessInputs == EPCGExPathSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
-	bool bOnlySignIfClosed = false;
-
-	/** Scale factor applied to the signed distance output; allows to easily invert it using -1 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Scale", EditCondition="bWriteSignedDistance", EditConditionHides, HideEditConditionToggle))
-	double SignedDistanceScale = 1;
-
-	/** Write the sampled component-wise distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteComponentWiseDistance = false;
-
-	/** Name of the 'FVector' attribute to write component-wise distance to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Component Wise Distance", PCG_Overridable, EditCondition="bWriteComponentWiseDistance"))
-	FName ComponentWiseDistanceAttributeName = FName("@Data.CWDistance");
-
-	/** Whether to output absolute or signed component wise distances */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Absolute", EditCondition="bWriteComponentWiseDistance", EditConditionHides, HideEditConditionToggle))
-	bool bAbsoluteComponentWiseDistance = true;
-
-
+	
 	/** Write the inside/outside status of the point toward any sampled spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNumInside = false;
 
 	/** Name of the 'int32' attribute to write the number of spline this point lies inside*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(DisplayName="NumInside", PCG_Overridable, EditCondition="bWriteNumInside"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="NumInside", PCG_Overridable, EditCondition="bWriteNumInside"))
 	FName NumInsideAttributeName = FName("@Data.NumInside");
 
 	/** Only increment num inside count when comes from a bClosedLoop spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Only if Closed Path", EditCondition="bWriteNumInside && ProcessInputs == EPCGExPathSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Only if Closed Path", EditCondition="bWriteNumInside && ProcessInputs == EPCGExPathSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
 	bool bOnlyIncrementInsideNumIfClosed = false;
 
 	/** Write the sampled distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNumSamples = false;
 
 	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(DisplayName="NumSamples", PCG_Overridable, EditCondition="bWriteNumSamples"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="NumSamples", PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("@Data.NumSamples");
 
 
@@ -215,15 +176,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfHasNoSuccesses"))
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 
-	//
-
-	/** If enabled, mark filtered out points as "failed". Otherwise, just skip the processing altogether. Only uncheck this if you want to ensure existing attribute values are preserved. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
-	bool bProcessFilteredOutAsFails = true;
-
-	/** If enabled, points that failed to sample anything will be pruned. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
-	bool bPruneFailedSamples = false;
 };
 
 struct FPCGExSampleInsidePathContext final : FPCGExPointsProcessorContext
@@ -233,8 +185,6 @@ struct FPCGExSampleInsidePathContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
-
-	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	int32 NumMaxTargets = 0;
 
@@ -247,7 +197,7 @@ struct FPCGExSampleInsidePathContext final : FPCGExPointsProcessorContext
 	FRuntimeFloatCurve RuntimeWeightCurve;
 	const FRichCurve* WeightCurve = nullptr;
 
-	PCGEX_FOREACH_FIELD_InsidePath(PCGEX_OUTPUT_DECL_TOGGLE)
+	PCGEX_FOREACH_FIELD_INSIDEPATH(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	virtual void RegisterAssetDependencies() override;
 };
@@ -268,12 +218,9 @@ namespace PCGExSampleInsidePath
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleInsidePathContext, UPCGExSampleInsidePathSettings>
 	{
-
 		TSharedPtr<PCGExPaths::FPath> Path;
-		
-		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
-		TArray<int8> SamplingMask;
+		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 		double RangeMin = 0;
 		double RangeMax = 0;
@@ -285,10 +232,9 @@ namespace PCGExSampleInsidePath
 
 		bool bSingleSample = false;
 		bool bClosestSample = false;
-		bool bOnlySignIfClosed = false;
 		bool bOnlyIncrementInsideNumIfClosed = false;
 
-		PCGEX_FOREACH_FIELD_InsidePath(PCGEX_OUTPUT_DECL)
+		PCGEX_FOREACH_FIELD_INSIDEPATH(PCGEX_OUTPUT_DECL)
 
 		FBox SampleBox = FBox(ForceInit);
 
@@ -302,11 +248,10 @@ namespace PCGExSampleInsidePath
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void ProcessPath();
-		
+
 		void SamplingFailed(const int32 Index);
 
 		virtual void CompleteWork() override;
-		virtual void Write() override;
 
 		virtual void Cleanup() override;
 	};
