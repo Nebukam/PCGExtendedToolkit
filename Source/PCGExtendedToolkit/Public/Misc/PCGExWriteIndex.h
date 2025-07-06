@@ -20,7 +20,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		WriteIndex, "Write Index", "Write the current point index to an attribute.",
-		OutputAttributeName);
+		FName(GetDisplayName()));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite); }
 #endif
@@ -97,7 +97,10 @@ public:
 	bool CollectionLevelOutputOnly() const;
 
 	virtual bool IsInputless() const override{ return CollectionLevelOutputOnly(); }
-	
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const;
+#endif
 };
 
 struct FPCGExWriteIndexContext final : FPCGExPointsProcessorContext

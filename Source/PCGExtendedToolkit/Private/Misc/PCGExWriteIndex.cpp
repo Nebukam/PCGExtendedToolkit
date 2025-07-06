@@ -80,6 +80,13 @@ TArray<FPCGPinProperties> UPCGExWriteIndexSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
+#if WITH_EDITOR
+FString UPCGExWriteIndexSettings::GetDisplayName() const
+{
+	return bOutputPointIndex ? OutputAttributeName.ToString() : bOutputCollectionIndex ? CollectionIndexAttributeName.ToString() : bOutputCollectionNumEntries ? NumEntriesAttributeName.ToString() : TEXT("...");
+}
+#endif
+
 PCGEX_INITIALIZE_ELEMENT(WriteIndex)
 
 bool FPCGExWriteIndexElement::Boot(FPCGExContext* InContext) const
