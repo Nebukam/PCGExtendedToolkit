@@ -19,10 +19,17 @@
 #include "PCGExSampleInsidePath.generated.h"
 
 #define PCGEX_FOREACH_FIELD_INSIDEPATH(MACRO)\
-MACRO(Success, bool, false)\
 MACRO(Distance, double, 0)\
 MACRO(NumInside, int32, 0)\
 MACRO(NumSamples, int32, 0)
+
+UENUM()
+enum class EPCGExSampleInsidePathOutput : uint8
+{
+	All         = 0 UMETA(DisplayName = "All", Tooltip="Output all paths, whether they successfully sampled a target or not"),
+	SuccessOnly = 1 UMETA(DisplayName = "Success only", Tooltip="Output only paths that have sampled at least a single target point"),
+	Split       = 2 UMETA(DisplayName = "Split", Tooltip="Split between two pins")
+};
 
 class UPCGExFilterFactoryData;
 
@@ -45,6 +52,8 @@ protected:
 	virtual FName GetMainOutputPin() const override;
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -119,9 +128,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
-	/** Whether and how to apply sampled result directly (not mutually exclusive with output)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
-	FPCGExApplySamplingDetails ApplySampling;
+	/** If enabled, will only output paths that have at least sampled one target point */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable))
+	EPCGExSampleInsidePathOutput OutputMode = EPCGExSampleInsidePathOutput::All;
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -140,7 +149,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("@Data.WeightedDistance");
 
-	
+
 	/** Write the inside/outside status of the point toward any sampled spline. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNumInside = false;
@@ -175,7 +184,6 @@ public:
 	/** If enabled, add the specified tag to the output data if no spline was found within range.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfHasNoSuccesses"))
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
-
 };
 
 struct FPCGExSampleInsidePathContext final : FPCGExPointsProcessorContext
@@ -225,6 +233,7 @@ namespace PCGExSampleInsidePath
 		double RangeMin = 0;
 		double RangeMax = 0;
 
+		double NumSampled = 0;
 		int8 bAnySuccess = 0;
 
 		TSharedPtr<PCGExDataBlending::FUnionOpsManager> UnionBlendOpsManager;
