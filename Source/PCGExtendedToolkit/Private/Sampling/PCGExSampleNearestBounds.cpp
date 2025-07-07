@@ -365,6 +365,8 @@ namespace PCGExSampleNearestBounds
 			Context->TargetsOctree->FindElementsWithBoundsTest(
 				BCAE, [&](const PCGEx::FIndexedItem& Item)
 				{
+					if (Context->TargetFacades[Item.Index]->GetIn() == PointDataFacade->GetIn() && Settings->bIgnoreSelf) { return; }
+
 					Context->Clouds[Item.Index]->GetOctree()->FindElementsWithBoundsTest(
 						BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)
 						{

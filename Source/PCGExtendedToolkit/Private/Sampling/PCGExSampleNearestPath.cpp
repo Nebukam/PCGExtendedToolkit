@@ -480,6 +480,9 @@ namespace PCGExSampleNearestPath
 					[&](const PCGEx::FIndexedItem& Item)
 					{
 						const TSharedPtr<PCGExPaths::FPath> Path = Context->Paths[Item.Index];
+
+						if (Context->TargetFacades[Item.Index]->GetIn() == PointDataFacade->GetIn() && Settings->bIgnoreSelf) { return; }
+
 						float Lerp = 0;
 						const int32 EdgeIndex = Path->GetClosestEdge(Origin, Lerp);
 						SampleTarget(EdgeIndex, Lerp, Path);
@@ -495,6 +498,8 @@ namespace PCGExSampleNearestPath
 					{
 						const TSharedPtr<PCGExPaths::FPath>& Path = Context->Paths[Item.Index];
 						double Time = 0;
+
+						if (Context->TargetFacades[Item.Index]->GetIn() == PointDataFacade->GetIn() && Settings->bIgnoreSelf) { return; }
 
 						switch (Settings->SampleAlphaMode)
 						{

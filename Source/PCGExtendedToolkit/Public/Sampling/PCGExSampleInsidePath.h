@@ -131,7 +131,7 @@ public:
 	/** Curve that balances weight over distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
-
+	
 	/** If enabled, will only output paths that have at least sampled one target point */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable))
 	EPCGExSampleInsidePathOutput OutputMode = EPCGExSampleInsidePathOutput::All;
@@ -188,6 +188,10 @@ public:
 	/** If enabled, add the specified tag to the output data if no spline was found within range.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfHasNoSuccesses"))
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	bool bIgnoreSelf = true;
 };
 
 struct FPCGExSampleInsidePathContext final : FPCGExPointsProcessorContext
