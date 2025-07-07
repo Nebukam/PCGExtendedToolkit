@@ -97,7 +97,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 		}
 
 		TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
-		TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePolyPath(IO->GetIn(), 1, FVector::UpVector);
+		TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePolyPath(IO->GetIn(), 1, FVector::UpVector, Settings->HeightInclusion);
 		Path->IOIndex = IO->IOIndex;
 		TargetFacade->Idx = Path->Idx = Context->Paths.Num();
 

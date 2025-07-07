@@ -245,7 +245,7 @@ namespace PCGExSampleInsidePath
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		Path = PCGExPaths::MakePolyPath(PointDataFacade->GetIn(), 1);
+		Path = PCGExPaths::MakePolyPath(PointDataFacade->GetIn(), 1, FVector::UpVector, Settings->HeightInclusion);
 
 		// Allocate edge native properties
 
