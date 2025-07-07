@@ -406,6 +406,8 @@ namespace PCGExSampleInsidePath
 				const PCGPointOctree::FPointOctree* Octree = Context->TargetOctrees[Item.Index];
 				const TSharedPtr<PCGExData::FFacade> TargetFacade = Context->TargetFacades[Item.Index];
 
+				if (TargetFacade->GetIn() == PointDataFacade->GetIn() && Settings->bIgnoreSelf) { return; }
+
 				// Check all points within the box
 				Octree->FindElementsWithBoundsTest(
 					SampleBox, [&](const PCGPointOctree::FPointRef& PointRef)

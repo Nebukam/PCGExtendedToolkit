@@ -260,6 +260,8 @@ namespace PCGExSorting
 			const TSharedPtr<PCGExData::IDataValue> DataValueA = RuleHandler->DataValues[A];
 			const TSharedPtr<PCGExData::IDataValue> DataValueB = RuleHandler->DataValues[B];
 
+			if (!DataValueA || !DataValueB) { continue; }
+
 			if (DataValueA->IsNumeric() || DataValueB->IsNumeric())
 			{
 				const double ValueA = DataValueA->AsDouble();
