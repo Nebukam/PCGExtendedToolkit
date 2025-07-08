@@ -15,16 +15,9 @@ class FPCGExHeuristicDistance;
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Keep Lowest Score", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-score"))
-class UPCGExEdgeKeepLowestScore : public UPCGExEdgeRefineOperation
+class FPCGExEdgeKeepLowestScore : public FPCGExEdgeRefineOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual bool GetDefaultEdgeValidity() override { return false; }
-	virtual bool WantsHeuristics() override { return true; }
-	virtual bool WantsIndividualNodeProcessing() override { return true; }
-
 	virtual void ProcessNode(PCGExCluster::FNode& Node) override
 	{
 		int32 BestIndex = -1;
@@ -48,4 +41,20 @@ public:
 
 		FPlatformAtomics::InterlockedExchange(&Cluster->GetEdge(BestIndex)->bValid, 1);
 	}
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Keep Lowest Score", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-score"))
+class UPCGExEdgeKeepLowestScore : public UPCGExEdgeRefineInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool GetDefaultEdgeValidity() const override { return false; }
+	virtual bool WantsHeuristics() const override { return true; }
+	virtual bool WantsIndividualNodeProcessing() const override { return true; }
+
+	PCGEX_CREATE_REFINE_OPERATION(EdgeKeepLowestScore, {})
 };

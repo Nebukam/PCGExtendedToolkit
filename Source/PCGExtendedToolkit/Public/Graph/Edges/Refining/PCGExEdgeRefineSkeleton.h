@@ -11,36 +11,18 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : β Skeleton", PCGExNodeLibraryDoc="clusters/refine-cluster/v-skeleton"))
-class UPCGExEdgeRefineSkeleton : public UPCGExEdgeRefineOperation
+class FPCGExEdgeRefineSkeleton : public FPCGExEdgeRefineOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual bool GetDefaultEdgeValidity() override { return !bInvert; }
-	virtual bool WantsNodeOctree() override { return true; }
-
-	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
-	{
-		Super::CopySettingsFrom(Other);
-		if (const UPCGExEdgeRefineSkeleton* TypedOther = Cast<UPCGExEdgeRefineSkeleton>(Other))
-		{
-			Beta = TypedOther->Beta;
-			bInvert = TypedOther->bInvert;
-		}
-	}
-
-	virtual bool WantsIndividualEdgeProcessing() override { return true; }
-
 	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
 	{
-		Super::PrepareForCluster(InCluster, InHeuristics);
+		FPCGExEdgeRefineOperation::PrepareForCluster(InCluster, InHeuristics);
 		ExchangeValue = bInvert ? 1 : 0;
 	}
 
 	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
-		Super::ProcessEdge(Edge);
+		FPCGExEdgeRefineOperation::ProcessEdge(Edge);
 
 		const FVector From = Cluster->GetStartPos(Edge);
 		const FVector To = Cluster->GetEndPos(Edge);
@@ -89,6 +71,34 @@ public:
 
 	int8 ExchangeValue = 0;
 
+	double Beta = 1;
+	bool bInvert = false;
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : β Skeleton", PCGExNodeLibraryDoc="clusters/refine-cluster/v-skeleton"))
+class UPCGExEdgeRefineSkeleton : public UPCGExEdgeRefineInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool GetDefaultEdgeValidity() const override { return !bInvert; }
+	virtual bool WantsNodeOctree() const override { return true; }
+
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExEdgeRefineSkeleton* TypedOther = Cast<UPCGExEdgeRefineSkeleton>(Other))
+		{
+			Beta = TypedOther->Beta;
+			bInvert = TypedOther->bInvert;
+		}
+	}
+
+	virtual bool WantsIndividualEdgeProcessing() const override { return true; }
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Beta = 1;
@@ -96,4 +106,10 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
+
+	PCGEX_CREATE_REFINE_OPERATION(
+		EdgeRefineSkeleton, {
+		Operation->Beta = Beta;
+		Operation->bInvert = bInvert;
+		})
 };

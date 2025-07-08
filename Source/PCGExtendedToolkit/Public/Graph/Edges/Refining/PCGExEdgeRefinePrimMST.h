@@ -12,24 +12,9 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : MST (Prim)", PCGExNodeLibraryDoc="clusters/refine-cluster/mst-prim"))
-class UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineOperation
+class FPCGExEdgeRefinePrimMST : public FPCGExEdgeRefineOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual bool GetDefaultEdgeValidity() override { return bInvert; }
-	virtual bool WantsHeuristics() override { return true; }
-
-	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
-	{
-		Super::CopySettingsFrom(Other);
-		if (const UPCGExEdgeRefinePrimMST* TypedOther = Cast<UPCGExEdgeRefinePrimMST>(Other))
-		{
-			bInvert = TypedOther->bInvert;
-		}
-	}
-
 	virtual void Process() override
 	{
 		const int32 NumNodes = Cluster->Nodes->Num();
@@ -79,7 +64,33 @@ public:
 		}
 	}
 
+	bool bInvert = false;
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : MST (Prim)", PCGExNodeLibraryDoc="clusters/refine-cluster/mst-prim"))
+class UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool GetDefaultEdgeValidity() const override { return bInvert; }
+	virtual bool WantsHeuristics() const override { return true; }
+
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExEdgeRefinePrimMST* TypedOther = Cast<UPCGExEdgeRefinePrimMST>(Other))
+		{
+			bInvert = TypedOther->bInvert;
+		}
+	}
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
+
+	PCGEX_CREATE_REFINE_OPERATION(EdgeRefinePrimMST, { Operation->bInvert = bInvert; })
 };
