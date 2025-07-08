@@ -103,9 +103,9 @@ FString UPCGExDotFilterProviderSettings::GetDisplayName() const
 	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + TEXT(" ⋅ ");
 
 	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { DisplayName += PCGEx::GetSelectorDisplayName(Config.OperandB); }
-	else { DisplayName += " (Constant)"; }
+	else { DisplayName += " (v3) "; }
 
-	return DisplayName;
+	return DisplayName + Config.DotComparisonDetails.GetDisplayComparison();
 }
 #endif
 

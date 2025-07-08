@@ -83,5 +83,12 @@ bool PCGExPointFilter::FAngleFilter::Test(const int32 PointIndex) const
 
 PCGEX_CREATE_FILTER_FACTORY(Angle)
 
+#if WITH_EDITOR
+FString UPCGExAngleFilterProviderSettings::GetDisplayName() const
+{
+	return (Config.Mode == EPCGExAngleFilterMode::Curvature ? TEXT("Curvature") : TEXT("Spread")) + Config.DotComparisonDetails.GetDisplayComparison();
+}
+#endif
+
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
