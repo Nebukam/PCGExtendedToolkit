@@ -11,35 +11,18 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Gabriel", PCGExNodeLibraryDoc="clusters/refine-cluster/gabriel"))
-class UPCGExEdgeRefineGabriel : public UPCGExEdgeRefineOperation
+class FPCGExEdgeRefineGabriel : public FPCGExEdgeRefineOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual bool GetDefaultEdgeValidity() override { return !bInvert; }
-	virtual bool WantsNodeOctree() override { return true; }
-
-	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
-	{
-		Super::CopySettingsFrom(Other);
-		if (const UPCGExEdgeRefineGabriel* TypedOther = Cast<UPCGExEdgeRefineGabriel>(Other))
-		{
-			bInvert = TypedOther->bInvert;
-		}
-	}
-
-	virtual bool WantsIndividualEdgeProcessing() override { return !bInvert; }
-
 	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
 	{
-		Super::PrepareForCluster(InCluster, InHeuristics);
+		FPCGExEdgeRefineOperation::PrepareForCluster(InCluster, InHeuristics);
 		ExchangeValue = bInvert ? 1 : 0;
 	}
 
 	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
 	{
-		Super::ProcessEdge(Edge);
+		FPCGExEdgeRefineOperation::ProcessEdge(Edge);
 
 		const FVector From = Cluster->GetStartPos(Edge);
 		const FVector To = Cluster->GetEndPos(Edge);
@@ -60,8 +43,35 @@ public:
 	}
 
 	int8 ExchangeValue = 0;
+	bool bInvert = false;
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Gabriel", PCGExNodeLibraryDoc="clusters/refine-cluster/gabriel"))
+class UPCGExEdgeRefineGabriel : public UPCGExEdgeRefineInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool GetDefaultEdgeValidity() const override { return !bInvert; }
+	virtual bool WantsNodeOctree() const override { return true; }
+
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExEdgeRefineGabriel* TypedOther = Cast<UPCGExEdgeRefineGabriel>(Other))
+		{
+			bInvert = TypedOther->bInvert;
+		}
+	}
+
+	virtual bool WantsIndividualEdgeProcessing() const override { return !bInvert; }
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
+
+	PCGEX_CREATE_REFINE_OPERATION(EdgeRefineGabriel, { Operation->bInvert = bInvert; })
 };

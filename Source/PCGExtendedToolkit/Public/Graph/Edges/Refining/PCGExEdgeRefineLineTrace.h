@@ -11,13 +11,48 @@
 /**
  * 
  */
+class FPCGExEdgeRefineLineTrace : public FPCGExEdgeRefineOperation
+{
+public:
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
+	{
+		FPCGExEdgeRefineOperation::PrepareForCluster(InCluster, InHeuristics);
+		ExchangeValue = bInvert ? 1 : 0;
+	}
+
+	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
+	{
+		FPCGExEdgeRefineOperation::ProcessEdge(Edge);
+
+		const FVector From = Cluster->GetStartPos(Edge);
+		const FVector To = Cluster->GetEndPos(Edge);
+
+		FHitResult HitResult;
+		if (!InitializedCollisionSettings->Linecast(From, To, HitResult))
+		{
+			if (!bTwoWayCheck || !InitializedCollisionSettings->Linecast(To, From, HitResult)) { return; }
+		}
+
+		FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue);
+	}
+
+	bool bTwoWayCheck = true;
+	bool bInvert = false;
+	int8 ExchangeValue = 0;
+
+	const FPCGExCollisionDetails* InitializedCollisionSettings = nullptr;
+};
+
+/**
+ * 
+ */
 UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Line Trace", PCGExNodeLibraryDoc="clusters/refine-cluster/line-trace"))
-class UPCGExEdgeRefineLineTrace : public UPCGExEdgeRefineOperation
+class UPCGExEdgeRefineLineTrace : public UPCGExEdgeRefineInstancedFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual bool GetDefaultEdgeValidity() override { return !bInvert; }
+	virtual bool GetDefaultEdgeValidity() const override { return !bInvert; }
 
 	// Required for initializing collision settings
 	virtual bool CanOnlyExecuteOnMainThread() const override { return true; }
@@ -40,29 +75,7 @@ public:
 		}
 	}
 
-	virtual bool WantsIndividualEdgeProcessing() override { return true; }
-
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
-	{
-		Super::PrepareForCluster(InCluster, InHeuristics);
-		ExchangeValue = bInvert ? 1 : 0;
-	}
-
-	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
-	{
-		Super::ProcessEdge(Edge);
-
-		const FVector From = Cluster->GetStartPos(Edge);
-		const FVector To = Cluster->GetEndPos(Edge);
-
-		FHitResult HitResult;
-		if (!InitializedCollisionSettings.Linecast(From, To, HitResult))
-		{
-			if (!bTwoWayCheck || !InitializedCollisionSettings.Linecast(To, From, HitResult)) { return; }
-		}
-
-		FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue);
-	}
+	virtual bool WantsIndividualEdgeProcessing() const override { return true; }
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExCollisionDetails CollisionSettings;
@@ -75,7 +88,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
-	int8 ExchangeValue = 0;
+	PCGEX_CREATE_REFINE_OPERATION(
+		EdgeRefineLineTrace, {
+		Operation->bTwoWayCheck = bTwoWayCheck;
+		Operation->bInvert = bInvert;
+		Operation->InitializedCollisionSettings = &InitializedCollisionSettings;
+		})
 
 protected:
 	FPCGExCollisionDetails InitializedCollisionSettings;

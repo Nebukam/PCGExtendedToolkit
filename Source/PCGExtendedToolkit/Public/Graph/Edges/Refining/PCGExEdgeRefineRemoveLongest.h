@@ -11,14 +11,9 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Longest", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-length"))
-class UPCGExEdgeRemoveLongest : public UPCGExEdgeRefineOperation
+class FPCGExEdgeRemoveLongest : public FPCGExEdgeRefineOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual bool WantsIndividualNodeProcessing() override { return true; }
-
 	virtual void ProcessNode(PCGExCluster::FNode& Node) override
 	{
 		int32 BestIndex = -1;
@@ -39,4 +34,18 @@ public:
 
 		FPlatformAtomics::InterlockedExchange(&Cluster->GetEdge(BestIndex)->bValid, 0);
 	}
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Longest", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-length"))
+class UPCGExEdgeRemoveLongest : public UPCGExEdgeRefineInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool WantsIndividualNodeProcessing() const override { return true; }
+
+	PCGEX_CREATE_REFINE_OPERATION(EdgeRemoveLongest, {})
 };

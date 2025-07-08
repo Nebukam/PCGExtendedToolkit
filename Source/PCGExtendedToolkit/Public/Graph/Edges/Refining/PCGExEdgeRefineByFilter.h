@@ -15,15 +15,36 @@ namespace PCGExCluster
 /**
  * 
  */
+class FPCGExEdgeRefineByFilter : public FPCGExEdgeRefineOperation
+{
+public:
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
+	{
+		FPCGExEdgeRefineOperation::PrepareForCluster(InCluster, InHeuristics);
+		ExchangeValue = bInvert ? 0 : 1;
+	}
+
+	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
+	{
+		if (*(EdgeFilterCache->GetData() + Edge.Index)) { FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue); }
+	}
+
+	int8 ExchangeValue = 0;
+	bool bInvert = false;
+};
+
+/**
+ * 
+ */
 UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Filter", PCGExNodeLibraryDoc="clusters/refine-cluster/filters"))
-class UPCGExEdgeRefineByFilter : public UPCGExEdgeRefineOperation
+class UPCGExEdgeRefineByFilter : public UPCGExEdgeRefineInstancedFactory
 {
 	GENERATED_BODY()
 
 public:
-	virtual bool SupportFilters() override { return true; }
-	virtual bool WantsIndividualEdgeProcessing() override { return true; }
-	virtual bool GetDefaultEdgeValidity() override { return bInvert; }
+	virtual bool SupportFilters() const override { return true; }
+	virtual bool WantsIndividualEdgeProcessing() const override { return true; }
+	virtual bool GetDefaultEdgeValidity() const override { return bInvert; }
 
 	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
 	{
@@ -34,20 +55,9 @@ public:
 		}
 	}
 
-	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
-	{
-		Super::PrepareForCluster(InCluster, InHeuristics);
-		ExchangeValue = bInvert ? 0 : 1;
-	}
-
-	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
-	{
-		if (*(EdgeFilterCache->GetData() + Edge.Index)) { FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue); }
-	}
-
-	int8 ExchangeValue = 0;
-
 	/** If enabled, filtered out edges are kept, while edges that pass the filter are removed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
+
+	PCGEX_CREATE_REFINE_OPERATION(EdgeRefineByFilter, { Operation->bInvert = bInvert; })
 };
