@@ -541,6 +541,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
 	bool GetOnlyUseDataDomain() const;
+
+#if WITH_EDITOR
+	FString GetDisplayComparison() const;
+#endif
+		
 };
 
 USTRUCT(BlueprintType)
