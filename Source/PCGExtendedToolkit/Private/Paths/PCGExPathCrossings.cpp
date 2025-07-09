@@ -196,7 +196,7 @@ namespace PCGExPathCrossings
 		else
 		{
 			Cutters.Reserve(Parent->ProcessorFacades.Num());
-			
+
 			for (const TSharedRef<FProcessor>& OtherProcessor : TypedParent->Processors)
 			{
 				if (!Details.bEnableSelfIntersection && &OtherProcessor.Get() == this) { continue; }

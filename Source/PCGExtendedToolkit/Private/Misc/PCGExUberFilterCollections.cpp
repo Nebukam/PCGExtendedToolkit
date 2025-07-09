@@ -6,10 +6,27 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
+#include "Misc/Pickers/PCGExPicker.h"
+#include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExUberFilterCollections"
 #define PCGEX_NAMESPACE UberFilterCollections
+
+#if WITH_EDITOR
+bool UPCGExUberFilterCollectionsSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (InPin->Properties.Label == PCGExPicker::SourcePickersLabel) { return InPin->EdgeCount() > 0; }
+	return Super::IsPinUsedByNodeExecution(InPin);
+}
+#endif
+
+TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "A precise selection of point that will be tested, as opposed to all of them.", Normal, {})
+	return PinProperties;
+}
 
 TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::OutputPinProperties() const
 {
@@ -32,6 +49,8 @@ bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilterCollections)
+
+	PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}, false);
 
 	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->Outside = MakeShared<PCGExData::FPointIOCollection>(Context);
@@ -125,7 +144,8 @@ namespace PCGExUberFilterCollections
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		NumPoints = PointDataFacade->GetNum();
+		bUsePicks = PCGExPicker::GetPicks(Context->PickerFactories, PointDataFacade, Picks);
+		NumPoints = bUsePicks ? Picks.Num() : PointDataFacade->GetNum();
 
 		if (Settings->Measure == EPCGExMeanMeasure::Discrete)
 		{
@@ -151,10 +171,22 @@ namespace PCGExUberFilterCollections
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
-		PCGEX_SCOPE_LOOP(Index)
+		if (bUsePicks)
 		{
-			if (PointFilterCache[Index]) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
-			else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				if (!Picks.Contains(Index)) { continue; }
+				if (PointFilterCache[Index]) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
+				else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
+			}
+		}
+		else
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				if (PointFilterCache[Index]) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
+				else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
+			}
 		}
 	}
 

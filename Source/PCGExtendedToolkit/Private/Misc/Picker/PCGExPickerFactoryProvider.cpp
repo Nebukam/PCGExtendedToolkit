@@ -3,6 +3,8 @@
 
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
+#include "VerseVM/VVMInstantiationContext.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreatePicker"
 #define PCGEX_NAMESPACE CreatePicker
 
@@ -35,6 +37,18 @@ TArray<FPCGPinProperties> UPCGExPickerFactoryProviderSettings::InputPinPropertie
 UPCGExFactoryData* UPCGExPickerFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	return Super::CreateFactory(InContext, InFactory);
+}
+
+namespace PCGExPicker
+{
+	bool GetPicks(const TArray<TObjectPtr<const UPCGExPickerFactoryData>>& Factories, const TSharedPtr<PCGExData::FFacade>& InFacade, TSet<int32>& OutPicks)
+	{
+		if (Factories.IsEmpty()) { return false; }
+		
+		const int32 Num = InFacade->GetNum();
+		for (const TObjectPtr<const UPCGExPickerFactoryData>& Op : Factories) { Op->AddPicks(Num, OutPicks); }
+		return true;
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

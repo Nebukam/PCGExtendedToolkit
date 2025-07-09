@@ -8,6 +8,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Pickers/PCGExPickerFactoryProvider.h"
 
 
 #include "PCGExUberFilter.generated.h"
@@ -36,9 +37,11 @@ public:
 	PCGEX_NODE_INFOS(UberFilter, "Uber Filter", "Filter points based on multiple rules & conditions.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorFilterHub); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -89,6 +92,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfNoPointPassed"))
 	FString NoPointPassedTag = TEXT("NoPointPassed");
 
+	/** How should point that aren't picked be considered? */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExFilterFallback UnpickedFallback = EPCGExFilterFallback::Fail;
+	
 private:
 	friend class FPCGExUberFilterElement;
 };
@@ -96,6 +103,8 @@ private:
 struct FPCGExUberFilterContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExUberFilterElement;
+
+	TArray<TObjectPtr<const UPCGExPickerFactoryData>> PickerFactories;
 
 	TSharedPtr<PCGExData::FPointIOCollection> Inside;
 	TSharedPtr<PCGExData::FPointIOCollection> Outside;
@@ -123,6 +132,9 @@ namespace PCGExUberFilter
 		TSharedPtr<PCGExMT::TScopedArray<int32>> IndicesOutside;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> Results;
+
+		bool bUsePicks = false;
+		TSet<int32> Picks;
 
 	public:
 		TSharedPtr<PCGExData::FPointIO> Inside;
