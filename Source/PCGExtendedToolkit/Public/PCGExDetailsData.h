@@ -601,7 +601,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExManhattanDetails
 	FVector GridSize = FVector(10, 10, 10);
 
 	/** If set, will align the subdvision direction to a world axis. If left to None, is aligned to world. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExMinimalAxis SpaceAlign = EPCGExMinimalAxis::None;
 	
 	PCGEX_SETTING_VALUE_GET(GridSize, FVector, GridSizeInput, GridSizeAttribute, GridSize)

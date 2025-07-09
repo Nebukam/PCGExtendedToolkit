@@ -100,6 +100,7 @@ void FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVector
 {
 	FVector DirectionAndSize = B - A;
 
+	/*
 	FQuat Rotation = FQuat::Identity;
 
 	if (SpaceAlign == EPCGExMinimalAxis::X) { Rotation = FRotationMatrix::MakeFromX(DirectionAndSize).ToQuat(); }
@@ -107,9 +108,24 @@ void FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVector
 	else if (SpaceAlign == EPCGExMinimalAxis::Z) { Rotation = FRotationMatrix::MakeFromZ(DirectionAndSize).ToQuat(); }
 
 	DirectionAndSize = Rotation.RotateVector(DirectionAndSize);
+	*/
 
 	if (Method == EPCGExManhattanMethod::Simple)
 	{
+		FVector Sub = A;
+		for (int i = 0; i < 3; ++i)
+		{
+			const int32 Axis = Comps[i];
+			const double Dist = B[Axis];
+
+			if (FMath::IsNearlyZero(Dist)) { continue; }
+
+			Sub[Axis] = Dist;
+
+			if (Sub == B) { break; }
+
+			OutSubdivisions.Emplace(Sub);
+		}
 	}
 	else if (Method == EPCGExManhattanMethod::GridDistance)
 	{
@@ -118,5 +134,6 @@ void FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVector
 	{
 	}
 
-	for (FVector& Pos : OutSubdivisions) { Pos = A + Rotation.UnrotateVector(Pos); }
+	//for (FVector& Pos : OutSubdivisions) { Pos = A + Rotation.UnrotateVector(Pos); }
+	for (FVector& Pos : OutSubdivisions) { Pos += A; }
 }
