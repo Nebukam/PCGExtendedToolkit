@@ -6,10 +6,27 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
+#include "Misc/Pickers/PCGExPicker.h"
+#include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExUberFilter"
 #define PCGEX_NAMESPACE UberFilter
+
+#if WITH_EDITOR
+bool UPCGExUberFilterSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (InPin->Properties.Label == PCGExPicker::SourcePickersLabel) { return InPin->EdgeCount() > 0; }
+	return Super::IsPinUsedByNodeExecution(InPin);
+}
+#endif
+
+TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "A precise selection of point that will be tested, as opposed to all of them.", Normal, {})
+	return PinProperties;
+}
 
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 {
@@ -34,6 +51,8 @@ bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilter)
+
+	PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}, false);
 
 	if (Settings->Mode == EPCGExUberFilterMode::Write)
 	{
@@ -111,6 +130,8 @@ namespace PCGExUberFilter
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->Mode == EPCGExUberFilterMode::Write ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::NoInit)
 
+		bUsePicks = PCGExPicker::GetPicks(Context->PickerFactories, PointDataFacade, Picks);
+
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
 			Results = PointDataFacade->GetWritable<bool>(Settings->ResultAttributeName, false, true, PCGExData::EBufferInit::New);
@@ -145,6 +166,14 @@ namespace PCGExUberFilter
 
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
+
+		if (bUsePicks)
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				if (!Picks.Contains(Index)) { PointFilterCache[Index] = Settings->UnpickedFallback == EPCGExFilterFallback::Pass; }
+			}
+		}
 
 		if (Settings->bSwap)
 		{

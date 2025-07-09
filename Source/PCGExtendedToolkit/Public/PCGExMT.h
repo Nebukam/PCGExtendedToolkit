@@ -171,6 +171,13 @@ namespace PCGExMT
 			else { StartBackgroundTask(InTask); }
 		}
 
+		template <typename T>
+		void Launch(const TArray<TSharedPtr<T>>& InTasks)
+		{
+			if (bForceSync) { StartSynchronousTasks(InTasks); }
+			else { StartBackgroundTasks(InTasks); }
+		}
+
 	protected:
 		std::atomic<int32> ExpectedTaskCount = {0};
 		std::atomic<int32> PendingTaskCount{0};
@@ -327,6 +334,31 @@ namespace PCGExMT
 
 		const TArray<FScope>& GetLoopScopes() const { return Loops; }
 		const FScope& GetLoopScope(int32 Index) const { return Loops[Index]; }
+
+		template <typename T>
+		void StartTasksBatch(const TArray<TSharedPtr<T>>& InTasks)
+		{
+			if (!IsAvailable()) { return; }
+
+			const TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin();
+			if (!PinnedRoot) { return; }
+
+			const int32 MaxItems = InTasks.Num();
+
+			if (MaxItems <= 0)
+			{
+				UE_LOG(LogPCGEx, Error, TEXT("StartTaskBatch: MaxItems = %i // Graph will never finish execution! You can temporarily enable bAssertOnEmptyThread in PCGEx debug settings and hook a debugger to get a stack trace."), MaxItems);
+				if (GetDefault<UPCGExGlobalSettings>()->bAssertOnEmptyThread) { ensure(false); }
+				return;
+			}
+
+			SetExpectedTaskCount(MaxItems);
+			StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(MaxItems);
+
+			const TSharedPtr<FTaskGroup> Self = SharedThis(this);
+
+			for (const TSharedPtr<T>& Task : InTasks) { Launch(Task); }
+		}
 
 	protected:
 		bool bDaisyChained = false;

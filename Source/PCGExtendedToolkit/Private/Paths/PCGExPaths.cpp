@@ -597,7 +597,7 @@ namespace PCGExPaths
 
 		if (A1 == A2 || A1 == B2 || A2 == B1 || B2 == B1) { return false; }
 
-		const FVector CrossDir = (B2 - A2).GetSafeNormal();
+		const FVector CrossDir = OtherEdge.Dir;
 
 		if (InIntersectionDetails.bUseMinAngle || InIntersectionDetails.bUseMaxAngle)
 		{

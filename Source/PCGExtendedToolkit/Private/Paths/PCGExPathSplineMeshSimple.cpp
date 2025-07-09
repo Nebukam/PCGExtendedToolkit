@@ -82,7 +82,9 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		PCGEX_ON_INITIAL_EXECUTION
 		{
-			if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager(), PCGEx::State_WaitingOnAsyncWork))
+			Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+
+			if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
 			{
 				PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to find any asset to load."));
 				return true;
@@ -90,8 +92,6 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 
 			return false;
 		}
-
-		if (!Context->StaticMeshLoader->Execute()) { return false; }
 	}
 
 	PCGEX_ON_STATE(PCGEx::State_WaitingOnAsyncWork)

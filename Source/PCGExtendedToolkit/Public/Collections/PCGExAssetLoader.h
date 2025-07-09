@@ -8,6 +8,7 @@
 #include "PCGExContext.h"
 #include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExSubSystem.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 
@@ -39,12 +40,15 @@ namespace PCGEx
 		mutable FRWLock RegistrationLock;
 
 		TArray<FName> AttributeNames;
-		ContextState ExitState = State_WaitingOnAsyncWork;
-
 		TSet<FSoftObjectPath> UniquePaths;
+
 		TSharedPtr<FStreamableHandle> LoadHandle;
+		TWeakPtr<PCGExMT::FAsyncToken> AsyncToken;
+
+		int8 bEnded = 0;
 
 	public:
+		PCGExMT::FCompletionCallback OnComplete;
 		FPCGExContext* Context = nullptr;
 		TMap<FSoftObjectPath, TObjectPtr<T>> AssetsMap;
 		TSharedRef<PCGExData::FPointIOCollection> IOCollection;
@@ -65,14 +69,14 @@ namespace PCGEx
 			Cancel();
 		}
 
+
+		bool HasEnded() const { return bEnded ? true : false; }
+
 		TObjectPtr<T>* GetAsset(const FSoftObjectPath& Path) { return AssetsMap.Find(Path); }
 
-		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const ContextState InExitState)
+		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 		{
-			ExitState = InExitState;
-			if (ExitState != 0) { Context->SetAsyncState(InternalState_DiscoveringAssets); }
-
-			bool bAnyDiscovery = false;
+			TArray<TSharedPtr<TDiscoverAssetsTask<T>>> Tasks;
 
 			for (const TSharedPtr<PCGExData::FPointIO>& PointIO : IOCollection->Pairs)
 			{
@@ -87,13 +91,36 @@ namespace PCGEx
 						continue;
 					}
 
-					bAnyDiscovery = true;
-
-					PCGEX_LAUNCH(TDiscoverAssetsTask<T>, SharedThis(this), Broadcaster)
+					PCGEX_MAKE_SHARED(Task, TDiscoverAssetsTask<T>, SharedThis(this), Broadcaster)
+					Tasks.Add(Task);
 				}
 			}
 
-			return bAnyDiscovery;
+			if (Tasks.IsEmpty()) { return false; }
+
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, AssetDiscovery)
+
+			AsyncToken = AsyncManager->TryCreateToken(FName("AssetLoaderToken"));
+
+			AssetDiscovery->OnCompleteCallback =
+				[PCGEX_ASYNC_THIS_CAPTURE]()
+				{
+					PCGEX_ASYNC_THIS
+
+					if (!This->AsyncToken.IsValid()) { return; }
+
+					PCGEX_SUBSYSTEM
+					PCGExSubsystem->RegisterBeginTickAction(
+						[AsyncThis]()
+						{
+							PCGEX_ASYNC_THIS
+							This->Load();
+						});
+				};
+
+			AssetDiscovery->StartTasksBatch(Tasks);
+
+			return true;
 		}
 
 		void AddUniquePaths(const TSet<FSoftObjectPath>& InPaths)
@@ -102,7 +129,7 @@ namespace PCGEx
 			UniquePaths.Append(InPaths);
 		}
 
-		bool Load(const bool bForceSynchronous = false)
+		bool Load()
 		{
 			if (UniquePaths.IsEmpty()) { return false; }
 
@@ -110,34 +137,20 @@ namespace PCGEx
 
 			Context->SetAsyncState(InternalState_LoadingAssets);
 
-			if (!bForceSynchronous)
-			{
-				Context->PauseContext();
-				LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-					UniquePaths.Array(), [&]()
-					{
-						Context->SetAsyncState(InternalState_AssetsLoaded);
-						Context->ResumeExecution();
-					});
+			Context->PauseContext();
+			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+				UniquePaths.Array(), [&]() { End(true); });
 
-				if (!LoadHandle || !LoadHandle->IsActive())
+			if (!LoadHandle || !LoadHandle->IsActive())
+			{
+				if (!LoadHandle || !LoadHandle->HasLoadCompleted())
 				{
-					if (!LoadHandle || !LoadHandle->HasLoadCompleted())
-					{
-						Context->CancelExecution("Error loading assets.");
-						return false;
-					}
-
-					// Resources were already loaded
-					Context->SetAsyncState(InternalState_AssetsLoaded);
-					Context->ResumeExecution();
-					return true;
+					Context->CancelExecution("Error loading assets.");
+					return false;
 				}
-			}
-			else
-			{
-				LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(UniquePaths.Array());
-				Context->SetAsyncState(InternalState_AssetsLoaded);
+
+				// Resources were already loaded
+				End(true);
 			}
 
 			return true;
@@ -148,40 +161,26 @@ namespace PCGEx
 			if (LoadHandle.IsValid() && LoadHandle->IsActive()) { LoadHandle->CancelHandle(); }
 			LoadHandle.Reset();
 			UniquePaths.Empty();
+			End();
 		}
 
-		bool Execute()
+		void End(const bool bBuildMap = false)
 		{
-			if (bBypass) { return true; }
+			if (bEnded) { return; }
 
-			PCGEX_ON_ASYNC_STATE_READY(InternalState_DiscoveringAssets)
+			FPlatformAtomics::InterlockedExchange(&bEnded, 1);
+
+			if (bBuildMap)
 			{
-				if (!Load())
-				{
-					Context->CancelExecution(TEXT("Loading resources failed"));
-					return false;
-				}
-
-				return false;
-			}
-
-			if (Context->IsState(InternalState_LoadingAssets)) { return false; }
-
-			PCGEX_ON_ASYNC_STATE_READY(InternalState_AssetsLoaded)
-			{
-				bBypass = true;
-
-				// Build asset map
 				for (FSoftObjectPath Path : UniquePaths)
 				{
 					TSoftObjectPtr<T> SoftPtr = TSoftObjectPtr<T>(Path);
 					if (SoftPtr.Get()) { AssetsMap.Add(Path, SoftPtr.Get()); }
 				}
-
-				if (ExitState != 0) { Context->SetState(ExitState); }
 			}
 
-			return true;
+			if (AsyncToken.IsValid()) { AsyncToken.Pin()->Release(); }
+			if (OnComplete) { OnComplete(); }
 		}
 	};
 
@@ -204,16 +203,17 @@ namespace PCGEx
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
-			Broadcaster->Grab(false);
-
 			TSet<FSoftObjectPath> UniquePaths;
-			for (const FSoftObjectPath& Path : Broadcaster->Values)
+			Broadcaster->GrabUniqueValues(UniquePaths);
+
+			TSet<FSoftObjectPath> UniqueValidPaths;
+			for (const FSoftObjectPath& Path : UniquePaths)
 			{
 				if (!Path.IsAsset()) { continue; }
-				UniquePaths.Add(Path);
+				UniqueValidPaths.Add(Path);
 			}
 
-			Loader->AddUniquePaths(UniquePaths);
+			Loader->AddUniquePaths(UniqueValidPaths);
 		}
 	};
 }

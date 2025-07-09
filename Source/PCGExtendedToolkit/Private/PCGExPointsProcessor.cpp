@@ -27,6 +27,13 @@ bool UPCGExPointsProcessorSettings::GetPinExtraIcon(const UPCGPin* InPin, FName&
 	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, false);
 }
 
+bool UPCGExPointsProcessorSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (GetDefault<UPCGExGlobalSettings>()->bToneDownOptionalPins && !InPin->Properties.IsRequiredPin() && !InPin->IsOutputPin()) { return InPin->EdgeCount() > 0; }
+	return Super::IsPinUsedByNodeExecution(InPin);
+}
+
+
 #endif
 
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const

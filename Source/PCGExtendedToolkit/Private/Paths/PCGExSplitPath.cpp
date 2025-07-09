@@ -321,7 +321,7 @@ namespace PCGExSplitPath
 			int32 NumPathPoints = bAppendStartPath ? SubPath.Count + SubPaths[0].Count : SubPath.Count;
 			int32 NumIterations = SubPath.Count;
 
-			if (!bAppendStartPath && bLastPath && bClosedLoop)
+			if (!bAppendStartPath && bLastPath && bClosedLoop && !PointFilterCache[0])
 			{
 				// First point added last
 				NumPathPoints++;
