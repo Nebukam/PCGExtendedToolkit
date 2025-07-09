@@ -132,10 +132,10 @@ namespace PCGExSubdivide
 			{
 				Sub.NumSubdivisions = FMath::Floor(Sub.Dist / Amount);
 				Sub.StepSize = Amount;
-				Sub.StartOffset = (Sub.Dist - (Sub.StepSize * (Sub.NumSubdivisions - 1))) * 0.5;
 
 				if (Settings->bRedistributeEvenly)
 				{
+					Sub.StartOffset = (Sub.Dist - (Sub.StepSize * (Sub.NumSubdivisions - 1))) * 0.5;
 					bRedistribute = true;
 					Amount = Sub.NumSubdivisions;
 				}

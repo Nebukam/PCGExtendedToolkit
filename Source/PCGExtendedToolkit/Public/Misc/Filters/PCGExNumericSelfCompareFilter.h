@@ -58,6 +58,10 @@ struct FPCGExNumericSelfCompareFilterConfig
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Clamp;
 
 	PCGEX_SETTING_VALUE_GET(Index, int32, CompareAgainst, IndexAttribute, IndexConstant)
+
+	/** How to deal with invalid indices */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExFilterFallback InvalidIndexFallback = EPCGExFilterFallback::Fail;
 };
 
 

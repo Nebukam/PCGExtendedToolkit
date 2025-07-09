@@ -559,3 +559,58 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 		return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(A, B, SourcePoint.Index);
 	}
 };
+
+UENUM()
+enum class EPCGExManhattanMethod : uint8
+{
+	Simple       = 0 UMETA(DisplayName = "Simple", ToolTip="Simple Manhattan subdivision, will generate 0..2 points"),
+	GridDistance = 1 UMETA(DisplayName = "Grid (Distance)", ToolTip="Grid Manhattan subdivision, will subdivide space according to a grid size."),
+	GridCount    = 2 UMETA(DisplayName = "Grid (Count)", ToolTip="Grid Manhattan subdivision, will subdivide space according to a grid size."),
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExManhattanDetails
+{
+	GENERATED_BODY()
+
+	explicit FPCGExManhattanDetails(const bool InSupportAttribute = false)
+		:bSupportAttribute(InSupportAttribute)
+	{
+		
+	}
+
+	UPROPERTY()
+	bool bSupportAttribute = false;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExManhattanMethod Method = EPCGExManhattanMethod::Simple;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExAxisOrder Order = EPCGExAxisOrder::XYZ;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bSupportAttribute", EditConditionHides))
+	EPCGExInputValueType GridSizeInput = EPCGExInputValueType::Constant;
+
+	/** Max Length Attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Grid Size (Attr)", EditCondition="bSupportAttribute && GridSizeInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FName GridSizeAttribute = FName("GridSize");
+
+	/** Grid Size Constant -- If using count, values will be rounded down to the nearest int. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Grid Size", EditCondition="!bSupportAttribute || GridSizeInput == EPCGExInputValueType::Constant", EditConditionHides))
+	FVector GridSize = FVector(10, 10, 10);
+
+	/** If set, will align the subdvision direction to a world axis. If left to None, is aligned to world. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExMinimalAxis SpaceAlign = EPCGExMinimalAxis::None;
+	
+	PCGEX_SETTING_VALUE_GET(GridSize, FVector, GridSizeInput, GridSizeAttribute, GridSize)
+
+	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade);
+	void ComputeSubdivisions(const FVector& A, const FVector& B, TArray<FVector>& OutSubdivisions, const int32 Index = 0) const;
+
+protected:
+	int32 Comps[3] = {0,0,0};
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> GridSizeBuffer;
+	
+};

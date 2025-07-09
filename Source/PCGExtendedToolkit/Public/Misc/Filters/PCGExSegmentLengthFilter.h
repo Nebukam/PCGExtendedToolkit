@@ -24,11 +24,6 @@ struct FPCGExSegmentLengthFilterConfig
 	{
 	}
 
-	/** What should this filter return when the point required for computing length is invalid? (i.e, first or last point) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	EPCGExFilterFallback InvalidPointFallback = EPCGExFilterFallback::Fail;
-
-
 	/** Whether to read the threshold from an attribute on the point or a constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;
@@ -82,7 +77,10 @@ struct FPCGExSegmentLengthFilterConfig
 
 	PCGEX_SETTING_VALUE_GET(Index, int32, CompareAgainst, IndexAttribute, IndexConstant)
 
-
+	/** What should this filter return when the point required for computing length is invalid? (i.e, first or last point) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExFilterFallback InvalidPointFallback = EPCGExFilterFallback::Fail;
+	
 	/** Whether the result of the filter should be inverted or not. Note that this will also invert fallback results! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bInvert = false;

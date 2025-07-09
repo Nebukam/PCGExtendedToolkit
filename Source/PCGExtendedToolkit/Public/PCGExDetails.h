@@ -35,8 +35,9 @@ enum class EPCGExFilterDataAction : uint8
 UENUM()
 enum class EPCGExSubdivideMode : uint8
 {
-	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on length"),
-	Count    = 1 UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is fixed"),
+	Distance  = 0 UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on length"),
+	Count     = 1 UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is fixed"),
+	Manhattan = 2 UMETA(DisplayName = "Manhattan", ToolTip="Manhattan subdivision, number of subdivisions depends on spatial relationship between the points; will be in the [0..2] range."),
 };
 
 USTRUCT(BlueprintType)
