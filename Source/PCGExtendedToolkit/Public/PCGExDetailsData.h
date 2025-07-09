@@ -593,11 +593,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExManhattanDetails
 	EPCGExInputValueType GridSizeInput = EPCGExInputValueType::Constant;
 
 	/** Max Length Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Grid Size (Attr)", EditCondition="bSupportAttribute && GridSizeInput != EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Grid Size (Attr)", EditCondition="bSupportAttribute && Method != EPCGExManhattanMethod::Simple && GridSizeInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FName GridSizeAttribute = FName("GridSize");
 
 	/** Grid Size Constant -- If using count, values will be rounded down to the nearest int. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Grid Size", EditCondition="!bSupportAttribute || GridSizeInput == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Grid Size", EditCondition="!bSupportAttribute || GridSizeInput == EPCGExInputValueType::Constant && Method != EPCGExManhattanMethod::Simple ", EditConditionHides))
 	FVector GridSize = FVector(10, 10, 10);
 
 	/** If set, will align the subdvision direction to a world axis. If left to None, is aligned to world. */
