@@ -20,36 +20,16 @@ enum class EPCGExEdgeOverlapPick : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Overlap", PCGExNodeLibraryDoc="clusters/refine-cluster/overlap"))
-class UPCGExEdgeRemoveOverlap : public UPCGExEdgeRefineOperation
+class FPCGExEdgeRemoveOverlap : public FPCGExEdgeRefineOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual bool WantsIndividualEdgeProcessing() override { return true; }
-	virtual bool WantsEdgeOctree() override { return true; }
-
 	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics) override
 	{
-		Super::PrepareForCluster(InCluster, InHeuristics);
+		FPCGExEdgeRefineOperation::PrepareForCluster(InCluster, InHeuristics);
 		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
 		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
-		ToleranceSquared = Tolerance * Tolerance;
+		ToleranceSquared = FMath::Square(Tolerance);
 		Cluster->GetBoundedEdges(true); // Let's hope it was cached ^_^
-	}
-
-	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
-	{
-		Super::CopySettingsFrom(Other);
-		if (const UPCGExEdgeRemoveOverlap* TypedOther = Cast<UPCGExEdgeRemoveOverlap>(Other))
-		{
-			Keep = TypedOther->Keep;
-			Tolerance = TypedOther->Tolerance;
-			bUseMinAngle = TypedOther->bUseMinAngle;
-			MinAngle = TypedOther->MinAngle;
-			bUseMaxAngle = TypedOther->bUseMaxAngle;
-			MaxAngle = TypedOther->MaxAngle;
-		}
 	}
 
 	virtual void ProcessEdge(PCGExGraph::FEdge& Edge) override
@@ -109,9 +89,51 @@ public:
 			return true;
 		};
 
-		Cluster->GetEdgeOctree()->FindFirstElementWithBoundsTest(
+		(void)Cluster->GetEdgeOctree()->FindFirstElementWithBoundsTest(
 			(Cluster->BoundedEdges->GetData() + Edge.Index)->Bounds.GetBox(),
 			ProcessOverlap);
+	}
+
+	//virtual void Process() override;
+
+	EPCGExEdgeOverlapPick Keep = EPCGExEdgeOverlapPick::Longest;
+
+	double Tolerance = DBL_INTERSECTION_TOLERANCE;
+	double ToleranceSquared = DBL_INTERSECTION_TOLERANCE * DBL_INTERSECTION_TOLERANCE;
+
+	bool bUseMinAngle = true;
+	double MinAngle = 0;
+	double MinDot = 1;
+
+	bool bUseMaxAngle = true;
+	double MaxAngle = 90;
+	double MaxDot = -1;
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Refine : Overlap", PCGExNodeLibraryDoc="clusters/refine-cluster/overlap"))
+class UPCGExEdgeRemoveOverlap : public UPCGExEdgeRefineInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool WantsIndividualEdgeProcessing() const override { return true; }
+	virtual bool WantsEdgeOctree() const override { return true; }
+
+	virtual void CopySettingsFrom(const UPCGExInstancedFactory* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExEdgeRemoveOverlap* TypedOther = Cast<UPCGExEdgeRemoveOverlap>(Other))
+		{
+			Keep = TypedOther->Keep;
+			Tolerance = TypedOther->Tolerance;
+			bUseMinAngle = TypedOther->bUseMinAngle;
+			MinAngle = TypedOther->MinAngle;
+			bUseMaxAngle = TypedOther->bUseMaxAngle;
+			MaxAngle = TypedOther->MaxAngle;
+		}
 	}
 
 	//virtual void Process() override;
@@ -123,7 +145,6 @@ public:
 	/** Distance at which two edges are considered intersecting. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double Tolerance = DBL_INTERSECTION_TOLERANCE;
-	double ToleranceSquared = DBL_INTERSECTION_TOLERANCE * DBL_INTERSECTION_TOLERANCE;
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -132,7 +153,6 @@ public:
 	/** Min angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
 	double MinAngle = 0;
-	double MinDot = 1;
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -141,5 +161,16 @@ public:
 	/** Maximum angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
 	double MaxAngle = 90;
-	double MaxDot = -1;
+
+	PCGEX_CREATE_REFINE_OPERATION(
+		EdgeRemoveOverlap, {
+		Operation->Keep = Keep;
+		Operation->Tolerance = Tolerance;
+
+		Operation->bUseMinAngle = bUseMinAngle;
+		Operation->MinAngle = MinAngle;
+
+		Operation->bUseMaxAngle = bUseMaxAngle;
+		Operation->MaxAngle = MaxAngle;
+		})
 };

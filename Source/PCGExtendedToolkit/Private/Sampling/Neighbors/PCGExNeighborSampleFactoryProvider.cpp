@@ -68,8 +68,9 @@ void FPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const PCG
 	PrepareNode(Node, Scope);
 	const FVector Origin = Cluster->GetPos(Node);
 
+	const int32 SafeMaxDepth = FMath::Min(1, SamplingConfig.MaxDepth);
 
-	while (CurrentDepth <= SamplingConfig.MaxDepth)
+	while (CurrentDepth <= SafeMaxDepth)
 	{
 		if (CurrentNeighbors->IsEmpty()) { break; }
 		CurrentDepth++;
@@ -87,7 +88,7 @@ void FPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const PCG
 			}
 			else
 			{
-				LocalWeight = SamplingConfig.BlendOver == EPCGExBlendOver::Index ? 1 - (CurrentDepth / (SamplingConfig.MaxDepth)) : SamplingConfig.FixedBlend;
+				LocalWeight = SamplingConfig.BlendOver == EPCGExBlendOver::Index ? 1 - (CurrentDepth / SafeMaxDepth) : SamplingConfig.FixedBlend;
 			}
 
 			LocalWeight = WeightCurveObj->Eval(LocalWeight);

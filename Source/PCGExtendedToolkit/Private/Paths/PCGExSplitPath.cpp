@@ -323,9 +323,16 @@ namespace PCGExSplitPath
 
 			if (!bAppendStartPath && bLastPath && bClosedLoop)
 			{
-				// First point added last
-				NumPathPoints++;
-				NumIterations++;
+				if (PointFilterCache[0] && Settings->SplitAction == EPCGExPathSplitAction::Remove)
+				{
+					// First point got removed, don't wrap
+				}
+				else
+				{
+					// First point added last
+					NumPathPoints++;
+					NumIterations++;
+				}
 			}
 
 			if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { continue; }

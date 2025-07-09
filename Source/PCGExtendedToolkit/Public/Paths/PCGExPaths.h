@@ -105,7 +105,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathEdgeIntersectionDetails
 	double ToleranceSquared = DBL_INTERSECTION_TOLERANCE;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMinAngle = true;
+	bool bUseMinAngle = false;
 
 	/** Min angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=180))
@@ -114,7 +114,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathEdgeIntersectionDetails
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMaxAngle = true;
+	bool bUseMaxAngle = false;
 
 	/** Maximum angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=180))
@@ -222,7 +222,7 @@ namespace PCGExPaths
 
 	PCGEXTENDEDTOOLKIT_API
 	void GetAxisForEntry(const FPCGExStaticMeshComponentDescriptor& InDescriptor, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default = EPCGExSplineMeshAxis::X);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop);
 
@@ -761,10 +761,10 @@ namespace PCGExPaths
 		TSharedPtr<FPCGSplineStruct> Spline;
 		TArray<FVector2D> ProjectedPoints;
 		FQuat Projection;
-		FBox ProjectedBox;
+		FBox PolyBox = FBox(ForceInit);
 
 	public:
-		explicit TPolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const FVector& ProjectionUp, const double Expansion = 0)
+		explicit TPolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const FVector& ProjectionUp, const double Expansion = 0, const double ExpansionZ = -1)
 			: TPath<ClosedLoop>(InTransforms, Expansion)
 		{
 			Projection = FQuat::FindBetweenNormals(ProjectionUp.GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector);
@@ -772,7 +772,17 @@ namespace PCGExPaths
 			const int32 NumPts = InTransforms.Num();
 
 			ProjectedPoints.SetNumUninitialized(NumPts);
-			for (int i = 0; i < NumPts; i++) { ProjectedPoints[i] = FVector2D(Projection.RotateVector(InTransforms[i].GetLocation())); }
+			for (int i = 0; i < NumPts; i++)
+			{
+				const FVector ProjectedPoint = Projection.RotateVector(InTransforms[i].GetLocation());
+				PolyBox += ProjectedPoint;
+				ProjectedPoints[i] = FVector2D(ProjectedPoint);
+			}
+
+			const double ExpandZ = ExpansionZ > 0 ? ExpansionZ : MAX_dbl * 0.5;
+			const FVector PolyBoxCenter = PolyBox.GetCenter();
+			PolyBox += (PolyBoxCenter + FVector(0, 0, ExpandZ));
+			PolyBox += (PolyBoxCenter + FVector(0, 0, -ExpandZ));
 
 			if constexpr (ClosedLoop) { Spline = MakeSplineFromPoints(InTransforms, EPCGExSplinePointTypeRedux::Linear, true, false); }
 			else { Spline = MakeSplineFromPoints(InTransforms, EPCGExSplinePointTypeRedux::Linear, false, false); }
@@ -788,8 +798,9 @@ namespace PCGExPaths
 
 		virtual bool IsInsideProjection(const FTransform& InTransform) const override
 		{
-			// Projection.RotateVector(InTransform.GetLocation())
-			return FGeomTools2D::IsPointInPolygon(FVector2D(Projection.RotateVector(InTransform.GetLocation())), ProjectedPoints);
+			const FVector ProjectedPoint = Projection.RotateVector(InTransform.GetLocation());
+			if (!PolyBox.IsInside(ProjectedPoint)) { return false; }
+			return FGeomTools2D::IsPointInPolygon(FVector2D(ProjectedPoint), ProjectedPoints);
 		}
 
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp) const override
@@ -816,8 +827,8 @@ namespace PCGExPaths
 		}
 	};
 
-	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const FVector& ProjectionUp = FVector::UpVector);
-	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp = FVector::UpVector);
+	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const FVector& ProjectionUp = FVector::UpVector, double ExpansionZ = -1);
+	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp = FVector::UpVector, double ExpansionZ = -1);
 
 	struct PCGEXTENDEDTOOLKIT_API FCrossing
 	{

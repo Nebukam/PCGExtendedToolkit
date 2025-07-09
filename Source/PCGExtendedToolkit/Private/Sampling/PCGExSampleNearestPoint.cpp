@@ -435,6 +435,8 @@ namespace PCGExSampleNearestPoints
 				Context->TargetsOctree->FindElementsWithBoundsTest(
 					Box, [&](const PCGEx::FIndexedItem& Item)
 					{
+						if (Context->TargetFacades[Item.Index]->GetIn() == PointDataFacade->GetIn() && Settings->bIgnoreSelf) { return; }
+
 						Context->TargetOctrees[Item.Index]->FindElementsWithBoundsTest(
 							Box, [&](const PCGPointOctree::FPointRef& PointRef)
 							{
@@ -446,6 +448,7 @@ namespace PCGExSampleNearestPoints
 			{
 				for (int i = 0; i < Context->TargetFacades.Num(); i++)
 				{
+					if (Context->TargetFacades[i]->GetIn() == PointDataFacade->GetIn() && Settings->bIgnoreSelf) { return; }
 					const int32 NumPoints = Context->TargetFacades[i]->GetNum();
 					for (int j = 0; j < NumPoints; j++) { SampleTarget(PCGExData::FPoint(j, i)); }
 				}

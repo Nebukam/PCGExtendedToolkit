@@ -124,6 +124,10 @@ public:
 
 	PCGEX_SETTING_VALUE_GET(RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
 
+	/** If the value is greater than 0, will do a rough vertical check as part of the projected inclusion. 0 is infinite. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, ClampMin=0))
+	double HeightInclusion = 0;
+	
 #pragma endregion
 
 	/** Whether spline should be sampled at a specific alpha */
@@ -257,7 +261,7 @@ public:
 	EPCGExAxis SignAxis = EPCGExAxis::Forward;
 
 	/** Only sign the distance if at least one sampled spline is a bClosedLoop spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Only if Closed Spline", EditCondition="bWriteSignedDistance && SampleInputs == EPCGExPathSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Only if Closed Path", EditCondition="bWriteSignedDistance && SampleInputs == EPCGExPathSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
 	bool bOnlySignIfClosed = false;
 
 	/** Scale factor applied to the signed distance output; allows to easily invert it using -1 */
@@ -360,6 +364,10 @@ public:
 	/** If enabled, points that failed to sample anything will be pruned. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bPruneFailedSamples = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	bool bIgnoreSelf = true;
 };
 
 struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext

@@ -567,20 +567,20 @@ namespace PCGExPaths
 
 #pragma endregion
 
-	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const FVector& ProjectionUp)
+	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const FVector& ProjectionUp, const double ExpansionZ)
 	{
-		return MakePolyPath(InPointData->GetConstTransformValueRange(), Expansion, GetClosedLoop(InPointData), ProjectionUp);
+		return MakePolyPath(InPointData->GetConstTransformValueRange(), Expansion, GetClosedLoop(InPointData), ProjectionUp, ExpansionZ);
 	}
 
-	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp)
+	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp, const double ExpansionZ)
 	{
 		if (bClosedLoop)
 		{
-			PCGEX_MAKE_SHARED(P, TPolyPath<true>, InTransforms, ProjectionUp, Expansion)
+			PCGEX_MAKE_SHARED(P, TPolyPath<true>, InTransforms, ProjectionUp, Expansion, ExpansionZ)
 			return StaticCastSharedPtr<FPath>(P);
 		}
 
-		PCGEX_MAKE_SHARED(P, TPolyPath<false>, InTransforms, ProjectionUp, Expansion)
+		PCGEX_MAKE_SHARED(P, TPolyPath<false>, InTransforms, ProjectionUp, Expansion, ExpansionZ)
 		return StaticCastSharedPtr<FPath>(P);
 	}
 
@@ -597,7 +597,7 @@ namespace PCGExPaths
 
 		if (A1 == A2 || A1 == B2 || A2 == B1 || B2 == B1) { return false; }
 
-		const FVector CrossDir = (B2 - A2).GetSafeNormal();
+		const FVector CrossDir = OtherEdge.Dir;
 
 		if (InIntersectionDetails.bUseMinAngle || InIntersectionDetails.bUseMaxAngle)
 		{

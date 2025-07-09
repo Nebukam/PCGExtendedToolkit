@@ -31,8 +31,8 @@ namespace PCGExEdgeLength
 	{
 		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		ThresholdBuffer = TypedFilterFactory->Config.GetValueSettingThreshold();
-		if (!ThresholdBuffer->Init(InContext, PointDataFacade)) { return false; }
+		Threshold = TypedFilterFactory->Config.GetValueSettingThreshold();
+		if (!Threshold->Init(InContext, PointDataFacade)) { return false; }
 
 		return true;
 	}
@@ -41,7 +41,7 @@ namespace PCGExEdgeLength
 	{
 		return PCGExCompare::Compare(
 			       TypedFilterFactory->Config.Comparison, Cluster->GetEdgeLength(Edge),
-			       ThresholdBuffer->Read(Edge.PointIndex), TypedFilterFactory->Config.Tolerance) ?
+			       Threshold->Read(Edge.PointIndex), TypedFilterFactory->Config.Tolerance) ?
 			       !TypedFilterFactory->Config.bInvert : TypedFilterFactory->Config.bInvert;
 	}
 

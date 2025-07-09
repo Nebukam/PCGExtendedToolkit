@@ -333,6 +333,22 @@ bool FPCGExDotComparisonDetails::GetOnlyUseDataDomain() const
 	return ThresholdInput == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(ThresholdAttribute);
 }
 
+#if WITH_EDITOR
+FString FPCGExDotComparisonDetails::GetDisplayComparison() const
+{
+	FString AngleStr = ThresholdInput == EPCGExInputValueType::Attribute ? PCGEx::GetSelectorDisplayName(ThresholdAttribute) : TEXT("");
+	if (ThresholdInput == EPCGExInputValueType::Constant)
+	{
+		if (Domain == EPCGExAngularDomain::Degrees) { AngleStr = FString::Printf(TEXT("%.1f°"), DegreesConstant); }
+		else { AngleStr = FString::Printf(TEXT("%.1f°"), FMath::RadiansToDegrees(FMath::Acos(DotConstant))); }
+	}
+
+	FString Str = PCGExCompare::ToString(Comparison) + (bUnsignedComparison ? TEXT("±") : TEXT("")) + AngleStr;
+	return Str;
+}
+#endif
+
+
 bool FPCGExAttributeToTagComparisonDetails::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade)
 {
 	if (TagNameInput == EPCGExInputValueType::Attribute)

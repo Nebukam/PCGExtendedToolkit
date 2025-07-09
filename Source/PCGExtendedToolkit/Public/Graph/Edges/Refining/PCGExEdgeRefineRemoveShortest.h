@@ -11,14 +11,9 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Shortest", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-length"))
-class UPCGExEdgeRemoveShortest : public UPCGExEdgeRefineOperation
+class FPCGExEdgeRemoveShortest : public FPCGExEdgeRefineOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual bool WantsIndividualNodeProcessing() override { return true; }
-
 	virtual void ProcessNode(PCGExCluster::FNode& Node) override
 	{
 		int32 BestIndex = -1;
@@ -39,4 +34,18 @@ public:
 
 		FPlatformAtomics::InterlockedExchange(&Cluster->GetEdge(BestIndex)->bValid, 0);
 	}
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Shortest", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-length"))
+class UPCGExEdgeRemoveShortest : public UPCGExEdgeRefineInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool WantsIndividualNodeProcessing() const override { return true; }
+
+	PCGEX_CREATE_REFINE_OPERATION(EdgeRemoveShortest, {})
 };

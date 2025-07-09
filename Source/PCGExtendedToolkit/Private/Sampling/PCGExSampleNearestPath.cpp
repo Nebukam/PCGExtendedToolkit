@@ -97,7 +97,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 		}
 
 		TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
-		TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePolyPath(IO->GetIn(), 1, FVector::UpVector);
+		TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePolyPath(IO->GetIn(), 1, FVector::UpVector, Settings->HeightInclusion);
 		Path->IOIndex = IO->IOIndex;
 		TargetFacade->Idx = Path->Idx = Context->Paths.Num();
 
@@ -366,7 +366,6 @@ namespace PCGExSampleNearestPath
 			}
 
 			int32 NumInside = 0;
-			int32 NumSampled = 0;
 			int32 NumInClosed = 0;
 
 			bool bSampledClosedLoop = false;
@@ -481,6 +480,9 @@ namespace PCGExSampleNearestPath
 					[&](const PCGEx::FIndexedItem& Item)
 					{
 						const TSharedPtr<PCGExPaths::FPath> Path = Context->Paths[Item.Index];
+
+						if (Context->TargetFacades[Item.Index]->GetIn() == PointDataFacade->GetIn() && Settings->bIgnoreSelf) { return; }
+
 						float Lerp = 0;
 						const int32 EdgeIndex = Path->GetClosestEdge(Origin, Lerp);
 						SampleTarget(EdgeIndex, Lerp, Path);
@@ -496,6 +498,8 @@ namespace PCGExSampleNearestPath
 					{
 						const TSharedPtr<PCGExPaths::FPath>& Path = Context->Paths[Item.Index];
 						double Time = 0;
+
+						if (Context->TargetFacades[Item.Index]->GetIn() == PointDataFacade->GetIn() && Settings->bIgnoreSelf) { return; }
 
 						switch (Settings->SampleAlphaMode)
 						{
@@ -538,10 +542,10 @@ namespace PCGExSampleNearestPath
 			FVector WeightedSignAxis = FVector::ZeroVector;
 			FVector WeightedAngleAxis = FVector::ZeroVector;
 
-			const double NumSampledEdges = (static_cast<double>(Union->Num()) * 0.5);
-			WeightedDistance /= NumSampledEdges; // We have two points per samples
-			WeightedTime /= NumSampledEdges;
-			WeightedSegmentTime /= NumSampledEdges;
+			const double NumSampled = Union->Num() * 0.5;
+			WeightedDistance /= NumSampled; // We have two points per samples
+			WeightedTime /= NumSampled;
+			WeightedSegmentTime /= NumSampled;
 
 			double TotalWeight = 0;
 

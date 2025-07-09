@@ -135,7 +135,6 @@ void UPCGExCustomGraphBuilder::BuildGraph_Implementation(UPCGExCustomGraphSettin
 TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_DEPENDENCIES
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExBuildCustomGraph::SourceOverridesBuilder)
 	return PinProperties;
 }

@@ -9,6 +9,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Pickers/PCGExPickerFactoryProvider.h"
 
 
 #include "PCGExUberFilterCollections.generated.h"
@@ -38,9 +39,11 @@ public:
 	PCGEX_NODE_INFOS(UberFilterCollections, "Uber Filter (Collection)", "Filter entire collections based on multiple rules & conditions.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorFilterHub); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -89,6 +92,8 @@ struct FPCGExUberFilterCollectionsContext final : FPCGExPointsProcessorContext
 
 	bool bHasOnlyCollectionFilters = false;
 
+	TArray<TObjectPtr<const UPCGExPickerFactoryData>> PickerFactories;
+	
 	TSharedPtr<PCGExData::FPointIOCollection> Inside;
 	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 
@@ -113,6 +118,9 @@ namespace PCGExUberFilterCollections
 		int32 NumPoints = 0;
 		int32 NumInside = 0;
 		int32 NumOutside = 0;
+
+		bool bUsePicks = false;
+		TSet<int32> Picks;
 
 	public:
 		TSharedPtr<PCGExData::FPointIO> Inside;

@@ -79,9 +79,8 @@ namespace PCGExCherryPickPoints
 		PointDataFacade->Source->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
 
 		TSet<int32> UniqueIndices;
-
 		// Grab picks
-		for (const TObjectPtr<const UPCGExPickerFactoryData>& Op : Context->PickerFactories) { Op->AddPicks(PointDataFacade->GetNum(), UniqueIndices); }
+		PCGExPicker::GetPicks(Context->PickerFactories, PointDataFacade, UniqueIndices);
 
 		if (UniqueIndices.IsEmpty())
 		{

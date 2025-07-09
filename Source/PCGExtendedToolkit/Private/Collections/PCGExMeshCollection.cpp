@@ -207,7 +207,8 @@ void FPCGExMeshCollectionEntry::ApplyMaterials(const int32 PickIndex, UStaticMes
 	if (MaterialVariants == EPCGExMaterialVariantsMode::Single)
 	{
 		if (!MaterialOverrideVariants.IsValidIndex(PickIndex)) { return; }
-		TargetComponent->SetMaterial(SlotIndex, MaterialOverrideVariants[PickIndex].Material.Get());
+		const int32 WriteSlotIndex = SlotIndex == -1 ? 0 : SlotIndex;
+		TargetComponent->SetMaterial(WriteSlotIndex, MaterialOverrideVariants[PickIndex].Material.Get());
 	}
 	else if (MaterialVariants == EPCGExMaterialVariantsMode::Multi)
 	{
@@ -216,7 +217,8 @@ void FPCGExMeshCollectionEntry::ApplyMaterials(const int32 PickIndex, UStaticMes
 
 		for (const FPCGExMaterialOverrideEntry& SEntry : MEntry.Overrides)
 		{
-			TargetComponent->SetMaterial(SEntry.SlotIndex, SEntry.Material.Get());
+			const int32 WriteSlotIndex = SEntry.SlotIndex == -1 ? 0 : SEntry.SlotIndex;
+			TargetComponent->SetMaterial(WriteSlotIndex, SEntry.Material.Get());
 		}
 	}
 }

@@ -72,3 +72,9 @@ public:
 	virtual FName GetMainOutputPin() const override { return PCGExPicker::OutputPickerLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };
+
+namespace PCGExPicker
+{
+	PCGEXTENDEDTOOLKIT_API
+	bool GetPicks(const TArray<TObjectPtr<const UPCGExPickerFactoryData>>& Factories, const TSharedPtr<PCGExData::FFacade>& InFacade, TSet<int32>& OutPicks);
+}

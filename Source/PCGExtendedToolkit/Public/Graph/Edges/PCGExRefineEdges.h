@@ -56,7 +56,7 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExEdgeRefineOperation> Refinement;
+	TObjectPtr<UPCGExEdgeRefineInstancedFactory> Refinement;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bOutputEdgesOnly = false;
@@ -86,7 +86,7 @@ struct FPCGExRefineEdgesContext final : FPCGExEdgesProcessorContext
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> SanitizationFilterFactories;
 
-	UPCGExEdgeRefineOperation* Refinement = nullptr;
+	UPCGExEdgeRefineInstancedFactory* Refinement = nullptr;
 
 	TSharedPtr<PCGExData::FPointIOCollection> KeptEdges;
 	TSharedPtr<PCGExData::FPointIOCollection> RemovedEdges;
@@ -142,7 +142,7 @@ namespace PCGExRefineEdges
 		void InsertEdges() const;
 		virtual void CompleteWork() override;
 
-		UPCGExEdgeRefineOperation* Refinement = nullptr;
+		TSharedPtr<FPCGExEdgeRefineOperation> Refinement;
 
 		virtual void Cleanup() override;
 	};

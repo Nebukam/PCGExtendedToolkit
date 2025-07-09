@@ -11,15 +11,9 @@
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Highest Score", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-score"))
-class UPCGExEdgeRemoveHighestScore : public UPCGExEdgeRefineOperation
+class FPCGExEdgeRemoveHighestScore : public FPCGExEdgeRefineOperation
 {
-	GENERATED_BODY()
-
 public:
-	virtual bool WantsHeuristics() override { return true; }
-	virtual bool WantsIndividualNodeProcessing() override { return true; }
-
 	virtual void ProcessNode(PCGExCluster::FNode& Node) override
 	{
 		int32 BestIndex = -1;
@@ -43,4 +37,19 @@ public:
 
 		FPlatformAtomics::InterlockedExchange(&Cluster->GetEdge(BestIndex)->bValid, 0);
 	}
+};
+
+/**
+ * 
+ */
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Highest Score", PCGExNodeLibraryDoc="clusters/refine-cluster/edge-score"))
+class UPCGExEdgeRemoveHighestScore : public UPCGExEdgeRefineInstancedFactory
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool WantsHeuristics() const override { return true; }
+	virtual bool WantsIndividualNodeProcessing() const override { return true; }
+
+	PCGEX_CREATE_REFINE_OPERATION(EdgeRemoveHighestScore, {})
 };

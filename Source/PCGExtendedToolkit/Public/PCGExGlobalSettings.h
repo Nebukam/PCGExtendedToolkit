@@ -163,6 +163,9 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Soft Paths Types", meta=(DisplayName="SoftClassPath"))
 	EPCGExDataBlendingTypeDefault DefaultSoftClassPathBlendMode = EPCGExDataBlendingTypeDefault::Copy;
 
+	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
+	bool bToneDownOptionalPins = true;
+	
 	/** If enabled, will use native node colors where relevant. I.e filters, spawners, etc. */
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	bool bUseNativeColorsIfPossible = true;
