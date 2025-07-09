@@ -321,11 +321,18 @@ namespace PCGExSplitPath
 			int32 NumPathPoints = bAppendStartPath ? SubPath.Count + SubPaths[0].Count : SubPath.Count;
 			int32 NumIterations = SubPath.Count;
 
-			if (!bAppendStartPath && bLastPath && bClosedLoop && !PointFilterCache[0])
+			if (!bAppendStartPath && bLastPath && bClosedLoop)
 			{
-				// First point added last
-				NumPathPoints++;
-				NumIterations++;
+				if (PointFilterCache[0] && Settings->SplitAction == EPCGExPathSplitAction::Remove)
+				{
+					// First point got removed, don't wrap
+				}
+				else
+				{
+					// First point added last
+					NumPathPoints++;
+					NumIterations++;
+				}
 			}
 
 			if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { continue; }
