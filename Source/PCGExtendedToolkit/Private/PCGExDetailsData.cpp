@@ -77,6 +77,11 @@ bool FPCGExFuseDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExDat
 	return true;
 }
 
+bool FPCGExManhattanDetails::IsValid() const
+{
+	return bInitialized;
+}
+
 bool FPCGExManhattanDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {
 	if (bSupportAttribute)
@@ -93,12 +98,14 @@ bool FPCGExManhattanDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCG
 
 	PCGEx::GetAxisOrder(Order, Comps);
 
+	bInitialized = true;
 	return true;
 }
 
-void FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVector& B, TArray<FVector>& OutSubdivisions, const int32 Index) const
+int32 FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVector& B, const int32 Index, TArray<FVector>& OutSubdivisions, double& OutDist) const
 {
 	FVector DirectionAndSize = B - A;
+	const int32 StartIndex = OutSubdivisions.Num();
 
 	/*
 	FQuat Rotation = FQuat::Identity;
@@ -120,6 +127,7 @@ void FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVector
 
 			if (FMath::IsNearlyZero(Dist)) { continue; }
 
+			OutDist += Dist;
 			Sub[Axis] = Dist;
 
 			if (Sub == B) { break; }
@@ -134,6 +142,8 @@ void FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVector
 	{
 	}
 
-	//for (FVector& Pos : OutSubdivisions) { Pos = A + Rotation.UnrotateVector(Pos); }
-	for (FVector& Pos : OutSubdivisions) { Pos += A; }
+	//for (int i = StartIndex; i < OutSubdivisions.Num(); i++){ OutSubdivisions[i] = A + Rotation.UnrotateVector(OutSubdivisions[i]); }
+	//for (int i = StartIndex; i < OutSubdivisions.Num(); i++) { OutSubdivisions[i] += A; }
+
+	return OutSubdivisions.Num() - StartIndex;
 }

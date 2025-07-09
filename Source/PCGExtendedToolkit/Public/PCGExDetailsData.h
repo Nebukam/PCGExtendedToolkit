@@ -606,10 +606,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExManhattanDetails
 	
 	PCGEX_SETTING_VALUE_GET(GridSize, FVector, GridSizeInput, GridSizeAttribute, GridSize)
 
+	bool IsValid() const;
 	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-	void ComputeSubdivisions(const FVector& A, const FVector& B, TArray<FVector>& OutSubdivisions, const int32 Index = 0) const;
+	int32 ComputeSubdivisions(const FVector& A, const FVector& B, const int32 Index, TArray<FVector>& OutSubdivisions, double& OutDist) const;
 
 protected:
+	bool bInitialized = false;
+	
 	int32 Comps[3] = {0,0,0};
 	TSharedPtr<PCGExDetails::TSettingValue<FVector>> GridSizeBuffer;
 	

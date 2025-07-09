@@ -131,18 +131,21 @@ public:
 	EPCGExSubdivideMode SubdivideMethod = EPCGExSubdivideMode::Count;
 
 	/** Whether to subdivide the profile */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod != EPCGExSubdivideMode::Manhattan", EditConditionHides))
 	EPCGExInputValueType SubdivisionAmountInput = EPCGExInputValueType::Constant;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod == EPCGExSubdivideMode::Distance && SubdivisionAmountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, DisplayName="Subdivisions (Distance)", EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod == EPCGExSubdivideMode::Distance && SubdivisionAmountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0.1))
 	double SubdivisionDistance = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod == EPCGExSubdivideMode::Count && SubdivisionAmountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, DisplayName="Subdivisions (Count)", EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod == EPCGExSubdivideMode::Count && SubdivisionAmountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 SubdivisionCount = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, DisplayName="Subdividion (Attr)", EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivisionAmountInput != EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, DisplayName="Subdividions (Attr)", EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod != EPCGExSubdivideMode::Manhattan && SubdivisionAmountInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Manhattan", EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod == EPCGExSubdivideMode::Manhattan", EditConditionHides))
+	FPCGExManhattanDetails ManhattanDetails;
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagPoles = false;
@@ -233,6 +236,8 @@ namespace PCGExBevelPath
 
 		TArray<FVector> Subdivisions;
 
+		FPCGExManhattanDetails ManhattanDetails;
+
 		FBevel(const int32 InIndex, const FProcessor* InProcessor);
 
 		~FBevel()
@@ -246,6 +251,7 @@ namespace PCGExBevelPath
 		void SubdivideLine(const double Factor, bool bIsCount, const bool bKeepCorner);
 		void SubdivideArc(const double Factor, bool bIsCount);
 		void SubdivideCustom(const FProcessor* InProcessor);
+		void SubdivideManhattan(const FProcessor* InProcessor);
 	};
 
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBevelPathContext, UPCGExBevelPathSettings>
@@ -259,6 +265,7 @@ namespace PCGExBevelPath
 		bool bSubdivide = false;
 		bool bSubdivideCount = false;
 		bool bArc = false;
+		
 		TSharedPtr<PCGExDetails::TSettingValue<double>> WidthGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SubdivAmountGetter;
 
@@ -270,6 +277,8 @@ namespace PCGExBevelPath
 		TSharedPtr<PCGExData::TBuffer<bool>> StartPointWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> EndPointWriter;
 		TSharedPtr<PCGExData::TBuffer<bool>> SubdivisionWriter;
+
+		FPCGExManhattanDetails ManhattanDetails;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)

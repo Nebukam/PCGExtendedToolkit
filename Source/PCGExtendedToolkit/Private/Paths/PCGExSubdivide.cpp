@@ -87,8 +87,19 @@ namespace PCGExSubdivide
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetOut());
 
-		AmountGetter = Settings->GetValueSettingSubdivisionAmount();
-		if (!AmountGetter->Init(Context, PointDataFacade)) { return false; }
+		if (Settings->SubdivideMethod == EPCGExSubdivideMode::Manhattan)
+		{
+			ManhattanDetails = Settings->ManhattanDetails;
+			if (!ManhattanDetails.Init(Context, PointDataFacade)) { return false; }
+
+			ManhattanPoints.Init(nullptr, PointDataFacade->GetNum());
+			bIsManhattan = true;
+		}
+		else
+		{
+			AmountGetter = Settings->GetValueSettingSubdivisionAmount();
+			if (!AmountGetter->Init(Context, PointDataFacade)) { return false; }
+		}
 
 		bUseCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
 
@@ -120,10 +131,23 @@ namespace PCGExSubdivide
 			Sub.NumSubdivisions = 0;
 			Sub.InStart = Index;
 			Sub.InEnd = Index + 1 == PointIO->GetNum() ? 0 : Index + 1;
-
 			Sub.Dist = FVector::Distance(InTransforms[Sub.InEnd].GetLocation(), InTransforms[Sub.InStart].GetLocation());
 
 			if (!PointFilterCache[Index]) { continue; }
+
+			if (bIsManhattan)
+			{
+				TSharedPtr<TArray<FVector>> Subs = MakeShared<TArray<FVector>>();
+				TArray<FVector>& SubPoints = *Subs.Get();
+				Sub.NumSubdivisions = ManhattanDetails.ComputeSubdivisions(
+					InTransforms[Sub.InStart].GetLocation(),
+					InTransforms[Sub.InEnd].GetLocation(),
+					Index, SubPoints, Sub.Dist);
+
+				if (Sub.NumSubdivisions > 0) { ManhattanPoints[Index] = Subs; }
+
+				continue;
+			}
 
 			double Amount = AmountGetter->Read(Index);
 			bool bRedistribute = bUseCount;
@@ -244,6 +268,7 @@ namespace PCGExSubdivide
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const FSubdivision& Sub = Subdivisions[Index];
+			const TSharedPtr<TArray<FVector>> ManhattanSubdivs = ManhattanPoints[Index];
 
 			if (FlagWriter) { FlagWriter->SetValue(Sub.OutStart, false); }
 			if (AlphaWriter) { AlphaWriter->SetValue(Sub.OutStart, Settings->DefaultAlpha); }
@@ -263,7 +288,7 @@ namespace PCGExSubdivide
 
 				if (FlagWriter) { FlagWriter->SetValue(SubIndex, true); }
 
-				const FVector Position = Start + Dir * (Sub.StartOffset + s * Sub.StepSize);
+				const FVector Position = bIsManhattan ? *(ManhattanSubdivs->GetData() + s) : Start + Dir * (Sub.StartOffset + s * Sub.StepSize);
 				OutTransforms[SubIndex].SetLocation(Position);
 				const double Alpha = Metrics.Add(Position) / Sub.Dist;
 				if (AlphaWriter) { AlphaWriter->SetValue(SubStart + s, Alpha); }
