@@ -308,8 +308,7 @@ namespace PCGExGeo
 		YZ /= N;
 		ZZ /= N;
 
-		EigenValues = GetEigenValues(XX, XY, XZ, YY, YZ, ZZ);
-		Normal = GetEigenVector(EigenValues, XX, XY, XZ, YY, YZ, ZZ);
+		Normal = ComputeNormal(XX, XY, XZ, YY, YZ, ZZ);
 	}
 
 	FBestFitPlane::FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms, const TArrayView<int32> InIndices)
@@ -346,8 +345,7 @@ namespace PCGExGeo
 		YZ /= N;
 		ZZ /= N;
 
-		EigenValues = GetEigenValues(XX, XY, XZ, YY, YZ, ZZ);
-		Normal = GetEigenVector(EigenValues, XX, XY, XZ, YY, YZ, ZZ);
+		Normal = ComputeNormal(XX, XY, XZ, YY, YZ, ZZ);
 	}
 
 	FBestFitPlane::FBestFitPlane(const TArrayView<FVector> InPositions)
@@ -384,11 +382,10 @@ namespace PCGExGeo
 		YZ /= N;
 		ZZ /= N;
 
-		EigenValues = GetEigenValues(XX, XY, XZ, YY, YZ, ZZ);
-		Normal = GetEigenVector(EigenValues, XX, XY, XZ, YY, YZ, ZZ);
+		Normal = ComputeNormal(XX, XY, XZ, YY, YZ, ZZ);
 	}
 
-	FVector FBestFitPlane::GetEigenValues(const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ)
+	double FBestFitPlane::GetEigenMax(const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ)
 	{
 		// Compute the trace
 		double m = (XX + YY + ZZ) / 3;
@@ -412,7 +409,7 @@ namespace PCGExGeo
 			+ B02 * (B01 * B12 - B11 * B02);
 		double R = DetB / (2 * P * P * P);
 
-		// Clamp r to [-1,1] to avoid NaNs from acos
+		// Clamp R to [-1,1] to avoid NaNs from acos
 		R = FMath::Clamp(R, -1, 1);
 
 		const double Phi = FMath::Acos(R) / 3;
@@ -422,17 +419,12 @@ namespace PCGExGeo
 		const double E2 = m + 2 * P * cos(Phi + (2 * PI / 3));
 		const double E3 = m + 2 * P * cos(Phi + (4 * PI / 3));
 
-		// Return as FVector: X=largest, Y=middle, Z=smallest
-		// Sort manually
-		double V[3] = {E1, E2, E3};
-		Algo::Sort(V);
-
-		return FVector(V[2], V[1], V[0]);
+		return FMath::Min3(E1, E2, E3);
 	}
 
-	FVector FBestFitPlane::GetEigenVector(const FVector& EigenValues, const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ)
+	FVector FBestFitPlane::ComputeNormal(const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ)
 	{
-		const double Lambda = EigenValues.Z;
+		const double Lambda = GetEigenMax(XX, XY, XZ, YY, YZ, ZZ);
 
 		const double A0 = XX - Lambda;
 		const double A1 = YY - Lambda;
@@ -512,7 +504,8 @@ FVector FPCGExGeo2DProjectionDetails::ProjectFlat(const FVector& InPosition) con
 }
 
 FVector FPCGExGeo2DProjectionDetails::ProjectFlat(const FVector& InPosition, const int32 PointIndex) const
-{//
+{
+	//
 	FVector RotatedPosition = GetQuat(PointIndex).UnrotateVector(InPosition);
 	RotatedPosition.Z = 0;
 	return RotatedPosition;

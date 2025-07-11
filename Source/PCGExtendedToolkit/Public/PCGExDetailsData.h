@@ -673,9 +673,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExManhattanDetails
 
 	/** Grid Size Constant -- If using count, values will be rounded down to the nearest int. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Grid Size", EditCondition="Method != EPCGExManhattanMethod::Simple && (!bSupportAttribute || GridSizeInput == EPCGExInputValueType::Constant)", EditConditionHides))
-	double GridSize = 10;
+	FVector GridSize = FVector(10);
 
-	PCGEX_SETTING_VALUE_GET(GridSize, double, GridSizeInput, GridSizeAttribute, GridSize)
+	PCGEX_SETTING_VALUE_GET(GridSize, FVector, GridSizeInput, GridSizeAttribute, GridSize)
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -700,6 +700,6 @@ protected:
 	bool bInitialized = false;
 
 	int32 Comps[3] = {0, 0, 0};
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GridSizeBuffer;
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> GridSizeBuffer;
 	TSharedPtr<PCGExDetails::TSettingValue<FQuat>> OrientBuffer;
 };
