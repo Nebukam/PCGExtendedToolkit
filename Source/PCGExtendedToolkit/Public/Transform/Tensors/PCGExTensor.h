@@ -84,10 +84,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 
 	virtual ~FPCGExTensorConfigBase() = default;
 
-	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(PCG_NotOverridable, HideInDetailPanel, EditCondition="false", EditConditionHides))
+	UPROPERTY()
 	bool bSupportAttributes = true;
 
-	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(PCG_NotOverridable, HideInDetailPanel, EditCondition="false", EditConditionHides))
+	UPROPERTY()
 	bool bSupportMutations = false;
 
 	/**  */

@@ -100,7 +100,7 @@ namespace PCGExMergeVertices
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergeVertices::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		Cluster->WillModifyVtxIO();
 

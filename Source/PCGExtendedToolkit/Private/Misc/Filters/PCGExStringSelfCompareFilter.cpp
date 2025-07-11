@@ -35,7 +35,7 @@ bool PCGExPointFilter::FStringSelfCompareFilter::Init(FPCGExContext* InContext, 
 	bOffset = TypedFilterFactory->Config.IndexMode == EPCGExIndexMode::Offset;
 	MaxIndex = PointDataFacade->Source->GetNum() - 1;
 
-	if (MaxIndex < 0) { return false; }
+	if (MaxIndex < 0) { return TypedFilterFactory->Config.InvalidIndexFallback == EPCGExFilterFallback::Pass; }
 
 	OperandA = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
 	if (!OperandA->Prepare(TypedFilterFactory->Config.OperandA, PointDataFacade->Source))

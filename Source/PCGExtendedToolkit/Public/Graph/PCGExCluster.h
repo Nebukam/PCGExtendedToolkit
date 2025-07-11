@@ -127,6 +127,7 @@ namespace PCGExCluster
 		TConstPCGValueRange<FTransform> VtxTransforms;
 
 		FBox Bounds;
+		FVector2D ProjectedCentroid;
 
 		const UPCGBasePointData* VtxPoints = nullptr;
 
@@ -153,6 +154,8 @@ namespace PCGExCluster
 			int32 Num() const { return NodesArray.Num(); }
 			const int32& operator[](const int32 Index) const { return NodesArray[Index].PointIndex; }
 
+			void Dump(TArray<int32>& OutIndices) const;
+			
 		private:
 			const TArray<FNode>& NodesArray;
 		};
@@ -169,6 +172,8 @@ namespace PCGExCluster
 			int32& operator[](const int32 Index) { return NodesArray[Index].PointIndex; }
 			const int32& operator[](const int32 Index) const { return NodesArray[Index].PointIndex; }
 
+			void Dump(TArray<int32>& OutIndices) const;
+			
 		private:
 			TArray<FNode>& NodesArray;
 		};
@@ -414,7 +419,7 @@ namespace PCGExCluster
 				const double Dist = FMath::PointDistToSegmentSquared(InPosition, Position, NPos);
 				if (Dist <= BestDist)
 				{
-					const double Dot = FMath::Abs(FVector::DotProduct(SearchDirection, (NPos - Position).GetSafeNormal()));
+					const double Dot = FVector::DotProduct(SearchDirection, (NPos - Position).GetSafeNormal());
 					if (Dist == BestDist && Dot > BestDot) { continue; }
 					BestDot = Dot;
 					BestDist = Dist;

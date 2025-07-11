@@ -94,7 +94,7 @@ namespace PCGExFindPointOnBounds
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindPointOnBounds::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const FBox Bounds = PointDataFacade->Source->GetIn()->GetBounds();
 		SearchPosition = Bounds.GetCenter() + Bounds.GetExtent() * Settings->UVW;

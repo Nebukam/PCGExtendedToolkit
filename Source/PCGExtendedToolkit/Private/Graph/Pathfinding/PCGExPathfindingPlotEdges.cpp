@@ -194,10 +194,11 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingPlotEdge::FProcessor>>(
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExPathfindingPlotEdge::FProcessor>>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingPlotEdge::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExPathfindingPlotEdge::FProcessor>>& NewBatch)
 			{
+				NewBatch->SetWantsHeuristics(true);
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -221,7 +222,7 @@ namespace PCGExPathfindingPlotEdge
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingPlotEdge::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->bUseOctreeSearch)
 		{

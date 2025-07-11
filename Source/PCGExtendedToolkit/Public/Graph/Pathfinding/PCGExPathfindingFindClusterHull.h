@@ -95,15 +95,8 @@ namespace PCGExFindClusterHull
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindClusterHullContext, UPCGExFindClusterHullSettings>
 	{
-		friend class FBatch;
-
-	protected:
-		TSharedPtr<PCGExTopology::FCell> WrapperCell;
-
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
-
-		TSharedPtr<TArray<FVector>> ProjectedPositions;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -114,25 +107,6 @@ namespace PCGExFindClusterHull
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell);
-		virtual void Cleanup() override;
 	};
 
-	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
-	{
-		friend class FProjectRangeTask;
-
-	protected:
-		FPCGExGeo2DProjectionDetails ProjectionDetails;
-		TSharedPtr<TArray<FVector>> ProjectedPositions;
-
-	public:
-		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch(InContext, InVtx, InEdges)
-		{
-		}
-
-		virtual void Process() override;
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
-		void OnProjectionComplete();
-	};
 }

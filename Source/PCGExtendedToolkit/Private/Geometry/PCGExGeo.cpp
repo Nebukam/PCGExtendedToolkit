@@ -10,160 +10,6 @@
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 
-bool FPCGExGeo2DProjectionDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
-{
-	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
-	ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::UpVector);
-	ProjectionInverseQuat = ProjectionInverseQuat.Inverse();
-
-	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
-	if (bLocalProjectionNormal && PointDataFacade)
-	{
-		NormalGetter = PointDataFacade->GetBroadcaster<FVector>(LocalNormal);
-		if (!NormalGetter)
-		{
-			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing normal attribute for projection."));
-			return false;
-		}
-	}
-
-	return true;
-}
-
-FQuat FPCGExGeo2DProjectionDetails::GetQuat(const int32 PointIndex) const
-{
-	return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Read(PointIndex).GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector) :
-		       ProjectionQuat;
-}
-
-FVector FPCGExGeo2DProjectionDetails::Project(const FVector& InPosition, const int32 PointIndex) const
-{
-	return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Read(PointIndex).GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector).RotateVector(InPosition) :
-		       ProjectionQuat.RotateVector(InPosition);
-}
-
-FVector FPCGExGeo2DProjectionDetails::Project(const FVector& InPosition) const
-{
-	return ProjectionQuat.RotateVector(InPosition);
-}
-
-FVector FPCGExGeo2DProjectionDetails::ProjectFlat(const FVector& InPosition) const
-{
-	FVector RotatedPosition = ProjectionQuat.RotateVector(InPosition);
-	RotatedPosition.Z = 0;
-	return RotatedPosition;
-}
-
-FVector FPCGExGeo2DProjectionDetails::ProjectFlat(const FVector& InPosition, const int32 PointIndex) const
-{
-	FVector RotatedPosition = GetQuat(PointIndex).RotateVector(InPosition);
-	RotatedPosition.Z = 0;
-	return RotatedPosition;
-}
-
-FTransform FPCGExGeo2DProjectionDetails::ProjectFlat(const FTransform& InTransform) const
-{
-	FVector Position = ProjectionQuat.RotateVector(InTransform.GetLocation());
-	Position.Z = 0;
-	const FQuat Quat = InTransform.GetRotation();
-	return FTransform(FQuat::FindBetweenNormals(Quat.GetUpVector(), FVector::UpVector) * Quat, Position);
-}
-
-FTransform FPCGExGeo2DProjectionDetails::ProjectFlat(const FTransform& InTransform, const int32 PointIndex) const
-{
-	FVector Position = GetQuat(PointIndex).RotateVector(InTransform.GetLocation());
-	Position.Z = 0;
-	const FQuat Quat = InTransform.GetRotation();
-	return FTransform(FQuat::FindBetweenNormals(Quat.GetUpVector(), FVector::UpVector) * Quat, Position);
-}
-
-void FPCGExGeo2DProjectionDetails::Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const
-{
-	const int32 NumVectors = InPositions.Num();
-	PCGEx::InitArray(OutPositions, NumVectors);
-
-	if (NormalGetter)
-	{
-		for (int i = 0; i < NumVectors; i++)
-		{
-			OutPositions[i] = FQuat::FindBetweenNormals(
-				NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
-				FVector::UpVector).RotateVector(InPositions[i]);
-		}
-	}
-	else
-	{
-		for (int i = 0; i < NumVectors; i++)
-		{
-			OutPositions[i] = ProjectionQuat.RotateVector(InPositions[i]);
-		}
-	}
-}
-
-void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
-{
-	const int32 NumVectors = InPositions.Num();
-	PCGEx::InitArray(OutPositions, NumVectors);
-	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i])); }
-}
-
-namespace PCGExGeoTasks
-{
-	void FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		UPCGBasePointData* OutPointData = ToBeTransformedIO->GetOut();
-		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
-		FTransform TargetTransform = FTransform::Identity;
-
-		FBox PointBounds = FBox(ForceInit);
-
-		if (!TransformDetails->bIgnoreBounds)
-		{
-			for (int i = 0; i < OutTransforms.Num(); i++) { PointBounds += OutPointData->GetLocalBounds(i).TransformBy(OutTransforms[i]); }
-		}
-		else
-		{
-			for (const FTransform& Pt : OutTransforms) { PointBounds += Pt.GetLocation(); }
-		}
-
-		PointBounds = PointBounds.ExpandBy(0.1); // Avoid NaN
-		TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
-
-		if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
-		{
-			for (FTransform& Transform : OutTransforms) { Transform *= TargetTransform; }
-		}
-		else
-		{
-			if (TransformDetails->bInheritRotation)
-			{
-				for (FTransform& Transform : OutTransforms)
-				{
-					FVector OriginalScale = Transform.GetScale3D();
-					Transform *= TargetTransform;
-					Transform.SetScale3D(OriginalScale);
-				}
-			}
-			else if (TransformDetails->bInheritScale)
-			{
-				for (FTransform& Transform : OutTransforms)
-				{
-					FQuat OriginalRot = Transform.GetRotation();
-					Transform *= TargetTransform;
-					Transform.SetRotation(OriginalRot);
-				}
-			}
-			else
-			{
-				for (FTransform& Transform : OutTransforms)
-				{
-					Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
-				}
-			}
-		}
-	}
-}
-
 namespace PCGExGeo
 {
 	bool IsWinded(const EPCGExWinding Winding, const bool bIsInputClockwise)
@@ -426,5 +272,344 @@ namespace PCGExGeo
 
 		const FVector Dir = Hand * W1 + OtherHand * W2;
 		return Center + (Dir * Radius);
+	}
+
+	FBestFitPlane::FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FBestFitPlane::FBestFitPlane);
+
+		Centroid = FVector::ZeroVector;
+		for (const FTransform& Transform : InTransforms) { Centroid += Transform.GetLocation(); }
+		Centroid /= InTransforms.Num();
+
+		double XX = 0;
+		double XY = 0;
+		double XZ = 0;
+		double YY = 0;
+		double YZ = 0;
+		double ZZ = 0;
+
+		for (const FTransform& Transform : InTransforms)
+		{
+			const FVector P = Transform.GetLocation() - Centroid;
+			XX += P.X * P.X;
+			XY += P.X * P.Y;
+			XZ += P.X * P.Z;
+			YY += P.Y * P.Y;
+			YZ += P.Y * P.Z;
+			ZZ += P.Z * P.Z;
+		}
+
+		const double N = InTransforms.Num();
+		XX /= N;
+		XY /= N;
+		XZ /= N;
+		YY /= N;
+		YZ /= N;
+		ZZ /= N;
+
+		EigenValues = GetEigenValues(XX, XY, XZ, YY, YZ, ZZ);
+		Normal = GetEigenVector(EigenValues, XX, XY, XZ, YY, YZ, ZZ);
+	}
+
+	FBestFitPlane::FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms, const TArrayView<int32> InIndices)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FBestFitPlane::FBestFitPlane);
+
+		Centroid = FVector::ZeroVector;
+		for (const int32 i : InIndices) { Centroid += InTransforms[i].GetLocation(); }
+		Centroid /= InIndices.Num();
+
+		double XX = 0;
+		double XY = 0;
+		double XZ = 0;
+		double YY = 0;
+		double YZ = 0;
+		double ZZ = 0;
+
+		for (const int32 i : InIndices)
+		{
+			const FVector P = InTransforms[i].GetLocation() - Centroid;
+			XX += P.X * P.X;
+			XY += P.X * P.Y;
+			XZ += P.X * P.Z;
+			YY += P.Y * P.Y;
+			YZ += P.Y * P.Z;
+			ZZ += P.Z * P.Z;
+		}
+
+		const double N = InIndices.Num();
+		XX /= N;
+		XY /= N;
+		XZ /= N;
+		YY /= N;
+		YZ /= N;
+		ZZ /= N;
+
+		EigenValues = GetEigenValues(XX, XY, XZ, YY, YZ, ZZ);
+		Normal = GetEigenVector(EigenValues, XX, XY, XZ, YY, YZ, ZZ);
+	}
+
+	FBestFitPlane::FBestFitPlane(const TArrayView<FVector> InPositions)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FBestFitPlane::FBestFitPlane);
+
+		Centroid = FVector::ZeroVector;
+		for (const FVector& Pos : InPositions) { Centroid += Pos; }
+		Centroid /= InPositions.Num();
+
+		double XX = 0;
+		double XY = 0;
+		double XZ = 0;
+		double YY = 0;
+		double YZ = 0;
+		double ZZ = 0;
+
+		for (const FVector& Pos : InPositions)
+		{
+			FVector P = Pos - Centroid;
+			XX += P.X * P.X;
+			XY += P.X * P.Y;
+			XZ += P.X * P.Z;
+			YY += P.Y * P.Y;
+			YZ += P.Y * P.Z;
+			ZZ += P.Z * P.Z;
+		}
+
+		const double N = InPositions.Num();
+		XX /= N;
+		XY /= N;
+		XZ /= N;
+		YY /= N;
+		YZ /= N;
+		ZZ /= N;
+
+		EigenValues = GetEigenValues(XX, XY, XZ, YY, YZ, ZZ);
+		Normal = GetEigenVector(EigenValues, XX, XY, XZ, YY, YZ, ZZ);
+	}
+
+	FVector FBestFitPlane::GetEigenValues(const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ)
+	{
+		// Compute the trace
+		double m = (XX + YY + ZZ) / 3;
+
+		// Build matrix B = (1/p) * (A - m*I)
+		const double B00 = XX - m;
+		const double B01 = XY;
+		const double B02 = XZ;
+		const double B11 = YY - m;
+		const double B12 = YZ;
+		const double B22 = ZZ - m;
+
+		// Compute p = sqrt(trace(B*B) / 6)
+		const double P2 = (B00 * B00 + B11 * B11 + B22 * B22 + 2 * (B01 * B01 + B02 * B02 + B12 * B12)) / 6;
+		const double P = sqrt(P2);
+
+		// Compute determinant of B / (2*p^3)
+		const double DetB =
+			B00 * (B11 * B22 - B12 * B12)
+			- B01 * (B01 * B22 - B12 * B02)
+			+ B02 * (B01 * B12 - B11 * B02);
+		double R = DetB / (2 * P * P * P);
+
+		// Clamp r to [-1,1] to avoid NaNs from acos
+		R = FMath::Clamp(R, -1, 1);
+
+		const double Phi = FMath::Acos(R) / 3;
+
+		// Compute the eigenvalues
+		const double E1 = m + 2 * P * cos(Phi);
+		const double E2 = m + 2 * P * cos(Phi + (2 * PI / 3));
+		const double E3 = m + 2 * P * cos(Phi + (4 * PI / 3));
+
+		// Return as FVector: X=largest, Y=middle, Z=smallest
+		// Sort manually
+		double V[3] = {E1, E2, E3};
+		Algo::Sort(V);
+
+		return FVector(V[2], V[1], V[0]);
+	}
+
+	FVector FBestFitPlane::GetEigenVector(const FVector& EigenValues, const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ)
+	{
+		const double Lambda = EigenValues.Z;
+
+		const double A0 = XX - Lambda;
+		const double A1 = YY - Lambda;
+		const double A2 = ZZ - Lambda;
+
+		const FVector R0(A0, XY, XZ);
+		const FVector R1(XY, A1, YZ);
+
+		// Normal = perpendicular to both
+		FVector N = (R0 ^ R1).GetSafeNormal();
+		N.Normalize();
+
+		if (FMath::IsNearlyZero(N.SizeSquared()))
+		{
+			N = R0 ^ FVector(XZ, YZ, A2);
+			N.Normalize();
+		}
+
+		if (FMath::IsNearlyZero(N.SizeSquared()))
+		{
+			N = R1 ^ FVector(XZ, YZ, A2);
+			N.Normalize();
+		}
+
+		return N;
+	}
+}
+
+bool FPCGExGeo2DProjectionDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
+{
+	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
+	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, FVector::ForwardVector).ToQuat();
+
+	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
+	if (bLocalProjectionNormal && PointDataFacade)
+	{
+		NormalGetter = PCGExDetails::MakeSettingValue<FVector>(EPCGExInputValueType::Attribute, LocalNormal, ProjectionNormal);
+		if (!NormalGetter->Init(InContext, PointDataFacade, false, false))
+		{
+			NormalGetter = nullptr;
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing normal attribute for projection."));
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void FPCGExGeo2DProjectionDetails::Init(const PCGExGeo::FBestFitPlane& InFitPlane)
+{
+	ProjectionNormal = InFitPlane.Normal;
+	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, FVector::ForwardVector).ToQuat();
+}
+
+#define PCGEX_READ_QUAT(_INDEX) FRotationMatrix::MakeFromZX(NormalGetter->Read(_INDEX).GetSafeNormal(1E-08, FVector::UpVector), FVector::ForwardVector).ToQuat()
+
+FQuat FPCGExGeo2DProjectionDetails::GetQuat(const int32 PointIndex) const
+{
+	return NormalGetter ? PCGEX_READ_QUAT(PointIndex) : ProjectionQuat;
+}
+
+FVector FPCGExGeo2DProjectionDetails::Project(const FVector& InPosition, const int32 PointIndex) const
+{
+	return GetQuat(PointIndex).UnrotateVector(InPosition);
+}
+
+FVector FPCGExGeo2DProjectionDetails::Project(const FVector& InPosition) const
+{
+	return ProjectionQuat.UnrotateVector(InPosition);
+}
+
+FVector FPCGExGeo2DProjectionDetails::ProjectFlat(const FVector& InPosition) const
+{
+	FVector RotatedPosition = ProjectionQuat.UnrotateVector(InPosition);
+	RotatedPosition.Z = 0;
+	return RotatedPosition;
+}
+
+FVector FPCGExGeo2DProjectionDetails::ProjectFlat(const FVector& InPosition, const int32 PointIndex) const
+{//
+	FVector RotatedPosition = GetQuat(PointIndex).UnrotateVector(InPosition);
+	RotatedPosition.Z = 0;
+	return RotatedPosition;
+}
+
+FTransform FPCGExGeo2DProjectionDetails::ProjectFlat(const FTransform& InTransform) const
+{
+	FVector Position = ProjectionQuat.UnrotateVector(InTransform.GetLocation());
+	Position.Z = 0;
+	const FQuat Quat = InTransform.GetRotation();
+	return FTransform(Quat * ProjectionQuat, Position);
+}
+
+FTransform FPCGExGeo2DProjectionDetails::ProjectFlat(const FTransform& InTransform, const int32 PointIndex) const
+{
+	const FQuat Q = GetQuat(PointIndex);
+	FVector Position = Q.UnrotateVector(InTransform.GetLocation());
+	Position.Z = 0;
+	const FQuat Quat = InTransform.GetRotation();
+	return FTransform(Quat * Q, Position);
+}
+
+void FPCGExGeo2DProjectionDetails::Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const
+{
+	const int32 NumVectors = InPositions.Num();
+	PCGEx::InitArray(OutPositions, NumVectors);
+
+	if (NormalGetter)
+	{
+		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = PCGEX_READ_QUAT(i).UnrotateVector(InPositions[i]); }
+	}
+	else
+	{
+		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.UnrotateVector(InPositions[i]); }
+	}
+}
+
+void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
+{
+	const int32 NumVectors = InPositions.Num();
+	PCGEx::InitArray(OutPositions, NumVectors);
+	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.UnrotateVector(InPositions[i])); }
+}
+
+namespace PCGExGeoTasks
+{
+	void FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	{
+		UPCGBasePointData* OutPointData = ToBeTransformedIO->GetOut();
+		TPCGValueRange<FTransform> OutTransforms = OutPointData->GetTransformValueRange();
+		FTransform TargetTransform = FTransform::Identity;
+
+		FBox PointBounds = FBox(ForceInit);
+
+		if (!TransformDetails->bIgnoreBounds)
+		{
+			for (int i = 0; i < OutTransforms.Num(); i++) { PointBounds += OutPointData->GetLocalBounds(i).TransformBy(OutTransforms[i]); }
+		}
+		else
+		{
+			for (const FTransform& Pt : OutTransforms) { PointBounds += Pt.GetLocation(); }
+		}
+
+		PointBounds = PointBounds.ExpandBy(0.1); // Avoid NaN
+		TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
+
+		if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
+		{
+			for (FTransform& Transform : OutTransforms) { Transform *= TargetTransform; }
+		}
+		else
+		{
+			if (TransformDetails->bInheritRotation)
+			{
+				for (FTransform& Transform : OutTransforms)
+				{
+					FVector OriginalScale = Transform.GetScale3D();
+					Transform *= TargetTransform;
+					Transform.SetScale3D(OriginalScale);
+				}
+			}
+			else if (TransformDetails->bInheritScale)
+			{
+				for (FTransform& Transform : OutTransforms)
+				{
+					FQuat OriginalRot = Transform.GetRotation();
+					Transform *= TargetTransform;
+					Transform.SetRotation(OriginalRot);
+				}
+			}
+			else
+			{
+				for (FTransform& Transform : OutTransforms)
+				{
+					Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
+				}
+			}
+		}
 	}
 }

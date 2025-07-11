@@ -132,7 +132,7 @@ namespace PCGExPickClosestClusters
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 
 		Cluster->RebuildOctree(Settings->SearchMode);

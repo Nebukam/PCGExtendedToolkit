@@ -93,7 +93,7 @@ namespace PCGExPathIntersections
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 		LastIndex = PointDataFacade->GetNum() - 1;
@@ -295,12 +295,12 @@ namespace PCGExPathIntersections
 
 		InsertionTaskGroup->StartSubLoops(Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
-		FPointsProcessor::CompleteWork();
+		IPointsProcessor::CompleteWork();
 	}
 
 	void FProcessor::Write()
 	{
-		FPointsProcessor::Write();
+		IPointsProcessor::Write();
 		PointDataFacade->WriteFastest(AsyncManager);
 	}
 }

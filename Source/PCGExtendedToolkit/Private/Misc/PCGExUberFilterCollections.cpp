@@ -142,7 +142,7 @@ namespace PCGExUberFilterCollections
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		bUsePicks = PCGExPicker::GetPicks(Context->PickerFactories, PointDataFacade, Picks);
 		NumPoints = bUsePicks ? Picks.Num() : PointDataFacade->GetNum();
@@ -192,7 +192,7 @@ namespace PCGExUberFilterCollections
 
 	void FProcessor::Output()
 	{
-		FPointsProcessor::Output();
+		IPointsProcessor::Output();
 
 		switch (Settings->Mode)
 		{

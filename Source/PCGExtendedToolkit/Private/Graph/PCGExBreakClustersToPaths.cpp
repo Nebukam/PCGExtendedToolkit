@@ -29,6 +29,9 @@ bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
+	Context->bUseProjection = Settings->Winding != EPCGExWindingMutation::Unchanged;
+	Context->bUsePerClusterProjection = Context->bUseProjection && Settings->ProjectionDetails.Method == EPCGExProjectionMethod::BestFit;
+
 	Context->Paths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->Paths->OutputPin = PCGExPaths::OutputPathsLabel;
 
@@ -48,10 +51,8 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExBreakClustersToPaths::FBatch>& NewBatch)
 			{
-				if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
-				{
-					NewBatch->VtxFilterFactories = &Context->FilterFactories;
-				}
+				if (Settings->Winding != EPCGExWindingMutation::Unchanged) { NewBatch->SetProjectionDetails(Settings->ProjectionDetails); }
+				if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths) { NewBatch->VtxFilterFactories = &Context->FilterFactories; }
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -70,7 +71,7 @@ namespace PCGExBreakClustersToPaths
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBreakClustersToPaths::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FBatch>()->DirectionSettings, EdgeDataFacade)) { return false; }
 
@@ -165,9 +166,9 @@ namespace PCGExBreakClustersToPaths
 			TArray<int32>& IdxMapping = PathIO->GetIdxMapping();
 			IdxMapping[0] = Cluster->GetNodePointIndex(Chain->Seed);
 
-			if (ProjectedPositions && (!Settings->bWindOnlyClosedLoops || Chain->bIsClosedLoop))
+			if (ProjectedVtxPositions && (!Settings->bWindOnlyClosedLoops || Chain->bIsClosedLoop))
 			{
-				const TArray<FVector2D>& PP = *ProjectedPositions;
+				const TArray<FVector2D>& PP = *ProjectedVtxPositions.Get();
 				TArray<FVector2D> ProjectedPoints;
 				ProjectedPoints.SetNumUninitialized(ChainSize);
 
@@ -254,60 +255,7 @@ namespace PCGExBreakClustersToPaths
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
-
-	void FBatch::Process()
-	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
-
-		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Edges)
-		{
-			TBatch<FProcessor>::Process();
-			return;
-		}
-
-		if (Settings->Winding != EPCGExWindingMutation::Unchanged)
-		{
-			// We're after a specific winding, project points first.
-
-			ProjectionDetails = Settings->ProjectionDetails;
-			if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
-
-			PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
-
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
-
-			ProjectionTaskGroup->OnCompleteCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE]()
-				{
-					PCGEX_ASYNC_THIS
-					This->OnProjectionComplete();
-				};
-
-			ProjectionTaskGroup->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-				{
-					PCGEX_ASYNC_THIS
-					This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, *This->ProjectedPositions, Scope);
-				};
-
-			ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-		}
-		else
-		{
-			TBatch<FProcessor>::Process();
-		}
-	}
-
-	void FBatch::OnProjectionComplete()
-	{
-		TBatch<FProcessor>::Process();
-	}
-
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
-	{
-		ClusterProcessor->ProjectedPositions = ProjectedPositions;
-		return TBatch<FProcessor>::PrepareSingle(ClusterProcessor);
-	}
+	
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -163,7 +163,7 @@ namespace PCGExRefineEdges
 
 		EdgeFilterFactories = &Context->EdgeFilterFactories; // So filters can be initialized
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		Sanitization = Settings->Sanitization;
 

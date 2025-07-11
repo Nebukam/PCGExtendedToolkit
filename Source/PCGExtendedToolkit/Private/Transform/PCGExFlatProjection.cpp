@@ -75,7 +75,7 @@ namespace PCGExFlatProjection
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
@@ -91,7 +91,9 @@ namespace PCGExFlatProjection
 		else if (bWriteAttribute)
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
-			ProjectionDetails.Init(ExecutionContext, PointDataFacade);
+			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(ExecutionContext, PointDataFacade); }
+			else { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
+
 			TransformWriter = PointDataFacade->GetWritable<FTransform>(Context->CachedTransformAttributeName, PCGExData::EBufferInit::New);
 		}
 
@@ -121,7 +123,7 @@ namespace PCGExFlatProjection
 
 			if (bProjectLocalTransform)
 			{
-				PCGEX_SCOPE_LOOP(Index) { OutTransforms[Index] = ProjectionDetails.ProjectFlat(OutTransforms[Index]); }
+				PCGEX_SCOPE_LOOP(Index) { OutTransforms[Index] = ProjectionDetails.ProjectFlat(OutTransforms[Index], Index); }
 			}
 			else
 			{

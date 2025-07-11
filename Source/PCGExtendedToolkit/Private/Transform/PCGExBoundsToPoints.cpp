@@ -50,7 +50,7 @@ namespace PCGExBoundsToPoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBoundsToPoints::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bGeneratePerPointData ? PCGExData::EIOInit::NoInit : PCGExData::EIOInit::Duplicate)
 

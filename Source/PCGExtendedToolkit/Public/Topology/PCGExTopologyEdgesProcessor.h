@@ -75,6 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorContext : FPCGExEdgesP
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeConstraintsFilterFactories;
 
 	TSharedPtr<PCGExTopology::FHoles> Holes;
+	TSharedPtr<PCGExData::FFacade> HolesFacade;
 
 	TArray<FString> ComponentTags;
 
@@ -100,6 +101,8 @@ namespace PCGExTopologyEdges
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::Settings;
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::Context;
 
+		TSharedPtr<PCGExTopology::FHoles> Holes;
+
 		const FVector2D CWTolerance = FVector2D(1 / 0.001);
 		bool bIsPreviewMode = false;
 
@@ -121,7 +124,6 @@ namespace PCGExTopologyEdges
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::EdgeFilterCache;
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::DefaultEdgeFilterValue;
 
-		TSharedPtr<TArray<FVector>> ProjectedPositions;
 		TSharedPtr<TMap<uint32, int32>> ProjectedHashMap;
 
 		TObjectPtr<UDynamicMesh> GetInternalMesh() { return InternalMesh; }
@@ -157,11 +159,13 @@ namespace PCGExTopologyEdges
 
 			if (!PCGExClusterMT::TProcessor<TContext, TSettings>::Process(InAsyncManager)) { return false; }
 
+			if (Context->HolesFacade){ Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails); }
+
 			bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 
 			CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
-			if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedPositions); }
-			CellsConstraints->Holes = Context->Holes;
+			if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *this->ProjectedVtxPositions.Get()); }
+			CellsConstraints->Holes = Holes;
 
 			InitConstraints();
 
@@ -283,8 +287,6 @@ namespace PCGExTopologyEdges
 		using PCGExClusterMT::TBatch<T>::ExecutionContext;
 		using PCGExClusterMT::TBatch<T>::NodeIndexLookup;
 
-		FPCGExGeo2DProjectionDetails ProjectionDetails;
-		TSharedPtr<TArray<FVector>> ProjectedPositions;
 		TSharedPtr<TMap<uint32, int32>> ProjectedHashMap;
 
 	public:
@@ -293,6 +295,8 @@ namespace PCGExTopologyEdges
 		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			PCGExClusterMT::TBatch<T>(InContext, InVtx, InEdges)
 		{
+			ProjectedHashMap = MakeShared<TMap<uint32, int32>>();
+			ProjectedHashMap->Reserve(InVtx->GetNum());
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override
@@ -309,39 +313,8 @@ namespace PCGExTopologyEdges
 			}
 		}
 
-		virtual void Process() override
-		{
-			PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
-
-			// Project positions
-			ProjectionDetails = Settings->ProjectionDetails;
-			if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
-
-			PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
-
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
-
-			ProjectionTaskGroup->OnCompleteCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE]()
-				{
-					PCGEX_ASYNC_THIS
-					This->OnProjectionComplete();
-				};
-
-			ProjectionTaskGroup->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-				{
-					PCGEX_ASYNC_THIS
-					TArray<FVector>& PP = *This->ProjectedPositions;
-					This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, Scope);
-				};
-
-			ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-		}
-
 		virtual bool PrepareSingle(const TSharedPtr<T>& ClusterProcessor) override
 		{
-			ClusterProcessor->ProjectedPositions = ProjectedPositions;
 			ClusterProcessor->ProjectedHashMap = ProjectedHashMap;
 			PCGExClusterMT::TBatch<T>::PrepareSingle(ClusterProcessor);
 			return true;
@@ -364,17 +337,16 @@ namespace PCGExTopologyEdges
 		}
 
 	protected:
-		void OnProjectionComplete()
+		virtual void OnInitialPostProcess() override
 		{
 			const int32 NumVtx = VtxDataFacade->GetNum();
-			ProjectedHashMap = MakeShared<TMap<uint32, int32>>();
-			ProjectedHashMap->Reserve(NumVtx);
 
 			TMap<uint32, int32>& MP = *ProjectedHashMap;
-			const TArray<FVector>& PP = *ProjectedPositions;
-			for (int i = 0; i < NumVtx; i++) { MP.Add(PCGEx::GH2(FVector2D(PP[i]), CWTolerance), i); }
+			const TArray<FVector2D>& PP = *this->ProjectedVtxPositions.Get();
 
-			PCGExClusterMT::TBatch<T>::Process();
+			for (int i = 0; i < NumVtx; i++) { MP.Add(PCGEx::GH2(PP[i], CWTolerance), i); }
+
+			PCGExClusterMT::TBatch<T>::OnInitialPostProcess();
 		}
 	};
 }

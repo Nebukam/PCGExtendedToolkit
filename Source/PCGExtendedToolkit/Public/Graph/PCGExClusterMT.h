@@ -56,7 +56,7 @@ namespace PCGExClusterMT
 
 	class IClusterProcessorBatch;
 
-	class PCGEXTENDEDTOOLKIT_API FClusterProcessor : public TSharedFromThis<FClusterProcessor>
+	class PCGEXTENDEDTOOLKIT_API IClusterProcessor : public TSharedFromThis<IClusterProcessor>
 	{
 		friend class IClusterProcessorBatch;
 
@@ -67,6 +67,10 @@ namespace PCGExClusterMT
 
 		const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* HeuristicsFactories = nullptr;
 		FPCGExEdgeDirectionSettings DirectionSettings;
+
+		bool bWantsProjection = false;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
+		TSharedPtr<TArray<FVector2D>> ProjectedVtxPositions;
 
 		bool bBuildCluster = true;
 		bool bWantsHeuristics = false;
@@ -113,11 +117,13 @@ namespace PCGExClusterMT
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		FClusterProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
+		IClusterProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 
 		virtual void SetExecutionContext(FPCGExContext* InContext);
 
-		virtual ~FClusterProcessor() = default;
+		void SetProjectionDetails(const FPCGExGeo2DProjectionDetails& InDetails, const TSharedPtr<TArray<FVector2D>>& InProjectedVtxPositions, const bool InWantsProjection);
+
+		virtual ~IClusterProcessor() = default;
 
 		virtual void RegisterConsumableAttributesWithFacade() const;
 
@@ -171,7 +177,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename TContext, typename TSettings>
-	class TProcessor : public FClusterProcessor
+	class TProcessor : public IClusterProcessor
 	{
 	protected:
 		TContext* Context = nullptr;
@@ -179,13 +185,13 @@ namespace PCGExClusterMT
 
 	public:
 		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			FClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			IClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
 		virtual void SetExecutionContext(FPCGExContext* InContext) override
 		{
-			FClusterProcessor::SetExecutionContext(InContext);
+			IClusterProcessor::SetExecutionContext(InContext);
 			Context = static_cast<TContext*>(ExecutionContext);
 			Settings = InContext->GetInputSettings<TSettings>();
 		}
@@ -197,6 +203,8 @@ namespace PCGExClusterMT
 	class PCGEXTENDEDTOOLKIT_API IClusterProcessorBatch : public TSharedFromThis<IClusterProcessorBatch>
 	{
 	protected:
+		TSharedPtr<PCGEx::FIntTracker> InitializationTracker = nullptr;
+
 		mutable FRWLock BatchLock;
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
@@ -212,6 +220,11 @@ namespace PCGExClusterMT
 		bool bPreparationSuccessful = false;
 		bool bWantsHeuristics = false;
 		bool bRequiresGraphBuilder = false;
+
+		bool bWantsProjection = false;
+		bool bWantsPerClusterProjection = false;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
+		TSharedPtr<TArray<FVector2D>> ProjectedVtxPositions;
 
 	public:
 		bool bIsBatchValid = true;
@@ -261,11 +274,20 @@ namespace PCGExClusterMT
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(ExecutionContext); }
 
+		bool WantsProjection() const { return bWantsProjection; }
+		bool WantsPerClusterProjection() const { return bWantsPerClusterProjection; }
+		virtual void SetProjectionDetails(const FPCGExGeo2DProjectionDetails& InProjectionDetails);
+
 		virtual void PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild);
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader);
 		virtual void OnProcessingPreparationComplete();
 
 		virtual void Process();
+		
+	protected:
+		virtual void OnInitialPostProcess();
+
+	public:
 		virtual void CompleteWork();
 		virtual void Write();
 
@@ -277,7 +299,9 @@ namespace PCGExClusterMT
 		virtual void Cleanup();
 
 	protected:
-		virtual void AllocateVtxPoints() const;
+		void InternalInitProcessor(const TSharedPtr<IClusterProcessor>& InProcessor, const int32 InIndex);
+
+		virtual void AllocateVtxPoints();
 	};
 
 	template <typename T>
@@ -313,40 +337,18 @@ namespace PCGExClusterMT
 			if (!bIsBatchValid) { return; }
 
 			IClusterProcessorBatch::Process();
-
-			PCGEX_ASYNC_CHKD_VOID(AsyncManager)
-
-			if (VtxDataFacade->GetNum() <= 1) { return; }
-			if (VtxFilterFactories)
-			{
-				VtxFilterCache = MakeShared<TArray<int8>>();
-				VtxFilterCache->Init(DefaultVtxFilterValue, VtxDataFacade->GetNum());
-			}
+			if (!bIsBatchValid) { return; }
 
 			CurrentState.store(PCGEx::State_Processing, std::memory_order_release);
-			TSharedPtr<IClusterProcessorBatch> SelfPtr = SharedThis(this);
 
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
 			{
 				const TSharedPtr<T> NewProcessor = MakeShared<T>(VtxDataFacade, (*EdgesDataFacades)[IO->IOIndex]);
 
-				NewProcessor->SetExecutionContext(ExecutionContext);
-				NewProcessor->ParentBatch = SelfPtr;
-				NewProcessor->VtxFilterFactories = VtxFilterFactories;
-				NewProcessor->EdgeFilterFactories = EdgeFilterFactories;
-				NewProcessor->VtxFilterCache = VtxFilterCache;
-
-				NewProcessor->NodeIndexLookup = NodeIndexLookup;
-				NewProcessor->EndpointsLookup = &EndpointsLookup;
-				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
-				NewProcessor->BatchIndex = Processors.Num();
-
-				if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
-				NewProcessor->SetWantsHeuristics(WantsHeuristics(), HeuristicsFactories);
-
-				NewProcessor->RegisterConsumableAttributesWithFacade();
+				InternalInitProcessor(NewProcessor, Processors.Num());
 
 				if (!PrepareSingle(NewProcessor)) { continue; }
+
 				Processors.Add(NewProcessor.ToSharedRef());
 
 				NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize;
@@ -359,7 +361,15 @@ namespace PCGExClusterMT
 		virtual void StartProcessing()
 		{
 			if (!bIsBatchValid) { return; }
-			PCGEX_ASYNC_MT_LOOP_TPL(Process, bDaisyChainProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); })
+
+			InitializationTracker = MakeShared<PCGEx::FIntTracker>(
+				[PCGEX_ASYNC_THIS_CAPTURE]()
+				{
+					PCGEX_ASYNC_THIS
+					This->OnInitialPostProcess();
+				});
+
+			PCGEX_ASYNC_MT_LOOP_TPL(Process, bDaisyChainProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, InitializationTracker)
 		}
 
 		virtual bool PrepareSingle(const TSharedPtr<T>& ClusterProcessor) { return true; }
@@ -398,28 +408,6 @@ namespace PCGExClusterMT
 			IClusterProcessorBatch::Cleanup();
 			for (const TSharedRef<T>& P : Processors) { P->Cleanup(); }
 			Processors.Empty();
-		}
-	};
-
-	template <typename T>
-	class TBatchWithGraphBuilder : public TBatch<T>
-	{
-	public:
-		TBatchWithGraphBuilder(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch<T>(InContext, InVtx, InEdges)
-		{
-			this->bRequiresGraphBuilder = true;
-		}
-	};
-
-	template <typename T>
-	class TBatchWithHeuristics : public TBatch<T>
-	{
-	public:
-		TBatchWithHeuristics(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch<T>(InContext, InVtx, InEdges)
-		{
-			this->SetWantsHeuristics(true);
 		}
 	};
 

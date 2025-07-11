@@ -114,7 +114,7 @@ namespace PCGExBatchActions
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		// Initialize writers with provided default value
 		for (FPCGMetadataAttributeBase* AttributeBase : Context->DefaultAttributes->Attributes)

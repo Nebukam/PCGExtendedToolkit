@@ -70,7 +70,7 @@ namespace PCGExFlagNodes
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindNodeState::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		Cluster->ComputeEdgeLengths();
 

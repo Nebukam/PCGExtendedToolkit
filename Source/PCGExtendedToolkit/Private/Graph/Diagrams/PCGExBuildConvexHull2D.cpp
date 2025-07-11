@@ -79,12 +79,13 @@ namespace PCGExConvexHull2D
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConvexHull2D::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
+		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(ExecutionContext, PointDataFacade)) { return false; } }
+		else { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 		// Build convex hull
 

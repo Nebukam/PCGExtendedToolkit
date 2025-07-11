@@ -173,7 +173,7 @@ namespace PCGExAttributesToTags
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributesToTags::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->Action == EPCGExAttributeToTagsAction::Attribute)
 		{

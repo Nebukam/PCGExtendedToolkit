@@ -160,7 +160,7 @@ namespace PCGExCutEdges
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCutEdges::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->bInvert)
 		{

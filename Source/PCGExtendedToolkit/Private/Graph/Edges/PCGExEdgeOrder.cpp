@@ -67,7 +67,7 @@ namespace PCGExEdgeOrder
 
 		EdgeDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FBatch>()->DirectionSettings, EdgeDataFacade))
 		{

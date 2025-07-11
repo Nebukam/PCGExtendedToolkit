@@ -32,6 +32,7 @@ bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExTopologyEdges::TBatch<PCGExTopologyClusterSurface::FProcessor>>& NewBatch)
 			{
+				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -98,7 +99,7 @@ namespace PCGExTopologyClusterSurface
 
 		PCGEX_MAKE_SHARED(Cell, PCGExTopology::FCell, CellsConstraints.ToSharedRef())
 
-		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraph::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedPositions);
+		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraph::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
 		if (Result != PCGExTopology::ECellResult::Success) { return false; }
 
 		SubTriangulations[LoopIdx]->Add(Cell->Polygon);

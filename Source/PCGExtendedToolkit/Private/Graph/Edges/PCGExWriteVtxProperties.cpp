@@ -74,7 +74,7 @@ namespace PCGExWriteVtxProperties
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteVtxProperties::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		for (const UPCGExVtxPropertyFactoryData* Factory : Context->ExtraFactories)
 		{

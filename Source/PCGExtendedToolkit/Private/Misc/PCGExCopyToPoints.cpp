@@ -79,7 +79,7 @@ namespace PCGExCopyToPoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCopyToPoints::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const UPCGBasePointData* Targets = Context->TargetsDataFacade->GetIn();
 		const int32 NumTargets = Targets->GetNumPoints();

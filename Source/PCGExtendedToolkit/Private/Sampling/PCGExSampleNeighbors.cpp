@@ -77,7 +77,7 @@ namespace PCGExSampleNeighbors
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNeighbors::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		for (const UPCGExNeighborSamplerFactoryData* OperationFactory : Context->SamplerFactories)
 		{

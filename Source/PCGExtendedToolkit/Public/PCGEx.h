@@ -114,6 +114,17 @@ enum class EPCGExAxis : uint8
 };
 
 UENUM()
+enum class EPCGExAxisOrder : uint8
+{
+	XYZ = 0 UMETA(DisplayName = "X > Y > Z"),
+	YZX = 1 UMETA(DisplayName = "Y > Z > X"),
+	ZXY = 2 UMETA(DisplayName = "Z > X > Y"),
+	YXZ = 3 UMETA(DisplayName = "Y > X > Z"),
+	ZYX = 4 UMETA(DisplayName = "Z > Y > X"),
+	XZY = 5 UMETA(DisplayName = "X > Z > Y")
+};
+
+UENUM()
 enum class EPCGExAxisAlign : uint8
 {
 	Forward  = 0 UMETA(DisplayName = "Forward", ToolTip="..."),
@@ -205,6 +216,23 @@ namespace PCGEx
 	const FSoftObjectPath WeightDistributionExpo = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Expo.FC_PCGExWeightDistribution_Expo"));
 	const FSoftObjectPath SteepnessWeightCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExSteepness_Default.FC_PCGExSteepness_Default"));
 
+	const int32 AxisOrders[6][3] = {
+		{0, 1, 2}, // X > Y > Z
+		{1, 2, 0}, // Y > Z > X
+		{2, 0, 1}, // Z > X > Y
+		{1, 0, 2}, // Y > X > Z
+		{2, 1, 0}, // Z > Y > X
+		{0, 2, 1}  // X > Z > Y
+	};
+
+	FORCEINLINE void GetAxisOrder(EPCGExAxisOrder Order, int32 (&OutArray)[3])
+	{
+		const int32 Index = static_cast<uint8>(Order);
+		OutArray[0] = AxisOrders[Index][0];
+		OutArray[1] = AxisOrders[Index][1];
+		OutArray[2] = AxisOrders[Index][2];
+	}
+	
 	PCGEXTENDEDTOOLKIT_API
 	bool IsPCGExAttribute(const FString& InStr);
 	PCGEXTENDEDTOOLKIT_API
