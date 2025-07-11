@@ -340,7 +340,7 @@ namespace PCGExClusterMT
 						}
 					};
 
-				ProjectTask->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+				ProjectTask->StartSubLoops(VtxDataFacade->GetNum(), 4096);
 			}
 			else
 			{

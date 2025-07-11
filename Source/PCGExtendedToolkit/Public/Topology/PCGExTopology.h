@@ -462,12 +462,6 @@ namespace PCGExTopology
 		FCellData() = default;
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	PCGExCluster::FNode* GetGuidedHalfEdge(
-		const PCGExGraph::FLink& Link,
-		const TSharedRef<PCGExCluster::FCluster>& InCluster,
-		const TArray<FVector2D>& ProjectedPositions);
-
 	class FCell : public TSharedFromThis<FCell>
 	{
 	protected:
