@@ -162,14 +162,15 @@ namespace PCGExBuildVoronoi2D
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoi2D::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		SitesOutputDetails = Settings->SitesOutputDetails;
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
+		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(ExecutionContext, PointDataFacade)) { return false; } }
+		else { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 		// Build voronoi
 
@@ -182,7 +183,6 @@ namespace PCGExBuildVoronoi2D
 		bool bSuccess = false;
 
 		bSuccess = Voronoi->Process(ActivePositions, ProjectionDetails, Bounds, WithinBounds);
-
 
 		if (!bSuccess)
 		{

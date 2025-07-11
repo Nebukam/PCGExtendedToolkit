@@ -112,7 +112,7 @@ namespace PCGExFindPointOnBoundsClusters
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		SearchPosition = Cluster->Bounds.GetCenter() + Cluster->Bounds.GetExtent() * Settings->UVW;
 		Cluster->RebuildOctree(Settings->SearchMode);

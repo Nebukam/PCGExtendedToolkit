@@ -339,7 +339,7 @@ namespace PCGExBevelPath
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
@@ -639,7 +639,7 @@ namespace PCGExBevelPath
 
 		WriteFlagsTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
-		FPointsProcessor::Write();
+		IPointsProcessor::Write();
 	}
 }
 

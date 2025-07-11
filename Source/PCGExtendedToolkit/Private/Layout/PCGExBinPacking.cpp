@@ -257,7 +257,7 @@ namespace PCGExBinPacking
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->Source->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);

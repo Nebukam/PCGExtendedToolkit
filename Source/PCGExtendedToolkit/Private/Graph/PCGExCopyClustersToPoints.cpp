@@ -82,7 +82,7 @@ namespace PCGExCopyClusters
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		const UPCGBasePointData* InTargetsData = Context->TargetsDataFacade->GetIn();
 		const int32 NumTargets = InTargetsData->GetNumPoints();

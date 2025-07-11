@@ -115,23 +115,90 @@ namespace PCGExTopology
 		}
 	}
 
-	void FCellConstraints::BuildWrapperCell(TSharedRef<PCGExCluster::FCluster> InCluster, const TArray<FVector>& ProjectedPositions)
+	void FCellConstraints::BuildWrapperCell(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints)
 	{
-		const FVector SeedWP = InCluster->Bounds.GetCenter() + InCluster->Bounds.GetSize() * FVector(1.01, 1.01, 0);
+		double MaxDist = 0;
+		PCGExGraph::FLink Link = PCGExGraph::FLink(-1, -1);
+		const TArray<PCGExCluster::FNode>& Nodes = *InCluster->Nodes.Get();
+		for (const PCGExCluster::FNode& Node : Nodes)
+		{
+			if (const double Dist = FVector2D::DistSquared(InCluster->ProjectedCentroid, ProjectedPositions[Node.PointIndex]);
+				Dist > MaxDist)
+			{
+				Link.Node = Node.Index;
+				MaxDist = Dist;
+			}
+		}
 
-		PCGEX_MAKE_SHARED(TempConstraints, FCellConstraints)
-		TempConstraints->bKeepCellsWithLeaves = bKeepCellsWithLeaves;
-		TempConstraints->bDuplicateLeafPoints = bDuplicateLeafPoints;
-		TempConstraints->Winding = Winding;
+		if (Link.Node == -1)
+		{
+			WrapperCell = nullptr;
+			return;
+		}
 
-		WrapperCell = MakeShared<FCell>(TempConstraints.ToSharedRef());
-		if (WrapperCell->BuildFromCluster(SeedWP, InCluster, ProjectedPositions) != ECellResult::Success) { WrapperCell = nullptr; }
-		else { IsUniqueCellHash(WrapperCell); }
+		TSharedPtr<FCellConstraints> TempConstraints = InConstraints;
+		if (!InConstraints)
+		{
+			TempConstraints = MakeShared<FCellConstraints>();
+			TempConstraints->bKeepCellsWithLeaves = bKeepCellsWithLeaves;
+			TempConstraints->bDuplicateLeafPoints = bDuplicateLeafPoints;
+			TempConstraints->Winding = Winding;
+		}
+
+		// Find edge that's pointing away from the local center the most
+		double BestDot = MAX_dbl;
+		PCGExCluster::FNode* SeedNode = InCluster->GetNode(Link);
+		const FVector2D From = ProjectedPositions[SeedNode->PointIndex];
+		const FVector2D TowardCenter = (InCluster->ProjectedCentroid - From).GetSafeNormal();
+
+		for (const PCGExGraph::FLink& Lk : SeedNode->Links)
+		{
+			double Dot = FVector2D::DotProduct(TowardCenter, (ProjectedPositions[InCluster->GetNodePointIndex(Lk)] - From).GetSafeNormal());
+			if (Dot < BestDot)
+			{
+				BestDot = Dot;
+				Link.Edge = Lk.Edge;
+			}
+		}
+
+		if (Link.Edge == -1)
+		{
+			WrapperCell = nullptr;
+			return;
+		}
+
+		// Determine which node we should start with to be right-handed
+		Link.Node = GetGuidedHalfEdge(Link, InCluster, ProjectedPositions)->Index;
+
+		if (const TSharedPtr<FCell> Cell = MakeShared<FCell>(TempConstraints.ToSharedRef());
+			Cell->BuildFromCluster(Link, InCluster, ProjectedPositions) == ECellResult::Success)
+		{
+			WrapperCell = Cell;
+			IsUniqueCellHash(WrapperCell);
+		}
 	}
 
 	void FCellConstraints::Cleanup()
 	{
 		WrapperCell = nullptr;
+	}
+
+	PCGExCluster::FNode* GetGuidedHalfEdge(
+		const PCGExGraph::FLink& Link,
+		const TSharedRef<PCGExCluster::FCluster>& InCluster,
+		const TArray<FVector2D>& ProjectedPositions)
+	{
+		PCGExCluster::FNode* StartNode = InCluster->GetEdgeStart(Link.Edge);
+		PCGExCluster::FNode* EndNode = InCluster->GetEdgeEnd(Link.Edge);
+
+		if (StartNode->IsLeaf() && !EndNode->IsLeaf()) { return StartNode; }
+		if (EndNode->IsLeaf() && !StartNode->IsLeaf()) { return EndNode; }
+
+		FVector2D EdgeDir = (ProjectedPositions[EndNode->PointIndex] - ProjectedPositions[StartNode->PointIndex]).GetSafeNormal();
+		FVector2D Normal(-EdgeDir.Y, EdgeDir.X); // CCW normal
+
+		if (FVector2D::DotProduct((ProjectedPositions[InCluster->GetNodePointIndex(Link)] - InCluster->ProjectedCentroid).GetSafeNormal(), Normal) > 0) { return StartNode; }
+		return EndNode;
 	}
 
 	uint32 FCell::GetCellHash()
@@ -149,7 +216,7 @@ namespace PCGExTopology
 	ECellResult FCell::BuildFromCluster(
 		const PCGExGraph::FLink InSeedLink,
 		TSharedRef<PCGExCluster::FCluster> InCluster,
-		const TArray<FVector>& ProjectedPositions)
+		const TArray<FVector2D>& ProjectedPositions)
 	{
 		bBuiltSuccessfully = false;
 		Data.Bounds = FBox(ForceInit);
@@ -226,8 +293,8 @@ namespace PCGExTopology
 			}
 
 			// Seek next best candidate
-			const FVector PP = ProjectedPositions[Current->PointIndex];
-			const FVector GuideDir = (PP - ProjectedPositions[InCluster->GetNode(From.Node)->PointIndex]).GetSafeNormal();
+			const FVector2D PP = ProjectedPositions[Current->PointIndex];
+			const FVector2D GuideDir = (PP - ProjectedPositions[InCluster->GetNode(From.Node)->PointIndex]).GetSafeNormal();
 
 			From = To;
 			To = PCGExGraph::FLink(-1, -1);
@@ -239,7 +306,7 @@ namespace PCGExTopology
 
 				if (Lk.Edge == LockedEdge) { continue; }
 
-				const FVector OtherDir = (PP - ProjectedPositions[InCluster->GetNode(NeighborIndex)->PointIndex]).GetSafeNormal();
+				const FVector2D OtherDir = (PP - ProjectedPositions[InCluster->GetNode(NeighborIndex)->PointIndex]).GetSafeNormal();
 
 				if (const double Angle = PCGExMath::GetRadiansBetweenVectors(OtherDir, GuideDir); Angle < BestAngle)
 				{
@@ -323,7 +390,7 @@ namespace PCGExTopology
 	ECellResult FCell::BuildFromCluster(
 		const FVector& SeedPosition,
 		const TSharedRef<PCGExCluster::FCluster>& InCluster,
-		const TArray<FVector>& ProjectedPositions,
+		const TArray<FVector2D>& ProjectedPositions,
 		const FPCGExNodeSelectionDetails* Picking)
 	{
 		PCGExGraph::FLink Link = PCGExGraph::FLink(-1, -1);
@@ -342,19 +409,25 @@ namespace PCGExTopology
 			return ECellResult::Unknown;
 		}
 
+		// Find edge closest to seed position
 		Link.Edge = InCluster->FindClosestEdge<2>(Link.Node, SeedPosition);
+
 		if (Link.Edge == -1)
 		{
 			// Fail. Either single-node or single-edge cluster, or no connected edge
 			return ECellResult::Unknown;
 		}
 
-		Link.Node = InCluster->GetGuidedHalfEdge(Link.Edge, SeedPosition)->Index;
+		// TODO : Recompute an Up vector from the normal that's the inverted projection
+		// Just do the diff between projected and unprojected edge
+		const PCGExGraph::FEdge* E = InCluster->GetEdge(Link.Edge);
+		//Link.Node = GetGuidedHalfEdge(Link, InCluster, ProjectedPositions)->Index;
+		Link.Node = InCluster->GetGuidedHalfEdge(Link.Edge, SeedPosition, FQuat::FindBetweenNormals(InCluster->GetEdgeDir(Link), FVector((ProjectedPositions[E->End]- ProjectedPositions[E->Start]).GetSafeNormal(), 0)).GetUpVector())->Index;
 		return BuildFromCluster(Link, InCluster, ProjectedPositions);
 	}
 
 	ECellResult FCell::BuildFromPath(
-		const TArray<FVector>& ProjectedPositions)
+		const TArray<FVector2D>& ProjectedPositions)
 	{
 		return ECellResult::Unknown;
 	}

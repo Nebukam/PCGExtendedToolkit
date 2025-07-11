@@ -117,7 +117,7 @@ namespace PCGExBridgeClusters
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBridgeClusters::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		return true;
 	}

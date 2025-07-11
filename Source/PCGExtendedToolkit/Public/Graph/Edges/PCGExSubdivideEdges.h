@@ -9,7 +9,7 @@
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivideEdges.generated.h"
 
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="TBD"))
 class UPCGExSubdivideEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -110,24 +110,25 @@ namespace PCGExSubdivideEdges
 		int32 NumSubdivisions = 0;
 		int32 StartNodeIndex = -1; // Also the point index stored in the node
 		
-		FVector Dir = FVector::ZeroVector;
 	};
 
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExSubdivideEdgesContext, UPCGExSubdivideEdgesSettings>
 	{
 		TArray<FSubdivision> Subdivisions;
-
+		TArray<TSharedPtr<TArray<FVector>>> SubdivisionPoints;
+		
 		TSet<FName> ProtectedAttributes;
 		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> AmountGetter;
-
+		
 		FPCGExManhattanDetails ManhattanDetails;
 		
 		double ConstantAmount = 0;
 		int32 NewNodesNum = 0;
+		int32 NewEdgesNum = 0;
 
 		bool bUseCount = false;
 
@@ -148,7 +149,7 @@ namespace PCGExSubdivideEdges
 		virtual void Write() override;
 	};
 
-	class FBatch final : public PCGExClusterMT::TBatchWithGraphBuilder<FProcessor>
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		friend class FProcessor;
 
@@ -156,8 +157,9 @@ namespace PCGExSubdivideEdges
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
-			: TBatchWithGraphBuilder(InContext, InVtx, InEdges)
+			: TBatch(InContext, InVtx, InEdges)
 		{
+			this->bRequiresGraphBuilder = true;
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;

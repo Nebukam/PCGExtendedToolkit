@@ -35,9 +35,10 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(Artifacts)
 	if (!Context->Artifacts.Init(Context)) { return false; }
 
-	if (TSharedPtr<PCGExData::FFacade> HoleDataFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::SourceHolesLabel, false, false))
+	Context->HolesFacade = PCGExData::TryGetSingleFacade(Context, PCGExTopology::SourceHolesLabel, false, false);
+	if (Context->HolesFacade && Settings->ProjectionDetails.Method == EPCGExProjectionMethod::Normal)
 	{
-		Context->Holes = MakeShared<PCGExTopology::FHoles>(Context, HoleDataFacade.ToSharedRef(), Settings->ProjectionDetails);
+		Context->Holes = MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), Settings->ProjectionDetails);
 	}
 
 	//const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
@@ -76,11 +77,12 @@ bool FPCGExFindAllCellsElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExFindAllCells::FBatch>(
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExFindAllCells::FProcessor>>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExFindAllCells::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExFindAllCells::FProcessor>>& NewBatch)
 			{
 				// NewBatch->bRequiresWriteStep = true;
+				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -107,11 +109,13 @@ namespace PCGExFindAllCells
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindAllCells::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
+
+		if (Context->HolesFacade) { Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), ProjectionDetails); }
 
 		CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
-		if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedPositions); }
-		CellsConstraints->Holes = Context->Holes;
+		if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get()); }
+		CellsConstraints->Holes = Holes;
 
 		StartParallelLoopForEdges(32); // Might be overkill low
 
@@ -148,7 +152,7 @@ namespace PCGExFindAllCells
 		FPlatformAtomics::InterlockedAdd(&NumAttempts, 1);
 		const TSharedPtr<PCGExTopology::FCell> Cell = MakeShared<PCGExTopology::FCell>(CellsConstraints.ToSharedRef());
 
-		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraph::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedPositions);
+		const PCGExTopology::ECellResult Result = Cell->BuildFromCluster(PCGExGraph::FLink(Node.Index, Edge.Index), Cluster.ToSharedRef(), *ProjectedVtxPositions.Get());
 		if (Result != PCGExTopology::ECellResult::Success) { return false; }
 
 		ProcessCell(Cell);
@@ -210,48 +214,6 @@ namespace PCGExFindAllCells
 	{
 		TProcessor<FPCGExFindAllCellsContext, UPCGExFindAllCellsSettings>::Cleanup();
 		CellsConstraints->Cleanup();
-	}
-
-	void FBatch::Process()
-	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindAllCells)
-
-		// Project positions
-		ProjectionDetails = Settings->ProjectionDetails;
-		if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
-
-		PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
-
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
-
-		ProjectionTaskGroup->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->OnProjectionComplete();
-			};
-
-		ProjectionTaskGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				TArray<FVector>& PP = *This->ProjectedPositions;
-				This->ProjectionDetails.ProjectFlat(This->VtxDataFacade, PP, Scope);
-			};
-
-		ProjectionTaskGroup->StartSubLoops(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-	}
-
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
-	{
-		ClusterProcessor->ProjectedPositions = ProjectedPositions;
-		TBatch<FProcessor>::PrepareSingle(ClusterProcessor);
-		return true;
-	}
-
-	void FBatch::OnProjectionComplete()
-	{
-		TBatch<FProcessor>::Process();
 	}
 }
 

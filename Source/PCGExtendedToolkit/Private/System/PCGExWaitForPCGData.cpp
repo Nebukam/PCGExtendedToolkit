@@ -179,7 +179,7 @@ namespace PCGExWaitForPCGData
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWaitForPCGData::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		TemplateGraph = Context->GraphInstances[PointDataFacade->Source->IOIndex];
 

@@ -159,6 +159,20 @@ namespace PCGExCluster
 		}
 	}
 
+	void FCluster::TConstVtxLookup::Dump(TArray<int32>& OutIndices) const
+	{
+		const int32 NumNodes = Num();
+		OutIndices.SetNum(NumNodes);
+		for (int i = 0; i < NumNodes; i++) { OutIndices[i] = NodesArray[i].PointIndex; }
+	}
+
+	void FCluster::TVtxLookup::Dump(TArray<int32>& OutIndices) const
+	{
+		const int32 NumNodes = Num();
+		OutIndices.SetNum(NumNodes);
+		for (int i = 0; i < NumNodes; i++) { OutIndices[i] = NodesArray[i].PointIndex; }
+	}
+
 	void FCluster::ClearInheritedForChanges(const bool bClearOwned)
 	{
 		WillModifyVtxIO(bClearOwned);

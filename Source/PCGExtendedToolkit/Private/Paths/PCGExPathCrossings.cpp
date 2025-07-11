@@ -109,7 +109,7 @@ namespace PCGExPathCrossings
 		// Must be set before process for filters
 		//PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
 		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;

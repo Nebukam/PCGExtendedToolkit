@@ -251,10 +251,11 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithHeuristics<PCGExGrowPaths::FProcessor>>(
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExGrowPaths::FProcessor>>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatchWithHeuristics<PCGExGrowPaths::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExGrowPaths::FProcessor>>& NewBatch)
 			{
+				NewBatch->SetWantsHeuristics(true);
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -275,7 +276,7 @@ namespace PCGExGrowPaths
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExGrowPaths::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		// Prepare getters
 

@@ -161,7 +161,7 @@ namespace PCGExShrinkPath
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExShrinkPath::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const TSharedRef<PCGExData::FPointIO> PointIO = PointDataFacade->Source;
 

@@ -86,7 +86,7 @@ namespace PCGExSimplifyClusters
 		EdgeDataFacade->bSupportsScopedGet = true;
 		if (!Context->EdgeFilterFactories.IsEmpty()) { EdgeFilterFactories = &Context->EdgeFilterFactories; }
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (!Context->EdgeFilterFactories.IsEmpty()) { StartParallelLoopForEdges(); }
 		else { CompileChains(); }

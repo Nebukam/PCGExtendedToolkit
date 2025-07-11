@@ -84,8 +84,6 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 	CurrentCluster.Reset();
 
 	CurrentEdgesIndex = -1;
-	EndpointsLookup.Empty();
-	EndpointsAdjacency.Empty();
 
 	if (!FPCGExPointsProcessorContext::AdvancePointsIO(bCleanupKeys)) { return false; }
 
@@ -104,14 +102,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 	}
 	else { TaggedEdges = nullptr; }
 
-	if (TaggedEdges)
-	{
-		if (bBuildEndpointsLookup)
-		{
-			PCGExGraph::BuildEndpointsLookup(CurrentIO, EndpointsLookup, EndpointsAdjacency);
-		}
-	}
-	else if (!bQuietMissingClusterPairElement)
+	if (!TaggedEdges && !bQuietMissingClusterPairElement)
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some input vtx have no associated edges."));
 	}

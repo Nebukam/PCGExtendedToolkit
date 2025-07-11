@@ -259,7 +259,7 @@ namespace PCGExClusterDiffusion
 		virtual void Cleanup() override;
 	};
 
-	class FBatch final : public PCGExClusterMT::TBatchWithHeuristics<FProcessor>
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL)
 

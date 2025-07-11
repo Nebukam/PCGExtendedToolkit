@@ -62,7 +62,7 @@ namespace PCGExSanitizeClusters
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSanitizeClusters::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		TArray<PCGExGraph::FEdge> IndexedEdges;
 

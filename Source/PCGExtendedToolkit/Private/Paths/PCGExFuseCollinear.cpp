@@ -72,7 +72,7 @@ namespace PCGExFuseCollinear
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0);
 

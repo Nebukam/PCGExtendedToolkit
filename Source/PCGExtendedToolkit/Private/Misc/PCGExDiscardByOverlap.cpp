@@ -88,7 +88,7 @@ void FPCGExDiscardByOverlapContext::Prune()
 	TArray<PCGExDiscardByOverlap::FProcessor*> Remaining;
 	Remaining.Reserve(MainBatch->GetNumProcessors());
 
-	for (const TPair<PCGExData::FPointIO*, TSharedPtr<PCGExPointsMT::FPointsProcessor>> Pair : SubProcessorMap)
+	for (const TPair<PCGExData::FPointIO*, TSharedPtr<PCGExPointsMT::IPointsProcessor>> Pair : SubProcessorMap)
 	{
 		PCGExDiscardByOverlap::FProcessor* P = static_cast<PCGExDiscardByOverlap::FProcessor*>(Pair.Value.Get());
 		if (!P->bIsProcessorValid) { continue; }
@@ -250,7 +250,7 @@ namespace PCGExDiscardByOverlap
 	{
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 
 		// 1 - Build bounds & octrees

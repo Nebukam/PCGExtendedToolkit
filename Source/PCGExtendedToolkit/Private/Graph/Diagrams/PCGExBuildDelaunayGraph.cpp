@@ -89,7 +89,7 @@ namespace PCGExBuildDelaunay
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunay::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		// Build delaunay
 

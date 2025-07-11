@@ -81,7 +81,7 @@ namespace PCGExSubdivide
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
@@ -162,6 +162,10 @@ namespace PCGExSubdivide
 					Sub.StartOffset = (Sub.Dist - (Sub.StepSize * (Sub.NumSubdivisions - 1))) * 0.5;
 					bRedistribute = true;
 					Amount = Sub.NumSubdivisions;
+				}
+				else
+				{
+					Sub.StartOffset = Sub.StepSize;
 				}
 			}
 
@@ -268,7 +272,7 @@ namespace PCGExSubdivide
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const FSubdivision& Sub = Subdivisions[Index];
-			const TSharedPtr<TArray<FVector>> ManhattanSubdivs = ManhattanPoints[Index];
+			const TSharedPtr<TArray<FVector>> ManhattanSubdivs = bIsManhattan ? ManhattanPoints[Index] : nullptr;
 
 			if (FlagWriter) { FlagWriter->SetValue(Sub.OutStart, false); }
 			if (AlphaWriter) { AlphaWriter->SetValue(Sub.OutStart, Settings->DefaultAlpha); }

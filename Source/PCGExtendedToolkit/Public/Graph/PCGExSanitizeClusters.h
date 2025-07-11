@@ -69,12 +69,13 @@ namespace PCGExSanitizeClusters
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 	};
 
-	class FBatch final : public PCGExClusterMT::TBatchWithGraphBuilder<FProcessor>
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatchWithGraphBuilder(InContext, InVtx, InEdges)
+			TBatch(InContext, InVtx, InEdges)
 		{
+			this->bRequiresGraphBuilder = true;
 		}
 
 		virtual void CompleteWork() override;

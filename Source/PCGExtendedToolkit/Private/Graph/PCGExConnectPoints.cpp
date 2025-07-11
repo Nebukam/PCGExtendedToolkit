@@ -108,7 +108,7 @@ namespace PCGExConnectPoints
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 
@@ -118,7 +118,8 @@ namespace PCGExConnectPoints
 		if (Settings->bProjectPoints)
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
-			ProjectionDetails.Init(ExecutionContext, PointDataFacade);
+			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(ExecutionContext, PointDataFacade); }
+			else { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 		}
 
 		for (const UPCGExProbeFactoryData* Factory : Context->ProbeFactories)
@@ -243,7 +244,7 @@ namespace PCGExConnectPoints
 
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
-		FPointsProcessor::PrepareLoopScopesForPoints(Loops);
+		IPointsProcessor::PrepareLoopScopesForPoints(Loops);
 		ScopedEdges = MakeShared<PCGExMT::TScopedSet<uint64>>(Loops, 10);
 	}
 

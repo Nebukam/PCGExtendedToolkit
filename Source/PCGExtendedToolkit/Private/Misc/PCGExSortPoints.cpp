@@ -104,7 +104,7 @@ namespace PCGExSortPoints
 
 	void FProcessor::CompleteWork()
 	{
-		FPointsProcessor::CompleteWork();
+		IPointsProcessor::CompleteWork();
 	}
 }
 

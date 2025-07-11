@@ -88,12 +88,19 @@ bool FPCGExManhattanDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCG
 	{
 		GridSizeBuffer = GetValueSettingGridSize();
 		if (!GridSizeBuffer->Init(InContext, InDataFacade)) { return false; }
+
+		if (SpaceAlign == EPCGExManhattanAlign::Custom) { OrientBuffer = GetValueSettingOrient(); }
+		else if (SpaceAlign == EPCGExManhattanAlign::World) { OrientBuffer = PCGExDetails::MakeSettingValue(FQuat::Identity); }
+
+		if (OrientBuffer && !OrientBuffer->Init(InContext, InDataFacade)) { return false; }
 	}
 	else
 	{
 		GridSize = PCGExMath::Abs(GridSize);
 		//GridIntSize = FIntVector3(FMath::Floor(GridSize.X), FMath::Floor(GridSize.Y), FMath::Floor(GridSize.Z));
 		GridSizeBuffer = PCGExDetails::MakeSettingValue(GridSize);
+		if (SpaceAlign == EPCGExManhattanAlign::Custom) { OrientBuffer = PCGExDetails::MakeSettingValue(OrientConstant); }
+		else if (SpaceAlign == EPCGExManhattanAlign::World) { OrientBuffer = PCGExDetails::MakeSettingValue(FQuat::Identity); }
 	}
 
 	PCGEx::GetAxisOrder(Order, Comps);
@@ -107,23 +114,36 @@ int32 FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVecto
 	FVector DirectionAndSize = B - A;
 	const int32 StartIndex = OutSubdivisions.Num();
 
-	/*
 	FQuat Rotation = FQuat::Identity;
 
-	if (SpaceAlign == EPCGExMinimalAxis::X) { Rotation = FRotationMatrix::MakeFromX(DirectionAndSize).ToQuat(); }
-	else if (SpaceAlign == EPCGExMinimalAxis::Y) { Rotation = FRotationMatrix::MakeFromY(DirectionAndSize).ToQuat(); }
-	else if (SpaceAlign == EPCGExMinimalAxis::Z) { Rotation = FRotationMatrix::MakeFromZ(DirectionAndSize).ToQuat(); }
+	switch (SpaceAlign)
+	{
+	case EPCGExManhattanAlign::World:
+	case EPCGExManhattanAlign::Custom:
+		Rotation = OrientBuffer->Read(Index);
+		break;
+	case EPCGExManhattanAlign::SegmentX:
+		Rotation = FRotationMatrix::MakeFromX(DirectionAndSize).ToQuat();
+		break;
+	case EPCGExManhattanAlign::SegmentY:
+		Rotation = FRotationMatrix::MakeFromY(DirectionAndSize).ToQuat();
+		break;
+	case EPCGExManhattanAlign::SegmentZ:
+		Rotation = FRotationMatrix::MakeFromZ(DirectionAndSize).ToQuat();
+		break;
+	}
 
 	DirectionAndSize = Rotation.RotateVector(DirectionAndSize);
-	*/
 
 	if (Method == EPCGExManhattanMethod::Simple)
 	{
-		FVector Sub = A;
+		OutSubdivisions.Reserve(OutSubdivisions.Num() + 3);
+
+		FVector Sub = FVector::ZeroVector;
 		for (int i = 0; i < 3; ++i)
 		{
 			const int32 Axis = Comps[i];
-			const double Dist = B[Axis];
+			const double Dist = DirectionAndSize[Axis];
 
 			if (FMath::IsNearlyZero(Dist)) { continue; }
 
@@ -137,13 +157,46 @@ int32 FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVecto
 	}
 	else if (Method == EPCGExManhattanMethod::GridDistance)
 	{
+		double StepSize = FMath::Abs(GridSizeBuffer->Read(Index));
+		const int32 StepCount = DirectionAndSize.Length() / StepSize;
+		StepSize = DirectionAndSize.Length() / static_cast<double>(StepCount);
+
+		const FVector Offset = DirectionAndSize.GetSafeNormal() * StepSize;
+		FVector NextTarget = Offset;
+
+		FVector Sub = FVector::ZeroVector;
+		
+		int32 s = 0;
+		while (s < StepCount)
+		{
+			for (int i = 0; i < 3; ++i)
+			{
+				const int32 Axis = Comps[i];
+				const double Dist = NextTarget[Axis];
+
+				if (FMath::IsNearlyZero(Dist)) { continue; }
+
+				OutDist += Dist;
+				Sub[Axis] = Dist;
+
+				if (Sub == B)
+				{
+					s = StepCount;
+					break;
+				}
+
+				OutSubdivisions.Emplace(Sub);
+			}
+
+			NextTarget += Offset;
+			s++;
+		}
 	}
 	else if (Method == EPCGExManhattanMethod::GridCount)
 	{
 	}
 
-	//for (int i = StartIndex; i < OutSubdivisions.Num(); i++){ OutSubdivisions[i] = A + Rotation.UnrotateVector(OutSubdivisions[i]); }
-	//for (int i = StartIndex; i < OutSubdivisions.Num(); i++) { OutSubdivisions[i] += A; }
+	for (int i = StartIndex; i < OutSubdivisions.Num(); i++) { OutSubdivisions[i] = A + Rotation.UnrotateVector(OutSubdivisions[i]); }
 
 	return OutSubdivisions.Num() - StartIndex;
 }
