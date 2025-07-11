@@ -186,8 +186,8 @@ namespace PCGExGeo
 		FVector Normal = FVector::UpVector;
 		FVector EigenValues = FVector::ZeroVector;
 
-		static FVector GetEigenValues(const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ);
-		static FVector GetEigenVector(const FVector& EigenValues, const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ);
+		static double GetEigenMax(const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ);
+		static FVector ComputeNormal(const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ);
 	};
 }
 

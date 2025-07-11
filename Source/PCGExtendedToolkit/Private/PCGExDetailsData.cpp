@@ -155,45 +155,49 @@ int32 FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVecto
 			OutSubdivisions.Emplace(Sub);
 		}
 	}
-	else if (Method == EPCGExManhattanMethod::GridDistance)
+	else
 	{
-		double StepSize = FMath::Abs(GridSizeBuffer->Read(Index));
-		const int32 StepCount = DirectionAndSize.Length() / StepSize;
-		StepSize = DirectionAndSize.Length() / static_cast<double>(StepCount);
+		FVector Subdivs = PCGExMath::Abs(GridSizeBuffer->Read(Index));
+		FVector Maxes = PCGExMath::Abs(DirectionAndSize);
+		if (Method == EPCGExManhattanMethod::GridCount)
+		{
+			Subdivs = FVector(
+				FMath::Floor(Maxes.X / Subdivs.X),
+				FMath::Floor(Maxes.Y / Subdivs.Y),
+				FMath::Floor(Maxes.Z / Subdivs.Z));
+		}
 
-		const FVector Offset = DirectionAndSize.GetSafeNormal() * StepSize;
-		FVector NextTarget = Offset;
+		const FVector StepSize = FVector::Min(Subdivs, Maxes);
+		const FVector Sign = FVector(FMath::Sign(DirectionAndSize.X), FMath::Sign(DirectionAndSize.Y), FMath::Sign(DirectionAndSize.Z));
 
 		FVector Sub = FVector::ZeroVector;
-		
-		int32 s = 0;
-		while (s < StepCount)
+
+		bool bAdvance = true;
+		while (bAdvance)
 		{
+			double DistBefore = OutDist;
 			for (int i = 0; i < 3; ++i)
 			{
 				const int32 Axis = Comps[i];
-				const double Dist = NextTarget[Axis];
+				double Dist = StepSize[Axis];
 
+				if (const double SubAbs = FMath::Abs(Sub[Axis]); SubAbs + Dist > Maxes[Axis]) { Dist = Maxes[Axis] - SubAbs; }
 				if (FMath::IsNearlyZero(Dist)) { continue; }
 
 				OutDist += Dist;
-				Sub[Axis] = Dist;
+				Sub[Axis] += Dist * Sign[Axis];
 
 				if (Sub == B)
 				{
-					s = StepCount;
+					bAdvance = false;
 					break;
 				}
 
 				OutSubdivisions.Emplace(Sub);
 			}
 
-			NextTarget += Offset;
-			s++;
+			if (DistBefore == OutDist) { bAdvance = false; }
 		}
-	}
-	else if (Method == EPCGExManhattanMethod::GridCount)
-	{
 	}
 
 	for (int i = StartIndex; i < OutSubdivisions.Num(); i++) { OutSubdivisions[i] = A + Rotation.UnrotateVector(OutSubdivisions[i]); }
