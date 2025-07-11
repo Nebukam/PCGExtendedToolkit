@@ -166,7 +166,7 @@ namespace PCGExFilterVtx
 
 		bAllowEdgesDataFacadeScopedGet = Context->bScopedAttributeGet;
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (!VtxFiltersManager)
 		{

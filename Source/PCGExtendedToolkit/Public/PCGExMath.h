@@ -595,6 +595,8 @@ namespace PCGExMath
 	PCGEXTENDEDTOOLKIT_API
 	double GetRadiansBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector);
 	PCGEXTENDEDTOOLKIT_API
+	double GetRadiansBetweenVectors(const FVector2D& A, const FVector2D& B);
+	PCGEXTENDEDTOOLKIT_API
 	double GetDegreesBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector);
 
 	PCGEXTENDEDTOOLKIT_API

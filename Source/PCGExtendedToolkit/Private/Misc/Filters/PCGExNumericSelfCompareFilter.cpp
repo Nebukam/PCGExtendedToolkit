@@ -51,7 +51,7 @@ bool PCGExPointFilter::FNumericSelfCompareFilter::Test(const int32 PointIndex) c
 	const int32 IndexValue = Index->Read(PointIndex);
 	const int32 TargetIndex = PCGExMath::SanitizeIndex(bOffset ? PointIndex + IndexValue : IndexValue, MaxIndex, TypedFilterFactory->Config.IndexSafety);
 
-	if (TargetIndex == -1) { return false; }
+	if (TargetIndex == -1) { return TypedFilterFactory->Config.InvalidIndexFallback == EPCGExFilterFallback::Pass; }
 
 	const double A = OperandA->SoftGet(PointDataFacade->Source->GetInPoint(PointIndex), 0);
 	const double B = OperandA->SoftGet(PointDataFacade->Source->GetInPoint(TargetIndex), 0);

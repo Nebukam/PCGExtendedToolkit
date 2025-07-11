@@ -463,7 +463,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		FGraphEdgeMetadata* FindRootEdgeMetadata_Unsafe(const int32 EdgeIndex);
 		FGraphEdgeMetadata* FindRootEdgeMetadata(const int32 EdgeIndex);
 
-		TArrayView<FNode> AddNodes(const int32 NumNewNodes);
+		TArrayView<FNode> AddNodes(const int32 NumNewNodes, int32& OutStartIndex);
 
 		void BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits);
 

@@ -97,7 +97,6 @@ struct FPCGExFindContoursContext final : FPCGExEdgesProcessorContext
 
 	FPCGExCellArtifactsDetails Artifacts;
 
-	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 
 	TSharedPtr<PCGExData::FPointIOCollection> Paths;
@@ -123,8 +122,6 @@ namespace PCGExFindContours
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExFindContoursContext, UPCGExFindContoursSettings>
 	{
-		friend class FBatch;
-
 	protected:
 		FRWLock WrappedSeedLock;
 
@@ -137,7 +134,6 @@ namespace PCGExFindContours
 
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
-		TSharedPtr<TArray<FVector>> ProjectedPositions;
 
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TProcessor(InVtxDataFacade, InEdgeDataFacade)
@@ -152,24 +148,5 @@ namespace PCGExFindContours
 		void ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell);
 		virtual void CompleteWork() override;
 		virtual void Cleanup() override;
-	};
-
-	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
-	{
-		friend class FProjectRangeTask;
-
-	protected:
-		FPCGExGeo2DProjectionDetails ProjectionDetails;
-		TSharedPtr<TArray<FVector>> ProjectedPositions;
-
-	public:
-		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch(InContext, InVtx, InEdges)
-		{
-		}
-
-		virtual void Process() override;
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
-		void OnProjectionComplete();
 	};
 }

@@ -8,25 +8,25 @@
 
 namespace PCGExPointsMT
 {
-	FPointsProcessor::FPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+	IPointsProcessor::IPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
 	{
 		PCGEX_LOG_CTR(FPointsProcessor)
 	}
 
-	void FPointsProcessor::SetExecutionContext(FPCGExContext* InContext)
+	void IPointsProcessor::SetExecutionContext(FPCGExContext* InContext)
 	{
 		check(InContext)
 		ExecutionContext = InContext;
 		WorkPermit = ExecutionContext->GetWorkPermit();
 	}
 
-	void FPointsProcessor::SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFactories)
+	void IPointsProcessor::SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFactories)
 	{
 		FilterFactories = InFactories;
 	}
 
-	void FPointsProcessor::RegisterConsumableAttributesWithFacade() const
+	void IPointsProcessor::RegisterConsumableAttributesWithFacade() const
 	{
 		// Gives an opportunity for the processor to register attributes with a valid facade
 		// So selectors shortcut can be properly resolved (@Last, etc.)
@@ -35,12 +35,12 @@ namespace PCGExPointsMT
 		if (PrimaryInstancedFactory) { PrimaryInstancedFactory->RegisterConsumableAttributesWithFacade(ExecutionContext, PointDataFacade); }
 	}
 
-	void FPointsProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	void IPointsProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		if (HasFilters()) { PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, *FilterFactories, FacadePreloader); }
 	}
 
-	void FPointsProcessor::PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup)
+	void IPointsProcessor::PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup)
 	{
 		AsyncManager = InAsyncManager;
 
@@ -50,7 +50,7 @@ namespace PCGExPointsMT
 		InternalFacadePreloader->StartLoading(AsyncManager, InPrefetchDataTaskGroup);
 	}
 
-	bool FPointsProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool IPointsProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		AsyncManager = InAsyncManager;
 		PCGEX_ASYNC_CHKD(AsyncManager)
@@ -85,7 +85,7 @@ namespace PCGExPointsMT
 		return true;
 	}
 
-	void FPointsProcessor::StartParallelLoopForPoints(const PCGExData::EIOSide Side, const int32 PerLoopIterations)
+	void IPointsProcessor::StartParallelLoopForPoints(const PCGExData::EIOSide Side, const int32 PerLoopIterations)
 	{
 		const UPCGBasePointData* CurrentProcessingSource = const_cast<UPCGBasePointData*>(PointDataFacade->GetData(Side));
 		if (!CurrentProcessingSource) { return; }
@@ -99,19 +99,19 @@ namespace PCGExPointsMT
 			bDaisyChainProcessPoints)
 	}
 
-	void FPointsProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
+	void IPointsProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
 	}
 
-	void FPointsProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
+	void IPointsProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 	}
 
-	void FPointsProcessor::OnPointsProcessingComplete()
+	void IPointsProcessor::OnPointsProcessingComplete()
 	{
 	}
 
-	void FPointsProcessor::StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations)
+	void IPointsProcessor::StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations)
 	{
 		PCGEX_ASYNC_POINT_PROCESSOR_LOOP(
 			Ranges, NumIterations,
@@ -120,36 +120,36 @@ namespace PCGExPointsMT
 			bDaisyChainProcessRange)
 	}
 
-	void FPointsProcessor::PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
+	void IPointsProcessor::PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
 	{
 	}
 
-	void FPointsProcessor::ProcessRange(const PCGExMT::FScope& Scope)
+	void IPointsProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
 	}
 
-	void FPointsProcessor::OnRangeProcessingComplete()
+	void IPointsProcessor::OnRangeProcessingComplete()
 	{
 	}
 
-	void FPointsProcessor::CompleteWork()
+	void IPointsProcessor::CompleteWork()
 	{
 	}
 
-	void FPointsProcessor::Write()
+	void IPointsProcessor::Write()
 	{
 	}
 
-	void FPointsProcessor::Output()
+	void IPointsProcessor::Output()
 	{
 	}
 
-	void FPointsProcessor::Cleanup()
+	void IPointsProcessor::Cleanup()
 	{
 		bIsProcessorValid = false;
 	}
 
-	bool FPointsProcessor::InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
+	bool IPointsProcessor::InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
 	{
 		PointFilterCache.Init(DefaultPointFilterValue, PointDataFacade->GetNum());
 
@@ -159,13 +159,13 @@ namespace PCGExPointsMT
 		return PrimaryFilters->Init(ExecutionContext, *InFilterFactories);
 	}
 
-	int32 FPointsProcessor::FilterScope(const PCGExMT::FScope& Scope)
+	int32 IPointsProcessor::FilterScope(const PCGExMT::FScope& Scope)
 	{
 		if (PrimaryFilters) { return PrimaryFilters->Test(Scope, PointFilterCache); }
 		return DefaultPointFilterValue ? Scope.Count : 0;
 	}
 
-	int32 FPointsProcessor::FilterAll()
+	int32 IPointsProcessor::FilterAll()
 	{
 		return FilterScope(PCGExMT::FScope(0, PointDataFacade->GetNum()));
 	}
@@ -192,6 +192,10 @@ namespace PCGExPointsMT
 	{
 	}
 
+	void IPointsProcessorBatch::OnInitialPostProcess()
+	{
+	}
+
 	void IPointsProcessorBatch::CompleteWork()
 	{
 	}
@@ -207,5 +211,17 @@ namespace PCGExPointsMT
 	void IPointsProcessorBatch::Cleanup()
 	{
 		ProcessorFacades.Empty();
+	}
+
+	void IPointsProcessorBatch::InternalInitProcessor(const TSharedPtr<IPointsProcessor>& InProcessor, const int32 InIndex)
+	{
+		InProcessor->SetExecutionContext(ExecutionContext);
+		InProcessor->ParentBatch = SharedThis(this);
+		InProcessor->BatchIndex = InIndex;
+
+		if (FilterFactories) { InProcessor->SetPointsFilterData(FilterFactories); }
+		if (PrimaryInstancedFactory) { InProcessor->PrimaryInstancedFactory = PrimaryInstancedFactory; }
+
+		InProcessor->RegisterConsumableAttributesWithFacade();
 	}
 }

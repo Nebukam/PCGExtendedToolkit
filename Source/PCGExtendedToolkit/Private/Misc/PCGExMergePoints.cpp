@@ -68,7 +68,7 @@ namespace PCGExMergePoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FProcessor::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->bTagToAttributes)
 		{

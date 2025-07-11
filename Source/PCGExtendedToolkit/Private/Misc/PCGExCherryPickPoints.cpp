@@ -74,7 +74,7 @@ namespace PCGExCherryPickPoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCherryPickPoints::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PointDataFacade->Source->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
 

@@ -84,7 +84,7 @@ namespace PCGExRelaxClusters
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExRelaxClusters::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, VtxDataFacade)) { return false; }

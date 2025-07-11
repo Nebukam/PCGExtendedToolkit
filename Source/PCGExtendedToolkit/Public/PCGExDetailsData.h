@@ -103,7 +103,7 @@ namespace PCGExDetails
 	};
 
 	template <typename T>
-	class TSettingValueConstant final : public TSettingValue<T>
+	class TSettingValueConstant : public TSettingValue<T>
 	{
 	protected:
 		T Constant = T{};
@@ -125,6 +125,56 @@ namespace PCGExDetails
 	};
 
 	template <typename T>
+	class TSettingValueSelectorConstant final : public TSettingValueConstant<T>
+	{
+	protected:
+		FPCGAttributePropertyInputSelector Selector;
+
+	public:
+		explicit TSettingValueSelectorConstant(const FPCGAttributePropertyInputSelector& InSelector):
+			TSettingValueConstant<T>(T{}), Selector(InSelector)
+		{
+		}
+
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
+		{
+			if (!PCGExDataHelpers::TryReadDataValue(InContext, InDataFacade->GetIn(), Selector, this->Constant))
+			{
+				if (!this->bQuietErrors) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Selector \"{0}\" is invalid."), FText::FromString(PCGEx::GetSelectorDisplayName(Selector)))); }
+				return false;
+			}
+
+			return true;
+		}
+	};
+
+	template <typename T>
+	class TSettingValueBufferConstant final : public TSettingValueConstant<T>
+	{
+	protected:
+		FName Name = NAME_None;
+
+	public:
+		explicit TSettingValueBufferConstant(const FName InName):
+			TSettingValueConstant<T>(T{}), Name(InName)
+		{
+		}
+
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
+		{
+			PCGEX_VALIDATE_NAME_C(InContext, Name)
+
+			if (!PCGExDataHelpers::TryReadDataValue(InContext, InDataFacade->GetIn(), Name, this->Constant))
+			{
+				if (!this->bQuietErrors) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Attribute \"{0}\" is missing."), FText::FromName(Name))); }
+				return false;
+			}
+
+			return true;
+		}
+	};
+
+	template <typename T>
 	static TSharedPtr<TSettingValue<T>> MakeSettingValue(const T InConstant)
 	{
 		TSharedPtr<TSettingValueConstant<T>> V = MakeShared<TSettingValueConstant<T>>(InConstant);
@@ -136,8 +186,16 @@ namespace PCGExDetails
 	{
 		if (InInput == EPCGExInputValueType::Attribute)
 		{
-			TSharedPtr<TSettingValueSelector<T>> V = MakeShared<TSettingValueSelector<T>>(InSelector);
-			return StaticCastSharedPtr<TSettingValue<T>>(V);
+			if (PCGExHelpers::IsDataDomainAttribute(InSelector))
+			{
+				TSharedPtr<TSettingValueSelectorConstant<T>> V = MakeShared<TSettingValueSelectorConstant<T>>(InSelector);
+				return StaticCastSharedPtr<TSettingValue<T>>(V);
+			}
+			else
+			{
+				TSharedPtr<TSettingValueSelector<T>> V = MakeShared<TSettingValueSelector<T>>(InSelector);
+				return StaticCastSharedPtr<TSettingValue<T>>(V);
+			}
 		}
 
 		return MakeSettingValue<T>(InConstant);
@@ -148,8 +206,16 @@ namespace PCGExDetails
 	{
 		if (InInput == EPCGExInputValueType::Attribute)
 		{
-			TSharedPtr<TSettingValueBuffer<T>> V = MakeShared<TSettingValueBuffer<T>>(InName);
-			return StaticCastSharedPtr<TSettingValue<T>>(V);
+			if (PCGExHelpers::IsDataDomainAttribute(InName))
+			{
+				TSharedPtr<TSettingValueBufferConstant<T>> V = MakeShared<TSettingValueBufferConstant<T>>(InName);
+				return StaticCastSharedPtr<TSettingValue<T>>(V);
+			}
+			else
+			{
+				TSharedPtr<TSettingValueBuffer<T>> V = MakeShared<TSettingValueBuffer<T>>(InName);
+				return StaticCastSharedPtr<TSettingValue<T>>(V);
+			}
 		}
 
 		return MakeSettingValue<T>(InConstant);
@@ -558,4 +624,82 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 		GetCenters(SourcePoint, TargetPoint, A, B);
 		return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(A, B, SourcePoint.Index);
 	}
+};
+
+UENUM()
+enum class EPCGExManhattanMethod : uint8
+{
+	Simple       = 0 UMETA(DisplayName = "Simple", ToolTip="Simple Manhattan subdivision, will generate 0..2 points"),
+	GridDistance = 1 UMETA(DisplayName = "Grid (Distance)", ToolTip="Grid Manhattan subdivision, will subdivide space according to a grid size."),
+	GridCount    = 2 UMETA(DisplayName = "Grid (Count)", ToolTip="Grid Manhattan subdivision, will subdivide space according to a grid size."),
+};
+
+UENUM()
+enum class EPCGExManhattanAlign : uint8
+{
+	World    = 0 UMETA(DisplayName = "World", ToolTip=""),
+	Custom   = 1 UMETA(DisplayName = "Custom", ToolTip=""),
+	SegmentX = 5 UMETA(DisplayName = "Segment X", ToolTip=""),
+	SegmentY = 6 UMETA(DisplayName = "Segment Y", ToolTip=""),
+	SegmentZ = 7 UMETA(DisplayName = "Segment Z", ToolTip=""),
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExManhattanDetails
+{
+	GENERATED_BODY()
+
+	explicit FPCGExManhattanDetails(const bool InSupportAttribute = false)
+		: bSupportAttribute(InSupportAttribute)
+	{
+	}
+
+	UPROPERTY()
+	bool bSupportAttribute = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExManhattanMethod Method = EPCGExManhattanMethod::Simple;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExAxisOrder Order = EPCGExAxisOrder::XYZ;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bSupportAttribute", EditConditionHides))
+	EPCGExInputValueType GridSizeInput = EPCGExInputValueType::Constant;
+
+	/** Max Length Attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Grid Size (Attr)", EditCondition="bSupportAttribute && Method != EPCGExManhattanMethod::Simple && GridSizeInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FName GridSizeAttribute = FName("GridSize");
+
+	/** Grid Size Constant -- If using count, values will be rounded down to the nearest int. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Grid Size", EditCondition="Method != EPCGExManhattanMethod::Simple && (!bSupportAttribute || GridSizeInput == EPCGExInputValueType::Constant)", EditConditionHides))
+	double GridSize = 10;
+
+	PCGEX_SETTING_VALUE_GET(GridSize, double, GridSizeInput, GridSizeAttribute, GridSize)
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExManhattanAlign SpaceAlign = EPCGExManhattanAlign::World;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportAttribute && SpaceAlign == EPCGExManhattanAlign::Custom", EditConditionHides))
+	EPCGExInputValueType OrientInput = EPCGExInputValueType::Constant;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Orient (Attr)", EditCondition="bSupportAttribute && OrientInput != EPCGExInputValueType::Constant && SpaceAlign == EPCGExManhattanAlign::Custom", EditConditionHides))
+	FPCGAttributePropertyInputSelector OrientAttribute;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Orient", ClampMin=0, EditCondition="SpaceAlign == EPCGExManhattanAlign::Custom && (!bSupportAttribute || OrientInput == EPCGExInputValueType::Constant)", EditConditionHides))
+	FQuat OrientConstant = FQuat::Identity;
+
+	PCGEX_SETTING_VALUE_GET(Orient, FQuat, OrientInput, OrientAttribute, OrientConstant)
+
+	bool IsValid() const;
+	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade);
+	int32 ComputeSubdivisions(const FVector& A, const FVector& B, const int32 Index, TArray<FVector>& OutSubdivisions, double& OutDist) const;
+
+protected:
+	bool bInitialized = false;
+
+	int32 Comps[3] = {0, 0, 0};
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GridSizeBuffer;
+	TSharedPtr<PCGExDetails::TSettingValue<FQuat>> OrientBuffer;
 };

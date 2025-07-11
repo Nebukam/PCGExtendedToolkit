@@ -96,6 +96,8 @@ struct FPCGExBreakClustersToPathsContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExBreakClustersToPathsElement;
 
+	bool bUseProjection = false;
+	bool bUsePerClusterProjection = false;
 	TSharedPtr<PCGExData::FPointIOCollection> Paths;
 	TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 };
@@ -116,7 +118,6 @@ namespace PCGExBreakClustersToPaths
 		friend class FBatch;
 
 	protected:
-		TSharedPtr<TArray<FVector2D>> ProjectedPositions;
 		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
 
 		FPCGExEdgeDirectionSettings DirectionSettings;
@@ -142,8 +143,6 @@ namespace PCGExBreakClustersToPaths
 
 	protected:
 		FPCGExEdgeDirectionSettings DirectionSettings;
-		FPCGExGeo2DProjectionDetails ProjectionDetails;
-		TSharedPtr<TArray<FVector2D>> ProjectedPositions;
 
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
@@ -153,9 +152,6 @@ namespace PCGExBreakClustersToPaths
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
-		virtual void Process() override;
-		void OnProjectionComplete();
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 		virtual void OnProcessingPreparationComplete() override;
 	};
 }

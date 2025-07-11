@@ -716,7 +716,8 @@ namespace PCGExGraph
 		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::InsertNodes);
 
 		// Insert new nodes
-		Graph->AddNodes(Crossings.Num());
+		int32 StartNodeIndex = Graph->Nodes.Num();
+		Graph->AddNodes(Crossings.Num(), StartNodeIndex);
 
 		UPCGBasePointData* MutablePoints = PointIO->GetOut();
 		const int32 StartIndex = MutablePoints->GetNumPoints();

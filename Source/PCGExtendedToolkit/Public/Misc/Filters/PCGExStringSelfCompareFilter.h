@@ -53,6 +53,10 @@ struct FPCGExStringSelfCompareFilterConfig
 	/** Index safety */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Clamp;
+
+	/** How to deal with invalid indices */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExFilterFallback InvalidIndexFallback = EPCGExFilterFallback::Fail;
 };
 
 

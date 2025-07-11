@@ -344,6 +344,7 @@ namespace PCGExTopology
 
 	class FHoles : public TSharedFromThis<FHoles>
 	{
+		// TODO : Need to use per-processor hole instance to match best fit projection
 	protected:
 		mutable FRWLock ProjectionLock;
 
@@ -355,7 +356,7 @@ namespace PCGExTopology
 		explicit FHoles(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const FPCGExGeo2DProjectionDetails& InProjectionDetails)
 			: PointDataFacade(InPointDataFacade), ProjectionDetails(InProjectionDetails)
 		{
-			ProjectionDetails.Init(InContext, PointDataFacade);
+			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(InContext, PointDataFacade); }
 		}
 
 		bool Overlaps(const FGeometryScriptSimplePolygon& Polygon);
@@ -439,7 +440,7 @@ namespace PCGExTopology
 		bool ContainsSignedEdgeHash(const uint64 Hash) const;
 		bool IsUniqueStartHalfEdge(const uint64 Hash);
 		bool IsUniqueCellHash(const TSharedPtr<FCell>& InCell);
-		void BuildWrapperCell(TSharedRef<PCGExCluster::FCluster> InCluster, const TArray<FVector>& ProjectedPositions);
+		void BuildWrapperCell(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints = nullptr);
 
 		void Cleanup();
 	};
@@ -492,16 +493,16 @@ namespace PCGExTopology
 		ECellResult BuildFromCluster(
 			const PCGExGraph::FLink InSeedLink,
 			TSharedRef<PCGExCluster::FCluster> InCluster,
-			const TArray<FVector>& ProjectedPositions);
+			const TArray<FVector2D>& ProjectedPositions);
 
 		ECellResult BuildFromCluster(
 			const FVector& SeedPosition,
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
-			const TArray<FVector>& ProjectedPositions,
+			const TArray<FVector2D>& ProjectedPositions,
 			const FPCGExNodeSelectionDetails* Picking = nullptr);
 
 		ECellResult BuildFromPath(
-			const TArray<FVector>& ProjectedPositions);
+			const TArray<FVector2D>& ProjectedPositions);
 
 		void PostProcessPoints(UPCGBasePointData* InMutablePoints);
 	};

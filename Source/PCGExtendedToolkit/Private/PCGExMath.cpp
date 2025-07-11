@@ -228,6 +228,13 @@ namespace PCGExMath
 		return FVector::CrossProduct(A, B).Z < 0 ? TWO_PI - Radians : Radians;
 	}
 
+	double GetRadiansBetweenVectors(const FVector2D& A, const FVector2D& B)
+	{
+		return GetRadiansBetweenVectors(FVector(A, 0), FVector(B, 0));
+		//const double Radians = FMath::Atan2(FVector2D::CrossProduct(A, B), FVector2D::DotProduct(A, B));
+		//return (Radians >= 0) ? Radians : (Radians + TWO_PI);
+	}
+
 	double GetDegreesBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector)
 	{
 		const double D = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(A, B)));

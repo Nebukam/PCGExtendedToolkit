@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
-void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsData, const UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers) const
+void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers) const
 {
 	if (!AttributeIdentifiers.IsEmpty())
 	{
@@ -37,6 +37,11 @@ void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsDa
 	}
 
 	// TODO : Forward point properties
+	if (bWriteBestFitUp)
+	{
+		PCGExGeo::FBestFitPlane BestFitPlane(OutData->GetConstTransformValueRange());
+		PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitUpAttributeName), BestFitPlane.Normal);
+	}
 }
 
 PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
@@ -88,7 +93,7 @@ namespace PCGExPointsToBounds
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPointsToBounds::Process);
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->OutputMode == EPCGExPointsToBoundsOutputMode::Collapse)
 		{

@@ -135,7 +135,7 @@ namespace PCGExClusterDiffusion
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExClusterDiffusion::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		FillControlsHandler = MakeShared<PCGExFloodFill::FFillControlsHandler>(
 			Context, Cluster,
@@ -512,8 +512,9 @@ namespace PCGExClusterDiffusion
 
 
 	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
-		: TBatchWithHeuristics(InContext, InVtx, InEdges)
+		: TBatch(InContext, InVtx, InEdges)
 	{
+		SetWantsHeuristics(true);
 	}
 
 	FBatch::~FBatch()
@@ -561,7 +562,7 @@ namespace PCGExClusterDiffusion
 
 		if (!bIsBatchValid) { return; } // Fail
 
-		TBatchWithHeuristics<FProcessor>::Process();
+		TBatch<FProcessor>::Process();
 	}
 
 	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)

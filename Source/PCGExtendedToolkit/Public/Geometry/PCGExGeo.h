@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
+#include "PCGExDetailsData.h"
 #include "PCGExMT.h"
 #include "PCGExFitting.h"
 #include "Data/PCGExData.h"
@@ -12,84 +13,13 @@
 
 #include "PCGExGeo.generated.h"
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
+UENUM()
+enum class EPCGExProjectionMethod : uint8
 {
-	GENERATED_BODY()
-
-	FPCGExGeo2DProjectionDetails()
-	{
-	}
-
-	explicit FPCGExGeo2DProjectionDetails(const FPCGExGeo2DProjectionDetails& Other)
-		: bSupportLocalNormal(Other.bLocalProjectionNormal),
-		  ProjectionNormal(Other.ProjectionNormal),
-		  bLocalProjectionNormal(Other.bLocalProjectionNormal),
-		  LocalNormal(Other.LocalNormal)
-	{
-	}
-
-	explicit FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal)
-		: bSupportLocalNormal(InSupportLocalNormal)
-	{
-	}
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, HideInDetailPanel, Hidden, EditConditionHides, EditCondition="false"))
-	bool bSupportLocalNormal = true;
-
-	/** Normal vector of the 2D projection plane. Defaults to Up for XY projection. Used as fallback when using invalid local normal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FVector ProjectionNormal = FVector::UpVector;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bSupportLocalNormal", EditConditionHides))
-	bool bLocalProjectionNormal = false;
-
-	/** Local attribute to fetch projection normal from */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bSupportLocalNormal && bLocalProjectionNormal", EditConditionHides))
-	FPCGAttributePropertyInputSelector LocalNormal;
-
-	TSharedPtr<PCGExData::TBuffer<FVector>> NormalGetter;
-	FQuat ProjectionQuat = FQuat::Identity;
-	FQuat ProjectionInverseQuat = FQuat::Identity;
-
-	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
-
-	~FPCGExGeo2DProjectionDetails()
-	{
-	}
-
-	FQuat GetQuat(const int32 PointIndex) const;
-
-	FVector Project(const FVector& InPosition, const int32 PointIndex) const;
-	FVector Project(const FVector& InPosition) const;
-	FVector ProjectFlat(const FVector& InPosition) const;
-	FVector ProjectFlat(const FVector& InPosition, const int32 PointIndex) const;
-	FTransform ProjectFlat(const FTransform& InTransform) const;
-	FTransform ProjectFlat(const FTransform& InTransform, const int32 PointIndex) const;
-
-	template <typename T>
-	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions) const
-	{
-		const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
-		const int32 NumVectors = Transforms.Num();
-		PCGEx::InitArray(OutPositions, NumVectors);
-		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
-	}
-
-	template <typename T>
-	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const PCGExMT::FScope& Scope) const
-	{
-		const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
-		const int32 NumVectors = Transforms.Num();
-		if (OutPositions.Num() < NumVectors) { PCGEx::InitArray(OutPositions, NumVectors); }
-
-		PCGEX_SCOPE_LOOP(i) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
-	}
-
-	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const;
-	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const;
+	Normal       = 0 UMETA(DisplayName = "Normal", ToolTip="Uses a normal to project on a plane."),
+	BestFit = 1 UMETA(DisplayName = "Best Fit", ToolTip="Compute eigen values to find the best-fit plane"),
 };
+
 
 UENUM()
 enum class EPCGExCellCenter : uint8
@@ -243,7 +173,96 @@ namespace PCGExGeo
 		 */
 		FVector GetLocationOnArc(const double Alpha) const;
 	};
+
+	struct PCGEXTENDEDTOOLKIT_API FBestFitPlane
+	{
+		FBestFitPlane() = default;
+
+		explicit FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms);
+		explicit FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms, TArrayView<int32> InIndices);
+		explicit FBestFitPlane(const TArrayView<FVector> InPositions);
+
+		FVector Centroid = FVector::ZeroVector;
+		FVector Normal = FVector::UpVector;
+		FVector EigenValues = FVector::ZeroVector;
+
+		static FVector GetEigenValues(const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ);
+		static FVector GetEigenVector(const FVector& EigenValues, const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ);
+	};
 }
+
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
+{
+	GENERATED_BODY()
+
+	FPCGExGeo2DProjectionDetails() = default;
+
+	explicit FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal)
+		: bSupportLocalNormal(InSupportLocalNormal)
+	{
+	}
+
+	UPROPERTY()
+	bool bSupportLocalNormal = true;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExProjectionMethod Method = EPCGExProjectionMethod::Normal;
+	
+	/** Normal vector of the 2D projection plane. Defaults to Up for XY projection. Used as fallback when using invalid local normal. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Method == EPCGExProjectionMethod::Normal", EditConditionHides, ShowOnlyInnerProperties))
+	FVector ProjectionNormal = FVector::UpVector;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Method == EPCGExProjectionMethod::Normal && bSupportLocalNormal", EditConditionHides))
+	bool bLocalProjectionNormal = false;
+
+	/** Local attribute to fetch projection normal from */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Method == EPCGExProjectionMethod::Normal && bSupportLocalNormal && bLocalProjectionNormal", EditConditionHides))
+	FPCGAttributePropertyInputSelector LocalNormal;
+
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> NormalGetter;
+	FQuat ProjectionQuat = FQuat::Identity;
+	
+	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
+	void Init(const PCGExGeo::FBestFitPlane& InFitPlane);
+
+	~FPCGExGeo2DProjectionDetails()
+	{
+	}
+
+	FQuat GetQuat(const int32 PointIndex) const;
+
+	FVector Project(const FVector& InPosition, const int32 PointIndex) const;
+	FVector Project(const FVector& InPosition) const;
+	FVector ProjectFlat(const FVector& InPosition) const;
+	FVector ProjectFlat(const FVector& InPosition, const int32 PointIndex) const;
+	FTransform ProjectFlat(const FTransform& InTransform) const;
+	FTransform ProjectFlat(const FTransform& InTransform, const int32 PointIndex) const;
+
+	template <typename T>
+	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions) const
+	{
+		const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
+		const int32 NumVectors = Transforms.Num();
+		PCGEx::InitArray(OutPositions, NumVectors);
+		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
+	}
+
+	template <typename T>
+	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const PCGExMT::FScope& Scope) const
+	{
+		const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
+		const int32 NumVectors = Transforms.Num();
+		if (OutPositions.Num() < NumVectors) { PCGEx::InitArray(OutPositions, NumVectors); }
+
+		PCGEX_SCOPE_LOOP(i) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
+	}
+
+	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const;
+	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const;
+};
 
 namespace PCGExGeoTasks
 {

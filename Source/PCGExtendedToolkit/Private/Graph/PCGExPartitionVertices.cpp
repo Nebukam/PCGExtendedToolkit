@@ -71,7 +71,7 @@ namespace PCGExPartitionVertices
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPartitionVertices::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		UPCGBasePointData* MutablePoints = PointPartitionIO->GetOut();

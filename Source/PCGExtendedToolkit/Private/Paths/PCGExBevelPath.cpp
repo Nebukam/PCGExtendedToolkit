@@ -193,6 +193,12 @@ namespace PCGExBevelPath
 		}
 
 		if (!InProcessor->bSubdivide) { return; }
+		
+		if (InProcessor->ManhattanDetails.IsValid())
+		{
+			SubdivideManhattan(InProcessor);
+			return;
+		}
 
 		const double Amount = InProcessor->SubdivAmountGetter->Read(Index);
 
@@ -310,6 +316,22 @@ namespace PCGExBevelPath
 		}
 	}
 
+	void FBevel::SubdivideManhattan(const FProcessor* InProcessor)
+	{
+		double OutDist = 0;
+		
+		if (InProcessor->bKeepCorner)
+		{
+			InProcessor->ManhattanDetails.ComputeSubdivisions(Arrive, Corner, Index, Subdivisions, OutDist);
+			Subdivisions.Emplace(Corner);
+			InProcessor->ManhattanDetails.ComputeSubdivisions(Corner, Leave, Index, Subdivisions, OutDist);
+		}
+		else
+		{
+			InProcessor->ManhattanDetails.ComputeSubdivisions(Arrive, Leave, Index, Subdivisions, OutDist);
+		}
+	}
+
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBevelPath::Process);
@@ -317,7 +339,7 @@ namespace PCGExBevelPath
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
@@ -358,13 +380,15 @@ namespace PCGExBevelPath
 			bSubdivide = Settings->Type != EPCGExBevelProfileType::Custom;
 			if (bSubdivide)
 			{
-				bSubdivideCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
-
-				SubdivAmountGetter = Settings->GetValueSettingSubdivisions();
-				if (!SubdivAmountGetter->Init(Context, PointDataFacade)) { return false; }
+				bSubdivideCount = Settings->SubdivideMethod != EPCGExSubdivideMode::Distance;
+				if (Settings->SubdivideMethod != EPCGExSubdivideMode::Manhattan)
+				{
+					SubdivAmountGetter = Settings->GetValueSettingSubdivisions();
+					if (!SubdivAmountGetter->Init(Context, PointDataFacade)) { return false; }
+				}
 			}
 		}
-		else if (bKeepCorner && Settings->Type == EPCGExBevelProfileType::Line)
+		if (bKeepCorner && Settings->Type == EPCGExBevelProfileType::Line)
 		{
 			// This is to force line to go through subdiv flow
 			bSubdivide = true;
@@ -372,6 +396,12 @@ namespace PCGExBevelPath
 			SubdivAmountGetter = PCGExDetails::MakeSettingValue<double>(0);
 		}
 
+		if (Settings->SubdivideMethod == EPCGExSubdivideMode::Manhattan)
+		{
+			ManhattanDetails = Settings->ManhattanDetails;
+			if (!ManhattanDetails.Init(Context, PointDataFacade)) { return false; }
+		}
+		
 		bArc = Settings->Type == EPCGExBevelProfileType::Arc;
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
@@ -609,7 +639,7 @@ namespace PCGExBevelPath
 
 		WriteFlagsTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
-		FPointsProcessor::Write();
+		IPointsProcessor::Write();
 	}
 }
 

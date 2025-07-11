@@ -139,7 +139,7 @@ namespace PCGExFuseClusters
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		VtxIOIndex = VtxDataFacade->Source->IOIndex;
 		EdgesIOIndex = EdgeDataFacade->Source->IOIndex;

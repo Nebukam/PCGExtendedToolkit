@@ -57,9 +57,10 @@ bool FPCGExSubdivideEdgesElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraph::State_ReadyToCompile)
 
-	Context->OutputPointsAndEdges();
+	if (!Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
+	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
 }
@@ -81,7 +82,7 @@ namespace PCGExSubdivideEdges
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSubdivideEdges::Process);
 
-		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FBatch>()->DirectionSettings, EdgeDataFacade))
 		{
@@ -90,6 +91,7 @@ namespace PCGExSubdivideEdges
 
 		SubBlending = Context->Blending->CreateOperation();
 		PCGEx::InitArray(Subdivisions, EdgeDataFacade->GetNum());
+		SubdivisionPoints.Init(nullptr, EdgeDataFacade->GetNum());
 
 		StartParallelLoopForEdges();
 
@@ -100,29 +102,67 @@ namespace PCGExSubdivideEdges
 	{
 		TArray<PCGExGraph::FEdge>& ClusterEdges = *Cluster->Edges;
 
+		EdgeDataFacade->Fetch(Scope);
+		FilterEdgeScope(Scope);
+
+		int32 NewSubdivNum = 0;
+		int32 NewEdges = 0;
+
+#define PCGEX_PROCESS_EDGE \
+		if (!EdgeFilterCache[Index]) { continue; } \
+		PCGExGraph::FEdge& Edge = ClusterEdges[Index]; \
+		DirectionSettings.SortEndpoints(Cluster.Get(), Edge); \
+		const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge); \
+		const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge); \
+		FSubdivision& Sub = Subdivisions[Index];
+
+		TSharedPtr<TArray<FVector>> Subdivs = MakeShared<TArray<FVector>>();
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
+			if (!EdgeFilterCache[Index]) { continue; }
+
 			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
-
 			DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
-
 			const PCGExCluster::FNode* StartNode = Cluster->GetEdgeStart(Edge);
 			const PCGExCluster::FNode* EndNode = Cluster->GetEdgeEnd(Edge);
 
-			// Create subdivision items
 			FSubdivision& Sub = Subdivisions[Index];
 
 			Sub.NumSubdivisions = 0;
+			//Sub.Dir = Cluster->GetPos(EndNode) - Cluster->GetPos(StartNode);
 
-			// Check if that edge should be subdivided. How depends on the test source
-			// Can be:
-			// - Edge start test
-			// - Edge end test
-			// - Edge itself test
+			if (Sub.NumSubdivisions != 0)
+			{
+				SubdivisionPoints[Index] = Subdivs;
+				NewSubdivNum += Sub.NumSubdivisions;
+				NewEdges += Sub.NumSubdivisions + 1;
 
-			Sub.Start = Cluster->GetPos(StartNode);
-			Sub.End = Cluster->GetPos(EndNode);
-			Sub.Dist = FVector::Distance(Sub.Start, Sub.End);
+				Subdivs = MakeShared<TArray<FVector>>();
+			}
+		}
+
+		FPlatformAtomics::InterlockedAdd(&NewNodesNum, NewSubdivNum);
+		FPlatformAtomics::InterlockedAdd(&NewEdgesNum, NewEdges);
+	}
+
+	void FProcessor::OnEdgesProcessingComplete()
+	{
+		// TODO : Append new points
+
+		// Add all nodes at once
+		int32 StartNodeIndex = 0;
+		GraphBuilder->Graph->AddNodes(NewNodesNum, StartNodeIndex);
+
+		TSet<uint64> NewEdges;
+		NewEdges.Reserve(NewEdgesNum);
+		
+		for (FSubdivision& Subdivision : Subdivisions)
+		{
+			if (Subdivision.NumSubdivisions == 0) { continue; }
+
+			Subdivision.StartNodeIndex = StartNodeIndex;
+			StartNodeIndex += Subdivision.NumSubdivisions;			
 		}
 	}
 
@@ -132,12 +172,12 @@ namespace PCGExSubdivideEdges
 
 	void FProcessor::Write()
 	{
-		FClusterProcessor::Write();
+		IClusterProcessor::Write();
 	}
 
 	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TBatchWithGraphBuilder<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
+		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SubdivideEdges)
 
@@ -155,7 +195,7 @@ namespace PCGExSubdivideEdges
 			bIsBatchValid = false;
 			return;
 		}
-
+		
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 }

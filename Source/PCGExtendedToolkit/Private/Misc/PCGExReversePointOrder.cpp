@@ -105,7 +105,7 @@ namespace PCGExReversePointOrder
 			if (!bReversed) { PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward); }
 		};
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Sorter)
 		{
@@ -125,8 +125,10 @@ namespace PCGExReversePointOrder
 
 		if (Settings->Method == EPCGExPointReverseMethod::Winding)
 		{
-			FPCGExGeo2DProjectionDetails Proj = FPCGExGeo2DProjectionDetails(Settings->ProjectionDetails);
-			if (!Proj.Init(Context, PointDataFacade)) { return false; }
+			FPCGExGeo2DProjectionDetails Proj = Settings->ProjectionDetails;
+			
+			if (Proj.Method == EPCGExProjectionMethod::Normal) { if (!Proj.Init(Context, PointDataFacade)) { return false; } }
+			else { Proj.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 			TArray<FVector2D> ProjectedPoints;
 			Proj.ProjectFlat(PointDataFacade, ProjectedPoints);

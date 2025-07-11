@@ -62,15 +62,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : FPCGExPointsProcesso
 
 	bool bQuietMissingClusterPairElement = false;
 
-	bool bBuildEndpointsLookup = true;
-
 	TSharedPtr<PCGExData::FPointIOCollection> MainEdges;
 	TSharedPtr<PCGExData::FPointIO> CurrentEdges;
 
 	TSharedPtr<PCGExData::FPointIOTaggedDictionary> InputDictionary;
 	TSharedPtr<PCGExData::FPointIOTaggedEntries> TaggedEdges;
-	TMap<uint32, int32> EndpointsLookup;
-	TArray<int32> EndpointsAdjacency;
 
 	const TArray<FPCGExSortRuleConfig>* GetEdgeSortingRules() const;
 
@@ -137,7 +133,6 @@ protected:
 		bClusterWantsHeuristics = true;
 		bSkipClusterBatchCompletionStep = false;
 		bDoClusterBatchWritingStep = false;
-		bBuildEndpointsLookup = false;
 
 		Batches.Reserve(MainPoints->Pairs.Num());
 
@@ -161,15 +156,9 @@ protected:
 			PCGEX_MAKE_SHARED(NewBatch, T, this, CurrentIO.ToSharedRef(), TaggedEdges->Entries);
 			InitBatch(NewBatch);
 
-			if (NewBatch->bRequiresWriteStep)
-			{
-				bDoClusterBatchWritingStep = true;
-			}
-
-			if (NewBatch->bSkipCompletion)
-			{
-				bSkipClusterBatchCompletionStep = true;
-			}
+			if (NewBatch->bRequiresWriteStep) { bDoClusterBatchWritingStep = true; }
+			if (NewBatch->bSkipCompletion) { bSkipClusterBatchCompletionStep = true; }
+			if (NewBatch->RequiresGraphBuilder()) { NewBatch->GraphBuilderDetails = GraphBuilderDetails; }
 
 			if (NewBatch->WantsHeuristics())
 			{
@@ -183,11 +172,6 @@ protected:
 			}
 
 			NewBatch->EdgesDataFacades = &EdgesDataFacades;
-
-			if (NewBatch->RequiresGraphBuilder())
-			{
-				NewBatch->GraphBuilderDetails = GraphBuilderDetails;
-			}
 
 			Batches.Add(NewBatch);
 			if (!bClusterBatchInlined) { PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch, bScopedIndexLookupBuild); }

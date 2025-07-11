@@ -60,7 +60,7 @@ namespace PCGExResamplePath
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = false; //Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
