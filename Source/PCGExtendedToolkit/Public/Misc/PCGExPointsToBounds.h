@@ -90,6 +90,10 @@ struct FPCGExPointsToBoundsDataDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteBestFitUp"))
 	FName BestFitUpAttributeName = FName("@Data.BestFitUp");
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ As Transform", EditCondition="bWriteBestFitUp", EditConditionHides, HideInlineEditCondition))
+	EPCGExMinimalAxis AsTransformAxis = EPCGExMinimalAxis::None;
+
 	void Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers) const;
 };
 

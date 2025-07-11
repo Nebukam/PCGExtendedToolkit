@@ -36,11 +36,42 @@ void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsDa
 		}
 	}
 
-	// TODO : Forward point properties
+#define PCGEX_WRITE_REDUCED_PROPERTY(_NAME)	if (bWrite##_NAME){ PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(_NAME##AttributeName), InBoundsData->GetConst##_NAME##ValueRange()[0]); }
+
+	PCGEX_WRITE_REDUCED_PROPERTY(Transform)
+	PCGEX_WRITE_REDUCED_PROPERTY(Density)
+	PCGEX_WRITE_REDUCED_PROPERTY(BoundsMin)
+	PCGEX_WRITE_REDUCED_PROPERTY(BoundsMax)
+	PCGEX_WRITE_REDUCED_PROPERTY(Color)
+	PCGEX_WRITE_REDUCED_PROPERTY(Steepness)
+
 	if (bWriteBestFitUp)
 	{
 		PCGExGeo::FBestFitPlane BestFitPlane(OutData->GetConstTransformValueRange());
-		PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitUpAttributeName), BestFitPlane.Normal);
+		if (AsTransformAxis != EPCGExMinimalAxis::None)
+		{
+			FTransform BestFitTransform = FTransform::Identity;
+			BestFitTransform.SetLocation(BestFitPlane.Centroid);
+			switch (AsTransformAxis)
+			{
+			case EPCGExMinimalAxis::None:
+			case EPCGExMinimalAxis::X:
+				BestFitTransform.SetRotation(FRotationMatrix::MakeFromX(BestFitPlane.Normal).ToQuat());
+				break;
+			case EPCGExMinimalAxis::Y:
+				BestFitTransform.SetRotation(FRotationMatrix::MakeFromY(BestFitPlane.Normal).ToQuat());
+				break;
+			case EPCGExMinimalAxis::Z:
+				BestFitTransform.SetRotation(FRotationMatrix::MakeFromZ(BestFitPlane.Normal).ToQuat());
+				break;
+			}
+
+			PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitUpAttributeName), BestFitTransform);
+		}
+		else
+		{
+			PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitUpAttributeName), BestFitPlane.Normal);
+		}
 	}
 }
 
