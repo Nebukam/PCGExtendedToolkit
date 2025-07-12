@@ -33,7 +33,7 @@ enum class EPCGExIndexMode : uint8
 UENUM()
 enum class EPCGExAngularDomain : uint8
 {
-	Amplitude = 0 UMETA(DisplayName = "Amplitude", Tooltip="Read the value as the result of a normalized dot product"),
+	Scalar = 0 UMETA(DisplayName = "Scalar", Tooltip="Read the value as the result of a normalized dot product"),
 	Degrees   = 1 UMETA(DisplayName = "Degrees", Tooltip="Read the value as degrees"),
 };
 
@@ -490,14 +490,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	{
 	}
 
+
+	/** Value domain (units) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExAngularDomain Domain = EPCGExAngularDomain::Scalar;
+
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExComparison Comparison = EPCGExComparison::EqualOrGreater;
-
-	/** Value domain. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExAngularDomain Domain = EPCGExAngularDomain::Amplitude;
-
+	
 	/** If enabled, the dot product will be made absolute before testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bUnsignedComparison = false;
@@ -506,16 +507,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Threshold Input"))
 	EPCGExInputValueType ThresholdInput = EPCGExInputValueType::Constant;
 
-	/** Dot value use for comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold (Amplitude or Degrees)", EditCondition="ThresholdInput != EPCGExInputValueType::Constant", EditConditionHides))
+	/** Attribute value use for comparison, whether Scalar or Degrees */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold (Attr)", EditCondition="ThresholdInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
 	/** Dot value use for comparison (In raw -1/1 range) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amplitude", EditCondition="ThresholdInput == EPCGExInputValueType::Constant && Domain == EPCGExAngularDomain::Amplitude", EditConditionHides, ClampMin=-1, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amplitude", EditCondition="ThresholdInput == EPCGExInputValueType::Constant && Domain == EPCGExAngularDomain::Scalar", EditConditionHides, ClampMin=-1, ClampMax=1))
 	double DotConstant = 0.5;
 
 	/** Tolerance for dot comparison. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Amplitude", EditConditionHides, ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Scalar", EditConditionHides, ClampMin=0, ClampMax=1))
 	double DotTolerance = 0.1;
 
 	/** Dot value use for comparison (In degrees) */

@@ -306,7 +306,7 @@ bool FPCGExDotComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef
 
 double FPCGExDotComparisonDetails::GetComparisonThreshold(const int32 PointIndex) const
 {
-	if (Domain == EPCGExAngularDomain::Amplitude) { return ThresholdGetter->Read(PointIndex); }
+	if (Domain == EPCGExAngularDomain::Scalar) { return ThresholdGetter->Read(PointIndex); }
 	return PCGExMath::DegreesToDot(180 - ThresholdGetter->Read(PointIndex));
 }
 
