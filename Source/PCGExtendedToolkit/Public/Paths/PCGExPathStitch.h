@@ -32,7 +32,7 @@ enum class EPCGExStitchMergeMethod : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/crossings"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/stitch"))
 class UPCGExPathStitchSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
