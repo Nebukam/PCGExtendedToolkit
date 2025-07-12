@@ -8,9 +8,7 @@
 #include "PCGExPaths.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExUnionBlender.h"
-#include "Data/Blending/PCGExDataBlending.h"
-
+#include "Data/PCGExPointIOMerger.h"
 
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExPathStitch.generated.h"
@@ -87,6 +85,11 @@ public:
 	/** Controls the order in which data will be sorted */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
+
+	/** Meta filter settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	FPCGExCarryOverDetails CarryOverDetails;
+	
 };
 
 struct FPCGExPathStitchContext final : FPCGExPathProcessorContext
@@ -95,6 +98,8 @@ struct FPCGExPathStitchContext final : FPCGExPathProcessorContext
 
 	TArray<FPCGTaggedData> Datas;
 	FPCGExStaticDotComparisonDetails DotComparisonDetails;
+	
+	FPCGExCarryOverDetails CarryOverDetails;
 };
 
 class FPCGExPathStitchElement final : public FPCGExPathProcessorElement
@@ -110,6 +115,9 @@ namespace PCGExPathStitch
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathStitchContext, UPCGExPathStitchSettings>
 	{
+	protected:
+		bool bSeedPath = false;
+		
 	public:
 		int32 WorkIndex = -1;
 
@@ -119,6 +127,8 @@ namespace PCGExPathStitch
 		TSharedPtr<FProcessor> StartStitch = nullptr; // Which other processor is stitched to the start
 		TSharedPtr<FProcessor> EndStitch = nullptr;   // Which other processor is stitched to the end
 
+		TSharedPtr<FPCGExPointIOMerger> Merger;
+		
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)
 		{
@@ -127,7 +137,13 @@ namespace PCGExPathStitch
 		virtual bool IsTrivial() const override { return true; }
 		bool IsAvailableForStitching() const { return !StartStitch || !EndStitch; }
 
+		bool SetStartStitch(const TSharedPtr<FProcessor>& InStitch);
+		bool SetEndStitch(const TSharedPtr<FProcessor>& InStitch);
+
+		bool IsSeed() const {return bSeedPath;}
+		
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void CompleteWork() override;
 	};
 
 	class FBatch final : public PCGExPointsMT::TBatch<FProcessor>

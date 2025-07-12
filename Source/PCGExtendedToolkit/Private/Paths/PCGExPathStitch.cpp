@@ -3,9 +3,6 @@
 
 #include "Paths/PCGExPathStitch.h"
 #include "PCGExMath.h"
-#include "Chaos/Deformable/MuscleActivationConstraints.h"
-#include "Data/Blending/PCGExUnionBlender.h"
-
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
@@ -34,7 +31,8 @@ bool FPCGExPathStitchElement::Boot(FPCGExContext* InContext) const
 
 	Context->Datas.Reset(Context->MainPoints->Pairs.Num());
 
-	// TODO : Ignore & log closed loops (probably better moved to batch processing)
+	PCGEX_FWD(CarryOverDetails)
+	Context->CarryOverDetails.Init();
 
 	return true;
 }
@@ -81,6 +79,21 @@ bool FPCGExPathStitchElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExPathStitch
 {
+	bool FProcessor::SetStartStitch(const TSharedPtr<FProcessor>& InStitch)
+	{
+		if (StartStitch) { return false; }
+		StartStitch = InStitch;
+		return true;
+	}
+
+	bool FProcessor::SetEndStitch(const TSharedPtr<FProcessor>& InStitch)
+	{
+		if (EndStitch) { return false; }
+		bSeedPath = WorkIndex < InStitch->WorkIndex && StartStitch == nullptr && !InStitch->IsSeed(); // Seed path if start is set while there's no end
+		EndStitch = InStitch;
+		return true;
+	}
+
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathStitch::Process);
@@ -90,10 +103,60 @@ namespace PCGExPathStitch
 		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 		const TConstPCGValueRange<FTransform> InTransform = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		StartSegment = PCGExMath::FSegment(InTransform[0].GetLocation(), InTransform[1].GetLocation(), Settings->Tolerance);
+		StartSegment = PCGExMath::FSegment(InTransform[1].GetLocation(), InTransform[0].GetLocation(), Settings->Tolerance);
 		EndSegment = PCGExMath::FSegment(InTransform[InTransform.Num() - 2].GetLocation(), InTransform[InTransform.Num() - 1].GetLocation(), Settings->Tolerance);
 
 		return true;
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		if (!IsSeed())
+		{
+			// If not stitched to anything, just forward the path as-is
+			if (!EndStitch && !StartStitch) { PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
+			return;
+		}
+
+		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New);
+		Merger = MakeShared<FPCGExPointIOMerger>(PointDataFacade);
+
+		TSharedPtr<FProcessor> Start = SharedThis(this);
+		TSharedPtr<FProcessor> PreviousProcessor = Start;
+		TSharedPtr<FProcessor> NextProcessor = EndStitch;
+		bool bReverse = false;
+		bool bClosedLoop = false;
+
+		PCGExMT::FScope FirstScope = NextProcessor->PointDataFacade->GetInScope(0, NextProcessor->PointDataFacade->GetNum());
+		Merger->Append(PreviousProcessor->PointDataFacade->Source, FirstScope, FirstScope);
+
+		int32 WriteIndex = FirstScope.End;
+
+		while (NextProcessor)
+		{
+			if (NextProcessor->StartStitch != PreviousProcessor) { bReverse = !bReverse; }
+
+			const int32 NumReads = NextProcessor->PointDataFacade->GetNum();
+			const PCGExMT::FScope ReadScope = NextProcessor->PointDataFacade->GetInScope(0, NumReads);
+			const PCGExMT::FScope WriteScope = NextProcessor->PointDataFacade->GetInScope(WriteIndex, NumReads);
+			WriteIndex += NumReads;
+
+			PCGExPointIOMerger::FMergeScope& MergeScope = Merger->Append(NextProcessor->PointDataFacade->Source, ReadScope, WriteScope);
+			MergeScope.bReverse = bReverse;
+
+			TSharedPtr<FProcessor> OldPrev = PreviousProcessor;
+			PreviousProcessor = NextProcessor;
+			NextProcessor = NextProcessor->StartStitch == OldPrev ? NextProcessor->EndStitch : NextProcessor->StartStitch;
+
+			if (NextProcessor == Start)
+			{
+				// That's a closed loop!
+				bClosedLoop = true;
+				NextProcessor = nullptr;
+			}
+		}
+
+		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails);
 	}
 
 	FBatch::FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
@@ -172,20 +235,17 @@ namespace PCGExPathStitch
 						// Ignore anterior working paths
 						if (OtherProcessor->WorkIndex < Current->WorkIndex) { return true; }
 
-						if (!OtherProcessor->StartStitch &&
-							CanStitch(CurrentSegment, Current->StartSegment))
+						bool bStitched = false;
+						if (CanStitch(CurrentSegment, Current->StartSegment) && OtherProcessor->SetStartStitch(Current)) { bStitched = true; }
+						else if (!Settings->bOnlyMatchStartAndEnds && CanStitch(CurrentSegment, Current->EndSegment) && OtherProcessor->SetEndStitch(Current)) { bStitched = true; }
+
+						if (bStitched)
 						{
-							Current->EndStitch = OtherProcessor;
-							OtherProcessor->StartStitch = Current;
-							return false;
+							bStitched = Current->SetEndStitch(OtherProcessor);
+							check(bStitched);
 						}
-						else if (!OtherProcessor->EndStitch && !Settings->bOnlyMatchStartAndEnds &&
-							CanStitch(CurrentSegment, Current->EndSegment))
-						{
-							Current->EndStitch = OtherProcessor;
-							OtherProcessor->EndStitch = Current;
-							return false;
-						}
+
+						return !bStitched;
 					});
 			}
 
@@ -202,27 +262,20 @@ namespace PCGExPathStitch
 						// Ignore anterior working paths
 						if (OtherProcessor->WorkIndex < Current->WorkIndex) { return true; }
 
-						if (!OtherProcessor->EndStitch &&
-							CanStitch(CurrentSegment, Current->EndSegment))
+						bool bStitched = false;
+						if (CanStitch(CurrentSegment, Current->EndSegment) && OtherProcessor->SetEndStitch(Current)) { bStitched = true; }
+						else if (!Settings->bOnlyMatchStartAndEnds && CanStitch(CurrentSegment, Current->EndSegment) && OtherProcessor->SetStartStitch(Current)) { bStitched = true; }
+
+						if (bStitched)
 						{
-							Current->StartStitch = OtherProcessor;
-							OtherProcessor->EndStitch = Current;
-							return false;
-						}
-						else if (!OtherProcessor->StartStitch && !Settings->bOnlyMatchStartAndEnds &&
-							CanStitch(CurrentSegment, Current->StartSegment))
-						{
-							Current->StartStitch = OtherProcessor;
-							OtherProcessor->StartStitch = Current;
-							return false;
+							bStitched = Current->SetStartStitch(OtherProcessor);
+							check(bStitched);
 						}
 
-						return true;
+						return !bStitched;
 					});
 			}
 		}
-
-		//
 	}
 }
 
