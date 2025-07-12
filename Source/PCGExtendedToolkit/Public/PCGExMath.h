@@ -89,9 +89,11 @@ namespace PCGExMath
 		FVector Direction = FVector::ZeroVector;
 		FBox Bounds = FBox(ForceInit);
 
+		FSegment() = default;
 		FSegment(const FVector& InA, const FVector& InB, const double Expansion = 0);
 
 		double Dot(const FVector& InDirection) const { return FVector::DotProduct(Direction, InDirection); }
+		double Dot(const FSegment& InSegment) const { return FVector::DotProduct(Direction, InSegment.Direction); }
 		FVector Lerp(const double InLerp) const { return FMath::Lerp(A, B, InLerp); }
 
 		template <EIntersectionTestMode Mode = EIntersectionTestMode::Strict>
@@ -147,7 +149,14 @@ namespace PCGExMath
 			if (FVector::DistSquared(OutSelf, OutOther) >= SquaredTolerance) { return false; }
 			return true;
 		}
+
+		template <EIntersectionTestMode Mode = EIntersectionTestMode::Strict>
+		bool FindIntersection(const FSegment& S, double SquaredTolerance, FVector& OutSelf, FVector& OutOther) const
+		{
+			return FindIntersection<Mode>(S.A, S.B, SquaredTolerance, OutSelf, OutOther);
+		}
 	};
+
 
 #pragma region basics
 
@@ -155,7 +164,7 @@ namespace PCGExMath
 	{
 		return FMath::Cos(FMath::DegreesToRadians(AngleInDegrees));
 	}
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	double ConvertStringToDouble(const FString& StringToConvert);
 

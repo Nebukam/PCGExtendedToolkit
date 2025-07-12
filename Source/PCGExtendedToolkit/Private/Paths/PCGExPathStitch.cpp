@@ -29,9 +29,12 @@ bool FPCGExPathStitchElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathStitch)
 
-	// TODO : Ignore & log closed loops (probably better moved to batch processing)
+	PCGEX_FWD(DotComparisonDetails)
+	Context->DotComparisonDetails.Init();
 
-	Context->Distances = PCGExDetails::MakeDistances();
+	Context->Datas.Reset(Context->MainPoints->Pairs.Num());
+
+	// TODO : Ignore & log closed loops (probably better moved to batch processing)
 
 	return true;
 }
@@ -55,6 +58,8 @@ bool FPCGExPathStitchElement::ExecuteInternal(FPCGContext* InContext) const
 					bHasInvalidInputs = true;
 					return false;
 				}
+
+				Context->Datas.Add(FPCGTaggedData(Entry->GetIn(), Entry->Tags->Flatten(), NAME_None));
 				return true;
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathStitch::FProcessor>>& NewBatch)
@@ -82,395 +87,142 @@ namespace PCGExPathStitch
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		// Must be set before process for filters
-		//PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
-
 		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		const TConstPCGValueRange<FTransform> InTransform = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
-		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;
-		Details = Settings->IntersectionDetails;
-		Details.Init();
-
-		bCanBeCut = PCGEx::IsValidStringTag(Context->CanBeCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanBeCutTag, Settings->bInvertCanBeCutTag) : true;
-		bCanCut = PCGEx::IsValidStringTag(Context->CanCutTag) ? PointDataFacade->Source->Tags->IsTagged(Context->CanCutTag, Settings->bInvertCanCutTag) : true;
-
-		if (bCanCut && !Context->CanCutFilterFactories.IsEmpty())
-		{
-			CanCutFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
-			if (!CanCutFilterManager->Init(ExecutionContext, Context->CanCutFilterFactories))
-			{
-				CanCutFilterManager.Reset();
-				return false;
-			}
-		}
-
-		if (bCanBeCut && !Context->CanBeCutFilterFactories.IsEmpty())
-		{
-			CanBeCutFilterManager = MakeShared<PCGExPointFilter::FManager>(PointDataFacade);
-			if (!CanBeCutFilterManager->Init(ExecutionContext, Context->CanBeCutFilterFactories))
-			{
-				CanBeCutFilterManager.Reset();
-				return false;
-			}
-		}
-
-		Path = PCGExPaths::MakePath(PointIO->GetIn(), Details.Tolerance * 2);
-		Path->IOIndex = PointDataFacade->Source->IOIndex;
-		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
-
-		Path->IOIndex = PointIO->IOIndex;
-
-		CanCut.Init(bCanCut, Path->NumEdges);
-		CanBeCut.Init(bCanBeCut, Path->NumEdges);
-
-		EdgeCrossings.Init(nullptr, Path->NumEdges);
-
-		SubBlending = Context->Blending->CreateOperation();
-		SubBlending->bClosedLoop = bClosedLoop;
-
-		if (Settings->bOrientCrossing) { SubBlending->bPreserveRotation = true; }
-
-		PCGExMT::FScope EdgesScope = Path->GetEdgeScope();
-
-		if (CanCutFilterManager) { if (!CanCutFilterManager->Test(EdgesScope, CanCut)) { bCanCut = false; } }
-		if (CanBeCutFilterManager) { if (!CanBeCutFilterManager->Test(EdgesScope, CanBeCut)) { bCanBeCut = false; } }
-
-		Path->ComputeAllEdgeExtra();
-
-		CanCutFilterManager.Reset();
-		CanBeCutFilterManager.Reset();
-
-		if (bCanCut) { Path->BuildPartialEdgeOctree(CanCut); }
-
-		CanCut.Empty();
+		StartSegment = PCGExMath::FSegment(InTransform[0].GetLocation(), InTransform[1].GetLocation(), Settings->Tolerance);
+		EndSegment = PCGExMath::FSegment(InTransform[InTransform.Num() - 2].GetLocation(), InTransform[InTransform.Num() - 1].GetLocation(), Settings->Tolerance);
 
 		return true;
 	}
 
-	void FProcessor::CompleteWork()
+	FBatch::FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
+		: TBatch(InContext, InPointsCollection)
 	{
-		if (!bCanBeCut) { return; }
-		if (bSelfIntersectionOnly && !bCanCut) { return; }
-
-		StartParallelLoopForRange(Path->NumEdges);
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathStitch);
 	}
 
-	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
+	void FBatch::OnInitialPostProcess()
 	{
-		const TSharedPtr<PCGExPointsMT::IPointsProcessorBatch> Parent = ParentBatch.Pin();
-		if (!Parent) { return; }
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathStitch);
 
-		const TSharedPtr<PCGExPointsMT::TBatch<FProcessor>> TypedParent = StaticCastSharedPtr<PCGExPointsMT::TBatch<FProcessor>>(Parent);
+		TBatch<FProcessor>::OnInitialPostProcess();
 
-		TArray<TSharedPtr<PCGExPaths::FPath>> Cutters;
+		TArray<TSharedPtr<FProcessor>> SortedProcessors;
+		SortedProcessors.Reserve(Processors.Num());
 
-		if (bSelfIntersectionOnly)
+		for (const TSharedRef<FProcessor>& Processor : this->Processors) { SortedProcessors.Add(Processor); }
+
+		// Attempt to sort -- if it fails it's ok, just throw a warning
+
+		TArray<FPCGExSortRuleConfig> RuleConfigs = PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules);
+		if (!RuleConfigs.IsEmpty())
 		{
-			if (bCanCut&& Path
-			->
-			GetEdgeOctree()
-			)
+			const TSharedPtr<PCGExSorting::FPointSorter> Sorter = MakeShared<PCGExSorting::FPointSorter>(RuleConfigs);
+			Sorter->SortDirection = Settings->SortDirection;
+
+			if (Sorter->Init(Context, Context->Datas))
 			{
-				Cutters.Add(Path);
-			}
-		}
-		else
-		{
-			Cutters.Reserve(Parent->ProcessorFacades.Num());
-
-			for (const TSharedRef<FProcessor>& OtherProcessor : TypedParent->Processors)
-			{
-				if (!Details.bEnableSelfIntersection && &OtherProcessor.Get() == this) { continue; }
-				if (!OtherProcessor->bCanCut || !OtherProcessor->Path->GetEdgeOctree()) { continue; }
-
-				Cutters.Add(OtherProcessor->Path);
-			}
-		}
-
-		if (Cutters.IsEmpty()) { return; }
-
-		PCGEX_SCOPE_LOOP(Index)
-		{
-			EdgeCrossings[Index] = nullptr;
-
-			if (!CanBeCut[Index]) { continue; }
-
-			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
-			if (!Path->IsEdgeValid(Edge)) { continue; }
-
-			const TSharedPtr<PCGExPaths::FPathEdgeCrossings> NewCrossing = MakeShared<PCGExPaths::FPathEdgeCrossings>(Index);
-
-			for (const TSharedPtr<PCGExPaths::FPath>& OtherPath : Cutters)
-			{
-				OtherPath->GetEdgeOctree()->FindElementsWithBoundsTest(
-					Edge.Bounds.GetBox(),
-					[&](const PCGExPaths::FPathEdge* OtherEdge)
+				SortedProcessors.Sort(
+					[&](const TSharedPtr<FProcessor>& A, const TSharedPtr<FProcessor>& B)
 					{
-						NewCrossing->FindSplit(Path, Edge, PathLength, OtherPath, *OtherEdge, Details);
+						return Sorter->SortData(A->BatchIndex, B->BatchIndex);
+					});
+			}
+			else
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Problem with initializing sorting rules."));
+			}
+		}
+
+		// Build data octree
+		TSharedPtr<PCGEx::FIndexedItemOctree> PathOctree = MakeShared<PCGEx::FIndexedItemOctree>();
+		for (int i = 0; i < SortedProcessors.Num(); ++i)
+		{
+			const TSharedPtr<FProcessor> Processor = SortedProcessors[i];
+			Processor->WorkIndex = i;
+			PathOctree->AddElement(PCGEx::FIndexedItem(Processor->BatchIndex, Processor->PointDataFacade->GetIn()->GetBounds()));
+		}
+
+		// ---A---x x---B---
+		auto CanStitch = [&](const PCGExMath::FSegment& A, const PCGExMath::FSegment& B)
+		{
+			if (FVector::Dist(A.B, B.B) > Settings->Tolerance) { return false; }
+			if (Settings->bDoRequireAlignment && !Context->DotComparisonDetails.Test(FVector::DotProduct(A.Direction, B.Direction * -1))) { return false; }
+			return true;
+		};
+
+		// Resolve stitching
+		for (int i = 0; i < SortedProcessors.Num(); ++i)
+		{
+			TSharedPtr<FProcessor> Current = SortedProcessors[i];
+			if (!Current->IsAvailableForStitching()) { continue; }
+
+			// Find candidates that could connect to this path' end first
+			if (!Current->EndStitch)
+			{
+				const PCGExMath::FSegment& CurrentSegment = Current->EndSegment;
+				PathOctree->FindFirstElementWithBoundsTest(
+					CurrentSegment.Bounds, [&](const PCGEx::FIndexedItem& Item)
+					{
+						if (Current->EndStitch) { return false; }
+
+						const TSharedPtr<FProcessor>& OtherProcessor = Processors[Item.Index];
+
+						// Ignore anterior working paths
+						if (OtherProcessor->WorkIndex < Current->WorkIndex) { return true; }
+
+						if (!OtherProcessor->StartStitch &&
+							CanStitch(CurrentSegment, Current->StartSegment))
+						{
+							Current->EndStitch = OtherProcessor;
+							OtherProcessor->StartStitch = Current;
+							return false;
+						}
+						else if (!OtherProcessor->EndStitch && !Settings->bOnlyMatchStartAndEnds &&
+							CanStitch(CurrentSegment, Current->EndSegment))
+						{
+							Current->EndStitch = OtherProcessor;
+							OtherProcessor->EndStitch = Current;
+							return false;
+						}
 					});
 			}
 
-			if (!NewCrossing->IsEmpty())
+			if (!Current->StartStitch)
 			{
-				FPlatformAtomics::InterlockedIncrement(&FoundCrossingsNum);
-				NewCrossing->SortByAlpha();
-				EdgeCrossings[Index] = NewCrossing;
-			}
-		}
-	}
+				const PCGExMath::FSegment& CurrentSegment = Current->StartSegment;
+				PathOctree->FindFirstElementWithBoundsTest(
+					CurrentSegment.Bounds, [&](const PCGEx::FIndexedItem& Item)
+					{
+						if (Current->StartStitch) { return false; }
 
-	void FProcessor::OnRangeProcessingComplete()
-	{
-		if (!Settings->bCreatePointAtCrossings)
-		{
-			const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-			PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::Forward)
+						const TSharedPtr<FProcessor>& OtherProcessor = Processors[Item.Index];
 
-			if (FoundCrossingsNum > 0) { if (Settings->bTagIfHasCrossing) { PointIO->Tags->AddRaw(Settings->HasCrossingsTag); } }
-			else { if (Settings->bTagIfHasNoCrossings) { PointIO->Tags->AddRaw(Settings->HasNoCrossingsTag); } }
+						// Ignore anterior working paths
+						if (OtherProcessor->WorkIndex < Current->WorkIndex) { return true; }
 
-			return;
-		}
+						if (!OtherProcessor->EndStitch &&
+							CanStitch(CurrentSegment, Current->EndSegment))
+						{
+							Current->StartStitch = OtherProcessor;
+							OtherProcessor->EndStitch = Current;
+							return false;
+						}
+						else if (!OtherProcessor->StartStitch && !Settings->bOnlyMatchStartAndEnds &&
+							CanStitch(CurrentSegment, Current->StartSegment))
+						{
+							Current->StartStitch = OtherProcessor;
+							OtherProcessor->StartStitch = Current;
+							return false;
+						}
 
-		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::New)
-
-		int32 NumPointsFinal = 0;
-
-		for (int i = 0; i < Path->NumPoints; i++)
-		{
-			NumPointsFinal++;
-
-			if (!Path->IsClosedLoop() && i == Path->LastIndex) { continue; }
-
-			const PCGExPaths::FPathEdgeCrossings* Crossing = EdgeCrossings[i].Get();
-			if (!Crossing) { continue; }
-
-			NumPointsFinal += Crossing->Crossings.Num();
-		}
-
-		const UPCGBasePointData* InPoints = PointIO->GetIn();
-		UPCGBasePointData* OutPoints = PointIO->GetOut();
-		PCGEx::SetNumPointsAllocated(OutPoints, NumPointsFinal, InPoints->GetAllocatedProperties());
-
-		TArray<int32> WriteIndices;
-		WriteIndices.Reserve(InPoints->GetNumPoints());
-
-		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
-
-		TConstPCGValueRange<int64> InMetadataEntries = InPoints->GetConstMetadataEntryValueRange();
-		TPCGValueRange<int64> OutMetadataEntries = OutPoints->GetMetadataEntryValueRange(false);
-
-		int32 Index = 0;
-		for (int i = 0; i < Path->NumEdges; i++)
-		{
-			Path->Edges[i].AltStart = Index;
-			WriteIndices.Add(Index);
-
-			OutMetadataEntries[Index] = InMetadataEntries[i];
-			Metadata->InitializeOnSet(OutMetadataEntries[Index++]);
-
-			const PCGExPaths::FPathEdgeCrossings* Crossing = EdgeCrossings[i].Get();
-			if (!Crossing) { continue; }
-
-			for (const PCGExPaths::FCrossing& X : Crossing->Crossings)
-			{
-				CrossIOIndices.Add(PCGEx::H64B(X.Hash));
-				OutMetadataEntries[Index] = InMetadataEntries[i];
-				Metadata->InitializeOnSet(OutMetadataEntries[Index++]);
+						return true;
+					});
 			}
 		}
 
-		if (!Path->IsClosedLoop())
-		{
-			WriteIndices.Add(Index);
-			OutMetadataEntries[Index] = InMetadataEntries[Path->LastIndex];
-			Metadata->InitializeOnSet(OutMetadataEntries[Index]);
-		}
-
-		// BUG : Missing last (or first?) point
-		// We should inherit all points :(
-		ensure(WriteIndices.Num() == InPoints->GetNumPoints());
-
-		PointIO->InheritPoints(WriteIndices);
-
-		// Flag last so it doesn't get captured by blenders
-		if (Settings->IntersectionDetails.bWriteCrossing)
-		{
-			FlagWriter = PointDataFacade->GetWritable(Settings->IntersectionDetails.CrossingAttributeName, false, true, PCGExData::EBufferInit::New);
-			ProtectedAttributes.Add(Settings->IntersectionDetails.CrossingAttributeName);
-		}
-
-		if (Settings->bWriteAlpha)
-		{
-			AlphaWriter = PointDataFacade->GetWritable<double>(Settings->CrossingAlphaAttributeName, Settings->DefaultAlpha, true, PCGExData::EBufferInit::New);
-			ProtectedAttributes.Add(Settings->CrossingAlphaAttributeName);
-		}
-
-		if (Settings->bWriteCrossDirection)
-		{
-			CrossWriter = PointDataFacade->GetWritable<FVector>(Settings->CrossDirectionAttributeName, Settings->DefaultCrossDirection, true, PCGExData::EBufferInit::New);
-			ProtectedAttributes.Add(Settings->CrossDirectionAttributeName);
-		}
-
-		if (Settings->bWriteIsPointCrossing)
-		{
-			IsPointCrossingWriter = PointDataFacade->GetWritable<bool>(Settings->IsPointCrossingAttributeName, false, true, PCGExData::EBufferInit::New);
-			ProtectedAttributes.Add(Settings->IsPointCrossingAttributeName);
-		}
-
-		if (!SubBlending->PrepareForData(Context, PointDataFacade, &ProtectedAttributes))
-		{
-			bIsProcessorValid = false;
-			return;
-		}
-
-		if (PointIO->GetIn()->GetNumPoints() != PointIO->GetOut()->GetNumPoints()) { if (Settings->bTagIfHasCrossing) { PointIO->Tags->AddRaw(Settings->HasCrossingsTag); } }
-		else { if (Settings->bTagIfHasNoCrossings) { PointIO->Tags->AddRaw(Settings->HasNoCrossingsTag); } }
-
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CollapseTask)
-		CollapseTask->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->PointDataFacade->WriteFastest(This->AsyncManager);
-			};
-
-		CollapseTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->CollapseCrossings(Scope);
-			};
-
-		CollapseTask->StartSubLoops(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-	}
-
-	void FProcessor::CollapseCrossings(const PCGExMT::FScope& Scope)
-	{
-		TArray<int32> Order;
-		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-
-		UPCGBasePointData* OutPoints = PointIO->GetOut();
-		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
-
-		PCGEX_SCOPE_LOOP(Index)
-		{
-			PCGExPaths::FPathEdgeCrossings* Crossing = EdgeCrossings[Index].Get();
-			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
-
-			if (FlagWriter) { FlagWriter->SetValue(Edge.AltStart, false); }
-			if (IsPointCrossingWriter) { IsPointCrossingWriter->SetValue(Edge.AltStart, false); }
-			if (AlphaWriter) { AlphaWriter->SetValue(Edge.AltStart, Settings->DefaultAlpha); }
-			if (CrossWriter) { CrossWriter->SetValue(Edge.AltStart, Settings->DefaultCrossDirection); }
-
-			if (!Crossing) { continue; }
-
-			const int32 NumCrossings = Crossing->Crossings.Num();
-			const int32 CrossingStartIndex = Edge.AltStart + 1;
-
-			PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Path->GetPos(Edge.Start));
-
-
-			for (int i = 0; i < NumCrossings; i++)
-			{
-				const PCGExPaths::FCrossing& Itx = Crossing->Crossings[i];
-				const int32 PointIndex = CrossingStartIndex + i;
-
-				if (FlagWriter) { FlagWriter->SetValue(PointIndex, true); }
-				if (AlphaWriter) { AlphaWriter->SetValue(PointIndex, Itx.Alpha); }
-				if (CrossWriter) { CrossWriter->SetValue(PointIndex, Itx.Dir); }
-				if (IsPointCrossingWriter) { IsPointCrossingWriter->SetValue(PointIndex, Itx.bIsPoint); }
-
-				if (Settings->bOrientCrossing) { OutTransforms[PointIndex].SetRotation(PCGExMath::MakeDirection(Settings->CrossingOrientAxis, Itx.Dir)); }
-				OutTransforms[PointIndex].SetLocation(Itx.Location);
-
-				Metrics.Add(Itx.Location);
-			}
-
-			Metrics.Add(Path->GetPos(Edge.End));
-
-			const int32 EndIndex = Index == Path->LastIndex ? 0 : CrossingStartIndex + NumCrossings;
-			PCGExData::FScope SubScope = PointIO->GetOutScope(CrossingStartIndex, NumCrossings);
-			SubBlending->ProcessSubPoints(PointIO->GetOutPoint(CrossingStartIndex - 1), PointIO->GetOutPoint(EndIndex), SubScope, Metrics);
-		}
-	}
-
-	void FProcessor::CrossBlend(const PCGExMT::FScope& Scope)
-	{
-		TArray<int32> Order;
-		TArray<PCGExData::FWeightedPoint> WeightedPoints;
-		TArray<PCGEx::FOpStats> Trackers;
-
-		UnionBlender->InitTrackers(Trackers);
-
-		const TSharedPtr<PCGExData::IUnionData> TempUnion = MakeShared<PCGExData::IUnionData>();
-
-		PCGEX_SCOPE_LOOP(Index)
-		{
-			const PCGExPaths::FPathEdgeCrossings* Crossing = EdgeCrossings[Index].Get();
-			if (!Crossing) { continue; }
-
-			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
-			const int32 NumCrossings = Crossing->Crossings.Num();
-
-			for (int i = 0; i < NumCrossings; i++)
-			{
-				const PCGExPaths::FCrossing& Itx = Crossing->Crossings[i];
-
-				uint32 PtIdx;
-				uint32 IOIdx;
-				PCGEx::H64(Itx.Hash, PtIdx, IOIdx);
-
-				const int32 SecondIndex = PtIdx + 1 >= static_cast<uint32>(Context->MainPoints->Pairs[IOIdx]->GetNum(PCGExData::EIOSide::In)) ? 0 : PtIdx + 1;
-
-				TempUnion->Reset();
-				TempUnion->Add(PCGExData::FPoint(PtIdx, IOIdx));
-				TempUnion->Add(PCGExData::FPoint(SecondIndex, IOIdx));
-
-				UnionBlender->MergeSingle(Edge.AltStart + i + 1, TempUnion, WeightedPoints, Trackers);
-			}
-		}
-	}
-
-	void FProcessor::Write()
-	{
-		if (!bCanBeCut)
-		{
-			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
-			return;
-		}
-
-		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver, Context->Distances);
-		UnionBlender = TypedBlender;
-
-		TArray<TSharedRef<PCGExData::FFacade>> UnionSources;
-		UnionSources.Reserve(Context->MainPoints->Pairs.Num());
-
-		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
-		{
-			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { UnionSources.Add(Context->SubProcessorMap[IO.Get()]->PointDataFacade); }
-		}
-
-		TypedBlender->AddSources(UnionSources, &ProtectedAttributes);
-
-		if (!TypedBlender->Init(Context, PointDataFacade, true))
-		{
-			// TODO : Log error
-			bIsProcessorValid = false;
-			return;
-		}
-
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CrossBlendTask)
-		CrossBlendTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->CrossBlend(Scope);
-			};
-
-		CrossBlendTask->StartSubLoops(Path->NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		//
 	}
 }
 

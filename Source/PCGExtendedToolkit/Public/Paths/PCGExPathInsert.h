@@ -40,6 +40,7 @@ protected:
 	// TODO : Insert and don't blend (blend like subdivide)
 		
 public:
+	
 	/** If enabled, inserted points will be snapped to the path. Otherwise, they retain their original location */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	bool bSnapToPath = false;

@@ -78,17 +78,23 @@ public:
 
 	/** If enabled, foreign segments must be aligned within a given angular threshold. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Requires Alignment", EditCondition="bDoRequireAlignment"))
-	FPCGExDotComparisonDetails DotComparisonDetails;
+	FPCGExStaticDotComparisonDetails DotComparisonDetails;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double Tolerance = 10;
+
+	/** Controls the order in which data will be sorted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 };
 
 struct FPCGExPathStitchContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathStitchElement;
 
-	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
-
-	TSharedPtr<PCGExDetails::FDistances> Distances;
-	FPCGExBlendingDetails CrossingBlending;
+	TArray<FPCGTaggedData> Datas;
+	FPCGExStaticDotComparisonDetails DotComparisonDetails;
 };
 
 class FPCGExPathStitchElement final : public FPCGExPathProcessorElement
@@ -104,50 +110,32 @@ namespace PCGExPathStitch
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathStitchContext, UPCGExPathStitchSettings>
 	{
-		TSharedPtr<PCGExPaths::FPath> Path;
-		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
-
-		TArray<TSharedPtr<PCGExPaths::FPathEdgeCrossings>> EdgeCrossings;
-
-		TSharedPtr<PCGExPointFilter::FManager> CanCutFilterManager;
-		TSharedPtr<PCGExPointFilter::FManager> CanBeCutFilterManager;
-
-		TBitArray<> CanCut;
-		TBitArray<> CanBeCut;
-
-		TSet<FName> ProtectedAttributes;
-		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
-
-		TSet<int32> CrossIOIndices;
-		TSharedPtr<PCGExDataBlending::IUnionBlender> UnionBlender;
-
-		FPCGExPathEdgeIntersectionDetails Details;
-
-		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
-		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
-		TSharedPtr<PCGExData::TBuffer<FVector>> CrossWriter;
-		TSharedPtr<PCGExData::TBuffer<bool>> IsPointCrossingWriter;
-
-		int32 FoundCrossingsNum = 0;
-
 	public:
+		int32 WorkIndex = -1;
+
+		PCGExMath::FSegment StartSegment; // A---B---...
+		PCGExMath::FSegment EndSegment;   // ...---A---B
+
+		TSharedPtr<FProcessor> StartStitch = nullptr; // Which other processor is stitched to the start
+		TSharedPtr<FProcessor> EndStitch = nullptr;   // Which other processor is stitched to the end
+
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)
 		{
 		}
 
-		virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
-
-		const PCGExPaths::FPathEdgeOctree* GetEdgeOctree() const { return Path->GetEdgeOctree(); }
+		virtual bool IsTrivial() const override { return true; }
+		bool IsAvailableForStitching() const { return !StartStitch || !EndStitch; }
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void CompleteWork() override;
-		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
-		virtual void OnRangeProcessingComplete() override;
+	};
 
-		void CollapseCrossings(const PCGExMT::FScope& Scope);
-		void CrossBlend(const PCGExMT::FScope& Scope);
+	class FBatch final : public PCGExPointsMT::TBatch<FProcessor>
+	{
+	public:
+		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
 
-		virtual void Write() override;
+	protected:
+		virtual void OnInitialPostProcess() override;
 	};
 }

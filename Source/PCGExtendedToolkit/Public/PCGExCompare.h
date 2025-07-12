@@ -33,8 +33,8 @@ enum class EPCGExIndexMode : uint8
 UENUM()
 enum class EPCGExAngularDomain : uint8
 {
-	Scalar = 0 UMETA(DisplayName = "Scalar", Tooltip="Read the value as the result of a normalized dot product"),
-	Degrees   = 1 UMETA(DisplayName = "Degrees", Tooltip="Read the value as degrees"),
+	Scalar  = 0 UMETA(DisplayName = "Scalar", Tooltip="Read the value as the result of a normalized dot product"),
+	Degrees = 1 UMETA(DisplayName = "Degrees", Tooltip="Read the value as degrees"),
 };
 
 UENUM(BlueprintType)
@@ -482,6 +482,50 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 };
 
 USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExStaticDotComparisonDetails
+{
+	GENERATED_BODY()
+
+	FPCGExStaticDotComparisonDetails()
+	{
+	}
+
+
+	/** Value domain (units) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExAngularDomain Domain = EPCGExAngularDomain::Scalar;
+
+	/** Comparison */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExComparison Comparison = EPCGExComparison::EqualOrGreater;
+
+	/** If enabled, the dot product will be made absolute before testing. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bUnsignedComparison = false;
+
+	/** Dot value use for comparison (In raw -1/1 range) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Scalar", EditCondition="Domain == EPCGExAngularDomain::Scalar", EditConditionHides, ClampMin=-1, ClampMax=1))
+	double DotConstant = 0.5;
+
+	/** Tolerance for dot comparison. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Scalar", EditConditionHides, ClampMin=0, ClampMax=1))
+	double DotTolerance = 0.1;
+
+	/** Dot value use for comparison (In degrees) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Degrees", EditCondition="Domain == EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
+	double DegreesConstant = 90;
+
+	/** Tolerance for dot comparison. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
+	double DegreesTolerance = 0.1;
+
+	double ComparisonTolerance = 0;
+
+	void Init();
+	bool Test(const double A) const;
+};
+
+USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 {
 	GENERATED_BODY()
@@ -498,7 +542,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExComparison Comparison = EPCGExComparison::EqualOrGreater;
-	
+
 	/** If enabled, the dot product will be made absolute before testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bUnsignedComparison = false;
@@ -512,7 +556,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
 	/** Dot value use for comparison (In raw -1/1 range) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amplitude", EditCondition="ThresholdInput == EPCGExInputValueType::Constant && Domain == EPCGExAngularDomain::Scalar", EditConditionHides, ClampMin=-1, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Scalar", EditCondition="ThresholdInput == EPCGExInputValueType::Constant && Domain == EPCGExAngularDomain::Scalar", EditConditionHides, ClampMin=-1, ClampMax=1))
 	double DotConstant = 0.5;
 
 	/** Tolerance for dot comparison. */
@@ -536,17 +580,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache);
 
 	double GetComparisonThreshold(const int32 PointIndex) const;
-	
-	bool Test(const double A, const double B) const;	
+
+	bool Test(const double A, const double B) const;
 	bool Test(const double A, const int32 Index) const;
-	
+
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
 	bool GetOnlyUseDataDomain() const;
 
 #if WITH_EDITOR
 	FString GetDisplayComparison() const;
 #endif
-		
 };
 
 USTRUCT(BlueprintType)
