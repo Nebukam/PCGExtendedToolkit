@@ -26,7 +26,7 @@ class UPCGExPathInsertSettings : public UPCGExPathProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathInsert, "Path Insert", "Insert nearest points into the path using different methods.");
+	PCGEX_NODE_INFOS(PathInsert, "Path : Insert", "Insert nearest points into the path using different methods.");
 #endif
 
 protected:

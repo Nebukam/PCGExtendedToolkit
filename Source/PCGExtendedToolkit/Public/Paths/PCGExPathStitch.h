@@ -40,7 +40,7 @@ class UPCGExPathStitchSettings : public UPCGExPathProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathStitch, "Path Stitch", "Stitch paths together by their endpoints.");
+	PCGEX_NODE_INFOS(PathStitch, "Path : Stitch", "Stitch paths together by their endpoints.");
 #endif
 
 protected:
