@@ -73,7 +73,6 @@ namespace PCGExPointIOMerger
 	template <typename T>
 	static void ScopeMerge(const FMergeScope& Scope, const FIdentityRef& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, const TSharedPtr<PCGExData::TBuffer<T>>& OutBuffer)
 	{
-		
 		UPCGMetadata* InMetadata = SourceIO->GetIn()->Metadata;
 
 		const FPCGMetadataAttribute<T>* TypedInAttribute = PCGEx::TryGetConstAttribute<T>(InMetadata, Identity.Identifier);
@@ -95,7 +94,7 @@ namespace PCGExPointIOMerger
 			else
 			{
 				check(Scope.Read.Count == Scope.Write.Count)
-				
+
 				// From elements domain
 				TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, InMetadata);
 
@@ -108,10 +107,8 @@ namespace PCGExPointIOMerger
 					TArray<T> ReadData;
 					PCGEx::InitArray(ReadData, Scope.Write.Count);
 
-					if (!InAccessor->GetRange<T>(ReadData, Scope.Read.Start, *SourceIO->GetInKeys())) { return; }
-
-					int32 WriteIndex = Scope.Write.Start;
-					for (int i = 0; i < Scope.Read.End; i++) { InRange[WriteIndex++] = ReadData.Last(i); }
+					InAccessor->GetRange<T>(ReadData, Scope.Read.Start, *SourceIO->GetInKeys());
+					for (int i = 0; i < Scope.Read.End; i++) { InRange[i] = ReadData.Last(i); }
 				}
 				else
 				{

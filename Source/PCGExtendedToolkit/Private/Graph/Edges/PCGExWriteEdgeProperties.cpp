@@ -180,6 +180,7 @@ namespace PCGExWriteEdgeProperties
 
 
 		using FBlendEdge = std::function<void (const PCGExGraph::FEdge&, const double)>;
+		TArray<PCGEx::FOpStats> Trackers;
 
 		FBlendEdge BlendEdge = [&](const PCGExGraph::FEdge& Edge, const double InWeight)
 		{
@@ -188,10 +189,14 @@ namespace PCGExWriteEdgeProperties
 
 		if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
 		{
+			DataBlender->InitTrackers(Trackers);
+			
 			BlendEdge = [&](const PCGExGraph::FEdge& Edge, const double InWeight)
 			{
-				DataBlender->Blend(Edge.Start, Edge.PointIndex, 1 - InWeight);
-				DataBlender->Blend(Edge.End, Edge.PointIndex, InWeight);
+				DataBlender->BeginMultiBlend(Edge.PointIndex, Trackers);
+				DataBlender->MultiBlend(Edge.Start, Edge.PointIndex, 1 - InWeight, Trackers);
+				DataBlender->MultiBlend(Edge.End, Edge.PointIndex, InWeight, Trackers);
+				DataBlender->EndMultiBlend(Edge.PointIndex, Trackers);
 			};
 		}
 
