@@ -199,7 +199,13 @@ namespace PCGExPathStitch
 		TArray<TSharedPtr<FProcessor>> SortedProcessors;
 		SortedProcessors.Reserve(Processors.Num());
 
-		for (const TSharedRef<FProcessor>& Processor : this->Processors) { SortedProcessors.Add(Processor); }
+		FBox OctreeBounds = FBox(ForceInit);
+		for (const TSharedRef<FProcessor>& Processor : this->Processors)
+		{
+			SortedProcessors.Add(Processor);
+			OctreeBounds += Processor->StartSegment.Bounds;
+			OctreeBounds += Processor->EndSegment.Bounds;
+		}
 
 		// Attempt to sort -- if it fails it's ok, just throw a warning
 
@@ -224,12 +230,13 @@ namespace PCGExPathStitch
 		}
 
 		// Build data octree
-		TSharedPtr<PCGEx::FIndexedItemOctree> PathOctree = MakeShared<PCGEx::FIndexedItemOctree>();
+		TSharedPtr<PCGEx::FIndexedItemOctree> PathOctree = MakeShared<PCGEx::FIndexedItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
 		for (int i = 0; i < SortedProcessors.Num(); ++i)
 		{
 			const TSharedPtr<FProcessor> Processor = SortedProcessors[i];
 			Processor->WorkIndex = i;
-			PathOctree->AddElement(PCGEx::FIndexedItem(Processor->BatchIndex, Processor->PointDataFacade->GetIn()->GetBounds()));
+			PathOctree->AddElement(PCGEx::FIndexedItem(Processor->BatchIndex, Processor->StartSegment.Bounds));
+			PathOctree->AddElement(PCGEx::FIndexedItem(Processor->BatchIndex, Processor->EndSegment.Bounds));
 		}
 
 		// ---A---x x---B---
@@ -261,24 +268,24 @@ namespace PCGExPathStitch
 				PathOctree->FindElementsWithBoundsTest(
 					CurrentSegment.Bounds, [&](const PCGEx::FIndexedItem& Item)
 					{
-						const TSharedPtr<FProcessor>& OtherProcessor = Processors[Item.Index];
+						const TSharedPtr<FProcessor>& Other = Processors[Item.Index];
 
 						// Ignore anterior working paths & self
-						if (OtherProcessor->WorkIndex == Current->WorkIndex ||
-							OtherProcessor->WorkIndex < Current->WorkIndex ||
-							OtherProcessor->IsStitchedTo(Current)) { return; }
+						if (Other->WorkIndex == Current->WorkIndex ||
+							Other->WorkIndex < Current->WorkIndex ||
+							Other->IsStitchedTo(Current)) { return; }
 
-						if (!OtherProcessor->StartStitch &&
-							CanStitch(CurrentSegment, OtherProcessor->StartSegment, BestDist))
+						if (!Other->StartStitch &&
+							CanStitch(CurrentSegment, Other->StartSegment, BestDist))
 						{
-							BestCandidate = OtherProcessor;
+							BestCandidate = Other;
 							BestPole = 0;
 						}
 						else if (!Settings->bOnlyMatchStartAndEnds &&
-							!OtherProcessor->EndStitch &&
-							CanStitch(CurrentSegment, OtherProcessor->EndSegment, BestDist))
+							!Other->EndStitch &&
+							CanStitch(CurrentSegment, Other->EndSegment, BestDist))
 						{
-							BestCandidate = OtherProcessor;
+							BestCandidate = Other;
 							BestPole = 1;
 						}
 					});
@@ -292,24 +299,24 @@ namespace PCGExPathStitch
 				PathOctree->FindElementsWithBoundsTest(
 					CurrentSegment.Bounds, [&](const PCGEx::FIndexedItem& Item)
 					{
-						const TSharedPtr<FProcessor>& OtherProcessor = Processors[Item.Index];
+						const TSharedPtr<FProcessor>& Other = Processors[Item.Index];
 
 						// Ignore anterior working paths & self
-						if (OtherProcessor->WorkIndex == Current->WorkIndex ||
-							OtherProcessor->WorkIndex < Current->WorkIndex ||
-							OtherProcessor->IsStitchedTo(Current)) { return; }
+						if (Other->WorkIndex == Current->WorkIndex ||
+							Other->WorkIndex < Current->WorkIndex ||
+							Other->IsStitchedTo(Current)) { return; }
 
-						if (!OtherProcessor->EndStitch &&
-							CanStitch(CurrentSegment, OtherProcessor->EndSegment, BestDist))
+						if (!Other->EndStitch &&
+							CanStitch(CurrentSegment, Other->EndSegment, BestDist))
 						{
-							BestCandidate = OtherProcessor;
+							BestCandidate = Other;
 							BestPole = 1;
 						}
 						else if (!Settings->bOnlyMatchStartAndEnds &&
-							!OtherProcessor->StartStitch &&
-							CanStitch(CurrentSegment, OtherProcessor->StartSegment, BestDist))
+							!Other->StartStitch &&
+							CanStitch(CurrentSegment, Other->StartSegment, BestDist))
 						{
-							BestCandidate = OtherProcessor;
+							BestCandidate = Other;
 							BestPole = 0;
 						}
 					});
