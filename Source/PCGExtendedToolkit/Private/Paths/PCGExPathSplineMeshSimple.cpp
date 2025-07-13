@@ -14,10 +14,11 @@
 #if WITH_EDITOR
 void UPCGExPathSplineMeshSimpleSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	if (SplineMeshAxisConstant_DEPRECATED != EPCGExMinimalAxis::None)
+	if (SplineMeshAxisConstant_DEPRECATED != EPCGExMinimalAxis::None && StaticMeshDescriptor.SplineMeshAxis == EPCGExSplineMeshAxis::Default)
 	{
 		StaticMeshDescriptor.SplineMeshAxis = static_cast<EPCGExSplineMeshAxis>(SplineMeshAxisConstant_DEPRECATED);
 		SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::None;
+		MarkPackageDirty();
 	}
 
 	Super::ApplyDeprecation(InOutNode);
