@@ -185,7 +185,7 @@ namespace PCGExPathStitch
 				Current->PointDataFacade->Source,
 				static_cast<PCGExMT::FScope>(Current->PointDataFacade->GetInScope(ReadStart, ReadCount)));
 
-			MergeScope.bReverse = Current->StartStitch != Previous;
+			MergeScope.bReverse = i == 0 ? Current->EndStitch == nullptr : Current->StartStitch != Previous;
 		}
 
 		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails);
@@ -285,7 +285,7 @@ namespace PCGExPathStitch
 			TSharedPtr<FProcessor> BestCandidate = nullptr;
 
 			BestDist = MAX_dbl;
-			bool bIsCurrentEnd = true;
+			bool bIsCurrentEnd = false;
 			bool bIsBestCandidateEnd = false;
 
 			// Find candidates that could connect to this path' end first
@@ -314,6 +314,8 @@ namespace PCGExPathStitch
 							bIsBestCandidateEnd = bIsOtherEnd;
 						}
 					});
+
+				bIsCurrentEnd = BestCandidate != nullptr;
 			}
 
 			if (!BestCandidate && !Current->StartStitch)
@@ -342,8 +344,6 @@ namespace PCGExPathStitch
 							bIsBestCandidateEnd = !bIsOtherStart;
 						}
 					});
-
-				bIsCurrentEnd = BestCandidate != nullptr;
 			}
 
 			if (BestCandidate)
