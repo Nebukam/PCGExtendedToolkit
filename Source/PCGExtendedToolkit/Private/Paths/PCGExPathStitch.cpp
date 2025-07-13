@@ -63,7 +63,7 @@ bool FPCGExPathStitchElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathStitch::FProcessor>>& NewBatch)
 			{
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
-				//NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;
+				NewBatch->bRequiresWriteStep = true;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to work with."));
@@ -127,21 +127,30 @@ namespace PCGExPathStitch
 		bool bReverse = false;
 		bool bClosedLoop = false;
 
-		PCGExMT::FScope FirstScope = NextProcessor->PointDataFacade->GetInScope(0, NextProcessor->PointDataFacade->GetNum());
-		Merger->Append(PreviousProcessor->PointDataFacade->Source, FirstScope, FirstScope);
+		int32 ReadStart = 0;
+		int32 ReadCount = NextProcessor->PointDataFacade->GetNum();
 
-		int32 WriteIndex = FirstScope.End;
+		Merger->Append(
+			PreviousProcessor->PointDataFacade->Source,
+			static_cast<PCGExMT::FScope>(NextProcessor->PointDataFacade->GetInScope(ReadStart, ReadCount)));
 
 		while (NextProcessor)
 		{
 			if (NextProcessor->StartStitch != PreviousProcessor) { bReverse = !bReverse; }
 
-			const int32 NumReads = NextProcessor->PointDataFacade->GetNum();
-			const PCGExMT::FScope ReadScope = NextProcessor->PointDataFacade->GetInScope(0, NumReads);
-			const PCGExMT::FScope WriteScope = NextProcessor->PointDataFacade->GetInScope(WriteIndex, NumReads);
-			WriteIndex += NumReads;
+			ReadStart = 0;
+			ReadCount = NextProcessor->PointDataFacade->GetNum();
 
-			PCGExPointIOMerger::FMergeScope& MergeScope = Merger->Append(NextProcessor->PointDataFacade->Source, ReadScope, WriteScope);
+			if (Settings->Method == EPCGExStitchMethod::Fuse)
+			{
+				ReadCount--;
+				if (Settings->FuseMethod == EPCGExStitchFuseMethod::KeepEnd) { ReadStart++; }
+			}
+
+			PCGExPointIOMerger::FMergeScope& MergeScope = Merger->Append(
+				NextProcessor->PointDataFacade->Source,
+				static_cast<PCGExMT::FScope>(NextProcessor->PointDataFacade->GetInScope(ReadStart, ReadCount)));
+
 			MergeScope.bReverse = bReverse;
 
 			TSharedPtr<FProcessor> OldPrev = PreviousProcessor;
@@ -157,6 +166,17 @@ namespace PCGExPathStitch
 		}
 
 		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails);
+
+		PCGExPaths::SetClosedLoop(PointDataFacade->GetOut(), bClosedLoop);
+	}
+
+	void FProcessor::Write()
+	{
+		if (!PointDataFacade->Source->IsForwarding())
+		{
+			// TODO : Stitch-Merge points (average etc)
+			PointDataFacade->WriteFastest(AsyncManager);
+		}
 	}
 
 	FBatch::FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)

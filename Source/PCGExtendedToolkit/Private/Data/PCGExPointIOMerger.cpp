@@ -59,6 +59,19 @@ PCGExPointIOMerger::FMergeScope& FPCGExPointIOMerger::Append(const TSharedPtr<PC
 	return Scope;
 }
 
+PCGExPointIOMerger::FMergeScope& FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExMT::FScope ReadScope)
+{
+	check(InData->GetNum() >= ReadScope.Count);
+	
+	const int32 NumPoints = ReadScope.Count;
+
+	if (NumPoints <= 0) { return NullScope; }
+
+	const PCGExMT::FScope WriteScope = PCGExMT::FScope(NumCompositePoints, NumPoints);
+
+	return Append(InData, ReadScope, WriteScope);
+}
+
 PCGExPointIOMerger::FMergeScope& FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData)
 {
 	const int32 NumPoints = InData->GetNum();

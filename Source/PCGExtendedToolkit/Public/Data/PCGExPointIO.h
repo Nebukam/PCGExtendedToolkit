@@ -317,6 +317,8 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		bool bAllowEmptyOutput = false;
 
+		FORCEINLINE bool IsForwarding() const { return Out && Out == In; }
+
 		explicit FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle):
 			ContextHandle(InContextHandle), In(nullptr)
 		{
@@ -472,7 +474,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		TArray<int32>& GetIdxMapping(const int32 NumElements = -1);
 		void ClearIdxMapping();
 		void ConsumeIdxMapping(const EPCGPointNativeProperties Properties, const bool bClear = true);
-		
+
 		// In -> Out
 		void InheritProperties(const int32 ReadStartIndex, const int32 WriteStartIndex, const int32 Count, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;
 		void InheritProperties(const TArrayView<const int32>& ReadIndices, const TArrayView<const int32>& WriteIndices, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All) const;

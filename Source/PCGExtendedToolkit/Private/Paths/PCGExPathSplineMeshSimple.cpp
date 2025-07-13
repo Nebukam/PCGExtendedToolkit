@@ -18,6 +18,7 @@ void UPCGExPathSplineMeshSimpleSettings::ApplyDeprecation(UPCGNode* InOutNode)
 	{
 		StaticMeshDescriptor.SplineMeshAxis = static_cast<EPCGExSplineMeshAxis>(SplineMeshAxisConstant_DEPRECATED);
 		SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::None;
+		MarkPackageDirty();
 	}
 
 	Super::ApplyDeprecation(InOutNode);

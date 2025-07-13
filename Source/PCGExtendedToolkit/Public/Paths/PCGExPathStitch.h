@@ -17,14 +17,22 @@ UENUM()
 enum class EPCGExStitchMethod : uint8
 {
 	Connect = 0 UMETA(DisplayName = "Connect", ToolTip="Connect existing point with a segment (preserve all input points)"),
-	Merge   = 1 UMETA(DisplayName = "Merge", ToolTip="Merge points that should be connected, only leaving a single one."),
+	Fuse   = 1 UMETA(DisplayName = "Fuse", ToolTip="Merge points that should be connected, only leaving a single one."),
 };
 
 UENUM()
-enum class EPCGExStitchMergeMethod : uint8
+enum class EPCGExStitchFuseMethod : uint8
 {
 	KeepStart = 0 UMETA(DisplayName = "Keep Start", ToolTip="Keep start point during the merge"),
 	KeepEnd   = 1 UMETA(DisplayName = "Keep End", ToolTip="Keep end point during the merge"),
+};
+
+UENUM()
+enum class EPCGExStitchFuseOperation : uint8
+{
+	None             = 0 UMETA(DisplayName = "None", ToolTip="Keep the chosen point as-is"),
+	Average          = 1 UMETA(DisplayName = "Average", ToolTip="Average connect point position"),
+	LineIntersection = 2 UMETA(DisplayName = "Line Intersection", ToolTip="Connection point position is at the line/line intersection"),
 };
 
 /**
@@ -59,8 +67,13 @@ public:
 	EPCGExStitchMethod Method = EPCGExStitchMethod::Connect;
 
 	/** Choose how paths are connected. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" ├─ Keep ", EditCondition="Method == EPCGExStitchMethod::Merge", EditConditionHides))
-	EPCGExStitchMergeMethod MergeMethod = EPCGExStitchMergeMethod::KeepStart;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Method", EditCondition="Method == EPCGExStitchMethod::Fuse"))
+	EPCGExStitchFuseMethod FuseMethod = EPCGExStitchFuseMethod::KeepStart;
+
+	/** Choose how paths are connected. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Operation", EditCondition="Method == EPCGExStitchMethod::Fuse"))
+	EPCGExStitchFuseOperation MergeOperation = EPCGExStitchFuseOperation::None;
+
 
 	/**  */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Average ", EditCondition="Method == EPCGExStitchMethod::Merge", EditConditionHides))
@@ -89,7 +102,6 @@ public:
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
 	FPCGExCarryOverDetails CarryOverDetails;
-	
 };
 
 struct FPCGExPathStitchContext final : FPCGExPathProcessorContext
@@ -98,7 +110,7 @@ struct FPCGExPathStitchContext final : FPCGExPathProcessorContext
 
 	TArray<FPCGTaggedData> Datas;
 	FPCGExStaticDotComparisonDetails DotComparisonDetails;
-	
+
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
@@ -117,7 +129,7 @@ namespace PCGExPathStitch
 	{
 	protected:
 		bool bSeedPath = false;
-		
+
 	public:
 		int32 WorkIndex = -1;
 
@@ -128,7 +140,7 @@ namespace PCGExPathStitch
 		TSharedPtr<FProcessor> EndStitch = nullptr;   // Which other processor is stitched to the end
 
 		TSharedPtr<FPCGExPointIOMerger> Merger;
-		
+
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)
 		{
@@ -140,10 +152,11 @@ namespace PCGExPathStitch
 		bool SetStartStitch(const TSharedPtr<FProcessor>& InStitch);
 		bool SetEndStitch(const TSharedPtr<FProcessor>& InStitch);
 
-		bool IsSeed() const {return bSeedPath;}
-		
+		bool IsSeed() const { return bSeedPath; }
+
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void CompleteWork() override;
+		virtual void Write() override;
 	};
 
 	class FBatch final : public PCGExPointsMT::TBatch<FProcessor>
