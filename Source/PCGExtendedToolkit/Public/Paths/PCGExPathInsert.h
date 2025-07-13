@@ -41,8 +41,32 @@ protected:
 
 public:
 	/** If enabled, inserted points will be snapped to the path. Otherwise, they retain their original location */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSnapToPath = false;
+
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bWithinRange = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bWithinRange"))
+	EPCGExInputValueType RangeInput = EPCGExInputValueType::Constant;
+
+	/** Max Count Attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Range (Attr)", EditCondition="bWithinRange && RangeInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FName RangeAttribute = FName("Range");
+
+	/** Max Count Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Range", EditCondition="bWithinRange && RangeInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	double Range = 100;
+
+	PCGEX_SETTING_VALUE_GET(Range, int32, RangeInput, RangeAttribute, Range)
+
+
+	/** Meta filter settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	FPCGExCarryOverDetails CarryOverDetails;
 };
 
 struct FPCGExPathInsertContext final : FPCGExPathProcessorContext
@@ -76,6 +100,7 @@ namespace PCGExPathInsert
 
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeGetter;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)

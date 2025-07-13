@@ -12,9 +12,7 @@
 TArray<FPCGPinProperties> UPCGExPathStitchSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExPaths::SourceCanCutFilters, "Fiter which edges can 'cut' other edges. Leave empty so all edges are can cut other edges.", Normal, {})
-	PCGEX_PIN_FACTORIES(PCGExPaths::SourceCanBeCutFilters, "Fiter which edges can be 'cut' by other edges. Leave empty so all edges are can cut other edges.", Normal, {})
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExDataBlending::SourceOverridesBlendingOps)
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeSortingRules, "Sort-in-place to order the data if needed", Normal, {})
 	return PinProperties;
 }
 
@@ -47,7 +45,7 @@ bool FPCGExPathStitchElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs are either closed loop or have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathStitch::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints<PCGExPathStitch::FBatch>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2 || PCGExPaths::GetClosedLoop(Entry->GetIn()))
@@ -60,7 +58,7 @@ bool FPCGExPathStitchElement::ExecuteInternal(FPCGContext* InContext) const
 				Context->Datas.Add(FPCGTaggedData(Entry->GetIn(), Entry->Tags->Flatten(), NAME_None));
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathStitch::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPathStitch::FBatch>& NewBatch)
 			{
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 				NewBatch->bRequiresWriteStep = true;
@@ -128,7 +126,7 @@ namespace PCGExPathStitch
 		bool bClosedLoop = false;
 
 		int32 ReadStart = 0;
-		int32 ReadCount = NextProcessor->PointDataFacade->GetNum();
+		int32 ReadCount = Start->PointDataFacade->GetNum();
 
 		Merger->Append(
 			PreviousProcessor->PointDataFacade->Source,
@@ -188,6 +186,8 @@ namespace PCGExPathStitch
 	void FBatch::OnInitialPostProcess()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathStitch);
+
+		UE_LOG(LogTemp, Warning, TEXT("PathStitch OnInitialPostProcess"));
 
 		TBatch<FProcessor>::OnInitialPostProcess();
 
@@ -253,7 +253,8 @@ namespace PCGExPathStitch
 						const TSharedPtr<FProcessor>& OtherProcessor = Processors[Item.Index];
 
 						// Ignore anterior working paths
-						if (OtherProcessor->WorkIndex < Current->WorkIndex) { return true; }
+						if (OtherProcessor->WorkIndex == Current->WorkIndex ||
+							OtherProcessor->WorkIndex < Current->WorkIndex) { return true; }
 
 						bool bStitched = false;
 						if (CanStitch(CurrentSegment, Current->StartSegment) && OtherProcessor->SetStartStitch(Current)) { bStitched = true; }
@@ -280,7 +281,8 @@ namespace PCGExPathStitch
 						const TSharedPtr<FProcessor>& OtherProcessor = Processors[Item.Index];
 
 						// Ignore anterior working paths
-						if (OtherProcessor->WorkIndex < Current->WorkIndex) { return true; }
+						if (OtherProcessor->WorkIndex == Current->WorkIndex ||
+							OtherProcessor->WorkIndex < Current->WorkIndex) { return true; }
 
 						bool bStitched = false;
 						if (CanStitch(CurrentSegment, Current->EndSegment) && OtherProcessor->SetEndStitch(Current)) { bStitched = true; }
