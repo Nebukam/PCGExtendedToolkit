@@ -77,9 +77,14 @@ bool FPCGExPathStitchElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExPathStitch
 {
-	bool FProcessor::IsStitchedTo(const TSharedPtr<FProcessor>& InOtherProcessor) const
+	bool FProcessor::IsStitchedTo(const TSharedPtr<FProcessor>& InOtherProcessor)
 	{
-		return StartStitch == InOtherProcessor || EndStitch == InOtherProcessor;
+		const TSharedPtr<FProcessor> Self = SharedThis(this);
+		return
+			StartStitch == InOtherProcessor ||
+			EndStitch == InOtherProcessor ||
+			InOtherProcessor->StartStitch == Self ||
+			InOtherProcessor->EndStitch == Self;
 	}
 
 	bool FProcessor::SetStartStitch(const TSharedPtr<FProcessor>& InStitch)
@@ -92,7 +97,6 @@ namespace PCGExPathStitch
 	bool FProcessor::SetEndStitch(const TSharedPtr<FProcessor>& InStitch)
 	{
 		if (EndStitch) { return false; }
-		bSeedPath = WorkIndex < InStitch->WorkIndex && StartStitch == nullptr && !InStitch->IsSeed(); // Seed path if start is set while there's no end
 		EndStitch = InStitch;
 		return true;
 	}
@@ -106,55 +110,43 @@ namespace PCGExPathStitch
 		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
 		const TConstPCGValueRange<FTransform> InTransform = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
+		const FVector Extents = FVector::OneVector * 0.5;
+
 		StartSegment = PCGExMath::FSegment(InTransform[1].GetLocation(), InTransform[0].GetLocation(), Settings->Tolerance);
+		StartBounds = FBox(StartSegment.B + Extents * -Settings->Tolerance, StartSegment.B + Extents * Settings->Tolerance);
+
 		EndSegment = PCGExMath::FSegment(InTransform[InTransform.Num() - 2].GetLocation(), InTransform[InTransform.Num() - 1].GetLocation(), Settings->Tolerance);
+		EndBounds = FBox(EndSegment.B + Extents * -Settings->Tolerance, EndSegment.B + Extents * Settings->Tolerance);
 
 		return true;
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		if (!IsSeed())
+		if (!EndStitch && !StartStitch)
 		{
-			// If not stitched to anything, just forward the path as-is
-			if (!EndStitch && !StartStitch) { PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward); }
+			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward);
 			return;
 		}
 
-		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New);
-		Merger = MakeShared<FPCGExPointIOMerger>(PointDataFacade);
+		if (EndStitch && StartStitch)
+		{
+			// Mid-path, will be merged
+			return;
+		}
+
+		bool bClosedLoop = false;
 
 		TSharedPtr<FProcessor> Start = SharedThis(this);
 		TSharedPtr<FProcessor> PreviousProcessor = Start;
-		TSharedPtr<FProcessor> NextProcessor = EndStitch;
-		bool bReverse = false;
-		bool bClosedLoop = false;
+		TSharedPtr<FProcessor> NextProcessor = EndStitch ? EndStitch : StartStitch;
 
-		int32 ReadStart = 0;
-		int32 ReadCount = Start->PointDataFacade->GetNum();
-
-		Merger->Append(
-			PreviousProcessor->PointDataFacade->Source,
-			static_cast<PCGExMT::FScope>(NextProcessor->PointDataFacade->GetInScope(ReadStart, ReadCount)));
+		TArray<TSharedPtr<FProcessor>> Chain;
+		Chain.Add(Start);
 
 		while (NextProcessor)
 		{
-			if (NextProcessor->StartStitch != PreviousProcessor) { bReverse = !bReverse; }
-
-			ReadStart = 0;
-			ReadCount = NextProcessor->PointDataFacade->GetNum();
-
-			if (Settings->Method == EPCGExStitchMethod::Fuse)
-			{
-				ReadCount--;
-				if (Settings->FuseMethod == EPCGExStitchFuseMethod::KeepEnd) { ReadStart++; }
-			}
-
-			PCGExPointIOMerger::FMergeScope& MergeScope = Merger->Append(
-				NextProcessor->PointDataFacade->Source,
-				static_cast<PCGExMT::FScope>(NextProcessor->PointDataFacade->GetInScope(ReadStart, ReadCount)));
-
-			MergeScope.bReverse = bReverse;
+			Chain.Add(NextProcessor);
 
 			TSharedPtr<FProcessor> OldPrev = PreviousProcessor;
 			PreviousProcessor = NextProcessor;
@@ -166,6 +158,58 @@ namespace PCGExPathStitch
 				bClosedLoop = true;
 				NextProcessor = nullptr;
 			}
+		}
+
+		// Other work index is smaller, will do the resolve.
+		if (Chain.Last()->WorkIndex < WorkIndex) { return; }
+
+		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New);
+		Merger = MakeShared<FPCGExPointIOMerger>(PointDataFacade);
+
+		for (int i = 0; i < Chain.Num(); ++i)
+		{
+			const TSharedPtr<FProcessor> Current = Chain[i];
+			const TSharedPtr<FProcessor> Previous = i == 0 ? nullptr : Chain[i - 1];
+
+			int32 ReadStart = 0;
+			int32 ReadCount = Current->PointDataFacade->GetNum();
+			const bool bIsLast = i == Chain.Num() - 1;
+
+			if (Settings->Method == EPCGExStitchMethod::Fuse && bIsLast)
+			{
+				ReadCount--;
+				if (Settings->FuseMethod == EPCGExStitchFuseMethod::KeepEnd) { ReadStart++; }
+			}
+
+			PCGExPointIOMerger::FMergeScope& MergeScope = Merger->Append(
+				Current->PointDataFacade->Source,
+				static_cast<PCGExMT::FScope>(Current->PointDataFacade->GetInScope(ReadStart, ReadCount)));
+
+			if (i == 0)
+			{
+				// If first chain element is connected by its start, needs to be reversed
+				MergeScope.bReverse = Current->StartStitch != nullptr;
+			}
+			else if (bIsLast)
+			{
+				// If last chain element is connected by its ends, needs to be reversed
+				MergeScope.bReverse = Current->EndStitch != nullptr;
+			}
+			else
+			{
+				if (Current->EndStitch == Current)
+				{
+					//
+				}
+				else
+				{
+					//
+				}
+				
+				MergeScope.bReverse = Current->StartStitch == Previous->EndStitch ? bStartedInReverse : !bStartedInReverse;
+			}
+
+			bReversing = MergeScope.bReverse;
 		}
 
 		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails);
@@ -203,12 +247,11 @@ namespace PCGExPathStitch
 		for (const TSharedRef<FProcessor>& Processor : this->Processors)
 		{
 			SortedProcessors.Add(Processor);
-			OctreeBounds += Processor->StartSegment.Bounds;
-			OctreeBounds += Processor->EndSegment.Bounds;
+			OctreeBounds += Processor->StartBounds;
+			OctreeBounds += Processor->EndBounds;
 		}
 
 		// Attempt to sort -- if it fails it's ok, just throw a warning
-
 		TArray<FPCGExSortRuleConfig> RuleConfigs = PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules);
 		if (!RuleConfigs.IsEmpty())
 		{
@@ -235,104 +278,116 @@ namespace PCGExPathStitch
 		{
 			const TSharedPtr<FProcessor> Processor = SortedProcessors[i];
 			Processor->WorkIndex = i;
-			PathOctree->AddElement(PCGEx::FIndexedItem(Processor->BatchIndex, Processor->StartSegment.Bounds));
-			PathOctree->AddElement(PCGEx::FIndexedItem(Processor->BatchIndex, Processor->EndSegment.Bounds));
+
+			// -1 <------> +1
+			PathOctree->AddElement(PCGEx::FIndexedItem((Processor->BatchIndex + 1) * -1, Processor->StartBounds));
+			PathOctree->AddElement(PCGEx::FIndexedItem((Processor->BatchIndex + 1), Processor->EndBounds));
 		}
 
+		double BestDist = MAX_dbl;
+
 		// ---A---x x---B---
-		auto CanStitch = [&](const PCGExMath::FSegment& A, const PCGExMath::FSegment& B, double& OutBestDistance)
+		auto CanStitch = [&](const PCGExMath::FSegment& A, const PCGExMath::FSegment& B)
 		{
 			const double Dist = FVector::Dist(A.B, B.B);
-			if (Dist > OutBestDistance || Dist > Settings->Tolerance) { return false; }
-			if (Settings->bDoRequireAlignment && !Context->DotComparisonDetails.Test(FVector::DotProduct(A.Direction, B.Direction * -1))) { return false; }
-			OutBestDistance = Dist;
+			if (Dist > BestDist || Dist > Settings->Tolerance) { return false; }
+			//if (Settings->bDoRequireAlignment && !Context->DotComparisonDetails.Test(FVector::DotProduct(A.Direction, B.Direction * -1))) { return false; }
+
+			BestDist = Dist;
 			return true;
 		};
+
+		TSet<int32> ConnectedWorkIndices;
 
 		// Resolve stitching
 		for (int i = 0; i < SortedProcessors.Num(); ++i)
 		{
-			double BestDist = MAX_dbl;
 			TSharedPtr<FProcessor> Current = SortedProcessors[i];
+
 			if (!Current->IsAvailableForStitching()) { continue; }
 
 			TSharedPtr<FProcessor> BestCandidate = nullptr;
 
-			int8 BestPole = -1;
-			int8 CurrentPole = -1;
+			BestDist = MAX_dbl;
+			bool bIsCurrentEnd = true;
+			bool bIsBestCandidateEnd = false;
 
 			// Find candidates that could connect to this path' end first
 			if (!Current->EndStitch)
 			{
 				const PCGExMath::FSegment& CurrentSegment = Current->EndSegment;
-				PathOctree->FindElementsWithBoundsTest(
-					CurrentSegment.Bounds, [&](const PCGEx::FIndexedItem& Item)
-					{
-						const TSharedPtr<FProcessor>& Other = Processors[Item.Index];
 
-						// Ignore anterior working paths & self
-						if (Other->WorkIndex == Current->WorkIndex ||
-							Other->WorkIndex < Current->WorkIndex ||
+				PathOctree->FindElementsWithBoundsTest(
+					Current->EndBounds, [&](const PCGEx::FIndexedItem& Item)
+					{
+						const bool bIsOtherEnd = Item.Index > 0;
+						const int32 Index = FMath::Abs(Item.Index) - 1;
+
+						if (Settings->bOnlyMatchStartAndEnds && bIsOtherEnd) { return; }
+
+						const TSharedPtr<FProcessor>& Other = Processors[Index];
+						const TSharedPtr<FProcessor>& StitchPole = bIsOtherEnd ? Other->EndStitch : Other->StartStitch;
+
+						if (StitchPole ||
+							Other->WorkIndex == Current->WorkIndex ||
 							Other->IsStitchedTo(Current)) { return; }
 
-						if (!Other->StartStitch &&
-							CanStitch(CurrentSegment, Other->StartSegment, BestDist))
+						if (CanStitch(CurrentSegment, bIsOtherEnd ? Other->EndSegment : Other->StartSegment))
 						{
 							BestCandidate = Other;
-							BestPole = 0;
-						}
-						else if (!Settings->bOnlyMatchStartAndEnds &&
-							!Other->EndStitch &&
-							CanStitch(CurrentSegment, Other->EndSegment, BestDist))
-						{
-							BestCandidate = Other;
-							BestPole = 1;
+							bIsBestCandidateEnd = bIsOtherEnd;
 						}
 					});
-
-				if (BestPole != -1) { CurrentPole = 1; }
 			}
 
 			if (!BestCandidate && !Current->StartStitch)
 			{
+				// Look for other paths that may be connecting with this segment' start
+
 				const PCGExMath::FSegment& CurrentSegment = Current->StartSegment;
 				PathOctree->FindElementsWithBoundsTest(
-					CurrentSegment.Bounds, [&](const PCGEx::FIndexedItem& Item)
+					Current->StartBounds, [&](const PCGEx::FIndexedItem& Item)
 					{
-						const TSharedPtr<FProcessor>& Other = Processors[Item.Index];
+						const bool bIsOtherStart = Item.Index < 0;
+						const int32 Index = FMath::Abs(Item.Index) - 1;
 
-						// Ignore anterior working paths & self
-						if (Other->WorkIndex == Current->WorkIndex ||
-							Other->WorkIndex < Current->WorkIndex ||
+						if (Settings->bOnlyMatchStartAndEnds && bIsOtherStart) { return; }
+
+						const TSharedPtr<FProcessor>& Other = Processors[Index];
+						const TSharedPtr<FProcessor>& StitchPole = bIsOtherStart ? Other->StartStitch : Other->EndStitch;
+
+						if (StitchPole ||
+							Other->WorkIndex == Current->WorkIndex ||
 							Other->IsStitchedTo(Current)) { return; }
 
-						if (!Other->EndStitch &&
-							CanStitch(CurrentSegment, Other->EndSegment, BestDist))
+						if (CanStitch(CurrentSegment, bIsOtherStart ? Other->StartSegment : Other->EndSegment))
 						{
 							BestCandidate = Other;
-							BestPole = 1;
-						}
-						else if (!Settings->bOnlyMatchStartAndEnds &&
-							!Other->StartStitch &&
-							CanStitch(CurrentSegment, Other->StartSegment, BestDist))
-						{
-							BestCandidate = Other;
-							BestPole = 0;
+							bIsBestCandidateEnd = !bIsOtherStart;
 						}
 					});
 
-				if (BestPole != -1) { CurrentPole = 0; }
+				bIsCurrentEnd = BestCandidate != nullptr;
 			}
 
 			if (BestCandidate)
 			{
-				if (BestPole == 0) { BestCandidate->SetStartStitch(Current); }
-				else { BestCandidate->SetEndStitch(Current); }
+				bool bSuccess = false;
 
-				if (CurrentPole == 0) { Current->SetStartStitch(BestCandidate); }
-				else { Current->SetEndStitch(BestCandidate); }
+				ConnectedWorkIndices.Add(Current->WorkIndex);
+				ConnectedWorkIndices.Add(BestCandidate->WorkIndex);
+
+				if (bIsBestCandidateEnd) { bSuccess = BestCandidate->SetEndStitch(Current); }
+				else { bSuccess = BestCandidate->SetStartStitch(Current); }
+
+				check(bSuccess)
+
+				if (bIsCurrentEnd) { Current->SetEndStitch(BestCandidate); }
+				else { Current->SetStartStitch(BestCandidate); }
 			}
 		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Done"))
 	}
 }
 

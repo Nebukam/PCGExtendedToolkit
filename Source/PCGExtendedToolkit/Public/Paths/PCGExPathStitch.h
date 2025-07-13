@@ -127,14 +127,14 @@ namespace PCGExPathStitch
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathStitchContext, UPCGExPathStitchSettings>
 	{
-	protected:
-		bool bSeedPath = false;
-
 	public:
 		int32 WorkIndex = -1;
 
-		PCGExMath::FSegment StartSegment; // A---B---...
+		PCGExMath::FSegment StartSegment; // B---A---...
+		FBox StartBounds = FBox(ForceInit);
+		
 		PCGExMath::FSegment EndSegment;   // ...---A---B
+		FBox EndBounds = FBox(ForceInit); 
 
 		TSharedPtr<FProcessor> StartStitch = nullptr; // Which other processor is stitched to the start
 		TSharedPtr<FProcessor> EndStitch = nullptr;   // Which other processor is stitched to the end
@@ -149,12 +149,10 @@ namespace PCGExPathStitch
 		virtual bool IsTrivial() const override { return true; }
 		bool IsAvailableForStitching() const { return !StartStitch || !EndStitch; }
 
-		bool IsStitchedTo(const TSharedPtr<FProcessor>& InOtherProcessor) const;
+		bool IsStitchedTo(const TSharedPtr<FProcessor>& InOtherProcessor);
 		bool SetStartStitch(const TSharedPtr<FProcessor>& InStitch);
 		bool SetEndStitch(const TSharedPtr<FProcessor>& InStitch);
-
-		bool IsSeed() const { return bSeedPath; }
-
+		
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
