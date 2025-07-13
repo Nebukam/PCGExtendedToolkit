@@ -178,6 +178,23 @@ namespace PCGExWriteEdgeProperties
 		TPCGValueRange<FVector> BoundsMin = bSolidify ? EdgeDataFacade->GetOut()->GetBoundsMinValueRange(false) : TPCGValueRange<FVector>();
 		TPCGValueRange<FVector> BoundsMax = bSolidify ? EdgeDataFacade->GetOut()->GetBoundsMaxValueRange(false) : TPCGValueRange<FVector>();
 
+
+		using FBlendEdge = std::function<void (const PCGExGraph::FEdge&, const double)>;
+
+		FBlendEdge BlendEdge = [&](const PCGExGraph::FEdge& Edge, const double InWeight)
+		{
+			DataBlender->Blend(Edge.Start, Edge.End, Edge.PointIndex, InWeight);
+		};
+
+		if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
+		{
+			BlendEdge = [&](const PCGExGraph::FEdge& Edge, const double InWeight)
+			{
+				DataBlender->Blend(Edge.Start, Edge.PointIndex, 1 - InWeight);
+				DataBlender->Blend(Edge.End, Edge.PointIndex, InWeight);
+			};
+		}
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExGraph::FEdge& Edge = ClusterEdges[Index];
@@ -267,17 +284,16 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 				BoundsMin[EdgeIndex] = TargetBoundsMin;
 				BoundsMax[EdgeIndex] = TargetBoundsMax;
 
-				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, BlendWeightEnd);
+				BlendEdge(Edge, BlendWeightEnd);
 			}
 			else if (Settings->bWriteEdgePosition)
 			{
 				Transforms[EdgeIndex].SetLocation(FMath::Lerp(B, A, Settings->EdgePositionLerp));
-
-				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp);
+				BlendEdge(Edge, Settings->EdgePositionLerp);
 			}
 			else
 			{
-				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp);
+				BlendEdge(Edge, Settings->EdgePositionLerp);
 			}
 		}
 	}

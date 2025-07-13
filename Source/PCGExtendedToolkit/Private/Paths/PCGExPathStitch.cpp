@@ -175,7 +175,7 @@ namespace PCGExPathStitch
 			int32 ReadCount = Current->PointDataFacade->GetNum();
 			const bool bIsLast = i == Chain.Num() - 1;
 
-			if (Settings->Method == EPCGExStitchMethod::Fuse && bIsLast)
+			if (Settings->Method == EPCGExStitchMethod::Fuse && !bIsLast)
 			{
 				ReadCount--;
 				if (Settings->FuseMethod == EPCGExStitchFuseMethod::KeepEnd) { ReadStart++; }
