@@ -185,31 +185,7 @@ namespace PCGExPathStitch
 				Current->PointDataFacade->Source,
 				static_cast<PCGExMT::FScope>(Current->PointDataFacade->GetInScope(ReadStart, ReadCount)));
 
-			if (i == 0)
-			{
-				// If first chain element is connected by its start, needs to be reversed
-				MergeScope.bReverse = Current->StartStitch != nullptr;
-			}
-			else if (bIsLast)
-			{
-				// If last chain element is connected by its ends, needs to be reversed
-				MergeScope.bReverse = Current->EndStitch != nullptr;
-			}
-			else
-			{
-				if (Current->EndStitch == Current)
-				{
-					//
-				}
-				else
-				{
-					//
-				}
-				
-				MergeScope.bReverse = Current->StartStitch == Previous->EndStitch ? bStartedInReverse : !bStartedInReverse;
-			}
-
-			bReversing = MergeScope.bReverse;
+			MergeScope.bReverse = Current->StartStitch != Previous;
 		}
 
 		Merger->MergeAsync(AsyncManager, &Context->CarryOverDetails);
