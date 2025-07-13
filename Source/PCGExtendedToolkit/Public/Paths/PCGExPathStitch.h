@@ -149,6 +149,7 @@ namespace PCGExPathStitch
 		virtual bool IsTrivial() const override { return true; }
 		bool IsAvailableForStitching() const { return !StartStitch || !EndStitch; }
 
+		bool IsStitchedTo(const TSharedPtr<FProcessor>& InOtherProcessor) const;
 		bool SetStartStitch(const TSharedPtr<FProcessor>& InStitch);
 		bool SetEndStitch(const TSharedPtr<FProcessor>& InStitch);
 

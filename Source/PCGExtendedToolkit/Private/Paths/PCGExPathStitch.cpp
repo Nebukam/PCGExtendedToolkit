@@ -77,6 +77,11 @@ bool FPCGExPathStitchElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExPathStitch
 {
+	bool FProcessor::IsStitchedTo(const TSharedPtr<FProcessor>& InOtherProcessor) const
+	{
+		return StartStitch == InOtherProcessor || EndStitch == InOtherProcessor;
+	}
+
 	bool FProcessor::SetStartStitch(const TSharedPtr<FProcessor>& InStitch)
 	{
 		if (StartStitch) { return false; }
@@ -228,74 +233,97 @@ namespace PCGExPathStitch
 		}
 
 		// ---A---x x---B---
-		auto CanStitch = [&](const PCGExMath::FSegment& A, const PCGExMath::FSegment& B)
+		auto CanStitch = [&](const PCGExMath::FSegment& A, const PCGExMath::FSegment& B, double& OutBestDistance)
 		{
-			if (FVector::Dist(A.B, B.B) > Settings->Tolerance) { return false; }
+			const double Dist = FVector::Dist(A.B, B.B);
+			if (Dist > OutBestDistance || Dist > Settings->Tolerance) { return false; }
 			if (Settings->bDoRequireAlignment && !Context->DotComparisonDetails.Test(FVector::DotProduct(A.Direction, B.Direction * -1))) { return false; }
+			OutBestDistance = Dist;
 			return true;
 		};
 
 		// Resolve stitching
 		for (int i = 0; i < SortedProcessors.Num(); ++i)
 		{
+			double BestDist = MAX_dbl;
 			TSharedPtr<FProcessor> Current = SortedProcessors[i];
 			if (!Current->IsAvailableForStitching()) { continue; }
+
+			TSharedPtr<FProcessor> BestCandidate = nullptr;
+
+			int8 BestPole = -1;
+			int8 CurrentPole = -1;
 
 			// Find candidates that could connect to this path' end first
 			if (!Current->EndStitch)
 			{
 				const PCGExMath::FSegment& CurrentSegment = Current->EndSegment;
-				PathOctree->FindFirstElementWithBoundsTest(
+				PathOctree->FindElementsWithBoundsTest(
 					CurrentSegment.Bounds, [&](const PCGEx::FIndexedItem& Item)
 					{
-						if (Current->EndStitch) { return false; }
-
 						const TSharedPtr<FProcessor>& OtherProcessor = Processors[Item.Index];
 
-						// Ignore anterior working paths
+						// Ignore anterior working paths & self
 						if (OtherProcessor->WorkIndex == Current->WorkIndex ||
-							OtherProcessor->WorkIndex < Current->WorkIndex) { return true; }
+							OtherProcessor->WorkIndex < Current->WorkIndex ||
+							OtherProcessor->IsStitchedTo(Current)) { return; }
 
-						bool bStitched = false;
-						if (CanStitch(CurrentSegment, Current->StartSegment) && OtherProcessor->SetStartStitch(Current)) { bStitched = true; }
-						else if (!Settings->bOnlyMatchStartAndEnds && CanStitch(CurrentSegment, Current->EndSegment) && OtherProcessor->SetEndStitch(Current)) { bStitched = true; }
-
-						if (bStitched)
+						if (!OtherProcessor->StartStitch &&
+							CanStitch(CurrentSegment, OtherProcessor->StartSegment, BestDist))
 						{
-							bStitched = Current->SetEndStitch(OtherProcessor);
-							check(bStitched);
+							BestCandidate = OtherProcessor;
+							BestPole = 0;
 						}
-
-						return !bStitched;
+						else if (!Settings->bOnlyMatchStartAndEnds &&
+							!OtherProcessor->EndStitch &&
+							CanStitch(CurrentSegment, OtherProcessor->EndSegment, BestDist))
+						{
+							BestCandidate = OtherProcessor;
+							BestPole = 1;
+						}
 					});
+
+				if (BestPole != -1) { CurrentPole = 1; }
 			}
 
-			if (!Current->StartStitch)
+			if (!BestCandidate && !Current->StartStitch)
 			{
 				const PCGExMath::FSegment& CurrentSegment = Current->StartSegment;
-				PathOctree->FindFirstElementWithBoundsTest(
+				PathOctree->FindElementsWithBoundsTest(
 					CurrentSegment.Bounds, [&](const PCGEx::FIndexedItem& Item)
 					{
-						if (Current->StartStitch) { return false; }
-
 						const TSharedPtr<FProcessor>& OtherProcessor = Processors[Item.Index];
 
-						// Ignore anterior working paths
+						// Ignore anterior working paths & self
 						if (OtherProcessor->WorkIndex == Current->WorkIndex ||
-							OtherProcessor->WorkIndex < Current->WorkIndex) { return true; }
+							OtherProcessor->WorkIndex < Current->WorkIndex ||
+							OtherProcessor->IsStitchedTo(Current)) { return; }
 
-						bool bStitched = false;
-						if (CanStitch(CurrentSegment, Current->EndSegment) && OtherProcessor->SetEndStitch(Current)) { bStitched = true; }
-						else if (!Settings->bOnlyMatchStartAndEnds && CanStitch(CurrentSegment, Current->EndSegment) && OtherProcessor->SetStartStitch(Current)) { bStitched = true; }
-
-						if (bStitched)
+						if (!OtherProcessor->EndStitch &&
+							CanStitch(CurrentSegment, OtherProcessor->EndSegment, BestDist))
 						{
-							bStitched = Current->SetStartStitch(OtherProcessor);
-							check(bStitched);
+							BestCandidate = OtherProcessor;
+							BestPole = 1;
 						}
-
-						return !bStitched;
+						else if (!Settings->bOnlyMatchStartAndEnds &&
+							!OtherProcessor->StartStitch &&
+							CanStitch(CurrentSegment, OtherProcessor->StartSegment, BestDist))
+						{
+							BestCandidate = OtherProcessor;
+							BestPole = 0;
+						}
 					});
+
+				if (BestPole != -1) { CurrentPole = 0; }
+			}
+
+			if (BestCandidate)
+			{
+				if (BestPole == 0) { BestCandidate->SetStartStitch(Current); }
+				else { BestCandidate->SetEndStitch(Current); }
+
+				if (CurrentPole == 0) { Current->SetStartStitch(BestCandidate); }
+				else { Current->SetEndStitch(BestCandidate); }
 			}
 		}
 	}
