@@ -192,7 +192,7 @@ namespace PCGExCreateSpline
 
 		FPCGTaggedData& StagedData = Context->StageOutput(SplineData, true, false);
 		StagedData.Pin = Settings->GetMainOutputPin();
-		StagedData.Tags.Append(PointDataFacade->Source->Tags->Flatten());
+		PointDataFacade->Source->Tags->DumpTo(StagedData.Tags);
 
 		// Output spline component
 		if (Settings->Mode != EPCGCreateSplineMode::CreateDataOnly)

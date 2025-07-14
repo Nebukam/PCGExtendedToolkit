@@ -55,7 +55,9 @@ bool FPCGExPathStitchElement::ExecuteInternal(FPCGContext* InContext) const
 					return false;
 				}
 
-				Context->Datas.Add(FPCGTaggedData(Entry->GetIn(), Entry->Tags->Flatten(), NAME_None));
+				FPCGTaggedData& D = Context->Datas.Emplace_GetRef();
+				D.Data = Entry->GetIn();
+				Entry->Tags->DumpTo(D.Tags);
 				return true;
 			},
 			[&](const TSharedPtr<PCGExPathStitch::FBatch>& NewBatch)

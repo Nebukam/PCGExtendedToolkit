@@ -718,7 +718,7 @@ namespace PCGExData
 
 				FPCGTaggedData& StagedData = TargetContext->StageOutput(MutableData, false, false);
 				StagedData.Pin = OutputPin;
-				StagedData.Tags.Append(Tags->Flatten());
+				Tags->DumpTo(StagedData.Tags);
 				StagedData.bPinlessData = bPinless;
 
 				return true;
