@@ -108,7 +108,7 @@ namespace PCGExPointIOMerger
 					PCGEx::InitArray(ReadData, Scope.Write.Count);
 
 					InAccessor->GetRange<T>(ReadData, Scope.Read.Start, *SourceIO->GetInKeys());
-					for (int i = 0; i < Scope.Read.End; i++) { InRange[i] = ReadData.Last(i); }
+					for (int i = 0; i < Scope.Read.Count; i++) { InRange[i] = ReadData.Last(i); }
 				}
 				else
 				{

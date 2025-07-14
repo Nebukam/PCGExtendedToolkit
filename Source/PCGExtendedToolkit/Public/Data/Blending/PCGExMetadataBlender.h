@@ -21,7 +21,7 @@ namespace PCGExDataBlending
 		FMetadataBlender() = default;
 		virtual ~FMetadataBlender() override = default;
 
-		void SetSourceData(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In);
+		void SetSourceData(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSourceSide = PCGExData::EIOSide::In, bool bUseAsSecondarySource = false);
 		void SetTargetData(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
 		bool Init(FPCGExContext* InContext, const FPCGExBlendingDetails& InBlendingDetails, const TSet<FName>* IgnoreAttributeSet = nullptr, const bool bWantsDirectAccess = false, const PCGExData::EIOSide BSide = PCGExData::EIOSide::Out);
@@ -38,6 +38,8 @@ namespace PCGExDataBlending
 		const TArray<FPCGAttributeIdentifier>& GetAttributeIdentifiers() const { return AttributeIdentifiers; }
 
 	protected:
+		bool bUseTargetAsSecondarySource = true;
+		
 		TWeakPtr<PCGExData::FFacade> SourceFacadeHandle;
 		PCGExData::EIOSide SourceSide = PCGExData::EIOSide::In;
 		TArray<FPCGAttributeIdentifier> AttributeIdentifiers;

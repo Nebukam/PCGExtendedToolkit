@@ -10,10 +10,11 @@
 
 namespace PCGExDataBlending
 {
-	void FMetadataBlender::SetSourceData(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSide)
+	void FMetadataBlender::SetSourceData(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const PCGExData::EIOSide InSide, const bool bUseAsSecondarySource)
 	{
 		SourceFacadeHandle = InDataFacade;
 		SourceSide = InSide;
+		bUseTargetAsSecondarySource = !bUseAsSecondarySource;
 	}
 
 	void FMetadataBlender::SetTargetData(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
@@ -41,7 +42,7 @@ namespace PCGExDataBlending
 			// Setup a single blender per A/B pair
 
 			PCGExData::FProxyDescriptor A = PCGExData::FProxyDescriptor(SourceFacade, PCGExData::EProxyRole::Read);
-			PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(TargetFacade, PCGExData::EProxyRole::Read);
+			PCGExData::FProxyDescriptor B = PCGExData::FProxyDescriptor(bUseTargetAsSecondarySource ? TargetFacade : SourceFacade, PCGExData::EProxyRole::Read);
 
 			if (!A.Capture(InContext, Param.Selector, SourceSide)) { return false; }
 
@@ -51,9 +52,12 @@ namespace PCGExDataBlending
 				// Simply copy A
 				B = A;
 
-				// Swap B side for Out so the buffer will be initialized
-				B.Side = PCGExData::EIOSide::Out;
-				B.DataFacade = TargetFacade;
+				if (bUseTargetAsSecondarySource)
+				{
+					// Swap B side for Out so the buffer will be initialized
+					B.Side = PCGExData::EIOSide::Out;
+					B.DataFacade = TargetFacade;
+				}
 			}
 			else
 			{
@@ -62,6 +66,7 @@ namespace PCGExDataBlending
 			}
 
 			PCGExData::FProxyDescriptor C = B;
+			C.DataFacade = TargetFacade;
 			C.Side = PCGExData::EIOSide::Out;
 			C.Role = PCGExData::EProxyRole::Write;
 

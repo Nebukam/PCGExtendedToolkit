@@ -146,7 +146,7 @@ namespace PCGExWriteEdgeProperties
 			{
 				MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
 				MetadataBlender->SetTargetData(EdgeDataFacade);
-				MetadataBlender->SetSourceData(VtxDataFacade);
+				MetadataBlender->SetSourceData(VtxDataFacade, PCGExData::EIOSide::In, true);
 
 				if (!MetadataBlender->Init(Context, Settings->BlendingSettings))
 				{
@@ -187,6 +187,7 @@ namespace PCGExWriteEdgeProperties
 			DataBlender->Blend(Edge.Start, Edge.End, Edge.PointIndex, InWeight);
 		};
 
+		/*
 		if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
 		{
 			DataBlender->InitTrackers(Trackers);
@@ -199,6 +200,7 @@ namespace PCGExWriteEdgeProperties
 				DataBlender->EndMultiBlend(Edge.PointIndex, Trackers);
 			};
 		}
+		*/
 
 		PCGEX_SCOPE_LOOP(Index)
 		{

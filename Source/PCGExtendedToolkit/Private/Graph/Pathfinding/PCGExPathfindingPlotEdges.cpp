@@ -65,8 +65,8 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	IndicesBuffer.Reserve(MaxQueryNumPoints);
 
 	// Create easy-to-track scopes for indices
-	PCGEx::FRWScope PlotScope(ValidPlotIndex + 2, false);
-	PCGEx::FRWScope ClusterScope(NumPoints, false);
+	PCGEx::FReadWriteScope PlotScope(ValidPlotIndex + 2, false);
+	PCGEx::FReadWriteScope ClusterScope(NumPoints, false);
 
 	int32 WriteIndex = 0;
 
@@ -124,6 +124,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	else if (Settings->PathComposition == EPCGExPathComposition::VtxAndEdges)
 	{
 		// TODO : Implement
+		return;
 	}
 
 	if (!Settings->PathOutputDetails.Validate(WriteIndex)) { return; }
@@ -137,7 +138,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	PCGEx::SetNumPointsAllocated(PathIO->GetOut(), ClusterScope.Num() + PlotScope.Num(), PathIO->GetAllocations());
 
 	// Commit read/write scopes
-	PlotScope.CopyPoints(Query->PlotFacade->GetIn(), PathIO->GetOut());
+	PlotScope.CopyPoints(Query->PlotFacade->GetIn(), PathIO->GetOut(), true, true);
 	ClusterScope.CopyProperties(PathIO->GetIn(), PathIO->GetOut(), EPCGPointNativeProperties::All);
 
 	PCGExGraph::CleanupClusterTags(PathIO);

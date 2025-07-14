@@ -121,7 +121,7 @@ namespace PCGExSmooth
 		{
 			MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
 			MetadataBlender->SetTargetData(PointDataFacade);
-			MetadataBlender->SetSourceData(PointDataFacade);
+			MetadataBlender->SetSourceData(PointDataFacade, PCGExData::EIOSide::In, true);
 
 			if (!MetadataBlender->Init(Context, Settings->BlendingSettings)) { return false; }
 

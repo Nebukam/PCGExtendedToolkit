@@ -129,12 +129,6 @@ namespace PCGExPathStitch
 			return;
 		}
 
-		if (EndStitch && StartStitch)
-		{
-			// Mid-path, will be merged
-			return;
-		}
-
 		bool bClosedLoop = false;
 
 		TSharedPtr<FProcessor> Start = SharedThis(this);
@@ -144,9 +138,13 @@ namespace PCGExPathStitch
 		TArray<TSharedPtr<FProcessor>> Chain;
 		Chain.Add(Start);
 
+		int32 SmallestWorkIndex = WorkIndex;
+
+		// Rebuild the chain
 		while (NextProcessor)
 		{
 			Chain.Add(NextProcessor);
+			SmallestWorkIndex = FMath::Min(SmallestWorkIndex, NextProcessor->WorkIndex);
 
 			TSharedPtr<FProcessor> OldPrev = PreviousProcessor;
 			PreviousProcessor = NextProcessor;
@@ -160,8 +158,26 @@ namespace PCGExPathStitch
 			}
 		}
 
+		// Mid-path, will be merged
+		if (EndStitch && StartStitch)
+		{
+			if (!bClosedLoop || WorkIndex != SmallestWorkIndex) { return; }
+		}
+
+		if (bClosedLoop)
+		{
+			// Nullify start so we go in order
+			StartStitch = nullptr;
+
+			if (Chain.Last()->StartStitch == Start) { Chain.Last()->StartStitch = nullptr; }
+			else if (Chain.Last()->EndStitch == Start) { Chain.Last()->EndStitch = nullptr; }
+		}
+		else
+		{
+			if (Chain.Last()->WorkIndex < WorkIndex) { return; }
+		}
+
 		// Other work index is smaller, will do the resolve.
-		if (Chain.Last()->WorkIndex < WorkIndex) { return; }
 
 		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New);
 		Merger = MakeShared<FPCGExPointIOMerger>(PointDataFacade);
@@ -173,12 +189,20 @@ namespace PCGExPathStitch
 
 			int32 ReadStart = 0;
 			int32 ReadCount = Current->PointDataFacade->GetNum();
-			const bool bIsLast = i == Chain.Num() - 1;
 
-			if (Settings->Method == EPCGExStitchMethod::Fuse && !bIsLast)
+			if (Settings->Method == EPCGExStitchMethod::Fuse)
 			{
-				ReadCount--;
-				if (Settings->FuseMethod == EPCGExStitchFuseMethod::KeepEnd) { ReadStart++; }
+				const bool bIsLast = i == Chain.Num() - 1;
+
+				if (!bIsLast || bClosedLoop) { ReadCount--; }
+
+				if (Settings->FuseMethod == EPCGExStitchFuseMethod::KeepEnd)
+				{
+					if (!bIsLast || bClosedLoop) { ReadStart++; }
+				}
+				else
+				{
+				}
 			}
 
 			PCGExPointIOMerger::FMergeScope& MergeScope = Merger->Append(
@@ -304,9 +328,8 @@ namespace PCGExPathStitch
 						const TSharedPtr<FProcessor>& Other = Processors[Index];
 						const TSharedPtr<FProcessor>& StitchPole = bIsOtherEnd ? Other->EndStitch : Other->StartStitch;
 
-						if (StitchPole ||
-							Other->WorkIndex == Current->WorkIndex ||
-							Other->IsStitchedTo(Current)) { return; }
+						if (StitchPole || StitchPole == Current ||
+							Other->WorkIndex == Current->WorkIndex) { return; }
 
 						if (CanStitch(CurrentSegment, bIsOtherEnd ? Other->EndSegment : Other->StartSegment))
 						{
@@ -334,9 +357,8 @@ namespace PCGExPathStitch
 						const TSharedPtr<FProcessor>& Other = Processors[Index];
 						const TSharedPtr<FProcessor>& StitchPole = bIsOtherStart ? Other->StartStitch : Other->EndStitch;
 
-						if (StitchPole ||
-							Other->WorkIndex == Current->WorkIndex ||
-							Other->IsStitchedTo(Current)) { return; }
+						if (StitchPole || StitchPole == Current ||
+							Other->WorkIndex == Current->WorkIndex) { return; }
 
 						if (CanStitch(CurrentSegment, bIsOtherStart ? Other->StartSegment : Other->EndSegment))
 						{

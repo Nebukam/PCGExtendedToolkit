@@ -742,19 +742,19 @@ namespace PCGEx
 
 #pragma endregion
 
-	class FRWScope
+	class FReadWriteScope
 	{
 		TArray<int32> ReadIndices;
 		TArray<int32> WriteIndices;
 
 	public:
-		FRWScope(const int32 NumElements, const bool bSetNum);
+		FReadWriteScope(const int32 NumElements, const bool bSetNum);
 
 		int32 Add(const int32 ReadIndex, const int32 WriteIndex);
 		int32 Add(const TArrayView<int32> ReadIndicesRange, int32& OutWriteIndex);
 		void Set(const int32 Index, const int32 ReadIndex, const int32 WriteIndex);
 
-		void CopyPoints(const UPCGBasePointData* Read, UPCGBasePointData* Write, const bool bClean = true);
+		void CopyPoints(const UPCGBasePointData* Read, UPCGBasePointData* Write, const bool bClean = true, const bool bInitializeMetadata = false);
 		void CopyProperties(const UPCGBasePointData* Read, UPCGBasePointData* Write, EPCGPointNativeProperties Properties, const bool bClean = true);
 
 		bool IsEmpty() const { return ReadIndices.IsEmpty(); }
