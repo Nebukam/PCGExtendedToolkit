@@ -331,12 +331,12 @@ namespace PCGExClusterMT
 						PCGEX_ASYNC_THIS
 
 						const TConstPCGValueRange<FTransform> InVtxTransforms = This->VtxDataFacade->GetIn()->GetConstTransformValueRange();
-						const FPCGExGeo2DProjectionDetails& ProjectionDetails = This->ProjectionDetails;
+						const FPCGExGeo2DProjectionDetails& Projection = This->ProjectionDetails;
 						TArray<FVector2D>& Proj = *This->ProjectedVtxPositions.Get();
 
 						PCGEX_SCOPE_LOOP(i)
 						{
-							Proj[i] = FVector2D(ProjectionDetails.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
+							Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
 						}
 					};
 
@@ -402,12 +402,12 @@ namespace PCGExClusterMT
 						// Extra loop for projection when desired
 
 						const TConstPCGValueRange<FTransform> InVtxTransforms = This->VtxDataFacade->GetIn()->GetConstTransformValueRange();
-						const FPCGExGeo2DProjectionDetails& ProjectionDetails = This->ProjectionDetails;
+						const FPCGExGeo2DProjectionDetails& Projection = This->ProjectionDetails;
 						TArray<FVector2D>& Proj = *This->ProjectedVtxPositions.Get();
 
 						PCGEX_SCOPE_LOOP(i)
 						{
-							Proj[i] = FVector2D(ProjectionDetails.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
+							Proj[i] = FVector2D(Projection.ProjectFlat(InVtxTransforms[i].GetLocation(), i));
 						}
 					}
 				};
