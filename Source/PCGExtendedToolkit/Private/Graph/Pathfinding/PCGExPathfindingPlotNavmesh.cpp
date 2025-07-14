@@ -103,7 +103,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	};
 
 
-	PCGEx::FRWScope PlotScope(NumPlots + 2, false);
+	PCGEx::FReadWriteScope PlotScope(NumPlots + 2, false);
 
 	// First, compute the final number of points
 	int32 NumPoints = 0;

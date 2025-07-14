@@ -283,7 +283,7 @@ namespace PCGExClusterMT
 		virtual void OnProcessingPreparationComplete();
 
 		virtual void Process();
-		
+
 	protected:
 		virtual void OnInitialPostProcess();
 
@@ -358,6 +358,7 @@ namespace PCGExClusterMT
 			StartProcessing();
 		}
 
+	public:
 		virtual void StartProcessing()
 		{
 			if (!bIsBatchValid) { return; }

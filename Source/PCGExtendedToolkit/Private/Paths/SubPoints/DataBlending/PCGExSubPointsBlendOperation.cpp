@@ -46,7 +46,7 @@ bool FPCGExSubPointsBlendOperation::PrepareForData(
 	MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
 
 	MetadataBlender->SetTargetData(InTargetFacade);
-	MetadataBlender->SetSourceData(InSourceFacade, InSourceSide);
+	MetadataBlender->SetSourceData(InSourceFacade, InSourceSide, true);
 
 	return MetadataBlender->Init(InContext, BlendingDetails, IgnoreAttributeSet);
 }

@@ -274,7 +274,7 @@ namespace PCGEx
 		}
 	}
 
-	FRWScope::FRWScope(const int32 NumElements, const bool bSetNum)
+	FReadWriteScope::FReadWriteScope(const int32 NumElements, const bool bSetNum)
 	{
 		if (bSetNum)
 		{
@@ -288,27 +288,41 @@ namespace PCGEx
 		}
 	}
 
-	int32 FRWScope::Add(const int32 ReadIndex, const int32 WriteIndex)
+	int32 FReadWriteScope::Add(const int32 ReadIndex, const int32 WriteIndex)
 	{
 		ReadIndices.Add(ReadIndex);
 		return WriteIndices.Add(WriteIndex);
 	}
 
-	int32 FRWScope::Add(const TArrayView<int32> ReadIndicesRange, int32& OutWriteIndex)
+	int32 FReadWriteScope::Add(const TArrayView<int32> ReadIndicesRange, int32& OutWriteIndex)
 	{
 		for (const int32 ReadIndex : ReadIndicesRange) { Add(ReadIndex, OutWriteIndex++); }
 		return ReadIndices.Num() - 1;
 	}
 
-	void FRWScope::Set(const int32 Index, const int32 ReadIndex, const int32 WriteIndex)
+	void FReadWriteScope::Set(const int32 Index, const int32 ReadIndex, const int32 WriteIndex)
 	{
 		ReadIndices[Index] = ReadIndex;
 		WriteIndices[Index] = WriteIndex;
 	}
 
-	void FRWScope::CopyPoints(const UPCGBasePointData* Read, UPCGBasePointData* Write, const bool bClean)
+	void FReadWriteScope::CopyPoints(const UPCGBasePointData* Read, UPCGBasePointData* Write, const bool bClean, const bool bInitializeMetadata)
 	{
-		Read->CopyPointsTo(Write, ReadIndices, WriteIndices);
+		if (bInitializeMetadata)
+		{
+			EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All;
+			EnumRemoveFlags(Properties, EPCGPointNativeProperties::MetadataEntry);
+
+			Read->CopyPropertiesTo(Write, ReadIndices, WriteIndices, Properties);
+
+			TPCGValueRange<int64> OutMetadataEntries = Write->GetMetadataEntryValueRange();
+			for (const int32 WriteIndex : WriteIndices) { Write->Metadata->InitializeOnSet(OutMetadataEntries[WriteIndex]); }
+		}
+		else
+		{
+			Read->CopyPointsTo(Write, ReadIndices, WriteIndices);
+		}
+
 		if (bClean)
 		{
 			ReadIndices.Empty();
@@ -316,7 +330,7 @@ namespace PCGEx
 		}
 	}
 
-	void FRWScope::CopyProperties(const UPCGBasePointData* Read, UPCGBasePointData* Write, EPCGPointNativeProperties Properties, const bool bClean)
+	void FReadWriteScope::CopyProperties(const UPCGBasePointData* Read, UPCGBasePointData* Write, EPCGPointNativeProperties Properties, const bool bClean)
 	{
 		Read->CopyPropertiesTo(Write, ReadIndices, WriteIndices, Properties);
 		if (bClean)

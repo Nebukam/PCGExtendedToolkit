@@ -293,6 +293,18 @@ bool FPCGExVectorHashComparisonDetails::Test(const FVector& A, const FVector& B,
 	return PCGEx::I323(A, CWTolerance) == PCGEx::I323(B, CWTolerance);
 }
 
+void FPCGExStaticDotComparisonDetails::Init()
+{
+	if (Domain == EPCGExAngularDomain::Degrees) { ComparisonTolerance = (1 + PCGExMath::DegreesToDot(180 - DegreesTolerance)) * 0.5; }
+	else { ComparisonTolerance = (1 + DotTolerance) * 0.5; }
+	if (bUnsignedComparison) { DotTolerance = FMath::Abs(DotTolerance); }
+}
+
+bool FPCGExStaticDotComparisonDetails::Test(const double A) const
+{
+	return PCGExCompare::Compare(Comparison, bUnsignedComparison ? FMath::Abs(A) : (1 + A) * 0.5, DotTolerance, ComparisonTolerance);
+}
+
 bool FPCGExDotComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
 {
 	ThresholdGetter = GetValueSettingThreshold();
@@ -306,7 +318,7 @@ bool FPCGExDotComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef
 
 double FPCGExDotComparisonDetails::GetComparisonThreshold(const int32 PointIndex) const
 {
-	if (Domain == EPCGExAngularDomain::Amplitude) { return ThresholdGetter->Read(PointIndex); }
+	if (Domain == EPCGExAngularDomain::Scalar) { return ThresholdGetter->Read(PointIndex); }
 	return PCGExMath::DegreesToDot(180 - ThresholdGetter->Read(PointIndex));
 }
 
