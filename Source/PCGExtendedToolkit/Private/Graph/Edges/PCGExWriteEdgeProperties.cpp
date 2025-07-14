@@ -146,7 +146,7 @@ namespace PCGExWriteEdgeProperties
 			{
 				MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
 				MetadataBlender->SetTargetData(EdgeDataFacade);
-				MetadataBlender->SetSourceData(VtxDataFacade);
+				MetadataBlender->SetSourceData(VtxDataFacade, PCGExData::EIOSide::In, true);
 
 				if (!MetadataBlender->Init(Context, Settings->BlendingSettings))
 				{
@@ -177,6 +177,30 @@ namespace PCGExWriteEdgeProperties
 		TPCGValueRange<FTransform> Transforms = (bSolidify || Settings->bWriteEdgePosition) ? EdgeDataFacade->GetOut()->GetTransformValueRange(false) : TPCGValueRange<FTransform>();
 		TPCGValueRange<FVector> BoundsMin = bSolidify ? EdgeDataFacade->GetOut()->GetBoundsMinValueRange(false) : TPCGValueRange<FVector>();
 		TPCGValueRange<FVector> BoundsMax = bSolidify ? EdgeDataFacade->GetOut()->GetBoundsMaxValueRange(false) : TPCGValueRange<FVector>();
+
+
+		using FBlendEdge = std::function<void (const PCGExGraph::FEdge&, const double)>;
+		TArray<PCGEx::FOpStats> Trackers;
+
+		FBlendEdge BlendEdge = [&](const PCGExGraph::FEdge& Edge, const double InWeight)
+		{
+			DataBlender->Blend(Edge.Start, Edge.End, Edge.PointIndex, InWeight);
+		};
+
+		/*
+		if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
+		{
+			DataBlender->InitTrackers(Trackers);
+			
+			BlendEdge = [&](const PCGExGraph::FEdge& Edge, const double InWeight)
+			{
+				DataBlender->BeginMultiBlend(Edge.PointIndex, Trackers);
+				DataBlender->MultiBlend(Edge.Start, Edge.PointIndex, 1 - InWeight, Trackers);
+				DataBlender->MultiBlend(Edge.End, Edge.PointIndex, InWeight, Trackers);
+				DataBlender->EndMultiBlend(Edge.PointIndex, Trackers);
+			};
+		}
+		*/
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -267,17 +291,16 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 				BoundsMin[EdgeIndex] = TargetBoundsMin;
 				BoundsMax[EdgeIndex] = TargetBoundsMax;
 
-				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, BlendWeightEnd);
+				BlendEdge(Edge, BlendWeightEnd);
 			}
 			else if (Settings->bWriteEdgePosition)
 			{
 				Transforms[EdgeIndex].SetLocation(FMath::Lerp(B, A, Settings->EdgePositionLerp));
-
-				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp);
+				BlendEdge(Edge, Settings->EdgePositionLerp);
 			}
 			else
 			{
-				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp);
+				BlendEdge(Edge, Settings->EdgePositionLerp);
 			}
 		}
 	}

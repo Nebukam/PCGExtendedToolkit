@@ -344,10 +344,7 @@ namespace PCGExPointsMT
 		}
 
 	public:
-		virtual bool PrepareSingle(const TSharedPtr<T>& PointsProcessor)
-		{
-			return true;
-		};
+		virtual bool PrepareSingle(const TSharedPtr<T>& PointsProcessor) { return true; };
 
 		virtual void CompleteWork() override
 		{

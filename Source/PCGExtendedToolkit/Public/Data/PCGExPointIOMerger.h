@@ -50,6 +50,7 @@ public:
 	~FPCGExPointIOMerger();
 
 	PCGExPointIOMerger::FMergeScope& Append(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExMT::FScope ReadScope, const PCGExMT::FScope WriteScope);
+	PCGExPointIOMerger::FMergeScope& Append(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExMT::FScope ReadScope);
 	PCGExPointIOMerger::FMergeScope& Append(const TSharedPtr<PCGExData::FPointIO>& InData);
 	void Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& InData);
 	void MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails, const TSet<FName>* InIgnoredAttributes = nullptr);
@@ -92,6 +93,8 @@ namespace PCGExPointIOMerger
 			}
 			else
 			{
+				check(Scope.Read.Count == Scope.Write.Count)
+
 				// From elements domain
 				TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, InMetadata);
 
@@ -102,12 +105,10 @@ namespace PCGExPointIOMerger
 				if (Scope.bReverse)
 				{
 					TArray<T> ReadData;
-					PCGEx::InitArray(ReadData, Scope.Read.Count);
+					PCGEx::InitArray(ReadData, Scope.Write.Count);
+
 					InAccessor->GetRange<T>(ReadData, Scope.Read.Start, *SourceIO->GetInKeys());
-
-					int32 WriteIndex = Scope.Write.Start;
-
-					for (int i = ReadData.Num() - 1; i >= 0; --i) { InRange[WriteIndex++] = ReadData[i]; }
+					for (int i = 0; i < Scope.Read.Count; i++) { InRange[i] = ReadData.Last(i); }
 				}
 				else
 				{

@@ -3,7 +3,6 @@
 
 #include "Paths/PCGExPathCrossings.h"
 #include "PCGExMath.h"
-#include "Chaos/Deformable/MuscleActivationConstraints.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 
 
