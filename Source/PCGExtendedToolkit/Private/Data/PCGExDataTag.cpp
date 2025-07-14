@@ -80,14 +80,10 @@ namespace PCGExData
 		InTags.Append(FlattenToArrayOfNames(bFlatten));
 	}
 
-	TSet<FString> FTags::Flatten()
+	TSet<FString> FTags::Flatten() const
 	{
-		FReadScopeLock ReadScopeLock(TagsLock);
-
 		TSet<FString> Flattened;
-		Flattened.Reserve(Num());
-		Flattened.Append(RawTags);
-		for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { Flattened.Add(Pair.Value->Flatten(Pair.Key)); }
+		DumpTo(Flattened);
 		return Flattened;
 	}
 

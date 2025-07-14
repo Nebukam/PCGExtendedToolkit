@@ -63,7 +63,7 @@ namespace PCGExData
 		void DumpTo(TArray<FName>& InTags, const bool bFlatten = true) const;
 
 
-		TSet<FString> Flatten();
+		TSet<FString> Flatten() const;
 		TArray<FString> FlattenToArray(const bool bIncludeValue = true) const;
 		TArray<FName> FlattenToArrayOfNames(const bool bIncludeValue = true) const;
 
