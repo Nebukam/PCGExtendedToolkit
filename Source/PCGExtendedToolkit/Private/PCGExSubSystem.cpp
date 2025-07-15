@@ -3,8 +3,7 @@
 
 #include "PCGExSubSystem.h"
 
-#include "Data/PCGExDataSharing.h"
-#include "Data/PCGExGridTracking.h"
+#include "Data/Sharing/PCGExDataSharing.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -22,12 +21,11 @@ UPCGExSubSystem::UPCGExSubSystem()
 void UPCGExSubSystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	SharedDataManager = NewObject<UPCGExSharedDataManager>(this);
-	GridIDTracker = NewObject<UPCGExGridIDTracker>(this);
 }
 
 void UPCGExSubSystem::Deinitialize()
 {
+	FlushBeacons();
 	Super::Deinitialize();
 }
 
@@ -100,6 +98,46 @@ void UPCGExSubSystem::PollEvent(UPCGComponent* InSource, const EPCGExSubsystemEv
 	FWriteScopeLock WriteScopeLock(SubsystemLock);
 	bWantsTick = true;
 	PolledEvents.Add(PCGEx::FPolledEvent(InSource, InEventType, InEventId));
+}
+
+void UPCGExSubSystem::RegisterBeacon(const TObjectPtr<UPCGExBeacon>& InBeacon)
+{
+	{
+		FReadScopeLock ReadScopeLock(BeaconsLock);
+		if (Beacons.Contains(InBeacon)) { return; }
+	}
+	{
+		FWriteScopeLock WriteScopeLock(BeaconsLock);
+		Beacons.Add(InBeacon);
+	}
+}
+
+void UPCGExSubSystem::UnRegisterBeacon(const TObjectPtr<UPCGExBeacon>& InBeacon)
+{
+	{
+		FReadScopeLock ReadScopeLock(BeaconsLock);
+		if (!Beacons.Contains(InBeacon)) { return; }
+	}
+	{
+		FWriteScopeLock WriteScopeLock(BeaconsLock);
+		Beacons.Remove(InBeacon);
+
+		InBeacon->Empty();
+	}
+}
+
+void UPCGExSubSystem::FlushBeacons()
+{
+	FWriteScopeLock WriteScopeLock(BeaconsLock);
+
+	TSet<TObjectPtr<UPCGExBeacon>> BeaconsCopy = MoveTemp(Beacons);
+	Beacons.Reset();
+
+	for (const TObjectPtr<UPCGExBeacon>& Beacon : BeaconsCopy)
+	{
+		if (!Beacon.Get()) { continue; }
+		Beacon->Empty();
+	}
 }
 
 void UPCGExSubSystem::EnsureIndexBufferSize(const int32 Count)

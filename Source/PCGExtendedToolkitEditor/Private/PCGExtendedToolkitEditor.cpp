@@ -91,6 +91,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_ICON(PCGExCustomGraphSettings)
 	PCGEX_ADD_ICON(PCGExCustomGraphBuilder)
 	PCGEX_ADD_ICON(PCGExCustomActorDataPacker)
+	PCGEX_ADD_ICON(PCGExBeacon)
 
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Filter)
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_CFilter)

@@ -53,6 +53,7 @@ namespace PCGExData
 	void FTags::Reset()
 	{
 		FWriteScopeLock WriteScopeLock(TagsLock);
+		
 		RawTags.Empty();
 		ValueTags.Empty();
 	}
@@ -60,6 +61,7 @@ namespace PCGExData
 	void FTags::Reset(const TSharedPtr<FTags>& InTags)
 	{
 		Reset();
+		
 		if (InTags) { Append(InTags.ToSharedRef()); }
 	}
 
@@ -69,6 +71,7 @@ namespace PCGExData
 
 		InTags.Reserve(InTags.Num() + Num());
 		InTags.Append(RawTags);
+
 		if (bFlatten) { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { InTags.Add(Pair.Value->Flatten(Pair.Key)); } }
 		else { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { InTags.Add(Pair.Key); } }
 	}
@@ -93,9 +96,12 @@ namespace PCGExData
 
 		TArray<FString> Flattened;
 		Flattened.Reserve(Num());
+
 		for (const FString& Key : RawTags) { Flattened.Add(Key); }
+
 		if (bIncludeValue) { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { Flattened.Add(Pair.Value->Flatten(Pair.Key)); } }
 		else { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { Flattened.Add(Pair.Key); } }
+
 		return Flattened;
 	}
 
@@ -105,9 +111,12 @@ namespace PCGExData
 
 		TArray<FName> Flattened;
 		Flattened.Reserve(Num());
+
 		for (const FString& Key : RawTags) { Flattened.Add(FName(Key)); }
+
 		if (bIncludeValue) { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Value->Flatten(Pair.Key))); } }
 		else { for (const TPair<FString, TSharedPtr<IDataValue>>& Pair : ValueTags) { Flattened.Add(FName(Pair.Key)); } }
+
 		return Flattened;
 	}
 
