@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExDataFilter.h"
+#include "Data/Sharing/PCGExBeacon.h"
 #include "Engine/Level.h"
 #include "Subsystems/WorldSubsystem.h"
 
@@ -23,9 +24,6 @@ enum class EPCGExSubsystemEventType : uint8
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnGlobalEvent, UPCGComponent*, Source, EPCGExSubsystemEventType, EventType, uint32, EventId);
-
-class UPCGExSharedDataManager;
-class UPCGExGridTracking;
 
 namespace PCGEx
 {
@@ -56,6 +54,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubSystem : public UTickableWorldSubsystem
 
 	FRWLock SubsystemLock;
 	FRWLock IndexBufferLock;
+	FRWLock BeaconsLock;
 
 public:
 	UPCGExSubSystem();
@@ -64,10 +63,7 @@ public:
 	FOnGlobalEvent OnGlobalEvent;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UPCGExSharedDataManager> SharedDataManager;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UPCGExGridIDTracker> GridIDTracker;
+	TSet<TObjectPtr<UPCGExBeacon>> Beacons;
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
@@ -92,6 +88,12 @@ public:
 
 	void PollEvent(UPCGComponent* InSource, EPCGExSubsystemEventType InEventType, uint32 InEventId);
 
+	void RegisterBeacon(const TObjectPtr<UPCGExBeacon>& InBeacon);
+	void UnRegisterBeacon(const TObjectPtr<UPCGExBeacon>& InBeacon);
+
+	UFUNCTION(BlueprintCallable, Category = "Beacon Management")
+	void FlushBeacons();
+
 #pragma region Indices buffer
 
 protected:
@@ -111,9 +113,6 @@ protected:
 
 	TArray<FTickAction> BeginTickActions;
 	TSet<PCGEx::FPolledEvent> PolledEvents;
-
-	UPROPERTY()
-	TArray<TObjectPtr<UPCGComponent>> PCGComponentPool;
 
 	void ExecuteBeginTickActions();
 };
