@@ -245,7 +245,11 @@ namespace PCGExAssetStaging
 		AllocateFor |= EPCGPointNativeProperties::BoundsMin;
 		AllocateFor |= EPCGPointNativeProperties::BoundsMax;
 		AllocateFor |= EPCGPointNativeProperties::Transform;
-		if (bOutputWeight && !WeightWriter && !NormalizedWeightWriter) { AllocateFor |= EPCGPointNativeProperties::Density; }
+		if (bOutputWeight && !WeightWriter && !NormalizedWeightWriter)
+		{
+			bUsesDensity = true;
+			AllocateFor |= EPCGPointNativeProperties::Density;
+		}
 
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
 
@@ -274,7 +278,7 @@ namespace PCGExAssetStaging
 		const TPCGValueRange<FVector> OutBoundsMin = OutPointData->GetBoundsMinValueRange(false);
 		const TPCGValueRange<FVector> OutBoundsMax = OutPointData->GetBoundsMaxValueRange(false);
 		const TConstPCGValueRange<int32> Seeds = OutPointData->GetConstSeedValueRange();
-		const TPCGValueRange<float> Densities = OutPointData->GetDensityValueRange(false);
+		const TPCGValueRange<float> Densities = bUsesDensity ? OutPointData->GetDensityValueRange(false) : TPCGValueRange<float>();
 
 		int32 LocalNumInvalid = 0;
 
