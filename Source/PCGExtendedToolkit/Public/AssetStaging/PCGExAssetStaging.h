@@ -143,6 +143,7 @@ namespace PCGExAssetStaging
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
+		bool bUsesDensity = false;
 
 		TArray<int8> Mask;
 
