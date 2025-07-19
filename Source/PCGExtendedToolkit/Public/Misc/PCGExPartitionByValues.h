@@ -134,7 +134,7 @@ protected:
 
 namespace PCGExPartitionByValues
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPartitionByValuesBaseContext, UPCGExPartitionByValuesBaseSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPartitionByValuesBaseContext, UPCGExPartitionByValuesBaseSettings>
 	{
 		TArray<PCGExPartition::FRule> Rules;
 		TArray<int64> KeySums;
@@ -146,7 +146,7 @@ namespace PCGExPartitionByValues
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

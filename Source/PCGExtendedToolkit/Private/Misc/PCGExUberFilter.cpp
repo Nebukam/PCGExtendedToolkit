@@ -126,7 +126,7 @@ namespace PCGExUberFilter
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->Mode == EPCGExUberFilterMode::Write ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::NoInit)
 

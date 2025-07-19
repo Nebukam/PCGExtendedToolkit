@@ -128,7 +128,7 @@ namespace PCGExPathToClusters
 {
 #pragma region NonFusing
 
-	class FNonFusingProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>
+	class FNonFusingProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>
 	{
 		bool bClosedLoop = false;
 
@@ -136,7 +136,7 @@ namespace PCGExPathToClusters
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		explicit FNonFusingProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 
@@ -153,7 +153,7 @@ namespace PCGExPathToClusters
 
 	// TODO : Batch-preload point attributes we'll want to blend
 
-	class FFusingProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>
+	class FFusingProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>
 	{
 		bool bClosedLoop = false;
 
@@ -164,7 +164,7 @@ namespace PCGExPathToClusters
 		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
 
 		explicit FFusingProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

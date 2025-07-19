@@ -50,7 +50,7 @@ namespace PCGExAttributeHash
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributeHash::Process);
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bOutputToAttribute ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward)
 

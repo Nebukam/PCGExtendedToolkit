@@ -60,7 +60,7 @@ protected:
 
 namespace PCGExPathIntersections
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBoundsPathIntersectionContext, UPCGExBoundsPathIntersectionSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBoundsPathIntersectionContext, UPCGExBoundsPathIntersectionSettings>
 	{
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
@@ -71,7 +71,7 @@ namespace PCGExPathIntersections
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

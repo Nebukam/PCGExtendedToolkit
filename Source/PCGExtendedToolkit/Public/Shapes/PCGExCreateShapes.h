@@ -78,14 +78,14 @@ protected:
 
 namespace PCGExCreateShapes
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExCreateShapesContext, UPCGExCreateShapesSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExCreateShapesContext, UPCGExCreateShapesSettings>
 	{
 		TArray<TSharedPtr<FPCGExShapeBuilderOperation>> Builders;
 		TArray<TSharedPtr<PCGExData::FFacade>> PerSeedFacades;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -155,7 +155,7 @@ protected:
 
 namespace PCGExOffsetPath
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOffsetPathContext, UPCGExOffsetPathSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExOffsetPathContext, UPCGExOffsetPathSettings>
 	{
 		TConstPCGValueRange<FTransform> InTransforms;
 
@@ -182,7 +182,7 @@ namespace PCGExOffsetPath
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

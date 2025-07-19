@@ -68,7 +68,7 @@ namespace PCGExMergePoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMergePoints::FProcessor::Process);
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->bTagToAttributes)
 		{
@@ -155,7 +155,7 @@ namespace PCGExMergePoints
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
-		TPointsProcessor<FPCGExMergePointsContext, UPCGExMergePointsSettings>::OnRangeProcessingComplete();
+		TProcessor<FPCGExMergePointsContext, UPCGExMergePointsSettings>::OnRangeProcessingComplete();
 
 		if (SimpleTags.IsEmpty()) { return; }
 

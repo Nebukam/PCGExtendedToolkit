@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "GeomTools.h"
 #include "Geometry/PCGExGeoPrimtives.h"
+#include "GeometryScript/MeshNormalsFunctions.h"
 #include "Graph/PCGExCluster.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "Paths/PCGExPaths.h"
@@ -198,6 +199,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 namespace PCGExTopology
 {
 	class FCell;
+	const FName MeshOutputLabel = TEXT("Mesh");
 }
 
 USTRUCT(BlueprintType)
@@ -276,10 +278,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bQuietTriangulationError = false;
 
-	/** Combines all topologies generated into a single dynamic mesh component */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bCombinesAllTopologies = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bComputeNormals = true;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComputeNormals"))
+	FGeometryScriptCalculateNormalsOptions NormalsOptions;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FPCGExDynamicMeshDescriptor TemplateDescriptor;
 };

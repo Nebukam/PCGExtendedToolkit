@@ -131,7 +131,7 @@ namespace PCGExSplitPath
 		}
 	};
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSplitPathContext, UPCGExSplitPathSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSplitPathContext, UPCGExSplitPathSettings>
 	{
 		bool bClosedLoop = false;
 
@@ -148,7 +148,7 @@ namespace PCGExSplitPath
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

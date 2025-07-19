@@ -197,7 +197,7 @@ protected:
 
 namespace PCGExWaitForPCGData
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWaitForPCGDataContext, UPCGExWaitForPCGDataSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExWaitForPCGDataContext, UPCGExWaitForPCGDataSettings>
 	{
 		friend class FStageComponentDataTask;
 
@@ -224,7 +224,7 @@ namespace PCGExWaitForPCGData
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

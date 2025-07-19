@@ -233,7 +233,7 @@ namespace PCGExSampleNearestPath
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -312,7 +312,7 @@ namespace PCGExSampleNearestPath
 
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
-		TPointsProcessor<FPCGExSampleNearestPathContext, UPCGExSampleNearestPathSettings>::PrepareLoopScopesForPoints(Loops);
+		TProcessor<FPCGExSampleNearestPathContext, UPCGExSampleNearestPathSettings>::PrepareLoopScopesForPoints(Loops);
 		MaxDistanceValue = MakeShared<PCGExMT::TScopedNumericValue<double>>(Loops, 0);
 	}
 
@@ -666,7 +666,7 @@ namespace PCGExSampleNearestPath
 
 	void FProcessor::Cleanup()
 	{
-		TPointsProcessor<FPCGExSampleNearestPathContext, UPCGExSampleNearestPathSettings>::Cleanup();
+		TProcessor<FPCGExSampleNearestPathContext, UPCGExSampleNearestPathSettings>::Cleanup();
 		UnionBlendOpsManager.Reset();
 	}
 }

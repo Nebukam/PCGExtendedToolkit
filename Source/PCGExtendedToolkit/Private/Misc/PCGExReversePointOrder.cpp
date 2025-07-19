@@ -65,7 +65,7 @@ namespace PCGExReversePointOrder
 {
 	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TPointsProcessor<FPCGExReversePointOrderContext, UPCGExReversePointOrderSettings>::RegisterBuffersDependencies(FacadePreloader);
+		TProcessor<FPCGExReversePointOrderContext, UPCGExReversePointOrderSettings>::RegisterBuffersDependencies(FacadePreloader);
 
 		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
 
@@ -105,7 +105,7 @@ namespace PCGExReversePointOrder
 			if (!bReversed) { PointDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward); }
 		};
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Sorter)
 		{

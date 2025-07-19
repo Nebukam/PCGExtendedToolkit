@@ -92,7 +92,7 @@ protected:
 
 namespace PCGExCopyToPoints
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExCopyToPointsContext, UPCGExCopyToPointsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExCopyToPointsContext, UPCGExCopyToPointsSettings>
 	{
 	protected:
 		TArray<TSharedPtr<PCGExData::FPointIO>> Dupes;
@@ -100,7 +100,7 @@ namespace PCGExCopyToPoints
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

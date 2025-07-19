@@ -191,7 +191,7 @@ namespace PCGExPartitionByValues
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bSplitOutput ? PCGExData::EIOInit::NoInit : PCGExData::EIOInit::Duplicate)
 
@@ -287,7 +287,7 @@ namespace PCGExPartitionByValues
 
 	void FProcessor::CompleteWork()
 	{
-		IPointsProcessor::CompleteWork();
+		IProcessor::CompleteWork();
 		RootPartition->SortPartitions();
 
 		if (Settings->bSplitOutput)

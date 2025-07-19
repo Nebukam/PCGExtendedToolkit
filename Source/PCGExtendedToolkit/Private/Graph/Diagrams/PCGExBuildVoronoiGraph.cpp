@@ -94,7 +94,7 @@ namespace PCGExBuildVoronoi
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoi::Process);
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		// Build voronoi
 

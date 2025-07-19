@@ -92,7 +92,7 @@ protected:
 
 namespace PCGExBlendPath
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBlendPathContext, UPCGExBlendPathSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBlendPathContext, UPCGExBlendPathSettings>
 	{
 		int32 MaxIndex = 0;
 
@@ -108,7 +108,7 @@ namespace PCGExBlendPath
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

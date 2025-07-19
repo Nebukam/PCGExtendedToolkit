@@ -288,7 +288,7 @@ protected:
 
 namespace PCGExSampleSurfaceGuided
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleSurfaceGuidedContext, UPCGExSampleSurfaceGuidedSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleSurfaceGuidedContext, UPCGExSampleSurfaceGuidedSettings>
 	{
 		TArray<int8> SamplingMask;
 
@@ -310,7 +310,7 @@ namespace PCGExSampleSurfaceGuided
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -97,7 +97,7 @@ namespace PCGExWriteVtxProperties
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
 		virtual void CompleteWork() override;
 		virtual void Cleanup() override;

@@ -232,7 +232,7 @@ protected:
 
 namespace PCGExSampleInsidePath
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleInsidePathContext, UPCGExSampleInsidePathSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleInsidePathContext, UPCGExSampleInsidePathSettings>
 	{
 		TSharedPtr<PCGExPaths::FPath> Path;
 
@@ -257,7 +257,7 @@ namespace PCGExSampleInsidePath
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

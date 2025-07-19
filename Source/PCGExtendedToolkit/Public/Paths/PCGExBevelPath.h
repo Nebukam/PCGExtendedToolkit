@@ -254,7 +254,7 @@ namespace PCGExBevelPath
 		void SubdivideManhattan(const FProcessor* InProcessor);
 	};
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBevelPathContext, UPCGExBevelPathSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBevelPathContext, UPCGExBevelPathSettings>
 	{
 		friend struct FBevel;
 
@@ -282,7 +282,7 @@ namespace PCGExBevelPath
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = true;
 		}

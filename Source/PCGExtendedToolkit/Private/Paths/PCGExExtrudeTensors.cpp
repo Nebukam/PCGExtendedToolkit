@@ -334,7 +334,7 @@ namespace PCGExExtrudeTensors
 
 	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TPointsProcessor<FPCGExExtrudeTensorsContext, UPCGExExtrudeTensorsSettings>::RegisterBuffersDependencies(FacadePreloader);
+		TProcessor<FPCGExExtrudeTensorsContext, UPCGExExtrudeTensorsSettings>::RegisterBuffersDependencies(FacadePreloader);
 
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
 		if (Settings->GetSortingRules(ExecutionContext, RuleConfigs) && !RuleConfigs.IsEmpty())
@@ -350,7 +350,7 @@ namespace PCGExExtrudeTensors
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Sorter && !Sorter->Init(Context)) { Sorter.Reset(); }
 
@@ -737,7 +737,7 @@ namespace PCGExExtrudeTensors
 	{
 	}
 
-	void FBatch::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	void FBatch::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		AsyncManager = InAsyncManager;
 

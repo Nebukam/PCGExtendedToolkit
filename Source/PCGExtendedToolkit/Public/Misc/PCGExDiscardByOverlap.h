@@ -287,7 +287,7 @@ namespace PCGExDiscardByOverlap
 
 	PCGEX_OCTREE_SEMANTICS(FPointBounds, { return Element->Bounds; }, { return A->Point == B->Point; })
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExDiscardByOverlapContext, UPCGExDiscardByOverlapSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExDiscardByOverlapContext, UPCGExDiscardByOverlapSettings>
 	{
 		friend struct FPCGExDiscardByOverlapContext;
 
@@ -317,7 +317,7 @@ namespace PCGExDiscardByOverlap
 		FOverlapStats Stats;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -122,7 +122,7 @@ protected:
 
 namespace PCGExShiftPath
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExShiftPathContext, UPCGExShiftPathSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExShiftPathContext, UPCGExShiftPathSettings>
 	{
 		int32 MaxIndex = 0;
 		int32 PivotIndex = -1;
@@ -133,7 +133,7 @@ namespace PCGExShiftPath
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

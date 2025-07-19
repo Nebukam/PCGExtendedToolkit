@@ -68,13 +68,13 @@ protected:
 
 namespace PCGExBatchActions
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBatchActionsContext, UPCGExBatchActionsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBatchActionsContext, UPCGExBatchActionsSettings>
 	{
 		TArray<TSharedPtr<FPCGExActionOperation>> Operations;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

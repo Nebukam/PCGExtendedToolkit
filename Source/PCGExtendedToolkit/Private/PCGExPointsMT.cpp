@@ -8,25 +8,25 @@
 
 namespace PCGExPointsMT
 {
-	IPointsProcessor::IPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+	IProcessor::IProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
 	{
 		PCGEX_LOG_CTR(FPointsProcessor)
 	}
 
-	void IPointsProcessor::SetExecutionContext(FPCGExContext* InContext)
+	void IProcessor::SetExecutionContext(FPCGExContext* InContext)
 	{
 		check(InContext)
 		ExecutionContext = InContext;
 		WorkPermit = ExecutionContext->GetWorkPermit();
 	}
 
-	void IPointsProcessor::SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFactories)
+	void IProcessor::SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFactories)
 	{
 		FilterFactories = InFactories;
 	}
 
-	void IPointsProcessor::RegisterConsumableAttributesWithFacade() const
+	void IProcessor::RegisterConsumableAttributesWithFacade() const
 	{
 		// Gives an opportunity for the processor to register attributes with a valid facade
 		// So selectors shortcut can be properly resolved (@Last, etc.)
@@ -35,12 +35,12 @@ namespace PCGExPointsMT
 		if (PrimaryInstancedFactory) { PrimaryInstancedFactory->RegisterConsumableAttributesWithFacade(ExecutionContext, PointDataFacade); }
 	}
 
-	void IPointsProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
+	void IProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		if (HasFilters()) { PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, *FilterFactories, FacadePreloader); }
 	}
 
-	void IPointsProcessor::PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup)
+	void IProcessor::PrefetchData(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const TSharedPtr<PCGExMT::FTaskGroup>& InPrefetchDataTaskGroup)
 	{
 		AsyncManager = InAsyncManager;
 
@@ -50,7 +50,7 @@ namespace PCGExPointsMT
 		InternalFacadePreloader->StartLoading(AsyncManager, InPrefetchDataTaskGroup);
 	}
 
-	bool IPointsProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	bool IProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		AsyncManager = InAsyncManager;
 		PCGEX_ASYNC_CHKD(AsyncManager)
@@ -85,7 +85,7 @@ namespace PCGExPointsMT
 		return true;
 	}
 
-	void IPointsProcessor::StartParallelLoopForPoints(const PCGExData::EIOSide Side, const int32 PerLoopIterations)
+	void IProcessor::StartParallelLoopForPoints(const PCGExData::EIOSide Side, const int32 PerLoopIterations)
 	{
 		const UPCGBasePointData* CurrentProcessingSource = const_cast<UPCGBasePointData*>(PointDataFacade->GetData(Side));
 		if (!CurrentProcessingSource) { return; }
@@ -99,19 +99,19 @@ namespace PCGExPointsMT
 			bDaisyChainProcessPoints)
 	}
 
-	void IPointsProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
+	void IProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
 	}
 
-	void IPointsProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
+	void IProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 	}
 
-	void IPointsProcessor::OnPointsProcessingComplete()
+	void IProcessor::OnPointsProcessingComplete()
 	{
 	}
 
-	void IPointsProcessor::StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations)
+	void IProcessor::StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations)
 	{
 		PCGEX_ASYNC_POINT_PROCESSOR_LOOP(
 			Ranges, NumIterations,
@@ -120,36 +120,36 @@ namespace PCGExPointsMT
 			bDaisyChainProcessRange)
 	}
 
-	void IPointsProcessor::PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
+	void IProcessor::PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
 	{
 	}
 
-	void IPointsProcessor::ProcessRange(const PCGExMT::FScope& Scope)
+	void IProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
 	}
 
-	void IPointsProcessor::OnRangeProcessingComplete()
+	void IProcessor::OnRangeProcessingComplete()
 	{
 	}
 
-	void IPointsProcessor::CompleteWork()
+	void IProcessor::CompleteWork()
 	{
 	}
 
-	void IPointsProcessor::Write()
+	void IProcessor::Write()
 	{
 	}
 
-	void IPointsProcessor::Output()
+	void IProcessor::Output()
 	{
 	}
 
-	void IPointsProcessor::Cleanup()
+	void IProcessor::Cleanup()
 	{
 		bIsProcessorValid = false;
 	}
 
-	bool IPointsProcessor::InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
+	bool IProcessor::InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
 	{
 		PointFilterCache.Init(DefaultPointFilterValue, PointDataFacade->GetNum());
 
@@ -159,61 +159,61 @@ namespace PCGExPointsMT
 		return PrimaryFilters->Init(ExecutionContext, *InFilterFactories);
 	}
 
-	int32 IPointsProcessor::FilterScope(const PCGExMT::FScope& Scope)
+	int32 IProcessor::FilterScope(const PCGExMT::FScope& Scope)
 	{
 		if (PrimaryFilters) { return PrimaryFilters->Test(Scope, PointFilterCache); }
 		return DefaultPointFilterValue ? Scope.Count : 0;
 	}
 
-	int32 IPointsProcessor::FilterAll()
+	int32 IProcessor::FilterAll()
 	{
 		return FilterScope(PCGExMT::FScope(0, PointDataFacade->GetNum()));
 	}
 
-	IPointsProcessorBatch::IPointsProcessorBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
+	IBatch::IBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
 		: ExecutionContext(InContext), PointsCollection(InPointsCollection)
 	{
-		PCGEX_LOG_CTR(IPointsProcessorBatch)
+		PCGEX_LOG_CTR(IBatch)
 		SetExecutionContext(InContext);
 	}
 
-	void IPointsProcessorBatch::SetExecutionContext(FPCGExContext* InContext)
+	void IBatch::SetExecutionContext(FPCGExContext* InContext)
 	{
 		ExecutionContext = InContext;
 		WorkPermit = ExecutionContext->GetWorkPermit();
 	}
 
-	bool IPointsProcessorBatch::PrepareProcessing()
+	bool IBatch::PrepareProcessing()
 	{
 		return true;
 	}
 
-	void IPointsProcessorBatch::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	void IBatch::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 	}
 
-	void IPointsProcessorBatch::OnInitialPostProcess()
+	void IBatch::OnInitialPostProcess()
 	{
 	}
 
-	void IPointsProcessorBatch::CompleteWork()
+	void IBatch::CompleteWork()
 	{
 	}
 
-	void IPointsProcessorBatch::Write()
+	void IBatch::Write()
 	{
 	}
 
-	void IPointsProcessorBatch::Output()
+	void IBatch::Output()
 	{
 	}
 
-	void IPointsProcessorBatch::Cleanup()
+	void IBatch::Cleanup()
 	{
 		ProcessorFacades.Empty();
 	}
 
-	void IPointsProcessorBatch::InternalInitProcessor(const TSharedPtr<IPointsProcessor>& InProcessor, const int32 InIndex)
+	void IBatch::InternalInitProcessor(const TSharedPtr<IProcessor>& InProcessor, const int32 InIndex)
 	{
 		InProcessor->SetExecutionContext(ExecutionContext);
 		InProcessor->ParentBatch = SharedThis(this);

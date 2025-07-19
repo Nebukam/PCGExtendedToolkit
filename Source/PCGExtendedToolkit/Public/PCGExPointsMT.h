@@ -78,11 +78,11 @@ namespace PCGExPointsMT
 
 #pragma endregion
 
-	class IPointsProcessorBatch;
+	class IBatch;
 
-	class PCGEXTENDEDTOOLKIT_API IPointsProcessor : public TSharedFromThis<IPointsProcessor>
+	class PCGEXTENDEDTOOLKIT_API IProcessor : public TSharedFromThis<IProcessor>
 	{
-		friend class IPointsProcessorBatch;
+		friend class IBatch;
 
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
@@ -98,7 +98,7 @@ namespace PCGExPointsMT
 		int32 LocalPointProcessingChunkSize = -1;
 
 	public:
-		TWeakPtr<IPointsProcessorBatch> ParentBatch;
+		TWeakPtr<IBatch> ParentBatch;
 		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
 
 		bool bIsProcessorValid = false;
@@ -116,11 +116,11 @@ namespace PCGExPointsMT
 		template <typename T>
 		T* GetPrimaryInstancedFactory() { return Cast<T>(PrimaryInstancedFactory); }
 
-		explicit IPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
+		explicit IProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
 
 		virtual void SetExecutionContext(FPCGExContext* InContext);
 
-		virtual ~IPointsProcessor() = default;
+		virtual ~IProcessor() = default;
 
 		virtual bool IsTrivial() const { return bIsTrivial; }
 
@@ -167,21 +167,21 @@ namespace PCGExPointsMT
 	};
 
 	template <typename TContext, typename TSettings>
-	class TPointsProcessor : public IPointsProcessor
+	class TProcessor : public IProcessor
 	{
 	protected:
 		TContext* Context = nullptr;
 		const TSettings* Settings = nullptr;
 
 	public:
-		explicit TPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			IPointsProcessor(InPointDataFacade)
+		explicit TProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			IProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual void SetExecutionContext(FPCGExContext* InContext) override
 		{
-			IPointsProcessor::SetExecutionContext(InContext);
+			IProcessor::SetExecutionContext(InContext);
 			Context = static_cast<TContext*>(ExecutionContext);
 			Settings = InContext->GetInputSettings<TSettings>();
 			check(Context)
@@ -192,7 +192,7 @@ namespace PCGExPointsMT
 		const TSettings* GetSettings() { return Settings; }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API IPointsProcessorBatch : public TSharedFromThis<IPointsProcessorBatch>
+	class PCGEXTENDEDTOOLKIT_API IBatch : public TSharedFromThis<IBatch>
 	{
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
@@ -206,7 +206,7 @@ namespace PCGExPointsMT
 		bool bDaisyChainWrite = false;
 		bool bRequiresWriteStep = false;
 		TArray<TSharedRef<PCGExData::FFacade>> ProcessorFacades;
-		TMap<PCGExData::FPointIO*, TSharedRef<IPointsProcessor>>* SubProcessorMap = nullptr;
+		TMap<PCGExData::FPointIO*, TSharedRef<IProcessor>>* SubProcessorMap = nullptr;
 
 		mutable FRWLock BatchLock;
 
@@ -221,8 +221,8 @@ namespace PCGExPointsMT
 
 		virtual int32 GetNumProcessors() const { return -1; }
 
-		IPointsProcessorBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
-		virtual ~IPointsProcessorBatch() = default;
+		IBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
+		virtual ~IBatch() = default;
 
 		virtual void SetExecutionContext(FPCGExContext* InContext);
 
@@ -233,7 +233,7 @@ namespace PCGExPointsMT
 
 		virtual bool PrepareProcessing();
 
-		virtual void Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager);
+		virtual void Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager);
 
 	protected:
 		virtual void OnInitialPostProcess();
@@ -245,11 +245,11 @@ namespace PCGExPointsMT
 		virtual void Cleanup();
 
 	protected:
-		void InternalInitProcessor(const TSharedPtr<IPointsProcessor>& InProcessor, const int32 InIndex);
+		void InternalInitProcessor(const TSharedPtr<IProcessor>& InProcessor, const int32 InIndex);
 	};
 
 	template <typename T>
-	class TBatch : public IPointsProcessorBatch
+	class TBatch : public IBatch
 	{
 		TSharedPtr<PCGEx::FIntTracker> InitializationTracker = nullptr;
 
@@ -262,7 +262,7 @@ namespace PCGExPointsMT
 		std::atomic<PCGEx::ContextState> CurrentState{PCGEx::State_InitialExecution};
 
 		TBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection):
-			IPointsProcessorBatch(InContext, InPointsCollection)
+			IBatch(InContext, InPointsCollection)
 		{
 		}
 
@@ -272,10 +272,10 @@ namespace PCGExPointsMT
 
 		virtual bool PrepareProcessing() override
 		{
-			return IPointsProcessorBatch::PrepareProcessing();
+			return IBatch::PrepareProcessing();
 		}
 
-		virtual void Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override
+		virtual void Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override
 		{
 			if (PointsCollection.IsEmpty()) { return; }
 
@@ -284,7 +284,7 @@ namespace PCGExPointsMT
 			AsyncManager = InAsyncManager;
 			PCGEX_ASYNC_CHKD_VOID(AsyncManager)
 
-			TSharedPtr<IPointsProcessorBatch> SelfPtr = SharedThis(this);
+			TSharedPtr<IBatch> SelfPtr = SharedThis(this);
 
 			for (const TWeakPtr<PCGExData::FPointIO>& WeakIO : PointsCollection)
 			{
@@ -351,14 +351,14 @@ namespace PCGExPointsMT
 			if (bSkipCompletion) { return; }
 			CurrentState.store(PCGEx::State_Completing, std::memory_order_release);
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, { Processor->CompleteWork(); })
-			IPointsProcessorBatch::CompleteWork();
+			IBatch::CompleteWork();
 		}
 
 		virtual void Write() override
 		{
 			CurrentState.store(PCGEx::State_Writing, std::memory_order_release);
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, { Processor->Write(); })
-			IPointsProcessorBatch::Write();
+			IBatch::Write();
 		}
 
 		virtual void Output() override
@@ -372,14 +372,14 @@ namespace PCGExPointsMT
 
 		virtual void Cleanup() override
 		{
-			IPointsProcessorBatch::Cleanup();
+			IBatch::Cleanup();
 			for (const TSharedPtr<T>& P : Processors) { P->Cleanup(); }
 			Processors.Empty();
 		}
 	};
 
-	static void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IPointsProcessorBatch>& Batch)
+	static void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch)
 	{
-		PCGEX_LAUNCH(FStartBatchProcessing<IPointsProcessorBatch>, Batch)
+		PCGEX_LAUNCH(FStartBatchProcessing<IBatch>, Batch)
 	}
 }

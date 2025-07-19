@@ -78,7 +78,7 @@ namespace PCGExSampleNeighbors
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;

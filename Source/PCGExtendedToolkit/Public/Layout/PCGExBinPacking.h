@@ -199,7 +199,7 @@ namespace PCGExBinPacking
 		void UpdatePoint(PCGExData::FMutablePoint& InPoint, const FItem& InItem) const;
 	};
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBinPackingContext, UPCGExBinPackingSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBinPackingContext, UPCGExBinPackingSettings>
 	{
 	protected:
 		TSharedPtr<FBinSplit> Splitter;
@@ -214,7 +214,7 @@ namespace PCGExBinPacking
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 			bDaisyChainProcessPoints = true;
 		}

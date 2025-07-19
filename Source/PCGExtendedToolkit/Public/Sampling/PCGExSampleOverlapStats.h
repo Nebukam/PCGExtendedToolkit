@@ -210,7 +210,7 @@ namespace PCGExSampleOverlapStats
 		FORCEINLINE FProcessor* GetOther(const FProcessor* InCandidate) const { return Primary == InCandidate ? Secondary : Primary; }
 	};
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleOverlapStatsContext, UPCGExSampleOverlapStatsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleOverlapStatsContext, UPCGExSampleOverlapStatsSettings>
 	{
 		friend struct FPCGExSampleOverlapStatsContext;
 
@@ -241,7 +241,7 @@ namespace PCGExSampleOverlapStats
 		double LocalOverlapCountMax = 0;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

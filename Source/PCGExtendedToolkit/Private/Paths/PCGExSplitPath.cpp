@@ -82,7 +82,7 @@ namespace PCGExSplitPath
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 

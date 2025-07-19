@@ -241,7 +241,7 @@ namespace PCGExSampleInsidePath
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -508,7 +508,7 @@ namespace PCGExSampleInsidePath
 
 	void FProcessor::Cleanup()
 	{
-		TPointsProcessor<FPCGExSampleInsidePathContext, UPCGExSampleInsidePathSettings>::Cleanup();
+		TProcessor<FPCGExSampleInsidePathContext, UPCGExSampleInsidePathSettings>::Cleanup();
 		UnionBlendOpsManager.Reset();
 	}
 }

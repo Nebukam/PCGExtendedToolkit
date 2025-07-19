@@ -82,7 +82,7 @@ protected:
 
 namespace PCGExFuseCollinear
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFuseCollinearContext, UPCGExFuseCollinearSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExFuseCollinearContext, UPCGExFuseCollinearSettings>
 	{
 		TSharedPtr<PCGExPaths::FPath> Path;
 
@@ -91,7 +91,7 @@ namespace PCGExFuseCollinear
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = false;
 		}

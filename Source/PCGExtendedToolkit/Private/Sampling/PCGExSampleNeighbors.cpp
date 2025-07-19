@@ -73,11 +73,11 @@ namespace PCGExSampleNeighbors
 	{
 	}
 
-	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNeighbors::Process);
 
-		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		for (const UPCGExNeighborSamplerFactoryData* OperationFactory : Context->SamplerFactories)
 		{

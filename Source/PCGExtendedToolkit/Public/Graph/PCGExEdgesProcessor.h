@@ -84,7 +84,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : FPCGExPointsProcesso
 	void GatherClusterProcessors(TArray<TSharedPtr<T>>& OutProcessors)
 	{
 		OutProcessors.Reserve(GetClusterProcessorsNum());
-		for (const TSharedPtr<PCGExClusterMT::IClusterProcessorBatch>& Batch : Batches)
+		for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches)
 		{
 			PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<PCGExClusterMT::TBatch<T>*>(Batch.Get());
 			OutProcessors.Append(TypedBatch->Processors);
@@ -105,7 +105,7 @@ protected:
 
 	TArray<FPCGExSortRuleConfig> EdgeSortingRules;
 
-	TArray<TSharedPtr<PCGExClusterMT::IClusterProcessorBatch>> Batches;
+	TArray<TSharedPtr<PCGExClusterMT::IBatch>> Batches;
 	TArray<TSharedRef<PCGExData::FFacade>> EdgesDataFacades;
 
 	bool bScopedIndexLookupBuild = false;
@@ -117,7 +117,7 @@ protected:
 	bool bClusterWantsHeuristics = false;
 	bool bClusterBatchInlined = false;
 	int32 CurrentBatchIndex = -1;
-	TSharedPtr<PCGExClusterMT::IClusterProcessorBatch> CurrentBatch;
+	TSharedPtr<PCGExClusterMT::IBatch> CurrentBatch;
 
 	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
 	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const bool bInlined = false)

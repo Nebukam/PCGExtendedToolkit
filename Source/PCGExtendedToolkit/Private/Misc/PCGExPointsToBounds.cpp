@@ -124,7 +124,7 @@ namespace PCGExPointsToBounds
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPointsToBounds::Process);
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->OutputMode == EPCGExPointsToBoundsOutputMode::Collapse)
 		{

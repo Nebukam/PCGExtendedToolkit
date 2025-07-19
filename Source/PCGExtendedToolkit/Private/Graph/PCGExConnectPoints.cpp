@@ -108,7 +108,7 @@ namespace PCGExConnectPoints
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 
@@ -244,7 +244,7 @@ namespace PCGExConnectPoints
 
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
-		IPointsProcessor::PrepareLoopScopesForPoints(Loops);
+		IProcessor::PrepareLoopScopesForPoints(Loops);
 		ScopedEdges = MakeShared<PCGExMT::TScopedSet<uint64>>(Loops, 10);
 	}
 
@@ -370,7 +370,7 @@ namespace PCGExConnectPoints
 
 	void FProcessor::Cleanup()
 	{
-		TPointsProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>::Cleanup();
+		TProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>::Cleanup();
 
 		SearchProbes.Empty();
 		DirectProbes.Empty();

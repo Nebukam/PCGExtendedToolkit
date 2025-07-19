@@ -100,7 +100,7 @@ namespace PCGExWriteTangents
 	const FName SourceOverridesTangentsEnd = TEXT("Overrides : End Tangents");
 
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWriteTangentsContext, UPCGExWriteTangentsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExWriteTangentsContext, UPCGExWriteTangentsSettings>
 	{
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
@@ -117,7 +117,7 @@ namespace PCGExWriteTangents
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

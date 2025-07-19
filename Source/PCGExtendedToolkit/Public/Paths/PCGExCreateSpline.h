@@ -107,7 +107,7 @@ protected:
 
 namespace PCGExCreateSpline
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>
 	{
 		int32 LastIndex = 0;
 		bool bClosedLoop = false;
@@ -127,7 +127,7 @@ namespace PCGExCreateSpline
 		TObjectPtr<AActor> SplineActor = nullptr;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

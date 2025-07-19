@@ -166,7 +166,7 @@ protected:
 
 namespace PCGExPathSplineMesh
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSplineMeshContext, UPCGExPathSplineMeshSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathSplineMeshContext, UPCGExPathSplineMeshSettings>
 	{
 	protected:
 		bool bOutputWeight = false;
@@ -200,7 +200,7 @@ namespace PCGExPathSplineMesh
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

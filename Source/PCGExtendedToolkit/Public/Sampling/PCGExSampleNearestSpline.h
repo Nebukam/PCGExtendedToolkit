@@ -481,7 +481,7 @@ protected:
 
 namespace PCGExSampleNearestSpline
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestSplineContext, UPCGExSampleNearestSplineSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleNearestSplineContext, UPCGExSampleNearestSplineSettings>
 	{
 		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
@@ -509,7 +509,7 @@ namespace PCGExSampleNearestSpline
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -182,7 +182,7 @@ namespace PCGExPathToClusters
 
 	bool FNonFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
@@ -239,7 +239,7 @@ namespace PCGExPathToClusters
 
 	bool FFusingProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 

@@ -152,7 +152,7 @@ protected:
 
 namespace PCGExPathCrossings
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathCrossingsContext, UPCGExPathCrossingsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathCrossingsContext, UPCGExPathCrossingsSettings>
 	{
 		bool bClosedLoop = false;
 		bool bSelfIntersectionOnly = false;
@@ -187,7 +187,7 @@ namespace PCGExPathCrossings
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

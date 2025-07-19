@@ -128,7 +128,7 @@ namespace PCGExFindPointOnBounds
 		}
 	}
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFindPointOnBoundsContext, UPCGExFindPointOnBoundsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExFindPointOnBoundsContext, UPCGExFindPointOnBoundsSettings>
 	{
 		mutable FRWLock BestIndexLock;
 
@@ -139,7 +139,7 @@ namespace PCGExFindPointOnBounds
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

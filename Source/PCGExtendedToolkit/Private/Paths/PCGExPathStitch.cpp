@@ -109,7 +109,7 @@ namespace PCGExPathStitch
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 		const TConstPCGValueRange<FTransform> InTransform = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const FVector Extents = FVector::OneVector * 0.5;

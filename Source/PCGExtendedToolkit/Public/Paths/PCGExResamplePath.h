@@ -88,7 +88,7 @@ namespace PCGExResamplePath
 		double Distance = 0;
 	};
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExResamplePathContext, UPCGExResamplePathSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExResamplePathContext, UPCGExResamplePathSettings>
 	{
 		int32 NumSamples = 0;
 		double SampleLength = 0;
@@ -101,7 +101,7 @@ namespace PCGExResamplePath
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

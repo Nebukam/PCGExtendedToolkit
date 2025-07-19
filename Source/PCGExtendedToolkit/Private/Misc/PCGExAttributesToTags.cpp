@@ -173,7 +173,7 @@ namespace PCGExAttributesToTags
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributesToTags::Process);
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->Action == EPCGExAttributeToTagsAction::Attribute)
 		{
@@ -299,7 +299,7 @@ namespace PCGExAttributesToTags
 
 	void FProcessor::Output()
 	{
-		TPointsProcessor<FPCGExAttributesToTagsContext, UPCGExAttributesToTagsSettings>::Output();
+		TProcessor<FPCGExAttributesToTagsContext, UPCGExAttributesToTagsSettings>::Output();
 		if (OutputSet)
 		{
 			FPCGTaggedData& StagedData = Context->StageOutput(OutputSet, false);

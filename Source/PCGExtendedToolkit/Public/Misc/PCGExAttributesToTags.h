@@ -110,14 +110,14 @@ protected:
 
 namespace PCGExAttributesToTags
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributesToTagsContext, UPCGExAttributesToTagsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExAttributesToTagsContext, UPCGExAttributesToTagsSettings>
 	{
 		UPCGParamData* OutputSet = nullptr;
 		TArray<int32> PickedIndices;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -104,7 +104,7 @@ namespace PCGExOrient
 {
 	const FName SourceOverridesOrient = TEXT("Overrides : Orient");
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOrientContext, UPCGExOrientSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExOrientContext, UPCGExOrientSettings>
 	{
 		TSharedPtr<PCGExPaths::FPath> Path;
 
@@ -115,7 +115,7 @@ namespace PCGExOrient
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -90,7 +90,7 @@ protected:
 
 namespace PCGExFusePoints
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFusePointsContext, UPCGExFusePointsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExFusePointsContext, UPCGExFusePointsSettings>
 	{
 		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
 		TSharedPtr<PCGExDataBlending::IUnionBlender> UnionBlender;
@@ -100,7 +100,7 @@ namespace PCGExFusePoints
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 			bDaisyChainProcessPoints = true;
 		}

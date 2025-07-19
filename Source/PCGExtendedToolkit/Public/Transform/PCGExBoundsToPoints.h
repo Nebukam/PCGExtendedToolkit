@@ -88,7 +88,7 @@ protected:
 
 namespace PCGExBoundsToPoints
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBoundsToPointsContext, UPCGExBoundsToPointsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBoundsToPointsContext, UPCGExBoundsToPointsSettings>
 	{
 		int32 NumPoints = 0;
 		bool bGeneratePerPointData = false;
@@ -107,7 +107,7 @@ namespace PCGExBoundsToPoints
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

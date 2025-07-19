@@ -23,7 +23,7 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	for (TSharedPtr<PCGExClusterMT::IClusterProcessorBatch>& Batch : Batches)
+	for (TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches)
 	{
 		Batch->Cleanup();
 		Batch.Reset();
@@ -112,7 +112,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 void FPCGExEdgesProcessorContext::OutputBatches() const
 {
-	for (const TSharedPtr<PCGExClusterMT::IClusterProcessorBatch>& Batch : Batches) { Batch->Output(); }
+	for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->Output(); }
 }
 
 bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync)
@@ -206,7 +206,7 @@ bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToConte
 	PCGEX_ON_STATE_INTERNAL(PCGExGraph::State_ReadyToCompile)
 	{
 		SetAsyncState(PCGExGraph::State_Compiling);
-		for (const TSharedPtr<PCGExClusterMT::IClusterProcessorBatch>& Batch : Batches) { Batch->CompileGraphBuilder(bOutputToContext); }
+		for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->CompileGraphBuilder(bOutputToContext); }
 		return false;
 	}
 
@@ -263,7 +263,7 @@ void FPCGExEdgesProcessorContext::OutputPointsAndEdges() const
 int32 FPCGExEdgesProcessorContext::GetClusterProcessorsNum() const
 {
 	int32 Num = 0;
-	for (const TSharedPtr<PCGExClusterMT::IClusterProcessorBatch>& Batch : Batches) { Num += Batch->GetNumProcessors(); }
+	for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Num += Batch->GetNumProcessors(); }
 	return Num;
 }
 

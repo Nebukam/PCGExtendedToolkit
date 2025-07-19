@@ -83,7 +83,7 @@ protected:
 
 namespace PCGExConnectPoints
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>
 	{
 		TSharedPtr<PCGExPointFilter::FManager> GeneratorsFilter;
 		TSharedPtr<PCGExPointFilter::FManager> ConnectableFilter;
@@ -115,7 +115,7 @@ namespace PCGExConnectPoints
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

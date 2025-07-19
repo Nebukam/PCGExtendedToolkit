@@ -110,7 +110,7 @@ namespace PCGExSmooth
 {
 	const FName SourceOverridesSmoothing = TEXT("Overrides : Smoothing");
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSmoothContext, UPCGExSmoothSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSmoothContext, UPCGExSmoothSettings>
 	{
 		int32 NumPoints = 0;
 
@@ -127,7 +127,7 @@ namespace PCGExSmooth
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

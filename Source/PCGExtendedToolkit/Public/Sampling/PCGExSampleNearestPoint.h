@@ -345,7 +345,7 @@ protected:
 
 namespace PCGExSampleNearestPoints
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestPointContext, UPCGExSampleNearestPointSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleNearestPointContext, UPCGExSampleNearestPointSettings>
 	{
 		TArray<int8> SamplingMask;
 
@@ -373,7 +373,7 @@ namespace PCGExSampleNearestPoints
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = true;
 		}
