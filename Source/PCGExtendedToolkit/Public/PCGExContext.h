@@ -137,6 +137,8 @@ public:
 	void EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled = false) const;
 
 	bool CanExecute() const;
+
+	bool bQuietCancellationError = false;
 	virtual bool CancelExecution(const FString& InReason);
 
 protected:

@@ -453,7 +453,7 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 	bExecutionCancelled = true;
 	WorkPermit.Reset();
 	ResumeExecution();
-	if (!InReason.IsEmpty()) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
+	if (!InReason.IsEmpty() && !bQuietCancellationError) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
 	return true;
 }
 
