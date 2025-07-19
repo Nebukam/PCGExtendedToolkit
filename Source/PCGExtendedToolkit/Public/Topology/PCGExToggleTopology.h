@@ -17,7 +17,7 @@ enum class EPCGExToggleTopologyAction : uint8
 	Remove = 1 UMETA(DisplayName = "Remove", ToolTip="..."),
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="tensors/clusters/topology/toggle-topology"))
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="tensors/clusters/topology/toggle-topology"))
 class UPCGExToggleTopologySettings : public UPCGSettings
 {
 	GENERATED_BODY()
@@ -28,7 +28,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_DUMMY_SETTINGS_MEMBERS
-	PCGEX_NODE_INFOS(ToggleTopology, "Topology : Toggle", "Registers/unregister or Removes PCGEx spawned dynamic meshes.");
+	PCGEX_NODE_INFOS(ToggleTopology, "Topology : Toggle (DEPRECATED)", "Registers/unregister or Removes PCGEx spawned dynamic meshes. Use OutputMode : Dynamic Mesh to use the mesh with the PCG Geometry Script interop stack from now on.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPrimitives; }
 #endif
 

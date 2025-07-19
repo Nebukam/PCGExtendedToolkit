@@ -69,11 +69,11 @@ protected:
 
 namespace PCGExCherryPickPoints
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExCherryPickPointsContext, UPCGExCherryPickPointsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExCherryPickPointsContext, UPCGExCherryPickPointsSettings>
 	{
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -76,7 +76,7 @@ protected:
 
 namespace PCGExMergePoints
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExMergePointsContext, UPCGExMergePointsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExMergePointsContext, UPCGExMergePointsSettings>
 	{
 	protected:
 		FRWLock SimpleTagsLock;
@@ -90,7 +90,7 @@ namespace PCGExMergePoints
 		TArray<FName> ConvertedTagsList;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

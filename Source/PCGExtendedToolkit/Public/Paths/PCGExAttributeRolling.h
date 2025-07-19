@@ -172,7 +172,7 @@ protected:
 
 namespace PCGExAttributeRolling
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeRollingContext, UPCGExAttributeRollingSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExAttributeRollingContext, UPCGExAttributeRollingSettings>
 	{
 		int32 MaxIndex = 0;
 		int32 SourceIndex = -1;
@@ -196,7 +196,7 @@ namespace PCGExAttributeRolling
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

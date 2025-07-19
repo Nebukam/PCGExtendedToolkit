@@ -115,7 +115,7 @@ namespace PCGExSubdivide
 		double StartOffset = 0;
 	};
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSubdivideContext, UPCGExSubdivideSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSubdivideContext, UPCGExSubdivideSettings>
 	{
 		TArray<FSubdivision> Subdivisions;
 
@@ -139,7 +139,7 @@ namespace PCGExSubdivide
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

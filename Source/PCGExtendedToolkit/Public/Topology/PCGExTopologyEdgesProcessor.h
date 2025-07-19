@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExDynamicMeshComponent.h"
 #include "PCGExTopology.h"
+#include "Data/PCGDynamicMeshData.h"
 #include "Geometry/PCGExGeoMesh.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
@@ -13,6 +14,13 @@
 #include "Transform/PCGExTransform.h"
 
 #include "PCGExTopologyEdgesProcessor.generated.h"
+
+UENUM()
+enum class EPCGExTopologyOutputMode : uint8
+{
+	Legacy         = 0 UMETA(DisplayName = "Legacy (Spawn Mesh)", ToolTip="Spawns a dynamic mesh (Legacy)."),
+	PCGDynamicMesh = 1 UMETA(DisplayName = "PCG Dynamic Mesh", ToolTip="Creates a PCG dynamic mesh."),
+};
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters")
 class PCGEXTENDEDTOOLKIT_API UPCGExTopologyEdgesProcessorSettings : public UPCGExEdgesProcessorSettings
@@ -24,7 +32,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(TopologyProcessor, "Topology", "Base processor to output meshes from clusters");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorTopology); }
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spawner; }
+	virtual EPCGSettingsType GetType() const override { return OutputMode == EPCGExTopologyOutputMode::Legacy ? EPCGSettingsType::Spawner : EPCGSettingsType::DynamicMesh; }
 #endif
 
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
@@ -34,9 +42,18 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+
+#if WITH_EDITOR
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
+#endif
+
 	//~End UPCGSettings
 
 public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExTopologyOutputMode OutputMode = EPCGExTopologyOutputMode::PCGDynamicMesh;
+
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
@@ -44,22 +61,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExCellConstraintsDetails Constraints;
 
-	/** Topology settings. */
+	/** Topology settings. Some settings will be ignored based on selected output mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTopologyDetails Topology;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides))
 	TSoftObjectPtr<AActor> TargetActor;
 
 	/** Comma separated tags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides))
 	FString CommaSeparatedComponentTags = TEXT("PCGExTopology");
 
 	/** Specify a list of functions to be called on the target actor after dynamic mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides))
 	TArray<FName> PostProcessFunctionNames;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides))
 	FPCGExAttachmentRules AttachmentRules;
 
 protected:
@@ -108,6 +125,7 @@ namespace PCGExTopologyEdges
 
 		TSharedPtr<PCGExTopology::FCell> WrapperCell;
 		TObjectPtr<UDynamicMesh> InternalMesh;
+		UPCGDynamicMeshData* InternalMeshData = nullptr;
 
 		TSharedPtr<PCGEx::FIndexLookup> VerticesLookup;
 
@@ -152,14 +170,14 @@ namespace PCGExTopologyEdges
 				true, false, false);
 		}
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override
 		{
 			EdgeDataFacade->bSupportsScopedGet = true;
 			EdgeFilterFactories = &Context->EdgeConstraintsFilterFactories;
 
 			if (!PCGExClusterMT::TProcessor<TContext, TSettings>::Process(InAsyncManager)) { return false; }
 
-			if (Context->HolesFacade){ Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails); }
+			if (Context->HolesFacade) { Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails); }
 
 			bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 
@@ -174,17 +192,42 @@ namespace PCGExTopologyEdges
 			// IMPORTANT : Need to wait for projection to be completed.
 			// Children should start work only in CompleteWork!!
 
+			if (Settings->OutputMode == EPCGExTopologyOutputMode::PCGDynamicMesh)
+			{
+				InternalMeshData = Context->ManagedObjects->template New<UPCGDynamicMeshData>();
+				if (!InternalMeshData) { return false; }
+			}
+
 			InternalMesh = Context->ManagedObjects->template New<UDynamicMesh>();
 			InternalMesh->InitializeMesh();
+
+			if (InternalMeshData)
+			{
+				InternalMeshData->Initialize(InternalMesh, true);
+				InternalMesh = InternalMeshData->GetMutableDynamicMesh();
+				if (UMaterialInterface* Material = Settings->Topology.Material.Get()) { InternalMeshData->SetMaterials({Material}); }
+			}
+
 			return true;
 		}
 
 		virtual void Output() override
 		{
 			if (!this->bIsProcessorValid) { return; }
-			if (Settings->Topology.bCombinesAllTopologies) { return; }
 
 			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
+
+			if (InternalMeshData)
+			{
+				TSet<FString> MeshTags;
+
+				EdgeDataFacade->Source->Tags->DumpTo(MeshTags);
+				VtxDataFacade->Source->Tags->DumpTo(MeshTags);
+
+				Context->StageOutput(InternalMeshData, PCGExTopology::MeshOutputLabel, MeshTags, true, false, false);
+
+				return;
+			}
 
 			AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
 
@@ -246,7 +289,10 @@ namespace PCGExTopologyEdges
 
 					InMesh.EnableAttributes();
 					InMesh.Attributes()->EnablePrimaryColors();
+					InMesh.Attributes()->EnableMaterialID();
+					
 					UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
+					UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
 
 					TArray<int32> ElemIDs;
 					ElemIDs.SetNum(VtxCount);
@@ -258,6 +304,7 @@ namespace PCGExTopologyEdges
 						{
 							const int32 PointIndex = *WP;
 							InMesh.SetVertex(i, InTransforms[PointIndex].GetLocation());
+							//InMesh.SetVertexNormal()
 							ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[PointIndex]));
 						}
 						else
@@ -269,9 +316,16 @@ namespace PCGExTopologyEdges
 					for (int32 TriangleID : InMesh.TriangleIndicesItr())
 					{
 						UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+						MaterialID->SetValue(TriangleID, 0);
 						Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
 					}
 				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
+
+			
+			if (Settings->Topology.bComputeNormals)
+			{
+				UGeometryScriptLibrary_MeshNormalsFunctions::RecomputeNormals(GetInternalMesh(), Settings->Topology.NormalsOptions);
+			}
 		}
 	};
 
@@ -325,15 +379,7 @@ namespace PCGExTopologyEdges
 			if (!this->bIsBatchValid) { return; }
 
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
-
-			if (Settings->Topology.bCombinesAllTopologies)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Merged topology is not implemented yet."));
-			}
-			else
-			{
-				PCGExClusterMT::TBatch<T>::Output();
-			}
+			PCGExClusterMT::TBatch<T>::Output();
 		}
 
 	protected:

@@ -54,11 +54,11 @@ namespace PCGExClusterMT
 
 #pragma endregion
 
-	class IClusterProcessorBatch;
+	class IBatch;
 
-	class PCGEXTENDEDTOOLKIT_API IClusterProcessor : public TSharedFromThis<IClusterProcessor>
+	class PCGEXTENDEDTOOLKIT_API IProcessor : public TSharedFromThis<IProcessor>
 	{
-		friend class IClusterProcessorBatch;
+		friend class IBatch;
 
 	protected:
 		FPCGExContext* ExecutionContext = nullptr;
@@ -92,7 +92,7 @@ namespace PCGExClusterMT
 
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 
-		TWeakPtr<IClusterProcessorBatch> ParentBatch;
+		TWeakPtr<IBatch> ParentBatch;
 
 		template <typename T>
 		T* GetParentBatch() { return static_cast<T*>(ParentBatch.Pin().Get()); }
@@ -117,13 +117,13 @@ namespace PCGExClusterMT
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		IClusterProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
+		IProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 
 		virtual void SetExecutionContext(FPCGExContext* InContext);
 
 		void SetProjectionDetails(const FPCGExGeo2DProjectionDetails& InDetails, const TSharedPtr<TArray<FVector2D>>& InProjectedVtxPositions, const bool InWantsProjection);
 
-		virtual ~IClusterProcessor() = default;
+		virtual ~IProcessor() = default;
 
 		virtual void RegisterConsumableAttributesWithFacade() const;
 
@@ -131,7 +131,7 @@ namespace PCGExClusterMT
 
 		void SetWantsHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories);
 
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager> InAsyncManager);
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager);
 
 #pragma region Parallel loops
 
@@ -177,7 +177,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename TContext, typename TSettings>
-	class TProcessor : public IClusterProcessor
+	class TProcessor : public IProcessor
 	{
 	protected:
 		TContext* Context = nullptr;
@@ -185,13 +185,13 @@ namespace PCGExClusterMT
 
 	public:
 		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			IClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
+			IProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
 		virtual void SetExecutionContext(FPCGExContext* InContext) override
 		{
-			IClusterProcessor::SetExecutionContext(InContext);
+			IProcessor::SetExecutionContext(InContext);
 			Context = static_cast<TContext*>(ExecutionContext);
 			Settings = InContext->GetInputSettings<TSettings>();
 		}
@@ -200,7 +200,7 @@ namespace PCGExClusterMT
 		const TSettings* GetSettings() { return Settings; }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API IClusterProcessorBatch : public TSharedFromThis<IClusterProcessorBatch>
+	class PCGEXTENDEDTOOLKIT_API IBatch : public TSharedFromThis<IBatch>
 	{
 	protected:
 		TSharedPtr<PCGEx::FIntTracker> InitializationTracker = nullptr;
@@ -265,9 +265,9 @@ namespace PCGExClusterMT
 		bool bDaisyChainCompletion = false;
 		bool bDaisyChainWrite = false;
 
-		IClusterProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
+		IBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 
-		virtual ~IClusterProcessorBatch() = default;
+		virtual ~IBatch() = default;
 
 		virtual void SetExecutionContext(FPCGExContext* InContext);
 
@@ -299,13 +299,13 @@ namespace PCGExClusterMT
 		virtual void Cleanup();
 
 	protected:
-		void InternalInitProcessor(const TSharedPtr<IClusterProcessor>& InProcessor, const int32 InIndex);
+		void InternalInitProcessor(const TSharedPtr<IProcessor>& InProcessor, const int32 InIndex);
 
 		virtual void AllocateVtxPoints();
 	};
 
 	template <typename T>
-	class TBatch : public IClusterProcessorBatch
+	class TBatch : public IBatch
 	{
 	public:
 		TArray<TSharedRef<T>> Processors;
@@ -316,7 +316,7 @@ namespace PCGExClusterMT
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
 		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			IClusterProcessorBatch(InContext, InVtx, InEdges)
+			IBatch(InContext, InVtx, InEdges)
 		{
 		}
 
@@ -336,7 +336,7 @@ namespace PCGExClusterMT
 		{
 			if (!bIsBatchValid) { return; }
 
-			IClusterProcessorBatch::Process();
+			IBatch::Process();
 			if (!bIsBatchValid) { return; }
 
 			CurrentState.store(PCGEx::State_Processing, std::memory_order_release);
@@ -382,7 +382,7 @@ namespace PCGExClusterMT
 
 			CurrentState.store(PCGEx::State_Completing, std::memory_order_release);
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, { Processor->CompleteWork(); })
-			IClusterProcessorBatch::CompleteWork();
+			IBatch::CompleteWork();
 		}
 
 		virtual void Write() override
@@ -391,7 +391,7 @@ namespace PCGExClusterMT
 
 			CurrentState.store(PCGEx::State_Writing, std::memory_order_release);
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, { Processor->Write(); })
-			IClusterProcessorBatch::Write();
+			IBatch::Write();
 		}
 
 		virtual void Output() override
@@ -406,24 +406,24 @@ namespace PCGExClusterMT
 
 		virtual void Cleanup() override
 		{
-			IClusterProcessorBatch::Cleanup();
+			IBatch::Cleanup();
 			for (const TSharedRef<T>& P : Processors) { P->Cleanup(); }
 			Processors.Empty();
 		}
 	};
 
-	static void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IClusterProcessorBatch>& Batch, const bool bScopedIndexLookupBuild)
+	static void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild)
 	{
-		PCGEX_LAUNCH(FStartClusterBatchProcessing<IClusterProcessorBatch>, Batch, bScopedIndexLookupBuild)
+		PCGEX_LAUNCH(FStartClusterBatchProcessing<IBatch>, Batch, bScopedIndexLookupBuild)
 	}
 
-	static void CompleteBatches(const TArrayView<TSharedPtr<IClusterProcessorBatch>> Batches)
+	static void CompleteBatches(const TArrayView<TSharedPtr<IBatch>> Batches)
 	{
-		for (const TSharedPtr<IClusterProcessorBatch>& Batch : Batches) { Batch->CompleteWork(); }
+		for (const TSharedPtr<IBatch>& Batch : Batches) { Batch->CompleteWork(); }
 	}
 
-	static void WriteBatches(const TArrayView<TSharedPtr<IClusterProcessorBatch>> Batches)
+	static void WriteBatches(const TArrayView<TSharedPtr<IBatch>> Batches)
 	{
-		for (const TSharedPtr<IClusterProcessorBatch>& Batch : Batches) { Batch->Write(); }
+		for (const TSharedPtr<IBatch>& Batch : Batches) { Batch->Write(); }
 	}
 }

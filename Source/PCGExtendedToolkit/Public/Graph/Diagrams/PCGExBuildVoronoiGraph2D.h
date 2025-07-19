@@ -159,7 +159,7 @@ protected:
 
 namespace PCGExBuildVoronoi2D
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildVoronoiGraph2DContext, UPCGExBuildVoronoiGraph2DSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBuildVoronoiGraph2DContext, UPCGExBuildVoronoiGraph2DSettings>
 	{
 	protected:
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
@@ -181,7 +181,7 @@ namespace PCGExBuildVoronoi2D
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -62,7 +62,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 namespace PCGExPackClusters
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		if (!TProcessor::Process(InAsyncManager)) { return false; }
 

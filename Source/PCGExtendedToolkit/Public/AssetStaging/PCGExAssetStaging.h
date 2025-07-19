@@ -134,7 +134,7 @@ protected:
 
 namespace PCGExAssetStaging
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAssetStagingContext, UPCGExAssetStagingSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExAssetStagingContext, UPCGExAssetStagingSettings>
 	{
 		int32 NumPoints = 0;
 		int32 NumInvalid = 0;
@@ -168,7 +168,7 @@ namespace PCGExAssetStaging
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

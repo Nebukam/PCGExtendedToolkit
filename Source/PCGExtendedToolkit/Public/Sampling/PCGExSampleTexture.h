@@ -173,7 +173,7 @@ namespace PCGExSampleTexture
 		}
 	};
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleTextureContext, UPCGExSampleTextureSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleTextureContext, UPCGExSampleTextureSettings>
 	{
 		TArray<int8> SamplingMask;
 
@@ -187,7 +187,7 @@ namespace PCGExSampleTexture
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

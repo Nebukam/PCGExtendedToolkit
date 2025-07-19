@@ -150,7 +150,7 @@ protected:
 
 namespace PCGExTensorsTransform
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExTensorsTransformContext, UPCGExTensorsTransformSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExTensorsTransformContext, UPCGExTensorsTransformSettings>
 	{
 	protected:
 		TSharedPtr<PCGExPointFilter::FManager> StopFilters;
@@ -165,7 +165,7 @@ namespace PCGExTensorsTransform
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

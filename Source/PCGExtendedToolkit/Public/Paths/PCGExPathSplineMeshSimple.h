@@ -168,7 +168,7 @@ protected:
 
 namespace PCGExPathSplineMeshSimple
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSplineMeshSimpleContext, UPCGExPathSplineMeshSimpleSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathSplineMeshSimpleContext, UPCGExPathSplineMeshSimpleSettings>
 	{
 	protected:
 		bool bClosedLoop = false;
@@ -193,7 +193,7 @@ namespace PCGExPathSplineMeshSimple
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

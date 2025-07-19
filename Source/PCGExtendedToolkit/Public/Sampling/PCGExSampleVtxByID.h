@@ -123,7 +123,7 @@ protected:
 
 namespace PCGExSampleVtxByIDs
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleVtxByIDContext, UPCGExSampleVtxByIDSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleVtxByIDContext, UPCGExSampleVtxByIDSettings>
 	{
 		TArray<int8> SamplingMask;
 
@@ -141,7 +141,7 @@ namespace PCGExSampleVtxByIDs
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = true;
 		}

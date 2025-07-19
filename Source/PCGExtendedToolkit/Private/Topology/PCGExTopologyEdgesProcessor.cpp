@@ -8,8 +8,8 @@
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE TopologyProcessor
 
-PCGExData::EIOInit UPCGExTopologyEdgesProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
-PCGExData::EIOInit UPCGExTopologyEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
+PCGExData::EIOInit UPCGExTopologyEdgesProcessorSettings::GetMainOutputInitMode() const { return OutputMode == EPCGExTopologyOutputMode::Legacy ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExTopologyEdgesProcessorSettings::GetEdgeOutputInitMode() const { return OutputMode == EPCGExTopologyOutputMode::Legacy ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::NoInit; }
 
 TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::InputPinProperties() const
 {
@@ -21,6 +21,28 @@ TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::InputPinProperti
 	}
 	return PinProperties;
 }
+
+TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::OutputPinProperties() const
+{
+	if (OutputMode == EPCGExTopologyOutputMode::Legacy) { return Super::OutputPinProperties(); }
+
+	TArray<FPCGPinProperties> PinProperties;
+	PCGEX_PIN_MESH(FName("Mesh"), "PCG Dynamic Mesh", Normal, {})
+	return PinProperties;
+}
+
+#if WITH_EDITOR
+void UPCGExTopologyEdgesProcessorSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	for (TObjectPtr<UPCGPin>& OutPin : OutputPins)
+	{
+		// If vtx/edge pins are connected, set Legacy output mode
+		if ((OutPin->Properties.Label == PCGExGraph::OutputVerticesLabel || OutPin->Properties.Label == PCGExGraph::OutputEdgesLabel) &&
+			OutPin->EdgeCount() > 0) { OutputMode = EPCGExTopologyOutputMode::Legacy; }
+	}
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+}
+#endif
 
 void FPCGExTopologyEdgesProcessorContext::RegisterAssetDependencies()
 {

@@ -175,7 +175,7 @@ namespace PCGExAttributeStats
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributeStats::Process);
 
 		// Must be set before process for filters
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->OutputToPoints == EPCGExStatsOutputToPoints::None ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate)
 

@@ -110,7 +110,7 @@ protected:
 
 namespace PCGExDiscardSame
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExDiscardSameContext, UPCGExDiscardSameSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExDiscardSameContext, UPCGExDiscardSameSettings>
 	{
 		friend struct FPCGExDiscardSameContext;
 
@@ -122,7 +122,7 @@ namespace PCGExDiscardSame
 		uint32 HashPositions = 0;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -606,7 +606,7 @@ namespace PCGExExtrudeTensors
 		return !(Length >= MaxLength || ExtrudedPoints.Num() >= MaxPointCount);
 	}
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExExtrudeTensorsContext, UPCGExExtrudeTensorsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExExtrudeTensorsContext, UPCGExExtrudeTensorsSettings>
 	{
 	protected:
 		TSharedPtr<PCGExSorting::FPointSorter> Sorter;
@@ -630,7 +630,7 @@ namespace PCGExExtrudeTensors
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 
@@ -678,7 +678,7 @@ namespace PCGExExtrudeTensors
 	{
 	public:
 		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
-		virtual void Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual void Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void OnPathsPrepared();
 	};
 }

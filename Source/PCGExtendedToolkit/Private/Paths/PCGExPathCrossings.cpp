@@ -108,7 +108,7 @@ namespace PCGExPathCrossings
 		// Must be set before process for filters
 		//PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
 		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;
@@ -181,7 +181,7 @@ namespace PCGExPathCrossings
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		const TSharedPtr<PCGExPointsMT::IPointsProcessorBatch> Parent = ParentBatch.Pin();
+		const TSharedPtr<PCGExPointsMT::IBatch> Parent = ParentBatch.Pin();
 		if (!Parent) { return; }
 
 		const TSharedPtr<PCGExPointsMT::TBatch<FProcessor>> TypedParent = StaticCastSharedPtr<PCGExPointsMT::TBatch<FProcessor>>(Parent);

@@ -281,7 +281,7 @@ protected:
 
 namespace PCGExAttributeRemap
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeRemapContext, UPCGExAttributeRemapSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExAttributeRemapContext, UPCGExAttributeRemapSettings>
 	{
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 		int32 Dimensions = 0;
@@ -296,7 +296,7 @@ namespace PCGExAttributeRemap
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

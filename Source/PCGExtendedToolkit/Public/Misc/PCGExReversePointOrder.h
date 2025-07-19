@@ -124,7 +124,7 @@ protected:
 
 namespace PCGExReversePointOrder
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExReversePointOrderContext, UPCGExReversePointOrderSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExReversePointOrderContext, UPCGExReversePointOrderSettings>
 	{
 		TArray<FPCGExSwapAttributePairDetails> SwapPairs;
 		TSharedPtr<PCGExSorting::FPointSorter> Sorter;
@@ -135,7 +135,7 @@ namespace PCGExReversePointOrder
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

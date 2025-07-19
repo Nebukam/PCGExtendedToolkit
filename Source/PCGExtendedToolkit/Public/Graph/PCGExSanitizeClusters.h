@@ -66,7 +66,7 @@ namespace PCGExSanitizeClusters
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

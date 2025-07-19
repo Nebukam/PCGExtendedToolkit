@@ -159,7 +159,7 @@ protected:
 
 namespace PCGExWriteGUID
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWriteGUIDContext, UPCGExWriteGUIDSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExWriteGUIDContext, UPCGExWriteGUIDSettings>
 	{
 		FPCGExGUIDDetails Config;
 
@@ -168,7 +168,7 @@ namespace PCGExWriteGUID
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

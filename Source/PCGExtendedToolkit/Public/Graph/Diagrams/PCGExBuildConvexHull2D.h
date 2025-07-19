@@ -68,7 +68,7 @@ protected:
 
 namespace PCGExConvexHull2D
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildConvexHull2DContext, UPCGExBuildConvexHull2DSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBuildConvexHull2DContext, UPCGExBuildConvexHull2DSettings>
 	{
 	protected:
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
@@ -76,7 +76,7 @@ namespace PCGExConvexHull2D
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

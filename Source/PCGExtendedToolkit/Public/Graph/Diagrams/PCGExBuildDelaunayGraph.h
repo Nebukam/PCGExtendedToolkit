@@ -94,7 +94,7 @@ protected:
 
 namespace PCGExBuildDelaunay
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildDelaunayGraphContext, UPCGExBuildDelaunayGraphSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBuildDelaunayGraphContext, UPCGExBuildDelaunayGraphSettings>
 	{
 		friend class FOutputDelaunaySites;
 		friend class FOutputDelaunayUrquhartSites;
@@ -109,7 +109,7 @@ namespace PCGExBuildDelaunay
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

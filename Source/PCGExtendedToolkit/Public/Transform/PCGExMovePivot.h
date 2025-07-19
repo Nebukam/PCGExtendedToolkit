@@ -57,13 +57,13 @@ protected:
 
 namespace PCGExMovePivot
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExMovePivotContext, UPCGExMovePivotSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExMovePivotContext, UPCGExMovePivotSettings>
 	{
 		FPCGExUVW UVW;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

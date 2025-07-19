@@ -113,7 +113,7 @@ protected:
 
 namespace PCGExUberFilterCollections
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExUberFilterCollectionsContext, UPCGExUberFilterCollectionsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExUberFilterCollectionsContext, UPCGExUberFilterCollectionsSettings>
 	{
 		int32 NumPoints = 0;
 		int32 NumInside = 0;
@@ -127,7 +127,7 @@ namespace PCGExUberFilterCollections
 		TSharedPtr<PCGExData::FPointIO> Outside;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

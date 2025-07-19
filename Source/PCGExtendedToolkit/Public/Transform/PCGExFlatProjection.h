@@ -68,7 +68,7 @@ protected:
 
 namespace PCGExFlatProjection
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFlatProjectionContext, UPCGExFlatProjectionSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExFlatProjectionContext, UPCGExFlatProjectionSettings>
 	{
 		bool bWriteAttribute = false;
 		bool bInverseExistingProjection = false;
@@ -81,7 +81,7 @@ namespace PCGExFlatProjection
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

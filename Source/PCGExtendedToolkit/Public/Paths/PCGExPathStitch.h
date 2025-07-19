@@ -125,7 +125,7 @@ protected:
 
 namespace PCGExPathStitch
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathStitchContext, UPCGExPathStitchSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathStitchContext, UPCGExPathStitchSettings>
 	{
 	public:
 		int32 WorkIndex = -1;
@@ -142,7 +142,7 @@ namespace PCGExPathStitch
 		TSharedPtr<FPCGExPointIOMerger> Merger;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

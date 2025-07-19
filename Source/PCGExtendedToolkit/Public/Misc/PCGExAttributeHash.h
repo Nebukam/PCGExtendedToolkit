@@ -64,13 +64,13 @@ protected:
 
 namespace PCGExAttributeHash
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeHashContext, UPCGExAttributeHashSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExAttributeHashContext, UPCGExAttributeHashSettings>
 	{
 		TSharedPtr<PCGEx::FAttributeHasher> Hasher;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

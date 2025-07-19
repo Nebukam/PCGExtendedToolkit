@@ -98,7 +98,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
-	for (const TSharedPtr<PCGExClusterMT::IClusterProcessorBatch>& Batch : Context->Batches)
+	for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Context->Batches)
 	{
 		const TSharedPtr<PCGExBridgeClusters::FBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FBatch>(Batch);
 		PCGExData::DataIDType PairId;
@@ -113,11 +113,11 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExBridgeClusters
 {
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBridgeClusters::Process);
 
-		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		return true;
 	}

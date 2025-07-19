@@ -215,7 +215,7 @@ protected:
 
 namespace PCGExSampleNearestSurface
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestSurfaceContext, UPCGExSampleNearestSurfaceSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleNearestSurfaceContext, UPCGExSampleNearestSurfaceSettings>
 	{
 		TArray<int8> SamplingMask;
 
@@ -231,7 +231,7 @@ namespace PCGExSampleNearestSurface
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

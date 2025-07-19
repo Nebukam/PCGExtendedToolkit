@@ -92,7 +92,7 @@ namespace PCGExBuildDelaunay2D
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunay2D::Process);
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(ExecutionContext, PointDataFacade)) { return false; } }

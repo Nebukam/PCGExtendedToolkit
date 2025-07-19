@@ -88,7 +88,7 @@ namespace PCGExCreateSpline
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 
@@ -185,7 +185,7 @@ namespace PCGExCreateSpline
 
 	void FProcessor::Output()
 	{
-		TPointsProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::Output();
+		TProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::Output();
 
 		// Output spline data
 		SplineData->Initialize(SplinePoints, bClosedLoop, FTransform(PositionOffset));
@@ -214,7 +214,7 @@ namespace PCGExCreateSpline
 
 	void FProcessor::Cleanup()
 	{
-		TPointsProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::Cleanup();
+		TProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::Cleanup();
 	}
 
 	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& PointsProcessor)

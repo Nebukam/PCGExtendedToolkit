@@ -139,7 +139,7 @@ protected:
 
 namespace PCGExBoundsAxisToPoints
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBoundsAxisToPointsContext, UPCGExBoundsAxisToPointsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBoundsAxisToPointsContext, UPCGExBoundsAxisToPointsSettings>
 	{
 		FPCGExUVW BaseUVW;
 
@@ -156,7 +156,7 @@ namespace PCGExBoundsAxisToPoints
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

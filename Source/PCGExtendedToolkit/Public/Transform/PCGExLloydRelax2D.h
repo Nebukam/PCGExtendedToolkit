@@ -62,7 +62,7 @@ protected:
 
 namespace PCGExLloydRelax2D
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExLloydRelax2DContext, UPCGExLloydRelax2DSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExLloydRelax2DContext, UPCGExLloydRelax2DSettings>
 	{
 		friend class FLloydRelaxTask;
 
@@ -73,7 +73,7 @@ namespace PCGExLloydRelax2D
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

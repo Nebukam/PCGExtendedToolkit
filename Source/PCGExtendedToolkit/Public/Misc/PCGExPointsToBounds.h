@@ -167,7 +167,7 @@ protected:
 
 namespace PCGExPointsToBounds
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPointsToBoundsContext, UPCGExPointsToBoundsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPointsToBoundsContext, UPCGExPointsToBoundsSettings>
 	{
 		TSharedPtr<PCGExData::FPointIO> OutputIO;
 		TSharedPtr<PCGExData::FFacade> OutputFacade;
@@ -180,7 +180,7 @@ namespace PCGExPointsToBounds
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -74,7 +74,7 @@ namespace PCGExSimplifyClusters
 	{
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::Process);
 
@@ -86,7 +86,7 @@ namespace PCGExSimplifyClusters
 		EdgeDataFacade->bSupportsScopedGet = true;
 		if (!Context->EdgeFilterFactories.IsEmpty()) { EdgeFilterFactories = &Context->EdgeFilterFactories; }
 
-		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		if (!Context->EdgeFilterFactories.IsEmpty()) { StartParallelLoopForEdges(); }
 		else { CompileChains(); }

@@ -114,7 +114,7 @@ namespace PCGExBatchActions
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		// Initialize writers with provided default value
 		for (FPCGMetadataAttributeBase* AttributeBase : Context->DefaultAttributes->Attributes)
@@ -171,7 +171,7 @@ namespace PCGExBatchActions
 
 	void FProcessor::Cleanup()
 	{
-		TPointsProcessor<FPCGExBatchActionsContext, UPCGExBatchActionsSettings>::Cleanup();
+		TProcessor<FPCGExBatchActionsContext, UPCGExBatchActionsSettings>::Cleanup();
 		Operations.Empty();
 	}
 }

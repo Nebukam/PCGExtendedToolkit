@@ -462,7 +462,7 @@ namespace PCGExAttributeStats
 		}
 	};
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeStatsContext, UPCGExAttributeStatsSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExAttributeStatsContext, UPCGExAttributeStatsSettings>
 	{
 		TArray<TSharedPtr<IAttributeStats>> Stats;
 		TMap<FName, int32> PerAttributeStatMap;
@@ -470,7 +470,7 @@ namespace PCGExAttributeStats
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

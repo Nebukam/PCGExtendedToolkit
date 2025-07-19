@@ -63,7 +63,7 @@ namespace PCGExLloydRelax2D
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExLloydRelax2D::Process);
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);

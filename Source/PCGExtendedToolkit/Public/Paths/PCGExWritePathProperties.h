@@ -323,7 +323,7 @@ namespace PCGExWritePathProperties
 		FVector ToNext;
 	};
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWritePathPropertiesContext, UPCGExWritePathPropertiesSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExWritePathPropertiesContext, UPCGExWritePathPropertiesSettings>
 	{
 		PCGEX_FOREACH_FIELD_PATH_POINT(PCGEX_OUTPUT_DECL)
 
@@ -344,7 +344,7 @@ namespace PCGExWritePathProperties
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

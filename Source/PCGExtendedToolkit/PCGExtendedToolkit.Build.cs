@@ -29,7 +29,8 @@ public class PCGExtendedToolkit : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
-				"PCG"
+				"PCG",
+				"PCGGeometryScriptInterop"
 			}
 		);
 

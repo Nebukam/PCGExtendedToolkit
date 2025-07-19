@@ -66,7 +66,7 @@ protected:
 
 namespace PCGExCollocationCount
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExCollocationCountContext, UPCGExCollocationCountSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExCollocationCountContext, UPCGExCollocationCountSettings>
 	{
 		double NumPoints = 0;
 		double ToleranceConstant = DBL_COLLOCATION_TOLERANCE;
@@ -77,7 +77,7 @@ namespace PCGExCollocationCount
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

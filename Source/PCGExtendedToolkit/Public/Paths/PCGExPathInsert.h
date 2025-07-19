@@ -94,7 +94,7 @@ protected:
 
 namespace PCGExPathInsert
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathInsertContext, UPCGExPathInsertSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathInsertContext, UPCGExPathInsertSettings>
 	{
 		bool bClosedLoop = false;
 
@@ -104,7 +104,7 @@ namespace PCGExPathInsert
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

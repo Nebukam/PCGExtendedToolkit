@@ -89,7 +89,7 @@ protected:
 
 namespace PCGExBuildVoronoi
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildVoronoiGraphContext, UPCGExBuildVoronoiGraphSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBuildVoronoiGraphContext, UPCGExBuildVoronoiGraphSettings>
 	{
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
@@ -100,7 +100,7 @@ namespace PCGExBuildVoronoi
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

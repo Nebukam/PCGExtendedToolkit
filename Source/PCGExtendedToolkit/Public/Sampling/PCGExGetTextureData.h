@@ -145,7 +145,7 @@ protected:
 
 namespace PCGExGetTextureData
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExGetTextureDataContext, UPCGExGetTextureDataSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExGetTextureDataContext, UPCGExGetTextureDataSettings>
 	{
 		FRWLock ReferenceLock;
 
@@ -159,7 +159,7 @@ namespace PCGExGetTextureData
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -124,7 +124,7 @@ namespace PCGExPickClosestClusters
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void Search();
 		virtual void CompleteWork() override;
 	};

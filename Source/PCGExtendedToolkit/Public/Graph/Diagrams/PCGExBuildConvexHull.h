@@ -61,7 +61,7 @@ protected:
 
 namespace PCGExConvexHull
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildConvexHullContext, UPCGExBuildConvexHullSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBuildConvexHullContext, UPCGExBuildConvexHullSettings>
 	{
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
@@ -72,7 +72,7 @@ namespace PCGExConvexHull
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

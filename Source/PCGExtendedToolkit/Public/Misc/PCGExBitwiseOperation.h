@@ -70,7 +70,7 @@ protected:
 
 namespace PCGExBitwiseOperation
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBitwiseOperationContext, UPCGExBitwiseOperationSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBitwiseOperationContext, UPCGExBitwiseOperationSettings>
 	{
 		TSharedPtr<PCGExDetails::TSettingValue<int64>> Mask;
 		TSharedPtr<PCGExData::TBuffer<int64>> Writer;
@@ -79,7 +79,7 @@ namespace PCGExBitwiseOperation
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

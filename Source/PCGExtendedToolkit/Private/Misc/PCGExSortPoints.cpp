@@ -70,7 +70,7 @@ namespace PCGExSortPoints
 {
 	void FProcessor::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TPointsProcessor::RegisterBuffersDependencies(FacadePreloader);
+		TProcessor::RegisterBuffersDependencies(FacadePreloader);
 
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
 		Settings->GetSortingRules(ExecutionContext, RuleConfigs);
@@ -83,7 +83,7 @@ namespace PCGExSortPoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSortPoints::Process);
 
-		if (!TPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!TProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
@@ -104,7 +104,7 @@ namespace PCGExSortPoints
 
 	void FProcessor::CompleteWork()
 	{
-		IPointsProcessor::CompleteWork();
+		IProcessor::CompleteWork();
 	}
 }
 

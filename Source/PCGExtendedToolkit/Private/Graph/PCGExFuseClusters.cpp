@@ -113,7 +113,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->VtxFacades.Reserve(NumFacades);
 		Context->UnionProcessor->SourceEdgesIO = &Context->EdgesDataFacades;
 
-		for (const TSharedPtr<PCGExClusterMT::IClusterProcessorBatch>& Batch : Context->Batches)
+		for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Context->Batches)
 		{
 			Context->VtxFacades.Add(Batch->VtxDataFacade);
 		}
@@ -135,11 +135,11 @@ namespace PCGExFuseClusters
 	{
 	}
 
-	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::Process);
 
-		if (!IClusterProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		VtxIOIndex = VtxDataFacade->Source->IOIndex;
 		EdgesIOIndex = EdgeDataFacade->Source->IOIndex;

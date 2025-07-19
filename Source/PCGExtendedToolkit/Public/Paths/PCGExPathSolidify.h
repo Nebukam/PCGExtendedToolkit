@@ -119,7 +119,7 @@ protected:
 
 namespace PCGExPathSolidify
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSolidifyContext, UPCGExPathSolidifySettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathSolidifyContext, UPCGExPathSolidifySettings>
 	{
 		bool bClosedLoop = false;
 
@@ -134,7 +134,7 @@ namespace PCGExPathSolidify
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 

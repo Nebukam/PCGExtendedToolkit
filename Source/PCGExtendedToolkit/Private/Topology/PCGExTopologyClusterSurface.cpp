@@ -3,6 +3,7 @@
 
 #include "Topology/PCGExTopologyClusterSurface.h"
 
+#include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/PolygonFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 
@@ -41,9 +42,16 @@ bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
-	Context->OutputPointsAndEdges();
-	Context->OutputBatches();
-	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
+	if (Settings->OutputMode == EPCGExTopologyOutputMode::Legacy)
+	{
+		Context->OutputPointsAndEdges();
+		Context->OutputBatches();
+		Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
+	}
+	else
+	{
+		Context->OutputBatches();
+	}
 
 	return Context->TryComplete();
 }

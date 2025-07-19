@@ -177,11 +177,11 @@ protected:
 
 namespace PCGExShrinkPath
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExShrinkPathContext, UPCGExShrinkPathSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExShrinkPathContext, UPCGExShrinkPathSettings>
 	{
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = false;
 		}

@@ -621,7 +621,7 @@ namespace PCGExPackActorDatas
 {
 	const FName SourceOverridesPacker = TEXT("Overrides : Packer");
 
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPackActorDataContext, UPCGExPackActorDataSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPackActorDataContext, UPCGExPackActorDataSettings>
 	{
 		TArray<FPCGMetadataAttributeBase*> Attributes;
 		UPCGExCustomActorDataPacker* Packer = nullptr;
@@ -634,7 +634,7 @@ namespace PCGExPackActorDatas
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
-			: TPointsProcessor(InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

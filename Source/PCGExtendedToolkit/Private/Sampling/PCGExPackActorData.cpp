@@ -303,7 +303,7 @@ namespace PCGExPackActorDatas
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPackActorDatas::Process);
 
-		if (!IPointsProcessor::Process(InAsyncManager)) { return false; }
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
@@ -473,7 +473,7 @@ namespace PCGExPackActorDatas
 
 	void FProcessor::Output()
 	{
-		TPointsProcessor<FPCGExPackActorDataContext, UPCGExPackActorDataSettings>::Output();
+		TProcessor<FPCGExPackActorDataContext, UPCGExPackActorDataSettings>::Output();
 		if (Packer) { Packer->AttachComponents(); }
 	}
 }

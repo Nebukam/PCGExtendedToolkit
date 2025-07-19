@@ -129,7 +129,7 @@ protected:
 
 namespace PCGExWriteIndex
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWriteIndexContext, UPCGExWriteIndexSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExWriteIndexContext, UPCGExWriteIndexSettings>
 	{
 		double NumPoints = 0;
 		double MaxIndex = 0;
@@ -138,7 +138,7 @@ namespace PCGExWriteIndex
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TPointsProcessor(InPointDataFacade)
+			TProcessor(InPointDataFacade)
 		{
 		}
 
