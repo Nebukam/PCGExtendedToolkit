@@ -474,6 +474,8 @@ namespace PCGExGraph
 		UPCGBasePointData* OutPointData = PointIO->GetOut();
 		TPCGValueRange<FTransform> Transforms = OutPointData->GetTransformValueRange(false);
 
+		FGraphEdgeMetadata TempParentMetaCopy = FGraphEdgeMetadata(-1, nullptr); // Required if pointer gets invalidated due to resizing
+
 		for (FPointEdgeProxy& PointEdgeProxy : Edges)
 		{
 			if (PointEdgeProxy.CollinearPoints.IsEmpty()) { continue; }
@@ -481,13 +483,16 @@ namespace PCGExGraph
 			const FEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
 			const FGraphEdgeMetadata* ParentEdgeMeta = Graph->FindEdgeMetadata_Unsafe(SplitEdge.Index);
 
+			const bool bValidParent = ParentEdgeMeta != nullptr;
+			if (bValidParent) { TempParentMetaCopy = *ParentEdgeMeta; }
+
 			int32 PrevIndex = SplitEdge.Start;
 			for (const FPESplit Split : PointEdgeProxy.CollinearPoints)
 			{
 				const int32 NodeIndex = Split.NodeIndex;
 
 				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //TODO: IOIndex required
-				Graph->AddNodeAndEdgeMetadata_Unsafe(NodeIndex, NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::PointEdge);
+				Graph->AddNodeAndEdgeMetadata_Unsafe(NodeIndex, NewEdge.Index, bValidParent ? &TempParentMetaCopy : nullptr, EPCGExIntersectionType::PointEdge);
 
 				PrevIndex = NodeIndex;
 
@@ -498,7 +503,7 @@ namespace PCGExGraph
 			}
 
 			Graph->InsertEdge(PrevIndex, SplitEdge.End, NewEdge, SplitEdge.IOIndex); // Insert last edge
-			Graph->AddEdgeMetadata_Unsafe(NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::PointEdge);
+			Graph->AddEdgeMetadata_Unsafe(NewEdge.Index, bValidParent ? &TempParentMetaCopy : nullptr, EPCGExIntersectionType::PointEdge);
 		}
 	}
 

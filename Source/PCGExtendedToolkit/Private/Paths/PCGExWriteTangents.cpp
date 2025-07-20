@@ -12,9 +12,9 @@
 TArray<FPCGPinProperties> UPCGExWriteTangentsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExWriteTangents::SourceOverridesTangents)
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExWriteTangents::SourceOverridesTangentsStart)
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExWriteTangents::SourceOverridesTangentsEnd)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExTangents::SourceOverridesTangents)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExTangents::SourceOverridesTangentsStart)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExTangents::SourceOverridesTangentsEnd)
 	return PinProperties;
 }
 
@@ -43,9 +43,9 @@ bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_VALIDATE_NAME(Settings->ArriveName)
 	PCGEX_VALIDATE_NAME(Settings->LeaveName)
 
-	PCGEX_OPERATION_BIND(Tangents, UPCGExTangentsInstancedFactory, PCGExWriteTangents::SourceOverridesTangents)
-	if (Settings->StartTangents) { PCGEX_OPERATION_BIND(StartTangents, UPCGExTangentsInstancedFactory, PCGExWriteTangents::SourceOverridesTangentsStart) }
-	if (Settings->EndTangents) { PCGEX_OPERATION_BIND(EndTangents, UPCGExTangentsInstancedFactory, PCGExWriteTangents::SourceOverridesTangentsEnd) }
+	PCGEX_OPERATION_BIND(Tangents, UPCGExTangentsInstancedFactory, PCGExTangents::SourceOverridesTangents)
+	if (Settings->StartTangents) { PCGEX_OPERATION_BIND(StartTangents, UPCGExTangentsInstancedFactory, PCGExTangents::SourceOverridesTangentsStart) }
+	if (Settings->EndTangents) { PCGEX_OPERATION_BIND(EndTangents, UPCGExTangentsInstancedFactory, PCGExTangents::SourceOverridesTangentsEnd) }
 
 	return true;
 }

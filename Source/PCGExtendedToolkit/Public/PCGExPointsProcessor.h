@@ -46,8 +46,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 	friend class FPCGExPointsProcessorElement;
 
 public:
-	//~Begin UPCGSettings
-#if WITH_EDITOR
+	//~Begin UPCGSettings	
+#if WITH_EDITOR	
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
 
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
