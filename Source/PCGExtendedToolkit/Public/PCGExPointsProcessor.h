@@ -47,7 +47,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 
 public:
 	//~Begin UPCGSettings
-#if WITH_EDITOR
+	virtual void PostLoad() override;
+	
+#if WITH_EDITOR	
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
 
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
@@ -120,6 +122,8 @@ public:
 	/** Open a browser and navigate to that node' documentation page. */
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Node Documentation", ShortToolTip="Open a browser and navigate to that node' documentation page", DisplayOrder=-1))
 	void EDITOR_OpenNodeDocumentation() const;
+
+	virtual void ApplyPCGExDeprecation();
 #endif
 
 protected:

@@ -29,11 +29,11 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyPCGExDeprecation() override;
+	
 	PCGEX_NODE_INFOS(PathSplineMesh, "Path : Spline Mesh", "Create spline mesh components from paths.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spawner; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(UPCGExPathProcessorSettings::GetNodeTitleColor()); }
-
-	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 #endif
 
 protected:
@@ -62,18 +62,21 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	FName AssetPathAttributeName = "AssetPath";
 
-	/** Whether to read tangents from attributes or not. */
+#if WITH_EDITORONLY_DATA
+	UPROPERTY()
+	bool bApplyCustomTangents_DEPRECATED = false;
+
+	UPROPERTY()
+	FName ArriveTangentAttribute_DEPRECATED = "ArriveTangent";
+
+	UPROPERTY()
+	FName LeaveTangentAttribute_DEPRECATED = "LeaveTangent";
+#endif
+
+	/** Per-point tangent settings. Can't be set if the spline is linear. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bApplyCustomTangents = false;
-
-	/** Arrive tangent attribute (expects FVector) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
-	FName ArriveTangentAttribute = "ArriveTangent";
-
-	/** Leave tangent attribute (expects FVector) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
-	FName LeaveTangentAttribute = "LeaveTangent";
-
+	FPCGExTangentsDetails Tangents;
+	
 #if WITH_EDITORONLY_DATA
 	UPROPERTY()
 	EPCGExMinimalAxis SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::X;
@@ -87,7 +90,7 @@ public:
 	FPCGExJustificationDetails Justification;
 
 	/** Leave tangent attribute (expects FVector) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents_DEPRECATED"))
 	bool bJustifyToOne = false;
 
 	/** Push details */
@@ -143,6 +146,8 @@ struct FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
 	friend class FPCGExPathSplineMeshElement;
 
 	virtual void RegisterAssetDependencies() override;
+	
+	FPCGExTangentsDetails Tangents;
 
 	TObjectPtr<UPCGExMeshCollection> MainCollection;
 };
@@ -180,14 +185,14 @@ namespace PCGExPathSplineMesh
 
 		int32 LastIndex = 0;
 
+		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
+
 		TUniquePtr<PCGExAssetCollection::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> Helper;
 		FPCGExJustificationDetails Justification;
 		FPCGExSplineMeshMutationDetails SegmentMutationDetails;
 
 		TSharedPtr<PCGExMT::TScopedSet<FSoftObjectPath>> ScopedMaterials;
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
-		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveGetter;
-		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveGetter;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;

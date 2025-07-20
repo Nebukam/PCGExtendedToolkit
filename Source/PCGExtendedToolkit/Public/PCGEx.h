@@ -193,6 +193,8 @@ namespace PCGEx
 	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMetaAndTransform =
 		EPCGPointNativeProperties::All & ~(EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Transform);
 
+	const FName DEPRECATED_NAME = TEXT("#DEPRECATED");
+	
 	const FName PreviousAttributeName = TEXT("#Previous");
 	const FName PreviousNameAttributeName = TEXT("#PreviousName");
 

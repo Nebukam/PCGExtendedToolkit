@@ -45,10 +45,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExTangentsInstancedFactory> Tangents;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
+	/** Optional module for the start point specifically */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, DisplayName=" ├─ Start Override", ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExTangentsInstancedFactory> StartTangents;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
+	/** Optional module for the end point specifically */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, DisplayName=" └─ End Override", ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExTangentsInstancedFactory> EndTangents;
 
 
@@ -95,11 +97,6 @@ protected:
 
 namespace PCGExWriteTangents
 {
-	const FName SourceOverridesTangents = TEXT("Overrides : Tangents");
-	const FName SourceOverridesTangentsStart = TEXT("Overrides : Start Tangents");
-	const FName SourceOverridesTangentsEnd = TEXT("Overrides : End Tangents");
-
-
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExWriteTangentsContext, UPCGExWriteTangentsSettings>
 	{
 		bool bClosedLoop = false;

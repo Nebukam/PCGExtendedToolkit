@@ -4,14 +4,26 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
 #include "PCGExInstancedFactory.h"
 #include "PCGExOperation.h"
+
 #include "PCGExTangentsInstancedFactory.generated.h"
+
+struct FPCGExPointsProcessorContext;
 
 namespace PCGExData
 {
 	class FPointIO;
 }
+
+UENUM()
+enum class EPCGExTangentSource : uint8
+{
+	None      = 0 UMETA(DisplayName = "No Tangents", Tooltip="No tangents"),
+	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Tangents are read from attributes"),
+	InPlace   = 2 UMETA(DisplayName = "In-place", Tooltip="Tangents are calculated in-place using a custom module")
+};
 
 class FPCGExTangentsOperation : public FPCGExOperation
 {
@@ -84,3 +96,121 @@ public:
 	virtual TSharedPtr<FPCGExTangentsOperation> CreateOperation() const
 	PCGEX_NOT_IMPLEMENTED_RET(CreateOperation(), nullptr);
 };
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExTangentsScalingDetails
+{
+	GENERATED_BODY()
+
+	FPCGExTangentsScalingDetails() = default;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExInputValueType ArriveScaleInput = EPCGExInputValueType::Constant;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Arrive Scale (Attr)", EditCondition="ArriveScaleInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector ArriveScaleAttribute;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Arrive Scale", EditCondition="ArriveScaleInput == EPCGExInputValueType::Constant", EditConditionHides))
+	double ArriveScaleConstant = 1;
+
+	PCGEX_SETTING_VALUE_GET(ArriveScale, FVector, ArriveScaleInput, ArriveScaleAttribute, FVector(ArriveScaleConstant))
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExInputValueType LeaveScaleInput = EPCGExInputValueType::Constant;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Leave Scale (Attr)", EditCondition="LeaveScaleInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector LeaveScaleAttribute;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Leave Scale", EditCondition="LeaveScaleInput == EPCGExInputValueType::Constant", EditConditionHides))
+	double LeaveScaleConstant = 1;
+
+	PCGEX_SETTING_VALUE_GET(LeaveScale, FVector, LeaveScaleInput, LeaveScaleAttribute, FVector(LeaveScaleConstant))
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExTangentsDetails
+{
+	GENERATED_BODY()
+
+	FPCGExTangentsDetails() = default;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable))
+	EPCGExTangentSource Mode = EPCGExTangentSource::Attribute;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Mode == EPCGExTangentSource::Attribute", EditConditionHides))
+	FName ArriveTangentAttribute = "ArriveTangent";
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Mode == EPCGExTangentSource::Attribute", EditConditionHides))
+	FName LeaveTangentAttribute = "LeaveTangent";
+
+
+	/**  */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, EditCondition = "Mode == EPCGExTangentSource::InPlace", EditConditionHides, NoResetToDefault))
+	TObjectPtr<UPCGExTangentsInstancedFactory> Tangents;
+
+	/** Optional module for the start point specifically */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, DisplayName=" ├─ Start Override (Opt.)", EditCondition = "Mode == EPCGExTangentSource::InPlace", EditConditionHides, NoResetToDefault))
+	TObjectPtr<UPCGExTangentsInstancedFactory> StartTangents;
+
+	/** Optional module for the end point specifically */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, DisplayName=" └─ End Override (Opt.)", EditCondition = "Mode == EPCGExTangentSource::InPlace", EditConditionHides, NoResetToDefault))
+	TObjectPtr<UPCGExTangentsInstancedFactory> EndTangents;
+
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
+	FPCGExTangentsScalingDetails Scaling;
+
+#if WITH_EDITOR
+	void ApplyDeprecation(const bool bUseAttribute, FName InArriveAttributeName, FName InLeaveAttributeName);
+#endif
+
+	bool Init(FPCGExPointsProcessorContext* InContext, const FPCGExTangentsDetails& InDetails);
+};
+
+namespace PCGExTangents
+{
+	const FName SourceOverridesTangents = TEXT("Overrides : Tangents");
+	const FName SourceOverridesTangentsStart = TEXT("Overrides : Start Tangents");
+	const FName SourceOverridesTangentsEnd = TEXT("Overrides : End Tangents");
+
+	class FTangentsHandler : public TSharedFromThis<FTangentsHandler>
+	{
+	protected:
+		bool bClosedLoop = false;
+		EPCGExTangentSource Mode = EPCGExTangentSource::Attribute;
+		int32 LastIndex = -1;
+
+		TSharedPtr<PCGExDetails::TSettingValue<FVector>> StartScaleReader;
+		TSharedPtr<PCGExDetails::TSettingValue<FVector>> EndScaleReader;
+
+		TSharedPtr<FPCGExTangentsOperation> Tangents;
+		TSharedPtr<FPCGExTangentsOperation> StartTangents;
+		TSharedPtr<FPCGExTangentsOperation> EndTangents;
+
+		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveReader;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveReader;
+
+		const UPCGBasePointData* PointData = nullptr;
+
+	public:
+		explicit FTangentsHandler(const bool InClosedLoop)
+			: bClosedLoop(InClosedLoop)
+		{
+		}
+
+		virtual ~FTangentsHandler() = default;
+
+		FORCEINLINE bool IsEnabled() const { return Mode != EPCGExTangentSource::None; }
+
+		bool Init(FPCGExContext* InContext, const FPCGExTangentsDetails& InDetails, const TSharedPtr<PCGExData::FFacade>& InDataFacade);
+
+		void GetPointTangents(const int32 Index, FVector& OutArrive, FVector& OutLeave) const;
+		void GetSegmentTangents(const int32 Index, FVector& OutStartTangent, FVector& OutEndTangent) const;
+
+	protected:
+		void GetArriveTangent(const int32 Index, FVector& OutDir, const FVector& InScale) const;
+		void GetLeaveTangent(const int32 Index, FVector& OutDir, const FVector& InScale) const;
+	};
+}

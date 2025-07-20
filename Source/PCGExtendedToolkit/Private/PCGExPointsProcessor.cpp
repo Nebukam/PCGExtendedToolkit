@@ -22,6 +22,15 @@
 #define PCGEX_CUSTOM_PIN_ICON(_LABEL, _ICON, _TOOLTIP) if(PinLabel == _LABEL){ OutExtraIcon = TEXT("PCGEx.Pin." # _ICON); OutTooltip = FTEXT(_TOOLTIP); return true; }
 #endif
 
+void UPCGExPointsProcessorSettings::PostLoad()
+{
+#if WITH_EDITOR
+	ApplyPCGExDeprecation();
+#endif
+
+	Super::PostLoad();
+}
+
 bool UPCGExPointsProcessorSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
 {
 	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, false);
@@ -78,6 +87,10 @@ void UPCGExPointsProcessorSettings::EDITOR_OpenNodeDocumentation() const
 {
 	const FString URL = PCGEx::META_PCGExDocNodeLibraryBaseURL + GetClass()->GetMetaData(*PCGEx::META_PCGExDocURL);
 	FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+}
+
+void UPCGExPointsProcessorSettings::ApplyPCGExDeprecation()
+{
 }
 #endif
 
@@ -356,7 +369,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 
 	Context->bQuietCancellationError = Settings->bQuietCancellationError;
 	Context->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
-	
+
 	if (Settings->bCleanupConsumableAttributes)
 	{
 		for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedProtectedAttributesName);

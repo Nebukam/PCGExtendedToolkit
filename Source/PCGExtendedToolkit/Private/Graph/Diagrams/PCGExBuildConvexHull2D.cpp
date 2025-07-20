@@ -15,10 +15,19 @@
 
 TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties() const
 {
-	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Point data representing closed convex hull paths.", Required, {})
-	return PinProperties;
+	if (bOutputClusters)
+	{
+		TArray<FPCGPinProperties> PinProperties;
+		PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Point data representing closed convex hull paths.", Required, {})
+		return PinProperties;
+	}
+	else
+	{
+		TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+		PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
+		PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Point data representing closed convex hull paths.", Required, {})
+		return PinProperties;
+	}
 }
 
 PCGEX_INITIALIZE_ELEMENT(BuildConvexHull2D)
@@ -66,9 +75,13 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
-	Context->MainPoints->StageOutputs();
+	if (Settings->bOutputClusters)
+	{
+		Context->MainPoints->StageOutputs();
+		Context->MainBatch->Output(); // Edges in order
+	}
+
 	Context->PathsIO->StageOutputs();
-	Context->MainBatch->Output(); // Edges in order
 
 	return Context->TryComplete();
 }
@@ -80,8 +93,6 @@ namespace PCGExConvexHull2D
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConvexHull2D::Process);
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
-
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(ExecutionContext, PointDataFacade)) { return false; } }
@@ -114,6 +125,10 @@ namespace PCGExConvexHull2D
 		ProjectedPoints.Reserve(LastIndex + 1);
 
 		PCGExPaths::SetClosedLoop(PathIO->GetOut(), true);
+
+		if (!Settings->bOutputClusters) { return true; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 
@@ -153,6 +168,7 @@ namespace PCGExConvexHull2D
 
 	void FProcessor::Output()
 	{
+		if (!Settings->bOutputClusters) { return; }
 		GraphBuilder->StageEdgesOutputs();
 	}
 }

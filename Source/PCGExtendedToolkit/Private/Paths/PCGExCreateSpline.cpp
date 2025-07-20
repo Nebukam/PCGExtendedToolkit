@@ -10,6 +10,21 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateSplineElement"
 #define PCGEX_NAMESPACE CreateSpline
 
+#if WITH_EDITOR
+void UPCGExCreateSplineSettings::ApplyPCGExDeprecation()
+{
+	if (ArriveTangentAttribute_DEPRECATED != PCGEx::DEPRECATED_NAME)
+	{
+		Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
+		ArriveTangentAttribute_DEPRECATED = PCGEx::DEPRECATED_NAME;
+		LeaveTangentAttribute_DEPRECATED = PCGEx::DEPRECATED_NAME;
+		MarkPackageDirty();
+	}
+
+	Super::ApplyPCGExDeprecation();
+}
+#endif
+
 PCGEX_INITIALIZE_ELEMENT(CreateSpline)
 
 TArray<FPCGPinProperties> UPCGExCreateSplineSettings::OutputPinProperties() const
@@ -30,11 +45,7 @@ bool FPCGExCreateSplineElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CreateSpline)
 
-	if (Settings->bApplyCustomTangents)
-	{
-		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ArriveTangentAttribute);
-		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->LeaveTangentAttribute);
-	}
+	if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
 
 	return true;
 }
@@ -92,16 +103,8 @@ namespace PCGExCreateSpline
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 
-		if (Settings->bApplyCustomTangents)
-		{
-			ArriveTangent = PointDataFacade->GetBroadcaster<FVector>(Settings->ArriveTangentAttribute, true);
-			LeaveTangent = PointDataFacade->GetBroadcaster<FVector>(Settings->LeaveTangentAttribute, true);
-			if (!ArriveTangent || !LeaveTangent)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Missing tangent attributes"));
-				return false;
-			}
-		}
+		TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
+		if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }
 
 		if (Settings->bApplyCustomPointType)
 		{
@@ -136,11 +139,7 @@ namespace PCGExCreateSpline
 			FVector OutArrive = FVector::ZeroVector;
 			FVector OutLeave = FVector::ZeroVector;
 
-			if (Settings->bApplyCustomTangents)
-			{
-				OutArrive = ArriveTangent->Read(Index);
-				OutLeave = LeaveTangent->Read(Index);
-			}
+			TangentsHandler->GetPointTangents(Index, OutArrive, OutLeave);
 
 			const FTransform& TR = InTransforms[Index];
 

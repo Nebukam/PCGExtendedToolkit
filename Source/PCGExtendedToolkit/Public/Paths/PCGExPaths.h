@@ -56,6 +56,8 @@ enum class EPCGExSplineMeshUpMode : uint8
 	Tangents  = 2 UMETA(DisplayName = "From Tangents (Gimbal fix)", Tooltip="Automatically computed up vector from tangents to enforce gimbal fix")
 };
 
+
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathOutputDetails
 {
