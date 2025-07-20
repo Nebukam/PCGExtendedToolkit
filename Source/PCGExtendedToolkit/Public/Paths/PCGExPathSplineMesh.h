@@ -29,7 +29,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	virtual void ApplyPCGExDeprecation() override;
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 	
 	PCGEX_NODE_INFOS(PathSplineMesh, "Path : Spline Mesh", "Create spline mesh components from paths.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spawner; }
@@ -62,7 +62,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	FName AssetPathAttributeName = "AssetPath";
 
-#if WITH_EDITORONLY_DATA
+#pragma region DEPRECATED
+	
 	UPROPERTY()
 	bool bApplyCustomTangents_DEPRECATED = false;
 
@@ -71,16 +72,15 @@ public:
 
 	UPROPERTY()
 	FName LeaveTangentAttribute_DEPRECATED = "LeaveTangent";
-#endif
+
+#pragma endregion
 
 	/** Per-point tangent settings. Can't be set if the spline is linear. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTangentsDetails Tangents;
 	
-#if WITH_EDITORONLY_DATA
 	UPROPERTY()
 	EPCGExMinimalAxis SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::X;
-#endif
 	
 	/** If enabled, will break scaling interpolation across the spline. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

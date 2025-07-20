@@ -29,13 +29,13 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	virtual void ApplyPCGExDeprecation() override;
-	
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+
 	PCGEX_NODE_INFOS(PathSplineMeshSimple, "Path : Spline Mesh (Simple)", "Create spline mesh components from paths.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spawner; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(UPCGExPathProcessorSettings::GetNodeTitleColor()); }
 #endif
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -66,7 +66,8 @@ public:
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta=(PCG_Overridable, EditCondition="bPerSegmentTargetActor", EditConditionHides))
 	//FName TargetActorAttributeName;
 
-#if WITH_EDITORONLY_DATA
+#pragma region DEPRECATED
+	
 	UPROPERTY()
 	bool bApplyCustomTangents_DEPRECATED = false;
 
@@ -75,12 +76,13 @@ public:
 
 	UPROPERTY()
 	FName LeaveTangentAttribute_DEPRECATED = "LeaveTangent";
-#endif
 	
+#pragma endregion
+
 	/** Per-point tangent settings. Can't be set if the spline is linear. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTangentsDetails Tangents;
-	
+
 	/** Type of Start Offset */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_NotOverridable))
 	EPCGExInputValueType StartOffsetInput = EPCGExInputValueType::Constant;
@@ -125,11 +127,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Mesh Up Vector", EditCondition="SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant", EditConditionHides))
 	FVector SplineMeshUpVector = FVector::UpVector;
 
-#if WITH_EDITORONLY_DATA
+#pragma region DEPRECATED
+	
 	UPROPERTY()
 	EPCGExMinimalAxis SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::X;
-#endif	
 	
+#pragma endregion
+
 	/** Tagging details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;
@@ -184,7 +188,7 @@ namespace PCGExPathSplineMeshSimple
 		int32 LastIndex = 0;
 
 		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
-		
+
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> StartOffset;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> EndOffset;

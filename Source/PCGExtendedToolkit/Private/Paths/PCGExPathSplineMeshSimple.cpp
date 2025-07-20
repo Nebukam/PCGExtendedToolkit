@@ -12,24 +12,16 @@
 #define PCGEX_NAMESPACE BuildCustomGraph
 
 #if WITH_EDITOR
-void UPCGExPathSplineMeshSimpleSettings::ApplyPCGExDeprecation()
+void UPCGExPathSplineMeshSimpleSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
 	if (SplineMeshAxisConstant_DEPRECATED != EPCGExMinimalAxis::None && StaticMeshDescriptor.SplineMeshAxis == EPCGExSplineMeshAxis::Default)
 	{
 		StaticMeshDescriptor.SplineMeshAxis = static_cast<EPCGExSplineMeshAxis>(SplineMeshAxisConstant_DEPRECATED);
-		SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::None;
-		MarkPackageDirty();
 	}
 
-	if (ArriveTangentAttribute_DEPRECATED != PCGEx::DEPRECATED_NAME)
-	{
-		Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
-		ArriveTangentAttribute_DEPRECATED = PCGEx::DEPRECATED_NAME;
-		LeaveTangentAttribute_DEPRECATED = PCGEx::DEPRECATED_NAME;
-		MarkPackageDirty();
-	}
+	Tangents.ApplyDeprecation(ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
 
-	Super::ApplyPCGExDeprecation();
+	Super::ApplyDeprecation(InOutNode);
 }
 #endif
 

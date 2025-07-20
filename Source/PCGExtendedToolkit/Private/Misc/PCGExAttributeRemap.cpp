@@ -21,20 +21,9 @@ FString UPCGExAttributeRemapSettings::GetDisplayName() const
 
 	return TEXT("Remap : ") + Attributes.Source.ToString();
 }
-#endif
 
-void FPCGExAttributeRemapContext::RegisterAssetDependencies()
+void UPCGExAttributeRemapSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	FPCGExPointsProcessorContext::RegisterAssetDependencies();
-	for (const FPCGExComponentRemapRule& Rule : RemapSettings) { AddAssetDependency(Rule.RemapDetails.RemapCurve.ToSoftObjectPath()); }
-}
-
-PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
-
-void UPCGExAttributeRemapSettings::PostLoad()
-{
-	Super::PostLoad();
-#if WITH_EDITOR
 	if (SourceAttributeName_DEPRECATED != NAME_None)
 	{
 		Attributes.Source = SourceAttributeName_DEPRECATED;
@@ -48,8 +37,18 @@ void UPCGExAttributeRemapSettings::PostLoad()
 
 		Attributes.bOutputToDifferentName = (SourceAttributeName_DEPRECATED != TargetAttributeName_DEPRECATED);
 	}
-#endif
+	
+	Super::ApplyDeprecation(InOutNode);
 }
+#endif
+
+void FPCGExAttributeRemapContext::RegisterAssetDependencies()
+{
+	FPCGExPointsProcessorContext::RegisterAssetDependencies();
+	for (const FPCGExComponentRemapRule& Rule : RemapSettings) { AddAssetDependency(Rule.RemapDetails.RemapCurve.ToSoftObjectPath()); }
+}
+
+PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 
 bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const
 {

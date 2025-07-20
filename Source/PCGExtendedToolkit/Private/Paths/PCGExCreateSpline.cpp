@@ -11,17 +11,10 @@
 #define PCGEX_NAMESPACE CreateSpline
 
 #if WITH_EDITOR
-void UPCGExCreateSplineSettings::ApplyPCGExDeprecation()
+void UPCGExCreateSplineSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	if (ArriveTangentAttribute_DEPRECATED != PCGEx::DEPRECATED_NAME)
-	{
-		Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
-		ArriveTangentAttribute_DEPRECATED = PCGEx::DEPRECATED_NAME;
-		LeaveTangentAttribute_DEPRECATED = PCGEx::DEPRECATED_NAME;
-		MarkPackageDirty();
-	}
-
-	Super::ApplyPCGExDeprecation();
+	Tangents.ApplyDeprecation(ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
+	Super::ApplyDeprecation(InOutNode);
 }
 #endif
 

@@ -5,18 +5,15 @@
 #include "PCGExPointsProcessor.h"
 
 #if WITH_EDITOR
-void FPCGExTangentsDetails::ApplyDeprecation(const bool bUseAttribute, const FName InArriveAttributeName, const FName InLeaveAttributeName)
+void FPCGExTangentsDetails::ApplyDeprecation(const FName InArriveAttributeName, const FName InLeaveAttributeName)
 {
-	if (bUseAttribute)
-	{
-		Mode = EPCGExTangentSource::Attribute;
-		ArriveTangentAttribute = InArriveAttributeName;
-		LeaveTangentAttribute = InLeaveAttributeName;
-	}
-	else
-	{
-		Mode = EPCGExTangentSource::None;
-	}
+	if (bDeprecationApplied) { return; }
+
+	Mode = EPCGExTangentSource::Attribute;
+	ArriveTangentAttribute = InArriveAttributeName;
+	LeaveTangentAttribute = InLeaveAttributeName;
+
+	bDeprecationApplied = true;
 }
 #endif
 

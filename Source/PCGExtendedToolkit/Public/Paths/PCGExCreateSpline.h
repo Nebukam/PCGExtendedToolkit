@@ -34,7 +34,7 @@ class UPCGExCreateSplineSettings : public UPCGExPathProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	virtual void ApplyPCGExDeprecation() override;
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 	
 	PCGEX_NODE_INFOS(CreateSpline, "Create Spline", "Create splines from input points.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
@@ -64,7 +64,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "bApplyCustomPointType"))
 	FName PointTypeAttribute = "PointType";
 
-#if WITH_EDITORONLY_DATA
+#pragma region DEPRECATED
+	
 	UPROPERTY()
 	bool bApplyCustomTangents_DEPRECATED = false;
 
@@ -73,7 +74,8 @@ public:
 
 	UPROPERTY()
 	FName LeaveTangentAttribute_DEPRECATED = "LeaveTangent";
-#endif
+	
+#pragma endregion 
 
 	/** Per-point tangent settings. Can't be set if the spline is linear. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
