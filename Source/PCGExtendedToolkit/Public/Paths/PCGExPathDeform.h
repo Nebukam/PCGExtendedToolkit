@@ -62,6 +62,7 @@ struct FPCGExPathDeformContext final : FPCGExPointsProcessorContext
 	FPCGExTangentsDetails Tangents;
 
 	TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
+	TArray<TSharedPtr<FPCGSplineStruct>> Splines;
 };
 
 class FPCGExPathDeformElement final : public FPCGExPointsProcessorElement
@@ -82,16 +83,9 @@ namespace PCGExPathDeform
 		bool bClosedLoop = false;
 		float MaxIndex = 0.0;
 
-		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
-		TSharedPtr<PCGExData::TBuffer<int32>> CustomPointType;
-
-		TArray<FSplinePoint> SplinePoints;
-		FVector PositionOffset = FVector::ZeroVector;
+		
 
 	public:
-		TObjectPtr<UPCGSplineData> SplineData = nullptr;
-		TObjectPtr<AActor> SplineActor = nullptr;
-
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TProcessor(InPointDataFacade)
 		{
@@ -116,5 +110,7 @@ namespace PCGExPathDeform
 		}
 
 		virtual void OnInitialPostProcess() override;
+		void BuildSpline(const int32 InSplineIndex)const;
+		void OnSplineBuildingComplete();
 	};
 }

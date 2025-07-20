@@ -13,7 +13,7 @@
 #if WITH_EDITOR
 void UPCGExCreateSplineSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	Tangents.ApplyDeprecation(ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
+	Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

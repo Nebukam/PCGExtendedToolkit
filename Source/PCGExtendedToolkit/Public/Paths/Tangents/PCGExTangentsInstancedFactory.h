@@ -136,27 +136,27 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentsDetails
 	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable))
-	EPCGExTangentSource Mode = EPCGExTangentSource::Attribute;
+	EPCGExTangentSource Source = EPCGExTangentSource::Attribute;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Mode == EPCGExTangentSource::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Source == EPCGExTangentSource::Attribute", EditConditionHides))
 	FName ArriveTangentAttribute = "ArriveTangent";
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Mode == EPCGExTangentSource::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Source == EPCGExTangentSource::Attribute", EditConditionHides))
 	FName LeaveTangentAttribute = "LeaveTangent";
 
 
 	/**  */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, EditCondition = "Mode == EPCGExTangentSource::InPlace", EditConditionHides, NoResetToDefault))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, EditCondition = "Source == EPCGExTangentSource::InPlace", EditConditionHides, NoResetToDefault))
 	TObjectPtr<UPCGExTangentsInstancedFactory> Tangents;
 
 	/** Optional module for the start point specifically */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, DisplayName=" ├─ Start Override (Opt.)", EditCondition = "Mode == EPCGExTangentSource::InPlace", EditConditionHides, NoResetToDefault))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, DisplayName=" ├─ Start Override (Opt.)", EditCondition = "Source == EPCGExTangentSource::InPlace", EditConditionHides, NoResetToDefault))
 	TObjectPtr<UPCGExTangentsInstancedFactory> StartTangents;
 
 	/** Optional module for the end point specifically */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, DisplayName=" └─ End Override (Opt.)", EditCondition = "Mode == EPCGExTangentSource::InPlace", EditConditionHides, NoResetToDefault))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, DisplayName=" └─ End Override (Opt.)", EditCondition = "Source == EPCGExTangentSource::InPlace", EditConditionHides, NoResetToDefault))
 	TObjectPtr<UPCGExTangentsInstancedFactory> EndTangents;
 
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
@@ -168,7 +168,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentsDetails
 	bool bDeprecationApplied = false;
 	
 #if WITH_EDITOR
-	void ApplyDeprecation(FName InArriveAttributeName, FName InLeaveAttributeName);
+	void ApplyDeprecation(bool bUseAttribute, FName InArriveAttributeName, FName InLeaveAttributeName);
 #endif
 
 	bool Init(FPCGExPointsProcessorContext* InContext, const FPCGExTangentsDetails& InDetails);

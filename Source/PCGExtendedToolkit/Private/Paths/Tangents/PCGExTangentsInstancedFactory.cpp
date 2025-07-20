@@ -5,13 +5,14 @@
 #include "PCGExPointsProcessor.h"
 
 #if WITH_EDITOR
-void FPCGExTangentsDetails::ApplyDeprecation(const FName InArriveAttributeName, const FName InLeaveAttributeName)
+void FPCGExTangentsDetails::ApplyDeprecation(const bool bUseAttribute, const FName InArriveAttributeName, const FName InLeaveAttributeName)
 {
 	if (bDeprecationApplied) { return; }
 
-	Mode = EPCGExTangentSource::Attribute;
 	ArriveTangentAttribute = InArriveAttributeName;
 	LeaveTangentAttribute = InLeaveAttributeName;
+
+	Source = bUseAttribute ? EPCGExTangentSource::Attribute : EPCGExTangentSource::None;
 
 	bDeprecationApplied = true;
 }
@@ -19,10 +20,10 @@ void FPCGExTangentsDetails::ApplyDeprecation(const FName InArriveAttributeName, 
 
 bool FPCGExTangentsDetails::Init(FPCGExPointsProcessorContext* InContext, const FPCGExTangentsDetails& InDetails)
 {
-	Mode = InDetails.Mode;
+	Source = InDetails.Source;
 	Scaling = InDetails.Scaling;
 
-	if (Mode == EPCGExTangentSource::InPlace)
+	if (Source == EPCGExTangentSource::InPlace)
 	{
 		if (!InDetails.Tangents)
 		{
@@ -60,7 +61,7 @@ bool FPCGExTangentsDetails::Init(FPCGExPointsProcessorContext* InContext, const 
 			EndTangents = Tangents;
 		}
 	}
-	else if (Mode == EPCGExTangentSource::Attribute)
+	else if (Source == EPCGExTangentSource::Attribute)
 	{
 		ArriveTangentAttribute = InDetails.ArriveTangentAttribute;
 		LeaveTangentAttribute = InDetails.LeaveTangentAttribute;
@@ -76,7 +77,7 @@ namespace PCGExTangents
 {
 	bool FTangentsHandler::Init(FPCGExContext* InContext, const FPCGExTangentsDetails& InDetails, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 	{
-		Mode = InDetails.Mode;
+		Mode = InDetails.Source;
 		PointData = InDataFacade->GetIn();
 		LastIndex = InDataFacade->GetNum() - 1;
 

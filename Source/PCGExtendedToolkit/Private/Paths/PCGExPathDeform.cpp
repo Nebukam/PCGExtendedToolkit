@@ -35,6 +35,10 @@ bool FPCGExPathDeformElement::Boot(FPCGExContext* InContext) const
 
 	// TODO : If there is more that one path input, data association must be enabled
 
+	if (!PCGExData::TryGetFacades(Context, PCGExPaths::SourcePathsLabel, Context->PathsFacades, true)) { return false; }
+
+	Context->Splines.Init(nullptr, Context->PathsFacades.Num());
+
 	return true;
 }
 
@@ -84,24 +88,9 @@ namespace PCGExPathDeform
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
+		// TODO : Find which path should be used
+
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
-
-		TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
-		if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }
-
-		if (Settings->bApplyCustomPointType)
-		{
-			CustomPointType = PointDataFacade->GetBroadcaster<int32>(Settings->PointTypeAttribute, true);
-			if (!CustomPointType)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Missing custom point type attribute"));
-				return false;
-			}
-		}
-
-		PositionOffset = SplineActor->GetTransform().GetLocation();
-		SplineData = Context->ManagedObjects->New<UPCGSplineData>();
-		PCGEx::InitArray(SplinePoints, PointDataFacade->GetNum());
 
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
@@ -119,19 +108,81 @@ namespace PCGExPathDeform
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
+		}
+	}
+
+	void FProcessor::Cleanup()
+	{
+		TProcessor<FPCGExPathDeformContext, UPCGExPathDeformSettings>::Cleanup();
+	}
+
+	void FBatch::OnInitialPostProcess()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathDeform)
+
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, BuildSplines)
+
+		BuildSplines->OnCompleteCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->OnSplineBuildingComplete();
+			};
+
+		BuildSplines->OnIterationCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				This->BuildSpline(Index);
+			};
+
+		BuildSplines->StartIterations(Context->Splines.Num(), 1);
+	}
+
+	void FBatch::BuildSpline(const int32 InSplineIndex) const
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathDeform)
+
+		TSharedPtr<PCGExData::FFacade> PathFacade = Context->PathsFacades[InSplineIndex];
+		PathFacade->bSupportsScopedGet = false;
+
+		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(PCGExPaths::GetClosedLoop(PathFacade->GetIn()));
+		if (!TangentsHandler->Init(Context, Context->Tangents, PathFacade)) { return; }
+
+		TSharedPtr<PCGExData::TBuffer<int32>> CustomPointType;
+
+		if (Settings->bApplyCustomPointType)
+		{
+			CustomPointType = PathFacade->GetBroadcaster<int32>(Settings->PointTypeAttribute, true);
+			if (!CustomPointType)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Missing custom point type attribute"));
+				return;
+			}
+		}
+
+		const int32 NumPoints = PathFacade->GetNum();
+		TArray<FSplinePoint> SplinePoints;
+		SplinePoints.Reserve(NumPoints);
+
+		const UPCGBasePointData* InPointData = PathFacade->GetIn();
+		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
+
+		for (int i = 0; i < NumPoints; i++)
+		{
 			FVector OutArrive = FVector::ZeroVector;
 			FVector OutLeave = FVector::ZeroVector;
 
-			TangentsHandler->GetSegmentTangents(Index, OutArrive, OutLeave);
+			TangentsHandler->GetSegmentTangents(i, OutArrive, OutLeave);
 
-			const FTransform& TR = InTransforms[Index];
+			const FTransform& TR = InTransforms[i];
 
 			EPCGExSplinePointType PointTypeProxy = Settings->DefaultPointType;
 			ESplinePointType::Type PointType = ESplinePointType::Curve;
 
 			if (CustomPointType)
 			{
-				const int32 Value = CustomPointType->Read(Index);
+				const int32 Value = CustomPointType->Read(i);
 				if (FMath::IsWithinInclusive(Value, 0, 4)) { PointTypeProxy = static_cast<EPCGExSplinePointType>(static_cast<uint8>(Value)); }
 			}
 
@@ -154,9 +205,9 @@ namespace PCGExPathDeform
 				break;
 			}
 
-			SplinePoints[Index] = FSplinePoint(
-				static_cast<float>(Index),
-				TR.GetLocation() - PositionOffset,
+			SplinePoints.Emplace(
+				static_cast<float>(i),
+				TR.GetLocation(),
 				OutArrive,
 				OutLeave,
 				TR.GetRotation().Rotator(),
@@ -165,14 +216,8 @@ namespace PCGExPathDeform
 		}
 	}
 
-	void FProcessor::Cleanup()
+	void FBatch::OnSplineBuildingComplete()
 	{
-		TProcessor<FPCGExPathDeformContext, UPCGExPathDeformSettings>::Cleanup();
-	}
-
-	void FBatch::OnInitialPostProcess()
-	{
-		// TODO : Launch per-path processing
 		TBatch<FProcessor>::OnInitialPostProcess();
 	}
 }

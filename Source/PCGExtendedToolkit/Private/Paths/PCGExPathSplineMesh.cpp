@@ -19,7 +19,7 @@ void UPCGExPathSplineMeshSettings::ApplyDeprecation(UPCGNode* InOutNode)
 		DefaultDescriptor.SplineMeshAxis = static_cast<EPCGExSplineMeshAxis>(SplineMeshAxisConstant_DEPRECATED);
 	}
 
-	Tangents.ApplyDeprecation(ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
+	Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
 	
 	Super::ApplyDeprecation(InOutNode);
 }
