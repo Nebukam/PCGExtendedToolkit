@@ -29,13 +29,13 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+
 	PCGEX_NODE_INFOS(PathSplineMeshSimple, "Path : Spline Mesh (Simple)", "Create spline mesh components from paths.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spawner; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(UPCGExPathProcessorSettings::GetNodeTitleColor()); }
-
-	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 #endif
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -66,17 +66,22 @@ public:
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta=(PCG_Overridable, EditCondition="bPerSegmentTargetActor", EditConditionHides))
 	//FName TargetActorAttributeName;
 
-	/** Whether to read tangents from attributes or not. */
+#pragma region DEPRECATED
+	
+	UPROPERTY()
+	bool bApplyCustomTangents_DEPRECATED = false;
+
+	UPROPERTY()
+	FName ArriveTangentAttribute_DEPRECATED = "ArriveTangent";
+
+	UPROPERTY()
+	FName LeaveTangentAttribute_DEPRECATED = "LeaveTangent";
+	
+#pragma endregion
+
+	/** Per-point tangent settings. Can't be set if the spline is linear. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bApplyCustomTangents = false;
-
-	/** Arrive tangent attribute (expects FVector) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
-	FName ArriveTangentAttribute = "ArriveTangent";
-
-	/** Leave tangent attribute (expects FVector) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
-	FName LeaveTangentAttribute = "LeaveTangent";
+	FPCGExTangentsDetails Tangents;
 
 	/** Type of Start Offset */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_NotOverridable))
@@ -122,11 +127,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Spline Mesh Up Vector", EditCondition="SplineMeshUpMode == EPCGExSplineMeshUpMode::Constant", EditConditionHides))
 	FVector SplineMeshUpVector = FVector::UpVector;
 
-#if WITH_EDITORONLY_DATA
+#pragma region DEPRECATED
+	
 	UPROPERTY()
 	EPCGExMinimalAxis SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::X;
-#endif	
 	
+#pragma endregion
+
 	/** Tagging details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;
@@ -150,6 +157,12 @@ struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 	TSharedPtr<PCGEx::TAssetLoader<UStaticMesh>> StaticMeshLoader;
 
 	TObjectPtr<UStaticMesh> StaticMesh;
+
+	FPCGExTangentsDetails Tangents;
+
+protected:
+	virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override;
+	
 };
 
 class FPCGExPathSplineMeshSimpleElement final : public FPCGExPathProcessorElement
@@ -178,14 +191,13 @@ namespace PCGExPathSplineMeshSimple
 
 		int32 LastIndex = 0;
 
+		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
+
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> StartOffset;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> EndOffset;
 
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathReader;
-
-		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveReader;
-		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveReader;
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 		TArray<TObjectPtr<UStaticMesh>> Meshes;
@@ -198,6 +210,7 @@ namespace PCGExPathSplineMeshSimple
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;

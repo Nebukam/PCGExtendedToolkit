@@ -187,7 +187,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 
-#if WITH_EDITORONLY_DATA
+#pragma region DEPRECATED
+	
 	// DEPRECATED -- Moved to macro cache instead.
 	UPROPERTY()
 	int32 MaterialVariantsCumulativeWeight_DEPRECATED = -1;
@@ -197,7 +198,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 
 	UPROPERTY()
 	TArray<int32> MaterialVariantsWeights_DEPRECATED;
-#endif
+
+#pragma endregion 
 
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;

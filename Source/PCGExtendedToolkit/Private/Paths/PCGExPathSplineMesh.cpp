@@ -14,11 +14,12 @@
 #if WITH_EDITOR
 void UPCGExPathSplineMeshSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	if (SplineMeshAxisConstant_DEPRECATED != EPCGExMinimalAxis::None)
+	if (SplineMeshAxisConstant_DEPRECATED != EPCGExMinimalAxis::None && DefaultDescriptor.SplineMeshAxis == EPCGExSplineMeshAxis::Default)
 	{
 		DefaultDescriptor.SplineMeshAxis = static_cast<EPCGExSplineMeshAxis>(SplineMeshAxisConstant_DEPRECATED);
-		SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::None;
 	}
+
+	Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
 	
 	Super::ApplyDeprecation(InOutNode);
 }
@@ -51,11 +52,7 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSplineMesh)
 
-	if (Settings->bApplyCustomTangents)
-	{
-		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ArriveTangentAttribute)
-		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->LeaveTangentAttribute)
-	}
+	if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
@@ -180,25 +177,11 @@ namespace PCGExPathSplineMesh
 		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
 		bUseTags = Settings->TaggingDetails.IsEnabled();
 
+		TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
+		if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }
+
 		Helper = MakeUnique<PCGExAssetCollection::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>>(Context->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(ExecutionContext, PointDataFacade)) { return false; }
-
-		if (Settings->bApplyCustomTangents)
-		{
-			ArriveGetter = PointDataFacade->GetReadable<FVector>(Settings->ArriveTangentAttribute);
-			if (!ArriveGetter)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Could not fetch tangent' Arrive attribute on some inputs."));
-				return false;
-			}
-
-			LeaveGetter = PointDataFacade->GetReadable<FVector>(Settings->LeaveTangentAttribute);
-			if (!LeaveGetter)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Could not fetch tangent' Leave attribute on some inputs."));
-				return false;
-			}
-		}
 
 		if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Attribute)
 		{
@@ -359,10 +342,9 @@ namespace PCGExPathSplineMesh
 			Segment.Params.StartOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
 			Segment.Params.EndOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
 
-			if (Settings->bApplyCustomTangents)
+			if (TangentsHandler->IsEnabled())
 			{
-				Segment.Params.StartTangent = LeaveGetter->Read(Index);
-				Segment.Params.EndTangent = ArriveGetter->Read(NextIndex);
+				TangentsHandler->GetSegmentTangents(Index, Segment.Params.StartTangent, Segment.Params.EndTangent);
 			}
 			else
 			{

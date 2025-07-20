@@ -356,7 +356,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 
 	Context->bQuietCancellationError = Settings->bQuietCancellationError;
 	Context->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
-	
+
 	if (Settings->bCleanupConsumableAttributes)
 	{
 		for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedProtectedAttributesName);

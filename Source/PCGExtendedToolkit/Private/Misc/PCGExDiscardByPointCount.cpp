@@ -44,17 +44,24 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 		const int32 Min = (Settings->bRemoveBelow && Settings->MinPointCount >= 0) ? Settings->MinPointCount : -1;
 		const int32 Max = (Settings->bRemoveAbove && Settings->MaxPointCount >= 0) ? Settings->MaxPointCount : MAX_int32;
 
+		const int32 NumTotal = Context->MainPoints->Num();
+		int32 NumDiscarded = 0;
+
 		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : Context->MainPoints->Pairs)
 		{
 			PointIO->bAllowEmptyOutput = Settings->bAllowEmptyOutputs;
 			if (!FMath::IsWithinInclusive(PointIO->GetNum(), Min, Max))
 			{
 				PointIO->OutputPin = PCGExDiscardByPointCount::OutputDiscardedLabel;
+				NumDiscarded++;
 			}
 		}
 
 		Context->MainPoints->StageOutputs();
 		Context->Done();
+
+		if (NumDiscarded == NumTotal) { Context->OutputData.InactiveOutputPinBitmask = 1; }
+		else if (NumDiscarded == 0) { Context->OutputData.InactiveOutputPinBitmask = 2; }
 	}
 
 	return Context->TryComplete();

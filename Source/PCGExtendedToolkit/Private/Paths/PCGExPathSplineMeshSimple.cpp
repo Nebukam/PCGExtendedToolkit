@@ -17,9 +17,9 @@ void UPCGExPathSplineMeshSimpleSettings::ApplyDeprecation(UPCGNode* InOutNode)
 	if (SplineMeshAxisConstant_DEPRECATED != EPCGExMinimalAxis::None && StaticMeshDescriptor.SplineMeshAxis == EPCGExSplineMeshAxis::Default)
 	{
 		StaticMeshDescriptor.SplineMeshAxis = static_cast<EPCGExSplineMeshAxis>(SplineMeshAxisConstant_DEPRECATED);
-		SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::None;
-		MarkPackageDirty();
 	}
+
+	Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
 
 	Super::ApplyDeprecation(InOutNode);
 }
@@ -34,17 +34,21 @@ UPCGExPathSplineMeshSimpleSettings::UPCGExPathSplineMeshSimpleSettings(
 	if (SplineMeshUpVectorAttribute.GetName() == FName("@Last")) { SplineMeshUpVectorAttribute.Update(TEXT("$Rotation.Up")); }
 }
 
+void FPCGExPathSplineMeshSimpleContext::AddExtraStructReferencedObjects(FReferenceCollector& Collector)
+{
+	if (StaticMeshLoader) { StaticMeshLoader->AddExtraStructReferencedObjects(Collector); }
+	if (StaticMesh) { Collector.AddReferencedObject(StaticMesh); }
+
+	FPCGExPathProcessorContext::AddExtraStructReferencedObjects(Collector);
+}
+
 bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSplineMeshSimple)
 
-	if (Settings->bApplyCustomTangents)
-	{
-		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ArriveTangentAttribute)
-		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->LeaveTangentAttribute)
-	}
+	if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
 
 	if (Settings->AssetType == EPCGExInputValueType::Attribute)
 	{
@@ -72,30 +76,31 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSplineMeshSimple)
 	PCGEX_EXECUTION_CHECK
 
-	if (Context->StaticMesh)
+
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		PCGEX_ON_INITIAL_EXECUTION
+		if (Context->StaticMesh)
 		{
 			Context->SetState(PCGEx::State_WaitingOnAsyncWork);
 		}
-	}
-	else
-	{
-		PCGEX_ON_INITIAL_EXECUTION
+		else
 		{
-			Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
-
-			if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
+			PCGEX_ON_INITIAL_EXECUTION
 			{
-				PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to find any asset to load."));
-				return true;
-			}
+				Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
 
-			return false;
+				if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
+				{
+					PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to find any asset to load."));
+					return true;
+				}
+
+				return false;
+			}
 		}
 	}
 
-	PCGEX_ON_STATE(PCGEx::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
@@ -172,22 +177,8 @@ namespace PCGExPathSplineMeshSimple
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 		bUseTags = Settings->TaggingDetails.IsEnabled();
 
-		if (Settings->bApplyCustomTangents)
-		{
-			ArriveReader = PointDataFacade->GetReadable<FVector>(Settings->ArriveTangentAttribute);
-			if (!ArriveReader)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Could not fetch tangent' Arrive attribute on some inputs."));
-				return false;
-			}
-
-			LeaveReader = PointDataFacade->GetReadable<FVector>(Settings->LeaveTangentAttribute);
-			if (!LeaveReader)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Could not fetch tangent' Leave attribute on some inputs."));
-				return false;
-			}
-		}
+		TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
+		if (!TangentsHandler->Init(Context, Context->Tangents, PointDataFacade)) { return false; }
 
 		LastIndex = PointDataFacade->GetNum() - 1;
 
@@ -197,6 +188,11 @@ namespace PCGExPathSplineMeshSimple
 		StartParallelLoopForPoints();
 
 		return true;
+	}
+
+	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
+	{
+		TProcessor<FPCGExPathSplineMeshSimpleContext, UPCGExPathSplineMeshSimpleSettings>::PrepareLoopScopesForPoints(Loops);
 	}
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
@@ -268,10 +264,9 @@ namespace PCGExPathSplineMeshSimple
 			Segment.Params.StartOffset = StartOffset->Read(Index);
 			Segment.Params.EndOffset = EndOffset->Read(Index);
 
-			if (Settings->bApplyCustomTangents)
+			if (TangentsHandler->IsEnabled())
 			{
-				Segment.Params.StartTangent = LeaveReader->Read(Index);
-				Segment.Params.EndTangent = ArriveReader->Read(NextIndex);
+				TangentsHandler->GetSegmentTangents(Index, Segment.Params.StartTangent, Segment.Params.EndTangent);
 			}
 			else
 			{

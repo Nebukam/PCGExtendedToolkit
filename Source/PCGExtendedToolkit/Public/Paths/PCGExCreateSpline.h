@@ -34,6 +34,8 @@ class UPCGExCreateSplineSettings : public UPCGExPathProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+	
 	PCGEX_NODE_INFOS(CreateSpline, "Create Spline", "Create splines from input points.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd); }
@@ -62,15 +64,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "bApplyCustomPointType"))
 	FName PointTypeAttribute = "PointType";
 
-	/** Allow to specify custom tangents for each point, as an attribute. Can't be set if the spline is linear. */
+#pragma region DEPRECATED
+	
+	UPROPERTY()
+	bool bApplyCustomTangents_DEPRECATED = false;
+
+	UPROPERTY()
+	FName ArriveTangentAttribute_DEPRECATED = "ArriveTangent";
+
+	UPROPERTY()
+	FName LeaveTangentAttribute_DEPRECATED = "LeaveTangent";
+	
+#pragma endregion 
+
+	/** Per-point tangent settings. Can't be set if the spline is linear. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bApplyCustomTangents = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "bApplyCustomTangents", EditConditionHides))
-	FName ArriveTangentAttribute = "ArriveTangent";
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "bApplyCustomTangents", EditConditionHides))
-	FName LeaveTangentAttribute = "LeaveTangent";
+	FPCGExTangentsDetails Tangents;
 
 	UPROPERTY(meta = (PCG_Overridable))
 	TSoftObjectPtr<AActor> TargetActor;
@@ -91,6 +100,7 @@ public:
 struct FPCGExCreateSplineContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExCreateSplineElement;
+	FPCGExTangentsDetails Tangents;
 };
 
 class FPCGExCreateSplineElement final : public FPCGExPathProcessorElement
@@ -114,9 +124,7 @@ namespace PCGExCreateSpline
 		bool bApplyTangents = false;
 		float MaxIndex = 0.0;
 
-		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveTangent;
-		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveTangent;
-
+		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
 		TSharedPtr<PCGExData::TBuffer<int32>> CustomPointType;
 
 		TArray<FSplinePoint> SplinePoints;
