@@ -34,8 +34,8 @@ FPCGContext::FSharedContext<FPCGExContext> SharedContext(_HANDLE); \
 if(!SharedContext.Get()){ return _RET; }
 
 
-#define PCGEX_LOG_INVALID_SELECTOR_C(_CTX, _NAME, _SELECTOR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Invalid "#_NAME" attribute: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(_SELECTOR))));
-#define PCGEX_LOG_INVALID_ATTR_C(_CTX, _NAME, _SELECTOR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Invalid "#_NAME" attribute: \"{0}\"."), FText::FromName(_SELECTOR)));
+#define PCGEX_LOG_INVALID_SELECTOR_C(_CTX, _NAME, _SELECTOR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Attribute or property \"{0}\" doesn't exist. (See "#_NAME")"), FText::FromString(PCGEx::GetSelectorDisplayName(_SELECTOR))));
+#define PCGEX_LOG_INVALID_ATTR_C(_CTX, _NAME, _ATTR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Attribute \"{0}\" doesn't exist. (See "#_NAME")"), FText::FromName(_ATTR)));
 
 #define PCGEX_ON_INVALILD_INPUTS(_MSG) bool bHasInvalidInputs = false; ON_SCOPE_EXIT{ if (bHasInvalidInputs){ PCGE_LOG(Warning, GraphAndLog, _MSG); } };
 

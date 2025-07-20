@@ -36,7 +36,7 @@ bool PCGExPointFilter::FNumericSelfCompareFilter::Init(FPCGExContext* InContext,
 
 	if (!OperandA->Prepare(TypedFilterFactory->Config.OperandA, PointDataFacade->Source))
 	{
-		PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand A", TypedFilterFactory->Config.OperandA)
+		PCGEX_LOG_INVALID_SELECTOR_C(InContext, Operand A, TypedFilterFactory->Config.OperandA)
 		return false;
 	}
 

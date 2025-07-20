@@ -28,7 +28,7 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 
 		if (!SingleGetter)
 		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Index (Seeds)", SingleSelector)
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, Index (Seeds), SingleSelector)
 			return false;
 		}
 	}
@@ -42,7 +42,7 @@ bool UPCGExGoalPickerAttribute::PrepareForData(FPCGExContext* InContext, const T
 			TSharedPtr<PCGExData::TBuffer<int32>> Getter = InSeedsDataFacade->GetBroadcaster<int32>(Selector);
 			if (!Getter)
 			{
-				PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Index (Seeds)", SingleSelector)
+				PCGEX_LOG_INVALID_SELECTOR_C(InContext, Index (Seeds), SingleSelector)
 				return false;
 			}
 

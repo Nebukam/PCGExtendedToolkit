@@ -49,7 +49,7 @@ namespace PCGExTensor
 			{
 				if (!FlowFactory->bQuietMissingInputError)
 				{
-					PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Direction", Config.DirectionAttribute)
+					PCGEX_LOG_INVALID_SELECTOR_C(InContext, Direction, Config.DirectionAttribute)
 				}
 				return false;
 			}

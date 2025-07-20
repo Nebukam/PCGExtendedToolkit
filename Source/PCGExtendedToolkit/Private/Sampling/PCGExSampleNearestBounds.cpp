@@ -163,7 +163,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 					TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
 					if (!LookAtUpGetter->Init(Context, Facade, false))
 					{
-						Context->CancelExecution(TEXT("LookUp Attribute on Bounds is invalid."));
+						Context->CancelExecution(TEXT(""));
 						return;
 					}
 

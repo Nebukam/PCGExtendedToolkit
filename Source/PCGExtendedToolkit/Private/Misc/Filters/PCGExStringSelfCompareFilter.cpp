@@ -40,7 +40,7 @@ bool PCGExPointFilter::FStringSelfCompareFilter::Init(FPCGExContext* InContext, 
 	OperandA = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
 	if (!OperandA->Prepare(TypedFilterFactory->Config.OperandA, PointDataFacade->Source))
 	{
-		PCGEX_LOG_INVALID_ATTR_C(InContext, "Operand A", TypedFilterFactory->Config.OperandA)
+		PCGEX_LOG_INVALID_ATTR_C(InContext, Operand A, TypedFilterFactory->Config.OperandA)
 		return false;
 	}
 

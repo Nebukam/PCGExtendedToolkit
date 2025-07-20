@@ -99,7 +99,7 @@ namespace PCGExOffsetPath
 			DirectionGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->DirectionAttribute, true);
 			if (!DirectionGetter)
 			{
-				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, "Direction", Settings->DirectionAttribute)
+				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, Direction, Settings->DirectionAttribute)
 				return false;
 			}
 		}

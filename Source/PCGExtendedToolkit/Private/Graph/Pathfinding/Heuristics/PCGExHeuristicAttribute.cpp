@@ -23,7 +23,7 @@ void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 
 	if (!Values)
 	{
-		PCGEX_LOG_INVALID_SELECTOR_C(Context, "Heuristic", Attribute)
+		PCGEX_LOG_INVALID_SELECTOR_C(Context, Heuristic, Attribute)
 		return;
 	}
 

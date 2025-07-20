@@ -252,7 +252,7 @@ namespace PCGExSampleNearestSpline
 		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection == EPCGExSampleSource::Source)
 		{
 			LookAtUpGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->LookAtUpSource, true);
-			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("LookAtUp is invalid.")); }
+			if (!LookAtUpGetter) { PCGEX_LOG_INVALID_SELECTOR_C(Context, LookAt Up, Settings->LookAtUpSource) }
 		}
 
 		bSingleSample = Settings->SampleMethod != EPCGExSampleMethod::WithinRange;

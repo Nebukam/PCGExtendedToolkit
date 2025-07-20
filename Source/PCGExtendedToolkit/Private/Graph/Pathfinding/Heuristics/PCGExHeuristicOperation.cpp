@@ -21,7 +21,7 @@ void FPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExClu
 
 		if (!LocalWeightCache)
 		{
-			PCGEX_LOG_INVALID_SELECTOR_C(Context, "Weight Multiplier (Heuristics)", WeightMultiplierAttribute)
+			PCGEX_LOG_INVALID_SELECTOR_C(Context, Weight Multiplier (Heuristics), WeightMultiplierAttribute)
 			return;
 		}
 

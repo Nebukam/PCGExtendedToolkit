@@ -72,7 +72,7 @@ public:
 
 			if (!Buffer)
 			{
-				PCGEX_LOG_INVALID_SELECTOR_C(Context, "Edge Length", DesiredEdgeLengthAttribute)
+				PCGEX_LOG_INVALID_SELECTOR_C(Context, Edge Length, DesiredEdgeLengthAttribute)
 				return false;
 			}
 

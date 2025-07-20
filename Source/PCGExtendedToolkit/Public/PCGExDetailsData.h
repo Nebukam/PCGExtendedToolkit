@@ -58,7 +58,7 @@ namespace PCGExDetails
 
 			if (!Buffer)
 			{
-				if (!this->bQuietErrors) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Attribute \"{0}\" is missing."), FText::FromName(Name))); }
+				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_ATTR_C(InContext, Attribute, Name) }
 				return false;
 			}
 
@@ -89,7 +89,7 @@ namespace PCGExDetails
 
 			if (!Buffer)
 			{
-				if (!this->bQuietErrors) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Selector \"{0}\" is invalid."), FText::FromString(PCGEx::GetSelectorDisplayName(Selector)))); }
+				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Selector, Selector) }
 				return false;
 			}
 
@@ -140,7 +140,7 @@ namespace PCGExDetails
 		{
 			if (!PCGExDataHelpers::TryReadDataValue(InContext, InDataFacade->GetIn(), Selector, this->Constant))
 			{
-				if (!this->bQuietErrors) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Selector \"{0}\" is invalid."), FText::FromString(PCGEx::GetSelectorDisplayName(Selector)))); }
+				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Selector, Selector) }
 				return false;
 			}
 
@@ -166,7 +166,7 @@ namespace PCGExDetails
 
 			if (!PCGExDataHelpers::TryReadDataValue(InContext, InDataFacade->GetIn(), Name, this->Constant))
 			{
-				if (!this->bQuietErrors) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Attribute \"{0}\" is missing."), FText::FromName(Name))); }
+				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_ATTR_C(InContext, Attribute, Name) }
 				return false;
 			}
 

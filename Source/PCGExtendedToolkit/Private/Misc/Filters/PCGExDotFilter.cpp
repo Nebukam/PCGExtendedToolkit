@@ -50,7 +50,7 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 	OperandA = PointDataFacade->GetBroadcaster<FVector>(TypedFilterFactory->Config.OperandA, true);
 	if (!OperandA)
 	{
-		PCGEX_LOG_INVALID_SELECTOR_C(InContext, "Operand A", TypedFilterFactory->Config.OperandA)
+		PCGEX_LOG_INVALID_SELECTOR_C(InContext, Operand A, TypedFilterFactory->Config.OperandA)
 		return false;
 	}
 
