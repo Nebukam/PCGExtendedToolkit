@@ -16,7 +16,7 @@ PCGEX_INITIALIZE_ELEMENT(PathDeform)
 TArray<FPCGPinProperties> UPCGExPathDeformSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "Paths to deform along", Required, {})
+	PCGEX_PIN_ANY(PCGExPathDeform::SourceDeformersLabel, "Paths or splines to deform along", Required, {})
 	return PinProperties;
 }
 
@@ -33,11 +33,52 @@ bool FPCGExPathDeformElement::Boot(FPCGExContext* InContext) const
 
 	if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
 
-	// TODO : If there is more that one path input, data association must be enabled
+	TArray<FPCGTaggedData> Candidates = Context->InputData.GetSpatialInputsByPin(PCGExPathDeform::SourceDeformersLabel);
 
-	if (!PCGExData::TryGetFacades(Context, PCGExPaths::SourcePathsLabel, Context->PathsFacades, true)) { return false; }
+	Context->Deformers.Init(nullptr, Candidates.Num());
+	Context->DeformersData.Reserve(Candidates.Num());
+	Context->DeformersFacades.Reserve(Candidates.Num());
 
-	Context->Splines.Init(nullptr, Context->PathsFacades.Num());
+	auto RegisterData = [&](const UPCGSpatialData* InData, const FPCGSplineStruct* InStruct, const TSet<FString>& InTags)
+	{
+		Context->DeformersData.Add(InData);
+		Context->Deformers.Add(InStruct);
+
+		const TSharedPtr<PCGExData::FTags> Tags = MakeShared<PCGExData::FTags>(InTags);
+		Context->DeformersTags.Add(Tags);
+	};
+
+	for (int i = 0; i < Candidates.Num(); ++i)
+	{
+		FPCGTaggedData& TaggedData = Candidates[i];
+
+		if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(TaggedData.Data))
+		{
+			if (PointData->GetNumPoints() < 2) { continue; }
+
+			TSharedPtr<PCGExData::FPointIO> PointIO = MakeShared<PCGExData::FPointIO>(Context->GetOrCreateHandle(), PointData);
+			const TSharedPtr<PCGExData::FFacade> Facade = MakeShared<PCGExData::FFacade>(PointIO.ToSharedRef());
+			const TSharedPtr<FPCGSplineStruct> SplineStruct = MakeShared<FPCGSplineStruct>();
+
+			Facade->Idx = Context->DeformersFacades.Add(Facade);
+			Context->LocalDeformers.Add(SplineStruct);
+
+			RegisterData(PointData, SplineStruct.Get(), TaggedData.Tags);
+			continue;
+		}
+
+		if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(TaggedData.Data))
+		{
+			if (SplineData->SplineStruct.GetNumberOfPoints() < 2) { continue; }
+			RegisterData(SplineData, &SplineData->SplineStruct, TaggedData.Tags);
+			continue;
+		}
+	}
+
+	if (Context->Deformers.IsEmpty())
+	{
+		return false;
+	}
 
 	return true;
 }
@@ -90,7 +131,13 @@ namespace PCGExPathDeform
 
 		// TODO : Find which path should be used
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
+
+		TotalLength = Deformer->GetSplineLength();
+		
+		// TODO : Normalize point data to deform around around it
+
+		// TODO : Alpha
 
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
@@ -110,7 +157,6 @@ namespace PCGExPathDeform
 		{
 		}
 	}
-
 	void FProcessor::Cleanup()
 	{
 		TProcessor<FPCGExPathDeformContext, UPCGExPathDeformSettings>::Cleanup();
@@ -136,17 +182,22 @@ namespace PCGExPathDeform
 				This->BuildSpline(Index);
 			};
 
-		BuildSplines->StartIterations(Context->Splines.Num(), 1);
+		BuildSplines->StartIterations(Context->DeformersFacades.Num(), 1);
 	}
 
 	void FBatch::BuildSpline(const int32 InSplineIndex) const
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathDeform)
 
-		TSharedPtr<PCGExData::FFacade> PathFacade = Context->PathsFacades[InSplineIndex];
+		TSharedPtr<FPCGSplineStruct> SplineStruct = Context->LocalDeformers[InSplineIndex];
+		if (!SplineStruct) { return; }
+
+		TSharedPtr<PCGExData::FFacade> PathFacade = Context->DeformersFacades[InSplineIndex];
 		PathFacade->bSupportsScopedGet = false;
 
-		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(PCGExPaths::GetClosedLoop(PathFacade->GetIn()));
+		const bool bClosedLoop = PCGExPaths::GetClosedLoop(PathFacade->GetIn());
+
+		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
 		if (!TangentsHandler->Init(Context, Context->Tangents, PathFacade)) { return; }
 
 		TSharedPtr<PCGExData::TBuffer<int32>> CustomPointType;
@@ -214,6 +265,8 @@ namespace PCGExPathDeform
 				TR.GetScale3D(),
 				PointType);
 		}
+
+		SplineStruct->Initialize(SplinePoints, bClosedLoop, FTransform::Identity);
 	}
 
 	void FBatch::OnSplineBuildingComplete()

@@ -15,6 +15,13 @@
 
 #include "PCGExPathDeform.generated.h"
 
+UENUM()
+enum class EPCGExPathDeformUnit : uint8
+{
+	Alpha    = 0 UMETA(DisplayName = "Alpha", Tooltip="..."),
+	Distance = 1 UMETA(DisplayName = "Distance", Tooltip="..."),
+};
+
 UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="paths/create-spline"))
 class UPCGExPathDeformSettings : public UPCGExPointsProcessorSettings
 {
@@ -23,9 +30,9 @@ class UPCGExPathDeformSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathDeform, "Create Spline", "Create splines from input points.");
+	PCGEX_NODE_INFOS(PathDeform, "Path Deform", "Deform points along a path/spline.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorTransform); }
 #endif
 
 protected:
@@ -38,17 +45,54 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 	/** Default spline point type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable))
 	EPCGExSplinePointType DefaultPointType = EPCGExSplinePointType::Linear;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bApplyCustomPointType = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "bApplyCustomPointType"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable, EditCondition = "bApplyCustomPointType"))
 	FName PointTypeAttribute = "PointType";
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable))
 	FPCGExTangentsDetails Tangents;
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
+	EPCGExPathDeformUnit StartUnit = EPCGExPathDeformUnit::Alpha;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable))
+	EPCGExInputValueType StartInput = EPCGExInputValueType::Constant;
+
+	/** Attribute to read start value from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable, DisplayName="Start (Attr)", EditCondition="StartInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector StartAttribute;
+
+	/** Constant start value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable, DisplayName="Start", EditCondition="StartInput == EPCGExInputValueType::Constant", EditConditionHides))
+	double Start = 0;
+
+	PCGEX_SETTING_VALUE_GET(Start, double, StartInput, StartAttribute, Start)
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
+	EPCGExPathDeformUnit EndUnit = EPCGExPathDeformUnit::Alpha;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable))
+	EPCGExInputValueType EndInput = EPCGExInputValueType::Constant;
+
+	/** Attribute to read end value from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable, DisplayName="End (Attr)", EditCondition="EndInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector EndAttribute;
+
+	/** Constant end value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable, DisplayName="End", EditCondition="EndInput == EPCGExInputValueType::Constant", EditConditionHides))
+	double End = 0;
+
+	PCGEX_SETTING_VALUE_GET(End, double, EndInput, EndAttribute, End)
+
 
 	bool GetApplyTangents() const
 	{
@@ -61,8 +105,14 @@ struct FPCGExPathDeformContext final : FPCGExPointsProcessorContext
 	friend class FPCGExPathDeformElement;
 	FPCGExTangentsDetails Tangents;
 
-	TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
-	TArray<TSharedPtr<FPCGSplineStruct>> Splines;
+	// TODO : Support both paths & splines
+
+	TArray<const UPCGSpatialData*> DeformersData;
+	TArray<TSharedPtr<PCGExData::FFacade>> DeformersFacades;
+	TArray<TSharedPtr<PCGExData::FTags>> DeformersTags;
+	TArray<const FPCGSplineStruct*> Deformers;
+
+	TArray<TSharedPtr<FPCGSplineStruct>> LocalDeformers;
 };
 
 class FPCGExPathDeformElement final : public FPCGExPointsProcessorElement
@@ -78,12 +128,12 @@ protected:
 
 namespace PCGExPathDeform
 {
+	const FName SourceDeformersLabel = TEXT("Deformers");
+
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathDeformContext, UPCGExPathDeformSettings>
 	{
-		bool bClosedLoop = false;
-		float MaxIndex = 0.0;
-
-		
+		const FPCGSplineStruct* Deformer = nullptr;
+		double TotalLength = 0;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -103,6 +153,7 @@ namespace PCGExPathDeform
 	class FBatch final : public PCGExPointsMT::TBatch<FProcessor>
 	{
 		AActor* TargetActor = nullptr;
+
 	public:
 		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection):
 			TBatch(InContext, InPointsCollection)
@@ -110,7 +161,7 @@ namespace PCGExPathDeform
 		}
 
 		virtual void OnInitialPostProcess() override;
-		void BuildSpline(const int32 InSplineIndex)const;
+		void BuildSpline(const int32 InSplineIndex) const;
 		void OnSplineBuildingComplete();
 	};
 }
