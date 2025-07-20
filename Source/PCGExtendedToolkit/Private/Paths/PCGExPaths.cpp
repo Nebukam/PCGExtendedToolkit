@@ -27,7 +27,6 @@ void FPCGExPathEdgeIntersectionDetails::Init()
 
 void FPCGExPathFilterSettings::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
-	
 }
 
 bool FPCGExPathFilterSettings::Init(FPCGExContext* InContext)
@@ -84,6 +83,14 @@ namespace PCGExPaths
 	{
 		const FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetConstAttribute<bool>(InData, ClosedLoopIdentifier);
 		return Attr ? PCGExDataHelpers::ReadDataValue(Attr) : false;
+	}
+
+	void FetchPrevNext(const TSharedPtr<PCGExData::FFacade>& InFacade, const TArray<PCGExMT::FScope>& Loops)
+	{
+		if (Loops.Num() <= 1) { return; }
+		// Fetch necessary bits for prev/next data to be valid during parallel processing
+		InFacade->Fetch(PCGExMT::FScope(0, 1));
+		for (int i = 1; i < Loops.Num(); ++i) { InFacade->Fetch(PCGExMT::FScope(Loops[i - 1].End - 1, 2)); }
 	}
 
 	FPathMetrics::FPathMetrics(const FVector& InStart)

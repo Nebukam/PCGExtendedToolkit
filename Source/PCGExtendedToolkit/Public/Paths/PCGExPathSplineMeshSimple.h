@@ -159,6 +159,10 @@ struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 	TObjectPtr<UStaticMesh> StaticMesh;
 
 	FPCGExTangentsDetails Tangents;
+
+protected:
+	virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override;
+	
 };
 
 class FPCGExPathSplineMeshSimpleElement final : public FPCGExPathProcessorElement
@@ -206,6 +210,7 @@ namespace PCGExPathSplineMeshSimple
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;

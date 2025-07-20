@@ -230,6 +230,9 @@ namespace PCGExPaths
 
 	PCGEXTENDEDTOOLKIT_API
 	bool GetClosedLoop(const UPCGData* InData);
+	
+	PCGEXTENDEDTOOLKIT_API
+	void FetchPrevNext(const TSharedPtr<PCGExData::FFacade>& InFacade, const TArray<PCGExMT::FScope>& Loops);
 
 	struct PCGEXTENDEDTOOLKIT_API FPathMetrics
 	{

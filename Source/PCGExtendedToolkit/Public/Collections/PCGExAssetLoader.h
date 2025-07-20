@@ -17,10 +17,6 @@
 
 namespace PCGEx
 {
-	PCGEX_CTX_STATE(InternalState_DiscoveringAssets)
-	PCGEX_CTX_STATE(InternalState_LoadingAssets)
-	PCGEX_CTX_STATE(InternalState_AssetsLoaded)
-
 	template <typename T>
 	class TDiscoverAssetsTask;
 
@@ -73,6 +69,15 @@ namespace PCGEx
 		bool HasEnded() const { return bEnded ? true : false; }
 
 		TObjectPtr<T>* GetAsset(const FSoftObjectPath& Path) { return AssetsMap.Find(Path); }
+
+		void AddExtraStructReferencedObjects(FReferenceCollector& Collector)
+		{
+			for (const TPair<FSoftObjectPath, TObjectPtr<T>>& Pair : AssetsMap)
+			{
+				TObjectPtr<UObject> Obj = Pair.Value;
+				Collector.AddReferencedObject(Obj);
+			}
+		}
 
 		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 		{
@@ -135,9 +140,6 @@ namespace PCGEx
 
 			AssetsMap.Reserve(UniquePaths.Num());
 
-			Context->SetAsyncState(InternalState_LoadingAssets);
-
-			Context->PauseContext();
 			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 				UniquePaths.Array(), [&]() { End(true); });
 

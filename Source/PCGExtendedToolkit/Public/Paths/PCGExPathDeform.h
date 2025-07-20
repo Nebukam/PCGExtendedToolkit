@@ -15,7 +15,7 @@
 
 #include "PCGExPathDeform.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="paths/create-spline"))
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="paths/create-spline"))
 class UPCGExPathDeformSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

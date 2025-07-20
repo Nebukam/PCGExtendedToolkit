@@ -34,6 +34,14 @@ UPCGExPathSplineMeshSimpleSettings::UPCGExPathSplineMeshSimpleSettings(
 	if (SplineMeshUpVectorAttribute.GetName() == FName("@Last")) { SplineMeshUpVectorAttribute.Update(TEXT("$Rotation.Up")); }
 }
 
+void FPCGExPathSplineMeshSimpleContext::AddExtraStructReferencedObjects(FReferenceCollector& Collector)
+{
+	if (StaticMeshLoader) { StaticMeshLoader->AddExtraStructReferencedObjects(Collector); }
+	if (StaticMesh) { Collector.AddReferencedObject(StaticMesh); }
+
+	FPCGExPathProcessorContext::AddExtraStructReferencedObjects(Collector);
+}
+
 bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -68,30 +76,31 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSplineMeshSimple)
 	PCGEX_EXECUTION_CHECK
 
-	if (Context->StaticMesh)
+
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		PCGEX_ON_INITIAL_EXECUTION
+		if (Context->StaticMesh)
 		{
 			Context->SetState(PCGEx::State_WaitingOnAsyncWork);
 		}
-	}
-	else
-	{
-		PCGEX_ON_INITIAL_EXECUTION
+		else
 		{
-			Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
-
-			if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
+			PCGEX_ON_INITIAL_EXECUTION
 			{
-				PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to find any asset to load."));
-				return true;
-			}
+				Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
 
-			return false;
+				if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
+				{
+					PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to find any asset to load."));
+					return true;
+				}
+
+				return false;
+			}
 		}
 	}
 
-	PCGEX_ON_STATE(PCGEx::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
@@ -179,6 +188,11 @@ namespace PCGExPathSplineMeshSimple
 		StartParallelLoopForPoints();
 
 		return true;
+	}
+
+	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
+	{
+		TProcessor<FPCGExPathSplineMeshSimpleContext, UPCGExPathSplineMeshSimpleSettings>::PrepareLoopScopesForPoints(Loops);
 	}
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
