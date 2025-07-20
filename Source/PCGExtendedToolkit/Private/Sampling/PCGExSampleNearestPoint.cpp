@@ -172,7 +172,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 					TSharedPtr<PCGExData::TBuffer<double>> Weight = Facade->GetBroadcaster<double>(Settings->WeightAttribute);
 					if (!Weight)
 					{
-						Context->CancelExecution(TEXT("Weight Attribute on Targets is invalid."));
+						PCGEX_LOG_INVALID_SELECTOR_C(Context, Target Weight, Settings->WeightAttribute)
 						return;
 					}
 
@@ -189,7 +189,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 					TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
 					if (!LookAtUpGetter->Init(Context, Facade, false))
 					{
-						Context->CancelExecution(TEXT("LookUp Attribute on Targets is invalid."));
+						Context->CancelExecution(TEXT(""));
 						return;
 					}
 

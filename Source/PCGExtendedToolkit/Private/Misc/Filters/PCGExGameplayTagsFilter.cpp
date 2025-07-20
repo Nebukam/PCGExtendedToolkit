@@ -39,7 +39,7 @@ bool PCGExPointFilter::FGameplayTagsFilter::Init(FPCGExContext* InContext, const
 
 	if (!ActorReferences)
 	{
-		PCGEX_LOG_INVALID_ATTR_C(InContext, "Actor Reference", TypedFilterFactory->Config.ActorReference)
+		PCGEX_LOG_INVALID_ATTR_C(InContext, Actor Reference, TypedFilterFactory->Config.ActorReference)
 		return false;
 	}
 

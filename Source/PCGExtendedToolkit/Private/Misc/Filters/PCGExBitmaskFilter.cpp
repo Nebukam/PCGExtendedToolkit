@@ -37,7 +37,7 @@ bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSha
 
 	if (!FlagsReader)
 	{
-		PCGEX_LOG_INVALID_ATTR_C(InContext, "Flags", TypedFilterFactory->Config.FlagsAttribute)
+		PCGEX_LOG_INVALID_ATTR_C(InContext, Flags, TypedFilterFactory->Config.FlagsAttribute)
 		return false;
 	}
 

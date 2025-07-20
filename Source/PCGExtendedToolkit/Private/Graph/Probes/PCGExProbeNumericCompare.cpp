@@ -16,7 +16,7 @@ bool FPCGExProbeNumericCompare::PrepareForPoints(FPCGExContext* InContext, const
 
 	if (!ValuesBuffer)
 	{
-		PCGEX_LOG_INVALID_SELECTOR_C(Context, "Comparison", Config.Attribute)
+		PCGEX_LOG_INVALID_SELECTOR_C(Context, Comparison, Config.Attribute)
 		return false;
 	}
 

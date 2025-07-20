@@ -291,7 +291,7 @@ namespace PCGExGetTextureData
 
 		if (!PathGetter)
 		{
-			PCGEX_LOG_INVALID_ATTR_C(Context, "Asset Path", Settings->SourceAttributeName)
+			PCGEX_LOG_INVALID_ATTR_C(Context, Asset Path, Settings->SourceAttributeName)
 			return false;
 		}
 

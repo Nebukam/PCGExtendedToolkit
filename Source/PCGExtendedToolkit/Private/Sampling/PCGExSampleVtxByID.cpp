@@ -181,7 +181,7 @@ namespace PCGExSampleVtxByIDs
 
 		if (!VtxID32Getter && !VtxID64Getter)
 		{
-			PCGEX_LOG_INVALID_ATTR_C(Context, "VtxId", Settings->VtxIdSource)
+			PCGEX_LOG_INVALID_ATTR_C(Context, VtxId, Settings->VtxIdSource)
 			return false;
 		}
 

@@ -109,7 +109,7 @@ namespace PCGExSampleTexture
 
 		if (!UVGetter)
 		{
-			PCGEX_LOG_INVALID_SELECTOR_C(Context, "UV Attribute", Settings->UVSource)
+			PCGEX_LOG_INVALID_SELECTOR_C(Context, UV Attribute, Settings->UVSource)
 			return false;
 		}
 
@@ -125,7 +125,7 @@ namespace PCGExSampleTexture
 					TSharedPtr<TSampler<T>> Sampler = MakeShared<TSampler<T>>(Factory->Config, Context->TextureMap, PointDataFacade);
 					if (!Sampler->IsValid())
 					{
-						PCGEX_LOG_INVALID_ATTR_C(Context, "ID", Factory->Config.TextureIDAttributeName)
+						PCGEX_LOG_INVALID_ATTR_C(Context, ID, Factory->Config.TextureIDAttributeName)
 						return;
 					}
 
