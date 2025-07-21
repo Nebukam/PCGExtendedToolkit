@@ -13,24 +13,24 @@
 
 #include "Transform/PCGExTransform.h"
 
-#include "PCGExPathDeform.generated.h"
+#include "PCGExCopyToPaths.generated.h"
 
 UENUM()
-enum class EPCGExPathDeformUnit : uint8
+enum class EPCGExCopyToPathsUnit : uint8
 {
 	Alpha    = 0 UMETA(DisplayName = "Alpha", Tooltip="..."),
 	Distance = 1 UMETA(DisplayName = "Distance", Tooltip="..."),
 };
 
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/path-deform"))
-class UPCGExPathDeformSettings : public UPCGExPointsProcessorSettings
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/copy-to-path"))
+class UPCGExCopyToPathsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
-
+	
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathDeform, "Path Deform", "Deform points along a path/spline.");
+	PCGEX_NODE_INFOS(CopyToPaths, "Copy to Path", "Deform points along a path/spline.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorTransform); }
 #endif
@@ -68,7 +68,7 @@ public:
 	// Main axis is "along the spline"
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
-	EPCGExPathDeformUnit StartUnit = EPCGExPathDeformUnit::Alpha;
+	EPCGExCopyToPathsUnit StartUnit = EPCGExCopyToPathsUnit::Alpha;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable))
@@ -86,7 +86,7 @@ public:
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
-	EPCGExPathDeformUnit EndUnit = EPCGExPathDeformUnit::Alpha;
+	EPCGExCopyToPathsUnit EndUnit = EPCGExCopyToPathsUnit::Alpha;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable))
@@ -118,9 +118,9 @@ public:
 	}
 };
 
-struct FPCGExPathDeformContext final : FPCGExPointsProcessorContext
+struct FPCGExCopyToPathsContext final : FPCGExPointsProcessorContext
 {
-	friend class FPCGExPathDeformElement;
+	friend class FPCGExCopyToPathsElement;
 	FPCGExTangentsDetails Tangents;
 
 	bool bOneOneMatch = false;
@@ -135,22 +135,21 @@ struct FPCGExPathDeformContext final : FPCGExPointsProcessorContext
 	TArray<TSharedPtr<FPCGSplineStruct>> LocalDeformers;
 };
 
-class FPCGExPathDeformElement final : public FPCGExPointsProcessorElement
+class FPCGExCopyToPathsElement final : public FPCGExPointsProcessorElement
 {
 protected:
-	PCGEX_ELEMENT_CREATE_CONTEXT(PathDeform)
+	PCGEX_ELEMENT_CREATE_CONTEXT(CopyToPaths)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExPathDeform
+namespace PCGExCopyToPaths
 {
-	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathDeformContext, UPCGExPathDeformSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExCopyToPathsContext, UPCGExCopyToPathsSettings>
 	{
 		FBox Box = FBox(ForceInit);
-		const FPCGSplineStruct* Deformer = nullptr;
-		double TotalLength = 0;
+		TArray<const FPCGSplineStruct*> Deformers;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
