@@ -16,6 +16,7 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "Sampling/PCGExSampling.h"
 
 
 #include "PCGExDistanceFilter.generated.h"
@@ -78,8 +79,7 @@ public:
 	UPROPERTY()
 	FPCGExDistanceFilterConfig Config;
 
-	TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
-	TArray<const UPCGBasePointData*> TargetsPtr;
+	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
 
 	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override;
@@ -90,7 +90,7 @@ public:
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
-	virtual bool Prepare(FPCGExContext* InContext) override;
+	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual void BeginDestroy() override;
 };
@@ -103,22 +103,14 @@ namespace PCGExPointFilter
 		explicit FDistanceFilter(const TObjectPtr<const UPCGExDistanceFilterFactory>& InDefinition)
 			: ISimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
-			OctreesPtr = TypedFilterFactory->OctreesPtr;
-			TargetsPtr = TypedFilterFactory->TargetsPtr;
-			bIgnoreSelf = TypedFilterFactory->Config.bIgnoreSelf;
+			TargetsHandler = TypedFilterFactory->TargetsHandler;
 		}
 
 		const TObjectPtr<const UPCGExDistanceFilterFactory> TypedFilterFactory;
+		TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+		TSet<const UPCGData*> IgnoreList;
 
-		TSharedPtr<PCGExDetails::FDistances> Distances;
-
-		TArray<const PCGPointOctree::FPointOctree*> OctreesPtr;
-		TArray<const UPCGBasePointData*> TargetsPtr;
-		const UPCGBasePointData* SelfPtr = nullptr;
-
-		bool bIgnoreSelf = false;
 		bool bCheckAgainstDataBounds = false;
-		int32 NumTargets = -1;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> DistanceThresholdGetter;
 

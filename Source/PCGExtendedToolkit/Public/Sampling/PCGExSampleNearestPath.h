@@ -374,19 +374,14 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestPathElement;
 
-	TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
-
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
-
-	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	FPCGExApplySamplingDetails ApplySampling;
 
+	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
-	TArray<TSharedRef<PCGExData::FFacade>> TargetFacades;
 	TArray<TSharedPtr<PCGExPaths::FPath>> Paths;
-	TSharedPtr<PCGEx::FIndexedItemOctree> PathsOctree;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
 
 	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
@@ -415,8 +410,7 @@ namespace PCGExSampleNearestPath
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleNearestPathContext, UPCGExSampleNearestPathSettings>
 	{
-		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
-
+		TSet<const UPCGData*> IgnoreList;
 		TArray<int8> SamplingMask;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMinGetter;

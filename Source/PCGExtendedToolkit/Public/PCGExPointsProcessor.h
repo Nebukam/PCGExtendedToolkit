@@ -47,7 +47,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 
 public:
 	//~Begin UPCGSettings	
-#if WITH_EDITOR	
+#if WITH_EDITOR
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
 
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
@@ -109,7 +109,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingInputError = false;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietCancellationError = false;
@@ -133,14 +133,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 
 	virtual ~FPCGExPointsProcessorContext() override;
 
-	mutable FRWLock AsyncLock;
-
 	TSharedPtr<PCGExData::FPointIOCollection> MainPoints;
 	TSharedPtr<PCGExData::FPointIO> CurrentIO;
 
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
-
-	TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager();
 
 	template <typename T>
 	T* RegisterOperation(UPCGExInstancedFactory* BaseOperation, FName OverridePinLabel = NAME_None)
@@ -227,20 +223,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 
 #pragma endregion
 
-	virtual bool ShouldWaitForAsync() override;
-	virtual bool CancelExecution(const FString& InReason) override;
-
 protected:
-	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 	int32 CurrentPointIOIndex = -1;
 
 	TArray<UPCGExInstancedFactory*> ProcessorOperations;
 	TSet<UPCGExInstancedFactory*> InternalOperations;
-
-	virtual void ResumeExecution() override;
-
-public:
-	virtual bool IsAsyncWorkComplete();
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGElement

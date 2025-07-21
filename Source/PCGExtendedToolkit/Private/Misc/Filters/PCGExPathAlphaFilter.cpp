@@ -4,6 +4,8 @@
 #include "Misc/Filters/PCGExPathAlphaFilter.h"
 
 
+
+
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathAlphaFilterDefinition"
@@ -25,9 +27,9 @@ bool UPCGExPathAlphaFilterFactory::WantsPreparation(FPCGExContext* InContext)
 	return true;
 }
 
-bool UPCGExPathAlphaFilterFactory::Prepare(FPCGExContext* InContext)
+bool UPCGExPathAlphaFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext)) { return false; }
+	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
 
 	Splines = MakeShared<TArray<TSharedPtr<FPCGSplineStruct>>>();
 

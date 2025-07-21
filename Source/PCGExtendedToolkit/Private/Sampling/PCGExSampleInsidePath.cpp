@@ -95,57 +95,34 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
 		{PCGExFactories::EType::Blending}, false);
 
-	TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(
-		Context, PCGEx::SourceTargetsLabel, PCGExData::EIOInit::NoInit, true);
-
-	if (Targets->IsEmpty())
-	{
-		if (!Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (empty datasets)")); }
-		return false;
-	}
-
-	Context->TargetFacades.Reserve(Targets->Pairs.Num());
-
-	FBox OctreeBounds = FBox(ForceInit);
-
-	for (const TSharedPtr<PCGExData::FPointIO>& IO : Targets->Pairs)
-	{
-		const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
-
-		switch (Settings->ProcessInputs)
+	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
+	Context->NumMaxTargets = Context->TargetsHandler->Init(
+		Context, PCGEx::SourceTargetsLabel,
+		[&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
 		{
-		default:
-		case EPCGExPathSamplingIncludeMode::All:
-			break;
-		case EPCGExPathSamplingIncludeMode::ClosedLoopOnly:
-			if (!bClosedLoop) { continue; }
-			break;
-		case EPCGExPathSamplingIncludeMode::OpenLoopsOnly:
-			if (bClosedLoop) { continue; }
-			break;
-		}
+			const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
 
-		TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
-		TargetFacade->Idx = Context->TargetFacades.Num();
+			switch (Settings->ProcessInputs)
+			{
+			default:
+			case EPCGExPathSamplingIncludeMode::All:
+				break;
+			case EPCGExPathSamplingIncludeMode::ClosedLoopOnly:
+				if (!bClosedLoop) { return FBox(NoInit); }
+				break;
+			case EPCGExPathSamplingIncludeMode::OpenLoopsOnly:
+				if (bClosedLoop) { return FBox(NoInit); }
+				break;
+			}
 
-		Context->TargetFacades.Add(TargetFacade.ToSharedRef());
-		Context->TargetOctrees.Add(&IO->GetIn()->GetPointOctree());
+			return IO->GetIn()->GetBounds();
+		});
 
-		OctreeBounds += IO->GetIn()->GetBounds();
-	}
-
-	if (Context->TargetFacades.IsEmpty())
+	Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
+	if (!Context->NumMaxTargets)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (no input matches criteria)"));
 		return false;
-	}
-
-	Context->TargetsOctree = MakeShared<PCGEx::FIndexedItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
-	for (int i = 0; i < Context->TargetFacades.Num(); ++i)
-	{
-		const TSharedPtr<PCGExData::FFacade> TargetIO = Context->TargetFacades[i];
-		Context->NumMaxTargets += TargetIO->GetNum();
-		Context->TargetsOctree->AddElement(PCGEx::FIndexedItem(i, TargetIO->GetIn()->GetBounds()));
 	}
 
 	if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
@@ -154,10 +131,9 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 		Context->Sorter->SortDirection = Settings->SortDirection;
 	}
 
-	Context->TargetsPreloader = MakeShared<PCGExData::FMultiFacadePreloader>(Context->TargetFacades);
 	if (!Context->BlendingFactories.IsEmpty())
 	{
-		Context->TargetsPreloader->ForEach(
+		Context->TargetsHandler->ForEachPreloader(
 			[&](PCGExData::FFacadePreloader& Preloader)
 			{
 				PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
@@ -194,9 +170,12 @@ bool FPCGExSampleInsidePathElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		Context->SetAsyncState(PCGEx::State_FacadePreloading);
-		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context]()
+
+		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
+		Context->TargetsHandler->TargetsPreloader->OnCompleteCallback = [Context, WeakHandle]()
 		{
-			if (Context->Sorter && !Context->Sorter->Init(Context, Context->TargetFacades))
+			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
+			if (Context->Sorter && !Context->Sorter->Init(Context, Context->TargetsHandler->GetFacades()))
 			{
 				Context->CancelExecution(TEXT("Invalid sort rules"));
 				return;
@@ -212,7 +191,7 @@ bool FPCGExSampleInsidePathElement::ExecuteInternal(FPCGContext* InContext) cons
 			}
 		};
 
-		Context->TargetsPreloader->StartLoading(Context->GetAsyncManager());
+		Context->TargetsHandler->StartLoading(Context->GetAsyncManager());
 		return false;
 	}
 
@@ -244,6 +223,7 @@ namespace PCGExSampleInsidePath
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
 
 		Path = PCGExPaths::MakePolyPath(PointDataFacade->GetIn(), 1, FVector::UpVector, Settings->HeightInclusion);
 
@@ -266,14 +246,14 @@ namespace PCGExSampleInsidePath
 		if (!Context->BlendingFactories.IsEmpty())
 		{
 			UnionBlendOpsManager = MakeShared<PCGExDataBlending::FUnionOpsManager>(&Context->BlendingFactories, DistanceDetails);
-			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetFacades)) { return false; }
+			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetsHandler->GetFacades())) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}
 
 		if (!DataBlender)
 		{
 			TSharedPtr<PCGExDataBlending::FDummyUnionBlender> DummyUnionBlender = MakeShared<PCGExDataBlending::FDummyUnionBlender>();
-			DummyUnionBlender->Init(PointDataFacade, Context->TargetFacades);
+			DummyUnionBlender->Init(PointDataFacade, Context->TargetsHandler->GetFacades());
 			DataBlender = DummyUnionBlender;
 		}
 
@@ -311,7 +291,7 @@ namespace PCGExSampleInsidePath
 		DataBlender->InitTrackers(Trackers);
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
-		Union->IOSet.Reserve(Context->TargetFacades.Num());
+		Union->IOSet.Reserve(Context->TargetsHandler->Num());
 
 		Union->Reset();
 
@@ -327,12 +307,10 @@ namespace PCGExSampleInsidePath
 		double WeightedTime = 0;
 		double WeightedSegmentTime = 0;
 
-		auto SampleTarget = [&](const int32 PointIndex, const TSharedPtr<PCGExData::FFacade>& InTargetFacade)
+		auto SampleTarget = [&](const PCGExData::FConstPoint& Target)
 		{
-			const FTransform& Transform = InTargetFacade->GetIn()->GetConstTransformValueRange()[PointIndex];
+			const FTransform& Transform = Target.GetTransform();
 			const FVector SampleLocation = Transform.GetLocation();
-
-			const PCGExData::FElement TargetElement(PointIndex, InTargetFacade->Idx);
 
 			const bool bIsInside = Path->IsInsideProjection(Transform);
 
@@ -362,7 +340,7 @@ namespace PCGExSampleInsidePath
 
 				if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
 				{
-					if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(TargetElement, SinglePick); }
+					if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(static_cast<PCGExData::FElement>(Target), SinglePick); }
 				}
 				else if (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget && WeightedDistance > DistSquared)
 				{
@@ -375,11 +353,11 @@ namespace PCGExSampleInsidePath
 
 				if (bReplaceWithCurrent)
 				{
-					SinglePick = TargetElement;
+					SinglePick = Target;
 					WeightedDistance = DistSquared;
 
 					Union->Reset();
-					Union->AddWeighted_Unsafe(TargetElement, DistSquared);
+					Union->AddWeighted_Unsafe(Target, DistSquared);
 
 					NumInside = NumInsideIncrement;
 
@@ -391,7 +369,7 @@ namespace PCGExSampleInsidePath
 			{
 				// TODO : Adjust dist based on edge lerp
 				WeightedDistance += DistSquared;
-				Union->AddWeighted_Unsafe(TargetElement, DistSquared);
+				Union->AddWeighted_Unsafe(Target, DistSquared);
 
 				WeightedTime += Time;
 				WeightedSegmentTime += Alpha;
@@ -400,21 +378,8 @@ namespace PCGExSampleInsidePath
 			}
 		};
 
-		Context->TargetsOctree->FindElementsWithBoundsTest(
-			SampleBox, [&](const PCGEx::FIndexedItem& Item)
-			{
-				const PCGPointOctree::FPointOctree* Octree = Context->TargetOctrees[Item.Index];
-				const TSharedPtr<PCGExData::FFacade> TargetFacade = Context->TargetFacades[Item.Index];
-
-				if (TargetFacade->GetIn() == PointDataFacade->GetIn() && Settings->bIgnoreSelf) { return; }
-
-				// Check all points within the box
-				Octree->FindElementsWithBoundsTest(
-					SampleBox, [&](const PCGPointOctree::FPointRef& PointRef)
-					{
-						SampleTarget(PointRef.Index, TargetFacade);
-					});
-			});
+		Context->TargetsHandler->FindElementsWithBoundsTest(
+			SampleBox, SampleTarget, &IgnoreList);
 
 		if (Union->IsEmpty())
 		{
@@ -447,7 +412,7 @@ namespace PCGExSampleInsidePath
 			SampleTracker.Count++;
 			SampleTracker.Weight += W;
 
-			const FTransform& TargetTransform = Context->TargetFacades[P.IO]->GetIn()->GetTransform(P.Index);
+			const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 
 			WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, W);
 

@@ -9,6 +9,8 @@
 #include "PCGExTensorOperation.h"
 #include "PCGExTensorSplineFactoryProvider.h"
 
+
+
 #include "PCGExTensorSplineFlow.generated.h"
 
 
@@ -58,7 +60,7 @@ class UPCGExTensorSplineFlowFactory : public UPCGExTensorSplineFactoryData
 public:
 	FPCGExTensorSplineFlowConfig Config;
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
-	virtual bool Prepare(FPCGExContext* InContext) override;
+	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-spline-flow"))

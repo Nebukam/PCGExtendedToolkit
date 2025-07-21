@@ -4,6 +4,8 @@
 #include "Graph/Probes/PCGExProbeTensor.h"
 
 
+
+
 #include "Graph/Probes/PCGExProbing.h"
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
@@ -21,9 +23,9 @@ PCGEX_CREATE_PROBE_FACTORY(
 	NewOperation->TensorFactories = &TensorFactories;
 	})
 
-bool UPCGExProbeFactoryTensor::Prepare(FPCGExContext* InContext)
+bool UPCGExProbeFactoryTensor::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext)) { return false; }
+	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
 
 	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
 	if (TensorFactories.IsEmpty())

@@ -5,6 +5,8 @@
 
 #include "PCGComponent.h"
 #include "PCGExMacros.h"
+#include "PCGExMT.h"
+#include "PCGExPointsProcessor.h"
 #include "PCGManagedResource.h"
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
@@ -129,6 +131,20 @@ UPCGComponent* FPCGExContext::GetMutableComponent() const
 	return Cast<UPCGComponent>(ExecutionSource.Get());
 }
 
+TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetAsyncManager()
+{
+	if (!AsyncManager)
+	{
+		FWriteScopeLock WriteLock(AsyncLock);
+		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
+
+		if (const UPCGExPointsProcessorSettings* Settings = GetInputSettings<UPCGExPointsProcessorSettings>()) { PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority); }
+		else { AsyncManager->WorkPriority = LowLevelTasks::ETaskPriority::Default; }
+	}
+
+	return AsyncManager;
+}
+
 void FPCGExContext::PauseContext()
 {
 	bIsPaused = true;
@@ -213,6 +229,12 @@ void FPCGExContext::SetAsyncState(const PCGEx::ContextState WaitState)
 
 bool FPCGExContext::ShouldWaitForAsync()
 {
+	if (!AsyncManager)
+	{
+		if (bWaitingForAsyncCompletion) { ResumeExecution(); }
+		return false;
+	}
+
 	return bWaitingForAsyncCompletion;
 }
 
@@ -240,6 +262,7 @@ bool FPCGExContext::TryComplete(const bool bForce)
 
 void FPCGExContext::ResumeExecution()
 {
+	if (AsyncManager) { AsyncManager->Reset(); }
 	UnpauseContext();
 	bWaitingForAsyncCompletion = false;
 }
@@ -446,8 +469,24 @@ bool FPCGExContext::CanExecute() const
 	return !bExecutionCancelled;
 }
 
+bool FPCGExContext::IsAsyncWorkComplete()
+{
+	// Context must be unpaused for this to be called
+	if (!bWaitingForAsyncCompletion || !AsyncManager) { return true; }
+
+	if (!AsyncManager->IsWaitingForRunningTasks())
+	{
+		ResumeExecution();
+		return true;
+	}
+
+	return false;
+}
+
 bool FPCGExContext::CancelExecution(const FString& InReason)
 {
+	PCGEX_TERMINATE_ASYNC
+
 	if (bExecutionCancelled) { return true; }
 
 	bExecutionCancelled = true;

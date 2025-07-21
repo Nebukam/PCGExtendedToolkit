@@ -9,6 +9,8 @@
 #include "PCGExHeuristicOperation.h"
 
 
+
+
 #include "Graph/PCGExCluster.h"
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorHandler.h"
@@ -82,7 +84,7 @@ public:
 	PCGEX_HEURISTIC_FACTORY_BOILERPLATE
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
-	virtual bool Prepare(FPCGExContext* InContext) override;
+	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="pathfinding/heuristics/hx-tensor"))

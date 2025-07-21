@@ -4,6 +4,7 @@
 #include "PCGExFactoryProvider.h"
 
 #include "PCGExContext.h"
+#include "PCGExPointsProcessor.h"
 #include "PCGPin.h"
 #include "Tasks/Task.h"
 
@@ -121,71 +122,68 @@ UPCGExFactoryData* UPCGExFactoryProviderSettings::CreateFactory(FPCGExContext* I
 	return InFactory;
 }
 
-bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFactoryProviderElement::Execute);
 
-	FPCGExFactoryProviderContext* InContext = static_cast<FPCGExFactoryProviderContext*>(Context);
-	check(InContext);
-	PCGEX_SETTINGS(FactoryProvider)
-
-	if (!InContext->CanExecute()) { return true; }
-
-	if (InContext->IsState(PCGEx::State_InitialExecution))
+	PCGEX_CONTEXT_AND_SETTINGS(FactoryProvider)
+	PCGEX_EXECUTION_CHECK
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		InContext->OutFactory = Settings->CreateFactory(InContext, nullptr);
+		Context->OutFactory = Settings->CreateFactory(Context, nullptr);
 
-		if (!InContext->OutFactory) { return true; }
+		if (!Context->OutFactory) { return true; }
 
-		InContext->OutFactory->OutputConfigToMetadata();
+		Context->OutFactory->OutputConfigToMetadata();
 
-		if (InContext->OutFactory->WantsPreparation(InContext))
+		if (Context->OutFactory->WantsPreparation(Context))
 		{
-			InContext->PauseContext();
-			InContext->LaunchDeferredCallback(
-				[CtxHandle = InContext->GetOrCreateHandle()]()
+			Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+
+			PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), Prepare)
+			Prepare->AddSimpleCallback(
+				[CtxHandle = Context->GetOrCreateHandle()]()
 				{
 					const FPCGContext::FSharedContext<FPCGExFactoryProviderContext> SharedContext(CtxHandle);
 					FPCGExFactoryProviderContext* Ctx = SharedContext.Get();
 					if (!Ctx) { return; }
-
-					if (!Ctx->OutFactory->Prepare(Ctx))
-					{
-						Ctx->CancelExecution(TEXT(""));
-					}
-					else
-					{
-						Ctx->Done();
-						Ctx->ResumeExecution();
-					}
+					Ctx->OutFactory->bIsAsyncPreparationSuccessful = Ctx->OutFactory->Prepare(Ctx, Ctx->GetAsyncManager());
 				});
 
-			InContext->SetState(PCGEx::State_WaitingOnAsyncWork);
+			Prepare->StartSimpleCallbacks();
+
 			return false;
 		}
-
-		InContext->Done();
 	}
 
-	if (InContext->IsDone() && InContext->OutFactory)
+	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
 	{
-		// Register declared dependencies to root them
-		TArray<FPCGPinProperties> InputPins = Settings->InputPinProperties();
-		for (const FPCGPinProperties& Pin : InputPins)
+		if (!Context->OutFactory->bIsAsyncPreparationSuccessful)
 		{
-			const TArray<FPCGTaggedData>& InputData = Context->InputData.GetInputsByPin(Pin.Label);
-			for (const FPCGTaggedData& TaggedData : InputData) { InContext->OutFactory->AddDataDependency(TaggedData.Data); }
+			Context->CancelExecution(TEXT(""));
+			return true;
 		}
-
-		// We use a dummy attribute to update the factory CRC
-		FPCGAttributeIdentifier CacheInvalidation(FName("PCGEx/CRC"), PCGMetadataDomainID::Data);
-		InContext->OutFactory->Metadata->CreateAttribute<int32>(CacheInvalidation, Settings->InternalCacheInvalidator, false, false);
-
-		FPCGTaggedData& StagedData = InContext->StageOutput(InContext->OutFactory, false);
-		StagedData.Pin = Settings->GetMainOutputPin();
 	}
 
-	return InContext->TryComplete();
+	Context->Done();
+
+	// Register declared dependencies to root them
+	TArray<FPCGPinProperties> InputPins = Settings->InputPinProperties();
+	for (const FPCGPinProperties& Pin : InputPins)
+	{
+		const TArray<FPCGTaggedData>& InputData = Context->InputData.GetInputsByPin(Pin.Label);
+		for (const FPCGTaggedData& TaggedData : InputData) { Context->OutFactory->AddDataDependency(TaggedData.Data); }
+	}
+
+	// We use a dummy attribute to update the factory CRC
+	FPCGAttributeIdentifier CacheInvalidation(FName("PCGEx/CRC"), PCGMetadataDomainID::Data);
+	Context->OutFactory->Metadata->CreateAttribute<int32>(CacheInvalidation, Settings->InternalCacheInvalidator, false, false);
+
+	FPCGTaggedData& StagedData = Context->StageOutput(Context->OutFactory, false);
+	StagedData.Pin = Settings->GetMainOutputPin();
+
+
+	return Context->TryComplete();
 }
 
 bool FPCGExFactoryProviderElement::IsCacheable(const UPCGSettings* InSettings) const

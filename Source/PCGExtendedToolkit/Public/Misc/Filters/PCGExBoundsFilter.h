@@ -9,6 +9,8 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+
+
 #include "Geometry/PCGExGeoPointBox.h"
 
 
@@ -98,7 +100,7 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
-	virtual bool Prepare(FPCGExContext* InContext) override;
+	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual void BeginDestroy() override;
 };

@@ -9,6 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
 
+
+
 #include "PCGExBlendOpFactoryProvider.generated.h"
 
 namespace PCGExDataBlending
@@ -229,7 +231,7 @@ public:
 			PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantB);
 	}
 
-	virtual bool Prepare(FPCGExContext* InContext) override;
+	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;

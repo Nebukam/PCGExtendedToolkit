@@ -4,6 +4,8 @@
 #include "Misc/Filters/PCGExSplineAlphaFilter.h"
 
 
+
+
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSplineAlphaFilterDefinition"
@@ -26,9 +28,9 @@ bool UPCGExSplineAlphaFilterFactory::WantsPreparation(FPCGExContext* InContext)
 	return true;
 }
 
-bool UPCGExSplineAlphaFilterFactory::Prepare(FPCGExContext* InContext)
+bool UPCGExSplineAlphaFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext)) { return false; }
+	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
 
 	Splines = MakeShared<TArray<const FPCGSplineStruct*>>();
 	SegmentsNum = MakeShared<TArray<double>>();

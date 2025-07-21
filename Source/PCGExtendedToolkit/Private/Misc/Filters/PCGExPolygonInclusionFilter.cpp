@@ -5,6 +5,8 @@
 
 #include "GeomTools.h"
 #include "Data/PCGSplineData.h"
+
+
 #include "Paths/PCGExPaths.h"
 
 
@@ -22,9 +24,9 @@ bool UPCGExPolygonInclusionFilterFactory::WantsPreparation(FPCGExContext* InCont
 	return true;
 }
 
-bool UPCGExPolygonInclusionFilterFactory::Prepare(FPCGExContext* InContext)
+bool UPCGExPolygonInclusionFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext)) { return false; }
+	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
 
 	Polygons = MakeShared<TArray<TSharedPtr<TArray<FVector2D>>>>();
 
@@ -115,7 +117,7 @@ namespace PCGExPointFilter
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		bCheckAgainstDataBounds = TypedFilterFactory->Config.bCheckAgainstDataBounds;
-
+		
 		if (bCheckAgainstDataBounds)
 		{
 			PCGExData::FProxyPoint ProxyPoint;

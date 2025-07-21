@@ -14,6 +14,7 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "Sampling/PCGExSampling.h"
 
 
 #include "PCGExNumericCompareNearestFilter.generated.h"
@@ -57,6 +58,10 @@ struct FPCGExNumericCompareNearestFilterConfig
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
 	PCGEX_SETTING_VALUE_GET(OperandB, double, CompareAgainst, OperandB, OperandBConstant)
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bIgnoreSelf = true;
 };
 
 
@@ -72,9 +77,13 @@ public:
 	UPROPERTY()
 	FPCGExNumericCompareNearestFilterConfig Config;
 
-	TSharedPtr<PCGExData::FFacade> TargetDataFacade;
+	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+	TSharedPtr<TArray<TSharedPtr<PCGExData::TBuffer<double>>>> OperandA;
 
 	virtual bool Init(FPCGExContext* InContext) override;
+
+	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
+	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
 
@@ -91,17 +100,17 @@ namespace PCGExPointFilter
 		explicit FNumericCompareNearestFilter(const TObjectPtr<const UPCGExNumericCompareNearestFilterFactory>& InDefinition)
 			: ISimpleFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
-			TargetDataFacade = TypedFilterFactory->TargetDataFacade;
+			TargetsHandler = TypedFilterFactory->TargetsHandler;
+			OperandA = TypedFilterFactory->OperandA;
 		}
 
 		const TObjectPtr<const UPCGExNumericCompareNearestFilterFactory> TypedFilterFactory;
 
-		TSharedPtr<PCGExDetails::FDistances> Distances;
+		TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+		TSet<const UPCGData*> IgnoreList;
+		
+		TSharedPtr<TArray<TSharedPtr<PCGExData::TBuffer<double>>>> OperandA;
 
-		const PCGPointOctree::FPointOctree* TargetOctree = nullptr;
-		TSharedPtr<PCGExData::FFacade> TargetDataFacade;
-
-		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> OperandB;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;

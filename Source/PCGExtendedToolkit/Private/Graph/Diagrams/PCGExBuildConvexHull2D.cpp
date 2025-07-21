@@ -15,7 +15,7 @@
 
 TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties() const
 {
-	if (bOutputClusters)
+	if (!bOutputClusters)
 	{
 		TArray<FPCGPinProperties> PinProperties;
 		PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Point data representing closed convex hull paths.", Required, {})
@@ -126,33 +126,43 @@ namespace PCGExConvexHull2D
 
 		PCGExPaths::SetClosedLoop(PathIO->GetOut(), true);
 
-		if (!Settings->bOutputClusters) { return true; }
+		for (int i = 0; i <= LastIndex; i++) { ProjectedPoints.Emplace(ActivePositions[ConvexHullIndices[i]]); }
+		if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0)) { Algo::Reverse(ConvexHullIndices); }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
-
-		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
-
-		PCGExGraph::FEdge E;
-		for (int i = 0; i <= LastIndex; i++)
+		if (Settings->bOutputClusters)
 		{
-			const int32 CurrentIndex = ConvexHullIndices[i];
-			const int32 NextIndex = ConvexHullIndices[i == LastIndex ? 0 : i + 1];
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
-			ProjectedPoints.Emplace(ActivePositions[CurrentIndex]);
-			GraphBuilder->Graph->InsertEdge(CurrentIndex, NextIndex, E);
+			GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+
+			PCGExGraph::FEdge E;
+			for (int i = 0; i <= LastIndex; i++)
+			{
+				const int32 CurrentIndex = ConvexHullIndices[i];
+				const int32 NextIndex = ConvexHullIndices[i == LastIndex ? 0 : i + 1];
+
+				ProjectedPoints.Emplace(ActivePositions[CurrentIndex]);
+				GraphBuilder->Graph->InsertEdge(CurrentIndex, NextIndex, E);
+			}
+
+			if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
+			{
+				Algo::Reverse(ConvexHullIndices);
+			}
+
+			PointDataFacade->Source->InheritPoints(ConvexHullIndices, 0);
+			PathIO->InheritPoints(ConvexHullIndices, 0);
+
+			ActivePositions.Empty();
+
+			GraphBuilder->CompileAsync(AsyncManager, true);
 		}
-
-		if (!PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
+		else
 		{
-			Algo::Reverse(ConvexHullIndices);
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
+			PathIO->InheritPoints(ConvexHullIndices, 0);
+			ActivePositions.Empty();
 		}
-
-		PointDataFacade->Source->InheritPoints(ConvexHullIndices, 0);
-		PathIO->InheritPoints(ConvexHullIndices, 0);
-
-		ActivePositions.Empty();
-
-		GraphBuilder->CompileAsync(AsyncManager, true);
 
 		return true;
 	}

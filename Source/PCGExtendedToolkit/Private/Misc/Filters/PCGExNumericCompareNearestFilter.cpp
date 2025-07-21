@@ -10,11 +10,43 @@
 bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
-
-	TargetDataFacade = PCGExData::TryGetSingleFacade(InContext, PCGEx::SourceTargetsLabel, false, true);
-	if (!TargetDataFacade) { return false; }
-
 	return true;
+}
+
+bool UPCGExNumericCompareNearestFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+{
+	TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
+	if (!TargetsHandler->Init(InContext, PCGEx::SourceTargetsLabel)) { return false; }
+
+	TargetsHandler->SetDistances(Config.DistanceDetails);
+	TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader) { Preloader.Register<double>(InContext, Config.OperandA); });
+
+	OperandA = MakeShared<TArray<TSharedPtr<PCGExData::TBuffer<double>>>>();
+	OperandA->Reserve(TargetsHandler->Num());
+
+	TWeakPtr<FPCGContextHandle> WeakHandle = InContext->GetOrCreateHandle();
+	TargetsHandler->TargetsPreloader->OnCompleteCallback =
+		[this, WeakHandle]()
+		{
+			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
+			const bool bError = TargetsHandler->ForEachTarget(
+				[&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
+				{
+					// Prep weights
+					TSharedPtr<PCGExData::TBuffer<double>> LocalOperandA = Target->GetBroadcaster<double>(Config.OperandA, true);
+					OperandA->Add(LocalOperandA);
+					if (!LocalOperandA)
+					{
+						bBreak = true;
+						PCGEX_LOG_INVALID_SELECTOR_C(SharedContext.Get(), Operand A, Config.OperandA)
+					}
+				});
+
+			bIsAsyncPreparationSuccessful = !bError;
+		};
+
+	TargetsHandler->StartLoading(AsyncManager);
+	return Super::Prepare(InContext, AsyncManager);
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExNumericCompareNearestFilterFactory::CreateFilter() const
@@ -34,7 +66,7 @@ bool UPCGExNumericCompareNearestFilterFactory::RegisterConsumableAttributesWithD
 
 void UPCGExNumericCompareNearestFilterFactory::BeginDestroy()
 {
-	TargetDataFacade.Reset();
+	TargetsHandler.Reset();
 	Super::BeginDestroy();
 }
 
@@ -42,22 +74,12 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Init(FPCGExContext* InConte
 {
 	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	if (!TargetDataFacade) { return false; }
-
-	Distances = TypedFilterFactory->Config.DistanceDetails.MakeDistances();
-
-	OperandA = TargetDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandA, true);
-
-	if (!OperandA)
-	{
-		PCGEX_LOG_INVALID_SELECTOR_C(InContext, Operand A, TypedFilterFactory->Config.OperandA)
-		return false;
-	}
+	if (!TargetsHandler || TargetsHandler->IsEmpty()) { return false; }
 
 	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
 	if (!OperandB->Init(InContext, PointDataFacade, false)) { return false; }
 
-	TargetOctree = &TargetDataFacade->GetIn()->GetPointOctree();
+	if (TypedFilterFactory->Config.bIgnoreSelf) { IgnoreList.Add(InPointDataFacade->GetIn()); }
 
 	return true;
 }
@@ -65,34 +87,21 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Init(FPCGExContext* InConte
 bool PCGExPointFilter::FNumericCompareNearestFilter::Test(const int32 PointIndex) const
 {
 	const double B = OperandB->Read(PointIndex);
-
-	const UPCGBasePointData* TargetsData = TargetDataFacade->GetIn();
 	const PCGExData::FConstPoint SourcePt = PointDataFacade->GetInPoint(PointIndex);
+	PCGExData::FConstPoint TargetPt = PCGExData::FConstPoint();
 
 	double BestDist = MAX_dbl;
-	int32 TargetIndex = -1;
+	TargetsHandler->FindClosestTarget(SourcePt, TargetPt, BestDist, &IgnoreList);
 
-	TargetOctree->FindNearbyElements(
-		SourcePt.GetTransform().GetLocation(), [&](const PCGPointOctree::FPointRef& PointRef)
-		{
-			const int32 OtherIndex = PointRef.Index;
-			const double Dist = Distances->GetDistSquared(SourcePt, PCGExData::FConstPoint(TargetsData, OtherIndex));
+	if (!TargetPt.IsValid()) { return false; }
 
-			if (Dist > BestDist) { return; }
-
-			BestDist = Dist;
-			TargetIndex = OtherIndex;
-		});
-
-	if (TargetIndex == -1) { return false; }
-
-	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, OperandA->Read(TargetIndex), B, TypedFilterFactory->Config.Tolerance);
+	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, (OperandA->GetData() + TargetPt.IO)->Get()->Read(TargetPt.Index), B, TypedFilterFactory->Config.Tolerance);
 }
 
 TArray<FPCGPinProperties> UPCGExNumericCompareNearestFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, TEXT("Target points to read operand B from"), Required, {})
+	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, TEXT("Target points to read operand B from"), Required, {})
 	return PinProperties;
 }
 

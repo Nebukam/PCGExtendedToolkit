@@ -10,6 +10,8 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
+
 #include "PCGExPolygonInclusionFilter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -70,7 +72,7 @@ public:
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
-	virtual bool Prepare(FPCGExContext* InContext) override;
+	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 

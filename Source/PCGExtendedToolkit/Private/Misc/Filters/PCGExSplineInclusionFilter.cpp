@@ -4,6 +4,8 @@
 #include "Misc/Filters/PCGExSplineInclusionFilter.h"
 
 
+
+
 #include "Paths/PCGExPaths.h"
 
 
@@ -26,9 +28,9 @@ bool UPCGExSplineInclusionFilterFactory::WantsPreparation(FPCGExContext* InConte
 	return true;
 }
 
-bool UPCGExSplineInclusionFilterFactory::Prepare(FPCGExContext* InContext)
+bool UPCGExSplineInclusionFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext)) { return false; }
+	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
 
 	Splines = MakeShared<TArray<FPCGSplineStruct>>();
 	TArray<FBox> BoundsList;

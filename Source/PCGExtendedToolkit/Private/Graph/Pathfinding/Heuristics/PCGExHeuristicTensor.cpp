@@ -5,6 +5,8 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicTensor.h"
 
 
+
+
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorHandler.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
@@ -57,9 +59,9 @@ TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryTensor::CreateOperat
 
 PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(Tensor, {})
 
-bool UPCGExHeuristicsFactoryTensor::Prepare(FPCGExContext* InContext)
+bool UPCGExHeuristicsFactoryTensor::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext)) { return false; }
+	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
 	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
 	if (TensorFactories.IsEmpty())
 	{

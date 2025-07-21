@@ -90,6 +90,8 @@ public:
 	UPROPERTY()
 	bool bQuietMissingInputError = false;
 
+	bool bIsAsyncPreparationSuccessful = false;
+
 	virtual PCGExFactories::EType GetFactoryType() const { return PCGExFactories::EType::None; }
 
 	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const;
@@ -98,7 +100,7 @@ public:
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) { return false; }
-	virtual bool Prepare(FPCGExContext* InContext) { return true; }
+	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) { return true; }
 
 	virtual void AddDataDependency(const UPCGData* InData);
 	virtual void BeginDestroy() override;
@@ -179,7 +181,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderContext : FPCGExContext
 	virtual ~FPCGExFactoryProviderContext() override;
 
 	UPCGExFactoryData* OutFactory = nullptr;
-
+	
 	void LaunchDeferredCallback(PCGExMT::FSimpleCallback&& InCallback);
 
 protected:

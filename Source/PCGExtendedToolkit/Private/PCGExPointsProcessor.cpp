@@ -200,59 +200,6 @@ void FPCGExPointsProcessorContext::BatchProcessing_WritingDone()
 {
 }
 
-TSharedPtr<PCGExMT::FTaskManager> FPCGExPointsProcessorContext::GetAsyncManager()
-{
-	if (!AsyncManager)
-	{
-		FWriteScopeLock WriteLock(AsyncLock);
-		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
-
-		PCGEX_SETTINGS_LOCAL(PointsProcessor)
-		PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority);
-	}
-
-	return AsyncManager;
-}
-
-
-bool FPCGExPointsProcessorContext::ShouldWaitForAsync()
-{
-	if (!AsyncManager)
-	{
-		if (bWaitingForAsyncCompletion) { ResumeExecution(); }
-		return false;
-	}
-
-	return FPCGExContext::ShouldWaitForAsync();
-}
-
-bool FPCGExPointsProcessorContext::CancelExecution(const FString& InReason)
-{
-	PCGEX_TERMINATE_ASYNC
-	return FPCGExContext::CancelExecution(InReason);
-}
-
-void FPCGExPointsProcessorContext::ResumeExecution()
-{
-	if (AsyncManager) { AsyncManager->Reset(); }
-	FPCGExContext::ResumeExecution();
-}
-
-bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
-{
-	// Context must be unpaused for this to be called
-
-	if (!bWaitingForAsyncCompletion || !AsyncManager) { return true; }
-
-	if (!AsyncManager->IsWaitingForRunningTasks())
-	{
-		ResumeExecution();
-		return true;
-	}
-
-	return false;
-}
-
 bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) const
 {
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
