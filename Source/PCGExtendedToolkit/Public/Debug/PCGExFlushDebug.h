@@ -25,6 +25,8 @@ public:
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return CustomColor; }
 #endif
+	
+	virtual bool HasDynamicPins() const override { return true; }
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -38,7 +40,7 @@ protected:
 
 	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Debug, meta=(PCG_Overridable))
-	FLinearColor CustomColor = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	FLinearColor CustomColor = FLinearColor(1.0f, 0.0f, 1.0f, 1.0f);
 };
 
 struct FPCGExDebugContext final : FPCGExContext

@@ -38,6 +38,7 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
@@ -58,41 +59,58 @@ public:
 	FPCGExTangentsDetails Tangents;
 
 
+	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
+	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Center;
+
+#pragma region Main axis
+
+	// Main axis is "along the spline"
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
 	EPCGExPathDeformUnit StartUnit = EPCGExPathDeformUnit::Alpha;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable))
 	EPCGExInputValueType StartInput = EPCGExInputValueType::Constant;
 
 	/** Attribute to read start value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable, DisplayName="Start (Attr)", EditCondition="StartInput != EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="Start (Attr)", EditCondition="StartInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector StartAttribute;
 
 	/** Constant start value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable, DisplayName="Start", EditCondition="StartInput == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="Start", EditCondition="StartInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double Start = 0;
 
 	PCGEX_SETTING_VALUE_GET(Start, double, StartInput, StartAttribute, Start)
 
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
 	EPCGExPathDeformUnit EndUnit = EPCGExPathDeformUnit::Alpha;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable))
 	EPCGExInputValueType EndInput = EPCGExInputValueType::Constant;
 
 	/** Attribute to read end value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable, DisplayName="End (Attr)", EditCondition="EndInput != EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="End (Attr)", EditCondition="EndInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector EndAttribute;
 
 	/** Constant end value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta=(PCG_Overridable, DisplayName="End", EditCondition="EndInput == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="End", EditCondition="EndInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double End = 0;
 
 	PCGEX_SETTING_VALUE_GET(End, double, EndInput, EndAttribute, End)
 
+#pragma endregion
+
+#pragma region Cross axis
+
+	// Cross axis is "perpendicular to the spline"
+	// Controls distance over cross axis direction
+	// If bend is enabled, will apply rotation
+
+#pragma endregion
 
 	bool GetApplyTangents() const
 	{
@@ -105,7 +123,9 @@ struct FPCGExPathDeformContext final : FPCGExPointsProcessorContext
 	friend class FPCGExPathDeformElement;
 	FPCGExTangentsDetails Tangents;
 
-	// TODO : Support both paths & splines
+	bool bOneOneMatch = false;
+	bool bUseUnifiedBounds = false;
+	FBox UnifiedBounds = FBox(ForceInit);
 
 	TArray<const UPCGSpatialData*> DeformersData;
 	TArray<TSharedPtr<PCGExData::FFacade>> DeformersFacades;
@@ -117,8 +137,6 @@ struct FPCGExPathDeformContext final : FPCGExPointsProcessorContext
 
 class FPCGExPathDeformElement final : public FPCGExPointsProcessorElement
 {
-	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
-
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathDeform)
 
@@ -128,10 +146,9 @@ protected:
 
 namespace PCGExPathDeform
 {
-	const FName SourceDeformersLabel = TEXT("Deformers");
-
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPathDeformContext, UPCGExPathDeformSettings>
 	{
+		FBox Box = FBox(ForceInit);
 		const FPCGSplineStruct* Deformer = nullptr;
 		double TotalLength = 0;
 

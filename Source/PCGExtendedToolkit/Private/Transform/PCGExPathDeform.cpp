@@ -16,13 +16,15 @@ PCGEX_INITIALIZE_ELEMENT(PathDeform)
 TArray<FPCGPinProperties> UPCGExPathDeformSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(PCGExPathDeform::SourceDeformersLabel, "Paths or splines to deform along", Required, {})
+	PCGEX_PIN_ANY(PCGExTransform::SourceDeformersLabel, "Paths or splines to deform along", Required, {})
+	PCGEX_PIN_POINTS(PCGExTransform::SourceDeformersBoundsLabel, "Point data that will be used as unified bounds for all inputs", Normal, {})
 	return PinProperties;
 }
 
-void FPCGExPathDeformElement::DisabledPassThroughData(FPCGContext* Context) const
+bool UPCGExPathDeformSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	// No passthrough
+	if (InPin->Properties.Label == PCGExTransform::SourceDeformersBoundsLabel) { return InPin->EdgeCount() > 0; }
+	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
 bool FPCGExPathDeformElement::Boot(FPCGExContext* InContext) const
@@ -33,7 +35,17 @@ bool FPCGExPathDeformElement::Boot(FPCGExContext* InContext) const
 
 	if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
 
-	TArray<FPCGTaggedData> Candidates = Context->InputData.GetSpatialInputsByPin(PCGExPathDeform::SourceDeformersLabel);
+	TArray<FPCGTaggedData> UnifiedBounds = Context->InputData.GetSpatialInputsByPin(PCGExTransform::SourceDeformersBoundsLabel);
+	for (int i = 0; i < UnifiedBounds.Num(); ++i)
+	{
+		if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(UnifiedBounds[i].Data))
+		{
+			Context->bUseUnifiedBounds = true;
+			Context->UnifiedBounds += PCGExTransform::GetBounds(PointData, Settings->BoundsSource);
+		}
+	}
+
+	TArray<FPCGTaggedData> Candidates = Context->InputData.GetSpatialInputsByPin(PCGExTransform::SourceDeformersLabel);
 
 	Context->Deformers.Init(nullptr, Candidates.Num());
 	Context->DeformersData.Reserve(Candidates.Num());
@@ -80,6 +92,12 @@ bool FPCGExPathDeformElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
+	Context->bOneOneMatch = Context->Deformers.Num() == Context->MainPoints->Num();
+	if (Context->Deformers.Num() > 1 && !Context->bOneOneMatch)
+	{
+		// TODO : Log mismatch warning
+	}
+
 	return true;
 }
 
@@ -91,8 +109,6 @@ bool FPCGExPathDeformElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		// TODO : First batch-build path splines to deform against
-
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
 		if (!Context->StartBatchProcessingPoints<PCGExPathDeform::FBatch>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
@@ -129,12 +145,21 @@ namespace PCGExPathDeform
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		// TODO : Find which path should be used
-
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 
+		if (Context->bOneOneMatch)
+		{
+			Deformer = Context->Deformers[PointDataFacade->Source->IOIndex];
+		}
+
+		// Fallback to first deformer available
+		if (!Deformer) { Deformer = Context->Deformers[0]; }
+
+		if (Context->bUseUnifiedBounds) { Box = Context->UnifiedBounds; }
+		else { Box = PCGExTransform::GetBounds(PointDataFacade->GetIn(), Settings->BoundsSource); }
+
 		TotalLength = Deformer->GetSplineLength();
-		
+
 		// TODO : Normalize point data to deform around around it
 
 		// TODO : Alpha
@@ -157,6 +182,7 @@ namespace PCGExPathDeform
 		{
 		}
 	}
+
 	void FProcessor::Cleanup()
 	{
 		TProcessor<FPCGExPathDeformContext, UPCGExPathDeformSettings>::Cleanup();
