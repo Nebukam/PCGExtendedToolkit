@@ -14,6 +14,7 @@ UPCGExNormalizeSettings::UPCGExNormalizeSettings(const FObjectInitializer& Objec
 	: Super(ObjectInitializer)
 {
 	if (Output.GetName() == TEXT("@Last")) { Output.Update("$Position"); }
+	if (TransformAttribute.GetName() == TEXT("@Last")) { TransformAttribute.Update("@Data.Transform"); }
 }
 
 PCGEX_INITIALIZE_ELEMENT(Normalize)
@@ -90,6 +91,9 @@ namespace PCGExNormalize
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
+		TransformBuffer = Settings->GetValueSettingTransform();
+		if (!TransformBuffer->Init(Context, PointDataFacade, true)) { return false; }
+
 		Box = Context->bUseUnifiedBounds ? Context->UnifiedBounds : PCGExTransform::GetBounds(PointDataFacade->GetIn(), Settings->BoundsSource);
 		Size = Box.GetSize();
 
@@ -153,7 +157,7 @@ namespace PCGExNormalize
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			FVector UVW = Settings->Offset + ((InTransforms[Index].GetLocation() - Box.Min) * Settings->Tile) / Size;
+			FVector UVW = Settings->Offset + ((TransformBuffer->Read(Index).TransformPosition(InTransforms[Index].GetLocation()) - Box.Min) * Settings->Tile) / Size;
 			for (int i = 0; i < 3; i++)
 			{
 				UVW[i] = Wrap(UVW[i]);
