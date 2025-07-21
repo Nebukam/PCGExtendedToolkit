@@ -32,10 +32,10 @@ bool FPCGExMovePivotElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExMovePivot::FProcessor>>& NewBatch)
 			{
-				//NewBatch->bRequiresWriteStep = true;
+				NewBatch->bSkipCompletion = true;
 			}))
 		{
-			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
+			return Context->CancelExecution(TEXT("No data."));
 		}
 	}
 
