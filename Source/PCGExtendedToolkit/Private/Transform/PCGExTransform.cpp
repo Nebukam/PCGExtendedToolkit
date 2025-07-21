@@ -4,6 +4,7 @@
 #include "Transform/PCGExTransform.h"
 
 #include "PCGExDataMath.h"
+#include "Elements/PCGCopyPoints.h"
 
 FAttachmentTransformRules FPCGExAttachmentRules::GetRules() const
 {
@@ -85,6 +86,38 @@ FVector FPCGExUVW::GetPosition(const int32 PointIndex, FVector& OutOffset, const
 
 namespace PCGExTransform
 {
+	FBox GetBounds(const TArrayView<FVector> InPositions)
+	{
+		FBox Bounds = FBox(ForceInit);
+		for (const FVector& Position : InPositions) { Bounds += Position; }
+		SanitizeBounds(Bounds);
+		return Bounds;
+	}
+
+	FBox GetBounds(const TConstPCGValueRange<FTransform>& InTransforms)
+	{
+		FBox Bounds = FBox(ForceInit);
+		for (const FTransform& Transform : InTransforms) { Bounds += Transform.GetLocation(); }
+		SanitizeBounds(Bounds);
+		return Bounds;
+	}
+
+	FBox GetBounds(const UPCGBasePointData* InPointData, const EPCGExPointBoundsSource Source)
+	{
+		switch (Source)
+		{
+		case EPCGExPointBoundsSource::ScaledBounds:
+			return GetBounds<EPCGExPointBoundsSource::ScaledBounds>(InPointData);
+		case EPCGExPointBoundsSource::DensityBounds:
+			return GetBounds<EPCGExPointBoundsSource::DensityBounds>(InPointData);
+		case EPCGExPointBoundsSource::Bounds:
+			return GetBounds<EPCGExPointBoundsSource::Bounds>(InPointData);
+		default:
+		case EPCGExPointBoundsSource::Center:
+			return GetBounds<EPCGExPointBoundsSource::Center>(InPointData);
+		}
+	}
+
 	FVector FPCGExConstantUVW::GetPosition(const PCGExData::FConstPoint& Point) const
 	{
 		const FBox Bounds = PCGExMath::GetLocalBounds(Point, BoundsReference);

@@ -4,13 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCreateSpline.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Paths/PCGExCreateSpline.h"
+#include "Paths/Tangents/PCGExTangentsInstancedFactory.h"
 
-#include "Tangents/PCGExTangentsInstancedFactory.h"
 #include "Transform/PCGExTransform.h"
 
 #include "PCGExPathDeform.generated.h"
@@ -22,7 +22,7 @@ enum class EPCGExPathDeformUnit : uint8
 	Distance = 1 UMETA(DisplayName = "Distance", Tooltip="..."),
 };
 
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="paths/create-spline"))
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/path-deform"))
 class UPCGExPathDeformSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

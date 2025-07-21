@@ -122,6 +122,49 @@ protected:
 
 namespace PCGExTransform
 {
+	static void SanitizeBounds(FBox& InBox)
+	{
+		FVector Size = InBox.GetSize();
+		for (int i = 0; i < 3; i++)
+		{
+			if (FMath::IsNaN(Size[i]) || FMath::IsNearlyZero(Size[i])) { InBox.Min[i] -= UE_SMALL_NUMBER; }
+		}
+	}
+
+	PCGEXTENDEDTOOLKIT_API
+	FBox GetBounds(const TArrayView<FVector> InPositions);
+
+	PCGEXTENDEDTOOLKIT_API
+	FBox GetBounds(const TConstPCGValueRange<FTransform>& InTransforms);
+
+	template <EPCGExPointBoundsSource Source>
+	static FBox GetBounds(const UPCGBasePointData* InPointData)
+	{
+		FBox Bounds = FBox(ForceInit);
+		FTransform Transform;
+
+		const int32 NumPoints = InPointData->GetNumPoints();
+		for (int i = 0; i < NumPoints; i++)
+		{
+			PCGExData::FConstPoint Point(InPointData, i);
+			if constexpr (Source == EPCGExPointBoundsSource::Center)
+			{
+				Bounds += Point.GetLocation();
+			}
+			else
+			{
+				Point.GetTransformNoScale(Transform);
+				Bounds += PCGExMath::GetLocalBounds<Source>(Point).TransformBy(Transform);
+			}
+		}
+
+		SanitizeBounds(Bounds);
+		return Bounds;
+	}
+
+	PCGEXTENDEDTOOLKIT_API
+	FBox GetBounds(const UPCGBasePointData* InPointData, const EPCGExPointBoundsSource Source);
+
 	struct FPCGExConstantUVW
 	{
 		FPCGExConstantUVW()

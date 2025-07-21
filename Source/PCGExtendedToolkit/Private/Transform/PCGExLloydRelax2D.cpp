@@ -46,7 +46,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 			}))
 		{
-			Context->CancelExecution(TEXT("Could not find any paths to relax."));
+			Context->CancelExecution(TEXT("Could not find any points to relax."));
 		}
 	}
 

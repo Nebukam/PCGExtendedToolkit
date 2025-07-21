@@ -74,6 +74,7 @@ namespace PCGExData
 		FPoint(const TSharedPtr<FPointIO>& InIO, const uint32 InIndex);
 
 		virtual const FTransform& GetTransform() const PCGEX_NOT_IMPLEMENTED_RET(GetTransform, FTransform::Identity)
+		virtual void GetTransformNoScale(FTransform& OutTransform) const PCGEX_NOT_IMPLEMENTED(GetTransform)
 		virtual FVector GetLocation() const PCGEX_NOT_IMPLEMENTED_RET(GetLocation, FVector::OneVector)
 		virtual FVector GetScale3D() const PCGEX_NOT_IMPLEMENTED_RET(GetScale3D, FVector::OneVector)
 		virtual FQuat GetRotation() const PCGEX_NOT_IMPLEMENTED_RET(GetRotation, FQuat::Identity)
@@ -103,6 +104,7 @@ namespace PCGExData
 
 #define PCGEX_POINT_PROXY_OVERRIDES \
 FORCEINLINE virtual const FTransform& GetTransform() const override { return Data->GetTransform(Index); }\
+FORCEINLINE virtual void GetTransformNoScale(FTransform& OutTransform) const override { OutTransform = Data->GetTransform(Index); OutTransform.SetScale3D(FVector::OneVector); }\
 FORCEINLINE virtual FVector GetLocation() const override { return Data->GetTransform(Index).GetLocation(); }\
 FORCEINLINE virtual FVector GetScale3D() const override { return Data->GetTransform(Index).GetScale3D(); }\
 FORCEINLINE virtual FQuat GetRotation() const override { return Data->GetTransform(Index).GetRotation(); }\
