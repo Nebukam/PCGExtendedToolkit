@@ -32,6 +32,8 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	//~End UPCGSettings
 
 public:
@@ -55,6 +57,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector Output;
 
+	/** Which position components from the sampled transform should be applied to the point.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 OneMinus = 0;
+
 private:
 	friend class FPCGExNormalizeElement;
 };
@@ -62,6 +68,9 @@ private:
 struct FPCGExNormalizeContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExNormalizeElement;
+
+	bool bUseUnifiedBounds = false;
+	FBox UnifiedBounds = FBox(ForceInit);
 };
 
 class FPCGExNormalizeElement final : public FPCGExPointsProcessorElement
@@ -80,6 +89,7 @@ namespace PCGExNormalize
 	protected:
 		FBox Box = FBox(NoInit);
 		FVector Size = FVector::ZeroVector;
+		bool OneMinus[3] = {false, false, false};
 
 		TSharedPtr<PCGExData::TBufferProxy<FVector>> OutputBuffer;
 
