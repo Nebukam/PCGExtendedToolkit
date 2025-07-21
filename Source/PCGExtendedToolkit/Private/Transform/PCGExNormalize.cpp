@@ -119,27 +119,47 @@ namespace PCGExNormalize
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::Normalize::ProcessPoints);
 
-		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
 		const TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		if (Settings->bWrap)
+		using FWrapFn = std::function<double(const double)>;
+
+		FWrapFn Wrap = [](const double Value)-> double { return Value; };
+
+
+		switch (Settings->Wrapping)
 		{
-			const FVector OnePlus = FVector(1 + UE_SMALL_NUMBER);
-			PCGEX_SCOPE_LOOP(Index)
+		case EPCGExIndexSafety::Ignore:
+			break;
+		case EPCGExIndexSafety::Tile:
+			Wrap = [](const double Value)-> double
 			{
-				FVector UVW = PCGExMath::Tile(Settings->Offset + ((InTransforms[Index].GetLocation() - Box.Min) * Settings->Tile) / Size, FVector::ZeroVector, OnePlus);
-				for (int i = 0; i < 3; i++) { if (OneMinus[i]) { UVW[i] = 1 - UVW[i]; } }
-				OutputBuffer->Set(Index, UVW);
-			}
+				constexpr double OnePlus = 1 + UE_SMALL_NUMBER;
+				const double W = FMath::Fmod(Value, OnePlus);
+				return W < 0 ? W + OnePlus : W;
+			};
+			break;
+		case EPCGExIndexSafety::Clamp:
+			Wrap = [](const double Value)-> double { return FMath::Clamp(Value, 0, 1); };
+			break;
+		case EPCGExIndexSafety::Yoyo:
+			Wrap = [](const double Value)-> double
+			{
+				double C = FMath::Fmod(Value, 2);
+				C = C < 0 ? C + 2 : C;
+				return C <= 1 ? C : 2 - C;
+			};
+			break;
 		}
-		else
+
+		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGEX_SCOPE_LOOP(Index)
+			FVector UVW = Settings->Offset + ((InTransforms[Index].GetLocation() - Box.Min) * Settings->Tile) / Size;
+			for (int i = 0; i < 3; i++)
 			{
-				FVector UVW = Settings->Offset + ((InTransforms[Index].GetLocation() - Box.Min) * Settings->Tile) / Size;
-				for (int i = 0; i < 3; i++) { if (OneMinus[i]) { UVW[i] = 1 - UVW[i]; } }
-				OutputBuffer->Set(Index, UVW);
+				UVW[i] = Wrap(UVW[i]);
+				if (OneMinus[i]) { UVW[i] = 1 - UVW[i]; }
 			}
+			OutputBuffer->Set(Index, UVW);
 		}
 	}
 
