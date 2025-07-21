@@ -267,20 +267,18 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestBoundsElement;
 
-	TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
-
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
-	TSharedPtr<PCGEx::FIndexedItemOctree> TargetsOctree;
-	TArray<TSharedRef<PCGExData::FFacade>> TargetFacades;
+	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
+	int32 NumMaxTargets = 0;
+	
 	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
 
 	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
 
 	FPCGExApplySamplingDetails ApplySampling;
-
 
 	FRuntimeFloatCurve RuntimeWeightCurve;
 	const FRichCurve* WeightCurve = nullptr;
@@ -306,6 +304,7 @@ namespace PCGExSampleNearestBounds
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleNearestBoundsContext, UPCGExSampleNearestBoundsSettings>
 	{
+		TSet<const UPCGData*> IgnoreList;
 		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Bounds;
 
 		TArray<int8> SamplingMask;

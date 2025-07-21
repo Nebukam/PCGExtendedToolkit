@@ -3,6 +3,8 @@
 
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
+
+
 #include "VerseVM/VVMInstantiationContext.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreatePicker"
@@ -12,9 +14,9 @@ void UPCGExPickerFactoryData::AddPicks(const int32 InNum, TSet<int32>& OutPicks)
 {
 }
 
-bool UPCGExPickerFactoryData::Prepare(FPCGExContext* InContext)
+bool UPCGExPickerFactoryData::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext)) { return false; }
+	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
 	return InitInternalData(InContext);
 }
 

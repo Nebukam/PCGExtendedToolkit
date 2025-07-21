@@ -198,15 +198,10 @@ struct FPCGExSampleInsidePathContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleInsidePathElement;
 
-	TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
-
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 
+	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
-
-	TArray<TSharedRef<PCGExData::FFacade>> TargetFacades;
-	TArray<const PCGPointOctree::FPointOctree*> TargetOctrees;
-	TSharedPtr<PCGEx::FIndexedItemOctree> TargetsOctree;
 
 	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
 
@@ -234,6 +229,7 @@ namespace PCGExSampleInsidePath
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleInsidePathContext, UPCGExSampleInsidePathSettings>
 	{
+		TSet<const UPCGData*> IgnoreList;
 		TSharedPtr<PCGExPaths::FPath> Path;
 
 		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;

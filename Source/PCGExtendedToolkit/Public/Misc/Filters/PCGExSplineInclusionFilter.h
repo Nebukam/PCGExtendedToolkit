@@ -12,6 +12,8 @@
 #include "Data/PCGSplineData.h"
 
 
+
+
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 
@@ -131,7 +133,7 @@ public:
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
-	virtual bool Prepare(FPCGExContext* InContext) override;
+	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 

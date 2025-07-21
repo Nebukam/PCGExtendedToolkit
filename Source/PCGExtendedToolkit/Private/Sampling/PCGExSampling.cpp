@@ -3,6 +3,8 @@
 
 #include "Sampling/PCGExSampling.h"
 
+#include "PCGExPointsProcessor.h"
+
 bool FPCGExApplySamplingDetails::WantsApply() const
 {
 	return AppliedComponents > 0;
@@ -252,5 +254,357 @@ namespace PCGExSampling
 		double Average = 0;
 		for (const TPair<PCGExData::FElement, double>& Pair : Weights) { Average += FMath::Sqrt(Pair.Value); }
 		return Average / Weights.Num();
+	}
+
+
+	int32 FTargetsHandler::Init(FPCGExContext* InContext, const FName InPinLabel, FInitData&& InitFn)
+	{
+		const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
+		FBox OctreeBounds = FBox(ForceInit);
+
+		TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(
+			InContext, InPinLabel, PCGExData::EIOInit::NoInit, true);
+
+		if (Targets->IsEmpty())
+		{
+			if (!Settings || !Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (empty datasets)")); }
+			return 0;
+		}
+
+		TargetFacades.Reserve(Targets->Pairs.Num());
+		TargetOctrees.Reserve(Targets->Pairs.Num());
+
+		TArray<FBox> Bounds;
+		Bounds.Reserve(Targets->Pairs.Num());
+
+		int32 Idx = 0;
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : Targets->Pairs)
+		{
+			const FBox DataBounds = InitFn(IO, Idx);
+			if (!DataBounds.IsValid) { continue; }
+
+			TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
+
+			TargetFacade->Idx = Idx;
+			TargetFacades.Add(TargetFacade.ToSharedRef());
+			TargetOctrees.Add(&TargetFacade->GetIn()->GetPointOctree());
+
+			MaxNumTargets = FMath::Max(MaxNumTargets, TargetFacade->GetNum());
+
+			Bounds.Emplace(DataBounds);
+			OctreeBounds += DataBounds;
+
+			Idx++;
+		}
+
+		if (TargetFacades.IsEmpty()) { return 0; }
+
+		TargetsOctree = MakeShared<PCGEx::FIndexedItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
+		for (int i = 0; i < TargetFacades.Num(); ++i) { TargetsOctree->AddElement(PCGEx::FIndexedItem(i, Bounds[i])); }
+
+		TargetsPreloader = MakeShared<PCGExData::FMultiFacadePreloader>(TargetFacades);
+
+		return TargetFacades.Num();
+	}
+
+	int32 FTargetsHandler::Init(FPCGExContext* InContext, const FName InPinLabel)
+	{
+		return Init(InContext, InPinLabel, [](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx) { return IO->GetIn()->GetBounds(); });
+	}
+
+	void FTargetsHandler::SetDistances(const FPCGExDistanceDetails& InDetails)
+	{
+		Distances = InDetails.MakeDistances();
+	}
+
+	void FTargetsHandler::SetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
+	{
+		Distances = PCGExDetails::MakeDistances(Source, Target, bOverlapIsZero);
+	}
+
+	void FTargetsHandler::ForEachPreloader(PCGExData::FMultiFacadePreloader::FPreloaderItCallback&& It) const
+	{
+		TargetsPreloader->ForEach(MoveTemp(It));
+	}
+
+	void FTargetsHandler::ForEachTarget(FFacadeRefIterator&& It, const TSet<const UPCGData*>* Exclude) const
+	{
+		for (int i = 0; i < TargetFacades.Num(); i++)
+		{
+			const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[i];
+			if (Exclude && Exclude->Contains(Target->GetIn())) { continue; }
+			It(Target, i);
+		}
+	}
+
+	bool FTargetsHandler::ForEachTarget(FFacadeRefIteratorWithBreak&& It, const TSet<const UPCGData*>* Exclude) const
+	{
+		bool bBreak = false;
+		for (int i = 0; i < TargetFacades.Num(); i++)
+		{
+			const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[i];
+			if (Exclude && Exclude->Contains(Target->GetIn())) { continue; }
+			It(Target, i, bBreak);
+			if (bBreak) { return true; }
+		}
+
+		return bBreak;
+	}
+
+	void FTargetsHandler::ForEachTargetPoint(FPointIterator&& It, const TSet<const UPCGData*>* Exclude) const
+	{
+		for (int i = 0; i < TargetFacades.Num(); i++)
+		{
+			if (Exclude && Exclude->Contains(TargetFacades[i]->GetIn())) { return; }
+			const int32 NumPoints = TargetFacades[i]->GetNum();
+			for (int j = 0; j < NumPoints; j++) { It(PCGExData::FPoint(j, i)); }
+		}
+	}
+
+	void FTargetsHandler::ForEachTargetPoint(FPointIteratorWithData&& It, const TSet<const UPCGData*>* Exclude) const
+	{
+		for (int i = 0; i < TargetFacades.Num(); i++)
+		{
+			const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[i];
+			if (Exclude && Exclude->Contains(Target->GetIn())) { return; }
+			const int32 NumPoints = TargetFacades[i]->GetNum();
+			for (int j = 0; j < NumPoints; j++)
+			{
+				PCGExData::FConstPoint Point = Target->GetInPoint(j);
+				Point.IO = i;
+				It(Point);
+			}
+		}
+	}
+
+	void FTargetsHandler::FindTargetsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FTargetQuery&& Func, const TSet<const UPCGData*>* Exclude) const
+	{
+		TargetsOctree->FindElementsWithBoundsTest(
+			QueryBounds, [&](const PCGEx::FIndexedItem& Item)
+			{
+				if (Exclude && Exclude->Contains(TargetFacades[Item.Index]->GetIn())) { return; }
+				Func(Item);
+			});
+	}
+
+	void FTargetsHandler::FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FTargetElementsQuery&& Func, const TSet<const UPCGData*>* Exclude) const
+	{
+		TargetsOctree->FindElementsWithBoundsTest(
+			QueryBounds, [&](const PCGEx::FIndexedItem& Item)
+			{
+				if (Exclude && Exclude->Contains(TargetFacades[Item.Index]->GetIn())) { return; }
+
+				TargetOctrees[Item.Index]->FindElementsWithBoundsTest(
+					QueryBounds, [&](const PCGPointOctree::FPointRef& PointRef)
+					{
+						Func(PCGExData::FPoint(PointRef.Index, Item.Index));
+					});
+			});
+	}
+
+	void FTargetsHandler::FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FOctreeQueryWithData&& Func, const TSet<const UPCGData*>* Exclude) const
+	{
+		TargetsOctree->FindElementsWithBoundsTest(
+			QueryBounds, [&](const PCGEx::FIndexedItem& Item)
+			{
+				const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
+				if (Exclude && Exclude->Contains(Target->GetIn())) { return; }
+
+				TargetOctrees[Item.Index]->FindElementsWithBoundsTest(
+					QueryBounds, [&](const PCGPointOctree::FPointRef& PointRef)
+					{
+						PCGExData::FConstPoint Point = Target->GetInPoint(PointRef.Index);
+						Point.IO = Item.Index;
+						Func(Point);
+					});
+			});
+	}
+
+	bool FTargetsHandler::FindClosestTarget(
+		const PCGExData::FConstPoint& Probe,
+		const FBoxCenterAndExtent& QueryBounds,
+		PCGExData::FConstPoint& OutResult,
+		double& OutDistSquared,
+		const TSet<const UPCGData*>* Exclude) const
+	{
+		bool bFound = false;
+
+		if (Distances->bOverlapIsZero)
+		{
+			TargetsOctree->FindElementsWithBoundsTest(
+				QueryBounds, [&](const PCGEx::FIndexedItem& Item)
+				{
+					const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
+					const bool bSelf = Target->GetIn() == Probe.Data;
+
+					if (Exclude && Exclude->Contains(Target->GetIn())) { return; }
+
+					TargetOctrees[Item.Index]->FindElementsWithBoundsTest(
+						QueryBounds, [&](const PCGPointOctree::FPointRef& PointRef)
+						{
+							if (bSelf && PointRef.Index == Probe.Index) { return; }
+
+							PCGExData::FConstPoint Point = Target->GetInPoint(PointRef.Index);
+							bool bOverlap = false;
+							double Dist = Distances->GetDistSquared(Probe, Point, bOverlap);
+							if (bOverlap) { Dist = 0; }
+
+							if (OutDistSquared > Dist)
+							{
+								OutResult = Point;
+								OutResult.IO = Item.Index;
+
+								OutDistSquared = Dist;
+								bFound = true;
+							}
+						});
+				});
+		}
+		else
+		{
+			TargetsOctree->FindElementsWithBoundsTest(
+				QueryBounds, [&](const PCGEx::FIndexedItem& Item)
+				{
+					const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
+					const bool bSelf = Target->GetIn() == Probe.Data;
+
+					if (Exclude && Exclude->Contains(Target->GetIn())) { return; }
+
+					TargetOctrees[Item.Index]->FindElementsWithBoundsTest(
+						QueryBounds, [&](const PCGPointOctree::FPointRef& PointRef)
+						{
+							if (bSelf && PointRef.Index == Probe.Index) { return; }
+
+							const PCGExData::FConstPoint Point = Target->GetInPoint(PointRef.Index);
+							if (const double Dist = Distances->GetDistSquared(Probe, Point);
+								OutDistSquared > Dist)
+							{
+								OutResult = Point;
+								OutResult.IO = Item.Index;
+
+								OutDistSquared = Dist;
+								bFound = true;
+							}
+						});
+				});
+		}
+
+		return bFound;
+	}
+
+	void FTargetsHandler::FindClosestTarget(
+		const PCGExData::FConstPoint& Probe,
+		PCGExData::FConstPoint& OutResult,
+		double& OutDistSquared,
+		const TSet<const UPCGData*>* Exclude) const
+	{
+		const FVector ProbeLocation = Probe.GetLocation();
+
+		if (Distances->bOverlapIsZero)
+		{
+			TargetsOctree->FindNearbyElements(
+				ProbeLocation, [&](const PCGEx::FIndexedItem& Item)
+				{
+					const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
+					const bool bSelf = Target->GetIn() == Probe.Data;
+
+					if (Exclude && Exclude->Contains(Target->GetIn())) { return; }
+
+					TargetOctrees[Item.Index]->FindNearbyElements(
+						ProbeLocation, [&](const PCGPointOctree::FPointRef& PointRef)
+						{
+							if (bSelf && PointRef.Index == Probe.Index) { return; }
+
+							const PCGExData::FConstPoint Point = Target->GetInPoint(PointRef.Index);
+							bool bOverlap = false;
+							double Dist = Distances->GetDistSquared(Probe, Point, bOverlap);
+							if (bOverlap) { Dist = 0; }
+
+							if (OutDistSquared > Dist)
+							{
+								OutResult = Point;
+								OutResult.IO = Item.Index;
+
+								OutDistSquared = Dist;
+							}
+						});
+				});
+		}
+		else
+		{
+			TargetsOctree->FindNearbyElements(
+				ProbeLocation, [&](const PCGEx::FIndexedItem& Item)
+				{
+					const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
+					const bool bSelf = Target->GetIn() == Probe.Data;
+
+					if (Exclude && Exclude->Contains(Target->GetIn())) { return; }
+
+					TargetOctrees[Item.Index]->FindNearbyElements(
+						ProbeLocation, [&](const PCGPointOctree::FPointRef& PointRef)
+						{
+							if (bSelf && PointRef.Index == Probe.Index) { return; }
+
+							const PCGExData::FConstPoint Point = Target->GetInPoint(PointRef.Index);
+							if (const double Dist = Distances->GetDistSquared(Probe, Point);
+								OutDistSquared > Dist)
+							{
+								OutResult = Point;
+								OutResult.IO = Item.Index;
+
+								OutDistSquared = Dist;
+							}
+						});
+				});
+		}
+	}
+
+	void FTargetsHandler::FindClosestTarget(
+		const FVector& Probe,
+		PCGExData::FConstPoint& OutResult,
+		double& OutDistSquared,
+		const TSet<const UPCGData*>* Exclude) const
+	{
+		TargetsOctree->FindNearbyElements(
+			Probe, [&](const PCGEx::FIndexedItem& Item)
+			{
+				const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
+				if (Exclude && Exclude->Contains(Target->GetIn())) { return; }
+
+				TargetOctrees[Item.Index]->FindNearbyElements(
+					Probe, [&](const PCGPointOctree::FPointRef& PointRef)
+					{
+						PCGExData::FConstPoint Point = Target->GetInPoint(PointRef.Index);
+
+						if (const double Dist = FVector::DistSquared(Distances->GetTargetCenter(Point, Point.GetLocation(), Probe), Probe);
+							OutDistSquared > Dist)
+						{
+							OutResult = Point;
+							OutResult.IO = Item.Index;
+
+							OutDistSquared = Dist;
+						}
+					});
+			});
+	}
+
+	double FTargetsHandler::GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
+	{
+		if (Distances->bOverlapIsZero)
+		{
+			bool bOverlap = false;
+			double DistSquared = Distances->GetDistSquared(SourcePoint, TargetPoint, bOverlap);
+			if (bOverlap) { DistSquared = 0; }
+			return DistSquared;
+		}
+		else
+		{
+			return Distances->GetDistSquared(SourcePoint, TargetPoint);
+		}
+	}
+
+	void FTargetsHandler::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle) const
+	{
+		TargetsPreloader->StartLoading(AsyncManager, InParentHandle);
 	}
 }

@@ -5,6 +5,7 @@
 
 #include "PCGEx.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExUnionData.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 
@@ -183,5 +184,66 @@ namespace PCGExSampling
 			IUnionData::Reset();
 			Weights.Reset();
 		}
+	};
+
+	class FTargetsHandler : public TSharedFromThis<FTargetsHandler>
+	{
+	protected:
+		TSharedPtr<PCGEx::FIndexedItemOctree> TargetsOctree;
+		TArray<TSharedRef<PCGExData::FFacade>> TargetFacades;
+		TArray<const PCGPointOctree::FPointOctree*> TargetOctrees;
+		int32 MaxNumTargets = 0;
+
+		TSharedPtr<PCGExDetails::FDistances> Distances;
+
+	public:
+		using FInitData = std::function<FBox(const TSharedPtr<PCGExData::FPointIO>&, const int32)>;
+		using FFacadeRefIterator = std::function<void(const TSharedRef<PCGExData::FFacade>&, const int32)>;
+		using FFacadeRefIteratorWithBreak = std::function<void(const TSharedRef<PCGExData::FFacade>&, const int32, bool&)>;
+		using FPointIterator = std::function<void(const PCGExData::FPoint&)>;
+		using FPointIteratorWithData = std::function<void(const PCGExData::FConstPoint&)>;
+		using FTargetQuery = std::function<void(const PCGEx::FIndexedItem&)>;
+		using FTargetElementsQuery = std::function<void(const PCGExData::FPoint&)>;
+		using FOctreeQueryWithData = std::function<void(const PCGExData::FConstPoint&)>;
+
+		TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
+
+		FTargetsHandler() = default;
+		virtual ~FTargetsHandler() = default;
+
+		const TArray<TSharedRef<PCGExData::FFacade>>& GetFacades() const { return TargetFacades; }
+		int32 Num() const { return TargetFacades.Num(); }
+		bool IsEmpty() const { return TargetFacades.IsEmpty(); }
+		int32 GetMaxNumTargets() const { return MaxNumTargets; }
+
+		int32 Init(FPCGExContext* InContext, const FName InPinLabel, FInitData&& InitFn);
+		int32 Init(FPCGExContext* InContext, const FName InPinLabel);
+
+		void SetDistances(const FPCGExDistanceDetails& InDetails);
+		void SetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero);
+		TSharedPtr<PCGExDetails::FDistances> GetDistances() const { return Distances; }
+
+		void ForEachPreloader(PCGExData::FMultiFacadePreloader::FPreloaderItCallback&& It) const;
+
+		void ForEachTarget(FFacadeRefIterator&& It, const TSet<const UPCGData*>* Exclude = nullptr) const;
+		bool ForEachTarget(FFacadeRefIteratorWithBreak&& It, const TSet<const UPCGData*>* Exclude = nullptr) const;
+		void ForEachTargetPoint(FPointIterator&& It, const TSet<const UPCGData*>* Exclude = nullptr) const;
+		void ForEachTargetPoint(FPointIteratorWithData&& It, const TSet<const UPCGData*>* Exclude = nullptr) const;
+
+		void FindTargetsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FTargetQuery&& Func, const TSet<const UPCGData*>* Exclude = nullptr) const;
+		void FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FTargetElementsQuery&& Func, const TSet<const UPCGData*>* Exclude = nullptr) const;
+		void FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FOctreeQueryWithData&& Func, const TSet<const UPCGData*>* Exclude = nullptr) const;
+
+		bool FindClosestTarget(const PCGExData::FConstPoint& Probe, const FBoxCenterAndExtent& QueryBounds, PCGExData::FConstPoint& OutResult, double& OutDistSquared, const TSet<const UPCGData*>* Exclude = nullptr) const;
+		void FindClosestTarget(const PCGExData::FConstPoint& Probe, PCGExData::FConstPoint& OutResult, double& OutDistSquared, const TSet<const UPCGData*>* Exclude = nullptr) const;
+		void FindClosestTarget(const FVector& Probe, PCGExData::FConstPoint& OutResult, double& OutDistSquared, const TSet<const UPCGData*>* Exclude = nullptr) const;
+
+		FORCEINLINE PCGExData::FConstPoint GetPoint(const int32 IO, const int32 Index) const { return TargetFacades[IO]->GetInPoint(Index); }
+		FORCEINLINE PCGExData::FConstPoint GetPoint(const PCGExData::FPoint& Point) const { return TargetFacades[Point.IO]->GetInPoint(Point.Index); }
+
+		double GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const;
+		FORCEINLINE FVector GetSourceCenter(const PCGExData::FConstPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const { return Distances->GetSourceCenter(OriginPoint, OriginLocation, ToCenter); }
+
+		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle = nullptr) const;
 	};
 }

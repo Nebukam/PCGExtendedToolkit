@@ -4,6 +4,9 @@
 #include "Transform/Tensors/PCGExTensorSplineFlow.h"
 
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorSplineFlow"
 #define PCGEX_NAMESPACE CreateTensorSplineFlow
 
@@ -33,10 +36,10 @@ PCGExTensor::FTensorSample FPCGExTensorSplineFlow::Sample(const int32 InSeedInde
 	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
-bool UPCGExTensorSplineFlowFactory::Prepare(FPCGExContext* InContext)
+bool UPCGExTensorSplineFlowFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	SampleInputs = Config.SampleInputs;
-	return Super::Prepare(InContext);
+	return Super::Prepare(InContext, AsyncManager);
 }
 
 PCGEX_TENSOR_BOILERPLATE(

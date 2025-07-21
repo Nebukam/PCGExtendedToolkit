@@ -224,7 +224,7 @@ namespace PCGExData
 		}
 	}
 
-	void FMultiFacadePreloader::ForEach(PreloaderItCallback&& It)
+	void FMultiFacadePreloader::ForEach(FPreloaderItCallback&& It)
 	{
 		for (const TSharedPtr<FFacadePreloader>& Preloader : Preloaders) { It(*Preloader.Get()); }
 	}

@@ -4,6 +4,9 @@
 #include "Misc/Filters/PCGExPathInclusionFilter.h"
 
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExPathInclusionFilterDefinition"
 #define PCGEX_NAMESPACE PCGExPathInclusionFilterDefinition
 
@@ -18,9 +21,9 @@ bool UPCGExPathInclusionFilterFactory::WantsPreparation(FPCGExContext* InContext
 	return true;
 }
 
-bool UPCGExPathInclusionFilterFactory::Prepare(FPCGExContext* InContext)
+bool UPCGExPathInclusionFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext)) { return false; }
+	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
 
 	Splines = MakeShared<TArray<TSharedPtr<FPCGSplineStruct>>>();
 	TArray<FBox> BoundsList;

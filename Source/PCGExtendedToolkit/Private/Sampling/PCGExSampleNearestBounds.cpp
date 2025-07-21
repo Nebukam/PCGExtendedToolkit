@@ -75,36 +75,14 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 			{PCGExFactories::EType::Blending}, false);
 	}
 
-	FBox OctreeBounds = FBox(ForceInit);
+	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
+	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGEx::SourceBoundsLabel);
 
-
-	TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(
-		Context, PCGEx::SourceBoundsLabel, PCGExData::EIOInit::NoInit, true);
-
-	if (Targets->IsEmpty())
+	if (!Context->NumMaxTargets)
 	{
-		if (!Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (empty datasets)")); }
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No valid bounds"));
 		return false;
 	}
-
-	Context->TargetFacades.Reserve(Targets->Pairs.Num());
-
-	for (const TSharedPtr<PCGExData::FPointIO>& IO : Targets->Pairs)
-	{
-		TSharedPtr<PCGExData::FFacade> TargetFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
-		TargetFacade->Idx = Context->TargetFacades.Num();
-
-		Context->TargetFacades.Add(TargetFacade.ToSharedRef());
-		Context->Clouds.Add(TargetFacade->GetCloud(Settings->BoundsSource));
-
-		OctreeBounds += TargetFacade->GetIn()->GetBounds();
-	}
-
-
-	Context->TargetsOctree = MakeShared<PCGEx::FIndexedItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
-	for (int i = 0; i < Context->TargetFacades.Num(); ++i) { Context->TargetsOctree->AddElement(PCGEx::FIndexedItem(i, Context->TargetFacades[i]->GetIn()->GetBounds())); }
-
-	Context->TargetsPreloader = MakeShared<PCGExData::FMultiFacadePreloader>(Context->TargetFacades);
 
 	Context->DistanceDetails = PCGExDetails::MakeDistances();
 
@@ -114,9 +92,10 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 		Context->Sorter->SortDirection = Settings->SortDirection;
 	}
 
-	Context->TargetsPreloader->ForEach(
+	Context->TargetsHandler->ForEachPreloader(
 		[&](PCGExData::FFacadePreloader& Preloader)
 		{
+			Context->Clouds.Add(Preloader.GetDataFacade()->GetCloud(Settings->BoundsSource));
 			PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
 		});
 
@@ -151,27 +130,35 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 		Context->SetAsyncState(PCGEx::State_FacadePreloading);
 
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
-		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
+		Context->TargetsHandler->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
 		{
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
-			// Prep look up getters
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
-			{
-				for (const TSharedRef<PCGExData::FFacade>& Facade : Context->TargetFacades)
-				{
-					// TODO : Preload if relevant
-					TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
-					if (!LookAtUpGetter->Init(Context, Facade, false))
-					{
-						Context->CancelExecution(TEXT(""));
-						return;
-					}
 
-					Context->TargetLookAtUpGetters.Add(LookAtUpGetter);
-				}
+			const bool bError = Context->TargetsHandler->ForEachTarget(
+				[&](const TSharedRef<PCGExData::FFacade>& Target, const int32 TargetIndex, bool& bBreak)
+				{
+					// Prep look up getters
+					if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
+					{
+						// TODO : Preload if relevant
+						TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
+						if (!LookAtUpGetter->Init(Context, Target, false))
+						{
+							bBreak = true;
+							return;
+						}
+
+						Context->TargetLookAtUpGetters.Add(LookAtUpGetter);
+					}
+				});
+
+			if (bError)
+			{
+				Context->CancelExecution(TEXT(""));
+				return;
 			}
 
-			if (Context->Sorter && !Context->Sorter->Init(Context, Context->TargetFacades))
+			if (Context->Sorter && !Context->Sorter->Init(Context, Context->TargetsHandler->GetFacades()))
 			{
 				Context->CancelExecution(TEXT("Invalid sort rules"));
 				return;
@@ -188,7 +175,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 			}
 		};
 
-		Context->TargetsPreloader->StartLoading(Context->GetAsyncManager());
+		Context->TargetsHandler->StartLoading(Context->GetAsyncManager());
 		return false;
 	}
 
@@ -236,6 +223,7 @@ namespace PCGExSampleNearestBounds
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
 
 		// Allocate edge native properties
 
@@ -253,7 +241,7 @@ namespace PCGExSampleNearestBounds
 		if (!Context->BlendingFactories.IsEmpty())
 		{
 			UnionBlendOpsManager = MakeShared<PCGExDataBlending::FUnionOpsManager>(&Context->BlendingFactories, Context->DistanceDetails);
-			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetFacades)) { return false; }
+			if (!UnionBlendOpsManager->Init(Context, PointDataFacade, Context->TargetsHandler->GetFacades())) { return false; }
 			DataBlender = UnionBlendOpsManager;
 		}
 		else if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic)
@@ -264,7 +252,7 @@ namespace PCGExSampleNearestBounds
 				PointDataFacade->Source, BlendingDetails, MissingAttributes);
 
 			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&BlendingDetails, nullptr, Context->DistanceDetails);
-			UnionBlender->AddSources(Context->TargetFacades);
+			UnionBlender->AddSources(Context->TargetsHandler->GetFacades());
 			if (!UnionBlender->Init(Context, PointDataFacade)) { return false; }
 			DataBlender = UnionBlender;
 		}
@@ -272,7 +260,7 @@ namespace PCGExSampleNearestBounds
 		if (!DataBlender)
 		{
 			TSharedPtr<PCGExDataBlending::FDummyUnionBlender> DummyUnionBlender = MakeShared<PCGExDataBlending::FDummyUnionBlender>();
-			DummyUnionBlender->Init(PointDataFacade, Context->TargetFacades);
+			DummyUnionBlender->Init(PointDataFacade, Context->TargetsHandler->GetFacades());
 			DataBlender = DummyUnionBlender;
 		}
 
@@ -321,7 +309,7 @@ namespace PCGExSampleNearestBounds
 		TConstPCGValueRange<FTransform> Transforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
-		Union->IOSet.Reserve(Context->TargetFacades.Num());
+		Union->IOSet.Reserve(Context->TargetsHandler->Num());
 		Union->WeightRange = -2; // Don't remap
 
 		PCGExGeo::FSample CloudSample;
@@ -362,18 +350,16 @@ namespace PCGExSampleNearestBounds
 
 			const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Origin, PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
 
-			Context->TargetsOctree->FindElementsWithBoundsTest(
-				BCAE, [&](const PCGEx::FIndexedItem& Item)
+			Context->TargetsHandler->FindTargetsWithBoundsTest(
+				BCAE, [&](const PCGEx::FIndexedItem& Target)
 				{
-					if (Context->TargetFacades[Item.Index]->GetIn() == PointDataFacade->GetIn() && Settings->bIgnoreSelf) { return; }
-
-					Context->Clouds[Item.Index]->GetOctree()->FindElementsWithBoundsTest(
+					Context->Clouds[Target.Index]->GetOctree()->FindElementsWithBoundsTest(
 						BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)
 						{
 							NearbyBox->Sample(Origin, CloudSample);
 							if (!CloudSample.bIsInside) { return; }
 
-							const PCGExData::FElement Current(NearbyBox->Index, Item.Index);
+							const PCGExData::FElement Current(NearbyBox->Index, Target.Index);
 
 							if (bSingleSample)
 							{
@@ -419,7 +405,7 @@ namespace PCGExSampleNearestBounds
 								Union->AddWeighted_Unsafe(Current, CloudSample.Weight);
 							}
 						});
-				});
+				}, &IgnoreList);
 
 			if (Union->IsEmpty())
 			{
@@ -450,7 +436,7 @@ namespace PCGExSampleNearestBounds
 				SampleTracker.Count++;
 				SampleTracker.Weight += W;
 
-				const FTransform& TargetTransform = Context->TargetFacades[P.IO]->GetIn()->GetTransform(P.Index);
+				const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
 				const FQuat TargetRotation = TargetTransform.GetRotation();
 
 				WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, W);

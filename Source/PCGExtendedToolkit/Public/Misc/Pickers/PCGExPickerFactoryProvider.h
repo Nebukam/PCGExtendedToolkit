@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExPicker.h"
+
+
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 #include "PCGExPickerFactoryProvider.generated.h"
@@ -44,7 +46,7 @@ public:
 	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const;
 
 	FPCGExPickerConfigBase BaseConfig;
-	virtual bool Prepare(FPCGExContext* InContext) override;
+	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 protected:
 	virtual bool RequiresInputs() const;

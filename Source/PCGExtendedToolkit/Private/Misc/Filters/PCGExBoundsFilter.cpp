@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExBoundsFilter.h"
 
+
+
 #include "Geometry/PCGExGeoPointBox.h"
 
 
@@ -37,7 +39,7 @@ TSharedPtr<PCGExPointFilter::IFilter> UPCGExBoundsFilterFactory::CreateFilter() 
 	return MakeShared<PCGExPointFilter::FBoundsFilter>(this);
 }
 
-bool UPCGExBoundsFilterFactory::Prepare(FPCGExContext* InContext)
+bool UPCGExBoundsFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	for (const TSharedPtr<PCGExData::FFacade>& Facade : BoundsDataFacades)
 	{
@@ -47,7 +49,7 @@ bool UPCGExBoundsFilterFactory::Prepare(FPCGExContext* InContext)
 				Config.TestMode == EPCGExBoxCheckMode::ExpandedBox || Config.TestMode == EPCGExBoxCheckMode::ExpandedSphere ? Config.Expansion * 2 : Config.Expansion));
 	}
 
-	return Super::Prepare(InContext);
+	return Super::Prepare(InContext, AsyncManager);
 }
 
 void UPCGExBoundsFilterFactory::BeginDestroy()

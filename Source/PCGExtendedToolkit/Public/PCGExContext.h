@@ -9,6 +9,11 @@
 #include "PCGManagedResource.h"
 #include "Engine/StreamableManager.h"
 
+namespace PCGExMT
+{
+	class FTaskManager;
+}
+
 namespace PCGEx
 {
 	using ContextState = uint64;
@@ -37,6 +42,7 @@ namespace PCGEx
 struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 {
 protected:
+	mutable FRWLock AsyncLock;
 	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetDependenciesLock;
 
@@ -69,6 +75,8 @@ public:
 
 #pragma region State
 
+	TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager();
+
 	void PauseContext();
 	void UnpauseContext();
 
@@ -89,6 +97,7 @@ public:
 	virtual void ResumeExecution();
 
 protected:
+	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 	bool bWaitingForAsyncCompletion = false;
 	std::atomic<PCGEx::ContextState> CurrentState;
 
@@ -137,6 +146,7 @@ public:
 	void EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled = false) const;
 
 	bool CanExecute() const;
+	virtual bool IsAsyncWorkComplete();
 
 	bool bQuietCancellationError = false;
 	virtual bool CancelExecution(const FString& InReason);

@@ -265,7 +265,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	TSoftObjectPtr<UMaterialInterface> Material;
-
+	
 	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FLinearColor DefaultVertexColor = FLinearColor::White;
 

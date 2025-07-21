@@ -373,9 +373,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExLeanTransformDetails
 
 	/** If enabled, point will be scaled by the target' scale. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInheritScale = false;
+	bool bInheritScale = true;
 
 	/** If enabled, points will be rotated by the target' rotation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInheritRotation = false;
+	bool bInheritRotation = true;
 };

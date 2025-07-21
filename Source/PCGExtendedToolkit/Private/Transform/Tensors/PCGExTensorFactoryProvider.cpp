@@ -3,6 +3,8 @@
 
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
+
+
 #include "Paths/PCGExSplineToPath.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"
 
@@ -15,9 +17,9 @@ TSharedPtr<PCGExTensorOperation> UPCGExTensorFactoryData::CreateOperation(FPCGEx
 	return nullptr; // Create shape builder operation
 }
 
-bool UPCGExTensorFactoryData::Prepare(FPCGExContext* InContext)
+bool UPCGExTensorFactoryData::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext)) { return false; }
+	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
 	return InitInternalData(InContext);
 }
 

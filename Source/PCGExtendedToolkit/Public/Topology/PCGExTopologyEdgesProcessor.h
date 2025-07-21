@@ -277,6 +277,11 @@ namespace PCGExTopologyEdges
 
 		void ApplyPointData()
 		{
+
+			FTransform Transform = Context->GetComponent()->GetOwner()->GetTransform();
+			Transform.SetScale3D(FVector::OneVector);
+			Transform.SetRotation(FQuat::Identity);
+			
 			InternalMesh->EditMesh(
 				[&](FDynamicMesh3& InMesh)
 				{
@@ -303,7 +308,7 @@ namespace PCGExTopologyEdges
 						if (WP)
 						{
 							const int32 PointIndex = *WP;
-							InMesh.SetVertex(i, InTransforms[PointIndex].GetLocation());
+							InMesh.SetVertex(i, Transform.InverseTransformPosition(InTransforms[PointIndex].GetLocation()));
 							//InMesh.SetVertexNormal()
 							ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[PointIndex]));
 						}

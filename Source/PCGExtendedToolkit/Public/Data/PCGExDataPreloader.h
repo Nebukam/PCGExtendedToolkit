@@ -151,8 +151,8 @@ namespace PCGExData
 		bool IsEmpty() const { return Preloaders.IsEmpty(); }
 		int32 Num() const { return Preloaders.Num(); }
 
-		using PreloaderItCallback = std::function<void(FFacadePreloader&)>;
-		void ForEach(PreloaderItCallback&& It);
+		using FPreloaderItCallback = std::function<void(FFacadePreloader&)>;
+		void ForEach(FPreloaderItCallback&& It);
 
 		using CompletionCallback = std::function<void()>;
 		CompletionCallback OnCompleteCallback;

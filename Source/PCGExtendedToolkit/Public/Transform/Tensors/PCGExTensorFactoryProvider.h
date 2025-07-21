@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExTensor.h"
+
+
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 #include "PCGExTensorFactoryProvider.generated.h"
@@ -46,7 +48,7 @@ public:
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	FPCGExTensorConfigBase BaseConfig;
-	virtual bool Prepare(FPCGExContext* InContext) override;
+	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext);

@@ -4,6 +4,9 @@
 #include "Transform/Tensors/PCGExTensorSplinePole.h"
 
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorSplinePole"
 #define PCGEX_NAMESPACE CreateTensorSplinePole
 
@@ -33,10 +36,10 @@ PCGExTensor::FTensorSample FPCGExTensorSplinePole::Sample(const int32 InSeedInde
 	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
-bool UPCGExTensorSplinePoleFactory::Prepare(FPCGExContext* InContext)
+bool UPCGExTensorSplinePoleFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	SampleInputs = Config.SampleInputs;
-	return Super::Prepare(InContext);
+	return Super::Prepare(InContext, AsyncManager);
 }
 
 PCGEX_TENSOR_BOILERPLATE(
