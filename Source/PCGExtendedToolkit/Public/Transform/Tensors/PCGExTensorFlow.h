@@ -32,6 +32,10 @@ struct FPCGExTensorFlowConfig : public FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Direction (Attr)", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector DirectionAttribute;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
+	bool bInvertDirection = false;
+
 	/** Direction axis, read from the input points' transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Direction", EditCondition="DirectionInput == EPCGExInputValueType::Constant", EditConditionHides))
 	EPCGExAxis DirectionConstant = EPCGExAxis::Forward;
@@ -59,6 +63,7 @@ namespace PCGExTensor
 	{
 		FPCGExTensorFlowConfig Config;
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionBuffer;
+		double DirectionMultiplier = 1;
 
 	public:
 		virtual bool Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory) override;

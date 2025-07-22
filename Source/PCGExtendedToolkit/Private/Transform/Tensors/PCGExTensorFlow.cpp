@@ -53,6 +53,8 @@ namespace PCGExTensor
 				}
 				return false;
 			}
+
+			DirectionMultiplier = Config.bInvertDirection ? -1 : 1;
 		}
 
 		if (!FEffectorsArray::Init(InContext, InFactory)) { return false; }
@@ -75,11 +77,11 @@ namespace PCGExTensor
 		{
 			if (Config.DirectionTransform == EPCGExTransformMode::Absolute)
 			{
-				Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, DirectionBuffer->Read(Index)));
+				Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, DirectionBuffer->Read(Index) * DirectionMultiplier));
 			}
 			else
 			{
-				Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, Transforms[Index].TransformVectorNoScale(DirectionBuffer->Read(Index))));
+				Transforms[Index].SetRotation(PCGExMath::MakeDirection(EPCGExAxis::Forward, Transforms[Index].TransformVectorNoScale(DirectionBuffer->Read(Index) * DirectionMultiplier)));
 			}
 		}
 

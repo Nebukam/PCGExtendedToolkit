@@ -45,6 +45,10 @@ struct FPCGExNodeEdgeDirectionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction (Attr)", EditCondition="CompareAgainst != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector Direction;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="CompareAgainst != EPCGExInputValueType::Constant", EditConditionHides))
+	bool bInvertDirection = false;
+
 	/** Direction for computing the dot product against the edge's. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction", EditCondition="CompareAgainst == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector DirectionConstant = FVector::UpVector;
@@ -95,6 +99,7 @@ public:
 
 	bool bFromNode = true;
 	bool bUseDot = true;
+	double DirectionMultiplier = 1.0;
 
 	FPCGExAdjacencySettings Adjacency;
 	FPCGExDotComparisonDetails DotComparison;
