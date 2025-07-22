@@ -508,7 +508,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	{
 	}
 
-
 	/** Value domain (units) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExAngularDomain Domain = EPCGExAngularDomain::Scalar;
@@ -735,17 +734,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMultiMapDataDetails
 	{
 	}
 
-	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade)
-	PCGEX_NOT_IMPLEMENTED_RET(Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade), false);
+	virtual bool Init(const FPCGContext* InContext, const TArray<const UPCGData*>& InTargetFacades);
 
-	virtual bool Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const
-	PCGEX_NOT_IMPLEMENTED_RET(Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FConstPoint& SourcePoint), false);
+	virtual bool Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const;
 
-	virtual void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
-	PCGEX_NOT_IMPLEMENTED(RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData));
-
-	virtual bool GetOnlyUseDataDomain() const
-	PCGEX_NOT_IMPLEMENTED_RET(GetOnlyUseDataDomain(), false);
 };
 
 UENUM()

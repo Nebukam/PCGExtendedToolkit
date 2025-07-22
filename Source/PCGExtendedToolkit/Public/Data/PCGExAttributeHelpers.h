@@ -264,9 +264,11 @@ namespace PCGEx
 
 		bool ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 		{
+			static_assert(PCGEx::GetMetadataType<T>() != EPCGMetadataTypes::Unknown);
+			
 			ProcessingInfos = FAttributeProcessingInfos(InData, InSelector);
 			if (!ProcessingInfos.bIsValid) { return false; }
-
+			
 			if (ProcessingInfos.bIsDataDomain)
 			{
 				PCGEx::ExecuteWithRightType(
@@ -430,7 +432,7 @@ namespace PCGEx
 			GrabAndDump(Values, bCaptureMinMax, Min, Max);
 		}
 
-		T SoftGet(const PCGExData::FConstPoint& Point, const T& Fallback) const
+		T FetchSingle(const PCGExData::FConstPoint& Point, const T& Fallback) const
 		{
 			if (!ProcessingInfos.bIsValid) { return Fallback; }
 			if (DataValue) { return TypedDataValue; }

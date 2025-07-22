@@ -400,11 +400,11 @@ bool FPCGExAttributeToTagComparisonDetails::Init(const FPCGContext* InContext, c
 
 bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const
 {
-	const FString TestTagName = TagNameGetter ? TagNameGetter->SoftGet(SourcePoint, TEXT("")) : TagName;
+	const FString TestTagName = TagNameGetter ? TagNameGetter->FetchSingle(SourcePoint, TEXT("")) : TagName;
 
 	if (!bDoValueMatch)
 	{
-		return PCGExCompare::HasMatchingTags(InData->Tags, TagNameGetter ? TagNameGetter->SoftGet(SourcePoint, TEXT("")) : TagName, NameMatch);
+		return PCGExCompare::HasMatchingTags(InData->Tags, TagNameGetter ? TagNameGetter->FetchSingle(SourcePoint, TEXT("")) : TagName, NameMatch);
 	}
 
 
@@ -413,7 +413,7 @@ bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::
 
 	if (ValueType == EPCGExComparisonDataType::Numeric)
 	{
-		const double OperandBNumeric = NumericValueGetter->SoftGet(SourcePoint, 0);
+		const double OperandBNumeric = NumericValueGetter->FetchSingle(SourcePoint, 0);
 		for (const TSharedPtr<PCGExData::IDataValue>& TagValue : TagValues)
 		{
 			if (!PCGExCompare::Compare(NumericComparison, TagValue, OperandBNumeric, Tolerance)) { return false; }
@@ -421,7 +421,7 @@ bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::
 	}
 	else
 	{
-		const FString OperandBString = StringValueGetter->SoftGet(SourcePoint, TEXT(""));
+		const FString OperandBString = StringValueGetter->FetchSingle(SourcePoint, TEXT(""));
 		for (const TSharedPtr<PCGExData::IDataValue>& TagValue : TagValues)
 		{
 			if (!PCGExCompare::Compare(StringComparison, TagValue, OperandBString)) { return false; }
@@ -482,7 +482,7 @@ bool FPCGExAttributeToDataComparisonDetails::Init(const FPCGContext* InContext, 
 
 bool FPCGExAttributeToDataComparisonDetails::Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const
 {
-	FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(DataNameGetter ? DataNameGetter->SoftGet(SourcePoint, NAME_None) : DataName, InData->GetIn());
+	FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(DataNameGetter ? DataNameGetter->FetchSingle(SourcePoint, NAME_None) : DataName, InData->GetIn());
 	Identifier.MetadataDomain = PCGMetadataDomainID::Data;
 
 	const FPCGMetadataAttributeBase* Attribute = InData->FindConstAttribute(Identifier);
@@ -492,11 +492,11 @@ bool FPCGExAttributeToDataComparisonDetails::Matches(const TSharedPtr<PCGExData:
 	{
 		return PCGExCompare::Compare(
 			NumericCompare, PCGExDataHelpers::ReadDataValue<double>(Attribute, 0),
-			NumericValueGetter->SoftGet(SourcePoint, 0), Tolerance);
+			NumericValueGetter->FetchSingle(SourcePoint, 0), Tolerance);
 	}
 	return PCGExCompare::Compare(
 		StringCompare, PCGExDataHelpers::ReadDataValue<FString>(Attribute, TEXT("")),
-		StringValueGetter->SoftGet(SourcePoint, TEXT("")));
+		StringValueGetter->FetchSingle(SourcePoint, TEXT("")));
 }
 
 void FPCGExAttributeToDataComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -509,6 +509,16 @@ bool FPCGExAttributeToDataComparisonDetails::GetOnlyUseDataDomain() const
 {
 	return DataNameInput == EPCGExInputValueType::Constant &&
 		PCGExHelpers::IsDataDomainAttribute(ValueNameAttribute);
+}
+
+bool FPCGExMultiMapDataDetails::Init(const FPCGContext* InContext, const TArray<const UPCGData*>& InTargetFacades)
+{
+	return true;
+}
+
+bool FPCGExMultiMapDataDetails::Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const
+{
+	return true;
 }
 
 int64 FPCGExBitmask::Get() const

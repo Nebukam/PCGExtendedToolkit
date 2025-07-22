@@ -51,11 +51,11 @@ namespace PCGEx
 	{
 		FPCGExAttributeHashConfig Config;
 
-		TSharedPtr<TAttributeBroadcaster<PCGExTypeHash>> ValuesGetter;
+		TSharedPtr<TAttributeBroadcaster<int32>> ValuesGetter;
 
-		TArray<PCGExTypeHash> Values;
+		TArray<int32> Values;
 
-		TSet<PCGExTypeHash> UniqueValues;
+		TSet<int32> UniqueValues;
 		TArray<int32> UniqueIndices;
 
 		uint32 CombinedHashUnique = 0;
