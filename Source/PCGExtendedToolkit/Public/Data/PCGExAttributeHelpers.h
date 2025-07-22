@@ -436,7 +436,7 @@ namespace PCGEx
 			if (DataValue) { return TypedDataValue; }
 
 			T OutValue = Fallback;
-			if (!InternalAccessor->Get(OutValue, Point.Index, *PointIO->GetInKeys().Get())) { OutValue = Fallback; }
+			if (!InternalAccessor->Get<T>(OutValue, Point.Index, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible)) { OutValue = Fallback; }
 			return OutValue;
 		}
 
