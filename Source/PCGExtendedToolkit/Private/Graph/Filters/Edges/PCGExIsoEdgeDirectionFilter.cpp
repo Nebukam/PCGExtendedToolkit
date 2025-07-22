@@ -60,6 +60,7 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 
 	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection();
 	if (!OperandDirection->Init(InContext, InEdgeDataFacade)) { return false; }
+	if (!OperandDirection->IsConstant()) { DirectionMultiplier = TypedFilterFactory->Config.bInvertDirection ? -1 : 1; }
 
 	if (TypedFilterFactory->Config.ComparisonQuality == EPCGExDirectionCheckMode::Dot)
 	{
@@ -88,7 +89,7 @@ bool FIsoEdgeDirectionFilter::Test(const PCGExGraph::FEdge& Edge) const
 
 bool FIsoEdgeDirectionFilter::TestDot(const int32 PtIndex, const FVector& EdgeDir) const
 {
-	const FVector RefDir = OperandDirection->Read(PtIndex).GetSafeNormal();
+	const FVector RefDir = OperandDirection->Read(PtIndex).GetSafeNormal() * DirectionMultiplier;
 	return DotComparison.Test(
 		FVector::DotProduct(
 			TypedFilterFactory->Config.bTransformDirection ? InTransforms[PtIndex].TransformVectorNoScale(RefDir) : RefDir,
@@ -98,7 +99,7 @@ bool FIsoEdgeDirectionFilter::TestDot(const int32 PtIndex, const FVector& EdgeDi
 
 bool FIsoEdgeDirectionFilter::TestHash(const int32 PtIndex, const FVector& EdgeDir) const
 {
-	FVector RefDir = OperandDirection->Read(PtIndex);
+	FVector RefDir = OperandDirection->Read(PtIndex) * DirectionMultiplier;
 	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = InTransforms[PtIndex].TransformVectorNoScale(RefDir); }
 
 	RefDir.Normalize();

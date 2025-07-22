@@ -32,6 +32,10 @@ struct FPCGExDotFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bTransformOperandA = false;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Invert"))
+	bool bInvertOperandA = false;
+
 	/** Type of OperandB */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
@@ -39,6 +43,10 @@ struct FPCGExDotFilterConfig
 	/** Operand B for computing the dot product */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B (Attr)", EditCondition="CompareAgainst != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector OperandB;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="CompareAgainst != EPCGExInputValueType::Constant", EditConditionHides))
+	bool bInvertOperandB = false;
 
 	/** Operand B for computing the dot product. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B", EditCondition="CompareAgainst == EPCGExInputValueType::Constant", EditConditionHides))
@@ -95,7 +103,10 @@ namespace PCGExPointFilter
 		FPCGExDotComparisonDetails DotComparison;
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> OperandA;
+		double OperandAMultiplier = 1;
+		
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> OperandB;
+		double OperandBMultiplier = 1;
 
 		TConstPCGValueRange<FTransform> InTransforms;
 

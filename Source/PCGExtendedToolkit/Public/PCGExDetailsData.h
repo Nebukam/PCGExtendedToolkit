@@ -16,6 +16,31 @@ TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> V = PCGExDetails::MakeSettingValu
 V->bQuietErrors = bQuietErrors;	return V; }
 #define PCGEX_SETTING_VALUE_GET_BOOL(_NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT) PCGEX_SETTING_VALUE_GET(_NAME, _TYPE, _INPUT ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, _SOURCE, _CONSTANT);
 
+UENUM()
+enum class EPCGExFuseMethod : uint8
+{
+	Voxel  = 0 UMETA(DisplayName = "Spatial Hash", Tooltip="Fast but blocky. Creates grid-looking approximation."),
+	Octree = 1 UMETA(DisplayName = "Octree", Tooltip="Slow but precise. Respectful of the original topology. Requires stable insertion with large values."),
+};
+
+UENUM()
+enum class EPCGExManhattanMethod : uint8
+{
+	Simple       = 0 UMETA(DisplayName = "Simple", ToolTip="Simple Manhattan subdivision, will generate 0..2 points"),
+	GridDistance = 1 UMETA(DisplayName = "Grid (Distance)", ToolTip="Grid Manhattan subdivision, will subdivide space according to a grid size."),
+	GridCount    = 2 UMETA(DisplayName = "Grid (Count)", ToolTip="Grid Manhattan subdivision, will subdivide space according to a grid size."),
+};
+
+UENUM()
+enum class EPCGExManhattanAlign : uint8
+{
+	World    = 0 UMETA(DisplayName = "World", ToolTip=""),
+	Custom   = 1 UMETA(DisplayName = "Custom", ToolTip=""),
+	SegmentX = 5 UMETA(DisplayName = "Segment X", ToolTip=""),
+	SegmentY = 6 UMETA(DisplayName = "Segment Y", ToolTip=""),
+	SegmentZ = 7 UMETA(DisplayName = "Segment Z", ToolTip=""),
+};
+
 namespace PCGExDetails
 {
 #pragma region Settings
@@ -533,14 +558,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSourceFuseDetails : public FPCGExFuseDetails
 	EPCGExDistance SourceDistance = EPCGExDistance::Center;
 };
 
-
-UENUM()
-enum class EPCGExFuseMethod : uint8
-{
-	Voxel  = 0 UMETA(DisplayName = "Spatial Hash", Tooltip="Fast but blocky. Creates grid-looking approximation."),
-	Octree = 1 UMETA(DisplayName = "Octree", Tooltip="Slow but precise. Respectful of the original topology. Requires stable insertion with large values."),
-};
-
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 {
@@ -624,24 +641,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 		GetCenters(SourcePoint, TargetPoint, A, B);
 		return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(A, B, SourcePoint.Index);
 	}
-};
-
-UENUM()
-enum class EPCGExManhattanMethod : uint8
-{
-	Simple       = 0 UMETA(DisplayName = "Simple", ToolTip="Simple Manhattan subdivision, will generate 0..2 points"),
-	GridDistance = 1 UMETA(DisplayName = "Grid (Distance)", ToolTip="Grid Manhattan subdivision, will subdivide space according to a grid size."),
-	GridCount    = 2 UMETA(DisplayName = "Grid (Count)", ToolTip="Grid Manhattan subdivision, will subdivide space according to a grid size."),
-};
-
-UENUM()
-enum class EPCGExManhattanAlign : uint8
-{
-	World    = 0 UMETA(DisplayName = "World", ToolTip=""),
-	Custom   = 1 UMETA(DisplayName = "Custom", ToolTip=""),
-	SegmentX = 5 UMETA(DisplayName = "Segment X", ToolTip=""),
-	SegmentY = 6 UMETA(DisplayName = "Segment Y", ToolTip=""),
-	SegmentZ = 7 UMETA(DisplayName = "Segment Z", ToolTip=""),
 };
 
 USTRUCT(BlueprintType)

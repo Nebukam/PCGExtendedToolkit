@@ -403,38 +403,6 @@ namespace PCGExCompare
 	bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<TSharedPtr<PCGExData::IDataValue>>& OutValues);
 }
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExComparisonDetails
-{
-	GENERATED_BODY()
-
-	FPCGExComparisonDetails()
-	{
-	}
-
-	FPCGExComparisonDetails(const FPCGExComparisonDetails& Other):
-		Comparison(Other.Comparison),
-		Tolerance(Other.Tolerance)
-	{
-	}
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGAttributePropertyInputSelector OperandA;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGAttributePropertyInputSelector OperandB;
-
-	/** Comparison method. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExComparison Comparison = EPCGExComparison::StrictlyEqual;
-
-	/** Comparison Tolerance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides, ClampMin=0.001))
-	double Tolerance = DBL_COMPARE_TOLERANCE;
-};
-
 UENUM()
 enum class EPCGExDirectionCheckMode : uint8
 {
@@ -481,6 +449,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 	bool Test(const FVector& A, const FVector& B, const int32 PointIndex) const;
 };
 
+/**
+ * Util object to encapsulate recurring dot comparison parameters, with no support for params
+ */
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExStaticDotComparisonDetails
 {
@@ -525,6 +496,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStaticDotComparisonDetails
 	bool Test(const double A) const;
 };
 
+/**
+ * Util object to encapsulate recurring dot comparison parameters, including attribute-driven params
+ */
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 {
@@ -533,7 +507,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	FPCGExDotComparisonDetails()
 	{
 	}
-
 
 	/** Value domain (units) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -592,6 +565,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 #endif
 };
 
+/**
+ * Base struct for match & compare utils
+ */
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExMatchAndCompareDetails
 {
@@ -615,6 +591,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchAndCompareDetails
 	PCGEX_NOT_IMPLEMENTED_RET(GetOnlyUseDataDomain(), false);
 };
 
+/**
+ * Used when individual points should be checked for a pick/match with data
+ * The data will be tested for one or more tag, with optional value.
+ * If value match is enabled, tag is expected to be in the format tag:value and value will be compared
+ * against a point' attribute value.
+ * Example :
+ * Data 1 | Tag "MyTag", "MyTagValue:42"
+ * Point 1 | "MyIntAttribute" = 42
+ * Point 1 can be matched to MyTagValue using MyIntAttribute
+ */
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagComparisonDetails : public FPCGExMatchAndCompareDetails
 {
@@ -673,6 +659,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagComparisonDetails : public FPC
 	virtual bool GetOnlyUseDataDomain() const override;
 };
 
+/**
+ * Used when individual points should be checked for a pick/match with data
+ * A @Data attribute value will be compared against a point' value
+ */
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToDataComparisonDetails : public FPCGExMatchAndCompareDetails
 {
@@ -732,6 +722,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToDataComparisonDetails : public FP
 	virtual bool GetOnlyUseDataDomain() const override;
 };
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExMultiMapDataDetails
+{
+	// Used to easily map data to each other
+	
+	GENERATED_BODY()
+	virtual ~FPCGExMultiMapDataDetails() = default;
+
+	FPCGExMultiMapDataDetails()
+	{
+	}
+
+	virtual bool Init(const FPCGContext* InContext, const TArray<const UPCGData*>& InTargetFacades);
+
+	virtual bool Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const;
+
+};
+
 UENUM()
 enum class EPCGExBitOp : uint8
 {
@@ -751,80 +759,6 @@ enum class EPCGExBitmaskMode : uint8
 };
 
 #pragma region Bitmasks
-
-
-/*
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bitflag 64"))
-enum class EPCGExBitflag64 : int64
-{
-	None    = 0,
-	Flag_1  = 1ULL << 0 UMETA(DisplayName = "Alpha"),
-	Flag_2  = 1ULL << 1 UMETA(DisplayName = "Beta"),
-	Flag_3  = 1ULL << 2 UMETA(DisplayName = "Gamma"),
-	Flag_4  = 1ULL << 3 UMETA(DisplayName = "Delta"),
-	Flag_5  = 1ULL << 4 UMETA(DisplayName = "Epsilon"),
-	Flag_6  = 1ULL << 5 UMETA(DisplayName = "Zeta"),
-	Flag_7  = 1ULL << 6 UMETA(DisplayName = "Eta"),
-	Flag_8  = 1ULL << 7 UMETA(DisplayName = "Theta"),
-	Flag_9  = 1ULL << 8 UMETA(DisplayName = "Iota"),
-	Flag_10 = 1ULL << 9 UMETA(DisplayName = "Kappa"),
-	Flag_11 = 1ULL << 10 UMETA(DisplayName = "Lambda"),
-	Flag_12 = 1ULL << 11 UMETA(DisplayName = "Mu"),
-	Flag_13 = 1ULL << 12 UMETA(DisplayName = "Nu"),
-	Flag_14 = 1ULL << 13 UMETA(DisplayName = "Xi"),
-	Flag_15 = 1ULL << 14 UMETA(DisplayName = "Omicron"),
-	Flag_16 = 1ULL << 15 UMETA(DisplayName = "Pi"),
-	Flag_17 = 1ULL << 16 UMETA(DisplayName = "Rho"),
-	Flag_18 = 1ULL << 17 UMETA(DisplayName = "Sigma"),
-	Flag_19 = 1ULL << 18 UMETA(DisplayName = "Tau"),
-	Flag_20 = 1ULL << 19 UMETA(DisplayName = "Upsilon"),
-	Flag_21 = 1ULL << 20 UMETA(DisplayName = "Phi"),
-	Flag_22 = 1ULL << 21 UMETA(DisplayName = "Chi"),
-	Flag_23 = 1ULL << 22 UMETA(DisplayName = "Psi"),
-	Flag_24 = 1ULL << 23 UMETA(DisplayName = "Omega"),
-	Flag_25 = 1ULL << 24 UMETA(DisplayName = "Ares"),
-	Flag_26 = 1ULL << 25 UMETA(DisplayName = "Zeus"),
-	Flag_27 = 1ULL << 26 UMETA(DisplayName = "Hera"),
-	Flag_28 = 1ULL << 27 UMETA(DisplayName = "Apollo"),
-	Flag_29 = 1ULL << 28 UMETA(DisplayName = "Hermes"),
-	Flag_30 = 1ULL << 29 UMETA(DisplayName = "Athena"),
-	Flag_31 = 1ULL << 30 UMETA(DisplayName = "Artemis"),
-	Flag_32 = 1ULL << 31 UMETA(DisplayName = "Demeter"),
-	Flag_33 = 1ULL << 32 UMETA(DisplayName = "Dionysus"),
-	Flag_34 = 1ULL << 33 UMETA(DisplayName = "Hades"),
-	Flag_35 = 1ULL << 34 UMETA(DisplayName = "Hephaestus"),
-	Flag_36 = 1ULL << 35 UMETA(DisplayName = "Hera"),
-	Flag_37 = 1ULL << 36 UMETA(DisplayName = "Hestia"),
-	Flag_38 = 1ULL << 37 UMETA(DisplayName = "Poseidon"),
-	Flag_39 = 1ULL << 38 UMETA(DisplayName = "Janus"),
-	Flag_40 = 1ULL << 39 UMETA(DisplayName = "Mars"),
-	Flag_41 = 1ULL << 40 UMETA(DisplayName = "Venus"),
-	Flag_42 = 1ULL << 41 UMETA(DisplayName = "Jupiter"),
-	Flag_43 = 1ULL << 42 UMETA(DisplayName = "Saturn"),
-	Flag_44 = 1ULL << 43 UMETA(DisplayName = "Neptune"),
-	Flag_45 = 1ULL << 44 UMETA(DisplayName = "Pluto"),
-	Flag_46 = 1ULL << 45 UMETA(DisplayName = "Vesta"),
-	Flag_47 = 1ULL << 46 UMETA(DisplayName = "Mercury"),
-	Flag_48 = 1ULL << 47 UMETA(DisplayName = "Sol"),
-	Flag_49 = 1ULL << 48 UMETA(DisplayName = "Luna"),
-	Flag_50 = 1ULL << 49 UMETA(DisplayName = "Terra"),
-	Flag_51 = 1ULL << 50 UMETA(DisplayName = "Vulcan"),
-	Flag_52 = 1ULL << 51 UMETA(DisplayName = "Juno"),
-	Flag_53 = 1ULL << 52 UMETA(DisplayName = "Ceres"),
-	Flag_54 = 1ULL << 53 UMETA(DisplayName = "Minerva"),
-	Flag_55 = 1ULL << 54 UMETA(DisplayName = "Bacchus"),
-	Flag_56 = 1ULL << 55 UMETA(DisplayName = "Aurora"),
-	Flag_57 = 1ULL << 56 UMETA(DisplayName = "Flora"),
-	Flag_58 = 1ULL << 57 UMETA(DisplayName = "Faunus"),
-	Flag_59 = 1ULL << 58 UMETA(DisplayName = "Iris"),
-	Flag_60 = 1ULL << 59 UMETA(DisplayName = "Mithras"),
-	Flag_61 = 1ULL << 60 UMETA(DisplayName = "Fortuna"),
-	Flag_62 = 1ULL << 61 UMETA(DisplayName = "Bellona"),
-	Flag_63 = 1ULL << 62 UMETA(DisplayName = "Fides"),
-	Flag_64 = 1ULL << 63 UMETA(DisplayName = "Pax"),
-};
-ENUM_CLASS_FLAGS(EPCGExBitflag64)
-*/
 
 UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 0-8 Bits Range"))
 enum class EPCGExBitmask8_00_08 : uint8

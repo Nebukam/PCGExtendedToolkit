@@ -16,7 +16,7 @@ namespace PCGEx
 
 		if (NumValues <= 0) { return false; }
 
-		ValuesGetter = MakeShared<TAttributeBroadcaster<PCGExTypeHash>>();
+		ValuesGetter = MakeShared<TAttributeBroadcaster<int32>>();
 		if (!ValuesGetter->Prepare(Config.SourceAttribute, InPointIO))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing attribute {0}."), FText::FromName(Config.SourceAttribute.GetName())));
@@ -25,8 +25,8 @@ namespace PCGEx
 
 		if (!RequiresCompilation())
 		{
-			const PCGExTypeHash A = ValuesGetter->SoftGet(InPointIO->GetInPoint(0), 0);
-			const PCGExTypeHash B = ValuesGetter->SoftGet(InPointIO->GetInPoint(NumValues - 1), 0);
+			const PCGExTypeHash A = static_cast<PCGExTypeHash>(ValuesGetter->FetchSingle(InPointIO->GetInPoint(0), 0));
+			const PCGExTypeHash B = static_cast<PCGExTypeHash>(ValuesGetter->FetchSingle(InPointIO->GetInPoint(NumValues - 1), 0));
 
 			if (Config.Scope == EPCGExDataHashScope::First) { OutHash = A; }
 			else if (Config.Scope == EPCGExDataHashScope::Last) { OutHash = B; }
@@ -96,7 +96,7 @@ namespace PCGEx
 		ValuesGetter->Fetch(Values, Scope);
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			PCGExTypeHash H = Values[Index];
+			PCGExTypeHash H = static_cast<PCGExTypeHash>(Values[Index]);
 
 			OutHash = HashCombineFast(OutHash, H);
 
@@ -117,10 +117,10 @@ namespace PCGEx
 			if (Config.bSortInputValues)
 			{
 				OutHash = 0;
-				if (Config.Sorting == EPCGExSortDirection::Ascending) { Values.Sort([](const uint32 A, const uint32 B) { return A < B; }); }
-				else { Values.Sort([](const uint32 A, const uint32 B) { return A > B; }); }
+				if (Config.Sorting == EPCGExSortDirection::Ascending) { Values.Sort([](const int32 A, const int32 B) { return A < B; }); }
+				else { Values.Sort([](const int32 A, const int32 B) { return A > B; }); }
 
-				for (const uint32 C : Values) { OutHash = HashCombineFast(OutHash, C); }
+				for (const int32 C : Values) { OutHash = HashCombineFast(OutHash, C); }
 			}
 		}
 		else if (Config.Scope == EPCGExDataHashScope::Uniques)

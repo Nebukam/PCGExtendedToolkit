@@ -35,6 +35,7 @@ bool FNodeEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<P
 
 	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection();
 	if (!OperandDirection->Init(InContext, PointDataFacade, false)) { return false; }
+	if (!OperandDirection->IsConstant()) { DirectionMultiplier = TypedFilterFactory->Config.bInvertDirection ? -1 : 1; }
 
 	if (!Adjacency.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 
@@ -62,7 +63,7 @@ bool FNodeEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 {
 	const int32 PointIndex = Node.PointIndex;
 
-	FVector RefDir = OperandDirection->Read(PointIndex).GetSafeNormal();
+	FVector RefDir = OperandDirection->Read(PointIndex).GetSafeNormal() * DirectionMultiplier;
 	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = VtxTransforms[PointIndex].TransformVectorNoScale(RefDir); }
 
 	const double DotThreshold = DotComparison.GetComparisonThreshold(PointIndex);
@@ -136,7 +137,7 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 {
 	const int32 PointIndex = Node.PointIndex;
 
-	FVector RefDir = OperandDirection->Read(PointIndex).GetSafeNormal();
+	FVector RefDir = OperandDirection->Read(PointIndex).GetSafeNormal() * DirectionMultiplier;
 	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = VtxTransforms[PointIndex].TransformVectorNoScale(RefDir); }
 
 	const FVector CWTolerance = HashComparison.GetCWTolerance(PointIndex);

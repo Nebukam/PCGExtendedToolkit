@@ -36,7 +36,7 @@ bool UPCGExDotFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext*
 	PCGEX_CONSUMABLE_SELECTOR(Config.OperandA, Consumable)
 	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.OperandB, Consumable)
 	Config.DotComparisonDetails.RegisterConsumableAttributesWithData(InContext, InData);
-	
+
 	return true;
 }
 
@@ -47,7 +47,9 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 	DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 	if (!DotComparison.Init(InContext, InPointDataFacade.ToSharedRef())) { return false; }
 
+
 	OperandA = PointDataFacade->GetBroadcaster<FVector>(TypedFilterFactory->Config.OperandA, true);
+	OperandAMultiplier = TypedFilterFactory->Config.bInvertOperandA ? -1 : 1;
 	if (!OperandA)
 	{
 		PCGEX_LOG_INVALID_SELECTOR_C(InContext, Operand A, TypedFilterFactory->Config.OperandA)
@@ -56,6 +58,7 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 
 	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
 	if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
+	if (!OperandB->IsConstant()) { OperandBMultiplier = TypedFilterFactory->Config.bInvertOperandB ? -1 : 1; }
 
 	InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
 
@@ -64,10 +67,10 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 
 bool PCGExPointFilter::FDotFilter::Test(const int32 PointIndex) const
 {
-	const FVector B = OperandB->Read(PointIndex).GetSafeNormal();
+	const FVector B = OperandB->Read(PointIndex).GetSafeNormal() * OperandBMultiplier;
 	return DotComparison.Test(
 		FVector::DotProduct(
-			TypedFilterFactory->Config.bTransformOperandA ? InTransforms[PointIndex].TransformVectorNoScale(OperandA->Read(PointIndex)) : OperandA->Read(PointIndex),
+			TypedFilterFactory->Config.bTransformOperandA ? InTransforms[PointIndex].TransformVectorNoScale(OperandA->Read(PointIndex) * OperandAMultiplier) : OperandA->Read(PointIndex) * OperandAMultiplier,
 			TypedFilterFactory->Config.bTransformOperandB ? InTransforms[PointIndex].TransformVectorNoScale(B) : B),
 		PointIndex);
 }
