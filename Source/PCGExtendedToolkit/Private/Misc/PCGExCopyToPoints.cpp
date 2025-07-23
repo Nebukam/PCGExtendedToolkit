@@ -10,12 +10,8 @@ TArray<FPCGPinProperties> UPCGExCopyToPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points to copy inputs to.", Required, {})
-
-	if (DataMatching.Mode != EPCGExMapMatchMode::Disabled)
-	{
-		PCGEX_PIN_FACTORIES(PCGExMatching::SourceMatchRulesLabel, "Matching rules to determine which target point can be sampled by each input", Normal, {})
-	}
-
+	DataMatching.DeclareInputPins(PinProperties);
+	
 	return PinProperties;
 }
 

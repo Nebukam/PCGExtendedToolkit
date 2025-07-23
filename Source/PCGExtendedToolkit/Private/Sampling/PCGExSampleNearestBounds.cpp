@@ -26,10 +26,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 
 	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
 
-	if (DataMatching.Mode != EPCGExMapMatchMode::Disabled)
-	{
-		PCGEX_PIN_FACTORIES(PCGExMatching::SourceMatchRulesLabel, "Matching rules to determine which target can be sampled by each input", Normal, {})
-	}
+	DataMatching.DeclareInputPins(PinProperties);
 	
 	if (SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{

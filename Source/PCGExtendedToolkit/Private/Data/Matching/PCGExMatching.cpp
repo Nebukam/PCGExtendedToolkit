@@ -159,3 +159,15 @@ bool FPCGExAttributeToDataComparisonDetails::GetOnlyUseDataDomain() const
 		PCGExHelpers::IsDataDomainAttribute(ValueNameAttribute);
 }
 
+void FPCGExMatchingDetails::DeclareInputPins(TArray<FPCGPinProperties>& PinProperties, bool bTargetPoints) const
+{
+	if (Mode == EPCGExMapMatchMode::Disabled) { return; }
+	if (bTargetPoints)
+	{
+		PCGEX_PIN_FACTORIES(PCGExMatching::SourceMatchRulesLabel, "Matching rules to determine which target can be sampled by each input", Normal, {})
+	}
+	else
+	{
+		PCGEX_PIN_FACTORIES(PCGExMatching::SourceMatchRulesLabel, "Matching rules to determine which target can be sampled by each input", Normal, {})
+	}
+}

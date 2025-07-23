@@ -29,11 +29,8 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 
 	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
 
-	if (DataMatching.Mode != EPCGExMapMatchMode::Disabled)
-	{
-		PCGEX_PIN_FACTORIES(PCGExMatching::SourceMatchRulesLabel, "Matching rules to determine which target can be sampled by each input", Normal, {})
-	}
-	
+	DataMatching.DeclareInputPins(PinProperties);
+
 	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations, used by Individual (non-monolithic) blending interface.", Normal, {})
 
 	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
