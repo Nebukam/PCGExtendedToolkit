@@ -136,7 +136,8 @@ FString UPCGExCreateMatchTagToAttrSettings::GetDisplayName() const
 	}
 	else
 	{
-		TagSourceStr += PCGExCompare::ToString(Config.NameMatch) + TEXT("Target' @") + Config.TagNameAttribute.ToString();
+		TagSourceStr += PCGExCompare::ToString(Config.NameMatch) + TEXT("Target' @");
+		TagSourceStr += Config.TagNameInput == EPCGExInputValueType::Constant ? Config.TagName : Config.TagNameAttribute.ToString();
 	}
 
 	return TagSourceStr;

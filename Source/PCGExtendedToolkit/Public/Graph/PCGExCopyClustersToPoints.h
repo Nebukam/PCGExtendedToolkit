@@ -28,6 +28,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -101,6 +102,8 @@ namespace PCGExCopyClusters
 
 		virtual ~FProcessor() override;
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
 		virtual void CompleteWork() override;
 	};
 

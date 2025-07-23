@@ -23,6 +23,13 @@ TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::InputPinProperties
 	return PinProperties;
 }
 
+TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
+	return PinProperties;
+}
+
 bool FPCGExCopyClustersToPointsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
@@ -97,9 +104,19 @@ namespace PCGExCopyClusters
 		const int32 NumTargets = Context->TargetsDataFacade->GetNum();
 
 		PCGEx::InitArray(EdgesDupes, NumTargets);
+
+		StartParallelLoopForRange(NumTargets, 32);
+
+		return true;
+	}
+
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
+	{
+		int32 Copies = 0;
+
 		const bool bSameAnyChecks = Context->MainDataMatcher == Context->EdgeDataMatcher;
 
-		for (int i = 0; i < NumTargets; i++)
+		PCGEX_SCOPE_LOOP(i)
 		{
 			EdgesDupes[i] = nullptr;
 
@@ -132,7 +149,7 @@ namespace PCGExCopyClusters
 				break;
 			}
 
-			NumCopies++;
+			Copies++;
 
 			// Create an edge copy per target point
 			TSharedPtr<PCGExData::FPointIO> EdgeDupe = Context->MainEdges->Emplace_GetRef(EdgeDataFacade->Source, PCGExData::EIOInit::Duplicate);
@@ -143,12 +160,15 @@ namespace PCGExCopyClusters
 			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, EdgeDupe, &Context->TransformDetails)
 		}
 
+		if (NumCopies > 0) { FPlatformAtomics::InterlockedAdd(&NumCopies, Copies); }
+	}
+
+	void FProcessor::OnRangeProcessingComplete()
+	{
 		if (NumCopies == 0)
 		{
 			(void)Context->EdgeDataMatcher->HandleUnmatchedOutput(EdgeDataFacade, true);
 		}
-
-		return true;
 	}
 
 	void FProcessor::CompleteWork()
@@ -264,7 +284,7 @@ namespace PCGExCopyClusters
 				break;
 			}
 		}
-		
+
 		const int32 NumTargets = Context->TargetsDataFacade->GetIn()->GetNumPoints();
 
 		for (int i = 0; i < NumTargets; i++)
