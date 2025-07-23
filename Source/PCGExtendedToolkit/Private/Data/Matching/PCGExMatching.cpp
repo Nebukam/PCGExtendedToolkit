@@ -52,7 +52,7 @@ bool FPCGExAttributeToTagComparisonDetails::Matches(const TSharedPtr<PCGExData::
 
 	if (!bDoValueMatch)
 	{
-		return PCGExCompare::HasMatchingTags(InData->Tags, TagNameGetter ? TagNameGetter->FetchSingle(SourcePoint, TEXT("")) : TagName, NameMatch);
+		return PCGExCompare::HasMatchingTags(InData->Tags, TestTagName, NameMatch);
 	}
 
 
@@ -166,4 +166,11 @@ void PCGExMatching::DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDe
 	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(PCGExMatching::SourceMatchRulesLabel, EPCGDataType::Param);
 	Pin.Tooltip = FTEXT("Matching rules to determine which target can be sampled by each input.");
 	Pin.PinStatus = InStatus;
+}
+
+void PCGExMatching::DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)
+{
+	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(PCGExMatching::OutputUnmatchedLabel, EPCGDataType::Param);
+	Pin.Tooltip = FTEXT("Data that couldn't be matched to any target, and couldn't be processed.");
+	Pin.PinStatus = !InDetails.WantsUnmatchedSplit() ? EPCGPinStatus::Advanced : EPCGPinStatus::Normal;
 }

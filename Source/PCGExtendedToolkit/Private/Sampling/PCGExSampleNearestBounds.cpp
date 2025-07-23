@@ -25,11 +25,17 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
-
 	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExBoundsSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
 
+	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -217,9 +223,14 @@ namespace PCGExSampleNearestBounds
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
-		Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList);
+		if (!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList))
+		{
+			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+			return false;
+		}
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		// Allocate edge native properties
 

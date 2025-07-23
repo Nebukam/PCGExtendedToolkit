@@ -8,51 +8,49 @@
 #include "PCGExMatchRuleFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
 
+#include "PCGExMatchCopyTags.generated.h"
 
 
-#include "PCGExMatchToOne.generated.h"
 
 USTRUCT(BlueprintType)
-struct FPCGExMatchToOneConfig : public FPCGExMatchRuleConfigBase
+struct FPCGExMatchCopyTagsConfig : public FPCGExMatchRuleConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExMatchToOneConfig() :
+	FPCGExMatchCopyTagsConfig() :
 		FPCGExMatchRuleConfigBase()
 	{
 	}
-
 };
 
 /**
  * 
  */
-class FPCGExMatchToOne : public FPCGExMatchRuleOperation
+class FPCGExMatchCopyTags : public FPCGExMatchRuleOperation
 {
 public:
-	FPCGExMatchToOneConfig Config;
+	FPCGExMatchCopyTagsConfig Config;
 
 	virtual bool PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<PCGExData::FTaggedData>>& InTargets) override;
 
 	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const override;
-
 };
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class UPCGExMatchToOneFactory : public UPCGExMatchRuleFactoryData
+class UPCGExMatchCopyTagsFactory : public UPCGExMatchRuleFactoryData
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY()
-	FPCGExMatchToOneConfig Config;
+	FPCGExMatchCopyTagsConfig Config;
 
 	virtual TSharedPtr<FPCGExMatchRuleOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|DataMatch", meta=(PCGExNodeLibraryDoc="misc/shapes/shape-circle"))
-class UPCGExCreateMatchToOneSettings : public UPCGExMatchRuleFactoryProviderSettings
+class UPCGExCreateMatchCopyTagsSettings : public UPCGExMatchRuleFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -60,7 +58,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		MatchAttrToAttr, "Match 1:1", "Matches targets with candidates if they have the same collection index",
+		MatchAttrToAttr, "Match : Copy Tags", "Copy matched targets tags to candidate",
 		FName(GetDisplayName()))
 
 #endif
@@ -68,7 +66,7 @@ public:
 
 	/** Rules properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExMatchToOneConfig Config;
+	FPCGExMatchCopyTagsConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 

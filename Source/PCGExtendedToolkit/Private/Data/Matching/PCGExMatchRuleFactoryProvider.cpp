@@ -27,7 +27,7 @@ namespace PCGExMatching
 	FDataMatcher::FDataMatcher()
 	{
 		Targets = MakeShared<TArray<PCGExData::FTaggedData>>();
-		Elements = MakeShared<TArray<PCGExData::FElement>>();
+		Elements = MakeShared<TArray<PCGExData::FConstPoint>>();
 	}
 
 	void FDataMatcher::SetDetails(const FPCGExMatchingDetails* InDetails)
@@ -38,6 +38,8 @@ namespace PCGExMatching
 
 	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<const UPCGData*>& InTargetData, const TArray<TSharedPtr<PCGExData::FTags>>& InTags, const bool bThrowError)
 	{
+		check(Details)
+		
 		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
 
 		check(InTargetData.Num() == InTags.Num());
@@ -49,6 +51,8 @@ namespace PCGExMatching
 
 	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError)
 	{
+		check(Details)
+		
 		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
 
 		Targets->Reserve(InTargetFacades.Num());
@@ -67,53 +71,68 @@ namespace PCGExMatching
 
 	bool FDataMatcher::Test(const UPCGData* InTarget, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const
 	{
-		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
+		if (MatchMode == EPCGExMapMatchMode::Disabled || Operations.IsEmpty()) { return true; }
 
 		const int32* DataIndexPtr = TargetsMap.Find(InTarget);
 		if (!DataIndexPtr) { return false; }
 
 		const int32 DataIndex = *DataIndexPtr;
-		const PCGExData::FElement& TargetElement = *(Elements->GetData() + DataIndex);
+		const PCGExData::FConstPoint& TargetElement = *(Elements->GetData() + DataIndex);
+
+		bool bMatch = true;
 
 		if (MatchMode == EPCGExMapMatchMode::All)
 		{
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(TargetElement, InDataCandidate)) { return false; } }
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (!Op->Test(TargetElement, InDataCandidate)) { return false; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(TargetElement, InDataCandidate)) { bMatch = false; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (!Op->Test(TargetElement, InDataCandidate)) { bMatch = false; } }
 		}
 		else
 		{
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(TargetElement, InDataCandidate)) { return false; } }
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (Op->Test(TargetElement, InDataCandidate)) { return true; } }
+			bMatch = false;
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (Op->Test(TargetElement, InDataCandidate)) { bMatch = true; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(TargetElement, InDataCandidate)) { bMatch = false; } }
 		}
-		return true;
+
+		return bMatch;
 	}
 
-	bool FDataMatcher::Test(const PCGExData::FElement& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const
+	bool FDataMatcher::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const
+	{
+		if (MatchMode == EPCGExMapMatchMode::Disabled || Operations.IsEmpty()) { return true; }
+
+		bool bMatch = true;
+
+		if (MatchMode == EPCGExMapMatchMode::All)
+		{
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(InTargetElement, InDataCandidate)) { bMatch = false; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (!Op->Test(InTargetElement, InDataCandidate)) { bMatch = false; } }
+		}
+		else
+		{
+			bMatch = false;
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (Op->Test(InTargetElement, InDataCandidate)) { bMatch = true; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(InTargetElement, InDataCandidate)) { bMatch = false; } }
+		}
+
+		return bMatch;
+	}
+
+	bool FDataMatcher::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const
 	{
 		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
 
-		if (MatchMode == EPCGExMapMatchMode::All)
-		{
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(InTargetElement, InDataCandidate)) { return false; } }
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (!Op->Test(InTargetElement, InDataCandidate)) { return false; } }
-		}
-		else
-		{
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(InTargetElement, InDataCandidate)) { return false; } }
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (Op->Test(InTargetElement, InDataCandidate)) { return true; } }
-		}
-		return true;
-	}
-
-	void FDataMatcher::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const
-	{
-		if (MatchMode == EPCGExMapMatchMode::Disabled) { return; }
-
+		int32 NumIgnored = 0;
 		TArray<PCGExData::FTaggedData>& TargetsRef = *Targets.Get();
 		for (const PCGExData::FTaggedData& TaggedData : TargetsRef)
 		{
-			if (!Test(TaggedData.Data, InDataCandidate)) { OutIgnoreList.Add(TaggedData.Data); }
+			if (!Test(TaggedData.Data, InDataCandidate))
+			{
+				OutIgnoreList.Add(TaggedData.Data);
+				NumIgnored++;
+			}
 		}
+
+		return Targets->Num() != NumIgnored;
 	}
 
 	int32 FDataMatcher::GetMatchingTargets(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TArray<int32>& OutMatches) const
@@ -133,6 +152,14 @@ namespace PCGExMatching
 		return OutMatches.Num();
 	}
 
+	bool FDataMatcher::HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward) const
+	{
+		if (!Details->bSplitUnmatched) { return false; }
+		if (bForward) { if (!InFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward)) { return true; } }
+		InFacade->Source->OutputPin = OutputUnmatchedLabel;
+		return true;
+	}
+
 	void FDataMatcher::RegisterTaggedData(FPCGExContext* InContext, const PCGExData::FTaggedData& InTaggedData)
 	{
 		const int32* ExistingIndex = TargetsMap.Find(InTaggedData.Data);
@@ -146,7 +173,7 @@ namespace PCGExMatching
 		const int32 DataIndex = Targets->Num();
 
 		TargetsMap.Add(InTaggedData.Data, DataIndex);
-		PCGExData::FElement& DataPoint = Elements->Emplace_GetRef(0, DataIndex);
+		PCGExData::FConstPoint& DataPoint = Elements->Emplace_GetRef(nullptr, 0, DataIndex);
 
 		PCGExData::FTaggedData& TaggedData = Targets->Add_GetRef(InTaggedData);
 

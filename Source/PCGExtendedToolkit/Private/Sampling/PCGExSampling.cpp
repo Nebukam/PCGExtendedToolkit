@@ -330,10 +330,18 @@ namespace PCGExSampling
 		if (!DataMatcher->Init(InContext, TargetFacades, false)) { DataMatcher.Reset(); }
 	}
 
-	void FTargetsHandler::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const
+	bool FTargetsHandler::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const
 	{
-		if (DataMatcher) { DataMatcher->PopulateIgnoreList(InDataCandidate, OutIgnoreList); }
+		if (DataMatcher) { return DataMatcher->PopulateIgnoreList(InDataCandidate, OutIgnoreList); }
+		return true;
 	}
+
+	bool FTargetsHandler::HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward) const
+	{
+		if (DataMatcher) { return DataMatcher->HandleUnmatchedOutput(InFacade, bForward); }
+		return false;
+	}
+
 
 	void FTargetsHandler::ForEachPreloader(PCGExData::FMultiFacadePreloader::FPreloaderItCallback&& It) const
 	{

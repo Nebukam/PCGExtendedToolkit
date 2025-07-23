@@ -323,11 +323,8 @@ namespace PCGEx
 			return Prepare(InSelector, InPointIO);
 		}
 
-		bool PrepareForSingleFetch(const FName& InName, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys = nullptr)
+		bool PrepareForSingleFetch(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys = nullptr)
 		{
-			FPCGAttributePropertyInputSelector InSelector = FPCGAttributePropertyInputSelector();
-			InSelector.Update(InName.ToString());
-
 			if (InKeys) { Keys = InKeys; }
 			else if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(InData)) { Keys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(PointData); }
 			else if (InData->Metadata) { Keys = MakeShared<FPCGAttributeAccessorKeysEntries>(InData->Metadata); }
@@ -337,7 +334,20 @@ namespace PCGEx
 			PCGExMath::TypeMinMax(Min, Max);
 			return ApplySelector(InSelector, InData);
 		}
-		
+
+		bool PrepareForSingleFetch(const FName& InName, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys = nullptr)
+		{
+			FPCGAttributePropertyInputSelector InSelector = FPCGAttributePropertyInputSelector();
+			InSelector.Update(InName.ToString());
+
+			return PrepareForSingleFetch(InSelector, InData, InKeys);
+		}
+
+		bool PrepareForSingleFetch(const FPCGAttributePropertyInputSelector& InSelector, const PCGExData::FTaggedData& InData)
+		{
+			return PrepareForSingleFetch(InSelector, InData.Data, InData.Keys);
+		}
+
 		bool PrepareForSingleFetch(const FName& InName, const PCGExData::FTaggedData& InData)
 		{
 			return PrepareForSingleFetch(InName, InData.Data, InData.Keys);

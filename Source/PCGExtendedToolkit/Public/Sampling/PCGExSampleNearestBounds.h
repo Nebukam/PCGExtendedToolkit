@@ -56,6 +56,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings

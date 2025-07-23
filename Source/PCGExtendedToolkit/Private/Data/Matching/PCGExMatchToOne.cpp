@@ -3,6 +3,9 @@
 
 #include "Data/Matching/PCGExMatchToOne.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExMatchToOne"
 #define PCGEX_NAMESPACE MatchToOne
 
@@ -11,7 +14,7 @@ bool FPCGExMatchToOne::PrepareForTargets(FPCGExContext* InContext, const TShared
 	return FPCGExMatchRuleOperation::PrepareForTargets(InContext, InTargets);
 }
 
-bool FPCGExMatchToOne::Test(const PCGExData::FElement& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
+bool FPCGExMatchToOne::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
 {
 	return PointIO->IOIndex == InTargetElement.IO;
 }

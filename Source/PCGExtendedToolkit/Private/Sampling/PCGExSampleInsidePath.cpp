@@ -36,10 +36,8 @@ TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::InputPinProperties() c
 TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if (OutputMode == EPCGExSampleInsidePathOutput::Split)
-	{
-		PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "", Normal, {})
-	}
+	if (OutputMode == EPCGExSampleInsidePathOutput::Split) { PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discard inputs are paths that failed to sample any points, despite valid targets.", Normal, {}) }
+	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -218,9 +216,14 @@ namespace PCGExSampleInsidePath
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
-		Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList);
+		if (!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList))
+		{
+			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+			return false;
+		}
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		Path = PCGExPaths::MakePolyPath(PointDataFacade->GetIn(), 1, FVector::UpVector, Settings->HeightInclusion);
 

@@ -232,7 +232,8 @@ namespace PCGExSampling
 		TSharedPtr<PCGExDetails::FDistances> GetDistances() const { return Distances; }
 
 		void SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails);
-		void PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const;
+		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const;
+		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;
 		
 		void ForEachPreloader(PCGExData::FMultiFacadePreloader::FPreloaderItCallback&& It) const;
 

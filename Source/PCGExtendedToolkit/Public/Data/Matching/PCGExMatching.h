@@ -129,7 +129,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagComparisonDetails : public FPC
  * A @Data attribute value will be compared against a point' value
  */
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToDataComparisonDetails : public FPCGExMatchAndCompareDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToDataComparisonDetails	 : public FPCGExMatchAndCompareDetails
 {
 	GENERATED_BODY()
 
@@ -207,6 +207,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExMapMatchMode Mode = EPCGExMapMatchMode::Disabled;
 
+	/** Whether to output unmatched data in a separate pin */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	bool bSplitUnmatched = true;
+
 	/** Whether to limit the number of matches or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode != EPCGExMapMatchMode::Disabled", EditConditionHides))
 	bool bLimitMatches = true;
@@ -222,13 +226,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 	/** Constant Limit value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Limit", EditCondition="bLimitMatches && LimitInput == EPCGExInputValueType::Constant && Mode != EPCGExMapMatchMode::Disabled", EditConditionHides))
 	int32 Limit = 1;
+
+	bool WantsUnmatchedSplit() const { return Mode != EPCGExMapMatchMode::Disabled && bSplitUnmatched; }
 };
 
 namespace PCGExMatching
 {
 	const FName OutputMatchRuleLabel = TEXT("Match Rule");
 	const FName SourceMatchRulesLabel = TEXT("Match Rules");
+	const FName OutputUnmatchedLabel = TEXT("Unmatched");
 
 	PCGEXTENDEDTOOLKIT_API
 	void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus = EPCGPinStatus::Normal);
+
+	PCGEXTENDEDTOOLKIT_API
+	void DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 }

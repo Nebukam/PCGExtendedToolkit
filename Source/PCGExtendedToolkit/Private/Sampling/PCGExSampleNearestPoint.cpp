@@ -38,6 +38,13 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	return PinProperties;
 }
 
+TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
+	return PinProperties;
+}
+
 bool UPCGExSampleNearestPointSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExSampleMethod::BestCandidate; }
@@ -238,9 +245,14 @@ namespace PCGExSampleNearestPoints
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
-		Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList);
+		if (!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList))
+		{
+			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+			return false;
+		}
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		// Allocate edge native properties
 

@@ -123,10 +123,13 @@ namespace PCGExCreateSpline
 		bool bClosedLoop = false;
 		bool bApplyTangents = false;
 		float MaxIndex = 0.0;
+		
+		int8 HasAValidEntry = false;
 
 		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
 		TSharedPtr<PCGExData::TBuffer<int32>> CustomPointType;
 
+		TArray<PCGMetadataEntryKey> SplineEntryKeys;
 		TArray<FSplinePoint> SplinePoints;
 		FVector PositionOffset = FVector::ZeroVector;
 
@@ -145,6 +148,8 @@ namespace PCGExCreateSpline
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+		virtual void OnPointsProcessingComplete() override;
+		
 		virtual void Output() override;
 		virtual void Cleanup() override;
 	};

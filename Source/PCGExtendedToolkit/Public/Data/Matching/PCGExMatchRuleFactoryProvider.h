@@ -8,7 +8,6 @@
 #include "PCGExOperation.h"
 #include "PCGExPointsProcessor.h"
 
-
 #include "PCGExMatchRuleFactoryProvider.generated.h"
 
 #define PCGEX_MATCH_RULE_BOILERPLATE(_RULE) \
@@ -32,7 +31,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchRuleConfigBase
 	virtual ~FPCGExMatchRuleConfigBase() = default;
 
 	/** Match Strictness */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	EPCGExMatchStrictness Strictness = EPCGExMatchStrictness::Required;
 
 	virtual void Init()
@@ -48,7 +47,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExMatchRuleOperation : public FPCGExOperation
 public:
 	virtual bool PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<PCGExData::FTaggedData>>& InTargets);
 
-	virtual bool Test(const PCGExData::FElement& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
+	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
 	PCGEX_NOT_IMPLEMENTED_RET(Test, false);
 
 protected:
@@ -63,6 +62,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMatchRuleFactoryData : public UPCGExFactoryDa
 public:
 	FPCGExMatchRuleConfigBase BaseConfig;
 
+	virtual bool WantsPoints() { return false; }
+	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::MatchRule; }
 	virtual TSharedPtr<FPCGExMatchRuleOperation> CreateOperation(FPCGExContext* InContext) const;
 };
@@ -93,7 +94,7 @@ namespace PCGExMatching
 		const FPCGExMatchingDetails* Details = nullptr;
 
 		TSharedPtr<TArray<PCGExData::FTaggedData>> Targets;
-		TSharedPtr<TArray<PCGExData::FElement>> Elements;
+		TSharedPtr<TArray<PCGExData::FConstPoint>> Elements;
 		TMap<const UPCGData*, int32> TargetsMap;
 		TArray<TSharedPtr<FPCGExMatchRuleOperation>> Operations;
 
@@ -112,10 +113,12 @@ namespace PCGExMatching
 		bool Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError);
 
 		bool Test(const UPCGData* InTarget, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const;
-		bool Test(const PCGExData::FElement& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const;
+		bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const;
 
-		void PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const;
+		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const;
 		int32 GetMatchingTargets(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TArray<int32>& OutMatches) const;
+
+		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;
 
 	protected:
 		void RegisterTaggedData(FPCGExContext* InContext, const PCGExData::FTaggedData& InTaggedData);
