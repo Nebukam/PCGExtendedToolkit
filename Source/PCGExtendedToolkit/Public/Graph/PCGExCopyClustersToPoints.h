@@ -9,6 +9,7 @@
 #include "PCGExEdgesProcessor.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/Matching/PCGExMatching.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 
 #include "PCGExCopyClustersToPoints.generated.h"
@@ -32,6 +33,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(CopyClustersToPoints, "Cluster : Copy to Points", "Create a copies of the input clusters onto the target points.  NOTE: Does not sanitize input.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
 #endif
 
 protected:
@@ -48,6 +50,10 @@ public:
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTransformDetails TransformDetails;
+
+	/** If enabled, allows you to pick which input gets copied to which target point. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -78,6 +84,7 @@ struct FPCGExCopyClustersToPointsContext final : FPCGExEdgesProcessorContext
 	FPCGExTransformDetails TransformDetails;
 
 	TSharedPtr<PCGExData::FFacade> TargetsDataFacade;
+	TSharedPtr<PCGExMatching::FDataMatcher> DataMatcher;
 
 	FPCGExAttributeToTagComparisonDetails MatchByTagValue;
 	FPCGExAttributeToTagDetails TargetsAttributesToClusterTags;

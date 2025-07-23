@@ -257,6 +257,9 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorTensor = FLinearColor(0.350314, 1.000000, 0.470501, 1.000000);
+	
+	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
+	FLinearColor NodeColorMatch = FLinearColor(0.020020,1.000000,0.036055,1.000000);
 
 	FLinearColor NodeColorFallbackToType = FLinearColor::White;
 

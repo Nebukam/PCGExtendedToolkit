@@ -15,10 +15,24 @@ PCGExData::EIOInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() c
 
 PCGEX_INITIALIZE_ELEMENT(CopyClustersToPoints)
 
+#if WITH_EDITOR
+void UPCGExCopyClustersToPointsSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	if (bDoMatchByTags && DataMatching.Mode == EPCGExMapMatchMode::Disabled)
+	{
+		DataMatching.Mode = EPCGExMapMatchMode::All;
+		bDoMatchByTags = false;
+	}
+
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+}
+#endif
+
 TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points to copy clusters to.", Required, {})
+	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -36,6 +50,13 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(TargetsAttributesToClusterTags)
 	if (!Context->TargetsAttributesToClusterTags.Init(Context, Context->TargetsDataFacade)) { return false; }
+
+	Context->DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+	Context->DataMatcher->SetDetails(&Settings->DataMatching);
+	if (!Context->DataMatcher->Init(Context, {Context->TargetsDataFacade}))
+	{
+		return false;
+	}
 
 	if (Settings->bDoMatchByTags)
 	{

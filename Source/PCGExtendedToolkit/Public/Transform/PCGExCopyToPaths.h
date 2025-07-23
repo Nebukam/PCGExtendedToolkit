@@ -8,6 +8,7 @@
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/Matching/PCGExMatching.h"
 #include "Paths/PCGExCreateSpline.h"
 #include "Paths/Tangents/PCGExTangentsInstancedFactory.h"
 
@@ -57,7 +58,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable))
 	FPCGExTangentsDetails Tangents;
-
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
@@ -112,6 +112,10 @@ public:
 
 #pragma endregion
 
+	/** If enabled, allows you to pick which input gets copied to which path/spline. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching;
+	
 	bool GetApplyTangents() const
 	{
 		return (!bApplyCustomPointType && DefaultPointType == EPCGExSplinePointType::CurveCustomTangent);

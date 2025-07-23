@@ -159,15 +159,11 @@ bool FPCGExAttributeToDataComparisonDetails::GetOnlyUseDataDomain() const
 		PCGExHelpers::IsDataDomainAttribute(ValueNameAttribute);
 }
 
-void FPCGExMatchingDetails::DeclareInputPins(TArray<FPCGPinProperties>& PinProperties, bool bTargetPoints) const
+void PCGExMatching::DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus)
 {
-	if (Mode == EPCGExMapMatchMode::Disabled) { return; }
-	if (bTargetPoints)
-	{
-		PCGEX_PIN_FACTORIES(PCGExMatching::SourceMatchRulesLabel, "Matching rules to determine which target can be sampled by each input", Normal, {})
-	}
-	else
-	{
-		PCGEX_PIN_FACTORIES(PCGExMatching::SourceMatchRulesLabel, "Matching rules to determine which target can be sampled by each input", Normal, {})
-	}
+	if (InDetails.Mode == EPCGExMapMatchMode::Disabled) { return; }
+
+	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(PCGExMatching::SourceMatchRulesLabel, EPCGDataType::Param);
+	Pin.Tooltip = FTEXT("Matching rules to determine which target can be sampled by each input.");
+	Pin.PinStatus = InStatus;
 }

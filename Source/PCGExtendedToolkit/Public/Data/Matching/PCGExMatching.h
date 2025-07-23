@@ -222,13 +222,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 	/** Constant Limit value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Limit", EditCondition="bLimitMatches && LimitInput == EPCGExInputValueType::Constant && Mode != EPCGExMapMatchMode::Disabled", EditConditionHides))
 	int32 Limit = 1;
-
-	void DeclareInputPins(TArray<FPCGPinProperties>& PinProperties, bool bTargetPoints = false) const;
-	
 };
 
 namespace PCGExMatching
 {
 	const FName OutputMatchRuleLabel = TEXT("Match Rule");
 	const FName SourceMatchRulesLabel = TEXT("Match Rules");
+
+	PCGEXTENDEDTOOLKIT_API
+	void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus = EPCGPinStatus::Normal);
 }

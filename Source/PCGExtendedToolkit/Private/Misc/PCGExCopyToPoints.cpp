@@ -6,12 +6,27 @@
 #define LOCTEXT_NAMESPACE "PCGExCopyToPointsElement"
 #define PCGEX_NAMESPACE CopyToPoints
 
+#if WITH_EDITOR
+void UPCGExCopyToPointsSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	if ((bDoMatchByTags || bDoMatchByData) && DataMatching.Mode == EPCGExMapMatchMode::Disabled)
+	{
+		DataMatching.Mode = EPCGExMapMatchMode::All;
+		bDoMatchByTags = false;
+		bDoMatchByData = false;
+	}
+
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+}
+#endif
+
+
 TArray<FPCGPinProperties> UPCGExCopyToPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points to copy inputs to.", Required, {})
-	DataMatching.DeclareInputPins(PinProperties);
-	
+	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
+
 	return PinProperties;
 }
 
