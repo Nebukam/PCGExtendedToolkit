@@ -213,7 +213,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 
 	/** Whether to limit the number of matches or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode != EPCGExMapMatchMode::Disabled", EditConditionHides))
-	bool bLimitMatches = true;
+	bool bLimitMatches = false;
 
 	/** Type of Match limit */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bLimitMatches && Mode != EPCGExMapMatchMode::Disabled", EditConditionHides))

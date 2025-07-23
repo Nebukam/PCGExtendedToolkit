@@ -32,7 +32,7 @@ bool FPCGExMatchAttrToAttr::PrepareForTargets(FPCGExContext* InContext, const TS
 
 			if (!Getter->PrepareForSingleFetch(Config.TargetAttributeName, TaggedData))
 			{
-				// TOOD : Log error
+				PCGEX_LOG_INVALID_ATTR_C(InContext, Target Attribute, Config.TargetAttributeName)
 				return false;
 			}
 
@@ -47,7 +47,7 @@ bool FPCGExMatchAttrToAttr::PrepareForTargets(FPCGExContext* InContext, const TS
 
 			if (!Getter->PrepareForSingleFetch(Config.TargetAttributeName, TaggedData))
 			{
-				// TOOD : Log error
+				PCGEX_LOG_INVALID_ATTR_C(InContext, Target Attribute, Config.TargetAttributeName)
 				return false;
 			}
 

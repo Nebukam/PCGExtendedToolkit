@@ -28,11 +28,14 @@ bool FPCGExMatchTagToAttr::PrepareForTargets(FPCGExContext* InContext, const TSh
 		for (const PCGExData::FTaggedData& TaggedData : TargetsRef)
 		{
 			TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> Getter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
+
 			if (!Getter->PrepareForSingleFetch(Config.TagNameAttribute, TaggedData))
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag name attribute."));
+				PCGEX_LOG_INVALID_ATTR_C(InContext, Tag Name, Config.TagNameAttribute)
 				return false;
 			}
+
+			TagNameGetters.Add(Getter);
 		}
 	}
 
@@ -45,11 +48,14 @@ bool FPCGExMatchTagToAttr::PrepareForTargets(FPCGExContext* InContext, const TSh
 		for (const PCGExData::FTaggedData& TaggedData : TargetsRef)
 		{
 			TSharedPtr<PCGEx::TAttributeBroadcaster<double>> Getter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
+
 			if (!Getter->PrepareForSingleFetch(Config.ValueAttribute, TaggedData))
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag value attribute."));
+				PCGEX_LOG_INVALID_SELECTOR_C(InContext, Value, Config.ValueAttribute)
 				return false;
 			}
+
+			NumGetters.Add(Getter);
 		}
 		break;
 	case EPCGExComparisonDataType::String:
@@ -57,11 +63,14 @@ bool FPCGExMatchTagToAttr::PrepareForTargets(FPCGExContext* InContext, const TSh
 		for (const PCGExData::FTaggedData& TaggedData : TargetsRef)
 		{
 			TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> Getter = MakeShared<PCGEx::TAttributeBroadcaster<FString>>();
+
 			if (!Getter->PrepareForSingleFetch(Config.ValueAttribute, TaggedData))
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid tag value attribute."));
+				PCGEX_LOG_INVALID_SELECTOR_C(InContext, Value, Config.ValueAttribute)
 				return false;
 			}
+
+			StrGetters.Add(Getter);
 		}
 		break;
 	}
@@ -124,7 +133,8 @@ FString UPCGExCreateMatchTagToAttrSettings::GetDisplayName() const
 		else { TagSourceStr += PCGExCompare::ToString(Config.StringComparison); }
 
 		TagSourceStr += TEXT("Target' @") + PCGEx::GetSelectorDisplayName(Config.ValueAttribute);
-	}else
+	}
+	else
 	{
 		TagSourceStr += PCGExCompare::ToString(Config.NameMatch) + TEXT("Target' @") + Config.TagNameAttribute.ToString();
 	}
