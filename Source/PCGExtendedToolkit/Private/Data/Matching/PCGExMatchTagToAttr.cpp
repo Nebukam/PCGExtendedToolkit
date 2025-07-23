@@ -118,7 +118,7 @@ FString UPCGExCreateMatchTagToAttrSettings::GetDisplayName() const
 
 	if (Config.bDoValueMatch)
 	{
-		TagSourceStr += TEXT("::Value");
+		TagSourceStr += TEXT("::Value ") + PCGExCompare::ToString(Config.NameMatch);
 
 		if (Config.ValueType == EPCGExComparisonDataType::Numeric) { TagSourceStr += PCGExCompare::ToString(Config.NumericComparison); }
 		else { TagSourceStr += PCGExCompare::ToString(Config.StringComparison); }
@@ -126,7 +126,7 @@ FString UPCGExCreateMatchTagToAttrSettings::GetDisplayName() const
 		TagSourceStr += TEXT("Target' @") + PCGEx::GetSelectorDisplayName(Config.ValueAttribute);
 	}else
 	{
-		TagSourceStr += TEXT("Target' @") + Config.TagNameAttribute.ToString();
+		TagSourceStr += PCGExCompare::ToString(Config.NameMatch) + TEXT("Target' @") + Config.TagNameAttribute.ToString();
 	}
 
 	return TagSourceStr;
