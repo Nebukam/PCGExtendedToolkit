@@ -100,7 +100,7 @@ namespace PCGExCopyToPoints
 		{
 			Dupes[i] = nullptr;
 
-			if (!Context->DataMatcher->Test(Context->TargetsDataFacade->GetInPoint(i), PointDataFacade->Source)) { continue; }
+			if (!Context->DataMatcher->Test(Context->TargetsDataFacade->GetInPoint(i), PointDataFacade->Source, MatchScope)) { continue; }
 
 			Copies++;
 

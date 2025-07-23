@@ -40,6 +40,14 @@ enum class EPCGExClusterComponentTagMatchMode : uint8
 	Separated = 4 UMETA(DisplayName = "Separate", ToolTip="Uses two separate set of match handlers -- the default pin will be used on Vtx, the extra one for Edges."),
 };
 
+UENUM()
+enum class EPCGExMatchingDetailsUsage : uint8
+{
+	Default  = 0 ,
+	Cluster  = 1 ,
+	Sampling = 2 ,
+};
+
 /**
  * Used when data from different pins needs to be paired together
  * by using either tags or @Data attribute but no access to points.
@@ -56,20 +64,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 	{
 	}
 
-	explicit FPCGExMatchingDetails(const bool InClusterMatching, const EPCGExMapMatchMode InMode = EPCGExMapMatchMode::Disabled)
-		: bClusterMatching(InClusterMatching), Mode(InMode)
+	explicit FPCGExMatchingDetails(const EPCGExMatchingDetailsUsage InUsage, const EPCGExMapMatchMode InMode = EPCGExMapMatchMode::Disabled)
+		: Usage(InUsage), Mode(InMode)
 	{
 	}
 
 	UPROPERTY()
-	bool bClusterMatching = false;
+	EPCGExMatchingDetailsUsage Usage = EPCGExMatchingDetailsUsage::Default;
 
 	/** Whether matching is enabled or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExMapMatchMode Mode = EPCGExMapMatchMode::Disabled;
 
 	/** Which cluster component must match the tags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bClusterMatching", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Usage==EPCGExMatchingDetailsUsage::Cluster", EditConditionHides, HideEditConditionToggle))
 	EPCGExClusterComponentTagMatchMode ClusterMatchMode = EPCGExClusterComponentTagMatchMode::Vtx;
 
 	/** Whether to output unmatched data in a separate pin */
@@ -77,19 +85,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 	bool bSplitUnmatched = true;
 
 	/** Whether to limit the number of matches or not */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode != EPCGExMapMatchMode::Disabled", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling", EditConditionHides))
 	bool bLimitMatches = false;
 
 	/** Type of Match limit */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bLimitMatches && Mode != EPCGExMapMatchMode::Disabled", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bLimitMatches && Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling", EditConditionHides))
 	EPCGExInputValueType LimitInput = EPCGExInputValueType::Constant;
 
 	/** Attribute to read Limit value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Limit (Attr)", EditCondition="bLimitMatches && LimitInput != EPCGExInputValueType::Constant && Mode != EPCGExMapMatchMode::Disabled", EditConditionHides))
-	FPCGAttributePropertyInputSelector WeightAttribute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Limit (Attr)", EditCondition="bLimitMatches && LimitInput != EPCGExInputValueType::Constant && Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling", EditConditionHides))
+	FPCGAttributePropertyInputSelector LimitAttribute;
 
 	/** Constant Limit value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Limit", EditCondition="bLimitMatches && LimitInput == EPCGExInputValueType::Constant && Mode != EPCGExMapMatchMode::Disabled", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Limit", EditCondition="bLimitMatches && LimitInput == EPCGExInputValueType::Constant && Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling", EditConditionHides))
 	int32 Limit = 1;
 
 	bool WantsUnmatchedSplit() const { return Mode != EPCGExMapMatchMode::Disabled && bSplitUnmatched; }

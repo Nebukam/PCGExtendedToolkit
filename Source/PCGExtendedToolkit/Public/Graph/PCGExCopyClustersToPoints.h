@@ -40,7 +40,7 @@ public:
 
 	/** If enabled, allows you to pick which input gets copied to which target point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(true);
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Cluster);
 
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -87,6 +87,8 @@ namespace PCGExCopyClusters
 
 	protected:
 		int32 NumCopies = 0;
+		PCGExMatching::FMatchingScope MatchScope;
+		PCGExMatching::FMatchingScope InfiniteScope = PCGExMatching::FMatchingScope(true);
 
 	public:
 		TArray<TSharedPtr<PCGExData::FPointIO>>* VtxDupes = nullptr;

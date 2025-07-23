@@ -84,6 +84,7 @@ namespace PCGExCopyToPoints
 	protected:
 		TArray<TSharedPtr<PCGExData::FPointIO>> Dupes;
 		int32 NumCopies = 0;
+		PCGExMatching::FMatchingScope MatchScope;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

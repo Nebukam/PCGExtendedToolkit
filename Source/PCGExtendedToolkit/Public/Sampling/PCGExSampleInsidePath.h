@@ -61,7 +61,7 @@ protected:
 public:
 	/** If enabled, allows you to filter out which targets get sampled by which data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExMatchingDetails DataMatching;
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Sampling);
 
 	//
 

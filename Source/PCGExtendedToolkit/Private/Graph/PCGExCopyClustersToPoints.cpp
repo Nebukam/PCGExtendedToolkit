@@ -131,17 +131,17 @@ namespace PCGExCopyClusters
 			case EPCGExClusterComponentTagMatchMode::Both:
 			case EPCGExClusterComponentTagMatchMode::Edges:
 			case EPCGExClusterComponentTagMatchMode::Separated:
-				if (!Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source)) { continue; }
+				if (!Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source, MatchScope)) { continue; }
 				break;
 			case EPCGExClusterComponentTagMatchMode::Any:
 				if (bSameAnyChecks)
 				{
-					if (Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source)) { continue; }
+					if (Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source, MatchScope)) { continue; }
 				}
 				else
 				{
-					if (Context->MainDataMatcher->Test(TargetPoint, VtxDataFacade->Source) ||
-						Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source))
+					if (Context->MainDataMatcher->Test(TargetPoint, VtxDataFacade->Source, InfiniteScope) ||
+						Context->EdgeDataMatcher->Test(TargetPoint, EdgeDataFacade->Source, MatchScope))
 					{
 						continue;
 					}
@@ -224,6 +224,8 @@ namespace PCGExCopyClusters
 		PCGEx::InitArray(VtxDupes, NumTargets);
 		PCGEx::InitArray(VtxTag, NumTargets);
 
+		PCGExMatching::FMatchingScope MatchScope = PCGExMatching::FMatchingScope();
+
 		for (int i = 0; i < NumTargets; i++)
 		{
 			VtxDupes[i] = nullptr;
@@ -236,7 +238,7 @@ namespace PCGExCopyClusters
 			case EPCGExClusterComponentTagMatchMode::Vtx:
 			case EPCGExClusterComponentTagMatchMode::Both:
 			case EPCGExClusterComponentTagMatchMode::Separated:
-				if (!Context->MainDataMatcher->Test(TargetPoint, VtxDataFacade->Source)) { continue; }
+				if (!Context->MainDataMatcher->Test(TargetPoint, VtxDataFacade->Source, MatchScope)) { continue; }
 				break;
 			case EPCGExClusterComponentTagMatchMode::Edges:
 			case EPCGExClusterComponentTagMatchMode::Any:

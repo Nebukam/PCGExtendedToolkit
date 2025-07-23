@@ -22,6 +22,21 @@ UPCGExFactoryData* UPCGExMatchRuleFactoryProviderSettings::CreateFactory(FPCGExC
 	return Super::CreateFactory(InContext, InFactory);
 }
 
+PCGExMatching::FMatchingScope::FMatchingScope(const bool bUnlimited)
+{
+	if (bUnlimited) { Counter = -MAX_int32; }
+}
+
+void PCGExMatching::FMatchingScope::RegisterMatch()
+{
+	FPlatformAtomics::InterlockedIncrement(&Counter);
+}
+
+void PCGExMatching::FMatchingScope::Invalidate()
+{
+	FPlatformAtomics::InterlockedExchange(&Valid, false);
+}
+
 namespace PCGExMatching
 {
 	FDataMatcher::FDataMatcher()
@@ -80,9 +95,14 @@ namespace PCGExMatching
 		return InitInternal(InContext, InFactoriesLabel, bThrowError);
 	}
 
-	bool FDataMatcher::Test(const UPCGData* InTarget, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const
+	bool FDataMatcher::Test(const UPCGData* InTarget, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope) const
 	{
 		if (MatchMode == EPCGExMapMatchMode::Disabled || Operations.IsEmpty()) { return true; }
+
+		if (Details->bLimitMatches)
+		{
+			if (!InMatchingScope.IsValid()) { return false; }
+		}
 
 		const int32* DataIndexPtr = TargetsMap.Find(InTarget);
 		if (!DataIndexPtr) { return false; }
@@ -104,12 +124,20 @@ namespace PCGExMatching
 			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(TargetElement, InDataCandidate)) { bMatch = false; } }
 		}
 
+		if (bMatch)
+		{
+			InMatchingScope.RegisterMatch();
+			if (InMatchingScope.GetCounter() > GetMatchLimitFor(InDataCandidate)) { InMatchingScope.Invalidate(); }
+		}
+
 		return bMatch;
 	}
 
-	bool FDataMatcher::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const
+	bool FDataMatcher::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope) const
 	{
 		if (MatchMode == EPCGExMapMatchMode::Disabled || Operations.IsEmpty()) { return true; }
+
+		if (Details->bLimitMatches) { if (!InMatchingScope.IsValid()) { return false; } }
 
 		bool bMatch = true;
 
@@ -125,6 +153,12 @@ namespace PCGExMatching
 			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(InTargetElement, InDataCandidate)) { bMatch = false; } }
 		}
 
+		if (bMatch)
+		{
+			InMatchingScope.RegisterMatch();
+			if (InMatchingScope.GetCounter() >= GetMatchLimitFor(InDataCandidate)) { InMatchingScope.Invalidate(); }
+		}
+
 		return bMatch;
 	}
 
@@ -132,11 +166,13 @@ namespace PCGExMatching
 	{
 		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
 
+		FMatchingScope IgnoreScope = FMatchingScope(true);
+
 		int32 NumIgnored = 0;
 		TArray<PCGExData::FTaggedData>& TargetsRef = *Targets.Get();
 		for (const PCGExData::FTaggedData& TaggedData : TargetsRef)
 		{
-			if (!Test(TaggedData.Data, InDataCandidate))
+			if (!Test(TaggedData.Data, InDataCandidate, IgnoreScope))
 			{
 				OutIgnoreList.Add(TaggedData.Data);
 				NumIgnored++;
@@ -151,13 +187,15 @@ namespace PCGExMatching
 		TArray<PCGExData::FTaggedData>& TargetsRef = *Targets.Get();
 		OutMatches.Reset(TargetsRef.Num());
 
+		FMatchingScope MatchListScope = FMatchingScope();
+
 		if (MatchMode == EPCGExMapMatchMode::Disabled)
 		{
 			PCGEx::ArrayOfIndices(OutMatches, TargetsRef.Num());
 		}
 		else
 		{
-			for (int i = 0; i < TargetsRef.Num(); i++) { if (Test(TargetsRef[i].Data, InDataCandidate)) { OutMatches.Add(i); } }
+			for (int i = 0; i < TargetsRef.Num(); i++) { if (Test(TargetsRef[i].Data, InDataCandidate, MatchListScope)) { OutMatches.Add(i); } }
 		}
 
 		return OutMatches.Num();
@@ -169,6 +207,21 @@ namespace PCGExMatching
 		if (bForward) { if (!InFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward)) { return true; } }
 		InFacade->Source->OutputPin = OutputUnmatchedLabel;
 		return true;
+	}
+
+	int32 FDataMatcher::GetMatchLimitFor(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const
+	{
+		if (!Details->bSplitUnmatched) { return MAX_int32; }
+
+		int32 OutLimit = 0;
+		if (!PCGExDataHelpers::TryGetSettingDataValue<int32>(InDataCandidate, Details->LimitInput, Details->LimitAttribute, Details->Limit, OutLimit))
+		{
+			return MAX_int32;
+		}
+		else
+		{
+			return OutLimit;
+		}
 	}
 
 	void FDataMatcher::RegisterTaggedData(FPCGExContext* InContext, const PCGExData::FTaggedData& InTaggedData)

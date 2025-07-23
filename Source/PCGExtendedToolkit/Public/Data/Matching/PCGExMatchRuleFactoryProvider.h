@@ -88,6 +88,21 @@ public:
 
 namespace PCGExMatching
 {
+	class FMatchingScope
+	{
+		int32 Counter = 0;
+		int8 Valid = true;
+
+	public:
+		explicit FMatchingScope(const bool bUnlimited = false);
+
+		void RegisterMatch();
+		FORCEINLINE int32 GetCounter() const { return FPlatformAtomics::AtomicRead(&Counter); }
+		FORCEINLINE bool IsValid() const { return static_cast<bool>(FPlatformAtomics::AtomicRead(&Valid)); }
+
+		void Invalidate();
+	};
+
 	class FDataMatcher : public TSharedFromThis<FDataMatcher>
 	{
 	protected:
@@ -113,8 +128,8 @@ namespace PCGExMatching
 		bool Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError);
 		bool Init(FPCGExContext* InContext, const TSharedPtr<FDataMatcher>& InOtherMatcher, const FName InFactoriesLabel, const bool bThrowError);
 
-		bool Test(const UPCGData* InTarget, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const;
-		bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const;
+		bool Test(const UPCGData* InTarget, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope) const;
+		bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope) const;
 
 		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const;
 		int32 GetMatchingTargets(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TArray<int32>& OutMatches) const;
@@ -122,6 +137,7 @@ namespace PCGExMatching
 		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;
 
 	protected:
+		int32 GetMatchLimitFor(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const;
 		void RegisterTaggedData(FPCGExContext* InContext, const PCGExData::FTaggedData& InTaggedData);
 		bool InitInternal(FPCGExContext* InContext, const FName InFactoriesLabel, const bool bThrowError);
 	};
