@@ -53,7 +53,7 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGExContext* InContext) const
 
 	Context->DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
 	Context->DataMatcher->SetDetails(&Settings->DataMatching);
-	if (!Context->DataMatcher->Init(Context, {Context->TargetsDataFacade}))
+	if (!Context->DataMatcher->Init(Context, {Context->TargetsDataFacade}, true))
 	{
 		return false;
 	}

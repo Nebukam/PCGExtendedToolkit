@@ -22,11 +22,11 @@ struct FPCGExMatchAttrToAttrNumConfig : public FPCGExMatchRuleConfigBase
 
 	/** The attribute to read from on the targets. Depending on where the match operate, this can be read on a target point or data domain. If only data domain is supported, will read first element value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName TargetAttributeName = FName("@Data.AttributeOnTarget");
+	FName TargetAttributeName = FName("@Data.Target");
 
 	/** The attribute to read on the candidates (the data that's not used as target). Only support @Data domain, and will only try to read from there. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName CandidateAttributeName = FName("@Data.AttributeOnCandidate");
+	FName CandidateAttributeName = FName("@Data.Input");
 
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

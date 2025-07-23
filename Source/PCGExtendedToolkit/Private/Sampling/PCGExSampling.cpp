@@ -327,7 +327,7 @@ namespace PCGExSampling
 	{
 		DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
 		DataMatcher->SetDetails(InDetails);
-		if (!DataMatcher->Init(InContext, TargetFacades)) { DataMatcher.Reset(); }
+		if (!DataMatcher->Init(InContext, TargetFacades, false)) { DataMatcher.Reset(); }
 	}
 
 	void FTargetsHandler::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const

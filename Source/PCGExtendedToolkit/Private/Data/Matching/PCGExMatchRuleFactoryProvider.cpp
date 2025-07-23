@@ -36,7 +36,7 @@ namespace PCGExMatching
 		MatchMode = Details->Mode;
 	}
 
-	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<const UPCGData*>& InTargetData, const TArray<TSharedPtr<PCGExData::FTags>>& InTags)
+	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<const UPCGData*>& InTargetData, const TArray<TSharedPtr<PCGExData::FTags>>& InTags, const bool bThrowError)
 	{
 		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
 
@@ -44,25 +44,25 @@ namespace PCGExMatching
 
 		Targets->Reserve(InTargetData.Num());
 		for (int i = 0; i < InTargetData.Num(); i++) { RegisterTaggedData(InContext, PCGExData::FTaggedData(InTargetData[i], InTags[i], nullptr)); }
-		return InitInternal(InContext);
+		return InitInternal(InContext, bThrowError);
 	}
 
-	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InTargetFacades)
+	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError)
 	{
 		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
 
 		Targets->Reserve(InTargetFacades.Num());
 		for (int i = 0; i < InTargetFacades.Num(); i++) { RegisterTaggedData(InContext, InTargetFacades[i]->Source->GetTaggedData()); }
-		return InitInternal(InContext);
+		return InitInternal(InContext, bThrowError);
 	}
 
-	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InTargetFacades)
+	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError)
 	{
 		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
 
 		Targets->Reserve(InTargetFacades.Num());
 		for (int i = 0; i < InTargetFacades.Num(); i++) { RegisterTaggedData(InContext, InTargetFacades[i]->Source->GetTaggedData()); }
-		return InitInternal(InContext);
+		return InitInternal(InContext, bThrowError);
 	}
 
 	bool FDataMatcher::Test(const UPCGData* InTarget, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const
@@ -157,12 +157,20 @@ namespace PCGExMatching
 		}
 	}
 
-	bool FDataMatcher::InitInternal(FPCGExContext* InContext)
+	bool FDataMatcher::InitInternal(FPCGExContext* InContext, const bool bThrowError)
 	{
-		if (Targets->IsEmpty()) { return false; }
+		if (Targets->IsEmpty())
+		{
+			MatchMode = EPCGExMapMatchMode::Disabled;
+			return false;
+		}
 
 		TArray<TObjectPtr<const UPCGExMatchRuleFactoryData>> Factories;
-		if (!PCGExFactories::GetInputFactories(InContext, PCGExMatching::SourceMatchRulesLabel, Factories, {PCGExFactories::EType::MatchRule}, true)) { return false; }
+		if (!PCGExFactories::GetInputFactories(InContext, PCGExMatching::SourceMatchRulesLabel, Factories, {PCGExFactories::EType::MatchRule}, bThrowError))
+		{
+			MatchMode = EPCGExMapMatchMode::Disabled;
+			return false;
+		}
 
 		Operations.Reserve(Factories.Num());
 		for (const TObjectPtr<const UPCGExMatchRuleFactoryData>& Factory : Factories)

@@ -40,7 +40,7 @@ PCGEX_MATCH_RULE_BOILERPLATE(AttrToAttrNum)
 #if WITH_EDITOR
 FString UPCGExCreateMatchAttrToAttrNumSettings::GetDisplayName() const
 {
-	return Config.TargetAttributeName.ToString() + TEXT(" ") + Config.CandidateAttributeName.ToString();
+	return Config.TargetAttributeName.ToString() + PCGExCompare::ToString(Config.Comparison) + Config.CandidateAttributeName.ToString();
 }
 #endif
 
