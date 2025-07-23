@@ -11,7 +11,6 @@
 #include "PCGExMatchCopyTags.generated.h"
 
 
-
 USTRUCT(BlueprintType)
 struct FPCGExMatchCopyTagsConfig : public FPCGExMatchRuleConfigBase
 {

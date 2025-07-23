@@ -27,7 +27,7 @@ UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="P
 class UPCGExCopyToPathsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
@@ -66,7 +66,7 @@ public:
 #pragma region Main axis
 
 	// Main axis is "along the spline"
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
 	EPCGExCopyToPathsUnit StartUnit = EPCGExCopyToPathsUnit::Alpha;
 
@@ -115,7 +115,7 @@ public:
 	/** If enabled, allows you to pick which input gets copied to which path/spline. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExMatchingDetails DataMatching;
-	
+
 	bool GetApplyTangents() const
 	{
 		return (!bApplyCustomPointType && DefaultPointType == EPCGExSplinePointType::CurveCustomTangent);

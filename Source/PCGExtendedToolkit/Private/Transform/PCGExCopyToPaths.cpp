@@ -83,7 +83,6 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 		{
 			if (SplineData->SplineStruct.GetNumberOfPoints() < 2) { continue; }
 			RegisterData(SplineData, &SplineData->SplineStruct, TaggedData.Tags);
-			continue;
 		}
 	}
 

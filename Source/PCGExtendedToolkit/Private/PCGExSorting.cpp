@@ -95,7 +95,7 @@ namespace PCGExSorting
 {
 	void PCGExSorting::DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus)
 	{
-		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(PCGExSorting::SourceSortingRules, EPCGDataType::Param);
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceSortingRules, EPCGDataType::Param);
 		Pin.Tooltip = FTEXT("Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.");
 		Pin.PinStatus = InStatus;
 	}

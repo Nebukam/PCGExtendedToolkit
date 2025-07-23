@@ -618,10 +618,7 @@ namespace PCGExSampling
 			if (bOverlap) { DistSquared = 0; }
 			return DistSquared;
 		}
-		else
-		{
-			return Distances->GetDistSquared(SourcePoint, TargetPoint);
-		}
+		return Distances->GetDistSquared(SourcePoint, TargetPoint);
 	}
 
 	void FTargetsHandler::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle) const

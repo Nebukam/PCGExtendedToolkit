@@ -4,9 +4,6 @@
 #include "Misc/Filters/PCGExPathInclusionFilter.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExPathInclusionFilterDefinition"
 #define PCGEX_NAMESPACE PCGExPathInclusionFilterDefinition
 

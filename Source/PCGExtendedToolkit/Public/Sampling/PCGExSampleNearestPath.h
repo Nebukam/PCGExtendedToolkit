@@ -81,7 +81,7 @@ public:
 	FPCGExMatchingDetails DataMatching;
 
 	//
-	
+
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExPathSamplingIncludeMode SampleInputs = EPCGExPathSamplingIncludeMode::All;
@@ -135,7 +135,7 @@ public:
 	/** If the value is greater than 0, will do a rough vertical check as part of the projected inclusion. 0 is infinite. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, ClampMin=0))
 	double HeightInclusion = 0;
-	
+
 #pragma endregion
 
 	/** Whether spline should be sampled at a specific alpha */

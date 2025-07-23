@@ -7,7 +7,7 @@ namespace PCGExDataBlending
 {
 	void DeclareBlendOpsInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus, EPCGExBlendingInterface Interface)
 	{
-		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(PCGExDataBlending::SourceBlendingLabel, EPCGDataType::Param);
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceBlendingLabel, EPCGDataType::Param);
 		Pin.Tooltip = FTEXT("Blending configurations, used by Individual (non-monolithic) blending interface.");
 		Pin.PinStatus = Interface == EPCGExBlendingInterface::Monolithic ? EPCGPinStatus::Advanced : InStatus;
 	}

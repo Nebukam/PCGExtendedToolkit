@@ -46,7 +46,7 @@ namespace PCGExMatching
 
 		Targets->Reserve(InTargetData.Num());
 		for (int i = 0; i < InTargetData.Num(); i++) { RegisterTaggedData(InContext, PCGExData::FTaggedData(InTargetData[i], InTags[i], nullptr)); }
-		return InitInternal(InContext, PCGExMatching::SourceMatchRulesLabel, bThrowError);
+		return InitInternal(InContext, SourceMatchRulesLabel, bThrowError);
 	}
 
 	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError)
@@ -57,7 +57,7 @@ namespace PCGExMatching
 
 		Targets->Reserve(InTargetFacades.Num());
 		for (int i = 0; i < InTargetFacades.Num(); i++) { RegisterTaggedData(InContext, InTargetFacades[i]->Source->GetTaggedData()); }
-		return InitInternal(InContext, PCGExMatching::SourceMatchRulesLabel, bThrowError);
+		return InitInternal(InContext, SourceMatchRulesLabel, bThrowError);
 	}
 
 	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError)
@@ -66,7 +66,7 @@ namespace PCGExMatching
 
 		Targets->Reserve(InTargetFacades.Num());
 		for (int i = 0; i < InTargetFacades.Num(); i++) { RegisterTaggedData(InContext, InTargetFacades[i]->Source->GetTaggedData()); }
-		return InitInternal(InContext, PCGExMatching::SourceMatchRulesLabel, bThrowError);
+		return InitInternal(InContext, SourceMatchRulesLabel, bThrowError);
 	}
 
 	bool FDataMatcher::Init(FPCGExContext* InContext, const TSharedPtr<FDataMatcher>& InOtherMatcher, const FName InFactoriesLabel, const bool bThrowError)

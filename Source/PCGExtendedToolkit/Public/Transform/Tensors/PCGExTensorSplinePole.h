@@ -10,8 +10,6 @@
 #include "PCGExTensorSplineFactoryProvider.h"
 
 
-
-
 #include "PCGExTensorSplinePole.generated.h"
 
 

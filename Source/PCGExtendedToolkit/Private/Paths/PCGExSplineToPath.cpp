@@ -236,7 +236,7 @@ namespace PCGExSplineToPath
 			for (int64& Key : OutMeta) { MutablePoints->Metadata->InitializeOnSet(Key); }
 
 			const TSharedPtr<FPCGAttributeAccessorKeysEntries> Keys = MakeShared<FPCGAttributeAccessorKeysEntries>(SplineData->Metadata);
-			
+
 			for (PCGEx::FAttributeIdentity Identity : SourceAttributes)
 			{
 				PCGEx::ExecuteWithRightType(

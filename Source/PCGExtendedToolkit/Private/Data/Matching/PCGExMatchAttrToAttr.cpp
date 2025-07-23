@@ -72,17 +72,14 @@ bool FPCGExMatchAttrToAttr::Test(const PCGExData::FConstPoint& InTargetElement, 
 			       PCGExCompare::Compare(Config.NumericComparison, TargetValue, CandidateValue) :
 			       PCGExCompare::Compare(Config.NumericComparison, CandidateValue, TargetValue);
 	}
-	else
-	{
-		const FString TargetValue = StrGetters[InTargetElement.IO]->FetchSingle(InTargetElement, TEXT(""));
-		FString CandidateValue = TEXT("");
+	const FString TargetValue = StrGetters[InTargetElement.IO]->FetchSingle(InTargetElement, TEXT(""));
+	FString CandidateValue = TEXT("");
 
-		if (!PCGExDataHelpers::TryReadDataValue<FString>(PointIO, Config.CandidateAttributeName_Sanitized, CandidateValue, true)) { return false; }
+	if (!PCGExDataHelpers::TryReadDataValue<FString>(PointIO, Config.CandidateAttributeName_Sanitized, CandidateValue, true)) { return false; }
 
-		return Config.bSwapOperands ?
-			       PCGExCompare::Compare(Config.StringComparison, TargetValue, CandidateValue) :
-			       PCGExCompare::Compare(Config.StringComparison, CandidateValue, TargetValue);
-	}
+	return Config.bSwapOperands ?
+		       PCGExCompare::Compare(Config.StringComparison, TargetValue, CandidateValue) :
+		       PCGExCompare::Compare(Config.StringComparison, CandidateValue, TargetValue);
 }
 
 bool UPCGExMatchAttrToAttrFactory::WantsPoints()
@@ -101,12 +98,9 @@ FString UPCGExCreateMatchAttrToAttrSettings::GetDisplayName() const
 			       Config.TargetAttributeName.ToString() + PCGExCompare::ToString(Config.NumericComparison) + Config.CandidateAttributeName.ToString() :
 			       Config.CandidateAttributeName.ToString() + PCGExCompare::ToString(Config.NumericComparison) + Config.TargetAttributeName.ToString();
 	}
-	else
-	{
-		return Config.bSwapOperands ?
-			       Config.TargetAttributeName.ToString() + PCGExCompare::ToString(Config.StringComparison) + Config.CandidateAttributeName.ToString() :
-			       Config.CandidateAttributeName.ToString() + PCGExCompare::ToString(Config.StringComparison) + Config.TargetAttributeName.ToString();
-	}
+	return Config.bSwapOperands ?
+		       Config.TargetAttributeName.ToString() + PCGExCompare::ToString(Config.StringComparison) + Config.CandidateAttributeName.ToString() :
+		       Config.CandidateAttributeName.ToString() + PCGExCompare::ToString(Config.StringComparison) + Config.TargetAttributeName.ToString();
 }
 #endif
 

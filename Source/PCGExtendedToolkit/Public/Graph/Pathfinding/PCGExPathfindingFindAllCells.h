@@ -75,7 +75,7 @@ struct FPCGExFindAllCellsContext final : FPCGExEdgesProcessorContext
 
 	TSharedPtr<PCGExTopology::FHoles> Holes;
 	TSharedPtr<PCGExData::FFacade> HolesFacade;
-	
+
 	TSharedPtr<PCGExData::FPointIOCollection> Paths;
 	TSharedPtr<PCGExData::FPointIO> Seeds;
 
@@ -123,5 +123,4 @@ namespace PCGExFindAllCells
 		virtual void CompleteWork() override;
 		virtual void Cleanup() override;
 	};
-
 }

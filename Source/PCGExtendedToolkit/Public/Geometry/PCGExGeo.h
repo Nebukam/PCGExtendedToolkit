@@ -16,7 +16,7 @@
 UENUM()
 enum class EPCGExProjectionMethod : uint8
 {
-	Normal       = 0 UMETA(DisplayName = "Normal", ToolTip="Uses a normal to project on a plane."),
+	Normal  = 0 UMETA(DisplayName = "Normal", ToolTip="Uses a normal to project on a plane."),
 	BestFit = 1 UMETA(DisplayName = "Best Fit", ToolTip="Compute eigen values to find the best-fit plane"),
 };
 
@@ -209,7 +209,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExProjectionMethod Method = EPCGExProjectionMethod::Normal;
-	
+
 	/** Normal vector of the 2D projection plane. Defaults to Up for XY projection. Used as fallback when using invalid local normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Method == EPCGExProjectionMethod::Normal", EditConditionHides, ShowOnlyInnerProperties))
 	FVector ProjectionNormal = FVector::UpVector;
@@ -224,7 +224,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 
 	TSharedPtr<PCGExDetails::TSettingValue<FVector>> NormalGetter;
 	FQuat ProjectionQuat = FQuat::Identity;
-	
+
 	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
 	void Init(const PCGExGeo::FBestFitPlane& InFitPlane);
 

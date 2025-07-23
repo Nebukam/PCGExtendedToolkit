@@ -21,13 +21,10 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties()
 		PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Point data representing closed convex hull paths.", Required, {})
 		return PinProperties;
 	}
-	else
-	{
-		TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-		PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
-		PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Point data representing closed convex hull paths.", Required, {})
-		return PinProperties;
-	}
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Point data representing closed convex hull paths.", Required, {})
+	return PinProperties;
 }
 
 PCGEX_INITIALIZE_ELEMENT(BuildConvexHull2D)

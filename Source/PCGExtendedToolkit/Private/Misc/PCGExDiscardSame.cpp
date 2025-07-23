@@ -71,7 +71,7 @@ namespace PCGExDiscardSame
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward)
-		
+
 		// 1 - Build comparison points
 
 		if (Settings->bTestAttributeHash)

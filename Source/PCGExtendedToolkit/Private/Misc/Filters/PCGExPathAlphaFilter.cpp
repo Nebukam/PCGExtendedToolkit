@@ -4,8 +4,6 @@
 #include "Misc/Filters/PCGExPathAlphaFilter.h"
 
 
-
-
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathAlphaFilterDefinition"

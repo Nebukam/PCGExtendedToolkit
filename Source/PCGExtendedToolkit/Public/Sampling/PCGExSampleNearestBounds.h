@@ -71,7 +71,7 @@ public:
 	FPCGExMatchingDetails DataMatching;
 
 	//
-	
+
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExBoundsSampleMethod SampleMethod = EPCGExBoundsSampleMethod::WithinRange;
@@ -280,7 +280,7 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 
 	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
-	
+
 	TArray<TSharedPtr<PCGExGeo::FPointBoxCloud>> Clouds;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
 

@@ -216,11 +216,8 @@ namespace PCGExDetails
 				TSharedPtr<TSettingValueSelectorConstant<T>> V = MakeShared<TSettingValueSelectorConstant<T>>(InSelector);
 				return StaticCastSharedPtr<TSettingValue<T>>(V);
 			}
-			else
-			{
-				TSharedPtr<TSettingValueSelector<T>> V = MakeShared<TSettingValueSelector<T>>(InSelector);
-				return StaticCastSharedPtr<TSettingValue<T>>(V);
-			}
+			TSharedPtr<TSettingValueSelector<T>> V = MakeShared<TSettingValueSelector<T>>(InSelector);
+			return StaticCastSharedPtr<TSettingValue<T>>(V);
 		}
 
 		return MakeSettingValue<T>(InConstant);
@@ -236,11 +233,8 @@ namespace PCGExDetails
 				TSharedPtr<TSettingValueBufferConstant<T>> V = MakeShared<TSettingValueBufferConstant<T>>(InName);
 				return StaticCastSharedPtr<TSettingValue<T>>(V);
 			}
-			else
-			{
-				TSharedPtr<TSettingValueBuffer<T>> V = MakeShared<TSettingValueBuffer<T>>(InName);
-				return StaticCastSharedPtr<TSettingValue<T>>(V);
-			}
+			TSharedPtr<TSettingValueBuffer<T>> V = MakeShared<TSettingValueBuffer<T>>(InName);
+			return StaticCastSharedPtr<TSettingValue<T>>(V);
 		}
 
 		return MakeSettingValue<T>(InConstant);

@@ -124,7 +124,7 @@ namespace PCGExTransform
 {
 	const FName SourceDeformersLabel = TEXT("Deformers");
 	const FName SourceDeformersBoundsLabel = TEXT("Bounds");
-	
+
 	static void SanitizeBounds(FBox& InBox)
 	{
 		FVector Size = InBox.GetSize();

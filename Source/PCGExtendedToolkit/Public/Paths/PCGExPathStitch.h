@@ -17,7 +17,7 @@ UENUM()
 enum class EPCGExStitchMethod : uint8
 {
 	Connect = 0 UMETA(DisplayName = "Connect", ToolTip="Connect existing point with a segment (preserve all input points)"),
-	Fuse   = 1 UMETA(DisplayName = "Fuse", ToolTip="Merge points that should be connected, only leaving a single one."),
+	Fuse    = 1 UMETA(DisplayName = "Fuse", ToolTip="Merge points that should be connected, only leaving a single one."),
 };
 
 UENUM()
@@ -132,9 +132,9 @@ namespace PCGExPathStitch
 
 		PCGExMath::FSegment StartSegment; // B---A---...
 		FBox StartBounds = FBox(ForceInit);
-		
-		PCGExMath::FSegment EndSegment;   // ...---A---B
-		FBox EndBounds = FBox(ForceInit); 
+
+		PCGExMath::FSegment EndSegment; // ...---A---B
+		FBox EndBounds = FBox(ForceInit);
 
 		TSharedPtr<FProcessor> StartStitch = nullptr; // Which other processor is stitched to the start
 		TSharedPtr<FProcessor> EndStitch = nullptr;   // Which other processor is stitched to the end
@@ -152,7 +152,7 @@ namespace PCGExPathStitch
 		bool IsStitchedTo(const TSharedPtr<FProcessor>& InOtherProcessor);
 		bool SetStartStitch(const TSharedPtr<FProcessor>& InStitch);
 		bool SetEndStitch(const TSharedPtr<FProcessor>& InStitch);
-		
+
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

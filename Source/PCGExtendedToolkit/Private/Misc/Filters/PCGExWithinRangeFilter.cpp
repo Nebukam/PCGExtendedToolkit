@@ -75,11 +75,8 @@ bool PCGExPointFilter::FWithinRangeFilter::Test(const int32 PointIndex) const
 		for (const FPCGExPickerConstantRangeConfig& Range : Ranges) { if (Range.IsWithinInclusive(A)) { return !bInvert; } }
 		return bInvert;
 	}
-	else
-	{
-		for (const FPCGExPickerConstantRangeConfig& Range : Ranges) { if (Range.IsWithin(A)) { return !bInvert; } }
-		return bInvert;
-	}
+	for (const FPCGExPickerConstantRangeConfig& Range : Ranges) { if (Range.IsWithin(A)) { return !bInvert; } }
+	return bInvert;
 }
 
 bool PCGExPointFilter::FWithinRangeFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
@@ -92,11 +89,8 @@ bool PCGExPointFilter::FWithinRangeFilter::Test(const TSharedPtr<PCGExData::FPoi
 		for (const FPCGExPickerConstantRangeConfig& Range : Ranges) { if (Range.IsWithinInclusive(A)) { return !bInvert; } }
 		return bInvert;
 	}
-	else
-	{
-		for (const FPCGExPickerConstantRangeConfig& Range : Ranges) { if (Range.IsWithin(A)) { return !bInvert; } }
-		return bInvert;
-	}
+	for (const FPCGExPickerConstantRangeConfig& Range : Ranges) { if (Range.IsWithin(A)) { return !bInvert; } }
+	return bInvert;
 }
 
 bool UPCGExWithinRangeFilterProviderSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
@@ -114,7 +108,7 @@ FString UPCGExWithinRangeFilterProviderSettings::GetDisplayName() const
 	{
 		return GetDefaultNodeTitle().ToString();
 	}
-	
+
 	FString DisplayName = PCGEx::GetSelectorDisplayName(Config.OperandA) + TEXT("[");
 
 	DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.RangeMin) / 1000.0));

@@ -9,7 +9,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
 #include "PCGExMatchToOne.generated.h"
 
 USTRUCT(BlueprintType)
@@ -21,7 +20,6 @@ struct FPCGExMatchToOneConfig : public FPCGExMatchRuleConfigBase
 		FPCGExMatchRuleConfigBase()
 	{
 	}
-
 };
 
 /**
@@ -35,7 +33,6 @@ public:
 	virtual bool PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<PCGExData::FTaggedData>>& InTargets) override;
 
 	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const override;
-
 };
 
 

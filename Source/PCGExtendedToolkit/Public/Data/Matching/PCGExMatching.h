@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 		: Mode(InMode)
 	{
 	}
-	
+
 	explicit FPCGExMatchingDetails(const bool InClusterMatching, const EPCGExMapMatchMode InMode = EPCGExMapMatchMode::Disabled)
 		: bClusterMatching(InClusterMatching), Mode(InMode)
 	{
@@ -63,7 +63,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 
 	UPROPERTY()
 	bool bClusterMatching = false;
-	
+
 	/** Whether matching is enabled or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExMapMatchMode Mode = EPCGExMapMatchMode::Disabled;

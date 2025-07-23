@@ -32,11 +32,11 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bUseComponentWiseAngle = false;
-	
+
 	/** Max angle to search within. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseComponentWiseAngle", ClampMin=0, ClampMax=180))
 	double MaxAngle = 45;
-	
+
 	/** Max angle to search within. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseComponentWiseAngle", ClampMin=0, ClampMax=180))
 	FRotator MaxAngles = FRotator(45);
@@ -44,7 +44,7 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bUnsignedCheck = false;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType DirectionInput = EPCGExInputValueType::Constant;
 

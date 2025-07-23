@@ -4,9 +4,6 @@
 #include "Transform/Tensors/PCGExTensorSplinePole.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorSplinePole"
 #define PCGEX_NAMESPACE CreateTensorSplinePole
 

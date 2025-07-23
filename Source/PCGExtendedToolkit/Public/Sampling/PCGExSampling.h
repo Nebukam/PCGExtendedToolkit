@@ -234,7 +234,7 @@ namespace PCGExSampling
 		void SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails);
 		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const;
 		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;
-		
+
 		void ForEachPreloader(PCGExData::FMultiFacadePreloader::FPreloaderItCallback&& It) const;
 
 		void ForEachTarget(FFacadeRefIterator&& It, const TSet<const UPCGData*>* Exclude = nullptr) const;

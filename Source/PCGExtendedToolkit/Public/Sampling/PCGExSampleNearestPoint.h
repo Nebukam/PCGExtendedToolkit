@@ -65,7 +65,7 @@ public:
 	FPCGExMatchingDetails DataMatching;
 
 	//
-	
+
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
@@ -296,7 +296,7 @@ public:
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 
 	//
-	
+
 	/** If enabled, mark filtered out points as "failed". Otherwise, just skip the processing altogether. Only uncheck this if you want to ensure existing attribute values are preserved. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bProcessFilteredOutAsFails = true;

@@ -102,7 +102,7 @@ namespace PCGExFilterGroup
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override = 0;
 
 		virtual void SetSupportedTypes(const TSet<PCGExFactories::EType>* InTypes) override;
-		
+
 	protected:
 		const TSet<PCGExFactories::EType>* SupportedFactoriesTypes = nullptr;
 		TArray<TSharedPtr<PCGExPointFilter::IFilter>> ManagedFilters;

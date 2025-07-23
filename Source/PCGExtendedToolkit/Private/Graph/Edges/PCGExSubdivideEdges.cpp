@@ -156,13 +156,13 @@ namespace PCGExSubdivideEdges
 
 		TSet<uint64> NewEdges;
 		NewEdges.Reserve(NewEdgesNum);
-		
+
 		for (FSubdivision& Subdivision : Subdivisions)
 		{
 			if (Subdivision.NumSubdivisions == 0) { continue; }
 
 			Subdivision.StartNodeIndex = StartNodeIndex;
-			StartNodeIndex += Subdivision.NumSubdivisions;			
+			StartNodeIndex += Subdivision.NumSubdivisions;
 		}
 	}
 
@@ -195,7 +195,7 @@ namespace PCGExSubdivideEdges
 			bIsBatchValid = false;
 			return;
 		}
-		
+
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 }

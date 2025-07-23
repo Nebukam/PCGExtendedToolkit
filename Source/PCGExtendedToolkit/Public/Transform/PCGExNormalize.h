@@ -69,11 +69,11 @@ public:
 	FTransform TransformConstant = FTransform::Identity;
 
 	PCGEX_SETTING_VALUE_GET(Transform, FTransform, TransformInput, TransformAttribute, TransformConstant)
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector Output;
-	
+
 private:
 	friend class FPCGExNormalizeElement;
 };

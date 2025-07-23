@@ -33,7 +33,7 @@ bool FPCGExVtxPropertyEdgeMatch::PrepareForCluster(FPCGExContext* InContext, TSh
 	}
 
 	DirectionMultiplier = Config.bInvertDirection ? -1 : 1;
-	
+
 	Config.MatchingEdge.Init(InVtxDataFacade.ToSharedRef());
 
 	return bIsValidOperation;

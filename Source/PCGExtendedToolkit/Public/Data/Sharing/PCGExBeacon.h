@@ -32,7 +32,7 @@ public:
 	FOnBeaconContentAdded OnBeaconContentAdded;
 
 	// TODO : Add blueprint methods
-	
+
 	void InternalSet(const uint32 Key, const FPCGDataCollection& InData);
 	void InternalAdd(const uint32 Key, const FPCGDataCollection& InData);
 	void InternalRemove(const uint32 Key, const FPCGDataCollection& InData);
@@ -42,13 +42,13 @@ public:
 
 	void Empty();
 
-protected:	
+protected:
 	TSharedPtr<PCGExDataSharing::FDataBucket> ContentMap;
 	TMap<uint32, TSharedPtr<PCGExDataSharing::FDataBucket>> PartitionedContentMap;
 
 	TSharedPtr<PCGExDataSharing::FDataBucket> GetContentMap();
 
 	void EnsureSubsystemRegistration();
-	
+
 	void OnUpdate(UPCGComponent* InSource, uint32 Item) const;
 };

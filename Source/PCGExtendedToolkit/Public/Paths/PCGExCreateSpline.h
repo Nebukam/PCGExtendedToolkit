@@ -35,7 +35,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
-	
+
 	PCGEX_NODE_INFOS(CreateSpline, "Create Spline", "Create splines from input points.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd); }
@@ -65,7 +65,7 @@ public:
 	FName PointTypeAttribute = "PointType";
 
 #pragma region DEPRECATED
-	
+
 	UPROPERTY()
 	bool bApplyCustomTangents_DEPRECATED = false;
 
@@ -74,8 +74,8 @@ public:
 
 	UPROPERTY()
 	FName LeaveTangentAttribute_DEPRECATED = "LeaveTangent";
-	
-#pragma endregion 
+
+#pragma endregion
 
 	/** Per-point tangent settings. Can't be set if the spline is linear. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -123,7 +123,7 @@ namespace PCGExCreateSpline
 		bool bClosedLoop = false;
 		bool bApplyTangents = false;
 		float MaxIndex = 0.0;
-		
+
 		int8 HasAValidEntry = false;
 
 		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
@@ -149,7 +149,7 @@ namespace PCGExCreateSpline
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;
-		
+
 		virtual void Output() override;
 		virtual void Cleanup() override;
 	};
