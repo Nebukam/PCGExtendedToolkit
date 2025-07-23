@@ -26,6 +26,11 @@ TArray<FPCGPinProperties> UPCGExSampleNearestBoundsSettings::InputPinProperties(
 
 	PCGEX_PIN_POINTS(PCGEx::SourceBoundsLabel, "The bounds data set to check against.", Required, {})
 
+	if (DataMatching.Mode != EPCGExMapMatchMode::Disabled)
+	{
+		PCGEX_PIN_FACTORIES(PCGExMatching::SourceMatchRulesLabel, "Matching rules to determine which target can be sampled by each input", Normal, {})
+	}
+	
 	if (SampleMethod == EPCGExBoundsSampleMethod::BestCandidate)
 	{
 		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
@@ -44,6 +49,7 @@ bool UPCGExSampleNearestBoundsSettings::IsPinUsedByNodeExecution(const UPCGPin* 
 {
 	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExBoundsSampleMethod::BestCandidate; }
 	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual; }
+	if (InPin->Properties.Label == PCGExMatching::SourceMatchRulesLabel) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -158,6 +164,8 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 				return;
 			}
 
+			Context->TargetsHandler->SetMatchingDetails(Context, &Settings->DataMatching);
+
 			if (Context->Sorter && !Context->Sorter->Init(Context, Context->TargetsHandler->GetFacades()))
 			{
 				Context->CancelExecution(TEXT("Invalid sort rules"));
@@ -224,6 +232,7 @@ namespace PCGExSampleNearestBounds
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
+		Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList);
 
 		// Allocate edge native properties
 

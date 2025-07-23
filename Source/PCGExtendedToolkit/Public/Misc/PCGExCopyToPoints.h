@@ -10,6 +10,8 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/PCGExFilterGroup.h"
+#include "Data/Matching/PCGExMatching.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 #include "PCGExCopyToPoints.generated.h"
 
@@ -37,6 +39,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTransformDetails TransformDetails = FPCGExTransformDetails(true, true);
 
+	/** If enabled, allows you to filter out which targets get sampled by which data */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching;
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bDoMatchByTags = false;
@@ -74,6 +80,8 @@ struct FPCGExCopyToPointsContext final : FPCGExPointsProcessorContext
 	FPCGExTransformDetails TransformDetails;
 
 	TSharedPtr<PCGExData::FFacade> TargetsDataFacade;
+
+	TSharedPtr<PCGExMatching::FDataMatcher> DataMatcher;
 
 	FPCGExAttributeToTagComparisonDetails MatchByTagValue;
 	FPCGExAttributeToDataComparisonDetails MatchByDataValue;

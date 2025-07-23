@@ -6,6 +6,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 
 #include "Misc/PCGExSortPoints.h"
@@ -27,6 +28,12 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
+
+	if (DataMatching.Mode != EPCGExMapMatchMode::Disabled)
+	{
+		PCGEX_PIN_FACTORIES(PCGExMatching::SourceMatchRulesLabel, "Matching rules to determine which target can be sampled by each input", Normal, {})
+	}
+	
 	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations, used by Individual (non-monolithic) blending interface.", Normal, {})
 
 	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
@@ -47,6 +54,7 @@ bool UPCGExSampleNearestPointSettings::IsPinUsedByNodeExecution(const UPCGPin* I
 {
 	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExSampleMethod::BestCandidate; }
 	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual; }
+	if (InPin->Properties.Label == PCGExMatching::SourceMatchRulesLabel) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -177,6 +185,8 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 				return;
 			}
 
+			Context->TargetsHandler->SetMatchingDetails(Context, &Settings->DataMatching);
+
 			if (Context->Sorter && !Context->Sorter->Init(Context, Context->TargetsHandler->GetFacades()))
 			{
 				Context->CancelExecution(TEXT("Invalid sort rules"));
@@ -243,6 +253,7 @@ namespace PCGExSampleNearestPoints
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
+		Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList);
 
 		// Allocate edge native properties
 

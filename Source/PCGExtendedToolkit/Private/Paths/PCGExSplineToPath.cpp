@@ -231,11 +231,12 @@ namespace PCGExSplineToPath
 
 		if (!SourceAttributes.IsEmpty())
 		{
-			//TSharedPtr<FPCGAttributeAccessorKeysSplineDataEntries> InKeys = MakeShared<FPCGAttributeAccessorKeysSplineDataEntries>(SplineData);
 			TPCGValueRange<int64> OutMeta = MutablePoints->GetMetadataEntryValueRange();
 
 			for (int64& Key : OutMeta) { MutablePoints->Metadata->InitializeOnSet(Key); }
 
+			const TSharedPtr<FPCGAttributeAccessorKeysEntries> Keys = MakeShared<FPCGAttributeAccessorKeysEntries>(SplineData->Metadata);
+			
 			for (PCGEx::FAttributeIdentity Identity : SourceAttributes)
 			{
 				PCGEx::ExecuteWithRightType(
@@ -257,7 +258,7 @@ namespace PCGExSplineToPath
 						TSharedPtr<PCGExData::TArrayBuffer<T>> OutArrayBuffer = StaticCastSharedPtr<PCGExData::TArrayBuffer<T>>(OutBuffer);
 						TArrayView<T> InRange = MakeArrayView(OutArrayBuffer->GetOutValues()->GetData(), OutArrayBuffer->GetOutValues()->Num());
 
-						if (const TSharedPtr<FPCGAttributeAccessorKeysEntries> Keys = MakeShared<FPCGAttributeAccessorKeysEntries>(SplineData->Metadata))
+						if (Keys)
 						{
 							TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(SourceAttr, SplineData->Metadata);
 							InAccessor->GetRange(InRange, 0, *Keys.Get());

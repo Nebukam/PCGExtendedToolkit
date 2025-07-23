@@ -11,6 +11,7 @@
 #include "PCGExScopedContainers.h"
 #include "Data/PCGSplineData.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Data/Matching/PCGExMatching.h"
 
 #include "Paths/PCGExPaths.h"
 
@@ -355,7 +356,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfHasNoSuccesses"))
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 
-	// 
+
+	//
+	
+	/** If enabled, allows you to filter out which targets get sampled by which data */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching;
+
+	//
 
 	/** If enabled, mark filtered out points as "failed". Otherwise, just skip the processing altogether. Only uncheck this if you want to ensure existing attribute values are preserved. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)

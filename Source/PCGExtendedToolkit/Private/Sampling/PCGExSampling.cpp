@@ -4,6 +4,7 @@
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 bool FPCGExApplySamplingDetails::WantsApply() const
 {
@@ -320,6 +321,18 @@ namespace PCGExSampling
 	void FTargetsHandler::SetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
 	{
 		Distances = PCGExDetails::MakeDistances(Source, Target, bOverlapIsZero);
+	}
+
+	void FTargetsHandler::SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails)
+	{
+		DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+		DataMatcher->SetDetails(InDetails);
+		if (!DataMatcher->Init(InContext, TargetFacades)) { DataMatcher.Reset(); }
+	}
+
+	void FTargetsHandler::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const
+	{
+		if (DataMatcher) { DataMatcher->PopulateIgnoreList(InDataCandidate, OutIgnoreList); }
 	}
 
 	void FTargetsHandler::ForEachPreloader(PCGExData::FMultiFacadePreloader::FPreloaderItCallback&& It) const

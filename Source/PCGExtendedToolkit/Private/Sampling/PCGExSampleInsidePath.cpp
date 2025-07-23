@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleInsidePath.h"
 
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Misc/PCGExDiscardByPointCount.h"
 
 
@@ -25,6 +26,12 @@ TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::InputPinProperties() c
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The points to sample.", Required, {})
+
+	if (DataMatching.Mode != EPCGExMapMatchMode::Disabled)
+	{
+		PCGEX_PIN_FACTORIES(PCGExMatching::SourceMatchRulesLabel, "Matching rules to determine which target can be sampled by each input", Normal, {})
+	}
+	
 	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
 
 	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
@@ -52,6 +59,7 @@ TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::OutputPinProperties() 
 bool UPCGExSampleInsidePathSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExSampleMethod::BestCandidate; }
+	if (InPin->Properties.Label == PCGExMatching::SourceMatchRulesLabel) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -172,7 +180,7 @@ bool FPCGExSampleInsidePathElement::ExecuteInternal(FPCGContext* InContext) cons
 		Context->SetAsyncState(PCGEx::State_FacadePreloading);
 
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
-		Context->TargetsHandler->TargetsPreloader->OnCompleteCallback = [Context, WeakHandle]()
+		Context->TargetsHandler->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
 		{
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 			if (Context->Sorter && !Context->Sorter->Init(Context, Context->TargetsHandler->GetFacades()))
@@ -180,6 +188,8 @@ bool FPCGExSampleInsidePathElement::ExecuteInternal(FPCGContext* InContext) cons
 				Context->CancelExecution(TEXT("Invalid sort rules"));
 				return;
 			}
+
+			Context->TargetsHandler->SetMatchingDetails(Context, &Settings->DataMatching);
 
 			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleInsidePath::FProcessor>>(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
@@ -224,6 +234,7 @@ namespace PCGExSampleInsidePath
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
+		Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList);
 
 		Path = PCGExPaths::MakePolyPath(PointDataFacade->GetIn(), 1, FVector::UpVector, Settings->HeightInclusion);
 

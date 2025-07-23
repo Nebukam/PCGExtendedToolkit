@@ -8,6 +8,7 @@
 #include "PCGExCompare.h"
 #include "PCGExEdgesProcessor.h"
 #include "Data/PCGExDataForward.h"
+#include "Data/Matching/PCGExMatching.h"
 
 
 #include "PCGExCopyClustersToPoints.generated.h"

@@ -10,6 +10,12 @@ TArray<FPCGPinProperties> UPCGExCopyToPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points to copy inputs to.", Required, {})
+
+	if (DataMatching.Mode != EPCGExMapMatchMode::Disabled)
+	{
+		PCGEX_PIN_FACTORIES(PCGExMatching::SourceMatchRulesLabel, "Matching rules to determine which target point can be sampled by each input", Normal, {})
+	}
+
 	return PinProperties;
 }
 
@@ -41,6 +47,14 @@ bool FPCGExCopyToPointsElement::Boot(FPCGExContext* InContext) const
 		PCGEX_FWD(MatchByDataValue)
 		if (!Context->MatchByDataValue.Init(Context, Context->TargetsDataFacade.ToSharedRef())) { return false; }
 	}
+
+	Context->DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+	Context->DataMatcher->SetDetails(&Settings->DataMatching);
+	if (!Context->DataMatcher->Init(Context, {Context->TargetsDataFacade}))
+	{
+		return false;
+	}
+
 
 	Context->TargetsForwardHandler = Settings->TargetsForwarding.GetHandler(Context->TargetsDataFacade);
 

@@ -149,7 +149,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 	{
 		return PCGEx::TruncateDbl(
 			RemapCurveObj->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale,
-			TruncateOutput) + Offset;
+			TruncateOutput) * PostTruncateScale + Offset;
 	}
 };
 
