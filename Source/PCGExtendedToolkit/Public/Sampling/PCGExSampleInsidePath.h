@@ -59,6 +59,13 @@ protected:
 	//~End UPCGSettings
 
 public:
+	
+	/** If enabled, allows you to filter out which targets get sampled by which data */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching;
+
+	//
+	
 	/** Process inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExPathSamplingIncludeMode ProcessInputs = EPCGExPathSamplingIncludeMode::All;
@@ -190,13 +197,7 @@ public:
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 
 	//
-	
-	/** If enabled, allows you to filter out which targets get sampled by which data */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExMatchingDetails DataMatching;
-
-	//
-	
+		
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bIgnoreSelf = true;

@@ -14,15 +14,6 @@
 
 #include "PCGExCopyClustersToPoints.generated.h"
 
-UENUM()
-enum class EPCGExClusterComponentTagMatchMode : uint8
-{
-	Vtx   = 0 UMETA(DisplayName = "Vtx", ToolTip="Only match vtx (most efficient check)"),
-	Edges = 1 UMETA(DisplayName = "Edges", ToolTip="Only match edges"),
-	Any   = 2 UMETA(DisplayName = "Any", ToolTip="Match either vtx or edges"),
-	Both  = 3 UMETA(DisplayName = "Vtx and Edges", ToolTip="Match no vtx and edges"),
-};
-
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(PCGExNodeLibraryDoc="clusters/copy-clusters-to-points"))
 class UPCGExCopyClustersToPointsSettings : public UPCGExEdgesProcessorSettings
 {
@@ -33,7 +24,6 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(CopyClustersToPoints, "Cluster : Copy to Points", "Create a copies of the input clusters onto the target points.  NOTE: Does not sanitize input.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
-	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
 #endif
 
 protected:
@@ -47,25 +37,13 @@ public:
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
 
+	/** If enabled, allows you to pick which input gets copied to which target point. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(true);
+	
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTransformDetails TransformDetails;
-
-	/** If enabled, allows you to pick which input gets copied to which target point. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExMatchingDetails DataMatching;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bDoMatchByTags = false;
-
-	/** Which cluster component must match the tags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoMatchByTags"))
-	EPCGExClusterComponentTagMatchMode MatchMode = EPCGExClusterComponentTagMatchMode::Vtx;
-
-	/** Use tag to filter which cluster gets copied to which target point. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoMatchByTags", HideEditConditionToggle))
-	FPCGExAttributeToTagComparisonDetails MatchByTagValue;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -84,9 +62,9 @@ struct FPCGExCopyClustersToPointsContext final : FPCGExEdgesProcessorContext
 	FPCGExTransformDetails TransformDetails;
 
 	TSharedPtr<PCGExData::FFacade> TargetsDataFacade;
-	TSharedPtr<PCGExMatching::FDataMatcher> DataMatcher;
+	TSharedPtr<PCGExMatching::FDataMatcher> MainDataMatcher;
+	TSharedPtr<PCGExMatching::FDataMatcher> EdgeDataMatcher;
 
-	FPCGExAttributeToTagComparisonDetails MatchByTagValue;
 	FPCGExAttributeToTagDetails TargetsAttributesToClusterTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> TargetsForwardHandler;
 };

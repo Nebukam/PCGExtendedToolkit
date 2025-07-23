@@ -164,8 +164,15 @@ void PCGExMatching::DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDe
 	if (InDetails.Mode == EPCGExMapMatchMode::Disabled) { return; }
 
 	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(PCGExMatching::SourceMatchRulesLabel, EPCGDataType::Param);
-	Pin.Tooltip = FTEXT("Matching rules to determine which target can be sampled by each input.");
+	Pin.Tooltip = FTEXT("Matching rules to determine which target data can be paired with each input. If target only accept a single data, individual target points will be evaluated.");
 	Pin.PinStatus = InStatus;
+
+	if (InDetails.bClusterMatching && InDetails.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
+	{
+		FPCGPinProperties& EdgePin = PinProperties.Emplace_GetRef(PCGExMatching::SourceMatchRulesEdgesLabel, EPCGDataType::Param);
+		EdgePin.Tooltip = FTEXT("Extra matching rules to determine which edges data can be paired with each input. If target only accept a single data, individual target points will be evaluated.");
+		EdgePin.PinStatus = InStatus;
+	}
 }
 
 void PCGExMatching::DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)

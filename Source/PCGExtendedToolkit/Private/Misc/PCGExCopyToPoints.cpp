@@ -41,10 +41,7 @@ bool FPCGExCopyToPointsElement::Boot(FPCGExContext* InContext) const
 
 	Context->DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
 	Context->DataMatcher->SetDetails(&Settings->DataMatching);
-	if (!Context->DataMatcher->Init(Context, {Context->TargetsDataFacade}, true))
-	{
-		return false;
-	}
+	if (!Context->DataMatcher->Init(Context, {Context->TargetsDataFacade}, true)) { return false; }
 
 
 	Context->TargetsForwardHandler = Settings->TargetsForwarding.GetHandler(Context->TargetsDataFacade);

@@ -30,6 +30,16 @@ enum class EPCGExMatchStrictness : uint8
 	Any      = 1 UMETA(DisplayName = "Optional", ToolTip="Optional check. If it fails but other pass, it's still a success."),
 };
 
+UENUM()
+enum class EPCGExClusterComponentTagMatchMode : uint8
+{
+	Vtx       = 0 UMETA(DisplayName = "Vtx", ToolTip="Only match vtx (most efficient check)"),
+	Edges     = 1 UMETA(DisplayName = "Edges", ToolTip="Only match edges"),
+	Any       = 2 UMETA(DisplayName = "Any", ToolTip="Match either vtx or edges"),
+	Both      = 3 UMETA(DisplayName = "Vtx and Edges", ToolTip="Match no vtx and edges"),
+	Separated = 4 UMETA(DisplayName = "Separate", ToolTip="Uses two separate set of match handlers -- the default pin will be used on Vtx, the extra one for Edges."),
+};
+
 /**
  * Base struct for match & compare utils
  */
@@ -202,10 +212,22 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 		: Mode(InMode)
 	{
 	}
+	
+	explicit FPCGExMatchingDetails(const bool InClusterMatching, const EPCGExMapMatchMode InMode = EPCGExMapMatchMode::Disabled)
+		: bClusterMatching(InClusterMatching), Mode(InMode)
+	{
+	}
 
+	UPROPERTY()
+	bool bClusterMatching = false;
+	
 	/** Whether matching is enabled or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExMapMatchMode Mode = EPCGExMapMatchMode::Disabled;
+
+	/** Which cluster component must match the tags */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bClusterMatching", EditConditionHides))
+	EPCGExClusterComponentTagMatchMode ClusterMatchMode = EPCGExClusterComponentTagMatchMode::Vtx;
 
 	/** Whether to output unmatched data in a separate pin */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
@@ -234,6 +256,7 @@ namespace PCGExMatching
 {
 	const FName OutputMatchRuleLabel = TEXT("Match Rule");
 	const FName SourceMatchRulesLabel = TEXT("Match Rules");
+	const FName SourceMatchRulesEdgesLabel = TEXT("Match Rules (Edges)");
 	const FName OutputUnmatchedLabel = TEXT("Unmatched");
 
 	PCGEXTENDEDTOOLKIT_API

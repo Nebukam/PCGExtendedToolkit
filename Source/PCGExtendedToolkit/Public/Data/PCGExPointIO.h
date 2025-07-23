@@ -360,6 +360,12 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		{
 			PCGEX_SHARED_CONTEXT(ContextHandle)
 
+			if (InitOut == EIOInit::Forward && IsValid(Out) && Out == In)
+			{
+				// Already forwarding
+				return true;
+			}
+
 			if (IsValid(Out) && Out != In)
 			{
 				SharedContext.Get()->ManagedObjects->Destroy(Out);

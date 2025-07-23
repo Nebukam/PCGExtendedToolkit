@@ -111,6 +111,7 @@ namespace PCGExMatching
 		bool Init(FPCGExContext* InContext, const TArray<const UPCGData*>& InTargetData, const TArray<TSharedPtr<PCGExData::FTags>>& InTags, const bool bThrowError);
 		bool Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError);
 		bool Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError);
+		bool Init(FPCGExContext* InContext, const TSharedPtr<FDataMatcher>& InOtherMatcher, const FName InFactoriesLabel, const bool bThrowError);
 
 		bool Test(const UPCGData* InTarget, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const;
 		bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const;
@@ -122,6 +123,6 @@ namespace PCGExMatching
 
 	protected:
 		void RegisterTaggedData(FPCGExContext* InContext, const PCGExData::FTaggedData& InTaggedData);
-		bool InitInternal(FPCGExContext* InContext, const bool bThrowError);
+		bool InitInternal(FPCGExContext* InContext, const FName InFactoriesLabel, const bool bThrowError);
 	};
 }
