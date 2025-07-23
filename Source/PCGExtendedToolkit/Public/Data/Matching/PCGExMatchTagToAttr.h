@@ -96,7 +96,7 @@ public:
 	virtual TSharedPtr<FPCGExMatchRuleOperation> CreateOperation(FPCGExContext* InContext) const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="DataMatch", meta=(PCGExNodeLibraryDoc="misc/data-matching/match-rule"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="DataMatch", meta=(PCGExNodeLibraryDoc="misc/data-matching/tags-attributes"))
 class UPCGExCreateMatchTagToAttrSettings : public UPCGExMatchRuleFactoryProviderSettings
 {
 	GENERATED_BODY()
@@ -105,7 +105,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		MatchTagToAttr, "Match : Attributes to Tag", "Compares attribute value on targets against tags on inputs",
+		MatchTagToAttr, "Match : Tags × Attributes", "Compares attribute value on targets against tags on inputs",
 		FName(GetDisplayName()))
 
 #endif

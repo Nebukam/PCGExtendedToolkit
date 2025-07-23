@@ -170,7 +170,7 @@ void PCGExMatching::DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDe
 
 void PCGExMatching::DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)
 {
-	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(PCGExMatching::OutputUnmatchedLabel, EPCGDataType::Param);
+	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(PCGExMatching::OutputUnmatchedLabel, EPCGDataType::Point);
 	Pin.Tooltip = FTEXT("Data that couldn't be matched to any target, and couldn't be processed.");
 	Pin.PinStatus = !InDetails.WantsUnmatchedSplit() ? EPCGPinStatus::Advanced : EPCGPinStatus::Normal;
 }

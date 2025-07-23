@@ -114,7 +114,7 @@ PCGEX_MATCH_RULE_BOILERPLATE(TagToAttr)
 #if WITH_EDITOR
 FString UPCGExCreateMatchTagToAttrSettings::GetDisplayName() const
 {
-	FString TagSourceStr = Config.TagNameInput == EPCGExInputValueType::Constant ? Config.TagName : TEXT("Tag(") + Config.TagNameAttribute.ToString() + TEXT(")");
+	FString TagSourceStr = Config.TagNameInput == EPCGExInputValueType::Constant ? Config.TagName : TEXT("Tag \"") + Config.TagNameAttribute.ToString() + TEXT("\"");
 
 	if (Config.bDoValueMatch)
 	{
@@ -123,7 +123,10 @@ FString UPCGExCreateMatchTagToAttrSettings::GetDisplayName() const
 		if (Config.ValueType == EPCGExComparisonDataType::Numeric) { TagSourceStr += PCGExCompare::ToString(Config.NumericComparison); }
 		else { TagSourceStr += PCGExCompare::ToString(Config.StringComparison); }
 
-		TagSourceStr += TEXT("Target' ") + PCGEx::GetSelectorDisplayName(Config.ValueAttribute);
+		TagSourceStr += TEXT("Target' @") + PCGEx::GetSelectorDisplayName(Config.ValueAttribute);
+	}else
+	{
+		TagSourceStr += TEXT("Target' @") + Config.TagNameAttribute.ToString();
 	}
 
 	return TagSourceStr;

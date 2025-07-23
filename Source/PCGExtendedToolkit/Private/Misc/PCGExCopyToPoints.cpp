@@ -6,27 +6,19 @@
 #define LOCTEXT_NAMESPACE "PCGExCopyToPointsElement"
 #define PCGEX_NAMESPACE CopyToPoints
 
-#if WITH_EDITOR
-void UPCGExCopyToPointsSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
-{
-	if ((bDoMatchByTags || bDoMatchByData) && DataMatching.Mode == EPCGExMapMatchMode::Disabled)
-	{
-		DataMatching.Mode = EPCGExMapMatchMode::All;
-		bDoMatchByTags = false;
-		bDoMatchByData = false;
-	}
-
-	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
-}
-#endif
-
-
 TArray<FPCGPinProperties> UPCGExCopyToPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points to copy inputs to.", Required, {})
 	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 
+	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExCopyToPointsSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -44,20 +36,8 @@ bool FPCGExCopyToPointsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(TransformDetails)
 	if (!Context->TransformDetails.Init(Context, Context->TargetsDataFacade.ToSharedRef())) { return false; }
 
-	PCGEX_FWD(TargetsAttributesToClusterTags)
-	if (!Context->TargetsAttributesToClusterTags.Init(Context, Context->TargetsDataFacade)) { return false; }
-
-	if (Settings->bDoMatchByTags)
-	{
-		PCGEX_FWD(MatchByTagValue)
-		if (!Context->MatchByTagValue.Init(Context, Context->TargetsDataFacade.ToSharedRef())) { return false; }
-	}
-
-	if (Settings->bDoMatchByData)
-	{
-		PCGEX_FWD(MatchByDataValue)
-		if (!Context->MatchByDataValue.Init(Context, Context->TargetsDataFacade.ToSharedRef())) { return false; }
-	}
+	PCGEX_FWD(TargetsAttributesToCopyTags)
+	if (!Context->TargetsAttributesToCopyTags.Init(Context, Context->TargetsDataFacade)) { return false; }
 
 	Context->DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
 	Context->DataMatcher->SetDetails(&Settings->DataMatching);
@@ -111,20 +91,21 @@ namespace PCGExCopyToPoints
 
 		PCGEx::InitArray(Dupes, NumTargets);
 
-		const bool bMatchAll = Settings->bDoMatchByTags && Settings->bDoMatchByData;
+		StartParallelLoopForRange(NumTargets, 32);
 
-		for (int i = 0; i < NumTargets; i++)
+		return true;
+	}
+
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
+	{
+		int32 Copies = 0;
+		PCGEX_SCOPE_LOOP(i)
 		{
 			Dupes[i] = nullptr;
 
-			PCGExData::FConstPoint TargetPoint = Context->TargetsDataFacade->GetInPoint(i);
-			const bool bMatchTagPass = Settings->bDoMatchByTags ? Context->MatchByTagValue.Matches(PointDataFacade->Source, TargetPoint) : true;
-			const bool bMatchDataPass = Settings->bDoMatchByData ? Context->MatchByDataValue.Matches(PointDataFacade->Source, TargetPoint) : true;
+			if (!Context->DataMatcher->Test(Context->TargetsDataFacade->GetInPoint(i), PointDataFacade->Source)) { continue; }
 
-			if (bMatchAll && Settings->Mode == EPCGExFilterGroupMode::OR) { if (!bMatchTagPass && !bMatchDataPass) { continue; } }
-			else if (!bMatchTagPass || !bMatchDataPass) { continue; }
-
-			NumCopies++;
+			Copies++;
 
 			TSharedPtr<PCGExData::FPointIO> Dupe = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Duplicate);
 			Context->TargetsForwardHandler->Forward(i, Dupe->GetOut()->Metadata);
@@ -134,7 +115,15 @@ namespace PCGExCopyToPoints
 			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, Dupe, &Context->TransformDetails)
 		}
 
-		return true;
+		if (Copies > 0) { FPlatformAtomics::InterlockedAdd(&NumCopies, Copies); }
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		if (Settings->DataMatching.bSplitUnmatched && NumCopies == 0)
+		{
+			(void)Context->DataMatcher->HandleUnmatchedOutput(PointDataFacade, true);
+		}
 	}
 }
 
