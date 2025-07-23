@@ -160,7 +160,7 @@ namespace PCGExCopyClusters
 			PCGEX_LAUNCH(PCGExGeoTasks::FTransformPointIO, i, Context->TargetsDataFacade->Source, EdgeDupe, &Context->TransformDetails)
 		}
 
-		if (NumCopies > 0) { FPlatformAtomics::InterlockedAdd(&NumCopies, Copies); }
+		if (Copies > 0) { FPlatformAtomics::InterlockedAdd(&NumCopies, Copies); }
 	}
 
 	void FProcessor::OnRangeProcessingComplete()
