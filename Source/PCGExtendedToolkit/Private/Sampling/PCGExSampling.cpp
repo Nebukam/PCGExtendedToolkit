@@ -330,9 +330,9 @@ namespace PCGExSampling
 		if (!DataMatcher->Init(InContext, TargetFacades, false)) { DataMatcher.Reset(); }
 	}
 
-	bool FTargetsHandler::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const
+	bool FTargetsHandler::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, PCGExMatching::FMatchingScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const
 	{
-		if (DataMatcher) { return DataMatcher->PopulateIgnoreList(InDataCandidate, OutIgnoreList); }
+		if (DataMatcher) { return DataMatcher->PopulateIgnoreList(InDataCandidate, InMatchingScope, OutIgnoreList); }
 		return true;
 	}
 

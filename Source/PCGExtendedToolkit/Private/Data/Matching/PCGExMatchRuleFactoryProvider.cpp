@@ -22,8 +22,9 @@ UPCGExFactoryData* UPCGExMatchRuleFactoryProviderSettings::CreateFactory(FPCGExC
 	return Super::CreateFactory(InContext, InFactory);
 }
 
-PCGExMatching::FMatchingScope::FMatchingScope(const bool bUnlimited)
+PCGExMatching::FMatchingScope::FMatchingScope(const int32 InNumCandidates, const bool bUnlimited)
 {
+	NumCandidates = InNumCandidates;
 	if (bUnlimited) { Counter = -MAX_int32; }
 }
 
@@ -114,14 +115,14 @@ namespace PCGExMatching
 
 		if (MatchMode == EPCGExMapMatchMode::All)
 		{
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(TargetElement, InDataCandidate)) { bMatch = false; } }
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (!Op->Test(TargetElement, InDataCandidate)) { bMatch = false; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(TargetElement, InDataCandidate, InMatchingScope)) { bMatch = false; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (!Op->Test(TargetElement, InDataCandidate, InMatchingScope)) { bMatch = false; } }
 		}
 		else
 		{
 			bMatch = false;
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (Op->Test(TargetElement, InDataCandidate)) { bMatch = true; } }
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(TargetElement, InDataCandidate)) { bMatch = false; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (Op->Test(TargetElement, InDataCandidate, InMatchingScope)) { bMatch = true; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(TargetElement, InDataCandidate, InMatchingScope)) { bMatch = false; } }
 		}
 
 		if (bMatch)
@@ -143,14 +144,14 @@ namespace PCGExMatching
 
 		if (MatchMode == EPCGExMapMatchMode::All)
 		{
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(InTargetElement, InDataCandidate)) { bMatch = false; } }
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (!Op->Test(InTargetElement, InDataCandidate)) { bMatch = false; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(InTargetElement, InDataCandidate, InMatchingScope)) { bMatch = false; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (!Op->Test(InTargetElement, InDataCandidate, InMatchingScope)) { bMatch = false; } }
 		}
 		else
 		{
 			bMatch = false;
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (Op->Test(InTargetElement, InDataCandidate)) { bMatch = true; } }
-			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(InTargetElement, InDataCandidate)) { bMatch = false; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : OptionalOperations) { if (Op->Test(InTargetElement, InDataCandidate, InMatchingScope)) { bMatch = true; } }
+			for (const TSharedPtr<FPCGExMatchRuleOperation>& Op : RequiredOperations) { if (!Op->Test(InTargetElement, InDataCandidate, InMatchingScope)) { bMatch = false; } }
 		}
 
 		if (bMatch)
@@ -162,17 +163,15 @@ namespace PCGExMatching
 		return bMatch;
 	}
 
-	bool FDataMatcher::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const
+	bool FDataMatcher::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const
 	{
 		if (MatchMode == EPCGExMapMatchMode::Disabled) { return true; }
-
-		FMatchingScope IgnoreScope = FMatchingScope(true);
 
 		int32 NumIgnored = 0;
 		TArray<PCGExData::FTaggedData>& TargetsRef = *Targets.Get();
 		for (const PCGExData::FTaggedData& TaggedData : TargetsRef)
 		{
-			if (!Test(TaggedData.Data, InDataCandidate, IgnoreScope))
+			if (!Test(TaggedData.Data, InDataCandidate, InMatchingScope))
 			{
 				OutIgnoreList.Add(TaggedData.Data);
 				NumIgnored++;
@@ -182,12 +181,10 @@ namespace PCGExMatching
 		return Targets->Num() != NumIgnored;
 	}
 
-	int32 FDataMatcher::GetMatchingTargets(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TArray<int32>& OutMatches) const
+	int32 FDataMatcher::GetMatchingTargets(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope, TArray<int32>& OutMatches) const
 	{
 		TArray<PCGExData::FTaggedData>& TargetsRef = *Targets.Get();
 		OutMatches.Reset(TargetsRef.Num());
-
-		FMatchingScope MatchListScope = FMatchingScope();
 
 		if (MatchMode == EPCGExMapMatchMode::Disabled)
 		{
@@ -195,7 +192,7 @@ namespace PCGExMatching
 		}
 		else
 		{
-			for (int i = 0; i < TargetsRef.Num(); i++) { if (Test(TargetsRef[i].Data, InDataCandidate, MatchListScope)) { OutMatches.Add(i); } }
+			for (int i = 0; i < TargetsRef.Num(); i++) { if (Test(TargetsRef[i].Data, InDataCandidate, InMatchingScope)) { OutMatches.Add(i); } }
 		}
 
 		return OutMatches.Num();

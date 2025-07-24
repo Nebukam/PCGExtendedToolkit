@@ -9,6 +9,7 @@
 #include "PCGExPointsProcessor.h"
 
 
+
 #include "PCGExMatchToOne.generated.h"
 
 USTRUCT(BlueprintType)
@@ -32,7 +33,7 @@ public:
 
 	virtual bool PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<PCGExData::FTaggedData>>& InTargets) override;
 
-	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const override;
+	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FMatchingScope& InMatchingScope) const override;
 };
 
 

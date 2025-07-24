@@ -58,7 +58,7 @@ bool PCGExPointFilter::FStringCompareFilter::Test(const int32 PointIndex) const
 	const PCGExData::FConstPoint Point = PointDataFacade->Source->GetInPoint(PointIndex);
 	const FString A = OperandA->FetchSingle(Point, TEXT(""));
 	const FString B = TypedFilterFactory->Config.CompareAgainst == EPCGExInputValueType::Attribute ? OperandB->FetchSingle(Point, TEXT("")) : TypedFilterFactory->Config.OperandBConstant;
-	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
+	return TypedFilterFactory->Config.bSwapOperands ? PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, B, A) : PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
 }
 
 bool PCGExPointFilter::FStringCompareFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const

@@ -216,8 +216,10 @@ namespace PCGExSampleInsidePath
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
+
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
-		if (!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList))
+		if (PCGExMatching::FMatchingScope MatchingScope(Context->MainPoints->Num(), true);
+			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
 		{
 			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
 			return false;

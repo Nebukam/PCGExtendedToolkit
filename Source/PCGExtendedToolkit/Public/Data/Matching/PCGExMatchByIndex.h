@@ -9,6 +9,7 @@
 #include "PCGExPointsProcessor.h"
 
 
+
 #include "PCGExMatchByIndex.generated.h"
 
 UENUM()
@@ -31,11 +32,15 @@ struct FPCGExMatchByIndexConfig : public FPCGExMatchRuleConfigBase
 
 	/** The attribute to read on the candidates (the data that's not used as target). Only support @Data domain, and will only try to read from there. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExMatchByIndexSource Source = EPCGExMatchByIndexSource::Candidate;
+	EPCGExMatchByIndexSource Source = EPCGExMatchByIndexSource::Target;
 	
 	/** The attribute to read on the candidates (the data that's not used as target). Only support @Data domain, and will only try to read from there. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGAttributePropertyInputSelector IndexAttribute;
+	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
 
 	virtual void Init() override;
 };
@@ -49,7 +54,7 @@ public:
 	FPCGExMatchByIndexConfig Config;
 
 	virtual bool PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<PCGExData::FTaggedData>>& InTargets) override;
-	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const override;
+	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FMatchingScope& InMatchingScope) const override;
 
 protected:
 	TArray<TSharedPtr<PCGEx::TAttributeBroadcaster<int32>>> IndexGetters;

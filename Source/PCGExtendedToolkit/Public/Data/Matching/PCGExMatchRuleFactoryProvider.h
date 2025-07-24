@@ -22,6 +22,12 @@ UPCGExFactoryData* UPCGExCreateMatch##_RULE##Settings::CreateFactory(FPCGExConte
 	NewFactory->Config = Config; \
 	return Super::CreateFactory(InContext, NewFactory);}
 
+
+namespace PCGExMatching
+{
+	class FMatchingScope;
+}
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExMatchRuleConfigBase
 {
@@ -47,12 +53,11 @@ class PCGEXTENDEDTOOLKIT_API FPCGExMatchRuleOperation : public FPCGExOperation
 public:
 	virtual bool PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<PCGExData::FTaggedData>>& InTargets);
 
-	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
+	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FMatchingScope& InMatchingScope) const
 	PCGEX_NOT_IMPLEMENTED_RET(Test, false);
 
 protected:
 	TSharedPtr<TArray<PCGExData::FTaggedData>> Targets;
-	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -91,13 +96,16 @@ namespace PCGExMatching
 {
 	class FMatchingScope
 	{
+		int32 NumCandidates = 0;
 		int32 Counter = 0;
 		int8 Valid = true;
 
 	public:
-		explicit FMatchingScope(const bool bUnlimited = false);
+		FMatchingScope() = default;
+		explicit FMatchingScope(const int32 InNumCandidates, const bool bUnlimited = false);
 
 		void RegisterMatch();
+		FORCEINLINE int32 GetNumCandidates() const { return NumCandidates; }
 		FORCEINLINE int32 GetCounter() const { return FPlatformAtomics::AtomicRead(&Counter); }
 		FORCEINLINE bool IsValid() const { return static_cast<bool>(FPlatformAtomics::AtomicRead(&Valid)); }
 
@@ -132,8 +140,8 @@ namespace PCGExMatching
 		bool Test(const UPCGData* InTarget, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope) const;
 		bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope) const;
 
-		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const;
-		int32 GetMatchingTargets(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TArray<int32>& OutMatches) const;
+		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
+		int32 GetMatchingTargets(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope, TArray<int32>& OutMatches) const;
 
 		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;
 

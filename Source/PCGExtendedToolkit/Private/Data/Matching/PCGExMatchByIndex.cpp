@@ -40,7 +40,7 @@ bool FPCGExMatchByIndex::PrepareForTargets(FPCGExContext* InContext, const TShar
 	return true;
 }
 
-bool FPCGExMatchByIndex::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
+bool FPCGExMatchByIndex::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FMatchingScope& InMatchingScope) const
 {
 	int32 IndexValue = -1;
 	int32 OtherIndex = -1;
@@ -49,12 +49,17 @@ bool FPCGExMatchByIndex::Test(const PCGExData::FConstPoint& InTargetElement, con
 	{
 		if (bIsIndex) { IndexValue = InTargetElement.Data ? InTargetElement.Index : InTargetElement.IO; }
 		else { IndexValue = IndexGetters[InTargetElement.IO]->FetchSingle(InTargetElement, -1); }
+		
 		OtherIndex = PointIO->IOIndex;
+
+		IndexValue = PCGExMath::SanitizeIndex(IndexValue, InMatchingScope.GetNumCandidates() - 1, Config.IndexSafety);
 	}
 	else
 	{
 		if (!PCGExDataHelpers::TryReadDataValue<int32>(PointIO, Config.IndexAttribute, IndexValue, true)) { return false; }
 		OtherIndex = InTargetElement.Data ? InTargetElement.Index : InTargetElement.IO;
+
+		IndexValue = PCGExMath::SanitizeIndex(IndexValue, InTargetElement.Data ? InTargetElement.Data->GetNumPoints()-1 : Targets->Num() - 1, Config.IndexSafety);
 	}
 
 	if (IndexValue == -1 || OtherIndex == -1) { return false; }
