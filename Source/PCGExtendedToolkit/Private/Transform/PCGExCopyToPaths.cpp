@@ -153,6 +153,13 @@ namespace PCGExCopyToPaths
 			return false;
 		}
 
+		MainAxisStart = Settings->GetValueSettingStart();
+		if (!MainAxisStart->Init(Context, PointDataFacade)) { return false; }
+
+		MainAxisEnd = Settings->GetValueSettingEnd();
+		if (!MainAxisEnd->Init(Context, PointDataFacade)) { return false; }
+
+
 		MainAxis = 0; // X
 
 		Deformers.Reserve(DeformerIndices.Num());
@@ -167,7 +174,7 @@ namespace PCGExCopyToPaths
 
 			Origins.Emplace(FTransform::Identity); // TODO : Expose this
 			//Origins.Emplace(Deformers.Last()->GetTransformAtSplineInputKey(0, ESplineCoordinateSpace::World).Inverse()); // Move this to CompleteWork
-			
+
 			Dupes.Add(Dupe);
 		}
 
@@ -179,7 +186,6 @@ namespace PCGExCopyToPaths
 
 		// TODO : Alpha
 
-		
 
 		return true;
 	}
@@ -198,6 +204,31 @@ namespace PCGExCopyToPaths
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 
+		TArray<FVector> RemappedUVW;
+		TArray<FTransform> PrecomputedTransforms;
+		PrecomputedTransforms.Reserve(Scope.Count);
+		RemappedUVW.Reserve(Scope.Count);
+
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const FTransform& InT = InTransforms[Index];
+
+			FVector Location = InT.GetLocation();
+			FVector UVW = (Location - Box.Min) / Size;
+
+			double OutMin = MainAxisStart->Read(Index);
+			double OutMax = MainAxisEnd->Read(Index);
+			if (OutMin > OutMax) { std::swap(OutMin, OutMax); }
+
+			UVW[MainAxis] = PCGExMath::Remap(UVW[MainAxis], 0, 1, OutMin, OutMax);
+
+			Location[MainAxis] = UVW[MainAxis];
+
+			PrecomputedTransforms.Emplace(InT.GetRotation(), Location, InT.GetScale3D());
+			RemappedUVW.Emplace(UVW);
+		}
+
 		for (int i = 0; i < Dupes.Num(); i++)
 		{
 			const FPCGSplineStruct* Deformer = Deformers[i];
@@ -207,19 +238,29 @@ namespace PCGExCopyToPaths
 			double TotalLength = Deformer->GetSplineLength();
 			float NumSegments = static_cast<float>(Deformer->GetNumberOfSplineSegments());
 			const FTransform& InvT = Origins[i];
+			bool bWrap = Deformer->IsClosedLoop() && Settings->bWrapClosedLoops;
 
+			int32 j = 0;
 			PCGEX_SCOPE_LOOP(Index)
 			{
-				FTransform InT = InTransforms[Index];
+				const FTransform& InT = PrecomputedTransforms[j];
 				FTransform& OutT = OutTransforms[Index];
 
-				FVector Location = InT.GetLocation();
-				FVector UVW = (Location - Box.Min) / Size;
-				Location[MainAxis] = UVW[MainAxis];
-				InT.SetLocation(Location);
-				FTransform Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * UVW[MainAxis], ESplineCoordinateSpace::World);
+				const FVector& UVW = RemappedUVW[j];
+
+				FTransform Anchor = FTransform::Identity;
+
+				if (bWrap)
+				{
+					Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * PCGExMath::Tile<double>(UVW[MainAxis], 0.0, 1.0), ESplineCoordinateSpace::World);
+				}
+				else
+				{
+					Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * FMath::Clamp<double>(UVW[MainAxis], 0.0, 1.0), ESplineCoordinateSpace::World);
+				}
 
 				OutT = (InT * InvT) * Anchor;
+				j++;
 			}
 		}
 	}

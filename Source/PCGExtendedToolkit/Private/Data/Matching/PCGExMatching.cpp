@@ -10,14 +10,16 @@ void PCGExMatching::DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDe
 {
 	if (InDetails.Mode == EPCGExMapMatchMode::Disabled) { return; }
 
-	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceMatchRulesLabel, EPCGDataType::Param);
-	Pin.Tooltip = FTEXT("Matching rules to determine which target data can be paired with each input. If target only accept a single data, individual target points will be evaluated.");
-	Pin.PinStatus = InDetails.Mode != EPCGExMapMatchMode::Disabled ? EPCGPinStatus::Required : EPCGPinStatus::Advanced;
-
+	{
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceMatchRulesLabel, EPCGDataType::Param);
+		PCGEX_PIN_TOOLTIP("Matching rules to determine which target data can be paired with each input. If target only accept a single data, individual target points will be evaluated.")
+		Pin.PinStatus = InDetails.Mode != EPCGExMapMatchMode::Disabled ? EPCGPinStatus::Required : EPCGPinStatus::Advanced;
+	}
+	
 	if (InDetails.Usage == EPCGExMatchingDetailsUsage::Cluster && InDetails.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
 	{
-		FPCGPinProperties& EdgePin = PinProperties.Emplace_GetRef(SourceMatchRulesEdgesLabel, EPCGDataType::Param);
-		EdgePin.Tooltip = FTEXT("Extra matching rules to determine which edges data can be paired with each input. If target only accept a single data, individual target points will be evaluated.");
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceMatchRulesEdgesLabel, EPCGDataType::Param);
+		PCGEX_PIN_TOOLTIP("Extra matching rules to determine which edges data can be paired with each input. If target only accept a single data, individual target points will be evaluated.")
 		Pin.PinStatus = InDetails.Mode != EPCGExMapMatchMode::Disabled ? EPCGPinStatus::Required : EPCGPinStatus::Advanced;
 	}
 }
@@ -25,6 +27,6 @@ void PCGExMatching::DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDe
 void PCGExMatching::DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)
 {
 	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(OutputUnmatchedLabel, EPCGDataType::Point);
-	Pin.Tooltip = FTEXT("Data that couldn't be matched to any target, and couldn't be processed.");
+	PCGEX_PIN_TOOLTIP("Data that couldn't be matched to any target, and couldn't be processed.")
 	Pin.PinStatus = !InDetails.WantsUnmatchedSplit() ? EPCGPinStatus::Advanced : EPCGPinStatus::Normal;
 }

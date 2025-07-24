@@ -73,9 +73,12 @@ public:
 
 #pragma region Main axis
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
+	bool bWrapClosedLoops = true;
+	
 	// Main axis is "along the spline"
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
 	EPCGExCopyToPathsUnit StartUnit = EPCGExCopyToPathsUnit::Alpha;
 
 	/** */
@@ -93,7 +96,7 @@ public:
 	PCGEX_SETTING_VALUE_GET(Start, double, StartInput, StartAttribute, Start)
 
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
 	EPCGExCopyToPathsUnit EndUnit = EPCGExCopyToPathsUnit::Alpha;
 
 	/** */
@@ -106,7 +109,7 @@ public:
 
 	/** Constant end value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="End", EditCondition="EndInput == EPCGExInputValueType::Constant", EditConditionHides))
-	double End = 0;
+	double End = 1;
 
 	PCGEX_SETTING_VALUE_GET(End, double, EndInput, EndAttribute, End)
 
@@ -163,6 +166,10 @@ namespace PCGExCopyToPaths
 		TArray<FTransform> Origins;
 		TArray<const FPCGSplineStruct*> Deformers;
 		TArray<TSharedPtr<PCGExData::FPointIO>> Dupes;
+
+		TSharedPtr<PCGExDetails::TSettingValue<double>> MainAxisStart;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> MainAxisEnd;
+		
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
