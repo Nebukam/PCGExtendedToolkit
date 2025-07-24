@@ -106,7 +106,7 @@ namespace PCGExCopyClusters
 		PCGEx::InitArray(EdgesDupes, NumTargets);
 
 		MatchScope = PCGExMatching::FMatchingScope(GetParentBatch<FBatch>()->EdgesDataFacades->Num());
-		InfiniteScope = PCGExMatching::FMatchingScope(Context->MainPoints->Num(), true);
+		InfiniteScope = PCGExMatching::FMatchingScope(Context->InitialMainPointsNum, true);
 
 		StartParallelLoopForRange(NumTargets, 32);
 
@@ -227,7 +227,7 @@ namespace PCGExCopyClusters
 		PCGEx::InitArray(VtxDupes, NumTargets);
 		PCGEx::InitArray(VtxTag, NumTargets);
 
-		PCGExMatching::FMatchingScope MatchScope = PCGExMatching::FMatchingScope(Context->MainPoints->Num());
+		PCGExMatching::FMatchingScope MatchScope = PCGExMatching::FMatchingScope(Context->InitialMainPointsNum);
 
 		for (int i = 0; i < NumTargets; i++)
 		{
