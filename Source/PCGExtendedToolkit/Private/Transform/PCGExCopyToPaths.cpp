@@ -17,7 +17,15 @@ TArray<FPCGPinProperties> UPCGExCopyToPathsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_ANY(PCGExTransform::SourceDeformersLabel, "Paths or splines to deform along", Required, {})
+	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGEX_PIN_POINTS(PCGExTransform::SourceDeformersBoundsLabel, "Point data that will be used as unified bounds for all inputs", Normal, {})
+	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExCopyToPathsSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -47,18 +55,9 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 
 	TArray<FPCGTaggedData> Candidates = Context->InputData.GetSpatialInputsByPin(PCGExTransform::SourceDeformersLabel);
 
-	Context->Deformers.Init(nullptr, Candidates.Num());
+	Context->Deformers.Reserve(Candidates.Num());
 	Context->DeformersData.Reserve(Candidates.Num());
 	Context->DeformersFacades.Reserve(Candidates.Num());
-
-	auto RegisterData = [&](const UPCGSpatialData* InData, const FPCGSplineStruct* InStruct, const TSet<FString>& InTags)
-	{
-		Context->DeformersData.Add(InData);
-		Context->Deformers.Add(InStruct);
-
-		const TSharedPtr<PCGExData::FTags> Tags = MakeShared<PCGExData::FTags>(InTags);
-		Context->DeformersTags.Add(Tags);
-	};
 
 	for (int i = 0; i < Candidates.Num(); ++i)
 	{
@@ -75,14 +74,18 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 			Facade->Idx = Context->DeformersFacades.Add(Facade);
 			Context->LocalDeformers.Add(SplineStruct);
 
-			RegisterData(PointData, SplineStruct.Get(), TaggedData.Tags);
+			Context->Deformers.Add(SplineStruct.Get());
+			(void)Context->DeformersData.Emplace_GetRef(PointData, PointIO->Tags, PointIO->GetInKeys());
 			continue;
 		}
 
 		if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(TaggedData.Data))
 		{
 			if (SplineData->SplineStruct.GetNumberOfPoints() < 2) { continue; }
-			RegisterData(SplineData, &SplineData->SplineStruct, TaggedData.Tags);
+
+			Context->Deformers.Add(&SplineData->SplineStruct);
+			const TSharedPtr<PCGExData::FTags> Tags = MakeShared<PCGExData::FTags>(TaggedData.Tags);
+			(void)Context->DeformersData.Emplace_GetRef(SplineData, Tags, nullptr);
 		}
 	}
 
@@ -91,11 +94,9 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	Context->bOneOneMatch = Context->Deformers.Num() == Context->MainPoints->Num();
-	if (Context->Deformers.Num() > 1 && !Context->bOneOneMatch)
-	{
-		// TODO : Log mismatch warning
-	}
+	Context->DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+	Context->DataMatcher->SetDetails(&Settings->DataMatching);
+	if (!Context->DataMatcher->Init(Context, Context->DeformersData, true)) { return false; }
 
 	return true;
 }
@@ -144,26 +145,48 @@ namespace PCGExCopyToPaths
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
-
-		if (Context->bOneOneMatch)
+		PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum);
+		TArray<int32> DeformerIndices;
+		if (Context->DataMatcher->GetMatchingTargets(PointDataFacade->Source, MatchingScope, DeformerIndices) <= 0)
 		{
-			Deformers.Add(Context->Deformers[PointDataFacade->Source->IOIndex]);
+			(void)Context->DataMatcher->HandleUnmatchedOutput(PointDataFacade, true);
+			return false;
 		}
 
-		// Fallback to first deformer available
-		if (Deformers.IsEmpty()) { Deformers.Add(Context->Deformers[0]); }
+		MainAxis = 0; // X
+
+		Deformers.Reserve(DeformerIndices.Num());
+		Dupes.Reserve(DeformerIndices.Num());
+		Origins.Reserve(DeformerIndices.Num());
+		for (const int32 Index : DeformerIndices)
+		{
+			Deformers.Add(Context->Deformers[Index]);
+			TSharedPtr<PCGExData::FPointIO> Dupe = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Duplicate);
+			Dupe->IOIndex = PointDataFacade->Source->IOIndex * 1000000 + Dupes.Num();
+			Dupe->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
+
+			Origins.Emplace(FTransform::Identity); // TODO : Expose this
+			//Origins.Emplace(Deformers.Last()->GetTransformAtSplineInputKey(0, ESplineCoordinateSpace::World).Inverse()); // Move this to CompleteWork
+			
+			Dupes.Add(Dupe);
+		}
 
 		if (Context->bUseUnifiedBounds) { Box = Context->UnifiedBounds; }
 		else { Box = PCGExTransform::GetBounds(PointDataFacade->GetIn(), Settings->BoundsSource); }
+		Size = Box.GetSize();
 
 		// TODO : Normalize point data to deform around around it
 
 		// TODO : Alpha
 
-		StartParallelLoopForPoints(PCGExData::EIOSide::In);
+		
 
 		return true;
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 	}
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
@@ -175,24 +198,41 @@ namespace PCGExCopyToPaths
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 
-		for (const FPCGSplineStruct* Deformer : Deformers)
+		for (int i = 0; i < Dupes.Num(); i++)
 		{
+			const FPCGSplineStruct* Deformer = Deformers[i];
+			const TSharedPtr<PCGExData::FPointIO> Dupe = Dupes[i];
+			TPCGValueRange<FTransform> OutTransforms = Dupe->GetOut()->GetTransformValueRange();
+
 			double TotalLength = Deformer->GetSplineLength();
+			float NumSegments = static_cast<float>(Deformer->GetNumberOfSplineSegments());
+			const FTransform& InvT = Origins[i];
 
 			PCGEX_SCOPE_LOOP(Index)
 			{
+				FTransform InT = InTransforms[Index];
+				FTransform& OutT = OutTransforms[Index];
+
+				FVector Location = InT.GetLocation();
+				FVector UVW = (Location - Box.Min) / Size;
+				Location[MainAxis] = UVW[MainAxis];
+				InT.SetLocation(Location);
+				FTransform Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * UVW[MainAxis], ESplineCoordinateSpace::World);
+
+				OutT = (InT * InvT) * Anchor;
 			}
 		}
-	}
-
-	void FProcessor::Cleanup()
-	{
-		TProcessor<FPCGExCopyToPathsContext, UPCGExCopyToPathsSettings>::Cleanup();
 	}
 
 	void FBatch::OnInitialPostProcess()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CopyToPaths)
+
+		if (Context->DeformersFacades.IsEmpty())
+		{
+			TBatch<FProcessor>::OnInitialPostProcess();
+			return;
+		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, BuildSplines)
 
@@ -225,9 +265,6 @@ namespace PCGExCopyToPaths
 
 		const bool bClosedLoop = PCGExPaths::GetClosedLoop(PathFacade->GetIn());
 
-		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
-		if (!TangentsHandler->Init(Context, Context->Tangents, PathFacade)) { return; }
-
 		TSharedPtr<PCGExData::TBuffer<int32>> CustomPointType;
 
 		if (Settings->bApplyCustomPointType)
@@ -238,6 +275,14 @@ namespace PCGExCopyToPaths
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Missing custom point type attribute"));
 				return;
 			}
+		}
+
+		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler = nullptr;
+
+		if (Settings->bApplyCustomPointType || Settings->DefaultPointType == EPCGExSplinePointType::CurveCustomTangent)
+		{
+			TangentsHandler = MakeShared<PCGExTangents::FTangentsHandler>(bClosedLoop);
+			if (!TangentsHandler->Init(Context, Context->Tangents, PathFacade)) { return; }
 		}
 
 		const int32 NumPoints = PathFacade->GetNum();
@@ -252,7 +297,7 @@ namespace PCGExCopyToPaths
 			FVector OutArrive = FVector::ZeroVector;
 			FVector OutLeave = FVector::ZeroVector;
 
-			TangentsHandler->GetSegmentTangents(i, OutArrive, OutLeave);
+			if (TangentsHandler) { TangentsHandler->GetSegmentTangents(i, OutArrive, OutLeave); }
 
 			const FTransform& TR = InTransforms[i];
 
