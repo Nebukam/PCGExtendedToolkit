@@ -108,7 +108,7 @@ namespace PCGExPointFilter
 
 		TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
 		TSet<const UPCGData*> IgnoreList;
-		
+
 		TSharedPtr<TArray<TSharedPtr<PCGExData::TBuffer<double>>>> OperandA;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> OperandB;

@@ -126,6 +126,9 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_EMPLACE_PIN_OUT(OUT_FillControl, "PCGEx Fill Control");
 	PCGEX_MAP_PIN_OUT("Fill Control")
 
+	PCGEX_EMPLACE_PIN_OUT(OUT_Matching, "PCGEx Data Matching Rule");
+	PCGEX_MAP_PIN_OUT("Match Rule")
+
 #undef PCGEX_EMPLACE_PIN_OUT
 #undef PCGEX_MAP_PIN_OUT
 #pragma endregion
@@ -217,6 +220,10 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_IN(OUT_FillControl, "PCGEx Fill Controls, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Fill Controls")
+
+	PCGEX_EMPLACE_PIN_IN(OUT_Matching, "PCGEx Data Match Rules, supports multiple inputs.");
+	PCGEX_MAP_PIN_IN("Match Rules")
+	PCGEX_MAP_PIN_IN("Match Rules (Edges)")
 
 	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
 	PCGEX_MAP_PIN_IN("Vtx")

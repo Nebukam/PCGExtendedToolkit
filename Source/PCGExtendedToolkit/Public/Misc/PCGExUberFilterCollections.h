@@ -93,7 +93,7 @@ struct FPCGExUberFilterCollectionsContext final : FPCGExPointsProcessorContext
 	bool bHasOnlyCollectionFilters = false;
 
 	TArray<TObjectPtr<const UPCGExPickerFactoryData>> PickerFactories;
-	
+
 	TSharedPtr<PCGExData::FPointIOCollection> Inside;
 	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 

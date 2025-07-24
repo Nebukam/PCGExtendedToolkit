@@ -53,12 +53,18 @@ protected:
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-	
+
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
 public:
+	/** If enabled, allows you to filter out which targets get sampled by which data */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Sampling);
+
+	//
+
 	/** Process inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExPathSamplingIncludeMode ProcessInputs = EPCGExPathSamplingIncludeMode::All;
@@ -112,7 +118,7 @@ public:
 	/** If the value is greater than 0, will do a rough vertical check as part of the projected inclusion. 0 is infinite. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, ClampMin=0))
 	double HeightInclusion = 0;
-	
+
 #pragma endregion
 
 	/** Weight method used for blending */
@@ -131,7 +137,7 @@ public:
 	/** Curve that balances weight over distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="!bUseLocalCurve", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
-	
+
 	/** If enabled, will only output paths that have at least sampled one target point */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable))
 	EPCGExSampleInsidePathOutput OutputMode = EPCGExSampleInsidePathOutput::All;
@@ -188,6 +194,8 @@ public:
 	/** If enabled, add the specified tag to the output data if no spline was found within range.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfHasNoSuccesses"))
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
+
+	//
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)

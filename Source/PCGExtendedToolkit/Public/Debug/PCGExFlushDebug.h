@@ -25,7 +25,7 @@ public:
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return CustomColor; }
 #endif
-	
+
 	virtual bool HasDynamicPins() const override { return true; }
 
 protected:

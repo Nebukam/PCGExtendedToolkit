@@ -58,7 +58,7 @@ public:
 	/** If enabled, a point will be created at the crossing' location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bCreatePointAtCrossings = true;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;

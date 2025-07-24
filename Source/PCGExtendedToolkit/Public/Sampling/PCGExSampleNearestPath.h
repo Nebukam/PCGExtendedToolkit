@@ -11,6 +11,7 @@
 #include "PCGExScopedContainers.h"
 #include "Data/PCGSplineData.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Data/Matching/PCGExMatching.h"
 
 #include "Paths/PCGExPaths.h"
 
@@ -65,6 +66,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -73,6 +75,12 @@ protected:
 public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
+
+	/** If enabled, allows you to filter out which targets get sampled by which data */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Sampling);
+
+	//
 
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
@@ -127,7 +135,7 @@ public:
 	/** If the value is greater than 0, will do a rough vertical check as part of the projected inclusion. 0 is infinite. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, ClampMin=0))
 	double HeightInclusion = 0;
-	
+
 #pragma endregion
 
 	/** Whether spline should be sampled at a specific alpha */
@@ -355,7 +363,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfHasNoSuccesses"))
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 
-	// 
+
+	//
 
 	/** If enabled, mark filtered out points as "failed". Otherwise, just skip the processing altogether. Only uncheck this if you want to ensure existing attribute values are preserved. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)

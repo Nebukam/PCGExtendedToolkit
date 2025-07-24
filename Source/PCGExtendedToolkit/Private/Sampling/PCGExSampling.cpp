@@ -4,6 +4,7 @@
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 bool FPCGExApplySamplingDetails::WantsApply() const
 {
@@ -322,6 +323,26 @@ namespace PCGExSampling
 		Distances = PCGExDetails::MakeDistances(Source, Target, bOverlapIsZero);
 	}
 
+	void FTargetsHandler::SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails)
+	{
+		DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+		DataMatcher->SetDetails(InDetails);
+		if (!DataMatcher->Init(InContext, TargetFacades, false)) { DataMatcher.Reset(); }
+	}
+
+	bool FTargetsHandler::PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const
+	{
+		if (DataMatcher) { return DataMatcher->PopulateIgnoreList(InDataCandidate, OutIgnoreList); }
+		return true;
+	}
+
+	bool FTargetsHandler::HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward) const
+	{
+		if (DataMatcher) { return DataMatcher->HandleUnmatchedOutput(InFacade, bForward); }
+		return false;
+	}
+
+
 	void FTargetsHandler::ForEachPreloader(PCGExData::FMultiFacadePreloader::FPreloaderItCallback&& It) const
 	{
 		TargetsPreloader->ForEach(MoveTemp(It));
@@ -597,10 +618,7 @@ namespace PCGExSampling
 			if (bOverlap) { DistSquared = 0; }
 			return DistSquared;
 		}
-		else
-		{
-			return Distances->GetDistSquared(SourcePoint, TargetPoint);
-		}
+		return Distances->GetDistSquared(SourcePoint, TargetPoint);
 	}
 
 	void FTargetsHandler::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle) const

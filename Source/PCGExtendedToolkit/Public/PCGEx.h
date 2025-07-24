@@ -194,7 +194,7 @@ namespace PCGEx
 		EPCGPointNativeProperties::All & ~(EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Transform);
 
 	const FName DEPRECATED_NAME = TEXT("#DEPRECATED");
-	
+
 	const FName PreviousAttributeName = TEXT("#Previous");
 	const FName PreviousNameAttributeName = TEXT("#PreviousName");
 
@@ -234,7 +234,7 @@ namespace PCGEx
 		OutArray[1] = AxisOrders[Index][1];
 		OutArray[2] = AxisOrders[Index][2];
 	}
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	bool IsPCGExAttribute(const FString& InStr);
 	PCGEXTENDEDTOOLKIT_API

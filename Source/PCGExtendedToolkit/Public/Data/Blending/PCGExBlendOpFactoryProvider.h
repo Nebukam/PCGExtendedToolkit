@@ -10,7 +10,6 @@
 #include "PCGExProxyDataBlending.h"
 
 
-
 #include "PCGExBlendOpFactoryProvider.generated.h"
 
 namespace PCGExDataBlending

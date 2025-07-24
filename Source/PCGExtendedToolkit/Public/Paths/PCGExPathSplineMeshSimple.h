@@ -67,7 +67,7 @@ public:
 	//FName TargetActorAttributeName;
 
 #pragma region DEPRECATED
-	
+
 	UPROPERTY()
 	bool bApplyCustomTangents_DEPRECATED = false;
 
@@ -76,7 +76,7 @@ public:
 
 	UPROPERTY()
 	FName LeaveTangentAttribute_DEPRECATED = "LeaveTangent";
-	
+
 #pragma endregion
 
 	/** Per-point tangent settings. Can't be set if the spline is linear. */
@@ -128,10 +128,10 @@ public:
 	FVector SplineMeshUpVector = FVector::UpVector;
 
 #pragma region DEPRECATED
-	
+
 	UPROPERTY()
 	EPCGExMinimalAxis SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::X;
-	
+
 #pragma endregion
 
 	/** Tagging details */
@@ -162,7 +162,6 @@ struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 
 protected:
 	virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override;
-	
 };
 
 class FPCGExPathSplineMeshSimpleElement final : public FPCGExPathProcessorElement

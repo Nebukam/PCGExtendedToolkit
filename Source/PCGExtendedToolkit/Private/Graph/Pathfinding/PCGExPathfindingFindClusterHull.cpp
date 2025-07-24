@@ -83,7 +83,7 @@ namespace PCGExFindClusterHull
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		const TArray<FVector2D>& Proj = *ProjectedVtxPositions.Get();
-		
+
 		CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
 		CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), Proj, CellsConstraints);
 
@@ -94,7 +94,7 @@ namespace PCGExFindClusterHull
 		}
 
 		ProcessCell(CellsConstraints->WrapperCell);
-		
+
 		CellsConstraints->Cleanup();
 		CellsConstraints.Reset();
 
@@ -126,7 +126,6 @@ namespace PCGExFindClusterHull
 		Context->Artifacts.Process(Cluster, PathDataFacade, InCell);
 		PathDataFacade->WriteFastest(AsyncManager);
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -53,7 +53,7 @@ bool PCGExPointFilter::FAngleFilter::Test(const int32 PointIndex) const
 	int32 NextIndex = PointIndex + 1;
 
 	bool bResult = !TypedFilterFactory->Config.bInvert;
-	
+
 	if (bClosedLoop)
 	{
 		if (PointIndex == 0) { PrevIndex = LastIndex; }

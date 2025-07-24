@@ -24,12 +24,11 @@ public:
 #endif
 
 	virtual bool HasDynamicPins() const override;
-	
+
 	virtual FName GetMainInputPin() const override { return PCGPinConstants::DefaultInputLabel; }
 	virtual FName GetMainOutputPin() const override { return PCGPinConstants::DefaultOutputLabel; }
 
 protected:
-	
 	virtual bool IsInputless() const override { return true; }
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -37,11 +36,9 @@ protected:
 	//~End UPCGSettings
 
 public:
-	
 	/** Controls the order in which data will be sorted */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
-	
 };
 
 struct FPCGExSortCollectionsContext final : FPCGExPointsProcessorContext

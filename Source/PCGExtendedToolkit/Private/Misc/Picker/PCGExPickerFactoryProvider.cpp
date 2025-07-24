@@ -4,7 +4,6 @@
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
 
-
 #include "VerseVM/VVMInstantiationContext.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreatePicker"
@@ -46,7 +45,7 @@ namespace PCGExPicker
 	bool GetPicks(const TArray<TObjectPtr<const UPCGExPickerFactoryData>>& Factories, const TSharedPtr<PCGExData::FFacade>& InFacade, TSet<int32>& OutPicks)
 	{
 		if (Factories.IsEmpty()) { return false; }
-		
+
 		const int32 Num = InFacade->GetNum();
 		for (const TObjectPtr<const UPCGExPickerFactoryData>& Op : Factories) { Op->AddPicks(Num, OutPicks); }
 		return true;

@@ -10,6 +10,8 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/PCGExFilterGroup.h"
+#include "Data/Matching/PCGExMatching.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 #include "PCGExCopyToPoints.generated.h"
 
@@ -29,37 +31,22 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
 public:
+	/** If enabled, allows you to pick which input gets copied to which target point. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching;
+
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTransformDetails TransformDetails = FPCGExTransformDetails(true, true);
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bDoMatchByTags = false;
-
-	/** Use tag to filter which cluster gets copied to which target point. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoMatchByTags"))
-	FPCGExAttributeToTagComparisonDetails MatchByTagValue;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bDoMatchByData = false;
-
-	/** Use @Data to filter which cluster gets copied to which target point. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoMatchByData"))
-	FPCGExAttributeToDataComparisonDetails MatchByDataValue;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoMatchByTags && bDoMatchByData"))
-	EPCGExFilterGroupMode Mode = EPCGExFilterGroupMode::AND;
-
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExAttributeToTagDetails TargetsAttributesToClusterTags;
+	FPCGExAttributeToTagDetails TargetsAttributesToCopyTags;
 
 	/** Which target attributes to forward on copied points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -75,9 +62,9 @@ struct FPCGExCopyToPointsContext final : FPCGExPointsProcessorContext
 
 	TSharedPtr<PCGExData::FFacade> TargetsDataFacade;
 
-	FPCGExAttributeToTagComparisonDetails MatchByTagValue;
-	FPCGExAttributeToDataComparisonDetails MatchByDataValue;
-	FPCGExAttributeToTagDetails TargetsAttributesToClusterTags;
+	TSharedPtr<PCGExMatching::FDataMatcher> DataMatcher;
+
+	FPCGExAttributeToTagDetails TargetsAttributesToCopyTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> TargetsForwardHandler;
 };
 
@@ -97,6 +84,7 @@ namespace PCGExCopyToPoints
 	protected:
 		TArray<TSharedPtr<PCGExData::FPointIO>> Dupes;
 		int32 NumCopies = 0;
+		PCGExMatching::FMatchingScope MatchScope;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -109,5 +97,7 @@ namespace PCGExCopyToPoints
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void CompleteWork() override;
 	};
 }

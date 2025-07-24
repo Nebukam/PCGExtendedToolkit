@@ -193,7 +193,7 @@ namespace PCGExBevelPath
 		}
 
 		if (!InProcessor->bSubdivide) { return; }
-		
+
 		if (InProcessor->ManhattanDetails.IsValid())
 		{
 			SubdivideManhattan(InProcessor);
@@ -319,7 +319,7 @@ namespace PCGExBevelPath
 	void FBevel::SubdivideManhattan(const FProcessor* InProcessor)
 	{
 		double OutDist = 0;
-		
+
 		if (InProcessor->bKeepCorner)
 		{
 			InProcessor->ManhattanDetails.ComputeSubdivisions(Arrive, Corner, Index, Subdivisions, OutDist);
@@ -401,7 +401,7 @@ namespace PCGExBevelPath
 			ManhattanDetails = Settings->ManhattanDetails;
 			if (!ManhattanDetails.Init(Context, PointDataFacade)) { return false; }
 		}
-		
+
 		bArc = Settings->Type == EPCGExBevelProfileType::Arc;
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)

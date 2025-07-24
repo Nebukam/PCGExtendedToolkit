@@ -79,7 +79,7 @@ namespace PCGExDataHelpers
 	}
 
 	template <typename T>
-	static bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector, T& OutValue)
+	static bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector, T& OutValue, bool bQuiet = false)
 	{
 		bool bSuccess = false;
 		const UPCGMetadata* InMetadata = InData->Metadata;
@@ -107,7 +107,7 @@ namespace PCGExDataHelpers
 		}
 		else
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid attribute: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(InSelector))));
+			if (!bQuiet) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid attribute: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(InSelector)))); }
 			return false;
 		}
 
@@ -115,25 +115,25 @@ namespace PCGExDataHelpers
 	}
 
 	template <typename T>
-	static bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, const FName& InName, T& OutValue)
+	static bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, const FName& InName, T& OutValue, bool bQuiet = false)
 	{
 		FPCGAttributePropertyInputSelector Selector;
 		Selector.Update(InName.ToString());
-		return TryReadDataValue<T>(InContext, InData, Selector.CopyAndFixLast(InData), OutValue);
+		return TryReadDataValue<T>(InContext, InData, Selector.CopyAndFixLast(InData), OutValue, bQuiet);
 	}
 
 	template <typename T>
-	static bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& InIO, const FName& InName, T& OutValue)
+	static bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& InIO, const FName& InName, T& OutValue, bool bQuiet = false)
 	{
 		PCGEX_SHARED_CONTEXT(InIO->GetContextHandle())
-		return TryReadDataValue(SharedContext.Get(), InIO->GetIn(), InName, OutValue);
+		return TryReadDataValue(SharedContext.Get(), InIO->GetIn(), InName, OutValue, bQuiet);
 	}
 
 	template <typename T>
-	static bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& InIO, const FPCGAttributePropertyInputSelector& InSelector, T& OutValue)
+	static bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& InIO, const FPCGAttributePropertyInputSelector& InSelector, T& OutValue, bool bQuiet = false)
 	{
 		PCGEX_SHARED_CONTEXT(InIO->GetContextHandle())
-		return TryReadDataValue(SharedContext.Get(), InIO->GetIn(), InSelector, OutValue);
+		return TryReadDataValue(SharedContext.Get(), InIO->GetIn(), InSelector, OutValue, bQuiet);
 	}
 
 	template <typename T>

@@ -87,7 +87,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" └─ Invert"))
 	bool bInvertDirection = false;
-	
+
 	/** This UV Channel will be selected when retrieving UV Coordinates from a raycast query. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_Overridable))
 	EPCGExTraceSampleDistanceInput DistanceInput = EPCGExTraceSampleDistanceInput::Constant;

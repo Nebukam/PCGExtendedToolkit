@@ -30,7 +30,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
-	
+
 	PCGEX_NODE_INFOS(PathSplineMesh, "Path : Spline Mesh", "Create spline mesh components from paths.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spawner; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(UPCGExPathProcessorSettings::GetNodeTitleColor()); }
@@ -41,7 +41,7 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
-	
+
 public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 
@@ -63,7 +63,7 @@ public:
 	FName AssetPathAttributeName = "AssetPath";
 
 #pragma region DEPRECATED
-	
+
 	UPROPERTY()
 	bool bApplyCustomTangents_DEPRECATED = false;
 
@@ -78,10 +78,10 @@ public:
 	/** Per-point tangent settings. Can't be set if the spline is linear. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTangentsDetails Tangents;
-	
+
 	UPROPERTY()
 	EPCGExMinimalAxis SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::X;
-	
+
 	/** If enabled, will break scaling interpolation across the spline. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExScaleToFitDetails ScaleToFit = FPCGExScaleToFitDetails(EPCGExFitMode::None);
@@ -142,7 +142,7 @@ struct FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
 	friend class FPCGExPathSplineMeshElement;
 
 	virtual void RegisterAssetDependencies() override;
-	
+
 	FPCGExTangentsDetails Tangents;
 
 	TObjectPtr<UPCGExMeshCollection> MainCollection;
@@ -206,7 +206,7 @@ namespace PCGExPathSplineMesh
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		
+
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
@@ -215,6 +215,5 @@ namespace PCGExPathSplineMesh
 		virtual void CompleteWork() override;
 
 		virtual void Output() override;
-		
 	};
 }

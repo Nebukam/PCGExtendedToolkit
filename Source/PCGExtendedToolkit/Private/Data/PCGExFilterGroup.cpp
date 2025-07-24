@@ -49,14 +49,14 @@ namespace PCGExFilterGroup
 				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A grouped filter is of an unexpected type : {0}."), PCGExHelpers::GetClassDisplayName(ManagedFactory->GetClass())));
 				continue;
 			}
-			
+
 			TSharedPtr<PCGExPointFilter::IFilter> NewFilter = ManagedFactory->CreateFilter();
 			NewFilter->bUseDataDomainSelectorsOnly = ManagedFactory->GetOnlyUseDataDomain();
 			NewFilter->bCacheResults = false;
 			NewFilter->SetSupportedTypes(SupportedFactoriesTypes);
-			
+
 			if (!InitManagedFilter(InContext, NewFilter)) { continue; }
-			
+
 			ManagedFilters.Add(NewFilter);
 		}
 

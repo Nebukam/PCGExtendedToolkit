@@ -15,7 +15,7 @@ TArray<FPCGPinProperties> UPCGExSortCollectionsSettings::InputPinProperties() co
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required, {})
-	PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
+	PCGExSorting::DeclareSortingRulesInputs(PinProperties, EPCGPinStatus::Required);
 	return PinProperties;
 }
 

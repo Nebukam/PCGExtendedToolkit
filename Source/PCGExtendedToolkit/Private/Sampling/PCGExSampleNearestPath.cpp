@@ -20,17 +20,17 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::InputPinProperties() 
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "The paths to sample.", Required, {})
-	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
+	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
+	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
+	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 
-	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
-	{
-		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
-	}
-	else
-	{
-		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Advanced, {})
-	}
+	return PinProperties;
+}
 
+TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -179,6 +179,8 @@ bool FPCGExSampleNearestPathElement::ExecuteInternal(FPCGContext* InContext) con
 				return;
 			}
 
+			Context->TargetsHandler->SetMatchingDetails(Context, &Settings->DataMatching);
+
 			if (Context->Sorter && !Context->Sorter->Init(Context, Context->TargetsHandler->GetFacades()))
 			{
 				Context->CancelExecution(TEXT("Invalid sort rules"));
@@ -227,8 +229,14 @@ namespace PCGExSampleNearestPath
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
+		if (!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList))
+		{
+			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+			return false;
+		}
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		// Allocate edge native properties
 
@@ -428,7 +436,7 @@ namespace PCGExSampleNearestPath
 					if (bReplaceWithCurrent)
 					{
 						SinglePick = EdgeElement;
-						WeightedDistance = DistSquared;
+						WeightedDistance = FMath::Square(DistSquared);
 
 						// TODO : Adjust dist based on edge lerp
 						Union->Reset();
@@ -445,7 +453,7 @@ namespace PCGExSampleNearestPath
 				else
 				{
 					// TODO : Adjust dist based on edge lerp
-					WeightedDistance += DistSquared;
+					WeightedDistance += FMath::Square(DistSquared);
 					Union->AddWeighted_Unsafe(A, DistSquared);
 					Union->AddWeighted_Unsafe(B, DistSquared);
 

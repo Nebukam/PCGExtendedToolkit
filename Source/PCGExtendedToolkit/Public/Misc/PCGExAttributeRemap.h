@@ -149,7 +149,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 	{
 		return PCGEx::TruncateDbl(
 			RemapCurveObj->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale,
-			TruncateOutput) + Offset;
+			TruncateOutput) * PostTruncateScale + Offset;
 	}
 };
 
@@ -191,7 +191,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
-	
+
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AttributeRemap, "Attribute Remap", "Remap a single property or attribute.", FName(GetDisplayName()));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite); }
@@ -202,17 +202,16 @@ protected:
 	//~End UPCGSettings
 
 public:
-
 #pragma region DEPRECATED
-	
+
 	// Deprecated, old source/target
 	UPROPERTY()
 	FName SourceAttributeName_DEPRECATED = NAME_None;
 
 	UPROPERTY()
 	FName TargetAttributeName_DEPRECATED = NAME_None;
-	
-#pragma endregion 
+
+#pragma endregion
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAttributeSourceToTargetDetails Attributes;

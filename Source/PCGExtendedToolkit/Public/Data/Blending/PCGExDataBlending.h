@@ -155,6 +155,9 @@ namespace PCGExDataBlending
 	const FName SourceBlendingLabel = TEXT("Blend Ops");
 	const FName OutputBlendingLabel = TEXT("Blend Op");
 
+	PCGEXTENDEDTOOLKIT_API
+	void DeclareBlendOpsInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus, EPCGExBlendingInterface Interface = EPCGExBlendingInterface::Individual);
+
 	struct FBlendingParam
 	{
 		FBlendingParam() = default;

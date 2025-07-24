@@ -473,7 +473,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		}
 
 		EPCGPointNativeProperties AllocateProperties = EPCGPointNativeProperties::None;
-		
+
 		if (InBuilder->OutputDetails->bWriteEdgePosition)
 		{
 			AllocateProperties |= EPCGPointNativeProperties::Transform;
@@ -602,7 +602,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	FGraph::FGraph(const int32 InNumNodes)
 	{
 		PCGEX_LOG_CTR(FGraph)
-		
+
 		int32 StartNodeIndex = 0;
 		AddNodes(InNumNodes, StartNodeIndex);
 	}

@@ -130,10 +130,9 @@ public:
 
 namespace PCGExHelpers
 {
-
 	PCGEXTENDEDTOOLKIT_API
 	FText GetClassDisplayName(const UClass* InClass);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	bool HasDataOnPin(FPCGContext* InContext, FName Pin);
 
@@ -309,10 +308,10 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API
 	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName, const UPCGData* InData);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName);
-	
+
 	class PCGEXTENDEDTOOLKIT_API FPCGExAsyncStateScope
 	{
 	public:

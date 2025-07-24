@@ -77,12 +77,10 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bFlagEdgeConnector"))
 	FName EdgeConnectorFlagName = "IsBridge";
-	
+
 	/** If enabled, won't throw a warning if no bridge could be created. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietNoBridgeWarning = false;
-
-	
 
 private:
 	friend class FPCGExConnectClustersElement;
@@ -127,13 +125,13 @@ namespace PCGExBridgeClusters
 	{
 	protected:
 		const FPCGMetadataAttribute<int64>* InVtxEndpointAtt = nullptr;
-		
+
 		FPCGMetadataAttribute<int64>* EdgeEndpointsAtt = nullptr;
 		FPCGMetadataAttribute<int64>* OutVtxEndpointAtt = nullptr;
-		
+
 		FPCGMetadataAttribute<int32>* VtxConnectorFlagAttribute = nullptr;
 		FPCGMetadataAttribute<bool>* EdgeConnectorFlagAttribute = nullptr;
-		
+
 	public:
 		TSharedPtr<PCGExData::FFacade> CompoundedEdgesDataFacade;
 		TSharedPtr<FPCGExPointIOMerger> Merger;

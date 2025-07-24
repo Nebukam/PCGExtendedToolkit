@@ -19,7 +19,7 @@ TArray<FPCGPinProperties> UPCGExBinPackingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExLayout::SourceBinsLabel, "List of bins to fit input points into. Each input collection is expected to have a matching collection of bins.", Required, {})
-	PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Normal, {})
+	PCGExSorting::DeclareSortingRulesInputs(PinProperties, EPCGPinStatus::Normal);
 	return PinProperties;
 }
 

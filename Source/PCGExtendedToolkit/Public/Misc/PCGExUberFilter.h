@@ -95,7 +95,7 @@ public:
 	/** How should point that aren't picked be considered? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExFilterFallback UnpickedFallback = EPCGExFilterFallback::Fail;
-	
+
 private:
 	friend class FPCGExUberFilterElement;
 };

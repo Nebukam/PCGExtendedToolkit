@@ -39,7 +39,7 @@ namespace PCGExDataBlending
 
 	protected:
 		bool bUseTargetAsSecondarySource = true;
-		
+
 		TWeakPtr<PCGExData::FFacade> SourceFacadeHandle;
 		PCGExData::EIOSide SourceSide = PCGExData::EIOSide::In;
 		TArray<FPCGAttributeIdentifier> AttributeIdentifiers;

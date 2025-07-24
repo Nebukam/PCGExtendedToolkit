@@ -8,6 +8,7 @@
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/Matching/PCGExMatching.h"
 #include "Paths/PCGExCreateSpline.h"
 #include "Paths/Tangents/PCGExTangentsInstancedFactory.h"
 
@@ -26,7 +27,7 @@ UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="P
 class UPCGExCopyToPathsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
@@ -58,7 +59,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable))
 	FPCGExTangentsDetails Tangents;
 
-
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Center;
@@ -66,7 +66,7 @@ public:
 #pragma region Main axis
 
 	// Main axis is "along the spline"
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
 	EPCGExCopyToPathsUnit StartUnit = EPCGExCopyToPathsUnit::Alpha;
 
@@ -111,6 +111,10 @@ public:
 	// If bend is enabled, will apply rotation
 
 #pragma endregion
+
+	/** If enabled, allows you to pick which input gets copied to which path/spline. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching;
 
 	bool GetApplyTangents() const
 	{

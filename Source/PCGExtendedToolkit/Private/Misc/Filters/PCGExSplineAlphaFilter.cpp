@@ -4,8 +4,6 @@
 #include "Misc/Filters/PCGExSplineAlphaFilter.h"
 
 
-
-
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSplineAlphaFilterDefinition"

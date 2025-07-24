@@ -48,6 +48,7 @@ namespace PCGExFactories
 		Tensor,
 		IndexPicker,
 		FillControls,
+		MatchRule,
 	};
 
 	static inline TSet<EType> AnyFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterEdge, EType::FilterGroup, EType::FilterCollection};
@@ -181,7 +182,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderContext : FPCGExContext
 	virtual ~FPCGExFactoryProviderContext() override;
 
 	UPCGExFactoryData* OutFactory = nullptr;
-	
+
 	void LaunchDeferredCallback(PCGExMT::FSimpleCallback&& InCallback);
 
 protected:

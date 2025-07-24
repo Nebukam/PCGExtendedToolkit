@@ -43,7 +43,6 @@ protected:
 	//~End UPCGSettings
 
 public:
-
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDiscardSameMode Mode = EPCGExDiscardSameMode::FIFO;

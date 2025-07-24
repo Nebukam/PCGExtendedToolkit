@@ -358,7 +358,6 @@ namespace PCGExClusterMT
 			StartProcessing();
 		}
 
-	public:
 		virtual void StartProcessing()
 		{
 			if (!bIsBatchValid) { return; }

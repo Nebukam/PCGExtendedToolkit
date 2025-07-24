@@ -37,10 +37,9 @@ struct FPCGExPickerConstantRangeConfig : public FPCGExPickerConfigBase
 	double RelativeEndIndex = 0;
 
 	virtual void Sanitize() override;
-	
+
 	bool IsWithin(double Value) const;
 	bool IsWithinInclusive(double Value) const;
-	
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="filters/cherry-pick-points/picker-range"))
@@ -54,7 +53,7 @@ public:
 
 	static void AddPicksFromConfig(const FPCGExPickerConstantRangeConfig& InConfig, int32 InNum, TSet<int32>& OutPicks);
 	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const override;
-	
+
 protected:
 	virtual bool InitInternalData(FPCGExContext* InContext) override;
 };

@@ -93,6 +93,13 @@ FString UPCGExSortingRuleProviderSettings::GetDisplayName() const { return Confi
 
 namespace PCGExSorting
 {
+	void PCGExSorting::DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus)
+	{
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceSortingRules, EPCGDataType::Param);
+		Pin.Tooltip = FTEXT("Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.");
+		Pin.PinStatus = InStatus;
+	}
+
 	FPointSorter::FPointSorter(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade, TArray<FPCGExSortRuleConfig> InRuleConfigs)
 		: ExecutionContext(InContext), DataFacade(InDataFacade)
 	{

@@ -57,7 +57,7 @@ struct FPCGExDotFilterConfig
 	bool bTransformOperandB = false;
 
 	PCGEX_SETTING_VALUE_GET(OperandB, FVector, CompareAgainst, OperandB, OperandBConstant)
-	
+
 	/** Dot comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExDotComparisonDetails DotComparisonDetails;
@@ -65,7 +65,6 @@ struct FPCGExDotFilterConfig
 	void Sanitize()
 	{
 	}
-
 };
 
 /**
@@ -104,7 +103,7 @@ namespace PCGExPointFilter
 
 		TSharedPtr<PCGExData::TBuffer<FVector>> OperandA;
 		double OperandAMultiplier = 1;
-		
+
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> OperandB;
 		double OperandBMultiplier = 1;
 

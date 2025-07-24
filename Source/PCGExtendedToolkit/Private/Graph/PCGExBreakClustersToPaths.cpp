@@ -255,7 +255,6 @@ namespace PCGExBreakClustersToPaths
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
-	
 }
 
 #undef LOCTEXT_NAMESPACE

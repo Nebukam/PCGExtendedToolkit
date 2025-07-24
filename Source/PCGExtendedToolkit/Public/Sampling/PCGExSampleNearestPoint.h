@@ -16,6 +16,7 @@
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Data/Matching/PCGExMatching.h"
 
 #include "PCGExSampleNearestPoint.generated.h"
 
@@ -47,6 +48,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -57,6 +59,12 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 
 	//~End UPCGExPointsProcessorSettings
+
+	/** If enabled, allows you to filter out which targets get sampled by which data */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Sampling);
+
+	//
 
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))

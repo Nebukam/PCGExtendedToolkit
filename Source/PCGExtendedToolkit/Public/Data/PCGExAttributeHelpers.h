@@ -256,7 +256,7 @@ namespace PCGEx
 	class TAttributeBroadcaster : public IAttributeBroadcaster
 	{
 	protected:
-		TSharedPtr<PCGExData::FPointIO> PointIO;
+		TSharedPtr<IPCGAttributeAccessorKeys> Keys;
 		TUniquePtr<const IPCGAttributeAccessor> InternalAccessor;
 
 		TSharedPtr<PCGExData::IDataValue> DataValue;
@@ -265,10 +265,10 @@ namespace PCGEx
 		bool ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 		{
 			static_assert(PCGEx::GetMetadataType<T>() != EPCGMetadataTypes::Unknown, TEXT("T must be of PCG-friendly type. Custom types are unsupported -- you'll have to static_cast the values."));
-			
+
 			ProcessingInfos = FAttributeProcessingInfos(InData, InSelector);
 			if (!ProcessingInfos.bIsValid) { return false; }
-			
+
 			if (ProcessingInfos.bIsDataDomain)
 			{
 				PCGEx::ExecuteWithRightType(
@@ -311,7 +311,7 @@ namespace PCGEx
 
 		bool Prepare(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO)
 		{
-			PointIO = InPointIO;
+			Keys = InPointIO->GetInKeys();
 			PCGExMath::TypeMinMax(Min, Max);
 			return ApplySelector(InSelector, InPointIO->GetIn());
 		}
@@ -323,6 +323,36 @@ namespace PCGEx
 			return Prepare(InSelector, InPointIO);
 		}
 
+		bool PrepareForSingleFetch(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys = nullptr)
+		{
+			if (InKeys) { Keys = InKeys; }
+			else if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(InData)) { Keys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(PointData); }
+			else if (InData->Metadata) { Keys = MakeShared<FPCGAttributeAccessorKeysEntries>(InData->Metadata); }
+
+			if (!Keys) { return false; }
+
+			PCGExMath::TypeMinMax(Min, Max);
+			return ApplySelector(InSelector, InData);
+		}
+
+		bool PrepareForSingleFetch(const FName& InName, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys = nullptr)
+		{
+			FPCGAttributePropertyInputSelector InSelector = FPCGAttributePropertyInputSelector();
+			InSelector.Update(InName.ToString());
+
+			return PrepareForSingleFetch(InSelector, InData, InKeys);
+		}
+
+		bool PrepareForSingleFetch(const FPCGAttributePropertyInputSelector& InSelector, const PCGExData::FTaggedData& InData)
+		{
+			return PrepareForSingleFetch(InSelector, InData.Data, InData.Keys);
+		}
+
+		bool PrepareForSingleFetch(const FName& InName, const PCGExData::FTaggedData& InData)
+		{
+			return PrepareForSingleFetch(InName, InData.Data, InData.Keys);
+		}
+
 		/**
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param Dump
@@ -330,7 +360,7 @@ namespace PCGEx
 		void Fetch(TArray<T>& Dump, const PCGExMT::FScope& Scope)
 		{
 			check(ProcessingInfos.bIsValid)
-			check(Dump.Num() == PointIO->GetNum(PCGExData::EIOSide::In)) // Dump target should be initialized at full length before using Fetch
+			check(Dump.Num() == Keys->GetNum()) // Dump target should be initialized at full length before using Fetch
 
 			if (!ProcessingInfos.bIsValid)
 			{
@@ -345,7 +375,7 @@ namespace PCGEx
 			else
 			{
 				TArrayView<T> DumpView = MakeArrayView(Dump.GetData() + Scope.Start, Scope.Count);
-				const bool bSuccess = InternalAccessor->GetRange<T>(DumpView, Scope.Start, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible);
+				const bool bSuccess = InternalAccessor->GetRange<T>(DumpView, Scope.Start, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible);
 
 				if (!bSuccess)
 				{
@@ -363,7 +393,7 @@ namespace PCGEx
 		 */
 		void GrabAndDump(TArray<T>& Dump, const bool bCaptureMinMax, T& OutMin, T& OutMax)
 		{
-			const int32 NumPoints = PointIO->GetNum(PCGExData::EIOSide::In);
+			const int32 NumPoints = Keys->GetNum();
 			PCGEx::InitArray(Dump, NumPoints);
 
 			PCGExMath::TypeMinMax(OutMin, OutMax);
@@ -386,7 +416,7 @@ namespace PCGEx
 			}
 			else
 			{
-				const bool bSuccess = InternalAccessor->GetRange<T>(Dump, 0, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible);
+				const bool bSuccess = InternalAccessor->GetRange<T>(Dump, 0, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible);
 				if (!bSuccess)
 				{
 					// TODO : Log error
@@ -416,7 +446,7 @@ namespace PCGEx
 				T TempMin = T{};
 				T TempMax = T{};
 
-				int32 NumPoints = PointIO->GetNum(PCGExData::EIOSide::In);
+				int32 NumPoints = Keys->GetNum();
 				OutUniqueValues.Reserve(OutUniqueValues.Num() + NumPoints);
 
 				TArray<T> Dump;
@@ -432,13 +462,13 @@ namespace PCGEx
 			GrabAndDump(Values, bCaptureMinMax, Min, Max);
 		}
 
-		T FetchSingle(const PCGExData::FConstPoint& Point, const T& Fallback) const
+		T FetchSingle(const PCGExData::FElement& Element, const T& Fallback) const
 		{
 			if (!ProcessingInfos.bIsValid) { return Fallback; }
 			if (DataValue) { return TypedDataValue; }
 
 			T OutValue = Fallback;
-			if (!InternalAccessor->Get<T>(OutValue, Point.Index, *PointIO->GetInKeys().Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible)) { OutValue = Fallback; }
+			if (!InternalAccessor->Get<T>(OutValue, Element.Index, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible)) { OutValue = Fallback; }
 			return OutValue;
 		}
 

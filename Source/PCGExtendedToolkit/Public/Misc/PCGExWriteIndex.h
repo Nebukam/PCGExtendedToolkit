@@ -96,7 +96,7 @@ public:
 
 	bool CollectionLevelOutputOnly() const;
 
-	virtual bool IsInputless() const override{ return CollectionLevelOutputOnly(); }
+	virtual bool IsInputless() const override { return CollectionLevelOutputOnly(); }
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const;
@@ -104,7 +104,7 @@ public:
 };
 
 struct FPCGExWriteIndexContext final : FPCGExPointsProcessorContext
-{	
+{
 	friend class FPCGExWriteIndexElement;
 	bool bCollectionLevelOutputOnly = false;
 	double MaxNumEntries = 0;
@@ -115,7 +115,6 @@ struct FPCGExWriteIndexContext final : FPCGExPointsProcessorContext
 	FPCGAttributeIdentifier EntryIndexIdentifier;
 	FPCGAttributeIdentifier NumEntriesIdentifier;
 	FPCGAttributeIdentifier CollectionIndexIdentifier;
-	
 };
 
 class FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement

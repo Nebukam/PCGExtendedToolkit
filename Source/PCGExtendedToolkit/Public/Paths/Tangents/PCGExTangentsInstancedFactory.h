@@ -133,7 +133,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentsDetails
 	GENERATED_BODY()
 
 	FPCGExTangentsDetails() = default;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_NotOverridable))
 	EPCGExTangentSource Source = EPCGExTangentSource::Attribute;
@@ -166,7 +166,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentsDetails
 	/**  */
 	UPROPERTY(meta = (PCG_NotOverridable))
 	bool bDeprecationApplied = false;
-	
+
 #if WITH_EDITOR
 	void ApplyDeprecation(bool bUseAttribute, FName InArriveAttributeName, FName InLeaveAttributeName);
 #endif

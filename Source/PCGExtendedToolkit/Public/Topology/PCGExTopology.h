@@ -265,7 +265,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	TSoftObjectPtr<UMaterialInterface> Material;
-	
+
 	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FLinearColor DefaultVertexColor = FLinearColor::White;
 
@@ -283,7 +283,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComputeNormals"))
 	FGeometryScriptCalculateNormalsOptions NormalsOptions;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FPCGExDynamicMeshDescriptor TemplateDescriptor;
 };

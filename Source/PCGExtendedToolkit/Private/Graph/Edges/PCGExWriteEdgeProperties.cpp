@@ -15,14 +15,14 @@ PCGExData::EIOInit UPCGExWriteEdgePropertiesSettings::GetEdgeOutputInitMode() co
 TArray<FPCGPinProperties> UPCGExWriteEdgePropertiesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations, used by Individual (non-monolithic) blending interface.", Normal, {})
+	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, bEndpointsBlending ? EPCGPinStatus::Normal : EPCGPinStatus::Advanced);
 	if (bWriteHeuristics) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics that will be computed and written.", Required, {}) }
 	return PinProperties;
 }
 
 bool UPCGExWriteEdgePropertiesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual; }
+	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual && bEndpointsBlending; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
