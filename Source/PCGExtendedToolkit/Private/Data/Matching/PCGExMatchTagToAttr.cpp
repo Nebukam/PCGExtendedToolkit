@@ -4,6 +4,8 @@
 #include "Data/Matching/PCGExMatchTagToAttr.h"
 
 
+
+
 #define LOCTEXT_NAMESPACE "PCGExMatchTagToAttr"
 #define PCGEX_NAMESPACE MatchTagToAttr
 
@@ -78,7 +80,7 @@ bool FPCGExMatchTagToAttr::PrepareForTargets(FPCGExContext* InContext, const TSh
 	return true;
 }
 
-bool FPCGExMatchTagToAttr::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
+bool FPCGExMatchTagToAttr::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FMatchingScope& InMatchingScope) const
 {
 	const FString TestTagName = TagNameGetters.IsEmpty() ? Config.TagName : TagNameGetters[InTargetElement.IO]->FetchSingle(InTargetElement, TEXT(""));
 

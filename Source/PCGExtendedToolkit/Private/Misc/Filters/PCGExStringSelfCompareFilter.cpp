@@ -59,7 +59,7 @@ bool PCGExPointFilter::FStringSelfCompareFilter::Test(const int32 PointIndex) co
 
 	const FString A = OperandA->FetchSingle(PointDataFacade->Source->GetInPoint(PointIndex), TEXT(""));
 	const FString B = OperandA->FetchSingle(PointDataFacade->Source->GetInPoint(TargetIndex), TEXT(""));
-	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
+	return TypedFilterFactory->Config.bSwapOperands ? PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, B, A) : PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
 }
 
 PCGEX_CREATE_FILTER_FACTORY(StringSelfCompare)

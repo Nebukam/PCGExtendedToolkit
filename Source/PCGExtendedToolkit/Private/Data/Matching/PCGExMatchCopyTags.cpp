@@ -4,6 +4,8 @@
 #include "Data/Matching/PCGExMatchCopyTags.h"
 
 
+
+
 #define LOCTEXT_NAMESPACE "PCGExMatchCopyTags"
 #define PCGEX_NAMESPACE MatchCopyTags
 
@@ -12,7 +14,7 @@ bool FPCGExMatchCopyTags::PrepareForTargets(FPCGExContext* InContext, const TSha
 	return FPCGExMatchRuleOperation::PrepareForTargets(InContext, InTargets);
 }
 
-bool FPCGExMatchCopyTags::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
+bool FPCGExMatchCopyTags::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FMatchingScope& InMatchingScope) const
 {
 	if (InTargetElement.Data) { return true; }
 

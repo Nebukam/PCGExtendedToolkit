@@ -59,7 +59,7 @@ bool FPCGExMatchAttrToAttr::PrepareForTargets(FPCGExContext* InContext, const TS
 	return true;
 }
 
-bool FPCGExMatchAttrToAttr::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
+bool FPCGExMatchAttrToAttr::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FMatchingScope& InMatchingScope) const
 {
 	if (Config.Check == EPCGExComparisonDataType::Numeric)
 	{
