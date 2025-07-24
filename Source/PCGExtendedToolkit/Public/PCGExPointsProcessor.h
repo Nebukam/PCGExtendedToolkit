@@ -138,6 +138,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
 
+	int32 InitialMainPointsNum = 0;
+	
 	template <typename T>
 	T* RegisterOperation(UPCGExInstancedFactory* BaseOperation, FName OverridePinLabel = NAME_None)
 	{
@@ -177,8 +179,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 		SubProcessorMap.Reserve(MainPoints->Num());
 
 		TArray<TWeakPtr<PCGExData::FPointIO>> BatchAblePoints;
-		BatchAblePoints.Reserve(MainPoints->Pairs.Num());
+		BatchAblePoints.Reserve(InitialMainPointsNum);
 
+		
 		while (AdvancePointsIO(false))
 		{
 			if (!ValidateEntry(CurrentIO)) { continue; }

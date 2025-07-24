@@ -61,6 +61,7 @@ struct FPCGExStringSelfCompareFilterConfig
 	/** Swap operands. Useful to invert "contains" checks */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSwapOperands = false;
+	
 };
 
 

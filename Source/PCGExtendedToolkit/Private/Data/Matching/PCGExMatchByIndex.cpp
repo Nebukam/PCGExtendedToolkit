@@ -20,7 +20,7 @@ bool FPCGExMatchByIndex::PrepareForTargets(FPCGExContext* InContext, const TShar
 
 	bIsIndex = Config.IndexAttribute.GetSelection() == EPCGAttributePropertySelection::ExtraProperty && Config.IndexAttribute.GetExtraProperty() == EPCGExtraProperties::Index;
 
-	if (Config.Source == EPCGExMatchByIndexSource::Target)
+	if (!bIsIndex && Config.Source == EPCGExMatchByIndexSource::Target)
 	{
 		IndexGetters.Reserve(TargetsRef.Num());
 		for (const PCGExData::FTaggedData& TaggedData : TargetsRef)

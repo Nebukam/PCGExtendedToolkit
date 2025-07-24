@@ -334,6 +334,8 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 		if (SingleInput) { Context->MainPoints->Add_Unsafe(SingleInput); }
 	}
 
+	Context->InitialMainPointsNum = Context->MainPoints->Num();
+	
 	if (Context->MainPoints->IsEmpty() && !Settings->IsInputless())
 	{
 		if (!Settings->bQuietMissingInputError)
