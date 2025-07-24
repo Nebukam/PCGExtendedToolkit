@@ -213,8 +213,8 @@ namespace PCGExTangents
 		}
 		else
 		{
-			if (Index == 0) { StartTangents->ProcessFirstPoint(PointData, InScale, OutDir, InScale, Dummy); }
-			else if (Index == LastIndex) { EndTangents->ProcessLastPoint(PointData, InScale, OutDir, InScale, Dummy); }
+			if (Index <= 0) { StartTangents->ProcessFirstPoint(PointData, InScale, OutDir, InScale, Dummy); }
+			else if (Index >= LastIndex) { EndTangents->ProcessLastPoint(PointData, InScale, OutDir, InScale, Dummy); }
 			else { Tangents->ProcessPoint(PointData, Index, NextIndex, PrevIndex, InScale, OutDir, InScale, Dummy); }
 		}
 	}

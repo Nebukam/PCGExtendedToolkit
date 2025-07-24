@@ -11,6 +11,7 @@
 #include "Data/Matching/PCGExMatching.h"
 #include "Paths/PCGExCreateSpline.h"
 #include "Paths/Tangents/PCGExTangentsInstancedFactory.h"
+#include "Sampling/PCGExSampling.h"
 
 #include "Transform/PCGExTransform.h"
 
@@ -39,6 +40,7 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	//~End UPCGSettings
 
@@ -46,9 +48,15 @@ protected:
 public:
 	//~End UPCGExPointsProcessorSettings
 
+	/** If enabled, allows you to filter out which targets get sampled by which data */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Sampling);
+
+	//
+
 	/** Default spline point type. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable))
-	EPCGExSplinePointType DefaultPointType = EPCGExSplinePointType::Linear;
+	EPCGExSplinePointType DefaultPointType = EPCGExSplinePointType::Curve;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bApplyCustomPointType = false;
@@ -56,7 +64,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable, EditCondition = "bApplyCustomPointType"))
 	FName PointTypeAttribute = "PointType";
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Spline", meta = (PCG_Overridable, EditCondition="bApplyCustomPointType || DefaultPointType == EPCGExSplinePointType::CurveCustomTangent"))
 	FPCGExTangentsDetails Tangents;
 
 	/**  */
@@ -65,9 +73,12 @@ public:
 
 #pragma region Main axis
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
+	bool bWrapClosedLoops = true;
+	
 	// Main axis is "along the spline"
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
 	EPCGExCopyToPathsUnit StartUnit = EPCGExCopyToPathsUnit::Alpha;
 
 	/** */
@@ -85,7 +96,7 @@ public:
 	PCGEX_SETTING_VALUE_GET(Start, double, StartInput, StartAttribute, Start)
 
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
 	EPCGExCopyToPathsUnit EndUnit = EPCGExCopyToPathsUnit::Alpha;
 
 	/** */
@@ -98,7 +109,7 @@ public:
 
 	/** Constant end value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="End", EditCondition="EndInput == EPCGExInputValueType::Constant", EditConditionHides))
-	double End = 0;
+	double End = 1;
 
 	PCGEX_SETTING_VALUE_GET(End, double, EndInput, EndAttribute, End)
 
@@ -112,10 +123,6 @@ public:
 
 #pragma endregion
 
-	/** If enabled, allows you to pick which input gets copied to which path/spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExMatchingDetails DataMatching;
-
 	bool GetApplyTangents() const
 	{
 		return (!bApplyCustomPointType && DefaultPointType == EPCGExSplinePointType::CurveCustomTangent);
@@ -127,13 +134,13 @@ struct FPCGExCopyToPathsContext final : FPCGExPointsProcessorContext
 	friend class FPCGExCopyToPathsElement;
 	FPCGExTangentsDetails Tangents;
 
-	bool bOneOneMatch = false;
 	bool bUseUnifiedBounds = false;
 	FBox UnifiedBounds = FBox(ForceInit);
 
-	TArray<const UPCGSpatialData*> DeformersData;
+	TSharedPtr<PCGExMatching::FDataMatcher> DataMatcher;
+
+	TArray<PCGExData::FTaggedData> DeformersData;
 	TArray<TSharedPtr<PCGExData::FFacade>> DeformersFacades;
-	TArray<TSharedPtr<PCGExData::FTags>> DeformersTags;
 	TArray<const FPCGSplineStruct*> Deformers;
 
 	TArray<TSharedPtr<FPCGSplineStruct>> LocalDeformers;
@@ -153,7 +160,16 @@ namespace PCGExCopyToPaths
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExCopyToPathsContext, UPCGExCopyToPathsSettings>
 	{
 		FBox Box = FBox(ForceInit);
+		FVector Size = FVector::ZeroVector;
+		int32 MainAxis = -1;
+
+		TArray<FTransform> Origins;
 		TArray<const FPCGSplineStruct*> Deformers;
+		TArray<TSharedPtr<PCGExData::FPointIO>> Dupes;
+
+		TSharedPtr<PCGExDetails::TSettingValue<double>> MainAxisStart;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> MainAxisEnd;
+		
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -166,8 +182,8 @@ namespace PCGExCopyToPaths
 		}
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void CompleteWork() override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-		virtual void Cleanup() override;
 	};
 
 	class FBatch final : public PCGExPointsMT::TBatch<FProcessor>
