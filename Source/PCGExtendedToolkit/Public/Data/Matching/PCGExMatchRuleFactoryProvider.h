@@ -32,7 +32,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchRuleConfigBase
 
 	/** Match Strictness */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
-	EPCGExMatchStrictness Strictness = EPCGExMatchStrictness::Required;
+	EPCGExMatchStrictness Strictness = EPCGExMatchStrictness::Any;
 
 	virtual void Init()
 	{
@@ -52,6 +52,7 @@ public:
 
 protected:
 	TSharedPtr<TArray<PCGExData::FTaggedData>> Targets;
+	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
