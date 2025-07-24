@@ -6,6 +6,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 
 #include "Misc/PCGExSortPoints.h"
@@ -27,26 +28,27 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
-	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations, used by Individual (non-monolithic) blending interface.", Normal, {})
 
-	if (SampleMethod == EPCGExSampleMethod::BestCandidate)
-	{
-		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
-	}
-	else
-	{
-		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Advanced, {})
-	}
+	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
+	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
+	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 
 	PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced, {})
 
 	return PinProperties;
 }
 
+TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
+	return PinProperties;
+}
+
 bool UPCGExSampleNearestPointSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (InPin->Properties.Label == PCGExSorting::SourceSortingRules) { return SampleMethod == EPCGExSampleMethod::BestCandidate; }
-	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual; }
+	if (InPin->Properties.Label == PCGExDataBlending::SourceBlendingLabel) { return BlendingInterface == EPCGExBlendingInterface::Individual && InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -177,6 +179,8 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 				return;
 			}
 
+			Context->TargetsHandler->SetMatchingDetails(Context, &Settings->DataMatching);
+
 			if (Context->Sorter && !Context->Sorter->Init(Context, Context->TargetsHandler->GetFacades()))
 			{
 				Context->CancelExecution(TEXT("Invalid sort rules"));
@@ -241,8 +245,14 @@ namespace PCGExSampleNearestPoints
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
+		if (!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, IgnoreList))
+		{
+			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
+			return false;
+		}
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		// Allocate edge native properties
 

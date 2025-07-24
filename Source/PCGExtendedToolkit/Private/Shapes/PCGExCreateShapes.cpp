@@ -4,6 +4,7 @@
 #include "Shapes/PCGExCreateShapes.h"
 
 #include "Data/PCGExData.h"
+#include "Paths/PCGExPaths.h"
 
 
 #include "Shapes/PCGExShapeBuilderOperation.h"

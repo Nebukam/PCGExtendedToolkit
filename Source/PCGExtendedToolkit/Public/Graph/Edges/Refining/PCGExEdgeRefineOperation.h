@@ -26,11 +26,11 @@ protected:
 	bool bWantsNodeOctree = false;
 	bool bWantsEdgeOctree = false;
 	bool bWantsHeuristics = false;
-	
+
 public:
 	TArray<int8>* VtxFilterCache = nullptr;
 	TArray<int8>* EdgeFilterCache = nullptr;
-	
+
 	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& InHeuristics = nullptr)
 	{
 		Cluster = InCluster;
@@ -81,7 +81,7 @@ public:
 	virtual void PrepareVtxFacade(const TSharedPtr<PCGExData::FFacade>& InVtxFacade) const
 	{
 	}
-	
+
 	virtual bool SupportFilters() const { return false; }
 	virtual bool GetDefaultEdgeValidity() const { return true; }
 	virtual bool WantsNodeOctree() const { return false; }

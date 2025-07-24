@@ -16,12 +16,15 @@ bool FPCGExProbeDirection::PrepareForPoints(FPCGExContext* InContext, const TSha
 
 	bUseBestDot = Config.Favor == EPCGExProbeDirectionPriorization::Dot;
 	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
+	DirectionMultiplier = Config.bInvertDirection ? -1 : 1;
 
 	Direction = Config.GetValueSettingDirection();
 	if (!Direction->Init(InContext, PrimaryDataFacade)) { return false; }
 
 	return true;
 }
+
+#define PCGEX_GET_DIRECTION (Direction->Read(Index) * DirectionMultiplier).GetSafeNormal()
 
 void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
@@ -31,7 +34,7 @@ void FPCGExProbeDirection::ProcessCandidates(const int32 Index, const FTransform
 	double BestDist = MAX_dbl;
 	int32 BestCandidateIndex = -1;
 
-	const FVector Dir = Config.bTransformDirection ? WorkingTransform.TransformVectorNoScale(Direction->Read(Index).GetSafeNormal()) : Direction->Read(Index).GetSafeNormal();
+	const FVector Dir = Config.bTransformDirection ? WorkingTransform.TransformVectorNoScale(PCGEX_GET_DIRECTION) : PCGEX_GET_DIRECTION;
 
 	const int32 MaxIndex = Candidates.Num() - 1;
 	for (int i = 0; i <= MaxIndex; i++)
@@ -94,7 +97,7 @@ void FPCGExProbeDirection::PrepareBestCandidate(const int32 Index, const FTransf
 void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FTransform& WorkingTransform, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
 {
 	const double R = GetSearchRadius(Index);
-	const FVector Dir = Config.bTransformDirection ? WorkingTransform.TransformVectorNoScale(Direction->Read(Index).GetSafeNormal()) : Direction->Read(Index).GetSafeNormal();
+	const FVector Dir = Config.bTransformDirection ? WorkingTransform.TransformVectorNoScale(PCGEX_GET_DIRECTION) : PCGEX_GET_DIRECTION;
 
 	if (Candidate.Distance > R) { return; }
 
@@ -131,6 +134,8 @@ void FPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FTra
 		InBestCandidate.BestIndex = CandidateIndex;
 	}
 }
+
+#undef PCGEX_GET_DIRECTION
 
 void FPCGExProbeDirection::ProcessBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {

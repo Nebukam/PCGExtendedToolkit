@@ -117,7 +117,7 @@ namespace PCGExPointFilter
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		bCheckAgainstDataBounds = TypedFilterFactory->Config.bCheckAgainstDataBounds;
-		
+
 		if (bCheckAgainstDataBounds)
 		{
 			PCGExData::FProxyPoint ProxyPoint;

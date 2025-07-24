@@ -145,6 +145,9 @@ namespace PCGExSorting
 {
 	const FName SourceSortingRules = TEXT("SortRules");
 
+	PCGEXTENDEDTOOLKIT_API
+	void DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus);
+
 	class PCGEXTENDEDTOOLKIT_API FRuleHandler : public TSharedFromThis<FRuleHandler>
 	{
 	public:
@@ -185,7 +188,7 @@ namespace PCGExSorting
 		bool Init(FPCGExContext* InContext);
 		bool Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InDataFacades);
 		bool Init(FPCGExContext* InContext, const TArray<FPCGTaggedData>& InTaggedDatas);
-		
+
 		bool Sort(const int32 A, const int32 B);
 		bool Sort(const PCGExData::FElement A, const PCGExData::FElement B);
 		bool SortData(const int32 A, const int32 B);

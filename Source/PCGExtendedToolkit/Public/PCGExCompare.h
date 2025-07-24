@@ -1,7 +1,6 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -403,38 +402,6 @@ namespace PCGExCompare
 	bool GetMatchingValueTags(const TSharedPtr<PCGExData::FTags>& InTags, const FString& Query, const EPCGExStringMatchMode MatchMode, TArray<TSharedPtr<PCGExData::IDataValue>>& OutValues);
 }
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExComparisonDetails
-{
-	GENERATED_BODY()
-
-	FPCGExComparisonDetails()
-	{
-	}
-
-	FPCGExComparisonDetails(const FPCGExComparisonDetails& Other):
-		Comparison(Other.Comparison),
-		Tolerance(Other.Tolerance)
-	{
-	}
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGAttributePropertyInputSelector OperandA;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGAttributePropertyInputSelector OperandB;
-
-	/** Comparison method. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExComparison Comparison = EPCGExComparison::StrictlyEqual;
-
-	/** Comparison Tolerance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides, ClampMin=0.001))
-	double Tolerance = DBL_COMPARE_TOLERANCE;
-};
-
 UENUM()
 enum class EPCGExDirectionCheckMode : uint8
 {
@@ -481,6 +448,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 	bool Test(const FVector& A, const FVector& B, const int32 PointIndex) const;
 };
 
+/**
+ * Util object to encapsulate recurring dot comparison parameters, with no support for params
+ */
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExStaticDotComparisonDetails
 {
@@ -525,6 +495,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStaticDotComparisonDetails
 	bool Test(const double A) const;
 };
 
+/**
+ * Util object to encapsulate recurring dot comparison parameters, including attribute-driven params
+ */
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 {
@@ -533,7 +506,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	FPCGExDotComparisonDetails()
 	{
 	}
-
 
 	/** Value domain (units) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -592,146 +564,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 #endif
 };
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExMatchAndCompareDetails
-{
-	GENERATED_BODY()
-	virtual ~FPCGExMatchAndCompareDetails() = default;
-
-	FPCGExMatchAndCompareDetails()
-	{
-	}
-
-	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade)
-	PCGEX_NOT_IMPLEMENTED_RET(Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade), false);
-
-	virtual bool Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const
-	PCGEX_NOT_IMPLEMENTED_RET(Matches(const TSharedPtr<PCGExData::FTags>& InTags, const PCGExData::FConstPoint& SourcePoint), false);
-
-	virtual void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
-	PCGEX_NOT_IMPLEMENTED(RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData));
-
-	virtual bool GetOnlyUseDataDomain() const
-	PCGEX_NOT_IMPLEMENTED_RET(GetOnlyUseDataDomain(), false);
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagComparisonDetails : public FPCGExMatchAndCompareDetails
-{
-	GENERATED_BODY()
-
-	FPCGExAttributeToTagComparisonDetails()
-	{
-	}
-
-	/** Type of Tag Name value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExInputValueType TagNameInput = EPCGExInputValueType::Constant;
-
-	/** Attribute to read tag name value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tag Name (Attr)", EditCondition="TagNameInput != EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
-	FName TagNameAttribute = FName("Tag");
-
-	/** Constant tag name value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tag Name", EditCondition="TagNameInput == EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
-	FString TagName = TEXT("Tag");
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Match"))
-	EPCGExStringMatchMode NameMatch = EPCGExStringMatchMode::Equals;
-
-	/** Whether to do a tag value match or not. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bDoValueMatch = false;
-
-	/** Expected value type, this is a strict check. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoValueMatch"))
-	EPCGExComparisonDataType ValueType = EPCGExComparisonDataType::Numeric;
-
-	/** Attribute to read tag name value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoValueMatch"))
-	FPCGAttributePropertyInputSelector ValueAttribute;
-
-	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Comparison", EditCondition="bDoValueMatch && ValueType == EPCGExComparisonDataType::Numeric", EditConditionHides))
-	EPCGExComparison NumericComparison = EPCGExComparison::NearlyEqual;
-
-	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bDoValueMatch && ValueType == EPCGExComparisonDataType::Numeric && (NumericComparison == EPCGExComparison::NearlyEqual || NumericComparison == EPCGExComparison::NearlyNotEqual)", EditConditionHides))
-	double Tolerance = DBL_COMPARE_TOLERANCE;
-
-	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Comparison", EditCondition="bDoValueMatch && ValueType == EPCGExComparisonDataType::String", EditConditionHides))
-	EPCGExStringComparison StringComparison = EPCGExStringComparison::Contains;
-
-	TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> TagNameGetter;
-	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> NumericValueGetter;
-	TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> StringValueGetter;
-
-	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade) override;
-	virtual bool Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const override;
-	virtual void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
-	virtual bool GetOnlyUseDataDomain() const override;
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToDataComparisonDetails : public FPCGExMatchAndCompareDetails
-{
-	GENERATED_BODY()
-
-	FPCGExAttributeToDataComparisonDetails()
-	{
-	}
-
-	/** Type of Data Name value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExInputValueType DataNameInput = EPCGExInputValueType::Constant;
-
-	/** Attribute to read data name value from. This attribute should contain the name of a @Data attribute to look for on matched data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Data Name (Attr)", EditCondition="DataNameInput != EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
-	FName DataNameAttribute = FName("Key");
-
-	/** Constant Data name value. This attribute must be present on matched data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Data Name", EditCondition="DataNameInput == EPCGExInputValueType::Constant", EditConditionHides, HideEditConditionToggle))
-	FName DataName = TEXT("@Data.Value");
-
-	/** Attribute to read data value from. This attribute value will be compared against the matched data' `@Data` attribute as defined above. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Value Name"))
-	FName ValueNameAttribute = FName("Value");
-
-	/** How should the data be compared. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExComparisonDataType Check = EPCGExComparisonDataType::Numeric;
-
-	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Comparison", EditCondition="Check == EPCGExComparisonDataType::Numeric", EditConditionHides))
-	EPCGExComparison NumericCompare = EPCGExComparison::StrictlyEqual;
-
-	/** Value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Value", EditCondition="Check == EPCGExComparisonDataType::Numeric", EditConditionHides))
-	int64 NumericValue = 0;
-
-	/** Rounding mode for near measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Check == EPCGExComparisonDataType::Numeric && NumericCompare == EPCGExComparison::NearlyEqual || NumericCompare == EPCGExComparison::NearlyNotEqual", EditConditionHides))
-	double Tolerance = DBL_COMPARE_TOLERANCE;
-
-	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Comparison", EditCondition="Check == EPCGExComparisonDataType::String", EditConditionHides))
-	EPCGExStringComparison StringCompare = EPCGExStringComparison::StrictlyEqual;
-
-	/** Value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Value", EditCondition="Check == EPCGExComparisonDataType::String", EditConditionHides))
-	FString StringValue = TEXT("");
-
-	TSharedPtr<PCGEx::TAttributeBroadcaster<FName>> DataNameGetter;
-	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> NumericValueGetter;
-	TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> StringValueGetter;
-
-	virtual bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InSourceDataFacade) override;
-	virtual bool Matches(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExData::FConstPoint& SourcePoint) const override;
-	virtual void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
-	virtual bool GetOnlyUseDataDomain() const override;
-};
-
 UENUM()
 enum class EPCGExBitOp : uint8
 {
@@ -751,80 +583,6 @@ enum class EPCGExBitmaskMode : uint8
 };
 
 #pragma region Bitmasks
-
-
-/*
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bitflag 64"))
-enum class EPCGExBitflag64 : int64
-{
-	None    = 0,
-	Flag_1  = 1ULL << 0 UMETA(DisplayName = "Alpha"),
-	Flag_2  = 1ULL << 1 UMETA(DisplayName = "Beta"),
-	Flag_3  = 1ULL << 2 UMETA(DisplayName = "Gamma"),
-	Flag_4  = 1ULL << 3 UMETA(DisplayName = "Delta"),
-	Flag_5  = 1ULL << 4 UMETA(DisplayName = "Epsilon"),
-	Flag_6  = 1ULL << 5 UMETA(DisplayName = "Zeta"),
-	Flag_7  = 1ULL << 6 UMETA(DisplayName = "Eta"),
-	Flag_8  = 1ULL << 7 UMETA(DisplayName = "Theta"),
-	Flag_9  = 1ULL << 8 UMETA(DisplayName = "Iota"),
-	Flag_10 = 1ULL << 9 UMETA(DisplayName = "Kappa"),
-	Flag_11 = 1ULL << 10 UMETA(DisplayName = "Lambda"),
-	Flag_12 = 1ULL << 11 UMETA(DisplayName = "Mu"),
-	Flag_13 = 1ULL << 12 UMETA(DisplayName = "Nu"),
-	Flag_14 = 1ULL << 13 UMETA(DisplayName = "Xi"),
-	Flag_15 = 1ULL << 14 UMETA(DisplayName = "Omicron"),
-	Flag_16 = 1ULL << 15 UMETA(DisplayName = "Pi"),
-	Flag_17 = 1ULL << 16 UMETA(DisplayName = "Rho"),
-	Flag_18 = 1ULL << 17 UMETA(DisplayName = "Sigma"),
-	Flag_19 = 1ULL << 18 UMETA(DisplayName = "Tau"),
-	Flag_20 = 1ULL << 19 UMETA(DisplayName = "Upsilon"),
-	Flag_21 = 1ULL << 20 UMETA(DisplayName = "Phi"),
-	Flag_22 = 1ULL << 21 UMETA(DisplayName = "Chi"),
-	Flag_23 = 1ULL << 22 UMETA(DisplayName = "Psi"),
-	Flag_24 = 1ULL << 23 UMETA(DisplayName = "Omega"),
-	Flag_25 = 1ULL << 24 UMETA(DisplayName = "Ares"),
-	Flag_26 = 1ULL << 25 UMETA(DisplayName = "Zeus"),
-	Flag_27 = 1ULL << 26 UMETA(DisplayName = "Hera"),
-	Flag_28 = 1ULL << 27 UMETA(DisplayName = "Apollo"),
-	Flag_29 = 1ULL << 28 UMETA(DisplayName = "Hermes"),
-	Flag_30 = 1ULL << 29 UMETA(DisplayName = "Athena"),
-	Flag_31 = 1ULL << 30 UMETA(DisplayName = "Artemis"),
-	Flag_32 = 1ULL << 31 UMETA(DisplayName = "Demeter"),
-	Flag_33 = 1ULL << 32 UMETA(DisplayName = "Dionysus"),
-	Flag_34 = 1ULL << 33 UMETA(DisplayName = "Hades"),
-	Flag_35 = 1ULL << 34 UMETA(DisplayName = "Hephaestus"),
-	Flag_36 = 1ULL << 35 UMETA(DisplayName = "Hera"),
-	Flag_37 = 1ULL << 36 UMETA(DisplayName = "Hestia"),
-	Flag_38 = 1ULL << 37 UMETA(DisplayName = "Poseidon"),
-	Flag_39 = 1ULL << 38 UMETA(DisplayName = "Janus"),
-	Flag_40 = 1ULL << 39 UMETA(DisplayName = "Mars"),
-	Flag_41 = 1ULL << 40 UMETA(DisplayName = "Venus"),
-	Flag_42 = 1ULL << 41 UMETA(DisplayName = "Jupiter"),
-	Flag_43 = 1ULL << 42 UMETA(DisplayName = "Saturn"),
-	Flag_44 = 1ULL << 43 UMETA(DisplayName = "Neptune"),
-	Flag_45 = 1ULL << 44 UMETA(DisplayName = "Pluto"),
-	Flag_46 = 1ULL << 45 UMETA(DisplayName = "Vesta"),
-	Flag_47 = 1ULL << 46 UMETA(DisplayName = "Mercury"),
-	Flag_48 = 1ULL << 47 UMETA(DisplayName = "Sol"),
-	Flag_49 = 1ULL << 48 UMETA(DisplayName = "Luna"),
-	Flag_50 = 1ULL << 49 UMETA(DisplayName = "Terra"),
-	Flag_51 = 1ULL << 50 UMETA(DisplayName = "Vulcan"),
-	Flag_52 = 1ULL << 51 UMETA(DisplayName = "Juno"),
-	Flag_53 = 1ULL << 52 UMETA(DisplayName = "Ceres"),
-	Flag_54 = 1ULL << 53 UMETA(DisplayName = "Minerva"),
-	Flag_55 = 1ULL << 54 UMETA(DisplayName = "Bacchus"),
-	Flag_56 = 1ULL << 55 UMETA(DisplayName = "Aurora"),
-	Flag_57 = 1ULL << 56 UMETA(DisplayName = "Flora"),
-	Flag_58 = 1ULL << 57 UMETA(DisplayName = "Faunus"),
-	Flag_59 = 1ULL << 58 UMETA(DisplayName = "Iris"),
-	Flag_60 = 1ULL << 59 UMETA(DisplayName = "Mithras"),
-	Flag_61 = 1ULL << 60 UMETA(DisplayName = "Fortuna"),
-	Flag_62 = 1ULL << 61 UMETA(DisplayName = "Bellona"),
-	Flag_63 = 1ULL << 62 UMETA(DisplayName = "Fides"),
-	Flag_64 = 1ULL << 63 UMETA(DisplayName = "Pax"),
-};
-ENUM_CLASS_FLAGS(EPCGExBitflag64)
-*/
 
 UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 0-8 Bits Range"))
 enum class EPCGExBitmask8_00_08 : uint8

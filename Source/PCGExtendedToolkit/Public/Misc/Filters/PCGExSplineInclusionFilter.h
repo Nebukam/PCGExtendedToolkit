@@ -12,8 +12,6 @@
 #include "Data/PCGSplineData.h"
 
 
-
-
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 

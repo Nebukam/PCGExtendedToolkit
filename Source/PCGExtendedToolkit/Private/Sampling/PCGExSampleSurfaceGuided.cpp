@@ -195,9 +195,11 @@ namespace PCGExSampleSurfaceGuided
 
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
+		double DirMult = Settings->bInvertDirection ? -1 : 1;
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const FVector Direction = DirectionGetter->Read(Index).GetSafeNormal();
+			const FVector Direction = DirectionGetter->Read(Index).GetSafeNormal() * DirMult;
 			const FVector Origin = OriginGetter->Read(Index);
 			const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Constant ? Settings->MaxDistance : Direction.Length();
 

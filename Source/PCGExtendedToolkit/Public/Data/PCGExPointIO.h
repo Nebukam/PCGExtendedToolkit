@@ -360,6 +360,12 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		{
 			PCGEX_SHARED_CONTEXT(ContextHandle)
 
+			if (InitOut == EIOInit::Forward && IsValid(Out) && Out == In)
+			{
+				// Already forwarding
+				return true;
+			}
+
 			if (IsValid(Out) && Out != In)
 			{
 				SharedContext.Get()->ManagedObjects->Destroy(Out);
@@ -434,6 +440,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		int32 GetNum() const { return In ? In->GetNumPoints() : Out ? Out->GetNumPoints() : -1; }
 		int32 GetNum(const EIOSide Source) const { return Source == EIOSide::In ? In->GetNumPoints() : Out->GetNumPoints(); }
+		FTaggedData GetTaggedData(const EIOSide Source = EIOSide::In) { return FTaggedData(GetData(Source), Tags, GetInKeys()); }
 
 		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> GetInKeys();
 		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> GetOutKeys(const bool bEnsureValidKeys = false);

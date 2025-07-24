@@ -33,9 +33,13 @@ struct FPCGExEdgeMatchConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType DirectionInput = EPCGExInputValueType::Constant;
 
-	/** Operand B for testing -- Will be translated to `double` under the hood. */
+	/** Direction for computing the dot product against the edge's. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction (Attr)", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector Direction;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
+	bool bInvertDirection = false;
 
 	/** Direction for computing the dot product against the edge's. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction", EditCondition="DirectionInput == EPCGExInputValueType::Constant", EditConditionHides))
@@ -78,6 +82,7 @@ public:
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<FVector>> DirCache;
+	double DirectionMultiplier = 1;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

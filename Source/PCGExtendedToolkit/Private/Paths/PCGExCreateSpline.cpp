@@ -111,7 +111,10 @@ namespace PCGExCreateSpline
 
 		PositionOffset = SplineActor->GetTransform().GetLocation();
 		SplineData = Context->ManagedObjects->New<UPCGSplineData>();
+		SplineData->InitializeFromData(PointDataFacade->GetIn());
 		PCGEx::InitArray(SplinePoints, PointDataFacade->GetNum());
+
+		SplineEntryKeys.Init(PCGInvalidEntryKey, SplinePoints.Num());
 
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
@@ -124,8 +127,11 @@ namespace PCGExCreateSpline
 
 		PointDataFacade->Fetch(Scope);
 
+		bool bHasAValidEntry = false;
+
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
+		TConstPCGValueRange<int64> InMetadataEntries = InPointData->GetConstMetadataEntryValueRange();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -172,7 +178,18 @@ namespace PCGExCreateSpline
 				TR.GetRotation().Rotator(),
 				TR.GetScale3D(),
 				PointType);
+
+			const int64 PointMetadataEntry = InMetadataEntries[Index];
+			SplineEntryKeys[Index] = PointMetadataEntry;
+			bHasAValidEntry |= (PointMetadataEntry != PCGInvalidEntryKey);
 		}
+
+		if (bHasAValidEntry) { FPlatformAtomics::InterlockedExchange(&HasAValidEntry, true); }
+	}
+
+	void FProcessor::OnPointsProcessingComplete()
+	{
+		SplineData->Initialize(SplinePoints, bClosedLoop, FTransform(PositionOffset), std::move(SplineEntryKeys));
 	}
 
 	void FProcessor::Output()
@@ -180,8 +197,6 @@ namespace PCGExCreateSpline
 		TProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::Output();
 
 		// Output spline data
-		SplineData->Initialize(SplinePoints, bClosedLoop, FTransform(PositionOffset));
-
 		FPCGTaggedData& StagedData = Context->StageOutput(SplineData, true, false);
 		StagedData.Pin = Settings->GetMainOutputPin();
 		PointDataFacade->Source->Tags->DumpTo(StagedData.Tags);

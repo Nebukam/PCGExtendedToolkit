@@ -277,11 +277,10 @@ namespace PCGExTopologyEdges
 
 		void ApplyPointData()
 		{
-
 			FTransform Transform = Context->GetComponent()->GetOwner()->GetTransform();
 			Transform.SetScale3D(FVector::OneVector);
 			Transform.SetRotation(FQuat::Identity);
-			
+
 			InternalMesh->EditMesh(
 				[&](FDynamicMesh3& InMesh)
 				{
@@ -295,7 +294,7 @@ namespace PCGExTopologyEdges
 					InMesh.EnableAttributes();
 					InMesh.Attributes()->EnablePrimaryColors();
 					InMesh.Attributes()->EnableMaterialID();
-					
+
 					UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
 					UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
 
@@ -326,7 +325,7 @@ namespace PCGExTopologyEdges
 					}
 				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 
-			
+
 			if (Settings->Topology.bComputeNormals)
 			{
 				UGeometryScriptLibrary_MeshNormalsFunctions::RecomputeNormals(GetInternalMesh(), Settings->Topology.NormalsOptions);

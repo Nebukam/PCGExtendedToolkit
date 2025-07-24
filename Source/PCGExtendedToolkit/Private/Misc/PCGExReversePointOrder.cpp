@@ -12,10 +12,7 @@
 TArray<FPCGPinProperties> UPCGExReversePointOrderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (Method == EPCGExPointReverseMethod::SortingRules)
-	{
-		PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {})
-	}
+	if (Method == EPCGExPointReverseMethod::SortingRules) { PCGExSorting::DeclareSortingRulesInputs(PinProperties, EPCGPinStatus::Required); }
 	return PinProperties;
 }
 
@@ -126,7 +123,7 @@ namespace PCGExReversePointOrder
 		if (Settings->Method == EPCGExPointReverseMethod::Winding)
 		{
 			FPCGExGeo2DProjectionDetails Proj = Settings->ProjectionDetails;
-			
+
 			if (Proj.Method == EPCGExProjectionMethod::Normal) { if (!Proj.Init(Context, PointDataFacade)) { return false; } }
 			else { Proj.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 

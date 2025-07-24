@@ -36,7 +36,7 @@ struct FPCGExEdgeLengthFilterConfig
 	double ThresholdConstant = 100;
 
 	PCGEX_SETTING_VALUE_GET(Threshold, double, ThresholdInput, ThresholdAttribute, ThresholdConstant)
-	
+
 	/** Comparison check */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExComparison Comparison = EPCGExComparison::StrictlyGreater;
@@ -45,11 +45,10 @@ struct FPCGExEdgeLengthFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = 0;
 
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
-
 };
 
 /**

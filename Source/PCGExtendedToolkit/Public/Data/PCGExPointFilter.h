@@ -131,7 +131,9 @@ namespace PCGExPointFilter
 
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const; // destined for collection only, is expected to test internal PointDataFacade directly.
 
-		virtual void SetSupportedTypes(const TSet<PCGExFactories::EType>* InTypes){}
+		virtual void SetSupportedTypes(const TSet<PCGExFactories::EType>* InTypes)
+		{
+		}
 
 		virtual ~IFilter() = default;
 	};
@@ -168,14 +170,13 @@ namespace PCGExPointFilter
 		virtual bool Test(const PCGExCluster::FNode& Node) const override final;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override final;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
-
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FManager : public TSharedFromThis<FManager>
 	{
 	public:
 		explicit FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
-		
+
 		bool bUseEdgeAsPrimary = false; // This shouldn't be there...
 
 		bool bCacheResultsPerFilter = false;

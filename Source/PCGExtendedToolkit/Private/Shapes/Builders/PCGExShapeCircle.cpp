@@ -3,6 +3,8 @@
 
 #include "Shapes/Builders/PCGExShapeCircle.h"
 
+#include "Paths/PCGExPaths.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderCircle"
 #define PCGEX_NAMESPACE CreateBuilderCircle
 
@@ -30,6 +32,7 @@ void FPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	Circle->AngleRange = FMath::Abs(Circle->EndAngle - Circle->StartAngle);
 
 	Circle->Radius = Circle->Fit.GetExtent().Length();
+	Circle->bClosedLoop = Config.bIsClosedLoop || FMath::IsNearlyEqual(Circle->AngleRange, TWO_PI);
 
 	if (Config.ResolutionMode == EPCGExResolutionMode::Distance) { Circle->NumPoints = (Circle->Radius * Circle->AngleRange) * GetResolution(Seed); }
 	else { Circle->NumPoints = GetResolution(Seed); }
@@ -66,6 +69,10 @@ void FPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 			PCGExMath::MakeLookAtTransform(P - Target, FVector::UpVector, Config.LookAtAxis).GetRotation(),
 			P, FVector::OneVector);
 	}
+
+	// Mark @Data.IsClosed if a single circle "owns" the data
+	if (InDataFacade->GetNum(PCGExData::EIOSide::Out) == Scope.Count &&
+		Circle->bClosedLoop) { PCGExPaths::SetClosedLoop(InDataFacade->GetOut(), true); }
 }
 
 PCGEX_SHAPE_BUILDER_BOILERPLATE(Circle)

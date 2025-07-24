@@ -62,7 +62,7 @@ PCGExPointIOMerger::FMergeScope& FPCGExPointIOMerger::Append(const TSharedPtr<PC
 PCGExPointIOMerger::FMergeScope& FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData, const PCGExMT::FScope ReadScope)
 {
 	check(InData->GetNum() >= ReadScope.Count);
-	
+
 	const int32 NumPoints = ReadScope.Count;
 
 	if (NumPoints <= 0) { return NullScope; }

@@ -18,8 +18,7 @@ TArray<FPCGPinProperties> UPCGExExtrudeTensorsSettings::InputPinProperties() con
 	if (bDoExternalPathIntersections) { PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "Paths that will be checked for intersections while extruding.", Normal, {}) }
 	else { PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "(This is only there to preserve connections, enable it in the settings.)", Advanced, {}) }
 
-	if (bDoSelfPathIntersections) { PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Normal, {}) }
-	else { PCGEX_PIN_FACTORIES(PCGExSorting::SourceSortingRules, "(This is only there to preserve connections, enable it in the settings.)", Advanced, {}) }
+	PCGExSorting::DeclareSortingRulesInputs(PinProperties, bDoSelfPathIntersections ? EPCGPinStatus::Normal : EPCGPinStatus::Advanced);
 
 	return PinProperties;
 }

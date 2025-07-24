@@ -33,7 +33,7 @@ struct FPCGExWithinRangeFilterConfig
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandA;
-	
+
 	/** Where to read ranges from */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExRangeSource Source = EPCGExRangeSource::Constant;
@@ -94,7 +94,7 @@ namespace PCGExPointFilter
 		const UPCGExWithinRangeFilterFactory* TypedFilterFactory;
 
 		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
-		
+
 		TArray<FPCGExPickerConstantRangeConfig> Ranges;
 
 		bool bInclusive = false;
@@ -131,11 +131,11 @@ public:
 	//~End UPCGSettings
 
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
-	
+
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExWithinRangeFilterConfig Config;
-	
+
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR

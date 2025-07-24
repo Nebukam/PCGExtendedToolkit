@@ -117,7 +117,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 			const int32 NumTargets = TargetPoints->GetNumPoints();
 			for (int i = 0; i < NumTargets; i++)
 			{
-				FSoftObjectPath Path = PathGetter->SoftGet(PCGExData::FConstPoint(TargetPoints, i), FSoftObjectPath());
+				FSoftObjectPath Path = PathGetter->FetchSingle(PCGExData::FConstPoint(TargetPoints, i), FSoftObjectPath());
 
 				if (!Path.IsValid())
 				{

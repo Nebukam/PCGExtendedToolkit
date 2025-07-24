@@ -37,7 +37,7 @@ void UPCGExAttributeRemapSettings::ApplyDeprecation(UPCGNode* InOutNode)
 
 		Attributes.bOutputToDifferentName = (SourceAttributeName_DEPRECATED != TargetAttributeName_DEPRECATED);
 	}
-	
+
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

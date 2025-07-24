@@ -8,7 +8,6 @@
 
 namespace PCGExData
 {
-	
 #pragma region Buffers
 
 	uint64 BufferUID(const FPCGAttributeIdentifier& Identifier, const EPCGMetadataTypes Type)

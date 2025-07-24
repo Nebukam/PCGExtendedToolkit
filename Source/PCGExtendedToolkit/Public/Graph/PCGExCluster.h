@@ -155,7 +155,7 @@ namespace PCGExCluster
 			const int32& operator[](const int32 Index) const { return NodesArray[Index].PointIndex; }
 
 			void Dump(TArray<int32>& OutIndices) const;
-			
+
 		private:
 			const TArray<FNode>& NodesArray;
 		};
@@ -173,7 +173,7 @@ namespace PCGExCluster
 			const int32& operator[](const int32 Index) const { return NodesArray[Index].PointIndex; }
 
 			void Dump(TArray<int32>& OutIndices) const;
-			
+
 		private:
 			TArray<FNode>& NodesArray;
 		};

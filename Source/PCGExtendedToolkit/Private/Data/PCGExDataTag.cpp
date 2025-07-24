@@ -53,7 +53,7 @@ namespace PCGExData
 	void FTags::Reset()
 	{
 		FWriteScopeLock WriteScopeLock(TagsLock);
-		
+
 		RawTags.Empty();
 		ValueTags.Empty();
 	}
@@ -61,7 +61,7 @@ namespace PCGExData
 	void FTags::Reset(const TSharedPtr<FTags>& InTags)
 	{
 		Reset();
-		
+
 		if (InTags) { Append(InTags.ToSharedRef()); }
 	}
 

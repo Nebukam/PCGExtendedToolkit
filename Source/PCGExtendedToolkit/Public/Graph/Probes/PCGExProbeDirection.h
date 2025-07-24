@@ -32,11 +32,11 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bUseComponentWiseAngle = false;
-	
+
 	/** Max angle to search within. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseComponentWiseAngle", ClampMin=0, ClampMax=180))
 	double MaxAngle = 45;
-	
+
 	/** Max angle to search within. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseComponentWiseAngle", ClampMin=0, ClampMax=180))
 	FRotator MaxAngles = FRotator(45);
@@ -44,13 +44,17 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bUnsignedCheck = false;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType DirectionInput = EPCGExInputValueType::Constant;
 
 	/** Attribute to read the direction from */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction (Attr)", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector DirectionAttribute;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Invert", EditCondition="DirectionInput != EPCGExInputValueType::Constant", EditConditionHides))
+	bool bInvertDirection = false;
 
 	/** Constant direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction", EditCondition="DirectionInput == EPCGExInputValueType::Constant", EditConditionHides))
@@ -88,6 +92,7 @@ public:
 	FPCGExProbeConfigDirection Config;
 
 protected:
+	double DirectionMultiplier = 1;
 	bool bUseConstantDir = false;
 	double MinDot = 0;
 	bool bUseBestDot = false;

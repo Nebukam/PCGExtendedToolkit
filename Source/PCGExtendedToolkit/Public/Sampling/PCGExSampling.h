@@ -25,6 +25,13 @@ if(Context->bWrite##_NAME && !PCGEx::IsWritableAttributeName(Settings->_NAME##At
 #define PCGEX_OUTPUT_INIT(_NAME, _TYPE, _DEFAULT_VALUE) if(Context->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWritable<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT_VALUE, true, PCGExData::EBufferInit::Inherit); }
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){_NAME##Writer->SetValue(_INDEX, _VALUE); }
 
+struct FPCGExMatchingDetails;
+
+namespace PCGExMatching
+{
+	class FDataMatcher;
+}
+
 UENUM()
 enum class EPCGExSurfaceSource : uint8
 {
@@ -207,6 +214,7 @@ namespace PCGExSampling
 		using FOctreeQueryWithData = std::function<void(const PCGExData::FConstPoint&)>;
 
 		TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
+		TSharedPtr<PCGExMatching::FDataMatcher> DataMatcher;
 
 		FTargetsHandler() = default;
 		virtual ~FTargetsHandler() = default;
@@ -222,6 +230,10 @@ namespace PCGExSampling
 		void SetDistances(const FPCGExDistanceDetails& InDetails);
 		void SetDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero);
 		TSharedPtr<PCGExDetails::FDistances> GetDistances() const { return Distances; }
+
+		void SetMatchingDetails(FPCGExContext* InContext, const FPCGExMatchingDetails* InDetails);
+		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, TSet<const UPCGData*>& OutIgnoreList) const;
+		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;
 
 		void ForEachPreloader(PCGExData::FMultiFacadePreloader::FPreloaderItCallback&& It) const;
 

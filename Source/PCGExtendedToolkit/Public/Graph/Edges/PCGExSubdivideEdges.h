@@ -106,26 +106,25 @@ namespace PCGExSubdivideEdges
 		FSubdivision() = default;
 
 		// Cluster Edge is being mutated during sorting so no need to store extra indices.
-		
+
 		int32 NumSubdivisions = 0;
 		int32 StartNodeIndex = -1; // Also the point index stored in the node
-		
 	};
 
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExSubdivideEdgesContext, UPCGExSubdivideEdgesSettings>
 	{
 		TArray<FSubdivision> Subdivisions;
 		TArray<TSharedPtr<TArray<FVector>>> SubdivisionPoints;
-		
+
 		TSet<FName> ProtectedAttributes;
 		TSharedPtr<FPCGExSubPointsBlendOperation> SubBlending;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> AmountGetter;
-		
+
 		FPCGExManhattanDetails ManhattanDetails;
-		
+
 		double ConstantAmount = 0;
 		int32 NewNodesNum = 0;
 		int32 NewEdgesNum = 0;
@@ -144,7 +143,7 @@ namespace PCGExSubdivideEdges
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		virtual void OnEdgesProcessingComplete() override;
-		
+
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

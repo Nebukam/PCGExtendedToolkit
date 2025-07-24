@@ -37,7 +37,7 @@ public:
 #endif
 
 	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
-	
+
 	virtual FName GetMainInputPin() const override { return PCGPinConstants::DefaultInputLabel; }
 	virtual FName GetMainOutputPin() const override { return PCGPinConstants::DefaultOutputLabel; }
 

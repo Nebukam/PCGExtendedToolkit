@@ -53,8 +53,8 @@ bool PCGExPointFilter::FNumericSelfCompareFilter::Test(const int32 PointIndex) c
 
 	if (TargetIndex == -1) { return TypedFilterFactory->Config.InvalidIndexFallback == EPCGExFilterFallback::Pass; }
 
-	const double A = OperandA->SoftGet(PointDataFacade->Source->GetInPoint(PointIndex), 0);
-	const double B = OperandA->SoftGet(PointDataFacade->Source->GetInPoint(TargetIndex), 0);
+	const double A = OperandA->FetchSingle(PointDataFacade->Source->GetInPoint(PointIndex), 0);
+	const double B = OperandA->FetchSingle(PointDataFacade->Source->GetInPoint(TargetIndex), 0);
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 }
 

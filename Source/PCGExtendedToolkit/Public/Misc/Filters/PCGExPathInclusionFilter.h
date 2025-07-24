@@ -12,8 +12,6 @@
 #include "PCGExSplineInclusionFilter.h"
 
 
-
-
 #include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampleNearestSpline.h"
 

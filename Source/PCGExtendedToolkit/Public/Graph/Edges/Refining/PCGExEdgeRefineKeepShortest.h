@@ -50,6 +50,6 @@ class UPCGExEdgeKeepShortest : public UPCGExEdgeRefineInstancedFactory
 public:
 	virtual bool GetDefaultEdgeValidity() const override { return false; }
 	virtual bool WantsIndividualNodeProcessing() const override { return true; }
-	
+
 	PCGEX_CREATE_REFINE_OPERATION(EdgeKeepShortest, {})
 };

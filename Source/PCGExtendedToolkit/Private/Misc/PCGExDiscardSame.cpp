@@ -10,8 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExDiscardSameElement"
 #define PCGEX_NAMESPACE DiscardSame
 
-PCGExData::EIOInit UPCGExDiscardSameSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
-
 TArray<FPCGPinProperties> UPCGExDiscardSameSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
@@ -71,6 +69,8 @@ namespace PCGExDiscardSame
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 
 		// 1 - Build comparison points
 

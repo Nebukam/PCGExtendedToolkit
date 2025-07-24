@@ -145,7 +145,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, DisplayName="Manhattan", EditCondition="bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod == EPCGExSubdivideMode::Manhattan", EditConditionHides))
 	FPCGExManhattanDetails ManhattanDetails;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagPoles = false;
@@ -265,7 +265,7 @@ namespace PCGExBevelPath
 		bool bSubdivide = false;
 		bool bSubdivideCount = false;
 		bool bArc = false;
-		
+
 		TSharedPtr<PCGExDetails::TSettingValue<double>> WidthGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SubdivAmountGetter;
 

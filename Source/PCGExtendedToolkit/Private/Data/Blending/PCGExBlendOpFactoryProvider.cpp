@@ -7,8 +7,6 @@
 #include "Data/Blending/PCGExProxyDataBlending.h"
 
 
-
-
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateAttributeBlend"

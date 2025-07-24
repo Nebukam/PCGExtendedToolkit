@@ -50,6 +50,10 @@ struct FPCGExShapeCircleConfig : public FPCGExShapeConfigBase
 	double EndAngleConstant = 360;
 
 	PCGEX_SETTING_VALUE_GET(EndAngle, double, EndAngleInput, EndAngleAttribute, EndAngleConstant)
+
+	/** If enabled, will flag circle as being closed if possible. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bIsClosedLoop = false;
 };
 
 namespace PCGExShapes
@@ -61,6 +65,7 @@ namespace PCGExShapes
 		double StartAngle = 0;
 		double EndAngle = TWO_PI;
 		double AngleRange = TWO_PI;
+		bool bClosedLoop = false;
 
 		explicit FCircle(const PCGExData::FConstPoint& InPointRef)
 			: FShape(InPointRef)

@@ -76,7 +76,7 @@ namespace PCGExData
 
 		FPCGAttributeIdentifier SanitizedIdentifier = PCGEx::GetAttributeIdentifier<true>(Selector, InData);
 		SanitizedIdentifier.MetadataDomain = PCGMetadataDomainID::Data; // Force data domain
-		
+
 		// Non-data domain unsupported
 		if (SanitizedIdentifier.MetadataDomain.Flag != EPCGMetadataDomainFlag::Data) { return nullptr; }
 
@@ -108,13 +108,12 @@ namespace PCGExData
 
 		return DataValue;
 	}
-	
+
 	TSharedPtr<IDataValue> TryGetValueFromData(const UPCGData* InData, const FName& InName)
 	{
 		FPCGAttributePropertyInputSelector Selector;
 		Selector.Update(InName.ToString());
-		
-		return TryGetValueFromData(InData, Selector);
 
+		return TryGetValueFromData(InData, Selector);
 	}
 }

@@ -52,13 +52,27 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexSafety Wrapping = EPCGExIndexSafety::Tile;
 
+	/** Which components should be one minus'd */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 OneMinus = 0;
+
+	/** Whether to read the transform from an attribute on the edge or a constant. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType TransformInput = EPCGExInputValueType::Constant;
+
+	/** Transform applied to the position before processing  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Transform (Attr)", EditCondition="TransformInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector TransformAttribute;
+
+	/** Transform applied to the position before processing  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Transform", ClampMin=1, EditCondition="TransformInput == EPCGExInputValueType::Constant", EditConditionHides))
+	FTransform TransformConstant = FTransform::Identity;
+
+	PCGEX_SETTING_VALUE_GET(Transform, FTransform, TransformInput, TransformAttribute, TransformConstant)
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector Output;
-
-	/** Which position components from the sampled transform should be applied to the point.  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
-	uint8 OneMinus = 0;
 
 private:
 	friend class FPCGExNormalizeElement;
@@ -90,6 +104,7 @@ namespace PCGExNormalize
 		FVector Size = FVector::ZeroVector;
 		bool OneMinus[3] = {false, false, false};
 
+		TSharedPtr<PCGExDetails::TSettingValue<FTransform>> TransformBuffer;
 		TSharedPtr<PCGExData::TBufferProxy<FVector>> OutputBuffer;
 
 	public:

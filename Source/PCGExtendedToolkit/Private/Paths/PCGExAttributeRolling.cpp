@@ -34,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourcePinConditionLabel, "...", Required, {})
 	}
 
-	PCGEX_PIN_FACTORIES(PCGExDataBlending::SourceBlendingLabel, "Blending configurations.", Normal, {})
+	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 
 	return PinProperties;
 }

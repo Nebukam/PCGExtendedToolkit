@@ -20,7 +20,7 @@ void UPCGExPathSplineMeshSettings::ApplyDeprecation(UPCGNode* InOutNode)
 	}
 
 	Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
-	
+
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

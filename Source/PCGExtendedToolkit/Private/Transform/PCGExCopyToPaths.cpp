@@ -1,19 +1,19 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Transform/PCGExPathDeform.h"
+#include "Transform/PCGExCopyToPaths.h"
 
 
 #include "Helpers/PCGHelpers.h"
 #include "Paths/PCGExPaths.h"
 
 
-#define LOCTEXT_NAMESPACE "PCGExPathDeformElement"
-#define PCGEX_NAMESPACE PathDeform
+#define LOCTEXT_NAMESPACE "PCGExCopyToPathsElement"
+#define PCGEX_NAMESPACE CopyToPaths
 
-PCGEX_INITIALIZE_ELEMENT(PathDeform)
+PCGEX_INITIALIZE_ELEMENT(CopyToPaths)
 
-TArray<FPCGPinProperties> UPCGExPathDeformSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCopyToPathsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_ANY(PCGExTransform::SourceDeformersLabel, "Paths or splines to deform along", Required, {})
@@ -21,17 +21,17 @@ TArray<FPCGPinProperties> UPCGExPathDeformSettings::InputPinProperties() const
 	return PinProperties;
 }
 
-bool UPCGExPathDeformSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+bool UPCGExCopyToPathsSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (InPin->Properties.Label == PCGExTransform::SourceDeformersBoundsLabel) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
-bool FPCGExPathDeformElement::Boot(FPCGExContext* InContext) const
+bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(PathDeform)
+	PCGEX_CONTEXT_AND_SETTINGS(CopyToPaths)
 
 	if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
 
@@ -83,7 +83,6 @@ bool FPCGExPathDeformElement::Boot(FPCGExContext* InContext) const
 		{
 			if (SplineData->SplineStruct.GetNumberOfPoints() < 2) { continue; }
 			RegisterData(SplineData, &SplineData->SplineStruct, TaggedData.Tags);
-			continue;
 		}
 	}
 
@@ -101,16 +100,16 @@ bool FPCGExPathDeformElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPathDeformElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExCopyToPathsElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathDeformElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCopyToPathsElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(PathDeform)
+	PCGEX_CONTEXT_AND_SETTINGS(CopyToPaths)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints<PCGExPathDeform::FBatch>(
+		if (!Context->StartBatchProcessingPoints<PCGExCopyToPaths::FBatch>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -120,7 +119,7 @@ bool FPCGExPathDeformElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPathDeform::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExCopyToPaths::FBatch>& NewBatch)
 			{
 			}))
 		{
@@ -135,11 +134,11 @@ bool FPCGExPathDeformElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
-namespace PCGExPathDeform
+namespace PCGExCopyToPaths
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathDeform::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCopyToPaths::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
@@ -149,16 +148,14 @@ namespace PCGExPathDeform
 
 		if (Context->bOneOneMatch)
 		{
-			Deformer = Context->Deformers[PointDataFacade->Source->IOIndex];
+			Deformers.Add(Context->Deformers[PointDataFacade->Source->IOIndex]);
 		}
 
 		// Fallback to first deformer available
-		if (!Deformer) { Deformer = Context->Deformers[0]; }
+		if (Deformers.IsEmpty()) { Deformers.Add(Context->Deformers[0]); }
 
 		if (Context->bUseUnifiedBounds) { Box = Context->UnifiedBounds; }
 		else { Box = PCGExTransform::GetBounds(PointDataFacade->GetIn(), Settings->BoundsSource); }
-
-		TotalLength = Deformer->GetSplineLength();
 
 		// TODO : Normalize point data to deform around around it
 
@@ -171,26 +168,31 @@ namespace PCGExPathDeform
 
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PathDeform::ProcessPoints);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::CopyToPaths::ProcessPoints);
 
 		PointDataFacade->Fetch(Scope);
 
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 
-		PCGEX_SCOPE_LOOP(Index)
+		for (const FPCGSplineStruct* Deformer : Deformers)
 		{
+			double TotalLength = Deformer->GetSplineLength();
+
+			PCGEX_SCOPE_LOOP(Index)
+			{
+			}
 		}
 	}
 
 	void FProcessor::Cleanup()
 	{
-		TProcessor<FPCGExPathDeformContext, UPCGExPathDeformSettings>::Cleanup();
+		TProcessor<FPCGExCopyToPathsContext, UPCGExCopyToPathsSettings>::Cleanup();
 	}
 
 	void FBatch::OnInitialPostProcess()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathDeform)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CopyToPaths)
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, BuildSplines)
 
@@ -213,7 +215,7 @@ namespace PCGExPathDeform
 
 	void FBatch::BuildSpline(const int32 InSplineIndex) const
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathDeform)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CopyToPaths)
 
 		TSharedPtr<FPCGSplineStruct> SplineStruct = Context->LocalDeformers[InSplineIndex];
 		if (!SplineStruct) { return; }

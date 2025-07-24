@@ -32,6 +32,8 @@ bool FPCGExVtxPropertyEdgeMatch::PrepareForCluster(FPCGExContext* InContext, TSh
 		return false;
 	}
 
+	DirectionMultiplier = Config.bInvertDirection ? -1 : 1;
+
 	Config.MatchingEdge.Init(InVtxDataFacade.ToSharedRef());
 
 	return bIsValidOperation;
@@ -45,7 +47,7 @@ void FPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TA
 	int32 IBest = -1;
 	const double DotThreshold = Config.DotComparisonDetails.GetComparisonThreshold(Node.PointIndex);
 
-	FVector NodeDirection = DirCache->Read(Node.PointIndex).GetSafeNormal();
+	FVector NodeDirection = DirCache->Read(Node.PointIndex).GetSafeNormal() * DirectionMultiplier;
 	if (Config.bTransformDirection) { NodeDirection = PointTransform.TransformVectorNoScale(NodeDirection); }
 
 	for (int i = 0; i < Adjacency.Num(); i++)
