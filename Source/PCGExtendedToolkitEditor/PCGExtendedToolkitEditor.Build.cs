@@ -18,8 +18,9 @@ public class PCGExtendedToolkitEditor : ModuleRules
 				"CoreUObject",
 				"PlacementMode",
 				"PCG",
+				"PCGGeometryScriptInterop",
 				"PCGExtendedToolkit",
-				"PCGEditor",
+				"PCGEditor"
 			}
 		);
 
