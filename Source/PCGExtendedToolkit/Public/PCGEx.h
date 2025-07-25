@@ -235,6 +235,14 @@ namespace PCGEx
 		OutArray[2] = AxisOrders[Index][2];
 	}
 
+	FORCEINLINE void GetAxisOrder(EPCGExAxisOrder Order, int32& A, int32& B, int32& C)
+	{
+		const int32 Index = static_cast<uint8>(Order);
+		A = AxisOrders[Index][0];
+		B = AxisOrders[Index][1];
+		C = AxisOrders[Index][2];
+	}
+
 	PCGEXTENDEDTOOLKIT_API
 	bool IsPCGExAttribute(const FString& InStr);
 	PCGEXTENDEDTOOLKIT_API

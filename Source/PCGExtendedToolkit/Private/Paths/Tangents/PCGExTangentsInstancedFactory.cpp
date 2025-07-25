@@ -177,7 +177,9 @@ namespace PCGExTangents
 
 		if (Mode == EPCGExTangentSource::None) { return; }
 
-		const int32 NextIndex = Index + 1;
+		int32 NextIndex = Index + 1;
+		if (bClosedLoop) { if (NextIndex > LastIndex) { NextIndex = 0; } }
+		else if (NextIndex >= LastIndex) { NextIndex = LastIndex; }
 
 		const FVector StartScale = StartScaleReader->Read(Index);
 		const FVector EndScale = EndScaleReader->Read(NextIndex);

@@ -240,6 +240,14 @@ namespace PCGExDetails
 		return MakeSettingValue<T>(InConstant);
 	}
 
+	template <typename T>
+	static TSharedPtr<TSettingValue<T>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FName InName, const T InConstant)
+	{
+		T Constant = InConstant;
+		PCGExDataHelpers::TryGetSettingDataValue(InContext, InData, InInput, InName, InConstant, Constant);
+		return MakeSettingValue<T>(Constant);
+	}
+
 #pragma endregion
 
 #pragma region Distances

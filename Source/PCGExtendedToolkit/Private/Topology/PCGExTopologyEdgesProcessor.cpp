@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Topology/PCGExTopologyEdgesProcessor.h"
+#include "Data/PCGDynamicMeshData.h" // Redundant but required for build on Linux 
 
 #include "Topology/PCGExTopology.h"
 
