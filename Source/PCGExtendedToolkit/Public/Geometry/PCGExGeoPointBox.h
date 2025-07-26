@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExDataMath.h"
 #include "PCGExMath.h"
-#include "PCGExHelpers.h"
 
 #include "PCGExGeoPointBox.generated.h"
 
@@ -42,9 +41,7 @@ namespace PCGExGeo
 		int32 BoxIndex = -1;
 		bool bIsInside = false;
 
-		FSample()
-		{
-		}
+		FSample() = default;
 
 		FSample(const FVector& InDistances, const int32 InBoxIndex, const bool IsInside):
 			Distances(InDistances), BoxIndex(InBoxIndex), bIsInside(IsInside)
@@ -72,47 +69,12 @@ namespace PCGExGeo
 
 		FORCEINLINE uint64 GetKey() const { return PCGEx::H64U(Start, End); }
 
-		void Sort()
-		{
-			Cuts.Sort(
-				[&](const FCut& A, const FCut& B)
-				{
-					return FVector::DistSquared(StartPosition, A.Position) < FVector::DistSquared(StartPosition, B.Position);
-				});
-		}
+		void Sort();
+		void SortAndDedupe();
 
-		void SortAndDedupe()
-		{
-			Sort();
+		FBoxCenterAndExtent GetBoxCenterAndExtent() const;
 
-			if (Cuts.IsEmpty() || Cuts.Num() < 2) { return; }
-
-			FVector LastPos = Cuts[0].Position;
-
-			for (int i = 1; i < Cuts.Num(); i++)
-			{
-				FVector Pos = (Cuts.GetData() + i)->Position;
-				if (Pos == LastPos)
-				{
-					Cuts.RemoveAt(i);
-					i--;
-				}
-				LastPos = Pos;
-			}
-		}
-
-		FBoxCenterAndExtent GetBoxCenterAndExtent() const
-		{
-			FBox Box = FBox(ForceInit);
-			Box += StartPosition;
-			Box += EndPosition;
-			return FBoxCenterAndExtent(Box);
-		}
-
-		void Insert(const FVector& Position, const FVector& Normal, const int32 Index)
-		{
-			Cuts.Emplace(Position, Normal, Index);
-		}
+		void Insert(const FVector& Position, const FVector& Normal, const int32 Index);
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FSegmentation
@@ -123,55 +85,19 @@ namespace PCGExGeo
 		TMap<uint64, TSharedPtr<FIntersections>> IntersectionsMap;
 		TArray<TSharedPtr<FIntersections>> IntersectionsList;
 
-		FSegmentation()
-		{
-		}
-
+		FSegmentation() = default;
 		~FSegmentation() = default;
 
 		int32 GetNum() const { return IntersectionsMap.Num(); }
+		int32 GetNumCuts() const;
 
-		int32 GetNumCuts() const
-		{
-			int32 Sum = 0;
-			for (const TPair<uint64, TSharedPtr<FIntersections>>& Pair : IntersectionsMap) { Sum += Pair.Value->Cuts.Num(); }
-			return Sum;
-		}
+		void ReduceToArray();
 
-		void ReduceToArray()
-		{
-			PCGEx::InitArray(IntersectionsList, IntersectionsMap.Num());
-			int32 Index = 0;
-			for (const TPair<uint64, TSharedPtr<FIntersections>>& Pair : IntersectionsMap) { IntersectionsList[Index++] = Pair.Value; }
-			IntersectionsMap.Empty();
-		}
+		TSharedPtr<FIntersections> Find(const uint64 Key);
 
-		TSharedPtr<FIntersections> Find(const uint64 Key)
-		{
-			{
-				FReadScopeLock ReadScopeLock(IntersectionsLock);
-				if (TSharedPtr<FIntersections>* ExistingIntersection = IntersectionsMap.Find(Key)) { return *ExistingIntersection; }
-			}
+		void Insert(const TSharedPtr<FIntersections>& InIntersections);
 
-			return nullptr;
-		}
-
-		void Insert(const TSharedPtr<FIntersections>& InIntersections)
-		{
-			FWriteScopeLock WriteScopeLock(IntersectionsLock);
-			IntersectionsMap.Add(InIntersections->GetKey(), InIntersections);
-		}
-
-		TSharedPtr<FIntersections> GetOrCreate(const int32 Start, const int32 End)
-		{
-			const uint64 HID = PCGEx::H64U(Start, End);
-			if (TSharedPtr<FIntersections> ExistingIntersection = Find(HID)) { return ExistingIntersection; }
-
-			PCGEX_MAKE_SHARED(NewIntersections, FIntersections, Start, End)
-			Insert(NewIntersections);
-
-			return NewIntersections;
-		}
+		TSharedPtr<FIntersections> GetOrCreate(const int32 Start, const int32 End);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FPointBox
@@ -186,22 +112,7 @@ namespace PCGExGeo
 		double RadiusSquaredExpanded;
 		int32 Index;
 
-		explicit FPointBox(const PCGExData::FConstPoint& InPoint, const int32 InIndex, const EPCGExPointBoundsSource BoundsSource, double Expansion = DBL_EPSILON):
-			Matrix(InPoint.GetTransform().ToMatrixNoScale()),
-			InvMatrix(Matrix.Inverse()),
-			Index(InIndex)
-		{
-			const FBox PointBox = PCGExMath::GetLocalBounds(InPoint, BoundsSource);
-			Extents = PointBox.GetExtent();
-			double Size = Extents.Length();
-			double SanitizedExpansion = Expansion < 0 ? FMath::Max(Expansion, -Size) : Expansion;
-
-			Box = FBox(Extents * -1, Extents);
-			BoxExpanded = Box.ExpandBy(Expansion);
-			SearchableBounds = FBoxSphereBounds(InPoint.GetTransform().GetLocation(), FVector(Size + SanitizedExpansion * 1.5), Size + SanitizedExpansion * 1.5);
-			RadiusSquared = FMath::Square(Size);
-			RadiusSquaredExpanded = FMath::Square(Size + SanitizedExpansion);
-		}
+		explicit FPointBox(const PCGExData::FConstPoint& InPoint, const int32 InIndex, const EPCGExPointBoundsSource BoundsSource, double Expansion = DBL_EPSILON);
 
 #pragma region Position checks
 
@@ -411,26 +322,9 @@ namespace PCGExGeo
 
 #pragma endregion
 
-		void Sample(const FVector& Position, FSample& OutSample) const
-		{
-			const FVector LocalPosition = Matrix.InverseTransformPosition(Position);
-			OutSample.bIsInside = Box.IsInside(LocalPosition);
-			OutSample.Distances = LocalPosition;
-			OutSample.BoxIndex = Index;
-			OutSample.UVW = FVector(
-				LocalPosition.X / Extents.X,
-				LocalPosition.Y / Extents.Y,
-				LocalPosition.Z / Extents.Z);
-			OutSample.Weight = 1 - ((
-				(FMath::Clamp(FMath::Abs(OutSample.UVW.X), 0, Extents.X) / Extents.X) +
-				(FMath::Clamp(FMath::Abs(OutSample.UVW.Y), 0, Extents.Y) / Extents.Y) +
-				(FMath::Clamp(FMath::Abs(OutSample.UVW.Z), 0, Extents.Z) / Extents.Z)) / 3);
-		}
+		void Sample(const FVector& Position, FSample& OutSample) const;
 
-		void Sample(const PCGExData::FConstPoint& Point, FSample& OutSample) const
-		{
-			Sample(Point.GetTransform().GetLocation(), OutSample);
-		}
+		FORCEINLINE void Sample(const PCGExData::FConstPoint& Point, FSample& OutSample) const { Sample(Point.GetTransform().GetLocation(), OutSample); }
 
 #pragma region Intersections
 
@@ -549,37 +443,13 @@ namespace PCGExGeo
 		FVector SearchPadding;
 
 	public:
-		explicit FPointBoxCloud(const UPCGBasePointData* PointData, const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON)
-		{
-			CloudBounds = PointData->GetBounds();
-			Octree = MakeUnique<FPointBoxOctree>(CloudBounds.GetCenter(), CloudBounds.GetExtent().Length() * 1.5);
-
-			SearchPadding = FVector(FMath::Abs(Expansion) * 2);
-			CloudBounds = FBox(ForceInit);
-
-			Boxes.Init(nullptr, PointData->GetNumPoints());
-
-			for (int i = 0; i < Boxes.Num(); i++)
-			{
-				PCGEX_MAKE_SHARED(NewPointBox, FPointBox, PCGExData::FConstPoint(PointData,i), i, BoundsSource, Expansion)
-				CloudBounds += NewPointBox->Box.TransformBy(NewPointBox->Matrix);
-				Boxes[i] = NewPointBox;
-				Octree->AddElement(NewPointBox.Get());
-			}
-		}
+		explicit FPointBoxCloud(const UPCGBasePointData* PointData, const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON);
 
 		FORCEINLINE const FPointBoxOctree* GetOctree() const { return Octree.Get(); }
 
-		~FPointBoxCloud()
-		{
-		}
+		~FPointBoxCloud() = default;
 
-		bool FindIntersections(FIntersections* InIntersections) const
-		{
-			const FBoxCenterAndExtent BCAE = InIntersections->GetBoxCenterAndExtent();
-			Octree->FindElementsWithBoundsTest(BCAE, [&](const FPointBox* NearbyBox) { NearbyBox->ProcessIntersections(InIntersections); });
-			return !InIntersections->Cuts.IsEmpty();
-		}
+		bool FindIntersections(FIntersections* InIntersections) const;
 
 #pragma region Position checks
 
@@ -706,49 +576,12 @@ namespace PCGExGeo
 
 #pragma region Point data checks
 
-		bool LooseOverlaps(const UPCGBasePointData* InPointData) const
-		{
-			const FBox PointBounds = InPointData->GetBounds();
-			if (CloudBounds.Intersect(PointBounds)) { return true; }
-			return CloudBounds.IsInside(PointBounds);
-		}
-
-		bool Overlaps(const UPCGBasePointData* InPointData) const
-		{
-			const FBox PointBounds = InPointData->GetBounds();
-			if (CloudBounds.Intersect(PointBounds)) { return true; }
-			return CloudBounds.IsInside(PointBounds);
-		}
-
-		bool Encompass(const UPCGBasePointData* InPointData) const
-		{
-			const FBox PointBounds = InPointData->GetBounds();
-
-			if (!CloudBounds.Intersect(PointBounds))
-			{
-				if (!CloudBounds.IsInside(PointBounds))
-				{
-					// No intersection nor encapsulation, don't bother
-					return false;
-				}
-			}
-
-			return false;
-		}
+		bool LooseOverlaps(const UPCGBasePointData* InPointData) const;
+		bool Overlaps(const UPCGBasePointData* InPointData) const;
+		bool Encompass(const UPCGBasePointData* InPointData) const;
 
 #pragma endregion
 
-		bool Sample(const PCGExData::FConstPoint& Point, const EPCGExPointBoundsSource BoundsSource, TArray<FSample>& OutSample) const
-		{
-			const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Point.GetTransform().GetLocation(), PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
-			Octree->FindElementsWithBoundsTest(
-				BCAE, [&](const FPointBox* NearbyBox)
-				{
-					FSample& Sample = OutSample.Emplace_GetRef();
-					NearbyBox->Sample(Point, Sample);
-				});
-
-			return !OutSample.IsEmpty();
-		}
+		bool Sample(const PCGExData::FConstPoint& Point, const EPCGExPointBoundsSource BoundsSource, TArray<FSample>& OutSample) const;
 	};
 }

@@ -550,6 +550,19 @@ void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPosition
 	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.UnrotateVector(InPositions[i])); }
 }
 
+void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPositions, std::vector<double>& OutPositions) const
+{
+	const int32 NumVectors = InPositions.Num();
+	check(NumVectors * 2 == OutPositions.size());
+	int32 p = 0;
+	for (int i = 0; i < NumVectors; i++)
+	{
+		const FVector PP = ProjectionQuat.UnrotateVector(InPositions[i]);
+		OutPositions[p++] = PP.X;
+		OutPositions[p++] = PP.Y;
+	}
+}
+
 namespace PCGExGeoTasks
 {
 	void FTransformPointIO::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

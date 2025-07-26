@@ -19,6 +19,7 @@ public class PCGExtendedToolkit : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[]
 			{
+				"ThirdParty/Delaunator/include"
 			}
 		);
 
