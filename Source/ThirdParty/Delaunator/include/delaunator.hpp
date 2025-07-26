@@ -180,6 +180,7 @@ public:
     std::vector<std::size_t> hull_next;
     std::vector<std::size_t> hull_tri;
     std::size_t hull_start;
+    bool runtime_error;
 
     Delaunator(std::vector<double> const& in_coords);
 
@@ -212,11 +213,12 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
       hull_next(),
       hull_tri(),
       hull_start(),
+      runtime_error(false),
       m_hash(),
       m_center_x(),
       m_center_y(),
       m_hash_size(),
-      m_edge_stack() {
+      m_edge_stack(){
     std::size_t n = coords.size() >> 1;
 
     double max_x = std::numeric_limits<double>::min();
@@ -288,7 +290,9 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
     }
 
     if (!(min_radius < std::numeric_limits<double>::max())) {
-        throw std::runtime_error("not triangulation");
+        runtime_error = true;
+        return;
+        //throw std::runtime_error("not triangulation"); // not unreal friendly
     }
 
     double i2x = coords[2 * i2];
@@ -335,6 +339,7 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
     triangles.reserve(max_triangles * 3);
     halfedges.reserve(max_triangles * 3);
     add_triangle(i0, i1, i2, INVALID_INDEX, INVALID_INDEX, INVALID_INDEX);
+    if (runtime_error){return;}
     double xp = std::numeric_limits<double>::quiet_NaN();
     double yp = std::numeric_limits<double>::quiet_NaN();
     for (std::size_t k = 0; k < n; k++) {
@@ -385,6 +390,8 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
             INVALID_INDEX,
             hull_tri[e]);
 
+        if (runtime_error){return;}
+
         hull_tri[i] = legalize(t + 2);
         hull_tri[e] = t;
         hull_size++;
@@ -395,6 +402,7 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
             q = hull_next[next],
             orient(x, y, coords[2 * next], coords[2 * next + 1], coords[2 * q], coords[2 * q + 1])) {
             t = add_triangle(next, i, q, hull_tri[i], INVALID_INDEX, hull_tri[next]);
+            if (runtime_error){return;}
             hull_tri[i] = legalize(t + 2);
             hull_next[next] = next; // mark as removed
             hull_size--;
@@ -407,6 +415,7 @@ Delaunator::Delaunator(std::vector<double> const& in_coords)
                 q = hull_prev[e],
                 orient(x, y, coords[2 * q], coords[2 * q + 1], coords[2 * e], coords[2 * e + 1])) {
                 t = add_triangle(q, i, e, INVALID_INDEX, hull_tri[e], hull_tri[q]);
+                if (runtime_error){return;}
                 legalize(t + 2);
                 hull_tri[q] = t;
                 hull_next[e] = e; // mark as removed
@@ -562,13 +571,16 @@ std::size_t Delaunator::add_triangle(
 }
 
 void Delaunator::link(const std::size_t a, const std::size_t b) {
+    if (runtime_error){return;}
     std::size_t s = halfedges.size();
     if (a == s) {
         halfedges.push_back(b);
     } else if (a < s) {
         halfedges[a] = b;
     } else {
-        throw std::runtime_error("Cannot link edge");
+        runtime_error = true;
+        return;
+        //throw std::runtime_error("Cannot link edge"); // not unreal friendly
     }
     if (b != INVALID_INDEX) {
         std::size_t s2 = halfedges.size();
@@ -577,7 +589,9 @@ void Delaunator::link(const std::size_t a, const std::size_t b) {
         } else if (b < s2) {
             halfedges[b] = a;
         } else {
-            throw std::runtime_error("Cannot link edge");
+            runtime_error = true;
+            return;
+            //throw std::runtime_error("Cannot link edge"); // not unreal friendly
         }
     }
 }

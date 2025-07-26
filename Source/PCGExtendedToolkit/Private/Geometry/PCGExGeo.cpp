@@ -553,7 +553,6 @@ void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPosition
 void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPositions, std::vector<double>& OutPositions) const
 {
 	const int32 NumVectors = InPositions.Num();
-	check(NumVectors * 2 == OutPositions.size());
 	int32 p = 0;
 	for (int i = 0; i < NumVectors; i++)
 	{
