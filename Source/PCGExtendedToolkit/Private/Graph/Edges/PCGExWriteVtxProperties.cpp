@@ -6,7 +6,7 @@
 
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 
-#define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
+#define LOCTEXT_NAMESPACE "WriteVtxProperties"
 #define PCGEX_NAMESPACE WriteVtxProperties
 
 TArray<FPCGPinProperties> UPCGExWriteVtxPropertiesSettings::InputPinProperties() const

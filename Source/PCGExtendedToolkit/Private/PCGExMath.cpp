@@ -131,18 +131,50 @@ namespace PCGExMath
 		{
 		default:
 		case EPCGExAxis::Forward:
-			return FVector::ForwardVector;
+			return PCGEX_AXIS_X;
 		case EPCGExAxis::Backward:
-			return FVector::BackwardVector;
+			return PCGEX_AXIS_X_N;
 		case EPCGExAxis::Right:
-			return FVector::RightVector;
+			return PCGEX_AXIS_Y;
 		case EPCGExAxis::Left:
-			return FVector::LeftVector;
+			return PCGEX_AXIS_Y_N;
 		case EPCGExAxis::Up:
-			return FVector::UpVector;
+			return PCGEX_AXIS_Z;
 		case EPCGExAxis::Down:
-			return FVector::DownVector;
+			return PCGEX_AXIS_Z_N;
 		}
+	}
+
+	FTransform GetIdentity(const EPCGExAxisOrder Order)
+	{
+		switch (Order)
+		{
+		default:
+		case EPCGExAxisOrder::XYZ:
+			return FTransform(FMatrix(PCGEX_AXIS_X, PCGEX_AXIS_Y, PCGEX_AXIS_Z, FVector::Zero()));
+		case EPCGExAxisOrder::YZX:
+			return FTransform(FMatrix(PCGEX_AXIS_Y, PCGEX_AXIS_X, PCGEX_AXIS_Z, FVector::Zero()));
+		case EPCGExAxisOrder::ZXY:
+			return FTransform(FMatrix(PCGEX_AXIS_Z, PCGEX_AXIS_X, PCGEX_AXIS_Y, FVector::Zero()));
+		case EPCGExAxisOrder::YXZ:
+			return FTransform(FMatrix(PCGEX_AXIS_Y, PCGEX_AXIS_X, PCGEX_AXIS_Z, FVector::Zero()));
+		case EPCGExAxisOrder::ZYX:
+			return FTransform(FMatrix(PCGEX_AXIS_Z, PCGEX_AXIS_Y, PCGEX_AXIS_X, FVector::Zero()));
+		case EPCGExAxisOrder::XZY:
+			return FTransform(FMatrix(PCGEX_AXIS_X, PCGEX_AXIS_Z, PCGEX_AXIS_Y, FVector::Zero()));
+		}
+	}
+
+	void Swizzle(FVector& Vector, const EPCGExAxisOrder Order)
+	{
+		int32 A;
+		int32 B;
+		int32 C;
+		PCGEx::GetAxisOrder(Order, A, B, C);
+		FVector Temp = Vector;
+		Vector[0] = Temp[A];
+		Vector[1] = Temp[B];
+		Vector[2] = Temp[C];
 	}
 
 	FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward)

@@ -7,7 +7,7 @@
 #include "GeometryScript/PolygonFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 
-#define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
+#define LOCTEXT_NAMESPACE "TopologyEdgesProcessor"
 #define PCGEX_NAMESPACE TopologyEdgesProcessor
 
 PCGEX_INITIALIZE_ELEMENT(TopologyClusterSurface)

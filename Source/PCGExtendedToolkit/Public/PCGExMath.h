@@ -226,7 +226,7 @@ namespace PCGExMath
 			return T{};
 		}
 	}
-
+	
 	template <typename T>
 	FORCEINLINE static T Abs(const T& A)
 	{
@@ -368,6 +368,7 @@ namespace PCGExMath
 
 	PCGEXTENDEDTOOLKIT_API
 	double GetMode(const TArray<double>& Values, const bool bHighest, const uint32 Tolerance = 5);
+	
 	PCGEXTENDEDTOOLKIT_API
 	FVector SafeLinePlaneIntersection(
 		const FVector& Pt1, const FVector& Pt2,
@@ -384,44 +385,6 @@ namespace PCGExMath
 #pragma endregion
 
 #pragma region Components
-
-	template <typename T>
-	FORCEINLINE static double GetComponent(const T& A, const int32 Index)
-	{
-		if constexpr (std::is_same_v<T, bool>)
-		{
-			return A ? 1 : 0;
-		}
-		else if constexpr (
-			std::is_same_v<T, FVector2D> ||
-			std::is_same_v<T, FVector> ||
-			std::is_same_v<T, FVector4>)
-		{
-			return A[Index];
-		}
-		else if constexpr (
-			std::is_same_v<T, FQuat> ||
-			std::is_same_v<T, FRotator>)
-		{
-			return A.Euler()[Index];
-		}
-		else if constexpr (std::is_same_v<T, FTransform>)
-		{
-			return A.GetLocation()[Index];
-		}
-		else if constexpr (
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
-		{
-			return 0;
-		}
-		else
-		{
-			return A;
-		}
-	}
 
 	template <typename T>
 	FORCEINLINE static void SetComponent(T& A, const int32 Index, const double InValue)
@@ -583,7 +546,12 @@ namespace PCGExMath
 	FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir);
 	PCGEXTENDEDTOOLKIT_API
 	FVector GetDirection(const EPCGExAxis Dir);
+	PCGEXTENDEDTOOLKIT_API
+	FTransform GetIdentity(const EPCGExAxisOrder Order);
 
+	PCGEXTENDEDTOOLKIT_API
+	void Swizzle(FVector& Vector, const EPCGExAxisOrder Order);
+	
 	PCGEXTENDEDTOOLKIT_API
 	FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward);
 	PCGEXTENDEDTOOLKIT_API
@@ -664,7 +632,7 @@ namespace PCGExMath
 			Max = T{};
 		}
 	}
-
+	
 	PCGEXTENDEDTOOLKIT_API
 	double GetArcLength(const double R, const double StartAngleRadians, const double EndAngleRadians);
 
