@@ -85,10 +85,12 @@ namespace PCGExGeo
 
 			delaunator::Delaunator d(OutVector);
 
+			if (d.runtime_error) { return false; }
+
 			const int32 NumTriangles = d.triangles.size();
 
 			if (!NumTriangles) { return false; }
-			
+
 			const int32 NumSites = NumTriangles / 3;
 
 			DelaunayEdges.Reserve(NumSites);

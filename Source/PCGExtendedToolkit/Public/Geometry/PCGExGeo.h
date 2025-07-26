@@ -9,6 +9,7 @@
 #include "PCGExMT.h"
 #include "PCGExFitting.h"
 #include "Data/PCGExData.h"
+#include <vector>
 
 
 #include "PCGExGeo.generated.h"
