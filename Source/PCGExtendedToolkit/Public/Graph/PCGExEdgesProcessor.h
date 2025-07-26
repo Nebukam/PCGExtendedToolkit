@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
 #include "PCGExClusterMT.h"
+#include "PCGExClusterUtils.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExEdgesProcessor.generated.h"
@@ -63,9 +64,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : FPCGExPointsProcesso
 	bool bQuietMissingClusterPairElement = false;
 
 	TSharedPtr<PCGExData::FPointIOCollection> MainEdges;
-	TSharedPtr<PCGExData::FPointIO> CurrentEdges;
-
-	TSharedPtr<PCGExData::FPointIOTaggedDictionary> InputDictionary;
+	TSharedPtr<PCGExClusterUtils::FClusterDataLibrary> ClusterDataLibrary;
 	TSharedPtr<PCGExData::FPointIOTaggedEntries> TaggedEdges;
 
 	const TArray<FPCGExSortRuleConfig>* GetEdgeSortingRules() const;

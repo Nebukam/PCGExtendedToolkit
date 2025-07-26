@@ -655,6 +655,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		TSharedPtr<FPointIO> Insert_Unsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO);
 
+		bool ContainsData_Unsafe(const UPCGData* InData) const;
 		TSharedPtr<FPointIO> Add_Unsafe(const TSharedPtr<FPointIO>& PointIO);
 		TSharedPtr<FPointIO> Add(const TSharedPtr<FPointIO>& PointIO);
 
@@ -717,12 +718,13 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 	class PCGEXTENDEDTOOLKIT_API FPointIOTaggedEntries : public TSharedFromThis<FPointIOTaggedEntries>
 	{
 	public:
+		TSharedPtr<FPointIO> Key;
 		FString TagId;
 		DataIDType TagValue;
 		TArray<TSharedRef<FPointIO>> Entries;
 
-		FPointIOTaggedEntries(const FString& InTagId, const DataIDType& InTagValue)
-			: TagId(InTagId), TagValue(InTagValue)
+		FPointIOTaggedEntries(TSharedPtr<FPointIO> InKey, const FString& InTagId, const DataIDType& InTagValue)
+			: Key(InKey), TagId(InTagId), TagValue(InTagValue)
 		{
 		}
 
@@ -734,18 +736,19 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 	class PCGEXTENDEDTOOLKIT_API FPointIOTaggedDictionary
 	{
 	public:
-		FString TagId;             // LeftSide
+		FString TagIdentifier;     // LeftSide
 		TMap<int32, int32> TagMap; // :RightSize @ Entry Index
 		TArray<TSharedPtr<FPointIOTaggedEntries>> Entries;
 
 		explicit FPointIOTaggedDictionary(const FString& InTagId)
-			: TagId(InTagId)
+			: TagIdentifier(InTagId)
 		{
 		}
 
 		~FPointIOTaggedDictionary() = default;
 
 		bool CreateKey(const TSharedRef<FPointIO>& PointIOKey);
+		bool RemoveKey(const TSharedRef<FPointIO>& PointIOKey);
 		bool TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry);
 		TSharedPtr<FPointIOTaggedEntries> GetEntries(int32 Key);
 	};
