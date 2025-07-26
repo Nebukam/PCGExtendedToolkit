@@ -6,7 +6,7 @@
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-#define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
+#define LOCTEXT_NAMESPACE "WriteEdgeProperties"
 #define PCGEX_NAMESPACE WriteEdgeProperties
 
 PCGExData::EIOInit UPCGExWriteEdgePropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }

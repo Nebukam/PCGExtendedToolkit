@@ -47,6 +47,13 @@ if(!SharedContext.Get()){ return _RET; }
 #define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
 #define FSTRING(_TEXT) FString(_TEXT)
 
+#define PCGEX_AXIS_X FVector::ForwardVector
+#define PCGEX_AXIS_Y FVector::RightVector
+#define PCGEX_AXIS_Z FVector::UpVector
+#define PCGEX_AXIS_X_N FVector::BackwardVector
+#define PCGEX_AXIS_Y_N FVector::LeftVector
+#define PCGEX_AXIS_Z_N FVector::DownVector
+
 #define PCGEX_FOREACH_XYZ(MACRO)\
 MACRO(X)\
 MACRO(Y)\
@@ -72,6 +79,26 @@ MACRO(FString, String, __VA_ARGS__)    \
 MACRO(FName, Name, __VA_ARGS__)\
 MACRO(FSoftObjectPath, SoftObjectPath, __VA_ARGS__)\
 MACRO(FSoftClassPath, SoftClassPath, __VA_ARGS__)
+
+#define PCGEX_INNER_FOREACH_TYPE2(_TYPE_A, _NAME_A, MACRO, ...) \
+MACRO(_TYPE_A, _NAME_A, bool, Boolean, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, int32, Integer32, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, int64, Integer64, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, float, Float, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, double, Double, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, FVector2D, Vector2, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, FVector, Vector, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, FVector4, Vector4, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, FQuat, Quaternion, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, FRotator, Rotator, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, FTransform, Transform, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, FString, String, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, FName, Name, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, FSoftObjectPath, SoftObjectPath, __VA_ARGS__) \
+MACRO(_TYPE_A, _NAME_A, FSoftClassPath, SoftClassPath, __VA_ARGS__)
+
+#define PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(MACRO, ...) \
+PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_INNER_FOREACH_TYPE2, MACRO, __VA_ARGS__)
 
 /**
  * Enum, Point.[Getter]
@@ -263,14 +290,5 @@ static const bool AreElementsEqual(const _ITEM& A, const _ITEM& B) _EQUALITY \
 static void ApplyOffset(_ITEM& Element){ ensureMsgf(false, TEXT("Not implemented")); } \
 static void SetElementId(const _ITEM& Element, FOctreeElementId2 OctreeElementID){ }}; \
 using _ITEM##Octree = TOctree2<_ITEM, _ITEM##Semantics>;
-
-#define PCGEX_REDUCE_INDICES(_OUT, _NUM, _CONDITION)\
-TArray<int32> _OUT; {\
-	int32 ElementIndex = 0;\
-	int32 NumElements = _NUM;\
-	_OUT.SetNumUninitialized(NumElements);\
-	for (int32 i = 0; i < NumElements; i++) { if (_CONDITION) { _OUT[ElementIndex++] = i; } }\
-	_OUT.SetNum(ElementIndex);\
-}
 
 #endif

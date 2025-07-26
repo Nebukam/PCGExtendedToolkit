@@ -41,20 +41,11 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CopyToPaths)
 
-	if (Settings->MainAxisStartMeasure == EPCGExMeanMeasure::Discrete ||
-		Settings->MainAxisEndMeasure == EPCGExMeanMeasure::Discrete ||
-		Settings->CrossAxisStartMeasure == EPCGExMeanMeasure::Discrete ||
-		Settings->CrossAxisEndMeasure == EPCGExMeanMeasure::Discrete)
-	{
-		PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT( "Only Relative is implemented at the moment."));
-	}
-
 #define PCGEX_VALIDATE_PARAM_SOURCE(_INPUT, _SELECTOR, _NAME) \
-	if (Settings->_INPUT == EPCGExSampleSource::Target){ \
 		if (!PCGExHelpers::IsDataDomainAttribute(Settings->_SELECTOR)){ \
 			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT( "Only @Data attributes are supported when reading params from source.")); \
 			PCGEX_LOG_INVALID_ATTR_C(Context, _NAME, Settings->_SELECTOR) \
-			return false; } }
+			return false; }
 
 	PCGEX_VALIDATE_PARAM_SOURCE(MainAxisStartInput, MainAxisStartAttribute, Main Axis Start Attribute)
 	PCGEX_VALIDATE_PARAM_SOURCE(MainAxisEndInput, MainAxisEndAttribute, Main Axis End Attribute)
@@ -84,13 +75,8 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 
 	auto OnDataRegistered = [&](const UPCGData* InData)
 	{
-#define PCGEX_CREATE_TARGET_SETTING(_INPUT, _SELECTOR, _NAME) \
-		if (Settings->_INPUT == EPCGExSampleSource::Target){ Context->MainAxisStart.Add(PCGExDetails::MakeSettingValue(Context, InData, EPCGExInputValueType::Attribute, Settings->_SELECTOR, Settings->_NAME)); }
-
-		PCGEX_CREATE_TARGET_SETTING(MainAxisStartInput, MainAxisStartAttribute, MainAxisStart)
-		PCGEX_CREATE_TARGET_SETTING(MainAxisEndInput, MainAxisEndAttribute, MainAxisEnd)
-
-#undef PCGEX_CREATE_TARGET_SETTING
+		if (Settings->MainAxisStartInput == EPCGExSampleSource::Target) { Context->MainAxisStart.Add(Settings->GetValueSettingMainAxisStart(Context, InData)); }
+		if (Settings->MainAxisEndInput == EPCGExSampleSource::Target) { Context->MainAxisStart.Add(Settings->GetValueSettingMainAxisEnd(Context, InData)); }
 	};
 
 	for (int i = 0; i < Targets.Num(); ++i)
@@ -184,6 +170,8 @@ namespace PCGExCopyToPaths
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
+		FwdT = PCGExMath::GetIdentity(Settings->AxisOrder);
+
 		PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum);
 		if (Context->DataMatcher->GetMatchingTargets(PointDataFacade->Source, MatchingScope, Deformers) <= 0)
 		{
@@ -191,19 +179,8 @@ namespace PCGExCopyToPaths
 			return false;
 		}
 
-		if (Settings->MainAxisStartInput != EPCGExSampleSource::Target)
-		{
-			MainAxisStart = Settings->GetValueSettingMainAxisStart();
-			if (!MainAxisStart->Init(Context, PointDataFacade)) { return false; }
-		}
-
-		if (Settings->MainAxisEndInput != EPCGExSampleSource::Target)
-		{
-			MainAxisEnd = Settings->GetValueSettingMainAxisEnd();
-			if (!MainAxisEnd->Init(Context, PointDataFacade)) { return false; }
-		}
-
-		PCGEx::GetAxisOrder(Settings->AxisOrder, MainAxis, CrossAxis, NormalAxis);
+		if (Settings->MainAxisStartInput != EPCGExSampleSource::Target) { MainAxisStart = Settings->GetValueSettingMainAxisStart(Context, PointDataFacade->GetIn()); }
+		if (Settings->MainAxisEndInput != EPCGExSampleSource::Target) { MainAxisEnd = Settings->GetValueSettingMainAxisEnd(Context, PointDataFacade->GetIn()); }
 
 		Dupes.Reserve(Deformers.Num());
 		Origins.Reserve(Deformers.Num());
@@ -224,6 +201,9 @@ namespace PCGExCopyToPaths
 		else { Box = PCGExTransform::GetBounds(PointDataFacade->GetIn(), Settings->BoundsSource); }
 
 		Box = FBox(Box.Min + Settings->MinBoundsOffset, Box.Max + Settings->MaxBoundsOffset);
+		PCGExMath::Swizzle(Box.Min, Settings->AxisOrder);
+		PCGExMath::Swizzle(Box.Max, Settings->AxisOrder);
+
 		Size = Box.GetSize();
 
 		// TODO : Normalize point data to deform around around it
@@ -268,36 +248,42 @@ namespace PCGExCopyToPaths
 
 			int32 j = 0;
 
+			double MainAxisMin = LocalMainAxisStart->Read(0);
+			double MainAxisMax = LocalMainAxisEnd->Read(0);
+
+			if (MainAxisMin > MainAxisMax) { std::swap(MainAxisMin, MainAxisMax); }
+
+			const double Coverage = TotalLength * (MainAxisMax - MainAxisMin);
+			const double CoverageRatio = Coverage / Size[0];
+
 			PCGEX_SCOPE_LOOP(Index)
 			{
-				const FTransform& InT = InTransforms[Index];
+				FTransform WrkT = (InTransforms[Index] * FwdT);
 
-				FVector Location = InT.GetLocation();
+				FVector Location = WrkT.GetLocation();
 				FVector UVW = (Location - Box.Min) / Size;
 
-				double MainAxisMin = LocalMainAxisStart->Read(Index);
-				double MainAxisMax = LocalMainAxisEnd->Read(Index);
-				if (MainAxisMin > MainAxisMax) { std::swap(MainAxisMin, MainAxisMax); }
+				UVW[0] = PCGExMath::Remap(UVW[0], 0, 1, MainAxisMin, MainAxisMax);
+				Location[0] = UVW[0];
 
-				UVW[MainAxis] = PCGExMath::Remap(UVW[MainAxis], 0, 1, MainAxisMin, MainAxisMax);
-				Location[MainAxis] = UVW[MainAxis];
-
-				const FTransform WorkingTransform = FTransform(InT.GetRotation(), Location, InT.GetScale3D());
+				WrkT.SetLocation(Location);
 
 				FTransform Anchor = FTransform::Identity;
 
 				if (bWrap)
 				{
-					Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * PCGExMath::Tile<double>(UVW[MainAxis], 0.0, 1.0), ESplineCoordinateSpace::World, bUseScale);
+					Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * PCGExMath::Tile<double>(UVW[0], 0.0, 1.0), ESplineCoordinateSpace::World, bUseScale);
 				}
 				else
 				{
-					Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * FMath::Clamp<double>(UVW[MainAxis], 0.0, 1.0), ESplineCoordinateSpace::World, bUseScale);
+					Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * FMath::Clamp<double>(UVW[0], 0.0, 1.0), ESplineCoordinateSpace::World, bUseScale);
 				}
 
-				OutTransforms[Index] = (WorkingTransform * InvT) * Anchor;
+				if (Settings->bPreserveAspectRatio) { Anchor.SetScale3D(Anchor.GetScale3D() * CoverageRatio); }
 
-				if (Settings->bPreserveOriginalInputScale) { OutTransforms[Index].SetScale3D(InT.GetScale3D()); }
+				OutTransforms[Index] = WrkT * Anchor;
+
+				if (Settings->bPreserveOriginalInputScale) { OutTransforms[Index].SetScale3D(WrkT.GetScale3D()); }
 
 				j++;
 			}

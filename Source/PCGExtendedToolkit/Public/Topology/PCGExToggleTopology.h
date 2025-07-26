@@ -17,7 +17,7 @@ enum class EPCGExToggleTopologyAction : uint8
 	Remove = 1 UMETA(DisplayName = "Remove", ToolTip="..."),
 };
 
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="tensors/clusters/topology/toggle-topology"))
+UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="topology/cluster-surface/toggle-topology"))
 class UPCGExToggleTopologySettings : public UPCGSettings
 {
 	GENERATED_BODY()

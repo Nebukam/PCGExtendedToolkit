@@ -5,7 +5,7 @@
 
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-#define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
+#define LOCTEXT_NAMESPACE "EdgeOrder"
 #define PCGEX_NAMESPACE EdgeOrder
 
 PCGExData::EIOInit UPCGExEdgeOrderSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }

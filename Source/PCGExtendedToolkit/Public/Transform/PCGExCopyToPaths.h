@@ -29,7 +29,7 @@ enum class EPCGExAxisMutation : uint8
 {
 	None   = 0 UMETA(DisplayName = "None", Tooltip="Keep things as-is"),
 	Offset = 1 UMETA(DisplayName = "Offset", Tooltip="Apply an offset along the axis"),
-	Bend   = 2 UMETA(DisplayName = "Bend", Tooltip="Bend around the axis"),
+	Bend   = 2 UMETA(DisplayName = "Bend", Tooltip="Bend around the axis")
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/copy-to-path"))
@@ -97,6 +97,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
 	bool bPreserveOriginalInputScale = true;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
+	bool bPreserveAspectRatio = false;
+
 #pragma region Main axis
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
@@ -109,36 +112,29 @@ public:
 	EPCGExSampleSource MainAxisStartInput = EPCGExSampleSource::Constant;
 
 	/** Attribute to read start value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName=" ├─ Start (Attr)", EditCondition="MainAxisStartInput != EPCGExSampleSource::Constant", EditConditionHides))
-	FName MainAxisStartAttribute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="Start (Attr)", EditCondition="MainAxisStartInput != EPCGExSampleSource::Constant", EditConditionHides))
+	FName MainAxisStartAttribute = FName("@Data.StartAlpha");;
 
 	/** Constant start value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName=" ├─ Start", EditCondition="MainAxisStartInput == EPCGExSampleSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="Start", EditCondition="MainAxisStartInput == EPCGExSampleSource::Constant", EditConditionHides))
 	double MainAxisStart = 0;
 
-	/** Discrete will use value as a distance, whereas relative will be used as an alpha. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_NotOverridable, DisplayName=" └─ Measure"))
-	EPCGExMeanMeasure MainAxisStartMeasure = EPCGExMeanMeasure::Relative;
-
-	PCGEX_SETTING_VALUE_GET_BOOL(MainAxisStart, double, MainAxisStartInput != EPCGExSampleSource::Constant, MainAxisStartAttribute, MainAxisStart)
+	PCGEX_SETTING_DATA_VALUE_GET_BOOL(MainAxisStart, double, MainAxisStartInput != EPCGExSampleSource::Constant, MainAxisStartAttribute, MainAxisStart)
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable))
 	EPCGExSampleSource MainAxisEndInput = EPCGExSampleSource::Constant;
 
 	/** Attribute to read end value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName=" ├─ End (Attr)", EditCondition="MainAxisEndInput != EPCGExSampleSource::Constant", EditConditionHides))
-	FName MainAxisEndAttribute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="End (Attr)", EditCondition="MainAxisEndInput != EPCGExSampleSource::Constant", EditConditionHides))
+	FName MainAxisEndAttribute = FName("@Data.EndAlpha");
 
 	/** Constant end value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName=" ├─ End", EditCondition="MainAxisEndInput == EPCGExSampleSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="End", EditCondition="MainAxisEndInput == EPCGExSampleSource::Constant", EditConditionHides))
 	double MainAxisEnd = 1;
 
-	PCGEX_SETTING_VALUE_GET_BOOL(MainAxisEnd, double, MainAxisEndInput != EPCGExSampleSource::Constant, MainAxisEndAttribute, MainAxisEnd)
+	PCGEX_SETTING_DATA_VALUE_GET_BOOL(MainAxisEnd, double, MainAxisEndInput != EPCGExSampleSource::Constant, MainAxisEndAttribute, MainAxisEnd)
 
-	/** Discrete will use value as a distance, whereas relative will be used as an alpha. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_NotOverridable, DisplayName=" └─ Measure"))
-	EPCGExMeanMeasure MainAxisEndMeasure = EPCGExMeanMeasure::Relative;
 
 #pragma endregion
 
@@ -156,36 +152,28 @@ public:
 	EPCGExInputValueType CrossAxisStartInput = EPCGExInputValueType::Constant;
 
 	/** Attribute to read start value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName=" ├─ Start (Attr)", EditCondition="CrossAxisStartInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FName CrossAxisStartAttribute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName="Start (Attr)", EditCondition="CrossAxisStartInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FName CrossAxisStartAttribute = FName("@Data.CrossStart");
 
 	/** Constant start value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName=" ├─ Start", EditCondition="CrossAxisStartInput == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName="Start", EditCondition="CrossAxisStartInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double CrossAxisStart = 0;
 
-	/** Discrete will use value as a distance, whereas relative will be used as an alpha. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta = (PCG_NotOverridable, DisplayName=" └─ Measure"))
-	EPCGExMeanMeasure CrossAxisStartMeasure = EPCGExMeanMeasure::Relative;
-
-	PCGEX_SETTING_VALUE_GET(CrossAxisStart, double, CrossAxisStartInput, CrossAxisStartAttribute, CrossAxisStart)
+	PCGEX_SETTING_DATA_VALUE_GET(CrossAxisStart, double, CrossAxisStartInput, CrossAxisStartAttribute, CrossAxisStart)
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable))
 	EPCGExInputValueType CrossAxisEndInput = EPCGExInputValueType::Constant;
 
 	/** Attribute to read end value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName=" ├─ End (Attr)", EditCondition="CrossAxisEndInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FName CrossAxisEndAttribute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName="End (Attr)", EditCondition="CrossAxisEndInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FName CrossAxisEndAttribute = FName("@Data.CrossEnd");
 
 	/** Constant end value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName=" ├─ End", EditCondition="CrossAxisEndInput == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName="End", EditCondition="CrossAxisEndInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double CrossAxisEnd = 1;
 
-	PCGEX_SETTING_VALUE_GET(CrossAxisEnd, double, CrossAxisEndInput, CrossAxisEndAttribute, CrossAxisEnd)
-
-	/** Discrete will use value as a distance, whereas relative will be used as an alpha. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta = (PCG_NotOverridable, DisplayName=" └─ Measure"))
-	EPCGExMeanMeasure CrossAxisEndMeasure = EPCGExMeanMeasure::Relative;
+	PCGEX_SETTING_DATA_VALUE_GET(CrossAxisEnd, double, CrossAxisEndInput, CrossAxisEndAttribute, CrossAxisEnd)
 
 #pragma endregion
 
@@ -230,9 +218,8 @@ namespace PCGExCopyToPaths
 	{
 		FBox Box = FBox(ForceInit);
 		FVector Size = FVector::ZeroVector;
-		int32 MainAxis = 0;
-		int32 CrossAxis = 0;
-		int32 NormalAxis = 0;
+
+		FTransform FwdT = FTransform::Identity;
 
 		TArray<FTransform> Origins;
 		TArray<int32> Deformers;
