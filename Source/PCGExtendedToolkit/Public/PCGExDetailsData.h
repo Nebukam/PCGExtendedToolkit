@@ -17,7 +17,7 @@ V->bQuietErrors = bQuietErrors;	return V; }
 #define PCGEX_SETTING_VALUE_GET_BOOL(_NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT) PCGEX_SETTING_VALUE_GET(_NAME, _TYPE, _INPUT ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, _SOURCE, _CONSTANT);
 
 #define PCGEX_SETTING_DATA_VALUE_GET(_NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT)\
-TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> GetValueSetting##_NAME(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors = false) const{\
+TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> GetDataValueSetting##_NAME(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors = false) const{\
 TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> V = PCGExDetails::MakeSettingValue<_TYPE>(InContext, InData, _INPUT, _SOURCE, _CONSTANT);\
 V->bQuietErrors = bQuietErrors;	return V; }
 #define PCGEX_SETTING_DATA_VALUE_GET_BOOL(_NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT) PCGEX_SETTING_DATA_VALUE_GET(_NAME, _TYPE, _INPUT ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, _SOURCE, _CONSTANT);

@@ -107,7 +107,7 @@ namespace PCGExDataHelpers
 		}
 		else
 		{
-			if (InContext && !bQuiet) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid attribute: \"{0}\"."), FText::FromString(PCGEx::GetSelectorDisplayName(InSelector)))); }
+			if (InContext && !bQuiet) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Attribute, InSelector) }
 			return false;
 		}
 

@@ -6,7 +6,24 @@
 #include "PCGExDetailsData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGSplineStruct.h"
+#include "Sampling/PCGExSampling.h"
 #include "PCGExTransform.generated.h"
+
+UENUM()
+enum class EPCGExTransformAxisMutation : uint8
+{
+	None   = 0 UMETA(DisplayName = "None", Tooltip="Keep things as-is"),
+	Offset = 1 UMETA(DisplayName = "Offset", Tooltip="Apply an offset along the axis"),
+	Bend   = 2 UMETA(DisplayName = "Bend", Tooltip="Bend around the axis")
+};
+
+UENUM()
+enum class EPCGExTransformAlphaUsage : uint8
+{
+	StartAndEnd   = 0 UMETA(DisplayName = "Start & End", Tooltip="First alpha is to be used as start % along the axis, and second alpha is the end % along that same axis."),
+	StartAndSize  = 1 UMETA(DisplayName = "Start & Size", Tooltip="First alpha is to be used as start % along the axis, and second alpha is a % of the axis length, from first alpha."),
+	CenterAndSize = 2 UMETA(DisplayName = "Center & Size", Tooltip="First alpha is to be used as center % along the axis, and second alpha is a % of the axis length, before and after the center.")
+};
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAttachmentRules
@@ -119,6 +136,73 @@ protected:
 	TSharedPtr<PCGExDetails::TSettingValue<double>> WGetter;
 
 	const UPCGBasePointData* PointData = nullptr;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExAxisDeformDetails
+{
+	GENERATED_BODY()
+
+	FPCGExAxisDeformDetails() = default;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExTransformAlphaUsage Usage = EPCGExTransformAlphaUsage::StartAndEnd;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExSampleSource FirstAlphaInput = EPCGExSampleSource::Constant;
+
+	/** Attribute to read start value from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="First Alpha (Attr)", EditCondition="FirstAlphaInput != EPCGExSampleSource::Constant", EditConditionHides))
+	FName FirstAlphaAttribute = FName("@Data.FirstAlpha");
+
+	/** Constant start value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="First Alpha", EditCondition="FirstAlphaInput == EPCGExSampleSource::Constant", EditConditionHides))
+	double FirstAlphaConstant = 0;
+
+	PCGEX_SETTING_DATA_VALUE_GET_BOOL(FirstAlpha, double, FirstAlphaInput != EPCGExSampleSource::Constant, FirstAlphaAttribute, FirstAlphaConstant)
+	PCGEX_SETTING_VALUE_GET_BOOL(FirstAlpha, double, FirstAlphaInput != EPCGExSampleSource::Constant, FirstAlphaAttribute, FirstAlphaConstant)
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExSampleSource SecondAlphaInput = EPCGExSampleSource::Constant;
+
+	/** Attribute to read end value from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Second Alpha (Attr)", EditCondition="SecondAlphaInput != EPCGExSampleSource::Constant", EditConditionHides))
+	FName SecondAlphaAttribute = FName("@Data.SecondAlpha");
+
+	/** Constant end value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Second Alpha", EditCondition="SecondAlphaInput == EPCGExSampleSource::Constant", EditConditionHides))
+	double SecondAlphaConstant = 1;
+
+	PCGEX_SETTING_DATA_VALUE_GET_BOOL(SecondAlpha, double, SecondAlphaInput != EPCGExSampleSource::Constant, SecondAlphaAttribute, SecondAlphaConstant)
+	PCGEX_SETTING_VALUE_GET_BOOL(SecondAlpha, double, SecondAlphaInput != EPCGExSampleSource::Constant, SecondAlphaAttribute, SecondAlphaConstant)
+
+	bool Validate(FPCGExContext* InContext, const bool bSupportPoints = false)const;
+	
+	bool Init(FPCGExContext* InContext, const TArray<PCGExData::FTaggedData>& InTargets);
+	bool Init(FPCGExContext* InContext, const FPCGExAxisDeformDetails& Parent, const TSharedRef<PCGExData::FFacade>& InDataFacade, const int32 InTargetIndex, const bool bSupportPoint = false);
+
+	void GetAlphas(const int32 Index, double& OutFirst, double& OutSecond, const bool bSort = true) const;
+
+protected:
+	TSharedPtr<PCGExDetails::TSettingValue<double>> FirstValueGetter;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> SecondValueGetter;
+
+	TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>> TargetsFirstValueGetter;
+	TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>> TargetsSecondValueGetter;
+};
+
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExAxisTwistDetails
+{
+	GENERATED_BODY()
+
+	// Start/End
+	// or
+	// Per-point angle
+	
 };
 
 namespace PCGExTransform
