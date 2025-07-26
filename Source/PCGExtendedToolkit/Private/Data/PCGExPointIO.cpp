@@ -922,6 +922,12 @@ namespace PCGExData
 		return PointIO;
 	}
 
+	bool FPointIOCollection::ContainsData_Unsafe(const UPCGData* InData) const
+	{
+		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO && (IO->In == InData || IO->Out == InData)) { return true; } }
+		return false;
+	}
+
 	TSharedPtr<FPointIO> FPointIOCollection::Add_Unsafe(const TSharedPtr<FPointIO>& PointIO)
 	{
 		PointIO->SetInfos(Pairs.Add(PointIO), OutputPin);
@@ -1055,20 +1061,29 @@ namespace PCGExData
 
 	bool FPointIOTaggedDictionary::CreateKey(const TSharedRef<FPointIO>& PointIOKey)
 	{
-		DataIDType TagValue = PointIOKey->Tags->GetOrSet<int32>(TagId, PointIOKey->GetInOut()->GetUniqueID());
-		for (const TSharedPtr<FPointIOTaggedEntries>& Binding : Entries)
-		{
-			// TagValue shouldn't exist already
-			if (Binding->TagValue->Value == TagValue->Value) { return false; }
-		}
+		DataIDType TagValue = PointIOKey->Tags->GetOrSet<int32>(TagIdentifier, PointIOKey->GetInOut()->GetUniqueID());
+		if (TagMap.Contains(TagValue->Value)) { return false; }
+		TagMap.Add(TagValue->Value, Entries.Add(MakeShared<FPointIOTaggedEntries>(PointIOKey, TagIdentifier, TagValue)));
+		return true;
+	}
 
-		TagMap.Add(TagValue->Value, Entries.Add(MakeShared<FPointIOTaggedEntries>(TagId, TagValue)));
+	bool FPointIOTaggedDictionary::RemoveKey(const TSharedRef<FPointIO>& PointIOKey)
+	{
+		const DataIDType TagValue = PointIOKey->Tags->GetTypedValue<int32>(TagIdentifier);
+
+		if (!TagValue) { return false; }
+
+		const int32* Index = TagMap.Find(TagValue->Value);
+		if (!Index) { return false; }
+
+		Entries[*Index] = nullptr;
+		TagMap.Remove(TagValue->Value);
 		return true;
 	}
 
 	bool FPointIOTaggedDictionary::TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry)
 	{
-		const DataIDType TagValue = PointIOEntry->Tags->GetTypedValue<int32>(TagId);
+		const DataIDType TagValue = PointIOEntry->Tags->GetTypedValue<int32>(TagIdentifier);
 		if (!TagValue) { return false; }
 
 		if (const int32* Index = TagMap.Find(TagValue->Value))
