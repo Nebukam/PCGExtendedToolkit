@@ -13,14 +13,17 @@ public class PCGExtendedToolkitEditor : ModuleRules
 			new[]
 			{
 				"Core",
-				"Projects",
-				"Engine",
 				"CoreUObject",
+				"Engine",
+				"Projects",
 				"PlacementMode",
+				"GeometryScriptingCore",
+				"RenderCore",
+				"RHI",
 				"PCG",
+				"PCGEditor",
 				"PCGGeometryScriptInterop",
-				"PCGExtendedToolkit",
-				"PCGEditor"
+				"PCGExtendedToolkit"
 			}
 		);
 
@@ -29,10 +32,10 @@ public class PCGExtendedToolkitEditor : ModuleRules
 			{
 				"GeometryCore",
 				"GeometryFramework",
-				"GeometryScriptingCore",
+				
 				"GeometryAlgorithms",
-				"RenderCore",
-				"RHI",
+				
+				
 				"PhysicsCore",
 				"NavigationSystem",
 				"Slate",
