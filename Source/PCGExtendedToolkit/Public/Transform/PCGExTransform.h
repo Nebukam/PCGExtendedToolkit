@@ -5,6 +5,7 @@
 #include "PCGExDetails.h"
 #include "PCGExDetailsData.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGSplineStruct.h"
 #include "PCGExTransform.generated.h"
 
 USTRUCT(BlueprintType)
