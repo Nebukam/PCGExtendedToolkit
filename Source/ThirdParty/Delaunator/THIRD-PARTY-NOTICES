@@ -1,0 +1,28 @@
+Delaunator-cpp is a port of https://github.com/mapbox/delaunator
+    ISC License
+    Copyright (c) 2017, Mapbox
+
+
+For development purpose it uses following third parties (not required for library users)
+
+https://github.com/Tencent/rapidjson
+    MIT License:
+    Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
+
+    BSD License:
+    Copyright (c) 2006-2013 Alexander Chemeris
+
+    JSON License:
+    Copyright (c) 2002 JSON.org
+
+https://github.com/louisdx/cxx-prettyprint
+
+    Boost Software License
+    Copyright Louis Delacroix 2010 - 2014.
+
+test-files/*
+    Open Database License
+    This is made available under the Open Database License: http://opendatacommons.org/licenses/odbl/1.0/.
+    Any rights in individual contents of the database are licensed under the Database Contents License: http://opendatacommons.org/licenses/dbcl/1.0/
+
+
