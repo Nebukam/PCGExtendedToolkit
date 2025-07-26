@@ -5,6 +5,7 @@
 
 #include "Graph/PCGExClusterUtils.h"
 #include "Graph/PCGExGraph.h"
+#include "Misc/PCGExDiscardByPointCount.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindClustersDataElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -24,6 +25,7 @@ TArray<FPCGPinProperties> UPCGExFindClustersDataSettings::OutputPinProperties() 
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
+	PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded data.", Normal, {})
 	return PinProperties;
 }
 
@@ -132,6 +134,16 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 	}
 
+	for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
+	{
+		if (!IO->IsEnabled())
+		{
+			IO->Enable();
+			IO->OutputPin = PCGExDiscardByPointCount::OutputDiscardedLabel;
+			IO->InitializeOutput(PCGExData::EIOInit::Forward);
+		}
+	}
+	
 	Context->MainPoints->StageOutputs();
 
 	Context->Done();

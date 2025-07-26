@@ -41,16 +41,8 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CopyToPaths)
 
-#define PCGEX_VALIDATE_PARAM_SOURCE(_INPUT, _SELECTOR, _NAME) \
-		if (!PCGExHelpers::IsDataDomainAttribute(Settings->_SELECTOR)){ \
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT( "Only @Data attributes are supported when reading params from source.")); \
-			PCGEX_LOG_INVALID_ATTR_C(Context, _NAME, Settings->_SELECTOR) \
-			return false; }
-
-	PCGEX_VALIDATE_PARAM_SOURCE(MainAxisStartInput, MainAxisStartAttribute, Main Axis Start Attribute)
-	PCGEX_VALIDATE_PARAM_SOURCE(MainAxisEndInput, MainAxisEndAttribute, Main Axis End Attribute)
-
-#undef PCGEX_VALIDATE_PARAM_SOURCE
+	if (!Settings->MainAxisSettings.Validate(InContext)) { return false; }
+	//if (!Settings->TwistSettings.Validate(InContext, true)) { return false; }
 
 	if (!Context->Tangents.Init(Context, Settings->Tangents)) { return false; }
 
@@ -70,13 +62,8 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 	Context->DeformersData.Reserve(Targets.Num());
 	Context->DeformersFacades.Reserve(Targets.Num());
 
-	Context->MainAxisStart.Reserve(Targets.Num());
-	Context->MainAxisEnd.Reserve(Targets.Num());
-
 	auto OnDataRegistered = [&](const UPCGData* InData)
 	{
-		if (Settings->MainAxisStartInput == EPCGExSampleSource::Target) { Context->MainAxisStart.Add(Settings->GetValueSettingMainAxisStart(Context, InData)); }
-		if (Settings->MainAxisEndInput == EPCGExSampleSource::Target) { Context->MainAxisStart.Add(Settings->GetValueSettingMainAxisEnd(Context, InData)); }
 	};
 
 	for (int i = 0; i < Targets.Num(); ++i)
@@ -118,6 +105,12 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 	{
 		return false;
 	}
+
+	PCGEX_FWD(MainAxisSettings)
+	if (!Context->MainAxisSettings.Init(Context, Context->DeformersData)) { return false; }
+
+	PCGEX_FWD(TwistSettings)
+	if (!Context->TwistSettings.Init(Context, Context->DeformersData)) { return false; }
 
 	Context->DataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
 	Context->DataMatcher->SetDetails(&Settings->DataMatching);
@@ -170,7 +163,7 @@ namespace PCGExCopyToPaths
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		FwdT = PCGExMath::GetIdentity(Settings->AxisOrder);
+		AxisTransform = PCGExMath::GetIdentity(Settings->AxisOrder);
 
 		PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum);
 		if (Context->DataMatcher->GetMatchingTargets(PointDataFacade->Source, MatchingScope, Deformers) <= 0)
@@ -179,11 +172,14 @@ namespace PCGExCopyToPaths
 			return false;
 		}
 
-		if (Settings->MainAxisStartInput != EPCGExSampleSource::Target) { MainAxisStart = Settings->GetValueSettingMainAxisStart(Context, PointDataFacade->GetIn()); }
-		if (Settings->MainAxisEndInput != EPCGExSampleSource::Target) { MainAxisEnd = Settings->GetValueSettingMainAxisEnd(Context, PointDataFacade->GetIn()); }
-
 		Dupes.Reserve(Deformers.Num());
 		Origins.Reserve(Deformers.Num());
+		MainAxisDeformDetails.Reserve(Deformers.Num());
+
+		// Init settings once from context copy
+		// so we can graph an initialized local setting getter if one is created
+		FPCGExAxisDeformDetails BaseMainAxisSettings = Context->MainAxisSettings;
+		if (!BaseMainAxisSettings.Init(Context, Context->MainAxisSettings, PointDataFacade, -1)) { return false; }
 
 		for (const int32 Index : Deformers)
 		{
@@ -191,11 +187,16 @@ namespace PCGExCopyToPaths
 			Dupe->IOIndex = PointDataFacade->Source->IOIndex * 1000000 + Dupes.Num();
 			Dupe->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
+			FPCGExAxisDeformDetails& MainAxisDeform = MainAxisDeformDetails.Emplace_GetRef();
+			if (!MainAxisDeform.Init(Context, BaseMainAxisSettings, PointDataFacade, Index)) { return false; }
+
 			Origins.Emplace(FTransform::Identity); // TODO : Expose this
 			//Origins.Emplace(Deformers.Last()->GetTransformAtSplineInputKey(0, ESplineCoordinateSpace::World).Inverse()); // Move this to CompleteWork
 
 			Dupes.Add(Dupe);
 		}
+
+		// Set up box reference for this data
 
 		if (Context->bUseUnifiedBounds) { Box = Context->UnifiedBounds; }
 		else { Box = PCGExTransform::GetBounds(PointDataFacade->GetIn(), Settings->BoundsSource); }
@@ -203,13 +204,7 @@ namespace PCGExCopyToPaths
 		Box = FBox(Box.Min + Settings->MinBoundsOffset, Box.Max + Settings->MaxBoundsOffset);
 		PCGExMath::Swizzle(Box.Min, Settings->AxisOrder);
 		PCGExMath::Swizzle(Box.Max, Settings->AxisOrder);
-
 		Size = Box.GetSize();
-
-		// TODO : Normalize point data to deform around around it
-
-		// TODO : Alpha
-
 
 		return true;
 	}
@@ -234,9 +229,6 @@ namespace PCGExCopyToPaths
 		{
 			const int32 TargetIndex = Deformers[i];
 
-			TSharedPtr<PCGExDetails::TSettingValue<double>> LocalMainAxisStart = Settings->MainAxisStartInput == EPCGExSampleSource::Target ? Context->MainAxisStart[TargetIndex] : MainAxisStart;
-			TSharedPtr<PCGExDetails::TSettingValue<double>> LocalMainAxisEnd = Settings->MainAxisEndInput == EPCGExSampleSource::Target ? Context->MainAxisEnd[TargetIndex] : MainAxisEnd;
-
 			const FPCGSplineStruct* Deformer = Context->Deformers[TargetIndex];
 			const TSharedPtr<PCGExData::FPointIO> Dupe = Dupes[i];
 			TPCGValueRange<FTransform> OutTransforms = Dupe->GetOut()->GetTransformValueRange();
@@ -248,25 +240,27 @@ namespace PCGExCopyToPaths
 
 			int32 j = 0;
 
-			double MainAxisMin = LocalMainAxisStart->Read(0);
-			double MainAxisMax = LocalMainAxisEnd->Read(0);
+			double Start = 0;
+			double End = 0;
 
-			if (MainAxisMin > MainAxisMax) { std::swap(MainAxisMin, MainAxisMax); }
+			MainAxisDeformDetails[i].GetAlphas(0, Start, End);
 
-			const double Coverage = TotalLength * (MainAxisMax - MainAxisMin);
+			const double Coverage = TotalLength * (End - Start);
 			const double CoverageRatio = Coverage / Size[0];
 
 			PCGEX_SCOPE_LOOP(Index)
 			{
-				FTransform WrkT = (InTransforms[Index] * FwdT);
+				FTransform WorkingTransform = (InTransforms[Index] * AxisTransform);
 
-				FVector Location = WrkT.GetLocation();
-				FVector UVW = (Location - Box.Min) / Size;
+				FVector UVW = (WorkingTransform.GetLocation() - Box.Min) / Size;
+				UVW[0] = PCGExMath::Remap(UVW[0], 0, 1, Start, End);
 
-				UVW[0] = PCGExMath::Remap(UVW[0], 0, 1, MainAxisMin, MainAxisMax);
+				// Twist
+				//WorkingTransform = WorkingTransform * FTransform(FQuat::MakeFromEuler(FVector(360*UVW[0],0,0)));
+
+				FVector Location = WorkingTransform.GetLocation();
 				Location[0] = UVW[0];
-
-				WrkT.SetLocation(Location);
+				WorkingTransform.SetLocation(Location);
 
 				FTransform Anchor = FTransform::Identity;
 
@@ -279,11 +273,31 @@ namespace PCGExCopyToPaths
 					Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * FMath::Clamp<double>(UVW[0], 0.0, 1.0), ESplineCoordinateSpace::World, bUseScale);
 				}
 
+				FQuat Q = Anchor.GetRotation();
+				if (Settings->FlattenAxis == EPCGExMinimalAxis::X)
+				{
+					Anchor = FTransform(
+						FRotationMatrix::MakeFromZY(Q.GetUpVector(), Q.GetRightVector()).ToQuat(),
+						Anchor.GetLocation(), Anchor.GetScale3D());
+				}
+				else if (Settings->FlattenAxis == EPCGExMinimalAxis::Y)
+				{
+					Anchor = FTransform(
+						FRotationMatrix::MakeFromZX(Q.GetUpVector(), Q.GetForwardVector()).ToQuat(),
+						Anchor.GetLocation(), Anchor.GetScale3D());
+				}
+				else if (Settings->FlattenAxis == EPCGExMinimalAxis::Z)
+				{
+					Anchor = FTransform(
+						FRotationMatrix::MakeFromXY(Q.GetForwardVector(), Q.GetRightVector()).ToQuat(),
+						Anchor.GetLocation(), Anchor.GetScale3D());
+				}
+
 				if (Settings->bPreserveAspectRatio) { Anchor.SetScale3D(Anchor.GetScale3D() * CoverageRatio); }
 
-				OutTransforms[Index] = WrkT * Anchor;
+				OutTransforms[Index] = WorkingTransform * Anchor;
 
-				if (Settings->bPreserveOriginalInputScale) { OutTransforms[Index].SetScale3D(WrkT.GetScale3D()); }
+				if (Settings->bPreserveOriginalInputScale) { OutTransforms[Index].SetScale3D(WorkingTransform.GetScale3D()); }
 
 				j++;
 			}

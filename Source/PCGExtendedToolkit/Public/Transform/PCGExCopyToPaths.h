@@ -24,14 +24,6 @@ enum class EPCGExCopyToPathsUnit : uint8
 	Distance = 1 UMETA(DisplayName = "Distance", Tooltip="..."),
 };
 
-UENUM()
-enum class EPCGExAxisMutation : uint8
-{
-	None   = 0 UMETA(DisplayName = "None", Tooltip="Keep things as-is"),
-	Offset = 1 UMETA(DisplayName = "Offset", Tooltip="Apply an offset along the axis"),
-	Bend   = 2 UMETA(DisplayName = "Bend", Tooltip="Bend around the axis")
-};
-
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/copy-to-path"))
 class UPCGExCopyToPathsSettings : public UPCGExPointsProcessorSettings
 {
@@ -100,81 +92,25 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
 	bool bPreserveAspectRatio = false;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
+	EPCGExMinimalAxis FlattenAxis = EPCGExMinimalAxis::None;
+	
 #pragma region Main axis
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
 	bool bWrapClosedLoops = true;
 
 	// Main axis is "along the spline"
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
+	FPCGExAxisDeformDetails MainAxisSettings;
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable))
-	EPCGExSampleSource MainAxisStartInput = EPCGExSampleSource::Constant;
-
-	/** Attribute to read start value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="Start (Attr)", EditCondition="MainAxisStartInput != EPCGExSampleSource::Constant", EditConditionHides))
-	FName MainAxisStartAttribute = FName("@Data.StartAlpha");;
-
-	/** Constant start value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="Start", EditCondition="MainAxisStartInput == EPCGExSampleSource::Constant", EditConditionHides))
-	double MainAxisStart = 0;
-
-	PCGEX_SETTING_DATA_VALUE_GET_BOOL(MainAxisStart, double, MainAxisStartInput != EPCGExSampleSource::Constant, MainAxisStartAttribute, MainAxisStart)
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable))
-	EPCGExSampleSource MainAxisEndInput = EPCGExSampleSource::Constant;
-
-	/** Attribute to read end value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="End (Attr)", EditCondition="MainAxisEndInput != EPCGExSampleSource::Constant", EditConditionHides))
-	FName MainAxisEndAttribute = FName("@Data.EndAlpha");
-
-	/** Constant end value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta=(PCG_Overridable, DisplayName="End", EditCondition="MainAxisEndInput == EPCGExSampleSource::Constant", EditConditionHides))
-	double MainAxisEnd = 1;
-
-	PCGEX_SETTING_DATA_VALUE_GET_BOOL(MainAxisEnd, double, MainAxisEndInput != EPCGExSampleSource::Constant, MainAxisEndAttribute, MainAxisEnd)
-
-
-#pragma endregion
-
-#pragma region Cross axis
-
-	// Controls distance over cross axis direction
-	// If bend is enabled, will apply rotation over that axis
-	// it can stretch and offset things in that direction
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta = (PCG_Overridable))
-	EPCGExAxisMutation CrossAxisMutation = EPCGExAxisMutation::None;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable))
-	EPCGExInputValueType CrossAxisStartInput = EPCGExInputValueType::Constant;
-
-	/** Attribute to read start value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName="Start (Attr)", EditCondition="CrossAxisStartInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FName CrossAxisStartAttribute = FName("@Data.CrossStart");
-
-	/** Constant start value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName="Start", EditCondition="CrossAxisStartInput == EPCGExInputValueType::Constant", EditConditionHides))
-	double CrossAxisStart = 0;
-
-	PCGEX_SETTING_DATA_VALUE_GET(CrossAxisStart, double, CrossAxisStartInput, CrossAxisStartAttribute, CrossAxisStart)
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable))
-	EPCGExInputValueType CrossAxisEndInput = EPCGExInputValueType::Constant;
-
-	/** Attribute to read end value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName="End (Attr)", EditCondition="CrossAxisEndInput != EPCGExInputValueType::Constant", EditConditionHides))
-	FName CrossAxisEndAttribute = FName("@Data.CrossEnd");
-
-	/** Constant end value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Cross Axis", meta=(PCG_Overridable, DisplayName="End", EditCondition="CrossAxisEndInput == EPCGExInputValueType::Constant", EditConditionHides))
-	double CrossAxisEnd = 1;
-
-	PCGEX_SETTING_DATA_VALUE_GET(CrossAxisEnd, double, CrossAxisEndInput, CrossAxisEndAttribute, CrossAxisEnd)
-
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bDoTwist = false;
+	
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable, EditCondition="bDoTwist"))
+	FPCGExAxisDeformDetails TwistSettings;
+	
 #pragma endregion
 
 	bool GetApplyTangents() const
@@ -197,8 +133,8 @@ struct FPCGExCopyToPathsContext final : FPCGExPointsProcessorContext
 	TArray<TSharedPtr<PCGExData::FFacade>> DeformersFacades;
 	TArray<const FPCGSplineStruct*> Deformers;
 
-	TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>> MainAxisStart;
-	TArray<TSharedPtr<PCGExDetails::TSettingValue<double>>> MainAxisEnd;
+	FPCGExAxisDeformDetails MainAxisSettings;
+	FPCGExAxisDeformDetails TwistSettings;
 
 	TArray<TSharedPtr<FPCGSplineStruct>> LocalDeformers;
 };
@@ -219,14 +155,14 @@ namespace PCGExCopyToPaths
 		FBox Box = FBox(ForceInit);
 		FVector Size = FVector::ZeroVector;
 
-		FTransform FwdT = FTransform::Identity;
+		FTransform AxisTransform = FTransform::Identity;
 
 		TArray<FTransform> Origins;
 		TArray<int32> Deformers;
 		TArray<TSharedPtr<PCGExData::FPointIO>> Dupes;
 
-		TSharedPtr<PCGExDetails::TSettingValue<double>> MainAxisStart;
-		TSharedPtr<PCGExDetails::TSettingValue<double>> MainAxisEnd;
+		TArray<FPCGExAxisDeformDetails> MainAxisDeformDetails;
+		TArray<FPCGExAxisDeformDetails> TwistSettings;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
