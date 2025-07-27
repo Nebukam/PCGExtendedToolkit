@@ -84,6 +84,15 @@ FVector FPCGExUVW::GetPosition(const int32 PointIndex, FVector& OutOffset, const
 	return Transform.TransformPositionNoScale(LocalPosition);
 }
 
+FPCGExAxisDeformDetails::FPCGExAxisDeformDetails(const FString InFirst, const FString InSecond, const double InFirstValue, const double InSecondValue)
+{
+	FirstAlphaAttribute = FName(TEXT("@Data.") + InFirst);
+	FirstAlphaConstant = InFirstValue;
+
+	SecondAlphaAttribute = FName(TEXT("@Data.") + InSecond);
+	SecondAlphaConstant = InSecondValue;
+}
+
 bool FPCGExAxisDeformDetails::Validate(FPCGExContext* InContext, const bool bSupportPoints) const
 {
 	if (FirstAlphaInput != EPCGExSampleSource::Constant)
