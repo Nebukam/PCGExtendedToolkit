@@ -181,6 +181,9 @@ namespace PCGExCopyToPaths
 		FPCGExAxisDeformDetails BaseMainAxisSettings = Context->MainAxisSettings;
 		if (!BaseMainAxisSettings.Init(Context, Context->MainAxisSettings, PointDataFacade, -1)) { return false; }
 
+		FPCGExAxisDeformDetails BaseTwistSettings = Context->TwistSettings;
+		if (!BaseTwistSettings.Init(Context, Context->TwistSettings, PointDataFacade, -1)) { return false; }
+
 		for (const int32 Index : Deformers)
 		{
 			TSharedPtr<PCGExData::FPointIO> Dupe = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EIOInit::Duplicate);
@@ -189,6 +192,9 @@ namespace PCGExCopyToPaths
 
 			FPCGExAxisDeformDetails& MainAxisDeform = MainAxisDeformDetails.Emplace_GetRef();
 			if (!MainAxisDeform.Init(Context, BaseMainAxisSettings, PointDataFacade, Index)) { return false; }
+
+			FPCGExAxisDeformDetails& TwistDeform = TwistSettings.Emplace_GetRef();
+			if (!TwistDeform.Init(Context, BaseTwistSettings, PointDataFacade, Index, true)) { return false; }
 
 			Origins.Emplace(FTransform::Identity); // TODO : Expose this
 			//Origins.Emplace(Deformers.Last()->GetTransformAtSplineInputKey(0, ESplineCoordinateSpace::World).Inverse()); // Move this to CompleteWork
@@ -243,7 +249,12 @@ namespace PCGExCopyToPaths
 			double Start = 0;
 			double End = 0;
 
+			double TwistStart = 0;
+			double TwistEnd = 0;
+
 			MainAxisDeformDetails[i].GetAlphas(0, Start, End);
+			TwistSettings[i].GetAlphas(0, TwistStart, TwistEnd);
+			const double TwistRange = TwistEnd - TwistStart;
 
 			const double Coverage = TotalLength * (End - Start);
 			const double CoverageRatio = Coverage / Size[0];
@@ -253,11 +264,14 @@ namespace PCGExCopyToPaths
 				FTransform WorkingTransform = (InTransforms[Index] * AxisTransform);
 
 				FVector UVW = (WorkingTransform.GetLocation() - Box.Min) / Size;
+
+				if (Settings->bDoTwist)
+				{
+					// Twist
+					WorkingTransform = WorkingTransform * FTransform(FQuat::MakeFromEuler(FVector(360 * (TwistStart + UVW[0] * TwistRange), 0, 0)));
+				}
+
 				UVW[0] = PCGExMath::Remap(UVW[0], 0, 1, Start, End);
-
-				// Twist
-				//WorkingTransform = WorkingTransform * FTransform(FQuat::MakeFromEuler(FVector(360*UVW[0],0,0)));
-
 				FVector Location = WorkingTransform.GetLocation();
 				Location[0] = UVW[0];
 				WorkingTransform.SetLocation(Location);

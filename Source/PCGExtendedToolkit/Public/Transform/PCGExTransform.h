@@ -144,6 +144,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAxisDeformDetails
 	GENERATED_BODY()
 
 	FPCGExAxisDeformDetails() = default;
+	FPCGExAxisDeformDetails(const FString InFirst, const FString InSecond, const double InFirstValue = 0, const double InSecondValue = 1);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExTransformAlphaUsage Usage = EPCGExTransformAlphaUsage::StartAndEnd;

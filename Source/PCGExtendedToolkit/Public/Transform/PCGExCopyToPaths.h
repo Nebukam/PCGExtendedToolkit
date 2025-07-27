@@ -97,7 +97,7 @@ public:
 	
 #pragma region Main axis
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform|Main Axis", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
 	bool bWrapClosedLoops = true;
 
 	// Main axis is "along the spline"
@@ -105,11 +105,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
 	FPCGExAxisDeformDetails MainAxisSettings;
 
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bDoTwist = false;
 	
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable, EditCondition="bDoTwist"))
-	FPCGExAxisDeformDetails TwistSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable, EditCondition="bDoTwist"))
+	FPCGExAxisDeformDetails TwistSettings = FPCGExAxisDeformDetails(TEXT("StartTwistAmount"), TEXT("EndTwistAmount"), 0, 0);
+
+	/** Used to shrink the scope per-target, to distribute points only on a subselection. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
+	FPCGExAxisDeformDetails TargetMaskSettings = FPCGExAxisDeformDetails(TEXT("MaskStart"), TEXT("MaskEnd"));
 	
 #pragma endregion
 
