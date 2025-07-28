@@ -37,12 +37,5 @@ PCGExTensor::FTensorSample FPCGExTensorPole::Sample(const int32 InSeedIndex, con
 
 PCGEX_TENSOR_BOILERPLATE(Pole, {}, {})
 
-bool UPCGExTensorPoleFactory::InitInternalData(FPCGExContext* InContext)
-{
-	if (!Super::InitInternalData(InContext)) { return false; }
-
-	return true;
-}
-
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

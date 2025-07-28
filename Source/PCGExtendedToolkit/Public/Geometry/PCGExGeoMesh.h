@@ -62,7 +62,6 @@ namespace PCGExGeo
 
 		void MakeDual();
 		void MakeHollowDual();
-
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FGeoStaticMesh : public FGeoMesh
@@ -71,11 +70,11 @@ namespace PCGExGeo
 		TObjectPtr<UStaticMesh> StaticMesh;
 		FVector CWTolerance = FVector(1 / 0.001);
 
-		explicit FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh);		
+		explicit FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh);
 		explicit FGeoStaticMesh(const FSoftObjectPath& InSoftStaticMesh);
 		explicit FGeoStaticMesh(const FString& InSoftStaticMesh);
 
-		void ExtractMeshSynchronous();		
+		void ExtractMeshSynchronous();
 		void TriangulateMeshSynchronous();
 
 		void ExtractMeshAsync(PCGExMT::FTaskManager* AsyncManager);
@@ -95,9 +94,8 @@ namespace PCGExGeo
 		~FGeoStaticMeshMap() = default;
 
 		int32 Find(const FSoftObjectPath& InPath);
-		
-		TSharedPtr<FGeoStaticMesh> GetMesh(const int32 Index) { return GSMs[Index]; }
 
+		TSharedPtr<FGeoStaticMesh> GetMesh(const int32 Index) { return GSMs[Index]; }
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FExtractStaticMeshTask final : public PCGExMT::FTask
@@ -111,5 +109,4 @@ namespace PCGExGeo
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
-
 }

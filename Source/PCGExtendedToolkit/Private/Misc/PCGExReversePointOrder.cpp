@@ -124,7 +124,7 @@ namespace PCGExReversePointOrder
 		{
 			FPCGExGeo2DProjectionDetails Proj = Settings->ProjectionDetails;
 
-			if (Proj.Method == EPCGExProjectionMethod::Normal) { if (!Proj.Init(Context, PointDataFacade)) { return false; } }
+			if (Proj.Method == EPCGExProjectionMethod::Normal) { if (!Proj.Init(PointDataFacade)) { return false; } }
 			else { Proj.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 			TArray<FVector2D> ProjectedPoints;

@@ -22,11 +22,11 @@ namespace PCGExGeo
 
 		bool ContainsEdge(const uint64 Edge) const;
 		uint64 GetSharedEdge(const FDelaunaySite2* Other) const;
-		void PushAdjacency(const int32 SiteId) ;
-		
-		FORCEINLINE uint64 AB() const {return PCGEx::H64U(Vtx[0], Vtx[1]);}
-		FORCEINLINE uint64 BC() const {return PCGEx::H64U(Vtx[1], Vtx[2]);}
-		FORCEINLINE uint64 AC() const {return PCGEx::H64U(Vtx[0], Vtx[2]);}
+		void PushAdjacency(const int32 SiteId);
+
+		FORCEINLINE uint64 AB() const { return PCGEx::H64U(Vtx[0], Vtx[1]); }
+		FORCEINLINE uint64 BC() const { return PCGEx::H64U(Vtx[1], Vtx[2]); }
+		FORCEINLINE uint64 AC() const { return PCGEx::H64U(Vtx[0], Vtx[2]); }
 	};
 
 	class PCGEXTENDEDTOOLKIT_API TDelaunay2

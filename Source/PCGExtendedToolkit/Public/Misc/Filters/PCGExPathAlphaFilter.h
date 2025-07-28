@@ -89,9 +89,8 @@ public:
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
 	virtual bool SupportsProxyEvaluation() const override;
 
-	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
-	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 

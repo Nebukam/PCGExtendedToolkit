@@ -158,10 +158,13 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
 	{
-		if (!Context->OutFactory->bIsAsyncPreparationSuccessful)
+		if (Context->OutFactory->bIsAsyncPreparationSuccessful != PCGExFactories::EPreparationResult::Success)
 		{
-			Context->CancelExecution(TEXT(""));
-			return true;
+			if (Settings->ShouldCancel(Context, Context->OutFactory->bIsAsyncPreparationSuccessful))
+			{
+				Context->CancelExecution(TEXT(""));
+				return true;
+			}
 		}
 	}
 

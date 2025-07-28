@@ -1117,7 +1117,7 @@ namespace PCGExAssetCollection
 				const bool bWantsMinMax = Details.IndexSettings.bRemapIndexToCollectionSize;
 
 				IndexGetter = Details.IndexSettings.GetValueSettingIndex();
-				if (!IndexGetter->Init(InContext, InDataFacade, !bWantsMinMax, bWantsMinMax)) { return false; }
+				if (!IndexGetter->Init(InDataFacade, !bWantsMinMax, bWantsMinMax)) { return false; }
 
 				MaxInputIndex = IndexGetter->Max();
 			}

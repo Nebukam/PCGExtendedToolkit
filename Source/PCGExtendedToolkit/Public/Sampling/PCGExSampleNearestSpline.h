@@ -13,6 +13,7 @@
 
 
 #include "Misc/PCGExSortPoints.h"
+#include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
 
 #include "PCGExSampleNearestSpline.generated.h"
@@ -34,14 +35,6 @@ MACRO(NumSamples, int32, 0)\
 MACRO(ClosedLoop, bool, false)
 
 class UPCGExFilterFactoryData;
-
-UENUM()
-enum class EPCGExSplineSamplingIncludeMode : uint8
-{
-	All            = 0 UMETA(DisplayName = "All", ToolTip="Sample all inputs"),
-	ClosedLoopOnly = 1 UMETA(DisplayName = "Closed loops only", ToolTip="Sample only closed loops"),
-	OpenSplineOnly = 2 UMETA(DisplayName = "Open lines only", ToolTip="Sample only open lines"),
-};
 
 UENUM()
 enum class EPCGExSplineDepthMode : uint8

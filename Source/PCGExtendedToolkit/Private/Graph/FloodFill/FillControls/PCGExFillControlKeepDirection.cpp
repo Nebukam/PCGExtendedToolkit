@@ -14,7 +14,7 @@ bool FPCGExFillControlKeepDirection::PrepareForDiffusions(FPCGExContext* InConte
 	const UPCGExFillControlsFactoryKeepDirection* TypedFactory = Cast<UPCGExFillControlsFactoryKeepDirection>(Factory);
 
 	WindowSize = TypedFactory->Config.GetValueSettingWindowSize();
-	if (!WindowSize->Init(InContext, GetSourceFacade())) { return false; }
+	if (!WindowSize->Init(GetSourceFacade())) { return false; }
 
 	HashComparisonDetails = TypedFactory->Config.HashComparisonDetails;
 	if (!HashComparisonDetails.Init(InContext, GetSourceFacade().ToSharedRef())) { return false; }

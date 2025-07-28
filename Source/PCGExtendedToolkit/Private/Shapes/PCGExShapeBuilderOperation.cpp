@@ -11,7 +11,7 @@ bool FPCGExShapeBuilderOperation::PrepareForSeeds(FPCGExContext* InContext, cons
 	SeedFacade = InSeedDataFacade;
 
 	Resolution = BaseConfig.GetValueSettingResolution();
-	if (!Resolution->Init(InContext, InSeedDataFacade)) { return false; }
+	if (!Resolution->Init(InSeedDataFacade)) { return false; }
 
 	if (!BaseConfig.Fitting.Init(InContext, InSeedDataFacade)) { return false; }
 

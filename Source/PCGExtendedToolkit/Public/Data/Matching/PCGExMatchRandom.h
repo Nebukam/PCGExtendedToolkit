@@ -9,7 +9,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
 #include "PCGExMatchRandom.generated.h"
 
 USTRUCT(BlueprintType)
@@ -38,7 +37,7 @@ struct FPCGExMatchRandomConfig : public FPCGExMatchRuleConfigBase
 	/** Pass threshold */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="ThresholdInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0, ClampMax=1))
 	double Threshold = 0.5;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertThreshold = false;

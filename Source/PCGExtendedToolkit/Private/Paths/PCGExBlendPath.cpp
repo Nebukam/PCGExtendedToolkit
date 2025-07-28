@@ -93,7 +93,7 @@ namespace PCGExBlendPath
 		if (Settings->BlendOver == EPCGExBlendOver::Fixed)
 		{
 			LerpGetter = Settings->GetValueSettingLerp();
-			if (!LerpGetter->Init(Context, PointDataFacade)) { return false; }
+			if (!LerpGetter->Init(PointDataFacade)) { return false; }
 		}
 
 		MaxIndex = PointDataFacade->GetNum() - 1;

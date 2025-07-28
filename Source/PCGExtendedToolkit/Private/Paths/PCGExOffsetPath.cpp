@@ -92,7 +92,7 @@ namespace PCGExOffsetPath
 		}
 
 		OffsetGetter = Settings->GetValueSettingOffset();
-		if (!OffsetGetter->Init(Context, PointDataFacade)) { return false; }
+		if (!OffsetGetter->Init(PointDataFacade)) { return false; }
 
 		if (Settings->DirectionType == EPCGExInputValueType::Attribute)
 		{
@@ -237,7 +237,7 @@ namespace PCGExOffsetPath
 			{
 				PCGEX_ASYNC_THIS
 
-				const TSharedPtr<PCGExPaths::FPath> P = This->DirtyPath;
+				const TSharedPtr<PCGExPaths::IPath> P = This->DirtyPath;
 				const TSharedPtr<PCGExPaths::FPathEdgeLength> L = This->DirtyLength;
 
 				PCGEX_SCOPE_LOOP(i)

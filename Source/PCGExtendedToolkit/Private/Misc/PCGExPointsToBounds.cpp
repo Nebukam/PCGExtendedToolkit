@@ -256,6 +256,10 @@ namespace PCGExPointsToBounds
 		{
 			Settings->DataDetails.Output(OutputFacade->GetOut(), PointDataFacade->GetOut(), BlendedAttributes);
 		}
+		else
+		{
+			PCGExGraph::CleanupClusterData(OutputFacade->Source);
+		}
 	}
 }
 

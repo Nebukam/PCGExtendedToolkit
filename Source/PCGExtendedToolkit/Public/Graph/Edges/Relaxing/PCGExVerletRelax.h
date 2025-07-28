@@ -103,16 +103,16 @@ public:
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 
 		GravityBuffer = GetValueSettingGravity();
-		if (!GravityBuffer->Init(InContext, PrimaryDataFacade)) { return false; }
+		if (!GravityBuffer->Init(PrimaryDataFacade)) { return false; }
 
 		FrictionBuffer = GetValueSettingFriction();
-		if (!FrictionBuffer->Init(InContext, PrimaryDataFacade)) { return false; }
+		if (!FrictionBuffer->Init(PrimaryDataFacade)) { return false; }
 
 		ScalingBuffer = GetValueSettingEdgeScaling();
-		if (!ScalingBuffer->Init(InContext, SecondaryDataFacade)) { return false; }
+		if (!ScalingBuffer->Init(SecondaryDataFacade)) { return false; }
 
 		StiffnessBuffer = GetValueSettingEdgeStiffness();
-		if (!StiffnessBuffer->Init(InContext, SecondaryDataFacade)) { return false; }
+		if (!StiffnessBuffer->Init(SecondaryDataFacade)) { return false; }
 
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 		Deltas.Init(FIntVector3(0), Cluster->Nodes->Num());

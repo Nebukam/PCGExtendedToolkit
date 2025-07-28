@@ -46,7 +46,7 @@ bool FPCGExProbeIndex::PrepareForPoints(FPCGExContext* InContext, const TSharedP
 	case EPCGExProbeTargetMode::TwoWayOffset: PCGEX_FOREACH_SANITIZEINDEX(PCGEX_TARGET_CONNECT_TWOWAY, _VALUE) break; }
 
 	TargetCache = Config.GetValueSettingIndex();
-	if (!TargetCache->Init(Context, PrimaryDataFacade)) { return false; }
+	if (!TargetCache->Init(PrimaryDataFacade)) { return false; }
 
 	PCGEX_TARGET_CONNECT_SWITCH(TargetCache->Read(Index))
 

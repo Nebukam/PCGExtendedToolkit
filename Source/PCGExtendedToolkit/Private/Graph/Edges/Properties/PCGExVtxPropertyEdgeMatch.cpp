@@ -26,7 +26,7 @@ bool FPCGExVtxPropertyEdgeMatch::PrepareForCluster(FPCGExContext* InContext, TSh
 	}
 
 	DirCache = PCGExDetails::MakeSettingValue(Config.DirectionInput, Config.Direction, Config.DirectionConstant);
-	if (!DirCache->Init(InContext, PrimaryDataFacade, false))
+	if (!DirCache->Init(PrimaryDataFacade, false))
 	{
 		bIsValidOperation = false;
 		return false;

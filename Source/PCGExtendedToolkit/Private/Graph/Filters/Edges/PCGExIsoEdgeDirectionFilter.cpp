@@ -59,7 +59,7 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 	}
 
 	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection();
-	if (!OperandDirection->Init(InContext, InEdgeDataFacade)) { return false; }
+	if (!OperandDirection->Init(InEdgeDataFacade)) { return false; }
 	if (!OperandDirection->IsConstant()) { DirectionMultiplier = TypedFilterFactory->Config.bInvertDirection ? -1 : 1; }
 
 	if (TypedFilterFactory->Config.ComparisonQuality == EPCGExDirectionCheckMode::Dot)

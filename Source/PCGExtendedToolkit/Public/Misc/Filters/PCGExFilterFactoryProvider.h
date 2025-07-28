@@ -16,6 +16,7 @@
 #define PCGEX_CREATE_FILTER_FACTORY(_FILTERID)\
 UPCGExFactoryData* UPCGEx##_FILTERID##FilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const{\
 	UPCGEx##_FILTERID##FilterFactory* NewFactory = InContext->ManagedObjects->New<UPCGEx##_FILTERID##FilterFactory>();\
+	NewFactory->MissingDataHandling = MissingDataHandling;\
 	NewFactory->Config = Config; Super::CreateFactory(InContext, NewFactory);\
 	if(!NewFactory->Init(InContext)){ InContext->ManagedObjects->Destroy(NewFactory); return nullptr; }\
 	return NewFactory; }
@@ -38,6 +39,7 @@ public:
 
 	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
+	virtual bool ShouldCancel(FPCGExFactoryProviderContext* InContext, PCGExFactories::EPreparationResult InResult) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
@@ -46,4 +48,8 @@ public:
 	/** Filter Priority.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	int32 Priority;
+
+	/** How to handle missing data. This only applies to filters that rely on data to output meaningful results. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
+	EPCGExFilterNoDataFallback MissingDataHandling = EPCGExFilterNoDataFallback::Fail;
 };

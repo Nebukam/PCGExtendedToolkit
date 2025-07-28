@@ -69,7 +69,7 @@ namespace PCGExLloydRelax2D
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(ExecutionContext, PointDataFacade); }
+		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(PointDataFacade); }
 		else { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 		InfluenceDetails = Settings->InfluenceDetails;

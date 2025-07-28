@@ -42,11 +42,5 @@ void UPCGExPickerConstantFactory::AddPicks(const int32 InNum, TSet<int32>& OutPi
 	OutPicks.Add(TargetIndex);
 }
 
-bool UPCGExPickerConstantFactory::InitInternalData(FPCGExContext* InContext)
-{
-	if (!Super::InitInternalData(InContext)) { return false; }
-	return true;
-}
-
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

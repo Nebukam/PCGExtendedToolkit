@@ -14,7 +14,7 @@ bool FPCGExFillControlDepth::PrepareForDiffusions(FPCGExContext* InContext, cons
 	const UPCGExFillControlsFactoryDepth* TypedFactory = Cast<UPCGExFillControlsFactoryDepth>(Factory);
 
 	DepthLimit = TypedFactory->Config.GetValueSettingMaxDepth();
-	if (!DepthLimit->Init(InContext, GetSourceFacade())) { return false; }
+	if (!DepthLimit->Init(GetSourceFacade())) { return false; }
 
 	return true;
 }

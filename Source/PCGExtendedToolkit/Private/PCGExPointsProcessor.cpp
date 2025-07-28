@@ -335,7 +335,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->InitialMainPointsNum = Context->MainPoints->Num();
-	
+
 	if (Context->MainPoints->IsEmpty() && !Settings->IsInputless())
 	{
 		if (!Settings->bQuietMissingInputError)

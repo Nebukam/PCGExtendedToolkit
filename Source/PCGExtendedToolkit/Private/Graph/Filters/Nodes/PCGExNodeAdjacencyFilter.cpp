@@ -40,12 +40,12 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 	bCaptureFromNodes = TypedFilterFactory->Config.OperandBSource != EPCGExClusterElement::Edge;
 
 	OperandA = TypedFilterFactory->Config.GetValueSettingOperandA();
-	if (!OperandA->Init(InContext, PointDataFacade, false)) { return false; }
+	if (!OperandA->Init(PointDataFacade, false)) { return false; }
 
 	if (!Adjacency.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 
 	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
-	if (!OperandB->Init(InContext, bCaptureFromNodes ? PointDataFacade : EdgeDataFacade, false)) { return false; }
+	if (!OperandB->Init(bCaptureFromNodes ? PointDataFacade : EdgeDataFacade, false)) { return false; }
 
 #define PCGEX_SUB_TEST_FUNC TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 

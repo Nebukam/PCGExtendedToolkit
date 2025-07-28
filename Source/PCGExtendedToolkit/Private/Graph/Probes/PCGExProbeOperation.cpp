@@ -16,7 +16,7 @@ bool FPCGExProbeOperation::PrepareForPoints(FPCGExContext* InContext, const TSha
 	PointIO = InPointIO;
 
 	SearchRadius = BaseConfig->GetValueSettingSearchRadius();
-	if (!SearchRadius->Init(Context, PrimaryDataFacade)) { return false; }
+	if (!SearchRadius->Init(PrimaryDataFacade)) { return false; }
 	SearchRadiusOffset = SearchRadius->IsConstant() ? 0 : BaseConfig->SearchRadiusOffset;
 
 	return true;

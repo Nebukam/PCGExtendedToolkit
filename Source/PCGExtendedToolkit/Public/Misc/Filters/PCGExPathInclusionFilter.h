@@ -8,13 +8,10 @@
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-#include "PCGExSplineInclusionFilter.h"
-
-
 #include "Paths/PCGExPaths.h"
-#include "Sampling/PCGExSampleNearestSpline.h"
-
+#include "PCGExPointsProcessor.h"
+#include "PCGExPolyPathFilterFactory.h"
+#include "PCGExSplineInclusionFilter.h"
 
 #include "PCGExPathInclusionFilter.generated.h"
 
@@ -26,6 +23,10 @@ struct FPCGExPathInclusionFilterConfig
 	FPCGExPathInclusionFilterConfig()
 	{
 	}
+
+	/** Projection settings (used for inclusion checks). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	/** Which point type to use. Shared amongst all points; if you want tight control, create a fully-fledged spline instead. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -45,12 +46,11 @@ struct FPCGExPathInclusionFilterConfig
 
 	/** Tolerance value used to determine whether a point is considered on the spline or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	double Tolerance = 1;
+	double Tolerance = 0;
 
 	/** Scale the tolerance with spline' "thickness" (Scale' length)  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSplineScalesTolerance = false;
-
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -73,21 +73,9 @@ struct FPCGExPathInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
-
-	/** Optimize spatial partitioning, but limit the "reach" of splines to their bounding box. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
-	bool bUseOctree = true;
-
-	/** If enabled, project the spline on a plane to check inside/outside as a polygon. Uses the spline transform Up axis as a projection vector. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
-	bool bTestInclusionOnProjection = true;
-
-	/**  Min dot product threshold for a point to be considered inside the spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1, ClampMax=1, EditCondition="!bTestInclusionOnProjection"), AdvancedDisplay)
-	double CurvatureThreshold = 0.5;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Smooth Linear", EditCondition="PointType == EPCGExSplinePointTypeRedux::Linear"), AdvancedDisplay)
-	bool bSmoothLinear = true;
+	/** Lets you enforce a path winding for testing */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::CounterClockwise;
 
 	/** If enabled, when used with a collection filter, will use collection bounds as a proxy point instead of per-point testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -98,7 +86,7 @@ struct FPCGExPathInclusionFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExPathInclusionFilterFactory : public UPCGExFilterFactoryData
+class UPCGExPathInclusionFilterFactory : public UPCGExPolyPathFilterFactory
 {
 	GENERATED_BODY()
 
@@ -107,19 +95,10 @@ public:
 	FPCGExPathInclusionFilterConfig Config;
 
 	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
-	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
-
-	TSharedPtr<TArray<TSharedPtr<FPCGSplineStruct>>> Splines;
-	TSharedPtr<TArray<TArray<FVector2D>>> Polygons;
-	TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
-
-	virtual bool Init(FPCGExContext* InContext) override;
-	virtual bool WantsPreparation(FPCGExContext* InContext) override;
-	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
-	virtual void BeginDestroy() override;
+protected:
+	virtual void InitConfig_Internal() override;
 };
 
 namespace PCGExPointFilter
@@ -130,34 +109,20 @@ namespace PCGExPointFilter
 		explicit FPathInclusionFilter(const TObjectPtr<const UPCGExPathInclusionFilterFactory>& InFactory)
 			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Splines = TypedFilterFactory->Splines;
-			Polygons = TypedFilterFactory->Polygons;
-			Octree = TypedFilterFactory->Octree;
+			Handler = TypedFilterFactory->CreateHandler();
+			Handler->Init(TypedFilterFactory->Config.CheckType);
 		}
 
 		const TObjectPtr<const UPCGExPathInclusionFilterFactory> TypedFilterFactory;
+		TSharedPtr<PCGExPathInclusion::FHandler> Handler;
 
-		TSharedPtr<TArray<TSharedPtr<FPCGSplineStruct>>> Splines;
-		TSharedPtr<TArray<TArray<FVector2D>>> Polygons;
-		TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
-
-		double ToleranceSquared = MAX_dbl;
-		ESplineCheckFlags GoodFlags = None;
-		ESplineCheckFlags BadFlags = None;
-		ESplineMatch GoodMatch = Any;
-		bool bFastInclusionCheck = false;
 		bool bCheckAgainstDataBounds = false;
-
 		TConstPCGValueRange<FTransform> InTransforms;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const int32 PointIndex) const override;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
-
-		void UpdateInclusionFast(const FVector& Pos, const int32 TargetIndex, ESplineCheckFlags& OutFlags, int32& OutInclusionsCount) const;
-		void UpdateInclusionClosest(const FVector& Pos, const int32 TargetIndex, ESplineCheckFlags& OutFlags, double& OutClosestDist) const;
-		void UpdateInclusion(const FVector& Pos, const int32 TargetIndex, ESplineCheckFlags& OutFlags, int32& OutInclusionsCount) const;
 
 		virtual ~FPathInclusionFilter() override
 		{

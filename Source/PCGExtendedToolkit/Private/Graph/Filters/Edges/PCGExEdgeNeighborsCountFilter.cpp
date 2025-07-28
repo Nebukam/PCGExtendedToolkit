@@ -32,7 +32,7 @@ namespace PCGExEdgeNeighborsCount
 		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		ThresholdBuffer = TypedFilterFactory->Config.GetValueSettingThreshold();
-		if (!ThresholdBuffer->Init(InContext, PointDataFacade)) { return false; }
+		if (!ThresholdBuffer->Init(PointDataFacade)) { return false; }
 
 		return true;
 	}

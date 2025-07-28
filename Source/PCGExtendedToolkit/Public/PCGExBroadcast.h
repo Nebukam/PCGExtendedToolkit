@@ -408,7 +408,7 @@ namespace PCGEx
 #pragma endregion
 		else { return T{}; }
 	}
-	
+
 #define PCGEX_CONVERT_CONVERT_DECL(_TYPE, _ID, ...) template <typename T> inline static T Convert(const _TYPE& Value) { return Convert<_TYPE, T>(Value); }
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERT_CONVERT_DECL)
 #undef PCGEX_CONVERT_CONVERT_DECL

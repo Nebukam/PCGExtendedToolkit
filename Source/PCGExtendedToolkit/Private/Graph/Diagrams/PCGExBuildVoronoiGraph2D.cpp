@@ -169,7 +169,7 @@ namespace PCGExBuildVoronoi2D
 		SitesOutputDetails = Settings->SitesOutputDetails;
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(ExecutionContext, PointDataFacade)) { return false; } }
+		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
 		else { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange())); }
 
 		// Build voronoi

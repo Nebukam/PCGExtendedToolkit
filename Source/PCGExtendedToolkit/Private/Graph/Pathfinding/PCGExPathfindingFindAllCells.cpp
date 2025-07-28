@@ -168,8 +168,7 @@ namespace PCGExFindAllCells
 		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts
 		PathIO->IOIndex = Cluster->GetEdge(InCell->Seed.Edge)->IOIndex; // Enforce seed order for collection output-ish
 
-		PCGExGraph::CleanupClusterTags(PathIO);
-		PCGExGraph::CleanupVtxData(PathIO);
+		PCGExGraph::CleanupClusterData(PathIO);
 
 		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 

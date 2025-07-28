@@ -96,11 +96,10 @@ public:
 	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override { return true; }
 
-	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
-	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual void BeginDestroy() override;
 };

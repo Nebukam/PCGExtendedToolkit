@@ -266,7 +266,7 @@ namespace PCGExCompare
 bool FPCGExVectorHashComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
 {
 	Tolerance = GetValueSettingTolerance();
-	if (!Tolerance->Init(InContext, InPrimaryDataFacade, false)) { return false; }
+	if (!Tolerance->Init(InPrimaryDataFacade, false)) { return false; }
 
 	return true;
 }
@@ -308,7 +308,7 @@ bool FPCGExStaticDotComparisonDetails::Test(const double A) const
 bool FPCGExDotComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
 {
 	ThresholdGetter = GetValueSettingThreshold();
-	if (!ThresholdGetter->Init(InContext, InPrimaryDataCache, false)) { return false; }
+	if (!ThresholdGetter->Init(InPrimaryDataCache, false)) { return false; }
 
 	if (Domain == EPCGExAngularDomain::Degrees) { ComparisonTolerance = (1 + PCGExMath::DegreesToDot(180 - DegreesTolerance)) * 0.5; }
 	else { ComparisonTolerance = DotTolerance; }

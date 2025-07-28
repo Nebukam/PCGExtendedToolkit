@@ -19,7 +19,7 @@ bool FPCGExProbeDirection::PrepareForPoints(FPCGExContext* InContext, const TSha
 	DirectionMultiplier = Config.bInvertDirection ? -1 : 1;
 
 	Direction = Config.GetValueSettingDirection();
-	if (!Direction->Init(InContext, PrimaryDataFacade)) { return false; }
+	if (!Direction->Init(PrimaryDataFacade)) { return false; }
 
 	return true;
 }

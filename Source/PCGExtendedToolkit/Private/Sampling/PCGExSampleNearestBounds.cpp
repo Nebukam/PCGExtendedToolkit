@@ -141,7 +141,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 					{
 						// TODO : Preload if relevant
 						TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
-						if (!LookAtUpGetter->Init(Context, Target, false))
+						if (!LookAtUpGetter->Init(Target, false))
 						{
 							bBreak = true;
 							return;
@@ -223,7 +223,7 @@ namespace PCGExSampleNearestBounds
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		
+
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
 		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
 			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
@@ -278,7 +278,7 @@ namespace PCGExSampleNearestBounds
 			if (Settings->LookAtUpSelection != EPCGExSampleSource::Target)
 			{
 				LookAtUpGetter = Settings->GetValueSettingLookAtUp();
-				if (!LookAtUpGetter->Init(Context, PointDataFacade)) { return false; }
+				if (!LookAtUpGetter->Init(PointDataFacade)) { return false; }
 			}
 		}
 		else

@@ -23,7 +23,7 @@ public:
 	EPCGExOrientLookAtMode LookAt = EPCGExOrientLookAtMode::NextPoint;
 	FPCGAttributePropertyInputSelector LookAtAttribute;
 
-	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade, const TSharedRef<PCGExPaths::FPath>& InPath) override
+	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade, const TSharedRef<PCGExPaths::IPath>& InPath) override
 	{
 		if (!FPCGExOrientOperation::PrepareForData(InDataFacade, InPath)) { return false; }
 

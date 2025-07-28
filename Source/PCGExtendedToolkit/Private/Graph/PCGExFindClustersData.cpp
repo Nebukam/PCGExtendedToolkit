@@ -104,7 +104,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		for (const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries : Library->InputDictionary->Entries)
 		{
 			if (!Entries.IsValid()) { continue; }
-			
+
 			Entries->Key->OutputPin = PCGExGraph::OutputVerticesLabel;
 			Entries->Key->InitializeOutput(PCGExData::EIOInit::Forward);
 
@@ -143,7 +143,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 			IO->InitializeOutput(PCGExData::EIOInit::Forward);
 		}
 	}
-	
+
 	Context->MainPoints->StageOutputs();
 
 	Context->Done();

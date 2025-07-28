@@ -32,7 +32,7 @@ void FPCGExAttributeBlendConfig::Init()
 bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 {
 	Weight = Config.Weighting.GetValueSettingWeight();
-	if (!Weight->Init(InContext, WeightFacade)) { return false; }
+	if (!Weight->Init(WeightFacade)) { return false; }
 
 	// Fix @Selectors based on siblings 
 	if (!CopyAndFixSiblingSelector(InContext, Config.OperandA)) { return false; }
@@ -252,9 +252,10 @@ TSharedPtr<FPCGExBlendOperation> UPCGExBlendOpFactory::CreateOperation(FPCGExCon
 	return NewOperation;
 }
 
-bool UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
 	ConstantA = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantA, true, false);
 	if (Config.bUseOperandB) { ConstantB = PCGExData::TryGetSingleFacade(InContext, PCGExDataBlending::SourceConstantB, true, false); }
@@ -271,7 +272,7 @@ bool UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PC
 		AddDataDependency(ConstantB->Source->GetIn());
 	}
 
-	return true;
+	return Result;
 }
 
 void UPCGExBlendOpFactory::RegisterAssetDependencies(FPCGExContext* InContext) const

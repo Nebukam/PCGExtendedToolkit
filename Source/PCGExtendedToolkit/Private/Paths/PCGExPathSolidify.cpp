@@ -80,12 +80,12 @@ namespace PCGExPathSolidify
 
 #define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){\
 		SolidificationRad##_AXIS = PCGExDetails::MakeSettingValue(Settings->Radius##_AXIS##Input, Settings->Radius##_AXIS##SourceAttribute, Settings->Radius##_AXIS##Constant);\
-		if (!SolidificationRad##_AXIS->Init(Context, PointDataFacade, false)){ return false; }}
+		if (!SolidificationRad##_AXIS->Init(PointDataFacade, false)){ return false; }}
 		PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_SET_CONST)
 #undef PCGEX_CREATE_LOCAL_AXIS_SET_CONST
 
 		SolidificationLerp = Settings->GetValueSettingSolidificationLerp();
-		if (!SolidificationLerp->Init(Context, PointDataFacade, false)) { return false; }
+		if (!SolidificationLerp->Init(PointDataFacade, false)) { return false; }
 
 		StartParallelLoopForPoints();
 

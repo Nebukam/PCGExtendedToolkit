@@ -226,7 +226,7 @@ namespace PCGExMath
 			return T{};
 		}
 	}
-	
+
 	template <typename T>
 	FORCEINLINE static T Abs(const T& A)
 	{
@@ -368,7 +368,7 @@ namespace PCGExMath
 
 	PCGEXTENDEDTOOLKIT_API
 	double GetMode(const TArray<double>& Values, const bool bHighest, const uint32 Tolerance = 5);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	FVector SafeLinePlaneIntersection(
 		const FVector& Pt1, const FVector& Pt2,
@@ -551,7 +551,7 @@ namespace PCGExMath
 
 	PCGEXTENDEDTOOLKIT_API
 	void Swizzle(FVector& Vector, const EPCGExAxisOrder Order);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward);
 	PCGEXTENDEDTOOLKIT_API
@@ -632,7 +632,7 @@ namespace PCGExMath
 			Max = T{};
 		}
 	}
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	double GetArcLength(const double R, const double StartAngleRadians, const double EndAngleRadians);
 

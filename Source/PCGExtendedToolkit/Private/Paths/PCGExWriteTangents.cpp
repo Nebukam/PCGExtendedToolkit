@@ -109,10 +109,10 @@ namespace PCGExWriteTangents
 		if (!Tangents->PrepareForData(Context)) { return false; }
 
 		ArriveScaleReader = Settings->GetValueSettingArriveScale();
-		if (!ArriveScaleReader->Init(Context, PointDataFacade)) { return false; }
+		if (!ArriveScaleReader->Init(PointDataFacade)) { return false; }
 
 		LeaveScaleReader = Settings->GetValueSettingLeaveScale();
-		if (!LeaveScaleReader->Init(Context, PointDataFacade)) { return false; }
+		if (!LeaveScaleReader->Init(PointDataFacade)) { return false; }
 
 		if (Context->StartTangents)
 		{

@@ -23,6 +23,8 @@
 
 ///
 
+struct FPCGExFactoryProviderContext;
+
 namespace PCGExFactories
 {
 	enum class EType : uint8
@@ -49,6 +51,14 @@ namespace PCGExFactories
 		IndexPicker,
 		FillControls,
 		MatchRule,
+	};
+
+	enum class EPreparationResult : uint8
+	{
+		None = 0,
+		Success,
+		MissingData,
+		Fail
 	};
 
 	static inline TSet<EType> AnyFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterEdge, EType::FilterGroup, EType::FilterCollection};
@@ -91,7 +101,7 @@ public:
 	UPROPERTY()
 	bool bQuietMissingInputError = false;
 
-	bool bIsAsyncPreparationSuccessful = false;
+	PCGExFactories::EPreparationResult bIsAsyncPreparationSuccessful = PCGExFactories::EPreparationResult::None;
 
 	virtual PCGExFactories::EType GetFactoryType() const { return PCGExFactories::EType::None; }
 
@@ -101,7 +111,7 @@ public:
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) { return false; }
-	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) { return true; }
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) { return PCGExFactories::EPreparationResult::Success; }
 
 	virtual void AddDataDependency(const UPCGData* InData);
 	virtual void BeginDestroy() override;
@@ -143,6 +153,7 @@ protected:
 public:
 	virtual FName GetMainOutputPin() const { return TEXT(""); }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory = nullptr) const;
+	virtual bool ShouldCancel(FPCGExFactoryProviderContext* InContext, PCGExFactories::EPreparationResult InResult) const { return true; }
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const;

@@ -93,10 +93,11 @@ void UPCGExPickerAttributeSetRangesFactory::AddPicks(const int32 InNum, TSet<int
 	for (const FPCGExPickerConstantRangeConfig& RangeConfig : Ranges) { UPCGExPickerConstantRangeFactory::AddPicksFromConfig(RangeConfig, InNum, OutPicks); }
 }
 
-bool UPCGExPickerAttributeSetRangesFactory::InitInternalData(FPCGExContext* InContext)
+PCGExFactories::EPreparationResult UPCGExPickerAttributeSetRangesFactory::InitInternalData(FPCGExContext* InContext)
 {
-	if (!Super::InitInternalData(InContext)) { return false; }
-	return GetUniqueRanges(InContext, FName("Ranges"), Config, Ranges);
+	PCGExFactories::EPreparationResult Result = Super::InitInternalData(InContext);
+	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
+	return GetUniqueRanges(InContext, FName("Ranges"), Config, Ranges) ? Result : PCGExFactories::EPreparationResult::Fail;
 }
 
 TArray<FPCGPinProperties> UPCGExPickerAttributeSetRangesSettings::InputPinProperties() const

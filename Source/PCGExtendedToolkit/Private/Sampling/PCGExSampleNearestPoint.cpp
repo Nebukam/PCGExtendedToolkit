@@ -163,7 +163,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 					{
 						// TODO : Preload if relevant
 						TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
-						if (!LookAtUpGetter->Init(Context, Target, false))
+						if (!LookAtUpGetter->Init(Target, false))
 						{
 							bBreak = true;
 							return;
@@ -300,7 +300,7 @@ namespace PCGExSampleNearestPoints
 			if (Settings->LookAtUpSelection != EPCGExSampleSource::Target)
 			{
 				LookAtUpGetter = Settings->GetValueSettingLookAtUp();
-				if (!LookAtUpGetter->Init(Context, PointDataFacade)) { return false; }
+				if (!LookAtUpGetter->Init(PointDataFacade)) { return false; }
 			}
 		}
 		else
@@ -309,10 +309,10 @@ namespace PCGExSampleNearestPoints
 		}
 
 		RangeMinGetter = Settings->GetValueSettingRangeMin();
-		if (!RangeMinGetter->Init(Context, PointDataFacade)) { return false; }
+		if (!RangeMinGetter->Init(PointDataFacade)) { return false; }
 
 		RangeMaxGetter = Settings->GetValueSettingRangeMax();
-		if (!RangeMaxGetter->Init(Context, PointDataFacade)) { return false; }
+		if (!RangeMaxGetter->Init(PointDataFacade)) { return false; }
 
 		bSingleSample = Settings->SampleMethod != EPCGExSampleMethod::WithinRange;
 		bSampleClosest = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget || Settings->SampleMethod == EPCGExSampleMethod::BestCandidate;

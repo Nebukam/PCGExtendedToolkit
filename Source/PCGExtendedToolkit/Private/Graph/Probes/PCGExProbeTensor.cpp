@@ -21,17 +21,18 @@ PCGEX_CREATE_PROBE_FACTORY(
 	NewOperation->TensorFactories = &TensorFactories;
 	})
 
-bool UPCGExProbeFactoryTensor::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExProbeFactoryTensor::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return PCGExFactories::EPreparationResult::Fail; }
 	if (TensorFactories.IsEmpty())
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
-		return false;
+		return PCGExFactories::EPreparationResult::Fail;
 	}
-	return true;
+	return Result;
 }
 
 bool FPCGExProbeTensor::RequiresChainProcessing() { return Config.bDoChainedProcessing; }

@@ -35,7 +35,6 @@ bool FPCGExMatchRandom::PrepareForTargets(FPCGExContext* InContext, const TShare
 
 bool FPCGExMatchRandom::Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FMatchingScope& InMatchingScope) const
 {
-	
 	const double LocalThreshold = ThresholdGetters.IsEmpty() ? Config.Threshold : ThresholdGetters[InTargetElement.IO]->FetchSingle(InTargetElement, Config.Threshold);
 	const float RandomValue = FRandomStream(PCGExRandom::GetRandomStreamFromPoint(Config.RandomSeed + InTargetElement.IO, PointIO->IOIndex)).GetFraction();
 	return Config.bInvertThreshold ? RandomValue <= LocalThreshold : RandomValue >= LocalThreshold;

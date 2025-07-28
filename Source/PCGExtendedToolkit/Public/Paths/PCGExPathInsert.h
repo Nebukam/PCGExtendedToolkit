@@ -98,7 +98,7 @@ namespace PCGExPathInsert
 	{
 		bool bClosedLoop = false;
 
-		TSharedPtr<PCGExPaths::FPath> Path;
+		TSharedPtr<PCGExPaths::IPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeGetter;
 

@@ -9,7 +9,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
 #include "PCGExMatchByIndex.generated.h"
 
 UENUM()
@@ -33,11 +32,11 @@ struct FPCGExMatchByIndexConfig : public FPCGExMatchRuleConfigBase
 	/** The attribute to read on the candidates (the data that's not used as target). Only support @Data domain, and will only try to read from there. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExMatchByIndexSource Source = EPCGExMatchByIndexSource::Target;
-	
+
 	/** The attribute to read on the candidates (the data that's not used as target). Only support @Data domain, and will only try to read from there. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGAttributePropertyInputSelector IndexAttribute;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;

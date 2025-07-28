@@ -27,7 +27,7 @@ namespace PCGExTensor
 		if (Config.bNormalize)
 		{
 			Size = Config.GetValueSettingSize();
-			if (!Size->Init(InContext, InDataFacade)) { return false; }
+			if (!Size->Init(InDataFacade)) { return false; }
 		}
 
 		for (const UPCGExTensorFactoryData* Factory : InFactories)

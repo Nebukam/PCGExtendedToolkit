@@ -121,10 +121,10 @@ namespace PCGExSmooth
 		if (!DataBlender) { DataBlender = MakeShared<PCGExDataBlending::FDummyBlender>(); }
 
 		Influence = Settings->GetValueSettingInfluence();
-		if (!Influence->Init(Context, PointDataFacade)) { return false; }
+		if (!Influence->Init(PointDataFacade)) { return false; }
 
 		Smoothing = Settings->GetValueSettingSmoothingAmount();
-		if (!Smoothing->Init(Context, PointDataFacade)) { return false; }
+		if (!Smoothing->Init(PointDataFacade)) { return false; }
 
 		SmoothingOperation = Context->SmoothingMethod->CreateOperation();
 		SmoothingOperation->Path = PointDataFacade->Source;
