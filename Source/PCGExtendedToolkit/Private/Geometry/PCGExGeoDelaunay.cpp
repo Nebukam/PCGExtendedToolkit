@@ -77,6 +77,8 @@ namespace PCGExGeo
 
 		if (const int32 NumPositions = Positions.Num(); Positions.IsEmpty() || NumPositions <= 2) { return false; }
 
+		TMap<uint64, int32> EdgeMap;
+		
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunator::Triangulate);
 
@@ -96,7 +98,7 @@ namespace PCGExGeo
 			DelaunayEdges.Reserve(NumSites);
 			Sites.Reserve(NumSites);
 
-			TMap<uint64, int32> EdgeMap;
+			
 			EdgeMap.Reserve(NumSites);
 
 			IsValid = true;
@@ -136,10 +138,23 @@ namespace PCGExGeo
 			{
 				if (Site.bOnHull)
 				{
-					for (int a = 0; a < 3; a++)
+					// Push edges that are still waiting to be matched
+					if (EdgeMap.Contains(Site.AB()))
 					{
-						for (int b = a + 1; b < 3; b++) { if (Site.Neighbors[b] == -1) { DelaunayHull.Add(Site.Vtx[b]); } }
-						if (Site.Neighbors[a] == -1) { DelaunayHull.Add(Site.Vtx[a]); }
+						DelaunayHull.Add(Site.Vtx[0]);
+						DelaunayHull.Add(Site.Vtx[1]);
+					}
+
+					if (EdgeMap.Contains(Site.BC()))
+					{
+						DelaunayHull.Add(Site.Vtx[1]);
+						DelaunayHull.Add(Site.Vtx[2]);
+					}
+
+					if (EdgeMap.Contains(Site.AC()))
+					{
+						DelaunayHull.Add(Site.Vtx[0]);
+						DelaunayHull.Add(Site.Vtx[2]);
 					}
 				}
 			}

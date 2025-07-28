@@ -100,6 +100,8 @@ namespace PCGExTopologyPath
 		TArray<FVector> ActivePositions;
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
+		if (Settings->bReversePaths) { Algo::Reverse(ActivePositions); }
+
 		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendTriangulatedPolygon3D(
 			GetInternalMesh(),
 			Settings->Topology.PrimitiveOptions, FTransform::Identity, ActivePositions);

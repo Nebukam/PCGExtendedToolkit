@@ -32,6 +32,10 @@ protected:
 	//~End UPCGSettings
 
 public:
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bReversePaths = true;
+	
 	/** Topology settings. Some settings will be ignored based on selected output mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTopologyDetails Topology;
