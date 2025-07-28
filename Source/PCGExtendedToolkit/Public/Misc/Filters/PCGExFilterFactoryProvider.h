@@ -50,6 +50,14 @@ public:
 	int32 Priority;
 
 	/** How to handle missing data. This only applies to filters that rely on data to output meaningful results. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(EditCondition="ShowMissingDataHandling()", PCG_NotOverridable))
 	EPCGExFilterNoDataFallback MissingDataHandling = EPCGExFilterNoDataFallback::Fail;
+
+protected:
+#if WITH_EDITOR
+	virtual bool ShowMissingDataHandling_Internal() const { return false; }
+
+	UFUNCTION()
+	bool ShowMissingDataHandling() const { return ShowMissingDataHandling_Internal(); }
+#endif
 };

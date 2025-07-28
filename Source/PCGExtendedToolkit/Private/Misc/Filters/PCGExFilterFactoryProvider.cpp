@@ -31,9 +31,10 @@ bool UPCGExFilterProviderSettings::ShouldCancel(FPCGExFactoryProviderContext* In
 	NewFactory->Priority = Priority;
 	NewFactory->Config.bInvert = false;
 	NewFactory->Config.Value = MissingDataHandling == EPCGExFilterNoDataFallback::Pass;
-	
+
+	if (InContext->OutFactory) { InContext->ManagedObjects->Destroy(InContext->OutFactory); }
 	InContext->OutFactory = NewFactory;
-	
+
 	return false;
 }
 

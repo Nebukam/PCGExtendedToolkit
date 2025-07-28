@@ -42,7 +42,7 @@ PCGExFactories::EPreparationResult UPCGExNumericCompareNearestFilterFactory::Pre
 					}
 				});
 
-			bIsAsyncPreparationSuccessful = bError ? PCGExFactories::EPreparationResult::Fail : PCGExFactories::EPreparationResult::Success;
+			PrepResult = bError ? PCGExFactories::EPreparationResult::Fail : PCGExFactories::EPreparationResult::Success;
 		};
 
 	TargetsHandler->StartLoading(AsyncManager);

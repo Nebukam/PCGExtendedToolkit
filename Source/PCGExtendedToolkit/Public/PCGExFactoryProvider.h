@@ -101,7 +101,7 @@ public:
 	UPROPERTY()
 	bool bQuietMissingInputError = false;
 
-	PCGExFactories::EPreparationResult bIsAsyncPreparationSuccessful = PCGExFactories::EPreparationResult::None;
+	PCGExFactories::EPreparationResult PrepResult = PCGExFactories::EPreparationResult::None;
 
 	virtual PCGExFactories::EType GetFactoryType() const { return PCGExFactories::EType::None; }
 
@@ -119,6 +119,7 @@ public:
 protected:
 	UPROPERTY()
 	TSet<TObjectPtr<UPCGData>> DataDependencies;
+	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")

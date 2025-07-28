@@ -78,6 +78,13 @@ bool PCGExPointFilter::FTensorDotFilter::Test(const int32 PointIndex) const
 
 PCGEX_CREATE_FILTER_FACTORY(TensorDot)
 
+TArray<FPCGPinProperties> UPCGExTensorDotFilterProviderSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
+	return PinProperties;
+}
+
 #if WITH_EDITOR
 FString UPCGExTensorDotFilterProviderSettings::GetDisplayName() const
 {

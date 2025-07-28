@@ -59,7 +59,8 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 				if (!Path || !Path.IsValid()) { continue; }
 
 				const UPCGSpatialData* Data = Cast<UPCGSpatialData>(TempTargets[i].Data);
-				FBox DataBounds = Data->GetBounds().ExpandBy(LocalExpansion * (bScaleTolerance ? 1.5 : 10));
+				FBox DataBounds = Data->GetBounds().ExpandBy(LocalExpansion * 2);
+				if (bScaleTolerance) { DataBounds = DataBounds.ExpandBy(DataBounds.GetSize().Length() * 10); }
 				BoundsList.Add(DataBounds);
 				OctreeBounds += Data->GetBounds();
 
@@ -68,7 +69,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 			if (PolyPaths.IsEmpty())
 			{
-				bIsAsyncPreparationSuccessful = PCGExFactories::EPreparationResult::MissingData;
+				PrepResult = PCGExFactories::EPreparationResult::MissingData;
 				if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, SharedContext.Get(), FTEXT("No splines (no input matches criteria or empty dataset)")); }
 				return;
 			}
@@ -193,9 +194,11 @@ namespace PCGExPathInclusion
 		// Lack of result mean it's not on
 		// and compute distance against closest edge might require much less internal maths
 
-		if (bFastCheck && !bClosestOnly)
+		if (bFastCheck)
 		{
-			Octree->FindElementsWithBoundsTest(
+			if (bClosestOnly)
+			{
+				Octree->FindElementsWithBoundsTest(
 				FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
 				const PCGEx::FIndexedItem& Item)
 				{
@@ -211,6 +214,24 @@ namespace PCGExPathInclusion
 						EnumRemoveFlags(OutFlags, Inside);
 					}
 				});
+			}else
+			{
+				Octree->FindElementsWithBoundsTest(
+				FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
+				const PCGEx::FIndexedItem& Item)
+				{
+					if ((*(Paths->GetData() + Item.Index))->IsInsideProjection(WorldPosition))
+					{
+						InclusionCount++;
+						EnumAddFlags(OutFlags, Inside);
+					}
+					else
+					{
+						EnumAddFlags(OutFlags, Outside);
+					}
+				});
+			}
+			
 		}
 		else
 		{
