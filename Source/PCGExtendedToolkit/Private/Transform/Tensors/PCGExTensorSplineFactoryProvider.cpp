@@ -18,13 +18,14 @@ bool UPCGExTensorSplineFactoryData::InitInternalFacade(FPCGExContext* InContext)
 	return true;
 }
 
-bool UPCGExTensorSplineFactoryData::InitInternalData(FPCGExContext* InContext)
+PCGExFactories::EPreparationResult UPCGExTensorSplineFactoryData::InitInternalData(FPCGExContext* InContext)
 {
-	if (!Super::InitInternalData(InContext)) { return false; }
+	PCGExFactories::EPreparationResult Result = Super::InitInternalData(InContext);
+	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
 	if (bBuildFromPaths)
 	{
-		if (!InitInternalFacade(InContext)) { return false; }
+		if (!InitInternalFacade(InContext)) { return PCGExFactories::EPreparationResult::Fail; }
 
 		TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(PCGExPaths::SourcePathsLabel);
 
@@ -49,7 +50,7 @@ bool UPCGExTensorSplineFactoryData::InitInternalData(FPCGExContext* InContext)
 		if (ManagedSplines.IsEmpty())
 		{
 			if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)")); }
-			return false;
+			return PCGExFactories::EPreparationResult::Fail;
 		}
 	}
 	else
@@ -73,11 +74,11 @@ bool UPCGExTensorSplineFactoryData::InitInternalData(FPCGExContext* InContext)
 		if (Splines.IsEmpty())
 		{
 			if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)")); }
-			return false;
+			return PCGExFactories::EPreparationResult::Fail;
 		}
 	}
 
-	return true;
+	return Result;
 }
 
 void UPCGExTensorSplineFactoryData::BeginDestroy()

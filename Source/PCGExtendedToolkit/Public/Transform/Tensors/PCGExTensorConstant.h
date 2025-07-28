@@ -55,7 +55,7 @@ public:
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const override;
 
 protected:
-	virtual bool InitInternalData(FPCGExContext* InContext) override;
+	virtual PCGExFactories::EPreparationResult InitInternalData(FPCGExContext* InContext) override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Tensors|Params", meta=(PCGExNodeLibraryDoc="tensors/effectors/tensor-constant"))

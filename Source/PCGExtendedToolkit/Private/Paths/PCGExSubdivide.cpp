@@ -98,7 +98,7 @@ namespace PCGExSubdivide
 		else
 		{
 			AmountGetter = Settings->GetValueSettingSubdivisionAmount();
-			if (!AmountGetter->Init(Context, PointDataFacade)) { return false; }
+			if (!AmountGetter->Init(PointDataFacade)) { return false; }
 		}
 
 		bUseCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;

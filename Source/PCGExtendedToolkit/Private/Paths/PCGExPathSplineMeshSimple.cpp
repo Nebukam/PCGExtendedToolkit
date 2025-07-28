@@ -145,13 +145,13 @@ namespace PCGExPathSplineMeshSimple
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		MutationDetails = Settings->MutationDetails;
-		if (!MutationDetails.Init(Context, PointDataFacade)) { return false; }
+		if (!MutationDetails.Init(PointDataFacade)) { return false; }
 
 		StartOffset = Settings->GetValueSettingStartOffset();
-		if (!StartOffset->Init(Context, PointDataFacade)) { return false; }
+		if (!StartOffset->Init(PointDataFacade)) { return false; }
 
 		EndOffset = Settings->GetValueSettingEndOffset();
-		if (!EndOffset->Init(Context, PointDataFacade)) { return false; }
+		if (!EndOffset->Init(PointDataFacade)) { return false; }
 
 		if (Settings->SplineMeshUpMode == EPCGExSplineMeshUpMode::Attribute)
 		{

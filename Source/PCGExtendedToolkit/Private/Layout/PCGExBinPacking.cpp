@@ -266,7 +266,7 @@ namespace PCGExBinPacking
 		PCGEX_INIT_IO(TargetBins, PCGExData::EIOInit::Duplicate)
 
 		PaddingBuffer = Settings->GetValueSettingPadding();
-		if (!PaddingBuffer->Init(Context, PointDataFacade)) { return false; }
+		if (!PaddingBuffer->Init(PointDataFacade)) { return false; }
 
 #define PCGEX_SWITCH_ON_SPLIT_MODE(_DIRECTION)\
 		switch (Settings->SplitMode){\

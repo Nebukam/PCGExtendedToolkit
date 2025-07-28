@@ -74,7 +74,7 @@ namespace PCGExBitwiseOperation
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		Mask = Settings->GetValueSettingMask();
-		if (!Mask->Init(Context, PointDataFacade)) { return false; }
+		if (!Mask->Init(PointDataFacade)) { return false; }
 
 		Writer = PointDataFacade->GetWritable<int64>(Settings->FlagAttribute, 0, false, PCGExData::EBufferInit::Inherit);
 

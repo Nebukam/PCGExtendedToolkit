@@ -38,7 +38,7 @@ public:
 	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const override;
 
 protected:
-	virtual bool InitInternalData(FPCGExContext* InContext) override;
+	virtual PCGExFactories::EPreparationResult InitInternalData(FPCGExContext* InContext) override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Pickers|Params")

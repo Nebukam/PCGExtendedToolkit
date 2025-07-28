@@ -33,7 +33,7 @@ PCGExTensor::FTensorSample FPCGExTensorSplinePole::Sample(const int32 InSeedInde
 	return Config.Mutations.Mutate(InProbe, Samples.Flatten(Config.TensorWeight));
 }
 
-bool UPCGExTensorSplinePoleFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExTensorSplinePoleFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	SampleInputs = Config.SampleInputs;
 	return Super::Prepare(InContext, AsyncManager);

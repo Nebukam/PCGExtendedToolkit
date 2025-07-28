@@ -1348,11 +1348,29 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 	{
+		if (!PointIO->GetOut()) { return; }
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 		PointIO->Tags->Remove(TagStr_PCGExCluster);
 		PointIO->Tags->Remove(TagStr_PCGExVtx);
 		Metadata->DeleteAttribute(Attr_PCGExVtxIdx);
 		Metadata->DeleteAttribute(Attr_PCGExEdgeIdx);
+	}
+
+	void CleanupEdgeData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
+	{
+		if (!PointIO->GetOut()) { return; }
+		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+		PointIO->Tags->Remove(TagStr_PCGExCluster);
+		PointIO->Tags->Remove(TagStr_PCGExEdges);
+		Metadata->DeleteAttribute(Attr_PCGExVtxIdx);
+		Metadata->DeleteAttribute(Attr_PCGExEdgeIdx);
+	}
+
+	void CleanupClusterData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
+	{
+		CleanupVtxData(PointIO);
+		CleanupEdgeData(PointIO);
+		CleanupClusterTags(PointIO);
 	}
 }
 

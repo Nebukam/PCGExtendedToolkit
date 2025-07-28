@@ -48,7 +48,7 @@ bool PCGExPointFilter::FNumericCompareFilter::Init(FPCGExContext* InContext, con
 	}
 
 	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
-	if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
+	if (!OperandB->Init(PointDataFacade)) { return false; }
 
 	return true;
 }

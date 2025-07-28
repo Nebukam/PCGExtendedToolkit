@@ -227,7 +227,7 @@ namespace PCGExSampleInsidePath
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		Path = PCGExPaths::MakePolyPath(PointDataFacade->GetIn(), 1, FVector::UpVector, Settings->HeightInclusion);
+		Path = PCGExPaths::MakePolyPath(PointDataFacade, 1, Settings->ProjectionDetails, Settings->HeightInclusion);
 
 		// Allocate edge native properties
 
@@ -314,7 +314,7 @@ namespace PCGExSampleInsidePath
 			const FTransform& Transform = Target.GetTransform();
 			const FVector SampleLocation = Transform.GetLocation();
 
-			const bool bIsInside = Path->IsInsideProjection(Transform);
+			const bool bIsInside = Path->IsInsideProjection(Transform.GetLocation());
 
 			if (Settings->bOnlySampleWhenInside && !bIsInside) { return; }
 

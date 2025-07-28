@@ -10,13 +10,13 @@ namespace PCGExClusterUtils
 	{
 		bDisableInvalidData = InDisableInvalidData;
 		ProblemsTracker.Init(0, EProblemLogs.Num() + 1);
-		InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_PCGExCluster);		
+		InputDictionary = MakeShared<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_PCGExCluster);
 	}
 
 	bool FClusterDataLibrary::Build(const TSharedPtr<PCGExData::FPointIOCollection>& InMixedCollection)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FClusterDataLibrary::Build_Mixed);
-		
+
 		if (InMixedCollection->Pairs.IsEmpty()) { return false; }
 
 		// First, cache all "valid" vtx & edge data from the collection
@@ -72,7 +72,7 @@ namespace PCGExClusterUtils
 	bool FClusterDataLibrary::Build(const TSharedPtr<PCGExData::FPointIOCollection>& InVtxCollection, const TSharedPtr<PCGExData::FPointIOCollection>& InEdgeCollection)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FClusterDataLibrary::Build);
-		
+
 		if (InVtxCollection->IsEmpty() || InEdgeCollection->IsEmpty()) { return false; }
 
 		// Gather Vtx inputs
@@ -185,7 +185,7 @@ namespace PCGExClusterUtils
 
 		TArray<TSharedPtr<PCGExData::FPointIO>> Keys;
 		Keys.Reserve(TaggedVtx.Num());
-		
+
 		// Insert Vtx as keys		
 		for (const TSharedPtr<PCGExData::FPointIO>& Vtx : TaggedVtx)
 		{
@@ -230,5 +230,4 @@ namespace PCGExClusterUtils
 	{
 		ProblemsTracker[static_cast<int32>(Problem)]++;
 	}
-
 }

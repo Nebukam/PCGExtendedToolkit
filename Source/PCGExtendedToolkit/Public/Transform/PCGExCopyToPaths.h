@@ -83,8 +83,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
 	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
-	bool bUseScaleForDeformation = true;
+	/** Which scale components from the sampled transform should be applied to the point.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 TransformScale = static_cast<uint8>(EPCGExApplySampledComponentFlags::All);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
 	bool bPreserveOriginalInputScale = true;
@@ -94,27 +95,27 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
 	EPCGExMinimalAxis FlattenAxis = EPCGExMinimalAxis::None;
-	
+
 #pragma region Main axis
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
 	bool bWrapClosedLoops = true;
 
 	// Main axis is "along the spline"
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
 	FPCGExAxisDeformDetails MainAxisSettings;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bDoTwist = false;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable, EditCondition="bDoTwist"))
 	FPCGExAxisDeformDetails TwistSettings = FPCGExAxisDeformDetails(TEXT("StartTwistAmount"), TEXT("EndTwistAmount"), 0, 0);
 
 	/** Used to shrink the scope per-target, to distribute points only on a subselection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Deform", meta = (PCG_Overridable))
 	FPCGExAxisDeformDetails TargetMaskSettings = FPCGExAxisDeformDetails(TEXT("MaskStart"), TEXT("MaskEnd"));
-	
+
 #pragma endregion
 
 	bool GetApplyTangents() const

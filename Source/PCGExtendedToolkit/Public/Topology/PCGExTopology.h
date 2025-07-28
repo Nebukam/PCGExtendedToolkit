@@ -360,7 +360,7 @@ namespace PCGExTopology
 		explicit FHoles(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const FPCGExGeo2DProjectionDetails& InProjectionDetails)
 			: PointDataFacade(InPointDataFacade), ProjectionDetails(InProjectionDetails)
 		{
-			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(InContext, PointDataFacade); }
+			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(PointDataFacade); }
 		}
 
 		bool Overlaps(const FGeometryScriptSimplePolygon& Polygon);

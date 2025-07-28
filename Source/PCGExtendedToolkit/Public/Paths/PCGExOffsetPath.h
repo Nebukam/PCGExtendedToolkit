@@ -161,7 +161,7 @@ namespace PCGExOffsetPath
 
 		FPCGExPathEdgeIntersectionDetails CrossingSettings;
 
-		TSharedPtr<PCGExPaths::FPath> Path;
+		TSharedPtr<PCGExPaths::IPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeHalfAngle> PathAngles;
 		TSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>> OffsetDirection;
 
@@ -169,7 +169,7 @@ namespace PCGExOffsetPath
 		TArray<TSharedPtr<PCGExPaths::FPathEdgeCrossings>> EdgeCrossings;
 
 		int32 FirstFlippedEdge = -1;
-		TSharedPtr<PCGExPaths::FPath> DirtyPath;
+		TSharedPtr<PCGExPaths::IPath> DirtyPath;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> DirtyLength;
 		TBitArray<> Mutated;
 

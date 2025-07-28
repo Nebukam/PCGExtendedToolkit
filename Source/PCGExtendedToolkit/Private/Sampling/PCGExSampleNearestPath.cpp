@@ -85,7 +85,8 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 				break;
 			}
 
-			TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePolyPath(IO->GetIn(), 1, FVector::UpVector, Settings->HeightInclusion);
+			// TODO : We could support per-point project here but ugh
+			TSharedPtr<PCGExPaths::IPath> Path = PCGExPaths::MakePolyPath(IO, 1, Settings->ProjectionDetails, Settings->HeightInclusion);
 
 			Path->IOIndex = IO->IOIndex;
 			Path->Idx = Idx;
@@ -163,7 +164,7 @@ bool FPCGExSampleNearestPathElement::ExecuteInternal(FPCGContext* InContext) con
 					{
 						// TODO : Preload if relevant
 						TSharedPtr<PCGExDetails::TSettingValue<FVector>> LookAtUpGetter = Settings->GetValueSettingLookAtUp();
-						if (!LookAtUpGetter->Init(Context, Target, false))
+						if (!LookAtUpGetter->Init(Target, false))
 						{
 							bBreak = true;
 							return;
@@ -229,7 +230,7 @@ namespace PCGExSampleNearestPath
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		
+
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
 		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
 			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
@@ -286,15 +287,15 @@ namespace PCGExSampleNearestPath
 		}
 
 		RangeMinGetter = Settings->GetValueSettingRangeMin();
-		if (!RangeMinGetter->Init(Context, PointDataFacade)) { return false; }
+		if (!RangeMinGetter->Init(PointDataFacade)) { return false; }
 
 		RangeMaxGetter = Settings->GetValueSettingRangeMax();
-		if (!RangeMaxGetter->Init(Context, PointDataFacade)) { return false; }
+		if (!RangeMaxGetter->Init(PointDataFacade)) { return false; }
 
 		if (Settings->bSampleSpecificAlpha)
 		{
 			SampleAlphaGetter = Settings->GetValueSettingSampleAlpha();
-			if (!SampleAlphaGetter->Init(Context, PointDataFacade)) { return false; }
+			if (!SampleAlphaGetter->Init(PointDataFacade)) { return false; }
 		}
 
 		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection == EPCGExSampleSource::Source)
@@ -388,13 +389,13 @@ namespace PCGExSampleNearestPath
 			double WeightedTime = 0;
 			double WeightedSegmentTime = 0;
 
-			auto SampleTarget = [&](const int32 EdgeIndex, const double& Lerp, const TSharedPtr<PCGExPaths::FPath>& InPath)
+			auto SampleTarget = [&](const int32 EdgeIndex, const double& Lerp, const TSharedPtr<PCGExPaths::IPath>& InPath)
 			{
 				const PCGExData::FElement EdgeElement(EdgeIndex, InPath->Idx);
 				const PCGExData::FElement A(InPath->Edges[EdgeIndex].Start, InPath->Idx);
 				const PCGExData::FElement B(InPath->Edges[EdgeIndex].End, InPath->Idx);
 
-				const bool bIsInside = InPath->IsInsideProjection(Transform);
+				const bool bIsInside = InPath->IsInsideProjection(Transform.GetLocation());
 
 				if (Settings->bOnlySampleWhenInside && !bIsInside) { return; }
 
@@ -483,7 +484,7 @@ namespace PCGExSampleNearestPath
 					QueryBounds,
 					[&](const PCGEx::FIndexedItem& Target)
 					{
-						const TSharedPtr<PCGExPaths::FPath> Path = Context->Paths[Target.Index];
+						const TSharedPtr<PCGExPaths::IPath> Path = Context->Paths[Target.Index];
 						float Lerp = 0;
 						const int32 EdgeIndex = Path->GetClosestEdge(Origin, Lerp);
 						SampleTarget(EdgeIndex, Lerp, Path);
@@ -497,7 +498,7 @@ namespace PCGExSampleNearestPath
 					QueryBounds,
 					[&](const PCGEx::FIndexedItem& Target)
 					{
-						const TSharedPtr<PCGExPaths::FPath>& Path = Context->Paths[Target.Index];
+						const TSharedPtr<PCGExPaths::IPath>& Path = Context->Paths[Target.Index];
 						double Time = 0;
 
 						switch (Settings->SampleAlphaMode)

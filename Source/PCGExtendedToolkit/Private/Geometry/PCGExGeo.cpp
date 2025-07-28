@@ -453,8 +453,11 @@ namespace PCGExGeo
 	}
 }
 
-bool FPCGExGeo2DProjectionDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
+bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
 {
+	FPCGExContext* Context = PointDataFacade->GetContext();
+	if (!Context) { return false; }
+
 	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
 	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, FVector::ForwardVector).ToQuat();
 
@@ -462,12 +465,60 @@ bool FPCGExGeo2DProjectionDetails::Init(FPCGExContext* InContext, const TSharedP
 	if (bLocalProjectionNormal && PointDataFacade)
 	{
 		NormalGetter = PCGExDetails::MakeSettingValue<FVector>(EPCGExInputValueType::Attribute, LocalNormal, ProjectionNormal);
-		if (!NormalGetter->Init(InContext, PointDataFacade, false, false))
+		if (!NormalGetter->Init(PointDataFacade, false, false))
 		{
 			NormalGetter = nullptr;
-			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing normal attribute for projection."));
 			return false;
 		}
+	}
+
+	return true;
+}
+
+bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FPointIO>& PointIO)
+{
+	FPCGExContext* Context = PointIO->GetContext();
+	if (!Context) { return false; }
+
+	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
+	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, FVector::ForwardVector).ToQuat();
+
+	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
+	if (bLocalProjectionNormal)
+	{
+		if (!PCGExHelpers::IsDataDomainAttribute(LocalNormal))
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Only @Data domain attributes are supported for local projection."));
+		}
+		else
+		{
+			NormalGetter = PCGExDetails::MakeSettingValue<FVector>(PointIO, EPCGExInputValueType::Attribute, LocalNormal, ProjectionNormal);
+		}
+
+		if (!NormalGetter) { return false; }
+	}
+
+	return true;
+}
+
+bool FPCGExGeo2DProjectionDetails::Init(const UPCGData* InData)
+{
+	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
+	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, FVector::ForwardVector).ToQuat();
+
+	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
+	if (bLocalProjectionNormal)
+	{
+		if (!PCGExHelpers::IsDataDomainAttribute(LocalNormal))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Only @Data domain attributes are supported for local projection."));
+		}
+		else
+		{
+			NormalGetter = PCGExDetails::MakeSettingValue<FVector>(nullptr, InData, EPCGExInputValueType::Attribute, LocalNormal, ProjectionNormal);
+		}
+
+		if (!NormalGetter) { return false; }
 	}
 
 	return true;

@@ -92,7 +92,7 @@ namespace PCGExNormalize
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		TransformBuffer = Settings->GetValueSettingTransform();
-		if (!TransformBuffer->Init(Context, PointDataFacade, true)) { return false; }
+		if (!TransformBuffer->Init(PointDataFacade, true)) { return false; }
 
 		Box = Context->bUseUnifiedBounds ? Context->UnifiedBounds : PCGExTransform::GetBounds(PointDataFacade->GetIn(), Settings->BoundsSource);
 		Size = Box.GetSize();

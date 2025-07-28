@@ -148,7 +148,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAxisDeformDetails
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExTransformAlphaUsage Usage = EPCGExTransformAlphaUsage::StartAndEnd;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSampleSource FirstAlphaInput = EPCGExSampleSource::Constant;
@@ -179,8 +179,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAxisDeformDetails
 	PCGEX_SETTING_DATA_VALUE_GET_BOOL(SecondAlpha, double, SecondAlphaInput != EPCGExSampleSource::Constant, SecondAlphaAttribute, SecondAlphaConstant)
 	PCGEX_SETTING_VALUE_GET_BOOL(SecondAlpha, double, SecondAlphaInput != EPCGExSampleSource::Constant, SecondAlphaAttribute, SecondAlphaConstant)
 
-	bool Validate(FPCGExContext* InContext, const bool bSupportPoints = false)const;
-	
+	bool Validate(FPCGExContext* InContext, const bool bSupportPoints = false) const;
+
 	bool Init(FPCGExContext* InContext, const TArray<PCGExData::FTaggedData>& InTargets);
 	bool Init(FPCGExContext* InContext, const FPCGExAxisDeformDetails& Parent, const TSharedRef<PCGExData::FFacade>& InDataFacade, const int32 InTargetIndex, const bool bSupportPoint = false);
 
@@ -203,7 +203,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAxisTwistDetails
 	// Start/End
 	// or
 	// Per-point angle
-	
 };
 
 namespace PCGExTransform

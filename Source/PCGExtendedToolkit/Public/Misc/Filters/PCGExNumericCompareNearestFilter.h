@@ -14,6 +14,8 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+
+
 #include "Sampling/PCGExSampling.h"
 
 
@@ -83,7 +85,7 @@ public:
 	virtual bool Init(FPCGExContext* InContext) override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
-	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
 
@@ -150,5 +152,6 @@ protected:
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
+	virtual bool ShowMissingDataHandling_Internal() const override { return true; }
 #endif
 };

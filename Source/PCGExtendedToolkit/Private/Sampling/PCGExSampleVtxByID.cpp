@@ -171,7 +171,7 @@ namespace PCGExSampleVtxByIDs
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
 
 		LookAtUpGetter = Settings->GetValueSettingLookAtUp();
-		if (!LookAtUpGetter->Init(Context, PointDataFacade)) { return false; }
+		if (!LookAtUpGetter->Init(PointDataFacade)) { return false; }
 
 		VtxID32Getter = PointDataFacade->GetReadable<int32>(Settings->VtxIdSource, PCGExData::EIOSide::In, true);
 		if (!VtxID32Getter)

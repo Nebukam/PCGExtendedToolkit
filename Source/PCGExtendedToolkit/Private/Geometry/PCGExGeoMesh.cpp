@@ -121,8 +121,9 @@ namespace PCGExGeo
 	}
 
 	void FGeoStaticMesh::TriangulateMeshSynchronous()
-
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FGeoStaticMesh::TriangulateMeshSynchronous);
+
 		if (bIsLoaded) { return; }
 		if (!bIsValid) { return; }
 

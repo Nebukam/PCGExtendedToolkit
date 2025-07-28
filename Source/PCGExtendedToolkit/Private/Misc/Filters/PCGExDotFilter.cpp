@@ -57,7 +57,7 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 	}
 
 	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
-	if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
+	if (!OperandB->Init(PointDataFacade)) { return false; }
 	if (!OperandB->IsConstant()) { OperandBMultiplier = TypedFilterFactory->Config.bInvertOperandB ? -1 : 1; }
 
 	InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();

@@ -39,9 +39,6 @@ public:
 	FPCGExPickerConstantConfig Config;
 
 	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const override;
-
-protected:
-	virtual bool InitInternalData(FPCGExContext* InContext) override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Pickers|Params", meta=(PCGExNodeLibraryDoc="filters/cherry-pick-points/picker-constant"))

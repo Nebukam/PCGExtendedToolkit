@@ -9,7 +9,10 @@
 #include "Components/SplineMeshComponent.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Data/PCGSplineData.h"
 #include "Data/PCGSplineStruct.h"
+
+
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdge.h"
 
@@ -226,9 +229,11 @@ namespace PCGExPaths
 
 	PCGEXTENDEDTOOLKIT_API
 	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop);
+	static void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop) { SetClosedLoop(InData->GetOut(), bIsClosedLoop); }
 
 	PCGEXTENDEDTOOLKIT_API
 	bool GetClosedLoop(const UPCGData* InData);
+	static bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData) { return GetClosedLoop(InData->GetIn()); }
 
 	PCGEXTENDEDTOOLKIT_API
 	void FetchPrevNext(const TSharedPtr<PCGExData::FFacade>& InFacade, const TArray<PCGExMT::FScope>& Loops);
@@ -299,7 +304,7 @@ namespace PCGExPaths
 		double GetLength(const TConstPCGValueRange<FTransform>& Positions) const;
 	};
 
-	class FPath;
+	class IPath;
 
 	class IPathEdgeExtra : public TSharedFromThis<IPathEdgeExtra>
 	{
@@ -314,12 +319,12 @@ namespace PCGExPaths
 
 		virtual ~IPathEdgeExtra() = default;
 
-		virtual void ProcessSingleEdge(const FPath* Path, const FPathEdge& Edge) { ProcessFirstEdge(Path, Edge); }
-		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); };
-		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) = 0;
-		virtual void ProcessLastEdge(const FPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); }
+		virtual void ProcessSingleEdge(const IPath* Path, const FPathEdge& Edge) { ProcessFirstEdge(Path, Edge); }
+		virtual void ProcessFirstEdge(const IPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); };
+		virtual void ProcessEdge(const IPath* Path, const FPathEdge& Edge) = 0;
+		virtual void ProcessLastEdge(const IPath* Path, const FPathEdge& Edge) { ProcessEdge(Path, Edge); }
 
-		virtual void ProcessingDone(const FPath* Path);
+		virtual void ProcessingDone(const IPath* Path);
 	};
 
 	template <typename T>
@@ -347,7 +352,7 @@ namespace PCGExPaths
 
 	PCGEX_OCTREE_SEMANTICS(FPathEdge, { return Element->Bounds;}, { return A == B; })
 
-	class FPath : public TSharedFromThis<FPath>
+	class IPath : public TSharedFromThis<IPath>
 	{
 	protected:
 		bool bClosedLoop = false;
@@ -356,7 +361,7 @@ namespace PCGExPaths
 		TArray<TSharedPtr<IPathEdgeExtra>> Extras;
 
 	public:
-		virtual ~FPath() = default;
+		virtual ~IPath() = default;
 
 		FBox Bounds = FBox(ForceInit);
 		TArray<FPathEdge> Edges;
@@ -529,11 +534,23 @@ namespace PCGExPaths
 		virtual void EnsureWinding(const EPCGExWinding Winding = EPCGExWinding::CounterClockwise)
 		PCGEX_NOT_IMPLEMENTED(EnsureWinding(const EPCGExWinding Winding = EPCGExWinding::CounterClockwise))
 
-		virtual bool IsInsideProjection(const FTransform& InTransform) const
-		PCGEX_NOT_IMPLEMENTED_RET(IsInsideProjection(const FTransform& InTransform), false)
+		virtual bool IsInsideProjection(const FVector& WorldPosition) const
+		PCGEX_NOT_IMPLEMENTED_RET(IsInsideProjection(const FTransform& WorldPosition), false)
 
-		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp) const
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp, const bool bUseScale = false) const
 		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp), FTransform::Identity)
+
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, bool& bIsInside, const bool bUseScale) const
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, bool& bIsInside), FTransform::Identity)
+
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, const bool bUseScale) const
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), FTransform::Identity)
+
+		virtual bool GetClosestPosition(const FVector& WorldPosition, FVector& OutPosition) const
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), false)
+
+		virtual bool GetClosestPosition(const FVector& WorldPosition, FVector& OutPosition, bool& bIsInside) const
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), false)
 
 		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const
 		PCGEX_NOT_IMPLEMENTED_RET(GetClosestEdge(const FVector& WorldPosition, float& OutLerp), -1)
@@ -546,7 +563,7 @@ namespace PCGExPaths
 	};
 
 	template <bool ClosedLoop = false>
-	class TPath : public FPath
+	class TPath : public IPath
 	{
 	public:
 		explicit TPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion = 0)
@@ -557,8 +574,13 @@ namespace PCGExPaths
 			NumPoints = InTransforms.Num();
 			LastIndex = NumPoints - 1;
 
-
 			BuildPath(Expansion);
+		}
+
+		TPath()
+		{
+			// !
+			bClosedLoop = ClosedLoop;
 		}
 
 		virtual int32 SafePointIndex(const int32 Index) const override
@@ -580,7 +602,7 @@ namespace PCGExPaths
 	class FPathEdgeCustomData : public TPathEdgeExtra<T>
 	{
 	public:
-		using ProcessEdgeFunc = std::function<T(const FPath*, const FPathEdge&)>;
+		using ProcessEdgeFunc = std::function<T(const IPath*, const FPathEdge&)>;
 		ProcessEdgeFunc ProcessEdgeCallback;
 
 		explicit FPathEdgeCustomData(const int32 InNumSegments, const bool InClosedLoop, ProcessEdgeFunc&& Func)
@@ -588,7 +610,7 @@ namespace PCGExPaths
 		{
 		}
 
-		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override
+		virtual void ProcessEdge(const IPath* Path, const FPathEdge& Edge) override
 		{
 			this->SetValue(Edge.Start, ProcessEdgeCallback(Path, Edge));
 		}
@@ -605,8 +627,8 @@ namespace PCGExPaths
 		{
 		}
 
-		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessingDone(const FPath* Path) override;
+		virtual void ProcessEdge(const IPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessingDone(const IPath* Path) override;
 	};
 
 	class FPathEdgeLengthSquared : public TPathEdgeExtra<double>
@@ -617,7 +639,7 @@ namespace PCGExPaths
 		{
 		}
 
-		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessEdge(const IPath* Path, const FPathEdge& Edge) override;
 	};
 
 	class FPathEdgeNormal : public TPathEdgeExtra<FVector>
@@ -630,7 +652,7 @@ namespace PCGExPaths
 		{
 		}
 
-		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessEdge(const IPath* Path, const FPathEdge& Edge) override;
 	};
 
 	class FPathEdgeBinormal : public TPathEdgeExtra<FVector>
@@ -646,8 +668,8 @@ namespace PCGExPaths
 			Normals.SetNumUninitialized(InNumSegments);
 		}
 
-		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessFirstEdge(const IPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessEdge(const IPath* Path, const FPathEdge& Edge) override;
 	};
 
 	class FPathEdgeAvgNormal : public TPathEdgeExtra<FVector>
@@ -660,8 +682,8 @@ namespace PCGExPaths
 		{
 		}
 
-		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessFirstEdge(const IPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessEdge(const IPath* Path, const FPathEdge& Edge) override;
 	};
 
 	class FPathEdgeHalfAngle : public TPathEdgeExtra<double>
@@ -674,8 +696,8 @@ namespace PCGExPaths
 		{
 		}
 
-		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessFirstEdge(const IPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessEdge(const IPath* Path, const FPathEdge& Edge) override;
 	};
 
 	class FPathEdgeFullAngle : public TPathEdgeExtra<double>
@@ -688,20 +710,20 @@ namespace PCGExPaths
 		{
 		}
 
-		virtual void ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge) override;
-		virtual void ProcessEdge(const FPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessFirstEdge(const IPath* Path, const FPathEdge& Edge) override;
+		virtual void ProcessEdge(const IPath* Path, const FPathEdge& Edge) override;
 	};
 
 #pragma endregion
 
 	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion);
+	TSharedPtr<IPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion);
 
 	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop);
+	TSharedPtr<IPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop);
 
 	PCGEXTENDEDTOOLKIT_API
-	double GetPathLength(const TSharedPtr<FPath>& InPath);
+	double GetPathLength(const TSharedPtr<IPath>& InPath);
 
 	PCGEXTENDEDTOOLKIT_API
 	FTransform GetClosestTransform(const FPCGSplineStruct& InSpline, const FVector& InLocation, const bool bUseScale = true);
@@ -712,9 +734,12 @@ namespace PCGExPaths
 	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<FPCGSplineStruct> MakeSplineFromPoints(const TConstPCGValueRange<FTransform>& InTransforms, const EPCGExSplinePointTypeRedux InPointType, const bool bClosedLoop, bool bSmoothLinear);
 
+	PCGEXTENDEDTOOLKIT_API
+	TSharedPtr<FPCGSplineStruct> MakeSplineCopy(const FPCGSplineStruct& Original);
+
 	template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
 	PCGExMath::FClosestPosition FindClosestIntersection(
-		const TArray<TSharedPtr<FPath>>& Paths,
+		const TArray<TSharedPtr<IPath>>& Paths,
 		const FPCGExPathIntersectionDetails& InDetails,
 		const PCGExMath::FSegment& InSegment, int32& OutPathIndex)
 	{
@@ -734,7 +759,7 @@ namespace PCGExPaths
 
 	template <PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict>
 	PCGExMath::FClosestPosition FindClosestIntersection(
-		const TArray<TSharedPtr<FPath>>& Paths,
+		const TArray<TSharedPtr<IPath>>& Paths,
 		const FPCGExPathIntersectionDetails& InDetails,
 		const PCGExMath::FSegment& InSegment, int32& OutPathIndex,
 		PCGExMath::FClosestPosition& OutClosestPosition)
@@ -761,26 +786,105 @@ namespace PCGExPaths
 	{
 		using TPath<ClosedLoop>::bClosedLoop;
 		using TPath<ClosedLoop>::Positions;
+		using TPath<ClosedLoop>::EdgeOctree;
 
-		TSharedPtr<FPCGSplineStruct> Spline;
+		TSharedPtr<FPCGSplineStruct> LocalSpline;
+		TArray<FTransform> LocalTransforms;
+		TConstPCGValueRange<FTransform> LocalTransformsValueRange;
+
+		const FPCGSplineStruct* Spline = nullptr;
 		TArray<FVector2D> ProjectedPoints;
-		FQuat Projection;
+		FPCGExGeo2DProjectionDetails Projection;
 		FBox PolyBox = FBox(ForceInit);
 
 	public:
-		explicit TPolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const FVector& ProjectionUp, const double Expansion = 0, const double ExpansionZ = -1)
-			: TPath<ClosedLoop>(InTransforms, Expansion)
+		TPolyPath(
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+			const FPCGExGeo2DProjectionDetails& InProjection,
+			const double Expansion = 0, const double ExpansionZ = -1,
+			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged)
+			: TPath<ClosedLoop>(InPointIO->GetIn()->GetConstTransformValueRange(), Expansion)
 		{
-			Projection = FQuat::FindBetweenNormals(ProjectionUp.GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector);
+			const TConstPCGValueRange<FTransform>& InTransforms = InPointIO->GetIn()->GetConstTransformValueRange();
 
+			Projection = InProjection;
+			if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(InTransforms)); }
+			else { if (!Projection.Init(InPointIO)) { Projection.Init(PCGExGeo::FBestFitPlane(InTransforms)); } }
+
+			InitFromTransforms(InTransforms, Expansion, ExpansionZ, WindingMutation);
+		}
+
+		TPolyPath(
+			const TSharedPtr<PCGExData::FFacade>& InPathFacade,
+			const FPCGExGeo2DProjectionDetails& InProjection,
+			const double Expansion = 0, const double ExpansionZ = -1,
+			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged)
+			: TPath<ClosedLoop>(InPathFacade->GetIn()->GetConstTransformValueRange(), Expansion)
+		{
+			const TConstPCGValueRange<FTransform>& InTransforms = InPathFacade->GetIn()->GetConstTransformValueRange();
+
+			Projection = InProjection;
+			if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(InTransforms)); }
+			else { if (!Projection.Init(InPathFacade)) { Projection.Init(PCGExGeo::FBestFitPlane(InTransforms)); } }
+
+			InitFromTransforms(InTransforms, Expansion, ExpansionZ, WindingMutation);
+		}
+
+		TPolyPath(
+			const UPCGSplineData* SplineData,
+			const double Fidelity, const FPCGExGeo2DProjectionDetails& InProjection,
+			const double Expansion = 0, const double ExpansionZ = -1,
+			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged)
+			: TPath<ClosedLoop>()
+		{
+			Spline = &SplineData->SplineStruct; // MakeSplineCopy(SplineData->SplineStruct);
+
+			TArray<FVector> TempPolyline;
+			Spline->ConvertSplineToPolyLine(ESplineCoordinateSpace::World, FMath::Square(Fidelity), TempPolyline);
+
+			LocalTransforms.Reserve(TempPolyline.Num());
+			for (int i = 0; i < TempPolyline.Num(); i++) { LocalTransforms.Emplace(TempPolyline[i]); }
+			LocalTransformsValueRange = TConstPCGValueRange<FTransform>(MakeConstStridedView(LocalTransforms));
+
+			Projection = InProjection;
+			if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(LocalTransformsValueRange)); }
+			else { if (!Projection.Init(SplineData)) { Projection.Init(PCGExGeo::FBestFitPlane(LocalTransformsValueRange)); } }
+
+			InitFromTransforms(LocalTransformsValueRange, Expansion, ExpansionZ, WindingMutation);
+
+			Positions = LocalTransformsValueRange;
+
+			// Need to force-build path post initializations
+			this->BuildPath(Expansion);
+		}
+
+	protected:
+		void InitFromTransforms(
+			const TConstPCGValueRange<FTransform>& InTransforms,
+			const double Expansion = 0, const double ExpansionZ = -1,
+			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged)
+		{
 			const int32 NumPts = InTransforms.Num();
-
 			ProjectedPoints.SetNumUninitialized(NumPts);
+
+			this->NumPoints = NumPts;
+			this->LastIndex = NumPts - 1;
+
 			for (int i = 0; i < NumPts; i++)
 			{
-				const FVector ProjectedPoint = Projection.RotateVector(InTransforms[i].GetLocation());
+				const FVector ProjectedPoint = Projection.ProjectFlat(InTransforms[i].GetLocation(), i);
 				PolyBox += ProjectedPoint;
 				ProjectedPoints[i] = FVector2D(ProjectedPoint);
+			}
+
+			if (WindingMutation != EPCGExWindingMutation::Unchanged)
+			{
+				const EPCGExWinding Wants = WindingMutation == EPCGExWindingMutation::Clockwise ? EPCGExWinding::Clockwise : EPCGExWinding::CounterClockwise;
+				if (!PCGExGeo::IsWinded(Wants, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
+				{
+					Algo::Reverse(ProjectedPoints);
+					if (!LocalTransforms.IsEmpty()) { Algo::Reverse(LocalTransforms); }
+				}
 			}
 
 			const double ExpandZ = ExpansionZ > 0 ? ExpansionZ : MAX_dbl * 0.5;
@@ -788,10 +892,15 @@ namespace PCGExPaths
 			PolyBox += (PolyBoxCenter + FVector(0, 0, ExpandZ));
 			PolyBox += (PolyBoxCenter + FVector(0, 0, -ExpandZ));
 
-			if constexpr (ClosedLoop) { Spline = MakeSplineFromPoints(InTransforms, EPCGExSplinePointTypeRedux::Linear, true, false); }
-			else { Spline = MakeSplineFromPoints(InTransforms, EPCGExSplinePointTypeRedux::Linear, false, false); }
+			if (!Spline)
+			{
+				if constexpr (ClosedLoop) { LocalSpline = MakeSplineFromPoints(InTransforms, EPCGExSplinePointTypeRedux::Linear, true, false); }
+				else { LocalSpline = MakeSplineFromPoints(InTransforms, EPCGExSplinePointTypeRedux::Linear, false, false); }
+				Spline = LocalSpline.Get();
+			}
 		}
 
+	public:
 		virtual void EnsureWinding(const EPCGExWinding Winding = EPCGExWinding::CounterClockwise) override
 		{
 			if (!PCGExGeo::IsWinded(Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0))
@@ -800,19 +909,44 @@ namespace PCGExPaths
 			}
 		}
 
-		virtual bool IsInsideProjection(const FTransform& InTransform) const override
+		virtual bool IsInsideProjection(const FVector& WorldPosition) const override
 		{
-			const FVector ProjectedPoint = Projection.RotateVector(InTransform.GetLocation());
+			const FVector ProjectedPoint = Projection.Project(WorldPosition);
 			if (!PolyBox.IsInside(ProjectedPoint)) { return false; }
 			return FGeomTools2D::IsPointInPolygon(FVector2D(ProjectedPoint), ProjectedPoints);
 		}
 
-		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp) const override
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp, const bool bUseScale = false) const override
 		{
 			const float ClosestKey = Spline->FindInputKeyClosestToWorldLocation(WorldPosition);
 			OutEdgeIndex = FMath::FloorToInt32(ClosestKey);
 			OutLerp = ClosestKey - OutEdgeIndex;
-			return Spline->GetTransformAtSplineInputKey(ClosestKey, ESplineCoordinateSpace::World, false);
+			return Spline->GetTransformAtSplineInputKey(ClosestKey, ESplineCoordinateSpace::World, bUseScale);
+		}
+
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, bool& bIsInside, const bool bUseScale = false) const override
+		{
+			bIsInside = IsInsideProjection(WorldPosition);
+			return Spline->GetTransformAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(WorldPosition), ESplineCoordinateSpace::World, bUseScale);
+		}
+
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, const bool bUseScale = false) const override
+		{
+			return Spline->GetTransformAtSplineInputKey(Spline->FindInputKeyClosestToWorldLocation(WorldPosition), ESplineCoordinateSpace::World, bUseScale);
+		}
+
+		virtual bool GetClosestPosition(const FVector& WorldPosition, FVector& OutPosition) const override
+		{
+			check(EdgeOctree)
+			//EdgeOctree->FindElementsWithBoundsTest(FBoxCenterAndExtent(WorldPosition, FVector::OneVector), OutPosition);
+			return false;
+		}
+
+		virtual bool GetClosestPosition(const FVector& WorldPosition, FVector& OutPosition, bool& bIsInside) const override
+		{
+			check(EdgeOctree)
+			bIsInside = IsInsideProjection(WorldPosition);
+			return false;
 		}
 
 		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const override
@@ -831,8 +965,24 @@ namespace PCGExPaths
 		}
 	};
 
-	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const FVector& ProjectionUp = FVector::UpVector, double ExpansionZ = -1);
-	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp = FVector::UpVector, double ExpansionZ = -1);
+	PCGEXTENDEDTOOLKIT_API
+	TSharedPtr<IPath> MakePolyPath(
+		const TSharedPtr<PCGExData::FPointIO>& PointIO, const double Expansion,
+		const FPCGExGeo2DProjectionDetails& Projection, double ExpansionZ = -1,
+		const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
+
+	PCGEXTENDEDTOOLKIT_API
+	TSharedPtr<IPath> MakePolyPath(
+		const TSharedPtr<PCGExData::FFacade>& Facade, const double Expansion,
+		const FPCGExGeo2DProjectionDetails& Projection, double ExpansionZ = -1,
+		const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
+
+	PCGEXTENDEDTOOLKIT_API
+	TSharedPtr<IPath> MakePolyPath(
+		const UPCGSplineData* SplineData,
+		const double Fidelity, const double Expansion,
+		const FPCGExGeo2DProjectionDetails& Projection, double ExpansionZ = -1,
+		const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
 
 	struct PCGEXTENDEDTOOLKIT_API FCrossing
 	{
@@ -864,12 +1014,12 @@ namespace PCGExPaths
 		FORCEINLINE bool IsEmpty() const { return Crossings.IsEmpty(); }
 
 		bool FindSplit(
-			const TSharedPtr<FPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength,
-			const TSharedPtr<FPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails);
+			const TSharedPtr<IPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength,
+			const TSharedPtr<IPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails);
 
 		bool RemoveCrossing(const int32 EdgeStartIndex, const int32 IOIndex);
-		bool RemoveCrossing(const TSharedPtr<FPath>& Path, const int32 EdgeStartIndex);
-		bool RemoveCrossing(const TSharedPtr<FPath>& Path, const FPathEdge& Edge);
+		bool RemoveCrossing(const TSharedPtr<IPath>& Path, const int32 EdgeStartIndex);
+		bool RemoveCrossing(const TSharedPtr<IPath>& Path, const FPathEdge& Edge);
 
 		void SortByAlpha();
 		void SortByHash();
@@ -928,7 +1078,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushEnd", EditConditionHides))
 	bool bRelativeEnd = true;
 
-	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade);
+	bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 	void Mutate(const int32 PointIndex, PCGExPaths::FSplineMeshSegment& InSegment);
 
 protected:

@@ -49,7 +49,7 @@ bool FPCGExMatchByIndex::Test(const PCGExData::FConstPoint& InTargetElement, con
 	{
 		if (bIsIndex) { IndexValue = InTargetElement.Data ? InTargetElement.Index : InTargetElement.IO; }
 		else { IndexValue = IndexGetters[InTargetElement.IO]->FetchSingle(InTargetElement, -1); }
-		
+
 		OtherIndex = PointIO->IOIndex;
 
 		IndexValue = PCGExMath::SanitizeIndex(IndexValue, InMatchingScope.GetNumCandidates() - 1, Config.IndexSafety);
@@ -59,7 +59,7 @@ bool FPCGExMatchByIndex::Test(const PCGExData::FConstPoint& InTargetElement, con
 		if (!PCGExDataHelpers::TryReadDataValue<int32>(PointIO, Config.IndexAttribute, IndexValue, true)) { return false; }
 		OtherIndex = InTargetElement.Data ? InTargetElement.Index : InTargetElement.IO;
 
-		IndexValue = PCGExMath::SanitizeIndex(IndexValue, InTargetElement.Data ? InTargetElement.Data->GetNumPoints()-1 : Targets->Num() - 1, Config.IndexSafety);
+		IndexValue = PCGExMath::SanitizeIndex(IndexValue, InTargetElement.Data ? InTargetElement.Data->GetNumPoints() - 1 : Targets->Num() - 1, Config.IndexSafety);
 	}
 
 	if (IndexValue == -1 || OtherIndex == -1) { return false; }
@@ -80,10 +80,7 @@ FString UPCGExCreateMatchByIndexSettings::GetDisplayName() const
 	{
 		return TEXT("Target' ") + PCGEx::GetSelectorDisplayName(Config.IndexAttribute) + TEXT(" == Input Index");
 	}
-	else
-	{
-		return TEXT("Input' ") + PCGEx::GetSelectorDisplayName(Config.IndexAttribute) + TEXT(" == Target Index");
-	}
+	return TEXT("Input' ") + PCGEx::GetSelectorDisplayName(Config.IndexAttribute) + TEXT(" == Target Index");
 }
 #endif
 

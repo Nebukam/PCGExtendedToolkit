@@ -186,7 +186,7 @@ namespace PCGExPathCrossings
 
 		const TSharedPtr<PCGExPointsMT::TBatch<FProcessor>> TypedParent = StaticCastSharedPtr<PCGExPointsMT::TBatch<FProcessor>>(Parent);
 
-		TArray<TSharedPtr<PCGExPaths::FPath>> Cutters;
+		TArray<TSharedPtr<PCGExPaths::IPath>> Cutters;
 
 		if (bSelfIntersectionOnly)
 		{
@@ -218,7 +218,7 @@ namespace PCGExPathCrossings
 
 			const TSharedPtr<PCGExPaths::FPathEdgeCrossings> NewCrossing = MakeShared<PCGExPaths::FPathEdgeCrossings>(Index);
 
-			for (const TSharedPtr<PCGExPaths::FPath>& OtherPath : Cutters)
+			for (const TSharedPtr<PCGExPaths::IPath>& OtherPath : Cutters)
 			{
 				OtherPath->GetEdgeOctree()->FindElementsWithBoundsTest(
 					Edge.Bounds.GetBox(),

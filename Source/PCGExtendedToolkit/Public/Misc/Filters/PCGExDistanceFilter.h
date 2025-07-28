@@ -16,6 +16,8 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+
+
 #include "Sampling/PCGExSampling.h"
 
 
@@ -84,13 +86,11 @@ public:
 	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
 	virtual bool SupportsProxyEvaluation() const override;
 
-	virtual bool Init(FPCGExContext* InContext) override;
-
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
-	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual void BeginDestroy() override;
 };
@@ -156,6 +156,7 @@ public:
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
+	virtual bool ShowMissingDataHandling_Internal() const override { return true; }
 #endif
 
 protected:

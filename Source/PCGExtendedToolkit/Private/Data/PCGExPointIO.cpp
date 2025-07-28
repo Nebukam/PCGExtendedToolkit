@@ -271,6 +271,12 @@ namespace PCGExData
 
 #pragma region FPointIO
 
+	FPCGExContext* FPointIO::GetContext() const
+	{
+		const FPCGContext::FSharedContext<FPCGExContext> SharedContext(GetContextHandle());
+		return SharedContext.Get();
+	}
+
 	void FPointIO::SetInfos(
 		const int32 InIndex,
 		const FName InOutputPin,

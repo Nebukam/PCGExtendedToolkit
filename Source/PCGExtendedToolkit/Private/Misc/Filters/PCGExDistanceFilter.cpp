@@ -12,12 +12,6 @@ bool UPCGExDistanceFilterFactory::SupportsProxyEvaluation() const
 	return Config.CompareAgainst == EPCGExInputValueType::Constant;
 }
 
-bool UPCGExDistanceFilterFactory::Init(FPCGExContext* InContext)
-{
-	if (!Super::Init(InContext)) { return false; }
-	return true;
-}
-
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExDistanceFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FDistanceFilter>(this);
@@ -33,10 +27,10 @@ bool UPCGExDistanceFilterFactory::RegisterConsumableAttributesWithData(FPCGExCon
 	return true;
 }
 
-bool UPCGExDistanceFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExDistanceFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
-	if (!TargetsHandler->Init(InContext, PCGEx::SourceTargetsLabel)) { return false; }
+	if (!TargetsHandler->Init(InContext, PCGEx::SourceTargetsLabel)) { return PCGExFactories::EPreparationResult::MissingData; }
 
 	TargetsHandler->SetDistances(Config.DistanceDetails);
 
@@ -65,7 +59,7 @@ bool PCGExPointFilter::FDistanceFilter::Init(FPCGExContext* InContext, const TSh
 	}
 
 	DistanceThresholdGetter = TypedFilterFactory->Config.GetValueSettingDistanceThreshold();
-	if (!DistanceThresholdGetter->Init(InContext, InPointDataFacade)) { return false; }
+	if (!DistanceThresholdGetter->Init(InPointDataFacade)) { return false; }
 
 	InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
 

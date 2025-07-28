@@ -371,7 +371,7 @@ namespace PCGExBevelPath
 		Bevels.Init(nullptr, PointDataFacade->GetNum());
 
 		WidthGetter = Settings->GetValueSettingWidth();
-		if (!WidthGetter->Init(Context, PointDataFacade)) { return false; }
+		if (!WidthGetter->Init(PointDataFacade)) { return false; }
 
 		bKeepCorner = Settings->bKeepCornerPoint;
 
@@ -384,7 +384,7 @@ namespace PCGExBevelPath
 				if (Settings->SubdivideMethod != EPCGExSubdivideMode::Manhattan)
 				{
 					SubdivAmountGetter = Settings->GetValueSettingSubdivisions();
-					if (!SubdivAmountGetter->Init(Context, PointDataFacade)) { return false; }
+					if (!SubdivAmountGetter->Init(PointDataFacade)) { return false; }
 				}
 			}
 		}

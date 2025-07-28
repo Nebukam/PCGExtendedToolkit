@@ -48,10 +48,10 @@ public:
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	FPCGExTensorConfigBase BaseConfig;
-	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 protected:
-	virtual bool InitInternalData(FPCGExContext* InContext);
+	virtual PCGExFactories::EPreparationResult InitInternalData(FPCGExContext* InContext);
 	virtual void InheritFromOtherTensor(const UPCGExTensorFactoryData* InOtherTensor);
 };
 
@@ -92,7 +92,7 @@ public:
 
 protected:
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
-	virtual bool InitInternalData(FPCGExContext* InContext) override;
+	virtual PCGExFactories::EPreparationResult InitInternalData(FPCGExContext* InContext) override;
 
 	virtual TSharedPtr<PCGExTensor::FEffectorsArray> GetEffectorsArray() const;
 

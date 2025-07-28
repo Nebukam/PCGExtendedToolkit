@@ -81,6 +81,12 @@ namespace PCGExData
 		return nullptr;
 	}
 
+	FPCGExContext* FFacade::GetContext() const
+	{
+		const FPCGContext::FSharedContext<FPCGExContext> SharedContext(Source->GetContextHandle());
+		return SharedContext.Get();
+	}
+
 	TSharedPtr<IBuffer> FFacade::GetWritable(const EPCGMetadataTypes Type, const FPCGMetadataAttributeBase* InAttribute, EBufferInit Init)
 	{
 #define PCGEX_TYPED_WRITABLE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID: return GetWritable<_TYPE>(static_cast<const FPCGMetadataAttribute<_TYPE>*>(InAttribute), Init);

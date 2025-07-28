@@ -34,7 +34,7 @@ bool FNodeEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<P
 	bFromNode = TypedFilterFactory->Config.DirectionOrder == EPCGExAdjacencyDirectionOrigin::FromNode;
 
 	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection();
-	if (!OperandDirection->Init(InContext, PointDataFacade, false)) { return false; }
+	if (!OperandDirection->Init(PointDataFacade, false)) { return false; }
 	if (!OperandDirection->IsConstant()) { DirectionMultiplier = TypedFilterFactory->Config.bInvertDirection ? -1 : 1; }
 
 	if (!Adjacency.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }

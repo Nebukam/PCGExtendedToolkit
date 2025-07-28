@@ -16,15 +16,16 @@ TSharedPtr<PCGExTensorOperation> UPCGExTensorFactoryData::CreateOperation(FPCGEx
 	return nullptr; // Create shape builder operation
 }
 
-bool UPCGExTensorFactoryData::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExTensorFactoryData::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 	return InitInternalData(InContext);
 }
 
-bool UPCGExTensorFactoryData::InitInternalData(FPCGExContext* InContext)
+PCGExFactories::EPreparationResult UPCGExTensorFactoryData::InitInternalData(FPCGExContext* InContext)
 {
-	return true;
+	return PCGExFactories::EPreparationResult::Success;
 }
 
 void UPCGExTensorFactoryData::InheritFromOtherTensor(const UPCGExTensorFactoryData* InOtherTensor)
@@ -57,20 +58,22 @@ UPCGExFactoryData* UPCGExTensorFactoryProviderSettings::CreateFactory(FPCGExCont
 	return Super::CreateFactory(InContext, InFactory);
 }
 
-bool UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
+PCGExFactories::EPreparationResult UPCGExTensorPointFactoryData::InitInternalData(FPCGExContext* InContext)
 {
-	if (!Super::InitInternalData(InContext)) { return false; }
-	if (!InitInternalFacade(InContext)) { return false; }
+	PCGExFactories::EPreparationResult Result = Super::InitInternalData(InContext);
+	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
+
+	if (!InitInternalFacade(InContext)) { return PCGExFactories::EPreparationResult::Fail; }
 
 	EffectorsArray = GetEffectorsArray();
 
 	// Bulk of the work happens here
-	if (!EffectorsArray->Init(InContext, this)) { return false; }
+	if (!EffectorsArray->Init(InContext, this)) { return PCGExFactories::EPreparationResult::Fail; }
 
 	InputDataFacade->Flush(); // Flush cached buffers
 	InputDataFacade.Reset();
 
-	return true;
+	return Result;
 }
 
 TSharedPtr<PCGExTensor::FEffectorsArray> UPCGExTensorPointFactoryData::GetEffectorsArray() const

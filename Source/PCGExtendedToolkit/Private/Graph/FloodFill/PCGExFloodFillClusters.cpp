@@ -558,7 +558,7 @@ namespace PCGExClusterDiffusion
 		// Diffusion rate
 
 		FillRate = PCGExDetails::MakeSettingValue<int32>(Settings->Diffusion.FillRateInput, Settings->Diffusion.FillRateAttribute, Settings->Diffusion.FillRateConstant);
-		bIsBatchValid = FillRate->Init(Context, Settings->Diffusion.FillRateSource == EPCGExFloodFillSettingSource::Seed ? Context->SeedsDataFacade : VtxDataFacade);
+		bIsBatchValid = FillRate->Init(Settings->Diffusion.FillRateSource == EPCGExFloodFillSettingSource::Seed ? Context->SeedsDataFacade : VtxDataFacade);
 
 		if (!bIsBatchValid) { return; } // Fail
 
