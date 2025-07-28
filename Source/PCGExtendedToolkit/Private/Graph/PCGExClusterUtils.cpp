@@ -173,7 +173,7 @@ namespace PCGExClusterUtils
 			if (ProblemsTracker[i] <= 0) { continue; }
 
 			const FProblem& Problem = EProblemLogs[static_cast<EProblem>(i)];
-			if ((bSkipTrivial && !Problem.Get<0>()) || bSkipImportant && Problem.Get<0>()) { continue; }
+			if ((bSkipTrivial && !Problem.Get<0>()) || (bSkipImportant && Problem.Get<0>())) { continue; }
 
 			PCGE_LOG_C(Warning, GraphAndLog, InContext, Problem.Get<1>());
 		}
