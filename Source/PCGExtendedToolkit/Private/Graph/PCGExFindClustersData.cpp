@@ -124,13 +124,24 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 			return true;
 		}
 
-		Context->SearchKeyIO->OutputPin = Settings->SearchMode == EPCGExClusterDataSearchMode::EdgesFromVtx ? PCGExGraph::OutputVerticesLabel : PCGExGraph::OutputEdgesLabel;
-		Context->SearchKeyIO->InitializeOutput(PCGExData::EIOInit::Forward);
-
-		for (const TSharedRef<PCGExData::FPointIO>& EdgeIO : EdgeEntries->Entries)
+		if (Settings->SearchMode == EPCGExClusterDataSearchMode::EdgesFromVtx)
 		{
-			EdgeIO->OutputPin = PCGExGraph::OutputEdgesLabel;
-			EdgeIO->InitializeOutput(PCGExData::EIOInit::Forward);
+			Context->SearchKeyIO->OutputPin = PCGExGraph::OutputVerticesLabel;
+			Context->SearchKeyIO->InitializeOutput(PCGExData::EIOInit::Forward);
+
+			for (const TSharedRef<PCGExData::FPointIO>& EdgeIO : EdgeEntries->Entries)
+			{
+				EdgeIO->OutputPin = PCGExGraph::OutputEdgesLabel;
+				EdgeIO->InitializeOutput(PCGExData::EIOInit::Forward);
+			}
+		}
+		else
+		{
+			Context->SearchKeyIO->OutputPin = PCGExGraph::OutputEdgesLabel;
+			Context->SearchKeyIO->InitializeOutput(PCGExData::EIOInit::Forward);
+
+			EdgeEntries->Key->OutputPin = PCGExGraph::OutputVerticesLabel;
+			EdgeEntries->Key->InitializeOutput(PCGExData::EIOInit::Forward);
 		}
 	}
 
