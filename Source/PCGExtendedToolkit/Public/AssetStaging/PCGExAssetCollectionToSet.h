@@ -71,7 +71,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAssetPath = true;
 
-	UPROPERTY()
+	UPROPERTY(meta=(PCG_NotOverridable))
 	bool bWriteAssetClass = true;
 
 	/** Name of the attribute on the AttributeSet that contains the asset path to be staged */

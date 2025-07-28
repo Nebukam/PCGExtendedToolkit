@@ -35,7 +35,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 	{
 	}
 
-	UPROPERTY()
+	UPROPERTY(meta=(PCG_NotOverridable))
 	bool bSupportRadius = true; // Internal toggle, hidden
 
 	/** */
