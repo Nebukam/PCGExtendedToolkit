@@ -43,9 +43,9 @@ enum class EPCGExClusterComponentTagMatchMode : uint8
 UENUM()
 enum class EPCGExMatchingDetailsUsage : uint8
 {
-	Default  = 0 ,
-	Cluster  = 1 ,
-	Sampling = 2 ,
+	Default  = 0,
+	Cluster  = 1,
+	Sampling = 2,
 };
 
 /**
@@ -77,7 +77,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 	EPCGExMapMatchMode Mode = EPCGExMapMatchMode::Disabled;
 
 	/** Which cluster component must match the tags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Usage==EPCGExMatchingDetailsUsage::Cluster", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Usage == EPCGExMatchingDetailsUsage::Cluster", EditConditionHides, HideEditConditionToggle))
 	EPCGExClusterComponentTagMatchMode ClusterMatchMode = EPCGExClusterComponentTagMatchMode::Vtx;
 
 	/** Whether to output unmatched data in a separate pin */

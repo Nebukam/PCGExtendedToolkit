@@ -46,12 +46,12 @@ public:
 	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const;
 
 	FPCGExPickerConfigBase BaseConfig;
-	virtual bool Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 protected:
 	virtual bool RequiresInputs() const;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return false; }
-	virtual bool InitInternalData(FPCGExContext* InContext);
+	virtual PCGExFactories::EPreparationResult InitInternalData(FPCGExContext* InContext);
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

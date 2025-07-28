@@ -42,7 +42,7 @@ bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSha
 	}
 
 	MaskReader = TypedFilterFactory->Config.GetValueSettingBitmask();
-	if (!MaskReader->Init(InContext, PointDataFacade)) { return false; }
+	if (!MaskReader->Init(PointDataFacade)) { return false; }
 
 	return true;
 }

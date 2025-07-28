@@ -141,8 +141,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	PlotScope.CopyPoints(Query->PlotFacade->GetIn(), PathIO->GetOut(), true, true);
 	ClusterScope.CopyProperties(PathIO->GetIn(), PathIO->GetOut(), EPCGPointNativeProperties::All);
 
-	PCGExGraph::CleanupClusterTags(PathIO);
-	PCGExGraph::CleanupVtxData(PathIO);
+	PCGExGraph::CleanupClusterData(PathIO);
 
 	PathIO->Tags->Append(Query->PlotFacade->Source->Tags.ToSharedRef());
 

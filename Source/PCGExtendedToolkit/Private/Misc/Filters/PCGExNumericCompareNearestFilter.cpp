@@ -13,10 +13,10 @@ bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-bool UPCGExNumericCompareNearestFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExNumericCompareNearestFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
-	if (!TargetsHandler->Init(InContext, PCGEx::SourceTargetsLabel)) { return false; }
+	if (!TargetsHandler->Init(InContext, PCGEx::SourceTargetsLabel)) { return PCGExFactories::EPreparationResult::MissingData; }
 
 	TargetsHandler->SetDistances(Config.DistanceDetails);
 	TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader) { Preloader.Register<double>(InContext, Config.OperandA); });
@@ -42,7 +42,7 @@ bool UPCGExNumericCompareNearestFilterFactory::Prepare(FPCGExContext* InContext,
 					}
 				});
 
-			bIsAsyncPreparationSuccessful = !bError;
+			PrepResult = bError ? PCGExFactories::EPreparationResult::Fail : PCGExFactories::EPreparationResult::Success;
 		};
 
 	TargetsHandler->StartLoading(AsyncManager);
@@ -77,7 +77,7 @@ bool PCGExPointFilter::FNumericCompareNearestFilter::Init(FPCGExContext* InConte
 	if (!TargetsHandler || TargetsHandler->IsEmpty()) { return false; }
 
 	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
-	if (!OperandB->Init(InContext, PointDataFacade, false)) { return false; }
+	if (!OperandB->Init(PointDataFacade, false)) { return false; }
 
 	if (TypedFilterFactory->Config.bIgnoreSelf) { IgnoreList.Add(InPointDataFacade->GetIn()); }
 

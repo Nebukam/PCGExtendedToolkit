@@ -59,15 +59,16 @@ void UPCGExPickerAttributeSetFactory::AddPicks(const int32 InNum, TSet<int32>& O
 	}
 }
 
-bool UPCGExPickerAttributeSetFactory::InitInternalData(FPCGExContext* InContext)
+PCGExFactories::EPreparationResult UPCGExPickerAttributeSetFactory::InitInternalData(FPCGExContext* InContext)
 {
-	if (!Super::InitInternalData(InContext)) { return false; }
+	PCGExFactories::EPreparationResult Result = Super::InitInternalData(InContext);
+	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
 	TArray<TSharedPtr<PCGExData::FFacade>> Facades;
 	if (!TryGetFacades(InContext, FName("Indices"), Facades, false, true))
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No valid data was found for indices."));
-		return false;
+		return PCGExFactories::EPreparationResult::Fail;
 	}
 
 	if (Config.bTreatAsNormalized)
@@ -133,7 +134,7 @@ bool UPCGExPickerAttributeSetFactory::InitInternalData(FPCGExContext* InContext)
 		DiscretePicks = UniqueIndices.Array();
 	}
 
-	return true;
+	return Result;
 }
 
 TArray<FPCGPinProperties> UPCGExPickerAttributeSetSettings::InputPinProperties() const

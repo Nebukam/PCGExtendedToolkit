@@ -47,7 +47,7 @@ TSharedPtr<PCGExDetails::FDistances> FPCGExDistanceDetails::MakeDistances() cons
 bool FPCGExInfluenceDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 {
 	InfluenceBuffer = GetValueSettingInfluence();
-	return InfluenceBuffer->Init(InContext, InPointDataFacade, false);
+	return InfluenceBuffer->Init(InPointDataFacade, false);
 }
 
 bool FPCGExFuseDetailsBase::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
@@ -63,7 +63,7 @@ bool FPCGExFuseDetailsBase::Init(FPCGExContext* InContext, const TSharedPtr<PCGE
 		ToleranceGetter = PCGExDetails::MakeSettingValue<FVector>(ToleranceInput, ToleranceAttribute, Tolerances);
 	}
 
-	if (!ToleranceGetter->Init(InContext, InDataFacade)) { return false; }
+	if (!ToleranceGetter->Init(InDataFacade)) { return false; }
 
 	return true;
 }
@@ -87,12 +87,12 @@ bool FPCGExManhattanDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCG
 	if (bSupportAttribute)
 	{
 		GridSizeBuffer = GetValueSettingGridSize();
-		if (!GridSizeBuffer->Init(InContext, InDataFacade)) { return false; }
+		if (!GridSizeBuffer->Init(InDataFacade)) { return false; }
 
 		if (SpaceAlign == EPCGExManhattanAlign::Custom) { OrientBuffer = GetValueSettingOrient(); }
 		else if (SpaceAlign == EPCGExManhattanAlign::World) { OrientBuffer = PCGExDetails::MakeSettingValue(FQuat::Identity); }
 
-		if (OrientBuffer && !OrientBuffer->Init(InContext, InDataFacade)) { return false; }
+		if (OrientBuffer && !OrientBuffer->Init(InDataFacade)) { return false; }
 	}
 	else
 	{

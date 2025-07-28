@@ -85,11 +85,5 @@ void UPCGExPickerConstantRangeFactory::AddPicks(const int32 InNum, TSet<int32>& 
 	AddPicksFromConfig(Config, InNum, OutPicks);
 }
 
-bool UPCGExPickerConstantRangeFactory::InitInternalData(FPCGExContext* InContext)
-{
-	if (!Super::InitInternalData(InContext)) { return false; }
-	return true;
-}
-
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

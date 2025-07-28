@@ -26,9 +26,10 @@ bool UPCGExSplineAlphaFilterFactory::WantsPreparation(FPCGExContext* InContext)
 	return true;
 }
 
-bool UPCGExSplineAlphaFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExSplineAlphaFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
 	Splines = MakeShared<TArray<const FPCGSplineStruct*>>();
 	SegmentsNum = MakeShared<TArray<double>>();
@@ -52,11 +53,11 @@ bool UPCGExSplineAlphaFilterFactory::Prepare(FPCGExContext* InContext, const TSh
 
 	if (Splines->IsEmpty())
 	{
-		if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)")); }
-		return false;
+		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)")); } }
+		return PCGExFactories::EPreparationResult::MissingData;
 	}
 
-	return true;
+	return Result;
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExSplineAlphaFilterFactory::CreateFilter() const
@@ -88,7 +89,7 @@ namespace PCGExPointFilter
 		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 		OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
-		if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
+		if (!OperandB->Init(PointDataFacade)) { return false; }
 
 		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
 		return true;

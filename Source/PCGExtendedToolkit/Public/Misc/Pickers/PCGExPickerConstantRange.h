@@ -53,9 +53,6 @@ public:
 
 	static void AddPicksFromConfig(const FPCGExPickerConstantRangeConfig& InConfig, int32 InNum, TSet<int32>& OutPicks);
 	virtual void AddPicks(int32 InNum, TSet<int32>& OutPicks) const override;
-
-protected:
-	virtual bool InitInternalData(FPCGExContext* InContext) override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Pickers|Params")

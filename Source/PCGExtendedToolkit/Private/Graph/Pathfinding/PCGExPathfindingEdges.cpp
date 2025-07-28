@@ -86,8 +86,7 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 		Query->Goal.Point.Data->CopyPropertiesTo(PathPoints, Query->Goal.Point.Index, PathPoints->GetNumPoints() - 1, 1, AllocateProperties);
 	}
 
-	PCGExGraph::CleanupClusterTags(PathIO);
-	PCGExGraph::CleanupVtxData(PathIO);
+	PCGExGraph::CleanupClusterData(PathIO);
 
 	PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
 

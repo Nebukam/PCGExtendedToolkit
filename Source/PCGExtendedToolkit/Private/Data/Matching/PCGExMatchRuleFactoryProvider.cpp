@@ -79,9 +79,9 @@ namespace PCGExMatching
 	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError)
 	{
 		check(Details)
-		
+
 		Targets->Reserve(InTargetFacades.Num());
-		
+
 		for (int i = 0; i < InTargetFacades.Num(); i++) { RegisterTaggedData(InContext, InTargetFacades[i]->Source->GetTaggedData()); }
 		return InitInternal(InContext, SourceMatchRulesLabel, bThrowError);
 	}
@@ -89,7 +89,7 @@ namespace PCGExMatching
 	bool FDataMatcher::Init(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FFacade>>& InTargetFacades, const bool bThrowError)
 	{
 		Targets->Reserve(InTargetFacades.Num());
-		
+
 		for (int i = 0; i < InTargetFacades.Num(); i++) { RegisterTaggedData(InContext, InTargetFacades[i]->Source->GetTaggedData()); }
 		return InitInternal(InContext, SourceMatchRulesLabel, bThrowError);
 	}
@@ -231,10 +231,7 @@ namespace PCGExMatching
 		{
 			return MAX_int32;
 		}
-		else
-		{
-			return OutLimit;
-		}
+		return OutLimit;
 	}
 
 	void FDataMatcher::RegisterTaggedData(FPCGExContext* InContext, const PCGExData::FTaggedData& InTaggedData)
@@ -263,12 +260,11 @@ namespace PCGExMatching
 
 	bool FDataMatcher::InitInternal(FPCGExContext* InContext, const FName InFactoriesLabel, const bool bThrowError)
 	{
-
 		if (MatchMode == EPCGExMapMatchMode::Disabled)
 		{
 			return true;
 		}
-		
+
 		if (Targets->IsEmpty())
 		{
 			MatchMode = EPCGExMapMatchMode::Disabled;

@@ -75,10 +75,10 @@ namespace PCGExTensor
 	bool FEffectorsArray::Init(FPCGExContext* InContext, const UPCGExTensorPointFactoryData* InFactory)
 	{
 		TSharedPtr<PCGExDetails::TSettingValue<double>> PotencyValue = InFactory->BaseConfig.GetValueSettingPotency(InFactory->bQuietMissingInputError);
-		if (!PotencyValue->Init(InContext, InFactory->InputDataFacade, false)) { return false; }
+		if (!PotencyValue->Init(InFactory->InputDataFacade, false)) { return false; }
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> WeightValue = InFactory->BaseConfig.GetValueSettingWeight(InFactory->bQuietMissingInputError);
-		if (!WeightValue->Init(InContext, InFactory->InputDataFacade, false)) { return false; }
+		if (!WeightValue->Init(InFactory->InputDataFacade, false)) { return false; }
 
 		const UPCGBasePointData* InPoints = InFactory->InputDataFacade->GetIn();
 		const int32 NumEffectors = InPoints->GetNumPoints();

@@ -348,6 +348,7 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		EPCGPointNativeProperties GetAllocations() const { return In ? In->GetAllocatedProperties() : EPCGPointNativeProperties::None; }
 
 		TWeakPtr<FPCGContextHandle> GetContextHandle() const { return ContextHandle; }
+		FPCGExContext* GetContext() const;
 
 		void SetInfos(const int32 InIndex,
 		              const FName InOutputPin,

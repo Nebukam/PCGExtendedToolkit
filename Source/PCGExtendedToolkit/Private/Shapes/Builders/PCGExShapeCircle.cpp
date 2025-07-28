@@ -13,10 +13,10 @@ bool FPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const T
 	if (!FPCGExShapeBuilderOperation::PrepareForSeeds(InContext, InSeedDataFacade)) { return false; }
 
 	StartAngle = Config.GetValueSettingStartAngle();
-	if (!StartAngle->Init(InContext, InSeedDataFacade)) { return false; }
+	if (!StartAngle->Init(InSeedDataFacade)) { return false; }
 
 	EndAngle = Config.GetValueSettingEndAngle();
-	if (!EndAngle->Init(InContext, InSeedDataFacade)) { return false; }
+	if (!EndAngle->Init(InSeedDataFacade)) { return false; }
 
 	return true;
 }

@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExPaths.h"
 
+#include "Data/PCGSplineData.h"
 #include "Graph/Probes/PCGExProbeDirection.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPaths"
@@ -221,11 +222,11 @@ namespace PCGExPaths
 		return FVector::Dist(Positions[Start].GetLocation(), Positions[End].GetLocation());
 	}
 
-	void IPathEdgeExtra::ProcessingDone(const FPath* Path)
+	void IPathEdgeExtra::ProcessingDone(const IPath* Path)
 	{
 	}
 
-	void FPath::BuildEdgeOctree()
+	void IPath::BuildEdgeOctree()
 	{
 		if (EdgeOctree) { return; }
 		EdgeOctree = MakeUnique<FPathEdgeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10);
@@ -236,7 +237,7 @@ namespace PCGExPaths
 		}
 	}
 
-	void FPath::BuildPartialEdgeOctree(const TArray<int8>& Filter)
+	void IPath::BuildPartialEdgeOctree(const TArray<int8>& Filter)
 	{
 		if (EdgeOctree) { return; }
 		EdgeOctree = MakeUnique<FPathEdgeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10);
@@ -248,7 +249,7 @@ namespace PCGExPaths
 		}
 	}
 
-	void FPath::BuildPartialEdgeOctree(const TBitArray<>& Filter)
+	void IPath::BuildPartialEdgeOctree(const TBitArray<>& Filter)
 	{
 		if (EdgeOctree) { return; }
 		EdgeOctree = MakeUnique<FPathEdgeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10);
@@ -260,7 +261,7 @@ namespace PCGExPaths
 		}
 	}
 
-	void FPath::UpdateConvexity(const int32 Index)
+	void IPath::UpdateConvexity(const int32 Index)
 	{
 		if (!bIsConvex) { return; }
 
@@ -277,7 +278,7 @@ namespace PCGExPaths
 			bIsConvex, ConvexitySign);
 	}
 
-	void FPath::ComputeEdgeExtra(const int32 Index)
+	void IPath::ComputeEdgeExtra(const int32 Index)
 	{
 		if (NumEdges == 1)
 		{
@@ -291,13 +292,13 @@ namespace PCGExPaths
 		}
 	}
 
-	void FPath::ExtraComputingDone()
+	void IPath::ExtraComputingDone()
 	{
 		for (const TSharedPtr<IPathEdgeExtra>& Extra : Extras) { Extra->ProcessingDone(this); }
 		Extras.Empty(); // So we don't update them anymore
 	}
 
-	void FPath::ComputeAllEdgeExtra()
+	void IPath::ComputeAllEdgeExtra()
 	{
 		if (NumEdges == 1)
 		{
@@ -313,7 +314,7 @@ namespace PCGExPaths
 		ExtraComputingDone();
 	}
 
-	void FPath::BuildPath(const double Expansion)
+	void IPath::BuildPath(const double Expansion)
 	{
 		if (bClosedLoop) { NumEdges = NumPoints; }
 		else { NumEdges = LastIndex; }
@@ -334,14 +335,14 @@ namespace PCGExPaths
 
 #pragma region FPathEdgeLength
 
-	void FPathEdgeLength::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
+	void FPathEdgeLength::ProcessEdge(const IPath* Path, const FPathEdge& Edge)
 	{
 		const double Dist = FVector::Dist(Path->GetPos_Unsafe(Edge.Start), Path->GetPos_Unsafe(Edge.End));
 		GetMutable(Edge.Start) = Dist;
 		TotalLength += Dist;
 	}
 
-	void FPathEdgeLength::ProcessingDone(const FPath* Path)
+	void FPathEdgeLength::ProcessingDone(const IPath* Path)
 	{
 		TPathEdgeExtra<double>::ProcessingDone(Path);
 		CumulativeLength.SetNumUninitialized(Data.Num());
@@ -353,7 +354,7 @@ namespace PCGExPaths
 
 #pragma region FPathEdgeLength
 
-	void FPathEdgeLengthSquared::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
+	void FPathEdgeLengthSquared::ProcessEdge(const IPath* Path, const FPathEdge& Edge)
 	{
 		const double Dist = FVector::DistSquared(Path->GetPos_Unsafe(Edge.Start), Path->GetPos_Unsafe(Edge.End));
 		GetMutable(Edge.Start) = Dist;
@@ -363,7 +364,7 @@ namespace PCGExPaths
 
 #pragma region FPathEdgeNormal
 
-	void FPathEdgeNormal::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
+	void FPathEdgeNormal::ProcessEdge(const IPath* Path, const FPathEdge& Edge)
 	{
 		GetMutable(Edge.Start) = FVector::CrossProduct(Up, Edge.Dir).GetSafeNormal();
 	}
@@ -372,7 +373,7 @@ namespace PCGExPaths
 
 #pragma region FPathEdgeBinormal
 
-	void FPathEdgeBinormal::ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge)
+	void FPathEdgeBinormal::ProcessFirstEdge(const IPath* Path, const FPathEdge& Edge)
 	{
 		if (Path->IsClosedLoop())
 		{
@@ -385,7 +386,7 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = N;
 	}
 
-	void FPathEdgeBinormal::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
+	void FPathEdgeBinormal::ProcessEdge(const IPath* Path, const FPathEdge& Edge)
 	{
 		const FVector N = FVector::CrossProduct(Up, Edge.Dir).GetSafeNormal();
 		Normals[Edge.Start] = N;
@@ -402,7 +403,7 @@ namespace PCGExPaths
 
 #pragma region FPathEdgeAvgNormal
 
-	void FPathEdgeAvgNormal::ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge)
+	void FPathEdgeAvgNormal::ProcessFirstEdge(const IPath* Path, const FPathEdge& Edge)
 	{
 		if (Path->IsClosedLoop())
 		{
@@ -413,7 +414,7 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = FVector::CrossProduct(Up, Edge.Dir).GetSafeNormal();
 	}
 
-	void FPathEdgeAvgNormal::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
+	void FPathEdgeAvgNormal::ProcessEdge(const IPath* Path, const FPathEdge& Edge)
 	{
 		const FVector A = FVector::CrossProduct(Up, Path->DirToPrevPoint(Edge.Start) * -1).GetSafeNormal();
 		const FVector B = FVector::CrossProduct(Up, Edge.Dir).GetSafeNormal();
@@ -424,7 +425,7 @@ namespace PCGExPaths
 
 #pragma region FPathEdgeHalfAngle
 
-	void FPathEdgeHalfAngle::ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge)
+	void FPathEdgeHalfAngle::ProcessFirstEdge(const IPath* Path, const FPathEdge& Edge)
 	{
 		if (Path->IsClosedLoop())
 		{
@@ -435,7 +436,7 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = PI;
 	}
 
-	void FPathEdgeHalfAngle::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
+	void FPathEdgeHalfAngle::ProcessEdge(const IPath* Path, const FPathEdge& Edge)
 	{
 		GetMutable(Edge.Start) = FMath::Acos(FVector::DotProduct(Path->DirToPrevPoint(Edge.Start), Edge.Dir));
 	}
@@ -444,7 +445,7 @@ namespace PCGExPaths
 
 #pragma region FPathEdgeAngle
 
-	void FPathEdgeFullAngle::ProcessFirstEdge(const FPath* Path, const FPathEdge& Edge)
+	void FPathEdgeFullAngle::ProcessFirstEdge(const IPath* Path, const FPathEdge& Edge)
 	{
 		if (Path->IsClosedLoop())
 		{
@@ -455,29 +456,29 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = 0;
 	}
 
-	void FPathEdgeFullAngle::ProcessEdge(const FPath* Path, const FPathEdge& Edge)
+	void FPathEdgeFullAngle::ProcessEdge(const IPath* Path, const FPathEdge& Edge)
 	{
 		GetMutable(Edge.Start) = PCGExMath::GetAngle(Path->DirToPrevPoint(Edge.Start) * -1, Edge.Dir);
 	}
 
-	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion)
+	TSharedPtr<IPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion)
 	{
 		return MakePath(InPointData->GetConstTransformValueRange(), Expansion, GetClosedLoop(InPointData));
 	}
 
-	TSharedPtr<FPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop)
+	TSharedPtr<IPath> MakePath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop)
 	{
 		if (bClosedLoop)
 		{
 			PCGEX_MAKE_SHARED(P, TPath<true>, InTransforms, Expansion)
-			return StaticCastSharedPtr<FPath>(P);
+			return StaticCastSharedPtr<IPath>(P);
 		}
 
 		PCGEX_MAKE_SHARED(P, TPath<false>, InTransforms, Expansion)
-		return StaticCastSharedPtr<FPath>(P);
+		return StaticCastSharedPtr<IPath>(P);
 	}
 
-	double GetPathLength(const TSharedPtr<FPath>& InPath)
+	double GetPathLength(const TSharedPtr<IPath>& InPath)
 	{
 		FPathMetrics Metrics(InPath->GetPos(0));
 		for (int i = 0; i < InPath->NumPoints; i++) { Metrics.Add(InPath->GetPos(i)); }
@@ -570,30 +571,103 @@ namespace PCGExPaths
 		return SplineStruct;
 	}
 
-#pragma endregion
-
-#pragma endregion
-
-	TSharedPtr<FPath> MakePolyPath(const UPCGBasePointData* InPointData, const double Expansion, const FVector& ProjectionUp, const double ExpansionZ)
+	TSharedPtr<FPCGSplineStruct> MakeSplineCopy(const FPCGSplineStruct& Original)
 	{
-		return MakePolyPath(InPointData->GetConstTransformValueRange(), Expansion, GetClosedLoop(InPointData), ProjectionUp, ExpansionZ);
-	}
+		const int32 NumPoints = Original.GetNumberOfPoints();
+		if (NumPoints < 1) { return nullptr; }
 
-	TSharedPtr<FPath> MakePolyPath(const TConstPCGValueRange<FTransform>& InTransforms, const double Expansion, const bool bClosedLoop, const FVector& ProjectionUp, const double ExpansionZ)
-	{
-		if (bClosedLoop)
+		const FInterpCurveVector& SplinePositions = Original.GetSplinePointsPosition();
+		TArray<FSplinePoint> SplinePoints;
+
+		auto GetPointType = [](const EInterpCurveMode Mode)-> ESplinePointType::Type
 		{
-			PCGEX_MAKE_SHARED(P, TPolyPath<true>, InTransforms, ProjectionUp, Expansion, ExpansionZ)
-			return StaticCastSharedPtr<FPath>(P);
+			switch (Mode)
+			{
+			case CIM_Linear: return ESplinePointType::Type::Linear;
+			case CIM_CurveAuto: return ESplinePointType::Type::Curve;
+			case CIM_Constant: return ESplinePointType::Type::Constant;
+			case CIM_CurveUser: return ESplinePointType::Type::CurveCustomTangent;
+			case CIM_CurveAutoClamped: return ESplinePointType::Type::CurveClamped;
+			default:
+			case CIM_Unknown:
+			case CIM_CurveBreak:
+				return ESplinePointType::Type::Curve;
+			}
+		};
+
+		PCGEx::InitArray(SplinePoints, NumPoints);
+
+		for (int i = 0; i < NumPoints; i++)
+		{
+			const FTransform TR = Original.GetTransformAtSplineInputKey(i, ESplineCoordinateSpace::Local);
+			SplinePoints[i] = FSplinePoint(
+				static_cast<float>(i),
+				TR.GetLocation(),
+				SplinePositions.Points[i].ArriveTangent,
+				SplinePositions.Points[i].LeaveTangent,
+				TR.GetRotation().Rotator(),
+				TR.GetScale3D(),
+				GetPointType(SplinePositions.Points[i].InterpMode));
 		}
 
-		PCGEX_MAKE_SHARED(P, TPolyPath<false>, InTransforms, ProjectionUp, Expansion, ExpansionZ)
-		return StaticCastSharedPtr<FPath>(P);
+		PCGEX_MAKE_SHARED(SplineStruct, FPCGSplineStruct)
+		SplineStruct->Initialize(SplinePoints, Original.bClosedLoop, Original.GetTransform());
+		return SplineStruct;
+	}
+
+#pragma endregion
+
+#pragma endregion
+
+	TSharedPtr<IPath> MakePolyPath(
+		const TSharedPtr<PCGExData::FPointIO>& PointIO, const double Expansion,
+		const FPCGExGeo2DProjectionDetails& Projection, const double ExpansionZ,
+		const EPCGExWindingMutation WindingMutation)
+	{
+		if (GetClosedLoop(PointIO))
+		{
+			PCGEX_MAKE_SHARED(P, TPolyPath<true>, PointIO, Projection, Expansion, ExpansionZ, WindingMutation)
+			return StaticCastSharedPtr<IPath>(P);
+		}
+
+		PCGEX_MAKE_SHARED(P, TPolyPath<false>, PointIO, Projection, Expansion, ExpansionZ, WindingMutation)
+		return StaticCastSharedPtr<IPath>(P);
+	}
+
+	TSharedPtr<IPath> MakePolyPath(
+		const TSharedPtr<PCGExData::FFacade>& Facade, const double Expansion,
+		const FPCGExGeo2DProjectionDetails& Projection, const double ExpansionZ,
+		const EPCGExWindingMutation WindingMutation)
+	{
+		if (GetClosedLoop(Facade->Source))
+		{
+			PCGEX_MAKE_SHARED(P, TPolyPath<true>, Facade, Projection, Expansion, ExpansionZ, WindingMutation)
+			return StaticCastSharedPtr<IPath>(P);
+		}
+
+		PCGEX_MAKE_SHARED(P, TPolyPath<false>, Facade, Projection, Expansion, ExpansionZ, WindingMutation)
+		return StaticCastSharedPtr<IPath>(P);
+	}
+
+	TSharedPtr<IPath> MakePolyPath(
+		const UPCGSplineData* SplineData,
+		const double Fidelity, const double Expansion,
+		const FPCGExGeo2DProjectionDetails& Projection, double ExpansionZ,
+		const EPCGExWindingMutation WindingMutation)
+	{
+		if (SplineData->IsClosed())
+		{
+			PCGEX_MAKE_SHARED(P, TPolyPath<true>, SplineData, Fidelity, Projection, Expansion, ExpansionZ, WindingMutation)
+			return StaticCastSharedPtr<IPath>(P);
+		}
+
+		PCGEX_MAKE_SHARED(P, TPolyPath<false>, SplineData, Fidelity, Projection, Expansion, ExpansionZ, WindingMutation)
+		return StaticCastSharedPtr<IPath>(P);
 	}
 
 	bool FPathEdgeCrossings::FindSplit(
-		const TSharedPtr<FPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength,
-		const TSharedPtr<FPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails)
+		const TSharedPtr<IPath>& Path, const FPathEdge& Edge, const TSharedPtr<FPathEdgeLength>& PathLength,
+		const TSharedPtr<IPath>& OtherPath, const FPathEdge& OtherEdge, const FPCGExPathEdgeIntersectionDetails& InIntersectionDetails)
 	{
 		if (!OtherPath->IsEdgeValid(OtherEdge)) { return false; }
 
@@ -646,12 +720,12 @@ namespace PCGExPaths
 		return false;
 	}
 
-	bool FPathEdgeCrossings::RemoveCrossing(const TSharedPtr<FPath>& Path, const int32 EdgeStartIndex)
+	bool FPathEdgeCrossings::RemoveCrossing(const TSharedPtr<IPath>& Path, const int32 EdgeStartIndex)
 	{
 		return RemoveCrossing(EdgeStartIndex, Path->IOIndex);
 	}
 
-	bool FPathEdgeCrossings::RemoveCrossing(const TSharedPtr<FPath>& Path, const FPathEdge& Edge)
+	bool FPathEdgeCrossings::RemoveCrossing(const TSharedPtr<IPath>& Path, const FPathEdge& Edge)
 	{
 		return RemoveCrossing(Edge.Start, Path->IOIndex);
 	}
@@ -670,20 +744,20 @@ namespace PCGExPaths
 }
 
 
-bool FPCGExSplineMeshMutationDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+bool FPCGExSplineMeshMutationDetails::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {
 	if (!bPushStart && !bPushEnd) { return true; }
 
 	if (bPushStart)
 	{
 		StartAmount = GetValueSettingStartPush();
-		if (!StartAmount->Init(InContext, InDataFacade)) { return false; }
+		if (!StartAmount->Init(InDataFacade)) { return false; }
 	}
 
 	if (bPushEnd)
 	{
 		EndAmount = GetValueSettingEndPush();
-		if (!EndAmount->Init(InContext, InDataFacade)) { return false; }
+		if (!EndAmount->Init(InDataFacade)) { return false; }
 	}
 
 	return true;

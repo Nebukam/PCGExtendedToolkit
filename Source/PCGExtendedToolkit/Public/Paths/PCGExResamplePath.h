@@ -96,7 +96,7 @@ namespace PCGExResamplePath
 
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
-		TSharedPtr<PCGExPaths::FPath> Path;
+		TSharedPtr<PCGExPaths::IPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 
 	public:

@@ -536,9 +536,20 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 #pragma endregion
 
+	PCGEXTENDEDTOOLKIT_API
 	bool IsPointDataVtxReady(const UPCGMetadata* Metadata);
+
+	PCGEXTENDEDTOOLKIT_API
 	bool IsPointDataEdgeReady(const UPCGMetadata* Metadata);
+
+	PCGEXTENDEDTOOLKIT_API
 	void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
+
+	PCGEXTENDEDTOOLKIT_API
+	void CleanupEdgeData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
+
+	PCGEXTENDEDTOOLKIT_API
+	void CleanupClusterData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 }
 
 namespace PCGExGraphTask

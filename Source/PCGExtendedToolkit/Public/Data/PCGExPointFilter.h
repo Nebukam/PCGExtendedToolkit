@@ -10,8 +10,11 @@
 
 
 #include "Graph/PCGExCluster.h"
+#include "Paths/PCGExPaths.h"
 
 #include "PCGExPointFilter.generated.h"
+
+class UPCGExFilterProviderSettings;
 
 UENUM()
 enum class EPCGExFilterFallback : uint8
@@ -25,6 +28,14 @@ enum class EPCGExFilterResult : uint8
 {
 	Pass = 0 UMETA(DisplayName = "Pass", ToolTip="Passes the filters"),
 	Fail = 1 UMETA(DisplayName = "Fail", ToolTip="Fails the filters"),
+};
+
+UENUM()
+enum class EPCGExFilterNoDataFallback : uint8
+{
+	Error = 0 UMETA(DisplayName = "Throw Error", ToolTip="This filter will throw an error if there is no data."),
+	Pass  = 1 UMETA(DisplayName = "Pass", ToolTip="This filter will pass if there is no data"),
+	Fail  = 2 UMETA(DisplayName = "Fail", ToolTip="This filter will fail if there is no data"),
 };
 
 namespace PCGExGraph
@@ -58,6 +69,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
+	friend UPCGExFilterProviderSettings;
+	
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
 
@@ -69,8 +82,10 @@ public:
 
 	virtual bool Init(FPCGExContext* InContext);
 
-	int32 Priority = 0;
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const;
+	
+	int32 Priority = 0;
+	EPCGExFilterNoDataFallback MissingDataHandling = EPCGExFilterNoDataFallback::Fail;
 
 protected:
 	bool bOnlyUseDataDomain = false;

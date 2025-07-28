@@ -14,13 +14,13 @@ FAttachmentTransformRules FPCGExAttachmentRules::GetRules() const
 bool FPCGExUVW::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
 	UGetter = GetValueSettingU();
-	if (!UGetter->Init(InContext, InDataFacade)) { return false; }
+	if (!UGetter->Init(InDataFacade)) { return false; }
 
 	VGetter = GetValueSettingV();
-	if (!UGetter->Init(InContext, InDataFacade)) { return false; }
+	if (!UGetter->Init(InDataFacade)) { return false; }
 
 	WGetter = GetValueSettingW();
-	if (!WGetter->Init(InContext, InDataFacade)) { return false; }
+	if (!WGetter->Init(InDataFacade)) { return false; }
 
 	PointData = InDataFacade->GetIn();
 	if (!PointData) { return false; }
@@ -154,7 +154,7 @@ bool FPCGExAxisDeformDetails::Init(FPCGExContext* InContext, const FPCGExAxisDef
 			if (bSupportPoint)
 			{
 				FirstValueGetter = Parent.GetValueSettingFirstAlpha();
-				if (!FirstValueGetter->Init(InContext, InDataFacade)) { return false; }
+				if (!FirstValueGetter->Init(InDataFacade)) { return false; }
 			}
 			else
 			{
@@ -178,7 +178,7 @@ bool FPCGExAxisDeformDetails::Init(FPCGExContext* InContext, const FPCGExAxisDef
 			if (bSupportPoint)
 			{
 				SecondValueGetter = Parent.GetValueSettingSecondAlpha();
-				if (!SecondValueGetter->Init(InContext, InDataFacade)) { return false; }
+				if (!SecondValueGetter->Init(InDataFacade)) { return false; }
 			}
 			else
 			{

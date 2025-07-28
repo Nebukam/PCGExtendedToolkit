@@ -289,7 +289,7 @@ struct FPCGExExtrudeTensorsContext final : FPCGExPointsProcessorContext
 	double ClosedLoopSearchDot = 0;
 
 	TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
-	TArray<TSharedPtr<PCGExPaths::FPath>> ExternalPaths;
+	TArray<TSharedPtr<PCGExPaths::IPath>> ExternalPaths;
 };
 
 class FPCGExExtrudeTensorsElement final : public FPCGExPointsProcessorElement
@@ -347,7 +347,7 @@ namespace PCGExExtrudeTensors
 		FProcessor* Processor = nullptr;
 		const FPCGExExtrudeTensorsContext* Context = nullptr;
 		const UPCGExExtrudeTensorsSettings* Settings = nullptr;
-		TSharedPtr<TArray<TSharedPtr<PCGExPaths::FPath>>> SolidPaths;
+		TSharedPtr<TArray<TSharedPtr<PCGExPaths::IPath>>> SolidPaths;
 		TSharedPtr<PCGExTensor::FTensorsHandler> TensorsHandler;
 		TSharedPtr<PCGExPointFilter::FManager> StopFilters;
 
@@ -626,7 +626,7 @@ namespace PCGExExtrudeTensors
 		TArray<TSharedPtr<FExtrusion>> NewExtrusions;
 
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<FExtrusion>>> CompletedExtrusions;
-		TSharedPtr<TArray<TSharedPtr<PCGExPaths::FPath>>> StaticPaths;
+		TSharedPtr<TArray<TSharedPtr<PCGExPaths::IPath>>> StaticPaths;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

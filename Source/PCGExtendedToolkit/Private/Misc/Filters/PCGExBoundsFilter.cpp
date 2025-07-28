@@ -10,36 +10,23 @@
 #define LOCTEXT_NAMESPACE "PCGExBoundsFilterDefinition"
 #define PCGEX_NAMESPACE PCGExBoundsFilterDefinition
 
-bool UPCGExBoundsFilterFactory::Init(FPCGExContext* InContext)
-{
-	if (!Super::Init(InContext)) { return false; }
-
-	TSharedPtr<PCGExData::FPointIOCollection> PointIOCollection = MakeShared<PCGExData::FPointIOCollection>(InContext, FName("Bounds"));
-	if (PointIOCollection->IsEmpty())
-	{
-		if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing bounds data.")); }
-		return false;
-	}
-
-	BoundsDataFacades.Reserve(PointIOCollection->Num());
-	Clouds.Reserve(PointIOCollection->Num());
-
-	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : PointIOCollection->Pairs)
-	{
-		PCGEX_MAKE_SHARED(NewFacade, PCGExData::FFacade, PointIO.ToSharedRef())
-		BoundsDataFacades.Add(NewFacade);
-	}
-
-	return true;
-}
-
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExBoundsFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FBoundsFilter>(this);
 }
 
-bool UPCGExBoundsFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExBoundsFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
+
+	if (!PCGExData::TryGetFacades(InContext, FName("Bounds"), BoundsDataFacades, false))
+	{
+		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing bounds data.")); } }
+		return PCGExFactories::EPreparationResult::MissingData;
+	}
+
+	Clouds.Reserve(BoundsDataFacades.Num());
 	for (const TSharedPtr<PCGExData::FFacade>& Facade : BoundsDataFacades)
 	{
 		Clouds.Add(
@@ -48,7 +35,7 @@ bool UPCGExBoundsFilterFactory::Prepare(FPCGExContext* InContext, const TSharedP
 				Config.TestMode == EPCGExBoxCheckMode::ExpandedBox || Config.TestMode == EPCGExBoxCheckMode::ExpandedSphere ? Config.Expansion * 2 : Config.Expansion));
 	}
 
-	return Super::Prepare(InContext, AsyncManager);
+	return Result;
 }
 
 void UPCGExBoundsFilterFactory::BeginDestroy()

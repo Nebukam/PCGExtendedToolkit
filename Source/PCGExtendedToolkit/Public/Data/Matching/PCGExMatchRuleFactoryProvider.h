@@ -131,7 +131,7 @@ namespace PCGExMatching
 		FDataMatcher();
 
 		bool FindIndex(const UPCGData* InData, int32& OutIndex) const;
-		
+
 		void SetDetails(const FPCGExMatchingDetails* InDetails);
 
 		bool Init(FPCGExContext* InContext, const TArray<const UPCGData*>& InTargetData, const TArray<TSharedPtr<PCGExData::FTags>>& InTags, const bool bThrowError);
@@ -145,7 +145,7 @@ namespace PCGExMatching
 
 		bool PopulateIgnoreList(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope, TSet<const UPCGData*>& OutIgnoreList) const;
 		int32 GetMatchingTargets(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate, FMatchingScope& InMatchingScope, TArray<int32>& OutMatches) const;
-		
+
 		bool HandleUnmatchedOutput(const TSharedPtr<PCGExData::FFacade>& InFacade, const bool bForward = true) const;
 
 	protected:

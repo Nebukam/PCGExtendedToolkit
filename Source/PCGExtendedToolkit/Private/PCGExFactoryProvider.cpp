@@ -147,21 +147,23 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
 					const FPCGContext::FSharedContext<FPCGExFactoryProviderContext> SharedContext(CtxHandle);
 					FPCGExFactoryProviderContext* Ctx = SharedContext.Get();
 					if (!Ctx) { return; }
-					Ctx->OutFactory->bIsAsyncPreparationSuccessful = Ctx->OutFactory->Prepare(Ctx, Ctx->GetAsyncManager());
+					Ctx->OutFactory->PrepResult = Ctx->OutFactory->Prepare(Ctx, Ctx->GetAsyncManager());
 				});
 
 			Prepare->StartSimpleCallbacks();
-
 			return false;
 		}
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
 	{
-		if (!Context->OutFactory->bIsAsyncPreparationSuccessful)
+		if (Context->OutFactory->PrepResult != PCGExFactories::EPreparationResult::Success)
 		{
-			Context->CancelExecution(TEXT(""));
-			return true;
+			if (Settings->ShouldCancel(Context, Context->OutFactory->PrepResult))
+			{
+				Context->CancelExecution(TEXT(""));
+				return true;
+			}
 		}
 	}
 

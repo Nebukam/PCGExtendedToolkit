@@ -55,7 +55,7 @@ bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFa
 	bUsePosition = (Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Position)) != 0;
 
 	UniqueKeyReader = GetValueSettingUniqueKey();
-	if (!UniqueKeyReader->Init(InContext, InFacade)) { return false; }
+	if (!UniqueKeyReader->Init(InFacade)) { return false; }
 
 	const uint32 BaseUniqueKey = UniqueKeyReader->IsConstant() ? 0 : UniqueKeyConstant;
 	if ((Uniqueness & static_cast<uint8>(EPCGExGUIDUniquenessFlags::Grid)) != 0)

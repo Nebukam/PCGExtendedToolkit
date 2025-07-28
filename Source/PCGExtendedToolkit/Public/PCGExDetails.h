@@ -38,7 +38,7 @@ enum class PCGExSpatialNoiseMask2DMode : uint8
 	FractionalBrownian,
 };
 
-#pragma endregion 
+#pragma endregion
 
 UENUM()
 enum class EPCGExInputValueType : uint8

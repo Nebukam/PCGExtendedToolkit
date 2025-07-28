@@ -32,7 +32,7 @@ protected:
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override { return true; }
-	virtual bool InitInternalData(FPCGExContext* InContext) override;
+	virtual PCGExFactories::EPreparationResult InitInternalData(FPCGExContext* InContext) override;
 	virtual bool InitInternalFacade(FPCGExContext* InContext);
 
 	virtual void BeginDestroy() override;

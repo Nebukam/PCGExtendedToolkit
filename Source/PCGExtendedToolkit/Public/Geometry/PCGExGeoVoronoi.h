@@ -43,10 +43,10 @@ namespace PCGExGeo
 
 		TVoronoi3() = default;
 		~TVoronoi3();
-		
+
 	protected:
 		void Clear();
-		
+
 	public:
 		bool Process(const TArrayView<FVector>& Positions);
 	};

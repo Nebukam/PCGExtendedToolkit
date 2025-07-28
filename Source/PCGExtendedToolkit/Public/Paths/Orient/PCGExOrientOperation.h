@@ -13,9 +13,9 @@ class FPCGExOrientOperation : public FPCGExOperation
 {
 public:
 	const UPCGExOrientInstancedFactory* Factory = nullptr;
-	TSharedPtr<PCGExPaths::FPath> Path;
+	TSharedPtr<PCGExPaths::IPath> Path;
 
-	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade, const TSharedRef<PCGExPaths::FPath>& InPath)
+	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade, const TSharedRef<PCGExPaths::IPath>& InPath)
 	{
 		Path = InPath;
 		return true;

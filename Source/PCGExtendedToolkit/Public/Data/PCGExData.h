@@ -688,6 +688,8 @@ namespace PCGExData
 
 		EPCGPointNativeProperties GetAllocations() const { return Source->GetAllocations(); }
 
+		FPCGExContext* GetContext() const;
+
 		explicit FFacade(const TSharedRef<FPointIO>& InSource):
 			Source(InSource)
 		{

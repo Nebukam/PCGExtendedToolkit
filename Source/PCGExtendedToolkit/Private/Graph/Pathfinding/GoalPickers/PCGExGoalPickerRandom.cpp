@@ -26,7 +26,7 @@ bool UPCGExGoalPickerRandom::PrepareForData(FPCGExContext* InContext, const TSha
 	if (!Super::PrepareForData(InContext, InSeedsDataFacade, InGoalsDataFacade)) { return false; }
 
 	NumGoalsBuffer = GetValueSettingNumGoals();
-	if (!NumGoalsBuffer->Init(InContext, InSeedsDataFacade, false)) { return false; }
+	if (!NumGoalsBuffer->Init(InSeedsDataFacade, false)) { return false; }
 
 	return true;
 }

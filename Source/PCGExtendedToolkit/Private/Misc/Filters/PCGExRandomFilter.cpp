@@ -66,7 +66,7 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 	{
 		if (TypedFilterFactory->Config.bRemapWeightInternally)
 		{
-			if (!WeightBuffer->Init(InContext, PointDataFacade, false, true)) { return false; }
+			if (!WeightBuffer->Init(PointDataFacade, false, true)) { return false; }
 			WeightRange = WeightBuffer->Max();
 
 			if (WeightBuffer->Min() < 0)
@@ -77,7 +77,7 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 		}
 		else
 		{
-			if (!WeightBuffer->Init(InContext, PointDataFacade)) { return false; }
+			if (!WeightBuffer->Init(PointDataFacade)) { return false; }
 		}
 	}
 
@@ -86,7 +86,7 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 	{
 		if (TypedFilterFactory->Config.bRemapThresholdInternally)
 		{
-			if (!ThresholdBuffer->Init(InContext, PointDataFacade, false, true)) { return false; }
+			if (!ThresholdBuffer->Init(PointDataFacade, false, true)) { return false; }
 			ThresholdRange = ThresholdBuffer->Max();
 
 			if (ThresholdBuffer->Min() < 0)
@@ -97,7 +97,7 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 		}
 		else
 		{
-			if (!ThresholdBuffer->Init(InContext, PointDataFacade)) { return false; }
+			if (!ThresholdBuffer->Init(PointDataFacade)) { return false; }
 		}
 	}
 

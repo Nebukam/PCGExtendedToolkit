@@ -13,9 +13,10 @@ void UPCGExPickerFactoryData::AddPicks(const int32 InNum, TSet<int32>& OutPicks)
 {
 }
 
-bool UPCGExPickerFactoryData::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExPickerFactoryData::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 	return InitInternalData(InContext);
 }
 
@@ -24,9 +25,9 @@ bool UPCGExPickerFactoryData::RequiresInputs() const
 	return false;
 }
 
-bool UPCGExPickerFactoryData::InitInternalData(FPCGExContext* InContext)
+PCGExFactories::EPreparationResult UPCGExPickerFactoryData::InitInternalData(FPCGExContext* InContext)
 {
-	return true;
+	return PCGExFactories::EPreparationResult::Success;
 }
 
 TArray<FPCGPinProperties> UPCGExPickerFactoryProviderSettings::InputPinProperties() const

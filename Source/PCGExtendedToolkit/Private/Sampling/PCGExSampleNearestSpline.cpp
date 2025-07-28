@@ -238,15 +238,15 @@ namespace PCGExSampleNearestSpline
 		}
 
 		RangeMinGetter = Settings->GetValueSettingRangeMin();
-		if (!RangeMinGetter->Init(Context, PointDataFacade)) { return false; }
+		if (!RangeMinGetter->Init(PointDataFacade)) { return false; }
 
 		RangeMaxGetter = Settings->GetValueSettingRangeMax();
-		if (!RangeMaxGetter->Init(Context, PointDataFacade)) { return false; }
+		if (!RangeMaxGetter->Init(PointDataFacade)) { return false; }
 
 		if (Settings->bSampleSpecificAlpha)
 		{
 			SampleAlphaGetter = Settings->GetValueSettingSampleAlpha();
-			if (!SampleAlphaGetter->Init(Context, PointDataFacade)) { return false; }
+			if (!SampleAlphaGetter->Init(PointDataFacade)) { return false; }
 		}
 
 		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection == EPCGExSampleSource::Source)

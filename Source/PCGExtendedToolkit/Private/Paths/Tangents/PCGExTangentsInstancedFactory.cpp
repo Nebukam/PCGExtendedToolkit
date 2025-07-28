@@ -82,10 +82,10 @@ namespace PCGExTangents
 		LastIndex = InDataFacade->GetNum() - 1;
 
 		StartScaleReader = InDetails.Scaling.GetValueSettingArriveScale();
-		if (!StartScaleReader->Init(InContext, InDataFacade)) { return false; }
+		if (!StartScaleReader->Init(InDataFacade)) { return false; }
 
 		EndScaleReader = InDetails.Scaling.GetValueSettingLeaveScale();
-		if (!EndScaleReader->Init(InContext, InDataFacade)) { return false; }
+		if (!EndScaleReader->Init(InDataFacade)) { return false; }
 
 		if (Mode == EPCGExTangentSource::InPlace)
 		{

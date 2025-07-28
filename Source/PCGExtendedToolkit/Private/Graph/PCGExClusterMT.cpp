@@ -296,7 +296,7 @@ namespace PCGExClusterMT
 
 		if (WantsProjection())
 		{
-			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(ExecutionContext, VtxDataFacade); }
+			if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { ProjectionDetails.Init(VtxDataFacade); }
 			else if (!WantsPerClusterProjection()) { ProjectionDetails.Init(PCGExGeo::FBestFitPlane(VtxDataFacade->GetIn()->GetConstTransformValueRange())); }
 		}
 

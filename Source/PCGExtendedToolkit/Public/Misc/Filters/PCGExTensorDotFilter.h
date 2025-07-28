@@ -129,12 +129,6 @@ public:
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
+	virtual bool ShowMissingDataHandling_Internal() const override { return true; }
 #endif
 };
-
-inline TArray<FPCGPinProperties> UPCGExTensorDotFilterProviderSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
-	return PinProperties;
-}

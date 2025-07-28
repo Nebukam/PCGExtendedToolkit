@@ -353,7 +353,7 @@ namespace PCGExExtrudeTensors
 
 		if (Sorter && !Sorter->Init(Context)) { Sorter.Reset(); }
 
-		StaticPaths = MakeShared<TArray<TSharedPtr<PCGExPaths::FPath>>>();
+		StaticPaths = MakeShared<TArray<TSharedPtr<PCGExPaths::IPath>>>();
 
 		if (!Context->StopFilterFactories.IsEmpty())
 		{
@@ -368,7 +368,7 @@ namespace PCGExExtrudeTensors
 		if (!AttributesToPathTags.Init(Context, PointDataFacade)) { return false; }
 
 		PerPointIterations = Settings->GetValueSettingIterations();
-		if (!PerPointIterations->Init(Context, PointDataFacade, false, true)) { return false; }
+		if (!PerPointIterations->Init(PointDataFacade, false, true)) { return false; }
 		if (!PerPointIterations->IsConstant())
 		{
 			if (Settings->bUseMaxFromPoints) { RemainingIterations = FMath::Max(RemainingIterations, PerPointIterations->Max()); }
@@ -378,13 +378,13 @@ namespace PCGExExtrudeTensors
 		if (Settings->bUseMaxLength)
 		{
 			MaxLength = Settings->GetValueSettingMaxLength();
-			if (!MaxLength->Init(Context, PointDataFacade, false)) { return false; }
+			if (!MaxLength->Init(PointDataFacade, false)) { return false; }
 		}
 
 		if (Settings->bUseMaxPointsCount)
 		{
 			MaxPointsCount = Settings->GetValueSettingMaxPointsCount();
-			if (!MaxPointsCount->Init(Context, PointDataFacade, false)) { return false; }
+			if (!MaxPointsCount->Init(PointDataFacade, false)) { return false; }
 		}
 
 		const int32 NumPoints = PointDataFacade->GetNum();
@@ -644,7 +644,7 @@ namespace PCGExExtrudeTensors
 
 						if (!E->bIsValidPath) { continue; }
 
-						TSharedPtr<PCGExPaths::FPath> StaticPath = PCGExPaths::MakePath(E->PointDataFacade->GetOut(), Settings->ExternalPathIntersections.Tolerance);
+						TSharedPtr<PCGExPaths::IPath> StaticPath = PCGExPaths::MakePath(E->PointDataFacade->GetOut(), Settings->ExternalPathIntersections.Tolerance);
 						StaticPath->BuildEdgeOctree();
 						StaticPaths.Get()->Add(StaticPath);
 					}
@@ -749,7 +749,7 @@ namespace PCGExExtrudeTensors
 				Context->ExternalPaths.Reserve(Context->PathsFacades.Num());
 				for (const TSharedPtr<PCGExData::FFacade>& Facade : Context->PathsFacades)
 				{
-					TSharedPtr<PCGExPaths::FPath> Path = PCGExPaths::MakePath(Facade->GetIn(), Settings->ExternalPathIntersections.Tolerance);
+					TSharedPtr<PCGExPaths::IPath> Path = PCGExPaths::MakePath(Facade->GetIn(), Settings->ExternalPathIntersections.Tolerance);
 					Context->ExternalPaths.Add(Path);
 					Path->BuildEdgeOctree();
 				}

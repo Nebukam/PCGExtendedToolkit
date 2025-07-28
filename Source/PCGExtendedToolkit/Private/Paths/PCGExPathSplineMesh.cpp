@@ -171,7 +171,7 @@ namespace PCGExPathSplineMesh
 		Justification.Init(ExecutionContext, PointDataFacade);
 
 		SegmentMutationDetails = Settings->MutationDetails;
-		if (!SegmentMutationDetails.Init(Context, PointDataFacade)) { return false; }
+		if (!SegmentMutationDetails.Init(PointDataFacade)) { return false; }
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;

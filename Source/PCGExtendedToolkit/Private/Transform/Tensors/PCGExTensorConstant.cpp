@@ -36,22 +36,21 @@ PCGEX_TENSOR_BOILERPLATE(
 	NewFactory->Config.WeightInput = EPCGExInputValueType::Constant;
 	}, {})
 
-bool UPCGExTensorConstantFactory::InitInternalData(FPCGExContext* InContext)
+PCGExFactories::EPreparationResult UPCGExTensorConstantFactory::InitInternalData(FPCGExContext* InContext)
 {
 	if (Config.PotencyInput == EPCGExInputValueType::Attribute)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attribute-driven Potency is not supported on Constant Tensor."));
-		return false;
+		return PCGExFactories::EPreparationResult::Fail;
 	}
 
 	if (Config.WeightInput == EPCGExInputValueType::Attribute)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attribute-driven Weight is not supported on Constant Tensor."));
-		return false;
+		return PCGExFactories::EPreparationResult::Fail;
 	}
 
-	if (!Super::InitInternalData(InContext)) { return false; }
-	return true;
+	return Super::InitInternalData(InContext);
 }
 
 #undef LOCTEXT_NAMESPACE

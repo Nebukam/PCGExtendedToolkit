@@ -63,6 +63,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Sampling);
 
+	/** Projection settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
+
 	//
 
 	/** Process inputs.*/
@@ -238,8 +242,9 @@ namespace PCGExSampleInsidePath
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleInsidePathContext, UPCGExSampleInsidePathSettings>
 	{
 		TSet<const UPCGData*> IgnoreList;
-		TSharedPtr<PCGExPaths::FPath> Path;
+		TSharedPtr<PCGExPaths::IPath> Path;
 
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
 		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 		double RangeMin = 0;

@@ -45,10 +45,10 @@ bool PCGExPointFilter::FModuloComparisonFilter::Init(FPCGExContext* InContext, c
 	}
 
 	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
-	if (!OperandB->Init(InContext, PointDataFacade)) { return false; }
+	if (!OperandB->Init(PointDataFacade)) { return false; }
 
 	OperandC = TypedFilterFactory->Config.GetValueSettingOperandC();
-	if (!OperandC->Init(InContext, PointDataFacade)) { return false; }
+	if (!OperandC->Init(PointDataFacade)) { return false; }
 
 	return true;
 }

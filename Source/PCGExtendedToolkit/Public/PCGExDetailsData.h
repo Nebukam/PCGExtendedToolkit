@@ -8,6 +8,7 @@
 #include "PCGExDetails.h"
 #include "PCGExMacros.h"
 #include "Data/PCGExData.h"
+
 #include "PCGExDetailsData.generated.h"
 
 #define PCGEX_SETTING_VALUE_GET(_NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT)\
@@ -58,7 +59,7 @@ namespace PCGExDetails
 	public:
 		bool bQuietErrors = false;
 		virtual ~TSettingValue() = default;
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) = 0;
+		virtual bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) = 0;
 		FORCEINLINE virtual void SetConstant(T InConstant)
 		{
 		}
@@ -82,15 +83,18 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
+		virtual bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
 		{
-			PCGEX_VALIDATE_NAME_C(InContext, Name)
+			FPCGExContext* Context = InDataFacade->GetContext();
+			if (!Context) { return false; }
+
+			PCGEX_VALIDATE_NAME_C(Context, Name)
 
 			Buffer = InDataFacade->GetReadable<T>(Name, PCGExData::EIOSide::In, bSupportScoped);
 
 			if (!Buffer)
 			{
-				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_ATTR_C(InContext, Attribute, Name) }
+				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_ATTR_C(Context, Attribute, Name) }
 				return false;
 			}
 
@@ -115,13 +119,16 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
+		virtual bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
 		{
+			FPCGExContext* Context = InDataFacade->GetContext();
+			if (!Context) { return false; }
+
 			Buffer = InDataFacade->GetBroadcaster<T>(Selector, bSupportScoped && !bCaptureMinMax, bCaptureMinMax);
 
 			if (!Buffer)
 			{
-				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Selector, Selector) }
+				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_SELECTOR_C(Context, Selector, Selector) }
 				return false;
 			}
 
@@ -146,7 +153,7 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override { return true; }
+		virtual bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override { return true; }
 
 		FORCEINLINE virtual bool IsConstant() override { return true; }
 		FORCEINLINE virtual void SetConstant(T InConstant) override { Constant = InConstant; };
@@ -168,11 +175,14 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
+		virtual bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
 		{
-			if (!PCGExDataHelpers::TryReadDataValue(InContext, InDataFacade->GetIn(), Selector, this->Constant))
+			FPCGExContext* Context = InDataFacade->GetContext();
+			if (!Context) { return false; }
+
+			if (!PCGExDataHelpers::TryReadDataValue(Context, InDataFacade->GetIn(), Selector, this->Constant))
 			{
-				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Selector, Selector) }
+				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_SELECTOR_C(Context, Selector, Selector) }
 				return false;
 			}
 
@@ -192,13 +202,16 @@ namespace PCGExDetails
 		{
 		}
 
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
+		virtual bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override
 		{
-			PCGEX_VALIDATE_NAME_C(InContext, Name)
+			FPCGExContext* Context = InDataFacade->GetContext();
+			if (!Context) { return false; }
 
-			if (!PCGExDataHelpers::TryReadDataValue(InContext, InDataFacade->GetIn(), Name, this->Constant))
+			PCGEX_VALIDATE_NAME_C(Context, Name)
+
+			if (!PCGExDataHelpers::TryReadDataValue(Context, InDataFacade->GetIn(), Name, this->Constant))
 			{
-				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_ATTR_C(InContext, Attribute, Name) }
+				if (!this->bQuietErrors) { PCGEX_LOG_INVALID_ATTR_C(Context, Attribute, Name) }
 				return false;
 			}
 
@@ -253,6 +266,26 @@ namespace PCGExDetails
 		T Constant = InConstant;
 		PCGExDataHelpers::TryGetSettingDataValue(InContext, InData, InInput, InName, InConstant, Constant);
 		return MakeSettingValue<T>(Constant);
+	}
+
+	template <typename T>
+	static TSharedPtr<TSettingValue<T>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const T InConstant)
+	{
+		T Constant = InConstant;
+		PCGExDataHelpers::TryGetSettingDataValue(InContext, InData, InInput, InSelector, InConstant, Constant);
+		return MakeSettingValue<T>(Constant);
+	}
+
+	template <typename T>
+	static TSharedPtr<TSettingValue<T>> MakeSettingValue(const TSharedPtr<PCGExData::FPointIO> InData, const EPCGExInputValueType InInput, const FName InName, const T InConstant)
+	{
+		return MakeSettingValue<T>(InData->GetContext(), InData->GetIn(), InInput, InName, InConstant);
+	}
+
+	template <typename T>
+	static TSharedPtr<TSettingValue<T>> MakeSettingValue(const TSharedPtr<PCGExData::FPointIO> InData, const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const T InConstant)
+	{
+		return MakeSettingValue<T>(InData->GetContext(), InData->GetIn(), InInput, InSelector, InConstant);
 	}
 
 #pragma endregion

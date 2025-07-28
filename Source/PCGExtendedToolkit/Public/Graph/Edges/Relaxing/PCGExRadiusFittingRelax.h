@@ -50,7 +50,7 @@ public:
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
 
 		RadiusBuffer = GetValueSettingRadius();
-		if (!RadiusBuffer->Init(InContext, PrimaryDataFacade)) { return false; }
+		if (!RadiusBuffer->Init(PrimaryDataFacade)) { return false; }
 
 		return true;
 	}

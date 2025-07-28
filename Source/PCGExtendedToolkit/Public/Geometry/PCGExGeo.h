@@ -226,7 +226,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	TSharedPtr<PCGExDetails::TSettingValue<FVector>> NormalGetter;
 	FQuat ProjectionQuat = FQuat::Identity;
 
-	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
+	bool Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade);
+	bool Init(const TSharedPtr<PCGExData::FPointIO>& PointIO);
+	bool Init(const UPCGData* InData);
 	void Init(const PCGExGeo::FBestFitPlane& InFitPlane);
 
 	~FPCGExGeo2DProjectionDetails()

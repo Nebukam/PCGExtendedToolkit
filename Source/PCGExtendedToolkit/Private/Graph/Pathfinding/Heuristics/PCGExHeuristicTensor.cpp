@@ -57,16 +57,18 @@ TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryTensor::CreateOperat
 
 PCGEX_HEURISTIC_FACTORY_BOILERPLATE_IMPL(Tensor, {})
 
-bool UPCGExHeuristicsFactoryTensor::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+PCGExFactories::EPreparationResult UPCGExHeuristicsFactoryTensor::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	if (!Super::Prepare(InContext, AsyncManager)) { return false; }
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
+	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
+	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
+
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return PCGExFactories::EPreparationResult::Fail; }
 	if (TensorFactories.IsEmpty())
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
-		return false;
+		return PCGExFactories::EPreparationResult::Fail;
 	}
-	return true;
+	return Result;
 }
 
 TArray<FPCGPinProperties> UPCGExHeuristicsTensorProviderSettings::InputPinProperties() const

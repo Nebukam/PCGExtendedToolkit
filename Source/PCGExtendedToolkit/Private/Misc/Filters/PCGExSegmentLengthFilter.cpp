@@ -51,10 +51,10 @@ bool PCGExPointFilter::FSegmentLengthFilter::Init(FPCGExContext* InContext, cons
 	else { IndexSafety = TypedFilterFactory->Config.IndexSafety; }
 
 	Threshold = TypedFilterFactory->Config.GetValueSettingThreshold();
-	if (!Threshold->Init(InContext, PointDataFacade)) { return false; }
+	if (!Threshold->Init(PointDataFacade)) { return false; }
 
 	Index = TypedFilterFactory->Config.GetValueSettingIndex();
-	if (!Index->Init(InContext, PointDataFacade)) { return false; }
+	if (!Index->Init(PointDataFacade)) { return false; }
 
 	return true;
 }

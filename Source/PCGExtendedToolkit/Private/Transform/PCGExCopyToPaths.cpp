@@ -229,7 +229,10 @@ namespace PCGExCopyToPaths
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
 
-		bool bUseScale = Settings->bUseScaleForDeformation;
+		bool bMutateScale = static_cast<EPCGExApplySampledComponentFlags>(Settings->TransformScale) != EPCGExApplySampledComponentFlags::All;
+		bool bMutateScaleX = !EnumHasAnyFlags(static_cast<EPCGExApplySampledComponentFlags>(Settings->TransformScale), EPCGExApplySampledComponentFlags::X);
+		bool bMutateScaleY = !EnumHasAnyFlags(static_cast<EPCGExApplySampledComponentFlags>(Settings->TransformScale), EPCGExApplySampledComponentFlags::Y);
+		bool bMutateScaleZ = !EnumHasAnyFlags(static_cast<EPCGExApplySampledComponentFlags>(Settings->TransformScale), EPCGExApplySampledComponentFlags::Z);
 
 		for (int i = 0; i < Dupes.Num(); i++)
 		{
@@ -241,7 +244,9 @@ namespace PCGExCopyToPaths
 
 			double TotalLength = Deformer->GetSplineLength();
 			float NumSegments = static_cast<float>(Deformer->GetNumberOfSplineSegments());
+
 			const FTransform& InvT = Origins[i];
+
 			bool bWrap = Deformer->IsClosedLoop() && Settings->bWrapClosedLoops;
 
 			int32 j = 0;
@@ -278,13 +283,16 @@ namespace PCGExCopyToPaths
 
 				FTransform Anchor = FTransform::Identity;
 
-				if (bWrap)
+				if (bWrap) { Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * PCGExMath::Tile<double>(UVW[0], 0.0, 1.0), ESplineCoordinateSpace::World, true); }
+				else { Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * FMath::Clamp<double>(UVW[0], 0.0, 1.0), ESplineCoordinateSpace::World, true); }
+
+				if (bMutateScale)
 				{
-					Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * PCGExMath::Tile<double>(UVW[0], 0.0, 1.0), ESplineCoordinateSpace::World, bUseScale);
-				}
-				else
-				{
-					Anchor = Deformer->GetTransformAtSplineInputKey(NumSegments * FMath::Clamp<double>(UVW[0], 0.0, 1.0), ESplineCoordinateSpace::World, bUseScale);
+					FVector MutatedScale = Anchor.GetScale3D();
+					if (bMutateScaleX) { MutatedScale.X = 1; }
+					if (bMutateScaleY) { MutatedScale.Y = 1; }
+					if (bMutateScaleZ) { MutatedScale.Z = 1; }
+					Anchor.SetScale3D(MutatedScale);
 				}
 
 				FQuat Q = Anchor.GetRotation();

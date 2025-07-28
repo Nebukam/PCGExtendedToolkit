@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
-
+#include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 #include "Sampling/PCGExSampling.h"
