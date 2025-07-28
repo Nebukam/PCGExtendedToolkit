@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExH.h"
 #include "PCGExHelpers.h"
+#include "Engine/StaticMesh.h"
 
 namespace PCGExGeo
 {
