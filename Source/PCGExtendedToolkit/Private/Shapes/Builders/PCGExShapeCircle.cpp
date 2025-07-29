@@ -42,7 +42,7 @@ void FPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	Shapes[Seed.Index] = StaticCastSharedPtr<PCGExShapes::FShape>(Circle);
 }
 
-void FPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope)
+void FPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope, const bool bOwnsData)
 {
 	const TSharedPtr<PCGExShapes::FCircle> Circle = StaticCastSharedPtr<PCGExShapes::FCircle>(InShape);
 
@@ -71,8 +71,7 @@ void FPCGExShapeCircleBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 	}
 
 	// Mark @Data.IsClosed if a single circle "owns" the data
-	if (InDataFacade->GetNum(PCGExData::EIOSide::Out) == Scope.Count &&
-		Circle->bClosedLoop) { PCGExPaths::SetClosedLoop(InDataFacade->GetOut(), true); }
+	if (bOwnsData && Circle->bClosedLoop) { PCGExPaths::SetClosedLoop(InDataFacade->GetOut(), true); }
 }
 
 PCGEX_SHAPE_BUILDER_BOILERPLATE(Circle)

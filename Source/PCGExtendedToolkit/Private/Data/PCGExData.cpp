@@ -87,6 +87,13 @@ namespace PCGExData
 		return SharedContext.Get();
 	}
 
+	FFacade::FFacade(const TSharedRef<FPointIO>& InSource)
+		: Source(InSource)
+	{
+		PCGEX_LOG_CTR(FFacade)
+	}
+
+
 	TSharedPtr<IBuffer> FFacade::GetWritable(const EPCGMetadataTypes Type, const FPCGMetadataAttributeBase* InAttribute, EBufferInit Init)
 	{
 #define PCGEX_TYPED_WRITABLE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID: return GetWritable<_TYPE>(static_cast<const FPCGMetadataAttribute<_TYPE>*>(InAttribute), Init);
@@ -121,6 +128,19 @@ namespace PCGExData
 
 		return Buffer;
 	}
+
+#pragma endregion
+
+#pragma region externalization
+
+#define PCGEX_TPL(_TYPE, _NAME, ...)\
+template class TBuffer<_TYPE>;\
+template class TArrayBuffer<_TYPE>;\
+template class TSingleValueBuffer<_TYPE>;
+
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+
+#undef PCGEX_TPL
 
 #pragma endregion
 
@@ -291,6 +311,44 @@ namespace PCGExData
 		}
 
 		return true;
+	}
+
+	void WriteId(const TSharedRef<FPointIO>& PointIO, const FName IdName, const int64 Id)
+	{
+		PointIO->Tags->Set<int64>(IdName.ToString(), Id);
+		if (PointIO->GetOut()) { WriteMark(PointIO, IdName, Id); }
+	}
+
+	UPCGBasePointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
+	{
+		const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
+		if (!SpatialData) { return nullptr; }
+
+		const UPCGBasePointData* PointData = SpatialData->ToPointData(Context);
+		if (!PointData) { return nullptr; }
+
+		return const_cast<UPCGBasePointData*>(PointData);
+	}
+
+	void FWriteBufferTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	{
+		if (!Buffer) { return; }
+		Buffer->Write(bEnsureValidKeys);
+	}
+
+	void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys)
+	{
+		if (InBuffer->GetUnderlyingDomain() == EDomainType::Data || InBuffer->bResetWithFirstValue)
+		{
+			// Immediately write data values
+			// Note : let's hope this won't put async in limbo 
+			InBuffer->Write(InEnsureValidKeys);
+		}
+		else
+		{
+			if (!AsyncManager || !AsyncManager->IsAvailable()) { InBuffer->Write(InEnsureValidKeys); }
+			PCGEX_LAUNCH(FWriteBufferTask, InBuffer, InEnsureValidKeys)
+		}
 	}
 
 #pragma endregion

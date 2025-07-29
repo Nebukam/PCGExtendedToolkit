@@ -3,6 +3,11 @@
 
 #include "Shapes/Builders/PCGExShapeGrid.h"
 
+
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderGrid"
 #define PCGEX_NAMESPACE CreateBuilderGrid
 
@@ -39,7 +44,7 @@ void FPCGExShapeGridBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	Shapes[Seed.Index] = StaticCastSharedPtr<PCGExShapes::FShape>(Grid);
 }
 
-void FPCGExShapeGridBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope)
+void FPCGExShapeGridBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope, const bool bIsolated)
 {
 	const TSharedPtr<PCGExShapes::FGrid> Grid = StaticCastSharedPtr<PCGExShapes::FGrid>(InShape);
 
