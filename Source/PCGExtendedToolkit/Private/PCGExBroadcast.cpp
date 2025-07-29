@@ -3,6 +3,8 @@
 
 #include "PCGExBroadcast.h"
 
+#include "CoreMinimal.h"
+#include "PCGExMath.h"
 #include "Data/PCGExData.h"
 
 namespace PCGEx
@@ -326,7 +328,6 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 #undef PCGEX_TPL
 
 #pragma endregion
-
 
 	bool GetComponentSelection(const TArray<FString>& Names, FInputSelectorComponentData& OutSelection)
 	{
@@ -1206,8 +1207,8 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 	}
 
 #define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
-	template _TYPE_A FSubSelection::Get<_TYPE_B, _TYPE_A>(const _TYPE_B&) const; \
-	template void FSubSelection::Set(_TYPE_A& Target, const _TYPE_B& Value) const;
+template PCGEXTENDEDTOOLKIT_API _TYPE_A FSubSelection::Get<_TYPE_B, _TYPE_A>(const _TYPE_B& Value) const; \
+template PCGEXTENDEDTOOLKIT_API void FSubSelection::Set(_TYPE_A& Target, const _TYPE_B& Value) const;
 	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 

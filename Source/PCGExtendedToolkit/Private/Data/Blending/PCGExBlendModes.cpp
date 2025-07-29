@@ -545,7 +545,7 @@ namespace PCGExBlend
 			return FMath::Lerp(A, B, W);
 		}
 	}
-
+	
 	template <typename T>
 	T Div(const T& A, const double Divider)
 	{
@@ -555,7 +555,7 @@ namespace PCGExBlend
 		}
 		else if constexpr (std::is_same_v<T, FQuat>)
 		{
-			return Div<FRotator>(A, Divider).Quaternion();
+			return Div<FRotator>(A.Rotator(), Divider).Quaternion();
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
@@ -722,25 +722,25 @@ namespace PCGExBlend
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE Min(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE Max(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE Add(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE ModSimple(const _TYPE& A, const double Modulo); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE ModComplex(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE WeightedAdd(const _TYPE& A, const _TYPE& B, const double& W); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE Sub(const _TYPE& A, const _TYPE& B, const double& W); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE WeightedSub(const _TYPE& A, const _TYPE& B, const double& W); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE UnsignedMin(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE UnsignedMax(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE AbsoluteMin(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE AbsoluteMax(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE Lerp(const _TYPE& A, const _TYPE& B, const double& W); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE Div(const _TYPE& A, const double Divider); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE Mult(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE Copy(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE NoBlend(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE NaiveHash(const _TYPE& A, const _TYPE& B); \
-extern template PCGEXTENDEDTOOLKIT_API _TYPE NaiveUnsignedHash(const _TYPE& A, const _TYPE& B);
+template PCGEXTENDEDTOOLKIT_API _TYPE Min(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE Max(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE Add(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE ModSimple(const _TYPE& A, const double Modulo); \
+template PCGEXTENDEDTOOLKIT_API _TYPE ModComplex(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE WeightedAdd(const _TYPE& A, const _TYPE& B, const double& W); \
+template PCGEXTENDEDTOOLKIT_API _TYPE Sub(const _TYPE& A, const _TYPE& B, const double& W); \
+template PCGEXTENDEDTOOLKIT_API _TYPE WeightedSub(const _TYPE& A, const _TYPE& B, const double& W); \
+template PCGEXTENDEDTOOLKIT_API _TYPE UnsignedMin(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE UnsignedMax(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE AbsoluteMin(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE AbsoluteMax(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE Lerp(const _TYPE& A, const _TYPE& B, const double& W); \
+template PCGEXTENDEDTOOLKIT_API _TYPE Div(const _TYPE& A, const double Divider); \
+template PCGEXTENDEDTOOLKIT_API _TYPE Mult(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE Copy(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE NoBlend(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE NaiveHash(const _TYPE& A, const _TYPE& B); \
+template PCGEXTENDEDTOOLKIT_API _TYPE NaiveUnsignedHash(const _TYPE& A, const _TYPE& B);
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 }
