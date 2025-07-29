@@ -34,7 +34,11 @@ void FPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	Circle->Radius = Circle->Fit.GetExtent().Length();
 	Circle->bClosedLoop = Config.bIsClosedLoop || FMath::IsNearlyEqual(Circle->AngleRange, TWO_PI);
 
-	if (Config.ResolutionMode == EPCGExResolutionMode::Distance) { Circle->NumPoints = (Circle->Radius * Circle->AngleRange) * GetResolution(Seed); }
+	if (Config.ResolutionMode == EPCGExResolutionMode::Distance) {
+		Circle->NumPoints = (Circle->Radius * Circle->AngleRange) / GetResolution(Seed);
+		// UE_LOG(LogTemp, Warning, TEXT("Circle: Radius %f / Angle %f / Resolution %f / Num Points %i"), Circle->Radius, Circle->AngleRange, GetResolution(Seed), Circle->NumPoints)
+		
+	}
 	else { Circle->NumPoints = GetResolution(Seed); }
 
 	ValidateShape(Circle);

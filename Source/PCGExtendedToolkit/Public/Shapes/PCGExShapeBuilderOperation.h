@@ -32,7 +32,7 @@ protected:
 
 	FORCEINLINE double GetResolution(const PCGExData::FConstPoint& Seed) const
 	{
-		if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance) { return FMath::Abs(Resolution->Read(Seed.Index)) * 0.01; }
+		if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance) { return FMath::Abs(Resolution->Read(Seed.Index)); }
 		return FMath::Abs(Resolution->Read(Seed.Index));
 	}
 
