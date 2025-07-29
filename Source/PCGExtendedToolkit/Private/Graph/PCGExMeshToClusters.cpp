@@ -242,8 +242,11 @@ namespace PCGExMeshToCluster
 			break;
 		case EPCGExTriangulationType::Boundaries:
 			Mesh->TriangulateMeshSynchronous();
+			if (Mesh->HullIndices.IsEmpty() || Mesh->HullEdges.IsEmpty()) { return; }
 			break;
 		}
+
+		if (!Mesh->bIsValid || Mesh->Vertices.IsEmpty()) { return; }
 
 		const TSharedPtr<PCGExData::FPointIO> RootVtx = Context->RootVtx->Emplace_GetRef<UPCGExClusterNodesData>();
 

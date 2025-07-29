@@ -1395,7 +1395,7 @@ namespace PCGExGraphTask
 
 	void FCopyGraphToPoint::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		if (!GraphBuilder->bCompiledSuccessfully) { return; }
+		if (!GraphBuilder || !GraphBuilder->bCompiledSuccessfully) { return; }
 
 		const TSharedPtr<PCGExData::FPointIO> VtxDupe = VtxCollection->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetOut(), PCGExData::EIOInit::Duplicate);
 		if (!VtxDupe) { return; }
