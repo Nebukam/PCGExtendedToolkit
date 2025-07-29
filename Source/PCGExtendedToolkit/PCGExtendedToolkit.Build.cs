@@ -30,9 +30,6 @@ public class PCGExtendedToolkit : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
-				"GeometryScriptingCore",
-				"RenderCore",
-				"RHI",
 				"PCG",
 				"PCGGeometryScriptInterop"
 			}
@@ -42,6 +39,9 @@ public class PCGExtendedToolkit : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"GeometryScriptingCore",
+				"RenderCore",
+				"RHI",
 				"GeometryCore",
 				"GeometryFramework",
 				"GeometryAlgorithms",

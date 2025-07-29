@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Geometry/PCGExGeoPrimtives.h"
 #include "ThirdParty/Delaunator/include/delaunator.hpp"
+#include "Async/ParallelFor.h"
 
 namespace PCGExGeo
 {
@@ -78,7 +79,7 @@ namespace PCGExGeo
 		if (const int32 NumPositions = Positions.Num(); Positions.IsEmpty() || NumPositions <= 2) { return false; }
 
 		TMap<uint64, int32> EdgeMap;
-		
+
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunator::Triangulate);
 
@@ -98,7 +99,7 @@ namespace PCGExGeo
 			DelaunayEdges.Reserve(NumSites);
 			Sites.Reserve(NumSites);
 
-			
+
 			EdgeMap.Reserve(NumSites);
 
 			IsValid = true;
@@ -134,6 +135,7 @@ namespace PCGExGeo
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay2D::FillHullSites);
+			
 			for (const FDelaunaySite2& Site : Sites)
 			{
 				if (Site.bOnHull)

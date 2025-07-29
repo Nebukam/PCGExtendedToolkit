@@ -240,21 +240,56 @@ namespace PCGExMeshToCluster
 			Mesh->TriangulateMeshSynchronous();
 			Mesh->MakeHollowDual();
 			break;
+		case EPCGExTriangulationType::Boundaries:
+			Mesh->TriangulateMeshSynchronous();
+			break;
 		}
 
 		const TSharedPtr<PCGExData::FPointIO> RootVtx = Context->RootVtx->Emplace_GetRef<UPCGExClusterNodesData>();
+
 		if (!RootVtx) { return; }
 
 		RootVtx->IOIndex = TaskIndex;
 
 		UPCGBasePointData* VtxPoints = RootVtx->GetOut();
-		(void)PCGEx::SetNumPointsAllocated(VtxPoints, Mesh->Vertices.Num(), EPCGPointNativeProperties::Transform);
-
-		TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);
-		for (int i = 0; i < OutTransforms.Num(); i++) { OutTransforms[i].SetLocation(Mesh->Vertices[i]); }
-
 		PCGEX_MAKE_SHARED(RootVtxFacade, PCGExData::FFacade, RootVtx.ToSharedRef())
-		PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, RootVtxFacade.ToSharedRef(), &Context->GraphBuilderDetails)
+
+		if (Mesh->DesiredTriangulationType == EPCGExTriangulationType::Boundaries)
+		{
+			const int32 NumHullVertices = Mesh->HullIndices.Num();
+			(void)PCGEx::SetNumPointsAllocated(VtxPoints, NumHullVertices, EPCGPointNativeProperties::Transform);
+
+			TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);
+
+			int32 t = 0;
+			TMap<int32, int32> IndicesRemap;
+			IndicesRemap.Reserve(NumHullVertices);
+
+			for (int32 i : Mesh->HullIndices)
+			{
+				IndicesRemap.Add(i, t);
+				OutTransforms[t++].SetLocation(Mesh->Vertices[i]);
+			}
+
+			Mesh->Edges.Empty();
+			for (const uint64 Edge : Mesh->HullEdges)
+			{
+				uint32 A = 0;
+				uint32 B = 0;
+				PCGEx::H64(Edge, A, B);
+				Mesh->Edges.Add(PCGEx::H64U(IndicesRemap[A], IndicesRemap[B]));
+			}
+		}
+		else
+		{
+			(void)PCGEx::SetNumPointsAllocated(VtxPoints, Mesh->Vertices.Num(), EPCGPointNativeProperties::Transform);
+
+			TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);
+			for (int i = 0; i < OutTransforms.Num(); i++) { OutTransforms[i].SetLocation(Mesh->Vertices[i]); }
+		}
+
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(RootVtxFacade.ToSharedRef(), &Context->GraphBuilderDetails);
+		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
 
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
@@ -269,7 +304,6 @@ namespace PCGExMeshToCluster
 				SharedContext.Get()->BaseMeshDataCollection->Add(InBuilder->EdgesIO->Pairs);
 			};
 
-		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
 		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true);
 	}
 }

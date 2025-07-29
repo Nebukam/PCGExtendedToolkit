@@ -6,15 +6,15 @@
 #include "CoreMinimal.h"
 #include "PCGExMT.h"
 
-
-//#include "PCGExGeoMesh.generated.h"
+#include "PCGExGeoMesh.generated.h" // Credit goes to @Syscrusher attention to detail :D
 
 UENUM()
 enum class EPCGExTriangulationType : uint8
 {
-	Raw    = 0 UMETA(DisplayName = "Raw Triangles", ToolTip="Make a graph from raw triangles."),
-	Dual   = 1 UMETA(DisplayName = "Dual Graph", ToolTip="Dual graph of the triangles (using triangle centroids and adjacency)."),
-	Hollow = 2 UMETA(DisplayName = "Hollow Graph", ToolTip="Connects centroid to vertices but remove triangles edges"),
+	Raw        = 0 UMETA(DisplayName = "Raw Triangles", ToolTip="Make a graph from raw triangles."),
+	Dual       = 1 UMETA(DisplayName = "Dual Graph", ToolTip="Dual graph of the triangles (using triangle centroids and adjacency)."),
+	Hollow     = 2 UMETA(DisplayName = "Hollow Graph", ToolTip="Connects centroid to vertices but remove triangles edges"),
+	Boundaries = 3 UMETA(DisplayName = "Boundaries", ToolTip="Outputs edges that are on the boundaries of the mesh (open spaces)"),
 };
 
 namespace PCGExGeo
@@ -23,22 +23,21 @@ namespace PCGExGeo
 	{
 	protected:
 		uint32 InternalIdx = 0;
+		TArray<FVector>* Vertices = nullptr;
+		FVector HashTolerance = FVector(1 / 0.001);
 
 	public:
-		TMap<uint32, TTuple<int32, uint32>> Data;
+		TMap<uint32, int32> Data;
 
-		explicit FMeshLookup(const int32 Size)
+		explicit FMeshLookup(const int32 Size, TArray<FVector>* InVertices, const FVector& InHashTolerance)
+			: Vertices(InVertices), HashTolerance(InHashTolerance)
 		{
 			Data.Reserve(Size);
+			InVertices->Reserve(Size);
 		}
 
-		FORCEINLINE uint32 Add_GetIdx(const uint32 Key, const int32 Value)
-		{
-			if (TTuple<int32, uint32>* Tuple = Data.Find(Key)) { return Tuple->Get<1>(); }
-			const int32 SnapIdx = InternalIdx;
-			Data.Add(Key, TTuple<int32, uint32>(Value, InternalIdx++));
-			return SnapIdx;
-		}
+		uint32 Add_GetIdx(const FVector& Position);
+
 
 		FORCEINLINE int32 Num() const { return Data.Num(); }
 	};
@@ -53,7 +52,10 @@ namespace PCGExGeo
 		TArray<FVector> Vertices;
 		TSet<uint64> Edges;
 		TArray<FIntVector3> Triangles;
-		TArray<FIntVector3> Adjacencies;
+		TArray<FIntVector3> Tri_Adjacency;
+		TBitArray<> Tri_IsOnHull;
+		TSet<int32> HullIndices;
+		TSet<uint64> HullEdges;
 
 		EPCGExTriangulationType DesiredTriangulationType = EPCGExTriangulationType::Raw;
 
