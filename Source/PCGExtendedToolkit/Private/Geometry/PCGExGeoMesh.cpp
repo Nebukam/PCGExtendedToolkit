@@ -6,10 +6,23 @@
 #include "CoreMinimal.h"
 #include "PCGExH.h"
 #include "PCGExHelpers.h"
+#include "StaticMeshResources.h"
 #include "Engine/StaticMesh.h"
+#include "Async/ParallelFor.h"
 
 namespace PCGExGeo
 {
+	uint32 FMeshLookup::Add_GetIdx(const FVector& Position)
+	{
+		const uint32 Key = PCGEx::GH3(Position, HashTolerance);
+		if (const int32* IdxPtr = Data.Find(Key)) { return *IdxPtr; }
+
+		const int32 Idx = Vertices->Emplace(Position);
+		Data.Add(Key, Idx);
+
+		return Idx;
+	}
+
 	void FGeoMesh::MakeDual()
 	// Need triangulate first
 	{
@@ -25,7 +38,7 @@ namespace PCGExGeo
 			const FIntVector3& Triangle = Triangles[i];
 			DualPositions[i] = (Vertices[Triangle.X] + Vertices[Triangle.Y] + Vertices[Triangle.Z]) / 3;
 
-			const FIntVector3& Adjacency = Adjacencies[i];
+			const FIntVector3& Adjacency = Tri_Adjacency[i];
 			if (Adjacency.X != -1) { Edges.Add(PCGEx::H64U(i, Adjacency.X)); }
 			if (Adjacency.Y != -1) { Edges.Add(PCGEx::H64U(i, Adjacency.Y)); }
 			if (Adjacency.Z != -1) { Edges.Add(PCGEx::H64U(i, Adjacency.Z)); }
@@ -36,7 +49,7 @@ namespace PCGExGeo
 		DualPositions.Empty();
 
 		Triangles.Empty();
-		Adjacencies.Empty();
+		Tri_Adjacency.Empty();
 	}
 
 	void FGeoMesh::MakeHollowDual()
@@ -63,7 +76,7 @@ namespace PCGExGeo
 		}
 
 		Triangles.Empty();
-		Adjacencies.Empty();
+		Tri_Adjacency.Empty();
 	}
 
 	FGeoStaticMesh::FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh)
@@ -93,30 +106,24 @@ namespace PCGExGeo
 		if (!bIsValid) { return; }
 
 		const FStaticMeshLODResources& LODResources = StaticMesh->GetRenderData()->LODResources[0];
-
 		const FPositionVertexBuffer& VertexBuffer = LODResources.VertexBuffers.PositionVertexBuffer;
 
-		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(VertexBuffer.GetNumVertices() / 3);
-		Edges.Empty();
-
 		const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
+		const int32 NumTriangles = Indices.Num() / 3;
+
+		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(VertexBuffer.GetNumVertices() / 3, &Vertices, CWTolerance);
+		Edges.Reserve(NumTriangles / 2);
+
 		for (int i = 0; i < Indices.Num(); i += 3)
 		{
-			const int32 AIdx = Indices[i];
-			const int32 BIdx = Indices[i + 1];
-			const int32 CIdx = Indices[i + 2];
-
-			const uint32 A = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(AIdx), CWTolerance), AIdx);
-			const uint32 B = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(BIdx), CWTolerance), BIdx);
-			const uint32 C = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(CIdx), CWTolerance), CIdx);
+			const uint32 A = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(Indices[i])));
+			const uint32 B = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(Indices[i + 1])));
+			const uint32 C = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(Indices[i + 2])));
 
 			if (A != B) { Edges.Add(PCGEx::H64U(A, B)); }
 			if (B != C) { Edges.Add(PCGEx::H64U(B, C)); }
 			if (C != A) { Edges.Add(PCGEx::H64U(C, A)); }
 		}
-
-		PCGEx::InitArray(Vertices, MeshLookup->Num());
-		for (const TPair<uint32, TTuple<int32, uint32>>& Pair : MeshLookup->Data) { Vertices[Pair.Value.Get<1>()] = FVector(VertexBuffer.VertexPosition(Pair.Value.Get<0>())); }
 
 		bIsLoaded = true;
 	}
@@ -131,81 +138,114 @@ namespace PCGExGeo
 		Edges.Empty();
 
 		const FStaticMeshLODResources& LODResources = StaticMesh->GetRenderData()->LODResources[0];
-
 		const FPositionVertexBuffer& VertexBuffer = LODResources.VertexBuffers.PositionVertexBuffer;
 
-		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(VertexBuffer.GetNumVertices() / 3);
-		TMap<uint64, uint64> EdgeAdjacency;
+		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(VertexBuffer.GetNumVertices() / 3, &Vertices, CWTolerance);
 
 		const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
 
-		PCGEx::InitArray(Triangles, Indices.Num() / 3);
-		int32 TriangleIndex = 0;
+		const int32 NumTriangles = Indices.Num() / 3;
+		Triangles.Init(FIntVector3(-1), NumTriangles);
+		Tri_Adjacency.Init(FIntVector3(-1), NumTriangles);
+		Tri_IsOnHull.Init(true, NumTriangles);
 
+		TMap<uint64, int32> EdgeMap;
+		EdgeMap.Reserve(NumTriangles / 2);
+
+		auto PushAdjacency = [&](const int32 Tri, const int32 OtherTri)
+		{
+			FIntVector3& Adjacency = Tri_Adjacency[Tri];
+			for (int i = 0; i < 3; i++)
+			{
+				if (Adjacency[i] == -1)
+				{
+					Adjacency[i] = OtherTri;
+					if (i == 2) { Tri_IsOnHull[Tri] = false; }
+					break;
+				}
+			}
+		};
+
+		auto PushEdge = [&](const int32 Tri, const uint64 Edge)
+		{
+			bool bIsAlreadySet = false;
+			Edges.Add(Edge, &bIsAlreadySet);
+			if (bIsAlreadySet)
+			{
+				if (int32 OtherTri = -1;
+					EdgeMap.RemoveAndCopyValue(Edge, OtherTri))
+				{
+					PushAdjacency(OtherTri, Tri);
+					PushAdjacency(Tri, OtherTri);
+				}
+			}
+			else
+			{
+				EdgeMap.Add(Edge, Tri);
+			}
+		};
+
+		int32 Ti = 0;
 		for (int i = 0; i < Indices.Num(); i += 3)
 		{
-			const int32 AIdx = Indices[i];
-			const int32 BIdx = Indices[i + 1];
-			const int32 CIdx = Indices[i + 2];
+			const uint32 A = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(Indices[i])));
+			const uint32 B = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(Indices[i + 1])));
+			const uint32 C = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(Indices[i + 2])));
 
-			const uint32 A = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(AIdx), CWTolerance), AIdx);
-			const uint32 B = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(BIdx), CWTolerance), BIdx);
-			const uint32 C = MeshLookup->Add_GetIdx(PCGEx::GH3(VertexBuffer.VertexPosition(CIdx), CWTolerance), CIdx);
+			if (A == B || B == C || C == A) { continue; }
 
-			Edges.Add(PCGEx::H64U(A, B));
-			Edges.Add(PCGEx::H64U(B, C));
-			Edges.Add(PCGEx::H64U(C, A));
+			Triangles[Ti] = FIntVector3(A, B, C);
 
-			const uint64 AB = PCGEx::H64U(A, B);
-			const uint64 BC = PCGEx::H64U(B, C);
-			const uint64 AC = PCGEx::H64U(A, C);
+			PushEdge(Ti, PCGEx::H64U(A, B));
+			PushEdge(Ti, PCGEx::H64U(B, C));
+			PushEdge(Ti, PCGEx::H64U(A, C));
 
-			Edges.Add(AB);
-			Edges.Add(BC);
-			Edges.Add(AC);
-
-			// Triangles and adjacency
-
-			// Each edge can store its adjacency as a uint64 : left triangle index, right triangle index
-
-			const uint64* AdjacencyABPtr = EdgeAdjacency.Find(AB);
-			const uint64* AdjacencyBCPtr = EdgeAdjacency.Find(BC);
-			const uint64* AdjacencyACPtr = EdgeAdjacency.Find(AC);
-
-			Triangles[TriangleIndex] = FIntVector3(A, B, C);
-
-			if (AdjacencyABPtr) { EdgeAdjacency.Add(AB, PCGEx::NH64(TriangleIndex, PCGEx::NH64B(*AdjacencyABPtr))); }
-			else { EdgeAdjacency.Add(AB, PCGEx::NH64(-1, TriangleIndex)); }
-
-			if (AdjacencyBCPtr) { EdgeAdjacency.Add(BC, PCGEx::NH64(TriangleIndex, PCGEx::NH64B(*AdjacencyBCPtr))); }
-			else { EdgeAdjacency.Add(BC, PCGEx::NH64(-1, TriangleIndex)); }
-
-			if (AdjacencyACPtr) { EdgeAdjacency.Add(AC, PCGEx::NH64(TriangleIndex, PCGEx::NH64B(*AdjacencyACPtr))); }
-			else { EdgeAdjacency.Add(AC, PCGEx::NH64(-1, TriangleIndex)); }
-
-			TriangleIndex++;
+			Ti++;
 		}
 
-		PCGEx::InitArray(Adjacencies, Triangles.Num());
-
-		for (int j = 0; j < Triangles.Num(); j++)
+		Triangles.SetNum(Ti);
+		if (Triangles.IsEmpty())
 		{
-			FIntVector3 Triangle = Triangles[j];
-
-			uint64* AdjacencyABPtr = EdgeAdjacency.Find(PCGEx::H64U(Triangle.X, Triangle.Y));
-			uint64* AdjacencyBCPtr = EdgeAdjacency.Find(PCGEx::H64U(Triangle.Y, Triangle.Z));
-			uint64* AdjacencyACPtr = EdgeAdjacency.Find(PCGEx::H64U(Triangle.X, Triangle.Z));
-
-			Adjacencies[j] = FIntVector3(
-				AdjacencyABPtr ? PCGEx::NH64NOT(*AdjacencyABPtr, j) : -1,
-				AdjacencyBCPtr ? PCGEx::NH64NOT(*AdjacencyBCPtr, j) : -1,
-				AdjacencyACPtr ? PCGEx::NH64NOT(*AdjacencyACPtr, j) : -1);
+			bIsValid = false;
+			return;
 		}
 
-		EdgeAdjacency.Empty();
+		for (int i = 0; i < Triangles.Num(); i++)
+		{
+			FIntVector3& Tri = Triangles[i];
+			const int32 A = Tri[0];
+			const int32 B = Tri[1];
+			const int32 C = Tri[2];
 
-		PCGEx::InitArray(Vertices, MeshLookup->Num());
-		for (const TPair<uint32, TTuple<int32, uint32>>& Pair : MeshLookup->Data) { Vertices[Pair.Value.Get<1>()] = FVector(VertexBuffer.VertexPosition(Pair.Value.Get<0>())); }
+			if (Tri_IsOnHull[i])
+			{
+				const uint64 AB = PCGEx::H64U(A, B);
+				const uint64 BC = PCGEx::H64U(B, C);
+				const uint64 AC = PCGEx::H64U(A, C);
+
+				// Push edges that are still waiting to be matched
+				if (EdgeMap.Contains(AB))
+				{
+					HullIndices.Add(A);
+					HullIndices.Add(B);
+					HullEdges.Add(AB);
+				}
+
+				if (EdgeMap.Contains(BC))
+				{
+					HullIndices.Add(B);
+					HullIndices.Add(C);
+					HullEdges.Add(BC);
+				}
+
+				if (EdgeMap.Contains(AC))
+				{
+					HullIndices.Add(A);
+					HullIndices.Add(C);
+					HullEdges.Add(AC);
+				}
+			}
+		};
 
 		bIsLoaded = true;
 	}
