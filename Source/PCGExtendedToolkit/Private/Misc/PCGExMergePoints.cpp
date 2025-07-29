@@ -124,7 +124,7 @@ namespace PCGExMergePoints
 							TagValue->UnderlyingType, [&](auto DummyValue2)
 							{
 								using T_REAL = decltype(DummyValue2);
-								Value = PCGEx::FSubSelection().Get<T>(StaticCastSharedPtr<PCGExData::TDataValue<T_REAL>>(TagValue)->Value);
+								Value = PCGEx::FSubSelection().Get<T_REAL, T>(StaticCastSharedPtr<PCGExData::TDataValue<T_REAL>>(TagValue)->Value);
 							});
 
 						TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);

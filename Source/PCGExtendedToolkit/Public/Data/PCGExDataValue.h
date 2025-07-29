@@ -31,8 +31,8 @@ namespace PCGExData
 		template <typename T>
 		T GetValue()
 		{
-			if (IsNumeric()) { return PCGEx::Convert<T>(AsDouble()); }
-			return PCGEx::Convert<T>(AsString());
+			if (IsNumeric()) { return PCGEx::Convert<double, T>(AsDouble()); }
+			return PCGEx::Convert<FString, T>(AsString());
 		}
 
 	protected:
@@ -125,7 +125,6 @@ namespace PCGExData
 	
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
 template class TDataValue<_TYPE>;
-
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 	
 #undef PCGEX_TPL

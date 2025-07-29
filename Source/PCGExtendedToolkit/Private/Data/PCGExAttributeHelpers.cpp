@@ -401,6 +401,13 @@ namespace PCGEx
 		}
 	}
 
+#define PCGEX_TPL(_TYPE, _NAME, ...)\
+template class TAttributeBroadcaster<_TYPE>;
+
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+
+#undef PCGEX_TPL
+
 	TSharedPtr<FAttributesInfos> GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError)
 	{
 		TSharedPtr<FAttributesInfos> OutInfos = MakeShared<FAttributesInfos>();

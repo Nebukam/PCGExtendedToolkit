@@ -205,7 +205,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 					using T = decltype(DummyValue);
 					for (int i = 0; i < Context->WorkingData.Num(); i++)
 					{
-						PCGExData::WriteMark<T>(const_cast<UPCGData*>(Context->WorkingData[i].Data.Get()), Context->CollectionIndexIdentifier, PCGEx::Convert<T>(i));
+						PCGExData::WriteMark<T>(const_cast<UPCGData*>(Context->WorkingData[i].Data.Get()), Context->CollectionIndexIdentifier, PCGEx::Convert<int32, T>(i));
 					}
 				});
 		}
@@ -219,7 +219,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 					for (int i = 0; i < Context->WorkingData.Num(); i++)
 					{
 						double NumEntries = Settings->bNormalizeNumEntries ? Context->NumEntries[i] / Context->MaxNumEntries : Context->NumEntries[i];
-						PCGExData::WriteMark<T>(const_cast<UPCGData*>(Context->WorkingData[i].Data.Get()), Context->NumEntriesIdentifier, PCGEx::Convert<T>(NumEntries));
+						PCGExData::WriteMark<T>(const_cast<UPCGData*>(Context->WorkingData[i].Data.Get()), Context->NumEntriesIdentifier, PCGEx::Convert<int32, T>(NumEntries));
 					}
 				});
 		}
@@ -259,7 +259,7 @@ namespace PCGExWriteIndex
 				PCGExDataHelpers::GetNumericType(Settings->CollectionIndexOutputType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->CollectionIndexIdentifier, PCGEx::Convert<T>(BatchIndex));
+					PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->CollectionIndexIdentifier, PCGEx::Convert<int32, T>(BatchIndex));
 				});
 		}
 
@@ -271,11 +271,11 @@ namespace PCGExWriteIndex
 					using T = decltype(DummyValue);
 					if (Settings->bNormalizeNumEntries)
 					{
-						PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGEx::Convert<T>(static_cast<double>(PointDataFacade->GetNum()) / Context->MaxNumEntries));
+						PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGEx::Convert<double, T>(static_cast<double>(PointDataFacade->GetNum()) / Context->MaxNumEntries));
 					}
 					else
 					{
-						PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGEx::Convert<T>(PointDataFacade->GetNum()));
+						PCGExData::WriteMark<T>(PointDataFacade->GetOut(), Context->NumEntriesIdentifier, PCGEx::Convert<int32, T>(PointDataFacade->GetNum()));
 					}
 				});
 		}

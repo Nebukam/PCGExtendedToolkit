@@ -104,7 +104,7 @@ template class TDataValue<_TYPE>;
 							SourceAttribute->GetTypeId(), [&](auto WorkingValue)
 							{
 								using T_WORKING = decltype(DummyValue);
-								TypedDataValue = MakeShared<TDataValue<T_WORKING>>(SubSelection.Get<T_WORKING>(Value));
+								TypedDataValue = MakeShared<TDataValue<T_WORKING>>(SubSelection.Get<T, T_WORKING>(Value));
 							});
 					}
 					else { TypedDataValue = MakeShared<TDataValue<T>>(Value); }

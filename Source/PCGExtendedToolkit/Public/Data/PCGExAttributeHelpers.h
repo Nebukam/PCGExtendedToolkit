@@ -4,6 +4,7 @@
 #pragma once
 
 #include <functional>
+#include <type_traits>
 
 #include "CoreMinimal.h"
 #include "Metadata/PCGAttributePropertySelector.h"
@@ -23,6 +24,18 @@
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
 
 #include "PCGExAttributeHelpers.generated.h"
+
+// Primary template: assumes method does NOT exist
+template <typename, typename = std::void_t<>>
+struct has_GetTypeHash_v : std::false_type
+{
+};
+
+// Specialization: chosen if T::Foo(int) is valid
+template <typename T>
+struct has_GetTypeHash_v<T, std::void_t<decltype(std::declval<T>().Foo(42))>> : std::true_type
+{
+};
 
 #pragma region Input Configs
 
@@ -437,23 +450,26 @@ namespace PCGEx
 		{
 			if (!ProcessingInfos.bIsValid) { return; }
 
-			if (DataValue)
+			if constexpr (has_GetTypeHash_v<T>::value)
 			{
-				OutUniqueValues.Add(TypedDataValue);
-			}
-			else
-			{
-				T TempMin = T{};
-				T TempMax = T{};
+				if (DataValue)
+				{
+					OutUniqueValues.Add(TypedDataValue);
+				}
+				else
+				{
+					T TempMin = T{};
+					T TempMax = T{};
 
-				int32 NumPoints = Keys->GetNum();
-				OutUniqueValues.Reserve(OutUniqueValues.Num() + NumPoints);
+					int32 NumPoints = Keys->GetNum();
+					OutUniqueValues.Reserve(OutUniqueValues.Num() + NumPoints);
 
-				TArray<T> Dump;
-				GrabAndDump(Dump, false, TempMin, TempMax);
-				OutUniqueValues.Append(Dump);
+					TArray<T> Dump;
+					GrabAndDump(Dump, false, TempMin, TempMax);
+					OutUniqueValues.Append(Dump);
 
-				OutUniqueValues.Shrink();
+					OutUniqueValues.Shrink();
+				}
 			}
 		}
 
@@ -486,6 +502,14 @@ namespace PCGEx
 			return Broadcaster;
 		}
 	};
+
+#pragma region externalization
+
+#define PCGEX_TPL(_TYPE, _NAME, ...)\
+template class TAttributeBroadcaster<_TYPE>;
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+
+#undef PCGEX_TPL
 
 #pragma endregion
 
