@@ -5,9 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMT.h"
+#include "StaticMeshResources.h"
 
 
-//#include "PCGExGeoMesh.generated.h"
+#include "PCGExGeoMesh.generated.h"
 
 UENUM()
 enum class EPCGExTriangulationType : uint8
@@ -21,6 +22,7 @@ namespace PCGExGeo
 {
 	class PCGEXTENDEDTOOLKIT_API FMeshLookup : public TSharedFromThis<FMeshLookup>
 	{
+
 	protected:
 		uint32 InternalIdx = 0;
 
