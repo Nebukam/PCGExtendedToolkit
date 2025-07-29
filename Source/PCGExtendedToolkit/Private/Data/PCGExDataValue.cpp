@@ -15,6 +15,13 @@ namespace PCGExData
 		return false;
 	}
 
+#define PCGEX_TPL(_TYPE, _NAME, ...)\
+template class TDataValue<_TYPE>;
+
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+
+#undef PCGEX_TPL
+	
 	TSharedPtr<IDataValue> TryGetValueFromTag(const FString& InTag, FString& OutLeftSide)
 	{
 		int32 DividerPosition = INDEX_NONE;
