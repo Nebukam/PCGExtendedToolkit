@@ -220,7 +220,9 @@ namespace PCGExBuildDelaunay2D
 			OutTransforms[i].SetLocation(Centroid);
 		}
 
-		SitesIO->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButTransform);
+		EPCGPointNativeProperties Allocate = EPCGPointNativeProperties::All;
+		EnumRemoveFlags(Allocate, EPCGPointNativeProperties::Transform);
+		SitesIO->ConsumeIdxMapping(Allocate);
 
 		if (Settings->bMarkSiteHull)
 		{

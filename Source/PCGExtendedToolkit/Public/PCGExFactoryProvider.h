@@ -10,10 +10,6 @@
 #include "UObject/Object.h"
 
 #include "PCGEx.h"
-#include "PCGExContext.h"
-#include "PCGExMacros.h"
-#include "PCGExGlobalSettings.h"
-#include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointData.h"
 
 #include "PCGExFactoryProvider.generated.h"
@@ -22,6 +18,11 @@
 #define PCGEX_FACTORY_NEW_OPERATION(_TYPE) TSharedPtr<FPCGEx##_TYPE> NewOperation = MakeShared<FPCGEx##_TYPE>();
 
 ///
+
+namespace PCGExData
+{
+	class FFacadePreloader;
+}
 
 struct FPCGExFactoryProviderContext;
 
@@ -139,7 +140,7 @@ public:
 #if WITH_EDITOR
 	//PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FactoryProvider, "Factory : Provider", "Creates an abstract factory provider.", FName(GetDisplayName()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilter; }
+	virtual FLinearColor GetNodeTitleColor() const override;
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
 #endif
 
@@ -224,47 +225,19 @@ public:
 
 namespace PCGExFactories
 {
+	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, bool bThrowError);
+
 	template <typename T_DEF>
 	static bool GetInputFactories(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const T_DEF>>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
 	{
-		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
-		TSet<uint32> UniqueData;
-		UniqueData.Reserve(Inputs.Num());
+		TArray<TObjectPtr<const UPCGExFactoryData>> BaseFactories;
+		if (!GetInputFactories_Internal(InContext, InLabel, BaseFactories, Types, bThrowError)) { return false; }
 
-		for (const FPCGTaggedData& TaggedData : Inputs)
-		{
-			bool bIsAlreadyInSet;
-			UniqueData.Add(TaggedData.Data->GetUniqueID(), &bIsAlreadyInSet);
-			if (bIsAlreadyInSet) { continue; }
-
-			if (const T_DEF* Factory = Cast<T_DEF>(TaggedData.Data))
-			{
-				if (!Types.Contains(Factory->GetFactoryType()))
-				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Input '{0}' is not supported."), FText::FromString(Factory->GetClass()->GetName())));
-					continue;
-				}
-
-				OutFactories.AddUnique(Factory);
-				Factory->RegisterAssetDependencies(InContext);
-
-				Factory->RegisterConsumableAttributes(InContext);
-			}
-			else
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Input '{0}' is not supported."), FText::FromString(TaggedData.Data->GetClass()->GetName())));
-			}
-		}
-
-		if (OutFactories.IsEmpty())
-		{
-			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing required '{0}' inputs."), FText::FromName(InLabel))); }
-			return false;
-		}
-
+		// Cast back to T_DEF
+		for (const TObjectPtr<const UPCGExFactoryData>& Base : BaseFactories) { if (const T_DEF* Derived = Cast<T_DEF>(Base)) { OutFactories.Add(Derived); } }
 		OutFactories.Sort([](const T_DEF& A, const T_DEF& B) { return A.Priority < B.Priority; });
 
-		return true;
+		return !OutFactories.IsEmpty();
 	}
 
 	template <typename T_DEF>
@@ -313,8 +286,4 @@ namespace PCGExFactories
 
 		InFactory->RegisterConsumableAttributesWithData(SharedContext.Get(), Data);
 	}
-
-#if WITH_EDITOR
-	void EDITOR_SortPins(UPCGSettings* InSettings, FName InPin);
-#endif
 }

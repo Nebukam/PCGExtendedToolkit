@@ -4,22 +4,40 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "Data/PCGExAttributeHelpers.h"
-#include "PCGExMT.h"
 #include "PCGExEdge.h"
-#include "PCGExDetailsIntersection.h"
-#include "Data/PCGExData.h"
-#include "Data/Blending/PCGExUnionBlender.h"
-
 
 #include "PCGExGraph.generated.h"
+
+struct FPCGExCarryOverDetails;
+struct FPCGExEdgeUnionMetadataDetails;
+struct FPCGExPointUnionMetadataDetails;
+struct FPCGExEdgeEdgeIntersectionDetails;
+struct FPCGExPointEdgeIntersectionDetails;
+struct FPCGExPointPointIntersectionDetails;
+
+namespace PCGExDetails
+{
+	class FDistances;
+}
+
+namespace PCGExData
+{
+	class FUnionMetadata;
+	template<typename T>
+	class TBuffer;
+}
+
+namespace PCGExDataBlending
+{
+	class FUnionBlender;
+}
 
 struct FPCGExBlendingDetails;
 struct FPCGExTransformDetails;
 
 namespace PCGExGraph
 {
+	struct FLink;
 	class FGraphBuilder;
 	class FSubGraph;
 

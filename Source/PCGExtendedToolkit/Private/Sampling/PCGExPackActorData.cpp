@@ -3,9 +3,11 @@
 
 #include "Sampling/PCGExPackActorData.h"
 
+#include "PCGComponent.h"
 #include "PCGExPointsProcessor.h"
 #include "Elements/PCGExecuteBlueprint.h"
 #include "PCGExSubSystem.h"
+#include "Engine/AssetManager.h"
 
 
 #include "Misc/PCGExSortPoints.h"

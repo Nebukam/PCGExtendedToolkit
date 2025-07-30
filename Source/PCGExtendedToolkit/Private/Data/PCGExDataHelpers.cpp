@@ -61,7 +61,7 @@ template PCGEXTENDEDTOOLKIT_API void SetDataValue(FPCGMetadataAttribute<_TYPE>* 
 		if (!InMetadata) { return false; }
 
 		PCGEx::FSubSelection SubSelection(InSelector);
-		FPCGAttributeIdentifier SanitizedIdentifier = PCGEx::GetAttributeIdentifier<true>(InSelector, InData);
+		FPCGAttributeIdentifier SanitizedIdentifier = PCGEx::GetAttributeIdentifier(InSelector, InData);
 
 		if (const FPCGMetadataAttributeBase* SourceAttribute = InMetadata->GetConstAttribute(SanitizedIdentifier))
 		{

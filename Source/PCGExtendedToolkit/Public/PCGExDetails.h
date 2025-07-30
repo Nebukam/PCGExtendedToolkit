@@ -5,12 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
-
-#include "PCGExContext.h"
+#include "Elements/PCGActorSelector.h"
 
 #include "PCGExDetails.generated.h"
 
 #pragma region PCG exposition
+struct FPCGExContext;
 // Exposed copy of the otherwise private PCG' spatial noise mode enum
 UENUM(BlueprintType)
 enum class PCGExSpatialNoiseMode : uint8
@@ -110,7 +110,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollisionDetails
 	FPCGActorSelectorSettings IgnoredActorSelector;
 
 	TArray<AActor*> IgnoredActors;
-
 	UWorld* World = nullptr;
 
 	void Init(FPCGExContext* InContext);

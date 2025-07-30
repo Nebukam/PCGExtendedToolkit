@@ -3,6 +3,7 @@
 
 #include "Actions/PCGExActionFactoryProvider.h"
 #include "PCGPin.h"
+#include "Data/PCGExDataFilter.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExWriteActions"

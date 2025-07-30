@@ -4,6 +4,7 @@
 #include "PCGEx.h"
 
 #include "PCGExH.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 
 namespace PCGEx
 {

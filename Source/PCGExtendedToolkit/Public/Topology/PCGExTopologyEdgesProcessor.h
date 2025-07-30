@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExContext.h"
+#include "PCGComponent.h"
 #include "PCGExDynamicMeshComponent.h"
 #include "PCGExTopology.h"
 #include "Data/PCGDynamicMeshData.h"

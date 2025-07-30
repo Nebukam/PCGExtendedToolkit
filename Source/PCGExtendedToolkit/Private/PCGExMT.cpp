@@ -3,7 +3,11 @@
 
 
 #include "PCGExMT.h"
+
 #include "Tasks/Task.h"
+#include "PCGExHelpers.h"
+#include "PCGExContext.h"
+#include "PCGExGlobalSettings.h"
 
 namespace PCGExMT
 {
@@ -55,6 +59,15 @@ namespace PCGExMT
 		}
 
 		return OutSubRanges.Num();
+	}
+
+	void AssertEmptyThread(const int32 MaxItems)
+	{
+		// This error can only be triggered from two places, and it's due to an edge-case that's setup-dependant
+		// I have not been able to repro these edges cases (starting task groups with zero tasks, so they can't ever complete)
+		// If you read this, please let me know what let you there so I can fix it!
+		UE_LOG(LogPCGEx, Error, TEXT("StartRanges: MaxItems = %i // Graph will never finish execution! You can temporarily enable bAssertOnEmptyThread in PCGEx debug settings and hook a debugger to get a stack trace."), MaxItems);
+		if (GetDefault<UPCGExGlobalSettings>()->bAssertOnEmptyThread) { ensure(false); }
 	}
 
 	FAsyncHandle::~FAsyncHandle()

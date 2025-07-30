@@ -17,6 +17,7 @@
 #include "PCGExContext.h"
 #include "PCGExDataTag.h"
 #include "PCGExH.h"
+#include "PCGExHelpers.h"
 #include "PCGParamData.h"
 
 namespace PCGExData
@@ -321,38 +322,16 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 
 		FORCEINLINE bool IsForwarding() const { return Out && Out == In; }
 
-		explicit FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle):
-			ContextHandle(InContextHandle), In(nullptr)
-		{
-			PCGEX_LOG_CTR(FPointIO)
-		}
-
-		explicit FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle, const UPCGBasePointData* InData):
-			ContextHandle(InContextHandle), In(InData)
-		{
-			PCGEX_LOG_CTR(FPointIO)
-		}
-
-		explicit FPointIO(const TSharedRef<FPointIO>& InPointIO):
-			ContextHandle(InPointIO->GetContextHandle()), In(InPointIO->GetIn())
-		{
-			PCGEX_LOG_CTR(FPointIO)
-			RootIO = InPointIO;
-
-			TSet<FString> TagDump;
-			InPointIO->Tags->DumpTo(TagDump); // Not ideal.
-
-			Tags = MakeShared<FTags>(TagDump);
-		}
+		explicit FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle);
+		explicit FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle, const UPCGBasePointData* InData);
+		explicit FPointIO(const TSharedRef<FPointIO>& InPointIO);
 
 		EPCGPointNativeProperties GetAllocations() const { return In ? In->GetAllocatedProperties() : EPCGPointNativeProperties::None; }
 
 		TWeakPtr<FPCGContextHandle> GetContextHandle() const { return ContextHandle; }
 		FPCGExContext* GetContext() const;
 
-		void SetInfos(const int32 InIndex,
-		              const FName InOutputPin,
-		              const TSet<FString>* InTags = nullptr);
+		void SetInfos(const int32 InIndex, const FName InOutputPin, const TSet<FString>* InTags = nullptr);
 
 		bool InitializeOutput(EIOInit InitOut = EIOInit::NoInit);
 
@@ -760,82 +739,19 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 	{
 		int32 GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const EIOSide InSide = EIOSide::In);
 
-		static const UPCGBasePointData* GetPointData(const FPCGContext* Context, const FPCGTaggedData& Source)
-		{
-			const UPCGBasePointData* PointData = Cast<const UPCGBasePointData>(Source.Data);
-			if (!PointData) { return nullptr; }
+		PCGEXTENDEDTOOLKIT_API
+		const UPCGBasePointData* GetPointData(const FPCGContext* Context, const FPCGTaggedData& Source);
 
-			return PointData;
-		}
+		PCGEXTENDEDTOOLKIT_API
+		UPCGBasePointData* GetMutablePointData(const FPCGContext* Context, const FPCGTaggedData& Source);
 
-		static UPCGBasePointData* GetMutablePointData(const FPCGContext* Context, const FPCGTaggedData& Source)
-		{
-			const UPCGBasePointData* PointData = GetPointData(Context, Source);
-			if (!PointData) { return nullptr; }
-
-			return const_cast<UPCGBasePointData*>(PointData);
-		}
-
-		static const UPCGBasePointData* ToPointData(FPCGExContext* Context, const FPCGTaggedData& Source)
-		{
-			// NOTE : This has a high probability of creating new data on the fly
-			// so it should absolutely not be used to be inherited or duplicated
-			// since it would mean point data that inherit potentially destroyed parents
-			if (const UPCGBasePointData* RealPointData = Cast<const UPCGBasePointData>(Source.Data))
-			{
-				return RealPointData;
-			}
-			if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data))
-			{
-				// Currently we support collapsing to point data only, but at some point in the future that might be different
-				const UPCGBasePointData* PointData = Cast<const UPCGSpatialData>(SpatialData)->ToPointData(Context);
-
-				//Keep track of newly created data internally
-				if (PointData != SpatialData) { Context->ManagedObjects->Add(const_cast<UPCGBasePointData*>(PointData)); }
-				return PointData;
-			}
-
-			if (const UPCGParamData* ParamData = Cast<UPCGParamData>(Source.Data))
-			{
-				const UPCGMetadata* ParamMetadata = ParamData->Metadata;
-				const int64 ParamItemCount = ParamMetadata->GetLocalItemCount();
-
-				if (ParamItemCount != 0)
-				{
-					UPCGBasePointData* PointData = Cast<UPCGBasePointData>(Context->ManagedObjects->New<UPCGPointArrayData>());
-					check(PointData->Metadata);
-					PointData->Metadata->Initialize(ParamMetadata);
-					PointData->SetNumPoints(ParamItemCount);
-					PointData->AllocateProperties(EPCGPointNativeProperties::MetadataEntry);
-					TPCGValueRange<int64> MetadataEntryRange = PointData->GetMetadataEntryValueRange(/*bAllocate=*/false);
-
-					for (int PointIndex = 0; PointIndex < ParamItemCount; ++PointIndex) { MetadataEntryRange[PointIndex] = PointIndex; }
-
-					return PointData;
-				}
-			}
-
-			return nullptr;
-		}
+		PCGEXTENDEDTOOLKIT_API
+		const UPCGBasePointData* ToPointData(FPCGExContext* Context, const FPCGTaggedData& Source);
 	}
 
 	PCGEXTENDEDTOOLKIT_API
 	void GetPoints(const FScope& Scope, TArray<FPCGPoint>& OutPCGPoints);
 
-	static TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bThrowError)
-	{
-		TSharedPtr<FPointIO> SingleIO;
-		const TSharedPtr<FPointIOCollection> Collection = MakeShared<FPointIOCollection>(InContext, InputPinLabel, EIOInit::NoInit, bTransactional);
-
-		if (!Collection->Pairs.IsEmpty() && Collection->Pairs[0]->GetNum() > 0)
-		{
-			SingleIO = Collection->Pairs[0];
-		}
-		else if (bThrowError)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FText::FromString(TEXT("Missing or zero-points '{0}' inputs")), FText::FromName(InputPinLabel)));
-		}
-
-		return SingleIO;
-	}
+	PCGEXTENDEDTOOLKIT_API
+	TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bThrowError);
 }

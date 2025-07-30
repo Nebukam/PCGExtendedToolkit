@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExRandomFilter.h"
 
+#include "PCGExRandom.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition

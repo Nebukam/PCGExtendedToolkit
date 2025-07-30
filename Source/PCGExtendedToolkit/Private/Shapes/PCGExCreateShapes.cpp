@@ -3,6 +3,7 @@
 
 #include "Shapes/PCGExCreateShapes.h"
 
+#include "PCGExRandom.h"
 #include "Data/PCGExData.h"
 #include "Paths/PCGExPaths.h"
 

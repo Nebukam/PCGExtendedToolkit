@@ -9,6 +9,8 @@
 
 #include "PCGExGeoPointBox.generated.h"
 
+class UPCGBasePointData;
+
 UENUM()
 enum class EPCGExBoxCheckMode : uint8
 {
@@ -67,7 +69,7 @@ namespace PCGExGeo
 		{
 		}
 
-		FORCEINLINE uint64 GetKey() const { return PCGEx::H64U(Start, End); }
+		uint64 GetKey() const;
 
 		void Sort();
 		void SortAndDedupe();
@@ -323,8 +325,7 @@ namespace PCGExGeo
 #pragma endregion
 
 		void Sample(const FVector& Position, FSample& OutSample) const;
-
-		FORCEINLINE void Sample(const PCGExData::FConstPoint& Point, FSample& OutSample) const { Sample(Point.GetTransform().GetLocation(), OutSample); }
+		void Sample(const PCGExData::FConstPoint& Point, FSample& OutSample) const;
 
 #pragma region Intersections
 

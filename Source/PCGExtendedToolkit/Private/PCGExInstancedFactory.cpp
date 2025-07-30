@@ -2,7 +2,11 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExInstancedFactory.h"
+
+#include "PCGExPropertyHelpers.h"
 #include "PCGParamData.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExAttributeHelpers.h"
 
 void UPCGExInstancedFactory::BindContext(FPCGExContext* InContext)
 {

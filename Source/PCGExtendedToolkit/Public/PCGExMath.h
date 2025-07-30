@@ -6,7 +6,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
-
 #include "PCGExMath.generated.h"
 
 #define MIN_dbl_neg MAX_dbl *-1

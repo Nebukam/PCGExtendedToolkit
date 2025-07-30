@@ -1231,14 +1231,14 @@ template PCGEXTENDEDTOOLKIT_API void FSubSelection::Set(_TYPE_A& Target, const _
 		{
 			// TODO : Try the other way around if we don't find it at first 
 			if (!Data->Metadata) { return false; }
-			if (const FPCGMetadataAttributeBase* AttributeBase = Data->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(FixedSelector, Data)))
+			if (const FPCGMetadataAttributeBase* AttributeBase = Data->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier(FixedSelector, Data)))
 			{
 				OutType = static_cast<EPCGMetadataTypes>(AttributeBase->GetTypeId());
 			}
 			else if (const UPCGBasePointData* OutData = InDataFacade->Source->GetOut(); OutData && InOutSide == PCGExData::EIOSide::In)
 			{
 				// Failed to find attribute on input, try to find it on output if there is one
-				if (const FPCGMetadataAttributeBase* OutAttributeBase = OutData->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(FixedSelector, OutData)))
+				if (const FPCGMetadataAttributeBase* OutAttributeBase = OutData->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier(FixedSelector, OutData)))
 				{
 					OutType = static_cast<EPCGMetadataTypes>(OutAttributeBase->GetTypeId());
 					InOutSide = PCGExData::EIOSide::Out;
@@ -1247,7 +1247,7 @@ template PCGEXTENDEDTOOLKIT_API void FSubSelection::Set(_TYPE_A& Target, const _
 			else if (const UPCGBasePointData* InData = InDataFacade->Source->GetIn(); InData && InOutSide == PCGExData::EIOSide::Out)
 			{
 				// Failed to find attribute on input, try to find it on output if there is one
-				if (const FPCGMetadataAttributeBase* InAttributeBase = InData->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(FixedSelector, InData)))
+				if (const FPCGMetadataAttributeBase* InAttributeBase = InData->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier(FixedSelector, InData)))
 				{
 					OutType = static_cast<EPCGMetadataTypes>(InAttributeBase->GetTypeId());
 					InOutSide = PCGExData::EIOSide::In;

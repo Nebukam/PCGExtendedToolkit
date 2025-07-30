@@ -2,14 +2,21 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
+#include "Metadata/PCGAttributePropertySelector.h"
 
 #include "CoreMinimal.h"
-#include "PCGExDataMath.h"
 #include "PCGExDetails.h"
-#include "Data/PCGExData.h"
-#include "PCGExRandom.h"
-
 #include "PCGExFitting.generated.h"
+
+namespace PCGExData
+{
+	struct FProxyPoint;
+	class FFacade;
+	struct FConstPoint;
+
+	template <typename T>
+	class TBuffer;
+}
 
 UENUM(BlueprintType)
 enum class EPCGExFitMode : uint8
@@ -109,11 +116,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleJustifyDetails
 {
 	GENERATED_BODY()
 
-	FPCGExSingleJustifyDetails()
-	{
-		FromSourceAttribute.Update(TEXT("None"));
-		ToSourceAttribute.Update(TEXT("None"));
-	}
+	FPCGExSingleJustifyDetails();
 
 	/** Reference point inside the bounds getting justified */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -303,33 +306,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingDetailsHandler
 
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InTargetFacade);
 
-	template <bool bWorldSpace = true>
-	void ComputeTransform(const int32 TargetIndex, FTransform& OutTransform, FBox& InOutBounds) const
-	{
-		//
-		check(TargetDataFacade);
-		const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
-		const FTransform& InTransform = TargetPoint.GetTransform();
-
-		if constexpr (bWorldSpace) { OutTransform = InTransform; }
-
-		FVector OutScale = InTransform.GetScale3D();
-		const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
-		const FBox& OriginalInBounds = InOutBounds;
-
-		ScaleToFit.Process(TargetPoint, OriginalInBounds, OutScale, InOutBounds);
-
-		//
-
-		FVector OutTranslation = FVector::ZeroVector;
-		Justification.Process(
-			TargetIndex, RefBounds,
-			FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
-			OutTranslation);
-
-		OutTransform.AddToTranslation(InTransform.GetRotation().RotateVector(OutTranslation));
-		OutTransform.SetScale3D(OutScale);
-	}
+	void ComputeTransform(const int32 TargetIndex, FTransform& OutTransform, FBox& InOutBounds, const bool bWorldSpace = true) const;
 
 	bool WillChangeBounds() const;
 	bool WillChangeTransform() const;

@@ -4,20 +4,19 @@
 #pragma once
 
 #include "Misc/ScopeRWLock.h"
-#include "UObject/ObjectPtr.h"
+//#include "UObject/ObjectPtr.h"
 #include "Templates/SharedPointer.h"
 #include "Templates/SharedPointerFwd.h"
-#include "Curves/CurveFloat.h"
+//#include "Curves/CurveFloat.h"
 #include "Math/GenericOctree.h"
-#include "CollisionQueryParams.h"
-#include "GameFramework/Actor.h"
-#include "Engine/HitResult.h"
-#include "Engine/World.h"
-#include "Engine/StaticMesh.h"
-#include "Components/StaticMeshComponent.h"
-#include "StaticMeshResources.h"
-
-#include "PCGExHelpers.h"
+//#include "CollisionQueryParams.h"
+//#include "GameFramework/Actor.h"
+//#include "Engine/HitResult.h"
+//#include "Engine/World.h"
+//#include "Engine/StaticMesh.h"
+//#include "Components/StaticMeshComponent.h"
+//#include "StaticMeshResources.h"
+//#include "PCGExHelpers.h"
 
 #include "PCGExMacros.h"
 
@@ -183,15 +182,6 @@ namespace PCGEx
 	const FString META_PCGExDocURL = TEXT("PCGExNodeLibraryDoc");
 	const FString META_PCGExDocNodeLibraryBaseURL = TEXT("https://pcgex.gitbook.io/pcgex/node-library/");
 #endif
-
-	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMeta =
-		EPCGPointNativeProperties::All & ~EPCGPointNativeProperties::MetadataEntry;
-
-	constexpr EPCGPointNativeProperties AllPointNativePropertiesButTransform =
-		EPCGPointNativeProperties::All & ~EPCGPointNativeProperties::Transform;
-
-	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMetaAndTransform =
-		EPCGPointNativeProperties::All & ~(EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Transform);
 
 	const FName DEPRECATED_NAME = TEXT("#DEPRECATED");
 

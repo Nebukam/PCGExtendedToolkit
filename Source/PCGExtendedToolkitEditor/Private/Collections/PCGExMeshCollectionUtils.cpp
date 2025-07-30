@@ -5,6 +5,7 @@
 
 #include "PCGExtendedToolkitEditor.h"
 #include "FileHelpers.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"

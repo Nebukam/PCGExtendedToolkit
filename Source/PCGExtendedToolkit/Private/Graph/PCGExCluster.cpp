@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExCluster.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExDataPreloader.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/Data/PCGExClusterData.h"
 

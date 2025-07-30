@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGExInstancedFactory.h"
 
 #include "PCGExMT.h"
@@ -243,7 +244,7 @@ namespace PCGExPointsMT
 		virtual void Write();
 		virtual void Output();
 		virtual void Cleanup();
-
+		
 	protected:
 		void InternalInitProcessor(const TSharedPtr<IProcessor>& InProcessor, const int32 InIndex);
 	};

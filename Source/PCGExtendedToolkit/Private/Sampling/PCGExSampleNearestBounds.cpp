@@ -6,6 +6,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 #include "Geometry/PCGExGeoPointBox.h"
 
 

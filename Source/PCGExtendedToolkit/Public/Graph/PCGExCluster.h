@@ -8,7 +8,6 @@
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
 #include "PCGExSorting.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -126,8 +125,8 @@ namespace PCGExCluster
 		TSharedPtr<TArray<double>> EdgeLengths;
 		TConstPCGValueRange<FTransform> VtxTransforms;
 
-		FBox Bounds;
-		FVector2D ProjectedCentroid;
+		FBox Bounds = FBox(NoInit);
+		FVector2D ProjectedCentroid = FVector2D::ZeroVector;
 
 		const UPCGBasePointData* VtxPoints = nullptr;
 

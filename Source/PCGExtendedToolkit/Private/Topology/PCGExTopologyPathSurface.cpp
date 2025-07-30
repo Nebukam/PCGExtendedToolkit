@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Topology/PCGExTopologyPathSurface.h"
+
+#include "PCGComponent.h"
 #include "Data/PCGDynamicMeshData.h" // Redundant but required for build on Linux 
 
 #include "Topology/PCGExTopology.h"

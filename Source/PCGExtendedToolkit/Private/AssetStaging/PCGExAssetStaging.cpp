@@ -3,6 +3,7 @@
 
 #include "AssetStaging/PCGExAssetStaging.h"
 
+#include "PCGExRandom.h"
 #include "Debug/PCGExDrawAttributes.h"
 
 

@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExSplineToPath.h"
 
+#include "PCGExRandom.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 #include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampleNearestSpline.h"

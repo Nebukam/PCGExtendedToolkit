@@ -96,7 +96,7 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	}
 	if (Config.OutputTo.GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
-		const FPCGMetadataAttributeBase* OutAttribute = TargetFacade->GetOut()->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(Config.OutputTo, TargetFacade->GetOut()));
+		const FPCGMetadataAttributeBase* OutAttribute = TargetFacade->GetOut()->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier(Config.OutputTo, TargetFacade->GetOut()));
 		if (OutAttribute)
 		{
 			RealTypeC = static_cast<EPCGMetadataTypes>(OutAttribute->GetTypeId());

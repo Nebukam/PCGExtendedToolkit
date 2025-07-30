@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExGetTextureData.h"
 
+#include "PCGComponent.h"
 #include "Data/PCGRenderTargetData.h"
 #include "Data/PCGTextureData.h"
 #include "Engine/TextureRenderTarget2D.h"

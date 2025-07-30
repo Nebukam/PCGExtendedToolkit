@@ -4,6 +4,7 @@
 #include "Graph/PCGExBuildCustomGraph.h"
 
 
+#include "PCGComponent.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionProcessor.h"

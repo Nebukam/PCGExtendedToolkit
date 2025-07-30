@@ -226,7 +226,7 @@ template class PCGEXTENDEDTOOLKIT_API TDirectDataAttributeProxy<_TYPE_A, _TYPE_B
 
 							if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 							{
-								const FPCGMetadataAttribute<T_REAL>* Attribute = PCGEx::TryGetConstAttribute<T_REAL>(InDataFacade->GetIn(), PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
+								const FPCGMetadataAttribute<T_REAL>* Attribute = PCGEx::TryGetConstAttribute<T_REAL>(InDataFacade->GetIn(), PCGEx::GetAttributeIdentifier(InDescriptor.Selector, InDataFacade->GetIn()));
 								if (!Attribute)
 								{
 									TypedProxy->SetConstant(0);
@@ -276,11 +276,11 @@ template class PCGEXTENDEDTOOLKIT_API TDirectDataAttributeProxy<_TYPE_A, _TYPE_B
 								{
 									if (InDescriptor.Side == EIOSide::In)
 									{
-										InAttribute = PCGEx::TryGetConstAttribute<T_REAL>(InDataFacade->GetIn(), PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
+										InAttribute = PCGEx::TryGetConstAttribute<T_REAL>(InDataFacade->GetIn(), PCGEx::GetAttributeIdentifier(InDescriptor.Selector, InDataFacade->GetIn()));
 									}
 									else
 									{
-										InAttribute = PCGEx::TryGetConstAttribute<T_REAL>(InDataFacade->GetOut(), PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetIn()));
+										InAttribute = PCGEx::TryGetConstAttribute<T_REAL>(InDataFacade->GetOut(), PCGEx::GetAttributeIdentifier(InDescriptor.Selector, InDataFacade->GetIn()));
 									}
 
 									if (InAttribute) { OutAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute); }
@@ -289,7 +289,7 @@ template class PCGEXTENDEDTOOLKIT_API TDirectDataAttributeProxy<_TYPE_A, _TYPE_B
 								}
 								else if (InDescriptor.Role == EProxyRole::Write)
 								{
-									OutAttribute = InDataFacade->Source->FindOrCreateAttribute(PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDataFacade->GetOut()), T_REAL{});
+									OutAttribute = InDataFacade->Source->FindOrCreateAttribute(PCGEx::GetAttributeIdentifier(InDescriptor.Selector, InDataFacade->GetOut()), T_REAL{});
 									if (OutAttribute) { InAttribute = OutAttribute; }
 
 									check(OutAttribute);
@@ -315,7 +315,7 @@ OutProxy = TypedProxy;
 								return;
 							}
 
-							const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier<true>(InDescriptor.Selector, InDescriptor.Side == EIOSide::In ? InDataFacade->GetIn() : InDataFacade->GetOut());
+							const FPCGAttributeIdentifier Identifier = PCGEx::GetAttributeIdentifier(InDescriptor.Selector, InDescriptor.Side == EIOSide::In ? InDataFacade->GetIn() : InDataFacade->GetOut());
 
 							// Check if there is an existing buffer with for our attribute
 							TSharedPtr<TBuffer<T_REAL>> ExistingBuffer = InDataFacade->FindBuffer<T_REAL>(Identifier);

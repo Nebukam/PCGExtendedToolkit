@@ -4,6 +4,7 @@
 #include "Paths/PCGExCreateSpline.h"
 
 
+#include "PCGComponent.h"
 #include "Helpers/PCGHelpers.h"
 
 

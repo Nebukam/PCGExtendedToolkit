@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Data/PCGExDataPreloader.h"
+
+#include "PCGExGlobalSettings.h"
 #include "Data/PCGExData.h"
 
 namespace PCGExData

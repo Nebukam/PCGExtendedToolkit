@@ -5,9 +5,8 @@
 
 #include <functional>
 #include <atomic>
-#include "CoreMinimal.h"
-#include "PCGExContext.h"
 
+#include "CoreMinimal.h"
 #include "Misc/ScopeRWLock.h"
 #include "UObject/ObjectPtr.h"
 #include "Templates/SharedPointer.h"
@@ -16,10 +15,7 @@
 #include "Misc/QueuedThreadPool.h"
 #include "Tasks/Task.h"
 
-#include "PCGExtendedToolkit.h"
 #include "PCGExMacros.h"
-#include "PCGExGlobalSettings.h"
-#include "PCGExHelpers.h"
 
 #pragma region MT MACROS
 
@@ -61,6 +57,15 @@
 #endif
 #pragma endregion
 
+namespace PCGEx
+{
+	class FWorkPermit;
+}
+
+struct FPCGContextHandle;
+enum class EPCGExAsyncPriority : uint8;
+struct FPCGExContext;
+
 namespace PCGExMT
 {
 	using FCompletionCallback = std::function<void()>;
@@ -99,6 +104,9 @@ namespace PCGExMT
 	};
 
 	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 MaxItems, const int32 RangeSize);
+
+	PCGEXTENDEDTOOLKIT_API
+	void AssertEmptyThread(const int32 MaxItems);
 
 	enum class EAsyncHandleState : uint8
 	{
@@ -298,8 +306,7 @@ namespace PCGExMT
 
 			if (MaxItems <= 0)
 			{
-				UE_LOG(LogPCGEx, Error, TEXT("StartRanges: MaxItems = %i // Graph will never finish execution! You can temporarily enable bAssertOnEmptyThread in PCGEx debug settings and hook a debugger to get a stack trace."), MaxItems);
-				if (GetDefault<UPCGExGlobalSettings>()->bAssertOnEmptyThread) { ensure(false); }
+				AssertEmptyThread(MaxItems);
 				return;
 			}
 
@@ -347,8 +354,7 @@ namespace PCGExMT
 
 			if (MaxItems <= 0)
 			{
-				UE_LOG(LogPCGEx, Error, TEXT("StartTaskBatch: MaxItems = %i // Graph will never finish execution! You can temporarily enable bAssertOnEmptyThread in PCGEx debug settings and hook a debugger to get a stack trace."), MaxItems);
-				if (GetDefault<UPCGExGlobalSettings>()->bAssertOnEmptyThread) { ensure(false); }
+				AssertEmptyThread(MaxItems);
 				return;
 			}
 

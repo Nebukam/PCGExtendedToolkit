@@ -5,17 +5,17 @@
 
 #include "CoreMinimal.h"
 #include "PCGPin.h"
-
 #include "PCGEx.h"
-#include "PCGExContext.h"
-#include "PCGExMT.h"
+//#include "PCGExContext.h"
+//#include "PCGExMT.h"
 #include "PCGExMacros.h"
-#include "Data/PCGExPointIO.h"
+//#include "Data/PCGExPointIO.h"
 #include "PCGExPointsMT.h"
 
-#include "PCGComponent.h"
+//#include "PCGComponent.h"
 #include "PCGContext.h"
-#include "PCGExInstancedFactory.h"
+//#include "PCGExInstancedFactory.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.generated.h"
 

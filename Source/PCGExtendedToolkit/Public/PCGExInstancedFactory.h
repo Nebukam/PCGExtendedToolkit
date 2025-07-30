@@ -5,10 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-
-#include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGExData.h"
-
 #include "PCGExFactoryProvider.h"
 
 #include "PCGExInstancedFactory.generated.h"

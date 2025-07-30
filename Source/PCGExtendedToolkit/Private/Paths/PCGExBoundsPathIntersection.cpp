@@ -270,7 +270,9 @@ namespace PCGExPathIntersections
 
 		// Copy point properties, we'll do blending & inheriting right after
 		// At this point we want to preserve metadata entries
-		PointDataFacade->Source->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButMeta);
+		EPCGPointNativeProperties Allocate = EPCGPointNativeProperties::All;
+		EnumRemoveFlags(Allocate, EPCGPointNativeProperties::MetadataEntry);
+		PointDataFacade->Source->ConsumeIdxMapping(Allocate);
 
 		PointDataFacade->Source->ClearCachedKeys();
 		Details.Init(PointDataFacade, Context->BoundsDataFacade);

@@ -271,6 +271,30 @@ namespace PCGExData
 
 #pragma region FPointIO
 
+	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle):
+		ContextHandle(InContextHandle), In(nullptr)
+	{
+		PCGEX_LOG_CTR(FPointIO)
+	}
+
+	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle, const UPCGBasePointData* InData):
+		ContextHandle(InContextHandle), In(InData)
+	{
+		PCGEX_LOG_CTR(FPointIO)
+	}
+
+	FPointIO::FPointIO(const TSharedRef<FPointIO>& InPointIO):
+		ContextHandle(InPointIO->GetContextHandle()), In(InPointIO->GetIn())
+	{
+		PCGEX_LOG_CTR(FPointIO)
+		RootIO = InPointIO;
+
+		TSet<FString> TagDump;
+		InPointIO->Tags->DumpTo(TagDump); // Not ideal.
+
+		Tags = MakeShared<FTags>(TagDump);
+	}
+
 	FPCGExContext* FPointIO::GetContext() const
 	{
 		const FPCGContext::FSharedContext<FPCGExContext> SharedContext(GetContextHandle());
@@ -1137,6 +1161,23 @@ namespace PCGExData
 		}
 	}
 
+	TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bThrowError)
+	{
+		TSharedPtr<FPointIO> SingleIO;
+		const TSharedPtr<FPointIOCollection> Collection = MakeShared<FPointIOCollection>(InContext, InputPinLabel, EIOInit::NoInit, bTransactional);
+
+		if (!Collection->Pairs.IsEmpty() && Collection->Pairs[0]->GetNum() > 0)
+		{
+			SingleIO = Collection->Pairs[0];
+		}
+		else if (bThrowError)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FText::FromString(TEXT("Missing or zero-points '{0}' inputs")), FText::FromName(InputPinLabel)));
+		}
+
+		return SingleIO;
+	}
+
 	int32 PCGExPointIO::GetTotalPointsNum(const TArray<TSharedPtr<FPointIO>>& InIOs, const EIOSide InSide)
 	{
 		int32 TotalNum = 0;
@@ -1159,6 +1200,64 @@ namespace PCGExData
 		}
 
 		return TotalNum;
+	}
+
+	const UPCGBasePointData* PCGExPointIO::GetPointData(const FPCGContext* Context, const FPCGTaggedData& Source)
+	{
+		const UPCGBasePointData* PointData = Cast<const UPCGBasePointData>(Source.Data);
+		if (!PointData) { return nullptr; }
+
+		return PointData;
+	}
+
+	UPCGBasePointData* PCGExPointIO::GetMutablePointData(const FPCGContext* Context, const FPCGTaggedData& Source)
+	{
+		const UPCGBasePointData* PointData = GetPointData(Context, Source);
+		if (!PointData) { return nullptr; }
+
+		return const_cast<UPCGBasePointData*>(PointData);
+	}
+
+	const UPCGBasePointData* PCGExPointIO::ToPointData(FPCGExContext* Context, const FPCGTaggedData& Source)
+	{
+		// NOTE : This has a high probability of creating new data on the fly
+		// so it should absolutely not be used to be inherited or duplicated
+		// since it would mean point data that inherit potentially destroyed parents
+		if (const UPCGBasePointData* RealPointData = Cast<const UPCGBasePointData>(Source.Data))
+		{
+			return RealPointData;
+		}
+		if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data))
+		{
+			// Currently we support collapsing to point data only, but at some point in the future that might be different
+			const UPCGBasePointData* PointData = Cast<const UPCGSpatialData>(SpatialData)->ToPointData(Context);
+
+			//Keep track of newly created data internally
+			if (PointData != SpatialData) { Context->ManagedObjects->Add(const_cast<UPCGBasePointData*>(PointData)); }
+			return PointData;
+		}
+
+		if (const UPCGParamData* ParamData = Cast<UPCGParamData>(Source.Data))
+		{
+			const UPCGMetadata* ParamMetadata = ParamData->Metadata;
+			const int64 ParamItemCount = ParamMetadata->GetLocalItemCount();
+
+			if (ParamItemCount != 0)
+			{
+				UPCGBasePointData* PointData = Cast<UPCGBasePointData>(Context->ManagedObjects->New<UPCGPointArrayData>());
+				check(PointData->Metadata);
+				PointData->Metadata->Initialize(ParamMetadata);
+				PointData->SetNumPoints(ParamItemCount);
+				PointData->AllocateProperties(EPCGPointNativeProperties::MetadataEntry);
+				TPCGValueRange<int64> MetadataEntryRange = PointData->GetMetadataEntryValueRange(/*bAllocate=*/false);
+
+				for (int PointIndex = 0; PointIndex < ParamItemCount; ++PointIndex) { MetadataEntryRange[PointIndex] = PointIndex; }
+
+				return PointData;
+			}
+		}
+
+		return nullptr;
 	}
 
 #pragma endregion

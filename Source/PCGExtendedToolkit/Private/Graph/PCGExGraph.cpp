@@ -3,9 +3,13 @@
 
 #include "Graph/PCGExGraph.h"
 
-#include "PCGExPointsProcessor.h"
 #include "PCGExRandom.h"
+#include "PCGExMT.h"
+#include "Data/PCGExData.h"
+#include "PCGExPointsProcessor.h"
+#include "PCGExDetailsIntersection.h"
 #include "Data/Blending/PCGExUnionBlender.h"
+#include "Data/PCGExAttributeHelpers.h"
 
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
@@ -422,7 +426,9 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 				Metadata->InitializeOnSet(EdgeMetadataEntry);
 			}
 
-			EdgesDataFacade->Source->InheritProperties(ReadEdgeIndices, WriteEdgeIndices, PCGEx::AllPointNativePropertiesButMeta);
+			EPCGPointNativeProperties Allocate = EPCGPointNativeProperties::All;
+			EnumRemoveFlags(Allocate, EPCGPointNativeProperties::MetadataEntry);
+			EdgesDataFacade->Source->InheritProperties(ReadEdgeIndices, WriteEdgeIndices, Allocate);
 		}
 		else
 		{

@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExPathSplineMeshSimple.h"
 
+#include "PCGComponent.h"
 #include "PCGExHelpers.h"
 
 

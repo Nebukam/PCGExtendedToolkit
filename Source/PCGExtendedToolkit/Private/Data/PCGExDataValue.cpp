@@ -81,7 +81,7 @@ template class TDataValue<_TYPE>;
 		// Attribute unsupported
 		if (Selector.GetSelection() != EPCGAttributePropertySelection::Attribute) { return nullptr; }
 
-		FPCGAttributeIdentifier SanitizedIdentifier = PCGEx::GetAttributeIdentifier<true>(Selector, InData);
+		FPCGAttributeIdentifier SanitizedIdentifier = PCGEx::GetAttributeIdentifier(Selector, InData);
 		SanitizedIdentifier.MetadataDomain = PCGMetadataDomainID::Data; // Force data domain
 
 		// Non-data domain unsupported

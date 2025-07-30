@@ -3,8 +3,10 @@
 
 #include "Misc/PCGExDestroyActor.h"
 
+#include "PCGComponent.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSubSystem.h"
+#include "PCGManagedResource.h"
 
 
 #include "Misc/PCGExSortPoints.h"

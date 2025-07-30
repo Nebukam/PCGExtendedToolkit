@@ -4,6 +4,8 @@
 #include "PCGExFactoryProvider.h"
 
 #include "PCGExContext.h"
+#include "PCGExGlobalSettings.h"
+#include "Data/PCGExDataPreloader.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGPin.h"
 #include "Tasks/Task.h"
@@ -75,11 +77,13 @@ FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 
 #if WITH_EDITOR
 FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT(""); }
+FLinearColor UPCGExFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilter; }
 
 #ifndef PCGEX_CUSTOM_PIN_DECL
 #define PCGEX_CUSTOM_PIN_DECL
 #define PCGEX_CUSTOM_PIN_ICON(_LABEL, _ICON, _TOOLTIP) if(PinLabel == _LABEL){ OutExtraIcon = TEXT("PCGEx.Pin." # _ICON); OutTooltip = FTEXT(_TOOLTIP); return true; }
 #endif
+
 
 bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
 {
@@ -194,11 +198,57 @@ bool FPCGExFactoryProviderElement::IsCacheable(const UPCGSettings* InSettings) c
 	return Settings->ShouldCache();
 }
 
-#if WITH_EDITOR
-void PCGExFactories::EDITOR_SortPins(UPCGSettings* InSettings, FName InPin)
+namespace PCGExFactories
 {
+	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, bool bThrowError)
+	{
+		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
+		TSet<uint32> UniqueData;
+		UniqueData.Reserve(Inputs.Num());
+
+		for (const FPCGTaggedData& TaggedData : Inputs)
+		{
+			bool bIsAlreadyInSet;
+			UniqueData.Add(TaggedData.Data->GetUniqueID(), &bIsAlreadyInSet);
+			if (bIsAlreadyInSet) { continue; }
+
+			const UPCGExFactoryData* Factory = Cast<UPCGExFactoryData>(TaggedData.Data);
+			if (Factory)
+			{
+				if (!Types.Contains(Factory->GetFactoryType()))
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext,
+						FText::Format(FTEXT("Input '{0}' is not supported."),
+						FText::FromString(Factory->GetClass()->GetName())));
+					continue;
+				}
+
+				OutFactories.AddUnique(Factory);
+				Factory->RegisterAssetDependencies(InContext);
+				Factory->RegisterConsumableAttributes(InContext);
+			}
+			else
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext,
+					FText::Format(FTEXT("Input '{0}' is not supported."),
+					FText::FromString(TaggedData.Data->GetClass()->GetName())));
+			}
+		}
+
+		if (OutFactories.IsEmpty())
+		{
+			if (bThrowError)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext,
+					FText::Format(FTEXT("Missing required '{0}' inputs."), FText::FromName(InLabel)));
+			}
+			return false;
+		}
+
+		return true;
+	}
+
 }
-#endif
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

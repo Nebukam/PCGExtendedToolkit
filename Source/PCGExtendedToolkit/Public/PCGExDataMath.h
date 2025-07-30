@@ -6,9 +6,16 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMath.h"
-#include "Data/PCGExData.h"
 
-//#include "PCGExDataMath.generated.h"
+namespace PCGExData
+{
+	struct FProxyPoint;
+	class FFacade;
+	struct FConstPoint;
+
+	template <typename T>
+	class TBuffer;
+}
 
 namespace PCGExMath
 {

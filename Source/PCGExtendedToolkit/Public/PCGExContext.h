@@ -5,9 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGContext.h"
-#include "PCGExHelpers.h"
-#include "PCGManagedResource.h"
-#include "Engine/StreamableManager.h"
+
+class UPCGManagedComponent;
+struct FStreamableHandle;
 
 namespace PCGExMT
 {
@@ -16,6 +16,9 @@ namespace PCGExMT
 
 namespace PCGEx
 {
+	class FUniqueNameGenerator;
+	class FManagedObjects;
+	class FWorkPermit;
 	using ContextState = uint64;
 
 #define PCGEX_CTX_STATE(_NAME) const PCGEx::ContextState _NAME = GetTypeHash(FName(#_NAME));

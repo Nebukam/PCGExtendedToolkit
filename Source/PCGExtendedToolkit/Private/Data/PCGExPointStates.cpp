@@ -3,6 +3,8 @@
 
 #include "Data/PCGExPointStates.h"
 
+#include "PCGExGlobalSettings.h"
+
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExPointStateFactoryData::CreateFilter() const
 {
@@ -67,6 +69,11 @@ namespace PCGExPointStates
 		return true;
 	}
 }
+
+#if WITH_EDITOR
+FLinearColor UPCGExPointStateFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterState; }
+#endif
+
 
 UPCGExFactoryData* UPCGExPointStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
