@@ -4,9 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "Curves/CurveFloat.h"
+
 #include "Graph/PCGExGraph.h"
 #include "PCGExPointsProcessor.h"
-#include "Curves/CurveFloat.h"
 
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 

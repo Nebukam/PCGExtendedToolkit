@@ -12,7 +12,6 @@
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 #include "PCGExMacros.h"
-#include "PCGEx.h"
 #include "PCGExBroadcast.h"
 #include "PCGExDataHelpers.h"
 #include "PCGExHelpers.h"

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
 #include "PCGEx.h"
 #include "PCGExMath.generated.h"
 
@@ -323,55 +324,6 @@ namespace PCGExMath
 	PCGEXTENDEDTOOLKIT_API
 	bool SphereOverlap(const FBoxSphereBounds& S1, const FBoxSphereBounds& S2, double& OutOverlap);
 
-
-#pragma endregion
-
-#pragma region Components
-
-	template <typename T>
-	FORCEINLINE static void SetComponent(T& A, const int32 Index, const double InValue)
-	{
-		if constexpr (std::is_same_v<T, bool>)
-		{
-			A = InValue > 0;
-		}
-		else if constexpr (
-			std::is_same_v<T, FVector2D> ||
-			std::is_same_v<T, FVector> ||
-			std::is_same_v<T, FVector4>)
-		{
-			A[Index] = InValue;
-		}
-		else if constexpr (std::is_same_v<T, FQuat>)
-		{
-			FVector Euler = A.Euler();
-			SetComponent(Euler, Index, InValue);
-			A = FQuat::MakeFromEuler(Euler);
-		}
-		else if constexpr (std::is_same_v<T, FRotator>)
-		{
-			FVector Euler = A.Euler();
-			SetComponent(Euler, Index, InValue);
-			A = FRotator::MakeFromEuler(Euler);
-		}
-		else if constexpr (std::is_same_v<T, FTransform>)
-		{
-			FVector Location = A.GetLocation();
-			SetComponent(Location, Index, InValue);
-			A.SetLocation(Location);
-		}
-		else if constexpr (
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
-		{
-		}
-		else
-		{
-			A = InValue;
-		}
-	}
 
 #pragma endregion
 

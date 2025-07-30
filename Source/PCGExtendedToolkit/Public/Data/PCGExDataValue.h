@@ -41,7 +41,7 @@ namespace PCGExData
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataValue : public IDataValue
+	class TDataValue : public IDataValue
 	{
 	public:
 		T Value;

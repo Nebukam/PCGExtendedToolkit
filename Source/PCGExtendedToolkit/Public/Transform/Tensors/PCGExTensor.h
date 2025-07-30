@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
+#include "CoreMinimal.h"
+#include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 
 #include "PCGExDetails.h"

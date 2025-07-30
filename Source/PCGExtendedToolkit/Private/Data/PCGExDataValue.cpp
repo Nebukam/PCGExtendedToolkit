@@ -16,7 +16,7 @@ namespace PCGExData
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
-template class TDataValue<_TYPE>;
+template class PCGEXTENDEDTOOLKIT_API TDataValue<_TYPE>;
 
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 

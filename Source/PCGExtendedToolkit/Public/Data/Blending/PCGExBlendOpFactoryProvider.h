@@ -4,11 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "Curves/CurveFloat.h"
+
 #include "PCGExDetailsData.h"
 #include "PCGExOperation.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
-#include "Curves/CurveFloat.h"
 
 
 #include "PCGExBlendOpFactoryProvider.generated.h"

@@ -4,10 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
-#include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
+
+#include "PCGExDetailsData.h"
+#include "PCGExFilterFactoryProvider.h"
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
