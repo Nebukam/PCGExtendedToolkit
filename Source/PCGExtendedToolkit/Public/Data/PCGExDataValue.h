@@ -124,7 +124,7 @@ namespace PCGExData
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
-template class TDataValue<_TYPE>;
+extern template class TDataValue<_TYPE>;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL
