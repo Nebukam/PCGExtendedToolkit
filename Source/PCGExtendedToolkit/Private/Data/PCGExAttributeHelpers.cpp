@@ -402,7 +402,7 @@ namespace PCGEx
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
-template class TAttributeBroadcaster<_TYPE>;
+template class PCGEXTENDEDTOOLKIT_API TAttributeBroadcaster<_TYPE>;
 
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 

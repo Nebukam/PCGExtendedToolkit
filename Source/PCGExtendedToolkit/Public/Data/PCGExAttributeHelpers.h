@@ -505,7 +505,7 @@ namespace PCGEx
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
-template class TAttributeBroadcaster<_TYPE>;
+extern template class TAttributeBroadcaster<_TYPE>;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL
