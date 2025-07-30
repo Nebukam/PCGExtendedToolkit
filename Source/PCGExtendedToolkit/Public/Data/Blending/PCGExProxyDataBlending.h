@@ -44,29 +44,29 @@ namespace PCGExDataBlending
 	public:
 		virtual ~FDummyBlender() override = default;
 		// Target = Target|Target
-		FORCEINLINE virtual void Blend(const int32 TargetIndex, const double Weight) const override
+		virtual void Blend(const int32 TargetIndex, const double Weight) const override
 		{
 		}
 
 		// Target = Source|Target
-		FORCEINLINE virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight) const override
+		virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double Weight) const override
 		{
 		}
 
-		FORCEINLINE virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const override
+		virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const override
 		{
 		}
 
 		// Target = SourceA|SourceB
-		FORCEINLINE virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight) const override
+		virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight) const override
 		{
 		}
 
-		FORCEINLINE virtual void BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const override
+		virtual void BeginMultiBlend(const int32 TargetIndex, TArray<PCGEx::FOpStats>& Trackers) const override
 		{
 		}
 
-		FORCEINLINE virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGEx::FOpStats>& Tracker) const override
+		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, TArray<PCGEx::FOpStats>& Tracker) const override
 		{
 		}
 
@@ -154,24 +154,21 @@ namespace PCGExDataBlending
 			const TSharedPtr<PCGExData::FFacade> InSourceFacade, PCGExData::EIOSide InSide, bool bWantsDirectAccess = false) = 0;
 
 		template <typename T>
-		void Set(const int32 TargetIndex, const T Value)
-		{
-#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) else if constexpr (std::is_same_v<T, _TYPE>){ Set##_NAME(TargetIndex, Value); }
-			if constexpr (false)
-			{
-			}
-			PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
-#undef PCGEX_DECL_BLEND_BIT
-		}
+		void Set(const int32 TargetIndex, const T Value) const;
 
 	protected:
-#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void SetValue(const int32 TargetIndex, const _TYPE Value) = 0;
+#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void Set##_NAME(const int32 TargetIndex, const _TYPE Value) const = 0;
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
 #undef PCGEX_DECL_BLEND_BIT
 	};
 
+#define PCGEX_TPL(_TYPE, _NAME, ...) \
+extern template void FProxyDataBlender::Set(const int32 TargetIndex, const _TYPE Value) const;
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+#undef PCGEX_TPL
+
 	template <typename T_WORKING>
-	class PCGEXTENDEDTOOLKIT_API IProxyDataBlender : public FProxyDataBlender
+	class IProxyDataBlender : public FProxyDataBlender
 	{
 	public:
 		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> A;
@@ -252,13 +249,24 @@ namespace PCGExDataBlending
 		}
 
 	protected:
-#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void SetValue(const int32 TargetIndex, const _TYPE Value) override { C->Set(TargetIndex, PCGEx::Convert<_TYPE, T_WORKING>(Value)); };
+#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void Set##_NAME(const int32 TargetIndex, const _TYPE Value) const override { C->Set(TargetIndex, PCGEx::Convert<_TYPE, T_WORKING>(Value)); };
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
 #undef PCGEX_DECL_BLEND_BIT
 	};
 
+#pragma region externalization
+
+#define PCGEX_TPL(_TYPE, _NAME, ...)\
+extern template class IProxyDataBlender<_TYPE>;
+
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+
+#undef PCGEX_TPL
+
+#pragma endregion
+
 	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend = true>
-	class PCGEXTENDEDTOOLKIT_API TProxyDataBlender : public IProxyDataBlender<T_WORKING>
+	class TProxyDataBlender : public IProxyDataBlender<T_WORKING>
 	{
 		using IProxyDataBlender<T_WORKING>::A;
 		using IProxyDataBlender<T_WORKING>::B;
@@ -428,145 +436,45 @@ namespace PCGExDataBlending
 		virtual void Div(const int32 TargetIndex, const double Divider) override { C->Set(TargetIndex, PCGExBlend::Div(C->Get(TargetIndex), Divider)); }
 	};
 
+#pragma region externalization
+
+#define PCGEX_TPL(_TYPE, _NAME, _BLENDMODE)\
+extern template class TProxyDataBlender<_TYPE, EPCGExABBlendingType::_BLENDMODE, true>;\
+extern template class TProxyDataBlender<_TYPE, EPCGExABBlendingType::_BLENDMODE, false>;
+
+#define PCGEX_TPL_LOOP(_BLENDMODE)	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL, _BLENDMODE)
+
+PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_TPL_LOOP)
+	
+#undef PCGEX_TPL_LOOP
+#undef PCGEX_TPL
+
+#pragma endregion
+	
 	template <typename T>
-	static TSharedPtr<IProxyDataBlender<T>> CreateProxyBlender(const EPCGExABBlendingType BlendMode, const bool bResetValueForMultiBlend = true)
-	{
-		TSharedPtr<IProxyDataBlender<T>> OutBlender;
+	TSharedPtr<IProxyDataBlender<T>> CreateProxyBlender(const EPCGExABBlendingType BlendMode, const bool bResetValueForMultiBlend = true);
 
-		if (bResetValueForMultiBlend)
-		{
-#define PCGEX_CREATE_BLENDER(_BLEND)case EPCGExABBlendingType::_BLEND : \
-OutBlender = MakeShared<TProxyDataBlender<T, EPCGExABBlendingType::_BLEND, true>>(); \
-break;
-			switch (BlendMode) { PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_CREATE_BLENDER) }
-#undef PCGEX_CREATE_BLENDER
-		}
-		else
-		{
-#define PCGEX_CREATE_BLENDER(_BLEND)case EPCGExABBlendingType::_BLEND : \
-OutBlender = MakeShared<TProxyDataBlender<T, EPCGExABBlendingType::_BLEND, false>>(); \
-break;
-			switch (BlendMode) { PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_CREATE_BLENDER) }
-#undef PCGEX_CREATE_BLENDER
-		}
-
-		return OutBlender;
-	}
-
-	static TSharedPtr<FProxyDataBlender> CreateProxyBlender(
+#define PCGEX_TPL(_TYPE, _NAME, ...) \
+extern template TSharedPtr<IProxyDataBlender<_TYPE>> CreateProxyBlender(const EPCGExABBlendingType BlendMode, const bool bResetValueForMultiBlend); 
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+#undef PCGEX_TPL
+	
+	PCGEXTENDEDTOOLKIT_API
+	TSharedPtr<FProxyDataBlender> CreateProxyBlender(
 		FPCGExContext* InContext,
 		const EPCGExABBlendingType BlendMode,
 		const PCGExData::FProxyDescriptor& A,
 		const PCGExData::FProxyDescriptor& B,
 		const PCGExData::FProxyDescriptor& C,
-		const bool bResetValueForMultiBlend = true)
-	{
-		TSharedPtr<FProxyDataBlender> OutBlender;
+		const bool bResetValueForMultiBlend = true);
+	
 
-		if (A.WorkingType != B.WorkingType || A.WorkingType != C.WorkingType)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : T_WORKING mismatch."));
-			return nullptr;
-		}
-
-		PCGEx::ExecuteWithRightType(
-			A.WorkingType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-
-				TSharedPtr<IProxyDataBlender<T>> TypedBlender = CreateProxyBlender<T>(BlendMode, bResetValueForMultiBlend);
-
-				if (!TypedBlender) { return; }
-
-				// Create output first so we may read from it
-				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
-				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
-				TypedBlender->B = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, B));
-
-				if (!TypedBlender->A)
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand A."));
-					return;
-				}
-
-				if (!TypedBlender->B)
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand B."));
-					return;
-				}
-
-				if (!TypedBlender->C)
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Output."));
-					return;
-				}
-
-				// Ensure C is readable for MultiBlend, as those will use GetCurrent
-				if (!TypedBlender->C->EnsureReadable())
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target write buffer is also readable."));
-					return;
-				}
-
-				OutBlender = TypedBlender;
-			});
-
-
-		return OutBlender;
-	}
-
-	static TSharedPtr<FProxyDataBlender> CreateProxyBlender(
+	PCGEXTENDEDTOOLKIT_API
+	TSharedPtr<FProxyDataBlender> CreateProxyBlender(
 		FPCGExContext* InContext,
 		const EPCGExABBlendingType BlendMode,
 		const PCGExData::FProxyDescriptor& A,
 		const PCGExData::FProxyDescriptor& C,
-		const bool bResetValueForMultiBlend = true)
-	{
-		TSharedPtr<FProxyDataBlender> OutBlender;
-
-		if (A.WorkingType != C.WorkingType)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : T_WORKING mismatch."));
-			return nullptr;
-		}
-
-		PCGEx::ExecuteWithRightType(
-			A.WorkingType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-
-				TSharedPtr<IProxyDataBlender<T>> TypedBlender = CreateProxyBlender<T>(BlendMode, bResetValueForMultiBlend);
-
-				if (!TypedBlender) { return; }
-
-				// Create output first so we may read from it
-				TypedBlender->C = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, C));
-				TypedBlender->A = StaticCastSharedPtr<PCGExData::TBufferProxy<T>>(GetProxyBuffer(InContext, A));
-				TypedBlender->B = nullptr;
-
-				if (!TypedBlender->A)
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Operand A."));
-					return;
-				}
-
-				if (!TypedBlender->C)
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("ProxyBlender : Failed to generate buffer for Output."));
-					return;
-				}
-
-				// Ensure C is readable for MultiBlend, as those will use GetCurrent
-				if (!TypedBlender->C->EnsureReadable())
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Fail to ensure target write buffer is also readable."));
-					return;
-				}
-
-				OutBlender = TypedBlender;
-			});
-
-
-		return OutBlender;
-	}
+		const bool bResetValueForMultiBlend = true);
+	
 }
