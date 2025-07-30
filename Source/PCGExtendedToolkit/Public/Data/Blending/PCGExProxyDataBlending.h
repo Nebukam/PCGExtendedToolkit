@@ -444,21 +444,21 @@ extern template class TProxyDataBlender<_TYPE, EPCGExABBlendingType::_BLENDMODE,
 
 #define PCGEX_TPL_LOOP(_BLENDMODE)	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL, _BLENDMODE)
 
-PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_TPL_LOOP)
-	
+	PCGEX_FOREACH_PROXYBLENDMODE(PCGEX_TPL_LOOP)
+
 #undef PCGEX_TPL_LOOP
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	template <typename T>
 	TSharedPtr<IProxyDataBlender<T>> CreateProxyBlender(const EPCGExABBlendingType BlendMode, const bool bResetValueForMultiBlend = true);
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-extern template TSharedPtr<IProxyDataBlender<_TYPE>> CreateProxyBlender(const EPCGExABBlendingType BlendMode, const bool bResetValueForMultiBlend); 
+extern template TSharedPtr<IProxyDataBlender<_TYPE>> CreateProxyBlender(const EPCGExABBlendingType BlendMode, const bool bResetValueForMultiBlend);
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<FProxyDataBlender> CreateProxyBlender(
 		FPCGExContext* InContext,
@@ -467,7 +467,7 @@ extern template TSharedPtr<IProxyDataBlender<_TYPE>> CreateProxyBlender(const EP
 		const PCGExData::FProxyDescriptor& B,
 		const PCGExData::FProxyDescriptor& C,
 		const bool bResetValueForMultiBlend = true);
-	
+
 
 	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<FProxyDataBlender> CreateProxyBlender(
@@ -476,5 +476,4 @@ extern template TSharedPtr<IProxyDataBlender<_TYPE>> CreateProxyBlender(const EP
 		const PCGExData::FProxyDescriptor& A,
 		const PCGExData::FProxyDescriptor& C,
 		const bool bResetValueForMultiBlend = true);
-	
 }

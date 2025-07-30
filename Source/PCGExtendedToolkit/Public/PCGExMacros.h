@@ -137,6 +137,9 @@ MACRO(EPCGPointProperties::Seed, Seed, int32, int32)\
 MACRO(EPCGPointProperties::LocalSize, GetLocalSize(), FVector, FVector)\
 MACRO(EPCGPointProperties::ScaledLocalSize, GetScaledLocalSize(), FVector, FVector)
 
+#define PCGEX_FOREACH_EXTRAPROPERTY(MACRO)\
+MACRO(EPCGExtraProperties::Index, int32, int32) 
+
 #define PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(_PREFIX, _PROPERTY, MACRO)\
 if _PREFIX(_PROPERTY == EPCGPointProperties::Density){ MACRO(GetDensity(Index), float) } \
 else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ MACRO(GetBoundsMin(Index), FVector) } \
