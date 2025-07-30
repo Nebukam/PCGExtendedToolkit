@@ -250,6 +250,8 @@ namespace PCGExCreateShapes
 
 				Shape->StartIndex = 0;
 				BuildShape(This->Context, IOFacade.ToSharedRef(), Builder, Shape);
+
+				IOFacade->WriteFastest(This->AsyncManager);
 			};
 
 			BuildSeedShape->StartIterations(NumSeeds, 1);

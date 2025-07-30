@@ -5,7 +5,6 @@
 #include "PCGExDetails.h"
 #include "PCGExDetailsData.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGSplineStruct.h"
 #include "Sampling/PCGExSampling.h"
 #include "PCGExTransform.generated.h"
 

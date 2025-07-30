@@ -2,11 +2,14 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
+#include "Curves/CurveFloat.h"
+
 #include "PCGExDetails.h"
 #include "PCGExDetailsData.h"
 #include "PCGExOctree.h"
 #include "Curves/CurveVector.h"
 #include "Data/PCGExData.h"
+
 #include "PCGExTensor.generated.h"
 
 class UPCGExTensorPointFactoryData;

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Curves/CurveFloat.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"

@@ -4,11 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CollisionQueryParams.h"
+#include "Engine/HitResult.h"
+
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 
+class UPCGComponent;
 class UPCGManagedComponent;
 struct FStreamableHandle;
+struct FAttachmentTransformRules;
 
 namespace PCGExMT
 {

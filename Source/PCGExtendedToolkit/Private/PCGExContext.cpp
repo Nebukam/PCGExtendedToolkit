@@ -8,10 +8,10 @@
 #include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGManagedResource.h"
-#include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
 #include "Helpers/PCGHelpers.h"
 #include "Async/Async.h"
+#include "Engine/EngineTypes.h"
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 

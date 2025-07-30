@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "Curves/CurveFloat.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"

@@ -5,12 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "Curves/CurveFloat.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampleNearestPath.h"
 #include "PCGExSampling.h"
-#include "PCGExScopedContainers.h"
-#include "Data/PCGSplineData.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
 
 #include "Paths/PCGExPaths.h"

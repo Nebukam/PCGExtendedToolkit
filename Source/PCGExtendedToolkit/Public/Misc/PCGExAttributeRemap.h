@@ -11,7 +11,7 @@
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExProxyData.h"
-
+#include "Curves/CurveFloat.h"
 
 #include "PCGExAttributeRemap.generated.h"
 

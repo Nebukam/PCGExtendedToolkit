@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Graph/PCGExGraph.h"
 #include "PCGExPointsProcessor.h"
+#include "Curves/CurveFloat.h"
 
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 

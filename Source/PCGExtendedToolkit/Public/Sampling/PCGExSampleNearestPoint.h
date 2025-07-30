@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Curves/CurveFloat.h"
+
 #include "PCGExGlobalSettings.h"
-
 #include "PCGExPointsProcessor.h"
-
 #include "PCGExSampling.h"
 #include "PCGExDetails.h"
 #include "PCGExScopedContainers.h"
