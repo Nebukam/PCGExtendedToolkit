@@ -19,7 +19,8 @@ bool PCGExPointFilter::FTagValueFilter::Test(const TSharedPtr<PCGExData::FPointI
 		PCGExCompare::GetMatchingValueTags(IO->Tags, TypedFilterFactory->Config.Tag, TypedFilterFactory->Config.Match, TagValues))
 	{
 		bool bAtLeastOneMatch = false;
-
+		bResult = true;
+		
 		if (TypedFilterFactory->Config.ValueType == EPCGExComparisonDataType::Numeric)
 		{
 			double B = TypedFilterFactory->Config.NumericOperandB;
