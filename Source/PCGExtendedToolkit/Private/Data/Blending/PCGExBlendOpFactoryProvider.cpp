@@ -4,6 +4,7 @@
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 #include "PCGExDetailsData.h"
+#include "Data/PCGExDataPreloader.h"
 #include "Data/Blending/PCGExProxyDataBlending.h"
 
 

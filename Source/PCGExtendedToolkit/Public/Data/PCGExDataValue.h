@@ -129,6 +129,8 @@ template class TDataValue<_TYPE>;
 
 #undef PCGEX_TPL
 
+#pragma endregion
+
 	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<IDataValue> TryGetValueFromTag(const FString& InTag, FString& OutLeftSide);
 
@@ -137,6 +139,4 @@ template class TDataValue<_TYPE>;
 
 	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<IDataValue> TryGetValueFromData(const UPCGData* InData, const FName& InName);
-
-	using DataIDType = TSharedPtr<TDataValue<int32>>;
 }

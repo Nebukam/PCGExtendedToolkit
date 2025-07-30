@@ -3,9 +3,7 @@
 
 #include "Data/PCGExPointFilter.h"
 
-
 #include "Graph/PCGExCluster.h"
-#include "Paths/PCGExShiftPath.h"
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExFilterFactoryData::CreateFilter() const
 {
@@ -245,7 +243,7 @@ namespace PCGExPointFilter
 		return NumPass;
 	}
 
-	int32 FManager::Test(const TArrayView<PCGExCluster::FEdge> Items, const TArrayView<int8> OutResults)
+	int32 FManager::Test(const TArrayView<PCGExGraph::FEdge> Items, const TArrayView<int8> OutResults)
 	{
 		check(Items.Num() == OutResults.Num());
 		bool bResult = true;
@@ -254,7 +252,7 @@ namespace PCGExPointFilter
 		for (int i = 0; i < Items.Num(); i++)
 		{
 			bResult = true;
-			const PCGExCluster::FEdge& Edge = Items[i];
+			const PCGExGraph::FEdge& Edge = Items[i];
 			for (const TSharedPtr<IFilter>& Handler : ManagedFilters)
 			{
 				if (!Handler->Test(Edge))

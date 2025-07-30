@@ -126,9 +126,9 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->bOutputEdgesOnly ? PCGEx::State_Done : PCGExGraph::State_ReadyToCompile)
+	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->bOutputEdgesOnly ? PCGExCommon::State_Done : PCGExGraph::State_ReadyToCompile)
 
-	if (!Settings->bOutputEdgesOnly && !Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
+	if (!Settings->bOutputEdgesOnly && !Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
 
 	if (!Settings->bOutputEdgesOnly)
 	{

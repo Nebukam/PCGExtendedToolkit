@@ -95,65 +95,8 @@ namespace PCGExMath
 		double Dot(const FSegment& InSegment) const { return FVector::DotProduct(Direction, InSegment.Direction); }
 		FVector Lerp(const double InLerp) const { return FMath::Lerp(A, B, InLerp); }
 
-		template <EIntersectionTestMode Mode = EIntersectionTestMode::Strict>
-		bool FindIntersection(const FVector& A2, const FVector& B2, double SquaredTolerance, FVector& OutSelf, FVector& OutOther) const
-		{
-			FMath::SegmentDistToSegment(A, B, A2, B2, OutSelf, OutOther);
-
-			if constexpr (Mode == EIntersectionTestMode::Strict)
-			{
-				if (A == OutSelf || B == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::StrictOnSelfA)
-			{
-				if (A == OutSelf) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::StrictOnSelfB)
-			{
-				if (B == OutSelf) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::StrictOnOtherA)
-			{
-				if (A2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::StrictOnOtherB)
-			{
-				if (B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnSelf)
-			{
-				if (A2 == OutOther || B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnOther)
-			{
-				if (A == OutSelf || B == OutSelf) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnSelfA)
-			{
-				if (B == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnSelfB)
-			{
-				if (A == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnOtherA)
-			{
-				if (A == OutSelf || B == OutSelf || B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnOtherB)
-			{
-				if (A == OutSelf || B == OutSelf || A2 == OutOther) { return false; }
-			}
-
-			if (FVector::DistSquared(OutSelf, OutOther) >= SquaredTolerance) { return false; }
-			return true;
-		}
-
-		template <EIntersectionTestMode Mode = EIntersectionTestMode::Strict>
-		bool FindIntersection(const FSegment& S, double SquaredTolerance, FVector& OutSelf, FVector& OutOther) const
-		{
-			return FindIntersection<Mode>(S.A, S.B, SquaredTolerance, OutSelf, OutOther);
-		}
+		bool FindIntersection(const FVector& A2, const FVector& B2, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EIntersectionTestMode Mode = EIntersectionTestMode::Strict) const;
+		bool FindIntersection(const FSegment& S, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EIntersectionTestMode Mode = EIntersectionTestMode::Strict) const;
 	};
 
 

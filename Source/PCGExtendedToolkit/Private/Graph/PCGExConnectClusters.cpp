@@ -99,12 +99,12 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Context->Batches)
 	{
 		const TSharedPtr<PCGExBridgeClusters::FBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FBatch>(Batch);
-		PCGExData::DataIDType PairId;
+		PCGExCommon::DataIDType PairId;
 		PCGExGraph::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, PairId);
 		PCGExGraph::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, PairId);
 	}

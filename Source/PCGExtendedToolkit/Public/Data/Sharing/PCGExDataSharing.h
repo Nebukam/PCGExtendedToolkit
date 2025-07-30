@@ -3,12 +3,13 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "PCGData.h"
-#include "UObject/Object.h"
 #include <functional>
+#include "UObject/Object.h"
+#include "CoreMinimal.h"
+#include "PCGCommon.h"
+#include "PCGData.h"
+#include "PCGExOctree.h"
 
-#include "PCGEx.h"
 #include "PCGExDataSharing.generated.h"
 
 UENUM()
@@ -52,12 +53,12 @@ namespace PCGExDataSharing
 		int32 Append(const uint32 Key, FPCGDataCollection& OutCollection);
 
 		void Empty();
-		TSharedPtr<PCGEx::FIndexedItemOctree> GetOctree();
+		TSharedPtr<PCGExOctree::FItemOctree> GetOctree();
 
 	protected:
 		FRWLock OctreeLock;
 		TMap<uint32, FPCGDataCollection> Data;
-		TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
+		TSharedPtr<PCGExOctree::FItemOctree> Octree;
 
 		void RebuildOctree();
 

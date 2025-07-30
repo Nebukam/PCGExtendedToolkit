@@ -107,7 +107,7 @@ struct FPCGExCutEdgesContext final : FPCGExEdgesProcessorContext
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
 
 	TArray<TSharedRef<PCGExData::FFacade>> PathFacades;
-	TArray<TSharedRef<PCGExPaths::IPath>> Paths;
+	TArray<TSharedRef<PCGExPaths::FPath>> Paths;
 };
 
 class FPCGExCutEdgesElement final : public FPCGExEdgesProcessorElement

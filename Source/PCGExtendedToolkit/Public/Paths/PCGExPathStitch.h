@@ -8,6 +8,7 @@
 #include "PCGExPaths.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExSorting.h"
 #include "Data/PCGExPointIOMerger.h"
 
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"

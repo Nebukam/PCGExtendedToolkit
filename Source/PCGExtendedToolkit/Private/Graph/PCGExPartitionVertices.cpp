@@ -47,7 +47,7 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 		Context->VtxPartitions->Pairs.Reserve(Context->GetClusterProcessorsNum());
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->OutputBatches();
 
@@ -100,7 +100,7 @@ namespace PCGExPartitionVertices
 		}
 
 		TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
-		for (PCGExCluster::FEdge& Edge : Edges)
+		for (PCGExGraph::FEdge& Edge : Edges)
 		{
 			Edge.Start = EndpointsMap[Edge.Start];
 			Edge.End = EndpointsMap[Edge.End];
@@ -112,7 +112,7 @@ namespace PCGExPartitionVertices
 
 	void FProcessor::CompleteWork()
 	{
-		PCGExData::DataIDType OutId;
+		PCGExCommon::DataIDType OutId;
 		PCGExGraph::SetClusterVtx(PointPartitionIO, OutId);
 		PCGExGraph::MarkClusterEdges(EdgeDataFacade->Source, OutId);
 

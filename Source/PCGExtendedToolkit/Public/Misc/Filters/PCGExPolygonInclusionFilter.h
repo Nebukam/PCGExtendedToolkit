@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFilterFactoryProvider.h"
+#include "PCGExOctree.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
@@ -67,7 +68,7 @@ public:
 	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
 	TSharedPtr<TArray<TSharedPtr<TArray<FVector2D>>>> Polygons;
-	TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
+	TSharedPtr<PCGExOctree::FItemOctree> Octree;
 
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
@@ -93,7 +94,7 @@ namespace PCGExPointFilter
 		const TObjectPtr<const UPCGExPolygonInclusionFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<TArray<TSharedPtr<TArray<FVector2D>>>> Polygons;
-		TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
+		TSharedPtr<PCGExOctree::FItemOctree> Octree;
 
 		TConstPCGValueRange<FTransform> InTransforms;
 		bool bCheckAgainstDataBounds = false;

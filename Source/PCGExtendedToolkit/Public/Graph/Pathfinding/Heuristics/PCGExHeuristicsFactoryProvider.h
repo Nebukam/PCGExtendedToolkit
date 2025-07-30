@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Graph/PCGExGraph.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExHeuristicsFactoryProvider.generated.h"

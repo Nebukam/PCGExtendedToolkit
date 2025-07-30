@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFitting.h"
+#include "PCGExGraph.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
 

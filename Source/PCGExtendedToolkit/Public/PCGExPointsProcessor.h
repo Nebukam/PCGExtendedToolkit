@@ -6,16 +6,13 @@
 #include "CoreMinimal.h"
 #include "PCGPin.h"
 #include "PCGEx.h"
-//#include "PCGExContext.h"
-//#include "PCGExMT.h"
 #include "PCGExMacros.h"
-//#include "Data/PCGExPointIO.h"
-#include "PCGExPointsMT.h"
 
-//#include "PCGComponent.h"
 #include "PCGContext.h"
-//#include "PCGExInstancedFactory.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExInstancedFactory.h"
+#include "PCGExPointsMT.h"
+#include "Data/PCGExPointIO.h"
 
 #include "PCGExPointsProcessor.generated.h"
 
@@ -33,6 +30,11 @@
 
 #define PCGEX_ELEMENT_CREATE_CONTEXT(_CLASS) virtual FPCGContext* CreateContext() override { return new FPCGEx##_CLASS##Context(); }
 #define PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT virtual FPCGContext* CreateContext() override { return new FPCGExContext(); }
+
+namespace PCGExFactories
+{
+	enum class EType : uint8;
+}
 
 struct FPCGExPointsProcessorContext;
 class FPCGExPointsProcessorElement;
@@ -73,7 +75,7 @@ public:
 
 	virtual FName GetPointFilterPin() const { return NAME_None; }
 	virtual FString GetPointFilterTooltip() const { return TEXT("Filters"); }
-	virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const { return PCGExFactories::PointFilters; }
+	virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const;
 	virtual bool RequiresPointFilters() const { return false; }
 
 	bool SupportsPointFilters() const { return !GetPointFilterPin().IsNone(); }
@@ -161,7 +163,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 #pragma region Batching
 
 	bool bBatchProcessingEnabled = false;
-	bool ProcessPointsBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync = false);
+	bool ProcessPointsBatch(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync = false);
 
 	TSharedPtr<PCGExPointsMT::IBatch> MainBatch;
 	TMap<PCGExData::FPointIO*, TSharedRef<PCGExPointsMT::IProcessor>> SubProcessorMap;

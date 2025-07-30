@@ -73,6 +73,8 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 
 PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
+TSet<PCGExFactories::EType> UPCGExPointsProcessorSettings::GetPointFilterTypes() const { return PCGExFactories::PointFilters; }
+
 #if WITH_EDITOR
 void UPCGExPointsProcessorSettings::EDITOR_OpenNodeDocumentation() const
 {
@@ -125,7 +127,7 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 #pragma endregion
 
-bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync)
+bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync)
 {
 	if (!bBatchProcessingEnabled) { return true; }
 
@@ -169,7 +171,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 		}
 
 		bBatchProcessingEnabled = false;
-		if (NextStateId == PCGEx::State_Done) { Done(); }
+		if (NextStateId == PCGExCommon::State_Done) { Done(); }
 		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 		else { SetState(NextStateId); }
 	}
@@ -180,7 +182,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGEx::ContextState 
 		BatchProcessing_WritingDone();
 
 		bBatchProcessingEnabled = false;
-		if (NextStateId == PCGEx::State_Done) { Done(); }
+		if (NextStateId == PCGExCommon::State_Done) { Done(); }
 		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 		else { SetState(NextStateId); }
 	}
@@ -213,7 +215,7 @@ bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) c
 
 	PCGEX_EXECUTION_CHECK_C(Context)
 
-	if (Context->IsState(PCGEx::State_Preparation))
+	if (Context->IsState(PCGExCommon::State_Preparation))
 	{
 		if (!Boot(Context))
 		{
@@ -234,13 +236,13 @@ bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) c
 		PostLoadAssetsDependencies(Context);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_LoadingAssetDependencies)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_LoadingAssetDependencies)
 	{
 		PostLoadAssetsDependencies(Context);
 		PCGEX_EXECUTION_CHECK_C(Context)
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_AsyncPreparation)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_AsyncPreparation)
 	{
 		PCGEX_EXECUTION_CHECK_C(Context)
 	}
@@ -287,7 +289,7 @@ FPCGContext* FPCGExPointsProcessorElement::CreateContext() { return new FPCGExPo
 
 void FPCGExPointsProcessorElement::OnContextInitialized(FPCGExPointsProcessorContext* InContext) const
 {
-	InContext->SetState(PCGEx::State_Preparation);
+	InContext->SetState(PCGExCommon::State_Preparation);
 
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);

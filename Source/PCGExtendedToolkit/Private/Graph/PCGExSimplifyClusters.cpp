@@ -63,7 +63,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	}
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraph::State_ReadyToCompile)
-	if (!Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
+	if (!Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
 	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();

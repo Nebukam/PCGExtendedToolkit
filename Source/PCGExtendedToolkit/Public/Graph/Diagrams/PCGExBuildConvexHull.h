@@ -8,6 +8,7 @@
 
 
 #include "Geometry/PCGExGeoDelaunay.h"
+#include "Graph/PCGExGraph.h"
 
 
 #include "PCGExBuildConvexHull.generated.h"
@@ -34,7 +35,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual FName GetMainOutputPin() const override;
 	//~End UPCGExPointsProcessorSettings
 
 	/** Graph & Edges output properties */

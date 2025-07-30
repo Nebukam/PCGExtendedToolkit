@@ -447,7 +447,7 @@ struct FPCGExSampleNearestSplineContext final : FPCGExPointsProcessorContext
 	TArray<double> Lengths;
 
 	FBox OctreeBounds = FBox(ForceInit);
-	TSharedPtr<PCGEx::FIndexedItemOctree> SplineOctree;
+	TSharedPtr<PCGExOctree::FItemOctree> SplineOctree;
 
 	int64 NumTargets = 0;
 

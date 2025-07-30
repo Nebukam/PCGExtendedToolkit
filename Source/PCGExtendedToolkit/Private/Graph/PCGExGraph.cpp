@@ -3,18 +3,20 @@
 
 #include "Graph/PCGExGraph.h"
 
+#include "PCGExContext.h"
 #include "PCGExRandom.h"
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetailsIntersection.h"
 #include "Data/Blending/PCGExUnionBlender.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Metadata/PCGMetadata.h"
 
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
 #include "Async/ParallelFor.h"
+#include "Geometry/PCGExGeo.h"
 
 void FPCGExBasicEdgeSolidificationDetails::Mutate(PCGExData::FMutablePoint& InEdgePoint, const PCGExData::FConstPoint& InStart, const PCGExData::FConstPoint& InEnd, const double InLerp) const
 {
@@ -390,7 +392,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 
 		const TPCGValueRange<int64> OutMetadataEntries = OutEdgeData->GetMetadataEntryValueRange(false);
 
-		UPCGMetadata* Metadata = OutEdgeData->Metadata;
+		UPCGMetadata* Metadata = OutEdgeData->MutableMetadata();
 
 		if (InEdgeData)
 		{
@@ -1355,7 +1357,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 	{
 		if (!PointIO->GetOut()) { return; }
-		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+		UPCGMetadata* Metadata = PointIO->GetOut()->MutableMetadata();
 		PointIO->Tags->Remove(TagStr_PCGExCluster);
 		PointIO->Tags->Remove(TagStr_PCGExVtx);
 		Metadata->DeleteAttribute(Attr_PCGExVtxIdx);
@@ -1365,7 +1367,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	void CleanupEdgeData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 	{
 		if (!PointIO->GetOut()) { return; }
-		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+		UPCGMetadata* Metadata = PointIO->GetOut()->MutableMetadata();
 		PointIO->Tags->Remove(TagStr_PCGExCluster);
 		PointIO->Tags->Remove(TagStr_PCGExEdges);
 		Metadata->DeleteAttribute(Attr_PCGExVtxIdx);
@@ -1408,7 +1410,7 @@ namespace PCGExGraphTask
 
 		VtxDupe->IOIndex = TaskIndex;
 
-		PCGExData::DataIDType OutId;
+		PCGExCommon::DataIDType OutId;
 		PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
 		PCGEX_MAKE_SHARED(VtxTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, VtxDupe, TransformDetails);

@@ -3,6 +3,13 @@
 
 #include "Topology/PCGExTopology.h"
 
+#include "Geometry/PCGExGeoPrimtives.h"
+#include "GeometryScript/MeshNormalsFunctions.h"
+#include "Graph/PCGExCluster.h"
+#include "GeometryScript/MeshPrimitiveFunctions.h"
+#include "Paths/PCGExPaths.h"
+#include "GeometryScript/PolygonFunctions.h"
+
 void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InCell, PCGExData::FMutablePoint& OutSeedPoint, const UPCGBasePointData* CellPoints) const
 {
 	switch (Location)
@@ -59,6 +66,13 @@ namespace PCGExTopology
 			if (!FGeomTools2D::IsPointInPolygon(Point, ContainerPoints)) { return false; }
 		}
 		return true;
+	}
+
+	void MarkTriangle(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const PCGExGeo::FTriangle& InTriangle)
+	{
+		FPlatformAtomics::InterlockedExchange(&InCluster->GetNode(InTriangle.Vtx[0])->bValid, 1);
+		FPlatformAtomics::InterlockedExchange(&InCluster->GetNode(InTriangle.Vtx[1])->bValid, 1);
+		FPlatformAtomics::InterlockedExchange(&InCluster->GetNode(InTriangle.Vtx[2])->bValid, 1);
 	}
 
 	bool FHoles::Overlaps(const FGeometryScriptSimplePolygon& Polygon)
@@ -460,7 +474,7 @@ void FPCGExCellArtifactsDetails::Process(
 		TArray<FString> Tags = SourceTags.Array();
 		for (int i = 0; i < Tags.Num(); i++)
 		{
-			if (Tags[i].StartsWith(PCGEx::PCGExPrefix))
+			if (Tags[i].StartsWith(PCGExCommon::PCGExPrefix))
 			{
 				Tags.RemoveAt(i);
 				i--;

@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExMergePoints.h"
 
+#include "Graph/PCGExEdge.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExMergePointsElement"
 #define PCGEX_NAMESPACE MergePoints
@@ -55,7 +57,7 @@ bool FPCGExMergePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	(void)Context->CompositeDataFacade->Source->StageOutput(Context);
 

@@ -8,11 +8,17 @@
 #include "PCGExData.h"
 #include "PCGExFactoryProvider.h"
 
-
-#include "Graph/PCGExCluster.h"
-#include "Paths/PCGExPaths.h"
-
 #include "PCGExPointFilter.generated.h"
+
+namespace PCGExGraph
+{
+	struct FEdge;
+}
+
+namespace PCGExCluster
+{
+	struct FNode;
+}
 
 class UPCGExFilterProviderSettings;
 
@@ -215,7 +221,7 @@ namespace PCGExPointFilter
 
 		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults);
 		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResults);
-		virtual int32 Test(const TArrayView<PCGExCluster::FEdge> Items, const TArrayView<int8> OutResults);
+		virtual int32 Test(const TArrayView<PCGExGraph::FEdge> Items, const TArrayView<int8> OutResults);
 
 		virtual ~FManager()
 		{

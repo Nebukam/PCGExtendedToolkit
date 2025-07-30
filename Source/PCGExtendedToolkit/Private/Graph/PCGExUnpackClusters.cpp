@@ -49,10 +49,10 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 	{
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
 		while (Context->AdvancePointsIO(false)) { PCGEX_LAUNCH(FPCGExUnpackClusterTask, Context->CurrentIO) }
-		Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 	{
 		Context->OutPoints->StageOutputs();
 		Context->OutEdges->StageOutputs();
@@ -117,7 +117,7 @@ void FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager
 	NewVtx->DeleteAttribute(EdgeCountIdentifier);
 	NewVtx->DeleteAttribute(PCGExGraph::Attr_PCGExEdgeIdx);
 
-	const PCGExData::DataIDType PairId = PointIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster);
+	const PCGExCommon::DataIDType PairId = PointIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster);
 
 	PCGExGraph::MarkClusterVtx(NewVtx, PairId);
 	PCGExGraph::MarkClusterEdges(NewEdges, PairId);

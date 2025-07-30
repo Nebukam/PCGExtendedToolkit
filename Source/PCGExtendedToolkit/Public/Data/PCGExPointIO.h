@@ -700,10 +700,10 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 	public:
 		TSharedPtr<FPointIO> Key;
 		FString TagId;
-		DataIDType TagValue;
+		PCGExCommon::DataIDType TagValue;
 		TArray<TSharedRef<FPointIO>> Entries;
 
-		FPointIOTaggedEntries(TSharedPtr<FPointIO> InKey, const FString& InTagId, const DataIDType& InTagValue)
+		FPointIOTaggedEntries(TSharedPtr<FPointIO> InKey, const FString& InTagId, const PCGExCommon::DataIDType& InTagValue)
 			: Key(InKey), TagId(InTagId), TagValue(InTagValue)
 		{
 		}

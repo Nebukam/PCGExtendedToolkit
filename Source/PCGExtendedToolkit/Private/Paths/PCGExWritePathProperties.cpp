@@ -77,7 +77,7 @@ bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) c
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	if (Settings->WriteAnyPathData())
@@ -115,8 +115,9 @@ namespace PCGExWritePathProperties
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0);
+		Path = MakeShared<PCGExPaths::FPath>(PointDataFacade->GetIn(), 0);
+		bClosedLoop = Path->IsClosedLoop();
+		
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>(true); // Force compute length
 		if (Settings->bWritePointNormal || Settings->bWritePointBinormal) { PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Settings->UpVector); }

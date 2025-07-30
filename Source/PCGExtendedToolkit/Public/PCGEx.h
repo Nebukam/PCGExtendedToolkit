@@ -18,18 +18,10 @@
 //#include "StaticMeshResources.h"
 //#include "PCGExHelpers.h"
 
+#include "PCGExCommon.h"
 #include "PCGExMacros.h"
 
 #include "PCGEx.generated.h"
-
-#ifndef PCGEX_CONSTANTS
-#define PCGEX_CONSTANTS
-
-#define DBL_INTERSECTION_TOLERANCE 0.1
-#define DBL_COLLOCATION_TOLERANCE 0.1
-#define DBL_COMPARE_TOLERANCE 0.01
-
-#endif
 
 using PCGExTypeHash = uint32;
 using InlineSparseAllocator = TSetAllocator<TSparseArrayAllocator<TInlineAllocator<8>, TInlineAllocator<8>>, TInlineAllocator<8>>;
@@ -188,7 +180,6 @@ namespace PCGEx
 	const FName PreviousAttributeName = TEXT("#Previous");
 	const FName PreviousNameAttributeName = TEXT("#PreviousName");
 
-	const FString PCGExPrefix = TEXT("PCGEx/");
 	const FName SourcePointsLabel = TEXT("In");
 	const FName SourceTargetsLabel = TEXT("Targets");
 	const FName SourceSourcesLabel = TEXT("Sources");
@@ -240,9 +231,9 @@ namespace PCGEx
 	PCGEXTENDEDTOOLKIT_API
 	bool IsPCGExAttribute(const FText& InText);
 
-	static FName MakePCGExAttributeName(const FString& Str0) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}")), FText::FromString(PCGExPrefix), FText::FromString(Str0)).ToString()); }
+	static FName MakePCGExAttributeName(const FString& Str0) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}")), FText::FromString(PCGExCommon::PCGExPrefix), FText::FromString(Str0)).ToString()); }
 
-	static FName MakePCGExAttributeName(const FString& Str0, const FString& Str1) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}/{2}")), FText::FromString(PCGExPrefix), FText::FromString(Str0), FText::FromString(Str1)).ToString()); }
+	static FName MakePCGExAttributeName(const FString& Str0, const FString& Str1) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}/{2}")), FText::FromString(PCGExCommon::PCGExPrefix), FText::FromString(Str0), FText::FromString(Str1)).ToString()); }
 
 	PCGEXTENDEDTOOLKIT_API
 	bool IsWritableAttributeName(const FName Name);
@@ -274,17 +265,4 @@ namespace PCGEx
 		int32 Count = 0;
 		double Weight = 0;
 	};
-
-	struct PCGEXTENDEDTOOLKIT_API FIndexedItem
-	{
-		int32 Index;
-		FBoxSphereBounds Bounds;
-
-		FIndexedItem(const int32 InIndex, const FBoxSphereBounds& InBounds)
-			: Index(InIndex), Bounds(InBounds)
-		{
-		}
-	};
-
-	PCGEX_OCTREE_SEMANTICS_REF(FIndexedItem, { return Element.Bounds;}, { return A.Index == B.Index; })
 }

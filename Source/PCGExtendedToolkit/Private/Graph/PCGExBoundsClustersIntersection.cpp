@@ -48,10 +48,10 @@ bool FPCGExBoundsClustersIntersectionElement::ExecuteInternal(FPCGContext* InCon
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGEx::State_ReadyForNextPoints);
+		Context->SetState(PCGExCommon::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGEx::State_ReadyForNextPoints))
+	if (Context->IsState(PCGExCommon::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
@@ -75,7 +75,7 @@ bool FPCGExBoundsClustersIntersectionElement::ExecuteInternal(FPCGContext* InCon
 	{
 		PCGEX_ASYNC_WAIT
 
-		Context->SetState(PCGEx::State_ReadyForNextPoints);
+		Context->SetState(PCGExCommon::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone())

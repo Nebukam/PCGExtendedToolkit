@@ -5,14 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "Blending/PCGExDataBlending.h"
 #include "UObject/Object.h"
-
-#include "PCGExData.h"
 #include "PCGExPointFilter.h"
-
-
-#include "Graph/PCGExCluster.h"
 
 #include "PCGExPointStates.generated.h"
 
@@ -120,6 +114,6 @@ public:
 #endif
 	//~End UPCGSettings
 
-	virtual FName GetMainOutputPin() const override { return PCGExCluster::OutputNodeFlagLabel; }
+	virtual FName GetMainOutputPin() const override;
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

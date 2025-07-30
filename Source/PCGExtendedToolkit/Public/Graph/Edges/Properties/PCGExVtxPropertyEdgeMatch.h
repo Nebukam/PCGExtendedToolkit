@@ -10,15 +10,13 @@
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExVtxPropertyFactoryProvider.h"
-#include "Data/PCGExPointFilter.h"
-
-
-#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExVtxPropertyEdgeMatch.generated.h"
 
 ///
+
+class UPCGExFilterFactoryData;
 
 USTRUCT(BlueprintType)
 struct FPCGExEdgeMatchConfig

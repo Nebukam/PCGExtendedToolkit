@@ -3,10 +3,25 @@
 
 #pragma once
 
+#include <functional>
+
 #include "CoreMinimal.h"
+#include "PCGEx.h"
 #include "PCGExEdge.h"
+#include "PCGExMT.h"
+#include "Utils/PCGValueRange.h"
 
 #include "PCGExGraph.generated.h"
+
+class UPCGMetadata;
+struct FPCGContext;
+
+namespace PCGExMT
+{
+	struct FScope;
+	class FTaskManager;
+	class FAsyncMultiHandle;
+}
 
 struct FPCGExCarryOverDetails;
 struct FPCGExEdgeUnionMetadataDetails;
@@ -22,8 +37,12 @@ namespace PCGExDetails
 
 namespace PCGExData
 {
+	class FPointIOCollection;
+	class FFacade;
+	struct FConstPoint;
+	struct FMutablePoint;
 	class FUnionMetadata;
-	template<typename T>
+	template <typename T>
 	class TBuffer;
 }
 
@@ -189,8 +208,8 @@ namespace PCGExGraph
 	const FName SourceVerticesLabel = TEXT("Vtx");
 	const FName OutputVerticesLabel = TEXT("Vtx");
 
-	const FName Tag_PackedClusterEdgeCount_LEGACY = FName(PCGEx::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
-	const FName Tag_PackedClusterEdgeCount = FName(TEXT("@Data.") + PCGEx::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
+	const FName Tag_PackedClusterEdgeCount_LEGACY = FName(PCGExCommon::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
+	const FName Tag_PackedClusterEdgeCount = FName(TEXT("@Data.") + PCGExCommon::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
 
 	const FName SourceSeedsLabel = TEXT("Seeds");
 	const FName SourceGoalsLabel = TEXT("Goals");
@@ -504,7 +523,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		FGraphCompilationEndCallback OnCompilationEndCallback;
 		FSubGraphPostProcessCallback OnSubGraphPostProcess;
 
-		PCGExData::DataIDType PairId;
+		PCGExCommon::DataIDType PairId;
 		TSharedPtr<FGraph> Graph;
 
 		TSharedRef<PCGExData::FFacade> NodeDataFacade;

@@ -84,7 +84,7 @@ namespace PCGExTensor
 		const int32 NumEffectors = InPoints->GetNumPoints();
 
 		const FBox InBounds = InFactory->InputDataFacade->GetIn()->GetBounds();
-		Octree = MakeShared<PCGEx::FIndexedItemOctree>(InBounds.GetCenter(), (InBounds.GetExtent() + FVector(10)).Length());
+		Octree = MakeShared<PCGExOctree::FItemOctree>(InBounds.GetCenter(), (InBounds.GetExtent() + FVector(10)).Length());
 
 		PCGEx::InitArray(Transforms, NumEffectors);
 		PCGEx::InitArray(Radiuses, NumEffectors);
@@ -110,7 +110,7 @@ namespace PCGExTensor
 			Radiuses[i] = Extents.SquaredLength();
 
 			const float Steepness = InSteepness[i];
-			Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(FBox((2 - Steepness) * (Extents * -1), (2 - Steepness) * Extents).TransformBy(Transform)))); // Fetch to max
+			Octree->AddElement(PCGExOctree::FItem(i, FBoxSphereBounds(FBox((2 - Steepness) * (Extents * -1), (2 - Steepness) * Extents).TransformBy(Transform)))); // Fetch to max
 		}
 
 		return true;

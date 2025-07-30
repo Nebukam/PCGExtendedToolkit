@@ -39,7 +39,7 @@ public:
 		const FVector A1 = Cluster->GetStartPos(Edge);
 		const FVector B1 = Cluster->GetEndPos(Edge);
 
-		auto ProcessOverlap = [&](const PCGEx::FIndexedItem& Item)
+		auto ProcessOverlap = [&](const PCGExOctree::FItem& Item)
 		{
 			//if (!Edge.bValid) { return false; }
 

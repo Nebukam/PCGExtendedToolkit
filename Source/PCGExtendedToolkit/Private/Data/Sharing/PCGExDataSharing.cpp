@@ -67,7 +67,7 @@ namespace PCGExDataSharing
 		Octree.Reset();
 	}
 
-	TSharedPtr<PCGEx::FIndexedItemOctree> FDataBucket::GetOctree()
+	TSharedPtr<PCGExOctree::FItemOctree> FDataBucket::GetOctree()
 	{
 		// TODO
 		return Octree;

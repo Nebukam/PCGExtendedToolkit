@@ -4,6 +4,7 @@
 #include "Graph/Filters/Nodes/PCGExNodeAdjacencyFilter.h"
 
 
+#include "Data/PCGExDataPreloader.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
 

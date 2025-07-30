@@ -13,7 +13,6 @@
 #include "PCGExAttributeHelpers.h"
 #include "PCGExDataHelpers.h"
 #include "PCGExMT.h"
-#include "Data/PCGPointData.h"
 
 #pragma region DATA MACROS
 

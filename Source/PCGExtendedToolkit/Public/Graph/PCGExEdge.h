@@ -4,11 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
+#include "PCGExCommon.h"
 #include "PCGExH.h"
-#include "PCGExContext.h"
-#include "Data/PCGExPointIO.h"
 #include "PCGExEdge.generated.h"
+
+namespace PCGExData
+{
+	class FPointIO;
+}
 
 UENUM()
 enum class EPCGExEdgeDirectionMethod : uint8
@@ -41,15 +44,15 @@ namespace PCGExGraph
 	const FName SourceEdgeSortingRules = TEXT("Direction Sorting");
 	const FName OutputPackedClustersLabel = TEXT("Packed Clusters");
 
-	const FName Attr_PCGExEdgeIdx = FName(PCGEx::PCGExPrefix + TEXT("EData"));
-	const FName Attr_PCGExVtxIdx = FName(PCGEx::PCGExPrefix + TEXT("VData"));
+	const FName Attr_PCGExEdgeIdx = FName(PCGExCommon::PCGExPrefix + TEXT("EData"));
+	const FName Attr_PCGExVtxIdx = FName(PCGExCommon::PCGExPrefix + TEXT("VData"));
 
-	const FName Tag_PCGExCluster = FName(PCGEx::PCGExPrefix + TEXT("Cluster"));
+	const FName Tag_PCGExCluster = FName(PCGExCommon::PCGExPrefix + TEXT("Cluster"));
 	const FString TagStr_PCGExCluster = Tag_PCGExCluster.ToString();
 
-	const FName Tag_PCGExVtx = FName(PCGEx::PCGExPrefix + TEXT("Vtx"));
+	const FName Tag_PCGExVtx = FName(PCGExCommon::PCGExPrefix + TEXT("Vtx"));
 	const FString TagStr_PCGExVtx = Tag_PCGExVtx.ToString();
-	const FName Tag_PCGExEdges = FName(PCGEx::PCGExPrefix + TEXT("Edges"));
+	const FName Tag_PCGExEdges = FName(PCGExCommon::PCGExPrefix + TEXT("Edges"));
 	const FString TagStr_PCGExEdges = Tag_PCGExEdges.ToString();
 
 	PCGEX_CTX_STATE(State_ReadyForNextEdges)
@@ -115,9 +118,9 @@ namespace PCGExGraph
 		FORCEINLINE uint32 GetTypeHash(const FLink& Key) { return HashCombineFast(Key.Node, Key.Edge); }
 	};
 
-	void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExData::DataIDType& OutId);
-	void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExData::DataIDType& Id);
-	void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExData::DataIDType& Id);
-	void MarkClusterEdges(const TArrayView<TSharedRef<PCGExData::FPointIO>> Edges, const PCGExData::DataIDType& Id);
+	void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExCommon::DataIDType& OutId);
+	void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExCommon::DataIDType& Id);
+	void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExCommon::DataIDType& Id);
+	void MarkClusterEdges(const TArrayView<TSharedRef<PCGExData::FPointIO>> Edges, const PCGExCommon::DataIDType& Id);
 	void CleanupClusterTags(const TSharedPtr<PCGExData::FPointIO>& IO, const bool bKeepPairTag = false);
 }

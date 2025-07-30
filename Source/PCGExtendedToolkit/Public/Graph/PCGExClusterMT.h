@@ -7,8 +7,10 @@
 
 #include "PCGExGraph.h"
 #include "PCGExCluster.h"
+#include "PCGExEdgeDirectionSettings.h"
 #include "Data/PCGExClusterData.h"
 #include "Data/PCGExData.h"
+#include "Geometry/PCGExGeo.h"
 
 
 #include "Pathfinding/Heuristics/PCGExHeuristics.h"
@@ -311,7 +313,7 @@ namespace PCGExClusterMT
 		TArray<TSharedRef<T>> Processors;
 		TArray<TSharedRef<T>> TrivialProcessors;
 
-		std::atomic<PCGEx::ContextState> CurrentState{PCGEx::State_InitialExecution};
+		std::atomic<PCGExCommon::ContextState> CurrentState{PCGExCommon::State_InitialExecution};
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
@@ -339,7 +341,7 @@ namespace PCGExClusterMT
 			IBatch::Process();
 			if (!bIsBatchValid) { return; }
 
-			CurrentState.store(PCGEx::State_Processing, std::memory_order_release);
+			CurrentState.store(PCGExCommon::State_Processing, std::memory_order_release);
 
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
 			{
@@ -379,7 +381,7 @@ namespace PCGExClusterMT
 			if (bSkipCompletion) { return; }
 			if (!bIsBatchValid) { return; }
 
-			CurrentState.store(PCGEx::State_Completing, std::memory_order_release);
+			CurrentState.store(PCGExCommon::State_Completing, std::memory_order_release);
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, { Processor->CompleteWork(); })
 			IBatch::CompleteWork();
 		}
@@ -388,7 +390,7 @@ namespace PCGExClusterMT
 		{
 			if (!bIsBatchValid) { return; }
 
-			CurrentState.store(PCGEx::State_Writing, std::memory_order_release);
+			CurrentState.store(PCGExCommon::State_Writing, std::memory_order_release);
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, { Processor->Write(); })
 			IBatch::Write();
 		}

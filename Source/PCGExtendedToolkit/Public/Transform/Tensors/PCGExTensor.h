@@ -4,6 +4,7 @@
 #pragma once
 #include "PCGExDetails.h"
 #include "PCGExDetailsData.h"
+#include "PCGExOctree.h"
 #include "Curves/CurveVector.h"
 #include "Data/PCGExData.h"
 #include "PCGExTensor.generated.h"
@@ -205,7 +206,7 @@ namespace PCGExTensor
 		TArray<double> Potencies;
 		TArray<double> Weights;
 
-		TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
+		TSharedPtr<PCGExOctree::FItemOctree> Octree;
 
 	public:
 		FEffectorsArray() = default;
@@ -217,7 +218,7 @@ namespace PCGExTensor
 		virtual void PrepareSinglePoint(const int32 Index);
 
 	public:
-		FORCEINLINE const PCGEx::FIndexedItemOctree* GetOctree() const { return Octree.Get(); }
+		FORCEINLINE const PCGExOctree::FItemOctree* GetOctree() const { return Octree.Get(); }
 
 		const FTransform& ReadTransform(const int32 Index) const { return Transforms[Index]; }
 		double ReadRadius(const int32 Index) const { return Radiuses[Index]; }

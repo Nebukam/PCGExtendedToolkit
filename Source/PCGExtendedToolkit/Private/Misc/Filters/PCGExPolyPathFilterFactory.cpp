@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
 #include "Cooker/CookDependency.h"
+#include "Data/PCGSplineData.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExPathInclusionFilterDefinition"
@@ -54,7 +55,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 			for (int i = 0; i < TempTargets.Num(); i++)
 			{
-				const TSharedPtr<PCGExPaths::IPath>& Path = TempPolyPaths[i];
+				const TSharedPtr<PCGExPaths::FPath>& Path = TempPolyPaths[i];
 
 				if (!Path || !Path.IsValid()) { continue; }
 
@@ -76,8 +77,8 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 			TempPolyPaths.Empty();
 
-			Octree = MakeShared<PCGEx::FIndexedItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
-			for (int i = 0; i < BoundsList.Num(); i++) { Octree->AddElement(PCGEx::FIndexedItem(i, BoundsList[i])); }
+			Octree = MakeShared<PCGExOctree::FItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
+			for (int i = 0; i < BoundsList.Num(); i++) { Octree->AddElement(PCGExOctree::FItem(i, BoundsList[i])); }
 		};
 
 	CreatePolyPaths->OnIterationCallback =
@@ -94,16 +95,16 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 			if (LocalSampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { return; }
 			if (LocalSampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { return; }
 
-			TSharedPtr<PCGExPaths::IPath> Path = nullptr;
+			TSharedPtr<PCGExPaths::FPolyPath> Path = nullptr;
 
 			if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(Data))
 			{
 				const TSharedPtr<PCGExData::FPointIO> PointIO = MakeShared<PCGExData::FPointIO>(CtxHandle, PointData);
-				Path = PCGExPaths::MakePolyPath(PointIO, LocalExpansion, LocalProjection, LocalExpansionZ, WindingMutation);
+				Path = MakeShared<PCGExPaths::FPolyPath>(PointIO, LocalProjection, LocalExpansion, LocalExpansionZ, WindingMutation);
 			}
 			else if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(Data))
 			{
-				Path = PCGExPaths::MakePolyPath(SplineData, LocalFidelity, LocalExpansion, LocalProjection, LocalExpansionZ, WindingMutation);
+				Path = MakeShared<PCGExPaths::FPolyPath>(SplineData, LocalFidelity, LocalProjection, LocalExpansion, LocalExpansionZ, WindingMutation);
 			}
 
 			if (Path) { TempPolyPaths[Index] = Path; }
@@ -200,7 +201,7 @@ namespace PCGExPathInclusion
 			{
 				Octree->FindElementsWithBoundsTest(
 					FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
-					const PCGEx::FIndexedItem& Item)
+					const PCGExOctree::FItem& Item)
 					{
 						if ((*(Paths->GetData() + Item.Index))->IsInsideProjection(WorldPosition))
 						{
@@ -219,7 +220,7 @@ namespace PCGExPathInclusion
 			{
 				Octree->FindElementsWithBoundsTest(
 					FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
-					const PCGEx::FIndexedItem& Item)
+					const PCGExOctree::FItem& Item)
 					{
 						if ((*(Paths->GetData() + Item.Index))->IsInsideProjection(WorldPosition))
 						{
@@ -245,7 +246,7 @@ namespace PCGExPathInclusion
 
 				Octree->FindElementsWithBoundsTest(
 					FBoxCenterAndExtent(WorldPosition, FVector::OneVector),
-					[&](const PCGEx::FIndexedItem& Item)
+					[&](const PCGExOctree::FItem& Item)
 					{
 						bool bLocalIsInside = false;
 						const FTransform Closest = (*(Paths->GetData() + Item.Index))->GetClosestTransform(WorldPosition, bLocalIsInside, bScaleTolerance);
@@ -265,7 +266,7 @@ namespace PCGExPathInclusion
 			{
 				Octree->FindElementsWithBoundsTest(
 					FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
-					const PCGEx::FIndexedItem& Item)
+					const PCGExOctree::FItem& Item)
 					{
 						bool bLocalIsInside = false;
 						const FTransform Closest = (*(Paths->GetData() + Item.Index))->GetClosestTransform(WorldPosition, bLocalIsInside, bScaleTolerance);

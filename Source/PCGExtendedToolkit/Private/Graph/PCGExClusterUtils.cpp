@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExClusterUtils.h"
+
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExClusterUtils
@@ -157,7 +159,7 @@ namespace PCGExClusterUtils
 
 	TSharedPtr<PCGExData::FPointIOTaggedEntries> FClusterDataLibrary::GetAssociatedEdges(const TSharedPtr<PCGExData::FPointIO>& InVtxIO) const
 	{
-		if (const PCGExData::DataIDType CurrentPairId = InVtxIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster))
+		if (const PCGExCommon::DataIDType CurrentPairId = InVtxIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster))
 		{
 			if (TSharedPtr<PCGExData::FPointIOTaggedEntries> EdgesEntries = InputDictionary->GetEntries(CurrentPairId->Value);
 				EdgesEntries && !EdgesEntries->Entries.IsEmpty()) { return EdgesEntries; }

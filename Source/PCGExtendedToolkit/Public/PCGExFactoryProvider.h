@@ -215,7 +215,7 @@ public:
 	virtual FPCGContext* CreateContext() override
 	{
 		FPCGExFactoryProviderContext* NewContext = new FPCGExFactoryProviderContext();
-		NewContext->SetState(PCGEx::State_InitialExecution);
+		NewContext->SetState(PCGExCommon::State_InitialExecution);
 		return NewContext;
 	}
 

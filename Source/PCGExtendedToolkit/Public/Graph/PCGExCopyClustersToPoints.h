@@ -92,7 +92,7 @@ namespace PCGExCopyClusters
 
 	public:
 		TArray<TSharedPtr<PCGExData::FPointIO>>* VtxDupes = nullptr;
-		TArray<PCGExData::DataIDType>* VtxTag = nullptr;
+		TArray<PCGExCommon::DataIDType>* VtxTag = nullptr;
 
 		TArray<TSharedPtr<PCGExData::FPointIO>> EdgesDupes;
 
@@ -118,7 +118,7 @@ namespace PCGExCopyClusters
 
 	public:
 		TArray<TSharedPtr<PCGExData::FPointIO>> VtxDupes;
-		TArray<PCGExData::DataIDType> VtxTag;
+		TArray<PCGExCommon::DataIDType> VtxTag;
 
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch(InContext, InVtx, InEdges)

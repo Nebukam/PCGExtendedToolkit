@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExCopyToPoints.h"
 
+#include "Geometry/PCGExGeo.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCopyToPointsElement"
 #define PCGEX_NAMESPACE CopyToPoints
 
@@ -68,7 +70,7 @@ bool FPCGExCopyToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

@@ -73,10 +73,10 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 			if (Context->CurrentIO->GetNum() < 2) { continue; }
 			PCGEX_LAUNCH(FPCGExPlotNavmeshTask, Context->CurrentIO)
 		}
-		Context->SetAsyncState(PCGEx::State_ProcessingPoints);
+		Context->SetAsyncState(PCGExCommon::State_ProcessingPoints);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_ProcessingPoints)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_ProcessingPoints)
 	{
 		Context->OutputPaths->StageOutputs();
 		Context->Done();

@@ -142,7 +142,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Context->OutFactory->WantsPreparation(Context))
 		{
-			Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 
 			PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), Prepare)
 			Prepare->AddSimpleCallback(
@@ -159,7 +159,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 	{
 		if (Context->OutFactory->PrepResult != PCGExFactories::EPreparationResult::Success)
 		{

@@ -5,6 +5,7 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlCount.h"
 
 
+#include "Data/PCGExDataPreloader.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 bool FPCGExFillControlCount::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)

@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExDiscardByOverlap.h"
 
+#include "PCGExDataMath.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExDiscardByOverlapElement"
 #define PCGEX_NAMESPACE DiscardByOverlap
@@ -184,17 +186,17 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Processing)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Processing)
 
-	if (Context->IsState(PCGEx::State_Processing))
+	if (Context->IsState(PCGExCommon::State_Processing))
 	{
-		Context->SetAsyncState(PCGEx::State_Completing);
+		Context->SetAsyncState(PCGExCommon::State_Completing);
 		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
 		PCGEX_LAUNCH(PCGExDiscardByOverlap::FPruneTask)
 		return false;
 	}
 
-	if (Context->IsState(PCGEx::State_Completing))
+	if (Context->IsState(PCGExCommon::State_Completing))
 	{
 		PCGEX_ASYNC_WAIT
 		Context->Done();

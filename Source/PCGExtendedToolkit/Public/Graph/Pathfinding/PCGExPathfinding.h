@@ -6,9 +6,16 @@
 #include "CoreMinimal.h"
 #include "PCGExMT.h"
 #include "GoalPickers/PCGExGoalPicker.h"
-#include "Graph/PCGExCluster.h"
 
 #include "PCGExPathfinding.generated.h"
+
+struct FPCGExNodeSelectionDetails;
+
+namespace PCGExCluster
+{
+	class FCluster;
+	struct FNode;
+}
 
 namespace PCGExHeuristics
 {

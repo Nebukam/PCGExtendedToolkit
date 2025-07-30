@@ -300,8 +300,8 @@ namespace PCGExSampling
 
 		if (TargetFacades.IsEmpty()) { return 0; }
 
-		TargetsOctree = MakeShared<PCGEx::FIndexedItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
-		for (int i = 0; i < TargetFacades.Num(); ++i) { TargetsOctree->AddElement(PCGEx::FIndexedItem(i, Bounds[i])); }
+		TargetsOctree = MakeShared<PCGExOctree::FItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
+		for (int i = 0; i < TargetFacades.Num(); ++i) { TargetsOctree->AddElement(PCGExOctree::FItem(i, Bounds[i])); }
 
 		TargetsPreloader = MakeShared<PCGExData::FMultiFacadePreloader>(TargetFacades);
 
@@ -401,7 +401,7 @@ namespace PCGExSampling
 	void FTargetsHandler::FindTargetsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FTargetQuery&& Func, const TSet<const UPCGData*>* Exclude) const
 	{
 		TargetsOctree->FindElementsWithBoundsTest(
-			QueryBounds, [&](const PCGEx::FIndexedItem& Item)
+			QueryBounds, [&](const PCGExOctree::FItem& Item)
 			{
 				if (Exclude && Exclude->Contains(TargetFacades[Item.Index]->GetIn())) { return; }
 				Func(Item);
@@ -411,7 +411,7 @@ namespace PCGExSampling
 	void FTargetsHandler::FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FTargetElementsQuery&& Func, const TSet<const UPCGData*>* Exclude) const
 	{
 		TargetsOctree->FindElementsWithBoundsTest(
-			QueryBounds, [&](const PCGEx::FIndexedItem& Item)
+			QueryBounds, [&](const PCGExOctree::FItem& Item)
 			{
 				if (Exclude && Exclude->Contains(TargetFacades[Item.Index]->GetIn())) { return; }
 
@@ -426,7 +426,7 @@ namespace PCGExSampling
 	void FTargetsHandler::FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FOctreeQueryWithData&& Func, const TSet<const UPCGData*>* Exclude) const
 	{
 		TargetsOctree->FindElementsWithBoundsTest(
-			QueryBounds, [&](const PCGEx::FIndexedItem& Item)
+			QueryBounds, [&](const PCGExOctree::FItem& Item)
 			{
 				const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
 				if (Exclude && Exclude->Contains(Target->GetIn())) { return; }
@@ -453,7 +453,7 @@ namespace PCGExSampling
 		if (Distances->bOverlapIsZero)
 		{
 			TargetsOctree->FindElementsWithBoundsTest(
-				QueryBounds, [&](const PCGEx::FIndexedItem& Item)
+				QueryBounds, [&](const PCGExOctree::FItem& Item)
 				{
 					const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
 					const bool bSelf = Target->GetIn() == Probe.Data;
@@ -484,7 +484,7 @@ namespace PCGExSampling
 		else
 		{
 			TargetsOctree->FindElementsWithBoundsTest(
-				QueryBounds, [&](const PCGEx::FIndexedItem& Item)
+				QueryBounds, [&](const PCGExOctree::FItem& Item)
 				{
 					const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
 					const bool bSelf = Target->GetIn() == Probe.Data;
@@ -524,7 +524,7 @@ namespace PCGExSampling
 		if (Distances->bOverlapIsZero)
 		{
 			TargetsOctree->FindNearbyElements(
-				ProbeLocation, [&](const PCGEx::FIndexedItem& Item)
+				ProbeLocation, [&](const PCGExOctree::FItem& Item)
 				{
 					const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
 					const bool bSelf = Target->GetIn() == Probe.Data;
@@ -554,7 +554,7 @@ namespace PCGExSampling
 		else
 		{
 			TargetsOctree->FindNearbyElements(
-				ProbeLocation, [&](const PCGEx::FIndexedItem& Item)
+				ProbeLocation, [&](const PCGExOctree::FItem& Item)
 				{
 					const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
 					const bool bSelf = Target->GetIn() == Probe.Data;
@@ -587,7 +587,7 @@ namespace PCGExSampling
 		const TSet<const UPCGData*>* Exclude) const
 	{
 		TargetsOctree->FindNearbyElements(
-			Probe, [&](const PCGEx::FIndexedItem& Item)
+			Probe, [&](const PCGExOctree::FItem& Item)
 			{
 				const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[Item.Index];
 				if (Exclude && Exclude->Contains(Target->GetIn())) { return; }

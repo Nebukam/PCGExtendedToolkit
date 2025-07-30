@@ -5,6 +5,7 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlKeepDirection.h"
 
 
+#include "Data/PCGExDataPreloader.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 bool FPCGExFillControlKeepDirection::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)

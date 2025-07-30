@@ -91,7 +91,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 	if (TaggedEdges && !TaggedEdges->Entries.IsEmpty())
 	{
-		PCGExData::DataIDType OutId;
+		PCGExCommon::DataIDType OutId;
 		PCGExGraph::SetClusterVtx(CurrentIO, OutId); // Update key
 		PCGExGraph::MarkClusterEdges(TaggedEdges->Entries, OutId);
 	}
@@ -110,7 +110,7 @@ void FPCGExEdgesProcessorContext::OutputBatches() const
 	for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->Output(); }
 }
 
-bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync)
+bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync)
 {
 	//FWriteScopeLock WriteScopeLock(ClusterProcessingLock); // Just in case
 
@@ -177,7 +177,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::ContextState Next
 			}
 
 			bBatchProcessingEnabled = false;
-			if (NextStateId == PCGEx::State_Done) { Done(); }
+			if (NextStateId == PCGExCommon::State_Done) { Done(); }
 			if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 			else { SetState(NextStateId); }
 		}
@@ -187,7 +187,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::ContextState Next
 			ClusterProcessing_WritingDone();
 
 			bBatchProcessingEnabled = false;
-			if (NextStateId == PCGEx::State_Done) { Done(); }
+			if (NextStateId == PCGExCommon::State_Done) { Done(); }
 			if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 			else { SetState(NextStateId); }
 		}
@@ -196,7 +196,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGEx::ContextState Next
 	return false;
 }
 
-bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToContext, const PCGEx::ContextState NextStateId)
+bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToContext, const PCGExCommon::ContextState NextStateId)
 {
 	PCGEX_ON_STATE_INTERNAL(PCGExGraph::State_ReadyToCompile)
 	{
@@ -230,14 +230,14 @@ void FPCGExEdgesProcessorContext::ClusterProcessing_GraphCompilationDone()
 {
 }
 
-void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync)
+void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync)
 {
 	CurrentBatchIndex++;
 	if (!Batches.IsValidIndex(CurrentBatchIndex))
 	{
 		CurrentBatch = nullptr;
 		bBatchProcessingEnabled = false;
-		if (NextStateId == PCGEx::State_Done) { Done(); }
+		if (NextStateId == PCGExCommon::State_Done) { Done(); }
 		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 		else { SetState(NextStateId); }
 	}

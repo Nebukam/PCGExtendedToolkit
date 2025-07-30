@@ -4,6 +4,7 @@
 #include "Misc/PCGExReversePointOrder.h"
 
 #include "Curve/CurveUtil.h"
+#include "Data/PCGExDataPreloader.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"
@@ -51,7 +52,7 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

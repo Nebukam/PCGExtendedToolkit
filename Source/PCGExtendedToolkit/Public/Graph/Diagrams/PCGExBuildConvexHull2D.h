@@ -7,6 +7,7 @@
 #include "PCGExPointsProcessor.h"
 
 #include "Geometry/PCGExGeo.h"
+#include "Graph/PCGExGraph.h"
 #include "PCGExBuildConvexHull2D.generated.h"
 
 /**

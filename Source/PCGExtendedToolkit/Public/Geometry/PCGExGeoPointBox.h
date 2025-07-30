@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExOctree.h"
 #include "PCGExDataMath.h"
 #include "PCGExMath.h"
 

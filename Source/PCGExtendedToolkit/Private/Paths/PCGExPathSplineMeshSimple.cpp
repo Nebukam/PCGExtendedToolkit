@@ -82,13 +82,13 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		if (Context->StaticMesh)
 		{
-			Context->SetState(PCGEx::State_WaitingOnAsyncWork);
+			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
 		}
 		else
 		{
 			PCGEX_ON_INITIAL_EXECUTION
 			{
-				Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+				Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 
 				if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
 				{
@@ -101,7 +101,7 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 		}
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
@@ -124,7 +124,7 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainBatch->Output();
 

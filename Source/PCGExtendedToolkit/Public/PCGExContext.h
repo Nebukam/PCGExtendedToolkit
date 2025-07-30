@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGContext.h"
+#include "PCGExCommon.h"
 
 class UPCGManagedComponent;
 struct FStreamableHandle;
@@ -19,27 +20,6 @@ namespace PCGEx
 	class FUniqueNameGenerator;
 	class FManagedObjects;
 	class FWorkPermit;
-	using ContextState = uint64;
-
-#define PCGEX_CTX_STATE(_NAME) const PCGEx::ContextState _NAME = GetTypeHash(FName(#_NAME));
-
-	PCGEX_CTX_STATE(State_Preparation)
-	PCGEX_CTX_STATE(State_LoadingAssetDependencies)
-	PCGEX_CTX_STATE(State_AsyncPreparation)
-	PCGEX_CTX_STATE(State_FacadePreloading)
-
-	PCGEX_CTX_STATE(State_InitialExecution)
-	PCGEX_CTX_STATE(State_ReadyForNextPoints)
-	PCGEX_CTX_STATE(State_ProcessingPoints)
-
-	PCGEX_CTX_STATE(State_WaitingOnAsyncWork)
-	PCGEX_CTX_STATE(State_Done)
-
-	PCGEX_CTX_STATE(State_Processing)
-	PCGEX_CTX_STATE(State_Completing)
-	PCGEX_CTX_STATE(State_Writing)
-
-	PCGEX_CTX_STATE(State_UnionWriting)
 }
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
@@ -83,15 +63,15 @@ public:
 	void PauseContext();
 	void UnpauseContext();
 
-	void SetState(const PCGEx::ContextState StateId);
-	void SetAsyncState(const PCGEx::ContextState WaitState);
+	void SetState(const PCGExCommon::ContextState StateId);
+	void SetAsyncState(const PCGExCommon::ContextState WaitState);
 
 	virtual bool ShouldWaitForAsync();
 	void ReadyForExecution();
 
-	bool IsState(const PCGEx::ContextState StateId) const { return CurrentState.load(std::memory_order_acquire) == StateId; }
-	bool IsInitialExecution() const { return IsState(PCGEx::State_InitialExecution); }
-	bool IsDone() const { return IsState(PCGEx::State_Done); }
+	bool IsState(const PCGExCommon::ContextState StateId) const { return CurrentState.load(std::memory_order_acquire) == StateId; }
+	bool IsInitialExecution() const { return IsState(PCGExCommon::State_InitialExecution); }
+	bool IsDone() const { return IsState(PCGExCommon::State_Done); }
 	void Done();
 
 	virtual void OnComplete();
@@ -102,7 +82,7 @@ public:
 protected:
 	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 	bool bWaitingForAsyncCompletion = false;
-	std::atomic<PCGEx::ContextState> CurrentState;
+	std::atomic<PCGExCommon::ContextState> CurrentState;
 
 #pragma endregion
 

@@ -7,6 +7,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoVoronoi.h"
+#include "Graph/PCGExGraph.h"
 
 #include "PCGExBuildVoronoiGraph2D.generated.h"
 

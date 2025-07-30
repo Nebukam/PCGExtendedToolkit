@@ -9,6 +9,7 @@
 
 #include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoVoronoi.h"
+#include "Graph/PCGExGraph.h"
 
 #include "PCGExBuildVoronoiGraph.generated.h"
 

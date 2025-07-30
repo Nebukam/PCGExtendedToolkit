@@ -270,28 +270,4 @@ case EPCGExOptionState::Disabled: return false; }
 #define PCGEX_PIN_TEXTURE(_LABEL, _TOOLTIP, _STATUS, _EXTRA) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::BaseTexture, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) _EXTRA }
 #define PCGEX_PIN_OPERATION_OVERRIDES(_LABEL) PCGEX_PIN_PARAMS(_LABEL, "Property overrides to be forwarded & processed by the module. Name must match the property you're targeting 1:1, type mismatch will be broadcasted at your own risk.", Advanced, {})
 
-#define PCGEX_OCTREE_SEMANTICS(_ITEM, _BOUNDS, _EQUALITY)\
-struct _ITEM##Semantics{ \
-	enum { MaxElementsPerLeaf = 16 }; \
-	enum { MinInclusiveElementsPerNode = 7 }; \
-	enum { MaxNodeDepth = 12 }; \
-	using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>; \
-	static const FBoxSphereBounds& GetBoundingBox(const _ITEM* Element) _BOUNDS \
-	static const bool AreElementsEqual(const _ITEM* A, const _ITEM* B) _EQUALITY \
-	static void ApplyOffset(_ITEM& Element){ ensureMsgf(false, TEXT("Not implemented")); } \
-	static void SetElementId(const _ITEM* Element, FOctreeElementId2 OctreeElementID){ }}; \
-	using _ITEM##Octree = TOctree2<_ITEM*, _ITEM##Semantics>;
-
-#define PCGEX_OCTREE_SEMANTICS_REF(_ITEM, _BOUNDS, _EQUALITY)\
-struct PCGEXTENDEDTOOLKIT_API _ITEM##Semantics{ \
-enum { MaxElementsPerLeaf = 16 }; \
-enum { MinInclusiveElementsPerNode = 7 }; \
-enum { MaxNodeDepth = 12 }; \
-using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>; \
-static const FBoxSphereBounds& GetBoundingBox(const _ITEM& Element) _BOUNDS \
-static const bool AreElementsEqual(const _ITEM& A, const _ITEM& B) _EQUALITY \
-static void ApplyOffset(_ITEM& Element){ ensureMsgf(false, TEXT("Not implemented")); } \
-static void SetElementId(const _ITEM& Element, FOctreeElementId2 OctreeElementID){ }}; \
-using _ITEM##Octree = TOctree2<_ITEM, _ITEM##Semantics>;
-
 #endif

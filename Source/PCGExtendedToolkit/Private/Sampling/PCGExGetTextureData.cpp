@@ -92,14 +92,14 @@ bool FPCGExGetTextureDataElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_AsyncPreparation)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_AsyncPreparation)
 
-	PCGEX_ON_STATE(PCGEx::State_AsyncPreparation)
+	PCGEX_ON_STATE(PCGExCommon::State_AsyncPreparation)
 	{
 		if (Context->TextureReferences.IsEmpty())
 		{
 			// Nothing to load, skip
-			Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 		}
 		else
 		{
@@ -109,7 +109,7 @@ bool FPCGExGetTextureDataElement::ExecuteInternal(FPCGContext* InContext) const
 			PCGExHelpers::LoadBlocking_AnyThread(Paths);
 
 			Context->TextureReferencesList = Context->TextureReferences.Array();
-			Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 
 			Context->TextureReady.Init(false, Context->TextureReferencesList.Num());
 			Context->TextureDataList.Init(nullptr, Context->TextureReferencesList.Num());
@@ -121,7 +121,7 @@ bool FPCGExGetTextureDataElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 	{
 		Context->Done();
 		Context->MainPoints->StageOutputs();

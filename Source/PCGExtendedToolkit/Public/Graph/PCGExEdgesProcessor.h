@@ -97,10 +97,10 @@ protected:
 	TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>> HeuristicsFactories;
 
 public:
-	virtual bool ProcessClusters(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync = false);
+	virtual bool ProcessClusters(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync = false);
 
 protected:
-	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGEx::ContextState NextStateId);
+	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGExCommon::ContextState NextStateId);
 
 	TArray<FPCGExSortRuleConfig> EdgeSortingRules;
 
@@ -188,7 +188,7 @@ protected:
 	virtual void ClusterProcessing_WritingDone();
 	virtual void ClusterProcessing_GraphCompilationDone();
 
-	void AdvanceBatch(const PCGEx::ContextState NextStateId, const bool bIsNextStateAsync);
+	void AdvanceBatch(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync);
 
 	int32 CurrentEdgesIndex = -1;
 };

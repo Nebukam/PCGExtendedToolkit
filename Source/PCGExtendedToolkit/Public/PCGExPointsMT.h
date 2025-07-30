@@ -211,7 +211,7 @@ namespace PCGExPointsMT
 
 		mutable FRWLock BatchLock;
 
-		std::atomic<PCGEx::ContextState> CurrentState{PCGEx::State_InitialExecution};
+		std::atomic<PCGExCommon::ContextState> CurrentState{PCGExCommon::State_InitialExecution};
 
 		FPCGExContext* ExecutionContext = nullptr;
 		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
@@ -260,7 +260,7 @@ namespace PCGExPointsMT
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
-		std::atomic<PCGEx::ContextState> CurrentState{PCGEx::State_InitialExecution};
+		std::atomic<PCGExCommon::ContextState> CurrentState{PCGExCommon::State_InitialExecution};
 
 		TBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection):
 			IBatch(InContext, InPointsCollection)
@@ -280,7 +280,7 @@ namespace PCGExPointsMT
 		{
 			if (PointsCollection.IsEmpty()) { return; }
 
-			CurrentState.store(PCGEx::State_Processing, std::memory_order_release);
+			CurrentState.store(PCGExCommon::State_Processing, std::memory_order_release);
 
 			AsyncManager = InAsyncManager;
 			PCGEX_ASYNC_CHKD_VOID(AsyncManager)
@@ -350,14 +350,14 @@ namespace PCGExPointsMT
 		virtual void CompleteWork() override
 		{
 			if (bSkipCompletion) { return; }
-			CurrentState.store(PCGEx::State_Completing, std::memory_order_release);
+			CurrentState.store(PCGExCommon::State_Completing, std::memory_order_release);
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, { Processor->CompleteWork(); })
 			IBatch::CompleteWork();
 		}
 
 		virtual void Write() override
 		{
-			CurrentState.store(PCGEx::State_Writing, std::memory_order_release);
+			CurrentState.store(PCGExCommon::State_Writing, std::memory_order_release);
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, { Processor->Write(); })
 			IBatch::Write();
 		}

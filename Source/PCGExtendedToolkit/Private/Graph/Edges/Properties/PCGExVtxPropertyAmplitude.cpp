@@ -4,6 +4,7 @@
 #include "Graph/Edges/Properties/PCGExVtxPropertyAmplitude.h"
 
 #include "PCGPin.h"
+#include "Graph/PCGExCluster.h"
 
 
 #include "Sampling/PCGExSampling.h"

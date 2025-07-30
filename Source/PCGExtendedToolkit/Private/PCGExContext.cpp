@@ -221,7 +221,7 @@ void FPCGExContext::OnComplete()
 #pragma region State
 
 
-void FPCGExContext::SetAsyncState(const PCGEx::ContextState WaitState)
+void FPCGExContext::SetAsyncState(const PCGExCommon::ContextState WaitState)
 {
 	bWaitingForAsyncCompletion = true;
 	SetState(WaitState);
@@ -240,17 +240,17 @@ bool FPCGExContext::ShouldWaitForAsync()
 
 void FPCGExContext::ReadyForExecution()
 {
-	SetState(PCGEx::State_InitialExecution);
+	SetState(PCGExCommon::State_InitialExecution);
 }
 
-void FPCGExContext::SetState(const PCGEx::ContextState StateId)
+void FPCGExContext::SetState(const PCGExCommon::ContextState StateId)
 {
 	CurrentState.store(StateId, std::memory_order_release);
 }
 
 void FPCGExContext::Done()
 {
-	SetState(PCGEx::State_Done);
+	SetState(PCGExCommon::State_Done);
 }
 
 bool FPCGExContext::TryComplete(const bool bForce)
@@ -302,7 +302,7 @@ void FPCGExContext::LoadAssets()
 	if (bAssetLoadRequested) { return; }
 	bAssetLoadRequested = true;
 
-	SetAsyncState(PCGEx::State_LoadingAssetDependencies);
+	SetAsyncState(PCGExCommon::State_LoadingAssetDependencies);
 
 	if (!RequiredAssets || RequiredAssets->IsEmpty())
 	{
