@@ -313,7 +313,7 @@ namespace PCGExCreateShapes
 			OutTransforms[PointIndex] = (OutTransforms[PointIndex] * TRB) * TRA;
 			OutTransforms[PointIndex].SetScale3D(FVector::OneVector);
 			OutSeeds[PointIndex] = PCGExRandom::ComputeSpatialSeed(OutTransforms[PointIndex].GetLocation(), TRB.GetLocation());
-		};
+		}
 	}
 
 	void FProcessor::Output()

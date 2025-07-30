@@ -545,7 +545,7 @@ namespace PCGExBlend
 			return FMath::Lerp(A, B, W);
 		}
 	}
-	
+
 	template <typename T>
 	T Div(const T& A, const double Divider)
 	{

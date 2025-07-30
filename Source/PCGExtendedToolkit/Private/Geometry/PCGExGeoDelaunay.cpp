@@ -135,7 +135,7 @@ namespace PCGExGeo
 
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay2D::FillHullSites);
-			
+
 			for (const FDelaunaySite2& Site : Sites)
 			{
 				if (Site.bOnHull)

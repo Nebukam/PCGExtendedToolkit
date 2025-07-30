@@ -199,39 +199,39 @@ namespace PCGExPathInclusion
 			if (bClosestOnly)
 			{
 				Octree->FindElementsWithBoundsTest(
-				FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
-				const PCGEx::FIndexedItem& Item)
-				{
-					if ((*(Paths->GetData() + Item.Index))->IsInsideProjection(WorldPosition))
+					FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
+					const PCGEx::FIndexedItem& Item)
 					{
-						InclusionCount++;
-						EnumAddFlags(OutFlags, Inside);
-						EnumRemoveFlags(OutFlags, Outside);
-					}
-					else
-					{
-						EnumAddFlags(OutFlags, Outside);
-						EnumRemoveFlags(OutFlags, Inside);
-					}
-				});
-			}else
+						if ((*(Paths->GetData() + Item.Index))->IsInsideProjection(WorldPosition))
+						{
+							InclusionCount++;
+							EnumAddFlags(OutFlags, Inside);
+							EnumRemoveFlags(OutFlags, Outside);
+						}
+						else
+						{
+							EnumAddFlags(OutFlags, Outside);
+							EnumRemoveFlags(OutFlags, Inside);
+						}
+					});
+			}
+			else
 			{
 				Octree->FindElementsWithBoundsTest(
-				FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
-				const PCGEx::FIndexedItem& Item)
-				{
-					if ((*(Paths->GetData() + Item.Index))->IsInsideProjection(WorldPosition))
+					FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
+					const PCGEx::FIndexedItem& Item)
 					{
-						InclusionCount++;
-						EnumAddFlags(OutFlags, Inside);
-					}
-					else
-					{
-						EnumAddFlags(OutFlags, Outside);
-					}
-				});
+						if ((*(Paths->GetData() + Item.Index))->IsInsideProjection(WorldPosition))
+						{
+							InclusionCount++;
+							EnumAddFlags(OutFlags, Inside);
+						}
+						else
+						{
+							EnumAddFlags(OutFlags, Outside);
+						}
+					});
 			}
-			
 		}
 		else
 		{

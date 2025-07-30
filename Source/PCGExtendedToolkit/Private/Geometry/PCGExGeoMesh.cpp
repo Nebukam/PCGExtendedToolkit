@@ -245,7 +245,7 @@ namespace PCGExGeo
 					HullEdges.Add(AC);
 				}
 			}
-		};
+		}
 
 		bIsLoaded = true;
 	}

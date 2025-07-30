@@ -53,10 +53,10 @@ namespace PCGExDataBlending
 
 		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExBlendOpFactory>>& InFactories);
 
-		void BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex) const;		
+		void BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex) const;
 		virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight) const override;
 		virtual void Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double InWeight) const override;
-		
+
 		void InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops);
 		TArray<PCGEx::FOpStats>& GetScopedTrackers(const PCGExMT::FScope& Scope) const;
 

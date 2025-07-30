@@ -171,14 +171,14 @@ public:
 
 	virtual bool PrepareForData(FPCGExContext* InContext);
 
-	virtual void BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex);	
-	virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight);	
+	virtual void BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex);
+	virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight);
 	virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double InWeight);
-	
-	virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex);	
-	virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, PCGEx::FOpStats& Tracker);	
+
+	virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex);
+	virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, PCGEx::FOpStats& Tracker);
 	virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker);
-	
+
 	virtual void CompleteWork(TSet<TSharedPtr<PCGExData::IBuffer>>& OutDisabledBuffers);
 
 protected:

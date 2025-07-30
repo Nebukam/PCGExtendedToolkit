@@ -162,7 +162,6 @@ extern template _TYPE_B Convert<_TYPE_A, _TYPE_B>(const _TYPE_A& Value);
 		// Set component subselection inside Target from provided value
 		template <typename T, typename T_VALUE>
 		void Set(T& Target, const T_VALUE& Value) const;
-
 	};
 
 #define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \

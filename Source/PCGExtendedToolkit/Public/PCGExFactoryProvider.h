@@ -119,7 +119,6 @@ public:
 protected:
 	UPROPERTY()
 	TSet<TObjectPtr<UPCGData>> DataDependencies;
-	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")

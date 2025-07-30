@@ -70,7 +70,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryData : public UPCGExFactoryData
 	GENERATED_BODY()
 
 	friend UPCGExFilterProviderSettings;
-	
+
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
 
@@ -83,7 +83,7 @@ public:
 	virtual bool Init(FPCGExContext* InContext);
 
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const;
-	
+
 	int32 Priority = 0;
 	EPCGExFilterNoDataFallback MissingDataHandling = EPCGExFilterNoDataFallback::Fail;
 

@@ -122,13 +122,13 @@ namespace PCGExData
 	};
 
 #pragma region externalization
-	
+
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
 template class TDataValue<_TYPE>;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
-	
+
 #undef PCGEX_TPL
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<IDataValue> TryGetValueFromTag(const FString& InTag, FString& OutLeftSide);
 
