@@ -4,6 +4,7 @@
 #include "Collections/PCGExAssetCollection.h"
 
 #include "UObject/UObjectGlobals.h"
+#include "UObject/Package.h"
 #include "Engine/StaticMesh.h"
 #include "StaticMeshResources.h"
 

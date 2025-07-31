@@ -2,7 +2,10 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Sampling/PCGExSampleNearestSurface.h"
+#include "GameFramework/Actor.h"
+#include "Engine/World.h"
 #include "Engine/OverlapResult.h"
+#include "Components/PrimitiveComponent.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 #define PCGEX_NAMESPACE SampleNearestSurface

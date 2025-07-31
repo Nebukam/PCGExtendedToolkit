@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "UObject/Package.h"
 #include "UObject/UObjectGlobals.h"
 #include "PCGExFactoryProvider.h"
 

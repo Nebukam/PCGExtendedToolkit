@@ -9,6 +9,7 @@
 #include "Data/PCGPointArrayData.h"
 #include "PCGElement.h"
 #include "UObject/Object.h"
+#include "UObject/Package.h"
 #include "PCGPoint.h"
 #include "Data/PCGPointData.h"
 

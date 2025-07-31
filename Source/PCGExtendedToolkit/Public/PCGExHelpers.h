@@ -6,6 +6,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
 #include "UObject/Interface.h"
 #include "UObject/UObjectGlobals.h"
 

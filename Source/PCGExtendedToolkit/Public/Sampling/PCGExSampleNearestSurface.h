@@ -25,6 +25,8 @@ MACRO(Distance, double, 0)\
 MACRO(ActorReference, FSoftObjectPath, FSoftObjectPath())\
 MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())
 
+class AActor;
+class UWorld;
 class UPCGExFilterFactoryData;
 
 /**

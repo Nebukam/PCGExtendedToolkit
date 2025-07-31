@@ -3,6 +3,8 @@
 
 #include "Sampling/PCGExGetTextureData.h"
 
+#include "GameFramework/Actor.h"
+#include "Materials/MaterialInterface.h"
 #include "PCGComponent.h"
 #include "Data/PCGRenderTargetData.h"
 #include "Data/PCGTextureData.h"

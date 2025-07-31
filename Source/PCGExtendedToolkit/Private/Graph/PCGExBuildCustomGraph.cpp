@@ -4,6 +4,7 @@
 #include "Graph/PCGExBuildCustomGraph.h"
 
 #include "UObject/UObjectGlobals.h"
+#include "UObject/Package.h"
 #include "PCGComponent.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExUnionProcessor.h"
