@@ -53,7 +53,7 @@ struct FPCGExShapeCircleConfig : public FPCGExShapeConfigBase
 
 	/** If enabled, will flag circle as being closed if possible. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bIsClosedLoop = false;
+	bool bIsClosedLoop = true;
 };
 
 namespace PCGExShapes

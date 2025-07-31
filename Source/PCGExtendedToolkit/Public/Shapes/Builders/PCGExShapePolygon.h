@@ -119,6 +119,10 @@ struct FPCGExShapePolygonConfig : public FPCGExShapeConfigBase
 	FName EdgeAlphaAttribute = "Alpha";
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Outputs", meta=(InlineEditConditionToggle))
 	bool bWriteEdgeAlphaAttribute = false;
+
+	/** If enabled, will flag polygon as being closed if possible. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bIsClosedLoop = true;
 };
 
 namespace PCGExShapes
@@ -142,18 +146,7 @@ namespace PCGExShapes
 		bool bConnectSkeletonToEdges = false;
 		double Orientation = 0;
 
-		// Attributes
-		FName AngleAttr = "Angle";
-		bool bWriteAngle = false;
-
-		FName EdgeAttr = "EdgeIndex";
-		bool bWriteEdgeIndex = false;
-
-		FName HullAttr = "bIsOnHull";
-		bool bWriteHullFlag = false;
-
-		FName EdgeAlphaAttr = "EdgeAlpha";
-		bool bWriteEdgeAlpha = false;
+		const FPCGExShapePolygonConfig* Config = nullptr;
 
 		explicit FPolygon(const PCGExData::FConstPoint& InPointRef) : FShape(InPointRef)
 		{

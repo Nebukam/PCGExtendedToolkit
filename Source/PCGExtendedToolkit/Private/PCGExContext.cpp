@@ -466,7 +466,7 @@ void FPCGExContext::EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionCla
 
 bool FPCGExContext::CanExecute() const
 {
-	return !bExecutionCancelled;
+	return !InputData.bCancelExecution && !bExecutionCancelled;
 }
 
 bool FPCGExContext::IsAsyncWorkComplete()

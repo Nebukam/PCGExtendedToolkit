@@ -136,7 +136,11 @@ namespace PCGEx
 
 		bool Load()
 		{
-			if (UniquePaths.IsEmpty()) { return false; }
+			if (UniquePaths.IsEmpty())
+			{
+				End(false);
+				return false;
+			}
 
 			AssetsMap.Reserve(UniquePaths.Num());
 
@@ -147,7 +151,7 @@ namespace PCGEx
 			{
 				if (!LoadHandle || !LoadHandle->HasLoadCompleted())
 				{
-					Context->CancelExecution("Error loading assets.");
+					End(false);
 					return false;
 				}
 
@@ -184,6 +188,8 @@ namespace PCGEx
 			if (AsyncToken.IsValid()) { AsyncToken.Pin()->Release(); }
 			if (OnComplete) { OnComplete(); }
 		}
+
+		bool IsEmpty() { return AssetsMap.IsEmpty(); }
 	};
 
 	template <typename T>
