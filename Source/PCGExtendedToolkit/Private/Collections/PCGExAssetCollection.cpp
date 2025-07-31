@@ -3,6 +3,9 @@
 
 #include "Collections/PCGExAssetCollection.h"
 
+#include "Engine/StaticMesh.h"
+#include "StaticMeshResources.h"
+
 #if WITH_EDITOR
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"

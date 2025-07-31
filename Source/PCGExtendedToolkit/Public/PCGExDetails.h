@@ -10,8 +10,12 @@
 
 #include "PCGExDetails.generated.h"
 
-#pragma region PCG exposition
 struct FPCGExContext;
+struct FHitResult;
+class UWorld;
+class AActor;
+
+#pragma region PCG exposition
 // Exposed copy of the otherwise private PCG' spatial noise mode enum
 UENUM(BlueprintType)
 enum class PCGExSpatialNoiseMode : uint8

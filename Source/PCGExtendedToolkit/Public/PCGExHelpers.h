@@ -7,6 +7,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "UObject/UObjectGlobals.h"
 
 #include "PCGExtendedToolkit.h"
 #include "PCGContext.h"
@@ -55,7 +56,7 @@ UCLASS(Hidden)
 class PCGEXTENDEDTOOLKIT_API UPCGExComponentCallback : public UObject
 {
 	GENERATED_BODY()
-
+	
 	bool bIsOnce = false;
 	TFunction<void(UActorComponent* InComponent)> CallbackFn;
 
