@@ -3,6 +3,8 @@
 
 #include "System/PCGExWaitForPCGData.h"
 
+#include "Engine/World.h"
+#include "GameFramework/Actor.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGGraph.h"
 #include "PCGSubsystem.h"

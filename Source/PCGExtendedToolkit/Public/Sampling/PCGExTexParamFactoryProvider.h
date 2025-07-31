@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "MaterialTypes.h"
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
@@ -14,6 +13,7 @@
 #include "PCGExTexParamFactoryProvider.generated.h"
 
 class UPCGBaseTextureData;
+class UMaterialInterface;
 
 UENUM()
 enum class EPCGExTexSampleAttributeType : uint8
