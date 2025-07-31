@@ -143,19 +143,8 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
 		if (Context->OutFactory->WantsPreparation(Context))
 		{
 			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-
-			PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), Prepare)
-			Prepare->AddSimpleCallback(
-				[CtxHandle = Context->GetOrCreateHandle()]()
-				{
-					const FPCGContext::FSharedContext<FPCGExFactoryProviderContext> SharedContext(CtxHandle);
-					FPCGExFactoryProviderContext* Ctx = SharedContext.Get();
-					if (!Ctx) { return; }
-					Ctx->OutFactory->PrepResult = Ctx->OutFactory->Prepare(Ctx, Ctx->GetAsyncManager());
-				});
-
-			Prepare->StartSimpleCallbacks();
-			return false;
+			Context->OutFactory->PrepResult = Context->OutFactory->Prepare(Context, Context->GetAsyncManager());
+			if (Context->OutFactory->PrepResult == PCGExFactories::EPreparationResult::Success) { return false; }
 		}
 	}
 
@@ -217,9 +206,10 @@ namespace PCGExFactories
 			{
 				if (!Types.Contains(Factory->GetFactoryType()))
 				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext,
+					PCGE_LOG_C(
+						Warning, GraphAndLog, InContext,
 						FText::Format(FTEXT("Input '{0}' is not supported."),
-						FText::FromString(Factory->GetClass()->GetName())));
+							FText::FromString(Factory->GetClass()->GetName())));
 					continue;
 				}
 
@@ -229,9 +219,10 @@ namespace PCGExFactories
 			}
 			else
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext,
+				PCGE_LOG_C(
+					Warning, GraphAndLog, InContext,
 					FText::Format(FTEXT("Input '{0}' is not supported."),
-					FText::FromString(TaggedData.Data->GetClass()->GetName())));
+						FText::FromString(TaggedData.Data->GetClass()->GetName())));
 			}
 		}
 
@@ -239,7 +230,8 @@ namespace PCGExFactories
 		{
 			if (bThrowError)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext,
+				PCGE_LOG_C(
+					Error, GraphAndLog, InContext,
 					FText::Format(FTEXT("Missing required '{0}' inputs."), FText::FromName(InLabel)));
 			}
 			return false;
@@ -247,7 +239,6 @@ namespace PCGExFactories
 
 		return true;
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE
