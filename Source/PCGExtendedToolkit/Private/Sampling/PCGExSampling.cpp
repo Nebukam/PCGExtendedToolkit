@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampling.h"
 
+#include "GameFramework/Actor.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
