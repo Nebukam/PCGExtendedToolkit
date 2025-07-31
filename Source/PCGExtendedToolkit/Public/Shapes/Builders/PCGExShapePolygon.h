@@ -14,31 +14,41 @@
 #include "PCGExShapePolygon.generated.h"
 
 // Not sure if this should be the same class or a different one...
-UENUM(BlueprintType) enum class EPCGExPolygonShapeType : uint8 {
+UENUM(BlueprintType)
+enum class EPCGExPolygonShapeType : uint8
+{
 	Convex = 0 UMETA(DisplayName = "Polygon"),
-	Star = 1 UMETA(DisplayName = "Star")
+	Star   = 1 UMETA(DisplayName = "Star")
 };
 
-UENUM(BlueprintType) enum class EPCGExPolygonSkeletonConnectionType : uint8 {
+UENUM(BlueprintType)
+enum class EPCGExPolygonSkeletonConnectionType : uint8
+{
 	Vertex = 0 UMETA(Description="Connect skeleton to each vertex"),
-	Edge = 1 UMETA(Description="Connect skeleton to each edge"),
-	Both = 2 UMETA(Description="Connect skeleton to both edges and vertices")
+	Edge   = 1 UMETA(Description="Connect skeleton to each edge"),
+	Both   = 2 UMETA(Description="Connect skeleton to both edges and vertices")
 };
 
-UENUM(BlueprintType) enum class EPCGExPolygonFittingMethod : uint8 {
+UENUM(BlueprintType)
+enum class EPCGExPolygonFittingMethod : uint8
+{
 	VertexForward = 0 UMETA(DisplayName="Vertex Forward", Description="Aligns shape so the first vertex faces along the local X axis"),
-	EdgeForward = 1 UMETA(DisplayName="Edge Forward", Description="Aligns shape so the first edge is perpendicular to the local X axis"),
-	Custom = 2 UMETA(DisplayName="Custom", Description="Use a custom angle")
+	EdgeForward   = 1 UMETA(DisplayName="Edge Forward", Description="Aligns shape so the first edge is perpendicular to the local X axis"),
+	Custom        = 2 UMETA(DisplayName="Custom", Description="Use a custom angle")
 };
 
 USTRUCT(BlueprintType)
-struct FPCGExShapePolygonConfig : public FPCGExShapeConfigBase {
-	GENERATED_BODY();
+struct FPCGExShapePolygonConfig : public FPCGExShapeConfigBase
+{
+	GENERATED_BODY()
+	;
 
-	FPCGExShapePolygonConfig() : FPCGExShapeConfigBase() {}
+	FPCGExShapePolygonConfig() : FPCGExShapeConfigBase()
+	{
+	}
 
 	// Type of polygon we're creating
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_NotOverridable))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_NotOverridable))
 	EPCGExPolygonShapeType PolygonType = EPCGExPolygonShapeType::Convex;
 
 	/*
@@ -52,13 +62,13 @@ struct FPCGExShapePolygonConfig : public FPCGExShapeConfigBase {
 	// Attribute
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Number of Vertices (Attr)", EditCondition="NumVerticesInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector NumVerticesAttribute;
-	
+
 	// Constant
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_Overridable, DisplayName="Number of Vertices"))
 	int32 NumVerticesConstant = 5;
 
 	PCGEX_SETTING_VALUE_GET(NumVertices, int32, NumVerticesInput, NumVerticesAttribute, NumVerticesConstant)
-	
+
 	/*
 	 * Skeleton
 	 */
@@ -70,7 +80,7 @@ struct FPCGExShapePolygonConfig : public FPCGExShapeConfigBase {
 	// Attribute
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Add Skeleton (Attr)", EditCondition="AddSkeletonInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector AddSkeletonAttribute;
-	
+
 	// Constant
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_Overridable))
 	bool bAddSkeleton = false;
@@ -80,13 +90,13 @@ struct FPCGExShapePolygonConfig : public FPCGExShapeConfigBase {
 	// Where the skeleton goes
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(EditCondition="bAddSkeleton"))
 	EPCGExPolygonSkeletonConnectionType SkeletonConnectionMode = EPCGExPolygonSkeletonConnectionType::Vertex;
-	
+
 	// Alignment for the polygon within the bounds of the seed
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_Overridable))
 	EPCGExPolygonFittingMethod PolygonOrientation = EPCGExPolygonFittingMethod::VertexForward;
 
 	// Custom alignment
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_Overridable, EditCondition="PolygonOrientation==EPCGExPolygonFittingMethod::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_Overridable, EditCondition="PolygonOrientation == EPCGExPolygonFittingMethod::Custom", EditConditionHides))
 	float CustomPolygonOrientation = 0.0;
 
 	// Output attributes
@@ -94,7 +104,7 @@ struct FPCGExShapePolygonConfig : public FPCGExShapeConfigBase {
 	FName OnHullAttribute = "bIsOnHull";
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Outputs", meta=(InlineEditConditionToggle))
 	bool bWriteHullAttribute = false;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Outputs", meta=(EditCondition=bWriteAngleAttribute))
 	FName AngleAttribute = "Angle";
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Outputs", meta=(InlineEditConditionToggle))
@@ -109,11 +119,12 @@ struct FPCGExShapePolygonConfig : public FPCGExShapeConfigBase {
 	FName EdgeAlphaAttribute = "Alpha";
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Outputs", meta=(InlineEditConditionToggle))
 	bool bWriteEdgeAlphaAttribute = false;
-	
 };
 
-namespace PCGExShapes {
-	class FPolygon : public FShape {
+namespace PCGExShapes
+{
+	class FPolygon : public FShape
+	{
 	public:
 		// Computed from seed + config
 		double Radius = 1.0;
@@ -124,7 +135,7 @@ namespace PCGExShapes {
 		int32 PointsPerEdgeSpoke = 0;
 		double EdgeLength = .2;
 		float ScaleAdjustment = 1.0;
-		
+
 		// Taken from config
 		bool bHasSkeleton = false;
 		bool bConnectSkeletonToVertices = false;
@@ -134,7 +145,7 @@ namespace PCGExShapes {
 		// Attributes
 		FName AngleAttr = "Angle";
 		bool bWriteAngle = false;
-		
+
 		FName EdgeAttr = "EdgeIndex";
 		bool bWriteEdgeIndex = false;
 
@@ -143,12 +154,15 @@ namespace PCGExShapes {
 
 		FName EdgeAlphaAttr = "EdgeAlpha";
 		bool bWriteEdgeAlpha = false;
-		
-		explicit FPolygon(const PCGExData::FConstPoint& InPointRef) : FShape(InPointRef) {}
+
+		explicit FPolygon(const PCGExData::FConstPoint& InPointRef) : FShape(InPointRef)
+		{
+		}
 	};
 }
 
-class FPCGExShapePolygonBuilder : public FPCGExShapeBuilderOperation {
+class FPCGExShapePolygonBuilder : public FPCGExShapeBuilderOperation
+{
 public:
 	FPCGExShapePolygonConfig Config;
 
@@ -156,26 +170,9 @@ public:
 	virtual void PrepareShape(const PCGExData::FConstPoint& Seed) override;
 	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope, const bool bIsolated = false) override;
 
-	static void AppendPoint(
-		const TPCGValueRange<FTransform>& OutTransforms,
-		int32 Index,
-		const FVector& Point,
-		const FVector& LookTarget,
-		EPCGExAxisAlign LookAtAxis,
-		double Angle,
-		bool IsOnHull,
-		int32 EdgeIndex,
-		double Alpha,
-		const TSharedPtr<PCGExData::TBuffer<double>>& AngleBuffer,
-		const TSharedPtr<PCGExData::TBuffer<int32>>& EdgeIndexBuffer,
-		const TSharedPtr<PCGExData::TBuffer<double>>& EdgeAlphaBuffer,
-		const TSharedPtr<PCGExData::TBuffer<bool>>& HullFlagBuffer
-	);
-
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<int32>> NumVertices;
 	TSharedPtr<PCGExDetails::TSettingValue<bool>> HasSkeleton;
-	
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -191,7 +188,8 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Builder|Params", meta=(PCGExNodeLibraryDoc="misc/shapes/shape-polygon"))
-class UPCGExCreateShapePolygonSettings : public UPCGExShapeBuilderFactoryProviderSettings {
+class UPCGExCreateShapePolygonSettings : public UPCGExShapeBuilderFactoryProviderSettings
+{
 	GENERATED_BODY()
 
 public:
