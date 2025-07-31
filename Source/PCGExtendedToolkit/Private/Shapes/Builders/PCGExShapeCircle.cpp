@@ -36,10 +36,8 @@ void FPCGExShapeCircleBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 
 	if (Config.ResolutionMode == EPCGExResolutionMode::Distance) {
 		Circle->NumPoints = (Circle->Radius * Circle->AngleRange) / GetResolution(Seed);
-		// UE_LOG(LogTemp, Warning, TEXT("Circle: Radius %f / Angle %f / Resolution %f / Num Points %i"), Circle->Radius, Circle->AngleRange, GetResolution(Seed), Circle->NumPoints)
-		
 	}
-	else { Circle->NumPoints = GetResolution(Seed); }
+	else { Circle->NumPoints = GetResolution(Seed); } 
 
 	ValidateShape(Circle);
 
