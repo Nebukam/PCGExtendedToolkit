@@ -2,6 +2,7 @@
 
 #include "DataViz/PCGExSpatialDataVisualization.h"
 
+#include "UObject/UObjectGlobals.h"
 #include "PCGComponent.h"
 #include "PCGContext.h"
 #include "PCGData.h"

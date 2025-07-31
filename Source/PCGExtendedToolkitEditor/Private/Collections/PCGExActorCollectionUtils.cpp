@@ -3,7 +3,7 @@
 
 #include "Collections/PCGExActorCollectionUtils.h"
 
-#include "PCGExtendedToolkitEditor.h"
+#include "UObject/UObjectGlobals.h"
 #include "FileHelpers.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Collections/PCGExActorCollection.h"

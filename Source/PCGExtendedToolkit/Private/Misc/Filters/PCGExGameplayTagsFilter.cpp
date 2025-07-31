@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExGameplayTagsFilter.h"
 
+#include "GameFramework/Actor.h"
+#include "PropertyPathHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition

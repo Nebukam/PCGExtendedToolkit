@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "MaterialTypes.h"
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"

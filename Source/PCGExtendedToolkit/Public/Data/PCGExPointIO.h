@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
+#include "UObject/UObjectGlobals.h"
 #include "Metadata/Accessors/PCGCustomAccessor.h"
 #include "Data/PCGPointArrayData.h"
 #include "PCGElement.h"

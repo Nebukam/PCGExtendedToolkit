@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 
 #if WITH_EDITOR
 #include "AssetRegistry/AssetData.h"

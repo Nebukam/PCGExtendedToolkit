@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"

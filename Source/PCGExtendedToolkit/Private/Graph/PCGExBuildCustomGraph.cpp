@@ -3,10 +3,9 @@
 
 #include "Graph/PCGExBuildCustomGraph.h"
 
-
+#include "UObject/UObjectGlobals.h"
 #include "PCGComponent.h"
 #include "Graph/PCGExGraph.h"
-#include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionProcessor.h"
 #include "Elements/PCGExecuteBlueprint.h"
 
@@ -123,7 +122,7 @@ void UPCGExCustomGraphBuilder::CreateGraphSettings(TSubclassOf<UPCGExCustomGraph
 		return;
 	}
 
-	TObjectPtr<UPCGExCustomGraphSettings> NewSettings = Context->ManagedObjects->New<UPCGExCustomGraphSettings>(GetTransientPackage(), SettingsClass);
+	TObjectPtr<UPCGExCustomGraphSettings> NewSettings = Context->ManagedObjects->New<UPCGExCustomGraphSettings>(GetTransientPackage(), SettingsClass.Get());
 	NewSettings->SettingsIndex = GraphSettings.Add(NewSettings);
 	OutSettings = NewSettings;
 }

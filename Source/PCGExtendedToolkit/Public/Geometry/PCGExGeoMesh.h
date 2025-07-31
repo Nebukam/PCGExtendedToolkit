@@ -4,9 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/StaticMesh.h"
+#include "StaticMeshResources.h"
+#include "UObject/SoftObjectPath.h"
+
 #include "PCGExMT.h"
 
 #include "PCGExGeoMesh.generated.h" // Credit goes to @Syscrusher attention to detail :D
+
 
 UENUM()
 enum class EPCGExTriangulationType : uint8
