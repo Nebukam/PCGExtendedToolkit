@@ -4,18 +4,9 @@
 #pragma once
 
 #include "Misc/ScopeRWLock.h"
-//#include "UObject/ObjectPtr.h"
 #include "Templates/SharedPointer.h"
 #include "Templates/SharedPointerFwd.h"
 #include "UObject/SoftObjectPath.h"
-//#include "CollisionQueryParams.h"
-//#include "GameFramework/Actor.h"
-//#include "Engine/HitResult.h"
-//#include "Engine/World.h"
-//#include "Engine/StaticMesh.h"
-//#include "StaticMeshResources.h"
-//#include "Components/StaticMeshComponent.h"
-//#include "PCGExHelpers.h"
 
 #include "PCGExCommon.h"
 #include "PCGExMacros.h"
