@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExBuildCustomGraph.h"
 
+#include "GameFramework/Actor.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "PCGComponent.h"
