@@ -83,7 +83,7 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->OutputPointsAndEdges();
 	Context->Done();
@@ -254,7 +254,7 @@ namespace PCGExCopyClusters
 			// Create a vtx copy per target point
 			TSharedPtr<PCGExData::FPointIO> VtxDupe = Context->MainPoints->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::Duplicate);
 
-			PCGExData::DataIDType OutId;
+			PCGExCommon::DataIDType OutId;
 			PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
 			VtxDupes[i] = VtxDupe;

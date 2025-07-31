@@ -8,10 +8,10 @@
 #include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGManagedResource.h"
-#include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
 #include "Helpers/PCGHelpers.h"
 #include "Async/Async.h"
+#include "Engine/EngineTypes.h"
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
@@ -221,7 +221,7 @@ void FPCGExContext::OnComplete()
 #pragma region State
 
 
-void FPCGExContext::SetAsyncState(const PCGEx::ContextState WaitState)
+void FPCGExContext::SetAsyncState(const PCGExCommon::ContextState WaitState)
 {
 	bWaitingForAsyncCompletion = true;
 	SetState(WaitState);
@@ -240,17 +240,17 @@ bool FPCGExContext::ShouldWaitForAsync()
 
 void FPCGExContext::ReadyForExecution()
 {
-	SetState(PCGEx::State_InitialExecution);
+	SetState(PCGExCommon::State_InitialExecution);
 }
 
-void FPCGExContext::SetState(const PCGEx::ContextState StateId)
+void FPCGExContext::SetState(const PCGExCommon::ContextState StateId)
 {
 	CurrentState.store(StateId, std::memory_order_release);
 }
 
 void FPCGExContext::Done()
 {
-	SetState(PCGEx::State_Done);
+	SetState(PCGExCommon::State_Done);
 }
 
 bool FPCGExContext::TryComplete(const bool bForce)
@@ -302,7 +302,7 @@ void FPCGExContext::LoadAssets()
 	if (bAssetLoadRequested) { return; }
 	bAssetLoadRequested = true;
 
-	SetAsyncState(PCGEx::State_LoadingAssetDependencies);
+	SetAsyncState(PCGExCommon::State_LoadingAssetDependencies);
 
 	if (!RequiredAssets || RequiredAssets->IsEmpty())
 	{
@@ -490,10 +490,10 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 	if (bExecutionCancelled) { return true; }
 
 	bExecutionCancelled = true;
-	
+
 	OutputData.Reset();
 	OutputData.bCancelExecution = true;
-	
+
 	WorkPermit.Reset();
 	ResumeExecution();
 	if (!InReason.IsEmpty() && !bQuietCancellationError) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }

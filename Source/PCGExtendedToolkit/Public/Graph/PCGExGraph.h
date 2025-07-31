@@ -3,23 +3,60 @@
 
 #pragma once
 
+#include <functional>
+
 #include "CoreMinimal.h"
-
-#include "Data/PCGExAttributeHelpers.h"
-#include "PCGExMT.h"
+#include "PCGEx.h"
 #include "PCGExEdge.h"
-#include "PCGExDetailsIntersection.h"
-#include "Data/PCGExData.h"
-#include "Data/Blending/PCGExUnionBlender.h"
-
+#include "PCGExMT.h"
+#include "Utils/PCGValueRange.h"
 
 #include "PCGExGraph.generated.h"
+
+class UPCGMetadata;
+struct FPCGContext;
+
+namespace PCGExMT
+{
+	struct FScope;
+	class FTaskManager;
+	class FAsyncMultiHandle;
+}
+
+struct FPCGExCarryOverDetails;
+struct FPCGExEdgeUnionMetadataDetails;
+struct FPCGExPointUnionMetadataDetails;
+struct FPCGExEdgeEdgeIntersectionDetails;
+struct FPCGExPointEdgeIntersectionDetails;
+struct FPCGExPointPointIntersectionDetails;
+
+namespace PCGExDetails
+{
+	class FDistances;
+}
+
+namespace PCGExData
+{
+	class FPointIOCollection;
+	class FFacade;
+	struct FConstPoint;
+	struct FMutablePoint;
+	class FUnionMetadata;
+	template <typename T>
+	class TBuffer;
+}
+
+namespace PCGExDataBlending
+{
+	class FUnionBlender;
+}
 
 struct FPCGExBlendingDetails;
 struct FPCGExTransformDetails;
 
 namespace PCGExGraph
 {
+	struct FLink;
 	class FGraphBuilder;
 	class FSubGraph;
 
@@ -114,24 +151,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bRemoveSmallClusters = false;
 
-	/** Minimum points threshold */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
+	/** Minimum points threshold (per cluster) */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" ├─ Min Vtx Count", EditCondition="bRemoveSmallClusters", ClampMin=2))
 	int32 MinVtxCount = 3;
 
-	/** Minimum edges threshold */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
+	/** Minimum edges threshold (per cluster) */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" └─  Min Edge Count", EditCondition="bRemoveSmallClusters", ClampMin=1))
 	int32 MinEdgeCount = 3;
 
 	/** Don't output Clusters if they have more points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bRemoveBigClusters = false;
 
-	/** Maximum points threshold */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
+	/** Maximum points threshold (per cluster) */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" ├─ Max Vtx Count", EditCondition="bRemoveBigClusters", ClampMin=2))
 	int32 MaxVtxCount = 500;
 
-	/** Maximum edges threshold */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
+	/** Maximum edges threshold (per cluster) */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" └─  Max Edge Count", EditCondition="bRemoveBigClusters", ClampMin=1))
 	int32 MaxEdgeCount = 500;
 
 	/** Refresh Edge Seed. */
@@ -171,8 +208,8 @@ namespace PCGExGraph
 	const FName SourceVerticesLabel = TEXT("Vtx");
 	const FName OutputVerticesLabel = TEXT("Vtx");
 
-	const FName Tag_PackedClusterEdgeCount_LEGACY = FName(PCGEx::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
-	const FName Tag_PackedClusterEdgeCount = FName(TEXT("@Data.") + PCGEx::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
+	const FName Tag_PackedClusterEdgeCount_LEGACY = FName(PCGExCommon::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
+	const FName Tag_PackedClusterEdgeCount = FName(TEXT("@Data.") + PCGExCommon::PCGExPrefix + TEXT("PackedClusterEdgeCount"));
 
 	const FName SourceSeedsLabel = TEXT("Seeds");
 	const FName SourceGoalsLabel = TEXT("Goals");
@@ -486,7 +523,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		FGraphCompilationEndCallback OnCompilationEndCallback;
 		FSubGraphPostProcessCallback OnSubGraphPostProcess;
 
-		PCGExData::DataIDType PairId;
+		PCGExCommon::DataIDType PairId;
 		TSharedPtr<FGraph> Graph;
 
 		TSharedRef<PCGExData::FFacade> NodeDataFacade;

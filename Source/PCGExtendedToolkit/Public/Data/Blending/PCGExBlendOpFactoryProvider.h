@@ -4,6 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
+
 #include "PCGExDetailsData.h"
 #include "PCGExOperation.h"
 #include "PCGExPointsProcessor.h"
@@ -171,35 +175,13 @@ public:
 
 	virtual bool PrepareForData(FPCGExContext* InContext);
 
-	virtual void BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex)
-	{
-		Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(Weight->Read(SourceIndex)));
-	}
+	virtual void BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex);
+	virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight);
+	virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double InWeight);
 
-	virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight)
-	{
-		Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
-	}
-
-	virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double InWeight)
-	{
-		Blender->Blend(SourceIndexA, SourceIndexB, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
-	}
-
-	virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex)
-	{
-		return Blender->BeginMultiBlend(TargetIndex);
-	}
-
-	virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, PCGEx::FOpStats& Tracker)
-	{
-		Blender->MultiBlend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight), Tracker);
-	}
-
-	virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker)
-	{
-		Blender->EndMultiBlend(TargetIndex, Tracker);
-	}
+	virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex);
+	virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, PCGEx::FOpStats& Tracker);
+	virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker);
 
 	virtual void CompleteWork(TSet<TSharedPtr<PCGExData::IBuffer>>& OutDisabledBuffers);
 

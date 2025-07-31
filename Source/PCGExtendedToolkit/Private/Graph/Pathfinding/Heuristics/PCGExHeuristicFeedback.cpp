@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
-
+#include "Graph/PCGExCluster.h"
 
 double FPCGExHeuristicFeedback::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {

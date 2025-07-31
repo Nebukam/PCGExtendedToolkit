@@ -87,7 +87,7 @@ bool FPCGExConnectPointsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	Context->MainBatch->Output();
@@ -175,7 +175,7 @@ namespace PCGExConnectPoints
 		{
 			// If we have search probes, build the octree
 			const FBox B = PointDataFacade->GetIn()->GetBounds();
-			Octree = MakeUnique<PCGEx::FIndexedItemOctree>(bUseProjection ? ProjectionDetails.ProjectFlat(B.GetCenter()) : B.GetCenter(), B.GetExtent().Length());
+			Octree = MakeUnique<PCGExOctree::FItemOctree>(bUseProjection ? ProjectionDetails.ProjectFlat(B.GetCenter()) : B.GetCenter(), B.GetExtent().Length());
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, PrepTask)
@@ -222,7 +222,7 @@ namespace PCGExConnectPoints
 				{
 					WorkingTransforms[i] = ProjectionDetails.ProjectFlat(OriginalTransforms[i], i);
 					if (!AcceptConnections[i]) { continue; }
-					Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(WorkingTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
+					Octree->AddElement(PCGExOctree::FItem(i, FBoxSphereBounds(WorkingTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
 				}
 			}
 			else
@@ -231,7 +231,7 @@ namespace PCGExConnectPoints
 				{
 					WorkingTransforms[i] = OriginalTransforms[i];
 					if (!AcceptConnections[i]) { continue; }
-					Octree->AddElement(PCGEx::FIndexedItem(i, FBoxSphereBounds(WorkingTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
+					Octree->AddElement(PCGExOctree::FItem(i, FBoxSphereBounds(WorkingTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
 				}
 			}
 		}
@@ -288,7 +288,7 @@ namespace PCGExConnectPoints
 
 				TArray<PCGExProbing::FCandidate> Candidates;
 
-				auto ProcessPoint = [&](const PCGEx::FIndexedItem& InPositionRef)
+				auto ProcessPoint = [&](const PCGExOctree::FItem& InPositionRef)
 				{
 					const int32 OtherPointIndex = InPositionRef.Index;
 					if (OtherPointIndex == Index) { return; }

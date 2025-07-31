@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Topology/PCGExTopologyPathSurface.h"
+
+#include "PCGComponent.h"
 #include "Data/PCGDynamicMeshData.h" // Redundant but required for build on Linux 
 
 #include "Topology/PCGExTopology.h"
@@ -67,7 +69,7 @@ bool FPCGExTopologyPathSurfaceElement::ExecuteInternal(FPCGContext* InContext) c
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainBatch->Output();
 

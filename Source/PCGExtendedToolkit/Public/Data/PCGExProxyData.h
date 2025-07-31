@@ -81,7 +81,6 @@ namespace PCGExData
 #undef PCGEX_CONVERTING_READ
 	};
 
-
 	template <typename T_WORKING>
 	class TBufferProxy : public IBufferProxy
 	{
@@ -164,7 +163,7 @@ namespace PCGExData
 		virtual bool EnsureReadable() const override { return Buffer->EnsureReadable(); }
 	};
 
-	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGPointProperties PROPERTY, typename T_VALUERANGE>
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGPointProperties PROPERTY>
 	class TPointPropertyProxy : public TBufferProxy<T_WORKING>
 	{
 		using TBufferProxy<T_WORKING>::SubSelection;
@@ -223,6 +222,21 @@ namespace PCGExData
 		}
 	};
 
+#pragma region externalization TPointPropertyProxy
+
+#define PCGEX_TPL(_TYPE, _NAME, _REALTYPE, _PROPERTY)\
+extern template class TPointPropertyProxy<_REALTYPE, _TYPE, true, _PROPERTY>;\
+extern template class TPointPropertyProxy<_REALTYPE, _TYPE, false, _PROPERTY>;
+
+#define PCGEX_TPL_LOOP(_PROPERTY, _NAME, _TYPE, _NATIVETYPE)	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL, _TYPE, _PROPERTY)
+
+	PCGEX_FOREACH_POINTPROPERTY(PCGEX_TPL_LOOP)
+
+#undef PCGEX_TPL_LOOP
+#undef PCGEX_TPL
+
+#pragma endregion
+
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGExtraProperties PROPERTY>
 	class TPointExtraPropertyProxy : public TBufferProxy<T_WORKING>
 	{
@@ -254,6 +268,21 @@ namespace PCGExData
 			// Well, no
 		}
 	};
+
+#pragma region externalization TPointExtraPropertyProxy
+
+#define PCGEX_TPL(_TYPE, _NAME, _REALTYPE, _PROPERTY)\
+extern template class TPointExtraPropertyProxy<_REALTYPE, _TYPE, true, _PROPERTY>;\
+extern template class TPointExtraPropertyProxy<_REALTYPE, _TYPE, false, _PROPERTY>;
+
+#define PCGEX_TPL_LOOP(_PROPERTY, _NAME, _TYPE)	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL, _TYPE, _PROPERTY)
+
+	PCGEX_FOREACH_EXTRAPROPERTY(PCGEX_TPL_LOOP)
+
+#undef PCGEX_TPL_LOOP
+#undef PCGEX_TPL
+
+#pragma endregion
 
 	template <typename T_WORKING>
 	class TConstantProxy : public TBufferProxy<T_WORKING>
@@ -426,6 +455,25 @@ namespace PCGExData
 			}
 		}
 	};
+
+#pragma region externalization
+
+#define PCGEX_TPL(_TYPE, _NAME, ...) \
+extern template class TBufferProxy<_TYPE>;\
+PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+#undef PCGEX_TPL
+
+#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
+	extern template class TAttributeBufferProxy<_TYPE_A, _TYPE_B, true>;\
+	extern template class TAttributeBufferProxy<_TYPE_A, _TYPE_B, false>;\
+	extern template class TDirectAttributeProxy<_TYPE_A, _TYPE_B, true>;\
+	extern template class TDirectAttributeProxy<_TYPE_A, _TYPE_B, false>;\
+	extern template class TDirectDataAttributeProxy<_TYPE_A, _TYPE_B, true>;\
+	extern template class TDirectDataAttributeProxy<_TYPE_A, _TYPE_B, false>;
+	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
+#undef PCGEX_TPL
+
+#pragma endregion
 
 	TSharedPtr<IBufferProxy> GetProxyBuffer(
 		FPCGExContext* InContext,

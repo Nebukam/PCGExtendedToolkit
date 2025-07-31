@@ -6,7 +6,9 @@
 #include "CoreMinimal.h"
 #include "PCGExChain.h"
 #include "PCGExClusterMT.h"
+#include "PCGExDetailsIntersection.h"
 #include "PCGExEdgesProcessor.h"
+#include "Data/Blending/PCGExDataBlending.h"
 
 
 #include "PCGExSimplifyClusters.generated.h"

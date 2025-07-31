@@ -8,9 +8,6 @@
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
 
-
-#include "Graph/PCGExCluster.h"
-
 #include "PCGExHeuristicFeedback.generated.h"
 
 USTRUCT(BlueprintType)

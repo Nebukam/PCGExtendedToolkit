@@ -93,17 +93,17 @@ bool FPCGExClusterDiffusionElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Settings->PathOutput != EPCGExFloodFillPathOutput::None)
 	{
-		PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_ReadyForNextPoints)
+		PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_ReadyForNextPoints)
 
 		if (Context->ExpectedPathCount > 0)
 		{
-			PCGEX_ON_STATE(PCGEx::State_ReadyForNextPoints)
+			PCGEX_ON_STATE(PCGExCommon::State_ReadyForNextPoints)
 			{
-				Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+				Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 				Context->OutputBatches();
 			}
 
-			PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
+			PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 			{
 				Context->Paths->StageOutputs();
 				Context->Done();
@@ -117,7 +117,7 @@ bool FPCGExClusterDiffusionElement::ExecuteInternal(FPCGContext* InContext) cons
 	}
 	else
 	{
-		PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
+		PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
 	}
 
 	Context->OutputPointsAndEdges();

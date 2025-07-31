@@ -70,7 +70,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	if (Context->MainSites)
@@ -203,7 +203,9 @@ namespace PCGExBuildDelaunay
 			OutTransforms[i].SetLocation(Centroid);
 		}
 
-		SitesIO->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButTransform);
+		EPCGPointNativeProperties Allocate = EPCGPointNativeProperties::All;
+		EnumRemoveFlags(Allocate, EPCGPointNativeProperties::Transform);
+		SitesIO->ConsumeIdxMapping(Allocate);
 
 		if (Settings->bMarkSiteHull)
 		{
@@ -253,7 +255,9 @@ namespace PCGExBuildDelaunay
 			OutTransforms[i].SetLocation(Centroid);
 		}
 
-		SitesIO->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButTransform);
+		EPCGPointNativeProperties Allocate = EPCGPointNativeProperties::All;
+		EnumRemoveFlags(Allocate, EPCGPointNativeProperties::Transform);
+		SitesIO->ConsumeIdxMapping(Allocate);
 
 		if (Settings->bMarkSiteHull)
 		{

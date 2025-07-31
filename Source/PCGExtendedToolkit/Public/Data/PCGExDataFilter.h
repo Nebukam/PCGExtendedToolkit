@@ -73,7 +73,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 		case EPCGExAttributeFilter::All:
 			return true;
 		case EPCGExAttributeFilter::Exclude:
-			if (bPreservePCGExData && Name.StartsWith(PCGEx::PCGExPrefix)) { return !bFilterToRemove; }
+			if (bPreservePCGExData && Name.StartsWith(PCGExCommon::PCGExPrefix)) { return !bFilterToRemove; }
 			for (const TPair<FString, EPCGExStringMatchMode>& Filter : Matches)
 			{
 				switch (Filter.Value)
@@ -95,7 +95,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 			}
 			return true;
 		case EPCGExAttributeFilter::Include:
-			if (bPreservePCGExData && Name.StartsWith(PCGEx::PCGExPrefix)) { return !bFilterToRemove; }
+			if (bPreservePCGExData && Name.StartsWith(PCGExCommon::PCGExPrefix)) { return !bFilterToRemove; }
 			for (const TPair<FString, EPCGExStringMatchMode>& Filter : Matches)
 			{
 				switch (Filter.Value)

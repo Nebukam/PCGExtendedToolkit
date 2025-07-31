@@ -5,6 +5,74 @@
 
 namespace PCGExDetails
 {
+	template <typename T>
+	TSharedPtr<TSettingValue<T>> MakeSettingValue(const T InConstant)
+	{
+		TSharedPtr<TSettingValueConstant<T>> V = MakeShared<TSettingValueConstant<T>>(InConstant);
+		return StaticCastSharedPtr<TSettingValue<T>>(V);
+	}
+
+	template <typename T>
+	TSharedPtr<TSettingValue<T>> MakeSettingValue(const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const T InConstant)
+	{
+		if (InInput == EPCGExInputValueType::Attribute)
+		{
+			if (PCGExHelpers::IsDataDomainAttribute(InSelector))
+			{
+				TSharedPtr<TSettingValueSelectorConstant<T>> V = MakeShared<TSettingValueSelectorConstant<T>>(InSelector);
+				return StaticCastSharedPtr<TSettingValue<T>>(V);
+			}
+			TSharedPtr<TSettingValueSelector<T>> V = MakeShared<TSettingValueSelector<T>>(InSelector);
+			return StaticCastSharedPtr<TSettingValue<T>>(V);
+		}
+
+		return MakeSettingValue<T>(InConstant);
+	}
+
+	template <typename T>
+	TSharedPtr<TSettingValue<T>> MakeSettingValue(const EPCGExInputValueType InInput, const FName InName, const T InConstant)
+	{
+		if (InInput == EPCGExInputValueType::Attribute)
+		{
+			if (PCGExHelpers::IsDataDomainAttribute(InName))
+			{
+				TSharedPtr<TSettingValueBufferConstant<T>> V = MakeShared<TSettingValueBufferConstant<T>>(InName);
+				return StaticCastSharedPtr<TSettingValue<T>>(V);
+			}
+			TSharedPtr<TSettingValueBuffer<T>> V = MakeShared<TSettingValueBuffer<T>>(InName);
+			return StaticCastSharedPtr<TSettingValue<T>>(V);
+		}
+
+		return MakeSettingValue<T>(InConstant);
+	}
+
+	template <typename T>
+	TSharedPtr<TSettingValue<T>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FName InName, const T InConstant)
+	{
+		T Constant = InConstant;
+		PCGExDataHelpers::TryGetSettingDataValue(InContext, InData, InInput, InName, InConstant, Constant);
+		return MakeSettingValue<T>(Constant);
+	}
+
+#pragma region externalization
+
+#define PCGEX_TPL(_TYPE, _NAME, ...)\
+	template class PCGEXTENDEDTOOLKIT_API TSettingValueBuffer<_TYPE>;\
+	template class PCGEXTENDEDTOOLKIT_API TSettingValueSelector<_TYPE>;\
+	template class PCGEXTENDEDTOOLKIT_API TSettingValueConstant<_TYPE>;\
+	template class PCGEXTENDEDTOOLKIT_API TSettingValueSelectorConstant<_TYPE>;\
+	template class PCGEXTENDEDTOOLKIT_API TSettingValueBufferConstant<_TYPE>;\
+	template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const _TYPE InConstant); \
+	template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const _TYPE InConstant); \
+	template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const EPCGExInputValueType InInput, const FName InName, const _TYPE InConstant); \
+	template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FName InName, const _TYPE InConstant);
+
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+
+#undef PCGEX_TPL
+
+#pragma endregion
+
 	TSharedPtr<FDistances> MakeDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
 	{
 		if (Source == EPCGExDistance::None || Target == EPCGExDistance::None)

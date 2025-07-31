@@ -3,9 +3,11 @@
 
 #include "Sampling/PCGExPackActorData.h"
 
+#include "PCGComponent.h"
 #include "PCGExPointsProcessor.h"
 #include "Elements/PCGExecuteBlueprint.h"
 #include "PCGExSubSystem.h"
+#include "Engine/AssetManager.h"
 
 
 #include "Misc/PCGExSortPoints.h"
@@ -276,7 +278,7 @@ bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainBatch->Output();
 	Context->MainPoints->StageOutputs();

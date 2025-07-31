@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "GameFramework/Actor.h"
+#include "PCGManagedResource.h"
 
 #include "PCGContext.h"
 #include "PCGElement.h"
@@ -19,12 +20,79 @@
 
 namespace PCGEx
 {
+	EPCGPointNativeProperties GetPointNativeProperties(uint8 Flags)
+	{
+		const EPCGExPointNativeProperties InFlags = static_cast<EPCGExPointNativeProperties>(Flags);
+		EPCGPointNativeProperties OutFlags = EPCGPointNativeProperties::None;
+
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Transform)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Transform); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Density)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Density); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::BoundsMin)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::BoundsMin); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::BoundsMax)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::BoundsMax); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Color)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Color); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Steepness)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Steepness); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Seed)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Seed); }
+		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::MetadataEntry)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::MetadataEntry); }
+
+		return OutFlags;
+	}
+
+	FName GetLongNameFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const bool bInitialized)
+	{
+		// This return a domain-less unique identifier for the provided selector
+		// It's mostly used to create uniquely identified value buffers
+
+		if (!InData) { return InvalidName; }
+
+		if (bInitialized)
+		{
+			if (InSelector.GetExtraNames().IsEmpty()) { return FName(InSelector.GetName().ToString()); }
+			return FName(InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT(".")));
+		}
+		else
+		{
+			if (InSelector.GetSelection() == EPCGAttributePropertySelection::Attribute && InSelector.GetName() == "@Last")
+			{
+				return GetLongNameFromSelector(InSelector.CopyAndFixLast(InData), InData, true);
+			}
+
+			return GetLongNameFromSelector(InSelector, InData, true);
+		}
+	}
+
+	FPCGAttributeIdentifier GetAttributeIdentifier(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const bool bInitialized)
+	{
+		// This return an identifier suitable to be used for data facade
+
+		FPCGAttributeIdentifier Identifier;
+
+		if (!InData) { return FPCGAttributeIdentifier(InvalidName, EPCGMetadataDomainFlag::Invalid); }
+
+		if (bInitialized)
+		{
+			Identifier.Name = InSelector.GetAttributeName();
+			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(InSelector);
+		}
+		else
+		{
+			FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
+
+			check(FixedSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+
+			Identifier.Name = FixedSelector.GetAttributeName();
+			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);
+		}
+
+
+		return Identifier;
+	}
+
 	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName, const UPCGData* InData)
 	{
 		FPCGAttributePropertyInputSelector Selector;
 		Selector.Update(InName.ToString());
 		Selector = Selector.CopyAndFixLast(InData);
-		return GetAttributeIdentifier<true>(Selector, InData);
+		return GetAttributeIdentifier(Selector, InData);
 	}
 
 	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName)
@@ -519,6 +587,32 @@ namespace PCGExHelpers
 		}
 
 		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_COPY_SINGLE_VALUE)
+	}
+
+	void LoadBlocking_AnyThread(const FSoftObjectPath& Path)
+	{
+		if (IsInGameThread())
+		{
+			// We're in the game thread, request synchronous load
+			UAssetManager::GetStreamableManager().RequestSyncLoad(Path);
+		}
+		else
+		{
+			// We're not in the game thread, we need to dispatch loading to the main thread
+			// and wait in the current one
+			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
+			AsyncTask(
+				ENamedThreads::GameThread, [BlockingEvent, Path]()
+				{
+					const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+						Path, [BlockingEvent]() { BlockingEvent->Trigger(); });
+
+					if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
+				});
+
+			BlockingEvent->Wait();
+			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
+		}
 	}
 
 	void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths)

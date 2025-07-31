@@ -74,7 +74,7 @@ PCGExTensor::FTensorSample FPCGExTensorSpin::Sample(const int32 InSeedIndex, con
 
 	PCGExTensor::FEffectorSamples Samples = PCGExTensor::FEffectorSamples();
 
-	auto ProcessNeighbor = [&](const PCGEx::FIndexedItem& InItem)
+	auto ProcessNeighbor = [&](const PCGExOctree::FItem& InItem)
 	{
 		PCGExTensor::FEffectorMetrics Metrics;
 		if (!ComputeFactor(InPosition, InItem.Index, Metrics)) { return; }

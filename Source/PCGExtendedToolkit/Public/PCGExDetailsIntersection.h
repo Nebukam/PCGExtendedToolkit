@@ -31,13 +31,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUnionMetadataDetails
 	FName UnionSizeAttributeName = "UnionSize";
 
 	bool WriteAny() const { return bWriteIsUnion || bWriteUnionSize; }
-
-	bool SanityCheck(FPCGExContext* InContext) const
-	{
-		if (bWriteIsUnion) { PCGEX_VALIDATE_NAME_C(InContext, IsUnionAttributeName) }
-		if (bWriteUnionSize) { PCGEX_VALIDATE_NAME_C(InContext, UnionSizeAttributeName) }
-		return true;
-	}
+	bool SanityCheck(FPCGExContext* InContext) const;
+	
 };
 
 USTRUCT(BlueprintType)
@@ -82,13 +77,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 	FPCGExEdgeUnionMetadataDetails EdgeUnionData;
 
 	bool WriteAny() const { return bSupportsEdges ? (PointUnionData.WriteAny() || EdgeUnionData.WriteAny()) : PointUnionData.WriteAny(); }
-
-	bool SanityCheck(FPCGExContext* InContext) const
-	{
-		if (bSupportsEdges) { if (!EdgeUnionData.SanityCheck(InContext)) { return false; } }
-		if (!PointUnionData.SanityCheck(InContext)) { return false; }
-		return true;
-	}
+	bool SanityCheck(FPCGExContext* InContext) const;
+	
 };
 
 USTRUCT(BlueprintType)
@@ -171,12 +161,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionDetails
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
 	FName FlagB;
 
-	void Init()
-	{
-		MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
-		MinDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
-		ToleranceSquared = Tolerance * Tolerance;
-	}
-
+	void Init();
+	
 	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
 };

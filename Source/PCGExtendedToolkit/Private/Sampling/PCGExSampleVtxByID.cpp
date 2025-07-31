@@ -6,6 +6,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Graph/PCGExGraph.h"
 
 
 #include "Misc/PCGExSortPoints.h"
@@ -95,7 +96,7 @@ bool FPCGExSampleVtxByIDElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetAsyncState(PCGEx::State_FacadePreloading);
+		Context->SetAsyncState(PCGExCommon::State_FacadePreloading);
 
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
 		Context->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
@@ -130,7 +131,7 @@ bool FPCGExSampleVtxByIDElement::ExecuteInternal(FPCGContext* InContext) const
 		return false;
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

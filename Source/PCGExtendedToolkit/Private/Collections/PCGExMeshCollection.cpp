@@ -3,6 +3,8 @@
 
 #include "Collections/PCGExMeshCollection.h"
 
+#include "PCGExGlobalSettings.h"
+
 void FPCGExMaterialOverrideCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
 	for (const FPCGExMaterialOverrideEntry& Entry : Overrides) { OutPaths.Add(Entry.Material.ToSoftObjectPath()); }

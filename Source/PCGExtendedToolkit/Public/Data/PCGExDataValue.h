@@ -31,8 +31,8 @@ namespace PCGExData
 		template <typename T>
 		T GetValue()
 		{
-			if (IsNumeric()) { return PCGEx::Convert<T>(AsDouble()); }
-			return PCGEx::Convert<T>(AsString());
+			if (IsNumeric()) { return PCGEx::Convert<double, T>(AsDouble()); }
+			return PCGEx::Convert<FString, T>(AsString());
 		}
 
 	protected:
@@ -41,7 +41,7 @@ namespace PCGExData
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataValue : public IDataValue
+	class TDataValue : public IDataValue
 	{
 	public:
 		T Value;
@@ -122,14 +122,15 @@ namespace PCGExData
 	};
 
 #pragma region externalization
-	
-#define PCGEX_TPL(_TYPE, _NAME, ...)\
-template class TDataValue<_TYPE>;
 
+#define PCGEX_TPL(_TYPE, _NAME, ...)\
+extern template class TDataValue<_TYPE>;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
-	
+
 #undef PCGEX_TPL
-	
+
+#pragma endregion
+
 	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<IDataValue> TryGetValueFromTag(const FString& InTag, FString& OutLeftSide);
 
@@ -138,6 +139,4 @@ template class TDataValue<_TYPE>;
 
 	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<IDataValue> TryGetValueFromData(const UPCGData* InData, const FName& InName);
-
-	using DataIDType = TSharedPtr<TDataValue<int32>>;
 }

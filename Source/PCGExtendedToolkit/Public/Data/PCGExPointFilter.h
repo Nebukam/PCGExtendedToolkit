@@ -8,11 +8,17 @@
 #include "PCGExData.h"
 #include "PCGExFactoryProvider.h"
 
-
-#include "Graph/PCGExCluster.h"
-#include "Paths/PCGExPaths.h"
-
 #include "PCGExPointFilter.generated.h"
+
+namespace PCGExGraph
+{
+	struct FEdge;
+}
+
+namespace PCGExCluster
+{
+	struct FNode;
+}
 
 class UPCGExFilterProviderSettings;
 
@@ -70,7 +76,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryData : public UPCGExFactoryData
 	GENERATED_BODY()
 
 	friend UPCGExFilterProviderSettings;
-	
+
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
 
@@ -83,7 +89,7 @@ public:
 	virtual bool Init(FPCGExContext* InContext);
 
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const;
-	
+
 	int32 Priority = 0;
 	EPCGExFilterNoDataFallback MissingDataHandling = EPCGExFilterNoDataFallback::Fail;
 
@@ -215,7 +221,7 @@ namespace PCGExPointFilter
 
 		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TArrayView<int8> OutResults);
 		virtual int32 Test(const TArrayView<PCGExCluster::FNode> Items, const TSharedPtr<TArray<int8>>& OutResults);
-		virtual int32 Test(const TArrayView<PCGExCluster::FEdge> Items, const TArrayView<int8> OutResults);
+		virtual int32 Test(const TArrayView<PCGExGraph::FEdge> Items, const TArrayView<int8> OutResults);
 
 		virtual ~FManager()
 		{

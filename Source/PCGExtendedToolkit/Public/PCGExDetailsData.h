@@ -220,54 +220,36 @@ namespace PCGExDetails
 	};
 
 	template <typename T>
-	static TSharedPtr<TSettingValue<T>> MakeSettingValue(const T InConstant)
-	{
-		TSharedPtr<TSettingValueConstant<T>> V = MakeShared<TSettingValueConstant<T>>(InConstant);
-		return StaticCastSharedPtr<TSettingValue<T>>(V);
-	}
+	TSharedPtr<TSettingValue<T>> MakeSettingValue(const T InConstant);
 
 	template <typename T>
-	static TSharedPtr<TSettingValue<T>> MakeSettingValue(const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const T InConstant)
-	{
-		if (InInput == EPCGExInputValueType::Attribute)
-		{
-			if (PCGExHelpers::IsDataDomainAttribute(InSelector))
-			{
-				TSharedPtr<TSettingValueSelectorConstant<T>> V = MakeShared<TSettingValueSelectorConstant<T>>(InSelector);
-				return StaticCastSharedPtr<TSettingValue<T>>(V);
-			}
-			TSharedPtr<TSettingValueSelector<T>> V = MakeShared<TSettingValueSelector<T>>(InSelector);
-			return StaticCastSharedPtr<TSettingValue<T>>(V);
-		}
-
-		return MakeSettingValue<T>(InConstant);
-	}
+	TSharedPtr<TSettingValue<T>> MakeSettingValue(const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const T InConstant);
 
 	template <typename T>
-	static TSharedPtr<TSettingValue<T>> MakeSettingValue(const EPCGExInputValueType InInput, const FName InName, const T InConstant)
-	{
-		if (InInput == EPCGExInputValueType::Attribute)
-		{
-			if (PCGExHelpers::IsDataDomainAttribute(InName))
-			{
-				TSharedPtr<TSettingValueBufferConstant<T>> V = MakeShared<TSettingValueBufferConstant<T>>(InName);
-				return StaticCastSharedPtr<TSettingValue<T>>(V);
-			}
-			TSharedPtr<TSettingValueBuffer<T>> V = MakeShared<TSettingValueBuffer<T>>(InName);
-			return StaticCastSharedPtr<TSettingValue<T>>(V);
-		}
-
-		return MakeSettingValue<T>(InConstant);
-	}
+	TSharedPtr<TSettingValue<T>> MakeSettingValue(const EPCGExInputValueType InInput, const FName InName, const T InConstant);
 
 	template <typename T>
-	static TSharedPtr<TSettingValue<T>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FName InName, const T InConstant)
-	{
-		T Constant = InConstant;
-		PCGExDataHelpers::TryGetSettingDataValue(InContext, InData, InInput, InName, InConstant, Constant);
-		return MakeSettingValue<T>(Constant);
-	}
+	TSharedPtr<TSettingValue<T>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FName InName, const T InConstant);
 
+#pragma region externalization
+
+#define PCGEX_TPL(_TYPE, _NAME, ...) \
+extern template class TSettingValueBuffer<_TYPE>; \
+extern template class TSettingValueSelector<_TYPE>; \
+extern template class TSettingValueConstant<_TYPE>; \
+extern template class TSettingValueSelectorConstant<_TYPE>; \
+extern template class TSettingValueBufferConstant<_TYPE>; \
+extern template TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const _TYPE InConstant); \
+extern template TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const _TYPE InConstant); \
+extern template TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const EPCGExInputValueType InInput, const FName InName, const _TYPE InConstant); \
+extern template TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FName InName, const _TYPE InConstant);
+
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+
+#undef PCGEX_TPL
+
+#pragma endregion
+	
 	template <typename T>
 	static TSharedPtr<TSettingValue<T>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const T InConstant)
 	{

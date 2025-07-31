@@ -77,7 +77,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	if (Context->MainSites) { Context->MainSites->StageOutputs(); }
@@ -220,7 +220,9 @@ namespace PCGExBuildDelaunay2D
 			OutTransforms[i].SetLocation(Centroid);
 		}
 
-		SitesIO->ConsumeIdxMapping(PCGEx::AllPointNativePropertiesButTransform);
+		EPCGPointNativeProperties Allocate = EPCGPointNativeProperties::All;
+		EnumRemoveFlags(Allocate, EPCGPointNativeProperties::Transform);
+		SitesIO->ConsumeIdxMapping(Allocate);
 
 		if (Settings->bMarkSiteHull)
 		{

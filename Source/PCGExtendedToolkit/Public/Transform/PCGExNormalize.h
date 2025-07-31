@@ -13,6 +13,12 @@
 
 #include "PCGExNormalize.generated.h"
 
+namespace PCGExData
+{
+	template<typename T>
+	class TBufferProxy;
+}
+
 class FPCGExComputeIOBounds;
 
 

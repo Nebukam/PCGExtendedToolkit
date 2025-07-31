@@ -6,11 +6,14 @@
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
 #include "PCGExDetails.h"
-#include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
 
 #include "PCGExAdjacency.generated.h"
 
+
+namespace PCGExCluster
+{
+	struct FNode;
+}
 
 UENUM()
 enum class EPCGExAdjacencyTestMode : uint8

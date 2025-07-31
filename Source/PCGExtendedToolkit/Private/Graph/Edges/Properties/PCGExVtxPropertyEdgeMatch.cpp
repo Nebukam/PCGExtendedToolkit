@@ -4,6 +4,7 @@
 #include "Graph/Edges/Properties/PCGExVtxPropertyEdgeMatch.h"
 
 #include "PCGPin.h"
+#include "Graph/PCGExCluster.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyEdgeMatch"

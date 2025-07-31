@@ -4,10 +4,11 @@
 #include "PCGEx.h"
 
 #include "PCGExH.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 
 namespace PCGEx
 {
-	bool IsPCGExAttribute(const FString& InStr) { return InStr.Contains(PCGExPrefix); }
+	bool IsPCGExAttribute(const FString& InStr) { return InStr.Contains(PCGExCommon::PCGExPrefix); }
 
 	bool IsPCGExAttribute(const FName InName) { return IsPCGExAttribute(InName.ToString()); }
 

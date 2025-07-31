@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExMergePoints.h"
 
+#include "Graph/PCGExEdge.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExMergePointsElement"
 #define PCGEX_NAMESPACE MergePoints
@@ -55,7 +57,7 @@ bool FPCGExMergePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	(void)Context->CompositeDataFacade->Source->StageOutput(Context);
 
@@ -124,7 +126,7 @@ namespace PCGExMergePoints
 							TagValue->UnderlyingType, [&](auto DummyValue2)
 							{
 								using T_REAL = decltype(DummyValue2);
-								Value = PCGEx::FSubSelection().Get<T>(StaticCastSharedPtr<PCGExData::TDataValue<T_REAL>>(TagValue)->Value);
+								Value = PCGEx::FSubSelection().Get<T_REAL, T>(StaticCastSharedPtr<PCGExData::TDataValue<T_REAL>>(TagValue)->Value);
 							});
 
 						TSharedPtr<PCGExData::TBuffer<T>> Buffer = Context->CompositeDataFacade->GetWritable(AttributeName, T{}, true, PCGExData::EBufferInit::New);

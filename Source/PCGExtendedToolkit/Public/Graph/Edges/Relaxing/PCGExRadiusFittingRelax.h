@@ -5,7 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGExBoxFittingRelax.h"
+#include "PCGExDetailsData.h"
 #include "PCGExRelaxClusterOperation.h"
+#include "Data/PCGExDataPreloader.h"
 
 
 #include "PCGExRadiusFittingRelax.generated.h"

@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExChain.h"
+
+#include "Data/PCGExUnionData.h"
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExCluster

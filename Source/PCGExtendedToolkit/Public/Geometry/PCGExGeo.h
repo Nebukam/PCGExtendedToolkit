@@ -36,7 +36,7 @@ namespace PCGExGeo
 
 	bool IsWinded(const EPCGExWinding Winding, const bool bIsInputClockwise);
 	bool IsWinded(const EPCGExWindingMutation Winding, const bool bIsInputClockwise);
-
+	
 	struct PCGEXTENDEDTOOLKIT_API FPolygonInfos
 	{
 		double Area = 0;

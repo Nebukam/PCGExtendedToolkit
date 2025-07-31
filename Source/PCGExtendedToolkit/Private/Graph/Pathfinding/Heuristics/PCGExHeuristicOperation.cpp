@@ -4,6 +4,9 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
 
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
+
 
 void FPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
 {

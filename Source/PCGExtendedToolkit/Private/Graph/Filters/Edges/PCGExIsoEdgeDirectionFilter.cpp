@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Filters/Edges/PCGExIsoEdgeDirectionFilter.h"
+
+#include "PCGExSorting.h"
 #include "Graph/PCGExGraph.h"
 #include "PCGPin.h"
 

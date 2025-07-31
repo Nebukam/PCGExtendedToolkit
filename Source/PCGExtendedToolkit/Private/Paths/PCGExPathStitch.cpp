@@ -70,7 +70,7 @@ bool FPCGExPathStitchElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -275,15 +275,15 @@ namespace PCGExPathStitch
 		}
 
 		// Build data octree
-		TSharedPtr<PCGEx::FIndexedItemOctree> PathOctree = MakeShared<PCGEx::FIndexedItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
+		TSharedPtr<PCGExOctree::FItemOctree> PathOctree = MakeShared<PCGExOctree::FItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
 		for (int i = 0; i < SortedProcessors.Num(); ++i)
 		{
 			const TSharedPtr<FProcessor> Processor = SortedProcessors[i];
 			Processor->WorkIndex = i;
 
 			// -1 <------> +1
-			PathOctree->AddElement(PCGEx::FIndexedItem((Processor->BatchIndex + 1) * -1, Processor->StartBounds));
-			PathOctree->AddElement(PCGEx::FIndexedItem((Processor->BatchIndex + 1), Processor->EndBounds));
+			PathOctree->AddElement(PCGExOctree::FItem((Processor->BatchIndex + 1) * -1, Processor->StartBounds));
+			PathOctree->AddElement(PCGExOctree::FItem((Processor->BatchIndex + 1), Processor->EndBounds));
 		}
 
 		double BestDist = MAX_dbl;
@@ -320,7 +320,7 @@ namespace PCGExPathStitch
 				const PCGExMath::FSegment& CurrentSegment = Current->EndSegment;
 
 				PathOctree->FindElementsWithBoundsTest(
-					Current->EndBounds, [&](const PCGEx::FIndexedItem& Item)
+					Current->EndBounds, [&](const PCGExOctree::FItem& Item)
 					{
 						const bool bIsOtherEnd = Item.Index > 0;
 						const int32 Index = FMath::Abs(Item.Index) - 1;
@@ -349,7 +349,7 @@ namespace PCGExPathStitch
 
 				const PCGExMath::FSegment& CurrentSegment = Current->StartSegment;
 				PathOctree->FindElementsWithBoundsTest(
-					Current->StartBounds, [&](const PCGEx::FIndexedItem& Item)
+					Current->StartBounds, [&](const PCGExOctree::FItem& Item)
 					{
 						const bool bIsOtherStart = Item.Index < 0;
 						const int32 Index = FMath::Abs(Item.Index) - 1;

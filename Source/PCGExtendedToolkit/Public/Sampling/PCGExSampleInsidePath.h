@@ -5,12 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampleNearestPath.h"
 #include "PCGExSampling.h"
-#include "PCGExScopedContainers.h"
-#include "Data/PCGSplineData.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
 
 #include "Paths/PCGExPaths.h"
@@ -242,7 +242,7 @@ namespace PCGExSampleInsidePath
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleInsidePathContext, UPCGExSampleInsidePathSettings>
 	{
 		TSet<const UPCGData*> IgnoreList;
-		TSharedPtr<PCGExPaths::IPath> Path;
+		TSharedPtr<PCGExPaths::FPolyPath> Path;
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 		TSharedPtr<PCGExDetails::FDistances> DistanceDetails;

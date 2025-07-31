@@ -127,8 +127,8 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bUseOctree)
 	{
-		Context->SplineOctree = MakeShared<PCGEx::FIndexedItemOctree>(Context->OctreeBounds.GetCenter(), Context->OctreeBounds.GetExtent().Length());
-		for (int i = 0; i < Context->NumTargets; i++) { Context->SplineOctree->AddElement(PCGEx::FIndexedItem(i, SplineBounds[i])); }
+		Context->SplineOctree = MakeShared<PCGExOctree::FItemOctree>(Context->OctreeBounds.GetCenter(), Context->OctreeBounds.GetExtent().Length());
+		for (int i = 0; i < Context->NumTargets; i++) { Context->SplineOctree->AddElement(PCGExOctree::FItem(i, SplineBounds[i])); }
 	}
 
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_VALIDATE_NAME)
@@ -175,7 +175,7 @@ bool FPCGExSampleNearestSplineElement::ExecuteInternal(FPCGContext* InContext) c
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -451,7 +451,7 @@ namespace PCGExSampleNearestSpline
 				{
 					Context->SplineOctree->FindElementsWithBoundsTest(
 						FBox(Origin - FVector(BaseRangeMax), Origin + FVector(BaseRangeMax)),
-						[&](const PCGEx::FIndexedItem& Item) { ProcessClosestAlpha(Item.Index); });
+						[&](const PCGExOctree::FItem& Item) { ProcessClosestAlpha(Item.Index); });
 				}
 				else
 				{
@@ -490,7 +490,7 @@ namespace PCGExSampleNearestSpline
 				{
 					Context->SplineOctree->FindElementsWithBoundsTest(
 						FBox(Origin - FVector(BaseRangeMax), Origin + FVector(BaseRangeMax)),
-						[&](const PCGEx::FIndexedItem& Item) { ProcessSpecificAlpha(Item.Index); });
+						[&](const PCGExOctree::FItem& Item) { ProcessSpecificAlpha(Item.Index); });
 				}
 				else
 				{

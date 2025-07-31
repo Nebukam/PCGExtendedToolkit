@@ -7,15 +7,20 @@
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
-#include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGExOperation.h"
-
 
 #include "PCGExVtxPropertyFactoryProvider.generated.h"
 
 #define PCGEX_VTX_EXTRA_CREATE \
 	NewOperation->Config = Config;
+
+namespace PCGExCluster
+{
+	struct FNode;
+	struct FAdjacencyData;
+	class FCluster;
+}
 
 namespace PCGExVtxProperty
 {
@@ -61,30 +66,12 @@ struct FPCGExSimpleEdgeOutputSettings
 	FName LengthAttribute = "Length";
 	TSharedPtr<PCGExData::TBuffer<double>> LengthWriter;
 
-	virtual bool Validate(const FPCGContext* InContext) const
-	{
-		if (bWriteDirection) { PCGEX_VALIDATE_NAME_C(InContext, DirectionAttribute); }
-		if (bWriteLength) { PCGEX_VALIDATE_NAME_C(InContext, LengthAttribute); }
-		return true;
-	}
+	virtual bool Validate(const FPCGContext* InContext) const;
 
-	virtual void Init(const TSharedRef<PCGExData::FFacade>& InFacade)
-	{
-		if (bWriteDirection) { DirWriter = InFacade->GetWritable<FVector>(DirectionAttribute, PCGExData::EBufferInit::New); }
-		if (bWriteLength) { LengthWriter = InFacade->GetWritable<double>(LengthAttribute, PCGExData::EBufferInit::New); }
-	}
+	virtual void Init(const TSharedRef<PCGExData::FFacade>& InFacade);
 
-	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir) const
-	{
-		if (DirWriter) { DirWriter->SetValue(EntryIndex, bInvertDirection ? InDir * -1 : InDir); }
-		if (LengthWriter) { LengthWriter->SetValue(EntryIndex, InLength); }
-	}
-
-	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const
-	{
-		if (DirWriter) { DirWriter->SetValue(EntryIndex, bInvertDirection ? Data.Direction * -1 : Data.Direction); }
-		if (LengthWriter) { LengthWriter->SetValue(EntryIndex, Data.Length); }
-	}
+	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir) const;
+	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const;
 };
 
 USTRUCT(BlueprintType)
@@ -132,43 +119,13 @@ struct FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
 	FName NeighborCountAttribute = "Count";
 	TSharedPtr<PCGExData::TBuffer<int32>> NCountWriter;
 
-	virtual bool Validate(const FPCGContext* InContext) const override
-	{
-		if (!FPCGExSimpleEdgeOutputSettings::Validate(InContext)) { return false; }
-		if (bWriteEdgeIndex) { PCGEX_VALIDATE_NAME_C(InContext, EdgeIndexAttribute); }
-		if (bWriteVtxIndex) { PCGEX_VALIDATE_NAME_C(InContext, VtxIndexAttribute); }
-		if (bWriteNeighborCount) { PCGEX_VALIDATE_NAME_C(InContext, NeighborCountAttribute); }
-		return true;
-	}
+	virtual bool Validate(const FPCGContext* InContext) const override;
 
-	virtual void Init(const TSharedRef<PCGExData::FFacade>& InFacade) override
-	{
-		FPCGExSimpleEdgeOutputSettings::Init(InFacade);
-		if (bWriteEdgeIndex) { EIdxWriter = InFacade->GetWritable<int32>(EdgeIndexAttribute, PCGExData::EBufferInit::New); }
-		if (bWriteVtxIndex) { VIdxWriter = InFacade->GetWritable<int32>(VtxIndexAttribute, PCGExData::EBufferInit::New); }
-		if (bWriteNeighborCount) { NCountWriter = InFacade->GetWritable<int32>(NeighborCountAttribute, PCGExData::EBufferInit::New); }
-	}
+	virtual void Init(const TSharedRef<PCGExData::FFacade>& InFacade) override;
 
-	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex, const int32 NeighborCount) const
-	{
-		FPCGExSimpleEdgeOutputSettings::Set(EntryIndex, InLength, InDir);
-		if (EIdxWriter) { EIdxWriter->SetValue(EntryIndex, EIndex); }
-		if (VIdxWriter) { VIdxWriter->SetValue(EntryIndex, VIndex); }
-		if (NCountWriter) { NCountWriter->SetValue(EntryIndex, NeighborCount); }
-	}
-
-	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const override
-	{
-		FPCGExSimpleEdgeOutputSettings::Set(EntryIndex, Data);
-		if (EIdxWriter) { EIdxWriter->SetValue(EntryIndex, Data.EdgeIndex); }
-		if (VIdxWriter) { VIdxWriter->SetValue(EntryIndex, Data.NodePointIndex); }
-	}
-
-	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data, const int32 NeighborCount)
-	{
-		Set(EntryIndex, Data);
-		if (NCountWriter) { NCountWriter->SetValue(EntryIndex, NeighborCount); }
-	}
+	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex, const int32 NeighborCount) const;
+	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) const override;
+	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data, const int32 NeighborCount);
 };
 
 /**

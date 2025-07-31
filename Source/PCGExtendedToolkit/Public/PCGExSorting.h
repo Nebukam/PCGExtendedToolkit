@@ -5,12 +5,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "Data/PCGExData.h"
 #include "PCGExFactoryProvider.h"
-#include "Data/PCGExProxyData.h"
+#include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExSorting.generated.h"
+
+namespace PCGExData
+{
+	class IBufferProxy;
+}
 
 UENUM()
 enum class EPCGExSortDirection : uint8
@@ -119,7 +122,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		SortingRuleFactory, "Sorting Rule", "Creates an single sorting rule to be used with the Sort Points node.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
+	virtual FLinearColor GetNodeTitleColor() const override;
 #endif
 	//~End UPCGSettings
 

@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
+#include "PCGExGlobalSettings.h"
 #include "Data/PCGExPointFilter.h"
 
 #include "PCGExFilterFactoryProvider.generated.h"

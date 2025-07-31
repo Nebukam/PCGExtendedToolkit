@@ -11,7 +11,8 @@
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExDataForward.h"
-
+#include "Components/PrimitiveComponent.h"
+#include "Materials/MaterialInterface.h"
 
 #include "PCGExSampleNearestSurface.generated.h"
 
@@ -25,6 +26,8 @@ MACRO(Distance, double, 0)\
 MACRO(ActorReference, FSoftObjectPath, FSoftObjectPath())\
 MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())
 
+class AActor;
+class UWorld;
 class UPCGExFilterFactoryData;
 
 /**

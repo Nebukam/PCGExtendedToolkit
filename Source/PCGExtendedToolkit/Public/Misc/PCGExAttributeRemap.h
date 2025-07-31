@@ -4,6 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
 
 #include "PCGEx.h"
 #include "PCGExGlobalSettings.h"
@@ -11,7 +14,6 @@
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExProxyData.h"
-
 
 #include "PCGExAttributeRemap.generated.h"
 

@@ -2,7 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transform/Tensors/PCGExTensorHandler.h"
-
+#include "UObject/UObjectGlobals.h"
+#include "UObject/Package.h"
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"

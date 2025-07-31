@@ -4,8 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
+#include "UObject/Object.h"
+#include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
 
+#include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
@@ -447,7 +450,7 @@ struct FPCGExSampleNearestSplineContext final : FPCGExPointsProcessorContext
 	TArray<double> Lengths;
 
 	FBox OctreeBounds = FBox(ForceInit);
-	TSharedPtr<PCGEx::FIndexedItemOctree> SplineOctree;
+	TSharedPtr<PCGExOctree::FItemOctree> SplineOctree;
 
 	int64 NumTargets = 0;
 

@@ -129,8 +129,8 @@ bool FPCGExBranchOnDataAttributeElement::ExecuteInternal(FPCGContext* InContext)
 
 						T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
 
-						const double AsNumeric = PCGEx::Convert<double>(Value);
-						const FString AsString = PCGEx::Convert<FString>(Value);
+						const double AsNumeric = PCGEx::Convert<T_ATTR, double>(Value);
+						const FString AsString = PCGEx::Convert<T_ATTR, FString>(Value);
 
 						// Loop AFTER the cast, dummy
 						for (const FPCGExBranchOnDataPin& Pin : Settings->InternalBranches)

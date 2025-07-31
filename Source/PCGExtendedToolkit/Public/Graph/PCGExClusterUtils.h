@@ -8,6 +8,12 @@
 #include "PCGExCluster.h"
 
 
+namespace PCGExData
+{
+	class FPointIOTaggedEntries;
+	class FPointIOTaggedDictionary;
+}
+
 namespace PCGExClusterUtils
 {
 	using FProblem = TTuple<bool, FText>;

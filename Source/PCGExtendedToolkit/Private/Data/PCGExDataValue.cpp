@@ -16,12 +16,12 @@ namespace PCGExData
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
-template class TDataValue<_TYPE>;
+template class PCGEXTENDEDTOOLKIT_API TDataValue<_TYPE>;
 
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL
-	
+
 	TSharedPtr<IDataValue> TryGetValueFromTag(const FString& InTag, FString& OutLeftSide)
 	{
 		int32 DividerPosition = INDEX_NONE;
@@ -81,7 +81,7 @@ template class TDataValue<_TYPE>;
 		// Attribute unsupported
 		if (Selector.GetSelection() != EPCGAttributePropertySelection::Attribute) { return nullptr; }
 
-		FPCGAttributeIdentifier SanitizedIdentifier = PCGEx::GetAttributeIdentifier<true>(Selector, InData);
+		FPCGAttributeIdentifier SanitizedIdentifier = PCGEx::GetAttributeIdentifier(Selector, InData);
 		SanitizedIdentifier.MetadataDomain = PCGMetadataDomainID::Data; // Force data domain
 
 		// Non-data domain unsupported
@@ -104,7 +104,7 @@ template class TDataValue<_TYPE>;
 							SourceAttribute->GetTypeId(), [&](auto WorkingValue)
 							{
 								using T_WORKING = decltype(DummyValue);
-								TypedDataValue = MakeShared<TDataValue<T_WORKING>>(SubSelection.Get<T_WORKING>(Value));
+								TypedDataValue = MakeShared<TDataValue<T_WORKING>>(SubSelection.Get<T, T_WORKING>(Value));
 							});
 					}
 					else { TypedDataValue = MakeShared<TDataValue<T>>(Value); }

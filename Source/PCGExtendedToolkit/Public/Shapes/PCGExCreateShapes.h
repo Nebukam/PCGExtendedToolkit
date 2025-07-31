@@ -46,7 +46,7 @@ public:
 	FName ShapeIdAttributeName = FName("ShapeId");
 
 	/** Force writing to points, otherwise defaults to @Data (even if unspecified) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Write to points", PCG_NotOverridable, EditCondition="OutputMode==EPCGExShapeOutputMode::PerShape"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Write to points", PCG_NotOverridable, EditCondition="OutputMode == EPCGExShapeOutputMode::PerShape"))
 	bool bForceOutputToElement = false;
 
 	/** Don't output shape if they have less points than a specified amount. */
@@ -99,7 +99,7 @@ namespace PCGExCreateShapes
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void OnPointsProcessingComplete() override;
-		
+
 		virtual void Output() override;
 		virtual void CompleteWork() override;
 

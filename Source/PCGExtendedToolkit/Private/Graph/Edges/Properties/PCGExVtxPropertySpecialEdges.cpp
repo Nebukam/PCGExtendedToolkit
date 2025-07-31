@@ -3,6 +3,8 @@
 
 #include "Graph/Edges/Properties/PCGExVtxPropertySpecialEdges.h"
 
+#include "Graph/PCGExCluster.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialEdges"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialEdges

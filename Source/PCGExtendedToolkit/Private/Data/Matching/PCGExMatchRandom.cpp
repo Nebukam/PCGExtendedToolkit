@@ -3,6 +3,8 @@
 
 #include "Data/Matching/PCGExMatchRandom.h"
 
+#include "PCGExRandom.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExMatchRandom"
 #define PCGEX_NAMESPACE MatchRandom

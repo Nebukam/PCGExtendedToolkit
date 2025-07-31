@@ -4,10 +4,17 @@
 #include "Geometry/PCGExGeoPointBox.h"
 
 #include "CoreMinimal.h"
+#include "PCGExH.h"
 #include "PCGExHelpers.h"
+#include "Data/PCGExPointIO.h"
 
 namespace PCGExGeo
 {
+	uint64 FIntersections::GetKey() const
+	{
+		return PCGEx::H64U(Start, End);
+	}
+
 	void FIntersections::Sort()
 	{
 		Cuts.Sort(
@@ -123,6 +130,11 @@ namespace PCGExGeo
 			(FMath::Clamp(FMath::Abs(OutSample.UVW.X), 0, Extents.X) / Extents.X) +
 			(FMath::Clamp(FMath::Abs(OutSample.UVW.Y), 0, Extents.Y) / Extents.Y) +
 			(FMath::Clamp(FMath::Abs(OutSample.UVW.Z), 0, Extents.Z) / Extents.Z)) / 3);
+	}
+
+	void FPointBox::Sample(const PCGExData::FConstPoint& Point, FSample& OutSample) const
+	{
+		Sample(Point.GetTransform().GetLocation(), OutSample);
 	}
 
 	FPointBoxCloud::FPointBoxCloud(const UPCGBasePointData* PointData, const EPCGExPointBoundsSource BoundsSource, const double Expansion)

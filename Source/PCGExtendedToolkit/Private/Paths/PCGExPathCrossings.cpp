@@ -90,7 +90,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -138,7 +138,7 @@ namespace PCGExPathCrossings
 			}
 		}
 
-		Path = PCGExPaths::MakePath(PointIO->GetIn(), Details.Tolerance * 2);
+		Path = MakeShared<PCGExPaths::FPath>(PointIO->GetIn(), Details.Tolerance * 2);
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 
@@ -186,7 +186,7 @@ namespace PCGExPathCrossings
 
 		const TSharedPtr<PCGExPointsMT::TBatch<FProcessor>> TypedParent = StaticCastSharedPtr<PCGExPointsMT::TBatch<FProcessor>>(Parent);
 
-		TArray<TSharedPtr<PCGExPaths::IPath>> Cutters;
+		TArray<TSharedPtr<PCGExPaths::FPath>> Cutters;
 
 		if (bSelfIntersectionOnly)
 		{
@@ -218,7 +218,7 @@ namespace PCGExPathCrossings
 
 			const TSharedPtr<PCGExPaths::FPathEdgeCrossings> NewCrossing = MakeShared<PCGExPaths::FPathEdgeCrossings>(Index);
 
-			for (const TSharedPtr<PCGExPaths::IPath>& OtherPath : Cutters)
+			for (const TSharedPtr<PCGExPaths::FPath>& OtherPath : Cutters)
 			{
 				OtherPath->GetEdgeOctree()->FindElementsWithBoundsTest(
 					Edge.Bounds.GetBox(),

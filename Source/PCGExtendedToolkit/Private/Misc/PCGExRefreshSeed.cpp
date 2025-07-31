@@ -35,10 +35,10 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 			PCGEX_LAUNCH(FPCGExRefreshSeedTask, Settings->Base + Context->CurrentIO->IOIndex, Context->CurrentIO)
 		}
 
-		Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 	{
 		Context->Done();
 		Context->MainPoints->StageOutputs();

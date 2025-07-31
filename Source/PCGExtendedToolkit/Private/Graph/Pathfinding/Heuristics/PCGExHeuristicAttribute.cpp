@@ -4,6 +4,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicAttribute.h"
 
 
+#include "Data/PCGExDataPreloader.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristicAttribute"

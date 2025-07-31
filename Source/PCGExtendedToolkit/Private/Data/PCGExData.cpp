@@ -134,9 +134,9 @@ namespace PCGExData
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
-template class TBuffer<_TYPE>;\
-template class TArrayBuffer<_TYPE>;\
-template class TSingleValueBuffer<_TYPE>;
+template class PCGEXTENDEDTOOLKIT_API TBuffer<_TYPE>;\
+template class PCGEXTENDEDTOOLKIT_API TArrayBuffer<_TYPE>;\
+template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 

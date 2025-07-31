@@ -5,8 +5,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
 #include "PCGEx.h"
-
 #include "PCGExMath.generated.h"
 
 #define MIN_dbl_neg MAX_dbl *-1
@@ -96,65 +96,8 @@ namespace PCGExMath
 		double Dot(const FSegment& InSegment) const { return FVector::DotProduct(Direction, InSegment.Direction); }
 		FVector Lerp(const double InLerp) const { return FMath::Lerp(A, B, InLerp); }
 
-		template <EIntersectionTestMode Mode = EIntersectionTestMode::Strict>
-		bool FindIntersection(const FVector& A2, const FVector& B2, double SquaredTolerance, FVector& OutSelf, FVector& OutOther) const
-		{
-			FMath::SegmentDistToSegment(A, B, A2, B2, OutSelf, OutOther);
-
-			if constexpr (Mode == EIntersectionTestMode::Strict)
-			{
-				if (A == OutSelf || B == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::StrictOnSelfA)
-			{
-				if (A == OutSelf) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::StrictOnSelfB)
-			{
-				if (B == OutSelf) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::StrictOnOtherA)
-			{
-				if (A2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::StrictOnOtherB)
-			{
-				if (B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnSelf)
-			{
-				if (A2 == OutOther || B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnOther)
-			{
-				if (A == OutSelf || B == OutSelf) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnSelfA)
-			{
-				if (B == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnSelfB)
-			{
-				if (A == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnOtherA)
-			{
-				if (A == OutSelf || B == OutSelf || B2 == OutOther) { return false; }
-			}
-			else if constexpr (Mode == EIntersectionTestMode::LooseOnOtherB)
-			{
-				if (A == OutSelf || B == OutSelf || A2 == OutOther) { return false; }
-			}
-
-			if (FVector::DistSquared(OutSelf, OutOther) >= SquaredTolerance) { return false; }
-			return true;
-		}
-
-		template <EIntersectionTestMode Mode = EIntersectionTestMode::Strict>
-		bool FindIntersection(const FSegment& S, double SquaredTolerance, FVector& OutSelf, FVector& OutOther) const
-		{
-			return FindIntersection<Mode>(S.A, S.B, SquaredTolerance, OutSelf, OutOther);
-		}
+		bool FindIntersection(const FVector& A2, const FVector& B2, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EIntersectionTestMode Mode = EIntersectionTestMode::Strict) const;
+		bool FindIntersection(const FSegment& S, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EIntersectionTestMode Mode = EIntersectionTestMode::Strict) const;
 	};
 
 
@@ -381,55 +324,6 @@ namespace PCGExMath
 	PCGEXTENDEDTOOLKIT_API
 	bool SphereOverlap(const FBoxSphereBounds& S1, const FBoxSphereBounds& S2, double& OutOverlap);
 
-
-#pragma endregion
-
-#pragma region Components
-
-	template <typename T>
-	FORCEINLINE static void SetComponent(T& A, const int32 Index, const double InValue)
-	{
-		if constexpr (std::is_same_v<T, bool>)
-		{
-			A = InValue > 0;
-		}
-		else if constexpr (
-			std::is_same_v<T, FVector2D> ||
-			std::is_same_v<T, FVector> ||
-			std::is_same_v<T, FVector4>)
-		{
-			A[Index] = InValue;
-		}
-		else if constexpr (std::is_same_v<T, FQuat>)
-		{
-			FVector Euler = A.Euler();
-			SetComponent(Euler, Index, InValue);
-			A = FQuat::MakeFromEuler(Euler);
-		}
-		else if constexpr (std::is_same_v<T, FRotator>)
-		{
-			FVector Euler = A.Euler();
-			SetComponent(Euler, Index, InValue);
-			A = FRotator::MakeFromEuler(Euler);
-		}
-		else if constexpr (std::is_same_v<T, FTransform>)
-		{
-			FVector Location = A.GetLocation();
-			SetComponent(Location, Index, InValue);
-			A.SetLocation(Location);
-		}
-		else if constexpr (
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
-		{
-		}
-		else
-		{
-			A = InValue;
-		}
-	}
 
 #pragma endregion
 

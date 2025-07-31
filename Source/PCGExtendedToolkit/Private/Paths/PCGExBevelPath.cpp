@@ -104,7 +104,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -343,7 +343,7 @@ namespace PCGExBevelPath
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
-		Path = PCGExPaths::MakePath(InPoints, 0);
+		Path = MakeShared<PCGExPaths::FPath>(InPoints, 0);
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 
 		if (Settings->Type == EPCGExBevelProfileType::Custom)

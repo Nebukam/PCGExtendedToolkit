@@ -4,6 +4,7 @@
 #pragma once
 
 #include "PCGEx.h"
+#include "PCGExOctree.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExUnionData.h"
@@ -197,7 +198,7 @@ namespace PCGExSampling
 	class FTargetsHandler : public TSharedFromThis<FTargetsHandler>
 	{
 	protected:
-		TSharedPtr<PCGEx::FIndexedItemOctree> TargetsOctree;
+		TSharedPtr<PCGExOctree::FItemOctree> TargetsOctree;
 		TArray<TSharedRef<PCGExData::FFacade>> TargetFacades;
 		TArray<const PCGPointOctree::FPointOctree*> TargetOctrees;
 		int32 MaxNumTargets = 0;
@@ -210,7 +211,7 @@ namespace PCGExSampling
 		using FFacadeRefIteratorWithBreak = std::function<void(const TSharedRef<PCGExData::FFacade>&, const int32, bool&)>;
 		using FPointIterator = std::function<void(const PCGExData::FPoint&)>;
 		using FPointIteratorWithData = std::function<void(const PCGExData::FConstPoint&)>;
-		using FTargetQuery = std::function<void(const PCGEx::FIndexedItem&)>;
+		using FTargetQuery = std::function<void(const PCGExOctree::FItem&)>;
 		using FTargetElementsQuery = std::function<void(const PCGExData::FPoint&)>;
 		using FOctreeQueryWithData = std::function<void(const PCGExData::FConstPoint&)>;
 

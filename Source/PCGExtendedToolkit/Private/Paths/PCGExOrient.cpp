@@ -69,7 +69,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -96,7 +96,7 @@ namespace PCGExOrient
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0);
+		Path = MakeShared<PCGExPaths::FPath>(PointDataFacade->GetIn(), 0);
 		//PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false);
 
 		LastIndex = PointDataFacade->GetNum() - 1;

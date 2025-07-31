@@ -5,14 +5,24 @@
 
 #include "CoreMinimal.h"
 #include "GeomTools.h"
-#include "Geometry/PCGExGeoPrimtives.h"
+#include "Data/PCGExDataFilter.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
-#include "Graph/PCGExCluster.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "Paths/PCGExPaths.h"
-#include "GeometryScript/PolygonFunctions.h"
 
 #include "PCGExTopology.generated.h"
+
+struct FPCGExNodeSelectionDetails;
+
+namespace PCGExGeo
+{
+	struct FTriangle;
+}
+
+namespace PCGExCluster
+{
+	class FCluster;
+}
 
 UENUM()
 enum class EPCGExTopologyOutputType : uint8
@@ -314,14 +324,11 @@ namespace PCGExTopology
 
 	bool IsPolygonInPolygon(const FGeometryScriptSimplePolygon& ContainerPolygon, const FGeometryScriptSimplePolygon& Polygon);
 
-	static FORCEINLINE void MarkTriangle(
+	PCGEXTENDEDTOOLKIT_API
+	void MarkTriangle(
 		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-		const PCGExGeo::FTriangle& InTriangle)
-	{
-		FPlatformAtomics::InterlockedExchange(&InCluster->GetNode(InTriangle.Vtx[0])->bValid, 1);
-		FPlatformAtomics::InterlockedExchange(&InCluster->GetNode(InTriangle.Vtx[1])->bValid, 1);
-		FPlatformAtomics::InterlockedExchange(&InCluster->GetNode(InTriangle.Vtx[2])->bValid, 1);
-	}
+		const PCGExGeo::FTriangle& InTriangle);
+
 
 #pragma region Cell
 

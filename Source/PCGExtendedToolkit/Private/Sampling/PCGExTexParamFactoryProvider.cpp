@@ -4,6 +4,7 @@
 #include "Sampling/PCGExTexParamFactoryProvider.h"
 
 #include "Data/PCGTextureData.h"
+#include "Materials/MaterialInterface.h"
 #include "TextureResource.h"
 #include "Engine/Texture.h"
 #include "Engine/Texture2D.h"

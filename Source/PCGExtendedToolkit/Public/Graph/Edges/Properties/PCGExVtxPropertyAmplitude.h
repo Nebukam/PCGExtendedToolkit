@@ -9,15 +9,12 @@
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExVtxPropertyFactoryProvider.h"
-#include "Data/PCGExPointFilter.h"
-
-
-#include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
 
 #include "PCGExVtxPropertyAmplitude.generated.h"
 
 ///
+
+class UPCGExFilterFactoryData;
 
 UENUM()
 enum class EPCGExVtxAmplitudeMode : uint8

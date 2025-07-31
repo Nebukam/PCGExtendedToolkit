@@ -48,7 +48,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -81,7 +81,7 @@ namespace PCGExOffsetPath
 		Up = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
 
-		Path = PCGExPaths::MakePath(InTransforms, 0, PCGExPaths::GetClosedLoop(PointDataFacade->GetIn()));
+		Path = MakeShared<PCGExPaths::FPath>(InTransforms, PCGExPaths::GetClosedLoop(PointDataFacade->GetIn()), 0);
 
 		if (Settings->OffsetMethod == EPCGExOffsetMethod::Slide)
 		{
@@ -205,7 +205,7 @@ namespace PCGExOffsetPath
 		{
 			if (Settings->bFlagFlippedPoints)
 			{
-				DirtyPath = PCGExPaths::MakePath(OutTransforms, CrossingSettings.Tolerance * 2, Path->IsClosedLoop());
+				DirtyPath = MakeShared<PCGExPaths::FPath>(OutTransforms, Path->IsClosedLoop(), CrossingSettings.Tolerance * 2);
 				TSharedPtr<PCGExData::TBuffer<bool>> FlippedEdgeBuffer = PointDataFacade->GetWritable<bool>(Settings->FlippedAttributeName, false, true, PCGExData::EBufferInit::New);
 				for (int i = 0; i < DirtyPath->NumEdges; i++) { FlippedEdgeBuffer->SetValue(i, !(FVector::DotProduct(Path->Edges[i].Dir, DirtyPath->Edges[i].Dir) > 0)); }
 				PointDataFacade->WriteFastest(AsyncManager);
@@ -213,7 +213,7 @@ namespace PCGExOffsetPath
 			return;
 		}
 
-		DirtyPath = PCGExPaths::MakePath(OutTransforms, CrossingSettings.Tolerance * 2, Path->IsClosedLoop());
+		DirtyPath = MakeShared<PCGExPaths::FPath>(OutTransforms, Path->IsClosedLoop(), CrossingSettings.Tolerance * 2);
 		DirtyLength = DirtyPath->AddExtra<PCGExPaths::FPathEdgeLength>();
 
 		CleanEdge.Init(false, DirtyPath->NumEdges);
@@ -237,7 +237,7 @@ namespace PCGExOffsetPath
 			{
 				PCGEX_ASYNC_THIS
 
-				const TSharedPtr<PCGExPaths::IPath> P = This->DirtyPath;
+				const TSharedPtr<PCGExPaths::FPath> P = This->DirtyPath;
 				const TSharedPtr<PCGExPaths::FPathEdgeLength> L = This->DirtyLength;
 
 				PCGEX_SCOPE_LOOP(i)

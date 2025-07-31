@@ -106,7 +106,7 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 			[Context](const PCGExMT::FScope& Scope)
 			{
 				const TSharedRef<PCGExData::FFacade> PathFacade = Context->PathFacades[Scope.Start];
-				const TSharedPtr<PCGExPaths::IPath> Path = PCGExPaths::MakePath(PathFacade->GetIn(), 0);
+				PCGEX_MAKE_SHARED(Path, PCGExPaths::FPath, PathFacade->GetIn(), 0)
 
 				Path->BuildEdgeOctree();
 
@@ -133,7 +133,7 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 	}
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraph::State_ReadyToCompile)
-	if (!Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
+	if (!Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
 
 	Context->MainPoints->StageOutputs();
 
@@ -211,7 +211,7 @@ namespace PCGExCutEdges
 			EdgeBox += A1;
 			EdgeBox += B1;
 
-			for (const TSharedRef<PCGExPaths::IPath>& Path : Context->Paths)
+			for (const TSharedRef<PCGExPaths::FPath>& Path : Context->Paths)
 			{
 				if (!Path->Bounds.Intersect(EdgeBox)) { continue; }
 
@@ -292,7 +292,7 @@ namespace PCGExCutEdges
 			const FVector A1 = NodeTransform.GetLocation();
 			FBox PointBox = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::Bounds>(NodePoint).ExpandBy(Settings->NodeExpansion + Settings->IntersectionDetails.ToleranceSquared).TransformBy(NodeTransform);
 
-			for (const TSharedRef<PCGExPaths::IPath>& Path : Context->Paths)
+			for (const TSharedRef<PCGExPaths::FPath>& Path : Context->Paths)
 			{
 				if (!Path->Bounds.Intersect(PointBox)) { continue; }
 

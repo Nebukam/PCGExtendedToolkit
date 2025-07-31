@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "UObject/UObjectGlobals.h"
 
 #include "PCGExtendedToolkit.h"
 #include "PCGExHelpers.h"
@@ -13,7 +14,6 @@
 #include "PCGExAttributeHelpers.h"
 #include "PCGExDataHelpers.h"
 #include "PCGExMT.h"
-#include "Data/PCGPointData.h"
 
 #pragma region DATA MACROS
 
@@ -663,18 +663,18 @@ namespace PCGExData
 	};
 
 #pragma region externalization
-	
+
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
 extern template class TBuffer<_TYPE>;\
 extern template class TArrayBuffer<_TYPE>;\
 extern template class TSingleValueBuffer<_TYPE>;
 
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
-	
+
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	class PCGEXTENDEDTOOLKIT_API FFacade : public TSharedFromThis<FFacade>
 	{
 		mutable FRWLock BufferLock;
@@ -1026,7 +1026,7 @@ extern template class TSingleValueBuffer<_TYPE>;
 
 	PCGEXTENDEDTOOLKIT_API
 	UPCGBasePointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source);
-	
+
 #pragma endregion
 
 	TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, bool bTransactional, const bool bThrowError);
@@ -1050,6 +1050,4 @@ extern template class TSingleValueBuffer<_TYPE>;
 
 	PCGEXTENDEDTOOLKIT_API
 	void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true);
-		
 }
-

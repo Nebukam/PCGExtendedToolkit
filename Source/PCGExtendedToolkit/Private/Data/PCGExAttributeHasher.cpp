@@ -3,6 +3,8 @@
 
 #include "Data/PCGExAttributeHasher.h"
 
+#include "PCGExGlobalSettings.h"
+
 namespace PCGEx
 {
 	FAttributeHasher::FAttributeHasher(const FPCGExAttributeHashConfig& InConfig)

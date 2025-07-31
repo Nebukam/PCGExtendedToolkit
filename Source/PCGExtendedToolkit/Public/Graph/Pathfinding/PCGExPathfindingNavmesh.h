@@ -9,6 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
 #include "AI/Navigation/NavigationTypes.h"
+#include "Graph/PCGExGraph.h"
 
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

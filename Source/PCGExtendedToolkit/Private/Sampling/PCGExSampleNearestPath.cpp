@@ -86,7 +86,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 			}
 
 			// TODO : We could support per-point project here but ugh
-			TSharedPtr<PCGExPaths::IPath> Path = PCGExPaths::MakePolyPath(IO, 1, Settings->ProjectionDetails, Settings->HeightInclusion);
+			TSharedPtr<PCGExPaths::FPolyPath> Path = MakeShared<PCGExPaths::FPolyPath>(IO, Settings->ProjectionDetails, 1, Settings->HeightInclusion);
 
 			Path->IOIndex = IO->IOIndex;
 			Path->Idx = Idx;
@@ -149,7 +149,7 @@ bool FPCGExSampleNearestPathElement::ExecuteInternal(FPCGContext* InContext) con
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetAsyncState(PCGEx::State_FacadePreloading);
+		Context->SetAsyncState(PCGExCommon::State_FacadePreloading);
 
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
 		Context->TargetsHandler->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
@@ -203,7 +203,7 @@ bool FPCGExSampleNearestPathElement::ExecuteInternal(FPCGContext* InContext) con
 		return false;
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -389,7 +389,7 @@ namespace PCGExSampleNearestPath
 			double WeightedTime = 0;
 			double WeightedSegmentTime = 0;
 
-			auto SampleTarget = [&](const int32 EdgeIndex, const double& Lerp, const TSharedPtr<PCGExPaths::IPath>& InPath)
+			auto SampleTarget = [&](const int32 EdgeIndex, const double& Lerp, const TSharedPtr<PCGExPaths::FPolyPath>& InPath)
 			{
 				const PCGExData::FElement EdgeElement(EdgeIndex, InPath->Idx);
 				const PCGExData::FElement A(InPath->Edges[EdgeIndex].Start, InPath->Idx);
@@ -482,9 +482,9 @@ namespace PCGExSampleNearestPath
 				// At closest alpha
 				Context->TargetsHandler->FindTargetsWithBoundsTest(
 					QueryBounds,
-					[&](const PCGEx::FIndexedItem& Target)
+					[&](const PCGExOctree::FItem& Target)
 					{
-						const TSharedPtr<PCGExPaths::IPath> Path = Context->Paths[Target.Index];
+						const TSharedPtr<PCGExPaths::FPolyPath> Path = Context->Paths[Target.Index];
 						float Lerp = 0;
 						const int32 EdgeIndex = Path->GetClosestEdge(Origin, Lerp);
 						SampleTarget(EdgeIndex, Lerp, Path);
@@ -496,9 +496,9 @@ namespace PCGExSampleNearestPath
 				const double InputKey = SampleAlphaGetter->Read(Index);
 				Context->TargetsHandler->FindTargetsWithBoundsTest(
 					QueryBounds,
-					[&](const PCGEx::FIndexedItem& Target)
+					[&](const PCGExOctree::FItem& Target)
 					{
-						const TSharedPtr<PCGExPaths::IPath>& Path = Context->Paths[Target.Index];
+						const TSharedPtr<PCGExPaths::FPolyPath>& Path = Context->Paths[Target.Index];
 						double Time = 0;
 
 						switch (Settings->SampleAlphaMode)

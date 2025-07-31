@@ -6,11 +6,17 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExData.h"
-#include "Data/PCGExDataPreloader.h"
+namespace PCGExData
+{
+	class FFacadePreloader;
+	class FFacade;
+}
+
+struct FPCGExContext;
 
 namespace PCGExMT
 {
+	struct FScope;
 	class FTaskManager;
 }
 

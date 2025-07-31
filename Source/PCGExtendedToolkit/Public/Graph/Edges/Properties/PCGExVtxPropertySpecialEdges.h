@@ -9,10 +9,6 @@
 #include "PCGExFactoryProvider.h"
 #include "PCGExVtxPropertyFactoryProvider.h"
 
-
-#include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
-
 #include "PCGExVtxPropertySpecialEdges.generated.h"
 
 USTRUCT(BlueprintType)

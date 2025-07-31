@@ -125,7 +125,7 @@ namespace PCGExPathSolidify
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerp;
 
-		TSharedPtr<PCGExPaths::IPath> Path;
+		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 
 #define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationRad##_AXIS;

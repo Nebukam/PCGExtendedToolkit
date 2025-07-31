@@ -3,6 +3,7 @@
 
 #include "Shapes/PCGExCreateShapes.h"
 
+#include "PCGExRandom.h"
 #include "Data/PCGExData.h"
 #include "Paths/PCGExPaths.h"
 
@@ -45,7 +46,7 @@ bool FPCGExCreateShapesElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	if (Settings->OutputMode == EPCGExShapeOutputMode::PerSeed)
 	{
@@ -315,7 +316,7 @@ namespace PCGExCreateShapes
 			OutTransforms[PointIndex] = (OutTransforms[PointIndex] * TRB) * TRA;
 			OutTransforms[PointIndex].SetScale3D(FVector::OneVector);
 			OutSeeds[PointIndex] = PCGExRandom::ComputeSpatialSeed(OutTransforms[PointIndex].GetLocation(), TRB.GetLocation());
-		};
+		}
 	}
 
 	void FProcessor::Output()

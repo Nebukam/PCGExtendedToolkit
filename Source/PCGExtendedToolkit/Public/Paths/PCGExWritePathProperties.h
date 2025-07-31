@@ -332,7 +332,7 @@ namespace PCGExWritePathProperties
 		UPCGParamData* PathAttributeSet = nullptr;
 
 		bool bClosedLoop = false;
-		TSharedPtr<PCGExPaths::IPath> Path;
+		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 		TSharedPtr<PCGExPaths::FPathEdgeBinormal> PathBinormal;
 		TSharedPtr<PCGExPaths::FPathEdgeAvgNormal> PathAvgNormal;
