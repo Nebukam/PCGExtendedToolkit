@@ -41,17 +41,7 @@ void FPCGExShapePolygonBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	Polygon->EdgeLength = 2.f * Polygon->Radius * FMath::Sin(PI / static_cast<float>(Polygon->NumVertices));
 	Polygon->InRadius = 0.5 * Polygon->EdgeLength * (1.0 / FMath::Tan(PI / static_cast<float>(Polygon->NumVertices)));
 
-	Polygon->bWriteAngle = Config.bWriteAngleAttribute;
-	Polygon->AngleAttr = Config.AngleAttribute;
-
-	Polygon->bWriteEdgeIndex = Config.bWriteEdgeIndexAttribute;
-	Polygon->EdgeAttr = Config.EdgeIndexAttribute;
-
-	Polygon->bWriteEdgeAlpha = Config.bWriteEdgeAlphaAttribute;
-	Polygon->EdgeAlphaAttr = Config.EdgeAlphaAttribute;
-
-	Polygon->HullAttr = Config.OnHullAttribute;
-	Polygon->bWriteHullFlag = Config.bWriteHullAttribute;
+	Polygon->Config = &Config;
 
 	TArray<FVector> VertexPositions = {};
 
@@ -83,14 +73,14 @@ void FPCGExShapePolygonBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	FVector AbsMin = Min.GetAbs();
 
 	// Get the lowest difference in X and Y and the unit circle
-	float MinXScaleDiff = FMath::Min(1.0 - Max.X, 1.0 - AbsMin.X);
-	float MinYScaleDiff = FMath::Min(1.0 - Max.Y, 1.0 - AbsMin.Y);
+	const float MinXScaleDiff = FMath::Min(1.0 - Max.X, 1.0 - AbsMin.X);
+	const float MinYScaleDiff = FMath::Min(1.0 - Max.Y, 1.0 - AbsMin.Y);
 
 	// Get the lowest of those two
-	float MinScaleDiff = FMath::Min(MinXScaleDiff, MinYScaleDiff);
 
 	// Scale up by 1 / (1 - min diff) so if min diff is 0, this will be 1, but if greater, it will expand to fit
-	if (!FMath::IsNearlyZero(MinScaleDiff))
+	if (const float MinScaleDiff = FMath::Min(MinXScaleDiff, MinYScaleDiff);
+		!FMath::IsNearlyZero(MinScaleDiff))
 	{
 		Polygon->ScaleAdjustment = 1.0; //1.0 / (1.0 - MinXScaleDiff);
 		Polygon->EdgeLength *= Polygon->ScaleAdjustment;
@@ -118,14 +108,8 @@ void FPCGExShapePolygonBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 			break;
 		}
 
-		if (Polygon->bConnectSkeletonToVertices)
-		{
-			Polygon->PointsPerSpoke = UseDistance ? FMath::Max(Polygon->Radius / Res, 1) : Res;
-		}
-		if (Polygon->bConnectSkeletonToEdges)
-		{
-			Polygon->PointsPerEdgeSpoke = UseDistance ? FMath::Max(Polygon->InRadius / Res, 1) : Res;
-		}
+		if (Polygon->bConnectSkeletonToVertices) { Polygon->PointsPerSpoke = UseDistance ? FMath::Max(Polygon->Radius / Res, 1) : Res; }
+		if (Polygon->bConnectSkeletonToEdges) { Polygon->PointsPerEdgeSpoke = UseDistance ? FMath::Max(Polygon->InRadius / Res, 1) : Res; }
 	}
 
 
@@ -140,30 +124,30 @@ void FPCGExShapePolygonBuilder::BuildShape(TSharedPtr<PCGExShapes::FShape> InSha
 	const TSharedPtr<PCGExShapes::FPolygon> Polygon = StaticCastSharedPtr<PCGExShapes::FPolygon>(InShape);
 
 	TSharedPtr<PCGExData::TBuffer<double>> AngleBuffer = nullptr;
-	if (Polygon->bWriteAngle)
+	if (Polygon->Config->bWriteAngleAttribute)
 	{
-		AngleBuffer = InDataFacade->GetWritable<double>(Polygon->AngleAttr, 0, true, PCGExData::EBufferInit::New);
+		AngleBuffer = InDataFacade->GetWritable<double>(Polygon->Config->AngleAttribute, 0, true, PCGExData::EBufferInit::New);
 		if (!AngleBuffer) { return; }
 	}
 
 	TSharedPtr<PCGExData::TBuffer<int32>> EdgeIndexBuffer = nullptr;
-	if (Polygon->bWriteEdgeIndex)
+	if (Polygon->Config->bWriteEdgeIndexAttribute)
 	{
-		EdgeIndexBuffer = InDataFacade->GetWritable<int32>(Polygon->EdgeAttr, 0, true, PCGExData::EBufferInit::New);
+		EdgeIndexBuffer = InDataFacade->GetWritable<int32>(Polygon->Config->EdgeIndexAttribute, -1, true, PCGExData::EBufferInit::New);
 		if (!EdgeIndexBuffer) { return; }
 	}
 
 	TSharedPtr<PCGExData::TBuffer<double>> EdgeAlphaBuffer = nullptr;
-	if (Polygon->bWriteEdgeAlpha)
+	if (Polygon->Config->bWriteEdgeAlphaAttribute)
 	{
-		EdgeAlphaBuffer = InDataFacade->GetWritable<double>(Polygon->EdgeAlphaAttr, 0, true, PCGExData::EBufferInit::New);
+		EdgeAlphaBuffer = InDataFacade->GetWritable<double>(Polygon->Config->EdgeAlphaAttribute, 0, true, PCGExData::EBufferInit::New);
 		if (!EdgeAlphaBuffer) { return; }
 	}
 
 	TSharedPtr<PCGExData::TBuffer<bool>> HullFlagBuffer = nullptr;
-	if (Polygon->bWriteHullFlag)
+	if (Polygon->Config->bWriteHullAttribute)
 	{
-		HullFlagBuffer = InDataFacade->GetWritable<bool>(Polygon->HullAttr, false, false, PCGExData::EBufferInit::New);
+		HullFlagBuffer = InDataFacade->GetWritable<bool>(Polygon->Config->OnHullAttribute, false, false, PCGExData::EBufferInit::New);
 		if (!HullFlagBuffer) { return; }
 	}
 
@@ -233,6 +217,8 @@ void FPCGExShapePolygonBuilder::BuildShape(TSharedPtr<PCGExShapes::FShape> InSha
 
 			WriteIndex++;
 		}
+
+		if (!Polygon->bHasSkeleton && Polygon->Config->bIsClosedLoop && bIsolated) { PCGExPaths::SetClosedLoop(InDataFacade->Source, true); }
 	}
 }
 

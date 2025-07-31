@@ -76,8 +76,6 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSplineMeshSimple)
 	PCGEX_EXECUTION_CHECK
-
-
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		if (Context->StaticMesh)
@@ -86,23 +84,24 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 		}
 		else
 		{
-			PCGEX_ON_INITIAL_EXECUTION
+			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+
+			if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
 			{
-				Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-
-				if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
-				{
-					PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to find any asset to load."));
-					return true;
-				}
-
-				return false;
+				return Context->CancelExecution(TEXT("Failed to find any asset to load."));
 			}
+
+			return false;
 		}
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 	{
+		if (Context->StaticMeshLoader && Context->StaticMeshLoader->IsEmpty())
+		{
+			return Context->CancelExecution(TEXT("Failed to load any assets."));
+		}
+
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathSplineMeshSimple::FProcessor>>(
@@ -114,6 +113,7 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
 					return false;
 				}
+
 				return true;
 			},
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathSplineMeshSimple::FProcessor>>& NewBatch)
