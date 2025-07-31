@@ -188,7 +188,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->OutputPaths->StageOutputs();
 

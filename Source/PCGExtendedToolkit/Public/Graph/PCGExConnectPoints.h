@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExOctree.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
 
@@ -101,7 +102,7 @@ namespace PCGExConnectPoints
 
 		TArray<int8> CanGenerate;
 		TArray<int8> AcceptConnections;
-		TUniquePtr<PCGEx::FIndexedItemOctree> Octree;
+		TUniquePtr<PCGExOctree::FItemOctree> Octree;
 
 		TArray<FTransform> WorkingTransforms;
 

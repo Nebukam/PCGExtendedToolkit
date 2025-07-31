@@ -5,14 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "Blending/PCGExDataBlending.h"
 #include "UObject/Object.h"
-
-#include "PCGExData.h"
 #include "PCGExPointFilter.h"
-
-
-#include "Graph/PCGExCluster.h"
 
 #include "PCGExPointStates.generated.h"
 
@@ -116,10 +110,10 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PointStateDefinition, "Abstract Point State Definition", "Base class for state factory management.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterState; }
+	virtual FLinearColor GetNodeTitleColor() const override;
 #endif
 	//~End UPCGSettings
 
-	virtual FName GetMainOutputPin() const override { return PCGExCluster::OutputNodeFlagLabel; }
+	virtual FName GetMainOutputPin() const override;
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

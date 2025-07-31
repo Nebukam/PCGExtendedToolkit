@@ -4,6 +4,7 @@
 #include "Transform/PCGExNormalize.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExProxyData.h"
 #include "Sampling/PCGExSampling.h"
 
 
@@ -70,7 +71,7 @@ bool FPCGExNormalizeElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

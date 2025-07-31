@@ -294,10 +294,10 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_ON_ASYNC_STATE_READY(PCPGExMergePointsByTag::State_MergingData)
 	{
 		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists) { List->Write(Context->GetAsyncManager()); }
-		Context->SetAsyncState(PCGEx::State_Writing);
+		Context->SetAsyncState(PCGExCommon::State_Writing);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_Writing)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_Writing)
 	{
 		Context->MainPoints->StageOutputs();
 		Context->Done();

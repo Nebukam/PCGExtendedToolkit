@@ -40,7 +40,7 @@ bool FPCGExPathSolidifyElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -67,7 +67,7 @@ namespace PCGExPathSolidify
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
 
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0);
+		Path = MakeShared<PCGExPaths::FPath>(PointDataFacade->GetIn(), 0);
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 

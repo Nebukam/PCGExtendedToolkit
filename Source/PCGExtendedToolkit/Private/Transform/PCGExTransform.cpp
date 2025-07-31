@@ -4,7 +4,7 @@
 #include "Transform/PCGExTransform.h"
 
 #include "PCGExDataMath.h"
-#include "Elements/PCGCopyPoints.h"
+#include "Engine/EngineTypes.h"
 
 FAttachmentTransformRules FPCGExAttachmentRules::GetRules() const
 {

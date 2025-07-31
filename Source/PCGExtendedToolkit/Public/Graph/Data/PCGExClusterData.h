@@ -5,13 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExPointData.h"
-#include "Data/PCGExPointIO.h"
-#include "Graph/PCGExCluster.h"
 
 #include "PCGExClusterData.generated.h"
 
 namespace PCGExData
 {
+	class FPointIO;
 	enum class EIOInit : uint8;
 }
 

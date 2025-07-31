@@ -4,6 +4,7 @@
 #include "Graph/PCGExBreakClustersToPaths.h"
 
 #include "Curve/CurveUtil.h"
+#include "Data/PCGExDataPreloader.h"
 #include "Graph/PCGExChain.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Paths/PCGExPaths.h"
@@ -59,7 +60,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->Paths->StageOutputs();
 	return Context->TryComplete();

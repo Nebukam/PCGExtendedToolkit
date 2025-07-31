@@ -7,6 +7,8 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExSorting.h"
+#include "Geometry/PCGExGeo.h"
 
 
 #include "PCGExReversePointOrder.generated.h"

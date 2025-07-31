@@ -3,6 +3,9 @@
 
 #include "PCGExOperation.h"
 
+#include "Data/PCGExData.h"
+#include "PCGExMT.h"
+
 void FPCGExOperation::BindContext(FPCGExContext* InContext)
 {
 	Context = InContext;

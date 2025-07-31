@@ -126,11 +126,11 @@ bool FPCGExFilterVtxElement::ExecuteInternal(
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->Mode == EPCGExVtxFilterOutput::Clusters ? PCGExGraph::State_ReadyToCompile : PCGEx::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->Mode == EPCGExVtxFilterOutput::Clusters ? PCGExGraph::State_ReadyToCompile : PCGExCommon::State_Done)
 
 	if (Settings->Mode == EPCGExVtxFilterOutput::Clusters)
 	{
-		if (!Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
+		if (!Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
 		Context->MainPoints->StageOutputs();
 	}
 	else if (Settings->Mode == EPCGExVtxFilterOutput::Attribute)

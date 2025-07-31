@@ -5,11 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
-#include "Data/PCGSplineData.h"
+#include "PCGExSorting.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Data/Matching/PCGExMatching.h"
 
@@ -393,7 +395,7 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExSampling::FTargetsHandler> TargetsHandler;
 	int32 NumMaxTargets = 0;
 
-	TArray<TSharedPtr<PCGExPaths::IPath>> Paths;
+	TArray<TSharedPtr<PCGExPaths::FPolyPath>> Paths;
 	TArray<TSharedPtr<PCGExDetails::TSettingValue<FVector>>> TargetLookAtUpGetters;
 
 	TSharedPtr<PCGExSorting::FPointSorter> Sorter;

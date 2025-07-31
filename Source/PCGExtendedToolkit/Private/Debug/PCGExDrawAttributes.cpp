@@ -239,16 +239,16 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetState(PCGEx::State_ReadyForNextPoints);
+		Context->SetState(PCGExCommon::State_ReadyForNextPoints);
 	}
 
-	PCGEX_ON_STATE(PCGEx::State_ReadyForNextPoints)
+	PCGEX_ON_STATE(PCGExCommon::State_ReadyForNextPoints)
 	{
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else { Context->SetState(PCGEx::State_ProcessingPoints); }
+		else { Context->SetState(PCGExCommon::State_ProcessingPoints); }
 	}
 
-	PCGEX_ON_STATE(PCGEx::State_ProcessingPoints)
+	PCGEX_ON_STATE(PCGExCommon::State_ProcessingPoints)
 	{
 		for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Bind(Context->CurrentIO.ToSharedRef()); }
 
@@ -267,7 +267,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 
 		Context->CurrentIO->ClearCachedKeys();
-		Context->SetState(PCGEx::State_ReadyForNextPoints);
+		Context->SetState(PCGExCommon::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone()) { DisabledPassThroughData(Context); }

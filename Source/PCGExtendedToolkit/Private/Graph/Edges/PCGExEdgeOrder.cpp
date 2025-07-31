@@ -3,6 +3,7 @@
 
 #include "Graph/Edges/PCGExEdgeOrder.h"
 
+#include "Data/PCGExDataPreloader.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 #define LOCTEXT_NAMESPACE "EdgeOrder"
@@ -41,7 +42,7 @@ bool FPCGExEdgeOrderElement::ExecuteInternal(
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->OutputPointsAndEdges();
 

@@ -64,7 +64,7 @@ bool FPCGExPathInsertElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -86,7 +86,7 @@ namespace PCGExPathInsert
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
 
-		Path = PCGExPaths::MakePath(PointIO->GetIn(), 0); //Details.Tolerance * 2);
+		Path = MakeShared<PCGExPaths::FPath>(PointIO->GetIn(), 0); //Details.Tolerance * 2);
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 

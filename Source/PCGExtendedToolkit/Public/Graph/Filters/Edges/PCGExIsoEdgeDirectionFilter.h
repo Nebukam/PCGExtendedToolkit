@@ -9,6 +9,7 @@
 #include "PCGExDetailsData.h"
 
 #include "Graph/PCGExCluster.h"
+#include "Graph/PCGExEdgeDirectionSettings.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 

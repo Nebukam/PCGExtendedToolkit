@@ -84,7 +84,7 @@ namespace PCGExFuseCollinear
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExFuseCollinearContext, UPCGExFuseCollinearSettings>
 	{
-		TSharedPtr<PCGExPaths::IPath> Path;
+		TSharedPtr<PCGExPaths::FPath> Path;
 
 		TArray<int32> ReadIndices;
 		FVector LastPosition = FVector::ZeroVector;

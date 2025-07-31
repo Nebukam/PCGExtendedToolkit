@@ -55,7 +55,10 @@ A lot of simple yet powerful utility nodes ranging from complex sorting, complex
 
 ### [Contributing](https://github.com/Nebukam/PCGExtendedToolkit/blob/main/CONTRIBUTING.md)
 ### Disclaimer
-This software is provided under the MIT License. It is freely available for use & modifications, and may be incorporated into commercial products without the necessity of attribution (*though it is appreciated*). **The contents of this project are entirely original, comprising no AI-generated materials or third-party content, including but not limited to code and assets.**
+This software is provided under the MIT License. It is freely available for use & modifications, and may be incorporated into commercial products without the necessity of attribution (*though it is appreciated*). **The contents of this project are entirely original, comprising no AI-generated materials, including but not limited to code and assets.**
+
+### Credits
+- Thanks to [Sine Nomine Associates](https://sinenomine.net/) for generously providing and maintaining the automated Linux build infrastructure that helps keep this project running smoothly.
 
 ### Special Thanks
 - Kudo to [@MikeC](https://github.com/mikec316) for his reckless experiments with uncooked releases, feedbacks, suggestions. Without him this plugin wouldn't be as useful and stable as it is today.
@@ -64,3 +67,6 @@ This software is provided under the MIT License. It is freely available for use 
 - [@Syscrusher](https://github.com/sna-scourtney) for his invaluable help and support on Linux
 - [@MaximeDup](https://github.com/MaximeDup) & [@EmSeta](https://github.com/EmSeta) for helping with the macOS version
 - And of course the contributors, but they have their own special place on the sidebar <3
+
+### Third party
+- This plugin includes [delaunator-cpp](https://github.com/delfrrr/delaunator-cpp)

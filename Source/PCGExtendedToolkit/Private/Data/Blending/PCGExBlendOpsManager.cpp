@@ -134,10 +134,30 @@ namespace PCGExDataBlending
 		return true;
 	}
 
+	void FBlendOpsManager::BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex) const
+	{
+		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->BlendAutoWeight(SourceIndex, TargetIndex); }
+	}
+
+	void FBlendOpsManager::Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight) const
+	{
+		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceIndex, TargetIndex, InWeight); }
+	}
+
+	void FBlendOpsManager::Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double InWeight) const
+	{
+		for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceAIndex, SourceBIndex, TargetIndex, InWeight); }
+	}
+
 	void FBlendOpsManager::InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops)
 	{
 		ScopedTrackers = MakeShared<PCGExMT::TScopedArray<PCGEx::FOpStats>>(Loops);
 		ScopedTrackers->ForEach([&](TArray<PCGEx::FOpStats>& Array) { InitTrackers(Array); });
+	}
+
+	TArray<PCGEx::FOpStats>& FBlendOpsManager::GetScopedTrackers(const PCGExMT::FScope& Scope) const
+	{
+		return ScopedTrackers->Get_Ref(Scope);
 	}
 
 	void FBlendOpsManager::InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const

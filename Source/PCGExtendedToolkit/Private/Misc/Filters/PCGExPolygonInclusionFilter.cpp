@@ -84,8 +84,8 @@ PCGExFactories::EPreparationResult UPCGExPolygonInclusionFilterFactory::Prepare(
 
 		if (!Polygons->IsEmpty())
 		{
-			Octree = MakeShared<PCGEx::FIndexedItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
-			for (int i = 0; i < Polygons->Num(); i++) { Octree->AddElement(PCGEx::FIndexedItem(i, Boxes[i])); }
+			Octree = MakeShared<PCGExOctree::FItemOctree>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
+			for (int i = 0; i < Polygons->Num(); i++) { Octree->AddElement(PCGExOctree::FItem(i, Boxes[i])); }
 		}
 	}
 
@@ -142,7 +142,7 @@ namespace PCGExPointFilter
 			bool bResult = TypedFilterFactory->Config.bInvert;
 			Octree->FindFirstElementWithBoundsTest(
 				Box,
-				[&](const PCGEx::FIndexedItem& Item)
+				[&](const PCGExOctree::FItem& Item)
 				{
 					if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + Item.Index)->Get()))
 					{
@@ -158,7 +158,7 @@ namespace PCGExPointFilter
 
 		Octree->FindElementsWithBoundsTest(
 			Box,
-			[&](const PCGEx::FIndexedItem& Item)
+			[&](const PCGExOctree::FItem& Item)
 			{
 				if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + Item.Index)->Get())) { Inclusions++; }
 			});
@@ -197,7 +197,7 @@ namespace PCGExPointFilter
 			bool bResult = TypedFilterFactory->Config.bInvert;
 			Octree->FindFirstElementWithBoundsTest(
 				Box,
-				[&](const PCGEx::FIndexedItem& Item)
+				[&](const PCGExOctree::FItem& Item)
 				{
 					if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + Item.Index)->Get()))
 					{
@@ -213,7 +213,7 @@ namespace PCGExPointFilter
 
 		Octree->FindElementsWithBoundsTest(
 			Box,
-			[&](const PCGEx::FIndexedItem& Item)
+			[&](const PCGExOctree::FItem& Item)
 			{
 				if (FGeomTools2D::IsPointInPolygon(Pos2D, *(Polygons->GetData() + Item.Index)->Get())) { Inclusions++; }
 			});

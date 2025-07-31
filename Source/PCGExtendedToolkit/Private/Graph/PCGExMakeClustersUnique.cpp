@@ -32,12 +32,12 @@ bool FPCGExMakeClustersUniqueElement::ExecuteInternal(FPCGContext* InContext) co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetState(PCGEx::State_ReadyForNextPoints);
+		Context->SetState(PCGExCommon::State_ReadyForNextPoints);
 	}
 
 	while (Context->AdvancePointsIO(false))
 	{
-		PCGExData::DataIDType OutId;
+		PCGExCommon::DataIDType OutId;
 		PCGExGraph::SetClusterVtx(Context->CurrentIO, OutId);
 
 		if (!Context->TaggedEdges) { continue; }

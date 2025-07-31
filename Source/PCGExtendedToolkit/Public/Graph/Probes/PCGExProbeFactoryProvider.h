@@ -43,6 +43,6 @@ public:
 #endif
 	//~End UPCGSettings
 
-	virtual FName GetMainOutputPin() const override { return PCGExGraph::OutputProbeLabel; }
+	virtual FName GetMainOutputPin() const override;
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 };

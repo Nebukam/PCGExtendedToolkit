@@ -9,6 +9,7 @@
 #include "PCGExLayout.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExSorting.h"
 
 
 #include "Transform/PCGExTransform.h"

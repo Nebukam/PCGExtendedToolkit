@@ -115,7 +115,7 @@ bool FPCGExPickClosestClustersElement::ExecuteInternal(
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->OutputBatches();
 	Context->OutputPointsAndEdges();
@@ -163,7 +163,7 @@ namespace PCGExPickClosestClusters
 					bool bFound = false;
 					This->Cluster->GetEdgeOctree()->FindElementsWithBoundsTest(
 						FBoxCenterAndExtent(TargetLocation, TargetsData->GetScaledExtents(Index) + FVector(This->Settings->TargetBoundsExpansion)),
-						[&](const PCGEx::FIndexedItem& Item)
+						[&](const PCGExOctree::FItem& Item)
 						{
 							This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetClosestPointOnEdge(Item.Index, TargetLocation)));
 							bFound = true;
@@ -172,7 +172,7 @@ namespace PCGExPickClosestClusters
 					if (!bFound && This->Settings->bExpandSearchOutsideTargetBounds)
 					{
 						This->Cluster->GetEdgeOctree()->FindNearbyElements(
-							TargetLocation, [&](const PCGEx::FIndexedItem& Item)
+							TargetLocation, [&](const PCGExOctree::FItem& Item)
 							{
 								This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetPos(Item.Index)));
 								bFound = true;
@@ -195,7 +195,7 @@ namespace PCGExPickClosestClusters
 					bool bFound = false;
 					This->Cluster->NodeOctree->FindElementsWithBoundsTest(
 						FBoxCenterAndExtent(TargetLocation, TargetsData->GetScaledExtents(Index) + FVector(This->Settings->TargetBoundsExpansion)),
-						[&](const PCGEx::FIndexedItem& Item)
+						[&](const PCGExOctree::FItem& Item)
 						{
 							This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetPos(Item.Index)));
 							bFound = true;
@@ -204,7 +204,7 @@ namespace PCGExPickClosestClusters
 					if (!bFound && This->Settings->bExpandSearchOutsideTargetBounds)
 					{
 						This->Cluster->NodeOctree->FindNearbyElements(
-							TargetLocation, [&](const PCGEx::FIndexedItem& Item)
+							TargetLocation, [&](const PCGExOctree::FItem& Item)
 							{
 								This->Distances[Index] = FMath::Min(This->Distances[Index], FVector::DistSquared(TargetLocation, This->Cluster->GetPos(Item.Index)));
 								bFound = true;

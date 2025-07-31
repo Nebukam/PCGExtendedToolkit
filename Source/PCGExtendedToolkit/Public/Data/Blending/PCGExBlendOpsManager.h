@@ -53,23 +53,12 @@ namespace PCGExDataBlending
 
 		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExBlendOpFactory>>& InFactories);
 
-		FORCEINLINE void BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex) const
-		{
-			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->BlendAutoWeight(SourceIndex, TargetIndex); }
-		}
-
-		FORCEINLINE virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight) const override
-		{
-			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceIndex, TargetIndex, InWeight); }
-		}
-
-		FORCEINLINE virtual void Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double InWeight) const override
-		{
-			for (int i = 0; i < Operations->Num(); i++) { (*(Operations->GetData() + i))->Blend(SourceAIndex, SourceBIndex, TargetIndex, InWeight); }
-		}
+		void BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex) const;
+		virtual void Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight) const override;
+		virtual void Blend(const int32 SourceAIndex, const int32 SourceBIndex, const int32 TargetIndex, const double InWeight) const override;
 
 		void InitScopedTrackers(const TArray<PCGExMT::FScope>& Loops);
-		FORCEINLINE TArray<PCGEx::FOpStats>& GetScopedTrackers(const PCGExMT::FScope& Scope) const { return ScopedTrackers->Get_Ref(Scope); }
+		TArray<PCGEx::FOpStats>& GetScopedTrackers(const PCGExMT::FScope& Scope) const;
 
 		virtual void InitTrackers(TArray<PCGEx::FOpStats>& Trackers) const override;
 

@@ -7,7 +7,6 @@
 #include "PCGExDetails.h"
 #include "Data/PCGExDataForward.h"
 
-
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExPickClosestClusters.generated.h"
 

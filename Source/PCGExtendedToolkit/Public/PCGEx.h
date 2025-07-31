@@ -4,33 +4,14 @@
 #pragma once
 
 #include "Misc/ScopeRWLock.h"
-#include "UObject/ObjectPtr.h"
 #include "Templates/SharedPointer.h"
 #include "Templates/SharedPointerFwd.h"
-#include "Curves/CurveFloat.h"
-#include "Math/GenericOctree.h"
-#include "CollisionQueryParams.h"
-#include "GameFramework/Actor.h"
-#include "Engine/HitResult.h"
-#include "Engine/World.h"
-#include "Engine/StaticMesh.h"
-#include "Components/StaticMeshComponent.h"
-#include "StaticMeshResources.h"
+#include "UObject/SoftObjectPath.h"
 
-#include "PCGExHelpers.h"
-
+#include "PCGExCommon.h"
 #include "PCGExMacros.h"
 
 #include "PCGEx.generated.h"
-
-#ifndef PCGEX_CONSTANTS
-#define PCGEX_CONSTANTS
-
-#define DBL_INTERSECTION_TOLERANCE 0.1
-#define DBL_COLLOCATION_TOLERANCE 0.1
-#define DBL_COMPARE_TOLERANCE 0.01
-
-#endif
 
 using PCGExTypeHash = uint32;
 using InlineSparseAllocator = TSetAllocator<TSparseArrayAllocator<TInlineAllocator<8>, TInlineAllocator<8>>, TInlineAllocator<8>>;
@@ -184,21 +165,11 @@ namespace PCGEx
 	const FString META_PCGExDocNodeLibraryBaseURL = TEXT("https://pcgex.gitbook.io/pcgex/node-library/");
 #endif
 
-	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMeta =
-		EPCGPointNativeProperties::All & ~EPCGPointNativeProperties::MetadataEntry;
-
-	constexpr EPCGPointNativeProperties AllPointNativePropertiesButTransform =
-		EPCGPointNativeProperties::All & ~EPCGPointNativeProperties::Transform;
-
-	constexpr EPCGPointNativeProperties AllPointNativePropertiesButMetaAndTransform =
-		EPCGPointNativeProperties::All & ~(EPCGPointNativeProperties::MetadataEntry | EPCGPointNativeProperties::Transform);
-
 	const FName DEPRECATED_NAME = TEXT("#DEPRECATED");
 
 	const FName PreviousAttributeName = TEXT("#Previous");
 	const FName PreviousNameAttributeName = TEXT("#PreviousName");
 
-	const FString PCGExPrefix = TEXT("PCGEx/");
 	const FName SourcePointsLabel = TEXT("In");
 	const FName SourceTargetsLabel = TEXT("Targets");
 	const FName SourceSourcesLabel = TEXT("Sources");
@@ -250,9 +221,9 @@ namespace PCGEx
 	PCGEXTENDEDTOOLKIT_API
 	bool IsPCGExAttribute(const FText& InText);
 
-	static FName MakePCGExAttributeName(const FString& Str0) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}")), FText::FromString(PCGExPrefix), FText::FromString(Str0)).ToString()); }
+	static FName MakePCGExAttributeName(const FString& Str0) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}")), FText::FromString(PCGExCommon::PCGExPrefix), FText::FromString(Str0)).ToString()); }
 
-	static FName MakePCGExAttributeName(const FString& Str0, const FString& Str1) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}/{2}")), FText::FromString(PCGExPrefix), FText::FromString(Str0), FText::FromString(Str1)).ToString()); }
+	static FName MakePCGExAttributeName(const FString& Str0, const FString& Str1) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}/{2}")), FText::FromString(PCGExCommon::PCGExPrefix), FText::FromString(Str0), FText::FromString(Str1)).ToString()); }
 
 	PCGEXTENDEDTOOLKIT_API
 	bool IsWritableAttributeName(const FName Name);
@@ -284,17 +255,4 @@ namespace PCGEx
 		int32 Count = 0;
 		double Weight = 0;
 	};
-
-	struct PCGEXTENDEDTOOLKIT_API FIndexedItem
-	{
-		int32 Index;
-		FBoxSphereBounds Bounds;
-
-		FIndexedItem(const int32 InIndex, const FBoxSphereBounds& InBounds)
-			: Index(InIndex), Bounds(InBounds)
-		{
-		}
-	};
-
-	PCGEX_OCTREE_SEMANTICS_REF(FIndexedItem, { return Element.Bounds;}, { return A.Index == B.Index; })
 }

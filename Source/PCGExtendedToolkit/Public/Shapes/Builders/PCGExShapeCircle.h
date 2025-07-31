@@ -84,7 +84,7 @@ public:
 
 	virtual bool PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade) override;
 	virtual void PrepareShape(const PCGExData::FConstPoint& Seed) override;
-	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope) override;
+	virtual void BuildShape(TSharedPtr<PCGExShapes::FShape> InShape, TSharedPtr<PCGExData::FFacade> InDataFacade, const PCGExData::FScope& Scope, bool bOwnsData = false) override;
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<double>> StartAngle;

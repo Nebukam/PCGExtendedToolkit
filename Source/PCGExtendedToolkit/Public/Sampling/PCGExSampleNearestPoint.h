@@ -4,15 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
+
 #include "PCGExGlobalSettings.h"
-
 #include "PCGExPointsProcessor.h"
-
-#include "Utils/PCGPointOctree.h"
-
 #include "PCGExSampling.h"
 #include "PCGExDetails.h"
 #include "PCGExScopedContainers.h"
+#include "PCGExSorting.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
@@ -31,6 +32,11 @@ MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(SampledIndex, int32, -1)
 
+
+namespace PCGExDataBlending
+{
+	class FUnionBlender;
+}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-point"))
 class UPCGExSampleNearestPointSettings : public UPCGExPointsProcessorSettings

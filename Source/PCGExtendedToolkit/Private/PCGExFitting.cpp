@@ -1,8 +1,11 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "PCGExFitting.h"
+
+#include "Data/PCGExData.h"
+#include "PCGExDataMath.h"
+#include "PCGExRandom.h"
 
 void FPCGExScaleToFitDetails::Process(const PCGExData::FConstPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const
 {
@@ -65,6 +68,12 @@ void FPCGExScaleToFitDetails::ScaleToFitAxis(const EPCGExScaleToFit Fit, const i
 	}
 
 	OutScale[Axis] = FinalScale;
+}
+
+FPCGExSingleJustifyDetails::FPCGExSingleJustifyDetails()
+{
+	FromSourceAttribute.Update(TEXT("None"));
+	ToSourceAttribute.Update(TEXT("None"));
 }
 
 bool FPCGExSingleJustifyDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
@@ -329,6 +338,33 @@ bool FPCGExFittingDetailsHandler::Init(FPCGExContext* InContext, const TSharedRe
 {
 	TargetDataFacade = InTargetFacade;
 	return Justification.Init(InContext, InTargetFacade);
+}
+
+void FPCGExFittingDetailsHandler::ComputeTransform(const int32 TargetIndex, FTransform& OutTransform, FBox& InOutBounds, const bool bWorldSpace) const
+{
+	//
+	check(TargetDataFacade);
+	const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
+	const FTransform& InTransform = TargetPoint.GetTransform();
+
+	if (bWorldSpace) { OutTransform = InTransform; }
+
+	FVector OutScale = InTransform.GetScale3D();
+	const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
+	const FBox& OriginalInBounds = InOutBounds;
+
+	ScaleToFit.Process(TargetPoint, OriginalInBounds, OutScale, InOutBounds);
+
+	//
+
+	FVector OutTranslation = FVector::ZeroVector;
+	Justification.Process(
+		TargetIndex, RefBounds,
+		FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
+		OutTranslation);
+
+	OutTransform.AddToTranslation(InTransform.GetRotation().RotateVector(OutTranslation));
+	OutTransform.SetScale3D(OutScale);
 }
 
 bool FPCGExFittingDetailsHandler::WillChangeBounds() const

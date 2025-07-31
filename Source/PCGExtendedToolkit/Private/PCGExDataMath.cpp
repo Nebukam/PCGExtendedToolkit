@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExDataMath.h"
+#include "Data/PCGExData.h"
 
 namespace PCGExMath
 {

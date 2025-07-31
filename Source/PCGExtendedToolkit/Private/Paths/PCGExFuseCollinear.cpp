@@ -53,7 +53,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -74,7 +74,7 @@ namespace PCGExFuseCollinear
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		Path = PCGExPaths::MakePath(PointDataFacade->GetIn(), 0);
+		Path = MakeShared<PCGExPaths::FPath>(PointDataFacade->GetIn(), 0);
 
 		ReadIndices.Reserve(Path->NumPoints);
 		LastPosition = Path->GetPos(0);

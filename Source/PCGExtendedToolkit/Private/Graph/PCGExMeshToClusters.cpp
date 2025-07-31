@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExMeshToClusters.h"
 
-
+#include "GameFramework/Actor.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoMesh.h"

@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExSplineToPath.h"
 
+#include "PCGExRandom.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 #include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampleNearestSpline.h"
@@ -111,10 +112,10 @@ bool FPCGExSplineToPathElement::ExecuteInternal(FPCGContext* InContext) const
 			NewOutput->Tags->Append(Context->Tags[i]);
 		}
 
-		Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 	}
 
-	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 	{
 		Context->MainPoints->StageOutputs();
 		Context->Done();

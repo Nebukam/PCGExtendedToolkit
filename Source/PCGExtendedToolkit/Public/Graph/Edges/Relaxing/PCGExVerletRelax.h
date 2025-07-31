@@ -4,7 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
 #include "PCGExRelaxClusterOperation.h"
+#include "Data/PCGExDataPreloader.h"
 #include "PCGExVerletRelax.generated.h"
 
 UENUM()

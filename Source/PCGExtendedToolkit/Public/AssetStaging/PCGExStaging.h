@@ -11,9 +11,9 @@ namespace PCGExStaging
 	const FName SourceCollectionMapLabel = TEXT("Map");
 	const FName OutputCollectionMapLabel = TEXT("Map");
 
-	const FName Tag_CollectionPath = FName(PCGEx::PCGExPrefix + TEXT("Collection/Path"));
-	const FName Tag_CollectionIdx = FName(PCGEx::PCGExPrefix + TEXT("Collection/Idx"));
-	const FName Tag_EntryIdx = FName(PCGEx::PCGExPrefix + TEXT("CollectionEntry"));
+	const FName Tag_CollectionPath = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Path"));
+	const FName Tag_CollectionIdx = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Idx"));
+	const FName Tag_EntryIdx = FName(PCGExCommon::PCGExPrefix + TEXT("CollectionEntry"));
 
 	class PCGEXTENDEDTOOLKIT_API FPickPacker : public TSharedFromThis<FPickPacker>
 	{

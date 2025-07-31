@@ -22,7 +22,7 @@ PCGExTensor::FTensorSample FPCGExTensorInertia::Sample(const int32 InSeedIndex, 
 
 	if (Config.bSetInertiaOnce)
 	{
-		auto ProcessNeighbor = [&](const PCGEx::FIndexedItem& InEffector)
+		auto ProcessNeighbor = [&](const PCGExOctree::FItem& InEffector)
 		{
 			PCGExTensor::FEffectorMetrics Metrics;
 			if (!ComputeFactor(InPosition, InEffector.Index, Metrics)) { return; }
@@ -36,7 +36,7 @@ PCGExTensor::FTensorSample FPCGExTensorInertia::Sample(const int32 InSeedIndex, 
 	}
 	else
 	{
-		auto ProcessNeighbor = [&](const PCGEx::FIndexedItem& InEffector)
+		auto ProcessNeighbor = [&](const PCGExOctree::FItem& InEffector)
 		{
 			PCGExTensor::FEffectorMetrics Metrics;
 			if (!ComputeFactor(InPosition, InEffector.Index, Metrics)) { return; }

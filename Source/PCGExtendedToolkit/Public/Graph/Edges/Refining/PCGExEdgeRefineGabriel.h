@@ -31,7 +31,7 @@ public:
 		const double SqrDist = FVector::DistSquared(Center, From);
 
 		Cluster->NodeOctree->FindFirstElementWithBoundsTest(
-			FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist))), [&](const PCGEx::FIndexedItem& Item)
+			FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist))), [&](const PCGExOctree::FItem& Item)
 			{
 				if (FVector::DistSquared(Center, Cluster->GetPos(Item.Index)) < SqrDist)
 				{

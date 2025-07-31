@@ -4,13 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
+#include "Components/PrimitiveComponent.h"
+#include "Materials/MaterialInterface.h"
 
+#include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
 #include "PCGExTexParamFactoryProvider.h"
 #include "Data/PCGExDataForward.h"
+
 
 
 #include "PCGExSampleSurfaceGuided.generated.h"

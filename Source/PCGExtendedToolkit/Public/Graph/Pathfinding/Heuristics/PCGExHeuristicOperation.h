@@ -4,11 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExOperation.h"
-
-
-#include "Graph/PCGExCluster.h"
 #include "UObject/Object.h"
+#include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
+
+#include "PCGExOperation.h"
+#include "Graph/PCGExCluster.h"
 
 /**
  * 

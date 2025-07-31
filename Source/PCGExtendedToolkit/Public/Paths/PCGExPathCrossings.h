@@ -159,7 +159,7 @@ namespace PCGExPathCrossings
 		bool bCanCut = true;
 		bool bCanBeCut = true;
 
-		TSharedPtr<PCGExPaths::IPath> Path;
+		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 
 		TArray<TSharedPtr<PCGExPaths::FPathEdgeCrossings>> EdgeCrossings;

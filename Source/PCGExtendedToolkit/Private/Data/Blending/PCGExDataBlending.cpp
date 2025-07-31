@@ -3,6 +3,10 @@
 
 #include "Data/Blending/PCGExDataBlending.h"
 
+#include "Data/PCGExData.h"
+#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExDataPreloader.h"
+
 namespace PCGExDataBlending
 {
 	void DeclareBlendOpsInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus, EPCGExBlendingInterface Interface)

@@ -14,6 +14,7 @@ enum class EPCGExShapeOutputMode : uint8
 {
 	PerDataset = 0 UMETA(DisplayName = "Per Dataset", ToolTip="Merge all shapes into the original dataset"),
 	PerSeed    = 1 UMETA(DisplayName = "Per Seed", ToolTip="Create a new output per shape seed point"),
+	PerShape   = 2 UMETA(DisplayName = "Per Shape", ToolTip="Create a new output per individual shape"),
 };
 
 
@@ -213,7 +214,7 @@ namespace PCGExShapes
 			Fit = FBox(FVector::OneVector * -0.5, FVector::OneVector * 0.5);
 			FTransform OutTransform = FTransform::Identity;
 
-			Config.Fitting.ComputeTransform<false>(Seed.Index, OutTransform, Fit);
+			Config.Fitting.ComputeTransform(Seed.Index, OutTransform, Fit, false);
 
 			Fit = Fit.TransformBy(OutTransform);
 			Fit = Fit.TransformBy(Config.LocalTransform);

@@ -3,6 +3,8 @@
 
 #include "Shapes/PCGExShapeProcessor.h"
 
+#include "Graph/PCGExGraph.h"
+
 #define LOCTEXT_NAMESPACE "PCGExShapeProcessorElement"
 
 UPCGExShapeProcessorSettings::UPCGExShapeProcessorSettings(
@@ -31,6 +33,8 @@ TArray<FPCGPinProperties> UPCGExShapeProcessorSettings::InputPinProperties() con
 
 	return PinProperties;
 }
+
+FName UPCGExShapeProcessorSettings::GetMainInputPin() const { return PCGExGraph::SourceSeedsLabel; }
 
 bool FPCGExShapeProcessorElement::Boot(FPCGExContext* InContext) const
 {

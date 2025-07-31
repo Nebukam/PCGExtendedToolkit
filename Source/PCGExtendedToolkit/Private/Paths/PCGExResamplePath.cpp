@@ -44,7 +44,7 @@ bool FPCGExResamplePathElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -64,7 +64,7 @@ namespace PCGExResamplePath
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
-		Path = PCGExPaths::MakePath(InPoints, 0);
+		Path = MakeShared<PCGExPaths::FPath>(InPoints, 0);
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>(true); // Force compute length
 

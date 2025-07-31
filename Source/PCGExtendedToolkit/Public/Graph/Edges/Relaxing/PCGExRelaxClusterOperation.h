@@ -10,16 +10,6 @@
 #include "Graph/PCGExCluster.h"
 #include "PCGExRelaxClusterOperation.generated.h"
 
-namespace PCGExCluster
-{
-	struct FNode;
-}
-
-namespace PCGExCluster
-{
-	class FCluster;
-}
-
 /**
  * 
  */

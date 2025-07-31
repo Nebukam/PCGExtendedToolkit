@@ -3,6 +3,8 @@
 
 #include "System/PCGExWaitForPCGData.h"
 
+#include "Engine/World.h"
+#include "GameFramework/Actor.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGGraph.h"
 #include "PCGSubsystem.h"
@@ -164,7 +166,7 @@ bool FPCGExWaitForPCGDataElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	return Context->TryComplete();
 }

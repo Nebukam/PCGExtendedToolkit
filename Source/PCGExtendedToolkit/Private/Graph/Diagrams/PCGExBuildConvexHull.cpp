@@ -20,6 +20,8 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHullSettings::OutputPinProperties() c
 
 PCGEX_INITIALIZE_ELEMENT(BuildConvexHull)
 
+FName UPCGExBuildConvexHullSettings::GetMainOutputPin() const { return PCGExGraph::OutputVerticesLabel; }
+
 bool FPCGExBuildConvexHullElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
@@ -59,7 +61,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 	Context->MainBatch->Output();

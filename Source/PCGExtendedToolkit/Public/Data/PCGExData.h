@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "UObject/UObjectGlobals.h"
 
 #include "PCGExtendedToolkit.h"
 #include "PCGExHelpers.h"
@@ -13,7 +14,6 @@
 #include "PCGExAttributeHelpers.h"
 #include "PCGExDataHelpers.h"
 #include "PCGExMT.h"
-#include "Data/PCGPointData.h"
 
 #pragma region DATA MACROS
 
@@ -662,6 +662,19 @@ namespace PCGExData
 		}
 	};
 
+#pragma region externalization
+
+#define PCGEX_TPL(_TYPE, _NAME, ...)\
+extern template class TBuffer<_TYPE>;\
+extern template class TArrayBuffer<_TYPE>;\
+extern template class TSingleValueBuffer<_TYPE>;
+
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+
+#undef PCGEX_TPL
+
+#pragma endregion
+
 	class PCGEXTENDEDTOOLKIT_API FFacade : public TSharedFromThis<FFacade>
 	{
 		mutable FRWLock BufferLock;
@@ -690,16 +703,10 @@ namespace PCGExData
 
 		FPCGExContext* GetContext() const;
 
-		explicit FFacade(const TSharedRef<FPointIO>& InSource):
-			Source(InSource)
-		{
-			PCGEX_LOG_CTR(FFacade)
-		}
-
+		explicit FFacade(const TSharedRef<FPointIO>& InSource);
 		~FFacade() = default;
 
 		bool IsDataValid(const EIOSide InSide) const { return Source->IsDataValid(InSide); }
-
 		bool ShareSource(const FFacade* OtherManager) const { return this == OtherManager || OtherManager->Source == Source; }
 
 		template <typename T>
@@ -996,7 +1003,6 @@ namespace PCGExData
 		return WriteMark<T>(PointIO->GetMutableData(EIOSide::Out), Identifier, MarkValue);
 	}
 
-
 	template <typename T>
 	static bool TryReadMark(UPCGMetadata* Metadata, const FPCGAttributeIdentifier& MarkID, T& OutMark)
 	{
@@ -1015,22 +1021,11 @@ namespace PCGExData
 		return TryReadMark(PointIO->GetIn() ? PointIO->GetIn()->Metadata : PointIO->GetOut()->Metadata, Identifier, OutMark);
 	}
 
-	static void WriteId(const TSharedRef<FPointIO>& PointIO, const FName IdName, const int64 Id)
-	{
-		PointIO->Tags->Set<int64>(IdName.ToString(), Id);
-		if (PointIO->GetOut()) { WriteMark(PointIO, IdName, Id); }
-	}
+	PCGEXTENDEDTOOLKIT_API
+	void WriteId(const TSharedRef<FPointIO>& PointIO, const FName IdName, const int64 Id);
 
-	static UPCGBasePointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
-	{
-		const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
-		if (!SpatialData) { return nullptr; }
-
-		const UPCGBasePointData* PointData = SpatialData->ToPointData(Context);
-		if (!PointData) { return nullptr; }
-
-		return const_cast<UPCGBasePointData*>(PointData);
-	}
+	PCGEXTENDEDTOOLKIT_API
+	UPCGBasePointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source);
 
 #pragma endregion
 
@@ -1050,25 +1045,9 @@ namespace PCGExData
 		bool bEnsureValidKeys = true;
 		TSharedPtr<IBuffer> Buffer;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
-		{
-			if (!Buffer) { return; }
-			Buffer->Write(bEnsureValidKeys);
-		}
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
-	static void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true)
-	{
-		if (InBuffer->GetUnderlyingDomain() == EDomainType::Data || InBuffer->bResetWithFirstValue)
-		{
-			// Immediately write data values
-			// Note : let's hope this won't put async in limbo 
-			InBuffer->Write(InEnsureValidKeys);
-		}
-		else
-		{
-			if (!AsyncManager || !AsyncManager->IsAvailable()) { InBuffer->Write(InEnsureValidKeys); }
-			PCGEX_LAUNCH(FWriteBufferTask, InBuffer, InEnsureValidKeys)
-		}
-	}
+	PCGEXTENDEDTOOLKIT_API
+	void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true);
 }

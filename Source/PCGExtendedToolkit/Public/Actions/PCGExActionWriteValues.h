@@ -9,6 +9,7 @@
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExOperation.h"
+#include "Data/PCGExDataFilter.h"
 
 
 #include "PCGExActionWriteValues.generated.h"

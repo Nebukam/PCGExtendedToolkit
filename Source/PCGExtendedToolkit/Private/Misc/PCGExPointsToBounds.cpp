@@ -6,6 +6,8 @@
 #include "MinVolumeBox3.h"
 #include "OrientedBoxTypes.h"
 #include "Data/PCGExData.h"
+#include "Geometry/PCGExGeo.h"
+#include "Graph/PCGExGraph.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
@@ -107,7 +109,7 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

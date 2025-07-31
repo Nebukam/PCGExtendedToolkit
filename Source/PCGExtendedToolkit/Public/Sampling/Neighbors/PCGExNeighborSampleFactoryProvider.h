@@ -5,8 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
 
 #include "PCGExFactoryProvider.h"
+#include "PCGExGlobalSettings.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"

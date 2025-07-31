@@ -2,10 +2,18 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
+#include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
+#include "Curves/RichCurve.h"
+
 #include "PCGExDetails.h"
 #include "PCGExDetailsData.h"
+#include "PCGExOctree.h"
 #include "Curves/CurveVector.h"
 #include "Data/PCGExData.h"
+
 #include "PCGExTensor.generated.h"
 
 class UPCGExTensorPointFactoryData;
@@ -205,7 +213,7 @@ namespace PCGExTensor
 		TArray<double> Potencies;
 		TArray<double> Weights;
 
-		TSharedPtr<PCGEx::FIndexedItemOctree> Octree;
+		TSharedPtr<PCGExOctree::FItemOctree> Octree;
 
 	public:
 		FEffectorsArray() = default;
@@ -217,7 +225,7 @@ namespace PCGExTensor
 		virtual void PrepareSinglePoint(const int32 Index);
 
 	public:
-		FORCEINLINE const PCGEx::FIndexedItemOctree* GetOctree() const { return Octree.Get(); }
+		FORCEINLINE const PCGExOctree::FItemOctree* GetOctree() const { return Octree.Get(); }
 
 		const FTransform& ReadTransform(const int32 Index) const { return Transforms[Index]; }
 		double ReadRadius(const int32 Index) const { return Radiuses[Index]; }

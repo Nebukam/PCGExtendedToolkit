@@ -4,6 +4,8 @@
 #include "PCGExSorting.h"
 
 #include "PCGExCompare.h"
+#include "PCGExGlobalSettings.h"
+#include "Data/PCGExProxyData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExModularSortPoints"
 #define PCGEX_NAMESPACE ModularSortPoints
@@ -78,6 +80,10 @@ bool UPCGExSortingRule::RegisterConsumableAttributesWithData(FPCGExContext* InCo
 
 	return true;
 }
+
+#if WITH_EDITOR
+FLinearColor UPCGExSortingRuleProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
+#endif
 
 UPCGExFactoryData* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {

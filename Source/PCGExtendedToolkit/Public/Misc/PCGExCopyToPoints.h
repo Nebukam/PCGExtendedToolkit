@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExFitting.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"

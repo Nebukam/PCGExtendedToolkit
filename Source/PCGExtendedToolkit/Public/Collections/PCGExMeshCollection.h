@@ -14,6 +14,8 @@
 #include "Engine/DataAsset.h"
 #include "ISMPartition/ISMComponentDescriptor.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"
+#include "Engine/StaticMesh.h"
+#include "UObject/SoftObjectPath.h"
 
 #include "PCGExMeshCollection.generated.h"
 

@@ -8,11 +8,12 @@
 #include "PCGExFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
 
-
-#include "Graph/PCGExCluster.h"
-
-
 #include "PCGExClusterFilter.generated.h"
+
+namespace PCGExCluster
+{
+	class FCluster;
+}
 
 namespace PCGExGraph
 {

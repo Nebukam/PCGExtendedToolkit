@@ -3,7 +3,6 @@
 
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
-
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/PhysicsSettings.h"
 #include "Sampling/PCGExTexParamFactoryProvider.h"
@@ -97,7 +96,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

@@ -47,7 +47,7 @@ struct FPCGExMergeVerticesContext final : FPCGExEdgesProcessorContext
 
 	FPCGExCarryOverDetails CarryOverDetails;
 
-	PCGExData::DataIDType OutVtxId;
+	PCGExCommon::DataIDType OutVtxId;
 	TSharedPtr<PCGExData::FFacade> CompositeDataFacade;
 	TSharedPtr<FPCGExPointIOMerger> Merger;
 

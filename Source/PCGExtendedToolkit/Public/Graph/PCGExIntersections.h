@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 
+#include "PCGExOctree.h"
 #include "PCGExGraph.h"
 #include "PCGExEdge.h"
 #include "PCGExPointsProcessor.h"

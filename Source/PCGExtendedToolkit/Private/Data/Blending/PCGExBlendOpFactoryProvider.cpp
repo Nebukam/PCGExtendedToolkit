@@ -4,6 +4,7 @@
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 #include "PCGExDetailsData.h"
+#include "Data/PCGExDataPreloader.h"
 #include "Data/Blending/PCGExProxyDataBlending.h"
 
 
@@ -96,7 +97,7 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 	}
 	if (Config.OutputTo.GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
-		const FPCGMetadataAttributeBase* OutAttribute = TargetFacade->GetOut()->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(Config.OutputTo, TargetFacade->GetOut()));
+		const FPCGMetadataAttributeBase* OutAttribute = TargetFacade->GetOut()->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier(Config.OutputTo, TargetFacade->GetOut()));
 		if (OutAttribute)
 		{
 			RealTypeC = static_cast<EPCGMetadataTypes>(OutAttribute->GetTypeId());
@@ -169,6 +170,36 @@ bool FPCGExBlendOperation::PrepareForData(FPCGExContext* InContext)
 
 	if (!Blender) { return false; }
 	return true;
+}
+
+void FPCGExBlendOperation::BlendAutoWeight(const int32 SourceIndex, const int32 TargetIndex)
+{
+	Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(Weight->Read(SourceIndex)));
+}
+
+void FPCGExBlendOperation::Blend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight)
+{
+	Blender->Blend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
+}
+
+void FPCGExBlendOperation::Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double InWeight)
+{
+	Blender->Blend(SourceIndexA, SourceIndexB, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight));
+}
+
+PCGEx::FOpStats FPCGExBlendOperation::BeginMultiBlend(const int32 TargetIndex)
+{
+	return Blender->BeginMultiBlend(TargetIndex);
+}
+
+void FPCGExBlendOperation::MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double InWeight, PCGEx::FOpStats& Tracker)
+{
+	Blender->MultiBlend(SourceIndex, TargetIndex, Config.Weighting.ScoreCurveObj->Eval(InWeight), Tracker);
+}
+
+void FPCGExBlendOperation::EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker)
+{
+	Blender->EndMultiBlend(TargetIndex, Tracker);
 }
 
 void FPCGExBlendOperation::CompleteWork(TSet<TSharedPtr<PCGExData::IBuffer>>& OutDisabledBuffers)

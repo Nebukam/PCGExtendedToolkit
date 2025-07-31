@@ -6,21 +6,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
 #include "UObject/Interface.h"
-#include "GameFramework/Actor.h"
+#include "UObject/UObjectGlobals.h"
 
 #include "PCGExtendedToolkit.h"
 #include "PCGContext.h"
 #include "PCGExMacros.h"
-#include "PCGManagedResource.h"
-#include "PCGComponent.h"
-#include "Data/PCGSpatialData.h"
-#include "Engine/AssetManager.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "Async/Async.h"
-#include "Data/PCGBasePointData.h"
+#include "Metadata/PCGMetadata.h"
+#include "Metadata/PCGMetadataAttributeTpl.h"
 
 #include "PCGExHelpers.generated.h"
+
+class UPCGManagedComponent;
+class UPCGData;
+class UPCGComponent;
 
 UENUM()
 enum class EPCGExPointPropertyOutput : uint8
@@ -55,7 +57,7 @@ UCLASS(Hidden)
 class PCGEXTENDEDTOOLKIT_API UPCGExComponentCallback : public UObject
 {
 	GENERATED_BODY()
-
+	
 	bool bIsOnce = false;
 	TFunction<void(UActorComponent* InComponent)> CallbackFn;
 
@@ -151,6 +153,9 @@ namespace PCGExHelpers
 	PCGEXTENDEDTOOLKIT_API
 	void CopyBaseNativeProperties(const UPCGData* From, UPCGData* To, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
 
+	PCGEXTENDEDTOOLKIT_API
+	void LoadBlocking_AnyThread(const FSoftObjectPath& Path);
+
 	template <typename T>
 	static TObjectPtr<T> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
 	{
@@ -168,29 +173,7 @@ namespace PCGExHelpers
 		LoadedObject = TSoftObjectPtr<T>(ToBeLoaded).Get();
 		if (LoadedObject) { return LoadedObject; }
 
-
-		if (IsInGameThread())
-		{
-			// We're in the game thread, request synchronous load
-			UAssetManager::GetStreamableManager().RequestSyncLoad(ToBeLoaded);
-		}
-		else
-		{
-			// We're not in the game thread, we need to dispatch loading to the main thread
-			// and wait in the current one
-			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
-			AsyncTask(
-				ENamedThreads::GameThread, [BlockingEvent, ToBeLoaded]()
-				{
-					const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-						ToBeLoaded, [BlockingEvent]() { BlockingEvent->Trigger(); });
-
-					if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
-				});
-
-			BlockingEvent->Wait();
-			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
-		}
+		LoadBlocking_AnyThread(ToBeLoaded);
 
 		return TSoftObjectPtr<T>(ToBeLoaded).Get();
 	}
@@ -237,74 +220,14 @@ namespace PCGEx
 {
 	const FName InvalidName = "INVALID_DATA";
 
-	static EPCGPointNativeProperties GetPointNativeProperties(uint8 Flags)
-	{
-		const EPCGExPointNativeProperties InFlags = static_cast<EPCGExPointNativeProperties>(Flags);
-		EPCGPointNativeProperties OutFlags = EPCGPointNativeProperties::None;
+	PCGEXTENDEDTOOLKIT_API
+	EPCGPointNativeProperties GetPointNativeProperties(uint8 Flags);
 
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Transform)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Transform); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Density)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Density); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::BoundsMin)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::BoundsMin); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::BoundsMax)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::BoundsMax); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Color)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Color); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Steepness)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Steepness); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::Seed)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::Seed); }
-		if (EnumHasAnyFlags(InFlags, EPCGExPointNativeProperties::MetadataEntry)) { EnumAddFlags(OutFlags, EPCGPointNativeProperties::MetadataEntry); }
+	PCGEXTENDEDTOOLKIT_API
+	FName GetLongNameFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const bool bInitialized = true);
 
-		return OutFlags;
-	}
-
-	template <bool bInitialized>
-	static FName GetLongNameFromSelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
-	{
-		// This return a domain-less unique identifier for the provided selector
-		// It's mostly used to create uniquely identified value buffers
-
-		if (!InData) { return InvalidName; }
-
-		if constexpr (bInitialized)
-		{
-			if (InSelector.GetExtraNames().IsEmpty()) { return FName(InSelector.GetName().ToString()); }
-			return FName(InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT(".")));
-		}
-		else
-		{
-			if (InSelector.GetSelection() == EPCGAttributePropertySelection::Attribute && InSelector.GetName() == "@Last")
-			{
-				return GetLongNameFromSelector<true>(InSelector.CopyAndFixLast(InData), InData);
-			}
-
-			return GetLongNameFromSelector<true>(InSelector, InData);
-		}
-	}
-
-	template <bool bInitialized>
-	static FPCGAttributeIdentifier GetAttributeIdentifier(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
-	{
-		// This return an identifier suitable to be used for data facade
-
-		FPCGAttributeIdentifier Identifier;
-
-		if (!InData) { return FPCGAttributeIdentifier(InvalidName, EPCGMetadataDomainFlag::Invalid); }
-
-		if constexpr (bInitialized)
-		{
-			Identifier.Name = InSelector.GetAttributeName();
-			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(InSelector);
-		}
-		else
-		{
-			FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
-
-			check(FixedSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
-
-			Identifier.Name = FixedSelector.GetAttributeName();
-			Identifier.MetadataDomain = InData->GetMetadataDomainIDFromSelector(FixedSelector);
-		}
-
-
-		return Identifier;
-	}
+	PCGEXTENDEDTOOLKIT_API
+	FPCGAttributeIdentifier GetAttributeIdentifier(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const bool bInitialized = true);
 
 	PCGEXTENDEDTOOLKIT_API
 	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName, const UPCGData* InData);

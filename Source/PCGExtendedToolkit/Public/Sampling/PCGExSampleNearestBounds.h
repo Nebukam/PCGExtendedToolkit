@@ -4,11 +4,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGlobalSettings.h"
+#include "UObject/Object.h"
+#include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
 
+#include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
+#include "PCGExSorting.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
@@ -28,6 +32,11 @@ MACRO(ComponentWiseDistance, FVector, FVector::ZeroVector)\
 MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(SampledIndex, int32, -1)
+
+namespace PCGExDataBlending
+{
+	class FUnionBlender;
+}
 
 UENUM()
 enum class EPCGExBoundsSampleMethod : uint8

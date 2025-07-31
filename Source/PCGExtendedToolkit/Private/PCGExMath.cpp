@@ -53,6 +53,57 @@ namespace PCGExMath
 		Bounds = Bounds.ExpandBy(Expansion);
 	}
 
+	bool FSegment::FindIntersection(const FVector& A2, const FVector& B2, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EIntersectionTestMode Mode) const
+	{
+		FMath::SegmentDistToSegment(A, B, A2, B2, OutSelf, OutOther);
+
+		switch (Mode) {
+		case EIntersectionTestMode::Loose:
+			break;
+		case EIntersectionTestMode::Strict:
+			if (A == OutSelf || B == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
+			break;
+		case EIntersectionTestMode::StrictOnSelfA:
+			if (A == OutSelf) { return false; }
+			break;
+		case EIntersectionTestMode::StrictOnSelfB:
+			if (B == OutSelf) { return false; }
+			break;
+		case EIntersectionTestMode::StrictOnOtherA:
+			if (A2 == OutOther) { return false; }
+			break;
+		case EIntersectionTestMode::StrictOnOtherB:
+			if (B2 == OutOther) { return false; }
+			break;
+		case EIntersectionTestMode::LooseOnSelf:
+			if (A2 == OutOther || B2 == OutOther) { return false; }
+			break;
+		case EIntersectionTestMode::LooseOnSelfA:
+			if (B == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
+			break;
+		case EIntersectionTestMode::LooseOnSelfB:
+			if (A == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
+			break;
+		case EIntersectionTestMode::LooseOnOther:
+			if (A == OutSelf || B == OutSelf) { return false; }
+			break;
+		case EIntersectionTestMode::LooseOnOtherA:
+			if (A == OutSelf || B == OutSelf || B2 == OutOther) { return false; }
+			break;
+		case EIntersectionTestMode::LooseOnOtherB:
+			if (A == OutSelf || B == OutSelf || A2 == OutOther) { return false; }
+			break;
+		}
+
+		if (FVector::DistSquared(OutSelf, OutOther) >= SquaredTolerance) { return false; }
+		return true;
+	}
+
+	bool FSegment::FindIntersection(const FSegment& S, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EIntersectionTestMode Mode) const
+	{
+		return FindIntersection(S.A, S.B, SquaredTolerance, OutSelf, OutOther, Mode);
+	}
+
 	double ConvertStringToDouble(const FString& StringToConvert)
 	{
 		const TCHAR* CharArray = *StringToConvert;

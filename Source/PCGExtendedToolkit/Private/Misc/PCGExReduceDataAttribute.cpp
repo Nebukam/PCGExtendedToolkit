@@ -160,7 +160,7 @@ bool FPCGExReduceDataAttributeElement::ExecuteInternal(FPCGContext* InContext) c
 								Settings->OutputType, [&](auto DummyValue)
 								{
 									using T = decltype(DummyValue);
-									StringsToJoin.Add(PCGEx::Convert<FString>(PCGEx::Convert<T>(Value)));
+									StringsToJoin.Add(PCGEx::Convert<T, FString>(PCGEx::Convert<T_ATTR, T>(Value)));
 								});
 						});
 				}
@@ -176,7 +176,7 @@ bool FPCGExReduceDataAttributeElement::ExecuteInternal(FPCGContext* InContext) c
 							using T_ATTR = decltype(ValueType);
 							const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
 							T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
-							StringsToJoin.Add(PCGEx::Convert<FString>(Value));
+							StringsToJoin.Add(PCGEx::Convert<T_ATTR, FString>(Value));
 						});
 				}
 			}
@@ -202,22 +202,22 @@ bool FPCGExReduceDataAttributeElement::ExecuteInternal(FPCGContext* InContext) c
 								const FPCGMetadataAttribute<T_ATTR>* TypedAtt = static_cast<const FPCGMetadataAttribute<T_ATTR>*>(Att);
 								T_ATTR Value = PCGExDataHelpers::ReadDataValue(TypedAtt);
 
-								if (i == 0) { ReducedValue = PCGEx::Convert<T>(Value); }
+								if (i == 0) { ReducedValue = PCGEx::Convert<T_ATTR, T>(Value); }
 								else
 								{
 									switch (Settings->Method)
 									{
 									case EPCGExReduceDataDomainMethod::Min:
-										ReducedValue = PCGExBlend::Min(ReducedValue, PCGEx::Convert<T>(Value));
+										ReducedValue = PCGExBlend::Min(ReducedValue, PCGEx::Convert<T_ATTR, T>(Value));
 										break;
 									case EPCGExReduceDataDomainMethod::Max:
-										ReducedValue = PCGExBlend::Max(ReducedValue, PCGEx::Convert<T>(Value));
+										ReducedValue = PCGExBlend::Max(ReducedValue, PCGEx::Convert<T_ATTR, T>(Value));
 										break;
 									case EPCGExReduceDataDomainMethod::Sum:
-										ReducedValue = PCGExBlend::Add(ReducedValue, PCGEx::Convert<T>(Value));
+										ReducedValue = PCGExBlend::Add(ReducedValue, PCGEx::Convert<T_ATTR, T>(Value));
 										break;
 									case EPCGExReduceDataDomainMethod::Average:
-										ReducedValue = PCGExBlend::Add(ReducedValue, PCGEx::Convert<T>(Value));
+										ReducedValue = PCGExBlend::Add(ReducedValue, PCGEx::Convert<T_ATTR, T>(Value));
 										break;
 									default:
 									case EPCGExReduceDataDomainMethod::Join:

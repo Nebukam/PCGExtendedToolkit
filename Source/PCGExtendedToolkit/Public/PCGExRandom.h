@@ -5,6 +5,9 @@
 
 #include "PCGExMath.h"
 
+class UPCGComponent;
+class UPCGSettings;
+
 UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Seed Components"))
 enum class EPCGExSeedComponents : uint8
 {

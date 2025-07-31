@@ -7,6 +7,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExSorting.h"
 
 #include "PCGExSortCollections.generated.h"
 

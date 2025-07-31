@@ -9,6 +9,7 @@
 
 #include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoDelaunay.h"
+#include "Graph/PCGExGraph.h"
 
 #include "PCGExBuildDelaunayGraph2D.generated.h"
 

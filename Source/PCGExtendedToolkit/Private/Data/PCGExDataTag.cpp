@@ -3,6 +3,8 @@
 
 #include "Data/PCGExDataTag.h"
 
+#include "Kismet/KismetStringLibrary.h"
+
 namespace PCGExData
 {
 	int32 FTags::Num() const

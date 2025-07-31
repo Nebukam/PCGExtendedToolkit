@@ -3,6 +3,7 @@
 
 #include "AssetStaging/PCGExAssetStaging.h"
 
+#include "PCGExRandom.h"
 #include "Debug/PCGExDrawAttributes.h"
 
 
@@ -158,7 +159,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

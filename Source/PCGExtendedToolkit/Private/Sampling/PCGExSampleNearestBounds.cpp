@@ -3,9 +3,9 @@
 
 #include "Sampling/PCGExSampleNearestBounds.h"
 
-
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 #include "Geometry/PCGExGeoPointBox.h"
 
 
@@ -126,7 +126,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->SetAsyncState(PCGEx::State_FacadePreloading);
+		Context->SetAsyncState(PCGExCommon::State_FacadePreloading);
 
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
 		Context->TargetsHandler->TargetsPreloader->OnCompleteCallback = [Settings, Context, WeakHandle]()
@@ -180,7 +180,7 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 		return false;
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -360,7 +360,7 @@ namespace PCGExSampleNearestBounds
 			const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Origin, PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
 
 			Context->TargetsHandler->FindTargetsWithBoundsTest(
-				BCAE, [&](const PCGEx::FIndexedItem& Target)
+				BCAE, [&](const PCGExOctree::FItem& Target)
 				{
 					Context->Clouds[Target.Index]->GetOctree()->FindElementsWithBoundsTest(
 						BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)

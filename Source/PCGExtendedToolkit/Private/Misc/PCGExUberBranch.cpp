@@ -131,7 +131,7 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			TWeakPtr<FPCGContextHandle> Handle = Context->GetOrCreateHandle();
 
-			Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
+			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
 			PCGEX_ASYNC_GROUP_CHKD_CUSTOM(Context->GetAsyncManager(), BranchTask, true)
 
 			BranchTask->OnSubLoopStartCallback =
@@ -163,7 +163,7 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 			return false;
 		}
 
-		PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
+		PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 		{
 			Context->MainPoints->StageOutputs();
 			Context->Done();

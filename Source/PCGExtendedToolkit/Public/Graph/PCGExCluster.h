@@ -4,14 +4,31 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
-#include "PCGExSorting.h"
-#include "Data/PCGExAttributeHelpers.h"
-#include "Geometry/PCGExGeo.h"
+#include "PCGExHelpers.h"
+#include "PCGExOctree.h"
+#include "Utils/PCGValueRange.h"
 
 #include "PCGExCluster.generated.h"
+
+struct FPCGExContext;
+
+namespace PCGExMT
+{
+	class FTaskManager;
+}
+
+namespace PCGExData
+{
+	class FFacade;
+	class FFacadePreloader;
+}
+
+namespace PCGExSorting
+{
+	class FPointSorter;
+}
 
 namespace PCGExCluster
 {
@@ -126,16 +143,16 @@ namespace PCGExCluster
 		TSharedPtr<TArray<double>> EdgeLengths;
 		TConstPCGValueRange<FTransform> VtxTransforms;
 
-		FBox Bounds;
-		FVector2D ProjectedCentroid;
+		FBox Bounds = FBox(NoInit);
+		FVector2D ProjectedCentroid = FVector2D::ZeroVector;
 
 		const UPCGBasePointData* VtxPoints = nullptr;
 
 		TWeakPtr<PCGExData::FPointIO> VtxIO;
 		TWeakPtr<PCGExData::FPointIO> EdgesIO;
 
-		TSharedPtr<PCGEx::FIndexedItemOctree> NodeOctree;
-		TSharedPtr<PCGEx::FIndexedItemOctree> EdgeOctree;
+		TSharedPtr<PCGExOctree::FItemOctree> NodeOctree;
+		TSharedPtr<PCGExOctree::FItemOctree> EdgeOctree;
 
 		FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
 		         const TSharedPtr<PCGEx::FIndexLookup>& InNodeIndexLookup);
@@ -249,8 +266,8 @@ namespace PCGExCluster
 		FVector GetEdgeDir(const int32 InEdgeIndex, const int32 InStartPtIndex) const;
 		FVector GetEdgeDir(const FLink Lk, const int32 InStartPtIndex) const;
 
-		TSharedPtr<PCGEx::FIndexedItemOctree> GetNodeOctree();
-		TSharedPtr<PCGEx::FIndexedItemOctree> GetEdgeOctree();
+		TSharedPtr<PCGExOctree::FItemOctree> GetNodeOctree();
+		TSharedPtr<PCGExOctree::FItemOctree> GetEdgeOctree();
 
 		void RebuildNodeOctree();
 		void RebuildEdgeOctree();
@@ -281,7 +298,7 @@ namespace PCGExCluster
 
 			if (NodeOctree)
 			{
-				auto ProcessCandidate = [&](const PCGEx::FIndexedItem& Item)
+				auto ProcessCandidate = [&](const PCGExOctree::FItem& Item)
 				{
 					const FNode& Node = NodesRef[Item.Index];
 					if constexpr (MinNeighbors > 0) { if (Node.Num() < MinNeighbors) { return; } }
@@ -320,7 +337,7 @@ namespace PCGExCluster
 
 			if (EdgeOctree)
 			{
-				auto ProcessCandidate = [&](const PCGEx::FIndexedItem& Item)
+				auto ProcessCandidate = [&](const PCGExOctree::FItem& Item)
 				{
 					const double Dist = GetPointDistToEdgeSquared(Item.Index, Position);
 					if (Dist < MaxDistance)
@@ -486,48 +503,3 @@ namespace PCGExCluster
 
 	void GetAdjacencyData(const FCluster* InCluster, FNode& InNode, TArray<FAdjacencyData>& OutData);
 }
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionSettings
-{
-	GENERATED_BODY()
-
-	/** Method to pick the edge direction amongst various possibilities.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExEdgeDirectionMethod DirectionMethod = EPCGExEdgeDirectionMethod::EndpointsOrder;
-
-	/** Attribute picker for the selected Direction Method.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector DirSourceAttribute;
-
-	/** Further refine the direction method. Not all methods make use of this property.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExEdgeDirectionChoice DirectionChoice = EPCGExEdgeDirectionChoice::SmallestToGreatest;
-
-	bool bAscendingDesired = false;
-	TSharedPtr<PCGExData::TBuffer<FVector>> EdgeDirReader;
-
-	TSharedPtr<PCGExSorting::FPointSorter> Sorter;
-
-	void RegisterBuffersDependencies(
-		FPCGExContext* InContext,
-		PCGExData::FFacadePreloader& FacadePreloader,
-		const TArray<FPCGExSortRuleConfig>* InSortingRules = nullptr) const;
-
-	bool Init(
-		FPCGExContext* InContext,
-		const TSharedRef<PCGExData::FFacade>& InVtxDataFacade,
-		const TArray<FPCGExSortRuleConfig>* InSortingRules = nullptr);
-
-	bool InitFromParent(
-		FPCGExContext* InContext,
-		const FPCGExEdgeDirectionSettings& ParentSettings,
-		const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
-
-	bool RequiresSortingRules() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort; }
-	bool RequiresEndpointsMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort; }
-	bool RequiresEdgeMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute; }
-
-	bool SortEndpoints(const PCGExCluster::FCluster* InCluster, PCGExGraph::FEdge& InEdge) const;
-	bool SortExtrapolation(const PCGExCluster::FCluster* InCluster, const int32 InEdgeIndex, const int32 StartNodeIndex, const int32 EndNodeIndex) const;
-};

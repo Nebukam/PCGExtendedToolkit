@@ -32,7 +32,7 @@ bool FPCGExInputConfig::Validate(const UPCGData* InData)
 	Selector = Selector.CopyAndFixLast(InData);
 	if (GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
-		Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(PCGEx::GetAttributeIdentifier<true>(Selector, InData)) : nullptr;
+		Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(PCGEx::GetAttributeIdentifier(Selector, InData)) : nullptr;
 		UnderlyingType = Attribute ? Attribute->GetTypeId() : static_cast<int16>(EPCGMetadataTypes::Unknown);
 		return Attribute != nullptr;
 	}
@@ -149,7 +149,7 @@ namespace PCGEx
 		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
 		if (!FixedSelector.IsValid() || FixedSelector.GetSelection() != EPCGAttributePropertySelection::Attribute) { return false; }
 
-		const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier<true>(FixedSelector, InData));
+		const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier(FixedSelector, InData));
 		if (!Attribute) { return false; }
 
 		OutIdentity.Identifier = Attribute->Name;
@@ -394,12 +394,19 @@ namespace PCGEx
 
 			if (const UPCGSpatialData* AsSpatial = Cast<UPCGSpatialData>(InData))
 			{
-				Attribute = AsSpatial->Metadata->GetConstAttribute(GetAttributeIdentifier<true>(Selector, InData));
+				Attribute = AsSpatial->Metadata->GetConstAttribute(GetAttributeIdentifier(Selector, InData));
 				bIsDataDomain = Attribute ? Attribute->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data : false;
 				bIsValid = Attribute ? true : false;
 			}
 		}
 	}
+
+#define PCGEX_TPL(_TYPE, _NAME, ...)\
+template class PCGEXTENDEDTOOLKIT_API TAttributeBroadcaster<_TYPE>;
+
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+
+#undef PCGEX_TPL
 
 	TSharedPtr<FAttributesInfos> GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError)
 	{

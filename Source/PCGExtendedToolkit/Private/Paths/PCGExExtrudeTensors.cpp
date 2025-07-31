@@ -4,6 +4,7 @@
 #include "Paths/PCGExExtrudeTensors.h"
 
 #include "Data/PCGExData.h"
+#include "Graph/PCGExGraph.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExExtrudeTensorsElement"
@@ -87,7 +88,7 @@ bool FPCGExExtrudeTensorsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
 
@@ -243,7 +244,7 @@ namespace PCGExExtrudeTensors
 			FVector OutSelf = FVector::ZeroVector;
 			FVector OutOther = FVector::ZeroVector;
 
-			if (!InSegment.FindIntersection<PCGExMath::EIntersectionTestMode::Strict>(A, B, Context->SelfPathIntersections.ToleranceSquared, OutSelf, OutOther))
+			if (!InSegment.FindIntersection(A, B, Context->SelfPathIntersections.ToleranceSquared, OutSelf, OutOther, PCGExMath::EIntersectionTestMode::Strict))
 			{
 				OutClosestPosition.Update(OutOther);
 				continue;
@@ -353,7 +354,7 @@ namespace PCGExExtrudeTensors
 
 		if (Sorter && !Sorter->Init(Context)) { Sorter.Reset(); }
 
-		StaticPaths = MakeShared<TArray<TSharedPtr<PCGExPaths::IPath>>>();
+		StaticPaths = MakeShared<TArray<TSharedPtr<PCGExPaths::FPath>>>();
 
 		if (!Context->StopFilterFactories.IsEmpty())
 		{
@@ -644,7 +645,7 @@ namespace PCGExExtrudeTensors
 
 						if (!E->bIsValidPath) { continue; }
 
-						TSharedPtr<PCGExPaths::IPath> StaticPath = PCGExPaths::MakePath(E->PointDataFacade->GetOut(), Settings->ExternalPathIntersections.Tolerance);
+						TSharedPtr<PCGExPaths::FPath> StaticPath = MakeShared<PCGExPaths::FPath>(E->PointDataFacade->GetOut(), Settings->ExternalPathIntersections.Tolerance);
 						StaticPath->BuildEdgeOctree();
 						StaticPaths.Get()->Add(StaticPath);
 					}
@@ -749,7 +750,7 @@ namespace PCGExExtrudeTensors
 				Context->ExternalPaths.Reserve(Context->PathsFacades.Num());
 				for (const TSharedPtr<PCGExData::FFacade>& Facade : Context->PathsFacades)
 				{
-					TSharedPtr<PCGExPaths::IPath> Path = PCGExPaths::MakePath(Facade->GetIn(), Settings->ExternalPathIntersections.Tolerance);
+					TSharedPtr<PCGExPaths::FPath> Path = MakeShared<PCGExPaths::FPath>(Facade->GetIn(), Settings->ExternalPathIntersections.Tolerance);
 					Context->ExternalPaths.Add(Path);
 					Path->BuildEdgeOctree();
 				}

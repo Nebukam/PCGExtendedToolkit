@@ -35,7 +35,7 @@ public:
 			const double SqrDist = FMath::Square(Dist / Beta);
 
 			Cluster->NodeOctree->FindFirstElementWithBoundsTest(
-				FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist) + 1)), [&](const PCGEx::FIndexedItem& Item)
+				FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist) + 1)), [&](const PCGExOctree::FItem& Item)
 				{
 					const FVector& OtherPoint = Cluster->GetPos(Item.Index);
 					if (FVector::DistSquared(OtherPoint, From) < SqrDist && FVector::DistSquared(OtherPoint, To) < SqrDist)
@@ -55,7 +55,7 @@ public:
 			const FVector C2 = Center - Normal;
 
 			Cluster->NodeOctree->FindFirstElementWithBoundsTest(
-				FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist) + 1)), [&](const PCGEx::FIndexedItem& Item)
+				FBoxCenterAndExtent(Center, FVector(FMath::Sqrt(SqrDist) + 1)), [&](const PCGExOctree::FItem& Item)
 				{
 					const FVector& OtherPoint = Cluster->GetPos(Item.Index);
 					if (FVector::DistSquared(OtherPoint, C1) < SqrDist ||

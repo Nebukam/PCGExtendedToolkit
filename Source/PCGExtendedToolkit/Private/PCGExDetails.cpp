@@ -3,7 +3,15 @@
 
 #include "PCGExDetails.h"
 
+#include "CollisionQueryParams.h"
+#include "GameFramework/Actor.h"
+#include "Engine/HitResult.h"
+#include "Engine/World.h"
+//#include "Engine/StaticMesh.h"
+//#include "Components/StaticMeshComponent.h"
+//#include "StaticMeshResources.h"
 #include "PCGComponent.h"
+#include "PCGExContext.h"
 
 void FPCGExCollisionDetails::Init(FPCGExContext* InContext)
 {
