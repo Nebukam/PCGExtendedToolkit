@@ -9,7 +9,6 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExTexParamFactoryProvider.h"
-#include "Data/PCGExDataForward.h"
 #include "Data/PCGTextureData.h"
 
 

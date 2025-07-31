@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
+#include "Curves/RichCurve.h"
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"

@@ -3,6 +3,12 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+#include "Templates/SharedPointer.h"
+#include "Templates/SharedPointerFwd.h"
+#include "UObject/SoftObjectPath.h"
+#include "Math/GenericOctree.h"
+
 #ifndef PCGEX_OCTREE_MACROS
 #define PCGEX_OCTREE_MACROS
 

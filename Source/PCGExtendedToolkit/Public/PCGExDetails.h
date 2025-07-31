@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
+#include "CollisionQueryParams.h"
 #include "Elements/PCGActorSelector.h"
 
 #include "PCGExDetails.generated.h"
