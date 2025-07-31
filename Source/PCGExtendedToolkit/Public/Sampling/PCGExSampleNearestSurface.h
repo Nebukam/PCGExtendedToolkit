@@ -11,7 +11,8 @@
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExDataForward.h"
-
+#include "Components/PrimitiveComponent.h"
+#include "Materials/MaterialInterface.h"
 
 #include "PCGExSampleNearestSurface.generated.h"
 
