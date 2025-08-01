@@ -7,10 +7,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExDetails.h"
-#include "PCGExDetailsData.h"
 #include "Data/PCGExData.h"
-
-#include "PCGExCompare.h"
 #include "Data/PCGExFilterGroup.h"
 
 #include "PCGExMatching.generated.h"

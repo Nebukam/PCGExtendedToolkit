@@ -4,6 +4,8 @@
 #include "Paths/PCGExPathSplineMesh.h"
 
 #include "PCGComponent.h"
+#include "Components/SplineMeshComponent.h"
+
 #include "PCGExHelpers.h"
 #include "PCGExRandom.h"
 

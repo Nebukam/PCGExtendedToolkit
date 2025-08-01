@@ -4,8 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "PCGEx.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExToggleTopology.generated.h"

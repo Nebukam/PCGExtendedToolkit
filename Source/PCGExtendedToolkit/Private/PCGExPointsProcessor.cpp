@@ -5,11 +5,11 @@
 
 #include "Styling/SlateStyle.h"
 #include "PCGPin.h"
-#include "Data/PCGExPointFilter.h"
 
-
+#include "PCGExInstancedFactory.h"
 #include "Helpers/PCGSettingsHelpers.h"
 #include "Misc/PCGExMergePoints.h"
+#include "Data/PCGExPointFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -122,6 +122,17 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 	CurrentIO = nullptr;
 	return false;
+}
+
+UPCGExInstancedFactory* FPCGExPointsProcessorContext::RegisterOperation(UPCGExInstancedFactory* BaseOperation, const FName OverridePinLabel)
+{
+	BaseOperation->BindContext(this); // Temp so Copy doesn't crash
+
+	UPCGExInstancedFactory* RetValue = BaseOperation->CreateNewInstance(ManagedObjects.Get());
+	if (!RetValue) { return nullptr; }
+	InternalOperations.Add(RetValue);
+	RetValue->InitializeInContext(this, OverridePinLabel);
+	return RetValue;
 }
 
 

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactoryProvider.h"
 #include "PCGExPartition.h"
 #include "PCGExPartitionByValues.h"
 

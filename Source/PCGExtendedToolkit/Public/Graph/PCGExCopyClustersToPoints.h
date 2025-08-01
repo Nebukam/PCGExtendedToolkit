@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCluster.h"
 #include "PCGExCompare.h"
 #include "PCGExEdgesProcessor.h"
 #include "Data/PCGExDataForward.h"

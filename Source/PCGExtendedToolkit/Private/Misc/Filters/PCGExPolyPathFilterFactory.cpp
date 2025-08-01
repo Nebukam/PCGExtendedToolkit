@@ -3,7 +3,6 @@
 
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
-#include "Cooker/CookDependency.h"
 #include "Data/PCGSplineData.h"
 
 

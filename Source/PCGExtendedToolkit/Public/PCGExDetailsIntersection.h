@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMacros.h"
 #include "PCGExDetailsData.h"
 
 #include "PCGExDetailsIntersection.generated.h"

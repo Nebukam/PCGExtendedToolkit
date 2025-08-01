@@ -9,10 +9,9 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
 #include "Collections/PCGExMeshCollection.h"
+#include "Data/PCGExPointFilter.h"
 
 #include "Tangents/PCGExTangentsInstancedFactory.h"
-#include "Components/SplineMeshComponent.h"
-
 
 #include "PCGExPathSplineMesh.generated.h"
 

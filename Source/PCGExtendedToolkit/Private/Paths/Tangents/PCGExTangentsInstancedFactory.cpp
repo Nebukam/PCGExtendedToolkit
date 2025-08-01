@@ -31,11 +31,11 @@ bool FPCGExTangentsDetails::Init(FPCGExPointsProcessorContext* InContext, const 
 			return false;
 		}
 
-		Tangents = InContext->RegisterOperation<UPCGExTangentsInstancedFactory>(InDetails.Tangents, PCGExTangents::SourceOverridesTangents);
+		Tangents = PCGEX_OPERATION_REGISTER_C(InContext, UPCGExTangentsInstancedFactory, InDetails.Tangents, PCGExTangents::SourceOverridesTangents);
 
 		if (InDetails.StartTangents)
 		{
-			StartTangents = InContext->RegisterOperation<UPCGExTangentsInstancedFactory>(InDetails.StartTangents, PCGExTangents::SourceOverridesTangentsStart);
+			StartTangents = PCGEX_OPERATION_REGISTER_C(InContext, UPCGExTangentsInstancedFactory, InDetails.StartTangents, PCGExTangents::SourceOverridesTangentsStart);
 			if (!StartTangents)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Optional Start tangents processor failed to initialized."));
@@ -49,7 +49,7 @@ bool FPCGExTangentsDetails::Init(FPCGExPointsProcessorContext* InContext, const 
 
 		if (InDetails.EndTangents)
 		{
-			EndTangents = InContext->RegisterOperation<UPCGExTangentsInstancedFactory>(InDetails.EndTangents, PCGExTangents::SourceOverridesTangentsEnd);
+			EndTangents = PCGEX_OPERATION_REGISTER_C(InContext, UPCGExTangentsInstancedFactory, InDetails.EndTangents, PCGExTangents::SourceOverridesTangentsEnd);
 			if (!EndTangents)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Optional End tangents processor failed to initialized."));

@@ -5,8 +5,6 @@
 
 
 #include "PCGComponent.h"
-#include "Helpers/PCGHelpers.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExCreateSplineElement"
 #define PCGEX_NAMESPACE CreateSpline

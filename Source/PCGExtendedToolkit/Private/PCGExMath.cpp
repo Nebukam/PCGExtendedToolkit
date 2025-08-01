@@ -3,6 +3,7 @@
 
 #include "PCGExMath.h"
 #include "PCGEx.h"
+#include "PCGExMacros.h"
 
 namespace PCGExMath
 {

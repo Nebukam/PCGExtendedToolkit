@@ -4,7 +4,6 @@
 #include "PCGExPropertyHelpers.h"
 
 #include "CoreMinimal.h"
-#include "PCGExMath.h"
 
 namespace PCGEx
 {

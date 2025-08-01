@@ -6,16 +6,11 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
-#include "PCGExtendedToolkit.h"
 #include "PCGExHelpers.h"
-#include "PCGExMath.h"
 #include "PCGExPointIO.h"
 #include "PCGExAttributeHelpers.h"
 #include "PCGExData.h"
-#include "PCGExDataHelpers.h"
 #include "PCGExMT.h"
-#include "Data/PCGPointData.h"
-
 
 namespace PCGExData
 {

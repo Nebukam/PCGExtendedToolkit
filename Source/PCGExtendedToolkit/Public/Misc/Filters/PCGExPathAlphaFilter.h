@@ -6,16 +6,12 @@
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
 #include "PCGExFilterFactoryProvider.h"
-#include "PCGExPathInclusionFilter.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSplineAlphaFilter.h"
 #include "PCGExSplineInclusionFilter.h"
-
-
-#include "Sampling/PCGExSampleNearestSpline.h"
 
 #include "PCGExPathAlphaFilter.generated.h"
 

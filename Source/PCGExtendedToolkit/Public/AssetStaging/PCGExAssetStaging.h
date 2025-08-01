@@ -9,11 +9,16 @@
 #include "PCGExPointsProcessor.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "PCGExFitting.h"
-#include "PCGExScopedContainers.h"
 #include "PCGExStaging.h"
-
+#include "Data/PCGExPointFilter.h"
 
 #include "PCGExAssetStaging.generated.h"
+
+namespace PCGExMT
+{
+	template<typename T>
+	class TScopedNumericValue;
+}
 
 UENUM()
 enum class EPCGExStagingOutputMode : uint8

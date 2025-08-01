@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Actions/PCGExActionWriteValues.h"
+#include "PCGExFactoryProvider.h"
 
 #include "PCGPin.h"
 

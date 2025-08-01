@@ -3,9 +3,6 @@
 
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
-
-#include "VerseVM/VVMInstantiationContext.h"
-
 #define LOCTEXT_NAMESPACE "PCGExCreatePicker"
 #define PCGEX_NAMESPACE CreatePicker
 

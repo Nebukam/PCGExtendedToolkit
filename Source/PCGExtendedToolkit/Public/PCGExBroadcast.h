@@ -3,6 +3,7 @@
 
 #pragma once
 #include "PCGEx.h"
+#include "PCGExMacros.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 
 class UPCGData;
@@ -170,7 +171,7 @@ extern template _TYPE_B Convert<_TYPE_A, _TYPE_B>(const _TYPE_A& Value);
 
 #define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
 extern template _TYPE_A FSubSelection::Get<_TYPE_B, _TYPE_A>(const _TYPE_B&) const; \
-extern template void FSubSelection::Set(_TYPE_A& Target, const _TYPE_B& Value) const;
+extern template void FSubSelection::Set<_TYPE_A, _TYPE_B>(_TYPE_A& Target, const _TYPE_B& Value) const;
 	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 
@@ -188,10 +189,7 @@ extern template void FSubSelection::Set(_TYPE_A& Target, const _TYPE_B& Value) c
 		TValueBuffer() = default;
 
 		template <typename T_VALUE>
-		void Set(const FSubSelection& SubSelection, const int32 Index, const T_VALUE& Value)
-		{
-			*(Values->GetData() + Index) = SubSelection.Get<T>(Value);
-		}
+		void Set(const FSubSelection& SubSelection, const int32 Index, const T_VALUE& Value) { *(Values->GetData() + Index) = SubSelection.Get<T>(Value); }
 
 		template <typename T_VALUE>
 		T_VALUE Get(const FSubSelection& SubSelection, const int32 Index) { return SubSelection.Get<T_VALUE, T>(*(Values->GetData() + Index)); }
@@ -218,5 +216,4 @@ extern template void FSubSelection::Set(_TYPE_A& Target, const _TYPE_B& Value) c
 		const FName AttributeName,
 		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
 		EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSource);
-
 }

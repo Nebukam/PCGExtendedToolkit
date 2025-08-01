@@ -9,7 +9,6 @@
 #include "UObject/SoftObjectPath.h"
 
 #include "PCGExCommon.h"
-#include "PCGExMacros.h"
 
 #include "PCGEx.generated.h"
 

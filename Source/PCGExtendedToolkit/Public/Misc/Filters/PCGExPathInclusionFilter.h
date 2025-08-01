@@ -11,7 +11,6 @@
 #include "Paths/PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExPolyPathFilterFactory.h"
-#include "PCGExSplineInclusionFilter.h"
 
 #include "PCGExPathInclusionFilter.generated.h"
 
