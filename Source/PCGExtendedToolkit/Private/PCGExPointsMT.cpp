@@ -3,6 +3,7 @@
 
 #include "PCGExPointsMT.h"
 
+#include "Data/PCGExPointFilter.h"
 #include "PCGExInstancedFactory.h"
 #include "Data/PCGExDataPreloader.h"
 
@@ -77,7 +78,7 @@ namespace PCGExPointsMT
 		{
 			if (PrimaryInstancedFactory->WantsPerDataInstance())
 			{
-				PrimaryInstancedFactory = PrimaryInstancedFactory->CreateNewInstance<UPCGExInstancedFactory>(ExecutionContext->ManagedObjects.Get());
+				PrimaryInstancedFactory = PrimaryInstancedFactory->CreateNewInstance(ExecutionContext->ManagedObjects.Get());
 				if (!PrimaryInstancedFactory) { return false; }
 				PrimaryInstancedFactory->PrimaryDataFacade = PointDataFacade;
 			}

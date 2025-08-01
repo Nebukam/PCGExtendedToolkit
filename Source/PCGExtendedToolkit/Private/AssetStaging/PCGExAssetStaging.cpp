@@ -4,7 +4,7 @@
 #include "AssetStaging/PCGExAssetStaging.h"
 
 #include "PCGExRandom.h"
-#include "Debug/PCGExDrawAttributes.h"
+#include "PCGExScopedContainers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"

@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGEx.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExFlushDebug.generated.h"

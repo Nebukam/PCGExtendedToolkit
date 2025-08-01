@@ -4,7 +4,6 @@
 #include "Graph/Edges/PCGExEdgeOrder.h"
 
 #include "Data/PCGExDataPreloader.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 
 #define LOCTEXT_NAMESPACE "EdgeOrder"
 #define PCGEX_NAMESPACE EdgeOrder

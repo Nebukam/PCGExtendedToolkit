@@ -8,10 +8,8 @@
 #include "PCGExGraph.h"
 #include "PCGExCluster.h"
 #include "PCGExEdgeDirectionSettings.h"
-#include "Data/PCGExClusterData.h"
 #include "Data/PCGExData.h"
 #include "Geometry/PCGExGeo.h"
-
 
 #include "Pathfinding/Heuristics/PCGExHeuristics.h"
 

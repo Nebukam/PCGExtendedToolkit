@@ -7,6 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExPointFilter.h"
 
 
 #include "PCGExShrinkPath.generated.h"

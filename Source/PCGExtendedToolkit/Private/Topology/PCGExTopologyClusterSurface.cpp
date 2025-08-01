@@ -3,7 +3,6 @@
 
 #include "Topology/PCGExTopologyClusterSurface.h"
 
-#include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/PolygonFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 

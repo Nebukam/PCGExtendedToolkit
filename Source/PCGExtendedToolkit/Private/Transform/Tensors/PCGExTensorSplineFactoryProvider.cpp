@@ -5,7 +5,6 @@
 
 #include "Paths/PCGExPaths.h"
 #include "Paths/PCGExSplineToPath.h"
-#include "Transform/Tensors/PCGExTensorOperation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensor"
 #define PCGEX_NAMESPACE CreateTensor

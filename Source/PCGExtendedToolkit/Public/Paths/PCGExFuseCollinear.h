@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExPointFilter.h"
 
 
 #include "PCGExFuseCollinear.generated.h"

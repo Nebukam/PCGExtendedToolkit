@@ -6,23 +6,14 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
-
 #include "PCGExCompare.h"
 #include "PCGExDetailsData.h"
-
-#include "Utils/PCGPointOctree.h"
-
 #include "PCGExFilterFactoryProvider.h"
-
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
-
-
 #include "Sampling/PCGExSampling.h"
 
-
 #include "PCGExDistanceFilter.generated.h"
-
 
 USTRUCT(BlueprintType)
 struct FPCGExDistanceFilterConfig

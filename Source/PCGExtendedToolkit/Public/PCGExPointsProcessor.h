@@ -10,7 +10,6 @@
 
 #include "PCGContext.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExInstancedFactory.h"
 #include "PCGExPointsMT.h"
 #include "Data/PCGExPointIO.h"
 
@@ -30,6 +29,8 @@
 
 #define PCGEX_ELEMENT_CREATE_CONTEXT(_CLASS) virtual FPCGContext* CreateContext() override { return new FPCGEx##_CLASS##Context(); }
 #define PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT virtual FPCGContext* CreateContext() override { return new FPCGExContext(); }
+
+class UPCGExInstancedFactory;
 
 namespace PCGExFactories
 {
@@ -142,17 +143,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 
 	int32 InitialMainPointsNum = 0;
 
-	template <typename T>
-	T* RegisterOperation(UPCGExInstancedFactory* BaseOperation, FName OverridePinLabel = NAME_None)
-	{
-		BaseOperation->BindContext(this); // Temp so Copy doesn't crash
-
-		T* RetValue = BaseOperation->CreateNewInstance<T>(ManagedObjects.Get());
-		if (!RetValue) { return nullptr; }
-		InternalOperations.Add(RetValue);
-		RetValue->InitializeInContext(this, OverridePinLabel);
-		return RetValue;
-	}
+	UPCGExInstancedFactory* RegisterOperation(UPCGExInstancedFactory* BaseOperation, const FName OverridePinLabel = NAME_None);
+	
 
 #pragma region Filtering
 

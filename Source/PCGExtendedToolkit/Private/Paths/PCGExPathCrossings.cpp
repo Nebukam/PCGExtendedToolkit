@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExPathCrossings.h"
 #include "PCGExMath.h"
+#include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 
 

@@ -163,7 +163,7 @@ namespace PCGExDataBlending
 	};
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-extern template void FProxyDataBlender::Set(const int32 TargetIndex, const _TYPE Value) const;
+extern template void FProxyDataBlender::Set<_TYPE>(const int32 TargetIndex, const _TYPE Value) const;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 

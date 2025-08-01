@@ -6,8 +6,6 @@
 
 #include "Misc/Pickers/PCGExPicker.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
-#include "Transform/Tensors/PCGExTensorHandler.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExPickerFilterDefinition"
 #define PCGEX_NAMESPACE PCGExPickerFilterDefinition

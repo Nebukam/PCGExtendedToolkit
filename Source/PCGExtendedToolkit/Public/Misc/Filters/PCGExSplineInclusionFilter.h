@@ -10,11 +10,6 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExPolyPathFilterFactory.h"
-#include "Data/PCGSplineData.h"
-
-
-#include "Sampling/PCGExSampleNearestSpline.h"
-
 
 #include "PCGExSplineInclusionFilter.generated.h"
 

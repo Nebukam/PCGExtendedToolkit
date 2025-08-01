@@ -8,7 +8,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSorting.h"
-#include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExSortPoints.generated.h"
 

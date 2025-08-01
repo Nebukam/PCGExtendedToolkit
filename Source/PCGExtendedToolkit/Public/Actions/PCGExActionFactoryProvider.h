@@ -9,7 +9,6 @@
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExOperation.h"
-#include "Data/PCGExPointFilter.h"
 
 
 #include "PCGExActionFactoryProvider.generated.h"
@@ -27,6 +26,13 @@
 	NewOperation->Factory = NewOperation->TypedFactory; \
 	_BODY \
 	return NewOperation;}
+
+class UPCGExFilterFactoryData;
+
+namespace PCGExPointFilter
+{
+	class FManager;
+}
 
 class UPCGExActionFactoryData;
 
