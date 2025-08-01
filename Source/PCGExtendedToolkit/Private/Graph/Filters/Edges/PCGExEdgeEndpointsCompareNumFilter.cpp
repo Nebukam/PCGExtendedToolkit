@@ -28,12 +28,12 @@ bool UPCGExEdgeEndpointsCompareNumFilterFactory::RegisterConsumableAttributesWit
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExEdgeEndpointsCompareNumFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExEdgeEndpointsCompareNum::FNeighborsCountFilter>(this);
+	return MakeShared<PCGExEdgeEndpointsCompareNum::FFilter>(this);
 }
 
 namespace PCGExEdgeEndpointsCompareNum
 {
-	bool FNeighborsCountFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+	bool FFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
@@ -47,13 +47,13 @@ namespace PCGExEdgeEndpointsCompareNum
 		return true;
 	}
 
-	bool FNeighborsCountFilter::Test(const PCGExGraph::FEdge& Edge) const
+	bool FFilter::Test(const PCGExGraph::FEdge& Edge) const
 	{
 		const bool bResult = PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, NumericBuffer->Read(Edge.Start), NumericBuffer->Read(Edge.End), TypedFilterFactory->Config.Tolerance);
 		return TypedFilterFactory->Config.bInvert ? !bResult : bResult;
 	}
 
-	FNeighborsCountFilter::~FNeighborsCountFilter()
+	FFilter::~FFilter()
 	{
 		TypedFilterFactory = nullptr;
 	}

@@ -7,7 +7,6 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
 
-#include "PCGExPointsProcessor.h"
 #include "Data/Matching/PCGExMatching.h"
 #include "Paths/PCGExCreateSpline.h"
 #include "Paths/Tangents/PCGExTangentsInstancedFactory.h"

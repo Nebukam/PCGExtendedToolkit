@@ -22,12 +22,12 @@ bool UPCGExEdgeNeighborsCountFilterFactory::RegisterConsumableAttributesWithData
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExEdgeNeighborsCountFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExEdgeNeighborsCount::FNeighborsCountFilter>(this);
+	return MakeShared<PCGExEdgeNeighborsCount::FFilter>(this);
 }
 
 namespace PCGExEdgeNeighborsCount
 {
-	bool FNeighborsCountFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+	bool FFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
@@ -37,7 +37,7 @@ namespace PCGExEdgeNeighborsCount
 		return true;
 	}
 
-	bool FNeighborsCountFilter::Test(const PCGExGraph::FEdge& Edge) const
+	bool FFilter::Test(const PCGExGraph::FEdge& Edge) const
 	{
 		const PCGExCluster::FNode* From = Cluster->GetEdgeStart(Edge);
 		const PCGExCluster::FNode* To = Cluster->GetEdgeEnd(Edge);
@@ -66,7 +66,7 @@ namespace PCGExEdgeNeighborsCount
 		return TypedFilterFactory->Config.bInvert ? !bResult : bResult;
 	}
 
-	FNeighborsCountFilter::~FNeighborsCountFilter()
+	FFilter::~FFilter()
 	{
 		TypedFilterFactory = nullptr;
 	}

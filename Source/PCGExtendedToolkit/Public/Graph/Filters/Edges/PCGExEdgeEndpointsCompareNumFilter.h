@@ -68,10 +68,10 @@ public:
 
 namespace PCGExEdgeEndpointsCompareNum
 {
-	class FNeighborsCountFilter final : public PCGExClusterFilter::IEdgeFilter
+	class FFilter final : public PCGExClusterFilter::IEdgeFilter
 	{
 	public:
-		explicit FNeighborsCountFilter(const UPCGExEdgeEndpointsCompareNumFilterFactory* InFactory)
+		explicit FFilter(const UPCGExEdgeEndpointsCompareNumFilterFactory* InFactory)
 			: IEdgeFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
@@ -83,7 +83,7 @@ namespace PCGExEdgeEndpointsCompareNum
 		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;
 
-		virtual ~FNeighborsCountFilter() override;
+		virtual ~FFilter() override;
 	};
 }
 

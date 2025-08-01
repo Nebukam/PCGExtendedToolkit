@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExTangentsInstancedFactory.h"
-#include "Geometry/PCGExGeo.h"
 #include "PCGExTangentsCatmullRom.generated.h"
 
 class FPCGExTangentsCatmullRom : public FPCGExTangentsOperation

@@ -918,16 +918,10 @@ extern template class TSingleValueBuffer<_TYPE>;
 		UPCGBasePointData* GetOut() const { return Source->GetOut(); }
 
 		void CreateReadables(const TArray<PCGEx::FAttributeIdentity>& Identities, const bool bWantsScoped = true);
-
 		void MarkCurrentBuffersReadAsComplete();
 
-		void Flush()
-		{
-			FWriteScopeLock WriteScopeLock(BufferLock);
-			Buffers.Empty();
-			BufferMap.Empty();
-		}
-
+		void Flush();
+		
 		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const bool bEnsureValidKeys = true);
 		FPlatformTypes::int32 WriteBuffersAsCallbacks(const TSharedPtr<PCGExMT::FTaskGroup>& TaskGroup);
 		void WriteBuffers(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, PCGExMT::FCompletionCallback&& Callback);
@@ -966,17 +960,8 @@ extern template class TSingleValueBuffer<_TYPE>;
 		}
 
 		bool ValidateOutputsBeforeWriting() const;
-
-		void Flush(const TSharedPtr<IBuffer>& Buffer)
-		{
-			if (Buffer)
-			{
-				FWriteScopeLock WriteScopeLock(BufferLock);
-				Buffers.RemoveAt(Buffer->BufferIndex);
-				BufferMap.Remove(Buffer->GetUID());
-				for (int i = 0; i < Buffers.Num(); i++) { Buffers[i].Get()->BufferIndex = i; }
-			}
-		}
+		void Flush(const TSharedPtr<IBuffer>& Buffer);
+		
 	};
 
 #pragma endregion
