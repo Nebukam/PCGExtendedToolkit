@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExTensor.h"
 #include "PCGExTensorFactoryProvider.h"
 #include "Data/PCGSplineStruct.h"
 #include "Paths/PCGExPaths.h"

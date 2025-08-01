@@ -67,10 +67,10 @@ public:
 
 namespace PCGExNodeNeighborsCount
 {
-	class FNeighborsCountFilter final : public PCGExClusterFilter::IVtxFilter
+	class FFilter final : public PCGExClusterFilter::IVtxFilter
 	{
 	public:
-		explicit FNeighborsCountFilter(const UPCGExNodeNeighborsCountFilterFactory* InFactory)
+		explicit FFilter(const UPCGExNodeNeighborsCountFilterFactory* InFactory)
 			: IVtxFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
@@ -82,7 +82,7 @@ namespace PCGExNodeNeighborsCount
 		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
 
-		virtual ~FNeighborsCountFilter() override;
+		virtual ~FFilter() override;
 	};
 }
 

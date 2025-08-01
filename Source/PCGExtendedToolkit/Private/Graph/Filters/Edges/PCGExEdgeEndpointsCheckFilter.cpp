@@ -45,12 +45,12 @@ bool UPCGExEdgeEndpointsCheckFilterFactory::RegisterConsumableAttributesWithData
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExEdgeEndpointsCheckFilterFactory::CreateFilter() const
 {
-	return MakeShared<PCGExEdgeEndpointsCheck::FNeighborsCountFilter>(this);
+	return MakeShared<PCGExEdgeEndpointsCheck::FFilter>(this);
 }
 
 namespace PCGExEdgeEndpointsCheck
 {
-	bool FNeighborsCountFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+	bool FFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
@@ -64,7 +64,7 @@ namespace PCGExEdgeEndpointsCheck
 		return true;
 	}
 
-	bool FNeighborsCountFilter::Test(const PCGExGraph::FEdge& Edge) const
+	bool FFilter::Test(const PCGExGraph::FEdge& Edge) const
 	{
 		TArray<int8>& MutableResultCache = const_cast<TArray<int8>&>(ResultCache);
 
@@ -112,7 +112,7 @@ namespace PCGExEdgeEndpointsCheck
 		return TypedFilterFactory->Config.bInvert ? !bPass : bPass;
 	}
 
-	FNeighborsCountFilter::~FNeighborsCountFilter()
+	FFilter::~FFilter()
 	{
 		VtxFiltersManager.Reset();
 		TypedFilterFactory = nullptr;

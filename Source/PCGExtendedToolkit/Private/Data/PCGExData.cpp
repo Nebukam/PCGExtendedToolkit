@@ -170,6 +170,13 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 		}
 	}
 
+	void FFacade::Flush()
+	{
+		FWriteScopeLock WriteScopeLock(BufferLock);
+		Buffers.Empty();
+		BufferMap.Empty();
+	}
+
 	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const bool bEnsureValidKeys)
 	{
 		if (!AsyncManager || !AsyncManager->IsAvailable() || !Source->GetOut()) { return; }
@@ -311,6 +318,28 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 		}
 
 		return true;
+	}
+
+	void FFacade::Flush(const TSharedPtr<IBuffer>& Buffer)
+	{
+		if (!Buffer || !Buffer.IsValid()) { return; }
+
+		{
+			FWriteScopeLock WriteScopeLock(BufferLock);
+
+			if (Buffers.IsValidIndex(Buffer->BufferIndex)) { Buffers.RemoveAt(Buffer->BufferIndex); }
+			BufferMap.Remove(Buffer->UID);
+
+			int32 WriteIndex = 0;
+			for (int i = 0; i < Buffers.Num(); i++)
+			{
+				TSharedPtr<IBuffer> TempBuffer = Buffers[i];
+
+				if (!TempBuffer || !TempBuffer.IsValid()) { continue; }
+				TempBuffer->BufferIndex = WriteIndex++;
+				Buffers[TempBuffer->BufferIndex] = TempBuffer;
+			}
+		}
 	}
 
 	void WriteId(const TSharedRef<FPointIO>& PointIO, const FName IdName, const int64 Id)
