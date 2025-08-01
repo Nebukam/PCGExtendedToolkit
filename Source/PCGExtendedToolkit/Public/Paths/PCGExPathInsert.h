@@ -11,8 +11,6 @@
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
-
-#include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExPathInsert.generated.h"
 
 /**

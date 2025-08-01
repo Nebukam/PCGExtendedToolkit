@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGExDataFilter.h"
 #include "Data/Sharing/PCGExBeacon.h"
 #include "Engine/Level.h"
 #include "Subsystems/WorldSubsystem.h"

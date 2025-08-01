@@ -2,7 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExPathInsert.h"
-#include "PCGExMath.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 
 

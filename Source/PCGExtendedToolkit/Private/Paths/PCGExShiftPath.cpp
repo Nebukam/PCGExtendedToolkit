@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExShiftPath.h"
+#include "Paths/PCGExPaths.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExShiftPathElement"

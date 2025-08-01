@@ -4,7 +4,6 @@
 #include "Transform/Tensors/PCGExTensor.h"
 
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
-#include "Transform/Tensors/PCGExTensorOperation.h"
 
 PCGExTensor::FTensorSample FPCGExTensorSamplingMutationsDetails::Mutate(const FTransform& InProbe, PCGExTensor::FTensorSample InSample) const
 {

@@ -5,8 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExChain.h"
-#include "Filters/PCGExClusterFilter.h"
-
 
 #include "Graph/PCGExEdgesProcessor.h"
 

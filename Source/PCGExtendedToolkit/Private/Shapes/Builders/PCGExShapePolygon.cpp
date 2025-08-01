@@ -1,9 +1,5 @@
 #include "Shapes/Builders/PCGExShapePolygon.h"
 
-#include "MeshAttributes.h"
-#include "ScreenPass.h"
-#include "Data/PCGTextureData.h"
-#include "Elements/PCGCreatePointsSphere.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderPolygon"

@@ -4,9 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/Object.h"
-#include "UObject/Package.h"
-#include "UObject/UObjectGlobals.h"
 #include "PCGExFactoryProvider.h"
 
 #include "PCGExInstancedFactory.generated.h"
@@ -44,17 +41,7 @@ public:
 	TSharedPtr<PCGExData::FFacade> PrimaryDataFacade;
 	TSharedPtr<PCGExData::FFacade> SecondaryDataFacade;
 
-	template <typename T>
-	T* CreateNewInstance(PCGEx::FManagedObjects* InManagedObjects) const
-	{
-		if (!InManagedObjects) { return nullptr; }
-		T* TypedInstance = InManagedObjects->New<T>(GetTransientPackage(), this->GetClass());
-
-		check(TypedInstance)
-
-		TypedInstance->CopySettingsFrom(this);
-		return TypedInstance;
-	}
+	UPCGExInstancedFactory* CreateNewInstance(PCGEx::FManagedObjects* InManagedObjects) const;
 
 	virtual void RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const;
 	virtual void RegisterPrimaryBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;

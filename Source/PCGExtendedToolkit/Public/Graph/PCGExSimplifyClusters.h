@@ -8,6 +8,7 @@
 #include "PCGExClusterMT.h"
 #include "PCGExDetailsIntersection.h"
 #include "PCGExEdgesProcessor.h"
+#include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 

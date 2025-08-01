@@ -3,7 +3,6 @@
 
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
-#include "PCGExDetailsData.h"
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 

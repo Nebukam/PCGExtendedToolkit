@@ -9,6 +9,7 @@
 #include "Curves/RichCurve.h"
 
 #include "PCGExDetailsData.h"
+#include "PCGExFactoryProvider.h"
 #include "PCGExOperation.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"

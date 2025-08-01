@@ -6,7 +6,6 @@
 
 #include "Data/PCGExDataPreloader.h"
 #include "Graph/PCGExGraph.h"
-#include "Graph/Data/PCGExClusterData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeAdjacencyFilter"
 #define PCGEX_NAMESPACE NodeAdjacencyFilter

@@ -2,10 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
-#include "PCGEx.h"
 #include "PCGExBroadcast.h"
 #include "Metadata/PCGAttributePropertySelector.h"
-#include "Metadata/PCGMetadataAttributeTraits.h"
 
 namespace PCGExData
 {

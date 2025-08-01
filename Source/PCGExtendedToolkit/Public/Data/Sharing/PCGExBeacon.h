@@ -10,7 +10,6 @@
 #endif
 
 #include "PCGExDataSharing.h"
-#include "PCGExFitting.h"
 #include "Engine/DataAsset.h"
 
 #include "PCGExBeacon.generated.h"

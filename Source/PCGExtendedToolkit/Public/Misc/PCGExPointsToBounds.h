@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 
-#include "MinVolumeBox3.h"
 #include "OrientedBoxTypes.h"
 
 #include "PCGExGlobalSettings.h"
@@ -13,7 +12,6 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-
 
 #include "PCGExPointsToBounds.generated.h"
 

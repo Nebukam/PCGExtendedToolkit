@@ -4,6 +4,7 @@
 #include "Graph/PCGExClusterMT.h"
 
 #include "Data/PCGExDataPreloader.h"
+#include "Graph/Data/PCGExClusterData.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 namespace PCGExClusterMT

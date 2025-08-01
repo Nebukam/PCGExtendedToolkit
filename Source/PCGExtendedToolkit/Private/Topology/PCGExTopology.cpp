@@ -4,9 +4,7 @@
 #include "Topology/PCGExTopology.h"
 
 #include "Geometry/PCGExGeoPrimtives.h"
-#include "GeometryScript/MeshNormalsFunctions.h"
 #include "Graph/PCGExCluster.h"
-#include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "Paths/PCGExPaths.h"
 #include "GeometryScript/PolygonFunctions.h"
 

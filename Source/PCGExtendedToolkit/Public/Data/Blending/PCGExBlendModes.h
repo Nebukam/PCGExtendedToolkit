@@ -5,8 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
-#include "PCGExH.h"
+#include "PCGExMacros.h"
 
 namespace PCGExBlend
 {
@@ -68,25 +67,26 @@ namespace PCGExBlend
 	T NaiveUnsignedHash(const T& A, const T& B);
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-extern template _TYPE Min(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE Max(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE Add(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE ModSimple(const _TYPE& A, const double Modulo); \
-extern template _TYPE ModComplex(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE WeightedAdd(const _TYPE& A, const _TYPE& B, const double& W); \
-extern template _TYPE Sub(const _TYPE& A, const _TYPE& B, const double& W); \
-extern template _TYPE WeightedSub(const _TYPE& A, const _TYPE& B, const double& W); \
-extern template _TYPE UnsignedMin(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE UnsignedMax(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE AbsoluteMin(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE AbsoluteMax(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE Lerp(const _TYPE& A, const _TYPE& B, const double& W); \
-extern template _TYPE Div(const _TYPE& A, const double Divider); \
-extern template _TYPE Mult(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE Copy(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE NoBlend(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE NaiveHash(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE NaiveUnsignedHash(const _TYPE& A, const _TYPE& B);
+extern template _TYPE Min<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE Max<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE Add<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE ModSimple<_TYPE>(const _TYPE& A, const double Modulo); \
+extern template _TYPE ModComplex<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE WeightedAdd<_TYPE>(const _TYPE& A, const _TYPE& B, const double& W); \
+extern template _TYPE Sub<_TYPE>(const _TYPE& A, const _TYPE& B, const double& W); \
+extern template _TYPE WeightedSub<_TYPE>(const _TYPE& A, const _TYPE& B, const double& W); \
+extern template _TYPE UnsignedMin<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE UnsignedMax<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE AbsoluteMin<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE AbsoluteMax<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE Lerp<_TYPE>(const _TYPE& A, const _TYPE& B, const double& W); \
+extern template _TYPE Div<_TYPE>(const _TYPE& A, const double Divider); \
+extern template _TYPE Mult<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE Copy<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE NoBlend<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE NaiveHash<_TYPE>(const _TYPE& A, const _TYPE& B); \
+extern template _TYPE NaiveUnsignedHash<_TYPE>(const _TYPE& A, const _TYPE& B);
+	
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 }

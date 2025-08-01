@@ -5,12 +5,22 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExInstancedFactory.h"
 
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExPointFilter.h"
 
+class UPCGExInstancedFactory;
+class UPCGExFilterFactoryData;
+
+namespace PCGExPointFilter
+{
+	class FManager;
+}
+
+namespace PCGExData
+{
+	class FFacadePreloader;
+}
 
 namespace PCGExPointsMT
 {

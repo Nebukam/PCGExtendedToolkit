@@ -3,6 +3,10 @@
 
 #include "PCGExInstancedFactory.h"
 
+#include "UObject/Object.h"
+#include "UObject/Package.h"
+#include "UObject/UObjectGlobals.h"
+
 #include "PCGExPropertyHelpers.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
@@ -49,6 +53,17 @@ void UPCGExInstancedFactory::Cleanup()
 	Context = nullptr;
 	PrimaryDataFacade.Reset();
 	SecondaryDataFacade.Reset();
+}
+
+UPCGExInstancedFactory* UPCGExInstancedFactory::CreateNewInstance(PCGEx::FManagedObjects* InManagedObjects) const
+{
+	if (!InManagedObjects) { return nullptr; }
+	UPCGExInstancedFactory* TypedInstance = InManagedObjects->New<UPCGExInstancedFactory>(GetTransientPackage(), this->GetClass());
+
+	check(TypedInstance)
+
+	TypedInstance->CopySettingsFrom(this);
+	return TypedInstance;
 }
 
 void UPCGExInstancedFactory::RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const
