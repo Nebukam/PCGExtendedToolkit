@@ -230,7 +230,6 @@ bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) c
 	{
 		if (!Boot(Context))
 		{
-			Context->OutputData.TaggedData.Empty(); // Ensure culling of subsequent nodes if boot fails
 			return Context->CancelExecution(TEXT(""));
 		}
 
@@ -311,6 +310,8 @@ void FPCGExPointsProcessorElement::OnContextInitialized(FPCGExPointsProcessorCon
 
 bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 {
+	if (InContext->InputData.bCancelExecution) { return false; }
+
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 	PCGEX_SETTINGS(PointsProcessor)
 
@@ -336,9 +337,11 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	Context->MainPoints = MakeShared<PCGExData::FPointIOCollection>(Context, Settings->GetIsMainTransactional());
 	Context->MainPoints->OutputPin = Settings->GetMainOutputPin();
 
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(Settings->GetMainInputPin());
+	if (Sources.IsEmpty() && !Settings->IsInputless()) { return false; } // Silent cancel, there's simply no data
+
 	if (Settings->GetMainAcceptMultipleData())
 	{
-		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(Settings->GetMainInputPin());
 		Context->MainPoints->Initialize(Sources, Settings->GetMainOutputInitMode());
 	}
 	else
