@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/DataAsset.h"
 
 #if WITH_EDITOR
 #include "AssetRegistry/AssetData.h"
@@ -13,8 +14,9 @@
 #include "PCGExDetailsData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
-#include "PCGExFitting.h"
-#include "Engine/DataAsset.h"
+#include "Transform/PCGExTransform.h"
+#include "Transform/PCGExFitting.h"
+
 
 #include "PCGExAssetCollection.generated.h"
 
@@ -310,7 +312,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetStagingData
 	UPROPERTY()
 	FSoftObjectPath Path;
 
-	UPROPERTY(VisibleAnywhere, Category = Baked)
+	/** A list of socket attached to this entry. Maintained automatically, but support user-defined entries. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	TArray<FPCGExSocket> Sockets;
+
+	/** The bounds of this entry. This is computed automatically and cannot be edited. */
+	UPROPERTY(VisibleAnywhere, Category = Settings)
 	FBox Bounds = FBox(ForceInit);
 
 	template <typename T>
@@ -321,6 +328,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetStagingData
 
 	template <typename T>
 	T* TryGet() const { return TSoftObjectPtr<T>(Path).Get(); }
+
+	bool FindSocket(const FName InName, const FPCGExSocket*& OutSocket) const;
+	bool FindSocket(const FName InName, const FString& Tag, const FPCGExSocket*& OutSocket) const;
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Collection Entry")
@@ -375,6 +385,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 
 	TSharedPtr<PCGExAssetCollection::FMacroCache> MacroCache;
 	virtual void BuildMacroCache();
+
+protected:
+	void ClearManagedSockets();
 };
 
 namespace PCGExAssetCollection

@@ -287,6 +287,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariationsDetails
 		const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const;
 };
 
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExFittingDetailsHandler
 {

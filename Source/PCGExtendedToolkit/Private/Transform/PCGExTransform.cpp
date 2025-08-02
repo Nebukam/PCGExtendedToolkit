@@ -11,6 +11,48 @@ FAttachmentTransformRules FPCGExAttachmentRules::GetRules() const
 	return FAttachmentTransformRules(LocationRule, RotationRule, ScaleRule, bWeldSimulatedBodies);
 }
 
+FPCGExSocket::FPCGExSocket(const FName& InSocketName, const FVector& InRelativeLocation, const FRotator& InRelativeRotation, const FVector& InRelativeScale, FString InTag)
+	: SocketName(InSocketName), RelativeTransform(FTransform(InRelativeRotation.Quaternion(), InRelativeLocation, InRelativeScale)), Tag(InTag)
+{
+}
+
+FPCGExSocket::FPCGExSocket(const FName& InSocketName, const FTransform& InRelativeTransform, const FString& InTag)
+	: SocketName(InSocketName), RelativeTransform(InRelativeTransform), Tag(InTag)
+{
+}
+
+bool FPCGExSocketFitDetails::Init(const TSharedPtr<PCGExData::FFacade>& InFacade)
+{
+	if (!bEnabled ||
+		(SocketNameInput == EPCGExInputValueType::Constant && SocketName.IsNone()) ||
+		SocketNameInput == EPCGExInputValueType::Attribute && SocketNameAttribute.IsNone())
+	{
+		bMutate = false;
+		return true;
+	}
+
+	bMutate = true;
+	SocketNameBuffer = GetValueSettingSocketName();
+	if (!SocketNameBuffer->Init(InFacade)) { return false; }
+
+	return true;
+}
+
+void FPCGExSocketFitDetails::Mutate(const int32 Index, const TArray<FPCGExSocket>& InSockets, FTransform& InOutTransform) const
+{
+	if (!bMutate) { return; }
+
+	const FName SName = SocketNameBuffer->Read(Index);
+	for (const FPCGExSocket& Socket : InSockets)
+	{
+		if (Socket.SocketName == SName)
+		{
+			InOutTransform = InOutTransform * Socket.RelativeTransform;
+			return;
+		}
+	}
+}
+
 bool FPCGExUVW::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
 	UGetter = GetValueSettingU();

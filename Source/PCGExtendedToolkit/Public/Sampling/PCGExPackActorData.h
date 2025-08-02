@@ -20,7 +20,7 @@ namespace PCGExPackActorData
 }
 
 /**
- * 
+ * Executed once per point
  */
 UCLASS(Blueprintable, BlueprintType, Abstract, MinimalAPI, DisplayName = "[PCGEx] Custom Actor Data Packer")
 class UPCGExCustomActorDataPacker : public UPCGExInstancedFactory
@@ -552,7 +552,6 @@ public:
 
 #pragma endregion
 };
-
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="quality-of-life/pack-actor-data"))
 class UPCGExPackActorDataSettings : public UPCGExPointsProcessorSettings
