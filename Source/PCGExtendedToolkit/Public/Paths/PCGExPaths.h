@@ -472,55 +472,28 @@ namespace PCGExPaths
 			)
 
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp, const bool bUseScale = false) const
-		PCGEX_NOT_IMPLEMENTED_RET(
-				GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp)
-				,
-				FTransform::Identity
-			)
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp), FTransform::Identity);
 
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, float& OutAlpha, const bool bUseScale = false) const
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransformAndKey(const FVector& WorldPosition, float& OutAlpha), FTransform::Identity);
+		
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, bool& bIsInside, const bool bUseScale) const
-		PCGEX_NOT_IMPLEMENTED_RET(
-				GetClosestTransform(const FVector& WorldPosition, bool& bIsInside)
-				,
-				FTransform::Identity
-			)
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, bool& bIsInside), FTransform::Identity);
 
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, const bool bUseScale) const
-		PCGEX_NOT_IMPLEMENTED_RET(
-				GetClosestTransform(const FVector& WorldPosition)
-				,
-				FTransform::Identity
-			)
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), FTransform::Identity);
 
 		virtual bool GetClosestPosition(const FVector& WorldPosition, FVector& OutPosition) const
-		PCGEX_NOT_IMPLEMENTED_RET(
-				GetClosestTransform(const FVector& WorldPosition)
-				,
-				false
-			)
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), false);
 
 		virtual bool GetClosestPosition(const FVector& WorldPosition, FVector& OutPosition, bool& bIsInside) const
-		PCGEX_NOT_IMPLEMENTED_RET(
-				GetClosestTransform(const FVector& WorldPosition)
-				,
-				false
-			)
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition), false);
 
 		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const
-		PCGEX_NOT_IMPLEMENTED_RET(
-				GetClosestEdge(const FVector& WorldPosition, float& OutLerp)
-				,
-				-
-				1
-			)
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestEdge(const FVector& WorldPosition, float& OutLerp), - 1);
 
 		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const
-		PCGEX_NOT_IMPLEMENTED_RET(
-				GetClosestEdge(const double InTime, float& OutLerp)
-				,
-				-
-				1
-			)
+		PCGEX_NOT_IMPLEMENTED_RET(GetClosestEdge(const double InTime, float& OutLerp), - 1);
 
 	protected:
 		void BuildPath(const double Expansion);
@@ -709,6 +682,8 @@ namespace PCGExPaths
 			const double Expansion = 0, const double ExpansionZ = -1,
 			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
 
+		FORCEINLINE const FPCGSplineStruct* GetSpline() const { return Spline; }
+
 	protected:
 		void InitFromTransforms(
 			const TConstPCGValueRange<FTransform>& InTransforms,
@@ -718,6 +693,7 @@ namespace PCGExPaths
 		virtual bool IsInsideProjection(const FVector& WorldPosition) const override;
 
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp, const bool bUseScale = false) const override;
+		virtual FTransform GetClosestTransform(const FVector& WorldPosition, float& OutAlpha, const bool bUseScale = false) const override;
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, bool& bIsInside, const bool bUseScale = false) const override;
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, const bool bUseScale = false) const override;
 

@@ -52,68 +52,8 @@ struct FPCGExPolygonInclusionFilterConfig
 	bool bCheckAgainstDataBounds = false;
 };
 
-/**
- * 
- */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExPolygonInclusionFilterFactory : public UPCGExFilterFactoryData
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY()
-	FPCGExPolygonInclusionFilterConfig Config;
-
-	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
-	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
-
-	TSharedPtr<TArray<TSharedPtr<TArray<FVector2D>>>> Polygons;
-	TSharedPtr<PCGExOctree::FItemOctree> Octree;
-
-	virtual bool Init(FPCGExContext* InContext) override;
-	virtual bool WantsPreparation(FPCGExContext* InContext) override;
-	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-
-	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
-
-	virtual void BeginDestroy() override;
-};
-
-namespace PCGExPointFilter
-{
-	class FPolygonInclusionFilter final : public ISimpleFilter
-	{
-	public:
-		explicit FPolygonInclusionFilter(const TObjectPtr<const UPCGExPolygonInclusionFilterFactory>& InFactory)
-			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
-		{
-			Polygons = TypedFilterFactory->Polygons;
-			Octree = TypedFilterFactory->Octree;
-		}
-
-		const TObjectPtr<const UPCGExPolygonInclusionFilterFactory> TypedFilterFactory;
-
-		TSharedPtr<TArray<TSharedPtr<TArray<FVector2D>>>> Polygons;
-		TSharedPtr<PCGExOctree::FItemOctree> Octree;
-
-		TConstPCGValueRange<FTransform> InTransforms;
-		bool bCheckAgainstDataBounds = false;
-
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
-		virtual bool Test(const int32 PointIndex) const override;
-		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
-
-		virtual ~FPolygonInclusionFilter() override
-		{
-		}
-	};
-}
-
-///
-
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/polygon-2d-inclusion"))
-class UPCGExPolygonInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
+UCLASS(Hidden, Deprecated, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/polygon-2d-inclusion"))
+class UDEPRECATED_PCGExPolygonInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -121,7 +61,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		PolygonInclusionFilterFactory, "Filter : Polygon 2D Inclusion", "Creates a filter definition that checks points inclusion inside polygon. This is resolved on a flat XY plane.",
+		PolygonInclusionFilterFactory, "Filter : Polygon 2D Inclusion", "DEPRECATED",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 
