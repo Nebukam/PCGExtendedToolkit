@@ -8,7 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Collections/PCGExMeshCollection.h"
-#include "PCGExFitting.h"
+#include "Transform/PCGExFitting.h"
 #include "PCGExStaging.h"
 #include "Data/PCGExPointFilter.h"
 

@@ -7,7 +7,7 @@
 #include "PCGEx.h"
 #include "PCGExDetailsData.h"
 #include "PCGExMT.h"
-#include "PCGExFitting.h"
+#include "Transform/PCGExFitting.h"
 #include "Data/PCGExData.h"
 #include <vector>
 

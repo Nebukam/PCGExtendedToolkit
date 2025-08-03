@@ -81,58 +81,8 @@ struct FPCGExPathInclusionFilterConfig
 	bool bCheckAgainstDataBounds = false;
 };
 
-/**
- * 
- */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExPathInclusionFilterFactory : public UPCGExPolyPathFilterFactory
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY()
-	FPCGExPathInclusionFilterConfig Config;
-
-	virtual bool SupportsCollectionEvaluation() const override { return Config.bCheckAgainstDataBounds; }
-	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
-
-protected:
-	virtual void InitConfig_Internal() override;
-};
-
-namespace PCGExPointFilter
-{
-	class FPathInclusionFilter final : public ISimpleFilter
-	{
-	public:
-		explicit FPathInclusionFilter(const TObjectPtr<const UPCGExPathInclusionFilterFactory>& InFactory)
-			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
-		{
-			Handler = TypedFilterFactory->CreateHandler();
-			Handler->Init(TypedFilterFactory->Config.CheckType);
-		}
-
-		const TObjectPtr<const UPCGExPathInclusionFilterFactory> TypedFilterFactory;
-		TSharedPtr<PCGExPathInclusion::FHandler> Handler;
-
-		bool bCheckAgainstDataBounds = false;
-		TConstPCGValueRange<FTransform> InTransforms;
-
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
-		virtual bool Test(const int32 PointIndex) const override;
-		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
-
-		virtual ~FPathInclusionFilter() override
-		{
-		}
-	};
-}
-
-///
-
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/path-inclusion"))
-class UPCGExPathInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
+UCLASS(Hidden, Deprecated, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/path-inclusion"))
+class UDEPRECATED_PCGExPathInclusionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -140,7 +90,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		PathInclusionFilterFactory, "Filter : Path Inclusion", "Creates a filter definition that checks points inclusion against a path.",
+		PathInclusionFilterFactory, "Filter : Path Inclusion", "DEPRECATED",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 

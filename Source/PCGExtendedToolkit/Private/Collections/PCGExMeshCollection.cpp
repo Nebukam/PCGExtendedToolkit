@@ -4,6 +4,8 @@
 #include "Collections/PCGExMeshCollection.h"
 
 #include "PCGExGlobalSettings.h"
+#include "Engine/StaticMeshSocket.h"
+#include "Transform/PCGExTransform.h"
 
 void FPCGExMaterialOverrideCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const
 {
@@ -300,6 +302,8 @@ void FPCGExMeshCollectionEntry::BuildMacroCache()
 
 void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)
 {
+	ClearManagedSockets();
+
 	if (bIsSubCollection)
 	{
 		Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
@@ -338,6 +342,15 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 
 	const UStaticMesh* M = PCGExHelpers::LoadBlocking_AnyThread(StaticMesh);
 	PCGExAssetCollection::UpdateStagingBounds(Staging, M);
+
+	if (M)
+	{
+		for (const TObjectPtr<UStaticMeshSocket>& MSocket : M->Sockets)
+		{
+			FPCGExSocket& NewSocket = Staging.Sockets.Emplace_GetRef(MSocket->SocketName, MSocket->RelativeLocation, MSocket->RelativeRotation, MSocket->RelativeScale, MSocket->Tag);
+			NewSocket.bManaged = true;
+		}
+	}
 
 	Super::UpdateStaging(OwningCollection, InInternalIndex, bRecursive);
 }

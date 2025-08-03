@@ -55,7 +55,7 @@ class UPCGExPolyPathFilterFactory : public UPCGExFilterFactoryData
 public:
 	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
-	TArray<TSharedPtr<PCGExPaths::FPath>> PolyPaths;
+	TArray<TSharedPtr<PCGExPaths::FPolyPath>> PolyPaths;
 	TSharedPtr<PCGExOctree::FItemOctree> Octree;
 
 	virtual bool Init(FPCGExContext* InContext) override;
@@ -80,6 +80,7 @@ protected:
 	EPCGExSplineSamplingIncludeMode LocalSampleInputs = EPCGExSplineSamplingIncludeMode::All;
 	EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged;
 	bool bScaleTolerance = false;
+	bool bUsedForInclusion = true;
 
 	TArray<FPCGTaggedData> TempTargets;
 	TArray<TSharedPtr<PCGExPaths::FPolyPath>> TempPolyPaths;
@@ -122,7 +123,7 @@ namespace PCGExPathInclusion
 
 	class FHandler : public TSharedFromThis<FHandler>
 	{
-		const TArray<TSharedPtr<PCGExPaths::FPath>>* Paths;
+		const TArray<TSharedPtr<PCGExPaths::FPolyPath>>* Paths;
 		TSharedPtr<PCGExOctree::FItemOctree> Octree;
 		EPCGExSplineCheckType Check = EPCGExSplineCheckType::IsInside;
 

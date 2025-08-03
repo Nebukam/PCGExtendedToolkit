@@ -7,23 +7,30 @@
 #include "PCGExCompare.h"
 #include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
-#include "PCGExInclusionFilter.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExTimeFilter.h"
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 
-#include "PCGExSplineAlphaFilter.generated.h"
+
+#include "PCGExTimeFilter.generated.h"
+
+UENUM()
+enum class EPCGExSplineTimeConsolidation : uint8
+{
+	Min     = 0 UMETA(DisplayName = "Min", Tooltip="..."),
+	Max     = 1 UMETA(DisplayName = "Max", Tooltip="..."),
+	Average = 2 UMETA(DisplayName = "Average", Tooltip="...")
+};
 
 USTRUCT(BlueprintType)
-struct FPCGExSplineAlphaFilterConfig
+struct FPCGExTimeFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSplineAlphaFilterConfig()
+	FPCGExTimeFilterConfig()
 	{
 	}
 
@@ -79,8 +86,64 @@ struct FPCGExSplineAlphaFilterConfig
 	bool bCheckAgainstDataBounds = false;
 };
 
-UCLASS(Hidden, Deprecated, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/spline-alpha"))
-class UDEPRECATED_PCGExSplineAlphaFilterProviderSettings : public UPCGExFilterProviderSettings
+/**
+ * 
+ */
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class UPCGExTimeFilterFactory : public UPCGExPolyPathFilterFactory
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	FPCGExTimeFilterConfig Config;
+
+	virtual bool SupportsCollectionEvaluation() const override;
+	virtual bool SupportsProxyEvaluation() const override;
+
+	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
+
+	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
+
+protected:
+	virtual FName GetInputLabel() const override;
+	virtual void InitConfig_Internal() override;
+};
+
+namespace PCGExPointFilter
+{
+	class FTimeFilter final : public ISimpleFilter
+	{
+	public:
+		explicit FTimeFilter(const TObjectPtr<const UPCGExTimeFilterFactory>& InFactory)
+			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
+		{
+			Handler = TypedFilterFactory->CreateHandler();
+		}
+
+		const TObjectPtr<const UPCGExTimeFilterFactory> TypedFilterFactory;
+		TSharedPtr<PCGExPathInclusion::FHandler> Handler;
+
+		bool bCheckAgainstDataBounds = false;
+		TConstPCGValueRange<FTransform> InTransforms;
+
+		TSharedPtr<PCGExDetails::TSettingValue<float>> OperandB;
+
+		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
+		virtual bool Test(const int32 PointIndex) const override;
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
+
+		virtual ~FTimeFilter() override
+		{
+		}
+	};
+}
+
+///
+
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/time"))
+class UPCGExTimeFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -88,7 +151,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		SplineAlphaFilterFactory, "Filter : Spline Alpha", "DEPRECATED",
+		TimeFilterFactory, "Filter : Time", "Creates a filter definition that checks points position against a path/spline/polygon2D closest alpha.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 
@@ -99,7 +162,7 @@ protected:
 public:
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSplineAlphaFilterConfig Config;
+	FPCGExTimeFilterConfig Config;
 
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 

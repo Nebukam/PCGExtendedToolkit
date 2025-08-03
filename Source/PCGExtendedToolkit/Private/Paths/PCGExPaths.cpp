@@ -888,6 +888,13 @@ namespace PCGExPaths
 		return Spline->GetTransformAtSplineInputKey(ClosestKey, ESplineCoordinateSpace::World, bUseScale);
 	}
 
+	FTransform FPolyPath::GetClosestTransform(const FVector& WorldPosition, float& OutAlpha, const bool bUseScale) const
+	{
+		const float ClosestKey = Spline->FindInputKeyClosestToWorldLocation(WorldPosition);
+		OutAlpha = ClosestKey / Spline->GetNumberOfSplineSegments();
+		return Spline->GetTransformAtSplineInputKey(ClosestKey, ESplineCoordinateSpace::World, bUseScale);
+	}
+
 	FTransform FPolyPath::GetClosestTransform(const FVector& WorldPosition, bool& bIsInside, const bool bUseScale) const
 	{
 		bIsInside = IsInsideProjection(WorldPosition);

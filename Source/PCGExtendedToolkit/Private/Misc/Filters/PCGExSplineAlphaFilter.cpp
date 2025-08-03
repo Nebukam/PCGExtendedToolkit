@@ -3,224 +3,24 @@
 
 #include "Misc/Filters/PCGExSplineAlphaFilter.h"
 
-
-#include "Paths/PCGExPaths.h"
-
 #define LOCTEXT_NAMESPACE "PCGExSplineAlphaFilterDefinition"
 #define PCGEX_NAMESPACE PCGExSplineAlphaFilterDefinition
 
-bool UPCGExSplineAlphaFilterFactory::SupportsProxyEvaluation() const
-{
-	return Config.CompareAgainst == EPCGExInputValueType::Constant;
-}
-
-bool UPCGExSplineAlphaFilterFactory::Init(FPCGExContext* InContext)
-{
-	if (!Super::Init(InContext)) { return false; }
-
-	return true;
-}
-
-bool UPCGExSplineAlphaFilterFactory::WantsPreparation(FPCGExContext* InContext)
-{
-	return true;
-}
-
-PCGExFactories::EPreparationResult UPCGExSplineAlphaFilterFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-{
-	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
-	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
-
-	Splines = MakeShared<TArray<const FPCGSplineStruct*>>();
-	SegmentsNum = MakeShared<TArray<double>>();
-
-	if (TArray<FPCGTaggedData> Targets = InContext->InputData.GetInputsByPin(FName("Splines"));
-		!Targets.IsEmpty())
-	{
-		for (const FPCGTaggedData& TaggedData : Targets)
-		{
-			const UPCGSplineData* SplineData = Cast<UPCGSplineData>(TaggedData.Data);
-			if (!SplineData || SplineData->SplineStruct.GetNumberOfSplineSegments() <= 0) { continue; }
-
-			const bool bIsClosedLoop = SplineData->SplineStruct.bClosedLoop;
-			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::ClosedLoopOnly && !bIsClosedLoop) { continue; }
-			if (Config.SampleInputs == EPCGExSplineSamplingIncludeMode::OpenSplineOnly && bIsClosedLoop) { continue; }
-
-			Splines->Add(&SplineData->SplineStruct);
-			SegmentsNum->Add(SplineData->SplineStruct.GetNumberOfSplineSegments());
-		}
-	}
-
-	if (Splines->IsEmpty())
-	{
-		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)")); } }
-		return PCGExFactories::EPreparationResult::MissingData;
-	}
-
-	return Result;
-}
-
-TSharedPtr<PCGExPointFilter::IFilter> UPCGExSplineAlphaFilterFactory::CreateFilter() const
-{
-	return MakeShared<PCGExPointFilter::FSplineAlphaFilter>(this);
-}
-
-void UPCGExSplineAlphaFilterFactory::BeginDestroy()
-{
-	Splines.Reset();
-	SegmentsNum.Reset();
-	Super::BeginDestroy();
-}
-
-bool UPCGExSplineAlphaFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
-{
-	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
-
-	FName Consumable = NAME_None;
-	PCGEX_CONSUMABLE_CONDITIONAL(Config.CompareAgainst == EPCGExInputValueType::Attribute, Config.OperandB, Consumable)
-
-	return true;
-}
-
-namespace PCGExPointFilter
-{
-	bool FSplineAlphaFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
-	{
-		if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
-
-		OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
-		if (!OperandB->Init(PointDataFacade)) { return false; }
-
-		InTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();
-		return true;
-	}
-
-	bool FSplineAlphaFilter::Test(const PCGExData::FProxyPoint& Point) const
-	{
-		const FVector Pos = Point.Transform.GetLocation();
-		double Time = 0;
-
-		if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Min) { Time = MAX_dbl; }
-
-		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
-		{
-			double ClosestDist = MAX_dbl;
-			for (int i = 0; i < Splines->Num(); i++)
-			{
-				const FPCGSplineStruct* Spline = *(Splines->GetData() + i);
-
-				double LocalTime = Spline->FindInputKeyClosestToWorldLocation(Pos);
-				FTransform T = Spline->GetTransformAtSplineInputKey(static_cast<float>(LocalTime), ESplineCoordinateSpace::World, true);
-				LocalTime /= *(SegmentsNum->GetData() + i);
-
-				const double D = FVector::DistSquared(T.GetLocation(), Pos);
-
-				if (D > ClosestDist) { continue; }
-
-				Time = LocalTime;
-			}
-		}
-		else
-		{
-			for (int i = 0; i < Splines->Num(); i++)
-			{
-				const FPCGSplineStruct* Spline = *(Splines->GetData() + i);
-
-				double LocalTime = Spline->FindInputKeyClosestToWorldLocation(Pos);
-				LocalTime /= *(SegmentsNum->GetData() + i);
-
-				switch (TypedFilterFactory->Config.TimeConsolidation)
-				{
-				case EPCGExSplineTimeConsolidation::Min:
-					Time = FMath::Min(LocalTime, Time);
-					break;
-				case EPCGExSplineTimeConsolidation::Max:
-					Time = FMath::Max(LocalTime, Time);
-					break;
-				case EPCGExSplineTimeConsolidation::Average:
-					Time += LocalTime;
-					break;
-				}
-			}
-
-			if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Average)
-			{
-				Time /= SegmentsNum->Num();
-			}
-		}
-
-		return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, Time, TypedFilterFactory->Config.OperandBConstant, TypedFilterFactory->Config.Tolerance);
-	}
-
-	bool FSplineAlphaFilter::Test(const int32 PointIndex) const
-	{
-		const FVector Pos = InTransforms[PointIndex].GetLocation();
-		double Time = 0;
-
-		if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Min) { Time = MAX_dbl; }
-
-		if (TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest)
-		{
-			double ClosestDist = MAX_dbl;
-			for (int i = 0; i < Splines->Num(); i++)
-			{
-				const FPCGSplineStruct* Spline = *(Splines->GetData() + i);
-
-				double LocalTime = Spline->FindInputKeyClosestToWorldLocation(Pos);
-				FTransform T = Spline->GetTransformAtSplineInputKey(static_cast<float>(LocalTime), ESplineCoordinateSpace::World, true);
-				LocalTime /= *(SegmentsNum->GetData() + i);
-
-				const double D = FVector::DistSquared(T.GetLocation(), Pos);
-
-				if (D > ClosestDist) { continue; }
-
-				Time = LocalTime;
-			}
-		}
-		else
-		{
-			for (int i = 0; i < Splines->Num(); i++)
-			{
-				const FPCGSplineStruct* Spline = *(Splines->GetData() + i);
-
-				double LocalTime = Spline->FindInputKeyClosestToWorldLocation(Pos);
-				LocalTime /= *(SegmentsNum->GetData() + i);
-
-				switch (TypedFilterFactory->Config.TimeConsolidation)
-				{
-				case EPCGExSplineTimeConsolidation::Min:
-					Time = FMath::Min(LocalTime, Time);
-					break;
-				case EPCGExSplineTimeConsolidation::Max:
-					Time = FMath::Max(LocalTime, Time);
-					break;
-				case EPCGExSplineTimeConsolidation::Average:
-					Time += LocalTime;
-					break;
-				}
-			}
-
-			if (TypedFilterFactory->Config.TimeConsolidation == EPCGExSplineTimeConsolidation::Average)
-			{
-				Time /= SegmentsNum->Num();
-			}
-		}
-
-		return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, Time, OperandB->Read(PointIndex), TypedFilterFactory->Config.Tolerance);
-	}
-}
-
-TArray<FPCGPinProperties> UPCGExSplineAlphaFilterProviderSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UDEPRECATED_PCGExSplineAlphaFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POLYLINES(FName("Splines"), TEXT("Splines will be used for testing"), Required, {})
 	return PinProperties;
 }
 
-PCGEX_CREATE_FILTER_FACTORY(SplineAlpha)
+UPCGExFactoryData* UDEPRECATED_PCGExSplineAlphaFilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
+{
+	PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("This filter is deprecated, use 'Filter : Time' instead."));
+	return nullptr;
+}
 
 #if WITH_EDITOR
-FString UPCGExSplineAlphaFilterProviderSettings::GetDisplayName() const
+FString UDEPRECATED_PCGExSplineAlphaFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = TEXT("Alpha ") + PCGExCompare::ToString(Config.Comparison);
 

@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGExMT.h"
-#include "PCGExFitting.h"
+#include "Transform/PCGExFitting.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 

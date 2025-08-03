@@ -67,69 +67,8 @@ struct FPCGExPathAlphaFilterConfig
 	PCGEX_SETTING_VALUE_GET(OperandB, double, CompareAgainst, OperandB, OperandBConstant)
 };
 
-/**
- * 
- */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExPathAlphaFilterFactory : public UPCGExFilterFactoryData
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY()
-	FPCGExPathAlphaFilterConfig Config;
-
-	TSharedPtr<TArray<TSharedPtr<FPCGSplineStruct>>> Splines;
-	TSharedPtr<TArray<double>> SegmentsNum;
-
-	virtual bool SupportsCollectionEvaluation() const override { return false; }
-	virtual bool SupportsProxyEvaluation() const override;
-
-	virtual bool WantsPreparation(FPCGExContext* InContext) override;
-	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-
-	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
-
-	virtual void BeginDestroy() override;
-
-	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
-};
-
-namespace PCGExPointFilter
-{
-	class FPathAlphaFilter final : public ISimpleFilter
-	{
-	public:
-		explicit FPathAlphaFilter(const TObjectPtr<const UPCGExPathAlphaFilterFactory>& InFactory)
-			: ISimpleFilter(InFactory), TypedFilterFactory(InFactory)
-		{
-			Splines = TypedFilterFactory->Splines;
-			SegmentsNum = TypedFilterFactory->SegmentsNum;
-		}
-
-		const TObjectPtr<const UPCGExPathAlphaFilterFactory> TypedFilterFactory;
-
-		TSharedPtr<TArray<TSharedPtr<FPCGSplineStruct>>> Splines;
-		TSharedPtr<TArray<double>> SegmentsNum;
-
-		TSharedPtr<PCGExDetails::TSettingValue<double>> OperandB;
-
-		TConstPCGValueRange<FTransform> InTransforms;
-
-		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
-		virtual bool Test(const int32 PointIndex) const override;
-
-		virtual ~FPathAlphaFilter() override
-		{
-		}
-	};
-}
-
-///
-
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/path-alpha"))
-class UPCGExPathAlphaFilterProviderSettings : public UPCGExFilterProviderSettings
+UCLASS(Hidden, Deprecated, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/path-alpha"))
+class UDEPRECATED_PCGExPathAlphaFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -137,7 +76,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		PathAlphaFilterFactory, "Filter : Path Alpha", "Creates a filter definition that checks points position against a spline' closest alpha.",
+		PathAlphaFilterFactory, "Filter : Path Alpha", "DEPRECATED",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 

@@ -29,7 +29,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 	if (TempTargets.IsEmpty())
 	{
-		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)")); } }
+		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (no input matches criteria or empty dataset)")); } }
 		return PCGExFactories::EPreparationResult::MissingData;
 	}
 
@@ -54,7 +54,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 			for (int i = 0; i < TempTargets.Num(); i++)
 			{
-				const TSharedPtr<PCGExPaths::FPath>& Path = TempPolyPaths[i];
+				const TSharedPtr<PCGExPaths::FPolyPath>& Path = TempPolyPaths[i];
 
 				if (!Path || !Path.IsValid()) { continue; }
 
@@ -96,14 +96,20 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 			TSharedPtr<PCGExPaths::FPolyPath> Path = nullptr;
 
+			double SafeExpansion = FMath::Max(LocalExpansion, 1);
+			
 			if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(Data))
 			{
 				const TSharedPtr<PCGExData::FPointIO> PointIO = MakeShared<PCGExData::FPointIO>(CtxHandle, PointData);
-				Path = MakeShared<PCGExPaths::FPolyPath>(PointIO, LocalProjection, LocalExpansion, LocalExpansionZ, WindingMutation);
+				Path = MakeShared<PCGExPaths::FPolyPath>(PointIO, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
 			}
 			else if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(Data))
 			{
-				Path = MakeShared<PCGExPaths::FPolyPath>(SplineData, LocalFidelity, LocalProjection, LocalExpansion, LocalExpansionZ, WindingMutation);
+				Path = MakeShared<PCGExPaths::FPolyPath>(SplineData, LocalFidelity, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
+			}
+			else
+			{
+				// TODO : Support polygon 2D
 			}
 
 			if (Path) { TempPolyPaths[Index] = Path; }

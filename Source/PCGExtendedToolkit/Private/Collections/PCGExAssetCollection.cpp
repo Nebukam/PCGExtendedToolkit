@@ -114,7 +114,34 @@ namespace PCGExAssetCollection
 	}
 }
 
+bool FPCGExAssetStagingData::FindSocket(const FName InName, const FPCGExSocket*& OutSocket) const
+{
+	for (const FPCGExSocket& Socket : Sockets)
+	{
+		if (Socket.SocketName == InName)
+		{
+			OutSocket = &Socket;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool FPCGExAssetStagingData::FindSocket(const FName InName, const FString& Tag, const FPCGExSocket*& OutSocket) const
+{
+	for (const FPCGExSocket& Socket : Sockets)
+	{
+		if (Socket.SocketName == InName && Socket.Tag == Tag)
+		{
+			OutSocket = &Socket;
+			return true;
+		}
+	}
+	return false;
+}
+
 #if WITH_EDITOR
+
 void FPCGExAssetCollectionEntry::EDITOR_Sanitize()
 {
 }
@@ -165,6 +192,13 @@ void FPCGExAssetCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) 
 void FPCGExAssetCollectionEntry::BuildMacroCache()
 {
 	MacroCache = nullptr;
+}
+
+void FPCGExAssetCollectionEntry::ClearManagedSockets()
+{
+	int32 WriteIndex = 0;
+	for (int i = 0; i < Staging.Sockets.Num(); i++) { if (!Staging.Sockets[i].bManaged) { Staging.Sockets[WriteIndex++] = Staging.Sockets[i]; } }
+	Staging.Sockets.SetNum(WriteIndex);
 }
 
 namespace PCGExAssetCollection
