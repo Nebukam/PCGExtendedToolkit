@@ -870,5 +870,5 @@ namespace PCGEx
 #pragma endregion
 
 	PCGEXTENDEDTOOLKIT_API
-	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector);
+	FString GetSelectorDisplayName(const FPCGAttributePropertySelector& InSelector);
 }

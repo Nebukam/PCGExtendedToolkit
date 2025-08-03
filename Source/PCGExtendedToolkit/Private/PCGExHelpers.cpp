@@ -482,7 +482,7 @@ namespace PCGEx
 		}
 	}
 
-	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector)
+	FString GetSelectorDisplayName(const FPCGAttributePropertySelector& InSelector)
 	{
 		if (InSelector.GetExtraNames().IsEmpty()) { return InSelector.GetName().ToString(); }
 		return InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT("."));
