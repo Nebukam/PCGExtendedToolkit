@@ -46,6 +46,7 @@ public:
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
 
 	bool bScopedAttributeGet = false;
+	bool bPropagateAbortedExecution = false;
 
 	FPCGExContext();
 

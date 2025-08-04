@@ -306,6 +306,7 @@ void FPCGExPointsProcessorElement::OnContextInitialized(FPCGExPointsProcessorCon
 
 	InContext->bFlattenOutput = Settings->bFlattenOutput;
 	InContext->bScopedAttributeGet = Settings->WantsScopedAttributeGet();
+	InContext->bPropagateAbortedExecution = Settings->bPropagateAbortedExecution;
 }
 
 bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
