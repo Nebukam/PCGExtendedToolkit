@@ -492,7 +492,7 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 	bExecutionCancelled = true;
 
 	OutputData.Reset();
-	OutputData.bCancelExecution = true;
+	if (bPropagateAbortedExecution){ OutputData.bCancelExecution = true; }
 
 	WorkPermit.Reset();
 	ResumeExecution();
