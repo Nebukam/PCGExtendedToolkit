@@ -67,7 +67,7 @@ public:
 	FName AssetPathAttributeName = "AssetPath";
 
 	/** Distribution details */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distribution", ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distribution"))
 	FPCGExAssetDistributionDetails DistributionSettings;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -155,7 +155,7 @@ namespace PCGExAssetStaging
 		FPCGExFittingDetailsHandler FittingHandler;
 		FPCGExFittingVariationsDetails Variations;
 
-		TUniquePtr<PCGExAssetCollection::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
+		TSharedPtr<PCGExAssetCollection::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;

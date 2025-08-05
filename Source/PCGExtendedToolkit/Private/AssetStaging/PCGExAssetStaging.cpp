@@ -212,8 +212,8 @@ namespace PCGExAssetStaging
 		Variations.Init(Settings->Seed);
 
 
-		Helper = MakeUnique<PCGExAssetCollection::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>(Context->MainCollection, Settings->DistributionSettings);
-		if (!Helper->Init(ExecutionContext, PointDataFacade)) { return false; }
+		Helper = MakeShared<PCGExAssetCollection::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>(Context->MainCollection, Settings->DistributionSettings);
+		if (!Helper->Init(PointDataFacade)) { return false; }
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
 		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
