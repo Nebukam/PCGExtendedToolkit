@@ -143,9 +143,9 @@ namespace PCGExStaging
 				}
 
 				WorkingCollection = (OutEntry && OutEntry->bIsSubCollection) ? static_cast<C*>(OutEntry->InternalSubCollection.Get()) : nullptr;
+				if (!WorkingCollection) { return; }
 			}
 
-			if (!WorkingCollection) { return; }
 
 			if (Details.Distribution == EPCGExDistribution::WeightedRandom)
 			{
@@ -214,9 +214,8 @@ namespace PCGExStaging
 				}
 
 				WorkingCollection = (OutEntry && OutEntry->bIsSubCollection) ? static_cast<C*>(OutEntry->InternalSubCollection.Get()) : nullptr;
+				if (!WorkingCollection) { return; }
 			}
-
-			if (!WorkingCollection) { return; }
 
 			if (Details.Distribution == EPCGExDistribution::WeightedRandom)
 			{
