@@ -16,7 +16,7 @@
 
 namespace PCGExMT
 {
-	template<typename T>
+	template <typename T>
 	class TScopedNumericValue;
 }
 
@@ -155,7 +155,7 @@ namespace PCGExAssetStaging
 		FPCGExFittingDetailsHandler FittingHandler;
 		FPCGExFittingVariationsDetails Variations;
 
-		TSharedPtr<PCGExAssetCollection::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
+		TSharedPtr<PCGExStaging::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;

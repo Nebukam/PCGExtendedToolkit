@@ -205,4 +205,38 @@ namespace PCGExStaging
 
 		return *Collection;
 	}
+
+	IDistributionHelper::IDistributionHelper(UPCGExAssetCollection* InCollection, const FPCGExAssetDistributionDetails& InDetails)
+		: MainCollection(InCollection), Details(InDetails)
+	{
+	}
+
+	bool IDistributionHelper::Init(const TSharedRef<PCGExData::FFacade>& InDataFacade)
+	{
+		Cache = MainCollection->LoadCache();
+
+		if (Cache->IsEmpty())
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InDataFacade->GetContext(), FTEXT("TDistributionHelper got an empty Collection."));
+			return false;
+		}
+
+		if (Details.bUseCategories)
+		{
+			CategoryGetter = Details.GetValueSettingCategory();
+			if (!CategoryGetter->Init(InDataFacade)) { return false; }
+		}
+
+		if (Details.Distribution == EPCGExDistribution::Index)
+		{
+			const bool bWantsMinMax = Details.IndexSettings.bRemapIndexToCollectionSize;
+
+			IndexGetter = Details.IndexSettings.GetValueSettingIndex();
+			if (!IndexGetter->Init(InDataFacade, !bWantsMinMax, bWantsMinMax)) { return false; }
+
+			MaxInputIndex = IndexGetter->Max();
+		}
+
+		return true;
+	}
 }

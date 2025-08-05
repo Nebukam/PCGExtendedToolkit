@@ -8,6 +8,7 @@
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
+#include "AssetStaging/PCGExStaging.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Data/PCGExPointFilter.h"
 
@@ -182,7 +183,7 @@ namespace PCGExPathSplineMesh
 
 		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
 
-		TSharedPtr<PCGExAssetCollection::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> Helper;
+		TSharedPtr<PCGExStaging::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> Helper;
 		FPCGExJustificationDetails Justification;
 		FPCGExSplineMeshMutationDetails SegmentMutationDetails;
 

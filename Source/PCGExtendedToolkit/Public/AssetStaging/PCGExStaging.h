@@ -77,4 +77,170 @@ namespace PCGExStaging
 			return static_cast<C*>(Collection)->GetEntryAt(OutEntry, EntryIndex, EntryHost);
 		}
 	};
+
+	class PCGEXTENDEDTOOLKIT_API IDistributionHelper : public TSharedFromThis<IDistributionHelper>
+	{
+	protected:
+		PCGExAssetCollection::FCache* Cache = nullptr;
+		UPCGExAssetCollection* MainCollection = nullptr;
+
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> IndexGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<FName>> CategoryGetter;
+
+		double MaxInputIndex = 0;
+
+	public:
+		FPCGExAssetDistributionDetails Details;
+
+		IDistributionHelper(UPCGExAssetCollection* InCollection, const FPCGExAssetDistributionDetails& InDetails);
+		bool Init(const TSharedRef<PCGExData::FFacade>& InDataFacade);
+	};
+
+	template <typename C = UPCGExAssetCollection, typename A = FPCGExAssetCollectionEntry>
+	class PCGEXTENDEDTOOLKIT_API TDistributionHelper : public IDistributionHelper
+	{
+	public:
+		C* TypedCollection = nullptr;
+
+		TDistributionHelper(C* InCollection, const FPCGExAssetDistributionDetails& InDetails)
+			: IDistributionHelper(InCollection, InDetails)
+		{
+			TypedCollection = InCollection;
+		}
+
+		void GetEntry(const A*& OutEntry, const int32 PointIndex, const int32 Seed, const UPCGExAssetCollection*& OutHost) const
+		{
+			TSharedPtr<PCGExAssetCollection::FCategory> Category = Cache->Main;
+			C* WorkingCollection = TypedCollection;
+
+			if (CategoryGetter)
+			{
+				TSharedPtr<PCGExAssetCollection::FCategory>* CategoryPtr = Cache->Categories.Find(CategoryGetter->Read(PointIndex));
+
+				if (!CategoryPtr)
+				{
+					OutEntry = nullptr;
+					return;
+				}
+
+				Category = *CategoryPtr;
+
+				if (Category->IsEmpty())
+				{
+					OutEntry = nullptr;
+					return;
+				}
+
+				if (Category->Num() == 1)
+				{
+					// Single-item category
+					TypedCollection->GetEntryAt(OutEntry, Category->Indices[0], OutHost);
+				}
+				else
+				{
+					// Multi-item category
+					TypedCollection->GetEntryAt(OutEntry, Category->GetPickRandomWeighted(Seed), OutHost);
+				}
+
+				WorkingCollection = (OutEntry && OutEntry->bIsSubCollection) ? static_cast<C*>(OutEntry->InternalSubCollection.Get()) : nullptr;
+				if (!WorkingCollection) { return; }
+			}
+
+
+			if (Details.Distribution == EPCGExDistribution::WeightedRandom)
+			{
+				WorkingCollection->GetEntryWeightedRandom(OutEntry, Seed, OutHost);
+			}
+			else if (Details.Distribution == EPCGExDistribution::Random)
+			{
+				WorkingCollection->GetEntryRandom(OutEntry, Seed, OutHost);
+			}
+			else
+			{
+				const int32 MaxIndex = WorkingCollection->LoadCache()->Main->Num() - 1;
+				double PickedIndex = IndexGetter->Read(PointIndex);
+				if (Details.IndexSettings.bRemapIndexToCollectionSize)
+				{
+					PickedIndex = PCGEx::TruncateDbl(
+						MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex),
+						Details.IndexSettings.TruncateRemap);
+				}
+
+				WorkingCollection->GetEntry(
+					OutEntry,
+					PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
+					Seed, Details.IndexSettings.PickMode, OutHost);
+			}
+		}
+
+		void GetEntry(const A*& OutEntry, const int32 PointIndex, const int32 Seed, const uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost) const
+		{
+			if (TagInheritance == 0)
+			{
+				GetEntry(OutEntry, PointIndex, Seed, OutHost);
+				return;
+			}
+
+			TSharedPtr<PCGExAssetCollection::FCategory> Category = Cache->Main;
+			C* WorkingCollection = TypedCollection;
+
+			if (CategoryGetter)
+			{
+				TSharedPtr<PCGExAssetCollection::FCategory>* CategoryPtr = Cache->Categories.Find(CategoryGetter->Read(PointIndex));
+
+				if (!CategoryPtr)
+				{
+					OutEntry = nullptr;
+					return;
+				}
+
+				Category = *CategoryPtr;
+
+				if (Category->IsEmpty())
+				{
+					OutEntry = nullptr;
+					return;
+				}
+
+				if (Category->Num() == 1)
+				{
+					// Single-item category
+					TypedCollection->GetEntryAt(OutEntry, Category->Indices[0], TagInheritance, OutTags, OutHost);
+				}
+				else
+				{
+					// Multi-item category
+					TypedCollection->GetEntryAt(OutEntry, Category->GetPickRandomWeighted(Seed), TagInheritance, OutTags, OutHost);
+				}
+
+				WorkingCollection = (OutEntry && OutEntry->bIsSubCollection) ? static_cast<C*>(OutEntry->InternalSubCollection.Get()) : nullptr;
+				if (!WorkingCollection) { return; }
+			}
+
+			if (Details.Distribution == EPCGExDistribution::WeightedRandom)
+			{
+				WorkingCollection->GetEntryWeightedRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
+			}
+			else if (Details.Distribution == EPCGExDistribution::Random)
+			{
+				WorkingCollection->GetEntryRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
+			}
+			else
+			{
+				const int32 MaxIndex = WorkingCollection->LoadCache()->Main->Num() - 1;
+				double PickedIndex = IndexGetter->Read(PointIndex);
+				if (Details.IndexSettings.bRemapIndexToCollectionSize)
+				{
+					PickedIndex = PCGEx::TruncateDbl(
+						MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex),
+						Details.IndexSettings.TruncateRemap);
+				}
+
+				WorkingCollection->GetEntry(
+					OutEntry,
+					PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
+					Seed, Details.IndexSettings.PickMode, TagInheritance, OutTags, OutHost);
+			}
+		}
+	};
 }
