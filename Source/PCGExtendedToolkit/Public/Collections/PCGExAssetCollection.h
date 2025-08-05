@@ -265,19 +265,38 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionDetails
 
 	FPCGExAssetDistributionDetails() = default;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
+	/** If enabled, will limit pick to entries flagged with a specific category. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Category", meta=(PCG_Overridable))
+	bool bUseCategories = false;
+
+	/** Type of Category */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Category", meta=(PCG_Overridable, EditCondition="bUseCategories", EditConditionHides))
+	EPCGExInputValueType CategoryInput = EPCGExInputValueType::Constant;
+
+	/** Attribute to read category name from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Category", meta=(PCG_Overridable, DisplayName="Category (Attr)", EditCondition="bUseCategories && CategoryInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FName CategoryAttribute = FName("CategoryName");
+
+	/** Constant category value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Category", meta=(PCG_Overridable, DisplayName="Category", EditCondition="bUseCategories && CategoryInput == EPCGExInputValueType::Constant", EditConditionHides))
+	FName Category = FName("Category");
+
+	PCGEX_SETTING_VALUE_GET(Category, FName, CategoryInput, CategoryAttribute, Category)
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
 	uint8 SeedComponents = 0;
 
 	/** Distribution type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDistribution Distribution = EPCGExDistribution::WeightedRandom;
 
 	/** Index settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, EditCondition="Distribution == EPCGExDistribution::Index"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution == EPCGExDistribution::Index"))
 	FPCGExAssetDistributionIndexDetails IndexSettings;
 
 	/** Note that this is only accounted for if selected in the seed component. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 LocalSeed = 0;
 };
 
@@ -413,7 +432,8 @@ namespace PCGExAssetCollection
 
 		~FCategory() = default;
 
-		bool IsEmpty() const;
+		FORCEINLINE bool IsEmpty() const { return Order.IsEmpty(); }
+		FORCEINLINE int32 Num() const { return Order.Num(); }
 
 		int32 GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const;
 
@@ -431,8 +451,9 @@ namespace PCGExAssetCollection
 		void Compile();
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FCache
+	class PCGEXTENDEDTOOLKIT_API FCache : public TSharedFromThis<FCache>
 	{
+	public:
 		int32 WeightSum = 0;
 		TSharedPtr<FCategory> Main;
 		TMap<FName, TSharedPtr<FCategory>> Categories;
@@ -447,9 +468,7 @@ namespace PCGExAssetCollection
 		}
 
 		bool IsEmpty() const { return Main ? Main->IsEmpty() : true; }
-
 		void Compile();
-
 		void RegisterEntry(const int32 Index, const FPCGExAssetCollectionEntry* InEntry);
 	};
 
@@ -893,7 +912,7 @@ protected:
 	UPROPERTY()
 	bool bCacheNeedsRebuild = true;
 
-	TUniquePtr<PCGExAssetCollection::FCache> Cache;
+	TSharedPtr<PCGExAssetCollection::FCache> Cache;
 
 	template <typename T>
 	bool BuildCache(TArray<T>& InEntries)
@@ -902,7 +921,7 @@ protected:
 
 		if (Cache) { return true; } // Cache needs to be invalidated
 
-		Cache = MakeUnique<PCGExAssetCollection::FCache>();
+		Cache = MakeShared<PCGExAssetCollection::FCache>();
 
 		bCacheNeedsRebuild = false;
 
@@ -1094,63 +1113,86 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRoamingAssetCollectionDetails : public FPCGE
 
 namespace PCGExAssetCollection
 {
-	template <typename C = UPCGExAssetCollection, typename A = FPCGExAssetCollectionEntry>
-	struct PCGEXTENDEDTOOLKIT_API TDistributionHelper
+	class PCGEXTENDEDTOOLKIT_API IDistributionHelper : public TSharedFromThis<IDistributionHelper>
 	{
-		C* Collection = nullptr;
-		FPCGExAssetDistributionDetails Details;
+	protected:
+		FCache* Cache = nullptr;
+		UPCGExAssetCollection* MainCollection = nullptr;
 
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> IndexGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<FName>> CategoryGetter;
 
-		int32 MaxIndex = 0;
 		double MaxInputIndex = 0;
 
-		TArray<int32> MinCache;
-		TArray<int32> MaxCache;
+	public:
+		FPCGExAssetDistributionDetails Details;
 
-		TDistributionHelper(
-			C* InCollection,
-			const FPCGExAssetDistributionDetails& InDetails):
-			Collection(InCollection),
-			Details(InDetails)
+		IDistributionHelper(UPCGExAssetCollection* InCollection, const FPCGExAssetDistributionDetails& InDetails);
+		bool Init(const TSharedRef<PCGExData::FFacade>& InDataFacade);
+	};
+
+	template <typename C = UPCGExAssetCollection, typename A = FPCGExAssetCollectionEntry>
+	class PCGEXTENDEDTOOLKIT_API TDistributionHelper : public IDistributionHelper
+	{
+	public:
+		C* TypedCollection = nullptr;
+
+		TDistributionHelper(C* InCollection, const FPCGExAssetDistributionDetails& InDetails)
+			: IDistributionHelper(InCollection, InDetails)
 		{
-		}
-
-		bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
-		{
-			if (Collection->LoadCache()->IsEmpty())
-			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("TDistributionHelper got an empty Collection."));
-				return false;
-			}
-
-			MaxIndex = Collection->LoadCache()->Main->Order.Num() - 1;
-
-			if (Details.Distribution == EPCGExDistribution::Index)
-			{
-				const bool bWantsMinMax = Details.IndexSettings.bRemapIndexToCollectionSize;
-
-				IndexGetter = Details.IndexSettings.GetValueSettingIndex();
-				if (!IndexGetter->Init(InDataFacade, !bWantsMinMax, bWantsMinMax)) { return false; }
-
-				MaxInputIndex = IndexGetter->Max();
-			}
-
-			return true;
+			TypedCollection = InCollection;
 		}
 
 		void GetEntry(const A*& OutEntry, const int32 PointIndex, const int32 Seed, const UPCGExAssetCollection*& OutHost) const
 		{
+			TSharedPtr<FCategory> Category = Cache->Main;
+			C* WorkingCollection = TypedCollection;
+
+			if (CategoryGetter)
+			{
+				TSharedPtr<FCategory>* CategoryPtr = Cache->Categories.Find(CategoryGetter->Read(PointIndex));
+
+				if (!CategoryPtr)
+				{
+					OutEntry = nullptr;
+					return;
+				}
+
+				Category = *CategoryPtr;
+
+				if (Category->IsEmpty())
+				{
+					OutEntry = nullptr;
+					return;
+				}
+
+				if (Category->Num() == 1)
+				{
+					// Single-item category
+					TypedCollection->GetEntryAt(OutEntry, Category->Indices[0], OutHost);
+				}
+				else
+				{
+					// Multi-item category
+					TypedCollection->GetEntryAt(OutEntry, Category->GetPickRandomWeighted(Seed), OutHost);
+				}
+
+				WorkingCollection = (OutEntry && OutEntry->bIsSubCollection) ? static_cast<C*>(OutEntry->InternalSubCollection.Get()) : nullptr;
+			}
+
+			if (!WorkingCollection) { return; }
+
 			if (Details.Distribution == EPCGExDistribution::WeightedRandom)
 			{
-				Collection->GetEntryWeightedRandom(OutEntry, Seed, OutHost);
+				WorkingCollection->GetEntryWeightedRandom(OutEntry, Seed, OutHost);
 			}
 			else if (Details.Distribution == EPCGExDistribution::Random)
 			{
-				Collection->GetEntryRandom(OutEntry, Seed, OutHost);
+				WorkingCollection->GetEntryRandom(OutEntry, Seed, OutHost);
 			}
 			else
 			{
+				const int32 MaxIndex = WorkingCollection->LoadCache()->Main->Num() - 1;
 				double PickedIndex = IndexGetter->Read(PointIndex);
 				if (Details.IndexSettings.bRemapIndexToCollectionSize)
 				{
@@ -1159,14 +1201,14 @@ namespace PCGExAssetCollection
 						Details.IndexSettings.TruncateRemap);
 				}
 
-				Collection->GetEntry(
+				WorkingCollection->GetEntry(
 					OutEntry,
 					PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
 					Seed, Details.IndexSettings.PickMode, OutHost);
 			}
 		}
 
-		void GetEntry(const A*& OutEntry, const int32 PointIndex, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost) const
+		void GetEntry(const A*& OutEntry, const int32 PointIndex, const int32 Seed, const uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost) const
 		{
 			if (TagInheritance == 0)
 			{
@@ -1174,18 +1216,54 @@ namespace PCGExAssetCollection
 				return;
 			}
 
-			if (TagInheritance & static_cast<uint8>(EPCGExAssetTagInheritance::RootCollection)) { OutTags.Append(Collection->CollectionTags); }
+			TSharedPtr<FCategory> Category = Cache->Main;
+			C* WorkingCollection = TypedCollection;
+
+			if (CategoryGetter)
+			{
+				TSharedPtr<FCategory>* CategoryPtr = Cache->Categories.Find(CategoryGetter->Read(PointIndex));
+
+				if (!CategoryPtr)
+				{
+					OutEntry = nullptr;
+					return;
+				}
+
+				Category = *CategoryPtr;
+
+				if (Category->IsEmpty())
+				{
+					OutEntry = nullptr;
+					return;
+				}
+
+				if (Category->Num() == 1)
+				{
+					// Single-item category
+					TypedCollection->GetEntryAt(OutEntry, Category->Indices[0], TagInheritance, OutTags, OutHost);
+				}
+				else
+				{
+					// Multi-item category
+					TypedCollection->GetEntryAt(OutEntry, Category->GetPickRandomWeighted(Seed), TagInheritance, OutTags, OutHost);
+				}
+
+				WorkingCollection = (OutEntry && OutEntry->bIsSubCollection) ? static_cast<C*>(OutEntry->InternalSubCollection.Get()) : nullptr;
+			}
+
+			if (!WorkingCollection) { return; }
 
 			if (Details.Distribution == EPCGExDistribution::WeightedRandom)
 			{
-				Collection->GetEntryWeightedRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
+				WorkingCollection->GetEntryWeightedRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
 			}
 			else if (Details.Distribution == EPCGExDistribution::Random)
 			{
-				Collection->GetEntryRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
+				WorkingCollection->GetEntryRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
 			}
 			else
 			{
+				const int32 MaxIndex = WorkingCollection->LoadCache()->Main->Num() - 1;
 				double PickedIndex = IndexGetter->Read(PointIndex);
 				if (Details.IndexSettings.bRemapIndexToCollectionSize)
 				{
@@ -1194,7 +1272,7 @@ namespace PCGExAssetCollection
 						Details.IndexSettings.TruncateRemap);
 				}
 
-				Collection->GetEntry(
+				WorkingCollection->GetEntry(
 					OutEntry,
 					PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
 					Seed, Details.IndexSettings.PickMode, TagInheritance, OutTags, OutHost);
