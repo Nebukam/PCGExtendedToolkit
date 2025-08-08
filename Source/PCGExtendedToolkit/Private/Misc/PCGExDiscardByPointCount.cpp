@@ -59,9 +59,6 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 
 		Context->MainPoints->StageOutputs();
 		Context->Done();
-
-		if (NumDiscarded == NumTotal) { Context->OutputData.InactiveOutputPinBitmask = 1; }
-		else if (NumDiscarded == 0) { Context->OutputData.InactiveOutputPinBitmask = 2; }
 	}
 
 	return Context->TryComplete();

@@ -12,7 +12,6 @@
 #include "Geometry/PCGExGeoMesh.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
 #include "Transform/PCGExTransform.h"
 
 #include "PCGExTopologyEdgesProcessor.generated.h"
@@ -327,11 +326,7 @@ namespace PCGExTopologyEdges
 					}
 				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 
-
-			if (Settings->Topology.bComputeNormals)
-			{
-				UGeometryScriptLibrary_MeshNormalsFunctions::RecomputeNormals(GetInternalMesh(), Settings->Topology.NormalsOptions);
-			}
+			Settings->Topology.PostProcessMesh(GetInternalMesh());
 		}
 	};
 

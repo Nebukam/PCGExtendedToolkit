@@ -198,6 +198,8 @@ namespace PCGExSampleSurfaceGuided
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleSurfaceGuided::SingleTrace);
+			
 			const FVector Direction = DirectionGetter->Read(Index).GetSafeNormal() * DirMult;
 			const FVector Origin = OriginGetter->Read(Index);
 			const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Constant ? Settings->MaxDistance : Direction.Length();
@@ -341,7 +343,10 @@ namespace PCGExSampleSurfaceGuided
 				{
 					if (World->LineTraceSingleByObjectType(
 						HitResult, Origin, End,
-						FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams)) { ProcessTraceResult(); }
+						FCollisionObjectQueryParams(Context->CollisionSettings.CollisionObjectType), CollisionParams))
+					{
+						ProcessTraceResult();
+					}
 				}
 				break;
 			case EPCGExCollisionFilterType::Profile:
@@ -358,7 +363,10 @@ namespace PCGExSampleSurfaceGuided
 				{
 					if (World->LineTraceSingleByProfile(
 						HitResult, Origin, End,
-						Context->CollisionSettings.CollisionProfileName, CollisionParams)) { ProcessTraceResult(); }
+						Context->CollisionSettings.CollisionProfileName, CollisionParams))
+					{
+						ProcessTraceResult();
+					}
 				}
 				break;
 			default:

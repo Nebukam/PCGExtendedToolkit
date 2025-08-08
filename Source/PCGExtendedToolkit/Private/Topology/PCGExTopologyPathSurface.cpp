@@ -144,10 +144,7 @@ namespace PCGExTopologyPath
 			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 
 
-		if (Settings->Topology.bComputeNormals)
-		{
-			UGeometryScriptLibrary_MeshNormalsFunctions::RecomputeNormals(GetInternalMesh(), Settings->Topology.NormalsOptions);
-		}
+		Settings->Topology.PostProcessMesh(GetInternalMesh());
 
 		////
 
