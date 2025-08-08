@@ -25,7 +25,7 @@ bool FPCGExSocketFitDetails::Init(const TSharedPtr<PCGExData::FFacade>& InFacade
 {
 	if (!bEnabled ||
 		(SocketNameInput == EPCGExInputValueType::Constant && SocketName.IsNone()) ||
-		SocketNameInput == EPCGExInputValueType::Attribute && SocketNameAttribute.IsNone())
+		(SocketNameInput == EPCGExInputValueType::Attribute && SocketNameAttribute.IsNone()))
 	{
 		bMutate = false;
 		return true;
