@@ -45,6 +45,12 @@ void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InC
 	SetPointProperty(OutSeedPoint, InCell->Data.Compactness, CompactnessTo);
 }
 
+void FPCGExTopologyDetails::PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDynamicMesh) const
+{
+	if (bWeldEdges) { UGeometryScriptLibrary_MeshRepairFunctions::WeldMeshEdges(InDynamicMesh, WeldEdgesOptions); }
+	if (bComputeNormals) { UGeometryScriptLibrary_MeshNormalsFunctions::RecomputeNormals(InDynamicMesh, NormalsOptions); }
+}
+
 namespace PCGExTopology
 {
 	bool IsAnyPointInPolygon(const TArray<FVector2D>& Points, const FGeometryScriptSimplePolygon& Polygon)

@@ -152,11 +152,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 	bool bRemoveSmallClusters = false;
 
 	/** Minimum points threshold (per cluster) */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" ├─ Min Vtx Count", EditCondition="bRemoveSmallClusters", ClampMin=2))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" ┌─ Min Vtx Count", EditCondition="bRemoveSmallClusters", ClampMin=2))
 	int32 MinVtxCount = 3;
 
 	/** Minimum edges threshold (per cluster) */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" └─  Min Edge Count", EditCondition="bRemoveSmallClusters", ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" └─ Min Edge Count", EditCondition="bRemoveSmallClusters", ClampMin=1))
 	int32 MinEdgeCount = 3;
 
 	/** Don't output Clusters if they have more points than a specified amount. */
@@ -164,11 +164,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 	bool bRemoveBigClusters = false;
 
 	/** Maximum points threshold (per cluster) */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" ├─ Max Vtx Count", EditCondition="bRemoveBigClusters", ClampMin=2))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" ┌─ Max Vtx Count", EditCondition="bRemoveBigClusters", ClampMin=2))
 	int32 MaxVtxCount = 500;
 
 	/** Maximum edges threshold (per cluster) */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" └─  Max Edge Count", EditCondition="bRemoveBigClusters", ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, DisplayName=" └─ Max Edge Count", EditCondition="bRemoveBigClusters", ClampMin=1))
 	int32 MaxEdgeCount = 500;
 
 	/** Refresh Edge Seed. */

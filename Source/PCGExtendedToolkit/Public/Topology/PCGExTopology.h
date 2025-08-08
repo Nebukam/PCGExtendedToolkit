@@ -8,6 +8,7 @@
 #include "Data/PCGExDataFilter.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
+#include "GeometryScript/MeshRepairFunctions.h"
 #include "Paths/PCGExPaths.h"
 
 #include "PCGExTopology.generated.h"
@@ -288,14 +289,22 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bQuietTriangulationError = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Geometry Script", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWeldEdges = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Geometry Script", meta = (PCG_Overridable, EditCondition="bWeldEdges"))
+	FGeometryScriptWeldEdgesOptions WeldEdgesOptions;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Geometry Script", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bComputeNormals = true;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComputeNormals"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Geometry Script", meta = (PCG_Overridable, EditCondition="bComputeNormals"))
 	FGeometryScriptCalculateNormalsOptions NormalsOptions;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FPCGExDynamicMeshDescriptor TemplateDescriptor;
+
+	void PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDynamicMesh) const;
 };
 
 namespace PCGExTopology
