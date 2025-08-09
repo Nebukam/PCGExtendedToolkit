@@ -16,7 +16,7 @@ PCGEX_INITIALIZE_ELEMENT(TopologyPathSurface)
 TArray<FPCGPinProperties> UPCGExTopologyPathSurfaceSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_MESH(FName("Mesh"), "PCG Dynamic Mesh", Normal, {})
+	PCGEX_PIN_MESH(PCGExTopology::OutputMeshLabel, "PCG Dynamic Mesh", Normal, {})
 	return PinProperties;
 }
 

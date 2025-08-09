@@ -190,8 +190,14 @@ void FPCGExMeshComponentDescriptor::InitComponent(UPrimitiveComponent* InCompone
 	UMeshComponent* TargetComponent = Cast<UMeshComponent>(InComponent);
 	if (!TargetComponent) { return; }
 
-	//TargetComponent->OverrideMaterials = OverrideMaterials; // TODO : Load & forward
-	//TargetComponent->OverlayMaterial = OverlayMaterial; // TODO : Load & forward
+	for (int i = 0; i < OverrideMaterials.Num(); i++)
+	{
+		const TSoftObjectPtr<UMaterialInterface>& Mat = OverrideMaterials[i];
+		if (Mat.IsValid() && Mat.Get()) { TargetComponent->SetMaterial(i, Mat.Get()); }
+	}
+
+	if (OverlayMaterial.IsValid() && OverlayMaterial.Get()) { TargetComponent->OverlayMaterial = OverlayMaterial.Get(); }
+
 	TargetComponent->OverlayMaterialMaxDrawDistance = OverlayMaterialMaxDrawDistance;
 }
 

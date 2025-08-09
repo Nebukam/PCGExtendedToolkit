@@ -198,8 +198,6 @@ namespace PCGExSampleSurfaceGuided
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleSurfaceGuided::SingleTrace);
-			
 			const FVector Direction = DirectionGetter->Read(Index).GetSafeNormal() * DirMult;
 			const FVector Origin = OriginGetter->Read(Index);
 			const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : Settings->DistanceInput == EPCGExTraceSampleDistanceInput::Constant ? Settings->MaxDistance : Direction.Length();

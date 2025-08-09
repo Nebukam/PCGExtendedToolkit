@@ -321,6 +321,8 @@ namespace PCGExTopology
 
 	const FName SourceEdgeConstrainsFiltersLabel = FName("ConstrainedEdgeFilters");
 	const FName SourceHolesLabel = FName("Holes");
+	const FName SourceMeshLabel = FName("Mesh");
+	const FName OutputMeshLabel = FName("Mesh");
 
 
 	template <typename T>
