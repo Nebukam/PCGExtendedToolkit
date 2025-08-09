@@ -6,6 +6,12 @@
 #include "PCGExDataMath.h"
 #include "Engine/EngineTypes.h"
 
+
+FPCGExAttachmentRules::FPCGExAttachmentRules(EAttachmentRule InLoc, EAttachmentRule InRot, EAttachmentRule InScale)
+:LocationRule(InLoc), RotationRule(InRot), ScaleRule(InScale)
+{
+}
+
 FAttachmentTransformRules FPCGExAttachmentRules::GetRules() const
 {
 	return FAttachmentTransformRules(LocationRule, RotationRule, ScaleRule, bWeldSimulatedBodies);

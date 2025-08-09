@@ -27,7 +27,7 @@ TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::OutputPinPropert
 	if (OutputMode == EPCGExTopologyOutputMode::Legacy) { return Super::OutputPinProperties(); }
 
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_MESH(FName("Mesh"), "PCG Dynamic Mesh", Normal, {})
+	PCGEX_PIN_MESH(PCGExTopology::OutputMeshLabel, "PCG Dynamic Mesh", Normal, {})
 	return PinProperties;
 }
 

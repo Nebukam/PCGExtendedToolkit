@@ -221,6 +221,7 @@ public:
 
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
+	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 };
 
 namespace PCGExFactories

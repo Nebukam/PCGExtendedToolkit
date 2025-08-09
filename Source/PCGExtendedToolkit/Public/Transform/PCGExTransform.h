@@ -30,6 +30,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttachmentRules
 	GENERATED_BODY()
 
 	FPCGExAttachmentRules() = default;
+	explicit FPCGExAttachmentRules(EAttachmentRule InLoc, EAttachmentRule InRot = EAttachmentRule::KeepWorld, EAttachmentRule InScale = EAttachmentRule::KeepWorld);
 	~FPCGExAttachmentRules() = default;
 
 	/** The rule to apply to location when attaching */

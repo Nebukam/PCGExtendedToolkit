@@ -187,6 +187,12 @@ bool FPCGExFactoryProviderElement::IsCacheable(const UPCGSettings* InSettings) c
 	return Settings->ShouldCache();
 }
 
+void FPCGExFactoryProviderElement::DisabledPassThroughData(FPCGContext* Context) const
+{
+	// Disabled factories should not output anything when disabled
+	Context->OutputData.TaggedData.Empty();
+}
+
 namespace PCGExFactories
 {
 	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, bool bThrowError)
