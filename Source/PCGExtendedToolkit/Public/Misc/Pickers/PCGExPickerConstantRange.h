@@ -25,12 +25,12 @@ struct FPCGExPickerConstantRangeConfig : public FPCGExPickerConfigBase
 	int32 DiscreteStartIndex = 0;
 
 	/**  Use negative values to select from the end. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bTreatAsNormalized", EditConditionHides, DisplayAfter="bTreatAsNormalized"))
-	int32 DiscreteEndIndex = 0;
-
-	/**  Use negative values to select from the end. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTreatAsNormalized", EditConditionHides, DisplayAfter="bTreatAsNormalized"))
 	double RelativeStartIndex = 0;
+
+	/**  Use negative values to select from the end. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bTreatAsNormalized", EditConditionHides, DisplayAfter="bTreatAsNormalized"))
+	int32 DiscreteEndIndex = 0;
 
 	/**  Use negative values to select from the end. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bTreatAsNormalized", EditConditionHides, DisplayAfter="bTreatAsNormalized"))
