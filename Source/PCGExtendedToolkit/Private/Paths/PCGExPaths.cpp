@@ -94,6 +94,8 @@ namespace PCGExPaths
 
 	bool GetClosedLoop(const UPCGData* InData)
 	{
+		if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(InData)) { return SplineData->IsClosed(); }
+		
 		const FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetConstAttribute<bool>(InData, ClosedLoopIdentifier);
 		return Attr ? PCGExDataHelpers::ReadDataValue(Attr) : false;
 	}

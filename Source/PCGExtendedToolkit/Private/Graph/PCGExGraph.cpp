@@ -570,7 +570,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				}
 			}
 
-			EdgeEndpointsWriter->SetValue(EdgeIndex, PCGEx::H64(NodeGUID(BaseGUID, E.Start), NodeGUID(BaseGUID, E.End)));
+			//EdgeEndpointsWriter->SetValue(EdgeIndex, PCGEx::H64(NodeGUID(BaseGUID, E.Start), NodeGUID(BaseGUID, E.End)));
+			EdgeEndpointsWriter->SetValue(EdgeIndex, PCGEx::H64(E.Start, E.End));
 
 			if (Builder->OutputDetails->bWriteEdgePosition)
 			{
@@ -1186,7 +1187,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			for (const int32 ValidNodeIndex : ValidNodes)
 			{
 				const FNode& Node = Nodes[ValidNodeIndex];
-				VtxEndpoints[Node.PointIndex] = PCGEx::H64(NodeGUID(BaseGUID, Node.PointIndex), Node.NumExportedEdges);
+				//VtxEndpoints[Node.PointIndex] = PCGEx::H64(NodeGUID(BaseGUID, Node.PointIndex), Node.NumExportedEdges);
+				VtxEndpoints[Node.PointIndex] = PCGEx::H64(Node.PointIndex, Node.NumExportedEdges);
 			}
 		}
 
