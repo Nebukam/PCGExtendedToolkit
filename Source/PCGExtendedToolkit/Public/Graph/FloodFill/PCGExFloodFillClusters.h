@@ -81,6 +81,8 @@ class UPCGExClusterDiffusionSettings : public UPCGExEdgesProcessorSettings
 
 	//~Begin UObject interface
 public:
+	UPCGExClusterDiffusionSettings(const FObjectInitializer& ObjectInitializer);
+
 	//~End UObject interface
 
 	//~Begin UPCGSettings
@@ -253,7 +255,7 @@ namespace PCGExClusterDiffusion
 		virtual void CompleteWork() override;
 		void Diffuse(const TSharedPtr<PCGExFloodFill::FDiffusion>& Diffusion);
 
-		virtual void Output() override;
+		void OnDiffusionComplete();
 		void WriteFullPath(const int32 DiffusionIndex, const int32 EndpointNodeIndex);
 		void WritePath(const int32 DiffusionIndex, TArray<int32>& PathIndices);
 

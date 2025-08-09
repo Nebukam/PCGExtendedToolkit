@@ -40,19 +40,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0, EditCondition="bEnabled"))
 	bool bPreserveAttributesDefaultValue = false;
 
-	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
-	{
-		if (FilterMode == EPCGExAttributeFilter::All) { return; }
-		for (int i = 0; i < Identities.Num(); i++)
-		{
-			if (!Test(Identities[i].Identifier.Name.ToString()))
-			{
-				Identities.RemoveAt(i);
-				i--;
-			}
-		}
-	}
-
+	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const;
+	
 	TSharedPtr<PCGExData::FDataForwardHandler> GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, bool bForwardToDataDomain = true) const;
 	TSharedPtr<PCGExData::FDataForwardHandler> GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade, bool bForwardToDataDomain = true) const;
 	TSharedPtr<PCGExData::FDataForwardHandler> TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, bool bForwardToDataDomain = true) const;

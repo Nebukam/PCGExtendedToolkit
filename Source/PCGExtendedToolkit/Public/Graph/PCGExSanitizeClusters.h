@@ -78,7 +78,7 @@ namespace PCGExSanitizeClusters
 			this->bRequiresGraphBuilder = true;
 		}
 
-		virtual void CompleteWork() override;
+		virtual void OnInitialPostProcess() override;
 		virtual void Output() override;
 	};
 }

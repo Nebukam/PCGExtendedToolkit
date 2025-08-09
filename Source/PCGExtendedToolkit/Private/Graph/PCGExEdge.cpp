@@ -4,6 +4,7 @@
 #include "Graph/PCGExEdge.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExDataValue.h"
+#include "Paths/PCGExPaths.h"
 
 namespace PCGExGraph
 {
@@ -19,6 +20,7 @@ namespace PCGExGraph
 		IO->Tags->Set(TagStr_PCGExCluster, Id);
 		IO->Tags->AddRaw(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
+		IO->DeleteAttribute(PCGExPaths::ClosedLoopIdentifier);
 	}
 
 	void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const PCGExCommon::DataIDType& Id)
@@ -26,6 +28,7 @@ namespace PCGExGraph
 		IO->Tags->Set(TagStr_PCGExCluster, Id);
 		IO->Tags->AddRaw(TagStr_PCGExEdges);
 		IO->Tags->Remove(TagStr_PCGExVtx);
+		IO->DeleteAttribute(PCGExPaths::ClosedLoopIdentifier);
 	}
 
 	void MarkClusterEdges(const TArrayView<TSharedRef<PCGExData::FPointIO>> Edges, const PCGExCommon::DataIDType& Id)

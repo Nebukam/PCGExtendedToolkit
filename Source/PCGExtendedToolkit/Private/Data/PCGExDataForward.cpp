@@ -5,6 +5,18 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointData.h"
 
+void FPCGExForwardDetails::Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
+{
+	for (int i = 0; i < Identities.Num(); i++)
+	{
+		if (!Test(Identities[i].Identifier.Name.ToString()))
+		{
+			Identities.RemoveAt(i);
+			i--;
+		}
+	}
+}
+
 TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const bool bForwardToDataDomain) const
 {
 	return MakeShared<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade, bForwardToDataDomain);

@@ -10,6 +10,12 @@
 #define LOCTEXT_NAMESPACE "PCGExClusterDiffusion"
 #define PCGEX_NAMESPACE ClusterDiffusion
 
+UPCGExClusterDiffusionSettings::UPCGExClusterDiffusionSettings(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	SeedForwarding.bPreservePCGExData = true;
+}
+
 PCGExData::EIOInit UPCGExClusterDiffusionSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 PCGExData::EIOInit UPCGExClusterDiffusionSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
@@ -67,7 +73,9 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 		Context->Paths->OutputPin = PCGExPaths::OutputPathsLabel;
 	}
 
-	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade, false);
+	FPCGExForwardDetails FwdDetails = Settings->SeedForwarding;
+	FwdDetails.bFilterToRemove = true;
+	Context->SeedForwardHandler = FwdDetails.GetHandler(Context->SeedsDataFacade, false);
 
 	return true;
 }
@@ -91,36 +99,10 @@ bool FPCGExClusterDiffusionElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 	}
 
-	if (Settings->PathOutput != EPCGExFloodFillPathOutput::None)
-	{
-		PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_ReadyForNextPoints)
-
-		if (Context->ExpectedPathCount > 0)
-		{
-			PCGEX_ON_STATE(PCGExCommon::State_ReadyForNextPoints)
-			{
-				Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-				Context->OutputBatches();
-			}
-
-			PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
-			{
-				Context->Paths->StageOutputs();
-				Context->Done();
-			}
-		}
-		else
-		{
-			// No point, maybe give a warning or something?
-			Context->Done();
-		}
-	}
-	else
-	{
-		PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
-	}
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->OutputPointsAndEdges();
+	if (Context->Paths) { Context->Paths->StageOutputs(); }
 
 	return Context->TryComplete();
 }
@@ -310,6 +292,13 @@ namespace PCGExClusterDiffusion
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, DiffuseDiffusions)
 
+		DiffuseDiffusions->OnCompleteCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->OnDiffusionComplete();
+			};
+
 		DiffuseDiffusions->OnIterationCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
 			{
@@ -353,9 +342,13 @@ namespace PCGExClusterDiffusion
 		// TODO : Cleanup the diffusion if we don't want paths
 	}
 
-	void FProcessor::Output()
+	void FProcessor::OnDiffusionComplete()
 	{
-		if (ExpectedPathCount == 0) { return; }
+		if (Settings->PathOutput == EPCGExFloodFillPathOutput::None ||
+			ExpectedPathCount == 0)
+		{
+			return;
+		}
 
 		if (Settings->PathOutput == EPCGExFloodFillPathOutput::Full)
 		{
@@ -469,6 +462,7 @@ namespace PCGExClusterDiffusion
 		// Create a copy of the final vtx, so we get all the goodies
 
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
+		PathIO->DeleteAttribute(PCGExPaths::ClosedLoopIdentifier);
 
 		(void)PCGEx::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
 		PathIO->InheritPoints(PathIndices, 0);
@@ -489,6 +483,7 @@ namespace PCGExClusterDiffusion
 		// Create a copy of the final vtx, so we get all the goodies
 
 		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef(VtxDataFacade->Source->GetOut(), PCGExData::EIOInit::New);
+		PathIO->DeleteAttribute(PCGExPaths::ClosedLoopIdentifier);
 
 		(void)PCGEx::SetNumPointsAllocated(PathIO->GetOut(), PathIndices.Num(), VtxDataFacade->Source->GetIn()->GetAllocatedProperties());
 		PathIO->InheritPoints(PathIndices, 0);
