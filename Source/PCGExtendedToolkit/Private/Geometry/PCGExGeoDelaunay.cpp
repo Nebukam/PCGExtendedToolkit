@@ -110,9 +110,13 @@ namespace PCGExGeo
 				DelaunayEdges.Add(Edge, &bIsAlreadySet);
 				if (bIsAlreadySet)
 				{
-					FDelaunaySite2& OtherSite = Sites[EdgeMap.FindAndRemoveChecked(Edge)];
-					OtherSite.PushAdjacency(Site.Id);
-					Site.PushAdjacency(OtherSite.Id);
+					if (int32 Idx = -1;
+						EdgeMap.RemoveAndCopyValue(Edge, Idx))
+					{
+						FDelaunaySite2& OtherSite = Sites[Idx];
+						OtherSite.PushAdjacency(Site.Id);
+						Site.PushAdjacency(OtherSite.Id);
+					}
 				}
 				else
 				{
