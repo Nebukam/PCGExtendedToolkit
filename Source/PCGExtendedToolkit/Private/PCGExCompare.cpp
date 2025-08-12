@@ -6,6 +6,7 @@
 
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExProxyData.h"
 
@@ -332,6 +333,11 @@ bool FPCGExDotComparisonDetails::Test(const double A, const double B) const
 bool FPCGExDotComparisonDetails::Test(const double A, const int32 Index) const
 {
 	return Test(A, GetComparisonThreshold(Index));
+}
+
+void FPCGExDotComparisonDetails::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	if (ThresholdInput == EPCGExInputValueType::Attribute){ FacadePreloader.Register<double>(InContext, ThresholdAttribute); }
 }
 
 void FPCGExDotComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

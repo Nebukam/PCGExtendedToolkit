@@ -11,7 +11,7 @@
 
 bool UPCGExTimeFilterFactory::SupportsCollectionEvaluation() const
 {
-	return Config.bCheckAgainstDataBounds; 
+	return Config.bCheckAgainstDataBounds;
 }
 
 bool UPCGExTimeFilterFactory::SupportsProxyEvaluation() const
@@ -34,6 +34,12 @@ void UPCGExTimeFilterFactory::InitConfig_Internal()
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExTimeFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FTimeFilter>(this);
+}
+
+void UPCGExTimeFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Config.OperandB); }
 }
 
 bool UPCGExTimeFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

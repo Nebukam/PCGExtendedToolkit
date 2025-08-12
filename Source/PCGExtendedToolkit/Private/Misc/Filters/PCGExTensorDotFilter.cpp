@@ -30,6 +30,13 @@ TSharedPtr<PCGExPointFilter::IFilter> UPCGExTensorDotFilterFactory::CreateFilter
 	return MakeShared<PCGExPointFilter::FTensorDotFilter>(this);
 }
 
+void UPCGExTensorDotFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	FacadePreloader.Register<FVector>(InContext, Config.OperandA);
+	Config.DotComparisonDetails.RegisterBuffersDependencies(InContext, FacadePreloader);
+}
+
 bool UPCGExTensorDotFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
 	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }

@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExDotFilter.h"
 
+#include "Data/PCGExDataPreloader.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExDotFilterDefinition"
 #define PCGEX_NAMESPACE PCGExDotFilterDefinition
@@ -26,6 +28,14 @@ bool UPCGExDotFilterFactory::DomainCheck()
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExDotFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FDotFilter>(this);
+}
+
+void UPCGExDotFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	FacadePreloader.Register<FVector>(InContext, Config.OperandA);
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { FacadePreloader.Register<FVector>(InContext, Config.OperandB); }
+	Config.DotComparisonDetails.RegisterBuffersDependencies(InContext, FacadePreloader);
 }
 
 bool UPCGExDotFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

@@ -67,6 +67,7 @@ public:
 	virtual bool DomainCheck() override;
 
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const override;
 };
 

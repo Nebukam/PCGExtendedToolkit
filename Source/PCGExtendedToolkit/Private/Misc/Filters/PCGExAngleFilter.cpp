@@ -26,6 +26,12 @@ TSharedPtr<PCGExPointFilter::IFilter> UPCGExAngleFilterFactory::CreateFilter() c
 	return MakeShared<PCGExPointFilter::FAngleFilter>(this);
 }
 
+void UPCGExAngleFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	Config.DotComparisonDetails.RegisterBuffersDependencies(InContext, FacadePreloader);
+}
+
 bool UPCGExAngleFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
 	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
