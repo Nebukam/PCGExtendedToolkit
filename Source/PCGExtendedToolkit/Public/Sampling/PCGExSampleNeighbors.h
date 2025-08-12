@@ -95,7 +95,7 @@ namespace PCGExSampleNeighbors
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
 			bRequiresWriteStep = true;
 			bWriteVtxDataFacade = true;
-			bAllowVtxDataFacadeScopedGet = true;
+			// bAllowVtxDataFacadeScopedGet = true;
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
