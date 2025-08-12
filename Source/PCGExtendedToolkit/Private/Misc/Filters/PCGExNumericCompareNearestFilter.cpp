@@ -54,6 +54,12 @@ TSharedPtr<PCGExPointFilter::IFilter> UPCGExNumericCompareNearestFilterFactory::
 	return MakeShared<PCGExPointFilter::FNumericCompareNearestFilter>(this);
 }
 
+void UPCGExNumericCompareNearestFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Config.OperandB); }
+}
+
 bool UPCGExNumericCompareNearestFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {
 	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }

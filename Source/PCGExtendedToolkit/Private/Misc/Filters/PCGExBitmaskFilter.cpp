@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExBitmaskFilter.h"
 
+#include "Data/PCGExDataPreloader.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
@@ -17,6 +19,13 @@ bool UPCGExBitmaskFilterFactory::DomainCheck()
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExBitmaskFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FBitmaskFilter>(this);
+}
+
+void UPCGExBitmaskFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	FacadePreloader.Register<int64>(InContext, Config.FlagsAttribute);
+	if (Config.MaskInput == EPCGExInputValueType::Attribute) { FacadePreloader.Register<int64>(InContext, Config.BitmaskAttribute); }
 }
 
 bool UPCGExBitmaskFilterFactory::RegisterConsumableAttributes(FPCGExContext* InContext) const

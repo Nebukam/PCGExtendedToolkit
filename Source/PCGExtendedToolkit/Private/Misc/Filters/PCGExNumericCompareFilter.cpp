@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExNumericCompareFilter.h"
 
+#include "Data/PCGExDataPreloader.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
@@ -22,6 +24,8 @@ TSharedPtr<PCGExPointFilter::IFilter> UPCGExNumericCompareFilterFactory::CreateF
 void UPCGExNumericCompareFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	FacadePreloader.Register<double>(InContext, Config.OperandA);
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Config.OperandB); }
 }
 
 bool UPCGExNumericCompareFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

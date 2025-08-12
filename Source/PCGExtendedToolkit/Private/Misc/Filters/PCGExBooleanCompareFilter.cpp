@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExBooleanCompareFilter.h"
 
+#include "Data/PCGExDataPreloader.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
@@ -17,6 +19,13 @@ bool UPCGExBooleanCompareFilterFactory::DomainCheck()
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExBooleanCompareFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FBooleanCompareFilter>(this);
+}
+
+void UPCGExBooleanCompareFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	FacadePreloader.Register<bool>(InContext, Config.OperandA);
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { FacadePreloader.Register<bool>(InContext, Config.OperandB); }
 }
 
 bool UPCGExBooleanCompareFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
@@ -50,8 +59,8 @@ bool PCGExPointFilter::FBooleanCompareFilter::Init(FPCGExContext* InContext, con
 
 bool PCGExPointFilter::FBooleanCompareFilter::Test(const int32 PointIndex) const
 {
-	const double A = OperandA->Read(PointIndex);
-	const double B = OperandB->Read(PointIndex);
+	const bool A = OperandA->Read(PointIndex);
+	const bool B = OperandB->Read(PointIndex);
 	return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
 }
 

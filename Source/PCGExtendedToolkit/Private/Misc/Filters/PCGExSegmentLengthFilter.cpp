@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExSegmentLengthFilter.h"
 
+#include "Data/PCGExDataPreloader.h"
 #include "Paths/PCGExPaths.h"
 
 
@@ -25,6 +26,13 @@ bool UPCGExSegmentLengthFilterFactory::DomainCheck()
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExSegmentLengthFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FSegmentLengthFilter>(this);
+}
+
+void UPCGExSegmentLengthFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	if (Config.ThresholdInput == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Config.ThresholdAttribute); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Config.IndexAttribute); }
 }
 
 bool UPCGExSegmentLengthFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

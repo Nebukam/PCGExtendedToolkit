@@ -46,7 +46,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingConfig
 		LocalWeightCurve.EditorCurveData.AddKey(1, 1);
 	}
 
-	UPROPERTY()
+	UPROPERTY(meta=(PCG_NotOverridable))
 	bool bSupportsBlending = true;
 
 	/** Type of range for weight blending computation */

@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExModuloCompareFilter.h"
 
+#include "Data/PCGExDataPreloader.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
@@ -18,6 +20,14 @@ bool UPCGExModuloCompareFilterFactory::DomainCheck()
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExModuloCompareFilterFactory::CreateFilter() const
 {
 	return MakeShared<PCGExPointFilter::FModuloComparisonFilter>(this);
+}
+
+void UPCGExModuloCompareFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	FacadePreloader.Register<double>(InContext, Config.OperandA);
+	if (Config.OperandBSource == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Config.OperandB); }
+	if (Config.CompareAgainst == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, Config.OperandC); }
 }
 
 bool UPCGExModuloCompareFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

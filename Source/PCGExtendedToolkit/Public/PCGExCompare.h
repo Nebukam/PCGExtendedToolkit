@@ -22,6 +22,11 @@ MACRO(FSoftClassPath)
 MACRO(FSoftObjectPath)\
 MACRO(FSoftClassPath)
 
+namespace PCGExData
+{
+	class FFacadePreloader;
+}
+
 UENUM()
 enum class EPCGExIndexMode : uint8
 {
@@ -556,6 +561,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	bool Test(const double A, const double B) const;
 	bool Test(const double A, const int32 Index) const;
 
+	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
 	bool GetOnlyUseDataDomain() const;
 

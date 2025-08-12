@@ -88,6 +88,7 @@ public:
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
 
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
 	virtual void BeginDestroy() override;
 };
