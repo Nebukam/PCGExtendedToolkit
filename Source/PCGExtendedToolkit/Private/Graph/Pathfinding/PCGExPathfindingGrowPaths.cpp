@@ -403,9 +403,7 @@ namespace PCGExGrowPaths
 			}
 		}
 
-		if (IsTrivial()) { Grow(); }
-		else { PCGEX_LAUNCH(FGrowTask, ThisPtr) }
-
+		PCGEX_LAUNCH(FGrowTask, ThisPtr)
 		return true;
 	}
 

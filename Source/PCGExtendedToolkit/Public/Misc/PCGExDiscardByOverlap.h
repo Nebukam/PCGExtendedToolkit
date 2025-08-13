@@ -327,8 +327,6 @@ namespace PCGExDiscardByOverlap
 		FORCEINLINE const TArray<TSharedPtr<FPointBounds>>& GetPointBounds() const { return LocalPointBounds; }
 		FORCEINLINE const FPointBoundsOctree* GetOctree() const { return Octree.Get(); }
 
-		//virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
-
 		FORCEINLINE bool HasOverlaps() const { return !Overlaps.IsEmpty(); }
 
 		void RegisterOverlap(FProcessor* InOtherProcessor, const FBox& Intersection);

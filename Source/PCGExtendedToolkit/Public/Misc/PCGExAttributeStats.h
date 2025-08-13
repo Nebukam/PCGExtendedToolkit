@@ -478,7 +478,6 @@ namespace PCGExAttributeStats
 
 		virtual ~FProcessor() override;
 
-		virtual bool IsTrivial() const override { return false; }
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};

@@ -485,18 +485,17 @@ bool FPCGExContext::IsAsyncWorkComplete()
 
 bool FPCGExContext::CancelExecution(const FString& InReason)
 {
-	PCGEX_TERMINATE_ASYNC
-
 	if (bExecutionCancelled) { return true; }
-
+	
+	if (!InReason.IsEmpty() && !bQuietCancellationError) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
+	
 	bExecutionCancelled = true;
+	PCGEX_TERMINATE_ASYNC
 
 	OutputData.Reset();
 	if (bPropagateAbortedExecution){ OutputData.bCancelExecution = true; }
 
-	WorkPermit.Reset();
 	ResumeExecution();
-	if (!InReason.IsEmpty() && !bQuietCancellationError) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
 	return true;
 }
 

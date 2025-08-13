@@ -309,7 +309,6 @@ namespace PCGExClusterMT
 	{
 	public:
 		TArray<TSharedRef<T>> Processors;
-		TArray<TSharedRef<T>> TrivialProcessors;
 
 		std::atomic<PCGExCommon::ContextState> CurrentState{PCGExCommon::State_InitialExecution};
 
@@ -352,7 +351,6 @@ namespace PCGExClusterMT
 				Processors.Add(NewProcessor.ToSharedRef());
 
 				NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize;
-				if (NewProcessor->IsTrivial()) { TrivialProcessors.Add(NewProcessor.ToSharedRef()); }
 			}
 
 			StartProcessing();
