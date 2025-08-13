@@ -57,19 +57,11 @@ namespace PCGExPointsMT
 		AsyncManager = InAsyncManager;
 		PCGEX_ASYNC_CHKD(AsyncManager)
 
-#pragma region Path filter data
+#pragma region Primary filters
 
 		if (FilterFactories)
 		{
 			InitPrimaryFilters(FilterFactories);
-			/*
-			if(PrimaryFilters && !PrimaryFilters->Test(PointDataFacade->Source))
-			{
-				// Filtered out data
-				// TODO : Check that this is not creating weird issues.
-				return false;
-			}
-			*/
 		}
 
 #pragma endregion
