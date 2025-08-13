@@ -26,7 +26,7 @@ void FPCGExMergeVerticesContext::ClusterProcessing_InitialProcessingDone()
 		PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>* Batch = static_cast<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>*>(Batches[i].Get());
 		Merger->Append(Batch->VtxDataFacade->Source);
 
-		for (const TSharedRef<PCGExMergeVertices::FProcessor>& Processor : Batch->Processors) { Processor->StartIndexOffset = StartOffset; }
+		for (int Pi = 0; Pi < Batch->GetNumProcessors(); Pi++) { Batch->GetProcessor<PCGExMergeVertices::FProcessor>(Pi)->StartIndexOffset = StartOffset; }
 		StartOffset += Batch->VtxDataFacade->GetNum();
 	}
 

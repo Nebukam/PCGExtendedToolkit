@@ -85,8 +85,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : FPCGExPointsProcesso
 		OutProcessors.Reserve(GetClusterProcessorsNum());
 		for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches)
 		{
-			PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<PCGExClusterMT::TBatch<T>*>(Batch.Get());
-			OutProcessors.Append(TypedBatch->Processors);
+			const int32 NumProcessors = Batch->GetNumProcessors();
+			OutProcessors.Reserve(OutProcessors.Num() + NumProcessors);
+			for (int i = 0; i < NumProcessors; i++) { OutProcessors.Add(Batch->GetProcessor<T>(i)); }
 		}
 	}
 

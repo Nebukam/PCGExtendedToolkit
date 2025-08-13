@@ -140,8 +140,9 @@ namespace PCGExDiscardSame
 
 		if (Settings->TestMode == EPCGExFilterGroupMode::AND)
 		{
-			for (TSharedRef<FProcessor> P : Batch->Processors)
+			for (int Pi = 0; Pi < Batch->GetNumProcessors(); Pi++)
 			{
+				const TSharedRef<FProcessor> P = Batch->GetProcessorRef<FProcessor>(Pi);
 				if (P == ThisPtr) { continue; }
 
 				if (Settings->bTestBounds && P->HashBounds != HashBounds) { continue; }
@@ -154,8 +155,9 @@ namespace PCGExDiscardSame
 		}
 		else
 		{
-			for (TSharedRef<FProcessor> P : Batch->Processors)
+			for (int Pi = 0; Pi < Batch->GetNumProcessors(); Pi++)
 			{
+				const TSharedRef<FProcessor> P = Batch->GetProcessorRef<FProcessor>(Pi);
 				if (P == ThisPtr) { continue; }
 
 				if ((Settings->bTestBounds && P->HashBounds == HashBounds) ||

@@ -148,10 +148,12 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->PathsFacades.Reserve(NumFacades);
 
 			PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>* MainBatch = static_cast<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>*>(Context->MainBatch.Get());
-			for (const TSharedRef<PCGExPathToClusters::FFusingProcessor>& Processor : MainBatch->Processors)
+
+			for (int Pi = 0; Pi < MainBatch->GetNumProcessors(); Pi++)
 			{
-				if (!Processor->bIsProcessorValid) { continue; }
-				Context->PathsFacades.Add(Processor->PointDataFacade);
+				const TSharedPtr<PCGExPointsMT::IProcessor> P = MainBatch->GetProcessor<PCGExPointsMT::IProcessor>(Pi);
+				if (!P->bIsProcessorValid) { continue; }
+				Context->PathsFacades.Add(P->PointDataFacade);
 			}
 
 			Context->MainBatch.Reset();

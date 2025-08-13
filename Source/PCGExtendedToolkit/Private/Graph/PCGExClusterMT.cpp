@@ -264,6 +264,11 @@ namespace PCGExClusterMT
 		}
 	}
 
+	TSharedPtr<IProcessor> IBatch::NewProcessorInstance(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) const
+	{
+		return nullptr;
+	}
+
 	IBatch::IBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 		: ExecutionContext(InContext), WorkPermit(InContext->GetWorkPermit()), VtxDataFacade(MakeShared<PCGExData::FFacade>(InVtx))
 	{
@@ -418,6 +423,11 @@ namespace PCGExClusterMT
 		}
 	}
 
+	bool IBatch::PrepareSingle(const TSharedPtr<IProcessor>& InProcessor)
+	{
+		return true;
+	}
+
 	void IBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		if (VtxFilterFactories)
@@ -458,19 +468,91 @@ namespace PCGExClusterMT
 		}
 
 		bIsBatchValid = true;
+
+		CurrentState.store(PCGExCommon::State_Processing, std::memory_order_release);
+
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
+		{
+			const TSharedPtr<IProcessor> NewProcessor = NewProcessorInstance(VtxDataFacade, (*EdgesDataFacades)[IO->IOIndex]);
+
+			NewProcessor->SetExecutionContext(ExecutionContext);
+
+			NewProcessor->ParentBatch = SharedThis(this);
+			NewProcessor->VtxFilterFactories = VtxFilterFactories;
+			NewProcessor->EdgeFilterFactories = EdgeFilterFactories;
+			NewProcessor->VtxFilterCache = VtxFilterCache;
+
+			NewProcessor->NodeIndexLookup = NodeIndexLookup;
+			NewProcessor->EndpointsLookup = &EndpointsLookup;
+			NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
+			NewProcessor->BatchIndex = Processors.Num();
+
+			if (WantsProjection()) { NewProcessor->SetProjectionDetails(ProjectionDetails, ProjectedVtxPositions, WantsPerClusterProjection()); }
+
+			if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
+
+			NewProcessor->SetWantsHeuristics(WantsHeuristics(), HeuristicsFactories);
+
+			NewProcessor->RegisterConsumableAttributesWithFacade();
+
+			if (!PrepareSingle(NewProcessor)) { continue; }
+
+			Processors.Add(NewProcessor.ToSharedRef());
+
+			NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize;
+		}
+
+		StartProcessing();
+	}
+
+	void IBatch::StartProcessing()
+	{
+		if (!bIsBatchValid) { return; }
+
+		InitializationTracker = MakeShared<PCGEx::FIntTracker>(
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->OnInitialPostProcess();
+			});
+
+		PCGEX_ASYNC_MT_LOOP_TPL(Process, bDaisyChainProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, InitializationTracker)
 	}
 
 	void IBatch::OnInitialPostProcess()
 	{
 	}
 
+	int32 IBatch::GatherValidClusters()
+	{
+		ValidClusters.Empty();
+
+		for (const TSharedRef<IProcessor>& P : Processors)
+		{
+			if (!P->Cluster) { continue; }
+			ValidClusters.Add(P->Cluster);
+		}
+		return ValidClusters.Num();
+	}
+
 	void IBatch::CompleteWork()
 	{
+		if (bSkipCompletion) { return; }
+		if (!bIsBatchValid) { return; }
+
+		CurrentState.store(PCGExCommon::State_Completing, std::memory_order_release);
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, { Processor->CompleteWork(); })
 	}
 
 	void IBatch::Write()
 	{
 		PCGEX_CHECK_WORK_PERMIT_VOID
+
+		if (!bIsBatchValid) { return; }
+
+		CurrentState.store(PCGExCommon::State_Writing, std::memory_order_release);
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, { Processor->Write(); })
+
 		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->WriteFastest(AsyncManager); }
 	}
 
@@ -506,33 +588,18 @@ namespace PCGExClusterMT
 
 	void IBatch::Output()
 	{
+		if (!bIsBatchValid) { return; }
+		for (const TSharedRef<IProcessor>& P : Processors)
+		{
+			if (!P->bIsProcessorValid) { continue; }
+			P->Output();
+		}
 	}
 
 	void IBatch::Cleanup()
 	{
-	}
-
-	void IBatch::InternalInitProcessor(const TSharedPtr<IProcessor>& InProcessor, const int32 InIndex)
-	{
-		InProcessor->SetExecutionContext(ExecutionContext);
-
-		InProcessor->ParentBatch = SharedThis(this);
-		InProcessor->VtxFilterFactories = VtxFilterFactories;
-		InProcessor->EdgeFilterFactories = EdgeFilterFactories;
-		InProcessor->VtxFilterCache = VtxFilterCache;
-
-		InProcessor->NodeIndexLookup = NodeIndexLookup;
-		InProcessor->EndpointsLookup = &EndpointsLookup;
-		InProcessor->ExpectedAdjacency = &ExpectedAdjacency;
-		InProcessor->BatchIndex = InIndex;
-
-		if (WantsProjection()) { InProcessor->SetProjectionDetails(ProjectionDetails, ProjectedVtxPositions, WantsPerClusterProjection()); }
-
-		if (RequiresGraphBuilder()) { InProcessor->GraphBuilder = GraphBuilder; }
-
-		InProcessor->SetWantsHeuristics(WantsHeuristics(), HeuristicsFactories);
-
-		InProcessor->RegisterConsumableAttributesWithFacade();
+		for (const TSharedRef<IProcessor>& P : Processors) { P->Cleanup(); }
+		Processors.Empty();
 	}
 
 	void IBatch::AllocateVtxPoints()
@@ -550,5 +617,20 @@ namespace PCGExClusterMT
 		{
 			VtxDataFacade->GetOut()->AllocateProperties(AllocateVtxProperties);
 		}
+	}
+
+	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild)
+	{
+		PCGEX_LAUNCH(FStartClusterBatchProcessing<IBatch>, Batch, bScopedIndexLookupBuild)
+	}
+
+	void CompleteBatches(const TArrayView<TSharedPtr<IBatch>> Batches)
+	{
+		for (const TSharedPtr<IBatch>& Batch : Batches) { Batch->CompleteWork(); }
+	}
+
+	void WriteBatches(const TArrayView<TSharedPtr<IBatch>> Batches)
+	{
+		for (const TSharedPtr<IBatch>& Batch : Batches) { Batch->Write(); }
 	}
 }

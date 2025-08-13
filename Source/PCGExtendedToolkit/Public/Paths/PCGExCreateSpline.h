@@ -176,6 +176,6 @@ namespace PCGExCreateSpline
 			InContext->AddNotifyActor(TargetActor);
 		}
 
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& PointsProcessor) override;
+		virtual bool PrepareSingle(const TSharedRef<PCGExPointsMT::IProcessor>& InProcessor) override;
 	};
 }

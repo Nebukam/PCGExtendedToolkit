@@ -114,8 +114,7 @@ namespace PCGExWriteVtxProperties
 		virtual ~FBatch() override;
 
 		virtual void OnProcessingPreparationComplete() override;
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
-		//virtual void CompleteWork() override;
+		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 		virtual void Write() override;
 	};
 }

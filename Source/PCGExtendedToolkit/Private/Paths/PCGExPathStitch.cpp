@@ -246,11 +246,12 @@ namespace PCGExPathStitch
 		SortedProcessors.Reserve(Processors.Num());
 
 		FBox OctreeBounds = FBox(ForceInit);
-		for (const TSharedRef<FProcessor>& Processor : this->Processors)
+		for (int Pi = 0; Pi < Processors.Num(); Pi++)
 		{
-			SortedProcessors.Add(Processor);
-			OctreeBounds += Processor->StartBounds;
-			OctreeBounds += Processor->EndBounds;
+			const TSharedPtr<FProcessor> P = GetProcessor<FProcessor>(Pi);
+			SortedProcessors.Add(P);
+			OctreeBounds += P->StartBounds;
+			OctreeBounds += P->EndBounds;
 		}
 
 		// Attempt to sort -- if it fails it's ok, just throw a warning
@@ -327,8 +328,8 @@ namespace PCGExPathStitch
 
 						if (Settings->bOnlyMatchStartAndEnds && bIsOtherEnd) { return; }
 
-						const TSharedPtr<FProcessor>& Other = Processors[Index];
-						const TSharedPtr<FProcessor>& StitchPole = bIsOtherEnd ? Other->EndStitch : Other->StartStitch;
+						const TSharedPtr<FProcessor> Other = GetProcessor<FProcessor>(Index);
+						const TSharedPtr<FProcessor> StitchPole = bIsOtherEnd ? Other->EndStitch : Other->StartStitch;
 
 						if (StitchPole || StitchPole == Current ||
 							Other->WorkIndex == Current->WorkIndex) { return; }
@@ -356,8 +357,8 @@ namespace PCGExPathStitch
 
 						if (Settings->bOnlyMatchStartAndEnds && bIsOtherStart) { return; }
 
-						const TSharedPtr<FProcessor>& Other = Processors[Index];
-						const TSharedPtr<FProcessor>& StitchPole = bIsOtherStart ? Other->StartStitch : Other->EndStitch;
+						const TSharedPtr<FProcessor> Other = GetProcessor<FProcessor>(Index);
+						const TSharedPtr<FProcessor> StitchPole = bIsOtherStart ? Other->StartStitch : Other->EndStitch;
 
 						if (StitchPole || StitchPole == Current ||
 							Other->WorkIndex == Current->WorkIndex) { return; }

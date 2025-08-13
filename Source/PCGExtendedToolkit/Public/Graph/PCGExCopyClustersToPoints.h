@@ -126,7 +126,7 @@ namespace PCGExCopyClusters
 
 		virtual ~FBatch() override;
 		virtual void Process() override;
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 		virtual void CompleteWork() override;
 	};
 }

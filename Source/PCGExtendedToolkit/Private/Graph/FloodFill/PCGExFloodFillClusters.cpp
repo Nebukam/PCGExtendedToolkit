@@ -560,16 +560,18 @@ namespace PCGExClusterDiffusion
 		TBatch<FProcessor>::Process();
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
 	{
-		if (!TBatch<FProcessor>::PrepareSingle(ClusterProcessor)) { return false; }
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
 
-		ClusterProcessor->BlendOpsManager = BlendOpsManager;
-		ClusterProcessor->InfluencesCount = InfluencesCount;
+		PCGEX_TYPED_PROCESSOR
+		
+		TypedProcessor->BlendOpsManager = BlendOpsManager;
+		TypedProcessor->InfluencesCount = InfluencesCount;
 
-		ClusterProcessor->FillRate = FillRate;
+		TypedProcessor->FillRate = FillRate;
 
-#define PCGEX_OUTPUT_FWD_TO(_NAME, _TYPE, _DEFAULT_VALUE) if(_NAME##Writer){ ClusterProcessor->_NAME##Writer = _NAME##Writer; }
+#define PCGEX_OUTPUT_FWD_TO(_NAME, _TYPE, _DEFAULT_VALUE) if(_NAME##Writer){ TypedProcessor->_NAME##Writer = _NAME##Writer; }
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_FWD_TO)
 #undef PCGEX_OUTPUT_FWD_TO
 

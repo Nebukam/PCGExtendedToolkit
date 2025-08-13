@@ -255,10 +255,10 @@ namespace PCGExPickClosestClusters
 		int32 Picks = 0;
 		const int32 MaxPicks = Processors.Num();
 
-		for (const TSharedRef<FProcessor>& P : Processors) { if (P->Picker != -1) { Picks++; } }
+		for (int Pi = 0; Pi < Processors.Num(); Pi++) { if (GetProcessor<FProcessor>(Pi)->Picker != -1) { Picks++; } }
 
-		const UPCGExPickClosestClustersSettings* Stg = Processors[0]->Settings;
-		const FPCGExPickClosestClustersContext* Ctx = Processors[0]->Context;
+		const FPCGExPickClosestClustersContext* Ctx = GetContext<FPCGExPickClosestClustersContext>();
+		const UPCGExPickClosestClustersSettings* Stg = Ctx->GetInputSettings<UPCGExPickClosestClustersSettings>();
 
 		if (Stg->Action == EPCGExFilterDataAction::Omit) { if (Picks == MaxPicks) { return; } }
 		else if (Stg->Action == EPCGExFilterDataAction::Keep) { if (Picks == 0) { return; } }

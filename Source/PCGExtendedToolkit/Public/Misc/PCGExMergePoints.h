@@ -11,6 +11,8 @@
 #include "Data/PCGExPointIOMerger.h"
 
 
+
+
 #include "PCGExMergePoints.generated.h"
 
 // Hidden for now because buggy, concurrent writing occurs and I don't know why; need to look into it
@@ -112,7 +114,7 @@ namespace PCGExMergePoints
 
 	public:
 		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& PointsProcessor) override;
+		virtual bool PrepareSingle(const TSharedRef<PCGExPointsMT::IProcessor>& InProcessor) override;
 		virtual void OnProcessingPreparationComplete() override;
 		virtual void Write() override;
 

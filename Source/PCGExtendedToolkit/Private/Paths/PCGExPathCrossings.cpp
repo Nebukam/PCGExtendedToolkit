@@ -197,12 +197,15 @@ namespace PCGExPathCrossings
 		{
 			Cutters.Reserve(Parent->ProcessorFacades.Num());
 
-			for (const TSharedRef<FProcessor>& OtherProcessor : TypedParent->Processors)
-			{
-				if (!Details.bEnableSelfIntersection && &OtherProcessor.Get() == this) { continue; }
-				if (!OtherProcessor->bCanCut || !OtherProcessor->Path->GetEdgeOctree()) { continue; }
 
-				Cutters.Add(OtherProcessor->Path);
+			for (int Pi = 0; Pi < TypedParent->GetNumProcessors(); Pi++)
+			{
+				const TSharedPtr<FProcessor> P = TypedParent->GetProcessor<FProcessor>(Pi);
+
+				if (!Details.bEnableSelfIntersection && P.Get() == this) { continue; }
+				if (!P->bCanCut || !P->Path->GetEdgeOctree()) { continue; }
+
+				Cutters.Add(P->Path);
 			}
 		}
 

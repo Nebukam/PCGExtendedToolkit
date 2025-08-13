@@ -127,9 +127,11 @@ namespace PCGExFlagNodes
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
 	{
-		ClusterProcessor->StateFlags = StateFlags;
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
+		PCGEX_TYPED_PROCESSOR
+		TypedProcessor->StateFlags = StateFlags;
 		return true;
 	}
 }

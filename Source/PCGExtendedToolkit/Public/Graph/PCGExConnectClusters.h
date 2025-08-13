@@ -142,7 +142,7 @@ namespace PCGExBridgeClusters
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 
 		virtual void Process() override;
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 		void CreateBridge(int32 EdgeIndex, int32 FromClusterIndex, int32 ToClusterIndex);

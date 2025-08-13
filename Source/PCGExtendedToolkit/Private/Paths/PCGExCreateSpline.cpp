@@ -223,11 +223,12 @@ namespace PCGExCreateSpline
 		TProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::Cleanup();
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& PointsProcessor)
+	bool FBatch::PrepareSingle(const TSharedRef<PCGExPointsMT::IProcessor>& InProcessor)
 	{
 		if (!TargetActor) { return false; }
-		if (!TBatch<FProcessor>::PrepareSingle(PointsProcessor)) { return false; }
-		PointsProcessor->SplineActor = TargetActor;
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
+		PCGEX_TYPED_PROCESSOR_REF
+		TypedProcessor->SplineActor = TargetActor;
 		return true;
 	}
 }

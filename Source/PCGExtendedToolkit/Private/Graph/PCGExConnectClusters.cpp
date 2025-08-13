@@ -156,9 +156,11 @@ namespace PCGExBridgeClusters
 		TBatch<FProcessor>::Process();
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
 	{
-		CompoundedEdgesDataFacade->Source->Tags->Append(ClusterProcessor->EdgeDataFacade->Source->Tags.ToSharedRef());
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
+		PCGEX_TYPED_PROCESSOR
+		CompoundedEdgesDataFacade->Source->Tags->Append(TypedProcessor->EdgeDataFacade->Source->Tags.ToSharedRef());
 		return true;
 	}
 

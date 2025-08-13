@@ -322,10 +322,11 @@ namespace PCGExSimplifyClusters
 		TBatch<FProcessor>::Process();
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
 	{
-		ClusterProcessor->Breakpoints = Breakpoints;
-		return TBatch<FProcessor>::PrepareSingle(ClusterProcessor);
+		PCGEX_TYPED_PROCESSOR
+		TypedProcessor->Breakpoints = Breakpoints;
+		return TBatch<FProcessor>::PrepareSingle(InProcessor);
 	}
 }
 

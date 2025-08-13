@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExMergePoints.h"
 
+
+
 #include "Graph/PCGExEdge.h"
 
 
@@ -198,18 +200,19 @@ namespace PCGExMergePoints
 		Merger = MakeShared<FPCGExPointIOMerger>(CompositeDataFacade.ToSharedRef());
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& PointsProcessor)
+	bool FBatch::PrepareSingle(const TSharedRef<PCGExPointsMT::IProcessor>& InProcessor)
 	{
-		if (!TBatch<FProcessor>::PrepareSingle(PointsProcessor)) { return false; }
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
+		PCGEX_TYPED_PROCESSOR_REF 
 
-		PointsProcessor->OutScope = Merger->Append(PointsProcessor->PointDataFacade->Source).Write;
-		PointsProcessor->ConvertedTags = ConvertedTags;
+		TypedProcessor->OutScope = Merger->Append(InProcessor->PointDataFacade->Source).Write;
+		TypedProcessor->ConvertedTags = ConvertedTags;
 
 		if (Settings->bTagToAttributes)
 		{
-			ConvertedTags->Append(PointsProcessor->PointDataFacade->Source->Tags->FlattenToArrayOfNames(false));
+			ConvertedTags->Append(InProcessor->PointDataFacade->Source->Tags->FlattenToArrayOfNames(false));
 		}
 
 		return true;

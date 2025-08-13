@@ -312,8 +312,9 @@ namespace PCGExFilterVtx
 		int32 PassNum = 0;
 		int32 FailNum = 0;
 
-		for (const TSharedRef<FProcessor>& P : Processors)
+		for (int Pi = 0; Pi < Processors.Num(); Pi++)
 		{
+			const TSharedPtr<FProcessor> P = GetProcessor<FProcessor>(Pi);
 			PassNum += P->ScopedPassNum->Sum();
 			FailNum += P->ScopedFailNum->Sum();
 		}
@@ -344,13 +345,12 @@ namespace PCGExFilterVtx
 		TArray<int8> Mask;
 		Mask.SetNumUninitialized(VtxDataFacade->GetNum(PCGExData::EIOSide::In));
 
-		for (const TSharedRef<FProcessor>& P : Processors)
+		for (int Pi = 0; Pi < Processors.Num(); Pi++)
 		{
-			const TArray<PCGExCluster::FNode> Nodes = *P->Cluster->Nodes.Get();
-
-			for (int i = 0; i < P->NumNodes; i++)
+			const TSharedPtr<FProcessor> P = GetProcessor<FProcessor>(Pi);
+			for (const TArray<PCGExCluster::FNode>& Nodes = *P->Cluster->Nodes.Get();
+			     const PCGExCluster::FNode& Node : Nodes)
 			{
-				const PCGExCluster::FNode& Node = Nodes[i];
 				Mask[Node.PointIndex] = Node.bValid ? 1 : 0;
 			}
 		}
