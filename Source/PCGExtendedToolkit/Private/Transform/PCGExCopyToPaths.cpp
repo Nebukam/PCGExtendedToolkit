@@ -4,6 +4,7 @@
 #include "Transform/PCGExCopyToPaths.h"
 
 
+#include "Data/PCGExDataTag.h"
 #include "Helpers/PCGHelpers.h"
 #include "Paths/PCGExPaths.h"
 

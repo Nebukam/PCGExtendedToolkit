@@ -8,6 +8,7 @@
 
 #include "PCGExHelpers.h"
 #include "PCGExRandom.h"
+#include "Data/PCGExDataTag.h"
 
 
 #include "Paths/PCGExPaths.h"

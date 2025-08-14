@@ -3,6 +3,8 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindContours.h"
 
+#include "Data/PCGExDataTag.h"
+
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours
 

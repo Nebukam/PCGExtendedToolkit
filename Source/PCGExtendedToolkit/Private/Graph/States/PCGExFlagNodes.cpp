@@ -3,6 +3,7 @@
 
 #include "Graph/States/PCGExFlagNodes.h"
 
+#include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/States/PCGExClusterStates.h"
 

@@ -4,6 +4,7 @@
 #include "Sampling/PCGExSampleTexture.h"
 
 
+#include "Data/PCGExDataTag.h"
 #include "Sampling/PCGExTexParamFactoryProvider.h"
 
 

@@ -3,6 +3,8 @@
 
 #include "Sampling/PCGExSampleNearestPath.h"
 
+#include "Data/PCGExDataTag.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPathElement"
 #define PCGEX_NAMESPACE SampleNearestPath

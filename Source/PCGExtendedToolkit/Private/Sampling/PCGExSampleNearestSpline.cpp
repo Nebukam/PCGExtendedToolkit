@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Sampling/PCGExSampleNearestSpline.h"
+
+#include "Data/PCGExDataTag.h"
 #include "Data/Blending//PCGExBlendModes.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"

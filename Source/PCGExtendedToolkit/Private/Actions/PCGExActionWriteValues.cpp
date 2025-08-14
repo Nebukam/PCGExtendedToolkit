@@ -3,9 +3,11 @@
 
 #include "Actions/PCGExActionWriteValues.h"
 #include "PCGExFactoryProvider.h"
+#include "PCGExHelpers.h"
 
 #include "PCGPin.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExWriteActionWriteValuess"

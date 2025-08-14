@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExPathStitch.h"
 #include "PCGExMath.h"
+#include "Data/PCGExDataTag.h"
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 

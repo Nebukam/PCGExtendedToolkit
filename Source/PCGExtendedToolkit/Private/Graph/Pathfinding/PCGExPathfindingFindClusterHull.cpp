@@ -3,6 +3,8 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindClusterHull.h"
 
+#include "Data/PCGExDataTag.h"
+
 #define LOCTEXT_NAMESPACE "PCGExFindClusterHull"
 #define PCGEX_NAMESPACE FindClusterHull
 

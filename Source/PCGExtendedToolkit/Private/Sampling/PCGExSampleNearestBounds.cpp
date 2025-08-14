@@ -4,6 +4,7 @@
 #include "Sampling/PCGExSampleNearestBounds.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExDataTag.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Geometry/PCGExGeoPointBox.h"

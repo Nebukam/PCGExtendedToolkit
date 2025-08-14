@@ -6,12 +6,12 @@
 #include "CoreMinimal.h"
 
 #include "PCGSettings.h"
-#include "Data/PCGExData.h"
 #include "UObject/Object.h"
 
 #include "PCGEx.h"
+#include "PCGExContext.h"
+#include "PCGExMT.h"
 #include "Data/PCGExPointData.h"
-#include "Data/PCGExPointIO.h"
 
 #include "PCGExFactoryProvider.generated.h"
 
@@ -22,6 +22,7 @@
 
 namespace PCGExData
 {
+	class FFacade;
 	class FFacadePreloader;
 }
 
@@ -227,7 +228,7 @@ public:
 
 namespace PCGExFactories
 {
-	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, bool bThrowError);
+	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, const bool bThrowError);
 
 	template <typename T_DEF>
 	static bool GetInputFactories(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const T_DEF>>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
@@ -237,55 +238,33 @@ namespace PCGExFactories
 
 		// Cast back to T_DEF
 		for (const TObjectPtr<const UPCGExFactoryData>& Base : BaseFactories) { if (const T_DEF* Derived = Cast<T_DEF>(Base)) { OutFactories.Add(Derived); } }
-		OutFactories.Sort([](const T_DEF& A, const T_DEF& B) { return A.Priority < B.Priority; });
 
 		return !OutFactories.IsEmpty();
 	}
 
+	PCGEXTENDEDTOOLKIT_API
+	void RegisterConsumableAttributesWithData_Internal(const TArray<TObjectPtr<const UPCGExFactoryData>>& InFactories, FPCGExContext* InContext, const UPCGData* InData);
+
+	PCGEXTENDEDTOOLKIT_API
+	void RegisterConsumableAttributesWithFacade_Internal(const TArray<TObjectPtr<const UPCGExFactoryData>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InFacade);
+
 	template <typename T_DEF>
 	static void RegisterConsumableAttributesWithData(const TArray<TObjectPtr<const T_DEF>>& InFactories, FPCGExContext* InContext, const UPCGData* InData)
 	{
-		check(InContext)
-
-		if (!InData || InFactories.IsEmpty()) { return; }
-
-		for (const TObjectPtr<const T_DEF>& Factory : InFactories)
-		{
-			if (!Factory.Get()) { continue; }
-			Factory->RegisterConsumableAttributesWithData(InContext, InData);
-		}
+		TArray<TObjectPtr<const UPCGExFactoryData>> BaseFactories;
+		BaseFactories.Reserve(InFactories.Num());
+		for (const TObjectPtr<const T_DEF>& Factory : InFactories) { BaseFactories.Add(Factory); }
+		RegisterConsumableAttributesWithData_Internal(BaseFactories, InContext, InData);
 	}
-
+	
 	template <typename T_DEF>
 	static void RegisterConsumableAttributesWithFacade(const TArray<TObjectPtr<const T_DEF>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InFacade)
 	{
-		FPCGContext::FSharedContext<FPCGExContext> SharedContext(InFacade->Source->GetContextHandle());
-		check(SharedContext.Get())
-
-		if (!InFacade->GetIn()) { return; }
-
-		const UPCGData* Data = InFacade->GetIn();
-
-		if (!Data) { return; }
-
-		for (const TObjectPtr<const T_DEF>& Factory : InFactories)
-		{
-			Factory->RegisterConsumableAttributesWithData(SharedContext.Get(), Data);
-		}
+		TArray<TObjectPtr<const UPCGExFactoryData>> BaseFactories;
+		BaseFactories.Reserve(InFactories.Num());
+		for (const TObjectPtr<const T_DEF>& Factory : InFactories) { BaseFactories.Add(Factory); }
+		RegisterConsumableAttributesWithFacade_Internal(BaseFactories, InFacade);
 	}
 
-	template <typename T_DEF>
-	static void RegisterConsumableAttributesWithFacade(const TObjectPtr<const T_DEF>& InFactory, const TSharedPtr<PCGExData::FFacade>& InFacade)
-	{
-		FPCGContext::FSharedContext<FPCGExContext> SharedContext(InFacade->Source->GetContextHandle());
-		check(SharedContext.Get())
-
-		if (!InFacade->GetIn()) { return; }
-
-		const UPCGData* Data = InFacade->GetIn();
-
-		if (!Data) { return; }
-
-		InFactory->RegisterConsumableAttributesWithData(SharedContext.Get(), Data);
-	}
+	
 }

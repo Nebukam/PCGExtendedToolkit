@@ -3,6 +3,7 @@
 
 #include "Graph/Edges/PCGExFilterVtx.h"
 
+#include "Data/PCGExData.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 

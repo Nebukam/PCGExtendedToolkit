@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
+#include "Data/PCGExDataTag.h"
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/PhysicsSettings.h"
 #include "Sampling/PCGExTexParamFactoryProvider.h"

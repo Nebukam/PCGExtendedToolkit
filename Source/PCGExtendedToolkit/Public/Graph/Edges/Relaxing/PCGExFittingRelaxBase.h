@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExRelaxClusterOperation.h"
+#include "Data/PCGExData.h"
 
 
 #include "PCGExFittingRelaxBase.generated.h"

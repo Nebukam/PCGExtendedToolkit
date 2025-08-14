@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFactoryProvider.h"
+#include "PCGExHelpers.h"
 
 #include "PCGExInstancedFactory.generated.h"
 

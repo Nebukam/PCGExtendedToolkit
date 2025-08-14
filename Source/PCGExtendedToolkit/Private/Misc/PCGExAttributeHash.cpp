@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExAttributeHash.h"
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 
 

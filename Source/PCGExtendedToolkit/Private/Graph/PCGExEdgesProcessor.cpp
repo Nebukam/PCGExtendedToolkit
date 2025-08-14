@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Graph/PCGExClusterMT.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

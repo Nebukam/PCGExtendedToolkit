@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExSplitPath.h"
 
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
 
 

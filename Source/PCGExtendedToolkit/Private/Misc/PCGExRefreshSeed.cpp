@@ -4,6 +4,7 @@
 #include "Misc/PCGExRefreshSeed.h"
 
 #include "PCGExRandom.h"
+#include "Data/PCGExData.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExRefreshSeedElement"

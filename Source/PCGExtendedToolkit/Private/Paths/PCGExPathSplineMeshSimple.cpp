@@ -7,6 +7,7 @@
 #include "Components/SplineMeshComponent.h"
 
 #include "PCGExHelpers.h"
+#include "Data/PCGExDataTag.h"
 
 
 #include "Paths/PCGExPaths.h"

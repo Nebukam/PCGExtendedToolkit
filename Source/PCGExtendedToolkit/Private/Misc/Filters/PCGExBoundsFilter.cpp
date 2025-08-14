@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExBoundsFilter.h"
 
+#include "Data/PCGExData.h"
 #include "Geometry/PCGExGeoPointBox.h"
 
 
@@ -149,6 +150,8 @@ if(TypedFilterFactory->Config.bInvert){\
 
 	return true;
 }
+
+bool PCGExPointFilter::FBoundsFilter::Test(const int32 PointIndex) const { return BoundCheck(PointDataFacade->Source->GetInPoint(PointIndex)); }
 
 bool PCGExPointFilter::FBoundsFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 {

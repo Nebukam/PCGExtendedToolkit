@@ -8,6 +8,8 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Algo/Reverse.h"
+#include "Data/PCGExDataTag.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingGrowPathsElement"
