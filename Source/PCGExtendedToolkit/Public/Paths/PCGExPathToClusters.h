@@ -113,6 +113,9 @@ struct FPCGExPathToClustersContext final : FPCGExPathProcessorContext
 	TSharedPtr<PCGExData::FFacade> UnionDataFacade;
 
 	TSharedPtr<PCGExGraph::FUnionProcessor> UnionProcessor;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExPathToClustersElement final : public FPCGExPathProcessorElement

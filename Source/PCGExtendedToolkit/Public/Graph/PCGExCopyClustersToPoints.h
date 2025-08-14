@@ -68,6 +68,9 @@ struct FPCGExCopyClustersToPointsContext final : FPCGExEdgesProcessorContext
 
 	FPCGExAttributeToTagDetails TargetsAttributesToClusterTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> TargetsForwardHandler;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExCopyClustersToPointsElement final : public FPCGExEdgesProcessorElement
@@ -79,7 +82,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExCopyClusters
+namespace PCGExCopyClustersToPoints
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExCopyClustersToPointsContext, UPCGExCopyClustersToPointsSettings>
 	{

@@ -79,6 +79,9 @@ struct FPCGExBlendPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExBlendPathElement;
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBlendPathElement final : public FPCGExPathProcessorElement

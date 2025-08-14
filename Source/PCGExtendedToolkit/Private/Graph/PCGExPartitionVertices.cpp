@@ -16,6 +16,7 @@ PCGExData::EIOInit UPCGExPartitionVerticesSettings::GetEdgeOutputInitMode() cons
 #pragma endregion
 
 PCGEX_INITIALIZE_ELEMENT(PartitionVertices)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL(PartitionVertices)
 
 bool FPCGExPartitionVerticesElement::Boot(FPCGExContext* InContext) const
 {
@@ -37,9 +38,9 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExPartitionVertices::FProcessor>>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExPartitionVertices::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 			}))
 		{

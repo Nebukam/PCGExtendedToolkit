@@ -10,6 +10,7 @@
 #define PCGEX_NAMESPACE MovePivot
 
 PCGEX_INITIALIZE_ELEMENT(MovePivot)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(MovePivot)
 
 bool FPCGExMovePivotElement::Boot(FPCGExContext* InContext) const
 {
@@ -28,9 +29,9 @@ bool FPCGExMovePivotElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExMovePivot::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExMovePivot::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bSkipCompletion = true;
 			}))

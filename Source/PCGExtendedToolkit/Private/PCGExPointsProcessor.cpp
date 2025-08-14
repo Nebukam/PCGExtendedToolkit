@@ -201,6 +201,50 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 	return false;
 }
 
+bool FPCGExPointsProcessorContext::StartBatchProcessingPoints(FBatchProcessingValidateEntry&& ValidateEntry, FBatchProcessingInitPointBatch&& InitBatch)
+{
+	bBatchProcessingEnabled = false;
+
+	MainBatch.Reset();
+
+	PCGEX_SETTINGS_LOCAL(PointsProcessor)
+
+	SubProcessorMap.Empty();
+	SubProcessorMap.Reserve(MainPoints->Num());
+
+	TArray<TWeakPtr<PCGExData::FPointIO>> BatchAblePoints;
+	BatchAblePoints.Reserve(InitialMainPointsNum);
+
+	while (AdvancePointsIO(false))
+	{
+		if (!ValidateEntry(CurrentIO)) { continue; }
+		BatchAblePoints.Add(CurrentIO.ToSharedRef());
+	}
+
+	if (BatchAblePoints.IsEmpty()) { return bBatchProcessingEnabled; }
+	bBatchProcessingEnabled = true;
+
+	const TSharedPtr<PCGExPointsMT::IBatch> NewBatch = CreatePointBatchInstance(BatchAblePoints);
+	MainBatch = NewBatch;
+	MainBatch->SubProcessorMap = &SubProcessorMap;
+
+	InitBatch(NewBatch);
+
+	if (Settings->SupportsPointFilters()) { NewBatch->SetPointsFilterData(&FilterFactories); }
+
+	if (MainBatch->PrepareProcessing())
+	{
+		SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
+		ScheduleBatch(GetAsyncManager(), MainBatch);
+	}
+	else
+	{
+		bBatchProcessingEnabled = false;
+	}
+
+	return bBatchProcessingEnabled;
+}
+
 void FPCGExPointsProcessorContext::BatchProcessing_InitialProcessingDone()
 {
 }

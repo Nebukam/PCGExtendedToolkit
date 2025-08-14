@@ -32,6 +32,9 @@ private:
 struct FPCGExTopologyClusterSurfaceContext final : FPCGExTopologyEdgesProcessorContext
 {
 	friend class FPCGExTopologyClusterSurfaceElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExTopologyClusterSurfaceElement final : public FPCGExTopologyEdgesProcessorElement
@@ -72,5 +75,11 @@ namespace PCGExTopologyClusterSurface
 		bool FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, int32 LoopIdx, const bool bSkipBinary = true);
 		void EnsureRoamingClosedLoopProcessing();
 		virtual void OnEdgesProcessingComplete() override;
+	};
+
+	class FBatch final : public PCGExTopologyEdges::TBatch<FProcessor>
+	{
+	public:
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 	};
 }

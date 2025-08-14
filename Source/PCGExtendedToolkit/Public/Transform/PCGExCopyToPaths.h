@@ -141,6 +141,9 @@ struct FPCGExCopyToPathsContext final : FPCGExPointsProcessorContext
 	FPCGExAxisDeformDetails TwistSettings;
 
 	TArray<TSharedPtr<FPCGSplineStruct>> LocalDeformers;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExCopyToPathsElement final : public FPCGExPointsProcessorElement

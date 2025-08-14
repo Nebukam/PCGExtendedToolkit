@@ -380,18 +380,18 @@ extern template class TSingleValueBuffer<_TYPE>;
 
 		void Fetch(const PCGExMT::FScope& Scope);
 
-		PCGExData::FConstPoint GetInPoint(const int32 Index) const;
-		PCGExData::FMutablePoint GetOutPoint(const int32 Index) const;
+		FConstPoint GetInPoint(const int32 Index) const;
+		FMutablePoint GetOutPoint(const int32 Index) const;
 
-		PCGExData::FScope GetInScope(const int32 Start, const int32 Count, const bool bInclusive = true) const;
-		PCGExData::FScope GetInScope(const PCGExMT::FScope& Scope) const;
-		PCGExData::FScope GetInFullScope() const;
-		PCGExData::FScope GetInRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
+		FScope GetInScope(const int32 Start, const int32 Count, const bool bInclusive = true) const;
+		FScope GetInScope(const PCGExMT::FScope& Scope) const;
+		FScope GetInFullScope() const;
+		FScope GetInRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
 
-		PCGExData::FScope GetOutScope(const int32 Start, const int32 Count, const bool bInclusive = true) const;
-		PCGExData::FScope GetOutScope(const PCGExMT::FScope& Scope) const;
-		PCGExData::FScope GetOutFullScope() const;
-		PCGExData::FScope GetOutRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
+		FScope GetOutScope(const int32 Start, const int32 Count, const bool bInclusive = true) const;
+		FScope GetOutScope(const PCGExMT::FScope& Scope) const;
+		FScope GetOutFullScope() const;
+		FScope GetOutRange(const int32 Start, const int32 End, const bool bInclusive = true) const;
 
 	protected:
 		template <typename Func>

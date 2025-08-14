@@ -90,6 +90,9 @@ struct FPCGExRefineEdgesContext final : FPCGExEdgesProcessorContext
 
 	TSharedPtr<PCGExData::FPointIOCollection> KeptEdges;
 	TSharedPtr<PCGExData::FPointIOCollection> RemovedEdges;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExRefineEdgesElement final : public FPCGExEdgesProcessorElement

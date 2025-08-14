@@ -107,6 +107,9 @@ public:
 struct FPCGExSplitPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSplitPathElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSplitPathElement final : public FPCGExPathProcessorElement

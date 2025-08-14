@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExEdgesProcessor.h"
+
+#include "Data/PCGExData.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
 
@@ -111,6 +113,11 @@ void FPCGExEdgesProcessorContext::OutputBatches() const
 	for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches) { Batch->Output(); }
 }
 
+TSharedPtr<PCGExClusterMT::IBatch> FPCGExEdgesProcessorContext::CreateEdgeBatchInstance(const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges) const
+{
+	return nullptr;
+}
+
 bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync)
 {
 	//FWriteScopeLock WriteScopeLock(ClusterProcessingLock); // Just in case
@@ -212,6 +219,70 @@ bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToConte
 		SetState(NextStateId);
 	}
 
+	return true;
+}
+
+bool FPCGExEdgesProcessorContext::StartProcessingClusters(FBatchProcessingValidateEntries&& ValidateEntries, FBatchProcessingInitEdgeBatch&& InitBatch, const bool bInlined)
+{
+	ResumeExecution();
+
+	Batches.Empty();
+
+	bClusterBatchInlined = bInlined;
+	CurrentBatchIndex = -1;
+
+	bBatchProcessingEnabled = false;
+	bClusterWantsHeuristics = true;
+	bSkipClusterBatchCompletionStep = false;
+	bDoClusterBatchWritingStep = false;
+
+	Batches.Reserve(MainPoints->Pairs.Num());
+
+	EdgesDataFacades.Reserve(MainEdges->Pairs.Num());
+	for (const TSharedPtr<PCGExData::FPointIO>& EdgeIO : MainEdges->Pairs)
+	{
+		TSharedPtr<PCGExData::FFacade> EdgeFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
+		EdgesDataFacades.Add(EdgeFacade.ToSharedRef());
+	}
+
+	while (AdvancePointsIO(false))
+	{
+		if (!TaggedEdges)
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some input points have no bound edges."));
+			continue;
+		}
+
+		if (!ValidateEntries(TaggedEdges)) { continue; }
+
+		const TSharedPtr<PCGExClusterMT::IBatch> NewBatch = CreateEdgeBatchInstance(CurrentIO.ToSharedRef(), TaggedEdges->Entries);
+		InitBatch(NewBatch);
+
+		if (NewBatch->bRequiresWriteStep) { bDoClusterBatchWritingStep = true; }
+		if (NewBatch->bSkipCompletion) { bSkipClusterBatchCompletionStep = true; }
+		if (NewBatch->RequiresGraphBuilder()) { NewBatch->GraphBuilderDetails = GraphBuilderDetails; }
+
+		if (NewBatch->WantsHeuristics())
+		{
+			bClusterWantsHeuristics = true;
+			if (!bHasValidHeuristics)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, this, FTEXT("Missing Heuristics."));
+				return false;
+			}
+			NewBatch->HeuristicsFactories = &HeuristicsFactories;
+		}
+
+		NewBatch->EdgesDataFacades = &EdgesDataFacades;
+
+		Batches.Add(NewBatch);
+		if (!bClusterBatchInlined) { PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch, bScopedIndexLookupBuild); }
+	}
+
+	if (Batches.IsEmpty()) { return false; }
+
+	bBatchProcessingEnabled = true;
+	if (!bClusterBatchInlined) { SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing); }
 	return true;
 }
 

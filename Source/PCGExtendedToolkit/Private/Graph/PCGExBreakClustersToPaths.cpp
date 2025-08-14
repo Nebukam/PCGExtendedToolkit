@@ -23,6 +23,7 @@ PCGExData::EIOInit UPCGExBreakClustersToPathsSettings::GetEdgeOutputInitMode() c
 PCGExData::EIOInit UPCGExBreakClustersToPathsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 PCGEX_INITIALIZE_ELEMENT(BreakClustersToPaths)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(BreakClustersToPaths)
 
 bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 {
@@ -48,9 +49,9 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExBreakClustersToPaths::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExBreakClustersToPaths::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				if (Settings->Winding != EPCGExWindingMutation::Unchanged) { NewBatch->SetProjectionDetails(Settings->ProjectionDetails); }
 				if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths) { NewBatch->VtxFilterFactories = &Context->FilterFactories; }

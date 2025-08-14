@@ -44,6 +44,7 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::OutputPinProperties() 
 }
 
 PCGEX_INITIALIZE_ELEMENT(ClusterDiffusion)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ClusterDiffusion)
 
 bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 {
@@ -88,9 +89,9 @@ bool FPCGExClusterDiffusionElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterDiffusion::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterDiffusion::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
@@ -565,7 +566,7 @@ namespace PCGExClusterDiffusion
 		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
 
 		PCGEX_TYPED_PROCESSOR
-		
+
 		TypedProcessor->BlendOpsManager = BlendOpsManager;
 		TypedProcessor->InfluencesCount = InfluencesCount;
 

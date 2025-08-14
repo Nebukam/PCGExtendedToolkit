@@ -194,6 +194,9 @@ struct FPCGExClusterDiffusionContext final : FPCGExEdgesProcessorContext
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	int32 ExpectedPathCount = 0;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExClusterDiffusionElement final : public FPCGExEdgesProcessorElement

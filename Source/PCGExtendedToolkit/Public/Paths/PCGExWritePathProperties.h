@@ -299,6 +299,9 @@ struct FPCGExWritePathPropertiesContext final : FPCGExPathProcessorContext
 
 	TObjectPtr<UPCGParamData> PathAttributeSet;
 	TArray<int64> MergedAttributeSetKeys;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExWritePathPropertiesElement final : public FPCGExPathProcessorElement

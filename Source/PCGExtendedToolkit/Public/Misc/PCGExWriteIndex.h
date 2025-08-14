@@ -122,6 +122,9 @@ struct FPCGExWriteIndexContext final : FPCGExPointsProcessorContext
 	FPCGAttributeIdentifier EntryIndexIdentifier;
 	FPCGAttributeIdentifier NumEntriesIdentifier;
 	FPCGAttributeIdentifier CollectionIndexIdentifier;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement

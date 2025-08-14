@@ -98,7 +98,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 			TSharedPtr<PCGExPaths::FPolyPath> Path = nullptr;
 
 			double SafeExpansion = FMath::Max(LocalExpansion, 1);
-			
+
 			if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(Data))
 			{
 				const TSharedPtr<PCGExData::FPointIO> PointIO = MakeShared<PCGExData::FPointIO>(CtxHandle, PointData);

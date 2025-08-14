@@ -247,5 +247,4 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 		~FScope() = default;
 		bool IsValid() const { return Start >= 0 && Count > 0 && Data->GetNumPoints() <= End; }
 	};
-
 }

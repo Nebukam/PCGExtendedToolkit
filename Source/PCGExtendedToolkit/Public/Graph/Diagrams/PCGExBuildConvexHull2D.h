@@ -60,6 +60,9 @@ struct FPCGExBuildConvexHull2DContext final : FPCGExPointsProcessorContext
 	friend class FPCGExBuildConvexHull2DElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> PathsIO;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBuildConvexHull2DElement final : public FPCGExPointsProcessorElement
@@ -71,7 +74,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExConvexHull2D
+namespace PCGExBuildConvexHull2D
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBuildConvexHull2DContext, UPCGExBuildConvexHull2DSettings>
 	{

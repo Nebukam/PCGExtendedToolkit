@@ -27,6 +27,7 @@ TArray<FPCGPinProperties> UPCGExSampleSurfaceGuidedSettings::InputPinProperties(
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleSurfaceGuided)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleSurfaceGuided)
 
 bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 {
@@ -86,9 +87,9 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleSurfaceGuided::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleSurfaceGuided::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
 			}))

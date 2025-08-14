@@ -106,6 +106,9 @@ public:
 struct FPCGExPathSolidifyContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathSolidifyElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExPathSolidifyElement final : public FPCGExPathProcessorElement

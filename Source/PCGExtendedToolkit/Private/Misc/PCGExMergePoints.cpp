@@ -12,6 +12,7 @@
 #define PCGEX_NAMESPACE MergePoints
 
 PCGEX_INITIALIZE_ELEMENT(MergePoints)
+PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(MergePoints)
 
 TArray<FPCGPinProperties> UPCGExMergePointsSettings::OutputPinProperties() const
 {
@@ -48,9 +49,9 @@ bool FPCGExMergePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExMergePoints::FBatch>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExMergePoints::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
@@ -205,7 +206,7 @@ namespace PCGExMergePoints
 		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
-		PCGEX_TYPED_PROCESSOR_REF 
+		PCGEX_TYPED_PROCESSOR_REF
 
 		TypedProcessor->OutScope = Merger->Append(InProcessor->PointDataFacade->Source).Write;
 		TypedProcessor->ConvertedTags = ConvertedTags;

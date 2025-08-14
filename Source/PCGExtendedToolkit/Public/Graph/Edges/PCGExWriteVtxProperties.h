@@ -70,6 +70,9 @@ struct FPCGExWriteVtxPropertiesContext final : FPCGExEdgesProcessorContext
 	TArray<TObjectPtr<const UPCGExVtxPropertyFactoryData>> ExtraFactories;
 
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExWriteVtxPropertiesElement final : public FPCGExEdgesProcessorElement

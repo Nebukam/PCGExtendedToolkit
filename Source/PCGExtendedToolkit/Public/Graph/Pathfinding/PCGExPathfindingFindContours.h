@@ -107,6 +107,9 @@ struct FPCGExFindContoursContext final : FPCGExEdgesProcessorContext
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement

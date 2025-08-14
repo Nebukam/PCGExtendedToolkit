@@ -290,6 +290,9 @@ struct FPCGExExtrudeTensorsContext final : FPCGExPointsProcessorContext
 
 	TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
 	TArray<TSharedPtr<PCGExPaths::FPath>> ExternalPaths;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExExtrudeTensorsElement final : public FPCGExPointsProcessorElement

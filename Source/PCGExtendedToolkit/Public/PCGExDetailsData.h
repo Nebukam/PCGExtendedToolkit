@@ -263,37 +263,36 @@ extern template TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const TSharedP
 		{
 		}
 
-		virtual FVector GetSourceCenter(const PCGExData::FConstPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const override;		
-		virtual FVector GetTargetCenter(const PCGExData::FConstPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const override;		
-		virtual void GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const override;		
+		virtual FVector GetSourceCenter(const PCGExData::FConstPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const override;
+		virtual FVector GetTargetCenter(const PCGExData::FConstPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const override;
+		virtual void GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const override;
 		virtual double GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const override;
-		
 
-		virtual double GetDistSquared(const PCGExData::FProxyPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const override;		
-		virtual double GetDist(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const override;		
-		virtual double GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const override;		
+
+		virtual double GetDistSquared(const PCGExData::FProxyPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const override;
+		virtual double GetDist(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const override;
+		virtual double GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const override;
 		virtual double GetDistSquared(const PCGExData::FProxyPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const override;
-		
+
 		virtual double GetDist(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const override;
-		
 	};
 
-extern template class TDistances<EPCGExDistance::Center, EPCGExDistance::Center>; 
-extern template class TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>; 
-extern template class TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>; 
-extern template class TDistances<EPCGExDistance::Center, EPCGExDistance::None>; 
-extern template class TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>; 
-extern template class TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>; 
-extern template class TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>; 
-extern template class TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::None>; 
-extern template class TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>; 
-extern template class TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>; 
-extern template class TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>; 
-extern template class TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::None>; 
-extern template class TDistances<EPCGExDistance::None, EPCGExDistance::Center>; 
-extern template class TDistances<EPCGExDistance::None, EPCGExDistance::SphereBounds>; 
-extern template class TDistances<EPCGExDistance::None, EPCGExDistance::BoxBounds>; 
-extern template class TDistances<EPCGExDistance::None, EPCGExDistance::None>; 
+	extern template class TDistances<EPCGExDistance::Center, EPCGExDistance::Center>;
+	extern template class TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>;
+	extern template class TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>;
+	extern template class TDistances<EPCGExDistance::Center, EPCGExDistance::None>;
+	extern template class TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>;
+	extern template class TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>;
+	extern template class TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>;
+	extern template class TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::None>;
+	extern template class TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>;
+	extern template class TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>;
+	extern template class TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>;
+	extern template class TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::None>;
+	extern template class TDistances<EPCGExDistance::None, EPCGExDistance::Center>;
+	extern template class TDistances<EPCGExDistance::None, EPCGExDistance::SphereBounds>;
+	extern template class TDistances<EPCGExDistance::None, EPCGExDistance::BoxBounds>;
+	extern template class TDistances<EPCGExDistance::None, EPCGExDistance::None>;
 
 	PCGEXTENDEDTOOLKIT_API
 	TSharedPtr<FDistances> MakeDistances(
@@ -539,9 +538,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 
 	bool DoInlineInsertion() const { return bInlineInsertion; }
 
-	uint32 GetGridKey(const FVector& Location, const int32 PointIndex) const;	
+	uint32 GetGridKey(const FVector& Location, const int32 PointIndex) const;
 	FBox GetOctreeBox(const FVector& Location, const int32 PointIndex) const;
-	
+
 	void GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const;
 
 	bool IsWithinTolerance(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const;

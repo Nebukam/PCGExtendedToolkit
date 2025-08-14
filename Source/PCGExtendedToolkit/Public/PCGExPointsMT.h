@@ -255,7 +255,7 @@ namespace PCGExPointsMT
 
 		template <typename T>
 		TSharedPtr<T> GetProcessor(const int32 Index) { return StaticCastSharedPtr<T>(Processors[Index].ToSharedPtr()); }
-		
+
 		template <typename T>
 		TSharedRef<T> GetProcessorRef(const int32 Index) { return StaticCastSharedRef<T>(Processors[Index]); }
 

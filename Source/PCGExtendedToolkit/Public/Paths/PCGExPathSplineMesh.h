@@ -146,6 +146,9 @@ struct FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
 	FPCGExTangentsDetails Tangents;
 
 	TObjectPtr<UPCGExMeshCollection> MainCollection;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExPathSplineMeshElement final : public FPCGExPathProcessorElement

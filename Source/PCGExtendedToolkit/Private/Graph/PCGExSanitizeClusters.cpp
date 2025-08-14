@@ -16,6 +16,7 @@ PCGExData::EIOInit UPCGExSanitizeClustersSettings::GetEdgeOutputInitMode() const
 #pragma endregion
 
 PCGEX_INITIALIZE_ELEMENT(SanitizeClusters)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(SanitizeClusters)
 
 bool FPCGExSanitizeClustersElement::Boot(FPCGExContext* InContext) const
 {
@@ -35,9 +36,9 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExSanitizeClusters::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExSanitizeClusters::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 			}))
@@ -69,7 +70,7 @@ namespace PCGExSanitizeClusters
 		TArray<PCGExGraph::FEdge> IndexedEdges;
 
 		BuildIndexedEdges(EdgeDataFacade->Source, *EndpointsLookup, IndexedEdges);
-		
+
 		if (IndexedEdges.IsEmpty()) { return false; }
 
 		GraphBuilder->Graph->InsertEdges(IndexedEdges);

@@ -9,6 +9,7 @@
 #define PCGEX_NAMESPACE OffsetPath
 
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(OffsetPath)
 
 bool FPCGExOffsetPathElement::Boot(FPCGExContext* InContext) const
 {
@@ -33,13 +34,13 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be affected."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExOffsetPath::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				PCGEX_SKIP_INVALID_PATH_ENTRY
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExOffsetPath::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			}))

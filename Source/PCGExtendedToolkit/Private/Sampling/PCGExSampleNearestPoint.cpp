@@ -64,6 +64,7 @@ void FPCGExSampleNearestPointContext::RegisterAssetDependencies()
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPoint)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleNearestPoint)
 
 bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 {
@@ -190,9 +191,9 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 				return;
 			}
 
-			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestPoints::FProcessor>>(
+			if (!Context->StartBatchProcessingPoints(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestPoints::FProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 					NewBatch->bRequiresWriteStep = Settings->bPruneFailedSamples;
 				}))
@@ -217,7 +218,7 @@ bool FPCGExSampleNearestPointElement::CanExecuteOnlyOnMainThread(FPCGContext* Co
 	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
 }
 
-namespace PCGExSampleNearestPoints
+namespace PCGExSampleNearestPoint
 {
 	FProcessor::~FProcessor()
 	{
@@ -242,7 +243,7 @@ namespace PCGExSampleNearestPoints
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestPoints::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestPoint::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 

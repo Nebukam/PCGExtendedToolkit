@@ -23,6 +23,7 @@ TArray<FPCGPinProperties> UPCGExPathCrossingsSettings::InputPinProperties() cons
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathCrossings)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(PathCrossings)
 
 bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 {
@@ -67,7 +68,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		const bool bIsCanBeCutTagValid = PCGEx::IsValidStringTag(Context->CanBeCutTag);
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathCrossings::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -82,7 +83,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathCrossings::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 				NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;

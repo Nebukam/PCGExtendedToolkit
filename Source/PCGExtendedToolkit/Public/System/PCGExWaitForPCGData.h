@@ -184,6 +184,9 @@ struct FPCGExWaitForPCGDataContext final : FPCGExPointsProcessorContext
 
 	TArray<FSoftObjectPath> GraphInstancePaths;
 	TArray<UPCGGraph*> GraphInstances;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExWaitForPCGDataElement final : public FPCGExPointsProcessorElement

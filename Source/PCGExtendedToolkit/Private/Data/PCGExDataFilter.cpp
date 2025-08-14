@@ -10,14 +10,14 @@
 void FPCGExNameFiltersDetails::Init()
 {
 	for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames);
-		 const FString& Name : Names) { Matches.Add(Name, CommaSeparatedNameFilter); }
+	     const FString& Name : Names) { Matches.Add(Name, CommaSeparatedNameFilter); }
 }
 
 bool FPCGExNameFiltersDetails::Test(const FString& Name) const
 
 {
 	if (bPreservePCGExData && Name.StartsWith(PCGExCommon::PCGExPrefix)) { return !bFilterToRemove; }
-		
+
 	switch (FilterMode)
 	{
 	default: ;

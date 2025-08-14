@@ -112,6 +112,9 @@ struct FPCGExFuseClustersContext final : FPCGExEdgesProcessorContext
 	FPCGExCarryOverDetails EdgesCarryOverDetails;
 
 	TSharedPtr<PCGExGraph::FUnionProcessor> UnionProcessor;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExFuseClustersElement final : public FPCGExEdgesProcessorElement

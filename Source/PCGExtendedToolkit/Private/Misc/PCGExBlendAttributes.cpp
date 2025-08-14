@@ -17,6 +17,7 @@ TArray<FPCGPinProperties> UPCGExBlendAttributesSettings::InputPinProperties() co
 }
 
 PCGEX_INITIALIZE_ELEMENT(BlendAttributes)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(BlendAttributes)
 
 bool FPCGExBlendAttributesElement::Boot(FPCGExContext* InContext) const
 {
@@ -42,9 +43,9 @@ bool FPCGExBlendAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBlendAttributes::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBlendAttributes::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

@@ -107,6 +107,9 @@ struct FPCGExSampleVtxByIDContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	FPCGExApplySamplingDetails ApplySampling;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSampleVtxByIDElement final : public FPCGExPointsProcessorElement
@@ -121,7 +124,7 @@ protected:
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
 };
 
-namespace PCGExSampleVtxByIDs
+namespace PCGExSampleVtxByID
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleVtxByIDContext, UPCGExSampleVtxByIDSettings>
 	{

@@ -87,6 +87,7 @@ void FPCGExWaitForPCGDataContext::RegisterAssetDependencies()
 }
 
 PCGEX_INITIALIZE_ELEMENT(WaitForPCGData)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(WaitForPCGData)
 
 void UPCGExWaitForPCGDataSettings::GetTargetGraphPins(TArray<FPCGPinProperties>& OutPins) const
 {
@@ -158,9 +159,9 @@ bool FPCGExWaitForPCGDataElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWaitForPCGData::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExWaitForPCGData::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

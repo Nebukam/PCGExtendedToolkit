@@ -196,10 +196,10 @@ namespace PCGExStaging
 
 		uint16 EntryIndex = 0;
 		uint16 SecondaryIndex = 0;
-		
+
 		PCGEx::H32(OutEntryIndices, EntryIndex, SecondaryIndex);
 		OutSecondaryIndex = SecondaryIndex - 1; // minus one because we do +1 during packing
-		
+
 		UPCGExAssetCollection** Collection = CollectionMap.Find(CollectionIdx);
 		if (!Collection || !(*Collection)->IsValidIndex(EntryIndex)) { return nullptr; }
 

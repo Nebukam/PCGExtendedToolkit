@@ -338,6 +338,9 @@ struct FPCGExSampleNearestPointContext final : FPCGExPointsProcessorContext
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	virtual void RegisterAssetDependencies() override;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSampleNearestPointElement final : public FPCGExPointsProcessorElement
@@ -352,7 +355,7 @@ protected:
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
 };
 
-namespace PCGExSampleNearestPoints
+namespace PCGExSampleNearestPoint
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSampleNearestPointContext, UPCGExSampleNearestPointSettings>
 	{

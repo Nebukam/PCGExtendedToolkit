@@ -140,6 +140,9 @@ struct FPCGExSampleOverlapStatsContext final : FPCGExPointsProcessorContext
 
 	double SharedOverlapSubCountMax = 0;
 	double SharedOverlapCountMax = 0;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSampleOverlapStatsElement final : public FPCGExPointsProcessorElement

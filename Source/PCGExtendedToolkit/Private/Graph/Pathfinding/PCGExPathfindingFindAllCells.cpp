@@ -27,6 +27,7 @@ PCGExData::EIOInit UPCGExFindAllCellsSettings::GetEdgeOutputInitMode() const { r
 PCGExData::EIOInit UPCGExFindAllCellsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 PCGEX_INITIALIZE_ELEMENT(FindAllCells)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL(FindAllCells)
 
 bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 {
@@ -79,9 +80,9 @@ bool FPCGExFindAllCellsElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExFindAllCells::FProcessor>>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExFindAllCells::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				// NewBatch->bRequiresWriteStep = true;
 				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);

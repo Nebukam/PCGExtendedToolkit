@@ -85,7 +85,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketFitDetails
 	/** Whether socket fit is enabled or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bEnabled = false;
-	
+
 	/** Type of Socket name input */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bEnabled"))
 	EPCGExInputValueType SocketNameInput = EPCGExInputValueType::Attribute;
@@ -120,7 +120,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketFitDetails
 protected:
 	bool bMutate = false;
 	TSharedPtr<PCGExDetails::TSettingValue<FName>> SocketNameBuffer;
-	
 };
 
 USTRUCT(BlueprintType)

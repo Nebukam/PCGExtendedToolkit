@@ -49,6 +49,9 @@ struct FPCGExPackClustersContext final : FPCGExEdgesProcessorContext
 
 	TSharedPtr<PCGExData::FPointIOCollection> PackedClusters;
 	FPCGExCarryOverDetails CarryOverDetails;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExPackClustersElement final : public FPCGExEdgesProcessorElement

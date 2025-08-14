@@ -23,6 +23,7 @@ void UPCGExShiftPathSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(ShiftPath)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(ShiftPath)
 
 bool FPCGExShiftPathElement::Boot(FPCGExContext* InContext) const
 {
@@ -79,9 +80,9 @@ bool FPCGExShiftPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 		// TODO : Skip completion
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExShiftPath::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExShiftPath::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bPrefetchData = true;
 			}))

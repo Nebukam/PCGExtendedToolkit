@@ -10,6 +10,7 @@
 #define PCGEX_NAMESPACE FlatProjection
 
 PCGEX_INITIALIZE_ELEMENT(FlatProjection)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(FlatProjection)
 
 bool FPCGExFlatProjectionElement::Boot(FPCGExContext* InContext) const
 {
@@ -36,7 +37,7 @@ bool FPCGExFlatProjectionElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		bool bHasInvalidEntries = false;
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFlatProjection::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Settings->bRestorePreviousProjection)
@@ -49,7 +50,7 @@ bool FPCGExFlatProjectionElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExFlatProjection::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

@@ -134,6 +134,9 @@ struct FPCGExBinPackingContext final : FPCGExPointsProcessorContext
 	TArray<FPCGExUVW> BinsUVW;
 
 	TSharedPtr<PCGExData::FPointIOCollection> Discarded;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBinPackingElement final : public FPCGExPointsProcessorElement

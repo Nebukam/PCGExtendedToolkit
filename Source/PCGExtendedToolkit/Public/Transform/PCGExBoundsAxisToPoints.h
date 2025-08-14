@@ -126,6 +126,9 @@ private:
 struct FPCGExBoundsAxisToPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBoundsAxisToPointsElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBoundsAxisToPointsElement final : public FPCGExPointsProcessorElement

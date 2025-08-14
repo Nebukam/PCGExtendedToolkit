@@ -9,10 +9,10 @@
 
 #include "Sampling/PCGExSampling.h"
 
-#define LOCTEXT_NAMESPACE "PCGExPartitionByValues"
+#define LOCTEXT_NAMESPACE "PCGExPartitionByValuesBase"
 #define PCGEX_NAMESPACE PartitionByValues
 
-namespace PCGExPartitionByValues
+namespace PCGExPartitionByValuesBase
 {
 	const FName SourceLabel = TEXT("Source");
 }
@@ -127,6 +127,7 @@ bool UPCGExPartitionByValuesSettings::GetPartitionRules(FPCGExContext* InContext
 }
 
 PCGEX_INITIALIZE_ELEMENT(PartitionByValuesBase)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(PartitionByValuesBase)
 
 bool FPCGExPartitionByValuesBaseElement::Boot(FPCGExContext* InContext) const
 {
@@ -171,9 +172,9 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPartitionByValues::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPartitionByValues::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{
@@ -188,7 +189,7 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 	return Context->TryComplete();
 }
 
-namespace PCGExPartitionByValues
+namespace PCGExPartitionByValuesBase
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{

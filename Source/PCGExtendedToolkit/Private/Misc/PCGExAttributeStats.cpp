@@ -43,6 +43,7 @@ TArray<FPCGPinProperties> UPCGExAttributeStatsSettings::OutputPinProperties() co
 }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeStats)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeStats)
 
 bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 {
@@ -138,9 +139,9 @@ bool FPCGExAttributeStatsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAttributeStats::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAttributeStats::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

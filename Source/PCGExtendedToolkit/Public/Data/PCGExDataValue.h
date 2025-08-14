@@ -29,7 +29,7 @@ namespace PCGExData
 		bool SameValue(const TSharedPtr<IDataValue>& Other);
 
 		template <typename T>
-		T GetValue();		
+		T GetValue();
 
 	protected:
 		TOptional<double> CachedDouble;
@@ -53,16 +53,15 @@ extern template _TYPE IDataValue::GetValue<_TYPE>();
 		T Value;
 
 		explicit TDataValue(const T& InValue);
-			
+
 
 		virtual FString Flatten(const FString& LeftSide) override;
-		
-		virtual bool IsNumeric() const override;		
+
+		virtual bool IsNumeric() const override;
 		virtual bool IsText() const override;
-		
-		virtual double AsDouble() override;		
+
+		virtual double AsDouble() override;
 		virtual FString AsString() override;
-		
 	};
 
 #pragma region externalization

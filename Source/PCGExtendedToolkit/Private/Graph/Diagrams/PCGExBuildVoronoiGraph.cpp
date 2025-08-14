@@ -29,6 +29,7 @@ TArray<FPCGPinProperties> UPCGExBuildVoronoiGraphSettings::OutputPinProperties()
 }
 
 PCGEX_INITIALIZE_ELEMENT(BuildVoronoiGraph)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(BuildVoronoiGraph)
 
 bool FPCGExBuildVoronoiGraphElement::Boot(FPCGExContext* InContext) const
 {
@@ -55,7 +56,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildVoronoi::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 4)
@@ -67,7 +68,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 				Context->SitesOutput->Emplace_GetRef(Entry, PCGExData::EIOInit::New);
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBuildVoronoi::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
@@ -85,7 +86,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-namespace PCGExBuildVoronoi
+namespace PCGExBuildVoronoiGraph
 {
 	FProcessor::~FProcessor()
 	{
@@ -93,7 +94,7 @@ namespace PCGExBuildVoronoi
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoi::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoiGraph::Process);
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 

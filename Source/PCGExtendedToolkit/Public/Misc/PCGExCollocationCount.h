@@ -59,6 +59,9 @@ public:
 struct FPCGExCollocationCountContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExCollocationCountElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExCollocationCountElement final : public FPCGExPointsProcessorElement

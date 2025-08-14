@@ -18,6 +18,7 @@ TArray<FPCGPinProperties> UPCGExTensorsTransformSettings::InputPinProperties() c
 }
 
 PCGEX_INITIALIZE_ELEMENT(TensorsTransform)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(TensorsTransform)
 
 bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const
 {
@@ -48,9 +49,9 @@ bool FPCGExTensorsTransformElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExTensorsTransform::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExTensorsTransform::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = true;
 			}))

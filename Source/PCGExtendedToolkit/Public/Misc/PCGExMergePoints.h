@@ -11,8 +11,6 @@
 #include "Data/PCGExPointIOMerger.h"
 
 
-
-
 #include "PCGExMergePoints.generated.h"
 
 // Hidden for now because buggy, concurrent writing occurs and I don't know why; need to look into it
@@ -66,6 +64,9 @@ struct FPCGExMergePointsContext final : FPCGExPointsProcessorContext
 	FPCGExCarryOverDetails CarryOverDetails;
 	FPCGExNameFiltersDetails TagsToAttributes;
 	TSharedPtr<PCGExData::FFacade> CompositeDataFacade;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExMergePointsElement final : public FPCGExPointsProcessorElement

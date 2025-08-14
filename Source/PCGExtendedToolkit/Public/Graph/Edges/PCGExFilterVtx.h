@@ -120,6 +120,9 @@ struct FPCGExFilterVtxContext final : FPCGExEdgesProcessorContext
 
 	TSharedPtr<PCGExData::FPointIOCollection> Inside;
 	TSharedPtr<PCGExData::FPointIOCollection> Outside;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExFilterVtxElement final : public FPCGExEdgesProcessorElement

@@ -34,11 +34,13 @@ bool UPCGExSortPointsSettings::GetSortingRules(FPCGExContext* InContext, TArray<
 	return true;
 }
 
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SortPoints)
+
 bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsElement::Execute);
 
-	PCGEX_CONTEXT(PointsProcessor)
+	PCGEX_CONTEXT(SortPoints)
 	PCGEX_SETTINGS(SortPointsBase)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
@@ -49,9 +51,9 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 			return Context->CancelExecution(TEXT("No attributes to sort over."));
 		}
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSortPoints::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSortPoints::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bPrefetchData = true;
 			}))

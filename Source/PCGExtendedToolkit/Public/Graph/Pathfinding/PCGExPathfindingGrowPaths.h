@@ -42,7 +42,7 @@ enum class EPCGExGrowthUpdateMode : uint8
 	AddEachIteration = 2 UMETA(DisplayName = "Add Each Iteration", ToolTip="Add to the remaning number of iterations after each iteration."),
 };
 
-namespace PCGExGrowPaths
+namespace PCGExPathfindingGrowPaths
 {
 	class FProcessor;
 
@@ -254,6 +254,9 @@ struct FPCGExPathfindingGrowPathsContext final : FPCGExEdgesProcessorContext
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement
@@ -265,7 +268,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExGrowPaths
+namespace PCGExPathfindingGrowPaths
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPathfindingGrowPathsContext, UPCGExPathfindingGrowPathsSettings>
 	{

@@ -199,7 +199,6 @@ extern template void FProxyDataBlender::Set<_TYPE>(const int32 TargetIndex, cons
 		virtual bool InitFromParam(
 			FPCGExContext* InContext, const FBlendingParam& InParam, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
 			const TSharedPtr<PCGExData::FFacade> InSourceFacade, const PCGExData::EIOSide InSide, const bool bWantsDirectAccess = false) override;
-		
 
 	protected:
 #define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void Set##_NAME(const int32 TargetIndex, const _TYPE Value) const override { C->Set(TargetIndex, PCGEx::Convert<_TYPE, T_WORKING>(Value)); };
@@ -229,11 +228,11 @@ extern template class IProxyDataBlender<_TYPE>;
 		virtual ~TProxyDataBlender() override = default;
 
 		virtual void Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight = 1) override;
-		
-		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) override;		
-		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) override;		
+
+		virtual PCGEx::FOpStats BeginMultiBlend(const int32 TargetIndex) override;
+		virtual void MultiBlend(const int32 SourceIndex, const int32 TargetIndex, const double Weight, PCGEx::FOpStats& Tracker) override;
 		virtual void EndMultiBlend(const int32 TargetIndex, PCGEx::FOpStats& Tracker) override;
-		
+
 		// Target = Target / Divider
 		// Useful for finalizing multi-source ops
 		virtual void Div(const int32 TargetIndex, const double Divider) override { C->Set(TargetIndex, PCGExBlend::Div(C->Get(TargetIndex), Divider)); }

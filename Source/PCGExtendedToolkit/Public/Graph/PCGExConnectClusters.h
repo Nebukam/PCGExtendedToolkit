@@ -96,6 +96,9 @@ struct FPCGExConnectClustersContext final : FPCGExEdgesProcessorContext
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> GeneratorsFiltersFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ConnectablesFiltersFactories;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExConnectClustersElement final : public FPCGExEdgesProcessorElement
@@ -107,7 +110,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExBridgeClusters
+namespace PCGExConnectClusters
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExConnectClustersContext, UPCGExConnectClustersSettings>
 	{

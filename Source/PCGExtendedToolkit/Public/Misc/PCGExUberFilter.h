@@ -110,6 +110,9 @@ struct FPCGExUberFilterContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 
 	int32 NumPairs = 0;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExUberFilterElement final : public FPCGExPointsProcessorElement

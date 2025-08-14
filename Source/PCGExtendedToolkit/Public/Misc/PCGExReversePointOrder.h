@@ -118,6 +118,9 @@ public:
 struct FPCGExReversePointOrderContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExReversePointOrderElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExReversePointOrderElement final : public FPCGExPointsProcessorElement

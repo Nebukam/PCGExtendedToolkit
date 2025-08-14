@@ -19,6 +19,7 @@ TArray<FPCGPinProperties> UPCGExBevelPathSettings::InputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(BevelPath)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(BevelPath)
 
 void UPCGExBevelPathSettings::InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const
 {
@@ -81,7 +82,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				PCGEX_SKIP_INVALID_PATH_ENTRY
@@ -96,7 +97,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = (Settings->bFlagPoles || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
 			}))

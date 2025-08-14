@@ -29,6 +29,7 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties()
 }
 
 PCGEX_INITIALIZE_ELEMENT(BuildConvexHull2D)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(BuildConvexHull2D)
 
 bool FPCGExBuildConvexHull2DElement::Boot(FPCGExContext* InContext) const
 {
@@ -53,7 +54,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConvexHull2D::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 3)
@@ -63,7 +64,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExConvexHull2D::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{
@@ -84,11 +85,11 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-namespace PCGExConvexHull2D
+namespace PCGExBuildConvexHull2D
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConvexHull2D::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildConvexHull2D::Process);
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 

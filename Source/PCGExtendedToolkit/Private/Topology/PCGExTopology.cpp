@@ -58,7 +58,6 @@ void FPCGExTopologyDetails::PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDy
 
 namespace PCGExTopology
 {
-
 	void SetPointProperty(PCGExData::FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
 	{
 		if (InProperty == EPCGExPointPropertyOutput::Density)
@@ -92,7 +91,7 @@ namespace PCGExTopology
 			Color[InPoint.Index].Component(3) = InValue;
 		}
 	}
-	
+
 	bool IsAnyPointInPolygon(const TArray<FVector2D>& Points, const FGeometryScriptSimplePolygon& Polygon)
 	{
 		if (Points.IsEmpty()) { return false; }

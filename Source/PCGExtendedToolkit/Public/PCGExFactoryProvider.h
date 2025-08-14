@@ -256,7 +256,7 @@ namespace PCGExFactories
 		for (const TObjectPtr<const T_DEF>& Factory : InFactories) { BaseFactories.Add(Factory); }
 		RegisterConsumableAttributesWithData_Internal(BaseFactories, InContext, InData);
 	}
-	
+
 	template <typename T_DEF>
 	static void RegisterConsumableAttributesWithFacade(const TArray<TObjectPtr<const T_DEF>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InFacade)
 	{
@@ -265,6 +265,4 @@ namespace PCGExFactories
 		for (const TObjectPtr<const T_DEF>& Factory : InFactories) { BaseFactories.Add(Factory); }
 		RegisterConsumableAttributesWithFacade_Internal(BaseFactories, InFacade);
 	}
-
-	
 }

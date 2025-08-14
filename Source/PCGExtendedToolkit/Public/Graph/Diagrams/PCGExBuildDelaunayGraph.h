@@ -82,6 +82,9 @@ struct FPCGExBuildDelaunayGraphContext final : FPCGExPointsProcessorContext
 	friend class FPCGExBuildDelaunayGraphElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> MainSites;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBuildDelaunayGraphElement final : public FPCGExPointsProcessorElement
@@ -93,7 +96,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExBuildDelaunay
+namespace PCGExBuildDelaunayGraph
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBuildDelaunayGraphContext, UPCGExBuildDelaunayGraphSettings>
 	{

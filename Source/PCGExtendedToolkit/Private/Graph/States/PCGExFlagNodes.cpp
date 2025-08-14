@@ -21,6 +21,7 @@ TArray<FPCGPinProperties> UPCGExFlagNodesSettings::InputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(FlagNodes)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(FlagNodes)
 
 bool FPCGExFlagNodesElement::Boot(FPCGExContext* InContext) const
 {
@@ -42,9 +43,9 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExFlagNodes::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExFlagNodes::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 				NewBatch->bWriteVtxDataFacade = true;

@@ -77,6 +77,9 @@ struct FPCGExFusePointsContext final : FPCGExPointsProcessorContext
 	friend class FPCGExFusePointsElement;
 	TSharedPtr<PCGExDetails::FDistances> Distances;
 	FPCGExCarryOverDetails CarryOverDetails;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExFusePointsElement final : public FPCGExPointsProcessorElement

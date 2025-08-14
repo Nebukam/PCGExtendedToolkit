@@ -16,6 +16,7 @@ PCGExData::EIOInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() c
 #pragma endregion
 
 PCGEX_INITIALIZE_ELEMENT(CopyClustersToPoints)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(CopyClustersToPoints)
 
 TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::InputPinProperties() const
 {
@@ -75,9 +76,9 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExCopyClusters::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExCopyClusters::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 			}))
 		{
@@ -93,7 +94,7 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 	return Context->TryComplete();
 }
 
-namespace PCGExCopyClusters
+namespace PCGExCopyClustersToPoints
 {
 	FProcessor::~FProcessor()
 	{

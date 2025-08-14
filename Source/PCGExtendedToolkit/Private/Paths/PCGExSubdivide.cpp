@@ -19,6 +19,7 @@ TArray<FPCGPinProperties> UPCGExSubdivideSettings::InputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(Subdivide)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(Subdivide)
 
 bool FPCGExSubdivideElement::Boot(FPCGExContext* InContext) const
 {
@@ -45,7 +46,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -56,7 +57,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))

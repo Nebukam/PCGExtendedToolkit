@@ -46,6 +46,7 @@ PCGExData::EIOInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { re
 PCGExData::EIOInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(RefineEdges)
 
 bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 {
@@ -115,9 +116,9 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExRefineEdges::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExRefineEdges::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 				if (Context->Refinement->WantsHeuristics()) { NewBatch->SetWantsHeuristics(true); }

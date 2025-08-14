@@ -235,13 +235,13 @@ namespace PCGExPaths
 
 	PCGEXTENDEDTOOLKIT_API
 	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop);
 
 	PCGEXTENDEDTOOLKIT_API
 	bool GetClosedLoop(const UPCGData* InData);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData);
 
@@ -484,7 +484,7 @@ namespace PCGExPaths
 
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, float& OutAlpha, const bool bUseScale = false) const
 		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransformAndKey(const FVector& WorldPosition, float& OutAlpha), FTransform::Identity);
-		
+
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, bool& bIsInside, const bool bUseScale) const
 		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, bool& bIsInside), FTransform::Identity);
 

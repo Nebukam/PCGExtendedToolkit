@@ -10,6 +10,7 @@
 #define PCGEX_NAMESPACE TopologyEdgesProcessor
 
 PCGEX_INITIALIZE_ELEMENT(TopologyClusterSurface)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(TopologyClusterSurface)
 
 bool FPCGExTopologyClusterSurfaceElement::Boot(FPCGExContext* InContext) const
 {
@@ -28,9 +29,9 @@ bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExTopologyEdges::TBatch<PCGExTopologyClusterSurface::FProcessor>>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExTopologyEdges::TBatch<PCGExTopologyClusterSurface::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
 			}))
@@ -165,6 +166,11 @@ namespace PCGExTopologyClusterSurface
 	{
 		//UE_LOG(LogPCGEx, Warning, TEXT("Complete %llu | %d"), Settings->UID, EdgeDataFacade->Source->IOIndex)
 		StartParallelLoopForEdges(128);
+	}
+
+	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+		: TBatch(InContext, InVtx, InEdges)
+	{
 	}
 }
 

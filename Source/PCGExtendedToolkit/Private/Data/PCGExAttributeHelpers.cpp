@@ -161,7 +161,7 @@ namespace PCGEx
 		FPCGAttributePropertyInputSelector FixedSelector = InSelector.CopyAndFixLast(InData);
 		if (!FixedSelector.IsValid() || FixedSelector.GetSelection() != EPCGAttributePropertySelection::Attribute) { return false; }
 
-		const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(PCGEx::GetAttributeIdentifier(FixedSelector, InData));
+		const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(GetAttributeIdentifier(FixedSelector, InData));
 		if (!Attribute) { return false; }
 
 		OutIdentity.Identifier = Attribute->Name;

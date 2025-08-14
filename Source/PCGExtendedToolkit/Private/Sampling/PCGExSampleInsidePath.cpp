@@ -58,6 +58,7 @@ void FPCGExSampleInsidePathContext::RegisterAssetDependencies()
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleInsidePath)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleInsidePath)
 
 bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 {
@@ -177,9 +178,9 @@ bool FPCGExSampleInsidePathElement::ExecuteInternal(FPCGContext* InContext) cons
 
 			Context->TargetsHandler->SetMatchingDetails(Context, &Settings->DataMatching);
 
-			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleInsidePath::FProcessor>>(
+			if (!Context->StartBatchProcessingPoints(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleInsidePath::FProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 				}))
 			{
@@ -229,7 +230,7 @@ namespace PCGExSampleInsidePath
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
-		Path = MakeShared<PCGExPaths::FPolyPath>(PointDataFacade, Settings->ProjectionDetails,1,  Settings->HeightInclusion);
+		Path = MakeShared<PCGExPaths::FPolyPath>(PointDataFacade, Settings->ProjectionDetails, 1, Settings->HeightInclusion);
 
 		// Allocate edge native properties
 

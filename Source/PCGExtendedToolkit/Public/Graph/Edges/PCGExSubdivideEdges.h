@@ -89,6 +89,9 @@ struct FPCGExSubdivideEdgesContext final : FPCGExEdgesProcessorContext
 	friend class FPCGExSubdivideEdgesElement;
 
 	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExSubdivideEdgesElement final : public FPCGExEdgesProcessorElement

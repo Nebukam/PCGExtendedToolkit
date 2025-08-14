@@ -601,7 +601,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE Copy<_TYPE>(const _TYPE& A, const _TYPE& B
 template PCGEXTENDEDTOOLKIT_API _TYPE NoBlend<_TYPE>(const _TYPE& A, const _TYPE& B); \
 template PCGEXTENDEDTOOLKIT_API _TYPE NaiveHash<_TYPE>(const _TYPE& A, const _TYPE& B); \
 template PCGEXTENDEDTOOLKIT_API _TYPE NaiveUnsignedHash<_TYPE>(const _TYPE& A, const _TYPE& B);
-	
+
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 }

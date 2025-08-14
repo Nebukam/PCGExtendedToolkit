@@ -89,6 +89,9 @@ struct FPCGExOrientContext final : FPCGExPathProcessorContext
 	friend class FPCGExOrientElement;
 
 	UPCGExOrientInstancedFactory* Orientation;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExOrientElement final : public FPCGExPathProcessorElement

@@ -83,6 +83,9 @@ struct FPCGExSampleTextureContext final : FPCGExPointsProcessorContext
 	friend class FPCGExSampleTextureElement;
 	TArray<TObjectPtr<const UPCGExTexParamFactoryData>> TexParamsFactories;
 	TSharedPtr<PCGExTexture::FLookup> TextureMap;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSampleTextureElement final : public FPCGExPointsProcessorElement

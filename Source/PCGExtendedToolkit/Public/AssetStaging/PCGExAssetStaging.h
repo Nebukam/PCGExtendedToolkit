@@ -122,6 +122,9 @@ struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 	bool bPickMaterials = false;
 
 	TSharedPtr<PCGExStaging::FPickPacker> CollectionPickDatasetPacker;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExAssetStagingElement final : public FPCGExPointsProcessorElement

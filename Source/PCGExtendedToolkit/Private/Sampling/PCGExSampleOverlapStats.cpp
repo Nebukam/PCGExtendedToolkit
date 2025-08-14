@@ -48,6 +48,7 @@ void FPCGExSampleOverlapStatsContext::BatchProcessing_WorkComplete()
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleOverlapStats)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleOverlapStats)
 
 bool FPCGExSampleOverlapStatsElement::Boot(FPCGExContext* InContext) const
 {
@@ -75,9 +76,9 @@ bool FPCGExSampleOverlapStatsElement::ExecuteInternal(FPCGContext* InContext) co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))

@@ -285,13 +285,13 @@ namespace PCGExPaths
 	int32 FPath::SafePointIndex(const int32 Index) const
 	{
 		if (bClosedLoop) { return PCGExMath::Tile(Index, 0, LastIndex); }
-		else { return Index < 0 ? 0 : Index > LastIndex ? LastIndex : Index; }
+		return Index < 0 ? 0 : Index > LastIndex ? LastIndex : Index;
 	}
 
 	FVector FPath::DirToNextPoint(const int32 Index) const
 	{
 		if (bClosedLoop) { return Edges[Index].Dir; }
-		else { return Index == LastIndex ? Edges[Index - 1].Dir : Edges[Index].Dir; }
+		return Index == LastIndex ? Edges[Index - 1].Dir : Edges[Index].Dir;
 	}
 
 	PCGExMath::FClosestPosition FPath::FindClosestIntersection(

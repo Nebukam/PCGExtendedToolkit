@@ -42,6 +42,9 @@ struct FPCGExSanitizeClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExSanitizeClustersSettings;
 	friend class FPCGExSanitizeClustersElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExSanitizeClustersElement final : public FPCGExEdgesProcessorElement

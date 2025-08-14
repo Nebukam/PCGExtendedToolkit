@@ -121,6 +121,9 @@ struct FPCGExPartitionByValuesBaseContext final : FPCGExPointsProcessorContext
 	friend class FPCGExPartitionByValuesBaseElement;
 
 	TArray<FPCGExPartitonRuleConfig> RulesConfigs;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExPartitionByValuesBaseElement final : public FPCGExPointsProcessorElement
@@ -132,7 +135,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExPartitionByValues
+namespace PCGExPartitionByValuesBase
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPartitionByValuesBaseContext, UPCGExPartitionByValuesBaseSettings>
 	{

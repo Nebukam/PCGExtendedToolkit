@@ -57,7 +57,7 @@ UCLASS(Hidden)
 class PCGEXTENDEDTOOLKIT_API UPCGExComponentCallback : public UObject
 {
 	GENERATED_BODY()
-	
+
 	bool bIsOnce = false;
 	TFunction<void(UActorComponent* InComponent)> CallbackFn;
 

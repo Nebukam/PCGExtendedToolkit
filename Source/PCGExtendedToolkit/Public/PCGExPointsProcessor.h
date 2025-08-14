@@ -30,6 +30,12 @@
 #define PCGEX_ELEMENT_CREATE_CONTEXT(_CLASS) virtual FPCGContext* CreateContext() override { return new FPCGEx##_CLASS##Context(); }
 #define PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT virtual FPCGContext* CreateContext() override { return new FPCGExContext(); }
 
+#define PCGEX_ELEMENT_BATCH_POINT_DECL virtual TSharedPtr<PCGExPointsMT::IBatch> CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const override;
+#define PCGEX_ELEMENT_BATCH_POINT_IMPL(_CLASS) TSharedPtr<PCGExPointsMT::IBatch> FPCGEx##_CLASS##Context::CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const{ \
+return MakeShared<PCGExPointsMT::TBatch<PCGEx##_CLASS::FProcessor>>(const_cast<FPCGEx##_CLASS##Context*>(this), InData); }
+#define PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(_CLASS) TSharedPtr<PCGExPointsMT::IBatch> FPCGEx##_CLASS##Context::CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const{ \
+return MakeShared<PCGEx##_CLASS::FBatch>(const_cast<FPCGEx##_CLASS##Context*>(this), InData); }
+
 class UPCGExInstancedFactory;
 
 namespace PCGExFactories
@@ -139,7 +145,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 	friend class FPCGExPointsProcessorElement;
 
 	using FBatchProcessingValidateEntry = std::function<bool(const TSharedPtr<PCGExData::FPointIO>&)>;
-	using FBatchProcessingInitBatch = std::function<bool(const TSharedPtr<PCGExPointsMT::IBatch>&)>;
+	using FBatchProcessingInitPointBatch = std::function<void(const TSharedPtr<PCGExPointsMT::IBatch>&)>;
 
 	virtual ~FPCGExPointsProcessorContext() override;
 
@@ -167,51 +173,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 	TSharedPtr<PCGExPointsMT::IBatch> MainBatch;
 	TMap<PCGExData::FPointIO*, TSharedRef<PCGExPointsMT::IProcessor>> SubProcessorMap;
 
-	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
-	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch)
-	{
-		bBatchProcessingEnabled = false;
-
-		MainBatch.Reset();
-
-		PCGEX_SETTINGS_LOCAL(PointsProcessor)
-
-		SubProcessorMap.Empty();
-		SubProcessorMap.Reserve(MainPoints->Num());
-
-		TArray<TWeakPtr<PCGExData::FPointIO>> BatchAblePoints;
-		BatchAblePoints.Reserve(InitialMainPointsNum);
-
-
-		while (AdvancePointsIO(false))
-		{
-			if (!ValidateEntry(CurrentIO)) { continue; }
-			BatchAblePoints.Add(CurrentIO.ToSharedRef());
-		}
-
-		if (BatchAblePoints.IsEmpty()) { return bBatchProcessingEnabled; }
-		bBatchProcessingEnabled = true;
-
-		PCGEX_MAKE_SHARED(TypedBatch, T, this, BatchAblePoints)
-		MainBatch = TypedBatch;
-		MainBatch->SubProcessorMap = &SubProcessorMap;
-
-		InitBatch(TypedBatch);
-
-		if (Settings->SupportsPointFilters()) { TypedBatch->SetPointsFilterData(&FilterFactories); }
-
-		if (MainBatch->PrepareProcessing())
-		{
-			SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
-			ScheduleBatch(GetAsyncManager(), MainBatch);
-		}
-		else
-		{
-			bBatchProcessingEnabled = false;
-		}
-
-		return bBatchProcessingEnabled;
-	}
+	bool StartBatchProcessingPoints(FBatchProcessingValidateEntry&& ValidateEntry, FBatchProcessingInitPointBatch&& InitBatch);
 
 	virtual void BatchProcessing_InitialProcessingDone();
 	virtual void BatchProcessing_WorkComplete();
@@ -229,6 +191,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 
 protected:
 	int32 CurrentPointIOIndex = -1;
+
+	virtual TSharedPtr<PCGExPointsMT::IBatch> CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const
+	PCGEX_NOT_IMPLEMENTED_RET(CreatePointBatchInstance, nullptr);
 
 	TArray<UPCGExInstancedFactory*> ProcessorOperations;
 	TSet<UPCGExInstancedFactory*> InternalOperations;

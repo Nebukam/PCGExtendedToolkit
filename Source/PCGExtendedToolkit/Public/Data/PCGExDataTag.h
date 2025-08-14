@@ -149,5 +149,4 @@ namespace PCGExData
 		// NAME:VALUE
 		static bool GetTagFromString(const FString& Input, FString& OutKey, FString& OutValue);
 	};
-	
 }

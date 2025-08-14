@@ -75,6 +75,7 @@ void FPCGExPickClosestClustersContext::ClusterProcessing_InitialProcessingDone()
 }
 
 PCGEX_INITIALIZE_ELEMENT(PickClosestClusters)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(PickClosestClusters)
 
 bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 {
@@ -106,9 +107,9 @@ bool FPCGExPickClosestClustersElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExPickClosestClusters::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExPickClosestClusters::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 			}))
 		{

@@ -30,6 +30,7 @@ void UPCGExPathSplineMeshSimpleSettings::ApplyDeprecation(UPCGNode* InOutNode)
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(PathSplineMeshSimple)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSplineMeshSimple)
 
 UPCGExPathSplineMeshSimpleSettings::UPCGExPathSplineMeshSimpleSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -107,7 +108,7 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathSplineMeshSimple::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -119,7 +120,7 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathSplineMeshSimple::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

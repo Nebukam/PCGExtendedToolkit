@@ -150,6 +150,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL(PathfindingPlotEdges)
 
 bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 {
@@ -195,9 +196,9 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExPathfindingPlotEdge::FProcessor>>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExPathfindingPlotEdge::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->SetWantsHeuristics(true);
 			}))
@@ -213,7 +214,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	return Context->TryComplete();
 }
 
-namespace PCGExPathfindingPlotEdge
+namespace PCGExPathfindingPlotEdges
 {
 	FProcessor::~FProcessor()
 	{
@@ -221,7 +222,7 @@ namespace PCGExPathfindingPlotEdge
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingPlotEdge::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingPlotEdges::Process);
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 

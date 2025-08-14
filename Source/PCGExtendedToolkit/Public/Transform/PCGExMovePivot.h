@@ -43,6 +43,9 @@ private:
 struct FPCGExMovePivotContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExMovePivotElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExMovePivotElement final : public FPCGExPointsProcessorElement

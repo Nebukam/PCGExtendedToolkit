@@ -26,6 +26,7 @@ TArray<FPCGPinProperties> UPCGExSimplifyClustersSettings::InputPinProperties() c
 }
 
 PCGEX_INITIALIZE_ELEMENT(SimplifyClusters)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(SimplifyClusters)
 
 bool FPCGExSimplifyClustersElement::Boot(FPCGExContext* InContext) const
 {
@@ -53,9 +54,9 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExSimplifyClusters::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExSimplifyClusters::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 			}))
 		{

@@ -252,7 +252,7 @@ namespace PCGExFactories
 	void RegisterConsumableAttributesWithData_Internal(const TArray<TObjectPtr<const UPCGExFactoryData>>& InFactories, FPCGExContext* InContext, const UPCGData* InData)
 	{
 		check(InContext)
-		
+
 		if (!InData || InFactories.IsEmpty()) { return; }
 
 		for (const TObjectPtr<const UPCGExFactoryData>& Factory : InFactories)

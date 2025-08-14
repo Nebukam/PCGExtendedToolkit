@@ -56,6 +56,7 @@ void FPCGExSampleNearestBoundsContext::RegisterAssetDependencies()
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestBounds)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleNearestBounds)
 
 bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 {
@@ -166,9 +167,9 @@ bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) c
 				return;
 			}
 
-			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestBounds::FProcessor>>(
+			if (!Context->StartBatchProcessingPoints(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestBounds::FProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 					NewBatch->bRequiresWriteStep = Settings->bPruneFailedSamples;
 				}))

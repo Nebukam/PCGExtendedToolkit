@@ -61,6 +61,9 @@ struct FPCGExFlatProjectionContext final : FPCGExPointsProcessorContext
 	friend class FPCGExFlatProjectionElement;
 
 	FName CachedTransformAttributeName = NAME_None;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExFlatProjectionElement final : public FPCGExPointsProcessorElement

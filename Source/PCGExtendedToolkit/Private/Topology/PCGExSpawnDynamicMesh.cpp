@@ -51,7 +51,7 @@ bool FPCGExSpawnDynamicMeshElement::ExecuteInternal(FPCGContext* InContext) cons
 	for (const FPCGTaggedData& Input : InContext->InputData.GetInputsByPin(PCGExTopology::SourceMeshLabel))
 	{
 		Index++;
-		
+
 		const UPCGDynamicMeshData* DynMeshData = Cast<UPCGDynamicMeshData>(Input.Data);
 		if (!DynMeshData)
 		{
@@ -70,12 +70,12 @@ bool FPCGExSpawnDynamicMeshElement::ExecuteInternal(FPCGContext* InContext) cons
 			{
 				const UDynamicMesh* DynamicMesh = DynMeshData->GetDynamicMesh();
 				const TArray<TObjectPtr<UMaterialInterface>>& Materials = DynMeshData->GetMaterials();
-				
+
 				//DynMeshData->InitializeDynamicMeshComponentFromData(Component);
 
 				for (int32 i = 0; i < Materials.Num(); ++i) { DynamicMeshComponent->SetMaterial(i, Materials[i]); }
 				Settings->TemplateDescriptor.InitComponent(DynamicMeshComponent);
-				DynamicMeshComponent->SetMesh(UE::Geometry::FDynamicMesh3(DynamicMesh->GetMeshRef()));
+				DynamicMeshComponent->SetMesh(FDynamicMesh3(DynamicMesh->GetMeshRef()));
 			});
 
 		if (!Settings->PropertyOverrideDescriptions.IsEmpty())

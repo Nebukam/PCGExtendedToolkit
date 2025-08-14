@@ -22,6 +22,7 @@ TArray<FPCGPinProperties> UPCGExPackClustersSettings::OutputPinProperties() cons
 }
 
 PCGEX_INITIALIZE_ELEMENT(PackClusters)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL(PackClusters)
 
 bool FPCGExPackClustersElement::Boot(FPCGExContext* InContext) const
 {
@@ -47,9 +48,9 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExPackClusters::FProcessor>>(
+		if (!Context->StartProcessingClusters(
 			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExPackClusters::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 			}))
 		{

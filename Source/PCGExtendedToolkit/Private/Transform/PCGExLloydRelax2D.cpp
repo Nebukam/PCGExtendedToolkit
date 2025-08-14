@@ -11,6 +11,7 @@
 #define PCGEX_NAMESPACE LloydRelax2D
 
 PCGEX_INITIALIZE_ELEMENT(LloydRelax2D)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(LloydRelax2D)
 
 bool FPCGExLloydRelax2DElement::Boot(FPCGExContext* InContext) const
 {
@@ -32,7 +33,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExLloydRelax2D::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() <= 3)
@@ -43,7 +44,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExLloydRelax2D::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

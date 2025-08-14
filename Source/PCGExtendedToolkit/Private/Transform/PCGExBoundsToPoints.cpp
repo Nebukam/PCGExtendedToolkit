@@ -8,6 +8,7 @@
 #define PCGEX_NAMESPACE BoundsToPoints
 
 PCGEX_INITIALIZE_ELEMENT(BoundsToPoints)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(BoundsToPoints)
 
 bool FPCGExBoundsToPointsElement::Boot(FPCGExContext* InContext) const
 {
@@ -26,9 +27,9 @@ bool FPCGExBoundsToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = true;
 			}))

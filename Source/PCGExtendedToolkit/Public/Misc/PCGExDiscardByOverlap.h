@@ -181,6 +181,9 @@ struct FPCGExDiscardByOverlapContext final : FPCGExPointsProcessorContext
 	void UpdateMaxScores(const TArray<PCGExDiscardByOverlap::FProcessor*>& InStack);
 
 	void Prune();
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExDiscardByOverlapElement final : public FPCGExPointsProcessorElement

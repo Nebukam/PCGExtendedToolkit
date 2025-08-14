@@ -102,6 +102,9 @@ struct FPCGExSimplifyClustersContext : FPCGExEdgesProcessorContext
 	FPCGExCarryOverDetails EdgeCarryOverDetails;
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement

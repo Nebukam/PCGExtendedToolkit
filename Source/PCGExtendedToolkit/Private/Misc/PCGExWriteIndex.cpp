@@ -90,6 +90,7 @@ FString UPCGExWriteIndexSettings::GetDisplayName() const
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(WriteIndex)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteIndex)
 
 bool FPCGExWriteIndexElement::Boot(FPCGExContext* InContext) const
 {
@@ -181,9 +182,9 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INITIAL_EXECUTION
 		{
-			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWriteIndex::FProcessor>>(
+			if (!Context->StartBatchProcessingPoints(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExWriteIndex::FProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 					NewBatch->bSkipCompletion = !Settings->bOutputPointIndex;
 				}))

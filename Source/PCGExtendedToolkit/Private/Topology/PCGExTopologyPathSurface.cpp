@@ -14,6 +14,7 @@
 #define PCGEX_NAMESPACE TopologyProcessor
 
 PCGEX_INITIALIZE_ELEMENT(TopologyPathSurface)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(TopologyPathSurface)
 
 TArray<FPCGPinProperties> UPCGExTopologyPathSurfaceSettings::OutputPinProperties() const
 {
@@ -52,7 +53,7 @@ bool FPCGExTopologyPathSurfaceElement::ExecuteInternal(FPCGContext* InContext) c
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExTopologyPath::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -62,7 +63,7 @@ bool FPCGExTopologyPathSurfaceElement::ExecuteInternal(FPCGContext* InContext) c
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExTopologyPath::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bSkipCompletion = true;
 			}))
@@ -78,7 +79,7 @@ bool FPCGExTopologyPathSurfaceElement::ExecuteInternal(FPCGContext* InContext) c
 	return Context->TryComplete();
 }
 
-namespace PCGExTopologyPath
+namespace PCGExTopologyPathSurface
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{

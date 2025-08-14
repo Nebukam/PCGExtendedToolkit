@@ -18,7 +18,7 @@
 
 namespace PCGEx
 {
-	template<typename T>
+	template <typename T>
 	class TAttributeBroadcaster;
 }
 

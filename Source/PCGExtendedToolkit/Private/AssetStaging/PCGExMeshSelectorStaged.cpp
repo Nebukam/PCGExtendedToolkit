@@ -142,7 +142,7 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 			int16 MaterialPick = -1;
 
 			if (!CollectionMap->ResolveEntry(Partition.Key, Entry, MaterialPick)) { continue; }
-			
+
 			FPCGMeshInstanceList& InstanceList = OutMeshInstances[Partition.Value];
 
 			InstanceList.Descriptor = TemplateDescriptor;

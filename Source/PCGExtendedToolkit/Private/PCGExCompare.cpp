@@ -339,7 +339,7 @@ bool FPCGExDotComparisonDetails::Test(const double A, const int32 Index) const
 
 void FPCGExDotComparisonDetails::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {
-	if (ThresholdInput == EPCGExInputValueType::Attribute){ FacadePreloader.Register<double>(InContext, ThresholdAttribute); }
+	if (ThresholdInput == EPCGExInputValueType::Attribute) { FacadePreloader.Register<double>(InContext, ThresholdAttribute); }
 }
 
 void FPCGExDotComparisonDetails::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const

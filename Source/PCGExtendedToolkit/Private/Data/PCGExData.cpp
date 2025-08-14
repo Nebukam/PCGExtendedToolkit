@@ -1045,18 +1045,18 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 		for (const TSharedPtr<IBuffer>& Buffer : Buffers) { Buffer->Fetch(Scope); }
 	}
 
-	PCGExData::FConstPoint FFacade::GetInPoint(const int32 Index) const { return Source->GetInPoint(Index); }
-	PCGExData::FMutablePoint FFacade::GetOutPoint(const int32 Index) const { return Source->GetOutPoint(Index); }
+	FConstPoint FFacade::GetInPoint(const int32 Index) const { return Source->GetInPoint(Index); }
+	FMutablePoint FFacade::GetOutPoint(const int32 Index) const { return Source->GetOutPoint(Index); }
 
-	PCGExData::FScope FFacade::GetInScope(const int32 Start, const int32 Count, const bool bInclusive) const { return Source->GetInScope(Start, Count, bInclusive); }
-	PCGExData::FScope FFacade::GetInScope(const PCGExMT::FScope& Scope) const { return Source->GetInScope(Scope); }
-	PCGExData::FScope FFacade::GetInFullScope() const { return Source->GetInFullScope(); }
-	PCGExData::FScope FFacade::GetInRange(const int32 Start, const int32 End, const bool bInclusive) const { return Source->GetInRange(Start, End, bInclusive); }
+	FScope FFacade::GetInScope(const int32 Start, const int32 Count, const bool bInclusive) const { return Source->GetInScope(Start, Count, bInclusive); }
+	FScope FFacade::GetInScope(const PCGExMT::FScope& Scope) const { return Source->GetInScope(Scope); }
+	FScope FFacade::GetInFullScope() const { return Source->GetInFullScope(); }
+	FScope FFacade::GetInRange(const int32 Start, const int32 End, const bool bInclusive) const { return Source->GetInRange(Start, End, bInclusive); }
 
-	PCGExData::FScope FFacade::GetOutScope(const int32 Start, const int32 Count, const bool bInclusive) const { return Source->GetOutScope(Start, Count, bInclusive); }
-	PCGExData::FScope FFacade::GetOutScope(const PCGExMT::FScope& Scope) const { return Source->GetOutScope(Scope); }
-	PCGExData::FScope FFacade::GetOutFullScope() const { return Source->GetOutFullScope(); }
-	PCGExData::FScope FFacade::GetOutRange(const int32 Start, const int32 End, const bool bInclusive) const { return Source->GetOutRange(Start, End, bInclusive); }
+	FScope FFacade::GetOutScope(const int32 Start, const int32 Count, const bool bInclusive) const { return Source->GetOutScope(Start, Count, bInclusive); }
+	FScope FFacade::GetOutScope(const PCGExMT::FScope& Scope) const { return Source->GetOutScope(Scope); }
+	FScope FFacade::GetOutFullScope() const { return Source->GetOutFullScope(); }
+	FScope FFacade::GetOutRange(const int32 Start, const int32 End, const bool bInclusive) const { return Source->GetOutRange(Start, End, bInclusive); }
 
 	bool FFacade::ValidateOutputsBeforeWriting() const
 	{

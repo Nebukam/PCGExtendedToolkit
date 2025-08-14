@@ -101,6 +101,9 @@ struct FPCGExCreateSplineContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExCreateSplineElement;
 	FPCGExTangentsDetails Tangents;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExCreateSplineElement final : public FPCGExPathProcessorElement

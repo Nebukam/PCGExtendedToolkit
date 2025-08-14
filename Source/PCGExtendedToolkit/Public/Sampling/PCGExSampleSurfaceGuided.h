@@ -15,7 +15,6 @@
 #include "Data/PCGExDataForward.h"
 
 
-
 #include "PCGExSampleSurfaceGuided.generated.h"
 
 
@@ -282,6 +281,9 @@ struct FPCGExSampleSurfaceGuidedContext final : FPCGExPointsProcessorContext
 	TArray<TObjectPtr<const UPCGExTexParamFactoryData>> TexParamsFactories;
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElement

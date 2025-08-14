@@ -60,6 +60,7 @@ PCGExData::EIOInit UPCGExFilterVtxSettings::GetEdgeOutputInitMode() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(FilterVtx)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(FilterVtx)
 
 bool FPCGExFilterVtxElement::Boot(FPCGExContext* InContext) const
 {
@@ -114,9 +115,9 @@ bool FPCGExFilterVtxElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExFilterVtx::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExFilterVtx::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 				NewBatch->VtxFilterFactories = &Context->VtxFilterFactories;

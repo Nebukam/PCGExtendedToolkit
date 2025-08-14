@@ -18,8 +18,8 @@ namespace PCGExBlend
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
 extern template _TYPE Min<_TYPE>(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE Max<_TYPE>(const _TYPE& A, const _TYPE& B); 
-	
+extern template _TYPE Max<_TYPE>(const _TYPE& A, const _TYPE& B);
+
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 }

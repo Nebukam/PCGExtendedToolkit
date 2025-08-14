@@ -20,6 +20,7 @@ PCGExData::EIOInit UPCGExFuseClustersSettings::GetEdgeOutputInitMode() const { r
 #pragma endregion
 
 PCGEX_INITIALIZE_ELEMENT(FuseClusters)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL(FuseClusters)
 
 bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 {
@@ -92,9 +93,9 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		const bool bDoInline = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->bSkipCompletion = true;
 				NewBatch->bDaisyChainProcessing = bDoInline;

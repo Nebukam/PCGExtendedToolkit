@@ -31,6 +31,7 @@ PCGExData::EIOInit UPCGExFindContoursSettings::GetEdgeOutputInitMode() const { r
 PCGExData::EIOInit UPCGExFindContoursSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 PCGEX_INITIALIZE_ELEMENT(FindContours)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL(FindContours)
 
 bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 {
@@ -78,9 +79,9 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExFindContours::FProcessor>>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExFindContours::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = Settings->Artifacts.WriteAny();
 				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);

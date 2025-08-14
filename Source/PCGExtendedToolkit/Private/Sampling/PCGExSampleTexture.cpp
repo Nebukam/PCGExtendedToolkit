@@ -26,6 +26,7 @@ TArray<FPCGPinProperties> UPCGExSampleTextureSettings::InputPinProperties() cons
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleTexture)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleTexture)
 
 bool FPCGExSampleTextureElement::Boot(FPCGExContext* InContext) const
 {
@@ -69,9 +70,9 @@ bool FPCGExSampleTextureElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleTexture::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleTexture::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
 			}))

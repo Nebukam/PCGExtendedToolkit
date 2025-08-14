@@ -48,15 +48,12 @@ namespace PCGEx
 			if (InSelector.GetExtraNames().IsEmpty()) { return FName(InSelector.GetName().ToString()); }
 			return FName(InSelector.GetName().ToString() + TEXT(".") + FString::Join(InSelector.GetExtraNames(), TEXT(".")));
 		}
-		else
+		if (InSelector.GetSelection() == EPCGAttributePropertySelection::Attribute && InSelector.GetName() == "@Last")
 		{
-			if (InSelector.GetSelection() == EPCGAttributePropertySelection::Attribute && InSelector.GetName() == "@Last")
-			{
-				return GetLongNameFromSelector(InSelector.CopyAndFixLast(InData), InData, true);
-			}
-
-			return GetLongNameFromSelector(InSelector, InData, true);
+			return GetLongNameFromSelector(InSelector.CopyAndFixLast(InData), InData, true);
 		}
+
+		return GetLongNameFromSelector(InSelector, InData, true);
 	}
 
 	FPCGAttributeIdentifier GetAttributeIdentifier(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const bool bInitialized)

@@ -21,6 +21,7 @@ TArray<FPCGPinProperties> UPCGExRelaxClustersSettings::InputPinProperties() cons
 }
 
 PCGEX_INITIALIZE_ELEMENT(RelaxClusters)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(RelaxClusters)
 
 bool FPCGExRelaxClustersElement::Boot(FPCGExContext* InContext) const
 {
@@ -47,9 +48,9 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExRelaxClusters::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExRelaxClusters::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 				NewBatch->AllocateVtxProperties = EPCGPointNativeProperties::Transform;

@@ -10,6 +10,7 @@
 #define PCGEX_NAMESPACE FuseCollinear
 
 PCGEX_INITIALIZE_ELEMENT(FuseCollinear)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(FuseCollinear)
 
 bool FPCGExFuseCollinearElement::Boot(FPCGExContext* InContext) const
 {
@@ -36,7 +37,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 
 		// TODO : Skip completion
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFuseCollinear::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -47,7 +48,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExFuseCollinear::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

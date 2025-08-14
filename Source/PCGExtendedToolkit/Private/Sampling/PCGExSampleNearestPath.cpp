@@ -51,6 +51,7 @@ void FPCGExSampleNearestPathContext::RegisterAssetDependencies()
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPath)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleNearestPath)
 
 bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 {
@@ -190,9 +191,9 @@ bool FPCGExSampleNearestPathElement::ExecuteInternal(FPCGContext* InContext) con
 				return;
 			}
 
-			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestPath::FProcessor>>(
+			if (!Context->StartBatchProcessingPoints(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestPath::FProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 					if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
 				}))

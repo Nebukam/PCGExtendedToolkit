@@ -178,8 +178,8 @@ namespace PCGExTopologyEdges
 			EdgeDataFacade->bSupportsScopedGet = true;
 			EdgeFilterFactories = &Context->EdgeConstraintsFilterFactories;
 
-			ProjectedHashMap = Context->HashMaps[VtxDataFacade->Source->IOIndex]; 
-			
+			ProjectedHashMap = Context->HashMaps[VtxDataFacade->Source->IOIndex];
+
 			if (!PCGExClusterMT::TProcessor<TContext, TSettings>::Process(InAsyncManager)) { return false; }
 
 			if (Context->HolesFacade) { Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails); }

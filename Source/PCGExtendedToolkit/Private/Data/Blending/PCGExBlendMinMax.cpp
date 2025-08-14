@@ -111,8 +111,8 @@ namespace PCGExBlend
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
 template PCGEXTENDEDTOOLKIT_API _TYPE Min<_TYPE>(const _TYPE& A, const _TYPE& B); \
-template PCGEXTENDEDTOOLKIT_API _TYPE Max<_TYPE>(const _TYPE& A, const _TYPE& B); 
-	
+template PCGEXTENDEDTOOLKIT_API _TYPE Max<_TYPE>(const _TYPE& A, const _TYPE& B);
+
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 }

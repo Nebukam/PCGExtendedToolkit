@@ -49,6 +49,9 @@ private:
 struct FPCGExBuildConvexHullContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildConvexHullElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBuildConvexHullElement final : public FPCGExPointsProcessorElement
@@ -60,7 +63,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExConvexHull
+namespace PCGExBuildConvexHull
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBuildConvexHullContext, UPCGExBuildConvexHullSettings>
 	{

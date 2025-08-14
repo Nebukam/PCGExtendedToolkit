@@ -18,6 +18,7 @@ TArray<FPCGPinProperties> UPCGExPathStitchSettings::InputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathStitch)
+PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(PathStitch)
 
 bool FPCGExPathStitchElement::Boot(FPCGExContext* InContext) const
 {
@@ -46,7 +47,7 @@ bool FPCGExPathStitchElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs are either closed loop or have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPathStitch::FBatch>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2 || PCGExPaths::GetClosedLoop(Entry->GetIn()))
@@ -61,7 +62,7 @@ bool FPCGExPathStitchElement::ExecuteInternal(FPCGContext* InContext) const
 				Entry->Tags->DumpTo(D.Tags);
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPathStitch::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 				NewBatch->bRequiresWriteStep = true;

@@ -80,6 +80,9 @@ struct FPCGExFindClusterHullContext final : FPCGExEdgesProcessorContext
 	TSharedPtr<PCGExData::FPointIOCollection> Paths;
 
 	mutable FRWLock SeedOutputLock;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExFindClusterHullElement final : public FPCGExEdgesProcessorElement
