@@ -9,6 +9,12 @@
 
 #include "PCGExDataFilter.generated.h"
 
+namespace PCGEx
+{
+	struct FAttributeIdentity;
+	class FAttributesInfos;
+}
+
 class UPCGMetadata;
 enum class EPCGMetadataTypes : uint8;
 

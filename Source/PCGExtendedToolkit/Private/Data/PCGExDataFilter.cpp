@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Data/PCGExDataFilter.h"
+
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 
 void FPCGExNameFiltersDetails::Init()

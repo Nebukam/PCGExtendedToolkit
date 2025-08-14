@@ -3,6 +3,10 @@
 
 #include "Data/PCGExProxyData.h"
 
+#include "Data/PCGExData.h"
+#include "Data/PCGExDataHelpers.h"
+#include "Data/PCGExPointIO.h"
+
 namespace PCGExData
 {
 #pragma region FProxyDescriptor
@@ -151,6 +155,243 @@ template class PCGEXTENDEDTOOLKIT_API TPointExtraPropertyProxy<_REALTYPE, _TYPE,
 #undef PCGEX_TPL
 
 #pragma endregion
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	T_WORKING TAttributeBufferProxy<T_REAL, T_WORKING, bSubSelection>::Get(const int32 Index) const
+	{
+		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
+		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+		if constexpr (!bSubSelection)
+		{
+			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Buffer->Read(Index); }
+			else { return PCGEx::Convert<T_REAL, T_WORKING>(Buffer->Read(Index)); }
+		}
+		else { return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->Read(Index)); }
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	void TAttributeBufferProxy<T_REAL, T_WORKING, bSubSelection>::Set(const int32 Index, const T_WORKING& Value) const
+	{
+		// i.e set Rotation<FQuat>.Forward<FVector> from <FRotator>
+		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+		if constexpr (!bSubSelection)
+		{
+			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { Buffer->SetValue(Index, Value); }
+			else { Buffer->SetValue(Index, PCGEx::Convert<T_WORKING, T_REAL>(Value)); }
+		}
+		else
+		{
+			T_REAL V = Buffer->GetValue(Index);
+			SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
+			Buffer->SetValue(Index, V);
+		}
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	T_WORKING TAttributeBufferProxy<T_REAL, T_WORKING, bSubSelection>::GetCurrent(const int32 Index) const
+	{
+		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
+		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+		if constexpr (!bSubSelection)
+		{
+			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Buffer->GetValue(Index); }
+			else { return PCGEx::Convert<T_REAL, T_WORKING>(Buffer->GetValue(Index)); }
+		}
+		else { return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->GetValue(Index)); }
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	TSharedPtr<IBuffer> TAttributeBufferProxy<T_REAL, T_WORKING, bSubSelection>::GetBuffer() const { return Buffer; }
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	bool TAttributeBufferProxy<T_REAL, T_WORKING, bSubSelection>::EnsureReadable() const { return Buffer->EnsureReadable(); }
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGPointProperties PROPERTY>
+	T_WORKING TPointPropertyProxy<T_REAL, T_WORKING, bSubSelection, PROPERTY>::Get(const int32 Index) const
+	{
+#define PCGEX_GET_SUBPROPERTY(_ACCESSOR, _TYPE) \
+if constexpr (!bSubSelection){ \
+if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Data->_ACCESSOR; }\
+else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
+}else{ return SubSelection.template Get<T_REAL, T_WORKING>(Data->_ACCESSOR); }
+
+		PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(PROPERTY, PCGEX_GET_SUBPROPERTY)
+#undef PCGEX_GET_SUBPROPERTY
+		else { return T_WORKING{}; }
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGPointProperties PROPERTY>
+	void TPointPropertyProxy<T_REAL, T_WORKING, bSubSelection, PROPERTY>::Set(const int32 Index, const T_WORKING& Value) const
+	{
+		if constexpr (!bSubSelection)
+		{
+			if constexpr (std::is_same_v<T_REAL, T_WORKING>)
+			{
+#define PCGEX_PROPERTY_VALUE(_TYPE) Value
+				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Data, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
+#undef PCGEX_PROPERTY_VALUE
+			}
+			else
+			{
+#define PCGEX_PROPERTY_VALUE(_TYPE) PCGEx::Convert<T_WORKING, _TYPE>(Value)
+				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Data, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
+#undef PCGEX_PROPERTY_VALUE
+			}
+		}
+		else
+		{
+			T_REAL V = T_REAL{};
+#define PCGEX_GET_REAL(_ACCESSOR, _TYPE) V = Data->_ACCESSOR;
+			PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(PROPERTY, PCGEX_GET_REAL)
+#undef PCGEX_GET_REAL
+
+#define PCGEX_PROPERTY_SET(_TYPE) SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
+#define PCGEX_PROPERTY_VALUE(_TYPE) V
+			PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Data, PCGEX_PROPERTY_SET, PCGEX_PROPERTY_VALUE)
+#undef PCGEX_PROPERTY_VALUE
+#undef PCGEX_PROPERTY_SET
+		}
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGExtraProperties PROPERTY>
+	T_WORKING TPointExtraPropertyProxy<T_REAL, T_WORKING, bSubSelection, PROPERTY>::Get(const int32 Index) const
+	{
+		if constexpr (PROPERTY == EPCGExtraProperties::Index)
+		{
+			return PCGEx::Convert<T_REAL, T_WORKING>(Index);
+		}
+		else
+		{
+			return T_WORKING{};
+		}
+	}
+
+	template <typename T_WORKING>
+	template <typename T>
+	void TConstantProxy<T_WORKING>::SetConstant(const T& InValue)
+	{
+		Constant = PCGEx::Convert<T, T_WORKING>(InValue);
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	TDirectAttributeProxy<T_REAL, T_WORKING, bSubSelection>::TDirectAttributeProxy()
+		: TBufferProxy<T_WORKING>()
+	{
+		this->RealType = PCGEx::GetMetadataType<T_REAL>();
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	T_WORKING TDirectAttributeProxy<T_REAL, T_WORKING, bSubSelection>::Get(const int32 Index) const
+	{
+		const int64 MetadataEntry = Data->GetMetadataEntry(Index);
+
+		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
+		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+		if constexpr (!bSubSelection)
+		{
+			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return InAttribute->GetValueFromItemKey(MetadataEntry); }
+			else { return PCGEx::Convert<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(MetadataEntry)); }
+		}
+		else
+		{
+			return SubSelection.template Get<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(MetadataEntry));
+		}
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	T_WORKING TDirectAttributeProxy<T_REAL, T_WORKING, bSubSelection>::GetCurrent(const int32 Index) const
+	{
+		const int64 MetadataEntry = Data->GetMetadataEntry(Index);
+
+		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
+		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+		if constexpr (!bSubSelection)
+		{
+			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return OutAttribute->GetValueFromItemKey(MetadataEntry); }
+			else { return PCGEx::Convert<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(MetadataEntry)); }
+		}
+		else
+		{
+			return SubSelection.template Get<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(MetadataEntry));
+		}
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	void TDirectAttributeProxy<T_REAL, T_WORKING, bSubSelection>::Set(const int32 Index, const T_WORKING& Value) const
+	{
+		const int64 MetadataEntry = Data->GetMetadataEntry(Index);
+
+		// i.e set Rotation<FQuat>.Forward<FVector> from <FRotator>
+		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+		if constexpr (!bSubSelection)
+		{
+			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { OutAttribute->SetValue(MetadataEntry, Value); }
+			else { OutAttribute->SetValue(MetadataEntry, PCGEx::Convert<T_WORKING, T_REAL>(Value)); }
+		}
+		else
+		{
+			T_REAL V = OutAttribute->GetValueFromItemKey(MetadataEntry);
+			SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
+			OutAttribute->SetValue(MetadataEntry, V);
+		}
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	TDirectDataAttributeProxy<T_REAL, T_WORKING, bSubSelection>::TDirectDataAttributeProxy()
+		: TBufferProxy<T_WORKING>()
+	{
+		this->RealType = PCGEx::GetMetadataType<T_REAL>();
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	T_WORKING TDirectDataAttributeProxy<T_REAL, T_WORKING, bSubSelection>::Get(const int32 Index) const
+	{
+		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
+		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+		if constexpr (!bSubSelection)
+		{
+			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return InAttribute->GetValueFromItemKey(PCGDefaultValueKey); }
+			else { return PCGEx::Convert<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(PCGDefaultValueKey)); }
+		}
+		else
+		{
+			return SubSelection.template Get<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(PCGDefaultValueKey));
+		}
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	T_WORKING TDirectDataAttributeProxy<T_REAL, T_WORKING, bSubSelection>::GetCurrent(const int32 Index) const
+	{
+		// i.e get Rotation<FQuat>.Forward<FVector> as <double>
+		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+		if constexpr (!bSubSelection)
+		{
+			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return OutAttribute->GetValueFromItemKey(PCGDefaultValueKey); }
+			else { return PCGEx::Convert<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(PCGDefaultValueKey)); }
+		}
+		else
+		{
+			return SubSelection.template Get<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(PCGDefaultValueKey));
+		}
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	void TDirectDataAttributeProxy<T_REAL, T_WORKING, bSubSelection>::Set(const int32 Index, const T_WORKING& Value) const
+	{
+		// i.e set Rotation<FQuat>.Forward<FVector> from <FRotator>
+		//					^ T_REAL	  ^ Sub		      ^ T_WORKING
+		if constexpr (!bSubSelection)
+		{
+			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { PCGExDataHelpers::SetDataValue(OutAttribute, Value); }
+			else { PCGExDataHelpers::SetDataValue(OutAttribute, PCGEx::Convert<T_WORKING, T_REAL>(Value)); }
+		}
+		else
+		{
+			T_REAL V = OutAttribute->GetValueFromItemKey(PCGDefaultValueKey);
+			SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
+			PCGExDataHelpers::SetDataValue(OutAttribute, V);
+		}
+	}
 
 #pragma region externalization
 

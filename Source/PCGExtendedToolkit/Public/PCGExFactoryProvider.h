@@ -11,6 +11,7 @@
 
 #include "PCGEx.h"
 #include "Data/PCGExPointData.h"
+#include "Data/PCGExPointIO.h"
 
 #include "PCGExFactoryProvider.generated.h"
 

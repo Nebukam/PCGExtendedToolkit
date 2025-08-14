@@ -35,10 +35,25 @@ enum class EPCGExDataInputValueType : uint8
 	Attribute = 1 UMETA(DisplayName = "@Data", Tooltip="Attribute. Can only read from @Data domain."),
 };
 
+UENUM()
+enum class EPCGExPointBoundsSource : uint8
+{
+	ScaledBounds  = 0 UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),
+	DensityBounds = 1 UMETA(DisplayName = "Density Bounds", ToolTip="Density Bounds (scaled + steepness)"),
+	Bounds        = 2 UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds (why?)"),
+	Center        = 3 UMETA(DisplayName = "Center", ToolTip="A tiny size 1 box.")
+};
+
 namespace PCGExData
 {
 	template<typename T>
 	class TDataValue;
+
+	enum class EIOSide : uint8
+	{
+		In,
+		Out
+	};
 }
 
 namespace PCGExCommon

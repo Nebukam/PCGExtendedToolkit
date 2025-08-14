@@ -27,6 +27,11 @@
 	_BODY \
 	return NewOperation;}
 
+namespace PCGEx
+{
+	class FAttributesInfos;
+}
+
 class UPCGExFilterFactoryData;
 
 namespace PCGExPointFilter

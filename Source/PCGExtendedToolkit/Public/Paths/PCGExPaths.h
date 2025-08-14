@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMath.h"
 
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Collections/PCGExComponentDescriptors.h"
@@ -230,11 +231,15 @@ namespace PCGExPaths
 
 	PCGEXTENDEDTOOLKIT_API
 	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop);
-	static void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop) { SetClosedLoop(InData->GetOut(), bIsClosedLoop); }
+	
+	PCGEXTENDEDTOOLKIT_API
+	void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop);
 
 	PCGEXTENDEDTOOLKIT_API
 	bool GetClosedLoop(const UPCGData* InData);
-	static bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData) { return GetClosedLoop(InData->GetIn()); }
+	
+	PCGEXTENDEDTOOLKIT_API
+	bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData);
 
 	PCGEXTENDEDTOOLKIT_API
 	void FetchPrevNext(const TSharedPtr<PCGExData::FFacade>& InFacade, const TArray<PCGExMT::FScope>& Loops);
