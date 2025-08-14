@@ -4,6 +4,7 @@
 #include "Paths/PCGExExtrudeTensors.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
 #include "Graph/PCGExGraph.h"
 
 

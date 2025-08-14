@@ -11,6 +11,10 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.generated.h"
 
+struct FPCGTaggedData;
+class UPCGData;
+class IPCGAttributeAccessorKeys;
+
 UENUM()
 enum class EPCGExAsyncPriority : uint8
 {
@@ -47,13 +51,26 @@ enum class EPCGExPointBoundsSource : uint8
 
 namespace PCGExData
 {
-	template<typename T>
+	class FTags;
+	template <typename T>
 	class TDataValue;
 
 	enum class EIOSide : uint8
 	{
 		In,
 		Out
+	};
+
+	struct FTaggedData
+	{
+		const UPCGData* Data = nullptr;
+		TWeakPtr<FTags> Tags;
+		TSharedPtr<IPCGAttributeAccessorKeys> Keys = nullptr;
+
+		FTaggedData() = default;
+		FTaggedData(const UPCGData* InData, const TSharedPtr<FTags>& InTags, const TSharedPtr<IPCGAttributeAccessorKeys>& InKeys);
+		TSharedPtr<FTags> GetTags() const;
+		void Dump(FPCGTaggedData& InOut) const;
 	};
 }
 
@@ -63,7 +80,7 @@ namespace PCGExCommon
 	using ContextState = uint64;
 
 	const FString PCGExPrefix = TEXT("PCGEx/");
-	
+
 #define PCGEX_CTX_STATE(_NAME) const PCGExCommon::ContextState _NAME = GetTypeHash(FName(#_NAME));
 
 	PCGEX_CTX_STATE(State_Preparation)

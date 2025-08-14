@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExAttributeHash.h"
 
+#include "Data/PCGExDataTag.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeHashElement"
 #define PCGEX_NAMESPACE AttributeHash

@@ -5,13 +5,22 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExGraph.h"
-#include "PCGExCluster.h"
 #include "PCGExEdgeDirectionSettings.h"
-#include "Data/PCGExData.h"
 #include "Geometry/PCGExGeo.h"
 
-#include "Pathfinding/Heuristics/PCGExHeuristics.h"
+namespace PCGExCluster
+{
+	struct FNode;
+}
+
+class UPCGExFilterFactoryData;
+
+namespace PCGExHeuristics
+{
+	class FHeuristicsHandler;
+}
+
+class UPCGExHeuristicsFactoryData;
 
 namespace PCGExClusterFilter
 {
@@ -169,7 +178,7 @@ namespace PCGExClusterMT
 		virtual bool InitVtxFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories);
 		virtual void FilterVtxScope(const PCGExMT::FScope& Scope);
 
-		FORCEINLINE bool IsNodePassingFilters(const PCGExCluster::FNode& Node) const { return static_cast<bool>(*(VtxFilterCache->GetData() + Node.PointIndex)); }
+		bool IsNodePassingFilters(const PCGExCluster::FNode& Node) const;
 
 		bool DefaultEdgeFilterValue = true;
 		TSharedPtr<PCGExClusterFilter::FManager> EdgesFiltersManager;

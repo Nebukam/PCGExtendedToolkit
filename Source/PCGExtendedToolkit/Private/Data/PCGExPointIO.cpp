@@ -6,6 +6,7 @@
 #include "PCGExContext.h"
 #include "PCGExDetails.h"
 #include "PCGExMT.h"
+#include "Data/PCGExDataTag.h"
 
 namespace PCGExData
 {
@@ -725,6 +726,11 @@ namespace PCGExData
 	{
 		FWriteScopeLock WriteLock(PairsLock);
 		Add_Unsafe(IOs);
+	}
+
+	void FPointIOCollection::OverrideTags(const TSharedPtr<FPointIO>& InFrom, const TSharedPtr<FPointIO>& InTo)
+	{
+		InTo->Tags->Reset(InFrom->Tags);
 	}
 
 	void FPointIOCollection::IncreaseReserve(const int32 InIncreaseNum)

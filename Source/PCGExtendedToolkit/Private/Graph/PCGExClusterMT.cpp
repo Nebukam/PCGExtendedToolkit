@@ -4,8 +4,10 @@
 #include "Graph/PCGExClusterMT.h"
 
 #include "Data/PCGExDataPreloader.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
 namespace PCGExClusterMT
 {
@@ -240,6 +242,8 @@ namespace PCGExClusterMT
 		// Note : Don't forget to prefetch VtxDataFacade buffers
 		if (VtxFiltersManager) { VtxFiltersManager->Test(Scope.GetView(*Cluster->Nodes.Get()), VtxFilterCache); }
 	}
+
+	bool IProcessor::IsNodePassingFilters(const PCGExCluster::FNode& Node) const { return static_cast<bool>(*(VtxFilterCache->GetData() + Node.PointIndex)); }
 
 	bool IProcessor::InitEdgesFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
 	{
@@ -516,7 +520,7 @@ namespace PCGExClusterMT
 				This->OnInitialPostProcess();
 			});
 
-		PCGEX_ASYNC_MT_LOOP_TPL(Process, bDaisyChainProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, InitializationTracker)
+		PCGEX_ASYNC_MT_LOOP_TPL(Process, bDaisyChainProcessing, {Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, InitializationTracker)
 	}
 
 	void IBatch::OnInitialPostProcess()
@@ -541,7 +545,7 @@ namespace PCGExClusterMT
 		if (!bIsBatchValid) { return; }
 
 		CurrentState.store(PCGExCommon::State_Completing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, { Processor->CompleteWork(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, {Processor->CompleteWork(); })
 	}
 
 	void IBatch::Write()
@@ -551,7 +555,7 @@ namespace PCGExClusterMT
 		if (!bIsBatchValid) { return; }
 
 		CurrentState.store(PCGExCommon::State_Writing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, { Processor->Write(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, {Processor->Write(); })
 
 		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->WriteFastest(AsyncManager); }
 	}

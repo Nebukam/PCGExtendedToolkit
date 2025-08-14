@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExConnectClusters.h"
+
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIOMerger.h"
 
 

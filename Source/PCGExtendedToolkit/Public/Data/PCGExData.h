@@ -8,6 +8,7 @@
 #include "UObject/UObjectGlobals.h"
 
 #include "PCGExPointElements.h"
+#include "PCGExCommon.h"
 
 #pragma region DATA MACROS
 
@@ -26,7 +27,7 @@
 namespace PCGEx
 {
 	struct FAttributeIdentity;
-	
+
 	template <typename T>
 	class TAttributeBroadcaster;
 }

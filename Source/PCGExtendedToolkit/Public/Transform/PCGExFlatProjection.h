@@ -12,6 +12,12 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExFlatProjection.generated.h"
 
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/flat-projection"))
 class UPCGExFlatProjectionSettings : public UPCGExPointsProcessorSettings
 {

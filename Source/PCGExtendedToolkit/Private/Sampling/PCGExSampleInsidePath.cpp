@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleInsidePath.h"
 
+#include "Data/PCGExDataHelpers.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Misc/PCGExDiscardByPointCount.h"
 

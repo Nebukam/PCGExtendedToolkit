@@ -11,6 +11,7 @@
 #include "PCGExHelpers.h"
 #include "PCGExMath.h"
 #include "PCGExMT.h"
+#include "Data/PCGExDataValue.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendMinMax.h"
 
@@ -650,8 +651,8 @@ namespace PCGEx
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
 template class PCGEXTENDEDTOOLKIT_API TAttributeBroadcaster<_TYPE>;\
-template PCGEXTENDEDTOOLKIT_API TSharedPtr<TAttributeBroadcaster<_TYPE>> Make(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO); \
-template PCGEXTENDEDTOOLKIT_API TSharedPtr<TAttributeBroadcaster<_TYPE>> Make(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO);
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO); \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO);
 
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 

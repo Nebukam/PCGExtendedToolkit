@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleVtxByID.h"
 
+#include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"

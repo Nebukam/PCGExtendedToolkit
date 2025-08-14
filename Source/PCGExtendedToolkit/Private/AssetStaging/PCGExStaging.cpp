@@ -3,6 +3,8 @@
 
 #include "AssetStaging/PCGExStaging.h"
 
+#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+
 namespace PCGExStaging
 {
 	FPickPacker::FPickPacker(FPCGExContext* InContext)

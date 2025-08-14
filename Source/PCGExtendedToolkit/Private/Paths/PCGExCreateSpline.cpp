@@ -5,6 +5,7 @@
 
 
 #include "PCGComponent.h"
+#include "Data/PCGExDataTag.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateSplineElement"
 #define PCGEX_NAMESPACE CreateSpline

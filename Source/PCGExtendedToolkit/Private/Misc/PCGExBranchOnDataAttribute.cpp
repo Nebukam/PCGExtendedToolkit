@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExBranchOnDataAttribute.h"
 
+#include "PCGExBroadcast.h"
 #include "Data/PCGExDataHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBranchOnDataAttributeElement"

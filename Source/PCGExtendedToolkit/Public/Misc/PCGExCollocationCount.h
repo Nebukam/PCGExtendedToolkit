@@ -13,6 +13,12 @@
 
 #include "PCGExCollocationCount.generated.h"
 
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/collocation-count"))
 class UPCGExCollocationCountSettings : public UPCGExPointsProcessorSettings
 {

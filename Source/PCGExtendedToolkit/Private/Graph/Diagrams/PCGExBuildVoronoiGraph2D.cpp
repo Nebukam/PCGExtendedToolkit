@@ -4,6 +4,8 @@
 #include "Graph/Diagrams/PCGExBuildVoronoiGraph2D.h"
 
 #include "PCGExRandom.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"

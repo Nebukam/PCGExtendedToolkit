@@ -331,17 +331,17 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	TSharedPtr<TAttributeBroadcaster<T>> Make(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO);
+	TSharedPtr<TAttributeBroadcaster<T>> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO);
 
 	template <typename T>
-	TSharedPtr<TAttributeBroadcaster<T>> Make(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO);
+	TSharedPtr<TAttributeBroadcaster<T>> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO);
 
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
 extern template class TAttributeBroadcaster<_TYPE>; \
-extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> Make(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO); \
-extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> Make(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO);
+extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO); \
+extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO);
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL

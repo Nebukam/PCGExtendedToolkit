@@ -12,6 +12,7 @@
 #include "Misc/PCGExSortPoints.h"
 #include "Tasks/Task.h"
 #include "Async/Async.h"
+#include "Data/PCGExDataHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWaitForPCGDataElement"
 #define PCGEX_NAMESPACE WaitForPCGData

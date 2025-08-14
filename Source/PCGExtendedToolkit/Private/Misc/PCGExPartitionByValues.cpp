@@ -4,6 +4,7 @@
 #include "Misc/PCGExPartitionByValues.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
 
 
 #include "Sampling/PCGExSampling.h"

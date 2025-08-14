@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExUnpackClusters.h"
 
+#include "Data/PCGExDataHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExUnpackClusters"
 #define PCGEX_NAMESPACE UnpackClusters

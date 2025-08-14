@@ -10,6 +10,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataHelpers.h"
 #include "PCGExPointsMT.h"
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeoPointBox.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"

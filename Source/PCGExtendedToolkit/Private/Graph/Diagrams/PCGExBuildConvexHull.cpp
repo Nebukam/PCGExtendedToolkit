@@ -4,6 +4,7 @@
 #include "Graph/Diagrams/PCGExBuildConvexHull.h"
 
 
+#include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"

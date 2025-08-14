@@ -13,6 +13,7 @@
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Transform/PCGExTransform.h"
+#include "Data/PCGExDataTag.h"
 
 #include "PCGExTopologyEdgesProcessor.generated.h"
 

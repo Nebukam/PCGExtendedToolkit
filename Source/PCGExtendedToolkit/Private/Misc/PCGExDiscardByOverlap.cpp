@@ -5,6 +5,7 @@
 
 #include "PCGExDataMath.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Data/PCGExDataTag.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExDiscardByOverlapElement"

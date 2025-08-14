@@ -4,13 +4,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCommon.h"
+#include "PCGExContext.h"
 #include "PCGExMT.h"
-#include "Data/PCGExData.h"
 
 #define PCGEX_TYPED_PROCESSOR_NREF(_NAME) const TSharedRef<FProcessor> _NAME = StaticCastSharedRef<FProcessor>(InProcessor);
 #define PCGEX_TYPED_PROCESSOR_REF PCGEX_TYPED_PROCESSOR_NREF(TypedProcessor)
 #define PCGEX_TYPED_PROCESSOR const TSharedPtr<FProcessor> TypedProcessor = StaticCastSharedPtr<FProcessor>(InProcessor);
 
+namespace PCGEx
+{
+	class FIntTracker;
+}
+
+class UPCGSettings;
 class UPCGExInstancedFactory;
 class UPCGExFilterFactoryData;
 
@@ -21,6 +28,8 @@ namespace PCGExPointFilter
 
 namespace PCGExData
 {
+	class FPointIO;
+	class FFacade;
 	class FFacadePreloader;
 }
 

@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExCollocationCount.h"
 
+#include "Data/PCGExData.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCollocationCountElement"
 #define PCGEX_NAMESPACE CollocationCount

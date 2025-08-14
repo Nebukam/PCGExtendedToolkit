@@ -3,6 +3,8 @@
 
 #include "Transform/PCGExFlatProjection.h"
 
+#include "Data/PCGExData.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExFlatProjectionElement"
 #define PCGEX_NAMESPACE FlatProjection

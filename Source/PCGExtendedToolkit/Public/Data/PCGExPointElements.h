@@ -4,23 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/UObjectGlobals.h"
-#include "Metadata/Accessors/PCGCustomAccessor.h"
-#include "Data/PCGPointArrayData.h"
-#include "PCGElement.h"
-#include "UObject/Object.h"
-#include "UObject/Package.h"
-#include "PCGPoint.h"
-#include "Data/PCGPointData.h"
-
-#include "PCGExMT.h"
-#include "PCGEx.h"
-#include "PCGExCommon.h"
-#include "PCGExContext.h"
-#include "PCGExDataTag.h"
 #include "PCGExH.h"
-#include "PCGExHelpers.h"
-#include "PCGParamData.h"
+#include "PCGExMT.h"
+#include "Data/PCGBasePointData.h"
+#include "UObject/UObjectGlobals.h"
 
 namespace PCGExData
 {
@@ -239,9 +226,6 @@ FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMe
 	static const FPoint NONE_Point = FPoint(1, -1);
 	static const FMutablePoint NONE_MutablePoint = FMutablePoint(nullptr, -1, -1);
 	static const FConstPoint NONE_ConstPoint = FConstPoint(nullptr, -1, -1);
-
-	PCGEXTENDEDTOOLKIT_API
-	void SetPointProperty(FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
 
 #pragma endregion
 

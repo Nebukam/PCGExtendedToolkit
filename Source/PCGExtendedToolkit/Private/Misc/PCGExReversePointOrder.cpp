@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExReversePointOrder.h"
 
+#include "PCGExMath.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataPreloader.h"
 

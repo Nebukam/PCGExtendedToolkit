@@ -17,13 +17,13 @@
 #include "PCGEx.h"
 #include "PCGExCommon.h"
 #include "PCGExContext.h"
-#include "PCGExDataTag.h"
 #include "PCGExPointElements.h"
 #include "PCGExHelpers.h"
 #include "PCGParamData.h"
 
 namespace PCGExData
 {
+	class FTags;
 	class FPointIO;
 }
 
@@ -430,10 +430,12 @@ namespace PCGExData
 			TSharedPtr<FPointIO> Branch = Emplace_GetRef<T>(PointIO->GetIn(), InitOut);
 			if (!Branch) { return nullptr; }
 
-			Branch->Tags->Reset(PointIO->Tags);
+			OverrideTags(PointIO, Branch);
 			Branch->RootIO = PointIO;
 			return Branch;
 		}
+
+		static void OverrideTags(const TSharedPtr<FPointIO>& InFrom, const TSharedPtr<FPointIO>& InTo);
 
 		bool IsEmpty() const { return Pairs.IsEmpty(); }
 		int32 Num() const { return Pairs.Num(); }

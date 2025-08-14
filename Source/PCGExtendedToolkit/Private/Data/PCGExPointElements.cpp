@@ -3,8 +3,6 @@
 
 #include "Data/PCGExPointElements.h"
 
-#include "PCGExContext.h"
-#include "PCGExDetails.h"
 #include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 
@@ -231,41 +229,6 @@ namespace PCGExData
 		InPoint.SetTransform(Transform);
 		InPoint.SetBoundsMin(BoundsMin);
 		InPoint.SetBoundsMax(BoundsMax);
-	}
-
-
-	void SetPointProperty(FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
-	{
-		if (InProperty == EPCGExPointPropertyOutput::Density)
-		{
-			TPCGValueRange<float> Density = InPoint.Data->GetDensityValueRange(false);
-			Density[InPoint.Index] = InValue;
-		}
-		else if (InProperty == EPCGExPointPropertyOutput::Steepness)
-		{
-			TPCGValueRange<float> Steepness = InPoint.Data->GetSteepnessValueRange(false);
-			Steepness[InPoint.Index] = InValue;
-		}
-		else if (InProperty == EPCGExPointPropertyOutput::ColorR)
-		{
-			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
-			Color[InPoint.Index].Component(0) = InValue;
-		}
-		else if (InProperty == EPCGExPointPropertyOutput::ColorG)
-		{
-			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
-			Color[InPoint.Index].Component(1) = InValue;
-		}
-		else if (InProperty == EPCGExPointPropertyOutput::ColorB)
-		{
-			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
-			Color[InPoint.Index].Component(2) = InValue;
-		}
-		else if (InProperty == EPCGExPointPropertyOutput::ColorA)
-		{
-			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
-			Color[InPoint.Index].Component(3) = InValue;
-		}
 	}
 
 #pragma endregion

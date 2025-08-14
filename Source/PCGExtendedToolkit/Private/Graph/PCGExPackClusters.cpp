@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExPackClusters.h"
+
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIOMerger.h"
 
 #include "Geometry/PCGExGeoDelaunay.h"

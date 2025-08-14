@@ -8,7 +8,6 @@
 #include "PCGExInstancedFactory.h"
 #include "Data/PCGExDataPreloader.h"
 
-
 namespace PCGExPointsMT
 {
 	IProcessor::IProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)

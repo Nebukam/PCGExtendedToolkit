@@ -323,8 +323,10 @@ namespace PCGExTopology
 	const FName SourceHolesLabel = FName("Holes");
 	const FName SourceMeshLabel = FName("Mesh");
 	const FName OutputMeshLabel = FName("Mesh");
-
-
+	
+	PCGEXTENDEDTOOLKIT_API
+	void SetPointProperty(PCGExData::FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
+	
 	template <typename T>
 	static bool IsPointInPolygon(const T& Point, const FGeometryScriptSimplePolygon& Polygon)
 	{

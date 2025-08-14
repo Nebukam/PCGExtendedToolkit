@@ -4,6 +4,7 @@
 #include "Graph/PCGExSimplifyClusters.h"
 
 
+#include "PCGExMath.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExChain.h"
 #include "Graph/Filters/PCGExClusterFilter.h"

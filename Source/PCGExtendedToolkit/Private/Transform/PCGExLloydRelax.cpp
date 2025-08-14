@@ -4,6 +4,7 @@
 #include "Transform/PCGExLloydRelax.h"
 
 
+#include "Data/PCGExData.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLloydRelaxElement"

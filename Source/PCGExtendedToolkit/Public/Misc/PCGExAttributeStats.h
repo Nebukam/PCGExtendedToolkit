@@ -11,6 +11,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExBlendModes.h"
 #include "Data/PCGExDataFilter.h"
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
 
 #include "PCGExAttributeStats.generated.h"

@@ -4,7 +4,7 @@
 #include "Misc/PCGExMergePoints.h"
 
 
-
+#include "Data/PCGExDataTag.h"
 #include "Graph/PCGExEdge.h"
 
 
