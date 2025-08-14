@@ -19,6 +19,7 @@ UPCGExNormalizeSettings::UPCGExNormalizeSettings(const FObjectInitializer& Objec
 }
 
 PCGEX_INITIALIZE_ELEMENT(Normalize)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(Normalize)
 
 TArray<FPCGPinProperties> UPCGExNormalizeSettings::InputPinProperties() const
 {
@@ -60,9 +61,9 @@ bool FPCGExNormalizeElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExNormalize::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExNormalize::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bSkipCompletion = true;
 			}))

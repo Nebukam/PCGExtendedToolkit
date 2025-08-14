@@ -96,6 +96,9 @@ struct FPCGExConnectClustersContext final : FPCGExEdgesProcessorContext
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> GeneratorsFiltersFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ConnectablesFiltersFactories;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExConnectClustersElement final : public FPCGExEdgesProcessorElement
@@ -107,7 +110,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExBridgeClusters
+namespace PCGExConnectClusters
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExConnectClustersContext, UPCGExConnectClustersSettings>
 	{
@@ -142,7 +145,7 @@ namespace PCGExBridgeClusters
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 
 		virtual void Process() override;
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 		void CreateBridge(int32 EdgeIndex, int32 FromClusterIndex, int32 ToClusterIndex);

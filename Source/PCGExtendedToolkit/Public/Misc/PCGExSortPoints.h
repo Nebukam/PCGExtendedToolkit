@@ -62,15 +62,25 @@ private:
 	friend class FPCGExSortPointsBaseElement;
 };
 
+struct FPCGExSortPointsContext final : FPCGExPointsProcessorContext
+{
+	friend class FPCGExSortPointsElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
+};
+
 class FPCGExSortPointsBaseElement final : public FPCGExPointsProcessorElement
 {
 protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(SortPoints)
+
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
 namespace PCGExSortPoints
 {
-	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPointsProcessorContext, UPCGExSortPointsBaseSettings>
+	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSortPointsContext, UPCGExSortPointsBaseSettings>
 	{
 		TSharedPtr<PCGExSorting::FPointSorter> Sorter;
 

@@ -49,6 +49,9 @@ public:
 struct FPCGExLloydRelax2DContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExLloydRelax2DElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExLloydRelax2DElement final : public FPCGExPointsProcessorElement

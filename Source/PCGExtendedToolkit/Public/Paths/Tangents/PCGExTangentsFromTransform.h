@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMath.h"
 #include "PCGExTangentsInstancedFactory.h"
 
 #include "PCGExTangentsFromTransform.generated.h"

@@ -70,6 +70,9 @@ struct FPCGExWriteVtxPropertiesContext final : FPCGExEdgesProcessorContext
 	TArray<TObjectPtr<const UPCGExVtxPropertyFactoryData>> ExtraFactories;
 
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExWriteVtxPropertiesElement final : public FPCGExEdgesProcessorElement
@@ -114,8 +117,7 @@ namespace PCGExWriteVtxProperties
 		virtual ~FBatch() override;
 
 		virtual void OnProcessingPreparationComplete() override;
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
-		//virtual void CompleteWork() override;
+		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 		virtual void Write() override;
 	};
 }

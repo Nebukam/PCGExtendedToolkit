@@ -5,7 +5,6 @@
 
 
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideEdges"
 #define PCGEX_NAMESPACE SubdivideEdges
@@ -22,6 +21,7 @@ TArray<FPCGPinProperties> UPCGExSubdivideEdgesSettings::InputPinProperties() con
 }
 
 PCGEX_INITIALIZE_ELEMENT(SubdivideEdges)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(SubdivideEdges)
 
 bool FPCGExSubdivideEdgesElement::Boot(FPCGExContext* InContext) const
 {
@@ -46,9 +46,9 @@ bool FPCGExSubdivideEdgesElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExSubdivideEdges::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExSubdivideEdges::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))

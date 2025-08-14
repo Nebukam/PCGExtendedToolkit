@@ -71,6 +71,9 @@ struct FPCGExConnectPointsContext final : FPCGExPointsProcessorContext
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ConnectablesFiltersFactories;
 
 	FVector CWCoincidenceTolerance = FVector::OneVector;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExConnectPointsElement final : public FPCGExPointsProcessorElement

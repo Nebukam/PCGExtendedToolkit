@@ -15,6 +15,12 @@
 #define PCGEX_VTX_EXTRA_CREATE \
 	NewOperation->Config = Config;
 
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
+
 namespace PCGExCluster
 {
 	struct FNode;

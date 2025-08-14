@@ -11,6 +11,11 @@
 
 #include "PCGExActionWriteValues.generated.h"
 
+namespace PCGExData
+{
+	class IBuffer;
+}
+
 namespace PCGExActionWriteValues
 {
 	const FName SourceForwardSuccess = TEXT("MatchSuccess");

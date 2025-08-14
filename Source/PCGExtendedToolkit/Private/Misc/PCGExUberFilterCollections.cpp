@@ -37,6 +37,7 @@ TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::OutputPinProperti
 }
 
 PCGEX_INITIALIZE_ELEMENT(UberFilterCollections)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(UberFilterCollections)
 
 FName UPCGExUberFilterCollectionsSettings::GetMainOutputPin() const
 {
@@ -91,9 +92,9 @@ bool FPCGExUberFilterCollectionsElement::ExecuteInternal(FPCGContext* InContext)
 		{
 			Context->NumPairs = Context->MainPoints->Pairs.Num();
 
-			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilterCollections::FProcessor>>(
+			if (!Context->StartBatchProcessingPoints(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExUberFilterCollections::FProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 					NewBatch->bSkipCompletion = Context->bHasOnlyCollectionFilters;
 				}))

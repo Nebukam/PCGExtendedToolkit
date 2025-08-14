@@ -5,6 +5,7 @@
 #include "Data/PCGExPointIOMerger.h"
 
 #include "Data/PCGExDataFilter.h"
+#include "Data/PCGExDataTag.h"
 #include "Paths/PCGExShiftPath.h"
 
 

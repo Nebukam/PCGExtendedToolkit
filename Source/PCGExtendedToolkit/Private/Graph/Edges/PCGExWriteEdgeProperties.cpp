@@ -5,6 +5,7 @@
 
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
 #define LOCTEXT_NAMESPACE "WriteEdgeProperties"
 #define PCGEX_NAMESPACE WriteEdgeProperties
@@ -27,6 +28,7 @@ bool UPCGExWriteEdgePropertiesSettings::IsPinUsedByNodeExecution(const UPCGPin* 
 }
 
 PCGEX_INITIALIZE_ELEMENT(WriteEdgeProperties)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(WriteEdgeProperties)
 
 bool FPCGExWriteEdgePropertiesElement::Boot(FPCGExContext* InContext) const
 {
@@ -55,9 +57,9 @@ bool FPCGExWriteEdgePropertiesElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExWriteEdgeProperties::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExWriteEdgeProperties::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				if (Settings->bWriteHeuristics) { NewBatch->SetWantsHeuristics(true); }
 			}))

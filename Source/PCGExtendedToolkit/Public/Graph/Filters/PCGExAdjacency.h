@@ -6,9 +6,12 @@
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
 #include "PCGExDetails.h"
+#include "PCGExMath.h"
 
 #include "PCGExAdjacency.generated.h"
 
+
+struct FPCGContext;
 
 namespace PCGExCluster
 {

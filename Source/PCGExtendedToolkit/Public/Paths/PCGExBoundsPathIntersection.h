@@ -47,6 +47,9 @@ struct FPCGExBoundsPathIntersectionContext final : FPCGExPathProcessorContext
 	friend class FPCGExBoundsPathIntersectionElement;
 
 	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
@@ -58,7 +61,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExPathIntersections
+namespace PCGExBoundsPathIntersection
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBoundsPathIntersectionContext, UPCGExBoundsPathIntersectionSettings>
 	{

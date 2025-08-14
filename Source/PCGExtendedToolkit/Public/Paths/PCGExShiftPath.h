@@ -109,6 +109,9 @@ struct FPCGExShiftPathContext final : FPCGExPathProcessorContext
 	FPCGExBlendingDetails BlendingSettings;
 	EPCGPointNativeProperties ShiftedProperties;
 	TArray<FPCGAttributeIdentifier> ShiftedAttributes;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExShiftPathElement final : public FPCGExPathProcessorElement

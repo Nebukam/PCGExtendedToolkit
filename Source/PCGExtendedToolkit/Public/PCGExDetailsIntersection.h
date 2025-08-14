@@ -31,7 +31,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUnionMetadataDetails
 
 	bool WriteAny() const { return bWriteIsUnion || bWriteUnionSize; }
 	bool SanityCheck(FPCGExContext* InContext) const;
-	
 };
 
 USTRUCT(BlueprintType)
@@ -77,7 +76,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 
 	bool WriteAny() const { return bSupportsEdges ? (PointUnionData.WriteAny() || EdgeUnionData.WriteAny()) : PointUnionData.WriteAny(); }
 	bool SanityCheck(FPCGExContext* InContext) const;
-	
 };
 
 USTRUCT(BlueprintType)
@@ -161,6 +159,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionDetails
 	FName FlagB;
 
 	void Init();
-	
+
 	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
 };

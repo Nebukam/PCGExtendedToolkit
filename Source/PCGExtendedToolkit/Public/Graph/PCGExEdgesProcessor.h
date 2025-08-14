@@ -11,6 +11,12 @@
 
 #include "PCGExEdgesProcessor.generated.h"
 
+#define PCGEX_ELEMENT_BATCH_EDGE_DECL virtual TSharedPtr<PCGExClusterMT::IBatch> CreateEdgeBatchInstance(const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges) const override;
+#define PCGEX_ELEMENT_BATCH_EDGE_IMPL(_CLASS) TSharedPtr<PCGExClusterMT::IBatch> FPCGEx##_CLASS##Context::CreateEdgeBatchInstance(const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges) const{ \
+return MakeShared<PCGExClusterMT::TBatch<PCGEx##_CLASS::FProcessor>>(const_cast<FPCGEx##_CLASS##Context*>(this), InVtx, InEdges); }
+#define PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(_CLASS) TSharedPtr<PCGExClusterMT::IBatch> FPCGEx##_CLASS##Context::CreateEdgeBatchInstance(const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges) const{ \
+return MakeShared<PCGEx##_CLASS::FBatch>(const_cast<FPCGEx##_CLASS##Context*>(this), InVtx, InEdges); }
+
 #define PCGEX_CLUSTER_BATCH_PROCESSING(_STATE) if (!Context->ProcessClusters(_STATE)) { return false; }
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
@@ -59,6 +65,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : FPCGExPointsProcesso
 	friend class UPCGExEdgesProcessorSettings;
 	friend class FPCGExEdgesProcessorElement;
 
+	using FBatchProcessingValidateEntries = std::function<bool(const TSharedPtr<PCGExData::FPointIOTaggedEntries>&)>;
+	using FBatchProcessingInitEdgeBatch = std::function<void(const TSharedPtr<PCGExClusterMT::IBatch>&)>;
+
 	virtual ~FPCGExEdgesProcessorContext() override;
 
 	bool bQuietMissingClusterPairElement = false;
@@ -85,14 +94,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : FPCGExPointsProcesso
 		OutProcessors.Reserve(GetClusterProcessorsNum());
 		for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches)
 		{
-			PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<PCGExClusterMT::TBatch<T>*>(Batch.Get());
-			OutProcessors.Append(TypedBatch->Processors);
+			const int32 NumProcessors = Batch->GetNumProcessors();
+			OutProcessors.Reserve(OutProcessors.Num() + NumProcessors);
+			for (int i = 0; i < NumProcessors; i++) { OutProcessors.Add(Batch->GetProcessor<T>(i)); }
 		}
 	}
 
 	void OutputBatches() const;
 
 protected:
+	virtual TSharedPtr<PCGExClusterMT::IBatch> CreateEdgeBatchInstance(const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges) const;
+
 	mutable FRWLock ClusterProcessingLock;
 	TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>> HeuristicsFactories;
 
@@ -118,70 +130,7 @@ protected:
 	int32 CurrentBatchIndex = -1;
 	TSharedPtr<PCGExClusterMT::IBatch> CurrentBatch;
 
-	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
-	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const bool bInlined = false)
-	{
-		ResumeExecution();
-
-		Batches.Empty();
-
-		bClusterBatchInlined = bInlined;
-		CurrentBatchIndex = -1;
-
-		bBatchProcessingEnabled = false;
-		bClusterWantsHeuristics = true;
-		bSkipClusterBatchCompletionStep = false;
-		bDoClusterBatchWritingStep = false;
-
-		Batches.Reserve(MainPoints->Pairs.Num());
-
-		EdgesDataFacades.Reserve(MainEdges->Pairs.Num());
-		for (const TSharedPtr<PCGExData::FPointIO>& EdgeIO : MainEdges->Pairs)
-		{
-			TSharedPtr<PCGExData::FFacade> EdgeFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
-			EdgesDataFacades.Add(EdgeFacade.ToSharedRef());
-		}
-
-		while (AdvancePointsIO(false))
-		{
-			if (!TaggedEdges)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some input points have no bound edges."));
-				continue;
-			}
-
-			if (!ValidateEntries(TaggedEdges)) { continue; }
-
-			PCGEX_MAKE_SHARED(NewBatch, T, this, CurrentIO.ToSharedRef(), TaggedEdges->Entries);
-			InitBatch(NewBatch);
-
-			if (NewBatch->bRequiresWriteStep) { bDoClusterBatchWritingStep = true; }
-			if (NewBatch->bSkipCompletion) { bSkipClusterBatchCompletionStep = true; }
-			if (NewBatch->RequiresGraphBuilder()) { NewBatch->GraphBuilderDetails = GraphBuilderDetails; }
-
-			if (NewBatch->WantsHeuristics())
-			{
-				bClusterWantsHeuristics = true;
-				if (!bHasValidHeuristics)
-				{
-					PCGE_LOG_C(Error, GraphAndLog, this, FTEXT("Missing Heuristics."));
-					return false;
-				}
-				NewBatch->HeuristicsFactories = &HeuristicsFactories;
-			}
-
-			NewBatch->EdgesDataFacades = &EdgesDataFacades;
-
-			Batches.Add(NewBatch);
-			if (!bClusterBatchInlined) { PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch, bScopedIndexLookupBuild); }
-		}
-
-		if (Batches.IsEmpty()) { return false; }
-
-		bBatchProcessingEnabled = true;
-		if (!bClusterBatchInlined) { SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing); }
-		return true;
-	}
+	bool StartProcessingClusters(FBatchProcessingValidateEntries&& ValidateEntries, FBatchProcessingInitEdgeBatch&& InitBatch, const bool bInlined = false);
 
 	virtual void ClusterProcessing_InitialProcessingDone();
 	virtual void ClusterProcessing_WorkComplete();
@@ -191,6 +140,9 @@ protected:
 	void AdvanceBatch(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync);
 
 	int32 CurrentEdgesIndex = -1;
+
+	virtual TSharedPtr<PCGExPointsMT::IBatch> CreateEdgeBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const
+	PCGEX_NOT_IMPLEMENTED_RET(CreatePointBatchInstance, nullptr);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElement

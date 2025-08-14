@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExEdgeRefineOperation.h"
+#include "PCGExMath.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "PCGExEdgeRefineRemoveOverlap.generated.h"

@@ -56,6 +56,9 @@ struct FPCGExCherryPickPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExCherryPickPointsElement;
 	TArray<TObjectPtr<const UPCGExPickerFactoryData>> PickerFactories;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExCherryPickPointsElement final : public FPCGExPointsProcessorElement

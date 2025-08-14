@@ -3,8 +3,8 @@
 
 #include "Paths/PCGExSplitPath.h"
 
-#include "Data/PCGExPointFilter.h"
-
+#include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSplitPathElement"
 #define PCGEX_NAMESPACE SplitPath
@@ -20,6 +20,7 @@ void UPCGExSplitPathSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(SplitPath)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SplitPath)
 
 bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 {
@@ -43,7 +44,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -54,7 +55,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

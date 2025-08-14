@@ -4,7 +4,6 @@
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 
-#include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 

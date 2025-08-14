@@ -94,6 +94,9 @@ struct FPCGExPickClosestClustersContext final : FPCGExEdgesProcessorContext
 	TSharedPtr<PCGExData::FDataForwardHandler> TargetForwardHandler;
 
 	virtual void ClusterProcessing_InitialProcessingDone() override;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExPickClosestClustersElement final : public FPCGExEdgesProcessorElement

@@ -12,6 +12,7 @@ PCGExData::EIOInit UPCGExEdgeOrderSettings::GetMainOutputInitMode() const { retu
 PCGExData::EIOInit UPCGExEdgeOrderSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(EdgeOrder)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(EdgeOrder)
 
 bool FPCGExEdgeOrderElement::Boot(FPCGExContext* InContext) const
 {
@@ -31,9 +32,9 @@ bool FPCGExEdgeOrderElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExEdgeOrder::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExEdgeOrder::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 			}))
 		{

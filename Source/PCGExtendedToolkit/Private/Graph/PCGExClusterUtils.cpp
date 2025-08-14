@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExClusterUtils.h"
 
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 

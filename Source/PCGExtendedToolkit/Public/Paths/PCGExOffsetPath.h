@@ -143,6 +143,9 @@ public:
 struct FPCGExOffsetPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExOffsetPathElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExOffsetPathElement final : public FPCGExPathProcessorElement

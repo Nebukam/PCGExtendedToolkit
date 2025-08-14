@@ -75,6 +75,9 @@ private:
 struct FPCGExBoundsToPointsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBoundsToPointsElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBoundsToPointsElement final : public FPCGExPointsProcessorElement

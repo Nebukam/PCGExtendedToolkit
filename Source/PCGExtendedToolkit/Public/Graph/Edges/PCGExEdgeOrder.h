@@ -41,6 +41,9 @@ private:
 struct FPCGExEdgeOrderContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExEdgeOrderElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExEdgeOrderElement final : public FPCGExEdgesProcessorElement

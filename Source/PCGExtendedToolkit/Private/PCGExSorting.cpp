@@ -5,6 +5,9 @@
 
 #include "PCGExCompare.h"
 #include "PCGExGlobalSettings.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExModularSortPoints"

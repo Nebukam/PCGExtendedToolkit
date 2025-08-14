@@ -101,6 +101,9 @@ struct FPCGExCreateSplineContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExCreateSplineElement;
 	FPCGExTangentsDetails Tangents;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExCreateSplineElement final : public FPCGExPathProcessorElement
@@ -176,6 +179,6 @@ namespace PCGExCreateSpline
 			InContext->AddNotifyActor(TargetActor);
 		}
 
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& PointsProcessor) override;
+		virtual bool PrepareSingle(const TSharedRef<PCGExPointsMT::IProcessor>& InProcessor) override;
 	};
 }

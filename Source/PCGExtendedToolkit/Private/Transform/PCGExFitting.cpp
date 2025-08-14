@@ -6,6 +6,7 @@
 #include "Data/PCGExData.h"
 #include "PCGExDataMath.h"
 #include "PCGExRandom.h"
+#include "Data/PCGExPointIO.h"
 
 void FPCGExScaleToFitDetails::Process(const PCGExData::FConstPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const
 {

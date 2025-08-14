@@ -5,10 +5,16 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExData.h"
 #include "PCGExFactoryProvider.h"
 
 #include "PCGExPointFilter.generated.h"
+
+namespace PCGExData
+{
+	class FPointIO;
+	struct FProxyPoint;
+	class FPointIOCollection;
+}
 
 namespace PCGExGraph
 {

@@ -3,6 +3,11 @@
 
 #include "Topology/PCGExTopology.h"
 
+#include "PCGExContext.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointElements.h"
+#include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeoPrimtives.h"
 #include "Graph/PCGExCluster.h"
 #include "Paths/PCGExPaths.h"
@@ -40,9 +45,9 @@ void FPCGExCellSeedMutationDetails::ApplyToPoint(const PCGExTopology::FCell* InC
 		OutSeedPoint.SetBoundsMax(InCell->Data.Bounds.Max - Offset);
 	}
 
-	SetPointProperty(OutSeedPoint, InCell->Data.Area, AreaTo);
-	SetPointProperty(OutSeedPoint, InCell->Data.Perimeter, PerimeterTo);
-	SetPointProperty(OutSeedPoint, InCell->Data.Compactness, CompactnessTo);
+	PCGExTopology::SetPointProperty(OutSeedPoint, InCell->Data.Area, AreaTo);
+	PCGExTopology::SetPointProperty(OutSeedPoint, InCell->Data.Perimeter, PerimeterTo);
+	PCGExTopology::SetPointProperty(OutSeedPoint, InCell->Data.Compactness, CompactnessTo);
 }
 
 void FPCGExTopologyDetails::PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDynamicMesh) const
@@ -53,6 +58,40 @@ void FPCGExTopologyDetails::PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDy
 
 namespace PCGExTopology
 {
+	void SetPointProperty(PCGExData::FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty)
+	{
+		if (InProperty == EPCGExPointPropertyOutput::Density)
+		{
+			TPCGValueRange<float> Density = InPoint.Data->GetDensityValueRange(false);
+			Density[InPoint.Index] = InValue;
+		}
+		else if (InProperty == EPCGExPointPropertyOutput::Steepness)
+		{
+			TPCGValueRange<float> Steepness = InPoint.Data->GetSteepnessValueRange(false);
+			Steepness[InPoint.Index] = InValue;
+		}
+		else if (InProperty == EPCGExPointPropertyOutput::ColorR)
+		{
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
+			Color[InPoint.Index].Component(0) = InValue;
+		}
+		else if (InProperty == EPCGExPointPropertyOutput::ColorG)
+		{
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
+			Color[InPoint.Index].Component(1) = InValue;
+		}
+		else if (InProperty == EPCGExPointPropertyOutput::ColorB)
+		{
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
+			Color[InPoint.Index].Component(2) = InValue;
+		}
+		else if (InProperty == EPCGExPointPropertyOutput::ColorA)
+		{
+			TPCGValueRange<FVector4> Color = InPoint.Data->GetColorValueRange(false);
+			Color[InPoint.Index].Component(3) = InValue;
+		}
+	}
+
 	bool IsAnyPointInPolygon(const TArray<FVector2D>& Points, const FGeometryScriptSimplePolygon& Polygon)
 	{
 		if (Points.IsEmpty()) { return false; }

@@ -4,6 +4,7 @@
 
 #include "Misc/Filters/PCGExFilterGroupFactoryProvider.h"
 
+#include "PCGExHelpers.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExFilterGroup.h"
 

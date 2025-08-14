@@ -95,6 +95,9 @@ struct FPCGExBuildDelaunayGraph2DContext final : FPCGExPointsProcessorContext
 	friend class FPCGExBuildDelaunayGraph2DElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> MainSites;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBuildDelaunayGraph2DElement final : public FPCGExPointsProcessorElement
@@ -106,7 +109,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExBuildDelaunay2D
+namespace PCGExBuildDelaunayGraph2D
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBuildDelaunayGraph2DContext, UPCGExBuildDelaunayGraph2DSettings>
 	{

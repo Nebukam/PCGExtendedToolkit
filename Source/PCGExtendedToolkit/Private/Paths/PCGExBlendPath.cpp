@@ -24,6 +24,7 @@ TArray<FPCGPinProperties> UPCGExBlendPathSettings::InputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(BlendPath)
 
 bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
 {
@@ -53,13 +54,13 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 		// TODO : Skip completion
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBlendPath::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				PCGEX_SKIP_INVALID_PATH_ENTRY
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBlendPath::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

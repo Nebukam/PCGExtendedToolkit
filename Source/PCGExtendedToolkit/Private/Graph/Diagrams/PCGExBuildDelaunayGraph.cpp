@@ -4,6 +4,7 @@
 #include "Graph/Diagrams/PCGExBuildDelaunayGraph.h"
 
 
+#include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"
@@ -22,6 +23,7 @@ TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties(
 }
 
 PCGEX_INITIALIZE_ELEMENT(BuildDelaunayGraph)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(BuildDelaunayGraph)
 
 bool FPCGExBuildDelaunayGraphElement::Boot(FPCGExContext* InContext) const
 {
@@ -52,7 +54,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildDelaunay::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 4)
@@ -62,7 +64,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBuildDelaunay::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
@@ -84,11 +86,11 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-namespace PCGExBuildDelaunay
+namespace PCGExBuildDelaunayGraph
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunay::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunayGraph::Process);
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 

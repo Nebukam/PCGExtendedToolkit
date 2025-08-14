@@ -161,6 +161,8 @@ struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 	FPCGExTangentsDetails Tangents;
 
 protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
+
 	virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override;
 };
 

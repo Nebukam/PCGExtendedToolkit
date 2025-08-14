@@ -4,6 +4,9 @@
 #include "Paths/PCGExSplineToPath.h"
 
 #include "PCGExRandom.h"
+#include "Data/PCGExDataHelpers.h"
+#include "Data/PCGExDataTag.h"
+#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 #include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampleNearestSpline.h"

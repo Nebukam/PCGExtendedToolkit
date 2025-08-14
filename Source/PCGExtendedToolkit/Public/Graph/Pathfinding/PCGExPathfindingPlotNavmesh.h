@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathfinding.h"
 #include "PCGExPathfindingNavmesh.h"
 #include "PCGExPointsProcessor.h"
 #include "AI/Navigation/NavigationTypes.h"

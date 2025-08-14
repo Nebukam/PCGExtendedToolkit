@@ -216,7 +216,7 @@ UPCGExPackActorDataSettings::UPCGExPackActorDataSettings(
 TArray<FPCGPinProperties> UPCGExPackActorDataSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPackActorDatas::SourceOverridesPacker)
+	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPackActorData::SourceOverridesPacker)
 	return PinProperties;
 }
 
@@ -228,6 +228,7 @@ TArray<FPCGPinProperties> UPCGExPackActorDataSettings::OutputPinProperties() con
 }
 
 PCGEX_INITIALIZE_ELEMENT(PackActorData)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(PackActorData)
 
 FName UPCGExPackActorDataSettings::GetMainInputPin() const
 {
@@ -248,7 +249,7 @@ bool FPCGExPackActorDataElement::Boot(FPCGExContext* InContext) const
 
 	InContext->EDITOR_TrackClass(Settings->Packer->GetClass());
 
-	PCGEX_OPERATION_BIND(Packer, UPCGExCustomActorDataPacker, PCGExPackActorDatas::SourceOverridesPacker)
+	PCGEX_OPERATION_BIND(Packer, UPCGExCustomActorDataPacker, PCGExPackActorData::SourceOverridesPacker)
 	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->ActorReferenceAttribute)
 
 	//Context->OutputParams.Init(nullptr, Context->MainPoints->Num());
@@ -264,9 +265,9 @@ bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPackActorDatas::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPackActorDatas::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->PrimaryInstancedFactory = Context->Packer;
 				NewBatch->bRequiresWriteStep = true;
@@ -293,7 +294,7 @@ bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
-namespace PCGExPackActorDatas
+namespace PCGExPackActorData
 {
 	FProcessor::~FProcessor()
 	{
@@ -301,7 +302,7 @@ namespace PCGExPackActorDatas
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPackActorDatas::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPackActorData::Process);
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 

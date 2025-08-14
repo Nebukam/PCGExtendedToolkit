@@ -26,7 +26,7 @@ void FPCGExMergeVerticesContext::ClusterProcessing_InitialProcessingDone()
 		PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>* Batch = static_cast<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>*>(Batches[i].Get());
 		Merger->Append(Batch->VtxDataFacade->Source);
 
-		for (const TSharedRef<PCGExMergeVertices::FProcessor>& Processor : Batch->Processors) { Processor->StartIndexOffset = StartOffset; }
+		for (int Pi = 0; Pi < Batch->GetNumProcessors(); Pi++) { Batch->GetProcessor<PCGExMergeVertices::FProcessor>(Pi)->StartIndexOffset = StartOffset; }
 		StartOffset += Batch->VtxDataFacade->GetNum();
 	}
 
@@ -40,6 +40,7 @@ void FPCGExMergeVerticesContext::ClusterProcessing_WorkComplete()
 }
 
 PCGEX_INITIALIZE_ELEMENT(MergeVertices)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL(MergeVertices)
 
 bool FPCGExMergeVerticesElement::Boot(FPCGExContext* InContext) const
 {
@@ -65,9 +66,9 @@ bool FPCGExMergeVerticesElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))

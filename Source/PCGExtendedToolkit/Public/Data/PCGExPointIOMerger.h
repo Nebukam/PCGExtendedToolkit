@@ -7,7 +7,10 @@
 #include "PCGExAttributeHelpers.h"
 #include "PCGExData.h"
 #include "PCGExDataFilter.h"
+#include "PCGExDataHelpers.h"
 #include "PCGExMT.h"
+#include "PCGExPointIO.h"
+#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 #include "UObject/Object.h"
 

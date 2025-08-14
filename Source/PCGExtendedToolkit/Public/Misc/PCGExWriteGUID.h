@@ -146,6 +146,9 @@ public:
 struct FPCGExWriteGUIDContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteGUIDElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExWriteGUIDElement final : public FPCGExPointsProcessorElement

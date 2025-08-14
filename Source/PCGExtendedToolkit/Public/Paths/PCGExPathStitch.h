@@ -113,6 +113,9 @@ struct FPCGExPathStitchContext final : FPCGExPathProcessorContext
 	FPCGExStaticDotComparisonDetails DotComparisonDetails;
 
 	FPCGExCarryOverDetails CarryOverDetails;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExPathStitchElement final : public FPCGExPathProcessorElement

@@ -52,6 +52,9 @@ struct FPCGExSampleNeighborsContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExSampleNeighborsElement;
 	TArray<TObjectPtr<const UPCGExNeighborSamplerFactoryData>> SamplerFactories;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExSampleNeighborsElement final : public FPCGExEdgesProcessorElement

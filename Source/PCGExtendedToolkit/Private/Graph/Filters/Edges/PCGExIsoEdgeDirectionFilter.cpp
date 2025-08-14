@@ -5,6 +5,8 @@
 
 #include "PCGExSorting.h"
 #include "PCGPin.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExIsoEdgeDirectionFilter"
 #define PCGEX_NAMESPACE IsoEdgeDirectionFilter

@@ -18,6 +18,7 @@ void FPCGExFindPointOnBoundsClustersContext::ClusterProcessing_InitialProcessing
 }
 
 PCGEX_INITIALIZE_ELEMENT(FindPointOnBoundsClusters)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL(FindPointOnBoundsClusters)
 
 TArray<FPCGPinProperties> UPCGExFindPointOnBoundsClustersSettings::OutputPinProperties() const
 {
@@ -71,9 +72,9 @@ bool FPCGExFindPointOnBoundsClustersElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExFindPointOnBoundsClusters::FProcessor>>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExFindPointOnBoundsClusters::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 			}))
 		{

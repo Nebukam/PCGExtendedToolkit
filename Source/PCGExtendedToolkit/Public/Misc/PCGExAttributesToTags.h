@@ -97,6 +97,9 @@ struct FPCGExAttributesToTagsContext final : FPCGExPointsProcessorContext
 	TArray<FPCGAttributePropertyInputSelector> Attributes;
 	TArray<TSharedPtr<PCGExData::FFacade>> SourceDataFacades;
 	TArray<FPCGExAttributeToTagDetails> Details;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExAttributesToTagsElement final : public FPCGExPointsProcessorElement

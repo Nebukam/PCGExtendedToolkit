@@ -3,6 +3,7 @@
 
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 #include "PCGPin.h"
+#include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
 
 

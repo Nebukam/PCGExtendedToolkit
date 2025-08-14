@@ -88,6 +88,9 @@ struct FPCGExSubdivideContext final : FPCGExPathProcessorContext
 	friend class FPCGExSubdivideElement;
 
 	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSubdivideElement final : public FPCGExPathProcessorElement

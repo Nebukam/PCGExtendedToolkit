@@ -6,9 +6,13 @@
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
 
+#include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
+#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/PCGExDataFilter.h"
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
 
 #include "PCGExAttributeStats.generated.h"
@@ -234,6 +238,9 @@ struct FPCGExAttributeStatsContext final : FPCGExPointsProcessorContext
 	TArray<UPCGParamData*> OutputParams;
 	TMap<FName, UPCGParamData*> OutputParamsMap;
 	TArray<int64> Rows;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExAttributeStatsElement final : public FPCGExPointsProcessorElement
@@ -316,6 +323,7 @@ namespace PCGExAttributeStats
 		FPCGAttributeIdentifier PrintName(Settings->OutputToPoints == EPCGExStatsOutputToPoints::Prefix ? FName(Settings->_NAME##AttributeName.ToString() + StrName) : FName(StrName + Settings->_NAME##AttributeName.ToString()), PCGMetadataDomainID::Data);\
 		if (PointsMetadata->GetConstTypedAttribute<_TYPE>(PrintName)) { PointsMetadata->DeleteAttribute(PrintName); }\
 		PointsMetadata->FindOrCreateAttribute<_TYPE>(PrintName, _VALUE);} }
+
 			TSharedPtr<PCGExData::TBuffer<T>> Buffer = InDataFacade->GetReadable<T>(Identity.Identifier);
 			PCGExMath::TypeMinMax(MinValue, MaxValue);
 			PCGExMath::TypeMinMax(SetMinValue, SetMaxValue);

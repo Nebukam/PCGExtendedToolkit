@@ -53,6 +53,9 @@ struct FPCGExMergeVerticesContext final : FPCGExEdgesProcessorContext
 
 	virtual void ClusterProcessing_InitialProcessingDone() override;
 	virtual void ClusterProcessing_WorkComplete() override;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExMergeVerticesElement final : public FPCGExEdgesProcessorElement

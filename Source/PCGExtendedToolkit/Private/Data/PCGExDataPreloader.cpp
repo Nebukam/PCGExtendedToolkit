@@ -3,6 +3,7 @@
 
 #include "Data/PCGExDataPreloader.h"
 
+#include "PCGExContext.h"
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExData.h"
 

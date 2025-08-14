@@ -13,6 +13,7 @@
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Transform/PCGExTransform.h"
+#include "Data/PCGExDataTag.h"
 
 #include "PCGExTopologyEdgesProcessor.generated.h"
 
@@ -94,6 +95,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorContext : FPCGExEdgesP
 
 	TSharedPtr<PCGExTopology::FHoles> Holes;
 	TSharedPtr<PCGExData::FFacade> HolesFacade;
+	TArray<TSharedPtr<TMap<uint32, int32>>> HashMaps;
 
 	TArray<FString> ComponentTags;
 
@@ -175,6 +177,8 @@ namespace PCGExTopologyEdges
 		{
 			EdgeDataFacade->bSupportsScopedGet = true;
 			EdgeFilterFactories = &Context->EdgeConstraintsFilterFactories;
+
+			ProjectedHashMap = Context->HashMaps[VtxDataFacade->Source->IOIndex];
 
 			if (!PCGExClusterMT::TProcessor<TContext, TSettings>::Process(InAsyncManager)) { return false; }
 
@@ -352,6 +356,7 @@ namespace PCGExTopologyEdges
 		{
 			ProjectedHashMap = MakeShared<TMap<uint32, int32>>();
 			ProjectedHashMap->Reserve(InVtx->GetNum());
+			static_cast<FPCGExTopologyEdgesProcessorContext*>(InContext)->HashMaps[InVtx->IOIndex] = ProjectedHashMap;
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override
@@ -366,13 +371,6 @@ namespace PCGExTopologyEdges
 			{
 				PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->EdgeConstraintsFilterFactories, FacadePreloader);
 			}
-		}
-
-		virtual bool PrepareSingle(const TSharedPtr<T>& ClusterProcessor) override
-		{
-			ClusterProcessor->ProjectedHashMap = ProjectedHashMap;
-			PCGExClusterMT::TBatch<T>::PrepareSingle(ClusterProcessor);
-			return true;
 		}
 
 		virtual void Output() override

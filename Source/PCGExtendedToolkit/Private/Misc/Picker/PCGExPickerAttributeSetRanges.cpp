@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/Pickers/PCGExPickerAttributeSetRanges.h"
+#include "Data/PCGExAttributeHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreatePickerConstantSet"
 #define PCGEX_NAMESPACE CreatePickerConstantSet
@@ -50,7 +51,7 @@ bool UPCGExPickerAttributeSetRangesFactory::GetUniqueRanges(
 				continue;
 			}
 
-			const TSharedPtr<PCGEx::TAttributeBroadcaster<FVector2D>> Values = PCGEx::TAttributeBroadcaster<FVector2D>::Make(Infos->Attributes[0]->Name, Facade->Source);
+			const TSharedPtr<PCGEx::TAttributeBroadcaster<FVector2D>> Values = PCGEx::MakeBroadcaster<FVector2D>(Infos->Attributes[0]->Name, Facade->Source);
 			if (!Values) { continue; }
 			Values->GrabUniqueValues(UniqueRanges);
 		}
@@ -58,7 +59,7 @@ bool UPCGExPickerAttributeSetRangesFactory::GetUniqueRanges(
 		{
 			for (const FPCGAttributePropertyInputSelector& Selector : InConfig.Attributes)
 			{
-				const TSharedPtr<PCGEx::TAttributeBroadcaster<FVector2D>> Values = PCGEx::TAttributeBroadcaster<FVector2D>::Make(Selector, Facade->Source);
+				const TSharedPtr<PCGEx::TAttributeBroadcaster<FVector2D>> Values = PCGEx::MakeBroadcaster<FVector2D>(Selector, Facade->Source);
 				if (!Values) { continue; }
 				Values->GrabUniqueValues(UniqueRanges);
 			}

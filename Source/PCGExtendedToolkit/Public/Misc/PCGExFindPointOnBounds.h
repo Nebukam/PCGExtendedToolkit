@@ -73,6 +73,9 @@ struct FPCGExFindPointOnBoundsContext final : FPCGExPointsProcessorContext
 	TArray<int32> BestIndices;
 	TSharedPtr<PCGExData::FPointIO> MergedOut;
 	TSharedPtr<PCGEx::FAttributesInfos> MergedAttributesInfos;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExFindPointOnBoundsElement final : public FPCGExPointsProcessorElement

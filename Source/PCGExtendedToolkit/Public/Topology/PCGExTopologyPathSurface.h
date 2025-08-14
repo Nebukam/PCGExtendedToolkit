@@ -47,17 +47,22 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyPathSurfaceContext : FPCGExPathProce
 {
 	friend class FPCGExTopologyPathSurfaceElement;
 	virtual void RegisterAssetDependencies() override;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExTopologyPathSurfaceElement : public FPCGExPathProcessorElement
 {
 protected:
+	PCGEX_ELEMENT_CREATE_CONTEXT(TopologyPathSurface)
+
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExTopologyPath
+namespace PCGExTopologyPathSurface
 {
 	class PCGEXTENDEDTOOLKIT_API FProcessor : public PCGExPointsMT::TProcessor<FPCGExTopologyPathSurfaceContext, UPCGExTopologyPathSurfaceSettings>
 	{

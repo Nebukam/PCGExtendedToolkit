@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExModuloCompareFilter.h"
 
+#include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
 
 

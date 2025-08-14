@@ -149,26 +149,4 @@ namespace PCGExData
 		// NAME:VALUE
 		static bool GetTagFromString(const FString& Input, FString& OutKey, FString& OutValue);
 	};
-
-	struct FTaggedData
-	{
-		const UPCGData* Data = nullptr;
-		TWeakPtr<FTags> Tags;
-		TSharedPtr<IPCGAttributeAccessorKeys> Keys = nullptr;
-
-		FTaggedData() = default;
-
-		FTaggedData(const UPCGData* InData, const TSharedPtr<FTags>& InTags, const TSharedPtr<IPCGAttributeAccessorKeys>& InKeys)
-			: Data(InData), Tags(InTags), Keys(InKeys)
-		{
-		}
-
-		FORCEINLINE TSharedPtr<FTags> GetTags() const { return Tags.Pin(); }
-
-		void Dump(FPCGTaggedData& InOut) const
-		{
-			InOut.Data = Data;
-			if (const TSharedPtr<FTags> PinnedTags = Tags.Pin(); PinnedTags.IsValid()) { PinnedTags->DumpTo(InOut.Tags); }
-		}
-	};
 }

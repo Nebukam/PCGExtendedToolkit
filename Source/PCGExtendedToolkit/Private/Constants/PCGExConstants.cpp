@@ -6,6 +6,7 @@
 #include "PCGContext.h"
 #include "PCGExContext.h"
 #include "PCGPin.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #if WITH_EDITOR

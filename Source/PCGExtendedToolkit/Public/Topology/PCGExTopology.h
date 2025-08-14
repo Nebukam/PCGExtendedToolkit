@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "GeomTools.h"
+#include "Collections/PCGExComponentDescriptors.h"
 #include "Data/PCGExDataFilter.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
@@ -12,6 +13,11 @@
 #include "Paths/PCGExPaths.h"
 
 #include "PCGExTopology.generated.h"
+
+namespace PCGExData
+{
+	struct FMutablePoint;
+}
 
 struct FPCGExNodeSelectionDetails;
 
@@ -294,7 +300,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Geometry Script", meta = (PCG_Overridable, EditCondition="bWeldEdges"))
 	FGeometryScriptWeldEdgesOptions WeldEdgesOptions;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Geometry Script", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bComputeNormals = true;
 
@@ -324,6 +330,8 @@ namespace PCGExTopology
 	const FName SourceMeshLabel = FName("Mesh");
 	const FName OutputMeshLabel = FName("Mesh");
 
+	PCGEXTENDEDTOOLKIT_API
+	void SetPointProperty(PCGExData::FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
 
 	template <typename T>
 	static bool IsPointInPolygon(const T& Point, const FGeometryScriptSimplePolygon& Polygon)

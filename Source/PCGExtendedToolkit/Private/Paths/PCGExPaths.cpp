@@ -3,10 +3,11 @@
 
 #include "Paths/PCGExPaths.h"
 
+#include "Data/PCGSplineData.h"
 #include "GeomTools.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Curve/CurveUtil.h"
-#include "Data/PCGSplineData.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Data/PCGSplineStruct.h"
 #include "Graph/Probes/PCGExProbeDirection.h"
 
@@ -92,12 +93,22 @@ namespace PCGExPaths
 		PCGExDataHelpers::SetDataValue(Attr, bIsClosedLoop);
 	}
 
+	void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop)
+	{
+		SetClosedLoop(InData->GetOut(), bIsClosedLoop);
+	}
+
 	bool GetClosedLoop(const UPCGData* InData)
 	{
 		if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(InData)) { return SplineData->IsClosed(); }
-		
+
 		const FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetConstAttribute<bool>(InData, ClosedLoopIdentifier);
 		return Attr ? PCGExDataHelpers::ReadDataValue(Attr) : false;
+	}
+
+	bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData)
+	{
+		return GetClosedLoop(InData->GetIn());
 	}
 
 	void FetchPrevNext(const TSharedPtr<PCGExData::FFacade>& InFacade, const TArray<PCGExMT::FScope>& Loops)
@@ -274,13 +285,13 @@ namespace PCGExPaths
 	int32 FPath::SafePointIndex(const int32 Index) const
 	{
 		if (bClosedLoop) { return PCGExMath::Tile(Index, 0, LastIndex); }
-		else { return Index < 0 ? 0 : Index > LastIndex ? LastIndex : Index; }
+		return Index < 0 ? 0 : Index > LastIndex ? LastIndex : Index;
 	}
 
 	FVector FPath::DirToNextPoint(const int32 Index) const
 	{
 		if (bClosedLoop) { return Edges[Index].Dir; }
-		else { return Index == LastIndex ? Edges[Index - 1].Dir : Edges[Index].Dir; }
+		return Index == LastIndex ? Edges[Index - 1].Dir : Edges[Index].Dir;
 	}
 
 	PCGExMath::FClosestPosition FPath::FindClosestIntersection(

@@ -10,6 +10,7 @@
 #include "PCGExDetailsData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExUnionData.h"
 
 namespace PCGExDataBlending

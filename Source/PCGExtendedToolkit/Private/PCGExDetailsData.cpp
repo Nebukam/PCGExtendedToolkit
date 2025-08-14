@@ -3,8 +3,103 @@
 
 #include "PCGExDetailsData.h"
 
+#include "Data/PCGExDataHelpers.h"
+#include "Data/PCGExPointIO.h"
+#include "PCGExDataMath.h"
+#include "Data/PCGExData.h"
+
 namespace PCGExDetails
 {
+	template <typename T>
+	bool TSettingValueBuffer<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax)
+	{
+		FPCGExContext* Context = InDataFacade->GetContext();
+		if (!Context) { return false; }
+
+		PCGEX_VALIDATE_NAME_C(Context, Name)
+
+		Buffer = InDataFacade->GetReadable<T>(Name, PCGExData::EIOSide::In, bSupportScoped);
+
+		if (!Buffer)
+		{
+			if (!this->bQuietErrors) { PCGEX_LOG_INVALID_ATTR_C(Context, Attribute, Name) }
+			return false;
+		}
+
+		return true;
+	}
+
+	template <typename T>
+	T TSettingValueBuffer<T>::Read(const int32 Index) { return Buffer->Read(Index); }
+
+	template <typename T>
+	T TSettingValueBuffer<T>::Min() { return Buffer->Min; }
+
+	template <typename T>
+	T TSettingValueBuffer<T>::Max() { return Buffer->Max; }
+
+	template <typename T>
+	bool TSettingValueSelector<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax)
+	{
+		FPCGExContext* Context = InDataFacade->GetContext();
+		if (!Context) { return false; }
+
+		Buffer = InDataFacade->GetBroadcaster<T>(Selector, bSupportScoped && !bCaptureMinMax, bCaptureMinMax);
+
+		if (!Buffer)
+		{
+			if (!this->bQuietErrors) { PCGEX_LOG_INVALID_SELECTOR_C(Context, Selector, Selector) }
+			return false;
+		}
+
+
+		return true;
+	}
+
+	template <typename T>
+	T TSettingValueSelector<T>::Read(const int32 Index) { return Buffer->Read(Index); }
+
+	template <typename T>
+	T TSettingValueSelector<T>::Min() { return Buffer->Min; }
+
+	template <typename T>
+	T TSettingValueSelector<T>::Max() { return Buffer->Max; }
+
+	template <typename T>
+	bool TSettingValueConstant<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax) { return true; }
+
+	template <typename T>
+	bool TSettingValueSelectorConstant<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax)
+	{
+		FPCGExContext* Context = InDataFacade->GetContext();
+		if (!Context) { return false; }
+
+		if (!PCGExDataHelpers::TryReadDataValue(Context, InDataFacade->GetIn(), Selector, this->Constant))
+		{
+			if (!this->bQuietErrors) { PCGEX_LOG_INVALID_SELECTOR_C(Context, Selector, Selector) }
+			return false;
+		}
+
+		return true;
+	}
+
+	template <typename T>
+	bool TSettingValueBufferConstant<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax)
+	{
+		FPCGExContext* Context = InDataFacade->GetContext();
+		if (!Context) { return false; }
+
+		PCGEX_VALIDATE_NAME_C(Context, Name)
+
+		if (!PCGExDataHelpers::TryReadDataValue(Context, InDataFacade->GetIn(), Name, this->Constant))
+		{
+			if (!this->bQuietErrors) { PCGEX_LOG_INVALID_ATTR_C(Context, Attribute, Name) }
+			return false;
+		}
+
+		return true;
+	}
+
 	template <typename T>
 	TSharedPtr<TSettingValue<T>> MakeSettingValue(const T InConstant)
 	{
@@ -54,24 +149,145 @@ namespace PCGExDetails
 		return MakeSettingValue<T>(Constant);
 	}
 
+	template <typename T>
+	TSharedPtr<TSettingValue<T>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const T InConstant)
+	{
+		T Constant = InConstant;
+		PCGExDataHelpers::TryGetSettingDataValue(InContext, InData, InInput, InSelector, InConstant, Constant);
+		return MakeSettingValue<T>(Constant);
+	}
+
+	template <typename T>
+	TSharedPtr<TSettingValue<T>> MakeSettingValue(const TSharedPtr<PCGExData::FPointIO> InData, const EPCGExInputValueType InInput, const FName InName, const T InConstant)
+	{
+		return MakeSettingValue<T>(InData->GetContext(), InData->GetIn(), InInput, InName, InConstant);
+	}
+
+	template <typename T>
+	TSharedPtr<TSettingValue<T>> MakeSettingValue(const TSharedPtr<PCGExData::FPointIO> InData, const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const T InConstant)
+	{
+		return MakeSettingValue<T>(InData->GetContext(), InData->GetIn(), InInput, InSelector, InConstant);
+	}
+
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
-	template class PCGEXTENDEDTOOLKIT_API TSettingValueBuffer<_TYPE>;\
-	template class PCGEXTENDEDTOOLKIT_API TSettingValueSelector<_TYPE>;\
-	template class PCGEXTENDEDTOOLKIT_API TSettingValueConstant<_TYPE>;\
-	template class PCGEXTENDEDTOOLKIT_API TSettingValueSelectorConstant<_TYPE>;\
-	template class PCGEXTENDEDTOOLKIT_API TSettingValueBufferConstant<_TYPE>;\
-	template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const _TYPE InConstant); \
-	template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const _TYPE InConstant); \
-	template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const EPCGExInputValueType InInput, const FName InName, const _TYPE InConstant); \
-	template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FName InName, const _TYPE InConstant);
+template class PCGEXTENDEDTOOLKIT_API TSettingValueBuffer<_TYPE>;\
+template class PCGEXTENDEDTOOLKIT_API TSettingValueSelector<_TYPE>;\
+template class PCGEXTENDEDTOOLKIT_API TSettingValueConstant<_TYPE>;\
+template class PCGEXTENDEDTOOLKIT_API TSettingValueSelectorConstant<_TYPE>;\
+template class PCGEXTENDEDTOOLKIT_API TSettingValueBufferConstant<_TYPE>;\
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const _TYPE InConstant); \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const _TYPE InConstant); \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const EPCGExInputValueType InInput, const FName InName, const _TYPE InConstant); \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FName InName, const _TYPE InConstant); \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const _TYPE InConstant); \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const TSharedPtr<PCGExData::FPointIO> InData, const EPCGExInputValueType InInput, const FName InName, const _TYPE InConstant); \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TSettingValue<_TYPE>> MakeSettingValue(const TSharedPtr<PCGExData::FPointIO> InData, const EPCGExInputValueType InInput, const FPCGAttributePropertyInputSelector& InSelector, const _TYPE InConstant);
 
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL
 
 #pragma endregion
+
+	template <EPCGExDistance Source, EPCGExDistance Target>
+	FVector TDistances<Source, Target>::GetSourceCenter(const PCGExData::FConstPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
+	{
+		return PCGExMath::GetSpatializedCenter<Source>(FromPoint, FromCenter, ToCenter);
+	}
+
+	template <EPCGExDistance Source, EPCGExDistance Target>
+	FVector TDistances<Source, Target>::GetTargetCenter(const PCGExData::FConstPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
+	{
+		return PCGExMath::GetSpatializedCenter<Target>(FromPoint, FromCenter, ToCenter);
+	}
+
+	template <EPCGExDistance Source, EPCGExDistance Target>
+	void TDistances<Source, Target>::GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
+	{
+		const FVector TargetOrigin = TargetPoint.GetLocation();
+		OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
+		OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
+	}
+
+	template <EPCGExDistance Source, EPCGExDistance Target>
+	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
+	{
+		const FVector TargetOrigin = TargetPoint.GetLocation();
+		const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
+		return FVector::DistSquared(OutSource, PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource));
+	}
+
+	template <EPCGExDistance Source, EPCGExDistance Target>
+	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FProxyPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
+	{
+		const FVector TargetOrigin = TargetPoint.GetLocation();
+		const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
+		return FVector::DistSquared(OutSource, PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource));
+	}
+
+	template <EPCGExDistance Source, EPCGExDistance Target>
+	double TDistances<Source, Target>::GetDist(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
+	{
+		const FVector TargetOrigin = TargetPoint.GetLocation();
+		const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
+		return FVector::Dist(OutSource, PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource));
+	}
+
+	template <EPCGExDistance Source, EPCGExDistance Target>
+	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const
+	{
+		const FVector TargetOrigin = TargetPoint.GetLocation();
+		const FVector SourceOrigin = SourcePoint.GetLocation();
+		const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourceOrigin, TargetOrigin);
+		const FVector OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
+
+		bOverlap = FVector::DotProduct((TargetOrigin - SourceOrigin), (OutTarget - OutSource)) < 0;
+		return FVector::DistSquared(OutSource, OutTarget);
+	}
+
+	template <EPCGExDistance Source, EPCGExDistance Target>
+	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FProxyPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const
+	{
+		const FVector TargetOrigin = TargetPoint.GetLocation();
+		const FVector SourceOrigin = SourcePoint.GetLocation();
+		const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourceOrigin, TargetOrigin);
+		const FVector OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
+
+		bOverlap = FVector::DotProduct((TargetOrigin - SourceOrigin), (OutTarget - OutSource)) < 0;
+		return FVector::DistSquared(OutSource, OutTarget);
+	}
+
+	template <EPCGExDistance Source, EPCGExDistance Target>
+	double TDistances<Source, Target>::GetDist(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const
+	{
+		const FVector TargetOrigin = TargetPoint.GetLocation();
+		const FVector SourceOrigin = SourcePoint.GetLocation();
+		const FVector OutSource = PCGExMath::GetSpatializedCenter<Source>(SourcePoint, SourceOrigin, TargetOrigin);
+		const FVector OutTarget = PCGExMath::GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
+
+		bOverlap = FVector::DotProduct((TargetOrigin - SourceOrigin), (OutTarget - OutSource)) < 0;
+		return FVector::Dist(OutSource, OutTarget);
+	}
+
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::Center, EPCGExDistance::Center>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::Center, EPCGExDistance::SphereBounds>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::Center, EPCGExDistance::BoxBounds>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::Center, EPCGExDistance::None>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::Center>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::SphereBounds>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::BoxBounds>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::SphereBounds, EPCGExDistance::None>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::Center>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::SphereBounds>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::BoxBounds>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::BoxBounds, EPCGExDistance::None>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::None, EPCGExDistance::Center>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::None, EPCGExDistance::SphereBounds>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::None, EPCGExDistance::BoxBounds>;
+	template class PCGEXTENDEDTOOLKIT_API TDistances<EPCGExDistance::None, EPCGExDistance::None>;
+
 
 	TSharedPtr<FDistances> MakeDistances(const EPCGExDistance Source, const EPCGExDistance Target, const bool bOverlapIsZero)
 	{
@@ -143,6 +359,41 @@ bool FPCGExFuseDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExDat
 	DistanceDetails = PCGExDetails::MakeDistances(SourceDistance, TargetDistance);
 
 	return true;
+}
+
+uint32 FPCGExFuseDetails::GetGridKey(const FVector& Location, const int32 PointIndex) const
+{
+	const FVector Raw = ToleranceGetter->Read(PointIndex);
+	return PCGEx::GH3(Location + VoxelGridOffset, FVector(1 / Raw.X, 1 / Raw.Y, 1 / Raw.Z));
+}
+
+FBox FPCGExFuseDetails::GetOctreeBox(const FVector& Location, const int32 PointIndex) const
+{
+	const FVector Extent = ToleranceGetter->Read(PointIndex);
+	return FBox(Location - Extent, Location + Extent);
+}
+
+void FPCGExFuseDetails::GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
+{
+	const FVector TargetLocation = TargetPoint.GetTransform().GetLocation();
+	OutSource = DistanceDetails->GetSourceCenter(SourcePoint, SourcePoint.GetTransform().GetLocation(), TargetLocation);
+	OutTarget = DistanceDetails->GetTargetCenter(TargetPoint, TargetLocation, OutSource);
+}
+
+bool FPCGExFuseDetails::IsWithinTolerance(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
+{
+	FVector A;
+	FVector B;
+	GetCenters(SourcePoint, TargetPoint, A, B);
+	return FPCGExFuseDetailsBase::IsWithinTolerance(A, B, SourcePoint.Index);
+}
+
+bool FPCGExFuseDetails::IsWithinToleranceComponentWise(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
+{
+	FVector A;
+	FVector B;
+	GetCenters(SourcePoint, TargetPoint, A, B);
+	return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(A, B, SourcePoint.Index);
 }
 
 bool FPCGExManhattanDetails::IsValid() const

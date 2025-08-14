@@ -4,6 +4,7 @@
 #include "Paths/PCGExWriteTangents.h"
 
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Paths/Tangents/PCGExTangentsZero.h"
 
@@ -20,6 +21,7 @@ TArray<FPCGPinProperties> UPCGExWriteTangentsSettings::InputPinProperties() cons
 }
 
 PCGEX_INITIALIZE_ELEMENT(WriteTangents)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteTangents)
 
 FName UPCGExWriteTangentsSettings::GetPointFilterPin() const
 {
@@ -62,7 +64,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWriteTangents::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -73,7 +75,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExWriteTangents::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

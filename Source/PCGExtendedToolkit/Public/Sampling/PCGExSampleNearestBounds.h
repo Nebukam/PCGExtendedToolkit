@@ -303,6 +303,9 @@ struct FPCGExSampleNearestBoundsContext final : FPCGExPointsProcessorContext
 	PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	virtual void RegisterAssetDependencies() override;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSampleNearestBoundsElement final : public FPCGExPointsProcessorElement

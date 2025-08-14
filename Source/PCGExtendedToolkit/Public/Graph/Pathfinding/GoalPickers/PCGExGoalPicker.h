@@ -10,6 +10,11 @@
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.generated.h"
 
+namespace PCGExData
+{
+	struct FConstPoint;
+}
+
 /**
  * 
  */

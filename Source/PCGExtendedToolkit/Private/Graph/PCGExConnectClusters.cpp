@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExConnectClusters.h"
+
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIOMerger.h"
 
 
@@ -14,6 +16,7 @@ PCGExData::EIOInit UPCGExConnectClustersSettings::GetMainOutputInitMode() const 
 PCGExData::EIOInit UPCGExConnectClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 PCGEX_INITIALIZE_ELEMENT(ConnectClusters)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ConnectClusters)
 
 TArray<FPCGPinProperties> UPCGExConnectClustersSettings::InputPinProperties() const
 {
@@ -70,7 +73,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExBridgeClusters::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries)
 			{
 				if (Entries->Entries.Num() == 1)
@@ -83,7 +86,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 				return true;
 			},
-			[&](const TSharedPtr<PCGExBridgeClusters::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
@@ -103,7 +106,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Context->Batches)
 	{
-		const TSharedPtr<PCGExBridgeClusters::FBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FBatch>(Batch);
+		const TSharedPtr<PCGExConnectClusters::FBatch> BridgeBatch = StaticCastSharedPtr<PCGExConnectClusters::FBatch>(Batch);
 		PCGExCommon::DataIDType PairId;
 		PCGExGraph::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, PairId);
 		PCGExGraph::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, PairId);
@@ -114,11 +117,11 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
-namespace PCGExBridgeClusters
+namespace PCGExConnectClusters
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBridgeClusters::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConnectClusters::Process);
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
@@ -156,9 +159,11 @@ namespace PCGExBridgeClusters
 		TBatch<FProcessor>::Process();
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
 	{
-		CompoundedEdgesDataFacade->Source->Tags->Append(ClusterProcessor->EdgeDataFacade->Source->Tags.ToSharedRef());
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
+		PCGEX_TYPED_PROCESSOR
+		CompoundedEdgesDataFacade->Source->Tags->Append(TypedProcessor->EdgeDataFacade->Source->Tags.ToSharedRef());
 		return true;
 	}
 

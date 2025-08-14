@@ -84,6 +84,9 @@ struct FPCGExWriteTangentsContext final : FPCGExPathProcessorContext
 	UPCGExTangentsInstancedFactory* Tangents = nullptr;
 	UPCGExTangentsInstancedFactory* StartTangents = nullptr;
 	UPCGExTangentsInstancedFactory* EndTangents = nullptr;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExWriteTangentsElement final : public FPCGExPathProcessorElement

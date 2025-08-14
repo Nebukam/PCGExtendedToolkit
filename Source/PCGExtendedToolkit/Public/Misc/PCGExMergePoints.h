@@ -64,6 +64,9 @@ struct FPCGExMergePointsContext final : FPCGExPointsProcessorContext
 	FPCGExCarryOverDetails CarryOverDetails;
 	FPCGExNameFiltersDetails TagsToAttributes;
 	TSharedPtr<PCGExData::FFacade> CompositeDataFacade;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExMergePointsElement final : public FPCGExPointsProcessorElement
@@ -112,7 +115,7 @@ namespace PCGExMergePoints
 
 	public:
 		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& PointsProcessor) override;
+		virtual bool PrepareSingle(const TSharedRef<PCGExPointsMT::IProcessor>& InProcessor) override;
 		virtual void OnProcessingPreparationComplete() override;
 		virtual void Write() override;
 

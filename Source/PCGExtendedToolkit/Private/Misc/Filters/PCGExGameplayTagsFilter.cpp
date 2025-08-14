@@ -5,6 +5,7 @@
 
 #include "GameFramework/Actor.h"
 #include "PropertyPathHelpers.h"
+#include "Data/PCGExData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition

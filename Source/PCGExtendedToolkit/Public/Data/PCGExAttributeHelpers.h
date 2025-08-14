@@ -7,22 +7,22 @@
 #include <type_traits>
 
 #include "CoreMinimal.h"
+#include "PCGExBroadcast.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Metadata/Accessors/IPCGAttributeAccessor.h"
-#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 #include "PCGExMacros.h"
-#include "PCGExBroadcast.h"
-#include "PCGExDataHelpers.h"
-#include "PCGExHelpers.h"
-#include "PCGExMath.h"
-#include "PCGExMT.h"
-#include "PCGExPointIO.h"
-#include "Blending/PCGExBlendModes.h"
 
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
 
 #include "PCGExAttributeHelpers.generated.h"
+
+struct FPCGExContext;
+
+namespace PCGExMT
+{
+	struct FScope;
+}
 
 // Primary template: assumes method does NOT exist
 template <typename, typename = std::void_t<>>
@@ -40,6 +40,11 @@ struct has_GetTypeHash_v<T, std::void_t<decltype(std::declval<T>().Foo(42))>> : 
 
 namespace PCGExData
 {
+	struct FElement;
+	struct FTaggedData;
+	class FPointIO;
+	class IDataValue;
+	class FPointIOCollection;
 	class FFacade;
 }
 
@@ -143,7 +148,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetList
 
 namespace PCGEx
 {
-#pragma region Attribute identity
+#pragma region Attribute utils
 
 	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
 	{
@@ -246,6 +251,8 @@ namespace PCGEx
 		void Init(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector);
 	};
 
+	TSharedPtr<FAttributesInfos> GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError);
+
 #pragma endregion
 
 #pragma region Attribute Broadcaster
@@ -262,6 +269,8 @@ namespace PCGEx
 
 		IAttributeBroadcaster(const IAttributeBroadcaster&) = delete;
 		IAttributeBroadcaster& operator=(const IAttributeBroadcaster&) = delete;
+
+		const FPCGMetadataAttributeBase* GetAttribute() const;
 	};
 
 	template <typename T>
@@ -274,44 +283,13 @@ namespace PCGEx
 		TSharedPtr<PCGExData::IDataValue> DataValue;
 		T TypedDataValue = T{};
 
-		bool ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
-		{
-			static_assert(PCGEx::GetMetadataType<T>() != EPCGMetadataTypes::Unknown, TEXT("T must be of PCG-friendly type. Custom types are unsupported -- you'll have to static_cast the values."));
-
-			ProcessingInfos = FAttributeProcessingInfos(InData, InSelector);
-			if (!ProcessingInfos.bIsValid) { return false; }
-
-			if (ProcessingInfos.bIsDataDomain)
-			{
-				PCGEx::ExecuteWithRightType(
-					ProcessingInfos.Attribute->GetTypeId(), [&](auto DummyValue)
-					{
-						using T_REAL = decltype(DummyValue);
-						DataValue = MakeShared<PCGExData::TDataValue<T_REAL>>(PCGExDataHelpers::ReadDataValue(static_cast<const FPCGMetadataAttribute<T_REAL>*>(ProcessingInfos.Attribute)));
-
-						const FSubSelection& S = ProcessingInfos.SubSelection;
-						TypedDataValue = S.bIsValid ? S.Get<T_REAL, T>(DataValue->GetValue<T_REAL>()) : PCGEx::Convert<T_REAL, T>(DataValue->GetValue<T_REAL>());
-					});
-			}
-			else
-			{
-				InternalAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, ProcessingInfos.Selector);
-				ProcessingInfos.bIsValid = InternalAccessor.IsValid();
-			}
-
-
-			return ProcessingInfos.bIsValid;
-		}
+		bool ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData);
 
 	public:
-		TAttributeBroadcaster()
-		{
-		}
+		TAttributeBroadcaster() = default;
 
-		FString GetName() const { return ProcessingInfos.Selector.GetName().ToString(); }
-
-		virtual EPCGMetadataTypes GetType() const { return GetMetadataType<T>(); }
-		const FPCGMetadataAttributeBase* GetAttribute() const { return ProcessingInfos; }
+		FString GetName() const;
+		EPCGMetadataTypes GetType() const;
 
 		TArray<T> Values;
 		mutable T Min = T{};
@@ -319,82 +297,22 @@ namespace PCGEx
 
 		bool bEnabled = true;
 
-		bool IsUsable(int32 NumEntries) { return ProcessingInfos.bIsValid && Values.Num() >= NumEntries; }
+		bool IsUsable(int32 NumEntries);
 
-		bool Prepare(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO)
-		{
-			Keys = InPointIO->GetInKeys();
-			PCGExMath::TypeMinMax(Min, Max);
-			return ApplySelector(InSelector, InPointIO->GetIn());
-		}
+		bool Prepare(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO);
+		bool Prepare(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO);
 
-		bool Prepare(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO)
-		{
-			FPCGAttributePropertyInputSelector InSelector = FPCGAttributePropertyInputSelector();
-			InSelector.Update(InName.ToString());
-			return Prepare(InSelector, InPointIO);
-		}
-
-		bool PrepareForSingleFetch(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys = nullptr)
-		{
-			if (InKeys) { Keys = InKeys; }
-			else if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(InData)) { Keys = MakeShared<FPCGAttributeAccessorKeysPointIndices>(PointData); }
-			else if (InData->Metadata) { Keys = MakeShared<FPCGAttributeAccessorKeysEntries>(InData->Metadata); }
-
-			if (!Keys) { return false; }
-
-			PCGExMath::TypeMinMax(Min, Max);
-			return ApplySelector(InSelector, InData);
-		}
-
-		bool PrepareForSingleFetch(const FName& InName, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys = nullptr)
-		{
-			FPCGAttributePropertyInputSelector InSelector = FPCGAttributePropertyInputSelector();
-			InSelector.Update(InName.ToString());
-
-			return PrepareForSingleFetch(InSelector, InData, InKeys);
-		}
-
-		bool PrepareForSingleFetch(const FPCGAttributePropertyInputSelector& InSelector, const PCGExData::FTaggedData& InData)
-		{
-			return PrepareForSingleFetch(InSelector, InData.Data, InData.Keys);
-		}
-
-		bool PrepareForSingleFetch(const FName& InName, const PCGExData::FTaggedData& InData)
-		{
-			return PrepareForSingleFetch(InName, InData.Data, InData.Keys);
-		}
+		bool PrepareForSingleFetch(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys = nullptr);
+		bool PrepareForSingleFetch(const FName& InName, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys = nullptr);
+		bool PrepareForSingleFetch(const FPCGAttributePropertyInputSelector& InSelector, const PCGExData::FTaggedData& InData);
+		bool PrepareForSingleFetch(const FName& InName, const PCGExData::FTaggedData& InData);
 
 		/**
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param Dump
+		 * @param Scope
 		 */
-		void Fetch(TArray<T>& Dump, const PCGExMT::FScope& Scope)
-		{
-			check(ProcessingInfos.bIsValid)
-			check(Dump.Num() == Keys->GetNum()) // Dump target should be initialized at full length before using Fetch
-
-			if (!ProcessingInfos.bIsValid)
-			{
-				PCGEX_SCOPE_LOOP(i) { Dump[i] = T{}; }
-				return;
-			}
-
-			if (DataValue)
-			{
-				PCGEX_SCOPE_LOOP(i) { Dump[i] = TypedDataValue; }
-			}
-			else
-			{
-				TArrayView<T> DumpView = MakeArrayView(Dump.GetData() + Scope.Start, Scope.Count);
-				const bool bSuccess = InternalAccessor->GetRange<T>(DumpView, Scope.Start, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible);
-
-				if (!bSuccess)
-				{
-					// TODO : Log error
-				}
-			}
-		}
+		void Fetch(TArray<T>& Dump, const PCGExMT::FScope& Scope);
 
 		/**
 		 * Build and validate a property/attribute accessor for the selected
@@ -403,124 +321,32 @@ namespace PCGEx
 		 * @param OutMin
 		 * @param OutMax
 		 */
-		void GrabAndDump(TArray<T>& Dump, const bool bCaptureMinMax, T& OutMin, T& OutMax)
-		{
-			const int32 NumPoints = Keys->GetNum();
-			PCGEx::InitArray(Dump, NumPoints);
+		void GrabAndDump(TArray<T>& Dump, const bool bCaptureMinMax, T& OutMin, T& OutMax);
 
-			PCGExMath::TypeMinMax(OutMin, OutMax);
+		void GrabUniqueValues(TSet<T>& OutUniqueValues);
 
-			if (!ProcessingInfos.bIsValid)
-			{
-				for (int i = 0; i < NumPoints; i++) { Dump[i] = T{}; }
-				return;
-			}
+		void Grab(const bool bCaptureMinMax = false);
 
-			if (DataValue)
-			{
-				for (int i = 0; i < NumPoints; i++) { Dump[i] = TypedDataValue; }
-
-				if (bCaptureMinMax)
-				{
-					OutMin = TypedDataValue;
-					OutMax = TypedDataValue;
-				}
-			}
-			else
-			{
-				const bool bSuccess = InternalAccessor->GetRange<T>(Dump, 0, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible);
-				if (!bSuccess)
-				{
-					// TODO : Log error
-				}
-				else if (bCaptureMinMax)
-				{
-					for (int i = 0; i < NumPoints; i++)
-					{
-						const T& V = Dump[i];
-						OutMin = PCGExBlend::Min(OutMin, V);
-						OutMax = PCGExBlend::Max(OutMax, V);
-					}
-				}
-			}
-		}
-
-		void GrabUniqueValues(TSet<T>& OutUniqueValues)
-		{
-			if (!ProcessingInfos.bIsValid) { return; }
-
-			// TODO : Revise this work with a custom has function and output an array of unique values instead
-			
-			if constexpr (
-				std::is_same_v<T, FRotator> ||
-				std::is_same_v<T, FTransform>)
-			{
-				UE_LOG(LogTemp, Error, TEXT("Unique value type is unsupported at the moment."))
-			}
-			else
-			{
-				if (DataValue)
-				{
-					OutUniqueValues.Add(TypedDataValue);
-				}
-				else
-				{
-					T TempMin = T{};
-					T TempMax = T{};
-
-					int32 NumPoints = Keys->GetNum();
-					OutUniqueValues.Reserve(OutUniqueValues.Num() + NumPoints);
-
-					TArray<T> Dump;
-					GrabAndDump(Dump, false, TempMin, TempMax);
-					OutUniqueValues.Append(Dump);
-
-					OutUniqueValues.Shrink();
-				}
-			}
-		}
-
-		void Grab(const bool bCaptureMinMax = false)
-		{
-			GrabAndDump(Values, bCaptureMinMax, Min, Max);
-		}
-
-		T FetchSingle(const PCGExData::FElement& Element, const T& Fallback) const
-		{
-			if (!ProcessingInfos.bIsValid) { return Fallback; }
-			if (DataValue) { return TypedDataValue; }
-
-			T OutValue = Fallback;
-			if (!InternalAccessor->Get<T>(OutValue, Element.Index, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible)) { OutValue = Fallback; }
-			return OutValue;
-		}
-
-		static TSharedPtr<TAttributeBroadcaster<T>> Make(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO)
-		{
-			PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<T>)
-			if (!Broadcaster->Prepare(InName, InPointIO)) { return nullptr; }
-			return Broadcaster;
-		}
-
-		static TSharedPtr<TAttributeBroadcaster<T>> Make(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO)
-		{
-			PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<T>)
-			if (!Broadcaster->Prepare(InSelector, InPointIO)) { return nullptr; }
-			return Broadcaster;
-		}
+		T FetchSingle(const PCGExData::FElement& Element, const T& Fallback) const;
 	};
+
+	template <typename T>
+	TSharedPtr<TAttributeBroadcaster<T>> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO);
+
+	template <typename T>
+	TSharedPtr<TAttributeBroadcaster<T>> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO);
 
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
-extern template class TAttributeBroadcaster<_TYPE>;
+extern template class TAttributeBroadcaster<_TYPE>; \
+extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO); \
+extern template TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO);
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL
 
 #pragma endregion
 
-	TSharedPtr<FAttributesInfos> GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError);
+#pragma endregion
 }
-
-#undef PCGEX_AAFLAG

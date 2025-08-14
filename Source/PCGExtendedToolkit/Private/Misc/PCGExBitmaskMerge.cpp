@@ -4,6 +4,8 @@
 #include "Misc/PCGExBitmaskMerge.h"
 
 #include "PCGPin.h"
+#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Misc/PCGExBitmask.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"

@@ -10,6 +10,11 @@
 #include "Paths/PCGExPaths.h"
 #include "PCGExSubPointsInstancedFactory.generated.h"
 
+namespace PCGExData
+{
+	struct FScope;
+}
+
 class UPCGExSubPointsInstancedFactory;
 
 class FPCGExSubPointsOperation : public FPCGExOperation

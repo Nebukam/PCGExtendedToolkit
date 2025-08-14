@@ -4,10 +4,9 @@
 #include "Graph/PCGExSimplifyClusters.h"
 
 
+#include "PCGExMath.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExChain.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -25,6 +24,7 @@ TArray<FPCGPinProperties> UPCGExSimplifyClustersSettings::InputPinProperties() c
 }
 
 PCGEX_INITIALIZE_ELEMENT(SimplifyClusters)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(SimplifyClusters)
 
 bool FPCGExSimplifyClustersElement::Boot(FPCGExContext* InContext) const
 {
@@ -52,9 +52,9 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExSimplifyClusters::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExSimplifyClusters::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 			}))
 		{
@@ -322,10 +322,11 @@ namespace PCGExSimplifyClusters
 		TBatch<FProcessor>::Process();
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
 	{
-		ClusterProcessor->Breakpoints = Breakpoints;
-		return TBatch<FProcessor>::PrepareSingle(ClusterProcessor);
+		PCGEX_TYPED_PROCESSOR
+		TypedProcessor->Breakpoints = Breakpoints;
+		return TBatch<FProcessor>::PrepareSingle(InProcessor);
 	}
 }
 

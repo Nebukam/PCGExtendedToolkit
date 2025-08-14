@@ -3,6 +3,9 @@
 
 #include "Sampling/PCGExSampleOverlapStats.h"
 
+#include "PCGExDataMath.h"
+#include "Data/PCGExDataTag.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExSampleOverlapStatsElement"
 #define PCGEX_NAMESPACE SampleOverlapStats
@@ -34,8 +37,10 @@ void FPCGExSampleOverlapStatsContext::BatchProcessing_WorkComplete()
 	FPCGExPointsProcessorContext::BatchProcessing_WorkComplete();
 
 	const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>> TypedBatch = StaticCastSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>(MainBatch);
-	for (const TSharedRef<PCGExSampleOverlapStats::FProcessor>& P : TypedBatch->Processors)
+
+	for (int Pi = 0; Pi < TypedBatch->GetNumProcessors(); Pi++)
 	{
+		const TSharedPtr<PCGExSampleOverlapStats::FProcessor> P = TypedBatch->GetProcessor<PCGExSampleOverlapStats::FProcessor>(Pi);
 		if (!P->bIsProcessorValid) { continue; }
 		SharedOverlapSubCountMax = FMath::Max(SharedOverlapSubCountMax, P->LocalOverlapSubCountMax);
 		SharedOverlapCountMax = FMath::Max(SharedOverlapCountMax, P->LocalOverlapCountMax);
@@ -43,6 +48,7 @@ void FPCGExSampleOverlapStatsContext::BatchProcessing_WorkComplete()
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleOverlapStats)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleOverlapStats)
 
 bool FPCGExSampleOverlapStatsElement::Boot(FPCGExContext* InContext) const
 {
@@ -70,9 +76,9 @@ bool FPCGExSampleOverlapStatsElement::ExecuteInternal(FPCGContext* InContext) co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))

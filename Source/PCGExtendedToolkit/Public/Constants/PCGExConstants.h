@@ -13,6 +13,7 @@
 #include "PCGExMacros.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
+#include "Data/PCGExDataHelpers.h"
 #include "PCGExConstants.generated.h"
 
 

@@ -7,7 +7,6 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExDetails.h"
 #include "PCGExPaths.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
@@ -79,6 +78,9 @@ struct FPCGExBlendPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExBlendPathElement;
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBlendPathElement final : public FPCGExPathProcessorElement

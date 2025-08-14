@@ -6,6 +6,8 @@
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/States/PCGExClusterStates.h"
 #include "Actions/PCGExActionFactoryProvider.h"
+#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
@@ -22,6 +24,7 @@ TArray<FPCGPinProperties> UPCGExBatchActionsSettings::InputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(BatchActions)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(BatchActions)
 
 bool FPCGExBatchActionsElement::Boot(FPCGExContext* InContext) const
 {
@@ -77,9 +80,9 @@ bool FPCGExBatchActionsElement::ExecuteInternal(
 	{
 		if (!Context->ActionsFactories.IsEmpty())
 		{
-			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBatchActions::FProcessor>>(
+			if (!Context->StartBatchProcessingPoints(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBatchActions::FProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 				}))
 			{

@@ -21,6 +21,7 @@ PCGExData::EIOInit UPCGExSampleNeighborsSettings::GetEdgeOutputInitMode() const 
 PCGExData::EIOInit UPCGExSampleNeighborsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNeighbors)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(SampleNeighbors)
 
 bool FPCGExSampleNeighborsElement::Boot(FPCGExContext* InContext) const
 {
@@ -49,9 +50,9 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExSampleNeighbors::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExSampleNeighbors::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 			}))
 		{

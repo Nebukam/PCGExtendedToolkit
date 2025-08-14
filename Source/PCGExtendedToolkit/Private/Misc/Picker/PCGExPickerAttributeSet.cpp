@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/Pickers/PCGExPickerAttributeSet.h"
+#include "Data/PCGExAttributeHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreatePickerConstantSet"
 #define PCGEX_NAMESPACE CreatePickerConstantSet
@@ -85,7 +86,7 @@ PCGExFactories::EPreparationResult UPCGExPickerAttributeSetFactory::InitInternal
 					continue;
 				}
 
-				const TSharedPtr<PCGEx::TAttributeBroadcaster<double>> Values = PCGEx::TAttributeBroadcaster<double>::Make(Infos->Attributes[0]->Name, Facade->Source);
+				const TSharedPtr<PCGEx::TAttributeBroadcaster<double>> Values = PCGEx::MakeBroadcaster<double>(Infos->Attributes[0]->Name, Facade->Source);
 				if (!Values) { continue; }
 				Values->GrabUniqueValues(UniqueIndices);
 			}
@@ -93,7 +94,7 @@ PCGExFactories::EPreparationResult UPCGExPickerAttributeSetFactory::InitInternal
 			{
 				for (const FPCGAttributePropertyInputSelector& Selector : Config.Attributes)
 				{
-					const TSharedPtr<PCGEx::TAttributeBroadcaster<double>> Values = PCGEx::TAttributeBroadcaster<double>::Make(Selector, Facade->Source);
+					const TSharedPtr<PCGEx::TAttributeBroadcaster<double>> Values = PCGEx::MakeBroadcaster<double>(Selector, Facade->Source);
 					if (!Values) { continue; }
 					Values->GrabUniqueValues(UniqueIndices);
 				}
@@ -116,7 +117,7 @@ PCGExFactories::EPreparationResult UPCGExPickerAttributeSetFactory::InitInternal
 					continue;
 				}
 
-				const TSharedPtr<PCGEx::TAttributeBroadcaster<int32>> Values = PCGEx::TAttributeBroadcaster<int32>::Make(Infos->Attributes[0]->Name, Facade->Source);
+				const TSharedPtr<PCGEx::TAttributeBroadcaster<int32>> Values = PCGEx::MakeBroadcaster<int32>(Infos->Attributes[0]->Name, Facade->Source);
 				if (!Values) { continue; }
 				Values->GrabUniqueValues(UniqueIndices);
 			}
@@ -124,7 +125,7 @@ PCGExFactories::EPreparationResult UPCGExPickerAttributeSetFactory::InitInternal
 			{
 				for (const FPCGAttributePropertyInputSelector& Selector : Config.Attributes)
 				{
-					const TSharedPtr<PCGEx::TAttributeBroadcaster<int32>> Values = PCGEx::TAttributeBroadcaster<int32>::Make(Selector, Facade->Source);
+					const TSharedPtr<PCGEx::TAttributeBroadcaster<int32>> Values = PCGEx::MakeBroadcaster<int32>(Selector, Facade->Source);
 					if (!Values) { continue; }
 					Values->GrabUniqueValues(UniqueIndices);
 				}

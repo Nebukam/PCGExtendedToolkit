@@ -24,6 +24,7 @@ UPCGExDestroyActorSettings::UPCGExDestroyActorSettings(
 PCGExData::EIOInit UPCGExDestroyActorSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 PCGEX_INITIALIZE_ELEMENT(DestroyActor)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(DestroyActor)
 
 FName UPCGExDestroyActorSettings::GetMainInputPin() const
 {
@@ -47,9 +48,9 @@ bool FPCGExDestroyActorElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExDestroyActors::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExDestroyActors::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{
@@ -64,7 +65,7 @@ bool FPCGExDestroyActorElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
-namespace PCGExDestroyActors
+namespace PCGExDestroyActor
 {
 	FProcessor::~FProcessor()
 	{
@@ -72,7 +73,7 @@ namespace PCGExDestroyActors
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExDestroyActors::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExDestroyActor::Process);
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 

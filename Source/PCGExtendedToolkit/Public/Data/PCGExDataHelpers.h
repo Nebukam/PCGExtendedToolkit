@@ -5,10 +5,17 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "Metadata/PCGMetadataAttributeTpl.h"
 
-#include "PCGExHelpers.h"
-#include "PCGExPointIO.h"
-#include "PCGExDetails.h"
+#include "PCGExMacros.h"
+#include "PCGExCommon.h"
+
+struct FPCGExContext;
+
+namespace PCGExData
+{
+	class FPointIO;
+}
 
 UENUM(BlueprintType)
 enum class EPCGExNumericOutput : uint8

@@ -3,7 +3,9 @@
 
 #include "Graph/Edges/Properties/PCGExVtxPropertyAmplitude.h"
 
+#include "PCGExMath.h"
 #include "PCGPin.h"
+#include "Data/Blending/PCGExBlendMinMax.h"
 #include "Graph/PCGExCluster.h"
 
 

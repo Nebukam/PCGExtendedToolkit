@@ -8,6 +8,7 @@
 
 #include "PCGExHelpers.h"
 #include "PCGExRandom.h"
+#include "Data/PCGExDataTag.h"
 
 
 #include "Paths/PCGExPaths.h"
@@ -30,6 +31,7 @@ void UPCGExPathSplineMeshSettings::ApplyDeprecation(UPCGNode* InOutNode)
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(PathSplineMesh)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSplineMesh)
 
 UPCGExPathSplineMeshSettings::UPCGExPathSplineMeshSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -129,7 +131,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathSplineMesh::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -140,7 +142,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathSplineMesh::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

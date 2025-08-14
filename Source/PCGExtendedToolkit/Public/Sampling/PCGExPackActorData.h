@@ -607,6 +607,9 @@ struct FPCGExPackActorDataContext final : FPCGExPointsProcessorContext
 	friend class FPCGExPackActorDataElement;
 	UPCGExCustomActorDataPacker* Packer = nullptr;
 	//TArray<UPCGParamData*> OutputParams;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExPackActorDataElement final : public FPCGExPointsProcessorElement
@@ -618,7 +621,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExPackActorDatas
+namespace PCGExPackActorData
 {
 	const FName SourceOverridesPacker = TEXT("Overrides : Packer");
 

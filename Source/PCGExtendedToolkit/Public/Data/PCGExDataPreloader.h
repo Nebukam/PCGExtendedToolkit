@@ -7,7 +7,6 @@
 #include "UObject/Object.h"
 
 #include "PCGExHelpers.h"
-#include "PCGExPointIO.h"
 #include "PCGExAttributeHelpers.h"
 #include "PCGExData.h"
 #include "PCGExMT.h"

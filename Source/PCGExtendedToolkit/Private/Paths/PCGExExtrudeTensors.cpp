@@ -4,6 +4,7 @@
 #include "Paths/PCGExExtrudeTensors.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
 #include "Graph/PCGExGraph.h"
 
 
@@ -31,6 +32,7 @@ bool UPCGExExtrudeTensorsSettings::GetSortingRules(FPCGExContext* InContext, TAr
 }
 
 PCGEX_INITIALIZE_ELEMENT(ExtrudeTensors)
+PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(ExtrudeTensors)
 
 FName UPCGExExtrudeTensorsSettings::GetMainInputPin() const { return PCGExGraph::SourceSeedsLabel; }
 FName UPCGExExtrudeTensorsSettings::GetMainOutputPin() const { return PCGExPaths::OutputPathsLabel; }
@@ -77,9 +79,9 @@ bool FPCGExExtrudeTensorsElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		Context->AddConsumableAttributeName(Settings->IterationsAttribute);
 
-		if (!Context->StartBatchProcessingPoints<PCGExExtrudeTensors::FBatch>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExExtrudeTensors::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bPrefetchData = true;
 			}))

@@ -4,6 +4,8 @@
 #include "Graph/Edges/Properties/PCGExVtxPropertyEdgeMatch.h"
 
 #include "PCGPin.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 
 

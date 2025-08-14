@@ -4,11 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "PCGExDetails.h"
+#include "PCGExCommon.h"
 #include "PCGExDetailsData.h"
-#include "Data/PCGExData.h"
-
+#include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExCompare.generated.h"
 
@@ -24,6 +22,8 @@ MACRO(FSoftClassPath)
 
 namespace PCGExData
 {
+	class FTags;
+	class IDataValue;
 	class FFacadePreloader;
 }
 

@@ -3,8 +3,10 @@
 
 #include "Misc/PCGExReversePointOrder.h"
 
+#include "PCGExMath.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Data/PCGExDataTag.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"
@@ -18,6 +20,7 @@ TArray<FPCGPinProperties> UPCGExReversePointOrderSettings::InputPinProperties() 
 }
 
 PCGEX_INITIALIZE_ELEMENT(ReversePointOrder)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(ReversePointOrder)
 
 bool FPCGExReversePointOrderElement::Boot(FPCGExContext* InContext) const
 {
@@ -41,9 +44,9 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExReversePointOrder::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExReversePointOrder::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bPrefetchData = Settings->Method != EPCGExPointReverseMethod::None || !Settings->SwapAttributesValues.IsEmpty();
 			}))

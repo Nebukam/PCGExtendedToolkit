@@ -44,6 +44,7 @@ protected:
 public:
 	TWeakPtr<PCGEx::FWorkPermit> GetWorkPermit() { return WorkPermit; }
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
+	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
 
 	bool bScopedAttributeGet = false;
 	bool bPropagateAbortedExecution = false;

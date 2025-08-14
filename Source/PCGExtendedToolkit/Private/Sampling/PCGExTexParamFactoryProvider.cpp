@@ -3,9 +3,11 @@
 
 #include "Sampling/PCGExTexParamFactoryProvider.h"
 
+#include "PCGExHelpers.h"
 #include "Data/PCGTextureData.h"
 #include "Materials/MaterialInterface.h"
 #include "TextureResource.h"
+#include "Data/PCGExData.h"
 #include "Engine/Texture.h"
 #include "Engine/Texture2D.h"
 

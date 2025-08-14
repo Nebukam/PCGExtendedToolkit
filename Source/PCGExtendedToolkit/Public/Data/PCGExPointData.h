@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGPointArrayData.h"
-#include "Data/PCGPointData.h"
 #include "PCGExPointData.generated.h"
 
 #define PCGEX_NEW_CUSTOM_POINT_DATA(_TYPE)\

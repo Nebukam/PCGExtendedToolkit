@@ -461,6 +461,9 @@ struct FPCGExSampleNearestSplineContext final : FPCGExPointsProcessorContext
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	virtual void RegisterAssetDependencies() override;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSampleNearestSplineElement final : public FPCGExPointsProcessorElement

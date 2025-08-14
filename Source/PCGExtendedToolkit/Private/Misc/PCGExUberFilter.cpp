@@ -5,6 +5,7 @@
 #include "Misc/PCGExUberFilter.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
 #include "Misc/Pickers/PCGExPicker.h"
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
@@ -39,6 +40,7 @@ TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(UberFilter)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(UberFilter)
 
 FName UPCGExUberFilterSettings::GetMainOutputPin() const
 {
@@ -85,9 +87,9 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->Outside->Pairs.Init(nullptr, Context->NumPairs);
 		}
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{
