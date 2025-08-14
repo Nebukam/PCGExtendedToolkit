@@ -3,6 +3,8 @@
 
 #include "Data/PCGExData.h"
 
+#include "PCGExGlobalSettings.h"
+#include "PCGExMath.h"
 #include "PCGExPointsMT.h"
 #include "Geometry/PCGExGeoPointBox.h"
 

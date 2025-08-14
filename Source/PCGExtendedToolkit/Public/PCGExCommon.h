@@ -7,6 +7,34 @@
 #define DBL_COLLOCATION_TOLERANCE 0.1
 #define DBL_COMPARE_TOLERANCE 0.01
 
+#include "CoreMinimal.h"
+#include "PCGExCommon.generated.h"
+
+UENUM()
+enum class EPCGExAsyncPriority : uint8
+{
+	Default          = 0 UMETA(DisplayName = "Default", ToolTip="..."),
+	Normal           = 1 UMETA(DisplayName = "Normal", ToolTip="..."),
+	High             = 2 UMETA(DisplayName = "High", ToolTip="..."),
+	BackgroundHigh   = 3 UMETA(DisplayName = "BackgroundHigh", ToolTip="..."),
+	BackgroundNormal = 4 UMETA(DisplayName = "BackgroundNormal", ToolTip="..."),
+	BackgroundLow    = 5 UMETA(DisplayName = "BackgroundLow", ToolTip="..."),
+};
+
+UENUM()
+enum class EPCGExInputValueType : uint8
+{
+	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
+	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Attribute."),
+};
+
+UENUM()
+enum class EPCGExDataInputValueType : uint8
+{
+	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
+	Attribute = 1 UMETA(DisplayName = "@Data", Tooltip="Attribute. Can only read from @Data domain."),
+};
+
 namespace PCGExData
 {
 	template<typename T>

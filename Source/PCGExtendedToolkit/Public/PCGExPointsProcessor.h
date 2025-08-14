@@ -8,8 +8,8 @@
 #include "PCGEx.h"
 #include "PCGExMacros.h"
 
-#include "PCGContext.h"
-#include "PCGExGlobalSettings.h"
+#include "PCGExContext.h"
+#include "PCGExGlobalSettings.h" // Needed for child classes
 #include "PCGExPointsMT.h"
 #include "Data/PCGExPointIO.h"
 
@@ -112,7 +112,7 @@ public:
 	/** Whether the execution of the graph should be cancelled if this node execution is cancelled internally */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bPropagateAbortedExecution = false;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingInputError = false;
@@ -120,7 +120,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietCancellationError = false;
-	
+
 	//~End UPCGExPointsProcessorSettings
 
 #if WITH_EDITOR
@@ -138,6 +138,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 {
 	friend class FPCGExPointsProcessorElement;
 
+	using FBatchProcessingValidateEntry = std::function<bool(const TSharedPtr<PCGExData::FPointIO>&)>;
+	using FBatchProcessingInitBatch = std::function<bool(const TSharedPtr<PCGExPointsMT::IBatch>&)>;
+
 	virtual ~FPCGExPointsProcessorContext() override;
 
 	TSharedPtr<PCGExData::FPointIOCollection> MainPoints;
@@ -148,7 +151,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 	int32 InitialMainPointsNum = 0;
 
 	UPCGExInstancedFactory* RegisterOperation(UPCGExInstancedFactory* BaseOperation, const FName OverridePinLabel = NAME_None);
-	
+
 
 #pragma region Filtering
 

@@ -7,9 +7,9 @@
 #include "Data/PCGExData.h"
 
 #include "PCGExDataBlending.h"
+#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExUnionData.h"
-
 
 namespace PCGExDataBlending
 {

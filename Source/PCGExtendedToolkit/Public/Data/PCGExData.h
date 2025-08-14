@@ -8,9 +8,6 @@
 #include "UObject/UObjectGlobals.h"
 
 #include "PCGExtendedToolkit.h"
-#include "PCGExHelpers.h"
-#include "PCGExMath.h"
-#include "PCGExPointIO.h"
 #include "PCGExAttributeHelpers.h"
 #include "PCGExDataHelpers.h"
 #include "PCGExMT.h"

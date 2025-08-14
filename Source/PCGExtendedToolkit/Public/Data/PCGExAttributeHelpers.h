@@ -18,7 +18,7 @@
 #include "PCGExMath.h"
 #include "PCGExMT.h"
 #include "PCGExPointIO.h"
-#include "Blending/PCGExBlendModes.h"
+#include "Blending/PCGExBlendMinMax.h"
 
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
 

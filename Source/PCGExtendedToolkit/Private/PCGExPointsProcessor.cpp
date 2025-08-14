@@ -269,6 +269,7 @@ bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) c
 FPCGContext* FPCGExPointsProcessorElement::Initialize(const FPCGInitializeElementParams& InParams)
 {
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(IPCGElement::Initialize(InParams));
+	Context->WorkPriority = Context->GetInputSettings<UPCGExPointsProcessorSettings>()->WorkPriority;
 	OnContextInitialized(Context);
 	return Context;
 }

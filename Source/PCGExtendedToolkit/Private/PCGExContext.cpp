@@ -4,9 +4,9 @@
 #include "PCGExContext.h"
 
 #include "PCGComponent.h"
+#include "PCGExHelpers.h"
 #include "PCGExMacros.h"
 #include "PCGExMT.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGManagedResource.h"
 #include "Engine/AssetManager.h"
 #include "Helpers/PCGHelpers.h"
@@ -137,9 +137,7 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetAsyncManager()
 	{
 		FWriteScopeLock WriteLock(AsyncLock);
 		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
-
-		if (const UPCGExPointsProcessorSettings* Settings = GetInputSettings<UPCGExPointsProcessorSettings>()) { PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority); }
-		else { AsyncManager->WorkPriority = LowLevelTasks::ETaskPriority::Default; }
+		PCGExMT::SetWorkPriority(WorkPriority, AsyncManager->WorkPriority);
 	}
 
 	return AsyncManager;

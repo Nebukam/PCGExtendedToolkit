@@ -7,110 +7,6 @@
 namespace PCGExBlend
 {
 	template <typename T>
-	T Min(const T& A, const T& B)
-	{
-		if constexpr (std::is_same_v<T, bool>)
-		{
-			return A || B;
-		}
-		else if constexpr (std::is_same_v<T, FVector2D>)
-		{
-			return FVector2D::Min(A, B);
-		}
-		else if constexpr (std::is_same_v<T, FVector>)
-		{
-			return FVector::Min(A, B);
-		}
-		else if constexpr (std::is_same_v<T, FVector4>)
-		{
-			return FVector4(FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y), FMath::Min(A.Z, B.Z), FMath::Min(A.W, B.W));
-		}
-		else if constexpr (std::is_same_v<T, FColor>)
-		{
-			return FColor(FMath::Min(A.R, B.R), FMath::Min(A.G, B.G), FMath::Min(A.B, B.B), FMath::Min(A.A, B.A));
-		}
-		else if constexpr (std::is_same_v<T, FQuat>)
-		{
-			return Min(A.Rotator(), B.Rotator()).Quaternion();
-		}
-		else if constexpr (std::is_same_v<T, FRotator>)
-		{
-			return FRotator(FMath::Min(A.Pitch, B.Pitch), FMath::Min(A.Yaw, B.Yaw), FMath::Min(A.Roll, B.Roll));
-		}
-		else if constexpr (std::is_same_v<T, FTransform>)
-		{
-			return FTransform(Min(A.GetRotation(), B.GetRotation()), Min(A.GetLocation(), B.GetLocation()), Min(A.GetScale3D(), B.GetScale3D()));
-		}
-		else if constexpr (std::is_same_v<T, FString>)
-		{
-			return A > B ? B : A;
-		}
-		else if constexpr (
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
-		{
-			return A.ToString() > B.ToString() ? B : A;
-		}
-		else
-		{
-			return FMath::Min(A, B);
-		}
-	}
-
-	template <typename T>
-	T Max(const T& A, const T& B)
-	{
-		if constexpr (std::is_same_v<T, bool>)
-		{
-			return A || B;
-		}
-		else if constexpr (std::is_same_v<T, FVector2D>)
-		{
-			return FVector2D::Max(A, B);
-		}
-		else if constexpr (std::is_same_v<T, FVector>)
-		{
-			return FVector::Max(A, B);
-		}
-		else if constexpr (std::is_same_v<T, FVector4>)
-		{
-			return FVector4(FMath::Max(A.X, B.X), FMath::Max(A.Y, B.Y), FMath::Max(A.Z, B.Z), FMath::Max(A.W, B.W));
-		}
-		else if constexpr (std::is_same_v<T, FColor>)
-		{
-			return FColor(FMath::Max(A.R, B.R), FMath::Max(A.G, B.G), FMath::Max(A.B, B.B), FMath::Max(A.A, B.A));
-		}
-		else if constexpr (std::is_same_v<T, FQuat>)
-		{
-			return Max(A.Rotator(), B.Rotator()).Quaternion();
-		}
-		else if constexpr (std::is_same_v<T, FRotator>)
-		{
-			return FRotator(FMath::Max(A.Pitch, B.Pitch), FMath::Max(A.Yaw, B.Yaw), FMath::Max(A.Roll, B.Roll));
-		}
-		else if constexpr (std::is_same_v<T, FTransform>)
-		{
-			return FTransform(Max(A.GetRotation(), B.GetRotation()), Max(A.GetLocation(), B.GetLocation()), Max(A.GetScale3D(), B.GetScale3D()));
-		}
-		else if constexpr (std::is_same_v<T, FString>)
-		{
-			return A < B ? B : A;
-		}
-		else if constexpr (
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftClassPath> ||
-			std::is_same_v<T, FSoftObjectPath>)
-		{
-			return A.ToString() < B.ToString() ? B : A;
-		}
-		else
-		{
-			return FMath::Max(A, B);
-		}
-	}
-
-	template <typename T>
 	T Add(const T& A, const T& B)
 	{
 		if constexpr (std::is_same_v<T, FQuat>)
@@ -514,40 +410,6 @@ namespace PCGExBlend
 	}
 
 	template <typename T>
-	T Lerp(const T& A, const T& B, const double& W)
-	{
-		if constexpr (std::is_same_v<T, FQuat>)
-		{
-			return FQuat::Slerp(A, B, W);
-		}
-		else if constexpr (std::is_same_v<T, FColor>)
-		{
-			return FMath::Lerp(A.ReinterpretAsLinear(), B.ReinterpretAsLinear(), W).ToFColor(false);
-		}
-		else if constexpr (std::is_same_v<T, FRotator>)
-		{
-			return FRotator(Lerp(A.Pitch, B.Pitch, W), Lerp(A.Yaw, B.Yaw, W), Lerp(A.Roll, B.Roll, W));
-		}
-		else if constexpr (std::is_same_v<T, FTransform>)
-		{
-			return FTransform(Lerp(A.GetRotation(), B.GetRotation(), W).GetNormalized(), Lerp(A.GetLocation(), B.GetLocation(), W), Lerp(A.GetScale3D(), B.GetScale3D(), W));
-		}
-		else if constexpr (
-			std::is_same_v<T, bool> ||
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
-		{
-			return W > 0.5 ? B : A;
-		}
-		else
-		{
-			return FMath::Lerp(A, B, W);
-		}
-	}
-
-	template <typename T>
 	T Div(const T& A, const double Divider)
 	{
 		if constexpr (std::is_same_v<T, FRotator>)
@@ -723,8 +585,6 @@ namespace PCGExBlend
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-template PCGEXTENDEDTOOLKIT_API _TYPE Min<_TYPE>(const _TYPE& A, const _TYPE& B); \
-template PCGEXTENDEDTOOLKIT_API _TYPE Max<_TYPE>(const _TYPE& A, const _TYPE& B); \
 template PCGEXTENDEDTOOLKIT_API _TYPE Add<_TYPE>(const _TYPE& A, const _TYPE& B); \
 template PCGEXTENDEDTOOLKIT_API _TYPE ModSimple<_TYPE>(const _TYPE& A, const double Modulo); \
 template PCGEXTENDEDTOOLKIT_API _TYPE ModComplex<_TYPE>(const _TYPE& A, const _TYPE& B); \
@@ -735,7 +595,6 @@ template PCGEXTENDEDTOOLKIT_API _TYPE UnsignedMin<_TYPE>(const _TYPE& A, const _
 template PCGEXTENDEDTOOLKIT_API _TYPE UnsignedMax<_TYPE>(const _TYPE& A, const _TYPE& B); \
 template PCGEXTENDEDTOOLKIT_API _TYPE AbsoluteMin<_TYPE>(const _TYPE& A, const _TYPE& B); \
 template PCGEXTENDEDTOOLKIT_API _TYPE AbsoluteMax<_TYPE>(const _TYPE& A, const _TYPE& B); \
-template PCGEXTENDEDTOOLKIT_API _TYPE Lerp<_TYPE>(const _TYPE& A, const _TYPE& B, const double& W); \
 template PCGEXTENDEDTOOLKIT_API _TYPE Div<_TYPE>(const _TYPE& A, const double Divider); \
 template PCGEXTENDEDTOOLKIT_API _TYPE Mult<_TYPE>(const _TYPE& A, const _TYPE& B); \
 template PCGEXTENDEDTOOLKIT_API _TYPE Copy<_TYPE>(const _TYPE& A, const _TYPE& B); \

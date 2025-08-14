@@ -3,7 +3,7 @@
 
 #include "Graph/Edges/PCGExRelaxClusters.h"
 
-
+#include "Data/Blending/PCGExBlendLerp.h"
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExRelaxClusters"
