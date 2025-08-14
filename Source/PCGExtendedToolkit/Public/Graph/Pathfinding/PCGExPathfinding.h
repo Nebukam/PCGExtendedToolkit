@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMT.h"
+#include "Data/PCGExPointElements.h"
 #include "GoalPickers/PCGExGoalPicker.h"
 
 #include "PCGExPathfinding.generated.h"

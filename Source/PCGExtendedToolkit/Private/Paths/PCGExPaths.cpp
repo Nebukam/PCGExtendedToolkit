@@ -3,11 +3,11 @@
 
 #include "Paths/PCGExPaths.h"
 
+#include "Data/PCGSplineData.h"
 #include "GeomTools.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGSplineData.h"
 #include "Data/PCGSplineStruct.h"
 #include "Graph/Probes/PCGExProbeDirection.h"
 

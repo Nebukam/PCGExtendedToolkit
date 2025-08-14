@@ -4,6 +4,7 @@
 #include "Paths/PCGExBevelPath.h"
 
 #include "PCGExRandom.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 
 

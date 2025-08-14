@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "GeomTools.h"
+#include "Collections/PCGExComponentDescriptors.h"
 #include "Data/PCGExDataFilter.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
@@ -12,6 +13,11 @@
 #include "Paths/PCGExPaths.h"
 
 #include "PCGExTopology.generated.h"
+
+namespace PCGExData
+{
+	struct FMutablePoint;
+}
 
 struct FPCGExNodeSelectionDetails;
 

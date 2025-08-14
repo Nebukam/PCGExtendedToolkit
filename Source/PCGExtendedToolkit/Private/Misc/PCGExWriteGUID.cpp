@@ -4,6 +4,7 @@
 #include "Misc/PCGExWriteGUID.h"
 
 
+#include "Data/PCGExData.h"
 #include "Helpers/PCGHelpers.h"
 #include "Misc/Guid.h"
 

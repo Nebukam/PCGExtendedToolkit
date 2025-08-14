@@ -6,6 +6,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "Algo/Reverse.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 
 

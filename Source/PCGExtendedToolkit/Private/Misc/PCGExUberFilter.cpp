@@ -5,6 +5,7 @@
 #include "Misc/PCGExUberFilter.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
 #include "Misc/Pickers/PCGExPicker.h"
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"

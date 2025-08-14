@@ -5,6 +5,7 @@
 
 #include "PCGExMath.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"

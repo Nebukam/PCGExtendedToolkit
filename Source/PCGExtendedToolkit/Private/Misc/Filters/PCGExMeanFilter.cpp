@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExMeanFilter.h"
 
+#include "Data/PCGExData.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExMeanFilterDefinition"
 #define PCGEX_NAMESPACE MeanFilterDefinition

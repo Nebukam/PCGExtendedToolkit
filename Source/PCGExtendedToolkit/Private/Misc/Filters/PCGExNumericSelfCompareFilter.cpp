@@ -6,7 +6,6 @@
 #include "PCGExMath.h"
 #include "Data/PCGExDataPreloader.h"
 
-
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 

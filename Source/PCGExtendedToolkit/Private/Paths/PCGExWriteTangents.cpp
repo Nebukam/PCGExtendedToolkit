@@ -4,6 +4,7 @@
 #include "Paths/PCGExWriteTangents.h"
 
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Paths/Tangents/PCGExTangentsZero.h"
 

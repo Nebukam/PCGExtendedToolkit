@@ -13,6 +13,11 @@
 
 #include "PCGExReversePointOrder.generated.h"
 
+namespace PCGExData
+{
+	class IBuffer;
+}
+
 UENUM()
 enum class EPCGExPointReverseMethod : uint8
 {

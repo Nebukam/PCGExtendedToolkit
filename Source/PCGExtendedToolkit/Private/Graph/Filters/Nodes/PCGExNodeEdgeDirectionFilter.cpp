@@ -4,6 +4,7 @@
 #include "Graph/Filters/Nodes/PCGExNodeEdgeDirectionFilter.h"
 
 
+#include "Data/PCGExData.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeEdgeDirectionFilter"

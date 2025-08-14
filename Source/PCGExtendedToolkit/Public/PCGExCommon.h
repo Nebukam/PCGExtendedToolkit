@@ -49,6 +49,16 @@ enum class EPCGExPointBoundsSource : uint8
 	Center        = 3 UMETA(DisplayName = "Center", ToolTip="A tiny size 1 box.")
 };
 
+UENUM()
+enum class EPCGExSplineMeshAxis : uint8
+{
+	Default = 0 UMETA(Hidden),
+	X       = 1 UMETA(DisplayName = "X", ToolTip="X Axis"),
+	Y       = 2 UMETA(DisplayName = "Y", ToolTip="Y Axis"),
+	Z       = 3 UMETA(DisplayName = "Z", ToolTip="Z Axis"),
+};
+
+
 namespace PCGExData
 {
 	class FTags;

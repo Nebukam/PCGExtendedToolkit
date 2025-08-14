@@ -3,6 +3,8 @@
 
 #include "Paths/PCGExFuseCollinear.h"
 
+#include "Data/PCGExData.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
 #define PCGEX_NAMESPACE FuseCollinear

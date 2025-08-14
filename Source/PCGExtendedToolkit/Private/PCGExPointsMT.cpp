@@ -7,6 +7,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExInstancedFactory.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Data/PCGExPointIO.h"
 
 namespace PCGExPointsMT
 {

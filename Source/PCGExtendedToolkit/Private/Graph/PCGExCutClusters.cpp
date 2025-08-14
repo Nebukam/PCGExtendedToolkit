@@ -4,6 +4,7 @@
 #include "Graph/PCGExCutClusters.h"
 
 #include "PCGExDataMath.h"
+#include "Data/PCGExData.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 

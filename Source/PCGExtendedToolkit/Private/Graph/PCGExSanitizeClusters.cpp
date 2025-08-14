@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExSanitizeClusters.h"
 
+#include "Data/PCGExData.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

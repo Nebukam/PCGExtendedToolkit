@@ -4,6 +4,7 @@
 #include "Paths/PCGExShrinkPath.h"
 
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExShrinkPathElement"

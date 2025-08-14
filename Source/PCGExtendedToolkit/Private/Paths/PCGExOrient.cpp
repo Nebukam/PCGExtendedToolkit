@@ -4,6 +4,7 @@
 #include "Paths/PCGExOrient.h"
 
 
+#include "Data/PCGExData.h"
 #include "Paths/Orient/PCGExOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExOrientElement"

@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExWriteIndex.h"
 
+#include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGSplineData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"

@@ -3,7 +3,11 @@
 
 #include "Topology/PCGExTopology.h"
 
+#include "PCGExContext.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointElements.h"
+#include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeoPrimtives.h"
 #include "Graph/PCGExCluster.h"
 #include "Paths/PCGExPaths.h"

@@ -4,6 +4,7 @@
 #include "Graph/PCGExUnpackClusters.h"
 
 #include "Data/PCGExDataHelpers.h"
+#include "Data/PCGExDataTag.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExUnpackClusters"

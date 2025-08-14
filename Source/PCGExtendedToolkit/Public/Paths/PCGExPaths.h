@@ -3,21 +3,24 @@
 
 #pragma once
 
+#include <functional>
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
+#include "PCGExHelpers.h"
 #include "PCGExMath.h"
 
 #include "Metadata/PCGAttributePropertySelector.h"
-#include "Collections/PCGExComponentDescriptors.h"
 #include "Components/SplineMeshComponent.h"
 #include "PCGExOctree.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdge.h"
-#include "Misc/CollectionFilters/PCGExAttributeCheckFilter.h"
 
 #include "PCGExPaths.generated.h"
 
+struct FPCGExStaticMeshComponentDescriptor;
 struct FPCGExMeshCollectionEntry;
 struct FPCGSplineStruct;
+class UPCGSplineData;
 
 namespace PCGExData
 {

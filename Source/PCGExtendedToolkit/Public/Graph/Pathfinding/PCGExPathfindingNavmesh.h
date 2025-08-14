@@ -140,10 +140,7 @@ class FSampleNavmeshTask final : public FPCGExPathfindingTask
 public:
 	FSampleNavmeshTask(const int32 InTaskIndex,
 	                   const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-	                   const TArray<PCGExPathfinding::FSeedGoalPair>* InQueries)
-		: FPCGExPathfindingTask(InTaskIndex, InPointIO, InQueries)
-	{
-	}
+	                   const TArray<PCGExPathfinding::FSeedGoalPair>* InQueries);
 
 	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 };

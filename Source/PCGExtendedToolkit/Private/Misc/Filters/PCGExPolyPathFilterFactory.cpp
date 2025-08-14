@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
+#include "Data/PCGExPointIO.h"
 #include "Data/PCGSplineData.h"
 
 

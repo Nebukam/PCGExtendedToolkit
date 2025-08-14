@@ -5,6 +5,7 @@
 #include "Misc/PCGExSortPoints.h"
 
 
+#include "Data/PCGExData.h"
 #include "Misc/PCGExModularSortPoints.h"
 
 

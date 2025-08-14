@@ -11,6 +11,12 @@
 
 #include "PCGExWriteIndex.generated.h"
 
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/write-index"))
 class UPCGExWriteIndexSettings : public UPCGExPointsProcessorSettings
 {
