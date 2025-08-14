@@ -30,13 +30,13 @@ namespace PCGExDetails
 	}
 
 	template <typename T>
-	T TSettingValueBuffer<T>::Read(const int32 Index){ return Buffer->Read(Index); }
+	T TSettingValueBuffer<T>::Read(const int32 Index) { return Buffer->Read(Index); }
 
 	template <typename T>
-	T TSettingValueBuffer<T>::Min(){ return Buffer->Min; }
+	T TSettingValueBuffer<T>::Min() { return Buffer->Min; }
 
 	template <typename T>
-	T TSettingValueBuffer<T>::Max(){ return Buffer->Max; }
+	T TSettingValueBuffer<T>::Max() { return Buffer->Max; }
 
 	template <typename T>
 	bool TSettingValueSelector<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax)
@@ -57,10 +57,10 @@ namespace PCGExDetails
 	}
 
 	template <typename T>
-	T TSettingValueSelector<T>::Read(const int32 Index){ return Buffer->Read(Index); }
+	T TSettingValueSelector<T>::Read(const int32 Index) { return Buffer->Read(Index); }
 
 	template <typename T>
-	T TSettingValueSelector<T>::Min(){ return Buffer->Min; }
+	T TSettingValueSelector<T>::Min() { return Buffer->Min; }
 
 	template <typename T>
 	T TSettingValueSelector<T>::Max() { return Buffer->Max; }
@@ -359,6 +359,18 @@ bool FPCGExFuseDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExDat
 	DistanceDetails = PCGExDetails::MakeDistances(SourceDistance, TargetDistance);
 
 	return true;
+}
+
+uint32 FPCGExFuseDetails::GetGridKey(const FVector& Location, const int32 PointIndex) const
+{
+	const FVector Raw = ToleranceGetter->Read(PointIndex);
+	return PCGEx::GH3(Location + VoxelGridOffset, FVector(1 / Raw.X, 1 / Raw.Y, 1 / Raw.Z));
+}
+
+FBox FPCGExFuseDetails::GetOctreeBox(const FVector& Location, const int32 PointIndex) const
+{
+	const FVector Extent = ToleranceGetter->Read(PointIndex);
+	return FBox(Location - Extent, Location + Extent);
 }
 
 void FPCGExFuseDetails::GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const

@@ -4,10 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetails.h"
 #include "PCGExEdgeRefineOperation.h"
 #include "Graph/PCGExCluster.h"
 #include "PCGExEdgeRefineLineTrace.generated.h"
 
+struct FPCGExCollisionDetails;
 /**
  * 
  */

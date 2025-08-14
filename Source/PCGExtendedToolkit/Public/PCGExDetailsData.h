@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetails.h"
-#include "PCGExH.h"
+#include "PCGEx.h"
 #include "PCGExMacros.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExDetailsData.generated.h"
 
@@ -22,6 +22,8 @@ TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> V = PCGExDetails::MakeSettingValu
 V->bQuietErrors = bQuietErrors;	return V; }
 #define PCGEX_SETTING_DATA_VALUE_GET_BOOL(_NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT) PCGEX_SETTING_DATA_VALUE_GET(_NAME, _TYPE, _INPUT ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, _SOURCE, _CONSTANT);
 
+
+struct FPCGExContext;
 
 namespace PCGExData
 {
@@ -537,17 +539,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 
 	bool DoInlineInsertion() const { return bInlineInsertion; }
 
-	FORCEINLINE uint32 GetGridKey(const FVector& Location, const int32 PointIndex) const
-	{
-		const FVector Raw = ToleranceGetter->Read(PointIndex);
-		return PCGEx::GH3(Location + VoxelGridOffset, FVector(1 / Raw.X, 1 / Raw.Y, 1 / Raw.Z));
-	}
-
-	FORCEINLINE FBoxCenterAndExtent GetOctreeBox(const FVector& Location, const int32 PointIndex) const
-	{
-		return FBoxCenterAndExtent(Location, ToleranceGetter->Read(PointIndex));
-	}
-
+	uint32 GetGridKey(const FVector& Location, const int32 PointIndex) const;	
+	FBox GetOctreeBox(const FVector& Location, const int32 PointIndex) const;
+	
 	void GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const;
 
 	bool IsWithinTolerance(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const;
