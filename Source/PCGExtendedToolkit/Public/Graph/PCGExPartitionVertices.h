@@ -42,6 +42,9 @@ struct FPCGExPartitionVerticesContext final : FPCGExEdgesProcessorContext
 
 	TSharedPtr<PCGExData::FPointIOCollection> VtxPartitions;
 	TArray<PCGExGraph::FEdge> IndexedEdges;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExPartitionVerticesElement final : public FPCGExEdgesProcessorElement

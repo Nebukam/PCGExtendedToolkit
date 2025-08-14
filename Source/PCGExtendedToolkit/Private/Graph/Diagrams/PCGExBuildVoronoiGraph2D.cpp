@@ -4,6 +4,8 @@
 #include "Graph/Diagrams/PCGExBuildVoronoiGraph2D.h"
 
 #include "PCGExRandom.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -87,6 +89,7 @@ TArray<FPCGPinProperties> UPCGExBuildVoronoiGraph2DSettings::OutputPinProperties
 }
 
 PCGEX_INITIALIZE_ELEMENT(BuildVoronoiGraph2D)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(BuildVoronoiGraph2D)
 
 bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGExContext* InContext) const
 {
@@ -124,7 +127,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildVoronoi2D::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 3)
@@ -134,7 +137,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBuildVoronoi2D::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
@@ -152,7 +155,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-namespace PCGExBuildVoronoi2D
+namespace PCGExBuildVoronoiGraph2D
 {
 	FProcessor::~FProcessor()
 	{
@@ -160,7 +163,7 @@ namespace PCGExBuildVoronoi2D
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoi2D::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoiGraph2D::Process);
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 

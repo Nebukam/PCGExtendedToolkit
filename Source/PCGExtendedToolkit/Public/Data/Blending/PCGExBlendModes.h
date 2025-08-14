@@ -5,17 +5,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/SoftObjectPath.h"
-#include "PCGExMacros.h"
+#include "PCGExBlendMinMax.h"
+#include "PCGExBlendLerp.h"
 
 namespace PCGExBlend
 {
-	template <typename T>
-	T Min(const T& A, const T& B);
-
-	template <typename T>
-	T Max(const T& A, const T& B);
-
 	template <typename T>
 	T Add(const T& A, const T& B);
 
@@ -47,9 +41,6 @@ namespace PCGExBlend
 	T AbsoluteMax(const T& A, const T& B);
 
 	template <typename T>
-	T Lerp(const T& A, const T& B, const double& W = 0);
-
-	template <typename T>
 	T Div(const T& A, const double Divider);
 
 	template <typename T>
@@ -68,8 +59,6 @@ namespace PCGExBlend
 	T NaiveUnsignedHash(const T& A, const T& B);
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-extern template _TYPE Min<_TYPE>(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE Max<_TYPE>(const _TYPE& A, const _TYPE& B); \
 extern template _TYPE Add<_TYPE>(const _TYPE& A, const _TYPE& B); \
 extern template _TYPE ModSimple<_TYPE>(const _TYPE& A, const double Modulo); \
 extern template _TYPE ModComplex<_TYPE>(const _TYPE& A, const _TYPE& B); \
@@ -80,14 +69,13 @@ extern template _TYPE UnsignedMin<_TYPE>(const _TYPE& A, const _TYPE& B); \
 extern template _TYPE UnsignedMax<_TYPE>(const _TYPE& A, const _TYPE& B); \
 extern template _TYPE AbsoluteMin<_TYPE>(const _TYPE& A, const _TYPE& B); \
 extern template _TYPE AbsoluteMax<_TYPE>(const _TYPE& A, const _TYPE& B); \
-extern template _TYPE Lerp<_TYPE>(const _TYPE& A, const _TYPE& B, const double& W); \
 extern template _TYPE Div<_TYPE>(const _TYPE& A, const double Divider); \
 extern template _TYPE Mult<_TYPE>(const _TYPE& A, const _TYPE& B); \
 extern template _TYPE Copy<_TYPE>(const _TYPE& A, const _TYPE& B); \
 extern template _TYPE NoBlend<_TYPE>(const _TYPE& A, const _TYPE& B); \
 extern template _TYPE NaiveHash<_TYPE>(const _TYPE& A, const _TYPE& B); \
 extern template _TYPE NaiveUnsignedHash<_TYPE>(const _TYPE& A, const _TYPE& B);
-	
+
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 }

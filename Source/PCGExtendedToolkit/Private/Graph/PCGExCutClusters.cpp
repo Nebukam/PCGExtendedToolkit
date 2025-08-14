@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExCutClusters.h"
 
+#include "PCGExDataMath.h"
+#include "Data/PCGExData.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
@@ -24,6 +26,7 @@ PCGExData::EIOInit UPCGExCutEdgesSettings::GetMainOutputInitMode() const { retur
 PCGExData::EIOInit UPCGExCutEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 
 PCGEX_INITIALIZE_ELEMENT(CutEdges)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(CutEdges)
 
 bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 {
@@ -118,9 +121,9 @@ bool FPCGExCutEdgesElement::ExecuteInternal(
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExPaths::State_BuildingPaths)
 	{
-		if (!Context->StartProcessingClusters<PCGExCutEdges::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExCutEdges::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				if (Context->bWantsVtxProcessing) { NewBatch->VtxFilterFactories = &Context->VtxFilterFactories; }
 				if (Context->bWantsEdgesProcessing) { NewBatch->EdgeFilterFactories = &Context->EdgeFilterFactories; }

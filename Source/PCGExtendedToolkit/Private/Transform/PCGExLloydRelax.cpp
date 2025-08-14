@@ -4,12 +4,14 @@
 #include "Transform/PCGExLloydRelax.h"
 
 
+#include "Data/PCGExData.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLloydRelaxElement"
 #define PCGEX_NAMESPACE LloydRelax
 
 PCGEX_INITIALIZE_ELEMENT(LloydRelax)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(LloydRelax)
 
 bool FPCGExLloydRelaxElement::Boot(FPCGExContext* InContext) const
 {
@@ -30,7 +32,7 @@ bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExLloydRelax::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() <= 4)
@@ -41,7 +43,7 @@ bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExLloydRelax::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

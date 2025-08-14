@@ -3,6 +3,9 @@
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 
+#include "Data/PCGExDataTag.h"
+#include "Data/Blending//PCGExBlendModes.h"
+
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
 
@@ -54,6 +57,7 @@ void FPCGExSampleNearestSplineContext::RegisterAssetDependencies()
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSpline)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleNearestSpline)
 
 bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 {
@@ -164,9 +168,9 @@ bool FPCGExSampleNearestSplineElement::ExecuteInternal(FPCGContext* InContext) c
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestSpline::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestSpline::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
 			}))

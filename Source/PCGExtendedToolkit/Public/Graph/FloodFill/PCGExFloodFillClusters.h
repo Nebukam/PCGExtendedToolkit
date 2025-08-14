@@ -194,6 +194,9 @@ struct FPCGExClusterDiffusionContext final : FPCGExEdgesProcessorContext
 	PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	int32 ExpectedPathCount = 0;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExClusterDiffusionElement final : public FPCGExEdgesProcessorElement
@@ -277,7 +280,7 @@ namespace PCGExClusterDiffusion
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void Process() override;
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 		virtual void Write() override;
 	};
 }

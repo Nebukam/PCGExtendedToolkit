@@ -5,6 +5,7 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 
 #include "PCGExRandom.h"
+#include "Data/PCGExPointElements.h"
 
 
 void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExInstancedFactory* Other)

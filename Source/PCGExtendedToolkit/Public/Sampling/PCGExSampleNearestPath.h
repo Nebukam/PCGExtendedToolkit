@@ -406,6 +406,9 @@ struct FPCGExSampleNearestPathContext final : FPCGExPointsProcessorContext
 	PCGEX_FOREACH_FIELD_NEARESTPATH(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	virtual void RegisterAssetDependencies() override;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSampleNearestPathElement final : public FPCGExPointsProcessorElement

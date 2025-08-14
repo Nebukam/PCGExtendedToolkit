@@ -45,6 +45,9 @@ public:
 struct FPCGExDestroyActorContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExDestroyActorElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExDestroyActorElement final : public FPCGExPointsProcessorElement
@@ -56,7 +59,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExDestroyActors
+namespace PCGExDestroyActor
 {
 	const FName SourceOverridesPacker = TEXT("Overrides : Packer");
 

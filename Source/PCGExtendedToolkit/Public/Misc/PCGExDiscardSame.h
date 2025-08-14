@@ -93,6 +93,9 @@ private:
 struct FPCGExDiscardSameContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExDiscardSameElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExDiscardSameElement final : public FPCGExPointsProcessorElement

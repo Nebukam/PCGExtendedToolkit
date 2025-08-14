@@ -199,6 +199,9 @@ struct FPCGExWriteEdgePropertiesContext final : FPCGExEdgesProcessorContext
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement

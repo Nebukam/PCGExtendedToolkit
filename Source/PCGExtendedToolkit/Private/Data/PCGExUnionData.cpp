@@ -4,6 +4,7 @@
 #include "Data/PCGExUnionData.h"
 
 #include "PCGExPointsMT.h"
+#include "Data/PCGExData.h"
 
 namespace PCGExData
 {

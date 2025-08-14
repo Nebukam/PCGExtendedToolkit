@@ -51,6 +51,9 @@ public:
 struct FPCGExAttributeHashContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributeHashElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExAttributeHashElement final : public FPCGExPointsProcessorElement

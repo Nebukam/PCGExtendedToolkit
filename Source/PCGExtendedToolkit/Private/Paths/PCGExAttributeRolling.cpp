@@ -40,6 +40,7 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRolling)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeRolling)
 
 bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 {
@@ -102,14 +103,14 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		// TODO : Skip completion
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				PCGEX_SKIP_INVALID_PATH_ENTRY
 				Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bPrefetchData = !Context->BlendingFactories.IsEmpty();
 			}))

@@ -3,6 +3,9 @@
 
 #include "Paths/PCGExShrinkPath.h"
 
+#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExShrinkPathElement"
 #define PCGEX_NAMESPACE ShrinkPath
@@ -15,6 +18,7 @@ UPCGExShrinkPathSettings::UPCGExShrinkPathSettings(
 }
 
 PCGEX_INITIALIZE_ELEMENT(ShrinkPath)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(ShrinkPath)
 
 void FPCGExShrinkPathContext::GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const
 {
@@ -126,7 +130,7 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExShrinkPath::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -136,7 +140,7 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExShrinkPath::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

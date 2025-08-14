@@ -4,9 +4,9 @@
 #include "PCGExContext.h"
 
 #include "PCGComponent.h"
+#include "PCGExHelpers.h"
 #include "PCGExMacros.h"
 #include "PCGExMT.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGManagedResource.h"
 #include "Engine/AssetManager.h"
 #include "Helpers/PCGHelpers.h"
@@ -137,9 +137,7 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetAsyncManager()
 	{
 		FWriteScopeLock WriteLock(AsyncLock);
 		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
-
-		if (const UPCGExPointsProcessorSettings* Settings = GetInputSettings<UPCGExPointsProcessorSettings>()) { PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority); }
-		else { AsyncManager->WorkPriority = LowLevelTasks::ETaskPriority::Default; }
+		PCGExMT::SetWorkPriority(WorkPriority, AsyncManager->WorkPriority);
 	}
 
 	return AsyncManager;
@@ -486,14 +484,14 @@ bool FPCGExContext::IsAsyncWorkComplete()
 bool FPCGExContext::CancelExecution(const FString& InReason)
 {
 	if (bExecutionCancelled) { return true; }
-	
+
 	if (!InReason.IsEmpty() && !bQuietCancellationError) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
-	
+
 	bExecutionCancelled = true;
 	PCGEX_TERMINATE_ASYNC
 
 	OutputData.Reset();
-	if (bPropagateAbortedExecution){ OutputData.bCancelExecution = true; }
+	if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
 
 	ResumeExecution();
 	return true;

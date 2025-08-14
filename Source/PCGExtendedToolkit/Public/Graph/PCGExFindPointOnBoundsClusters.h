@@ -74,6 +74,9 @@ struct FPCGExFindPointOnBoundsClustersContext final : FPCGExEdgesProcessorContex
 	TSharedPtr<PCGEx::FAttributesInfos> MergedAttributesInfos;
 
 	virtual void ClusterProcessing_InitialProcessingDone() override;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExFindPointOnBoundsClustersElement final : public FPCGExEdgesProcessorElement

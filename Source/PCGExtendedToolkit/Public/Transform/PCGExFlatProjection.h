@@ -12,6 +12,12 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExFlatProjection.generated.h"
 
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/flat-projection"))
 class UPCGExFlatProjectionSettings : public UPCGExPointsProcessorSettings
 {
@@ -55,6 +61,9 @@ struct FPCGExFlatProjectionContext final : FPCGExPointsProcessorContext
 	friend class FPCGExFlatProjectionElement;
 
 	FName CachedTransformAttributeName = NAME_None;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExFlatProjectionElement final : public FPCGExPointsProcessorElement

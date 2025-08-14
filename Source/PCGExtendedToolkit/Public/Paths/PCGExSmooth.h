@@ -96,6 +96,9 @@ struct FPCGExSmoothContext final : FPCGExPathProcessorContext
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 
 	UPCGExSmoothingInstancedFactory* SmoothingMethod = nullptr;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSmoothElement final : public FPCGExPathProcessorElement

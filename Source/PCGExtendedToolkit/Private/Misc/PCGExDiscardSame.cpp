@@ -18,6 +18,7 @@ TArray<FPCGPinProperties> UPCGExDiscardSameSettings::OutputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(DiscardSame)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(DiscardSame)
 
 bool FPCGExDiscardSameElement::Boot(FPCGExContext* InContext) const
 {
@@ -36,9 +37,9 @@ bool FPCGExDiscardSameElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExDiscardSame::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExDiscardSame::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{
@@ -140,8 +141,9 @@ namespace PCGExDiscardSame
 
 		if (Settings->TestMode == EPCGExFilterGroupMode::AND)
 		{
-			for (TSharedRef<FProcessor> P : Batch->Processors)
+			for (int Pi = 0; Pi < Batch->GetNumProcessors(); Pi++)
 			{
+				const TSharedRef<FProcessor> P = Batch->GetProcessorRef<FProcessor>(Pi);
 				if (P == ThisPtr) { continue; }
 
 				if (Settings->bTestBounds && P->HashBounds != HashBounds) { continue; }
@@ -154,8 +156,9 @@ namespace PCGExDiscardSame
 		}
 		else
 		{
-			for (TSharedRef<FProcessor> P : Batch->Processors)
+			for (int Pi = 0; Pi < Batch->GetNumProcessors(); Pi++)
 			{
+				const TSharedRef<FProcessor> P = Batch->GetProcessorRef<FProcessor>(Pi);
 				if (P == ThisPtr) { continue; }
 
 				if ((Settings->bTestBounds && P->HashBounds == HashBounds) ||

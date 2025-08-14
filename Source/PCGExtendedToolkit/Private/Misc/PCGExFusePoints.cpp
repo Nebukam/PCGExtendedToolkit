@@ -28,6 +28,7 @@ namespace PCGExFuse
 }
 
 PCGEX_INITIALIZE_ELEMENT(FusePoints)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(FusePoints)
 
 bool FPCGExFusePointsElement::Boot(FPCGExContext* InContext) const
 {
@@ -53,9 +54,9 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFusePoints::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExFusePoints::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))

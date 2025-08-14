@@ -4,6 +4,7 @@
 #include "Transform/PCGExCopyToPaths.h"
 
 
+#include "Data/PCGExDataTag.h"
 #include "Helpers/PCGHelpers.h"
 #include "Paths/PCGExPaths.h"
 
@@ -12,6 +13,7 @@
 #define PCGEX_NAMESPACE CopyToPaths
 
 PCGEX_INITIALIZE_ELEMENT(CopyToPaths)
+PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(CopyToPaths)
 
 TArray<FPCGPinProperties> UPCGExCopyToPathsSettings::InputPinProperties() const
 {
@@ -128,7 +130,7 @@ bool FPCGExCopyToPathsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints<PCGExCopyToPaths::FBatch>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -138,7 +140,7 @@ bool FPCGExCopyToPathsElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExCopyToPaths::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

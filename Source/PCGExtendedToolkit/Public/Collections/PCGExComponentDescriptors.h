@@ -11,17 +11,9 @@
 #include "VT/RuntimeVirtualTexture.h"
 #include "VT/RuntimeVirtualTextureEnum.h"
 #include "Engine/EngineTypes.h"
+#include "PCGExCommon.h"
 
 #include "PCGExComponentDescriptors.generated.h"
-
-UENUM()
-enum class EPCGExSplineMeshAxis : uint8
-{
-	Default = 0 UMETA(Hidden),
-	X       = 1 UMETA(DisplayName = "X", ToolTip="X Axis"),
-	Y       = 2 UMETA(DisplayName = "Y", ToolTip="Y Axis"),
-	Z       = 3 UMETA(DisplayName = "Z", ToolTip="Z Axis"),
-};
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Primitive Component Descriptor")
 struct PCGEXTENDEDTOOLKIT_API FPCGExPrimitiveComponentDescriptor

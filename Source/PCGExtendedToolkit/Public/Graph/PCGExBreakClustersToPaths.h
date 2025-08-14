@@ -98,6 +98,9 @@ struct FPCGExBreakClustersToPathsContext final : FPCGExEdgesProcessorContext
 	bool bUsePerClusterProjection = false;
 	TSharedPtr<PCGExData::FPointIOCollection> Paths;
 	TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExBreakClustersToPathsElement final : public FPCGExEdgesProcessorElement

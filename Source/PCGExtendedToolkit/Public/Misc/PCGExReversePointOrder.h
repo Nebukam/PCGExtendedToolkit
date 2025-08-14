@@ -13,6 +13,11 @@
 
 #include "PCGExReversePointOrder.generated.h"
 
+namespace PCGExData
+{
+	class IBuffer;
+}
+
 UENUM()
 enum class EPCGExPointReverseMethod : uint8
 {
@@ -113,6 +118,9 @@ public:
 struct FPCGExReversePointOrderContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExReversePointOrderElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExReversePointOrderElement final : public FPCGExPointsProcessorElement

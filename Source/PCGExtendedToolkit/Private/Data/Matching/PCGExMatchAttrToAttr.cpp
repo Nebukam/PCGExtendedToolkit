@@ -3,6 +3,9 @@
 
 #include "Data/Matching/PCGExMatchAttrToAttr.h"
 
+#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExDataHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExMatchAttrToAttr"
 #define PCGEX_NAMESPACE MatchAttrToAttr

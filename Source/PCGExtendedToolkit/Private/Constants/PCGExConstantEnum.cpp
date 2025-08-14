@@ -5,6 +5,10 @@
 
 #include "PCGComponent.h"
 #include "PCGExCompare.h"
+#include "PCGExHelpers.h"
+#include "PCGModule.h"
+#include "PCGParamData.h"
+#include "Metadata/PCGMetadataAttributeTpl.h"
 
 #if WITH_EDITOR
 FString UPCGExConstantEnumSettings::GetDisplayName() const

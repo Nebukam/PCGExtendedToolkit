@@ -41,6 +41,7 @@ TArray<FPCGPinProperties> UPCGExGetTextureDataSettings::OutputPinProperties() co
 }
 
 PCGEX_INITIALIZE_ELEMENT(GetTextureData)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(GetTextureData)
 
 bool FPCGExGetTextureDataElement::Boot(FPCGExContext* InContext) const
 {
@@ -84,9 +85,9 @@ bool FPCGExGetTextureDataElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExGetTextureData::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExGetTextureData::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

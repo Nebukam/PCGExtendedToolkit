@@ -53,6 +53,9 @@ struct FPCGExFlagNodesContext final : FPCGExEdgesProcessorContext
 	friend class FPCGExFlagNodesElement;
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StateFactories;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExFlagNodesElement final : public FPCGExEdgesProcessorElement
@@ -101,6 +104,6 @@ namespace PCGExFlagNodes
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 	};
 }

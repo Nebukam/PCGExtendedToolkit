@@ -57,6 +57,9 @@ public:
 struct FPCGExBitwiseOperationContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBitwiseOperationElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBitwiseOperationElement final : public FPCGExPointsProcessorElement

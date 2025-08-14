@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "Graph/Filters/PCGExAdjacency.h"
-#include "PCGExDetails.h"
 #include "PCGExDetailsData.h"
 
 

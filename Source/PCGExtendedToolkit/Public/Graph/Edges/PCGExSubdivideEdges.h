@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetails.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
@@ -88,6 +89,9 @@ struct FPCGExSubdivideEdgesContext final : FPCGExEdgesProcessorContext
 	friend class FPCGExSubdivideEdgesElement;
 
 	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExSubdivideEdgesElement final : public FPCGExEdgesProcessorElement

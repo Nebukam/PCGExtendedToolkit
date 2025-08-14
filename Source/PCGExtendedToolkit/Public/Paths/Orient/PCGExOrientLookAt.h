@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOrientOperation.h"
+#include "Data/PCGExData.h"
 #include "PCGExOrientLookAt.generated.h"
 
 UENUM()

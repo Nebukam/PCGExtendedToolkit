@@ -108,6 +108,9 @@ struct FPCGExCutEdgesContext final : FPCGExEdgesProcessorContext
 
 	TArray<TSharedRef<PCGExData::FFacade>> PathFacades;
 	TArray<TSharedRef<PCGExPaths::FPath>> Paths;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExCutEdgesElement final : public FPCGExEdgesProcessorElement

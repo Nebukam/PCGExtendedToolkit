@@ -32,6 +32,7 @@ TArray<FPCGPinProperties> UPCGExBinPackingSettings::OutputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(BinPacking)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(BinPacking)
 
 bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 {
@@ -100,12 +101,12 @@ bool FPCGExBinPackingElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBinPacking::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				return Context->ValidIOIndices.Contains(Entry->IOIndex);
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBinPacking::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				TArray<FPCGExSortRuleConfig> OutRules;
 				Settings->GetSortingRules(Context, OutRules);

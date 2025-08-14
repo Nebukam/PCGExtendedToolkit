@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetails.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
@@ -205,6 +206,9 @@ struct FPCGExSampleNearestSurfaceContext final : FPCGExPointsProcessorContext
 	TArray<UPrimitiveComponent*> IncludedPrimitives;
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL_TOGGLE)
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExSampleNearestSurfaceElement final : public FPCGExPointsProcessorElement

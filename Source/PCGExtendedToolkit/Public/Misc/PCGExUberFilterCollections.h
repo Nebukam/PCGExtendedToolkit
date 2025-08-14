@@ -100,6 +100,9 @@ struct FPCGExUberFilterCollectionsContext final : FPCGExPointsProcessorContext
 	PCGExData::EIOInit DataIOInit = PCGExData::EIOInit::Forward;
 
 	int32 NumPairs = 0;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExUberFilterCollectionsElement final : public FPCGExPointsProcessorElement

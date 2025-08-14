@@ -2,8 +2,9 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExEdge.h"
+
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/PCGExDataValue.h"
 #include "Paths/PCGExPaths.h"
 
 namespace PCGExGraph

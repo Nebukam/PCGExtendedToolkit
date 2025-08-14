@@ -3,7 +3,9 @@
 
 #include "Sampling/PCGExSampleVtxByID.h"
 
+#include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExDataTag.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Graph/PCGExGraph.h"
@@ -32,6 +34,7 @@ TArray<FPCGPinProperties> UPCGExSampleVtxByIDSettings::InputPinProperties() cons
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleVtxByID)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleVtxByID)
 
 bool FPCGExSampleVtxByIDElement::Boot(FPCGExContext* InContext) const
 {
@@ -116,9 +119,9 @@ bool FPCGExSampleVtxByIDElement::ExecuteInternal(FPCGContext* InContext) const
 
 			PCGEX_SHARED_CONTEXT_VOID(WeakHandle)
 
-			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleVtxByIDs::FProcessor>>(
+			if (!Context->StartBatchProcessingPoints(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleVtxByIDs::FProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 					NewBatch->bRequiresWriteStep = Settings->bPruneFailedSamples;
 				}))
@@ -143,7 +146,7 @@ bool FPCGExSampleVtxByIDElement::CanExecuteOnlyOnMainThread(FPCGContext* Context
 	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
 }
 
-namespace PCGExSampleVtxByIDs
+namespace PCGExSampleVtxByID
 {
 	FProcessor::~FProcessor()
 	{
@@ -157,7 +160,7 @@ namespace PCGExSampleVtxByIDs
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleVtxByIDs::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleVtxByID::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 

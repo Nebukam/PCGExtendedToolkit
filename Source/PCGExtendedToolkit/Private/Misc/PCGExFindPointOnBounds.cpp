@@ -10,6 +10,7 @@
 #define PCGEX_NAMESPACE FindPointOnBounds
 
 PCGEX_INITIALIZE_ELEMENT(FindPointOnBounds)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(FindPointOnBounds)
 
 bool FPCGExFindPointOnBoundsElement::Boot(FPCGExContext* InContext) const
 {
@@ -53,9 +54,9 @@ bool FPCGExFindPointOnBoundsElement::ExecuteInternal(FPCGContext* InContext) con
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFindPointOnBounds::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExFindPointOnBounds::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = true;
 			}))

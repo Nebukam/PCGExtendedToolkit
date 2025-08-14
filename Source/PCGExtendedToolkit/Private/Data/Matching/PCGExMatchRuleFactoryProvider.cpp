@@ -3,6 +3,8 @@
 
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
+#include "Data/PCGExDataHelpers.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateMatchRule"
 #define PCGEX_NAMESPACE CreateMatchRule
 

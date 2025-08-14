@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExMergePointsByTag.h"
 
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIOMerger.h"
 
 #define LOCTEXT_NAMESPACE "PCGExMergePointsByTagElement"

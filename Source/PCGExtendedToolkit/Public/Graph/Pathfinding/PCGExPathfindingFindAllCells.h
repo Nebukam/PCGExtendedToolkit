@@ -80,6 +80,9 @@ struct FPCGExFindAllCellsContext final : FPCGExEdgesProcessorContext
 	TSharedPtr<PCGExData::FPointIO> Seeds;
 
 	mutable FRWLock SeedOutputLock;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExFindAllCellsElement final : public FPCGExEdgesProcessorElement

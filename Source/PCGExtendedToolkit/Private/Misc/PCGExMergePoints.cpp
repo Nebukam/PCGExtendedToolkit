@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExMergePoints.h"
 
+
+#include "Data/PCGExDataTag.h"
 #include "Graph/PCGExEdge.h"
 
 
@@ -10,6 +12,7 @@
 #define PCGEX_NAMESPACE MergePoints
 
 PCGEX_INITIALIZE_ELEMENT(MergePoints)
+PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(MergePoints)
 
 TArray<FPCGPinProperties> UPCGExMergePointsSettings::OutputPinProperties() const
 {
@@ -46,9 +49,9 @@ bool FPCGExMergePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExMergePoints::FBatch>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExMergePoints::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
@@ -198,18 +201,19 @@ namespace PCGExMergePoints
 		Merger = MakeShared<FPCGExPointIOMerger>(CompositeDataFacade.ToSharedRef());
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& PointsProcessor)
+	bool FBatch::PrepareSingle(const TSharedRef<PCGExPointsMT::IProcessor>& InProcessor)
 	{
-		if (!TBatch<FProcessor>::PrepareSingle(PointsProcessor)) { return false; }
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MergePoints);
+		PCGEX_TYPED_PROCESSOR_REF
 
-		PointsProcessor->OutScope = Merger->Append(PointsProcessor->PointDataFacade->Source).Write;
-		PointsProcessor->ConvertedTags = ConvertedTags;
+		TypedProcessor->OutScope = Merger->Append(InProcessor->PointDataFacade->Source).Write;
+		TypedProcessor->ConvertedTags = ConvertedTags;
 
 		if (Settings->bTagToAttributes)
 		{
-			ConvertedTags->Append(PointsProcessor->PointDataFacade->Source->Tags->FlattenToArrayOfNames(false));
+			ConvertedTags->Append(InProcessor->PointDataFacade->Source->Tags->FlattenToArrayOfNames(false));
 		}
 
 		return true;

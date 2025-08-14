@@ -4,11 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
+
 #include "PCGExGlobalSettings.h"
-
 #include "PCGExShapeProcessor.h"
-
 
 #include "PCGExCreateShapes.generated.h"
 
@@ -69,6 +67,9 @@ public:
 struct FPCGExCreateShapesContext final : FPCGExShapeProcessorContext
 {
 	friend class FPCGExCreateShapesElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExCreateShapesElement final : public FPCGExShapeProcessorElement

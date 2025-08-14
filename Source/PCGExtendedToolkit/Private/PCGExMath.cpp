@@ -58,7 +58,8 @@ namespace PCGExMath
 	{
 		FMath::SegmentDistToSegment(A, B, A2, B2, OutSelf, OutOther);
 
-		switch (Mode) {
+		switch (Mode)
+		{
 		case EIntersectionTestMode::Loose:
 			break;
 		case EIntersectionTestMode::Strict:

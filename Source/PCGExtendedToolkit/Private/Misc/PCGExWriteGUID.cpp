@@ -4,6 +4,7 @@
 #include "Misc/PCGExWriteGUID.h"
 
 
+#include "Data/PCGExData.h"
 #include "Helpers/PCGHelpers.h"
 #include "Misc/Guid.h"
 
@@ -85,6 +86,7 @@ void FPCGExGUIDDetails::GetGUID(const int32 Index, const PCGExData::FConstPoint&
 }
 
 PCGEX_INITIALIZE_ELEMENT(WriteGUID)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteGUID)
 
 bool FPCGExWriteGUIDElement::Boot(FPCGExContext* InContext) const
 {
@@ -105,9 +107,9 @@ bool FPCGExWriteGUIDElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWriteGUID::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExWriteGUID::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

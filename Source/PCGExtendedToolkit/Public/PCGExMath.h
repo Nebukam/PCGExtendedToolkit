@@ -9,8 +9,6 @@
 #include "PCGEx.h"
 #include "PCGExMath.generated.h"
 
-#define MIN_dbl_neg MAX_dbl *-1
-
 UENUM()
 enum class EPCGExMeanMeasure : uint8
 {
@@ -27,15 +25,6 @@ enum class EPCGExMeanMethod : uint8
 	ModeMax = 3 UMETA(DisplayName = "Mode (Lowest)", ToolTip="Mode length (~= lowest most common value)"),
 	Central = 4 UMETA(DisplayName = "Central", ToolTip="Central uses the middle value between Min/Max input values."),
 	Fixed   = 5 UMETA(DisplayName = "Fixed", ToolTip="Fixed threshold"),
-};
-
-UENUM()
-enum class EPCGExPointBoundsSource : uint8
-{
-	ScaledBounds  = 0 UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),
-	DensityBounds = 1 UMETA(DisplayName = "Density Bounds", ToolTip="Density Bounds (scaled + steepness)"),
-	Bounds        = 2 UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds (why?)"),
-	Center        = 3 UMETA(DisplayName = "Center", ToolTip="A tiny size 1 box.")
 };
 
 namespace PCGExMath

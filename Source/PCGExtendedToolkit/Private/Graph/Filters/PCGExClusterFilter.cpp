@@ -3,6 +3,8 @@
 
 #include "Graph/Filters/PCGExClusterFilter.h"
 
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExClusterFilter

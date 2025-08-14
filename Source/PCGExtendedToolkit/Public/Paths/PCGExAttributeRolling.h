@@ -159,6 +159,9 @@ struct FPCGExAttributeRollingContext final : FPCGExPathProcessorContext
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 
 	PCGEX_FOREACH_FIELD_ATTRIBUTE_ROLL(PCGEX_OUTPUT_DECL_TOGGLE)
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExAttributeRollingElement final : public FPCGExPathProcessorElement

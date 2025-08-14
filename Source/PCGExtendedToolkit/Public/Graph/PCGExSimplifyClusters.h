@@ -102,6 +102,9 @@ struct FPCGExSimplifyClustersContext : FPCGExEdgesProcessorContext
 	FPCGExCarryOverDetails EdgeCarryOverDetails;
 
 	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement
@@ -167,6 +170,6 @@ namespace PCGExSimplifyClusters
 		virtual const PCGExGraph::FGraphMetadataDetails* GetGraphMetadataDetails() override;
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void Process() override;
-		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 	};
 }

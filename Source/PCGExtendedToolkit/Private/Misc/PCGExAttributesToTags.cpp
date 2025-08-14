@@ -52,6 +52,7 @@ TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::OutputPinProperties() 
 }
 
 PCGEX_INITIALIZE_ELEMENT(AttributesToTags)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributesToTags)
 
 bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 {
@@ -136,9 +137,9 @@ bool FPCGExAttributesToTagsElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAttributesToTags::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAttributesToTags::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

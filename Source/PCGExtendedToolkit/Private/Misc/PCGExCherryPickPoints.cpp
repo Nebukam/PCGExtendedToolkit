@@ -11,6 +11,7 @@
 #define PCGEX_NAMESPACE CherryPickPoints
 
 PCGEX_INITIALIZE_ELEMENT(CherryPickPoints)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(CherryPickPoints)
 
 TArray<FPCGPinProperties> UPCGExCherryPickPointsSettings::InputPinProperties() const
 {
@@ -50,9 +51,9 @@ bool FPCGExCherryPickPointsElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExCherryPickPoints::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExCherryPickPoints::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bSkipCompletion = true;
 			}))

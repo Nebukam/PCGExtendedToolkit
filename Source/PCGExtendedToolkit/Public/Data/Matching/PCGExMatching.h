@@ -6,7 +6,6 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExFilterGroup.h"
 

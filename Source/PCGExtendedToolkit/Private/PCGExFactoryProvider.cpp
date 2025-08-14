@@ -7,6 +7,7 @@
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExDataPreloader.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExData.h"
 #include "PCGPin.h"
 #include "Tasks/Task.h"
 
@@ -195,7 +196,7 @@ void FPCGExFactoryProviderElement::DisabledPassThroughData(FPCGContext* Context)
 
 namespace PCGExFactories
 {
-	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, bool bThrowError)
+	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, const bool bThrowError)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 		TSet<uint32> UniqueData;
@@ -243,7 +244,39 @@ namespace PCGExFactories
 			return false;
 		}
 
+		OutFactories.Sort([](const UPCGExFactoryData& A, const UPCGExFactoryData& B) { return A.Priority < B.Priority; });
+
 		return true;
+	}
+
+	void RegisterConsumableAttributesWithData_Internal(const TArray<TObjectPtr<const UPCGExFactoryData>>& InFactories, FPCGExContext* InContext, const UPCGData* InData)
+	{
+		check(InContext)
+
+		if (!InData || InFactories.IsEmpty()) { return; }
+
+		for (const TObjectPtr<const UPCGExFactoryData>& Factory : InFactories)
+		{
+			if (!Factory.Get()) { continue; }
+			Factory->RegisterConsumableAttributesWithData(InContext, InData);
+		}
+	}
+
+	void RegisterConsumableAttributesWithFacade_Internal(const TArray<TObjectPtr<const UPCGExFactoryData>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InFacade)
+	{
+		FPCGContext::FSharedContext<FPCGExContext> SharedContext(InFacade->Source->GetContextHandle());
+		check(SharedContext.Get())
+
+		if (!InFacade->GetIn()) { return; }
+
+		const UPCGData* Data = InFacade->GetIn();
+
+		if (!Data) { return; }
+
+		for (const TObjectPtr<const UPCGExFactoryData>& Factory : InFactories)
+		{
+			Factory->RegisterConsumableAttributesWithData(SharedContext.Get(), Data);
+		}
 	}
 }
 

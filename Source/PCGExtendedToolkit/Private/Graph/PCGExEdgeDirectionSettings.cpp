@@ -6,7 +6,6 @@
 #include "Data/PCGExDataPreloader.h"
 #include "PCGExSorting.h"
 #include "Graph/PCGExCluster.h"
-#include "Graph/Data/PCGExClusterData.h"
 
 void FPCGExEdgeDirectionSettings::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>* InSortingRules) const
 {

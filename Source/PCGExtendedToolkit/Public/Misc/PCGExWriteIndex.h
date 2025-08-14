@@ -7,8 +7,15 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExDataHelpers.h"
 
 #include "PCGExWriteIndex.generated.h"
+
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="metadata/write-index"))
 class UPCGExWriteIndexSettings : public UPCGExPointsProcessorSettings
@@ -115,6 +122,9 @@ struct FPCGExWriteIndexContext final : FPCGExPointsProcessorContext
 	FPCGAttributeIdentifier EntryIndexIdentifier;
 	FPCGAttributeIdentifier NumEntriesIdentifier;
 	FPCGAttributeIdentifier CollectionIndexIdentifier;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement

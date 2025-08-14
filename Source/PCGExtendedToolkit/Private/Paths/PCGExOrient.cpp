@@ -4,6 +4,7 @@
 #include "Paths/PCGExOrient.h"
 
 
+#include "Data/PCGExData.h"
 #include "Paths/Orient/PCGExOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExOrientElement"
@@ -17,6 +18,7 @@ TArray<FPCGPinProperties> UPCGExOrientSettings::InputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(Orient)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(Orient)
 
 bool FPCGExOrientElement::Boot(FPCGExContext* InContext) const
 {
@@ -50,7 +52,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExOrient::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -61,7 +63,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExOrient::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

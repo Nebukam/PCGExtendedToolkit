@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetails.h"
 #include "PCGExFactoryProvider.h"
 #include "PCGExPathProcessor.h"
 
@@ -190,6 +191,9 @@ struct FPCGExBevelPathContext final : FPCGExPathProcessorContext
 
 	TArray<FVector> CustomProfilePositions;
 	double CustomLength;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBevelPathElement final : public FPCGExPathProcessorElement

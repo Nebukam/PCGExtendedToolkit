@@ -3,10 +3,13 @@
 
 #pragma once
 
+#include <functional>
 #include "CoreMinimal.h"
+#include "PCGExDetailsData.h"
+#include "PCGExHelpers.h"
+#include "PCGExMath.h"
 
 #include "Metadata/PCGAttributePropertySelector.h"
-#include "Collections/PCGExComponentDescriptors.h"
 #include "Components/SplineMeshComponent.h"
 #include "PCGExOctree.h"
 #include "Geometry/PCGExGeo.h"
@@ -14,8 +17,10 @@
 
 #include "PCGExPaths.generated.h"
 
+struct FPCGExStaticMeshComponentDescriptor;
 struct FPCGExMeshCollectionEntry;
 struct FPCGSplineStruct;
+class UPCGSplineData;
 
 namespace PCGExData
 {
@@ -230,11 +235,15 @@ namespace PCGExPaths
 
 	PCGEXTENDEDTOOLKIT_API
 	void SetClosedLoop(UPCGData* InData, const bool bIsClosedLoop);
-	static void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop) { SetClosedLoop(InData->GetOut(), bIsClosedLoop); }
+
+	PCGEXTENDEDTOOLKIT_API
+	void SetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsClosedLoop);
 
 	PCGEXTENDEDTOOLKIT_API
 	bool GetClosedLoop(const UPCGData* InData);
-	static bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData) { return GetClosedLoop(InData->GetIn()); }
+
+	PCGEXTENDEDTOOLKIT_API
+	bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData);
 
 	PCGEXTENDEDTOOLKIT_API
 	void FetchPrevNext(const TSharedPtr<PCGExData::FFacade>& InFacade, const TArray<PCGExMT::FScope>& Loops);
@@ -297,7 +306,6 @@ namespace PCGExPaths
 		FPathEdge(const int32 InStart, const int32 InEnd, const TConstPCGValueRange<FTransform>& Positions, const double Expansion = 0);
 
 		void Update(const TConstPCGValueRange<FTransform>& Positions, const double Expansion = 0);
-
 
 		bool ShareIndices(const FPathEdge& Other) const;
 		bool Connects(const FPathEdge& Other) const;
@@ -476,7 +484,7 @@ namespace PCGExPaths
 
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, float& OutAlpha, const bool bUseScale = false) const
 		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransformAndKey(const FVector& WorldPosition, float& OutAlpha), FTransform::Identity);
-		
+
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, bool& bIsInside, const bool bUseScale) const
 		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, bool& bIsInside), FTransform::Identity);
 

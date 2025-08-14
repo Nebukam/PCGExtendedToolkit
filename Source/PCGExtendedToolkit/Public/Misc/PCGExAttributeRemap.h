@@ -10,6 +10,7 @@
 
 #include "PCGEx.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -266,6 +267,9 @@ struct FPCGExAttributeRemapContext final : FPCGExPointsProcessorContext
 	int32 RemapIndices[4];
 
 	virtual void RegisterAssetDependencies() override;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElement

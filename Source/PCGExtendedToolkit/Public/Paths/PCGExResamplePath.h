@@ -67,6 +67,9 @@ public:
 struct FPCGExResamplePathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExResamplePathElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExResamplePathElement final : public FPCGExPathProcessorElement

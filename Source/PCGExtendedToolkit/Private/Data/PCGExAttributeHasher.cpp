@@ -4,6 +4,7 @@
 #include "Data/PCGExAttributeHasher.h"
 
 #include "PCGExGlobalSettings.h"
+#include "Data/PCGExPointIO.h"
 
 namespace PCGEx
 {

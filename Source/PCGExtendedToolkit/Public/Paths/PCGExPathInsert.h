@@ -79,6 +79,9 @@ struct FPCGExPathInsertContext final : FPCGExPathProcessorContext
 
 	TSharedPtr<PCGExDetails::FDistances> Distances;
 	FPCGExBlendingDetails CrossingBlending;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExPathInsertElement final : public FPCGExPathProcessorElement

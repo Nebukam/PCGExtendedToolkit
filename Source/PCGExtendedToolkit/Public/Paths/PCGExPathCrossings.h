@@ -139,6 +139,9 @@ struct FPCGExPathCrossingsContext final : FPCGExPathProcessorContext
 
 	TSharedPtr<PCGExDetails::FDistances> Distances;
 	FPCGExBlendingDetails CrossingBlending;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExPathCrossingsElement final : public FPCGExPathProcessorElement

@@ -75,7 +75,7 @@ namespace PCGExPointStates
 FLinearColor UPCGExPointStateFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterState; }
 #endif
 
-FName UPCGExPointStateFactoryProviderSettings::GetMainOutputPin() const{ return PCGExCluster::OutputNodeFlagLabel; }
+FName UPCGExPointStateFactoryProviderSettings::GetMainOutputPin() const { return PCGExCluster::OutputNodeFlagLabel; }
 
 
 UPCGExFactoryData* UPCGExPointStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const

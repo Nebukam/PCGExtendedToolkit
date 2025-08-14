@@ -3,6 +3,8 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicAzimuth.h"
 
+#include "PCGExMath.h"
+
 
 double FPCGExHeuristicAzimuth::GetGlobalScore(
 	const PCGExCluster::FNode& From,

@@ -152,6 +152,9 @@ private:
 struct FPCGExPointsToBoundsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPointsToBoundsElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExPointsToBoundsElement final : public FPCGExPointsProcessorElement

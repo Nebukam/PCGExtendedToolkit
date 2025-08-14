@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Topology/PCGExTopologyEdgesProcessor.h" 
+#include "Topology/PCGExTopologyEdgesProcessor.h"
 
 #include "Topology/PCGExTopology.h"
 
@@ -70,6 +70,8 @@ bool FPCGExTopologyEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 
 	PCGExHelpers::AppendUniqueEntriesFromCommaSeparatedList(Settings->CommaSeparatedComponentTags, Context->ComponentTags);
 	GetInputFactories(Context, PCGExTopology::SourceEdgeConstrainsFiltersLabel, Context->EdgeConstraintsFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+
+	Context->HashMaps.Init(nullptr, Context->MainPoints->Num());
 	return true;
 }
 

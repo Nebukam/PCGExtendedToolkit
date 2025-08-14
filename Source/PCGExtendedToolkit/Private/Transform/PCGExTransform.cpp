@@ -8,7 +8,7 @@
 
 
 FPCGExAttachmentRules::FPCGExAttachmentRules(EAttachmentRule InLoc, EAttachmentRule InRot, EAttachmentRule InScale)
-:LocationRule(InLoc), RotationRule(InRot), ScaleRule(InScale)
+	: LocationRule(InLoc), RotationRule(InRot), ScaleRule(InScale)
 {
 }
 

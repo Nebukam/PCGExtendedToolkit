@@ -4,6 +4,7 @@
 #include "Graph/PCGExIntersections.h"
 
 #include "PCGExDetailsIntersection.h"
+#include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 
 

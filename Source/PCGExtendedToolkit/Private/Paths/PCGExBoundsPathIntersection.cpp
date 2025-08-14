@@ -16,6 +16,7 @@ TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::InputPinProperti
 }
 
 PCGEX_INITIALIZE_ELEMENT(BoundsPathIntersection)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(BoundsPathIntersection)
 
 bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 {
@@ -42,7 +43,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
 		const bool bWritesAny = Settings->OutputSettings.WillWriteAny();
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -65,7 +66,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = Settings->OutputSettings.WillWriteAny();
 			}))
@@ -81,7 +82,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 	return Context->TryComplete();
 }
 
-namespace PCGExPathIntersections
+namespace PCGExBoundsPathIntersection
 {
 	FProcessor::~FProcessor()
 	{
@@ -89,7 +90,7 @@ namespace PCGExPathIntersections
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathIntersections::Process);
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBoundsPathIntersection::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 

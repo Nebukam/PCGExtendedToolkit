@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "Engine/OverlapResult.h"
 #include "Components/PrimitiveComponent.h"
+#include "Data/PCGExDataTag.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 #define PCGEX_NAMESPACE SampleNearestSurface
@@ -18,6 +19,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestSurfaceSettings::InputPinProperties
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleNearestSurface)
 
 bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 {
@@ -77,9 +79,9 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestSurface::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestSurface::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
 			}))

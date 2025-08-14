@@ -13,6 +13,12 @@
 
 #include "PCGExCollocationCount.generated.h"
 
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/collocation-count"))
 class UPCGExCollocationCountSettings : public UPCGExPointsProcessorSettings
 {
@@ -53,6 +59,9 @@ public:
 struct FPCGExCollocationCountContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExCollocationCountElement;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExCollocationCountElement final : public FPCGExPointsProcessorElement

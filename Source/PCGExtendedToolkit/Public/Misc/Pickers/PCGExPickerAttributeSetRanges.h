@@ -24,7 +24,6 @@ struct FPCGExPickerAttributeSetRangesConfig : public FPCGExPickerConfigBase
 	/** List of attributes to read ranges of indices from FVector2. Use negative values to select from the end. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TArray<FPCGAttributePropertyInputSelector> Attributes;
-	
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="filters/cherry-pick-points/picker-constant-set-1"))

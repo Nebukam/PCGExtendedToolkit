@@ -25,6 +25,7 @@ TArray<FPCGPinProperties> UPCGExCopyToPointsSettings::OutputPinProperties() cons
 }
 
 PCGEX_INITIALIZE_ELEMENT(CopyToPoints)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(CopyToPoints)
 
 bool FPCGExCopyToPointsElement::Boot(FPCGExContext* InContext) const
 {
@@ -60,9 +61,9 @@ bool FPCGExCopyToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExCopyToPoints::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExCopyToPoints::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExDotFilter.h"
 
+#include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
 
 

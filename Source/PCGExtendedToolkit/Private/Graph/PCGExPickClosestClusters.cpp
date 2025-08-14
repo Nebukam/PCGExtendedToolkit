@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExPickClosestClusters.h"
 
+#include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIOMerger.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPickClosestClusters"
@@ -74,6 +75,7 @@ void FPCGExPickClosestClustersContext::ClusterProcessing_InitialProcessingDone()
 }
 
 PCGEX_INITIALIZE_ELEMENT(PickClosestClusters)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(PickClosestClusters)
 
 bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 {
@@ -105,9 +107,9 @@ bool FPCGExPickClosestClustersElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExPickClosestClusters::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExPickClosestClusters::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 			}))
 		{
@@ -255,10 +257,10 @@ namespace PCGExPickClosestClusters
 		int32 Picks = 0;
 		const int32 MaxPicks = Processors.Num();
 
-		for (const TSharedRef<FProcessor>& P : Processors) { if (P->Picker != -1) { Picks++; } }
+		for (int Pi = 0; Pi < Processors.Num(); Pi++) { if (GetProcessor<FProcessor>(Pi)->Picker != -1) { Picks++; } }
 
-		const UPCGExPickClosestClustersSettings* Stg = Processors[0]->Settings;
-		const FPCGExPickClosestClustersContext* Ctx = Processors[0]->Context;
+		const FPCGExPickClosestClustersContext* Ctx = GetContext<FPCGExPickClosestClustersContext>();
+		const UPCGExPickClosestClustersSettings* Stg = Ctx->GetInputSettings<UPCGExPickClosestClustersSettings>();
 
 		if (Stg->Action == EPCGExFilterDataAction::Omit) { if (Picks == MaxPicks) { return; } }
 		else if (Stg->Action == EPCGExFilterDataAction::Keep) { if (Picks == 0) { return; } }

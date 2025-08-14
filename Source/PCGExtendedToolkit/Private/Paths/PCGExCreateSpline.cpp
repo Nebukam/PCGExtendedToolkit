@@ -5,6 +5,7 @@
 
 
 #include "PCGComponent.h"
+#include "Data/PCGExDataTag.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateSplineElement"
 #define PCGEX_NAMESPACE CreateSpline
@@ -18,6 +19,7 @@ void UPCGExCreateSplineSettings::ApplyDeprecation(UPCGNode* InOutNode)
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(CreateSpline)
+PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(CreateSpline)
 
 TArray<FPCGPinProperties> UPCGExCreateSplineSettings::OutputPinProperties() const
 {
@@ -51,7 +53,7 @@ bool FPCGExCreateSplineElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints<PCGExCreateSpline::FBatch>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -61,7 +63,7 @@ bool FPCGExCreateSplineElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExCreateSpline::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{
@@ -223,11 +225,12 @@ namespace PCGExCreateSpline
 		TProcessor<FPCGExCreateSplineContext, UPCGExCreateSplineSettings>::Cleanup();
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& PointsProcessor)
+	bool FBatch::PrepareSingle(const TSharedRef<PCGExPointsMT::IProcessor>& InProcessor)
 	{
 		if (!TargetActor) { return false; }
-		if (!TBatch<FProcessor>::PrepareSingle(PointsProcessor)) { return false; }
-		PointsProcessor->SplineActor = TargetActor;
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
+		PCGEX_TYPED_PROCESSOR_REF
+		TypedProcessor->SplineActor = TargetActor;
 		return true;
 	}
 }

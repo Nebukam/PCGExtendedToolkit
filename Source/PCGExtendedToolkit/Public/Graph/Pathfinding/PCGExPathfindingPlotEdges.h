@@ -106,6 +106,9 @@ struct FPCGExPathfindingPlotEdgesContext final : FPCGExEdgesProcessorContext
 	UPCGExSearchInstancedFactory* SearchAlgorithm = nullptr;
 
 	void BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query) const;
+
+protected:
+	PCGEX_ELEMENT_BATCH_EDGE_DECL
 };
 
 class FPCGExPathfindingPlotEdgesElement final : public FPCGExEdgesProcessorElement
@@ -117,7 +120,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExPathfindingPlotEdge
+namespace PCGExPathfindingPlotEdges
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPathfindingPlotEdgesContext, UPCGExPathfindingPlotEdgesSettings>
 	{

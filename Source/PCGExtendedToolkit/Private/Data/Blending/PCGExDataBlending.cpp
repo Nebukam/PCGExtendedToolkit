@@ -3,6 +3,7 @@
 
 #include "Data/Blending/PCGExDataBlending.h"
 
+#include "PCGPin.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataPreloader.h"

@@ -15,7 +15,7 @@
 
 namespace PCGExData
 {
-	template<typename T>
+	template <typename T>
 	class TBufferProxy;
 }
 
@@ -90,6 +90,9 @@ struct FPCGExNormalizeContext final : FPCGExPointsProcessorContext
 
 	bool bUseUnifiedBounds = false;
 	FBox UnifiedBounds = FBox(ForceInit);
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExNormalizeElement final : public FPCGExPointsProcessorElement

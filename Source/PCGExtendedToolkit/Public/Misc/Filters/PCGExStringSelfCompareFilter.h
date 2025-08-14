@@ -15,6 +15,12 @@
 
 #include "PCGExStringSelfCompareFilter.generated.h"
 
+namespace PCGEx
+{
+	template <typename T>
+	class TAttributeBroadcaster;
+}
+
 USTRUCT(BlueprintType)
 struct FPCGExStringSelfCompareFilterConfig
 {

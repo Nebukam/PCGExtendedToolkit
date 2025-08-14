@@ -129,6 +129,9 @@ struct FPCGExGetTextureDataContext final : FPCGExPointsProcessorContext
 	TWeakPtr<PCGExMT::FAsyncToken> TextureProcessingToken;
 
 	void AdvanceProcessing(const int32 Index);
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExGetTextureDataElement final : public FPCGExPointsProcessorElement

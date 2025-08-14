@@ -3,11 +3,15 @@
 
 #include "Misc/PCGExAttributeHash.h"
 
+#include "Data/PCGExData.h"
+#include "Data/PCGExDataTag.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeHashElement"
 #define PCGEX_NAMESPACE AttributeHash
 
 PCGEX_INITIALIZE_ELEMENT(AttributeHash)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeHash)
 
 bool FPCGExAttributeHashElement::Boot(FPCGExContext* InContext) const
 {
@@ -27,9 +31,9 @@ bool FPCGExAttributeHashElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAttributeHash::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAttributeHash::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

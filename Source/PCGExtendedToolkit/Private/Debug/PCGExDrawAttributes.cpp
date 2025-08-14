@@ -3,6 +3,8 @@
 
 #include "Debug/PCGExDrawAttributes.h"
 
+#include "PCGExMath.h"
+
 #define LOCTEXT_NAMESPACE "PCGExDrawAttributes"
 #define PCGEX_NAMESPACE DrawAttributes
 

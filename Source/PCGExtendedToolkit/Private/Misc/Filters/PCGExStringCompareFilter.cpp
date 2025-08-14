@@ -3,6 +3,9 @@
 
 #include "Misc/Filters/PCGExStringCompareFilter.h"
 
+#include "Data/PCGExData.h"
+#include "Data/PCGExDataHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition

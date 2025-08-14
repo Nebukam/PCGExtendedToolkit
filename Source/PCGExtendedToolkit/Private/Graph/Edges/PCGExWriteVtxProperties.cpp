@@ -20,6 +20,7 @@ PCGExData::EIOInit UPCGExWriteVtxPropertiesSettings::GetMainOutputInitMode() con
 PCGExData::EIOInit UPCGExWriteVtxPropertiesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
 PCGEX_INITIALIZE_ELEMENT(WriteVtxProperties)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(WriteVtxProperties)
 
 bool FPCGExWriteVtxPropertiesElement::Boot(FPCGExContext* InContext) const
 {
@@ -45,9 +46,9 @@ bool FPCGExWriteVtxPropertiesElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExWriteVtxProperties::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExWriteVtxProperties::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
@@ -140,9 +141,13 @@ namespace PCGExWriteVtxProperties
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
 	{
-#define PCGEX_FWD_VTX(_NAME, _TYPE, _DEFAULT_VALUE) ClusterProcessor->_NAME##Writer = _NAME##Writer;
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
+
+		PCGEX_TYPED_PROCESSOR
+
+#define PCGEX_FWD_VTX(_NAME, _TYPE, _DEFAULT_VALUE) TypedProcessor->_NAME##Writer = _NAME##Writer;
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_FWD_VTX)
 #undef PCGEX_ASSIGN_AXIS_GETTER
 

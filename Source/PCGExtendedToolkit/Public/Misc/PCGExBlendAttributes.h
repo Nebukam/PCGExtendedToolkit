@@ -44,6 +44,9 @@ struct FPCGExBlendAttributesContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBlendAttributesElement;
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBlendAttributesElement final : public FPCGExPointsProcessorElement

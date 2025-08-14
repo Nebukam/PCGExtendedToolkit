@@ -44,6 +44,7 @@ TArray<FPCGPinProperties> UPCGExClusterDiffusionSettings::OutputPinProperties() 
 }
 
 PCGEX_INITIALIZE_ELEMENT(ClusterDiffusion)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ClusterDiffusion)
 
 bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 {
@@ -88,9 +89,9 @@ bool FPCGExClusterDiffusionElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExClusterDiffusion::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterDiffusion::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			}))
@@ -560,16 +561,18 @@ namespace PCGExClusterDiffusion
 		TBatch<FProcessor>::Process();
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
 	{
-		if (!TBatch<FProcessor>::PrepareSingle(ClusterProcessor)) { return false; }
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
 
-		ClusterProcessor->BlendOpsManager = BlendOpsManager;
-		ClusterProcessor->InfluencesCount = InfluencesCount;
+		PCGEX_TYPED_PROCESSOR
 
-		ClusterProcessor->FillRate = FillRate;
+		TypedProcessor->BlendOpsManager = BlendOpsManager;
+		TypedProcessor->InfluencesCount = InfluencesCount;
 
-#define PCGEX_OUTPUT_FWD_TO(_NAME, _TYPE, _DEFAULT_VALUE) if(_NAME##Writer){ ClusterProcessor->_NAME##Writer = _NAME##Writer; }
+		TypedProcessor->FillRate = FillRate;
+
+#define PCGEX_OUTPUT_FWD_TO(_NAME, _TYPE, _DEFAULT_VALUE) if(_NAME##Writer){ TypedProcessor->_NAME##Writer = _NAME##Writer; }
 		PCGEX_FOREACH_FIELD_CLUSTER_DIFF(PCGEX_OUTPUT_FWD_TO)
 #undef PCGEX_OUTPUT_FWD_TO
 

@@ -27,6 +27,7 @@ bool UPCGExSmoothSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 
 
 PCGEX_INITIALIZE_ELEMENT(Smooth)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(Smooth)
 
 bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
 {
@@ -55,7 +56,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSmooth::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -65,7 +66,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSmooth::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{

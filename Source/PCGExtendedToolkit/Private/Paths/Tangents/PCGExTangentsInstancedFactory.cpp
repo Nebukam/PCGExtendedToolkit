@@ -3,6 +3,7 @@
 
 #include "Paths/Tangents/PCGExTangentsInstancedFactory.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExData.h"
 
 #if WITH_EDITOR
 void FPCGExTangentsDetails::ApplyDeprecation(const bool bUseAttribute, const FName InArriveAttributeName, const FName InLeaveAttributeName)

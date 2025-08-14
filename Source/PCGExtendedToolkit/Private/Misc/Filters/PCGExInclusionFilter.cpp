@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExInclusionFilter.h"
 
 
+#include "Data/PCGExData.h"
 #include "Paths/PCGExPaths.h"
 
 

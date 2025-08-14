@@ -67,6 +67,9 @@ struct FPCGExCopyToPointsContext final : FPCGExPointsProcessorContext
 
 	FPCGExAttributeToTagDetails TargetsAttributesToCopyTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> TargetsForwardHandler;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExCopyToPointsElement final : public FPCGExPointsProcessorElement

@@ -4,6 +4,7 @@
 #include "Paths/PCGExWritePathProperties.h"
 #include "MinVolumeBox3.h"
 #include "OrientedBoxTypes.h"
+#include "Data/PCGExDataTag.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
 #define PCGEX_NAMESPACE WritePathProperties
@@ -25,6 +26,7 @@ TArray<FPCGPinProperties> UPCGExWritePathPropertiesSettings::OutputPinProperties
 }
 
 PCGEX_INITIALIZE_ELEMENT(WritePathProperties)
+PCGEX_ELEMENT_BATCH_POINT_IMPL(WritePathProperties)
 
 bool FPCGExWritePathPropertiesElement::Boot(FPCGExContext* InContext) const
 {
@@ -54,7 +56,7 @@ bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) c
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWritePathProperties::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
@@ -69,7 +71,7 @@ bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) c
 
 				return true;
 			},
-			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExWritePathProperties::FProcessor>>& NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
 			}))
 		{
@@ -117,7 +119,7 @@ namespace PCGExWritePathProperties
 
 		Path = MakeShared<PCGExPaths::FPath>(PointDataFacade->GetIn(), 0);
 		bClosedLoop = Path->IsClosedLoop();
-		
+
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>(true); // Force compute length
 		if (Settings->bWritePointNormal || Settings->bWritePointBinormal) { PathBinormal = Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Settings->UpVector); }

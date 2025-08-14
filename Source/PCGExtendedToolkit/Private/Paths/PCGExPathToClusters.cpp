@@ -25,6 +25,13 @@ UPCGExPathToClustersSettings::OutputPinProperties() const
 
 PCGEX_INITIALIZE_ELEMENT(PathToClusters)
 
+TSharedPtr<PCGExPointsMT::IBatch> FPCGExPathToClustersContext::CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const
+{
+	PCGEX_SETTINGS_LOCAL(PathToClusters)
+	if (Settings->bFusePaths) { return MakeShared<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>(const_cast<FPCGExPathToClustersContext*>(this), InData); }
+	return MakeShared<PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>>(const_cast<FPCGExPathToClustersContext*>(this), InData);
+}
+
 bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -95,7 +102,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		if (Settings->bFusePaths)
 		{
 			PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>(
+			if (!Context->StartBatchProcessingPoints(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 				{
 					if (Entry->GetNum() < 2)
@@ -105,7 +112,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 					}
 					return true;
 				},
-				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 					NewBatch->bSkipCompletion = true;
 					NewBatch->bDaisyChainProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
@@ -117,7 +124,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		else
 		{
 			PCGEX_ON_INVALILD_INPUTS(FTEXT("Some input have less than 2 points and will be ignored."))
-			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>>(
+			if (!Context->StartBatchProcessingPoints(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 				{
 					if (Entry->GetNum() < 2)
@@ -127,7 +134,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 					}
 					return true;
 				},
-				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>>& NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 				}))
 			{
@@ -148,10 +155,12 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->PathsFacades.Reserve(NumFacades);
 
 			PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>* MainBatch = static_cast<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>*>(Context->MainBatch.Get());
-			for (const TSharedRef<PCGExPathToClusters::FFusingProcessor>& Processor : MainBatch->Processors)
+
+			for (int Pi = 0; Pi < MainBatch->GetNumProcessors(); Pi++)
 			{
-				if (!Processor->bIsProcessorValid) { continue; }
-				Context->PathsFacades.Add(Processor->PointDataFacade);
+				const TSharedPtr<PCGExPointsMT::IProcessor> P = MainBatch->GetProcessor<PCGExPointsMT::IProcessor>(Pi);
+				if (!P->bIsProcessorValid) { continue; }
+				Context->PathsFacades.Add(P->PointDataFacade);
 			}
 
 			Context->MainBatch.Reset();

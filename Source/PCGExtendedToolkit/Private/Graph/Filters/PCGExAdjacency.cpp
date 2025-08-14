@@ -3,6 +3,7 @@
 
 #include "Graph/Filters/PCGExAdjacency.h"
 
+#include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
 
 bool FPCGExAdjacencySettings::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)

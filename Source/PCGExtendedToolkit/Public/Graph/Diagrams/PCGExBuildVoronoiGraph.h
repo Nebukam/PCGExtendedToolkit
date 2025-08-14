@@ -77,6 +77,9 @@ struct FPCGExBuildVoronoiGraphContext final : FPCGExPointsProcessorContext
 	friend class FPCGExBuildVoronoiGraphElement;
 
 	TSharedPtr<PCGExData::FPointIOCollection> SitesOutput;
+
+protected:
+	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
 class FPCGExBuildVoronoiGraphElement final : public FPCGExPointsProcessorElement
@@ -88,7 +91,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExBuildVoronoi
+namespace PCGExBuildVoronoiGraph
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBuildVoronoiGraphContext, UPCGExBuildVoronoiGraphSettings>
 	{

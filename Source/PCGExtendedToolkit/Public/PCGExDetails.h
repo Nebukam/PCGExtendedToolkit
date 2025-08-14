@@ -46,20 +46,6 @@ enum class PCGExSpatialNoiseMask2DMode : uint8
 #pragma endregion
 
 UENUM()
-enum class EPCGExInputValueType : uint8
-{
-	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
-	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Attribute."),
-};
-
-UENUM()
-enum class EPCGExDataInputValueType : uint8
-{
-	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
-	Attribute = 1 UMETA(DisplayName = "@Data", Tooltip="Attribute. Can only read from @Data domain."),
-};
-
-UENUM()
 enum class EPCGExFilterDataAction : uint8
 {
 	Keep = 0 UMETA(DisplayName = "Keep", ToolTip="Keeps only selected data"),

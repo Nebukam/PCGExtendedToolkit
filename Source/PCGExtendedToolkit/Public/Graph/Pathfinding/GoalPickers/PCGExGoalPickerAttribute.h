@@ -11,6 +11,12 @@
 
 #include "PCGExGoalPickerAttribute.generated.h"
 
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
+
 UENUM()
 enum class EPCGExGoalPickAttributeAmount : uint8
 {

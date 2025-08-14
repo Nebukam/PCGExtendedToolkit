@@ -16,6 +16,7 @@ PCGExData::EIOInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() c
 #pragma endregion
 
 PCGEX_INITIALIZE_ELEMENT(CopyClustersToPoints)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(CopyClustersToPoints)
 
 TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::InputPinProperties() const
 {
@@ -75,9 +76,9 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters<PCGExCopyClusters::FBatch>(
+		if (!Context->StartProcessingClusters(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExCopyClusters::FBatch>& NewBatch)
+			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 			}))
 		{
@@ -93,7 +94,7 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 	return Context->TryComplete();
 }
 
-namespace PCGExCopyClusters
+namespace PCGExCopyClustersToPoints
 {
 	FProcessor::~FProcessor()
 	{
@@ -271,11 +272,12 @@ namespace PCGExCopyClusters
 		TBatch<FProcessor>::Process();
 	}
 
-	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
 	{
-		if (!TBatch<FProcessor>::PrepareSingle(ClusterProcessor)) { return false; }
-		ClusterProcessor->VtxDupes = &VtxDupes;
-		ClusterProcessor->VtxTag = &VtxTag;
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
+		PCGEX_TYPED_PROCESSOR
+		TypedProcessor->VtxDupes = &VtxDupes;
+		TypedProcessor->VtxTag = &VtxTag;
 		return true;
 	}
 
@@ -283,9 +285,9 @@ namespace PCGExCopyClusters
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
 
-		for (const TSharedRef<FProcessor>& Processor : Processors)
+		for (int Pi = 0; Pi < Processors.Num(); Pi++)
 		{
-			if (Processor->NumCopies == 0)
+			if (GetProcessor<FProcessor>(Pi)->NumCopies == 0)
 			{
 				(void)Context->EdgeDataMatcher->HandleUnmatchedOutput(VtxDataFacade, true);
 				break;
@@ -299,9 +301,10 @@ namespace PCGExCopyClusters
 			if (!VtxDupes[i]) { continue; }
 
 			bool bValidVtxDupe = false;
-			for (const TSharedRef<FProcessor>& Processor : Processors)
+			for (const TSharedRef<PCGExClusterMT::IProcessor>& InProcessor : Processors)
 			{
-				if (Processor->EdgesDupes[i])
+				PCGEX_TYPED_PROCESSOR_REF
+				if (TypedProcessor->EdgesDupes[i])
 				{
 					bValidVtxDupe = true;
 					break;

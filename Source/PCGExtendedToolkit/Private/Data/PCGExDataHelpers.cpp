@@ -3,6 +3,10 @@
 
 #include "Data/PCGExDataHelpers.h"
 
+#include "PCGExBroadcast.h"
+#include "PCGExHelpers.h"
+#include "Data/PCGExPointIO.h"
+
 namespace PCGExDataHelpers
 {
 	template <typename T>
