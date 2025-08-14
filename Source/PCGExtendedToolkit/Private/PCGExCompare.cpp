@@ -5,13 +5,10 @@
 #include "PCGExCompare.h"
 
 #include "PCGExContext.h"
-#include "PCGExDetails.h"
 #include "PCGExMath.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExDataTag.h"
-#include "Data/PCGExProxyData.h"
-
 
 namespace PCGExCompare
 {

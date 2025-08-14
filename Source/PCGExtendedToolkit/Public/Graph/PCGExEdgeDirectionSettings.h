@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
-#include "PCGExHelpers.h"
 #include "PCGExSorting.h"
 
 #include "PCGExEdgeDirectionSettings.generated.h"

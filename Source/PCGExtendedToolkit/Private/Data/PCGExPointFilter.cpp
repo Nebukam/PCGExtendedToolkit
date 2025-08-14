@@ -4,7 +4,6 @@
 #include "Data/PCGExPointFilter.h"
 
 #include "Data/PCGExData.h"
-#include "Data/PCGExPointElements.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 

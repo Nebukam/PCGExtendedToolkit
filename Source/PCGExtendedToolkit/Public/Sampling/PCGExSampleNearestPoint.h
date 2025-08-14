@@ -11,7 +11,6 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-#include "PCGExDetails.h"
 #include "PCGExScopedContainers.h"
 #include "PCGExSorting.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"

@@ -5,7 +5,6 @@
 
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/PCGExDataValue.h"
 #include "Paths/PCGExPaths.h"
 
 namespace PCGExGraph

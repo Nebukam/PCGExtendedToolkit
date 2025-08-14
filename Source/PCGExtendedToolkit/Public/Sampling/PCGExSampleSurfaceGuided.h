@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetails.h"
 #include "Components/PrimitiveComponent.h"
 #include "Materials/MaterialInterface.h"
 

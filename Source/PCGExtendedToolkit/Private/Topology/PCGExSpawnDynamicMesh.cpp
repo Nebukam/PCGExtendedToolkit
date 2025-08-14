@@ -6,7 +6,6 @@
 #include "PCGComponent.h"
 #include "PCGPin.h"
 #include "Data/PCGDynamicMeshData.h"
-#include "Resources/PCGDynamicMeshManagedComponent.h"
 #include "Topology/PCGExDynamicMeshComponent.h"
 #include "Topology/PCGExTopology.h"
 

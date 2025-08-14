@@ -6,7 +6,6 @@
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Graph/PCGExChain.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBreakClustersToPaths"

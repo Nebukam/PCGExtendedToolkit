@@ -5,8 +5,6 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
-#include "Data/PCGExPointFilter.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExSplitPathElement"
 #define PCGEX_NAMESPACE SplitPath

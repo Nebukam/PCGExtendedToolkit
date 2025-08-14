@@ -6,8 +6,6 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIOMerger.h"
 
-#include "Geometry/PCGExGeoDelaunay.h"
-
 #define LOCTEXT_NAMESPACE "PCGExPackClusters"
 #define PCGEX_NAMESPACE PackClusters
 

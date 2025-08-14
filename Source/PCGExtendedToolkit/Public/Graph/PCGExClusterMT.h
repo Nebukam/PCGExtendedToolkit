@@ -8,6 +8,11 @@
 #include "PCGExEdgeDirectionSettings.h"
 #include "Geometry/PCGExGeo.h"
 
+namespace PCGEx
+{
+	class FIntTracker;
+}
+
 namespace PCGExCluster
 {
 	struct FNode;

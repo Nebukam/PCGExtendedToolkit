@@ -7,7 +7,6 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExDetails.h"
 #include "PCGExPaths.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"

@@ -7,8 +7,6 @@
 #include "PCGExMath.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExChain.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

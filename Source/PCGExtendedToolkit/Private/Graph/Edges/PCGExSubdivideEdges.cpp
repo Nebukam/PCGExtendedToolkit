@@ -5,7 +5,6 @@
 
 
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideEdges"
 #define PCGEX_NAMESPACE SubdivideEdges

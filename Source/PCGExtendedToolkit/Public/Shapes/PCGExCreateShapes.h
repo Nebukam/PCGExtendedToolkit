@@ -4,11 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
+
 #include "PCGExGlobalSettings.h"
-
 #include "PCGExShapeProcessor.h"
-
 
 #include "PCGExCreateShapes.generated.h"
 
