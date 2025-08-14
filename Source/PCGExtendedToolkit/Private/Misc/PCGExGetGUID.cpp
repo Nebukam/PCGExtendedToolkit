@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExGetGUID.h"
 
+#include "PCGExMath.h"
 #include "Helpers/PCGHelpers.h"
 #include "Misc/Guid.h"
 

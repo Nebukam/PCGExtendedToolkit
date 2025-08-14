@@ -2,9 +2,11 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExCluster.h"
+
+#include "PCGExMath.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Geometry/PCGExGeo.h"
-#include "Graph/Data/PCGExClusterData.h"
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGExData.h"
 
 namespace PCGExCluster
 {

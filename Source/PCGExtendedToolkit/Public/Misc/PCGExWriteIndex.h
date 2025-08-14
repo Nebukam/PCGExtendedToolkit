@@ -7,6 +7,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExDataHelpers.h"
 
 #include "PCGExWriteIndex.generated.h"
 

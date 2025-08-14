@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExMath.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 
 namespace PCGEx
 {

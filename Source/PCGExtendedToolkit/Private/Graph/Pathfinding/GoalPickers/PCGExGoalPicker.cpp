@@ -4,6 +4,7 @@
 
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
 
+#include "PCGExMath.h"
 #include "Data/PCGExPointIO.h"
 
 

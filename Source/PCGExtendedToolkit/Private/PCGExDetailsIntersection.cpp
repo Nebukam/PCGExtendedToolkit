@@ -3,7 +3,10 @@
 
 #include "PCGExDetailsIntersection.h"
 
+#include "PCGElement.h"
+#include "PCGExContext.h"
 #include "PCGExMath.h"
+#include "PCGModule.h"
 
 bool FPCGExUnionMetadataDetails::SanityCheck(FPCGExContext* InContext) const
 {

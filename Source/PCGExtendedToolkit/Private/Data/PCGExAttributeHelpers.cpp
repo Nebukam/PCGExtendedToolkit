@@ -633,7 +633,7 @@ namespace PCGEx
 	}
 
 	template <typename T>
-	TSharedPtr<TAttributeBroadcaster<T>> Make(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO)
+	TSharedPtr<TAttributeBroadcaster<T>> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO)
 	{
 		PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<T>)
 		if (!Broadcaster->Prepare(InName, InPointIO)) { return nullptr; }
@@ -641,7 +641,7 @@ namespace PCGEx
 	}
 
 	template <typename T>
-	TSharedPtr<TAttributeBroadcaster<T>> Make(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO)
+	TSharedPtr<TAttributeBroadcaster<T>> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO)
 	{
 		PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<T>)
 		if (!Broadcaster->Prepare(InSelector, InPointIO)) { return nullptr; }

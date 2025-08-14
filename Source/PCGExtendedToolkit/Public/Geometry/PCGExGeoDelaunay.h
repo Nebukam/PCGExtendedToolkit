@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGeo.h"
+#include "PCGExH.h"
 #include "CompGeom/Delaunay2.h"
 #include "CompGeom/Delaunay3.h"
 

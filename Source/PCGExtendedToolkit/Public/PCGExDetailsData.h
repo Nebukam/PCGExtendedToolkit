@@ -95,9 +95,9 @@ namespace PCGExDetails
 
 		virtual bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override;
 
-		FORCEINLINE virtual T Read(const int32 Index) override { return Buffer->Read(Index); }
-		FORCEINLINE virtual T Min() override { return Buffer->Min; }
-		FORCEINLINE virtual T Max() override { return Buffer->Max; }
+		virtual T Read(const int32 Index) override;
+		virtual T Min() override;
+		virtual T Max() override;
 	};
 
 	template <typename T>
@@ -115,9 +115,9 @@ namespace PCGExDetails
 
 		virtual bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) override;
 
-		FORCEINLINE virtual T Read(const int32 Index) override { return Buffer->Read(Index); }
-		FORCEINLINE virtual T Min() override { return Buffer->Min; }
-		FORCEINLINE virtual T Max() override { return Buffer->Max; }
+		virtual T Read(const int32 Index) override;
+		virtual T Min() override;
+		virtual T Max() override;
 	};
 
 	template <typename T>

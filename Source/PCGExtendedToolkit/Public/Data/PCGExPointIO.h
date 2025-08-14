@@ -324,7 +324,7 @@ namespace PCGExData
 		template <typename T>
 		FPCGMetadataAttribute<T>* FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const
 		{
-			return PCGEx::TryGetMutableAttribute<T>(GetData(InSide), InIdentifier);
+			return PCGEx::TryGetMutableAttribute<T>(GetMutableData(InSide), InIdentifier);
 		}
 
 		FPCGMetadataAttributeBase* FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In) const;

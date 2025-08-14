@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExBranchOnDataAttribute.h"
 
+#include "Data/PCGExDataHelpers.h"
+
 #define LOCTEXT_NAMESPACE "PCGExBranchOnDataAttributeElement"
 #define PCGEX_NAMESPACE BranchOnDataAttribute
 

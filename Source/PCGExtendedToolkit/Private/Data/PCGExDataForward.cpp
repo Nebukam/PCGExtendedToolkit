@@ -3,6 +3,7 @@
 
 #include "Data/PCGExDataForward.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointData.h"
 
 void FPCGExForwardDetails::Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const

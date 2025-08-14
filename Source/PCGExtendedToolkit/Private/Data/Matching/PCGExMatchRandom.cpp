@@ -4,6 +4,7 @@
 #include "Data/Matching/PCGExMatchRandom.h"
 
 #include "PCGExRandom.h"
+#include "Data/PCGExAttributeHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExMatchRandom"

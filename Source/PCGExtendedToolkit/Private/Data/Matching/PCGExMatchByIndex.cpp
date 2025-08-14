@@ -3,6 +3,10 @@
 
 #include "Data/Matching/PCGExMatchByIndex.h"
 
+#include "PCGExMath.h"
+#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExDataHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExMatchByIndex"
 #define PCGEX_NAMESPACE MatchByIndex

@@ -6,6 +6,7 @@
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/States/PCGExClusterStates.h"
 #include "Actions/PCGExActionFactoryProvider.h"
+#include "Data/PCGExAttributeHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"

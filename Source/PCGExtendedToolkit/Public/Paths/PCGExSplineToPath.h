@@ -10,6 +10,7 @@
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 #include "Sampling/PCGExSampling.h"
+#include "Transform/PCGExFitting.h"
 
 #include "PCGExSplineToPath.generated.h"
 

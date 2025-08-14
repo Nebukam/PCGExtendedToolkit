@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataFilter.h"
+#include "Misc/CollectionFilters/PCGExAttributeCheckFilter.h"
 
 #include "PCGExDataBlending.generated.h"
 

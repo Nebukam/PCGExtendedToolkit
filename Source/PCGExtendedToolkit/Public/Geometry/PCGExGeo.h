@@ -3,16 +3,29 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "PCGEx.h"
-#include "PCGExDetailsData.h"
-#include "PCGExMT.h"
-#include "Transform/PCGExFitting.h"
-#include "Data/PCGExData.h"
 #include <vector>
-
+#include "CoreMinimal.h"
+#include "Utils/PCGValueRange.h"
+#include "PCGEx.h"
+#include "PCGExMT.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExGeo.generated.h"
+
+class UPCGBasePointData;
+struct FPCGExTransformDetails;
+
+namespace PCGExData
+{
+	class FFacade;
+	class FPointIO;
+}
+
+namespace PCGExDetails
+{
+	template <typename T>
+	class TSettingValue;
+}
 
 UENUM()
 enum class EPCGExProjectionMethod : uint8
@@ -36,7 +49,7 @@ namespace PCGExGeo
 
 	bool IsWinded(const EPCGExWinding Winding, const bool bIsInputClockwise);
 	bool IsWinded(const EPCGExWindingMutation Winding, const bool bIsInputClockwise);
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FPolygonInfos
 	{
 		double Area = 0;
@@ -245,28 +258,22 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	FTransform ProjectFlat(const FTransform& InTransform, const int32 PointIndex) const;
 
 	template <typename T>
-	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions) const
-	{
-		const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
-		const int32 NumVectors = Transforms.Num();
-		PCGEx::InitArray(OutPositions, NumVectors);
-		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
-	}
+	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions) const;
 
 	template <typename T>
-	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const PCGExMT::FScope& Scope) const
-	{
-		const TConstPCGValueRange<FTransform> Transforms = InFacade->Source->GetInOut()->GetConstTransformValueRange();
-		const int32 NumVectors = Transforms.Num();
-		if (OutPositions.Num() < NumVectors) { PCGEx::InitArray(OutPositions, NumVectors); }
-
-		PCGEX_SCOPE_LOOP(i) { OutPositions[i] = T(ProjectFlat(Transforms[i].GetLocation(), i)); }
-	}
+	void ProjectFlat(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<T>& OutPositions, const PCGExMT::FScope& Scope) const;
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const;
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const;
 	void Project(const TArrayView<FVector>& InPositions, std::vector<double>& OutPositions) const;
 };
+
+extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector2D>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector2D>& OutPositions) const;
+extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector>& OutPositions) const;
+extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector4>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector4>& OutPositions) const;
+extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector2D>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector2D>& OutPositions, const PCGExMT::FScope& Scope) const;
+extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector>& OutPositions, const PCGExMT::FScope& Scope) const;
+extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector4>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector4>& OutPositions, const PCGExMT::FScope& Scope) const;
 
 namespace PCGExGeoTasks
 {

@@ -9,6 +9,7 @@
 #include "Data/PCGExDataForward.h"
 #include "Data/Matching/PCGExMatching.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Transform/PCGExFitting.h"
 
 
 #include "PCGExCopyClustersToPoints.generated.h"

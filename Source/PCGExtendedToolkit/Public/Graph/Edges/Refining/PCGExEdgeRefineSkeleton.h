@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
+#include "PCGExMath.h"
 #include "Graph/PCGExCluster.h"
 #include "PCGExEdgeRefineSkeleton.generated.h"
 

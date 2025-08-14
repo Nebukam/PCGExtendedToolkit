@@ -6,6 +6,7 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExDataMath.h"
+#include "Data/PCGExData.h"
 
 namespace PCGExDetails
 {
@@ -29,6 +30,15 @@ namespace PCGExDetails
 	}
 
 	template <typename T>
+	T TSettingValueBuffer<T>::Read(const int32 Index){ return Buffer->Read(Index); }
+
+	template <typename T>
+	T TSettingValueBuffer<T>::Min(){ return Buffer->Min; }
+
+	template <typename T>
+	T TSettingValueBuffer<T>::Max(){ return Buffer->Max; }
+
+	template <typename T>
 	bool TSettingValueSelector<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax)
 	{
 		FPCGExContext* Context = InDataFacade->GetContext();
@@ -45,6 +55,15 @@ namespace PCGExDetails
 
 		return true;
 	}
+
+	template <typename T>
+	T TSettingValueSelector<T>::Read(const int32 Index){ return Buffer->Read(Index); }
+
+	template <typename T>
+	T TSettingValueSelector<T>::Min(){ return Buffer->Min; }
+
+	template <typename T>
+	T TSettingValueSelector<T>::Max() { return Buffer->Max; }
 
 	template <typename T>
 	bool TSettingValueConstant<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax) { return true; }

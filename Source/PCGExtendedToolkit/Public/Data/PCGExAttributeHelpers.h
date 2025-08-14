@@ -17,6 +17,8 @@
 
 #include "PCGExAttributeHelpers.generated.h"
 
+struct FPCGExContext;
+
 namespace PCGExMT
 {
 	struct FScope;

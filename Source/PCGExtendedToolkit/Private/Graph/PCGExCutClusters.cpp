@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExCutClusters.h"
 
+#include "PCGExDataMath.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 

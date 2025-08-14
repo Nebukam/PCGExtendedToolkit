@@ -6,6 +6,7 @@
 #define DBL_INTERSECTION_TOLERANCE 0.1
 #define DBL_COLLOCATION_TOLERANCE 0.1
 #define DBL_COMPARE_TOLERANCE 0.01
+#define MIN_dbl_neg MAX_dbl *-1
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.generated.h"

@@ -9,8 +9,6 @@
 #include "PCGEx.h"
 #include "PCGExMath.generated.h"
 
-#define MIN_dbl_neg MAX_dbl *-1
-
 UENUM()
 enum class EPCGExMeanMeasure : uint8
 {

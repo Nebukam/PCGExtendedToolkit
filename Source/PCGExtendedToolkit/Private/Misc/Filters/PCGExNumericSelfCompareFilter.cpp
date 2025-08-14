@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExNumericSelfCompareFilter.h"
 
+#include "PCGExMath.h"
 #include "Data/PCGExDataPreloader.h"
 
 

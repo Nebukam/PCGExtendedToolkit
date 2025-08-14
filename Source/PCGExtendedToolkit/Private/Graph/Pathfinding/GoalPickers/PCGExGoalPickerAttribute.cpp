@@ -4,6 +4,8 @@
 
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerAttribute.h"
 
+#include "PCGExMath.h"
+
 
 void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {

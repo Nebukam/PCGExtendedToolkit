@@ -5,6 +5,7 @@
 #include "PCGExFactoryProvider.h"
 
 #include "PCGPin.h"
+#include "Data/PCGExAttributeHelpers.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExWriteActionWriteValuess"

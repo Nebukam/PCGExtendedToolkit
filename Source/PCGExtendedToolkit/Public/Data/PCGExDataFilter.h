@@ -9,6 +9,8 @@
 
 #include "PCGExDataFilter.generated.h"
 
+class FPCGMetadataAttributeBase;
+
 namespace PCGEx
 {
 	struct FAttributeIdentity;
