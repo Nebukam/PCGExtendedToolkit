@@ -43,9 +43,7 @@ namespace PCGExData
 		bool bIsConstant = false;
 		bool bWantsDirect = false;
 
-		FProxyDescriptor()
-		{
-		}
+		FProxyDescriptor() = default;
 
 		explicit FProxyDescriptor(const TSharedPtr<FFacade>& InDataFacade, const EProxyRole InRole = EProxyRole::Read)
 			: Role(InRole), DataFacade(InDataFacade)
@@ -94,12 +92,8 @@ namespace PCGExData
 	class TBufferProxy : public IBufferProxy
 	{
 	public:
-		TBufferProxy()
-			: IBufferProxy()
-		{
-			WorkingType = PCGEx::GetMetadataType<T_WORKING>();
-		}
-
+		TBufferProxy();
+			
 		virtual T_WORKING Get(const int32 Index) const = 0;
 		virtual void Set(const int32 Index, const T_WORKING& Value) const = 0;
 		virtual T_WORKING GetCurrent(const int32 Index) const { return Get(Index); };
@@ -121,12 +115,8 @@ namespace PCGExData
 	public:
 		TSharedPtr<TBuffer<T_REAL>> Buffer;
 
-		TAttributeBufferProxy()
-			: TBufferProxy<T_WORKING>()
-		{
-			this->RealType = PCGEx::GetMetadataType<T_REAL>();
-		}
-
+		TAttributeBufferProxy();
+			
 		virtual T_WORKING Get(const int32 Index) const override;
 		virtual void Set(const int32 Index, const T_WORKING& Value) const override;
 		virtual T_WORKING GetCurrent(const int32 Index) const override;
@@ -142,12 +132,8 @@ namespace PCGExData
 		using TBufferProxy<T_WORKING>::Data;
 
 	public:
-		TPointPropertyProxy()
-			: TBufferProxy<T_WORKING>()
-		{
-			this->RealType = PCGEx::GetMetadataType<T_REAL>();
-		}
-
+		TPointPropertyProxy();
+			
 		virtual T_WORKING Get(const int32 Index) const override;
 		virtual void Set(const int32 Index, const T_WORKING& Value) const override;
 	};
@@ -175,12 +161,8 @@ extern template class TPointPropertyProxy<_REALTYPE, _TYPE, false, _PROPERTY>;
 	public:
 		TSharedPtr<TBuffer<T_REAL>> Buffer;
 
-		TPointExtraPropertyProxy()
-			: TBufferProxy<T_WORKING>()
-		{
-			this->RealType = PCGEx::GetMetadataType<T_REAL>();
-		}
-
+		TPointExtraPropertyProxy();
+			
 		virtual T_WORKING Get(const int32 Index) const override;
 
 		virtual void Set(const int32 Index, const T_WORKING& Value) const override
@@ -210,19 +192,12 @@ extern template class TPointExtraPropertyProxy<_REALTYPE, _TYPE, false, _PROPERT
 		T_WORKING Constant = T_WORKING{};
 
 	public:
-		TConstantProxy()
-			: TBufferProxy<T_WORKING>()
-		{
-			this->RealType = PCGEx::GetMetadataType<T_WORKING>();
-		}
-
+		TConstantProxy();
+			
 		template <typename T>
 		void SetConstant(const T& InValue);
 
-		virtual T_WORKING Get(const int32 Index) const override
-		{
-			return Constant;
-		}
+		virtual T_WORKING Get(const int32 Index) const override		{			return Constant;		}
 
 		virtual void Set(const int32 Index, const T_WORKING& Value) const override
 		{
@@ -297,12 +272,16 @@ PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 		const FProxyDescriptor& InDescriptor);
 
 	template <typename T>
-	TSharedPtr<IBufferProxy> GetConstantProxyBuffer(const T& Constant)
-	{
-		TSharedPtr<TConstantProxy<T>> TypedProxy = MakeShared<TConstantProxy<T>>();
-		TypedProxy->SetConstant(Constant);
-		return TypedProxy;
-	}
+	TSharedPtr<IBufferProxy> GetConstantProxyBuffer(const T& Constant);
+	
+#pragma region externalization
+
+#define PCGEX_TPL(_TYPE, _NAME, ...) \
+extern template TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(const _TYPE& Constant);
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+#undef PCGEX_TPL
+
+#pragma endregion
 
 	bool GetPerFieldProxyBuffers(
 		FPCGExContext* InContext,
