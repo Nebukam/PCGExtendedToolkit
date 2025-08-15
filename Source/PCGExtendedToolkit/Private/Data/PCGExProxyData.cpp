@@ -126,35 +126,15 @@ namespace PCGExData
 
 #pragma endregion
 
-#pragma region externalization TPointPropertyProxy
+	template <typename T_WORKING>
+	TBufferProxy<T_WORKING>::TBufferProxy() : IBufferProxy() { WorkingType = PCGEx::GetMetadataType<T_WORKING>(); }
 
-#define PCGEX_TPL(_TYPE, _NAME, _REALTYPE, _PROPERTY)\
-template class PCGEXTENDEDTOOLKIT_API TPointPropertyProxy<_REALTYPE, _TYPE, true, _PROPERTY>;\
-template class PCGEXTENDEDTOOLKIT_API TPointPropertyProxy<_REALTYPE, _TYPE, false, _PROPERTY>;
-
-#define PCGEX_TPL_LOOP(_PROPERTY, _NAME, _TYPE, _NATIVETYPE)	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL, _TYPE, _PROPERTY)
-
-	PCGEX_FOREACH_POINTPROPERTY(PCGEX_TPL_LOOP)
-
-#undef PCGEX_TPL_LOOP
-#undef PCGEX_TPL
-
-#pragma endregion
-
-#pragma region externalization TPointExtraPropertyProxy
-
-#define PCGEX_TPL(_TYPE, _NAME, _REALTYPE, _PROPERTY)\
-template class PCGEXTENDEDTOOLKIT_API TPointExtraPropertyProxy<_REALTYPE, _TYPE, true, _PROPERTY>;\
-template class PCGEXTENDEDTOOLKIT_API TPointExtraPropertyProxy<_REALTYPE, _TYPE, false, _PROPERTY>;
-
-#define PCGEX_TPL_LOOP(_PROPERTY, _NAME, _TYPE)	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL, _TYPE, _PROPERTY)
-
-	PCGEX_FOREACH_EXTRAPROPERTY(PCGEX_TPL_LOOP)
-
-#undef PCGEX_TPL_LOOP
-#undef PCGEX_TPL
-
-#pragma endregion
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
+	TAttributeBufferProxy<T_REAL, T_WORKING, bSubSelection>::TAttributeBufferProxy()
+		: TBufferProxy<T_WORKING>()
+	{
+		this->RealType = PCGEx::GetMetadataType<T_REAL>();
+	}
 
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
 	T_WORKING TAttributeBufferProxy<T_REAL, T_WORKING, bSubSelection>::Get(const int32 Index) const
@@ -207,6 +187,13 @@ template class PCGEXTENDEDTOOLKIT_API TPointExtraPropertyProxy<_REALTYPE, _TYPE,
 	bool TAttributeBufferProxy<T_REAL, T_WORKING, bSubSelection>::EnsureReadable() const { return Buffer->EnsureReadable(); }
 
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGPointProperties PROPERTY>
+	TPointPropertyProxy<T_REAL, T_WORKING, bSubSelection, PROPERTY>::TPointPropertyProxy()
+		: TBufferProxy<T_WORKING>()
+	{
+		this->RealType = PCGEx::GetMetadataType<T_REAL>();
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGPointProperties PROPERTY>
 	T_WORKING TPointPropertyProxy<T_REAL, T_WORKING, bSubSelection, PROPERTY>::Get(const int32 Index) const
 	{
 #define PCGEX_GET_SUBPROPERTY(_ACCESSOR, _TYPE) \
@@ -254,6 +241,13 @@ else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
 	}
 
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGExtraProperties PROPERTY>
+	TPointExtraPropertyProxy<T_REAL, T_WORKING, bSubSelection, PROPERTY>::TPointExtraPropertyProxy()
+		: TBufferProxy<T_WORKING>()
+	{
+		this->RealType = PCGEx::GetMetadataType<T_REAL>();
+	}
+
+	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGExtraProperties PROPERTY>
 	T_WORKING TPointExtraPropertyProxy<T_REAL, T_WORKING, bSubSelection, PROPERTY>::Get(const int32 Index) const
 	{
 		if constexpr (PROPERTY == EPCGExtraProperties::Index)
@@ -267,11 +261,15 @@ else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
 	}
 
 	template <typename T_WORKING>
-	template <typename T>
-	void TConstantProxy<T_WORKING>::SetConstant(const T& InValue)
+	TConstantProxy<T_WORKING>::TConstantProxy()
+		: TBufferProxy<T_WORKING>()
 	{
-		Constant = PCGEx::Convert<T, T_WORKING>(InValue);
+		this->RealType = PCGEx::GetMetadataType<T_WORKING>();
 	}
+
+	template <typename T_WORKING>
+	template <typename T>
+	void TConstantProxy<T_WORKING>::SetConstant(const T& InValue) { Constant = PCGEx::Convert<T, T_WORKING>(InValue); }
 
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
 	TDirectAttributeProxy<T_REAL, T_WORKING, bSubSelection>::TDirectAttributeProxy()
@@ -393,6 +391,36 @@ else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
 		}
 	}
 
+#pragma region externalization TPointPropertyProxy
+
+#define PCGEX_TPL(_TYPE, _NAME, _REALTYPE, _PROPERTY)\
+template class PCGEXTENDEDTOOLKIT_API TPointPropertyProxy<_REALTYPE, _TYPE, true, _PROPERTY>;\
+template class PCGEXTENDEDTOOLKIT_API TPointPropertyProxy<_REALTYPE, _TYPE, false, _PROPERTY>;
+
+#define PCGEX_TPL_LOOP(_PROPERTY, _NAME, _TYPE, _NATIVETYPE)	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL, _TYPE, _PROPERTY)
+
+	PCGEX_FOREACH_POINTPROPERTY(PCGEX_TPL_LOOP)
+
+#undef PCGEX_TPL_LOOP
+#undef PCGEX_TPL
+
+#pragma endregion
+
+#pragma region externalization TPointExtraPropertyProxy
+
+#define PCGEX_TPL(_TYPE, _NAME, _REALTYPE, _PROPERTY)\
+template class PCGEXTENDEDTOOLKIT_API TPointExtraPropertyProxy<_REALTYPE, _TYPE, true, _PROPERTY>;\
+template class PCGEXTENDEDTOOLKIT_API TPointExtraPropertyProxy<_REALTYPE, _TYPE, false, _PROPERTY>;
+
+#define PCGEX_TPL_LOOP(_PROPERTY, _NAME, _TYPE)	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL, _TYPE, _PROPERTY)
+
+	PCGEX_FOREACH_EXTRAPROPERTY(PCGEX_TPL_LOOP)
+
+#undef PCGEX_TPL_LOOP
+#undef PCGEX_TPL
+
+#pragma endregion
+	
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
@@ -716,6 +744,23 @@ OutProxy = TypedProxy;
 
 		return OutProxy;
 	}
+
+	template <typename T>
+	TSharedPtr<IBufferProxy> GetConstantProxyBuffer(const T& Constant)
+	{
+		TSharedPtr<TConstantProxy<T>> TypedProxy = MakeShared<TConstantProxy<T>>();
+		TypedProxy->SetConstant(Constant);
+		return TypedProxy;
+	}
+
+#pragma region externalization
+
+#define PCGEX_TPL(_TYPE, _NAME, ...) \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(const _TYPE& Constant);
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+#undef PCGEX_TPL
+
+#pragma endregion
 
 	bool GetPerFieldProxyBuffers(
 		FPCGExContext* InContext,

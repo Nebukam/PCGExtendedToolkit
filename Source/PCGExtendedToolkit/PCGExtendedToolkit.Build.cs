@@ -8,6 +8,7 @@ public class PCGExtendedToolkit : ModuleRules
 	public PCGExtendedToolkit(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		bUseUnity = true;
 
 		PublicIncludePaths.AddRange(
 			new string[]
