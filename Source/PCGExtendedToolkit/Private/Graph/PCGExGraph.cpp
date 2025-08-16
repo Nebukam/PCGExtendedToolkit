@@ -291,12 +291,6 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
 	}
 
-	void FSubGraph::Invalidate(FGraph* InGraph)
-	{
-		for (const int32 EdgeIndex : Edges) { InGraph->Edges[EdgeIndex].bValid = false; }
-		for (const int32 NodeIndex : Nodes) { InGraph->Nodes[NodeIndex].bValid = false; }
-	}
-
 	void FSubGraph::BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster)
 	{
 		// Correct edge IO Index that has been overwritten during subgraph processing
@@ -743,7 +737,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	FGraphEdgeMetadata& FGraph::GetOrCreateEdgeMetadata_Unsafe(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent)
 	{
 		if (FGraphEdgeMetadata* MetadataPtr = EdgeMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
-		return EdgeMetadata.Emplace(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, Parent));
+		return EdgeMetadata.Add(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, Parent));
 	}
 
 	FGraphEdgeMetadata& FGraph::GetOrCreateEdgeMetadata(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent)
@@ -895,14 +889,19 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		for (int i = 0; i < Nodes.Num(); i++)
 		{
-			const FNode& CurrentNode = Nodes[i];
+			FNode& CurrentNode = Nodes[i];
 
 			if (VisitedNodes[i]) { continue; }
 
 			VisitedNodes[i] = true;
 			VisitedNum++;
 
-			if (!CurrentNode.bValid || CurrentNode.IsEmpty()) { continue; }
+			if (!CurrentNode.bValid) { continue; }
+			if (CurrentNode.IsEmpty())
+			{
+				CurrentNode.bValid = false;
+				continue;
+			}
 
 			PCGEX_MAKE_SHARED(SubGraph, FSubGraph)
 			SubGraph->WeakParentGraph = SharedThis(this);
@@ -944,8 +943,16 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				}
 			}
 
-			if (!Limits.IsValid(SubGraph)) { SubGraph->Invalidate(this); } // Will invalidate isolated points
-			else if (!SubGraph->Edges.IsEmpty()) { SubGraphs.Add(SubGraph.ToSharedRef()); }
+			if (!Limits.IsValid(SubGraph))
+			{
+				// Invalidate traversed points and edges
+				for (const int32 j : SubGraph->Nodes) { Nodes[j].bValid = false; }
+				for (const int32 j : SubGraph->Edges) { Edges[j].bValid = false; }
+			} 
+			else if (!SubGraph->Edges.IsEmpty())
+			{
+				SubGraphs.Add(SubGraph.ToSharedRef());
+			}
 		}
 	}
 
@@ -1066,7 +1073,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		// Filter all valid nodes
 		for (FNode& Node : Nodes)
 		{
-			if (!Node.bValid || Node.IsEmpty())
+			if (!Node.bValid)
 			{
 				bHasInvalidNodes = true;
 				continue;
@@ -1133,7 +1140,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// Init array of indice as a valid order range first, will be truncated later.
 				// We save a bit of memory by re-using it
 				PCGEx::ArrayOfIndices(ReadIndices, OutNodeData->GetNumPoints());
-				ReadIndices.SetNumUninitialized(OutNodeData->GetNumPoints());
 
 				// Sort valid nodes based on outgoing transforms
 				ValidNodes.Sort(
@@ -1158,7 +1164,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				PCGEx::ReorderPointArrayData(OutNodeData, ReadIndices);
 
 				// Truncate output to the number of nodes
-				ReadIndices.SetNum(NumValidNodes);
 				OutNodeData->SetNumPoints(NumValidNodes);
 			}
 		}

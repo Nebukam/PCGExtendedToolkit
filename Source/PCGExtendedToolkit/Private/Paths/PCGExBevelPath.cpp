@@ -529,7 +529,7 @@ namespace PCGExBevelPath
 	{
 		constexpr EPCGPointNativeProperties CarryOverProperties =
 			static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) &
-				~static_cast<uint8>(EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::Seed | EPCGPointNativeProperties::MetadataEntry));
+				~static_cast<uint8>(EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::MetadataEntry));
 
 		PointDataFacade->Source->ConsumeIdxMapping(CarryOverProperties);
 	}
