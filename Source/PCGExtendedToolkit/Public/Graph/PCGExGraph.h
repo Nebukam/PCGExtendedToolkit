@@ -365,7 +365,6 @@ namespace PCGExGraph
 
 		void Add(const FEdge& Edge, FGraph* InGraph);
 
-		void Invalidate(FGraph* InGraph);
 		void BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster);
 		int32 GetFirstInIOIndex();
 

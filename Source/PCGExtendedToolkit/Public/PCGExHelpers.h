@@ -787,6 +787,15 @@ namespace PCGEx
 		}
 	};
 
+	template <typename T>
+	void ReorderValueRange(TPCGValueRange<T>& InRange, const TArray<int32>& InOrder);
+
+#define PCGEX_TPL(_TYPE, _NAME, ...) \
+extern template void ReorderValueRange<_TYPE>(TPCGValueRange<_TYPE>& InRange, const TArray<int32>& InOrder);
+
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+#undef PCGEX_TPL
+	
 	PCGEXTENDEDTOOLKIT_API
 	void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder);
 
