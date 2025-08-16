@@ -40,7 +40,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSubdivideElement::Execute);
 
-	PCGEX_CONTEXT(Subdivide)
+	PCGEX_CONTEXT_AND_SETTINGS(Subdivide)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
@@ -68,7 +68,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
-	Context->MainPoints->StageOutputs();
+	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 
 	return Context->TryComplete();
 }

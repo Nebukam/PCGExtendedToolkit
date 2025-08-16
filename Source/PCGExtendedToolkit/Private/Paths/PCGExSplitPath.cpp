@@ -68,8 +68,8 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	Context->MainPaths->Pairs.Reserve(Context->MainPaths->Pairs.Num() + Context->MainBatch->GetNumProcessors());
 	Context->MainBatch->Output();
 
-	Context->MainPaths->StageOutputs();
-	Context->MainPoints->StageOutputs();
+	PCGEX_OUTPUT_VALID_PATHS(MainPaths)
+	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 
 	return Context->TryComplete();
 }

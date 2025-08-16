@@ -43,7 +43,7 @@ bool FPCGExPathSolidifyElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
-	Context->MainPoints->StageOutputs();
+	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 
 	return Context->TryComplete();
 }

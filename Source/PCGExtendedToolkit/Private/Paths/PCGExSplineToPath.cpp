@@ -8,6 +8,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
+#include "Paths/PCGExPathProcessor.h"
 #include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampleNearestSpline.h"
 
@@ -120,7 +121,7 @@ bool FPCGExSplineToPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 	{
-		Context->MainPoints->StageOutputs();
+		PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 		Context->Done();
 	}
 

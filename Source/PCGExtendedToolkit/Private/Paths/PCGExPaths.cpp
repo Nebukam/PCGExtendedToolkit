@@ -602,6 +602,10 @@ namespace PCGExPaths
 		GetMutable(Edge.Start) = PCGExMath::GetAngle(Path->DirToPrevPoint(Edge.Start) * -1, Edge.Dir);
 	}
 
+#pragma endregion
+
+#pragma region PolyPath
+
 	TSharedPtr<FPath> MakePath(const UPCGBasePointData* InPointData, const double Expansion)
 	{
 		return MakeShared<FPath>(InPointData->GetConstTransformValueRange(), GetClosedLoop(InPointData), Expansion);
@@ -947,9 +951,9 @@ namespace PCGExPaths
 		OutLerp = InTime - OutEdgeIndex;
 		return FMath::Min(OutEdgeIndex, this->LastEdge);
 	}
-
-#pragma endregion
-
+	
+#pragma endregion 
+	
 #pragma endregion
 
 	bool FPathEdgeCrossings::FindSplit(

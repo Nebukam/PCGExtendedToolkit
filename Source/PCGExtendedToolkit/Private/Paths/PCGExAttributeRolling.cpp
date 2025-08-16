@@ -122,7 +122,7 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainBatch->Output();
-	Context->MainPoints->StageOutputs();
+	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 
 	return Context->TryComplete();
 }

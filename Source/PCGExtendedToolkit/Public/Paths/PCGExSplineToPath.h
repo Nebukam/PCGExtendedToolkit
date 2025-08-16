@@ -4,7 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPointsProcessor.h"
+#include "PCGExPathProcessor.h"
+#include "PCGExPathProcessor.h"
 #include "Data/PCGExDataFilter.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
@@ -25,7 +26,7 @@ MACRO(Alpha, double, 0)
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/spline-to-path"))
-class UPCGExSplineToPathSettings : public UPCGExPointsProcessorSettings
+class UPCGExSplineToPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -104,7 +105,7 @@ public:
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-struct FPCGExSplineToPathContext final : FPCGExPointsProcessorContext
+struct FPCGExSplineToPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSplineToPathElement;
 
@@ -120,7 +121,7 @@ struct FPCGExSplineToPathContext final : FPCGExPointsProcessorContext
 	int64 NumTargets = 0;
 };
 
-class FPCGExSplineToPathElement final : public FPCGExPointsProcessorElement
+class FPCGExSplineToPathElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SplineToPath)

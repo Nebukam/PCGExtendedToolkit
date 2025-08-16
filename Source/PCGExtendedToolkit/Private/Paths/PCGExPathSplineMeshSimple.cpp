@@ -132,7 +132,7 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 
 	Context->MainBatch->Output();
 
-	Context->MainPoints->StageOutputs();
+	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
 
 	return Context->TryComplete();

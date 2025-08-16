@@ -72,7 +72,7 @@ bool FPCGExShiftPathElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExShiftPathElement::Execute);
 
-	PCGEX_CONTEXT(ShiftPath)
+	PCGEX_CONTEXT_AND_SETTINGS(ShiftPath)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
@@ -94,7 +94,7 @@ bool FPCGExShiftPathElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainBatch->Output();
-	Context->MainPoints->StageOutputs();
+	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 
 	return Context->TryComplete();
 }

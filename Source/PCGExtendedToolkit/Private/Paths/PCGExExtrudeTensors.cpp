@@ -6,6 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Graph/PCGExGraph.h"
+#include "Paths/PCGExPathProcessor.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExExtrudeTensorsElement"
@@ -39,7 +40,7 @@ FName UPCGExExtrudeTensorsSettings::GetMainOutputPin() const { return PCGExPaths
 
 bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ExtrudeTensors)
 
@@ -92,7 +93,7 @@ bool FPCGExExtrudeTensorsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
-	Context->MainPoints->StageOutputs();
+	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 
 	return Context->TryComplete();
 }
