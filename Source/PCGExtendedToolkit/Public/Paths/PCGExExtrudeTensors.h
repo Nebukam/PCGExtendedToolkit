@@ -8,7 +8,7 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExPaths.h"
 
-#include "PCGExPointsProcessor.h"
+#include "PCGExPathProcessor.h"
 #include "Data/PCGExDataForward.h"
 
 
@@ -35,7 +35,7 @@ enum class EPCGExSelfIntersectionPriority : uint8
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="tensors/extrude-tensors"))
-class UPCGExExtrudeTensorsSettings : public UPCGExPointsProcessorSettings
+class UPCGExExtrudeTensorsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -51,11 +51,11 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings
+	//~Begin UPCGExPathProcessorSettings
 public:
 	virtual FName GetMainInputPin() const override;
 	virtual FName GetMainOutputPin() const override;
-	//~End UPCGExPointsProcessorSettings
+	//~End UPCGExPathProcessorSettings
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Transforms", meta=(PCG_Overridable))
@@ -274,7 +274,7 @@ private:
 	friend class FPCGExExtrudeTensorsElement;
 };
 
-struct FPCGExExtrudeTensorsContext final : FPCGExPointsProcessorContext
+struct FPCGExExtrudeTensorsContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExExtrudeTensorsElement;
 
@@ -295,7 +295,7 @@ protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
-class FPCGExExtrudeTensorsElement final : public FPCGExPointsProcessorElement
+class FPCGExExtrudeTensorsElement final : public FPCGExPathProcessorElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ExtrudeTensors)

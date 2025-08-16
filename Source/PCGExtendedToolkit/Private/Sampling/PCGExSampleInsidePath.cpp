@@ -49,14 +49,6 @@ bool UPCGExSampleInsidePathSettings::IsPinUsedByNodeExecution(const UPCGPin* InP
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
-void FPCGExSampleInsidePathContext::RegisterAssetDependencies()
-{
-	PCGEX_SETTINGS_LOCAL(SampleInsidePath)
-
-	FPCGExPointsProcessorContext::RegisterAssetDependencies();
-	AddAssetDependency(Settings->WeightOverDistance.ToSoftObjectPath());
-}
-
 PCGEX_INITIALIZE_ELEMENT(SampleInsidePath)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleInsidePath)
 
@@ -135,25 +127,19 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 			});
 	}
 
-	return true;
-}
-
-void FPCGExSampleInsidePathElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
-{
-	PCGEX_CONTEXT_AND_SETTINGS(SampleInsidePath)
-
-	FPCGExPointsProcessorElement::PostLoadAssetsDependencies(InContext);
-
 	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
 
-	if (!Settings->bUseLocalCurve)
+	if (!Settings->bUseLocalCurve && Settings->WeightOverDistance.IsValid())
 	{
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(0, 0);
 		Context->RuntimeWeightCurve.EditorCurveData.AddKey(1, 1);
+		PCGExHelpers::LoadBlocking_AnyThread(Settings->WeightOverDistance);
 		Context->RuntimeWeightCurve.ExternalCurve = Settings->WeightOverDistance.Get();
 	}
 
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
+
+	return true;
 }
 
 bool FPCGExSampleInsidePathElement::ExecuteInternal(FPCGContext* InContext) const
@@ -198,12 +184,6 @@ bool FPCGExSampleInsidePathElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	return Context->TryComplete();
 }
-
-bool FPCGExSampleInsidePathElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
-{
-	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
-}
-
 
 namespace PCGExSampleInsidePath
 {

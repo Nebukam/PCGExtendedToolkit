@@ -473,11 +473,10 @@ namespace PCGExData
 		if (Out)
 		{
 			const int64 OutNumPoints = Out->GetNumPoints();
-			if ((MinPointCount >= 0 && OutNumPoints < MinPointCount) ||
-				(MaxPointCount >= 0 && OutNumPoints > MaxPointCount))
-			{
-				return StageOutput(TargetContext);
-			}
+			if (OutNumPoints <= 0) { return false; }
+			if (MinPointCount > 0 && OutNumPoints < MinPointCount) { return false; }
+			if (MaxPointCount > 0 && OutNumPoints > MaxPointCount) { return false; }
+			return StageOutput(TargetContext);
 		}
 		return false;
 	}
