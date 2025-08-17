@@ -57,7 +57,8 @@ A lot of simple yet powerful utility nodes ranging from complex sorting, complex
 ### Disclaimer
 This software is provided under the MIT License. It is freely available for use & modifications, and may be incorporated into commercial products without the necessity of attribution (*though it is appreciated*). **The contents of this project are entirely original, comprising no AI-generated materials, including but not limited to code and assets.**
 
-### Credits
+### Supporters
+-Check out the [Supporters](https://pcgex.gitbook.io/pcgex/supporters) page on gitbook!
 - Thanks to [Sine Nomine Associates](https://sinenomine.net/) for generously providing and maintaining the automated Linux build infrastructure that helps keep this project running smoothly.
 
 ### Special Thanks
