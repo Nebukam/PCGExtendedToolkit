@@ -13,6 +13,9 @@ bool FPCGExProbeNumericCompare::PrepareForPoints(FPCGExContext* InContext, const
 {
 	if (!FPCGExProbeOperation::PrepareForPoints(InContext, InPointIO)) { return false; }
 
+	MaxConnections = Config.GetValueSettingMaxConnections();
+	if (!MaxConnections->Init(PrimaryDataFacade)) { return false; }
+	
 	ValuesBuffer = PrimaryDataFacade->GetBroadcaster<double>(Config.Attribute, true);
 
 	if (!ValuesBuffer)
@@ -30,9 +33,13 @@ bool FPCGExProbeNumericCompare::PrepareForPoints(FPCGExContext* InContext, const
 void FPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
+	const int32 MaxIterations = FMath::Min(MaxConnections->Read(Index), Candidates.Num());
 	const double R = GetSearchRadius(Index);
 
+	if (MaxIterations <= 0) { return; }
+	
 	TSet<FInt32Vector> LocalCoincidence;
+	int32 Additions = 0;
 
 	for (PCGExProbing::FCandidate& C : Candidates)
 	{
@@ -53,6 +60,9 @@ void FPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FTran
 		if (PCGExCompare::Compare(Config.Comparison, ValuesBuffer->Read(Index), ValuesBuffer->Read(C.PointIndex), Config.Tolerance))
 		{
 			OutEdges->Add(PCGEx::H64U(Index, C.PointIndex));
+
+			Additions++;
+			if (Additions >= MaxIterations) { return; }
 		}
 	}
 }

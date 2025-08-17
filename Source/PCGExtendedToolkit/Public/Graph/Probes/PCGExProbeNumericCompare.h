@@ -28,6 +28,18 @@ struct FPCGExProbeConfigNumericCompare : public FPCGExProbeConfigBase
 	{
 	}
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType MaxConnectionsInput = EPCGExInputValueType::Constant;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Connections (Attr)", EditCondition="MaxConnectionsInput != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector MaxConnectionsAttribute;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Connections", ClampMin=0, EditCondition="MaxConnectionsInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
+	int32 MaxConnectionsConstant = 1;
+
+	PCGEX_SETTING_VALUE_GET(MaxConnections, int32, MaxConnectionsInput, MaxConnectionsAttribute, MaxConnectionsConstant)
+	
+
 	/** Attribute to compare */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector Attribute;
@@ -61,6 +73,7 @@ public:
 
 	FPCGExProbeConfigNumericCompare Config;
 
+	TSharedPtr<PCGExDetails::TSettingValue<int32>> MaxConnections;
 	TSharedPtr<PCGExData::TBuffer<double>> ValuesBuffer;
 
 protected:
