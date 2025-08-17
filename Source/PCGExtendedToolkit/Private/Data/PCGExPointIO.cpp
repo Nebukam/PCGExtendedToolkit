@@ -100,10 +100,11 @@ namespace PCGExData
 				// Input type was not a PointData child, should not happen.
 				check(Out)
 
-				FPCGInitializeFromDataParams InitializeFromDataParams(In);
+				PCGExHelpers::InitEmptyNativeProperties(In, Out);
+				
+				FPCGInitializeFromDataParams InitializeFromDataParams(In);				
 				InitializeFromDataParams.bInheritSpatialData = false;
 				Out->InitializeFromDataWithParams(InitializeFromDataParams);
-				PCGExHelpers::CopyBaseNativeProperties(In, Out);
 			}
 			else
 			{
@@ -117,7 +118,6 @@ namespace PCGExData
 		{
 			check(In)
 			Out = SharedContext.Get()->ManagedObjects->DuplicateData<UPCGBasePointData>(In);
-			PCGExHelpers::CopyBaseNativeProperties(In, Out);
 		}
 
 		return true;

@@ -547,13 +547,15 @@ namespace PCGExHelpers
 			IsDataDomainAttribute(InputSelector.GetName());
 	}
 
-	void CopyBaseNativeProperties(const UPCGData* From, UPCGData* To, EPCGPointNativeProperties Properties)
+	void InitEmptyNativeProperties(const UPCGData* From, UPCGData* To, EPCGPointNativeProperties Properties)
 	{
 		const UPCGPointArrayData* FromPoints = Cast<UPCGPointArrayData>(From);
 		UPCGPointArrayData* ToPoints = Cast<UPCGPointArrayData>(To);
 
-		if (!FromPoints || !ToPoints) { return; }
+		if (!FromPoints || !ToPoints || FromPoints == ToPoints) { return; }
 
+		ToPoints->AllocateProperties(FromPoints->GetAllocatedProperties());
+		
 #define PCGEX_COPY_SINGLE_VALUE(_NAME, _TYPE, ...) if(EnumHasAnyFlags(Properties, EPCGPointNativeProperties::_NAME)){ \
 		TConstPCGValueRange<_TYPE> Range = FromPoints->GetConst##_NAME##ValueRange(); \
 		if (Range.GetSingleValue().IsSet()) { ToPoints->Get##_NAME##ValueRange(false).GetSingleValue().Emplace(Range.GetSingleValue().GetValue()); } \
