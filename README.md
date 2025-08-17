@@ -18,6 +18,8 @@ For questions & support, join the [PCGEx Discord Server](https://discord.gg/mde2
 
 #### *You can also get it from [FAB](https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624)!*
 
+— Support the project on **[Patreon](https://www.patreon.com/c/pcgex)**  
+
 ## **[Example Project](https://pcgex.gitbook.io/pcgex/basics/quickstart/example-project)**
 ![image](https://github.com/user-attachments/assets/b8bd713e-0b60-4cdc-84d9-dd776d452bf8)
 
@@ -52,6 +54,14 @@ A lot of simple yet powerful utility nodes ranging from complex sorting, complex
 ![hl-misc](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-miscjpg.jpg)
 
 #### *And so much more -- PCGEx has 180+ nodes!*
+
+# Interops
+PCGEx has a few additional interops plugins to interfaces with "other things":
+
+— **[PCGEx + Zone Graph](https://github.com/Nebukam/PCGExtendedToolkitZoneGraph)**  
+— **[PCGEx + Watabou](https://github.com/Nebukam/PCGExtendedToolkitWatabou)**  
+
+---
 
 ### [Contributing](https://github.com/Nebukam/PCGExtendedToolkit/blob/main/CONTRIBUTING.md)
 ### Disclaimer
