@@ -6,10 +6,22 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
+#include "Paths/Tangents/PCGExTangentsAuto.h"
 #include "Paths/Tangents/PCGExTangentsZero.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
+
+#if WITH_EDITORONLY_DATA
+void UPCGExWriteTangentsSettings::PostInitProperties()
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject))
+	{
+		if (!Tangents) { Tangents = NewObject<UPCGExAutoTangents>(this, TEXT("Tangents")); }
+	}
+	Super::PostInitProperties();
+}
+#endif
 
 TArray<FPCGPinProperties> UPCGExWriteTangentsSettings::InputPinProperties() const
 {

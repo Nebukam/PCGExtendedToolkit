@@ -39,7 +39,7 @@ protected:
 	//~Begin UObject interface
 public:
 #if WITH_EDITOR
-
+	virtual void PostInitProperties() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface

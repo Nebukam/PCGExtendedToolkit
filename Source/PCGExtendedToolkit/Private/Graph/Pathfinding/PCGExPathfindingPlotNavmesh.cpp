@@ -25,6 +25,15 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotNavmeshSettings::OutputPinPropert
 }
 
 #if WITH_EDITOR
+void UPCGExPathfindingPlotNavmeshSettings::PostInitProperties()
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject))
+	{
+		if (!Blending) { Blending = NewObject<UPCGExSubPointsBlendInterpolate>(this, TEXT("Blending")); }
+	}
+	Super::PostInitProperties();
+}
+
 void UPCGExPathfindingPlotNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (Blending) { Blending->UpdateUserFacingInfos(); }
@@ -33,6 +42,8 @@ void UPCGExPathfindingPlotNavmeshSettings::PostEditChangeProperty(FPropertyChang
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
+
+
 
 bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGExContext* InContext) const
 {

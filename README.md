@@ -11,12 +11,10 @@ It also comes with a set of lower-level, more generic features to manipulate att
 
 ## Getting Started
 — **[Documentation](https://pcgex.gitbook.io/pcgex)**  
-— **[Installation](https://nebukam.github.io/PCGExtendedToolkit/installation.html) in your own project**  
+— **[Installation](https://nebukam.github.io/PCGExtendedToolkit/installation.html) in your own project** | Or get it from [FAB](https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624)  
 — Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html)  
 
 For questions & support, join the [PCGEx Discord Server](https://discord.gg/mde2vC5gbE)!
-
-#### *You can also get it from [FAB](https://www.fab.com/listings/3f0bea1c-7406-4441-951b-8b2ca155f624)!*
 
 — Support the project on **[Patreon](https://www.patreon.com/c/pcgex)**  
 
