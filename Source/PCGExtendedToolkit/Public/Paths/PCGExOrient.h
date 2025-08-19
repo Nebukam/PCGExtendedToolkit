@@ -44,6 +44,12 @@ public:
 		(Orientation ? FName(Orientation.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 #endif
 
+#if WITH_EDITORONLY_DATA
+	// UObject interface
+	virtual void PostInitProperties() override;
+	// End of UObject interface
+#endif
+	
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;

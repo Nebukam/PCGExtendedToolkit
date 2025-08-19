@@ -6,9 +6,21 @@
 
 #include "Data/PCGExData.h"
 #include "Paths/Orient/PCGExOrientAverage.h"
+#include "Paths/Orient/PCGExOrientLookAt.h"
 
 #define LOCTEXT_NAMESPACE "PCGExOrientElement"
 #define PCGEX_NAMESPACE Orient
+
+#if WITH_EDITORONLY_DATA
+void UPCGExOrientSettings::PostInitProperties()
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject))
+	{
+		if (!Orientation) { Orientation = NewObject<UPCGExOrientLookAt>(this, TEXT("Orientation")); }
+	}
+	Super::PostInitProperties();
+}
+#endif
 
 TArray<FPCGPinProperties> UPCGExOrientSettings::InputPinProperties() const
 {

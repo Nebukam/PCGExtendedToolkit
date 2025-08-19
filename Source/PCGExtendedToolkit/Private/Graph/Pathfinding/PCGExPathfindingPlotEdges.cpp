@@ -18,6 +18,15 @@
 #define PCGEX_NAMESPACE PathfindingPlotEdges
 
 #if WITH_EDITOR
+void UPCGExPathfindingPlotEdgesSettings::PostInitProperties()
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject))
+	{
+		if (!SearchAlgorithm) { SearchAlgorithm = NewObject<UPCGExSearchAStar>(this, TEXT("SearchAlgorithm")); }
+	}
+	Super::PostInitProperties();
+}
+
 void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -150,6 +159,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)
+
 PCGEX_ELEMENT_BATCH_EDGE_IMPL(PathfindingPlotEdges)
 
 bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const

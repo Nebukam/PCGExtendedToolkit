@@ -29,6 +29,17 @@ TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::OutputPinProperties(
 }
 
 #if WITH_EDITOR
+
+void UPCGExPathfindingNavmeshSettings::PostInitProperties()
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject))
+	{
+		if (!GoalPicker) { GoalPicker = NewObject<UPCGExGoalPicker>(this, TEXT("GoalPicker")); }
+		if (!Blending) { Blending = NewObject<UPCGExSubPointsBlendInterpolate>(this, TEXT("Blending")); }
+	}
+	Super::PostInitProperties();
+}
+
 void UPCGExPathfindingNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
@@ -38,6 +49,7 @@ void UPCGExPathfindingNavmeshSettings::PostEditChangeProperty(FPropertyChangedEv
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingNavmesh)
+
 
 bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 {

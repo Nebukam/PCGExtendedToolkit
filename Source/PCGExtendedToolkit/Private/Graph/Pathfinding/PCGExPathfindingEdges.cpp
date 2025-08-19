@@ -6,6 +6,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
+#include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 #include "Paths/PCGExPaths.h"
 
@@ -13,6 +14,16 @@
 #define PCGEX_NAMESPACE PathfindingEdges
 
 #if WITH_EDITOR
+void UPCGExPathfindingEdgesSettings::PostInitProperties()
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject))
+	{
+		if (!GoalPicker) { GoalPicker = NewObject<UPCGExGoalPicker>(this, TEXT("GoalPicker")); }
+		if (!SearchAlgorithm) { SearchAlgorithm = NewObject<UPCGExSearchAStar>(this, TEXT("SearchAlgorithm")); }
+	}
+	Super::PostInitProperties();
+}
+
 void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }

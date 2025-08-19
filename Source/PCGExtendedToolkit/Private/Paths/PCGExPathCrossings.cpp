@@ -13,6 +13,17 @@
 #define LOCTEXT_NAMESPACE "PCGExPathCrossingsElement"
 #define PCGEX_NAMESPACE PathCrossings
 
+#if WITH_EDITORONLY_DATA
+void UPCGExPathCrossingsSettings::PostInitProperties()
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject))
+	{
+		if (!Blending) { Blending = NewObject<UPCGExSubPointsBlendInterpolate>(this, TEXT("Blending")); }
+	}
+	Super::PostInitProperties();
+}
+#endif
+
 TArray<FPCGPinProperties> UPCGExPathCrossingsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();

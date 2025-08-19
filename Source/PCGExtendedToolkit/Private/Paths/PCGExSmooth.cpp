@@ -25,8 +25,19 @@ bool UPCGExSmoothSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
+#if WITH_EDITORONLY_DATA
+void UPCGExSmoothSettings::PostInitProperties()
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject))
+	{
+		if (!SmoothingMethod) { SmoothingMethod = NewObject<UPCGExMovingAverageSmoothing>(this, TEXT("SmoothingMethod")); }
+	}
+	Super::PostInitProperties();
+}
+#endif
 
 PCGEX_INITIALIZE_ELEMENT(Smooth)
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(Smooth)
 
 bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
