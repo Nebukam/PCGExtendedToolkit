@@ -36,6 +36,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 	TempPolyPaths.Init(nullptr, TempTargets.Num());
 	PolyPaths.Reserve(TempTargets.Num());
+	Datas.Reserve(TempTargets.Num());
 
 	TWeakPtr<FPCGContextHandle> CtxHandle = InContext->GetOrCreateHandle();
 
@@ -66,6 +67,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 				OctreeBounds += Data->GetBounds();
 
 				PolyPaths.Add(Path);
+				Datas.Add(Data);
 			}
 
 			if (PolyPaths.IsEmpty())
@@ -138,10 +140,12 @@ namespace PCGExPathInclusion
 {
 	FHandler::FHandler(const UPCGExPolyPathFilterFactory* InFactory)
 	{
+		Datas = &InFactory->Datas;
 		Paths = &InFactory->PolyPaths;
 		Octree = InFactory->Octree;
 		Tolerance = InFactory->LocalExpansion;
 		ToleranceSquared = FMath::Square(InFactory->LocalExpansion);
+		bIgnoreSelf = InFactory->bIgnoreSelf;
 	}
 
 	void FHandler::Init(const EPCGExSplineCheckType InCheckType)
@@ -191,7 +195,7 @@ namespace PCGExPathInclusion
 		}
 	}
 
-	EFlags FHandler::GetInclusionFlags(const FVector& WorldPosition, int32& InclusionCount, const bool bClosestOnly) const
+	EFlags FHandler::GetInclusionFlags(const FVector& WorldPosition, int32& InclusionCount, const bool bClosestOnly, const UPCGData* InParentData) const
 	{
 		EFlags OutFlags = None;
 		bool bIsOn = false;
@@ -209,6 +213,8 @@ namespace PCGExPathInclusion
 					FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
 					const PCGExOctree::FItem& Item)
 					{
+						if (bIgnoreSelf && InParentData != nullptr) { if (InParentData == *(Datas->GetData() + Item.Index)) { return; } }
+
 						if ((*(Paths->GetData() + Item.Index))->IsInsideProjection(WorldPosition))
 						{
 							InclusionCount++;
@@ -228,6 +234,8 @@ namespace PCGExPathInclusion
 					FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
 					const PCGExOctree::FItem& Item)
 					{
+						if (bIgnoreSelf && InParentData != nullptr) { if (InParentData == *(Datas->GetData() + Item.Index)) { return; } }
+						
 						if ((*(Paths->GetData() + Item.Index))->IsInsideProjection(WorldPosition))
 						{
 							InclusionCount++;
@@ -254,6 +262,8 @@ namespace PCGExPathInclusion
 					FBoxCenterAndExtent(WorldPosition, FVector::OneVector),
 					[&](const PCGExOctree::FItem& Item)
 					{
+						if (bIgnoreSelf && InParentData != nullptr) { if (InParentData == *(Datas->GetData() + Item.Index)) { return; } }
+						
 						bool bLocalIsInside = false;
 						const FTransform Closest = (*(Paths->GetData() + Item.Index))->GetClosestTransform(WorldPosition, bLocalIsInside, bScaleTolerance);
 						InclusionCount += bLocalIsInside;
@@ -274,6 +284,8 @@ namespace PCGExPathInclusion
 					FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
 					const PCGExOctree::FItem& Item)
 					{
+						if (bIgnoreSelf && InParentData != nullptr) { if (InParentData == *(Datas->GetData() + Item.Index)) { return; } }
+						
 						bool bLocalIsInside = false;
 						const FTransform Closest = (*(Paths->GetData() + Item.Index))->GetClosestTransform(WorldPosition, bLocalIsInside, bScaleTolerance);
 						InclusionCount += bLocalIsInside;

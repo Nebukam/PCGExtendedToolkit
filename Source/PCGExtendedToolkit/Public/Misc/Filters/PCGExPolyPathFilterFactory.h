@@ -55,6 +55,7 @@ class UPCGExPolyPathFilterFactory : public UPCGExFilterFactoryData
 public:
 	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
+	TArray<const UPCGData*> Datas;
 	TArray<TSharedPtr<PCGExPaths::FPolyPath>> PolyPaths;
 	TSharedPtr<PCGExOctree::FItemOctree> Octree;
 
@@ -81,6 +82,7 @@ protected:
 	EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged;
 	bool bScaleTolerance = false;
 	bool bUsedForInclusion = true;
+	bool bIgnoreSelf = true;
 
 	TArray<FPCGTaggedData> TempTargets;
 	TArray<TSharedPtr<PCGExPaths::FPolyPath>> TempPolyPaths;
@@ -123,12 +125,14 @@ namespace PCGExPathInclusion
 
 	class FHandler : public TSharedFromThis<FHandler>
 	{
+		const TArray<const UPCGData*>* Datas;
 		const TArray<TSharedPtr<PCGExPaths::FPolyPath>>* Paths;
 		TSharedPtr<PCGExOctree::FItemOctree> Octree;
 		EPCGExSplineCheckType Check = EPCGExSplineCheckType::IsInside;
 
 		bool bFastCheck = false;
 		bool bDistanceCheckOnly = false;
+		bool bIgnoreSelf = true;
 
 		EFlags GoodFlags = None;
 		EFlags BadFlags = None;
@@ -157,6 +161,6 @@ namespace PCGExPathInclusion
 			return bPass;
 		}
 
-		EFlags GetInclusionFlags(const FVector& WorldPosition, int32& InclusionCount, const bool bClosestOnly) const;
+		EFlags GetInclusionFlags(const FVector& WorldPosition, int32& InclusionCount, const bool bClosestOnly, const UPCGData* InParentData = nullptr) const;
 	};
 }

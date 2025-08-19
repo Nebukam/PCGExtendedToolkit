@@ -29,6 +29,7 @@ void UPCGExTimeFilterFactory::InitConfig_Internal()
 	WindingMutation = Config.WindingMutation;
 	bScaleTolerance = false;
 	bUsedForInclusion = false;
+	bIgnoreSelf = Config.bIgnoreSelf;
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExTimeFilterFactory::CreateFilter() const

@@ -36,6 +36,7 @@ void UPCGExInclusionFilterFactory::InitConfig_Internal()
 	LocalSampleInputs = Config.SampleInputs;
 	WindingMutation = Config.WindingMutation;
 	bScaleTolerance = Config.bSplineScalesTolerance;
+	bIgnoreSelf = Config.bIgnoreSelf;
 }
 
 namespace PCGExPointFilter
@@ -81,7 +82,7 @@ namespace PCGExPointFilter
 		int32 InclusionsCount = 0;
 		PCGExPathInclusion::EFlags Flags = Handler->GetInclusionFlags(
 			InTransforms[PointIndex].GetLocation(), InclusionsCount,
-			TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest);
+			TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest, PointDataFacade->Source->GetIn());
 
 		PCGEX_CHECK_MAX
 		PCGEX_CHECK_MIN
@@ -94,7 +95,17 @@ namespace PCGExPointFilter
 	{
 		PCGExData::FProxyPoint ProxyPoint;
 		IO->GetDataAsProxyPoint(ProxyPoint);
-		return Test(ProxyPoint);
+		
+		int32 InclusionsCount = 0;
+		PCGExPathInclusion::EFlags Flags = Handler->GetInclusionFlags(
+			ProxyPoint.GetLocation(), InclusionsCount,
+			TypedFilterFactory->Config.Pick == EPCGExSplineFilterPick::Closest, IO->GetInOut());
+
+		PCGEX_CHECK_MAX
+		PCGEX_CHECK_MIN
+
+		const bool bPass = Handler->TestFlags(Flags);
+		return TypedFilterFactory->Config.bInvert ? !bPass : bPass;
 	}
 
 #undef PCGEX_CHECK_MAX
