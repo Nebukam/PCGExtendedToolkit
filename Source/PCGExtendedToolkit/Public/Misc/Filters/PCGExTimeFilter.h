@@ -84,6 +84,10 @@ struct FPCGExTimeFilterConfig
 	/** If enabled, when used with a collection filter, will use collection bounds as a proxy point instead of per-point testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bCheckAgainstDataBounds = false;
+
+	/** If enabled, a collection will never be tested against itself */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bIgnoreSelf = true;
 };
 
 /**
