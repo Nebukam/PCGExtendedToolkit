@@ -5,10 +5,8 @@
 
 #include "PCGEx.h"
 #include "PCGExOctree.h"
-#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExUnionData.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 
 #include "PCGExSampling.generated.h"
@@ -27,10 +25,16 @@ if(Context->bWrite##_NAME && !PCGEx::IsWritableAttributeName(Settings->_NAME##At
 #define PCGEX_OUTPUT_INIT(_NAME, _TYPE, _DEFAULT_VALUE) if(Context->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWritable<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT_VALUE, true, PCGExData::EBufferInit::Inherit); }
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){_NAME##Writer->SetValue(_INDEX, _VALUE); }
 
+namespace PCGExData
+{
+	class FMultiFacadePreloader;
+}
+
 struct FPCGExMatchingDetails;
 
 namespace PCGExMatching
 {
+	class FMatchingScope;
 	class FDataMatcher;
 }
 
@@ -252,11 +256,11 @@ namespace PCGExSampling
 		void FindClosestTarget(const PCGExData::FConstPoint& Probe, PCGExData::FConstPoint& OutResult, double& OutDistSquared, const TSet<const UPCGData*>* Exclude = nullptr) const;
 		void FindClosestTarget(const FVector& Probe, PCGExData::FConstPoint& OutResult, double& OutDistSquared, const TSet<const UPCGData*>* Exclude = nullptr) const;
 
-		FORCEINLINE PCGExData::FConstPoint GetPoint(const int32 IO, const int32 Index) const { return TargetFacades[IO]->GetInPoint(Index); }
-		FORCEINLINE PCGExData::FConstPoint GetPoint(const PCGExData::FPoint& Point) const { return TargetFacades[Point.IO]->GetInPoint(Point.Index); }
+		PCGExData::FConstPoint GetPoint(const int32 IO, const int32 Index) const;
+		PCGExData::FConstPoint GetPoint(const PCGExData::FPoint& Point) const;
 
 		double GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const;
-		FORCEINLINE FVector GetSourceCenter(const PCGExData::FConstPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const { return Distances->GetSourceCenter(OriginPoint, OriginLocation, ToCenter); }
+		FVector GetSourceCenter(const PCGExData::FConstPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const;
 
 		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle = nullptr) const;
 	};

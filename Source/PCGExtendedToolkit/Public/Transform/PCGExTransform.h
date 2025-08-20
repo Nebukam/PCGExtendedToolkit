@@ -3,8 +3,6 @@
 
 #pragma once
 #include "PCGExDataMath.h"
-#include "PCGExDetails.h"
-#include "PCGExDetailsData.h"
 #include "Sampling/PCGExSampling.h"
 #include "PCGExTransform.generated.h"
 

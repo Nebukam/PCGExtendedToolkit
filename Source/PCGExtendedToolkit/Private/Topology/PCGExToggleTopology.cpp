@@ -16,14 +16,14 @@
 TArray<FPCGPinProperties> UPCGExToggleTopologySettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(PCGEx::SourcePointsLabel, "In. Not used for anything except ordering operations.", Required, {})
+	PCGEX_PIN_ANY(PCGPinConstants::DefaultInputLabel, "In. Not used for anything except ordering operations.", Required, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExToggleTopologySettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(PCGEx::SourcePointsLabel, "Out. Forwards In.", Required, {})
+	PCGEX_PIN_ANY(PCGPinConstants::DefaultInputLabel, "Out. Forwards In.", Required, {})
 	return PinProperties;
 }
 

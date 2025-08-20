@@ -29,7 +29,7 @@ protected:
 public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
-	virtual FName GetMainOutputPin() const override { return PCGEx::OutputPointsLabel; }
+	virtual FName GetMainOutputPin() const override { return PCGPinConstants::DefaultOutputLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;

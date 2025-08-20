@@ -4,6 +4,7 @@
 #include "Sampling/PCGExSampleNearestPath.h"
 
 #include "Data/PCGExDataTag.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPathElement"

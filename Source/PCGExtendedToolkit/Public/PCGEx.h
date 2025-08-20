@@ -169,11 +169,9 @@ namespace PCGEx
 	const FName PreviousAttributeName = TEXT("#Previous");
 	const FName PreviousNameAttributeName = TEXT("#PreviousName");
 
-	const FName SourcePointsLabel = TEXT("In");
 	const FName SourceTargetsLabel = TEXT("Targets");
 	const FName SourceSourcesLabel = TEXT("Sources");
 	const FName SourceBoundsLabel = TEXT("Bounds");
-	const FName OutputPointsLabel = TEXT("Out");
 
 	const FName SourceAdditionalReq = TEXT("AdditionalRequirementsFilters");
 	const FName SourcePerInputOverrides = TEXT("PerInputOverrides");

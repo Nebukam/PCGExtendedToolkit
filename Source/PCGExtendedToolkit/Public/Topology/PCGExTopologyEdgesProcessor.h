@@ -14,6 +14,7 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Transform/PCGExTransform.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointFilter.h"
 
 #include "PCGExTopologyEdgesProcessor.generated.h"
 

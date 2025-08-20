@@ -610,6 +610,16 @@ namespace PCGExSampling
 			});
 	}
 
+	PCGExData::FConstPoint FTargetsHandler::GetPoint(const int32 IO, const int32 Index) const
+	{
+		return TargetFacades[IO]->GetInPoint(Index);
+	}
+
+	PCGExData::FConstPoint FTargetsHandler::GetPoint(const PCGExData::FPoint& Point) const
+	{
+		return TargetFacades[Point.IO]->GetInPoint(Point.Index);
+	}
+
 	double FTargetsHandler::GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
 	{
 		if (Distances->bOverlapIsZero)
@@ -620,6 +630,11 @@ namespace PCGExSampling
 			return DistSquared;
 		}
 		return Distances->GetDistSquared(SourcePoint, TargetPoint);
+	}
+
+	FVector FTargetsHandler::GetSourceCenter(const PCGExData::FConstPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const
+	{
+		return Distances->GetSourceCenter(OriginPoint, OriginLocation, ToCenter);
 	}
 
 	void FTargetsHandler::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle) const
