@@ -206,7 +206,7 @@ namespace PCGExData
 		void SetPoints(const TArray<FPCGPoint>& InPCGPoints);
 		void SetPoints(const int32 StartIndex, const TArray<FPCGPoint>& InPCGPoints, const EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
 
-		FName OutputPin = PCGEx::OutputPointsLabel;
+		FName OutputPin = PCGPinConstants::DefaultOutputLabel;
 
 		void InitPoint(int32 Index, const PCGMetadataEntryKey ParentKey) const
 		{
@@ -378,7 +378,7 @@ namespace PCGExData
 
 		~FPointIOCollection();
 
-		FName OutputPin = PCGEx::OutputPointsLabel;
+		FName OutputPin = PCGPinConstants::DefaultOutputLabel;
 		TArray<TSharedPtr<FPointIO>> Pairs;
 
 		/**

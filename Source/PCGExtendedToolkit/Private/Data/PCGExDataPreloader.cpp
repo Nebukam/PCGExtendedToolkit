@@ -9,6 +9,26 @@
 
 namespace PCGExData
 {
+	FReadableBufferConfig::FReadableBufferConfig(const FReadableBufferConfig& Other)
+		: Mode(Other.Mode), Selector(Other.Selector), Identity(Other.Identity)
+	{
+	}
+
+	FReadableBufferConfig::FReadableBufferConfig(const PCGEx::FAttributeIdentity& InIdentity, EBufferPreloadType InMode)
+		: Mode(InMode), Identity(InIdentity)
+	{
+	}
+
+	FReadableBufferConfig::FReadableBufferConfig(const FName InName, const EPCGMetadataTypes InUnderlyingType, EBufferPreloadType InMode)
+		: Mode(InMode), Identity(InName, InUnderlyingType, false)
+	{
+	}
+
+	FReadableBufferConfig::FReadableBufferConfig(const FPCGAttributePropertyInputSelector& InSelector, const EPCGMetadataTypes InUnderlyingType)
+		: Mode(EBufferPreloadType::BroadcastFromSelector), Selector(InSelector), Identity(InSelector.GetName(), InUnderlyingType, false)
+	{
+	}
+
 	bool FReadableBufferConfig::Validate(FPCGExContext* InContext, const TSharedPtr<FFacade>& InFacade) const
 	{
 		return true;
@@ -121,6 +141,44 @@ namespace PCGExData
 			Register(InContext, Identity);
 		}
 	}
+
+	template <typename T>
+	void FFacadePreloader::Register(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax)
+	{
+		EPCGMetadataTypes Type = PCGEx::GetMetadataType<T>();
+		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
+		{
+			if (ExistingConfig.Selector == InSelector &&
+				ExistingConfig.Identity.UnderlyingType == Type)
+			{
+				return;
+			}
+		}
+
+		BufferConfigs.Emplace(InSelector, Type);
+	}
+
+	template <typename T>
+	void FFacadePreloader::Register(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode)
+	{
+		EPCGMetadataTypes Type = PCGEx::GetMetadataType<T>();
+		for (const FReadableBufferConfig& ExistingConfig : BufferConfigs)
+		{
+			if (ExistingConfig.Identity.Identifier.Name == InName &&
+				ExistingConfig.Identity.UnderlyingType == Type)
+			{
+				return;
+			}
+		}
+
+		BufferConfigs.Emplace(InName, Type, InMode);
+	}
+
+#define PCGEX_TPL(_TYPE, _NAME, ...) \
+template PCGEXTENDEDTOOLKIT_API void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax); \
+template PCGEXTENDEDTOOLKIT_API void FFacadePreloader::Register<_TYPE>(FPCGExContext* InContext, const FName InName, EBufferPreloadType InMode);
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+#undef PCGEX_TPL
 
 	void FFacadePreloader::Fetch(const TSharedRef<FFacade>& InFacade, const PCGExMT::FScope& Scope)
 	{

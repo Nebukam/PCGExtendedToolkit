@@ -7,6 +7,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Data/Blending/PCGExUnionBlender.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Geometry/PCGExGeoPointBox.h"
 
 

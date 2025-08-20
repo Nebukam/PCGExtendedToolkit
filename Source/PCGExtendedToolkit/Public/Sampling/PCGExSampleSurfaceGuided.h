@@ -14,6 +14,7 @@
 #include "PCGExScopedContainers.h"
 #include "PCGExTexParamFactoryProvider.h"
 #include "Data/PCGExDataForward.h"
+#include "Data/PCGExPointFilter.h"
 
 
 #include "PCGExSampleSurfaceGuided.generated.h"

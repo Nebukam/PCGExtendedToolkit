@@ -2,7 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transform/PCGExTransform.h"
-
 #include "PCGExDataMath.h"
 #include "Engine/EngineTypes.h"
 

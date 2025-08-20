@@ -5,6 +5,7 @@
 
 
 #include "Data/PCGExDataTag.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Helpers/PCGHelpers.h"
 #include "Paths/PCGExPaths.h"
 

@@ -73,8 +73,8 @@ protected:
 public:
 	virtual bool IsInputless() const { return false; }
 
-	virtual FName GetMainInputPin() const { return PCGEx::SourcePointsLabel; }
-	virtual FName GetMainOutputPin() const { return PCGEx::OutputPointsLabel; }
+	virtual FName GetMainInputPin() const { return PCGPinConstants::DefaultInputLabel; }
+	virtual FName GetMainOutputPin() const { return PCGPinConstants::DefaultOutputLabel; }
 	virtual bool GetMainAcceptMultipleData() const { return true; }
 	virtual bool GetIsMainTransactional() const { return false; }
 
