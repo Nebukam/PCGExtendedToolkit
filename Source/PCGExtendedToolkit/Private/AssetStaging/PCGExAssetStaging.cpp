@@ -476,7 +476,7 @@ namespace PCGExAssetStaging
 		TSharedPtr<PCGExData::FPointIO> SocketIO = Context->SocketsCollection->Emplace_GetRef(PointDataFacade->GetIn());
 		SocketIO->IOIndex = PointDataFacade->Source->IOIndex;
 
-		PCGEX_INIT_IO_VOID(SocketIO, PCGExData::EIOInit::New)
+		PCGEX_INIT_IO_VOID(SocketIO, PCGExData::EIOInit::Duplicate)
 		SocketFacade = MakeShared<PCGExData::FFacade>(SocketIO.ToSharedRef());
 
 		UPCGBasePointData* OutSocketPoints = SocketIO->GetOut();
@@ -486,7 +486,7 @@ namespace PCGExAssetStaging
 			EPCGPointNativeProperties::Transform |
 			EPCGPointNativeProperties::Seed);
 
-		OutSocketPoints->SetNumPoints(NumSocketPoints);
+		const UPCGMetadata* ParentMetadata = PointDataFacade->GetIn()->ConstMetadata();
 		UPCGMetadata* Metadata = OutSocketPoints->MutableMetadata();
 
 		TConstPCGValueRange<FTransform> ReadTransform = PointDataFacade->GetOut()->GetConstTransformValueRange();
@@ -524,7 +524,8 @@ namespace PCGExAssetStaging
 				const FPCGExSocket& Socket = SocketInfos.Entry->Staging.Sockets[s];
 				OutTransform[WriteIndex] = Socket.RelativeTransform * InTransform;
 
-				Metadata->InitializeOnSet(OutMetadataEntry[WriteIndex], InMetadataKey);
+				OutMetadataEntry[WriteIndex] = PCGInvalidEntryKey;
+				Metadata->InitializeOnSet(OutMetadataEntry[WriteIndex], InMetadataKey, ParentMetadata);
 
 				OutSeed[WriteIndex] = PCGExRandom::ComputeSpatialSeed(OutTransform[WriteIndex].GetLocation());
 
