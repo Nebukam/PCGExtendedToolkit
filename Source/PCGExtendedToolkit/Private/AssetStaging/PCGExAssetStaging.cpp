@@ -476,7 +476,7 @@ namespace PCGExAssetStaging
 		TSharedPtr<PCGExData::FPointIO> SocketIO = Context->SocketsCollection->Emplace_GetRef(PointDataFacade->GetIn());
 		SocketIO->IOIndex = PointDataFacade->Source->IOIndex;
 
-		PCGEX_INIT_IO_VOID(SocketIO, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO_VOID(SocketIO, PCGExData::EIOInit::New)
 		SocketFacade = MakeShared<PCGExData::FFacade>(SocketIO.ToSharedRef());
 
 		UPCGBasePointData* OutSocketPoints = SocketIO->GetOut();
