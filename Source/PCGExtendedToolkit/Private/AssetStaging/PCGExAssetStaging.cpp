@@ -492,7 +492,7 @@ namespace PCGExAssetStaging
 		TConstPCGValueRange<FTransform> ReadTransform = PointDataFacade->GetOut()->GetConstTransformValueRange();
 		TPCGValueRange<FTransform> OutTransform = SocketIO->GetOut()->GetTransformValueRange();
 
-		TConstPCGValueRange<int64> ReadMetadataEntry = PointDataFacade->GetOut()->GetConstMetadataEntryValueRange();
+		TConstPCGValueRange<int64> ReadMetadataEntry = PointDataFacade->GetIn()->GetConstMetadataEntryValueRange();
 		TPCGValueRange<int64> OutMetadataEntry = SocketIO->GetOut()->GetMetadataEntryValueRange();
 
 		TPCGValueRange<int32> OutSeed = SocketIO->GetOut()->GetSeedValueRange();
