@@ -108,7 +108,7 @@ public:
 	FName MaterialAttributePrefix = "Mat";
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bDoOutputSockets = false;
 
 	/** */
@@ -130,6 +130,8 @@ struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 	bool bPickMaterials = false;
 
 	TSharedPtr<PCGExStaging::FPickPacker> CollectionPickDatasetPacker;
+
+	TSharedPtr<PCGExData::FPointIOCollection> SocketsCollection;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -183,6 +185,8 @@ namespace PCGExAssetStaging
 		TArray<int8> MaterialPick;
 
 		TSharedPtr<PCGExData::TBuffer<int64>> HashWriter;
+
+		TSharedPtr<PCGExData::FFacade> SocketFacade;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

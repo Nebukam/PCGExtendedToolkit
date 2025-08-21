@@ -112,6 +112,13 @@ namespace PCGExAssetCollection
 	}
 }
 
+bool FPCGExSocketOutputDetails::Validate(FPCGExContext* InContext) const
+{
+	if (bWriteSocketName) { PCGEX_VALIDATE_NAME_C(InContext, SocketNameAttributeName) }
+	if (bWriteSocketTag) { PCGEX_VALIDATE_NAME_C(InContext, SocketTagAttributeName) }
+	return true;
+}
+
 bool FPCGExAssetStagingData::FindSocket(const FName InName, const FPCGExSocket*& OutSocket) const
 {
 	for (const FPCGExSocket& Socket : Sockets)

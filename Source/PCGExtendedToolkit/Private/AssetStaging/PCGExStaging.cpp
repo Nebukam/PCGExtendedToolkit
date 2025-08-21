@@ -416,7 +416,7 @@ namespace PCGExStaging
 
 
 	FSocketHelper::FSocketHelper(const FPCGExSocketOutputDetails* InDetails)
-		:Details(InDetails)
+		: Details(InDetails)
 	{
 	}
 
@@ -430,13 +430,30 @@ namespace PCGExStaging
 
 			if (!ExistingInfos)
 			{
-				FSocketInfos& NewInfos = EntryMap.Add(InInfos.Key, *ExistingInfos);
+				FSocketInfos& NewInfos = EntryMap.Add(InInfos.Key, InInfos.Value);
 				// TODO : This is a new entry, we can pre-compute number of sockets already
 				NewInfos.SocketCount = InInfos.Value.Entry->Staging.Sockets.Num();;
 				continue;
 			}
 
 			ExistingInfos->Count += InInfos.Value.Count;
+		}
+	}
+
+	void FSocketHelper::Add(TMap<uint64, FSocketInfos>& InEntryMap, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry)
+	{
+		//if (Entry->Staging.Sockets.IsEmpty()) { return; }
+
+		FSocketInfos* ExistingInfos = InEntryMap.Find(EntryHash);
+		if (!ExistingInfos)
+		{
+			FSocketInfos& NewInfos = InEntryMap.Add(EntryHash, FSocketInfos());
+			NewInfos.Entry = Entry;
+			NewInfos.Count = 1;
+		}
+		else
+		{
+			ExistingInfos->Count++;
 		}
 	}
 

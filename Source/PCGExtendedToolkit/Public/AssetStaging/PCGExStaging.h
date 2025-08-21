@@ -16,6 +16,7 @@ namespace PCGExStaging
 {
 	const FName SourceCollectionMapLabel = TEXT("Map");
 	const FName OutputCollectionMapLabel = TEXT("Map");
+	const FName OutputSocketLabel = TEXT("Sockets");
 
 	const FName Tag_CollectionPath = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Path"));
 	const FName Tag_CollectionIdx = FName(PCGExCommon::PCGExPrefix + TEXT("Collection/Idx"));
@@ -66,7 +67,7 @@ namespace PCGExStaging
 	};
 
 	template <typename C = UPCGExAssetCollection, typename A = FPCGExAssetCollectionEntry>
-	class PCGEXTENDEDTOOLKIT_API TPickUnpacker : public IPickUnpacker
+	class TPickUnpacker : public IPickUnpacker
 	{
 	public:
 		TPickUnpacker() = default;
@@ -97,7 +98,7 @@ namespace PCGExStaging
 	};
 
 	template <typename C = UPCGExAssetCollection, typename A = FPCGExAssetCollectionEntry>
-	class PCGEXTENDEDTOOLKIT_API TDistributionHelper : public IDistributionHelper
+	class TDistributionHelper : public IDistributionHelper
 	{
 	public:
 		C* TypedCollection = nullptr;
@@ -130,12 +131,14 @@ namespace PCGExStaging
 		const FPCGExSocketOutputDetails* Details = nullptr;
 
 		TMap<uint64, FSocketInfos> EntryMap;
-		TMap<uint64, int32> SocketCount;
 		int32 NumOutPoints = 0;
 
 	public:
 		explicit FSocketHelper(const FPCGExSocketOutputDetails* InDetails);
 		void Add(const TMap<uint64, FSocketInfos>& InEntryMap);
+		void Add(TMap<uint64, FSocketInfos>& InEntryMap, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry);
 		int32 Compile();
+
+		const FSocketInfos& GetSocketInfos(const uint64 Key) const { return EntryMap[Key]; }
 	};
 }

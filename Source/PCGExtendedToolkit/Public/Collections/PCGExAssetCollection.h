@@ -307,6 +307,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketOutputDetails
 
 	FPCGExSocketOutputDetails() = default;
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteSocketName = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteSocketName"))
+	FName SocketNameAttributeName = "SocketName";
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteSocketTag = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteSocketTag"))
+	FName SocketTagAttributeName = "SocketTag";
+
+	bool Validate(FPCGExContext* InContext) const;
+
 };
 
 USTRUCT(BlueprintType)
