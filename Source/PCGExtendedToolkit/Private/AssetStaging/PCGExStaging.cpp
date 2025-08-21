@@ -262,9 +262,9 @@ namespace PCGExStaging
 		return static_cast<C*>(Collection)->GetEntryAt(OutEntry, EntryIndex, EntryHost);
 	}
 
-	template PCGEXTENDEDTOOLKIT_API class TPickUnpacker<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
-	template PCGEXTENDEDTOOLKIT_API class TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
-	template PCGEXTENDEDTOOLKIT_API class TPickUnpacker<UPCGExActorCollection, FPCGExActorCollectionEntry>;
+	template class PCGEXTENDEDTOOLKIT_API TPickUnpacker<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
+	template class PCGEXTENDEDTOOLKIT_API TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
+	template class PCGEXTENDEDTOOLKIT_API TPickUnpacker<UPCGExActorCollection, FPCGExActorCollectionEntry>;
 
 	template <typename C, typename A>
 	TDistributionHelper<C, A>::TDistributionHelper(C* InCollection, const FPCGExAssetDistributionDetails& InDetails)
@@ -410,9 +410,9 @@ namespace PCGExStaging
 		}
 	}
 
-	template PCGEXTENDEDTOOLKIT_API class TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
-	template PCGEXTENDEDTOOLKIT_API class TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
-	template PCGEXTENDEDTOOLKIT_API class TDistributionHelper<UPCGExActorCollection, FPCGExActorCollectionEntry>;
+	template class PCGEXTENDEDTOOLKIT_API TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
+	template class PCGEXTENDEDTOOLKIT_API TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
+	template class PCGEXTENDEDTOOLKIT_API TDistributionHelper<UPCGExActorCollection, FPCGExActorCollectionEntry>;
 
 
 	FSocketHelper::FSocketHelper(const FPCGExSocketOutputDetails* InDetails)
