@@ -241,4 +241,232 @@ namespace PCGExStaging
 
 		return true;
 	}
+
+	uint64 GetSimplifiedEntryHash(const uint64 InEntryHash)
+	{
+		uint32 CollectionIdx = 0;
+		uint32 OutEntryIndices = 0;
+		PCGEx::H64(InEntryHash, CollectionIdx, OutEntryIndices);
+		return PCGEx::H64(CollectionIdx, PCGEx::H32A(OutEntryIndices));
+	}
+
+	template <typename C, typename A>
+	bool TPickUnpacker<C, A>::ResolveEntry(const uint64 EntryHash, const A*& OutEntry, int16& OutSecondaryIndex)
+	{
+		const UPCGExAssetCollection* EntryHost = nullptr;
+
+		int16 EntryIndex = 0;
+		UPCGExAssetCollection* Collection = UnpackHash(EntryHash, EntryIndex, OutSecondaryIndex);
+		if (!Collection) { return false; }
+
+		return static_cast<C*>(Collection)->GetEntryAt(OutEntry, EntryIndex, EntryHost);
+	}
+
+	template PCGEXTENDEDTOOLKIT_API class TPickUnpacker<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
+	template PCGEXTENDEDTOOLKIT_API class TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
+	template PCGEXTENDEDTOOLKIT_API class TPickUnpacker<UPCGExActorCollection, FPCGExActorCollectionEntry>;
+
+	template <typename C, typename A>
+	TDistributionHelper<C, A>::TDistributionHelper(C* InCollection, const FPCGExAssetDistributionDetails& InDetails)
+		: IDistributionHelper(InCollection, InDetails)
+	{
+		TypedCollection = InCollection;
+	}
+
+	template <typename C, typename A>
+	void TDistributionHelper<C, A>::GetEntry(const A*& OutEntry, const int32 PointIndex, const int32 Seed, const UPCGExAssetCollection*& OutHost) const
+	{
+		TSharedPtr<PCGExAssetCollection::FCategory> Category = Cache->Main;
+		C* WorkingCollection = TypedCollection;
+
+		if (CategoryGetter)
+		{
+			TSharedPtr<PCGExAssetCollection::FCategory>* CategoryPtr = Cache->Categories.Find(CategoryGetter->Read(PointIndex));
+
+			if (!CategoryPtr)
+			{
+				OutEntry = nullptr;
+				return;
+			}
+
+			Category = *CategoryPtr;
+
+			if (Category->IsEmpty())
+			{
+				OutEntry = nullptr;
+				return;
+			}
+
+			if (Category->Num() == 1)
+			{
+				// Single-item category
+				TypedCollection->GetEntryAt(OutEntry, Category->Indices[0], OutHost);
+			}
+			else
+			{
+				// Multi-item category
+				TypedCollection->GetEntryAt(OutEntry, Category->GetPickRandomWeighted(Seed), OutHost);
+			}
+
+			WorkingCollection = (OutEntry && OutEntry->bIsSubCollection) ? static_cast<C*>(OutEntry->InternalSubCollection.Get()) : nullptr;
+			if (!WorkingCollection) { return; }
+		}
+
+
+		if (Details.Distribution == EPCGExDistribution::WeightedRandom)
+		{
+			WorkingCollection->GetEntryWeightedRandom(OutEntry, Seed, OutHost);
+		}
+		else if (Details.Distribution == EPCGExDistribution::Random)
+		{
+			WorkingCollection->GetEntryRandom(OutEntry, Seed, OutHost);
+		}
+		else
+		{
+			const int32 MaxIndex = WorkingCollection->LoadCache()->Main->Num() - 1;
+			double PickedIndex = IndexGetter->Read(PointIndex);
+			if (Details.IndexSettings.bRemapIndexToCollectionSize)
+			{
+				PickedIndex = PCGEx::TruncateDbl(
+					MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex),
+					Details.IndexSettings.TruncateRemap);
+			}
+
+			WorkingCollection->GetEntry(
+				OutEntry,
+				PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
+				Seed, Details.IndexSettings.PickMode, OutHost);
+		}
+	}
+
+	template <typename C, typename A>
+	void TDistributionHelper<C, A>::GetEntry(const A*& OutEntry, const int32 PointIndex, const int32 Seed, const uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost) const
+	{
+		if (TagInheritance == 0)
+		{
+			GetEntry(OutEntry, PointIndex, Seed, OutHost);
+			return;
+		}
+
+		TSharedPtr<PCGExAssetCollection::FCategory> Category = Cache->Main;
+		C* WorkingCollection = TypedCollection;
+
+		if (CategoryGetter)
+		{
+			TSharedPtr<PCGExAssetCollection::FCategory>* CategoryPtr = Cache->Categories.Find(CategoryGetter->Read(PointIndex));
+
+			if (!CategoryPtr)
+			{
+				OutEntry = nullptr;
+				return;
+			}
+
+			Category = *CategoryPtr;
+
+			if (Category->IsEmpty())
+			{
+				OutEntry = nullptr;
+				return;
+			}
+
+			if (Category->Num() == 1)
+			{
+				// Single-item category
+				TypedCollection->GetEntryAt(OutEntry, Category->Indices[0], TagInheritance, OutTags, OutHost);
+			}
+			else
+			{
+				// Multi-item category
+				TypedCollection->GetEntryAt(OutEntry, Category->GetPickRandomWeighted(Seed), TagInheritance, OutTags, OutHost);
+			}
+
+			WorkingCollection = (OutEntry && OutEntry->bIsSubCollection) ? static_cast<C*>(OutEntry->InternalSubCollection.Get()) : nullptr;
+			if (!WorkingCollection) { return; }
+		}
+
+		if (Details.Distribution == EPCGExDistribution::WeightedRandom)
+		{
+			WorkingCollection->GetEntryWeightedRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
+		}
+		else if (Details.Distribution == EPCGExDistribution::Random)
+		{
+			WorkingCollection->GetEntryRandom(OutEntry, Seed, TagInheritance, OutTags, OutHost);
+		}
+		else
+		{
+			const int32 MaxIndex = WorkingCollection->LoadCache()->Main->Num() - 1;
+			double PickedIndex = IndexGetter->Read(PointIndex);
+			if (Details.IndexSettings.bRemapIndexToCollectionSize)
+			{
+				PickedIndex = PCGEx::TruncateDbl(
+					MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex),
+					Details.IndexSettings.TruncateRemap);
+			}
+
+			WorkingCollection->GetEntry(
+				OutEntry,
+				PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
+				Seed, Details.IndexSettings.PickMode, TagInheritance, OutTags, OutHost);
+		}
+	}
+
+	template PCGEXTENDEDTOOLKIT_API class TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
+	template PCGEXTENDEDTOOLKIT_API class TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
+	template PCGEXTENDEDTOOLKIT_API class TDistributionHelper<UPCGExActorCollection, FPCGExActorCollectionEntry>;
+
+
+	FSocketHelper::FSocketHelper(const FPCGExSocketOutputDetails* InDetails)
+		: Details(InDetails)
+	{
+	}
+
+	void FSocketHelper::Add(const TMap<uint64, FSocketInfos>& InEntryMap)
+	{
+		FWriteScopeLock WriteScope(EntryMapLock);
+
+		for (const TPair<uint64, FSocketInfos>& InInfos : InEntryMap)
+		{
+			FSocketInfos* ExistingInfos = EntryMap.Find(InInfos.Key);
+
+			if (!ExistingInfos)
+			{
+				FSocketInfos& NewInfos = EntryMap.Add(InInfos.Key, InInfos.Value);
+				// TODO : This is a new entry, we can pre-compute number of sockets already
+				NewInfos.SocketCount = InInfos.Value.Entry->Staging.Sockets.Num();;
+				continue;
+			}
+
+			ExistingInfos->Count += InInfos.Value.Count;
+		}
+	}
+
+	void FSocketHelper::Add(TMap<uint64, FSocketInfos>& InEntryMap, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry)
+	{
+		//if (Entry->Staging.Sockets.IsEmpty()) { return; }
+
+		FSocketInfos* ExistingInfos = InEntryMap.Find(EntryHash);
+		if (!ExistingInfos)
+		{
+			FSocketInfos& NewInfos = InEntryMap.Add(EntryHash, FSocketInfos());
+			NewInfos.Entry = Entry;
+			NewInfos.Count = 1;
+		}
+		else
+		{
+			ExistingInfos->Count++;
+		}
+	}
+
+	int32 FSocketHelper::Compile()
+	{
+		NumOutPoints = 0;
+
+		for (const TPair<uint64, FSocketInfos>& InInfos : EntryMap)
+		{
+			// TODO : Compute number of "valid" sockets
+			NumOutPoints += InInfos.Value.Count * InInfos.Value.SocketCount;
+		}
+
+		return NumOutPoints;
+	}
 }

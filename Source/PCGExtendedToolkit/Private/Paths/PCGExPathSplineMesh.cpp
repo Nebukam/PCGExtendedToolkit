@@ -9,6 +9,7 @@
 #include "PCGExHelpers.h"
 #include "PCGExRandom.h"
 #include "Data/PCGExDataTag.h"
+#include "Metadata/PCGObjectPropertyOverride.h"
 
 
 #include "Paths/PCGExPaths.h"
@@ -203,6 +204,7 @@ namespace PCGExPathSplineMesh
 		LastIndex = PointDataFacade->GetNum() - 1;
 
 		PCGEx::InitArray(Segments, bClosedLoop ? LastIndex + 1 : LastIndex);
+		SplineMeshComponents.Init(nullptr, bClosedLoop ? LastIndex + 1 : LastIndex);
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
 		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
@@ -234,8 +236,18 @@ namespace PCGExPathSplineMesh
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PathSplineMesh::ProcessPoints);
 
+		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
+
+		if (!TargetActor)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
+			return;
+		}
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
+
+		const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
 
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 
@@ -295,9 +307,9 @@ namespace PCGExPathSplineMesh
 				continue;
 			}
 
-			if (MeshEntry->MacroCache && MeshEntry->MacroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			if (MeshEntry->MicroCache && MeshEntry->MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
 			{
-				Segment.MaterialPick = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(MeshEntry->MacroCache)->GetPickRandomWeighted(Seed);
+				Segment.MaterialPick = StaticCastSharedPtr<PCGExMeshCollection::FMicroCache>(MeshEntry->MicroCache)->GetPickRandomWeighted(Seed);
 				if (Segment.MaterialPick != -1) { MeshEntry->GetMaterialPaths(Segment.MaterialPick, *ScopedMaterials->Get(Scope)); }
 			}
 
@@ -363,6 +375,32 @@ namespace PCGExPathSplineMesh
 			else { Segment.ComputeUpVectorFromTangents(); }
 
 			SegmentMutationDetails.Mutate(Index, Segment);
+
+			// Create component
+
+			USplineMeshComponent* SplineMeshComponent = Context->ManagedObjects->New<USplineMeshComponent>(
+				TargetActor, MakeUniqueObjectName(
+					TargetActor, USplineMeshComponent::StaticClass(),
+					Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Segment.MeshEntry->Staging.Path.GetAssetName())), ObjectFlags);
+
+			Segment.ApplySettings(SplineMeshComponent); // Init Component
+			if (Settings->bForceDefaultDescriptor || Settings->CollectionSource == EPCGExCollectionSource::AttributeSet) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
+			else { Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent); }
+
+			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
+			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
+
+			if (!Settings->PropertyOverrideDescriptions.IsEmpty())
+			{
+				FPCGObjectOverrides DescriptorOverride(SplineMeshComponent);
+				DescriptorOverride.Initialize(Settings->PropertyOverrideDescriptions, SplineMeshComponent, PointDataFacade->Source->GetIn(), Context);
+				if (DescriptorOverride.IsValid() && !DescriptorOverride.Apply(Index))
+				{
+					PCGLog::LogWarningOnGraph(FText::Format(LOCTEXT("FailOverride", "Failed to override descriptor for input {0}"), Index));
+				}
+			}
+
+			SplineMeshComponents[Index] = SplineMeshComponent;
 		}
 	}
 
@@ -382,7 +420,6 @@ namespace PCGExPathSplineMesh
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
 
-		// TODO : Resolve per-point target actor...? irk.
 		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
 
 		if (!TargetActor)
@@ -396,21 +433,10 @@ namespace PCGExPathSplineMesh
 			const PCGExPaths::FSplineMeshSegment& Segment = Segments[i];
 			if (!Segment.MeshEntry) { continue; }
 
-			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
-			USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(
-				TargetActor, MakeUniqueObjectName(
-					TargetActor, USplineMeshComponent::StaticClass(),
-					Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Segment.MeshEntry->Staging.Path.GetAssetName())), ObjectFlags);
-
-			Segment.ApplySettings(SplineMeshComponent); // Init Component
-
-			if (Settings->bForceDefaultDescriptor || Settings->CollectionSource == EPCGExCollectionSource::AttributeSet) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
-			else { Segment.MeshEntry->SMDescriptor.InitComponent(SplineMeshComponent); }
+			USplineMeshComponent* SplineMeshComponent = SplineMeshComponents[i];
+			if (!SplineMeshComponent) { continue; }
 
 			if (!Segment.ApplyMesh(SplineMeshComponent)) { continue; }
-
-			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
-			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
 
 			Context->AttachManagedComponent(
 				TargetActor, SplineMeshComponent,

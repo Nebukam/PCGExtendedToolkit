@@ -88,7 +88,7 @@ namespace PCGExAssetCollection
 	void FCategory::RegisterEntry(const int32 Index, const FPCGExAssetCollectionEntry* InEntry)
 	{
 		Entries.Add(InEntry);
-		const_cast<FPCGExAssetCollectionEntry*>(InEntry)->BuildMacroCache(); // Dealing with legacy shit implementation
+		const_cast<FPCGExAssetCollectionEntry*>(InEntry)->BuildMicroCache(); // Dealing with legacy shit implementation
 		Indices.Add(Index);
 		Weights.Add(InEntry->Weight + 1);
 	}
@@ -110,6 +110,13 @@ namespace PCGExAssetCollection
 			Weights[i] = WeightSum;
 		}
 	}
+}
+
+bool FPCGExSocketOutputDetails::Validate(FPCGExContext* InContext) const
+{
+	if (bWriteSocketName) { PCGEX_VALIDATE_NAME_C(InContext, SocketNameAttributeName) }
+	if (bWriteSocketTag) { PCGEX_VALIDATE_NAME_C(InContext, SocketTagAttributeName) }
+	return true;
 }
 
 bool FPCGExAssetStagingData::FindSocket(const FName InName, const FPCGExSocket*& OutSocket) const
@@ -187,9 +194,9 @@ void FPCGExAssetCollectionEntry::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) 
 	OutPaths.Emplace(Staging.Path);
 }
 
-void FPCGExAssetCollectionEntry::BuildMacroCache()
+void FPCGExAssetCollectionEntry::BuildMicroCache()
 {
-	MacroCache = nullptr;
+	MicroCache = nullptr;
 }
 
 void FPCGExAssetCollectionEntry::ClearManagedSockets()

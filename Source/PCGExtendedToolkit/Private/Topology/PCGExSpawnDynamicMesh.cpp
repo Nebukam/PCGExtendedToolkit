@@ -85,9 +85,6 @@ bool FPCGExSpawnDynamicMeshElement::ExecuteInternal(FPCGContext* InContext) cons
 			{
 				PCGLog::LogWarningOnGraph(FText::Format(LOCTEXT("FailOverride", "Failed to override descriptor for input {0}"), Index));
 			}
-
-			// Apply 0, will be the default values for the mesh
-			DescriptorOverride.Apply(0);
 		}
 
 		for (const FString& Tag : Input.Tags) { DynamicMeshComponent->ComponentTags.AddUnique(*Tag); }
