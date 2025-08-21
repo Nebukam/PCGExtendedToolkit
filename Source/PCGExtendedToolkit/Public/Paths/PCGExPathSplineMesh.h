@@ -11,6 +11,7 @@
 #include "AssetStaging/PCGExStaging.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Data/PCGExPointFilter.h"
+#include "Metadata/PCGObjectPropertyOverride.h"
 
 #include "Tangents/PCGExTangentsInstancedFactory.h"
 
@@ -126,6 +127,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource != EPCGExCollectionSource::AttributeSet"))
 	bool bForceDefaultDescriptor = false;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	TArray<FPCGObjectPropertyOverrideDescription> PropertyOverrideDescriptions;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	TSoftObjectPtr<AActor> TargetActor;
 
@@ -146,6 +150,7 @@ struct FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
 	FPCGExTangentsDetails Tangents;
 
 	TObjectPtr<UPCGExMeshCollection> MainCollection;
+	
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -201,6 +206,7 @@ namespace PCGExPathSplineMesh
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
+		TArray<USplineMeshComponent*> SplineMeshComponents;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
