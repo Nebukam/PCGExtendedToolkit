@@ -196,18 +196,18 @@ namespace PCGExAssetCollection
 		PCGDataAsset,
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FMacroCache : public TSharedFromThis<FMacroCache>
+	class PCGEXTENDEDTOOLKIT_API FMicroCache : public TSharedFromThis<FMicroCache>
 	{
 		// Per-entry cache data
 		// Store entry type specifics
 
 	public:
-		FMacroCache()
+		FMicroCache()
 		{
 		}
 
 		virtual EType GetType() const { return EType::None; }
-		virtual ~FMacroCache() = default;
+		virtual ~FMicroCache() = default;
 	};
 }
 
@@ -298,6 +298,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionDetails
 	/** Note that this is only accounted for if selected in the seed component. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 LocalSeed = 0;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExSocketOutputDetails
+{
+	GENERATED_BODY()
+
+	FPCGExSocketOutputDetails() = default;
+
 };
 
 USTRUCT(BlueprintType)
@@ -402,8 +411,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
 
-	TSharedPtr<PCGExAssetCollection::FMacroCache> MacroCache;
-	virtual void BuildMacroCache();
+	TSharedPtr<PCGExAssetCollection::FMicroCache> MicroCache;
+	virtual void BuildMicroCache();
 
 protected:
 	void ClearManagedSockets();

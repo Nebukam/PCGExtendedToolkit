@@ -295,9 +295,9 @@ namespace PCGExPathSplineMesh
 				continue;
 			}
 
-			if (MeshEntry->MacroCache && MeshEntry->MacroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			if (MeshEntry->MicroCache && MeshEntry->MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
 			{
-				Segment.MaterialPick = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(MeshEntry->MacroCache)->GetPickRandomWeighted(Seed);
+				Segment.MaterialPick = StaticCastSharedPtr<PCGExMeshCollection::FMicroCache>(MeshEntry->MicroCache)->GetPickRandomWeighted(Seed);
 				if (Segment.MaterialPick != -1) { MeshEntry->GetMaterialPaths(Segment.MaterialPick, *ScopedMaterials->Get(Scope)); }
 			}
 

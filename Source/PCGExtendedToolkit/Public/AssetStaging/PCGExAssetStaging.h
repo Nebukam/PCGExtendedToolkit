@@ -108,6 +108,14 @@ public:
 	FName MaterialAttributePrefix = "Mat";
 
 	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
+	bool bDoOutputSockets = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName="Output Sockets", EditCondition="bDoOutputSockets"))
+	FPCGExSocketOutputDetails OutputSocketDetails;
+	
+	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietEmptyCollectionError = false;
 };
@@ -154,11 +162,13 @@ namespace PCGExAssetStaging
 		bool bUsesDensity = false;
 
 		TArray<int8> Mask;
+		TArray<uint64> EntryHashes;
 
 		FPCGExFittingDetailsHandler FittingHandler;
 		FPCGExFittingVariationsDetails Variations;
 
 		TSharedPtr<PCGExStaging::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
+		TSharedPtr<PCGExStaging::FSocketHelper> SocketHelper;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
@@ -189,9 +199,7 @@ namespace PCGExAssetStaging
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;
-
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
-
 		virtual void OnRangeProcessingComplete() override;
 
 		virtual void Write() override;

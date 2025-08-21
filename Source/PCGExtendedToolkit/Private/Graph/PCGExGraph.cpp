@@ -559,6 +559,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					if (TSharedPtr<PCGExData::IUnionData> UnionData = ParentGraph->EdgesUnion->Get(EdgeMeta->RootIndex);
 						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, WeightedPoints, Trackers); }
 
+					// TODO : Add Sub-edge edge (is the result of a subdivision + merge)
+					
 #define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->SetValue(EdgeIndex, EdgeMeta->_ACCESSOR);}
 					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)
 #undef PCGEX_EDGE_METADATA_OUTPUT

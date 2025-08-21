@@ -256,6 +256,7 @@ namespace PCGExAssetStaging
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
 
 		if (Settings->bPruneEmptyPoints) { Mask.Init(1, PointDataFacade->GetNum()); }
+		if (Settings->bDoOutputSockets) { EntryHashes.Init(0, PointDataFacade->GetNum()); }
 
 		StartParallelLoopForPoints();
 
@@ -307,6 +308,9 @@ namespace PCGExAssetStaging
 			if (Context->bPickMaterials) { MaterialPick[Index] = -1; }
 		};
 
+		TMap<uint64, PCGExStaging::FSocketInfos> TempSocketEntryMap;
+		if (Settings->bDoOutputSockets) { TempSocketEntryMap.Reserve(Scope.Count); }
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index])
@@ -334,18 +338,18 @@ namespace PCGExAssetStaging
 
 			int16 SecondaryIndex = -1;
 
-			if (Entry->MacroCache && Entry->MacroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			if (Entry->MicroCache && Entry->MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
 			{
-				TSharedPtr<PCGExMeshCollection::FMacroCache> EntryMacroCache = StaticCastSharedPtr<PCGExMeshCollection::FMacroCache>(Entry->MacroCache);
+				TSharedPtr<PCGExMeshCollection::FMicroCache> EntryMicroCache = StaticCastSharedPtr<PCGExMeshCollection::FMicroCache>(Entry->MicroCache);
 				if (Context->bPickMaterials)
 				{
-					MaterialPick[Index] = EntryMacroCache->GetPickRandomWeighted(Seed);
-					HighestSlotIndex->Set(Scope, FMath::Max(FMath::Max(0, EntryMacroCache->GetHighestIndex()), HighestSlotIndex->Get(Scope)));
+					MaterialPick[Index] = EntryMicroCache->GetPickRandomWeighted(Seed);
+					HighestSlotIndex->Set(Scope, FMath::Max(FMath::Max(0, EntryMicroCache->GetHighestIndex()), HighestSlotIndex->Get(Scope)));
 					CachedPicks[Index] = Entry;
 				}
 				else
 				{
-					SecondaryIndex = EntryMacroCache->GetPickRandomWeighted(Seed);
+					SecondaryIndex = EntryMicroCache->GetPickRandomWeighted(Seed);
 				}
 			}
 			else if (Context->bPickMaterials)
@@ -404,9 +408,19 @@ namespace PCGExAssetStaging
 			}
 
 			OutTransforms[Index] = ProxyPoint.Transform;
+
+			if (Settings->bDoOutputSockets)
+			{
+				// Register entry
+			}
 		}
 
 		FPlatformAtomics::InterlockedAdd(&NumInvalid, LocalNumInvalid);
+
+		if (Settings->bDoOutputSockets)
+		{
+			// 
+		}
 	}
 
 	void FProcessor::CompleteWork()
