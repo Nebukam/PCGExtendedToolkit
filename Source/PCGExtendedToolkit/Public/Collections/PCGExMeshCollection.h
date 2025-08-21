@@ -96,7 +96,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideSingleEntry
 
 namespace PCGExMeshCollection
 {
-	class PCGEXTENDEDTOOLKIT_API FMacroCache : public PCGExAssetCollection::FMacroCache
+	class PCGEXTENDEDTOOLKIT_API FMicroCache : public PCGExAssetCollection::FMicroCache
 	{
 		double WeightSum = 0;
 		TArray<int32> Weights;
@@ -105,7 +105,7 @@ namespace PCGExMeshCollection
 		int32 HighestIndex = -1;
 
 	public:
-		FMacroCache()
+		FMicroCache()
 		{
 		}
 
@@ -212,7 +212,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	virtual void EDITOR_Sanitize() override;
 #endif
 
-	virtual void BuildMacroCache() override;
+	virtual void BuildMicroCache() override;
 };
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")

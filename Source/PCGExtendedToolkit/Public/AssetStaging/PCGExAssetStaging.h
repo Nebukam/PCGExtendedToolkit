@@ -108,6 +108,14 @@ public:
 	FName MaterialAttributePrefix = "Mat";
 
 	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bDoOutputSockets = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName="Output Sockets", EditCondition="bDoOutputSockets"))
+	FPCGExSocketOutputDetails OutputSocketDetails;
+	
+	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietEmptyCollectionError = false;
 };
@@ -122,6 +130,8 @@ struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 	bool bPickMaterials = false;
 
 	TSharedPtr<PCGExStaging::FPickPacker> CollectionPickDatasetPacker;
+
+	TSharedPtr<PCGExData::FPointIOCollection> SocketsCollection;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -154,11 +164,13 @@ namespace PCGExAssetStaging
 		bool bUsesDensity = false;
 
 		TArray<int8> Mask;
+		TArray<uint64> EntryHashes;
 
 		FPCGExFittingDetailsHandler FittingHandler;
 		FPCGExFittingVariationsDetails Variations;
 
 		TSharedPtr<PCGExStaging::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
+		TSharedPtr<PCGExStaging::FSocketHelper> SocketHelper;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
@@ -173,6 +185,8 @@ namespace PCGExAssetStaging
 		TArray<int8> MaterialPick;
 
 		TSharedPtr<PCGExData::TBuffer<int64>> HashWriter;
+
+		TSharedPtr<PCGExData::FFacade> SocketFacade;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -189,9 +203,7 @@ namespace PCGExAssetStaging
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;
-
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
-
 		virtual void OnRangeProcessingComplete() override;
 
 		virtual void Write() override;

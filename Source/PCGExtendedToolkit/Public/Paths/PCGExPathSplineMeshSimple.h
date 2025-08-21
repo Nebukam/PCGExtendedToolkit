@@ -142,6 +142,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExStaticMeshComponentDescriptor StaticMeshDescriptor;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	TArray<FPCGObjectPropertyOverrideDescription> PropertyOverrideDescriptions;
+	
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
@@ -187,6 +190,7 @@ namespace PCGExPathSplineMeshSimple
 	protected:
 		bool bClosedLoop = false;
 		bool bUseTags = false;
+		bool bIsPreviewMode = false;
 
 		FPCGExSplineMeshMutationDetails MutationDetails;
 
@@ -199,10 +203,9 @@ namespace PCGExPathSplineMeshSimple
 		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> EndOffset;
 
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathReader;
-
-		TArray<PCGExPaths::FSplineMeshSegment> Segments;
+ 
+		TArray<USplineMeshComponent*> SplineMeshComponents;
 		TArray<TObjectPtr<UStaticMesh>> Meshes;
-		//TArray<USplineMeshComponent*> SplineMeshComponents;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
