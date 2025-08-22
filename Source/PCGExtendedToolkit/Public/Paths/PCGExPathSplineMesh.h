@@ -188,6 +188,7 @@ namespace PCGExPathSplineMesh
 		bool bUseTags = false;
 
 		int32 LastIndex = 0;
+		TWeakPtr<PCGExMT::FAsyncToken> MainThreadToken;
 
 		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
 
@@ -221,6 +222,9 @@ namespace PCGExPathSplineMesh
 
 		virtual void OnPointsProcessingComplete() override;
 
+		void CreateComponents();
+		void InitComponentsScope(const PCGExMT::FScope& Scope);
+		
 		virtual void CompleteWork() override;
 
 		virtual void Output() override;

@@ -6,7 +6,9 @@
 #include "Data/PCGExData.h"
 #include "PCGExDataMath.h"
 #include "PCGExRandom.h"
+#include "AssetStaging/PCGExStaging.h"
 #include "Data/PCGExPointIO.h"
+#include "Sampling/PCGExSampling.h"
 
 void FPCGExScaleToFitDetails::Process(const PCGExData::FConstPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const
 {
@@ -308,12 +310,22 @@ void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, PCGExData::FPro
 
 	if (Rotation == Step)
 	{
-		FinalTransform.SetRotation(
-			SourceTransform.GetRotation() *
-			FRotator(
-				RandomSource.FRandRange(Variations.RotationMin.Pitch, Variations.RotationMax.Pitch),
-				RandomSource.FRandRange(Variations.RotationMin.Yaw, Variations.RotationMax.Yaw),
-				RandomSource.FRandRange(Variations.RotationMin.Roll, Variations.RotationMax.Roll)).Quaternion());
+		FRotator RandRot = FRotator(
+			RandomSource.FRandRange(Variations.RotationMin.Pitch, Variations.RotationMax.Pitch),
+			RandomSource.FRandRange(Variations.RotationMin.Yaw, Variations.RotationMax.Yaw),
+			RandomSource.FRandRange(Variations.RotationMin.Roll, Variations.RotationMax.Roll));
+
+		FRotator OutRotation = SourceTransform.GetRotation().Rotator();
+
+		const bool bAbsX = (Variations.AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::X)) != 0;
+		const bool bAbsY = (Variations.AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Y)) != 0;
+		const bool bAbsZ = (Variations.AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Z)) != 0;
+
+		OutRotation.Pitch = (bAbsX ? RandRot.Pitch : OutRotation.Pitch + RandRot.Pitch);
+		OutRotation.Yaw   = (bAbsY ? RandRot.Yaw   : OutRotation.Yaw   + RandRot.Yaw);
+		OutRotation.Roll  = (bAbsZ ? RandRot.Roll  : OutRotation.Roll  + RandRot.Roll);
+		
+		FinalTransform.SetRotation(OutRotation.Quaternion());
 	}
 
 	if (Scale == Step)

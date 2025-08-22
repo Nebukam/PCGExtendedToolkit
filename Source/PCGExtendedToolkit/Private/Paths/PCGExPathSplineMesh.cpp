@@ -8,6 +8,7 @@
 
 #include "PCGExHelpers.h"
 #include "PCGExRandom.h"
+#include "PCGExSubSystem.h"
 #include "Data/PCGExDataTag.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
@@ -236,18 +237,8 @@ namespace PCGExPathSplineMesh
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PathSplineMesh::ProcessPoints);
 
-		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
-
-		if (!TargetActor)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
-			return;
-		}
-
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
-
-		const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
 
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 
@@ -375,13 +366,69 @@ namespace PCGExPathSplineMesh
 			else { Segment.ComputeUpVectorFromTangents(); }
 
 			SegmentMutationDetails.Mutate(Index, Segment);
+		}
+	}
 
-			// Create component
+	void FProcessor::OnPointsProcessingComplete()
+	{
+		PCGEX_MAKE_SHARED(MaterialPaths, TSet<FSoftObjectPath>)
+		ScopedMaterials->Collapse(*MaterialPaths.Get());
+		if (!MaterialPaths->IsEmpty()) { PCGExHelpers::LoadBlocking_AnyThread(MaterialPaths); } // TODO : Refactor this atrocity
+
+		MainThreadToken = AsyncManager->TryCreateToken(FName(TEXT("CreateComponents")));
+
+		PCGEX_SUBSYSTEM
+		PCGExSubsystem->RegisterBeginTickAction(
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->CreateComponents();
+			});
+	}
+
+	void FProcessor::CreateComponents()
+	{
+		ON_SCOPE_EXIT { PCGEX_ASYNC_RELEASE_TOKEN(MainThreadToken) };
+
+		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
+		const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
+
+		if (!TargetActor)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
+			return;
+		}
+
+		for (int i = 0; i < Segments.Num(); ++i)
+		{
+			const PCGExPaths::FSplineMeshSegment& Segment = Segments[i];
+			if (!Segment.MeshEntry) { continue; }
 
 			USplineMeshComponent* SplineMeshComponent = Context->ManagedObjects->New<USplineMeshComponent>(
 				TargetActor, MakeUniqueObjectName(
 					TargetActor, USplineMeshComponent::StaticClass(),
 					Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Segment.MeshEntry->Staging.Path.GetAssetName())), ObjectFlags);
+
+			SplineMeshComponents[i] = SplineMeshComponent;
+		}
+
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InitComponentsTask)
+		InitComponentsTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->InitComponentsScope(Scope);
+		};
+		InitComponentsTask->StartSubLoops(SplineMeshComponents.Num(), 256);
+	}
+
+	void FProcessor::InitComponentsScope(const PCGExMT::FScope& Scope)
+	{
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
+			USplineMeshComponent* SplineMeshComponent = SplineMeshComponents[Index];
+			
+			if (!SplineMeshComponent || !Segment.MeshEntry) { continue; }
 
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
 			if (Settings->bForceDefaultDescriptor || Settings->CollectionSource == EPCGExCollectionSource::AttributeSet) { Settings->DefaultDescriptor.InitComponent(SplineMeshComponent); }
@@ -399,16 +446,7 @@ namespace PCGExPathSplineMesh
 					PCGLog::LogWarningOnGraph(FText::Format(LOCTEXT("FailOverride", "Failed to override descriptor for input {0}"), Index));
 				}
 			}
-
-			SplineMeshComponents[Index] = SplineMeshComponent;
 		}
-	}
-
-	void FProcessor::OnPointsProcessingComplete()
-	{
-		PCGEX_MAKE_SHARED(MaterialPaths, TSet<FSoftObjectPath>)
-		ScopedMaterials->Collapse(*MaterialPaths.Get());
-		if (!MaterialPaths->IsEmpty()) { PCGExHelpers::LoadBlocking_AnyThread(MaterialPaths); } // TODO : Refactor this atrocity
 	}
 
 	void FProcessor::CompleteWork()
