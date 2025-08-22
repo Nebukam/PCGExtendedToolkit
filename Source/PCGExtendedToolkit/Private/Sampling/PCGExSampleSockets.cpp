@@ -148,9 +148,6 @@ namespace PCGExSampleSockets
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
-		TMap<uint64, PCGExStaging::FSocketInfos> TempSocketEntryMap;
-		TempSocketEntryMap.Reserve(Scope.Count);
-
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index]) { continue; }
@@ -159,10 +156,8 @@ namespace PCGExSampleSockets
 
 			if (!SM) { continue; }
 
-			SocketHelper->Add(Index, TempSocketEntryMap, *SM);
+			SocketHelper->Add(Index, *SM);
 		}
-
-		SocketHelper->Add(TempSocketEntryMap);
 	}
 
 	void FProcessor::OnPointsProcessingComplete()

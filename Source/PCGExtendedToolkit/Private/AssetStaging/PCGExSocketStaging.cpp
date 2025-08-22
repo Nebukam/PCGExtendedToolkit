@@ -109,9 +109,6 @@ namespace PCGExSocketStaging
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
-		TMap<uint64, PCGExStaging::FSocketInfos> TempSocketEntryMap;
-		TempSocketEntryMap.Reserve(Scope.Count);
-
 		int16 MaterialPick = 0;
 		const FPCGExAssetCollectionEntry* Entry = nullptr;
 
@@ -122,10 +119,9 @@ namespace PCGExSocketStaging
 			const uint64 Hash = EntryHashGetter->Read(Index);
 			if (!Context->CollectionPickDatasetUnpacker->ResolveEntry(Hash, Entry, MaterialPick)) { continue; }
 
-			SocketHelper->Add(Index, TempSocketEntryMap, PCGExStaging::GetSimplifiedEntryHash(Hash), Entry);
+			SocketHelper->Add(Index, PCGExStaging::GetSimplifiedEntryHash(Hash), Entry);
 		}
 
-		SocketHelper->Add(TempSocketEntryMap);
 	}
 
 	void FProcessor::OnPointsProcessingComplete()

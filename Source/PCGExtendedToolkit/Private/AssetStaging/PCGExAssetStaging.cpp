@@ -324,9 +324,6 @@ namespace PCGExAssetStaging
 			if (Context->bPickMaterials) { MaterialPick[Index] = -1; }
 		};
 
-		TMap<uint64, PCGExStaging::FSocketInfos> TempSocketEntryMap;
-		if (SocketHelper) { TempSocketEntryMap.Reserve(Scope.Count); }
-
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index])
@@ -429,13 +426,12 @@ namespace PCGExAssetStaging
 			{
 				// Register entry
 				uint64 EntryHash = PCGEx::H64(EntryHost->GetUniqueID(), Entry->Staging.InternalIndex);
-				SocketHelper->Add(Index, TempSocketEntryMap, EntryHash, Entry);
+				SocketHelper->Add(Index, EntryHash, Entry);
 			}
 		}
 
 		FPlatformAtomics::InterlockedAdd(&NumInvalid, LocalNumInvalid);
 
-		if (SocketHelper) { SocketHelper->Add(TempSocketEntryMap); }
 	}
 
 	void FProcessor::CompleteWork()

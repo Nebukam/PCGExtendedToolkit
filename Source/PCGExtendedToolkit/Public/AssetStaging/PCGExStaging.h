@@ -135,39 +135,45 @@ namespace PCGExStaging
 		int32 Count = 0;
 	};
 
+#define PCGEX_FOREACH_FIELD_SAMPLESOCKETS(MACRO)\
+MACRO(SocketName, FName, NAME_None) \
+MACRO(SocketTag, FName, NAME_None) \
+MACRO(Category, FName, NAME_None) \
+MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
+	
 	PCGEXTENDEDTOOLKIT_API
 	uint64 GetSimplifiedEntryHash(uint64 InEntryHash);
 
-	class PCGEXTENDEDTOOLKIT_API FSocketHelper
+	class PCGEXTENDEDTOOLKIT_API FSocketHelper : public TSharedFromThis<FSocketHelper>
 	{
-		FRWLock EntryMapLock;
-
+		FRWLock SocketLock;
 		const FPCGExSocketOutputDetails* Details = nullptr;
 
-		TMap<uint64, FSocketInfos> EntryMap;
-		int32 NumOutPoints = 0;
+		TMap<uint64, int32> InfosKeys;
+		TArray<FSocketInfos> SocketInfosList;
+		TArray<int32> Mapping;
+		TArray<int32> StartIndices;
 
-		TSet<FString> ExcludedSocketTags;
-		TSet<FName> ExcludedSocketName;
-		TSet<FString> IncludedSocketTags;
-		TSet<FName> IncludedSocketName;
-
-		TArray<uint64> EntryHashes;
-
+		PCGEX_FOREACH_FIELD_SAMPLESOCKETS(PCGEX_OUTPUT_DECL_TOGGLE)
+		PCGEX_FOREACH_FIELD_SAMPLESOCKETS(PCGEX_OUTPUT_DECL)
+		
 	public:
 		explicit FSocketHelper(const FPCGExSocketOutputDetails* InDetails, const int32 InNumPoints);
 
+		TSharedPtr<PCGExData::FFacade> InputDataFacade;
 		TSharedPtr<PCGExData::FFacade> SocketFacade;
 
-		void Add(const TMap<uint64, FSocketInfos>& InEntryMap);
-		void Add(const int32 Index, TMap<uint64, FSocketInfos>& InEntryMap, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry);
-		void Add(const int32 Index, TMap<uint64, FSocketInfos>& InEntryMap, const TObjectPtr<UStaticMesh>& Mesh);
-		
+		void Add(const int32 Index, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry);
+		void Add(const int32 Index, const TObjectPtr<UStaticMesh>& Mesh);
+
 		void Compile(
 			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 			const TSharedPtr<PCGExData::FFacade>& InDataFacade,
 			const TSharedPtr<PCGExData::FPointIOCollection>& InCollection);
 
-		const FSocketInfos& GetSocketInfos(const uint64 Key) const { return EntryMap[Key]; }
+	protected:
+		FSocketInfos& NewSocketInfos(const uint64 EntryHash, int32& OutIndex);
+		void FilterSocketInfos(const int32 Index);
+		void CompileRange(const PCGExMT::FScope& Scope);
 	};
 }
