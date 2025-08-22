@@ -79,10 +79,6 @@ protected:
 
 class FPCGExSampleSocketsElement final : public FPCGExPointsProcessorElement
 {
-public:
-	// Generates artifacts
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
-
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SampleSockets)
 
