@@ -503,6 +503,8 @@ namespace PCGExStaging
 		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
 		const TSharedPtr<PCGExData::FPointIOCollection>& InCollection)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FSocketHelper::Compile);
+		
 		NumOutPoints = 0;
 
 		const UPCGBasePointData* SourceData = InDataFacade->Source->GetOutIn();
@@ -551,32 +553,42 @@ namespace PCGExStaging
 		PCGEX_SOCKET_OUTPUT_DECL(SocketTag, FName, NAME_None)
 		PCGEX_SOCKET_OUTPUT_DECL(Category, FName, NAME_None)
 		PCGEX_SOCKET_OUTPUT_DECL(AssetPath, FSoftObjectPath, FSoftObjectPath{})
-
-		int32 WriteIndex = 0;
-		for (int i = 0; i < NumPoints; i++)
+		
 		{
-			uint64 EntryHash = EntryHashes[i];
-			if (!EntryHash) { continue; }
-
-			const FTransform& InTransform = ReadTransform[i];
-			const int64& InMetadataKey = ReadMetadataEntry[i];
-
-			const FSocketInfos& SocketInfos = GetSocketInfos(EntryHash);
-			for (const FPCGExSocket& Socket : SocketInfos.Sockets)
+			TRACE_CPUPROFILER_EVENT_SCOPE(FSocketHelper::Compile::Loop);
+			
+			int32 WriteIndex = 0;
+			for (int i = 0; i < NumPoints; i++)
 			{
-				OutTransform[WriteIndex] = Socket.RelativeTransform * InTransform;
+				uint64 EntryHash = EntryHashes[i];
+				if (!EntryHash) { continue; }
 
-				OutMetadataEntry[WriteIndex] = PCGInvalidEntryKey;
-				Metadata->InitializeOnSet(OutMetadataEntry[WriteIndex], InMetadataKey, ParentMetadata);
+				const FTransform& InTransform = ReadTransform[i];
+				const int64& InMetadataKey = ReadMetadataEntry[i];
 
-				OutSeed[WriteIndex] = PCGExRandom::ComputeSpatialSeed(OutTransform[WriteIndex].GetLocation());
+				const FSocketInfos& SocketInfos = GetSocketInfos(EntryHash);
+				
+				// Cache stable per-socketinfos values once
+				const FName& Category = SocketInfos.Category;
+				const FSoftObjectPath& Path     = SocketInfos.Path;
+				
+				for (const FPCGExSocket& Socket : SocketInfos.Sockets)
+				{
+					const FTransform WorldTransform = Socket.RelativeTransform * InTransform;
+					OutTransform[WriteIndex] = WorldTransform;
 
-				PCGEX_SOCKET_OUTPUT_WRITE(SocketName, Socket.SocketName)
-				PCGEX_SOCKET_OUTPUT_WRITE(SocketTag, FName(Socket.Tag))
-				PCGEX_SOCKET_OUTPUT_WRITE(Category, SocketInfos.Category)
-				PCGEX_SOCKET_OUTPUT_WRITE(AssetPath, SocketInfos.Path)
+					OutMetadataEntry[WriteIndex] = PCGInvalidEntryKey;
+					Metadata->InitializeOnSet(OutMetadataEntry[WriteIndex], InMetadataKey, ParentMetadata);
 
-				WriteIndex++;
+					OutSeed[WriteIndex] = PCGExRandom::ComputeSpatialSeed(WorldTransform.GetLocation());
+
+					PCGEX_SOCKET_OUTPUT_WRITE(SocketName, Socket.SocketName)
+					PCGEX_SOCKET_OUTPUT_WRITE(SocketTag, FName(Socket.Tag))
+					PCGEX_SOCKET_OUTPUT_WRITE(Category, Category)
+					PCGEX_SOCKET_OUTPUT_WRITE(AssetPath, Path)
+
+					WriteIndex++;
+				}
 			}
 		}
 
