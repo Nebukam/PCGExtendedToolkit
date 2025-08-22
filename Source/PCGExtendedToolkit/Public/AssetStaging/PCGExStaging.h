@@ -131,7 +131,7 @@ namespace PCGExStaging
 		FSocketInfos() = default;
 		const FPCGExAssetCollectionEntry* Entry = nullptr;
 		int32 Count = 0;
-		int32 SocketCount = 0;
+		TArray<int32, TInlineAllocator<8>> SelectedSockets;
 	};
 
 	PCGEXTENDEDTOOLKIT_API
@@ -146,11 +146,24 @@ namespace PCGExStaging
 		TMap<uint64, FSocketInfos> EntryMap;
 		int32 NumOutPoints = 0;
 
+		TSet<FString> ExcludedSocketTags;
+		TSet<FName> ExcludedSocketName;
+		TSet<FString> IncludedSocketTags;
+		TSet<FName> IncludedSocketName;
+
+		TArray<uint64> EntryHashes;
+
 	public:
-		explicit FSocketHelper(const FPCGExSocketOutputDetails* InDetails);
+		explicit FSocketHelper(const FPCGExSocketOutputDetails* InDetails, const int32 InNumPoints);
+
+		TSharedPtr<PCGExData::FFacade> SocketFacade;
+
 		void Add(const TMap<uint64, FSocketInfos>& InEntryMap);
-		void Add(TMap<uint64, FSocketInfos>& InEntryMap, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry);
-		int32 Compile();
+		void Add(const int32 Index, TMap<uint64, FSocketInfos>& InEntryMap, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry);
+		void Compile(
+			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
+			const TSharedPtr<PCGExData::FFacade>& InDataFacade,
+			const TSharedPtr<PCGExData::FPointIOCollection>& InCollection);
 
 		const FSocketInfos& GetSocketInfos(const uint64 Key) const { return EntryMap[Key]; }
 	};

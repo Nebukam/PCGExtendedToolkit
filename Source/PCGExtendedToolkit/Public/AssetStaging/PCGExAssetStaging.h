@@ -131,6 +131,7 @@ struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 
 	TSharedPtr<PCGExStaging::FPickPacker> CollectionPickDatasetPacker;
 
+	FPCGExSocketOutputDetails OutputSocketDetails;
 	TSharedPtr<PCGExData::FPointIOCollection> SocketsCollection;
 
 protected:
@@ -164,8 +165,7 @@ namespace PCGExAssetStaging
 		bool bUsesDensity = false;
 
 		TArray<int8> Mask;
-		TArray<uint64> EntryHashes;
-
+		
 		FPCGExFittingDetailsHandler FittingHandler;
 		FPCGExFittingVariationsDetails Variations;
 
@@ -185,8 +185,6 @@ namespace PCGExAssetStaging
 		TArray<int8> MaterialPick;
 
 		TSharedPtr<PCGExData::TBuffer<int64>> HashWriter;
-
-		TSharedPtr<PCGExData::FFacade> SocketFacade;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
