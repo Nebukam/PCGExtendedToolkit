@@ -12,6 +12,19 @@ struct FPCGExMeshCollectionEntry;
 class UPCGExMeshCollection;
 class UPCGExActorCollection;
 
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Component Flags"))
+enum class EPCGExAbsoluteRotationFlags : uint8
+{
+	None = 0,
+	X    = 1 << 0 UMETA(DisplayName = "Pitch"),
+	Y    = 1 << 1 UMETA(DisplayName = "Yaw"),
+	Z    = 1 << 2 UMETA(DisplayName = "Roll"),
+	All  = X | Y | Z UMETA(DisplayName = "All"),
+};
+
+ENUM_CLASS_FLAGS(EPCGExAbsoluteRotationFlags)
+using EPCGExAbsoluteRotationFlagsBitmask = TEnumAsByte<EPCGExAbsoluteRotationFlags>;
+
 namespace PCGExStaging
 {
 	const FName SourceCollectionMapLabel = TEXT("Map");

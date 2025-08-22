@@ -192,6 +192,7 @@ namespace PCGExPathSplineMeshSimple
 
 		SplineMeshComponents.Init(nullptr, bClosedLoop ? LastIndex + 1 : LastIndex);
 		Meshes.Init(nullptr, SplineMeshComponents.Num());
+		Segments.Init(PCGExPaths::FSplineMeshSegment(), SplineMeshComponents.Num());
 
 		StartParallelLoopForPoints();
 
@@ -223,11 +224,8 @@ namespace PCGExPathSplineMeshSimple
 			// Do nothing
 		};
 
-		const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
-
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		TConstPCGValueRange<FTransform> Transforms = InPointData->GetConstTransformValueRange();
-		const TArray<FName> DataTags = PointDataFacade->Source->Tags->FlattenToArrayOfNames();
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -253,8 +251,7 @@ namespace PCGExPathSplineMeshSimple
 			}
 
 			Meshes[Index] = *SM;
-			PCGExPaths::FSplineMeshSegment Segment = PCGExPaths::FSplineMeshSegment();
-
+			PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
 			//
 
 			const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
@@ -296,13 +293,67 @@ namespace PCGExPathSplineMeshSimple
 			else { Segment.ComputeUpVectorFromTangents(); }
 
 			MutationDetails.Mutate(Index, Segment);
+		}
+	}
 
-			// Create component
+	void FProcessor::OnPointsProcessingComplete()
+	{
+		MainThreadToken = AsyncManager->TryCreateToken(FName(TEXT("CreateComponents")));
+
+		PCGEX_SUBSYSTEM
+		PCGExSubsystem->RegisterBeginTickAction(
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				This->CreateComponents();
+			});
+	}
+
+	void FProcessor::CreateComponents()
+	{
+		ON_SCOPE_EXIT { PCGEX_ASYNC_RELEASE_TOKEN(MainThreadToken) };
+
+		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
+		const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
+
+		if (!TargetActor)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
+			return;
+		}
+
+		for (int i = 0; i < Segments.Num(); ++i)
+		{
+			const PCGExPaths::FSplineMeshSegment& Segment = Segments[i];
+			if (!Meshes[i]) { continue; }
 
 			USplineMeshComponent* SplineMeshComponent = Context->ManagedObjects->New<USplineMeshComponent>(
 				TargetActor, MakeUniqueObjectName(
 					TargetActor, USplineMeshComponent::StaticClass(),
-					Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + (*SM)->GetName())), ObjectFlags);
+					Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Meshes[i].GetName())), ObjectFlags);
+
+			SplineMeshComponents[i] = SplineMeshComponent;
+		}
+
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InitComponentsTask)
+		InitComponentsTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->InitComponentsScope(Scope);
+		};
+		InitComponentsTask->StartSubLoops(SplineMeshComponents.Num(), 256);
+	}
+
+	void FProcessor::InitComponentsScope(const PCGExMT::FScope& Scope)
+	{
+		const TArray<FName> DataTags = PointDataFacade->Source->Tags->FlattenToArrayOfNames();
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
+			USplineMeshComponent* SplineMeshComponent = SplineMeshComponents[Index];
+
+			if (!SplineMeshComponent || !Meshes[Index]) { continue; }
 
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
 
@@ -320,8 +371,6 @@ namespace PCGExPathSplineMeshSimple
 					PCGLog::LogWarningOnGraph(FText::Format(LOCTEXT("FailOverride", "Failed to override descriptor for input {0}"), Index));
 				}
 			}
-
-			SplineMeshComponents[Index] = SplineMeshComponent;
 		}
 	}
 

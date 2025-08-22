@@ -245,6 +245,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariations
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FRotator RotationMax = FRotator::ZeroRotator;
 
+	/** Set rotation directly instead of additively on the selected axis */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExAbsoluteRotationFlags"))
+	uint8 AbsoluteRotation = 0;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (AllowPreserveRatio, PCG_Overridable))
 	FVector ScaleMin = FVector::One();
 

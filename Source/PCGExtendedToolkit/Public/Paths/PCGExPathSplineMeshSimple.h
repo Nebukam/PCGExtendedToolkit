@@ -195,6 +195,7 @@ namespace PCGExPathSplineMeshSimple
 		FPCGExSplineMeshMutationDetails MutationDetails;
 
 		int32 LastIndex = 0;
+		TWeakPtr<PCGExMT::FAsyncToken> MainThreadToken;
 
 		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
 
@@ -205,6 +206,7 @@ namespace PCGExPathSplineMeshSimple
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathReader;
  
 		TArray<USplineMeshComponent*> SplineMeshComponents;
+		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 		TArray<TObjectPtr<UStaticMesh>> Meshes;
 
 	public:
@@ -216,7 +218,11 @@ namespace PCGExPathSplineMeshSimple
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-
+		virtual void OnPointsProcessingComplete() override;
+		
+		void CreateComponents();
+		void InitComponentsScope(const PCGExMT::FScope& Scope);
+		
 		virtual void CompleteWork() override;
 
 		virtual void Output() override;
