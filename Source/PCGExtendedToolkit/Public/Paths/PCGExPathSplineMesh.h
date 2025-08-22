@@ -181,6 +181,7 @@ namespace PCGExPathSplineMesh
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
+		int8 bHasValidSegments = false;
 
 		bool bIsPreviewMode = false;
 		bool bClosedLoop = false;

@@ -191,6 +191,7 @@ namespace PCGExPathSplineMeshSimple
 		bool bClosedLoop = false;
 		bool bUseTags = false;
 		bool bIsPreviewMode = false;
+		int8 bHasValidSegments = false;
 
 		FPCGExSplineMeshMutationDetails MutationDetails;
 
