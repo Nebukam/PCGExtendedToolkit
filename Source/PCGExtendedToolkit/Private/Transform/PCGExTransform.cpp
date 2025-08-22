@@ -64,7 +64,7 @@ bool FPCGExUVW::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFaca
 	if (!UGetter->Init(InDataFacade)) { return false; }
 
 	VGetter = GetValueSettingV();
-	if (!UGetter->Init(InDataFacade)) { return false; }
+	if (!VGetter->Init(InDataFacade)) { return false; }
 
 	WGetter = GetValueSettingW();
 	if (!WGetter->Init(InDataFacade)) { return false; }

@@ -51,6 +51,8 @@ namespace PCGExBoundsToPoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBoundsToPoints::Process);
 
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+		
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bGeneratePerPointData ? PCGExData::EIOInit::NoInit : PCGExData::EIOInit::Duplicate)
@@ -96,6 +98,7 @@ namespace PCGExBoundsToPoints
 			}
 			else
 			{
+				PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), NumPoints);
 			}
 		}
 
@@ -109,6 +112,7 @@ namespace PCGExBoundsToPoints
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BoundsToPoints::ProcessPoints);
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		PointDataFacade->Fetch(Scope);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
