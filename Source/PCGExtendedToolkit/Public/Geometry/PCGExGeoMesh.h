@@ -20,6 +20,7 @@ enum class EPCGExTriangulationType : uint8
 	Dual       = 1 UMETA(DisplayName = "Dual Graph", ToolTip="Dual graph of the triangles (using triangle centroids and adjacency)."),
 	Hollow     = 2 UMETA(DisplayName = "Hollow Graph", ToolTip="Connects centroid to vertices but remove triangles edges"),
 	Boundaries = 3 UMETA(DisplayName = "Boundaries", ToolTip="Outputs edges that are on the boundaries of the mesh (open spaces)"),
+	NoTriangulation = 42 UMETA(Hidden),
 };
 
 namespace PCGExGeo

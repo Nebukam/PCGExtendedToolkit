@@ -97,7 +97,7 @@ namespace PCGExSocketStaging
 		EntryHashGetter = PointDataFacade->GetReadable<int64>(PCGExStaging::Tag_EntryIdx, PCGExData::EIOSide::In, true);
 		SocketHelper = MakeShared<PCGExStaging::FSocketHelper>(&Context->OutputSocketDetails, PointDataFacade->GetNum());
 
-		StartParallelLoopForPoints();
+		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;
 	}
@@ -125,7 +125,7 @@ namespace PCGExSocketStaging
 			SocketHelper->Add(Index, TempSocketEntryMap, PCGExStaging::GetSimplifiedEntryHash(Hash), Entry);
 		}
 
-		if (SocketHelper) { SocketHelper->Add(TempSocketEntryMap); }
+		SocketHelper->Add(TempSocketEntryMap);
 	}
 
 	void FProcessor::OnPointsProcessingComplete()

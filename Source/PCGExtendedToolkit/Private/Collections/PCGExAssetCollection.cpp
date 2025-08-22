@@ -118,6 +118,7 @@ bool FPCGExSocketOutputDetails::Init(FPCGExContext* InContext)
 	if (bWriteSocketTag) { PCGEX_VALIDATE_NAME_C(InContext, SocketTagAttributeName) }
 	SocketTagFilters.Init();
 	SocketNameFilters.Init();
+	CarryOverDetails.Init();
 	return true;
 }
 

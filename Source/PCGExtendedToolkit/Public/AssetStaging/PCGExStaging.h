@@ -129,9 +129,10 @@ namespace PCGExStaging
 	struct PCGEXTENDEDTOOLKIT_API FSocketInfos
 	{
 		FSocketInfos() = default;
-		const FPCGExAssetCollectionEntry* Entry = nullptr;
+		FSoftObjectPath Path;
+		FName Category = NAME_None;
+		TArray<FPCGExSocket> Sockets;
 		int32 Count = 0;
-		TArray<int32, TInlineAllocator<8>> SelectedSockets;
 	};
 
 	PCGEXTENDEDTOOLKIT_API
@@ -160,6 +161,8 @@ namespace PCGExStaging
 
 		void Add(const TMap<uint64, FSocketInfos>& InEntryMap);
 		void Add(const int32 Index, TMap<uint64, FSocketInfos>& InEntryMap, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry);
+		void Add(const int32 Index, TMap<uint64, FSocketInfos>& InEntryMap, const TObjectPtr<UStaticMesh>& Mesh);
+		
 		void Compile(
 			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 			const TSharedPtr<PCGExData::FFacade>& InDataFacade,

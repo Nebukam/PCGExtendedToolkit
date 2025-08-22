@@ -4,6 +4,7 @@
 #include "AssetStaging/PCGExStaging.h"
 
 #include "PCGExRandom.h"
+#include "Engine/StaticMeshSocket.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 namespace PCGExStaging
@@ -430,15 +431,18 @@ namespace PCGExStaging
 			if (!ExistingInfos)
 			{
 				FSocketInfos& NewInfos = EntryMap.Add(InInfos.Key, InInfos.Value);
+				TArray<FPCGExSocket> ValidSockets;
 
-				for (int i = 0; i < InInfos.Value.Entry->Staging.Sockets.Num(); i++)
+				for (int i = 0; i < InInfos.Value.Sockets.Num(); i++)
 				{
-					if (const FPCGExSocket& Socket = InInfos.Value.Entry->Staging.Sockets[i];
+					if (const FPCGExSocket& Socket = InInfos.Value.Sockets[i];
 						Details->SocketNameFilters.Test(Socket.SocketName.ToString()) &&
 						Details->SocketTagFilters.Test(Socket.Tag))
 					{
-						NewInfos.SelectedSockets.Add(i);
+						ValidSockets.Add(Socket);
 					}
+
+					NewInfos.Sockets = ValidSockets;
 				}
 
 				continue;
@@ -456,7 +460,36 @@ namespace PCGExStaging
 		if (!ExistingInfos)
 		{
 			FSocketInfos& NewInfos = InEntryMap.Add(EntryHash, FSocketInfos());
-			NewInfos.Entry = Entry;
+			NewInfos.Path = Entry->Staging.Path;
+			NewInfos.Category = Entry->Category;
+			NewInfos.Sockets = Entry->Staging.Sockets;
+			NewInfos.Count = 1;
+		}
+		else
+		{
+			ExistingInfos->Count++;
+		}
+	}
+
+	void FSocketHelper::Add(const int32 Index, TMap<uint64, FSocketInfos>& InEntryMap, const TObjectPtr<UStaticMesh>& Mesh)
+	{
+		const uint64 EntryHash = GetTypeHash(Mesh);
+		EntryHashes[Index] = EntryHash;
+
+		FSocketInfos* ExistingInfos = InEntryMap.Find(EntryHash);
+		if (!ExistingInfos)
+		{
+			FSocketInfos& NewInfos = InEntryMap.Add(EntryHash, FSocketInfos());
+			NewInfos.Path = Mesh.GetPath();
+			NewInfos.Category = NAME_None;
+
+			NewInfos.Sockets.Reserve(Mesh->Sockets.Num());
+			for (const TObjectPtr<UStaticMeshSocket>& MeshSocket : Mesh->Sockets)
+			{
+				FPCGExSocket& NewSocket = NewInfos.Sockets.Emplace_GetRef(MeshSocket->SocketName, MeshSocket->RelativeLocation, MeshSocket->RelativeRotation, MeshSocket->RelativeScale, MeshSocket->Tag);
+				NewSocket.bManaged = true;
+			}
+			
 			NewInfos.Count = 1;
 		}
 		else
@@ -472,10 +505,12 @@ namespace PCGExStaging
 	{
 		NumOutPoints = 0;
 
+		const UPCGBasePointData* SourceData = InDataFacade->Source->GetOutIn();
+		
 		for (const TPair<uint64, FSocketInfos>& InInfos : EntryMap)
 		{
 			// TODO : Compute number of "valid" sockets
-			NumOutPoints += InInfos.Value.Count * InInfos.Value.SelectedSockets.Num();
+			NumOutPoints += InInfos.Value.Count * InInfos.Value.Sockets.Num();
 		}
 
 		const int32 NumPoints = InDataFacade->GetNum(PCGExData::EIOSide::In);
@@ -496,7 +531,7 @@ namespace PCGExStaging
 		const UPCGMetadata* ParentMetadata = InDataFacade->GetIn()->ConstMetadata();
 		UPCGMetadata* Metadata = OutPoints->MutableMetadata();
 
-		TConstPCGValueRange<FTransform> ReadTransform = InDataFacade->GetOut()->GetConstTransformValueRange();
+		TConstPCGValueRange<FTransform> ReadTransform = SourceData->GetConstTransformValueRange();
 		TPCGValueRange<FTransform> OutTransform = SocketIO->GetOut()->GetTransformValueRange();
 
 		TConstPCGValueRange<int64> ReadMetadataEntry = InDataFacade->GetIn()->GetConstMetadataEntryValueRange();
@@ -504,6 +539,7 @@ namespace PCGExStaging
 
 		TPCGValueRange<int32> OutSeed = SocketIO->GetOut()->GetSeedValueRange();
 
+		Details->CarryOverDetails.Prune(Metadata);
 
 #define PCGEX_SOCKET_OUTPUT_DECL(_NAME, _TYPE, _DEFAULT) \
 		TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Buffer = nullptr; \
@@ -526,9 +562,8 @@ namespace PCGExStaging
 			const int64& InMetadataKey = ReadMetadataEntry[i];
 
 			const FSocketInfos& SocketInfos = GetSocketInfos(EntryHash);
-			for (int32 s : SocketInfos.SelectedSockets)
+			for (const FPCGExSocket& Socket : SocketInfos.Sockets)
 			{
-				const FPCGExSocket& Socket = SocketInfos.Entry->Staging.Sockets[s];
 				OutTransform[WriteIndex] = Socket.RelativeTransform * InTransform;
 
 				OutMetadataEntry[WriteIndex] = PCGInvalidEntryKey;
@@ -538,8 +573,8 @@ namespace PCGExStaging
 
 				PCGEX_SOCKET_OUTPUT_WRITE(SocketName, Socket.SocketName)
 				PCGEX_SOCKET_OUTPUT_WRITE(SocketTag, FName(Socket.Tag))
-				PCGEX_SOCKET_OUTPUT_WRITE(Category, SocketInfos.Entry->Category)
-				PCGEX_SOCKET_OUTPUT_WRITE(AssetPath, SocketInfos.Entry->Staging.Path)
+				PCGEX_SOCKET_OUTPUT_WRITE(Category, SocketInfos.Category)
+				PCGEX_SOCKET_OUTPUT_WRITE(AssetPath, SocketInfos.Path)
 
 				WriteIndex++;
 			}
