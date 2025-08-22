@@ -261,6 +261,8 @@ namespace PCGExPathSplineMesh
 			}
 		};
 
+		bool bAnyValidSegment = false;
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (Index == LastIndex && !bClosedLoop)
@@ -366,11 +368,20 @@ namespace PCGExPathSplineMesh
 			else { Segment.ComputeUpVectorFromTangents(); }
 
 			SegmentMutationDetails.Mutate(Index, Segment);
+			bAnyValidSegment = true;
 		}
+
+		if (bAnyValidSegment) { FPlatformAtomics::InterlockedExchange(&bHasValidSegments, 1); }
 	}
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
+		if (!bHasValidSegments)
+		{
+			bIsProcessorValid = false;
+			return;
+		}
+
 		PCGEX_MAKE_SHARED(MaterialPaths, TSet<FSoftObjectPath>)
 		ScopedMaterials->Collapse(*MaterialPaths.Get());
 		if (!MaterialPaths->IsEmpty()) { PCGExHelpers::LoadBlocking_AnyThread(MaterialPaths); } // TODO : Refactor this atrocity
@@ -427,7 +438,7 @@ namespace PCGExPathSplineMesh
 		{
 			const PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
 			USplineMeshComponent* SplineMeshComponent = SplineMeshComponents[Index];
-			
+
 			if (!SplineMeshComponent || !Segment.MeshEntry) { continue; }
 
 			Segment.ApplySettings(SplineMeshComponent); // Init Component

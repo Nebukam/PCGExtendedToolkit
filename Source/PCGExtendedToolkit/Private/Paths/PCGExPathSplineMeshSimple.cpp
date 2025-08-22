@@ -227,6 +227,8 @@ namespace PCGExPathSplineMeshSimple
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		TConstPCGValueRange<FTransform> Transforms = InPointData->GetConstTransformValueRange();
 
+		bool bAnyValidSegment = false;
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (Index == LastIndex && !bClosedLoop)
@@ -293,11 +295,20 @@ namespace PCGExPathSplineMeshSimple
 			else { Segment.ComputeUpVectorFromTangents(); }
 
 			MutationDetails.Mutate(Index, Segment);
+			bAnyValidSegment = true;
 		}
+
+		if (bAnyValidSegment) { FPlatformAtomics::InterlockedExchange(&bHasValidSegments, 1); }
 	}
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
+		if (!bHasValidSegments)
+		{
+			bIsProcessorValid = false;
+			return;
+		}
+
 		MainThreadToken = AsyncManager->TryCreateToken(FName(TEXT("CreateComponents")));
 
 		PCGEX_SUBSYSTEM
