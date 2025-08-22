@@ -3,6 +3,7 @@
 
 #include "AssetStaging/PCGExStaging.h"
 
+#include "PCGExGlobalSettings.h"
 #include "PCGExRandom.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
@@ -417,85 +418,97 @@ namespace PCGExStaging
 	FSocketHelper::FSocketHelper(const FPCGExSocketOutputDetails* InDetails, const int32 InNumPoints)
 		: Details(InDetails)
 	{
-		EntryHashes.Init(0, InNumPoints);
+		Mapping.Init(-1, InNumPoints);
+		StartIndices.Init(-1, InNumPoints);
 	}
 
-	void FSocketHelper::Add(const TMap<uint64, FSocketInfos>& InEntryMap)
+	void FSocketHelper::Add(const int32 Index, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry)
 	{
-		FWriteScopeLock WriteScope(EntryMapLock);
+		const int32* IdxPtr = nullptr;
 
-		for (const TPair<uint64, FSocketInfos>& InInfos : InEntryMap)
 		{
-			FSocketInfos* ExistingInfos = EntryMap.Find(InInfos.Key);
-
-			if (!ExistingInfos)
-			{
-				FSocketInfos& NewInfos = EntryMap.Add(InInfos.Key, InInfos.Value);
-				TArray<FPCGExSocket> ValidSockets;
-
-				for (int i = 0; i < InInfos.Value.Sockets.Num(); i++)
-				{
-					if (const FPCGExSocket& Socket = InInfos.Value.Sockets[i];
-						Details->SocketNameFilters.Test(Socket.SocketName.ToString()) &&
-						Details->SocketTagFilters.Test(Socket.Tag))
-					{
-						ValidSockets.Add(Socket);
-					}
-
-					NewInfos.Sockets = ValidSockets;
-				}
-
-				continue;
-			}
-
-			ExistingInfos->Count += InInfos.Value.Count;
+			FReadScopeLock ReadLock(SocketLock);
+			IdxPtr = InfosKeys.Find(EntryHash);
 		}
-	}
 
-	void FSocketHelper::Add(const int32 Index, TMap<uint64, FSocketInfos>& InEntryMap, const uint64 EntryHash, const FPCGExAssetCollectionEntry* Entry)
-	{
-		EntryHashes[Index] = EntryHash;
+		int32 Idx = -1;
 
-		FSocketInfos* ExistingInfos = InEntryMap.Find(EntryHash);
-		if (!ExistingInfos)
+		if (!IdxPtr)
 		{
-			FSocketInfos& NewInfos = InEntryMap.Add(EntryHash, FSocketInfos());
-			NewInfos.Path = Entry->Staging.Path;
-			NewInfos.Category = Entry->Category;
-			NewInfos.Sockets = Entry->Staging.Sockets;
-			NewInfos.Count = 1;
+			FWriteScopeLock WriteLock(SocketLock);
+
+			IdxPtr = InfosKeys.Find(EntryHash);
+			if (IdxPtr)
+			{
+				Idx = *IdxPtr;
+			}
+			else
+			{
+				FSocketInfos& NewInfos = NewSocketInfos(EntryHash, Idx);
+
+				NewInfos.Path = Entry->Staging.Path;
+				NewInfos.Category = Entry->Category;
+				NewInfos.Sockets = Entry->Staging.Sockets;
+
+				FilterSocketInfos(Idx);
+			}
 		}
 		else
 		{
-			ExistingInfos->Count++;
+			Idx = *IdxPtr;
 		}
+
+		FPlatformAtomics::InterlockedIncrement(&SocketInfosList[Idx].Count);
+		Mapping[Index] = Idx;
 	}
 
-	void FSocketHelper::Add(const int32 Index, TMap<uint64, FSocketInfos>& InEntryMap, const TObjectPtr<UStaticMesh>& Mesh)
+	void FSocketHelper::Add(const int32 Index, const TObjectPtr<UStaticMesh>& Mesh)
 	{
 		const uint64 EntryHash = GetTypeHash(Mesh);
-		EntryHashes[Index] = EntryHash;
 
-		FSocketInfos* ExistingInfos = InEntryMap.Find(EntryHash);
-		if (!ExistingInfos)
+		const int32* IdxPtr = nullptr;
+
 		{
-			FSocketInfos& NewInfos = InEntryMap.Add(EntryHash, FSocketInfos());
-			NewInfos.Path = Mesh.GetPath();
-			NewInfos.Category = NAME_None;
+			FReadScopeLock ReadLock(SocketLock);
+			IdxPtr = InfosKeys.Find(EntryHash);
+		}
 
-			NewInfos.Sockets.Reserve(Mesh->Sockets.Num());
-			for (const TObjectPtr<UStaticMeshSocket>& MeshSocket : Mesh->Sockets)
+		int32 Idx = -1;
+
+		if (!IdxPtr)
+		{
+			FWriteScopeLock WriteLock(SocketLock);
+
+			IdxPtr = InfosKeys.Find(EntryHash);
+
+			if (IdxPtr)
 			{
-				FPCGExSocket& NewSocket = NewInfos.Sockets.Emplace_GetRef(MeshSocket->SocketName, MeshSocket->RelativeLocation, MeshSocket->RelativeRotation, MeshSocket->RelativeScale, MeshSocket->Tag);
-				NewSocket.bManaged = true;
+				Idx = *IdxPtr;
 			}
-			
-			NewInfos.Count = 1;
+			else
+			{
+				FSocketInfos& NewInfos = NewSocketInfos(EntryHash, Idx);
+
+				NewInfos.Path = Mesh.GetPath();
+				NewInfos.Category = NAME_None;
+				NewInfos.Sockets.Reserve(Mesh->Sockets.Num());
+
+				for (const TObjectPtr<UStaticMeshSocket>& MeshSocket : Mesh->Sockets)
+				{
+					FPCGExSocket& NewSocket = NewInfos.Sockets.Emplace_GetRef(MeshSocket->SocketName, MeshSocket->RelativeLocation, MeshSocket->RelativeRotation, MeshSocket->RelativeScale, MeshSocket->Tag);
+					NewSocket.bManaged = true;
+				}
+
+				FilterSocketInfos(Idx);
+			}
 		}
 		else
 		{
-			ExistingInfos->Count++;
+			Idx = *IdxPtr;
 		}
+
+		FPlatformAtomics::InterlockedIncrement(&SocketInfosList[Idx].Count);
+		Mapping[Index] = Idx;
 	}
 
 	void FSocketHelper::Compile(
@@ -504,15 +517,15 @@ namespace PCGExStaging
 		const TSharedPtr<PCGExData::FPointIOCollection>& InCollection)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FSocketHelper::Compile);
-		
-		NumOutPoints = 0;
 
-		const UPCGBasePointData* SourceData = InDataFacade->Source->GetOutIn();
-		
-		for (const TPair<uint64, FSocketInfos>& InInfos : EntryMap)
+		int32 NumOutPoints = 0;
+
+		InputDataFacade = InDataFacade;
+
+		for (const TPair<uint64, int32>& InInfos : InfosKeys)
 		{
-			// TODO : Compute number of "valid" sockets
-			NumOutPoints += InInfos.Value.Count * InInfos.Value.Sockets.Num();
+			const FSocketInfos& Infos = SocketInfosList[InInfos.Value];
+			NumOutPoints += Infos.Count * Infos.Sockets.Num();
 		}
 
 		const int32 NumPoints = InDataFacade->GetNum(PCGExData::EIOSide::In);
@@ -530,68 +543,124 @@ namespace PCGExStaging
 			EPCGPointNativeProperties::Transform |
 			EPCGPointNativeProperties::Seed);
 
-		const UPCGMetadata* ParentMetadata = InDataFacade->GetIn()->ConstMetadata();
-		UPCGMetadata* Metadata = OutPoints->MutableMetadata();
+#define PCGEX_OUTPUT_INIT_LOCAL(_NAME, _TYPE, _DEFAULT_VALUE) if(bWrite##_NAME){ _NAME##Writer = SocketFacade->GetWritable<_TYPE>(Details->_NAME##AttributeName, _DEFAULT_VALUE, true, PCGExData::EBufferInit::Inherit); }
+		PCGEX_FOREACH_FIELD_SAMPLESOCKETS(PCGEX_OUTPUT_INIT_LOCAL)
+#undef PCGEX_OUTPUT_INIT_LOCAL
 
-		TConstPCGValueRange<FTransform> ReadTransform = SourceData->GetConstTransformValueRange();
-		TPCGValueRange<FTransform> OutTransform = SocketIO->GetOut()->GetTransformValueRange();
-
-		TConstPCGValueRange<int64> ReadMetadataEntry = InDataFacade->GetIn()->GetConstMetadataEntryValueRange();
-		TPCGValueRange<int64> OutMetadataEntry = SocketIO->GetOut()->GetMetadataEntryValueRange();
-
-		TPCGValueRange<int32> OutSeed = SocketIO->GetOut()->GetSeedValueRange();
-
-		Details->CarryOverDetails.Prune(Metadata);
-
-#define PCGEX_SOCKET_OUTPUT_DECL(_NAME, _TYPE, _DEFAULT) \
-		TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Buffer = nullptr; \
-		if (Details->bWrite##_NAME) { _NAME##Buffer = SocketFacade->GetWritable<_TYPE>(Details->_NAME##AttributeName, _DEFAULT, true, PCGExData::EBufferInit::New); }
-
-#define PCGEX_SOCKET_OUTPUT_WRITE(_NAME, _VALUE) if (_NAME##Buffer) { _NAME##Buffer->SetValue(WriteIndex, _VALUE); }
-
-		PCGEX_SOCKET_OUTPUT_DECL(SocketName, FName, NAME_None)
-		PCGEX_SOCKET_OUTPUT_DECL(SocketTag, FName, NAME_None)
-		PCGEX_SOCKET_OUTPUT_DECL(Category, FName, NAME_None)
-		PCGEX_SOCKET_OUTPUT_DECL(AssetPath, FSoftObjectPath, FSoftObjectPath{})
-		
 		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(FSocketHelper::Compile::Loop);
-			
+			TRACE_CPUPROFILER_EVENT_SCOPE(FSocketHelper::Compile::LoopPreparation);
+
+			const UPCGMetadata* ParentMetadata = InputDataFacade->GetIn()->ConstMetadata();
+			UPCGMetadata* Metadata = SocketFacade->GetOut()->MutableMetadata();
+			Details->CarryOverDetails.Prune(Metadata);
+
+			TConstPCGValueRange<int64> ReadMetadataEntry = InputDataFacade->GetIn()->GetConstMetadataEntryValueRange();
+			TPCGValueRange<int64> OutMetadataEntry = SocketFacade->GetOut()->GetMetadataEntryValueRange();
+
 			int32 WriteIndex = 0;
 			for (int i = 0; i < NumPoints; i++)
 			{
-				uint64 EntryHash = EntryHashes[i];
-				if (!EntryHash) { continue; }
+				int32 Idx = Mapping[i];
+				if (Idx == -1) { continue; }
 
-				const FTransform& InTransform = ReadTransform[i];
+				StartIndices[i] = WriteIndex;
+				
+				const int32 NumSockets = SocketInfosList[Idx].Sockets.Num();
 				const int64& InMetadataKey = ReadMetadataEntry[i];
 
-				const FSocketInfos& SocketInfos = GetSocketInfos(EntryHash);
-				
-				// Cache stable per-socketinfos values once
-				const FName& Category = SocketInfos.Category;
-				const FSoftObjectPath& Path     = SocketInfos.Path;
-				
-				for (const FPCGExSocket& Socket : SocketInfos.Sockets)
+				for (int j = 0; j < NumSockets; j++)
 				{
-					const FTransform WorldTransform = Socket.RelativeTransform * InTransform;
-					OutTransform[WriteIndex] = WorldTransform;
-
 					OutMetadataEntry[WriteIndex] = PCGInvalidEntryKey;
 					Metadata->InitializeOnSet(OutMetadataEntry[WriteIndex], InMetadataKey, ParentMetadata);
-
-					OutSeed[WriteIndex] = PCGExRandom::ComputeSpatialSeed(WorldTransform.GetLocation());
-
-					PCGEX_SOCKET_OUTPUT_WRITE(SocketName, Socket.SocketName)
-					PCGEX_SOCKET_OUTPUT_WRITE(SocketTag, FName(Socket.Tag))
-					PCGEX_SOCKET_OUTPUT_WRITE(Category, Category)
-					PCGEX_SOCKET_OUTPUT_WRITE(AssetPath, Path)
-
 					WriteIndex++;
 				}
 			}
 		}
 
-		if (SocketNameBuffer || SocketTagBuffer) { SocketFacade->WriteFastest(AsyncManager); }
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CreateSocketPoints)
+		CreateSocketPoints->OnCompleteCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE, WeakManager = TWeakPtr<PCGExMT::FTaskManager>(AsyncManager)]()
+			{
+				PCGEX_ASYNC_THIS
+				if (This->SocketNameWriter || This->SocketTagWriter || This->CategoryWriter || This->AssetPathWriter)
+				{
+					if (TSharedPtr<PCGExMT::FTaskManager> PinnedManager = WeakManager.Pin())
+					{
+						This->SocketFacade->WriteFastest(PinnedManager);
+					}
+				}
+			};
+
+		CreateSocketPoints->OnSubLoopStartCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				This->CompileRange(Scope);
+			};
+
+		CreateSocketPoints->StartSubLoops(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() * 4);
+	}
+
+	FSocketInfos& FSocketHelper::NewSocketInfos(const uint64 EntryHash, int32& OutIndex)
+	{
+		OutIndex = SocketInfosList.Num();
+		InfosKeys.Add(EntryHash, OutIndex);
+		return SocketInfosList.Emplace_GetRef();
+	}
+
+	void FSocketHelper::FilterSocketInfos(const int32 Index)
+	{
+		FSocketInfos& SocketInfos = SocketInfosList[Index];
+		TArray<FPCGExSocket> ValidSockets;
+
+		for (int i = 0; i < SocketInfos.Sockets.Num(); i++)
+		{
+			if (const FPCGExSocket& Socket = SocketInfos.Sockets[i];
+				Details->SocketNameFilters.Test(Socket.SocketName.ToString()) &&
+				Details->SocketTagFilters.Test(Socket.Tag))
+			{
+				ValidSockets.Add(Socket);
+			}
+		}
+
+		SocketInfos.Sockets = ValidSockets;
+	}
+
+	void FSocketHelper::CompileRange(const PCGExMT::FScope& Scope)
+	{
+		const UPCGBasePointData* SourceData = InputDataFacade->Source->GetOutIn();
+
+		TConstPCGValueRange<FTransform> ReadTransform = SourceData->GetConstTransformValueRange();
+		TPCGValueRange<FTransform> OutTransform = SocketFacade->GetOut()->GetTransformValueRange();
+
+		TPCGValueRange<int32> OutSeed = SocketFacade->GetOut()->GetSeedValueRange();
+
+		PCGEX_SCOPE_LOOP(i)
+		{
+			int32 Index = StartIndices[i];
+			if (Index == -1) { continue; }
+
+			const FTransform& InTransform = ReadTransform[i];
+			const FSocketInfos& SocketInfos = SocketInfosList[Mapping[i]];
+
+			// Cache stable per-socketinfos values once
+			const FName& Category = SocketInfos.Category;
+			const FSoftObjectPath& Path = SocketInfos.Path;
+
+			for (const FPCGExSocket& Socket : SocketInfos.Sockets)
+			{
+				const FTransform WorldTransform = Socket.RelativeTransform * InTransform;
+				OutTransform[Index] = WorldTransform;
+
+				OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(WorldTransform.GetLocation());
+
+				PCGEX_OUTPUT_VALUE(SocketName, Index, Socket.SocketName)
+				PCGEX_OUTPUT_VALUE(SocketTag, Index, FName(Socket.Tag))
+				PCGEX_OUTPUT_VALUE(Category, Index, Category)
+				PCGEX_OUTPUT_VALUE(AssetPath, Index, Path)
+
+				Index++;
+			}
+		}
 	}
 }
