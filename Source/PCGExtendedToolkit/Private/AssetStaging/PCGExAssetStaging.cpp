@@ -97,6 +97,9 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bDoOutputSockets)
 	{
+		PCGEX_FWD(OutputSocketDetails)
+		if (!Context->OutputSocketDetails.Init(Context)) { return false; }
+		
 		Context->SocketsCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
 		Context->SocketsCollection->OutputPin = PCGExStaging::OutputSocketLabel;
 	}
@@ -185,11 +188,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 		OutData.Data = OutputSet;
 	}
 
-	if (Context->SocketsCollection)
-	{
-		if (!Settings->OutputSocketDetails.Validate(Context)) { return false; }
-		Context->SocketsCollection->StageOutputs();
-	}
+	if (Context->SocketsCollection)	{		Context->SocketsCollection->StageOutputs();	}
 
 	return Context->TryComplete();
 }
@@ -232,7 +231,7 @@ namespace PCGExAssetStaging
 		Helper = MakeShared<PCGExStaging::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>(Context->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(PointDataFacade)) { return false; }
 
-		if (Settings->bDoOutputSockets) { SocketHelper = MakeShared<PCGExStaging::FSocketHelper>(&Settings->OutputSocketDetails); }
+		if (Settings->bDoOutputSockets) { SocketHelper = MakeShared<PCGExStaging::FSocketHelper>(&Context->OutputSocketDetails, NumPoints); }
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
 		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
@@ -274,7 +273,6 @@ namespace PCGExAssetStaging
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
 
 		if (Settings->bPruneEmptyPoints) { Mask.Init(1, PointDataFacade->GetNum()); }
-		if (Settings->bDoOutputSockets) { EntryHashes.Init(0, PointDataFacade->GetNum()); }
 
 		StartParallelLoopForPoints();
 
@@ -431,8 +429,7 @@ namespace PCGExAssetStaging
 			{
 				// Register entry
 				uint64 EntryHash = PCGEx::H64(EntryHost->GetUniqueID(), Entry->Staging.InternalIndex);
-				EntryHashes[Index] = EntryHash;
-				SocketHelper->Add(TempSocketEntryMap, EntryHash, Entry);
+				SocketHelper->Add(Index, TempSocketEntryMap, EntryHash, Entry);
 			}
 		}
 
@@ -443,6 +440,8 @@ namespace PCGExAssetStaging
 
 	void FProcessor::CompleteWork()
 	{
+		if (SocketHelper) { SocketHelper->Compile(AsyncManager, PointDataFacade, Context->SocketsCollection); }
+
 		if (Context->bPickMaterials)
 		{
 			int8 WriterCount = HighestSlotIndex->Max() + 1;
@@ -466,77 +465,6 @@ namespace PCGExAssetStaging
 		}
 
 		PointDataFacade->WriteFastest(AsyncManager);
-
-		if (!SocketHelper) { return; }
-
-		// Create socket points
-
-		int32 NumSocketPoints = SocketHelper->Compile();
-
-		TSharedPtr<PCGExData::FPointIO> SocketIO = Context->SocketsCollection->Emplace_GetRef(PointDataFacade->GetIn());
-		SocketIO->IOIndex = PointDataFacade->Source->IOIndex;
-
-		PCGEX_INIT_IO_VOID(SocketIO, PCGExData::EIOInit::New)
-		SocketFacade = MakeShared<PCGExData::FFacade>(SocketIO.ToSharedRef());
-
-		UPCGBasePointData* OutSocketPoints = SocketIO->GetOut();
-		PCGEx::SetNumPointsAllocated(
-			OutSocketPoints, NumSocketPoints,
-			EPCGPointNativeProperties::MetadataEntry |
-			EPCGPointNativeProperties::Transform |
-			EPCGPointNativeProperties::Seed);
-
-		const UPCGMetadata* ParentMetadata = PointDataFacade->GetIn()->ConstMetadata();
-		UPCGMetadata* Metadata = OutSocketPoints->MutableMetadata();
-
-		TConstPCGValueRange<FTransform> ReadTransform = PointDataFacade->GetOut()->GetConstTransformValueRange();
-		TPCGValueRange<FTransform> OutTransform = SocketIO->GetOut()->GetTransformValueRange();
-
-		TConstPCGValueRange<int64> ReadMetadataEntry = PointDataFacade->GetIn()->GetConstMetadataEntryValueRange();
-		TPCGValueRange<int64> OutMetadataEntry = SocketIO->GetOut()->GetMetadataEntryValueRange();
-
-		TPCGValueRange<int32> OutSeed = SocketIO->GetOut()->GetSeedValueRange();
-
-		TSharedPtr<PCGExData::TBuffer<FName>> SocketNameBuffer = nullptr;
-		if (Settings->OutputSocketDetails.bWriteSocketName)
-		{
-			SocketNameBuffer = SocketFacade->GetWritable<FName>(Settings->OutputSocketDetails.SocketNameAttributeName, NAME_None, true, PCGExData::EBufferInit::New);
-		}
-
-		TSharedPtr<PCGExData::TBuffer<FName>> SocketTagBuffer = nullptr;
-		if (Settings->OutputSocketDetails.bWriteSocketTag)
-		{
-			SocketTagBuffer = SocketFacade->GetWritable<FName>(Settings->OutputSocketDetails.SocketTagAttributeName, NAME_None, true, PCGExData::EBufferInit::New);
-		}
-
-		int32 WriteIndex = 0;
-		for (int i = 0; i < NumPoints; i++)
-		{
-			uint64 EntryHash = EntryHashes[i];
-			if (!EntryHash) { continue; }
-
-			const FTransform& InTransform = ReadTransform[i];
-			const int64& InMetadataKey = ReadMetadataEntry[i];
-
-			const PCGExStaging::FSocketInfos& SocketInfos = SocketHelper->GetSocketInfos(EntryHash);
-			for (int s = 0; s < SocketInfos.SocketCount; s++)
-			{
-				const FPCGExSocket& Socket = SocketInfos.Entry->Staging.Sockets[s];
-				OutTransform[WriteIndex] = Socket.RelativeTransform * InTransform;
-
-				OutMetadataEntry[WriteIndex] = PCGInvalidEntryKey;
-				Metadata->InitializeOnSet(OutMetadataEntry[WriteIndex], InMetadataKey, ParentMetadata);
-
-				OutSeed[WriteIndex] = PCGExRandom::ComputeSpatialSeed(OutTransform[WriteIndex].GetLocation());
-
-				if (SocketNameBuffer) { SocketNameBuffer->SetValue(WriteIndex, Socket.SocketName); }
-				if (SocketTagBuffer) { SocketTagBuffer->SetValue(WriteIndex, FName(Socket.Tag)); }
-
-				WriteIndex++;
-			}
-		}
-
-		if (SocketNameBuffer || SocketTagBuffer) { SocketFacade->WriteFastest(AsyncManager); }
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)

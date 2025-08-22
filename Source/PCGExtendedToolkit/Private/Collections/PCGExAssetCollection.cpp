@@ -112,10 +112,12 @@ namespace PCGExAssetCollection
 	}
 }
 
-bool FPCGExSocketOutputDetails::Validate(FPCGExContext* InContext) const
+bool FPCGExSocketOutputDetails::Init(FPCGExContext* InContext)
 {
 	if (bWriteSocketName) { PCGEX_VALIDATE_NAME_C(InContext, SocketNameAttributeName) }
 	if (bWriteSocketTag) { PCGEX_VALIDATE_NAME_C(InContext, SocketTagAttributeName) }
+	SocketTagFilters.Init();
+	SocketNameFilters.Init();
 	return true;
 }
 

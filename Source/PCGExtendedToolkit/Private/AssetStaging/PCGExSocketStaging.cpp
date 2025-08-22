@@ -3,7 +3,6 @@
 
 #include "AssetStaging/PCGExSocketStaging.h"
 
-#include "PCGExRandom.h"
 #include "PCGExScopedContainers.h"
 
 
@@ -17,6 +16,13 @@ TArray<FPCGPinProperties> UPCGExSocketStagingSettings::InputPinProperties() cons
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_PARAM(PCGExSocketStaging::SourceStagingMap, "Collection map information from, or merged from, Staging nodes.", Required, {})
+	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExSocketStagingSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGEX_PIN_POINTS(PCGExStaging::OutputSocketLabel, "Socket points.", Normal, {})
 	return PinProperties;
 }
 
@@ -34,6 +40,12 @@ bool FPCGExSocketStagingElement::Boot(FPCGExContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not rebuild a valid asset mapping from the provided map."));
 		return false;
 	}
+
+	PCGEX_FWD(OutputSocketDetails)
+	if (!Context->OutputSocketDetails.Init(Context)) { return false; }
+
+	Context->SocketsCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->SocketsCollection->OutputPin = PCGExStaging::OutputSocketLabel;
 
 	return true;
 }
@@ -59,6 +71,7 @@ bool FPCGExSocketStagingElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->MainPoints->StageOutputs();
+	Context->SocketsCollection->StageOutputs();
 	return Context->TryComplete();
 }
 
@@ -79,14 +92,10 @@ namespace PCGExSocketStaging
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
-		// TODO : First, discovery & building per-hash map; ignoring material pick
-		// Also compute the total number of points
-		// TODO : Second, 
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward)
 
 		EntryHashGetter = PointDataFacade->GetReadable<int64>(PCGExStaging::Tag_EntryIdx, PCGExData::EIOSide::In, true);
-
+		SocketHelper = MakeShared<PCGExStaging::FSocketHelper>(&Context->OutputSocketDetails, PointDataFacade->GetNum());
 
 		StartParallelLoopForPoints();
 
@@ -100,38 +109,29 @@ namespace PCGExSocketStaging
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
-		TMap<uint64, const FPCGExAssetCollectionEntry*> TempEntryMap;
-		TMap<uint64, const FPCGExAssetCollectionEntry*> TempEntryCount;
+		TMap<uint64, PCGExStaging::FSocketInfos> TempSocketEntryMap;
+		TempSocketEntryMap.Reserve(Scope.Count);
+
+		int16 MaterialPick = 0;
+		const FPCGExAssetCollectionEntry* Entry = nullptr;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index]) { continue; }
+
+			const uint64 Hash = EntryHashGetter->Read(Index);
+			if (!Context->CollectionPickDatasetUnpacker->ResolveEntry(Hash, Entry, MaterialPick)) { continue; }
+
+			SocketHelper->Add(Index, TempSocketEntryMap, PCGExStaging::GetSimplifiedEntryHash(Hash), Entry);
 		}
 
-		{
-			FWriteScopeLock WriteScopeLock(EntryMapLock);
-		}
+		if (SocketHelper) { SocketHelper->Add(TempSocketEntryMap); }
 	}
 
-	void FProcessor::CompleteWork()
+	void FProcessor::OnPointsProcessingComplete()
 	{
-		// Full map and counts is accounted for
-		// We can now find which socket is relevant for the output
-
-		// TODO : Use SocketCount
+		SocketHelper->Compile(AsyncManager, PointDataFacade, Context->SocketsCollection);
 	}
-
-	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
-	{
-		PCGEX_SCOPE_LOOP(Index)
-		{
-		}
-	}
-
-	void FProcessor::OnRangeProcessingComplete()
-	{
-	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

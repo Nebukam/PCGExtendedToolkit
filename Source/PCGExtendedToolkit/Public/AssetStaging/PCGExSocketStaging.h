@@ -7,8 +7,6 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Collections/PCGExMeshCollection.h"
-#include "Transform/PCGExFitting.h"
 #include "PCGExStaging.h"
 #include "Data/PCGExPointFilter.h"
 
@@ -20,7 +18,7 @@ namespace PCGExMT
 	class TScopedNumericValue;
 }
 
-UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage prepare spawn proxy", PCGExNodeLibraryDoc="assets-management/asset-staging"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(Keywords = "stage prepare spawn proxy", PCGExNodeLibraryDoc="assets-management/asset-staging"))
 class UPCGExSocketStagingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -36,6 +34,7 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters which points get staged.", PCGExFactories::PointFilters, false)
 	//~End UPCGSettings
 
@@ -49,6 +48,8 @@ struct FPCGExSocketStagingContext final : FPCGExPointsProcessorContext
 	friend class FPCGExSocketStagingElement;
 
 	TSharedPtr<PCGExStaging::TPickUnpacker<>> CollectionPickDatasetUnpacker;
+	FPCGExSocketOutputDetails OutputSocketDetails;
+	TSharedPtr<PCGExData::FPointIOCollection> SocketsCollection;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -71,11 +72,7 @@ namespace PCGExSocketStaging
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExSocketStagingContext, UPCGExSocketStagingSettings>
 	{
-		FRWLock EntryMapLock;
-
 		TSharedPtr<PCGExStaging::FSocketHelper> SocketHelper;
-		int32 NumOutPoints = 0;
-
 		TSharedPtr<PCGExData::TBuffer<int64>> EntryHashGetter;
 
 	public:
@@ -90,10 +87,6 @@ namespace PCGExSocketStaging
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
-
-		virtual void CompleteWork() override;
-
-		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
-		virtual void OnRangeProcessingComplete() override;
+		virtual void OnPointsProcessingComplete() override;
 	};
 }

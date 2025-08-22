@@ -14,6 +14,7 @@
 #include "PCGExDetailsData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataFilter.h"
 #include "Transform/PCGExTransform.h"
 #include "Transform/PCGExFitting.h"
 
@@ -307,6 +308,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketOutputDetails
 
 	FPCGExSocketOutputDetails() = default;
 
+	/** Include or exclude sockets based on their tag */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExNameFiltersDetails SocketTagFilters;
+
+	/** Include or exclude sockets based on their name */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExNameFiltersDetails SocketNameFilters;
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSocketName = false;
@@ -323,7 +332,23 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketOutputDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteSocketTag"))
 	FName SocketTagAttributeName = "SocketTag";
 
-	bool Validate(FPCGExContext* InContext) const;
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteCategory = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteCategory"))
+	FName CategoryAttributeName = "Category";
+	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteAssetPath = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteAssetPath"))
+	FName AssetPathAttributeName = "AssetPath";
+
+	bool Init(FPCGExContext* InContext);
 
 };
 
