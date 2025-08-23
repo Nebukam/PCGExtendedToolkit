@@ -130,7 +130,7 @@ namespace PCGExSampleSockets
 
 		if (Settings->AssetType == EPCGExInputValueType::Attribute)
 		{
-			AssetPathReader = PointDataFacade->GetReadable<FSoftObjectPath>(Settings->AssetPathAttributeName, PCGExData::EIOSide::In, true);
+			AssetPathReader = PointDataFacade->GetBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName, true);
 			if (!AssetPathReader) { return false; }
 		}
 
