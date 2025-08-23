@@ -6,6 +6,7 @@
 #include "PCGExRandom.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
+#include "Data/Blending/PCGExDataBlending.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExBevelPathElement"
@@ -471,14 +472,11 @@ namespace PCGExBevelPath
 	{
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
-		UPCGMetadata* Metadata = OutPointData->Metadata;
 
 		// Only pin properties we will not be inheriting
 		TConstPCGValueRange<FTransform> InTransform = InPointData->GetConstTransformValueRange();
-		TConstPCGValueRange<int64> InMetadataEntry = InPointData->GetConstMetadataEntryValueRange();
 
 		TPCGValueRange<FTransform> OutTransform = OutPointData->GetTransformValueRange(false);
-		TPCGValueRange<int64> OutMetadataEntry = OutPointData->GetMetadataEntryValueRange(false);
 		TPCGValueRange<int32> OutSeeds = OutPointData->GetSeedValueRange(false);
 
 		TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping();
@@ -492,8 +490,6 @@ namespace PCGExBevelPath
 			{
 				IdxMapping[StartIndex] = Index;
 				OutTransform[StartIndex] = InTransform[Index];
-				OutMetadataEntry[StartIndex] = InMetadataEntry[Index];
-				Metadata->InitializeOnSet(OutMetadataEntry[StartIndex]);
 				continue;
 			}
 
@@ -504,8 +500,6 @@ namespace PCGExBevelPath
 			{
 				IdxMapping[i] = Index;
 				OutTransform[i] = InTransform[Index];
-				OutMetadataEntry[i] = InMetadataEntry[Index];
-				Metadata->InitializeOnSet(OutMetadataEntry[i]);
 			}
 
 			OutTransform[A].SetLocation(Bevel->Arrive);
@@ -594,8 +588,42 @@ namespace PCGExBevelPath
 
 		UPCGBasePointData* MutablePoints = PointDataFacade->GetOut();
 		PCGEx::SetNumPointsAllocated(MutablePoints, NumOutPoints, PointDataFacade->GetAllocations());
+		
+		// Initialize metadata entries at once, too expensive on thread
+		
+		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
+		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
+		UPCGMetadata* Metadata = OutPointData->Metadata;
+		
+		// Only pin properties we will not be inheriting
+		TConstPCGValueRange<int64> InMetadataEntry = InPointData->GetConstMetadataEntryValueRange();
+		TPCGValueRange<int64> OutMetadataEntry = OutPointData->GetMetadataEntryValueRange();
+		
+		const int32 NumPoints = PointDataFacade->GetNum();
+		
+		for (int Index = 0; Index < NumPoints; Index++)
+		{
+			const int32 StartIndex = StartIndices[Index];
+			const TSharedPtr<FBevel>& Bevel = Bevels[Index];
 
-		StartParallelLoopForRange(PointDataFacade->GetNum());
+			if (!Bevel)
+			{
+				OutMetadataEntry[StartIndex] = InMetadataEntry[Index];
+				Metadata->InitializeOnSet(OutMetadataEntry[StartIndex]);
+				continue;
+			}
+
+			const int32 A = Bevel->StartOutputIndex;
+			const int32 B = Bevel->EndOutputIndex;
+
+			for (int i = A; i <= B; i++)
+			{
+				OutMetadataEntry[i] = InMetadataEntry[Index];
+				Metadata->InitializeOnSet(OutMetadataEntry[i]);
+			}
+		}
+		
+		StartParallelLoopForRange(NumPoints);
 	}
 
 	void FProcessor::Write()

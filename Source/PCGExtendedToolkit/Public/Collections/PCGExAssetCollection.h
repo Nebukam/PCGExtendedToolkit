@@ -348,11 +348,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketOutputDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteAssetPath"))
 	FName AssetPathAttributeName = "AssetPath";
 
+	/** Which scale components from the sampled transform should be applied to the point.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 TransformScale = static_cast<uint8>(EPCGExApplySampledComponentFlags::All);
+	
 	/** Meta filter settings for socket points, as they naturally inherit from the original points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
 	FPCGExCarryOverDetails CarryOverDetails;
 	
+	
 	bool Init(FPCGExContext* InContext);
+
+	TArray<int32> TrScaComponents;
 
 };
 
