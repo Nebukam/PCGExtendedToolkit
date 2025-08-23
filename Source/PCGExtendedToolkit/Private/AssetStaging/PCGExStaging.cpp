@@ -564,7 +564,7 @@ namespace PCGExStaging
 				if (Idx == -1) { continue; }
 
 				StartIndices[i] = WriteIndex;
-				
+
 				const int32 NumSockets = SocketInfosList[Idx].Sockets.Num();
 				const int64& InMetadataKey = ReadMetadataEntry[i];
 
@@ -635,6 +635,7 @@ namespace PCGExStaging
 
 		TPCGValueRange<int32> OutSeed = SocketFacade->GetOut()->GetSeedValueRange();
 
+
 		PCGEX_SCOPE_LOOP(i)
 		{
 			int32 Index = StartIndices[i];
@@ -649,9 +650,14 @@ namespace PCGExStaging
 
 			for (const FPCGExSocket& Socket : SocketInfos.Sockets)
 			{
-				const FTransform WorldTransform = Socket.RelativeTransform * InTransform;
-				OutTransform[Index] = WorldTransform;
+				FTransform WorldTransform = Socket.RelativeTransform * InTransform;
+				const FVector WorldSc = WorldTransform.GetScale3D();
+				FVector OutScale = Socket.RelativeTransform.GetScale3D();
 
+				for (const int32 C : Details->TrScaComponents) { OutScale[C] = WorldSc[C]; }
+				WorldTransform.SetScale3D(OutScale);
+
+				OutTransform[Index] = WorldTransform;
 				OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(WorldTransform.GetLocation());
 
 				PCGEX_OUTPUT_VALUE(SocketName, Index, Socket.SocketName)

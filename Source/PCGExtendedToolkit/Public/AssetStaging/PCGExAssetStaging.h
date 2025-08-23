@@ -112,7 +112,7 @@ public:
 	bool bDoOutputSockets = false;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName="Output Sockets", EditCondition="bDoOutputSockets"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, DisplayName="Output Sockets", EditCondition="bDoOutputSockets"))
 	FPCGExSocketOutputDetails OutputSocketDetails;
 	
 	/** */
