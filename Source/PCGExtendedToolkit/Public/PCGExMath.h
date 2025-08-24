@@ -9,14 +9,14 @@
 #include "PCGEx.h"
 #include "PCGExMath.generated.h"
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExMeanMeasure : uint8
 {
 	Relative = 0 UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1, or used as a factor. (what it means exactly depends on context. See node-specific documentation.)"),
 	Discrete = 1 UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used, or used as absolute. (what it means exactly depends on context. See node-specific documentation.)"),
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExMeanMethod : uint8
 {
 	Average = 0 UMETA(DisplayName = "Average", ToolTip="Average"),
