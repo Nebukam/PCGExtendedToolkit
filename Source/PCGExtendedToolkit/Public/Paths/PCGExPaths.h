@@ -400,6 +400,7 @@ namespace PCGExPaths
 
 		virtual FVector DirToNextPoint(const int32 Index) const;
 		FVector DirToPrevPoint(const int32 Index) const { return DirToNextPoint(SafePointIndex(Index - 1)) * -1; }
+		FVector DirToNeighbor(const int32 Index, const int32 Offset) const;
 
 		virtual int32 NextPointIndex(const int32 Index) const { return SafePointIndex(Index + 1); }
 		virtual int32 PrevPointIndex(const int32 Index) const { return SafePointIndex(Index - 1); }

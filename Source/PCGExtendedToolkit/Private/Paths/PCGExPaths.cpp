@@ -294,6 +294,12 @@ namespace PCGExPaths
 		return Index == LastIndex ? Edges[Index - 1].Dir : Edges[Index].Dir;
 	}
 
+	FVector FPath::DirToNeighbor(const int32 Index, const int32 Offset) const
+	{
+		if (Offset < 0) { return DirToPrevPoint(Index); }
+		return DirToNextPoint(Index);
+	}
+
 	PCGExMath::FClosestPosition FPath::FindClosestIntersection(
 		const FPCGExPathIntersectionDetails& InDetails,
 		const PCGExMath::FSegment& Segment, const PCGExMath::EIntersectionTestMode Mode) const
@@ -951,9 +957,9 @@ namespace PCGExPaths
 		OutLerp = InTime - OutEdgeIndex;
 		return FMath::Min(OutEdgeIndex, this->LastEdge);
 	}
-	
-#pragma endregion 
-	
+
+#pragma endregion
+
 #pragma endregion
 
 	bool FPathEdgeCrossings::FindSplit(
