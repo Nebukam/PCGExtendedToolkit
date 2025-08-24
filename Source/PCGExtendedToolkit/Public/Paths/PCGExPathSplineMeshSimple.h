@@ -16,6 +16,7 @@
 
 #include "PCGExPathSplineMeshSimple.generated.h"
 
+struct FPCGObjectPropertyOverrideDescription;
 /**
  * 
  */
