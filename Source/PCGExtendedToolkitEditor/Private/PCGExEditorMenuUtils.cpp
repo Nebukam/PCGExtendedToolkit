@@ -3,8 +3,8 @@
 
 #include "PCGExEditorMenuUtils.h"
 
-#include "Collections/PCGExActorCollectionUtils.h"
-#include "Collections/PCGExMeshCollectionUtils.h"
+#include "Collections/PCGExActorCollectionActions.h"
+#include "Collections/PCGExMeshCollectionActions.h"
 
 #include "Engine/Blueprint.h"
 #include "Engine/World.h"
@@ -87,11 +87,11 @@ namespace PCGExEditorMenuUtils
 				{
 					FScopedSlowTask SlowTask(0.0f, LOCTEXT("CreateOrUpdatePCGExMeshCollection", "Create or Update Asset Collection(s) from selection..."));
 
-					if (MeshCollections.IsEmpty()) { PCGExMeshCollectionUtils::CreateCollectionFrom(Meshes); }
-					else { PCGExMeshCollectionUtils::UpdateCollectionsFrom(MeshCollections, Meshes); }
+					if (MeshCollections.IsEmpty()) { PCGExMeshCollectionActions::CreateCollectionFrom(Meshes); }
+					else { PCGExMeshCollectionActions::UpdateCollectionsFrom(MeshCollections, Meshes); }
 
-					if (ActorCollections.IsEmpty()) { PCGExActorCollectionUtils::CreateCollectionFrom(Actors); }
-					else { PCGExActorCollectionUtils::UpdateCollectionsFrom(ActorCollections, Actors); }
+					if (ActorCollections.IsEmpty()) { PCGExActorCollectionActions::CreateCollectionFrom(Actors); }
+					else { PCGExActorCollectionActions::UpdateCollectionsFrom(ActorCollections, Actors); }
 				});
 
 			Section.AddMenuEntry(

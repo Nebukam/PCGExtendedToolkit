@@ -28,6 +28,9 @@ Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContent
 #include "PCGGraph.h"
 #include "PCGModule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "Collections/PCGExActorCollectionActions.h"
+#include "Collections/PCGExMeshCollectionActions.h"
+#include "Collections/PCGExActorDataPackerActions.h"
 #include "Data/PCGSpatialData.h"
 #include "DataViz/PCGExSpatialDataVisualization.h"
 
@@ -75,6 +78,15 @@ namespace PCGExEditor
 
 void FPCGExtendedToolkitEditorModule::StartupModule()
 {
+	MeshCollectionActions = MakeShared<FPCGExMeshCollectionActions>();
+	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MeshCollectionActions.ToSharedRef());
+	
+	ActorCollectionActions = MakeShared<FPCGExActorCollectionActions>();
+	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(ActorCollectionActions.ToSharedRef());
+	
+	ActorPackerActions = MakeShared<FPCGExActorDataPackerActions>();
+	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(ActorPackerActions.ToSharedRef());
+	
 	// I know this is cursed
 	FSlateStyleSet& AppStyle = const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get()));
 

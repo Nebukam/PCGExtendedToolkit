@@ -28,7 +28,7 @@ enum class EPCGExSlideDirection : uint8
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/Slide"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", meta=(PCGExNodeLibraryDoc="paths/slide"))
 class UPCGExPathSlideSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

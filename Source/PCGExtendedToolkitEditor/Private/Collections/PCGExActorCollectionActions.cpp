@@ -1,17 +1,20 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Collections/PCGExMeshCollectionUtils.h"
+#include "Collections/PCGExActorCollectionActions.h"
 
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "FileHelpers.h"
 #include "AssetRegistry/AssetRegistryModule.h"
-#include "Collections/PCGExMeshCollection.h"
+#include "Collections/PCGExActorCollection.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
+#include "ToolMenuSection.h"
+#include "Misc/MessageDialog.h"
+#include "Widgets/Views/SListView.h"
 
-namespace PCGExMeshCollectionUtils
+namespace PCGExActorCollectionActions
 {
 	void CreateCollectionFrom(const TArray<FAssetData>& SelectedAssets)
 	{
@@ -24,7 +27,7 @@ namespace PCGExMeshCollectionUtils
 			//Parameters.bOpenSaveDialog = false;
 		}
 
-		FString CollectionAssetName = TEXT("SMC_NewMeshCollection");
+		FString CollectionAssetName = TEXT("SMC_NewActorCollection");
 		FString CollectionAssetPath = SelectedAssets[0].PackagePath.ToString();
 		FString PackageName = FPaths::Combine(CollectionAssetPath, CollectionAssetName);
 
@@ -65,13 +68,13 @@ namespace PCGExMeshCollectionUtils
 
 		UPackage* Package = FPackageName::DoesPackageExist(PackageName) ? LoadPackage(nullptr, *PackageName, LOAD_None) : nullptr;
 
-		UPCGExMeshCollection* TargetCollection = nullptr;
+		UPCGExActorCollection* TargetCollection = nullptr;
 		bool bIsNewCollection = false;
 
 		if (Package)
 		{
 			UObject* Object = FindObjectFast<UObject>(Package, *CollectionAssetName);
-			if (Object && Object->GetClass() != UPCGExMeshCollection::StaticClass())
+			if (Object && Object->GetClass() != UPCGExActorCollection::StaticClass())
 			{
 				Object->SetFlags(RF_Transient);
 				Object->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional);
@@ -79,7 +82,7 @@ namespace PCGExMeshCollectionUtils
 			}
 			else
 			{
-				TargetCollection = Cast<UPCGExMeshCollection>(Object);
+				TargetCollection = Cast<UPCGExActorCollection>(Object);
 			}
 		}
 		else
@@ -100,7 +103,7 @@ namespace PCGExMeshCollectionUtils
 		if (!TargetCollection)
 		{
 			constexpr EObjectFlags Flags = RF_Public | RF_Standalone | RF_Transactional;
-			TargetCollection = NewObject<UPCGExMeshCollection>(Package, UPCGExMeshCollection::StaticClass(), FName(*CollectionAssetName), Flags);
+			TargetCollection = NewObject<UPCGExActorCollection>(Package, UPCGExActorCollection::StaticClass(), FName(*CollectionAssetName), Flags);
 		}
 
 		if (TargetCollection)
@@ -111,7 +114,7 @@ namespace PCGExMeshCollectionUtils
 				FAssetRegistryModule::AssetCreated(TargetCollection);
 			}
 
-			TArray<TObjectPtr<UPCGExMeshCollection>> SelectedCollections;
+			TArray<TObjectPtr<UPCGExActorCollection>> SelectedCollections;
 			SelectedCollections.Add(TargetCollection);
 
 			UpdateCollectionsFrom(SelectedCollections, SelectedAssets, bIsNewCollection);
@@ -125,15 +128,45 @@ namespace PCGExMeshCollectionUtils
 	}
 
 	void UpdateCollectionsFrom(
-		const TArray<TObjectPtr<UPCGExMeshCollection>>& SelectedCollections,
+		const TArray<TObjectPtr<UPCGExActorCollection>>& SelectedCollections,
 		const TArray<FAssetData>& SelectedAssets,
 		bool bIsNewCollection)
 	{
 		if (SelectedCollections.IsEmpty() || SelectedAssets.IsEmpty()) { return; }
 
-		for (const TObjectPtr<UPCGExMeshCollection>& Collection : SelectedCollections)
+		for (const TObjectPtr<UPCGExActorCollection>& Collection : SelectedCollections)
 		{
 			Collection->EDITOR_AddBrowserSelectionTyped(SelectedAssets);
 		}
 	}
+}
+
+FText FPCGExActorCollectionActions::GetName() const
+{
+	return INVTEXT("PCGEx Actor Collection");
+}
+
+FString FPCGExActorCollectionActions::GetObjectDisplayName(UObject* Object) const
+{
+	return Object->GetName();
+}
+
+UClass* FPCGExActorCollectionActions::GetSupportedClass() const
+{
+	return UPCGExActorCollection::StaticClass();
+}
+
+FColor FPCGExActorCollectionActions::GetTypeColor() const
+{
+	return FColor(67, 142, 245);
+}
+
+uint32 FPCGExActorCollectionActions::GetCategories()
+{
+	return EAssetTypeCategories::Misc;
+}
+
+bool FPCGExActorCollectionActions::HasActions(const TArray<UObject*>& InObjects) const
+{
+	return false;
 }
