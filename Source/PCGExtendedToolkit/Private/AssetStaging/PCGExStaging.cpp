@@ -7,8 +7,6 @@
 #include "PCGExRandom.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Collections/PCGExAssetCollection.h"
-#include "Collections/PCGExMeshCollection.h"
-#include "Collections/PCGExActorCollection.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 namespace PCGExStaging

@@ -4,8 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Collections/PCGExActorCollection.h"
 #include "Collections/PCGExAssetCollection.h"
+#include "Collections/PCGExActorCollection.h"
+#include "Collections/PCGExMeshCollection.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"
 
 struct FPCGExMeshCollectionEntry;
