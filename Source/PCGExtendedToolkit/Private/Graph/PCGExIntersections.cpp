@@ -493,19 +493,34 @@ namespace PCGExGraph
 			{
 				const int32 NodeIndex = Split.NodeIndex;
 
-				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //TODO: IOIndex required
-				Graph->AddNodeAndEdgeMetadata_Unsafe(NodeIndex, NewEdge.Index, bValidParent ? &TempParentMetaCopy : nullptr, EPCGExIntersectionType::PointEdge);
+				//TODO: IOIndex required
+				if (Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex))
+				{
+					FGraphEdgeMetadata* NewEdgeMeta = Graph->AddNodeAndEdgeMetadata_Unsafe(NodeIndex, NewEdge.Index, bValidParent ? &TempParentMetaCopy : nullptr, EPCGExIntersectionType::PointEdge);
+					NewEdgeMeta->bIsSubEdge = true;
+					if (Details->bSnapOnEdge) { Transforms[Graph->Nodes[Split.NodeIndex].PointIndex].SetLocation(Split.ClosestPoint); }
+				}
+				else if (FGraphEdgeMetadata* ExistingEdgeMeta = Graph->EdgeMetadata.Find(NewEdge.Index))
+				{
+					ExistingEdgeMeta->UnionSize++;
+					ExistingEdgeMeta->bIsSubEdge = true;
+				}
+
 
 				PrevIndex = NodeIndex;
-
-				if (Details->bSnapOnEdge)
-				{
-					Transforms[Graph->Nodes[Split.NodeIndex].PointIndex].SetLocation(Split.ClosestPoint);
-				}
 			}
 
-			Graph->InsertEdge(PrevIndex, SplitEdge.End, NewEdge, SplitEdge.IOIndex); // Insert last edge
-			Graph->AddEdgeMetadata_Unsafe(NewEdge.Index, bValidParent ? &TempParentMetaCopy : nullptr, EPCGExIntersectionType::PointEdge);
+			// Insert last edge
+			if (Graph->InsertEdge(PrevIndex, SplitEdge.End, NewEdge, SplitEdge.IOIndex))
+			{
+				FGraphEdgeMetadata* NewEdgeMeta = Graph->AddEdgeMetadata_Unsafe(NewEdge.Index, bValidParent ? &TempParentMetaCopy : nullptr, EPCGExIntersectionType::PointEdge);
+				NewEdgeMeta->bIsSubEdge = true;
+			}
+			else if (FGraphEdgeMetadata* ExistingMetadataPtr = Graph->EdgeMetadata.Find(NewEdge.Index))
+			{
+				ExistingMetadataPtr->UnionSize++;
+				ExistingMetadataPtr->bIsSubEdge = true;
+			}
 		}
 	}
 
@@ -766,7 +781,17 @@ namespace PCGExGraph
 
 				if (Graph->InsertEdge_Unsafe(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex))
 				{
-					Graph->AddNodeAndEdgeMetadata_Unsafe(NodeIndex, NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::EdgeEdge);
+					FGraphEdgeMetadata* NewEdgeMeta = Graph->AddNodeAndEdgeMetadata_Unsafe(NodeIndex, NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::EdgeEdge);
+					NewEdgeMeta->bIsSubEdge = true;
+				}
+				else
+				{
+					// Existing edge
+					if (FGraphEdgeMetadata* ExistingEdgeMeta = Graph->EdgeMetadata.Find(NewEdge.Index))
+					{
+						ExistingEdgeMeta->UnionSize++;
+						ExistingEdgeMeta->bIsSubEdge = true;
+					}
 				}
 
 				PrevIndex = NodeIndex;
@@ -775,7 +800,17 @@ namespace PCGExGraph
 			// Insert last edge
 			if (Graph->InsertEdge_Unsafe(PrevIndex, SplitEdge.End, NewEdge, SplitEdge.IOIndex))
 			{
-				Graph->AddEdgeMetadata_Unsafe(NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::EdgeEdge);
+				FGraphEdgeMetadata* NewEdgeMeta = Graph->AddEdgeMetadata_Unsafe(NewEdge.Index, ParentEdgeMeta, EPCGExIntersectionType::EdgeEdge);
+				NewEdgeMeta->bIsSubEdge = true;
+			}
+			else
+			{
+				// Existing edge
+				if (FGraphEdgeMetadata* ExistingEdgeMeta = Graph->EdgeMetadata.Find(NewEdge.Index))
+				{
+					ExistingEdgeMeta->UnionSize++;
+					ExistingEdgeMeta->bIsSubEdge = true;
+				}
 			}
 		}
 	}

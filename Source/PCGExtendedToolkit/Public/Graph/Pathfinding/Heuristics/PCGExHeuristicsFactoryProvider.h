@@ -55,25 +55,28 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
 	{
 	}
 
+	UPROPERTY(meta=(PCG_NotOverridable, EditCondition="false", EditConditionHides))
+	bool bRawSettings = false;
+	
 	/** The weight factor for this heuristic.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	double WeightFactor = 1;
 
 	/** Invert the final heuristics score. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="!bRawSettings", EditConditionHides))
 	bool bInvert = false;
 
 	/** Whether to use in-editor curve or an external asset. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayPriority=-1, EditCondition="!bRawSettings", EditConditionHides))
 	bool bUseLocalCurve = false;
 
 	// TODO: DirtyCache for OnDependencyChanged when this float curve is an external asset
 	/** Curve the value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Score Curve", EditCondition = "bUseLocalCurve", EditConditionHides, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName="Score Curve", EditCondition = "!bRawSettings && bUseLocalCurve", EditConditionHides, DisplayPriority=-1))
 	FRuntimeFloatCurve LocalScoreCurve;
 
 	/** Curve the value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Score Curve", EditCondition="!bUseLocalCurve", EditConditionHides, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Score Curve", EditCondition="!bRawSettings && !bUseLocalCurve", EditConditionHides, DisplayPriority=-1))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
 	const FRichCurve* ScoreCurveObj = nullptr;

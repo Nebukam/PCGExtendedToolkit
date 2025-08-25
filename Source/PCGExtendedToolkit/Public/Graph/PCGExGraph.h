@@ -309,6 +309,7 @@ namespace PCGExGraph
 		EPCGExIntersectionType Type = EPCGExIntersectionType::Unknown;
 
 		int32 UnionSize = 0; // Fuse size
+		int8 bIsSubEdge = 0; // Sub Edge (result of a)
 		bool IsUnion() const;
 
 		explicit FGraphEdgeMetadata(const int32 InEdgeIndex, const FGraphEdgeMetadata* Parent);
@@ -454,7 +455,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		FGraphNodeMetadata& GetOrCreateNodeMetadata(const int32 NodeIndex);
 
 
-		void AddNodeAndEdgeMetadata_Unsafe(
+		FGraphEdgeMetadata* AddNodeAndEdgeMetadata_Unsafe(
 			const int32 InNodeIndex,
 			const int32 InEdgeIndex,
 			const FGraphEdgeMetadata* InParentMetadata,
@@ -480,7 +481,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			const EPCGExIntersectionType InType);
 
 
-		void AddEdgeMetadata_Unsafe(
+		FGraphEdgeMetadata* AddEdgeMetadata_Unsafe(
 			const int32 InEdgeIndex,
 			const FGraphEdgeMetadata* InParentMetadata,
 			const EPCGExIntersectionType InType);

@@ -554,16 +554,26 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			if (bHasUnionMetadata)
 			{
-				if (const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindRootEdgeMetadata_Unsafe(E.IOIndex))
+				const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindEdgeMetadata_Unsafe(E.IOIndex);
+				if (const FGraphEdgeMetadata* RootEdgeMeta = ParentGraph->FindRootEdgeMetadata_Unsafe(E.IOIndex))
 				{
-					if (TSharedPtr<PCGExData::IUnionData> UnionData = ParentGraph->EdgesUnion->Get(EdgeMeta->RootIndex);
+					if (TSharedPtr<PCGExData::IUnionData> UnionData = ParentGraph->EdgesUnion->Get(RootEdgeMeta->RootIndex);
 						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, WeightedPoints, Trackers); }
 
 					// TODO : Add Sub-edge edge (is the result of a subdivision + merge)
-					
-#define PCGEX_EDGE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->SetValue(EdgeIndex, EdgeMeta->_ACCESSOR);}
-					PCGEX_FOREACH_EDGE_METADATA(PCGEX_EDGE_METADATA_OUTPUT)
-#undef PCGEX_EDGE_METADATA_OUTPUT
+
+					if (IsEdgeUnionBuffer)
+					{
+						IsEdgeUnionBuffer->SetValue(EdgeIndex, RootEdgeMeta->IsUnion() || EdgeMeta->IsUnion());
+					}
+
+					if (EdgeUnionSizeBuffer)
+					{
+						EdgeUnionSizeBuffer->SetValue(
+							EdgeIndex, EdgeMeta != RootEdgeMeta ?
+								           RootEdgeMeta->UnionSize + EdgeMeta->UnionSize :
+								           RootEdgeMeta->UnionSize);
+					}
 				}
 			}
 
@@ -774,13 +784,15 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		}
 	}
 
-	void FGraph::AddNodeAndEdgeMetadata_Unsafe(const int32 InNodeIndex, const int32 InEdgeIndex, const FGraphEdgeMetadata* InParentMetadata, const EPCGExIntersectionType InType)
+	FGraphEdgeMetadata* FGraph::AddNodeAndEdgeMetadata_Unsafe(const int32 InNodeIndex, const int32 InEdgeIndex, const FGraphEdgeMetadata* InParentMetadata, const EPCGExIntersectionType InType)
 	{
 		FGraphNodeMetadata& N = GetOrCreateNodeMetadata_Unsafe(InNodeIndex);
 		N.Type = InType;
 
 		FGraphEdgeMetadata& E = GetOrCreateEdgeMetadata_Unsafe(InEdgeIndex, InParentMetadata);
 		E.Type = InType;
+
+		return &E;
 	}
 
 	void FGraph::AddNodeAndEdgeMetadata(const int32 InNodeIndex, const int32 InEdgeIndex, const FGraphEdgeMetadata* InParentMetadata, const EPCGExIntersectionType InType)
@@ -802,10 +814,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		AddNodeMetadata_Unsafe(InNodeIndex, InParentMetadata, InType);
 	}
 
-	void FGraph::AddEdgeMetadata_Unsafe(const int32 InEdgeIndex, const FGraphEdgeMetadata* InParentMetadata, const EPCGExIntersectionType InType)
+	FGraphEdgeMetadata* FGraph::AddEdgeMetadata_Unsafe(const int32 InEdgeIndex, const FGraphEdgeMetadata* InParentMetadata, const EPCGExIntersectionType InType)
 	{
 		FGraphEdgeMetadata& E = GetOrCreateEdgeMetadata_Unsafe(InEdgeIndex, InParentMetadata);
 		E.Type = InType;
+		return &E;
 	}
 
 	void FGraph::AddEdgeMetadata(const int32 InEdgeIndex, const FGraphEdgeMetadata* InParentMetadata, const EPCGExIntersectionType InType)
@@ -950,7 +963,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// Invalidate traversed points and edges
 				for (const int32 j : SubGraph->Nodes) { Nodes[j].bValid = false; }
 				for (const int32 j : SubGraph->Edges) { Edges[j].bValid = false; }
-			} 
+			}
 			else if (!SubGraph->Edges.IsEmpty())
 			{
 				SubGraphs.Add(SubGraph.ToSharedRef());
