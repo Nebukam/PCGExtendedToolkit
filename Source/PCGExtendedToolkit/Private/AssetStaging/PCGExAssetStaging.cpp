@@ -99,7 +99,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 	{
 		PCGEX_FWD(OutputSocketDetails)
 		if (!Context->OutputSocketDetails.Init(Context)) { return false; }
-		
+
 		Context->SocketsCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
 		Context->SocketsCollection->OutputPin = PCGExStaging::OutputSocketLabel;
 	}
@@ -188,7 +188,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 		OutData.Data = OutputSet;
 	}
 
-	if (Context->SocketsCollection)	{		Context->SocketsCollection->StageOutputs();	}
+	if (Context->SocketsCollection) { Context->SocketsCollection->StageOutputs(); }
 
 	return Context->TryComplete();
 }
@@ -324,6 +324,8 @@ namespace PCGExAssetStaging
 			if (Context->bPickMaterials) { MaterialPick[Index] = -1; }
 		};
 
+		const UPCGComponent* Component = Context->GetComponent();
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index])
@@ -339,7 +341,7 @@ namespace PCGExAssetStaging
 
 			const int32 Seed = PCGExRandom::GetSeed(
 				Seeds[Index], Helper->Details.SeedComponents,
-				Helper->Details.LocalSeed, Settings, Context->GetComponent());
+				Helper->Details.LocalSeed, Settings, Component);
 
 			Helper->GetEntry(Entry, Index, Seed, EntryHost);
 
@@ -431,7 +433,6 @@ namespace PCGExAssetStaging
 		}
 
 		FPlatformAtomics::InterlockedAdd(&NumInvalid, LocalNumInvalid);
-
 	}
 
 	void FProcessor::CompleteWork()
