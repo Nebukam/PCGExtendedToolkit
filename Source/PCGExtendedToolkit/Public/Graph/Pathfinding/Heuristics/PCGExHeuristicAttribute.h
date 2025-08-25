@@ -33,7 +33,7 @@ struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 	{
 	}
 
-	/** Read the data from either vertices or edges */
+	/** Specify how to deal with the attribute value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2))
 	EPCGExAttributeHeuristicInputMode Mode = EPCGExAttributeHeuristicInputMode::AutoCurve;
 
