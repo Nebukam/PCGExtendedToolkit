@@ -404,6 +404,7 @@ void UPCGExAssetCollection::EDITOR_AddBrowserSelectionTyped(const TArray<FAssetD
 void UPCGExAssetCollection::EDITOR_RebuildStagingData()
 {
 	Modify(true);
+	InvalidateCache();
 	EDITOR_SanitizeAndRebuildStagingData(false);
 	MarkPackageDirty();
 	FCoreUObjectDelegates::BroadcastOnObjectModified(this);
@@ -413,6 +414,7 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData()
 void UPCGExAssetCollection::EDITOR_RebuildStagingData_Recursive()
 {
 	Modify(true);
+	InvalidateCache();
 	EDITOR_SanitizeAndRebuildStagingData(true);
 	MarkPackageDirty();
 	FCoreUObjectDelegates::BroadcastOnObjectModified(this);
