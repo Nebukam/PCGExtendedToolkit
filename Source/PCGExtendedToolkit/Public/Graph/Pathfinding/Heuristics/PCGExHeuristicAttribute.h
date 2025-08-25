@@ -15,6 +15,14 @@
 
 class FPCGExHeuristicOperation;
 
+UENUM()
+enum class EPCGExAttributeHeuristicInputMode : uint8
+{
+	AutoCurve   = 0 UMETA(DisplayName = "Auto Curve", ToolTip="Automatically sample the curve using normalized value from existing min/max input."),
+	ManualCurve = 1 UMETA(DisplayName = "Manual Curve", ToolTip="Sample the curve using normalized value from manual min/max values."),
+	Raw         = 2 UMETA(DisplayName = "Raw", ToolTip="Use raw attribute as score. Use at your own risks!"),
+};
+
 USTRUCT(BlueprintType)
 struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 {
@@ -26,12 +34,24 @@ struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 	}
 
 	/** Read the data from either vertices or edges */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2))
+	EPCGExAttributeHeuristicInputMode Mode = EPCGExAttributeHeuristicInputMode::AutoCurve;
+
+	/** Read the data from either vertices or edges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExClusterElement Source = EPCGExClusterElement::Vtx;
 
 	/** Attribute to read modifier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector Attribute;
+
+	/** If enabled, will use this value as input min remap reference instead of the one found on the attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAttributeHeuristicInputMode::ManualCurve", EditConditionHides))
+	double InMin = 0;
+
+	/** If enabled, will use this value as input max remap reference instead of the one found on the attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAttributeHeuristicInputMode::ManualCurve", EditConditionHides))
+	double InMax = 1;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
@@ -60,8 +80,12 @@ public:
 
 	EPCGExClusterElement Source = EPCGExClusterElement::Vtx;
 	FPCGAttributePropertyInputSelector Attribute;
+	EPCGExAttributeHeuristicInputMode Mode = EPCGExAttributeHeuristicInputMode::AutoCurve;
 	bool bUseCustomFallback = false;
 	double FallbackValue = 1;
+
+	double InMin = 0;
+	double InMax = 100;
 
 protected:
 	TArray<double> CachedScores;
@@ -96,6 +120,7 @@ public:
 		FName(GetDisplayName()))
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorHeuristicsAtt; }
 
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UPCGSettings
 

@@ -20,8 +20,10 @@ void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 	const int32 NumPoints = Source == EPCGExClusterElement::Vtx ? InCluster->Nodes->Num() : InCluster->Edges->Num();
 	CachedScores.SetNumZeroed(NumPoints);
 
+	const bool bCaptureMinMax = Mode == EPCGExAttributeHeuristicInputMode::AutoCurve;
+
 	// Grab all attribute values
-	const TSharedPtr<PCGExData::TBuffer<double>> Values = DataFacade->GetBroadcaster<double>(Attribute, false, true);
+	const TSharedPtr<PCGExData::TBuffer<double>> Values = DataFacade->GetBroadcaster<double>(Attribute, false, bCaptureMinMax);
 
 	if (!Values)
 	{
@@ -29,38 +31,52 @@ void FPCGExHeuristicAttribute::PrepareForCluster(const TSharedPtr<const PCGExClu
 		return;
 	}
 
-	// Grab min & max
-	const double MinValue = Values->Min;
-	const double MaxValue = Values->Max;
-
-	const double OutMin = bInvert ? 1 : 0;
-	const double OutMax = bInvert ? 0 : 1;
-
 	const double Factor = ReferenceWeight * WeightFactor;
 
-	if (MinValue == MaxValue)
-	{
-		// There is no value range, we can't normalize anything
-		// Use desired or "auto" fallback instead.
-		FallbackValue = FMath::Max(0, ScoreCurve->Eval(bUseCustomFallback ? FallbackValue : FMath::Clamp(MinValue, 0, 1))) * Factor;
-		CachedScores.Init(FallbackValue, NumPoints);
-	}
-	else
+	if (Mode == EPCGExAttributeHeuristicInputMode::Raw)
 	{
 		if (Source == EPCGExClusterElement::Vtx)
 		{
-			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
-			{
-				const double NormalizedValue = PCGExMath::Remap(Values->Read(Node.PointIndex), MinValue, MaxValue, OutMin, OutMax);
-				CachedScores[Node.Index] += FMath::Max(0, ScoreCurve->Eval(NormalizedValue)) * Factor;
-			}
+			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes)) { CachedScores[Node.Index] += FMath::Max(0, Values->Read(Node.PointIndex)) * Factor; }
 		}
 		else
 		{
-			for (int i = 0; i < NumPoints; i++)
+			for (int i = 0; i < NumPoints; i++) { CachedScores[i] += FMath::Max(0, Values->Read(i)) * Factor; }
+		}
+	}
+	else
+	{
+		// Grab min & max
+		const double InMinValue = bCaptureMinMax ? Values->Min : InMin;
+		const double InMaxValue = bCaptureMinMax ? Values->Max : InMax;
+
+		const double OutMin = bInvert ? 1 : 0;
+		const double OutMax = bInvert ? 0 : 1;
+
+		if (InMinValue == InMaxValue)
+		{
+			// There is no value range, we can't normalize anything
+			// Use desired or "auto" fallback instead.
+			FallbackValue = FMath::Max(0, ScoreCurve->Eval(bUseCustomFallback ? FallbackValue : FMath::Clamp(InMinValue, 0, 1))) * Factor;
+			CachedScores.Init(FallbackValue, NumPoints);
+		}
+		else
+		{
+			if (Source == EPCGExClusterElement::Vtx)
 			{
-				const double NormalizedValue = PCGExMath::Remap(Values->Read(i), MinValue, MaxValue, OutMin, OutMax);
-				CachedScores[i] += FMath::Max(0, ScoreCurve->Eval(NormalizedValue)) * Factor;
+				for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
+				{
+					const double NormalizedValue = PCGExMath::Remap(Values->Read(Node.PointIndex), InMinValue, InMaxValue, OutMin, OutMax);
+					CachedScores[Node.Index] += FMath::Max(0, ScoreCurve->Eval(NormalizedValue)) * Factor;
+				}
+			}
+			else
+			{
+				for (int i = 0; i < NumPoints; i++)
+				{
+					const double NormalizedValue = PCGExMath::Remap(Values->Read(i), InMinValue, InMaxValue, OutMin, OutMax);
+					CachedScores[i] += FMath::Max(0, ScoreCurve->Eval(NormalizedValue)) * Factor;
+				}
 			}
 		}
 	}
@@ -85,6 +101,9 @@ TSharedPtr<FPCGExHeuristicOperation> UPCGExHeuristicsFactoryAttribute::CreateOpe
 	NewOperation->Attribute = Config.Attribute;
 	NewOperation->bUseCustomFallback = Config.bUseCustomFallback;
 	NewOperation->FallbackValue = Config.FallbackValue;
+	NewOperation->Mode = Config.Mode;
+	NewOperation->InMin = Config.InMin;
+	NewOperation->InMax = Config.InMax;
 	return NewOperation;
 }
 
@@ -98,6 +117,14 @@ void UPCGExHeuristicsFactoryAttribute::RegisterBuffersDependencies(FPCGExContext
 		FacadePreloader.Register<double>(InContext, Config.Attribute);
 	}
 }
+
+#if WITH_EDITOR
+void UPCGExCreateHeuristicAttributeSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Config.bRawSettings = Config.Mode == EPCGExAttributeHeuristicInputMode::Raw;
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif
 
 UPCGExFactoryData* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
