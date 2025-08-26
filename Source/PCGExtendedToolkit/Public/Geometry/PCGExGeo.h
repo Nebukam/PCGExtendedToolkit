@@ -5,6 +5,7 @@
 
 #include <vector>
 #include "CoreMinimal.h"
+#include "OrientedBoxTypes.h"
 #include "Utils/PCGValueRange.h"
 #include "PCGEx.h"
 #include "PCGExMT.h"
@@ -197,11 +198,22 @@ namespace PCGExGeo
 		explicit FBestFitPlane(const TArrayView<FVector> InPositions);
 
 		FVector Centroid = FVector::ZeroVector;
-		FVector Normal = FVector::UpVector;
-		FVector EigenValues = FVector::ZeroVector;
+		
+		int32 Swizzle[3] = {0, 1, 2};
+		FVector Axis[3] = {FVector::ForwardVector, FVector::RightVector, FVector::UpVector};
+		
+		FVector Normal() const;
+		FTransform GetTransform() const;
+		FTransform GetTransform(EPCGExAxisOrder Order) const;
 
-		static double GetEigenMax(const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ);
-		static FVector ComputeNormal(const double XX, const double XY, const double XZ, const double YY, const double YZ, const double ZZ);
+	protected:
+		void ProcessBox(const UE::Geometry::FOrientedBox3d& Box);
+		
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FSwizzler
+	{
+		FSwizzler() = default;
 	};
 }
 

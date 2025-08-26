@@ -12,6 +12,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Geometry/PCGExGeo.h"
 
 #include "PCGExPointsToBounds.generated.h"
 
@@ -82,18 +83,17 @@ struct FPCGExPointsToBoundsDataDetails
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteBestFitUp = true;
+	bool bWriteBestFitPlane = true;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteBestFitUp"))
-	FName BestFitUpAttributeName = FName("@Data.BestFitUp");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteBestFitPlane"))
+	FName BestFitPlaneAttributeName = FName("@Data.BestFitPlane");
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ As Transform", EditCondition="bWriteBestFitUp", EditConditionHides, HideInlineEditCondition))
-	EPCGExMinimalAxis AsTransformAxis = EPCGExMinimalAxis::None;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Axis Order", EditCondition="bWriteBestFitPlane", EditConditionHides, HideInlineEditCondition))
+	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;
 
-	void Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers) const;
-	void OutputInverse(const UPCGBasePointData* InPoints, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers) const;
+	void Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExGeo::FBestFitPlane& Plane) const;
+	void OutputInverse(const UPCGBasePointData* InPoints, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExGeo::FBestFitPlane& Plane) const;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/points-to-bounds"))
@@ -118,6 +118,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOutputOrientedBoundingBox = false;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Axis Order", EditCondition="bOutputOrientedBoundingBox", EditConditionHides))
+	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;
+	
 	/** Overlap overlap test mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
@@ -171,14 +174,12 @@ namespace PCGExPointsToBounds
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExPointsToBoundsContext, UPCGExPointsToBoundsSettings>
 	{
+		PCGExGeo::FBestFitPlane BestFitPlane;
 		TSharedPtr<PCGExData::FPointIO> OutputIO;
 		TSharedPtr<PCGExData::FFacade> OutputFacade;
 		TArray<FPCGAttributeIdentifier> BlendedAttributes;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		FBox Bounds;
-
-		UE::Geometry::FOrientedBox3d OrientedBox;
-		bool bOrientedBoxFound = false;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

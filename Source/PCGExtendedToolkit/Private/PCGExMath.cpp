@@ -206,7 +206,7 @@ namespace PCGExMath
 		case EPCGExAxisOrder::XYZ:
 			return FTransform(FMatrix(PCGEX_AXIS_X, PCGEX_AXIS_Y, PCGEX_AXIS_Z, FVector::Zero()));
 		case EPCGExAxisOrder::YZX:
-			return FTransform(FMatrix(PCGEX_AXIS_Y, PCGEX_AXIS_X, PCGEX_AXIS_Z, FVector::Zero()));
+			return FTransform(FMatrix(PCGEX_AXIS_Y, PCGEX_AXIS_Z, PCGEX_AXIS_X, FVector::Zero()));
 		case EPCGExAxisOrder::ZXY:
 			return FTransform(FMatrix(PCGEX_AXIS_Z, PCGEX_AXIS_X, PCGEX_AXIS_Y, FVector::Zero()));
 		case EPCGExAxisOrder::YXZ:
@@ -228,6 +228,14 @@ namespace PCGExMath
 		Vector[0] = Temp[A];
 		Vector[1] = Temp[B];
 		Vector[2] = Temp[C];
+	}
+
+	void Swizzle(FVector& Vector, const int32(& Order)[3])
+	{
+		FVector Temp = Vector;
+		Vector[0] = Temp[Order[0]];
+		Vector[1] = Temp[Order[1]];
+		Vector[2] = Temp[Order[2]];
 	}
 
 	FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward)
