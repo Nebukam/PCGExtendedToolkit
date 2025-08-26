@@ -434,6 +434,9 @@ namespace PCGExMath
 
 	PCGEXTENDEDTOOLKIT_API
 	void Swizzle(FVector& Vector, const EPCGExAxisOrder Order);
+	
+	PCGEXTENDEDTOOLKIT_API
+	void Swizzle(FVector& Vector, const int32 (&Order)[3]);
 
 	PCGEXTENDEDTOOLKIT_API
 	FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward);

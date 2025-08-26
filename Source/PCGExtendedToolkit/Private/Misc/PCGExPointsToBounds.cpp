@@ -3,8 +3,7 @@
 
 #include "Misc/PCGExPointsToBounds.h"
 
-#include "MinVolumeBox3.h"
-#include "OrientedBoxTypes.h"
+#include "PCGExMath.h"
 #include "Data/PCGExData.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExGraph.h"
@@ -13,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
-void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers) const
+void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsData, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExGeo::FBestFitPlane& Plane) const
 {
 	if (!AttributeIdentifiers.IsEmpty())
 	{
@@ -49,37 +48,13 @@ void FPCGExPointsToBoundsDataDetails::Output(const UPCGBasePointData* InBoundsDa
 
 #undef PCGEX_WRITE_REDUCED_PROPERTY
 
-	if (bWriteBestFitUp)
+	if (bWriteBestFitPlane)
 	{
-		PCGExGeo::FBestFitPlane BestFitPlane(OutData->GetConstTransformValueRange());
-		if (AsTransformAxis != EPCGExMinimalAxis::None)
-		{
-			FTransform BestFitTransform = FTransform::Identity;
-			BestFitTransform.SetLocation(BestFitPlane.Centroid);
-			switch (AsTransformAxis)
-			{
-			case EPCGExMinimalAxis::None:
-			case EPCGExMinimalAxis::X:
-				BestFitTransform.SetRotation(FRotationMatrix::MakeFromX(BestFitPlane.Normal).ToQuat());
-				break;
-			case EPCGExMinimalAxis::Y:
-				BestFitTransform.SetRotation(FRotationMatrix::MakeFromY(BestFitPlane.Normal).ToQuat());
-				break;
-			case EPCGExMinimalAxis::Z:
-				BestFitTransform.SetRotation(FRotationMatrix::MakeFromZ(BestFitPlane.Normal).ToQuat());
-				break;
-			}
-
-			PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitUpAttributeName), BestFitTransform);
-		}
-		else
-		{
-			PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitUpAttributeName), BestFitPlane.Normal);
-		}
+		PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitPlaneAttributeName), Plane.GetTransform(AxisOrder));
 	}
 }
 
-void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InPoints, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers) const
+void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InPoints, UPCGBasePointData* OutData, const TArray<FPCGAttributeIdentifier>& AttributeIdentifiers, PCGExGeo::FBestFitPlane& Plane) const
 {
 	if (!AttributeIdentifiers.IsEmpty())
 	{
@@ -115,33 +90,9 @@ void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InP
 
 #undef PCGEX_WRITE_REDUCED_PROPERTY
 
-	if (bWriteBestFitUp)
+	if (bWriteBestFitPlane)
 	{
-		PCGExGeo::FBestFitPlane BestFitPlane(InPoints->GetConstTransformValueRange());
-		if (AsTransformAxis != EPCGExMinimalAxis::None)
-		{
-			FTransform BestFitTransform = FTransform::Identity;
-			BestFitTransform.SetLocation(BestFitPlane.Centroid);
-			switch (AsTransformAxis)
-			{
-			case EPCGExMinimalAxis::None:
-			case EPCGExMinimalAxis::X:
-				BestFitTransform.SetRotation(FRotationMatrix::MakeFromX(BestFitPlane.Normal).ToQuat());
-				break;
-			case EPCGExMinimalAxis::Y:
-				BestFitTransform.SetRotation(FRotationMatrix::MakeFromY(BestFitPlane.Normal).ToQuat());
-				break;
-			case EPCGExMinimalAxis::Z:
-				BestFitTransform.SetRotation(FRotationMatrix::MakeFromZ(BestFitPlane.Normal).ToQuat());
-				break;
-			}
-
-			PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitUpAttributeName), BestFitTransform);
-		}
-		else
-		{
-			PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitUpAttributeName), BestFitPlane.Normal);
-		}
+		PCGExData::WriteMark(OutData, PCGEx::GetAttributeIdentifier(BestFitPlaneAttributeName), Plane.GetTransform(AxisOrder));
 	}
 }
 
@@ -213,46 +164,31 @@ namespace PCGExPointsToBounds
 		}
 
 		Bounds = FBox(ForceInit);
-
-		if (Settings->bOutputOrientedBoundingBox)
-		{
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, MinBoxTask)
-			MinBoxTask->AddSimpleCallback(
-				[PCGEX_ASYNC_THIS_CAPTURE]()
-				{
-					PCGEX_ASYNC_THIS
-
-					TConstPCGValueRange<FTransform> InTransforms = This->PointDataFacade->GetIn()->GetConstTransformValueRange();
-					UE::Geometry::TMinVolumeBox3<double> Box;
-					if (Box.Solve(This->PointDataFacade->GetNum(), [InTransforms](int32 i) { return InTransforms[i].GetLocation(); }))
-					{
-						Box.GetResult(This->OrientedBox);
-						This->bOrientedBoxFound = true;
-					}
-				});
-
-			MinBoxTask->StartSimpleCallbacks();
-		}
+		BestFitPlane = PCGExGeo::FBestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange());
+		FTransform InvTransform = BestFitPlane.GetTransform(Settings->AxisOrder).Inverse();
 
 		const UPCGBasePointData* InPointData = OutputIO->GetIn();
 		const int32 NumPoints = InPointData->GetNumPoints();
 
 		TConstPCGValueRange<FTransform> InTransforms = InPointData->GetConstTransformValueRange();
-
 		switch (Settings->BoundsSource)
 		{
 		default: ;
 		case EPCGExPointBoundsSource::DensityBounds:
-			for (int i = 0; i < NumPoints; i++) { Bounds += InPointData->GetDensityBounds(i).GetBox(); }
+			if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += InPointData->GetDensityBounds(i).GetBox().TransformBy(InvTransform); } }
+			else { for (int i = 0; i < NumPoints; i++) { Bounds += InPointData->GetDensityBounds(i).GetBox(); } }
 			break;
 		case EPCGExPointBoundsSource::ScaledBounds:
-			for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InTransforms[i].GetLocation(), InPointData->GetScaledExtents(i)).GetBox(); }
+			if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InvTransform.TransformPosition(InTransforms[i].GetLocation()), InPointData->GetScaledExtents(i)).GetBox(); } }
+			else { for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InTransforms[i].GetLocation(), InPointData->GetScaledExtents(i)).GetBox(); } }
 			break;
 		case EPCGExPointBoundsSource::Bounds:
-			for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InTransforms[i].GetLocation(), InPointData->GetExtents(i)).GetBox(); }
+			if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InvTransform.TransformPosition(InTransforms[i].GetLocation()), InPointData->GetExtents(i)).GetBox(); } }
+			else { for (int i = 0; i < NumPoints; i++) { Bounds += FBoxCenterAndExtent(InTransforms[i].GetLocation(), InPointData->GetExtents(i)).GetBox(); } }
 			break;
 		case EPCGExPointBoundsSource::Center:
-			for (int i = 0; i < NumPoints; i++) { Bounds += InTransforms[i].GetLocation(); }
+			if (Settings->bOutputOrientedBoundingBox) { for (int i = 0; i < NumPoints; i++) { Bounds += InvTransform.TransformPosition(InTransforms[i].GetLocation()); } }
+			else { for (int i = 0; i < NumPoints; i++) { Bounds += InTransforms[i].GetLocation(); } }
 			break;
 		}
 
@@ -303,12 +239,13 @@ namespace PCGExPointsToBounds
 		TPCGValueRange<FVector> OutBoundsMin = OutData->GetBoundsMinValueRange(false);
 		TPCGValueRange<FVector> OutBoundsMax = OutData->GetBoundsMaxValueRange(false);
 
-		if (bOrientedBoxFound)
+		if (Settings->bOutputOrientedBoundingBox)
 		{
-			const FVector Extents = OrientedBox.Extents;
-			OutTransforms[0] = FTransform(FQuat(OrientedBox.Frame.Rotation), OrientedBox.Center());
-			OutBoundsMin[0] = -Extents;
-			OutBoundsMax[0] = Extents;
+			OutTransforms[0] = BestFitPlane.GetTransform(Settings->AxisOrder);
+			OutBoundsMin[0] = Bounds.Min;
+			OutBoundsMax[0] = Bounds.Max;
+			//PCGExMath::Swizzle(OutBoundsMin[0], BestFitPlane.Swizzle);
+			//PCGExMath::Swizzle(OutBoundsMax[0], BestFitPlane.Swizzle);
 		}
 		else
 		{
@@ -318,17 +255,18 @@ namespace PCGExPointsToBounds
 			OutBoundsMax[0] = Bounds.Max - Center;
 		}
 
+
 		if (Settings->bWritePointsCount) { WriteMark(OutputFacade->Source, Settings->PointsCountAttributeName, NumPoints); }
 
 		OutputFacade->WriteSynchronous();
 
 		if (Settings->OutputMode == EPCGExPointsToBoundsOutputMode::WriteData)
 		{
-			Settings->DataDetails.Output(OutputFacade->GetOut(), PointDataFacade->GetOut(), BlendedAttributes);
+			Settings->DataDetails.Output(OutputFacade->GetOut(), PointDataFacade->GetOut(), BlendedAttributes, BestFitPlane);
 		}
 		else
 		{
-			Settings->DataDetails.OutputInverse(PointDataFacade->GetIn(), OutputFacade->GetOut(), BlendedAttributes);
+			Settings->DataDetails.OutputInverse(PointDataFacade->GetIn(), OutputFacade->GetOut(), BlendedAttributes, BestFitPlane);
 			PCGExGraph::CleanupClusterData(OutputFacade->Source);
 		}
 	}
