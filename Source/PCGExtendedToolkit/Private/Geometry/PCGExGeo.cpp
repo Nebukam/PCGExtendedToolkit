@@ -331,7 +331,7 @@ namespace PCGExGeo
 		}
 	}
 
-	FBestFitPlane::FBestFitPlane(const TArrayView<FVector> InPositions)
+	FBestFitPlane::FBestFitPlane(const TArrayView<const FVector> InPositions)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FBestFitPlane::FBestFitPlane);
 
@@ -344,6 +344,32 @@ namespace PCGExGeo
 			InPositions.Num(), [&](int32 i)
 			{
 				const FVector P = InPositions[i];
+				Centroid += P;
+				return P;
+			});
+
+		Centroid /= InPositions.Num();
+
+		if (Box.IsSolutionAvailable())
+		{
+			Box.GetResult(OrientedBox);
+			ProcessBox(OrientedBox);
+		}
+	}
+
+	FBestFitPlane::FBestFitPlane(const TArrayView<const FVector2D> InPositions)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FBestFitPlane::FBestFitPlane);
+
+		UE::Geometry::FOrientedBox3d OrientedBox{};
+		UE::Geometry::TMinVolumeBox3<double> Box;
+
+		Centroid = FVector::ZeroVector;
+
+		Box.Solve(
+			InPositions.Num(), [&](int32 i)
+			{
+				const FVector P = FVector(InPositions[i], 0);
 				Centroid += P;
 				return P;
 			});
@@ -383,6 +409,10 @@ namespace PCGExGeo
 		Centroid = Box.Center();
 
 		Algo::Sort(Swizzle, [&](const int32 A, const int32 B) { return Box.Extents[A] > Box.Extents[B]; });
+
+		Extents[0] = Box.Extents[Swizzle[0]];
+		Extents[1] = Box.Extents[Swizzle[1]];
+		Extents[2] = Box.Extents[Swizzle[2]];
 
 		// Pick raw axes
 		FVector X = Box.Frame.GetAxis(Swizzle[0]); // Longest
