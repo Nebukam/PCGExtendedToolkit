@@ -121,7 +121,6 @@ namespace PCGExSocketStaging
 
 			SocketHelper->Add(Index, PCGExStaging::GetSimplifiedEntryHash(Hash), Entry);
 		}
-
 	}
 
 	void FProcessor::OnPointsProcessingComplete()

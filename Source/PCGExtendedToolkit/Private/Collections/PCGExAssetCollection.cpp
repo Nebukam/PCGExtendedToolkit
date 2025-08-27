@@ -128,10 +128,10 @@ if ((_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags::X)) != 0)
 if ((_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags::Y)) != 0){ _ARRAY.Add(1); } \
 if ((_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags::Z)) != 0){ _ARRAY.Add(2); }
 
-		PCGEX_REGISTER_FLAG(TransformScale, TrScaComponents)
+	PCGEX_REGISTER_FLAG(TransformScale, TrScaComponents)
 
 #undef PCGEX_REGISTER_FLAG
-	
+
 	return true;
 }
 

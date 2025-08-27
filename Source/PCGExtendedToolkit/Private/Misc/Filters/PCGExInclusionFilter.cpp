@@ -95,7 +95,7 @@ namespace PCGExPointFilter
 	{
 		PCGExData::FProxyPoint ProxyPoint;
 		IO->GetDataAsProxyPoint(ProxyPoint);
-		
+
 		int32 InclusionsCount = 0;
 		PCGExPathInclusion::EFlags Flags = Handler->GetInclusionFlags(
 			ProxyPoint.GetLocation(), InclusionsCount,

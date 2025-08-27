@@ -44,7 +44,6 @@ void UPCGExPathfindingPlotNavmeshSettings::PostEditChangeProperty(FPropertyChang
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
 
 
-
 bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

@@ -85,6 +85,16 @@ bool FPCGExCreateSplineElement::IsCacheable(const UPCGSettings* InSettings) cons
 	return !Settings || Settings->Mode == EPCGCreateSplineMode::CreateDataOnly;
 }
 
+bool FPCGExCreateSplineElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	if (Context)
+	{
+		const UPCGExCreateSplineSettings* Settings = Context->GetInputSettings<UPCGExCreateSplineSettings>();
+		if (Settings && Settings->Mode != EPCGCreateSplineMode::CreateDataOnly) { return true; }
+	}
+	return FPCGExPathProcessorElement::CanExecuteOnlyOnMainThread(Context);
+}
+
 namespace PCGExCreateSpline
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)

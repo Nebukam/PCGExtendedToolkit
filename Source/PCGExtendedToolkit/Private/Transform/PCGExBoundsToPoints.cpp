@@ -52,7 +52,7 @@ namespace PCGExBoundsToPoints
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBoundsToPoints::Process);
 
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
-		
+
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bGeneratePerPointData ? PCGExData::EIOInit::NoInit : PCGExData::EIOInit::Duplicate)

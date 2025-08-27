@@ -101,8 +101,8 @@ namespace PCGExData
 				check(Out)
 
 				PCGExHelpers::InitEmptyNativeProperties(In, Out);
-				
-				FPCGInitializeFromDataParams InitializeFromDataParams(In);				
+
+				FPCGInitializeFromDataParams InitializeFromDataParams(In);
 				InitializeFromDataParams.bInheritSpatialData = false;
 				Out->InitializeFromDataWithParams(InitializeFromDataParams);
 			}

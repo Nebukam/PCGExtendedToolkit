@@ -426,12 +426,12 @@ namespace PCGEx
 	void ReorderValueRange(TPCGValueRange<T>& InRange, const TArray<int32>& InOrder)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExHelpers::ReorderValueRange);
-		
+
 		const int32 NumIndices = InOrder.Num();
 		TArray<T> ValuesCopy;
 		ValuesCopy.Reserve(NumIndices);
-		for (int i = 0; i < NumIndices; i++){ ValuesCopy.Emplace(InRange[InOrder[i]]); }
-		for (int i = 0; i < NumIndices; i++){ InRange[i] = ValuesCopy[i]; }
+		for (int i = 0; i < NumIndices; i++) { ValuesCopy.Emplace(InRange[InOrder[i]]); }
+		for (int i = 0; i < NumIndices; i++) { InRange[i] = ValuesCopy[i]; }
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
@@ -443,17 +443,16 @@ template PCGEXTENDEDTOOLKIT_API void ReorderValueRange<_TYPE>(TPCGValueRange<_TY
 	void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExHelpers::ReorderPointArrayData);
-		
+
 		EPCGPointNativeProperties AllocatedProperties = InData->GetAllocatedProperties();
 
 #define PCGEX_REORDER_RANGE_DECL(_NAME, _TYPE, ...) \
 	if(EnumHasAnyFlags(AllocatedProperties, EPCGPointNativeProperties::_NAME)){ \
 		TPCGValueRange<_TYPE> Range = InData->Get##_NAME##ValueRange(true); \
 		ReorderValueRange<_TYPE>(Range, InOrder);}
-		
+
 		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_REORDER_RANGE_DECL)
 #undef PCGEX_REORDER_RANGE_DECL
-
 	}
 
 	FString GetSelectorDisplayName(const FPCGAttributePropertyInputSelector& InSelector)
@@ -555,7 +554,7 @@ namespace PCGExHelpers
 		if (!FromPoints || !ToPoints || FromPoints == ToPoints) { return; }
 
 		ToPoints->AllocateProperties(FromPoints->GetAllocatedProperties());
-		
+
 #define PCGEX_COPY_SINGLE_VALUE(_NAME, _TYPE, ...) if(EnumHasAnyFlags(Properties, EPCGPointNativeProperties::_NAME)){ \
 		TConstPCGValueRange<_TYPE> Range = FromPoints->GetConst##_NAME##ValueRange(); \
 		if (Range.GetSingleValue().IsSet()) { ToPoints->Get##_NAME##ValueRange(false).GetSingleValue().Emplace(Range.GetSingleValue().GetValue()); } \

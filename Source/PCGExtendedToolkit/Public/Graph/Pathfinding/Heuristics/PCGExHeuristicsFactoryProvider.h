@@ -57,7 +57,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
 
 	UPROPERTY(meta=(PCG_NotOverridable, EditCondition="false", EditConditionHides))
 	bool bRawSettings = false;
-	
+
 	/** The weight factor for this heuristic.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	double WeightFactor = 1;

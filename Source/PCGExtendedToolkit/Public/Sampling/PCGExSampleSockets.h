@@ -26,7 +26,6 @@ class UPCGExSampleSocketsSettings : public UPCGExPointsProcessorSettings
 	GENERATED_BODY()
 
 public:
-	
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleSockets, "Sample : Sockets", "Parse static mesh paths and output sockets as points.");
@@ -69,7 +68,6 @@ struct FPCGExSampleSocketsContext final : FPCGExPointsProcessorContext
 
 	FPCGExSocketOutputDetails OutputSocketDetails;
 	TSharedPtr<PCGExData::FPointIOCollection> SocketsCollection;
-	
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -94,7 +92,7 @@ namespace PCGExSampleSockets
 	protected:
 		TSharedPtr<PCGExStaging::FSocketHelper> SocketHelper;
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathReader;
-		
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TProcessor(InPointDataFacade)

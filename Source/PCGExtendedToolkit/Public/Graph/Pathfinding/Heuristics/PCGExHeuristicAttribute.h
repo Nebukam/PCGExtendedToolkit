@@ -46,11 +46,11 @@ struct FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 	FPCGAttributePropertyInputSelector Attribute;
 
 	/** If enabled, will use this value as input min remap reference instead of the one found on the attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAttributeHeuristicInputMode::ManualCurve", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExAttributeHeuristicInputMode::ManualCurve", EditConditionHides))
 	double InMin = 0;
 
 	/** If enabled, will use this value as input max remap reference instead of the one found on the attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAttributeHeuristicInputMode::ManualCurve", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExAttributeHeuristicInputMode::ManualCurve", EditConditionHides))
 	double InMax = 1;
 
 	/** */

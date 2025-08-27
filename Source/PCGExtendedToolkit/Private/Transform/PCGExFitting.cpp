@@ -322,9 +322,9 @@ void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, PCGExData::FPro
 		const bool bAbsZ = (Variations.AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Z)) != 0;
 
 		OutRotation.Pitch = (bAbsX ? RandRot.Pitch : OutRotation.Pitch + RandRot.Pitch);
-		OutRotation.Yaw   = (bAbsY ? RandRot.Yaw   : OutRotation.Yaw   + RandRot.Yaw);
-		OutRotation.Roll  = (bAbsZ ? RandRot.Roll  : OutRotation.Roll  + RandRot.Roll);
-		
+		OutRotation.Yaw = (bAbsY ? RandRot.Yaw : OutRotation.Yaw + RandRot.Yaw);
+		OutRotation.Roll = (bAbsZ ? RandRot.Roll : OutRotation.Roll + RandRot.Roll);
+
 		FinalTransform.SetRotation(OutRotation.Quaternion());
 	}
 

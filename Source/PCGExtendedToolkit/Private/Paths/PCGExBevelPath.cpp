@@ -588,19 +588,19 @@ namespace PCGExBevelPath
 
 		UPCGBasePointData* MutablePoints = PointDataFacade->GetOut();
 		PCGEx::SetNumPointsAllocated(MutablePoints, NumOutPoints, PointDataFacade->GetAllocations());
-		
+
 		// Initialize metadata entries at once, too expensive on thread
-		
+
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		UPCGBasePointData* OutPointData = PointDataFacade->GetOut();
 		UPCGMetadata* Metadata = OutPointData->Metadata;
-		
+
 		// Only pin properties we will not be inheriting
 		TConstPCGValueRange<int64> InMetadataEntry = InPointData->GetConstMetadataEntryValueRange();
 		TPCGValueRange<int64> OutMetadataEntry = OutPointData->GetMetadataEntryValueRange();
-		
+
 		const int32 NumPoints = PointDataFacade->GetNum();
-		
+
 		for (int Index = 0; Index < NumPoints; Index++)
 		{
 			const int32 StartIndex = StartIndices[Index];
@@ -622,7 +622,7 @@ namespace PCGExBevelPath
 				Metadata->InitializeOnSet(OutMetadataEntry[i]);
 			}
 		}
-		
+
 		StartParallelLoopForRange(NumPoints);
 	}
 
