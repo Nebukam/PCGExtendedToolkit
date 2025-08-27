@@ -114,7 +114,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_NotOverridable, DisplayName="Output Sockets", EditCondition="bDoOutputSockets"))
 	FPCGExSocketOutputDetails OutputSocketDetails;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietEmptyCollectionError = false;
@@ -165,7 +165,7 @@ namespace PCGExAssetStaging
 		bool bUsesDensity = false;
 
 		TArray<int8> Mask;
-		
+
 		FPCGExFittingDetailsHandler FittingHandler;
 		FPCGExFittingVariationsDetails Variations;
 

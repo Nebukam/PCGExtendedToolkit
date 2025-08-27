@@ -34,7 +34,7 @@ public:
 	virtual void PostInitProperties() override;
 	// End of UObject interface
 #endif
-	
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;

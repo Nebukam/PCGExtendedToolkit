@@ -82,7 +82,7 @@ bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) c
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
-	
+
 	if (Settings->WriteAnyPathData())
 	{
 		if (Context->PathAttributeSet)

@@ -195,20 +195,21 @@ namespace PCGExGeo
 
 		explicit FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms);
 		explicit FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms, TArrayView<int32> InIndices);
-		explicit FBestFitPlane(const TArrayView<FVector> InPositions);
+		explicit FBestFitPlane(const TArrayView<const FVector> InPositions);
+		explicit FBestFitPlane(const TArrayView<const FVector2D> InPositions);
 
 		FVector Centroid = FVector::ZeroVector;
-		
+		FVector Extents = FVector::OneVector;
+
 		int32 Swizzle[3] = {0, 1, 2};
 		FVector Axis[3] = {FVector::ForwardVector, FVector::RightVector, FVector::UpVector};
-		
+
 		FVector Normal() const;
 		FTransform GetTransform() const;
 		FTransform GetTransform(EPCGExAxisOrder Order) const;
 
 	protected:
 		void ProcessBox(const UE::Geometry::FOrientedBox3d& Box);
-		
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSwizzler

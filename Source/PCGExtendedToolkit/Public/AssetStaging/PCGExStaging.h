@@ -141,7 +141,7 @@ MACRO(SocketName, FName, NAME_None) \
 MACRO(SocketTag, FName, NAME_None) \
 MACRO(Category, FName, NAME_None) \
 MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	uint64 GetSimplifiedEntryHash(uint64 InEntryHash);
 
@@ -157,7 +157,7 @@ MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 
 		PCGEX_FOREACH_FIELD_SAMPLESOCKETS(PCGEX_OUTPUT_DECL_TOGGLE)
 		PCGEX_FOREACH_FIELD_SAMPLESOCKETS(PCGEX_OUTPUT_DECL)
-		
+
 	public:
 		explicit FSocketHelper(const FPCGExSocketOutputDetails* InDetails, const int32 InNumPoints);
 

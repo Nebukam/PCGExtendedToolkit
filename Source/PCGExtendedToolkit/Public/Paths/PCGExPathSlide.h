@@ -14,14 +14,14 @@
 UENUM()
 enum class EPCGExSlideMode : uint8
 {
-	Slide = 0 UMETA(DisplayName = "Slide", ToolTip="Slide points and optional store the original position to an attribute"),
+	Slide   = 0 UMETA(DisplayName = "Slide", ToolTip="Slide points and optional store the original position to an attribute"),
 	Restore = 1 UMETA(DisplayName = "Restore", ToolTip="Restore the original position from an attribute and deletes it."),
 };
 
 UENUM()
 enum class EPCGExSlideDirection : uint8
 {
-	Next = 0 UMETA(DisplayName = "Next", ToolTip="Slide toward next point"),
+	Next     = 0 UMETA(DisplayName = "Next", ToolTip="Slide toward next point"),
 	Previous = 1 UMETA(DisplayName = "Previous", ToolTip="Slide toward previous point"),
 };
 
@@ -48,7 +48,7 @@ public:
 	/** Whether to slide or restore position */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSlideMode Mode = EPCGExSlideMode::Slide;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode != EPCGExSlideMode::Restore", EditConditionHides))
 	EPCGExSlideDirection Direction = EPCGExSlideDirection::Next;
@@ -77,7 +77,6 @@ public:
 	/** Attribute to write to or restore from */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteOldPosition || Mode == EPCGExSlideMode::Restore", EditConditionHides))
 	FName RestorePositionAttributeName = FName("PreSlidePosition");
-	
 };
 
 struct FPCGExPathSlideContext final : FPCGExPathProcessorContext
@@ -119,7 +118,7 @@ namespace PCGExPathSlide
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 		virtual void OnPointsProcessingComplete() override;
-		
+
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 	};

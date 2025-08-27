@@ -795,7 +795,7 @@ extern template void ReorderValueRange<_TYPE>(TPCGValueRange<_TYPE>& InRange, co
 
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	void ReorderPointArrayData(UPCGBasePointData* InData, const TArray<int32>& InOrder);
 

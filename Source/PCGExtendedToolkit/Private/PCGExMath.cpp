@@ -230,7 +230,7 @@ namespace PCGExMath
 		Vector[2] = Temp[C];
 	}
 
-	void Swizzle(FVector& Vector, const int32(& Order)[3])
+	void Swizzle(FVector& Vector, const int32 (&Order)[3])
 	{
 		FVector Temp = Vector;
 		Vector[0] = Temp[Order[0]];

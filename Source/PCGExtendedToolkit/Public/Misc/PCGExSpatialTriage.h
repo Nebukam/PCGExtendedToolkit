@@ -34,7 +34,7 @@ public:
 #endif
 
 	virtual bool HasDynamicPins() const override { return true; }
-	
+
 protected:
 	virtual bool IsInputless() const override { return true; }
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

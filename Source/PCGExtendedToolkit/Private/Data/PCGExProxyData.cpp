@@ -420,7 +420,7 @@ template class PCGEXTENDEDTOOLKIT_API TPointExtraPropertyProxy<_REALTYPE, _TYPE,
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \

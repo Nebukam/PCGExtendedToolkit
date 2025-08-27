@@ -235,7 +235,7 @@ namespace PCGExPathInclusion
 					const PCGExOctree::FItem& Item)
 					{
 						if (bIgnoreSelf && InParentData != nullptr) { if (InParentData == *(Datas->GetData() + Item.Index)) { return; } }
-						
+
 						if ((*(Paths->GetData() + Item.Index))->IsInsideProjection(WorldPosition))
 						{
 							InclusionCount++;
@@ -263,7 +263,7 @@ namespace PCGExPathInclusion
 					[&](const PCGExOctree::FItem& Item)
 					{
 						if (bIgnoreSelf && InParentData != nullptr) { if (InParentData == *(Datas->GetData() + Item.Index)) { return; } }
-						
+
 						bool bLocalIsInside = false;
 						const FTransform Closest = (*(Paths->GetData() + Item.Index))->GetClosestTransform(WorldPosition, bLocalIsInside, bScaleTolerance);
 						InclusionCount += bLocalIsInside;
@@ -285,7 +285,7 @@ namespace PCGExPathInclusion
 					const PCGExOctree::FItem& Item)
 					{
 						if (bIgnoreSelf && InParentData != nullptr) { if (InParentData == *(Datas->GetData() + Item.Index)) { return; } }
-						
+
 						bool bLocalIsInside = false;
 						const FTransform Closest = (*(Paths->GetData() + Item.Index))->GetClosestTransform(WorldPosition, bLocalIsInside, bScaleTolerance);
 						InclusionCount += bLocalIsInside;

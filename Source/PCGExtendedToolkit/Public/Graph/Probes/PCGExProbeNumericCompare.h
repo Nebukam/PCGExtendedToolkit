@@ -38,7 +38,7 @@ struct FPCGExProbeConfigNumericCompare : public FPCGExProbeConfigBase
 	int32 MaxConnectionsConstant = 1;
 
 	PCGEX_SETTING_VALUE_GET(MaxConnections, int32, MaxConnectionsInput, MaxConnectionsAttribute, MaxConnectionsConstant)
-	
+
 
 	/** Attribute to compare */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

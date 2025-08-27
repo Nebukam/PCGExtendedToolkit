@@ -129,7 +129,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FPCGObjectPropertyOverrideDescription> PropertyOverrideDescriptions;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	TSoftObjectPtr<AActor> TargetActor;
 
@@ -150,7 +150,6 @@ struct FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
 	FPCGExTangentsDetails Tangents;
 
 	TObjectPtr<UPCGExMeshCollection> MainCollection;
-	
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -225,7 +224,7 @@ namespace PCGExPathSplineMesh
 
 		void CreateComponents();
 		void InitComponentsScope(const PCGExMT::FScope& Scope);
-		
+
 		virtual void CompleteWork() override;
 
 		virtual void Output() override;

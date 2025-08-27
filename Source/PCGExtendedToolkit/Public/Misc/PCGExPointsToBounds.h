@@ -120,7 +120,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Axis Order", EditCondition="bOutputOrientedBoundingBox", EditConditionHides))
 	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::XYZ;
-	
+
 	/** Overlap overlap test mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;

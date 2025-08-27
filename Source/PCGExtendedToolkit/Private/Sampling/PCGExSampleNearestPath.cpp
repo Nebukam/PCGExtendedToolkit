@@ -473,7 +473,7 @@ namespace PCGExSampleNearestPath
 					[&](const PCGExOctree::FItem& Target)
 					{
 						if (!Context->Paths.IsValidIndex(Target.Index)) { return; } // TODO : Look into why there's a discrepency between paths & targets
-						
+
 						const TSharedPtr<PCGExPaths::FPolyPath> Path = Context->Paths[Target.Index];
 						float Lerp = 0;
 						const int32 EdgeIndex = Path->GetClosestEdge(Origin, Lerp);
@@ -489,7 +489,7 @@ namespace PCGExSampleNearestPath
 					[&](const PCGExOctree::FItem& Target)
 					{
 						if (!Context->Paths.IsValidIndex(Target.Index)) { return; } // TODO : Look into why there's a discrepency between paths & targets
-						
+
 						const TSharedPtr<PCGExPaths::FPolyPath>& Path = Context->Paths[Target.Index];
 						double Time = 0;
 

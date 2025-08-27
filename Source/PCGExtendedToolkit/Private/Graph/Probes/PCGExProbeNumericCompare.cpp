@@ -15,7 +15,7 @@ bool FPCGExProbeNumericCompare::PrepareForPoints(FPCGExContext* InContext, const
 
 	MaxConnections = Config.GetValueSettingMaxConnections();
 	if (!MaxConnections->Init(PrimaryDataFacade)) { return false; }
-	
+
 	ValuesBuffer = PrimaryDataFacade->GetBroadcaster<double>(Config.Attribute, true);
 
 	if (!ValuesBuffer)
@@ -37,7 +37,7 @@ void FPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FTran
 	const double R = GetSearchRadius(Index);
 
 	if (MaxIterations <= 0) { return; }
-	
+
 	TSet<FInt32Vector> LocalCoincidence;
 	int32 Additions = 0;
 

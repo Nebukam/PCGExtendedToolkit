@@ -132,10 +132,10 @@ namespace PCGExData
 				if (IsValid(In))
 				{
 					PCGExHelpers::InitEmptyNativeProperties(In, Out);
-					
+
 					FPCGInitializeFromDataParams InitializeFromDataParams(In);
 					InitializeFromDataParams.bInheritSpatialData = false;
-					Out->InitializeFromDataWithParams(InitializeFromDataParams);					
+					Out->InitializeFromDataWithParams(InitializeFromDataParams);
 				}
 
 				return true;
