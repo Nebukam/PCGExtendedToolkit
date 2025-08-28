@@ -544,7 +544,7 @@ namespace PCGExStaging
 			EPCGPointNativeProperties::Transform |
 			EPCGPointNativeProperties::Seed);
 
-#define PCGEX_OUTPUT_INIT_LOCAL(_NAME, _TYPE, _DEFAULT_VALUE) if(bWrite##_NAME){ _NAME##Writer = SocketFacade->GetWritable<_TYPE>(Details->_NAME##AttributeName, _DEFAULT_VALUE, true, PCGExData::EBufferInit::Inherit); }
+#define PCGEX_OUTPUT_INIT_LOCAL(_NAME, _TYPE, _DEFAULT_VALUE) if(Details->bWrite##_NAME){ _NAME##Writer = SocketFacade->GetWritable<_TYPE>(Details->_NAME##AttributeName, _DEFAULT_VALUE, true, PCGExData::EBufferInit::Inherit); }
 		PCGEX_FOREACH_FIELD_SAMPLESOCKETS(PCGEX_OUTPUT_INIT_LOCAL)
 #undef PCGEX_OUTPUT_INIT_LOCAL
 

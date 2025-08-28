@@ -155,7 +155,6 @@ MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 		TArray<int32> Mapping;
 		TArray<int32> StartIndices;
 
-		PCGEX_FOREACH_FIELD_SAMPLESOCKETS(PCGEX_OUTPUT_DECL_TOGGLE)
 		PCGEX_FOREACH_FIELD_SAMPLESOCKETS(PCGEX_OUTPUT_DECL)
 
 	public:
