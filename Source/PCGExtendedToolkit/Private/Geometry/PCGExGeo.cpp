@@ -13,7 +13,6 @@
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
-#include "EntitySystem/MovieSceneEntityManager.h"
 
 namespace PCGExGeo
 {
