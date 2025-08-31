@@ -3,8 +3,10 @@
 
 #include "Paths/PCGExExtrudeTensors.h"
 
+#include "PCGExScopedContainers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointFilter.h"
 #include "Graph/PCGExGraph.h"
 #include "Paths/PCGExPathProcessor.h"
 

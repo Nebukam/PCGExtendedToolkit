@@ -8,7 +8,6 @@
 #include "Collections/PCGExMeshCollection.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGSplineStruct.h"
 #include "Graph/Probes/PCGExProbeDirection.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPaths"

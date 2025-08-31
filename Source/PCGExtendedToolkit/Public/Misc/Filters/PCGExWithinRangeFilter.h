@@ -14,6 +14,12 @@
 
 #include "PCGExWithinRangeFilter.generated.h"
 
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
+
 UENUM()
 enum class EPCGExRangeSource : uint8
 {

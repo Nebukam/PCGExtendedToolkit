@@ -152,7 +152,10 @@ namespace PCGExBlend
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return FTransform(WeightedAdd(A.GetRotation(), B.GetRotation(), W), WeightedAdd(A.GetLocation(), B.GetLocation(), W), WeightedAdd(A.GetScale3D(), B.GetScale3D(), W));
+			return FTransform(
+				FQuat::Slerp(A.GetRotation(), B.GetRotation(), W),
+				FMath::Lerp(A.GetLocation(), B.GetLocation(), W),
+				FMath::Lerp(A.GetScale3D(), B.GetScale3D(), W));
 		}
 		else if constexpr (
 			std::is_same_v<T, FString> ||

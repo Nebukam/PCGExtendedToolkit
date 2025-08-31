@@ -13,8 +13,6 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExTimeFilter.h"
 
-#include "Sampling/PCGExSampleNearestSpline.h"
-
 #include "PCGExSplineAlphaFilter.generated.h"
 
 USTRUCT(BlueprintType)
