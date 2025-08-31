@@ -35,7 +35,8 @@ MACRO(Angle, double, 0)\
 MACRO(Time, double, 0)\
 MACRO(NumInside, int32, 0)\
 MACRO(NumSamples, int32, 0)\
-MACRO(ClosedLoop, bool, false)
+MACRO(ClosedLoop, bool, false) \
+MACRO(TotalWeight, double, 0)
 
 class UPCGExFilterFactoryData;
 
@@ -203,6 +204,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
+	/** If enabled, will preserve the original point transform as base for weighting. Otherwise, use transform identity. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
+	bool bWeightFromOriginalTransform = true;
+	
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	bool bUseLocalCurve = false;
@@ -386,6 +391,14 @@ public:
 	/** Name of the 'bool' attribute to write whether a closed spline was sampled or not.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(DisplayName="ClosedLoop", PCG_Overridable, EditCondition="bWriteClosedLoop"))
 	FName ClosedLoopAttributeName = FName("ClosedLoop");
+
+	/** Write the whether the sampled spline is closed or not. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteTotalWeight = false;
+
+	/** Name of the 'double' attribute to write the total weight computed for that point.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(DisplayName="Total Weight", PCG_Overridable, EditCondition="bWriteTotalWeight"))
+	FName TotalWeightAttributeName = FName("TotalWeight");
 
 	/** Write the sampled depth. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))

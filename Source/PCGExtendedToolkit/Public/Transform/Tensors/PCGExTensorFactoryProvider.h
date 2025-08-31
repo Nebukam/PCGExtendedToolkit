@@ -4,11 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExTensor.h"
-
-
-#include "Sampling/PCGExSampleNearestSpline.h"
 
 #include "PCGExTensorFactoryProvider.generated.h"
 

@@ -9,7 +9,6 @@
 #include "Data/PCGExDataFilter.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
-#include "Sampling/PCGExSampleNearestSpline.h"
 #include "Sampling/PCGExSampling.h"
 #include "Transform/PCGExFitting.h"
 

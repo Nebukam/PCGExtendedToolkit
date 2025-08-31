@@ -9,6 +9,7 @@
 #include "PCGExPaths.h"
 
 #include "PCGExPathProcessor.h"
+#include "PCGExSorting.h"
 #include "Data/PCGExDataForward.h"
 
 
@@ -19,6 +20,12 @@
 #include "Transform/Tensors/PCGExTensorHandler.h"
 
 #include "PCGExExtrudeTensors.generated.h"
+
+namespace PCGExMT
+{
+	template <typename T>
+	class TScopedArray;
+}
 
 UENUM()
 enum class EPCGExSelfIntersectionMode : uint8

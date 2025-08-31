@@ -14,12 +14,12 @@
 #include "PCGExOctree.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdge.h"
+#include "Data/PCGSplineStruct.h"
 
 #include "PCGExPaths.generated.h"
 
 struct FPCGExStaticMeshComponentDescriptor;
 struct FPCGExMeshCollectionEntry;
-struct FPCGSplineStruct;
 class UPCGSplineData;
 
 namespace PCGExData

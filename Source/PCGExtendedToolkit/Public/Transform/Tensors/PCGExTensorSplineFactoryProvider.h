@@ -7,8 +7,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExTensorFactoryProvider.h"
 #include "Data/PCGSplineStruct.h"
+#include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 #include "Paths/PCGExPaths.h"
-#include "Sampling/PCGExSampleNearestSpline.h"
 
 #include "PCGExTensorSplineFactoryProvider.generated.h"
 

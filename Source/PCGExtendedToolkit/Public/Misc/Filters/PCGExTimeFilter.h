@@ -11,9 +11,7 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
-
-#include "Sampling/PCGExSampleNearestSpline.h"
-
+#include "PCGExPolyPathFilterFactory.h"
 
 #include "PCGExTimeFilter.generated.h"
 
