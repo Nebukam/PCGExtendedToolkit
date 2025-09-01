@@ -56,6 +56,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Asset", EditCondition="AssetType == EPCGExInputValueType::Constant", EditConditionHides))
 	TSoftObjectPtr<UStaticMesh> StaticMesh;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bReadMaterialFromAttribute = false;
+
+	/** The name of the attribute to write material path to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bReadMaterialFromAttribute"))
+	FName MaterialAttributeName = "MaterialPath";
+
+	/** The index of the slot to set the material to, if found.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Slot", EditCondition="bReadMaterialFromAttribute", EditConditionHides))
+	int32 MaterialSlotConstant = 0;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta = (PCG_Overridable))
 	TSoftObjectPtr<AActor> TargetActor;
 
@@ -159,6 +170,7 @@ struct FPCGExPathSplineMeshSimpleContext final : FPCGExPathProcessorContext
 	friend class FPCGExPathSplineMeshSimpleElement;
 
 	TSharedPtr<PCGEx::TAssetLoader<UStaticMesh>> StaticMeshLoader;
+	TSharedPtr<PCGEx::TAssetLoader<UMaterialInterface>> MaterialLoader;
 
 	TObjectPtr<UStaticMesh> StaticMesh;
 
@@ -206,10 +218,12 @@ namespace PCGExPathSplineMeshSimple
 		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> EndOffset;
 
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathReader;
+		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> MaterialPathReader;
 
 		TArray<USplineMeshComponent*> SplineMeshComponents;
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 		TArray<TObjectPtr<UStaticMesh>> Meshes;
+		TArray<TObjectPtr<UMaterialInterface>> Materials;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
