@@ -3,6 +3,8 @@
 
 #include "Misc/Pickers/PCGExPickerConstantRange.h"
 
+#include "PCGExMath.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreatePickerConstantRange"
 #define PCGEX_NAMESPACE CreatePickerConstantRange
 

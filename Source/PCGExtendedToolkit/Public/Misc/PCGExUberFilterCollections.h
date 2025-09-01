@@ -5,10 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExMath.h"
 
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExPointFilter.h"
 #include "Pickers/PCGExPickerFactoryProvider.h"
 
 

@@ -3,6 +3,8 @@
 
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
+#include "Data/PCGExData.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreatePicker"
 #define PCGEX_NAMESPACE CreatePicker
 

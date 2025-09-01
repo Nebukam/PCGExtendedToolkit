@@ -2,7 +2,10 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/Pickers/PCGExPickerAttributeSet.h"
+
+#include "PCGExMath.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreatePickerConstantSet"
 #define PCGEX_NAMESPACE CreatePickerConstantSet

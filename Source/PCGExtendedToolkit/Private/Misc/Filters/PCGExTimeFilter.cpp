@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExTimeFilter.h"
 
 
+#include "Data/PCGExDataPreloader.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExTimeFilterDefinition"

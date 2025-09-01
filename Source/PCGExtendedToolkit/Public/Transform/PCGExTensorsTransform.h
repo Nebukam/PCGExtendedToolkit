@@ -8,6 +8,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExPointFilter.h"
 
 #include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampling.h"
