@@ -3,6 +3,7 @@
 
 #include "Misc/Pickers/PCGExPickerAttributeSetRanges.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreatePickerConstantSet"
 #define PCGEX_NAMESPACE CreatePickerConstantSet

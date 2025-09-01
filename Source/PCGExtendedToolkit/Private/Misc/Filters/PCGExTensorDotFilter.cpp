@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExTensorDotFilter.h"
 
 
+#include "Data/PCGExDataPreloader.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 #include "Transform/Tensors/PCGExTensorHandler.h"
 

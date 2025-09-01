@@ -4,6 +4,7 @@
 #include "Misc/PCGExCherryPickPoints.h"
 
 
+#include "Data/PCGExData.h"
 #include "Misc/PCGExDiscardByPointCount.h"
 #include "Misc/Pickers/PCGExPicker.h"
 

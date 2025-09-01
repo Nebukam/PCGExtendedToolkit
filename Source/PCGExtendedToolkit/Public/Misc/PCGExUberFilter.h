@@ -8,10 +8,17 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExPointFilter.h"
 #include "Pickers/PCGExPickerFactoryProvider.h"
 
 
 #include "PCGExUberFilter.generated.h"
+
+namespace PCGExData
+{
+	template<typename T>
+	class TBuffer;
+}
 
 UENUM()
 enum class EPCGExUberFilterMode : uint8
