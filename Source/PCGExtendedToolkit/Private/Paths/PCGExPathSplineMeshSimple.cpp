@@ -7,6 +7,7 @@
 #include "Components/SplineMeshComponent.h"
 
 #include "PCGExHelpers.h"
+#include "ShaderCompiler.h"
 #include "Data/PCGExDataTag.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
@@ -72,6 +73,13 @@ bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 			return false;
 		}
 	}
+
+	if (Settings->bReadMaterialFromAttribute)
+	{
+		TArray<FName> Names = {Settings->MaterialAttributeName};
+		Context->MaterialLoader = MakeShared<PCGEx::TAssetLoader<UMaterialInterface>>(Context, Context->MainPoints.ToSharedRef(), Names);
+	}
+
 	return true;
 }
 
@@ -85,7 +93,19 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		if (Context->StaticMesh)
 		{
-			Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+			if (Context->MaterialLoader)
+			{
+				Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+
+				if (!Context->MaterialLoader->Start(Context->GetAsyncManager()))
+				{
+					return Context->CancelExecution(TEXT("Failed to find any material to load."));
+				}
+			}
+			else
+			{
+				Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+			}
 		}
 		else
 		{
@@ -94,6 +114,14 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 			if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
 			{
 				return Context->CancelExecution(TEXT("Failed to find any asset to load."));
+			}
+
+			if (Context->MaterialLoader)
+			{
+				if (!Context->MaterialLoader->Start(Context->GetAsyncManager()))
+				{
+					return Context->CancelExecution(TEXT("Failed to find any material to load."));
+				}
 			}
 
 			return false;
@@ -182,6 +210,16 @@ namespace PCGExPathSplineMeshSimple
 			}
 		}
 
+		if (Settings->bReadMaterialFromAttribute)
+		{
+			MaterialPathReader = PointDataFacade->GetBroadcaster<FSoftObjectPath>(Settings->MaterialAttributeName, true);
+			if (!MaterialPathReader)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("MaterialPath attribute is missing on some inputs.."));
+				return false;
+			}
+		}
+
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 		bUseTags = Settings->TaggingDetails.IsEnabled();
 
@@ -191,7 +229,9 @@ namespace PCGExPathSplineMeshSimple
 		LastIndex = PointDataFacade->GetNum() - 1;
 
 		SplineMeshComponents.Init(nullptr, bClosedLoop ? LastIndex + 1 : LastIndex);
+
 		Meshes.Init(nullptr, SplineMeshComponents.Num());
+		if (MaterialPathReader) { Materials.Init(nullptr, SplineMeshComponents.Num()); }
 		Segments.Init(PCGExPaths::FSplineMeshSegment(), SplineMeshComponents.Num());
 
 		StartParallelLoopForPoints();
@@ -244,7 +284,7 @@ namespace PCGExPathSplineMeshSimple
 				continue;
 			}
 
-			TObjectPtr<UStaticMesh>* SM = AssetPathReader ? Context->StaticMeshLoader->GetAsset(AssetPathReader->Read(Index)) : &Context->StaticMesh;
+			const TObjectPtr<UStaticMesh>* SM = AssetPathReader ? Context->StaticMeshLoader->GetAsset(AssetPathReader->Read(Index)) : &Context->StaticMesh;
 
 			if (!SM)
 			{
@@ -253,6 +293,11 @@ namespace PCGExPathSplineMeshSimple
 			}
 
 			Meshes[Index] = *SM;
+			if (const TObjectPtr<UMaterialInterface>* MI = MaterialPathReader ? Context->MaterialLoader->GetAsset(MaterialPathReader->Read(Index)) : nullptr)
+			{
+				Materials[Index] = *MI;
+			}
+
 			PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
 			//
 
@@ -367,6 +412,14 @@ namespace PCGExPathSplineMeshSimple
 			if (!SplineMeshComponent || !Meshes[Index]) { continue; }
 
 			Segment.ApplySettings(SplineMeshComponent); // Init Component
+
+			if (MaterialPathReader)
+			{
+				int32 SlotIndex = Settings->MaterialSlotConstant;
+
+				if (SlotIndex < 0) { SlotIndex = 0; }
+				if (Materials[Index]) { SplineMeshComponent->SetMaterial(SlotIndex, Materials[Index]); }
+			}
 
 			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
 			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
