@@ -64,7 +64,7 @@ public:
 	FName MaterialAttributeName = "MaterialPath";
 
 	/** The index of the slot to set the material to, if found.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Slot", EditCondition="bReadMaterialFromAttribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Slot", EditCondition="bReadMaterialFromAttribute", EditConditionHides, HideEditConditionToggle))
 	int32 MaterialSlotConstant = 0;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta = (PCG_Overridable))
