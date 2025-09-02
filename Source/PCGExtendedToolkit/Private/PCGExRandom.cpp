@@ -6,6 +6,7 @@
 #include "PCGComponent.h"
 #include "PCGExMath.h"
 #include "PCGSettings.h"
+#include "Helpers/PCGHelpers.h"
 
 namespace PCGExRandom
 {
@@ -60,9 +61,8 @@ namespace PCGExRandom
 	}
 
 	int ComputeSpatialSeed(const FVector& Origin, const FVector& Offset)
-	{
-		return static_cast<int>(PCGExMath::Remap(
-			FMath::PerlinNoise3D(PCGExMath::Tile(Origin * 0.001 + Offset, FVector(-1), FVector(1))),
-			-1, 1, MIN_int32, MAX_int32));
+	{		
+		return PCGHelpers::ComputeSeed(PCGHelpers::ComputeSeedFromPosition(Origin), 
+									   PCGHelpers::ComputeSeedFromPosition(Offset));
 	}
 }
