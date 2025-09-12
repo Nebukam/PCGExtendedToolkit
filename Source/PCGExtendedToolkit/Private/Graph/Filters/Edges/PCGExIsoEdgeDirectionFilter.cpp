@@ -75,7 +75,7 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 		if (!HashComparison.Init(InContext, InEdgeDataFacade)) { return false; }
 	}
 
-	InTransforms = PointDataFacade->Source->GetIn()->GetConstTransformValueRange();
+	InTransforms = InEdgeDataFacade->Source->GetIn()->GetConstTransformValueRange();
 
 	return true;
 }
