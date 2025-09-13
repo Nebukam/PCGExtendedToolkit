@@ -160,16 +160,15 @@ namespace PCGExClusterDiffusion
 					FVector SeedLocation = SeedTransforms[Index].GetLocation();
 					const int32 ClosestIndex = This->Cluster->FindClosestNode(SeedLocation, This->Settings->Seeds.SeedPicking.PickingMethod);
 
-					if (ClosestIndex < 0 ||
+					if (ClosestIndex < 0) { continue; }
+
+					const PCGExCluster::FNode* SeedNode = &Nodes[ClosestIndex];
+					if (!This->Settings->Seeds.SeedPicking.WithinDistance(This->Cluster->GetPos(SeedNode), SeedLocation) ||
 						FPlatformAtomics::InterlockedCompareExchange(&This->Seeded[ClosestIndex], 1, 0) == 1)
 					{
 						continue;
 					}
-
-					const PCGExCluster::FNode* SeedNode = &Nodes[ClosestIndex];
-
-					if (!This->Settings->Seeds.SeedPicking.WithinDistance(This->Cluster->GetPos(SeedNode), SeedLocation)) { continue; }
-
+					
 					TSharedPtr<PCGExFloodFill::FDiffusion> NewDiffusion = MakeShared<PCGExFloodFill::FDiffusion>(This->FillControlsHandler, This->Cluster, SeedNode);
 					NewDiffusion->Index = Index;
 					This->InitialDiffusions->Get(Scope)->Add(NewDiffusion);
@@ -194,7 +193,7 @@ namespace PCGExClusterDiffusion
 
 		if (OngoingDiffusions.IsEmpty())
 		{
-			// TODO : Warn that no diffusion could be initialized
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("A cluster could not initialize any diffusions. This is usually caused when there is more clusters than there is seeds, or all available seeds were better candidates for other clusters."));
 			bIsProcessorValid = false;
 			return;
 		}
@@ -288,6 +287,13 @@ namespace PCGExClusterDiffusion
 
 	void FProcessor::CompleteWork()
 	{
+		if (Diffusions.IsEmpty())
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("No valid diffusions."));
+			bIsProcessorValid = false;
+			return;
+		}
+
 		// Proceed to blending
 		// Note: There is an important probability of collision for nodes with influences > 1
 
