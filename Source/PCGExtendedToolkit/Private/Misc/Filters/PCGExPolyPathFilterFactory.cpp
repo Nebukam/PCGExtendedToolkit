@@ -73,7 +73,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 			if (PolyPaths.IsEmpty())
 			{
 				PrepResult = PCGExFactories::EPreparationResult::MissingData;
-				if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, SharedContext.Get(), FTEXT("No splines (no input matches criteria or empty dataset)")); }
+				if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, SharedContext.Get(), FTEXT("No polypaths to work with (no input matches criteria or empty dataset)")); }
 				return;
 			}
 
@@ -103,11 +103,23 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 			if (const UPCGBasePointData* PointData = Cast<UPCGBasePointData>(Data))
 			{
+				if (PointData->GetNumPoints() < 2)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, SharedContext.Get(), FTEXT("Some targets have less than 2 points and will be ignored."));
+					return;
+				}
+
 				const TSharedPtr<PCGExData::FPointIO> PointIO = MakeShared<PCGExData::FPointIO>(CtxHandle, PointData);
 				Path = MakeShared<PCGExPaths::FPolyPath>(PointIO, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
 			}
 			else if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(Data))
 			{
+				if (SplineData->GetNumSegments() < 1)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, SharedContext.Get(), FTEXT("Some targets splines are invalid (less than one segment)."));
+					return;
+				}
+
 				Path = MakeShared<PCGExPaths::FPolyPath>(SplineData, LocalFidelity, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
 			}
 			else
