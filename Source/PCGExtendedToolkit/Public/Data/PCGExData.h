@@ -86,6 +86,15 @@ namespace PCGExData
 		void Disable() { bIsEnabled.store(false, std::memory_order_release); }
 		void Enable() { bIsEnabled.store(true, std::memory_order_release); }
 
+		// Unsafe read value hash from input
+		virtual uint32 ReadValueHash(const int32 Index) = 0;
+
+		// Unsafe read value hash from output
+		virtual uint32 GetValueHash(const int32 Index) = 0;
+		
+		// Unsafe read value hash from output
+		virtual int32 GetNumValues(const EIOSide InSide = EIOSide::In) = 0;
+
 		const FPCGMetadataAttributeBase* InAttribute = nullptr;
 		FPCGMetadataAttributeBase* OutAttribute = nullptr;
 
@@ -153,6 +162,12 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		// Unsafe read from output
 		virtual const T& GetValue(const int32 Index) = 0;
 
+		// Unsafe read value hash from input
+		virtual uint32 ReadValueHash(const int32 Index) override;
+
+		// Unsafe read value hash from output
+		virtual uint32 GetValueHash(const int32 Index) override;
+
 		// Unsafe set value in output
 		virtual void SetValue(const int32 Index, const T& Value) = 0;
 
@@ -197,6 +212,8 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 		TSharedPtr<TArray<T>> GetInValues();
 		TSharedPtr<TArray<T>> GetOutValues();
+		
+		virtual int32 GetNumValues(const EIOSide InSide) override;
 
 		virtual bool IsWritable() override;
 		virtual bool IsReadable() override;
@@ -239,6 +256,8 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		T OutValue = T{};
 
 	public:
+		virtual int32 GetNumValues(const EIOSide InSide) override;
+		
 		virtual bool EnsureReadable() override;
 
 		TSingleValueBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier);
@@ -338,6 +357,8 @@ extern template class TSingleValueBuffer<_TYPE>;
 		TSharedPtr<TBuffer<T>> GetReadable(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In, const bool bSupportScoped = false);
 
 		TSharedPtr<IBuffer> GetReadable(const PCGEx::FAttributeIdentity& Identity, const EIOSide InSide = EIOSide::In, const bool bSupportScoped = false);
+
+		TSharedPtr<IBuffer> GetDefaultReadable(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide = EIOSide::In, const bool bSupportScoped = false);
 
 #pragma endregion
 

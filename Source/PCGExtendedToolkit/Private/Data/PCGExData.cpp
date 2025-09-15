@@ -11,8 +11,10 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/PCGExValueHash.h"
 #include "Geometry/PCGExGeoPointBox.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "Sampling/MeshBaseBaker.h"
 
 namespace PCGExData
 {
@@ -82,6 +84,12 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	FPCGMetadataAttribute<T>* TBuffer<T>::GetTypedOutAttribute() const { return TypedOutAttribute; }
 
 	template <typename T>
+	uint32 TBuffer<T>::ReadValueHash(const int32 Index) { return PCGExBlend::ValueHash(Read(Index)); }
+
+	template <typename T>
+	uint32 TBuffer<T>::GetValueHash(const int32 Index) { return PCGExBlend::ValueHash(GetValue(Index)); }
+
+	template <typename T>
 	void TBuffer<T>::DumpValues(TArray<T>& OutValues) const { for (int i = 0; i < OutValues.Num(); i++) { OutValues[i] = Read(i); } }
 
 	template <typename T>
@@ -100,6 +108,19 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 
 	template <typename T>
 	TSharedPtr<TArray<T>> TArrayBuffer<T>::GetOutValues() { return OutValues; }
+
+	template <typename T>
+	int32 TArrayBuffer<T>::GetNumValues(const EIOSide InSide)
+	{
+		if (InSide == EIOSide::In)
+		{
+			return InValues ? InValues->Num() : -1;
+		}
+		else
+		{
+			return OutValues ? OutValues->Num() : -1;
+		}
+	}
 
 	template <typename T>
 	bool TArrayBuffer<T>::IsWritable() { return OutValues ? true : false; }
@@ -387,6 +408,12 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		InValues.Reset();
 		OutValues.Reset();
 		InternalBroadcaster.Reset();
+	}
+
+	template <typename T>
+	int32 TSingleValueBuffer<T>::GetNumValues(const EIOSide InSide)
+	{
+		return 1;
 	}
 
 	template <typename T>
@@ -853,6 +880,23 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 			{
 				using T = decltype(DummyValue);
 				Buffer = GetReadable<T>(Identity.Identifier, InSide, bSupportScoped);
+			});
+
+		return Buffer;
+	}
+
+	TSharedPtr<IBuffer> FFacade::GetDefaultReadable(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide, const bool bSupportScoped)
+	{
+		TSharedPtr<IBuffer> Buffer = nullptr;
+		const FPCGMetadataAttributeBase* RawAttribute = Source->FindConstAttribute(InIdentifier, InSide);
+
+		if (!RawAttribute) { return nullptr; }
+
+		PCGEx::ExecuteWithRightType(
+			RawAttribute->GetTypeId(), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				Buffer = GetReadable<T>(InIdentifier, InSide, bSupportScoped);
 			});
 
 		return Buffer;
