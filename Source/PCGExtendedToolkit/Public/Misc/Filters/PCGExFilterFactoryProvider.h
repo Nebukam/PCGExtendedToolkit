@@ -27,6 +27,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterProviderSettings : public UPCGExFactory
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExPointFilterDataTypeInfo)
+	
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
