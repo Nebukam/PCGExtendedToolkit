@@ -11,7 +11,7 @@
 
 #include "PCGExModularPartitionByValues.generated.h"
 
-USTRUCT(DisplayName="PCGEx | Partition Rule")
+USTRUCT(PCG_DataTypeDisplayName="PCGEx | Partition Rule")
 struct FPCGExPartitionDataTypeInfo : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
