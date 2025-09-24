@@ -110,7 +110,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTextureParamConfig
 	void Init();
 };
 
-USTRUCT(PCG_DataTypeDisplayName="PCGEx | Tex Param")
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Tex Param")
 struct FPCGExTexParamDataTypeInfo : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

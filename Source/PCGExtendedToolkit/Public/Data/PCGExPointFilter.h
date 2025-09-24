@@ -73,7 +73,7 @@ namespace PCGExFilters
 	};
 }
 
-USTRUCT(PCG_DataTypeDisplayName="PCGEx | Filter")
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter")
 struct FPCGExPointFilterDataTypeInfo : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
@@ -291,7 +291,7 @@ namespace PCGExPointFilter
 	}
 }
 
-USTRUCT(PCG_DataTypeDisplayName="PCGEx | Filter (Data)")
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter (Data)")
 struct FPCGExCollectionFilterDataTypeInfo : public FPCGExPointFilterDataTypeInfo
 {
 	GENERATED_BODY()

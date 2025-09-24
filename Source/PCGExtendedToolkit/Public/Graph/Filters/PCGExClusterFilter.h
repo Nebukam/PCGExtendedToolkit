@@ -28,7 +28,7 @@ namespace PCGExPointFilter
 
 #pragma region Cluster Filter
 
-USTRUCT(PCG_DataTypeDisplayName="PCGEx | Filter (Cluster)")
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter (Cluster)")
 struct FPCGExClusterFilterDataTypeInfo : public FPCGExPointFilterDataTypeInfo
 {
 	GENERATED_BODY()
@@ -62,7 +62,7 @@ protected:
 
 #pragma region Vtx/Node Filter
 
-USTRUCT(PCG_DataTypeDisplayName="PCGEx | Filter (Cluster Vtx)")
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter (Cluster Vtx)")
 struct FPCGExVtxFilterDataTypeInfo : public FPCGExClusterFilterDataTypeInfo
 {
 	GENERATED_BODY()
@@ -96,7 +96,7 @@ protected:
 
 #pragma region Edge Filter
 
-USTRUCT(PCG_DataTypeDisplayName="PCGEx | Filter (Cluster Edges)")
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter (Cluster Edges)")
 struct FPCGExEdgeFilterDataTypeInfo : public FPCGExClusterFilterDataTypeInfo
 {
 	GENERATED_BODY()
