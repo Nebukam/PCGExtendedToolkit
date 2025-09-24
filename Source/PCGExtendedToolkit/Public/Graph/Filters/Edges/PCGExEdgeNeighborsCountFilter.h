@@ -103,7 +103,7 @@ namespace PCGExEdgeNeighborsCount
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/neighbors-count"))
-class UPCGExEdgeNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExEdgeNeighborsCountFilterProviderSettings : public UPCGExEdgeFilterProviderSettings
 {
 	GENERATED_BODY()
 

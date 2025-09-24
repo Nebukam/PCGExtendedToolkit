@@ -117,7 +117,7 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-vtx-nodes/edge-direction"))
-class UPCGExNodeEdgeDirectionFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExNodeEdgeDirectionFilterProviderSettings : public UPCGExVtxFilterProviderSettings
 {
 	GENERATED_BODY()
 

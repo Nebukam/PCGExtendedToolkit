@@ -30,7 +30,7 @@ UPCGExFactoryData* UPCGExCreateTensor##_TENSOR##Settings::CreateFactory(FPCGExCo
 
 class PCGExTensorOperation;
 
-USTRUCT()
+USTRUCT(DisplayName="PCGEx | Tensor")
 struct FPCGExTensorDataTypeInfo : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

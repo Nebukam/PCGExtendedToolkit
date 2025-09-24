@@ -74,7 +74,7 @@ namespace PCGExFactories
 }
 
 
-USTRUCT()
+USTRUCT(DisplayName="PCGEx Subnode")
 struct FPCGExFactoryDataTypeInfo : public FPCGDataTypeInfo
 {
 	GENERATED_BODY()

@@ -193,7 +193,7 @@ protected:
 	TSharedPtr<PCGExDataBlending::FProxyDataBlender> Blender;
 };
 
-USTRUCT()
+USTRUCT(DisplayName="PCGEx | Blend Op")
 struct FPCGExBlendOpDataTypeInfo : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

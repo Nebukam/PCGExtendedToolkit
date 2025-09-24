@@ -82,7 +82,7 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-vtx-nodes/edge-angle"))
-class UPCGExNodeEdgeAngleFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExNodeEdgeAngleFilterProviderSettings : public UPCGExVtxFilterProviderSettings
 {
 	GENERATED_BODY()
 

@@ -95,7 +95,7 @@ namespace PCGExEdgeEndpointsCheck
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/endpoints-check"))
-class UPCGExEdgeEndpointsCheckFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExEdgeEndpointsCheckFilterProviderSettings : public UPCGExEdgeFilterProviderSettings
 {
 	GENERATED_BODY()
 

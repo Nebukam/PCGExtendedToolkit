@@ -21,7 +21,7 @@ TSharedPtr<FPCGExProbeOperation> UPCGExProbeFactory##_NAME::CreateOperation(FPCG
 
 class FPCGExProbeOperation;
 
-USTRUCT()
+USTRUCT(DisplayName="PCGEx | Probe")
 struct FPCGExProbeDataTypeInfo : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

@@ -86,7 +86,10 @@ UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Fil
 class UPCGExTagCheckFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
-
+	
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExCollectionFilterDataTypeInfo)
+	
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

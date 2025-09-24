@@ -98,6 +98,9 @@ class UPCGExAttributeCheckFilterProviderSettings : public UPCGExFilterProviderSe
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExCollectionFilterDataTypeInfo)
+	
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

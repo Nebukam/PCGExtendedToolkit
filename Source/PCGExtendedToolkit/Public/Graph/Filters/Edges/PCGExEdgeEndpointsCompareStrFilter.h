@@ -77,7 +77,7 @@ namespace PCGExEdgeEndpointsCompareStr
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/endpoints-compare-string"))
-class UPCGExEdgeEndpointsCompareStrFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExEdgeEndpointsCompareStrFilterProviderSettings : public UPCGExEdgeFilterProviderSettings
 {
 	GENERATED_BODY()
 

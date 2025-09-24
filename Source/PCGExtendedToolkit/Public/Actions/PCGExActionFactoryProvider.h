@@ -68,7 +68,7 @@ protected:
 	TSharedPtr<PCGExPointFilter::FManager> FilterManager;
 };
 
-USTRUCT()
+USTRUCT(DisplayName="PCGEx | Action")
 struct FPCGExActionDataTypeInfo : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

@@ -210,8 +210,10 @@ void FPCGExtendedToolkitEditorModule::RegisterPinColorAndIcons()
 	MACRO(FPCGExTensorDataTypeInfo, Default) \
 	MACRO(FPCGExSortRuleDataTypeInfo, Default) \
 	MACRO(FPCGExPartitionDataTypeInfo, Default) 
+
+	//, _ICON
 	
-#define PCGEX_REGISTER_PIN_AND_COLOR(_TYPE_STRUCT, _COLOR, _ICON) \
+#define PCGEX_REGISTER_PIN_AND_COLOR(_TYPE_STRUCT, _COLOR) \
 	InRegistry.RegisterPinColorFunction(_TYPE_STRUCT::AsId(), [](const FPCGDataTypeIdentifier&) { return GetDefault<UPCGExGlobalSettings>()->PinColor##_COLOR; });
 
 
