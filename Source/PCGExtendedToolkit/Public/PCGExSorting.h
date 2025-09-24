@@ -93,6 +93,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionSortingDetails
 	void Sort(const FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const;
 };
 
+USTRUCT()
+struct FPCGExSortRuleDataTypeInfo : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
 
 /**
  * 
@@ -103,6 +109,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSortingRule : public UPCGExFactoryData
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExSortRuleDataTypeInfo)
+	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RuleSort; }
 
 	int32 Priority;

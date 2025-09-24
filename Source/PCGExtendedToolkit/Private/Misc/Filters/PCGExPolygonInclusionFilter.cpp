@@ -11,7 +11,7 @@
 TArray<FPCGPinProperties> UDEPRECATED_PCGExPolygonInclusionFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(PCGExPaths::SourcePathsLabel, TEXT("Paths or splines that will be used for testing"), Required, {})
+	PCGEX_PIN_ANY(PCGExPaths::SourcePathsLabel, TEXT("Paths or splines that will be used for testing"), Required)
 	return PinProperties;
 }
 

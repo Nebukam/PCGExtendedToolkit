@@ -9,7 +9,7 @@
 TArray<FPCGPinProperties> UDEPRECATED_PCGExSplineAlphaFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POLYLINES(FName("Splines"), TEXT("Splines will be used for testing"), Required, {})
+	PCGEX_PIN_POLYLINES(FName("Splines"), TEXT("Splines will be used for testing"), Required)
 	return PinProperties;
 }
 

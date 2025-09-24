@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "MaterialTypes.h"
+#include "Materials/MaterialParameters.h"
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
@@ -110,12 +110,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTextureParamConfig
 	void Init();
 };
 
+USTRUCT()
+struct FPCGExTexParamDataTypeInfo : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="sampling/textures/texture-param"))
 class UPCGExTexParamFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExTexParamDataTypeInfo)
+	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::TexParam; }
 
 	FPCGExTextureParamConfig Config;

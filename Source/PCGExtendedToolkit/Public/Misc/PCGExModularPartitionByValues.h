@@ -11,6 +11,13 @@
 
 #include "PCGExModularPartitionByValues.generated.h"
 
+USTRUCT()
+struct FPCGExPartitionDataTypeInfo : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 /**
  * 
  */
@@ -20,6 +27,8 @@ class UPCGExPartitionRule : public UPCGExFactoryData
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExPartitionDataTypeInfo)
+	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RulePartition; }
 	FPCGExPartitonRuleConfig Config;
 };

@@ -3,6 +3,7 @@
 
 #include "Topology/PCGExTopologyEdgesProcessor.h"
 
+#include "Graph/Filters/PCGExClusterFilter.h"
 #include "Topology/PCGExTopology.h"
 
 #define LOCTEXT_NAMESPACE "TopologyProcessor"
@@ -14,10 +15,10 @@ PCGExData::EIOInit UPCGExTopologyEdgesProcessorSettings::GetEdgeOutputInitMode()
 TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExTopology::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal, {})
+	PCGEX_PIN_POINT(PCGExTopology::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal)
 	if (SupportsEdgeConstraints())
 	{
-		PCGEX_PIN_FACTORIES(PCGExTopology::SourceEdgeConstrainsFiltersLabel, "Constrained edges filters.", Normal, {})
+		PCGEX_PIN_FACTORIES(PCGExTopology::SourceEdgeConstrainsFiltersLabel, "Constrained edges filters.", Normal, FPCGExEdgeFilterDataTypeInfo)
 	}
 	return PinProperties;
 }
@@ -27,7 +28,7 @@ TArray<FPCGPinProperties> UPCGExTopologyEdgesProcessorSettings::OutputPinPropert
 	if (OutputMode == EPCGExTopologyOutputMode::Legacy) { return Super::OutputPinProperties(); }
 
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_MESH(PCGExTopology::OutputMeshLabel, "PCG Dynamic Mesh", Normal, {})
+	PCGEX_PIN_MESH(PCGExTopology::OutputMeshLabel, "PCG Dynamic Mesh", Normal)
 	return PinProperties;
 }
 

@@ -34,10 +34,10 @@ MACRO(IsValid, bool, false)
 TArray<FPCGPinProperties> UPCGExAttributeStatsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExAttributeStats::OutputAttributeStats, "Per-attribute stats, one row per input dataset.", Required, {})
+	PCGEX_PIN_PARAMS(PCGExAttributeStats::OutputAttributeStats, "Per-attribute stats, one row per input dataset.", Required)
 	if (bOutputPerUniqueValuesStats)
 	{
-		PCGEX_PIN_PARAMS(PCGExAttributeStats::OutputAttributeUniqueValues, "Per-dataset, per-attribute unique values.", Normal, {})
+		PCGEX_PIN_PARAMS(PCGExAttributeStats::OutputAttributeUniqueValues, "Per-dataset, per-attribute unique values.", Normal)
 	}
 	return PinProperties;
 }

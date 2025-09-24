@@ -14,6 +14,13 @@
 #define LOCTEXT_NAMESPACE "PCGExFactoryProvider"
 #define PCGEX_NAMESPACE PCGExFactoryProvider
 
+PCG_DEFINE_TYPE_INFO(FPCGExFactoryDataTypeInfo, UPCGExFactoryData)
+
+EPCGDataType FPCGExFactoryDataTypeInfo::GetAssociatedLegacyType() const
+{
+	return EPCGDataType::Param;
+}
+
 void UPCGExParamDataBase::OutputConfigToMetadata()
 {
 }
@@ -67,7 +74,7 @@ TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FACTORY(GetMainOutputPin(), GetMainOutputPin().ToString(), Required, {})
+	PCGEX_PIN_FACTORY(GetMainOutputPin(), GetMainOutputPin().ToString(), Required, StaticClass())
 	return PinProperties;
 }
 

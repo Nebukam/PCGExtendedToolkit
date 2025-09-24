@@ -18,8 +18,8 @@ PCGExData::EIOInit UPCGExBatchActionsSettings::GetMainOutputInitMode() const { r
 TArray<FPCGPinProperties> UPCGExBatchActionsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExActions::SourceActionsLabel, "Actions nodes.", Normal, {})
-	PCGEX_PIN_ANY(PCGExActions::SourceDefaultsLabel, "Default values that match attributes when creating new attributes.", Normal, {})
+	PCGEX_PIN_FACTORIES(PCGExActions::SourceActionsLabel, "Actions nodes.", Normal, FPCGExActionDataTypeInfo)
+	PCGEX_PIN_ANY(PCGExActions::SourceDefaultsLabel, "Default values that match attributes when creating new attributes.", Normal)
 	return PinProperties;
 }
 

@@ -7,6 +7,8 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristics"
 #define PCGEX_NAMESPACE CreateHeuristics
 
+PCG_DEFINE_TYPE_INFO(FPCGExHeuristicDataTypeInfo, UPCGExHeuristicsFactoryData)
+
 void FPCGExHeuristicConfigBase::Init()
 {
 	if (!bUseLocalCurve)

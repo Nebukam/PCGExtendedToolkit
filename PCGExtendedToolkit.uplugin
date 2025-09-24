@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
   "Version": 1,
-  "VersionName": "0.69.4",
+  "VersionName": "0.70.0",
   "FriendlyName": "PCGExtendedToolkit",
   "Description": "A rather large toolset that expand on existing PCG capabilities in unique ways.",
   "Category": "PCG",
@@ -11,7 +11,7 @@
   "FabURL": "com.epicgames.launcher://ue/Fab/product/a5061972-6875-4052-a7fd-7c33f6531ec3",
   "SupportURL": "https://discord.gg/mde2vC5gbE",
   "CanContainContent": true,
-  "EngineVersion": "5.6.0",
+  "EngineVersion": "5.7.0",
   "IsBetaVersion": true,
   "IsExperimentalVersion": false,
   "Installed": false,

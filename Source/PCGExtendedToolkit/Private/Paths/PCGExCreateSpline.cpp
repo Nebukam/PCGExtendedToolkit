@@ -24,7 +24,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(CreateSpline)
 TArray<FPCGPinProperties> UPCGExCreateSplineSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POLYLINES(GetMainOutputPin(), "Spline data.", Required, {})
+	PCGEX_PIN_POLYLINES(GetMainOutputPin(), "Spline data.", Required)
 	return PinProperties;
 }
 

@@ -150,12 +150,21 @@ protected:
 	bool bIsValidOperation = true;
 };
 
+USTRUCT()
+struct FPCGExVtxPropertyDataTypeInfo : public FPCGDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class UPCGExVtxPropertyFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExVtxPropertyDataTypeInfo)
+	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::VtxProperty; }
 	virtual TSharedPtr<FPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const;
 };

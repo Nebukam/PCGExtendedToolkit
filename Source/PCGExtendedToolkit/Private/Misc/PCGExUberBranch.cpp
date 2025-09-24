@@ -33,7 +33,7 @@ TArray<FPCGPinProperties> UPCGExUberBranchSettings::InputPinProperties() const
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	for (int i = 0; i < NumBranches; i++)
 	{
-		PCGEX_PIN_FACTORIES(InputLabels[i], "Collection filters. Only support C-Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal, {})
+		PCGEX_PIN_FACTORIES(InputLabels[i], "Collection filters. Only support C-Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal, FPCGExPointFilterDataTypeInfo)
 	}
 	return PinProperties;
 }
@@ -41,11 +41,11 @@ TArray<FPCGPinProperties> UPCGExUberBranchSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExUberBranchSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(GetMainOutputPin(), "Collections that didn't branch in any specific pin", Normal, {})
+	PCGEX_PIN_POINTS(GetMainOutputPin(), "Collections that didn't branch in any specific pin", Normal)
 
 	for (int i = 0; i < NumBranches; i++)
 	{
-		PCGEX_PIN_POINTS(OutputLabels[i], "Collections that passed the matching input filters, if they weren't output to any previous pin.", Normal, {})
+		PCGEX_PIN_POINTS(OutputLabels[i], "Collections that passed the matching input filters, if they weren't output to any previous pin.", Normal)
 	}
 
 	return PinProperties;

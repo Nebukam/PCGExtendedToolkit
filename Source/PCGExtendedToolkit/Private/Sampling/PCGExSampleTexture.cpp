@@ -20,8 +20,8 @@ UPCGExSampleTextureSettings::UPCGExSampleTextureSettings(const FObjectInitialize
 TArray<FPCGPinProperties> UPCGExSampleTextureSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_TEXTURES(PCGExTexture::SourceTextureDataLabel, "Texture objects referenced by input points.", Required, {})
-	PCGEX_PIN_FACTORIES(PCGExTexture::SourceTexLabel, "Texture params to extract from reference materials.", Required, {})
+	PCGEX_PIN_TEXTURES(PCGExTexture::SourceTextureDataLabel, "Texture objects referenced by input points.", Required)
+	PCGEX_PIN_FACTORIES(PCGExTexture::SourceTexLabel, "Texture params to extract from reference materials.", Required, FPCGExTexParamDataTypeInfo)
 	return PinProperties;
 }
 

@@ -14,10 +14,10 @@
 TArray<FPCGPinProperties> UPCGExFindClustersDataSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(GetMainInputPin(), "The point data to be processed.", Required, {})
+	PCGEX_PIN_ANY(GetMainInputPin(), "The point data to be processed.", Required)
 	if (SearchMode != EPCGExClusterDataSearchMode::All)
 	{
-		PCGEX_PIN_POINT(GetSearchOutputPin(), "The search data to match against.", Required, {})
+		PCGEX_PIN_POINT(GetSearchOutputPin(), "The search data to match against.", Required)
 	}
 	return PinProperties;
 }
@@ -25,8 +25,8 @@ TArray<FPCGPinProperties> UPCGExFindClustersDataSettings::InputPinProperties() c
 TArray<FPCGPinProperties> UPCGExFindClustersDataSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
-	PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded data.", Normal, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
+	PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded data.", Normal)
 	return PinProperties;
 }
 

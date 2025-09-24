@@ -14,6 +14,8 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTexParam"
 #define PCGEX_NAMESPACE PCGExCreateTexParam
 
+PCG_DEFINE_TYPE_INFO(FPCGExTexParamDataTypeInfo, UPCGExTexParamFactoryData)
+
 void FPCGExTextureParamConfig::Init()
 {
 	int32 NumChannels = 0;

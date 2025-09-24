@@ -223,7 +223,7 @@ TArray<FPCGPinProperties> UPCGExPackActorDataSettings::InputPinProperties() cons
 TArray<FPCGPinProperties> UPCGExPackActorDataSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_PARAMS(TEXT("AttributeSet"), "Same as point, but contains only added data.", Advanced, {})
+	PCGEX_PIN_PARAMS(TEXT("AttributeSet"), "Same as point, but contains only added data.", Advanced)
 	return PinProperties;
 }
 

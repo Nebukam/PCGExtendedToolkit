@@ -13,6 +13,8 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateAttributeBlend"
 #define PCGEX_NAMESPACE CreateAttributeBlend
 
+PCG_DEFINE_TYPE_INFO(FPCGExBlendOpDataTypeInfo, UPCGExBlendOpFactory)
+
 void FPCGExAttributeBlendWeight::Init()
 {
 	if (!bUseLocalCurve) { LocalWeightCurve.ExternalCurve = WeightCurve.Get(); }
@@ -381,11 +383,11 @@ TArray<FPCGPinProperties> UPCGExBlendOpFactoryProviderSettings::InputPinProperti
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
+	PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
 
 	if (Config.bUseOperandB)
 	{
-		PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
+		PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
 	}
 
 	return PinProperties;

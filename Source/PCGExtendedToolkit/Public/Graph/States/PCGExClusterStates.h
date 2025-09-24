@@ -29,6 +29,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClusterStateConfigBase : public FPCGExStateC
 	}
 };
 
+USTRUCT()
+struct FPCGExClusterStateDataTypeInfo : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 /**
  * 
  */
@@ -38,6 +45,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryData : public UPCGExCluste
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExClusterStateDataTypeInfo)
+	
 	UPROPERTY()
 	FPCGExClusterStateConfigBase Config;
 

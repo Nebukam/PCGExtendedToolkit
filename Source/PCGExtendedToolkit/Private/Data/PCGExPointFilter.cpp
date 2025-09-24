@@ -7,6 +7,9 @@
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 
+PCG_DEFINE_TYPE_INFO(FPCGExPointFilterDataTypeInfo, UPCGExFilterFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExCollectionFilterDataTypeInfo, UPCGExFilterCollectionFactoryData)
+
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExFilterFactoryData::CreateFilter() const
 {
 	return nullptr;

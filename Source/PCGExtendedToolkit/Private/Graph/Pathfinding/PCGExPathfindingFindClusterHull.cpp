@@ -17,7 +17,7 @@ TArray<FPCGPinProperties> UPCGExFindClusterHullSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExFindClusterHullSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Hulls", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Hulls", Required)
 	return PinProperties;
 }
 

@@ -15,14 +15,14 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(SocketStaging)
 TArray<FPCGPinProperties> UPCGExSocketStagingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAM(PCGExSocketStaging::SourceStagingMap, "Collection map information from, or merged from, Staging nodes.", Required, {})
+	PCGEX_PIN_PARAM(PCGExSocketStaging::SourceStagingMap, "Collection map information from, or merged from, Staging nodes.", Required)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExSocketStagingSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExStaging::OutputSocketLabel, "Socket points.", Normal, {})
+	PCGEX_PIN_POINTS(PCGExStaging::OutputSocketLabel, "Socket points.", Normal)
 	return PinProperties;
 }
 

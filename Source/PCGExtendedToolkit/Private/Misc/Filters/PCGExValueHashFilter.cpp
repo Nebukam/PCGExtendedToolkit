@@ -224,7 +224,7 @@ bool PCGExPointFilter::FValueHashFilter::Test(const TSharedPtr<PCGExData::FPoint
 TArray<FPCGPinProperties> UPCGExValueHashFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(FName("Sets"), "Data from value set will be extracted", Required, {})
+	PCGEX_PIN_ANY(FName("Sets"), "Data from value set will be extracted", Required)
 	return PinProperties;
 }
 

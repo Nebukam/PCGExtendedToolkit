@@ -70,7 +70,7 @@ TArray<FPCGPinProperties> UPCGExWriteIndexSettings::InputPinProperties() const
 {
 	if (!IsInputless()) { return Super::InputPinProperties(); }
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required, {})
+	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required)
 	return PinProperties;
 }
 
@@ -78,7 +78,7 @@ TArray<FPCGPinProperties> UPCGExWriteIndexSettings::OutputPinProperties() const
 {
 	if (!IsInputless()) { return Super::OutputPinProperties(); }
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(GetMainOutputPin(), "Output", Required, {})
+	PCGEX_PIN_ANY(GetMainOutputPin(), "Output", Required)
 	return PinProperties;
 }
 

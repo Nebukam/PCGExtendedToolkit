@@ -12,7 +12,7 @@
 TArray<FPCGPinProperties> UPCGExBestMatchAxisSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (Mode == EPCGExBestMatchAxisTargetMode::ClosestTarget) { PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, TEXT("Target points"), Required, {}) }
+	if (Mode == EPCGExBestMatchAxisTargetMode::ClosestTarget) { PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, TEXT("Target points"), Required) }
 	return PinProperties;
 }
 

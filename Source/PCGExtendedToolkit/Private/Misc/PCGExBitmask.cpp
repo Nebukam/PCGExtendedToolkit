@@ -20,7 +20,7 @@ TArray<FPCGPinProperties> UPCGExBitmaskSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExBitmaskSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(FName("Bitmask"), TEXT("Bitmask."), Required, {})
+	PCGEX_PIN_PARAM(FName("Bitmask"), TEXT("Bitmask."), Required)
 	return PinProperties;
 }
 

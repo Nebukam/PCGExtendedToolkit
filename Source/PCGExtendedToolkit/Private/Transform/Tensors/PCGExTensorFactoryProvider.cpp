@@ -11,6 +11,8 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTensor"
 #define PCGEX_NAMESPACE CreateTensor
 
+PCG_DEFINE_TYPE_INFO(FPCGExTensorDataTypeInfo, UPCGExTensorFactoryData)
+
 TSharedPtr<PCGExTensorOperation> UPCGExTensorFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
 	return nullptr; // Create shape builder operation
@@ -45,7 +47,7 @@ void UPCGExTensorFactoryData::InheritFromOtherTensor(const UPCGExTensorFactoryDa
 TArray<FPCGPinProperties> UPCGExTensorFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORY(PCGExTensor::SourceTensorConfigSourceLabel, "A tensor that already exist which settings will be used to override the settings of this one. This is to streamline re-using params between tensors, or to 'fake' the ability to transform tensors.", Advanced, {})
+	PCGEX_PIN_FACTORY(PCGExTensor::SourceTensorConfigSourceLabel, "A tensor that already exist which settings will be used to override the settings of this one. This is to streamline re-using params between tensors, or to 'fake' the ability to transform tensors.", Advanced, FPCGExTensorDataTypeInfo)
 	return PinProperties;
 }
 
@@ -95,7 +97,7 @@ void UPCGExTensorPointFactoryData::PrepareSinglePoint(const int32 Index) const
 TArray<FPCGPinProperties> UPCGExTensorPointFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExTensor::SourceEffectorsLabel, "Single point collection that represent individual effectors within that tensor", Required, {})
+	PCGEX_PIN_POINT(PCGExTensor::SourceEffectorsLabel, "Single point collection that represent individual effectors within that tensor", Required)
 	return PinProperties;
 }
 

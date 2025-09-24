@@ -16,14 +16,14 @@
 TArray<FPCGPinProperties> UPCGExBitmaskMergeSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAMS(FName("Bitmasks"), TEXT("Bitmask."), Required, {})
+	PCGEX_PIN_PARAMS(FName("Bitmasks"), TEXT("Bitmask."), Required)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExBitmaskMergeSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(FName("Bitmask"), TEXT("Bitmask."), Required, {})
+	PCGEX_PIN_PARAM(FName("Bitmask"), TEXT("Bitmask."), Required)
 	return PinProperties;
 }
 

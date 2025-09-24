@@ -28,19 +28,19 @@ TArray<FPCGPinProperties> UPCGExIterationsSettings::OutputPinProperties() const
 	{
 	default:
 	case EPCGExIterationDataType::Any:
-		PCGEX_PIN_ANY(OutputLabel, TEXT("Iterations."), Required, {})
+		PCGEX_PIN_ANY(OutputLabel, TEXT("Iterations."), Required)
 		break;
 	case EPCGExIterationDataType::Params:
-		PCGEX_PIN_PARAMS(OutputLabel, TEXT("Iterations."), Required, {})
+		PCGEX_PIN_PARAMS(OutputLabel, TEXT("Iterations."), Required)
 		break;
 	case EPCGExIterationDataType::Points:
-		PCGEX_PIN_POINTS(OutputLabel, TEXT("Iterations."), Required, {})
+		PCGEX_PIN_POINTS(OutputLabel, TEXT("Iterations."), Required)
 		break;
 	case EPCGExIterationDataType::Spline:
-		PCGEX_PIN_POLYLINES(OutputLabel, TEXT("Iterations."), Required, {})
+		PCGEX_PIN_POLYLINES(OutputLabel, TEXT("Iterations."), Required)
 		break;
 	case EPCGExIterationDataType::Texture:
-		PCGEX_PIN_TEXTURES(OutputLabel, TEXT("Iterations."), Required, {})
+		PCGEX_PIN_TEXTURES(OutputLabel, TEXT("Iterations."), Required)
 		break;
 	}
 

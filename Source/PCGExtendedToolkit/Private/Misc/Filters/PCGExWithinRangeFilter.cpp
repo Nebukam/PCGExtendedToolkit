@@ -44,8 +44,8 @@ TArray<FPCGPinProperties> UPCGExWithinRangeFilterProviderSettings::InputPinPrope
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	if (Config.Source == EPCGExRangeSource::AttributeSet) { PCGEX_PIN_ANY(FName("Ranges"), "Data to read attribute ranges from", Required, {}) }
-	else { PCGEX_PIN_ANY(FName("Ranges"), "Data to read attribute ranges from", Advanced, {}) }
+	if (Config.Source == EPCGExRangeSource::AttributeSet) { PCGEX_PIN_ANY(FName("Ranges"), "Data to read attribute ranges from", Required) }
+	else { PCGEX_PIN_ANY(FName("Ranges"), "Data to read attribute ranges from", Advanced) }
 
 	return PinProperties;
 }

@@ -54,7 +54,7 @@ void UPCGExBranchOnDataAttributeSettings::PostEditChangeProperty(FPropertyChange
 TArray<FPCGPinProperties> UPCGExBranchOnDataAttributeSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required, {})
+	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required)
 	return PinProperties;
 }
 
@@ -62,7 +62,7 @@ TArray<FPCGPinProperties> UPCGExBranchOnDataAttributeSettings::OutputPinProperti
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	PCGEX_PIN_ANY(GetMainOutputPin(), "Default output -- Any collection that couldn't be dispatched to an output pin will end up here.", Normal, {})
+	PCGEX_PIN_ANY(GetMainOutputPin(), "Default output -- Any collection that couldn't be dispatched to an output pin will end up here.", Normal)
 	for (const FPCGExBranchOnDataPin& OutPin : InternalBranches) { PinProperties.Emplace(OutPin.Label); }
 
 	return PinProperties;

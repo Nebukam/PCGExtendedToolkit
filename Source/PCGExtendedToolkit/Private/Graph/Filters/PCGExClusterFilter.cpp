@@ -7,6 +7,10 @@
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 
+PCG_DEFINE_TYPE_INFO(FPCGExClusterFilterDataTypeInfo, UPCGExClusterFilterFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExVtxFilterDataTypeInfo, UPCGExNodeFilterFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExEdgeFilterDataTypeInfo, UPCGExEdgeFilterFactoryData)
+
 namespace PCGExClusterFilter
 {
 	PCGExFilters::EType IFilter::GetFilterType() const { return PCGExFilters::EType::Node; }

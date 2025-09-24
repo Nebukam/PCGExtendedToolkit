@@ -73,6 +73,13 @@ namespace PCGExFilters
 	};
 }
 
+USTRUCT()
+struct FPCGExPointFilterDataTypeInfo : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 /**
  * 
  */
@@ -84,6 +91,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryData : public UPCGExFactoryData
 	friend UPCGExFilterProviderSettings;
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExPointFilterDataTypeInfo)
+	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
 
 	virtual bool DomainCheck();
@@ -282,6 +291,13 @@ namespace PCGExPointFilter
 	}
 }
 
+USTRUCT()
+struct FPCGExCollectionFilterDataTypeInfo : public FPCGExPointFilterDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 /**
  * 
  */
@@ -291,6 +307,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterCollectionFactoryData : public UPCGExFi
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExCollectionFilterDataTypeInfo)
+	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterCollection; }
 	virtual bool DomainCheck() override;
 	virtual bool SupportsCollectionEvaluation() const override;

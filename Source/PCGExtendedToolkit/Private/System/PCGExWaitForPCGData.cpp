@@ -44,7 +44,7 @@ TArray<FPCGPinProperties> UPCGExWaitForPCGDataSettings::OutputPinProperties() co
 {
 	if (!bOutputRoaming) { return CachedPins; }
 	TArray<FPCGPinProperties> PinProperties = CachedPins;
-	PCGEX_PIN_ANY(RoamingPin, "Roaming data that isn't part of the template output but still exists.", Normal, {})
+	PCGEX_PIN_ANY(RoamingPin, "Roaming data that isn't part of the template output but still exists.", Normal)
 	return PinProperties;
 }
 

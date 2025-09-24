@@ -29,6 +29,13 @@
 	NewOperation->EdgesFilterFactories.Append(EdgesFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
 
+USTRUCT()
+struct FPCGExNeighborSamplerDataTypeInfo : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 namespace PCGExNeighborSample
 {
 	const FName SourceSamplersLabel = TEXT("Samplers");
@@ -136,6 +143,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryData : public UPCGExFac
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExNeighborSamplerDataTypeInfo)
+	
 	UPROPERTY()
 	FPCGExSamplingConfig SamplingConfig;
 

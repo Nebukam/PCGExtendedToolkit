@@ -18,7 +18,7 @@ bool UPCGExBinPackingSettings::GetSortingRules(FPCGExContext* InContext, TArray<
 TArray<FPCGPinProperties> UPCGExBinPackingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGExLayout::SourceBinsLabel, "List of bins to fit input points into. Each input collection is expected to have a matching collection of bins.", Required, {})
+	PCGEX_PIN_POINTS(PCGExLayout::SourceBinsLabel, "List of bins to fit input points into. Each input collection is expected to have a matching collection of bins.", Required)
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, EPCGPinStatus::Normal);
 	return PinProperties;
 }
@@ -26,8 +26,8 @@ TArray<FPCGPinProperties> UPCGExBinPackingSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExBinPackingSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExLayout::OutputBinsLabel, "Input bins, with added statistics.", Required, {})
-	PCGEX_PIN_POINTS(PCGExLayout::OutputDiscardedLabel, "Discarded points, one that could not fit into any bin.", Required, {})
+	PCGEX_PIN_POINTS(PCGExLayout::OutputBinsLabel, "Input bins, with added statistics.", Required)
+	PCGEX_PIN_POINTS(PCGExLayout::OutputDiscardedLabel, "Discarded points, one that could not fit into any bin.", Required)
 	return PinProperties;
 }
 

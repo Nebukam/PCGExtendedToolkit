@@ -7,6 +7,8 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateFillControls"
 #define PCGEX_NAMESPACE CreateFillControls
 
+PCG_DEFINE_TYPE_INFO(FPCGExFillControlsDataTypeInfo, UPCGExFillControlsFactoryData)
+
 void FPCGExFillControlConfigBase::Init()
 {
 }

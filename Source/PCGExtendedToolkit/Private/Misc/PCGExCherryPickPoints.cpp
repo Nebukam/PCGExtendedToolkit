@@ -17,14 +17,14 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(CherryPickPoints)
 TArray<FPCGPinProperties> UPCGExCherryPickPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "Pickers config", Required, {})
+	PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "Pickers config", Required)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExCherryPickPointsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if (bOutputDiscardedPoints) { PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded points", Normal, {}) }
+	if (bOutputDiscardedPoints) { PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded points", Normal) }
 	return PinProperties;
 }
 

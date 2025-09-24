@@ -12,8 +12,8 @@ TArray<FPCGPinProperties> UPCGExSpatialTriageSettings::InputPinProperties() cons
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	PCGEX_PIN_ANY(PCGPinConstants::DefaultInputLabel, "Inputs", Required, {})
-	PCGEX_PIN_SPATIAL(PCGExSpatialTriage::SourceLabelBounds, "Single spatial data whose bounds will be used to do the triage", Required, {})
+	PCGEX_PIN_ANY(PCGPinConstants::DefaultInputLabel, "Inputs", Required)
+	PCGEX_PIN_SPATIAL(PCGExSpatialTriage::SourceLabelBounds, "Single spatial data whose bounds will be used to do the triage", Required)
 
 	return PinProperties;
 }
@@ -22,9 +22,9 @@ TArray<FPCGPinProperties> UPCGExSpatialTriageSettings::OutputPinProperties() con
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	PCGEX_PIN_ANY(PCGExSpatialTriage::OutputLabelInside, "Data fully within bounds and relevant", Normal, {})
-	PCGEX_PIN_ANY(PCGExSpatialTriage::OutputLabelTouching, "Data intersects bounds but not relevant.", Normal, {})
-	PCGEX_PIN_ANY(PCGExSpatialTriage::OutputLabelOutside, "Data neither within nor touching bounds.", Normal, {})
+	PCGEX_PIN_ANY(PCGExSpatialTriage::OutputLabelInside, "Data fully within bounds and relevant", Normal)
+	PCGEX_PIN_ANY(PCGExSpatialTriage::OutputLabelTouching, "Data intersects bounds but not relevant.", Normal)
+	PCGEX_PIN_ANY(PCGExSpatialTriage::OutputLabelOutside, "Data neither within nor touching bounds.", Normal)
 
 	return PinProperties;
 }

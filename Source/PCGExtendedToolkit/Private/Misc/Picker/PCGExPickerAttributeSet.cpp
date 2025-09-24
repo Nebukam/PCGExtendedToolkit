@@ -144,7 +144,7 @@ PCGExFactories::EPreparationResult UPCGExPickerAttributeSetFactory::InitInternal
 TArray<FPCGPinProperties> UPCGExPickerAttributeSetSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(FName("Indices"), "Data to read attribute from", Required, {})
+	PCGEX_PIN_ANY(FName("Indices"), "Data to read attribute from", Required)
 	return PinProperties;
 }
 

@@ -27,7 +27,7 @@ TArray<FPCGPinProperties> UPCGExSampleVtxByIDSettings::InputPinProperties() cons
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGExGraph::SourceVerticesLabel, "The point data set to check against.", Required, {})
+	PCGEX_PIN_POINTS(PCGExGraph::SourceVerticesLabel, "The point data set to check against.", Required)
 	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 
 	return PinProperties;

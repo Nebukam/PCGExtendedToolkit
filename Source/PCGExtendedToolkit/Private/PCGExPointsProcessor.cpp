@@ -44,20 +44,20 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 	{
 		if (!GetIsMainTransactional())
 		{
-			if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputPin(), "The point data to be processed.", Required, {}) }
-			else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required, {}) }
+			if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputPin(), "The point data to be processed.", Required) }
+			else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required) }
 		}
 		else
 		{
-			if (GetMainAcceptMultipleData()) { PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required, {}) }
-			else { PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required, {}) }
+			if (GetMainAcceptMultipleData()) { PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required) }
+			else { PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required) }
 		}
 	}
 
 	if (SupportsPointFilters())
 	{
-		if (RequiresPointFilters()) { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Required, {}) }
-		else { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Normal, {}) }
+		if (RequiresPointFilters()) { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Required, FPCGExPointFilterDataTypeInfo) }
+		else { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Normal, FPCGExPointFilterDataTypeInfo) }
 	}
 
 	return PinProperties;
@@ -67,7 +67,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(GetMainOutputPin(), "The processed input.", Normal, {})
+	PCGEX_PIN_POINTS(GetMainOutputPin(), "The processed input.", Normal)
 	return PinProperties;
 }
 

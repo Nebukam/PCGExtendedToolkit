@@ -72,6 +72,16 @@ namespace PCGExFactories
 	static inline TSet<EType> ClusterOnlyFilters = {EType::FilterEdge, EType::FilterNode, EType::NodeState};
 }
 
+
+USTRUCT()
+struct FPCGExFactoryDataTypeInfo : public FPCGDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+	
+	virtual EPCGDataType GetAssociatedLegacyType() const override;
+};
+
 /**
  * 
  */
@@ -95,6 +105,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFactoryData : public UPCGExParamDataBase
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExFactoryDataTypeInfo)
+
 	UPROPERTY()
 	int32 Priority = 0;
 

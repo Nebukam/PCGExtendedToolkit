@@ -7,12 +7,13 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 namespace PCGExDataBlending
 {
 	void DeclareBlendOpsInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus, EPCGExBlendingInterface Interface)
 	{
-		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceBlendingLabel, EPCGDataType::Param);
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceBlendingLabel, FPCGExBlendOpDataTypeInfo::AsId());
 		PCGEX_PIN_TOOLTIP("Blending configurations, used by Individual (non-monolithic) blending interface.")
 		Pin.PinStatus = Interface == EPCGExBlendingInterface::Monolithic ? EPCGPinStatus::Advanced : InStatus;
 	}

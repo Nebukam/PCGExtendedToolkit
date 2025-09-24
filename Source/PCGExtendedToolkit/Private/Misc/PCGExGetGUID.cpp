@@ -14,7 +14,7 @@
 TArray<FPCGPinProperties> UPCGExGetGUIDSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAMS(FName("GUID"), TEXT("GUID."), Required, {})
+	PCGEX_PIN_PARAMS(FName("GUID"), TEXT("GUID."), Required)
 	return PinProperties;
 }
 

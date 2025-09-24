@@ -153,6 +153,8 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Blending|Attribute Types Defaults|Soft Paths Types", meta=(DisplayName="SoftClassPath"))
 	EPCGExDataBlendingTypeDefault DefaultSoftClassPathBlendMode = EPCGExDataBlendingTypeDefault::Copy;
 
+#pragma region Node Colors
+	
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	bool bToneDownOptionalPins = true;
 
@@ -250,11 +252,20 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorMatch = FLinearColor(0.020020, 1.000000, 0.036055, 1.000000);
-
+	
 	FLinearColor NodeColorFallbackToType = FLinearColor::White;
 
 	FLinearColor WantsColor(FLinearColor InColor) const;
+	
+#pragma endregion
 
+#pragma region Pin Colors
+	
+	UPROPERTY(EditAnywhere, config, Category = "Pin Colors")
+	FLinearColor PinColorDefault = FLinearColor(1.000000, 0.591295, 0.282534, 1.000000);;
+
+#pragma endregion
+	
 	bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip, bool bIsOutPin = false) const;
 
 protected:

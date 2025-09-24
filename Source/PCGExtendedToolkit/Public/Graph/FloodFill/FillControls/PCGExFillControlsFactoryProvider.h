@@ -51,12 +51,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFillControlConfigBase
 	void Init();
 };
 
+USTRUCT()
+struct FPCGExFillControlsDataTypeInfo : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExFillControlsFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExFillControlsDataTypeInfo)
+	
 	FPCGExFillControlConfigBase ConfigBase;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FillControls; }
