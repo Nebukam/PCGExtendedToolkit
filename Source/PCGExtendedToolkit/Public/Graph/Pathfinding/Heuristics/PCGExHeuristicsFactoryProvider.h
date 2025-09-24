@@ -134,6 +134,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryProviderSettings : public UP
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExHeuristicDataTypeInfo)
+	
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

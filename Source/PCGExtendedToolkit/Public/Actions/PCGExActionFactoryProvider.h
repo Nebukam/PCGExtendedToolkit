@@ -115,6 +115,8 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
+	PCGEX_FACTORY_TYPE_ID(FPCGExActionDataTypeInfo)
+	
 public:
 	virtual FName GetMainOutputPin() const override { return PCGExActions::OutputActionLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;

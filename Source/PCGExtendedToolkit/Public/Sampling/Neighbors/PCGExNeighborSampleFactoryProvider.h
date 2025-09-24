@@ -171,6 +171,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleProviderSettings : public UPCGE
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExNeighborSamplerDataTypeInfo)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

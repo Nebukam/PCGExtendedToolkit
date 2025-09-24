@@ -124,6 +124,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSortingRuleProviderSettings : public UPCGExFa
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExSortRuleDataTypeInfo)
+	
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

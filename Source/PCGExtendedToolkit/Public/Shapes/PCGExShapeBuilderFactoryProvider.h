@@ -38,6 +38,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExShapeBuilderFactoryData : public UPCGExFactor
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExShapeDataTypeInfo)
+	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::ShapeBuilder; }
 	virtual TSharedPtr<FPCGExShapeBuilderOperation> CreateOperation(FPCGExContext* InContext) const;
 };
@@ -47,9 +49,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExShapeBuilderFactoryProviderSettings : public 
 {
 	GENERATED_BODY()
 
-public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExShapeDataTypeInfo)
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExShapeDataTypeInfo)
 	
+public:	
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ShapeBuilder, "ShapeBuilder Definition", "Creates a single shape builder node, to be used with a Shape processor node.")

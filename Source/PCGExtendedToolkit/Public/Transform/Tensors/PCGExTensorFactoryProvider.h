@@ -68,6 +68,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTensorFactoryProviderSettings : public UPCGEx
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExTensorDataTypeInfo)
+	
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

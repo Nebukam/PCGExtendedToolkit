@@ -259,6 +259,8 @@ public:
 #endif
 
 protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExBlendOpDataTypeInfo)
+	
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 

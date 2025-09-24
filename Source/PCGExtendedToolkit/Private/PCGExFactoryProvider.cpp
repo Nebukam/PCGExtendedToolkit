@@ -74,7 +74,13 @@ TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FACTORY(GetMainOutputPin(), GetMainOutputPin().ToString(), Required, StaticClass())
+
+	{
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(GetMainOutputPin(), GetFactoryTypeId(), false, false);
+		PCGEX_PIN_TOOLTIP(GetMainOutputPin().ToString())
+		PCGEX_PIN_STATUS(Required)
+	}
+
 	return PinProperties;
 }
 
@@ -100,6 +106,11 @@ bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName&
 		return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, false);
 	}
 	return true;
+}
+
+const FPCGDataTypeBaseId& UPCGExFactoryProviderSettings::GetFactoryTypeId() const
+{
+	return FPCGExFactoryDataTypeInfo::AsId();
 }
 
 

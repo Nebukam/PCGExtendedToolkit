@@ -25,7 +25,7 @@ bool UPCGExUberFilterSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) co
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "A precise selection of point that will be tested, as opposed to all of them.", Normal, FPCGExPickerDataTypeInfo)
+	PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "A precise selection of point that will be tested, as opposed to all of them.", Normal)
 	return PinProperties;
 }
 

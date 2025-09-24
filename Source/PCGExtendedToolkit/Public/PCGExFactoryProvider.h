@@ -17,6 +17,7 @@
 
 #define PCGEX_FACTORY_NAME_PRIORITY FName(FString::Printf(TEXT("(%d) "), Priority) +  GetDisplayName())
 #define PCGEX_FACTORY_NEW_OPERATION(_TYPE) TSharedPtr<FPCGEx##_TYPE> NewOperation = MakeShared<FPCGEx##_TYPE>();
+#define PCGEX_FACTORY_TYPE_ID(_TYPE) virtual const FPCGDataTypeBaseId& GetFactoryTypeId() const{ return _TYPE::AsId(); }
 
 ///
 
@@ -78,7 +79,7 @@ struct FPCGExFactoryDataTypeInfo : public FPCGDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
-	
+
 	virtual EPCGDataType GetAssociatedLegacyType() const override;
 };
 
@@ -157,6 +158,8 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override;
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
 #endif
+
+	virtual const FPCGDataTypeBaseId& GetFactoryTypeId() const;
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
