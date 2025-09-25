@@ -13,7 +13,7 @@
 TArray<FPCGPinProperties> UPCGExSampleNeighborsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExNeighborSample::SourceSamplersLabel, "Neighbor samplers.", Required, FPCGExNeighborSamplerDataTypeInfo)
+	PCGEX_PIN_FACTORIES(PCGExNeighborSample::SourceSamplersLabel, "Neighbor samplers.", Required, FPCGExDataTypeInfoNeighborSampler)
 	return PinProperties;
 }
 

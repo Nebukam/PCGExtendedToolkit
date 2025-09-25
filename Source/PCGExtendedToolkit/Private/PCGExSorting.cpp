@@ -16,7 +16,7 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-PCG_DEFINE_TYPE_INFO(FPCGExSortRuleDataTypeInfo, UPCGExSortingRule)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoSortRule, UPCGExSortingRule)
 
 bool FPCGExCollectionSortingDetails::Init(const FPCGContext* InContext)
 {
@@ -106,7 +106,7 @@ namespace PCGExSorting
 {
 	void DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus)
 	{
-		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceSortingRules, FPCGExSortRuleDataTypeInfo::AsId());
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceSortingRules, FPCGExDataTypeInfoSortRule::AsId());
 		PCGEX_PIN_TOOLTIP("Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.")
 		Pin.PinStatus = InStatus;
 	}

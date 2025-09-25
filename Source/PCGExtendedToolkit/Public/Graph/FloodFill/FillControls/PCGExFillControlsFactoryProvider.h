@@ -52,7 +52,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFillControlConfigBase
 };
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Fill Control")
-struct FPCGExFillControlsDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoFillControl : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -64,7 +64,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFillControlsFactoryData : public UPCGExFactor
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExFillControlsDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFillControl)
 	
 	FPCGExFillControlConfigBase ConfigBase;
 
@@ -81,7 +81,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFillControlsFactoryProviderSettings : public 
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExFillControlsDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFillControl)
 	
 public:
 	//~Begin UPCGSettings

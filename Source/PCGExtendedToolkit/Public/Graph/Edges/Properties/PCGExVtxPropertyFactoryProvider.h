@@ -151,7 +151,7 @@ protected:
 };
 
 USTRUCT()
-struct FPCGExVtxPropertyDataTypeInfo : public FPCGDataTypeInfo
+struct FPCGExDataTypeInfoVtxProperty : public FPCGDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -163,7 +163,7 @@ class UPCGExVtxPropertyFactoryData : public UPCGExFactoryData
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExVtxPropertyDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoVtxProperty)
 	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::VtxProperty; }
 	virtual TSharedPtr<FPCGExVtxPropertyOperation> CreateOperation(FPCGExContext* InContext) const;

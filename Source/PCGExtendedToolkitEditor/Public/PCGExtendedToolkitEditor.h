@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Collections/PCGExActorDataPackerActions.h"
+#include "Data/Registry/PCGDataTypeIdentifier.h"
 #include "Modules/ModuleInterface.h"
 #include "Styling/SlateStyle.h"
 
@@ -27,4 +28,7 @@ protected:
 	void RegisterPinColorAndIcons();
 	void RegisterMenuExtensions();
 	void UnregisterMenuExtensions();
+
+	FPCGDataTypeIdentifier FilterVtxCompositeIdentifier;
+	FPCGDataTypeIdentifier FilterEdgeCompositeIdentifier;
 };

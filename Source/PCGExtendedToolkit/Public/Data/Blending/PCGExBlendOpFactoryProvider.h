@@ -194,7 +194,7 @@ protected:
 };
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Blend Op")
-struct FPCGExBlendOpDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoBlendOp : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -206,7 +206,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendOpFactory : public UPCGExFactoryData
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExBlendOpDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoBlendOp)
 	
 	FPCGExAttributeBlendConfig Config;
 	TSharedPtr<PCGExData::FFacade> ConstantA;
@@ -259,7 +259,7 @@ public:
 #endif
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExBlendOpDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoBlendOp)
 	
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings

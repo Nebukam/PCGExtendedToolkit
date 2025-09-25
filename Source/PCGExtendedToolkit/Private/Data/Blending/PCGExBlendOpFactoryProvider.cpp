@@ -13,7 +13,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateAttributeBlend"
 #define PCGEX_NAMESPACE CreateAttributeBlend
 
-PCG_DEFINE_TYPE_INFO(FPCGExBlendOpDataTypeInfo, UPCGExBlendOpFactory)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoBlendOp, UPCGExBlendOpFactory)
 
 void FPCGExAttributeBlendWeight::Init()
 {

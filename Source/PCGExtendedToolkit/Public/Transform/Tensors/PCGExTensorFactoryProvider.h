@@ -31,7 +31,7 @@ UPCGExFactoryData* UPCGExCreateTensor##_TENSOR##Settings::CreateFactory(FPCGExCo
 class PCGExTensorOperation;
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Tensor")
-struct FPCGExTensorDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoTensor : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -50,7 +50,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTensorFactoryData : public UPCGExFactoryData
 	// We leverage internal point data and pack all needed attributes & computed points inside
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExTensorDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoTensor)
 	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Tensor; }
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const;
@@ -69,7 +69,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTensorFactoryProviderSettings : public UPCGEx
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExTensorDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoTensor)
 	
 public:
 	//~Begin UPCGSettings

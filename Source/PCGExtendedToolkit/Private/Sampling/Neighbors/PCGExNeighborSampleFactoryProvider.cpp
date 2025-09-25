@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-PCG_DEFINE_TYPE_INFO(FPCGExNeighborSamplerDataTypeInfo, UPCGExNeighborSamplerFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoNeighborSampler, UPCGExNeighborSamplerFactoryData)
 
 void FPCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
@@ -199,15 +199,15 @@ TArray<FPCGPinProperties> UPCGExNeighborSampleProviderSettings::InputPinProperti
 	bool bIsRequired = false;
 	if (SupportsVtxFilters(bIsRequired))
 	{
-		if (bIsRequired) { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Required, FPCGExVtxFilterDataTypeInfo) }
-		else { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Advanced, FPCGExVtxFilterDataTypeInfo) }
+		if (bIsRequired) { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Required, FPCGExDataTypeInfoFilterVtx) }
+		else { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Advanced, FPCGExDataTypeInfoFilterVtx) }
 	}
 	if (SupportsEdgeFilters(bIsRequired))
 	{
-		if (bIsRequired) { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Required, FPCGExEdgeFilterDataTypeInfo) }
-		else { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Advanced, FPCGExEdgeFilterDataTypeInfo) }
+		if (bIsRequired) { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Required, FPCGExDataTypeInfoFilterEdge) }
+		else { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Advanced, FPCGExDataTypeInfoFilterEdge) }
 	}
-	PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced, FPCGExPointFilterDataTypeInfo)
+	PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced, FPCGExDataTypeInfoFilter)
 	return PinProperties;
 }
 

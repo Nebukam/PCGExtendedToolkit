@@ -41,7 +41,7 @@ void UPCGExHeuristicsFactory##_TYPE::RegisterAssetDependencies(FPCGExContext* In
 class FPCGExHeuristicOperation;
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Heuristic")
-struct FPCGExHeuristicDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoHeuristic : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -117,7 +117,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryData : public UPCGExFactoryD
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExHeuristicDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoHeuristic)
 	
 	FPCGExHeuristicConfigBase ConfigBase;
 
@@ -135,7 +135,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryProviderSettings : public UP
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExHeuristicDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoHeuristic)
 	
 public:
 	//~Begin UPCGSettings

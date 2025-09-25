@@ -74,7 +74,7 @@ PCGExFactories::EPreparationResult UPCGExHeuristicsFactoryTensor::Prepare(FPCGEx
 TArray<FPCGPinProperties> UPCGExHeuristicsTensorProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors fields to influence search", Required, FPCGExTensorDataTypeInfo)
+	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors fields to influence search", Required, FPCGExDataTypeInfoTensor)
 	return PinProperties;
 }
 

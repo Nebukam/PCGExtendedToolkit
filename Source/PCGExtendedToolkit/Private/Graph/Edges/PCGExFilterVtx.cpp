@@ -14,11 +14,11 @@ TArray<FPCGPinProperties> UPCGExFilterVtxSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Required, FPCGExVtxFilterDataTypeInfo)
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Required, FPCGExDataTypeInfoFilterVtx)
 
 	if (Mode == EPCGExVtxFilterOutput::Clusters)
 	{
-		PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeFiltersLabel, "Optional Edge filters. Selected edges will be invalidated, possibly pruning more vtx along the way.", Normal, FPCGExEdgeFilterDataTypeInfo)
+		PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeFiltersLabel, "Optional Edge filters. Selected edges will be invalidated, possibly pruning more vtx along the way.", Normal, FPCGExDataTypeInfoFilterEdge)
 	}
 
 	return PinProperties;

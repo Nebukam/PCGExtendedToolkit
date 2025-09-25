@@ -12,7 +12,7 @@
 #include "PCGExModularPartitionByValues.generated.h"
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Partition Rule")
-struct FPCGExPartitionDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoPartitionRule : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -27,7 +27,7 @@ class UPCGExPartitionRule : public UPCGExFactoryData
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExPartitionDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoPartitionRule)
 	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RulePartition; }
 	FPCGExPartitonRuleConfig Config;
@@ -39,7 +39,7 @@ class UPCGExPartitionRuleProviderSettings : public UPCGExFactoryProviderSettings
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExPartitionDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoPartitionRule)
 	
 public:
 	//~Begin UPCGSettings

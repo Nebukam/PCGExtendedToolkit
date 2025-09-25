@@ -9,7 +9,7 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-PCG_DEFINE_TYPE_INFO(FPCGExPartitionDataTypeInfo, UPCGExPartitionRule)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoPartitionRule, UPCGExPartitionRule)
 
 UPCGExFactoryData* UPCGExPartitionRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
@@ -25,7 +25,7 @@ FString UPCGExPartitionRuleProviderSettings::GetDisplayName() const { return Con
 TArray<FPCGPinProperties> UPCGExModularPartitionByValuesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(TEXT("PartitionRules"), "Plug partitions rules here.", Required, FPCGExPartitionDataTypeInfo)
+	PCGEX_PIN_FACTORIES(TEXT("PartitionRules"), "Plug partitions rules here.", Required, FPCGExDataTypeInfoPartitionRule)
 	return PinProperties;
 }
 

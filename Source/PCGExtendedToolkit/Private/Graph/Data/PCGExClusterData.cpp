@@ -8,6 +8,15 @@
 #include "PCGExGlobalSettings.h"
 #include "Graph/PCGExCluster.h"
 
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoClusterPart, UPCGExClusterData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoVtx, UPCGExClusterNodesData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoEdges, UPCGExClusterEdgesData)
+
+bool FPCGExDataTypeInfoClusterPart::Hidden() const
+{
+	return true;
+}
+
 UPCGSpatialData* UPCGExClusterNodesData::CopyInternal(FPCGContext* Context) const
 {
 	PCGEX_NEW_CUSTOM_POINT_DATA(UPCGExClusterNodesData)

@@ -4,6 +4,7 @@
 #include "Graph/PCGExConnectPoints.h"
 
 
+
 #include "Data/PCGExPointFilter.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
@@ -18,10 +19,10 @@
 TArray<FPCGPinProperties> UPCGExConnectPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceProbesLabel, "Probes used to connect points", Required, FPCGExProbeDataTypeInfo)
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceProbesLabel, "Probes used to connect points", Required, FPCGExDataTypeInfoProbe)
 
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterGenerators, "Points that don't meet requirements won't generate connections", Normal, FPCGExPointFilterDataTypeInfo)
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterConnectables, "Points that don't meet requirements can't receive connections", Normal, FPCGExPointFilterDataTypeInfo)
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterGenerators, "Points that don't meet requirements won't generate connections", Normal, FPCGExDataTypeInfoFilter)
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterConnectables, "Points that don't meet requirements can't receive connections", Normal, FPCGExDataTypeInfoFilter)
 
 	return PinProperties;
 }

@@ -7,9 +7,9 @@
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 
-PCG_DEFINE_TYPE_INFO(FPCGExClusterFilterDataTypeInfo, UPCGExClusterFilterFactoryData)
-PCG_DEFINE_TYPE_INFO(FPCGExVtxFilterDataTypeInfo, UPCGExNodeFilterFactoryData)
-PCG_DEFINE_TYPE_INFO(FPCGExEdgeFilterDataTypeInfo, UPCGExEdgeFilterFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterCluster, UPCGExClusterFilterFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterVtx, UPCGExNodeFilterFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterEdge, UPCGExEdgeFilterFactoryData)
 
 namespace PCGExClusterFilter
 {

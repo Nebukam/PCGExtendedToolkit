@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTensor"
 #define PCGEX_NAMESPACE CreateTensor
 
-PCG_DEFINE_TYPE_INFO(FPCGExTensorDataTypeInfo, UPCGExTensorFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoTensor, UPCGExTensorFactoryData)
 
 TSharedPtr<PCGExTensorOperation> UPCGExTensorFactoryData::CreateOperation(FPCGExContext* InContext) const
 {
@@ -47,7 +47,7 @@ void UPCGExTensorFactoryData::InheritFromOtherTensor(const UPCGExTensorFactoryDa
 TArray<FPCGPinProperties> UPCGExTensorFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORY(PCGExTensor::SourceTensorConfigSourceLabel, "A tensor that already exist which settings will be used to override the settings of this one. This is to streamline re-using params between tensors, or to 'fake' the ability to transform tensors.", Advanced, FPCGExTensorDataTypeInfo)
+	PCGEX_PIN_FACTORY(PCGExTensor::SourceTensorConfigSourceLabel, "A tensor that already exist which settings will be used to override the settings of this one. This is to streamline re-using params between tensors, or to 'fake' the ability to transform tensors.", Advanced, FPCGExDataTypeInfoTensor)
 	return PinProperties;
 }
 

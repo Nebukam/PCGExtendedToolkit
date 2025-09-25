@@ -27,8 +27,8 @@ void UPCGExPathCrossingsSettings::PostInitProperties()
 TArray<FPCGPinProperties> UPCGExPathCrossingsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExPaths::SourceCanCutFilters, "Fiter which edges can 'cut' other edges. Leave empty so all edges are can cut other edges.", Normal, FPCGExPointFilterDataTypeInfo)
-	PCGEX_PIN_FACTORIES(PCGExPaths::SourceCanBeCutFilters, "Fiter which edges can be 'cut' by other edges. Leave empty so all edges are can cut other edges.", Normal, FPCGExPointFilterDataTypeInfo)
+	PCGEX_PIN_FACTORIES(PCGExPaths::SourceCanCutFilters, "Fiter which edges can 'cut' other edges. Leave empty so all edges are can cut other edges.", Normal, FPCGExDataTypeInfoFilter)
+	PCGEX_PIN_FACTORIES(PCGExPaths::SourceCanBeCutFilters, "Fiter which edges can be 'cut' by other edges. Leave empty so all edges are can cut other edges.", Normal, FPCGExDataTypeInfoFilter)
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExDataBlending::SourceOverridesBlendingOps)
 	return PinProperties;
 }

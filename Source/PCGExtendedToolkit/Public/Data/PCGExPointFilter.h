@@ -74,7 +74,7 @@ namespace PCGExFilters
 }
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter")
-struct FPCGExPointFilterDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoFilter : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -91,7 +91,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryData : public UPCGExFactoryData
 	friend UPCGExFilterProviderSettings;
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExPointFilterDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilter)
 	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
 
@@ -292,7 +292,7 @@ namespace PCGExPointFilter
 }
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter (Data)")
-struct FPCGExCollectionFilterDataTypeInfo : public FPCGExPointFilterDataTypeInfo
+struct FPCGExDataTypeInfoFilterCollection : public FPCGExDataTypeInfoFilter
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -307,7 +307,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterCollectionFactoryData : public UPCGExFi
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExCollectionFilterDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilterCollection)
 	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterCollection; }
 	virtual bool DomainCheck() override;

@@ -7,7 +7,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateShapeBuilder"
 #define PCGEX_NAMESPACE CreateShapeBuilder
 
-PCG_DEFINE_TYPE_INFO(FPCGExShapeDataTypeInfo, UPCGExShapeBuilderFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoShape, UPCGExShapeBuilderFactoryData)
 
 TSharedPtr<FPCGExShapeBuilderOperation> UPCGExShapeBuilderFactoryData::CreateOperation(FPCGExContext* InContext) const
 {

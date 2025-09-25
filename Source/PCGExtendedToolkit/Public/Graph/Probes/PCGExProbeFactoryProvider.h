@@ -22,7 +22,7 @@ TSharedPtr<FPCGExProbeOperation> UPCGExProbeFactory##_NAME::CreateOperation(FPCG
 class FPCGExProbeOperation;
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Probe")
-struct FPCGExProbeDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoProbe : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -34,7 +34,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryData : public UPCGExFactoryData
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExProbeDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoProbe)
 	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Probe; }
 	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const;
@@ -46,7 +46,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryProviderSettings : public UPCGExF
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExProbeDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoProbe)
 	
 public:
 	//~Begin UPCGSettings

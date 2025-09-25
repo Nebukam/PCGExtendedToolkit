@@ -30,7 +30,7 @@
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Neighbor Sampler")
-struct FPCGExNeighborSamplerDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoNeighborSampler : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -143,7 +143,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryData : public UPCGExFac
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExNeighborSamplerDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoNeighborSampler)
 	
 	UPROPERTY()
 	FPCGExSamplingConfig SamplingConfig;
@@ -172,7 +172,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleProviderSettings : public UPCGE
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExNeighborSamplerDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoNeighborSampler)
 
 public:
 	//~Begin UPCGSettings

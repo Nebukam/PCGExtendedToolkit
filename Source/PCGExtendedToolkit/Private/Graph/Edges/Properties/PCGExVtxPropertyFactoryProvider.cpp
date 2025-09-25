@@ -10,7 +10,7 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteVtxProperties"
 #define PCGEX_NAMESPACE PCGExWriteVtxProperties
 
-PCG_DEFINE_TYPE_INFO(FPCGExVtxPropertyDataTypeInfo, UPCGExVtxPropertyFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoVtxProperty, UPCGExVtxPropertyFactoryData)
 
 bool FPCGExSimpleEdgeOutputSettings::Validate(const FPCGContext* InContext) const
 {

@@ -69,7 +69,7 @@ protected:
 };
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Action")
-struct FPCGExActionDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoAction : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -81,7 +81,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExActionFactoryData : public UPCGExFactoryData
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExActionDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoAction)
 	
 	TSharedPtr<PCGEx::FAttributesInfos> CheckSuccessInfos;
 	TSharedPtr<PCGEx::FAttributesInfos> CheckFailInfos;
@@ -115,7 +115,7 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
-	PCGEX_FACTORY_TYPE_ID(FPCGExActionDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoAction)
 	
 public:
 	virtual FName GetMainOutputPin() const override { return PCGExActions::OutputActionLabel; }

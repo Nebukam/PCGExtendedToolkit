@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExConnectClusters.h"
 
+
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIOMerger.h"
@@ -25,8 +26,8 @@ TArray<FPCGPinProperties> UPCGExConnectClustersSettings::InputPinProperties() co
 
 	if (BridgeMethod == EPCGExBridgeClusterMethod::Filters)
 	{
-		PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterGenerators, "Nodes that don't meet requirements won't generate connections", Required, FPCGExPointFilterDataTypeInfo)
-		PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterConnectables, "Nodes that don't meet requirements can't receive connections", Required, FPCGExPointFilterDataTypeInfo)
+		PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterGenerators, "Nodes that don't meet requirements won't generate connections", Required, FPCGExDataTypeInfoFilter)
+		PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterConnectables, "Nodes that don't meet requirements can't receive connections", Required, FPCGExDataTypeInfoFilter)
 	}
 
 	return PinProperties;

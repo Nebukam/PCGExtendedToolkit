@@ -7,7 +7,7 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
-PCG_DEFINE_TYPE_INFO(FPCGExClusterStateDataTypeInfo, UPCGExClusterStateFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoClusterState, UPCGExClusterStateFactoryData)
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExClusterStateFactoryData::CreateFilter() const
 {
@@ -99,7 +99,7 @@ namespace PCGExClusterStates
 TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceFiltersLabel, TEXT("Filters used to check whether this state is true or not. Accepts regular point filters & cluster filters."), Required, FPCGExPointFilterDataTypeInfo)
+	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceFiltersLabel, TEXT("Filters used to check whether this state is true or not. Accepts regular point filters & cluster filters."), Required, FPCGExDataTypeInfoFilter)
 	return PinProperties;
 }
 

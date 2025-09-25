@@ -13,7 +13,7 @@
 TArray<FPCGPinProperties> UPCGExPathStitchSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeSortingRules, "Sort-in-place to order the data if needed", Normal, FPCGExEdgeFilterDataTypeInfo)
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeSortingRules, "Sort-in-place to order the data if needed", Normal, FPCGExDataTypeInfoFilterEdge)
 	return PinProperties;
 }
 

@@ -111,7 +111,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTextureParamConfig
 };
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Tex Param")
-struct FPCGExTexParamDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoTexParam : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -123,7 +123,7 @@ class UPCGExTexParamFactoryData : public UPCGExFactoryData
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExTexParamDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoTexParam)
 	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::TexParam; }
 
@@ -137,7 +137,7 @@ class UPCGExTexParamProviderSettings : public UPCGExFactoryProviderSettings
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExTexParamDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoTexParam)
 	
 public:
 	//~Begin UPCGSettings

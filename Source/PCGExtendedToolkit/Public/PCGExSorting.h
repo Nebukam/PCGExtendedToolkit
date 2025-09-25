@@ -94,7 +94,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionSortingDetails
 };
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Sort Rule")
-struct FPCGExSortRuleDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoSortRule : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -109,7 +109,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSortingRule : public UPCGExFactoryData
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExSortRuleDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoSortRule)
 	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RuleSort; }
 
@@ -125,7 +125,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSortingRuleProviderSettings : public UPCGExFa
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExSortRuleDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoSortRule)
 	
 public:
 	//~Begin UPCGSettings

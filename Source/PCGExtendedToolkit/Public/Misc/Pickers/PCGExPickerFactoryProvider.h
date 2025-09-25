@@ -22,7 +22,7 @@ _NEW_FACTORY \
 return NewFactory; }
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Picker")
-struct FPCGExPickerDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoPicker : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -40,7 +40,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPickerFactoryData : public UPCGExFactoryData
 	// We leverage internal point data and pack all needed attributes & computed points inside
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExPickerDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoPicker)
 	
 	UPROPERTY()
 	TArray<int32> DiscretePicks;
@@ -67,7 +67,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPickerFactoryProviderSettings : public UPCGEx
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExPickerDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoPicker)
 	
 public:
 	//~Begin UPCGSettings

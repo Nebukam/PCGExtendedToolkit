@@ -16,8 +16,8 @@ Style->Set("ClassIcon." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TE
 Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeThumbnail));
 
 #define PCGEX_ADD_PIN_EXTRA_ICON(_NAME) \
-AppStyle.Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));\
-Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));
+AppStyle.Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGEx_Pin_" #_NAME), TEXT(".svg")), SizePin));\
+Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGEx_Pin_" #_NAME), TEXT(".svg")), SizePin));
 
 #include "AssetToolsModule.h"
 #include "ContentBrowserMenuContexts.h"
@@ -35,6 +35,7 @@ Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContent
 #include "Data/PCGSpatialData.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "DataViz/PCGExSpatialDataVisualization.h"
+#include "Graph/Data/PCGExClusterData.h"
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
@@ -47,6 +48,30 @@ Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContent
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
+
+#define PCGEX_FOREACH_CUSTOM_DATA_TYPE(MACRO, ...)\
+MACRO(Action, __VA_ARGS__) \
+MACRO(BlendOp, __VA_ARGS__) \
+MACRO(MatchRule, __VA_ARGS__) \
+MACRO(Filter, __VA_ARGS__) \
+MACRO(FilterCollection, __VA_ARGS__) \
+MACRO(FilterCluster, __VA_ARGS__) \
+MACRO(FilterVtx, __VA_ARGS__) \
+MACRO(FilterEdge, __VA_ARGS__) \
+MACRO(VtxProperty, __VA_ARGS__) \
+MACRO(FillControl, __VA_ARGS__) \
+MACRO(Heuristic, __VA_ARGS__) \
+MACRO(Probe, __VA_ARGS__) \
+MACRO(ClusterState, __VA_ARGS__) \
+MACRO(Picker, __VA_ARGS__) \
+MACRO(NeighborSampler, __VA_ARGS__) \
+MACRO(TexParam, __VA_ARGS__) \
+MACRO(Shape, __VA_ARGS__) \
+MACRO(Tensor, __VA_ARGS__) \
+MACRO(SortRule, __VA_ARGS__) \
+MACRO(PartitionRule, __VA_ARGS__) \
+MACRO(Vtx, __VA_ARGS__) \
+MACRO(Edges, __VA_ARGS__)
 
 namespace PCGExEditor
 {
@@ -94,13 +119,13 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 {
 	MeshCollectionActions = MakeShared<FPCGExMeshCollectionActions>();
 	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MeshCollectionActions.ToSharedRef());
-	
+
 	ActorCollectionActions = MakeShared<FPCGExActorCollectionActions>();
 	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(ActorCollectionActions.ToSharedRef());
-	
+
 	ActorPackerActions = MakeShared<FPCGExActorDataPackerActions>();
 	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(ActorPackerActions.ToSharedRef());
-	
+
 	// I know this is cursed
 	FSlateStyleSet& AppStyle = const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get()));
 
@@ -119,46 +144,13 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_ICON(PCGExCustomActorDataPacker)
 	PCGEX_ADD_ICON(PCGExBeacon)
 
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Filter)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_CFilter)
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Filters)
+#define PCGEX_REGISTER_PIN_ICON(_NAME, ...) \
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_##_NAME) \
+	PCGEX_ADD_PIN_EXTRA_ICON(IN_##_NAME)
 
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Heuristic)
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Heuristics)
+	PCGEX_FOREACH_CUSTOM_DATA_TYPE(PCGEX_REGISTER_PIN_ICON)
 
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Sorting)
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Sortings)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Probe)
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Probes)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Tex)
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Tex)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Vtx)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Edges)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Special)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Partitions)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Partition)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_FilterNode)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_FilterEdges)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_NodeFlag)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_VtxProperty)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Action)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Blend)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Shape)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Tensor)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Picker)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_FillControl)
-	
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Matching)
+#undef PCGEX_REGISTER_PIN_AND_COLOR
 
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
 
@@ -189,35 +181,39 @@ void FPCGExtendedToolkitEditorModule::RegisterPinColorAndIcons()
 {
 	FPCGDataTypeRegistry& InRegistry = FPCGModule::GetMutableDataTypeRegistry();
 
-#define PCGEX_FOREACH_CUSTOM_DATA_TYPE(MACRO)\
-	MACRO(FPCGExActionDataTypeInfo, Default) \
-	MACRO(FPCGExBlendOpDataTypeInfo, Default) \
-	MACRO(FPCGExMatchRuleDataTypeInfo, Default) \
-	MACRO(FPCGExPointFilterDataTypeInfo, Default) \
-	MACRO(FPCGExCollectionFilterDataTypeInfo, Default) \
-	MACRO(FPCGExClusterFilterDataTypeInfo, Default) \
-	MACRO(FPCGExVtxFilterDataTypeInfo, Default) \
-	MACRO(FPCGExEdgeFilterDataTypeInfo, Default) \
-	MACRO(FPCGExVtxPropertyDataTypeInfo, Default) \
-	MACRO(FPCGExFillControlsDataTypeInfo, Default) \
-	MACRO(FPCGExHeuristicDataTypeInfo, Default) \
-	MACRO(FPCGExProbeDataTypeInfo, Default) \
-	MACRO(FPCGExClusterStateDataTypeInfo, Default) \
-	MACRO(FPCGExPickerDataTypeInfo, Default) \
-	MACRO(FPCGExNeighborSamplerDataTypeInfo, Default) \
-	MACRO(FPCGExTexParamDataTypeInfo, Default) \
-	MACRO(FPCGExShapeDataTypeInfo, Default) \
-	MACRO(FPCGExTensorDataTypeInfo, Default) \
-	MACRO(FPCGExSortRuleDataTypeInfo, Default) \
-	MACRO(FPCGExPartitionDataTypeInfo, Default) 
-
-	//, _ICON
+	//InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [](const FPCGDataTypeIdentifier&) { return GetDefault<UPCGExGlobalSettings>()->PinColor##_COLOR; }); \
 	
-#define PCGEX_REGISTER_PIN_AND_COLOR(_TYPE_STRUCT, _COLOR) \
-	InRegistry.RegisterPinColorFunction(_TYPE_STRUCT::AsId(), [](const FPCGDataTypeIdentifier&) { return GetDefault<UPCGExGlobalSettings>()->PinColor##_COLOR; });
+#define PCGEX_REGISTER_PIN_AND_COLOR(_NAME, _COLOR) \
+	InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [](const FPCGDataTypeIdentifier&) { return FLinearColor::White; }); \
+	InRegistry.RegisterPinIconsFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>{ \
+		if(bIsInput){ return {Style->GetBrush(FName("PCGEx.Pin.IN_"#_NAME)), Style->GetBrush(FName("PCGEx.Pin.IN_"#_NAME))};}\
+		else{ return {Style->GetBrush(FName("PCGEx.Pin.OUT_"#_NAME)), Style->GetBrush(FName("PCGEx.Pin.OUT_"#_NAME))};}});
 
+	PCGEX_FOREACH_CUSTOM_DATA_TYPE(PCGEX_REGISTER_PIN_AND_COLOR, Default)
 
-	PCGEX_FOREACH_CUSTOM_DATA_TYPE(PCGEX_REGISTER_PIN_AND_COLOR)
+	
+	FilterVtxCompositeIdentifier |= FPCGExDataTypeInfoFilter::AsId();
+	FilterVtxCompositeIdentifier |= FPCGExDataTypeInfoFilterVtx::AsId();
+
+	InRegistry.RegisterPinColorFunction(FilterVtxCompositeIdentifier, [](const FPCGDataTypeIdentifier&) { return FLinearColor::White; });
+	InRegistry.RegisterPinIconsFunction(
+		FilterVtxCompositeIdentifier, [&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>
+		{
+			if (bIsInput) { return {Style->GetBrush(FName("PCGEx.Pin.IN_Vtx")), Style->GetBrush(FName("PCGEx.Pin.IN_Vtx"))}; }
+			else { return {Style->GetBrush(FName("PCGEx.Pin.OUT_Vtx")), Style->GetBrush(FName("PCGEx.Pin.OUT_Vtx"))}; }
+		});
+	
+	FilterEdgeCompositeIdentifier |= FPCGExDataTypeInfoFilter::AsId();
+	FilterEdgeCompositeIdentifier |= FPCGExDataTypeInfoFilterEdge::AsId();
+
+	InRegistry.RegisterPinColorFunction(FilterEdgeCompositeIdentifier, [](const FPCGDataTypeIdentifier&) { return FLinearColor::White; });
+	InRegistry.RegisterPinIconsFunction(
+		FilterEdgeCompositeIdentifier, [&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>
+		{
+			if (bIsInput) { return {Style->GetBrush(FName("PCGEx.Pin.IN_Edge")), Style->GetBrush(FName("PCGEx.Pin.IN_Edge"))}; }
+			else { return {Style->GetBrush(FName("PCGEx.Pin.OUT_Edge")), Style->GetBrush(FName("PCGEx.Pin.OUT_Edge"))}; }
+		});
+
 
 #undef PCGEX_REGISTER_PIN_AND_COLOR
 	/*
@@ -279,8 +275,7 @@ void FPCGExtendedToolkitEditorModule::RegisterPinColorAndIcons()
 
 		return {EditorStyle.GetBrush(ConnectedBrushName), EditorStyle.GetBrush(DisconnectedBrushName)};
 	});
-*/
-#undef PCGEX_FOREACH_CUSTOM_DATA_TYPE
+	*/
 }
 
 void FPCGExtendedToolkitEditorModule::RegisterMenuExtensions()
@@ -311,6 +306,7 @@ void FPCGExtendedToolkitEditorModule::UnregisterMenuExtensions()
 {
 	UToolMenus::UnregisterOwner(this);
 }
+#undef PCGEX_FOREACH_CUSTOM_DATA_TYPE
 #undef LOCTEXT_NAMESPACE
 
 IMPLEMENT_MODULE(FPCGExtendedToolkitEditorModule, PCGExtendedToolkitEditor)

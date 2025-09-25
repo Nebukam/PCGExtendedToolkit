@@ -84,7 +84,7 @@ class UPCGExEntryCountFilterProviderSettings : public UPCGExFilterProviderSettin
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExCollectionFilterDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterCollection)
 	
 public:
 	//~Begin UPCGSettings

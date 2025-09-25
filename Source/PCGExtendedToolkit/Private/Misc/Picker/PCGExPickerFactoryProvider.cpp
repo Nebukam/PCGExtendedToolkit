@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreatePicker"
 #define PCGEX_NAMESPACE CreatePicker
 
-PCG_DEFINE_TYPE_INFO(FPCGExPickerDataTypeInfo, UPCGExPickerFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoPicker, UPCGExPickerFactoryData)
 
 void UPCGExPickerFactoryData::AddPicks(const int32 InNum, TSet<int32>& OutPicks) const
 {

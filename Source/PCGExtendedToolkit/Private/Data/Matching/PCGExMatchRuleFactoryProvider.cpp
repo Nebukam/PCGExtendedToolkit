@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateMatchRule"
 #define PCGEX_NAMESPACE CreateMatchRule
 
-PCG_DEFINE_TYPE_INFO(FPCGExMatchRuleDataTypeInfo, UPCGExMatchRuleFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoMatchRule, UPCGExMatchRuleFactoryData)
 
 bool FPCGExMatchRuleOperation::PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<PCGExData::FTaggedData>>& InTargets)
 {

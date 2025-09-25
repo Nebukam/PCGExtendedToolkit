@@ -21,17 +21,17 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 
 	if (RangeControl == EPCGExRollingRangeControl::StartStop)
 	{
-		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStartConditionLabel, "...", Required, FPCGExPointFilterDataTypeInfo)
-		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStopConditionLabel, "...", Required, FPCGExPointFilterDataTypeInfo)
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStartConditionLabel, "...", Required, FPCGExDataTypeInfoFilter)
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStopConditionLabel, "...", Required, FPCGExDataTypeInfoFilter)
 	}
 	else
 	{
-		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceToggleConditionLabel, "...", Normal, FPCGExPointFilterDataTypeInfo)
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceToggleConditionLabel, "...", Normal, FPCGExDataTypeInfoFilter)
 	}
 
 	if (ValueControl == EPCGExRollingValueControl::Pin)
 	{
-		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourcePinConditionLabel, "...", Required, FPCGExPointFilterDataTypeInfo)
+		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourcePinConditionLabel, "...", Required, FPCGExDataTypeInfoFilter)
 	}
 
 	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);

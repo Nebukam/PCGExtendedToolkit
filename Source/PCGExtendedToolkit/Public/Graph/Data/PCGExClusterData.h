@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactoryProvider.h"
 #include "Data/PCGExPointData.h"
 
 #include "PCGExClusterData.generated.h"
@@ -19,6 +20,14 @@ namespace PCGExCluster
 	class FCluster;
 }
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Cluster Part")
+struct FPCGExDataTypeInfoClusterPart : public FPCGDataTypeInfoPoint
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+	virtual bool Hidden() const override;
+};
+
 /**
  * 
  */
@@ -26,6 +35,16 @@ UCLASS(Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExClusterData : public UPCGExPointData
 {
 	GENERATED_BODY()
+
+public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoClusterPart)
+};
+
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Cluster Vtx")
+struct FPCGExDataTypeInfoVtx : public FPCGExDataTypeInfoClusterPart
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
 };
 
 /**
@@ -39,7 +58,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterNodesData : public UPCGExClusterData
 	mutable FRWLock BoundClustersLock;
 
 protected:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoVtx)
+
 	virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;
+};
+
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Cluster Edges")
+struct FPCGExDataTypeInfoEdges : public FPCGExDataTypeInfoClusterPart
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
 };
 
 /**
@@ -51,6 +79,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterEdgesData : public UPCGExClusterData
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoEdges)
+
 	virtual void InitializeSpatialDataInternal(const FPCGInitializeFromDataParams& InParams) override;
 
 	virtual void SetBoundCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster);

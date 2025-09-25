@@ -26,7 +26,7 @@ UPCGExFactoryData* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGExCont
 class FPCGExShapeBuilderOperation;
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Shape")
-struct FPCGExShapeDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoShape : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -38,7 +38,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExShapeBuilderFactoryData : public UPCGExFactor
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExShapeDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoShape)
 	
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::ShapeBuilder; }
 	virtual TSharedPtr<FPCGExShapeBuilderOperation> CreateOperation(FPCGExContext* InContext) const;
@@ -50,7 +50,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExShapeBuilderFactoryProviderSettings : public 
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExShapeDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoShape)
 	
 public:	
 	//~Begin UPCGSettings

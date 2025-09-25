@@ -258,13 +258,6 @@ public:
 	FLinearColor WantsColor(FLinearColor InColor) const;
 	
 #pragma endregion
-
-#pragma region Pin Colors
-	
-	UPROPERTY(EditAnywhere, config, Category = "Pin Colors")
-	FLinearColor PinColorDefault = FLinearColor(1.000000, 0.591295, 0.282534, 1.000000);;
-
-#pragma endregion
 	
 	bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip, bool bIsOutPin = false) const;
 

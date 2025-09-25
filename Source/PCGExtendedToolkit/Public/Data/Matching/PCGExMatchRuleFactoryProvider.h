@@ -61,7 +61,7 @@ protected:
 };
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Match Rule")
-struct FPCGExMatchRuleDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoMatchRule : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -73,7 +73,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMatchRuleFactoryData : public UPCGExFactoryDa
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExMatchRuleDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoMatchRule)
 	
 	FPCGExMatchRuleConfigBase BaseConfig;
 
@@ -89,7 +89,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMatchRuleFactoryProviderSettings : public UPC
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExMatchRuleDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoMatchRule)
 	
 public:
 	//~Begin UPCGSettings

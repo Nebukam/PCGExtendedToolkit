@@ -14,7 +14,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateTexParam"
 #define PCGEX_NAMESPACE PCGExCreateTexParam
 
-PCG_DEFINE_TYPE_INFO(FPCGExTexParamDataTypeInfo, UPCGExTexParamFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoTexParam, UPCGExTexParamFactoryData)
 
 void FPCGExTextureParamConfig::Init()
 {

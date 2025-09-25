@@ -33,7 +33,7 @@ TArray<FPCGPinProperties> UPCGExUberBranchSettings::InputPinProperties() const
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	for (int i = 0; i < NumBranches; i++)
 	{
-		PCGEX_PIN_FACTORIES(InputLabels[i], "Collection filters. Only support C-Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal, FPCGExPointFilterDataTypeInfo)
+		PCGEX_PIN_FACTORIES(InputLabels[i], "Collection filters. Only support C-Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal, FPCGExDataTypeInfoFilter)
 	}
 	return PinProperties;
 }

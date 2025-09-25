@@ -30,7 +30,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClusterStateConfigBase : public FPCGExStateC
 };
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Cluster State")
-struct FPCGExClusterStateDataTypeInfo : public FPCGExFactoryDataTypeInfo
+struct FPCGExDataTypeInfoClusterState : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -45,7 +45,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryData : public UPCGExCluste
 	GENERATED_BODY()
 
 public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExClusterStateDataTypeInfo)
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoClusterState)
 	
 	UPROPERTY()
 	FPCGExClusterStateConfigBase Config;
@@ -133,7 +133,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryProviderSettings : public 
 	GENERATED_BODY()
 
 protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExClusterStateDataTypeInfo)
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoClusterState)
 	
 public:
 	//~Begin UPCGSettings
