@@ -286,7 +286,7 @@ struct FPCGExExtrudeTensorsContext final : FPCGExPathProcessorContext
 	friend class FPCGExExtrudeTensorsElement;
 
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> StopFilterFactories;
 
 	FPCGExPathIntersectionDetails ExternalPathIntersections;
 	FPCGExPathIntersectionDetails SelfPathIntersections;

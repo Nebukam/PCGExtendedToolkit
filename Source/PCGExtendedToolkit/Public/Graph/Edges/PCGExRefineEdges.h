@@ -82,9 +82,9 @@ struct FPCGExRefineEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRefineEdgesElement;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> SanitizationFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> VtxFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgeFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> SanitizationFilterFactories;
 
 	UPCGExEdgeRefineInstancedFactory* Refinement = nullptr;
 

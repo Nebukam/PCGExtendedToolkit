@@ -12,7 +12,7 @@
 
 #include "PCGExShapeProcessor.generated.h"
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 /**
  * 
  */

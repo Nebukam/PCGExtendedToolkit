@@ -32,7 +32,7 @@ namespace PCGEx
 	class FAttributesInfos;
 }
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 namespace PCGExPointFilter
 {
@@ -87,7 +87,7 @@ public:
 	TSharedPtr<PCGEx::FAttributesInfos> CheckFailInfos;
 
 	UPROPERTY(meta=(PCG_NotOverridable))
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Action; }
 	virtual TSharedPtr<FPCGExActionOperation> CreateOperation(FPCGExContext* InContext) const;

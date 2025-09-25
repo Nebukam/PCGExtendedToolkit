@@ -38,7 +38,7 @@ MACRO(NumSamples, int32, 0)\
 MACRO(ClosedLoop, bool, false) \
 MACRO(TotalWeight, double, 0)
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 UENUM()
 enum class EPCGExSplineDepthMode : uint8

@@ -29,7 +29,7 @@ namespace PCGExPointFilter
 #pragma region Cluster Filter
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter (Cluster)")
-struct FPCGExDataTypeInfoFilterCluster : public FPCGExDataTypeInfoFilter
+struct FPCGExDataTypeInfoFilterCluster : public FPCGExDataTypeInfoFilterPoint
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
@@ -39,7 +39,7 @@ struct FPCGExDataTypeInfoFilterCluster : public FPCGExDataTypeInfoFilter
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterFactoryData : public UPCGExFilterFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterFactoryData : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 
@@ -101,7 +101,6 @@ struct FPCGExDataTypeInfoFilterEdge : public FPCGExDataTypeInfoFilterCluster
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
-
 };
 
 /**
@@ -131,6 +130,15 @@ protected:
 
 namespace PCGExClusterFilter
 {
+	static FPCGDataTypeIdentifier VtxFiltersCompositeId;
+	static FPCGDataTypeIdentifier EdgeFiltersCompositeId;
+
+	PCGEXTENDEDTOOLKIT_API
+	const FPCGDataTypeIdentifier& GetVtxFiltersCompositeId();
+
+	PCGEXTENDEDTOOLKIT_API
+	const FPCGDataTypeIdentifier& GetEdgeFiltersCompositeId();
+	
 	class PCGEXTENDEDTOOLKIT_API IFilter : public PCGExPointFilter::IFilter
 	{
 	public:

@@ -94,8 +94,8 @@ struct FPCGExConnectClustersContext final : FPCGExEdgesProcessorContext
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	FPCGExCarryOverDetails CarryOverDetails;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> GeneratorsFiltersFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ConnectablesFiltersFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> GeneratorsFiltersFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> ConnectablesFiltersFactories;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL

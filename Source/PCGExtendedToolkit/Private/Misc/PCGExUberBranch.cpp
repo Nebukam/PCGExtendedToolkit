@@ -33,7 +33,7 @@ TArray<FPCGPinProperties> UPCGExUberBranchSettings::InputPinProperties() const
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	for (int i = 0; i < NumBranches; i++)
 	{
-		PCGEX_PIN_FACTORIES(InputLabels[i], "Collection filters. Only support C-Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal, FPCGExDataTypeInfoFilter)
+		PCGEX_PIN_FACTORIES(InputLabels[i], "Collection filters. Only support C-Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal, FPCGExDataTypeInfoFilterPoint::AsId())
 	}
 	return PinProperties;
 }
@@ -74,12 +74,12 @@ bool FPCGExUberBranchElement::Boot(FPCGExContext* InContext) const
 
 	for (int i = 0; i < Settings->NumBranches; i++)
 	{
-		TArray<TObjectPtr<const UPCGExFilterFactoryData>> Factories;
+		TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> Factories;
 		if (GetInputFactories(Context, Settings->InputLabels[i], Factories, PCGExFactories::PointFilters, !Settings->bQuietMissingFilters))
 		{
 			for (int f = 0; f < Factories.Num(); f++)
 			{
-				TObjectPtr<const UPCGExFilterFactoryData> Factory = Factories[f];
+				TObjectPtr<const UPCGExPointFilterFactoryData> Factory = Factories[f];
 				if (!Factory->SupportsCollectionEvaluation())
 				{
 					if (!Settings->bQuietInvalidFilters)

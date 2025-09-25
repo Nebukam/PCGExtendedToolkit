@@ -26,8 +26,8 @@ TArray<FPCGPinProperties> UPCGExConnectClustersSettings::InputPinProperties() co
 
 	if (BridgeMethod == EPCGExBridgeClusterMethod::Filters)
 	{
-		PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterGenerators, "Nodes that don't meet requirements won't generate connections", Required, FPCGExDataTypeInfoFilter)
-		PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterConnectables, "Nodes that don't meet requirements can't receive connections", Required, FPCGExDataTypeInfoFilter)
+		PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterGenerators, "Nodes that don't meet requirements won't generate connections", Required, FPCGExDataTypeInfoFilterPoint::AsId())
+		PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterConnectables, "Nodes that don't meet requirements can't receive connections", Required, FPCGExDataTypeInfoFilterPoint::AsId())
 	}
 
 	return PinProperties;

@@ -30,7 +30,7 @@ enum class EPCGExTextureFilter : uint8
 	Bilinear UMETA(Tooltip="Bilinearly interpolates the values of the four nearest texels to the sample location.")
 };
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/textures/get-texture-data"))
 class UPCGExGetTextureDataSettings : public UPCGExPointsProcessorSettings

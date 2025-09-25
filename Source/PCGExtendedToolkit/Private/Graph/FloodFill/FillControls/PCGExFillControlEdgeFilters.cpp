@@ -56,7 +56,7 @@ TSharedPtr<FPCGExFillControlOperation> UPCGExFillControlsFactoryEdgeFilters::Cre
 TArray<FPCGPinProperties> UPCGExFillControlsEdgeFiltersProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, TEXT("Filters used on edges."), Required, FPCGExDataTypeInfoFilterEdge)
+	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, TEXT("Filters used on edges."), Required, FPCGExDataTypeInfoFilterEdge::AsId())
 	return PinProperties;
 }
 

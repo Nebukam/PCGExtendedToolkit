@@ -228,7 +228,7 @@ namespace PCGExClusterMT
 		bIsProcessorValid = false;
 	}
 
-	bool IProcessor::InitVtxFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
+	bool IProcessor::InitVtxFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories)
 	{
 		if (InFilterFactories->IsEmpty()) { return true; }
 
@@ -245,7 +245,7 @@ namespace PCGExClusterMT
 
 	bool IProcessor::IsNodePassingFilters(const PCGExCluster::FNode& Node) const { return static_cast<bool>(*(VtxFilterCache->GetData() + Node.PointIndex)); }
 
-	bool IProcessor::InitEdgesFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
+	bool IProcessor::InitEdgesFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories)
 	{
 		EdgeFilterCache.Init(DefaultEdgeFilterValue, EdgeDataFacade->GetNum());
 

@@ -64,7 +64,7 @@ struct FPCGExDistanceFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExDistanceFilterFactory : public UPCGExFilterFactoryData
+class UPCGExDistanceFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

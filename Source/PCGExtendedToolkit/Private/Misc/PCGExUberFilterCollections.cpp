@@ -68,7 +68,7 @@ bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->bHasOnlyCollectionFilters = true;
-	for (const TObjectPtr<const UPCGExFilterFactoryData>& FilterFactory : Context->FilterFactories)
+	for (const TObjectPtr<const UPCGExPointFilterFactoryData>& FilterFactory : Context->FilterFactories)
 	{
 		if (!FilterFactory->SupportsCollectionEvaluation())
 		{

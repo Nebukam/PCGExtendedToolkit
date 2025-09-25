@@ -35,6 +35,7 @@ namespace PCGExFactories
 	{
 		None = 0,
 		Instanced,
+		Filter,
 		FilterGroup,
 		FilterPoint,
 		FilterNode,

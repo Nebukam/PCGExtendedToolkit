@@ -70,7 +70,7 @@ struct FPCGExWithinRangeFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExWithinRangeFilterFactory : public UPCGExFilterFactoryData
+class UPCGExWithinRangeFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

@@ -16,7 +16,7 @@
 
 ///
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 USTRUCT(BlueprintType)
 struct FPCGExEdgeMatchConfig
@@ -69,7 +69,7 @@ class FPCGExVtxPropertyEdgeMatch : public FPCGExVtxPropertyOperation
 public:
 	FPCGExEdgeMatchConfig Config;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* FilterFactories = nullptr;
 
 	virtual bool PrepareForCluster(
 		FPCGExContext* InContext,

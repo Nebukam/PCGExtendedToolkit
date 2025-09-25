@@ -53,7 +53,7 @@ struct FPCGExBooleanCompareFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/simple-comparisons/boolean"))
-class UPCGExBooleanCompareFilterFactory : public UPCGExFilterFactoryData
+class UPCGExBooleanCompareFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

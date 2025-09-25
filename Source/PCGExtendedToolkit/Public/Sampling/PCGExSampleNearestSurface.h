@@ -30,7 +30,7 @@ MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())
 
 class AActor;
 class UWorld;
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.

@@ -88,7 +88,7 @@ struct FPCGExRandomFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExRandomFilterFactory : public UPCGExFilterFactoryData
+class UPCGExRandomFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

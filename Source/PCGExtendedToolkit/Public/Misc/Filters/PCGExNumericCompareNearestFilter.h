@@ -69,7 +69,7 @@ struct FPCGExNumericCompareNearestFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExNumericCompareNearestFilterFactory : public UPCGExFilterFactoryData
+class UPCGExNumericCompareNearestFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

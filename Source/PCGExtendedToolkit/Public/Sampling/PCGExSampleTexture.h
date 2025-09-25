@@ -17,7 +17,7 @@
 #include "PCGExSampleTexture.generated.h"
 
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.

@@ -94,7 +94,7 @@ struct FPCGExSegmentLengthFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExSegmentLengthFilterFactory : public UPCGExFilterFactoryData
+class UPCGExSegmentLengthFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

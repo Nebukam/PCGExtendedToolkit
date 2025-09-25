@@ -75,7 +75,7 @@ struct FPCGExNumericSelfCompareFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExNumericSelfCompareFilterFactory : public UPCGExFilterFactoryData
+class UPCGExNumericSelfCompareFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

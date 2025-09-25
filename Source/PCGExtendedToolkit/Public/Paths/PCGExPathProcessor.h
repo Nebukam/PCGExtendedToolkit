@@ -14,7 +14,7 @@
 
 #define PCGEX_OUTPUT_VALID_PATHS(_COLLECTION) if (Settings->bOmitInvalidPathsOutputs) { Context->_COLLECTION->StageOutputs(2, MAX_int32); }else{ Context->_COLLECTION->StageOutputs(); }
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 class UPCGExNodeStateFactory;
 

@@ -67,8 +67,8 @@ struct FPCGExConnectPointsContext final : FPCGExPointsProcessorContext
 	friend class FPCGExConnectPointsElement;
 
 	TArray<TObjectPtr<const UPCGExProbeFactoryData>> ProbeFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> GeneratorsFiltersFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ConnectablesFiltersFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> GeneratorsFiltersFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> ConnectablesFiltersFactories;
 
 	FVector CWCoincidenceTolerance = FVector::OneVector;
 

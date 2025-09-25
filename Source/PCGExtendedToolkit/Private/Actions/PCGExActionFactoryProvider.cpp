@@ -93,8 +93,8 @@ void UPCGExActionFactoryData::BeginDestroy()
 TArray<FPCGPinProperties> UPCGExActionProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (GetRequiresFilters()) { PCGEX_PIN_FACTORIES(PCGExActions::SourceConditionsFilterLabel, "Filters used to define if there's a match or not.", Required, FPCGExDataTypeInfoFilter) }
-	else { PCGEX_PIN_FACTORIES(PCGExActions::SourceConditionsFilterLabel, "Filters used to define if there's a match or not.", Normal, FPCGExDataTypeInfoFilter) }
+	if (GetRequiresFilters()) { PCGEX_PIN_FACTORIES(PCGExActions::SourceConditionsFilterLabel, "Filters used to define if there's a match or not.", Required, FPCGExDataTypeInfoFilterPoint::AsId()) }
+	else { PCGEX_PIN_FACTORIES(PCGExActions::SourceConditionsFilterLabel, "Filters used to define if there's a match or not.", Normal, FPCGExDataTypeInfoFilterPoint::AsId()) }
 	return PinProperties;
 }
 

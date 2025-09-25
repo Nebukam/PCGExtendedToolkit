@@ -128,9 +128,9 @@ public:
 	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope);
 	virtual void CompleteOperation();
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgesFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ValueFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> VtxFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgesFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> ValueFilterFactories;
 
 protected:
 	bool bIsValidOperation = true;
@@ -149,13 +149,13 @@ public:
 	FPCGExSamplingConfig SamplingConfig;
 
 	UPROPERTY()
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> VtxFilterFactories;
 
 	UPROPERTY()
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgesFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgesFilterFactories;
 
 	UPROPERTY()
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ValueFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> ValueFilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Sampler; }
 

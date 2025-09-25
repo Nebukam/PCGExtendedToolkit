@@ -80,6 +80,13 @@ struct FPCGExDataTypeInfoFilter : public FPCGExFactoryDataTypeInfo
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
 };
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter (Point)")
+struct FPCGExDataTypeInfoFilterPoint : public FPCGExDataTypeInfoFilter
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 /**
  * 
  */
@@ -93,7 +100,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryData : public UPCGExFactoryData
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilter)
 	
-	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Filter; }
 
 	virtual bool DomainCheck();
 	virtual bool GetOnlyUseDataDomain() const { return bOnlyUseDataDomain; }
@@ -111,6 +118,25 @@ public:
 protected:
 	bool bOnlyUseDataDomain = false;
 };
+
+/**
+ * 
+ */
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExPointFilterFactoryData : public UPCGExFilterFactoryData
+{
+	GENERATED_BODY()
+
+	friend UPCGExFilterProviderSettings;
+
+public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilterPoint)
+	
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
+
+};
+
+
 
 namespace PCGExPointFilter
 {
@@ -137,7 +163,7 @@ namespace PCGExPointFilter
 	class PCGEXTENDEDTOOLKIT_API IFilter : public TSharedFromThis<IFilter>
 	{
 	public:
-		explicit IFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
+		explicit IFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory):
 			Factory(InFactory)
 		{
 		}
@@ -150,7 +176,7 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
 		bool bCacheResults = true;
-		TObjectPtr<const UPCGExFilterFactoryData> Factory;
+		TObjectPtr<const UPCGExPointFilterFactoryData> Factory;
 		TArray<int8> Results;
 
 		int32 FilterIndex = 0;
@@ -177,7 +203,7 @@ namespace PCGExPointFilter
 	class PCGEXTENDEDTOOLKIT_API ISimpleFilter : public IFilter
 	{
 	public:
-		explicit ISimpleFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
+		explicit ISimpleFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory):
 			IFilter(InFactory)
 		{
 		}
@@ -192,7 +218,7 @@ namespace PCGExPointFilter
 	class PCGEXTENDEDTOOLKIT_API ICollectionFilter : public IFilter
 	{
 	public:
-		explicit ICollectionFilter(const TObjectPtr<const UPCGExFilterFactoryData>& InFactory):
+		explicit ICollectionFilter(const TObjectPtr<const UPCGExPointFilterFactoryData>& InFactory):
 			IFilter(InFactory)
 		{
 		}
@@ -223,7 +249,7 @@ namespace PCGExPointFilter
 
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
 
-		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories);
+		bool Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
 
 		virtual bool Test(const int32 Index);
 		virtual bool Test(const PCGExData::FProxyPoint& Point);
@@ -256,15 +282,15 @@ namespace PCGExPointFilter
 		virtual void InitCache();
 	};
 
-	static void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)
+	static void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		for (const UPCGExFilterFactoryData* Factory : InFactories)
+		for (const UPCGExPointFilterFactoryData* Factory : InFactories)
 		{
 			Factory->RegisterBuffersDependencies(InContext, FacadePreloader);
 		}
 	}
 
-	static void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories)
+	static void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories)
 	{
 		if (InFactories.IsEmpty()) { return; }
 
@@ -302,7 +328,7 @@ struct FPCGExDataTypeInfoFilterCollection : public FPCGExDataTypeInfoFilter
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExFilterCollectionFactoryData : public UPCGExFilterFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExFilterCollectionFactoryData : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

@@ -34,7 +34,7 @@ MACRO(NumInside, int32, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(ClosedLoop, int32, false)
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 UENUM()
 enum class EPCGExPathSamplingIncludeMode : uint8

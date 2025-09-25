@@ -24,12 +24,12 @@ TArray<FPCGPinProperties> UPCGExShapeProcessorSettings::InputPinProperties() con
 		else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required) }
 	}
 
-	PCGEX_PIN_FACTORIES(PCGExShapes::SourceShapeBuildersLabel, "Shape builders that will be used by this element.", Required, FPCGExDataTypeInfoShape)
+	PCGEX_PIN_FACTORIES(PCGExShapes::SourceShapeBuildersLabel, "Shape builders that will be used by this element.", Required, FPCGExDataTypeInfoShape::AsId())
 
 	if (SupportsPointFilters())
 	{
-		if (RequiresPointFilters()) { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Required, FPCGExDataTypeInfoFilter) }
-		else { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Normal, FPCGExDataTypeInfoFilter) }
+		if (RequiresPointFilters()) { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Required, FPCGExDataTypeInfoFilterPoint::AsId()) }
+		else { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Normal, FPCGExDataTypeInfoFilterPoint::AsId()) }
 	}
 
 	return PinProperties;

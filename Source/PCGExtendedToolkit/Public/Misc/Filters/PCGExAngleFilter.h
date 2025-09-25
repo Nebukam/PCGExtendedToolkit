@@ -60,7 +60,7 @@ struct FPCGExAngleFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExAngleFilterFactory : public UPCGExFilterFactoryData
+class UPCGExAngleFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

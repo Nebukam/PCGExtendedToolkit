@@ -133,7 +133,7 @@ struct FPCGExTensorsTransformContext final : FPCGExPointsProcessorContext
 	friend class FPCGExTensorsTransformElement;
 
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> StopFilterFactories;
 
 	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_DECL_TOGGLE)
 

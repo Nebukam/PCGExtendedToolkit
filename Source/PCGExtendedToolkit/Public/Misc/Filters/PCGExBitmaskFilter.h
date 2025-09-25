@@ -56,7 +56,7 @@ struct FPCGExBitmaskFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExBitmaskFilterFactory : public UPCGExFilterFactoryData
+class UPCGExBitmaskFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

@@ -19,7 +19,7 @@ PCGExData::EIOInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const
 TArray<FPCGPinProperties> UPCGExSimplifyClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeFiltersLabel, "Optional edge filters.", Normal, FPCGExDataTypeInfoFilterEdge)
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeFiltersLabel, "Optional edge filters.", Normal, FPCGExDataTypeInfoFilterEdge::AsId())
 	return PinProperties;
 }
 

@@ -29,6 +29,4 @@ protected:
 	void RegisterMenuExtensions();
 	void UnregisterMenuExtensions();
 
-	FPCGDataTypeIdentifier FilterVtxCompositeIdentifier;
-	FPCGDataTypeIdentifier FilterEdgeCompositeIdentifier;
 };

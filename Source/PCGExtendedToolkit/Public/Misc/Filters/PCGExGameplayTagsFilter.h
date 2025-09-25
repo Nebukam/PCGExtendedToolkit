@@ -61,7 +61,7 @@ struct FPCGExGameplayTagsFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExGameplayTagsFilterFactory : public UPCGExFilterFactoryData
+class UPCGExGameplayTagsFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

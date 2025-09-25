@@ -19,6 +19,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterGroupProviderSettings : public UPCGExFa
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilter)
+	
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
@@ -35,6 +38,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 public:
 	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabel; }

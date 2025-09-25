@@ -14,7 +14,7 @@
 
 ///
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 UENUM()
 enum class EPCGExVtxAmplitudeMode : uint8
@@ -135,7 +135,7 @@ class FPCGExVtxPropertyAmplitude : public FPCGExVtxPropertyOperation
 public:
 	FPCGExAmplitudeConfig Config;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* FilterFactories = nullptr;
 
 	virtual bool PrepareForCluster(
 		FPCGExContext* InContext,

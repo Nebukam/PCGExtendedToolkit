@@ -54,6 +54,7 @@ MACRO(Action, __VA_ARGS__) \
 MACRO(BlendOp, __VA_ARGS__) \
 MACRO(MatchRule, __VA_ARGS__) \
 MACRO(Filter, __VA_ARGS__) \
+MACRO(FilterPoint, __VA_ARGS__) \
 MACRO(FilterCollection, __VA_ARGS__) \
 MACRO(FilterCluster, __VA_ARGS__) \
 MACRO(FilterVtx, __VA_ARGS__) \
@@ -191,29 +192,25 @@ void FPCGExtendedToolkitEditorModule::RegisterPinColorAndIcons()
 
 	PCGEX_FOREACH_CUSTOM_DATA_TYPE(PCGEX_REGISTER_PIN_AND_COLOR, Default)
 
-	
-	FilterVtxCompositeIdentifier |= FPCGExDataTypeInfoFilter::AsId();
-	FilterVtxCompositeIdentifier |= FPCGExDataTypeInfoFilterVtx::AsId();
-
-	InRegistry.RegisterPinColorFunction(FilterVtxCompositeIdentifier, [](const FPCGDataTypeIdentifier&) { return FLinearColor::White; });
+	/*
+	InRegistry.RegisterPinColorFunction(PCGExClusterFilter::GetVtxFiltersCompositeId(), [](const FPCGDataTypeIdentifier&) { return FLinearColor::White; });
 	InRegistry.RegisterPinIconsFunction(
-		FilterVtxCompositeIdentifier, [&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>
+		PCGExClusterFilter::GetVtxFiltersCompositeId(),
+		[&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>
 		{
-			if (bIsInput) { return {Style->GetBrush(FName("PCGEx.Pin.IN_Vtx")), Style->GetBrush(FName("PCGEx.Pin.IN_Vtx"))}; }
-			else { return {Style->GetBrush(FName("PCGEx.Pin.OUT_Vtx")), Style->GetBrush(FName("PCGEx.Pin.OUT_Vtx"))}; }
-		});
-	
-	FilterEdgeCompositeIdentifier |= FPCGExDataTypeInfoFilter::AsId();
-	FilterEdgeCompositeIdentifier |= FPCGExDataTypeInfoFilterEdge::AsId();
-
-	InRegistry.RegisterPinColorFunction(FilterEdgeCompositeIdentifier, [](const FPCGDataTypeIdentifier&) { return FLinearColor::White; });
-	InRegistry.RegisterPinIconsFunction(
-		FilterEdgeCompositeIdentifier, [&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>
-		{
-			if (bIsInput) { return {Style->GetBrush(FName("PCGEx.Pin.IN_Edge")), Style->GetBrush(FName("PCGEx.Pin.IN_Edge"))}; }
-			else { return {Style->GetBrush(FName("PCGEx.Pin.OUT_Edge")), Style->GetBrush(FName("PCGEx.Pin.OUT_Edge"))}; }
+			if (bIsInput) { return {Style->GetBrush(FName("PCGEx.Pin.IN_FilterVtx")), Style->GetBrush(FName("PCGEx.Pin.IN_FilterVtx"))}; }
+			else { return {Style->GetBrush(FName("PCGEx.Pin.OUT_FilterVtx")), Style->GetBrush(FName("PCGEx.Pin.OUT_FilterVtx"))}; }
 		});
 
+	InRegistry.RegisterPinColorFunction(PCGExClusterFilter::GetEdgeFiltersCompositeId(), [](const FPCGDataTypeIdentifier&) { return FLinearColor::White; });
+	InRegistry.RegisterPinIconsFunction(
+		PCGExClusterFilter::GetEdgeFiltersCompositeId(),
+		[&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>
+		{
+			if (bIsInput) { return {Style->GetBrush(FName("PCGEx.Pin.IN_FilterEdge")), Style->GetBrush(FName("PCGEx.Pin.IN_FilterEdge"))}; }
+			else { return {Style->GetBrush(FName("PCGEx.Pin.OUT_FilterEdge")), Style->GetBrush(FName("PCGEx.Pin.OUT_FilterEdge"))}; }
+		});
+*/
 
 #undef PCGEX_REGISTER_PIN_AND_COLOR
 	/*

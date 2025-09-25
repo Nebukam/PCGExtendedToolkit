@@ -82,7 +82,7 @@ struct FPCGExBoundsFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExBoundsFilterFactory : public UPCGExFilterFactoryData
+class UPCGExBoundsFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

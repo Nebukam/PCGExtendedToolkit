@@ -47,7 +47,7 @@ enum class EPCGExSplineFilterPick : uint8
  * 
  */
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExPolyPathFilterFactory : public UPCGExFilterFactoryData
+class UPCGExPolyPathFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 	friend PCGExPathInclusion::FHandler;

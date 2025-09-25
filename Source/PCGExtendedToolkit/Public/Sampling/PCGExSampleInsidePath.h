@@ -31,7 +31,7 @@ enum class EPCGExSampleInsidePathOutput : uint8
 	Split       = 2 UMETA(DisplayName = "Split", Tooltip="Split between two pins")
 };
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/nearest-spline-2"))
 class UPCGExSampleInsidePathSettings : public UPCGExPointsProcessorSettings
