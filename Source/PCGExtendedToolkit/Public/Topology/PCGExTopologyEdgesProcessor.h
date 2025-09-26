@@ -35,6 +35,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(TopologyProcessor, "Topology", "Base processor to output meshes from clusters");
 	virtual EPCGSettingsType GetType() const override { return OutputMode == EPCGExTopologyOutputMode::Legacy ? EPCGSettingsType::Spawner : EPCGSettingsType::DynamicMesh; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor::White; }
 #endif
 
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;

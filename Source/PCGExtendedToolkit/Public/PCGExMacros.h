@@ -258,7 +258,7 @@ case EPCGExOptionState::Disabled: return false; }
 
 #define PCGEX_PIN_STATUS(_STATUS) Pin.PinStatus = EPCGPinStatus::_STATUS;
 
-#define PCGEX_PIN_ANY(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Any); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_ANY(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfo::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_POINTS(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoPoint::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_SPATIALS(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoSpatial::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_POLYLINES(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoPolyline::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
@@ -267,7 +267,7 @@ case EPCGExOptionState::Disabled: return false; }
 #define PCGEX_PIN_FILTERS(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGExDataTypeInfoFilter::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_FACTORIES(_LABEL, _TOOLTIP, _STATUS, _FACTORY_TYPEID) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, _FACTORY_TYPEID); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_TEXTURES(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoBaseTexture2D::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
-#define PCGEX_PIN_ANY_SINGLE(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Any, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_ANY_SINGLE(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfo::AsId(), false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_POINT(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoPoint::AsId(), false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_SPATIAL(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoSpatial::AsId(), false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_PARAM(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoParam::AsId(), false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }

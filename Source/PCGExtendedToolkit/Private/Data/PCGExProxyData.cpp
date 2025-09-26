@@ -589,7 +589,7 @@ OutProxy = TypedProxy;
 			if (!Buffer)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Failed to initialize proxy buffer."));
-				return OutProxy;
+				return nullptr;
 			}
 
 			if (bSubSelection)
@@ -619,7 +619,7 @@ OutProxy = TypedProxy;
 				if (NativeType == EPCGPointNativeProperties::None)
 				{
 					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attempting to write to an unsupported property type."));
-					return OutProxy;
+					return nullptr;
 				}
 
 				PointData->AllocateProperties(NativeType);
@@ -730,28 +730,6 @@ template class PCGEXTENDEDTOOLKIT_API TDirectDataAttributeProxy<_TYPE_A, _TYPE_B
 		const TSharedPtr<FFacade> InDataFacade = InDescriptor.DataFacade.Pin();
 		UPCGBasePointData* PointData = nullptr;
 
-		ON_SCOPE_EXIT
-		{
-			if (OutProxy)
-			{
-#if WITH_EDITOR
-				OutProxy->Descriptor = InDescriptor;
-#endif
-
-				OutProxy->Data = PointData;
-
-				if (!OutProxy->Validate(InDescriptor))
-				{
-					PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING : \"{0}\""), FText::FromString(PCGEx::GetSelectorDisplayName(InDescriptor.Selector))));
-					OutProxy = nullptr;
-				}
-				else
-				{
-					OutProxy->SubSelection = InDescriptor.SubSelection;
-				}
-			}
-		};
-
 		if (!InDataFacade)
 		{
 			PointData = const_cast<UPCGBasePointData*>(InDescriptor.PointData);
@@ -790,6 +768,25 @@ template class PCGEXTENDEDTOOLKIT_API TDirectDataAttributeProxy<_TYPE_A, _TYPE_B
 						OutProxy = GetProxyBuffer<T_REAL, T_WORKING>(InContext, InDescriptor, InDataFacade, PointData);
 					});
 			});
+
+		if (OutProxy)
+		{
+#if WITH_EDITOR
+			OutProxy->Descriptor = InDescriptor;
+#endif
+
+			OutProxy->Data = PointData;
+
+			if (!OutProxy->Validate(InDescriptor))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING : \"{0}\""), FText::FromString(PCGEx::GetSelectorDisplayName(InDescriptor.Selector))));
+				OutProxy = nullptr;
+			}
+			else
+			{
+				OutProxy->SubSelection = InDescriptor.SubSelection;
+			}
+		}
 
 		return OutProxy;
 	}

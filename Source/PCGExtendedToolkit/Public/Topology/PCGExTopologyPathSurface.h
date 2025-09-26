@@ -22,6 +22,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(TopologyClusterSurface, "Topology : Path Surface", "Create a path surface topology");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::DynamicMesh; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor::White; }
 #endif
 
 protected:
