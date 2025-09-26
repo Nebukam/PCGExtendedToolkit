@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExReduceDataAttribute.h"
 
+#include "PCGExHelpers.h"
+#include "PCGParamData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/Blending//PCGExBlendModes.h"
 

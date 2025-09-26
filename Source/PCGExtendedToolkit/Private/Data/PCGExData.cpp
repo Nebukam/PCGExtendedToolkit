@@ -12,9 +12,10 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExValueHash.h"
+#include "Data/PCGPointData.h"
 #include "Geometry/PCGExGeoPointBox.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
-#include "Sampling/MeshBaseBaker.h"
+#include "Metadata/Accessors/PCGCustomAccessor.h"
 
 namespace PCGExData
 {

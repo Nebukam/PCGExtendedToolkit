@@ -18,6 +18,18 @@
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoSortRule, UPCGExSortingRule)
 
+FPCGExSortRuleConfig::FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other)
+	: FPCGExInputConfig(Other),
+	  Tolerance(Other.Tolerance),
+	  bInvertRule(Other.bInvertRule)
+{
+}
+
+FPCGExCollectionSortingDetails::FPCGExCollectionSortingDetails(const bool InEnabled)
+{
+	bEnabled = InEnabled;
+}
+
 bool FPCGExCollectionSortingDetails::Init(const FPCGContext* InContext)
 {
 	if (!bEnabled) { return true; }

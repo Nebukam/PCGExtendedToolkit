@@ -6,6 +6,7 @@
 
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExChain.h"
 #include "Paths/PCGExPaths.h"
 

@@ -5,8 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
+#include "PCGExPointsMT.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExPointElements.h"
 
 
 #include "Orient/PCGExOrientOperation.h"

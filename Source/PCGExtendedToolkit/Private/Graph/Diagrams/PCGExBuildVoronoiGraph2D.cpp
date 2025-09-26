@@ -6,6 +6,7 @@
 #include "PCGExRandom.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"

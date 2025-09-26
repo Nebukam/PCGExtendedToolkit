@@ -4,6 +4,8 @@
 #include "Graph/Probes/PCGExProbeClosest.h"
 
 
+#include "PCGExH.h"
+#include "PCGExHelpers.h"
 #include "Graph/Probes/PCGExProbing.h"
 
 PCGEX_CREATE_PROBE_FACTORY(Closest, {}, {})

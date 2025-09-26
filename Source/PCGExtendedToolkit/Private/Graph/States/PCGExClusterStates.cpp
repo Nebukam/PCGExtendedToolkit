@@ -4,6 +4,7 @@
 #include "Graph/States/PCGExClusterStates.h"
 
 
+#include "PCGParamData.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 

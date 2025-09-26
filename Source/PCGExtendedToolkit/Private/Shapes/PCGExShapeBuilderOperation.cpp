@@ -3,7 +3,8 @@
 
 
 #include "Shapes/PCGExShapeBuilderOperation.h"
-#include "Shapes/PCGExShapeBuilderFactoryProvider.h"
+
+#include "PCGExHelpers.h"
 #include "Shapes/PCGExShapes.h"
 
 bool FPCGExShapeBuilderOperation::PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)

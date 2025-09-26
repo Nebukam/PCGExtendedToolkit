@@ -4,6 +4,9 @@
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 #include "Data/PCGExDataHelpers.h"
+#include "Data/PCGExPointIO.h"
+#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
+#include "Metadata/Accessors/PCGCustomAccessor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateMatchRule"
 #define PCGEX_NAMESPACE CreateMatchRule

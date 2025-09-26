@@ -5,8 +5,6 @@
 
 #include "CoreMinimal.h"
 
-#include "OrientedBoxTypes.h"
-
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"

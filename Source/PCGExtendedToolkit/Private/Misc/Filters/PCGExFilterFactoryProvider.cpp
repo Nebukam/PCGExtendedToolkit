@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
+#include "PCGExHelpers.h"
 #include "Data/PCGExPointFilter.h"
 #include "Misc/Filters/PCGExConstantFilter.h"
 

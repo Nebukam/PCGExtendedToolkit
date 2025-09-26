@@ -10,6 +10,7 @@
 #include "PCGExConstantsDefinitions.h"
 #include "PCGExContext.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExHelpers.h"
 #include "PCGExMacros.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"

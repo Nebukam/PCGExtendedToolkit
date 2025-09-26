@@ -7,6 +7,7 @@
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "PCGComponent.h"
+#include "PCGParamData.h"
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExUnionProcessor.h"

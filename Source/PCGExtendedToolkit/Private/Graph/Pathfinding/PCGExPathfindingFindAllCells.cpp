@@ -4,6 +4,7 @@
 #include "Graph/Pathfinding/PCGExPathfindingFindAllCells.h"
 
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindAllCells"
 #define PCGEX_NAMESPACE FindAllCells

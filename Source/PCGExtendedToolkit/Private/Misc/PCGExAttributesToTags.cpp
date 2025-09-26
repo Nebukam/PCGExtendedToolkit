@@ -3,7 +3,10 @@
 
 #include "Misc/PCGExAttributesToTags.h"
 
+#include "PCGExHelpers.h"
+#include "PCGParamData.h"
 #include "Data/PCGExDataForward.h"
+#include "Data/PCGExPointIO.h"
 #include "Misc/Pickers/PCGExPicker.h"
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 

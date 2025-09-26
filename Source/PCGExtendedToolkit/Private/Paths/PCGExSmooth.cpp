@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExSmooth.h"
 
+#include "PCGParamData.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 

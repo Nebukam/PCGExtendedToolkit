@@ -14,10 +14,7 @@
 #include "PCGExScopedContainers.h"
 #include "Data/PCGSplineData.h"
 
-
-#include "Misc/PCGExSortPoints.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
-
 
 #include "PCGExSampleNearestSpline.generated.h"
 

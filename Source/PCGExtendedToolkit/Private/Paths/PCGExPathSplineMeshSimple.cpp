@@ -7,7 +7,6 @@
 #include "Components/SplineMeshComponent.h"
 
 #include "PCGExHelpers.h"
-#include "ShaderCompiler.h"
 #include "Data/PCGExDataTag.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 

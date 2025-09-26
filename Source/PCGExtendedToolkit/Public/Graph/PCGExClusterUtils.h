@@ -3,13 +3,17 @@
 
 #pragma once
 
+#include <functional>
+
 #include "CoreMinimal.h"
+#include "PCGExMacros.h"
 
-#include "PCGExCluster.h"
-
+struct FPCGExContext;
 
 namespace PCGExData
 {
+	class FPointIOCollection;
+	class FPointIO;
 	class FPointIOTaggedEntries;
 	class FPointIOTaggedDictionary;
 }

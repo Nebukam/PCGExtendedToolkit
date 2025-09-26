@@ -5,6 +5,8 @@
 #include "Misc/PCGExDiscardByPointCount.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGBasePointData.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDiscardByPointCountElement"
 #define PCGEX_NAMESPACE DiscardByPointCount

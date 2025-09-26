@@ -5,6 +5,7 @@
 
 #include "PCGExRandom.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Data/PCGExPointIO.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"

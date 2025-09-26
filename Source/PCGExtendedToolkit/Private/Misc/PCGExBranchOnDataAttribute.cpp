@@ -4,7 +4,9 @@
 #include "Misc/PCGExBranchOnDataAttribute.h"
 
 #include "PCGExBroadcast.h"
+#include "PCGExHelpers.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Metadata/PCGMetadata.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBranchOnDataAttributeElement"
 #define PCGEX_NAMESPACE BranchOnDataAttribute

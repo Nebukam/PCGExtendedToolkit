@@ -5,6 +5,7 @@
 
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Misc/PCGExDiscardByPointCount.h"
 #include "Misc/Pickers/PCGExPicker.h"
 

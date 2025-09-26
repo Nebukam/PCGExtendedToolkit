@@ -5,11 +5,17 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExHelpers.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExDrawAttributes.generated.h"
+
+namespace PCGExData
+{
+	struct FConstPoint;
+}
 
 UENUM()
 enum class EPCGExDebugExpression : uint8

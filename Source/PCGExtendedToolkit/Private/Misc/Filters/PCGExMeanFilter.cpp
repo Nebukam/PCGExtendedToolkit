@@ -3,7 +3,9 @@
 
 #include "Misc/Filters/PCGExMeanFilter.h"
 
+#include "PCGExHelpers.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExMeanFilterDefinition"

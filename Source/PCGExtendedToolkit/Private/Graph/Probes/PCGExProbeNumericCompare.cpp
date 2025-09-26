@@ -4,6 +4,7 @@
 #include "Graph/Probes/PCGExProbeNumericCompare.h"
 
 
+#include "PCGExHelpers.h"
 #include "Data/PCGExData.h"
 #include "Graph/Probes/PCGExProbing.h"
 

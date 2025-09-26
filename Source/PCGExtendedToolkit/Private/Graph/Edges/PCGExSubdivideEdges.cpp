@@ -4,6 +4,8 @@
 #include "Graph/Edges/PCGExSubdivideEdges.h"
 
 
+#include "PCGParamData.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideEdges"

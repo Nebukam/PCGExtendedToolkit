@@ -5,10 +5,12 @@
 
 
 #include "PCGExPointsProcessor.h"
+#include "PCGParamData.h"
 #include "Graph/PCGExGraph.h"
 #include "Algo/Reverse.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"

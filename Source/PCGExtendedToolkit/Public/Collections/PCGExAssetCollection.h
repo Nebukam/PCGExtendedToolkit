@@ -12,9 +12,11 @@
 #endif
 
 #include "PCGExDetailsData.h"
+#include "PCGParamData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
+#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 #include "Transform/PCGExTransform.h"
 #include "Transform/PCGExFitting.h"
 

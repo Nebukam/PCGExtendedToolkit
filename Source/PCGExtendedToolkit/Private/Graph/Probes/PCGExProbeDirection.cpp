@@ -4,6 +4,8 @@
 #include "Graph/Probes/PCGExProbeDirection.h"
 
 
+#include "PCGExH.h"
+#include "PCGExHelpers.h"
 #include "PCGExMath.h"
 #include "Graph/Probes/PCGExProbing.h"
 

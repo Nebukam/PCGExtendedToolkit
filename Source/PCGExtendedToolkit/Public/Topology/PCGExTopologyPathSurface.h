@@ -8,7 +8,6 @@
 #include "Data/PCGDynamicMeshData.h"
 #include "Geometry/PCGExGeoMesh.h"
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExEdgesProcessor.h"
 #include "Paths/PCGExPathProcessor.h"
 
 #include "PCGExTopologyPathSurface.generated.h"

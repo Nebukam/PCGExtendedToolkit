@@ -7,16 +7,17 @@
 #include <type_traits>
 
 #include "CoreMinimal.h"
+#include "Metadata/PCGMetadataCommon.h"
 #include "PCGExBroadcast.h"
-#include "Metadata/PCGAttributePropertySelector.h"
-#include "Metadata/Accessors/IPCGAttributeAccessor.h"
 
 #include "PCGExMacros.h"
-
-#include "Metadata/Accessors/PCGAttributeAccessor.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExAttributeHelpers.generated.h"
 
+class UPCGMetadata;
+struct FPCGContext;
+class FPCGMetadataAttributeBase;
 struct FPCGExContext;
 
 namespace PCGExMT
@@ -163,13 +164,13 @@ namespace PCGEx
 		{
 		}
 
-		bool InDataDomain() const { return Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data; }
+		bool InDataDomain() const;
 		int16 GetTypeId() const { return static_cast<int16>(UnderlyingType); }
 		bool IsA(const int16 InType) const { return GetTypeId() == InType; }
 		bool IsA(const EPCGMetadataTypes InType) const { return UnderlyingType == InType; }
 
-		FString GetDisplayName() const { return FString(Identifier.Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
-		bool operator==(const FAttributeIdentity& Other) const { return Identifier == Other.Identifier; }
+		FString GetDisplayName() const;
+		bool operator==(const FAttributeIdentity& Other) const;
 
 		static void Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList = nullptr);
 		static void Get(const UPCGMetadata* InMetadata, TArray<FPCGAttributeIdentifier>& OutIdentifiers, TMap<FPCGAttributeIdentifier, FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList = nullptr);
@@ -237,11 +238,7 @@ namespace PCGEx
 
 		operator const FPCGMetadataAttributeBase*() const { return Attribute; }
 
-		operator EPCGMetadataTypes() const
-		{
-			if (Attribute) { return static_cast<EPCGMetadataTypes>(Attribute->GetTypeId()); }
-			return EPCGMetadataTypes::Unknown;
-		}
+		operator EPCGMetadataTypes() const;
 
 		operator EPCGAttributePropertySelection() const { return Selector.GetSelection(); }
 		operator EPCGPointProperties() const { return Selector.GetPointProperty(); }

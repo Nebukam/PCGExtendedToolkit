@@ -4,6 +4,7 @@
 #include "Paths/PCGExSubdivide.h"
 
 #include "PCGExRandom.h"
+#include "PCGParamData.h"
 
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

@@ -4,10 +4,11 @@
 #include "Paths/PCGExWriteTangents.h"
 
 
+#include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointIO.h"
 #include "Paths/Tangents/PCGExTangentsAuto.h"
-#include "Paths/Tangents/PCGExTangentsZero.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph

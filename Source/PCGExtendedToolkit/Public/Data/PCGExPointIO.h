@@ -5,21 +5,15 @@
 
 #include "CoreMinimal.h"
 #include "UObject/UObjectGlobals.h"
-#include "Metadata/Accessors/PCGCustomAccessor.h"
 #include "Data/PCGPointArrayData.h"
-#include "PCGElement.h"
 #include "UObject/Object.h"
 #include "UObject/Package.h"
 #include "PCGPoint.h"
-#include "Data/PCGPointData.h"
 
-#include "PCGExMT.h"
-#include "PCGEx.h"
 #include "PCGExCommon.h"
 #include "PCGExContext.h"
 #include "PCGExPointElements.h"
 #include "PCGExHelpers.h"
-#include "PCGParamData.h"
 
 namespace PCGExData
 {
@@ -29,13 +23,6 @@ namespace PCGExData
 
 namespace PCGExData
 {
-	enum class EIOInit : uint8
-	{
-		NoInit UMETA(DisplayName = "No Output"),
-		New UMETA(DisplayName = "Create Empty Output Object"),
-		Duplicate UMETA(DisplayName = "Duplicate Input Object"),
-		Forward UMETA(DisplayName = "Forward Input Object")
-	};
 
 #pragma region FPointIO
 	/**
@@ -61,8 +48,8 @@ namespace PCGExData
 		bool bWritten = false;
 		int32 NumInPoints = -1;
 
-		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> InKeys; // Shared because reused by duplicates
-		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> OutKeys;
+		TSharedPtr<IPCGAttributeAccessorKeys> InKeys; // Shared because reused by duplicates
+		TSharedPtr<IPCGAttributeAccessorKeys> OutKeys;
 
 		const UPCGData* OriginalIn = nullptr;  // Input PointData	
 		const UPCGBasePointData* In = nullptr; // Input PointData	
@@ -181,10 +168,10 @@ namespace PCGExData
 
 		int32 GetNum() const { return In ? In->GetNumPoints() : Out ? Out->GetNumPoints() : -1; }
 		int32 GetNum(const EIOSide Source) const { return Source == EIOSide::In ? In->GetNumPoints() : Out->GetNumPoints(); }
-		FTaggedData GetTaggedData(const EIOSide Source = EIOSide::In) { return FTaggedData(GetData(Source), Tags, GetInKeys()); }
+		FTaggedData GetTaggedData(const EIOSide Source = EIOSide::In);
 
-		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> GetInKeys();
-		TSharedPtr<FPCGAttributeAccessorKeysPointIndices> GetOutKeys(const bool bEnsureValidKeys = false);
+		TSharedPtr<IPCGAttributeAccessorKeys> GetInKeys();
+		TSharedPtr<IPCGAttributeAccessorKeys> GetOutKeys(const bool bEnsureValidKeys = false);
 
 		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
 		void PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;

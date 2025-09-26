@@ -4,8 +4,12 @@
 #include "Misc/PCGExIterations.h"
 
 
+#include "PCGExHelpers.h"
 #include "PCGGraph.h"
+#include "PCGParamData.h"
 #include "PCGPin.h"
+#include "Data/PCGBasePointData.h"
+#include "Data/PCGPointArrayData.h"
 #include "Data/PCGSplineData.h"
 #include "Data/PCGTextureData.h"
 
@@ -31,7 +35,7 @@ TArray<FPCGPinProperties> UPCGExIterationsSettings::OutputPinProperties() const
 	{
 	default:
 	case EPCGExIterationDataType::Any:
-		Pin.AllowedTypes = FPCGDataTypeInfoParam::AsId();
+		Pin.AllowedTypes = FPCGDataTypeInfo::AsId();
 		break;
 	case EPCGExIterationDataType::Params:
 		Pin.AllowedTypes = FPCGDataTypeInfoParam::AsId();

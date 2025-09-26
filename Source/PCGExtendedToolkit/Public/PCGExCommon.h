@@ -65,6 +65,14 @@ namespace PCGExData
 	template <typename T>
 	class TDataValue;
 
+	enum class EIOInit : uint8
+	{
+		NoInit UMETA(DisplayName = "No Output"),
+		New UMETA(DisplayName = "Create Empty Output Object"),
+		Duplicate UMETA(DisplayName = "Duplicate Input Object"),
+		Forward UMETA(DisplayName = "Forward Input Object")
+	};
+
 	enum class EIOSide : uint8
 	{
 		In,

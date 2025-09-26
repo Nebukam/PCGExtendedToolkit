@@ -3,6 +3,7 @@
 
 #include "Shapes/Builders/PCGExShapeGrid.h"
 
+#include "PCGExHelpers.h"
 #include "PCGExMath.h"
 
 

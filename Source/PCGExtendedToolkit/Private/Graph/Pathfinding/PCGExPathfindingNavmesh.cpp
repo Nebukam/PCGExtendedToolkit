@@ -5,6 +5,7 @@
 
 
 #include "PCGExPointsProcessor.h"
+#include "PCGParamData.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

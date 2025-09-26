@@ -8,7 +8,6 @@
 #include "PCGExOctree.h"
 #include "PCGExGraph.h"
 #include "PCGExEdge.h"
-#include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/Blending/PCGExMetadataBlender.h"

@@ -7,7 +7,6 @@
 
 #include "PCGExContext.h"
 #include "PCGExMT.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGExSubSystem.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"

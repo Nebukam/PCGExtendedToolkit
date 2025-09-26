@@ -10,6 +10,7 @@
 #include "Helpers/PCGSettingsHelpers.h"
 #include "Misc/PCGExMergePoints.h"
 #include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExShiftPath.h"
+
+#include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPaths.h"
 
 

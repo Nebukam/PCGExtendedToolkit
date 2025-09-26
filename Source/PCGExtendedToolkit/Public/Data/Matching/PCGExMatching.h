@@ -5,10 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "Data/PCGExData.h"
 #include "Data/PCGExFilterGroup.h"
-
 #include "PCGExMatching.generated.h"
 
 UENUM()

@@ -6,6 +6,7 @@
 
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Math/ConvexHull2d.h"
 #include "Graph/PCGExCluster.h"

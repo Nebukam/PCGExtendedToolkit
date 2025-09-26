@@ -9,6 +9,7 @@
 #include "PCGExOctree.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointElements.h"
 
 
 #include "PCGExDiscardByOverlap.generated.h"

@@ -4,6 +4,7 @@
 #include "Misc/PCGExSpatialTriage.h"
 
 #include "Data/PCGExDataHelpers.h"
+#include "Data/PCGSpatialData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSpatialTriageElement"
 #define PCGEX_NAMESPACE SpatialTriage

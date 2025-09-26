@@ -9,6 +9,7 @@
 #include "Actions/PCGExActionFactoryProvider.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"

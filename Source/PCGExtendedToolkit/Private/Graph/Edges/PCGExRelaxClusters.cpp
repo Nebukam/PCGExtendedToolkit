@@ -3,6 +3,7 @@
 
 #include "Graph/Edges/PCGExRelaxClusters.h"
 
+#include "PCGParamData.h"
 #include "Data/Blending/PCGExBlendLerp.h"
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
 #include "Data/PCGExPointFilter.h"

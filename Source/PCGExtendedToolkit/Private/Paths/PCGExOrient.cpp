@@ -4,7 +4,9 @@
 #include "Paths/PCGExOrient.h"
 
 
+#include "PCGParamData.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Paths/Orient/PCGExOrientAverage.h"
 #include "Paths/Orient/PCGExOrientLookAt.h"
 

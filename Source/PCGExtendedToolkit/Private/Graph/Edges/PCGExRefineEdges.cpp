@@ -4,7 +4,9 @@
 #include "Graph/Edges/PCGExRefineEdges.h"
 
 
+#include "PCGParamData.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 #include "Graph/Filters/PCGExClusterFilter.h"

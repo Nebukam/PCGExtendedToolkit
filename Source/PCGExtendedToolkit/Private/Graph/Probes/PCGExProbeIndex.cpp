@@ -2,7 +2,10 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Probes/PCGExProbeIndex.h"
+
+#include "PCGExHelpers.h"
 #include "PCGExMath.h"
+#include "Data/PCGExPointIO.h"
 
 
 PCGEX_CREATE_PROBE_FACTORY(Index, {}, {})

@@ -3,10 +3,13 @@
 
 #include "Data/PCGExPointIO.h"
 
+#include "PCGEx.h"
 #include "PCGExContext.h"
-#include "PCGExDetails.h"
 #include "PCGExMT.h"
+#include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGPointData.h"
+#include "Metadata/Accessors/PCGCustomAccessor.h"
 
 namespace PCGExData
 {
@@ -176,7 +179,9 @@ namespace PCGExData
 		return false;
 	}
 
-	TSharedPtr<FPCGAttributeAccessorKeysPointIndices> FPointIO::GetInKeys()
+	FTaggedData FPointIO::GetTaggedData(const EIOSide Source){ return FTaggedData(GetData(Source), Tags, GetInKeys()); }
+
+	TSharedPtr<IPCGAttributeAccessorKeys> FPointIO::GetInKeys()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetInKeys);
 
@@ -195,7 +200,7 @@ namespace PCGExData
 		return InKeys;
 	}
 
-	TSharedPtr<FPCGAttributeAccessorKeysPointIndices> FPointIO::GetOutKeys(const bool bEnsureValidKeys)
+	TSharedPtr<IPCGAttributeAccessorKeys> FPointIO::GetOutKeys(const bool bEnsureValidKeys)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetOutKeys);
 

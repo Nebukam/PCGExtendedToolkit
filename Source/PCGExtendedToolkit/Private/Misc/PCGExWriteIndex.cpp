@@ -3,9 +3,14 @@
 
 #include "Misc/PCGExWriteIndex.h"
 
+#include "PCGExBroadcast.h"
+#include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGPointData.h"
 #include "Data/PCGSplineData.h"
+#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 #define PCGEX_NAMESPACE WriteIndex

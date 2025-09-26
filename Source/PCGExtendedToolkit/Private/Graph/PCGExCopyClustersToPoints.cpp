@@ -4,6 +4,7 @@
 #include "Graph/PCGExCopyClustersToPoints.h"
 
 
+#include "Data/PCGExPointIO.h"
 #include "Graph/Data/PCGExClusterData.h"
 
 

@@ -4,6 +4,7 @@
 #include "Graph/Pathfinding/PCGExPathfindingFindContours.h"
 
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours

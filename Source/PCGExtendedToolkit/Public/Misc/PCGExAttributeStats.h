@@ -8,12 +8,14 @@
 
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGParamData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExBlendModes.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointIO.h"
 
 #include "PCGExAttributeStats.generated.h"
 

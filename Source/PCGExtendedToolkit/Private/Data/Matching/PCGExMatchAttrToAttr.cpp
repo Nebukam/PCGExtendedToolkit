@@ -3,6 +3,7 @@
 
 #include "Data/Matching/PCGExMatchAttrToAttr.h"
 
+#include "PCGExHelpers.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataHelpers.h"
 

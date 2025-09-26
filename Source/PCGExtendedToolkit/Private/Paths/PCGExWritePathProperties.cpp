@@ -4,6 +4,7 @@
 #include "Paths/PCGExWritePathProperties.h"
 #include "MinVolumeBox3.h"
 #include "OrientedBoxTypes.h"
+#include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"

@@ -3,7 +3,9 @@
 
 #include "Misc/PCGExBitmask.h"
 
+#include "PCGExHelpers.h"
 #include "PCGGraph.h"
+#include "PCGParamData.h"
 #include "PCGPin.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"

@@ -27,16 +27,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSortRuleConfig()
-	{
-	}
-
-	FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other)
-		: FPCGExInputConfig(Other),
-		  Tolerance(Other.Tolerance),
-		  bInvertRule(Other.bInvertRule)
-	{
-	}
+	FPCGExSortRuleConfig() = default;
+	FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other);
+	
 
 	/** Equality tolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -56,15 +49,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionSortingDetails
 {
 	GENERATED_BODY()
 
-	FPCGExCollectionSortingDetails()
-	{
-	}
-
-	explicit FPCGExCollectionSortingDetails(const bool InEnabled)
-	{
-		bEnabled = InEnabled;
-	}
-
+	FPCGExCollectionSortingDetails() = default;
+	explicit FPCGExCollectionSortingDetails(const bool InEnabled);
+	
 	/** Whether this collection sorting is enabled or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bEnabled = false;

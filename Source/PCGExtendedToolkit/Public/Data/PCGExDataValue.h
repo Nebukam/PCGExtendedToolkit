@@ -4,9 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExBroadcast.h"
+#include "PCGExMacros.h"
+#include "Metadata/PCGMetadataAttributeTraits.h"
 #include "UObject/Object.h"
-#include "PCGExHelpers.h"
+
+class UPCGData;
+struct FPCGAttributePropertyInputSelector;
+enum class EPCGMetadataTypes : uint8;
 
 namespace PCGExData
 {
