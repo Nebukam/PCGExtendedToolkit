@@ -28,7 +28,7 @@ TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::InputPinProperties() c
 		Selection == EPCGExCollectionEntrySelection::PickerFirst ||
 		Selection == EPCGExCollectionEntrySelection::PickerLast)
 	{
-		PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "Pickers config", Required)
+		PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "Pickers config", Required, FPCGExDataTypeInfoPicker::AsId())
 	}
 
 	return PinProperties;

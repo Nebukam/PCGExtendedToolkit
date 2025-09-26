@@ -28,8 +28,8 @@ TArray<FPCGPinProperties> UPCGExShapeProcessorSettings::InputPinProperties() con
 
 	if (SupportsPointFilters())
 	{
-		if (RequiresPointFilters()) { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Required, FPCGExDataTypeInfoFilterPoint::AsId()) }
-		else { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Normal, FPCGExDataTypeInfoFilterPoint::AsId()) }
+		if (RequiresPointFilters()) { PCGEX_PIN_FILTERS(GetPointFilterPin(), GetPointFilterTooltip(), Required) }
+		else { PCGEX_PIN_FILTERS(GetPointFilterPin(), GetPointFilterTooltip(), Normal) }
 	}
 
 	return PinProperties;

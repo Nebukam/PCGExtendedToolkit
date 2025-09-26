@@ -43,7 +43,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BinPacking, "Bin Packing", "[EXPERIMENTAL] An simple bin packing node.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorTransform); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorTransform); }
 #endif
 
 protected:

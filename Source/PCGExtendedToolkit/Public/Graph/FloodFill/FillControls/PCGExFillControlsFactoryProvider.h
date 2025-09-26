@@ -87,7 +87,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AbstractFillControls, "Fill Controls Definition", "Creates a single Fill Control node, to be used with flood fill nodes.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorFillControl; }
 #endif
 	//~End UPCGSettings
 

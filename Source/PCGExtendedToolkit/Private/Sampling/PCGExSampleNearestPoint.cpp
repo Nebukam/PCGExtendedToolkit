@@ -36,7 +36,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 
-	PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced, FPCGExDataTypeInfoFilterPoint::AsId())
+	PCGEX_PIN_FILTERS(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced)
 
 	return PinProperties;
 }

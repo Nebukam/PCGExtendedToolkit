@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMath.h"
 #include "PCGExSmoothingInstancedFactory.h"
-
 
 #include "PCGExMovingAverageSmoothing.generated.h"
 

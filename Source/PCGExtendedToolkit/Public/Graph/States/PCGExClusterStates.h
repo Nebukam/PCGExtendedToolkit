@@ -141,7 +141,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		ClusterNodeFlag, "Cluster : Node Flag", "A single, filter-driven node flag.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterState; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
 #endif
 
 protected:

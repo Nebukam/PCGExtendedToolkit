@@ -28,7 +28,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SocketStaging, "Socket Staging", "Socket staging from Asset Staging' Collection Map.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Sampler; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorPrimitives); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorSampling); }
 #endif
 
 protected:

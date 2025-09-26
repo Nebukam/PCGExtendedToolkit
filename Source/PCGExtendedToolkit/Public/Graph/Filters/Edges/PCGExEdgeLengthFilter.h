@@ -102,7 +102,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		EdgeLengthFilterFactory, "Edge Filter : Length", "Check against the edge' length.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 	//~End UPCGSettings
 

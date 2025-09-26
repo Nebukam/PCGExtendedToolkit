@@ -17,7 +17,7 @@ PCGExData::EIOInit UPCGExRelaxClustersSettings::GetEdgeOutputInitMode() const { 
 TArray<FPCGPinProperties> UPCGExRelaxClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Normal, FPCGExDataTypeInfoFilterVtx::AsId())
+	PCGEX_PIN_FILTERS(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Normal)
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExRelaxClusters::SourceOverridesRelaxing)
 	return PinProperties;
 }

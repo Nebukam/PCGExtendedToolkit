@@ -130,15 +130,6 @@ protected:
 
 namespace PCGExClusterFilter
 {
-	static FPCGDataTypeIdentifier VtxFiltersCompositeId;
-	static FPCGDataTypeIdentifier EdgeFiltersCompositeId;
-
-	PCGEXTENDEDTOOLKIT_API
-	const FPCGDataTypeIdentifier& GetVtxFiltersCompositeId();
-
-	PCGEXTENDEDTOOLKIT_API
-	const FPCGDataTypeIdentifier& GetEdgeFiltersCompositeId();
-	
 	class PCGEXTENDEDTOOLKIT_API IFilter : public PCGExPointFilter::IFilter
 	{
 	public:

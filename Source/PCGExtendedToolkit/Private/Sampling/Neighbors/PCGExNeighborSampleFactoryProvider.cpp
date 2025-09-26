@@ -199,15 +199,15 @@ TArray<FPCGPinProperties> UPCGExNeighborSampleProviderSettings::InputPinProperti
 	bool bIsRequired = false;
 	if (SupportsVtxFilters(bIsRequired))
 	{
-		if (bIsRequired) { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Required, FPCGExDataTypeInfoFilterVtx::AsId()) }
-		else { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Advanced, FPCGExDataTypeInfoFilterVtx::AsId()) }
+		if (bIsRequired) { PCGEX_PIN_FILTERS(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Required) }
+		else { PCGEX_PIN_FILTERS(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Advanced) }
 	}
 	if (SupportsEdgeFilters(bIsRequired))
 	{
-		if (bIsRequired) { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Required, FPCGExDataTypeInfoFilterEdge::AsId()) }
-		else { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Advanced, FPCGExDataTypeInfoFilterEdge::AsId()) }
+		if (bIsRequired) { PCGEX_PIN_FILTERS(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Required) }
+		else { PCGEX_PIN_FILTERS(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Advanced) }
 	}
-	PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced, FPCGExDataTypeInfoFilterPoint::AsId())
+	PCGEX_PIN_FILTERS(PCGEx::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced)
 	return PinProperties;
 }
 

@@ -56,7 +56,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ShapeBuilder, "ShapeBuilder Definition", "Creates a single shape builder node, to be used with a Shape processor node.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorShapeBuilder; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorShape; }
 #endif
 	//~End UPCGSettings
 

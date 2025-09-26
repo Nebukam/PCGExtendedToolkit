@@ -40,7 +40,7 @@ public:
 		RefineEdges, "Cluster : Refine", "Refine edges according to special rules.",
 		(Refinement ? FName(Refinement.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorEdge); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorClusterOp); }
 #endif
 
 protected:

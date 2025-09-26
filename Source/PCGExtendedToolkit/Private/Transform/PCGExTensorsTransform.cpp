@@ -13,7 +13,7 @@ TArray<FPCGPinProperties> UPCGExTensorsTransformSettings::InputPinProperties() c
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, FPCGExDataTypeInfoTensor::AsId())
-	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStopConditionLabel, "Transformed points will be tested against those filters, and transform will stop at first fail. Only a small subset of PCGEx are supported.", Normal, FPCGExDataTypeInfoFilterPoint::AsId())
+	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceStopConditionLabel, "Transformed points will be tested against those filters, and transform will stop at first fail. Only a small subset of PCGEx are supported.", Normal)
 	return PinProperties;
 }
 

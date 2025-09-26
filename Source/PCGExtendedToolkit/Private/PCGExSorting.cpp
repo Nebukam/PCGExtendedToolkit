@@ -87,7 +87,7 @@ bool UPCGExSortingRule::RegisterConsumableAttributesWithData(FPCGExContext* InCo
 }
 
 #if WITH_EDITOR
-FLinearColor UPCGExSortingRuleProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
+FLinearColor UPCGExSortingRuleProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorSortRule; }
 #endif
 
 UPCGExFactoryData* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const

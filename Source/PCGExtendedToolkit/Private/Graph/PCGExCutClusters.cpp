@@ -17,8 +17,8 @@ TArray<FPCGPinProperties> UPCGExCutEdgesSettings::InputPinProperties() const
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "Cutting paths.", Required)
-	if (Mode != EPCGExCutEdgesMode::Edges) { PCGEX_PIN_FACTORIES(PCGExCutEdges::SourceNodeFilters, "Node preservation filters.", Normal, FPCGExDataTypeInfoFilterVtx::AsId()) }
-	if (Mode != EPCGExCutEdgesMode::Nodes) { PCGEX_PIN_FACTORIES(PCGExCutEdges::SourceEdgeFilters, "Edge preservation filters.", Normal, FPCGExDataTypeInfoFilterEdge::AsId()) }
+	if (Mode != EPCGExCutEdgesMode::Edges) { PCGEX_PIN_FILTERS(PCGExCutEdges::SourceNodeFilters, "Node preservation filters.", Normal) }
+	if (Mode != EPCGExCutEdgesMode::Nodes) { PCGEX_PIN_FILTERS(PCGExCutEdges::SourceEdgeFilters, "Edge preservation filters.", Normal) }
 
 	return PinProperties;
 }

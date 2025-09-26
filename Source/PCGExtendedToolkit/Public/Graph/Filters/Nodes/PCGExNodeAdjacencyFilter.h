@@ -120,7 +120,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeAdjacencyFilterFactory, "Vtx Filter : Adjacency", "Numeric comparison of adjacent values, testing either adjacent nodes or connected edges.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 
 	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabelNode; }

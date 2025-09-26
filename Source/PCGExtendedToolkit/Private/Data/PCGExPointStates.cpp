@@ -72,7 +72,7 @@ namespace PCGExPointStates
 }
 
 #if WITH_EDITOR
-FLinearColor UPCGExPointStateFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterState; }
+FLinearColor UPCGExPointStateFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
 #endif
 
 FName UPCGExPointStateFactoryProviderSettings::GetMainOutputPin() const { return PCGExCluster::OutputNodeFlagLabel; }

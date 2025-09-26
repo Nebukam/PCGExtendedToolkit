@@ -174,11 +174,15 @@ class UPCGExVtxPropertyProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
+	
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoVtxProperty)
+	
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AbstractVtxProperty, "Vtx : Abstract", "Abstract vtx extra settings.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSamplerNeighbor; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorNeighborSampler; }
 #endif
 
 protected:

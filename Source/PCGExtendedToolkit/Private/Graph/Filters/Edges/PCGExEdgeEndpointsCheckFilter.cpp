@@ -122,7 +122,7 @@ namespace PCGExEdgeEndpointsCheck
 TArray<FPCGPinProperties> UPCGExEdgeEndpointsCheckFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, TEXT("Filters used on endpoints."), Required, FPCGExDataTypeInfoFilterVtx::AsId())
+	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceVtxFiltersLabel, TEXT("Filters used on endpoints."), Required)
 	return PinProperties;
 }
 

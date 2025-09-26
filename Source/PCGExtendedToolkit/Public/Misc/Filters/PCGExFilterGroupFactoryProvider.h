@@ -29,7 +29,7 @@ public:
 		FilterGroup, "Filter Group", "Creates an Filter Group.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorFilterHub); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
 	//~End UPCGSettings

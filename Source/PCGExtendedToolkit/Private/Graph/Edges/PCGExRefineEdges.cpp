@@ -15,15 +15,15 @@
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (Refinement && Refinement->WantsHeuristics()) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, FPCGExDataTypeInfoHeuristic::AsId()) }
+	if (Refinement && Refinement->WantsHeuristics()) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, FPCGExDataTypeInfoHeuristics::AsId()) }
 	if (Refinement && Refinement->SupportFilters())
 	{
-		PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeFiltersLabel, "Refinements filters.", Normal, PCGExClusterFilter::GetEdgeFiltersCompositeId())
+		PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeFiltersLabel, "Refinements filters.", Normal)
 	}
 
 	if (Sanitization == EPCGExRefineSanitization::Filters)
 	{
-		PCGEX_PIN_FACTORIES(PCGExRefineEdges::SourceSanitizeEdgeFilters, "Filters that define which edges are to be kept. During the sanitization step, edges that pass the filters are restored if they were previously removed.", Required, FPCGExDataTypeInfoFilterEdge::AsId())
+		PCGEX_PIN_FILTERS(PCGExRefineEdges::SourceSanitizeEdgeFilters, "Filters that define which edges are to be kept. During the sanitization step, edges that pass the filters are restored if they were previously removed.", Required)
 	}
 
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExRefineEdges::SourceOverridesRefinement)

@@ -21,8 +21,8 @@ TArray<FPCGPinProperties> UPCGExConnectPointsSettings::InputPinProperties() cons
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_FACTORIES(PCGExGraph::SourceProbesLabel, "Probes used to connect points", Required, FPCGExDataTypeInfoProbe::AsId())
 
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterGenerators, "Points that don't meet requirements won't generate connections", Normal, FPCGExDataTypeInfoFilterPoint::AsId())
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterConnectables, "Points that don't meet requirements can't receive connections", Normal, FPCGExDataTypeInfoFilterPoint::AsId())
+	PCGEX_PIN_FILTERS(PCGExGraph::SourceFilterGenerators, "Points that don't meet requirements won't generate connections", Normal)
+	PCGEX_PIN_FILTERS(PCGExGraph::SourceFilterConnectables, "Points that don't meet requirements can't receive connections", Normal)
 
 	return PinProperties;
 }

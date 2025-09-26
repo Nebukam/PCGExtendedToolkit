@@ -23,6 +23,7 @@ Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContent
 #include "ContentBrowserMenuContexts.h"
 #include "IAssetTools.h"
 #include "PCGDataVisualizationRegistry.h"
+#include "PCGEditorSettings.h"
 #include "PCGExEditorMenuUtils.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGGraph.h"
@@ -60,12 +61,12 @@ MACRO(FilterCluster, __VA_ARGS__) \
 MACRO(FilterVtx, __VA_ARGS__) \
 MACRO(FilterEdge, __VA_ARGS__) \
 MACRO(VtxProperty, __VA_ARGS__) \
+MACRO(NeighborSampler, __VA_ARGS__) \
 MACRO(FillControl, __VA_ARGS__) \
-MACRO(Heuristic, __VA_ARGS__) \
+MACRO(Heuristics, __VA_ARGS__) \
 MACRO(Probe, __VA_ARGS__) \
 MACRO(ClusterState, __VA_ARGS__) \
 MACRO(Picker, __VA_ARGS__) \
-MACRO(NeighborSampler, __VA_ARGS__) \
 MACRO(TexParam, __VA_ARGS__) \
 MACRO(Shape, __VA_ARGS__) \
 MACRO(Tensor, __VA_ARGS__) \
@@ -185,94 +186,14 @@ void FPCGExtendedToolkitEditorModule::RegisterPinColorAndIcons()
 	//InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [](const FPCGDataTypeIdentifier&) { return GetDefault<UPCGExGlobalSettings>()->PinColor##_COLOR; }); \
 	
 #define PCGEX_REGISTER_PIN_AND_COLOR(_NAME, _COLOR) \
-	InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [](const FPCGDataTypeIdentifier&) { return FLinearColor::White; }); \
+	InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return GetPinColor##_NAME(); }); \
 	InRegistry.RegisterPinIconsFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>{ \
 		if(bIsInput){ return {Style->GetBrush(FName("PCGEx.Pin.IN_"#_NAME)), Style->GetBrush(FName("PCGEx.Pin.IN_"#_NAME))};}\
 		else{ return {Style->GetBrush(FName("PCGEx.Pin.OUT_"#_NAME)), Style->GetBrush(FName("PCGEx.Pin.OUT_"#_NAME))};}});
 
 	PCGEX_FOREACH_CUSTOM_DATA_TYPE(PCGEX_REGISTER_PIN_AND_COLOR, Default)
 
-	/*
-	InRegistry.RegisterPinColorFunction(PCGExClusterFilter::GetVtxFiltersCompositeId(), [](const FPCGDataTypeIdentifier&) { return FLinearColor::White; });
-	InRegistry.RegisterPinIconsFunction(
-		PCGExClusterFilter::GetVtxFiltersCompositeId(),
-		[&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>
-		{
-			if (bIsInput) { return {Style->GetBrush(FName("PCGEx.Pin.IN_FilterVtx")), Style->GetBrush(FName("PCGEx.Pin.IN_FilterVtx"))}; }
-			else { return {Style->GetBrush(FName("PCGEx.Pin.OUT_FilterVtx")), Style->GetBrush(FName("PCGEx.Pin.OUT_FilterVtx"))}; }
-		});
-
-	InRegistry.RegisterPinColorFunction(PCGExClusterFilter::GetEdgeFiltersCompositeId(), [](const FPCGDataTypeIdentifier&) { return FLinearColor::White; });
-	InRegistry.RegisterPinIconsFunction(
-		PCGExClusterFilter::GetEdgeFiltersCompositeId(),
-		[&](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>
-		{
-			if (bIsInput) { return {Style->GetBrush(FName("PCGEx.Pin.IN_FilterEdge")), Style->GetBrush(FName("PCGEx.Pin.IN_FilterEdge"))}; }
-			else { return {Style->GetBrush(FName("PCGEx.Pin.OUT_FilterEdge")), Style->GetBrush(FName("PCGEx.Pin.OUT_FilterEdge"))}; }
-		});
-*/
-
 #undef PCGEX_REGISTER_PIN_AND_COLOR
-	/*
-	// PinIcons. Just have catch all as most of it will be the same icons.
-	InRegistry.RegisterPinIconsFunction(FPCGDataTypeInfo::AsId(), [](const FPCGDataTypeIdentifier& InId, const FPCGPinProperties& InProperties, const bool bIsInput) -> TTuple<const FSlateBrush*, const FSlateBrush*>
-	{
-		const bool bIsMultiData = InProperties.bAllowMultipleData;
-		const bool bIsMultiConnections = InProperties.AllowsMultipleConnections();
-
-		FName ConnectedBrushName = NAME_None;
-		FName DisconnectedBrushName = NAME_None;
-
-		if (InId.IsSameType(FPCGDataTypeInfoParam::AsId()))
-		{
-			ConnectedBrushName = bIsInput ? PCGEditorStyleConstants::Pin_Param_IN_C : PCGEditorStyleConstants::Pin_Param_OUT_C;
-			DisconnectedBrushName = bIsInput ? PCGEditorStyleConstants::Pin_Param_IN_DC : PCGEditorStyleConstants::Pin_Param_OUT_DC;
-		}
-		else if (InId.IsSameType(FPCGDataTypeInfoSpatial::AsId()))
-		{
-			ConnectedBrushName = bIsInput ? PCGEditorStyleConstants::Pin_Composite_IN_C : PCGEditorStyleConstants::Pin_Composite_OUT_C;
-			DisconnectedBrushName = bIsInput ? PCGEditorStyleConstants::Pin_Composite_IN_DC : PCGEditorStyleConstants::Pin_Composite_OUT_DC;
-		}
-		else if (InProperties.Usage == EPCGPinUsage::DependencyOnly)
-		{
-			ConnectedBrushName = PCGEditorStyleConstants::Pin_Graph_Dependency_C;
-			DisconnectedBrushName = PCGEditorStyleConstants::Pin_Graph_Dependency_DC;
-		}
-		else
-		{
-			// Node outputs are always single collection (SC).
-			static const FName* PinBrushes[] =
-			{
-				&PCGEditorStyleConstants::Pin_SD_SC_IN_C,
-				&PCGEditorStyleConstants::Pin_SD_SC_IN_DC,
-				&PCGEditorStyleConstants::Pin_SD_MC_IN_C,
-				&PCGEditorStyleConstants::Pin_SD_MC_IN_DC,
-				&PCGEditorStyleConstants::Pin_MD_SC_IN_C,
-				&PCGEditorStyleConstants::Pin_MD_SC_IN_DC,
-				&PCGEditorStyleConstants::Pin_MD_MC_IN_C,
-				&PCGEditorStyleConstants::Pin_MD_MC_IN_DC,
-				&PCGEditorStyleConstants::Pin_SD_SC_OUT_C,
-				&PCGEditorStyleConstants::Pin_SD_SC_OUT_DC,
-				&PCGEditorStyleConstants::Pin_SD_SC_OUT_C,
-				&PCGEditorStyleConstants::Pin_SD_SC_OUT_DC,
-				&PCGEditorStyleConstants::Pin_MD_SC_OUT_C,
-				&PCGEditorStyleConstants::Pin_MD_SC_OUT_DC,
-				&PCGEditorStyleConstants::Pin_MD_SC_OUT_C,
-				&PCGEditorStyleConstants::Pin_MD_SC_OUT_DC
-			};
-
-			const int32 ConnectedIndex = (bIsInput ? 0 : 8) + (bIsMultiData ? 4 : 0) + (bIsMultiConnections ? 2 : 0);
-			const int32 DisconnectedIndex = ConnectedIndex + 1;
-
-			ConnectedBrushName = *PinBrushes[ConnectedIndex];
-			DisconnectedBrushName = *PinBrushes[DisconnectedIndex];
-		}
-
-		const FPCGEditorStyle& EditorStyle = FPCGEditorStyle::Get();
-
-		return {EditorStyle.GetBrush(ConnectedBrushName), EditorStyle.GetBrush(DisconnectedBrushName)};
-	});
-	*/
 }
 
 void FPCGExtendedToolkitEditorModule::RegisterMenuExtensions()
@@ -298,6 +219,59 @@ void FPCGExtendedToolkitEditorModule::RegisterMenuExtensions()
 				}), FToolMenuInsert(NAME_None, EToolMenuInsertType::Default));
 	}
 }
+
+#pragma region Pin Colors
+
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorAction() const { return GetDefault<UPCGExGlobalSettings>()->ColorAction; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorBlendOp() const { return GetDefault<UPCGExGlobalSettings>()->ColorBlendOp; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorMatchRule() const { return GetDefault<UPCGExGlobalSettings>()->ColorMatchRule; }
+
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorFilter() const
+{
+	return GetDefault<UPCGExGlobalSettings>()->bUseNativeColorsIfPossible ? GetDefault<UPCGEditorSettings>()->FilterNodeColor : GetDefault<UPCGExGlobalSettings>()->ColorFilter;
+}
+
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorFilterPoint() const
+{
+	return GetDefault<UPCGExGlobalSettings>()->bUseNativeColorsIfPossible ? GetDefault<UPCGEditorSettings>()->FilterNodeColor : GetDefault<UPCGExGlobalSettings>()->ColorFilterPoint;
+}
+
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorFilterCollection() const
+{
+	return GetDefault<UPCGExGlobalSettings>()->bUseNativeColorsIfPossible ? GetDefault<UPCGEditorSettings>()->FilterNodeColor : GetDefault<UPCGExGlobalSettings>()->ColorFilterCollection;
+}
+
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorFilterCluster() const
+{
+	return GetDefault<UPCGExGlobalSettings>()->bUseNativeColorsIfPossible ? GetDefault<UPCGEditorSettings>()->FilterNodeColor : GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster;
+}
+
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorFilterVtx() const
+{
+	return GetDefault<UPCGExGlobalSettings>()->bUseNativeColorsIfPossible ? GetDefault<UPCGEditorSettings>()->FilterNodeColor : GetDefault<UPCGExGlobalSettings>()->ColorFilterVtx;
+}
+
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorFilterEdge() const
+{
+	return GetDefault<UPCGExGlobalSettings>()->bUseNativeColorsIfPossible ? GetDefault<UPCGEditorSettings>()->FilterNodeColor : GetDefault<UPCGExGlobalSettings>()->ColorFilterEdge;
+}
+
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorVtxProperty() const { return GetDefault<UPCGExGlobalSettings>()->ColorVtxProperty; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorNeighborSampler() const { return GetDefault<UPCGExGlobalSettings>()->ColorNeighborSampler; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorFillControl() const { return GetDefault<UPCGExGlobalSettings>()->ColorFillControl; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorHeuristics() const { return GetDefault<UPCGExGlobalSettings>()->ColorHeuristics; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorProbe() const { return GetDefault<UPCGExGlobalSettings>()->ColorProbe; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorClusterState() const { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorPicker() const { return GetDefault<UPCGExGlobalSettings>()->ColorPicker; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorTexParam() const { return GetDefault<UPCGExGlobalSettings>()->ColorTexParam; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorShape() const { return GetDefault<UPCGExGlobalSettings>()->ColorShape; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorTensor() const { return GetDefault<UPCGExGlobalSettings>()->ColorTensor; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorSortRule() const { return GetDefault<UPCGExGlobalSettings>()->ColorSortRule; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorPartitionRule() const { return GetDefault<UPCGExGlobalSettings>()->ColorPartitionRule; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorVtx() const { return GetDefault<UPCGExGlobalSettings>()->ColorClusterGenerator; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorEdges() const { return GetDefault<UPCGExGlobalSettings>()->ColorClusterGenerator; }
+
+#pragma endregion
 
 void FPCGExtendedToolkitEditorModule::UnregisterMenuExtensions()
 {

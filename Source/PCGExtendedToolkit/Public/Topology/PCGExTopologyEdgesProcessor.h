@@ -34,7 +34,6 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(TopologyProcessor, "Topology", "Base processor to output meshes from clusters");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorTopology); }
 	virtual EPCGSettingsType GetType() const override { return OutputMode == EPCGExTopologyOutputMode::Legacy ? EPCGSettingsType::Spawner : EPCGSettingsType::DynamicMesh; }
 #endif
 

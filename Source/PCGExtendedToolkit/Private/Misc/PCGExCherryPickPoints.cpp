@@ -17,7 +17,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(CherryPickPoints)
 TArray<FPCGPinProperties> UPCGExCherryPickPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "Pickers config", Required)
+	PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "Pickers config", Required, FPCGExDataTypeInfoPicker::AsId())
 	return PinProperties;
 }
 

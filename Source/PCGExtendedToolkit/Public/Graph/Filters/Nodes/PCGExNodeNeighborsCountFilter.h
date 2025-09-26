@@ -99,7 +99,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeNeighborsCountFilterFactory, "Vtx Filter : Neighbors Count", "Check against the node' neighbor count.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 	//~End UPCGSettings
 

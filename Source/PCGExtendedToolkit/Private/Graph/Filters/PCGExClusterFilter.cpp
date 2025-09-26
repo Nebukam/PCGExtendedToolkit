@@ -6,6 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/Data/PCGExClusterData.h"
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterCluster, UPCGExClusterFilterFactoryData)
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterVtx, UPCGExNodeFilterFactoryData)
@@ -13,19 +14,6 @@ PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterEdge, UPCGExEdgeFilterFactoryData)
 
 namespace PCGExClusterFilter
 {
-	const FPCGDataTypeIdentifier& GetVtxFiltersCompositeId()
-	{
-
-		if (!VtxFiltersCompositeId.IsValid()) { VtxFiltersCompositeId = FPCGDataTypeIdentifier::Construct(FPCGExDataTypeInfoFilterPoint::AsId(), FPCGExDataTypeInfoFilterPoint::AsId(), FPCGExDataTypeInfoFilterVtx::AsId()); }
-		return VtxFiltersCompositeId;
-	}
-
-	const FPCGDataTypeIdentifier& GetEdgeFiltersCompositeId()
-	{
-		if (!EdgeFiltersCompositeId.IsValid()) { EdgeFiltersCompositeId = FPCGDataTypeIdentifier::Construct(FPCGExDataTypeInfoFilterPoint::AsId(), FPCGExDataTypeInfoFilterEdge::AsId()); }
-		return EdgeFiltersCompositeId;
-	}
-
 	PCGExFilters::EType IFilter::GetFilterType() const { return PCGExFilters::EType::Node; }
 
 	bool IFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)

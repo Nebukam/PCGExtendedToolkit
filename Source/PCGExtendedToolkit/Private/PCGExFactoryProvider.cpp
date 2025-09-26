@@ -91,7 +91,7 @@ FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 
 #if WITH_EDITOR
 FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT(""); }
-FLinearColor UPCGExFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilter; }
+FLinearColor UPCGExFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorDebug; }
 
 #ifndef PCGEX_CUSTOM_PIN_DECL
 #define PCGEX_CUSTOM_PIN_DECL

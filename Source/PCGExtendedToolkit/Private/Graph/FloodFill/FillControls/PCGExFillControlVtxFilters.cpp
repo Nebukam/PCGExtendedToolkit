@@ -79,7 +79,7 @@ bool UPCGExFillControlsFactoryVtxFilters::RegisterConsumableAttributesWithData(F
 TArray<FPCGPinProperties> UPCGExFillControlsVtxFiltersProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, TEXT("Filters used on edges."), Required, FPCGExDataTypeInfoFilterVtx::AsId())
+	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceVtxFiltersLabel, TEXT("Filters used on edges."), Required)
 	return PinProperties;
 }
 

@@ -37,7 +37,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FilterVtx, "Cluster : Filter Vtx", "Filter out vtx from clusters.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorEdge); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorClusterOp); }
 #endif
 
 protected:

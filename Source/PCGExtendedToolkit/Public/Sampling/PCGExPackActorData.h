@@ -566,7 +566,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		PackActorData, "Pack Actor Data", "Use custom blueprint to read data from actor references.",
 		(Packer ? FName(Packer.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
 #endif
 
 protected:
