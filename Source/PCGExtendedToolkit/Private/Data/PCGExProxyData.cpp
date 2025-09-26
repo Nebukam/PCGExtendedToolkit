@@ -391,13 +391,13 @@ else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
 		}
 	}
 
-	
+
 	template <typename T_REAL>
 	void TryGetInOutAttr(const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade, const FPCGMetadataAttribute<T_REAL>*& OutInAttribute, FPCGMetadataAttribute<T_REAL>*& OutOutAttribute)
 	{
 		OutInAttribute = nullptr;
 		OutOutAttribute = nullptr;
-		
+
 		if (InDescriptor.Role == EProxyRole::Read)
 		{
 			if (InDescriptor.Side == EIOSide::In)
@@ -560,7 +560,7 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> TryGetBuffer<_TYPE>(F
 			{
 				const FPCGMetadataAttribute<T_REAL>* InAttribute = nullptr;
 				FPCGMetadataAttribute<T_REAL>* OutAttribute = nullptr;
-				
+
 				TryGetInOutAttr(InDescriptor, InDataFacade, InAttribute, OutAttribute);
 
 #define PCGEX_DIRECT_PROXY(_SUBSELECTION, _DATA)\
@@ -659,23 +659,6 @@ OutProxy = TypedProxy;
 			}
 		}
 
-		if (OutProxy)
-		{
-#if WITH_EDITOR
-			OutProxy->Descriptor = InDescriptor;
-#endif
-
-			OutProxy->Data = PointData;
-
-			if (!OutProxy->Validate(InDescriptor))
-			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING : \"{0}\""), FText::FromString(PCGEx::GetSelectorDisplayName(InDescriptor.Selector))));
-				return nullptr;
-			}
-
-			OutProxy->SubSelection = InDescriptor.SubSelection;
-		}
-		
 		return OutProxy;
 	}
 
@@ -747,6 +730,28 @@ template class PCGEXTENDEDTOOLKIT_API TDirectDataAttributeProxy<_TYPE_A, _TYPE_B
 		const TSharedPtr<FFacade> InDataFacade = InDescriptor.DataFacade.Pin();
 		UPCGBasePointData* PointData = nullptr;
 
+		ON_SCOPE_EXIT
+		{
+			if (OutProxy)
+			{
+#if WITH_EDITOR
+				OutProxy->Descriptor = InDescriptor;
+#endif
+
+				OutProxy->Data = PointData;
+
+				if (!OutProxy->Validate(InDescriptor))
+				{
+					PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING : \"{0}\""), FText::FromString(PCGEx::GetSelectorDisplayName(InDescriptor.Selector))));
+					OutProxy = nullptr;
+				}
+				else
+				{
+					OutProxy->SubSelection = InDescriptor.SubSelection;
+				}
+			}
+		};
+
 		if (!InDataFacade)
 		{
 			PointData = const_cast<UPCGBasePointData*>(InDescriptor.PointData);
@@ -782,7 +787,6 @@ template class PCGEXTENDEDTOOLKIT_API TDirectDataAttributeProxy<_TYPE_A, _TYPE_B
 					InDescriptor.WorkingType, [&](auto W)
 					{
 						using T_WORKING = decltype(W);
-
 						OutProxy = GetProxyBuffer<T_REAL, T_WORKING>(InContext, InDescriptor, InDataFacade, PointData);
 					});
 			});
