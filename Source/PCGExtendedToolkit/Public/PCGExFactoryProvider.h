@@ -80,8 +80,6 @@ struct FPCGExFactoryDataTypeInfo : public FPCGDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
-
-	virtual EPCGDataType GetAssociatedLegacyType() const override;
 };
 
 /**

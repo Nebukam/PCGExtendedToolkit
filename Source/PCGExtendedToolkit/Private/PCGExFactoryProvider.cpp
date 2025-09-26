@@ -16,11 +16,6 @@
 
 PCG_DEFINE_TYPE_INFO(FPCGExFactoryDataTypeInfo, UPCGExFactoryData)
 
-EPCGDataType FPCGExFactoryDataTypeInfo::GetAssociatedLegacyType() const
-{
-	return EPCGDataType::Param;
-}
-
 void UPCGExParamDataBase::OutputConfigToMetadata()
 {
 }

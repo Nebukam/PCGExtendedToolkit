@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExSplineInclusionFilter.h"
 
+#include "Data/PCGPolyLineData.h"
+
 #define LOCTEXT_NAMESPACE "PCGExSplineInclusionFilterDefinition"
 #define PCGEX_NAMESPACE PCGExSplineInclusionFilterDefinition
 

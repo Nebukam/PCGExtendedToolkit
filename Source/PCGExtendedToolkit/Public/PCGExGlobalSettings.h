@@ -52,8 +52,8 @@ namespace PCGEx
 	};
 }
 
-UCLASS(DefaultConfig, config = Editor, defaultconfig)
-class PCGEXTENDEDTOOLKIT_API UPCGExGlobalSettings : public UObject
+UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="PCGEx", Description="Configure PCG Extended Toolkit settings"))
+class PCGEXTENDEDTOOLKIT_API UPCGExGlobalSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
@@ -227,7 +227,7 @@ public:
 	
 	/** Color associated with action subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
-	FLinearColor ColorAction = FLinearColor(1.000000, 0.591295, 0.282534, 1.000000);
+	FLinearColor ColorAction = FLinearColor(1.000000,0.592852,0.105316,1.000000);
 	
 	/** Color associated with blend operations subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
@@ -292,7 +292,7 @@ public:
 	
 	/** Color associated with cluster state (node flags) subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
-	FLinearColor ColorClusterState = FLinearColor(0.000000, 0.249991, 0.406250, 1.000000);
+	FLinearColor ColorClusterState = FLinearColor(0.885417,0.012192,0.000000, 1.000000);
 
 	/** Color associated with pickers subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")

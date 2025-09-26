@@ -9,8 +9,6 @@
 #include "EditorStyleSet.h"
 #include "Editor.h"
 
-#define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
-
 #define PCGEX_ADD_ICON(_NAME) \
 Style->Set("ClassIcon." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeIcon));\
 Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeThumbnail));
@@ -49,6 +47,8 @@ Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContent
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
+
+#define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
 
 #define PCGEX_FOREACH_CUSTOM_DATA_TYPE(MACRO, ...)\
 MACRO(Action, __VA_ARGS__) \

@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "Collections/PCGExActorDataPackerActions.h"
-#include "Data/Registry/PCGDataTypeIdentifier.h"
 #include "Modules/ModuleInterface.h"
 #include "Styling/SlateStyle.h"
 

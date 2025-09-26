@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExSplineAlphaFilter.h"
 
+#include "Data/PCGPolyLineData.h"
+
 #define LOCTEXT_NAMESPACE "PCGExSplineAlphaFilterDefinition"
 #define PCGEX_NAMESPACE PCGExSplineAlphaFilterDefinition
 
