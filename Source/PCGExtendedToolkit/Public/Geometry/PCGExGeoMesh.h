@@ -23,6 +23,18 @@ enum class EPCGExTriangulationType : uint8
 	NoTriangulation = 42 UMETA(Hidden),
 };
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExGeoMeshImportDetails
+{
+	GENERATED_BODY()
+	;
+
+	FPCGExGeoMeshImportDetails() = default;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
+	bool bTryExtractVertexColor = true;
+};
+
 namespace PCGExGeo
 {
 	class PCGEXTENDEDTOOLKIT_API FMeshLookup : public TSharedFromThis<FMeshLookup>
@@ -37,7 +49,7 @@ namespace PCGExGeo
 		TMap<uint32, int32> Data;
 
 		explicit FMeshLookup(const int32 Size, TArray<FVector>* InVertices, TArray<int32>* InRawIndices, const FVector& InHashTolerance);
-			
+
 		uint32 Add_GetIdx(const FVector& Position, const int32 RawIndex);
 
 
@@ -54,7 +66,7 @@ namespace PCGExGeo
 
 		TArray<FVector> Vertices;
 		TArray<int32> RawIndices;
-		
+
 		TSet<uint64> Edges;
 		TArray<FIntVector3> Triangles;
 		TArray<FIntVector3> Tri_Adjacency;
@@ -62,6 +74,8 @@ namespace PCGExGeo
 		TSet<int32> HullIndices;
 		TSet<uint64> HullEdges;
 
+		bool bHasColorData = false;
+		
 		EPCGExTriangulationType DesiredTriangulationType = EPCGExTriangulationType::Raw;
 
 		FGeoMesh() = default;
@@ -76,6 +90,8 @@ namespace PCGExGeo
 	public:
 		TObjectPtr<UStaticMesh> StaticMesh;
 		FVector CWTolerance = FVector(1 / 0.001);
+
+		const FStaticMeshVertexBuffers* VertexBuffers = nullptr;
 
 		explicit FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh);
 		explicit FGeoStaticMesh(const FSoftObjectPath& InSoftStaticMesh);

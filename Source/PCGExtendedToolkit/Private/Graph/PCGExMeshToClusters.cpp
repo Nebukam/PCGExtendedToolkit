@@ -211,9 +211,10 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExGraph::State_WritingClusters)
 	{
+		Context->BaseMeshDataCollection->StageOutputs();
+
 		Context->VtxChildCollection->StageOutputs();
 		Context->EdgeChildCollection->StageOutputs();
-		Context->BaseMeshDataCollection->StageOutputs();
 
 		Context->Done();
 	}
@@ -259,10 +260,18 @@ namespace PCGExMeshToCluster
 		UPCGBasePointData* VtxPoints = RootVtx->GetOut();
 		PCGEX_MAKE_SHARED(RootVtxFacade, PCGExData::FFacade, RootVtx.ToSharedRef())
 
+		bool bWantsColor = false;
+		EPCGPointNativeProperties Allocations = EPCGPointNativeProperties::Transform;
+		if (Settings->ImportDetails.bTryExtractVertexColor && Mesh->bHasColorData)
+		{
+			Allocations |= EPCGPointNativeProperties::Color;
+			bWantsColor = Mesh->DesiredTriangulationType == EPCGExTriangulationType::Raw || Mesh->DesiredTriangulationType == EPCGExTriangulationType::Boundaries;
+		}
+
 		if (Mesh->DesiredTriangulationType == EPCGExTriangulationType::Boundaries)
 		{
 			const int32 NumHullVertices = Mesh->HullIndices.Num();
-			(void)PCGEx::SetNumPointsAllocated(VtxPoints, NumHullVertices, EPCGPointNativeProperties::Transform);
+			(void)PCGEx::SetNumPointsAllocated(VtxPoints, NumHullVertices, Allocations);
 
 			TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);
 
@@ -270,10 +279,24 @@ namespace PCGExMeshToCluster
 			TMap<int32, int32> IndicesRemap;
 			IndicesRemap.Reserve(NumHullVertices);
 
-			for (int32 i : Mesh->HullIndices)
+			if (bWantsColor)
 			{
-				IndicesRemap.Add(i, t);
-				OutTransforms[t++].SetLocation(Mesh->Vertices[i]);
+				TPCGValueRange<FVector4> OutColors = VtxPoints->GetColorValueRange(false);
+				for (int32 i : Mesh->HullIndices)
+				{
+					IndicesRemap.Add(i, t);
+					OutTransforms[t].SetLocation(Mesh->Vertices[i]);
+					OutColors[t] = FVector4(Mesh->VertexBuffers->ColorVertexBuffer.VertexColor(Mesh->RawIndices[i]));
+					t++;
+				}
+			}
+			else
+			{
+				for (int32 i : Mesh->HullIndices)
+				{
+					IndicesRemap.Add(i, t);
+					OutTransforms[t++].SetLocation(Mesh->Vertices[i]);
+				}
 			}
 
 			Mesh->Edges.Empty();
@@ -287,10 +310,25 @@ namespace PCGExMeshToCluster
 		}
 		else
 		{
-			(void)PCGEx::SetNumPointsAllocated(VtxPoints, Mesh->Vertices.Num(), EPCGPointNativeProperties::Transform);
+			(void)PCGEx::SetNumPointsAllocated(VtxPoints, Mesh->Vertices.Num(), Allocations);
 
 			TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);
-			for (int i = 0; i < OutTransforms.Num(); i++) { OutTransforms[i].SetLocation(Mesh->Vertices[i]); }
+			if (bWantsColor)
+			{
+				TPCGValueRange<FVector4> OutColors = VtxPoints->GetColorValueRange(false);
+				for (int i = 0; i < OutTransforms.Num(); i++)
+				{
+					OutTransforms[i].SetLocation(Mesh->Vertices[i]);
+					OutColors[i] = FVector4(Mesh->VertexBuffers->ColorVertexBuffer.VertexColor(Mesh->RawIndices[i]));
+				}
+			}
+			else
+			{
+				for (int i = 0; i < OutTransforms.Num(); i++)
+				{
+					OutTransforms[i].SetLocation(Mesh->Vertices[i]);
+				}
+			}
 		}
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(RootVtxFacade.ToSharedRef(), &Context->GraphBuilderDetails);

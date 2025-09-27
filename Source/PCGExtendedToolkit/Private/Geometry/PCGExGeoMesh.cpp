@@ -116,7 +116,16 @@ namespace PCGExGeo
 		if (!bIsValid) { return; }
 
 		const FStaticMeshLODResources& LODResources = StaticMesh->GetRenderData()->LODResources[0];
-		const FPositionVertexBuffer& VertexBuffer = LODResources.VertexBuffers.PositionVertexBuffer;
+		VertexBuffers = &LODResources.VertexBuffers;
+
+		if (!VertexBuffers)
+		{
+			bIsValid = false;
+			return;
+		}
+
+		bHasColorData = VertexBuffers->ColorVertexBuffer.IsInitialized() && VertexBuffers->ColorVertexBuffer.GetNumVertices() > 0;
+		const FPositionVertexBuffer& VertexBuffer = VertexBuffers->PositionVertexBuffer;
 
 		const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
 		const int32 NumTriangles = Indices.Num() / 3;
@@ -127,9 +136,9 @@ namespace PCGExGeo
 		for (int i = 0; i < Indices.Num(); i += 3)
 		{
 			const int32 RawA = Indices[i];
-			const int32 RawB = Indices[i+1];
-			const int32 RawC = Indices[i+2];
-			
+			const int32 RawB = Indices[i + 1];
+			const int32 RawC = Indices[i + 2];
+
 			const uint32 A = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawA)), RawA);
 			const uint32 B = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawB)), RawB);
 			const uint32 C = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawC)), RawC);
@@ -203,9 +212,9 @@ namespace PCGExGeo
 		for (int i = 0; i < Indices.Num(); i += 3)
 		{
 			const int32 RawA = Indices[i];
-			const int32 RawB = Indices[i+1];
-			const int32 RawC = Indices[i+2];
-			
+			const int32 RawB = Indices[i + 1];
+			const int32 RawC = Indices[i + 2];
+
 			const uint32 A = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawA)), RawA);
 			const uint32 B = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawB)), RawB);
 			const uint32 C = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawC)), RawC);
