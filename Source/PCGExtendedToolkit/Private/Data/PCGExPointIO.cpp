@@ -179,7 +179,7 @@ namespace PCGExData
 		return false;
 	}
 
-	FTaggedData FPointIO::GetTaggedData(const EIOSide Source){ return FTaggedData(GetData(Source), Tags, GetInKeys()); }
+	FTaggedData FPointIO::GetTaggedData(const EIOSide Source) { return FTaggedData(GetData(Source), Tags, GetInKeys()); }
 
 	TSharedPtr<IPCGAttributeAccessorKeys> FPointIO::GetInKeys()
 	{
@@ -883,9 +883,7 @@ namespace PCGExData
 
 	void GetPoints(const FScope& Scope, TArray<FPCGPoint>& OutPCGPoints)
 	{
-		check(Scope.IsValid())
-
-		OutPCGPoints.SetNum(Scope.Count);
+		OutPCGPoints.Reserve(Scope.Count);
 
 		const TConstPCGValueRange<FTransform> TransformRange = Scope.Data->GetConstTransformValueRange();
 		const TConstPCGValueRange<float> SteepnessRange = Scope.Data->GetConstSteepnessValueRange();
@@ -899,15 +897,12 @@ namespace PCGExData
 		for (int i = 0; i < Scope.Count; i++)
 		{
 			const int32 Index = Scope.Start + i;
-			FPCGPoint& Pt = OutPCGPoints[i];
-			Pt.Transform = TransformRange[Index];
+			FPCGPoint& Pt = OutPCGPoints.Emplace_GetRef(TransformRange[Index], DensityRange[Index], SeedRange[Index]);
 			Pt.Steepness = SteepnessRange[Index];
-			Pt.Density = DensityRange[Index];
 			Pt.BoundsMin = BoundsMinRange[Index];
 			Pt.BoundsMax = BoundsMaxRange[Index];
 			Pt.Color = ColorRange[Index];
 			Pt.MetadataEntry = MetadataEntryRange[Index];
-			Pt.Seed = SeedRange[Index];
 		}
 	}
 

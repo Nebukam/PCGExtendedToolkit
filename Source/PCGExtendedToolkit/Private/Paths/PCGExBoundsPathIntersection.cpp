@@ -46,7 +46,7 @@ TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::OutputPinPropert
 PCGEX_INITIALIZE_ELEMENT(BoundsPathIntersection)
 
 void UPCGExBoundsPathIntersectionSettings::AddTags(const TSharedPtr<PCGExData::FPointIO>& IO, bool bIsCut) const
-{
+{		
 	if (bIsCut && bTagIfHasCuts){ IO->Tags->AddRaw(HasCutsTag); }
 	else if (!bIsCut && bTagIfUncut){ IO->Tags->AddRaw(UncutTag); }
 }

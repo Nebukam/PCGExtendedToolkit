@@ -55,6 +55,12 @@ void UPCGExCustomActorDataPacker::AddComponent(
 	bool InWeldSimulatedBodies,
 	UActorComponent*& OutComponent)
 {
+	if (!IsInGameThread())
+	{
+		UE_LOG(LogPCGEx, Error, TEXT("AddComponent can only be used on the game thread. Enable `bExecuteOnMainThread` on your packer!"));
+		return;
+	}
+
 	if (!IsValid(InActor))
 	{
 		UE_LOG(LogPCGEx, Error, TEXT("AddComponent target actor is NULL"));
@@ -68,10 +74,15 @@ void UPCGExCustomActorDataPacker::AddComponent(
 	}
 
 	const EObjectFlags InObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
-	TObjectPtr<UActorComponent> NewSettings = Context->ManagedObjects->New<UActorComponent>(
+	OutComponent = Context->ManagedObjects->New<UActorComponent>(
 		InActor, ComponentClass,
 		UniqueNameGenerator->Get(TEXT("PCGComponent_") + ComponentClass->GetName()), InObjectFlags);
-	OutComponent = NewSettings;
+
+	if (!OutComponent)
+	{
+		UE_LOG(LogPCGEx, Error, TEXT("AddComponent could not instantiate component, something went wrong."));
+		return;
+	}
 
 	{
 		FWriteScopeLock WriteScopeLock(ComponentLock);
@@ -410,18 +421,50 @@ namespace PCGExPackActorData
 		TArray<FPCGPoint> PointsForProcessing;
 		GetPoints(PointDataFacade->GetOutScope(Scope), PointsForProcessing);
 
-		int i = 0;
-		PCGEX_SCOPE_LOOP(Index)
+		if (Settings->Packer->bExecuteOnMainThread)
 		{
-			AActor* ActorRef = Packer->InputActors[Index];
-			if (!ActorRef)
+			auto ProcessOnMainThread = [&]()
 			{
-				PointMask[Index] = 0;
-				continue;
-			}
+				int i = 0;
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					AActor* ActorRef = Packer->InputActors[Index];
+					if (!ActorRef)
+					{
+						PointMask[Index] = 0;
+						continue;
+					}
 
-			FPCGPoint& Point = PointsForProcessing[i++];
-			Packer->ProcessEntry(ActorRef, Point, Index, Point);
+					FPCGPoint& Point = PointsForProcessing[i++];
+					Packer->ProcessEntry(ActorRef, Point, Index, Point);
+				}
+			};
+
+			FEvent* DoneEvent = FPlatformProcess::GetSynchEventFromPool();
+			AsyncTask(
+				ENamedThreads::GameThread, [&, DoneEvent]()
+				{
+					ProcessOnMainThread();
+					DoneEvent->Trigger();
+				});
+			DoneEvent->Wait(); // block worker until processing finishes
+			FPlatformProcess::ReturnSynchEventToPool(DoneEvent);
+		}
+		else
+		{
+			int i = 0;
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				AActor* ActorRef = Packer->InputActors[Index];
+				if (!ActorRef)
+				{
+					PointMask[Index] = 0;
+					continue;
+				}
+
+				FPCGPoint& Point = PointsForProcessing[i++];
+				Packer->ProcessEntry(ActorRef, Point, Index, Point);
+			}
 		}
 
 		PointDataFacade->Source->SetPoints(Scope.Start, PointsForProcessing, EPCGPointNativeProperties::All);
