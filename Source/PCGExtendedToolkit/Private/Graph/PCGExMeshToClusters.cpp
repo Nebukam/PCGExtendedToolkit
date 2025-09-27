@@ -37,6 +37,8 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(MeshToClusters)
 	PCGEX_EXECUTION_CHECK
 
+	Context->bWantsImport = Settings->ImportDetails.WantsImport() && Settings->GraphOutputType != EPCGExTriangulationType::Dual;
+
 	if (Context->MainPoints->Pairs.Num() < 1)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing targets."));
@@ -261,12 +263,47 @@ namespace PCGExMeshToCluster
 		PCGEX_MAKE_SHARED(RootVtxFacade, PCGExData::FFacade, RootVtx.ToSharedRef())
 
 		bool bWantsColor = false;
+		TArray<TSharedPtr<PCGExData::TBuffer<FVector2D>>> UVChannelsWriters;
+		TArray<int32> UVChannels;
+
 		EPCGPointNativeProperties Allocations = EPCGPointNativeProperties::Transform;
-		if (Settings->ImportDetails.bTryExtractVertexColor && Mesh->bHasColorData)
+		const FStaticMeshVertexBuffers* VertexBuffers = nullptr;
+
+		if (Context->bWantsImport)
 		{
-			Allocations |= EPCGPointNativeProperties::Color;
-			bWantsColor = Mesh->DesiredTriangulationType == EPCGExTriangulationType::Raw || Mesh->DesiredTriangulationType == EPCGExTriangulationType::Boundaries;
+			VertexBuffers = &Mesh->LODResource->VertexBuffers;
+
+			if (Settings->ImportDetails.bImportVertexColor && Mesh->bHasColorData)
+			{
+				Allocations |= EPCGPointNativeProperties::Color;
+				bWantsColor = true;
+			}
+
+			if (const int32 LastChannelIndex = Mesh->LODResource->GetNumTexCoords() - 1;
+				!Settings->ImportDetails.UVChannelIndex.IsEmpty() && LastChannelIndex >= 0)
+			{
+				UVChannels.Reserve(Settings->ImportDetails.UVChannelIndex.Num());
+				UVChannelsWriters.Reserve(Settings->ImportDetails.UVChannelIndex.Num());
+
+				for (int i = 0; i <= LastChannelIndex; i++)
+				{
+					int32 Channel = Settings->ImportDetails.UVChannelIndex[i];
+					const FPCGAttributeIdentifier& Id = Settings->ImportDetails.UVChannelId[i];
+
+					if (Channel >= LastChannelIndex)
+					{
+						if (Settings->ImportDetails.bCreatePlaceholders) { PCGExData::WriteMark(VtxPoints, Id, Settings->ImportDetails.Placeholder); }
+						continue;
+					}
+
+					UVChannels.Add(Channel);
+					UVChannelsWriters.Add(RootVtxFacade->GetWritable(Id, FVector2D::ZeroVector, true, PCGExData::EBufferInit::New));
+				}
+			}
 		}
+
+		const int32 NumUVChannels = UVChannels.Num();
+
 
 		if (Mesh->DesiredTriangulationType == EPCGExTriangulationType::Boundaries)
 		{
@@ -279,25 +316,60 @@ namespace PCGExMeshToCluster
 			TMap<int32, int32> IndicesRemap;
 			IndicesRemap.Reserve(NumHullVertices);
 
+#define PCGEX_BOUNDARY_PUSH IndicesRemap.Add(i, t); OutTransforms[t++].SetLocation(Mesh->Vertices[i]);
+
 			if (bWantsColor)
 			{
+				const FColorVertexBuffer& ColorBuffer = VertexBuffers->ColorVertexBuffer;
 				TPCGValueRange<FVector4> OutColors = VtxPoints->GetColorValueRange(false);
+
+				if (!NumUVChannels)
+				{
+					// Color only
+					for (int32 i : Mesh->HullIndices)
+					{
+						const int32 RawIndex = Mesh->RawIndices[i];
+						OutColors[t] = FVector4(ColorBuffer.VertexColor(RawIndex));
+						PCGEX_BOUNDARY_PUSH
+					}
+				}
+				else
+				{
+					// Color + UVs
+					for (int32 i : Mesh->HullIndices)
+					{
+						const int32 RawIndex = Mesh->RawIndices[i];
+						OutColors[t] = FVector4(ColorBuffer.VertexColor(RawIndex));
+						for (int u = 0; u < NumUVChannels; u++)
+						{
+							UVChannelsWriters[u]->SetValue(t, FVector2D(VertexBuffers->StaticMeshVertexBuffer.GetVertexUV(RawIndex, UVChannels[u])));
+						}
+
+						PCGEX_BOUNDARY_PUSH
+					}
+				}
+			}
+			else if (NumUVChannels)
+			{
+				// UVs only
 				for (int32 i : Mesh->HullIndices)
 				{
-					IndicesRemap.Add(i, t);
-					OutTransforms[t].SetLocation(Mesh->Vertices[i]);
-					OutColors[t] = FVector4(Mesh->VertexBuffers->ColorVertexBuffer.VertexColor(Mesh->RawIndices[i]));
-					t++;
+					const int32 RawIndex = Mesh->RawIndices[i];
+					for (int u = 0; u < NumUVChannels; u++)
+					{
+						UVChannelsWriters[u]->SetValue(t, FVector2D(VertexBuffers->StaticMeshVertexBuffer.GetVertexUV(RawIndex, UVChannels[u])));
+					}
+
+					PCGEX_BOUNDARY_PUSH
 				}
 			}
 			else
 			{
-				for (int32 i : Mesh->HullIndices)
-				{
-					IndicesRemap.Add(i, t);
-					OutTransforms[t++].SetLocation(Mesh->Vertices[i]);
-				}
+				// No imports
+				for (int32 i : Mesh->HullIndices) { PCGEX_BOUNDARY_PUSH }
 			}
+
+#undef PCGEX_BOUNDARY_PUSH
 
 			Mesh->Edges.Empty();
 			for (const uint64 Edge : Mesh->HullEdges)
@@ -313,20 +385,109 @@ namespace PCGExMeshToCluster
 			(void)PCGEx::SetNumPointsAllocated(VtxPoints, Mesh->Vertices.Num(), Allocations);
 
 			TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);
-			if (bWantsColor)
+			for (int i = 0; i < OutTransforms.Num(); i++) { OutTransforms[i].SetLocation(Mesh->Vertices[i]); }
+
+			if (bWantsColor || NumUVChannels)
 			{
-				TPCGValueRange<FVector4> OutColors = VtxPoints->GetColorValueRange(false);
-				for (int i = 0; i < OutTransforms.Num(); i++)
+				if (Mesh->DesiredTriangulationType == EPCGExTriangulationType::Dual)
 				{
-					OutTransforms[i].SetLocation(Mesh->Vertices[i]);
-					OutColors[i] = FVector4(Mesh->VertexBuffers->ColorVertexBuffer.VertexColor(Mesh->RawIndices[i]));
+					// For dual graph we need to average triangle values for all imports
+					// Mesh raw vertices has been mutated by `MakeDual` in order to facilitate that
+					// TODO : TODO
 				}
-			}
-			else
-			{
-				for (int i = 0; i < OutTransforms.Num(); i++)
+				else
 				{
-					OutTransforms[i].SetLocation(Mesh->Vertices[i]);
+					if (bWantsColor && NumUVChannels)
+					{
+						const FColorVertexBuffer& ColorBuffer = VertexBuffers->ColorVertexBuffer;
+						TPCGValueRange<FVector4> OutColors = VtxPoints->GetColorValueRange(false);
+
+						for (int i = 0; i < OutTransforms.Num(); i++)
+						{
+							const int32 RawIndex = Mesh->RawIndices[i];
+							if (RawIndex >= 0)
+							{
+								OutColors[i] = FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[i]));
+								for (int u = 0; u < NumUVChannels; u++)
+								{
+									UVChannelsWriters[u]->SetValue(i, FVector2D(VertexBuffers->StaticMeshVertexBuffer.GetVertexUV(RawIndex, UVChannels[u])));
+								}
+							}
+							else
+							{
+								const FIntVector3& Triangle = Mesh->Triangles[-(RawIndex + 1)];
+								OutColors[i] = (FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.X]))
+									+ FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Y]))
+									+ FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Z]))) / 3;
+
+								for (int u = 0; u < NumUVChannels; u++)
+								{
+									FVector2D AverageUVs = FVector2D::ZeroVector;
+
+									for (int t = 0; t < 3; t++)
+									{
+										AverageUVs += FVector2D(VertexBuffers->StaticMeshVertexBuffer.GetVertexUV(Mesh->RawIndices[Triangle[t]], UVChannels[u]));
+									}
+
+									AverageUVs /= 3;
+									UVChannelsWriters[u]->SetValue(i, AverageUVs);
+								}
+							}
+						}
+					}
+					else if (bWantsColor)
+					{
+						// Color only
+						const FColorVertexBuffer& ColorBuffer = VertexBuffers->ColorVertexBuffer;
+						TPCGValueRange<FVector4> OutColors = VtxPoints->GetColorValueRange(false);
+
+						for (int i = 0; i < OutTransforms.Num(); i++)
+						{
+							const int32 RawIndex = Mesh->RawIndices[i];
+							if (RawIndex >= 0)
+							{
+								OutColors[i] = FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[i]));
+							}
+							else
+							{
+								const FIntVector3& Triangle = Mesh->Triangles[-(RawIndex + 1)];
+								OutColors[i] = (FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.X]))
+									+ FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Y]))
+									+ FVector4(ColorBuffer.VertexColor(Mesh->RawIndices[Triangle.Z]))) / 3;
+							}
+						}
+					}
+					else
+					{
+						// UVs only
+						for (int i = 0; i < OutTransforms.Num(); i++)
+						{
+							const int32 RawIndex = Mesh->RawIndices[i];
+							if (RawIndex >= 0)
+							{
+								for (int u = 0; u < NumUVChannels; u++)
+								{
+									UVChannelsWriters[u]->SetValue(i, FVector2D(VertexBuffers->StaticMeshVertexBuffer.GetVertexUV(RawIndex, UVChannels[u])));
+								}
+							}
+							else
+							{
+								const FIntVector3& Triangle = Mesh->Triangles[-(RawIndex + 1)];
+								for (int u = 0; u < NumUVChannels; u++)
+								{
+									FVector2D AverageUVs = FVector2D::ZeroVector;
+
+									for (int t = 0; t < 3; t++)
+									{
+										AverageUVs += FVector2D(VertexBuffers->StaticMeshVertexBuffer.GetVertexUV(Mesh->RawIndices[Triangle[t]], UVChannels[u]));
+									}
+
+									AverageUVs /= 3;
+									UVChannelsWriters[u]->SetValue(i, AverageUVs);
+								}
+							}
+						}
+					}
 				}
 			}
 		}

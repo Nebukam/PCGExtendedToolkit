@@ -13,6 +13,8 @@
 #include "PCGExGeoMesh.generated.h" // Credit goes to @Syscrusher attention to detail :D
 
 
+struct FPCGAttributeIdentifier;
+
 UENUM()
 enum class EPCGExTriangulationType : uint8
 {
@@ -30,9 +32,32 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeoMeshImportDetails
 	;
 
 	FPCGExGeoMeshImportDetails() = default;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
+	bool bImportVertexColor = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
-	bool bTryExtractVertexColor = true;
+	bool bImportUVs = false;
+
+	/** A list of mapping channel index : attribute name. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(EditCondition="bImportUVs"))
+	TMap<FName, int32> UVChannels;
+
+	/** If enabled, will create placeholder attributes */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(EditCondition="bImportUVs"))
+	bool bCreatePlaceholders = false;
+
+	/** If placeholder is enabled, this will be used as default value for channels that have no data */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(EditCondition="bImportUVs && bCreatePlaceholders"))
+	FVector2D Placeholder = FVector2D(0,0);
+
+	TArray<FPCGAttributeIdentifier> UVChannelId;
+	TArray<int32> UVChannelIndex;
+	
+	bool Validate(FPCGExContext* InContext);
+	
+	bool WantsImport() const;
+	
 };
 
 namespace PCGExGeo
@@ -91,7 +116,7 @@ namespace PCGExGeo
 		TObjectPtr<UStaticMesh> StaticMesh;
 		FVector CWTolerance = FVector(1 / 0.001);
 
-		const FStaticMeshVertexBuffers* VertexBuffers = nullptr;
+		const FStaticMeshLODResources* LODResource = nullptr;
 
 		explicit FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh);
 		explicit FGeoStaticMesh(const FSoftObjectPath& InSoftStaticMesh);

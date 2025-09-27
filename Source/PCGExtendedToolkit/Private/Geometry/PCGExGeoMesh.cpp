@@ -4,6 +4,8 @@
 #include "Geometry/PCGExGeoMesh.h"
 
 #include "CoreMinimal.h"
+#include "PCGEx.h"
+#include "PCGExContext.h"
 #include "PCGExH.h"
 #include "PCGExHelpers.h"
 #include "StaticMeshResources.h"
@@ -45,8 +47,12 @@ namespace PCGExGeo
 
 		for (int i = 0; i < Triangles.Num(); i++)
 		{
-			const FIntVector3& Triangle = Triangles[i];
+			FIntVector3& Triangle = Triangles[i];
 			DualPositions[i] = (Vertices[Triangle.X] + Vertices[Triangle.Y] + Vertices[Triangle.Z]) / 3;
+
+			Triangle.X = RawIndices[Triangle.X];
+			Triangle.Y = RawIndices[Triangle.Y];
+			Triangle.Z = RawIndices[Triangle.Z];
 
 			const FIntVector3& Adjacency = Tri_Adjacency[i];
 			if (Adjacency.X != -1) { Edges.Add(PCGEx::H64U(i, Adjacency.X)); }
@@ -54,11 +60,13 @@ namespace PCGExGeo
 			if (Adjacency.Z != -1) { Edges.Add(PCGEx::H64U(i, Adjacency.Z)); }
 		}
 
-		Vertices.Empty(DualPositions.Num());
-		Vertices.Append(DualPositions);
-		DualPositions.Empty();
+		// Raw indices have been mutated and stored in triangles instead.
+		RawIndices.SetNum(Triangles.Num());
+		for (int i = 0; i < Triangles.Num(); i++) { RawIndices[i] = -(i + 1); }
 
-		Triangles.Empty();
+		Vertices.Reset(DualPositions.Num());
+		Vertices = MoveTemp(DualPositions);
+
 		Tri_Adjacency.Empty();
 	}
 
@@ -68,24 +76,25 @@ namespace PCGExGeo
 		if (Triangles.IsEmpty()) { return; }
 
 		const int32 StartIndex = Vertices.Num();
-		TArray<FVector> DualPositions;
-		PCGEx::InitArray(DualPositions, Triangles.Num());
-		PCGEx::InitArray(Vertices, StartIndex + Triangles.Num());
+		const int32 NumTriangles = Triangles.Num();
+		Vertices.SetNum(StartIndex + NumTriangles);
+		RawIndices.SetNum(StartIndex + NumTriangles);
 
 		Edges.Empty();
 
-		for (int i = 0; i < Triangles.Num(); i++)
+		for (int i = 0; i < NumTriangles; i++)
 		{
 			const FIntVector3& Triangle = Triangles[i];
 			const int32 E = StartIndex + i;
+
 			Vertices[E] = (Vertices[Triangle.X] + Vertices[Triangle.Y] + Vertices[Triangle.Z]) / 3;
+			RawIndices[E] = -(i + 1);
 
 			Edges.Add(PCGEx::H64U(E, Triangle.X));
 			Edges.Add(PCGEx::H64U(E, Triangle.Y));
 			Edges.Add(PCGEx::H64U(E, Triangle.Z));
 		}
 
-		Triangles.Empty();
 		Tri_Adjacency.Empty();
 	}
 
@@ -115,22 +124,23 @@ namespace PCGExGeo
 		if (bIsLoaded) { return; }
 		if (!bIsValid) { return; }
 
-		const FStaticMeshLODResources& LODResources = StaticMesh->GetRenderData()->LODResources[0];
-		VertexBuffers = &LODResources.VertexBuffers;
+		LODResource = &StaticMesh->GetRenderData()->LODResources[0];
 
-		if (!VertexBuffers)
+		if (!LODResource)
 		{
 			bIsValid = false;
 			return;
 		}
 
-		bHasColorData = VertexBuffers->ColorVertexBuffer.IsInitialized() && VertexBuffers->ColorVertexBuffer.GetNumVertices() > 0;
-		const FPositionVertexBuffer& VertexBuffer = VertexBuffers->PositionVertexBuffer;
+		const FStaticMeshVertexBuffers& VertexBuffers = LODResource->VertexBuffers;
 
-		const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
+		bHasColorData = VertexBuffers.ColorVertexBuffer.IsInitialized() && VertexBuffers.ColorVertexBuffer.GetNumVertices() > 0;
+		const FPositionVertexBuffer& PositionBuffer = VertexBuffers.PositionVertexBuffer;
+
+		const FIndexArrayView& Indices = LODResource->IndexBuffer.GetArrayView();
 		const int32 NumTriangles = Indices.Num() / 3;
 
-		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(VertexBuffer.GetNumVertices() / 3, &Vertices, &RawIndices, CWTolerance);
+		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(PositionBuffer.GetNumVertices() / 3, &Vertices, &RawIndices, CWTolerance);
 		Edges.Reserve(NumTriangles / 2);
 
 		for (int i = 0; i < Indices.Num(); i += 3)
@@ -139,9 +149,9 @@ namespace PCGExGeo
 			const int32 RawB = Indices[i + 1];
 			const int32 RawC = Indices[i + 2];
 
-			const uint32 A = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawA)), RawA);
-			const uint32 B = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawB)), RawB);
-			const uint32 C = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawC)), RawC);
+			const uint32 A = MeshLookup->Add_GetIdx(FVector(PositionBuffer.VertexPosition(RawA)), RawA);
+			const uint32 B = MeshLookup->Add_GetIdx(FVector(PositionBuffer.VertexPosition(RawB)), RawB);
+			const uint32 C = MeshLookup->Add_GetIdx(FVector(PositionBuffer.VertexPosition(RawC)), RawC);
 
 			if (A != B) { Edges.Add(PCGEx::H64U(A, B)); }
 			if (B != C) { Edges.Add(PCGEx::H64U(B, C)); }
@@ -158,14 +168,24 @@ namespace PCGExGeo
 		if (bIsLoaded) { return; }
 		if (!bIsValid) { return; }
 
+		LODResource = &StaticMesh->GetRenderData()->LODResources[0];
+
+		if (!LODResource)
+		{
+			bIsValid = false;
+			return;
+		}
+
+		const FStaticMeshVertexBuffers& VertexBuffers = LODResource->VertexBuffers;
+
+		bHasColorData = VertexBuffers.ColorVertexBuffer.IsInitialized() && VertexBuffers.ColorVertexBuffer.GetNumVertices() > 0;
+		const FPositionVertexBuffer& PositionBuffer = VertexBuffers.PositionVertexBuffer;
+
 		Edges.Empty();
 
-		const FStaticMeshLODResources& LODResources = StaticMesh->GetRenderData()->LODResources[0];
-		const FPositionVertexBuffer& VertexBuffer = LODResources.VertexBuffers.PositionVertexBuffer;
+		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(PositionBuffer.GetNumVertices() / 3, &Vertices, &RawIndices, CWTolerance);
 
-		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(VertexBuffer.GetNumVertices() / 3, &Vertices, &RawIndices, CWTolerance);
-
-		const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
+		const FIndexArrayView& Indices = LODResource->IndexBuffer.GetArrayView();
 
 		const int32 NumTriangles = Indices.Num() / 3;
 		Triangles.Init(FIntVector3(-1), NumTriangles);
@@ -215,9 +235,9 @@ namespace PCGExGeo
 			const int32 RawB = Indices[i + 1];
 			const int32 RawC = Indices[i + 2];
 
-			const uint32 A = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawA)), RawA);
-			const uint32 B = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawB)), RawB);
-			const uint32 C = MeshLookup->Add_GetIdx(FVector(VertexBuffer.VertexPosition(RawC)), RawC);
+			const uint32 A = MeshLookup->Add_GetIdx(FVector(PositionBuffer.VertexPosition(RawA)), RawA);
+			const uint32 B = MeshLookup->Add_GetIdx(FVector(PositionBuffer.VertexPosition(RawB)), RawB);
+			const uint32 C = MeshLookup->Add_GetIdx(FVector(PositionBuffer.VertexPosition(RawC)), RawC);
 
 			if (A == B || B == C || C == A) { continue; }
 
@@ -307,4 +327,59 @@ namespace PCGExGeo
 	{
 		GSM->ExtractMeshSynchronous();
 	}
+}
+
+bool FPCGExGeoMeshImportDetails::Validate(FPCGExContext* InContext)
+{
+	if (bImportUVs)
+	{
+		if (UVChannels.IsEmpty())
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Import UV channel is true, but there is no import details."));
+			return true;
+		}
+		else
+		{
+			TSet<FName> UniqueNames;
+			UVChannelIndex.Reserve(UVChannels.Num());
+			for (const TPair<FName, int32>& Pair : UVChannels)
+			{
+				if (Pair.Value < 0)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel mapping has an illegal channel index (< 0) and will be ignored."));
+					continue;
+				}
+
+				if (Pair.Value > 7)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel mapping has an illegal channel index (> 7) and will be ignored."));
+					continue;
+				}
+
+				bool bNameAlreadyExists = false;
+				UniqueNames.Add(Pair.Key, &bNameAlreadyExists);
+				if (bNameAlreadyExists)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel name is used more than once. Only the first entry will be used."));
+					continue;
+				}
+
+				if (!PCGEx::IsWritableAttributeName(Pair.Key))
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel name is not a valid attribute name, it will be ignored."));
+					continue;
+				}
+
+				UVChannelId.Add(FPCGAttributeIdentifier(Pair.Key, PCGMetadataDomainID::Elements));
+				UVChannelIndex.Add(Pair.Value);
+			}
+		}
+	}
+
+	return true;
+}
+
+bool FPCGExGeoMeshImportDetails::WantsImport() const
+{
+	return bImportVertexColor || !UVChannels.IsEmpty();
 }

@@ -109,6 +109,8 @@ struct FPCGExMeshToClustersContext final : FPCGExPointsProcessorContext
 	TSharedPtr<PCGExData::FPointIOCollection> BaseMeshDataCollection;
 
 	TArray<TSharedPtr<PCGExGraph::FGraphBuilder>> GraphBuilders;
+
+	bool bWantsImport = false;
 };
 
 
