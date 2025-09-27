@@ -226,7 +226,6 @@ namespace PCGExSampleNearestBounds
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
 		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
 			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))

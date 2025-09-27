@@ -30,19 +30,15 @@ namespace PCGExGeo
 	protected:
 		uint32 InternalIdx = 0;
 		TArray<FVector>* Vertices = nullptr;
+		TArray<int32>* RawIndices = nullptr;
 		FVector HashTolerance = FVector(1 / 0.001);
 
 	public:
 		TMap<uint32, int32> Data;
 
-		explicit FMeshLookup(const int32 Size, TArray<FVector>* InVertices, const FVector& InHashTolerance)
-			: Vertices(InVertices), HashTolerance(InHashTolerance)
-		{
-			Data.Reserve(Size);
-			InVertices->Reserve(Size);
-		}
-
-		uint32 Add_GetIdx(const FVector& Position);
+		explicit FMeshLookup(const int32 Size, TArray<FVector>* InVertices, TArray<int32>* InRawIndices, const FVector& InHashTolerance);
+			
+		uint32 Add_GetIdx(const FVector& Position, const int32 RawIndex);
 
 
 		FORCEINLINE int32 Num() const { return Data.Num(); }
@@ -55,7 +51,10 @@ namespace PCGExGeo
 	public:
 		bool bIsValid = false;
 		bool bIsLoaded = false;
+
 		TArray<FVector> Vertices;
+		TArray<int32> RawIndices;
+		
 		TSet<uint64> Edges;
 		TArray<FIntVector3> Triangles;
 		TArray<FIntVector3> Tri_Adjacency;

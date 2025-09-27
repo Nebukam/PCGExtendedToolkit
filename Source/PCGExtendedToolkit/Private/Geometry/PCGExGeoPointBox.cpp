@@ -10,17 +10,36 @@
 
 namespace PCGExGeo
 {
-	uint64 FIntersections::GetKey() const
+	FCut::FCut(const FVector& InPosition, const FVector& InNormal, const int32 InBoxIndex, const int32 InIdx)
+		: Position(InPosition), Normal(InNormal), BoxIndex(InBoxIndex), Idx(InIdx)
 	{
-		return PCGEx::H64U(Start, End);
+	}
+
+	FSample::FSample(const FVector& InDistances, const int32 InBoxIndex, const bool IsInside)
+		: Distances(InDistances), BoxIndex(InBoxIndex), bIsInside(IsInside)
+	{
+	}
+
+	FIntersections::FIntersections(const FVector& InStartPosition, const FVector& InEndPosition)
+		: StartPosition(InStartPosition), EndPosition(InEndPosition)
+	{
+	}
+
+	bool FIntersections::IsEmpty() const
+	{
+		return Cuts.IsEmpty();
 	}
 
 	void FIntersections::Sort()
 	{
+		// TODO : Cache distances 
 		Cuts.Sort(
 			[&](const FCut& A, const FCut& B)
 			{
-				return FVector::DistSquared(StartPosition, A.Position) < FVector::DistSquared(StartPosition, B.Position);
+				const double DistToA = FVector::DistSquared(StartPosition, A.Position);
+				const double DistToB = FVector::DistSquared(StartPosition, B.Position);
+				if (DistToA == DistToB) { return A.Idx < B.Idx; }
+				return DistToA < DistToB;
 			});
 	}
 
@@ -52,51 +71,9 @@ namespace PCGExGeo
 		return FBoxCenterAndExtent(Box);
 	}
 
-	void FIntersections::Insert(const FVector& Position, const FVector& Normal, const int32 Index)
+	void FIntersections::Insert(const FVector& Position, const FVector& Normal, const int32 Index, const int32 Idx)
 	{
-		Cuts.Emplace(Position, Normal, Index);
-	}
-
-	int32 FSegmentation::GetNumCuts() const
-	{
-		int32 Sum = 0;
-		for (const TPair<uint64, TSharedPtr<FIntersections>>& Pair : IntersectionsMap) { Sum += Pair.Value->Cuts.Num(); }
-		return Sum;
-	}
-
-	void FSegmentation::ReduceToArray()
-	{
-		PCGEx::InitArray(IntersectionsList, IntersectionsMap.Num());
-		int32 Index = 0;
-		for (const TPair<uint64, TSharedPtr<FIntersections>>& Pair : IntersectionsMap) { IntersectionsList[Index++] = Pair.Value; }
-		IntersectionsMap.Empty();
-	}
-
-	TSharedPtr<FIntersections> FSegmentation::Find(const uint64 Key)
-	{
-		{
-			FReadScopeLock ReadScopeLock(IntersectionsLock);
-			if (TSharedPtr<FIntersections>* ExistingIntersection = IntersectionsMap.Find(Key)) { return *ExistingIntersection; }
-		}
-
-		return nullptr;
-	}
-
-	void FSegmentation::Insert(const TSharedPtr<FIntersections>& InIntersections)
-	{
-		FWriteScopeLock WriteScopeLock(IntersectionsLock);
-		IntersectionsMap.Add(InIntersections->GetKey(), InIntersections);
-	}
-
-	TSharedPtr<FIntersections> FSegmentation::GetOrCreate(const int32 Start, const int32 End)
-	{
-		const uint64 HID = PCGEx::H64U(Start, End);
-		if (TSharedPtr<FIntersections> ExistingIntersection = Find(HID)) { return ExistingIntersection; }
-
-		PCGEX_MAKE_SHARED(NewIntersections, FIntersections, Start, End)
-		Insert(NewIntersections);
-
-		return NewIntersections;
+		Cuts.Emplace(Position, Normal, Index, Idx);
 	}
 
 	FPointBox::FPointBox(const PCGExData::FConstPoint& InPoint, const int32 InIndex, const EPCGExPointBoundsSource BoundsSource, double Expansion):
@@ -137,6 +114,99 @@ namespace PCGExGeo
 		Sample(Point.GetTransform().GetLocation(), OutSample);
 	}
 
+	bool FPointBox::ProcessIntersections(FIntersections* InIntersections, const int32 Idx) const
+	{
+		FVector OutIntersection1 = FVector::ZeroVector;
+		FVector OutIntersection2 = FVector::ZeroVector;
+		FVector OutHitNormal1 = FVector::ZeroVector;
+		FVector OutHitNormal2 = FVector::ZeroVector;
+		bool bIsIntersection2Valid = false;
+		bool bInverseDir = false;
+		if (SegmentIntersection(
+			InIntersections->StartPosition, InIntersections->EndPosition,
+			OutIntersection1, OutIntersection2, bIsIntersection2Valid,
+			OutHitNormal1, OutHitNormal2, bInverseDir))
+		{
+			InIntersections->Insert(OutIntersection1, OutHitNormal1, Index, Idx);
+			if (bIsIntersection2Valid) { InIntersections->Insert(OutIntersection2, OutHitNormal2, Index, Idx); }
+			return true;
+		}
+		return false;
+	}
+
+	bool FPointBox::SegmentIntersection(const FVector& Start, const FVector& End, FVector& OutIntersection1, FVector& OutIntersection2, bool& bIsI2Valid, FVector& OutHitNormal1, FVector& OutHitNormal2, bool& bInverseDir) const
+	{
+		const FVector LocalStart = Matrix.InverseTransformPosition(Start);
+		const FVector LocalEnd = Matrix.InverseTransformPosition(End);
+
+		const bool bIsStartInside = Box.IsInside(LocalStart);
+		const bool bIsEndInside = Box.IsInside(LocalEnd);
+
+		bIsI2Valid = false;
+		bInverseDir = false;
+
+		if (bIsStartInside && bIsEndInside) { return false; }
+
+		FVector HitLocation;
+		FVector HitNormal;
+		float HitTime;
+
+		bool bHasValidIntersection = false;
+
+		if (bIsEndInside)
+		{
+			if (FMath::LineExtentBoxIntersection(Box, LocalStart, LocalEnd, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
+			{
+				OutIntersection1 = Matrix.TransformPosition(HitLocation);
+				OutHitNormal1 = Matrix.TransformVector(HitNormal);
+				return OutIntersection1 != Start && OutIntersection1 != End;
+			}
+
+			return false;
+		}
+
+		if (bIsStartInside)
+		{
+			if (FMath::LineExtentBoxIntersection(Box, LocalEnd, LocalStart, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
+			{
+				OutIntersection1 = Matrix.TransformPosition(HitLocation);
+				OutHitNormal1 = Matrix.TransformVector(HitNormal);
+				bInverseDir = true;
+				return OutIntersection1 != Start && OutIntersection1 != End;
+			}
+
+			return false;
+		}
+
+		if (FMath::LineExtentBoxIntersection(Box, LocalStart, LocalEnd, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
+		{
+			OutIntersection1 = Matrix.TransformPosition(HitLocation);
+			OutHitNormal1 = Matrix.TransformVector(HitNormal);
+			bHasValidIntersection = OutIntersection1 != Start && OutIntersection1 != End;
+		}
+
+		if (FMath::LineExtentBoxIntersection(Box, LocalEnd, LocalStart, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
+		{
+			if (!bHasValidIntersection)
+			{
+				OutIntersection1 = Matrix.TransformPosition(HitLocation);
+				OutHitNormal1 = Matrix.TransformVector(HitNormal);
+				bInverseDir = true;
+				bHasValidIntersection = OutIntersection1 != Start && OutIntersection1 != End;
+			}
+			else
+			{
+				OutIntersection2 = Matrix.TransformPosition(HitLocation);
+				OutHitNormal2 = Matrix.TransformVector(HitNormal);
+				bIsI2Valid = OutIntersection1 != OutIntersection2 && (OutIntersection2 != Start && OutIntersection2 != End);
+			}
+
+			bHasValidIntersection = bHasValidIntersection || bIsI2Valid;
+		}
+
+		return bHasValidIntersection;
+	}
+
 	FPointBoxCloud::FPointBoxCloud(const UPCGBasePointData* PointData, const EPCGExPointBoundsSource BoundsSource, const double Expansion)
 	{
 		CloudBounds = PointData->GetBounds();
@@ -159,7 +229,7 @@ namespace PCGExGeo
 	bool FPointBoxCloud::FindIntersections(FIntersections* InIntersections) const
 	{
 		const FBoxCenterAndExtent BCAE = InIntersections->GetBoxCenterAndExtent();
-		Octree->FindElementsWithBoundsTest(BCAE, [&](const FPointBox* NearbyBox) { NearbyBox->ProcessIntersections(InIntersections); });
+		Octree->FindElementsWithBoundsTest(BCAE, [&](const FPointBox* NearbyBox) { NearbyBox->ProcessIntersections(InIntersections, Idx); });
 		return !InIntersections->Cuts.IsEmpty();
 	}
 

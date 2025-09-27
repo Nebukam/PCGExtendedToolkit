@@ -28,12 +28,11 @@ namespace PCGExGeo
 		FVector Position = FVector::ZeroVector;
 		FVector Normal = FVector::ZeroVector;
 		int32 BoxIndex = -1;
+		int32 Idx = -1;
 		bool bIsInside = false;
 
-		FCut(const FVector& InPosition, const FVector& InNormal, const int32 InBoxIndex):
-			Position(InPosition), Normal(InNormal), BoxIndex(InBoxIndex)
-		{
-		}
+		FCut() = default;
+		FCut(const FVector& InPosition, const FVector& InNormal, const int32 InBoxIndex, const int32 InIdx);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSample
@@ -45,11 +44,7 @@ namespace PCGExGeo
 		bool bIsInside = false;
 
 		FSample() = default;
-
-		FSample(const FVector& InDistances, const int32 InBoxIndex, const bool IsInside):
-			Distances(InDistances), BoxIndex(InBoxIndex), bIsInside(IsInside)
-		{
-		}
+		FSample(const FVector& InDistances, const int32 InBoxIndex, const bool IsInside);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FIntersections
@@ -57,50 +52,17 @@ namespace PCGExGeo
 		TArray<FCut> Cuts;
 		FVector StartPosition = FVector::ZeroVector;
 		FVector EndPosition = FVector::ZeroVector;
-		int32 Start = -1;
-		int32 End = -1;
 
-		FIntersections(const FVector& InStartPosition, const FVector& InEndPosition, const int32 InStart, const int32 InEnd):
-			StartPosition(InStartPosition), EndPosition(InEndPosition), Start(InStart), End(InEnd)
-		{
-		}
+		FIntersections(const FVector& InStartPosition, const FVector& InEndPosition);
 
-		FIntersections(const int32 InStart, const int32 InEnd):
-			Start(InStart), End(InEnd)
-		{
-		}
-
-		uint64 GetKey() const;
+		bool IsEmpty() const;
 
 		void Sort();
 		void SortAndDedupe();
 
 		FBoxCenterAndExtent GetBoxCenterAndExtent() const;
 
-		void Insert(const FVector& Position, const FVector& Normal, const int32 Index);
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FSegmentation
-	{
-		mutable FRWLock IntersectionsLock;
-
-	public:
-		TMap<uint64, TSharedPtr<FIntersections>> IntersectionsMap;
-		TArray<TSharedPtr<FIntersections>> IntersectionsList;
-
-		FSegmentation() = default;
-		~FSegmentation() = default;
-
-		int32 GetNum() const { return IntersectionsMap.Num(); }
-		int32 GetNumCuts() const;
-
-		void ReduceToArray();
-
-		TSharedPtr<FIntersections> Find(const uint64 Key);
-
-		void Insert(const TSharedPtr<FIntersections>& InIntersections);
-
-		TSharedPtr<FIntersections> GetOrCreate(const int32 Start, const int32 End);
+		void Insert(const FVector& Position, const FVector& Normal, const int32 Index, const int32 Idx = -1);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FPointBox
@@ -330,106 +292,13 @@ namespace PCGExGeo
 
 #pragma region Intersections
 
-		bool ProcessIntersections(FIntersections* InIntersections) const
-		{
-			FVector OutIntersection1 = FVector::ZeroVector;
-			FVector OutIntersection2 = FVector::ZeroVector;
-			FVector OutHitNormal1 = FVector::ZeroVector;
-			FVector OutHitNormal2 = FVector::ZeroVector;
-			bool bIsIntersection2Valid = false;
-			bool bInverseDir = false;
-			if (SegmentIntersection(
-				InIntersections->StartPosition, InIntersections->EndPosition,
-				OutIntersection1, OutIntersection2, bIsIntersection2Valid,
-				OutHitNormal1, OutHitNormal2, bInverseDir))
-			{
-				InIntersections->Insert(OutIntersection1, OutHitNormal1, Index);
-				if (bIsIntersection2Valid) { InIntersections->Insert(OutIntersection2, OutHitNormal2, Index); }
-				return true;
-			}
-			return false;
-		}
-
+		bool ProcessIntersections(FIntersections* InIntersections, const int32 Idx = -1) const;
 		bool SegmentIntersection(
-			const FVector& Start,
-			const FVector& End,
-			FVector& OutIntersection1,
-			FVector& OutIntersection2,
-			bool& bIsI2Valid,
-			FVector& OutHitNormal1,
-			FVector& OutHitNormal2,
-			bool& bInverseDir) const
-		{
-			const FVector LocalStart = Matrix.InverseTransformPosition(Start);
-			const FVector LocalEnd = Matrix.InverseTransformPosition(End);
+			const FVector& Start, const FVector& End,
+			FVector& OutIntersection1, FVector& OutIntersection2,
+			bool& bIsI2Valid, FVector& OutHitNormal1, FVector& OutHitNormal2,
+			bool& bInverseDir) const;
 
-			const bool bIsStartInside = Box.IsInside(LocalStart);
-			const bool bIsEndInside = Box.IsInside(LocalEnd);
-
-			bIsI2Valid = false;
-			bInverseDir = false;
-
-			if (bIsStartInside && bIsEndInside) { return false; }
-
-			FVector HitLocation;
-			FVector HitNormal;
-			float HitTime;
-
-			bool bHasValidIntersection = false;
-
-			if (bIsEndInside)
-			{
-				if (FMath::LineExtentBoxIntersection(Box, LocalStart, LocalEnd, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
-				{
-					OutIntersection1 = Matrix.TransformPosition(HitLocation);
-					OutHitNormal1 = Matrix.TransformVector(HitNormal);
-					return OutIntersection1 != Start && OutIntersection1 != End;
-				}
-
-				return false;
-			}
-
-			if (bIsStartInside)
-			{
-				if (FMath::LineExtentBoxIntersection(Box, LocalEnd, LocalStart, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
-				{
-					OutIntersection1 = Matrix.TransformPosition(HitLocation);
-					OutHitNormal1 = Matrix.TransformVector(HitNormal);
-					bInverseDir = true;
-					return OutIntersection1 != Start && OutIntersection1 != End;
-				}
-
-				return false;
-			}
-
-			if (FMath::LineExtentBoxIntersection(Box, LocalStart, LocalEnd, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
-			{
-				OutIntersection1 = Matrix.TransformPosition(HitLocation);
-				OutHitNormal1 = Matrix.TransformVector(HitNormal);
-				bHasValidIntersection = OutIntersection1 != Start && OutIntersection1 != End;
-			}
-
-			if (FMath::LineExtentBoxIntersection(Box, LocalEnd, LocalStart, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
-			{
-				if (!bHasValidIntersection)
-				{
-					OutIntersection1 = Matrix.TransformPosition(HitLocation);
-					OutHitNormal1 = Matrix.TransformVector(HitNormal);
-					bInverseDir = true;
-					bHasValidIntersection = OutIntersection1 != Start && OutIntersection1 != End;
-				}
-				else
-				{
-					OutIntersection2 = Matrix.TransformPosition(HitLocation);
-					OutHitNormal2 = Matrix.TransformVector(HitNormal);
-					bIsI2Valid = OutIntersection1 != OutIntersection2 && (OutIntersection2 != Start && OutIntersection2 != End);
-				}
-
-				bHasValidIntersection = bHasValidIntersection || bIsI2Valid;
-			}
-
-			return bHasValidIntersection;
-		}
 
 #pragma endregion
 	};
@@ -445,6 +314,8 @@ namespace PCGExGeo
 		FVector SearchPadding;
 
 	public:
+		int32 Idx = -1;
+
 		explicit FPointBoxCloud(const UPCGBasePointData* PointData, const EPCGExPointBoundsSource BoundsSource, const double Expansion = DBL_EPSILON);
 
 		FORCEINLINE const FPointBoxOctree* GetOctree() const { return Octree.Get(); }

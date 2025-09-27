@@ -135,7 +135,7 @@ void UPCGExCustomActorDataPacker::PreloadObjectPaths(const FName& InAttributeNam
 
 	if (!Identity)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Specified preload attribute does not exists."));
+		PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Preload attribute \"{0}\" does not exist."), FText::FromName(InAttributeName)));
 		return;
 	}
 

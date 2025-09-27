@@ -18,8 +18,17 @@
 #define PCGEX_FOREACH_FIELD_INTERSECTION(MACRO)\
 MACRO(IsIntersection, bool, false)\
 MACRO(Normal, FVector, FVector::ZeroVector)\
-MACRO(BoundIndex, int32, -1)\
-MACRO(IsInside, bool, false)
+MACRO(BoundIndex, int32, -1)
+
+namespace PCGExSampling
+{
+	class FTargetsHandler;
+}
+
+namespace PCGExGeo
+{
+	struct FCut;
+}
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
@@ -54,91 +63,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="BoundIndex", PCG_Overridable, EditCondition="bWriteBoundIndex" ))
 	FName BoundIndexAttributeName = FName("BoundIndex");
 
-	/** If enabled, mark points inside the volume with a boolean value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteIsInside = true;
-
-	/** Name of the attribute to write inside boolean to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="IsInside", PCG_Overridable, EditCondition="bWriteIsInside" ))
-	FName IsInsideAttributeName = FName("IsInside");
-
-
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta=(PCG_Overridable))
 	FPCGExForwardDetails IntersectionForwarding;
 
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta=(PCG_Overridable))
-	FPCGExForwardDetails InsideForwarding;
-
-	/** Epsilon value used to expand the box when testing if IsInside. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double InsideExpansion = -1e-4;
-
-	bool Validate(const FPCGContext* InContext) const
-	{
-#define PCGEX_LOCAL_DETAIL_CHECK(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME) { PCGEX_VALIDATE_NAME_C(InContext, _NAME##AttributeName) }
-		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_CHECK)
-#undef PCGEX_LOCAL_DETAIL_CHECK
-
-		return true;
-	}
+	bool Validate(const FPCGContext* InContext) const;
 
 #define PCGEX_LOCAL_DETAIL_DECL(_NAME, _TYPE, _DEFAULT) TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Writer;
 	PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_DECL)
 #undef PCGEX_LOCAL_DETAIL_DECL
 
-	TSharedPtr<PCGExData::FDataForwardHandler> IntersectionForwardHandler;
-	TSharedPtr<PCGExData::FDataForwardHandler> InsideForwardHandler;
+	void Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade, const TSharedPtr<PCGExSampling::FTargetsHandler>& TargetsHandler);
 
-	void Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade, const TSharedPtr<PCGExData::FFacade>& BoundsDataFacade)
-	{
-		IntersectionForwardHandler = IntersectionForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade, false);
-		InsideForwardHandler = InsideForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade, false);
+	bool WillWriteAny() const;
 
-#define PCGEX_LOCAL_DETAIL_WRITER(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ _NAME##Writer = PointDataFacade->GetWritable( _NAME##AttributeName, _DEFAULT, true, PCGExData::EBufferInit::Inherit); }
-		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_WRITER)
-#undef PCGEX_LOCAL_DETAIL_WRITER
-	}
+	void Mark(const TSharedRef<PCGExData::FPointIO>& InPointIO) const;
+	void SetIntersection(const int32 PointIndex, const PCGExGeo::FCut& InCut) const;
 
-	bool WillWriteAny() const
-	{
-#define PCGEX_LOCAL_DETAIL_WILL_WRITE(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ return true; }
-		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_WILL_WRITE)
-#undef PCGEX_LOCAL_DETAIL_WILL_WRITE
-
-		return IntersectionForwarding.bEnabled || InsideForwarding.bEnabled;
-	}
-
-	void Mark(const TSharedRef<PCGExData::FPointIO>& InPointIO) const
-	{
-#define PCGEX_LOCAL_DETAIL_MARK(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME) { PCGExData::WriteMark(InPointIO, _NAME##AttributeName, _DEFAULT); }
-		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_MARK)
-#undef PCGEX_LOCAL_DETAIL_MARK
-	}
-
-	void SetIsInside(const int32 PointIndex, const bool bIsInside, const int32 BoundIndex) const
-	{
-		if (InsideForwardHandler && bIsInside) { InsideForwardHandler->Forward(BoundIndex, PointIndex); }
-		if (IsInsideWriter) { IsInsideWriter->SetValue(PointIndex, bIsInside); }
-	}
-
-	void SetIsInside(const int32 PointIndex, const bool bIsInside) const
-	{
-		if (IsInsideWriter) { IsInsideWriter->SetValue(PointIndex, bIsInside); }
-	}
-
-	void SetIntersection(const int32 PointIndex, const FVector& Normal, const int32 BoundIndex) const
-	{
-		if (IntersectionForwardHandler) { IntersectionForwardHandler->Forward(BoundIndex, PointIndex); }
-
-		if (IsIntersectionWriter) { IsIntersectionWriter->SetValue(PointIndex, true); }
-		if (NormalWriter) { NormalWriter->SetValue(PointIndex, Normal); }
-		if (BoundIndexWriter) { BoundIndexWriter->SetValue(PointIndex, BoundIndex); }
-	}
+private:
+	TArray<TSharedPtr<PCGExData::FDataForwardHandler>> IntersectionForwardHandlers;
 };
-
-#undef PCGEX_FOREACH_FIELD_INTERSECTION
 
 namespace PCGExGraph
 {

@@ -939,6 +939,7 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 		if (Cloud) { return Cloud; }
 
 		Cloud = MakeShared<PCGExGeo::FPointBoxCloud>(GetIn(), BoundsSource, Expansion);
+		Cloud->Idx = Idx;
 		return Cloud;
 	}
 
