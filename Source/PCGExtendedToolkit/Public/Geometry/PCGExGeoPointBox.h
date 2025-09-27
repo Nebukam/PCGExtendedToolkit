@@ -21,6 +21,16 @@ enum class EPCGExBoxCheckMode : uint8
 	ExpandedSphere = 3 UMETA(DisplayName = "Expanded Sphere", Tooltip="A Sphere which radius is defined by the bound' extents size, expanded by an amount"),
 };
 
+UENUM()
+enum class EPCGExCutType : uint8
+{
+	Undefined   = 0 UMETA(DisplayName = "Undefined"),
+	Entry       = 1 UMETA(DisplayName = "Entry"),
+	EntryNoExit = 2 UMETA(DisplayName = "Entry (no exit)"),
+	Exit        = 3 UMETA(DisplayName = "Exit"),
+	ExitNoEntry = 4 UMETA(DisplayName = "Exit (no entry)"),
+};
+
 namespace PCGExGeo
 {
 	struct PCGEXTENDEDTOOLKIT_API FCut
@@ -29,10 +39,10 @@ namespace PCGExGeo
 		FVector Normal = FVector::ZeroVector;
 		int32 BoxIndex = -1;
 		int32 Idx = -1;
-		bool bIsInside = false;
+		EPCGExCutType Type = EPCGExCutType::Undefined;
 
 		FCut() = default;
-		FCut(const FVector& InPosition, const FVector& InNormal, const int32 InBoxIndex, const int32 InIdx);
+		FCut(const FVector& InPosition, const FVector& InNormal, const int32 InBoxIndex, const int32 InIdx, const EPCGExCutType InType = EPCGExCutType::Undefined);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSample
@@ -62,7 +72,7 @@ namespace PCGExGeo
 
 		FBoxCenterAndExtent GetBoxCenterAndExtent() const;
 
-		void Insert(const FVector& Position, const FVector& Normal, const int32 Index, const int32 Idx = -1);
+		void Insert(const FVector& Position, const FVector& Normal, const int32 Index, const int32 Idx = -1, const EPCGExCutType Type = EPCGExCutType::Undefined);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FPointBox

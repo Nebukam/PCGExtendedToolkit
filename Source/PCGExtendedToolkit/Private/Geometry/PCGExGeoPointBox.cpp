@@ -10,8 +10,8 @@
 
 namespace PCGExGeo
 {
-	FCut::FCut(const FVector& InPosition, const FVector& InNormal, const int32 InBoxIndex, const int32 InIdx)
-		: Position(InPosition), Normal(InNormal), BoxIndex(InBoxIndex), Idx(InIdx)
+	FCut::FCut(const FVector& InPosition, const FVector& InNormal, const int32 InBoxIndex, const int32 InIdx, const EPCGExCutType InType)
+		: Position(InPosition), Normal(InNormal), BoxIndex(InBoxIndex), Idx(InIdx), Type(InType)
 	{
 	}
 
@@ -71,9 +71,9 @@ namespace PCGExGeo
 		return FBoxCenterAndExtent(Box);
 	}
 
-	void FIntersections::Insert(const FVector& Position, const FVector& Normal, const int32 Index, const int32 Idx)
+	void FIntersections::Insert(const FVector& Position, const FVector& Normal, const int32 Index, const int32 Idx, const EPCGExCutType Type)
 	{
-		Cuts.Emplace(Position, Normal, Index, Idx);
+		Cuts.Emplace(Position, Normal, Index, Idx, Type);
 	}
 
 	FPointBox::FPointBox(const PCGExData::FConstPoint& InPoint, const int32 InIndex, const EPCGExPointBoundsSource BoundsSource, double Expansion):
@@ -127,8 +127,31 @@ namespace PCGExGeo
 			OutIntersection1, OutIntersection2, bIsIntersection2Valid,
 			OutHitNormal1, OutHitNormal2, bInverseDir))
 		{
-			InIntersections->Insert(OutIntersection1, OutHitNormal1, Index, Idx);
-			if (bIsIntersection2Valid) { InIntersections->Insert(OutIntersection2, OutHitNormal2, Index, Idx); }
+			if (bInverseDir)
+			{
+				if (bIsIntersection2Valid)
+				{
+					InIntersections->Insert(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::Exit);
+					InIntersections->Insert(OutIntersection2, OutHitNormal2, Index, Idx, EPCGExCutType::Entry);
+				}
+				else
+				{
+					InIntersections->Insert(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::ExitNoEntry);
+				}
+			}
+			else
+			{
+				if (bIsIntersection2Valid)
+				{
+					InIntersections->Insert(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::Entry);
+					InIntersections->Insert(OutIntersection2, OutHitNormal2, Index, Idx, EPCGExCutType::Exit);
+				}
+				else
+				{
+					InIntersections->Insert(OutIntersection1, OutHitNormal1, Index, Idx, EPCGExCutType::EntryNoExit);
+				}
+			}
+
 			return true;
 		}
 		return false;

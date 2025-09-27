@@ -901,6 +901,15 @@ namespace PCGExGraph
 	}
 }
 
+FPCGExBoxIntersectionDetails::FPCGExBoxIntersectionDetails()
+{
+	if (const UEnum* EnumClass = StaticEnum<EPCGExCutType>())
+	{
+		const int32 NumEnums = EnumClass->NumEnums() - 1; // Skip _MAX 
+		for (int32 i = 0; i < NumEnums; ++i) { CutTypeValueMapping.Add(static_cast<EPCGExCutType>(EnumClass->GetValueByIndex(i)), i); }
+	}
+}
+
 bool FPCGExBoxIntersectionDetails::Validate(const FPCGContext* InContext) const
 {
 #define PCGEX_LOCAL_DETAIL_CHECK(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME) { PCGEX_VALIDATE_NAME_C(InContext, _NAME##AttributeName) }
@@ -951,6 +960,7 @@ void FPCGExBoxIntersectionDetails::SetIntersection(const int32 PointIndex, const
 	}
 
 	if (IsIntersectionWriter) { IsIntersectionWriter->SetValue(PointIndex, true); }
+	if (CutTypeWriter) { CutTypeWriter->SetValue(PointIndex, CutTypeValueMapping[InCut.Type]); }
 	if (NormalWriter) { NormalWriter->SetValue(PointIndex, InCut.Normal); }
 	if (BoundIndexWriter) { BoundIndexWriter->SetValue(PointIndex, InCut.BoxIndex); }
 }

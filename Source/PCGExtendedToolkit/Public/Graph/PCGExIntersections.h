@@ -17,8 +17,11 @@
 
 #define PCGEX_FOREACH_FIELD_INTERSECTION(MACRO)\
 MACRO(IsIntersection, bool, false)\
+MACRO(CutType, int32, 0)\
 MACRO(Normal, FVector, FVector::ZeroVector)\
 MACRO(BoundIndex, int32, -1)
+
+enum class EPCGExCutType : uint8;
 
 namespace PCGExSampling
 {
@@ -35,17 +38,31 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 {
 	GENERATED_BODY()
 
+	FPCGExBoxIntersectionDetails();
+
 	/** Bounds type. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
-	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
+	/** If enabled, flag newly created intersection points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIsIntersection = true;
 
 	/** Name of the attribute to write point intersection boolean to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="IsIntersection", PCG_Overridable, EditCondition="bWriteIsIntersection" ))
 	FName IsIntersectionAttributeName = FName("IsIntersection");
+
+	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteCutType = true;
+
+	/** Name of the attribute to write point toward inside boolean to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="CutType", PCG_Overridable, EditCondition="bWriteCutType" ))
+	FName CutTypeAttributeName = FName("CutType");
+
+	/** Pick which value will be written for each cut type. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings", EditFixedSize, meta=( ReadOnlyKeys, DisplayName=" └─ Mapping", EditCondition="bWriteCutType", HideEditConditionToggle))
+	TMap<EPCGExCutType, int32> CutTypeValueMapping;
 
 	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))

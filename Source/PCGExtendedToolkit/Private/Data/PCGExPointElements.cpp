@@ -11,6 +11,7 @@ namespace PCGExData
 	FScope::FScope(UPCGBasePointData* InData, const int32 InStart, const int32 InCount)
 		: PCGExMT::FScope(InStart, InCount), Data(InData)
 	{
+		
 	}
 
 	FScope::FScope(const UPCGBasePointData* InData, const int32 InStart, const int32 InCount)

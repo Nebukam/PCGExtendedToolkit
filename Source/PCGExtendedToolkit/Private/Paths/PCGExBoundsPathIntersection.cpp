@@ -365,7 +365,7 @@ namespace PCGExBoundsPathIntersection
 
 			Metrics.Add(OutTransforms[EndIndex].GetLocation());
 
-			PCGExData::FScope SubScope = PointDataFacade->GetOutScope(StartIndex, CutsNum);
+			PCGExData::FScope SubScope = PointDataFacade->GetOutScope(StartIndex+1, CutsNum);
 			SubBlending->ProcessSubPoints(PointDataFacade->GetOutPoint(StartIndex), PointDataFacade->GetOutPoint(EndIndex), SubScope, Metrics);
 		}
 	}
