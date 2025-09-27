@@ -37,7 +37,7 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(MeshToClusters)
 	PCGEX_EXECUTION_CHECK
 
-	Context->bWantsImport = Settings->ImportDetails.WantsImport() && Settings->GraphOutputType != EPCGExTriangulationType::Dual;
+	Context->bWantsImport = Settings->ImportDetails.WantsImport();
 
 	if (Context->MainPoints->Pairs.Num() < 1)
 	{
@@ -393,7 +393,61 @@ namespace PCGExMeshToCluster
 				{
 					// For dual graph we need to average triangle values for all imports
 					// Mesh raw vertices has been mutated by `MakeDual` in order to facilitate that
-					// TODO : TODO
+
+					if (bWantsColor)
+					{
+						const FColorVertexBuffer& ColorBuffer = VertexBuffers->ColorVertexBuffer;
+						TPCGValueRange<FVector4> OutColors = VtxPoints->GetColorValueRange(false);
+						
+						if (!NumUVChannels)
+						{
+							// Color only
+							for (int i = 0; i < OutTransforms.Num(); i++)
+							{
+								const FIntVector3& Triangle = Mesh->Triangles[-(Mesh->RawIndices[i] + 1)];
+
+								OutColors[i] = (FVector4(ColorBuffer.VertexColor(Triangle.X))
+									+ FVector4(ColorBuffer.VertexColor(Triangle.Y))
+									+ FVector4(ColorBuffer.VertexColor(Triangle.Z))) / 3;
+							}
+						}
+						else
+						{
+							// Color + UVs
+							for (int i = 0; i < OutTransforms.Num(); i++)
+							{
+								const FIntVector3& Triangle = Mesh->Triangles[-(Mesh->RawIndices[i] + 1)];
+
+								OutColors[i] = (FVector4(ColorBuffer.VertexColor(Triangle.X))
+									+ FVector4(ColorBuffer.VertexColor(Triangle.Y))
+									+ FVector4(ColorBuffer.VertexColor(Triangle.Z))) / 3;
+
+								for (int u = 0; u < NumUVChannels; u++)
+								{
+									FVector2D AverageUVs = FVector2D::ZeroVector;
+									for (int t = 0; t < 3; t++) { AverageUVs += FVector2D(VertexBuffers->StaticMeshVertexBuffer.GetVertexUV(Triangle[t], UVChannels[u])); }
+									AverageUVs /= 3;
+									UVChannelsWriters[u]->SetValue(i, AverageUVs);
+								}
+							}
+						}
+					}
+					else
+					{
+						// UVs only
+						for (int i = 0; i < OutTransforms.Num(); i++)
+						{
+							const FIntVector3& Triangle = Mesh->Triangles[-(Mesh->RawIndices[i] + 1)];
+							
+							for (int u = 0; u < NumUVChannels; u++)
+							{
+								FVector2D AverageUVs = FVector2D::ZeroVector;
+								for (int t = 0; t < 3; t++) { AverageUVs += FVector2D(VertexBuffers->StaticMeshVertexBuffer.GetVertexUV(Triangle[t], UVChannels[u])); }
+								AverageUVs /= 3;
+								UVChannelsWriters[u]->SetValue(i, AverageUVs);
+							}
+						}
+					}
 				}
 				else
 				{
