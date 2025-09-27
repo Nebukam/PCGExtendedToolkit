@@ -17,7 +17,7 @@
 
 #define PCGEX_FOREACH_FIELD_INTERSECTION(MACRO)\
 MACRO(IsIntersection, bool, false)\
-MACRO(CutType, int32, 0)\
+MACRO(CutType, int32, CutTypeValueMapping[EPCGExCutType::Undefined])\
 MACRO(Normal, FVector, FVector::ZeroVector)\
 MACRO(BoundIndex, int32, -1)
 
