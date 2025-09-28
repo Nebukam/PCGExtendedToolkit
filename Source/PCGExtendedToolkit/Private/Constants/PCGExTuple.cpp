@@ -11,9 +11,21 @@
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE Tuple
 
-void FPCGExTupleValues::Write(FName Name, UPCGParamData* ParamData) const
+FPCGMetadataAttributeBase* FPCGExTupleValues::Write(FName Name, UPCGParamData* ParamData) const
 {
-	
+	// Create attribute
+	return nullptr;
+}
+
+void FPCGExTupleValues::WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key, int32 Index) const
+{
+	if (Values.IsValidIndex(Index))
+	{
+	}
+	else
+	{
+		Attribute->SetValue()
+	}
 }
 
 #if WITH_EDITOR
@@ -70,11 +82,25 @@ bool FPCGExTupleElement::ExecuteInternal(FPCGContext* InContext) const
 
 	UPCGParamData* TupleData = Context->ManagedObjects->New<UPCGParamData>();
 
+	TArray<FPCGMetadataAttributeBase*> Attributes;
+	TArray<FName> Ids;
+	Attributes.Reserve(Settings->Composition.Num());
+	Ids.Reserve(Settings->Composition.Num());
+	int32 MaxIterations = 0;
+
 	for (const TPair<FName, FPCGExTupleValues>& Pair : Settings->Composition)
 	{
-		Pair.Value.Write(Pair.Key, TupleData);
+		MaxIterations = FMath::Max(MaxIterations, Pair.Value.Values.Num());
+		Ids.Add(Pair.Key);
+		Attributes.Add(Pair.Value.Write(Pair.Key, TupleData));
 	}
-	
+
+	for (int32 Iteration = 0; Iteration < MaxIterations; ++Iteration)
+	{
+		int64 Key = TupleData->Metadata->AddEntry();
+		for (int i = 0; i < Ids.Num(); ++i) { Settings->Composition[Ids[i]].WriteValue(Attributes[i], Key, Iteration); }
+	}
+
 	//TupleData->Metadata->CreateAttribute<int64>(FName("Tuple"), Tuple, false, true);
 	//TupleData->Metadata->AddEntry();
 

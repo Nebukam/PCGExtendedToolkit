@@ -11,6 +11,8 @@
 
 #include "PCGExTuple.generated.h"
 
+class FPCGMetadataAttributeBase;
+
 UENUM(BlueprintType)
 enum class EPCGExTupleTypes : uint8
 {
@@ -97,7 +99,8 @@ struct FPCGExTupleValues
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(TitleProperty="Value"))
 	TArray<FPCGExTupleValue> Values;
 
-	void Write(FName Name, UPCGParamData* ParamData) const;
+	FPCGMetadataAttributeBase* Write(FName Name, UPCGParamData* ParamData) const;
+	void WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key, int32 Index) const;
 		
 };
 
