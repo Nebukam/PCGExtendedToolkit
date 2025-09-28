@@ -144,7 +144,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryData : public UPCGExFac
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoNeighborSampler)
-	
+
 	UPROPERTY()
 	FPCGExSamplingConfig SamplingConfig;
 

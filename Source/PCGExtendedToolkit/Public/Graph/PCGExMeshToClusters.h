@@ -71,7 +71,7 @@ public:
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTransformDetails TransformDetails;
-	
+
 	/** Which data should be imported from the static mesh onto the generated points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeoMeshImportDetails ImportDetails;

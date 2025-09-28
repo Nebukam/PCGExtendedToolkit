@@ -30,7 +30,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterGroupFactoryData : public UPCGExCluster
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilter)
-	
+
 	UPROPERTY()
 	bool bInvert = false;
 

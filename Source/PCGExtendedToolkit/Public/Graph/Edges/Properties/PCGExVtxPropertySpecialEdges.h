@@ -59,7 +59,7 @@ UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Vtx
 class UPCGExVtxPropertySpecialEdgesSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

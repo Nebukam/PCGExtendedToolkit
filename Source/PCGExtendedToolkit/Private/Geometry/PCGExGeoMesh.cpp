@@ -338,41 +338,38 @@ bool FPCGExGeoMeshImportDetails::Validate(FPCGExContext* InContext)
 			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Import UV channel is true, but there is no import details."));
 			return true;
 		}
-		else
+		TSet<FName> UniqueNames;
+		UVChannelIndex.Reserve(UVChannels.Num());
+		for (const TPair<FName, int32>& Pair : UVChannels)
 		{
-			TSet<FName> UniqueNames;
-			UVChannelIndex.Reserve(UVChannels.Num());
-			for (const TPair<FName, int32>& Pair : UVChannels)
+			if (Pair.Value < 0)
 			{
-				if (Pair.Value < 0)
-				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel mapping has an illegal channel index (< 0) and will be ignored."));
-					continue;
-				}
-
-				if (Pair.Value > 7)
-				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel mapping has an illegal channel index (> 7) and will be ignored."));
-					continue;
-				}
-
-				bool bNameAlreadyExists = false;
-				UniqueNames.Add(Pair.Key, &bNameAlreadyExists);
-				if (bNameAlreadyExists)
-				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel name is used more than once. Only the first entry will be used."));
-					continue;
-				}
-
-				if (!PCGEx::IsWritableAttributeName(Pair.Key))
-				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel name is not a valid attribute name, it will be ignored."));
-					continue;
-				}
-
-				UVChannelId.Add(FPCGAttributeIdentifier(Pair.Key, PCGMetadataDomainID::Elements));
-				UVChannelIndex.Add(Pair.Value);
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel mapping has an illegal channel index (< 0) and will be ignored."));
+				continue;
 			}
+
+			if (Pair.Value > 7)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel mapping has an illegal channel index (> 7) and will be ignored."));
+				continue;
+			}
+
+			bool bNameAlreadyExists = false;
+			UniqueNames.Add(Pair.Key, &bNameAlreadyExists);
+			if (bNameAlreadyExists)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel name is used more than once. Only the first entry will be used."));
+				continue;
+			}
+
+			if (!PCGEx::IsWritableAttributeName(Pair.Key))
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel name is not a valid attribute name, it will be ignored."));
+				continue;
+			}
+
+			UVChannelId.Add(FPCGAttributeIdentifier(Pair.Key, PCGMetadataDomainID::Elements));
+			UVChannelIndex.Add(Pair.Value);
 		}
 	}
 

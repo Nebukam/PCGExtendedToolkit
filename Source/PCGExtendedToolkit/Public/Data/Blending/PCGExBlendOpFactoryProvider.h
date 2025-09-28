@@ -207,7 +207,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendOpFactory : public UPCGExFactoryData
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoBlendOp)
-	
+
 	FPCGExAttributeBlendConfig Config;
 	TSharedPtr<PCGExData::FFacade> ConstantA;
 	TSharedPtr<PCGExData::FFacade> ConstantB;
@@ -260,7 +260,7 @@ public:
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoBlendOp)
-	
+
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 

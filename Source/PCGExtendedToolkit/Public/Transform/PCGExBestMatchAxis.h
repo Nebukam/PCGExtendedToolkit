@@ -18,10 +18,10 @@ class FPCGExComputeIOBounds;
 UENUM()
 enum class EPCGExBestMatchAxisTargetMode : uint8
 {
-	Direction   = 0 UMETA(DisplayName = "Direction", ToolTip="Best match against a direction vector."),
-	LookAtWorldPosition = 1 UMETA(DisplayName = "Look at Position (World)", ToolTip="Best match against the look at vector toward a world position."),
+	Direction              = 0 UMETA(DisplayName = "Direction", ToolTip="Best match against a direction vector."),
+	LookAtWorldPosition    = 1 UMETA(DisplayName = "Look at Position (World)", ToolTip="Best match against the look at vector toward a world position."),
 	LookAtRelativePosition = 2 UMETA(DisplayName = "Look at Position (Relative)", ToolTip="Best match against the look at vector toward a relative position."),
-	ClosestTarget = 3 UMETA(DisplayName = "Look at Closest Target", ToolTip="Best match against the look at vector toward the closest target point.")
+	ClosestTarget          = 3 UMETA(DisplayName = "Look at Closest Target", ToolTip="Best match against the look at vector toward the closest target point.")
 };
 
 UCLASS(Hidden, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/move-pivot"))
@@ -42,12 +42,11 @@ protected:
 	//~End UPCGSettings
 
 public:
-	
 	/** Drive the best match axis */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExBestMatchAxisTargetMode Mode = EPCGExBestMatchAxisTargetMode::Direction;
 
-	
+
 	/** Up vector source.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExBestMatchAxisTargetMode::ClosestTarget", EditConditionHides))
 	EPCGExInputValueType MatchInput = EPCGExInputValueType::Attribute;
@@ -72,7 +71,7 @@ public:
 	/** Distance method to be used for source & target points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExBestMatchAxisTargetMode::ClosestTarget", EditConditionHides))
 	FPCGExDistanceDetails DistanceDetails;
-	
+
 private:
 	friend class FPCGExBestMatchAxisElement;
 };
@@ -103,7 +102,7 @@ namespace PCGExBestMatchAxis
 	{
 		TSet<const UPCGData*> IgnoreList;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> MatchGetter;
-		
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TProcessor(InPointDataFacade)

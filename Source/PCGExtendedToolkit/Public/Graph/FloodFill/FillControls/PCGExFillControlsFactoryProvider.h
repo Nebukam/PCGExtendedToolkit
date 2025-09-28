@@ -65,7 +65,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFillControlsFactoryData : public UPCGExFactor
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFillControl)
-	
+
 	FPCGExFillControlConfigBase ConfigBase;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FillControls; }
@@ -82,7 +82,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFillControlsFactoryProviderSettings : public 
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFillControl)
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

@@ -168,7 +168,7 @@ public:
 	bool bUseNativeColorsIfPossible = true;
 
 	///// NODES
-	
+
 	/** Color associated with constants & nodes that output constant values */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics")
 	FLinearColor ColorConstant = FLinearColor(0.2, 0.2, 0.2, 1.0);
@@ -222,13 +222,13 @@ public:
 	FLinearColor ColorTransform = FLinearColor(1.000000, 0.000000, 0.185865, 1.000000);
 
 	FLinearColor WantsColor(FLinearColor InColor) const;
-	
+
 	///// SUBNODES + PINS
-	
+
 	/** Color associated with action subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
-	FLinearColor ColorAction = FLinearColor(1.000000,0.592852,0.105316,1.000000);
-	
+	FLinearColor ColorAction = FLinearColor(1.000000, 0.592852, 0.105316, 1.000000);
+
 	/** Color associated with blend operations subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
 	FLinearColor ColorBlendOp = FLinearColor(1.000000, 0.591295, 0.282534, 1.000000);
@@ -264,8 +264,8 @@ public:
 
 	/** Color associated with Vtx Property subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
-	FLinearColor ColorVtxProperty = FLinearColor(0.000000,0.284980,1.000000, 1.000000);
-	
+	FLinearColor ColorVtxProperty = FLinearColor(0.000000, 0.284980, 1.000000, 1.000000);
+
 	/** Color associated with Neighbor Sampler subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
 	FLinearColor ColorNeighborSampler = FLinearColor(1.000000, 0.591295, 0.282534, 1.000000);
@@ -277,7 +277,7 @@ public:
 	/** Color associated with Heuristics subnodes. */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes|Heuristics")
 	FLinearColor ColorHeuristics = FLinearColor(0.203896, 0.508125, 0.371500, 1.000000);
-	
+
 	/** Color associated with Heuristics subnodes relying on attributes. */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes|Heuristics")
 	FLinearColor ColorHeuristicsAttribute = FLinearColor(0.497929, 0.515625, 0.246587, 1.000000);
@@ -289,10 +289,10 @@ public:
 	/** Color associated with Probes subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
 	FLinearColor ColorProbe = FLinearColor(0.171875, 0.681472, 1.000000, 1.000000);
-	
+
 	/** Color associated with cluster state (node flags) subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
-	FLinearColor ColorClusterState = FLinearColor(0.885417,0.012192,0.000000, 1.000000);
+	FLinearColor ColorClusterState = FLinearColor(0.885417, 0.012192, 0.000000, 1.000000);
 
 	/** Color associated with pickers subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
@@ -317,7 +317,7 @@ public:
 	/** Color associated with partition rules subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
 	FLinearColor ColorPartitionRule = FLinearColor(1.000000, 0.591295, 0.282534, 1.000000);
-	
+
 
 #pragma endregion
 

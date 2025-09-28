@@ -32,7 +32,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeoMeshImportDetails
 	;
 
 	FPCGExGeoMeshImportDetails() = default;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	bool bImportVertexColor = true;
 
@@ -49,15 +49,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeoMeshImportDetails
 
 	/** Placeholder UV value */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(DisplayName=" └─ Placeholder Value", EditCondition="bImportUVs && bCreatePlaceholders"))
-	FVector2D Placeholder = FVector2D(0,0);
+	FVector2D Placeholder = FVector2D(0, 0);
 
 	TArray<FPCGAttributeIdentifier> UVChannelId;
 	TArray<int32> UVChannelIndex;
-	
+
 	bool Validate(FPCGExContext* InContext);
-	
+
 	bool WantsImport() const;
-	
 };
 
 namespace PCGExGeo
@@ -100,7 +99,7 @@ namespace PCGExGeo
 		TSet<uint64> HullEdges;
 
 		bool bHasColorData = false;
-		
+
 		EPCGExTriangulationType DesiredTriangulationType = EPCGExTriangulationType::Raw;
 
 		FGeoMesh() = default;

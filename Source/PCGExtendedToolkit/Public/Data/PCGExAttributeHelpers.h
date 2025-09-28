@@ -326,7 +326,7 @@ namespace PCGEx
 
 		T FetchSingle(const PCGExData::FElement& Element, const T& Fallback) const;
 	};
-	
+
 	template <typename T>
 	TSharedPtr<TAttributeBroadcaster<T>> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO);
 

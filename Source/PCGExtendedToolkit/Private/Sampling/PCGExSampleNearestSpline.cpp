@@ -528,10 +528,10 @@ namespace PCGExSampleNearestSpline
 			FVector WeightedSignAxis = FVector::ZeroVector;
 			FVector WeightedAngleAxis = FVector::ZeroVector;
 			FVector WeightedTangent = FVector::ZeroVector;
-			
+
 			double WeightedTime = 0;
 			double TotalWeight = 0;
-			
+
 
 			if (!Settings->bWeightFromOriginalTransform)
 			{

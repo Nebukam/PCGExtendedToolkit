@@ -272,7 +272,7 @@ PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 	template <typename T_REAL>
 	void TryGetInOutAttr(const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade, const FPCGMetadataAttribute<T_REAL>*& OutInAttribute, FPCGMetadataAttribute<T_REAL>*& OutOutAttribute);
-	
+
 #pragma region externalization
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
@@ -282,12 +282,12 @@ extern template TSharedPtr<TBuffer<_TYPE>> TryGetBuffer<_TYPE>(FPCGExContext* In
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	template <typename T_REAL, typename T_WORKING>
 	TSharedPtr<IBufferProxy> GetProxyBuffer(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade, UPCGBasePointData* PointData);
 
 #pragma region externalization
-	
+
 #define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
 extern template TSharedPtr<IBufferProxy> GetProxyBuffer<_TYPE_A, _TYPE_B>(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade, UPCGBasePointData* PointData);
 	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)

@@ -121,7 +121,7 @@ public:
 	/** Enable this if you're spawning components. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	bool bExecuteOnMainThread = false;
-	
+
 	/**
 	 * Initialize a point' attribute default value.
 	 * Must be called during initialization.
@@ -607,7 +607,6 @@ public:
 	/** If enabled, will turn off uninitialized packer warning. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietUninitializedPackerWarning = false;
-
 };
 
 struct FPCGExPackActorDataContext final : FPCGExPointsProcessorContext

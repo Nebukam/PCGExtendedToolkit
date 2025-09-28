@@ -42,7 +42,7 @@ public:
 	virtual void PostInitProperties() override;
 	// End of UObject interface
 #endif
-	
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -83,7 +83,6 @@ public:
 	FString UncutTag = TEXT("Uncut");
 
 	void AddTags(const TSharedPtr<PCGExData::FPointIO>& IO, bool bIsCut = false) const;
-	
 };
 
 struct FPCGExBoundsPathIntersectionContext final : FPCGExPathProcessorContext
@@ -116,14 +115,13 @@ namespace PCGExBoundsPathIntersection
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExBoundsPathIntersectionContext, UPCGExBoundsPathIntersectionSettings>
 	{
-		
 	protected:
 		TSet<const UPCGData*> IgnoreList;
 
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
 		TArray<TSharedPtr<PCGExGeo::FIntersections>> Intersections;
-		
+
 		TArray<int32> StartIndices;
 		FPCGExBoxIntersectionDetails Details;
 

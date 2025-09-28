@@ -53,7 +53,6 @@ protected:
 	FLinearColor GetPinColorPartitionRule() const;
 	FLinearColor GetPinColorVtx() const;
 	FLinearColor GetPinColorEdges() const;
-	
-#pragma endregion 
-	
+
+#pragma endregion
 };

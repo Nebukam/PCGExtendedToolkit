@@ -74,7 +74,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMatchRuleFactoryData : public UPCGExFactoryDa
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoMatchRule)
-	
+
 	FPCGExMatchRuleConfigBase BaseConfig;
 
 	virtual bool WantsPoints() { return false; }
@@ -90,7 +90,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMatchRuleFactoryProviderSettings : public UPC
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoMatchRule)
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

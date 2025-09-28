@@ -16,7 +16,7 @@
 
 namespace PCGExData
 {
-	template<typename T>
+	template <typename T>
 	class TBuffer;
 }
 

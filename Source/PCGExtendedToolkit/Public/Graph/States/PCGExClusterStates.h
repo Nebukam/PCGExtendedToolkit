@@ -46,7 +46,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryData : public UPCGExCluste
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoClusterState)
-	
+
 	UPROPERTY()
 	FPCGExClusterStateConfigBase Config;
 
@@ -134,7 +134,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryProviderSettings : public 
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoClusterState)
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

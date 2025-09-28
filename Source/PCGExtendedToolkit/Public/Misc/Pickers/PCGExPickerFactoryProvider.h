@@ -41,7 +41,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPickerFactoryData : public UPCGExFactoryData
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoPicker)
-	
+
 	UPROPERTY()
 	TArray<int32> DiscretePicks;
 
@@ -68,7 +68,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPickerFactoryProviderSettings : public UPCGEx
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoPicker)
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

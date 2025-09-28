@@ -67,7 +67,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	// Are icons cool? Yes.
 
 	int32 PinIndex = -1;
-	
+
 #pragma region OUT
 
 #define PCGEX_EMPLACE_PIN_OUT(_ID, _TOOLTIP) PinIndex = OutPinInfos.Emplace(FName("PCGEx.Pin." # _ID), TEXT(_TOOLTIP))
@@ -78,7 +78,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.OUT_Edges"), TEXT("Point collection formatted for use as cluster edges."));
 	PCGEX_MAP_PIN_OUT("Edges")
-	
+
 #undef PCGEX_EMPLACE_PIN_OUT
 #undef PCGEX_MAP_PIN_OUT
 #pragma endregion

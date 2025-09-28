@@ -82,7 +82,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExActionFactoryData : public UPCGExFactoryData
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoAction)
-	
+
 	TSharedPtr<PCGEx::FAttributesInfos> CheckSuccessInfos;
 	TSharedPtr<PCGEx::FAttributesInfos> CheckFailInfos;
 
@@ -116,7 +116,7 @@ protected:
 	//~End UPCGSettings
 
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoAction)
-	
+
 public:
 	virtual FName GetMainOutputPin() const override { return PCGExActions::OutputActionLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;

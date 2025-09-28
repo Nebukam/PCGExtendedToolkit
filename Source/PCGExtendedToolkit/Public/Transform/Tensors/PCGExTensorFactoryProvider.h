@@ -51,7 +51,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTensorFactoryData : public UPCGExFactoryData
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoTensor)
-	
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Tensor; }
 	virtual TSharedPtr<PCGExTensorOperation> CreateOperation(FPCGExContext* InContext) const;
 
@@ -70,7 +70,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTensorFactoryProviderSettings : public UPCGEx
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoTensor)
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

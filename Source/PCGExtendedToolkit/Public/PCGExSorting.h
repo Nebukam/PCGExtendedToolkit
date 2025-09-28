@@ -29,7 +29,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleConfig : public FPCGExInputConfig
 
 	FPCGExSortRuleConfig() = default;
 	FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other);
-	
+
 
 	/** Equality tolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -51,7 +51,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionSortingDetails
 
 	FPCGExCollectionSortingDetails() = default;
 	explicit FPCGExCollectionSortingDetails(const bool InEnabled);
-	
+
 	/** Whether this collection sorting is enabled or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bEnabled = false;
@@ -97,7 +97,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSortingRule : public UPCGExFactoryData
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoSortRule)
-	
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RuleSort; }
 
 	int32 Priority;
@@ -113,7 +113,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSortingRuleProviderSettings : public UPCGExFa
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoSortRule)
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

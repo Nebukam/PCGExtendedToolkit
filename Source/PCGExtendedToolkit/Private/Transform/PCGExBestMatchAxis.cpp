@@ -94,7 +94,8 @@ namespace PCGExBestMatchAxis
 				if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
 				return false;
 			}
-		}else
+		}
+		else
 		{
 			MatchGetter = Settings->GetValueSettingMatch();
 			if (!MatchGetter->Init(PointDataFacade)) { return false; }
@@ -117,7 +118,7 @@ namespace PCGExBestMatchAxis
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BestMatchAxis::ProcessPoints);
 
 		PointDataFacade->Fetch(Scope);
-		
+
 		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
 		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
 
@@ -132,7 +133,9 @@ namespace PCGExBestMatchAxis
 				PCGExData::FConstPoint TargetPoint;
 				double Distance = MAX_dbl;
 				Context->TargetsHandler->FindClosestTarget(PointDataFacade->GetInPoint(Index), TargetPoint, Distance, &IgnoreList);
-				if (TargetPoint.Index == -1) { continue; }
+				if (TargetPoint.Index == -1)
+				{
+				}
 			}
 			else if (Settings->Mode == EPCGExBestMatchAxisTargetMode::Direction)
 			{

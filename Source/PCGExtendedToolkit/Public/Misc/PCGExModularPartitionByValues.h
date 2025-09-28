@@ -28,7 +28,7 @@ class UPCGExPartitionRule : public UPCGExFactoryData
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoPartitionRule)
-	
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RulePartition; }
 	FPCGExPartitonRuleConfig Config;
 };
@@ -40,7 +40,7 @@ class UPCGExPartitionRuleProviderSettings : public UPCGExFactoryProviderSettings
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoPartitionRule)
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

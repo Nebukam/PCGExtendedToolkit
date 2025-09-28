@@ -117,10 +117,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		{
 			return InValues ? InValues->Num() : -1;
 		}
-		else
-		{
-			return OutValues ? OutValues->Num() : -1;
-		}
+		return OutValues ? OutValues->Num() : -1;
 	}
 
 	template <typename T>

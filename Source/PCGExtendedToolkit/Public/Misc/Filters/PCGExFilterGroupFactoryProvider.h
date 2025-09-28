@@ -21,7 +21,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterGroupProviderSettings : public UPCGExFa
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilter)
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

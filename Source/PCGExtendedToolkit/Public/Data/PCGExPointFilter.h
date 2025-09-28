@@ -99,7 +99,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryData : public UPCGExFactoryData
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilter)
-	
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Filter; }
 
 	virtual bool DomainCheck();
@@ -131,11 +131,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointFilterFactoryData : public UPCGExFilterF
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilterPoint)
-	
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
-
 };
-
 
 
 namespace PCGExPointFilter
@@ -334,7 +332,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterCollectionFactoryData : public UPCGExPo
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilterCollection)
-	
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterCollection; }
 	virtual bool DomainCheck() override;
 	virtual bool SupportsCollectionEvaluation() const override;

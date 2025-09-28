@@ -124,7 +124,7 @@ class UPCGExTexParamFactoryData : public UPCGExFactoryData
 
 public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoTexParam)
-	
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::TexParam; }
 
 	FPCGExTextureParamConfig Config;
@@ -138,7 +138,7 @@ class UPCGExTexParamProviderSettings : public UPCGExFactoryProviderSettings
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoTexParam)
-	
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR

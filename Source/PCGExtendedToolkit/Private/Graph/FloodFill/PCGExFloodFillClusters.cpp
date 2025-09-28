@@ -169,7 +169,7 @@ namespace PCGExClusterDiffusion
 					{
 						continue;
 					}
-					
+
 					TSharedPtr<PCGExFloodFill::FDiffusion> NewDiffusion = MakeShared<PCGExFloodFill::FDiffusion>(This->FillControlsHandler, This->Cluster, SeedNode);
 					NewDiffusion->Index = Index;
 					This->InitialDiffusions->Get(Scope)->Add(NewDiffusion);
