@@ -54,46 +54,46 @@ struct FPCGExTupleValue
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="bIsHeader", EditConditionHides, HideEditConditionToggle))
 	EPCGExTupleTypes Type = EPCGExTupleTypes::Float;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::Float && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::Float && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	float FloatValue = 0;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::Double && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::Double && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	double DoubleValue = 0;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::Integer32 && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::Integer32 && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	int32 Integer32Value = 0;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::Vector2 && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::Vector2 && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	FVector2D Vector2Value = FVector2D::ZeroVector;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::Vector && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::Vector && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	FVector VectorValue = FVector::ZeroVector;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::Vector4 && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::Vector4 && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	FVector4 Vector4Value = FVector4::Zero();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::Color && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::Color && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	FLinearColor ColorValue = FLinearColor::Black;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::Transform && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::Transform && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	FTransform TransformValue = FTransform::Identity;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::String && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::String && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	FString StringValue = TEXT("");
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::Boolean && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::Boolean && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	bool BooleanValue = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::Rotator && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	FRotator RotatorValue = FRotator::ZeroRotator;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::Name && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::Name && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	FName NameValue = NAME_None;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::SoftObjectPath && !bUseDefaultValue", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::SoftObjectPath && !bUseDefaultValue", EditConditionHides))
 	FSoftObjectPath SoftObjectPathValue;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(EditCondition="Type==EPCGExTupleTypes::SoftClassPath && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExTupleTypes::SoftClassPath && !bUseDefaultValue", EditConditionHides, HideEditConditionToggle))
 	FSoftClassPath SoftClassPathValue;
 		
 };
