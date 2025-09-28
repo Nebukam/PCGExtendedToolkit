@@ -316,7 +316,7 @@ namespace PCGExMeshToCluster
 				UVChannelsWriters.Add(RootVtxFacade->GetWritable(UVIdentifiers[i], FVector2D::ZeroVector, true, PCGExData::EBufferInit::New));
 			}
 		};
-		
+
 		const int32 NumUVChannels = Context->bWantsImport ? UVChannels.Num() : 0;
 
 

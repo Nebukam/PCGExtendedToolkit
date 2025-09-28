@@ -149,7 +149,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 #define PCGEX_REGISTER_PIN_ICON(_NAME, ...) \
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_##_NAME) \
 	PCGEX_ADD_PIN_EXTRA_ICON(IN_##_NAME)
-	
+
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Special)
 	PCGEX_ADD_PIN_EXTRA_ICON(IN_Special)
 

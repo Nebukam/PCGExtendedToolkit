@@ -46,9 +46,9 @@ TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::OutputPinPropert
 PCGEX_INITIALIZE_ELEMENT(BoundsPathIntersection)
 
 void UPCGExBoundsPathIntersectionSettings::AddTags(const TSharedPtr<PCGExData::FPointIO>& IO, bool bIsCut) const
-{		
-	if (bIsCut && bTagIfHasCuts){ IO->Tags->AddRaw(HasCutsTag); }
-	else if (!bIsCut && bTagIfUncut){ IO->Tags->AddRaw(UncutTag); }
+{
+	if (bIsCut && bTagIfHasCuts) { IO->Tags->AddRaw(HasCutsTag); }
+	else if (!bIsCut && bTagIfUncut) { IO->Tags->AddRaw(UncutTag); }
 }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BoundsPathIntersection)
@@ -365,7 +365,7 @@ namespace PCGExBoundsPathIntersection
 
 			Metrics.Add(OutTransforms[EndIndex].GetLocation());
 
-			PCGExData::FScope SubScope = PointDataFacade->GetOutScope(StartIndex+1, CutsNum);
+			PCGExData::FScope SubScope = PointDataFacade->GetOutScope(StartIndex + 1, CutsNum);
 			SubBlending->ProcessSubPoints(PointDataFacade->GetOutPoint(StartIndex), PointDataFacade->GetOutPoint(EndIndex), SubScope, Metrics);
 		}
 	}
