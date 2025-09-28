@@ -39,16 +39,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeoMeshImportDetails
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	bool bImportUVs = false;
 
-	/** A list of mapping channel index : attribute name. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(EditCondition="bImportUVs"))
+	/** A list of mapping channel in the format [Output Attribute Name]::[Channel Index]. You can output the same UV channel to different attributes. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(DisplayName=" ├─ UV Channels Mapping", EditCondition="bImportUVs"))
 	TMap<FName, int32> UVChannels;
 
-	/** If enabled, will create placeholder attributes */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(EditCondition="bImportUVs"))
+	/** If enabled, will create placeholder attributes if a listed UV channel is missing. This is useful if the rest of your graph expects those attribute to exist, even if invalid. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(DisplayName=" ├─ Create placeholders", EditCondition="bImportUVs"))
 	bool bCreatePlaceholders = false;
 
-	/** If placeholder is enabled, this will be used as default value for channels that have no data */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(EditCondition="bImportUVs && bCreatePlaceholders"))
+	/** Placeholder UV value */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(DisplayName=" └─ Placeholder Value", EditCondition="bImportUVs && bCreatePlaceholders"))
 	FVector2D Placeholder = FVector2D(0,0);
 
 	TArray<FPCGAttributeIdentifier> UVChannelId;

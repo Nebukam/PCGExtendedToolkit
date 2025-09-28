@@ -37,8 +37,6 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(MeshToClusters)
 	PCGEX_EXECUTION_CHECK
 
-	Context->bWantsImport = Settings->ImportDetails.WantsImport();
-
 	if (Context->MainPoints->Pairs.Num() < 1)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing targets."));
@@ -51,6 +49,10 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(TransformDetails)
 	if (!Context->TransformDetails.Init(Context, Context->TargetsDataFacade.ToSharedRef())) { return false; }
+
+	PCGEX_FWD(ImportDetails)
+	if (!Context->ImportDetails.Validate(Context)) { return false; }
+	Context->bWantsImport = Context->ImportDetails.WantsImport();
 
 	if (Settings->StaticMeshInput == EPCGExInputValueType::Attribute)
 	{
@@ -265,50 +267,64 @@ namespace PCGExMeshToCluster
 		bool bWantsColor = false;
 		TArray<TSharedPtr<PCGExData::TBuffer<FVector2D>>> UVChannelsWriters;
 		TArray<int32> UVChannels;
+		TArray<FPCGAttributeIdentifier> UVIdentifiers;
 
 		EPCGPointNativeProperties Allocations = EPCGPointNativeProperties::Transform;
 		const FStaticMeshVertexBuffers* VertexBuffers = nullptr;
+
+		const FPCGExGeoMeshImportDetails& ImportDetails = Context->ImportDetails;
 
 		if (Context->bWantsImport)
 		{
 			VertexBuffers = &Mesh->LODResource->VertexBuffers;
 
-			if (Settings->ImportDetails.bImportVertexColor && Mesh->bHasColorData)
+			if (ImportDetails.bImportVertexColor && Mesh->bHasColorData)
 			{
 				Allocations |= EPCGPointNativeProperties::Color;
 				bWantsColor = true;
 			}
 
-			if (const int32 LastChannelIndex = Mesh->LODResource->GetNumTexCoords() - 1;
-				!Settings->ImportDetails.UVChannelIndex.IsEmpty() && LastChannelIndex >= 0)
+			if (const int32 NumTexCoords = Mesh->LODResource->GetNumTexCoords();
+				!ImportDetails.UVChannelIndex.IsEmpty() && NumTexCoords >= 0)
 			{
-				UVChannels.Reserve(Settings->ImportDetails.UVChannelIndex.Num());
-				UVChannelsWriters.Reserve(Settings->ImportDetails.UVChannelIndex.Num());
+				UVChannels.Reserve(ImportDetails.UVChannelIndex.Num());
+				UVChannelsWriters.Reserve(ImportDetails.UVChannelIndex.Num());
+				UVIdentifiers.Reserve(ImportDetails.UVChannelIndex.Num());
 
-				for (int i = 0; i <= LastChannelIndex; i++)
+				for (int i = 0; i < ImportDetails.UVChannelIndex.Num(); i++)
 				{
-					int32 Channel = Settings->ImportDetails.UVChannelIndex[i];
-					const FPCGAttributeIdentifier& Id = Settings->ImportDetails.UVChannelId[i];
+					int32 Channel = ImportDetails.UVChannelIndex[i];
+					const FPCGAttributeIdentifier& Id = ImportDetails.UVChannelId[i];
 
-					if (Channel >= LastChannelIndex)
+					if (Channel >= NumTexCoords)
 					{
-						if (Settings->ImportDetails.bCreatePlaceholders) { PCGExData::WriteMark(VtxPoints, Id, Settings->ImportDetails.Placeholder); }
+						if (ImportDetails.bCreatePlaceholders) { PCGExData::WriteMark(VtxPoints, Id, ImportDetails.Placeholder); }
 						continue;
 					}
 
 					UVChannels.Add(Channel);
-					UVChannelsWriters.Add(RootVtxFacade->GetWritable(Id, FVector2D::ZeroVector, true, PCGExData::EBufferInit::New));
+					UVIdentifiers.Add(Id);
 				}
 			}
 		}
 
-		const int32 NumUVChannels = UVChannels.Num();
+		auto InitUVWriters = [&]()
+		{
+			// UV channels attribute need to be initialized once we have the final number of points
+			for (int32 i = 0; i < UVChannels.Num(); i++)
+			{
+				UVChannelsWriters.Add(RootVtxFacade->GetWritable(UVIdentifiers[i], FVector2D::ZeroVector, true, PCGExData::EBufferInit::New));
+			}
+		};
+		
+		const int32 NumUVChannels = Context->bWantsImport ? UVChannels.Num() : 0;
 
 
 		if (Mesh->DesiredTriangulationType == EPCGExTriangulationType::Boundaries)
 		{
 			const int32 NumHullVertices = Mesh->HullIndices.Num();
 			(void)PCGEx::SetNumPointsAllocated(VtxPoints, NumHullVertices, Allocations);
+			InitUVWriters();
 
 			TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);
 
@@ -383,6 +399,7 @@ namespace PCGExMeshToCluster
 		else
 		{
 			(void)PCGEx::SetNumPointsAllocated(VtxPoints, Mesh->Vertices.Num(), Allocations);
+			InitUVWriters();
 
 			TPCGValueRange<FTransform> OutTransforms = VtxPoints->GetTransformValueRange(false);
 			for (int i = 0; i < OutTransforms.Num(); i++) { OutTransforms[i].SetLocation(Mesh->Vertices[i]); }
@@ -398,7 +415,7 @@ namespace PCGExMeshToCluster
 					{
 						const FColorVertexBuffer& ColorBuffer = VertexBuffers->ColorVertexBuffer;
 						TPCGValueRange<FVector4> OutColors = VtxPoints->GetColorValueRange(false);
-						
+
 						if (!NumUVChannels)
 						{
 							// Color only
@@ -438,7 +455,7 @@ namespace PCGExMeshToCluster
 						for (int i = 0; i < OutTransforms.Num(); i++)
 						{
 							const FIntVector3& Triangle = Mesh->Triangles[-(Mesh->RawIndices[i] + 1)];
-							
+
 							for (int u = 0; u < NumUVChannels; u++)
 							{
 								FVector2D AverageUVs = FVector2D::ZeroVector;
@@ -550,6 +567,12 @@ namespace PCGExMeshToCluster
 		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
 
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
+
+		// We need to write down UVs attributes before compiling the graph
+		// as compilation will re-order points and metadata...
+		// This is far from ideal but also much less of a headache.
+		if (NumUVChannels > 0) { RootVtxFacade->WriteSynchronous(); }
+
 
 		TWeakPtr<FPCGContextHandle> WeakHandle = Context->GetOrCreateHandle();
 		GraphBuilder->OnCompilationEndCallback =

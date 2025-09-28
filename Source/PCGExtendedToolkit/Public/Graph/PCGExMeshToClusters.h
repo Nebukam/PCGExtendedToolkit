@@ -98,6 +98,7 @@ struct FPCGExMeshToClustersContext final : FPCGExPointsProcessorContext
 
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 	FPCGExTransformDetails TransformDetails;
+	FPCGExGeoMeshImportDetails ImportDetails;
 
 	TSharedPtr<PCGExData::FFacade> TargetsDataFacade;
 	TSharedPtr<PCGExGeo::FGeoStaticMeshMap> StaticMeshMap;
