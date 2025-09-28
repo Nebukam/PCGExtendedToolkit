@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExBitmask.h"
+#include "Constants/PCGExBitmask.h"
 
 #include "PCGExHelpers.h"
 #include "PCGGraph.h"
@@ -10,8 +10,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE Bitmask
-
-#pragma region UPCGSettings interface
 
 TArray<FPCGPinProperties> UPCGExBitmaskSettings::InputPinProperties() const
 {
@@ -28,7 +26,6 @@ TArray<FPCGPinProperties> UPCGExBitmaskSettings::OutputPinProperties() const
 
 FPCGElementPtr UPCGExBitmaskSettings::CreateElement() const { return MakeShared<FPCGExBitmaskElement>(); }
 
-#pragma endregion
 
 bool FPCGExBitmaskElement::ExecuteInternal(FPCGContext* InContext) const
 {

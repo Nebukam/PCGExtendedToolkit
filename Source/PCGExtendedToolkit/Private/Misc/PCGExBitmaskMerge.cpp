@@ -7,7 +7,7 @@
 #include "PCGPin.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Misc/PCGExBitmask.h"
+#include "Constants/PCGExBitmask.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE BitmaskMerge

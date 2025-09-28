@@ -13,6 +13,7 @@
 #include "PCGExGeoMesh.generated.h" // Credit goes to @Syscrusher attention to detail :D
 
 
+struct FPCGPinProperties;
 struct FPCGAttributeIdentifier;
 
 UENUM()
@@ -29,7 +30,6 @@ USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExGeoMeshImportDetails
 {
 	GENERATED_BODY()
-	;
 
 	FPCGExGeoMeshImportDetails() = default;
 
@@ -61,6 +61,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeoMeshImportDetails
 
 namespace PCGExGeo
 {
+	const FName SourceUVImportRulesLabel = TEXT("UV Imports");
+
+	PCGEXTENDEDTOOLKIT_API
+	void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
+	
 	class PCGEXTENDEDTOOLKIT_API FMeshLookup : public TSharedFromThis<FMeshLookup>
 	{
 	protected:

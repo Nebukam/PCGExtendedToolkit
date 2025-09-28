@@ -20,6 +20,13 @@ namespace PCGExGeoTask
 	class FLloydRelax3;
 }
 
+TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGExGeo::DeclareGeoMeshImportInputs(ImportDetails, PinProperties);
+	return PinProperties;
+}
+
 TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();

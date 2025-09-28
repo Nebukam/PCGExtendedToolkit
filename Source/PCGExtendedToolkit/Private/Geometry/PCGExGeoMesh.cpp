@@ -8,12 +8,78 @@
 #include "PCGExContext.h"
 #include "PCGExH.h"
 #include "PCGExHelpers.h"
+#include "PCGParamData.h"
 #include "StaticMeshResources.h"
 #include "Engine/StaticMesh.h"
 #include "Async/ParallelFor.h"
+#include "Data/PCGExAttributeMapHelpers.h"
+
+bool FPCGExGeoMeshImportDetails::Validate(FPCGExContext* InContext)
+{
+	if (bImportUVs)
+	{
+		PCGEx::BuildMap(InContext, PCGExGeo::SourceUVImportRulesLabel, UVChannels);
+
+		if (UVChannels.IsEmpty())
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Import UV channel is true, but there is no import details."));
+			return true;
+		}
+
+		TSet<FName> UniqueNames;
+		UVChannelIndex.Reserve(UVChannels.Num());
+		for (const TPair<FName, int32>& Pair : UVChannels)
+		{
+			if (Pair.Value < 0)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel mapping has an illegal channel index (< 0) and will be ignored."));
+				continue;
+			}
+
+			if (Pair.Value > 7)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel mapping has an illegal channel index (> 7) and will be ignored."));
+				continue;
+			}
+
+			bool bNameAlreadyExists = false;
+			UniqueNames.Add(Pair.Key, &bNameAlreadyExists);
+			if (bNameAlreadyExists)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel name is used more than once. Only the first entry will be used."));
+				continue;
+			}
+
+			if (!PCGEx::IsWritableAttributeName(Pair.Key))
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel name is not a valid attribute name, it will be ignored."));
+				continue;
+			}
+
+			UVChannelId.Add(FPCGAttributeIdentifier(Pair.Key, PCGMetadataDomainID::Elements));
+			UVChannelIndex.Add(Pair.Value);
+		}
+	}
+
+	return true;
+}
+
+bool FPCGExGeoMeshImportDetails::WantsImport() const
+{
+	return bImportVertexColor || !UVChannels.IsEmpty();
+}
 
 namespace PCGExGeo
 {
+	void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)
+	{
+		if (!InDetails.bImportUVs) { return; }
+
+		{
+			PCGEX_PIN_PARAMS(SourceUVImportRulesLabel, "Name/Channel output map. Attribute sets are expected to contain an FName attribute an int32 attribute.", Normal)
+		}
+	}
+
 	FMeshLookup::FMeshLookup(const int32 Size, TArray<FVector>* InVertices, TArray<int32>* InRawIndices, const FVector& InHashTolerance)
 		: Vertices(InVertices), RawIndices(InRawIndices), HashTolerance(InHashTolerance)
 	{
@@ -327,56 +393,4 @@ namespace PCGExGeo
 	{
 		GSM->ExtractMeshSynchronous();
 	}
-}
-
-bool FPCGExGeoMeshImportDetails::Validate(FPCGExContext* InContext)
-{
-	if (bImportUVs)
-	{
-		if (UVChannels.IsEmpty())
-		{
-			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Import UV channel is true, but there is no import details."));
-			return true;
-		}
-		TSet<FName> UniqueNames;
-		UVChannelIndex.Reserve(UVChannels.Num());
-		for (const TPair<FName, int32>& Pair : UVChannels)
-		{
-			if (Pair.Value < 0)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel mapping has an illegal channel index (< 0) and will be ignored."));
-				continue;
-			}
-
-			if (Pair.Value > 7)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel mapping has an illegal channel index (> 7) and will be ignored."));
-				continue;
-			}
-
-			bool bNameAlreadyExists = false;
-			UniqueNames.Add(Pair.Key, &bNameAlreadyExists);
-			if (bNameAlreadyExists)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel name is used more than once. Only the first entry will be used."));
-				continue;
-			}
-
-			if (!PCGEx::IsWritableAttributeName(Pair.Key))
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("A channel name is not a valid attribute name, it will be ignored."));
-				continue;
-			}
-
-			UVChannelId.Add(FPCGAttributeIdentifier(Pair.Key, PCGMetadataDomainID::Elements));
-			UVChannelIndex.Add(Pair.Value);
-		}
-	}
-
-	return true;
-}
-
-bool FPCGExGeoMeshImportDetails::WantsImport() const
-{
-	return bImportVertexColor || !UVChannels.IsEmpty();
 }
