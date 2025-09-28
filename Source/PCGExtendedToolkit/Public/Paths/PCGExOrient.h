@@ -8,8 +8,6 @@
 #include "PCGExPointsMT.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExPointElements.h"
-
 
 #include "Orient/PCGExOrientOperation.h"
 #include "PCGExOrient.generated.h"
@@ -20,15 +18,6 @@ enum class EPCGExOrientUsage : uint8
 	ApplyToPoint      = 0 UMETA(DisplayName = "Apply to point", ToolTip="Applies the orientation transform to the point"),
 	OutputToAttribute = 1 UMETA(DisplayName = "Output to attribute", ToolTip="Output the orientation transform to an attribute"),
 };
-
-namespace PCGExOrient
-{
-	static double DotProduct(const PCGExData::FConstPoint& CurrentPt, const PCGExData::FConstPoint& PreviousPt, const PCGExData::FConstPoint& NextPt)
-	{
-		const FVector Mid = CurrentPt.GetTransform().GetLocation();
-		return FVector::DotProduct((PreviousPt.GetTransform().GetLocation() - Mid).GetSafeNormal(), (Mid - NextPt.GetTransform().GetLocation()).GetSafeNormal());
-	}
-}
 
 /**
  * 
