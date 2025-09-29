@@ -186,7 +186,8 @@ void FPCGExtendedToolkitEditorModule::RegisterPinColorAndIcons()
 {
 	FPCGDataTypeRegistry& InRegistry = FPCGModule::GetMutableDataTypeRegistry();
 
-	//InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [](const FPCGDataTypeIdentifier&) { return GetDefault<UPCGExGlobalSettings>()->PinColor##_COLOR; }); \
+	// THE FOLLOWING LINE NEEDS A BACKSLASH CONTINUATION AT THE END IF UNCOMMENTED
+	//InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [](const FPCGDataTypeIdentifier&) { return GetDefault<UPCGExGlobalSettings>()->PinColor##_COLOR; });
 	
 #define PCGEX_REGISTER_PIN_AND_COLOR(_NAME, _COLOR) \
 	InRegistry.RegisterPinColorFunction(FPCGExDataTypeInfo##_NAME::AsId(), [&](const FPCGDataTypeIdentifier&) { return GetPinColor##_NAME(); }); \

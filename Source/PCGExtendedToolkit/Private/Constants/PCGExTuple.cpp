@@ -3,7 +3,9 @@
 
 #include "Constants/PCGExTuple.h"
 
+#if WITH_EDITOR
 #include "AnimationEditorTypes.h"
+#endif // WITH_EDITOR
 #include "PCGExHelpers.h"
 #include "PCGGraph.h"
 #include "PCGParamData.h"

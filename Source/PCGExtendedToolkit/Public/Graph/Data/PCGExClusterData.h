@@ -25,7 +25,10 @@ struct FPCGExDataTypeInfoClusterPart : public FPCGDataTypeInfoPoint
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+
+#if WITH_EDITOR
 	virtual bool Hidden() const override;
+#endif // WITH_EDITOR
 };
 
 /**
