@@ -48,6 +48,17 @@ EPCGMetadataTypes PCGExTuple::GetMetadataType(const EPCGExTupleTypes Type)
 	return EPCGMetadataTypes::Unknown;
 }
 
+FPCGMetadataAttributeBase* FPCGExTupleValueWrap::CreateAttribute(UPCGMetadata* Metadata, FName Name) const
+{
+	return nullptr;
+}
+
+void FPCGExTupleValueWrap::SetValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const
+{
+	
+}
+
+
 #define PCGEX_FOREACH_TUPLETYPE(MACRO) \
 MACRO(float, Float) \
 MACRO(double, Double) \
@@ -62,7 +73,44 @@ MACRO(bool, Boolean) \
 MACRO(FRotator, Rotator) \
 MACRO(FName, Name) \
 MACRO(FSoftObjectPath, SoftObjectPath) \
-MACRO(FSoftClassPath, SoftClassPath) 
+MACRO(FSoftClassPath, SoftClassPath)
+
+// List used for boilerplace only, does not include stuff that require custom handling
+#define PCGEX_FOREACH_TUPLETYPE_BOILERPLATE(MACRO) \
+MACRO(float, Float) \
+MACRO(double, Double) \
+MACRO(int32, Integer32) \
+MACRO(FVector2D, Vector2) \
+MACRO(FVector, Vector) \
+MACRO(FVector4, Vector4) \
+MACRO(FTransform, Transform) \
+MACRO(FString, String) \
+MACRO(bool, Boolean) \
+MACRO(FRotator, Rotator) \
+MACRO(FName, Name) \
+MACRO(FSoftObjectPath, SoftObjectPath) \
+MACRO(FSoftClassPath, SoftClassPath)
+
+#define PCGEX_TUPLE_TYPED_IMPL(_TYPE, _NAME)\
+FPCGMetadataAttributeBase* FPCGExTupleValueWrap##_NAME::CreateAttribute(UPCGMetadata* Metadata, FName Name) const{\
+	return Metadata->CreateAttribute<_TYPE>(Name, Value, true, true);}\
+void FPCGExTupleValueWrap##_NAME::SetValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const{\
+	static_cast<FPCGMetadataAttribute<_TYPE>*>(Attribute)->SetValue(Key, Value);}
+
+PCGEX_FOREACH_TUPLETYPE_BOILERPLATE(PCGEX_TUPLE_TYPED_IMPL)
+
+#undef PCGEX_TUPLE_TYPED_IMPL
+
+// Color must be FVector4
+FPCGMetadataAttributeBase* FPCGExTupleValueWrapColor::CreateAttribute(UPCGMetadata* Metadata, FName Name) const
+{
+	return Metadata->CreateAttribute<FVector4>(Name, Value, true, true);
+}
+
+void FPCGExTupleValueWrapColor::SetValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const
+{
+	static_cast<FPCGMetadataAttribute<FVector4>*>(Attribute)->SetValue(Key, FVector4(Value));
+}
 
 FPCGExTupleValueHeader::FPCGExTupleValueHeader()
 {
@@ -87,11 +135,13 @@ void FPCGExTupleValueHeader::SanitizeEntry(TInstancedStruct<FPCGExTupleValueWrap
 	InData.InitializeAs<FPCGExTupleValueWrap##_NAME>();\
 	InData.GetMutable<FPCGExTupleValueWrap##_NAME>().Value = DefaultData.Get<FPCGExTupleValueWrap##_NAME>().Value;\
 	break;
-	
+
 	switch (HeaderData->GetValueType())
 	{
-		PCGEX_FOREACH_TUPLETYPE(PCGEX_INIT_TUPLE_ENTRY)
+	PCGEX_FOREACH_TUPLETYPE(PCGEX_INIT_TUPLE_ENTRY)
 	}
+
+#undef PCGEX_INIT_TUPLE_ENTRY
 
 	CurrentData = InData.GetMutablePtr<FPCGExTupleValueWrap>();
 	if (CurrentData)
@@ -104,48 +154,18 @@ FPCGMetadataAttributeBase* FPCGExTupleValueHeader::CreateAttribute(FPCGExContext
 {
 	// Create attribute
 	const FPCGMetadataAttributeBase* ExistingAttr = TupleData->Metadata->GetConstAttribute(Name);
+
 	if (ExistingAttr)
 	{
 		PCGEX_LOG_INVALID_ATTR_C(InContext, Header Name, Name)
 		return nullptr;
 	}
 
-	FPCGMetadataAttributeBase* NewAttribute = nullptr;
-
 	const FPCGExTupleValueWrap* CurrentData = DefaultData.GetPtr<FPCGExTupleValueWrap>();
 
 	if (!CurrentData) { return nullptr; }
 
-	PCGEx::ExecuteWithRightType(
-		UnderlyingType, [&](auto DummyValue)
-		{
-			using T = decltype(DummyValue);
-			T DefaultValue = T{};
-
-			if constexpr (std::is_same_v<T, bool>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapBoolean>().Value; }
-			else if constexpr (std::is_same_v<T, float>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapFloat>().Value; }
-			else if constexpr (std::is_same_v<T, double>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapDouble>().Value; }
-			else if constexpr (std::is_same_v<T, int32>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapInteger32>().Value; }
-			else if constexpr (std::is_same_v<T, FVector2D>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapVector2>().Value; }
-			else if constexpr (std::is_same_v<T, FVector>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapVector>().Value; }
-			else if constexpr (std::is_same_v<T, FVector4>)
-			{
-				DefaultValue =
-					CurrentData->GetValueType() == EPCGExTupleTypes::Color ?
-						FVector4(DefaultData.Get<FPCGExTupleValueWrapColor>().Value)
-						: DefaultData.Get<FPCGExTupleValueWrapVector4>().Value;
-			}
-			else if constexpr (std::is_same_v<T, FTransform>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapTransform>().Value; }
-			else if constexpr (std::is_same_v<T, FString>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapString>().Value; }
-			else if constexpr (std::is_same_v<T, FName>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapName>().Value; }
-			else if constexpr (std::is_same_v<T, FRotator>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapRotator>().Value; }
-			else if constexpr (std::is_same_v<T, FSoftObjectPath>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapSoftObjectPath>().Value; }
-			else if constexpr (std::is_same_v<T, FSoftClassPath>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapSoftClassPath>().Value; }
-
-			NewAttribute = TupleData->Metadata->CreateAttribute<T>(Name, DefaultValue, true, true);
-		});
-
-	return NewAttribute;
+	return CurrentData->CreateAttribute(TupleData->Metadata, Name);
 }
 
 #if WITH_EDITOR
@@ -282,42 +302,12 @@ bool FPCGExTupleElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Attribute) { continue; }
 
-		PCGEx::ExecuteWithRightType(
-			Header.UnderlyingType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(Attribute);
-
-				for (int k = 0; k < Keys.Num(); k++)
-				{
-					T Value = T{};
-					const FPCGExTupleValueWrap* Row = Settings->Values[k].Row[i].GetPtr<FPCGExTupleValueWrap>();
-
-					if (!Row) { continue; }
-
-					if constexpr (std::is_same_v<T, bool>) { Value = static_cast<const FPCGExTupleValueWrapBoolean*>(Row)->Value; }
-					else if constexpr (std::is_same_v<T, float>) { Value = static_cast<const FPCGExTupleValueWrapFloat*>(Row)->Value; }
-					else if constexpr (std::is_same_v<T, double>) { Value = static_cast<const FPCGExTupleValueWrapDouble*>(Row)->Value; }
-					else if constexpr (std::is_same_v<T, int32>) { Value = static_cast<const FPCGExTupleValueWrapInteger32*>(Row)->Value; }
-					else if constexpr (std::is_same_v<T, FVector2D>) { Value = static_cast<const FPCGExTupleValueWrapVector2*>(Row)->Value; }
-					else if constexpr (std::is_same_v<T, FVector>) { Value = static_cast<const FPCGExTupleValueWrapVector*>(Row)->Value; }
-					else if constexpr (std::is_same_v<T, FVector4>)
-					{
-						Value =
-							HeaderData->GetValueType() == EPCGExTupleTypes::Color ?
-								FVector4(static_cast<const FPCGExTupleValueWrapColor*>(Row)->Value)
-								: static_cast<const FPCGExTupleValueWrapVector4*>(Row)->Value;
-					}
-					else if constexpr (std::is_same_v<T, FTransform>) { Value = static_cast<const FPCGExTupleValueWrapTransform*>(Row)->Value; }
-					else if constexpr (std::is_same_v<T, FString>) { Value = static_cast<const FPCGExTupleValueWrapString*>(Row)->Value; }
-					else if constexpr (std::is_same_v<T, FName>) { Value = static_cast<const FPCGExTupleValueWrapName*>(Row)->Value; }
-					else if constexpr (std::is_same_v<T, FRotator>) { Value = static_cast<const FPCGExTupleValueWrapRotator*>(Row)->Value; }
-					else if constexpr (std::is_same_v<T, FSoftObjectPath>) { Value = static_cast<const FPCGExTupleValueWrapSoftObjectPath*>(Row)->Value; }
-					else if constexpr (std::is_same_v<T, FSoftClassPath>) { Value = static_cast<const FPCGExTupleValueWrapSoftClassPath*>(Row)->Value; }
-
-					TypedAttribute->SetValue(Keys[k], Value);
-				}
-			});
+		for (int k = 0; k < Keys.Num(); k++)
+		{
+			const FPCGExTupleValueWrap* Row = Settings->Values[k].Row[i].GetPtr<FPCGExTupleValueWrap>();
+			if (!Row) { continue; }
+			Row->SetValue(Attribute, Keys[k]);
+		}
 	}
 
 	FPCGTaggedData& StagedData = Context->StageOutput(TupleData, true);
@@ -326,6 +316,9 @@ bool FPCGExTupleElement::ExecuteInternal(FPCGContext* InContext) const
 	Context->Done();
 	return Context->TryComplete();
 }
+
+#undef PCGEX_FOREACH_TUPLETYPE
+#undef PCGEX_FOREACH_TUPLETYPE_BOILERPLATE
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
