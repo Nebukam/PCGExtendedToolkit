@@ -3,22 +3,101 @@
 
 #include "Constants/PCGExTuple.h"
 
-#include "AnimationEditorTypes.h"
 #include "PCGExHelpers.h"
 #include "PCGGraph.h"
 #include "PCGParamData.h"
 #include "PCGPin.h"
-#include "Chaos/EPA.h"
-#include "VerseVM/VBPVMRuntimeType.h"
-#include "VerseVM/VVMVerseEnum.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE Tuple
 
+EPCGMetadataTypes PCGExTuple::GetMetadataType(const EPCGExTupleTypes Type)
+{
+	switch (Type)
+	{
+	case EPCGExTupleTypes::Float:
+		return EPCGMetadataTypes::Float;
+	case EPCGExTupleTypes::Double:
+		return EPCGMetadataTypes::Double;
+	case EPCGExTupleTypes::Integer32:
+		return EPCGMetadataTypes::Integer32;
+	case EPCGExTupleTypes::Vector2:
+		return EPCGMetadataTypes::Vector2;
+	case EPCGExTupleTypes::Vector:
+		return EPCGMetadataTypes::Vector;
+	case EPCGExTupleTypes::Vector4:
+		return EPCGMetadataTypes::Vector4;
+	case EPCGExTupleTypes::Color:
+		return EPCGMetadataTypes::Vector4;
+	case EPCGExTupleTypes::Transform:
+		return EPCGMetadataTypes::Transform;
+	case EPCGExTupleTypes::String:
+		return EPCGMetadataTypes::String;
+	case EPCGExTupleTypes::Boolean:
+		return EPCGMetadataTypes::Boolean;
+	case EPCGExTupleTypes::Rotator:
+		return EPCGMetadataTypes::Rotator;
+	case EPCGExTupleTypes::Name:
+		return EPCGMetadataTypes::Name;
+	case EPCGExTupleTypes::SoftObjectPath:
+		return EPCGMetadataTypes::SoftObjectPath;
+	case EPCGExTupleTypes::SoftClassPath:
+		return EPCGMetadataTypes::SoftClassPath;
+	}
+
+	return EPCGMetadataTypes::Unknown;
+}
+
+#define PCGEX_FOREACH_TUPLETYPE(MACRO) \
+MACRO(float, Float) \
+MACRO(double, Double) \
+MACRO(int32, Integer32) \
+MACRO(FVector2D, Vector2) \
+MACRO(FVector, Vector) \
+MACRO(FVector4, Vector4) \
+MACRO(FLinearColor, Color) \
+MACRO(FTransform, Transform) \
+MACRO(FString, String) \
+MACRO(bool, Boolean) \
+MACRO(FRotator, Rotator) \
+MACRO(FName, Name) \
+MACRO(FSoftObjectPath, SoftObjectPath) \
+MACRO(FSoftClassPath, SoftClassPath) 
+
 FPCGExTupleValueHeader::FPCGExTupleValueHeader()
 {
-	bIsHeader = true;
-	EDITOR_GUID = GetTypeHash(FGuid::NewGuid());
+	HeaderId = GetTypeHash(FGuid::NewGuid());
+	DefaultData.InitializeAs<FPCGExTupleValueWrapFloat>();
+}
+
+void FPCGExTupleValueHeader::SanitizeEntry(TInstancedStruct<FPCGExTupleValueWrap>& InData) const
+{
+	const FPCGExTupleValueWrap* HeaderData = DefaultData.GetPtr<FPCGExTupleValueWrap>();
+	FPCGExTupleValueWrap* CurrentData = InData.GetMutablePtr<FPCGExTupleValueWrap>();
+
+	if (!HeaderData) { return; }
+	if (CurrentData && CurrentData->GetValueType() == HeaderData->GetValueType())
+	{
+		CurrentData->HeaderId = HeaderId;
+		return;
+	}
+
+#define PCGEX_INIT_TUPLE_ENTRY(_TYPE, _NAME)\
+	case EPCGExTupleTypes::_NAME:\
+	InData.InitializeAs<FPCGExTupleValueWrap##_NAME>();\
+	InData.GetMutable<FPCGExTupleValueWrap##_NAME>().Value = DefaultData.Get<FPCGExTupleValueWrap##_NAME>().Value;\
+	break;
+	
+	switch (HeaderData->GetValueType())
+	{
+		PCGEX_FOREACH_TUPLETYPE(PCGEX_INIT_TUPLE_ENTRY)
+	}
+
+	CurrentData = InData.GetMutablePtr<FPCGExTupleValueWrap>();
+	if (CurrentData)
+	{
+		CurrentData->HeaderId = HeaderId;
+	}
 }
 
 FPCGMetadataAttributeBase* FPCGExTupleValueHeader::CreateAttribute(FPCGExContext* InContext, UPCGParamData* TupleData) const
@@ -33,25 +112,35 @@ FPCGMetadataAttributeBase* FPCGExTupleValueHeader::CreateAttribute(FPCGExContext
 
 	FPCGMetadataAttributeBase* NewAttribute = nullptr;
 
+	const FPCGExTupleValueWrap* CurrentData = DefaultData.GetPtr<FPCGExTupleValueWrap>();
+
+	if (!CurrentData) { return nullptr; }
+
 	PCGEx::ExecuteWithRightType(
 		UnderlyingType, [&](auto DummyValue)
 		{
 			using T = decltype(DummyValue);
 			T DefaultValue = T{};
 
-			if constexpr (std::is_same_v<T, bool>) { DefaultValue = BooleanValue; }
-			else if constexpr (std::is_same_v<T, float>) { DefaultValue = FloatValue; }
-			else if constexpr (std::is_same_v<T, double>) { DefaultValue = DoubleValue; }
-			else if constexpr (std::is_same_v<T, int32>) { DefaultValue = Integer32Value; }
-			else if constexpr (std::is_same_v<T, FVector2D>) { DefaultValue = Vector2Value; }
-			else if constexpr (std::is_same_v<T, FVector>) { DefaultValue = VectorValue; }
-			else if constexpr (std::is_same_v<T, FVector4>) { DefaultValue = Type == EPCGExTupleTypes::Color ? FVector4(ColorValue) : Vector4Value; }
-			else if constexpr (std::is_same_v<T, FTransform>) { DefaultValue = TransformValue; }
-			else if constexpr (std::is_same_v<T, FString>) { DefaultValue = StringValue; }
-			else if constexpr (std::is_same_v<T, FName>) { DefaultValue = NameValue; }
-			else if constexpr (std::is_same_v<T, FRotator>) { DefaultValue = RotatorValue; }
-			else if constexpr (std::is_same_v<T, FSoftObjectPath>) { DefaultValue = SoftObjectPathValue; }
-			else if constexpr (std::is_same_v<T, FSoftClassPath>) { DefaultValue = SoftClassPathValue; }
+			if constexpr (std::is_same_v<T, bool>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapBoolean>().Value; }
+			else if constexpr (std::is_same_v<T, float>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapFloat>().Value; }
+			else if constexpr (std::is_same_v<T, double>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapDouble>().Value; }
+			else if constexpr (std::is_same_v<T, int32>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapInteger32>().Value; }
+			else if constexpr (std::is_same_v<T, FVector2D>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapVector2>().Value; }
+			else if constexpr (std::is_same_v<T, FVector>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapVector>().Value; }
+			else if constexpr (std::is_same_v<T, FVector4>)
+			{
+				DefaultValue =
+					CurrentData->GetValueType() == EPCGExTupleTypes::Color ?
+						FVector4(DefaultData.Get<FPCGExTupleValueWrapColor>().Value)
+						: DefaultData.Get<FPCGExTupleValueWrapVector4>().Value;
+			}
+			else if constexpr (std::is_same_v<T, FTransform>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapTransform>().Value; }
+			else if constexpr (std::is_same_v<T, FString>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapString>().Value; }
+			else if constexpr (std::is_same_v<T, FName>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapName>().Value; }
+			else if constexpr (std::is_same_v<T, FRotator>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapRotator>().Value; }
+			else if constexpr (std::is_same_v<T, FSoftObjectPath>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapSoftObjectPath>().Value; }
+			else if constexpr (std::is_same_v<T, FSoftClassPath>) { DefaultValue = DefaultData.Get<FPCGExTupleValueWrapSoftClassPath>().Value; }
 
 			NewAttribute = TupleData->Metadata->CreateAttribute<T>(Name, DefaultValue, true, true);
 		});
@@ -62,6 +151,8 @@ FPCGMetadataAttributeBase* FPCGExTupleValueHeader::CreateAttribute(FPCGExContext
 #if WITH_EDITOR
 void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTupleSettings::PostEditChangeProperty);
+
 	TArray<int32> Guids;
 	TMap<int32, int32> Order;
 	Guids.Reserve(Composition.Num());
@@ -70,7 +161,7 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 	bool bReordered = false;
 	for (FPCGExTupleValueHeader& Header : Composition)
 	{
-		int32 Index = Guids.Add(Header.EDITOR_GUID);
+		int32 Index = Guids.Add(Header.HeaderId);
 
 		if (Header.Order != Index)
 		{
@@ -78,87 +169,68 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 			bReordered = true;
 		}
 
-		Order.Add(GetTypeHash(Header.EDITOR_GUID), Index);
-
-		switch (Header.Type)
-		{
-		case EPCGExTupleTypes::Float:
-			Header.UnderlyingType = EPCGMetadataTypes::Float;
-			break;
-		case EPCGExTupleTypes::Double:
-			Header.UnderlyingType = EPCGMetadataTypes::Double;
-			break;
-		case EPCGExTupleTypes::Integer32:
-			Header.UnderlyingType = EPCGMetadataTypes::Integer32;
-			break;
-		case EPCGExTupleTypes::Vector2:
-			Header.UnderlyingType = EPCGMetadataTypes::Vector2;
-			break;
-		case EPCGExTupleTypes::Vector:
-			Header.UnderlyingType = EPCGMetadataTypes::Vector;
-			break;
-		case EPCGExTupleTypes::Vector4:
-			Header.UnderlyingType = EPCGMetadataTypes::Vector4;
-			break;
-		case EPCGExTupleTypes::Color:
-			Header.UnderlyingType = EPCGMetadataTypes::Vector4;
-			break;
-		case EPCGExTupleTypes::Transform:
-			Header.UnderlyingType = EPCGMetadataTypes::Transform;
-			break;
-		case EPCGExTupleTypes::String:
-			Header.UnderlyingType = EPCGMetadataTypes::String;
-			break;
-		case EPCGExTupleTypes::Boolean:
-			Header.UnderlyingType = EPCGMetadataTypes::Boolean;
-			break;
-		case EPCGExTupleTypes::Rotator:
-			Header.UnderlyingType = EPCGMetadataTypes::Rotator;
-			break;
-		case EPCGExTupleTypes::Name:
-			Header.UnderlyingType = EPCGMetadataTypes::Name;
-			break;
-		case EPCGExTupleTypes::SoftObjectPath:
-			Header.UnderlyingType = EPCGMetadataTypes::SoftObjectPath;
-			break;
-		case EPCGExTupleTypes::SoftClassPath:
-			Header.UnderlyingType = EPCGMetadataTypes::SoftClassPath;
-			break;
-		}
+		Order.Add(Header.HeaderId, Index);
 	}
 
-	// First ensure all bodies have valid GUID from the composition, and the same number
-	for (FPCGExTupleBody& Body : Values)
 	{
-		if (Body.Values.Num() > Guids.Num())
+		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTupleSettings::BodyUpdate);
+		// First ensure all bodies have valid GUID from the composition, and the same number
+		for (FPCGExTupleBody& Body : Values)
 		{
-			// Find members that needs to be removed
-			int32 WriteIndex = 0;
-			for (FPCGExTupleValue& Value : Body.Values)
+			if (Body.Row.Num() > Guids.Num())
 			{
-				if (!Order.Contains(Value.EDITOR_GUID)) { continue; }
-				Body.Values[WriteIndex++] = MoveTemp(Value);
-			}
-			Body.Values.SetNum(WriteIndex);
-		}
-		else if (Body.Values.Num() < Guids.Num())
-		{
-			// Need to adjust size and assign Guids
-			const int32 StartIndex = Body.Values.Num();
-			PCGEx::InitArray(Body.Values, Guids.Num());
-			for (int i = StartIndex; i < Guids.Num(); ++i) { Body.Values[i].EDITOR_GUID = Guids[i]; }
-		}
-		else if (bReordered)
-		{
-			// Reorder the values
-			Body.Values.Sort([&](const FPCGExTupleValue& A, const FPCGExTupleValue& B) { return Order[A.EDITOR_GUID] < Order[B.EDITOR_GUID]; });
-		}
+				// Find members that needs to be removed
+				int32 WriteIndex = 0;
 
-		for (int i = 0; i < Body.Values.Num(); i++)
+				for (TInstancedStruct<FPCGExTupleValueWrap>& Value : Body.Row)
+				{
+					const FPCGExTupleValueWrap* ValuePtr = Value.GetPtr();
+					if (ValuePtr && !Order.Contains(ValuePtr->HeaderId)) { continue; }
+					Body.Row[WriteIndex++] = MoveTemp(Value);
+				}
+
+				Body.Row.SetNum(WriteIndex);
+			}
+			else if (Body.Row.Num() < Guids.Num())
+			{
+				// Need to adjust size and assign Guids
+				const int32 StartIndex = Body.Row.Num();
+				PCGEx::InitArray(Body.Row, Guids.Num());
+				for (int i = StartIndex; i < Guids.Num(); ++i)
+				{
+					Composition[i].SanitizeEntry(Body.Row[i]);
+				}
+			}
+			else if (bReordered)
+			{
+				// Reorder the values
+				Body.Row.Sort(
+					[&](const TInstancedStruct<FPCGExTupleValueWrap>& A, const TInstancedStruct<FPCGExTupleValueWrap>& B)
+					{
+						const FPCGExTupleValueWrap* APtr = A.GetPtr<FPCGExTupleValueWrap>();
+						const FPCGExTupleValueWrap* BPtr = B.GetPtr<FPCGExTupleValueWrap>();
+						if (!APtr) { return false; }
+						if (!BPtr) { return true; }
+						return Order[APtr->HeaderId] < Order[BPtr->HeaderId];
+					});
+			}
+		}
+	}
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTupleSettings::HeaderAndTypeUpdate);
+		// Enforce header types on rows
+
+		for (int i = 0; i < Composition.Num(); i++)
 		{
-			FPCGExTupleValue& Value = Body.Values[i];
-			Value.Name = Composition[i].Name;
-			Value.Type = Composition[i].Type;
+			FPCGExTupleValueHeader& Header = Composition[i];
+			const FPCGExTupleValueWrap* HeaderData = Header.DefaultData.GetPtr<FPCGExTupleValueWrap>();
+
+			if (!HeaderData) { continue; }
+
+			const EPCGExTupleTypes HeaderType = HeaderData->GetValueType();
+			Header.UnderlyingType = PCGExTuple::GetMetadataType(HeaderType);
+
+			for (FPCGExTupleBody& Body : Values) { Header.SanitizeEntry(Body.Row[i]); }
 		}
 	}
 
@@ -202,6 +274,10 @@ bool FPCGExTupleElement::ExecuteInternal(FPCGContext* InContext) const
 	for (int i = 0; i < Settings->Composition.Num(); ++i)
 	{
 		const FPCGExTupleValueHeader& Header = Settings->Composition[i];
+		const FPCGExTupleValueWrap* HeaderData = Header.DefaultData.GetPtr<FPCGExTupleValueWrap>();
+
+		if (!HeaderData) { continue; }
+
 		FPCGMetadataAttributeBase* Attribute = Attributes[i];
 
 		if (!Attribute) { continue; }
@@ -215,22 +291,29 @@ bool FPCGExTupleElement::ExecuteInternal(FPCGContext* InContext) const
 				for (int k = 0; k < Keys.Num(); k++)
 				{
 					T Value = T{};
-					const FPCGExTupleValue& V = Settings->Values[k].Values[i];
-					if (V.bUseDefaultValue) { continue; }
+					const FPCGExTupleValueWrap* Row = Settings->Values[k].Row[i].GetPtr<FPCGExTupleValueWrap>();
 
-					if constexpr (std::is_same_v<T, bool>) { Value = V.BooleanValue; }
-					else if constexpr (std::is_same_v<T, float>) { Value = V.FloatValue; }
-					else if constexpr (std::is_same_v<T, double>) { Value = V.DoubleValue; }
-					else if constexpr (std::is_same_v<T, int32>) { Value = V.Integer32Value; }
-					else if constexpr (std::is_same_v<T, FVector2D>) { Value = V.Vector2Value; }
-					else if constexpr (std::is_same_v<T, FVector>) { Value = V.VectorValue; }
-					else if constexpr (std::is_same_v<T, FVector4>) { Value = Header.Type == EPCGExTupleTypes::Color ? FVector4(V.ColorValue) : V.Vector4Value; }
-					else if constexpr (std::is_same_v<T, FTransform>) { Value = V.TransformValue; }
-					else if constexpr (std::is_same_v<T, FString>) { Value = V.StringValue; }
-					else if constexpr (std::is_same_v<T, FName>) { Value = V.NameValue; }
-					else if constexpr (std::is_same_v<T, FRotator>) { Value = V.RotatorValue; }
-					else if constexpr (std::is_same_v<T, FSoftObjectPath>) { Value = V.SoftObjectPathValue; }
-					else if constexpr (std::is_same_v<T, FSoftClassPath>) { Value = V.SoftClassPathValue; }
+					if (!Row) { continue; }
+
+					if constexpr (std::is_same_v<T, bool>) { Value = static_cast<const FPCGExTupleValueWrapBoolean*>(Row)->Value; }
+					else if constexpr (std::is_same_v<T, float>) { Value = static_cast<const FPCGExTupleValueWrapFloat*>(Row)->Value; }
+					else if constexpr (std::is_same_v<T, double>) { Value = static_cast<const FPCGExTupleValueWrapDouble*>(Row)->Value; }
+					else if constexpr (std::is_same_v<T, int32>) { Value = static_cast<const FPCGExTupleValueWrapInteger32*>(Row)->Value; }
+					else if constexpr (std::is_same_v<T, FVector2D>) { Value = static_cast<const FPCGExTupleValueWrapVector2*>(Row)->Value; }
+					else if constexpr (std::is_same_v<T, FVector>) { Value = static_cast<const FPCGExTupleValueWrapVector*>(Row)->Value; }
+					else if constexpr (std::is_same_v<T, FVector4>)
+					{
+						Value =
+							HeaderData->GetValueType() == EPCGExTupleTypes::Color ?
+								FVector4(static_cast<const FPCGExTupleValueWrapColor*>(Row)->Value)
+								: static_cast<const FPCGExTupleValueWrapVector4*>(Row)->Value;
+					}
+					else if constexpr (std::is_same_v<T, FTransform>) { Value = static_cast<const FPCGExTupleValueWrapTransform*>(Row)->Value; }
+					else if constexpr (std::is_same_v<T, FString>) { Value = static_cast<const FPCGExTupleValueWrapString*>(Row)->Value; }
+					else if constexpr (std::is_same_v<T, FName>) { Value = static_cast<const FPCGExTupleValueWrapName*>(Row)->Value; }
+					else if constexpr (std::is_same_v<T, FRotator>) { Value = static_cast<const FPCGExTupleValueWrapRotator*>(Row)->Value; }
+					else if constexpr (std::is_same_v<T, FSoftObjectPath>) { Value = static_cast<const FPCGExTupleValueWrapSoftObjectPath*>(Row)->Value; }
+					else if constexpr (std::is_same_v<T, FSoftClassPath>) { Value = static_cast<const FPCGExTupleValueWrapSoftClassPath*>(Row)->Value; }
 
 					TypedAttribute->SetValue(Keys[k], Value);
 				}
