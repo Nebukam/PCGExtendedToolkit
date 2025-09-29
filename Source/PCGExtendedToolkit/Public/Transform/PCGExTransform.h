@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
+#include "Engine/EngineTypes.h"
+
 #include "PCGExDataMath.h"
 #include "Sampling/PCGExSampling.h"
 #include "PCGExTransform.generated.h"
