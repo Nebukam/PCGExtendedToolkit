@@ -19,7 +19,3 @@ bool FPCGExInfluenceDetails::Init(FPCGExContext* InContext, const TSharedRef<PCG
 	return InfluenceBuffer->Init(InPointDataFacade, false);
 }
 
-double FPCGExInfluenceDetails::GetInfluence(const int32 PointIndex) const
-{
-	return InfluenceBuffer->Read(PointIndex);
-}
