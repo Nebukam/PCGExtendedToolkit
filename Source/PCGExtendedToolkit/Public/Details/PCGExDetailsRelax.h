@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
-#include "Details/PCGExDetailsSettings.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExDetailsRelax.generated.h"
@@ -53,9 +52,5 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceDetails
 	TSharedPtr<PCGExDetails::TSettingValue<double>> InfluenceBuffer;
 
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
-	FORCEINLINE double GetInfluence(const int32 PointIndex) const
-	{
-		return InfluenceBuffer->Read(PointIndex);
-	}
+	double GetInfluence(const int32 PointIndex) const;
 };
-
