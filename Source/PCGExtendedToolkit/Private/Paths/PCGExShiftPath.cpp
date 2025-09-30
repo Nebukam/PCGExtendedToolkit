@@ -120,7 +120,7 @@ namespace PCGExShiftPath
 
 		if (Settings->InputMode == EPCGExShiftPathMode::Relative)
 		{
-			PivotIndex = PCGEx::TruncateDbl(
+			PivotIndex = PCGExMath::TruncateDbl(
 				static_cast<double>(MaxIndex) * static_cast<double>(Settings->RelativeConstant),
 				Settings->Truncate);
 		}

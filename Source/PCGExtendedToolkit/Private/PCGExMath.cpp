@@ -7,6 +7,18 @@
 
 namespace PCGExMath
 {
+	double TruncateDbl(const double Value, const EPCGExTruncateMode Mode)
+	{
+		switch (Mode)
+		{
+		case EPCGExTruncateMode::Round: return FMath::RoundToInt(Value);
+		case EPCGExTruncateMode::Ceil: return FMath::CeilToDouble(Value);
+		case EPCGExTruncateMode::Floor: return FMath::FloorToDouble(Value);
+		default:
+		case EPCGExTruncateMode::None: return Value;
+		}
+	}
+	
 	FClosestPosition::FClosestPosition(const FVector& InOrigin)
 		: Origin(InOrigin)
 	{

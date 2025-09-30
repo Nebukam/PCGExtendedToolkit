@@ -7,7 +7,36 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGEx.h"
+#include "Details/PCGExDetailsAxis.h"
 #include "PCGExMath.generated.h"
+
+namespace PCGExData
+{
+	struct FProxyPoint;
+	class FFacade;
+	struct FConstPoint;
+
+	template <typename T>
+	class TBuffer;
+}
+
+UENUM()
+enum class EPCGExIndexSafety : uint8
+{
+	Ignore = 0 UMETA(DisplayName = "Ignore", Tooltip="Out of bounds indices are ignored."),
+	Tile   = 1 UMETA(DisplayName = "Tile", Tooltip="Out of bounds indices are tiled."),
+	Clamp  = 2 UMETA(DisplayName = "Clamp", Tooltip="Out of bounds indices are clamped."),
+	Yoyo   = 3 UMETA(DisplayName = "Yoyo", Tooltip="Out of bounds indices are mirrored and back."),
+};
+
+UENUM()
+enum class EPCGExTruncateMode : uint8
+{
+	None  = 0 UMETA(DisplayName = "None", ToolTip="None"),
+	Round = 1 UMETA(DisplayName = "Round", ToolTip="Round"),
+	Ceil  = 2 UMETA(DisplayName = "Ceil", ToolTip="Ceil"),
+	Floor = 3 UMETA(DisplayName = "Floor", ToolTip="Floor"),
+};
 
 UENUM(BlueprintType)
 enum class EPCGExMeanMeasure : uint8
@@ -89,6 +118,8 @@ namespace PCGExMath
 		bool FindIntersection(const FSegment& S, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EIntersectionTestMode Mode = EIntersectionTestMode::Strict) const;
 	};
 
+	PCGEXTENDEDTOOLKIT_API
+	double TruncateDbl(const double Value, const EPCGExTruncateMode Mode);
 
 #pragma region basics
 

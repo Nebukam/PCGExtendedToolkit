@@ -7,10 +7,11 @@
 #include "UObject/Object.h"
 
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExDistanceFilter.generated.h"

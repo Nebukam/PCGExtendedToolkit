@@ -2,7 +2,10 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExPathInsert.h"
+
+#include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExUnionBlender.h"
+#include "Details/PCGExDetailsDistances.h"
 
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

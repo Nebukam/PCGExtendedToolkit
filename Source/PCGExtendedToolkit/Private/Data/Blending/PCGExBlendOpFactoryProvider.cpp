@@ -3,9 +3,12 @@
 
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
-#include "PCGExDetailsData.h"
+#include "PCGExHelpers.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGExProxyData.h"
 #include "Data/Blending/PCGExProxyDataBlending.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -19,6 +22,13 @@ void FPCGExAttributeBlendWeight::Init()
 {
 	if (!bUseLocalCurve) { LocalWeightCurve.ExternalCurve = WeightCurve.Get(); }
 	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
+}
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAttributeBlendWeight::GetValueSettingWeight(const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(WeightInput, WeightAttribute, Weight);
+	V->bQuietErrors = bQuietErrors;
+	return V;
 }
 
 void FPCGExAttributeBlendConfig::Init()
@@ -283,6 +293,13 @@ TSharedPtr<FPCGExBlendOperation> UPCGExBlendOpFactory::CreateOperation(FPCGExCon
 	NewOperation->ConstantA = ConstantA;
 	NewOperation->ConstantB = ConstantB;
 	return NewOperation;
+}
+
+bool UPCGExBlendOpFactory::WantsPreparation(FPCGExContext* InContext)
+{
+	return
+		PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantA) ||
+		PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantB);
 }
 
 PCGExFactories::EPreparationResult UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

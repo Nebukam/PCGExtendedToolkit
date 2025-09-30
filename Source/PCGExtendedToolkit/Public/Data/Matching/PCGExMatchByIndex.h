@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExMatchRuleFactoryProvider.h"
+#include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 
 

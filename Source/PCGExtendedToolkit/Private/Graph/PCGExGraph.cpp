@@ -17,6 +17,9 @@
 
 #include "Async/ParallelFor.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGExUnionData.h"
+#include "Details/PCGExDetailsDistances.h"
 #include "Geometry/PCGExGeo.h"
 
 void FPCGExBasicEdgeSolidificationDetails::Mutate(PCGExData::FMutablePoint& InEdgePoint, const PCGExData::FConstPoint& InStart, const PCGExData::FConstPoint& InEnd, const double InLerp) const

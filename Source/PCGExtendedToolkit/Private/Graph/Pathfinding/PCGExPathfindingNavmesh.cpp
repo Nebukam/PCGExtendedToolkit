@@ -6,6 +6,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
@@ -49,6 +50,8 @@ void UPCGExPathfindingNavmeshSettings::PostEditChangeProperty(FPropertyChangedEv
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
+
+FName UPCGExPathfindingNavmeshSettings::GetMainInputPin() const { return PCGExGraph::SourceSeedsLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingNavmesh)
 

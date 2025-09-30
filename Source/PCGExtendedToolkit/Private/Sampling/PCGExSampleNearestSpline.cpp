@@ -5,6 +5,7 @@
 
 #include "Data/PCGExDataTag.h"
 #include "Data/Blending//PCGExBlendModes.h"
+#include "Details/PCGExDetailsDistances.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine

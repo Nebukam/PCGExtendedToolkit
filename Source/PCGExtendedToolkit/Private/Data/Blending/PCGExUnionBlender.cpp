@@ -7,7 +7,6 @@
 
 #include "Data/Blending/PCGExUnionBlender.h"
 
-#include "PCGExDetailsData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/PCGExDataTag.h"

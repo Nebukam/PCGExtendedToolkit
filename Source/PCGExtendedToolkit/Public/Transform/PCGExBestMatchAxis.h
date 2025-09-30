@@ -9,6 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
 #include "Data/Matching/PCGExMatching.h"
+#include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "PCGExBestMatchAxis.generated.h"

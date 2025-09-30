@@ -4,7 +4,7 @@
 #include "Transform/PCGExFitting.h"
 
 #include "Data/PCGExData.h"
-#include "PCGExDataMath.h"
+#include "PCGExMathBounds.h"
 #include "AssetStaging/PCGExStaging.h"
 #include "Data/PCGExPointIO.h"
 #include "Helpers/PCGHelpers.h"

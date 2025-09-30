@@ -7,8 +7,9 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExDetails.h"
 #include "Data/PCGExPointFilter.h"
+#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExDetailsSubdivision.h"
 
 
 #include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"

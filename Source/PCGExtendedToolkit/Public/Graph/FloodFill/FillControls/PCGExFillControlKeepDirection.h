@@ -5,10 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 #include "PCGExFillControlOperation.h"
 #include "PCGExFillControlsFactoryProvider.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #include "PCGExFillControlKeepDirection.generated.h"
 

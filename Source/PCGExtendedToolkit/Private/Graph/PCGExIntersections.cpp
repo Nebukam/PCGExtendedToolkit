@@ -6,10 +6,10 @@
 #include "PCGExDetailsIntersection.h"
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Geometry/PCGExGeoPointBox.h"
-
-
-#include "Graph/PCGExCluster.h"
+#include "Graph/PCGExEdge.h"
+#include "Graph/PCGExGraph.h"
 #include "Sampling/PCGExSampling.h"
 
 namespace PCGExGraph
@@ -66,6 +66,16 @@ namespace PCGExGraph
 	bool FUnionGraph::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InUniqueSourceFacade, const bool SupportScopedGet)
 	{
 		return FuseDetails.Init(InContext, InUniqueSourceFacade);
+	}
+
+	int32 FUnionGraph::NumNodes() const
+	{
+		return NodesUnion->Num();
+	}
+
+	int32 FUnionGraph::NumEdges() const
+	{
+		return EdgesUnion->Num();
 	}
 
 	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint(const PCGExData::FConstPoint& Point)

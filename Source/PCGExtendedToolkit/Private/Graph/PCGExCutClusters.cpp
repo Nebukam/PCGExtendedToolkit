@@ -3,10 +3,11 @@
 
 #include "Graph/PCGExCutClusters.h"
 
-#include "PCGExDataMath.h"
+#include "PCGExMathBounds.h"
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsDistances.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 

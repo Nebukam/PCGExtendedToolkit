@@ -50,7 +50,7 @@ public:
 	//~End UObject interface
 
 	//~Begin UPCGExPointsProcessorSettings
-	virtual FName GetMainInputPin() const override { return PCGExGraph::SourcePlotsLabel; }
+	virtual FName GetMainInputPin() const override;
 	virtual FName GetMainOutputPin() const override { return PCGExPaths::OutputPathsLabel; }
 	//~End UPCGExPointsProcessorSettings
 

@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"

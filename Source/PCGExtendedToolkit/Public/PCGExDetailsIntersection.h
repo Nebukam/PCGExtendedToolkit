@@ -4,8 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
-
+#include "Details/PCGExDetailsFusing.h"
 #include "PCGExDetailsIntersection.generated.h"
 
 USTRUCT(BlueprintType)
@@ -54,10 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 	{
 	}
 
-	explicit FPCGExPointPointIntersectionDetails(const bool InSupportEdges):
-		bSupportsEdges(InSupportEdges), FuseDetails(FPCGExFuseDetails(!InSupportEdges))
-	{
-	}
+	explicit FPCGExPointPointIntersectionDetails(const bool InSupportEdges);
 
 	UPROPERTY()
 	bool bSupportsEdges = true;

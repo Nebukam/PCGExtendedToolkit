@@ -4,16 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExLayout.h"
-
 #include "PCGExPointsProcessor.h"
 #include "PCGExSorting.h"
-
-
+#include "Details/PCGExDetailsSettings.h"
 #include "Transform/PCGExTransform.h"
-
 
 #include "PCGExBinPacking.generated.h"
 

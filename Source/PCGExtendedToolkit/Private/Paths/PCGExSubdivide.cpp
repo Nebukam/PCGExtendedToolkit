@@ -5,6 +5,7 @@
 
 #include "PCGExRandom.h"
 #include "PCGParamData.h"
+#include "Data/PCGExPointIO.h"
 
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
 #include "Data/PCGExPointFilter.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "Sampling/PCGExSampling.h"

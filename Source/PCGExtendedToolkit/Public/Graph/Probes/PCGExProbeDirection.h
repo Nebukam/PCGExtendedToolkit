@@ -8,6 +8,7 @@
 
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "PCGExProbeDirection.generated.h"

@@ -4,12 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExGlobalSettings.h"
-
 #include "PCGExPointsProcessor.h"
-
-
+#include "Details/PCGExDetailsRelax.h"
 #include "Geometry/PCGExGeo.h"
 #include "PCGExLloydRelax2D.generated.h"
 

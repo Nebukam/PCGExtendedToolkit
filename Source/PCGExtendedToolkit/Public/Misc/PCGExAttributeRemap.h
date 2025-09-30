@@ -15,6 +15,7 @@
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExProxyData.h"
+#include "Sampling/PCGExSampling.h"
 
 #include "PCGExAttributeRemap.generated.h"
 
@@ -150,7 +151,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 
 	FORCEINLINE double GetRemappedValue(const double Value) const
 	{
-		return PCGEx::TruncateDbl(
+		return PCGExMath::TruncateDbl(
 			RemapCurveObj->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale,
 			TruncateOutput) * PostTruncateScale + Offset;
 	}

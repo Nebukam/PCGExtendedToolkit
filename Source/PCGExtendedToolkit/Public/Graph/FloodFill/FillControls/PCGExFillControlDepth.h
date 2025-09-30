@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 #include "PCGExFillControlOperation.h"
 #include "PCGExFillControlsFactoryProvider.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #include "PCGExFillControlDepth.generated.h"
 
@@ -16,10 +16,7 @@ struct FPCGExFillControlConfigDepth : public FPCGExFillControlConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExFillControlConfigDepth() :
-		FPCGExFillControlConfigBase()
-	{
-	}
+	FPCGExFillControlConfigDepth() = default;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))

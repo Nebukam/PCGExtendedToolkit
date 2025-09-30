@@ -3,6 +3,8 @@
 
 #include "Paths/PCGExResamplePath.h"
 
+#include "Data/PCGExPointIO.h"
+
 #define LOCTEXT_NAMESPACE "PCGExResamplePathElement"
 #define PCGEX_NAMESPACE ResamplePath
 
@@ -77,7 +79,7 @@ namespace PCGExResamplePath
 			}
 			else
 			{
-				NumSamples = PCGEx::TruncateDbl(PathLength->TotalLength / Settings->Resolution, Settings->Truncate);
+				NumSamples = PCGExMath::TruncateDbl(PathLength->TotalLength / Settings->Resolution, Settings->Truncate);
 			}
 
 			if (Path->IsClosedLoop()) { NumSamples++; }

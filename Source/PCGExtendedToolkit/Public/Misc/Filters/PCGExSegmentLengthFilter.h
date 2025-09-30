@@ -5,12 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
+#include "PCGExMath.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "PCGExSegmentLengthFilter.generated.h"

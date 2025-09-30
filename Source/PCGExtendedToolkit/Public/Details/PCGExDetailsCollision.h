@@ -4,61 +4,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
 #include "CollisionQueryParams.h"
 #include "Elements/PCGActorSelector.h"
 
-#include "PCGExDetails.generated.h"
+#include "PCGExDetailsCollision.generated.h"
 
 struct FPCGExContext;
 struct FHitResult;
 class UWorld;
 class AActor;
 
-#pragma region PCG exposition
-// Exposed copy of the otherwise private PCG' spatial noise mode enum
-UENUM(BlueprintType)
-enum class PCGExSpatialNoiseMode : uint8
-{
-	/** Your classic perlin noise. */
-	Perlin,
-	/** Based on underwater fake caustic rendering, gives swirly look. */
-	Caustic,
-	/** Voronoi noise, result a the distance to edge and cell ID. */
-	Voronoi,
-	/** Based on fractional brownian motion. */
-	FractionalBrownian,
-	/** Used to create masks to blend out edges. */
-	EdgeMask,
-};
-
-UENUM(BlueprintType)
-enum class PCGExSpatialNoiseMask2DMode : uint8
-{
-	/** Your classic perlin noise. */
-	Perlin,
-	/** Based on underwater fake caustic rendering, gives swirly look. */
-	Caustic,
-	/** Based on fractional brownian motion. */
-	FractionalBrownian,
-};
-
-#pragma endregion
-
 UENUM()
-enum class EPCGExFilterDataAction : uint8
+enum class EPCGExCollisionFilterType : uint8
 {
-	Keep = 0 UMETA(DisplayName = "Keep", ToolTip="Keeps only selected data"),
-	Omit = 1 UMETA(DisplayName = "Omit", ToolTip="Omit selected data from output"),
-	Tag  = 2 UMETA(DisplayName = "Tag", ToolTip="Keep all and Tag"),
-};
-
-UENUM()
-enum class EPCGExSubdivideMode : uint8
-{
-	Distance  = 0 UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on length"),
-	Count     = 1 UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is fixed"),
-	Manhattan = 2 UMETA(DisplayName = "Manhattan", ToolTip="Manhattan subdivision, number of subdivisions depends on spatial relationship between the points; will be in the [0..2] range."),
+	Channel    = 0 UMETA(DisplayName = "Channel", ToolTip="Channel"),
+	ObjectType = 1 UMETA(DisplayName = "Object Type", ToolTip="Object Type"),
+	Profile    = 2 UMETA(DisplayName = "Profile", ToolTip="Profile"),
 };
 
 USTRUCT(BlueprintType)

@@ -9,6 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "Smoothing/PCGExSmoothingInstancedFactory.h"

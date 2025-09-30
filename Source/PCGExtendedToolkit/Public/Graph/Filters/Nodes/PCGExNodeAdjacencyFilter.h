@@ -4,11 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #include "Graph/Filters/PCGExAdjacency.h"
-#include "PCGExDetailsData.h"
-
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"

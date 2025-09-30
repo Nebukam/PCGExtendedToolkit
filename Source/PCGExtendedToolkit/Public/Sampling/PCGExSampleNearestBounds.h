@@ -17,6 +17,7 @@
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Data/Matching/PCGExMatching.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Geometry/PCGExGeoPointBox.h"
 
 

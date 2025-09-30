@@ -8,11 +8,11 @@
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
-#include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "PCGExRandomFilter.generated.h"

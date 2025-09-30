@@ -9,6 +9,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "PCGExNormalize.generated.h"

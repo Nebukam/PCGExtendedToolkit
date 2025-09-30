@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Details/PCGExDetailsDistances.h"
 
 bool FPCGExApplySamplingDetails::WantsApply() const
 {

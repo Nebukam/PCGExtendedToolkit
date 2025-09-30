@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExSegmentLengthFilter.h"
 
+#include "PCGExHelpers.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Paths/PCGExPaths.h"
 

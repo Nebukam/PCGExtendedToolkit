@@ -873,12 +873,10 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 	TSharedPtr<IBuffer> FFacade::GetReadable(const PCGEx::FAttributeIdentity& Identity, const EIOSide InSide, const bool bSupportScoped)
 	{
 		TSharedPtr<IBuffer> Buffer = nullptr;
-		PCGEx::ExecuteWithRightType(
-			Identity.UnderlyingType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				Buffer = GetReadable<T>(Identity.Identifier, InSide, bSupportScoped);
-			});
+		
+#define PCGEX_TYPED_EXEC(_TYPE, _NAME) Buffer = GetReadable<_TYPE>(Identity.Identifier, InSide, bSupportScoped);		
+		PCGEX_EXECUTEWITHRIGHTTYPE(Identity.UnderlyingType, PCGEX_TYPED_EXEC)		
+#undef PCGEX_TYPED_EXEC
 
 		return Buffer;
 	}
@@ -890,12 +888,9 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 
 		if (!RawAttribute) { return nullptr; }
 
-		PCGEx::ExecuteWithRightType(
-			RawAttribute->GetTypeId(), [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				Buffer = GetReadable<T>(InIdentifier, InSide, bSupportScoped);
-			});
+#define PCGEX_TYPED_EXEC(_TYPE, _NAME) Buffer = Buffer = GetReadable<_TYPE>(InIdentifier, InSide, bSupportScoped);		
+		PCGEX_EXECUTEWITHRIGHTTYPE(static_cast<EPCGMetadataTypes>(RawAttribute->GetTypeId()), PCGEX_TYPED_EXEC)		
+#undef PCGEX_TYPED_EXEC
 
 		return Buffer;
 	}

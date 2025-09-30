@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "GeomTools.h"
+#include "PCGExHelpers.h"
 #include "Collections/PCGExComponentDescriptors.h"
 #include "Data/PCGExDataFilter.h"
 #include "GeometryScript/MeshNormalsFunctions.h"

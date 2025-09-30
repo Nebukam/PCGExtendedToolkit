@@ -4,11 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
+#include "PCGExMath.h"
 #include "UObject/Object.h"
 
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "PCGExProbeIndex.generated.h"

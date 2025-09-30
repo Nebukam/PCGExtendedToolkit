@@ -5,18 +5,29 @@
 
 #include <functional>
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
-#include "PCGExHelpers.h"
+#include "Metadata/PCGMetadataCommon.h"
 #include "PCGExMath.h"
 
 #include "Metadata/PCGAttributePropertySelector.h"
-#include "Components/SplineMeshComponent.h"
 #include "PCGExOctree.h"
+#include "Components/SplineMeshComponent.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdge.h"
-#include "Data/PCGSplineStruct.h"
 
 #include "PCGExPaths.generated.h"
+
+struct FPCGSplineStruct;
+
+namespace ESplineMeshAxis
+{
+	enum Type : int;
+}
+
+namespace PCGExDetails
+{
+	template<typename T>
+	class TSettingValue;
+}
 
 struct FPCGExStaticMeshComponentDescriptor;
 struct FPCGExMeshCollectionEntry;
@@ -348,7 +359,8 @@ namespace PCGExPaths
 		explicit TPathEdgeExtra(const int32 InNumSegments, bool InClosedLoop)
 			: IPathEdgeExtra(InNumSegments, InClosedLoop)
 		{
-			PCGEx::InitArray(Data, InNumSegments);
+			if constexpr (std::is_trivially_copyable_v<T>) { Data.SetNumUninitialized(InNumSegments); }
+			else { Data.SetNum(InNumSegments); }
 		}
 
 		FORCEINLINE T& operator[](const int32 At) { return Data[At]; }
@@ -715,12 +727,10 @@ namespace PCGExPaths
 
 	struct PCGEXTENDEDTOOLKIT_API FCrossing
 	{
+		
 		FCrossing() = default;
-
-		FCrossing(const uint64 InHash, const FVector& InLocation, const double InAlpha, const bool InIsPoint, const FVector& InDir)
-			: Hash(InHash), Location(InLocation), Alpha(InAlpha), bIsPoint(InIsPoint), Dir(InDir)
-		{
-		}
+		FCrossing(const uint64 InHash, const FVector& InLocation, const double InAlpha, const bool InIsPoint, const FVector& InDir);
+			
 
 		uint64 Hash;      // Point Index | IO Index
 		FVector Location; // Position in between edges
@@ -779,7 +789,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushStart && StartPushInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double StartPushConstant = 0.1;
 
-	PCGEX_SETTING_VALUE_GET(StartPush, double, StartPushInput, StartPushInputAttribute, StartPushConstant)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingStartPush(const bool bQuietErrors = false) const;
 
 	/** If enabled, value will relative to the size of the segment */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushStart", EditConditionHides))
@@ -801,7 +811,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushEnd && EndPushInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double EndPushConstant = 0.1;
 
-	PCGEX_SETTING_VALUE_GET(EndPush, double, EndPushInput, EndPushInputAttribute, EndPushConstant)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingEndPush(const bool bQuietErrors = false) const;
 
 	/** If enabled, value will relative to the size of the segment */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushEnd", EditConditionHides))

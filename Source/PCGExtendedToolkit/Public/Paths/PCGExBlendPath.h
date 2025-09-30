@@ -10,6 +10,7 @@
 #include "PCGExPaths.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "PCGExBlendPath.generated.h"

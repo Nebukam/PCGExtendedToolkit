@@ -4,6 +4,8 @@
 #include "Paths/PCGExPathToClusters.h"
 
 
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGExUnionData.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionProcessor.h"

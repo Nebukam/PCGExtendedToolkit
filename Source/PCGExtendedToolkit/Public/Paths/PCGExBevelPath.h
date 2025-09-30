@@ -4,9 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetails.h"
 #include "PCGExFactoryProvider.h"
 #include "PCGExPathProcessor.h"
+#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExDetailsSubdivision.h"
 
 #include "PCGExBevelPath.generated.h"
 

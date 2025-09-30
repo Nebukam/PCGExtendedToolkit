@@ -8,14 +8,18 @@
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
-#include "PCGExDetailsData.h"
 #include "PCGExFactoryProvider.h"
 #include "PCGExOperation.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
 
-
 #include "PCGExBlendOpFactoryProvider.generated.h"
+
+namespace PCGExDetails
+{
+	template <typename T>
+	class TSettingValue;
+}
 
 namespace PCGExDataBlending
 {
@@ -85,7 +89,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendWeight
 
 	void Init();
 
-	PCGEX_SETTING_VALUE_GET(Weight, double, WeightInput, WeightAttribute, Weight)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingWeight(const bool bQuietErrors = false) const;
 };
 
 USTRUCT(BlueprintType)
@@ -215,13 +219,8 @@ public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Blending; }
 	virtual TSharedPtr<FPCGExBlendOperation> CreateOperation(FPCGExContext* InContext) const;
 
-	virtual bool WantsPreparation(FPCGExContext* InContext) override
-	{
-		return
-			PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantA) ||
-			PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantB);
-	}
-
+	virtual bool WantsPreparation(FPCGExContext* InContext) override;
+	
 	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;

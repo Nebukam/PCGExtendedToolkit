@@ -5,13 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExDetailsData.h"
 #include "PCGExProxyDataBlending.h"
-#include "Data/PCGExData.h"
-#include "Data/Blending/PCGExDataBlending.h"
-#include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGExDataFilter.h"
-#include "Data/PCGExUnionData.h"
 
 namespace PCGExDataBlending
 {

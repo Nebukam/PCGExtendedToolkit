@@ -3,7 +3,7 @@
 
 #include "Misc/PCGExDiscardByOverlap.h"
 
-#include "PCGExDataMath.h"
+#include "PCGExMathBounds.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"

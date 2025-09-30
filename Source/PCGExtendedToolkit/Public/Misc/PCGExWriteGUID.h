@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "Misc/Guid.h"

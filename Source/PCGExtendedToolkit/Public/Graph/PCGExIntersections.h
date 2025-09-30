@@ -6,12 +6,9 @@
 #include "CoreMinimal.h"
 
 #include "PCGExOctree.h"
-#include "PCGExGraph.h"
-#include "PCGExEdge.h"
-#include "Data/PCGExData.h"
 #include "Data/PCGExDataForward.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-
+#include "Graph/PCGExEdge.h"
+#include "Details/PCGExDetailsFusing.h"
 
 #include "PCGExIntersections.generated.h"
 
@@ -20,6 +17,20 @@ MACRO(IsIntersection, bool, false)\
 MACRO(CutType, int32, CutTypeValueMapping[EPCGExCutType::Undefined])\
 MACRO(Normal, FVector, FVector::ZeroVector)\
 MACRO(BoundIndex, int32, -1)
+
+struct FPCGExEdgeEdgeIntersectionDetails;
+struct FPCGExPointEdgeIntersectionDetails;
+
+namespace PCGExDataBlending
+{
+	class FMetadataBlender;
+}
+
+namespace PCGExData
+{
+	class FUnionMetadata;
+	class IUnionData;
+}
 
 enum class EPCGExCutType : uint8;
 
@@ -103,6 +114,9 @@ private:
 
 namespace PCGExGraph
 {
+	class FGraph;
+	struct FEdge;
+	
 #pragma region Compound Graph
 
 	class PCGEXTENDEDTOOLKIT_API FUnionNode : public TSharedFromThis<FUnionNode>
@@ -154,8 +168,8 @@ namespace PCGExGraph
 		bool Init(FPCGExContext* InContext);
 		bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InUniqueSourceFacade, const bool SupportScopedGet);
 
-		int32 NumNodes() const { return NodesUnion->Num(); }
-		int32 NumEdges() const { return EdgesUnion->Num(); }
+		int32 NumNodes() const;
+		int32 NumEdges() const;
 
 		TSharedPtr<FUnionNode> InsertPoint(const PCGExData::FConstPoint& Point);
 		TSharedPtr<FUnionNode> InsertPoint_Unsafe(const PCGExData::FConstPoint& Point);

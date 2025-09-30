@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 #include "PCGExFillControlOperation.h"
 #include "PCGExFillControlsFactoryProvider.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #include "PCGExFillControlLength.generated.h"
 

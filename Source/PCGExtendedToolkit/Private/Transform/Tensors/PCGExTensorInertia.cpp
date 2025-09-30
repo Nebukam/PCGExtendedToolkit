@@ -3,6 +3,8 @@
 
 #include "Transform/Tensors/PCGExTensorInertia.h"
 
+#include "PCGExHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorInertia"
 #define PCGEX_NAMESPACE CreateTensorInertia

@@ -6,8 +6,14 @@
 #include "CoreMinimal.h"
 #include "Transform/PCGExFitting.h"
 #include "Data/PCGExData.h"
-#include "PCGExDetailsData.h"
+#include "Details/PCGExDetailsAxis.h"
 #include "PCGExShapes.generated.h"
+
+namespace PCGExDetails
+{
+	template<typename T>
+	class TSettingValue;
+}
 
 UENUM()
 enum class EPCGExShapeOutputMode : uint8
@@ -80,8 +86,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShapeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Resolution", meta=(PCG_Overridable, DisplayName="Resolution (Vector)", EditCondition="ResolutionInput == EPCGExInputValueType::Constant && bThreeDimensions", EditConditionHides, ClampMin=0))
 	FVector ResolutionConstantVector = FVector(10);
 
-	PCGEX_SETTING_VALUE_GET(Resolution, double, ResolutionInput, ResolutionAttribute, ResolutionConstant)
-	PCGEX_SETTING_VALUE_GET(ResolutionVector, FVector, ResolutionInput, ResolutionAttribute, ResolutionConstantVector)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingResolution(const bool bQuietErrors = false) const;
+	TSharedPtr<PCGExDetails::TSettingValue<FVector>> GetValueSettingResolutionVector(const bool bQuietErrors = false) const;
 
 	/** Fitting details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

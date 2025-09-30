@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExAngleFilter.h"
 
+#include "PCGExHelpers.h"
 #include "Data/PCGExData.h"
 #include "Paths/PCGExPaths.h"
 

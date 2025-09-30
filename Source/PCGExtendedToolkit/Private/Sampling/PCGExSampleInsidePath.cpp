@@ -5,7 +5,9 @@
 
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Details/PCGExDetailsDistances.h"
 #include "Misc/PCGExDiscardByPointCount.h"
 
 

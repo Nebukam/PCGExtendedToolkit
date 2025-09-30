@@ -3,7 +3,10 @@
 
 #include "Misc/PCGExFusePoints.h"
 
+#include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExUnionBlender.h"
+#include "Details/PCGExDetailsDistances.h"
+#include "Graph/PCGExGraph.h"
 
 
 #include "Graph/PCGExIntersections.h"

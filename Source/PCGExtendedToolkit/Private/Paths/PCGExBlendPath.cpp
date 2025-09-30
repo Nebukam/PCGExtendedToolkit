@@ -4,6 +4,7 @@
 #include "Paths/PCGExBlendPath.h"
 
 
+#include "Data/PCGExPointIO.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"

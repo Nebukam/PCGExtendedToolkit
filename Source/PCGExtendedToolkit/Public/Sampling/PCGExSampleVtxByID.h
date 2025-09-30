@@ -12,6 +12,7 @@
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #include "PCGExSampleVtxByID.generated.h"
 

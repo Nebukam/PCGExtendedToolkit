@@ -1,7 +1,8 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "PCGExDetails.h"
+
+#include "Details/PCGExDetailsCollision.h"
 
 #include "CollisionQueryParams.h"
 #include "GameFramework/Actor.h"
@@ -49,8 +50,4 @@ bool FPCGExCollisionDetails::Linecast(const FVector& From, const FVector& To, FH
 	default:
 		return false;
 	}
-}
-
-namespace PCGEx
-{
 }

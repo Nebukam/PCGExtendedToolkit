@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
-#include "PCGExDetailsData.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExCompare.generated.h"
@@ -20,11 +19,20 @@ MACRO(FSoftClassPath)
 MACRO(FSoftObjectPath)\
 MACRO(FSoftClassPath)
 
+struct FPCGExContext;
+
 namespace PCGExData
 {
+	class FFacade;
 	class FTags;
 	class IDataValue;
 	class FFacadePreloader;
+}
+
+namespace PCGExDetails
+{
+	template<typename T>
+	class TSettingValue;
 }
 
 UENUM()
@@ -442,7 +450,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 
 	TSharedPtr<PCGExDetails::TSettingValue<double>> Tolerance;
 
-	PCGEX_SETTING_VALUE_GET(Tolerance, double, HashToleranceInput, HashToleranceAttribute, HashToleranceConstant)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingTolerance(const bool bQuietErrors = false) const;
 
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade);
 	FVector GetCWTolerance(const int32 PointIndex) const;
@@ -548,7 +556,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DegreesTolerance = 0.1;
 
-	PCGEX_SETTING_VALUE_GET(Threshold, double, ThresholdInput, ThresholdAttribute, Domain == EPCGExAngularDomain::Degrees ? DegreesConstant : DotConstant)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingThreshold(const bool bQuietErrors = false) const;
 
 	TSharedPtr<PCGExDetails::TSettingValue<double>> ThresholdGetter;
 

@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExInstancedFactory.h"
 #include "PCGExOperation.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #include "PCGExTangentsInstancedFactory.generated.h"
 

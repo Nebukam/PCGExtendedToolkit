@@ -5,11 +5,19 @@
 #include "Graph/Probes/PCGExProbeOperation.h"
 
 
+#include "Details/PCGExDetailsSettings.h"
 #include "Graph/Probes/PCGExProbing.h"
 
 bool FPCGExProbeOperation::RequiresOctree() { return true; }
 
 bool FPCGExProbeOperation::RequiresChainProcessing() { return false; }
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExProbeConfigBase::GetValueSettingSearchRadius(const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(SearchRadiusInput, SearchRadiusAttribute, SearchRadiusConstant);
+	V->bQuietErrors = bQuietErrors;
+	return V;
+}
 
 bool FPCGExProbeOperation::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
@@ -40,4 +48,9 @@ void FPCGExProbeOperation::ProcessBestCandidate(const int32 Index, const FTransf
 
 void FPCGExProbeOperation::ProcessNode(const int32 Index, const FTransform& WorkingTransform, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
 {
+}
+
+double FPCGExProbeOperation::GetSearchRadius(const int32 Index) const
+{
+	return FMath::Square(SearchRadius->Read(Index) + SearchRadiusOffset);
 }

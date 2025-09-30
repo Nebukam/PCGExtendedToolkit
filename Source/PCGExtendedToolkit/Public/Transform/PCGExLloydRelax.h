@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsRelax.h"
 
 
 #include "PCGExLloydRelax.generated.h"

@@ -757,6 +757,8 @@ template class PCGEXTENDEDTOOLKIT_API TDirectDataAttributeProxy<_TYPE_A, _TYPE_B
 			}
 		}
 
+		/*
+		// Old, bad pattern
 		PCGEx::ExecuteWithRightType(
 			InDescriptor.RealType, [&](auto R)
 			{
@@ -768,6 +770,28 @@ template class PCGEXTENDEDTOOLKIT_API TDirectDataAttributeProxy<_TYPE_A, _TYPE_B
 						OutProxy = GetProxyBuffer<T_REAL, T_WORKING>(InContext, InDescriptor, InDataFacade, PointData);
 					});
 			});
+			*/
+
+
+		/*
+		PCGEx::ExecuteWithRightTypePair(
+		InDescriptor.RealType,
+		InDescriptor.WorkingType,
+			[&](auto A, auto B)
+			{
+				using T_REAL = decltype(A);
+				using T_WORKING = decltype(B);
+				OutProxy = GetProxyBuffer<T_REAL, T_WORKING>(InContext, InDescriptor, InDataFacade, PointData);
+			});
+			*/
+
+#define PCGEX_SWITCHON_WORKING(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...)	case EPCGMetadataTypes::_NAME_B : OutProxy = GetProxyBuffer<_TYPE_A, _TYPE_B>(InContext, InDescriptor, InDataFacade, PointData); break;
+#define PCGEX_SWITCHON_REAL(_TYPE, _NAME, ...)	case EPCGMetadataTypes::_NAME :	switch (InDescriptor.RealType){	PCGEX_INNER_FOREACH_TYPE2(_TYPE, _NAME, PCGEX_SWITCHON_WORKING) } break;
+
+		switch (InDescriptor.RealType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SWITCHON_REAL) }
+
+#undef PCGEX_SWITCHON_WORKING
+#undef PCGEX_SWITCHON_REAL
 
 		if (OutProxy)
 		{

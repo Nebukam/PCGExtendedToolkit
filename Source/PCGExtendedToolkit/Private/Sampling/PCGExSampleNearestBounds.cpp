@@ -5,9 +5,11 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Details/PCGExDetailsDistances.h"
 #include "Geometry/PCGExGeoPointBox.h"
 
 

@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
@@ -12,7 +11,11 @@
 
 #include "PCGExVtxPropertyAmplitude.generated.h"
 
-///
+namespace PCGExDetails
+{
+	template<typename T>
+	class TSettingValue;
+}
 
 class UPCGExPointFilterFactoryData;
 

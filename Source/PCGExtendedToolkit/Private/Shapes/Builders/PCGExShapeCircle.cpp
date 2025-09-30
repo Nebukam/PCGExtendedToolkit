@@ -3,6 +3,7 @@
 
 #include "Shapes/Builders/PCGExShapeCircle.h"
 
+#include "PCGExHelpers.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderCircle"

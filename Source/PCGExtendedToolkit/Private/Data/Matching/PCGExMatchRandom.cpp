@@ -12,6 +12,12 @@
 #define LOCTEXT_NAMESPACE "PCGExMatchRandom"
 #define PCGEX_NAMESPACE MatchRandom
 
+FPCGExMatchRandomConfig::FPCGExMatchRandomConfig()
+	: FPCGExMatchRuleConfigBase()
+{
+	ThresholdAttribute.Update("@Data.Threshold");
+}
+
 bool FPCGExMatchRandom::PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<PCGExData::FTaggedData>>& InTargets)
 {
 	if (!FPCGExMatchRuleOperation::PrepareForTargets(InContext, InTargets)) { return false; }

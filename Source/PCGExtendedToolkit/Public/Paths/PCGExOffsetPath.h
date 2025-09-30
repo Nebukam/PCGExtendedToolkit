@@ -9,6 +9,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExPointFilter.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "PCGExOffsetPath.generated.h"

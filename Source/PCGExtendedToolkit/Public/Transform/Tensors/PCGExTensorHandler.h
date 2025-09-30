@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Details/PCGExDetailsSettings.h"
 #include "Samplers/PCGExTensorSampler.h"
 
 #include "PCGExTensorHandler.generated.h"

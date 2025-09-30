@@ -4,6 +4,7 @@
 #include "Constants/PCGExConstantEnum.h"
 
 #include "PCGComponent.h"
+#include "PCGEx.h"
 #include "PCGExCompare.h"
 #include "PCGExHelpers.h"
 #include "PCGModule.h"

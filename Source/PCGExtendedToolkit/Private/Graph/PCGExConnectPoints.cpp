@@ -5,6 +5,8 @@
 
 
 #include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionProcessor.h"

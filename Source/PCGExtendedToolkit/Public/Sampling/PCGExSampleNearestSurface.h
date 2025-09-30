@@ -5,7 +5,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetails.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
@@ -14,6 +13,7 @@
 #include "Data/PCGExDataForward.h"
 #include "Components/PrimitiveComponent.h"
 #include "Data/PCGExPointFilter.h"
+#include "Details/PCGExDetailsCollision.h"
 #include "Materials/MaterialInterface.h"
 
 #include "PCGExSampleNearestSurface.generated.h"

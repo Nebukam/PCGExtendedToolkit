@@ -3,6 +3,12 @@
 
 #include "Data/Blending/PCGExProxyDataBlending.h"
 
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGExProxyData.h"
+#include "Data/PCGExUnionData.h"
+#include "Data/Blending/PCGExBlendModes.h"
+#include "Details/PCGExDetailsDistances.h"
+
 namespace PCGExDataBlending
 {
 	void FDummyUnionBlender::Init(const TSharedPtr<PCGExData::FFacade>& TargetData, const TArray<TSharedRef<PCGExData::FFacade>>& InSources)
@@ -38,6 +44,18 @@ namespace PCGExDataBlending
 template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 TargetIndex, const _TYPE Value) const;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
+
+	template <typename T_WORKING>
+	IProxyDataBlender<T_WORKING>::IProxyDataBlender()
+	{
+		UnderlyingType = PCGEx::GetMetadataType<T_WORKING>();
+	}
+
+	template <typename T_WORKING>
+	TSharedPtr<PCGExData::IBuffer> IProxyDataBlender<T_WORKING>::GetOutputBuffer() const
+	{
+		return C ? C->GetBuffer() : nullptr;
+	}
 
 	template <typename T_WORKING>
 	bool IProxyDataBlender<T_WORKING>::InitFromParam(FPCGExContext* InContext, const FBlendingParam& InParam, const TSharedPtr<PCGExData::FFacade> InTargetFacade, const TSharedPtr<PCGExData::FFacade> InSourceFacade, const PCGExData::EIOSide InSide, const bool bWantsDirectAccess)
@@ -86,6 +104,12 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 
 		return A && B && C;
 	}
+
+#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) \
+	template <typename T_WORKING>\
+	void IProxyDataBlender<T_WORKING>::Set##_NAME(const int32 TargetIndex, const _TYPE Value) const { C->Set(TargetIndex, PCGEx::Convert<_TYPE, T_WORKING>(Value)); };
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
+#undef PCGEX_DECL_BLEND_BIT
 
 	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend>
 	void TProxyDataBlender<T_WORKING, BLEND_MODE, bResetValueForMultiBlend>::Blend(const int32 SourceIndexA, const int32 SourceIndexB, const int32 TargetIndex, const double Weight)
@@ -243,6 +267,12 @@ template PCGEXTENDEDTOOLKIT_API void FProxyDataBlender::Set<_TYPE>(const int32 T
 		}
 
 #undef PCGEX_C
+	}
+
+	template <typename T_WORKING, EPCGExABBlendingType BLEND_MODE, bool bResetValueForMultiBlend>
+	void TProxyDataBlender<T_WORKING, BLEND_MODE, bResetValueForMultiBlend>::Div(const int32 TargetIndex, const double Divider)
+	{
+		C->Set(TargetIndex, PCGExBlend::Div(C->Get(TargetIndex), Divider));
 	}
 
 #pragma region externalization FProxyDataBlender

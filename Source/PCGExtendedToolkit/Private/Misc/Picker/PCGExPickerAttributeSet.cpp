@@ -42,7 +42,7 @@ void UPCGExPickerAttributeSetFactory::AddPicks(const int32 InNum, TSet<int32>& O
 		OutPicks.Reserve(OutPicks.Num() + RelativePicks.Num());
 		for (const double Pick : RelativePicks)
 		{
-			TargetIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * Pick, Config.TruncateMode);
+			TargetIndex = PCGExMath::TruncateDbl(static_cast<double>(MaxIndex) * Pick, Config.TruncateMode);
 
 			if (TargetIndex < 0) { TargetIndex = InNum + TargetIndex; }
 			TargetIndex = PCGExMath::SanitizeIndex(TargetIndex, MaxIndex, Config.Safety);

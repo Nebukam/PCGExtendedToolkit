@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #include "PCGExGoalPickerRandom.generated.h"
 

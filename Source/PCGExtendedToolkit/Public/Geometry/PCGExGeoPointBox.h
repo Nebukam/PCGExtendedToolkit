@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOctree.h"
-#include "PCGExDataMath.h"
+#include "PCGExMathBounds.h"
 #include "PCGExMath.h"
 
 #include "PCGExGeoPointBox.generated.h"

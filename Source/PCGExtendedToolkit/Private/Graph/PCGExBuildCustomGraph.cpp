@@ -8,6 +8,7 @@
 #include "UObject/Package.h"
 #include "PCGComponent.h"
 #include "PCGParamData.h"
+#include "Data/PCGExPointIO.h"
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExUnionProcessor.h"

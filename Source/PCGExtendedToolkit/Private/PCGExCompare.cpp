@@ -9,6 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExDataTag.h"
+#include "Details/PCGExDetailsSettings.h"
 
 namespace PCGExCompare
 {
@@ -263,6 +264,9 @@ namespace PCGExCompare
 	}
 }
 
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExVectorHashComparisonDetails::GetValueSettingTolerance(const bool bQuietErrors) const
+{ TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(HashToleranceInput, HashToleranceAttribute, HashToleranceConstant); V->bQuietErrors = bQuietErrors; return V; }
+
 bool FPCGExVectorHashComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
 {
 	Tolerance = GetValueSettingTolerance();
@@ -304,6 +308,9 @@ bool FPCGExStaticDotComparisonDetails::Test(const double A) const
 {
 	return PCGExCompare::Compare(Comparison, bUnsignedComparison ? FMath::Abs(A) : (1 + A) * 0.5, DotTolerance, ComparisonTolerance);
 }
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExDotComparisonDetails::GetValueSettingThreshold(const bool bQuietErrors) const
+{ TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(ThresholdInput, ThresholdAttribute, Domain == EPCGExAngularDomain::Degrees ? DegreesConstant : DotConstant); V->bQuietErrors = bQuietErrors; return V; }
 
 bool FPCGExDotComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
 {

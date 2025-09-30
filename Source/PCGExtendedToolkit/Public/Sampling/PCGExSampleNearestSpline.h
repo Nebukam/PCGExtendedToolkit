@@ -13,6 +13,7 @@
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGSplineData.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 

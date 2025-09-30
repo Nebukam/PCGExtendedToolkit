@@ -5,11 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGExNavmesh.h"
-#include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
 #include "AI/Navigation/NavigationTypes.h"
-#include "Graph/PCGExGraph.h"
 
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
@@ -49,7 +47,7 @@ public:
 	//~End UObject interface
 
 	//~Begin UPCGExPointsProcessorSettings
-	virtual FName GetMainInputPin() const override { return PCGExGraph::SourceSeedsLabel; }
+	virtual FName GetMainInputPin() const override;
 	virtual FName GetMainOutputPin() const override { return PCGExPaths::OutputPathsLabel; }
 	//~End UPCGExPointsProcessorSettings
 

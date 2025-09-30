@@ -4,11 +4,12 @@
 #include "Paths/PCGExPaths.h"
 
 #include "Data/PCGSplineData.h"
+#include "Data/PCGSplineStruct.h"
 #include "GeomTools.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Graph/Probes/PCGExProbeDirection.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPaths"
 #define PCGEX_NAMESPACE PCGExPaths
@@ -957,6 +958,11 @@ namespace PCGExPaths
 		return FMath::Min(OutEdgeIndex, this->LastEdge);
 	}
 
+	FCrossing::FCrossing(const uint64 InHash, const FVector& InLocation, const double InAlpha, const bool InIsPoint, const FVector& InDir)
+		: Hash(InHash), Location(InLocation), Alpha(InAlpha), bIsPoint(InIsPoint), Dir(InDir)
+	{
+	}
+
 #pragma endregion
 
 #pragma endregion
@@ -1039,6 +1045,20 @@ namespace PCGExPaths
 	}
 }
 
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExSplineMeshMutationDetails::GetValueSettingStartPush(const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(StartPushInput, StartPushInputAttribute, StartPushConstant);
+	V->bQuietErrors = bQuietErrors;
+	return V;
+}
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExSplineMeshMutationDetails::GetValueSettingEndPush(const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(EndPushInput, EndPushInputAttribute, EndPushConstant);
+	V->bQuietErrors = bQuietErrors;
+	return V;
+}
 
 bool FPCGExSplineMeshMutationDetails::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {

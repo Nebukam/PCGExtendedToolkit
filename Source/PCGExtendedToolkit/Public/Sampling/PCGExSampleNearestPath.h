@@ -14,6 +14,7 @@
 #include "PCGExSorting.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Data/Matching/PCGExMatching.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #include "Paths/PCGExPaths.h"
 

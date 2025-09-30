@@ -6,7 +6,10 @@
 #include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGExUnionData.h"
 #include "Data/Blending/PCGExUnionBlender.h"
+#include "Details/PCGExDetailsDistances.h"
 
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

@@ -10,6 +10,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #include "PCGExPathInsert.generated.h"
 

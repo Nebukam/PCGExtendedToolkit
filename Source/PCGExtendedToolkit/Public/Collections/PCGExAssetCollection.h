@@ -11,7 +11,6 @@
 #include "AssetRegistry/AssetData.h"
 #endif
 
-#include "PCGExDetailsData.h"
 #include "PCGParamData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
@@ -20,8 +19,13 @@
 #include "Transform/PCGExTransform.h"
 #include "Transform/PCGExFitting.h"
 
-
 #include "PCGExAssetCollection.generated.h"
+
+namespace PCGExDetails
+{
+	template<typename T>
+	class TSettingValue;
+}
 
 #define PCGEX_ASSET_COLLECTION_GET_ENTRY(_TYPE, _ENTRY_TYPE)\
 virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const UPCGExAssetCollection*& OutHost) override {\
@@ -237,7 +241,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionIndexDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector IndexSource;
 
-	PCGEX_SETTING_VALUE_GET(Index, int32, EPCGExInputValueType::Attribute, IndexSource, -1)
+	TSharedPtr<PCGExDetails::TSettingValue<int32>> GetValueSettingIndex(const bool bQuietErrors = false) const;
 
 	/** Whether to remap index input value to collection size */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -246,6 +250,25 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionIndexDetails
 	/** Whether to remap index input value to collection size */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExTruncateMode TruncateRemap = EPCGExTruncateMode::None;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExComponentTaggingDetails
+{
+	GENERATED_BODY()
+
+	FPCGExComponentTaggingDetails()
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bForwardInputDataTags = true;
+
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	//bool bOutputTagsToAttributes = false;
+
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	//bool bAddTagsToData = false;
 };
 
 USTRUCT(BlueprintType)
@@ -284,7 +307,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Category", meta=(PCG_Overridable, DisplayName="Category", EditCondition="bUseCategories && CategoryInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FName Category = FName("Category");
 
-	PCGEX_SETTING_VALUE_GET(Category, FName, CategoryInput, CategoryAttribute, Category)
+	TSharedPtr<PCGExDetails::TSettingValue<FName>> GetValueSettingCategory(const bool bQuietErrors = false) const;
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))

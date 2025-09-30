@@ -5,6 +5,7 @@
 #include "Shapes/PCGExShapeBuilderOperation.h"
 
 #include "PCGExHelpers.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Shapes/PCGExShapes.h"
 
 bool FPCGExShapeBuilderOperation::PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)
@@ -25,4 +26,10 @@ void FPCGExShapeBuilderOperation::ValidateShape(const TSharedPtr<PCGExShapes::FS
 {
 	if (BaseConfig.bRemoveBelow && Shape->NumPoints < BaseConfig.MinPointCount) { Shape->bValid = 0; }
 	if (BaseConfig.bRemoveAbove && Shape->NumPoints > BaseConfig.MaxPointCount) { Shape->bValid = 0; }
+}
+
+double FPCGExShapeBuilderOperation::GetResolution(const PCGExData::FConstPoint& Seed) const
+{
+	if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance) { return FMath::Abs(Resolution->Read(Seed.Index)); }
+	return FMath::Abs(Resolution->Read(Seed.Index));
 }

@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExScopedContainers.h"
+#include "Details/PCGExDetailsRelax.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"

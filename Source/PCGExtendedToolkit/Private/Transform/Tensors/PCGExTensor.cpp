@@ -3,8 +3,9 @@
 
 #include "Transform/Tensors/PCGExTensor.h"
 
-#include "PCGExDataMath.h"
+#include "PCGExMathBounds.h"
 #include "PCGExHelpers.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
 PCGExTensor::FTensorSample FPCGExTensorSamplingMutationsDetails::Mutate(const FTransform& InProbe, PCGExTensor::FTensorSample InSample) const
@@ -51,6 +52,12 @@ FPCGExTensorConfigBase::FPCGExTensorConfigBase(const bool SupportAttributes, con
 	PotencyAttribute.Update(TEXT("$Density"));
 	WeightAttribute.Update(TEXT("Steepness"));
 }
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExTensorConfigBase::GetValueSettingPotency(const bool bQuietErrors) const
+{ TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(PotencyInput, PotencyAttribute, Potency); V->bQuietErrors = bQuietErrors; return V; }
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExTensorConfigBase::GetValueSettingWeight(const bool bQuietErrors) const
+{ TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(WeightInput, WeightAttribute, Weight); V->bQuietErrors = bQuietErrors; return V; }
 
 void FPCGExTensorConfigBase::Init()
 {
