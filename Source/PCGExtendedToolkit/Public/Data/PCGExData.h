@@ -91,7 +91,7 @@ namespace PCGExData
 
 		// Unsafe read value hash from output
 		virtual uint32 GetValueHash(const int32 Index) = 0;
-		
+
 		// Unsafe read value hash from output
 		virtual int32 GetNumValues(const EIOSide InSide = EIOSide::In) = 0;
 
@@ -212,7 +212,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 		TSharedPtr<TArray<T>> GetInValues();
 		TSharedPtr<TArray<T>> GetOutValues();
-		
+
 		virtual int32 GetNumValues(const EIOSide InSide) override;
 
 		virtual bool IsWritable() override;
@@ -257,7 +257,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 	public:
 		virtual int32 GetNumValues(const EIOSide InSide) override;
-		
+
 		virtual bool EnsureReadable() override;
 
 		TSingleValueBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier);

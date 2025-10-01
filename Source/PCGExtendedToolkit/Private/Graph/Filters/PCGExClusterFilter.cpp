@@ -6,6 +6,11 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/Data/PCGExClusterData.h"
+
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterCluster, UPCGExClusterFilterFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterVtx, UPCGExNodeFilterFactoryData)
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterEdge, UPCGExEdgeFilterFactoryData)
 
 namespace PCGExClusterFilter
 {

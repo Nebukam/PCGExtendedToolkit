@@ -37,7 +37,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPickerFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExPickerFilterFactory : public UPCGExFilterFactoryData
+class UPCGExPickerFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

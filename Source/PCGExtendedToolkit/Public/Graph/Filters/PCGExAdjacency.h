@@ -5,8 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetails.h"
-#include "PCGExMath.h"
+#include "PCGExMathMean.h"
 
 #include "PCGExAdjacency.generated.h"
 

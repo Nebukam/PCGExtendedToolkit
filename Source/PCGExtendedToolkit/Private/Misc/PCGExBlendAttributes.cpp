@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExBlendAttributes.h"
 
+#include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 

@@ -3,7 +3,9 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindClusterHull.h"
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindClusterHull"
 #define PCGEX_NAMESPACE FindClusterHull
@@ -17,7 +19,7 @@ TArray<FPCGPinProperties> UPCGExFindClusterHullSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExFindClusterHullSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Hulls", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Hulls", Required)
 	return PinProperties;
 }
 

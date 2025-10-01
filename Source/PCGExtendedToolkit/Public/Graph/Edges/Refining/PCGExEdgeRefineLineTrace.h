@@ -4,8 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetails.h"
+#include "Engine/HitResult.h"
 #include "PCGExEdgeRefineOperation.h"
+#include "Details/PCGExDetailsCollision.h"
 #include "Graph/PCGExCluster.h"
 #include "PCGExEdgeRefineLineTrace.generated.h"
 

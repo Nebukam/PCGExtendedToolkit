@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExWriteGUID.h"
 #include "Misc/Guid.h"
@@ -23,7 +24,7 @@ public:
 		GetGUID, "Get GUID", "Get a single GUID from a specific point index, same as GetGUID would compute it given the same set of parameters.",
 		Config.OutputAttributeName);
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorConstant; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorConstant; }
 #endif
 
 protected:

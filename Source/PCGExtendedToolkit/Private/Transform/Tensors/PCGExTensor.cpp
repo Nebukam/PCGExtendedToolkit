@@ -3,7 +3,10 @@
 
 #include "Transform/Tensors/PCGExTensor.h"
 
-#include "PCGExDataMath.h"
+#include "PCGExMathBounds.h"
+#include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
 PCGExTensor::FTensorSample FPCGExTensorSamplingMutationsDetails::Mutate(const FTransform& InProbe, PCGExTensor::FTensorSample InSample) const
@@ -50,6 +53,9 @@ FPCGExTensorConfigBase::FPCGExTensorConfigBase(const bool SupportAttributes, con
 	PotencyAttribute.Update(TEXT("$Density"));
 	WeightAttribute.Update(TEXT("Steepness"));
 }
+
+PCGEX_SETTING_VALUE_IMPL(FPCGExTensorConfigBase, Weight, double, WeightInput, WeightAttribute, Weight);
+PCGEX_SETTING_VALUE_IMPL(FPCGExTensorConfigBase, Potency, double, PotencyInput, PotencyAttribute, Potency);
 
 void FPCGExTensorConfigBase::Init()
 {

@@ -3,6 +3,8 @@
 
 #include "Transform/Tensors/PCGExTensorConstant.h"
 
+#include "PCGExHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorConstant"
 #define PCGEX_NAMESPACE CreateTensorConstant

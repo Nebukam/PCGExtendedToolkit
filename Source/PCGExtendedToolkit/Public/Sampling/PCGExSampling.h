@@ -25,6 +25,13 @@ if(Context->bWrite##_NAME && !PCGEx::IsWritableAttributeName(Settings->_NAME##At
 #define PCGEX_OUTPUT_INIT(_NAME, _TYPE, _DEFAULT_VALUE) if(Context->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWritable<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT_VALUE, true, PCGExData::EBufferInit::Inherit); }
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){_NAME##Writer->SetValue(_INDEX, _VALUE); }
 
+struct FPCGExDistanceDetails;
+
+namespace PCGExDetails
+{
+	class FDistances;
+}
+
 namespace PCGExData
 {
 	class FMultiFacadePreloader;
@@ -37,6 +44,13 @@ namespace PCGExMatching
 	class FMatchingScope;
 	class FDataMatcher;
 }
+
+UENUM()
+enum class EPCGExRangeType : uint8
+{
+	FullRange      = 0 UMETA(DisplayName = "Full Range", ToolTip="Normalize in the [0..1] range using [0..Max Value] range."),
+	EffectiveRange = 1 UMETA(DisplayName = "Effective Range", ToolTip="Remap the input [Min..Max] range to [0..1]."),
+};
 
 UENUM()
 enum class EPCGExSurfaceSource : uint8
@@ -104,10 +118,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExApplySamplingDetails
 {
 	GENERATED_BODY()
 
-	FPCGExApplySamplingDetails()
-	{
-	}
-
+	FPCGExApplySamplingDetails() = default;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bApplyTransform = false;

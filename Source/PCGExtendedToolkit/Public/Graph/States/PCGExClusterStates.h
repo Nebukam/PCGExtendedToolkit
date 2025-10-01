@@ -29,6 +29,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClusterStateConfigBase : public FPCGExStateC
 	}
 };
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Cluster State")
+struct FPCGExDataTypeInfoClusterState : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 /**
  * 
  */
@@ -38,11 +45,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryData : public UPCGExCluste
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoClusterState)
+
 	UPROPERTY()
 	FPCGExClusterStateConfigBase Config;
 
 	UPROPERTY()
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::NodeState; }
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
@@ -68,7 +77,7 @@ namespace PCGExClusterStates
 		virtual ~FState() override;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) override;
-		bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories);
+		bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
 
 		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
@@ -123,13 +132,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryProviderSettings : public 
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoClusterState)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		ClusterNodeFlag, "Cluster : Node Flag", "A single, filter-driven node flag.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterState; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
 #endif
 
 protected:

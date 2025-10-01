@@ -22,24 +22,6 @@ using EPCGExSeedComponentsBitmask = TEnumAsByte<EPCGExSeedComponents>;
 
 namespace PCGExRandom
 {
-	FORCEINLINE static int ComputeSeed(const int A)
-	{
-		// From Epic git main, unexposed in 5.3
-		return (A * 196314165U) + 907633515U;
-	}
-
-	FORCEINLINE static int ComputeSeed(const int A, const int B)
-	{
-		// From Epic git main, unexposed in 5.3
-		return ((A * 196314165U) + 907633515U) ^ ((B * 73148459U) + 453816763U);
-	}
-
-	FORCEINLINE static int ComputeSeed(const int A, const int B, const int C)
-	{
-		// From Epic git main, unexposed in 5.3
-		return ((A * 196314165U) + 907633515U) ^ ((B * 73148459U) + 453816763U) ^ ((C * 34731343U) + 453816743U);
-	}
-
 	PCGEXTENDEDTOOLKIT_API
 	int32 GetSeed(const int32 BaseSeed, const uint8 Flags, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
 

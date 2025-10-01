@@ -4,6 +4,8 @@
 #include "Misc/PCGExDiscardSame.h"
 
 
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Misc/PCGExDiscardByPointCount.h"
 
 
@@ -13,7 +15,7 @@
 TArray<FPCGPinProperties> UPCGExDiscardSameSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded outputs.", Normal, {})
+	PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded outputs.", Normal)
 	return PinProperties;
 }
 

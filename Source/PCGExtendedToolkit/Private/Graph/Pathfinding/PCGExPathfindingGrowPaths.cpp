@@ -5,10 +5,11 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
-#include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Algo/Reverse.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
 
@@ -192,15 +193,15 @@ namespace PCGExPathfindingGrowPaths
 TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seed points to start growth from.", Required, {})
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Normal, {})
+	PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seed points to start growth from.", Required)
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Normal, FPCGExDataTypeInfoHeuristics::AsId())
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required)
 	return PinProperties;
 }
 

@@ -122,10 +122,6 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 				Path = MakeShared<PCGExPaths::FPolyPath>(SplineData, LocalFidelity, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
 			}
-			else
-			{
-				// TODO : Support polygon 2D
-			}
 
 			if (Path) { TempPolyPaths[Index] = Path; }
 		};

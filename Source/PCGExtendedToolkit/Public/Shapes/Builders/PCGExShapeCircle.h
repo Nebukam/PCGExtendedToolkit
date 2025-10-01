@@ -4,9 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
-#include "PCGExPointsProcessor.h"
-
 
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
 #include "Shapes/PCGExShapeBuilderOperation.h"
@@ -35,7 +32,7 @@ struct FPCGExShapeCircleConfig : public FPCGExShapeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Start Angle", EditCondition="StartAngleInput == EPCGExInputValueType::Constant", EditConditionHides, Units="Degrees"))
 	double StartAngleConstant = 0;
 
-	PCGEX_SETTING_VALUE_GET(StartAngle, double, StartAngleInput, StartAngleAttribute, StartAngleConstant)
+	PCGEX_SETTING_VALUE_DECL(StartAngle, double)
 
 	/** End angle source. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
@@ -49,7 +46,7 @@ struct FPCGExShapeCircleConfig : public FPCGExShapeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="End Angle", EditCondition="EndAngleInput == EPCGExInputValueType::Constant", EditConditionHides, Units="Degrees"))
 	double EndAngleConstant = 360;
 
-	PCGEX_SETTING_VALUE_GET(EndAngle, double, EndAngleInput, EndAngleAttribute, EndAngleConstant)
+	PCGEX_SETTING_VALUE_DECL(EndAngle, double)
 
 	/** If enabled, will flag circle as being closed if possible. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

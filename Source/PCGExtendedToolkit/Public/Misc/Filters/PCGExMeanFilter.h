@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFilterFactoryProvider.h"
-#include "PCGExMath.h"
+#include "PCGExMathMean.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
@@ -68,7 +68,7 @@ struct FPCGExMeanFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExMeanFilterFactory : public UPCGExFilterFactoryData
+class UPCGExMeanFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

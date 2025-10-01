@@ -7,6 +7,7 @@
 #include "PCGExRandom.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Collections/PCGExAssetCollection.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 namespace PCGExStaging
@@ -328,7 +329,7 @@ namespace PCGExStaging
 			double PickedIndex = IndexGetter->Read(PointIndex);
 			if (Details.IndexSettings.bRemapIndexToCollectionSize)
 			{
-				PickedIndex = PCGEx::TruncateDbl(
+				PickedIndex = PCGExMath::TruncateDbl(
 					MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex),
 					Details.IndexSettings.TruncateRemap);
 			}
@@ -399,7 +400,7 @@ namespace PCGExStaging
 			double PickedIndex = IndexGetter->Read(PointIndex);
 			if (Details.IndexSettings.bRemapIndexToCollectionSize)
 			{
-				PickedIndex = PCGEx::TruncateDbl(
+				PickedIndex = PCGExMath::TruncateDbl(
 					MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex),
 					Details.IndexSettings.TruncateRemap);
 			}

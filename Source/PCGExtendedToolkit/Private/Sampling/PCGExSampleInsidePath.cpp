@@ -5,9 +5,18 @@
 
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/Blending/PCGExBlendModes.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Misc/PCGExDiscardByPointCount.h"
+#include "Paths/PCGExPaths.h"
 
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
 
 #define LOCTEXT_NAMESPACE "PCGExSampleInsidePathElement"
 #define PCGEX_NAMESPACE SampleInsidePath
@@ -27,7 +36,7 @@ TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::InputPinProperties() c
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The points to sample.", Required, {})
+	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The points to sample.", Required)
 	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
@@ -38,7 +47,7 @@ TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::InputPinProperties() c
 TArray<FPCGPinProperties> UPCGExSampleInsidePathSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if (OutputMode == EPCGExSampleInsidePathOutput::Split) { PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discard inputs are paths that failed to sample any points, despite valid targets.", Normal, {}) }
+	if (OutputMode == EPCGExSampleInsidePathOutput::Split) { PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discard inputs are paths that failed to sample any points, despite valid targets.", Normal) }
 	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }

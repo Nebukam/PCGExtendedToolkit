@@ -23,7 +23,6 @@ public:
 #if WITH_EDITOR
 	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(SpawnDynamicMesh, "Spawn Dynamic Mesh", "A more flexible alternative to the native Spawn Dynamic Mesh");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorTopology); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::DynamicMesh; }
 #endif
 

@@ -4,6 +4,7 @@
 #include "Data/PCGExDataValue.h"
 
 #include "PCGExBroadcast.h"
+#include "PCGExHelpers.h"
 #include "Data/PCGExDataHelpers.h"
 
 namespace PCGExData

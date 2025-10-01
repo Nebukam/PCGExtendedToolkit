@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
+#include "Geometry/PCGExGeo.h"
 
 
 #include "Sampling/PCGExSampling.h"
@@ -36,6 +37,14 @@ MACRO(PointAvgNormal, FVector, FVector::OneVector)\
 MACRO(PointBinormal, FVector, FVector::OneVector)\
 MACRO(DirectionToNext, FVector, FVector::OneVector)\
 MACRO(DirectionToPrev, FVector, FVector::OneVector)
+
+namespace PCGExPaths
+{
+	class FPathEdgeAvgNormal;
+	class FPathEdgeBinormal;
+	class FPathEdgeLength;
+	class FPath;
+}
 
 /**
  * 

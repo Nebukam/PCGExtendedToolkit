@@ -3,7 +3,11 @@
 
 #include "Misc/PCGExAttributesToTags.h"
 
+#include "PCGExHelpers.h"
+#include "PCGParamData.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataForward.h"
+#include "Data/PCGExPointIO.h"
 #include "Misc/Pickers/PCGExPicker.h"
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
@@ -21,14 +25,14 @@ TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::InputPinProperties() c
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	if (Resolution != EPCGExAttributeToTagsResolution::Self)
 	{
-		PCGEX_PIN_ANY(FName("Tags Source"), "Source collection(s) to read the tags from.", Required, {})
+		PCGEX_PIN_ANY(FName("Tags Source"), "Source collection(s) to read the tags from.", Required)
 	}
 
 	if (Selection == EPCGExCollectionEntrySelection::Picker ||
 		Selection == EPCGExCollectionEntrySelection::PickerFirst ||
 		Selection == EPCGExCollectionEntrySelection::PickerLast)
 	{
-		PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "Pickers config", Required, {})
+		PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "Pickers config", Required, FPCGExDataTypeInfoPicker::AsId())
 	}
 
 	return PinProperties;
@@ -40,11 +44,11 @@ TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::OutputPinProperties() 
 
 	if (Action == EPCGExAttributeToTagsAction::AddTags)
 	{
-		PCGEX_PIN_ANY(GetMainOutputPin(), "The processed input.", Normal, {})
+		PCGEX_PIN_ANY(GetMainOutputPin(), "The processed input.", Normal)
 	}
 	else
 	{
-		PCGEX_PIN_PARAMS(FName("Tags"), "Tags value in the format `AttributeName = AttributeName:AttributeValue`", Required, {})
+		PCGEX_PIN_PARAMS(FName("Tags"), "Tags value in the format `AttributeName = AttributeName:AttributeValue`", Required)
 	}
 
 

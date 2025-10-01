@@ -3,9 +3,10 @@
 
 #pragma once
 
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataFilter.h"
-#include "Misc/CollectionFilters/PCGExAttributeCheckFilter.h"
+#include "Details/PCGExDetailsAttributes.h"
+#include "Metadata/PCGAttributePropertySelector.h"
+#include "Metadata/PCGMetadataCommon.h"
 
 #include "PCGExDataBlending.generated.h"
 
@@ -40,6 +41,8 @@ MACRO(CopyOther) \
 MACRO(Hash) \
 MACRO(UnsignedHash)
 
+struct FPCGPinProperties;
+enum class EPCGPinStatus : uint8;
 struct FPCGExDistanceDetails;
 struct FPCGExPointPointIntersectionDetails;
 

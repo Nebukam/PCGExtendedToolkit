@@ -3,7 +3,7 @@
 
 #include "Sampling/PCGExSampleOverlapStats.h"
 
-#include "PCGExDataMath.h"
+#include "PCGExMathBounds.h"
 #include "Data/PCGExDataTag.h"
 
 

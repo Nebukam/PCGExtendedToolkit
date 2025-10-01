@@ -5,9 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
-
-
+#include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
@@ -27,9 +25,7 @@ struct FPCGExEdgeNeighborsCountFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExEdgeNeighborsCountFilterConfig()
-	{
-	}
+	FPCGExEdgeNeighborsCountFilterConfig() = default;
 
 	/** Whether to read the threshold from an attribute on the edge or a constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -59,7 +55,7 @@ struct FPCGExEdgeNeighborsCountFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
-	PCGEX_SETTING_VALUE_GET(Threshold, int32, ThresholdInput, ThresholdAttribute, ThresholdConstant)
+	PCGEX_SETTING_VALUE_DECL(Threshold, int32)
 };
 
 /**
@@ -103,7 +99,7 @@ namespace PCGExEdgeNeighborsCount
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/neighbors-count"))
-class UPCGExEdgeNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExEdgeNeighborsCountFilterProviderSettings : public UPCGExEdgeFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -113,7 +109,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		EdgeNeighborsCountFilterFactory, "Edge Filter : Neighbors Count", "Check against the edge' endpoints neighbor count.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 	//~End UPCGSettings
 

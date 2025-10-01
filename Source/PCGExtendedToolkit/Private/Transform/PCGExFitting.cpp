@@ -4,11 +4,10 @@
 #include "Transform/PCGExFitting.h"
 
 #include "Data/PCGExData.h"
-#include "PCGExDataMath.h"
-#include "PCGExRandom.h"
+#include "PCGExMathBounds.h"
 #include "AssetStaging/PCGExStaging.h"
 #include "Data/PCGExPointIO.h"
-#include "Sampling/PCGExSampling.h"
+#include "Helpers/PCGHelpers.h"
 
 void FPCGExScaleToFitDetails::Process(const PCGExData::FConstPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const
 {
@@ -285,7 +284,7 @@ void FPCGExFittingVariationsDetails::Init(const int InSeed)
 
 void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, PCGExData::FProxyPoint& InPoint, const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const
 {
-	FRandomStream RandomSource(PCGExRandom::ComputeSeed(Seed, BaseSeed));
+	FRandomStream RandomSource(PCGHelpers::ComputeSeed(Seed, BaseSeed));
 
 	const FTransform SourceTransform = InPoint.Transform;
 	FTransform FinalTransform = SourceTransform;

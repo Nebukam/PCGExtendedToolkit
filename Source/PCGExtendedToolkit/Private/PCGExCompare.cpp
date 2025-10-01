@@ -9,6 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExDataTag.h"
+#include "Details/PCGExDetailsSettings.h"
 
 namespace PCGExCompare
 {
@@ -263,6 +264,8 @@ namespace PCGExCompare
 	}
 }
 
+PCGEX_SETTING_VALUE_IMPL(FPCGExVectorHashComparisonDetails, Tolerance, double, HashToleranceInput, HashToleranceAttribute, HashToleranceConstant);
+
 bool FPCGExVectorHashComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
 {
 	Tolerance = GetValueSettingTolerance();
@@ -304,6 +307,8 @@ bool FPCGExStaticDotComparisonDetails::Test(const double A) const
 {
 	return PCGExCompare::Compare(Comparison, bUnsignedComparison ? FMath::Abs(A) : (1 + A) * 0.5, DotTolerance, ComparisonTolerance);
 }
+
+PCGEX_SETTING_VALUE_IMPL(FPCGExDotComparisonDetails, Threshold, double, ThresholdInput, ThresholdAttribute, Domain == EPCGExAngularDomain::Degrees ? DegreesConstant : DotConstant)
 
 bool FPCGExDotComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
 {

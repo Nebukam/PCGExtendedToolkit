@@ -4,17 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPointIO.h"
-#include "PCGExAttributeHelpers.h"
 #include "PCGExDataFilter.h"
 #include "UObject/Object.h"
-#include "PCGExData.h"
-
+#include "PCGExAttributeHelpers.h"
 
 #include "PCGExDataForward.generated.h"
 
 namespace PCGExData
 {
+	struct FConstPoint;
+	class IBuffer;
 	class FDataForwardHandler;
 }
 

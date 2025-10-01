@@ -9,6 +9,8 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoNeighborSampler, UPCGExNeighborSamplerFactoryData)
+
 void FPCGExNeighborSampleOperation::PrepareForCluster(FPCGExContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
 	Cluster = InCluster;
@@ -176,12 +178,12 @@ void UPCGExNeighborSamplerFactoryData::RegisterVtxBuffersDependencies(FPCGExCont
 {
 	if (!VtxFilterFactories.IsEmpty())
 	{
-		for (const TObjectPtr<const UPCGExFilterFactoryData>& Filter : VtxFilterFactories) { Filter->RegisterBuffersDependencies(InContext, FacadePreloader); }
+		for (const TObjectPtr<const UPCGExPointFilterFactoryData>& Filter : VtxFilterFactories) { Filter->RegisterBuffersDependencies(InContext, FacadePreloader); }
 	}
 
 	if (!ValueFilterFactories.IsEmpty())
 	{
-		for (const TObjectPtr<const UPCGExFilterFactoryData>& Filter : ValueFilterFactories) { Filter->RegisterBuffersDependencies(InContext, FacadePreloader); }
+		for (const TObjectPtr<const UPCGExPointFilterFactoryData>& Filter : ValueFilterFactories) { Filter->RegisterBuffersDependencies(InContext, FacadePreloader); }
 	}
 }
 
@@ -197,15 +199,15 @@ TArray<FPCGPinProperties> UPCGExNeighborSampleProviderSettings::InputPinProperti
 	bool bIsRequired = false;
 	if (SupportsVtxFilters(bIsRequired))
 	{
-		if (bIsRequired) { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Required, {}) }
-		else { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Advanced, {}) }
+		if (bIsRequired) { PCGEX_PIN_FILTERS(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Required) }
+		else { PCGEX_PIN_FILTERS(PCGExPointFilter::SourceVtxFiltersLabel, "Filters applied to vtx", Advanced) }
 	}
 	if (SupportsEdgeFilters(bIsRequired))
 	{
-		if (bIsRequired) { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Required, {}) }
-		else { PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Advanced, {}) }
+		if (bIsRequired) { PCGEX_PIN_FILTERS(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Required) }
+		else { PCGEX_PIN_FILTERS(PCGExPointFilter::SourceEdgeFiltersLabel, "Filters applied to edges", Advanced) }
 	}
-	PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced, {})
+	PCGEX_PIN_FILTERS(PCGEx::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced)
 	return PinProperties;
 }
 

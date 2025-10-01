@@ -5,13 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
+#include "PCGExMath.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-
 
 #include "PCGExStringSelfCompareFilter.generated.h"
 
@@ -26,9 +24,7 @@ struct FPCGExStringSelfCompareFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExStringSelfCompareFilterConfig()
-	{
-	}
+	FPCGExStringSelfCompareFilterConfig() = default;
 
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -54,7 +50,7 @@ struct FPCGExStringSelfCompareFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index", EditCondition="CompareAgainst == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 IndexConstant = -1;
 
-	PCGEX_SETTING_VALUE_GET(Index, int32, CompareAgainst, IndexAttribute, IndexConstant)
+	PCGEX_SETTING_VALUE_DECL(Index, int32)
 
 	/** Index safety */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -74,7 +70,7 @@ struct FPCGExStringSelfCompareFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExStringSelfCompareFilterFactory : public UPCGExFilterFactoryData
+class UPCGExStringSelfCompareFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

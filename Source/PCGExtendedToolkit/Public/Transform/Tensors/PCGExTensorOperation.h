@@ -10,6 +10,11 @@
 #include "Data/PCGSplineStruct.h"
 #include "Paths/PCGExPaths.h"
 
+namespace PCGExDetails
+{
+	class FDistances;
+}
+
 class UPCGExTensorFactoryData;
 /**
  * 

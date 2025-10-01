@@ -17,6 +17,7 @@
 
 
 #include "Graph/Filters/PCGExClusterFilter.h"
+#include "Sampling/PCGExSampling.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"
 
@@ -28,6 +29,13 @@
 	NewOperation->VtxFilterFactories.Append(VtxFilterFactories); \
 	NewOperation->EdgesFilterFactories.Append(EdgesFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
+
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Neighbor Sampler")
+struct FPCGExDataTypeInfoNeighborSampler : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
 
 namespace PCGExNeighborSample
 {
@@ -121,9 +129,9 @@ public:
 	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope);
 	virtual void CompleteOperation();
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgesFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ValueFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> VtxFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgesFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> ValueFilterFactories;
 
 protected:
 	bool bIsValidOperation = true;
@@ -136,17 +144,19 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryData : public UPCGExFac
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoNeighborSampler)
+
 	UPROPERTY()
 	FPCGExSamplingConfig SamplingConfig;
 
 	UPROPERTY()
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> VtxFilterFactories;
 
 	UPROPERTY()
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgesFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgesFilterFactories;
 
 	UPROPERTY()
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ValueFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> ValueFilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Sampler; }
 
@@ -162,11 +172,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleProviderSettings : public UPCGE
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoNeighborSampler)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	//PCGEX_NODE_INFOS_CUSTOM_SUBTITLE( NeighborSamplerAttribute, "Sampler : Abstract", "Abstract sampler settings.", PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSamplerNeighbor; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorNeighborSampler; }
 #endif
 
 protected:

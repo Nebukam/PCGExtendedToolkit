@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
+#include "PCGExHelpers.h"
 #include "Data/PCGExPointFilter.h"
 #include "Misc/Filters/PCGExConstantFilter.h"
 
@@ -15,7 +16,7 @@ FString UPCGExFilterProviderSettings::GetDisplayName() const { return TEXT(""); 
 
 UPCGExFactoryData* UPCGExFilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	UPCGExFilterFactoryData* NewFactory = Cast<UPCGExFilterFactoryData>(InFactory);
+	UPCGExPointFilterFactoryData* NewFactory = Cast<UPCGExPointFilterFactoryData>(InFactory);
 	NewFactory->MissingDataHandling = MissingDataHandling;
 	NewFactory->Priority = Priority;
 

@@ -6,6 +6,7 @@
 
 #include "PCGComponent.h"
 #include "Data/PCGExDataTag.h"
+#include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateSplineElement"
 #define PCGEX_NAMESPACE CreateSpline
@@ -24,7 +25,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(CreateSpline)
 TArray<FPCGPinProperties> UPCGExCreateSplineSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POLYLINES(GetMainOutputPin(), "Spline data.", Required, {})
+	PCGEX_PIN_POLYLINES(GetMainOutputPin(), "Spline data.", Required)
 	return PinProperties;
 }
 

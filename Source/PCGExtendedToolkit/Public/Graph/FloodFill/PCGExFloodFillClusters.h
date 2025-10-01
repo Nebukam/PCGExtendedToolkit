@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExScopedContainers.h"
 #include "PCGExSorting.h"
 #include "Data/PCGExDataForward.h"

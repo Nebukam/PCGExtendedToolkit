@@ -21,6 +21,13 @@ Super::CreateFactory(InContext, NewFactory); /* Super factory to grab custom ove
 _NEW_FACTORY \
 return NewFactory; }
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Picker")
+struct FPCGExDataTypeInfoPicker : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExPickerFactoryData : public UPCGExFactoryData
 {
@@ -33,6 +40,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPickerFactoryData : public UPCGExFactoryData
 	// We leverage internal point data and pack all needed attributes & computed points inside
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoPicker)
+
 	UPROPERTY()
 	TArray<int32> DiscretePicks;
 
@@ -57,11 +66,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPickerFactoryProviderSettings : public UPCGEx
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoPicker)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Picker, "Picker Definition", "Creates a single Picker definition.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorMisc; }
 #endif
 
 protected:

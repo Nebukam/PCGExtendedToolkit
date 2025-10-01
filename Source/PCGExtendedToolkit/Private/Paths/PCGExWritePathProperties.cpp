@@ -4,7 +4,9 @@
 #include "Paths/PCGExWritePathProperties.h"
 #include "MinVolumeBox3.h"
 #include "OrientedBoxTypes.h"
+#include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
+#include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
 #define PCGEX_NAMESPACE WritePathProperties
@@ -21,7 +23,7 @@ bool UPCGExWritePathPropertiesSettings::WriteAnyPathData() const
 TArray<FPCGPinProperties> UPCGExWritePathPropertiesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if (WriteAnyPathData()) { PCGEX_PIN_PARAMS(PCGExWritePathProperties::OutputPathProperties, "...", Advanced, {}) }
+	if (WriteAnyPathData()) { PCGEX_PIN_PARAMS(PCGExWritePathProperties::OutputPathProperties, "...", Advanced) }
 	return PinProperties;
 }
 

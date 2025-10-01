@@ -7,16 +7,17 @@
 #include <type_traits>
 
 #include "CoreMinimal.h"
+#include "Metadata/PCGMetadataCommon.h"
 #include "PCGExBroadcast.h"
+
+#include "Details/PCGExMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
-#include "Metadata/Accessors/IPCGAttributeAccessor.h"
-
-#include "PCGExMacros.h"
-
-#include "Metadata/Accessors/PCGAttributeAccessor.h"
 
 #include "PCGExAttributeHelpers.generated.h"
 
+class UPCGMetadata;
+struct FPCGContext;
+class FPCGMetadataAttributeBase;
 struct FPCGExContext;
 
 namespace PCGExMT
@@ -35,8 +36,6 @@ template <typename T>
 struct has_GetTypeHash_v<T, std::void_t<decltype(std::declval<T>().Foo(42))>> : std::true_type
 {
 };
-
-#pragma region Input Configs
 
 namespace PCGExData
 {
@@ -94,58 +93,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputConfig
 
 #pragma endregion
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetDetails
-{
-	GENERATED_BODY()
-
-	FPCGExAttributeSourceToTargetDetails()
-	{
-	}
-
-	/** Attribute to read on input */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName Source = NAME_None;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bOutputToDifferentName = false;
-
-	/** Attribute to write on output, if different from input */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputToDifferentName"))
-	FName Target = NAME_None;
-
-	bool WantsRemappedOutput() const { return (bOutputToDifferentName && Source != GetOutputName()); }
-
-	bool ValidateNames(FPCGExContext* InContext) const;
-	bool ValidateNamesOrProperties(FPCGExContext* InContext) const;
-
-	FName GetOutputName() const;
-
-	FPCGAttributePropertyInputSelector GetSourceSelector() const;
-	FPCGAttributePropertyInputSelector GetTargetSelector() const;
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetList
-{
-	GENERATED_BODY()
-
-	FPCGExAttributeSourceToTargetList()
-	{
-	}
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{Source}"))
-	TArray<FPCGExAttributeSourceToTargetDetails> Attributes;
-
-	bool IsEmpty() const { return Attributes.IsEmpty(); }
-	int32 Num() const { return Attributes.Num(); }
-
-	bool ValidateNames(FPCGExContext* InContext) const;
-	void GetSources(TArray<FName>& OutNames) const;
-};
-
-#pragma endregion
-
 namespace PCGEx
 {
 #pragma region Attribute utils
@@ -163,13 +110,13 @@ namespace PCGEx
 		{
 		}
 
-		bool InDataDomain() const { return Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data; }
+		bool InDataDomain() const;
 		int16 GetTypeId() const { return static_cast<int16>(UnderlyingType); }
 		bool IsA(const int16 InType) const { return GetTypeId() == InType; }
 		bool IsA(const EPCGMetadataTypes InType) const { return UnderlyingType == InType; }
 
-		FString GetDisplayName() const { return FString(Identifier.Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
-		bool operator==(const FAttributeIdentity& Other) const { return Identifier == Other.Identifier; }
+		FString GetDisplayName() const;
+		bool operator==(const FAttributeIdentity& Other) const;
 
 		static void Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList = nullptr);
 		static void Get(const UPCGMetadata* InMetadata, TArray<FPCGAttributeIdentifier>& OutIdentifiers, TMap<FPCGAttributeIdentifier, FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList = nullptr);
@@ -237,11 +184,7 @@ namespace PCGEx
 
 		operator const FPCGMetadataAttributeBase*() const { return Attribute; }
 
-		operator EPCGMetadataTypes() const
-		{
-			if (Attribute) { return static_cast<EPCGMetadataTypes>(Attribute->GetTypeId()); }
-			return EPCGMetadataTypes::Unknown;
-		}
+		operator EPCGMetadataTypes() const;
 
 		operator EPCGAttributePropertySelection() const { return Selector.GetSelection(); }
 		operator EPCGPointProperties() const { return Selector.GetPointProperty(); }
@@ -329,7 +272,7 @@ namespace PCGEx
 
 		T FetchSingle(const PCGExData::FElement& Element, const T& Fallback) const;
 	};
-	
+
 	template <typename T>
 	TSharedPtr<TAttributeBroadcaster<T>> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO);
 

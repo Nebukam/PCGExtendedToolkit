@@ -25,12 +25,21 @@ UPCGExFactoryData* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGExCont
 
 class FPCGExShapeBuilderOperation;
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Shape")
+struct FPCGExDataTypeInfoShape : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExShapeBuilderFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoShape)
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::ShapeBuilder; }
 	virtual TSharedPtr<FPCGExShapeBuilderOperation> CreateOperation(FPCGExContext* InContext) const;
 };
@@ -40,11 +49,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExShapeBuilderFactoryProviderSettings : public 
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoShape)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ShapeBuilder, "ShapeBuilder Definition", "Creates a single shape builder node, to be used with a Shape processor node.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorShapeBuilder; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorShape; }
 #endif
 	//~End UPCGSettings
 

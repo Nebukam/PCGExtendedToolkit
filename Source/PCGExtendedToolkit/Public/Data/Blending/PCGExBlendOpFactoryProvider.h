@@ -8,14 +8,18 @@
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
-#include "PCGExDetailsData.h"
 #include "PCGExFactoryProvider.h"
 #include "PCGExOperation.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
 
-
 #include "PCGExBlendOpFactoryProvider.generated.h"
+
+namespace PCGExDetails
+{
+	template <typename T>
+	class TSettingValue;
+}
 
 namespace PCGExDataBlending
 {
@@ -85,7 +89,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendWeight
 
 	void Init();
 
-	PCGEX_SETTING_VALUE_GET(Weight, double, WeightInput, WeightAttribute, Weight)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingWeight(const bool bQuietErrors = false) const;
 };
 
 USTRUCT(BlueprintType)
@@ -193,12 +197,21 @@ protected:
 	TSharedPtr<PCGExDataBlending::FProxyDataBlender> Blender;
 };
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Blend Op")
+struct FPCGExDataTypeInfoBlendOp : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending")
 class PCGEXTENDEDTOOLKIT_API UPCGExBlendOpFactory : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoBlendOp)
+
 	FPCGExAttributeBlendConfig Config;
 	TSharedPtr<PCGExData::FFacade> ConstantA;
 	TSharedPtr<PCGExData::FFacade> ConstantB;
@@ -206,12 +219,7 @@ public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Blending; }
 	virtual TSharedPtr<FPCGExBlendOperation> CreateOperation(FPCGExContext* InContext) const;
 
-	virtual bool WantsPreparation(FPCGExContext* InContext) override
-	{
-		return
-			PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantA) ||
-			PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantB);
-	}
+	virtual bool WantsPreparation(FPCGExContext* InContext) override;
 
 	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
@@ -241,7 +249,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		BlendOp, "BlendOp", "Creates a single Blend Operation node, to be used with the Attribute Blender.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorBlendOp; }
 	//PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
 
 	virtual bool CanUserEditTitle() const override { return false; }
@@ -250,6 +258,8 @@ public:
 #endif
 
 protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoBlendOp)
+
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 

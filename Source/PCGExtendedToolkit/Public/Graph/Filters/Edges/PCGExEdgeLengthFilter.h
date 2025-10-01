@@ -5,8 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
-
+#include "Details/PCGExMacros.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -19,9 +19,7 @@ struct FPCGExEdgeLengthFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExEdgeLengthFilterConfig()
-	{
-	}
+	FPCGExEdgeLengthFilterConfig() = default;
 
 	/** Whether to read the threshold from an attribute on the edge or a constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -35,7 +33,7 @@ struct FPCGExEdgeLengthFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", ClampMin=1, EditCondition="ThresholdInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double ThresholdConstant = 100;
 
-	PCGEX_SETTING_VALUE_GET(Threshold, double, ThresholdInput, ThresholdAttribute, ThresholdConstant)
+	PCGEX_SETTING_VALUE_DECL(Threshold, double)
 
 	/** Comparison check */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -92,7 +90,7 @@ namespace PCGExEdgeLength
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/direction-1"))
-class UPCGExEdgeLengthFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExEdgeLengthFilterProviderSettings : public UPCGExEdgeFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -102,7 +100,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		EdgeLengthFilterFactory, "Edge Filter : Length", "Check against the edge' length.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 	//~End UPCGSettings
 

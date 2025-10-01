@@ -5,6 +5,7 @@
 
 #include "PCGExContext.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExHelpers.h"
 #include "Data/PCGExData.h"
 
 namespace PCGExData

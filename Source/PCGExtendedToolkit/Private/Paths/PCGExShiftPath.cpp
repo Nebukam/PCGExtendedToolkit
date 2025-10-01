@@ -2,6 +2,9 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExShiftPath.h"
+
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPaths.h"
 
 
@@ -118,7 +121,7 @@ namespace PCGExShiftPath
 
 		if (Settings->InputMode == EPCGExShiftPathMode::Relative)
 		{
-			PivotIndex = PCGEx::TruncateDbl(
+			PivotIndex = PCGExMath::TruncateDbl(
 				static_cast<double>(MaxIndex) * static_cast<double>(Settings->RelativeConstant),
 				Settings->Truncate);
 		}

@@ -3,10 +3,14 @@
 
 #include "Paths/PCGExOffsetPath.h"
 
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPathCrossings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath
+
+PCGEX_SETTING_VALUE_IMPL(UPCGExOffsetPathSettings, Offset, double, OffsetInput, OffsetAttribute, OffsetConstant)
 
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(OffsetPath)

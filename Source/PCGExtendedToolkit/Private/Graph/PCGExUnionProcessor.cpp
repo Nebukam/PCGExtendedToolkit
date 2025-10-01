@@ -3,6 +3,10 @@
 
 #include "Graph/PCGExUnionProcessor.h"
 
+#include "PCGExHelpers.h"
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsDistances.h"
+
 namespace PCGExGraph
 {
 	FUnionProcessor::FUnionProcessor(

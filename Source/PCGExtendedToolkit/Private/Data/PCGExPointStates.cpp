@@ -31,7 +31,7 @@ namespace PCGExPointStates
 		return true;
 	}
 
-	bool FState::InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories)
+	bool FState::InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories)
 	{
 		return Manager->Init(InContext, InFactories);
 	}
@@ -72,7 +72,7 @@ namespace PCGExPointStates
 }
 
 #if WITH_EDITOR
-FLinearColor UPCGExPointStateFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterState; }
+FLinearColor UPCGExPointStateFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
 #endif
 
 FName UPCGExPointStateFactoryProviderSettings::GetMainOutputPin() const { return PCGExCluster::OutputNodeFlagLabel; }

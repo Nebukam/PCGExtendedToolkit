@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExBoundsClustersIntersection.h"
 
+#include "Data/PCGExData.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -11,7 +13,7 @@
 TArray<FPCGPinProperties> UPCGExBoundsClustersIntersectionSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "Intersection points (bounds)", Required, {})
+	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "Intersection points (bounds)", Required)
 	return PinProperties;
 }
 

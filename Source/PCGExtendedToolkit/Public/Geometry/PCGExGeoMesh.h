@@ -13,6 +13,9 @@
 #include "PCGExGeoMesh.generated.h" // Credit goes to @Syscrusher attention to detail :D
 
 
+struct FPCGPinProperties;
+struct FPCGAttributeIdentifier;
+
 UENUM()
 enum class EPCGExTriangulationType : uint8
 {
@@ -23,26 +26,60 @@ enum class EPCGExTriangulationType : uint8
 	NoTriangulation = 42 UMETA(Hidden),
 };
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExGeoMeshImportDetails
+{
+	GENERATED_BODY()
+
+	FPCGExGeoMeshImportDetails() = default;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
+	bool bImportVertexColor = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
+	bool bImportUVs = false;
+
+	/** A list of mapping channel in the format [Output Attribute Name]::[Channel Index]. You can output the same UV channel to different attributes. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(DisplayName=" ├─ UV Channels Mapping", EditCondition="bImportUVs"))
+	TMap<FName, int32> UVChannels;
+
+	/** If enabled, will create placeholder attributes if a listed UV channel is missing. This is useful if the rest of your graph expects those attribute to exist, even if invalid. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(DisplayName=" ├─ Create placeholders", EditCondition="bImportUVs"))
+	bool bCreatePlaceholders = false;
+
+	/** Placeholder UV value */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(DisplayName=" └─ Placeholder Value", EditCondition="bImportUVs && bCreatePlaceholders"))
+	FVector2D Placeholder = FVector2D(0, 0);
+
+	TArray<FPCGAttributeIdentifier> UVChannelId;
+	TArray<int32> UVChannelIndex;
+
+	bool Validate(FPCGExContext* InContext);
+
+	bool WantsImport() const;
+};
+
 namespace PCGExGeo
 {
+	const FName SourceUVImportRulesLabel = TEXT("UV Imports");
+
+	PCGEXTENDEDTOOLKIT_API
+	void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
+
 	class PCGEXTENDEDTOOLKIT_API FMeshLookup : public TSharedFromThis<FMeshLookup>
 	{
 	protected:
 		uint32 InternalIdx = 0;
 		TArray<FVector>* Vertices = nullptr;
+		TArray<int32>* RawIndices = nullptr;
 		FVector HashTolerance = FVector(1 / 0.001);
 
 	public:
 		TMap<uint32, int32> Data;
 
-		explicit FMeshLookup(const int32 Size, TArray<FVector>* InVertices, const FVector& InHashTolerance)
-			: Vertices(InVertices), HashTolerance(InHashTolerance)
-		{
-			Data.Reserve(Size);
-			InVertices->Reserve(Size);
-		}
+		explicit FMeshLookup(const int32 Size, TArray<FVector>* InVertices, TArray<int32>* InRawIndices, const FVector& InHashTolerance);
 
-		uint32 Add_GetIdx(const FVector& Position);
+		uint32 Add_GetIdx(const FVector& Position, const int32 RawIndex);
 
 
 		FORCEINLINE int32 Num() const { return Data.Num(); }
@@ -55,13 +92,18 @@ namespace PCGExGeo
 	public:
 		bool bIsValid = false;
 		bool bIsLoaded = false;
+
 		TArray<FVector> Vertices;
+		TArray<int32> RawIndices;
+
 		TSet<uint64> Edges;
 		TArray<FIntVector3> Triangles;
 		TArray<FIntVector3> Tri_Adjacency;
 		TBitArray<> Tri_IsOnHull;
 		TSet<int32> HullIndices;
 		TSet<uint64> HullEdges;
+
+		bool bHasColorData = false;
 
 		EPCGExTriangulationType DesiredTriangulationType = EPCGExTriangulationType::Raw;
 
@@ -77,6 +119,8 @@ namespace PCGExGeo
 	public:
 		TObjectPtr<UStaticMesh> StaticMesh;
 		FVector CWTolerance = FVector(1 / 0.001);
+
+		const FStaticMeshLODResources* LODResource = nullptr;
 
 		explicit FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh);
 		explicit FGeoStaticMesh(const FSoftObjectPath& InSoftStaticMesh);

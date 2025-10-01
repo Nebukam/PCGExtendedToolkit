@@ -138,8 +138,8 @@ struct FPCGExPathCrossingsContext final : FPCGExPathProcessorContext
 	FString CanCutTag = TEXT("");
 	FString CanBeCutTag = TEXT("");
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> CanCutFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> CanBeCutFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> CanCutFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> CanBeCutFilterFactories;
 
 	UPCGExSubPointsBlendInstancedFactory* Blending = nullptr;
 

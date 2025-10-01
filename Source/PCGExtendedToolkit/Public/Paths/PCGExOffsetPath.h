@@ -4,10 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathCrossings.h"
 #include "PCGExPathProcessor.h"
-
-#include "PCGExPointsProcessor.h"
+#include "PCGExPaths.h"
 #include "Data/PCGExPointFilter.h"
 
 
@@ -77,7 +75,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Offset", EditCondition="OffsetInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double OffsetConstant = 1.0;
 
-	PCGEX_SETTING_VALUE_GET(Offset, double, OffsetInput, OffsetAttribute, OffsetConstant)
+	PCGEX_SETTING_VALUE_DECL(Offset, double)
 
 	/** Scale offset direction & distance using point scale.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
