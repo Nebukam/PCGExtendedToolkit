@@ -11,15 +11,10 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-#include "PCGExScopedContainers.h"
 #include "PCGExSorting.h"
-#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Data/Matching/PCGExMatching.h"
-#include "Details/PCGExDetailsSettings.h"
-#include "Geometry/PCGExGeoPointBox.h"
-
 
 #include "PCGExSampleNearestBounds.generated.h"
 
@@ -34,8 +29,18 @@ MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(SampledIndex, int32, -1)
 
+class UPCGExBlendOpFactory;
+
+namespace PCGExMT
+{
+	template<typename T>
+	class TScopedNumericValue;	
+}
+
 namespace PCGExDataBlending
 {
+	class IUnionBlender;
+	class FUnionOpsManager;
 	class FUnionBlender;
 }
 
@@ -170,7 +175,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="LookAtUpSelection == EPCGExSampleSource::Constant", EditConditionHides))
 	FVector LookAtUpConstant = FVector::UpVector;
 
-	PCGEX_SETTING_VALUE_GET(LookAtUp, FVector, LookAtUpSelection == EPCGExSampleSource::Constant ? EPCGExInputValueType::Constant : EPCGExInputValueType::Attribute, LookAtUpSource, LookAtUpConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(LookAtUp, FVector)
 
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))

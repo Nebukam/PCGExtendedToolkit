@@ -5,11 +5,14 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExProxyData.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Sampling/PCGExSampling.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExNormalizeElement"
 #define PCGEX_NAMESPACE Normalize
+
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExNormalizeSettings, Transform, FTransform, TransformInput, TransformAttribute, TransformConstant)
 
 UPCGExNormalizeSettings::UPCGExNormalizeSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

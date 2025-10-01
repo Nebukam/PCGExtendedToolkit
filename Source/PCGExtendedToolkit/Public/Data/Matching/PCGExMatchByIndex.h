@@ -8,8 +8,13 @@
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 
-
 #include "PCGExMatchByIndex.generated.h"
+
+namespace PCGEx
+{
+	template<typename T>
+	class TAttributeBroadcaster;
+}
 
 UENUM()
 enum class EPCGExMatchByIndexSource : uint8

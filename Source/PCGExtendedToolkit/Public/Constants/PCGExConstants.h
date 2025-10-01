@@ -11,7 +11,7 @@
 #include "PCGExContext.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExHelpers.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataHelpers.h"

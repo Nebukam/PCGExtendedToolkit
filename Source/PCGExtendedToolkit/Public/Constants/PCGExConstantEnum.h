@@ -4,7 +4,7 @@
 #pragma once
 #include "PCGExCompare.h"
 #include "PCGSettings.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExContext.h"
 #include "Elements/ControlFlow/PCGControlFlow.h"

@@ -5,11 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExData.h"
-#include "PCGExFactoryProvider.h"
-
-#include "PCGExPointFilter.h"
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "PCGExFilterGroup.generated.h"
 

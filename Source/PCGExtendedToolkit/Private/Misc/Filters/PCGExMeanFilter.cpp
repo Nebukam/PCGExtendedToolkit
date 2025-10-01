@@ -86,16 +86,16 @@ void PCGExPointFilter::FMeanFilter::PostInit()
 		ReferenceValue = SumValue / NumPoints;
 		break;
 	case EPCGExMeanMethod::Median:
-		ReferenceValue = PCGExMath::GetMedian(Values);
+		ReferenceValue = PCGExMean::GetMedian(Values);
 		break;
 	case EPCGExMeanMethod::Fixed:
 		ReferenceValue = TypedFilterFactory->Config.MeanValue;
 		break;
 	case EPCGExMeanMethod::ModeMin:
-		ReferenceValue = PCGExMath::GetMode(Values, false, TypedFilterFactory->Config.ModeTolerance);
+		ReferenceValue = PCGExMean::GetMode(Values, false, TypedFilterFactory->Config.ModeTolerance);
 		break;
 	case EPCGExMeanMethod::ModeMax:
-		ReferenceValue = PCGExMath::GetMode(Values, true, TypedFilterFactory->Config.ModeTolerance);
+		ReferenceValue = PCGExMean::GetMode(Values, true, TypedFilterFactory->Config.ModeTolerance);
 		break;
 	case EPCGExMeanMethod::Central:
 		ReferenceValue = DataMin + (DataMax - DataMin) * 0.5;

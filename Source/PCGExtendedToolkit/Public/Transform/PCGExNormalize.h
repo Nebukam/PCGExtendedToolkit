@@ -4,13 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
-#include "Details/PCGExDetailsSettings.h"
-
+#include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExNormalize.generated.h"
 
@@ -75,7 +73,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Transform", ClampMin=1, EditCondition="TransformInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FTransform TransformConstant = FTransform::Identity;
 
-	PCGEX_SETTING_VALUE_GET(Transform, FTransform, TransformInput, TransformAttribute, TransformConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(Transform, FTransform)
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

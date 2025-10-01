@@ -9,12 +9,11 @@
 #include "PCGExCompare.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsDistances.h"
-#include "Details/PCGExDetailsSettings.h"
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExDistanceFilter.generated.h"
+
 
 USTRUCT(BlueprintType)
 struct FPCGExDistanceFilterConfig
@@ -53,7 +52,7 @@ struct FPCGExDistanceFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bIgnoreSelf = false;
 
-	PCGEX_SETTING_VALUE_GET(DistanceThreshold, double, CompareAgainst, DistanceThreshold, DistanceThresholdConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(DistanceThreshold, double)
 
 	/** If enabled, when used with a collection filter, will use collection bounds as a proxy point instead of per-point testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

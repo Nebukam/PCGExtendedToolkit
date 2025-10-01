@@ -4,20 +4,27 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
+
 #include "PCGExWriteEdgeProperties.generated.h"
 
 #define PCGEX_FOREACH_FIELD_EDGEEXTRAS(MACRO) \
 MACRO(EdgeLength, double, 0) \
 MACRO(EdgeDirection, FVector, FVector::OneVector) \
 MACRO(Heuristics, double, 0)
+
+class UPCGExBlendOpFactory;
+
+namespace PCGExDataBlending
+{
+	class IBlender;
+	class FMetadataBlender;
+	class FBlendOpsManager;
+}
 
 UENUM()
 enum class EPCGExHeuristicsWriteMode : uint8
@@ -122,7 +129,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, DisplayName="Solidification Lerp", EditCondition="SolidificationLerpInput == EPCGExInputValueType::Constant && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	double SolidificationLerpConstant = 0.5;
 
-	PCGEX_SETTING_VALUE_GET(SolidificationLerp, double, SolidificationLerpInput, SolidificationLerpAttribute, SolidificationLerpConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(SolidificationLerp, double)
 
 	// Edge radiuses
 

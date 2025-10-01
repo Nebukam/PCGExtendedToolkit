@@ -9,11 +9,9 @@
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsSettings.h"
-
 
 #include "PCGExDotFilter.generated.h"
+
 
 USTRUCT(BlueprintType)
 struct FPCGExDotFilterConfig
@@ -56,7 +54,7 @@ struct FPCGExDotFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bTransformOperandB = false;
 
-	PCGEX_SETTING_VALUE_GET(OperandB, FVector, CompareAgainst, OperandB, OperandBConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(OperandB, FVector)
 
 	/** Dot comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))

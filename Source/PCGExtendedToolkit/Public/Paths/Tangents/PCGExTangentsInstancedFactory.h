@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExInstancedFactory.h"
 #include "PCGExOperation.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExTangentsInstancedFactory.generated.h"
 
@@ -113,7 +113,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentsScalingDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Arrive Scale", EditCondition="ArriveScaleInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double ArriveScaleConstant = 1;
 
-	PCGEX_SETTING_VALUE_GET(ArriveScale, FVector, ArriveScaleInput, ArriveScaleAttribute, FVector(ArriveScaleConstant))
+	PCGEX_SETTING_VALUE_GET_DECL(ArriveScale, FVector)
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType LeaveScaleInput = EPCGExInputValueType::Constant;
@@ -124,7 +124,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentsScalingDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Leave Scale", EditCondition="LeaveScaleInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double LeaveScaleConstant = 1;
 
-	PCGEX_SETTING_VALUE_GET(LeaveScale, FVector, LeaveScaleInput, LeaveScaleAttribute, FVector(LeaveScaleConstant))
+	PCGEX_SETTING_VALUE_GET_DECL(LeaveScale, FVector)
 };
 
 USTRUCT(BlueprintType)

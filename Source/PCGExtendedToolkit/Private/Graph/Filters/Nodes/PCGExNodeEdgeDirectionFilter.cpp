@@ -5,10 +5,13 @@
 
 
 #include "Data/PCGExData.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeEdgeDirectionFilter"
 #define PCGEX_NAMESPACE NodeEdgeDirectionFilter
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExNodeEdgeDirectionFilterConfig, Direction, FVector, CompareAgainst, Direction, DirectionConstant)
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExNodeEdgeDirectionFilterFactory::CreateFilter() const
 {

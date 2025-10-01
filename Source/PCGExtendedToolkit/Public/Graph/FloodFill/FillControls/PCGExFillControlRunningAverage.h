@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 #include "PCGExFillControlOperation.h"
 #include "PCGExFillControlsFactoryProvider.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExFillControlRunningAverage.generated.h"
 
@@ -36,7 +36,7 @@ struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBas
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Window Size", EditCondition="WindowSizeInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 WindowSize = 10;
 
-	PCGEX_SETTING_VALUE_GET(WindowSize, int32, WindowSizeInput, WindowSizeAttribute, WindowSize)
+	PCGEX_SETTING_VALUE_GET_DECL(WindowSize, int32)
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -50,7 +50,7 @@ struct FPCGExFillControlConfigRunningAverage : public FPCGExFillControlConfigBas
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Tolerance", EditCondition="ToleranceInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	double Tolerance = 10;
 
-	PCGEX_SETTING_VALUE_GET(Tolerance, double, ToleranceInput, ToleranceAttribute, Tolerance)
+	PCGEX_SETTING_VALUE_GET_DECL(Tolerance, double)
 
 	/** The property that will be averaged and checked against candidates -- will be broadcasted to a `double`. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

@@ -5,7 +5,7 @@
 
 #include "PCGComponent.h"
 #include "PCGExHelpers.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "PCGExMT.h"
 #include "PCGManagedResource.h"
 #include "Engine/AssetManager.h"

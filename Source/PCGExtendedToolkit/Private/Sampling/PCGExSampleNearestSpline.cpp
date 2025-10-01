@@ -3,12 +3,19 @@
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 
+#include "PCGExScopedContainers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/Blending//PCGExBlendModes.h"
 #include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
+
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExSampleNearestSplineSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExSampleNearestSplineSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
+PCGEX_SETTING_VALUE_GET_IMPL_BOOL(UPCGExSampleNearestSplineSettings, SampleAlpha, double, bSampleSpecificAlpha, SampleAlphaAttribute, SampleAlphaConstant)
+PCGEX_SETTING_VALUE_GET_IMPL_BOOL(UPCGExSampleNearestSplineSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
 namespace PCGExPolyPath
 {

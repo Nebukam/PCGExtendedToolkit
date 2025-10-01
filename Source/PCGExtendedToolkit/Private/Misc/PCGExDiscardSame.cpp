@@ -4,6 +4,7 @@
 #include "Misc/PCGExDiscardSame.h"
 
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Misc/PCGExDiscardByPointCount.h"
 

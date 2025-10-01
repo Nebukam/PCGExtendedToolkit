@@ -3,11 +3,16 @@
 
 #include "Paths/PCGExPathSlide.h"
 
+#include "Details/PCGExDetailsSettings.h"
+#include "Paths/PCGExPaths.h"
+
 #define LOCTEXT_NAMESPACE "PCGExPathSlideElement"
 #define PCGEX_NAMESPACE PathSlide
 
 PCGEX_INITIALIZE_ELEMENT(PathSlide)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSlide)
+
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExPathSlideSettings, SlideAmount, double, SlideAmountInput, SlideAmountAttribute, SlideAmountConstant)
 
 bool FPCGExPathSlideElement::Boot(FPCGExContext* InContext) const
 {

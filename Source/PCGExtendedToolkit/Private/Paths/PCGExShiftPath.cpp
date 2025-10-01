@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExShiftPath.h"
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPaths.h"
 

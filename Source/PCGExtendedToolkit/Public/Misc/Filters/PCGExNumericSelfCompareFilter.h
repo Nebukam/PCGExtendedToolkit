@@ -9,9 +9,6 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "PCGExMath.h"
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsSettings.h"
-
 
 #include "PCGExNumericSelfCompareFilter.generated.h"
 
@@ -26,9 +23,7 @@ struct FPCGExNumericSelfCompareFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNumericSelfCompareFilterConfig()
-	{
-	}
+	FPCGExNumericSelfCompareFilterConfig() = default;
 
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -62,7 +57,7 @@ struct FPCGExNumericSelfCompareFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Clamp;
 
-	PCGEX_SETTING_VALUE_GET(Index, int32, CompareAgainst, IndexAttribute, IndexConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(Index, int32)
 
 	/** How to deal with invalid indices */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

@@ -6,6 +6,7 @@
 #include "OrientedBoxTypes.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
+#include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
 #define PCGEX_NAMESPACE WritePathProperties

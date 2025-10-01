@@ -9,7 +9,6 @@
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGExSplineAlphaFilter.h"
 #include "PCGExSplineInclusionFilter.h"
 
@@ -20,9 +19,7 @@ struct FPCGExPathAlphaFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExPathAlphaFilterConfig()
-	{
-	}
+	FPCGExPathAlphaFilterConfig() = default;
 
 	/** Which point type to use. Shared amongst all points; if you want tight control, create a fully-fledged spline instead. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -64,7 +61,7 @@ struct FPCGExPathAlphaFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
-	PCGEX_SETTING_VALUE_GET(OperandB, double, CompareAgainst, OperandB, OperandBConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(OperandB, double)
 };
 
 UCLASS(Hidden, Deprecated, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/path-alpha"))

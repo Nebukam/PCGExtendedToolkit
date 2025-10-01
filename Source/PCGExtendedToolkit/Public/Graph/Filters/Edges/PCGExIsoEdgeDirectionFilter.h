@@ -4,7 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExMacros.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Graph/Filters/PCGExAdjacency.h"
 
 #include "Graph/PCGExCluster.h"
@@ -20,9 +21,7 @@ struct FPCGExIsoEdgeDirectionFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExIsoEdgeDirectionFilterConfig()
-	{
-	}
+	FPCGExIsoEdgeDirectionFilterConfig() = default;
 
 	/** Defines the direction in which points will be ordered to form the final paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -60,7 +59,7 @@ struct FPCGExIsoEdgeDirectionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ComparisonQuality == EPCGExDirectionCheckMode::Hash", EditConditionHides))
 	FPCGExVectorHashComparisonDetails HashComparisonDetails;
 
-	PCGEX_SETTING_VALUE_GET(Direction, FVector, CompareAgainst, Direction, DirectionConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(Direction, FVector)
 };
 
 /**

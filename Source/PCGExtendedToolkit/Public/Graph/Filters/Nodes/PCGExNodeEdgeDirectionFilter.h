@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Graph/Filters/PCGExAdjacency.h"
 
 #include "Graph/PCGExCluster.h"
@@ -19,9 +19,7 @@ struct FPCGExNodeEdgeDirectionFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNodeEdgeDirectionFilterConfig()
-	{
-	}
+	FPCGExNodeEdgeDirectionFilterConfig() = default;
 
 	/** Type of check; Note that Fast comparison ignores adjacency consolidation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
@@ -63,7 +61,7 @@ struct FPCGExNodeEdgeDirectionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ComparisonQuality == EPCGExDirectionCheckMode::Hash", EditConditionHides))
 	FPCGExVectorHashComparisonDetails HashComparisonDetails;
 
-	PCGEX_SETTING_VALUE_GET(Direction, FVector, CompareAgainst, Direction, DirectionConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(Direction, FVector)
 };
 
 /**

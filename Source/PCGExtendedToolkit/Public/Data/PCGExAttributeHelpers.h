@@ -10,7 +10,7 @@
 #include "Metadata/PCGMetadataCommon.h"
 #include "PCGExBroadcast.h"
 
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExAttributeHelpers.generated.h"
@@ -36,8 +36,6 @@ template <typename T>
 struct has_GetTypeHash_v<T, std::void_t<decltype(std::declval<T>().Foo(42))>> : std::true_type
 {
 };
-
-#pragma region Input Configs
 
 namespace PCGExData
 {
@@ -91,58 +89,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputConfig
 	 */
 	virtual bool Validate(const UPCGData* InData);
 	FString ToString() const { return GetName().ToString(); }
-};
-
-#pragma endregion
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetDetails
-{
-	GENERATED_BODY()
-
-	FPCGExAttributeSourceToTargetDetails()
-	{
-	}
-
-	/** Attribute to read on input */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName Source = NAME_None;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bOutputToDifferentName = false;
-
-	/** Attribute to write on output, if different from input */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputToDifferentName"))
-	FName Target = NAME_None;
-
-	bool WantsRemappedOutput() const { return (bOutputToDifferentName && Source != GetOutputName()); }
-
-	bool ValidateNames(FPCGExContext* InContext) const;
-	bool ValidateNamesOrProperties(FPCGExContext* InContext) const;
-
-	FName GetOutputName() const;
-
-	FPCGAttributePropertyInputSelector GetSourceSelector() const;
-	FPCGAttributePropertyInputSelector GetTargetSelector() const;
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSourceToTargetList
-{
-	GENERATED_BODY()
-
-	FPCGExAttributeSourceToTargetList()
-	{
-	}
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{Source}"))
-	TArray<FPCGExAttributeSourceToTargetDetails> Attributes;
-
-	bool IsEmpty() const { return Attributes.IsEmpty(); }
-	int32 Num() const { return Attributes.Num(); }
-
-	bool ValidateNames(FPCGExContext* InContext) const;
-	void GetSources(TArray<FName>& OutNames) const;
 };
 
 #pragma endregion

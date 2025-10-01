@@ -3,7 +3,7 @@
 
 #pragma once
 #include "PCGEx.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "Details/PCGExDetailsAxis.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 

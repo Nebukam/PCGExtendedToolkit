@@ -5,15 +5,17 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
-
-#include "PCGExPointsProcessor.h"
 #include "PCGExPaths.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Details/PCGExDetailsSettings.h"
-
 
 #include "PCGExBlendPath.generated.h"
+
+class UPCGExBlendOpFactory;
+
+namespace PCGExDataBlending
+{
+	class FBlendOpsManager;
+}
 
 class UPCGExSubPointsBlendInstancedFactory;
 
@@ -60,7 +62,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Lerp", ClampMin=0, EditCondition="BlendOver == EPCGExBlendOver::Fixed && LerpInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double LerpConstant = 0.5;
 
-	PCGEX_SETTING_VALUE_GET(Lerp, double, LerpInput, LerpAttribute, LerpConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(Lerp, double)
 
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

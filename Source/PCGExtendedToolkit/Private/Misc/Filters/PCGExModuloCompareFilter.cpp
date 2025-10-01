@@ -6,10 +6,14 @@
 #include "PCGExHelpers.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExModuloCompareFilterConfig, OperandB, double, OperandBSource, OperandB, OperandBConstant)
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExModuloCompareFilterConfig, OperandC, double, CompareAgainst, OperandC, OperandCConstant)
 
 bool UPCGExModuloCompareFilterFactory::DomainCheck()
 {

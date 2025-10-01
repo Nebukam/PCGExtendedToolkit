@@ -3,12 +3,14 @@
 
 #include "Misc/Filters/PCGExPathAlphaFilter.h"
 
-
 #include "PCGExHelpers.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathAlphaFilterDefinition"
 #define PCGEX_NAMESPACE PCGExPathAlphaFilterDefinition
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExPathAlphaFilterConfig, OperandB, double, CompareAgainst, OperandB, OperandBConstant)
 
 TArray<FPCGPinProperties> UDEPRECATED_PCGExPathAlphaFilterProviderSettings::InputPinProperties() const
 {

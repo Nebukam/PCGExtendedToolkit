@@ -3,9 +3,13 @@
 
 #include "Misc/Filters/PCGExNumericCompareNearestFilter.h"
 
+#include "Details/PCGExDetailsSettings.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExNumericCompareNearestFilterConfig, OperandB, double, CompareAgainst, OperandB, OperandBConstant)
 
 bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 {

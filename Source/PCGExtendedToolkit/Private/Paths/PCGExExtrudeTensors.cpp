@@ -10,9 +10,12 @@
 #include "Graph/PCGExGraph.h"
 #include "Paths/PCGExPathProcessor.h"
 
-
 #define LOCTEXT_NAMESPACE "PCGExExtrudeTensorsElement"
 #define PCGEX_NAMESPACE ExtrudeTensors
+
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExExtrudeTensorsSettings, MaxLength, double, MaxLengthInput, MaxLengthAttribute, MaxLength)
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExExtrudeTensorsSettings, MaxPointsCount, int32, MaxPointsCountInput, MaxPointsCountAttribute, MaxPointsCount)
+PCGEX_SETTING_VALUE_GET_IMPL_BOOL(UPCGExExtrudeTensorsSettings, Iterations, int32, bUsePerPointMaxIterations, IterationsAttribute, Iterations)
 
 TArray<FPCGPinProperties> UPCGExExtrudeTensorsSettings::InputPinProperties() const
 {

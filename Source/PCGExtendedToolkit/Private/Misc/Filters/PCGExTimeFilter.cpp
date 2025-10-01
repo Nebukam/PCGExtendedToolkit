@@ -6,10 +6,13 @@
 
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExTimeFilterDefinition"
 #define PCGEX_NAMESPACE PCGExTimeFilterDefinition
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExTimeFilterConfig, OperandB, float, CompareAgainst, OperandB, OperandBConstant)
 
 bool UPCGExTimeFilterFactory::SupportsCollectionEvaluation() const
 {

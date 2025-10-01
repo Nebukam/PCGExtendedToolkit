@@ -12,12 +12,7 @@ bool FPCGExProbeOperation::RequiresOctree() { return true; }
 
 bool FPCGExProbeOperation::RequiresChainProcessing() { return false; }
 
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExProbeConfigBase::GetValueSettingSearchRadius(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(SearchRadiusInput, SearchRadiusAttribute, SearchRadiusConstant);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExProbeConfigBase, SearchRadius, double, SearchRadiusInput, SearchRadiusAttribute, SearchRadiusConstant);
 
 bool FPCGExProbeOperation::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {

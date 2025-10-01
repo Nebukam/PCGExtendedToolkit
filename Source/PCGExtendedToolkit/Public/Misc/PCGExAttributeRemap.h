@@ -12,13 +12,17 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExScopedContainers.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExProxyData.h"
+#include "Details/PCGExDetailsAttributes.h"
 #include "Sampling/PCGExSampling.h"
 
 #include "PCGExAttributeRemap.generated.h"
 
+namespace PCGExMT
+{
+	template<typename T>
+	class TScopedNumericValue;	
+}
 
 namespace PCGExData
 {

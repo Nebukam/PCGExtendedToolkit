@@ -3,6 +3,7 @@
 
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"

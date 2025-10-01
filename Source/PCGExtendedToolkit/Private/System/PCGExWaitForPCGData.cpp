@@ -12,6 +12,7 @@
 #include "Misc/PCGExSortPoints.h"
 #include "Tasks/Task.h"
 #include "Async/Async.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"

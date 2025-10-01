@@ -4,14 +4,15 @@
 #include "Paths/PCGExPathInsert.h"
 
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExUnionBlender.h"
 #include "Details/PCGExDetailsDistances.h"
-
+#include "Details/PCGExDetailsSettings.h"
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathInsertElement"
 #define PCGEX_NAMESPACE PathInsert
+
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExPathInsertSettings, Range, int32, RangeInput, RangeAttribute, Range)
 
 TArray<FPCGPinProperties> UPCGExPathInsertSettings::InputPinProperties() const
 {

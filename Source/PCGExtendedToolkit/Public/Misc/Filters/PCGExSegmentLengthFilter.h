@@ -10,9 +10,6 @@
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsSettings.h"
-
 
 #include "PCGExSegmentLengthFilter.generated.h"
 
@@ -21,9 +18,7 @@ struct FPCGExSegmentLengthFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSegmentLengthFilterConfig()
-	{
-	}
+	FPCGExSegmentLengthFilterConfig() = default;
 
 	/** Whether to read the threshold from an attribute on the point or a constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -41,7 +36,7 @@ struct FPCGExSegmentLengthFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Squared Distance"))
 	bool bCompareAgainstSquaredDistance = false;
 
-	PCGEX_SETTING_VALUE_GET(Threshold, double, ThresholdInput, ThresholdAttribute, ThresholdConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(Threshold, double)
 
 	/** Comparison check */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -76,7 +71,7 @@ struct FPCGExSegmentLengthFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Tile on closed loops"))
 	bool bForceTileIfClosedLoop = true;
 
-	PCGEX_SETTING_VALUE_GET(Index, int32, CompareAgainst, IndexAttribute, IndexConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(Index, int32)
 
 	/** What should this filter return when the point required for computing length is invalid? (i.e, first or last point) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))

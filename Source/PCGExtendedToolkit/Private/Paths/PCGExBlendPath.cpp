@@ -5,10 +5,14 @@
 
 
 #include "Data/PCGExPointIO.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"
 #define PCGEX_NAMESPACE BlendPath
+
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExBlendPathSettings, Lerp, double, LerpInput, LerpAttribute, LerpConstant)
 
 UPCGExBlendPathSettings::UPCGExBlendPathSettings(
 	const FObjectInitializer& ObjectInitializer)

@@ -9,9 +9,7 @@
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGExPolyPathFilterFactory.h"
-#include "Details/PCGExDetailsSettings.h"
 
 #include "PCGExTimeFilter.generated.h"
 
@@ -28,9 +26,7 @@ struct FPCGExTimeFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExTimeFilterConfig()
-	{
-	}
+	FPCGExTimeFilterConfig() =default;
 
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -64,7 +60,7 @@ struct FPCGExTimeFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
-	PCGEX_SETTING_VALUE_GET(OperandB, float, CompareAgainst, OperandB, OperandBConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(OperandB, float)
 
 
 	/** If enabled, invert the result of the test */

@@ -4,6 +4,10 @@
 #include "Paths/Tangents/PCGExTangentsInstancedFactory.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
+#include "Details/PCGExDetailsSettings.h"
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExTangentsScalingDetails, ArriveScale, FVector, ArriveScaleInput, ArriveScaleAttribute, FVector(ArriveScaleConstant))
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExTangentsScalingDetails, LeaveScale, FVector, LeaveScaleInput, LeaveScaleAttribute, FVector(LeaveScaleConstant))
 
 #if WITH_EDITOR
 void FPCGExTangentsDetails::ApplyDeprecation(const bool bUseAttribute, const FName InArriveAttributeName, const FName InLeaveAttributeName)

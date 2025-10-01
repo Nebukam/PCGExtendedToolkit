@@ -5,17 +5,14 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
-
-#include "PCGExPointsProcessor.h"
 #include "Data/PCGExPointFilter.h"
-#include "Details/PCGExDetailsSettings.h"
 #include "Details/PCGExDetailsSubdivision.h"
+#include "Details/PCGExSettingsMacros.h"
 
-
-#include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
-#include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivide.generated.h"
 
+class UPCGExSubPointsBlendInstancedFactory;
+class FPCGExSubPointsBlendOperation;
 /**
  * 
  */
@@ -62,7 +59,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Attr)", EditCondition="SubdivideMethod != EPCGExSubdivideMode::Manhattan && AmountInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
-	PCGEX_SETTING_VALUE_GET(SubdivisionAmount, double, AmountInput, SubdivisionAmount, SubdivideMethod == EPCGExSubdivideMode::Count ? Count : Distance)
+	PCGEX_SETTING_VALUE_GET_DECL(SubdivisionAmount, double)
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod != EPCGExSubdivideMode::Manhattan && SubdivideMethod == EPCGExSubdivideMode::Distance", EditConditionHides))
 	bool bRedistributeEvenly = false;

@@ -5,6 +5,7 @@
 
 #include "PCGExMathBounds.h"
 #include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
@@ -53,11 +54,8 @@ FPCGExTensorConfigBase::FPCGExTensorConfigBase(const bool SupportAttributes, con
 	WeightAttribute.Update(TEXT("Steepness"));
 }
 
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExTensorConfigBase::GetValueSettingPotency(const bool bQuietErrors) const
-{ TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(PotencyInput, PotencyAttribute, Potency); V->bQuietErrors = bQuietErrors; return V; }
-
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExTensorConfigBase::GetValueSettingWeight(const bool bQuietErrors) const
-{ TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(WeightInput, WeightAttribute, Weight); V->bQuietErrors = bQuietErrors; return V; }
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExTensorConfigBase, Weight, double, WeightInput, WeightAttribute, Weight);
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExTensorConfigBase, Potency, double, PotencyInput, PotencyAttribute, Potency);
 
 void FPCGExTensorConfigBase::Init()
 {

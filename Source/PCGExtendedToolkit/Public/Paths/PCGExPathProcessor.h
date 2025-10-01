@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExPathProcessor.generated.h"
@@ -41,8 +40,8 @@ public:
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
-	virtual FName GetMainInputPin() const override { return PCGExPaths::SourcePathsLabel; }
-	virtual FName GetMainOutputPin() const override { return PCGExPaths::OutputPathsLabel; }
+	virtual FName GetMainInputPin() const override;
+	virtual FName GetMainOutputPin() const override;
 	virtual FString GetPointFilterTooltip() const override { return TEXT("Path points processing filters"); }
 
 	//~End UPCGExPointsProcessorSettings

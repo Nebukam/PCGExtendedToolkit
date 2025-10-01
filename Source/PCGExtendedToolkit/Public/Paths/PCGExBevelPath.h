@@ -5,11 +5,20 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFactoryProvider.h"
+#include "PCGExMathMean.h"
 #include "PCGExPathProcessor.h"
-#include "Details/PCGExDetailsSettings.h"
 #include "Details/PCGExDetailsSubdivision.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExBevelPath.generated.h"
+
+namespace PCGExPaths
+{
+	class FPathEdgeLength;
+	class FPath;
+	template<typename T>
+	class TPathEdgeExtra;
+}
 
 namespace PCGExBevelPath
 {
@@ -178,8 +187,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, EditCondition="bFlagSubdivision"))
 	FName SubdivisionFlagName = "IsSubdivision";
 
-	PCGEX_SETTING_VALUE_GET(Width, double, WidthInput, WidthAttribute, WidthConstant)
-	PCGEX_SETTING_VALUE_GET(Subdivisions, double, SubdivisionAmountInput, SubdivisionAmount, SubdivideMethod == EPCGExSubdivideMode::Count ? SubdivisionCount : SubdivisionDistance)
+	PCGEX_SETTING_VALUE_GET_DECL(Width, double)
+	PCGEX_SETTING_VALUE_GET_DECL(Subdivisions, double)
 
 	void InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const;
 };
@@ -290,7 +299,7 @@ namespace PCGExBevelPath
 			DefaultPointFilterValue = true;
 		}
 
-		FORCEINLINE double Len(const int32 Index) const { return PathLength->Get(Index); }
+		double Len(const int32 Index) const;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void PrepareSinglePoint(const int32 Index);

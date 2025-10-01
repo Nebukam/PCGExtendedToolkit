@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExAttributeRolling.h"
 
+#include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"

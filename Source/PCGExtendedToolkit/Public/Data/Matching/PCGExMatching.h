@@ -5,8 +5,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGExFilterGroup.h"
+#include "PCGExCommon.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExMatching.generated.h"
+
+struct FPCGPinProperties;
 
 UENUM()
 enum class EPCGExMapMatchMode : uint8

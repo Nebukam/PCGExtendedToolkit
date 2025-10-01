@@ -7,7 +7,9 @@
 #include "Components/SplineMeshComponent.h"
 
 #include "PCGExHelpers.h"
+#include "Collections/PCGExAssetLoader.h"
 #include "Data/PCGExDataTag.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
 
@@ -15,6 +17,9 @@
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshSimpleElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
+
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExPathSplineMeshSimpleSettings, StartOffset, FVector2D, StartOffsetInput, StartOffsetAttribute, StartOffset)
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExPathSplineMeshSimpleSettings, EndOffset, FVector2D, EndOffsetInput, EndOffsetAttribute, EndOffset)
 
 #if WITH_EDITOR
 void UPCGExPathSplineMeshSimpleSettings::ApplyDeprecation(UPCGNode* InOutNode)

@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExBoundsClustersIntersection.h"
 
+#include "Data/PCGExData.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

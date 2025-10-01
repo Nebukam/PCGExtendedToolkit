@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -19,9 +19,7 @@ struct FPCGExNodeNeighborsCountFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNodeNeighborsCountFilterConfig()
-	{
-	}
+	FPCGExNodeNeighborsCountFilterConfig() = default;
 
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -43,7 +41,7 @@ struct FPCGExNodeNeighborsCountFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
-	PCGEX_SETTING_VALUE_GET(LocalCount, double, CompareAgainst, LocalCount, Count)
+	PCGEX_SETTING_VALUE_GET_DECL(LocalCount, double)
 };
 
 /**

@@ -12,7 +12,7 @@
 
 #include "PCGExtendedToolkit.h"
 #include "PCGContext.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "Async/Async.h"
 #include "Metadata/PCGMetadata.h"

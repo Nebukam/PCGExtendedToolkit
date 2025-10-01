@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExPickerFilter.h"
 
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Misc/Pickers/PCGExPicker.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"

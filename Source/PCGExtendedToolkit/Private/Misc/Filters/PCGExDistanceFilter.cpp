@@ -3,9 +3,13 @@
 
 #include "Misc/Filters/PCGExDistanceFilter.h"
 
+#include "Details/PCGExDetailsSettings.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExDistanceFilterConfig, DistanceThreshold, double, CompareAgainst, DistanceThreshold, DistanceThresholdConstant)
 
 bool UPCGExDistanceFilterFactory::SupportsProxyEvaluation() const
 {

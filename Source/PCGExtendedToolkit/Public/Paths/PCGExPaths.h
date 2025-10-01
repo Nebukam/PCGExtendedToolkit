@@ -11,6 +11,7 @@
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExOctree.h"
 #include "Components/SplineMeshComponent.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdge.h"
 
@@ -21,12 +22,6 @@ struct FPCGSplineStruct;
 namespace ESplineMeshAxis
 {
 	enum Type : int;
-}
-
-namespace PCGExDetails
-{
-	template<typename T>
-	class TSettingValue;
 }
 
 struct FPCGExStaticMeshComponentDescriptor;
@@ -789,7 +784,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushStart && StartPushInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double StartPushConstant = 0.1;
 
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingStartPush(const bool bQuietErrors = false) const;
+	PCGEX_SETTING_VALUE_GET_DECL(StartPush, double);
 
 	/** If enabled, value will relative to the size of the segment */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushStart", EditConditionHides))
@@ -811,7 +806,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushEnd && EndPushInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double EndPushConstant = 0.1;
 
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingEndPush(const bool bQuietErrors = false) const;
+	PCGEX_SETTING_VALUE_GET_DECL(EndPush, double);
 
 	/** If enabled, value will relative to the size of the segment */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushEnd", EditConditionHides))

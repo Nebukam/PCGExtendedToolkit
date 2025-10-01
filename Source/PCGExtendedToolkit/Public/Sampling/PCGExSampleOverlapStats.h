@@ -5,11 +5,8 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExPointsProcessor.h"
-#include "PCGExSampling.h"
-
-
 #include "Misc/PCGExDiscardByOverlap.h"
+#include "PCGExSampling.h"
 
 #include "PCGExSampleOverlapStats.generated.h"
 

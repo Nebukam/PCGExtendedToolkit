@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExIntersections.h"
 
-#include "PCGExDetailsIntersection.h"
+#include "Details/PCGExDetailsIntersection.h"
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"

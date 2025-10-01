@@ -11,6 +11,12 @@
 
 #include "PCGExMatchAttrToAttr.generated.h"
 
+namespace PCGEx
+{
+	template<typename T>
+	class TAttributeBroadcaster;
+}
+
 USTRUCT(BlueprintType)
 struct FPCGExMatchAttrToAttrConfig : public FPCGExMatchRuleConfigBase
 {

@@ -25,9 +25,7 @@ struct FPCGExEdgeNeighborsCountFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExEdgeNeighborsCountFilterConfig()
-	{
-	}
+	FPCGExEdgeNeighborsCountFilterConfig() = default;
 
 	/** Whether to read the threshold from an attribute on the edge or a constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -57,7 +55,7 @@ struct FPCGExEdgeNeighborsCountFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
-	PCGEX_SETTING_VALUE_GET(Threshold, int32, ThresholdInput, ThresholdAttribute, ThresholdConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(Threshold, int32)
 };
 
 /**

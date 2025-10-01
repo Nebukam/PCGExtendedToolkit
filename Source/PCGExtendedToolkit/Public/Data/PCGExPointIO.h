@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/UObjectGlobals.h"
-#include "Data/PCGPointArrayData.h"
 #include "UObject/Object.h"
 #include "UObject/Package.h"
 #include "PCGPoint.h"

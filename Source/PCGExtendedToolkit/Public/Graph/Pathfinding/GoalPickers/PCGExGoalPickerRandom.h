@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExGoalPickerRandom.generated.h"
 
@@ -53,7 +53,7 @@ public:
 
 	virtual void Cleanup() override;
 
-	PCGEX_SETTING_VALUE_GET(NumGoals, int32, NumGoalsType, NumGoalAttribute, NumGoals)
+	PCGEX_SETTING_VALUE_GET_DECL(NumGoals, int32)
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<int32>> NumGoalsBuffer;

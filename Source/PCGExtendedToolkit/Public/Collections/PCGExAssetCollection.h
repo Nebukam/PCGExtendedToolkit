@@ -15,17 +15,13 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 #include "Transform/PCGExTransform.h"
 #include "Transform/PCGExFitting.h"
 
 #include "PCGExAssetCollection.generated.h"
 
-namespace PCGExDetails
-{
-	template<typename T>
-	class TSettingValue;
-}
 
 #define PCGEX_ASSET_COLLECTION_GET_ENTRY(_TYPE, _ENTRY_TYPE)\
 virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const UPCGExAssetCollection*& OutHost) override {\
@@ -241,7 +237,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionIndexDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector IndexSource;
 
-	TSharedPtr<PCGExDetails::TSettingValue<int32>> GetValueSettingIndex(const bool bQuietErrors = false) const;
+	PCGEX_SETTING_VALUE_GET_DECL(Index, int32);
 
 	/** Whether to remap index input value to collection size */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -307,8 +303,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Category", meta=(PCG_Overridable, DisplayName="Category", EditCondition="bUseCategories && CategoryInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FName Category = FName("Category");
 
-	TSharedPtr<PCGExDetails::TSettingValue<FName>> GetValueSettingCategory(const bool bQuietErrors = false) const;
-
+	PCGEX_SETTING_VALUE_GET_DECL(Category, FName);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
 	uint8 SeedComponents = 0;

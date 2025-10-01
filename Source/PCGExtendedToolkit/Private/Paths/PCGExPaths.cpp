@@ -1045,20 +1045,8 @@ namespace PCGExPaths
 	}
 }
 
-
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExSplineMeshMutationDetails::GetValueSettingStartPush(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(StartPushInput, StartPushInputAttribute, StartPushConstant);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
-
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExSplineMeshMutationDetails::GetValueSettingEndPush(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(EndPushInput, EndPushInputAttribute, EndPushConstant);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExSplineMeshMutationDetails, StartPush, double, StartPushInput, StartPushInputAttribute, StartPushConstant);
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExSplineMeshMutationDetails, EndPush, double, EndPushInput, EndPushInputAttribute, EndPushConstant);
 
 bool FPCGExSplineMeshMutationDetails::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {

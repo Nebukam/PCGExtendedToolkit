@@ -7,9 +7,11 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Details/PCGExDetailsAttributes.h"
 
 #include "PCGExReduceDataAttribute.generated.h"
+
+class FPCGMetadataAttributeBase;
 
 UENUM()
 enum class EPCGExReduceDataDomainMethod : uint8

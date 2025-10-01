@@ -7,12 +7,14 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
 
-#include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Details/PCGExDetailsSettings.h"
 
 #include "PCGExPathInsert.generated.h"
+
+namespace PCGExDetails
+{
+	class FDistances;
+}
 
 /**
  * 
@@ -60,7 +62,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Range", EditCondition="bWithinRange && RangeInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	double Range = 100;
 
-	PCGEX_SETTING_VALUE_GET(Range, int32, RangeInput, RangeAttribute, Range)
+	PCGEX_SETTING_VALUE_GET_DECL(Range, int32)
 
 
 	/** Meta filter settings. */

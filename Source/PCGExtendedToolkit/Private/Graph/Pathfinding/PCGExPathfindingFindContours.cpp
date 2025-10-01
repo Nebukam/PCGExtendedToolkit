@@ -3,6 +3,7 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindContours.h"
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 

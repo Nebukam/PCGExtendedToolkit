@@ -4,6 +4,7 @@
 #include "Graph/PCGExMeshToClusters.h"
 
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "GameFramework/Actor.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"

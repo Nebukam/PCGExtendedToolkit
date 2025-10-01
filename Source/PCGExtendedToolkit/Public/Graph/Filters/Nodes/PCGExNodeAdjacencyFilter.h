@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "Graph/Filters/PCGExAdjacency.h"
 #include "Graph/PCGExCluster.h"
@@ -18,9 +18,7 @@ struct FPCGExNodeAdjacencyFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNodeAdjacencyFilterConfig()
-	{
-	}
+	FPCGExNodeAdjacencyFilterConfig() = default;
 
 	/** Adjacency Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -54,8 +52,8 @@ struct FPCGExNodeAdjacencyFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
-	PCGEX_SETTING_VALUE_GET(OperandA, double, CompareAgainst, OperandA, OperandAConstant)
-	PCGEX_SETTING_VALUE_GET(OperandB, double, EPCGExInputValueType::Attribute, OperandB, 0)
+	PCGEX_SETTING_VALUE_GET_DECL(OperandA, double)
+	PCGEX_SETTING_VALUE_GET_DECL(OperandB, double)
 };
 
 /**

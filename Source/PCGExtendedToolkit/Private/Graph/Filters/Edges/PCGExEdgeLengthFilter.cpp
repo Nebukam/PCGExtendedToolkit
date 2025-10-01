@@ -3,10 +3,13 @@
 
 #include "Graph/Filters/Edges/PCGExEdgeLengthFilter.h"
 
+#include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgeLengthFilter"
 #define PCGEX_NAMESPACE EdgeLengthFilter
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExEdgeLengthFilterConfig, Threshold, double, ThresholdInput, ThresholdAttribute, ThresholdConstant)
 
 bool UPCGExEdgeLengthFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {

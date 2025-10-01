@@ -5,16 +5,14 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExMath.h"
-
+#include "PCGExMathMean.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointFilter.h"
-#include "Pickers/PCGExPickerFactoryProvider.h"
-
 
 #include "PCGExUberFilterCollections.generated.h"
+
+class UPCGExPickerFactoryData;
 
 UENUM(BlueprintType)
 enum class EPCGExUberFilterCollectionsMode : uint8

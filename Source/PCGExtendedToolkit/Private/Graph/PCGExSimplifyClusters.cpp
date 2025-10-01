@@ -5,6 +5,7 @@
 
 
 #include "PCGExMath.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExChain.h"
 

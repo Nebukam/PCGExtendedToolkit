@@ -13,7 +13,7 @@
 #include "PCGExBroadcast.h"
 #include "PCGExHelpers.h"
 
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "PCGParamData.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"

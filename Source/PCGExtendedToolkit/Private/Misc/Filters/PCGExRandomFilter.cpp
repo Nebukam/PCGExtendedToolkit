@@ -6,10 +6,14 @@
 #include "PCGExRandom.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExRandomFilterConfig, Threshold, double, ThresholdInput, ThresholdAttribute, Threshold)
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExRandomFilterConfig, Weight, double, bPerPointWeight ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, Weight, 1)
 
 bool UPCGExRandomFilterFactory::Init(FPCGExContext* InContext)
 {

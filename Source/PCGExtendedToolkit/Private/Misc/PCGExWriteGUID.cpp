@@ -6,11 +6,14 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Helpers/PCGHelpers.h"
 #include "Misc/Guid.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteGUIDElement"
 #define PCGEX_NAMESPACE WriteGUID
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExGUIDDetails, UniqueKey, int32, UniqueKeyInput, UniqueKeyAttribute, UniqueKeyConstant)
 
 bool FPCGExGUIDDetails::Init(FPCGExContext* InContext, TSharedRef<PCGExData::FFacade>& InFacade)
 {

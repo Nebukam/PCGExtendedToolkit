@@ -16,8 +16,11 @@
 #endif
 
 #include "PCGEx.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "Details/PCGExDetailsSettings.h"
+
+PCGEX_SETTING_VALUE_GET_IMPL_BOOL(FPCGExAssetDistributionIndexDetails, Index, int32, true, IndexSource, -1);
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExAssetDistributionDetails, Category, FName, CategoryInput, CategoryAttribute, Category);
 
 namespace PCGExAssetCollection
 {
@@ -111,20 +114,6 @@ namespace PCGExAssetCollection
 			Weights[i] = WeightSum;
 		}
 	}
-}
-
-TSharedPtr<PCGExDetails::TSettingValue<int32>> FPCGExAssetDistributionIndexDetails::GetValueSettingIndex(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<int32>> V = PCGExDetails::MakeSettingValue<int32>(EPCGExInputValueType::Attribute, IndexSource, -1);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
-
-TSharedPtr<PCGExDetails::TSettingValue<FName>> FPCGExAssetDistributionDetails::GetValueSettingCategory(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<FName>> V = PCGExDetails::MakeSettingValue<FName>(CategoryInput, CategoryAttribute, Category);
-	V->bQuietErrors = bQuietErrors;
-	return V;
 }
 
 bool FPCGExSocketOutputDetails::Init(FPCGExContext* InContext)

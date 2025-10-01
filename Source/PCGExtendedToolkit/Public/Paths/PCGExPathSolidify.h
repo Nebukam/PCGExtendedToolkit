@@ -5,11 +5,16 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
-#include "Details/PCGExDetailsSettings.h"
-
+#include "Details/PCGExSettingsMacros.h"
 
 #include "Sampling/PCGExSampling.h"
 #include "PCGExPathSolidify.generated.h"
+
+namespace PCGExPaths
+{
+	class FPathEdgeLength;
+	class FPath;
+}
 
 /**
  * 
@@ -49,7 +54,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Solidification Lerp", EditCondition="SolidificationLerpInput == EPCGExInputValueType::Constant && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	double SolidificationLerpConstant = 0;
 
-	PCGEX_SETTING_VALUE_GET(SolidificationLerp, double, SolidificationLerpInput, SolidificationLerpAttribute, SolidificationLerpConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(SolidificationLerp, double)
 
 	// Edge radiuses
 

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 #include "PCGExOperation.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
 #include "UObject/Object.h"
@@ -24,12 +25,6 @@ namespace PCGExProbing
 namespace PCGExProbing
 {
 	struct FCandidate;
-}
-
-namespace PCGExDetails
-{
-	template<typename T>
-	class TSettingValue;
 }
 
 USTRUCT(BlueprintType)
@@ -63,7 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Offset", EditCondition="bSupportRadius && SearchRadiusInput != EPCGExInputValueType::Constant", EditConditionHides))
 	double SearchRadiusOffset = 0;
 
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingSearchRadius(const bool bQuietErrors = false) const;
+	PCGEX_SETTING_VALUE_GET_DECL(SearchRadius, double)
 };
 
 /**

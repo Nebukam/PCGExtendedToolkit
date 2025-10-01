@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExAttributeHelpers.h"
 #include "UObject/Object.h"
 
-#include "PCGExAttributeHelpers.h"
 #include "PCGExData.h"
 #include "PCGExMT.h"
 

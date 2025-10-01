@@ -8,7 +8,7 @@
 #include "PCGExLayout.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSorting.h"
-#include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Transform/PCGExTransform.h"
 
 #include "PCGExBinPacking.generated.h"
@@ -117,7 +117,7 @@ public:
 
 	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
 
-	PCGEX_SETTING_VALUE_GET(Padding, FVector, OccupationPaddingInput, OccupationPaddingAttribute, OccupationPadding)
+	PCGEX_SETTING_VALUE_GET_DECL(Padding, FVector)
 };
 
 struct FPCGExBinPackingContext final : FPCGExPointsProcessorContext

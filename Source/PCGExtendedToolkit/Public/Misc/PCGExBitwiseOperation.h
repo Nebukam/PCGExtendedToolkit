@@ -8,8 +8,6 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsSettings.h"
-
 
 #include "PCGExBitwiseOperation.generated.h"
 
@@ -51,7 +49,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int64 Bitmask;
 
-	PCGEX_SETTING_VALUE_GET(Mask, int64, MaskInput, MaskAttribute, Bitmask)
+	PCGEX_SETTING_VALUE_GET_DECL(Mask, int64)
 };
 
 struct FPCGExBitwiseOperationContext final : FPCGExPointsProcessorContext

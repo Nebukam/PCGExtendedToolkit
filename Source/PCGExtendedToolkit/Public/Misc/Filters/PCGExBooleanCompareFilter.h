@@ -9,9 +9,6 @@
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsSettings.h"
-
 
 #include "PCGExBooleanCompareFilter.generated.h"
 
@@ -45,7 +42,7 @@ struct FPCGExBooleanCompareFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B", EditCondition="CompareAgainst == EPCGExInputValueType::Constant", EditConditionHides))
 	bool OperandBConstant = true;
 
-	PCGEX_SETTING_VALUE_GET(OperandB, bool, CompareAgainst, OperandB, OperandBConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(OperandB, bool)
 };
 
 

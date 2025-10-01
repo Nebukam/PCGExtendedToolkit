@@ -786,7 +786,7 @@ template class PCGEXTENDEDTOOLKIT_API TDirectDataAttributeProxy<_TYPE_A, _TYPE_B
 			*/
 
 #define PCGEX_SWITCHON_WORKING(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...)	case EPCGMetadataTypes::_NAME_B : OutProxy = GetProxyBuffer<_TYPE_A, _TYPE_B>(InContext, InDescriptor, InDataFacade, PointData); break;
-#define PCGEX_SWITCHON_REAL(_TYPE, _NAME, ...)	case EPCGMetadataTypes::_NAME :	switch (InDescriptor.RealType){	PCGEX_INNER_FOREACH_TYPE2(_TYPE, _NAME, PCGEX_SWITCHON_WORKING) } break;
+#define PCGEX_SWITCHON_REAL(_TYPE, _NAME, ...)	case EPCGMetadataTypes::_NAME :	switch (InDescriptor.WorkingType){	PCGEX_INNER_FOREACH_TYPE2(_TYPE, _NAME, PCGEX_SWITCHON_WORKING) } break;
 
 		switch (InDescriptor.RealType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SWITCHON_REAL) }
 

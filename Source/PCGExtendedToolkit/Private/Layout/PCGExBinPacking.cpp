@@ -4,10 +4,13 @@
 #include "Layout/PCGExBinPacking.h"
 
 
+#include "Details/PCGExDetailsSettings.h"
 #include "Layout/PCGExLayout.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBinPackingElement"
 #define PCGEX_NAMESPACE BinPacking
+
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExBinPackingSettings, Padding, FVector, OccupationPaddingInput, OccupationPaddingAttribute, OccupationPadding)
 
 bool UPCGExBinPackingSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {

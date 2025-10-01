@@ -4,6 +4,7 @@
 #include "Paths/PCGExPathStitch.h"
 #include "PCGExMath.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointFilter.h"
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 

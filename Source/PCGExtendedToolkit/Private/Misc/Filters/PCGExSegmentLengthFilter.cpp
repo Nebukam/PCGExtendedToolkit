@@ -5,11 +5,14 @@
 
 #include "PCGExHelpers.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPaths.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExSegmentLengthFilterDefinition"
 #define PCGEX_NAMESPACE PCGExSegmentLengthFilterDefinition
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExSegmentLengthFilterConfig, Threshold, double, ThresholdInput, ThresholdAttribute, ThresholdConstant)
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExSegmentLengthFilterConfig, Index, int32, CompareAgainst, IndexAttribute, IndexConstant)
 
 bool UPCGExSegmentLengthFilterFactory::Init(FPCGExContext* InContext)
 {

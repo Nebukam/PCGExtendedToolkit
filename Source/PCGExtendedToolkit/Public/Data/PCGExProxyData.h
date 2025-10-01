@@ -5,12 +5,14 @@
 
 #include "CoreMinimal.h"
 #include "PCGExBroadcast.h"
-#include "PCGExHelpers.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "UObject/Object.h"
 
 struct FPCGExContext;
 class UPCGBasePointData;
+
+template <typename T>
+class FPCGMetadataAttribute;
 
 namespace PCGExData
 {

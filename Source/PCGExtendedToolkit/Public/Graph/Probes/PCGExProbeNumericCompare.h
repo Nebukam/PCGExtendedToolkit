@@ -9,8 +9,6 @@
 
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
-#include "Details/PCGExDetailsSettings.h"
-
 
 #include "PCGExProbeNumericCompare.generated.h"
 
@@ -24,10 +22,7 @@ struct FPCGExProbeConfigNumericCompare : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeConfigNumericCompare() :
-		FPCGExProbeConfigBase()
-	{
-	}
+	FPCGExProbeConfigNumericCompare() =default;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType MaxConnectionsInput = EPCGExInputValueType::Constant;
@@ -38,8 +33,7 @@ struct FPCGExProbeConfigNumericCompare : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Connections", ClampMin=0, EditCondition="MaxConnectionsInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	int32 MaxConnectionsConstant = 1;
 
-	PCGEX_SETTING_VALUE_GET(MaxConnections, int32, MaxConnectionsInput, MaxConnectionsAttribute, MaxConnectionsConstant)
-
+	PCGEX_SETTING_VALUE_GET_DECL(MaxConnections, int32)
 
 	/** Attribute to compare */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

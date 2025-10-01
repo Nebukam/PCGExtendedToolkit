@@ -4,9 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGEx.h"
 
 #include "PCGExOctree.h"
 #include "Data/PCGExDataForward.h"
+#include "Data/PCGExPointElements.h"
 #include "Graph/PCGExEdge.h"
 #include "Details/PCGExDetailsFusing.h"
 
@@ -28,6 +30,7 @@ namespace PCGExDataBlending
 
 namespace PCGExData
 {
+	class FPointIOCollection;
 	class FUnionMetadata;
 	class IUnionData;
 }

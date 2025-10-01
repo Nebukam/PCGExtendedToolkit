@@ -5,9 +5,12 @@
 
 #include "PCGExHelpers.h"
 #include "Data/PCGPolyLineData.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSplineAlphaFilterDefinition"
 #define PCGEX_NAMESPACE PCGExSplineAlphaFilterDefinition
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExSplineAlphaFilterConfig, OperandB, float, CompareAgainst, OperandB, OperandBConstant)
 
 TArray<FPCGPinProperties> UDEPRECATED_PCGExSplineAlphaFilterProviderSettings::InputPinProperties() const
 {

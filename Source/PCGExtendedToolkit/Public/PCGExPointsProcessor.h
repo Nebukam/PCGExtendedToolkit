@@ -8,7 +8,7 @@
 #include "CoreMinimal.h"
 #include "PCGPin.h"
 #include "PCGEx.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 
 #include "PCGExContext.h"
 #include "PCGExGlobalSettings.h" // Needed for child classes

@@ -4,11 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
+#include "PCGExMathMean.h"
 #include "PCGExPathfinding.h"
-#include "PCGExPointsProcessor.h"
-#include "Data/PCGExDataForward.h"
 
+#include "Data/PCGExDataForward.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Paths/PCGExPaths.h"

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactoryProvider.h"
 #include "PCGExMatching.h"
 #include "PCGExOperation.h"
 #include "PCGExPointsProcessor.h"
@@ -22,6 +23,11 @@ UPCGExFactoryData* UPCGExCreateMatch##_RULE##Settings::CreateFactory(FPCGExConte
 	NewFactory->Config = Config; \
 	return Super::CreateFactory(InContext, NewFactory);}
 
+
+namespace PCGExData
+{
+	struct FConstPoint;
+}
 
 namespace PCGExMatching
 {

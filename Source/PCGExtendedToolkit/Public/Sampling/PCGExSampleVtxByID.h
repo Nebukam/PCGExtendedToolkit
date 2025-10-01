@@ -8,13 +8,24 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-#include "PCGExScopedContainers.h"
-#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Data/Blending/PCGExUnionOpsManager.h"
-#include "Details/PCGExDetailsSettings.h"
 
 #include "PCGExSampleVtxByID.generated.h"
+
+class UPCGExBlendOpFactory;
+
+namespace PCGExDataBlending
+{
+	class IUnionBlender;
+	class FUnionOpsManager;
+}
+
+namespace PCGExMT
+{
+	template<typename T>
+	class TScopedNumericValue;	
+}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/vtx-by-id"))
 class UPCGExSampleVtxByIDSettings : public UPCGExPointsProcessorSettings
@@ -66,7 +77,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="LookAtUpInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector LookAtUpConstant = FVector::UpVector;
 
-	PCGEX_SETTING_VALUE_GET(LookAtUp, FVector, LookAtUpInput, LookAtUpSource, LookAtUpConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(LookAtUp, FVector)
 
 	//
 

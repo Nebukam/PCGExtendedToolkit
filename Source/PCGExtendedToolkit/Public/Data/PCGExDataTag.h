@@ -7,7 +7,7 @@
 #include "PCGExDataValue.h"
 #include "UObject/Object.h"
 
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "PCGExHelpers.h"
 
 #define PCGEX_FOREACH_SUPPORTEDTAGTYPE(MACRO) \

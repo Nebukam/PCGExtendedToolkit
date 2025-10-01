@@ -5,6 +5,7 @@
 #include "Shapes/PCGExShapeBuilderOperation.h"
 
 #include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Shapes/PCGExShapes.h"
 

@@ -9,11 +9,8 @@
 #include "Curves/RichCurve.h"
 
 #include "PCGExFilterFactoryProvider.h"
-
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-#include "Details/PCGExDetailsSettings.h"
-
+#include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExRandomFilter.generated.h"
 
@@ -48,7 +45,7 @@ struct FPCGExRandomFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", EditCondition="ThresholdInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0, ClampMax=1))
 	double Threshold = 0.5;
 
-	PCGEX_SETTING_VALUE_GET(Threshold, double, ThresholdInput, ThresholdAttribute, Threshold)
+	PCGEX_SETTING_VALUE_GET_DECL(Threshold, double)
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -62,7 +59,7 @@ struct FPCGExRandomFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Remap to 0..1", EditCondition="bPerPointWeight", HideEditConditionToggle, EditConditionHides))
 	bool bRemapWeightInternally = false;
 
-	PCGEX_SETTING_VALUE_GET(Weight, double, bPerPointWeight ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, Weight, 1)
+	PCGEX_SETTING_VALUE_GET_DECL(Weight, double)
 
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))

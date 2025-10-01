@@ -4,10 +4,15 @@
 #include "Shapes/Builders/PCGExShapeCircle.h"
 
 #include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderCircle"
 #define PCGEX_NAMESPACE CreateBuilderCircle
+
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExShapeCircleConfig, EndAngle, double, EndAngleInput, EndAngleAttribute, EndAngleConstant)
+PCGEX_SETTING_VALUE_GET_IMPL(FPCGExShapeCircleConfig, StartAngle, double, StartAngleInput, StartAngleAttribute, StartAngleConstant)
 
 bool FPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)
 {

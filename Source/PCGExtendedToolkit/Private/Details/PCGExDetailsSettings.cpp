@@ -5,7 +5,7 @@
 #include "Details/PCGExDetailsSettings.h"
 
 #include "PCGEx.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "PCGExCommon.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"

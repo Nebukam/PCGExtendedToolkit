@@ -5,11 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
-#include "Details/PCGExDetailsSettings.h"
-
 
 #include "PCGExProbeClosest.generated.h"
 
@@ -37,7 +34,7 @@ struct FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Connections", ClampMin=0, EditCondition="MaxConnectionsInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	int32 MaxConnectionsConstant = 1;
 
-	PCGEX_SETTING_VALUE_GET(MaxConnections, int32, MaxConnectionsInput, MaxConnectionsAttribute, MaxConnectionsConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(MaxConnections, int32)
 
 	/** Attempts to prevent connections that are roughly in the same direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))

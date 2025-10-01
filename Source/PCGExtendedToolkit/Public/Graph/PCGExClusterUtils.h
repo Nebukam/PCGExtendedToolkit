@@ -6,7 +6,7 @@
 #include <functional>
 
 #include "CoreMinimal.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 
 struct FPCGExContext;
 

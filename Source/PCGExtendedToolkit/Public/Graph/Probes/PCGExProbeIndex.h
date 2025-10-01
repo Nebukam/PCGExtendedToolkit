@@ -9,8 +9,6 @@
 
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
-#include "Details/PCGExDetailsSettings.h"
-
 
 #include "PCGExProbeIndex.generated.h"
 
@@ -55,7 +53,7 @@ struct FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Index", ClampMin=0, EditCondition="IndexInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 IndexConstant = 1;
 
-	PCGEX_SETTING_VALUE_GET(Index, int32, IndexInput, IndexAttribute, IndexConstant)
+	PCGEX_SETTING_VALUE_GET_DECL(Index, int32)
 };
 
 /**

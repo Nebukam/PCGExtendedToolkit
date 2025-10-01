@@ -4,13 +4,19 @@
 #include "Paths/PCGExSmooth.h"
 
 #include "PCGParamData.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Details/PCGExDetailsSettings.h"
+#include "Paths/PCGExPaths.h"
 
 
 #include "Paths/Smoothing/PCGExMovingAverageSmoothing.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSmoothElement"
 #define PCGEX_NAMESPACE Smooth
+
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExSmoothSettings, Influence, double, InfluenceInput, InfluenceAttribute, InfluenceConstant)
+PCGEX_SETTING_VALUE_GET_IMPL(UPCGExSmoothSettings, SmoothingAmount, double, SmoothingAmountType, SmoothingAmountAttribute, SmoothingAmountConstant)
 
 TArray<FPCGPinProperties> UPCGExSmoothSettings::InputPinProperties() const
 {
