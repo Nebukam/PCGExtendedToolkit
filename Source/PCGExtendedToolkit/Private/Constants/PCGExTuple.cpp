@@ -11,53 +11,6 @@
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE Tuple
 
-EPCGMetadataTypes PCGExTuple::GetMetadataType(const EPCGExTupleTypes Type)
-{
-	switch (Type)
-	{
-	case EPCGExTupleTypes::Float:
-		return EPCGMetadataTypes::Float;
-	case EPCGExTupleTypes::Double:
-		return EPCGMetadataTypes::Double;
-	case EPCGExTupleTypes::Integer32:
-		return EPCGMetadataTypes::Integer32;
-	case EPCGExTupleTypes::Vector2:
-		return EPCGMetadataTypes::Vector2;
-	case EPCGExTupleTypes::Vector:
-		return EPCGMetadataTypes::Vector;
-	case EPCGExTupleTypes::Vector4:
-		return EPCGMetadataTypes::Vector4;
-	case EPCGExTupleTypes::Color:
-		return EPCGMetadataTypes::Vector4;
-	case EPCGExTupleTypes::Transform:
-		return EPCGMetadataTypes::Transform;
-	case EPCGExTupleTypes::String:
-		return EPCGMetadataTypes::String;
-	case EPCGExTupleTypes::Boolean:
-		return EPCGMetadataTypes::Boolean;
-	case EPCGExTupleTypes::Rotator:
-		return EPCGMetadataTypes::Rotator;
-	case EPCGExTupleTypes::Name:
-		return EPCGMetadataTypes::Name;
-	case EPCGExTupleTypes::SoftObjectPath:
-		return EPCGMetadataTypes::SoftObjectPath;
-	case EPCGExTupleTypes::SoftClassPath:
-		return EPCGMetadataTypes::SoftClassPath;
-	}
-
-	return EPCGMetadataTypes::Unknown;
-}
-
-FPCGMetadataAttributeBase* FPCGExTupleValueWrap::CreateAttribute(UPCGMetadata* Metadata, FName Name) const
-{
-	return nullptr;
-}
-
-void FPCGExTupleValueWrap::SetValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const
-{
-}
-
-
 #define PCGEX_FOREACH_TUPLETYPE(MACRO) \
 MACRO(float, Float) \
 MACRO(double, Double) \
@@ -90,26 +43,81 @@ MACRO(FName, Name) \
 MACRO(FSoftObjectPath, SoftObjectPath) \
 MACRO(FSoftClassPath, SoftClassPath)
 
+
+FPCGMetadataAttributeBase* FPCGExTupleValueWrap::CreateAttribute(UPCGMetadata* Metadata, FName Name) const
+{
+	return nullptr;
+}
+
+void FPCGExTupleValueWrap::InitEntry(const FPCGExTupleValueWrap* InHeader)
+{
+}
+
+void FPCGExTupleValueWrap::WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const
+{
+}
+
+void FPCGExTupleValueWrap::SanitizeEntry(const FPCGExTupleValueWrap* InHeader)
+{
+}
+
 #define PCGEX_TUPLE_TYPED_IMPL(_TYPE, _NAME)\
 FPCGMetadataAttributeBase* FPCGExTupleValueWrap##_NAME::CreateAttribute(UPCGMetadata* Metadata, FName Name) const{\
 	return Metadata->CreateAttribute<_TYPE>(Name, Value, true, true);}\
-void FPCGExTupleValueWrap##_NAME::SetValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const{\
+void FPCGExTupleValueWrap##_NAME::InitEntry(const FPCGExTupleValueWrap* InHeader){\
+	Value = static_cast<const FPCGExTupleValueWrap##_NAME*>(InHeader)->Value; }\
+void FPCGExTupleValueWrap##_NAME::WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const{\
 	static_cast<FPCGMetadataAttribute<_TYPE>*>(Attribute)->SetValue(Key, Value);}
 
 PCGEX_FOREACH_TUPLETYPE_BOILERPLATE(PCGEX_TUPLE_TYPED_IMPL)
 
 #undef PCGEX_TUPLE_TYPED_IMPL
 
-// Color must be FVector4
+#pragma region Color
+
 FPCGMetadataAttributeBase* FPCGExTupleValueWrapColor::CreateAttribute(UPCGMetadata* Metadata, FName Name) const
 {
 	return Metadata->CreateAttribute<FVector4>(Name, Value, true, true);
 }
 
-void FPCGExTupleValueWrapColor::SetValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const
+void FPCGExTupleValueWrapColor::InitEntry(const FPCGExTupleValueWrap* InHeader)
+{
+	Value = static_cast<const FPCGExTupleValueWrapColor*>(InHeader)->Value;
+}
+
+void FPCGExTupleValueWrapColor::WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const
 {
 	static_cast<FPCGMetadataAttribute<FVector4>*>(Attribute)->SetValue(Key, FVector4(Value));
 }
+
+#pragma endregion
+
+#pragma region Enum Selector
+
+FPCGMetadataAttributeBase* FPCGExTupleValueWrapEnumSelector::CreateAttribute(UPCGMetadata* Metadata, FName Name) const
+{
+	return Metadata->CreateAttribute<int64>(Name, Enum.Value, true, true);
+}
+
+void FPCGExTupleValueWrapEnumSelector::InitEntry(const FPCGExTupleValueWrap* InHeader)
+{
+	const FEnumSelector& ModelSelector = static_cast<const FPCGExTupleValueWrapEnumSelector*>(InHeader)->Enum;
+	Enum.Class = ModelSelector.Class;
+	Enum.Value = ModelSelector.Value;
+}
+
+void FPCGExTupleValueWrapEnumSelector::WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const
+{
+	static_cast<FPCGMetadataAttribute<FVector4>*>(Attribute)->SetValue(Key, Enum.Value);
+}
+
+void FPCGExTupleValueWrapEnumSelector::SanitizeEntry(const FPCGExTupleValueWrap* InHeader)
+{
+	const FEnumSelector& ModelSelector = static_cast<const FPCGExTupleValueWrapEnumSelector*>(InHeader)->Enum;
+	if (ModelSelector.Class != Enum.Class) { Enum = ModelSelector; }
+}
+
+#pragma endregion
 
 FPCGExTupleValueHeader::FPCGExTupleValueHeader()
 {
@@ -123,29 +131,19 @@ void FPCGExTupleValueHeader::SanitizeEntry(TInstancedStruct<FPCGExTupleValueWrap
 	FPCGExTupleValueWrap* CurrentData = InData.GetMutablePtr<FPCGExTupleValueWrap>();
 
 	if (!HeaderData) { return; }
-	if (CurrentData && CurrentData->GetValueType() == HeaderData->GetValueType())
+	if (CurrentData && InData.GetScriptStruct() == DefaultData.GetScriptStruct())
 	{
 		CurrentData->HeaderId = HeaderId;
+		CurrentData->SanitizeEntry(HeaderData);
 		return;
 	}
 
-#define PCGEX_INIT_TUPLE_ENTRY(_TYPE, _NAME)\
-	case EPCGExTupleTypes::_NAME:\
-	InData.InitializeAs<FPCGExTupleValueWrap##_NAME>();\
-	InData.GetMutable<FPCGExTupleValueWrap##_NAME>().Value = DefaultData.Get<FPCGExTupleValueWrap##_NAME>().Value;\
-	break;
-
-	switch (HeaderData->GetValueType())
-	{
-	PCGEX_FOREACH_TUPLETYPE(PCGEX_INIT_TUPLE_ENTRY)
-	}
-
-#undef PCGEX_INIT_TUPLE_ENTRY
-
+	InData.InitializeAsScriptStruct(DefaultData.GetScriptStruct());
 	CurrentData = InData.GetMutablePtr<FPCGExTupleValueWrap>();
 	if (CurrentData)
 	{
 		CurrentData->HeaderId = HeaderId;
+		CurrentData->InitEntry(HeaderData);
 	}
 }
 
@@ -180,8 +178,9 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 	bool bReordered = false;
 	for (FPCGExTupleValueHeader& Header : Composition)
 	{
-		int32 Index = Guids.Add(Header.HeaderId);
+		if (FPCGExTupleValueWrap* Model = Header.DefaultData.GetMutablePtr<FPCGExTupleValueWrap>()) { Model->bIsModel = true; }
 
+		int32 Index = Guids.Add(Header.HeaderId);
 		if (Header.Order != Index)
 		{
 			Header.Order = Index;
@@ -242,13 +241,7 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 		for (int i = 0; i < Composition.Num(); i++)
 		{
 			FPCGExTupleValueHeader& Header = Composition[i];
-			const FPCGExTupleValueWrap* HeaderData = Header.DefaultData.GetPtr<FPCGExTupleValueWrap>();
-
-			if (!HeaderData) { continue; }
-
-			const EPCGExTupleTypes HeaderType = HeaderData->GetValueType();
-			Header.UnderlyingType = PCGExTuple::GetMetadataType(HeaderType);
-
+			if (const FPCGExTupleValueWrap* HeaderData = Header.DefaultData.GetPtr<FPCGExTupleValueWrap>(); !HeaderData) { continue; }
 			for (FPCGExTupleBody& Body : Values) { Header.SanitizeEntry(Body.Row[i]); }
 		}
 	}
@@ -305,7 +298,7 @@ bool FPCGExTupleElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			const FPCGExTupleValueWrap* Row = Settings->Values[k].Row[i].GetPtr<FPCGExTupleValueWrap>();
 			if (!Row) { continue; }
-			Row->SetValue(Attribute, Keys[k]);
+			Row->WriteValue(Attribute, Keys[k]);
 		}
 	}
 

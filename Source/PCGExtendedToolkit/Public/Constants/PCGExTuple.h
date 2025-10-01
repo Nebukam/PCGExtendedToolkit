@@ -6,37 +6,14 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCompare.h"
+#include "PCGExConstantEnum.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGSettings.h"
+#include "StructUtils/InstancedStruct.h"
 
 #include "PCGExTuple.generated.h"
 
 class FPCGMetadataAttributeBase;
-
-UENUM(BlueprintType)
-enum class EPCGExTupleTypes : uint8
-{
-	Float = 0,
-	Double,
-	Integer32,
-	Vector2,
-	Vector,
-	Vector4,
-	Color,
-	Transform,
-	String,
-	Boolean,
-	Rotator,
-	Name,
-	SoftObjectPath,
-	SoftClassPath
-};
-
-namespace PCGExTuple
-{
-	PCGEXTENDEDTOOLKIT_API
-	EPCGMetadataTypes GetMetadataType(EPCGExTupleTypes Type);
-}
 
 #pragma region Singles
 
@@ -48,19 +25,28 @@ struct FPCGExTupleValueWrap
 	UPROPERTY()
 	int32 HeaderId = 0;
 
+	UPROPERTY()
+	bool bIsModel = false;
+	
 	FPCGExTupleValueWrap() = default;
 	virtual ~FPCGExTupleValueWrap() = default;
 
-	virtual EPCGExTupleTypes GetValueType() const { return EPCGExTupleTypes::Float; };
 	virtual FPCGMetadataAttributeBase* CreateAttribute(UPCGMetadata* Metadata, FName Name) const;
 
-	virtual void SetValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const;
+	/** Called once when row entry is initialized, because the header type has been changed */
+	virtual void InitEntry(const FPCGExTupleValueWrap* InHeader);
+	
+	/** Called when the data is written to an attribute */
+	virtual void WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const;
+
+	/** Called on existing entries when a modification occurs*/
+	virtual void SanitizeEntry(const FPCGExTupleValueWrap* InHeader);
 };
 
 #define PCGEX_TUPLE_WRAP_DECL(_TYPE)\
-virtual EPCGExTupleTypes GetValueType() const override { return EPCGExTupleTypes::_TYPE; };\
 virtual FPCGMetadataAttributeBase* CreateAttribute(UPCGMetadata* Metadata, FName Name) const override;\
-virtual void SetValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const override;
+virtual void InitEntry(const FPCGExTupleValueWrap* InHeader);\
+virtual void WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const override;
 
 USTRUCT(BlueprintType, DisplayName="Boolean")
 struct FPCGExTupleValueWrapBoolean : public FPCGExTupleValueWrap
@@ -243,6 +229,22 @@ struct FPCGExTupleValueWrapSoftClassPath : public FPCGExTupleValueWrap
 
 	PCGEX_TUPLE_WRAP_DECL(SoftClassPath)
 };
+
+USTRUCT(BlueprintType, DisplayName="Enum Selector")
+struct FPCGExTupleValueWrapEnumSelector : public FPCGExTupleValueWrap
+{
+	GENERATED_BODY()
+
+	FPCGExTupleValueWrapEnumSelector() = default;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
+	FEnumSelector Enum;
+
+	PCGEX_TUPLE_WRAP_DECL(EnumSelector)
+
+	virtual void SanitizeEntry(const FPCGExTupleValueWrap* InHeader) override;
+};
+
 #pragma endregion
 
 USTRUCT(BlueprintType)
@@ -257,9 +259,6 @@ struct FPCGExTupleValueHeader
 
 	UPROPERTY()
 	int32 Order = -1;
-
-	UPROPERTY()
-	EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FName Name = NAME_None;
