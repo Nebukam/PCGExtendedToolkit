@@ -89,7 +89,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_EMPLACE_PIN_OUT(OUT_ClusterState, "PCGEx Vtx Node Flag");
 	PCGEX_MAP_PIN_OUT("Flag")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_Heuristic, "PCGEx Heuristic");
+	PCGEX_EMPLACE_PIN_OUT(OUT_Heuristics, "PCGEx Heuristic");
 	PCGEX_MAP_PIN_OUT("Heuristics")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Probe, "PCGEx Probe");
@@ -187,7 +187,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_MAP_PIN_IN("Flags")
 	PCGEX_MAP_PIN_IN("NodeFlags")
 
-	PCGEX_EMPLACE_PIN_IN(IN_Heuristic, "Expects PCGEx Heuristics, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_Heuristics, "Expects PCGEx Heuristics, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Heuristics")
 
 	PCGEX_EMPLACE_PIN_IN(IN_Probe, "Expects PCGEx Probes, supports multiple inputs.");
