@@ -3,7 +3,6 @@
 
 #include "Data/Blending/PCGExUnionOpsManager.h"
 
-#include "PCGExDetailsData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExUnionData.h"
 

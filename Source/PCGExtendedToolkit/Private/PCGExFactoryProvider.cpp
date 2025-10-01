@@ -9,10 +9,13 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
 #include "PCGPin.h"
+#include "Data/PCGExPointIO.h"
 #include "Tasks/Task.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFactoryProvider"
 #define PCGEX_NAMESPACE PCGExFactoryProvider
+
+PCG_DEFINE_TYPE_INFO(FPCGExFactoryDataTypeInfo, UPCGExFactoryData)
 
 void UPCGExParamDataBase::OutputConfigToMetadata()
 {
@@ -67,7 +70,13 @@ TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FACTORY(GetMainOutputPin(), GetMainOutputPin().ToString(), Required, {})
+
+	{
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(GetMainOutputPin(), EPCGDataType::Param, false, false);
+		PCGEX_PIN_TOOLTIP(GetMainOutputPin().ToString())
+		PCGEX_PIN_STATUS(Required)
+	}
+
 	return PinProperties;
 }
 
@@ -78,7 +87,7 @@ FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 
 #if WITH_EDITOR
 FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT(""); }
-FLinearColor UPCGExFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilter; }
+FLinearColor UPCGExFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorDebug; }
 
 #ifndef PCGEX_CUSTOM_PIN_DECL
 #define PCGEX_CUSTOM_PIN_DECL
@@ -94,7 +103,6 @@ bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName&
 	}
 	return true;
 }
-
 
 void UPCGExFactoryProviderSettings::EDITOR_OpenNodeDocumentation() const
 {

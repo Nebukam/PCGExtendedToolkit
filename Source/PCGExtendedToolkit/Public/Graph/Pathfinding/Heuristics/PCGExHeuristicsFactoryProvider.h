@@ -40,6 +40,13 @@ void UPCGExHeuristicsFactory##_TYPE::RegisterAssetDependencies(FPCGExContext* In
 
 class FPCGExHeuristicOperation;
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Heuristic")
+struct FPCGExDataTypeInfoHeuristics : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
 {
@@ -110,6 +117,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryData : public UPCGExFactoryD
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoHeuristics)
+
 	FPCGExHeuristicConfigBase ConfigBase;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Heuristics; }
@@ -125,11 +134,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryProviderSettings : public UP
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoHeuristics)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AbstractHeuristics, "Heuristics Definition", "Creates a single heuristic computational node, to be used with pathfinding nodes.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorHeuristics; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorHeuristics; }
 #endif
 	//~End UPCGSettings
 

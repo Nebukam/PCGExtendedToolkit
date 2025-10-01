@@ -5,12 +5,16 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
 #include "PCGExMatchRuleFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
 
-
 #include "PCGExMatchTagToAttr.generated.h"
+
+namespace PCGEx
+{
+	template <typename T>
+	class TAttributeBroadcaster;
+}
 
 USTRUCT(BlueprintType)
 struct FPCGExMatchTagToAttrConfig : public FPCGExMatchRuleConfigBase

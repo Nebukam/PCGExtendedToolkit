@@ -5,15 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-
 
 #include "PCGExDotFilter.generated.h"
+
 
 USTRUCT(BlueprintType)
 struct FPCGExDotFilterConfig
@@ -56,7 +54,7 @@ struct FPCGExDotFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bTransformOperandB = false;
 
-	PCGEX_SETTING_VALUE_GET(OperandB, FVector, CompareAgainst, OperandB, OperandBConstant)
+	PCGEX_SETTING_VALUE_DECL(OperandB, FVector)
 
 	/** Dot comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
@@ -71,7 +69,7 @@ struct FPCGExDotFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExDotFilterFactory : public UPCGExFilterFactoryData
+class UPCGExDotFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

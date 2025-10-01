@@ -5,11 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExData.h"
-#include "PCGExFactoryProvider.h"
-
-#include "PCGExPointFilter.h"
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "PCGExFilterGroup.generated.h"
 
@@ -29,11 +24,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterGroupFactoryData : public UPCGExCluster
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilter)
+
 	UPROPERTY()
 	bool bInvert = false;
 
 	UPROPERTY()
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
 
 	virtual bool SupportsProxyEvaluation() const override;
 	virtual bool SupportsCollectionEvaluation() const override;
@@ -78,7 +75,7 @@ namespace PCGExFilterGroup
 	class PCGEXTENDEDTOOLKIT_API FFilterGroup : public PCGExClusterFilter::IFilter
 	{
 	public:
-		explicit FFilterGroup(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories):
+		explicit FFilterGroup(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories):
 			IFilter(InFactory), GroupFactory(InFactory), ManagedFactories(InFilterFactories)
 		{
 		}
@@ -86,7 +83,7 @@ namespace PCGExFilterGroup
 		bool bValid = false;
 		bool bInvert = false;
 		const UPCGExFilterGroupFactoryData* GroupFactory;
-		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* ManagedFactories;
+		const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* ManagedFactories;
 
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Group; }
 
@@ -116,7 +113,7 @@ namespace PCGExFilterGroup
 	class PCGEXTENDEDTOOLKIT_API FFilterGroupAND final : public FFilterGroup
 	{
 	public:
-		explicit FFilterGroupAND(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories):
+		explicit FFilterGroupAND(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories):
 			FFilterGroup(InFactory, InFilterFactories)
 		{
 		}
@@ -155,7 +152,7 @@ namespace PCGExFilterGroup
 	class PCGEXTENDEDTOOLKIT_API FFilterGroupOR final : public FFilterGroup
 	{
 	public:
-		explicit FFilterGroupOR(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories):
+		explicit FFilterGroupOR(const UPCGExFilterGroupFactoryData* InFactory, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories):
 			FFilterGroup(InFactory, InFilterFactories)
 		{
 		}

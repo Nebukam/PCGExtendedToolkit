@@ -5,14 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
 
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-
 
 #include "PCGExNumericCompareFilter.generated.h"
 
@@ -22,9 +19,7 @@ struct FPCGExNumericCompareFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNumericCompareFilterConfig()
-	{
-	}
+	FPCGExNumericCompareFilterConfig() = default;
 
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -50,7 +45,7 @@ struct FPCGExNumericCompareFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
-	PCGEX_SETTING_VALUE_GET(OperandB, double, CompareAgainst, OperandB, OperandBConstant)
+	PCGEX_SETTING_VALUE_DECL(OperandB, double)
 };
 
 
@@ -58,7 +53,7 @@ struct FPCGExNumericCompareFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExNumericCompareFilterFactory : public UPCGExFilterFactoryData
+class UPCGExNumericCompareFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

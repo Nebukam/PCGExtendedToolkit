@@ -11,6 +11,13 @@
 
 #include "PCGExModularPartitionByValues.generated.h"
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Partition Rule")
+struct FPCGExDataTypeInfoPartitionRule : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 /**
  * 
  */
@@ -20,6 +27,8 @@ class UPCGExPartitionRule : public UPCGExFactoryData
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoPartitionRule)
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RulePartition; }
 	FPCGExPartitonRuleConfig Config;
 };
@@ -29,13 +38,16 @@ class UPCGExPartitionRuleProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoPartitionRule)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		PartitionRuleFactory, "Partition Rule", "Creates an single partition rule to be used with the Partition by Values node.",
 		FName(GetDisplayName()))
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorPartitionRule; }
 #endif
 	//~End UPCGSettings
 
@@ -66,7 +78,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ModularPartitionByValues, "Partition by Values", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a Merge before.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscAdd); }
 #endif
 
 protected:

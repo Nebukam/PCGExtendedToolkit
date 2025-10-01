@@ -19,7 +19,7 @@ namespace PCGEx
 
 class UPCGSettings;
 class UPCGExInstancedFactory;
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 namespace PCGExPointFilter
 {
@@ -128,7 +128,7 @@ namespace PCGExPointsMT
 
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
 
-		TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
+		TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
 		TArray<int8> PointFilterCache;
 
@@ -146,7 +146,7 @@ namespace PCGExPointsMT
 		virtual bool IsTrivial() const { return bIsTrivial; }
 
 		bool HasFilters() const { return FilterFactories != nullptr; }
-		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFactories);
+		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFactories);
 
 		virtual void RegisterConsumableAttributesWithFacade() const;
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader);
@@ -179,7 +179,7 @@ namespace PCGExPointsMT
 		virtual void Cleanup();
 
 	protected:
-		virtual bool InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories);
+		virtual bool InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories);
 		virtual int32 FilterScope(const PCGExMT::FScope& Scope);
 		virtual int32 FilterAll();
 	};
@@ -214,7 +214,7 @@ namespace PCGExPointsMT
 	{
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
-		TArray<TObjectPtr<const UPCGExFilterFactoryData>>* FilterFactories = nullptr;
+		TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* FilterFactories = nullptr;
 		TSharedPtr<PCGEx::FIntTracker> InitializationTracker = nullptr;
 
 		virtual TSharedPtr<IProcessor> NewProcessorInstance(const TSharedRef<PCGExData::FFacade>& InPointDataFacade) const;
@@ -259,7 +259,7 @@ namespace PCGExPointsMT
 		template <typename T>
 		TSharedRef<T> GetProcessorRef(const int32 Index) { return StaticCastSharedRef<T>(Processors[Index]); }
 
-		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories) { FilterFactories = InFilterFactories; }
+		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories) { FilterFactories = InFilterFactories; }
 
 		virtual bool PrepareProcessing();
 		virtual void Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager);

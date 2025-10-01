@@ -3,7 +3,10 @@
 
 #include "Graph/PCGExEdgesProcessor.h"
 
+
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
 
@@ -43,22 +46,22 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() con
 
 	if (!IsInputless())
 	{
-		if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputPin(), "The point data to be processed.", Required, {}) }
-		else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required, {}) }
+		if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputPin(), "The point data to be processed.", Required) }
+		else { PCGEX_PIN_POINT(GetMainInputPin(), "The point data to be processed.", Required) }
 	}
 
-	PCGEX_PIN_POINTS(PCGExGraph::SourceEdgesLabel, "Edges associated with the main input points", Required, {})
+	PCGEX_PIN_POINTS(PCGExGraph::SourceEdgesLabel, "Edges associated with the main input points", Required)
 
 	if (SupportsPointFilters())
 	{
-		if (RequiresPointFilters()) { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Required, {}) }
-		else { PCGEX_PIN_FACTORIES(GetPointFilterPin(), GetPointFilterTooltip(), Normal, {}) }
+		if (RequiresPointFilters()) { PCGEX_PIN_FILTERS(GetPointFilterPin(), GetPointFilterTooltip(), Required) }
+		else { PCGEX_PIN_FILTERS(GetPointFilterPin(), GetPointFilterTooltip(), Normal) }
 	}
 
 	if (SupportsEdgeSorting())
 	{
-		if (RequiresEdgeSorting()) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, {}) }
-		else { PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Normal, {}) }
+		if (RequiresEdgeSorting()) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Required, FPCGExDataTypeInfoSortRule::AsId()) }
+		else { PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeSortingRules, "Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.", Normal, FPCGExDataTypeInfoSortRule::AsId()) }
 	}
 	return PinProperties;
 }
@@ -66,7 +69,7 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() con
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Edges associated with the main output points", Required, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Edges associated with the main output points", Required)
 	return PinProperties;
 }
 

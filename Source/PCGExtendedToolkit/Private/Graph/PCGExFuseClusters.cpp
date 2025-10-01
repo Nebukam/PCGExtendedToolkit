@@ -2,6 +2,9 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExFuseClusters.h"
+
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGExUnionData.h"
 #include "Graph/PCGExIntersections.h"
 
 #include "Data/Blending/PCGExUnionBlender.h"

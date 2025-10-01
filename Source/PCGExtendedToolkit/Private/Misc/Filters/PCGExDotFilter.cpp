@@ -5,10 +5,14 @@
 
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExDotFilterDefinition"
 #define PCGEX_NAMESPACE PCGExDotFilterDefinition
+
+PCGEX_SETTING_VALUE_IMPL(FPCGExDotFilterConfig, OperandB, FVector, CompareAgainst, OperandB, OperandBConstant)
 
 bool UPCGExDotFilterFactory::Init(FPCGExContext* InContext)
 {

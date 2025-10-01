@@ -6,17 +6,21 @@
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
-#include "PCGExPointsProcessor.h"
-#include "Collections/PCGExAssetLoader.h"
-#include "Collections/PCGExMeshCollection.h"
+#include "Collections/PCGExAssetCollection.h"
+#include "Collections/PCGExComponentDescriptors.h"
 #include "Data/PCGExPointFilter.h"
-
 #include "Tangents/PCGExTangentsInstancedFactory.h"
-
 
 #include "PCGExPathSplineMeshSimple.generated.h"
 
 struct FPCGObjectPropertyOverrideDescription;
+
+namespace PCGEx
+{
+	template <typename T>
+	class TAssetLoader;
+}
+
 /**
  * 
  */
@@ -66,7 +70,7 @@ public:
 	/** The index of the slot to set the material to, if found.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Slot", EditCondition="bReadMaterialFromAttribute", EditConditionHides, HideEditConditionToggle))
 	int32 MaterialSlotConstant = 0;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta = (PCG_Overridable))
 	TSoftObjectPtr<AActor> TargetActor;
 
@@ -107,7 +111,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="Start Offset", EditCondition="StartOffsetInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector2D StartOffset = FVector2D::ZeroVector;
 
-	PCGEX_SETTING_VALUE_GET(StartOffset, FVector2D, StartOffsetInput, StartOffsetAttribute, StartOffset)
+	PCGEX_SETTING_VALUE_DECL(StartOffset, FVector2D)
 
 	/** Type of End Offset */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_NotOverridable))
@@ -121,7 +125,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="End Offset", EditCondition="EndOffsetInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector2D EndOffset = FVector2D::ZeroVector;
 
-	PCGEX_SETTING_VALUE_GET(EndOffset, FVector2D, EndOffsetInput, EndOffsetAttribute, EndOffset)
+	PCGEX_SETTING_VALUE_DECL(EndOffset, FVector2D)
 
 	/** Push details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations", meta=(PCG_Overridable, DisplayName="Expansion"))

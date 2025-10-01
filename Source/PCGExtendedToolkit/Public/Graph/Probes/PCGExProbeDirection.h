@@ -9,7 +9,6 @@
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
 
-
 #include "PCGExProbeDirection.generated.h"
 
 UENUM()
@@ -60,7 +59,7 @@ struct FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Direction", EditCondition="DirectionInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector DirectionConstant = FVector::ForwardVector;
 
-	PCGEX_SETTING_VALUE_GET(Direction, FVector, DirectionInput, DirectionAttribute, DirectionConstant)
+	PCGEX_SETTING_VALUE_DECL(Direction, FVector)
 
 	/** Transform the direction with the point's */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

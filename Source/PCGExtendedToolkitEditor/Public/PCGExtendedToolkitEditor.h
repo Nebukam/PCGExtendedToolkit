@@ -23,6 +23,8 @@ protected:
 	TSharedPtr<FPCGExActorDataPackerActions> ActorPackerActions;
 	TSharedPtr<FSlateStyleSet> Style;
 
+	void RegisterDataVisualizations();
 	void RegisterMenuExtensions();
 	void UnregisterMenuExtensions();
+
 };

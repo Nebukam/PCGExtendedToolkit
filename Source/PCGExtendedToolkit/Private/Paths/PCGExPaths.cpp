@@ -4,11 +4,12 @@
 #include "Paths/PCGExPaths.h"
 
 #include "Data/PCGSplineData.h"
+#include "Data/PCGSplineStruct.h"
 #include "GeomTools.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Graph/Probes/PCGExProbeDirection.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPaths"
 #define PCGEX_NAMESPACE PCGExPaths
@@ -856,7 +857,7 @@ namespace PCGExPaths
 		// Need to force-build path post initializations
 		this->BuildPath(Expansion);
 	}
-
+	
 	void FPolyPath::InitFromTransforms(const TConstPCGValueRange<FTransform>& InTransforms, const double ExpansionZ, const EPCGExWindingMutation WindingMutation)
 	{
 		const int32 NumPts = InTransforms.Num();
@@ -957,6 +958,11 @@ namespace PCGExPaths
 		return FMath::Min(OutEdgeIndex, this->LastEdge);
 	}
 
+	FCrossing::FCrossing(const uint64 InHash, const FVector& InLocation, const double InAlpha, const bool InIsPoint, const FVector& InDir)
+		: Hash(InHash), Location(InLocation), Alpha(InAlpha), bIsPoint(InIsPoint), Dir(InDir)
+	{
+	}
+
 #pragma endregion
 
 #pragma endregion
@@ -1039,6 +1045,8 @@ namespace PCGExPaths
 	}
 }
 
+PCGEX_SETTING_VALUE_IMPL(FPCGExSplineMeshMutationDetails, StartPush, double, StartPushInput, StartPushInputAttribute, StartPushConstant);
+PCGEX_SETTING_VALUE_IMPL(FPCGExSplineMeshMutationDetails, EndPush, double, EndPushInput, EndPushInputAttribute, EndPushConstant);
 
 bool FPCGExSplineMeshMutationDetails::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {

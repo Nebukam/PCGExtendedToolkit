@@ -8,6 +8,8 @@
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"
 
+PCGEX_SETTING_VALUE_IMPL(FPCGExTensorHandlerDetails, Size, double, SizeInput, SizeAttribute, SizeConstant)
+
 namespace PCGExTensor
 {
 	FTensorsHandler::FTensorsHandler(const FPCGExTensorHandlerDetails& InConfig)

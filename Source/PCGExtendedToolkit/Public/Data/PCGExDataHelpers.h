@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "PCGExCommon.h"
 
 struct FPCGExContext;

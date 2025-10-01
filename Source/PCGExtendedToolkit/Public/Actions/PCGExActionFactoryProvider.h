@@ -32,7 +32,7 @@ namespace PCGEx
 	class FAttributesInfos;
 }
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 namespace PCGExPointFilter
 {
@@ -68,17 +68,26 @@ protected:
 	TSharedPtr<PCGExPointFilter::FManager> FilterManager;
 };
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Action")
+struct FPCGExDataTypeInfoAction : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExActionFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoAction)
+
 	TSharedPtr<PCGEx::FAttributesInfos> CheckSuccessInfos;
 	TSharedPtr<PCGEx::FAttributesInfos> CheckFailInfos;
 
 	UPROPERTY(meta=(PCG_NotOverridable))
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Action; }
 	virtual TSharedPtr<FPCGExActionOperation> CreateOperation(FPCGExContext* InContext) const;
@@ -98,13 +107,15 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ActionAbstract, "Action : Abstract", "Abstract Action Provider.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorAction; }
 #endif
 
 protected:
 	virtual bool GetRequiresFilters() const { return true; }
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
+
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoAction)
 
 public:
 	virtual FName GetMainOutputPin() const override { return PCGExActions::OutputActionLabel; }

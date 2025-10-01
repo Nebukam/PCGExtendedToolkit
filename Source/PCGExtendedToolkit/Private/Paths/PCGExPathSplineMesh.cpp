@@ -48,7 +48,7 @@ TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::InputPinProperties() con
 
 	if (CollectionSource == EPCGExCollectionSource::AttributeSet)
 	{
-		PCGEX_PIN_PARAM(PCGExAssetCollection::SourceAssetCollection, "Attribute set to be used as collection.", Required, {})
+		PCGEX_PIN_PARAM(PCGExAssetCollection::SourceAssetCollection, "Attribute set to be used as collection.", Required)
 	}
 
 	return PinProperties;

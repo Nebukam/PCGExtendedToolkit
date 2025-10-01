@@ -7,9 +7,21 @@
 #include "Data/PCGExData.h"
 
 #include "PCGExDataBlending.h"
-#include "Data/Blending/PCGExBlendModes.h"
-#include "Data/PCGExProxyData.h"
-#include "Data/PCGExUnionData.h"
+
+namespace PCGExDetails
+{
+	class FDistances;
+}
+
+namespace PCGExData
+{
+	class IUnionData;
+
+	template <typename T>
+	class TBufferProxy;
+
+	struct FProxyDescriptor;
+}
 
 namespace PCGExDataBlending
 {
@@ -175,7 +187,7 @@ extern template void FProxyDataBlender::Set<_TYPE>(const int32 TargetIndex, cons
 		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> B;
 		TSharedPtr<PCGExData::TBufferProxy<T_WORKING>> C;
 
-		IProxyDataBlender() { UnderlyingType = PCGEx::GetMetadataType<T_WORKING>(); }
+		IProxyDataBlender();
 
 		virtual ~IProxyDataBlender() override = default;
 
@@ -194,14 +206,14 @@ extern template void FProxyDataBlender::Set<_TYPE>(const int32 TargetIndex, cons
 		virtual void Div(const int32 TargetIndex, const double Divider) override
 		PCGEX_NOT_IMPLEMENTED(Div(const int32 TargetIndex, const double Divider))
 
-		virtual TSharedPtr<PCGExData::IBuffer> GetOutputBuffer() const override { return C ? C->GetBuffer() : nullptr; }
+		virtual TSharedPtr<PCGExData::IBuffer> GetOutputBuffer() const override;
 
 		virtual bool InitFromParam(
 			FPCGExContext* InContext, const FBlendingParam& InParam, const TSharedPtr<PCGExData::FFacade> InTargetFacade,
 			const TSharedPtr<PCGExData::FFacade> InSourceFacade, const PCGExData::EIOSide InSide, const bool bWantsDirectAccess = false) override;
 
 	protected:
-#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void Set##_NAME(const int32 TargetIndex, const _TYPE Value) const override { C->Set(TargetIndex, PCGEx::Convert<_TYPE, T_WORKING>(Value)); };
+#define PCGEX_DECL_BLEND_BIT(_TYPE, _NAME, ...) virtual void Set##_NAME(const int32 TargetIndex, const _TYPE Value) const override;
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DECL_BLEND_BIT)
 #undef PCGEX_DECL_BLEND_BIT
 	};
@@ -235,7 +247,7 @@ extern template class IProxyDataBlender<_TYPE>;
 
 		// Target = Target / Divider
 		// Useful for finalizing multi-source ops
-		virtual void Div(const int32 TargetIndex, const double Divider) override { C->Set(TargetIndex, PCGExBlend::Div(C->Get(TargetIndex), Divider)); }
+		virtual void Div(const int32 TargetIndex, const double Divider) override;
 	};
 
 #pragma region externalization

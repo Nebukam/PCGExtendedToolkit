@@ -7,6 +7,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSubSystem.h"
 #include "PCGManagedResource.h"
+#include "Data/PCGExPointIO.h"
 
 
 #include "Misc/PCGExSortPoints.h"

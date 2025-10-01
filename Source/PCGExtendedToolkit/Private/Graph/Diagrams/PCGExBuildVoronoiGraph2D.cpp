@@ -6,6 +6,7 @@
 #include "PCGExRandom.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -83,8 +84,8 @@ void FPCGExVoronoiSitesOutputDetails::Output(const int32 SiteIndex)
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraph2DSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
-	if (bOutputSites) { PCGEX_PIN_POINTS(PCGExGraph::OutputSitesLabel, "Updated Delaunay sites.", Required, {}) }
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
+	if (bOutputSites) { PCGEX_PIN_POINTS(PCGExGraph::OutputSitesLabel, "Updated Delaunay sites.", Required) }
 	return PinProperties;
 }
 

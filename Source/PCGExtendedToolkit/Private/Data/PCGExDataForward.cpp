@@ -2,10 +2,12 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Data/PCGExDataForward.h"
+
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
-#include "Data/PCGExPointData.h"
+#include "Data/PCGExPointIO.h"
 
 void FPCGExForwardDetails::Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
 {

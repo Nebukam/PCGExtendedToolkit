@@ -9,6 +9,7 @@
 #include "PCGEx.h"
 #include "PCGExEdge.h"
 #include "PCGExMT.h"
+#include "Details/PCGExDetailsAxis.h"
 #include "Utils/PCGValueRange.h"
 
 #include "PCGExGraph.generated.h"

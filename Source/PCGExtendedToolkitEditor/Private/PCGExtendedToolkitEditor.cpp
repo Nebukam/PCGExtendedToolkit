@@ -9,30 +9,71 @@
 #include "EditorStyleSet.h"
 #include "Editor.h"
 
-#define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
-
 #define PCGEX_ADD_ICON(_NAME) \
 Style->Set("ClassIcon." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeIcon));\
 Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeThumbnail));
 
 #define PCGEX_ADD_PIN_EXTRA_ICON(_NAME) \
-AppStyle.Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));\
-Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));
+AppStyle.Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGEx_Pin_" #_NAME), TEXT(".svg")), SizePin));\
+Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGEx_Pin_" #_NAME), TEXT(".svg")), SizePin));
 
 #include "AssetToolsModule.h"
 #include "ContentBrowserMenuContexts.h"
 #include "IAssetTools.h"
 #include "PCGDataVisualizationRegistry.h"
+#include "PCGEditorSettings.h"
 #include "PCGExEditorMenuUtils.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGGraph.h"
 #include "PCGModule.h"
+#include "Actions/PCGExActionFactoryProvider.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Collections/PCGExActorCollectionActions.h"
 #include "Collections/PCGExMeshCollectionActions.h"
 #include "Collections/PCGExActorDataPackerActions.h"
 #include "Data/PCGSpatialData.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "DataViz/PCGExSpatialDataVisualization.h"
+#include "Graph/Data/PCGExClusterData.h"
+#include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
+#include "Graph/Filters/PCGExClusterFilter.h"
+#include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
+#include "Graph/Probes/PCGExProbeFactoryProvider.h"
+#include "Graph/States/PCGExClusterStates.h"
+#include "Misc/PCGExModularPartitionByValues.h"
+#include "Misc/Pickers/PCGExPickerFactoryProvider.h"
+#include "Sampling/PCGExTexParamFactoryProvider.h"
+#include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
+#include "Shapes/PCGExShapeBuilderFactoryProvider.h"
+#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
+
+#define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
+
+#define PCGEX_FOREACH_CUSTOM_DATA_TYPE(MACRO, ...)\
+MACRO(Action, __VA_ARGS__) \
+MACRO(BlendOp, __VA_ARGS__) \
+MACRO(MatchRule, __VA_ARGS__) \
+MACRO(Filter, __VA_ARGS__) \
+MACRO(FilterPoint, __VA_ARGS__) \
+MACRO(FilterCollection, __VA_ARGS__) \
+MACRO(FilterCluster, __VA_ARGS__) \
+MACRO(FilterVtx, __VA_ARGS__) \
+MACRO(FilterEdge, __VA_ARGS__) \
+MACRO(VtxProperty, __VA_ARGS__) \
+MACRO(NeighborSampler, __VA_ARGS__) \
+MACRO(FillControl, __VA_ARGS__) \
+MACRO(Heuristics, __VA_ARGS__) \
+MACRO(Probe, __VA_ARGS__) \
+MACRO(ClusterState, __VA_ARGS__) \
+MACRO(Picker, __VA_ARGS__) \
+MACRO(TexParam, __VA_ARGS__) \
+MACRO(Shape, __VA_ARGS__) \
+MACRO(Tensor, __VA_ARGS__) \
+MACRO(SortRule, __VA_ARGS__) \
+MACRO(PartitionRule, __VA_ARGS__) \
+MACRO(Vtx, __VA_ARGS__) \
+MACRO(Edges, __VA_ARGS__)
 
 namespace PCGExEditor
 {
@@ -80,13 +121,13 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 {
 	MeshCollectionActions = MakeShared<FPCGExMeshCollectionActions>();
 	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MeshCollectionActions.ToSharedRef());
-	
+
 	ActorCollectionActions = MakeShared<FPCGExActorCollectionActions>();
 	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(ActorCollectionActions.ToSharedRef());
-	
+
 	ActorPackerActions = MakeShared<FPCGExActorDataPackerActions>();
 	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(ActorPackerActions.ToSharedRef());
-	
+
 	// I know this is cursed
 	FSlateStyleSet& AppStyle = const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get()));
 
@@ -105,56 +146,22 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_ICON(PCGExCustomActorDataPacker)
 	PCGEX_ADD_ICON(PCGExBeacon)
 
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Filter)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_CFilter)
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Filters)
+#define PCGEX_REGISTER_PIN_ICON(_NAME, ...) \
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_##_NAME) \
+	PCGEX_ADD_PIN_EXTRA_ICON(IN_##_NAME)
 
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Heuristic)
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Heuristics)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Sorting)
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Sortings)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Probe)
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Probes)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Tex)
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Tex)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Vtx)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Edges)
-
+	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Special)
 	PCGEX_ADD_PIN_EXTRA_ICON(IN_Special)
 
-	PCGEX_ADD_PIN_EXTRA_ICON(IN_Partitions)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Partition)
+	PCGEX_FOREACH_CUSTOM_DATA_TYPE(PCGEX_REGISTER_PIN_ICON)
 
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_FilterNode)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_FilterEdges)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_NodeFlag)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_VtxProperty)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Action)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Blend)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Shape)
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Tensor)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Picker)
-
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_FillControl)
-	
-	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Matching)
+#undef PCGEX_REGISTER_PIN_AND_COLOR
 
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
 
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FPCGExtendedToolkitEditorModule::RegisterMenuExtensions));
 
-	if (GetDefault<UPCGExGlobalSettings>()->bPersistentDebug)
-	{
-		FPCGDataVisualizationRegistry& DataVisRegistry = FPCGModule::GetMutablePCGDataVisualizationRegistry();
-		DataVisRegistry.RegisterPCGDataVisualization(UPCGSpatialData::StaticClass(), MakeUnique<const IPCGExSpatialDataVisualization>());
-	}
+	RegisterDataVisualizations();
 }
 
 #undef PCGEX_ADD_ICON
@@ -163,6 +170,15 @@ void FPCGExtendedToolkitEditorModule::ShutdownModule()
 {
 	FSlateStyleRegistry::UnRegisterSlateStyle(Style->GetStyleSetName());
 	Style.Reset();
+}
+
+void FPCGExtendedToolkitEditorModule::RegisterDataVisualizations()
+{
+	if (GetDefault<UPCGExGlobalSettings>()->bPersistentDebug)
+	{
+		FPCGDataVisualizationRegistry& DataVisRegistry = FPCGModule::GetMutablePCGDataVisualizationRegistry();
+		DataVisRegistry.RegisterPCGDataVisualization(UPCGSpatialData::StaticClass(), MakeUnique<const IPCGExSpatialDataVisualization>());
+	}
 }
 
 void FPCGExtendedToolkitEditorModule::RegisterMenuExtensions()
@@ -193,6 +209,7 @@ void FPCGExtendedToolkitEditorModule::UnregisterMenuExtensions()
 {
 	UToolMenus::UnregisterOwner(this);
 }
+#undef PCGEX_FOREACH_CUSTOM_DATA_TYPE
 #undef LOCTEXT_NAMESPACE
 
 IMPLEMENT_MODULE(FPCGExtendedToolkitEditorModule, PCGExtendedToolkitEditor)

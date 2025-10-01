@@ -3,12 +3,15 @@
 
 #include "Misc/Filters/PCGExBitmaskFilter.h"
 
+#include "PCGExHelpers.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
-
+#include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
+
+PCGEX_SETTING_VALUE_IMPL(FPCGExBitmaskFilterConfig, Bitmask, int64, MaskInput, BitmaskAttribute, Bitmask)
 
 bool UPCGExBitmaskFilterFactory::DomainCheck()
 {

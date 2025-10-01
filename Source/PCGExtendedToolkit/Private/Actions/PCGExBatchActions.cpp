@@ -3,11 +3,13 @@
 
 #include "Actions/PCGExBatchActions.h"
 
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/States/PCGExClusterStates.h"
 #include "Actions/PCGExActionFactoryProvider.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
@@ -18,8 +20,8 @@ PCGExData::EIOInit UPCGExBatchActionsSettings::GetMainOutputInitMode() const { r
 TArray<FPCGPinProperties> UPCGExBatchActionsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExActions::SourceActionsLabel, "Actions nodes.", Normal, {})
-	PCGEX_PIN_ANY(PCGExActions::SourceDefaultsLabel, "Default values that match attributes when creating new attributes.", Normal, {})
+	PCGEX_PIN_FACTORIES(PCGExActions::SourceActionsLabel, "Actions nodes.", Normal, FPCGExDataTypeInfoAction::AsId())
+	PCGEX_PIN_ANY(PCGExActions::SourceDefaultsLabel, "Default values that match attributes when creating new attributes.", Normal)
 	return PinProperties;
 }
 

@@ -22,7 +22,7 @@ PCGEX_INITIALIZE_ELEMENT(SampleSockets)
 TArray<FPCGPinProperties> UPCGExSampleSocketsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExStaging::OutputSocketLabel, "Socket points.", Normal, {})
+	PCGEX_PIN_POINTS(PCGExStaging::OutputSocketLabel, "Socket points.", Normal)
 	return PinProperties;
 }
 

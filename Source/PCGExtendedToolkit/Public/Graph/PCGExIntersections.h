@@ -4,40 +4,79 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGEx.h"
 
 #include "PCGExOctree.h"
-#include "PCGExGraph.h"
-#include "PCGExEdge.h"
-#include "PCGExPointsProcessor.h"
-#include "Data/PCGExData.h"
 #include "Data/PCGExDataForward.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-
+#include "Data/PCGExPointElements.h"
+#include "Graph/PCGExEdge.h"
+#include "Details/PCGExDetailsFusing.h"
 
 #include "PCGExIntersections.generated.h"
 
 #define PCGEX_FOREACH_FIELD_INTERSECTION(MACRO)\
 MACRO(IsIntersection, bool, false)\
+MACRO(CutType, int32, CutTypeValueMapping[EPCGExCutType::Undefined])\
 MACRO(Normal, FVector, FVector::ZeroVector)\
-MACRO(BoundIndex, int32, -1)\
-MACRO(IsInside, bool, false)
+MACRO(BoundIndex, int32, -1)
+
+struct FPCGExEdgeEdgeIntersectionDetails;
+struct FPCGExPointEdgeIntersectionDetails;
+
+namespace PCGExDataBlending
+{
+	class FMetadataBlender;
+}
+
+namespace PCGExData
+{
+	class FPointIOCollection;
+	class FUnionMetadata;
+	class IUnionData;
+}
+
+enum class EPCGExCutType : uint8;
+
+namespace PCGExSampling
+{
+	class FTargetsHandler;
+}
+
+namespace PCGExGeo
+{
+	struct FCut;
+}
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 {
 	GENERATED_BODY()
 
+	FPCGExBoxIntersectionDetails();
+
 	/** Bounds type. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
-	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
+	/** If enabled, flag newly created intersection points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIsIntersection = true;
 
 	/** Name of the attribute to write point intersection boolean to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="IsIntersection", PCG_Overridable, EditCondition="bWriteIsIntersection" ))
 	FName IsIntersectionAttributeName = FName("IsIntersection");
+
+	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteCutType = true;
+
+	/** Name of the attribute to write point toward inside boolean to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="CutType", PCG_Overridable, EditCondition="bWriteCutType" ))
+	FName CutTypeAttributeName = FName("CutType");
+
+	/** Pick which value will be written for each cut type. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings", EditFixedSize, meta=( ReadOnlyKeys, DisplayName=" └─ Mapping", EditCondition="bWriteCutType", HideEditConditionToggle))
+	TMap<EPCGExCutType, int32> CutTypeValueMapping;
 
 	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -55,94 +94,32 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="BoundIndex", PCG_Overridable, EditCondition="bWriteBoundIndex" ))
 	FName BoundIndexAttributeName = FName("BoundIndex");
 
-	/** If enabled, mark points inside the volume with a boolean value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteIsInside = true;
-
-	/** Name of the attribute to write inside boolean to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="IsInside", PCG_Overridable, EditCondition="bWriteIsInside" ))
-	FName IsInsideAttributeName = FName("IsInside");
-
-
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta=(PCG_Overridable))
 	FPCGExForwardDetails IntersectionForwarding;
 
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta=(PCG_Overridable))
-	FPCGExForwardDetails InsideForwarding;
-
-	/** Epsilon value used to expand the box when testing if IsInside. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double InsideExpansion = -1e-4;
-
-	bool Validate(const FPCGContext* InContext) const
-	{
-#define PCGEX_LOCAL_DETAIL_CHECK(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME) { PCGEX_VALIDATE_NAME_C(InContext, _NAME##AttributeName) }
-		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_CHECK)
-#undef PCGEX_LOCAL_DETAIL_CHECK
-
-		return true;
-	}
+	bool Validate(const FPCGContext* InContext) const;
 
 #define PCGEX_LOCAL_DETAIL_DECL(_NAME, _TYPE, _DEFAULT) TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Writer;
 	PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_DECL)
 #undef PCGEX_LOCAL_DETAIL_DECL
 
-	TSharedPtr<PCGExData::FDataForwardHandler> IntersectionForwardHandler;
-	TSharedPtr<PCGExData::FDataForwardHandler> InsideForwardHandler;
+	void Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade, const TSharedPtr<PCGExSampling::FTargetsHandler>& TargetsHandler);
 
-	void Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade, const TSharedPtr<PCGExData::FFacade>& BoundsDataFacade)
-	{
-		IntersectionForwardHandler = IntersectionForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade, false);
-		InsideForwardHandler = InsideForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade, false);
+	bool WillWriteAny() const;
 
-#define PCGEX_LOCAL_DETAIL_WRITER(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ _NAME##Writer = PointDataFacade->GetWritable( _NAME##AttributeName, _DEFAULT, true, PCGExData::EBufferInit::Inherit); }
-		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_WRITER)
-#undef PCGEX_LOCAL_DETAIL_WRITER
-	}
+	void Mark(const TSharedRef<PCGExData::FPointIO>& InPointIO) const;
+	void SetIntersection(const int32 PointIndex, const PCGExGeo::FCut& InCut) const;
 
-	bool WillWriteAny() const
-	{
-#define PCGEX_LOCAL_DETAIL_WILL_WRITE(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ return true; }
-		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_WILL_WRITE)
-#undef PCGEX_LOCAL_DETAIL_WILL_WRITE
-
-		return IntersectionForwarding.bEnabled || InsideForwarding.bEnabled;
-	}
-
-	void Mark(const TSharedRef<PCGExData::FPointIO>& InPointIO) const
-	{
-#define PCGEX_LOCAL_DETAIL_MARK(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME) { PCGExData::WriteMark(InPointIO, _NAME##AttributeName, _DEFAULT); }
-		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_MARK)
-#undef PCGEX_LOCAL_DETAIL_MARK
-	}
-
-	void SetIsInside(const int32 PointIndex, const bool bIsInside, const int32 BoundIndex) const
-	{
-		if (InsideForwardHandler && bIsInside) { InsideForwardHandler->Forward(BoundIndex, PointIndex); }
-		if (IsInsideWriter) { IsInsideWriter->SetValue(PointIndex, bIsInside); }
-	}
-
-	void SetIsInside(const int32 PointIndex, const bool bIsInside) const
-	{
-		if (IsInsideWriter) { IsInsideWriter->SetValue(PointIndex, bIsInside); }
-	}
-
-	void SetIntersection(const int32 PointIndex, const FVector& Normal, const int32 BoundIndex) const
-	{
-		if (IntersectionForwardHandler) { IntersectionForwardHandler->Forward(BoundIndex, PointIndex); }
-
-		if (IsIntersectionWriter) { IsIntersectionWriter->SetValue(PointIndex, true); }
-		if (NormalWriter) { NormalWriter->SetValue(PointIndex, Normal); }
-		if (BoundIndexWriter) { BoundIndexWriter->SetValue(PointIndex, BoundIndex); }
-	}
+private:
+	TArray<TSharedPtr<PCGExData::FDataForwardHandler>> IntersectionForwardHandlers;
 };
-
-#undef PCGEX_FOREACH_FIELD_INTERSECTION
 
 namespace PCGExGraph
 {
+	class FGraph;
+	struct FEdge;
+
 #pragma region Compound Graph
 
 	class PCGEXTENDEDTOOLKIT_API FUnionNode : public TSharedFromThis<FUnionNode>
@@ -194,8 +171,8 @@ namespace PCGExGraph
 		bool Init(FPCGExContext* InContext);
 		bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InUniqueSourceFacade, const bool SupportScopedGet);
 
-		int32 NumNodes() const { return NodesUnion->Num(); }
-		int32 NumEdges() const { return EdgesUnion->Num(); }
+		int32 NumNodes() const;
+		int32 NumEdges() const;
 
 		TSharedPtr<FUnionNode> InsertPoint(const PCGExData::FConstPoint& Point);
 		TSharedPtr<FUnionNode> InsertPoint_Unsafe(const PCGExData::FConstPoint& Point);

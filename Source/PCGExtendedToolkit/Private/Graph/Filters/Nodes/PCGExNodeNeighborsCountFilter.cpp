@@ -5,10 +5,13 @@
 
 
 #include "Data/PCGExDataPreloader.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeNeighborsCountFilter"
 #define PCGEX_NAMESPACE NodeNeighborsCountFilter
+
+PCGEX_SETTING_VALUE_IMPL(FPCGExNodeNeighborsCountFilterConfig, LocalCount, double, CompareAgainst, LocalCount, Count)
 
 void UPCGExNodeNeighborsCountFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {

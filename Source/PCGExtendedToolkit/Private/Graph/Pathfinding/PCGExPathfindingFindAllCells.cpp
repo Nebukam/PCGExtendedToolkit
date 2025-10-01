@@ -3,7 +3,9 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindAllCells.h"
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindAllCells"
 #define PCGEX_NAMESPACE FindAllCells
@@ -11,14 +13,14 @@
 TArray<FPCGPinProperties> UPCGExFindAllCellsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExTopology::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal, {})
+	PCGEX_PIN_POINT(PCGExTopology::SourceHolesLabel, "Omit cells that contain any points from this dataset", Normal)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExFindAllCellsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Contours", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Contours", Required)
 	//if (bOutputSeeds) { PCGEX_PIN_POINT(PCGExFindAllCells::OutputGoodSeedsLabel, "GoodSeeds", Required, {}) }
 	return PinProperties;
 }

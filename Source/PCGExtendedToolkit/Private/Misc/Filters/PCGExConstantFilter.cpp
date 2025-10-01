@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExConstantFilter.h"
 
+#include "PCGExHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition

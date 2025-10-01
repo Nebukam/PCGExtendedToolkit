@@ -4,12 +4,17 @@
 #include "Paths/PCGExSubdivide.h"
 
 #include "PCGExRandom.h"
+#include "PCGParamData.h"
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
 #define PCGEX_NAMESPACE Subdivide
+
+PCGEX_SETTING_VALUE_IMPL(UPCGExSubdivideSettings, SubdivisionAmount, double, AmountInput, SubdivisionAmount, SubdivideMethod == EPCGExSubdivideMode::Count ? Count : Distance)
 
 #if WITH_EDITORONLY_DATA
 void UPCGExSubdivideSettings::PostInitProperties()

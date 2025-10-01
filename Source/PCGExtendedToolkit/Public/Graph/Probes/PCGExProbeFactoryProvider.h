@@ -5,8 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFactoryProvider.h"
-#include "PCGExPointsProcessor.h"
-
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExProbeFactoryProvider.generated.h"
 
@@ -21,12 +20,21 @@ TSharedPtr<FPCGExProbeOperation> UPCGExProbeFactory##_NAME::CreateOperation(FPCG
 
 class FPCGExProbeOperation;
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Probe")
+struct FPCGExDataTypeInfoProbe : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoProbe)
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Probe; }
 	virtual TSharedPtr<FPCGExProbeOperation> CreateOperation(FPCGExContext* InContext) const;
 };
@@ -36,11 +44,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryProviderSettings : public UPCGExF
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoProbe)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AbstractProbe, "Probe Definition", "Creates a single probe to look for a nearby connection.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorProbe; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorProbe; }
 #endif
 	//~End UPCGSettings
 

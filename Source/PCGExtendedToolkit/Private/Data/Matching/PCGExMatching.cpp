@@ -5,6 +5,7 @@
 #include "Data/Matching/PCGExMatching.h"
 
 #include "PCGExCompare.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 void PCGExMatching::DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)
 {

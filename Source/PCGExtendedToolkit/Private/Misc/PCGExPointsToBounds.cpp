@@ -3,8 +3,10 @@
 
 #include "Misc/PCGExPointsToBounds.h"
 
+#include "PCGExHelpers.h"
 #include "PCGExMath.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExGraph.h"
 

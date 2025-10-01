@@ -18,7 +18,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(MakeClustersUnique, "Cluster : Make Unique", "Outputs a new, unique data pointer for the input clusters; to avoid overlap and unexpected behaviors.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorClusterOp; }
 #endif
 
 protected:

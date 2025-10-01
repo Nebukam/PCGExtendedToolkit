@@ -3,9 +3,12 @@
 
 #include "Graph/Edges/PCGExRelaxClusters.h"
 
+#include "PCGParamData.h"
 #include "Data/Blending/PCGExBlendLerp.h"
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
 #include "Data/PCGExPointFilter.h"
+#include "Details/PCGExDetailsRelax.h"
+#include "Graph/Filters/PCGExClusterFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExRelaxClusters"
 #define PCGEX_NAMESPACE RelaxClusters
@@ -16,7 +19,7 @@ PCGExData::EIOInit UPCGExRelaxClustersSettings::GetEdgeOutputInitMode() const { 
 TArray<FPCGPinProperties> UPCGExRelaxClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Normal, {})
+	PCGEX_PIN_FILTERS(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Normal)
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExRelaxClusters::SourceOverridesRelaxing)
 	return PinProperties;
 }

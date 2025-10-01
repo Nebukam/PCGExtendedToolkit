@@ -11,6 +11,11 @@
 
 #include "PCGExFuseCollinear.generated.h"
 
+namespace PCGExPaths
+{
+	class FPath;
+}
+
 /**
  * 
  */

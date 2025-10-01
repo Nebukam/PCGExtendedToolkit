@@ -5,15 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-
 
 #include "PCGExBitmaskFilter.generated.h"
+
 
 USTRUCT(BlueprintType)
 struct FPCGExBitmaskFilterConfig
@@ -48,7 +46,7 @@ struct FPCGExBitmaskFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
 
-	PCGEX_SETTING_VALUE_GET(Bitmask, int64, MaskInput, BitmaskAttribute, Bitmask)
+	PCGEX_SETTING_VALUE_DECL(Bitmask, int64)
 };
 
 
@@ -56,7 +54,7 @@ struct FPCGExBitmaskFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExBitmaskFilterFactory : public UPCGExFilterFactoryData
+class UPCGExBitmaskFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

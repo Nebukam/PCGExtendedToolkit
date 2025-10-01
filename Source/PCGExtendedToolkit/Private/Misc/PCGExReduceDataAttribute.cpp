@@ -3,6 +3,9 @@
 
 #include "Misc/PCGExReduceDataAttribute.h"
 
+#include "PCGExBroadcast.h"
+#include "PCGExHelpers.h"
+#include "PCGParamData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/Blending//PCGExBlendModes.h"
 
@@ -34,14 +37,14 @@ void UPCGExReduceDataAttributeSettings::ApplyPreconfiguredSettings(const FPCGPre
 TArray<FPCGPinProperties> UPCGExReduceDataAttributeSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required, {})
+	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExReduceDataAttributeSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(GetMainOutputPin(), "Reduced attribute.", Normal, {})
+	PCGEX_PIN_PARAM(GetMainOutputPin(), "Reduced attribute.", Normal)
 	return PinProperties;
 }
 

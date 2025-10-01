@@ -3,7 +3,10 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingPlotNavmesh.h"
 
+
 #include "PCGExPointsProcessor.h"
+#include "PCGParamData.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExGraph.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
@@ -20,7 +23,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotNavmeshSettings::InputPinProperti
 TArray<FPCGPinProperties> UPCGExPathfindingPlotNavmeshSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required)
 	return PinProperties;
 }
 
@@ -40,6 +43,8 @@ void UPCGExPathfindingPlotNavmeshSettings::PostEditChangeProperty(FPropertyChang
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
+
+FName UPCGExPathfindingPlotNavmeshSettings::GetMainInputPin() const { return PCGExGraph::SourcePlotsLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
 

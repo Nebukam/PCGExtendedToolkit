@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExMetaCleanup.h"
 
+#include "Data/PCGExPointIO.h"
+
 #define LOCTEXT_NAMESPACE "PCGExMetaCleanupElement"
 #define PCGEX_NAMESPACE MetaCleanup
 

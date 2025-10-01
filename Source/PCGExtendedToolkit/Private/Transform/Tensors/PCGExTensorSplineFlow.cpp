@@ -3,6 +3,8 @@
 
 #include "Transform/Tensors/PCGExTensorSplineFlow.h"
 
+#include "PCGExHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorSplineFlow"
 #define PCGEX_NAMESPACE CreateTensorSplineFlow

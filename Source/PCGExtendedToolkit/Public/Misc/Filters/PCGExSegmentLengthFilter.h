@@ -5,13 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
+#include "PCGExMath.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-
 
 #include "PCGExSegmentLengthFilter.generated.h"
 
@@ -20,9 +18,7 @@ struct FPCGExSegmentLengthFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSegmentLengthFilterConfig()
-	{
-	}
+	FPCGExSegmentLengthFilterConfig() = default;
 
 	/** Whether to read the threshold from an attribute on the point or a constant. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -40,7 +36,7 @@ struct FPCGExSegmentLengthFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Squared Distance"))
 	bool bCompareAgainstSquaredDistance = false;
 
-	PCGEX_SETTING_VALUE_GET(Threshold, double, ThresholdInput, ThresholdAttribute, ThresholdConstant)
+	PCGEX_SETTING_VALUE_DECL(Threshold, double)
 
 	/** Comparison check */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -75,7 +71,7 @@ struct FPCGExSegmentLengthFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Tile on closed loops"))
 	bool bForceTileIfClosedLoop = true;
 
-	PCGEX_SETTING_VALUE_GET(Index, int32, CompareAgainst, IndexAttribute, IndexConstant)
+	PCGEX_SETTING_VALUE_DECL(Index, int32)
 
 	/** What should this filter return when the point required for computing length is invalid? (i.e, first or last point) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
@@ -94,7 +90,7 @@ struct FPCGExSegmentLengthFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExSegmentLengthFilterFactory : public UPCGExFilterFactoryData
+class UPCGExSegmentLengthFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

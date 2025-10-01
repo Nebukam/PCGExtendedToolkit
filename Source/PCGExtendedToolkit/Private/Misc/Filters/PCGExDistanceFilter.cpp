@@ -3,9 +3,13 @@
 
 #include "Misc/Filters/PCGExDistanceFilter.h"
 
+#include "Details/PCGExDetailsSettings.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
+
+PCGEX_SETTING_VALUE_IMPL(FPCGExDistanceFilterConfig, DistanceThreshold, double, CompareAgainst, DistanceThreshold, DistanceThresholdConstant)
 
 bool UPCGExDistanceFilterFactory::SupportsProxyEvaluation() const
 {
@@ -107,7 +111,7 @@ bool PCGExPointFilter::FDistanceFilter::Test(const TSharedPtr<PCGExData::FPointI
 TArray<FPCGPinProperties> UPCGExDistanceFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, TEXT("Target points to read operand B from"), Required, {})
+	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, TEXT("Target points to read operand B from"), Required)
 	return PinProperties;
 }
 

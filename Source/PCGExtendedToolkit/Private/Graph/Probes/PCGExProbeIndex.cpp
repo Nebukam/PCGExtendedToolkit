@@ -2,9 +2,13 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Probes/PCGExProbeIndex.h"
+
+#include "PCGExHelpers.h"
 #include "PCGExMath.h"
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 
-
+PCGEX_SETTING_VALUE_IMPL(FPCGExProbeConfigIndex, Index, int32, IndexInput, IndexAttribute, IndexConstant)
 PCGEX_CREATE_PROBE_FACTORY(Index, {}, {})
 
 bool FPCGExProbeIndex::RequiresOctree() { return false; }

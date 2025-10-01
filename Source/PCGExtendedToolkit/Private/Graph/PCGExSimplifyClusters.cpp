@@ -5,6 +5,7 @@
 
 
 #include "PCGExMath.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExChain.h"
 
@@ -19,7 +20,7 @@ PCGExData::EIOInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const
 TArray<FPCGPinProperties> UPCGExSimplifyClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeFiltersLabel, "Optional edge filters.", Normal, {})
+	PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeFiltersLabel, "Optional edge filters.", Normal)
 	return PinProperties;
 }
 

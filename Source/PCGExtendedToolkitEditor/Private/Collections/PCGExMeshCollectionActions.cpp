@@ -158,7 +158,7 @@ UClass* FPCGExMeshCollectionActions::GetSupportedClass() const
 
 FColor FPCGExMeshCollectionActions::GetTypeColor() const
 {
-	return FColor(0,255,255);
+	return FColor(0, 255, 255);
 }
 
 uint32 FPCGExMeshCollectionActions::GetCategories()
@@ -170,4 +170,3 @@ bool FPCGExMeshCollectionActions::HasActions(const TArray<UObject*>& InObjects) 
 {
 	return false;
 }
-

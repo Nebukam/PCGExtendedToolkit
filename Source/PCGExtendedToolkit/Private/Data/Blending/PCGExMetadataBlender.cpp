@@ -4,6 +4,7 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExProxyData.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 

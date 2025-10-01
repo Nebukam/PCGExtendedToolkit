@@ -4,11 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 #include "PCGExOperation.h"
 #include "PCGExShapes.h"
-
 
 /**
  * 
@@ -31,11 +29,7 @@ public:
 protected:
 	virtual void ValidateShape(const TSharedPtr<PCGExShapes::FShape> Shape);
 
-	FORCEINLINE double GetResolution(const PCGExData::FConstPoint& Seed) const
-	{
-		if (BaseConfig.ResolutionMode == EPCGExResolutionMode::Distance) { return FMath::Abs(Resolution->Read(Seed.Index)); }
-		return FMath::Abs(Resolution->Read(Seed.Index));
-	}
+	double GetResolution(const PCGExData::FConstPoint& Seed) const;
 
 	TSharedPtr<PCGExDetails::TSettingValue<double>> Resolution;
 	TSharedPtr<PCGExData::FFacade> SeedFacade;

@@ -3,11 +3,16 @@
 
 #include "Paths/PCGExPathSolidify.h"
 
+#include "Details/PCGExDetailsSettings.h"
+#include "Paths/PCGExPaths.h"
+
 #define LOCTEXT_NAMESPACE "PCGExPathSolidifyElement"
 #define PCGEX_NAMESPACE PathSolidify
 
 PCGEX_INITIALIZE_ELEMENT(PathSolidify)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSolidify)
+
+PCGEX_SETTING_VALUE_IMPL(UPCGExPathSolidifySettings, SolidificationLerp, double, SolidificationLerpInput, SolidificationLerpAttribute, SolidificationLerpConstant)
 
 bool FPCGExPathSolidifyElement::Boot(FPCGExContext* InContext) const
 {

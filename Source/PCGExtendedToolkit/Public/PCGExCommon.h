@@ -50,6 +50,15 @@ enum class EPCGExPointBoundsSource : uint8
 };
 
 UENUM()
+enum class EPCGExDistance : uint8
+{
+	Center       = 0 UMETA(DisplayName = "Center", ToolTip="Center"),
+	SphereBounds = 1 UMETA(DisplayName = "Sphere Bounds", ToolTip="Point sphere which radius is scaled extent"),
+	BoxBounds    = 2 UMETA(DisplayName = "Box Bounds", ToolTip="Point extents"),
+	None         = 3 UMETA(Hidden, DisplayName = "None", ToolTip="Used for union blending with full weight."),
+};
+
+UENUM()
 enum class EPCGExSplineMeshAxis : uint8
 {
 	Default = 0 UMETA(Hidden),
@@ -64,6 +73,14 @@ namespace PCGExData
 	class FTags;
 	template <typename T>
 	class TDataValue;
+
+	enum class EIOInit : uint8
+	{
+		NoInit UMETA(DisplayName = "No Output"),
+		New UMETA(DisplayName = "Create Empty Output Object"),
+		Duplicate UMETA(DisplayName = "Duplicate Input Object"),
+		Forward UMETA(DisplayName = "Forward Input Object")
+	};
 
 	enum class EIOSide : uint8
 	{

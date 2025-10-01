@@ -4,7 +4,9 @@
 #include "Graph/Edges/PCGExRefineEdges.h"
 
 
+#include "PCGParamData.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -15,16 +17,15 @@
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (Refinement && Refinement->WantsHeuristics()) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, {}) }
+	if (Refinement && Refinement->WantsHeuristics()) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, FPCGExDataTypeInfoHeuristics::AsId()) }
 	if (Refinement && Refinement->SupportFilters())
 	{
-		//PCGEX_PIN_PARAMS(PCGExRefineEdges::SourceVtxFilters, "Filters used to check if a vtx should be processed.", Normal, {})
-		PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeFiltersLabel, "Refinements filters.", Normal, {})
+		PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeFiltersLabel, "Refinements filters.", Normal)
 	}
 
 	if (Sanitization == EPCGExRefineSanitization::Filters)
 	{
-		PCGEX_PIN_FACTORIES(PCGExRefineEdges::SourceSanitizeEdgeFilters, "Filters that define which edges are to be kept. During the sanitization step, edges that pass the filters are restored if they were previously removed.", Required, {})
+		PCGEX_PIN_FILTERS(PCGExRefineEdges::SourceSanitizeEdgeFilters, "Filters that define which edges are to be kept. During the sanitization step, edges that pass the filters are restored if they were previously removed.", Required)
 	}
 
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExRefineEdges::SourceOverridesRefinement)
@@ -37,8 +38,8 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::OutputPinProperties() const
 	if (!bOutputEdgesOnly) { return Super::OutputPinProperties(); }
 
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputKeptEdgesLabel, "Kept edges but as simple points.", Required, {})
-	PCGEX_PIN_POINTS(PCGExGraph::OutputRemovedEdgesLabel, "Removed edges but as simple points.", Required, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputKeptEdgesLabel, "Kept edges but as simple points.", Required)
+	PCGEX_PIN_POINTS(PCGExGraph::OutputRemovedEdgesLabel, "Removed edges but as simple points.", Required)
 	return PinProperties;
 }
 

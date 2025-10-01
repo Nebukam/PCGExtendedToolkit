@@ -6,6 +6,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointIO.h"
 #include "Misc/Pickers/PCGExPicker.h"
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
@@ -24,15 +25,15 @@ bool UPCGExUberFilterCollectionsSettings::IsPinUsedByNodeExecution(const UPCGPin
 TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPicker::SourcePickersLabel, "A precise selection of point that will be tested, as opposed to all of them.", Normal, {})
+	PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "A precise selection of point that will be tested, as opposed to all of them.", Normal, FPCGExDataTypeInfoPicker::AsId())
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPointFilter::OutputInsideFiltersLabel, "Collections that passed the filters.", Required, {})
-	PCGEX_PIN_POINTS(PCGExPointFilter::OutputOutsideFiltersLabel, "Collections that didn't pass the filters.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPointFilter::OutputInsideFiltersLabel, "Collections that passed the filters.", Required)
+	PCGEX_PIN_POINTS(PCGExPointFilter::OutputOutsideFiltersLabel, "Collections that didn't pass the filters.", Required)
 	return PinProperties;
 }
 
@@ -68,7 +69,7 @@ bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->bHasOnlyCollectionFilters = true;
-	for (const TObjectPtr<const UPCGExFilterFactoryData>& FilterFactory : Context->FilterFactories)
+	for (const TObjectPtr<const UPCGExPointFilterFactoryData>& FilterFactory : Context->FilterFactories)
 	{
 		if (!FilterFactory->SupportsCollectionEvaluation())
 		{

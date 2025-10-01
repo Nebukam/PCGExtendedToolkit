@@ -4,10 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExPointsProcessor.h"
-
-
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
 #include "Shapes/PCGExShapeBuilderOperation.h"
 

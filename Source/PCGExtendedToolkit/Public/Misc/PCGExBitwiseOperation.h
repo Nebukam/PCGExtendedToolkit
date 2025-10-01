@@ -5,11 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-
 
 #include "PCGExBitwiseOperation.generated.h"
 
@@ -23,7 +21,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BitwiseOperation, "Bitmask Operation", "Do a Bitmask operation on an attribute.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
 #endif
 
 protected:
@@ -51,7 +49,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int64 Bitmask;
 
-	PCGEX_SETTING_VALUE_GET(Mask, int64, MaskInput, MaskAttribute, Bitmask)
+	PCGEX_SETTING_VALUE_DECL(Mask, int64)
 };
 
 struct FPCGExBitwiseOperationContext final : FPCGExPointsProcessorContext

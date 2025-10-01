@@ -4,11 +4,22 @@
 #include "Sampling/PCGExSampleNearestPath.h"
 
 #include "Data/PCGExDataTag.h"
+#include "Data/Blending/PCGExBlendModes.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Details/PCGExDetailsSettings.h"
+#include "Paths/PCGExPaths.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPathElement"
 #define PCGEX_NAMESPACE SampleNearestPath
+
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPathSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPathSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
+PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestPathSettings, SampleAlpha, double, bSampleSpecificAlpha, SampleAlphaAttribute, SampleAlphaConstant)
+PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestPathSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
 UPCGExSampleNearestPathSettings::UPCGExSampleNearestPathSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -22,7 +33,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPathSettings::InputPinProperties() 
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "The paths to sample.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "The paths to sample.", Required)
 	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
