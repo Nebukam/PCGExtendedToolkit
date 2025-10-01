@@ -6,8 +6,8 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderPolygon"
 #define PCGEX_NAMESPACE CreateBuilderPolygon;
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExShapePolygonConfig, NumVertices, int32, NumVerticesInput, NumVerticesAttribute, NumVerticesConstant)
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExShapePolygonConfig, AddSkeleton, bool, AddSkeletonInput, AddSkeletonAttribute, bAddSkeleton)
+PCGEX_SETTING_VALUE_IMPL(FPCGExShapePolygonConfig, NumVertices, int32, NumVerticesInput, NumVerticesAttribute, NumVerticesConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExShapePolygonConfig, AddSkeleton, bool, AddSkeletonInput, AddSkeletonAttribute, bAddSkeleton)
 
 bool FPCGExShapePolygonBuilder::PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)
 {

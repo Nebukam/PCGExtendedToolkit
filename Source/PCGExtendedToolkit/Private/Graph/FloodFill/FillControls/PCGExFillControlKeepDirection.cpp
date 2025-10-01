@@ -9,7 +9,7 @@
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExFillControlConfigKeepDirection, WindowSize, int32, WindowSizeInput, WindowSizeAttribute, WindowSize)
+PCGEX_SETTING_VALUE_IMPL(FPCGExFillControlConfigKeepDirection, WindowSize, int32, WindowSizeInput, WindowSizeAttribute, WindowSize)
 
 bool FPCGExFillControlKeepDirection::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {

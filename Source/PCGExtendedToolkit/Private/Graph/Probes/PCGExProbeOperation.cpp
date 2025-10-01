@@ -12,7 +12,7 @@ bool FPCGExProbeOperation::RequiresOctree() { return true; }
 
 bool FPCGExProbeOperation::RequiresChainProcessing() { return false; }
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExProbeConfigBase, SearchRadius, double, SearchRadiusInput, SearchRadiusAttribute, SearchRadiusConstant);
+PCGEX_SETTING_VALUE_IMPL(FPCGExProbeConfigBase, SearchRadius, double, SearchRadiusInput, SearchRadiusAttribute, SearchRadiusConstant);
 
 bool FPCGExProbeOperation::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {

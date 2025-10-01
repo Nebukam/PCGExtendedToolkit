@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExNumericCompareFilterConfig, OperandB, double, CompareAgainst, OperandB, OperandBConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExNumericCompareFilterConfig, OperandB, double, CompareAgainst, OperandB, OperandBConstant)
 
 bool UPCGExNumericCompareFilterFactory::DomainCheck()
 {

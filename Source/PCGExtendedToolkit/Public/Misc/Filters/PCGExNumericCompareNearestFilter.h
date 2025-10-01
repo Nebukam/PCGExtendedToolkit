@@ -50,7 +50,7 @@ struct FPCGExNumericCompareNearestFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
-	PCGEX_SETTING_VALUE_GET_DECL(OperandB, double)
+	PCGEX_SETTING_VALUE_DECL(OperandB, double)
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

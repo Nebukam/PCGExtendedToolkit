@@ -11,8 +11,8 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderCircle"
 #define PCGEX_NAMESPACE CreateBuilderCircle
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExShapeCircleConfig, EndAngle, double, EndAngleInput, EndAngleAttribute, EndAngleConstant)
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExShapeCircleConfig, StartAngle, double, StartAngleInput, StartAngleAttribute, StartAngleConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExShapeCircleConfig, EndAngle, double, EndAngleInput, EndAngleAttribute, EndAngleConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExShapeCircleConfig, StartAngle, double, StartAngleInput, StartAngleAttribute, StartAngleConstant)
 
 bool FPCGExShapeCircleBuilder::PrepareForSeeds(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InSeedDataFacade)
 {

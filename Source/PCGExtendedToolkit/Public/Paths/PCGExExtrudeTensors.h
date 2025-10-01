@@ -83,7 +83,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Iterations", ClampMin=1))
 	int32 Iterations = 1;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Iterations, int32)
+	PCGEX_SETTING_VALUE_DECL(Iterations, int32)
 
 	/** Whether to adjust max iteration based on max value found on points. Use at your own risks! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Use Max from Points", ClampMin=1, EditCondition="bUsePerPointMaxIterations", HideEditConditionToggle))
@@ -105,7 +105,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Length", EditCondition="bUseMaxLength && MaxLengthInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	double MaxLength = 100;
 
-	PCGEX_SETTING_VALUE_GET_DECL(MaxLength, double)
+	PCGEX_SETTING_VALUE_DECL(MaxLength, double)
 
 	/** Whether to limit the number of points in a generated path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
@@ -123,7 +123,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Points Count", EditCondition="bUseMaxPointsCount && MaxPointsCountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 MaxPointsCount = 100;
 
-	PCGEX_SETTING_VALUE_GET_DECL(MaxPointsCount, int32)
+	PCGEX_SETTING_VALUE_DECL(MaxPointsCount, int32)
 
 	/** Whether to limit path length or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, ClampMin=0.001))

@@ -17,7 +17,7 @@ bool FPCGExUnionMetadataDetails::SanityCheck(FPCGExContext* InContext) const
 }
 
 FPCGExPointPointIntersectionDetails::FPCGExPointPointIntersectionDetails(const bool InSupportEdges)
-:		bSupportsEdges(InSupportEdges), FuseDetails(FPCGExFuseDetails(!InSupportEdges))
+	: bSupportsEdges(InSupportEdges), FuseDetails(FPCGExFuseDetails(!InSupportEdges))
 {
 }
 

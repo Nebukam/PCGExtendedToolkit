@@ -10,7 +10,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBestMatchAxisElement"
 #define PCGEX_NAMESPACE BestMatchAxis
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExBestMatchAxisSettings, Match, FVector, MatchInput, MatchSource, MatchConstant)
+PCGEX_SETTING_VALUE_IMPL(UPCGExBestMatchAxisSettings, Match, FVector, MatchInput, MatchSource, MatchConstant)
 
 TArray<FPCGPinProperties> UPCGExBestMatchAxisSettings::InputPinProperties() const
 {

@@ -26,7 +26,7 @@ struct FPCGExTimeFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExTimeFilterConfig() =default;
+	FPCGExTimeFilterConfig() = default;
 
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -60,7 +60,7 @@ struct FPCGExTimeFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
-	PCGEX_SETTING_VALUE_GET_DECL(OperandB, float)
+	PCGEX_SETTING_VALUE_DECL(OperandB, float)
 
 
 	/** If enabled, invert the result of the test */

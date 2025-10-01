@@ -50,7 +50,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Gravity", EditCondition="GravityInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector Gravity = FVector(0, 0, -100);
 
-	PCGEX_SETTING_VALUE_GET_INLINE(Gravity, FVector, GravityInput, GravityAttribute, Gravity)
+	PCGEX_SETTING_VALUE_INLINE(Gravity, FVector, GravityInput, GravityAttribute, Gravity)
 
 	/** Type of Friction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -64,7 +64,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Friction", EditCondition="FrictionInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0, ClampMax=1, UIMin=0, UIMax=1))
 	double Friction = 0;
 
-	PCGEX_SETTING_VALUE_GET_INLINE(Friction, double, FrictionInput, FrictionAttribute, Friction)
+	PCGEX_SETTING_VALUE_INLINE(Friction, double, FrictionInput, FrictionAttribute, Friction)
 
 
 	/** Type of Edge Scaling */
@@ -79,7 +79,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Scaling", EditCondition="EdgeScalingInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double EdgeScaling = 1;
 
-	PCGEX_SETTING_VALUE_GET_INLINE(EdgeScaling, double, EdgeScalingInput, EdgeScalingAttribute, EdgeScaling)
+	PCGEX_SETTING_VALUE_INLINE(EdgeScaling, double, EdgeScalingInput, EdgeScalingAttribute, EdgeScaling)
 
 
 	/** Type of Edge stiffness */
@@ -94,7 +94,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge Stiffness", EditCondition="EdgeStiffnessInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0, ClampMax=1, UIMin=0, UIMax=1))
 	double EdgeStiffness = 0.5;
 
-	PCGEX_SETTING_VALUE_GET_INLINE(EdgeStiffness, double, EdgeStiffnessInput, EdgeStiffnessAttribute, EdgeStiffness)
+	PCGEX_SETTING_VALUE_INLINE(EdgeStiffness, double, EdgeStiffnessInput, EdgeStiffnessAttribute, EdgeStiffness)
 
 	/** If this was a physic simulation, represent the time advance each iteration */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

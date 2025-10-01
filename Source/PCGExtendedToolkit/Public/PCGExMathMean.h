@@ -27,7 +27,6 @@ enum class EPCGExMeanMethod : uint8
 
 namespace PCGExMean
 {
-	
 	template <typename T>
 	FORCEINLINE static T GetAverage(const TArray<T>& Values)
 	{

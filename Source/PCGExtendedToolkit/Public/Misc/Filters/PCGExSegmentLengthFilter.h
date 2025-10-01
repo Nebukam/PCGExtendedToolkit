@@ -36,7 +36,7 @@ struct FPCGExSegmentLengthFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Squared Distance"))
 	bool bCompareAgainstSquaredDistance = false;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Threshold, double)
+	PCGEX_SETTING_VALUE_DECL(Threshold, double)
 
 	/** Comparison check */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -71,7 +71,7 @@ struct FPCGExSegmentLengthFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Tile on closed loops"))
 	bool bForceTileIfClosedLoop = true;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Index, int32)
+	PCGEX_SETTING_VALUE_DECL(Index, int32)
 
 	/** What should this filter return when the point required for computing length is invalid? (i.e, first or last point) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))

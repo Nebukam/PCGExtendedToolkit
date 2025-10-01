@@ -119,7 +119,7 @@ namespace PCGExGraph
 {
 	class FGraph;
 	struct FEdge;
-	
+
 #pragma region Compound Graph
 
 	class PCGEXTENDEDTOOLKIT_API FUnionNode : public TSharedFromThis<FUnionNode>

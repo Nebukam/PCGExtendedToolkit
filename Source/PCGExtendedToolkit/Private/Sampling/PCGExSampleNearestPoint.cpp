@@ -21,9 +21,9 @@
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
 #define PCGEX_NAMESPACE SampleNearestPoint
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExSampleNearestPointSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExSampleNearestPointSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
-PCGEX_SETTING_VALUE_GET_IMPL_BOOL(UPCGExSampleNearestPointSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPointSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPointSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
+PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestPointSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
 UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(
 	const FObjectInitializer& ObjectInitializer)

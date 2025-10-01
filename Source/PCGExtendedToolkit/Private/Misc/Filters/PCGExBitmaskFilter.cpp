@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExBitmaskFilterConfig, Bitmask, int64, MaskInput, BitmaskAttribute, Bitmask)
+PCGEX_SETTING_VALUE_IMPL(FPCGExBitmaskFilterConfig, Bitmask, int64, MaskInput, BitmaskAttribute, Bitmask)
 
 bool UPCGExBitmaskFilterFactory::DomainCheck()
 {

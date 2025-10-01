@@ -33,8 +33,8 @@ class UPCGExBlendOpFactory;
 
 namespace PCGExMT
 {
-	template<typename T>
-	class TScopedNumericValue;	
+	template <typename T>
+	class TScopedNumericValue;
 }
 
 namespace PCGExDataBlending
@@ -175,7 +175,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="LookAtUpSelection == EPCGExSampleSource::Constant", EditConditionHides))
 	FVector LookAtUpConstant = FVector::UpVector;
 
-	PCGEX_SETTING_VALUE_GET_DECL(LookAtUp, FVector)
+	PCGEX_SETTING_VALUE_DECL(LookAtUp, FVector)
 
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))

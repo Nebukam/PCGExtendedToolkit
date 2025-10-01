@@ -13,7 +13,7 @@
 
 namespace PCGExDetails
 {
-	template<typename T>
+	template <typename T>
 	class TSettingValue;
 }
 

@@ -55,7 +55,7 @@ struct FPCGExEdgeNeighborsCountFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Threshold, int32)
+	PCGEX_SETTING_VALUE_DECL(Threshold, int32)
 };
 
 /**

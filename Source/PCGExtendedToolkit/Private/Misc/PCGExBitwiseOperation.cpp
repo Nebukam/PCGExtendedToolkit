@@ -12,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBitwiseOperationElement"
 #define PCGEX_NAMESPACE BitwiseOperation
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExBitwiseOperationSettings, Mask, int64, MaskInput, MaskAttribute, Bitmask)
+PCGEX_SETTING_VALUE_IMPL(UPCGExBitwiseOperationSettings, Mask, int64, MaskInput, MaskAttribute, Bitmask)
 
 PCGEX_INITIALIZE_ELEMENT(BitwiseOperation)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BitwiseOperation)

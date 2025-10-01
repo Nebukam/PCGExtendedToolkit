@@ -9,7 +9,7 @@
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/Probes/PCGExProbing.h"
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExProbeConfigClosest, MaxConnections, int32, MaxConnectionsInput, MaxConnectionsAttribute, MaxConnectionsConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExProbeConfigClosest, MaxConnections, int32, MaxConnectionsInput, MaxConnectionsAttribute, MaxConnectionsConstant)
 PCGEX_CREATE_PROBE_FACTORY(Closest, {}, {})
 
 bool FPCGExProbeClosest::PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO)

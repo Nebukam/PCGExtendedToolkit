@@ -12,7 +12,7 @@
 PCGEX_INITIALIZE_ELEMENT(PathSolidify)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSolidify)
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExPathSolidifySettings, SolidificationLerp, double, SolidificationLerpInput, SolidificationLerpAttribute, SolidificationLerpConstant)
+PCGEX_SETTING_VALUE_IMPL(UPCGExPathSolidifySettings, SolidificationLerp, double, SolidificationLerpInput, SolidificationLerpAttribute, SolidificationLerpConstant)
 
 bool FPCGExPathSolidifyElement::Boot(FPCGExContext* InContext) const
 {

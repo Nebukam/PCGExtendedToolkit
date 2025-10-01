@@ -12,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExTimeFilterDefinition"
 #define PCGEX_NAMESPACE PCGExTimeFilterDefinition
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExTimeFilterConfig, OperandB, float, CompareAgainst, OperandB, OperandBConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExTimeFilterConfig, OperandB, float, CompareAgainst, OperandB, OperandBConstant)
 
 bool UPCGExTimeFilterFactory::SupportsCollectionEvaluation() const
 {

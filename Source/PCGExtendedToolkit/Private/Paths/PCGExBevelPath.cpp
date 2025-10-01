@@ -16,8 +16,8 @@
 #define LOCTEXT_NAMESPACE "PCGExBevelPathElement"
 #define PCGEX_NAMESPACE BevelPath
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExBevelPathSettings, Width, double, WidthInput, WidthAttribute, WidthConstant)
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExBevelPathSettings, Subdivisions, double, SubdivisionAmountInput, SubdivisionAmount, SubdivideMethod == EPCGExSubdivideMode::Count ? SubdivisionCount : SubdivisionDistance)
+PCGEX_SETTING_VALUE_IMPL(UPCGExBevelPathSettings, Width, double, WidthInput, WidthAttribute, WidthConstant)
+PCGEX_SETTING_VALUE_IMPL(UPCGExBevelPathSettings, Subdivisions, double, SubdivisionAmountInput, SubdivisionAmount, SubdivideMethod == EPCGExSubdivideMode::Count ? SubdivisionCount : SubdivisionDistance)
 
 TArray<FPCGPinProperties> UPCGExBevelPathSettings::InputPinProperties() const
 {

@@ -18,7 +18,6 @@ namespace PCGExData
 
 namespace PCGEx
 {
-
 	enum class ESingleField : uint8
 	{
 		X             = 0,
@@ -37,7 +36,7 @@ namespace PCGEx
 		Rotation = 1,
 		Scale    = 2,
 	};
-	
+
 #pragma region Field helpers
 
 	using FInputSelectorComponentData = TTuple<ETransformPart, EPCGMetadataTypes>;

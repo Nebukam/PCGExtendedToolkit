@@ -9,7 +9,7 @@
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExFillControlConfigDepth, MaxDepth, int32, MaxDepthInput, MaxDepthAttribute, MaxDepth)
+PCGEX_SETTING_VALUE_IMPL(FPCGExFillControlConfigDepth, MaxDepth, int32, MaxDepthInput, MaxDepthAttribute, MaxDepth)
 
 bool FPCGExFillControlDepth::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {

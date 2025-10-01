@@ -50,7 +50,7 @@ namespace PCGExDetails
 			return FromCenter;
 		}
 	}
-	
+
 #pragma region Distances
 
 	class PCGEXTENDEDTOOLKIT_API FDistances : public TSharedFromThis<FDistances>

@@ -9,8 +9,8 @@
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExFillControlConfigRunningAverage, WindowSize, int32, WindowSizeInput, WindowSizeAttribute, WindowSize)
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExFillControlConfigRunningAverage, Tolerance, double, ToleranceInput, ToleranceAttribute, Tolerance)
+PCGEX_SETTING_VALUE_IMPL(FPCGExFillControlConfigRunningAverage, WindowSize, int32, WindowSizeInput, WindowSizeAttribute, WindowSize)
+PCGEX_SETTING_VALUE_IMPL(FPCGExFillControlConfigRunningAverage, Tolerance, double, ToleranceInput, ToleranceAttribute, Tolerance)
 
 bool FPCGExFillControlRunningAverage::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {

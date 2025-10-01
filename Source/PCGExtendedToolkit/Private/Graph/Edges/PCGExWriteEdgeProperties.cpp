@@ -15,7 +15,7 @@
 PCGExData::EIOInit UPCGExWriteEdgePropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 PCGExData::EIOInit UPCGExWriteEdgePropertiesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExWriteEdgePropertiesSettings, SolidificationLerp, double, SolidificationLerpInput, SolidificationLerpAttribute, SolidificationLerpConstant)
+PCGEX_SETTING_VALUE_IMPL(UPCGExWriteEdgePropertiesSettings, SolidificationLerp, double, SolidificationLerpInput, SolidificationLerpAttribute, SolidificationLerpConstant)
 
 TArray<FPCGPinProperties> UPCGExWriteEdgePropertiesSettings::InputPinProperties() const
 {

@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeNeighborsCountFilter"
 #define PCGEX_NAMESPACE NodeNeighborsCountFilter
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExNodeNeighborsCountFilterConfig, LocalCount, double, CompareAgainst, LocalCount, Count)
+PCGEX_SETTING_VALUE_IMPL(FPCGExNodeNeighborsCountFilterConfig, LocalCount, double, CompareAgainst, LocalCount, Count)
 
 void UPCGExNodeNeighborsCountFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {

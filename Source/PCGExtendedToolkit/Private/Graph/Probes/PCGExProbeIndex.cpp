@@ -8,7 +8,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExProbeConfigIndex, Index, int32, IndexInput, IndexAttribute, IndexConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExProbeConfigIndex, Index, int32, IndexInput, IndexAttribute, IndexConstant)
 PCGEX_CREATE_PROBE_FACTORY(Index, {}, {})
 
 bool FPCGExProbeIndex::RequiresOctree() { return false; }

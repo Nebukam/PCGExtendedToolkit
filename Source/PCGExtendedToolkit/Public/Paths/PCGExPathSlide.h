@@ -74,7 +74,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Slide Amount", EditCondition="SlideAmountInput == EPCGExInputValueType::Constant && Mode != EPCGExSlideMode::Restore", EditConditionHides))
 	double SlideAmountConstant = 0.5;
 
-	PCGEX_SETTING_VALUE_GET_DECL(SlideAmount, double)
+	PCGEX_SETTING_VALUE_DECL(SlideAmount, double)
 
 	/** Whether to store the old position */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExSlideMode::Restore", EditConditionHides))

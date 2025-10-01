@@ -33,7 +33,7 @@ struct FPCGExEdgeLengthFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Threshold", ClampMin=1, EditCondition="ThresholdInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double ThresholdConstant = 100;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Threshold, double)
+	PCGEX_SETTING_VALUE_DECL(Threshold, double)
 
 	/** Comparison check */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

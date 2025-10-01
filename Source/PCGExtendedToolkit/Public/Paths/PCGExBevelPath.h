@@ -16,7 +16,7 @@ namespace PCGExPaths
 {
 	class FPathEdgeLength;
 	class FPath;
-	template<typename T>
+	template <typename T>
 	class TPathEdgeExtra;
 }
 
@@ -187,8 +187,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, EditCondition="bFlagSubdivision"))
 	FName SubdivisionFlagName = "IsSubdivision";
 
-	PCGEX_SETTING_VALUE_GET_DECL(Width, double)
-	PCGEX_SETTING_VALUE_GET_DECL(Subdivisions, double)
+	PCGEX_SETTING_VALUE_DECL(Width, double)
+	PCGEX_SETTING_VALUE_DECL(Subdivisions, double)
 
 	void InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const;
 };

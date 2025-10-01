@@ -45,7 +45,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Radius", EditCondition="RadiusInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double Radius = 100;
 
-	PCGEX_SETTING_VALUE_GET_INLINE(Radius, double, RadiusInput, RadiusAttribute, Radius)
+	PCGEX_SETTING_VALUE_INLINE(Radius, double, RadiusInput, RadiusAttribute, Radius)
 
 	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
 	{

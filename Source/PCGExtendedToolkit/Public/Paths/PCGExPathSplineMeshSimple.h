@@ -17,7 +17,7 @@ struct FPCGObjectPropertyOverrideDescription;
 
 namespace PCGEx
 {
-	template<typename T>
+	template <typename T>
 	class TAssetLoader;
 }
 
@@ -111,7 +111,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="Start Offset", EditCondition="StartOffsetInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector2D StartOffset = FVector2D::ZeroVector;
 
-	PCGEX_SETTING_VALUE_GET_DECL(StartOffset, FVector2D)
+	PCGEX_SETTING_VALUE_DECL(StartOffset, FVector2D)
 
 	/** Type of End Offset */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_NotOverridable))
@@ -125,7 +125,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations|Offsets", meta=(PCG_Overridable, DisplayName="End Offset", EditCondition="EndOffsetInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector2D EndOffset = FVector2D::ZeroVector;
 
-	PCGEX_SETTING_VALUE_GET_DECL(EndOffset, FVector2D)
+	PCGEX_SETTING_VALUE_DECL(EndOffset, FVector2D)
 
 	/** Push details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations", meta=(PCG_Overridable, DisplayName="Expansion"))

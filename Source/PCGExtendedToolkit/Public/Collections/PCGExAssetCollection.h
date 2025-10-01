@@ -237,7 +237,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionIndexDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector IndexSource;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Index, int32);
+	PCGEX_SETTING_VALUE_DECL(Index, int32);
 
 	/** Whether to remap index input value to collection size */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -303,7 +303,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Category", meta=(PCG_Overridable, DisplayName="Category", EditCondition="bUseCategories && CategoryInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FName Category = FName("Category");
 
-	PCGEX_SETTING_VALUE_GET_DECL(Category, FName);
+	PCGEX_SETTING_VALUE_DECL(Category, FName);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
 	uint8 SeedComponents = 0;

@@ -35,7 +35,7 @@ struct FPCGExFillControlConfigKeepDirection : public FPCGExFillControlConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Window Size", EditCondition="WindowSizeInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 WindowSize = 1;
 
-	PCGEX_SETTING_VALUE_GET_DECL(WindowSize, int32)
+	PCGEX_SETTING_VALUE_DECL(WindowSize, int32)
 
 	/** Hash comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))

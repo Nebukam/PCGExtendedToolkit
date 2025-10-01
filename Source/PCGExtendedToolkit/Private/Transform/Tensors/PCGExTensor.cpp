@@ -54,8 +54,8 @@ FPCGExTensorConfigBase::FPCGExTensorConfigBase(const bool SupportAttributes, con
 	WeightAttribute.Update(TEXT("Steepness"));
 }
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExTensorConfigBase, Weight, double, WeightInput, WeightAttribute, Weight);
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExTensorConfigBase, Potency, double, PotencyInput, PotencyAttribute, Potency);
+PCGEX_SETTING_VALUE_IMPL(FPCGExTensorConfigBase, Weight, double, WeightInput, WeightAttribute, Weight);
+PCGEX_SETTING_VALUE_IMPL(FPCGExTensorConfigBase, Potency, double, PotencyInput, PotencyAttribute, Potency);
 
 void FPCGExTensorConfigBase::Init()
 {

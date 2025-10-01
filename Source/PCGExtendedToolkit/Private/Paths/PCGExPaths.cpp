@@ -9,6 +9,7 @@
 #include "Collections/PCGExMeshCollection.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Data/PCGPolygon2DData.h"
 #include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPaths"
@@ -858,6 +859,37 @@ namespace PCGExPaths
 		this->BuildPath(Expansion);
 	}
 
+	FPolyPath::FPolyPath(
+		const UPCGPolygon2DData* PolygonData,
+		const FPCGExGeo2DProjectionDetails& InProjection,
+		const double Expansion, const double ExpansionZ,
+		const EPCGExWindingMutation WindingMutation)
+	{
+		const UE::Geometry::TPolygon2<double>& Polygon = PolygonData->GetPolygon().GetOuter();
+
+		const int32 NumVertices = Polygon.VertexCount();
+		LocalTransforms.Reserve(NumVertices);
+
+		for (int i = 0; i < NumVertices; i++)
+		{
+			const UE::Math::TVector2<double>& V2 = Polygon.GetVertices()[i];
+			LocalTransforms.Emplace(FVector(V2.X, V2.Y, 0));
+		}
+		
+		LocalTransformsValueRange = TConstPCGValueRange<FTransform>(MakeConstStridedView(LocalTransforms));
+
+		Projection = InProjection;
+		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(LocalTransformsValueRange)); }
+		else { if (!Projection.Init(PolygonData)) { Projection.Init(PCGExGeo::FBestFitPlane(LocalTransformsValueRange)); } }
+
+		InitFromTransforms(LocalTransformsValueRange, ExpansionZ, WindingMutation);
+
+		Positions = LocalTransformsValueRange;
+
+		// Need to force-build path post initializations
+		this->BuildPath(Expansion);
+	}
+
 	void FPolyPath::InitFromTransforms(const TConstPCGValueRange<FTransform>& InTransforms, const double ExpansionZ, const EPCGExWindingMutation WindingMutation)
 	{
 		const int32 NumPts = InTransforms.Num();
@@ -1045,8 +1077,8 @@ namespace PCGExPaths
 	}
 }
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExSplineMeshMutationDetails, StartPush, double, StartPushInput, StartPushInputAttribute, StartPushConstant);
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExSplineMeshMutationDetails, EndPush, double, EndPushInput, EndPushInputAttribute, EndPushConstant);
+PCGEX_SETTING_VALUE_IMPL(FPCGExSplineMeshMutationDetails, StartPush, double, StartPushInput, StartPushInputAttribute, StartPushConstant);
+PCGEX_SETTING_VALUE_IMPL(FPCGExSplineMeshMutationDetails, EndPush, double, EndPushInput, EndPushInputAttribute, EndPushConstant);
 
 bool FPCGExSplineMeshMutationDetails::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {

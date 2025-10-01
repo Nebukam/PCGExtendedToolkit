@@ -12,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExPathInsertElement"
 #define PCGEX_NAMESPACE PathInsert
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExPathInsertSettings, Range, int32, RangeInput, RangeAttribute, Range)
+PCGEX_SETTING_VALUE_IMPL(UPCGExPathInsertSettings, Range, int32, RangeInput, RangeAttribute, Range)
 
 TArray<FPCGPinProperties> UPCGExPathInsertSettings::InputPinProperties() const
 {

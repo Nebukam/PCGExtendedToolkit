@@ -12,7 +12,7 @@
 PCGEX_INITIALIZE_ELEMENT(PathSlide)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSlide)
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExPathSlideSettings, SlideAmount, double, SlideAmountInput, SlideAmountAttribute, SlideAmountConstant)
+PCGEX_SETTING_VALUE_IMPL(UPCGExPathSlideSettings, SlideAmount, double, SlideAmountInput, SlideAmountAttribute, SlideAmountConstant)
 
 bool FPCGExPathSlideElement::Boot(FPCGExContext* InContext) const
 {

@@ -61,7 +61,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Match", EditCondition="Mode != EPCGExBestMatchAxisTargetMode::ClosestTarget && MatchInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector MatchConstant = FVector::UpVector;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Match, FVector)
+	PCGEX_SETTING_VALUE_DECL(Match, FVector)
 
 	// TODO : Support attribute mutation such as transform, rotator, vector
 	// TODO : Auto-pick axis based on unsigned dot product (so we only mutate where it make the most meaingful)

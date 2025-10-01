@@ -23,8 +23,8 @@ namespace PCGExDataBlending
 
 namespace PCGExMT
 {
-	template<typename T>
-	class TScopedNumericValue;	
+	template <typename T>
+	class TScopedNumericValue;
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/vtx-by-id"))
@@ -77,7 +77,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="LookAtUpInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector LookAtUpConstant = FVector::UpVector;
 
-	PCGEX_SETTING_VALUE_GET_DECL(LookAtUp, FVector)
+	PCGEX_SETTING_VALUE_DECL(LookAtUp, FVector)
 
 	//
 

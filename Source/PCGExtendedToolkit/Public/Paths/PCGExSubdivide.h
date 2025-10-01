@@ -59,7 +59,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Amount (Attr)", EditCondition="SubdivideMethod != EPCGExSubdivideMode::Manhattan && AmountInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
-	PCGEX_SETTING_VALUE_GET_DECL(SubdivisionAmount, double)
+	PCGEX_SETTING_VALUE_DECL(SubdivisionAmount, double)
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod != EPCGExSubdivideMode::Manhattan && SubdivideMethod == EPCGExSubdivideMode::Distance", EditConditionHides))
 	bool bRedistributeEvenly = false;

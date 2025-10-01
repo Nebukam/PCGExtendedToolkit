@@ -57,7 +57,7 @@ struct FPCGExNumericSelfCompareFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Clamp;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Index, int32)
+	PCGEX_SETTING_VALUE_DECL(Index, int32)
 
 	/** How to deal with invalid indices */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

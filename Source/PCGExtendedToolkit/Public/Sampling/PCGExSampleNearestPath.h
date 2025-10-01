@@ -42,8 +42,8 @@ namespace PCGExDataBlending
 
 namespace PCGExMT
 {
-	template<typename T>
-	class TScopedNumericValue;	
+	template <typename T>
+	class TScopedNumericValue;
 }
 
 namespace PCGExPaths
@@ -139,7 +139,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMinInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	double RangeMin = 0;
 
-	PCGEX_SETTING_VALUE_GET_DECL(RangeMin, double)
+	PCGEX_SETTING_VALUE_DECL(RangeMin, double)
 
 	/** Type of Range Min */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
@@ -153,8 +153,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMaxInput == EPCGExInputValueType::Constant", ClampMin=0))
 	double RangeMax = 300;
 
-	PCGEX_SETTING_VALUE_GET_DECL(RangeMax, double)
-		
+	PCGEX_SETTING_VALUE_DECL(RangeMax, double)
+
 	/** If the value is greater than 0, will do a rough vertical check as part of the projected inclusion. 0 is infinite. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, ClampMin=0))
 	double HeightInclusion = 0;
@@ -185,7 +185,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, DisplayName=" └─ Sample Alpha", EditCondition="bSampleSpecificAlpha && SampleAlphaInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double SampleAlphaConstant = 0.5;
 
-	PCGEX_SETTING_VALUE_GET_DECL(SampleAlpha, double)
+	PCGEX_SETTING_VALUE_DECL(SampleAlpha, double)
 
 	/** Distance method to be used for source points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
@@ -257,8 +257,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="LookAtUpSelection == EPCGExSampleSource::Constant", EditConditionHides))
 	FVector LookAtUpConstant = FVector::UpVector;
 
-	PCGEX_SETTING_VALUE_GET_DECL(LookAtUp, FVector)
-	
+	PCGEX_SETTING_VALUE_DECL(LookAtUp, FVector)
+
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistance = false;

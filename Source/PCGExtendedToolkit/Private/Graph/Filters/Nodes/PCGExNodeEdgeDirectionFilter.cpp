@@ -11,7 +11,7 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeEdgeDirectionFilter"
 #define PCGEX_NAMESPACE NodeEdgeDirectionFilter
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExNodeEdgeDirectionFilterConfig, Direction, FVector, CompareAgainst, Direction, DirectionConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExNodeEdgeDirectionFilterConfig, Direction, FVector, CompareAgainst, Direction, DirectionConstant)
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExNodeEdgeDirectionFilterFactory::CreateFilter() const
 {

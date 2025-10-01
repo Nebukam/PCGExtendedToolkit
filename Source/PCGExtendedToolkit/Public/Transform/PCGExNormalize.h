@@ -73,7 +73,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Transform", ClampMin=1, EditCondition="TransformInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FTransform TransformConstant = FTransform::Identity;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Transform, FTransform)
+	PCGEX_SETTING_VALUE_DECL(Transform, FTransform)
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

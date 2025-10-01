@@ -61,8 +61,8 @@ struct FPCGExModuloCompareFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool ZeroResult = true;
 
-	PCGEX_SETTING_VALUE_GET_DECL(OperandB, double)
-	PCGEX_SETTING_VALUE_GET_DECL(OperandC, double)
+	PCGEX_SETTING_VALUE_DECL(OperandB, double)
+	PCGEX_SETTING_VALUE_DECL(OperandC, double)
 };
 
 

@@ -12,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"
 #define PCGEX_NAMESPACE BlendPath
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExBlendPathSettings, Lerp, double, LerpInput, LerpAttribute, LerpConstant)
+PCGEX_SETTING_VALUE_IMPL(UPCGExBlendPathSettings, Lerp, double, LerpInput, LerpAttribute, LerpConstant)
 
 UPCGExBlendPathSettings::UPCGExBlendPathSettings(
 	const FObjectInitializer& ObjectInitializer)

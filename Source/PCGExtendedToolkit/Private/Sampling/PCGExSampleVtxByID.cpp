@@ -19,7 +19,7 @@
 #define LOCTEXT_NAMESPACE "PCGExSampleVtxByIDElement"
 #define PCGEX_NAMESPACE SampleVtxByID
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExSampleVtxByIDSettings, LookAtUp, FVector, LookAtUpInput, LookAtUpSource, LookAtUpConstant)
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleVtxByIDSettings, LookAtUp, FVector, LookAtUpInput, LookAtUpSource, LookAtUpConstant)
 
 UPCGExSampleVtxByIDSettings::UPCGExSampleVtxByIDSettings(
 	const FObjectInitializer& ObjectInitializer)

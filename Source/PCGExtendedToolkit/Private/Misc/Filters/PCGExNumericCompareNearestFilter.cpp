@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExNumericCompareNearestFilterConfig, OperandB, double, CompareAgainst, OperandB, OperandBConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExNumericCompareNearestFilterConfig, OperandB, double, CompareAgainst, OperandB, OperandBConstant)
 
 bool UPCGExNumericCompareNearestFilterFactory::Init(FPCGExContext* InContext)
 {

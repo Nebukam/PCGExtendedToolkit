@@ -54,7 +54,7 @@ struct FPCGExDotFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bTransformOperandB = false;
 
-	PCGEX_SETTING_VALUE_GET_DECL(OperandB, FVector)
+	PCGEX_SETTING_VALUE_DECL(OperandB, FVector)
 
 	/** Dot comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))

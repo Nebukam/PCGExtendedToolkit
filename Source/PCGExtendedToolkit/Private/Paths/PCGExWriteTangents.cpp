@@ -14,8 +14,8 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExWriteTangentsSettings, ArriveScale, FVector, ArriveScaleInput, ArriveScaleAttribute, FVector(ArriveScaleConstant))
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExWriteTangentsSettings, LeaveScale, FVector, LeaveScaleInput, LeaveScaleAttribute, FVector(LeaveScaleConstant))
+PCGEX_SETTING_VALUE_IMPL(UPCGExWriteTangentsSettings, ArriveScale, FVector, ArriveScaleInput, ArriveScaleAttribute, FVector(ArriveScaleConstant))
+PCGEX_SETTING_VALUE_IMPL(UPCGExWriteTangentsSettings, LeaveScale, FVector, LeaveScaleInput, LeaveScaleAttribute, FVector(LeaveScaleConstant))
 
 #if WITH_EDITORONLY_DATA
 void UPCGExWriteTangentsSettings::PostInitProperties()

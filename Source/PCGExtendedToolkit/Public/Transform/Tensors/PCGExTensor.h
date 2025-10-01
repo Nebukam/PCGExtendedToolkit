@@ -22,10 +22,10 @@ class UPCGExTensorFactoryData;
 
 namespace PCGExDetails
 {
-	template<typename T>
+	template <typename T>
 	class TSettingValue;
-	
 }
+
 namespace PCGExTensor
 {
 	struct FTensorSample;
@@ -142,7 +142,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency", EditCondition = "PotencyInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
 	double Potency = 1;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Potency, double)
+	PCGEX_SETTING_VALUE_DECL(Potency, double)
 
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_NotOverridable, DisplayPriority=-1))
@@ -177,7 +177,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1, ClampMin=0))
 	double Weight = 1;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Weight, double)
+	PCGEX_SETTING_VALUE_DECL(Weight, double)
 
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable, DisplayPriority=-1))

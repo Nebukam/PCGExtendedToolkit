@@ -32,5 +32,4 @@ namespace PCGExMean
 
 		return Mode;
 	}
-
 }

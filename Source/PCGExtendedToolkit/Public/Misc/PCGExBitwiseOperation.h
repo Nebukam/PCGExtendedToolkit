@@ -49,7 +49,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int64 Bitmask;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Mask, int64)
+	PCGEX_SETTING_VALUE_DECL(Mask, int64)
 };
 
 struct FPCGExBitwiseOperationContext final : FPCGExPointsProcessorContext

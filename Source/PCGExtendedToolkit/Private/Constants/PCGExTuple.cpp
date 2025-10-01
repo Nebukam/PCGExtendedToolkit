@@ -55,7 +55,6 @@ FPCGMetadataAttributeBase* FPCGExTupleValueWrap::CreateAttribute(UPCGMetadata* M
 
 void FPCGExTupleValueWrap::SetValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const
 {
-	
 }
 
 

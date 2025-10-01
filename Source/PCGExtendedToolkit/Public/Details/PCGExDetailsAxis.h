@@ -52,7 +52,6 @@ enum class EPCGExAxisAlign : uint8
 
 namespace PCGEx
 {
-	
 	const int32 AxisOrders[6][3] = {
 		{0, 1, 2}, // X > Y > Z
 		{1, 2, 0}, // Y > Z > X

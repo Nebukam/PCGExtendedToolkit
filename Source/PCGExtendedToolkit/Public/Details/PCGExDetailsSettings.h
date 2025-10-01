@@ -17,7 +17,7 @@ namespace PCGExData
 	struct FConstPoint;
 	class FFacade;
 	class FPointIO;
-	
+
 	template <typename T>
 	class TBuffer;
 }

@@ -15,8 +15,8 @@
 #include "Misc/PCGExDiscardByPointCount.h"
 #include "Paths/PCGExPaths.h"
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExSampleInsidePathSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExSampleInsidePathSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
 
 #define LOCTEXT_NAMESPACE "PCGExSampleInsidePathElement"
 #define PCGEX_NAMESPACE SampleInsidePath

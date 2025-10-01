@@ -594,17 +594,13 @@ OutProxy = TypedProxy;
 
 			if (bSubSelection)
 			{
-				TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, true>> TypedProxy =
-					MakeShared<TAttributeBufferProxy<T_REAL, T_WORKING, true>>();
-
+				TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, true>> TypedProxy = MakeShared<TAttributeBufferProxy<T_REAL, T_WORKING, true>>();
 				TypedProxy->Buffer = Buffer;
 				OutProxy = TypedProxy;
 			}
 			else
 			{
-				TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, false>> TypedProxy =
-					MakeShared<TAttributeBufferProxy<T_REAL, T_WORKING, false>>();
-
+				TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, false>> TypedProxy = MakeShared<TAttributeBufferProxy<T_REAL, T_WORKING, false>>();
 				TypedProxy->Buffer = Buffer;
 				OutProxy = TypedProxy;
 			}

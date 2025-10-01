@@ -11,8 +11,8 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeAdjacencyFilter"
 #define PCGEX_NAMESPACE NodeAdjacencyFilter
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExNodeAdjacencyFilterConfig, OperandA, double, CompareAgainst, OperandA, OperandAConstant)
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExNodeAdjacencyFilterConfig, OperandB, double, EPCGExInputValueType::Attribute, OperandB, 0)
+PCGEX_SETTING_VALUE_IMPL(FPCGExNodeAdjacencyFilterConfig, OperandA, double, CompareAgainst, OperandA, OperandAConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExNodeAdjacencyFilterConfig, OperandB, double, EPCGExInputValueType::Attribute, OperandB, 0)
 
 void UPCGExNodeAdjacencyFilterFactory::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
 {

@@ -14,7 +14,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExStringSelfCompareFilterConfig, Index, int32, CompareAgainst, IndexAttribute, IndexConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExStringSelfCompareFilterConfig, Index, int32, CompareAgainst, IndexAttribute, IndexConstant)
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExStringSelfCompareFilterFactory::CreateFilter() const
 {

@@ -17,6 +17,7 @@
 
 #include "PCGExPaths.generated.h"
 
+class UPCGPolygon2DData;
 struct FPCGSplineStruct;
 
 namespace ESplineMeshAxis
@@ -697,6 +698,12 @@ namespace PCGExPaths
 			const double Fidelity, const FPCGExGeo2DProjectionDetails& InProjection,
 			const double Expansion = 0, const double ExpansionZ = -1,
 			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
+		
+		FPolyPath(
+			const UPCGPolygon2DData* PolygonData,
+			const FPCGExGeo2DProjectionDetails& InProjection,
+			const double Expansion = 0, const double ExpansionZ = -1,
+			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
 
 		FORCEINLINE const FPCGSplineStruct* GetSpline() const { return Spline; }
 
@@ -722,10 +729,9 @@ namespace PCGExPaths
 
 	struct PCGEXTENDEDTOOLKIT_API FCrossing
 	{
-		
 		FCrossing() = default;
 		FCrossing(const uint64 InHash, const FVector& InLocation, const double InAlpha, const bool InIsPoint, const FVector& InDir);
-			
+
 
 		uint64 Hash;      // Point Index | IO Index
 		FVector Location; // Position in between edges
@@ -784,7 +790,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushStart && StartPushInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double StartPushConstant = 0.1;
 
-	PCGEX_SETTING_VALUE_GET_DECL(StartPush, double);
+	PCGEX_SETTING_VALUE_DECL(StartPush, double);
 
 	/** If enabled, value will relative to the size of the segment */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushStart", EditConditionHides))
@@ -806,7 +812,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplineMeshMutationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Amount", EditCondition="bPushEnd && EndPushInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double EndPushConstant = 0.1;
 
-	PCGEX_SETTING_VALUE_GET_DECL(EndPush, double);
+	PCGEX_SETTING_VALUE_DECL(EndPush, double);
 
 	/** If enabled, value will relative to the size of the segment */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Relative", EditCondition="bPushEnd", EditConditionHides))

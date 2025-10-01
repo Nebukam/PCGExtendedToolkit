@@ -19,7 +19,7 @@ namespace PCGExData
 namespace PCGExDetails
 {
 	class FDistances;
-	
+
 	template <typename T>
 	class TSettingValue;
 }
@@ -38,9 +38,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetailsBase
 {
 	GENERATED_BODY()
 
-	FPCGExFuseDetailsBase();	
+	FPCGExFuseDetailsBase();
 	explicit FPCGExFuseDetailsBase(const bool InSupportLocalTolerance);
-	FPCGExFuseDetailsBase(const bool InSupportLocalTolerance, const double InTolerance);		
+	FPCGExFuseDetailsBase(const bool InSupportLocalTolerance, const double InTolerance);
 
 	virtual ~FPCGExFuseDetailsBase() = default;
 
@@ -70,9 +70,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetailsBase
 	virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 
 	bool IsWithinTolerance(const double DistSquared, const int32 PointIndex) const;
-	bool IsWithinTolerance(const FVector& Source, const FVector& Target, const int32 PointIndex) const;	
+	bool IsWithinTolerance(const FVector& Source, const FVector& Target, const int32 PointIndex) const;
 	bool IsWithinToleranceComponentWise(const FVector& Source, const FVector& Target, const int32 PointIndex) const;
-	
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<FVector>> ToleranceGetter;
@@ -83,7 +82,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSourceFuseDetails : public FPCGExFuseDetails
 {
 	GENERATED_BODY()
 
-	FPCGExSourceFuseDetails();		
+	FPCGExSourceFuseDetails();
 	explicit FPCGExSourceFuseDetails(const bool InSupportLocalTolerance);
 	FPCGExSourceFuseDetails(const bool InSupportLocalTolerance, const double InTolerance);
 	explicit FPCGExSourceFuseDetails(const bool InSupportLocalTolerance, const double InTolerance, const EPCGExDistance SourceMethod);
@@ -98,12 +97,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 	GENERATED_BODY()
 
 	FPCGExFuseDetails();
-		
-	explicit  FPCGExFuseDetails(const bool InSupportLocalTolerance) ;
+
+	explicit FPCGExFuseDetails(const bool InSupportLocalTolerance);
 	FPCGExFuseDetails(const bool InSupportLocalTolerance, const double InTolerance);
-	FPCGExFuseDetails(const bool InSupportLocalTolerance, const double InTolerance, const EPCGExDistance InSourceMethod);	
+	FPCGExFuseDetails(const bool InSupportLocalTolerance, const double InTolerance, const EPCGExDistance InSourceMethod);
 	FPCGExFuseDetails(const bool InSupportLocalTolerance, const double InTolerance, const EPCGExDistance InSourceMethod, const EPCGExDistance InTargetMethod);
-		
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDistance TargetDistance = EPCGExDistance::Center;
 

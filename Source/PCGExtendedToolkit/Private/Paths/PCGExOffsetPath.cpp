@@ -10,7 +10,7 @@
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExOffsetPathSettings, Offset, double, OffsetInput, OffsetAttribute, OffsetConstant)
+PCGEX_SETTING_VALUE_IMPL(UPCGExOffsetPathSettings, Offset, double, OffsetInput, OffsetAttribute, OffsetConstant)
 
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(OffsetPath)

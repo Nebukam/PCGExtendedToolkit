@@ -18,7 +18,7 @@ namespace PCGExMath
 		case EPCGExTruncateMode::None: return Value;
 		}
 	}
-	
+
 	FClosestPosition::FClosestPosition(const FVector& InOrigin)
 		: Origin(InOrigin)
 	{

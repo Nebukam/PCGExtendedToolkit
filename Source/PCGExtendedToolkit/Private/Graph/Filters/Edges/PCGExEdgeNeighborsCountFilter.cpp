@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExEdgeNeighborsCountFilter"
 #define PCGEX_NAMESPACE EdgeNeighborsCountFilter
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExEdgeNeighborsCountFilterConfig, Threshold, int32, ThresholdInput, ThresholdAttribute, ThresholdConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExEdgeNeighborsCountFilterConfig, Threshold, int32, ThresholdInput, ThresholdAttribute, ThresholdConstant)
 
 bool UPCGExEdgeNeighborsCountFilterFactory::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
 {

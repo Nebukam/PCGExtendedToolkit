@@ -70,7 +70,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorHandlerDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = " └─ Size", EditCondition="bNormalize && SizeInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double SizeConstant = 100;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Size, double)
+	PCGEX_SETTING_VALUE_DECL(Size, double)
 
 	/** Uniform scale factor applied to sampling after all other mutations are accounted for. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

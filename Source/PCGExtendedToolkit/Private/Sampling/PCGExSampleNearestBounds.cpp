@@ -15,7 +15,7 @@
 #include "Details/PCGExDetailsSettings.h"
 #include "Geometry/PCGExGeoPointBox.h"
 
-PCGEX_SETTING_VALUE_GET_IMPL_BOOL(UPCGExSampleNearestBoundsSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
+PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestBoundsSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestBoundsElement"
 #define PCGEX_NAMESPACE SampleNearestBounds

@@ -42,7 +42,7 @@ struct FPCGExBooleanCompareFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B", EditCondition="CompareAgainst == EPCGExInputValueType::Constant", EditConditionHides))
 	bool OperandBConstant = true;
 
-	PCGEX_SETTING_VALUE_GET_DECL(OperandB, bool)
+	PCGEX_SETTING_VALUE_DECL(OperandB, bool)
 };
 
 

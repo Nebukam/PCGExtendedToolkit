@@ -30,7 +30,7 @@ struct FPCGExFillControlConfigCount : public FPCGExFillControlConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Count", EditCondition="MaxCountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 MaxCount = 10;
 
-	PCGEX_SETTING_VALUE_GET_DECL(MaxCount, int32)
+	PCGEX_SETTING_VALUE_DECL(MaxCount, int32)
 };
 
 /**

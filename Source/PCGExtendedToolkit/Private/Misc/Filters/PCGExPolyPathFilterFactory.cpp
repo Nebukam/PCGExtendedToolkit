@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
 #include "Data/PCGExPointIO.h"
+#include "Data/PCGPolygon2DData.h"
 #include "Data/PCGSplineData.h"
 
 
@@ -122,9 +123,15 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 				Path = MakeShared<PCGExPaths::FPolyPath>(SplineData, LocalFidelity, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
 			}
-			else
+			else if (const UPCGPolygon2DData* PolygonData = Cast<UPCGPolygon2DData>(Data))
 			{
-				// TODO : Support polygon 2D
+				if (PolygonData->GetNumSegments() < 1)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, SharedContext.Get(), FTEXT("Some targets splines are invalid (less than one segment)."));
+					return;
+				}
+
+				Path = MakeShared<PCGExPaths::FPolyPath>(PolygonData, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
 			}
 
 			if (Path) { TempPolyPaths[Index] = Path; }

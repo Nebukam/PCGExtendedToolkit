@@ -46,7 +46,7 @@ struct FPCGExBitmaskFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Bitmask, int64)
+	PCGEX_SETTING_VALUE_DECL(Bitmask, int64)
 };
 
 

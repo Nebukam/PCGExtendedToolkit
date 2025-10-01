@@ -8,7 +8,7 @@
 #include "Data/PCGExPointElements.h"
 #include "Details/PCGExDetailsSettings.h"
 
-PCGEX_SETTING_VALUE_GET_IMPL(UPCGExGoalPickerRandom, NumGoals, int32, NumGoalsType, NumGoalAttribute, NumGoals)
+PCGEX_SETTING_VALUE_IMPL(UPCGExGoalPickerRandom, NumGoals, int32, NumGoalsType, NumGoalAttribute, NumGoals)
 
 void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExInstancedFactory* Other)
 {

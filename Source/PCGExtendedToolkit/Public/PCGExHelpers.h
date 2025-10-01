@@ -620,7 +620,7 @@ namespace PCGEx
 	const FName DummyName = NAME_None;
 	const FSoftClassPath DummySoftClassPath = FSoftClassPath{};
 	const FSoftObjectPath DummySoftObjectPath = FSoftObjectPath{};
-	
+
 	template <typename Func>
 	static void ExecuteWithRightType(const EPCGMetadataTypes Type, Func&& Callback)
 	{
@@ -631,7 +631,7 @@ namespace PCGEx
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_EXECUTE_WITH_TYPE)
 		default: ;
 		}
-		
+
 #undef PCGEX_EXECUTE_WITH_TYPE
 	}
 
@@ -642,10 +642,10 @@ namespace PCGEx
 
 		switch (static_cast<EPCGMetadataTypes>(Type))
 		{
-			PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_EXECUTE_WITH_TYPE)
-			default: ;
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_EXECUTE_WITH_TYPE)
+		default: ;
 		}
-		
+
 #undef PCGEX_EXECUTE_WITH_TYPE
 	}
 

@@ -62,7 +62,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Range", EditCondition="bWithinRange && RangeInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	double Range = 100;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Range, int32)
+	PCGEX_SETTING_VALUE_DECL(Range, int32)
 
 
 	/** Meta filter settings. */

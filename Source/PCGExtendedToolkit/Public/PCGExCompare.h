@@ -445,7 +445,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 
 	TSharedPtr<PCGExDetails::TSettingValue<double>> Tolerance;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Tolerance, double)
+	PCGEX_SETTING_VALUE_DECL(Tolerance, double)
 
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade);
 	FVector GetCWTolerance(const int32 PointIndex) const;
@@ -551,7 +551,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Tolerance", EditCondition="(Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual) && Domain == EPCGExAngularDomain::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DegreesTolerance = 0.1;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Threshold, double)
+	PCGEX_SETTING_VALUE_DECL(Threshold, double)
 	TSharedPtr<PCGExDetails::TSettingValue<double>> ThresholdGetter;
 
 	double ComparisonTolerance = 0;

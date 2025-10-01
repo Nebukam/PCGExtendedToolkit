@@ -65,7 +65,7 @@ namespace PCGExGeo
 
 	PCGEXTENDEDTOOLKIT_API
 	void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
-	
+
 	class PCGEXTENDEDTOOLKIT_API FMeshLookup : public TSharedFromThis<FMeshLookup>
 	{
 	protected:

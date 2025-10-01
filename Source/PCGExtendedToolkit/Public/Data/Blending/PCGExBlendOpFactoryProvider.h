@@ -220,7 +220,7 @@ public:
 	virtual TSharedPtr<FPCGExBlendOperation> CreateOperation(FPCGExContext* InContext) const;
 
 	virtual bool WantsPreparation(FPCGExContext* InContext) override;
-	
+
 	virtual PCGExFactories::EPreparationResult Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 
 	virtual void RegisterAssetDependencies(FPCGExContext* InContext) const override;

@@ -9,7 +9,7 @@
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExFillControlConfigLength, MaxLength, double, MaxLengthInput, MaxLengthAttribute, MaxLength)
+PCGEX_SETTING_VALUE_IMPL(FPCGExFillControlConfigLength, MaxLength, double, MaxLengthInput, MaxLengthAttribute, MaxLength)
 
 bool FPCGExFillControlLength::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {

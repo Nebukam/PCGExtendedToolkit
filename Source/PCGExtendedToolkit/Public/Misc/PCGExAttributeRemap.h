@@ -20,8 +20,8 @@
 
 namespace PCGExMT
 {
-	template<typename T>
-	class TScopedNumericValue;	
+	template <typename T>
+	class TScopedNumericValue;
 }
 
 namespace PCGExData

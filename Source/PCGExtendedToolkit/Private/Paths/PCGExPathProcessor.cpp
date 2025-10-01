@@ -14,7 +14,7 @@ UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(
 }
 
 FName UPCGExPathProcessorSettings::GetMainInputPin() const { return PCGExPaths::SourcePathsLabel; }
-FName UPCGExPathProcessorSettings::GetMainOutputPin() const{ return PCGExPaths::OutputPathsLabel; }
+FName UPCGExPathProcessorSettings::GetMainOutputPin() const { return PCGExPaths::OutputPathsLabel; }
 
 bool FPCGExPathProcessorElement::Boot(FPCGExContext* InContext) const
 {

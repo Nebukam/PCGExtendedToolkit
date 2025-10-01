@@ -34,7 +34,7 @@ struct FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Connections", ClampMin=0, EditCondition="MaxConnectionsInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	int32 MaxConnectionsConstant = 1;
 
-	PCGEX_SETTING_VALUE_GET_DECL(MaxConnections, int32)
+	PCGEX_SETTING_VALUE_DECL(MaxConnections, int32)
 
 	/** Attempts to prevent connections that are roughly in the same direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))

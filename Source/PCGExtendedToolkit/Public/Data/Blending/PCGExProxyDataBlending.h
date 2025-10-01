@@ -17,7 +17,7 @@ namespace PCGExData
 {
 	class IUnionData;
 
-	template<typename T>
+	template <typename T>
 	class TBufferProxy;
 
 	struct FProxyDescriptor;

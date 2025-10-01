@@ -90,7 +90,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGUIDDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Unique Key", EditCondition="UniqueKeyInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	int32 UniqueKeyConstant = 42;
 
-	PCGEX_SETTING_VALUE_GET_DECL(UniqueKey, int32)
+	PCGEX_SETTING_VALUE_DECL(UniqueKey, int32)
 
 	EGuidFormats GUIDFormat = EGuidFormats::Digits;
 	TSharedPtr<PCGExDetails::TSettingValue<int32>> UniqueKeyReader;

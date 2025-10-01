@@ -8,7 +8,6 @@
 
 namespace PCGExDetails
 {
-	
 	template <EPCGExDistance Source, EPCGExDistance Target>
 	FVector TDistances<Source, Target>::GetSourceCenter(const PCGExData::FConstPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
 	{

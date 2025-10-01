@@ -10,7 +10,7 @@
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/Probes/PCGExProbing.h"
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExProbeConfigDirection, Direction, FVector, DirectionInput, DirectionAttribute, DirectionConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExProbeConfigDirection, Direction, FVector, DirectionInput, DirectionAttribute, DirectionConstant)
 PCGEX_CREATE_PROBE_FACTORY(Direction, {}, {})
 
 bool FPCGExProbeDirection::RequiresChainProcessing() { return Config.bDoChainedProcessing; }

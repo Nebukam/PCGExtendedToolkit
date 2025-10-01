@@ -264,7 +264,7 @@ namespace PCGExCompare
 	}
 }
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExVectorHashComparisonDetails, Tolerance, double, HashToleranceInput, HashToleranceAttribute, HashToleranceConstant);
+PCGEX_SETTING_VALUE_IMPL(FPCGExVectorHashComparisonDetails, Tolerance, double, HashToleranceInput, HashToleranceAttribute, HashToleranceConstant);
 
 bool FPCGExVectorHashComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
 {
@@ -308,7 +308,7 @@ bool FPCGExStaticDotComparisonDetails::Test(const double A) const
 	return PCGExCompare::Compare(Comparison, bUnsignedComparison ? FMath::Abs(A) : (1 + A) * 0.5, DotTolerance, ComparisonTolerance);
 }
 
-PCGEX_SETTING_VALUE_GET_IMPL(FPCGExDotComparisonDetails, Threshold, double, ThresholdInput, ThresholdAttribute, Domain == EPCGExAngularDomain::Degrees ? DegreesConstant : DotConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExDotComparisonDetails, Threshold, double, ThresholdInput, ThresholdAttribute, Domain == EPCGExAngularDomain::Degrees ? DegreesConstant : DotConstant)
 
 bool FPCGExDotComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
 {

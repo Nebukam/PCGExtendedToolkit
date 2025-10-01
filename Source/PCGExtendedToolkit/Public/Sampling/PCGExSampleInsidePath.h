@@ -100,8 +100,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMinInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	double RangeMin = 0;
 
-	PCGEX_SETTING_VALUE_GET_DECL(RangeMin, double)
-	
+	PCGEX_SETTING_VALUE_DECL(RangeMin, double)
+
 	/** Type of Range Min */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExInputValueType RangeMaxInput = EPCGExInputValueType::Constant;
@@ -114,7 +114,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="RangeMaxInput == EPCGExInputValueType::Constant", ClampMin=0))
 	double RangeMax = 300;
 
-	PCGEX_SETTING_VALUE_GET_DECL(RangeMax, double)
+	PCGEX_SETTING_VALUE_DECL(RangeMax, double)
 
 	/** If the value is greater than 0, will do a rough vertical check as part of the projected inclusion. 0 is infinite. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, ClampMin=0))

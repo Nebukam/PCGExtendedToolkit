@@ -58,7 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Offset", EditCondition="bSupportRadius && SearchRadiusInput != EPCGExInputValueType::Constant", EditConditionHides))
 	double SearchRadiusOffset = 0;
 
-	PCGEX_SETTING_VALUE_GET_DECL(SearchRadius, double)
+	PCGEX_SETTING_VALUE_DECL(SearchRadius, double)
 };
 
 /**

@@ -53,7 +53,7 @@ public:
 
 	virtual void Cleanup() override;
 
-	PCGEX_SETTING_VALUE_GET_DECL(NumGoals, int32)
+	PCGEX_SETTING_VALUE_DECL(NumGoals, int32)
 
 protected:
 	TSharedPtr<PCGExDetails::TSettingValue<int32>> NumGoalsBuffer;

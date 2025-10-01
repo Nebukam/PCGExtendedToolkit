@@ -62,7 +62,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Lerp", ClampMin=0, EditCondition="BlendOver == EPCGExBlendOver::Fixed && LerpInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double LerpConstant = 0.5;
 
-	PCGEX_SETTING_VALUE_GET_DECL(Lerp, double)
+	PCGEX_SETTING_VALUE_DECL(Lerp, double)
 
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

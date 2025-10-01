@@ -68,7 +68,7 @@ namespace PCGEx
 			if (InContext) { PCGEX_LOG_INVALID_ATTR_C(InContext, KeyId, KeyId) }
 			return 0;
 		}
-		
+
 		const FPCGMetadataAttributeBase* ValueAttr = ParamData->Metadata->GetConstAttribute(ValueId);
 
 		if (!ValueAttr)
@@ -76,7 +76,7 @@ namespace PCGEx
 			if (InContext) { PCGEX_LOG_INVALID_ATTR_C(InContext, ValueId, ValueId) }
 			return 0;
 		}
-		
+
 		return BuildMap(ParamData->Metadata, KeyAttr, ValueAttr, OutMap);
 	}
 
