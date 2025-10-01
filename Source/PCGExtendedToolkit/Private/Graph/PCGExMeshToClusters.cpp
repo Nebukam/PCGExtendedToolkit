@@ -23,7 +23,7 @@ namespace PCGExGeoTask
 
 TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::InputPinProperties() const
 {
-	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGExGeo::DeclareGeoMeshImportInputs(ImportDetails, PinProperties);
 	return PinProperties;
 }
