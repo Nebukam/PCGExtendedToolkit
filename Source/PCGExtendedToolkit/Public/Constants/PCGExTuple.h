@@ -18,7 +18,7 @@ class FPCGMetadataAttributeBase;
 #pragma region Singles
 
 USTRUCT(BlueprintType)
-struct FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
