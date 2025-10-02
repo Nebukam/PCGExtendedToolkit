@@ -4,6 +4,8 @@
 #include "Debug/PCGExDrawAttributes.h"
 
 #include "PCGExMath.h"
+#include "Data/PCGExPointElements.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDrawAttributes"
 #define PCGEX_NAMESPACE DrawAttributes

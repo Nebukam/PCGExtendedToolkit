@@ -27,7 +27,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(ToggleTopology, "Topology : Toggle (DEPRECATED)", "Registers/unregister or Removes PCGEx spawned dynamic meshes. Use OutputMode : Dynamic Mesh to use the mesh with the PCG Geometry Script interop stack from now on.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPrimitives; }
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::DynamicMesh; }
 #endif
 
 protected:

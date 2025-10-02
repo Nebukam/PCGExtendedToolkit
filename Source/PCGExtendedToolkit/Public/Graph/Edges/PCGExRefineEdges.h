@@ -40,7 +40,7 @@ public:
 		RefineEdges, "Cluster : Refine", "Refine edges according to special rules.",
 		(Refinement ? FName(Refinement.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorEdge); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorClusterOp); }
 #endif
 
 protected:
@@ -82,9 +82,9 @@ struct FPCGExRefineEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRefineEdgesElement;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> SanitizationFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> VtxFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgeFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> SanitizationFilterFactories;
 
 	UPCGExEdgeRefineInstancedFactory* Refinement = nullptr;
 

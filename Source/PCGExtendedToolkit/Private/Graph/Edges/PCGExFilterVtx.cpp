@@ -4,6 +4,7 @@
 #include "Graph/Edges/PCGExFilterVtx.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
@@ -14,11 +15,11 @@ TArray<FPCGPinProperties> UPCGExFilterVtxSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Required, {})
+	PCGEX_PIN_FILTERS(PCGExGraph::SourceVtxFiltersLabel, "Vtx filters.", Required)
 
 	if (Mode == EPCGExVtxFilterOutput::Clusters)
 	{
-		PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeFiltersLabel, "Optional Edge filters. Selected edges will be invalidated, possibly pruning more vtx along the way.", Normal, {})
+		PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeFiltersLabel, "Optional Edge filters. Selected edges will be invalidated, possibly pruning more vtx along the way.", Normal)
 	}
 
 	return PinProperties;
@@ -32,8 +33,8 @@ TArray<FPCGPinProperties> UPCGExFilterVtxSettings::OutputPinProperties() const
 	}
 
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPointFilter::OutputInsideFiltersLabel, "Vtx points that passed the filters.", Required, {})
-	PCGEX_PIN_POINTS(PCGExPointFilter::OutputOutsideFiltersLabel, "Vtx points that didn't pass the filters.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPointFilter::OutputInsideFiltersLabel, "Vtx points that passed the filters.", Required)
+	PCGEX_PIN_POINTS(PCGExPointFilter::OutputOutsideFiltersLabel, "Vtx points that didn't pass the filters.", Required)
 	return PinProperties;
 }
 

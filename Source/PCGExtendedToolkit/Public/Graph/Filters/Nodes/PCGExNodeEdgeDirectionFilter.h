@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Graph/Filters/PCGExAdjacency.h"
-#include "PCGExDetailsData.h"
 
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -19,9 +19,7 @@ struct FPCGExNodeEdgeDirectionFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNodeEdgeDirectionFilterConfig()
-	{
-	}
+	FPCGExNodeEdgeDirectionFilterConfig() = default;
 
 	/** Type of check; Note that Fast comparison ignores adjacency consolidation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
@@ -63,7 +61,7 @@ struct FPCGExNodeEdgeDirectionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ComparisonQuality == EPCGExDirectionCheckMode::Hash", EditConditionHides))
 	FPCGExVectorHashComparisonDetails HashComparisonDetails;
 
-	PCGEX_SETTING_VALUE_GET(Direction, FVector, CompareAgainst, Direction, DirectionConstant)
+	PCGEX_SETTING_VALUE_DECL(Direction, FVector)
 };
 
 /**
@@ -117,7 +115,7 @@ public:
 
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-vtx-nodes/edge-direction"))
-class UPCGExNodeEdgeDirectionFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExNodeEdgeDirectionFilterProviderSettings : public UPCGExVtxFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -127,7 +125,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeEdgeDirectionFilterFactory, "Vtx Filter : Edge Direction", "Dot product comparison of connected edges against a direction attribute stored on the vtx.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 
 	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabelNode; }

@@ -14,7 +14,7 @@ bool UPCGExSortCollectionsSettings::HasDynamicPins() const
 TArray<FPCGPinProperties> UPCGExSortCollectionsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required, {})
+	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required)
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, EPCGPinStatus::Required);
 	return PinProperties;
 }
@@ -22,7 +22,7 @@ TArray<FPCGPinProperties> UPCGExSortCollectionsSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExSortCollectionsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(GetMainOutputPin(), "Sorted collections.", Normal, {})
+	PCGEX_PIN_ANY(GetMainOutputPin(), "Sorted collections.", Normal)
 	return PinProperties;
 }
 

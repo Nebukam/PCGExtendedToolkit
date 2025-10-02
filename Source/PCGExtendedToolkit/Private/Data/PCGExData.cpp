@@ -11,8 +11,11 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/PCGExValueHash.h"
+#include "Data/PCGPointData.h"
 #include "Geometry/PCGExGeoPointBox.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "Metadata/Accessors/PCGCustomAccessor.h"
 
 namespace PCGExData
 {
@@ -82,6 +85,12 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	FPCGMetadataAttribute<T>* TBuffer<T>::GetTypedOutAttribute() const { return TypedOutAttribute; }
 
 	template <typename T>
+	uint32 TBuffer<T>::ReadValueHash(const int32 Index) { return PCGExBlend::ValueHash(Read(Index)); }
+
+	template <typename T>
+	uint32 TBuffer<T>::GetValueHash(const int32 Index) { return PCGExBlend::ValueHash(GetValue(Index)); }
+
+	template <typename T>
 	void TBuffer<T>::DumpValues(TArray<T>& OutValues) const { for (int i = 0; i < OutValues.Num(); i++) { OutValues[i] = Read(i); } }
 
 	template <typename T>
@@ -100,6 +109,16 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 
 	template <typename T>
 	TSharedPtr<TArray<T>> TArrayBuffer<T>::GetOutValues() { return OutValues; }
+
+	template <typename T>
+	int32 TArrayBuffer<T>::GetNumValues(const EIOSide InSide)
+	{
+		if (InSide == EIOSide::In)
+		{
+			return InValues ? InValues->Num() : -1;
+		}
+		return OutValues ? OutValues->Num() : -1;
+	}
 
 	template <typename T>
 	bool TArrayBuffer<T>::IsWritable() { return OutValues ? true : false; }
@@ -387,6 +406,12 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		InValues.Reset();
 		OutValues.Reset();
 		InternalBroadcaster.Reset();
+	}
+
+	template <typename T>
+	int32 TSingleValueBuffer<T>::GetNumValues(const EIOSide InSide)
+	{
+		return 1;
 	}
 
 	template <typename T>
@@ -848,12 +873,24 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 	TSharedPtr<IBuffer> FFacade::GetReadable(const PCGEx::FAttributeIdentity& Identity, const EIOSide InSide, const bool bSupportScoped)
 	{
 		TSharedPtr<IBuffer> Buffer = nullptr;
-		PCGEx::ExecuteWithRightType(
-			Identity.UnderlyingType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				Buffer = GetReadable<T>(Identity.Identifier, InSide, bSupportScoped);
-			});
+
+#define PCGEX_TYPED_EXEC(_TYPE, _NAME) Buffer = GetReadable<_TYPE>(Identity.Identifier, InSide, bSupportScoped);
+		PCGEX_EXECUTEWITHRIGHTTYPE(Identity.UnderlyingType, PCGEX_TYPED_EXEC)
+#undef PCGEX_TYPED_EXEC
+
+		return Buffer;
+	}
+
+	TSharedPtr<IBuffer> FFacade::GetDefaultReadable(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide, const bool bSupportScoped)
+	{
+		TSharedPtr<IBuffer> Buffer = nullptr;
+		const FPCGMetadataAttributeBase* RawAttribute = Source->FindConstAttribute(InIdentifier, InSide);
+
+		if (!RawAttribute) { return nullptr; }
+
+#define PCGEX_TYPED_EXEC(_TYPE, _NAME) Buffer = Buffer = GetReadable<_TYPE>(InIdentifier, InSide, bSupportScoped);
+		PCGEX_EXECUTEWITHRIGHTTYPE(static_cast<EPCGMetadataTypes>(RawAttribute->GetTypeId()), PCGEX_TYPED_EXEC)
+#undef PCGEX_TYPED_EXEC
 
 		return Buffer;
 	}
@@ -894,6 +931,7 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 		if (Cloud) { return Cloud; }
 
 		Cloud = MakeShared<PCGExGeo::FPointBoxCloud>(GetIn(), BoundsSource, Expansion);
+		Cloud->Idx = Idx;
 		return Cloud;
 	}
 

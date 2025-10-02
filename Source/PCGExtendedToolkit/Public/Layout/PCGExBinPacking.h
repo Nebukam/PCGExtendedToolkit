@@ -4,16 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExLayout.h"
-
 #include "PCGExPointsProcessor.h"
 #include "PCGExSorting.h"
-
-
+#include "Details/PCGExSettingsMacros.h"
 #include "Transform/PCGExTransform.h"
-
 
 #include "PCGExBinPacking.generated.h"
 
@@ -43,7 +39,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BinPacking, "Bin Packing", "[EXPERIMENTAL] An simple bin packing node.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorTransform); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorTransform); }
 #endif
 
 protected:
@@ -121,7 +117,7 @@ public:
 
 	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
 
-	PCGEX_SETTING_VALUE_GET(Padding, FVector, OccupationPaddingInput, OccupationPaddingAttribute, OccupationPadding)
+	PCGEX_SETTING_VALUE_DECL(Padding, FVector)
 };
 
 struct FPCGExBinPackingContext final : FPCGExPointsProcessorContext

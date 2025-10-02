@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExChain.h"
 #include "PCGExClusterMT.h"
-#include "PCGExDetailsIntersection.h"
+#include "Details/PCGExDetailsIntersection.h"
 #include "PCGExEdgesProcessor.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExDataBlending.h"
@@ -30,7 +30,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SimplifyClusters, "Cluster : Simplify", "Simplify connections by operating on isolated chains of nodes (only two neighbors).");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorClusterOp; }
 #endif
 
 protected:
@@ -101,7 +101,7 @@ struct FPCGExSimplifyClustersContext : FPCGExEdgesProcessorContext
 
 	FPCGExCarryOverDetails EdgeCarryOverDetails;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgeFilterFactories;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL

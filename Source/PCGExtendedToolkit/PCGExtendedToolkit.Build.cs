@@ -51,7 +51,8 @@ public class PCGExtendedToolkit : ModuleRules
 				"Slate",
 				"SlateCore",
 				"GameplayTags",
-				"PropertyPath"
+				"PropertyPath",
+				"DeveloperSettings"
 			}
 		);
 

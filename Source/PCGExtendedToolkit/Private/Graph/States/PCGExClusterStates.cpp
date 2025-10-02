@@ -4,8 +4,11 @@
 #include "Graph/States/PCGExClusterStates.h"
 
 
+#include "PCGParamData.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
+
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoClusterState, UPCGExClusterStateFactoryData)
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExClusterStateFactoryData::CreateFilter() const
 {
@@ -43,7 +46,7 @@ namespace PCGExClusterStates
 		return true;
 	}
 
-	bool FState::InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories)
+	bool FState::InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories)
 	{
 		return Manager->Init(InContext, InFactories);
 	}
@@ -97,15 +100,15 @@ namespace PCGExClusterStates
 TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceFiltersLabel, TEXT("Filters used to check whether this state is true or not. Accepts regular point filters & cluster filters."), Required, {})
+	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, TEXT("Filters used to check whether this state is true or not. Accepts regular point filters & cluster filters."), Required)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if (Config.bOnTestPass) { PCGEX_PIN_PARAMS(PCGExNodeFlags::OutputOnPassBitmaskLabel, TEXT("On Pass Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced, {}) }
-	if (Config.bOnTestFail) { PCGEX_PIN_PARAMS(PCGExNodeFlags::OutputOnFailBitmaskLabel, TEXT("On Fail Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced, {}) }
+	if (Config.bOnTestPass) { PCGEX_PIN_PARAMS(PCGExNodeFlags::OutputOnPassBitmaskLabel, TEXT("On Pass Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced) }
+	if (Config.bOnTestFail) { PCGEX_PIN_PARAMS(PCGExNodeFlags::OutputOnFailBitmaskLabel, TEXT("On Fail Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced) }
 	return PinProperties;
 }
 

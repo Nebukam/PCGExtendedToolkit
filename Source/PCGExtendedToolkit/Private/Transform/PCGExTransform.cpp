@@ -2,8 +2,12 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transform/PCGExTransform.h"
-#include "PCGExDataMath.h"
+#include "PCGExMathBounds.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointElements.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Engine/EngineTypes.h"
+#include "Sampling/PCGExSampling.h"
 
 
 FPCGExAttachmentRules::FPCGExAttachmentRules(EAttachmentRule InLoc, EAttachmentRule InRot, EAttachmentRule InScale)
@@ -24,6 +28,13 @@ FPCGExSocket::FPCGExSocket(const FName& InSocketName, const FVector& InRelativeL
 FPCGExSocket::FPCGExSocket(const FName& InSocketName, const FTransform& InRelativeTransform, const FString& InTag)
 	: SocketName(InSocketName), RelativeTransform(InRelativeTransform), Tag(InTag)
 {
+}
+
+TSharedPtr<PCGExDetails::TSettingValue<FName>> FPCGExSocketFitDetails::GetValueSettingSocketName(const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<FName>> V = PCGExDetails::MakeSettingValue<FName>(SocketNameInput, SocketNameAttribute, SocketName);
+	V->bQuietErrors = bQuietErrors;
+	return V;
 }
 
 bool FPCGExSocketFitDetails::Init(const TSharedPtr<PCGExData::FFacade>& InFacade)
@@ -58,6 +69,27 @@ void FPCGExSocketFitDetails::Mutate(const int32 Index, const TArray<FPCGExSocket
 	}
 }
 
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExUVW::GetValueSettingU(const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(UInput, UAttribute, UConstant);
+	V->bQuietErrors = bQuietErrors;
+	return V;
+}
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExUVW::GetValueSettingV(const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(VInput, VAttribute, VConstant);
+	V->bQuietErrors = bQuietErrors;
+	return V;
+}
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExUVW::GetValueSettingW(const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(WInput, WAttribute, WConstant);
+	V->bQuietErrors = bQuietErrors;
+	return V;
+}
+
 bool FPCGExUVW::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
 	UGetter = GetValueSettingU();
@@ -73,6 +105,11 @@ bool FPCGExUVW::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFaca
 	if (!PointData) { return false; }
 
 	return true;
+}
+
+FVector FPCGExUVW::GetUVW(const int32 PointIndex) const
+{
+	return FVector(UGetter->Read(PointIndex), VGetter->Read(PointIndex), WGetter->Read(PointIndex));
 }
 
 FVector FPCGExUVW::GetPosition(const int32 PointIndex) const
@@ -140,6 +177,34 @@ FPCGExAxisDeformDetails::FPCGExAxisDeformDetails(const FString InFirst, const FS
 	SecondAlphaConstant = InSecondValue;
 }
 
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAxisDeformDetails::GetDataValueSettingFirstAlpha(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(InContext, InData, FirstAlphaInput != EPCGExSampleSource::Constant ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, FirstAlphaAttribute, FirstAlphaConstant);
+	V->bQuietErrors = bQuietErrors;
+	return V;
+}
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAxisDeformDetails::GetValueSettingFirstAlpha(const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(FirstAlphaInput != EPCGExSampleSource::Constant ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, FirstAlphaAttribute, FirstAlphaConstant);
+	V->bQuietErrors = bQuietErrors;
+	return V;
+}
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAxisDeformDetails::GetDataValueSettingSecondAlpha(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(InContext, InData, SecondAlphaInput != EPCGExSampleSource::Constant ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, SecondAlphaAttribute, SecondAlphaConstant);
+	V->bQuietErrors = bQuietErrors;
+	return V;
+}
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAxisDeformDetails::GetValueSettingSecondAlpha(const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(SecondAlphaInput != EPCGExSampleSource::Constant ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, SecondAlphaAttribute, SecondAlphaConstant);
+	V->bQuietErrors = bQuietErrors;
+	return V;
+}
+
 bool FPCGExAxisDeformDetails::Validate(FPCGExContext* InContext, const bool bSupportPoints) const
 {
 	if (FirstAlphaInput != EPCGExSampleSource::Constant)
@@ -147,7 +212,7 @@ bool FPCGExAxisDeformDetails::Validate(FPCGExContext* InContext, const bool bSup
 		PCGEX_VALIDATE_NAME_C(InContext, FirstAlphaAttribute)
 		if (!bSupportPoints && !PCGExHelpers::IsDataDomainAttribute(FirstAlphaAttribute))
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT( "Only @Data attributes are supported."));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Only @Data attributes are supported."));
 			PCGEX_LOG_INVALID_ATTR_C(InContext, First Alpha, FirstAlphaAttribute)
 			return false;
 		}
@@ -158,7 +223,7 @@ bool FPCGExAxisDeformDetails::Validate(FPCGExContext* InContext, const bool bSup
 		PCGEX_VALIDATE_NAME_C(InContext, SecondAlphaAttribute)
 		if (!bSupportPoints && !PCGExHelpers::IsDataDomainAttribute(SecondAlphaAttribute))
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT( "Only @Data attributes are supported."));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Only @Data attributes are supported."));
 			PCGEX_LOG_INVALID_ATTR_C(InContext, Second Alpha, SecondAlphaAttribute)
 			return false;
 		}

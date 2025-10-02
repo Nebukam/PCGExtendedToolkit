@@ -66,43 +66,43 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	// Is this shit? Yes.
 	// Are icons cool? Yes.
 
+	int32 PinIndex = -1;
+
 #pragma region OUT
 
 #define PCGEX_EMPLACE_PIN_OUT(_ID, _TOOLTIP) PinIndex = OutPinInfos.Emplace(FName("PCGEx.Pin." # _ID), TEXT(_TOOLTIP))
 #define PCGEX_MAP_PIN_OUT(_ID) OutPinInfosMap.Add(FName(TEXT(_ID)), PinIndex);
 
-	int32 PinIndex = -1;
-
 	// Out pin map
 	PCGEX_EMPLACE_PIN_OUT(OUT_Filter, "PCGEx Filter");
 	PCGEX_MAP_PIN_OUT("Filter")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_CFilter, "PCGEx Collection Filter");
+	PCGEX_EMPLACE_PIN_OUT(OUT_FilterCollection, "PCGEx Collection Filter");
 	PCGEX_MAP_PIN_OUT("C-Filter")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_FilterEdges, "PCGEx Edge Filter");
+	PCGEX_EMPLACE_PIN_OUT(OUT_FilterEdge, "PCGEx Edge Filter");
 	PCGEX_MAP_PIN_OUT("Edge Filter")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_FilterNode, "PCGEx Vtx Filter");
+	PCGEX_EMPLACE_PIN_OUT(OUT_FilterVtx, "PCGEx Vtx Filter");
 	PCGEX_MAP_PIN_OUT("Node Filter")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_NodeFlag, "PCGEx Vtx Node Flag");
+	PCGEX_EMPLACE_PIN_OUT(OUT_ClusterState, "PCGEx Vtx Node Flag");
 	PCGEX_MAP_PIN_OUT("Flag")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_Heuristic, "PCGEx Heuristic");
+	PCGEX_EMPLACE_PIN_OUT(OUT_Heuristics, "PCGEx Heuristic");
 	PCGEX_MAP_PIN_OUT("Heuristics")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Probe, "PCGEx Probe");
 	PCGEX_MAP_PIN_OUT("Probe")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_Sorting, "PCGEx Sort Rule");
+	PCGEX_EMPLACE_PIN_OUT(OUT_SortRule, "PCGEx Sort Rule");
 	PCGEX_MAP_PIN_OUT("SortRule")
 	PCGEX_MAP_PIN_OUT("SortingRule")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_Tex, "PCGEx Texture Params");
+	PCGEX_EMPLACE_PIN_OUT(OUT_TexParam, "PCGEx Texture Params");
 	PCGEX_MAP_PIN_OUT("TextureParam")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_Partition, "PCGEx Partition Rule");
+	PCGEX_EMPLACE_PIN_OUT(OUT_PartitionRule, "PCGEx Partition Rule");
 	PCGEX_MAP_PIN_OUT("PartitionRule")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_VtxProperty, "PCGEx Vtx Property");
@@ -111,12 +111,12 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_EMPLACE_PIN_OUT(OUT_Action, "PCGEx Action");
 	PCGEX_MAP_PIN_OUT("Action")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_Blend, "PCGEx Blending");
+	PCGEX_EMPLACE_PIN_OUT(OUT_BlendOp, "PCGEx Blending");
 	PCGEX_MAP_PIN_OUT("Blend Op")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Shape, "PCGEx Shape Builder");
 	PCGEX_MAP_PIN_OUT("Shape Builder")
-
+	
 	PCGEX_EMPLACE_PIN_OUT(OUT_Tensor, "PCGEx Tensor");
 	PCGEX_MAP_PIN_OUT("Tensor")
 
@@ -126,8 +126,14 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_EMPLACE_PIN_OUT(OUT_FillControl, "PCGEx Fill Control");
 	PCGEX_MAP_PIN_OUT("Fill Control")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_Matching, "PCGEx Data Matching Rule");
+	PCGEX_EMPLACE_PIN_OUT(OUT_MatchRule, "PCGEx Data Matching Rule");
 	PCGEX_MAP_PIN_OUT("Match Rule")
+	
+	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.OUT_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
+	PCGEX_MAP_PIN_OUT("Vtx")
+
+	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.OUT_Edges"), TEXT("Point collection formatted for use as cluster edges."));
+	PCGEX_MAP_PIN_OUT("Edges")
 
 #undef PCGEX_EMPLACE_PIN_OUT
 #undef PCGEX_MAP_PIN_OUT
@@ -139,7 +145,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 #define PCGEX_MAP_PIN_IN(_ID) InPinInfosMap.Add(FName(TEXT(_ID)), PinIndex);
 
 	// In pin map
-	PCGEX_EMPLACE_PIN_IN(IN_Filters, "Expects PCGEx Filters, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_Filter, "Expects PCGEx Filters, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Filters")
 	PCGEX_MAP_PIN_IN("Point Filters")
 	PCGEX_MAP_PIN_IN("Conditions Filters")
@@ -167,70 +173,69 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 		InPinInfosMap.Add(FName(TEXT("→ ") + SI), PinIndex);
 	}
 
-	PCGEX_EMPLACE_PIN_IN(OUT_FilterEdges, "Expects PCGEx Filers or Edge Filters, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_FilterEdge, "Expects PCGEx Filers or Edge Filters, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Edge Filters")
 	PCGEX_MAP_PIN_IN("EdgeFilters")
 
-	PCGEX_EMPLACE_PIN_IN(OUT_FilterNode, "Expects PCGEx Filters or Vtx Filter, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_FilterVtx, "Expects PCGEx Filters or Vtx Filter, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Vtx Filters")
 	PCGEX_MAP_PIN_IN("VtxFilters")
 	PCGEX_MAP_PIN_IN("NodeFilters")
 	PCGEX_MAP_PIN_IN("Break Conditions")
 
-	PCGEX_EMPLACE_PIN_IN(OUT_NodeFlag, "Expects PCGEx Vtx Node Flags, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_ClusterState, "Expects PCGEx Vtx Node Flags, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Flags")
 	PCGEX_MAP_PIN_IN("NodeFlags")
 
 	PCGEX_EMPLACE_PIN_IN(IN_Heuristics, "Expects PCGEx Heuristics, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Heuristics")
 
-	PCGEX_EMPLACE_PIN_IN(IN_Probes, "Expects PCGEx Probes, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_Probe, "Expects PCGEx Probes, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Probes")
 
-	PCGEX_EMPLACE_PIN_IN(IN_Sortings, "Expects PCGEx Sort Rules, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_SortRule, "Expects PCGEx Sort Rules, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("SortingRules")
 	PCGEX_MAP_PIN_IN("SortRule")
 	PCGEX_MAP_PIN_IN("SortRules")
 	PCGEX_MAP_PIN_IN("Direction Sorting")
 
-	PCGEX_EMPLACE_PIN_IN(IN_Tex, "Expects PCGEx Texture Params, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_TexParam, "Expects PCGEx Texture Params, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("TextureParams")
 
-	PCGEX_EMPLACE_PIN_IN(IN_Partitions, "Expects PCGEx Partition Rules, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_PartitionRule, "Expects PCGEx Partition Rules, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("PartitionRules")
 
-	PCGEX_EMPLACE_PIN_IN(OUT_VtxProperty, "Expects PCGEx Vtx Properties, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_VtxProperty, "Expects PCGEx Vtx Properties, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Properties")
 
-	PCGEX_EMPLACE_PIN_IN(OUT_Action, "Expects PCGEx Actions, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_Action, "Expects PCGEx Actions, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Actions")
 
-	PCGEX_EMPLACE_PIN_IN(OUT_Blend, "Expects PCGEx Blendings, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_BlendOp, "Expects PCGEx Blendings, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Blend Ops")
 
 	PCGEX_EMPLACE_PIN_IN(OUT_Shape, "Expects PCGEx Shape Builders, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Shape Builders")
 
-	PCGEX_EMPLACE_PIN_IN(OUT_Tensor, "Expects PCGEx Tensors, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_Tensor, "Expects PCGEx Tensors, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Tensors")
 	PCGEX_MAP_PIN_IN("Parent Tensor")
 
-	PCGEX_EMPLACE_PIN_IN(OUT_Picker, "PCGEx Pickers, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_Picker, "PCGEx Pickers, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Pickers")
 
-	PCGEX_EMPLACE_PIN_IN(OUT_FillControl, "PCGEx Fill Controls, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_FillControl, "PCGEx Fill Controls, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Fill Controls")
 
-	PCGEX_EMPLACE_PIN_IN(OUT_Matching, "PCGEx Data Match Rules, supports multiple inputs.");
+	PCGEX_EMPLACE_PIN_IN(IN_MatchRule, "PCGEx Data Match Rules, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Match Rules")
 	PCGEX_MAP_PIN_IN("Match Rules (Edges)")
-
+	
 	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
 	PCGEX_MAP_PIN_IN("Vtx")
 
-	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.OUT_Edges"), TEXT("Point collection formatted for use as cluster edges."));
+	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Edges"), TEXT("Point collection formatted for use as cluster edges."));
 	PCGEX_MAP_PIN_IN("Edges")
-
 
 	PCGEX_EMPLACE_PIN_IN(IN_Special, "Attribute set whose values will be used to override a specific internal module.");
 	PCGEX_MAP_PIN_IN("Overrides : Blending")

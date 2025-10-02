@@ -3,11 +3,19 @@
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 
+#include "PCGExScopedContainers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/Blending//PCGExBlendModes.h"
+#include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
+
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestSplineSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestSplineSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
+PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestSplineSettings, SampleAlpha, double, bSampleSpecificAlpha, SampleAlphaAttribute, SampleAlphaConstant)
+PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestSplineSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
 namespace PCGExPolyPath
 {
@@ -44,7 +52,7 @@ UPCGExSampleNearestSplineSettings::UPCGExSampleNearestSplineSettings(
 TArray<FPCGPinProperties> UPCGExSampleNearestSplineSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POLYLINES(PCGEx::SourceTargetsLabel, "The spline data set to check against.", Required, {})
+	PCGEX_PIN_POLYLINES(PCGEx::SourceTargetsLabel, "The spline data set to check against.", Required)
 	return PinProperties;
 }
 
@@ -528,10 +536,10 @@ namespace PCGExSampleNearestSpline
 			FVector WeightedSignAxis = FVector::ZeroVector;
 			FVector WeightedAngleAxis = FVector::ZeroVector;
 			FVector WeightedTangent = FVector::ZeroVector;
-			
+
 			double WeightedTime = 0;
 			double TotalWeight = 0;
-			
+
 
 			if (!Settings->bWeightFromOriginalTransform)
 			{

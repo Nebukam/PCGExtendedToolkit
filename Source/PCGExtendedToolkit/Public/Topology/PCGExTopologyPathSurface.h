@@ -8,7 +8,6 @@
 #include "Data/PCGDynamicMeshData.h"
 #include "Geometry/PCGExGeoMesh.h"
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExEdgesProcessor.h"
 #include "Paths/PCGExPathProcessor.h"
 
 #include "PCGExTopologyPathSurface.generated.h"
@@ -22,8 +21,8 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(TopologyClusterSurface, "Topology : Path Surface", "Create a path surface topology");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorTopology); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::DynamicMesh; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor::White; }
 #endif
 
 protected:

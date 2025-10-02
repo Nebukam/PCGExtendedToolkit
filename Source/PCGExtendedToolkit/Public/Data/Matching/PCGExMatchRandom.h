@@ -4,23 +4,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExMatchRuleFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
 
 
 #include "PCGExMatchRandom.generated.h"
 
+namespace PCGEx
+{
+	template <typename T>
+	class TAttributeBroadcaster;
+}
+
 USTRUCT(BlueprintType)
 struct FPCGExMatchRandomConfig : public FPCGExMatchRuleConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExMatchRandomConfig() :
-		FPCGExMatchRuleConfigBase()
-	{
-		ThresholdAttribute.Update("@Data.Threshold");
-	}
+	FPCGExMatchRandomConfig();
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

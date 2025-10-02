@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExPaths.h"
 
@@ -12,12 +11,8 @@
 #include "PCGExSorting.h"
 #include "Data/PCGExDataForward.h"
 
-
 #include "Transform/PCGExTensorsTransform.h"
 #include "Transform/PCGExTransform.h"
-#include "Transform/Tensors/PCGExTensor.h"
-#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
-#include "Transform/Tensors/PCGExTensorHandler.h"
 
 #include "PCGExExtrudeTensors.generated.h"
 
@@ -50,7 +45,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ExtrudeTensors, "Path : Extrude Tensors", "Extrude input points into paths along tensors.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorTransform; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTransform; }
 #endif
 
 protected:
@@ -88,7 +83,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Iterations", ClampMin=1))
 	int32 Iterations = 1;
 
-	PCGEX_SETTING_VALUE_GET_BOOL(Iterations, int32, bUsePerPointMaxIterations, IterationsAttribute, Iterations)
+	PCGEX_SETTING_VALUE_DECL(Iterations, int32)
 
 	/** Whether to adjust max iteration based on max value found on points. Use at your own risks! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Use Max from Points", ClampMin=1, EditCondition="bUsePerPointMaxIterations", HideEditConditionToggle))
@@ -110,7 +105,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Length", EditCondition="bUseMaxLength && MaxLengthInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	double MaxLength = 100;
 
-	PCGEX_SETTING_VALUE_GET(MaxLength, double, MaxLengthInput, MaxLengthAttribute, MaxLength)
+	PCGEX_SETTING_VALUE_DECL(MaxLength, double)
 
 	/** Whether to limit the number of points in a generated path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_NotOverridable))
@@ -128,7 +123,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, DisplayName="Max Points Count", EditCondition="bUseMaxPointsCount && MaxPointsCountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 MaxPointsCount = 100;
 
-	PCGEX_SETTING_VALUE_GET(MaxPointsCount, int32, MaxPointsCountInput, MaxPointsCountAttribute, MaxPointsCount)
+	PCGEX_SETTING_VALUE_DECL(MaxPointsCount, int32)
 
 	/** Whether to limit path length or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Limits", meta=(PCG_Overridable, ClampMin=0.001))
@@ -286,7 +281,7 @@ struct FPCGExExtrudeTensorsContext final : FPCGExPathProcessorContext
 	friend class FPCGExExtrudeTensorsElement;
 
 	TArray<TObjectPtr<const UPCGExTensorFactoryData>> TensorFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> StopFilterFactories;
 
 	FPCGExPathIntersectionDetails ExternalPathIntersections;
 	FPCGExPathIntersectionDetails SelfPathIntersections;

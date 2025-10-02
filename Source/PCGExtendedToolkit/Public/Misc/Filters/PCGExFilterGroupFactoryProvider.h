@@ -19,6 +19,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterGroupProviderSettings : public UPCGExFa
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilter)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
@@ -26,7 +29,7 @@ public:
 		FilterGroup, "Filter Group", "Creates an Filter Group.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorFilterHub); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
 	//~End UPCGSettings
@@ -35,6 +38,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 public:
 	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabel; }

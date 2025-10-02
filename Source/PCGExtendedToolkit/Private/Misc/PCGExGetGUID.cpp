@@ -4,7 +4,9 @@
 #include "Misc/PCGExGetGUID.h"
 
 #include "PCGExMath.h"
+#include "PCGParamData.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Helpers/PCGHelpers.h"
 #include "Misc/Guid.h"
 
@@ -14,7 +16,7 @@
 TArray<FPCGPinProperties> UPCGExGetGUIDSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAMS(FName("GUID"), TEXT("GUID."), Required, {})
+	PCGEX_PIN_PARAMS(FName("GUID"), TEXT("GUID."), Required)
 	return PinProperties;
 }
 

@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 #include "PCGExFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
+#include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
 #include "PCGExClusterFilter.generated.h"
 
@@ -25,16 +26,47 @@ namespace PCGExPointFilter
 	class IFilter;
 }
 
+#pragma region Cluster Filter
+
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter (Cluster)")
+struct FPCGExDataTypeInfoFilterCluster : public FPCGExDataTypeInfoFilterPoint
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 /**
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterFactoryData : public UPCGExFilterFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterFactoryData : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilterCluster)
+
 	virtual bool SupportsCollectionEvaluation() const override { return false; }
+};
+
+UCLASS(Abstract)
+class UPCGExClusterFilterProviderSettings : public UPCGExFilterProviderSettings
+{
+	GENERATED_BODY()
+
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterCluster)
+};
+
+#pragma endregion
+
+#pragma region Vtx/Node Filter
+
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter (Cluster Vtx)")
+struct FPCGExDataTypeInfoFilterVtx : public FPCGExDataTypeInfoFilterCluster
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
 };
 
 /**
@@ -46,7 +78,29 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNodeFilterFactoryData : public UPCGExClusterF
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilterVtx)
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterNode; }
+};
+
+UCLASS(Abstract)
+class UPCGExVtxFilterProviderSettings : public UPCGExClusterFilterProviderSettings
+{
+	GENERATED_BODY()
+
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterVtx)
+};
+
+#pragma endregion
+
+#pragma region Edge Filter
+
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Filter (Cluster Edges)")
+struct FPCGExDataTypeInfoFilterEdge : public FPCGExDataTypeInfoFilterCluster
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
 };
 
 /**
@@ -58,8 +112,21 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeFilterFactoryData : public UPCGExClusterF
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFilterEdge)
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterEdge; }
 };
+
+UCLASS(Abstract)
+class UPCGExEdgeFilterProviderSettings : public UPCGExClusterFilterProviderSettings
+{
+	GENERATED_BODY()
+
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterEdge)
+};
+
+#pragma endregion
 
 namespace PCGExClusterFilter
 {

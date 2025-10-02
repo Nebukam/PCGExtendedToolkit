@@ -2,8 +2,11 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/Pickers/PCGExPickerAttributeSetRanges.h"
+
+#include "PCGExHelpers.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreatePickerConstantSet"
 #define PCGEX_NAMESPACE CreatePickerConstantSet
@@ -105,7 +108,7 @@ PCGExFactories::EPreparationResult UPCGExPickerAttributeSetRangesFactory::InitIn
 TArray<FPCGPinProperties> UPCGExPickerAttributeSetRangesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(FName("Ranges"), "Data to read attribute from", Required, {})
+	PCGEX_PIN_ANY(FName("Ranges"), "Data to read attribute from", Required)
 	return PinProperties;
 }
 

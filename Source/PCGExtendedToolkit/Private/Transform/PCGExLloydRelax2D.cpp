@@ -5,6 +5,7 @@
 
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLloydRelax2DElement"

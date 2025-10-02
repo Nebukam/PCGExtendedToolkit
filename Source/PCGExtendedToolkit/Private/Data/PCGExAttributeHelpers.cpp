@@ -1,9 +1,12 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/PCGExAttributeHelpers.h"
 
+#include "Data/PCGExAttributeHelpers.h"
+#include "Metadata/PCGAttributePropertySelector.h"
+#include "Metadata/Accessors/IPCGAttributeAccessor.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "Metadata/Accessors/PCGCustomAccessor.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
 #include "PCGExBroadcast.h"
@@ -11,6 +14,7 @@
 #include "PCGExHelpers.h"
 #include "PCGExMath.h"
 #include "PCGExMT.h"
+#include "PCGParamData.h"
 #include "Data/PCGExDataValue.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendMinMax.h"
@@ -57,67 +61,24 @@ bool FPCGExInputConfig::Validate(const UPCGData* InData)
 	return false;
 }
 
-bool FPCGExAttributeSourceToTargetDetails::ValidateNames(FPCGExContext* InContext) const
+bool PCGEx::FAttributeIdentity::InDataDomain() const
 {
-	PCGEX_VALIDATE_NAME_CONSUMABLE_C(InContext, Source)
-	if (WantsRemappedOutput()) { PCGEX_VALIDATE_NAME_C(InContext, Target) }
-	return true;
-}
-
-bool FPCGExAttributeSourceToTargetDetails::ValidateNamesOrProperties(FPCGExContext* InContext) const
-{
-	FPCGAttributePropertyInputSelector Selector;
-	Selector.Update(Source.ToString());
-	if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
-	{
-		PCGEX_VALIDATE_NAME_CONSUMABLE_C(InContext, Source)
-	}
-
-	if (WantsRemappedOutput())
-	{
-		Selector.Update(Target.ToString());
-		if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
-		{
-			PCGEX_VALIDATE_NAME_C(InContext, Target)
-		}
-	}
-	return true;
-}
-
-FName FPCGExAttributeSourceToTargetDetails::GetOutputName() const
-{
-	return bOutputToDifferentName ? Target : Source;
-}
-
-FPCGAttributePropertyInputSelector FPCGExAttributeSourceToTargetDetails::GetSourceSelector() const
-{
-	FPCGAttributePropertyInputSelector Selector;
-	Selector.Update(Source.ToString());
-	return Selector;
-}
-
-FPCGAttributePropertyInputSelector FPCGExAttributeSourceToTargetDetails::GetTargetSelector() const
-{
-	FPCGAttributePropertyInputSelector Selector;
-	Selector.Update(GetOutputName().ToString());
-	return Selector;
-}
-
-bool FPCGExAttributeSourceToTargetList::ValidateNames(FPCGExContext* InContext) const
-{
-	for (const FPCGExAttributeSourceToTargetDetails& Entry : Attributes) { if (!Entry.ValidateNames(InContext)) { return false; } }
-	return true;
-}
-
-void FPCGExAttributeSourceToTargetList::GetSources(TArray<FName>& OutNames) const
-{
-	OutNames.Reserve(OutNames.Num() + Attributes.Num());
-	for (const FPCGExAttributeSourceToTargetDetails& Entry : Attributes) { OutNames.Add(Entry.Source); }
+	return Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data;
 }
 
 namespace PCGEx
 {
 #pragma region Attribute utils
+
+	FString FAttributeIdentity::GetDisplayName() const
+	{
+		return FString(Identifier.Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType));
+	}
+
+	bool FAttributeIdentity::operator==(const FAttributeIdentity& Other) const
+	{
+		return Identifier == Other.Identifier;
+	}
 
 	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities, const TSet<FName>* OptionalIgnoreList)
 	{
@@ -390,6 +351,12 @@ namespace PCGEx
 		Init(InData, ProxySelector);
 	}
 
+	FAttributeProcessingInfos::operator EPCGMetadataTypes() const
+	{
+		if (Attribute) { return static_cast<EPCGMetadataTypes>(Attribute->GetTypeId()); }
+		return EPCGMetadataTypes::Unknown;
+	}
+
 	void FAttributeProcessingInfos::Init(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector)
 	{
 		Selector = InSelector.CopyAndFixLast(InData);
@@ -423,7 +390,7 @@ namespace PCGEx
 	bool TAttributeBroadcaster<T>::ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 
 	{
-		static_assert(PCGEx::GetMetadataType<T>() != EPCGMetadataTypes::Unknown, TEXT("T must be of PCG-friendly type. Custom types are unsupported -- you'll have to static_cast the values."));
+		static_assert(PCGEx::GetMetadataType<T>() != EPCGMetadataTypes::Unknown, "T must be of PCG-friendly type. Custom types are unsupported -- you'll have to static_cast the values.");
 
 		ProcessingInfos = FAttributeProcessingInfos(InData, InSelector);
 		if (!ProcessingInfos.bIsValid) { return false; }

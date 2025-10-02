@@ -5,7 +5,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetails.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
@@ -14,6 +13,7 @@
 #include "Data/PCGExDataForward.h"
 #include "Components/PrimitiveComponent.h"
 #include "Data/PCGExPointFilter.h"
+#include "Details/PCGExDetailsCollision.h"
 #include "Materials/MaterialInterface.h"
 
 #include "PCGExSampleNearestSurface.generated.h"
@@ -30,7 +30,7 @@ MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())
 
 class AActor;
 class UWorld;
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
@@ -45,7 +45,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample : Nearest Surface", "Find the closest point on the nearest collidable surface.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
 #endif
 
 protected:

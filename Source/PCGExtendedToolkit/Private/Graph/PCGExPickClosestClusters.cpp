@@ -15,7 +15,7 @@ PCGExData::EIOInit UPCGExPickClosestClustersSettings::GetMainOutputInitMode() co
 TArray<FPCGPinProperties> UPCGExPickClosestClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExGraph::SourcePickersLabel, "Target points used to test for proximity", Required, {})
+	PCGEX_PIN_POINT(PCGExGraph::SourcePickersLabel, "Target points used to test for proximity", Required)
 	return PinProperties;
 }
 

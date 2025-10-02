@@ -3,21 +3,28 @@
 
 #pragma once
 #include "CoreMinimal.h"
+#include "PCGExCommon.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
-#include "Curves/RichCurve.h"
 
-#include "PCGExDetails.h"
-#include "PCGExDetailsData.h"
 #include "PCGExOctree.h"
 #include "Curves/CurveVector.h"
-#include "Data/PCGExData.h"
+#include "Details/PCGExDetailsAxis.h"
+#include "Details/PCGExSettingsMacros.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExTensor.generated.h"
 
+struct FPCGExContext;
 class UPCGExTensorPointFactoryData;
 class UPCGExTensorFactoryData;
+
+namespace PCGExDetails
+{
+	template <typename T>
+	class TSettingValue;
+}
 
 namespace PCGExTensor
 {
@@ -135,7 +142,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_Overridable, DisplayName="Potency", EditCondition = "PotencyInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1))
 	double Potency = 1;
 
-	PCGEX_SETTING_VALUE_GET(Potency, double, PotencyInput, PotencyAttribute, Potency)
+	PCGEX_SETTING_VALUE_DECL(Potency, double)
 
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Potency", meta=(PCG_NotOverridable, DisplayPriority=-1))
@@ -170,7 +177,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTensorConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, DisplayName="Weight", EditCondition="WeightInput == EPCGExInputValueType::Constant", EditConditionHides, DisplayPriority=-1, ClampMin=0))
 	double Weight = 1;
 
-	PCGEX_SETTING_VALUE_GET(Weight, double, WeightInput, WeightAttribute, Weight)
+	PCGEX_SETTING_VALUE_DECL(Weight, double)
 
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_NotOverridable, DisplayPriority=-1))

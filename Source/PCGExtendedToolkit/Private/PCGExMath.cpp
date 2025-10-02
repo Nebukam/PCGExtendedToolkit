@@ -3,10 +3,22 @@
 
 #include "PCGExMath.h"
 #include "PCGEx.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 
 namespace PCGExMath
 {
+	double TruncateDbl(const double Value, const EPCGExTruncateMode Mode)
+	{
+		switch (Mode)
+		{
+		case EPCGExTruncateMode::Round: return FMath::RoundToInt(Value);
+		case EPCGExTruncateMode::Ceil: return FMath::CeilToDouble(Value);
+		case EPCGExTruncateMode::Floor: return FMath::FloorToDouble(Value);
+		default:
+		case EPCGExTruncateMode::None: return Value;
+		}
+	}
+
 	FClosestPosition::FClosestPosition(const FVector& InOrigin)
 		: Origin(InOrigin)
 	{
@@ -111,34 +123,6 @@ namespace PCGExMath
 		const TCHAR* CharArray = *StringToConvert;
 		const double Result = FCString::Atod(CharArray);
 		return FMath::IsNaN(Result) ? 0 : Result;
-	}
-
-	double GetMode(const TArray<double>& Values, const bool bHighest, const uint32 Tolerance)
-	{
-		TMap<double, int32> Map;
-		int32 LastCount = 0;
-		double Mode = 0;
-
-		for (const double Value : Values)
-		{
-			const double AdjustedValue = FMath::RoundToZero(Value / Tolerance) * Tolerance;
-			const int32* Count = Map.Find(AdjustedValue);
-			const int32 UpdatedCount = Count ? *Count + 1 : 1;
-			Map.Add(Value, UpdatedCount);
-
-			if (LastCount < UpdatedCount)
-			{
-				LastCount = UpdatedCount;
-				Mode = AdjustedValue;
-			}
-			else if (LastCount == UpdatedCount)
-			{
-				if (bHighest) { Mode = FMath::Max(Mode, AdjustedValue); }
-				else { Mode = FMath::Min(Mode, AdjustedValue); }
-			}
-		}
-
-		return Mode;
 	}
 
 	FVector SafeLinePlaneIntersection(const FVector& Pt1, const FVector& Pt2, const FVector& PlaneOrigin, const FVector& PlaneNormal, bool& bIntersect)

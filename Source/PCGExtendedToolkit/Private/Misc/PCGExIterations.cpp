@@ -3,8 +3,13 @@
 
 #include "Misc/PCGExIterations.h"
 
+
+#include "PCGExHelpers.h"
 #include "PCGGraph.h"
+#include "PCGParamData.h"
 #include "PCGPin.h"
+#include "Data/PCGBasePointData.h"
+#include "Data/PCGPointArrayData.h"
 #include "Data/PCGSplineData.h"
 #include "Data/PCGTextureData.h"
 
@@ -23,27 +28,28 @@ TArray<FPCGPinProperties> UPCGExIterationsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	const FName OutputLabel = FName("Iterations");
+	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(FName("Iterations"));
+	Pin.SetRequiredPin();
+
 	switch (Type)
 	{
 	default:
 	case EPCGExIterationDataType::Any:
-		PCGEX_PIN_ANY(OutputLabel, TEXT("Iterations."), Required, {})
+		Pin.AllowedTypes = EPCGDataType::Any;
 		break;
 	case EPCGExIterationDataType::Params:
-		PCGEX_PIN_PARAMS(OutputLabel, TEXT("Iterations."), Required, {})
+		Pin.AllowedTypes = EPCGDataType::Param;
 		break;
 	case EPCGExIterationDataType::Points:
-		PCGEX_PIN_POINTS(OutputLabel, TEXT("Iterations."), Required, {})
+		Pin.AllowedTypes = EPCGDataType::Point;
 		break;
 	case EPCGExIterationDataType::Spline:
-		PCGEX_PIN_POLYLINES(OutputLabel, TEXT("Iterations."), Required, {})
+		Pin.AllowedTypes = EPCGDataType::Spline;
 		break;
 	case EPCGExIterationDataType::Texture:
-		PCGEX_PIN_TEXTURES(OutputLabel, TEXT("Iterations."), Required, {})
+		Pin.AllowedTypes = EPCGDataType::BaseTexture;
 		break;
 	}
-
 	return PinProperties;
 }
 

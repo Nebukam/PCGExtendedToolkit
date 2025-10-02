@@ -16,6 +16,20 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoSortRule, UPCGExSortingRule)
+
+FPCGExSortRuleConfig::FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other)
+	: FPCGExInputConfig(Other),
+	  Tolerance(Other.Tolerance),
+	  bInvertRule(Other.bInvertRule)
+{
+}
+
+FPCGExCollectionSortingDetails::FPCGExCollectionSortingDetails(const bool InEnabled)
+{
+	bEnabled = InEnabled;
+}
+
 bool FPCGExCollectionSortingDetails::Init(const FPCGContext* InContext)
 {
 	if (!bEnabled) { return true; }
@@ -85,7 +99,7 @@ bool UPCGExSortingRule::RegisterConsumableAttributesWithData(FPCGExContext* InCo
 }
 
 #if WITH_EDITOR
-FLinearColor UPCGExSortingRuleProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
+FLinearColor UPCGExSortingRuleProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorSortRule; }
 #endif
 
 UPCGExFactoryData* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const

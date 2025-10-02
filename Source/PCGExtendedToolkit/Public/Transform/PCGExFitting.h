@@ -2,11 +2,14 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
-#include "Metadata/PCGAttributePropertySelector.h"
 
 #include "CoreMinimal.h"
-#include "PCGExDetails.h"
+#include "Metadata/PCGAttributePropertySelector.h"
+#include "PCGExCommon.h"
+
 #include "PCGExFitting.generated.h"
+
+struct FPCGExContext;
 
 namespace PCGExData
 {

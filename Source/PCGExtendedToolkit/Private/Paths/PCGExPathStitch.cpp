@@ -4,6 +4,7 @@
 #include "Paths/PCGExPathStitch.h"
 #include "PCGExMath.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointFilter.h"
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
@@ -13,7 +14,7 @@
 TArray<FPCGPinProperties> UPCGExPathStitchSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceEdgeSortingRules, "Sort-in-place to order the data if needed", Normal, {})
+	PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeSortingRules, "Sort-in-place to order the data if needed", Normal)
 	return PinProperties;
 }
 

@@ -51,12 +51,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFillControlConfigBase
 	void Init();
 };
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Fill Control")
+struct FPCGExDataTypeInfoFillControl : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExFillControlsFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoFillControl)
+
 	FPCGExFillControlConfigBase ConfigBase;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FillControls; }
@@ -71,11 +80,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFillControlsFactoryProviderSettings : public 
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFillControl)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AbstractFillControls, "Fill Controls Definition", "Creates a single Fill Control node, to be used with flood fill nodes.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorFillControl; }
 #endif
 	//~End UPCGSettings
 

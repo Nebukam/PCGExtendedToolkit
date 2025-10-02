@@ -5,6 +5,8 @@
 
 
 #include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionProcessor.h"
@@ -18,10 +20,10 @@
 TArray<FPCGPinProperties> UPCGExConnectPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceProbesLabel, "Probes used to connect points", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceProbesLabel, "Probes used to connect points", Required, FPCGExDataTypeInfoProbe::AsId())
 
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterGenerators, "Points that don't meet requirements won't generate connections", Normal, {})
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceFilterConnectables, "Points that don't meet requirements can't receive connections", Normal, {})
+	PCGEX_PIN_FILTERS(PCGExGraph::SourceFilterGenerators, "Points that don't meet requirements won't generate connections", Normal)
+	PCGEX_PIN_FILTERS(PCGExGraph::SourceFilterConnectables, "Points that don't meet requirements can't receive connections", Normal)
 
 	return PinProperties;
 }
@@ -29,7 +31,7 @@ TArray<FPCGPinProperties> UPCGExConnectPointsSettings::InputPinProperties() cons
 TArray<FPCGPinProperties> UPCGExConnectPointsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
 	return PinProperties;
 }
 

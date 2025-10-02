@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetails.h"
 #include "Components/PrimitiveComponent.h"
 #include "Materials/MaterialInterface.h"
 
@@ -15,6 +14,7 @@
 #include "PCGExTexParamFactoryProvider.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/PCGExPointFilter.h"
+#include "Details/PCGExDetailsCollision.h"
 
 
 #include "PCGExSampleSurfaceGuided.generated.h"
@@ -42,7 +42,7 @@ enum class EPCGExTraceSampleDistanceInput : uint8
 	Attribute       = 2 UMETA(DisplayName = "Attribute", ToolTip="Attribute"),
 };
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
@@ -59,7 +59,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample : Line Trace", "Find the collision point on the nearest collidable surface in a given direction.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
 #endif
 
 protected:

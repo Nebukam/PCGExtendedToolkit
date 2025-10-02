@@ -5,16 +5,14 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExMath.h"
-
+#include "PCGExMathMean.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointFilter.h"
-#include "Pickers/PCGExPickerFactoryProvider.h"
-
 
 #include "PCGExUberFilterCollections.generated.h"
+
+class UPCGExPickerFactoryData;
 
 UENUM(BlueprintType)
 enum class EPCGExUberFilterCollectionsMode : uint8
@@ -39,7 +37,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(UberFilterCollections, "Uber Filter (Collection)", "Filter entire collections based on multiple rules & conditions.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorFilterHub); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif

@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExBoundsFilter.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeoPointBox.h"
 
 
@@ -163,7 +164,7 @@ bool PCGExPointFilter::FBoundsFilter::Test(const TSharedPtr<PCGExData::FPointIO>
 TArray<FPCGPinProperties> UPCGExBoundsFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(FName("Bounds"), TEXT("Points which bounds will be used for testing"), Required, {})
+	PCGEX_PIN_POINTS(FName("Bounds"), TEXT("Points which bounds will be used for testing"), Required)
 	return PinProperties;
 }
 

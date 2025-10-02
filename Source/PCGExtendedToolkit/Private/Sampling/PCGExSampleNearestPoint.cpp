@@ -6,10 +6,13 @@
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExUnionBlender.h"
+#include "Data/Blending/PCGExUnionOpsManager.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "Misc/PCGExSortPoints.h"
@@ -17,6 +20,10 @@
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
 #define PCGEX_NAMESPACE SampleNearestPoint
+
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPointSettings, RangeMax, double, RangeMaxInput, RangeMaxAttribute, RangeMax)
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleNearestPointSettings, RangeMin, double, RangeMinInput, RangeMinAttribute, RangeMin)
+PCGEX_SETTING_VALUE_IMPL_BOOL(UPCGExSampleNearestPointSettings, LookAtUp, FVector, LookAtUpSelection != EPCGExSampleSource::Constant, LookAtUpSource, LookAtUpConstant)
 
 UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -30,13 +37,13 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
+	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required)
 
 	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal, BlendingInterface);
 	PCGExSorting::DeclareSortingRulesInputs(PinProperties, SampleMethod == EPCGExSampleMethod::BestCandidate ? EPCGPinStatus::Required : EPCGPinStatus::Advanced);
 
-	PCGEX_PIN_FACTORIES(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced, {})
+	PCGEX_PIN_FILTERS(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced)
 
 	return PinProperties;
 }

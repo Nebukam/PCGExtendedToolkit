@@ -2,16 +2,24 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
-#include "PCGExDataMath.h"
+#include "Engine/EngineTypes.h"
+
+#include "PCGExMathBounds.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 #include "Sampling/PCGExSampling.h"
 #include "PCGExTransform.generated.h"
 
-UENUM()
-enum class EPCGExTransformAxisMutation : uint8
+namespace PCGExDetails
 {
-	None   = 0 UMETA(DisplayName = "None", Tooltip="Keep things as-is"),
-	Offset = 1 UMETA(DisplayName = "Offset", Tooltip="Apply an offset along the axis"),
-	Bend   = 2 UMETA(DisplayName = "Bend", Tooltip="Bend around the axis")
+	template <typename T>
+	class TSettingValue;
+}
+
+UENUM()
+enum class EPCGExTransformMode : uint8
+{
+	Absolute = 0 UMETA(DisplayName = "Absolute", ToolTip="Absolute, ignores source transform."),
+	Relative = 1 UMETA(DisplayName = "Relative", ToolTip="Relative to source transform."),
 };
 
 UENUM()
@@ -96,7 +104,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketFitDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Socket Name", EditCondition="bEnabled && SocketNameInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FName SocketName = NAME_None;
 
-	PCGEX_SETTING_VALUE_GET(SocketName, FName, SocketNameInput, SocketNameAttribute, SocketName)
+	TSharedPtr<PCGExDetails::TSettingValue<FName>> GetValueSettingSocketName(const bool bQuietErrors = false) const;
 
 	/** Type of Socket name input */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -150,7 +158,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="U", EditCondition="UInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double UConstant = 0;
 
-	PCGEX_SETTING_VALUE_GET(U, double, UInput, UAttribute, UConstant)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingU(const bool bQuietErrors = false) const;
 
 	/** V Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -164,7 +172,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="V", EditCondition="VInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double VConstant = 0;
 
-	PCGEX_SETTING_VALUE_GET(V, double, VInput, VAttribute, VConstant)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingV(const bool bQuietErrors = false) const;
 
 	/** W Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -178,13 +186,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="W", EditCondition="WInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double WConstant = 0;
 
-	PCGEX_SETTING_VALUE_GET(W, double, WInput, WAttribute, WConstant)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingW(const bool bQuietErrors = false) const;
 
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 
 	// Without axis
 
-	FORCEINLINE FVector GetUVW(const int32 PointIndex) const { return FVector(UGetter->Read(PointIndex), VGetter->Read(PointIndex), WGetter->Read(PointIndex)); }
+	FVector GetUVW(const int32 PointIndex) const;
 
 	FVector GetPosition(const int32 PointIndex) const;
 
@@ -229,8 +237,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAxisDeformDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="First Alpha", EditCondition="FirstAlphaInput == EPCGExSampleSource::Constant", EditConditionHides))
 	double FirstAlphaConstant = 0;
 
-	PCGEX_SETTING_DATA_VALUE_GET_BOOL(FirstAlpha, double, FirstAlphaInput != EPCGExSampleSource::Constant, FirstAlphaAttribute, FirstAlphaConstant)
-	PCGEX_SETTING_VALUE_GET_BOOL(FirstAlpha, double, FirstAlphaInput != EPCGExSampleSource::Constant, FirstAlphaAttribute, FirstAlphaConstant)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetDataValueSettingFirstAlpha(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors = false) const;;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingFirstAlpha(const bool bQuietErrors = false) const;;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -244,8 +252,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAxisDeformDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Second Alpha", EditCondition="SecondAlphaInput == EPCGExSampleSource::Constant", EditConditionHides))
 	double SecondAlphaConstant = 1;
 
-	PCGEX_SETTING_DATA_VALUE_GET_BOOL(SecondAlpha, double, SecondAlphaInput != EPCGExSampleSource::Constant, SecondAlphaAttribute, SecondAlphaConstant)
-	PCGEX_SETTING_VALUE_GET_BOOL(SecondAlpha, double, SecondAlphaInput != EPCGExSampleSource::Constant, SecondAlphaAttribute, SecondAlphaConstant)
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetDataValueSettingSecondAlpha(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors = false) const;;
+	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingSecondAlpha(const bool bQuietErrors = false) const;;
 
 	bool Validate(FPCGExContext* InContext, const bool bSupportPoints = false) const;
 

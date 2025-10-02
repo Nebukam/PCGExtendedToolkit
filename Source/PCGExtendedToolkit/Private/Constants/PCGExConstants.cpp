@@ -122,7 +122,7 @@ TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 		for (auto List = GetBooleanConstantList(ConstantList);
 		     const auto Constant : List)
 		{
-			PCGEX_PIN_PARAM(Constant.Name, "...", Normal, {})
+			PCGEX_PIN_PARAM(Constant.Name, "...", Normal)
 		}
 	}
 
@@ -132,7 +132,7 @@ TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 		for (auto List = GetVectorConstantList(ConstantList).Constants;
 		     const auto Constant : List)
 		{
-			PCGEX_PIN_PARAM(Constant.Name, "...", Normal, {})
+			PCGEX_PIN_PARAM(Constant.Name, "...", Normal)
 		}
 	}
 	// Numerics
@@ -141,7 +141,7 @@ TArray<FPCGPinProperties> UPCGExConstantsSettings::OutputPinProperties() const
 		for (auto List = GetNumericConstantList(ConstantList).Constants;
 		     const auto Constant : List)
 		{
-			PCGEX_PIN_PARAM(Constant.Name, "...", Normal, {})
+			PCGEX_PIN_PARAM(Constant.Name, "...", Normal)
 		}
 	}
 

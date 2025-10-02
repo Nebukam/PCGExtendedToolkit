@@ -4,8 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Details/PCGExMacros.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Graph/Filters/PCGExAdjacency.h"
-#include "PCGExDetailsData.h"
 
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExEdgeDirectionSettings.h"
@@ -20,9 +21,7 @@ struct FPCGExIsoEdgeDirectionFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExIsoEdgeDirectionFilterConfig()
-	{
-	}
+	FPCGExIsoEdgeDirectionFilterConfig() = default;
 
 	/** Defines the direction in which points will be ordered to form the final paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -60,7 +59,7 @@ struct FPCGExIsoEdgeDirectionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ComparisonQuality == EPCGExDirectionCheckMode::Hash", EditConditionHides))
 	FPCGExVectorHashComparisonDetails HashComparisonDetails;
 
-	PCGEX_SETTING_VALUE_GET(Direction, FVector, CompareAgainst, Direction, DirectionConstant)
+	PCGEX_SETTING_VALUE_DECL(Direction, FVector)
 };
 
 /**
@@ -112,7 +111,7 @@ public:
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/direction"))
-class UPCGExIsoEdgeDirectionFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExIsoEdgeDirectionFilterProviderSettings : public UPCGExEdgeFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -122,7 +121,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		IsoEdgeDirectionFilterFactory, "Edge Filter : Edge Direction", "Dot product comparison of the edge direction against a local attribute or constant.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

@@ -8,6 +8,8 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Data/Blending/PCGExUnionOpsManager.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExGraph.h"
 
 
@@ -16,6 +18,8 @@
 
 #define LOCTEXT_NAMESPACE "PCGExSampleVtxByIDElement"
 #define PCGEX_NAMESPACE SampleVtxByID
+
+PCGEX_SETTING_VALUE_IMPL(UPCGExSampleVtxByIDSettings, LookAtUp, FVector, LookAtUpInput, LookAtUpSource, LookAtUpConstant)
 
 UPCGExSampleVtxByIDSettings::UPCGExSampleVtxByIDSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -27,7 +31,7 @@ TArray<FPCGPinProperties> UPCGExSampleVtxByIDSettings::InputPinProperties() cons
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGExGraph::SourceVerticesLabel, "The point data set to check against.", Required, {})
+	PCGEX_PIN_POINTS(PCGExGraph::SourceVerticesLabel, "The point data set to check against.", Required)
 	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
 
 	return PinProperties;

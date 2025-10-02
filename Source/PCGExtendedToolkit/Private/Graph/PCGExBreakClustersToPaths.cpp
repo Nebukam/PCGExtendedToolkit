@@ -3,8 +3,10 @@
 
 #include "Graph/PCGExBreakClustersToPaths.h"
 
+
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExChain.h"
 #include "Paths/PCGExPaths.h"
 
@@ -14,7 +16,7 @@
 TArray<FPCGPinProperties> UPCGExBreakClustersToPathsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths", Required, {})
+	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths", Required)
 	return PinProperties;
 }
 

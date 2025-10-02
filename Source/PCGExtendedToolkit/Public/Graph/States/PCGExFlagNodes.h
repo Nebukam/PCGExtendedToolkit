@@ -52,7 +52,7 @@ struct FPCGExFlagNodesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFlagNodesElement;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StateFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> StateFactories;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL

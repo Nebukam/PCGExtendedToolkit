@@ -13,7 +13,7 @@ void UPCGExEdgeEndpointsCheckFilterFactory::RegisterBuffersDependencies(FPCGExCo
 {
 	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
 
-	for (const TObjectPtr<const UPCGExFilterFactoryData>& Factory : FilterFactories)
+	for (const TObjectPtr<const UPCGExPointFilterFactoryData>& Factory : FilterFactories)
 	{
 		Factory->RegisterBuffersDependencies(InContext, FacadePreloader);
 	}
@@ -23,7 +23,7 @@ bool UPCGExEdgeEndpointsCheckFilterFactory::RegisterConsumableAttributes(FPCGExC
 {
 	if (!Super::RegisterConsumableAttributes(InContext)) { return false; }
 
-	for (const TObjectPtr<const UPCGExFilterFactoryData>& Factory : FilterFactories)
+	for (const TObjectPtr<const UPCGExPointFilterFactoryData>& Factory : FilterFactories)
 	{
 		if (!Factory->RegisterConsumableAttributes(InContext)) { return false; }
 	}
@@ -35,7 +35,7 @@ bool UPCGExEdgeEndpointsCheckFilterFactory::RegisterConsumableAttributesWithData
 {
 	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
 
-	for (const TObjectPtr<const UPCGExFilterFactoryData>& Factory : FilterFactories)
+	for (const TObjectPtr<const UPCGExPointFilterFactoryData>& Factory : FilterFactories)
 	{
 		if (!Factory->RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
 	}
@@ -122,7 +122,7 @@ namespace PCGExEdgeEndpointsCheck
 TArray<FPCGPinProperties> UPCGExEdgeEndpointsCheckFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceVtxFiltersLabel, TEXT("Filters used on endpoints."), Required, {})
+	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceVtxFiltersLabel, TEXT("Filters used on endpoints."), Required)
 	return PinProperties;
 }
 

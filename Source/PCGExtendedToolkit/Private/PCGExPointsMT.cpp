@@ -24,7 +24,7 @@ namespace PCGExPointsMT
 		WorkPermit = ExecutionContext->GetWorkPermit();
 	}
 
-	void IProcessor::SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFactories)
+	void IProcessor::SetPointsFilterData(TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFactories)
 	{
 		FilterFactories = InFactories;
 	}
@@ -144,7 +144,7 @@ namespace PCGExPointsMT
 		bIsProcessorValid = false;
 	}
 
-	bool IProcessor::InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories)
+	bool IProcessor::InitPrimaryFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories)
 	{
 		PointFilterCache.Init(DefaultPointFilterValue, PointDataFacade->GetNum());
 

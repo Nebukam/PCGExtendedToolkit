@@ -3,7 +3,9 @@
 
 #include "Shapes/Builders/PCGExShapeGrid.h"
 
+#include "PCGExHelpers.h"
 #include "PCGExMath.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCreateBuilderGrid"

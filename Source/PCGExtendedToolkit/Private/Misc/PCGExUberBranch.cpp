@@ -6,6 +6,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointIO.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExUberBranch"
@@ -33,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExUberBranchSettings::InputPinProperties() const
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	for (int i = 0; i < NumBranches; i++)
 	{
-		PCGEX_PIN_FACTORIES(InputLabels[i], "Collection filters. Only support C-Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal, {})
+		PCGEX_PIN_FILTERS(InputLabels[i], "Collection filters. Only support C-Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal)
 	}
 	return PinProperties;
 }
@@ -41,11 +42,11 @@ TArray<FPCGPinProperties> UPCGExUberBranchSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExUberBranchSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(GetMainOutputPin(), "Collections that didn't branch in any specific pin", Normal, {})
+	PCGEX_PIN_POINTS(GetMainOutputPin(), "Collections that didn't branch in any specific pin", Normal)
 
 	for (int i = 0; i < NumBranches; i++)
 	{
-		PCGEX_PIN_POINTS(OutputLabels[i], "Collections that passed the matching input filters, if they weren't output to any previous pin.", Normal, {})
+		PCGEX_PIN_POINTS(OutputLabels[i], "Collections that passed the matching input filters, if they weren't output to any previous pin.", Normal)
 	}
 
 	return PinProperties;
@@ -74,12 +75,12 @@ bool FPCGExUberBranchElement::Boot(FPCGExContext* InContext) const
 
 	for (int i = 0; i < Settings->NumBranches; i++)
 	{
-		TArray<TObjectPtr<const UPCGExFilterFactoryData>> Factories;
+		TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> Factories;
 		if (GetInputFactories(Context, Settings->InputLabels[i], Factories, PCGExFactories::PointFilters, !Settings->bQuietMissingFilters))
 		{
 			for (int f = 0; f < Factories.Num(); f++)
 			{
-				TObjectPtr<const UPCGExFilterFactoryData> Factory = Factories[f];
+				TObjectPtr<const UPCGExPointFilterFactoryData> Factory = Factories[f];
 				if (!Factory->SupportsCollectionEvaluation())
 				{
 					if (!Settings->bQuietInvalidFilters)

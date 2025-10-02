@@ -50,7 +50,7 @@ struct FPCGExTensorDotFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExTensorDotFilterFactory : public UPCGExFilterFactoryData
+class UPCGExTensorDotFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

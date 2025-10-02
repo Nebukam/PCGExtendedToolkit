@@ -103,8 +103,8 @@ struct FPCGExCutEdgesContext final : FPCGExEdgesProcessorContext
 	bool bWantsVtxProcessing = false;
 	bool bWantsEdgesProcessing = false;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgeFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> VtxFilterFactories;
 
 	TArray<TSharedRef<PCGExData::FFacade>> PathFacades;
 	TArray<TSharedRef<PCGExPaths::FPath>> Paths;

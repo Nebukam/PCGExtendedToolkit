@@ -5,6 +5,8 @@
 #include "Misc/PCGExDiscardByPointCount.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGBasePointData.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDiscardByPointCountElement"
 #define PCGEX_NAMESPACE DiscardByPointCount
@@ -12,7 +14,7 @@
 TArray<FPCGPinProperties> UPCGExDiscardByPointCountSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded outputs.", Normal, {})
+	PCGEX_PIN_POINTS(PCGExDiscardByPointCount::OutputDiscardedLabel, "Discarded outputs.", Normal)
 	return PinProperties;
 }
 

@@ -13,6 +13,7 @@
 
 #include "PCGExGeo.generated.h"
 
+enum class EPCGExAxisOrder : uint8;
 class UPCGBasePointData;
 struct FPCGExTransformDetails;
 

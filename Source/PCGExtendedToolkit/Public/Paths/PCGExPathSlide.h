@@ -4,12 +4,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMathMean.h"
 #include "PCGExPathProcessor.h"
 #include "Data/PCGExPointFilter.h"
-
+#include "Details/PCGExSettingsMacros.h"
 
 #include "Sampling/PCGExSampling.h"
 #include "PCGExPathSlide.generated.h"
+
+namespace PCGExPaths
+{
+	class FPath;
+}
 
 UENUM()
 enum class EPCGExSlideMode : uint8
@@ -68,7 +74,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Slide Amount", EditCondition="SlideAmountInput == EPCGExInputValueType::Constant && Mode != EPCGExSlideMode::Restore", EditConditionHides))
 	double SlideAmountConstant = 0.5;
 
-	PCGEX_SETTING_VALUE_GET(SlideAmount, double, SlideAmountInput, SlideAmountAttribute, SlideAmountConstant)
+	PCGEX_SETTING_VALUE_DECL(SlideAmount, double)
 
 	/** Whether to store the old position */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExSlideMode::Restore", EditConditionHides))

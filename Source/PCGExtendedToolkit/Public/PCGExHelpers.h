@@ -12,7 +12,7 @@
 
 #include "PCGExtendedToolkit.h"
 #include "PCGContext.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 #include "Async/Async.h"
 #include "Metadata/PCGMetadata.h"
@@ -621,31 +621,10 @@ namespace PCGEx
 	const FSoftClassPath DummySoftClassPath = FSoftClassPath{};
 	const FSoftObjectPath DummySoftObjectPath = FSoftObjectPath{};
 
-	template <typename T, typename Func>
-	static void ExecuteWithRightType(Func&& Callback)
-	{
-		if constexpr (std::is_same_v<T, bool>) { Callback(DummyBoolean); }
-		else if constexpr (std::is_same_v<T, int32>) { Callback(DummyInteger32); }
-		else if constexpr (std::is_same_v<T, int64>) { Callback(DummyInteger64); }
-		else if constexpr (std::is_same_v<T, float>) { Callback(DummyFloat); }
-		else if constexpr (std::is_same_v<T, double>) { Callback(DummyDouble); }
-		else if constexpr (std::is_same_v<T, FVector2D>) { Callback(DummyVector2); }
-		else if constexpr (std::is_same_v<T, FVector>) { Callback(DummyVector); }
-		else if constexpr (std::is_same_v<T, FVector4>) { Callback(DummyVector4); }
-		else if constexpr (std::is_same_v<T, FQuat>) { Callback(DummyQuaternion); }
-		else if constexpr (std::is_same_v<T, FRotator>) { Callback(DummyRotator); }
-		else if constexpr (std::is_same_v<T, FTransform>) { Callback(DummyTransform); }
-		else if constexpr (std::is_same_v<T, FString>) { Callback(DummyString); }
-		else if constexpr (std::is_same_v<T, FName>) { Callback(DummyName); }
-		else if constexpr (std::is_same_v<T, FSoftClassPath>) { Callback(DummySoftClassPath); }
-		else if constexpr (std::is_same_v<T, FSoftObjectPath>) { Callback(DummySoftObjectPath); }
-		else { static_assert("Unsupported type"); }
-	}
-
 	template <typename Func>
 	static void ExecuteWithRightType(const EPCGMetadataTypes Type, Func&& Callback)
 	{
-#define PCGEX_EXECUTE_WITH_TYPE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID : ExecuteWithRightType<_TYPE>(Callback); break;
+#define PCGEX_EXECUTE_WITH_TYPE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID : Callback(Dummy##_ID); break;
 
 		switch (Type)
 		{
@@ -659,7 +638,15 @@ namespace PCGEx
 	template <typename Func>
 	static void ExecuteWithRightType(const int16 Type, Func&& Callback)
 	{
-		ExecuteWithRightType(static_cast<EPCGMetadataTypes>(Type), Callback);
+#define PCGEX_EXECUTE_WITH_TYPE(_TYPE, _ID, ...) case EPCGMetadataTypes::_ID : Callback(Dummy##_ID); break;
+
+		switch (static_cast<EPCGMetadataTypes>(Type))
+		{
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_EXECUTE_WITH_TYPE)
+		default: ;
+		}
+
+#undef PCGEX_EXECUTE_WITH_TYPE
 	}
 
 #pragma endregion

@@ -60,7 +60,7 @@ public:
 	FPCGExEdgeEndpointsCheckFilterConfig Config;
 
 	UPROPERTY()
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
 
 	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual bool RegisterConsumableAttributes(FPCGExContext* InContext) const override;
@@ -95,7 +95,7 @@ namespace PCGExEdgeEndpointsCheck
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-edges/endpoints-check"))
-class UPCGExEdgeEndpointsCheckFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExEdgeEndpointsCheckFilterProviderSettings : public UPCGExEdgeFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -105,7 +105,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		EdgeEndpointsCheckFilterFactory, "Edge Filter : Endpoints Check", "Uses filters applied to the edge endpoints' in order to determine whether this filter result'.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 	//~End UPCGSettings
 

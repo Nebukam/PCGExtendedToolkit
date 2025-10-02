@@ -36,7 +36,14 @@ void UPCGExFilterGroupProviderSettings::ApplyPreconfiguredSettings(const FPCGPre
 TArray<FPCGPinProperties> UPCGExFilterGroupProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceFiltersLabel, "List of filters that will be processed in either AND or OR mode.", Required, {})
+	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, "List of filters that will be processed in either AND or OR mode.", Required)
+	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExFilterGroupProviderSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties;
+	PCGEX_PIN_FILTERS(GetMainOutputPin(), "Gathered filters.", Required)
 	return PinProperties;
 }
 

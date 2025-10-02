@@ -3,12 +3,14 @@
 
 #include "Graph/PCGExIntersections.h"
 
-#include "PCGExDetailsIntersection.h"
+#include "Details/PCGExDetailsIntersection.h"
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
-
-
-#include "Graph/PCGExCluster.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
+#include "Geometry/PCGExGeoPointBox.h"
+#include "Graph/PCGExEdge.h"
+#include "Graph/PCGExGraph.h"
+#include "Sampling/PCGExSampling.h"
 
 namespace PCGExGraph
 {
@@ -64,6 +66,16 @@ namespace PCGExGraph
 	bool FUnionGraph::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InUniqueSourceFacade, const bool SupportScopedGet)
 	{
 		return FuseDetails.Init(InContext, InUniqueSourceFacade);
+	}
+
+	int32 FUnionGraph::NumNodes() const
+	{
+		return NodesUnion->Num();
+	}
+
+	int32 FUnionGraph::NumEdges() const
+	{
+		return EdgesUnion->Num();
 	}
 
 	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint(const PCGExData::FConstPoint& Point)
@@ -897,4 +909,68 @@ namespace PCGExGraph
 		// Register crossings
 		InIntersections->BatchAdd(OutSplits, EdgeIndex);
 	}
+}
+
+FPCGExBoxIntersectionDetails::FPCGExBoxIntersectionDetails()
+{
+	if (const UEnum* EnumClass = StaticEnum<EPCGExCutType>())
+	{
+		const int32 NumEnums = EnumClass->NumEnums() - 1; // Skip _MAX 
+		for (int32 i = 0; i < NumEnums; ++i) { CutTypeValueMapping.Add(static_cast<EPCGExCutType>(EnumClass->GetValueByIndex(i)), i); }
+	}
+}
+
+bool FPCGExBoxIntersectionDetails::Validate(const FPCGContext* InContext) const
+{
+#define PCGEX_LOCAL_DETAIL_CHECK(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME) { PCGEX_VALIDATE_NAME_C(InContext, _NAME##AttributeName) }
+	PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_CHECK)
+#undef PCGEX_LOCAL_DETAIL_CHECK
+
+	return true;
+}
+
+void FPCGExBoxIntersectionDetails::Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade, const TSharedPtr<PCGExSampling::FTargetsHandler>& TargetsHandler)
+{
+	const int32 NumTargets = TargetsHandler->Num();
+	IntersectionForwardHandlers.Init(nullptr, NumTargets);
+
+	TargetsHandler->ForEachTarget(
+		[&](const TSharedRef<PCGExData::FFacade>& InTarget, const int32 Index)
+		{
+			IntersectionForwardHandlers[Index] = IntersectionForwarding.TryGetHandler(InTarget, PointDataFacade, false);
+		});
+
+#define PCGEX_LOCAL_DETAIL_WRITER(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ _NAME##Writer = PointDataFacade->GetWritable( _NAME##AttributeName, _DEFAULT, true, PCGExData::EBufferInit::Inherit); }
+	PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_WRITER)
+#undef PCGEX_LOCAL_DETAIL_WRITER
+}
+
+bool FPCGExBoxIntersectionDetails::WillWriteAny() const
+{
+#define PCGEX_LOCAL_DETAIL_WILL_WRITE(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ return true; }
+	PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_WILL_WRITE)
+#undef PCGEX_LOCAL_DETAIL_WILL_WRITE
+
+	return IntersectionForwarding.bEnabled;
+}
+
+void FPCGExBoxIntersectionDetails::Mark(const TSharedRef<PCGExData::FPointIO>& InPointIO) const
+{
+#define PCGEX_LOCAL_DETAIL_MARK(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME) { PCGExData::WriteMark(InPointIO, _NAME##AttributeName, _DEFAULT); }
+	PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_MARK)
+#undef PCGEX_LOCAL_DETAIL_MARK
+}
+
+void FPCGExBoxIntersectionDetails::SetIntersection(const int32 PointIndex, const PCGExGeo::FCut& InCut) const
+{
+	check(InCut.Idx != -1)
+	if (const TSharedPtr<PCGExData::FDataForwardHandler>& IntersectionForwardHandler = IntersectionForwardHandlers[InCut.Idx])
+	{
+		IntersectionForwardHandler->Forward(InCut.BoxIndex, PointIndex);
+	}
+
+	if (IsIntersectionWriter) { IsIntersectionWriter->SetValue(PointIndex, true); }
+	if (CutTypeWriter) { CutTypeWriter->SetValue(PointIndex, CutTypeValueMapping[InCut.Type]); }
+	if (NormalWriter) { NormalWriter->SetValue(PointIndex, InCut.Normal); }
+	if (BoundIndexWriter) { BoundIndexWriter->SetValue(PointIndex, InCut.BoxIndex); }
 }

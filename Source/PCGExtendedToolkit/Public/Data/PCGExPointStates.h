@@ -47,13 +47,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStateConfigBase
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExPointStateFactoryData : public UPCGExFilterFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExPointStateFactoryData : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY()
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
 
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
@@ -77,7 +77,7 @@ namespace PCGExPointStates
 
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-		bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryData>>& InFactories);
+		bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
 		virtual bool Test(const int32 Index) const override;
 
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;

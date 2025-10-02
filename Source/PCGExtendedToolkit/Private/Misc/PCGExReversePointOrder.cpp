@@ -7,6 +7,7 @@
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"

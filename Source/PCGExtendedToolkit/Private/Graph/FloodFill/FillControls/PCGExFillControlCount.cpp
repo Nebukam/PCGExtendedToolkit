@@ -6,7 +6,10 @@
 
 
 #include "Data/PCGExDataPreloader.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
+
+PCGEX_SETTING_VALUE_IMPL(FPCGExFillControlConfigCount, MaxCount, int32, MaxCountInput, MaxCountAttribute, MaxCount)
 
 bool FPCGExFillControlCount::PrepareForDiffusions(FPCGExContext* InContext, const TSharedPtr<PCGExFloodFill::FFillControlsHandler>& InHandler)
 {

@@ -3,9 +3,14 @@
 
 #include "Misc/PCGExWriteIndex.h"
 
+#include "PCGExBroadcast.h"
+#include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGPointData.h"
 #include "Data/PCGSplineData.h"
+#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 #define PCGEX_NAMESPACE WriteIndex
@@ -70,7 +75,7 @@ TArray<FPCGPinProperties> UPCGExWriteIndexSettings::InputPinProperties() const
 {
 	if (!IsInputless()) { return Super::InputPinProperties(); }
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required, {})
+	PCGEX_PIN_ANY(GetMainInputPin(), "Inputs", Required)
 	return PinProperties;
 }
 
@@ -78,7 +83,7 @@ TArray<FPCGPinProperties> UPCGExWriteIndexSettings::OutputPinProperties() const
 {
 	if (!IsInputless()) { return Super::OutputPinProperties(); }
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(GetMainOutputPin(), "Output", Required, {})
+	PCGEX_PIN_ANY(GetMainOutputPin(), "Output", Required)
 	return PinProperties;
 }
 

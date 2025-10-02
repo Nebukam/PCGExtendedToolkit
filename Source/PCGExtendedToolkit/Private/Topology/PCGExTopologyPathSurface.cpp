@@ -7,6 +7,7 @@
 #include "Data/PCGDynamicMeshData.h" // Redundant but required for build on Linux 
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 #include "Topology/PCGExTopology.h"
 
@@ -19,7 +20,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(TopologyPathSurface)
 TArray<FPCGPinProperties> UPCGExTopologyPathSurfaceSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_MESH(PCGExTopology::OutputMeshLabel, "PCG Dynamic Mesh", Normal, {})
+	PCGEX_PIN_MESH(PCGExTopology::OutputMeshLabel, "PCG Dynamic Mesh", Normal)
 	return PinProperties;
 }
 

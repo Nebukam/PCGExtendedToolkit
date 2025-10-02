@@ -17,14 +17,14 @@
 TArray<FPCGPinProperties> UPCGExSpawnDynamicMeshSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_MESH(PCGExTopology::SourceMeshLabel, "PCG Dynamic Mesh", Required, {})
+	PCGEX_PIN_MESH(PCGExTopology::SourceMeshLabel, "PCG Dynamic Mesh", Required)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExSpawnDynamicMeshSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_MESH(PCGExTopology::SourceMeshLabel, "PCG Dynamic Mesh", Normal, {})
+	PCGEX_PIN_MESH(PCGExTopology::SourceMeshLabel, "PCG Dynamic Mesh", Normal)
 	return PinProperties;
 }
 

@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "PCGExScopedContainers.h"
+#include "Details/PCGExDetailsRelax.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"
@@ -92,7 +92,7 @@ struct FPCGExRelaxClustersContext final : FPCGExEdgesProcessorContext
 
 	UPCGExRelaxClusterOperation* Relaxing = nullptr;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> VtxFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> VtxFilterFactories;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL

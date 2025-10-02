@@ -3,12 +3,20 @@
 
 #include "Data/Matching/PCGExMatchRandom.h"
 
+#include "PCGExHelpers.h"
 #include "PCGExRandom.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExPointIO.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExMatchRandom"
 #define PCGEX_NAMESPACE MatchRandom
+
+FPCGExMatchRandomConfig::FPCGExMatchRandomConfig()
+	: FPCGExMatchRuleConfigBase()
+{
+	ThresholdAttribute.Update("@Data.Threshold");
+}
 
 bool FPCGExMatchRandom::PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<PCGExData::FTaggedData>>& InTargets)
 {

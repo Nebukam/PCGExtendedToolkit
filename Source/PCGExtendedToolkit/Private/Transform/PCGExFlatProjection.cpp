@@ -4,6 +4,7 @@
 #include "Transform/PCGExFlatProjection.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExFlatProjectionElement"

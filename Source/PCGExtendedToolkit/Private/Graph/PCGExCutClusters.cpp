@@ -3,8 +3,11 @@
 
 #include "Graph/PCGExCutClusters.h"
 
-#include "PCGExDataMath.h"
+#include "PCGExMathBounds.h"
+
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsDistances.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
@@ -15,9 +18,9 @@ TArray<FPCGPinProperties> UPCGExCutEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "Cutting paths.", Required, {})
-	if (Mode != EPCGExCutEdgesMode::Edges) { PCGEX_PIN_FACTORIES(PCGExCutEdges::SourceNodeFilters, "Node preservation filters.", Normal, {}) }
-	if (Mode != EPCGExCutEdgesMode::Nodes) { PCGEX_PIN_FACTORIES(PCGExCutEdges::SourceEdgeFilters, "Edge preservation filters.", Normal, {}) }
+	PCGEX_PIN_POINTS(PCGExPaths::SourcePathsLabel, "Cutting paths.", Required)
+	if (Mode != EPCGExCutEdgesMode::Edges) { PCGEX_PIN_FILTERS(PCGExCutEdges::SourceNodeFilters, "Node preservation filters.", Normal) }
+	if (Mode != EPCGExCutEdgesMode::Nodes) { PCGEX_PIN_FILTERS(PCGExCutEdges::SourceEdgeFilters, "Edge preservation filters.", Normal) }
 
 	return PinProperties;
 }

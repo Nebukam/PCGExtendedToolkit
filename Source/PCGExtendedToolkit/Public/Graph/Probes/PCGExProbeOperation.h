@@ -4,11 +4,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
+#include "PCGExCommon.h"
 #include "PCGExOperation.h"
+#include "Details/PCGExSettingsMacros.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 
 #include "UObject/Object.h"
 #include "PCGExProbeOperation.generated.h"
+
+namespace PCGExData
+{
+	class FPointIO;
+}
 
 namespace PCGExProbing
 {
@@ -51,7 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Offset", EditCondition="bSupportRadius && SearchRadiusInput != EPCGExInputValueType::Constant", EditConditionHides))
 	double SearchRadiusOffset = 0;
 
-	PCGEX_SETTING_VALUE_GET(SearchRadius, double, SearchRadiusInput, SearchRadiusAttribute, SearchRadiusConstant)
+	PCGEX_SETTING_VALUE_DECL(SearchRadius, double)
 };
 
 /**
@@ -74,7 +81,7 @@ public:
 	FPCGExProbeConfigBase* BaseConfig = nullptr;
 
 	double SearchRadiusOffset = 0;
-	FORCEINLINE double GetSearchRadius(const int32 Index) const { return FMath::Square(SearchRadius->Read(Index) + SearchRadiusOffset); }
+	double GetSearchRadius(const int32 Index) const;
 	TSharedPtr<PCGExDetails::TSettingValue<double>> SearchRadius;
 
 protected:

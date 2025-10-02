@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExMakeClustersUnique.h"
 
+#include "Data/PCGExPointIO.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

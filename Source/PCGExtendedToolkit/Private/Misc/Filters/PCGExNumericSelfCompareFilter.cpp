@@ -5,9 +5,13 @@
 
 #include "PCGExMath.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
+
+PCGEX_SETTING_VALUE_IMPL(FPCGExNumericSelfCompareFilterConfig, Index, int32, CompareAgainst, IndexAttribute, IndexConstant)
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExNumericSelfCompareFilterFactory::CreateFilter() const
 {

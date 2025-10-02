@@ -6,13 +6,13 @@
 #include "CoreMinimal.h"
 #include "MinVolumeBox3.h"
 #include "PCGEx.h"
-#include "PCGExDetailsData.h"
 #include "PCGExMath.h"
 #include "PCGExMT.h"
 #include "Transform/PCGExFitting.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 
 namespace PCGExGeo
 {
