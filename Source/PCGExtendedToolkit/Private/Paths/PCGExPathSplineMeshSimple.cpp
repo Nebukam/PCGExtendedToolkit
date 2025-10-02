@@ -11,6 +11,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
+#include "Engine/StaticMesh.h"
 
 
 #include "Paths/PCGExPaths.h"
