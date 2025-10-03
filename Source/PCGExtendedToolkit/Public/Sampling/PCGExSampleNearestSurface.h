@@ -190,6 +190,14 @@ public:
 	/** If enabled, points that failed to sample anything will be pruned. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bPruneFailedSamples = false;
+
+	/** Consider points that are inside as failed samples. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
+	bool bProcessInsideAsFailedSamples = false;
+
+	/** Consider points that are outside as failed samples. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
+	bool bProcessOutsideAsFailedSamples = false;
 };
 
 struct FPCGExSampleNearestSurfaceContext final : FPCGExPointsProcessorContext
