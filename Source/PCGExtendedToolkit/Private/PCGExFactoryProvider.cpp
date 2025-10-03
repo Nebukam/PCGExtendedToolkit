@@ -85,6 +85,11 @@ FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 	return MakeShared<FPCGExFactoryProviderElement>();
 }
 
+const FPCGDataTypeBaseId& UPCGExFactoryProviderSettings::GetFactoryTypeId() const
+{
+	return FPCGExFactoryDataTypeInfo::AsId();
+}
+
 #if WITH_EDITOR
 FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT(""); }
 FLinearColor UPCGExFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorDebug; }
@@ -102,11 +107,6 @@ bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName&
 		return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, false);
 	}
 	return true;
-}
-
-const FPCGDataTypeBaseId& UPCGExFactoryProviderSettings::GetFactoryTypeId() const
-{
-	return FPCGExFactoryDataTypeInfo::AsId();
 }
 
 
