@@ -5,6 +5,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Sampling/PCGExSampling.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExFlatProjectionElement"
@@ -19,11 +20,28 @@ bool FPCGExFlatProjectionElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FlatProjection)
 
+	if (Settings->bRestorePreviousProjection)
+	{
+
+#define PCGEX_REGISTER_FLAG(_COMPONENT, _ARRAY) \
+if ((Settings->_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags::X)) != 0){ Context->_ARRAY.Add(0); Context->AppliedComponents++; } \
+if ((Settings->_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags::Y)) != 0){ Context->_ARRAY.Add(1); Context->AppliedComponents++; } \
+if ((Settings->_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags::Z)) != 0){ Context->_ARRAY.Add(2); Context->AppliedComponents++; }
+		
+		PCGEX_REGISTER_FLAG(TransformPosition, TrPosComponents)
+		PCGEX_REGISTER_FLAG(TransformRotation, TrRotComponents)
+		PCGEX_REGISTER_FLAG(TransformScale, TrScaComponents)
+
+#undef PCGEX_REGISTER_FLAG
+	}
+	
+
 	if (Settings->bSaveAttributeForRestore || Settings->bRestorePreviousProjection)
 	{
 		PCGEX_VALIDATE_NAME(Settings->AttributePrefix)
 		Context->CachedTransformAttributeName = PCGEx::MakePCGExAttributeName(Settings->AttributePrefix.ToString(), TEXT("T"));
 	}
+	
 
 	return true;
 }
@@ -116,7 +134,26 @@ namespace PCGExFlatProjection
 
 		if (bInverseExistingProjection)
 		{
-			PCGEX_SCOPE_LOOP(Index) { OutTransforms[Index] = TransformReader->Read(Index); }
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				const FTransform& CurrentTr = OutTransforms[Index];
+				
+				const FTransform& RestoreTr = TransformReader->Read(Index);
+				FVector OutRotation = CurrentTr.GetRotation().Euler();
+				FVector OutPosition = CurrentTr.GetLocation();
+				FVector OutScale = CurrentTr.GetScale3D();
+				
+				const FVector InTrRot = RestoreTr.GetRotation().Euler();
+				for (const int32 C : Context->TrRotComponents) { OutRotation[C] = InTrRot[C]; }
+
+				FVector InTrPos = RestoreTr.GetLocation();
+				for (const int32 C : Context->TrPosComponents) { OutPosition[C] = InTrPos[C]; }
+
+				FVector InTrSca = RestoreTr.GetScale3D();
+				for (const int32 C : Context->TrScaComponents) { OutScale[C] = InTrSca[C]; }
+				
+				OutTransforms[Index] = FTransform(FQuat::MakeFromEuler(OutRotation), OutPosition, OutScale);
+			}
 		}
 		else if (bWriteAttribute)
 		{
