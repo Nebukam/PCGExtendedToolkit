@@ -405,7 +405,8 @@ namespace PCGExWaitForPCGData
 					{
 						PCGEX_ASYNC_THIS
 						This->Inspect(Index);
-					}
+					},
+					UE::Tasks::ETaskPriority::BackgroundLow
 				);
 		}
 	}
