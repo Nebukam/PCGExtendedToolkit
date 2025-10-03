@@ -43,8 +43,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName AttributePrefix = "FlatProjection";
 
+	
+	/** Which position components from the stored transform should be applied to the point.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" ├─ Position", EditCondition="bRestorePreviousProjection", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 TransformPosition = 0;
+
+	/** Which rotation components from the stored transform should be applied to the point.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" ├─ Rotation", EditCondition="bRestorePreviousProjection", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 TransformRotation = 0;
+
+	/** Which scale components from the stored transform should be applied to the point.  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Scale", EditCondition="bRestorePreviousProjection", EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExApplySampledComponentFlags"))
+	uint8 TransformScale = 0;
+
+	
 	/** Whether this is a new projection or an old one*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bRestorePreviousProjection"))
 	bool bSaveAttributeForRestore = true;
 
 	/** Whether this is a new projection or an old one*/
@@ -61,6 +75,11 @@ struct FPCGExFlatProjectionContext final : FPCGExPointsProcessorContext
 	friend class FPCGExFlatProjectionElement;
 
 	FName CachedTransformAttributeName = NAME_None;
+
+	int32 AppliedComponents = 0;
+	TArray<int32> TrPosComponents;
+	TArray<int32> TrRotComponents;
+	TArray<int32> TrScaComponents;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
