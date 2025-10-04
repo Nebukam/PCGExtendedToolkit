@@ -79,3 +79,4 @@ This software is provided under the MIT License. It is freely available for use 
 
 ### Third party
 - This plugin includes [delaunator-cpp](https://github.com/delfrrr/delaunator-cpp)
+- The project includes Kenney' [Survival Kit](https://kenney.nl/assets/survival-kit) Meshes
