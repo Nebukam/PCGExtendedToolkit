@@ -19,7 +19,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExSubdivideSettings, SubdivisionAmount, double, Amo
 #if WITH_EDITORONLY_DATA
 void UPCGExSubdivideSettings::PostInitProperties()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject))
+	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
 	{
 		if (!Blending) { Blending = NewObject<UPCGExSubPointsBlendInterpolate>(this, TEXT("Blending")); }
 	}

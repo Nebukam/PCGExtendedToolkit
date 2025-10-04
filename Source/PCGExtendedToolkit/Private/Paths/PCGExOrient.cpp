@@ -16,7 +16,7 @@
 #if WITH_EDITORONLY_DATA
 void UPCGExOrientSettings::PostInitProperties()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject))
+	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
 	{
 		if (!Orientation) { Orientation = NewObject<UPCGExOrientLookAt>(this, TEXT("Orientation")); }
 	}

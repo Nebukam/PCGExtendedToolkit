@@ -30,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotNavmeshSettings::OutputPinPropert
 #if WITH_EDITOR
 void UPCGExPathfindingPlotNavmeshSettings::PostInitProperties()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject))
+	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
 	{
 		if (!Blending) { Blending = NewObject<UPCGExSubPointsBlendInterpolate>(this, TEXT("Blending")); }
 	}

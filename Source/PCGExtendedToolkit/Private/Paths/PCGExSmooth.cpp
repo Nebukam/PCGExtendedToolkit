@@ -35,7 +35,7 @@ bool UPCGExSmoothSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 #if WITH_EDITORONLY_DATA
 void UPCGExSmoothSettings::PostInitProperties()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject))
+	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
 	{
 		if (!SmoothingMethod) { SmoothingMethod = NewObject<UPCGExMovingAverageSmoothing>(this, TEXT("SmoothingMethod")); }
 	}

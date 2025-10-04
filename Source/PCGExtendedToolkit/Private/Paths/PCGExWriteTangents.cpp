@@ -20,7 +20,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExWriteTangentsSettings, LeaveScale, FVector, Leave
 #if WITH_EDITORONLY_DATA
 void UPCGExWriteTangentsSettings::PostInitProperties()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject))
+	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
 	{
 		if (!Tangents) { Tangents = NewObject<UPCGExAutoTangents>(this, TEXT("Tangents")); }
 	}
