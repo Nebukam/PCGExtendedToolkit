@@ -115,16 +115,14 @@ FVector FPCGExUVW::GetUVW(const int32 PointIndex) const
 FVector FPCGExUVW::GetPosition(const int32 PointIndex) const
 {
 	const FBox Bounds = PCGExMath::GetLocalBounds(PCGExData::FConstPoint(PointData, PointIndex), BoundsReference);
-	const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointIndex));
-	return PointData->GetTransform(PointIndex).TransformPositionNoScale(LocalPosition);
+	return PointData->GetTransform(PointIndex).TransformPositionNoScale(Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointIndex)));
 }
 
 FVector FPCGExUVW::GetPosition(const int32 PointIndex, FVector& OutOffset) const
 {
 	const FBox Bounds = PCGExMath::GetLocalBounds(PCGExData::FConstPoint(PointData, PointIndex), BoundsReference);
 	OutOffset = (Bounds.GetExtent() * GetUVW(PointIndex));
-	const FVector LocalPosition = Bounds.GetCenter() + OutOffset;
-	return PointData->GetTransform(PointIndex).TransformPositionNoScale(LocalPosition);
+	return PointData->GetTransform(PointIndex).TransformPositionNoScale(Bounds.GetCenter() + OutOffset);
 }
 
 FVector FPCGExUVW::GetUVW(const int32 PointIndex, const EPCGExMinimalAxis Axis, const bool bMirrorAxis) const
@@ -161,10 +159,8 @@ FVector FPCGExUVW::GetPosition(const int32 PointIndex, const EPCGExMinimalAxis A
 FVector FPCGExUVW::GetPosition(const int32 PointIndex, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis) const
 {
 	const FBox Bounds = PCGExMath::GetLocalBounds(PCGExData::FConstPoint(PointData, PointIndex), BoundsReference);
-	const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointIndex, Axis, bMirrorAxis));
-	const FTransform& Transform = PointData->GetTransform(PointIndex);
-	OutOffset = Transform.TransformVectorNoScale(LocalPosition - Bounds.GetCenter());
-	return Transform.TransformPositionNoScale(LocalPosition);
+	OutOffset = (Bounds.GetExtent() * GetUVW(PointIndex, Axis, bMirrorAxis));
+	return PointData->GetTransform(PointIndex).TransformPositionNoScale(Bounds.GetCenter() + OutOffset);
 }
 
 FPCGExAxisDeformDetails::FPCGExAxisDeformDetails(const FString InFirst, const FString InSecond, const double InFirstValue, const double InSecondValue)
