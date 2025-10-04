@@ -320,9 +320,9 @@ void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, PCGExData::FPro
 		const bool bAbsY = (Variations.AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Y)) != 0;
 		const bool bAbsZ = (Variations.AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Z)) != 0;
 
-		OutRotation.Pitch = (bAbsX ? RandRot.Pitch : OutRotation.Pitch + RandRot.Pitch);
-		OutRotation.Yaw = (bAbsY ? RandRot.Yaw : OutRotation.Yaw + RandRot.Yaw);
-		OutRotation.Roll = (bAbsZ ? RandRot.Roll : OutRotation.Roll + RandRot.Roll);
+		OutRotation.Pitch = (bAbsY ? RandRot.Pitch : OutRotation.Pitch + RandRot.Pitch);
+		OutRotation.Yaw = (bAbsZ ? RandRot.Yaw : OutRotation.Yaw + RandRot.Yaw);
+		OutRotation.Roll = (bAbsX ? RandRot.Roll : OutRotation.Roll + RandRot.Roll);
 
 		FinalTransform.SetRotation(OutRotation.Quaternion());
 	}
@@ -360,6 +360,31 @@ void FPCGExFittingDetailsHandler::ComputeTransform(const int32 TargetIndex, FTra
 	const FTransform& InTransform = TargetPoint.GetTransform();
 
 	if (bWorldSpace) { OutTransform = InTransform; }
+
+	FVector OutScale = InTransform.GetScale3D();
+	const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
+	const FBox& OriginalInBounds = InOutBounds;
+
+	ScaleToFit.Process(TargetPoint, OriginalInBounds, OutScale, InOutBounds);
+
+	//
+
+	FVector OutTranslation = FVector::ZeroVector;
+	Justification.Process(
+		TargetIndex, RefBounds,
+		FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
+		OutTranslation);
+
+	OutTransform.AddToTranslation(InTransform.GetRotation().RotateVector(OutTranslation));
+	OutTransform.SetScale3D(OutScale);
+}
+
+void FPCGExFittingDetailsHandler::ComputeTransform(const int32 TargetIndex, const FTransform& InTransform, FTransform& OutTransform, FBox& InOutBounds) const
+{
+	check(TargetDataFacade);
+	const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
+
+	OutTransform = InTransform; 
 
 	FVector OutScale = InTransform.GetScale3D();
 	const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
