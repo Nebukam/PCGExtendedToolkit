@@ -68,7 +68,7 @@ bool FPCGExBitmaskMergeElement::ExecuteInternal(FPCGContext* Context) const
 		}
 	}
 
-	UPCGParamData* Bitmask = NewObject<UPCGParamData>();
+	UPCGParamData* Bitmask = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);
 	Bitmask->Metadata->CreateAttribute<int64>(FName("Bitmask"), OutputMask, false, true);
 	Bitmask->Metadata->AddEntry();
 	FPCGTaggedData& OutData = Context->OutputData.TaggedData.Emplace_GetRef();

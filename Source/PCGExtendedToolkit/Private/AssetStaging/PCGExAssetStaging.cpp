@@ -181,7 +181,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Settings->OutputMode == EPCGExStagingOutputMode::CollectionMap)
 	{
-		UPCGParamData* OutputSet = NewObject<UPCGParamData>();
+		UPCGParamData* OutputSet = Context->ManagedObjects->New<UPCGParamData>();
 		Context->CollectionPickDatasetPacker->PackToDataset(OutputSet);
 
 		FPCGTaggedData& OutData = Context->OutputData.TaggedData.Emplace_GetRef();
