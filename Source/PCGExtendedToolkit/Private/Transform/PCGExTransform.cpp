@@ -123,8 +123,7 @@ FVector FPCGExUVW::GetPosition(const int32 PointIndex, FVector& OutOffset) const
 {
 	const FBox Bounds = PCGExMath::GetLocalBounds(PCGExData::FConstPoint(PointData, PointIndex), BoundsReference);
 	OutOffset = Bounds.GetExtent() * GetUVW(PointIndex);
-	const FVector LocalPosition = Bounds.GetCenter() + OutOffset;
-	return PointData->GetTransform(PointIndex).TransformPositionNoScale(LocalPosition);
+	return PointData->GetTransform(PointIndex).TransformPositionNoScale(Bounds.GetCenter() + OutOffset);
 }
 
 FVector FPCGExUVW::GetUVW(const int32 PointIndex, const EPCGExMinimalAxis Axis, const bool bMirrorAxis) const
