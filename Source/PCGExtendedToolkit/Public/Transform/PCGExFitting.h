@@ -315,6 +315,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingDetailsHandler
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InTargetFacade);
 
 	void ComputeTransform(const int32 TargetIndex, FTransform& OutTransform, FBox& InOutBounds, const bool bWorldSpace = true) const;
+	void ComputeTransform(int32 TargetIndex, const FTransform& InTransform, FTransform& OutTransform, FBox& InOutBounds) const;
 
 	bool WillChangeBounds() const;
 	bool WillChangeTransform() const;
