@@ -400,7 +400,7 @@ namespace PCGExAssetStaging
 					Variations.Apply(Seed, ProxyPoint, Entry->Variations, EPCGExVariationMode::Before);
 				}
 
-				FittingHandler.ComputeTransform(Index, ProxyPoint.Transform, OutBounds);
+				FittingHandler.ComputeTransform(Index, ProxyPoint.Transform, ProxyPoint.Transform, OutBounds);
 			}
 			else
 			{
