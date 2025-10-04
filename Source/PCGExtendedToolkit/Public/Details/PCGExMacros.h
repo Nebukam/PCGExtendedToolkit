@@ -36,7 +36,7 @@ if(!SharedContext.Get()){ return _RET; }
 #define PCGEX_LOG_INVALID_SELECTOR_C(_CTX, _NAME, _SELECTOR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Attribute or property \"{0}\" doesn't exist. (See "#_NAME")"), FText::FromString(PCGEx::GetSelectorDisplayName(_SELECTOR))));
 #define PCGEX_LOG_INVALID_ATTR_C(_CTX, _NAME, _ATTR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Attribute \"{0}\" doesn't exist. (See "#_NAME")"), FText::FromName(_ATTR)));
 
-#define PCGEX_ON_INVALILD_INPUTS(_MSG) bool bHasInvalidInputs = false; ON_SCOPE_EXIT{ if (bHasInvalidInputs){ PCGE_LOG(Warning, GraphAndLog, _MSG); } };
+#define PCGEX_ON_INVALILD_INPUTS(_MSG) bool bHasInvalidInputs = false; ON_SCOPE_EXIT{ if (!Settings->bQuietInvalidInputWarning && bHasInvalidInputs){ PCGE_LOG(Warning, GraphAndLog, _MSG); } };
 #define PCGEX_ON_INVALILD_INPUTS_C(_CTX, _MSG) bool bHasInvalidInputs = false; ON_SCOPE_EXIT{ if (bHasInvalidInputs){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, _MSG); } };
 
 #define PCGEX_NOT_IMPLEMENTED(_NAME){ LowLevelFatalError(TEXT("Method not implemented: (%s)"), TEXT(#_NAME));}

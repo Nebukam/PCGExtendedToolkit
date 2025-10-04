@@ -167,9 +167,6 @@ namespace PCGExWriteEdgeProperties
 
 		if (!DataBlender) { DataBlender = MakeShared<PCGExDataBlending::FDummyBlender>(); }
 
-		StartWeight = FMath::Clamp(Settings->EndpointsWeights, 0, 1);
-		EndWeight = 1 - StartWeight;
-
 		StartParallelLoopForEdges();
 
 		return true;
@@ -278,11 +275,11 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 			else if (Settings->bWriteEdgePosition)
 			{
 				Transforms[EdgeIndex].SetLocation(FMath::Lerp(B, A, Settings->EdgePositionLerp));
-				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp);
+				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EndpointsWeights);
 			}
 			else
 			{
-				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EdgePositionLerp);
+				DataBlender->Blend(Edge.Start, Edge.End, EdgeIndex, Settings->EndpointsWeights);
 			}
 		}
 	}

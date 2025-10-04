@@ -294,8 +294,8 @@ namespace PCGEx
 
 	void FManagedObjects::AddExtraStructReferencedObjects(FReferenceCollector& Collector)
 	{
-		FReadScopeLock ReadScopeLock(ManagedObjectLock);
-		for (TObjectPtr<UObject>& Object : ManagedObjects) { Collector.AddReferencedObject(Object); }
+		//FReadScopeLock ReadScopeLock(ManagedObjectLock);
+		//for (TObjectPtr<UObject>& Object : ManagedObjects) { Collector.AddReferencedObject(Object); }
 	}
 
 	void FManagedObjects::Destroy(UObject* InObject)
