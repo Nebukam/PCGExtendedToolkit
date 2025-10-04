@@ -265,7 +265,7 @@ TargetBoundsMax._AXIS = Rad * InvScale._AXIS;\
 					break;
 				}
 
-				Transforms[EdgeIndex] = FTransform(EdgeRot, FMath::Lerp(B, A, BlendWeightEnd), TargetScale);
+				Transforms[EdgeIndex] = FTransform(EdgeRot, FMath::Lerp(B, A, Settings->bWriteEdgePosition ? Settings->EdgePositionLerp : BlendWeightEnd), TargetScale);
 
 				BoundsMin[EdgeIndex] = TargetBoundsMin;
 				BoundsMax[EdgeIndex] = TargetBoundsMax;
