@@ -36,11 +36,8 @@ TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> V = PCGExDetails::MakeSettingValu
 V->bQuietErrors = bQuietErrors;\
 return V; }
 
-
-#define PCGEX_SETTING_DATA_VALUE_DECL(_NAME, _TYPE) TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> GetDataValueSetting##_NAME(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors = false) const;
-
 #define PCGEX_SETTING_DATA_VALUE_IMPL(_CLASS, _NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT)\
-TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> _CLASS::GetDataValueSetting##_NAME(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors) const{\
+TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> _CLASS::GetValueSetting##_NAME(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors) const{\
 TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> V = PCGExDetails::MakeSettingValue<_TYPE>(InContext, InData, _INPUT, _SOURCE, _CONSTANT);\
 V->bQuietErrors = bQuietErrors;\
 return V; }
@@ -48,7 +45,7 @@ return V; }
 #define PCGEX_SETTING_DATA_VALUE_IMPL_BOOL(_CLASS, _NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT) PCGEX_SETTING_DATA_VALUE_IMPL(_CLASS, _NAME, _TYPE, ((_INPUT) ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant), _SOURCE, _CONSTANT);
 
 #define PCGEX_SETTING_DATA_VALUE_INLINE(_NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT)\
-TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> GetDataValueSetting##_NAME(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors = false) const{\
+TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> GetValueSetting##_NAME(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors = false) const{\
 TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> V = PCGExDetails::MakeSettingValue<_TYPE>(InContext, InData, _INPUT, _SOURCE, _CONSTANT);\
 V->bQuietErrors = bQuietErrors;\
 return V; }

@@ -363,15 +363,11 @@ void FPCGExFittingDetailsHandler::ComputeTransform(const int32 TargetIndex, FTra
 	if (bWorldSpace) { OutTransform = InTransform; }
 
 	FVector OutScale = InTransform.GetScale3D();
-	const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
+	FVector OutTranslation = FVector::ZeroVector;
 
 	ScaleToFit.Process(TargetPoint, InOutBounds, OutScale, InOutBounds);
-
-	//
-
-	FVector OutTranslation = FVector::ZeroVector;
 	Justification.Process(
-		TargetIndex, RefBounds,
+		TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint),
 		FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
 		OutTranslation);
 
@@ -384,16 +380,12 @@ void FPCGExFittingDetailsHandler::ComputeLocalTransform(const int32 TargetIndex,
 	check(TargetDataFacade);
 	const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
 
-	const FQuat OriginalRotation = OutTransform.GetRotation();
 	FVector OutScale = OutTransform.GetScale3D();
-	const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
-
-	FBox RotatedAABB = InOutBounds.TransformBy(InLocalXForm);
-	ScaleToFit.Process(TargetPoint, RotatedAABB, OutScale, InOutBounds);
-	
 	FVector OutTranslation = FVector::ZeroVector;
+	
+	ScaleToFit.Process(TargetPoint, InOutBounds.TransformBy(InLocalXForm), OutScale, InOutBounds);
 	Justification.Process(
-		TargetIndex, RefBounds,
+		TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint),
 		FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
 		OutTranslation);
 
