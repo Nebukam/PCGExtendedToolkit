@@ -105,12 +105,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExScaleToFitDetails
 
 private:
 	static void ScaleToFitAxis(
-		const EPCGExScaleToFit Fit,
-		const int32 Axis,
-		const FVector& InScale,
-		const FVector& InPtSize,
-		const FVector& InStSize,
-		const FVector& MinMaxFit,
+		const EPCGExScaleToFit Fit, const int32 Axis,
+		const FVector& TargetScale, const FVector& TargetSize,
+		const FVector& CandidateSize, const FVector& MinMaxFit,
 		FVector& OutScale);
 };
 
@@ -290,7 +287,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariationsDetails
 
 	void Apply(
 		int32 BaseSeed,
-		PCGExData::FProxyPoint& InPoint,
+		FTransform& OutTransform,
 		const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const;
 };
 
@@ -315,7 +312,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingDetailsHandler
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InTargetFacade);
 
 	void ComputeTransform(const int32 TargetIndex, FTransform& OutTransform, FBox& InOutBounds, const bool bWorldSpace = true) const;
-	void ComputeTransform(int32 TargetIndex, const FTransform& InTransform, FTransform& OutTransform, FBox& InOutBounds) const;
+	void ComputeLocalTransform(const int32 TargetIndex, const FTransform& InLocalXForm, FTransform& OutTransform, FBox& InOutBounds) const;
 
 	bool WillChangeBounds() const;
 	bool WillChangeTransform() const;

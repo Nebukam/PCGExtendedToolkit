@@ -181,7 +181,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Settings->OutputMode == EPCGExStagingOutputMode::CollectionMap)
 	{
-		UPCGParamData* OutputSet = NewObject<UPCGParamData>();
+		UPCGParamData* OutputSet = Context->ManagedObjects->New<UPCGParamData>();
 		Context->CollectionPickDatasetPacker->PackToDataset(OutputSet);
 
 		FPCGTaggedData& OutData = Context->OutputData.TaggedData.Emplace_GetRef();
@@ -335,7 +335,7 @@ namespace PCGExAssetStaging
 				continue;
 			}
 
-			PCGExData::FMutablePoint MutablePoint(OutPointData, Index);
+			FTransform& OutTransform = OutTransforms[Index];
 
 			const FPCGExAssetCollectionEntry* Entry = nullptr;
 			const UPCGExAssetCollection* EntryHost = nullptr;
@@ -386,25 +386,27 @@ namespace PCGExAssetStaging
 			else { HashWriter->SetValue(Index, Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Entry->Staging.InternalIndex, SecondaryIndex)); }
 
 			FBox OutBounds = Entry->Staging.Bounds;
-			PCGExData::FProxyPoint ProxyPoint(MutablePoint);
 
 			if (Variations.bEnabledBefore)
 			{
+
+				FTransform LocalXForm = FTransform::Identity;
+				
 				if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
 					Entry->VariationMode == EPCGExEntryVariationMode::Global)
 				{
-					Variations.Apply(Seed, ProxyPoint, EntryHost->GlobalVariations, EPCGExVariationMode::Before);
+					Variations.Apply(Seed, LocalXForm, EntryHost->GlobalVariations, EPCGExVariationMode::Before);
 				}
 				else
 				{
-					Variations.Apply(Seed, ProxyPoint, Entry->Variations, EPCGExVariationMode::Before);
+					Variations.Apply(Seed, LocalXForm, Entry->Variations, EPCGExVariationMode::Before);
 				}
 
-				FittingHandler.ComputeTransform(Index, ProxyPoint.Transform, ProxyPoint.Transform, OutBounds);
+				FittingHandler.ComputeLocalTransform(Index, LocalXForm, OutTransform, OutBounds);
 			}
 			else
 			{
-				FittingHandler.ComputeTransform(Index, ProxyPoint.Transform, OutBounds);
+				FittingHandler.ComputeTransform(Index, OutTransform, OutBounds);
 			}
 
 			OutBoundsMin[Index] = OutBounds.Min;
@@ -415,15 +417,13 @@ namespace PCGExAssetStaging
 				if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
 					Entry->VariationMode == EPCGExEntryVariationMode::Global)
 				{
-					Variations.Apply(Seed, ProxyPoint, EntryHost->GlobalVariations, EPCGExVariationMode::After);
+					Variations.Apply(Seed, OutTransform, EntryHost->GlobalVariations, EPCGExVariationMode::After);
 				}
 				else
 				{
-					Variations.Apply(Seed, ProxyPoint, Entry->Variations, EPCGExVariationMode::After);
+					Variations.Apply(Seed, OutTransform, Entry->Variations, EPCGExVariationMode::After);
 				}
 			}
-
-			OutTransforms[Index] = ProxyPoint.Transform;
 
 			if (SocketHelper)
 			{
