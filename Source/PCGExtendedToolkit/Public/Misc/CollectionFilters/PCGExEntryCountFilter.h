@@ -8,12 +8,8 @@
 
 #include "UObject/Object.h"
 
-#include "Data/PCGExPointFilter.h"
-#include "PCGExPointsProcessor.h"
-
-
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
-
+#include "Data/PCGExPointFilter.h"
 
 #include "PCGExEntryCountFilter.generated.h"
 
@@ -31,13 +27,26 @@ struct FPCGExEntryCountFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
 
+	/** Type of OperandB */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputValueType CompareAgainst = EPCGExInputValueType::Constant;
+
+	/** Operand B for testing -- Will be translated to `int32` under the hood. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B (Attr)", EditCondition="CompareAgainst != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector OperandBAttr;
+
 	/** Operand B to test Entries count against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Operand B", EditCondition="CompareAgainst == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=0))
 	int32 OperandB = 0;
 
 	/** Rounding mode for relative measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
+
+	/** What should this filter return when dealing with data that don't have the specified? */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="CompareAgainst != EPCGExInputValueType::Constant", EditConditionHides))
+	EPCGExFilterFallback MissingAttributeFallback = EPCGExFilterFallback::Fail;
+
 };
 
 
