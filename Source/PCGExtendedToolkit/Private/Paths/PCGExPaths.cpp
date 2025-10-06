@@ -111,6 +111,38 @@ namespace PCGExPaths
 		return GetClosedLoop(InData->GetIn());
 	}
 
+	void SetIsHole(UPCGData* InData, const bool bIsHole)
+	{
+		FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetMutableAttribute<bool>(InData, HoleIdentifier);
+
+		if (!bIsHole)
+		{
+			if (Attr) { InData->Metadata->DeleteAttribute(HoleIdentifier); }
+			return;
+		}
+
+		if (!Attr) { Attr = InData->Metadata->CreateAttribute<bool>(HoleIdentifier, bIsHole, true, true); }
+		PCGExDataHelpers::SetDataValue(Attr, bIsHole);
+	}
+
+	void SetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsHole)
+	{
+		SetIsHole(InData->GetOut(), bIsHole);
+	}
+
+	bool GetIsHole(const UPCGData* InData)
+	{
+		if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(InData)) { return SplineData->IsClosed(); }
+
+		const FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetConstAttribute<bool>(InData, HoleIdentifier);
+		return Attr ? PCGExDataHelpers::ReadDataValue(Attr) : false;
+	}
+
+	bool GetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData)
+	{
+		return GetIsHole(InData->GetIn());
+	}
+
 	void FetchPrevNext(const TSharedPtr<PCGExData::FFacade>& InFacade, const TArray<PCGExMT::FScope>& Loops)
 	{
 		if (Loops.Num() <= 1) { return; }
@@ -857,7 +889,7 @@ namespace PCGExPaths
 		// Need to force-build path post initializations
 		this->BuildPath(Expansion);
 	}
-	
+
 	void FPolyPath::InitFromTransforms(const TConstPCGValueRange<FTransform>& InTransforms, const double ExpansionZ, const EPCGExWindingMutation WindingMutation)
 	{
 		const int32 NumPts = InTransforms.Num();

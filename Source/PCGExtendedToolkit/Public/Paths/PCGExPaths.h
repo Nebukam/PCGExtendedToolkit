@@ -236,6 +236,7 @@ namespace PCGExPaths
 	const FName SourceShiftFilters = TEXT("Shift Conditions");
 
 	const FPCGAttributeIdentifier ClosedLoopIdentifier = FPCGAttributeIdentifier(FName("IsClosed"), PCGMetadataDomainID::Data);
+	const FPCGAttributeIdentifier HoleIdentifier = FPCGAttributeIdentifier(FName("IsHole"), PCGMetadataDomainID::Data);
 
 	PCGEXTENDEDTOOLKIT_API
 	void GetAxisForEntry(const FPCGExStaticMeshComponentDescriptor& InDescriptor, ESplineMeshAxis::Type& OutAxis, int32& OutC1, int32& OutC2, const EPCGExSplineMeshAxis Default = EPCGExSplineMeshAxis::X);
@@ -251,6 +252,18 @@ namespace PCGExPaths
 
 	PCGEXTENDEDTOOLKIT_API
 	bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData);
+	
+	PCGEXTENDEDTOOLKIT_API
+	void SetIsHole(UPCGData* InData, const bool bIsHole);
+
+	PCGEXTENDEDTOOLKIT_API
+	void SetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsHole);
+
+	PCGEXTENDEDTOOLKIT_API
+	bool GetIsHole(const UPCGData* InData);
+
+	PCGEXTENDEDTOOLKIT_API
+	bool GetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData);
 
 	PCGEXTENDEDTOOLKIT_API
 	void FetchPrevNext(const TSharedPtr<PCGExData::FFacade>& InFacade, const TArray<PCGExMT::FScope>& Loops);
