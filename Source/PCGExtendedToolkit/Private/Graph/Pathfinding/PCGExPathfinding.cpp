@@ -43,7 +43,7 @@ namespace PCGExPathfinding
 				                 EQueryPickResolution::UnresolvedGoal;
 		}
 
-		if (Seed.Node == Goal.Node && (PickResolution != EQueryPickResolution::UnresolvedSeed || PickResolution != EQueryPickResolution::UnresolvedGoal))
+		if (Seed.Node == Goal.Node && PickResolution == EQueryPickResolution::None)
 		{
 			PickResolution = EQueryPickResolution::SameSeedAndGoal;
 		}
