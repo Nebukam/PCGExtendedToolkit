@@ -192,9 +192,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 		Context->Plots.Add(PlotFacade);
 	}
 
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Static Analysis warning with dereferenced ptr to Context "warning C6011: Dereferencing NULL pointer 'Context'".
 	if (Context && Context->Plots.IsEmpty())
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Static Analysis warning with dereferenced ptr to Context "warning C6011: Dereferencing NULL pointer 'Context'".
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing valid Plots."));
 		return false;

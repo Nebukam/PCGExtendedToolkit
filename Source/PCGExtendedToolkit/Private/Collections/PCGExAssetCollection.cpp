@@ -7,6 +7,7 @@
 #include "UObject/Package.h"
 #include "Engine/StaticMesh.h"
 #include "StaticMeshResources.h"
+#include "Engine/World.h"
 
 #if WITH_EDITOR
 #include "ContentBrowserModule.h"
@@ -21,10 +22,6 @@
 
 PCGEX_SETTING_VALUE_IMPL_BOOL(FPCGExAssetDistributionIndexDetails, Index, int32, true, IndexSource, -1);
 PCGEX_SETTING_VALUE_IMPL(FPCGExAssetDistributionDetails, Category, FName, CategoryInput, CategoryAttribute, Category);
-
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing World header
-#include "Engine/World.h"
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing World header
 
 namespace PCGExAssetCollection
 {

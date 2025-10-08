@@ -40,13 +40,6 @@
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Moving LOCTEXT_NAMESPACE till after all includes as there is a collision with `MaterialLayersFunction`.
-// Warning as follows:
-// 		#define LOCTEXT_NAMESPACE "MaterialLayersFunctions"
-// 		warning C4005: 'LOCTEXT_NAMESPACE': macro redefinition
-// 		note: see previous definition of 'LOCTEXT_NAMESPACE'
-// 		#define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
-
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
 
 #define PCGEX_ADD_ICON(_NAME) \
@@ -56,7 +49,6 @@ Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentD
 #define PCGEX_ADD_PIN_EXTRA_ICON(_NAME) \
 AppStyle.Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));\
 Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Moving LOCTEXT_NAMESPACE till after all includes as there is a collision with `MaterialLayersFunction`.
 
 #define PCGEX_FOREACH_CUSTOM_DATA_TYPE(MACRO, ...)\
 MACRO(Action, __VA_ARGS__) \

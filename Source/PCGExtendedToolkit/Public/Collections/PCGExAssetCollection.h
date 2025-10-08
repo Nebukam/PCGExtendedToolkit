@@ -1131,7 +1131,6 @@ protected:
 
 #undef PCGEX_ATT_TOINT32
 
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Static Analysis warning with dereferenced ptr to WeightIdentity "warning C6011: Dereferencing NULL pointer 'WeightIdentity'".
 			// Category value
 			if (CategoryIdentity)
 			{
@@ -1145,8 +1144,6 @@ protected:
 				}
 			}
 		}
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Static Analysis warning with dereferenced ptr to WeightIdentity "warning C6011: Dereferencing NULL pointer 'WeightIdentity'".
-
 
 #undef PCGEX_FOREACH_COLLECTION_ENTRY
 

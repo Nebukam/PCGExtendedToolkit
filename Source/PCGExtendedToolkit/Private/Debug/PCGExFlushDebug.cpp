@@ -3,12 +3,9 @@
 
 #include "Debug/PCGExFlushDebug.h"
 
-#include "PCGGraph.h"
 #include "PCGPin.h"
-
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing Debug header
+#include "PCGGraph.h"
 #include "DrawDebugHelpers.h"
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing Debug header
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE Debug

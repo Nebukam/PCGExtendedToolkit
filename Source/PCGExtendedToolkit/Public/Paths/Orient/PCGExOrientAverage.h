@@ -4,12 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExOrientOperation.h"
 
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing Unreal Math and PCGEx headers
-#include "Data/PCGExPointElements.h"
 #include "Math/MathFwd.h"
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing Unreal Math and PCGEx headers
+
+#include "PCGExOrientOperation.h"
+#include "Data/PCGExPointElements.h"
 
 #include "PCGExOrientAverage.generated.h"
 
