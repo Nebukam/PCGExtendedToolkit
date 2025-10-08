@@ -4,8 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "Data/PCGExPointElements.h"
 #include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
+
 #include "PCGExOrientOperation.generated.h"
 
 class UPCGExOrientInstancedFactory;

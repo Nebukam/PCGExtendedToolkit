@@ -60,7 +60,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributesToTags)
 
 bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
+	if (InContext == nullptr || !FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributesToTags)
 

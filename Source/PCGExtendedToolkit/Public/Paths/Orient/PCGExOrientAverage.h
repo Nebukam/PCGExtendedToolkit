@@ -4,7 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "Math/MathFwd.h"
+
 #include "PCGExOrientOperation.h"
+#include "Data/PCGExPointElements.h"
+
 #include "PCGExOrientAverage.generated.h"
 
 class FPCGExOrientAverage : public FPCGExOrientOperation
