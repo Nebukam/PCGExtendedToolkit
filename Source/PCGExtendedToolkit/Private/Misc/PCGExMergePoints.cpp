@@ -162,6 +162,10 @@ namespace PCGExMergePoints
 	{
 		TProcessor<FPCGExMergePointsContext, UPCGExMergePointsSettings>::OnRangeProcessingComplete();
 
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Static Analysis warning with dereferenced ptr to Context "warning C6011: Dereferencing NULL pointer 'Context'".
+		check(Context);
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Static Analysis warning with dereferenced ptr to Context "warning C6011: Dereferencing NULL pointer 'Context'".
+
 		if (SimpleTags.IsEmpty()) { return; }
 
 		for (TArray<FName> SimpleTagNames = SimpleTags.Array();

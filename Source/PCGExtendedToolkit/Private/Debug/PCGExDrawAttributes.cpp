@@ -5,6 +5,10 @@
 
 #include "PCGExMath.h"
 
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing Debug header
+#include "DrawDebugHelpers.h"
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing Debug header
+
 #define LOCTEXT_NAMESPACE "PCGExDrawAttributes"
 #define PCGEX_NAMESPACE DrawAttributes
 

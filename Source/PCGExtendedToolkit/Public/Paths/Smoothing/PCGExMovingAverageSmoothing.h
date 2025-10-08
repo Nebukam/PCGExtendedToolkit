@@ -6,6 +6,9 @@
 #include "CoreMinimal.h"
 #include "PCGExSmoothingInstancedFactory.h"
 
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing PCGEx headers
+#include "PCGExMath.h"
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing PCGEx headers
 
 #include "PCGExMovingAverageSmoothing.generated.h"
 

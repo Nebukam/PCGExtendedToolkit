@@ -6,6 +6,13 @@
 #include <queue>
 #include <vector>
 
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing Array, Platform, Math and Template headers
+#include "Containers/Array.h"
+#include "HAL/Platform.h"
+#include "Math/NumericLimits.h"
+#include "Templates/UnrealTemplate.h"
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing Array, Platform, Math and Template headers
+
 namespace PCGExSearch
 {
 	class FScoredQueue

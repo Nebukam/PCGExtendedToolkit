@@ -42,7 +42,9 @@ namespace PCGExPathfinding
 				                 EQueryPickResolution::UnresolvedGoal;
 		}
 
-		if (Seed.Node == Goal.Node && (PickResolution != EQueryPickResolution::UnresolvedSeed || PickResolution != EQueryPickResolution::UnresolvedGoal))
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing issue where operators always result in true for second half (|| to &&) (Link to bug: https://github.com/Nebukam/PCGExtendedToolkit/issues/140)
+		if (Seed.Node == Goal.Node && (PickResolution != EQueryPickResolution::UnresolvedSeed && PickResolution != EQueryPickResolution::UnresolvedGoal))
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing issue where operators always result in true for second half (|| to &&) (Link to bug: https://github.com/Nebukam/PCGExtendedToolkit/issues/140)
 		{
 			PickResolution = EQueryPickResolution::SameSeedAndGoal;
 		}

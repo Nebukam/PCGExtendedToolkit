@@ -9,16 +9,6 @@
 #include "EditorStyleSet.h"
 #include "Editor.h"
 
-#define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
-
-#define PCGEX_ADD_ICON(_NAME) \
-Style->Set("ClassIcon." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeIcon));\
-Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeThumbnail));
-
-#define PCGEX_ADD_PIN_EXTRA_ICON(_NAME) \
-AppStyle.Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));\
-Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));
-
 #include "AssetToolsModule.h"
 #include "ContentBrowserMenuContexts.h"
 #include "IAssetTools.h"
@@ -33,6 +23,24 @@ Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContent
 #include "Collections/PCGExActorDataPackerActions.h"
 #include "Data/PCGSpatialData.h"
 #include "DataViz/PCGExSpatialDataVisualization.h"
+
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Moving LOCTEXT_NAMESPACE till after all includes as there is a collision with `MaterialLayersFunction`.
+// Warning as follows:
+// 		#define LOCTEXT_NAMESPACE "MaterialLayersFunctions"
+// 		warning C4005: 'LOCTEXT_NAMESPACE': macro redefinition
+// 		note: see previous definition of 'LOCTEXT_NAMESPACE'
+// 		#define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
+
+#define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
+
+#define PCGEX_ADD_ICON(_NAME) \
+Style->Set("ClassIcon." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeIcon));\
+Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeThumbnail));
+
+#define PCGEX_ADD_PIN_EXTRA_ICON(_NAME) \
+AppStyle.Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));\
+Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Moving LOCTEXT_NAMESPACE till after all includes as there is a collision with `MaterialLayersFunction`.
 
 namespace PCGExEditor
 {

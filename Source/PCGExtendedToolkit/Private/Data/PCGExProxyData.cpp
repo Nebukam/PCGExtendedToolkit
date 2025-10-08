@@ -570,7 +570,9 @@ TypedProxy->InAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute
 TypedProxy->OutAttribute = OutAttribute;\
 OutProxy = TypedProxy;
 
-								if (InAttribute->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data)
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Static Analysis warning with dereferenced ptr to InAttribute "warning C6011: Dereferencing NULL pointer 'InAttribute'".
+								if (InAttribute && InAttribute->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data)
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Static Analysis warning with dereferenced ptr to InAttribute "warning C6011: Dereferencing NULL pointer 'InAttribute'".
 								{
 									if (bSubSelection) { PCGEX_DIRECT_PROXY(true, Data) }
 									else { PCGEX_DIRECT_PROXY(false, Data) }

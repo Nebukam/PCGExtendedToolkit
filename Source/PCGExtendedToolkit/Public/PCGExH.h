@@ -3,6 +3,15 @@
 
 #pragma once
 
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing platform, math, template and type traits headers
+#include "HAL/Platform.h"
+#include "Math/IntVector.h"
+#include "Math/UnrealMathUtility.h"
+#include "Templates/SharedPointer.h"
+#include "Templates/TypeHash.h"
+#include "type_traits"
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing platform, math, template and type traits headers
+
 namespace PCGEx
 {
 	template <typename, typename = void>

@@ -8,6 +8,10 @@
 #include "UObject/Object.h"
 #include "PCGExtendedToolkit.h"
 
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing PCGEx headers
+#include "PCGEx.h"
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing PCGEx headers
+
 namespace PCGExData
 {
 	enum class EBufferHelperMode : uint8

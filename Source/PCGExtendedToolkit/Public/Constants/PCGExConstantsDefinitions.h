@@ -4,6 +4,10 @@
 #pragma once
 #include "CoreMinimal.h"
 
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing Object header
+#include "UObject/ObjectMacros.h"
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing Object header
+
 // An enum used to identify the constants in the namespace below. This is perhaps a slightly messy way of doing things,
 // but it means we can use PCGMetadataElementCommon::FillPreconfiguredSettingsInfoFromEnum to create different nodes
 // for each.

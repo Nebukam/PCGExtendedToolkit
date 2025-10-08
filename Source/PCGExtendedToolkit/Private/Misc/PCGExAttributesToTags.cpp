@@ -56,7 +56,9 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributesToTags)
 
 bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Static Analysis warning with dereferenced ptr to Context "warning C6011: Dereferencing NULL pointer 'Context'".
+	if (InContext == nullptr || !FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Static Analysis warning with dereferenced ptr to Context "warning C6011: Dereferencing NULL pointer 'Context'".
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributesToTags)
 

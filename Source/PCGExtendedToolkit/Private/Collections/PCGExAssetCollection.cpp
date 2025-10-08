@@ -1,4 +1,4 @@
-// Copyright 2025 Timothé Lapetite and contributors
+﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Collections/PCGExAssetCollection.h"
@@ -17,6 +17,10 @@
 
 #include "PCGEx.h"
 #include "PCGExMacros.h"
+
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing World header
+#include "Engine/World.h"
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing World header
 
 namespace PCGExAssetCollection
 {

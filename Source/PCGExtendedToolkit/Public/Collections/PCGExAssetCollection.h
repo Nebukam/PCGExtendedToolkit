@@ -1,4 +1,4 @@
-// Copyright 2025 Timothé Lapetite and contributors
+﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -1110,20 +1110,23 @@ protected:
 						PCGEX_ATT_TOINT32(Integer64, int64)
 
 #undef PCGEX_ATT_TOINT32
-		}
 
-		// Category value
-		if (CategoryIdentity)
-		{
-			if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::String)
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Static Analysis warning with dereferenced ptr to WeightIdentity "warning C6011: Dereferencing NULL pointer 'WeightIdentity'".
+			// Category value
+			if (CategoryIdentity)
 			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FString, WeightIdentity->Identifier, { InCollection->Entries[i].Category = FName(V); })
-			}
-			else if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::Name)
-			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FName, WeightIdentity->Identifier, { InCollection->Entries[i].Category = V; })
+				if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::String)
+				{
+					PCGEX_FOREACH_COLLECTION_ENTRY(FString, WeightIdentity->Identifier, { InCollection->Entries[i].Category = FName(V); })
+				}
+				else if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::Name)
+				{
+					PCGEX_FOREACH_COLLECTION_ENTRY(FName, WeightIdentity->Identifier, { InCollection->Entries[i].Category = V; })
+				}
 			}
 		}
+// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Static Analysis warning with dereferenced ptr to WeightIdentity "warning C6011: Dereferencing NULL pointer 'WeightIdentity'".
+
 
 #undef PCGEX_FOREACH_COLLECTION_ENTRY
 
