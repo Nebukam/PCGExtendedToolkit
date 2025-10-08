@@ -21,7 +21,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SortCollections, "Sort Collections", "Sort collection using @Data domain attributes.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Generic; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
 #endif
 
 	virtual bool HasDynamicPins() const override;

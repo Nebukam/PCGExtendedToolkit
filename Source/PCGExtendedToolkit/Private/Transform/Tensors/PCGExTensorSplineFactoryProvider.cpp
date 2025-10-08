@@ -93,11 +93,11 @@ TArray<FPCGPinProperties> UPCGExTensorSplineFactoryProviderSettings::InputPinPro
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	if (GetBuildFromPoints())
 	{
-		PCGEX_PIN_POINTS(FName("Paths"), "Path data", Required, {})
+		PCGEX_PIN_POINTS(FName("Paths"), "Path data", Required)
 	}
 	else
 	{
-		PCGEX_PIN_POLYLINES(FName("Splines"), "Spline data", Required, {})
+		PCGEX_PIN_POLYLINES(FName("Splines"), "Spline data", Required)
 	}
 	return PinProperties;
 }

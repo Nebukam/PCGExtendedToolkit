@@ -4,7 +4,9 @@
 #include "Paths/PCGExOrient.h"
 
 
+#include "PCGParamData.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Paths/Orient/PCGExOrientAverage.h"
 #include "Paths/Orient/PCGExOrientLookAt.h"
 
@@ -14,7 +16,7 @@
 #if WITH_EDITORONLY_DATA
 void UPCGExOrientSettings::PostInitProperties()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject))
+	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
 	{
 		if (!Orientation) { Orientation = NewObject<UPCGExOrientLookAt>(this, TEXT("Orientation")); }
 	}

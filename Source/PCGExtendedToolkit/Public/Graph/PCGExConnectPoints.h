@@ -28,7 +28,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ConnectPoints, "Cluster : Connect Points", "Connect points according to a set of probes");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterGen; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorClusterGenerator; }
 #endif
 
 protected:
@@ -67,8 +67,8 @@ struct FPCGExConnectPointsContext final : FPCGExPointsProcessorContext
 	friend class FPCGExConnectPointsElement;
 
 	TArray<TObjectPtr<const UPCGExProbeFactoryData>> ProbeFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> GeneratorsFiltersFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> ConnectablesFiltersFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> GeneratorsFiltersFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> ConnectablesFiltersFactories;
 
 	FVector CWCoincidenceTolerance = FVector::OneVector;
 

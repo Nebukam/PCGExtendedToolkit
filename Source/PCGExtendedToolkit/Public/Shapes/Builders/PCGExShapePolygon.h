@@ -4,8 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
-#include "PCGExPointsProcessor.h"
 #include "Sampling/PCGExSampling.h"
 
 #include "Shapes/PCGExShapeBuilderFactoryProvider.h"
@@ -67,7 +65,7 @@ struct FPCGExShapePolygonConfig : public FPCGExShapeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_Overridable, DisplayName="Number of Vertices"))
 	int32 NumVerticesConstant = 5;
 
-	PCGEX_SETTING_VALUE_GET(NumVertices, int32, NumVerticesInput, NumVerticesAttribute, NumVerticesConstant)
+	PCGEX_SETTING_VALUE_DECL(NumVertices, int32)
 
 	/*
 	 * Skeleton
@@ -85,7 +83,7 @@ struct FPCGExShapePolygonConfig : public FPCGExShapeConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(PCG_Overridable))
 	bool bAddSkeleton = false;
 
-	PCGEX_SETTING_VALUE_GET(AddSkeleton, bool, AddSkeletonInput, AddSkeletonAttribute, bAddSkeleton)
+	PCGEX_SETTING_VALUE_DECL(AddSkeleton, bool)
 
 	// Where the skeleton goes
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, meta=(EditCondition="bAddSkeleton"))

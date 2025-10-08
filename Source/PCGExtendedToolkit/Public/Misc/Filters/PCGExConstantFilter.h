@@ -36,7 +36,7 @@ struct FPCGExConstantFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExConstantFilterFactory : public UPCGExFilterFactoryData
+class UPCGExConstantFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

@@ -3,6 +3,8 @@
 
 #include "Misc/CollectionFilters/PCGExTagValueFilter.h"
 
+#include "Data/PCGExPointIO.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 

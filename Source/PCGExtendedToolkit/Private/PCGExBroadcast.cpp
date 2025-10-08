@@ -397,17 +397,17 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 
 		switch (Component)
 		{
-		case EPCGExTransformComponent::Position:
-		case EPCGExTransformComponent::Scale:
+		case ETransformPart::Position:
+		case ETransformPart::Scale:
 			return EPCGMetadataTypes::Vector;
-		case EPCGExTransformComponent::Rotation:
+		case ETransformPart::Rotation:
 			return EPCGMetadataTypes::Quaternion;
 		}
 
 		return Fallback;
 	}
 
-	void FSubSelection::SetComponent(const EPCGExTransformComponent InComponent)
+	void FSubSelection::SetComponent(const ETransformPart InComponent)
 	{
 		bIsValid = true;
 		bIsComponentSet = true;
@@ -427,10 +427,10 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		bIsValid = true;
 		bIsFieldSet = true;
 
-		if (InFieldIndex == 0) { Field = EPCGExSingleField::X; }
-		else if (InFieldIndex == 1) { Field = EPCGExSingleField::Y; }
-		else if (InFieldIndex == 2) { Field = EPCGExSingleField::Z; }
-		else if (InFieldIndex == 3) { Field = EPCGExSingleField::W; }
+		if (InFieldIndex == 0) { Field = ESingleField::X; }
+		else if (InFieldIndex == 1) { Field = ESingleField::Y; }
+		else if (InFieldIndex == 2) { Field = ESingleField::Z; }
+		else if (InFieldIndex == 3) { Field = ESingleField::W; }
 
 		return true;
 	}
@@ -444,8 +444,8 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		}
 
 		FInputSelectorAxisData AxisIDMapping = FInputSelectorAxisData{EPCGExAxis::Forward, EPCGMetadataTypes::Unknown};
-		FInputSelectorComponentData ComponentIDMapping = {EPCGExTransformComponent::Rotation, EPCGMetadataTypes::Quaternion};
-		FInputSelectorFieldData FieldIDMapping = {EPCGExSingleField::X, EPCGMetadataTypes::Unknown, 0};
+		FInputSelectorComponentData ComponentIDMapping = {ETransformPart::Rotation, EPCGMetadataTypes::Quaternion};
+		FInputSelectorFieldData FieldIDMapping = {ESingleField::X, EPCGMetadataTypes::Unknown, 0};
 
 		bIsAxisSet = GetAxisSelection(ExtraNames, AxisIDMapping);
 		Axis = AxisIDMapping.Get<0>();
@@ -482,22 +482,22 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 	{
 		switch (Field)
 		{
-		case EPCGExSingleField::X:
+		case ESingleField::X:
 			FieldIndex = 0;
 			break;
-		case EPCGExSingleField::Y:
+		case ESingleField::Y:
 			FieldIndex = 1;
 			break;
-		case EPCGExSingleField::Z:
+		case ESingleField::Z:
 			FieldIndex = 2;
 			break;
-		case EPCGExSingleField::W:
+		case ESingleField::W:
 			FieldIndex = 3;
 			break;
-		case EPCGExSingleField::Length:
-		case EPCGExSingleField::SquaredLength:
-		case EPCGExSingleField::Volume:
-		case EPCGExSingleField::Sum:
+		case ESingleField::Length:
+		case ESingleField::SquaredLength:
+		case ESingleField::Volume:
+		case ESingleField::Sum:
 			FieldIndex = 0;
 			break;
 		}
@@ -592,18 +592,18 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				switch (Field)
 				{
 				default:
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					return Value.X > 0;
-				case EPCGExSingleField::Y:
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
+				case ESingleField::Y:
+				case ESingleField::Z:
+				case ESingleField::W:
 					return Value.Y > 0;
-				case EPCGExSingleField::Length:
-				case EPCGExSingleField::SquaredLength:
+				case ESingleField::Length:
+				case ESingleField::SquaredLength:
 					return Value.SquaredLength() > 0;
-				case EPCGExSingleField::Volume:
+				case ESingleField::Volume:
 					return (Value.X * Value.Y) > 0;
-				case EPCGExSingleField::Sum:
+				case ESingleField::Sum:
 					return (Value.X * Value.Y) > 0;
 				}
 			}
@@ -612,19 +612,19 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				switch (Field)
 				{
 				default:
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					return Value.X;
-				case EPCGExSingleField::Y:
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
+				case ESingleField::Y:
+				case ESingleField::Z:
+				case ESingleField::W:
 					return Value.Y;
-				case EPCGExSingleField::Length:
+				case ESingleField::Length:
 					return Value.Length();
-				case EPCGExSingleField::SquaredLength:
+				case ESingleField::SquaredLength:
 					return Value.SquaredLength();
-				case EPCGExSingleField::Volume:
+				case ESingleField::Volume:
 					return Value.X * Value.Y;
-				case EPCGExSingleField::Sum:
+				case ESingleField::Sum:
 					return Value.X + Value.Y;
 				}
 			}
@@ -653,19 +653,19 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				switch (Field)
 				{
 				default:
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					return Value.X > 0;
-				case EPCGExSingleField::Y:
+				case ESingleField::Y:
 					return Value.Y > 0;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
+				case ESingleField::Z:
+				case ESingleField::W:
 					return Value.Z > 0;
-				case EPCGExSingleField::Length:
-				case EPCGExSingleField::SquaredLength:
+				case ESingleField::Length:
+				case ESingleField::SquaredLength:
 					return Value.SquaredLength() > 0;
-				case EPCGExSingleField::Volume:
+				case ESingleField::Volume:
 					return (Value.X * Value.Y * Value.Z) > 0;
-				case EPCGExSingleField::Sum:
+				case ESingleField::Sum:
 					return (Value.X + Value.Y + Value.Z) > 0;
 				}
 			}
@@ -674,20 +674,20 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				switch (Field)
 				{
 				default:
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					return Value.X;
-				case EPCGExSingleField::Y:
+				case ESingleField::Y:
 					return Value.Y;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
+				case ESingleField::Z:
+				case ESingleField::W:
 					return Value.Z;
-				case EPCGExSingleField::Length:
+				case ESingleField::Length:
 					return Value.Length();
-				case EPCGExSingleField::SquaredLength:
+				case ESingleField::SquaredLength:
 					return Value.SquaredLength();
-				case EPCGExSingleField::Volume:
+				case ESingleField::Volume:
 					return Value.X * Value.Y * Value.Z;
-				case EPCGExSingleField::Sum:
+				case ESingleField::Sum:
 					return Value.X + Value.Y + Value.Z;
 				}
 			}
@@ -716,20 +716,20 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				switch (Field)
 				{
 				default:
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					return Value.X > 0;
-				case EPCGExSingleField::Y:
+				case ESingleField::Y:
 					return Value.Y > 0;
-				case EPCGExSingleField::Z:
+				case ESingleField::Z:
 					return Value.Z > 0;
-				case EPCGExSingleField::W:
+				case ESingleField::W:
 					return Value.W > 0;
-				case EPCGExSingleField::Length:
-				case EPCGExSingleField::SquaredLength:
+				case ESingleField::Length:
+				case ESingleField::SquaredLength:
 					return FVector(Value).SquaredLength() > 0;
-				case EPCGExSingleField::Volume:
+				case ESingleField::Volume:
 					return (Value.X * Value.Y * Value.Z * Value.W) > 0;
-				case EPCGExSingleField::Sum:
+				case ESingleField::Sum:
 					return (Value.X + Value.Y + Value.Z + Value.W) > 0;
 				}
 			}
@@ -738,21 +738,21 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				switch (Field)
 				{
 				default:
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					return Value.X;
-				case EPCGExSingleField::Y:
+				case ESingleField::Y:
 					return Value.Y;
-				case EPCGExSingleField::Z:
+				case ESingleField::Z:
 					return Value.Z;
-				case EPCGExSingleField::W:
+				case ESingleField::W:
 					return Value.W;
-				case EPCGExSingleField::Length:
+				case ESingleField::Length:
 					return FVector(Value).Length();
-				case EPCGExSingleField::SquaredLength:
+				case ESingleField::SquaredLength:
 					return FVector(Value).SquaredLength();
-				case EPCGExSingleField::Volume:
+				case ESingleField::Volume:
 					return Value.X * Value.Y * Value.Z * Value.W;
-				case EPCGExSingleField::Sum:
+				case ESingleField::Sum:
 					return Value.X + Value.Y + Value.Z + Value.W;
 				}
 			}
@@ -782,17 +782,17 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				switch (Field)
 				{
 				default:
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					return Dir.X > 0;
-				case EPCGExSingleField::Y:
+				case ESingleField::Y:
 					return Dir.Y > 0;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
+				case ESingleField::Z:
+				case ESingleField::W:
 					return Dir.Z > 0;
-				case EPCGExSingleField::Length:
-				case EPCGExSingleField::SquaredLength:
-				case EPCGExSingleField::Volume:
-				case EPCGExSingleField::Sum:
+				case ESingleField::Length:
+				case ESingleField::SquaredLength:
+				case ESingleField::Volume:
+				case ESingleField::Sum:
 					return Dir.SquaredLength() > 0;
 				}
 			}
@@ -802,19 +802,19 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				switch (Field)
 				{
 				default:
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					return Dir.X;
-				case EPCGExSingleField::Y:
+				case ESingleField::Y:
 					return Dir.Y;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
+				case ESingleField::Z:
+				case ESingleField::W:
 					return Dir.Z;
-				case EPCGExSingleField::Length:
+				case ESingleField::Length:
 					return Dir.Length();
-				case EPCGExSingleField::SquaredLength:
-				case EPCGExSingleField::Volume:
+				case ESingleField::SquaredLength:
+				case ESingleField::Volume:
 					return Dir.SquaredLength();
-				case EPCGExSingleField::Sum:
+				case ESingleField::Sum:
 					return Dir.X + Dir.Y + Dir.Z;
 				}
 			}
@@ -847,17 +847,17 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				switch (Field)
 				{
 				default:
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					return Value.Pitch > 0;
-				case EPCGExSingleField::Y:
+				case ESingleField::Y:
 					return Value.Yaw > 0;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
+				case ESingleField::Z:
+				case ESingleField::W:
 					return Value.Roll > 0;
-				case EPCGExSingleField::Length:
-				case EPCGExSingleField::SquaredLength:
-				case EPCGExSingleField::Volume:
-				case EPCGExSingleField::Sum:
+				case ESingleField::Length:
+				case ESingleField::SquaredLength:
+				case ESingleField::Volume:
+				case ESingleField::Sum:
 					return Value.Euler().SquaredLength() > 0;
 				}
 			}
@@ -866,19 +866,19 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				switch (Field)
 				{
 				default:
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					return Value.Pitch > 0;
-				case EPCGExSingleField::Y:
+				case ESingleField::Y:
 					return Value.Yaw > 0;
-				case EPCGExSingleField::Z:
-				case EPCGExSingleField::W:
+				case ESingleField::Z:
+				case ESingleField::W:
 					return Value.Roll > 0;
-				case EPCGExSingleField::Length:
+				case ESingleField::Length:
 					return Value.Euler().Length();
-				case EPCGExSingleField::SquaredLength:
-				case EPCGExSingleField::Volume:
+				case ESingleField::SquaredLength:
+				case ESingleField::Volume:
 					return Value.Euler().SquaredLength();
-				case EPCGExSingleField::Sum:
+				case ESingleField::Sum:
 					return Value.Pitch + Value.Yaw + Value.Roll;
 				}
 			}
@@ -917,9 +917,9 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 				switch (Component)
 				{
 				default:
-				case EPCGExTransformComponent::Position: return Get<FVector, T>(Value.GetLocation());
-				case EPCGExTransformComponent::Rotation: return Get<FQuat, T>(Value.GetRotation());
-				case EPCGExTransformComponent::Scale: return Get<FVector, T>(Value.GetScale3D());
+				case ETransformPart::Position: return Get<FVector, T>(Value.GetLocation());
+				case ETransformPart::Rotation: return Get<FQuat, T>(Value.GetRotation());
+				case ETransformPart::Scale: return Get<FVector, T>(Value.GetScale3D());
 				}
 			}
 			else if constexpr (std::is_same_v<T, FTransform>) { return Value; }
@@ -1092,28 +1092,28 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 			{
 				switch (Field)
 				{
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					Target[0] = V;
 					break;
-				case EPCGExSingleField::Y:
+				case ESingleField::Y:
 					Target[1] = V;
 					break;
-				case EPCGExSingleField::Z:
+				case ESingleField::Z:
 					if constexpr (!std::is_same_v<T, FVector2D>) { Target[2] = V; }
 					break;
-				case EPCGExSingleField::W:
+				case ESingleField::W:
 					if constexpr (std::is_same_v<T, FVector4>) { Target[3] = V; }
 					break;
-				case EPCGExSingleField::Length:
+				case ESingleField::Length:
 					if constexpr (std::is_same_v<T, FVector4>) { Target = FVector4(FVector(Target.X, Target.Y, Target.Z).GetSafeNormal() * V, Target.W); }
 					else { Target = Target.GetSafeNormal() * V; }
 					break;
-				case EPCGExSingleField::SquaredLength:
+				case ESingleField::SquaredLength:
 					if constexpr (std::is_same_v<T, FVector4>) { Target = FVector4(FVector(Target.X, Target.Y, Target.Z).GetSafeNormal() * FMath::Sqrt(V), Target.W); }
 					else { Target = Target.GetSafeNormal() * FMath::Sqrt(V); }
 					break;
-				case EPCGExSingleField::Volume:
-				case EPCGExSingleField::Sum:
+				case ESingleField::Volume:
+				case ESingleField::Sum:
 					return;
 				}
 			}
@@ -1121,25 +1121,25 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 			{
 				switch (Field)
 				{
-				case EPCGExSingleField::X:
+				case ESingleField::X:
 					Target.Pitch = V;
 					break;
-				case EPCGExSingleField::Y:
+				case ESingleField::Y:
 					Target.Yaw = V;
 					break;
-				case EPCGExSingleField::Z:
+				case ESingleField::Z:
 					Target.Roll = V;
 					break;
-				case EPCGExSingleField::W:
+				case ESingleField::W:
 					return;
-				case EPCGExSingleField::Length:
+				case ESingleField::Length:
 					Target = Target.GetNormalized() * V;
 					break;
-				case EPCGExSingleField::SquaredLength:
+				case ESingleField::SquaredLength:
 					Target = Target.GetNormalized() * FMath::Sqrt(V);
 					break;
-				case EPCGExSingleField::Volume:
-				case EPCGExSingleField::Sum:
+				case ESingleField::Volume:
+				case ESingleField::Sum:
 					return;
 				}
 			}
@@ -1153,13 +1153,13 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		// Complex target type that require sub-component handling first
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			if (Component == EPCGExTransformComponent::Position)
+			if (Component == ETransformPart::Position)
 			{
 				FVector Vector = Target.GetLocation();
 				Set<FVector, T_VALUE>(Vector, Value);
 				Target.SetLocation(Vector);
 			}
-			else if (Component == EPCGExTransformComponent::Scale)
+			else if (Component == ETransformPart::Scale)
 			{
 				FVector Vector = Target.GetScale3D();
 				Set<FVector, T_VALUE>(Vector, Value);

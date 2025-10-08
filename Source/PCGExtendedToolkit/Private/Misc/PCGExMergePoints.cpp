@@ -17,7 +17,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(MergePoints)
 TArray<FPCGPinProperties> UPCGExMergePointsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINT(GetMainOutputPin(), "The merged points.", Required, {})
+	PCGEX_PIN_POINT(GetMainOutputPin(), "The merged points.", Required)
 	return PinProperties;
 }
 

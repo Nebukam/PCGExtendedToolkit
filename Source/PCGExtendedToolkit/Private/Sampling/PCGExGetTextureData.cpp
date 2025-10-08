@@ -29,14 +29,14 @@ UPCGExGetTextureDataSettings::UPCGExGetTextureDataSettings(const FObjectInitiali
 TArray<FPCGPinProperties> UPCGExGetTextureDataSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (SourceType == EPCGExGetTexturePathType::MaterialPath) { PCGEX_PIN_FACTORIES(PCGExTexture::SourceTexLabel, "Texture params to extract from reference materials.", Required, {}) }
+	if (SourceType == EPCGExGetTexturePathType::MaterialPath) { PCGEX_PIN_FACTORIES(PCGExTexture::SourceTexLabel, "Texture params to extract from reference materials.", Required, FPCGExDataTypeInfoTexParam::AsId()) }
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExGetTextureDataSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if (SourceType == EPCGExGetTexturePathType::TexturePath || bBuildTextureData) { PCGEX_PIN_TEXTURES(PCGExTexture::OutputTextureDataLabel, "Texture data.", Required, {}) }
+	if (SourceType == EPCGExGetTexturePathType::TexturePath || bBuildTextureData) { PCGEX_PIN_TEXTURES(PCGExTexture::OutputTextureDataLabel, "Texture data.", Required) }
 	return PinProperties;
 }
 

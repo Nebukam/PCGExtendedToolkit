@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
@@ -60,7 +59,7 @@ struct FPCGExAngleFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExAngleFilterFactory : public UPCGExFilterFactoryData
+class UPCGExAngleFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

@@ -3,19 +3,24 @@
 
 #include "Paths/PCGExWriteTangents.h"
 
-
+#include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
+#include "Paths/PCGExPaths.h"
 #include "Paths/Tangents/PCGExTangentsAuto.h"
-#include "Paths/Tangents/PCGExTangentsZero.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
+PCGEX_SETTING_VALUE_IMPL(UPCGExWriteTangentsSettings, ArriveScale, FVector, ArriveScaleInput, ArriveScaleAttribute, FVector(ArriveScaleConstant))
+PCGEX_SETTING_VALUE_IMPL(UPCGExWriteTangentsSettings, LeaveScale, FVector, LeaveScaleInput, LeaveScaleAttribute, FVector(LeaveScaleConstant))
+
 #if WITH_EDITORONLY_DATA
 void UPCGExWriteTangentsSettings::PostInitProperties()
 {
-	if (!HasAnyFlags(RF_ClassDefaultObject))
+	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
 	{
 		if (!Tangents) { Tangents = NewObject<UPCGExAutoTangents>(this, TEXT("Tangents")); }
 	}

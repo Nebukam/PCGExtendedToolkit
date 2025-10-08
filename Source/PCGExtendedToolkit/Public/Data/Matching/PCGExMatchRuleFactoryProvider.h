@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactoryProvider.h"
 #include "PCGExMatching.h"
 #include "PCGExOperation.h"
 #include "PCGExPointsProcessor.h"
@@ -22,6 +23,11 @@ UPCGExFactoryData* UPCGExCreateMatch##_RULE##Settings::CreateFactory(FPCGExConte
 	NewFactory->Config = Config; \
 	return Super::CreateFactory(InContext, NewFactory);}
 
+
+namespace PCGExData
+{
+	struct FConstPoint;
+}
 
 namespace PCGExMatching
 {
@@ -60,12 +66,21 @@ protected:
 	TSharedPtr<TArray<PCGExData::FTaggedData>> Targets;
 };
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Match Rule")
+struct FPCGExDataTypeInfoMatchRule : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExMatchRuleFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoMatchRule)
+
 	FPCGExMatchRuleConfigBase BaseConfig;
 
 	virtual bool WantsPoints() { return false; }
@@ -79,12 +94,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMatchRuleFactoryProviderSettings : public UPC
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoMatchRule)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(MatchRule, "Match Rule Definition", "Creates a single match rule node, to be used with nodes that support data matching.")
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::ControlFlow; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMatch); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMatchRule); }
 #endif
 	//~End UPCGSettings
 

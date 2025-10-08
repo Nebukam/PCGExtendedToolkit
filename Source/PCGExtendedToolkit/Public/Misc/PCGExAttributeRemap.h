@@ -12,12 +12,17 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExScopedContainers.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExProxyData.h"
+#include "Details/PCGExDetailsAttributes.h"
+#include "Sampling/PCGExSampling.h"
 
 #include "PCGExAttributeRemap.generated.h"
 
+namespace PCGExMT
+{
+	template <typename T>
+	class TScopedNumericValue;
+}
 
 namespace PCGExData
 {
@@ -150,7 +155,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 
 	FORCEINLINE double GetRemappedValue(const double Value) const
 	{
-		return PCGEx::TruncateDbl(
+		return PCGExMath::TruncateDbl(
 			RemapCurveObj->Eval(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale,
 			TruncateOutput) * PostTruncateScale + Offset;
 	}
@@ -197,7 +202,7 @@ public:
 
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AttributeRemap, "Attribute Remap", "Remap a single property or attribute.", FName(GetDisplayName()));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
 #endif
 
 protected:

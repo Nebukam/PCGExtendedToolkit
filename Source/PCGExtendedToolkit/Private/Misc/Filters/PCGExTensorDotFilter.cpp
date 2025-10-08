@@ -89,7 +89,7 @@ PCGEX_CREATE_FILTER_FACTORY(TensorDot)
 TArray<FPCGPinProperties> UPCGExTensorDotFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExTensor::SourceTensorsLabel, "Tensors", Required, FPCGExDataTypeInfoTensor::AsId())
 	return PinProperties;
 }
 

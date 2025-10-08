@@ -6,16 +6,23 @@
 #include "PCGExRandom.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Details/PCGExDetailsSettings.h"
+#include "Geometry/PCGExGeo.h"
+#include "Paths/PCGExPaths.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExBevelPathElement"
 #define PCGEX_NAMESPACE BevelPath
 
+PCGEX_SETTING_VALUE_IMPL(UPCGExBevelPathSettings, Width, double, WidthInput, WidthAttribute, WidthConstant)
+PCGEX_SETTING_VALUE_IMPL(UPCGExBevelPathSettings, Subdivisions, double, SubdivisionAmountInput, SubdivisionAmount, SubdivideMethod == EPCGExSubdivideMode::Count ? SubdivisionCount : SubdivisionDistance)
+
 TArray<FPCGPinProperties> UPCGExBevelPathSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (Type == EPCGExBevelProfileType::Custom) { PCGEX_PIN_POINT(PCGExBevelPath::SourceCustomProfile, "Single path used as bevel profile", Required, {}) }
+	if (Type == EPCGExBevelProfileType::Custom) { PCGEX_PIN_POINT(PCGExBevelPath::SourceCustomProfile, "Single path used as bevel profile", Required) }
 	return PinProperties;
 }
 
@@ -334,6 +341,8 @@ namespace PCGExBevelPath
 			InProcessor->ManhattanDetails.ComputeSubdivisions(Arrive, Leave, Index, Subdivisions, OutDist);
 		}
 	}
+
+	double FProcessor::Len(const int32 Index) const { return PathLength->Get(Index); }
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{

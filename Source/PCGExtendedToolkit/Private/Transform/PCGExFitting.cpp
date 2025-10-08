@@ -4,23 +4,23 @@
 #include "Transform/PCGExFitting.h"
 
 #include "Data/PCGExData.h"
-#include "PCGExDataMath.h"
-#include "PCGExRandom.h"
+#include "PCGExMathBounds.h"
 #include "AssetStaging/PCGExStaging.h"
 #include "Data/PCGExPointIO.h"
-#include "Sampling/PCGExSampling.h"
+#include "Helpers/PCGHelpers.h"
 
 void FPCGExScaleToFitDetails::Process(const PCGExData::FConstPoint& InPoint, const FBox& InBounds, FVector& OutScale, FBox& OutBounds) const
 {
 	if (ScaleToFitMode == EPCGExFitMode::None) { return; }
 
-	const FVector PtSize = InPoint.GetLocalBounds().GetSize();
-	const FVector ScaledPtSize = InPoint.GetLocalBounds().GetSize() * InPoint.GetTransform().GetScale3D();
-	const FVector StSize = InBounds.GetSize();
+	const FVector TargetSize = InPoint.GetLocalBounds().GetSize();
+	const FVector TargetScale = InPoint.GetTransform().GetScale3D();
+	const FVector TargetSizeScaled = TargetSize * TargetScale;
+	const FVector CandidateSize = InBounds.GetSize();
 
-	const double XFactor = ScaledPtSize.X / StSize.X;
-	const double YFactor = ScaledPtSize.Y / StSize.Y;
-	const double ZFactor = ScaledPtSize.Z / StSize.Z;
+	const double XFactor = TargetSizeScaled.X / CandidateSize.X;
+	const double YFactor = TargetSizeScaled.Y / CandidateSize.Y;
+	const double ZFactor = TargetSizeScaled.Z / CandidateSize.Z;
 
 	const FVector FitMinMax = FVector(
 		FMath::Min3(XFactor, YFactor, ZFactor),
@@ -30,25 +30,28 @@ void FPCGExScaleToFitDetails::Process(const PCGExData::FConstPoint& InPoint, con
 	OutBounds.Min = InBounds.Min;
 	OutBounds.Max = InBounds.Max;
 
-	const FVector InScale = InPoint.GetTransform().GetScale3D();
 
 	if (ScaleToFitMode == EPCGExFitMode::Uniform)
 	{
-		ScaleToFitAxis(ScaleToFit, 0, InScale, PtSize, StSize, FitMinMax, OutScale);
-		ScaleToFitAxis(ScaleToFit, 1, InScale, PtSize, StSize, FitMinMax, OutScale);
-		ScaleToFitAxis(ScaleToFit, 2, InScale, PtSize, StSize, FitMinMax, OutScale);
+		ScaleToFitAxis(ScaleToFit, 0, TargetScale, TargetSize, CandidateSize, FitMinMax, OutScale);
+		ScaleToFitAxis(ScaleToFit, 1, TargetScale, TargetSize, CandidateSize, FitMinMax, OutScale);
+		ScaleToFitAxis(ScaleToFit, 2, TargetScale, TargetSize, CandidateSize, FitMinMax, OutScale);
 	}
 	else
 	{
-		ScaleToFitAxis(ScaleToFitX, 0, InScale, PtSize, StSize, FitMinMax, OutScale);
-		ScaleToFitAxis(ScaleToFitY, 1, InScale, PtSize, StSize, FitMinMax, OutScale);
-		ScaleToFitAxis(ScaleToFitZ, 2, InScale, PtSize, StSize, FitMinMax, OutScale);
+		ScaleToFitAxis(ScaleToFitX, 0, TargetScale, TargetSize, CandidateSize, FitMinMax, OutScale);
+		ScaleToFitAxis(ScaleToFitY, 1, TargetScale, TargetSize, CandidateSize, FitMinMax, OutScale);
+		ScaleToFitAxis(ScaleToFitZ, 2, TargetScale, TargetSize, CandidateSize, FitMinMax, OutScale);
 	}
 }
 
-void FPCGExScaleToFitDetails::ScaleToFitAxis(const EPCGExScaleToFit Fit, const int32 Axis, const FVector& InScale, const FVector& InPtSize, const FVector& InStSize, const FVector& MinMaxFit, FVector& OutScale)
+void FPCGExScaleToFitDetails::ScaleToFitAxis(
+	const EPCGExScaleToFit Fit, const int32 Axis,
+	const FVector& TargetScale, const FVector& TargetSize,
+	const FVector& CandidateSize, const FVector& MinMaxFit,
+	FVector& OutScale)
 {
-	const double Scale = InScale[Axis];
+	const double Scale = TargetScale[Axis];
 	double FinalScale = Scale;
 
 	switch (Fit)
@@ -57,7 +60,7 @@ void FPCGExScaleToFitDetails::ScaleToFitAxis(const EPCGExScaleToFit Fit, const i
 	case EPCGExScaleToFit::None:
 		break;
 	case EPCGExScaleToFit::Fill:
-		FinalScale = ((InPtSize[Axis] * Scale) / InStSize[Axis]);
+		FinalScale = ((TargetSize[Axis] * Scale) / CandidateSize[Axis]);
 		break;
 	case EPCGExScaleToFit::Min:
 		FinalScale = MinMaxFit[0];
@@ -279,16 +282,16 @@ bool FPCGExJustificationDetails::Init(FPCGExContext* InContext, const TSharedRef
 void FPCGExFittingVariationsDetails::Init(const int InSeed)
 {
 	Seed = InSeed;
+	
 	bEnabledBefore = (Offset == EPCGExVariationMode::Before || Rotation == EPCGExVariationMode::Before || Scale == EPCGExVariationMode::Before);
 	bEnabledAfter = (Offset == EPCGExVariationMode::After || Rotation == EPCGExVariationMode::After || Scale == EPCGExVariationMode::After);
 }
 
-void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, PCGExData::FProxyPoint& InPoint, const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const
+void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, FTransform& OutTransform, const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const
 {
-	FRandomStream RandomSource(PCGExRandom::ComputeSeed(Seed, BaseSeed));
+	FRandomStream RandomSource(PCGHelpers::ComputeSeed(Seed, BaseSeed));
 
-	const FTransform SourceTransform = InPoint.Transform;
-	FTransform FinalTransform = SourceTransform;
+	const FTransform SourceTransform = OutTransform;
 
 	if (Offset == Step)
 	{
@@ -299,12 +302,12 @@ void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, PCGExData::FPro
 
 		if (Variations.bAbsoluteOffset)
 		{
-			FinalTransform.SetLocation(SourceTransform.GetLocation() + RandomOffset);
+			OutTransform.SetLocation(SourceTransform.GetLocation() + RandomOffset);
 		}
 		else
 		{
 			const FTransform RotatedTransform(SourceTransform.GetRotation());
-			FinalTransform.SetLocation(SourceTransform.GetLocation() + RotatedTransform.TransformPosition(RandomOffset));
+			OutTransform.SetLocation(SourceTransform.GetLocation() + RotatedTransform.TransformPosition(RandomOffset));
 		}
 	}
 
@@ -321,30 +324,28 @@ void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, PCGExData::FPro
 		const bool bAbsY = (Variations.AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Y)) != 0;
 		const bool bAbsZ = (Variations.AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Z)) != 0;
 
-		OutRotation.Pitch = (bAbsX ? RandRot.Pitch : OutRotation.Pitch + RandRot.Pitch);
-		OutRotation.Yaw = (bAbsY ? RandRot.Yaw : OutRotation.Yaw + RandRot.Yaw);
-		OutRotation.Roll = (bAbsZ ? RandRot.Roll : OutRotation.Roll + RandRot.Roll);
+		OutRotation.Pitch = (bAbsY ? RandRot.Pitch : OutRotation.Pitch + RandRot.Pitch);
+		OutRotation.Yaw = (bAbsZ ? RandRot.Yaw : OutRotation.Yaw + RandRot.Yaw);
+		OutRotation.Roll = (bAbsX ? RandRot.Roll : OutRotation.Roll + RandRot.Roll);
 
-		FinalTransform.SetRotation(OutRotation.Quaternion());
+		OutTransform.SetRotation(OutRotation.Quaternion());
 	}
 
 	if (Scale == Step)
 	{
 		if (Variations.bUniformScale)
 		{
-			FinalTransform.SetScale3D(SourceTransform.GetScale3D() * FVector(RandomSource.FRandRange(Variations.ScaleMin.X, Variations.ScaleMax.X)));
+			OutTransform.SetScale3D(SourceTransform.GetScale3D() * FVector(RandomSource.FRandRange(Variations.ScaleMin.X, Variations.ScaleMax.X)));
 		}
 		else
 		{
-			FinalTransform.SetScale3D(
+			OutTransform.SetScale3D(
 				SourceTransform.GetScale3D() * FVector(
 					RandomSource.FRandRange(Variations.ScaleMin.X, Variations.ScaleMax.X),
 					RandomSource.FRandRange(Variations.ScaleMin.Y, Variations.ScaleMax.Y),
 					RandomSource.FRandRange(Variations.ScaleMin.Z, Variations.ScaleMax.Z)));
 		}
 	}
-
-	InPoint.Transform = FinalTransform;
 }
 
 bool FPCGExFittingDetailsHandler::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InTargetFacade)
@@ -363,21 +364,36 @@ void FPCGExFittingDetailsHandler::ComputeTransform(const int32 TargetIndex, FTra
 	if (bWorldSpace) { OutTransform = InTransform; }
 
 	FVector OutScale = InTransform.GetScale3D();
-	const FBox RefBounds = PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint);
-	const FBox& OriginalInBounds = InOutBounds;
-
-	ScaleToFit.Process(TargetPoint, OriginalInBounds, OutScale, InOutBounds);
-
-	//
-
 	FVector OutTranslation = FVector::ZeroVector;
+
+	ScaleToFit.Process(TargetPoint, InOutBounds, OutScale, InOutBounds);
 	Justification.Process(
-		TargetIndex, RefBounds,
+		TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint),
 		FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
 		OutTranslation);
 
 	OutTransform.AddToTranslation(InTransform.GetRotation().RotateVector(OutTranslation));
 	OutTransform.SetScale3D(OutScale);
+}
+
+void FPCGExFittingDetailsHandler::ComputeLocalTransform(const int32 TargetIndex, const FTransform& InLocalXForm, FTransform& OutTransform, FBox& InOutBounds) const
+{
+	check(TargetDataFacade);
+	const PCGExData::FConstPoint& TargetPoint = TargetDataFacade->Source->GetInPoint(TargetIndex);
+
+	FVector OutScale = OutTransform.GetScale3D();
+	FVector OutTranslation = FVector::ZeroVector;
+	
+	ScaleToFit.Process(TargetPoint, InOutBounds.TransformBy(InLocalXForm), OutScale, InOutBounds);
+	Justification.Process(
+		TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint),
+		FBox(InOutBounds.Min * OutScale, InOutBounds.Max * OutScale),
+		OutTranslation);
+
+	//OutTransform = OutTransform * InLocalXForm.Inverse(); 
+	OutTransform.SetScale3D(OutScale);
+	OutTransform.AddToTranslation(OutTranslation);
+	OutTransform.SetRotation(InLocalXForm.GetRotation() * OutTransform.GetRotation());
 }
 
 bool FPCGExFittingDetailsHandler::WillChangeBounds() const

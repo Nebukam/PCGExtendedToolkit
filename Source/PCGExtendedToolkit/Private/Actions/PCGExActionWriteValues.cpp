@@ -5,6 +5,7 @@
 #include "PCGExFactoryProvider.h"
 #include "PCGExHelpers.h"
 
+
 #include "PCGPin.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
@@ -101,8 +102,8 @@ bool UPCGExActionWriteValuesFactory::Boot(FPCGContext* InContext)
 TArray<FPCGPinProperties> UPCGExActionWriteValuesProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(PCGExActionWriteValues::SourceForwardSuccess, "TBD", Normal, {})
-	PCGEX_PIN_ANY(PCGExActionWriteValues::SourceForwardFail, "TBD", Normal, {})
+	PCGEX_PIN_ANY(PCGExActionWriteValues::SourceForwardSuccess, "TBD", Normal)
+	PCGEX_PIN_ANY(PCGExActionWriteValues::SourceForwardFail, "TBD", Normal)
 	return PinProperties;
 }
 

@@ -3,6 +3,7 @@
 
 #include "Misc/Pickers/PCGExPickerConstantRange.h"
 
+#include "PCGExHelpers.h"
 #include "PCGExMath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreatePickerConstantRange"
@@ -63,8 +64,8 @@ void UPCGExPickerConstantRangeFactory::AddPicksFromConfig(const FPCGExPickerCons
 	}
 	else
 	{
-		TargetStartIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * InConfig.RelativeStartIndex, InConfig.TruncateMode);
-		TargetEndIndex = PCGEx::TruncateDbl(static_cast<double>(MaxIndex) * InConfig.RelativeEndIndex, InConfig.TruncateMode);
+		TargetStartIndex = PCGExMath::TruncateDbl(static_cast<double>(MaxIndex) * InConfig.RelativeStartIndex, InConfig.TruncateMode);
+		TargetEndIndex = PCGExMath::TruncateDbl(static_cast<double>(MaxIndex) * InConfig.RelativeEndIndex, InConfig.TruncateMode);
 	}
 
 	if (TargetStartIndex < 0) { TargetStartIndex = InNum + TargetStartIndex; }

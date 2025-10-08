@@ -55,7 +55,7 @@ struct FPCGExStringCompareFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class UPCGExStringCompareFilterFactory : public UPCGExFilterFactoryData
+class UPCGExStringCompareFilterFactory : public UPCGExPointFilterFactoryData
 {
 	GENERATED_BODY()
 

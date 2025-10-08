@@ -4,6 +4,7 @@
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
@@ -42,9 +43,7 @@ namespace PCGExPathfinding
 				                 EQueryPickResolution::UnresolvedGoal;
 		}
 
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing issue where operators always result in true for second half (|| to &&) (Link to bug: https://github.com/Nebukam/PCGExtendedToolkit/issues/140)
-		if (Seed.Node == Goal.Node && (PickResolution != EQueryPickResolution::UnresolvedSeed && PickResolution != EQueryPickResolution::UnresolvedGoal))
-// @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - END: Fixing issue where operators always result in true for second half (|| to &&) (Link to bug: https://github.com/Nebukam/PCGExtendedToolkit/issues/140)
+		if (Seed.Node == Goal.Node && PickResolution == EQueryPickResolution::None)
 		{
 			PickResolution = EQueryPickResolution::SameSeedAndGoal;
 		}

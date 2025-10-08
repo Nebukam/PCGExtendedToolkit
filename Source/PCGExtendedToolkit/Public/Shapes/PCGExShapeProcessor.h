@@ -12,7 +12,7 @@
 
 #include "PCGExShapeProcessor.generated.h"
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 /**
  * 
  */
@@ -26,7 +26,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPath; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorPath; }
 #endif
 	//~End UPCGSettings
 

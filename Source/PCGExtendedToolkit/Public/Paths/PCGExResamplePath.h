@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMath.h"
 #include "PCGExPathProcessor.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
@@ -12,6 +13,12 @@
 #include "Shapes/PCGExShapes.h"
 
 #include "PCGExResamplePath.generated.h"
+
+namespace PCGExPaths
+{
+	class FPathEdgeLength;
+	class FPath;
+}
 
 UENUM()
 enum class EPCGExResampleMode : uint8

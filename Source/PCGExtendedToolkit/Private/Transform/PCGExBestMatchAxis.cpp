@@ -5,14 +5,17 @@
 
 #include "Data/PCGExData.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBestMatchAxisElement"
 #define PCGEX_NAMESPACE BestMatchAxis
 
+PCGEX_SETTING_VALUE_IMPL(UPCGExBestMatchAxisSettings, Match, FVector, MatchInput, MatchSource, MatchConstant)
+
 TArray<FPCGPinProperties> UPCGExBestMatchAxisSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (Mode == EPCGExBestMatchAxisTargetMode::ClosestTarget) { PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, TEXT("Target points"), Required, {}) }
+	if (Mode == EPCGExBestMatchAxisTargetMode::ClosestTarget) { PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, TEXT("Target points"), Required) }
 	return PinProperties;
 }
 
@@ -94,7 +97,8 @@ namespace PCGExBestMatchAxis
 				if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
 				return false;
 			}
-		}else
+		}
+		else
 		{
 			MatchGetter = Settings->GetValueSettingMatch();
 			if (!MatchGetter->Init(PointDataFacade)) { return false; }
@@ -117,7 +121,7 @@ namespace PCGExBestMatchAxis
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::BestMatchAxis::ProcessPoints);
 
 		PointDataFacade->Fetch(Scope);
-		
+
 		UPCGBasePointData* OutPoints = PointDataFacade->GetOut();
 		TPCGValueRange<FTransform> OutTransforms = OutPoints->GetTransformValueRange(false);
 
@@ -132,7 +136,9 @@ namespace PCGExBestMatchAxis
 				PCGExData::FConstPoint TargetPoint;
 				double Distance = MAX_dbl;
 				Context->TargetsHandler->FindClosestTarget(PointDataFacade->GetInPoint(Index), TargetPoint, Distance, &IgnoreList);
-				if (TargetPoint.Index == -1) { continue; }
+				if (TargetPoint.Index == -1)
+				{
+				}
 			}
 			else if (Settings->Mode == EPCGExBestMatchAxisTargetMode::Direction)
 			{

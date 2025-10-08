@@ -4,9 +4,12 @@
 #include "Paths/PCGExPathToClusters.h"
 
 
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGExUnionData.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionProcessor.h"
+#include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathToClustersElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -15,11 +18,7 @@ TArray<FPCGPinProperties>
 UPCGExPathToClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(
-		PCGExGraph::OutputEdgesLabel,
-		"Point data representing edges.",
-		Required,
-		{})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
 	return PinProperties;
 }
 

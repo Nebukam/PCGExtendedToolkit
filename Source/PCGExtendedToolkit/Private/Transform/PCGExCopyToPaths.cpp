@@ -6,6 +6,7 @@
 
 #include "Data/PCGExDataTag.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
+
 #include "Helpers/PCGHelpers.h"
 #include "Paths/PCGExPaths.h"
 
@@ -19,9 +20,9 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(CopyToPaths)
 TArray<FPCGPinProperties> UPCGExCopyToPathsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(PCGEx::SourceTargetsLabel, "Paths or splines to deform along", Required, {})
+	PCGEX_PIN_ANY(PCGEx::SourceTargetsLabel, "Paths or splines to deform along", Required)
 	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
-	PCGEX_PIN_POINTS(PCGExTransform::SourceDeformersBoundsLabel, "Point data that will be used as unified bounds for all inputs", Normal, {})
+	PCGEX_PIN_POINTS(PCGExTransform::SourceDeformersBoundsLabel, "Point data that will be used as unified bounds for all inputs", Normal)
 	return PinProperties;
 }
 

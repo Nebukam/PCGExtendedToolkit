@@ -5,8 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExDetailsData.h"
-
+#include "Details/PCGExSettingsMacros.h"
 
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -20,9 +19,7 @@ struct FPCGExNodeNeighborsCountFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNodeNeighborsCountFilterConfig()
-	{
-	}
+	FPCGExNodeNeighborsCountFilterConfig() = default;
 
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -44,7 +41,7 @@ struct FPCGExNodeNeighborsCountFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
-	PCGEX_SETTING_VALUE_GET(LocalCount, double, CompareAgainst, LocalCount, Count)
+	PCGEX_SETTING_VALUE_DECL(LocalCount, double)
 };
 
 /**
@@ -89,7 +86,7 @@ namespace PCGExNodeNeighborsCount
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-vtx-nodes/neighbors-count"))
-class UPCGExNodeNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExNodeNeighborsCountFilterProviderSettings : public UPCGExVtxFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -99,7 +96,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeNeighborsCountFilterFactory, "Vtx Filter : Neighbors Count", "Check against the node' neighbor count.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 	//~End UPCGSettings
 

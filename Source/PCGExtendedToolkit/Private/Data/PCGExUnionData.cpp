@@ -5,6 +5,7 @@
 
 #include "PCGExPointsMT.h"
 #include "Data/PCGExData.h"
+#include "Details/PCGExDetailsDistances.h"
 
 namespace PCGExData
 {

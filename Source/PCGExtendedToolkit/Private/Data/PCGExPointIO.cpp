@@ -3,10 +3,15 @@
 
 #include "Data/PCGExPointIO.h"
 
+
+#include "Data/PCGPointArrayData.h"
+#include "Metadata/Accessors/PCGCustomAccessor.h"
+#include "PCGEx.h"
 #include "PCGExContext.h"
-#include "PCGExDetails.h"
 #include "PCGExMT.h"
+#include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGPointData.h"
 
 namespace PCGExData
 {
@@ -176,7 +181,9 @@ namespace PCGExData
 		return false;
 	}
 
-	TSharedPtr<FPCGAttributeAccessorKeysPointIndices> FPointIO::GetInKeys()
+	FTaggedData FPointIO::GetTaggedData(const EIOSide Source) { return FTaggedData(GetData(Source), Tags, GetInKeys()); }
+
+	TSharedPtr<IPCGAttributeAccessorKeys> FPointIO::GetInKeys()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetInKeys);
 
@@ -195,7 +202,7 @@ namespace PCGExData
 		return InKeys;
 	}
 
-	TSharedPtr<FPCGAttributeAccessorKeysPointIndices> FPointIO::GetOutKeys(const bool bEnsureValidKeys)
+	TSharedPtr<IPCGAttributeAccessorKeys> FPointIO::GetOutKeys(const bool bEnsureValidKeys)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIO::GetOutKeys);
 
@@ -878,9 +885,7 @@ namespace PCGExData
 
 	void GetPoints(const FScope& Scope, TArray<FPCGPoint>& OutPCGPoints)
 	{
-		check(Scope.IsValid())
-
-		OutPCGPoints.SetNum(Scope.Count);
+		OutPCGPoints.Reserve(Scope.Count);
 
 		const TConstPCGValueRange<FTransform> TransformRange = Scope.Data->GetConstTransformValueRange();
 		const TConstPCGValueRange<float> SteepnessRange = Scope.Data->GetConstSteepnessValueRange();
@@ -894,15 +899,12 @@ namespace PCGExData
 		for (int i = 0; i < Scope.Count; i++)
 		{
 			const int32 Index = Scope.Start + i;
-			FPCGPoint& Pt = OutPCGPoints[i];
-			Pt.Transform = TransformRange[Index];
+			FPCGPoint& Pt = OutPCGPoints.Emplace_GetRef(TransformRange[Index], DensityRange[Index], SeedRange[Index]);
 			Pt.Steepness = SteepnessRange[Index];
-			Pt.Density = DensityRange[Index];
 			Pt.BoundsMin = BoundsMinRange[Index];
 			Pt.BoundsMax = BoundsMaxRange[Index];
 			Pt.Color = ColorRange[Index];
 			Pt.MetadataEntry = MetadataEntryRange[Index];
-			Pt.Seed = SeedRange[Index];
 		}
 	}
 

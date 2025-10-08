@@ -18,14 +18,14 @@
 TArray<FPCGPinProperties> UPCGExDebugSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(PCGPinConstants::DefaultInputLabel, "In.", Required, {})
+	PCGEX_PIN_ANY(PCGPinConstants::DefaultInputLabel, "In.", Required)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExDebugSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_ANY(PCGPinConstants::DefaultInputLabel, "Out.", Required, {})
+	PCGEX_PIN_ANY(PCGPinConstants::DefaultInputLabel, "Out.", Required)
 	return PinProperties;
 }
 

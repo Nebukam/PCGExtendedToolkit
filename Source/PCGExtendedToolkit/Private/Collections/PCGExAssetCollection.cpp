@@ -16,7 +16,11 @@
 #endif
 
 #include "PCGEx.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
+#include "Details/PCGExDetailsSettings.h"
+
+PCGEX_SETTING_VALUE_IMPL_BOOL(FPCGExAssetDistributionIndexDetails, Index, int32, true, IndexSource, -1);
+PCGEX_SETTING_VALUE_IMPL(FPCGExAssetDistributionDetails, Category, FName, CategoryInput, CategoryAttribute, Category);
 
 // @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing World header
 #include "Engine/World.h"

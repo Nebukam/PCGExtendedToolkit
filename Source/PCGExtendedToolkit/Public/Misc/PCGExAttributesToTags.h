@@ -49,8 +49,8 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AttributesToTags, "Attributes to Tags", "Use point attributes or set to tag the data.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite); }
-	virtual bool HasDynamicPins() const override { return true; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
+	virtual bool HasDynamicPins() const override { return Action == EPCGExAttributeToTagsAction::AddTags; }
 #endif
 
 	virtual bool GetIsMainTransactional() const override;

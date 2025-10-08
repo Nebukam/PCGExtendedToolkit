@@ -6,7 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/SoftObjectPath.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 
 namespace PCGExBlend
 {

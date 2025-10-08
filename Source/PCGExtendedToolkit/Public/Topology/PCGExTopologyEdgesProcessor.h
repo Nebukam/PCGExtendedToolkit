@@ -34,8 +34,8 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(TopologyProcessor, "Topology", "Base processor to output meshes from clusters");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorTopology); }
 	virtual EPCGSettingsType GetType() const override { return OutputMode == EPCGExTopologyOutputMode::Legacy ? EPCGSettingsType::Spawner : EPCGSettingsType::DynamicMesh; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor::White; }
 #endif
 
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
@@ -92,7 +92,7 @@ private:
 struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorContext : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExTopologyEdgesProcessorElement;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> EdgeConstraintsFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> EdgeConstraintsFilterFactories;
 
 	TSharedPtr<PCGExTopology::FHoles> Holes;
 	TSharedPtr<PCGExData::FFacade> HolesFacade;

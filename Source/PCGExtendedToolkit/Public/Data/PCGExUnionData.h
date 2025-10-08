@@ -4,10 +4,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGEx.h"
 #include "UObject/Object.h"
 
 #include "PCGExPointIO.h"
-#include "PCGExDetailsData.h"
+
+namespace PCGExDetails
+{
+	class FDistances;
+}
 
 namespace PCGExData
 {

@@ -8,6 +8,7 @@
 #include "PCGExTensor.h"
 #include "PCGExTensorFactoryProvider.h"
 #include "PCGExTensorOperation.h"
+#include "Transform/PCGExTransform.h"
 
 
 #include "PCGExTensorSpin.generated.h"

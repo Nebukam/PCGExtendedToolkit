@@ -9,6 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
 #include "Data/Matching/PCGExMatching.h"
+#include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExSettingsMacros.h"
 
 
 #include "PCGExBestMatchAxis.generated.h"
@@ -18,10 +20,10 @@ class FPCGExComputeIOBounds;
 UENUM()
 enum class EPCGExBestMatchAxisTargetMode : uint8
 {
-	Direction   = 0 UMETA(DisplayName = "Direction", ToolTip="Best match against a direction vector."),
-	LookAtWorldPosition = 1 UMETA(DisplayName = "Look at Position (World)", ToolTip="Best match against the look at vector toward a world position."),
+	Direction              = 0 UMETA(DisplayName = "Direction", ToolTip="Best match against a direction vector."),
+	LookAtWorldPosition    = 1 UMETA(DisplayName = "Look at Position (World)", ToolTip="Best match against the look at vector toward a world position."),
 	LookAtRelativePosition = 2 UMETA(DisplayName = "Look at Position (Relative)", ToolTip="Best match against the look at vector toward a relative position."),
-	ClosestTarget = 3 UMETA(DisplayName = "Look at Closest Target", ToolTip="Best match against the look at vector toward the closest target point.")
+	ClosestTarget          = 3 UMETA(DisplayName = "Look at Closest Target", ToolTip="Best match against the look at vector toward the closest target point.")
 };
 
 UCLASS(Hidden, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/move-pivot"))
@@ -33,7 +35,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BestMatchAxis, "Best Match Axis", "Rotate a point or transform to closely match an input direction (or look at location) but preserve orthogonality.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorTransform; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTransform; }
 #endif
 
 protected:
@@ -42,12 +44,11 @@ protected:
 	//~End UPCGSettings
 
 public:
-	
 	/** Drive the best match axis */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExBestMatchAxisTargetMode Mode = EPCGExBestMatchAxisTargetMode::Direction;
 
-	
+
 	/** Up vector source.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExBestMatchAxisTargetMode::ClosestTarget", EditConditionHides))
 	EPCGExInputValueType MatchInput = EPCGExInputValueType::Attribute;
@@ -60,7 +61,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Match", EditCondition="Mode != EPCGExBestMatchAxisTargetMode::ClosestTarget && MatchInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector MatchConstant = FVector::UpVector;
 
-	PCGEX_SETTING_VALUE_GET(Match, FVector, MatchInput, MatchSource, MatchConstant)
+	PCGEX_SETTING_VALUE_DECL(Match, FVector)
 
 	// TODO : Support attribute mutation such as transform, rotator, vector
 	// TODO : Auto-pick axis based on unsigned dot product (so we only mutate where it make the most meaingful)
@@ -72,7 +73,7 @@ public:
 	/** Distance method to be used for source & target points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExBestMatchAxisTargetMode::ClosestTarget", EditConditionHides))
 	FPCGExDistanceDetails DistanceDetails;
-	
+
 private:
 	friend class FPCGExBestMatchAxisElement;
 };
@@ -103,7 +104,7 @@ namespace PCGExBestMatchAxis
 	{
 		TSet<const UPCGData*> IgnoreList;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> MatchGetter;
-		
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TProcessor(InPointDataFacade)

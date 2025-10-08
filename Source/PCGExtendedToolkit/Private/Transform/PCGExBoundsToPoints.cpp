@@ -136,8 +136,8 @@ namespace PCGExBoundsToPoints
 
 				if (bSetExtents)
 				{
-					BoundsMin[A] = -Extents;
-					BoundsMax[A] = Extents;
+					BoundsMin[A] = -FinalExtents;
+					BoundsMax[A] = FinalExtents;
 				}
 
 				Transforms[A].SetLocation(UVW.GetPosition(Index));
@@ -148,8 +148,8 @@ namespace PCGExBoundsToPoints
 				{
 					if (bSetExtents)
 					{
-						BoundsMin[B] = -Extents;
-						BoundsMax[B] = Extents;
+						BoundsMin[B] = -FinalExtents;
+						BoundsMax[B] = FinalExtents;
 					}
 
 					Transforms[B].SetLocation(UVW.GetPosition(Index, Axis, true));
@@ -170,8 +170,8 @@ namespace PCGExBoundsToPoints
 
 				if (bSetExtents)
 				{
-					BoundsMin[A] = -Extents;
-					BoundsMax[A] = Extents;
+					BoundsMin[A] = -FinalExtents;
+					BoundsMax[A] = FinalExtents;
 				}
 
 				Transforms[A].SetLocation(UVW.GetPosition(Index));
@@ -182,8 +182,8 @@ namespace PCGExBoundsToPoints
 				{
 					if (bSetExtents)
 					{
-						BoundsMin[B] = -Extents;
-						BoundsMax[B] = Extents;
+						BoundsMin[B] = -FinalExtents;
+						BoundsMax[B] = FinalExtents;
 					}
 
 					Transforms[B].SetLocation(UVW.GetPosition(Index, Axis, true));

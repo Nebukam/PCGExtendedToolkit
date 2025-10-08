@@ -4,13 +4,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathProcessor.h"
 #include "PCGExFactoryProvider.h"
-#include "PCGExPointsProcessor.h"
+#include "PCGExMath.h"
+#include "PCGExPathProcessor.h"
+#include "PCGExPaths.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
-
 #include "PCGExShiftPath.generated.h"
+
+namespace PCGExData
+{
+	class IBuffer;
+}
 
 UENUM()
 enum class EPCGExShiftType : uint8

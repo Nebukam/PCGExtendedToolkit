@@ -2,11 +2,14 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
-#include "Metadata/PCGAttributePropertySelector.h"
 
 #include "CoreMinimal.h"
-#include "PCGExDetails.h"
+#include "Metadata/PCGAttributePropertySelector.h"
+#include "PCGExCommon.h"
+
 #include "PCGExFitting.generated.h"
+
+struct FPCGExContext;
 
 namespace PCGExData
 {
@@ -102,12 +105,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExScaleToFitDetails
 
 private:
 	static void ScaleToFitAxis(
-		const EPCGExScaleToFit Fit,
-		const int32 Axis,
-		const FVector& InScale,
-		const FVector& InPtSize,
-		const FVector& InStSize,
-		const FVector& MinMaxFit,
+		const EPCGExScaleToFit Fit, const int32 Axis,
+		const FVector& TargetScale, const FVector& TargetSize,
+		const FVector& CandidateSize, const FVector& MinMaxFit,
 		FVector& OutScale);
 };
 
@@ -287,7 +287,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariationsDetails
 
 	void Apply(
 		int32 BaseSeed,
-		PCGExData::FProxyPoint& InPoint,
+		FTransform& OutTransform,
 		const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const;
 };
 
@@ -312,6 +312,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingDetailsHandler
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InTargetFacade);
 
 	void ComputeTransform(const int32 TargetIndex, FTransform& OutTransform, FBox& InOutBounds, const bool bWorldSpace = true) const;
+	void ComputeLocalTransform(const int32 TargetIndex, const FTransform& InLocalXForm, FTransform& OutTransform, FBox& InOutBounds) const;
 
 	bool WillChangeBounds() const;
 	bool WillChangeTransform() const;

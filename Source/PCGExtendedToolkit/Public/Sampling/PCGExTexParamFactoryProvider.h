@@ -110,12 +110,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTextureParamConfig
 	void Init();
 };
 
+USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Tex Param")
+struct FPCGExDataTypeInfoTexParam : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data", meta=(PCGExNodeLibraryDoc="sampling/textures/texture-param"))
 class UPCGExTexParamFactoryData : public UPCGExFactoryData
 {
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoTexParam)
+
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::TexParam; }
 
 	FPCGExTextureParamConfig Config;
@@ -127,13 +136,16 @@ class UPCGExTexParamProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoTexParam)
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		TexParamAttribute, "Texture Param", "A simple texture parameter definition.",
 		FName(Config.TextureIDAttributeName.ToString() +" / "+Config.SampleAttributeName.ToString()))
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorTex; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTexParam; }
 #endif
 	//~End UPCGSettings
 

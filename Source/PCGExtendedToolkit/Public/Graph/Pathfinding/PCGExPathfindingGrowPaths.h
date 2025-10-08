@@ -4,11 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
+#include "PCGExMathMean.h"
 #include "PCGExPathfinding.h"
-#include "PCGExPointsProcessor.h"
-#include "Data/PCGExDataForward.h"
 
+#include "Data/PCGExDataForward.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Paths/PCGExPaths.h"
@@ -106,7 +105,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingGrowPaths, "Pathfinding : Grow Paths", "Grow paths from seeds.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPathfinding; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorPathfinding; }
 #endif
 
 protected:

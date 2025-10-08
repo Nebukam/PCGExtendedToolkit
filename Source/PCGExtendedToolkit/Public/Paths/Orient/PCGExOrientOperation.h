@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/PCGExPointElements.h"
 #include "Paths/SubPoints/PCGExSubPointsInstancedFactory.h"
 
 // @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing PCGEx headers

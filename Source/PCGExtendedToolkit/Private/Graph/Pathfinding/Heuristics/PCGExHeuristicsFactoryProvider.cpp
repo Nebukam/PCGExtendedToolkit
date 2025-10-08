@@ -3,9 +3,13 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
 
+#include "PCGExHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristics"
 #define PCGEX_NAMESPACE CreateHeuristics
+
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoHeuristics, UPCGExHeuristicsFactoryData)
 
 void FPCGExHeuristicConfigBase::Init()
 {

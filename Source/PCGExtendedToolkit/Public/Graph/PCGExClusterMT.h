@@ -18,7 +18,7 @@ namespace PCGExCluster
 	struct FNode;
 }
 
-class UPCGExFilterFactoryData;
+class UPCGExPointFilterFactoryData;
 
 namespace PCGExHeuristics
 {
@@ -172,22 +172,22 @@ namespace PCGExClusterMT
 		virtual void Output();
 		virtual void Cleanup();
 
-		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* VtxFilterFactories = nullptr;
+		const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* VtxFilterFactories = nullptr;
 		TSharedPtr<TArray<int8>> VtxFilterCache;
 
-		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* EdgeFilterFactories = nullptr;
+		const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* EdgeFilterFactories = nullptr;
 		TArray<int8> EdgeFilterCache;
 
 	protected:
 		TSharedPtr<PCGExClusterFilter::FManager> VtxFiltersManager;
-		virtual bool InitVtxFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories);
+		virtual bool InitVtxFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories);
 		virtual void FilterVtxScope(const PCGExMT::FScope& Scope);
 
 		bool IsNodePassingFilters(const PCGExCluster::FNode& Node) const;
 
 		bool DefaultEdgeFilterValue = true;
 		TSharedPtr<PCGExClusterFilter::FManager> EdgesFiltersManager;
-		virtual bool InitEdgesFilters(const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* InFilterFactories);
+		virtual bool InitEdgesFilters(const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFilterFactories);
 		virtual void FilterEdgeScope(const PCGExMT::FScope& Scope);
 	};
 
@@ -272,8 +272,8 @@ namespace PCGExClusterMT
 
 		TArray<TSharedPtr<PCGExCluster::FCluster>> ValidClusters;
 
-		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* VtxFilterFactories = nullptr;
-		const TArray<TObjectPtr<const UPCGExFilterFactoryData>>* EdgeFilterFactories = nullptr;
+		const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* VtxFilterFactories = nullptr;
+		const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* EdgeFilterFactories = nullptr;
 		bool DefaultVtxFilterValue = true;
 		TSharedPtr<TArray<int8>> VtxFilterCache;
 

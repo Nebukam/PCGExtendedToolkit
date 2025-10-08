@@ -3,6 +3,9 @@
 
 #include "Graph/PCGExCopyClustersToPoints.h"
 
+
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Graph/Data/PCGExClusterData.h"
 
 
@@ -21,7 +24,7 @@ PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(CopyClustersToPoints)
 TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points to copy clusters to.", Required, {})
+	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points to copy clusters to.", Required)
 	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	return PinProperties;
 }

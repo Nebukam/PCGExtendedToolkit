@@ -4,11 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "Graph/Filters/PCGExAdjacency.h"
-#include "PCGExDetailsData.h"
-
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
@@ -20,9 +18,7 @@ struct FPCGExNodeAdjacencyFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNodeAdjacencyFilterConfig()
-	{
-	}
+	FPCGExNodeAdjacencyFilterConfig() = default;
 
 	/** Adjacency Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -56,8 +52,8 @@ struct FPCGExNodeAdjacencyFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison == EPCGExComparison::NearlyEqual || Comparison == EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = DBL_COMPARE_TOLERANCE;
 
-	PCGEX_SETTING_VALUE_GET(OperandA, double, CompareAgainst, OperandA, OperandAConstant)
-	PCGEX_SETTING_VALUE_GET(OperandB, double, EPCGExInputValueType::Attribute, OperandB, 0)
+	PCGEX_SETTING_VALUE_DECL(OperandA, double)
+	PCGEX_SETTING_VALUE_DECL(OperandB, double)
 };
 
 /**
@@ -110,7 +106,7 @@ public:
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="filters/filters-vtx-nodes/adjacency"))
-class UPCGExNodeAdjacencyFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExNodeAdjacencyFilterProviderSettings : public UPCGExVtxFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -120,7 +116,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeAdjacencyFilterFactory, "Vtx Filter : Adjacency", "Numeric comparison of adjacent values, testing either adjacent nodes or connected edges.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 
 	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabelNode; }

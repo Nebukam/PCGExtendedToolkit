@@ -10,7 +10,7 @@
 
 #include "PCGContext.h"
 #include "PCGElement.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 #include "PCGModule.h"
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"

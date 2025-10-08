@@ -5,10 +5,14 @@
 
 
 #include "Data/PCGExDataPreloader.h"
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExTimeFilterDefinition"
 #define PCGEX_NAMESPACE PCGExTimeFilterDefinition
+
+PCGEX_SETTING_VALUE_IMPL(FPCGExTimeFilterConfig, OperandB, float, CompareAgainst, OperandB, OperandBConstant)
 
 bool UPCGExTimeFilterFactory::SupportsCollectionEvaluation() const
 {
@@ -196,7 +200,7 @@ namespace PCGExPointFilter
 TArray<FPCGPinProperties> UPCGExTimeFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(PCGEx::SourceTargetsLabel, TEXT("Paths/Splines/Polygons that will be used for testing"), Required, {})
+	PCGEX_PIN_ANY(PCGEx::SourceTargetsLabel, TEXT("Paths/Splines/Polygons that will be used for testing"), Required)
 	return PinProperties;
 }
 

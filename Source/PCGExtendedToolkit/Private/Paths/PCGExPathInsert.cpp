@@ -2,18 +2,22 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExPathInsert.h"
-#include "Data/Blending/PCGExUnionBlender.h"
 
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsDistances.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathInsertElement"
 #define PCGEX_NAMESPACE PathInsert
 
+PCGEX_SETTING_VALUE_IMPL(UPCGExPathInsertSettings, Range, int32, RangeInput, RangeAttribute, Range)
+
 TArray<FPCGPinProperties> UPCGExPathInsertSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The point data set to insert.", Required, {})
+	PCGEX_PIN_POINTS(PCGEx::SourceTargetsLabel, "The point data set to insert.", Required)
 	return PinProperties;
 }
 

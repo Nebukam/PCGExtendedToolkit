@@ -84,7 +84,7 @@ public:
 		BranchOnDataAttribute, "Branch on Data", "Branch on @Data domain attribute.",
 		BranchSource);
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::ControlFlow; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->NodeColorFilterHub); }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
 #endif
 
 	virtual bool HasDynamicPins() const override { return true; }

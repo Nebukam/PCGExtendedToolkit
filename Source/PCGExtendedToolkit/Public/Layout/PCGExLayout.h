@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
+#include "Details/PCGExDetailsAxis.h"
 
 #include "PCGExLayout.generated.h"
 

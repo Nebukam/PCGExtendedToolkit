@@ -3,15 +3,16 @@
 
 #pragma once
 
+#include <functional>
+
 #include "CoreMinimal.h"
 #include "PCGPin.h"
 #include "PCGEx.h"
-#include "PCGExMacros.h"
+#include "Details/PCGExMacros.h"
 
 #include "PCGExContext.h"
 #include "PCGExGlobalSettings.h" // Needed for child classes
 #include "PCGExPointsMT.h"
-#include "Data/PCGExPointIO.h"
 
 #include "PCGExPointsProcessor.generated.h"
 
@@ -35,6 +36,20 @@
 return MakeShared<PCGExPointsMT::TBatch<PCGEx##_CLASS::FProcessor>>(const_cast<FPCGEx##_CLASS##Context*>(this), InData); }
 #define PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(_CLASS) TSharedPtr<PCGExPointsMT::IBatch> FPCGEx##_CLASS##Context::CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const{ \
 return MakeShared<PCGEx##_CLASS::FBatch>(const_cast<FPCGEx##_CLASS##Context*>(this), InData); }
+
+class UPCGExPointFilterFactoryData;
+
+namespace PCGExPointsMT
+{
+	class IProcessor;
+	class IBatch;
+}
+
+namespace PCGExData
+{
+	class FPointIO;
+	class FPointIOCollection;
+}
 
 class UPCGExInstancedFactory;
 
@@ -161,7 +176,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 
 #pragma region Filtering
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> FilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
 
 #pragma endregion
 
@@ -178,14 +193,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 	virtual void BatchProcessing_InitialProcessingDone();
 	virtual void BatchProcessing_WorkComplete();
 	virtual void BatchProcessing_WritingDone();
-
-	template <typename T>
-	void GatherProcessors(TArray<T*> OutProcessors)
-	{
-		OutProcessors.Reserve(MainBatch->GetNumProcessors());
-		PCGExPointsMT::TBatch<T>* TypedBatch = static_cast<PCGExPointsMT::TBatch<T>*>(MainBatch);
-		OutProcessors.Append(TypedBatch->Processors);
-	}
 
 #pragma endregion
 

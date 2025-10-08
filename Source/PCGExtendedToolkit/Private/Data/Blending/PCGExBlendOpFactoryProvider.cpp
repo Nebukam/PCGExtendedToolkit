@@ -3,9 +3,12 @@
 
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
-#include "PCGExDetailsData.h"
+#include "PCGExHelpers.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGExProxyData.h"
 #include "Data/Blending/PCGExProxyDataBlending.h"
+#include "Details/PCGExDetailsSettings.h"
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -13,10 +16,19 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateAttributeBlend"
 #define PCGEX_NAMESPACE CreateAttributeBlend
 
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoBlendOp, UPCGExBlendOpFactory)
+
 void FPCGExAttributeBlendWeight::Init()
 {
 	if (!bUseLocalCurve) { LocalWeightCurve.ExternalCurve = WeightCurve.Get(); }
 	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
+}
+
+TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAttributeBlendWeight::GetValueSettingWeight(const bool bQuietErrors) const
+{
+	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(WeightInput, WeightAttribute, Weight);
+	V->bQuietErrors = bQuietErrors;
+	return V;
 }
 
 void FPCGExAttributeBlendConfig::Init()
@@ -283,6 +295,13 @@ TSharedPtr<FPCGExBlendOperation> UPCGExBlendOpFactory::CreateOperation(FPCGExCon
 	return NewOperation;
 }
 
+bool UPCGExBlendOpFactory::WantsPreparation(FPCGExContext* InContext)
+{
+	return
+		PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantA) ||
+		PCGExHelpers::HasDataOnPin(InContext, PCGExDataBlending::SourceConstantB);
+}
+
 PCGExFactories::EPreparationResult UPCGExBlendOpFactory::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
@@ -381,11 +400,11 @@ TArray<FPCGPinProperties> UPCGExBlendOpFactoryProviderSettings::InputPinProperti
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
-	PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
+	PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantA, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
 
 	if (Config.bUseOperandB)
 	{
-		PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced, {})
+		PCGEX_PIN_ANY_SINGLE(PCGExDataBlending::SourceConstantB, "Data used to read a constant from. Will read from the first element of the first data.", Advanced)
 	}
 
 	return PinProperties;

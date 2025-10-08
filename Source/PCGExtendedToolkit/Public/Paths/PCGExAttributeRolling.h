@@ -152,9 +152,9 @@ struct FPCGExAttributeRollingContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExAttributeRollingElement;
 
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> PinFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StartFilterFactories;
-	TArray<TObjectPtr<const UPCGExFilterFactoryData>> StopFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> PinFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> StartFilterFactories;
+	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> StopFilterFactories;
 
 	TArray<TObjectPtr<const UPCGExBlendOpFactory>> BlendingFactories;
 

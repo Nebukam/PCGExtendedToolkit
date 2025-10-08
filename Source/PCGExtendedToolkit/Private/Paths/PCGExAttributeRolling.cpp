@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExAttributeRolling.h"
 
+#include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
@@ -21,17 +22,17 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 
 	if (RangeControl == EPCGExRollingRangeControl::StartStop)
 	{
-		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStartConditionLabel, "...", Required, {})
-		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceStopConditionLabel, "...", Required, {})
+		PCGEX_PIN_FILTERS(PCGExPointFilter::SourceStartConditionLabel, "...", Required)
+		PCGEX_PIN_FILTERS(PCGExPointFilter::SourceStopConditionLabel, "...", Required)
 	}
 	else
 	{
-		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourceToggleConditionLabel, "...", Normal, {})
+		PCGEX_PIN_FILTERS(PCGExPointFilter::SourceToggleConditionLabel, "...", Normal)
 	}
 
 	if (ValueControl == EPCGExRollingValueControl::Pin)
 	{
-		PCGEX_PIN_FACTORIES(PCGExPointFilter::SourcePinConditionLabel, "...", Required, {})
+		PCGEX_PIN_FILTERS(PCGExPointFilter::SourcePinConditionLabel, "...", Required)
 	}
 
 	PCGExDataBlending::DeclareBlendOpsInputs(PinProperties, EPCGPinStatus::Normal);
@@ -52,14 +53,14 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->RangeControl == EPCGExRollingRangeControl::StartStop)
 	{
-		if (!PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
+		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(
 			Context, PCGExPointFilter::SourceStartConditionLabel, Context->StartFilterFactories,
 			PCGExFactories::PointFilters, true))
 		{
 			return false;
 		}
 
-		if (!PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
+		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(
 			Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories,
 			PCGExFactories::PointFilters, true))
 		{
@@ -68,14 +69,14 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
+		PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(
 			Context, PCGExPointFilter::SourceToggleConditionLabel, Context->StartFilterFactories,
 			PCGExFactories::PointFilters, false);
 	}
 
 	if (Settings->ValueControl == EPCGExRollingValueControl::Pin)
 	{
-		if (!PCGExFactories::GetInputFactories<UPCGExFilterFactoryData>(
+		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(
 			Context, PCGExPointFilter::SourcePinConditionLabel, Context->PinFilterFactories,
 			PCGExFactories::PointFilters, true))
 		{

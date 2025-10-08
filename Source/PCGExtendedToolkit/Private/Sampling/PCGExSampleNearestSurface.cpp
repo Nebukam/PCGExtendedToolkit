@@ -14,7 +14,7 @@
 TArray<FPCGPinProperties> UPCGExSampleNearestSurfaceSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (SurfaceSource == EPCGExSurfaceSource::ActorReferences) { PCGEX_PIN_POINT(PCGExSampling::SourceActorReferencesLabel, "Points with actor reference paths.", Required, {}) }
+	if (SurfaceSource == EPCGExSurfaceSource::ActorReferences) { PCGEX_PIN_POINT(PCGExSampling::SourceActorReferencesLabel, "Points with actor reference paths.", Required) }
 	return PinProperties;
 }
 
@@ -273,7 +273,8 @@ namespace PCGExSampleNearestSurface
 					PCGEX_OUTPUT_VALUE(IsInside, Index, bIsInside)
 					PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
 					PCGEX_OUTPUT_VALUE(Success, Index, true)
-					SamplingMask[Index] = true;
+					
+					SamplingMask[Index] = ((!bIsInside || !Settings->bProcessInsideAsFailedSamples) && (bIsInside || !Settings->bProcessOutsideAsFailedSamples));
 
 					if (Context->ApplySampling.WantsApply())
 					{

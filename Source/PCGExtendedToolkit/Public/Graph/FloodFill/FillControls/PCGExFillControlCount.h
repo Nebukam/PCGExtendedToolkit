@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDetailsData.h"
 #include "UObject/Object.h"
 #include "PCGExFillControlOperation.h"
 #include "PCGExFillControlsFactoryProvider.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExFillControlCount.generated.h"
 
@@ -16,10 +16,7 @@ struct FPCGExFillControlConfigCount : public FPCGExFillControlConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExFillControlConfigCount() :
-		FPCGExFillControlConfigBase()
-	{
-	}
+	FPCGExFillControlConfigCount() = default;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -33,7 +30,7 @@ struct FPCGExFillControlConfigCount : public FPCGExFillControlConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Max Count", EditCondition="MaxCountInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 MaxCount = 10;
 
-	PCGEX_SETTING_VALUE_GET(MaxCount, int32, MaxCountInput, MaxCountAttribute, MaxCount)
+	PCGEX_SETTING_VALUE_DECL(MaxCount, int32)
 };
 
 /**

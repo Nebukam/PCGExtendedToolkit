@@ -7,6 +7,9 @@
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "PCGComponent.h"
+#include "PCGParamData.h"
+#include "Data/PCGExPointIO.h"
+
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExUnionProcessor.h"
 #include "Elements/PCGExecuteBlueprint.h"
@@ -144,7 +147,7 @@ TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::InputPinProperties() c
 TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required)
 	return PinProperties;
 }
 

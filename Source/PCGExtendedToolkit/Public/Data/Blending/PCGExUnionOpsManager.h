@@ -7,7 +7,6 @@
 #include "PCGExBlendOpFactoryProvider.h"
 #include "PCGExBlendOpsManager.h"
 #include "UObject/Object.h"
-#include "PCGExDetailsData.h"
 #include "PCGExProxyDataBlending.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExUnionData.h"

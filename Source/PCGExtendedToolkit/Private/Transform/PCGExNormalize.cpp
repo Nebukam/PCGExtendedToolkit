@@ -5,11 +5,14 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExProxyData.h"
+#include "Details/PCGExDetailsSettings.h"
 #include "Sampling/PCGExSampling.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExNormalizeElement"
 #define PCGEX_NAMESPACE Normalize
+
+PCGEX_SETTING_VALUE_IMPL(UPCGExNormalizeSettings, Transform, FTransform, TransformInput, TransformAttribute, TransformConstant)
 
 UPCGExNormalizeSettings::UPCGExNormalizeSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -24,7 +27,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(Normalize)
 TArray<FPCGPinProperties> UPCGExNormalizeSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGExTransform::SourceDeformersBoundsLabel, "Point data that will be used as unified bounds for all inputs", Normal, {})
+	PCGEX_PIN_POINTS(PCGExTransform::SourceDeformersBoundsLabel, "Point data that will be used as unified bounds for all inputs", Normal)
 	return PinProperties;
 }
 

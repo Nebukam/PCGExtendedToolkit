@@ -4,12 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
-
+#include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExNormalize.generated.h"
 
@@ -33,7 +32,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Normalize, "Normalize", "Output normalized position against data bounds to a new vector attribute.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorTransform; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTransform; }
 #endif
 
 protected:
@@ -74,7 +73,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Transform", ClampMin=1, EditCondition="TransformInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FTransform TransformConstant = FTransform::Identity;
 
-	PCGEX_SETTING_VALUE_GET(Transform, FTransform, TransformInput, TransformAttribute, TransformConstant)
+	PCGEX_SETTING_VALUE_DECL(Transform, FTransform)
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

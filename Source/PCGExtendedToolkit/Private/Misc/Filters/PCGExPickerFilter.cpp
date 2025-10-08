@@ -4,6 +4,8 @@
 #include "Misc/Filters/PCGExPickerFilter.h"
 
 
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Misc/Pickers/PCGExPicker.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
@@ -64,7 +66,7 @@ bool PCGExPointFilter::FPickerFilter::Test(const TSharedPtr<PCGExData::FPointIO>
 TArray<FPCGPinProperties> UPCGExPickerFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "Pickers", Required, {})
+	PCGEX_PIN_FACTORIES(PCGExPicker::SourcePickersLabel, "Pickers", Required, FPCGExDataTypeInfoPicker::AsId())
 	return PinProperties;
 }
 

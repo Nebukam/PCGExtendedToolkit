@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
   "Version": 1,
-  "VersionName": "0.69.4",
+  "VersionName": "0.70.3",
   "FriendlyName": "PCGExtendedToolkit",
   "Description": "A rather large toolset that expand on existing PCG capabilities in unique ways.",
   "Category": "PCG",
@@ -12,7 +12,7 @@
   "SupportURL": "https://discord.gg/mde2vC5gbE",
   "CanContainContent": true,
   "EngineVersion": "5.6.0",
-  "IsBetaVersion": true,
+  "IsBetaVersion": false,
   "IsExperimentalVersion": false,
   "Installed": false,
   "Modules": [

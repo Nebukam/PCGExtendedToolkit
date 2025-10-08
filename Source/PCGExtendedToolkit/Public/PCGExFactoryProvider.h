@@ -17,6 +17,7 @@
 
 #define PCGEX_FACTORY_NAME_PRIORITY FName(FString::Printf(TEXT("(%d) "), Priority) +  GetDisplayName())
 #define PCGEX_FACTORY_NEW_OPERATION(_TYPE) TSharedPtr<FPCGEx##_TYPE> NewOperation = MakeShared<FPCGEx##_TYPE>();
+#define PCGEX_FACTORY_TYPE_ID(_TYPE)
 
 ///
 
@@ -28,12 +29,33 @@ namespace PCGExData
 
 struct FPCGExFactoryProviderContext;
 
+#define PCG_DECLARE_TYPE_INFO(...)
+#define PCG_ASSIGN_TYPE_INFO(...)
+#define PCG_DEFINE_TYPE_INFO(...)
+
+USTRUCT()
+struct FPCGDataTypeInfo
+{
+	GENERATED_BODY()
+	
+#if WITH_EDITOR
+	virtual bool Hidden() const { return false; }
+#endif // WITH_EDITOR
+};
+
+USTRUCT()
+struct FPCGDataTypeInfoPoint : public FPCGDataTypeInfo
+{
+	GENERATED_BODY()
+};
+
 namespace PCGExFactories
 {
 	enum class EType : uint8
 	{
 		None = 0,
 		Instanced,
+		Filter,
 		FilterGroup,
 		FilterPoint,
 		FilterNode,
@@ -72,6 +94,14 @@ namespace PCGExFactories
 	static inline TSet<EType> ClusterOnlyFilters = {EType::FilterEdge, EType::FilterNode, EType::NodeState};
 }
 
+
+USTRUCT(DisplayName="PCGEx Subnode")
+struct FPCGExFactoryDataTypeInfo : public FPCGDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 /**
  * 
  */
@@ -95,6 +125,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFactoryData : public UPCGExParamDataBase
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExFactoryDataTypeInfo)
+
 	UPROPERTY()
 	int32 Priority = 0;
 

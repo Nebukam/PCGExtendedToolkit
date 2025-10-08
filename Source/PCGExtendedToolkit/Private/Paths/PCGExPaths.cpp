@@ -4,11 +4,12 @@
 #include "Paths/PCGExPaths.h"
 
 #include "Data/PCGSplineData.h"
+#include "Data/PCGSplineStruct.h"
 #include "GeomTools.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Graph/Probes/PCGExProbeDirection.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPaths"
 #define PCGEX_NAMESPACE PCGExPaths
@@ -108,6 +109,38 @@ namespace PCGExPaths
 	bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData)
 	{
 		return GetClosedLoop(InData->GetIn());
+	}
+
+	void SetIsHole(UPCGData* InData, const bool bIsHole)
+	{
+		FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetMutableAttribute<bool>(InData, HoleIdentifier);
+
+		if (!bIsHole)
+		{
+			if (Attr) { InData->Metadata->DeleteAttribute(HoleIdentifier); }
+			return;
+		}
+
+		if (!Attr) { Attr = InData->Metadata->CreateAttribute<bool>(HoleIdentifier, bIsHole, true, true); }
+		PCGExDataHelpers::SetDataValue(Attr, bIsHole);
+	}
+
+	void SetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData, const bool bIsHole)
+	{
+		SetIsHole(InData->GetOut(), bIsHole);
+	}
+
+	bool GetIsHole(const UPCGData* InData)
+	{
+		if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(InData)) { return SplineData->IsClosed(); }
+
+		const FPCGMetadataAttribute<bool>* Attr = PCGEx::TryGetConstAttribute<bool>(InData, HoleIdentifier);
+		return Attr ? PCGExDataHelpers::ReadDataValue(Attr) : false;
+	}
+
+	bool GetIsHole(const TSharedPtr<PCGExData::FPointIO>& InData)
+	{
+		return GetIsHole(InData->GetIn());
 	}
 
 	void FetchPrevNext(const TSharedPtr<PCGExData::FFacade>& InFacade, const TArray<PCGExMT::FScope>& Loops)
@@ -957,6 +990,11 @@ namespace PCGExPaths
 		return FMath::Min(OutEdgeIndex, this->LastEdge);
 	}
 
+	FCrossing::FCrossing(const uint64 InHash, const FVector& InLocation, const double InAlpha, const bool InIsPoint, const FVector& InDir)
+		: Hash(InHash), Location(InLocation), Alpha(InAlpha), bIsPoint(InIsPoint), Dir(InDir)
+	{
+	}
+
 #pragma endregion
 
 #pragma endregion
@@ -1039,6 +1077,8 @@ namespace PCGExPaths
 	}
 }
 
+PCGEX_SETTING_VALUE_IMPL(FPCGExSplineMeshMutationDetails, StartPush, double, StartPushInput, StartPushInputAttribute, StartPushConstant);
+PCGEX_SETTING_VALUE_IMPL(FPCGExSplineMeshMutationDetails, EndPush, double, EndPushInput, EndPushInputAttribute, EndPushConstant);
 
 bool FPCGExSplineMeshMutationDetails::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {

@@ -9,6 +9,11 @@
 
 #include "PCGExDataFilter.generated.h"
 
+namespace PCGExData
+{
+	class FPointIO;
+}
+
 class FPCGMetadataAttributeBase;
 
 namespace PCGEx

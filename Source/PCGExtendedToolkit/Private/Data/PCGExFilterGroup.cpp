@@ -42,7 +42,7 @@ namespace PCGExFilterGroup
 
 	bool FFilterGroup::InitManaged(FPCGExContext* InContext)
 	{
-		for (const UPCGExFilterFactoryData* ManagedFactory : *ManagedFactories)
+		for (const UPCGExPointFilterFactoryData* ManagedFactory : *ManagedFactories)
 		{
 			if (SupportedFactoriesTypes && !SupportedFactoriesTypes->Contains(ManagedFactory->GetFactoryType()))
 			{
@@ -120,7 +120,7 @@ namespace PCGExFilterGroup
 	}
 }
 
-#define PCGEX_FILTERGROUP_FOREACH(_BODY) for (const TObjectPtr<const UPCGExFilterFactoryData>& SubFilter : FilterFactories) { if (!IsValid(SubFilter)) { continue; } _BODY }
+#define PCGEX_FILTERGROUP_FOREACH(_BODY) for (const TObjectPtr<const UPCGExPointFilterFactoryData>& SubFilter : FilterFactories) { if (!IsValid(SubFilter)) { continue; } _BODY }
 
 bool UPCGExFilterGroupFactoryData::SupportsProxyEvaluation() const
 {

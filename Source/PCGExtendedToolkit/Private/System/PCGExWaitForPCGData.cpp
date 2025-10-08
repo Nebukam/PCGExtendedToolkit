@@ -12,8 +12,10 @@
 #include "Misc/PCGExSortPoints.h"
 #include "Tasks/Task.h"
 #include "Async/Async.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWaitForPCGDataElement"
 #define PCGEX_NAMESPACE WaitForPCGData
@@ -44,7 +46,7 @@ TArray<FPCGPinProperties> UPCGExWaitForPCGDataSettings::OutputPinProperties() co
 {
 	if (!bOutputRoaming) { return CachedPins; }
 	TArray<FPCGPinProperties> PinProperties = CachedPins;
-	PCGEX_PIN_ANY(RoamingPin, "Roaming data that isn't part of the template output but still exists.", Normal, {})
+	PCGEX_PIN_ANY(RoamingPin, "Roaming data that isn't part of the template output but still exists.", Normal)
 	return PinProperties;
 }
 
@@ -404,7 +406,7 @@ namespace PCGExWaitForPCGData
 						PCGEX_ASYNC_THIS
 						This->Inspect(Index);
 					},
-					LowLevelTasks::ETaskPriority::BackgroundLow
+					UE::Tasks::ETaskPriority::BackgroundLow
 				);
 		}
 	}

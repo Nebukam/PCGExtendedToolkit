@@ -4,6 +4,8 @@
 #include "Debug/PCGExDrawAttributes.h"
 
 #include "PCGExMath.h"
+#include "Data/PCGExPointElements.h"
+#include "Data/PCGExPointIO.h"
 
 // @SPLASH_DAMAGE_CHANGE [IMPROVEMENT] #SDTechArt - BEGIN: Fixing Non Unity Warnings ("C3861: '####': identifier not found") by adding missing Debug header
 #include "DrawDebugHelpers.h"

@@ -3,10 +3,11 @@
 
 #include "Misc/PCGExBitmaskMerge.h"
 
+#include "PCGParamData.h"
 #include "PCGPin.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Misc/PCGExBitmask.h"
+#include "Constants/PCGExBitmask.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE BitmaskMerge
@@ -16,14 +17,14 @@
 TArray<FPCGPinProperties> UPCGExBitmaskMergeSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAMS(FName("Bitmasks"), TEXT("Bitmask."), Required, {})
+	PCGEX_PIN_PARAMS(FName("Bitmasks"), TEXT("Bitmask."), Required)
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExBitmaskMergeSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(FName("Bitmask"), TEXT("Bitmask."), Required, {})
+	PCGEX_PIN_PARAM(FName("Bitmask"), TEXT("Bitmask."), Required)
 	return PinProperties;
 }
 

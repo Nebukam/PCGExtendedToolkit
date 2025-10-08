@@ -3,6 +3,7 @@
 
 #include "AssetStaging/PCGExAssetCollectionToSet.h"
 
+
 #include "PCGGraph.h"
 #include "PCGPin.h"
 #include "Collections/PCGExActorCollection.h"
@@ -31,7 +32,7 @@ TArray<FPCGPinProperties> UPCGExAssetCollectionToSetSettings::InputPinProperties
 TArray<FPCGPinProperties> UPCGExAssetCollectionToSetSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(FName("AttributeSet"), TEXT("Attribute set generated from collection"), Required, {})
+	PCGEX_PIN_PARAM(FName("AttributeSet"), TEXT("Attribute set generated from collection"), Required)
 	return PinProperties;
 }
 

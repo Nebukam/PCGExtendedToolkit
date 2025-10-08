@@ -20,7 +20,7 @@ PCGEX_INITIALIZE_ELEMENT(SplineToPath)
 TArray<FPCGPinProperties> UPCGExSplineToPathSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = TArray<FPCGPinProperties>();
-	PCGEX_PIN_POLYLINES(PCGExSplineToPath::SourceSplineLabel, "The splines to convert to paths.", Required, {})
+	PCGEX_PIN_POLYLINES(PCGExSplineToPath::SourceSplineLabel, "The splines to convert to paths.", Required)
 	return PinProperties;
 }
 
