@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Engine/StaticMesh.h"
 #include "StaticMeshResources.h"
+#include "Metadata/PCGMetadataCommon.h"
 #include "UObject/SoftObjectPath.h"
 
 #include "PCGExMT.h"
@@ -14,7 +15,6 @@
 
 
 struct FPCGPinProperties;
-struct FPCGAttributeIdentifier;
 
 UENUM()
 enum class EPCGExTriangulationType : uint8

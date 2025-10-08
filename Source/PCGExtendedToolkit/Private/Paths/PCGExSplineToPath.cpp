@@ -42,11 +42,13 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 	Context->MainPoints = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->MainPoints->OutputPin = Settings->GetMainOutputPin();
 
-	auto AddTags = [&](const TSet<FString>& SourceTags)
+	// Seems there is a bug with Static Analysis where lambda's result in false positive warnings with dereferenced pointers. The Context ptr was being referenced directly
+	// To bypass this, we dereference the pointer ourselves passing in the reference instead
+	auto AddTags = [&ContextRef = *Context](const TSet<FString>& SourceTags)
 	{
 		TArray<FString> Tags = SourceTags.Array();
-		Context->TagForwarding.Prune(Tags);
-		Context->Tags.Add(Tags);
+		ContextRef.TagForwarding.Prune(Tags);
+		ContextRef.Tags.Add(Tags);
 	};
 
 	if (!Targets.IsEmpty())

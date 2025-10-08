@@ -7,6 +7,7 @@
 #include "UObject/Package.h"
 #include "Engine/StaticMesh.h"
 #include "StaticMeshResources.h"
+#include "Engine/World.h"
 
 #if WITH_EDITOR
 #include "ContentBrowserModule.h"

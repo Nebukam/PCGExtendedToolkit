@@ -192,7 +192,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 		Context->Plots.Add(PlotFacade);
 	}
 
-	if (Context->Plots.IsEmpty())
+	if (Context && Context->Plots.IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing valid Plots."));
 		return false;

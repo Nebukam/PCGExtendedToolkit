@@ -3,6 +3,7 @@
 
 #include "Debug/PCGExDrawAttributes.h"
 
+#include "DrawDebugHelpers.h"
 #include "PCGExMath.h"
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGExPointIO.h"

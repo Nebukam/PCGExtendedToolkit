@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Math/MathFwd.h"
+#include "Data/PCGExPointElements.h"
 #include "PCGExOrientOperation.h"
 #include "PCGExOrientAverage.generated.h"
 
