@@ -792,6 +792,8 @@ namespace PCGExMT
 
 		FPCGAsyncState AsyncState = SharedContext.Get()->AsyncState;
 
+		if (ShouldStop()) { return false; }
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			OnIterationCallback(Index, Scope);
