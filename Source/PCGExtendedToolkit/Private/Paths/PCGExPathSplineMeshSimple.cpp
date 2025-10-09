@@ -164,8 +164,6 @@ bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) 
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
-	Context->MainBatch->Output();
-
 	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
 
@@ -233,11 +231,9 @@ namespace PCGExPathSplineMeshSimple
 
 		LastIndex = PointDataFacade->GetNum() - 1;
 
-		SplineMeshComponents.Init(nullptr, bClosedLoop ? LastIndex + 1 : LastIndex);
-
-		Meshes.Init(nullptr, SplineMeshComponents.Num());
-		if (MaterialPathReader) { Materials.Init(nullptr, SplineMeshComponents.Num()); }
-		Segments.Init(PCGExPaths::FSplineMeshSegment(), SplineMeshComponents.Num());
+		Segments.Init(PCGExPaths::FSplineMeshSegment(), bClosedLoop ? LastIndex + 1 : LastIndex);
+		Meshes.Init(nullptr, Segments.Num());
+		if (MaterialPathReader) { Materials.Init(nullptr, Segments.Num()); }
 
 		StartParallelLoopForPoints();
 
@@ -252,14 +248,6 @@ namespace PCGExPathSplineMeshSimple
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PathSplineMeshSimple::ProcessPoints);
-
-		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
-
-		if (!TargetActor)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
-			return;
-		}
 
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
@@ -359,128 +347,80 @@ namespace PCGExPathSplineMeshSimple
 			return;
 		}
 
-		MainThreadToken = AsyncManager->TryCreateToken(FName(TEXT("CreateComponents")));
+		//
 
-		PCGEX_SUBSYSTEM
-		PCGExSubsystem->RegisterBeginTickAction(
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->CreateComponents();
-			});
-	}
-
-	void FProcessor::CreateComponents()
-	{
-		ON_SCOPE_EXIT { PCGEX_ASYNC_RELEASE_TOKEN(MainThreadToken) };
-
-		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
-		const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
+		TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
+		ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
+		DataTags = PointDataFacade->Source->Tags->FlattenToArrayOfNames();
 
 		if (!TargetActor)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
+			bIsProcessorValid = false;
 			return;
 		}
 
-		for (int i = 0; i < Segments.Num(); ++i)
+		const int32 FinalNumSegments = Segments.Num();
+
+		if (!FinalNumSegments)
 		{
-			const PCGExPaths::FSplineMeshSegment& Segment = Segments[i];
-			if (!Meshes[i]) { continue; }
-
-			USplineMeshComponent* SplineMeshComponent = Context->ManagedObjects->New<USplineMeshComponent>(
-				TargetActor, MakeUniqueObjectName(
-					TargetActor, USplineMeshComponent::StaticClass(),
-					Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Meshes[i].GetName())), ObjectFlags);
-
-			SplineMeshComponents[i] = SplineMeshComponent;
+			bIsProcessorValid = false;
+			return;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InitComponentsTask)
-		InitComponentsTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-		{
-			PCGEX_ASYNC_THIS
-			This->InitComponentsScope(Scope);
-		};
-		InitComponentsTask->StartSubLoops(SplineMeshComponents.Num(), 256);
+		MainThreadLoop = MakeShared<PCGExMT::FScopeLoopOnMainThread>(FinalNumSegments);
+		MainThreadLoop->OnIterationCallback = [&](const int32 Index, const PCGExMT::FScope& Scope) { ProcessSegment(Index); };
+
+		PCGEX_ASYNC_HANDLE_CHKD_VOID(AsyncManager, MainThreadLoop)
 	}
 
-	void FProcessor::InitComponentsScope(const PCGExMT::FScope& Scope)
+	void FProcessor::ProcessSegment(const int32 Index)
 	{
-		const TArray<FName> DataTags = PointDataFacade->Source->Tags->FlattenToArrayOfNames();
+		const PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
+		if (!Meshes[Index]) { return; }
 
-		PCGEX_SCOPE_LOOP(Index)
+		USplineMeshComponent* SplineMeshComponent = Context->ManagedObjects->New<USplineMeshComponent>(
+			TargetActor, MakeUniqueObjectName(
+				TargetActor, USplineMeshComponent::StaticClass(),
+				Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Meshes[Index].GetName())), ObjectFlags);
+
+		Segment.ApplySettings(SplineMeshComponent); // Init Component
+
+		if (MaterialPathReader)
 		{
-			const PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
-			USplineMeshComponent* SplineMeshComponent = SplineMeshComponents[Index];
+			int32 SlotIndex = Settings->MaterialSlotConstant;
 
-			if (!SplineMeshComponent || !Meshes[Index]) { continue; }
+			if (SlotIndex < 0) { SlotIndex = 0; }
+			if (Materials[Index]) { SplineMeshComponent->SetMaterial(SlotIndex, Materials[Index]); }
+		}
 
-			Segment.ApplySettings(SplineMeshComponent); // Init Component
+		if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
+		if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
 
-			if (MaterialPathReader)
+		Settings->StaticMeshDescriptor.InitComponent(SplineMeshComponent);
+
+		if (!Settings->PropertyOverrideDescriptions.IsEmpty())
+		{
+			FPCGObjectOverrides DescriptorOverride(SplineMeshComponent);
+			DescriptorOverride.Initialize(Settings->PropertyOverrideDescriptions, SplineMeshComponent, PointDataFacade->Source->GetIn(), Context);
+			if (DescriptorOverride.IsValid() && !DescriptorOverride.Apply(Index))
 			{
-				int32 SlotIndex = Settings->MaterialSlotConstant;
-
-				if (SlotIndex < 0) { SlotIndex = 0; }
-				if (Materials[Index]) { SplineMeshComponent->SetMaterial(SlotIndex, Materials[Index]); }
-			}
-
-			if (Settings->TaggingDetails.bForwardInputDataTags) { SplineMeshComponent->ComponentTags.Append(DataTags); }
-			if (!Segment.Tags.IsEmpty()) { SplineMeshComponent->ComponentTags.Append(Segment.Tags.Array()); }
-
-			Settings->StaticMeshDescriptor.InitComponent(SplineMeshComponent);
-
-			if (!Settings->PropertyOverrideDescriptions.IsEmpty())
-			{
-				FPCGObjectOverrides DescriptorOverride(SplineMeshComponent);
-				DescriptorOverride.Initialize(Settings->PropertyOverrideDescriptions, SplineMeshComponent, PointDataFacade->Source->GetIn(), Context);
-				if (DescriptorOverride.IsValid() && !DescriptorOverride.Apply(Index))
-				{
-					PCGLog::LogWarningOnGraph(FText::Format(LOCTEXT("FailOverride", "Failed to override descriptor for input {0}"), Index));
-				}
+				PCGLog::LogWarningOnGraph(FText::Format(LOCTEXT("FailOverride", "Failed to override descriptor for input {0}"), Index));
 			}
 		}
+
+		SplineMeshComponent->SetStaticMesh(Meshes[Index]); // Will trigger a force rebuild, so put this last
+
+		Context->AttachManagedComponent(
+			TargetActor, SplineMeshComponent,
+			FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
+
+		Context->AddNotifyActor(TargetActor);
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		PointDataFacade->WriteFastest(AsyncManager);
-	}
-
-	void FProcessor::Output()
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMeshSimple::FProcessor::Output);
-
-		// TODO : Resolve per-point target actor...? irk.
-		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
-
-		if (!TargetActor)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
-			return;
-		}
-
-		Context->AddNotifyActor(TargetActor);
-
-		const TArray<FName> DataTags = PointDataFacade->Source->Tags->FlattenToArrayOfNames();
-
-		for (int i = 0; i < SplineMeshComponents.Num(); i++)
-		{
-			UStaticMesh* Mesh = Meshes[i];
-			if (!Mesh) { continue; }
-
-			USplineMeshComponent* SplineMeshComponent = SplineMeshComponents[i];
-			if (!SplineMeshComponent) { continue; }
-
-			SplineMeshComponent->SetStaticMesh(Mesh); // Will trigger a force rebuild, so put this last
-
-			Context->AttachManagedComponent(
-				TargetActor, SplineMeshComponent,
-				FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
-
-			Context->AddNotifyActor(TargetActor);
-		}
 	}
 }
 

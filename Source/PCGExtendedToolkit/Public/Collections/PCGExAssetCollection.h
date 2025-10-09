@@ -1,4 +1,4 @@
-// Copyright 2025 Timothé Lapetite and contributors
+﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Engine/DataAsset.h"
+#include "Metadata/Accessors/IPCGAttributeAccessor.h"
+#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 #if WITH_EDITOR
 #include "AssetRegistry/AssetData.h"
@@ -1041,111 +1043,30 @@ protected:
 		const bool bBuildStaging = false) const
 	{
 		const UPCGMetadata* Metadata = InAttributeSet->Metadata;
-
-		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Metadata);
-		if (Infos->Attributes.IsEmpty()) { return false; }
-
-		const PCGEx::FAttributeIdentity* PathIdentity = Infos->Find(Details.AssetPathSourceAttribute);
-		const PCGEx::FAttributeIdentity* WeightIdentity = Infos->Find(Details.WeightSourceAttribute);
-		const PCGEx::FAttributeIdentity* CategoryIdentity = Infos->Find(Details.CategorySourceAttribute);
-
-		if (!PathIdentity || !PCGExAssetCollection::SupportedPathTypes.Contains(PathIdentity->UnderlyingType))
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Path attribute '{0}' is either of unsupported type or not in the metadata. Expecting SoftObjectPath/String/Name"), FText::FromName(Details.AssetPathSourceAttribute)));
-			return false;
-		}
-
-		if (WeightIdentity)
-		{
-			if (!PCGExAssetCollection::SupportedWeightTypes.Contains(WeightIdentity->UnderlyingType))
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Weight attribute '{0}' is of unsupported type. Expecting Float/Double/int32/int64"), FText::FromName(Details.WeightSourceAttribute)));
-				WeightIdentity = nullptr;
-			}
-			else if (Details.WeightSourceAttribute.IsNone())
-			{
-				CategoryIdentity = nullptr;
-			}
-		}
-
-		if (CategoryIdentity)
-		{
-			if (!PCGExAssetCollection::SupportedCategoryTypes.Contains(CategoryIdentity->UnderlyingType))
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Category attribute '{0}' is of unsupported type. Expecting String/Name"), FText::FromName(Details.CategorySourceAttribute)));
-				CategoryIdentity = nullptr;
-			}
-			else if (Details.CategorySourceAttribute.IsNone())
-			{
-				CategoryIdentity = nullptr;
-			}
-		}
-
+        
 		TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Metadata);
 
 		const int32 NumEntries = Keys->GetNum();
-		if (NumEntries == 0)
+		if (NumEntries <= 0)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attribute set is empty."));
 			return false;
 		}
 
+		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Metadata);
+		if (Infos->Attributes.IsEmpty()) { return false; }
+
+#define PCGEX_PROCESS_ATTRIBUTE(_TYPE, _NAME, _BODY) \
+		if (const PCGEx::FAttributeIdentity* _NAME = Infos->Find(Details._NAME)){ \
+			if (TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(Infos->Attributes[Infos->Map[_NAME->Identifier]], Metadata)){ \
+				TArray<_TYPE> Values; PCGEx::InitArray(Values, NumEntries); \
+				if (Accessor->GetRange<_TYPE>(Values, 0, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible)){ for (int i = 0; i < NumEntries; i++) { _BODY } } } }
+		
 		PCGEx::InitArray(InCollection->Entries, NumEntries);
 
-		// Path value
-
-		auto SetEntryPath = [&](const int32 Index, const FSoftObjectPath& Path) { InCollection->Entries[Index].SetAssetPath(Path); };
-
-#define PCGEX_FOREACH_COLLECTION_ENTRY(_TYPE, _NAME, _BODY)\
-		const FPCGMetadataAttribute<_TYPE>* A = Metadata->GetConstTypedAttribute<_TYPE>(_NAME);\
-		for (int i = 0; i < NumEntries; i++) { _TYPE V = A->GetValueFromItemKey(i); _BODY }
-
-		if (PathIdentity->UnderlyingType == EPCGMetadataTypes::SoftObjectPath)
-		{
-			PCGEX_FOREACH_COLLECTION_ENTRY(FSoftObjectPath, PathIdentity->Identifier, { SetEntryPath(i, V); })
-		}
-		else if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
-		{
-			PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Identifier, { SetEntryPath(i, FSoftObjectPath(V)); })
-		}
-		else
-		{
-			PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Identifier, { SetEntryPath(i, FSoftObjectPath(V.ToString())); })
-		}
-
-
-		// Weight value
-		if (WeightIdentity)
-		{
-#define PCGEX_ATT_TOINT32(_NAME, _TYPE)\
-			if (WeightIdentity->UnderlyingType == EPCGMetadataTypes::_NAME){ \
-				PCGEX_FOREACH_COLLECTION_ENTRY(_TYPE, WeightIdentity->Identifier, {  InCollection->Entries[i].Weight = static_cast<int32>(V); }) }
-
-			PCGEX_ATT_TOINT32(Integer32, int32)
-			else
-				PCGEX_ATT_TOINT32(Double, double)
-				else
-					PCGEX_ATT_TOINT32(Float, float)
-					else
-						PCGEX_ATT_TOINT32(Integer64, int64)
-
-#undef PCGEX_ATT_TOINT32
-		}
-
-		// Category value
-		if (CategoryIdentity)
-		{
-			if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::String)
-			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FString, WeightIdentity->Identifier, { InCollection->Entries[i].Category = FName(V); })
-			}
-			else if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::Name)
-			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FName, WeightIdentity->Identifier, { InCollection->Entries[i].Category = V; })
-			}
-		}
-
-#undef PCGEX_FOREACH_COLLECTION_ENTRY
+		PCGEX_PROCESS_ATTRIBUTE(FSoftObjectPath, AssetPathSourceAttribute, InCollection->Entries[i].SetAssetPath(Values[i]); )
+		PCGEX_PROCESS_ATTRIBUTE(double, WeightSourceAttribute, InCollection->Entries[i].Weight = Values[i]; )
+		PCGEX_PROCESS_ATTRIBUTE(FName, CategorySourceAttribute, InCollection->Entries[i].Category = Values[i]; )
 
 		if (bBuildStaging) { InCollection->RebuildStagingData(false); }
 

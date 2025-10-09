@@ -4,6 +4,7 @@
 #include "PCGExSubSystem.h"
 
 #include "Data/Sharing/PCGExDataSharing.h"
+#include "Helpers/PCGAsync.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -164,6 +165,10 @@ TArrayView<const int32> UPCGExSubSystem::GetIndexRange(const int32 Start, const 
 
 void UPCGExSubSystem::ExecuteBeginTickActions()
 {
+
+	const float OutOfTickBudgetInSeconds = FMath::Max(1.0f, FPCGAsync::ConsoleVar::CVarAsyncOutOfTickBudgetInMilliseconds.GetValueOnAnyThread()) / 1000.f;
+	EndTime = FPlatformTime::Seconds() + OutOfTickBudgetInSeconds;
+	
 	TArray<FTickAction> Actions;
 	TArray<PCGEx::FPolledEvent> Events;
 

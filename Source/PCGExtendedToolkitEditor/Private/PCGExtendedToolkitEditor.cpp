@@ -9,14 +9,6 @@
 #include "EditorStyleSet.h"
 #include "Editor.h"
 
-#define PCGEX_ADD_ICON(_NAME) \
-Style->Set("ClassIcon." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeIcon));\
-Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeThumbnail));
-
-#define PCGEX_ADD_PIN_EXTRA_ICON(_NAME) \
-AppStyle.Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGEx_Pin_" #_NAME), TEXT(".svg")), SizePin));\
-Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGEx_Pin_" #_NAME), TEXT(".svg")), SizePin));
-
 #include "AssetToolsModule.h"
 #include "ContentBrowserMenuContexts.h"
 #include "IAssetTools.h"
@@ -49,6 +41,14 @@ Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContent
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
+
+#define PCGEX_ADD_ICON(_NAME) \
+Style->Set("ClassIcon." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeIcon));\
+Style->Set("ClassThumbnail." # _NAME, new FSlateImageBrush(Style->RootToContentDir(TEXT( "" #_NAME), TEXT(".png")), SizeThumbnail));
+
+#define PCGEX_ADD_PIN_EXTRA_ICON(_NAME) \
+AppStyle.Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));\
+Style->Set("PCGEx.Pin." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGExPin_" #_NAME), TEXT(".svg")), SizePin));
 
 #define PCGEX_FOREACH_CUSTOM_DATA_TYPE(MACRO, ...)\
 MACRO(Action, __VA_ARGS__) \

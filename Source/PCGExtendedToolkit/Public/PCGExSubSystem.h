@@ -104,7 +104,10 @@ public:
 
 #pragma endregion
 
+	FORCEINLINE double GetEndTime() const { return EndTime; }
+	
 protected:
+	double EndTime = 0.0;
 	TArray<int32> IndexBuffer;
 	bool bWantsTick = false;
 

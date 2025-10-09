@@ -7,14 +7,13 @@
 #include "Engine/StaticMesh.h"
 #include "StaticMeshResources.h"
 #include "UObject/SoftObjectPath.h"
+#include "Metadata/PCGMetadataCommon.h"
 
 #include "PCGExMT.h"
 
 #include "PCGExGeoMesh.generated.h" // Credit goes to @Syscrusher attention to detail :D
 
-
 struct FPCGPinProperties;
-struct FPCGAttributeIdentifier;
 
 UENUM()
 enum class EPCGExTriangulationType : uint8
@@ -99,7 +98,6 @@ namespace PCGExGeo
 		TSet<uint64> Edges;
 		TArray<FIntVector3> Triangles;
 		TArray<FIntVector3> Tri_Adjacency;
-		TBitArray<> Tri_IsOnHull;
 		TSet<int32> HullIndices;
 		TSet<uint64> HullEdges;
 

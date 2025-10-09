@@ -1,4 +1,4 @@
-// Copyright 2025 Timothé Lapetite and contributors
+﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Collections/PCGExAssetCollection.h"
@@ -7,6 +7,7 @@
 #include "UObject/Package.h"
 #include "Engine/StaticMesh.h"
 #include "StaticMeshResources.h"
+#include "Engine/World.h"
 
 #if WITH_EDITOR
 #include "ContentBrowserModule.h"

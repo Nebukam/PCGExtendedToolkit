@@ -168,8 +168,6 @@ protected:
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
 	virtual bool PostBoot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-
-	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 };
 
 namespace PCGExPathSplineMesh
@@ -188,7 +186,6 @@ namespace PCGExPathSplineMesh
 		bool bUseTags = false;
 
 		int32 LastIndex = 0;
-		TWeakPtr<PCGExMT::FAsyncToken> MainThreadToken;
 
 		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
 
@@ -206,8 +203,11 @@ namespace PCGExPathSplineMesh
 
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 
+		TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
-		TArray<USplineMeshComponent*> SplineMeshComponents;
+
+		AActor* TargetActor = nullptr;
+		EObjectFlags ObjectFlags = RF_NoFlags;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
@@ -221,12 +221,8 @@ namespace PCGExPathSplineMesh
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void OnPointsProcessingComplete() override;
-
-		void CreateComponents();
-		void InitComponentsScope(const PCGExMT::FScope& Scope);
+		void ProcessSegment(const int32 Index);
 
 		virtual void CompleteWork() override;
-
-		virtual void Output() override;
 	};
 }
