@@ -7,6 +7,7 @@
 #include <atomic>
 
 #include "CoreMinimal.h"
+#include "PCGExContext.h"
 #include "Misc/ScopeRWLock.h"
 #include "UObject/ObjectPtr.h"
 #include "Templates/SharedPointer.h"
@@ -24,17 +25,13 @@
 
 #define PCGEX_ASYNC_TASK_NAME(_NAME) virtual FString HandleId() const override { return TEXT(""#_NAME); }
 
-#define PCGEX_ASYNC_GROUP_CHKD_VOID(_MANAGER, _NAME) \
-	TSharedPtr<PCGExMT::FTaskGroup> _NAME = _MANAGER ? _MANAGER->TryCreateTaskGroup(FName(#_NAME)) : nullptr; \
-	if(!_NAME){ return; }
+#define PCGEX_ASYNC_GROUP_CHKD_VOID(_MANAGER, _NAME) TSharedPtr<PCGExMT::FTaskGroup> _NAME = _MANAGER ? _MANAGER->TryCreateTaskGroup(FName(#_NAME)) : nullptr;	if(!_NAME){ return; }
+#define PCGEX_ASYNC_GROUP_CHKD_CUSTOM(_MANAGER, _NAME, _RET) TSharedPtr<PCGExMT::FTaskGroup> _NAME= _MANAGER ? _MANAGER->TryCreateTaskGroup(FName(#_NAME)) : nullptr; if(!_NAME){ return _RET; }
+#define PCGEX_ASYNC_GROUP_CHKD(_MANAGER, _NAME) PCGEX_ASYNC_GROUP_CHKD_CUSTOM(_MANAGER, _NAME, false);
 
-#define PCGEX_ASYNC_GROUP_CHKD(_MANAGER, _NAME) \
-	TSharedPtr<PCGExMT::FTaskGroup> _NAME= _MANAGER ? _MANAGER->TryCreateTaskGroup(FName(#_NAME)) : nullptr; \
-	if(!_NAME){ return false; }
-
-#define PCGEX_ASYNC_GROUP_CHKD_CUSTOM(_MANAGER, _NAME, _RET) \
-	TSharedPtr<PCGExMT::FTaskGroup> _NAME= _MANAGER ? _MANAGER->TryCreateTaskGroup(FName(#_NAME)) : nullptr; \
-	if(!_NAME){ return _RET; }
+#define PCGEX_ASYNC_HANDLE_CHKD_VOID(_MANAGER, _HANDLE) if (!_MANAGER->TryRegisterHandle(_HANDLE)){return;}
+#define PCGEX_ASYNC_HANDLE_CHKD_CUSTOM(_MANAGER, _HANDLE, _RET) if (!_MANAGER->TryRegisterHandle(_HANDLE)){return _RET;}
+#define PCGEX_ASYNC_HANDLE_CHKD(_MANAGER, _HANDLE) PCGEX_ASYNC_HANDLE_CHKD_CUSTOM(_MANAGER, _HANDLE, false);
 
 #define PCGEX_ASYNC_RELEASE_TOKEN(_TOKEN) if(const TSharedPtr<PCGExMT::FAsyncToken> Token = _TOKEN.Pin()){ Token->Release(); _TOKEN.Reset(); }
 #define PCGEX_ASYNC_RELEASE_TOKEN_ELSE(_TOKEN) if(const TSharedPtr<PCGExMT::FAsyncToken> Token = _TOKEN.Pin()){ Token->Release(); _TOKEN.Reset(); }else
@@ -138,7 +135,7 @@ namespace PCGExMT
 
 		bool IsCancelled() const { return bIsCancelled.load(std::memory_order_acquire); }
 
-		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, int32 InHandleIdx = -1);
+		virtual bool SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, int32 InHandleIdx = -1);
 		void SetParent(const TSharedPtr<FAsyncMultiHandle>& InParent);
 
 		virtual bool Start();    // Return whether the task is running or not
@@ -165,9 +162,9 @@ namespace PCGExMT
 
 		FCompletionCallback OnCompleteCallback; // Only called with handle was not cancelled
 
-		virtual void SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, int32 InHandleIdx) override;
+		virtual bool SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, int32 InHandleIdx) override;
 
-		void IncrementPendingTasks();
+		bool IncrementPendingTasks();
 		void IncrementCompletedTasks();
 
 		virtual bool IsAvailable() const;
@@ -252,6 +249,7 @@ namespace PCGExMT
 		void ReserveTasks(const int32 NumTasks);
 
 		TSharedPtr<FTaskGroup> TryCreateTaskGroup(const FName& InName);
+		bool TryRegisterHandle(const TSharedPtr<FAsyncHandle>& InHandle);
 		TWeakPtr<FAsyncToken> TryCreateToken(const FName& TokenName);
 
 		void DeferredReset(FSimpleCallback&& Callback);
@@ -264,7 +262,7 @@ namespace PCGExMT
 		std::atomic<bool> bIsResetting{false};
 		bool IsResetting() const { return bIsResetting.load(std::memory_order_acquire); }
 
-		TArray<TWeakPtr<FTask>> Tasks;
+		TArray<TWeakPtr<FAsyncHandle>> Tasks;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
 		TArray<TSharedPtr<FAsyncToken>> Tokens;
 
@@ -510,4 +508,42 @@ namespace PCGExMT
 	TSharedPtr<FDeferredCallbackHandle> DeferredCallback(FPCGExContext* InContext, FSimpleCallback&& InCallback);
 	PCGEXTENDEDTOOLKIT_API
 	void CancelDeferredCallback(const TSharedPtr<FDeferredCallbackHandle>& InCallback);
+
+	//
+
+	class PCGEXTENDEDTOOLKIT_API FExecuteOnMainThread : public FAsyncHandle
+	{
+	public:
+		FCompletionCallback OnCompleteCallback;
+
+		explicit FExecuteOnMainThread();
+		virtual bool Start() override;
+
+	protected:
+		double EndTime = 0.0;
+		
+		virtual void Schedule();
+		virtual bool Execute();
+		virtual void End(bool bIsCancellation) override;
+		
+		bool ShouldStop();
+		bool CanRun();
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FScopeLoopOnMainThread : public FExecuteOnMainThread
+	{
+	protected:
+		FScope Scope = FScope{};
+		
+	public:
+		using FIterationCallback = std::function<void(const int32, const FScope&)>;
+		FIterationCallback OnIterationCallback;
+
+		explicit FScopeLoopOnMainThread(const int32 NumIterations);
+		virtual bool Start() override;
+		virtual bool Cancel() override;
+
+	protected:
+		virtual bool Execute() override;
+	};
 }

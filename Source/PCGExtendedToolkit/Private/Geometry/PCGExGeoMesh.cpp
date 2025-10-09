@@ -256,6 +256,8 @@ namespace PCGExGeo
 		const int32 NumTriangles = Indices.Num() / 3;
 		Triangles.Init(FIntVector3(-1), NumTriangles);
 		Tri_Adjacency.Init(FIntVector3(-1), NumTriangles);
+		
+		TBitArray<> Tri_IsOnHull;
 		Tri_IsOnHull.Init(true, NumTriangles);
 
 		TMap<uint64, int32> EdgeMap;
