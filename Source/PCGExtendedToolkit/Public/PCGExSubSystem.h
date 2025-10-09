@@ -116,5 +116,9 @@ protected:
 	TArray<FTickAction> BeginTickActions;
 	TSet<PCGEx::FPolledEvent> PolledEvents;
 
+	const IConsoleVariable* CVarEditorTimePerFrame = nullptr;
+	const IConsoleVariable* CVarTimePerFrame = nullptr;
+	double GetTickBudgetInSeconds();
+	
 	void ExecuteBeginTickActions();
 };
