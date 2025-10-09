@@ -8,6 +8,8 @@
 #include "PCGExHelpers.h"
 #include "PCGExContext.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExSubSystem.h"
+#include "HAL/PlatformTime.h"
 
 namespace PCGExMT
 {
@@ -75,11 +77,11 @@ namespace PCGExMT
 		Cancel(); // Safety first
 	}
 
-	void FAsyncHandle::SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, const int32 InHandleIdx)
+	bool FAsyncHandle::SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, const int32 InHandleIdx)
 	{
 		HandleIdx = InHandleIdx;
 		Root = InRoot;
-		InRoot->IncrementPendingTasks();
+		return InRoot->IncrementPendingTasks();
 	}
 
 	void FAsyncHandle::SetParent(const TSharedPtr<FAsyncMultiHandle>& InParent)
@@ -92,8 +94,7 @@ namespace PCGExMT
 	bool FAsyncHandle::Start()
 	{
 		EAsyncHandleState ExpectedState = EAsyncHandleState::Idle;
-		CompareAndSetState(ExpectedState, EAsyncHandleState::Running);
-		return GetState() == EAsyncHandleState::Running;
+		return CompareAndSetState(ExpectedState, EAsyncHandleState::Running);
 	}
 
 	bool FAsyncHandle::Cancel()
@@ -152,16 +153,19 @@ namespace PCGExMT
 		if (!Cancel()) { Complete(); }
 	}
 
-	void FAsyncMultiHandle::SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, const int32 InHandleIdx)
+	bool FAsyncMultiHandle::SetRoot(const TSharedPtr<FAsyncMultiHandle>& InRoot, const int32 InHandleIdx)
 	{
 		bForceSync = InRoot->bForceSync;
-		FAsyncHandle::SetRoot(InRoot, InHandleIdx);
+		return FAsyncHandle::SetRoot(InRoot, InHandleIdx);
 	}
 
-	void FAsyncMultiHandle::IncrementPendingTasks()
+	bool FAsyncMultiHandle::IncrementPendingTasks()
 	{
+		if (!IsAvailable()) { return false; }
+
 		PendingTaskCount.fetch_add(1, std::memory_order_release);
 		HandleTaskStart();
+		return true;
 	}
 
 	void FAsyncMultiHandle::IncrementCompletedTasks()
@@ -322,7 +326,7 @@ namespace PCGExMT
 
 			// Cancel groups & tasks
 			Groups.Empty();
-			for (const TWeakPtr<FTask>& WeakTask : Tasks) { if (const TSharedPtr<FTask> Task = WeakTask.Pin()) { Task->Cancel(); } }
+			for (const TWeakPtr<FAsyncHandle>& WeakTask : Tasks) { if (const TSharedPtr<FAsyncHandle> Task = WeakTask.Pin()) { Task->Cancel(); } }
 			Tasks.Empty();
 		}
 
@@ -371,10 +375,38 @@ namespace PCGExMT
 		if (!IsAvailable()) { return nullptr; }
 
 		PCGEX_MAKE_SHARED(NewGroup, FTaskGroup, bForceSync, InName)
-		NewGroup->SetRoot(SharedThis(this), -1);
-		NewGroup->Start(); // So its state can be updated properly
+		if (NewGroup->SetRoot(SharedThis(this), -1))
+		{
+			// So its state can be updated properly
+			NewGroup->Start();
+			return Groups.Add_GetRef(NewGroup);
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
 
-		return Groups.Add_GetRef(NewGroup);
+	bool FTaskManager::TryRegisterHandle(const TSharedPtr<FAsyncHandle>& InHandle)
+	{
+		check(InHandle->HandleIdx == -1)
+
+		if (!IsAvailable()) { return false; }
+
+		int32 Idx = -1;
+		{
+			FWriteScopeLock WriteTasksLock(TasksLock);
+			Idx = Tasks.Add(InHandle);
+		}
+
+		TSharedPtr<FTaskManager> LocalManager = SharedThis(this);
+		if (InHandle->SetRoot(LocalManager, Idx))
+		{
+			InHandle->Start();
+			return true;
+		}
+
+		return false;
 	}
 
 	TWeakPtr<FAsyncToken> FTaskManager::TryCreateToken(const FName& TokenName)
@@ -440,7 +472,7 @@ namespace PCGExMT
 		}
 
 		TSharedPtr<FTaskManager> LocalManager = SharedThis(this);
-		InTask->SetRoot(LocalManager, Idx);
+		if (!InTask->SetRoot(LocalManager, Idx)) { return; }
 
 		PCGEX_SHARED_THIS_DECL
 		UE::Tasks::Launch(
@@ -651,5 +683,127 @@ namespace PCGExMT
 		{
 			// Hold off until ended
 		}
+	}
+
+	FScopeLoopOnMainThread::FScopeLoopOnMainThread(const int32 NumIterations)
+		: Scope(FScope(0, NumIterations, 0))
+	{
+	}
+
+
+	FExecuteOnMainThread::FExecuteOnMainThread()
+	{
+	}
+
+	bool FExecuteOnMainThread::Start()
+	{
+		if (!FAsyncHandle::Start()) { return false; }
+		if (!CanRun()) { Complete(); }
+		else { Schedule(); }
+		return true;
+	}
+
+	void FExecuteOnMainThread::Schedule()
+	{
+		if (!CanRun())
+		{
+			Complete();
+			return;
+		}
+
+		PCGEX_SUBSYSTEM
+		PCGExSubsystem->RegisterBeginTickAction(
+			[PCGEX_ASYNC_THIS_CAPTURE]()
+			{
+				PCGEX_ASYNC_THIS
+				PCGEX_SUBSYSTEM
+				This->EndTime = PCGExSubsystem->GetEndTime();
+				if (!This->Execute()) { This->Schedule(); }
+				else { This->Complete(); }
+			});
+	}
+
+	bool FExecuteOnMainThread::Execute()
+	{
+		if (!CanRun())
+		{
+			Complete();
+			return false;
+		}
+
+		FPCGExContext* InContext = nullptr;
+		if (const TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin())
+		{
+			TSharedPtr<FTaskManager> PinnedManager = StaticCastSharedPtr<FTaskManager>(PinnedRoot);
+			if (PinnedManager->IsAvailable()) { InContext = PinnedManager->GetContext(); }
+		}
+
+		if (!InContext) { return true; }
+
+		Complete();
+
+		return true;
+	}
+
+	void FExecuteOnMainThread::End(bool bIsCancellation)
+	{
+		if (!bIsCancellation && OnCompleteCallback) { OnCompleteCallback(); }
+		FAsyncHandle::End(bIsCancellation);
+	}
+
+	bool FExecuteOnMainThread::ShouldStop()
+	{
+		return FPlatformTime::Seconds() > EndTime;
+	}
+
+	bool FExecuteOnMainThread::CanRun()
+	{
+		return !IsCancelled() && GetState() == EAsyncHandleState::Running;
+	}
+
+	bool FScopeLoopOnMainThread::Start()
+	{
+		check(OnIterationCallback) // Why would you start it without a callback
+		return FExecuteOnMainThread::Start();
+	}
+
+	bool FScopeLoopOnMainThread::Cancel()
+	{
+		if (FExecuteOnMainThread::Cancel()) { return true; }
+		Complete();
+		return false;
+	}
+
+	bool FScopeLoopOnMainThread::Execute()
+	{
+		if (!CanRun()) { return true; }
+
+		FPCGExContext* InContext = nullptr;
+		if (const TSharedPtr<FAsyncMultiHandle> PinnedRoot = Root.Pin())
+		{
+			TSharedPtr<FTaskManager> PinnedManager = StaticCastSharedPtr<FTaskManager>(PinnedRoot);
+			if (PinnedManager->IsAvailable()) { InContext = PinnedManager->GetContext(); }
+		}
+
+		if (!InContext) { return true; }
+		if (Scope.Start >= Scope.End) { return true; }
+
+		PCGEX_SHARED_CONTEXT_RET(InContext->GetOrCreateHandle(), true)
+
+		FPCGAsyncState AsyncState = SharedContext.Get()->AsyncState;
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			OnIterationCallback(Index, Scope);
+
+			if (ShouldStop())
+			{
+				Scope.Start = Index + 1;
+				Scope.LoopIndex++;
+				return Scope.Start >= Scope.End;
+			}
+		}
+
+		return true;
 	}
 }

@@ -29,6 +29,7 @@ class UPCGExCustomActorDataPacker : public UPCGExInstancedFactory
 
 	struct FComponentInfos
 	{
+		AActor* Owner = nullptr;
 		UActorComponent* Component = nullptr;
 		FAttachmentTransformRules AttachmentTransformRules;
 
@@ -48,9 +49,6 @@ class UPCGExCustomActorDataPacker : public UPCGExInstancedFactory
 		{
 		}
 	};
-
-	FRWLock ComponentLock;
-	TMap<AActor*, TSharedPtr<TArray<FComponentInfos>>> ComponentsMap;
 
 public:
 	virtual bool WantsPerDataInstance() override { return true; }
@@ -110,11 +108,10 @@ public:
 	TArray<TObjectPtr<AActor>> InputActors;
 
 	TSet<FSoftObjectPath> RequiredAssetsPaths;
+	TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
 
 	TSharedPtr<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>> WriteBuffers;
 	TSharedPtr<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Read>> ReadBuffers;
-
-	void AttachComponents();
 
 #pragma region Init
 
@@ -638,8 +635,10 @@ namespace PCGExPackActorData
 		UPCGExCustomActorDataPacker* Packer = nullptr;
 		TSharedPtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences;
 
+		TArray<FPCGPoint> PointsForProcessing;
 		TArray<int8> PointMask;
 
+		TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
 		TWeakPtr<PCGExMT::FAsyncToken> LoadToken;
 		TSharedPtr<FStreamableHandle> LoadHandle;
 
@@ -658,6 +657,5 @@ namespace PCGExPackActorData
 
 		virtual void CompleteWork() override;
 		virtual void Write() override;
-		virtual void Output() override;
 	};
 }

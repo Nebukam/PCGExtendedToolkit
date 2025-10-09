@@ -98,7 +98,6 @@ namespace PCGExGeo
 		TSet<uint64> Edges;
 		TArray<FIntVector3> Triangles;
 		TArray<FIntVector3> Tri_Adjacency;
-		TBitArray<> Tri_IsOnHull;
 		TSet<int32> HullIndices;
 		TSet<uint64> HullEdges;
 
