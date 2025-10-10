@@ -18,81 +18,82 @@ namespace PCGExGeo
 {
 	bool IntersectOBB_OBB(const FBox& BoxA, const FTransform& TransformA, const FBox& BoxB, const FTransform& TransformB)
 	{
-		// Compute scaled extents for A in world/local units
+		// Precompute scales once
 		const FVector ScaleA = TransformA.GetScale3D();
-		const FVector ExtentA = BoxA.GetExtent() * ScaleA.GetAbs();
+		const FVector ScaleB = TransformB.GetScale3D();
 
-		// Bring B into A's local space (includes scale)
-		const FTransform BInA = TransformB * TransformA.Inverse();
+		// Apply scales directly to extents (avoid constructing new boxes)
+		const FVector ExtentA = BoxA.GetExtent() * ScaleA;
+		const FVector ExtentB = BoxB.GetExtent() * ScaleB;
 
-		// Center of B in A-space
+		// Strip scales from transforms
+		FTransform TA = TransformA;
+		FTransform TB = TransformB;
+		TA.SetScale3D(FVector::OneVector);
+		TB.SetScale3D(FVector::OneVector);
+
+		// Transform B into A’s local space
+		const FTransform BInA = TB * TA.Inverse();
 		const FVector CenterB = BInA.GetLocation();
 
-		// Get full matrix of BInA (rotation * scale)
-		const FMatrix MB = BInA.ToMatrixWithScale();
+		// Rotation matrix R = Aᵀ * B
+		FVector B_X = BInA.GetUnitAxis(EAxis::X);
+		FVector B_Y = BInA.GetUnitAxis(EAxis::Y);
+		FVector B_Z = BInA.GetUnitAxis(EAxis::Z);
 
-		// Extract B's scaled axes (these include scale along each axis)
-		const FVector ScaledAxisB[3] = {MB.GetScaledAxis(EAxis::X), MB.GetScaledAxis(EAxis::Y), MB.GetScaledAxis(EAxis::Z)};
-
-		// Per-axis scale magnitude (absolute)
-		const double ScaleBComp[3] = {ScaledAxisB[0].Size(), ScaledAxisB[1].Size(), ScaledAxisB[2].Size()};
-
-		// Build unit axes for B and B extents in A-space
-		FVector AxisB[3];
-		FVector ExtentB = BoxB.GetExtent();
-
+		double R[3][3], AbsR[3][3];
 		for (int i = 0; i < 3; ++i)
 		{
-			// Avoid division by zero; if scale is nearly zero, axis direction doesn't matter
-			if (ScaleBComp[i] > UE_SMALL_NUMBER) { AxisB[i] = ScaledAxisB[i] / ScaleBComp[i]; }
-			else { AxisB[i] = FVector::ZeroVector; } // degenerate axis				 
-			ExtentB[i] *= ScaleBComp[i];             // world/local extent along that local axis
+			const double BX = B_X[i];
+			const double BY = B_Y[i];
+			const double BZ = B_Z[i];
+			R[i][0] = BX;
+			R[i][1] = BY;
+			R[i][2] = BZ;
+			AbsR[i][0] = FMath::Abs(BX) + UE_SMALL_NUMBER;
+			AbsR[i][1] = FMath::Abs(BY) + UE_SMALL_NUMBER;
+			AbsR[i][2] = FMath::Abs(BZ) + UE_SMALL_NUMBER;
 		}
 
-		// Build rotation matrix R = A_axes^T * B_axes.
-		// In A-local space A's axes = identity basis (1,0,0),(0,1,0),(0,0,1).
-		double R[3][3];
-		double AbsR[3][3];
-		for (int i = 0; i < 3; ++i)
-		{
-			for (int j = 0; j < 3; ++j)
-			{
-				// Dot of A_i (unit axis along i) with B_j is just component i of B_j
-				R[i][j] = AxisB[j][i];
-				AbsR[i][j] = FMath::Abs(R[i][j]) + UE_SMALL_NUMBER;
-			}
-		}
+		const double CX = CenterB.X, CY = CenterB.Y, CZ = CenterB.Z;
+		double A, B, P;
 
-		// SAT tests
-		double A;
-		double B;
-
-		// A's axes (x,y,z)
+		// A’s local axes
 		for (int i = 0; i < 3; ++i)
 		{
 			A = ExtentA[i];
 			B = ExtentB.X * AbsR[i][0] + ExtentB.Y * AbsR[i][1] + ExtentB.Z * AbsR[i][2];
-			if (FMath::Abs(CenterB[i]) > A + B) { return false; }
+			if (FMath::Abs(CenterB[i]) > A + B) return false;
 		}
 
-		// B's axes
+		// B’s local axes
 		for (int i = 0; i < 3; ++i)
 		{
 			A = ExtentA.X * AbsR[0][i] + ExtentA.Y * AbsR[1][i] + ExtentA.Z * AbsR[2][i];
 			B = ExtentB[i];
-			const double P = FMath::Abs(CenterB.X * R[0][i] + CenterB.Y * R[1][i] + CenterB.Z * R[2][i]);
-			if (P > A + B) { return false; }
+			P = FMath::Abs(CX * R[0][i] + CY * R[1][i] + CZ * R[2][i]);
+			if (P > A + B) return false;
 		}
 
-		// Cross product axes
+		// Cross products (9 tests)
 		for (int i = 0; i < 3; ++i)
 		{
+			const int I1 = (i + 1) % 3;
+			const int I2 = (i + 2) % 3;
+			const double EA1 = ExtentA[I1];
+			const double EA2 = ExtentA[I2];
+			const double CA1 = CenterB[I1];
+			const double CA2 = CenterB[I2];
+
 			for (int j = 0; j < 3; ++j)
 			{
-				A = ExtentA[(i + 1) % 3] * AbsR[(i + 2) % 3][j] + ExtentA[(i + 2) % 3] * AbsR[(i + 1) % 3][j];
-				B = ExtentB[(j + 1) % 3] * AbsR[i][(j + 2) % 3] + ExtentB[(j + 2) % 3] * AbsR[i][(j + 1) % 3];
-				const double P = FMath::Abs(CenterB[(i + 2) % 3] * R[(i + 1) % 3][j] - CenterB[(i + 1) % 3] * R[(i + 2) % 3][j]);
-				if (P > A + B) { return false; }
+				const int J1 = (j + 1) % 3;
+				const int J2 = (j + 2) % 3;
+
+				A = EA1 * AbsR[I2][j] + EA2 * AbsR[I1][j];
+				B = ExtentB[J1] * AbsR[i][J2] + ExtentB[J2] * AbsR[i][J1];
+				P = FMath::Abs(CA2 * R[I1][j] - CA1 * R[I2][j]);
+				if (P > A + B) return false;
 			}
 		}
 
