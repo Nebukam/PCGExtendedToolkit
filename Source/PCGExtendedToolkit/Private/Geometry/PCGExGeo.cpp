@@ -16,6 +16,89 @@
 
 namespace PCGExGeo
 {
+	bool IntersectOBB_OBB(const FBox& BoxA, const FTransform& TransformA, const FBox& BoxB, const FTransform& TransformB)
+	{
+		// Compute scaled extents for A in world/local units
+		const FVector ScaleA = TransformA.GetScale3D();
+		const FVector ExtentA = BoxA.GetExtent() * ScaleA.GetAbs();
+
+		// Bring B into A's local space (includes scale)
+		const FTransform BInA = TransformB * TransformA.Inverse();
+
+		// Center of B in A-space
+		const FVector CenterB = BInA.GetLocation();
+
+		// Get full matrix of BInA (rotation * scale)
+		const FMatrix MB = BInA.ToMatrixWithScale();
+
+		// Extract B's scaled axes (these include scale along each axis)
+		const FVector ScaledAxisB[3] = {MB.GetScaledAxis(EAxis::X), MB.GetScaledAxis(EAxis::Y), MB.GetScaledAxis(EAxis::Z)};
+
+		// Per-axis scale magnitude (absolute)
+		const double ScaleBComp[3] = {ScaledAxisB[0].Size(), ScaledAxisB[1].Size(), ScaledAxisB[2].Size()};
+
+		// Build unit axes for B and B extents in A-space
+		FVector AxisB[3];
+		FVector ExtentB = BoxB.GetExtent();
+
+		for (int i = 0; i < 3; ++i)
+		{
+			// Avoid division by zero; if scale is nearly zero, axis direction doesn't matter
+			if (ScaleBComp[i] > UE_SMALL_NUMBER) { AxisB[i] = ScaledAxisB[i] / ScaleBComp[i]; }
+			else { AxisB[i] = FVector::ZeroVector; } // degenerate axis				 
+			ExtentB[i] *= ScaleBComp[i];             // world/local extent along that local axis
+		}
+
+		// Build rotation matrix R = A_axes^T * B_axes.
+		// In A-local space A's axes = identity basis (1,0,0),(0,1,0),(0,0,1).
+		double R[3][3];
+		double AbsR[3][3];
+		for (int i = 0; i < 3; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
+				// Dot of A_i (unit axis along i) with B_j is just component i of B_j
+				R[i][j] = AxisB[j][i];
+				AbsR[i][j] = FMath::Abs(R[i][j]) + UE_SMALL_NUMBER;
+			}
+		}
+
+		// SAT tests
+		double A;
+		double B;
+
+		// A's axes (x,y,z)
+		for (int i = 0; i < 3; ++i)
+		{
+			A = ExtentA[i];
+			B = ExtentB.X * AbsR[i][0] + ExtentB.Y * AbsR[i][1] + ExtentB.Z * AbsR[i][2];
+			if (FMath::Abs(CenterB[i]) > A + B) { return false; }
+		}
+
+		// B's axes
+		for (int i = 0; i < 3; ++i)
+		{
+			A = ExtentA.X * AbsR[0][i] + ExtentA.Y * AbsR[1][i] + ExtentA.Z * AbsR[2][i];
+			B = ExtentB[i];
+			const double P = FMath::Abs(CenterB.X * R[0][i] + CenterB.Y * R[1][i] + CenterB.Z * R[2][i]);
+			if (P > A + B) { return false; }
+		}
+
+		// Cross product axes
+		for (int i = 0; i < 3; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
+				A = ExtentA[(i + 1) % 3] * AbsR[(i + 2) % 3][j] + ExtentA[(i + 2) % 3] * AbsR[(i + 1) % 3][j];
+				B = ExtentB[(j + 1) % 3] * AbsR[i][(j + 2) % 3] + ExtentB[(j + 2) % 3] * AbsR[i][(j + 1) % 3];
+				const double P = FMath::Abs(CenterB[(i + 2) % 3] * R[(i + 1) % 3][j] - CenterB[(i + 1) % 3] * R[(i + 2) % 3][j]);
+				if (P > A + B) { return false; }
+			}
+		}
+
+		return true;
+	}
+
 	bool IsWinded(const EPCGExWinding Winding, const bool bIsInputClockwise)
 	{
 		if (Winding == EPCGExWinding::Clockwise) { return bIsInputClockwise; }
