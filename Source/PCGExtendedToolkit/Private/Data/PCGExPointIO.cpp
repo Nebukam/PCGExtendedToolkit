@@ -520,21 +520,23 @@ namespace PCGExData
 		if (!Out) { return 0; }
 
 		const int32 ReducedNum = InIndices.Num();
-
+		
 		if (ReducedNum == Out->GetNumPoints()) { return ReducedNum; }
 
-		PCGEX_FOREACH_POINT_NATIVE_PROPERTY_GET(Out)
+		EPCGPointNativeProperties Allocated = In->GetAllocatedProperties(); 
+		Out->AllocateProperties(Allocated);
 
-		Out->AllocateProperties(EPCGPointNativeProperties::All);
+#define PCGEX_VALUERANGE_GATHER(_NAME, _TYPE, ...) \
+if (EnumHasAnyFlags(Allocated, EPCGPointNativeProperties::_NAME)){ \
+TConstPCGValueRange<_TYPE> InRange = Out->GetConst##_NAME##ValueRange(); \
+TPCGValueRange<_TYPE> OutRange = Out->Get##_NAME##ValueRange(); \
+for (int i = 0; i < ReducedNum; i++){OutRange[i] = InRange[InIndices[i]];} \
+}
 
-		for (int i = 0; i < ReducedNum; i++)
-		{
-#define PCGEX_VALUERANGE_GATHER(_NAME, _TYPE, ...) _NAME##ValueRange[i] = _NAME##ValueRange[InIndices[i]];
-			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_VALUERANGE_GATHER)
+		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_VALUERANGE_GATHER)
 #undef PCGEX_VALUERANGE_GATHER
-		}
-
-		Out->SetNumPoints(ReducedNum);
+		
+	Out->SetNumPoints(ReducedNum);
 		return ReducedNum;
 	}
 

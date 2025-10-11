@@ -154,17 +154,31 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bEndpointsIgnoreStopConditions = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkEndpoint == EPCGExShrinkEndpoint::Both", EditConditionHides))
-	EPCGExShrinkEndpoint ShrinkFirst = EPCGExShrinkEndpoint::Both;
+	/** If enabled, the point cut from the start will inherit from the original first point */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	bool bPreserveFirstMetadata = false;
+
+	/** If enabled, the point cut from the start will inherit from the original last point */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	bool bPreserveLastMetadata = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
+	bool bQuietClosedLoopWarning = false;
 };
 
 struct FPCGExShrinkPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExShrinkPathElement;
 
-	void GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
-	void GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, uint32& Start, uint32& End) const;
+	void GetShrinkAmounts(
+		const TSharedRef<PCGExData::FPointIO>& PointIO,
+		double& Start, double& End,
+		EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
+
+	void GetShrinkAmounts(
+		const TSharedRef<PCGExData::FPointIO>& PointIO,
+		int32& Start, int32& End) const;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -183,6 +197,15 @@ namespace PCGExShrinkPath
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExShrinkPathContext, UPCGExShrinkPathSettings>
 	{
+		TBitArray<> Mask;
+		int32 NumPoints = 0;
+		int32 LastPointIndex = 0;
+
+		FPCGPoint NewStart;
+		FPCGPoint NewEnd;
+
+		bool bUnaltered = false;
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TProcessor(InPointDataFacade)
@@ -193,6 +216,13 @@ namespace PCGExShrinkPath
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void CompleteWork() override;
+
+	protected:
+		bool MaskIndex(const int32 Index);
+
+		void ShrinkByCount();
+
+		void UpdateCut(FPCGPoint& Point, const int32 FromIndex, const int32 ToIndex, const double Dist, const EPCGExPathShrinkDistanceCutType Cut);
+		void ShrinkByDistance();
 	};
 }
