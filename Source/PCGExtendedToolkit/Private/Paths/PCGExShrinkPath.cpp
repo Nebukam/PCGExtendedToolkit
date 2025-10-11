@@ -6,6 +6,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Paths/PCGExPaths.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExShrinkPathElement"
@@ -21,7 +22,10 @@ UPCGExShrinkPathSettings::UPCGExShrinkPathSettings(
 PCGEX_INITIALIZE_ELEMENT(ShrinkPath)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(ShrinkPath)
 
-void FPCGExShrinkPathContext::GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const
+void FPCGExShrinkPathContext::GetShrinkAmounts(
+	const TSharedRef<PCGExData::FPointIO>& PointIO,
+	double& Start, double& End,
+	EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const
 {
 	PCGEX_SETTINGS_LOCAL(ShrinkPath)
 
@@ -61,7 +65,9 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const TSharedRef<PCGExData::FPoin
 	}
 }
 
-void FPCGExShrinkPathContext::GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, uint32& Start, uint32& End) const
+void FPCGExShrinkPathContext::GetShrinkAmounts(
+	const TSharedRef<PCGExData::FPointIO>& PointIO,
+	int32& Start, int32& End) const
 {
 	PCGEX_SETTINGS_LOCAL(ShrinkPath)
 
@@ -93,6 +99,9 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const TSharedRef<PCGExData::FPoin
 			End = Settings->SecondaryCountDetails.Count;
 		}
 	}
+
+	Start = FMath::Clamp(Start, 0, MAX_int32);
+	End = FMath::Clamp(End, 0, MAX_int32);
 }
 
 bool FPCGExShrinkPathElement::Boot(FPCGExContext* InContext) const
@@ -134,6 +143,13 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
+				if (PCGExPaths::GetClosedLoop(Entry))
+				{
+					if (!Settings->bQuietClosedLoopWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs are closed loop and cannot be shrinked. You must split them first.")); }
+					PCGEX_INIT_IO(Entry, PCGExData::EIOInit::Forward)
+					return false;
+				}
+
 				if (Entry->GetNum() < 2)
 				{
 					bHasInvalidInputs = true;
@@ -143,6 +159,7 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
+				NewBatch->bSkipCompletion = true;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to shrink."));
@@ -166,305 +183,280 @@ namespace PCGExShrinkPath
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExShrinkPath::Process);
 
+		PointDataFacade->bSupportsScopedGet = false;
+
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		const TSharedRef<PCGExData::FPointIO> PointIO = PointDataFacade->Source;
+		NumPoints = PointDataFacade->GetNum();
+		LastPointIndex = NumPoints - 1;
 
-		ON_SCOPE_EXIT
-		{
-			PCGEX_ASYNC_CHKD_VOID(AsyncManager)
+		const UPCGBasePointData* InData = PointDataFacade->Source->GetIn();
 
-			if (PointIO->GetOut() && PointIO->GetIn() != PointIO->GetOut() && PointIO->GetNum(PCGExData::EIOSide::Out) <= 1)
-			{
-				PointIO->InitializeOutput(PCGExData::EIOInit::NoInit);
-			}
-		};
+		NewStart = FPCGPoint(InData->GetTransform(0), 0, 0);
+		NewStart.MetadataEntry = InData->GetMetadataEntry(0);
 
-		const UPCGBasePointData* InPoints = PointIO->GetIn();
-		const int32 NumPoints = InPoints->GetNumPoints();
-		const int32 LastPointIndex = NumPoints - 1;
+		NewEnd = FPCGPoint(InData->GetTransform(LastPointIndex), 0, 0);
+		NewEnd.MetadataEntry = InData->GetMetadataEntry(LastPointIndex);
 
-		FilterScope(PCGExMT::FScope(0, NumPoints));
+		Mask.Init(true, NumPoints);
 
-		int32 StartOffset = 0;
-		int32 EndOffset = 1;
+		// Force-fetching if some filters are registered
+		if (PrimaryFilters) { PointDataFacade->Fetch(PointDataFacade->GetInFullScope()); }
 
-		EPCGExShrinkEndpoint SafeShrinkFirst = Settings->ShrinkFirst;
+		// Initialize stop conditions through filters
+		FilterAll();
 
-		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Start) { SafeShrinkFirst = EPCGExShrinkEndpoint::Start; }
-		else if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::End) { SafeShrinkFirst = EPCGExShrinkEndpoint::End; }
-
+		// Update filter value for endpoints if we have a desired override
 		if (Settings->bEndpointsIgnoreStopConditions)
 		{
-			switch (SafeShrinkFirst)
-			{
-			default: ;
-			case EPCGExShrinkEndpoint::Both:
-				PointFilterCache[0] = false;
-				PointFilterCache[LastPointIndex] = false;
-				break;
-			case EPCGExShrinkEndpoint::Start:
-				PointFilterCache[0] = false;
-				break;
-			case EPCGExShrinkEndpoint::End:
-				PointFilterCache[LastPointIndex] = false;
-				break;
-			}
+			PointFilterCache[0] = false;
+			PointFilterCache.Last() = false;
 		}
 
-		if (Settings->ShrinkMode == EPCGExPathShrinkMode::Count)
+		if (Settings->ShrinkMode == EPCGExPathShrinkMode::Count) { ShrinkByCount(); }
+		else { ShrinkByDistance(); }
+
+		if (bUnaltered)
 		{
-			uint32 StartAmount = 0;
-			uint32 EndAmount = 0;
-
-			Context->GetShrinkAmounts(PointIO, StartAmount, EndAmount);
-
-			if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Start || PointFilterCache[LastPointIndex]) { EndAmount = 0; }
-			if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::End || PointFilterCache[0]) { StartAmount = 0; }
-
-			// Just so we avoid wasting cycles... Not that this whole code is that efficient anyway
-			StartAmount = FMath::Min(StartAmount, static_cast<uint32>(NumPoints));
-			EndAmount = FMath::Min(EndAmount, static_cast<uint32>(NumPoints));
-
-			if (StartAmount == 0 && EndAmount == 0)
-			{
-				PointIO->InitializeOutput(PCGExData::EIOInit::Forward);
-				return false;
-			}
-
-			TArray<int32> KeptIndices;
-			PCGEx::ArrayOfIndices(KeptIndices, NumPoints);
-
-			auto ShrinkOnce = [&](const int32 Direction)
-			{
-				if (Direction == 0 || KeptIndices.IsEmpty()) { return; }
-
-				int32 RemoveIndex = -1;
-
-				if (Direction > 0)
-				{
-					if (PointFilterCache[StartOffset]) { return; }
-
-					RemoveIndex = 0;
-					StartOffset++;
-				}
-				else
-				{
-					if (PointFilterCache[PointFilterCache.Num() - EndOffset]) { return; }
-
-					const int32 LastIndex = KeptIndices.Num() - 1;
-					if (KeptIndices.IsValidIndex(LastIndex)) { RemoveIndex = LastIndex; }
-					EndOffset++;
-				}
-
-				if (RemoveIndex != -1) { KeptIndices.RemoveAt(RemoveIndex); }
-			};
-
-			switch (SafeShrinkFirst)
-			{
-			default: ;
-			case EPCGExShrinkEndpoint::Both:
-				while (StartAmount > 0 || EndAmount > 0)
-				{
-					if (StartAmount > 0) { ShrinkOnce(1); }
-					if (EndAmount > 0) { ShrinkOnce(-1); }
-					StartAmount--;
-					EndAmount--;
-				}
-				break;
-			case EPCGExShrinkEndpoint::Start:
-				for (uint32 i = 0; i < StartAmount; i++) { ShrinkOnce(1); }
-				if (!KeptIndices.IsEmpty() && EndAmount > 0) { for (uint32 i = 0; i < EndAmount; i++) { ShrinkOnce(-1); } }
-				break;
-			case EPCGExShrinkEndpoint::End:
-				for (uint32 i = 0; i < EndAmount; i++) { ShrinkOnce(-1); }
-				if (!KeptIndices.IsEmpty() && StartAmount > 0) { for (uint32 i = 0; i < StartAmount; i++) { ShrinkOnce(1); } }
-				break;
-			}
-
-			if (KeptIndices.Num() >= 2)
-			{
-				if (KeptIndices.Num() == NumPoints)
-				{
-					PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::Forward)
-				}
-				else
-				{
-					if (KeptIndices[0] == 0)
-					{
-						// Only removed point from the end, no need to copy any data
-						// just update the points count
-						PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::Duplicate)
-						PointIO->GetOut()->SetNumPoints(KeptIndices.Num());
-					}
-					else
-					{
-						PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::New)
-						PCGEx::SetNumPointsAllocated(PointIO->GetOut(), KeptIndices.Num(), PointIO->GetAllocations());
-						PointIO->InheritPoints(KeptIndices, 0);
-					}
-				}
-			}
+			// No shrinkage occured on this path, just forward it.
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward)
+			return true;
 		}
-		else
+
+		int32 Remainder = 0;
+		for (int32 i = 0; i < NumPoints; i++) { if (Mask[i]) { Remainder++; } }
+
+		if (Remainder < 2)
 		{
-			// BUG : With path of exactly 3 points, something goes wrong
-
-			double StartAmount = 0;
-			double EndAmount = 0;
-
-			EPCGExPathShrinkDistanceCutType StartCut;
-			EPCGExPathShrinkDistanceCutType EndCut;
-
-			Context->GetShrinkAmounts(PointIO, StartAmount, EndAmount, StartCut, EndCut);
-
-			if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Start || PointFilterCache[LastPointIndex]) { EndAmount = 0; }
-			if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::End || PointFilterCache[0]) { StartAmount = 0; }
-
-			if (StartAmount == 0 && EndAmount == 0)
-			{
-				PointIO->InitializeOutput(PCGExData::EIOInit::Forward);
-				return false;
-			}
-
-			TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
-
-			FVector StartPosition = InTransforms[0].GetLocation();
-			FVector EndPosition = InTransforms[InTransforms.Num() - 1].GetLocation();
-
-			TArray<int32> KeptIndices;
-			PCGEx::ArrayOfIndices(KeptIndices, NumPoints);
-
-			if ((StartAmount < 0 || EndAmount < 0) && NumPoints >= 2)
-			{
-				if (StartAmount < 0)
-				{
-					const FVector Pos = InTransforms[0].GetLocation();
-					const FVector Direction = (InTransforms[1].GetLocation() - Pos).GetSafeNormal() * StartAmount;
-					StartPosition = Pos + Direction;
-					StartAmount = 0;
-				}
-
-				if (EndAmount < 0)
-				{
-					const FVector Pos = InTransforms[InTransforms.Num() - 1].GetLocation();
-					const FVector Direction = (InTransforms[InTransforms.Num() - 2].GetLocation() - Pos).GetSafeNormal() * EndAmount;
-					EndPosition = Pos + Direction;
-					EndAmount = 0;
-				}
-			}
-
-			if (StartAmount != 0 || EndAmount != 0)
-			{
-				auto ShrinkBy = [&](double Distance, const EPCGExPathShrinkDistanceCutType CutType, FVector& OutPosition)-> double
-				{
-					if (Distance == 0 || KeptIndices.IsEmpty()) { return 0; }
-
-					if (KeptIndices.Num() <= 1)
-					{
-						KeptIndices.Empty();
-						return 0;
-					}
-
-					FVector From;
-					FVector To;
-					int32 Index;
-
-					if (Distance > 0)
-					{
-						Index = 0;
-						if (PointFilterCache[Index]) { return 0; }
-
-						From = InTransforms[KeptIndices[Index]].GetLocation();
-						To = InTransforms[KeptIndices[Index + 1]].GetLocation();
-					}
-					else
-					{
-						Index = KeptIndices.Num() - 1;
-						if (PointFilterCache[Index]) { return 0; }
-
-						From = InTransforms[KeptIndices[Index]].GetLocation();
-						To = InTransforms[KeptIndices[Index - 1]].GetLocation();
-						Distance = FMath::Abs(Distance);
-					}
-
-					const double AvailableDistance = FVector::Dist(From, To);
-					if (Distance >= AvailableDistance)
-					{
-						KeptIndices.RemoveAt(Index);
-						return Distance - AvailableDistance;
-					}
-
-					if (Distance < AvailableDistance)
-					{
-						switch (CutType)
-						{
-						default: ;
-						case EPCGExPathShrinkDistanceCutType::NewPoint:
-							OutPosition = FMath::Lerp(From, To, Distance / AvailableDistance);
-							break;
-						case EPCGExPathShrinkDistanceCutType::Previous:
-							// Do nothing
-							break;
-						case EPCGExPathShrinkDistanceCutType::Next:
-							KeptIndices.RemoveAt(Index);
-							break;
-						case EPCGExPathShrinkDistanceCutType::Closest:
-							if (AvailableDistance / Distance > 0.5) { KeptIndices.RemoveAt(Index); }
-							break;
-						}
-					}
-
-					return 0;
-				};
-
-				switch (SafeShrinkFirst)
-				{
-				default: ;
-				case EPCGExShrinkEndpoint::Both:
-					while ((StartAmount + EndAmount) != 0)
-					{
-						if (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount, StartCut, StartPosition); }
-						if (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount, EndCut, EndPosition); }
-					}
-					break;
-				case EPCGExShrinkEndpoint::Start:
-					while (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount, StartCut, StartPosition); }
-					if (!KeptIndices.IsEmpty()) { while (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount, EndCut, EndPosition); } }
-					break;
-				case EPCGExShrinkEndpoint::End:
-					while (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount, StartCut, StartPosition); }
-					if (!KeptIndices.IsEmpty()) { while (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount, EndCut, EndPosition); } }
-					break;
-				}
-			}
-
-			if (KeptIndices.Num() >= 2)
-			{
-				if (NumPoints == KeptIndices.Num())
-				{
-					PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::Duplicate)
-					PointIO->InheritProperties(KeptIndices, EPCGPointNativeProperties::Transform);
-
-					TPCGValueRange<FTransform> OutTransforms = PointIO->GetOut()->GetTransformValueRange(false);
-
-					OutTransforms[0].SetLocation(StartPosition);
-					OutTransforms[OutTransforms.Num() - 1].SetLocation(EndPosition);
-				}
-				else
-				{
-					PCGEX_INIT_IO(PointIO, PCGExData::EIOInit::New)
-					PCGEx::SetNumPointsAllocated(PointIO->GetOut(), KeptIndices.Num(), PointIO->GetAllocations());
-					PointIO->InheritPoints(KeptIndices, 0);
-				}
-			}
+			// No valid path is left for gathering, simply omit output.
+			PointDataFacade->Source->Disable();
+			return false;
 		}
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		(void)PointDataFacade->Source->Gather(Mask);
+
+		UPCGBasePointData* OutData = PointDataFacade->Source->GetOut();
+
+		if (Settings->bPreserveFirstMetadata) { NewStart.MetadataEntry = InData->GetMetadataEntry(0); }
+		if (Settings->bPreserveLastMetadata) { NewEnd.MetadataEntry = InData->GetMetadataEntry(LastPointIndex); }
+
+		OutData->GetTransformValueRange(false)[0] = NewStart.Transform;
+		OutData->GetMetadataEntryValueRange(false)[0] = NewStart.MetadataEntry;
+
+		OutData->GetTransformValueRange(false)[OutData->GetNumPoints() - 1] = NewEnd.Transform;
+		OutData->GetMetadataEntryValueRange(false)[OutData->GetNumPoints() - 1] = NewEnd.MetadataEntry;
 
 		return true;
 	}
 
-	void FProcessor::CompleteWork()
+	bool FProcessor::MaskIndex(const int32 Index)
 	{
+		if (!Mask[Index]) { return false; }
+		if (PointFilterCache[Index]) { return false; }
+		Mask[Index] = false;
+		return true;
+	}
+
+	void FProcessor::ShrinkByCount()
+	{
+		int32 StartAmount = 0;
+		int32 EndAmount = 0;
+
+		Context->GetShrinkAmounts(PointDataFacade->Source, StartAmount, EndAmount);
+
+		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Start || PointFilterCache[LastPointIndex]) { EndAmount = 0; }
+		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::End || PointFilterCache[0]) { StartAmount = 0; }
+
+		// Just so we avoid wasting cycles... Not that this whole code is that efficient anyway
+		StartAmount = FMath::Min(StartAmount, NumPoints);
+		EndAmount = FMath::Min(EndAmount, NumPoints);
+
+		if (StartAmount <= 0 && EndAmount <= 0)
+		{
+			bUnaltered = true;
+			return;
+		}
+
+		int32 FromStartIndex = 0;
+		int32 FromEndIndex = 0;
+
+		auto ShrinkStep = [this](int32& Amount, int32& Index, const bool bReverse)
+		{
+			if (Amount <= 0) { return false; }
+			if (MaskIndex(bReverse ? (LastPointIndex - Index) : Index))
+			{
+				++Index;
+				--Amount;
+				return true;
+			}
+
+			Amount = -1;
+			return false;
+		};
+
+		while (StartAmount > 0 || EndAmount > 0)
+		{
+			ShrinkStep(StartAmount, FromStartIndex, false);
+			ShrinkStep(EndAmount, FromEndIndex, true);
+		}
+
+		// TODO : Tag if amounts == -1 -- those have been stopped prematurely
+
+		NewStart.Transform = PointDataFacade->GetIn()->GetTransform(FromStartIndex);
+		NewStart.MetadataEntry = PointDataFacade->GetIn()->GetMetadataEntry(FromStartIndex);
+
+		NewEnd.Transform = PointDataFacade->GetIn()->GetTransform(LastPointIndex - FromEndIndex);
+		NewEnd.MetadataEntry = PointDataFacade->GetIn()->GetMetadataEntry(LastPointIndex - FromEndIndex);
+	}
+
+	void FProcessor::UpdateCut(FPCGPoint& Point, const int32 FromIndex, const int32 ToIndex, const double Dist, const EPCGExPathShrinkDistanceCutType Cut)
+	{
+		if (Cut == EPCGExPathShrinkDistanceCutType::NewPoint)
+		{
+			Mask[FromIndex] = true; // Restore point
+			Point.Transform = PointDataFacade->GetIn()->GetTransform(FromIndex);
+			Point.MetadataEntry = PointDataFacade->GetIn()->GetMetadataEntry(FromIndex);
+
+			FVector From = Point.Transform.GetLocation();
+			FVector To = PointDataFacade->GetIn()->GetTransform(ToIndex).GetLocation();
+
+			Point.Transform.SetLocation(To + (From - To).GetSafeNormal() * Dist);
+		}
+		else if (Cut == EPCGExPathShrinkDistanceCutType::Previous)
+		{
+			Mask[FromIndex] = true; // Restore point
+			Point.Transform = PointDataFacade->GetIn()->GetTransform(FromIndex);
+			Point.MetadataEntry = PointDataFacade->GetIn()->GetMetadataEntry(FromIndex);
+		}
+		else if (Cut == EPCGExPathShrinkDistanceCutType::Next)
+		{
+			Mask[FromIndex] = false; // Force invalidation of "From" point to avoid two points overlapping
+			Point.Transform = PointDataFacade->GetIn()->GetTransform(ToIndex);
+			Point.MetadataEntry = PointDataFacade->GetIn()->GetMetadataEntry(ToIndex);
+		}
+		else if (Cut == EPCGExPathShrinkDistanceCutType::Closest)
+		{
+			if (Dist > FVector::Dist(PointDataFacade->GetIn()->GetTransform(FromIndex).GetLocation(), PointDataFacade->GetIn()->GetTransform(ToIndex).GetLocation()) * 0.5)
+			{
+				UpdateCut(Point, FromIndex, ToIndex, Dist, EPCGExPathShrinkDistanceCutType::Next);
+			}
+			else
+			{
+				UpdateCut(Point, FromIndex, ToIndex, Dist, EPCGExPathShrinkDistanceCutType::Previous);
+			}
+		}
+	};
+
+	void FProcessor::ShrinkByDistance()
+	{
+		double StartAmount = 0;
+		double EndAmount = 0;
+
+		EPCGExPathShrinkDistanceCutType StartCut;
+		EPCGExPathShrinkDistanceCutType EndCut;
+
+		Context->GetShrinkAmounts(PointDataFacade->Source, StartAmount, EndAmount, StartCut, EndCut);
+
+		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Start || PointFilterCache[LastPointIndex]) { EndAmount = 0; }
+		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::End || PointFilterCache[0]) { StartAmount = 0; }
+
+		if (StartAmount == 0 && EndAmount == 0)
+		{
+			bUnaltered = true;
+			return;
+		}
+
+		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+
+		// Handle "reverse" shrink values first
+		// Those are only extending the path along the existing normal
+
+		if (StartAmount < 0)
+		{
+			const FVector Pos = NewStart.Transform.GetLocation();
+			const FVector Direction = (InTransforms[1].GetLocation() - Pos).GetSafeNormal() * StartAmount;
+			NewStart.Transform.SetLocation(Pos + Direction);
+			StartAmount = 0;
+		}
+
+		if (EndAmount < 0)
+		{
+			const FVector Pos = NewEnd.Transform.GetLocation();
+			const FVector Direction = (InTransforms[InTransforms.Num() - 2].GetLocation() - Pos).GetSafeNormal() * EndAmount;
+			NewEnd.Transform.SetLocation(Pos + Direction);
+			EndAmount = 0;
+		}
+
+		if (StartAmount == 0 && EndAmount == 0) { return; }
+
+
+		PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(InTransforms[0].GetLocation());
+		TArray<double> DistFromStart;
+
+		DistFromStart.Init(0, NumPoints);
+
+		if (StartAmount <= 0)
+		{
+			for (int i = 0; i < NumPoints; i++) { DistFromStart[i] = Metrics.Add(InTransforms[i].GetLocation());; }
+		}
+		else
+		{
+			int32 StartIndex = -1;
+			for (int i = 0; i < NumPoints; i++)
+			{
+				const double Dist = Metrics.Add(InTransforms[i].GetLocation());
+				DistFromStart[i] = Dist;
+
+				if (StartIndex != -1) { continue; }
+
+				const double Remainder = Dist - StartAmount;
+				if (Remainder >= 0)
+				{
+					// Stopped by distance
+					StartIndex = i - 1;
+					if (StartIndex >= 0) { UpdateCut(NewStart, StartIndex, i, Remainder, StartCut); }
+				}
+				else if (!MaskIndex(i))
+				{
+					// Stopped by inhability to mask, or filter
+					StartIndex = i;
+					NewStart.Transform = PointDataFacade->GetIn()->GetTransform(StartIndex);
+					NewStart.MetadataEntry = PointDataFacade->GetIn()->GetMetadataEntry(StartIndex);
+				}
+			}
+		}
+
+		if (EndAmount != 0)
+		{
+			int32 EndIndex = -1;
+			for (int i = LastPointIndex; i >= 0; i--)
+			{
+				const double Dist = Metrics.Length - DistFromStart[i];
+				const double Remainder = Dist - EndAmount;
+
+				if (Remainder >= 0)
+				{
+					// Stopped by distance
+					EndIndex = i + 1;
+					if (EndIndex <= LastPointIndex) { UpdateCut(NewEnd, EndIndex, i, Remainder, EndCut); }
+				}
+				else if (!MaskIndex(i))
+				{
+					// Stopped by inhability to mask, or filter
+					EndIndex = i;
+					NewEnd.Transform = PointDataFacade->GetIn()->GetTransform(EndIndex);
+					NewEnd.MetadataEntry = PointDataFacade->GetIn()->GetMetadataEntry(EndIndex);
+				}
+
+				if (EndIndex != -1) { break; }
+			}
+		}
+
+		if (StartAmount > 0 && EndAmount > 0)
+		{
+			// TODO : Handle case where cuts cross each other
+		}
 	}
 }
 
