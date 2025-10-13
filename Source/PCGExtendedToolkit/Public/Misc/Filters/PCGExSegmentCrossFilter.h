@@ -108,7 +108,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/SegmentCross"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/segment-cross"))
 class UPCGExSegmentCrossFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
