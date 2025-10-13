@@ -532,7 +532,7 @@ namespace PCGExExtrudeTensors
 
 			PCGExMath::FClosestPosition Intersection = FindClosestIntersection(
 				Context->ExternalPaths, Context->ExternalPathIntersections,
-				Segment, PathIndex, PCGExMath::EIntersectionTestMode::Strict);
+				Segment, PathIndex);
 
 			// Path intersection
 			if (Intersection)
@@ -560,7 +560,7 @@ namespace PCGExExtrudeTensors
 
 			Intersection = FindClosestIntersection(
 				*SolidPaths.Get(), Context->ExternalPathIntersections,
-				Segment, PathIndex, Merge, PCGExMath::EIntersectionTestMode::Strict);
+				Segment, PathIndex, Merge);
 
 			if (Settings->SelfIntersectionPriority == EPCGExSelfIntersectionPriority::Crossing)
 			{

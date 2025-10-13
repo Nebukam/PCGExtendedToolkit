@@ -335,7 +335,7 @@ namespace PCGExPaths
 
 	PCGExMath::FClosestPosition FPath::FindClosestIntersection(
 		const FPCGExPathIntersectionDetails& InDetails,
-		const PCGExMath::FSegment& Segment, const PCGExMath::EIntersectionTestMode Mode) const
+		const PCGExMath::FSegment& Segment, const EPCGExIntersectionStrictness Strictness) const
 	{
 		PCGExMath::FClosestPosition Closest(Segment.A);
 
@@ -357,7 +357,7 @@ namespace PCGExPaths
 					GetPos_Unsafe(PathEdge->End),
 					InDetails.ToleranceSquared,
 					OnSegment,
-					OnPath, Mode))
+					OnPath, Strictness))
 				{
 					return;
 				}
@@ -370,8 +370,7 @@ namespace PCGExPaths
 
 	PCGExMath::FClosestPosition FPath::FindClosestIntersection(
 		const FPCGExPathIntersectionDetails& InDetails,
-		const PCGExMath::FSegment& Segment, PCGExMath::FClosestPosition& OutClosestPosition,
-		const PCGExMath::EIntersectionTestMode Mode) const
+		const PCGExMath::FSegment& Segment, PCGExMath::FClosestPosition& OutClosestPosition) const
 	{
 		PCGExMath::FClosestPosition Closest(Segment.A);
 
@@ -393,7 +392,7 @@ namespace PCGExPaths
 					GetPos_Unsafe(PathEdge->End),
 					InDetails.ToleranceSquared,
 					OnSegment,
-					OnPath, Mode))
+					OnPath, InDetails.Strictness))
 				{
 					OutClosestPosition.Update(OnPath, -2);
 					return;
@@ -790,8 +789,7 @@ namespace PCGExPaths
 	PCGExMath::FClosestPosition FindClosestIntersection(
 		const TArray<TSharedPtr<FPath>>& Paths,
 		const FPCGExPathIntersectionDetails& InDetails,
-		const PCGExMath::FSegment& InSegment, int32& OutPathIndex,
-		const PCGExMath::EIntersectionTestMode Mode)
+		const PCGExMath::FSegment& InSegment, int32& OutPathIndex)
 	{
 		OutPathIndex = -1;
 
@@ -799,7 +797,7 @@ namespace PCGExPaths
 
 		for (int i = 0; i < Paths.Num(); i++)
 		{
-			PCGExMath::FClosestPosition LocalIntersection = Paths[i]->FindClosestIntersection(InDetails, InSegment, Mode);
+			PCGExMath::FClosestPosition LocalIntersection = Paths[i]->FindClosestIntersection(InDetails, InSegment);
 			if (!LocalIntersection) { continue; }
 			if (Intersection.Update(LocalIntersection, LocalIntersection.Index)) { OutPathIndex = i; }
 		}
@@ -811,8 +809,7 @@ namespace PCGExPaths
 		const TArray<TSharedPtr<FPath>>& Paths,
 		const FPCGExPathIntersectionDetails& InDetails,
 		const PCGExMath::FSegment& InSegment, int32& OutPathIndex,
-		PCGExMath::FClosestPosition& OutClosestPosition,
-		const PCGExMath::EIntersectionTestMode Mode)
+		PCGExMath::FClosestPosition& OutClosestPosition)
 	{
 		OutPathIndex = -1;
 
@@ -820,7 +817,7 @@ namespace PCGExPaths
 
 		for (int i = 0; i < Paths.Num(); i++)
 		{
-			PCGExMath::FClosestPosition LocalIntersection = Paths[i]->FindClosestIntersection(InDetails, InSegment, OutClosestPosition, Mode);
+			PCGExMath::FClosestPosition LocalIntersection = Paths[i]->FindClosestIntersection(InDetails, InSegment, OutClosestPosition);
 
 			if (OutClosestPosition.Index == -2) { OutClosestPosition.Index = i; }
 

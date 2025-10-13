@@ -134,7 +134,11 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 				Path = MakeShared<PCGExPaths::FPolyPath>(PolygonData, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
 			}
 
-			if (Path) { TempPolyPaths[Index] = Path; }
+			if (Path)
+			{
+				if (bBuildEdgeOctree) { Path->BuildEdgeOctree(); }
+				TempPolyPaths[Index] = Path;
+			}
 		};
 
 	CreatePolyPaths->StartIterations(TempTargets.Num(), 1);
@@ -153,6 +157,17 @@ void UPCGExPolyPathFilterFactory::BeginDestroy()
 	PolyPaths.Reset();
 	Octree.Reset();
 	Super::BeginDestroy();
+}
+
+FPCGDataTypeIdentifier PCGExPathInclusion::GetInclusionIdentifier()
+{
+	return FPCGDataTypeIdentifier::Construct(
+		{
+			FPCGDataTypeInfoSpline::AsId(),
+			FPCGDataTypeInfoPolyline::AsId(),
+			FPCGDataTypeInfoPolygon2D::AsId(),
+			FPCGDataTypeInfoPoint::AsId()
+		});
 }
 
 namespace PCGExPathInclusion
@@ -321,6 +336,22 @@ namespace PCGExPathInclusion
 		if (bIsOn) { EnumAddFlags(OutFlags, On); }
 
 		return OutFlags;
+	}
+
+	PCGExMath::FClosestPosition FHandler::FindClosestIntersection(const PCGExMath::FSegment& Segment, const FPCGExPathIntersectionDetails& InDetails, const UPCGData* InParentData) const
+	{
+		PCGExMath::FClosestPosition ClosestIntersection;
+
+		Octree->FindFirstElementWithBoundsTest(
+			Segment.Bounds, [&](
+			const PCGExOctree::FItem& Item)
+			{
+				if (bIgnoreSelf && InParentData != nullptr) { if (InParentData == *(Datas->GetData() + Item.Index)) { return true; } }
+				ClosestIntersection = (*(Paths->GetData() + Item.Index))->FindClosestIntersection(InDetails, Segment, EPCGExIntersectionStrictness::Strict);
+				return !ClosestIntersection.bValid;
+			});
+
+		return ClosestIntersection;
 	}
 }
 

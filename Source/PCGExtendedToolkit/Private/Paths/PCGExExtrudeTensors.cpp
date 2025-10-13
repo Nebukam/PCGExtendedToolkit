@@ -252,7 +252,7 @@ namespace PCGExExtrudeTensors
 			FVector OutSelf = FVector::ZeroVector;
 			FVector OutOther = FVector::ZeroVector;
 
-			if (!InSegment.FindIntersection(A, B, Context->SelfPathIntersections.ToleranceSquared, OutSelf, OutOther, PCGExMath::EIntersectionTestMode::Strict))
+			if (!InSegment.FindIntersection(A, B, Context->SelfPathIntersections.ToleranceSquared, OutSelf, OutOther, EPCGExIntersectionStrictness::Strict))
 			{
 				OutClosestPosition.Update(OutOther);
 				continue;

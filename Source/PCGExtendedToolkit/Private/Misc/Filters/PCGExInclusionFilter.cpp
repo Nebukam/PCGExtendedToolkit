@@ -116,7 +116,7 @@ namespace PCGExPointFilter
 TArray<FPCGPinProperties> UPCGExInclusionFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(PCGEx::SourceTargetsLabel, TEXT("Path, splines, polygons, ... will be used for testing"), Required)
+	PCGEX_PIN_FACTORIES(PCGEx::SourceTargetsLabel, TEXT("Path, splines, polygons, ... will be used for testing"), Required, PCGExPathInclusion::GetInclusionIdentifier())
 	return PinProperties;
 }
 

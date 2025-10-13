@@ -66,45 +66,45 @@ namespace PCGExMath
 		Bounds = Bounds.ExpandBy(Expansion);
 	}
 
-	bool FSegment::FindIntersection(const FVector& A2, const FVector& B2, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EIntersectionTestMode Mode) const
+	bool FSegment::FindIntersection(const FVector& A2, const FVector& B2, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EPCGExIntersectionStrictness Strictness) const
 	{
 		FMath::SegmentDistToSegment(A, B, A2, B2, OutSelf, OutOther);
 
-		switch (Mode)
+		switch (Strictness)
 		{
-		case EIntersectionTestMode::Loose:
+		case EPCGExIntersectionStrictness::Loose:
 			break;
-		case EIntersectionTestMode::Strict:
+		case EPCGExIntersectionStrictness::Strict:
 			if (A == OutSelf || B == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
 			break;
-		case EIntersectionTestMode::StrictOnSelfA:
+		case EPCGExIntersectionStrictness::StrictOnSelfA:
 			if (A == OutSelf) { return false; }
 			break;
-		case EIntersectionTestMode::StrictOnSelfB:
+		case EPCGExIntersectionStrictness::StrictOnSelfB:
 			if (B == OutSelf) { return false; }
 			break;
-		case EIntersectionTestMode::StrictOnOtherA:
+		case EPCGExIntersectionStrictness::StrictOnOtherA:
 			if (A2 == OutOther) { return false; }
 			break;
-		case EIntersectionTestMode::StrictOnOtherB:
+		case EPCGExIntersectionStrictness::StrictOnOtherB:
 			if (B2 == OutOther) { return false; }
 			break;
-		case EIntersectionTestMode::LooseOnSelf:
+		case EPCGExIntersectionStrictness::LooseOnSelf:
 			if (A2 == OutOther || B2 == OutOther) { return false; }
 			break;
-		case EIntersectionTestMode::LooseOnSelfA:
+		case EPCGExIntersectionStrictness::LooseOnSelfA:
 			if (B == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
 			break;
-		case EIntersectionTestMode::LooseOnSelfB:
+		case EPCGExIntersectionStrictness::LooseOnSelfB:
 			if (A == OutSelf || A2 == OutOther || B2 == OutOther) { return false; }
 			break;
-		case EIntersectionTestMode::LooseOnOther:
+		case EPCGExIntersectionStrictness::LooseOnOther:
 			if (A == OutSelf || B == OutSelf) { return false; }
 			break;
-		case EIntersectionTestMode::LooseOnOtherA:
+		case EPCGExIntersectionStrictness::LooseOnOtherA:
 			if (A == OutSelf || B == OutSelf || B2 == OutOther) { return false; }
 			break;
-		case EIntersectionTestMode::LooseOnOtherB:
+		case EPCGExIntersectionStrictness::LooseOnOtherB:
 			if (A == OutSelf || B == OutSelf || A2 == OutOther) { return false; }
 			break;
 		}
@@ -113,9 +113,9 @@ namespace PCGExMath
 		return true;
 	}
 
-	bool FSegment::FindIntersection(const FSegment& S, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EIntersectionTestMode Mode) const
+	bool FSegment::FindIntersection(const FSegment& S, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EPCGExIntersectionStrictness Strictness) const
 	{
-		return FindIntersection(S.A, S.B, SquaredTolerance, OutSelf, OutOther, Mode);
+		return FindIntersection(S.A, S.B, SquaredTolerance, OutSelf, OutOther, Strictness);
 	}
 
 	double ConvertStringToDouble(const FString& StringToConvert)
