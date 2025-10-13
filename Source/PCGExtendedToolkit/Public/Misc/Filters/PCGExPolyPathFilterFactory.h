@@ -83,6 +83,7 @@ protected:
 	bool bScaleTolerance = false;
 	bool bUsedForInclusion = true;
 	bool bIgnoreSelf = true;
+	bool bBuildEdgeOctree = false;
 
 	TArray<FPCGTaggedData> TempTargets;
 	TArray<TSharedPtr<PCGExPaths::FPolyPath>> TempPolyPaths;
@@ -162,5 +163,6 @@ namespace PCGExPathInclusion
 		}
 
 		EFlags GetInclusionFlags(const FVector& WorldPosition, int32& InclusionCount, const bool bClosestOnly, const UPCGData* InParentData = nullptr) const;
+		PCGExMath::FClosestPosition FindClosestIntersection(const PCGExMath::FSegment& Segment, const FPCGExPathIntersectionDetails& InDetails, const UPCGData* InParentData = nullptr) const;
 	};
 }
