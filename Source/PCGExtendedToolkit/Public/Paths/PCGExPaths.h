@@ -219,7 +219,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathIntersectionDetails
 	bool bWantsDotCheck = false;
 
 	/** Strictness of the intersection detection. Different modes allow for some edge cases to be considered intersection. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExAssetTagInheritance"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExIntersectionStrictness"))
 	uint8 Strictness = static_cast<uint8>(EPCGExIntersectionStrictness::Strict);
 	
 	void Init();

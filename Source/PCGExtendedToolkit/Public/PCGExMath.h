@@ -46,7 +46,7 @@ enum class EPCGExIntersectionStrictness : uint8
 	MainB  = 1 << 1 UMETA(DisplayName = "Strict on Main B", ToolTip="Intersections located on main segment' end point are considered invalid."),
 	OtherA = 1 << 2 UMETA(DisplayName = "Strict on Other A", ToolTip="Intersections located on end segment' start point are considered invalid."),
 	OtherB = 1 << 3 UMETA(DisplayName = "Strict on Other B", ToolTip="Intersections located on end segment' end point are considered invalid."),
-	Strict = MainA | MainB | OtherA | OtherB,
+	Strict = MainA | MainB | OtherA | OtherB
 };
 
 ENUM_CLASS_FLAGS(EPCGExIntersectionStrictness)
