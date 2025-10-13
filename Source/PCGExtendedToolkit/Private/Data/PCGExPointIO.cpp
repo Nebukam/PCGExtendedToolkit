@@ -520,23 +520,22 @@ namespace PCGExData
 		if (!Out) { return 0; }
 
 		const int32 ReducedNum = InIndices.Num();
-		
+
 		if (ReducedNum == Out->GetNumPoints()) { return ReducedNum; }
 
-		EPCGPointNativeProperties Allocated = In->GetAllocatedProperties(); 
+		EPCGPointNativeProperties Allocated = In->GetAllocatedProperties() | Out->GetAllocatedProperties();
 		Out->AllocateProperties(Allocated);
 
 #define PCGEX_VALUERANGE_GATHER(_NAME, _TYPE, ...) \
 if (EnumHasAnyFlags(Allocated, EPCGPointNativeProperties::_NAME)){ \
-TConstPCGValueRange<_TYPE> InRange = Out->GetConst##_NAME##ValueRange(); \
-TPCGValueRange<_TYPE> OutRange = Out->Get##_NAME##ValueRange(); \
-for (int i = 0; i < ReducedNum; i++){OutRange[i] = InRange[InIndices[i]];} \
-}
+TPCGValueRange<_TYPE> Range = Out->Get##_NAME##ValueRange(); \
+for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 
-		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_VALUERANGE_GATHER)
+			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_VALUERANGE_GATHER)
+
 #undef PCGEX_VALUERANGE_GATHER
-		
-	Out->SetNumPoints(ReducedNum);
+
+		Out->SetNumPoints(ReducedNum);
 		return ReducedNum;
 	}
 
