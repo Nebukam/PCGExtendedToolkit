@@ -38,24 +38,22 @@ enum class EPCGExTruncateMode : uint8
 	Floor = 3 UMETA(DisplayName = "Floor", ToolTip="Floor"),
 };
 
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
+enum class EPCGExIntersectionStrictness : uint8
+{
+	Loose  = 0 UMETA(DisplayName = "Loose", ToolTip="Consider intersections only through segment/segment distance."),
+	MainA  = 1 << 0 UMETA(DisplayName = "Strict on Main A", ToolTip="Intersections located on main segment' start point are considered invalid."),
+	MainB  = 1 << 1 UMETA(DisplayName = "Strict on Main B", ToolTip="Intersections located on main segment' end point are considered invalid."),
+	OtherA = 1 << 2 UMETA(DisplayName = "Strict on Other A", ToolTip="Intersections located on end segment' start point are considered invalid."),
+	OtherB = 1 << 3 UMETA(DisplayName = "Strict on Other B", ToolTip="Intersections located on end segment' end point are considered invalid."),
+	Strict = MainA | MainB | OtherA | OtherB
+};
+
+ENUM_CLASS_FLAGS(EPCGExIntersectionStrictness)
+using EPCGExIntersectionStrictnessBitmask = TEnumAsByte<EPCGExIntersectionStrictness>;
+
 namespace PCGExMath
 {
-	enum class EIntersectionTestMode : uint8
-	{
-		Loose = 0,
-		Strict,
-		StrictOnSelfA,
-		StrictOnSelfB,
-		StrictOnOtherA,
-		StrictOnOtherB,
-		LooseOnSelf,
-		LooseOnSelfA,
-		LooseOnSelfB,
-		LooseOnOther,
-		LooseOnOtherA,
-		LooseOnOtherB,
-	};
-
 	struct PCGEXTENDEDTOOLKIT_API FClosestPosition
 	{
 		bool bValid = false;
@@ -96,8 +94,8 @@ namespace PCGExMath
 		double Dot(const FSegment& InSegment) const { return FVector::DotProduct(Direction, InSegment.Direction); }
 		FVector Lerp(const double InLerp) const { return FMath::Lerp(A, B, InLerp); }
 
-		bool FindIntersection(const FVector& A2, const FVector& B2, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EIntersectionTestMode Mode = EIntersectionTestMode::Strict) const;
-		bool FindIntersection(const FSegment& S, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EIntersectionTestMode Mode = EIntersectionTestMode::Strict) const;
+		bool FindIntersection(const FVector& A2, const FVector& B2, const double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const uint8 Strictness) const;
+		bool FindIntersection(const FSegment& S, const double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const uint8 Strictness) const;
 	};
 
 	PCGEXTENDEDTOOLKIT_API

@@ -325,7 +325,7 @@ namespace PCGExPathInclusion
 			const PCGExOctree::FItem& Item)
 			{
 				if (bIgnoreSelf && InParentData != nullptr) { if (InParentData == *(Datas->GetData() + Item.Index)) { return true; } }
-				ClosestIntersection = (*(Paths->GetData() + Item.Index))->FindClosestIntersection(InDetails, Segment, PCGExMath::EIntersectionTestMode::Strict);
+				ClosestIntersection = (*(Paths->GetData() + Item.Index))->FindClosestIntersection(InDetails, Segment);
 				return !ClosestIntersection.bValid;
 			});
 

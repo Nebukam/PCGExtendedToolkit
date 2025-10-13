@@ -216,6 +216,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathIntersectionDetails
 	double MaxAngle = 90;
 	double MaxDot = 1;
 
+	/** Strictness of the intersection detection. Different modes allow for some edge cases to be considered intersection. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExIntersectionStrictness"))
+	uint8 Strictness = static_cast<uint8>(EPCGExIntersectionStrictness::Strict);
+	
 	bool bWantsDotCheck = false;
 
 	void Init();
@@ -438,13 +442,11 @@ namespace PCGExPaths
 		virtual bool IsEdgeValid(const int32 Index) const { return IsEdgeValid(Edges[Index]); }
 
 		PCGExMath::FClosestPosition FindClosestIntersection(
-			const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment,
-			const PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict) const;
+			const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment) const;
 
 		PCGExMath::FClosestPosition FindClosestIntersection(
 			const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment,
-			PCGExMath::FClosestPosition& OutClosestPosition,
-			const PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict) const;
+			PCGExMath::FClosestPosition& OutClosestPosition) const;
 
 		void BuildEdgeOctree();
 		void BuildPartialEdgeOctree(const TArray<int8>& Filter);
@@ -671,16 +673,14 @@ namespace PCGExPaths
 	PCGExMath::FClosestPosition FindClosestIntersection(
 		const TArray<TSharedPtr<FPath>>& Paths,
 		const FPCGExPathIntersectionDetails& InDetails,
-		const PCGExMath::FSegment& InSegment, int32& OutPathIndex,
-		const PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict);
+		const PCGExMath::FSegment& InSegment, int32& OutPathIndex);
 
 	PCGEXTENDEDTOOLKIT_API
 	PCGExMath::FClosestPosition FindClosestIntersection(
 		const TArray<TSharedPtr<FPath>>& Paths,
 		const FPCGExPathIntersectionDetails& InDetails,
 		const PCGExMath::FSegment& InSegment, int32& OutPathIndex,
-		PCGExMath::FClosestPosition& OutClosestPosition,
-		const PCGExMath::EIntersectionTestMode Mode = PCGExMath::EIntersectionTestMode::Strict);
+		PCGExMath::FClosestPosition& OutClosestPosition);
 
 	class FPolyPath : public FPath
 	{
