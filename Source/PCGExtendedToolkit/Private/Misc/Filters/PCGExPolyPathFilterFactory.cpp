@@ -65,7 +65,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 				if (bScaleTolerance) { DataBounds = DataBounds.ExpandBy(DataBounds.GetSize().Length() * 10); }
 				BoundsList.Add(DataBounds);
 				OctreeBounds += Data->GetBounds();
-
+				
 				PolyPaths.Add(Path);
 				Datas.Add(Data);
 			}
@@ -123,7 +123,11 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 				Path = MakeShared<PCGExPaths::FPolyPath>(SplineData, LocalFidelity, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
 			}
 
-			if (Path) { TempPolyPaths[Index] = Path; }
+			if (Path)
+			{
+				if (bBuildEdgeOctree) { Path->BuildEdgeOctree(); }
+				TempPolyPaths[Index] = Path;
+			}
 		};
 
 	CreatePolyPaths->StartIterations(TempTargets.Num(), 1);
@@ -310,6 +314,22 @@ namespace PCGExPathInclusion
 		if (bIsOn) { EnumAddFlags(OutFlags, On); }
 
 		return OutFlags;
+	}
+
+	PCGExMath::FClosestPosition FHandler::FindClosestIntersection(const PCGExMath::FSegment& Segment, const FPCGExPathIntersectionDetails& InDetails, const UPCGData* InParentData) const
+	{
+		PCGExMath::FClosestPosition ClosestIntersection;
+		
+		Octree->FindFirstElementWithBoundsTest(
+			Segment.Bounds, [&](
+			const PCGExOctree::FItem& Item)
+			{
+				if (bIgnoreSelf && InParentData != nullptr) { if (InParentData == *(Datas->GetData() + Item.Index)) { return true; } }
+				ClosestIntersection = (*(Paths->GetData() + Item.Index))->FindClosestIntersection(InDetails, Segment, PCGExMath::EIntersectionTestMode::Strict);
+				return !ClosestIntersection.bValid;
+			});
+
+		return ClosestIntersection;
 	}
 }
 
