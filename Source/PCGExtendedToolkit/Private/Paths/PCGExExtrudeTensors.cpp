@@ -236,6 +236,8 @@ namespace PCGExExtrudeTensors
 		PCGExMath::FClosestPosition Crossing(InSegment.A);
 
 		const int32 LastSegment = SegmentBounds.Num() - 1;
+		const double SqrTolerance = Context->SelfPathIntersections.ToleranceSquared;
+		const uint8 Strictness = Context->SelfPathIntersections.Strictness;
 
 		for (int i = 0; i < MaxSearches; i++)
 		{
@@ -252,7 +254,7 @@ namespace PCGExExtrudeTensors
 			FVector OutSelf = FVector::ZeroVector;
 			FVector OutOther = FVector::ZeroVector;
 
-			if (!InSegment.FindIntersection(A, B, Context->SelfPathIntersections.ToleranceSquared, OutSelf, OutOther, PCGExMath::EIntersectionTestMode::Strict))
+			if (!InSegment.FindIntersection(A, B, SqrTolerance, OutSelf, OutOther, Strictness))
 			{
 				OutClosestPosition.Update(OutOther);
 				continue;

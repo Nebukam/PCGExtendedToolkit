@@ -327,8 +327,8 @@ namespace PCGExCluster
 		const FVector& B = GetPos(EndNode);
 		const FVector& C = FMath::ClosestPointOnSegment(Guide, A, B);
 
-		if (FVector::DotProduct((Guide - C).GetSafeNormal(), PCGExMath::GetNormalUp(A, B, Up)) < 0) { return GetEdgeStart(Edge); }
-		return GetEdgeEnd(Edge);
+		if (FVector::DotProduct((Guide - C).GetSafeNormal(), PCGExMath::GetNormalUp(A, B, Up)) < 0) { return GetEdgeEnd(Edge); }
+		return GetEdgeStart(Edge);
 	}
 
 	double FCluster::EdgeDistToEdge(const FEdge* A, const FEdge* B, FVector& OutP1, FVector& OutP2) const

@@ -17,7 +17,7 @@ UENUM()
 enum class EPCGExSegmentCrossWinding : uint8
 {
 	ToNext  = 0 UMETA(DisplayName = "To Next", ToolTip="Segment is current point to next point (canon)."),
-	ToPrev = 1 UMETA(DisplayName = "Best Fit", ToolTip="Segment is current point to previous point (inversed direction)."),
+	ToPrev = 1 UMETA(DisplayName = "To Prev", ToolTip="Segment is current point to previous point (inversed direction)."),
 };
 
 USTRUCT(BlueprintType)
@@ -108,7 +108,7 @@ namespace PCGExPointFilter
 
 ///
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/SegmentCross"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-points/spatial/segment-cross"))
 class UPCGExSegmentCrossFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
