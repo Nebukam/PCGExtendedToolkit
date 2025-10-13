@@ -218,9 +218,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathIntersectionDetails
 
 	bool bWantsDotCheck = false;
 
-	/** Strictness of the intersection detection. Different modes allow for some edge cases to be considered interesection. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExIntersectionStrictness Strictness = EPCGExIntersectionStrictness::Strict;
+	/** Strictness of the intersection detection. Different modes allow for some edge cases to be considered intersection. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExAssetTagInheritance"))
+	uint8 Strictness = static_cast<uint8>(EPCGExIntersectionStrictness::Strict);
 	
 	void Init();
 
@@ -444,8 +444,7 @@ namespace PCGExPaths
 		virtual bool IsEdgeValid(const int32 Index) const { return IsEdgeValid(Edges[Index]); }
 
 		PCGExMath::FClosestPosition FindClosestIntersection(
-			const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment,
-			const EPCGExIntersectionStrictness Strictness = EPCGExIntersectionStrictness::Strict) const;
+			const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment) const;
 
 		PCGExMath::FClosestPosition FindClosestIntersection(
 			const FPCGExPathIntersectionDetails& InDetails, const PCGExMath::FSegment& Segment,

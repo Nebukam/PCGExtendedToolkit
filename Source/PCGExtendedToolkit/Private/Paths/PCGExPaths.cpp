@@ -335,12 +335,14 @@ namespace PCGExPaths
 
 	PCGExMath::FClosestPosition FPath::FindClosestIntersection(
 		const FPCGExPathIntersectionDetails& InDetails,
-		const PCGExMath::FSegment& Segment, const EPCGExIntersectionStrictness Strictness) const
+		const PCGExMath::FSegment& Segment) const
 	{
 		PCGExMath::FClosestPosition Closest(Segment.A);
 
 		if (!Bounds.Intersect(Segment.Bounds)) { return Closest; }
 
+		const uint8 Strictness = InDetails.Strictness;
+		
 		GetEdgeOctree()->FindElementsWithBoundsTest(
 			Segment.Bounds, [&](const FPathEdge* PathEdge)
 			{
@@ -376,6 +378,8 @@ namespace PCGExPaths
 
 		if (!Bounds.Intersect(Segment.Bounds)) { return Closest; }
 
+		const uint8 Strictness = InDetails.Strictness;
+		
 		GetEdgeOctree()->FindElementsWithBoundsTest(
 			Segment.Bounds, [&](const FPathEdge* PathEdge)
 			{
@@ -392,7 +396,7 @@ namespace PCGExPaths
 					GetPos_Unsafe(PathEdge->End),
 					InDetails.ToleranceSquared,
 					OnSegment,
-					OnPath, InDetails.Strictness))
+					OnPath, Strictness))
 				{
 					OutClosestPosition.Update(OnPath, -2);
 					return;

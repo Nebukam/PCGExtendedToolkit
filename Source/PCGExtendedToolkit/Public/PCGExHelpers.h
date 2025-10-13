@@ -51,7 +51,7 @@ enum class EPCGExPointNativeProperties : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExPointNativeProperties)
-using EPCGExEPCGExNativePointPropertiesBitmask = TEnumAsByte<EPCGExPointNativeProperties>;
+using EPCGExNativePointPropertiesBitmask = TEnumAsByte<EPCGExPointNativeProperties>;
 
 UCLASS(Hidden)
 class PCGEXTENDEDTOOLKIT_API UPCGExComponentCallback : public UObject

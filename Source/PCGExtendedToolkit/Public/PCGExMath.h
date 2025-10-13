@@ -38,22 +38,19 @@ enum class EPCGExTruncateMode : uint8
 	Floor = 3 UMETA(DisplayName = "Floor", ToolTip="Floor"),
 };
 
-UENUM()
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
 enum class EPCGExIntersectionStrictness : uint8
 {
-	Loose          = 0 UMETA(DisplayName = "Loose", ToolTip="Consider intersections only through segment/segment distance."),
-	Strict         = 1 UMETA(DisplayName = "Strict", ToolTip="Consider intersections on endpoints not to be a valid intersection."),
-	StrictOnSelfA  = 2 UMETA(DisplayName = "Strict on Self A", ToolTip="Consider intersections on tested segment' start not to be a valid intersection."),
-	StrictOnSelfB  = 3 UMETA(DisplayName = "Strict on Self B", ToolTip="Consider intersections on tested segment' end not to be a valid intersection."),
-	StrictOnOtherA = 4 UMETA(DisplayName = "Strict on Other A", ToolTip="Consider intersections on other segment' start not to be a valid intersection."),
-	StrictOnOtherB = 5 UMETA(DisplayName = "Strict on Other B", ToolTip="Consider intersections on other segment' end not to be a valid intersection."),
-	LooseOnSelf    = 6 UMETA(DisplayName = "Loose on Self", ToolTip="Consider intersections on tested segment endpoints to be valid intersections."),
-	LooseOnSelfA   = 7 UMETA(DisplayName = "Loose on Self A", ToolTip="Consider intersections on tested segment' start to be valid intersections"),
-	LooseOnSelfB   = 8 UMETA(DisplayName = "Loose on Self B", ToolTip="Consider intersections on tested segment' end to be valid intersections"),
-	LooseOnOther   = 9 UMETA(DisplayName = "Loose on Other", ToolTip="Consider intersections on other segment' endpoints to be valid intersections"),
-	LooseOnOtherA  = 10 UMETA(DisplayName = "Loose on Other A", ToolTip="Consider intersections on other segment' start to be valid intersections"),
-	LooseOnOtherB  = 11 UMETA(DisplayName = "Loose on Other B", ToolTip="Consider intersections on other segment' end to be valid intersections"),
+	Loose  = 0 UMETA(DisplayName = "Loose", ToolTip="Consider intersections only through segment/segment distance."),
+	MainA  = 1 << 0 UMETA(DisplayName = "Strict on Main A", ToolTip="Intersections located on main segment' start point are considered invalid."),
+	MainB  = 1 << 1 UMETA(DisplayName = "Strict on Main B", ToolTip="Intersections located on main segment' end point are considered invalid."),
+	OtherA = 1 << 2 UMETA(DisplayName = "Strict on Other A", ToolTip="Intersections located on end segment' start point are considered invalid."),
+	OtherB = 1 << 3 UMETA(DisplayName = "Strict on Other B", ToolTip="Intersections located on end segment' end point are considered invalid."),
+	Strict = MainA | MainB | OtherA | OtherB,
 };
+
+ENUM_CLASS_FLAGS(EPCGExIntersectionStrictness)
+using EPCGExIntersectionStrictnessBitmask = TEnumAsByte<EPCGExIntersectionStrictness>;
 
 namespace PCGExMath
 {
@@ -97,8 +94,8 @@ namespace PCGExMath
 		double Dot(const FSegment& InSegment) const { return FVector::DotProduct(Direction, InSegment.Direction); }
 		FVector Lerp(const double InLerp) const { return FMath::Lerp(A, B, InLerp); }
 
-		bool FindIntersection(const FVector& A2, const FVector& B2, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EPCGExIntersectionStrictness Strictness = EPCGExIntersectionStrictness::Strict) const;
-		bool FindIntersection(const FSegment& S, double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const EPCGExIntersectionStrictness Strictness = EPCGExIntersectionStrictness::Strict) const;
+		bool FindIntersection(const FVector& A2, const FVector& B2, const double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const uint8 Strictness) const;
+		bool FindIntersection(const FSegment& S, const double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const uint8 Strictness) const;
 	};
 
 	PCGEXTENDEDTOOLKIT_API
