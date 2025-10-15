@@ -74,8 +74,8 @@ bool FPCGExFilterVtxElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(GraphBuilderDetails)
 
 	if (!GetInputFactories(
-		Context, PCGExGraph::SourceVtxFiltersLabel,
-		Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, true))
+		Context, PCGExGraph::SourceVtxFiltersLabel, Context->VtxFilterFactories,
+		PCGExFactories::ClusterNodeFilters))
 	{
 		return false;
 	}
@@ -83,8 +83,8 @@ bool FPCGExFilterVtxElement::Boot(FPCGExContext* InContext) const
 	if (Settings->Mode == EPCGExVtxFilterOutput::Clusters)
 	{
 		GetInputFactories(
-			Context, PCGExGraph::SourceEdgeFiltersLabel,
-			Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+			Context, PCGExGraph::SourceEdgeFiltersLabel, Context->EdgeFilterFactories,
+			PCGExFactories::ClusterEdgeFilters, false);
 	}
 
 	if (!Context->bWantsClusters)

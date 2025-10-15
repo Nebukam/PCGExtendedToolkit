@@ -302,7 +302,7 @@ namespace PCGExBinPacking
 		{
 			if (!SeedGetter->Prepare(Settings->SeedPositionAttribute, TargetBins.ToSharedRef()))
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("A bin pool is missing the seed position attribute : {0}."), FText::FromName(Settings->SeedPositionAttribute.GetName())));
+				PCGEX_LOG_INVALID_SELECTOR_C(Context, Seed Position, Settings->SeedPositionAttribute)
 				return false;
 			}
 		}
@@ -311,7 +311,7 @@ namespace PCGExBinPacking
 			bRelativeSeed = true;
 			if (!SeedGetter->Prepare(Settings->SeedUVWAttribute, TargetBins.ToSharedRef()))
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("A bin pool is missing the seed UVW attribute : {0}."), FText::FromName(Settings->SeedUVWAttribute.GetName())));
+				PCGEX_LOG_INVALID_SELECTOR_C(Context, Seed UVW, Settings->SeedUVWAttribute)
 				return false;
 			}
 		}

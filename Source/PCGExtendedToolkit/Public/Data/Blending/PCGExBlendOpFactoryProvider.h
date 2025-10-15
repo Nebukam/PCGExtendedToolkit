@@ -89,7 +89,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendWeight
 
 	void Init();
 
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingWeight(const bool bQuietErrors = false) const;
+	PCGEX_SETTING_VALUE_DECL(Weight, double)
 };
 
 USTRUCT(BlueprintType)

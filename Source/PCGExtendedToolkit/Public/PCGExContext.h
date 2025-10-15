@@ -138,7 +138,12 @@ public:
 	bool CanExecute() const;
 	virtual bool IsAsyncWorkComplete();
 
+	bool bQuietInvalidInputWarning = false;
+	
+	bool bQuietMissingAttributeError = false;
+	bool bQuietMissingInputError = false;
 	bool bQuietCancellationError = false;
+	
 	virtual bool CancelExecution(const FString& InReason);
 
 protected:

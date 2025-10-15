@@ -62,7 +62,7 @@ bool FPCGExSampleVtxByIDElement::Boot(FPCGExContext* InContext) const
 
 	if (Targets->IsEmpty())
 	{
-		if (!Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (empty datasets)")); }
+		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("No targets (empty datasets)"))
 		return false;
 	}
 

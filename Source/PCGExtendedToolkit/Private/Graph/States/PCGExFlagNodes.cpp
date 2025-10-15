@@ -31,7 +31,7 @@ bool FPCGExFlagNodesElement::Boot(FPCGExContext* InContext) const
 
 	return PCGExFactories::GetInputFactories(
 		Context, PCGExCluster::SourceNodeFlagLabel, Context->StateFactories,
-		{PCGExFactories::EType::NodeState}, true);
+		{PCGExFactories::EType::NodeState});
 }
 
 bool FPCGExFlagNodesElement::ExecuteInternal(

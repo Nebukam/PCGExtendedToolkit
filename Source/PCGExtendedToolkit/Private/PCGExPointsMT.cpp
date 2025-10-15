@@ -14,7 +14,6 @@ namespace PCGExPointsMT
 	IProcessor::IProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
 	{
-		PCGEX_LOG_CTR(FPointsProcessor)
 	}
 
 	void IProcessor::SetExecutionContext(FPCGExContext* InContext)
@@ -173,7 +172,6 @@ namespace PCGExPointsMT
 	IBatch::IBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
 		: ExecutionContext(InContext), PointsCollection(InPointsCollection)
 	{
-		PCGEX_LOG_CTR(IBatch)
 		SetExecutionContext(InContext);
 	}
 

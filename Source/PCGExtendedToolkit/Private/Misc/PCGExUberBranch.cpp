@@ -76,18 +76,16 @@ bool FPCGExUberBranchElement::Boot(FPCGExContext* InContext) const
 	for (int i = 0; i < Settings->NumBranches; i++)
 	{
 		TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> Factories;
-		if (GetInputFactories(Context, Settings->InputLabels[i], Factories, PCGExFactories::PointFilters, !Settings->bQuietMissingFilters))
+		if (GetInputFactories(
+			Context, Settings->InputLabels[i], Factories,
+			PCGExFactories::PointFilters))
 		{
 			for (int f = 0; f < Factories.Num(); f++)
 			{
 				TObjectPtr<const UPCGExPointFilterFactoryData> Factory = Factories[f];
 				if (!Factory->SupportsCollectionEvaluation())
 				{
-					if (!Settings->bQuietInvalidFilters)
-					{
-						PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Unsupported filter : {0}"), FText::FromString(Factory->GetName())));
-					}
-
+					PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("Unsupported filter : {0} (Requires per-point evaluation)"), FText::FromString(Factory->GetName())))
 					Factories.RemoveAt(f);
 					f--;
 				}

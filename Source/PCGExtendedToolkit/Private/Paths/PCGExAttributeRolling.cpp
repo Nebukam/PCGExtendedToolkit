@@ -55,14 +55,14 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 	{
 		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(
 			Context, PCGExPointFilter::SourceStartConditionLabel, Context->StartFilterFactories,
-			PCGExFactories::PointFilters, true))
+			PCGExFactories::PointFilters))
 		{
 			return false;
 		}
 
 		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(
 			Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories,
-			PCGExFactories::PointFilters, true))
+			PCGExFactories::PointFilters))
 		{
 			return false;
 		}
@@ -78,7 +78,7 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 	{
 		if (!PCGExFactories::GetInputFactories<UPCGExPointFilterFactoryData>(
 			Context, PCGExPointFilter::SourcePinConditionLabel, Context->PinFilterFactories,
-			PCGExFactories::PointFilters, true))
+			PCGExFactories::PointFilters))
 		{
 			return false;
 		}

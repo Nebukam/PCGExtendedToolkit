@@ -51,18 +51,10 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 	if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 	// Init for vtx
-	if (!DirectionSettings.Init(InContext, InPointDataFacade, &TypedFilterFactory->EdgeSortingRules))
-	{
-		PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some vtx are missing the specified Direction attribute."));
-		return false;
-	}
+	if (!DirectionSettings.Init(InContext, InPointDataFacade, &TypedFilterFactory->EdgeSortingRules)) { return false; }
 
 	// Init for edges
-	if (!DirectionSettings.InitFromParent(InContext, DirectionSettings, InEdgeDataFacade))
-	{
-		PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some edges are missing the specified Direction attribute."));
-		return false;
-	}
+	if (!DirectionSettings.InitFromParent(InContext, DirectionSettings, InEdgeDataFacade)) { return false; }
 
 	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection();
 	if (!OperandDirection->Init(InEdgeDataFacade)) { return false; }

@@ -49,7 +49,7 @@ PCGExFactories::EPreparationResult UPCGExTensorSplineFactoryData::InitInternalDa
 
 		if (ManagedSplines.IsEmpty())
 		{
-			if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)")); }
+			PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No splines (no input matches criteria or empty dataset)"))
 			return PCGExFactories::EPreparationResult::Fail;
 		}
 	}
@@ -73,7 +73,7 @@ PCGExFactories::EPreparationResult UPCGExTensorSplineFactoryData::InitInternalDa
 
 		if (Splines.IsEmpty())
 		{
-			if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No splines (no input matches criteria or empty dataset)")); }
+			PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No splines (no input matches criteria or empty dataset)"))
 			return PCGExFactories::EPreparationResult::Fail;
 		}
 	}

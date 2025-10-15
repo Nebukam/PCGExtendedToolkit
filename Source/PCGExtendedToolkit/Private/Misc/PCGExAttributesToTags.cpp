@@ -60,7 +60,7 @@ PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributesToTags)
 
 bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 {
-	if (InContext == nullptr ||!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
+	if (InContext == nullptr || !FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributesToTags)
 
@@ -122,10 +122,10 @@ bool FPCGExAttributesToTagsElement::Boot(FPCGExContext* InContext) const
 		Settings->Selection == EPCGExCollectionEntrySelection::PickerFirst ||
 		Settings->Selection == EPCGExCollectionEntrySelection::PickerLast)
 	{
-		PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}, false);
-		if (Context->PickerFactories.IsEmpty())
+		if (!PCGExFactories::GetInputFactories(
+			Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories,
+			{PCGExFactories::EType::IndexPicker}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing pickers."));
 			return false;
 		}
 	}

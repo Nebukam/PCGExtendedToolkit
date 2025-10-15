@@ -262,7 +262,6 @@ namespace PCGExSampling
 
 	int32 FTargetsHandler::Init(FPCGExContext* InContext, const FName InPinLabel, FInitData&& InitFn)
 	{
-		const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
 		FBox OctreeBounds = FBox(ForceInit);
 
 		TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(
@@ -270,7 +269,7 @@ namespace PCGExSampling
 
 		if (Targets->IsEmpty())
 		{
-			if (!Settings || !Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (empty datasets)")); }
+			PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No targets (empty datasets)"))
 			return 0;
 		}
 

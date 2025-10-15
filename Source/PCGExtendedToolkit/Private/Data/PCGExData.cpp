@@ -49,7 +49,7 @@ namespace PCGExData
 	IBuffer::IBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier)
 		: Identifier(InIdentifier), Source(InSource)
 	{
-		PCGEX_LOG_CTR(IBuffer)
+		
 	}
 
 	IBuffer::~IBuffer()
@@ -650,7 +650,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	FFacade::FFacade(const TSharedRef<FPointIO>& InSource)
 		: Source(InSource)
 	{
-		PCGEX_LOG_CTR(FFacade)
+		
 	}
 
 	bool FFacade::IsDataValid(const EIOSide InSide) const { return Source->IsDataValid(InSide); }

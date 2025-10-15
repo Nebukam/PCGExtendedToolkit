@@ -378,7 +378,7 @@ namespace PCGExCopyToPaths
 			CustomPointType = PathFacade->GetBroadcaster<int32>(Settings->PointTypeAttribute, true);
 			if (!CustomPointType)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Missing custom point type attribute"));
+				PCGEX_LOG_INVALID_ATTR_C(Context, Point Type, Settings->PointTypeAttribute)
 				return;
 			}
 		}

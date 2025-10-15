@@ -39,7 +39,7 @@ bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
 
 	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, true))
+		{PCGExFactories::EType::Blending}))
 	{
 		return false;
 	}

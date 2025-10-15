@@ -198,7 +198,7 @@ namespace PCGExPathSplineMeshSimple
 
 			if (!UpGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Mesh Up Vector attribute is missing on some inputs."));
+				PCGEX_LOG_INVALID_SELECTOR_C(Context, Spline Mesh Up Vector, Settings->SplineMeshUpVectorAttribute)
 				return false;
 			}
 		}
@@ -208,7 +208,7 @@ namespace PCGExPathSplineMeshSimple
 			AssetPathReader = PointDataFacade->GetBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName, true);
 			if (!AssetPathReader)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("AssetPath attribute is missing on some inputs.."));
+				PCGEX_LOG_INVALID_ATTR_C(Context, Asset Path, Settings->AssetPathAttributeName)
 				return false;
 			}
 		}
@@ -218,7 +218,7 @@ namespace PCGExPathSplineMeshSimple
 			MaterialPathReader = PointDataFacade->GetBroadcaster<FSoftObjectPath>(Settings->MaterialAttributeName, true);
 			if (!MaterialPathReader)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("MaterialPath attribute is missing on some inputs.."));
+				PCGEX_LOG_INVALID_ATTR_C(Context, Material Path, Settings->MaterialAttributeName)
 				return false;
 			}
 		}

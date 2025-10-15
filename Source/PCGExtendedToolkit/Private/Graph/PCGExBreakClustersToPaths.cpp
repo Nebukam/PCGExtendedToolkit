@@ -250,11 +250,7 @@ namespace PCGExBreakClustersToPaths
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
 		DirectionSettings = Settings->DirectionSettings;
-		if (!DirectionSettings.Init(Context, VtxDataFacade, Context->GetEdgeSortingRules()))
-		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx are missing the specified Direction attribute."));
-			return;
-		}
+		if (!DirectionSettings.Init(Context, VtxDataFacade, Context->GetEdgeSortingRules())) { return; }
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}

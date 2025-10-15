@@ -103,7 +103,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagDetails
 	TSharedPtr<PCGExData::FFacade> SourceDataFacade;
 	TArray<TSharedPtr<PCGEx::TAttributeBroadcaster<FString>>> Getters;
 
-	bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade);
+	bool Init(const ::FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade);
 	void Tag(const PCGExData::FConstPoint& TagSource, TSet<FString>& InTags) const;
 	void Tag(const PCGExData::FConstPoint& TagSource, const TSharedPtr<PCGExData::FPointIO>& PointIO) const;
 	void Tag(const PCGExData::FConstPoint& TagSource, UPCGMetadata* InMetadata) const;

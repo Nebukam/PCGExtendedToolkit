@@ -46,7 +46,7 @@ bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const
 
 	if (!PCGExFactories::GetInputFactories<UPCGExProbeFactoryData>(
 		Context, PCGExGraph::SourceProbesLabel, Context->ProbeFactories,
-		{PCGExFactories::EType::Probe}, true))
+		{PCGExFactories::EType::Probe}))
 	{
 		return false;
 	}
@@ -54,6 +54,7 @@ bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const
 	GetInputFactories(
 		Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories,
 		PCGExFactories::PointFilters, false);
+	
 	GetInputFactories(
 		Context, PCGExGraph::SourceFilterConnectables, Context->ConnectablesFiltersFactories,
 		PCGExFactories::PointFilters, false);

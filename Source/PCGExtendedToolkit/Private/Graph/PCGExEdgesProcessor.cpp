@@ -270,7 +270,7 @@ bool FPCGExEdgesProcessorContext::StartProcessingClusters(FBatchProcessingValida
 			bClusterWantsHeuristics = true;
 			if (!bHasValidHeuristics)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, this, FTEXT("Missing Heuristics."));
+				PCGEX_LOG_MISSING_INPUT(this, FTEXT("Missing Heuristics."))
 				return false;
 			}
 			NewBatch->HeuristicsFactories = &HeuristicsFactories;
@@ -377,17 +377,16 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	if (!Context->ClusterDataLibrary->Build(Context->MainPoints, Context->MainEdges))
 	{
 		Context->ClusterDataLibrary->PrintLogs(Context);
-		if (!Settings->bQuietMissingInputError) { PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any valid vtx/edge pairs.")); }
+		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Could not find any valid vtx/edge pairs."))
 		return false;
 	}
 
 	if (Settings->SupportsEdgeSorting())
 	{
 		Context->EdgeSortingRules = PCGExSorting::GetSortingRules(Context, PCGExGraph::SourceEdgeSortingRules);
-
 		if (Settings->RequiresEdgeSorting() && Context->EdgeSortingRules.IsEmpty())
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing valid sorting rules."));
+			PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Missing valid sorting rules."))
 			return false;
 		}
 	}

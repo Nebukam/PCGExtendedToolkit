@@ -23,7 +23,7 @@ PCGExFactories::EPreparationResult UPCGExBoundsFilterFactory::Prepare(FPCGExCont
 
 	if (!PCGExData::TryGetFacades(InContext, FName("Bounds"), BoundsDataFacades, false))
 	{
-		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing bounds data.")); } }
+		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("Missing bounds data.")) }
 		return PCGExFactories::EPreparationResult::MissingData;
 	}
 

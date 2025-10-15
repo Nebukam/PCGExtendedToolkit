@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
+#include "PCGExSettingsMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExDetailsRelax.generated.h"
@@ -43,7 +44,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Influence", EditCondition="InfluenceInput == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=-1, ClampMax=1))
 	double Influence = 1.0;
 
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingInfluence(const bool bQuietErrors = false) const;
+	PCGEX_SETTING_VALUE_DECL(Influence, double)
 
 	/** If enabled, applies influence after each iteration; otherwise applies once at the end of the relaxing.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

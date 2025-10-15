@@ -71,7 +71,7 @@ bool FPCGExMatchAttrToAttr::Test(const PCGExData::FConstPoint& InTargetElement, 
 		const double TargetValue = NumGetters[InTargetElement.IO]->FetchSingle(InTargetElement, MAX_dbl);
 		double CandidateValue = 0;
 
-		if (!PCGExDataHelpers::TryReadDataValue<double>(PointIO, Config.CandidateAttributeName_Sanitized, CandidateValue, true)) { return false; }
+		if (!PCGExDataHelpers::TryReadDataValue<double>(PointIO, Config.CandidateAttributeName_Sanitized, CandidateValue)) { return false; }
 
 		return Config.bSwapOperands ?
 			       PCGExCompare::Compare(Config.NumericComparison, TargetValue, CandidateValue, Config.Tolerance) :
@@ -80,7 +80,7 @@ bool FPCGExMatchAttrToAttr::Test(const PCGExData::FConstPoint& InTargetElement, 
 	const FString TargetValue = StrGetters[InTargetElement.IO]->FetchSingle(InTargetElement, TEXT(""));
 	FString CandidateValue = TEXT("");
 
-	if (!PCGExDataHelpers::TryReadDataValue<FString>(PointIO, Config.CandidateAttributeName_Sanitized, CandidateValue, true)) { return false; }
+	if (!PCGExDataHelpers::TryReadDataValue<FString>(PointIO, Config.CandidateAttributeName_Sanitized, CandidateValue)) { return false; }
 
 	return Config.bSwapOperands ?
 		       PCGExCompare::Compare(Config.StringComparison, TargetValue, CandidateValue) :

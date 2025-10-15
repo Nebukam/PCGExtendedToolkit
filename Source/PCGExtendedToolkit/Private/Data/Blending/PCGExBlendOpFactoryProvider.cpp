@@ -24,12 +24,7 @@ void FPCGExAttributeBlendWeight::Init()
 	ScoreCurveObj = LocalWeightCurve.GetRichCurveConst();
 }
 
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAttributeBlendWeight::GetValueSettingWeight(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(WeightInput, WeightAttribute, Weight);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
+PCGEX_SETTING_VALUE_IMPL(FPCGExAttributeBlendWeight, Weight, double, WeightInput, WeightAttribute, Weight)
 
 void FPCGExAttributeBlendConfig::Init()
 {

@@ -47,10 +47,7 @@ namespace PCGExTensor
 			DirectionBuffer = FlowFactory->InputDataFacade->GetBroadcaster<FVector>(Config.DirectionAttribute);
 			if (!DirectionBuffer)
 			{
-				if (!FlowFactory->bQuietMissingInputError)
-				{
-					PCGEX_LOG_INVALID_SELECTOR_C(InContext, Direction, Config.DirectionAttribute)
-				}
+				PCGEX_LOG_INVALID_SELECTOR_C(InContext, Direction, Config.DirectionAttribute)
 				return false;
 			}
 

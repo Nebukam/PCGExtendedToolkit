@@ -26,14 +26,9 @@ bool FPCGExBlendAttributesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendAttributes)
 
-	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
+	return PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, true))
-	{
-		return false;
-	}
-
-	return true;
+		{PCGExFactories::EType::Blending});
 }
 
 bool FPCGExBlendAttributesElement::ExecuteInternal(FPCGContext* InContext) const

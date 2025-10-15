@@ -73,12 +73,16 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 	if (Context->Refinement->SupportFilters())
 	{
 		//GetInputFactories(Context, PCGExRefineEdges::SourceVtxFilters, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
-		GetInputFactories(Context, PCGExGraph::SourceEdgeFiltersLabel, Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+		GetInputFactories(
+			Context, PCGExGraph::SourceEdgeFiltersLabel, Context->EdgeFilterFactories,
+			PCGExFactories::ClusterEdgeFilters, false);
 	}
 
 	if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 	{
-		if (!GetInputFactories(Context, PCGExRefineEdges::SourceSanitizeEdgeFilters, Context->SanitizationFilterFactories, PCGExFactories::ClusterEdgeFilters, true))
+		if (!GetInputFactories(
+			Context, PCGExRefineEdges::SourceSanitizeEdgeFilters, Context->SanitizationFilterFactories,
+			PCGExFactories::ClusterEdgeFilters))
 		{
 			return false;
 		}

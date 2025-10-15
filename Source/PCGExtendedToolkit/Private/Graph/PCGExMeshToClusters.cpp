@@ -47,7 +47,7 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 
 	if (Context->MainPoints->Pairs.Num() < 1)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing targets."));
+		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Missing targets."))
 		return false;
 	}
 
