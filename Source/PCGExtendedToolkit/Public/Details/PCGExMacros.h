@@ -33,17 +33,20 @@ if(!SharedContext.Get()){ return false; }
 FPCGContext::FSharedContext<FPCGExContext> SharedContext(_HANDLE); \
 if(!SharedContext.Get()){ return _RET; }
 
-#define PCGEX_LOG_INVALID_SELECTOR_C(_CTX, _NAME, _SELECTOR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Attribute or property \"{0}\" doesn't exist. (See "#_NAME")"), FText::FromString(PCGEx::GetSelectorDisplayName(_SELECTOR))));
-#define PCGEX_LOG_INVALID_ATTR_C(_CTX, _NAME, _ATTR) PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Attribute \"{0}\" doesn't exist. (See "#_NAME")"), FText::FromName(_ATTR)));
+#define PCGEX_LOG_MISSING_INPUT(_CTX, _MESSAGE) if (!_CTX->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, _CTX, _MESSAGE); }
+#define PCGEX_LOG_INVALID_INPUT(_CTX, _MESSAGE) if (!_CTX->bQuietInvalidInputWarning) { PCGE_LOG_C(Warning, GraphAndLog, _CTX, _MESSAGE); }
 
-#define PCGEX_ON_INVALILD_INPUTS(_MSG) bool bHasInvalidInputs = false; ON_SCOPE_EXIT{ if (bHasInvalidInputs){ PCGE_LOG(Warning, GraphAndLog, _MSG); } };
-#define PCGEX_ON_INVALILD_INPUTS_C(_CTX, _MSG) bool bHasInvalidInputs = false; ON_SCOPE_EXIT{ if (bHasInvalidInputs){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, _MSG); } };
+#define PCGEX_LOG_INVALID_SELECTOR_C(_CTX, _NAME, _SELECTOR) if(!_CTX->bQuietMissingAttributeError){ PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Attribute or property \"{0}\" doesn't exist. (See "#_NAME")"), FText::FromString(PCGEx::GetSelectorDisplayName(_SELECTOR)))); }
+#define PCGEX_LOG_INVALID_ATTR_C(_CTX, _NAME, _ATTR) if(!_CTX->bQuietMissingAttributeError){ PCGE_LOG_C(Error, GraphAndLog, _CTX, FText::Format(FTEXT("Attribute \"{0}\" doesn't exist. (See "#_NAME")"), FText::FromName(_ATTR))); }
+
+#define PCGEX_LOG_WARN_SELECTOR_C(_CTX, _NAME, _SELECTOR) if(!_CTX->bQuietInvalidInputWarning){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FText::Format(FTEXT("Attribute or property \"{0}\" doesn't exist. (See "#_NAME")"), FText::FromString(PCGEx::GetSelectorDisplayName(_SELECTOR)))); }
+#define PCGEX_LOG_WARN_ATTR_C(_CTX, _NAME, _ATTR) if(!_CTX->bQuietInvalidInputWarning){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FText::Format(FTEXT("Attribute \"{0}\" doesn't exist. (See "#_NAME")"), FText::FromName(_ATTR))); }
+
+#define PCGEX_ON_INVALILD_INPUTS(_MSG) bool bHasInvalidInputs = false; ON_SCOPE_EXIT{ if (bHasInvalidInputs){ PCGEX_LOG_INVALID_INPUT(Context, _MSG); } };
+#define PCGEX_ON_INVALILD_INPUTS_C(_CTX, _MSG) bool bHasInvalidInputs = false; ON_SCOPE_EXIT{ if (bHasInvalidInputs){ PCGEX_LOG_INVALID_INPUT(_CTX, _MSG); } };
 
 #define PCGEX_NOT_IMPLEMENTED(_NAME){ LowLevelFatalError(TEXT("Method not implemented: (%s)"), TEXT(#_NAME));}
 #define PCGEX_NOT_IMPLEMENTED_RET(_NAME, _RETURN){ LowLevelFatalError(TEXT("Method not implemented: (%s)"), TEXT(#_NAME)); return _RETURN;}
-
-#define PCGEX_LOG_CTR(_NAME)  //UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Constructor"))
-#define PCGEX_LOG_DTR(_NAME)  //UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Destructor"))
 
 #define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
 #define FSTRING(_TEXT) FString(_TEXT)

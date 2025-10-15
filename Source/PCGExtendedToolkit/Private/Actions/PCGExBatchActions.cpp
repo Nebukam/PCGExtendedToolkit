@@ -37,8 +37,8 @@ bool FPCGExBatchActionsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BatchActions)
 
 	if (!PCGExFactories::GetInputFactories(
-		Context, PCGExActions::SourceActionsLabel, Context->ActionsFactories,
-		{PCGExFactories::EType::Action}, true))
+		Context, PCGExActions::SourceActionsLabel,
+		Context->ActionsFactories, {PCGExFactories::EType::Action}))
 	{
 		// No action factories, early exit.
 		Context->ActionsFactories.Empty();

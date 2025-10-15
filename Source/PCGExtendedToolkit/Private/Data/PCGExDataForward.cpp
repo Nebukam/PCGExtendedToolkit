@@ -41,7 +41,7 @@ TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(c
 	return bEnabled ? GetHandler(InSourceDataFacade, InTargetDataFacade, bForwardToDataDomain) : nullptr;
 }
 
-bool FPCGExAttributeToTagDetails::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade)
+bool FPCGExAttributeToTagDetails::Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade)
 {
 	PCGExHelpers::AppendUniqueSelectorsFromCommaSeparatedList(CommaSeparatedAttributeSelectors, Attributes);
 
@@ -50,7 +50,7 @@ bool FPCGExAttributeToTagDetails::Init(const FPCGContext* InContext, const TShar
 		if (const TSharedPtr<PCGEx::TAttributeBroadcaster<FString>>& Getter = Getters.Add_GetRef(MakeShared<PCGEx::TAttributeBroadcaster<FString>>());
 			!Getter->Prepare(Selector, InSourceFacade->Source))
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing specified Tag attribute."));
+			PCGEX_LOG_INVALID_SELECTOR_C(InContext, Tag, Selector)
 			Getters.Empty();
 			return false;
 		}

@@ -11,6 +11,7 @@
 #include "PCGExAttributeHelpers.h"
 #include "Metadata/PCGMetadataCommon.h"
 #include "PCGExBroadcast.h"
+#include "PCGExContext.h"
 #include "PCGExHelpers.h"
 
 #include "Details/PCGExMacros.h"
@@ -59,7 +60,7 @@ namespace PCGEx
 	}
 
 	template <typename T_KEY, typename T_VALUE>
-	static int32 BuildMap(FPCGContext* InContext, const UPCGParamData* ParamData, const FName KeyId, const FName ValueId, TMap<T_KEY, T_VALUE>& OutMap)
+	static int32 BuildMap(FPCGExContext* InContext, const UPCGParamData* ParamData, const FName KeyId, const FName ValueId, TMap<T_KEY, T_VALUE>& OutMap)
 	{
 		const FPCGMetadataAttributeBase* KeyAttr = ParamData->Metadata->GetConstAttribute(KeyId);
 
@@ -81,7 +82,7 @@ namespace PCGEx
 	}
 
 	template <typename T_KEY, typename T_VALUE>
-	static int32 BuildMap(FPCGContext* InContext, FName Pin, TMap<T_KEY, T_VALUE>& OutMap)
+	static int32 BuildMap(FPCGExContext* InContext, FName Pin, TMap<T_KEY, T_VALUE>& OutMap)
 	{
 		TArray<FPCGTaggedData> Inputs = InContext->InputData.GetInputsByPin(Pin);
 

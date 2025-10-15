@@ -44,7 +44,13 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 	{
 		Context->bExtractTextureParams = true;
 
-		if (!PCGExFactories::GetInputFactories(InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories, {PCGExFactories::EType::TexParam}, true)) { return false; }
+		if (!PCGExFactories::GetInputFactories(
+			InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories,
+			{PCGExFactories::EType::TexParam}, true))
+		{
+			return false;
+		}
+
 		for (const TObjectPtr<const UPCGExTexParamFactoryData>& Factory : Context->TexParamsFactories) { PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.TextureIDAttributeName) }
 	}
 

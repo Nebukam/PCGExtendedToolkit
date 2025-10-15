@@ -46,7 +46,7 @@ bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const
 
 	if (!PCGExFactories::GetInputFactories<UPCGExProbeFactoryData>(
 		Context, PCGExGraph::SourceProbesLabel, Context->ProbeFactories,
-		{PCGExFactories::EType::Probe}, true))
+		{PCGExFactories::EType::Probe}))
 	{
 		return false;
 	}

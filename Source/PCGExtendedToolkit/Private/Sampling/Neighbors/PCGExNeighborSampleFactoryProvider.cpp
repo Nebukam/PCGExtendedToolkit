@@ -233,9 +233,11 @@ UPCGExFactoryData* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGExCon
 	GetInputFactories(
 		InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->VtxFilterFactories,
 		PCGExFactories::ClusterNodeFilters, false);
+
 	GetInputFactories(
 		InContext, PCGExPointFilter::SourceVtxFiltersLabel, SamplerFactory->EdgesFilterFactories,
 		PCGExFactories::ClusterEdgeFilters, false);
+
 	GetInputFactories(
 		InContext, PCGEx::SourceUseValueIfFilters, SamplerFactory->ValueFilterFactories,
 		PCGExFactories::ClusterNodeFilters, false);

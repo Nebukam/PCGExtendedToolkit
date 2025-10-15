@@ -106,7 +106,7 @@ UPCGExFactoryData* UPCGExActionProviderSettings::CreateFactory(FPCGExContext* In
 	{
 		if (!GetInputFactories(
 			InContext, PCGExActions::SourceConditionsFilterLabel, TypedFactory->FilterFactories,
-			PCGExFactories::PointFilters, !bQuietMissingInputError))
+			PCGExFactories::PointFilters))
 		{
 			return nullptr;
 		}

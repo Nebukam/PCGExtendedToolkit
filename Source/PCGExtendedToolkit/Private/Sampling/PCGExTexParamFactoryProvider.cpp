@@ -106,7 +106,13 @@ namespace PCGExTexture
 
 	bool FLookup::BuildFrom(FPCGExContext* InContext, const FName InPin)
 	{
-		if (!PCGExFactories::GetInputFactories(InContext, InPin, Factories, {PCGExFactories::EType::TexParam}, true)) { return false; }
+		if (!PCGExFactories::GetInputFactories(
+			InContext, InPin, Factories,
+			{PCGExFactories::EType::TexParam}))
+		{
+			return false;
+		}
+
 		for (const TObjectPtr<const UPCGExTexParamFactoryData>& Factory : Factories) { PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.TextureIDAttributeName) }
 		return true;
 	}

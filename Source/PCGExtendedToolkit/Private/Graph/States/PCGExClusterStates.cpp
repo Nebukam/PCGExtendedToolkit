@@ -122,7 +122,7 @@ UPCGExFactoryData* UPCGExClusterStateFactoryProviderSettings::CreateFactory(FPCG
 
 	if (!GetInputFactories(
 		InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,
-		PCGExFactories::ClusterNodeFilters, !bQuietMissingInputError))
+		PCGExFactories::ClusterNodeFilters))
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

@@ -27,7 +27,7 @@ namespace PCGExData
 		return false;
 	}
 
-	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const FString& Path, const EIOSide InSide, const bool bThrowError)
+	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const FString& Path, const EIOSide InSide, const bool bRequired)
 	{
 		const TSharedPtr<FFacade> InFacade = DataFacade.Pin();
 		check(InFacade);
@@ -41,7 +41,7 @@ namespace PCGExData
 
 		if (!PCGEx::TryGetTypeAndSource(Selector, InFacade, RealType, Side))
 		{
-			if (bThrowError) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, , Selector) }
+			if (bRequired) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, , Selector) }
 			bValid = false;
 		}
 
@@ -53,7 +53,7 @@ namespace PCGExData
 		return bValid;
 	}
 
-	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const EIOSide InSide, const bool bThrowError)
+	bool FProxyDescriptor::Capture(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const EIOSide InSide, const bool bRequired)
 	{
 		const TSharedPtr<FFacade> InFacade = DataFacade.Pin();
 		check(InFacade);
@@ -63,7 +63,7 @@ namespace PCGExData
 
 		if (!PCGEx::TryGetTypeAndSource(InSelector, InFacade, RealType, Side))
 		{
-			if (bThrowError) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, , InSelector) }
+			if (bRequired) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, , InSelector) }
 			bValid = false;
 		}
 
@@ -76,13 +76,13 @@ namespace PCGExData
 		return bValid;
 	}
 
-	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const FString& Path, const EIOSide InSide, const bool bThrowError)
+	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const FString& Path, const EIOSide InSide, const bool bRequired)
 	{
-		if (!Capture(InContext, Path, InSide, bThrowError)) { return false; }
+		if (!Capture(InContext, Path, InSide, bRequired)) { return false; }
 
 		if (Side != InSide)
 		{
-			if (bThrowError)
+			if (bRequired && !InContext->bQuietMissingAttributeError)
 			{
 				if (InSide == EIOSide::In)
 				{
@@ -100,13 +100,13 @@ namespace PCGExData
 		return true;
 	}
 
-	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const EIOSide InSide, const bool bThrowError)
+	bool FProxyDescriptor::CaptureStrict(FPCGExContext* InContext, const FPCGAttributePropertyInputSelector& InSelector, const EIOSide InSide, const bool bRequired)
 	{
-		if (!Capture(InContext, InSelector, InSide, bThrowError)) { return false; }
+		if (!Capture(InContext, InSelector, InSide, bRequired)) { return false; }
 
 		if (Side != InSide)
 		{
-			if (bThrowError)
+			if (bRequired && !InContext->bQuietMissingAttributeError)
 			{
 				if (InSide == EIOSide::In)
 				{

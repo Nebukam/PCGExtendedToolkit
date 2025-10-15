@@ -26,16 +26,25 @@ bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(TensorsTransform)
 
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, Context->TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
+	if (!PCGExFactories::GetInputFactories(
+		InContext, PCGExTensor::SourceTensorsLabel, Context->TensorFactories,
+		{PCGExFactories::EType::Tensor}))
+	{
+		return false;
+	}
+
 	if (Context->TensorFactories.IsEmpty())
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
+		PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("Missing tensors."))
 		return false;
 	}
 
 	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	GetInputFactories(Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(
+		Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories,
+		PCGExFactories::PointFilters, false);
+	
 	PCGExPointFilter::PruneForDirectEvaluation(Context, Context->StopFilterFactories);
 
 	return true;

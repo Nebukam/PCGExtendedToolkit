@@ -620,8 +620,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	FGraph::FGraph(const int32 InNumNodes)
 	{
-		PCGEX_LOG_CTR(FGraph)
-
 		int32 StartNodeIndex = 0;
 		AddNodes(InNumNodes, StartNodeIndex);
 	}
@@ -998,8 +996,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		: OutputDetails(InDetails),
 		  NodeDataFacade(InNodeDataFacade)
 	{
-		PCGEX_LOG_CTR(FGraphBuilder)
-
 		PCGEX_SHARED_CONTEXT_VOID(NodeDataFacade->Source->GetContextHandle())
 
 		const UPCGBasePointData* NodePointData = NodeDataFacade->Source->GetOutIn();

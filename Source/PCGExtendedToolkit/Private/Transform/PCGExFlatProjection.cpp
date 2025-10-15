@@ -54,7 +54,7 @@ bool FPCGExFlatProjectionElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		bool bHasInvalidEntries = false;
+		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some points are missing the required attributes."))
 
 		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
@@ -63,7 +63,7 @@ bool FPCGExFlatProjectionElement::ExecuteInternal(FPCGContext* InContext) const
 				{
 					if (!Entry->GetIn()->Metadata->HasAttribute(Context->CachedTransformAttributeName))
 					{
-						bHasInvalidEntries = true;
+						bHasInvalidInputs = true;
 						return false;
 					}
 				}
@@ -74,11 +74,6 @@ bool FPCGExFlatProjectionElement::ExecuteInternal(FPCGContext* InContext) const
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
-		}
-
-		if (bHasInvalidEntries)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some points are missing the required attributes."));
 		}
 	}
 

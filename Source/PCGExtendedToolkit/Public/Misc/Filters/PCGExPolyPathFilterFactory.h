@@ -94,9 +94,9 @@ namespace PCGExPathInclusion
 	enum EFlags : uint8
 	{
 		None    = 0,
-		Inside  = 1 << 1,
-		Outside = 1 << 2,
-		On      = 1 << 3,
+		Inside  = 1 << 0,
+		Outside = 1 << 1,
+		On      = 1 << 2,
 	};
 
 	enum ESplineMatch : uint8

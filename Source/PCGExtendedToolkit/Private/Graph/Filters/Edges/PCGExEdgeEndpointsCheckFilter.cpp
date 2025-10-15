@@ -136,7 +136,7 @@ UPCGExFactoryData* UPCGExEdgeEndpointsCheckFilterProviderSettings::CreateFactory
 
 	if (!GetInputFactories(
 		InContext, PCGExPointFilter::SourceVtxFiltersLabel, NewFactory->FilterFactories,
-		PCGExFactories::ClusterNodeFilters, !bQuietMissingInputError))
+		PCGExFactories::ClusterNodeFilters, true))
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

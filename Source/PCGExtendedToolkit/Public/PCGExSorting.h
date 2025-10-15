@@ -77,7 +77,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionSortingDetails
 	bool bQuietMissingTagWarning = false;
 
 	bool Init(const FPCGContext* InContext);
-	void Sort(const FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const;
+	void Sort(const ::FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const;
 };
 
 USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Sort Rule")

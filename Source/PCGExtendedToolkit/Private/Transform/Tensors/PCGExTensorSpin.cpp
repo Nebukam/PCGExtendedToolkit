@@ -19,10 +19,7 @@ namespace PCGExTensor
 			AxisBuffer = InFactory->InputDataFacade->GetBroadcaster<FVector>(Config.AxisAttribute);
 			if (!AxisBuffer)
 			{
-				if (!InFactory->bQuietMissingInputError)
-				{
-					PCGEX_LOG_INVALID_SELECTOR_C(InContext, Axis, Config.AxisAttribute)
-				}
+				PCGEX_LOG_INVALID_SELECTOR_C(InContext, Axis, Config.AxisAttribute)
 				return false;
 			}
 		}

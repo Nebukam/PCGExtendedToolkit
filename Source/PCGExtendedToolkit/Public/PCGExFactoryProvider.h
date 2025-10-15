@@ -133,9 +133,6 @@ public:
 	UPROPERTY()
 	bool bCleanupConsumableAttributes = false;
 
-	UPROPERTY()
-	bool bQuietMissingInputError = false;
-
 	PCGExFactories::EPreparationResult PrepResult = PCGExFactories::EPreparationResult::None;
 
 	virtual PCGExFactories::EType GetFactoryType() const { return PCGExFactories::EType::None; }
@@ -207,6 +204,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta = (PCG_NotOverridable))
 	bool bCleanupConsumableAttributes = false;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
+	bool bQuietInvalidInputWarning = false;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
+	bool bQuietMissingAttributeError = false;
+	
 	/** If enabled, will turn off missing input errors on factories that have inputs with missing or no data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingInputError = false;
@@ -246,13 +251,8 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
 public:
-	virtual FPCGContext* CreateContext() override
-	{
-		FPCGExFactoryProviderContext* NewContext = new FPCGExFactoryProviderContext();
-		NewContext->SetState(PCGExCommon::State_InitialExecution);
-		return NewContext;
-	}
-
+	virtual FPCGContext* CreateContext() override;
+	
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
@@ -260,13 +260,13 @@ public:
 
 namespace PCGExFactories
 {
-	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, const bool bThrowError);
+	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, const bool bRequired);
 
 	template <typename T_DEF>
-	static bool GetInputFactories(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const T_DEF>>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
+	static bool GetInputFactories(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const T_DEF>>& OutFactories, const TSet<EType>& Types, const bool bRequired = true)
 	{
 		TArray<TObjectPtr<const UPCGExFactoryData>> BaseFactories;
-		if (!GetInputFactories_Internal(InContext, InLabel, BaseFactories, Types, bThrowError)) { return false; }
+		if (!GetInputFactories_Internal(InContext, InLabel, BaseFactories, Types, bRequired)) { return false; }
 
 		// Cast back to T_DEF
 		for (const TObjectPtr<const UPCGExFactoryData>& Base : BaseFactories) { if (const T_DEF* Derived = Cast<T_DEF>(Base)) { OutFactories.Add(Derived); } }

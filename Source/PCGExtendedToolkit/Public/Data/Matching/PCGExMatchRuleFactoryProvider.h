@@ -169,6 +169,6 @@ namespace PCGExMatching
 	protected:
 		int32 GetMatchLimitFor(const TSharedPtr<PCGExData::FPointIO>& InDataCandidate) const;
 		void RegisterTaggedData(FPCGExContext* InContext, const PCGExData::FTaggedData& InTaggedData);
-		bool InitInternal(FPCGExContext* InContext, const FName InFactoriesLabel, const bool bThrowError);
+		bool InitInternal(FPCGExContext* InContext, const FName InFactoriesLabel);
 	};
 }

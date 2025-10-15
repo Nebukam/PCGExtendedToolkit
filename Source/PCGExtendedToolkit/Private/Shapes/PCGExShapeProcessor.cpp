@@ -45,7 +45,7 @@ bool FPCGExShapeProcessorElement::Boot(FPCGExContext* InContext) const
 
 	if (!PCGExFactories::GetInputFactories(
 		Context, PCGExShapes::SourceShapeBuildersLabel, Context->BuilderFactories,
-		{PCGExFactories::EType::ShapeBuilder}, true))
+		{PCGExFactories::EType::ShapeBuilder}))
 	{
 		return false;
 	}

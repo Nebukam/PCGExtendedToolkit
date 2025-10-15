@@ -501,5 +501,5 @@ namespace PCGExData
 	void GetPoints(const FScope& Scope, TArray<FPCGPoint>& OutPCGPoints);
 
 	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bThrowError);
+	TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bRequired);
 }
