@@ -20,19 +20,16 @@ namespace PCGExData
 	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle):
 		ContextHandle(InContextHandle), In(nullptr)
 	{
-		PCGEX_LOG_CTR(FPointIO)
 	}
 
 	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle, const UPCGBasePointData* InData):
 		ContextHandle(InContextHandle), In(InData)
 	{
-		PCGEX_LOG_CTR(FPointIO)
 	}
 
 	FPointIO::FPointIO(const TSharedRef<FPointIO>& InPointIO):
 		ContextHandle(InPointIO->GetContextHandle()), In(InPointIO->GetIn())
 	{
-		PCGEX_LOG_CTR(FPointIO)
 		RootIO = InPointIO;
 
 		TSet<FString> TagDump;
@@ -531,7 +528,7 @@ if (EnumHasAnyFlags(Allocated, EPCGPointNativeProperties::_NAME)){ \
 TPCGValueRange<_TYPE> Range = Out->Get##_NAME##ValueRange(); \
 for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 
-			PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_VALUERANGE_GATHER)
+		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_VALUERANGE_GATHER)
 
 #undef PCGEX_VALUERANGE_GATHER
 
@@ -607,7 +604,6 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, const bool bIsTransactional)
 		: ContextHandle(InContext->GetOrCreateHandle()), bTransactional(bIsTransactional)
 	{
-		PCGEX_LOG_CTR(FPointIOCollection)
 	}
 
 	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, const FName InputLabel, const EIOInit InitOut, const bool bIsTransactional)
@@ -909,7 +905,7 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		}
 	}
 
-	TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bThrowError)
+	TSharedPtr<FPointIO> TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bTransactional, const bool bRequired)
 	{
 		TSharedPtr<FPointIO> SingleIO;
 		const TSharedPtr<FPointIOCollection> Collection = MakeShared<FPointIOCollection>(InContext, InputPinLabel, EIOInit::NoInit, bTransactional);
@@ -918,9 +914,9 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		{
 			SingleIO = Collection->Pairs[0];
 		}
-		else if (bThrowError)
+		else if (bRequired)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FText::FromString(TEXT("Missing or zero-points '{0}' inputs")), FText::FromName(InputPinLabel)));
+			PCGEX_LOG_MISSING_INPUT(InContext, FText::Format(FText::FromString(TEXT("Missing or zero-points '{0}' inputs")), FText::FromName(InputPinLabel)))
 		}
 
 		return SingleIO;

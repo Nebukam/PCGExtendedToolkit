@@ -8,19 +8,8 @@
 #include "Details/PCGExDetailsSettings.h"
 
 
-TSharedPtr<PCGExDetails::TSettingValue<FVector>> FPCGExManhattanDetails::GetValueSettingGridSize(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<FVector>> V = PCGExDetails::MakeSettingValue<FVector>(GridSizeInput, GridSizeAttribute, GridSize);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
-
-TSharedPtr<PCGExDetails::TSettingValue<FQuat>> FPCGExManhattanDetails::GetValueSettingOrient(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<FQuat>> V = PCGExDetails::MakeSettingValue<FQuat>(OrientInput, OrientAttribute, OrientConstant);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
+PCGEX_SETTING_VALUE_IMPL(FPCGExManhattanDetails, GridSize, FVector, GridSizeInput, GridSizeAttribute, GridSize)
+PCGEX_SETTING_VALUE_IMPL(FPCGExManhattanDetails, Orient, FQuat, OrientInput, OrientAttribute, OrientConstant)
 
 bool FPCGExManhattanDetails::IsValid() const
 {

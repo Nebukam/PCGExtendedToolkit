@@ -5,6 +5,7 @@
 #include "Engine/EngineTypes.h"
 
 #include "PCGExMathBounds.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Sampling/PCGExSampling.h"
 #include "PCGExTransform.generated.h"
@@ -104,7 +105,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketFitDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Socket Name", EditCondition="bEnabled && SocketNameInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FName SocketName = NAME_None;
 
-	TSharedPtr<PCGExDetails::TSettingValue<FName>> GetValueSettingSocketName(const bool bQuietErrors = false) const;
+	PCGEX_SETTING_VALUE_DECL(SocketName, FName)
 
 	/** Type of Socket name input */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -158,8 +159,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="U", EditCondition="UInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double UConstant = 0;
 
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingU(const bool bQuietErrors = false) const;
-
+	
 	/** V Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType VInput = EPCGExInputValueType::Constant;
@@ -172,7 +172,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="V", EditCondition="VInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double VConstant = 0;
 
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingV(const bool bQuietErrors = false) const;
+	
 
 	/** W Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -186,7 +186,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="W", EditCondition="WInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double WConstant = 0;
 
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingW(const bool bQuietErrors = false) const;
+
+	PCGEX_SETTING_VALUE_DECL(U, double)
+	PCGEX_SETTING_VALUE_DECL(V, double)
+	PCGEX_SETTING_VALUE_DECL(W, double)
+	
 
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 
@@ -237,8 +241,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAxisDeformDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="First Alpha", EditCondition="FirstAlphaInput == EPCGExSampleSource::Constant", EditConditionHides))
 	double FirstAlphaConstant = 0;
 
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetDataValueSettingFirstAlpha(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors = false) const;;
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingFirstAlpha(const bool bQuietErrors = false) const;;
+	PCGEX_SETTING_DATA_VALUE_DECL(FirstAlpha, double)
+	PCGEX_SETTING_VALUE_DECL(FirstAlpha, double)
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -252,8 +256,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAxisDeformDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Second Alpha", EditCondition="SecondAlphaInput == EPCGExSampleSource::Constant", EditConditionHides))
 	double SecondAlphaConstant = 1;
 
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetDataValueSettingSecondAlpha(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors = false) const;;
-	TSharedPtr<PCGExDetails::TSettingValue<double>> GetValueSettingSecondAlpha(const bool bQuietErrors = false) const;;
+	PCGEX_SETTING_DATA_VALUE_DECL(SecondAlpha, double)
+	PCGEX_SETTING_VALUE_DECL(SecondAlpha, double)
 
 	bool Validate(FPCGExContext* InContext, const bool bSupportPoints = false) const;
 

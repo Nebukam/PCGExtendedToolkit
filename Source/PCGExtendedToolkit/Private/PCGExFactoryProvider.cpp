@@ -131,7 +131,6 @@ void FPCGExFactoryProviderContext::LaunchDeferredCallback(PCGExMT::FSimpleCallba
 UPCGExFactoryData* UPCGExFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	InFactory->bCleanupConsumableAttributes = bCleanupConsumableAttributes;
-	InFactory->bQuietMissingInputError = bQuietMissingInputError;
 	return InFactory;
 }
 
@@ -143,6 +142,10 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
+		Context->bQuietInvalidInputWarning = Settings->bQuietInvalidInputWarning;
+		Context->bQuietMissingAttributeError = Settings->bQuietMissingAttributeError;
+		Context->bQuietMissingInputError = Settings->bQuietMissingInputError;
+
 		Context->OutFactory = Settings->CreateFactory(Context, nullptr);
 
 		if (!Context->OutFactory) { return true; }
@@ -186,8 +189,14 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
 	FPCGTaggedData& StagedData = Context->StageOutput(Context->OutFactory, false);
 	StagedData.Pin = Settings->GetMainOutputPin();
 
-
 	return Context->TryComplete();
+}
+
+FPCGContext* FPCGExFactoryProviderElement::CreateContext()
+{
+	FPCGExFactoryProviderContext* NewContext = new FPCGExFactoryProviderContext();
+	NewContext->SetState(PCGExCommon::State_InitialExecution);
+	return NewContext;
 }
 
 bool FPCGExFactoryProviderElement::IsCacheable(const UPCGSettings* InSettings) const
@@ -204,7 +213,7 @@ void FPCGExFactoryProviderElement::DisabledPassThroughData(FPCGContext* Context)
 
 namespace PCGExFactories
 {
-	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, const bool bThrowError)
+	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, const bool bRequired)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 		TSet<uint32> UniqueData;
@@ -221,10 +230,7 @@ namespace PCGExFactories
 			{
 				if (!Types.Contains(Factory->GetFactoryType()))
 				{
-					PCGE_LOG_C(
-						Warning, GraphAndLog, InContext,
-						FText::Format(FTEXT("Input '{0}' is not supported."),
-							FText::FromString(Factory->GetClass()->GetName())));
+					PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("Input '{0}' is not supported by pin {1}."), FText::FromString(TaggedData.Data->GetClass()->GetName()), FText::FromName(InLabel)))
 					continue;
 				}
 
@@ -234,21 +240,13 @@ namespace PCGExFactories
 			}
 			else
 			{
-				PCGE_LOG_C(
-					Warning, GraphAndLog, InContext,
-					FText::Format(FTEXT("Input '{0}' is not supported."),
-						FText::FromString(TaggedData.Data->GetClass()->GetName())));
+				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("Input '{0}' is not supported by pin {1}."), FText::FromString(TaggedData.Data->GetClass()->GetName()), FText::FromName(InLabel)))
 			}
 		}
 
 		if (OutFactories.IsEmpty())
 		{
-			if (bThrowError)
-			{
-				PCGE_LOG_C(
-					Error, GraphAndLog, InContext,
-					FText::Format(FTEXT("Missing required '{0}' inputs."), FText::FromName(InLabel)));
-			}
+			if (bRequired) { PCGEX_LOG_MISSING_INPUT(InContext, FText::Format(FTEXT("Missing required inputs on pin '{0}'."), FText::FromName(InLabel))) }
 			return false;
 		}
 

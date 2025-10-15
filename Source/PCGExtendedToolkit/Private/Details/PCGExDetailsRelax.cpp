@@ -6,12 +6,7 @@
 
 #include "Details/PCGExDetailsSettings.h"
 
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExInfluenceDetails::GetValueSettingInfluence(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(InfluenceInput, LocalInfluence, Influence);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
+PCGEX_SETTING_VALUE_IMPL(FPCGExInfluenceDetails, Influence, double, InfluenceInput, LocalInfluence, Influence)
 
 bool FPCGExInfluenceDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 {

@@ -264,13 +264,11 @@ namespace PCGExMT
 	FTaskManager::FTaskManager(FPCGExContext* InContext, const bool InForceSync)
 		: FAsyncMultiHandle(InForceSync, FName("ROOT")), Context(InContext), ContextHandle(InContext->GetOrCreateHandle())
 	{
-		PCGEX_LOG_CTR(FTaskManager)
 		WorkPermit = Context->GetWorkPermit();
 	}
 
 	FTaskManager::~FTaskManager()
 	{
-		PCGEX_LOG_DTR(FTaskManager)
 		Cancel();
 	}
 

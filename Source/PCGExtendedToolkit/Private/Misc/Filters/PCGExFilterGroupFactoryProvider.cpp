@@ -59,7 +59,7 @@ UPCGExFactoryData* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContex
 
 	if (!GetInputFactories(
 		InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,
-		PCGExFactories::AnyFilters, !bQuietMissingInputError))
+		PCGExFactories::AnyFilters))
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

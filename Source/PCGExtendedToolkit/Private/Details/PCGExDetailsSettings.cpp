@@ -25,7 +25,7 @@ namespace PCGExDetails
 
 		if (!Buffer)
 		{
-			if (!this->bQuietErrors) { PCGEX_LOG_INVALID_ATTR_C(Context, Attribute, Name) }
+			PCGEX_LOG_INVALID_ATTR_C(Context, Attribute, Name)
 			return false;
 		}
 
@@ -51,7 +51,7 @@ namespace PCGExDetails
 
 		if (!Buffer)
 		{
-			if (!this->bQuietErrors) { PCGEX_LOG_INVALID_SELECTOR_C(Context, Selector, Selector) }
+			PCGEX_LOG_INVALID_SELECTOR_C(Context, Selector, Selector)
 			return false;
 		}
 
@@ -79,7 +79,7 @@ namespace PCGExDetails
 
 		if (!PCGExDataHelpers::TryReadDataValue(Context, InDataFacade->GetIn(), Selector, this->Constant))
 		{
-			if (!this->bQuietErrors) { PCGEX_LOG_INVALID_SELECTOR_C(Context, Selector, Selector) }
+			PCGEX_LOG_INVALID_SELECTOR_C(Context, Selector, Selector)
 			return false;
 		}
 
@@ -96,7 +96,7 @@ namespace PCGExDetails
 
 		if (!PCGExDataHelpers::TryReadDataValue(Context, InDataFacade->GetIn(), Name, this->Constant))
 		{
-			if (!this->bQuietErrors) { PCGEX_LOG_INVALID_ATTR_C(Context, Attribute, Name) }
+			PCGEX_LOG_INVALID_ATTR_C(Context, Attribute, Name)
 			return false;
 		}
 

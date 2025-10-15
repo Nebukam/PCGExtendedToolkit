@@ -30,7 +30,6 @@ namespace PCGExDetails
 	class TSettingValue : public TSharedFromThis<TSettingValue<T>>
 	{
 	public:
-		bool bQuietErrors = false;
 		virtual ~TSettingValue() = default;
 		virtual bool Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped = true, const bool bCaptureMinMax = false) = 0;
 		FORCEINLINE virtual void SetConstant(T InConstant)

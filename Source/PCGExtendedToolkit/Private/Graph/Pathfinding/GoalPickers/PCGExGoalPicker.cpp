@@ -24,7 +24,7 @@ bool UPCGExGoalPicker::PrepareForData(FPCGExContext* InContext, const TSharedPtr
 	MaxGoalIndex = InGoalsDataFacade->Source->GetNum() - 1;
 	if (MaxGoalIndex < 0)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Missing goal points."));
+		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Missing goal points."))
 		return false;
 	}
 	return true;

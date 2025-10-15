@@ -40,7 +40,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::SourcePlotsLabel, "Plot points for pathfinding.", Required)
-	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Normal, FPCGExDataTypeInfoHeuristics::AsId())
+	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesSearch)
 	return PinProperties;
 }
@@ -194,7 +194,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 
 	if (Context && Context->Plots.IsEmpty())
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing valid Plots."));
+		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Missing valid Plots."))
 		return false;
 	}
 

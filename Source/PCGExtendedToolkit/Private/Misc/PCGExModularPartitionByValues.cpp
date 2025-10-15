@@ -36,7 +36,7 @@ bool UPCGExModularPartitionByValuesSettings::GetPartitionRules(FPCGExContext* In
 	TArray<TObjectPtr<const UPCGExPartitionRule>> Factories;
 	if (!PCGExFactories::GetInputFactories(
 		InContext, TEXT("PartitionRules"), Factories,
-		{PCGExFactories::EType::RulePartition}, false))
+		{PCGExFactories::EType::RulePartition}))
 	{
 		return false;
 	}

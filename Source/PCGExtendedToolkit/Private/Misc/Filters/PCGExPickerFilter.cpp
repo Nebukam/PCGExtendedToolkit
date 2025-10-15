@@ -16,14 +16,9 @@ bool UPCGExPickerFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExPicker::SourcePickersLabel, PickerFactories, {PCGExFactories::EType::IndexPicker}, true)) { return false; }
-	if (PickerFactories.IsEmpty())
-	{
-		if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing pickers.")); }
-		return false;
-	}
-
-	return true;
+	return PCGExFactories::GetInputFactories(
+		InContext, PCGExPicker::SourcePickersLabel, PickerFactories,
+		{PCGExFactories::EType::IndexPicker});
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExPickerFilterFactory::CreateFilter() const

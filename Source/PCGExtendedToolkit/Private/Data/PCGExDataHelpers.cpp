@@ -57,7 +57,7 @@ template PCGEXTENDEDTOOLKIT_API void SetDataValue<_TYPE>(FPCGMetadataAttribute<_
 #undef PCGEX_TPL
 
 	template <typename T>
-	bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector, T& OutValue, bool bQuiet)
+	bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector, T& OutValue)
 	{
 		bool bSuccess = false;
 		const UPCGMetadata* InMetadata = InData->Metadata;
@@ -86,7 +86,7 @@ template PCGEXTENDEDTOOLKIT_API void SetDataValue<_TYPE>(FPCGMetadataAttribute<_
 		}
 		else
 		{
-			if (InContext && !bQuiet) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Attribute, InSelector) }
+			if (InContext) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Attribute, InSelector) }
 			return false;
 		}
 
@@ -94,25 +94,25 @@ template PCGEXTENDEDTOOLKIT_API void SetDataValue<_TYPE>(FPCGMetadataAttribute<_
 	}
 
 	template <typename T>
-	bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, const FName& InName, T& OutValue, bool bQuiet)
+	bool TryReadDataValue(FPCGExContext* InContext, const UPCGData* InData, const FName& InName, T& OutValue)
 	{
 		FPCGAttributePropertyInputSelector Selector;
 		Selector.Update(InName.ToString());
-		return TryReadDataValue<T>(InContext, InData, Selector.CopyAndFixLast(InData), OutValue, bQuiet);
+		return TryReadDataValue<T>(InContext, InData, Selector.CopyAndFixLast(InData), OutValue);
 	}
 
 	template <typename T>
-	bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& InIO, const FName& InName, T& OutValue, bool bQuiet)
+	bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& InIO, const FName& InName, T& OutValue)
 	{
 		PCGEX_SHARED_CONTEXT(InIO->GetContextHandle())
-		return TryReadDataValue(SharedContext.Get(), InIO->GetIn(), InName, OutValue, bQuiet);
+		return TryReadDataValue(SharedContext.Get(), InIO->GetIn(), InName, OutValue);
 	}
 
 	template <typename T>
-	bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& InIO, const FPCGAttributePropertyInputSelector& InSelector, T& OutValue, bool bQuiet)
+	bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& InIO, const FPCGAttributePropertyInputSelector& InSelector, T& OutValue)
 	{
 		PCGEX_SHARED_CONTEXT(InIO->GetContextHandle())
-		return TryReadDataValue(SharedContext.Get(), InIO->GetIn(), InSelector, OutValue, bQuiet);
+		return TryReadDataValue(SharedContext.Get(), InIO->GetIn(), InSelector, OutValue);
 	}
 
 	template <typename T>
@@ -164,10 +164,10 @@ template PCGEXTENDEDTOOLKIT_API void SetDataValue<_TYPE>(FPCGMetadataAttribute<_
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-template PCGEXTENDEDTOOLKIT_API bool TryReadDataValue<_TYPE>(FPCGExContext* InContext, const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector, _TYPE& OutValue, bool bQuiet); \
-template PCGEXTENDEDTOOLKIT_API bool TryReadDataValue<_TYPE>(FPCGExContext* InContext, const UPCGData* InData, const FName& InName, _TYPE& OutValue, bool bQuiet); \
-template PCGEXTENDEDTOOLKIT_API bool TryReadDataValue<_TYPE>(const TSharedPtr<PCGExData::FPointIO>& InIO, const FName& InName, _TYPE& OutValue, bool bQuiet); \
-template PCGEXTENDEDTOOLKIT_API bool TryReadDataValue<_TYPE>(const TSharedPtr<PCGExData::FPointIO>& InIO, const FPCGAttributePropertyInputSelector& InSelector, _TYPE& OutValue, bool bQuiet); \
+template PCGEXTENDEDTOOLKIT_API bool TryReadDataValue<_TYPE>(FPCGExContext* InContext, const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector, _TYPE& OutValue); \
+template PCGEXTENDEDTOOLKIT_API bool TryReadDataValue<_TYPE>(FPCGExContext* InContext, const UPCGData* InData, const FName& InName, _TYPE& OutValue); \
+template PCGEXTENDEDTOOLKIT_API bool TryReadDataValue<_TYPE>(const TSharedPtr<PCGExData::FPointIO>& InIO, const FName& InName, _TYPE& OutValue); \
+template PCGEXTENDEDTOOLKIT_API bool TryReadDataValue<_TYPE>(const TSharedPtr<PCGExData::FPointIO>& InIO, const FPCGAttributePropertyInputSelector& InSelector, _TYPE& OutValue); \
 template PCGEXTENDEDTOOLKIT_API bool TryGetSettingDataValue<_TYPE>( FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType Input, const FPCGAttributePropertyInputSelector& InSelector, const _TYPE& InConstant, _TYPE& OutValue); \
 template PCGEXTENDEDTOOLKIT_API bool TryGetSettingDataValue<_TYPE>( FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType Input, const FName& InName, const _TYPE& InConstant, _TYPE& OutValue); \
 template PCGEXTENDEDTOOLKIT_API bool TryGetSettingDataValue<_TYPE>( const TSharedPtr<PCGExData::FPointIO>& InIO, const EPCGExInputValueType Input, const FName& InName, const _TYPE& InConstant, _TYPE& OutValue); \

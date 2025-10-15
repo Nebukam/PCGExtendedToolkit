@@ -36,7 +36,7 @@ bool FPCGExCollectionSortingDetails::Init(const FPCGContext* InContext)
 	return true;
 }
 
-void FPCGExCollectionSortingDetails::Sort(const FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const
+void FPCGExCollectionSortingDetails::Sort(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::SortByTag);
 
@@ -61,7 +61,7 @@ void FPCGExCollectionSortingDetails::Sort(const FPCGContext* InContext, const TS
 			}
 			else
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Some data is missing the '{0}' value tag."), FText::FromString(TagNameStr)));
+				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("Some data is missing the '{0}' value tag."), FText::FromString(TagNameStr)))
 				Scores[i] = (static_cast<double>(i) + FallbackOrderOffset) * FallbackOrderMultiplier;
 			}
 		}
@@ -164,8 +164,7 @@ namespace PCGExSorting
 			{
 				RuleHandlers.RemoveAt(i);
 				i--;
-
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing required sorting attribute : {0}."), FText::FromString(PCGEx::GetSelectorDisplayName(RuleHandler->Selector))));
+				PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
 				continue;
 			}
 
@@ -200,8 +199,8 @@ namespace PCGExSorting
 				{
 					RuleHandlers.RemoveAt(i);
 					i--;
-
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing required sorting attribute : {0}."), FText::FromString(PCGEx::GetSelectorDisplayName(RuleHandler->Selector))));
+					
+					PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
 					break;
 				}
 				RuleHandler->Buffers[InFacade->Idx] = Buffer;
@@ -233,7 +232,7 @@ namespace PCGExSorting
 					RuleHandlers.RemoveAt(i);
 					i--;
 
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing required sorting attribute : {0}."), FText::FromString(PCGEx::GetSelectorDisplayName(RuleHandler->Selector))));
+					PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
 					break;
 				}
 
@@ -324,7 +323,6 @@ namespace PCGExSorting
 		TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
 		if (!PCGExFactories::GetInputFactories(InContext, InLabel, Factories, {PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
 		for (const UPCGExSortingRule* Factory : Factories) { OutRules.Add(Factory->Config); }
-
 		return OutRules;
 	}
 }

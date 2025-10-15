@@ -130,10 +130,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, AdvancedDisplay)
 	FName DefaultPinName = FName("Default");
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
-	bool bQuietMissingAttribute = false;
-
 	TObjectPtr<UEnum> GetEnumClass() const;
 };
 

@@ -29,9 +29,10 @@ bool FPCGExSampleNeighborsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNeighbors)
 
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExNeighborSample::SourceSamplersLabel, Context->SamplerFactories, {PCGExFactories::EType::Sampler}, false))
+	if (!PCGExFactories::GetInputFactories(
+		InContext, PCGExNeighborSample::SourceSamplersLabel, Context->SamplerFactories,
+		{PCGExFactories::EType::Sampler}))
 	{
-		PCGE_LOG(Warning, GraphAndLog, FTEXT("No valid sampler found."));
 		return false;
 	}
 

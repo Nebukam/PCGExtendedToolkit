@@ -35,10 +35,10 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CherryPickPoints)
 
-	PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}, false);
-	if (Context->PickerFactories.IsEmpty())
+	if (!PCGExFactories::GetInputFactories(
+		Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories,
+		{PCGExFactories::EType::IndexPicker}))
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing pickers."));
 		return false;
 	}
 

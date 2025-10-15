@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 #include "PCGExDetailsAxis.h"
+#include "PCGExSettingsMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExDetailsSubdivision.generated.h"
 
@@ -79,7 +80,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExManhattanDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Grid Size", EditCondition="Method != EPCGExManhattanMethod::Simple && (!bSupportAttribute || GridSizeInput == EPCGExInputValueType::Constant)", EditConditionHides))
 	FVector GridSize = FVector(10);
 
-	TSharedPtr<PCGExDetails::TSettingValue<FVector>> GetValueSettingGridSize(const bool bQuietErrors = false) const;
+	PCGEX_SETTING_VALUE_DECL(GridSize, FVector)
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -94,7 +95,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExManhattanDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Orient", ClampMin=0, EditCondition="SpaceAlign == EPCGExManhattanAlign::Custom && (!bSupportAttribute || OrientInput == EPCGExInputValueType::Constant)", EditConditionHides))
 	FQuat OrientConstant = FQuat::Identity;
 
-	TSharedPtr<PCGExDetails::TSettingValue<FQuat>> GetValueSettingOrient(const bool bQuietErrors = false) const;
+	PCGEX_SETTING_VALUE_DECL(Orient, FQuat)
 
 	bool IsValid() const;
 	bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade);

@@ -34,7 +34,12 @@ bool FPCGExSampleTextureElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleTexture)
 
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories, {PCGExFactories::EType::TexParam}, true)) { return false; }
+	if (!PCGExFactories::GetInputFactories(
+		InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories,
+		{PCGExFactories::EType::TexParam}))
+	{
+		return false;
+	}
 
 	TSet<FName> UniqueSampleNames;
 	for (const TObjectPtr<const UPCGExTexParamFactoryData>& Factory : Context->TexParamsFactories)

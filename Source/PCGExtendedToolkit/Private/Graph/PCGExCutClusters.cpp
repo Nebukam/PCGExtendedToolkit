@@ -48,12 +48,16 @@ bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 
 	if (Context->bWantsEdgesProcessing)
 	{
-		GetInputFactories(Context, PCGExCutEdges::SourceEdgeFilters, Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+		GetInputFactories(
+			Context, PCGExCutEdges::SourceEdgeFilters, Context->EdgeFilterFactories,
+			PCGExFactories::ClusterEdgeFilters, false);
 	}
 
 	if (Context->bWantsVtxProcessing)
 	{
-		GetInputFactories(Context, PCGExCutEdges::SourceNodeFilters, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+		GetInputFactories(
+			Context, PCGExCutEdges::SourceNodeFilters, Context->VtxFilterFactories,
+			PCGExFactories::ClusterNodeFilters, false);
 	}
 
 	PCGEX_MAKE_SHARED(PathCollection, PCGExData::FPointIOCollection, Context, PCGExPaths::SourcePathsLabel)

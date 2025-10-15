@@ -265,11 +265,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Paths Output Settings"))
 	FPCGExPathOutputDetails PathOutputDetails;
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
-	bool bQuietMissingTensorError = false;
-
-
 	virtual bool GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
 
 private:

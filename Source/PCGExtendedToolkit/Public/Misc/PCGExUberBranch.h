@@ -65,14 +65,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	int32 AsyncChunkSize = 32;
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
-	bool bQuietMissingFilters = false;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
-	bool bQuietInvalidFilters = false;
-
 private:
 	friend class FPCGExUberBranchElement;
 };

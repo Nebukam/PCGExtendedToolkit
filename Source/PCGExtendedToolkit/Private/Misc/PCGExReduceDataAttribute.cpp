@@ -93,11 +93,7 @@ bool FPCGExReduceDataAttributeElement::Boot(FPCGExContext* InContext) const
 
 		if (!Attribute)
 		{
-			if (!Settings->bQuietMissingAttribute)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some data are missing the source attribute."));
-			}
-
+			PCGEX_LOG_WARN_ATTR_C(Context, Source, ReadIdentifier.Name)
 			continue;
 		}
 
@@ -115,11 +111,7 @@ bool FPCGExReduceDataAttributeElement::Boot(FPCGExContext* InContext) const
 
 	if (Context->Attributes.IsEmpty())
 	{
-		if (!Settings->bQuietMissingInputError)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing any valid input."));
-		}
-
+		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Missing any valid input."))
 		return false;
 	}
 

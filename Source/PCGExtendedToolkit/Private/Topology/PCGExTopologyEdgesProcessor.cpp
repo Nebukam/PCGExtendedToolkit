@@ -70,7 +70,9 @@ bool FPCGExTopologyEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	}
 
 	PCGExHelpers::AppendUniqueEntriesFromCommaSeparatedList(Settings->CommaSeparatedComponentTags, Context->ComponentTags);
-	GetInputFactories(Context, PCGExTopology::SourceEdgeConstrainsFiltersLabel, Context->EdgeConstraintsFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+	GetInputFactories(
+		Context, PCGExTopology::SourceEdgeConstrainsFiltersLabel, Context->EdgeConstraintsFilterFactories,
+		PCGExFactories::ClusterEdgeFilters, false);
 
 	Context->HashMaps.Init(nullptr, Context->MainPoints->Num());
 	return true;

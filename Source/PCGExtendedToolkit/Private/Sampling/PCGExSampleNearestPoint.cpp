@@ -97,7 +97,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
 	if (!Context->NumMaxTargets)
 	{
-		if (!Settings->bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (empty datasets)")); }
+		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("No targets (empty datasets)"))
 		return false;
 	}
 

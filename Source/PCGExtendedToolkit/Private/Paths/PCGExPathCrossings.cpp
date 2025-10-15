@@ -53,8 +53,13 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInstancedFactory, PCGExDataBlending::SourceOverridesBlendingOps)
 
-	GetInputFactories(Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);
-	GetInputFactories(Context, PCGExPaths::SourceCanBeCutFilters, Context->CanBeCutFilterFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(
+		Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories,
+		PCGExFactories::PointFilters, false);
+
+	GetInputFactories(
+		Context, PCGExPaths::SourceCanBeCutFilters, Context->CanBeCutFilterFactories,
+		PCGExFactories::PointFilters, false);
 
 	Context->Distances = PCGExDetails::MakeDistances();
 	Context->CrossingBlending = Settings->CrossingBlending;

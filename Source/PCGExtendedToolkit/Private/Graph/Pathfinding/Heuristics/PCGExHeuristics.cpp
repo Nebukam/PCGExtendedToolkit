@@ -59,11 +59,11 @@ namespace PCGExHeuristics
 		{
 			if (!LocalFeedbackFactories.IsEmpty())
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing valid base heuristics : cannot work with feedback alone."));
+				PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("Missing valid base heuristics : cannot work with feedback alone."))
 			}
 			else
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing valid base heuristics"));
+				PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("Missing valid base heuristics"))
 			}
 
 			return false;

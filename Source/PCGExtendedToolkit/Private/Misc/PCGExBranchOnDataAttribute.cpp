@@ -119,10 +119,7 @@ bool FPCGExBranchOnDataAttributeElement::ExecuteInternal(FPCGContext* InContext)
 
 			if (!Attr)
 			{
-				if (!Settings->bQuietMissingAttribute)
-				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some data are missing the source attribute."));
-				}
+				PCGEX_LOG_INVALID_ATTR_C(Context, Branch Source, Settings->BranchSource)
 			}
 			else
 			{

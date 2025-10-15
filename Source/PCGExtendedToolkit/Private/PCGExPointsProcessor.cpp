@@ -362,7 +362,10 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 	PCGEX_SETTINGS(PointsProcessor)
 
+	Context->bQuietInvalidInputWarning = Settings->bQuietInvalidInputWarning;
+	Context->bQuietMissingInputError = Settings->bQuietMissingInputError;
 	Context->bQuietCancellationError = Settings->bQuietCancellationError;
+
 	Context->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
 
 	if (Settings->bCleanupConsumableAttributes)
@@ -401,19 +404,18 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 
 	if (Context->MainPoints->IsEmpty() && !Settings->IsInputless())
 	{
-		if (!Settings->bQuietMissingInputError)
-		{
-			PCGE_LOG(Error, GraphAndLog, FText::Format(FText::FromString(TEXT("Missing {0} inputs (either no data or no points)")), FText::FromName(Settings->GetMainInputPin())));
-		}
+		PCGEX_LOG_MISSING_INPUT(Context, FText::Format(FText::FromString(TEXT("Missing {0} inputs (either no data or no points)")), FText::FromName(Settings->GetMainInputPin())))
 		return false;
 	}
 
 	if (Settings->SupportsPointFilters())
 	{
-		GetInputFactories(Context, Settings->GetPointFilterPin(), Context->FilterFactories, Settings->GetPointFilterTypes(), false);
-		if (Settings->RequiresPointFilters() && Context->FilterFactories.IsEmpty())
+		if (const bool bRequiredFilters = Settings->RequiresPointFilters();
+			!GetInputFactories(
+				Context, Settings->GetPointFilterPin(), Context->FilterFactories,
+				Settings->GetPointFilterTypes(), bRequiredFilters)
+			&& bRequiredFilters)
 		{
-			PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Missing {0}."), FText::FromName(Settings->GetPointFilterPin())));
 			return false;
 		}
 	}

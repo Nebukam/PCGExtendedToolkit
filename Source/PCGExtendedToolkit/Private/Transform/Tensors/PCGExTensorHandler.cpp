@@ -56,12 +56,20 @@ namespace PCGExTensor
 	bool FTensorsHandler::Init(FPCGExContext* InContext, const FName InPin, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 	{
 		TArray<TObjectPtr<const UPCGExTensorFactoryData>> InFactories;
-		if (!PCGExFactories::GetInputFactories(InContext, InPin, InFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
-		if (InFactories.IsEmpty())
+
+		if (!PCGExFactories::GetInputFactories(
+			InContext, InPin, InFactories,
+			{PCGExFactories::EType::Tensor}))
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
 			return false;
 		}
+
+		if (InFactories.IsEmpty())
+		{
+			PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("Missing tensors."))
+			return false;
+		}
+		
 		return Init(InContext, InFactories, InDataFacade);
 	}
 

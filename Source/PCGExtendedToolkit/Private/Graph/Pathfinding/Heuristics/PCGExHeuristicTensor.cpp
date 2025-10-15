@@ -62,10 +62,16 @@ PCGExFactories::EPreparationResult UPCGExHeuristicsFactoryTensor::Prepare(FPCGEx
 	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
 	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return PCGExFactories::EPreparationResult::Fail; }
+	if (!PCGExFactories::GetInputFactories(
+		InContext, PCGExTensor::SourceTensorsLabel, TensorFactories,
+		{PCGExFactories::EType::Tensor}))
+	{
+		return PCGExFactories::EPreparationResult::Fail;
+	}
+
 	if (TensorFactories.IsEmpty())
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors."));
+		PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("Missing tensors."))
 		return PCGExFactories::EPreparationResult::Fail;
 	}
 	return Result;

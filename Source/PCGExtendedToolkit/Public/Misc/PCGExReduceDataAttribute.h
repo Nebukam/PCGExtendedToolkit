@@ -67,10 +67,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition = "Method == EPCGExReduceDataDomainMethod::Join", EditConditionHides))
 	FString JoinDelimiter = FString(", ");
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
-	bool bQuietMissingAttribute = false;
-
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const;
 #endif

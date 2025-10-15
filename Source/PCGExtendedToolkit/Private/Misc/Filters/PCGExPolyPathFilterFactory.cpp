@@ -30,7 +30,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 	if (TempTargets.IsEmpty())
 	{
-		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (no input matches criteria or empty dataset)")); } }
+		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No targets (no input matches criteria or empty dataset)")) }
 		return PCGExFactories::EPreparationResult::MissingData;
 	}
 
@@ -61,10 +61,10 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 				if (!Path || !Path.IsValid()) { continue; }
 
 				const UPCGSpatialData* Data = Cast<UPCGSpatialData>(TempTargets[i].Data);
-				FBox DataBounds = Data->GetBounds().ExpandBy(LocalExpansion * 2);
-				if (bScaleTolerance) { DataBounds = DataBounds.ExpandBy(DataBounds.GetSize().Length() * 10); }
+				FBox DataBounds = Data->GetBounds().ExpandBy((LocalExpansion + 1) * 2);
+				if (bScaleTolerance) { DataBounds = DataBounds.ExpandBy((DataBounds.GetSize().Length() + 1) * 10); }
 				BoundsList.Add(DataBounds);
-				OctreeBounds += Data->GetBounds();
+				OctreeBounds += DataBounds;
 				
 				PolyPaths.Add(Path);
 				Datas.Add(Data);
@@ -73,7 +73,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 			if (PolyPaths.IsEmpty())
 			{
 				PrepResult = PCGExFactories::EPreparationResult::MissingData;
-				if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, SharedContext.Get(), FTEXT("No polypaths to work with (no input matches criteria or empty dataset)")); }
+				PCGEX_LOG_MISSING_INPUT(SharedContext.Get(), FTEXT("No polypaths to work with (no input matches criteria or empty dataset)"))
 				return;
 			}
 

@@ -36,8 +36,8 @@ bool FPCGExRelaxClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(Relaxing, UPCGExRelaxClusterOperation, PCGExRelaxClusters::SourceOverridesRelaxing)
 
 	GetInputFactories(
-		Context, PCGExGraph::SourceVtxFiltersLabel,
-		Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+		Context, PCGExGraph::SourceVtxFiltersLabel, Context->VtxFilterFactories,
+		PCGExFactories::ClusterNodeFilters, false);
 
 	return true;
 }

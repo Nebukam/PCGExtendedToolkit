@@ -24,7 +24,7 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 
 	if (SetSources.IsEmpty())
 	{
-		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No valid set found")); } }
+		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No valid set found")) }
 		return PCGExFactories::EPreparationResult::MissingData;
 	}
 
@@ -46,7 +46,7 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 
 				if (Hashes[0].IsEmpty())
 				{
-					if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, SharedContext.Get(), FTEXT("Merged sets are empty")); } }
+					if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(SharedContext.Get(), FTEXT("Merged sets are empty")) }
 					PrepResult = PCGExFactories::EPreparationResult::MissingData;
 				}
 			}
@@ -63,7 +63,7 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 
 				if (Hashes.IsEmpty())
 				{
-					if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, SharedContext.Get(), FTEXT("Merged sets are empty")); } }
+					if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(SharedContext.Get(), FTEXT("Merged sets are empty")) }
 					PrepResult = PCGExFactories::EPreparationResult::MissingData;
 				}
 			}

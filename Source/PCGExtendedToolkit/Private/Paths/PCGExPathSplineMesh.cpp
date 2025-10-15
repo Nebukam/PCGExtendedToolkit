@@ -195,7 +195,7 @@ namespace PCGExPathSplineMesh
 
 			if (!UpGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Mesh Up Vector attribute is missing on some inputs."));
+				PCGEX_LOG_INVALID_SELECTOR_C(Context, Spline Mesh Up Vector, Settings->SplineMeshUpVectorAttribute)
 				return false;
 			}
 		}

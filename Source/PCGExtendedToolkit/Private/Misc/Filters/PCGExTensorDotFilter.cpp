@@ -16,14 +16,9 @@ bool UPCGExTensorDotFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}, true)) { return false; }
-	if (TensorFactories.IsEmpty())
-	{
-		if (!bQuietMissingInputError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing tensors.")); }
-		return false;
-	}
-
-	return true;
+	return PCGExFactories::GetInputFactories(
+		InContext, PCGExTensor::SourceTensorsLabel, TensorFactories,
+		{PCGExFactories::EType::Tensor}, true);
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExTensorDotFilterFactory::CreateFilter() const

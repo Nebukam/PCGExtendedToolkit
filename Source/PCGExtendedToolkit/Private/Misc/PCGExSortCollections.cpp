@@ -38,7 +38,7 @@ bool FPCGExSortCollectionsElement::Boot(FPCGExContext* InContext) const
 
 	if (RuleConfigs.IsEmpty())
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing sorting rules."));
+		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Missing sorting rules."))
 		return false;
 	}
 

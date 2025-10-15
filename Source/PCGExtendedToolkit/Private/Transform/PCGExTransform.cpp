@@ -30,12 +30,7 @@ FPCGExSocket::FPCGExSocket(const FName& InSocketName, const FTransform& InRelati
 {
 }
 
-TSharedPtr<PCGExDetails::TSettingValue<FName>> FPCGExSocketFitDetails::GetValueSettingSocketName(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<FName>> V = PCGExDetails::MakeSettingValue<FName>(SocketNameInput, SocketNameAttribute, SocketName);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
+PCGEX_SETTING_VALUE_IMPL(FPCGExSocketFitDetails, SocketName, FName, SocketNameInput, SocketNameAttribute, SocketName)
 
 bool FPCGExSocketFitDetails::Init(const TSharedPtr<PCGExData::FFacade>& InFacade)
 {
@@ -69,26 +64,9 @@ void FPCGExSocketFitDetails::Mutate(const int32 Index, const TArray<FPCGExSocket
 	}
 }
 
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExUVW::GetValueSettingU(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(UInput, UAttribute, UConstant);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
-
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExUVW::GetValueSettingV(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(VInput, VAttribute, VConstant);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
-
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExUVW::GetValueSettingW(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(WInput, WAttribute, WConstant);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
+PCGEX_SETTING_VALUE_IMPL(FPCGExUVW, U, double, UInput, UAttribute, UConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExUVW, V, double, VInput, VAttribute, VConstant)
+PCGEX_SETTING_VALUE_IMPL(FPCGExUVW, W, double, WInput, WAttribute, WConstant)
 
 bool FPCGExUVW::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
@@ -172,33 +150,11 @@ FPCGExAxisDeformDetails::FPCGExAxisDeformDetails(const FString InFirst, const FS
 	SecondAlphaConstant = InSecondValue;
 }
 
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAxisDeformDetails::GetDataValueSettingFirstAlpha(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(InContext, InData, FirstAlphaInput != EPCGExSampleSource::Constant ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, FirstAlphaAttribute, FirstAlphaConstant);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
+PCGEX_SETTING_DATA_VALUE_IMPL_BOOL(FPCGExAxisDeformDetails, FirstAlpha, double, FirstAlphaInput != EPCGExSampleSource::Constant, FirstAlphaAttribute, FirstAlphaConstant)
+PCGEX_SETTING_VALUE_IMPL_BOOL(FPCGExAxisDeformDetails, FirstAlpha, double, FirstAlphaInput != EPCGExSampleSource::Constant, FirstAlphaAttribute, FirstAlphaConstant)
 
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAxisDeformDetails::GetValueSettingFirstAlpha(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(FirstAlphaInput != EPCGExSampleSource::Constant ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, FirstAlphaAttribute, FirstAlphaConstant);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
-
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAxisDeformDetails::GetDataValueSettingSecondAlpha(FPCGExContext* InContext, const UPCGData* InData, const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(InContext, InData, SecondAlphaInput != EPCGExSampleSource::Constant ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, SecondAlphaAttribute, SecondAlphaConstant);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
-
-TSharedPtr<PCGExDetails::TSettingValue<double>> FPCGExAxisDeformDetails::GetValueSettingSecondAlpha(const bool bQuietErrors) const
-{
-	TSharedPtr<PCGExDetails::TSettingValue<double>> V = PCGExDetails::MakeSettingValue<double>(SecondAlphaInput != EPCGExSampleSource::Constant ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant, SecondAlphaAttribute, SecondAlphaConstant);
-	V->bQuietErrors = bQuietErrors;
-	return V;
-}
+PCGEX_SETTING_DATA_VALUE_IMPL_BOOL(FPCGExAxisDeformDetails, SecondAlpha, double, SecondAlphaInput != EPCGExSampleSource::Constant, SecondAlphaAttribute, SecondAlphaConstant)
+PCGEX_SETTING_VALUE_IMPL_BOOL(FPCGExAxisDeformDetails, SecondAlpha, double, SecondAlphaInput != EPCGExSampleSource::Constant, SecondAlphaAttribute, SecondAlphaConstant)
 
 bool FPCGExAxisDeformDetails::Validate(FPCGExContext* InContext, const bool bSupportPoints) const
 {
@@ -232,13 +188,13 @@ bool FPCGExAxisDeformDetails::Init(FPCGExContext* InContext, const TArray<PCGExD
 	if (FirstAlphaInput == EPCGExSampleSource::Target)
 	{
 		TargetsFirstValueGetter.Init(nullptr, InTargets.Num());
-		for (int i = 0; i < InTargets.Num(); i++) { TargetsFirstValueGetter[i] = GetDataValueSettingFirstAlpha(InContext, InTargets[i].Data); }
+		for (int i = 0; i < InTargets.Num(); i++) { TargetsFirstValueGetter[i] = GetValueSettingFirstAlpha(InContext, InTargets[i].Data); }
 	}
 
 	if (SecondAlphaInput == EPCGExSampleSource::Target)
 	{
 		TargetsSecondValueGetter.Init(nullptr, InTargets.Num());
-		for (int i = 0; i < InTargets.Num(); i++) { TargetsSecondValueGetter[i] = GetDataValueSettingSecondAlpha(InContext, InTargets[i].Data); }
+		for (int i = 0; i < InTargets.Num(); i++) { TargetsSecondValueGetter[i] = GetValueSettingSecondAlpha(InContext, InTargets[i].Data); }
 	}
 
 	return true;
@@ -265,7 +221,7 @@ bool FPCGExAxisDeformDetails::Init(FPCGExContext* InContext, const FPCGExAxisDef
 			}
 			else
 			{
-				FirstValueGetter = Parent.GetDataValueSettingFirstAlpha(InContext, InDataFacade->GetIn());
+				FirstValueGetter = Parent.GetValueSettingFirstAlpha(InContext, InDataFacade->GetIn());
 			}
 		}
 	}
@@ -289,7 +245,7 @@ bool FPCGExAxisDeformDetails::Init(FPCGExContext* InContext, const FPCGExAxisDef
 			}
 			else
 			{
-				SecondValueGetter = Parent.GetDataValueSettingSecondAlpha(InContext, InDataFacade->GetIn());
+				SecondValueGetter = Parent.GetValueSettingSecondAlpha(InContext, InDataFacade->GetIn());
 			}
 		}
 	}
