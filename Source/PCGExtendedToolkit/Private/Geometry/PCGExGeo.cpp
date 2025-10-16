@@ -690,6 +690,13 @@ void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPosition
 	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.UnrotateVector(InPositions[i])); }
 }
 
+void FPCGExGeo2DProjectionDetails::Project(const TConstPCGValueRange<FTransform>& InTransforms, TArray<FVector2D>& OutPositions) const
+{
+	const int32 NumVectors = InTransforms.Num();
+	PCGEx::InitArray(OutPositions, NumVectors);
+	for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.UnrotateVector(InTransforms[i].GetLocation())); }
+}
+
 void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPositions, std::vector<double>& OutPositions) const
 {
 	const int32 NumVectors = InPositions.Num();
@@ -697,6 +704,18 @@ void FPCGExGeo2DProjectionDetails::Project(const TArrayView<FVector>& InPosition
 	for (int i = 0; i < NumVectors; i++)
 	{
 		const FVector PP = ProjectionQuat.UnrotateVector(InPositions[i]);
+		OutPositions[p++] = PP.X;
+		OutPositions[p++] = PP.Y;
+	}
+}
+
+void FPCGExGeo2DProjectionDetails::Project(const TConstPCGValueRange<FTransform>& InTransforms, std::vector<double>& OutPositions) const
+{
+	const int32 NumVectors = InTransforms.Num();
+	int32 p = 0;
+	for (int i = 0; i < NumVectors; i++)
+	{
+		const FVector PP = ProjectionQuat.UnrotateVector(InTransforms[i].GetLocation());
 		OutPositions[p++] = PP.X;
 		OutPositions[p++] = PP.Y;
 	}
