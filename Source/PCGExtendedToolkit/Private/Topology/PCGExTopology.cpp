@@ -255,15 +255,10 @@ namespace PCGExTopology
 		WrapperCell = nullptr;
 	}
 
-	uint32 FCell::GetCellHash()
+	uint64 FCell::GetCellHash()
 	{
 		if (CellHash != 0) { return CellHash; }
-
-		//TArray<int32> SortedNodes = Nodes;
-		//SortedNodes.Sort();
-
-		for (int32 i = 0; i < Nodes.Num(); i++) { CellHash = HashCombineFast(CellHash, Nodes[i]); }
-
+		CellHash = CityHash64(reinterpret_cast<const char*>(Nodes.GetData()), Nodes.Num() * sizeof(int32));
 		return CellHash;
 	}
 
@@ -276,8 +271,10 @@ namespace PCGExTopology
 		Data.Bounds = FBox(ForceInit);
 
 		Seed = InSeedLink;
-		PCGExGraph::FLink From = InSeedLink;                                                           // From node, through edge; edge will be updated to be last traversed after.
-		PCGExGraph::FLink To = PCGExGraph::FLink(InCluster->GetEdgeOtherNode(From)->Index, Seed.Edge); // To node, through edge
+		// From node, through edge; edge will be updated to be last traversed after.
+		PCGExGraph::FLink From = InSeedLink;
+		// To node, through edge
+		PCGExGraph::FLink To = PCGExGraph::FLink(InCluster->GetEdgeOtherNode(From)->Index, Seed.Edge);
 
 		const uint64 SeedHalfEdge = PCGEx::H64(From.Node, To.Node);
 		if (!Constraints->IsUniqueStartHalfEdge(SeedHalfEdge)) { return ECellResult::Duplicate; }
@@ -445,10 +442,11 @@ namespace PCGExTopology
 		const FVector& SeedPosition,
 		const TSharedRef<PCGExCluster::FCluster>& InCluster,
 		const TArray<FVector2D>& ProjectedPositions,
+		const FVector& UpVector,
 		const FPCGExNodeSelectionDetails* Picking)
 	{
 		PCGExGraph::FLink Link = PCGExGraph::FLink(-1, -1);
-		Link.Node = InCluster->FindClosestNode<2>(SeedPosition, Picking ? Picking->PickingMethod : EPCGExClusterClosestSearchMode::Edge);
+		Link.Node = InCluster->FindClosestNode(SeedPosition, Picking ? Picking->PickingMethod : EPCGExClusterClosestSearchMode::Edge, 2);
 
 		if (Link.Node == -1)
 		{
@@ -464,7 +462,7 @@ namespace PCGExTopology
 		}
 
 		// Find edge closest to seed position
-		Link.Edge = InCluster->FindClosestEdge<2>(Link.Node, SeedPosition);
+		Link.Edge = InCluster->FindClosestEdge(Link.Node, SeedPosition, 2);
 
 		if (Link.Edge == -1)
 		{
@@ -473,9 +471,9 @@ namespace PCGExTopology
 		}
 
 		const PCGExGraph::FEdge* E = InCluster->GetEdge(Link.Edge);
-
-		// Reproject normal as between projected and original
-		Link.Node = InCluster->GetGuidedHalfEdge(Link.Edge, SeedPosition, FQuat::FindBetweenNormals(InCluster->GetEdgeDir(Link), FVector((ProjectedPositions[E->End] - ProjectedPositions[E->Start]).GetSafeNormal(), 0)).GetUpVector())->Index;
+		
+		// choose a deterministic right-hand frame		
+		Link.Node = InCluster->GetGuidedHalfEdge(Link.Edge, SeedPosition, UpVector)->Index;
 		return BuildFromCluster(Link, InCluster, ProjectedPositions);
 	}
 
