@@ -282,7 +282,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const;
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const;
+	void Project(const TConstPCGValueRange<FTransform>& InTransforms, TArray<FVector2D>& OutPositions) const;
 	void Project(const TArrayView<FVector>& InPositions, std::vector<double>& OutPositions) const;
+	void Project(const TConstPCGValueRange<FTransform>& InTransforms, std::vector<double>& OutPositions) const;
 };
 
 extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector2D>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector2D>& OutPositions) const;
