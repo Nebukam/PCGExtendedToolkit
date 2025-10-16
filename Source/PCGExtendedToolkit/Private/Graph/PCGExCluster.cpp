@@ -492,6 +492,171 @@ namespace PCGExCluster
 		for (const FNode& Node : NodesRef) { if (Node.bValid == Mask) { OutValidNodesPointIndices.Add(Node.PointIndex); } }
 	}
 
+	int32 FCluster::FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors) const
+	{
+		switch (Mode)
+		{
+		default: ;
+		case EPCGExClusterClosestSearchMode::Vtx:
+			return FindClosestNode(Position, MinNeighbors);
+		case EPCGExClusterClosestSearchMode::Edge:
+			return FindClosestNodeFromEdge(Position, MinNeighbors);
+		}
+	}
+
+	int32 FCluster::FindClosestNode(const FVector& Position, const int32 MinNeighbors) const
+	{
+		double MaxDistance = MAX_dbl;
+		int32 ClosestIndex = -1;
+
+		const TArray<FNode>& NodesRef = *Nodes;
+
+		if (NodeOctree)
+		{
+			auto ProcessCandidate = [&](const PCGExOctree::FItem& Item)
+			{
+				const FNode& Node = NodesRef[Item.Index];
+				if (MinNeighbors > 0 && Node.Num() < MinNeighbors) { return; }
+				const double Dist = FVector::DistSquared(Position, GetPos(Node));
+				if (Dist < MaxDistance)
+				{
+					MaxDistance = Dist;
+					ClosestIndex = Node.Index;
+				}
+			};
+
+			NodeOctree->FindNearbyElements(Position, ProcessCandidate);
+		}
+		else
+		{
+			for (const FNode& Node : (*Nodes))
+			{
+				if (MinNeighbors > 0 && Node.Num() < MinNeighbors) { continue; }
+				const double Dist = FVector::DistSquared(Position, GetPos(Node));
+				if (Dist < MaxDistance)
+				{
+					MaxDistance = Dist;
+					ClosestIndex = Node.Index;
+				}
+			}
+		}
+
+		return ClosestIndex;
+	}
+
+	int32 FCluster::FindClosestNodeFromEdge(const FVector& Position, const int32 MinNeighbors) const
+	{
+		double MaxDistance = MAX_dbl;
+		int32 ClosestIndex = -1;
+
+		if (EdgeOctree)
+		{
+			auto ProcessCandidate = [&](const PCGExOctree::FItem& Item)
+			{
+				const double Dist = GetPointDistToEdgeSquared(Item.Index, Position);
+				if (Dist < MaxDistance)
+				{
+					if (MinNeighbors > 0)
+					{
+						if (GetEdgeStart(Item.Index)->Links.Num() < MinNeighbors &&
+							GetEdgeEnd(Item.Index)->Links.Num() < MinNeighbors)
+						{
+							return;
+						}
+					}
+					MaxDistance = Dist;
+					ClosestIndex = Item.Index;
+				}
+			};
+
+			EdgeOctree->FindNearbyElements(Position, ProcessCandidate);
+		}
+		else if (BoundedEdges)
+		{
+			for (const FBoundedEdge& Edge : (*BoundedEdges))
+			{
+				const double Dist = GetPointDistToEdgeSquared(Edge.Index, Position);
+				if (Dist < MaxDistance)
+				{
+					if (MinNeighbors > 0)
+					{
+						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors &&
+							GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors)
+						{
+							continue;
+						}
+					}
+
+					MaxDistance = Dist;
+					ClosestIndex = Edge.Index;
+				}
+			}
+		}
+		else
+		{
+			for (const FEdge& Edge : (*Edges))
+			{
+				const double Dist = GetPointDistToEdgeSquared(Edge, Position);
+				if (Dist < MaxDistance)
+				{
+					if (MinNeighbors > 0)
+					{
+						if (GetEdgeStart(Edge.Index)->Links.Num() < MinNeighbors &&
+							GetEdgeEnd(Edge.Index)->Links.Num() < MinNeighbors)
+						{
+							continue;
+						}
+					}
+
+					MaxDistance = Dist;
+					ClosestIndex = Edge.Index;
+				}
+			}
+		}
+
+		if (ClosestIndex == -1) { return -1; }
+
+		const FEdge* Edge = GetEdge(ClosestIndex);
+		const FNode* Start = GetEdgeStart(Edge);
+		const FNode* End = GetEdgeEnd(Edge);
+
+		ClosestIndex = FVector::DistSquared(Position, GetPos(Start)) < FVector::DistSquared(Position, GetPos(End)) ? Start->Index : End->Index;
+
+		return ClosestIndex;
+	}
+
+	int32 FCluster::FindClosestEdge(const int32 InNodeIndex, const FVector& InPosition, const int32 MinNeighbors) const
+	{
+		if (!Nodes->IsValidIndex(InNodeIndex) || (Nodes->GetData() + InNodeIndex)->IsEmpty()) { return -1; }
+		const FNode& Node = *(Nodes->GetData() + InNodeIndex);
+
+		double BestDist = MAX_dbl;
+		double BestDot = MAX_dbl;
+
+		int32 BestIndex = -1;
+
+		const FVector Position = GetPos(Node);
+		const FVector SearchDirection = (GetPos(Node) - InPosition).GetSafeNormal();
+
+		for (const FLink Lk : Node.Links)
+		{
+			if (MinNeighbors > 0 && GetNode(Lk)->Links.Num() < MinNeighbors) { continue; }
+
+			FVector NPos = GetPos(Lk.Node);
+			const double Dist = FMath::PointDistToSegmentSquared(InPosition, Position, NPos);
+			if (Dist <= BestDist)
+			{
+				const double Dot = FVector::DotProduct(SearchDirection, (NPos - Position).GetSafeNormal());
+				if (Dist == BestDist && Dot > BestDot) { continue; }
+				BestDot = Dot;
+				BestDist = Dist;
+				BestIndex = Lk.Edge;
+			}
+		}
+
+		return BestIndex;
+	}
+
 	int32 FCluster::FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const int32 MinNeighborCount) const
 	{
 		const TArray<FNode>& NodesRef = *Nodes;

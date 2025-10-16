@@ -18,11 +18,11 @@ class FPCGMetadataAttributeBase;
 #pragma region Singles
 
 USTRUCT(BlueprintType)
-struct FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
+	UPROPERTY(meta=(IgnoreForMemberInitializationTest))
 	int32 HeaderId = 0;
 
 	UPROPERTY()
@@ -49,7 +49,7 @@ virtual void InitEntry(const FPCGExTupleValueWrap* InHeader);\
 virtual void WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const override;
 
 USTRUCT(BlueprintType, DisplayName="Boolean")
-struct FPCGExTupleValueWrapBoolean : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapBoolean : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -62,7 +62,7 @@ struct FPCGExTupleValueWrapBoolean : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Float")
-struct FPCGExTupleValueWrapFloat : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapFloat : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -75,7 +75,7 @@ struct FPCGExTupleValueWrapFloat : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Double")
-struct FPCGExTupleValueWrapDouble : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapDouble : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -88,7 +88,7 @@ struct FPCGExTupleValueWrapDouble : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Integer 32")
-struct FPCGExTupleValueWrapInteger32 : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapInteger32 : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -101,7 +101,7 @@ struct FPCGExTupleValueWrapInteger32 : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Vector2")
-struct FPCGExTupleValueWrapVector2 : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapVector2 : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -114,7 +114,7 @@ struct FPCGExTupleValueWrapVector2 : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Vector")
-struct FPCGExTupleValueWrapVector : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapVector : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -127,7 +127,7 @@ struct FPCGExTupleValueWrapVector : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Vector4")
-struct FPCGExTupleValueWrapVector4 : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapVector4 : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -140,7 +140,7 @@ struct FPCGExTupleValueWrapVector4 : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Color")
-struct FPCGExTupleValueWrapColor : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapColor : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -153,7 +153,7 @@ struct FPCGExTupleValueWrapColor : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Transform")
-struct FPCGExTupleValueWrapTransform : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapTransform : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -166,7 +166,7 @@ struct FPCGExTupleValueWrapTransform : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Rotator")
-struct FPCGExTupleValueWrapRotator : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapRotator : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -179,7 +179,7 @@ struct FPCGExTupleValueWrapRotator : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="String")
-struct FPCGExTupleValueWrapString : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapString : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -192,7 +192,7 @@ struct FPCGExTupleValueWrapString : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Name")
-struct FPCGExTupleValueWrapName : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapName : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -205,7 +205,7 @@ struct FPCGExTupleValueWrapName : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Soft Object Path")
-struct FPCGExTupleValueWrapSoftObjectPath : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapSoftObjectPath : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -218,7 +218,7 @@ struct FPCGExTupleValueWrapSoftObjectPath : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Soft Class Path")
-struct FPCGExTupleValueWrapSoftClassPath : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapSoftClassPath : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -231,7 +231,7 @@ struct FPCGExTupleValueWrapSoftClassPath : public FPCGExTupleValueWrap
 };
 
 USTRUCT(BlueprintType, DisplayName="Enum Selector")
-struct FPCGExTupleValueWrapEnumSelector : public FPCGExTupleValueWrap
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapEnumSelector : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
@@ -248,13 +248,13 @@ struct FPCGExTupleValueWrapEnumSelector : public FPCGExTupleValueWrap
 #pragma endregion
 
 USTRUCT(BlueprintType)
-struct FPCGExTupleValueHeader
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueHeader
 {
 	GENERATED_BODY()
 
 	FPCGExTupleValueHeader();
 
-	UPROPERTY()
+	UPROPERTY(meta=(IgnoreForMemberInitializationTest))
 	int32 HeaderId = 0;
 
 	UPROPERTY()
@@ -272,7 +272,7 @@ struct FPCGExTupleValueHeader
 
 
 USTRUCT(BlueprintType)
-struct FPCGExTupleBody
+struct PCGEXTENDEDTOOLKIT_API FPCGExTupleBody
 {
 	GENERATED_BODY()
 

@@ -490,6 +490,17 @@ namespace PCGExGraph
 
 		FGraphEdgeMetadata TempParentMetaCopy = FGraphEdgeMetadata(-1, nullptr); // Required if pointer gets invalidated due to resizing
 
+		// Find how many new metadata needs to be reserved
+		int32 EdgeReserve = 0;
+		for (FPointEdgeProxy& PointEdgeProxy : Edges)
+		{
+			if (PointEdgeProxy.CollinearPoints.IsEmpty()){continue;}
+			EdgeReserve+= PointEdgeProxy.CollinearPoints.Num() + 1;
+		}
+		
+		Graph->EdgeMetadata.Reserve(Graph->EdgeMetadata.Num() + EdgeReserve);
+		Graph->NodeMetadata.Reserve(Graph->NodeMetadata.Num() + EdgeReserve);
+		
 		for (FPointEdgeProxy& PointEdgeProxy : Edges)
 		{
 			if (PointEdgeProxy.CollinearPoints.IsEmpty()) { continue; }
@@ -773,6 +784,17 @@ namespace PCGExGraph
 
 		FEdge NewEdge = FEdge{};
 
+		// Find how many new metadata needs to be reserved
+		int32 EdgeReserve = 0;
+		for (FEdgeEdgeProxy& EdgeProxy : Edges)
+		{
+			if (EdgeProxy.Intersections.IsEmpty()){continue;}
+			EdgeReserve+= EdgeProxy.Intersections.Num() + 1;
+		}
+
+		Graph->EdgeMetadata.Reserve(Graph->EdgeMetadata.Num() + EdgeReserve);
+		Graph->NodeMetadata.Reserve(Graph->NodeMetadata.Num() + EdgeReserve);
+		
 		for (FEdgeEdgeProxy& EdgeProxy : Edges)
 		{
 			if (EdgeProxy.Intersections.IsEmpty()) { continue; }

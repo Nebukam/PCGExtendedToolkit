@@ -397,7 +397,7 @@ namespace PCGExTopology
 	{
 	protected:
 		mutable FRWLock UniquePathsHashSetLock;
-		TSet<uint32> UniquePathsHashSet;
+		TSet<uint64> UniquePathsHashSet;
 
 		mutable FRWLock UniqueStartHalfEdgesHashLock;
 		TSet<uint64> UniqueStartHalfEdgesHash;
@@ -497,7 +497,7 @@ namespace PCGExTopology
 	{
 	protected:
 		int32 Sign = 0;
-		uint32 CellHash = 0;
+		uint64 CellHash = 0;
 
 	public:
 		TArray<int32> Nodes;
@@ -519,7 +519,7 @@ namespace PCGExTopology
 
 		~FCell() = default;
 
-		uint32 GetCellHash();
+		uint64 GetCellHash();
 
 		ECellResult BuildFromCluster(
 			const PCGExGraph::FLink InSeedLink,
@@ -530,6 +530,7 @@ namespace PCGExTopology
 			const FVector& SeedPosition,
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
 			const TArray<FVector2D>& ProjectedPositions,
+			const FVector& UpVector = FVector::UpVector,
 			const FPCGExNodeSelectionDetails* Picking = nullptr);
 
 		ECellResult BuildFromPath(
