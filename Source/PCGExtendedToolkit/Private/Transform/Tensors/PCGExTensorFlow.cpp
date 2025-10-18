@@ -3,6 +3,8 @@
 
 #include "Transform/Tensors/PCGExTensorFlow.h"
 
+#include "PCGExHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorFlow"
 #define PCGEX_NAMESPACE CreateTensorFlow

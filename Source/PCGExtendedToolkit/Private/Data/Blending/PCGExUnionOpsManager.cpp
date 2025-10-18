@@ -4,6 +4,7 @@
 #include "Data/Blending/PCGExUnionOpsManager.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
 
 namespace PCGExDataBlending

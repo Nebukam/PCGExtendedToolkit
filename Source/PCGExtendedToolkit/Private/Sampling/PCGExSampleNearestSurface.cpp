@@ -7,6 +7,7 @@
 #include "Engine/OverlapResult.h"
 #include "Components/PrimitiveComponent.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 #define PCGEX_NAMESPACE SampleNearestSurface

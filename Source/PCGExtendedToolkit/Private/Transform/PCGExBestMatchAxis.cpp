@@ -4,6 +4,7 @@
 #include "Transform/PCGExBestMatchAxis.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExDetailsSettings.h"
 

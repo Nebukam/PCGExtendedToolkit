@@ -5,6 +5,7 @@
 
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/Blending//PCGExBlendModes.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"

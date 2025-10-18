@@ -6,8 +6,14 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "UObject/Object.h"
+#include "Data/PCGExPointElements.h"
 
-#include "PCGExPointIO.h"
+namespace PCGEx
+{
+	class FIndexLookup;
+}
+
+class UPCGBasePointData;
 
 namespace PCGExDetails
 {
@@ -16,6 +22,11 @@ namespace PCGExDetails
 
 namespace PCGExData
 {
+	struct FConstPoint;
+	struct FWeightedPoint;
+	struct FPoint;
+	struct FElement;
+	
 #pragma region Compound
 
 	class PCGEXTENDEDTOOLKIT_API IUnionData : public TSharedFromThis<IUnionData>
@@ -37,7 +48,7 @@ namespace PCGExData
 		virtual int32 ComputeWeights(
 			const TArray<const UPCGBasePointData*>& Sources,
 			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
-			const FConstPoint& Target,
+			const FPoint& Target,
 			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
 			TArray<FWeightedPoint>& OutWeightedPoints) const;
 

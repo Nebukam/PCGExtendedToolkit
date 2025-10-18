@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExNumericCompareNearestFilter.h"
 
+#include "PCGExHelpers.h"
 #include "Details/PCGExDetailsSettings.h"
 
 
