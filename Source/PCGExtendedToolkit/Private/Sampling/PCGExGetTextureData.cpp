@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Materials/MaterialInterface.h"
 #include "PCGComponent.h"
+#include "PCGExHelpers.h"
 #include "Data/PCGRenderTargetData.h"
 #include "Data/PCGTextureData.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -13,6 +14,7 @@
 #include "Helpers/PCGHelpers.h"
 #include "TextureResource.h"
 #include "PCGExSubSystem.h"
+#include "Data/PCGExPointIO.h"
 
 
 #include "Engine/Texture.h"

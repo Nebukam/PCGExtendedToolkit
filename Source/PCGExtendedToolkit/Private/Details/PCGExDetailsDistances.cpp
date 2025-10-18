@@ -9,19 +9,19 @@
 namespace PCGExDetails
 {
 	template <EPCGExDistance Source, EPCGExDistance Target>
-	FVector TDistances<Source, Target>::GetSourceCenter(const PCGExData::FConstPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
+	FVector TDistances<Source, Target>::GetSourceCenter(const PCGExData::FPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
 	{
 		return GetSpatializedCenter<Source>(FromPoint, FromCenter, ToCenter);
 	}
 
 	template <EPCGExDistance Source, EPCGExDistance Target>
-	FVector TDistances<Source, Target>::GetTargetCenter(const PCGExData::FConstPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
+	FVector TDistances<Source, Target>::GetTargetCenter(const PCGExData::FPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
 	{
 		return GetSpatializedCenter<Target>(FromPoint, FromCenter, ToCenter);
 	}
 
 	template <EPCGExDistance Source, EPCGExDistance Target>
-	void TDistances<Source, Target>::GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
+	void TDistances<Source, Target>::GetCenters(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
 	{
 		const FVector TargetOrigin = TargetPoint.GetLocation();
 		OutSource = GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
@@ -29,7 +29,7 @@ namespace PCGExDetails
 	}
 
 	template <EPCGExDistance Source, EPCGExDistance Target>
-	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
+	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint) const
 	{
 		const FVector TargetOrigin = TargetPoint.GetLocation();
 		const FVector OutSource = GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
@@ -37,15 +37,7 @@ namespace PCGExDetails
 	}
 
 	template <EPCGExDistance Source, EPCGExDistance Target>
-	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FProxyPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
-	{
-		const FVector TargetOrigin = TargetPoint.GetLocation();
-		const FVector OutSource = GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
-		return FVector::DistSquared(OutSource, GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource));
-	}
-
-	template <EPCGExDistance Source, EPCGExDistance Target>
-	double TDistances<Source, Target>::GetDist(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
+	double TDistances<Source, Target>::GetDist(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint) const
 	{
 		const FVector TargetOrigin = TargetPoint.GetLocation();
 		const FVector OutSource = GetSpatializedCenter<Source>(SourcePoint, SourcePoint.GetLocation(), TargetOrigin);
@@ -53,7 +45,7 @@ namespace PCGExDetails
 	}
 
 	template <EPCGExDistance Source, EPCGExDistance Target>
-	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const
+	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint, bool& bOverlap) const
 	{
 		const FVector TargetOrigin = TargetPoint.GetLocation();
 		const FVector SourceOrigin = SourcePoint.GetLocation();
@@ -65,19 +57,7 @@ namespace PCGExDetails
 	}
 
 	template <EPCGExDistance Source, EPCGExDistance Target>
-	double TDistances<Source, Target>::GetDistSquared(const PCGExData::FProxyPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const
-	{
-		const FVector TargetOrigin = TargetPoint.GetLocation();
-		const FVector SourceOrigin = SourcePoint.GetLocation();
-		const FVector OutSource = GetSpatializedCenter<Source>(SourcePoint, SourceOrigin, TargetOrigin);
-		const FVector OutTarget = GetSpatializedCenter<Target>(TargetPoint, TargetOrigin, OutSource);
-
-		bOverlap = FVector::DotProduct((TargetOrigin - SourceOrigin), (OutTarget - OutSource)) < 0;
-		return FVector::DistSquared(OutSource, OutTarget);
-	}
-
-	template <EPCGExDistance Source, EPCGExDistance Target>
-	double TDistances<Source, Target>::GetDist(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, bool& bOverlap) const
+	double TDistances<Source, Target>::GetDist(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint, bool& bOverlap) const
 	{
 		const FVector TargetOrigin = TargetPoint.GetLocation();
 		const FVector SourceOrigin = SourcePoint.GetLocation();

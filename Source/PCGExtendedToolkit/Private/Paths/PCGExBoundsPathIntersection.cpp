@@ -5,6 +5,7 @@
 #include "PCGExRandom.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"

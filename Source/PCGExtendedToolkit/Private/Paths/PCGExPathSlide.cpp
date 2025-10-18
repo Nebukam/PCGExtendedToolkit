@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExPathSlide.h"
 
+#include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPaths.h"
 

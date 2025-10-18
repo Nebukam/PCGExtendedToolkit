@@ -3,6 +3,8 @@
 
 #include "Transform/Tensors/PCGExTensorSpin.h"
 
+#include "PCGExHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExCreateTensorSpin"
 #define PCGEX_NAMESPACE CreateTensorSpin

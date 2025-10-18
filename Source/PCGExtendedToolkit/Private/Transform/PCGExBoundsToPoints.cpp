@@ -3,6 +3,8 @@
 
 #include "Transform/PCGExBoundsToPoints.h"
 
+#include "Data/PCGExPointIO.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsToPointsElement"
 #define PCGEX_NAMESPACE BoundsToPoints

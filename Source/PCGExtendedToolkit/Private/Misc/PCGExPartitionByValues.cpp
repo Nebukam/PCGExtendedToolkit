@@ -5,6 +5,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 
 
 #include "Sampling/PCGExSampling.h"
