@@ -110,7 +110,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	bool bRequiresWeight = false;
 
 	/** BlendMode */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::Average;
 
 	/** Operand A. */
