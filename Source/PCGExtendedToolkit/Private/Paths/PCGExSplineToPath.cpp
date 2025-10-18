@@ -6,6 +6,7 @@
 #include "PCGExRandom.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/PCGSplineData.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"

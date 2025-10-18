@@ -193,7 +193,7 @@ namespace PCGExSampling
 		virtual int32 ComputeWeights(
 			const TArray<const UPCGBasePointData*>& Sources,
 			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
-			const PCGExData::FConstPoint& Target,
+			const PCGExData::FPoint& Target,
 			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
 			TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const override;
 

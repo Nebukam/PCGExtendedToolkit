@@ -5,6 +5,7 @@
 
 #include "PCGExPointsMT.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsDistances.h"
 
 namespace PCGExData
@@ -12,7 +13,7 @@ namespace PCGExData
 #pragma region Union Data
 
 	int32 IUnionData::ComputeWeights(
-		const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const FConstPoint& Target,
+		const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const FPoint& Target,
 		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<FWeightedPoint>& OutWeightedPoints) const
 	{
 		const int32 NumElements = Elements.Num();

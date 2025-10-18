@@ -4,6 +4,7 @@
 #include "Transform/PCGExNormalize.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Sampling/PCGExSampling.h"

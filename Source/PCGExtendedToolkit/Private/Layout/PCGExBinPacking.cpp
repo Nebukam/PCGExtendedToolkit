@@ -4,6 +4,7 @@
 #include "Layout/PCGExBinPacking.h"
 
 
+#include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Layout/PCGExLayout.h"
 

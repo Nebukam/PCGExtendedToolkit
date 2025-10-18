@@ -10,6 +10,7 @@
 #include "PCGExRandom.h"
 #include "PCGExSubSystem.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
 

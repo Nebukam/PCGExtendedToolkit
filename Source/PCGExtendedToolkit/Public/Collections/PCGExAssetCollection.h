@@ -13,6 +13,7 @@
 #include "AssetRegistry/AssetData.h"
 #endif
 
+#include "PCGExHelpers.h"
 #include "PCGParamData.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"

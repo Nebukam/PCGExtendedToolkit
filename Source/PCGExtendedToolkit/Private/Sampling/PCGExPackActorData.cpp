@@ -6,6 +6,7 @@
 #include "PCGComponent.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
+#include "Data/PCGExPointIO.h"
 #include "Elements/PCGExecuteBlueprint.h"
 #include "Engine/AssetManager.h"
 

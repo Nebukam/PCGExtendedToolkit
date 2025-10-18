@@ -9,6 +9,7 @@
 #include "Collections/PCGExMeshCollection.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/PCGPolygon2DData.h"
 #include "Details/PCGExDetailsSettings.h"
 

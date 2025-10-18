@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExChain.h"
 
+#include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExCluster.h"
 

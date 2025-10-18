@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExDistanceFilter.h"
 
+#include "PCGExHelpers.h"
+#include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 
 

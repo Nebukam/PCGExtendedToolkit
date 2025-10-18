@@ -6,6 +6,7 @@
 #include "Details/PCGExDetailsIntersection.h"
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Geometry/PCGExGeoPointBox.h"
 #include "Graph/PCGExEdge.h"

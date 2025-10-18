@@ -3,6 +3,7 @@
 
 #include "Graph/FloodFill/PCGExFloodFillClusters.h"
 
+#include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"

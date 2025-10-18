@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transform/PCGExTransform.h"
+
+#include "PCGExHelpers.h"
 #include "PCGExMathBounds.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointElements.h"

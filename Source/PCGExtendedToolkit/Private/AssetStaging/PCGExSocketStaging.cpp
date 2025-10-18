@@ -5,6 +5,7 @@
 
 
 #include "PCGExScopedContainers.h"
+#include "Data/PCGExPointIO.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExSocketStagingElement"

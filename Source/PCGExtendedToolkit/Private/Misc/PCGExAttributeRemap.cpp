@@ -6,6 +6,7 @@
 #include "PCGExHelpers.h"
 #include "PCGExScopedContainers.h"
 #include "AssetStaging/PCGExAssetStaging.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 
 

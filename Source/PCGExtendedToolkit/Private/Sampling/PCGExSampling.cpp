@@ -5,6 +5,7 @@
 
 #include "GameFramework/Actor.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExPointIO.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "Details/PCGExDetailsDistances.h"
 
@@ -159,7 +160,7 @@ namespace PCGExSampling
 
 	int32 FSampingUnionData::ComputeWeights(
 		const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
-		const PCGExData::FConstPoint& Target, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
+		const PCGExData::FPoint& Target, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
 		TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const
 	{
 		const int32 NumElements = Elements.Num();
