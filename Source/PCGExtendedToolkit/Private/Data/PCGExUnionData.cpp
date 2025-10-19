@@ -15,7 +15,7 @@ namespace PCGExData
 	int32 IUnionData::ComputeWeights(
 		const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const FPoint& Target,
 		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<FWeightedPoint>& OutWeightedPoints) const
-	{
+	{		
 		const int32 NumElements = Elements.Num();
 		OutWeightedPoints.Reset(NumElements);
 
@@ -63,14 +63,14 @@ namespace PCGExData
 	void IUnionData::Add_Unsafe(const FElement& Point)
 	{
 		IOSet.Add(Point.IO);
-		Elements.Add(FElement(Point.Index == -1 ? 0 : Point.Index, Point.IO));
+		Elements.Emplace(Point.Index == -1 ? 0 : Point.Index, Point.IO);
 	}
 
 	void IUnionData::Add(const FElement& Point)
 	{
 		FWriteScopeLock WriteScopeLock(UnionLock);
 		IOSet.Add(Point.IO);
-		Elements.Add(FElement(Point.Index == -1 ? 0 : Point.Index, Point.IO));
+		Elements.Emplace(Point.Index == -1 ? 0 : Point.Index, Point.IO);
 	}
 
 
