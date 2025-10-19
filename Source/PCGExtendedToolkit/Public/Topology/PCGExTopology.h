@@ -553,6 +553,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellArtifactsDetails
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteCellHash = false;
+
+	/** Write cell unique hash as a @Data attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Hash", EditCondition="bWriteCellHash"))
+	FName CellHashAttributeName = FName("CellHash");
+	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxId = false;
 
 	/** Name of the attribute to write the vtx index of its point to. This is useful if you want to find contours, mutate the cluster it comes from and remap the updated cluster positions onto the original cell. */
