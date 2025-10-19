@@ -369,8 +369,28 @@ namespace PCGExSplitPath
 	{
 		if (SubPaths.IsEmpty() || (SubPaths.Num() == 1 && SubPaths[0].Count == PointDataFacade->GetNum()))
 		{
-			// No splits, forward
-			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
+			bool bHasFilteredOutPoints = false;
+			for (const int8 Filtered : PointFilterCache)
+			{
+				if (Filtered)
+				{
+					bHasFilteredOutPoints = true;
+					break;
+				}
+			}
+
+			if (!bHasFilteredOutPoints)
+			{
+				// No splits, forward
+				PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
+			}
+			else if ((SubPaths.Num() == 1 && SubPaths[0].Count == PointDataFacade->GetNum()) && bClosedLoop)
+			{
+				// Disconnecting closed loop last point will produce an open path
+				PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+				PCGExPaths::SetClosedLoop(PointDataFacade->GetOut(), false);
+			}
+
 			return;
 		}
 
