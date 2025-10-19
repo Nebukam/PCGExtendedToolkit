@@ -37,6 +37,12 @@ namespace PCGExDataHelpers
 	template <typename T>
 	void SetDataValue(FPCGMetadataAttribute<T>* Attribute, const T Value);
 
+	template <typename T>
+	void SetDataValue(UPCGData* InData, FName Name, const T Value);
+	
+	template <typename T>
+	void SetDataValue(UPCGData* InData, FPCGAttributeIdentifier Identifier, const T Value);
+
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
 extern template _TYPE ReadDataValue<_TYPE>(const FPCGMetadataAttribute<_TYPE>* Attribute); \
 extern template _TYPE ReadDataValue<_TYPE>(const FPCGMetadataAttributeBase* Attribute, _TYPE Fallback); \

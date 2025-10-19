@@ -10,6 +10,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/PCGExValueHash.h"
 
 namespace PCGExDetails
 {
@@ -42,6 +43,9 @@ namespace PCGExDetails
 	T TSettingValueBuffer<T>::Max() { return Buffer->Max; }
 
 	template <typename T>
+	uint32 TSettingValueBuffer<T>::ReadValueHash(const int32 Index){ return Buffer->ReadValueHash(Index); }
+
+	template <typename T>
 	bool TSettingValueSelector<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax)
 	{
 		FPCGExContext* Context = InDataFacade->GetContext();
@@ -68,7 +72,13 @@ namespace PCGExDetails
 	T TSettingValueSelector<T>::Max() { return Buffer->Max; }
 
 	template <typename T>
+	uint32 TSettingValueSelector<T>::ReadValueHash(const int32 Index){ return Buffer->ReadValueHash(Index); }
+
+	template <typename T>
 	bool TSettingValueConstant<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax) { return true; }
+
+	template <typename T>
+	uint32 TSettingValueConstant<T>::ReadValueHash(const int32 Index) { return PCGExBlend::ValueHash(Constant); }
 
 	template <typename T>
 	bool TSettingValueSelectorConstant<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax)

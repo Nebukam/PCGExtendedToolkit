@@ -5,6 +5,7 @@
 
 #include "PCGExContext.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGExPointIO.h"
@@ -548,17 +549,13 @@ void FPCGExCellArtifactsDetails::Process(
 		for (int i = 0; i < NumNodes; i++)
 		{
 			int32 NodeIdx = InCell->Nodes[i];
-			int32 Count = NumRepeats.FindOrAdd(NodeIdx, 0);
-			NumRepeats.Add(NodeIdx, Count + 1);
+			NumRepeats.Add(NodeIdx, NumRepeats.FindOrAdd(NodeIdx, 0) + 1);
 		}
 	}
 
-	for (int i = 0; i < NumNodes; i++)
-	{
-		int32 NodeIdx = InCell->Nodes[i];
-		if (TerminalBuffer) { TerminalBuffer->SetValue(i, InCluster->GetNode(NodeIdx)->IsLeaf()); }
-		if (RepeatBuffer) { RepeatBuffer->SetValue(i, NumRepeats[NodeIdx] - 1); }
-	}
+	if (bWriteCellHash) { PCGExDataHelpers::SetDataValue(InDataFacade->GetOut(), CellHashAttributeName, static_cast<int64>(InCell->GetCellHash())); }
+	if (TerminalBuffer) { for (int i = 0; i < NumNodes; i++) { TerminalBuffer->SetValue(i, InCluster->GetNode(InCell->Nodes[i])->IsLeaf()); } }
+	if (RepeatBuffer) { for (int i = 0; i < NumNodes; i++) { RepeatBuffer->SetValue(i, NumRepeats[InCell->Nodes[i]] - 1); } }
 
 	const TSharedPtr<PCGExData::TBuffer<int32>> VtxIDBuffer = bWriteVtxId ? InDataFacade->GetWritable(VtxIdAttributeName, 0, true, PCGExData::EBufferInit::New) : nullptr;
 	if (VtxIDBuffer)

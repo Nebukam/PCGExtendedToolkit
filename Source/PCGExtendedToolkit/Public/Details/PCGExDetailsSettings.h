@@ -40,6 +40,7 @@ namespace PCGExDetails
 		FORCEINLINE virtual T Read(const int32 Index) = 0;
 		FORCEINLINE virtual T Min() = 0;
 		FORCEINLINE virtual T Max() = 0;
+		FORCEINLINE virtual uint32 ReadValueHash(const int32 Index) = 0;
 	};
 
 	template <typename T>
@@ -60,6 +61,7 @@ namespace PCGExDetails
 		virtual T Read(const int32 Index) override;
 		virtual T Min() override;
 		virtual T Max() override;
+		virtual uint32 ReadValueHash(const int32 Index) override;
 	};
 
 	template <typename T>
@@ -80,6 +82,7 @@ namespace PCGExDetails
 		virtual T Read(const int32 Index) override;
 		virtual T Min() override;
 		virtual T Max() override;
+		virtual uint32 ReadValueHash(const int32 Index) override;
 	};
 
 	template <typename T>
@@ -102,6 +105,7 @@ namespace PCGExDetails
 		FORCEINLINE virtual T Read(const int32 Index) override { return Constant; }
 		FORCEINLINE virtual T Min() override { return Constant; }
 		FORCEINLINE virtual T Max() override { return Constant; }
+		virtual uint32 ReadValueHash(const int32 Index) override;
 	};
 
 	template <typename T>
