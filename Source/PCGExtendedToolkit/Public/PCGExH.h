@@ -259,7 +259,7 @@ namespace PCGEx
 
 		FORCEINLINE virtual void Set(const int32 At, const uint64 Value) override { Data[At] = Value; }
 		FORCEINLINE virtual uint64 Get(const int32 At) override { return Data[At]; }
-		virtual void Reset() override { Data.Init(InternalInitValue, Data.Num()); }
+		virtual void Reset() override { for (uint64& V : Data) { V = InternalInitValue; } }
 
 		operator TArrayView<const uint64>() const { return Data; }
 		operator TArrayView<uint64>() { return Data; }
@@ -283,6 +283,7 @@ namespace PCGEx
 			if (const uint64* Value = Data.Find(At)) { return *Value; }
 			return InternalInitValue;
 		}
+
 		virtual void Reset() override { Data.Reset(); }
 
 		FORCEINLINE bool Contains(const int32 Index) const { return Data.Contains(Index); }

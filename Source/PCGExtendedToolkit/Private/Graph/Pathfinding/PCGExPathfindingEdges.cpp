@@ -242,7 +242,7 @@ namespace PCGExPathfindingEdges
 		SearchOperation = Context->SearchAlgorithm->CreateOperation(); // Create a local copy
 		SearchOperation->PrepareForCluster(Cluster.Get());
 
-		bDaisyChainProcessRange = Settings->bGreedyQueries || HeuristicsHandler->HasGlobalFeedback();
+		bDaisyChainProcessRange = HeuristicsHandler->HasGlobalFeedback() || !Settings->bGreedyQueries;
 		if (bDaisyChainProcessRange) { SearchAllocations = SearchOperation->NewAllocations(); }
 
 		PCGEx::InitArray(Queries, Context->SeedGoalPairs.Num());

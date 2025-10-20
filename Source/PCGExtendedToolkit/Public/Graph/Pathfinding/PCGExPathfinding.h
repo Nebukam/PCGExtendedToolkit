@@ -159,6 +159,15 @@ namespace PCGExPathfinding
 	public:
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
+			const FNodePick& InSeed,
+			const FNodePick& InGoal,
+			const int32 InQueryIndex)
+			: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
+		{
+		}
+		
+		FPathQuery(
+			const TSharedRef<PCGExCluster::FCluster>& InCluster,
 			const PCGExData::FConstPoint& InSeed,
 			const PCGExData::FConstPoint& InGoal,
 			const int32 InQueryIndex)
