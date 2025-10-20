@@ -54,7 +54,7 @@ bool FPCGExPathfindingCentralityElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingCentrality)
 
 	PCGEX_VALIDATE_NAME(Settings->CentralityValueAttributeName)
-	
+
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchInstancedFactory, PCGExPathfinding::SourceOverridesSearch)
 
 	return true;
@@ -107,13 +107,15 @@ namespace PCGExPathfindingCentrality
 		bDaisyChainProcessNodes = !Settings->bGreedyQueries;
 		if (bDaisyChainProcessNodes) { SearchAllocations = SearchOperation->NewAllocations(); }
 
-		StartParallelLoopForNodes();
+		StartParallelLoopForNodes(12);
 
 		return true;
 	}
 
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingCentrality::ProcessNodes);
+
 		const TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes.Get();
 		TArray<int32>& TraversalTrackerRef = *TraversalTracker;
 
@@ -123,35 +125,30 @@ namespace PCGExPathfindingCentrality
 
 		TSharedPtr<PCGExPathfinding::FPathQuery> Query = MakeShared<PCGExPathfinding::FPathQuery>(Cluster.ToSharedRef(), SeedPick, GoalPick, -1);
 		const TSharedPtr<PCGExPathfinding::FSearchAllocations> Allocations = SearchAllocations ? SearchAllocations : SearchOperation->NewAllocations();
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const int32 NodePointIndex = Nodes[Index].PointIndex;
+			if (Index == 0) { continue; }
 
-			SeedPick = PCGExPathfinding::FNodePick(VtxDataFacade->GetInPoint(NodePointIndex));
-			SeedPick.Node = &Nodes[Index];
+			const int32 NodePointIndex = Nodes[Index].PointIndex;
 			GoalPick = SeedPick;
 
 			Query->Seed = SeedPick;
 			//Query->QueryIndex = Index;
 
-			for (int i = Index+1; i < NumNodes; i++)
-			{
-				GoalPick = PCGExPathfinding::FNodePick(VtxDataFacade->GetInPoint(Nodes[i].PointIndex));
-				GoalPick.Node = &Nodes[i];
+			GoalPick = PCGExPathfinding::FNodePick(VtxDataFacade->GetInPoint(Nodes[Index].PointIndex));
+			GoalPick.Node = &Nodes[Index];
 
-				Query->PathNodes.Reset();
-				Query->PathEdges.Reset();
+			Query->PathNodes.Reset();
+			Query->PathEdges.Reset();
 
-				Query->Goal = GoalPick;
-				Query->PickResolution = PCGExPathfinding::EQueryPickResolution::Success;
-				Query->FindPath(SearchOperation, Allocations, HeuristicsHandler, nullptr);
+			Query->Goal = GoalPick;
+			Query->PickResolution = PCGExPathfinding::EQueryPickResolution::Success;
+			Query->FindPath(SearchOperation, Allocations, HeuristicsHandler, nullptr);
 
-				if (!Query->IsQuerySuccessful()) { continue; }
+			if (!Query->IsQuerySuccessful()) { continue; }
 
-				FPlatformAtomics::InterlockedIncrement(&TraversalTrackerRef[NodePointIndex]);
-			}
-			UE_LOG(LogTemp, Log, TEXT("Traversal... %d"), Index);
+			for (const int32 NodeIndex : Query->PathNodes) { FPlatformAtomics::InterlockedIncrement(&TraversalTrackerRef[NodeIndex]); }
 		}
 	}
 
