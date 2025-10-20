@@ -25,7 +25,8 @@ public:
 		const PCGExCluster::FNode& RoamingSeedNode = *Heuristics->GetRoamingSeed();
 		const PCGExCluster::FNode& RoamingGoalNode = *Heuristics->GetRoamingGoal();
 
-		const TUniquePtr<PCGExSearch::FScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::FScoredQueue>(NumNodes, RoamingSeedNode.Index, 0);
+		const TUniquePtr<PCGExSearch::FScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::FScoredQueue>(NumNodes);
+		ScoredQueue->Enqueue(RoamingSeedNode.Index, 0);
 		const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupArray>(PCGEx::NH64(-1, -1), NumNodes);
 
 		int32 CurrentNodeIndex;

@@ -7,14 +7,19 @@
 #include "PCGExInstancedFactory.h"
 #include "PCGExOperation.h"
 
-#include "Graph/PCGExCluster.h"
-#include "Graph/Pathfinding/PCGExPathfinding.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "UObject/Object.h"
 #include "PCGExSearchOperation.generated.h"
 
+namespace PCGExHeuristics
+{
+	class FLocalFeedbackHandler;
+	class FHeuristicsHandler;
+}
+
 namespace PCGExPathfinding
 {
+	class FSearchAllocations;
+	class FPathQuery;
 	struct FExtraWeights;
 }
 
@@ -34,8 +39,11 @@ public:
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 	virtual bool ResolveQuery(
 		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
+		const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
 		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
 		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const;
+
+	virtual TSharedPtr<PCGExPathfinding::FSearchAllocations> NewAllocations() const;
 };
 
 /**

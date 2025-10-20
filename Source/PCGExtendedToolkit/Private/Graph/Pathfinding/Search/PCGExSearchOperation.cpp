@@ -4,6 +4,8 @@
 
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 
+#include "Graph/Pathfinding/PCGExPathfinding.h"
+
 void FPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
@@ -11,9 +13,18 @@ void FPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 
 bool FPCGExSearchOperation::ResolveQuery(
 	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
+	const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
+	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
+	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	return false;
+}
+
+TSharedPtr<PCGExPathfinding::FSearchAllocations> FPCGExSearchOperation::NewAllocations() const
+{
+	TSharedPtr<PCGExPathfinding::FSearchAllocations> Allocations = MakeShared<PCGExPathfinding::FSearchAllocations>();
+	Allocations->Init(Cluster);
+	return Allocations;
 }
 
 

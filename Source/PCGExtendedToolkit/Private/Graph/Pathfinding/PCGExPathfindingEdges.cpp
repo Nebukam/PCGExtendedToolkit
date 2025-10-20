@@ -9,6 +9,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 #include "Paths/PCGExPaths.h"
@@ -241,6 +242,9 @@ namespace PCGExPathfindingEdges
 		SearchOperation = Context->SearchAlgorithm->CreateOperation(); // Create a local copy
 		SearchOperation->PrepareForCluster(Cluster.Get());
 
+		bDaisyChainProcessRange = HeuristicsHandler->HasGlobalFeedback() || !Settings->bGreedyQueries;
+		if (bDaisyChainProcessRange) { SearchAllocations = SearchOperation->NewAllocations(); }
+
 		PCGEx::InitArray(Queries, Context->SeedGoalPairs.Num());
 		for (int i = 0; i < Queries.Num(); i++)
 		{
@@ -253,27 +257,28 @@ namespace PCGExPathfindingEdges
 			Queries[i] = Query;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ResolveQueriesTask)
-		ResolveQueriesTask->OnIterationCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-
-				TSharedPtr<PCGExPathfinding::FPathQuery> Query = This->Queries[Index];
-				Query->ResolvePicks(This->Settings->SeedPicking, This->Settings->GoalPicking);
-
-				if (!Query->HasValidEndpoints()) { return; }
-
-				Query->FindPath(This->SearchOperation, This->HeuristicsHandler, nullptr);
-
-				if (!Query->IsQuerySuccessful()) { return; }
-
-				This->Context->BuildPath(Query);
-				Query->Cleanup();
-			};
-
-		ResolveQueriesTask->StartIterations(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback());
+		StartParallelLoopForRange(Queries.Num(), bDaisyChainProcessRange ? 12 : 1);
 		return true;
+	}
+
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
+	{
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			TSharedPtr<PCGExPathfinding::FPathQuery> Query = Queries[Index];
+
+			ON_SCOPE_EXIT { Query->Cleanup(); };
+
+			Query->ResolvePicks(Settings->SeedPicking, Settings->GoalPicking);
+
+			if (!Query->HasValidEndpoints()) { return; }
+
+			Query->FindPath(SearchOperation, SearchAllocations, HeuristicsHandler, nullptr);
+
+			if (!Query->IsQuerySuccessful()) { return; }
+
+			Context->BuildPath(Query);
+		}
 	}
 }
 

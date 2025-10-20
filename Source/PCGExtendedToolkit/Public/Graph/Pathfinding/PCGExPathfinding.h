@@ -6,9 +6,20 @@
 #include "CoreMinimal.h"
 #include "PCGExMT.h"
 #include "Data/PCGExPointElements.h"
-#include "GoalPickers/PCGExGoalPicker.h"
 
 #include "PCGExPathfinding.generated.h"
+
+class UPCGExGoalPicker;
+
+namespace PCGExData
+{
+	class FFacade;
+}
+
+namespace PCGExSearch
+{
+	class FScoredQueue;
+}
 
 struct FPCGExNodeSelectionDetails;
 
@@ -126,9 +137,35 @@ namespace PCGExPathfinding
 		bool IsValid() const { return Seed != -1 && Goal != -1; }
 	};
 
+	class PCGEXTENDEDTOOLKIT_API FSearchAllocations : public TSharedFromThis<FSearchAllocations>
+	{
+	protected:
+		int32 NumNodes = 0;
+
+	public:
+		FSearchAllocations() = default;
+
+		TBitArray<> Visited;
+		TArray<double> GScore;
+		TSharedPtr<PCGEx::FHashLookup> TravelStack;
+		TSharedPtr<PCGExSearch::FScoredQueue> ScoredQueue;
+
+		void Init(const PCGExCluster::FCluster* InCluster);
+		void Reset();
+	};
+
 	class PCGEXTENDEDTOOLKIT_API FPathQuery : public TSharedFromThis<FPathQuery>
 	{
 	public:
+		FPathQuery(
+			const TSharedRef<PCGExCluster::FCluster>& InCluster,
+			const FNodePick& InSeed,
+			const FNodePick& InGoal,
+			const int32 InQueryIndex)
+			: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
+		{
+		}
+		
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
 			const PCGExData::FConstPoint& InSeed,
@@ -182,6 +219,7 @@ namespace PCGExPathfinding
 
 		void FindPath(
 			const TSharedPtr<FPCGExSearchOperation>& SearchOperation,
+			const TSharedPtr<FSearchAllocations>& Allocations,
 			const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler,
 			const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback);
 
@@ -223,6 +261,7 @@ namespace PCGExPathfinding
 		void FindPaths(
 			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 			const TSharedPtr<FPCGExSearchOperation>& SearchOperation,
+			const TSharedPtr<FSearchAllocations>& Allocations,
 			const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler);
 
 		void Cleanup();
