@@ -40,17 +40,6 @@ public:
 	virtual PCGExData::EIOInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EIOInit GetEdgeOutputInitMode() const override;
 
-	//~Begin UObject interface
-#if WITH_EDITOR
-	virtual void PostInitProperties() override;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
-
-	/** Search algorithm. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSearchInstancedFactory> SearchAlgorithm;
-
 	/** Name of the attribute */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName CentralityValueAttributeName = FName("Centrality");
@@ -68,8 +57,6 @@ public:
 struct FPCGExPathfindingCentralityContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingCentralityElement;
-	
-	UPCGExSearchInstancedFactory* SearchAlgorithm = nullptr;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -91,6 +78,7 @@ namespace PCGExPathfindingCentrality
 		friend class FBatch;
 		
 	protected:
+		TArray<double> DirectedEdgeScores;
 		TArray<double> Betweenness;
 		TSharedPtr<PCGExMT::TScopedArray<double>> ScopedBetweenness;
 		
@@ -101,12 +89,16 @@ namespace PCGExPathfindingCentrality
 		}
 
 		virtual ~FProcessor() override;
-		
-		TSharedPtr<FPCGExSearchOperation> SearchOperation;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;
+		
+		virtual void PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops) override;
+		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
+		virtual void OnEdgesProcessingComplete() override;
+		
+		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;		
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
+		
 		virtual void OnNodesProcessingComplete() override;
 	};
 

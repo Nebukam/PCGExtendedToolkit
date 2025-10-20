@@ -17,23 +17,6 @@
 #define LOCTEXT_NAMESPACE "PCGExPathfindingCentralityElement"
 #define PCGEX_NAMESPACE PathfindingCentrality
 
-#if WITH_EDITOR
-void UPCGExPathfindingCentralitySettings::PostInitProperties()
-{
-	if (!HasAnyFlags(RF_ClassDefaultObject) && IsInGameThread())
-	{
-		if (!SearchAlgorithm) { SearchAlgorithm = NewObject<UPCGExSearchAStar>(this, TEXT("SearchAlgorithm")); }
-	}
-	Super::PostInitProperties();
-}
-
-void UPCGExPathfindingCentralitySettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	if (SearchAlgorithm) { SearchAlgorithm->UpdateUserFacingInfos(); }
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 PCGEX_INITIALIZE_ELEMENT(PathfindingCentrality)
 PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(PathfindingCentrality)
 
@@ -55,8 +38,6 @@ bool FPCGExPathfindingCentralityElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingCentrality)
 
 	PCGEX_VALIDATE_NAME(Settings->CentralityValueAttributeName)
-
-	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchInstancedFactory, PCGExPathfinding::SourceOverridesSearch)
 
 	return true;
 }
@@ -102,14 +83,39 @@ namespace PCGExPathfindingCentrality
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		SearchOperation = Context->SearchAlgorithm->CreateOperation(); // Create a local copy
-		SearchOperation->PrepareForCluster(Cluster.Get());
-
 		Betweenness.Init(0.0, NumNodes);
 
-		StartParallelLoopForNodes(256);
+		StartParallelLoopForEdges();
 
 		return true;
+	}
+
+	void FProcessor::PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops)
+	{
+		DirectedEdgeScores.SetNum(NumEdges * 2);
+	}
+
+	void FProcessor::ProcessEdges(const PCGExMT::FScope& Scope)
+	{
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			const PCGExCluster::FEdge& Edge = *Cluster->GetEdge(Index);
+			const PCGExCluster::FNode& Start = *Cluster->GetEdgeStart(Edge);
+			const PCGExCluster::FNode& End = *Cluster->GetEdgeStart(Edge);
+
+			DirectedEdgeScores[Index] = HeuristicsHandler->GetEdgeScore(
+				Start, End, Edge,
+				*Cluster->GetNode(Index), *Cluster->GetNode(Index), nullptr, nullptr);
+
+			DirectedEdgeScores[NumEdges + Index] = HeuristicsHandler->GetEdgeScore(
+				End, Start, Edge,
+				*Cluster->GetNode(Index), *Cluster->GetNode(Index), nullptr, nullptr);
+		}
+	}
+
+	void FProcessor::OnEdgesProcessingComplete()
+	{
+		StartParallelLoopForNodes(256);
 	}
 
 	void FProcessor::PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops)
@@ -135,6 +141,7 @@ namespace PCGExPathfindingCentrality
 
 		TArray<TArray<int32>> Pred;
 		Pred.SetNum(NumNodes);
+		for (TArray<int32>& P : Pred) { P.Reserve(8); }
 
 		TArray<int32> Stack;
 		Stack.Reserve(NumNodes);
@@ -170,21 +177,16 @@ namespace PCGExPathfindingCentrality
 				{
 					const int32 Neighbor = Lk.Node;
 					const int32 EdgeIndex = Lk.Edge;
-					const PCGExCluster::FNode& Adj = *Cluster->GetNode(Neighbor);
 					const PCGExGraph::FEdge& Edge = *Cluster->GetEdge(EdgeIndex);
 
-					const double EdgeCost = HeuristicsHandler->GetEdgeScore(
-						Current, Adj, Edge,
-						*Cluster->GetNode(Index), *Cluster->GetNode(Index),
-						nullptr, nullptr);
-
+					const double EdgeCost = Edge.Start == Current.PointIndex ? DirectedEdgeScores[Edge.PointIndex] : DirectedEdgeScores[NumEdges + Edge.PointIndex];
 					const double NewDist = Score[CurrentNode] + EdgeCost;
 
 					if (NewDist < Score[Neighbor])
 					{
 						Score[Neighbor] = NewDist;
 						Queue->Enqueue(Neighbor, NewDist);
-						Pred[Neighbor].Empty();
+						Pred[Neighbor].Reset();
 						Pred[Neighbor].Add(CurrentNode);
 						Sigma[Neighbor] = Sigma[CurrentNode];
 					}
