@@ -42,11 +42,7 @@ namespace PCGExSearch
 	public:
 		TArray<double> Scores;
 
-		FScoredQueue(const int32 Size, const int32& Item, const double Score)
-		{
-			Scores.Init(MAX_dbl, Size);
-			Enqueue(Item, Score);
-		}
+		FScoredQueue(const int32 Size) { Scores.Init(MAX_dbl, Size); }
 
 		~FScoredQueue()
 		{
@@ -82,6 +78,12 @@ namespace PCGExSearch
 			}
 
 			return false;
+		}
+
+		void Reset()
+		{
+			InternalQueue = decltype(InternalQueue)();
+			for (double& Score : Scores) { Score = MAX_dbl; }
 		}
 	};
 }

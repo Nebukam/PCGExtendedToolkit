@@ -93,6 +93,10 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietInvalidPlotWarning = false;
+
+	/** If disabled, will share memory allocations between queries, forcing them to execute one after another. Much slower, but very conservative for memory. Using global feedback forces this behavior under the hood. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
+	bool bGreedyQueries = true;
 };
 
 
@@ -125,6 +129,7 @@ namespace PCGExPathfindingPlotEdges
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPathfindingPlotEdgesContext, UPCGExPathfindingPlotEdgesSettings>
 	{
 		TArray<TSharedPtr<PCGExPathfinding::FPlotQuery>> Queries;
+		TSharedPtr<PCGExPathfinding::FSearchAllocations> SearchAllocations;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
@@ -137,5 +142,6 @@ namespace PCGExPathfindingPlotEdges
 		TSharedPtr<FPCGExSearchOperation> SearchOperation;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 	};
 }

@@ -102,6 +102,10 @@ public:
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or slightly slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bUseOctreeSearch = false;
+
+	/** If disabled, will share memory allocations between queries, forcing them to execute one after another. Much slower, but very conservative for memory.  Using global feedback forces this behavior under the hood.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
+	bool bGreedyQueries = true;
 };
 
 struct FPCGExPathfindingEdgesContext final : FPCGExEdgesProcessorContext
@@ -144,6 +148,7 @@ namespace PCGExPathfindingEdges
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPathfindingEdgesContext, UPCGExPathfindingEdgesSettings>
 	{
 		TArray<TSharedPtr<PCGExPathfinding::FPathQuery>> Queries;
+		TSharedPtr<PCGExPathfinding::FSearchAllocations> SearchAllocations;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
@@ -157,5 +162,6 @@ namespace PCGExPathfindingEdges
 		TSharedPtr<FPCGExSearchOperation> SearchOperation;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 	};
 }
