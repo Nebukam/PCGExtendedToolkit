@@ -5,8 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSearchOperation.h"
-
-
 #include "UObject/Object.h"
 #include "PCGExSearchDijkstra.generated.h"
 
@@ -17,8 +15,8 @@ class FPCGExSearchOperationDijkstra : public FPCGExSearchOperation
 public:
 	virtual bool ResolveQuery(
 		const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
-		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const override;
+		const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
+		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const override;
 };
 
 /**

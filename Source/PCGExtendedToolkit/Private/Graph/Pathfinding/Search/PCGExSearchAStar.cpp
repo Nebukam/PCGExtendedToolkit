@@ -5,15 +5,21 @@
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 
 #include "Graph/PCGExCluster.h"
+#include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
 bool FPCGExSearchOperationAStar::ResolveQuery(
 	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
+	const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
 	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
 	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	check(InQuery->PickResolution == PCGExPathfinding::EQueryPickResolution::Success)
+
+	TSharedPtr<PCGExPathfinding::FSearchAllocations> LocalAllocations = Allocations;
+	if (!LocalAllocations) { LocalAllocations = NewAllocations(); }
+	else { LocalAllocations->Reset(); }
 
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 	const TArray<PCGExGraph::FEdge>& EdgesRef = *Cluster->Edges;
@@ -21,20 +27,13 @@ bool FPCGExSearchOperationAStar::ResolveQuery(
 	const PCGExCluster::FNode& SeedNode = *InQuery->Seed.Node;
 	const PCGExCluster::FNode& GoalNode = *InQuery->Goal.Node;
 
-	const int32 NumNodes = NodesRef.Num();
-
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExSearchAStar::FindPath);
 
-	TBitArray<> Visited;
-	Visited.Init(false, NumNodes);
-
-	const TSharedPtr<PCGEx::FHashLookup> TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupArray>(PCGEx::NH64(-1, -1), NumNodes);
-
-	TArray<double> GScore;
-	GScore.Init(-1, NumNodes);
-
-	const TUniquePtr<PCGExSearch::FScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::FScoredQueue>(
-		NumNodes, SeedNode.Index, Heuristics->GetGlobalScore(SeedNode, SeedNode, GoalNode));
+	TBitArray<>& Visited = LocalAllocations->Visited;
+	TArray<double>& GScore = LocalAllocations->GScore;
+	const TSharedPtr<PCGEx::FHashLookup> TravelStack = LocalAllocations->TravelStack;
+	const TSharedPtr<PCGExSearch::FScoredQueue> ScoredQueue = LocalAllocations->ScoredQueue;
+	ScoredQueue->Enqueue(SeedNode.Index, Heuristics->GetGlobalScore(SeedNode, SeedNode, GoalNode));
 
 	GScore[SeedNode.Index] = 0;
 
@@ -102,4 +101,11 @@ bool FPCGExSearchOperationAStar::ResolveQuery(
 	}
 
 	return bSuccess;
+}
+
+TSharedPtr<PCGExPathfinding::FSearchAllocations> FPCGExSearchOperationAStar::NewAllocations() const
+{
+	TSharedPtr<PCGExPathfinding::FSearchAllocations> Allocations = FPCGExSearchOperation::NewAllocations();
+	Allocations->GScore.Init(-1, Cluster->Nodes->Num());
+	return Allocations;
 }

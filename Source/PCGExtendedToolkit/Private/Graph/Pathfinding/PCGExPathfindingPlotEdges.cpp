@@ -14,6 +14,7 @@
 
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 #include "Paths/PCGExPaths.h"
 
@@ -264,24 +265,27 @@ namespace PCGExPathfindingPlotEdges
 			Queries[i] = Query;
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ResolveQueriesTask)
-		ResolveQueriesTask->OnIterationCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+		bDaisyChainProcessRange = HeuristicsHandler->HasGlobalFeedback() || !Settings->bGreedyQueries;
+		if (bDaisyChainProcessRange) { SearchAllocations = SearchOperation->NewAllocations(); }
+
+		StartParallelLoopForRange(Queries.Num(), 1);
+		return true;
+	}
+
+	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
+	{
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			TSharedPtr<PCGExPathfinding::FPlotQuery> Query = Queries[Index];
+			Query->BuildPlotQuery(Context->Plots[Index], Settings->SeedPicking, Settings->GoalPicking);
+			Query->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
 			{
 				PCGEX_ASYNC_THIS
-				TSharedPtr<PCGExPathfinding::FPlotQuery> Query = This->Queries[Index];
-				Query->BuildPlotQuery(This->Context->Plots[Index], This->Settings->SeedPicking, This->Settings->GoalPicking);
-				Query->OnCompleteCallback = [AsyncThis](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
-				{
-					PCGEX_ASYNC_NESTED_THIS
-					NestedThis->Context->BuildPath(Plot);
-					Plot->Cleanup();
-				};
-				Query->FindPaths(This->AsyncManager, This->SearchOperation, This->HeuristicsHandler);
+				This->Context->BuildPath(Plot);
+				Plot->Cleanup();
 			};
-
-		ResolveQueriesTask->StartIterations(Queries.Num(), 1, HeuristicsHandler->HasGlobalFeedback());
-		return true;
+			Query->FindPaths(AsyncManager, SearchOperation, SearchAllocations, HeuristicsHandler);
+		}
 	}
 }
 
