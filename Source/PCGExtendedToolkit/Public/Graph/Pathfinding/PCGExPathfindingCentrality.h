@@ -7,6 +7,7 @@
 #include "PCGExMathMean.h"
 
 #include "PCGExPathfinding.h"
+#include "PCGExScopedContainers.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Paths/PCGExPaths.h"
@@ -55,16 +56,13 @@ public:
 	FName CentralityValueAttributeName = FName("Centrality");
 
 	/** Discrete mode write the number as-is, relative will normalize against the highest number of overlaps found. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Units", EditConditionHides))
-	EPCGExMeanMeasure Units = EPCGExMeanMeasure::Discrete;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Normalize", EditConditionHides))
+	bool bNormalize = true;
 
 	/** Whether to do a OneMinus on the normalized overlap count value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ OneMinus", EditCondition="Units == EPCGExMeanMeasure::Relative", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ OneMinus", EditCondition="bNormalize", EditConditionHides))
 	bool bOutputOneMinus = false;
 	
-	/** If disabled, will share memory allocations between queries, forcing them to execute one after another. Much slower, but very conservative for memory.  Using global feedback forces this behavior under the hood.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
-	bool bGreedyQueries = true;
 };
 
 struct FPCGExPathfindingCentralityContext final : FPCGExEdgesProcessorContext
@@ -93,8 +91,8 @@ namespace PCGExPathfindingCentrality
 		friend class FBatch;
 		
 	protected:
-		TSharedPtr<PCGExPathfinding::FSearchAllocations> SearchAllocations;
-		TArray<int32>* TraversalTracker = nullptr;
+		TArray<double> Betweenness;
+		TSharedPtr<PCGExMT::TScopedArray<double>> ScopedBetweenness;
 		
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
@@ -107,6 +105,7 @@ namespace PCGExPathfindingCentrality
 		TSharedPtr<FPCGExSearchOperation> SearchOperation;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
 		virtual void OnNodesProcessingComplete() override;
 	};
@@ -114,12 +113,10 @@ namespace PCGExPathfindingCentrality
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		friend class FProcessor;
-		TArray<int32> TraversalTracker;
 		
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 
-		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 		virtual void Write() override;
 
 	};

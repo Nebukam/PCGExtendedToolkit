@@ -8,6 +8,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
+#include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 #include "Paths/PCGExPaths.h"
@@ -104,105 +105,151 @@ namespace PCGExPathfindingCentrality
 		SearchOperation = Context->SearchAlgorithm->CreateOperation(); // Create a local copy
 		SearchOperation->PrepareForCluster(Cluster.Get());
 
-		bDaisyChainProcessNodes = !Settings->bGreedyQueries;
-		if (bDaisyChainProcessNodes) { SearchAllocations = SearchOperation->NewAllocations(); }
+		Betweenness.Init(0.0, NumNodes);
 
-		StartParallelLoopForNodes(12);
+		StartParallelLoopForNodes(256);
 
 		return true;
+	}
+
+	void FProcessor::PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops)
+	{
+		ScopedBetweenness = MakeShared<PCGExMT::TScopedArray<double>>(Loops);
 	}
 
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingCentrality::ProcessNodes);
 
-		const TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes.Get();
-		TArray<int32>& TraversalTrackerRef = *TraversalTracker;
+		TArray<double>& LocalBetweenness = ScopedBetweenness->Get_Ref(Scope);
+		LocalBetweenness.Init(0.0, NumNodes);
 
-		PCGExPathfinding::FNodePick SeedPick = PCGExPathfinding::FNodePick(VtxDataFacade->GetInPoint(0));
-		SeedPick.Node = &Nodes[0];
-		PCGExPathfinding::FNodePick GoalPick = SeedPick;
+		TArray<double> Score;
+		Score.Init(DBL_MAX, NumNodes);
 
-		TSharedPtr<PCGExPathfinding::FPathQuery> Query = MakeShared<PCGExPathfinding::FPathQuery>(Cluster.ToSharedRef(), SeedPick, GoalPick, -1);
-		const TSharedPtr<PCGExPathfinding::FSearchAllocations> Allocations = SearchAllocations ? SearchAllocations : SearchOperation->NewAllocations();
+		TArray<double> Sigma;
+		Sigma.Init(0.0, NumNodes);
+
+		TArray<double> Delta;
+		Delta.Init(0.0, NumNodes);
+
+		TArray<TArray<int32>> Pred;
+		Pred.SetNum(NumNodes);
+
+		TArray<int32> Stack;
+		Stack.Reserve(NumNodes);
+
+		TSharedPtr<PCGExSearch::FScoredQueue> Queue = MakeShared<PCGExSearch::FScoredQueue>(NumNodes);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (Index == 0) { continue; }
+			for (int i = 0; i < NumNodes; i++)
+			{
+				Score[i] = DBL_MAX;
+				Sigma[i] = 0;
+				Delta[i] = 0;
+			}
 
-			const int32 NodePointIndex = Nodes[Index].PointIndex;
-			GoalPick = SeedPick;
+			Stack.Reset();
 
-			Query->Seed = SeedPick;
-			//Query->QueryIndex = Index;
+			Score[Index] = 0.0;
+			Sigma[Index] = 1.0;
 
-			GoalPick = PCGExPathfinding::FNodePick(VtxDataFacade->GetInPoint(Nodes[Index].PointIndex));
-			GoalPick.Node = &Nodes[Index];
+			Queue->Reset();
+			Queue->Enqueue(Index, 0.0);
 
-			Query->PathNodes.Reset();
-			Query->PathEdges.Reset();
+			int32 CurrentNode;
+			double CurrentScore;
 
-			Query->Goal = GoalPick;
-			Query->PickResolution = PCGExPathfinding::EQueryPickResolution::Success;
-			Query->FindPath(SearchOperation, Allocations, HeuristicsHandler, nullptr);
+			while (Queue->Dequeue(CurrentNode, CurrentScore))
+			{
+				Stack.Add(CurrentNode);
+				const PCGExCluster::FNode& Current = *Cluster->GetNode(CurrentNode);
 
-			if (!Query->IsQuerySuccessful()) { continue; }
+				for (const PCGExGraph::FLink Lk : Current.Links)
+				{
+					const int32 Neighbor = Lk.Node;
+					const int32 EdgeIndex = Lk.Edge;
+					const PCGExCluster::FNode& Adj = *Cluster->GetNode(Neighbor);
+					const PCGExGraph::FEdge& Edge = *Cluster->GetEdge(EdgeIndex);
 
-			for (const int32 NodeIndex : Query->PathNodes) { FPlatformAtomics::InterlockedIncrement(&TraversalTrackerRef[NodeIndex]); }
+					const double EdgeCost = HeuristicsHandler->GetEdgeScore(
+						Current, Adj, Edge,
+						*Cluster->GetNode(Index), *Cluster->GetNode(Index),
+						nullptr, nullptr);
+
+					const double NewDist = Score[CurrentNode] + EdgeCost;
+
+					if (NewDist < Score[Neighbor])
+					{
+						Score[Neighbor] = NewDist;
+						Queue->Enqueue(Neighbor, NewDist);
+						Pred[Neighbor].Empty();
+						Pred[Neighbor].Add(CurrentNode);
+						Sigma[Neighbor] = Sigma[CurrentNode];
+					}
+					else if (FMath::IsNearlyEqual(NewDist, Score[Neighbor]))
+					{
+						Pred[Neighbor].Add(CurrentNode);
+						Sigma[Neighbor] += Sigma[CurrentNode];
+					}
+				}
+			}
+
+			// Accumulate dependencies
+			for (int32 i = Stack.Num() - 1; i >= 0; --i)
+			{
+				const int32 W = Stack[i];
+				for (int32 V : Pred[W]) { Delta[V] += (Sigma[V] / Sigma[W]) * (1.0 + Delta[W]); }
+				if (W != Index) { LocalBetweenness[W] += Delta[W]; }
+			}
 		}
 	}
 
 	void FProcessor::OnNodesProcessingComplete()
 	{
-		const TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes.Get();
-		TArray<int32>& TraversalTrackerRef = *TraversalTracker;
-
-		if (Settings->Units == EPCGExMeanMeasure::Discrete)
-		{
-			TSharedPtr<PCGExData::TBuffer<int32>> Buffer = VtxDataFacade->GetWritable<int32>(Settings->CentralityValueAttributeName, 0, true, PCGExData::EBufferInit::New);
-			for (int i = 0; i < NumNodes; i++)
+		ScopedBetweenness->ForEach(
+			[&](TArray<double>& ScopedArray)
 			{
-				const int32 NodePtIndex = Nodes[i].PointIndex;
-				Buffer->SetValue(NodePtIndex, TraversalTrackerRef[Nodes[i].PointIndex]);
+				for (int i = 0; i < NumNodes; i++) { Betweenness[i] += ScopedArray[i]; }
+				ScopedArray.Empty();
+			});
+
+		ScopedBetweenness.Reset();
+
+		double Max = 0;
+		for (double& C : Betweenness)
+		{
+			// Normalize for undirected graphs
+			C *= 0.5;
+			Max = FMath::Max(Max, C);
+		}
+
+		const TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes.Get();
+		TSharedPtr<PCGExData::TBuffer<double>> Buffer = VtxDataFacade->GetWritable<double>(Settings->CentralityValueAttributeName, Settings->bOutputOneMinus ? 1 : 0, true, PCGExData::EBufferInit::New);
+
+		for (int i = 0; i < NumNodes; i++) { Max = FMath::Max(Max, Betweenness[i]); }
+
+		if (Settings->bNormalize)
+		{
+			if (Settings->bOutputOneMinus)
+			{
+				for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, 1 - (Betweenness[i] / Max)); }
+			}
+			else
+			{
+				for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, Betweenness[i] / Max); }
 			}
 		}
 		else
 		{
-			TSharedPtr<PCGExData::TBuffer<double>> Buffer = VtxDataFacade->GetWritable<double>(Settings->CentralityValueAttributeName, Settings->bOutputOneMinus ? 1 : 0, true, PCGExData::EBufferInit::New);
-			double Max = 0;
-			for (int i = 0; i < NumNodes; i++) { Max = FMath::Max(Max, TraversalTrackerRef[Nodes[i].PointIndex]); }
-
-			if (Settings->bOutputOneMinus)
-			{
-				for (int i = 0; i < NumNodes; i++)
-				{
-					const int32 NodePtIndex = Nodes[i].PointIndex;
-					Buffer->SetValue(NodePtIndex, 1 - (TraversalTrackerRef[Nodes[i].PointIndex] / Max));
-				}
-			}
-			else
-			{
-				for (int i = 0; i < NumNodes; i++)
-				{
-					const int32 NodePtIndex = Nodes[i].PointIndex;
-					Buffer->SetValue(NodePtIndex, TraversalTrackerRef[Nodes[i].PointIndex] / Max);
-				}
-			}
+			for (int i = 0; i < NumNodes; i++) { Buffer->SetValue(Nodes[i].PointIndex, Betweenness[i]); }
 		}
 	}
 
 	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 		: TBatch(InContext, InVtx, InEdges)
 	{
-		TraversalTracker.Init(0, InVtx->GetNum());
-	}
-
-	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
-	{
-		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
-		TSharedPtr<FProcessor> P = StaticCastSharedPtr<FProcessor>(InProcessor);
-		P->TraversalTracker = &TraversalTracker;
-		return true;
 	}
 
 	void FBatch::Write()
