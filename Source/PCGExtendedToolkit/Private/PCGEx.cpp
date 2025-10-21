@@ -39,9 +39,7 @@ namespace PCGEx
 	void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum, const int32 Offset)
 	{
 		OutArray.Reserve(InNum);
-		OutArray.SetNum(InNum);
-
-		for (int i = 0; i < InNum; i++) { OutArray[i] = Offset + i; }
+		for (int i = 0; i < InNum; i++) { OutArray.Add(Offset + i); }
 	}
 
 	int32 ArrayOfIndices(TArray<int32>& OutArray, const TArrayView<const int8>& Mask, const int32 Offset, const bool bInvert)
