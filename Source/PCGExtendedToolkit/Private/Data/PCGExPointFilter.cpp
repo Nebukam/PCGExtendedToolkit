@@ -286,6 +286,7 @@ namespace PCGExPointFilter
 
 	bool FManager::InitFilter(FPCGExContext* InContext, const TSharedPtr<IFilter>& Filter)
 	{
+		Filter->bWillBeUsedWithCollections = bWillBeUsedWithCollections;
 		return Filter->Init(InContext, PointDataFacade);
 	}
 

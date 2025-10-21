@@ -42,7 +42,7 @@ const TSet<int32>& PCGExPointFilter::FRandomRatioFilter::GetCollectionPicks(cons
 bool PCGExPointFilter::FRandomRatioFilter::Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
-	TypedFilterFactory->Config.Random.GetPicks(InContext, InPointDataFacade->GetIn(), InPointDataFacade->GetNum(), PointPicks);
+	if (!bWillBeUsedWithCollections) { TypedFilterFactory->Config.Random.GetPicks(InContext, InPointDataFacade->GetIn(), InPointDataFacade->GetNum(), PointPicks); }
 	return true;
 }
 
