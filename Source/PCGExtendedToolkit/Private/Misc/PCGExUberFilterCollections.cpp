@@ -109,6 +109,7 @@ bool FPCGExUberFilterCollectionsElement::ExecuteInternal(FPCGContext* InContext)
 		{
 			PCGEX_MAKE_SHARED(DummyFacade, PCGExData::FFacade, Context->MainPoints->Pairs[0].ToSharedRef())
 			PCGEX_MAKE_SHARED(PrimaryFilters, PCGExPointFilter::FManager, DummyFacade.ToSharedRef())
+			PrimaryFilters->bWillBeUsedWithCollections = true;
 			PrimaryFilters->Init(Context, Context->FilterFactories);
 
 			while (Context->AdvancePointsIO())
