@@ -557,7 +557,23 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellArtifactsDetails
 
 	/** Write cell unique hash as a @Data attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Hash", EditCondition="bWriteCellHash"))
-	FName CellHashAttributeName = FName("CellHash");
+	FName CellHashAttributeName = FName("@Data.CellHash");
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteArea = false;
+
+	/** Write cell area as a @Data attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Area", EditCondition="bWriteArea"))
+	FName AreaAttributeName = FName("@Data.Area");
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteCompactness = false;
+
+	/** Write cell compactness as a @Data attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Compactness", EditCondition="bWriteCompactness"))
+	FName CompactnessAttributeName = FName("@Data.Compactness");
 	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
