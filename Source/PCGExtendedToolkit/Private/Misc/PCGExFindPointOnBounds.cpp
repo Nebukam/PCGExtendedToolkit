@@ -4,10 +4,14 @@
 #include "Misc/PCGExFindPointOnBounds.h"
 
 #include "Data/PCGExData.h"
+#include "Details/PCGExDetailsSettings.h"
+#include "Geometry/PCGExGeo.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExFindPointOnBoundsElement"
 #define PCGEX_NAMESPACE FindPointOnBounds
+
+PCGEX_SETTING_DATA_VALUE_IMPL(UPCGExFindPointOnBoundsSettings, UVW, FVector, UVWInput, LocalUVW, UVW)
 
 PCGEX_INITIALIZE_ELEMENT(FindPointOnBounds)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(FindPointOnBounds)
@@ -85,6 +89,49 @@ bool FPCGExFindPointOnBoundsElement::ExecuteInternal(FPCGContext* InContext) con
 	return Context->TryComplete();
 }
 
+void PCGExFindPointOnBounds::MergeBestCandidatesAttributes(
+	const TSharedPtr<PCGExData::FPointIO>& Target,
+	const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections,
+	const TArray<int32>& BestIndices,
+	const PCGEx::FAttributesInfos& InAttributesInfos)
+{
+	UPCGMetadata* OutMetadata = Target->GetOut()->Metadata;
+
+	for (int i = 0; i < BestIndices.Num(); i++)
+	{
+		const TSharedPtr<PCGExData::FPointIO> IO = Collections[i];
+
+		if (BestIndices[i] == -1 || !IO) { continue; }
+
+		PCGMetadataEntryKey InKey = IO->GetIn()->GetMetadataEntry(BestIndices[i]);
+		PCGMetadataEntryKey OutKey = Target->GetOut()->GetMetadataEntry(i);
+		UPCGMetadata* InMetadata = IO->GetIn()->Metadata;
+
+		for (const PCGEx::FAttributeIdentity& Identity : InAttributesInfos.Identities)
+		{
+			PCGEx::ExecuteWithRightType(
+				Identity.GetTypeId(), [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Identifier);
+					FPCGMetadataAttribute<T>* OutAttribute = PCGEx::TryGetMutableAttribute<T>(OutMetadata, Identity.Identifier);
+
+					if (!OutAttribute)
+					{
+						OutAttribute = Target->FindOrCreateAttribute<T>(
+							Identity.Identifier,
+							InAttribute->GetValueFromItemKey(PCGDefaultValueKey),
+							InAttribute->AllowsInterpolation());
+					}
+
+					if (!OutAttribute) { return; }
+
+					OutAttribute->SetValue(OutKey, InAttribute->GetValueFromItemKey(InKey));
+				});
+		}
+	}
+}
+
 namespace PCGExFindPointOnBounds
 {
 	FProcessor::~FProcessor()
@@ -97,8 +144,23 @@ namespace PCGExFindPointOnBounds
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		const FBox Bounds = PointDataFacade->Source->GetIn()->GetBounds();
-		SearchPosition = Bounds.GetCenter() + Bounds.GetExtent() * Settings->UVW;
+		FBox Bounds = FBox(ForceInit);
+		FVector UVW = Settings->GetValueSettingUVW(Context, PointDataFacade->GetIn())->Read(0);
+
+		if (Settings->bBestFitBounds)
+		{
+			PCGExGeo::FBestFitPlane BestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange());
+			
+			FTransform T = BestFitPlane.GetTransform(Settings->AxisOrder);
+			UVW = T.TransformVector(UVW);
+			Bounds = FBox(BestFitPlane.Centroid - BestFitPlane.Extents, BestFitPlane.Centroid + BestFitPlane.Extents).TransformBy(T);
+		}
+		else
+		{
+			Bounds = PointDataFacade->Source->GetIn()->GetBounds();
+		}
+
+		SearchPosition = Bounds.GetCenter() + Bounds.GetExtent() * UVW;
 
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
