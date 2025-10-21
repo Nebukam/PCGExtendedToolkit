@@ -492,12 +492,16 @@ namespace PCGExTopology
 
 bool FPCGExCellArtifactsDetails::WriteAny() const
 {
-	return bWriteCellHash || bWriteVtxId || bFlagTerminalPoint || bWriteNumRepeat;
+	return bWriteCellHash || bWriteArea || bWriteCompactness ||
+		bWriteVtxId || bFlagTerminalPoint || bWriteNumRepeat;
 }
 
 bool FPCGExCellArtifactsDetails::Init(FPCGExContext* InContext)
 {
 	if (bWriteVtxId) { PCGEX_VALIDATE_NAME_C(InContext, VtxIdAttributeName); }
+	if (bWriteCellHash) { PCGEX_VALIDATE_NAME_C(InContext, CellHashAttributeName); }
+	if (bWriteArea) { PCGEX_VALIDATE_NAME_C(InContext, AreaAttributeName); }
+	if (bWriteCompactness) { PCGEX_VALIDATE_NAME_C(InContext, CompactnessAttributeName); }
 	if (bFlagTerminalPoint) { PCGEX_VALIDATE_NAME_C(InContext, TerminalFlagAttributeName); }
 	if (bWriteNumRepeat) { PCGEX_VALIDATE_NAME_C(InContext, NumRepeatAttributeName); }
 	TagForwarding.bFilterToRemove = true;
@@ -555,7 +559,9 @@ void FPCGExCellArtifactsDetails::Process(
 		}
 	}
 
-	if (bWriteCellHash) { PCGExDataHelpers::SetDataValue(InDataFacade->GetOut(), CellHashAttributeName, static_cast<int64>(InCell->GetCellHash())); }
+	if (bWriteCellHash) { InDataFacade->GetWritable<int64>(CellHashAttributeName, static_cast<int64>(InCell->GetCellHash()), true, PCGExData::EBufferInit::New); }
+	if (bWriteArea) { InDataFacade->GetWritable<double>(AreaAttributeName, static_cast<double>(InCell->Data.Area), true, PCGExData::EBufferInit::New); }
+	if (bWriteCompactness) { InDataFacade->GetWritable<double>(CompactnessAttributeName, static_cast<double>(InCell->Data.Compactness), true, PCGExData::EBufferInit::New); }
 	if (TerminalBuffer) { for (int i = 0; i < NumNodes; i++) { TerminalBuffer->SetValue(i, InCluster->GetNode(InCell->Nodes[i])->IsLeaf()); } }
 	if (RepeatBuffer) { for (int i = 0; i < NumNodes; i++) { RepeatBuffer->SetValue(i, NumRepeats[InCell->Nodes[i]] - 1); } }
 
