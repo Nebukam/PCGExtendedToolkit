@@ -4,9 +4,12 @@
 #include "Graph/PCGExFindPointOnBoundsClusters.h"
 
 #include "Data/PCGExPointIOMerger.h"
+#include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindPointOnBoundsClusters"
 #define PCGEX_NAMESPACE FindPointOnBoundsClusters
+
+PCGEX_SETTING_DATA_VALUE_IMPL(UPCGExFindPointOnBoundsClustersSettings, UVW, FVector, UVWInput, LocalUVW, UVW)
 
 PCGExData::EIOInit UPCGExFindPointOnBoundsClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
 PCGExData::EIOInit UPCGExFindPointOnBoundsClustersSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
@@ -115,7 +118,27 @@ namespace PCGExFindPointOnBoundsClusters
 	{
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		SearchPosition = Cluster->Bounds.GetCenter() + Cluster->Bounds.GetExtent() * Settings->UVW;
+		FBox Bounds = FBox(ForceInit);
+		FVector UVW = Settings->GetValueSettingUVW(
+			Context, Settings->ClusterElement == EPCGExClusterElement::Edge ? EdgeDataFacade->GetIn() : VtxDataFacade->GetIn())->Read(0);
+
+		if (Settings->bBestFitBounds)
+		{
+			const TConstPCGValueRange<FTransform> InVtxTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
+			const TUniquePtr<PCGExCluster::FCluster::TConstVtxLookup> IdxLookup = MakeUnique<PCGExCluster::FCluster::TConstVtxLookup>(Cluster);
+			TArray<int32> PtIndices;
+			IdxLookup->Dump(PtIndices);
+
+			PCGExGeo::FBestFitPlane BestFitPlane(InVtxTransforms, PtIndices);
+			Bounds = FBox(BestFitPlane.Centroid - BestFitPlane.Extents, BestFitPlane.Centroid + BestFitPlane.Extents);
+			UVW = BestFitPlane.GetTransform(Settings->AxisOrder).TransformVector(UVW);
+		}
+		else
+		{
+			Bounds = Cluster->Bounds;
+		}
+
+		SearchPosition = Bounds.GetCenter() + Bounds.GetExtent() * UVW;
 		Cluster->RebuildOctree(Settings->SearchMode);
 
 		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Vtx) { StartParallelLoopForNodes(); }
