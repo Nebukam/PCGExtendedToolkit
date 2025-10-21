@@ -62,6 +62,8 @@ namespace PCGExClusterFilter
 
 	bool FManager::InitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& Filter)
 	{
+		Filter->bWillBeUsedWithCollections = bWillBeUsedWithCollections;
+		
 		if (PCGExFactories::SupportsClusterFilters.Contains(Filter->Factory->GetFactoryType()))
 		{
 			const TSharedPtr<IFilter> ClusterFilter = StaticCastSharedPtr<IFilter>(Filter);

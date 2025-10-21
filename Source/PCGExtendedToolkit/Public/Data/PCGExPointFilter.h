@@ -166,6 +166,7 @@ namespace PCGExPointFilter
 		{
 		}
 
+		bool bWillBeUsedWithCollections = false;
 		bool bUseDataDomainSelectorsOnly = false;
 		bool bCollectionTestResult = true;
 		bool bUseEdgeAsPrimary = false; // This shouldn't be there but...
@@ -238,7 +239,8 @@ namespace PCGExPointFilter
 		explicit FManager(const TSharedRef<PCGExData::FFacade>& InPointDataFacade);
 
 		bool bUseEdgeAsPrimary = false; // This shouldn't be there...
-
+		bool bWillBeUsedWithCollections = false;
+		
 		bool bCacheResultsPerFilter = false;
 		bool bCacheResults = false;
 		TArray<int8> Results;
