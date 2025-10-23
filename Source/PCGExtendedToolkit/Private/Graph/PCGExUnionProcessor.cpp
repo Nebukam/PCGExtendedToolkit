@@ -241,15 +241,32 @@ namespace PCGExGraph
 
 		Context->SetAsyncState(State_ProcessingPointEdgeIntersections);
 
+		
 		FindPointEdgeGroup->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
 				This->FindPointEdgeIntersectionsFound();
 			};
+
+		FindPointEdgeGroup->OnPrepareSubLoopsCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
+			{
+				PCGEX_ASYNC_THIS
+				This->ScopedPointEdgeIntersections = MakeShared<PCGExMT::TScopedPtr<FPointEdgeIntersections>>(Loops,
+					This->GraphBuilder->Graph, This->UnionDataFacade->Source, &This->PointEdgeIntersectionDetails);
+			};
+		
 		FindPointEdgeGroup->OnSubLoopStartCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
+				// TODO : Distribute collinear per thread
+				// Use ScopedPointEdgeIntersections
+				// Swap the massive array copy for a TMap<int32(edge index) : FProxyEdge (collinear nodes)>
+				// Reconvene data once work is processed
+				// do the same for crossings
+				// This will completely remove the need for locks for this specific step
+				
 				PCGEX_ASYNC_THIS
 				PCGEX_SCOPE_LOOP(Index)
 				{
@@ -258,6 +275,7 @@ namespace PCGExGraph
 					FindCollinearNodes(This->PointEdgeIntersections, Index, This->UnionDataFacade->Source->GetOut());
 				}
 			};
+		
 		FindPointEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
 
@@ -265,6 +283,8 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::FindPointEdgeIntersectionsFound);
 
+		// TODO : Reconcile This->ScopedPointEdgeIntersections
+		
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), SortCrossingsGroup)
 
 		SortCrossingsGroup->OnCompleteCallback =

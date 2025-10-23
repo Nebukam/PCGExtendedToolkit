@@ -233,8 +233,9 @@ namespace PCGExGraph
 		bool FindSplit(const FVector& Position, FPESplit& OutSplit) const;
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointEdgeIntersections
+	class PCGEXTENDEDTOOLKIT_API FPointEdgeIntersections : public TSharedFromThis<FPointEdgeIntersections>
 	{
+	public:
 		mutable FRWLock InsertionLock;
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FGraph> Graph;
@@ -322,8 +323,9 @@ namespace PCGExGraph
 
 	PCGEX_OCTREE_SEMANTICS(FEdgeEdgeProxy, { return Element->Bounds;}, { return A == B; })
 
-	struct PCGEXTENDEDTOOLKIT_API FEdgeEdgeIntersections
+	class PCGEXTENDEDTOOLKIT_API FEdgeEdgeIntersections : public TSharedFromThis<FEdgeEdgeIntersections>
 	{
+	public:
 		mutable FRWLock InsertionLock;
 		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FGraph> Graph;

@@ -87,8 +87,13 @@ namespace PCGExGraph
 		TSharedPtr<FGraphBuilder> GraphBuilder;
 
 		FGraphMetadataDetails GraphMetadataDetails;
+		
+		TSharedPtr<PCGExMT::TScopedPtr<FPointEdgeIntersections>> ScopedPointEdgeIntersections;
 		TSharedPtr<FPointEdgeIntersections> PointEdgeIntersections;
+		
+		TSharedPtr<PCGExMT::TScopedPtr<FEdgeEdgeIntersections>> ScopedEdgeEdgeIntersections;
 		TSharedPtr<FEdgeEdgeIntersections> EdgeEdgeIntersections;
+		
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
 		void FindPointEdgeIntersections();

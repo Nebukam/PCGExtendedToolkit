@@ -180,8 +180,6 @@ namespace PCGExGraph
 
 	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint_Unsafe(const PCGExData::FConstPoint& Point)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionGraph::InsertPoint_Unsafe);
-
 		const FVector Origin = Point.GetLocation();
 
 		TSharedPtr<FUnionNode> Node;
@@ -876,8 +874,6 @@ namespace PCGExGraph
 
 	void FindOverlappingEdges(const TSharedRef<FEdgeEdgeIntersections>& InIntersections, const int32 EdgeIndex)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FindOverlappingEdges);
-
 		const FEdgeEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
 		TArray<FEESplit> OutSplits;
 
