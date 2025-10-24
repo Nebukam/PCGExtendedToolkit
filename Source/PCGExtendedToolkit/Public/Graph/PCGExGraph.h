@@ -430,7 +430,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		explicit FGraph(const int32 InNumNodes);
 
-		void ReserveForEdges(const int32 UpcomingAdditionCount);
+		void ReserveForEdges(const int32 UpcomingAdditionCount, bool bReserveMeta = false);
 
 		bool InsertEdge_Unsafe(int32 A, int32 B, FEdge& OutEdge, int32 IOIndex);
 		bool InsertEdge(const int32 A, const int32 B, FEdge& OutEdge, const int32 IOIndex = -1);

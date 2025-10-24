@@ -269,57 +269,56 @@ namespace PCGExGraph
 
 				TArray<TSharedPtr<FPointEdgeProxy>>& ScopedEdges = PEI->ScopedEdges->Get_Ref(Scope);
 
+				int32& PENum = This->PENum;
+				TArray<FEdge>& GraphEdges = This->GraphBuilder->Graph->Edges;
+
+#define PCGEX_FOUND_PE \
+				ScopedEdges.Add(EdgeProxy); \
+				FPlatformAtomics::InterlockedAdd(&PENum, EdgeProxy->CollinearPoints.Num() + 1); \
+				GraphEdges[Index].bValid = 0; \
+				EdgeProxy->CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; }); \
+				EdgeProxy = MakeShared<FPointEdgeProxy>();
+
 				if (PEI->Details->bEnableSelfIntersection)
 				{
 					PCGEX_SCOPE_LOOP(Index)
-					{
-						if (!PEI->InitProxyEdge(EdgeProxy, Index)) { continue; }
-
+					{ 
+						if (!PEI->InitProxy(EdgeProxy, Index)) { continue; }
 						FindCollinearNodes(PEI, EdgeProxy);
-
-						if (EdgeProxy->IsEmpty())
-						{
-							ScopedEdges.Add(EdgeProxy);
-							This->OnValidPointEdgeProxy(EdgeProxy);
-							EdgeProxy = MakeShared<FPointEdgeProxy>();
-						}
+						if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_PE }
 					}
 				}
 				else
 				{
 					PCGEX_SCOPE_LOOP(Index)
 					{
-						if (!PEI->InitProxyEdge(EdgeProxy, Index)) { continue; }
-
+						if (!PEI->InitProxy(EdgeProxy, Index)) { continue; }
 						FindCollinearNodes_NoSelfIntersections(PEI, EdgeProxy);
-
-						if (EdgeProxy->IsEmpty())
-						{
-							ScopedEdges.Add(EdgeProxy);
-							This->OnValidPointEdgeProxy(EdgeProxy);
-							EdgeProxy = MakeShared<FPointEdgeProxy>();
-						}
+						if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_PE }
 					}
 				}
+#undef PCGEX_FOUND_PE
 			};
 
 		FindPointEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
 	}
 
-	void FUnionProcessor::OnValidPointEdgeProxy(const TSharedPtr<FPointEdgeProxy>& InEdgeProxy) const
-	{
-		// Invalidate existing edge
-		GraphBuilder->Graph->Edges[InEdgeProxy->Index].bValid = 0;
-
-		// Sort collinear points
-		InEdgeProxy->CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; });
-	}
 
 	void FUnionProcessor::OnPointEdgeIntersectionsFound()
 	{
+
+		if (PointEdgeIntersections){ PointEdgeIntersections->InsertEdges(); }
+		
+		if (!PointEdgeIntersections
+			|| PointEdgeIntersections->Edges.IsEmpty())
+		{
+			OnPointEdgeIntersectionsComplete();
+			return;
+		}
+		
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendPointEdgeGroup)
 
-		PointEdgeIntersections->Insert();
+		PointEdgeIntersections->InsertEdges();
 		UnionDataFacade->Source->ClearCachedKeys();
 
 		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
@@ -381,7 +380,7 @@ namespace PCGExGraph
 		FindEdgeEdgeGroup->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
 		{
 			PCGEX_ASYNC_THIS
-			This->OnEdgeEdgeIntersectionsComplete();
+			This->OnEdgeEdgeIntersectionsFound();
 		};
 
 		FindEdgeEdgeGroup->OnPrepareSubLoopsCallback =
@@ -396,6 +395,16 @@ namespace PCGExGraph
 			{
 				PCGEX_ASYNC_THIS
 
+				int32& EENum = This->EENum;
+				TArray<FEdge>& GraphEdges = This->GraphBuilder->Graph->Edges;
+
+#define PCGEX_FOUND_EE \
+				ScopedEdges.Add(EdgeProxy); \
+				GraphEdges[Index].bValid = 0; \
+				FPlatformAtomics::InterlockedAdd(&EENum, EdgeProxy->Crossings.Num()); \
+				EdgeProxy = MakeShared<FEdgeEdgeProxy>();
+
+				
 				const TSharedRef<FEdgeEdgeIntersections> EEI = This->EdgeEdgeIntersections.ToSharedRef();
 				TArray<TSharedPtr<FEdgeEdgeProxy>>& ScopedEdges = EEI->ScopedEdges->Get_Ref(Scope);
 
@@ -405,75 +414,42 @@ namespace PCGExGraph
 				{
 					PCGEX_SCOPE_LOOP(Index)
 					{
-						if (!EEI->InitProxyEdge(EdgeProxy, Index)) { continue; }
-
+						if (!EEI->InitProxy(EdgeProxy, Index)) { continue; }
 						FindOverlappingEdges(EEI, EdgeProxy);
-
-						if (EdgeProxy->IsEmpty())
-						{
-							ScopedEdges.Add(EdgeProxy);
-							This->OnValidEdgeEdgeProxy(EdgeProxy);
-							EdgeProxy = MakeShared<FEdgeEdgeProxy>();
-						}
+						if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_EE }
 					}
 				}
 				else
 				{
 					PCGEX_SCOPE_LOOP(Index)
 					{
-						if (!EEI->InitProxyEdge(EdgeProxy, Index)) { continue; }
-
+						if (!EEI->InitProxy(EdgeProxy, Index)) { continue; }
 						FindOverlappingEdges_NoSelfIntersections(EEI, EdgeProxy);
-
-						if (EdgeProxy->IsEmpty())
-						{
-							ScopedEdges.Add(EdgeProxy);
-							This->OnValidEdgeEdgeProxy(EdgeProxy);
-							EdgeProxy = MakeShared<FEdgeEdgeProxy>();
-						}
+						if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_EE }
 					}
 				}
+				
+#undef PCGEX_FOUND_EE
 			};
 
 
 		FindEdgeEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
 	}
 
-	void FUnionProcessor::OnValidEdgeEdgeProxy(const TSharedPtr<FEdgeEdgeProxy>& InEdgeProxy) const
-	{
-		// Invalidate existing edge
-		GraphBuilder->Graph->Edges[InEdgeProxy->Edge->Index].bValid = 0;
-	}
-
 	void FUnionProcessor::OnEdgeEdgeIntersectionsFound()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::OnEdgeEdgeIntersectionsFound);
 
-		if (EdgeEdgeIntersections)
-		{
-			EdgeEdgeIntersections->Collapse();
-			if (EdgeEdgeIntersections->InsertNodes()) { OnEdgeEdgeSortingComplete(); }
-			else { OnEdgeEdgeIntersectionsComplete(); }
-		}
-		else
+		if (!EdgeEdgeIntersections
+			|| !EdgeEdgeIntersections->InsertNodes(EENum / 2))
 		{
 			OnEdgeEdgeIntersectionsComplete();
+			return;
 		}
-	}
-
-	void FUnionProcessor::OnEdgeEdgeSortingComplete()
-	{
+		
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
 
-		GraphBuilder->Graph->ReserveForEdges(NewEdgesNum);
-		NewEdgesNum = 0;
-
-		// TODO : Multi-thread by reserving the future edges in metadata and others.
-		// Edge count is known and uniqueness is known in advance, we just need the number of edges, which we have.
-		// Do set num instead of reserve, Graph has an InsertEdges that return the starting addition index.
-		// use range prep to cache these and rebuild metadata and everything then.
-
-		EdgeEdgeIntersections->InsertEdges(); // TODO : Async?
+		EdgeEdgeIntersections->InsertEdges();
 		UnionDataFacade->Source->ClearCachedKeys();
 
 		MetadataBlender = MakeShared<PCGExDataBlending::FMetadataBlender>();
@@ -512,7 +488,7 @@ namespace PCGExGraph
 				PCGEX_SCOPE_LOOP(Index) { This->EdgeEdgeIntersections->BlendIntersection(Index, Blender, Trackers); }
 			};
 
-		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->Crossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
+		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->UniqueCrossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
 	}
 
 	void FUnionProcessor::OnEdgeEdgeIntersectionsComplete()

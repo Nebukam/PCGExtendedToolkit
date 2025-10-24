@@ -158,6 +158,11 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 				Entry->InitPCGSoftISMDescriptor(OutDescriptor);
 			}
 
+			if (bForceDisableCollisions)
+			{
+				OutDescriptor.BodyInstance.SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
+			
 			if (bApplyMaterialOverrides) { Entry->ApplyMaterials(MaterialPick, OutDescriptor); }
 
 			const TArray<int32>& InstanceIndices = InstanceList.InstancesIndices;

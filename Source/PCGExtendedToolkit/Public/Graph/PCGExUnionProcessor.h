@@ -75,7 +75,8 @@ namespace PCGExGraph
 	protected:
 		bool bRunning = false;
 
-		int32 NewEdgesNum = 0;
+		int32 PENum = 0;
+		int32 EENum = 0;
 
 		void OnNodesProcessingComplete();
 		void InternalStartExecution();
@@ -96,14 +97,11 @@ namespace PCGExGraph
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
 		void FindPointEdgeIntersections();
-		void OnValidPointEdgeProxy(const TSharedPtr<FPointEdgeProxy>& InEdgeProxy) const;
 		void OnPointEdgeIntersectionsFound();
 		void OnPointEdgeIntersectionsComplete();
 
 		void FindEdgeEdgeIntersections();
-		void OnValidEdgeEdgeProxy(const TSharedPtr<FEdgeEdgeProxy>& InEdgeProxy) const;
 		void OnEdgeEdgeIntersectionsFound();
-		void OnEdgeEdgeSortingComplete();
 		void OnEdgeEdgeIntersectionsComplete();
 		void CompileFinalGraph();
 	};

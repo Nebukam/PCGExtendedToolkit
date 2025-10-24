@@ -123,6 +123,7 @@ private:
 
 namespace PCGExGraph
 {
+	class FEdgeProxy;
 	class FEdgeEdgeIntersections;
 	class FGraph;
 	struct FEdge;
@@ -193,56 +194,71 @@ namespace PCGExGraph
 
 #pragma endregion
 
+	class PCGEXTENDEDTOOLKIT_API FIntersectionCache : public TSharedFromThis<FIntersectionCache>
+	{
+	public:
+		TConstPCGValueRange<FTransform> NodeTransforms;
+		const TSharedPtr<PCGExData::FPointIO> PointIO;
+		TSharedPtr<FGraph> Graph;
+
+		TBitArray<> ValidEdges;
+		TArray<double> LengthSquared;
+		TArray<FVector> Positions;
+		TArray<FVector> Directions;
+		TSharedPtr<PCGExOctree::FItemOctree> Octree;
+
+		double ToleranceSquared = 10;
+
+		FIntersectionCache(const TSharedPtr<FGraph>& InGraph, const TSharedPtr<PCGExData::FPointIO>& InPointIO);
+
+		bool InitProxy(const TSharedPtr<FEdgeProxy>& Edge, const int32 Index) const;
+		
+	protected:
+		double Tolerance = 10;
+		void BuildCache();
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FEdgeProxy : public TSharedFromThis<FEdgeProxy>
+	{
+	public:
+		virtual ~FEdgeProxy() = default;
+		int32 Index = -1;
+		int32 Start = 0;
+		int32 End = 0;
+		FBox Box = FBox(NoInit);
+
+		FEdgeProxy() = default;
+
+		virtual void Init(const FEdge& InEdge, const FVector& InStart, const FVector& InEnd, const double Tolerance);		
+		virtual bool IsEmpty() const { return true; }
+	};
+
 #pragma region Point Edge intersections
 
 	struct PCGEXTENDEDTOOLKIT_API FPESplit
 	{
-		int32 NodeIndex = -1;
+		int32 Index = -1;
 		double Time = -1;
 		FVector ClosestPoint = FVector::ZeroVector;
 
-		bool operator==(const FPESplit& Other) const { return NodeIndex == Other.NodeIndex; }
+		bool operator==(const FPESplit& Other) const { return Index == Other.Index; }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPointEdgeProxy : public TSharedFromThis<FPointEdgeProxy>
+	class PCGEXTENDEDTOOLKIT_API FPointEdgeProxy : public FEdgeProxy
 	{
 	public:
-		int32 Index = -1;
 		TArray<FPESplit, TInlineAllocator<8>> CollinearPoints;
 
-		double LengthSquared = -1;
-		double ToleranceSquared = -1;
-		FBox Box = FBox(NoInit);
-
-		FVector Start = FVector::ZeroVector;
-		FVector End = FVector::ZeroVector;
-
-		FPointEdgeProxy() = default;
-
-		void Init(
-			const int32 InEdgeIndex,
-			const FVector& InStart,
-			const FVector& InEnd,
-			const double Tolerance);
-
-		~FPointEdgeProxy()
-		{
-			CollinearPoints.Empty();
-		}
-
-		bool FindSplit(const FVector& Position, FPESplit& OutSplit) const;
+		virtual void Init(const FEdge& InEdge, const FVector& InStart, const FVector& InEnd, double Tolerance) override;
+		bool FindSplit(const int32 PointIndex, const TSharedPtr<FIntersectionCache>& Cache, FPESplit& OutSplit) const;
 		void Add(const FPESplit& Split);
 
-		bool IsEmpty() const;
+		virtual bool IsEmpty() const override { return CollinearPoints.IsEmpty(); }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPointEdgeIntersections : public TSharedFromThis<FPointEdgeIntersections>
+	class PCGEXTENDEDTOOLKIT_API FPointEdgeIntersections : public FIntersectionCache
 	{
 	public:
-		TSharedPtr<PCGExData::FPointIO> PointIO;
-		TConstPCGValueRange<FTransform> NodeTransforms;
-		TSharedPtr<FGraph> Graph;
-
 		const FPCGExPointEdgeIntersectionDetails* Details;
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<FPointEdgeProxy>>> ScopedEdges;
 		TArray<TSharedPtr<FPointEdgeProxy>> Edges;
@@ -253,9 +269,7 @@ namespace PCGExGraph
 			const FPCGExPointEdgeIntersectionDetails* InDetails);
 
 		void Init(const TArray<PCGExMT::FScope>& Loops);
-		bool InitProxyEdge(const TSharedPtr<FPointEdgeProxy>& Edge, const int32 Index) const;
-
-		void Insert();
+		void InsertEdges();
 		void BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const;
 
 		~FPointEdgeIntersections() = default;
@@ -288,56 +302,33 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FEECrossing
 	{
-		int32 NodeIndex = -1;
+		int32 Index = -1;
 		FEESplit Split;
 
 		FEECrossing() = default;
 
 		FORCEINLINE double GetTime(const int32 EdgeIndex) const { return EdgeIndex == Split.A ? Split.TimeA : Split.TimeB; }
 
-		bool operator==(const FEECrossing& Other) const { return NodeIndex == Other.NodeIndex; }
+		bool operator==(const FEECrossing& Other) const { return Index == Other.Index; }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FEdgeEdgeProxy : public TSharedFromThis<FEdgeEdgeProxy>
+	class PCGEXTENDEDTOOLKIT_API FEdgeEdgeProxy : public FEdgeProxy
 	{
 	public:
-		const FEdge* Edge = nullptr;
 		TArray<FEECrossing> Crossings;
 
-		FBox Box = FBox(NoInit);
-
-		FEdgeEdgeProxy() = default;
-		
-		void Init(
-			const FEdge* InEdge,
-			const FVector& InStart,
-			const FVector& InEnd,
-			const double Tolerance);
-
-		~FEdgeEdgeProxy() = default;
-
-		bool FindSplit(const FEdge& OtherEdge, const TSharedPtr<FEdgeEdgeIntersections>& EEI);
-		bool IsEmpty() const;
+		bool FindSplit(const FEdge& OtherEdge, const TSharedPtr<FIntersectionCache>& Cache);
+		virtual bool IsEmpty() const override { return Crossings.IsEmpty(); }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FEdgeEdgeIntersections : public TSharedFromThis<FEdgeEdgeIntersections>
+	class PCGEXTENDEDTOOLKIT_API FEdgeEdgeIntersections : public FIntersectionCache
 	{
 	public:
-		TConstPCGValueRange<FTransform> NodeTransforms;
-		const TSharedPtr<PCGExData::FPointIO> PointIO;
-		TSharedPtr<FGraph> Graph;
-
 		const FPCGExEdgeEdgeIntersectionDetails* Details;
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<FEdgeEdgeProxy>>> ScopedEdges;
-		
-		TBitArray<> ValidEdges;
-		TArray<double> LengthSquared;
-		TArray<FVector> Positions;
-		TArray<FVector> Directions;
 
-		TArray<FEECrossing> Crossings;
+		TArray<FEECrossing> UniqueCrossings;
 		TArray<TSharedPtr<FEdgeEdgeProxy>> Edges;
-		TSharedPtr<PCGExOctree::FItemOctree> Octree;
 
 		FEdgeEdgeIntersections(
 			const TSharedPtr<FGraph>& InGraph,
@@ -346,11 +337,9 @@ namespace PCGExGraph
 			const FPCGExEdgeEdgeIntersectionDetails* InDetails);
 
 		void Init(const TArray<PCGExMT::FScope>& Loops);
-		void Collapse();
+		void Collapse(const int32 InReserve);
 
-		bool InitProxyEdge(const TSharedPtr<FEdgeEdgeProxy>& Edge, const int32 Index) const;
-
-		bool InsertNodes() const;
+		bool InsertNodes(const int32 InReserve);
 		void InsertEdges();
 
 		void BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender, TArray<PCGEx::FOpStats>& Trackers) const;
