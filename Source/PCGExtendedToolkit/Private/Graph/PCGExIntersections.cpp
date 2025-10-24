@@ -584,8 +584,6 @@ namespace PCGExGraph
 
 	void FPointEdgeIntersections::BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPointEdgeIntersections::BlendIntersection);
-
 		const TSharedPtr<FPointEdgeProxy>& PointEdgeProxy = Edges[Index];
 
 		if (PointEdgeProxy->CollinearPoints.IsEmpty()) { return; }
@@ -848,8 +846,6 @@ namespace PCGExGraph
 
 	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender, TArray<PCGEx::FOpStats>& Trackers) const
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::BlendIntersection);
-
 		const FEECrossing& Crossing = UniqueCrossings[Index];
 
 		const int32 Target = Graph->Nodes[Crossing.Index].PointIndex;
