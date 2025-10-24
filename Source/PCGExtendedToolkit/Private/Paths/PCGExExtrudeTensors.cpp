@@ -69,7 +69,7 @@ bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 	GetInputFactories(
 		Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories,
 		PCGExFactories::PointFilters, false);
-	
+
 	PCGExPointFilter::PruneForDirectEvaluation(Context, Context->StopFilterFactories);
 
 	if (Context->TensorFactories.IsEmpty())
@@ -142,10 +142,8 @@ namespace PCGExExtrudeTensors
 		ExtrudedPoints.Last() = Head;
 		Metrics = PCGExPaths::FPathMetrics(LastInsertion);
 
-		Bounds = FBox(ForceInit);
-		Bounds += (Metrics.Last + FVector::OneVector * 1);
-		Bounds += (Metrics.Last + FVector::OneVector * -1);
-		if (Context) { Bounds = Bounds.ExpandBy(Context->SelfPathIntersections.Tolerance); }
+		const double Tol = Context ? Context->SelfPathIntersections.Tolerance : 0;
+		PCGEX_SET_BOX_TOLERANCE(Bounds, (Metrics.Last + FVector::OneVector * 1), (Metrics.Last + FVector::OneVector * -1), Tol);
 
 		///
 		///
@@ -216,10 +214,7 @@ namespace PCGExExtrudeTensors
 
 		Complete();
 
-		FBox OEBox = FBox(ForceInit);
-		OEBox += PrevPos;
-		OEBox += ExtrudedPoints.Last().GetLocation();
-		OEBox = OEBox.ExpandBy(Context->SelfPathIntersections.ToleranceSquared + 1);
+		PCGEX_BOX_TOLERANCE(OEBox, PrevPos, ExtrudedPoints.Last().GetLocation(), (Context->SelfPathIntersections.ToleranceSquared + 1));
 		SegmentBounds.Last() = OEBox;
 
 		bIsStopped = true;
@@ -337,10 +332,7 @@ namespace PCGExExtrudeTensors
 
 		if (Settings->bDoSelfPathIntersections)
 		{
-			FBox OEBox = FBox(ForceInit);
-			OEBox += ExtrudedPoints.Last(1).GetLocation();
-			OEBox += ExtrudedPoints.Last().GetLocation();
-			OEBox = OEBox.ExpandBy(Context->SelfPathIntersections.ToleranceSquared + 1);
+			PCGEX_BOX_TOLERANCE(OEBox, ExtrudedPoints.Last(1).GetLocation(), ExtrudedPoints.Last().GetLocation(), (Context->SelfPathIntersections.ToleranceSquared + 1));
 			SegmentBounds.Emplace(OEBox);
 
 			Bounds += OEBox;
