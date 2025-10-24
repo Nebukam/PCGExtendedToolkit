@@ -283,5 +283,16 @@ case EPCGExOptionState::Disabled: return false; }
 #define PCGEX_PIN_TEXTURE(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::BaseTexture, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_OPERATION_OVERRIDES(_LABEL) PCGEX_PIN_PARAMS(_LABEL, "Property overrides to be forwarded & processed by the module. Name must match the property you're targeting 1:1, type mismatch will be broadcasted at your own risk.", Advanced)
 
+#define PCGEX_BOX_TOLERANCE(_NAME, A, B, Tolerance)\
+const FVector _NAME##_A = A;\
+const FVector _NAME##_B = B;\
+FBox _NAME(_NAME##_A.ComponentMin(_NAME##_B) - Tolerance, _NAME##_A.ComponentMax(_NAME##_B) + Tolerance);
+
+#define PCGEX_BOX_TOLERANCE_INLINE(A, B, Tolerance) FBox(A.ComponentMin(B) - Tolerance, A.ComponentMax(B) + Tolerance)
+
+#define PCGEX_SET_BOX_TOLERANCE(_NAME, A, B, Tolerance)\
+const FVector _NAME##_A = A;\
+const FVector _NAME##_B = B;\
+_NAME = FBox(_NAME##_A.ComponentMin(_NAME##_B) - Tolerance, _NAME##_A.ComponentMax(_NAME##_B) + Tolerance);
 
 #endif

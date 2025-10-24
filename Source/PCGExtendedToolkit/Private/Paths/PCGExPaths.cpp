@@ -251,10 +251,7 @@ namespace PCGExPaths
 
 	void FPathEdge::Update(const TConstPCGValueRange<FTransform>& Positions, const double Expansion)
 	{
-		FBox Box = FBox(ForceInit);
-		Box += Positions[Start].GetLocation();
-		Box += Positions[End].GetLocation();
-		Bounds = Box.ExpandBy(Expansion);
+		PCGEX_SET_BOX_TOLERANCE(Bounds, Positions[Start].GetLocation(), Positions[End].GetLocation(), Expansion);
 		Dir = (Positions[End].GetLocation() - Positions[Start].GetLocation()).GetSafeNormal();
 	}
 

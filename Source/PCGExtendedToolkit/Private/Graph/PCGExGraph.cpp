@@ -294,6 +294,12 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
 	}
 
+	void FSubGraph::Shrink()
+	{
+		Nodes.Shrink();
+		Edges.Shrink();
+	}
+
 	void FSubGraph::BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster)
 	{
 		// Correct edge IO Index that has been overwritten during subgraph processing
@@ -624,12 +630,16 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		AddNodes(InNumNodes, StartNodeIndex);
 	}
 
-	void FGraph::ReserveForEdges(const int32 UpcomingAdditionCount)
+	void FGraph::ReserveForEdges(const int32 UpcomingAdditionCount, bool bReserveMeta)
 	{
-		const int32 NewMax = Edges.Num() + UpcomingAdditionCount;
-		UniqueEdges.Reserve(NewMax);
-		Edges.Reserve(NewMax);
-		EdgeMetadata.Reserve(UpcomingAdditionCount);
+		UniqueEdges.Reserve(UniqueEdges.Num() + UpcomingAdditionCount);
+		Edges.Reserve(Edges.Num() + UpcomingAdditionCount);
+
+		if (bReserveMeta)
+		{
+			EdgeMetadata.Reserve(EdgeMetadata.Num() + UpcomingAdditionCount);
+			NodeMetadata.Reserve(NodeMetadata.Num() + UpcomingAdditionCount);
+		}
 	}
 
 	bool FGraph::InsertEdge_Unsafe(const int32 A, const int32 B, FEdge& OutEdge, const int32 IOIndex)
@@ -690,11 +700,14 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	void FGraph::InsertEdges(const TArray<uint64>& InEdges, const int32 InIOIndex)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::InsertEdges)
+
 		FWriteScopeLock WriteLock(GraphLock);
 		uint32 A;
 		uint32 B;
 
 		UniqueEdges.Reserve(UniqueEdges.Num() + UniqueEdges.Num());
+		Edges.Reserve(Edges.Num() + InEdges.Num());
 
 		for (const uint64 E : InEdges)
 		{
@@ -716,8 +729,14 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	int32 FGraph::InsertEdges(const TArray<FEdge>& InEdges)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::InsertEdges)
+
 		FWriteScopeLock WriteLock(GraphLock);
 		const int32 StartIndex = Edges.Num();
+
+		UniqueEdges.Reserve(UniqueEdges.Num() + InEdges.Num());
+		Edges.Reserve(Edges.Num() + InEdges.Num());
+
 		for (const FEdge& E : InEdges) { InsertEdge_Unsafe(E); }
 		return StartIndex;
 	}
@@ -882,12 +901,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
 		OutStartIndex = Nodes.Num();
-		Nodes.SetNum(OutStartIndex + NumNewNodes);
-		for (int i = 0; i < NumNewNodes; i++)
-		{
-			FNode& Node = Nodes[OutStartIndex + i];
-			Node.Index = Node.PointIndex = OutStartIndex + i;
-		}
+		const int32 TotalNum = OutStartIndex + NumNewNodes;
+		Nodes.Reserve(TotalNum);
+		for (int i = OutStartIndex; i < TotalNum; i++) { Nodes.Emplace(i, i); }
 
 		return MakeArrayView(Nodes.GetData() + OutStartIndex, NumNewNodes);
 	}
@@ -967,6 +983,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			}
 			else if (!SubGraph->Edges.IsEmpty())
 			{
+				SubGraph->Shrink();
 				SubGraphs.Add(SubGraph.ToSharedRef());
 			}
 		}
@@ -1107,6 +1124,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			if (InNodeData && bInheritNodeData)
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints::Inherit);
+				
 				ReadIndices.SetNumUninitialized(NumValidNodes);
 
 				// In order to inherit from node data
@@ -1140,6 +1159,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			}
 			else
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints::New);
+				
 				// We don't have to inherit points, this sounds great
 				// However it makes things harder for us because we need to enforce a deterministic layout for other cluster nodes
 				// We make the assumption that if we don't inherit points, we've introduced new one nodes & edges from different threads

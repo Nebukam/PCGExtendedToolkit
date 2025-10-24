@@ -59,11 +59,8 @@ namespace PCGExMath
 	}
 
 	FSegment::FSegment(const FVector& InA, const FVector& InB, const double Expansion)
-		: A(InA), B(InB), Direction((B - A).GetSafeNormal())
+		: A(InA), B(InB), Direction((B - A).GetSafeNormal()), Bounds(PCGEX_BOX_TOLERANCE_INLINE(A, B, Expansion))
 	{
-		Bounds += A;
-		Bounds += B;
-		Bounds = Bounds.ExpandBy(Expansion);
 	}
 
 	bool FSegment::FindIntersection(const FVector& A2, const FVector& B2, const double SquaredTolerance, FVector& OutSelf, FVector& OutOther, const uint8 Strictness) const

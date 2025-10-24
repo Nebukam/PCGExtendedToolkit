@@ -22,9 +22,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = MeshSelector)
 	bool bApplyMaterialOverrides = true;
 
+	UPROPERTY(EditAnywhere, Category = MeshSelector)
+	bool bForceDisableCollisions = false;
+	
 	UPROPERTY(EditAnywhere, Category = MeshSelector, meta=(InlineEditConditionToggle))
 	bool bUseTemplateDescriptor = true;
-
+	
 	/** If enabled, will ignore the collection descriptor details and only push mesh, materials & tags from the collection. */
 	UPROPERTY(EditAnywhere, Category = MeshSelector, meta=(EditCondition="bUseTemplateDescriptor"))
 	FPCGSoftISMComponentDescriptor TemplateDescriptor;
