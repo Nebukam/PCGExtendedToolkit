@@ -47,9 +47,10 @@ namespace PCGExMT
 
 		void Collapse(TArray<T>& InTarget)
 		{
+			int32 Reserve = 0;
+			for (int i = 0; i < Arrays.Num(); i++) { Reserve += Arrays[i]->Num(); }
 			for (int i = 0; i < Arrays.Num(); i++)
 			{
-				InTarget.Reserve(InTarget.Num() + Arrays[i].Get()->Num());
 				InTarget.Append(*Arrays[i].Get());
 				Arrays[i] = nullptr;
 			}
@@ -101,6 +102,36 @@ namespace PCGExMT
 
 			Sets.Empty();
 		}
+	};
+
+	template <typename T>
+	class TScopedPtr : public TSharedFromThis<TScopedPtr<T>>
+	{
+	public:
+		TArray<TSharedPtr<T>> Data;
+
+		using FFlattenFunc = std::function<T(const T&, const T&)>;
+
+		TScopedPtr(const TArray<FScope>& InScopes)
+		{
+			Data.Reserve(InScopes.Num());
+			for(int i = 0; i < InScopes.Num(); i++){ Data.Add(MakeShared<T>()); }
+		};
+
+		template <typename... Args>
+		TScopedPtr(const TArray<FScope>& InScopes, Args&&... InArgs)
+		{
+			Data.Reserve(InScopes.Num());
+			for(int i = 0; i < InScopes.Num(); i++){ Data.Add(MakeShared<T>(std::forward<Args>(InArgs)...)); }
+		};
+
+		~TScopedPtr() = default;
+
+		FORCEINLINE TSharedPtr<T> Get(const FScope& InScope) { return Data[InScope.LoopIndex]; }
+		FORCEINLINE T& Get_Ref(const FScope& InScope) { return *Data[InScope.LoopIndex].Get(); }
+
+		using FForEachFunc = std::function<void (T&)>;
+		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i = 0; i < Data.Num(); i++) { Func(*Data[i].Get()); } }
 	};
 
 	template <typename T>

@@ -294,6 +294,12 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
 	}
 
+	void FSubGraph::Shrink()
+	{
+		Nodes.Shrink();
+		Edges.Shrink();
+	}
+
 	void FSubGraph::BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster)
 	{
 		// Correct edge IO Index that has been overwritten during subgraph processing
@@ -624,7 +630,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		AddNodes(InNumNodes, StartNodeIndex);
 	}
 
-	void FGraph::ReserveForEdges(const int32 UpcomingAdditionCount)
+	void FGraph::ReserveForEdges(const int32 UpcomingAdditionCount, bool bReserveMeta)
 	{
 		const int32 NewMax = Edges.Num() + UpcomingAdditionCount;
 		UniqueEdges.Reserve(NewMax);
@@ -695,6 +701,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		uint32 B;
 
 		UniqueEdges.Reserve(UniqueEdges.Num() + UniqueEdges.Num());
+		Edges.Reserve(Edges.Num() + InEdges.Num());
 
 		for (const uint64 E : InEdges)
 		{
@@ -718,6 +725,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
 		const int32 StartIndex = Edges.Num();
+		
+		UniqueEdges.Reserve(UniqueEdges.Num() + InEdges.Num());
+		Edges.Reserve(Edges.Num() + InEdges.Num());
+		
 		for (const FEdge& E : InEdges) { InsertEdge_Unsafe(E); }
 		return StartIndex;
 	}
