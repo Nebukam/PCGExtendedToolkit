@@ -366,6 +366,7 @@ namespace PCGExGraph
 		~FSubGraph() = default;
 
 		void Add(const FEdge& Edge, FGraph* InGraph);
+		void Shrink();
 
 		void BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster);
 		int32 GetFirstInIOIndex();

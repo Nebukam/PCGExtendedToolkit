@@ -47,6 +47,12 @@ namespace PCGExGeo
 	struct FCut;
 }
 
+namespace PCGExMT
+{
+	template <typename T>
+	class TScopedArray;
+}
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 {
@@ -197,10 +203,11 @@ namespace PCGExGraph
 		bool operator==(const FPESplit& Other) const { return NodeIndex == Other.NodeIndex; }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointEdgeProxy
+	class PCGEXTENDEDTOOLKIT_API FPointEdgeProxy : public TSharedFromThis<FPointEdgeProxy>
 	{
-		int32 EdgeIndex = -1;
-		TArray<FPESplit> CollinearPoints;
+		public:
+		int32 Index = -1;
+		TArray<FPESplit, TInlineAllocator<8>> CollinearPoints;
 
 		double LengthSquared = -1;
 		double ToleranceSquared = -1;
@@ -209,15 +216,7 @@ namespace PCGExGraph
 		FVector Start = FVector::ZeroVector;
 		FVector End = FVector::ZeroVector;
 
-		FPointEdgeProxy()
-		{
-		}
-
-		explicit FPointEdgeProxy(
-			const int32 InEdgeIndex,
-			const FVector& InStart,
-			const FVector& InEnd,
-			const double Tolerance);
+		FPointEdgeProxy() = default;
 
 		void Init(
 			const int32 InEdgeIndex,
@@ -230,25 +229,31 @@ namespace PCGExGraph
 			CollinearPoints.Empty();
 		}
 
-		bool FindSplit(const FVector& Position, FPESplit& OutSplit) const;
+		bool FindSplit(const FVector& Position, FPESplit& OutSplit) const;		
+		void Add(const FPESplit& Split);
+
+		bool IsEmpty() const;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FPointEdgeIntersections : public TSharedFromThis<FPointEdgeIntersections>
 	{
 	public:
-		mutable FRWLock InsertionLock;
-		const TSharedPtr<PCGExData::FPointIO> PointIO;
+		TSharedPtr<PCGExData::FPointIO> PointIO;
+		TConstPCGValueRange<FTransform> NodeTransforms;
 		TSharedPtr<FGraph> Graph;
 
 		const FPCGExPointEdgeIntersectionDetails* Details;
-		TArray<FPointEdgeProxy> Edges;
-
+		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<FPointEdgeProxy>>> ScopedEdges;
+		TArray<TSharedPtr<FPointEdgeProxy>> Edges;
+		
 		FPointEdgeIntersections(
 			const TSharedPtr<FGraph>& InGraph,
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const FPCGExPointEdgeIntersectionDetails* InDetails);
 
-		void Add(const int32 EdgeIndex, const FPESplit& Split);
+		void Init(const TArray<PCGExMT::FScope>& Loops);
+		bool InitProxyEdge(const TSharedPtr<FPointEdgeProxy>& Edge, const int32 Index) const;
+		
 		void Insert();
 		void BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const;
 
@@ -257,8 +262,11 @@ namespace PCGExGraph
 
 	void FindCollinearNodes(
 		const TSharedPtr<FPointEdgeIntersections>& InIntersections,
-		const int32 EdgeIndex,
-		const UPCGBasePointData* PointsData);
+		const TSharedPtr<FPointEdgeProxy>& EdgeProxy);
+	
+	void FindCollinearNodes_NoSelfIntersections(
+		const TSharedPtr<FPointEdgeIntersections>& InIntersections,
+		const TSharedPtr<FPointEdgeProxy>& EdgeProxy);
 
 #pragma endregion
 

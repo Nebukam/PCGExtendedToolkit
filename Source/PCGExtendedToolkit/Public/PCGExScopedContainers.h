@@ -47,9 +47,10 @@ namespace PCGExMT
 
 		void Collapse(TArray<T>& InTarget)
 		{
+			int32 Reserve = 0;
+			for (int i = 0; i < Arrays.Num(); i++) { Reserve += Arrays[i]->Num(); }
 			for (int i = 0; i < Arrays.Num(); i++)
 			{
-				InTarget.Reserve(InTarget.Num() + Arrays[i].Get()->Num());
 				InTarget.Append(*Arrays[i].Get());
 				Arrays[i] = nullptr;
 			}
@@ -141,14 +142,14 @@ namespace PCGExMT
 		TScopedPtr(const TArray<FScope>& InScopes)
 		{
 			Data.Reserve(InScopes.Num());
-			for(int i = 0; i < InScopes.Num(); i++){ Data.Add(MakeShared<T>()); }
+			for (int i = 0; i < InScopes.Num(); i++) { Data.Add(MakeShared<T>()); }
 		};
 
 		template <typename... Args>
 		TScopedPtr(const TArray<FScope>& InScopes, Args&&... InArgs)
 		{
 			Data.Reserve(InScopes.Num());
-			for(int i = 0; i < InScopes.Num(); i++){ Data.Add(MakeShared<T>(std::forward<Args>(InArgs)...)); }
+			for (int i = 0; i < InScopes.Num(); i++) { Data.Add(MakeShared<T>(std::forward<Args>(InArgs)...)); }
 		};
 
 		~TScopedPtr() = default;

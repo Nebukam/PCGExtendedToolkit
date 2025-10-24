@@ -294,6 +294,12 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
 	}
 
+	void FSubGraph::Shrink()
+	{
+		Nodes.Shrink();
+		Edges.Shrink();
+	}
+
 	void FSubGraph::BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster)
 	{
 		// Correct edge IO Index that has been overwritten during subgraph processing
@@ -690,11 +696,14 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	void FGraph::InsertEdges(const TArray<uint64>& InEdges, const int32 InIOIndex)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::InsertEdges)
+		
 		FWriteScopeLock WriteLock(GraphLock);
 		uint32 A;
 		uint32 B;
 
 		UniqueEdges.Reserve(UniqueEdges.Num() + UniqueEdges.Num());
+		Edges.Reserve(Edges.Num() + InEdges.Num());
 
 		for (const uint64 E : InEdges)
 		{
@@ -716,8 +725,14 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	int32 FGraph::InsertEdges(const TArray<FEdge>& InEdges)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::InsertEdges)
+		
 		FWriteScopeLock WriteLock(GraphLock);
 		const int32 StartIndex = Edges.Num();
+
+		UniqueEdges.Reserve(UniqueEdges.Num() + InEdges.Num());
+		Edges.Reserve(Edges.Num() + InEdges.Num());
+		
 		for (const FEdge& E : InEdges) { InsertEdge_Unsafe(E); }
 		return StartIndex;
 	}
@@ -921,7 +936,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			PCGEX_MAKE_SHARED(SubGraph, FSubGraph)
 			SubGraph->WeakParentGraph = SharedThis(this);
-
+			
 			TArray<int32> Stack;
 			Stack.Reserve(Nodes.Num() - VisitedNum);
 			Stack.Add(i);
@@ -967,6 +982,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			}
 			else if (!SubGraph->Edges.IsEmpty())
 			{
+				SubGraph->Shrink();
 				SubGraphs.Add(SubGraph.ToSharedRef());
 			}
 		}

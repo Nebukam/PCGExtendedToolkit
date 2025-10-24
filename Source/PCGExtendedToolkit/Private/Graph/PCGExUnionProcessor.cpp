@@ -121,7 +121,7 @@ namespace PCGExGraph
 				}
 			};
 
-		ProcessNodesGroup->StartSubLoops(NumUnionNodes, GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize, false);
+		ProcessNodesGroup->StartSubLoops(NumUnionNodes, GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2, false);
 
 
 		return true;
@@ -241,89 +241,83 @@ namespace PCGExGraph
 
 		Context->SetAsyncState(State_ProcessingPointEdgeIntersections);
 
-		
+		// Init point octree
+		(void)PointEdgeIntersections->PointIO->GetOutIn()->GetPointOctree();
+
 		FindPointEdgeGroup->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
-				This->FindPointEdgeIntersectionsFound();
+				This->OnPointEdgeIntersectionsFound();
 			};
 
 		FindPointEdgeGroup->OnPrepareSubLoopsCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE](const TArray<PCGExMT::FScope>& Loops)
 			{
 				PCGEX_ASYNC_THIS
-				This->ScopedPointEdgeIntersections = MakeShared<PCGExMT::TScopedPtr<FPointEdgeIntersections>>(Loops,
-					This->GraphBuilder->Graph, This->UnionDataFacade->Source, &This->PointEdgeIntersectionDetails);
+				This->PointEdgeIntersections->Init(Loops);
 			};
-		
+
 		FindPointEdgeGroup->OnSubLoopStartCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
-				// TODO : Distribute collinear per thread
-				// Use ScopedPointEdgeIntersections
-				// Swap the massive array copy for a TMap<int32(edge index) : FProxyEdge (collinear nodes)>
-				// Reconvene data once work is processed
-				// do the same for crossings
-				// This will completely remove the need for locks for this specific step
-				
+				TRACE_CPUPROFILER_EVENT_SCOPE(FindPointEdgeIntersections::ScopeLoop)
+
 				PCGEX_ASYNC_THIS
-				PCGEX_SCOPE_LOOP(Index)
+				TSharedPtr<FPointEdgeProxy> EdgeProxy = MakeShared<FPointEdgeProxy>();
+				TSharedPtr<FPointEdgeIntersections> PEI = This->PointEdgeIntersections;
+
+				TArray<TSharedPtr<FPointEdgeProxy>>& ScopedEdges = PEI->ScopedEdges->Get_Ref(Scope);
+
+				if (!PEI->Details->bEnableSelfIntersection)
 				{
-					const FEdge& Edge = This->GraphBuilder->Graph->Edges[Index];
-					if (!Edge.bValid) { continue; }
-					FindCollinearNodes(This->PointEdgeIntersections, Index, This->UnionDataFacade->Source->GetOut());
+					PCGEX_SCOPE_LOOP(Index)
+					{
+						if (!PEI->InitProxyEdge(EdgeProxy, Index)) { continue; }
+
+						FindCollinearNodes_NoSelfIntersections(PEI, EdgeProxy);
+
+						if (EdgeProxy->IsEmpty())
+						{
+							ScopedEdges.Add(EdgeProxy);
+							This->OnValidPointEdgeProxy(EdgeProxy);
+							EdgeProxy = MakeShared<FPointEdgeProxy>();
+						}
+					}
+				}
+				else
+				{
+					PCGEX_SCOPE_LOOP(Index)
+					{
+						if (!PEI->InitProxyEdge(EdgeProxy, Index)) { continue; }
+
+						FindCollinearNodes(PEI, EdgeProxy);
+
+						if (EdgeProxy->IsEmpty())
+						{
+							ScopedEdges.Add(EdgeProxy);
+							This->OnValidPointEdgeProxy(EdgeProxy);
+							EdgeProxy = MakeShared<FPointEdgeProxy>();
+						}
+					}
 				}
 			};
-		
-		FindPointEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+
+		FindPointEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
 	}
 
-	void FUnionProcessor::FindPointEdgeIntersectionsFound()
+	void FUnionProcessor::OnValidPointEdgeProxy(const TSharedPtr<FPointEdgeProxy>& InEdgeProxy) const
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::FindPointEdgeIntersectionsFound);
+		// Invalidate existing edge
+		GraphBuilder->Graph->Edges[InEdgeProxy->Index].bValid = 0;
 
-		// TODO : Reconcile This->ScopedPointEdgeIntersections
-		
-		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), SortCrossingsGroup)
-
-		SortCrossingsGroup->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->OnPointEdgeSortingComplete();
-			};
-
-		SortCrossingsGroup->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				PCGEX_SCOPE_LOOP(Index)
-				{
-					FPointEdgeProxy& PointEdgeProxy = This->PointEdgeIntersections->Edges[Index];
-					const int32 CollinearNum = PointEdgeProxy.CollinearPoints.Num();
-
-					if (!CollinearNum) { continue; }
-
-					FPlatformAtomics::InterlockedAdd(&This->NewEdgesNum, (CollinearNum + 1));
-
-					FEdge& SplitEdge = This->GraphBuilder->Graph->Edges[PointEdgeProxy.EdgeIndex];
-					FPlatformAtomics::InterlockedExchange(&SplitEdge.bValid, 0); // Invalidate existing edge
-					PointEdgeProxy.CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; });
-				}
-			};
-
-		SortCrossingsGroup->StartSubLoops(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
-
-		///
+		// Sort collinear points
+		InEdgeProxy->CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; });
 	}
 
-	void FUnionProcessor::OnPointEdgeSortingComplete()
+	void FUnionProcessor::OnPointEdgeIntersectionsFound()
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendPointEdgeGroup)
-
-		GraphBuilder->Graph->ReserveForEdges(NewEdgesNum);
-		NewEdgesNum = 0;
 
 		PointEdgeIntersections->Insert();
 		UnionDataFacade->Source->ClearCachedKeys();
@@ -360,11 +354,12 @@ namespace PCGExGraph
 				}
 			};
 
-		BlendPointEdgeGroup->StartSubLoops(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		BlendPointEdgeGroup->StartSubLoops(PointEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
 	}
 
-	void FUnionProcessor::OnPointEdgeIntersectionsComplete() const
+	void FUnionProcessor::OnPointEdgeIntersectionsComplete()
 	{
+		PointEdgeIntersections.Reset();
 		if (MetadataBlender) { UnionDataFacade->WriteFastest(Context->GetAsyncManager()); }
 	}
 
@@ -406,7 +401,7 @@ namespace PCGExGraph
 			};
 
 
-		FindEdgeEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		FindEdgeEdgeGroup->StartSubLoops(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
 	}
 
 	void FUnionProcessor::OnEdgeEdgeIntersectionsFound()
@@ -454,7 +449,7 @@ namespace PCGExGraph
 				This->OnEdgeEdgeSortingComplete();
 			};
 
-		SortCrossingsGroup->StartSubLoops(EdgeEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		SortCrossingsGroup->StartSubLoops(EdgeEdgeIntersections->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
 	}
 
 	void FUnionProcessor::OnEdgeEdgeSortingComplete()
@@ -508,7 +503,7 @@ namespace PCGExGraph
 				PCGEX_SCOPE_LOOP(Index) { This->EdgeEdgeIntersections->BlendIntersection(Index, Blender, Trackers); }
 			};
 
-		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->Crossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		BlendEdgeEdgeGroup->StartSubLoops(EdgeEdgeIntersections->Crossings.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize * 2);
 	}
 
 	void FUnionProcessor::OnEdgeEdgeIntersectionsComplete() const

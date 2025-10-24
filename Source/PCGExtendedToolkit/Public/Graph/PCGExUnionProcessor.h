@@ -76,7 +76,7 @@ namespace PCGExGraph
 		bool bRunning = false;
 
 		int32 NewEdgesNum = 0;
-
+		
 		void OnNodesProcessingComplete();
 		void InternalStartExecution();
 
@@ -88,7 +88,6 @@ namespace PCGExGraph
 
 		FGraphMetadataDetails GraphMetadataDetails;
 		
-		TSharedPtr<PCGExMT::TScopedPtr<FPointEdgeIntersections>> ScopedPointEdgeIntersections;
 		TSharedPtr<FPointEdgeIntersections> PointEdgeIntersections;
 		
 		TSharedPtr<PCGExMT::TScopedPtr<FEdgeEdgeIntersections>> ScopedEdgeEdgeIntersections;
@@ -97,9 +96,9 @@ namespace PCGExGraph
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
 		void FindPointEdgeIntersections();
-		void FindPointEdgeIntersectionsFound();
-		void OnPointEdgeSortingComplete();
-		void OnPointEdgeIntersectionsComplete() const;
+		void OnValidPointEdgeProxy(const TSharedPtr<FPointEdgeProxy>& InEdgeProxy) const;
+		void OnPointEdgeIntersectionsFound();
+		void OnPointEdgeIntersectionsComplete();
 
 		void FindEdgeEdgeIntersections();
 		void OnEdgeEdgeIntersectionsFound();
