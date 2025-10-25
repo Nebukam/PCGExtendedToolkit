@@ -152,7 +152,7 @@ namespace PCGExClusterMT
 			Nodes, NumNodes,
 			PrepareLoopScopesForNodes, ProcessNodes,
 			OnNodesProcessingComplete,
-			bDaisyChainProcessNodes)
+			bForceSingleThreadedProcessNodes)
 	}
 
 	void IProcessor::PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops)
@@ -173,7 +173,7 @@ namespace PCGExClusterMT
 			Edges, NumEdges,
 			PrepareLoopScopesForEdges, ProcessEdges,
 			OnEdgesProcessingComplete,
-			bDaisyChainProcessEdges)
+			bForceSingleThreadedProcessEdges)
 	}
 
 	void IProcessor::PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops)
@@ -194,7 +194,7 @@ namespace PCGExClusterMT
 			Ranges, NumIterations,
 			PrepareLoopScopesForRanges, ProcessRange,
 			OnRangeProcessingComplete,
-			bDaisyChainProcessRange)
+			bForceSingleThreadedProcessRange)
 	}
 
 	void IProcessor::PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
@@ -520,7 +520,7 @@ namespace PCGExClusterMT
 				This->OnInitialPostProcess();
 			});
 
-		PCGEX_ASYNC_MT_LOOP_TPL(Process, bDaisyChainProcessing, {Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, InitializationTracker)
+		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, {Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, InitializationTracker)
 	}
 
 	void IBatch::OnInitialPostProcess()
@@ -545,7 +545,7 @@ namespace PCGExClusterMT
 		if (!bIsBatchValid) { return; }
 
 		CurrentState.store(PCGExCommon::State_Completing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, {Processor->CompleteWork(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, {Processor->CompleteWork(); })
 	}
 
 	void IBatch::Write()
@@ -555,7 +555,7 @@ namespace PCGExClusterMT
 		if (!bIsBatchValid) { return; }
 
 		CurrentState.store(PCGExCommon::State_Writing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, {Processor->Write(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, {Processor->Write(); })
 
 		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->WriteFastest(AsyncManager); }
 	}

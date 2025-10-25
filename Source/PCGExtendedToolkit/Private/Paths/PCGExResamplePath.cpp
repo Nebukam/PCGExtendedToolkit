@@ -100,7 +100,7 @@ namespace PCGExResamplePath
 		SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - 1);
 
 		Samples.SetNumUninitialized(NumSamples);
-		bDaisyChainProcessPoints = true;
+		bForceSingleThreadedProcessPoints = true;
 
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 

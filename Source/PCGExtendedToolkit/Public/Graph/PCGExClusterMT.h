@@ -90,9 +90,9 @@ namespace PCGExClusterMT
 		bool bBuildCluster = true;
 		bool bWantsHeuristics = false;
 
-		bool bDaisyChainProcessNodes = false;
-		bool bDaisyChainProcessEdges = false;
-		bool bDaisyChainProcessRange = false;
+		bool bForceSingleThreadedProcessNodes = false;
+		bool bForceSingleThreadedProcessEdges = false;
+		bool bForceSingleThreadedProcessRange = false;
 
 		int32 NumNodes = 0;
 		int32 NumEdges = 0;
@@ -282,9 +282,9 @@ namespace PCGExClusterMT
 		bool WantsHeuristics() const { return bWantsHeuristics; }
 		virtual void SetWantsHeuristics(const bool bRequired) { bWantsHeuristics = bRequired; }
 
-		bool bDaisyChainProcessing = false;
-		bool bDaisyChainCompletion = false;
-		bool bDaisyChainWrite = false;
+		bool bForceSingleThreadedProcessing = false;
+		bool bForceSingleThreadedCompletion = false;
+		bool bForceSingleThreadedWrite = false;
 
 		IBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 

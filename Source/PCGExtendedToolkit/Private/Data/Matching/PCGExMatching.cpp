@@ -9,8 +9,6 @@
 
 void PCGExMatching::DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)
 {
-	if (InDetails.Mode == EPCGExMapMatchMode::Disabled) { return; }
-
 	{
 		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceMatchRulesLabel, EPCGDataType::Param);
 		PCGEX_PIN_TOOLTIP("Matching rules to determine which target data can be paired with each input. If target only accept a single data, individual target points will be evaluated.")

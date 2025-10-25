@@ -16,6 +16,7 @@
 #include "Engine/AssetManager.h"
 #include "Async/Async.h"
 #include "Data/PCGPointArrayData.h"
+#include "Async/ParallelFor.h"
 
 namespace PCGEx
 {
@@ -429,9 +430,17 @@ namespace PCGEx
 
 		const int32 NumIndices = InOrder.Num();
 		TArray<T> ValuesCopy;
-		ValuesCopy.Reserve(NumIndices);
-		for (int i = 0; i < NumIndices; i++) { ValuesCopy.Emplace(InRange[InOrder[i]]); }
-		for (int i = 0; i < NumIndices; i++) { InRange[i] = ValuesCopy[i]; }
+		PCGEx::InitArray(ValuesCopy, NumIndices);
+		if (NumIndices < 4096)
+		{
+			for (int i = 0; i < NumIndices; i++) { ValuesCopy[i] = MoveTemp(InRange[InOrder[i]]); }
+			for (int i = 0; i < NumIndices; i++) { InRange[i] = MoveTemp(ValuesCopy[i]); }
+		}
+		else
+		{
+			ParallelFor(NumIndices, [&](int32 i) { ValuesCopy[i] = MoveTemp(InRange[InOrder[i]]); });
+			ParallelFor(NumIndices, [&](int32 i) { InRange[i] = MoveTemp(ValuesCopy[i]); });
+		}
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \

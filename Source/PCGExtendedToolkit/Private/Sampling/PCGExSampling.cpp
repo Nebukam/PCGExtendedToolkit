@@ -229,16 +229,10 @@ namespace PCGExSampling
 		return Index;
 	}
 
-	void FSampingUnionData::AddWeighted_Unsafe(const PCGExData::FElement& Element, const double InWeight)
-	{
-		Add_Unsafe(Element);
-		Weights.Add(Element, InWeight);
-	}
-
 	void FSampingUnionData::AddWeighted(const PCGExData::FElement& Element, const double InWeight)
 	{
 		FWriteScopeLock WriteScopeLock(UnionLock);
-		Add_Unsafe(Element);
+		Add_Unsafe(Element.Index, Element.IO);
 		Weights.Add(Element, InWeight);
 	}
 
