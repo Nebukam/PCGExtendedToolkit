@@ -304,15 +304,15 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FGraphEdgeMetadata
 	{
-		int32 EdgeIndex;
-		int32 ParentIndex;
-		int32 RootIndex;
+		int32 EdgeIndex = -1;
+		int32 RootIndex = -1;
 		EPCGExIntersectionType Type = EPCGExIntersectionType::Unknown;
 
 		int32 UnionSize = 0; // Fuse size
 		int8 bIsSubEdge = 0; // Sub Edge (result of a)
 		bool IsUnion() const;
 
+		FGraphEdgeMetadata() = default;
 		explicit FGraphEdgeMetadata(const int32 InEdgeIndex, const FGraphEdgeMetadata* Parent);
 	};
 
