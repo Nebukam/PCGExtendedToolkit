@@ -110,7 +110,7 @@ namespace PCGExGraph
 			return InIndex == Start ? End : Start;
 		}
 
-		bool Contains(const int32 InIndex) const { return Start == InIndex || End == InIndex; }
+		FORCEINLINE bool Contains(const int32 InIndex) const { return Start == InIndex || End == InIndex; }
 
 		bool operator==(const FEdge& Other) const { return PCGEx::H64U(Start, End) == PCGEx::H64U(Other.Start, Other.End); }
 		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(Start, End); }

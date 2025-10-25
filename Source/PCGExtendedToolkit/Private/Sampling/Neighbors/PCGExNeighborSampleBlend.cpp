@@ -39,12 +39,12 @@ void FPCGExNeighborSampleBlend::PrepareNode(const PCGExCluster::FNode& TargetNod
 
 void FPCGExNeighborSampleBlend::SampleNeighborNode(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope)
 {
-	BlendOpsManager->MultiBlend(Cluster->GetNode(Lk)->PointIndex, TargetNode.PointIndex, Weight, BlendOpsManager->GetScopedTrackers(Scope));
+	BlendOpsManager->MultiBlend(Cluster->GetNodePointIndex(Lk), TargetNode.PointIndex, Weight, BlendOpsManager->GetScopedTrackers(Scope));
 }
 
 void FPCGExNeighborSampleBlend::SampleNeighborEdge(const PCGExCluster::FNode& TargetNode, const PCGExGraph::FLink Lk, const double Weight, const PCGExMT::FScope& Scope)
 {
-	BlendOpsManager->MultiBlend(Cluster->GetEdge(Lk)->PointIndex, TargetNode.PointIndex, Weight, BlendOpsManager->GetScopedTrackers(Scope));
+	BlendOpsManager->MultiBlend(Cluster->GetNodePointIndex(Lk), TargetNode.PointIndex, Weight, BlendOpsManager->GetScopedTrackers(Scope));
 }
 
 void FPCGExNeighborSampleBlend::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight, const PCGExMT::FScope& Scope)

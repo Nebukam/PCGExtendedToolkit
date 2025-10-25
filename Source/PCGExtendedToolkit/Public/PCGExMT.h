@@ -280,7 +280,7 @@ namespace PCGExMT
 		friend class FTask;
 		friend class FSimpleCallbackTask;
 		friend class FScopeIterationTask;
-		friend class FDaisyChainScopeIterationTask;
+		friend class FForceSingleThreadedScopeIterationTask;
 
 	public:
 		using FIterationCallback = std::function<void(const int32, const FScope&)>;
@@ -330,8 +330,8 @@ namespace PCGExMT
 			Loops.Empty();
 		}
 
-		void StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bDaisyChain = false);
-		void StartSubLoops(const int32 MaxItems, const int32 ChunkSize, const bool bDaisyChain = false);
+		void StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bForceSingleThreaded = false);
+		void StartSubLoops(const int32 MaxItems, const int32 ChunkSize, const bool bForceSingleThreaded = false);
 
 		void AddSimpleCallback(FSimpleCallback&& InCallback);
 		void StartSimpleCallbacks();
@@ -365,7 +365,7 @@ namespace PCGExMT
 		}
 
 	protected:
-		bool bDaisyChained = false;
+		bool bForceSingleThreadeded = false;
 		TArray<FSimpleCallback> SimpleCallbacks;
 		TArray<FScope> Loops;
 
@@ -448,10 +448,10 @@ namespace PCGExMT
 		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
-	class FDaisyChainScopeIterationTask final : public FPCGExIndexedTask
+	class FForceSingleThreadedScopeIterationTask final : public FPCGExIndexedTask
 	{
 	public:
-		explicit FDaisyChainScopeIterationTask(const int32 InTaskIndex):
+		explicit FForceSingleThreadedScopeIterationTask(const int32 InTaskIndex):
 			FPCGExIndexedTask(InTaskIndex)
 		{
 		}

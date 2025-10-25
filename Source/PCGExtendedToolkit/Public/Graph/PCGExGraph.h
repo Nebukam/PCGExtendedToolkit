@@ -260,6 +260,7 @@ namespace PCGExGraph
 #define PCGEX_FOREACH_POINTPOINT_METADATA(MACRO)\
 		MACRO(IsPointUnion, PointUnionData.bWriteIsUnion, PointUnionData.IsUnion, TEXT("bIsUnion"))\
 		MACRO(PointUnionSize, PointUnionData.bWriteUnionSize, PointUnionData.UnionSize, TEXT("UnionSize"))\
+		MACRO(IsSubEdge, EdgeUnionData.bWriteIsSubEdge, EdgeUnionData.IsSubEdge, TEXT("bIsSubEdge"))\
 		MACRO(IsEdgeUnion, EdgeUnionData.bWriteIsUnion, EdgeUnionData.IsUnion, TEXT("bIsUnion"))\
 		MACRO(EdgeUnionSize, EdgeUnionData.bWriteUnionSize, EdgeUnionData.UnionSize, TEXT("UnionSize"))
 
@@ -291,29 +292,30 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FGraphNodeMetadata
 	{
-		EPCGExIntersectionType Type = EPCGExIntersectionType::Unknown;
 		int32 NodeIndex;
 		int32 UnionSize = 0; // Fuse size
-		bool IsUnion() const;
+		EPCGExIntersectionType Type;
 
-		explicit FGraphNodeMetadata(const int32 InNodeIndex);
+		explicit FGraphNodeMetadata(const int32 InNodeIndex, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown);
 
-		bool IsIntersector() const;
-		bool IsCrossing() const;
+		FORCEINLINE bool IsUnion() const { return UnionSize > 1; }
+		FORCEINLINE bool IsIntersector() const { return Type == EPCGExIntersectionType::PointEdge; }
+		FORCEINLINE bool IsCrossing() const { return Type == EPCGExIntersectionType::EdgeEdge; }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FGraphEdgeMetadata
 	{
-		int32 EdgeIndex = -1;
-		int32 RootIndex = -1;
-		EPCGExIntersectionType Type = EPCGExIntersectionType::Unknown;
+		int32 EdgeIndex;
+		int32 RootIndex;
+		EPCGExIntersectionType Type;
 
 		int32 UnionSize = 0; // Fuse size
 		int8 bIsSubEdge = 0; // Sub Edge (result of a)
-		bool IsUnion() const;
 
-		FGraphEdgeMetadata() = default;
-		explicit FGraphEdgeMetadata(const int32 InEdgeIndex, const FGraphEdgeMetadata* Parent);
+		FORCEINLINE bool IsUnion() const { return UnionSize > 1; }
+		FORCEINLINE bool IsRoot() const { return EdgeIndex == RootIndex; }
+
+		explicit FGraphEdgeMetadata(const int32 InEdgeIndex, const int32 InRootIndex = -1, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNode
@@ -388,6 +390,7 @@ namespace PCGExGraph
 		// Edge metadata
 #define PCGEX_FOREACH_EDGE_METADATA(MACRO)\
 MACRO(IsEdgeUnion, bool, false, IsUnion()) \
+MACRO(IsSubEdge, bool, false, bIsSubEdge) \
 MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 #define PCGEX_EDGE_METADATA_DECL(_NAME, _TYPE, _DEFAULT, _ACCESSOR) TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Buffer;
@@ -406,8 +409,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	class PCGEXTENDEDTOOLKIT_API FGraph : public TSharedFromThis<FGraph>
 	{
 		mutable FRWLock GraphLock;
-		mutable FRWLock EdgeMetadataLock;
-		mutable FRWLock NodeMetadataLock;
+		mutable FRWLock MetadataLock;
 
 	public:
 		bool bBuildClusters = false;
@@ -451,56 +453,57 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		FEdge* FindEdge(const uint64 Hash);
 		FEdge* FindEdge(const int32 A, const int32 B);
 
-		FGraphEdgeMetadata& GetOrCreateEdgeMetadata_Unsafe(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent = nullptr);
-		FGraphEdgeMetadata& GetOrCreateEdgeMetadata(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent = nullptr);
-		FGraphNodeMetadata& GetOrCreateNodeMetadata_Unsafe(const int32 NodeIndex);
-		FGraphNodeMetadata& GetOrCreateNodeMetadata(const int32 NodeIndex);
+#pragma region metadata
 
+		FORCEINLINE FGraphEdgeMetadata& GetOrCreateEdgeMetadata_Unsafe(const int32 EdgeIndex, const int32 RootIndex = -1)
+		{
+			return EdgeMetadata.FindOrAdd(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, RootIndex));
+		}
 
-		FGraphEdgeMetadata* AddNodeAndEdgeMetadata_Unsafe(
-			const int32 InNodeIndex,
-			const int32 InEdgeIndex,
-			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType);
+		FGraphEdgeMetadata& GetOrCreateEdgeMetadata(const int32 EdgeIndex, const int32 RootIndex = -1);
 
+		FORCEINLINE FGraphNodeMetadata& GetOrCreateNodeMetadata_Unsafe(const int32 NodeIndex)
+		{
+			return NodeMetadata.FindOrAdd(NodeIndex, FGraphNodeMetadata(NodeIndex));
+		}
 
-		void AddNodeAndEdgeMetadata(
-			const int32 InNodeIndex,
-			const int32 InEdgeIndex,
-			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType);
+		FORCEINLINE FGraphEdgeMetadata& AddNodeAndEdgeMetadata_Unsafe(
+			const int32 InNodeIndex, const int32 InEdgeIndex, const int32 RootIndex = -1,
+			const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
+		{
+			NodeMetadata.FindOrAdd(InNodeIndex, FGraphNodeMetadata(InNodeIndex)).Type = InType;
+			return EdgeMetadata.FindOrAdd(InEdgeIndex, FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType));
+		}
 
+		FORCEINLINE void AddNodeMetadata_Unsafe(const int32 InNodeIndex, const EPCGExIntersectionType InType)
+		{
+			NodeMetadata.FindOrAdd(InNodeIndex, FGraphNodeMetadata(InNodeIndex)).Type = InType;
+		}
 
-		void AddNodeMetadata_Unsafe(
-			const int32 InNodeIndex,
-			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType);
+		FORCEINLINE FGraphEdgeMetadata& AddEdgeMetadata_Unsafe(
+			const int32 InEdgeIndex, const int32 RootIndex = -1,
+			const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
+		{
+			return EdgeMetadata.FindOrAdd(InEdgeIndex, FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType));
+		}
 
+		FORCEINLINE const FGraphNodeMetadata* FindNodeMetadata_Unsafe(const int32 NodeIndex)
+		{
+			return NodeMetadata.Find(NodeIndex);
+		}
 
-		void AddNodeMetadata(
-			const int32 InNodeIndex,
-			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType);
+		FORCEINLINE const FGraphEdgeMetadata* FindEdgeMetadata_Unsafe(const int32 EdgeIndex)
+		{
+			return EdgeMetadata.Find(EdgeIndex);
+		}
 
+		FORCEINLINE int32 FindEdgeMetadataRootIndex_Unsafe(const int32 EdgeIndex)
+		{
+			if (const FGraphEdgeMetadata* E = EdgeMetadata.Find(EdgeIndex)) { return E->RootIndex; }
+			return -1;
+		}
 
-		FGraphEdgeMetadata* AddEdgeMetadata_Unsafe(
-			const int32 InEdgeIndex,
-			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType);
-
-
-		void AddEdgeMetadata(
-			const int32 InEdgeIndex,
-			const FGraphEdgeMetadata* InParentMetadata,
-			const EPCGExIntersectionType InType);
-
-
-		FGraphNodeMetadata* FindNodeMetadata_Unsafe(const int32 NodeIndex) { return NodeMetadata.Find(NodeIndex); }
-		FGraphNodeMetadata* FindNodeMetadata(const int32 NodeIndex);
-		FGraphEdgeMetadata* FindEdgeMetadata_Unsafe(const int32 EdgeIndex) { return EdgeMetadata.Find(EdgeIndex); }
-		FGraphEdgeMetadata* FindEdgeMetadata(const int32 EdgeIndex);
-		FGraphEdgeMetadata* FindRootEdgeMetadata_Unsafe(const int32 EdgeIndex);
-		FGraphEdgeMetadata* FindRootEdgeMetadata(const int32 EdgeIndex);
+#pragma endregion
 
 		TArrayView<FNode> AddNodes(const int32 NumNewNodes, int32& OutStartIndex);
 

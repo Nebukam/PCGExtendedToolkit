@@ -221,8 +221,8 @@ namespace PCGExSimplifyClusters
 				LastPosition = CurrentPosition;
 
 				GraphBuilder->Graph->InsertEdge(
-					Cluster->GetNode(LastIndex)->PointIndex,
-					Cluster->GetNode(Lk)->PointIndex,
+					Cluster->GetNodePointIndex(LastIndex),
+					Cluster->GetNodePointIndex(Lk),
 					OutEdge, IOIndex);
 
 				PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = GraphBuilder->Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
@@ -240,8 +240,8 @@ namespace PCGExSimplifyClusters
 				UnionCount++;
 
 				GraphBuilder->Graph->InsertEdge(
-					Cluster->GetNode(LastIndex)->PointIndex,
-					Cluster->GetNode(Link.Node)->PointIndex,
+					Cluster->GetNodePointIndex(LastIndex),
+					Cluster->GetNodePointIndex(Link.Node),
 					OutEdge, IOIndex);
 
 				MergedEdges.Add(Link.Edge);

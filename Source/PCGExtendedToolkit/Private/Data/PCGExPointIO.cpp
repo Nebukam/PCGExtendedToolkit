@@ -801,6 +801,13 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		return Bounds;
 	}
 
+	int32 FPointIOCollection::GetInNumPoints() const
+	{
+		int32 Count = 0;
+		for (const TSharedPtr<FPointIO>& IO : Pairs) { Count += IO->GetNum(); }
+		return Count;
+	}
+
 	void FPointIOCollection::PruneNullEntries(const bool bUpdateIndices)
 	{
 		const int32 MaxPairs = Pairs.Num();

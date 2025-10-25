@@ -105,7 +105,7 @@ namespace PCGExFusePoints
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TProcessor(InPointDataFacade)
 		{
-			bDaisyChainProcessPoints = true;
+			bForceSingleThreadedProcessPoints = true;
 		}
 
 		virtual ~FProcessor() override;

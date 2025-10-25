@@ -116,7 +116,7 @@ void FPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const PCG
 				{
 					int32 NextIndex = Next.Node;
 					if (VisitedNodes.Contains(NextIndex)) { continue; }
-					if (!ValueFilters->Results[Cluster->GetNode(Next)->PointIndex])
+					if (!ValueFilters->Results[Cluster->GetNodePointIndex(Next)])
 					{
 						VisitedNodes.Add(NextIndex);
 						continue;

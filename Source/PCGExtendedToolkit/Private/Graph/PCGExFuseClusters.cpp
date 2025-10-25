@@ -6,10 +6,6 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExIntersections.h"
-
-#include "Data/Blending/PCGExUnionBlender.h"
-
-
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionProcessor.h"
 
@@ -53,6 +49,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	// TODO : Support local fuse distance, requires access to all input facades
 	if (!Context->UnionGraph->Init(Context)) { return false; }
+	Context->UnionGraph->Reserve(Context->MainPoints->GetInNumPoints(), Context->MainEdges->GetInNumPoints());
 
 	Context->UnionGraph->EdgesUnion->bIsAbstract = false; // Because we have valid edge data
 
@@ -101,7 +98,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				NewBatch->bSkipCompletion = true;
-				NewBatch->bDaisyChainProcessing = bDoInline;
+				NewBatch->bForceSingleThreadedProcessing = bDoInline;
 			}, bDoInline))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -165,11 +162,11 @@ namespace PCGExFuseClusters
 		bInvalidEdges = false;
 		UnionGraph = Context->UnionGraph;
 
-		bDaisyChainProcessEdges = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+		bForceSingleThreadedProcessEdges = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
 		const int32 NumIterations = Cluster ? Cluster->Edges->Num() : IndexedEdges.Num();
 
-		if (bDaisyChainProcessEdges)
+		if (bForceSingleThreadedProcessEdges)
 		{
 			// Blunt insert since processor don't have a "wait"
 			InsertEdges(PCGExMT::FScope(0, NumIterations), true);

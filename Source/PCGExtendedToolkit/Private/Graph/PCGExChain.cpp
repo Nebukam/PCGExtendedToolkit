@@ -121,7 +121,7 @@ namespace PCGExCluster
 
 			if (Graph->EdgesUnion)
 			{
-				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(PCGExData::FPoint(OriginalEdge.Index, IOIndex));
+				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add_Unsafe(PCGExData::FPoint(OriginalEdge.Index, IOIndex));
 			}
 		}
 		else
@@ -134,8 +134,8 @@ namespace PCGExCluster
 			}
 
 			Graph->InsertEdge(
-				Cluster->GetNode(Seed)->PointIndex,
-				Cluster->GetNode(Links.Last())->PointIndex,
+				Cluster->GetNodePointIndex(Seed),
+				Cluster->GetNodePointIndex(Links.Last()),
 				OutEdge, IOIndex);
 
 			PCGExGraph::FGraphEdgeMetadata& EdgeMetadata = Graph->GetOrCreateEdgeMetadata(OutEdge.Index);
@@ -149,7 +149,7 @@ namespace PCGExCluster
 				// TODO : Possible missing edge in some edge cases
 				for (const FLink& Link : Links) { MergedEdges.Add(Link.Edge); }
 
-				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add(IOIndex, MergedEdges);
+				Graph->EdgesUnion->NewEntryAt_Unsafe(OutEdge.Index)->Add_Unsafe(IOIndex, MergedEdges);
 			}
 		}
 	}

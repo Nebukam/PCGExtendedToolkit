@@ -346,7 +346,7 @@ namespace PCGExTopology
 
 			// Seek next best candidate
 			const FVector2D PP = ProjectedPositions[Current->PointIndex];
-			const FVector2D GuideDir = (PP - ProjectedPositions[InCluster->GetNode(From.Node)->PointIndex]).GetSafeNormal();
+			const FVector2D GuideDir = (PP - ProjectedPositions[InCluster->GetNodePointIndex(From.Node)]).GetSafeNormal();
 
 			From = To;
 			To = PCGExGraph::FLink(-1, -1);
@@ -358,7 +358,7 @@ namespace PCGExTopology
 
 				if (Lk.Edge == LockedEdge) { continue; }
 
-				const FVector2D OtherDir = (PP - ProjectedPositions[InCluster->GetNode(NeighborIndex)->PointIndex]).GetSafeNormal();
+				const FVector2D OtherDir = (PP - ProjectedPositions[InCluster->GetNodePointIndex(NeighborIndex)]).GetSafeNormal();
 
 				if (const double Angle = PCGExMath::GetRadiansBetweenVectors(OtherDir, GuideDir); Angle < BestAngle)
 				{
@@ -409,7 +409,7 @@ namespace PCGExTopology
 		Polygon.Reset();
 		TArray<FVector2D>& Vertices = *Polygon.Vertices;
 		Vertices.SetNumUninitialized(Nodes.Num());
-		for (int i = 0; i < Nodes.Num(); ++i) { Vertices[i] = FVector2D(ProjectedPositions[InCluster->GetNode(Nodes[i])->PointIndex]); }
+		for (int i = 0; i < Nodes.Num(); ++i) { Vertices[i] = FVector2D(ProjectedPositions[InCluster->GetNodePointIndex(Nodes[i])]); }
 
 		PCGExGeo::FPolygonInfos PolyInfos = PCGExGeo::FPolygonInfos(Vertices);
 

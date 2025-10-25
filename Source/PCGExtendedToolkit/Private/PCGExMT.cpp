@@ -508,7 +508,7 @@ namespace PCGExMT
 	{
 	}
 
-	void FTaskGroup::StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bDaisyChain)
+	void FTaskGroup::StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bForceSingleThreaded)
 	{
 		if (!IsAvailable() || !OnIterationCallback) { return; }
 
@@ -516,15 +516,15 @@ namespace PCGExMT
 
 		const int32 SanitizedChunkSize = FMath::Max(1, ChunkSize);
 
-		if (bDaisyChain)
+		if (bForceSingleThreaded)
 		{
-			bDaisyChained = true;
+			bForceSingleThreadeded = true;
 
 			SetExpectedTaskCount(SubLoopScopes(Loops, MaxItems, SanitizedChunkSize));
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 
-			PCGEX_MAKE_SHARED(Task, FDaisyChainScopeIterationTask, 0)
+			PCGEX_MAKE_SHARED(Task, FForceSingleThreadedScopeIterationTask, 0)
 			LaunchWithPreparation(Task, false);
 		}
 		else
@@ -533,9 +533,9 @@ namespace PCGExMT
 		}
 	}
 
-	void FTaskGroup::StartSubLoops(const int32 MaxItems, const int32 ChunkSize, const bool bDaisyChain)
+	void FTaskGroup::StartSubLoops(const int32 MaxItems, const int32 ChunkSize, const bool bForceSingleThreaded)
 	{
-		if (!bDaisyChain)
+		if (!bForceSingleThreaded)
 		{
 			StartRanges<FScopeIterationTask>(MaxItems, ChunkSize, true);
 			return;
@@ -552,11 +552,11 @@ namespace PCGExMT
 		SetExpectedTaskCount(SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize)));
 		StaticCastSharedPtr<FTaskManager>(PinnedRoot)->ReserveTasks(Loops.Num());
 
-		bDaisyChained = true;
+		bForceSingleThreadeded = true;
 
 		if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 
-		PCGEX_MAKE_SHARED(Task, FDaisyChainScopeIterationTask, 0)
+		PCGEX_MAKE_SHARED(Task, FForceSingleThreadedScopeIterationTask, 0)
 		LaunchWithPreparation(Task, true);
 	}
 
@@ -617,7 +617,7 @@ namespace PCGExMT
 		StaticCastSharedPtr<FTaskGroup>(PinnedParent)->ExecScopeIterations(Scope, bPrepareOnly);
 	}
 
-	void FDaisyChainScopeIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
+	void FForceSingleThreadedScopeIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
 		const TSharedPtr<FAsyncMultiHandle> PinnedParent = ParentHandle.Pin();
 		if (!PinnedParent) { return; }
@@ -630,7 +630,7 @@ namespace PCGExMT
 
 		if (!Group->GetLoopScopes().IsValidIndex(Scope.GetNextScopeIndex())) { return; }
 
-		PCGEX_MAKE_SHARED(Task, FDaisyChainScopeIterationTask, Scope.GetNextScopeIndex())
+		PCGEX_MAKE_SHARED(Task, FForceSingleThreadedScopeIterationTask, Scope.GetNextScopeIndex())
 		Group->LaunchWithPreparation(Task, bPrepareOnly);
 	}
 

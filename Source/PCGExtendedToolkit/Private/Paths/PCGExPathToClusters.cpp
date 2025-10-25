@@ -55,7 +55,8 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 
 		// TODO : Support local fuse distance, requires access to all input facades
 		if (!Context->UnionGraph->Init(Context)) { return false; }
-
+		Context->UnionGraph->Reserve(Context->MainPoints->GetInNumPoints(), -1);
+		
 		Context->UnionGraph->EdgesUnion->bIsAbstract = true; // Because we don't have edge data
 
 		Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(
@@ -114,7 +115,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
 					NewBatch->bSkipCompletion = true;
-					NewBatch->bDaisyChainProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+					NewBatch->bForceSingleThreadedProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 				}))
 			{
 				return Context->CancelExecution(TEXT("Could not build any clusters."));
@@ -258,9 +259,9 @@ namespace PCGExPathToClusters
 
 		UnionGraph = Context->UnionGraph;
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
-		bDaisyChainProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+		bForceSingleThreadedProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
-		if (bDaisyChainProcessPoints)
+		if (bForceSingleThreadedProcessPoints)
 		{
 			// Blunt insert since processor don't have a "wait"
 			InsertEdges(PCGExMT::FScope(0, NumPoints), true);

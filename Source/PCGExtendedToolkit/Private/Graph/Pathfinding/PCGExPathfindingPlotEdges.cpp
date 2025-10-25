@@ -265,8 +265,8 @@ namespace PCGExPathfindingPlotEdges
 			Queries[i] = Query;
 		}
 
-		bDaisyChainProcessRange = HeuristicsHandler->HasGlobalFeedback() || !Settings->bGreedyQueries;
-		if (bDaisyChainProcessRange) { SearchAllocations = SearchOperation->NewAllocations(); }
+		bForceSingleThreadedProcessRange = HeuristicsHandler->HasGlobalFeedback() || !Settings->bGreedyQueries;
+		if (bForceSingleThreadedProcessRange) { SearchAllocations = SearchOperation->NewAllocations(); }
 
 		StartParallelLoopForRange(Queries.Num(), 1);
 		return true;

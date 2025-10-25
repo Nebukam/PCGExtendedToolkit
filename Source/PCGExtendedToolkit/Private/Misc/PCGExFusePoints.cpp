@@ -106,7 +106,7 @@ namespace PCGExFusePoints
 
 		PointDataFacade->CreateReadables(SourceAttributes);
 
-		bDaisyChainProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
+		bForceSingleThreadedProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;

@@ -419,7 +419,7 @@ namespace PCGExClusterDiffusion
 
 					if (PathNodeIndex != -1)
 					{
-						int32 PathPointIndex = This->Cluster->GetNode(EndpointNodeIndex)->PointIndex;
+						int32 PathPointIndex = This->Cluster->GetNodePointIndex(EndpointNodeIndex);
 						PathIndices.Add(PathPointIndex);
 						Visited.Add(PathPointIndex);
 
@@ -428,7 +428,7 @@ namespace PCGExClusterDiffusion
 							const int32 CurrentIndex = PathNodeIndex;
 							PCGEx::NH64(Diff->TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
 
-							PathPointIndex = This->Cluster->GetNode(CurrentIndex)->PointIndex;
+							PathPointIndex = This->Cluster->GetNodePointIndex(CurrentIndex);
 							PathIndices.Add(PathPointIndex);
 
 							bool bIsAlreadyVisited = false;
@@ -455,13 +455,13 @@ namespace PCGExClusterDiffusion
 		TArray<int32> PathIndices;
 		if (PathNodeIndex != -1)
 		{
-			PathIndices.Add(Cluster->GetNode(EndpointNodeIndex)->PointIndex);
+			PathIndices.Add(Cluster->GetNodePointIndex(EndpointNodeIndex));
 
 			while (PathNodeIndex != -1)
 			{
 				const int32 CurrentIndex = PathNodeIndex;
 				PCGEx::NH64(Diffusion->TravelStack->Get(CurrentIndex), PathNodeIndex, PathEdgeIndex);
-				PathIndices.Add(Cluster->GetNode(CurrentIndex)->PointIndex);
+				PathIndices.Add(Cluster->GetNodePointIndex(CurrentIndex));
 			}
 		}
 
