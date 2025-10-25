@@ -264,7 +264,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 	}
 
 	FGraphEdgeMetadata::FGraphEdgeMetadata(const int32 InEdgeIndex, const FGraphEdgeMetadata* Parent)
-		: EdgeIndex(InEdgeIndex), ParentIndex(Parent ? Parent->EdgeIndex : InEdgeIndex), RootIndex(Parent ? Parent->RootIndex : InEdgeIndex)
+		: EdgeIndex(InEdgeIndex), RootIndex(Parent ? Parent->RootIndex : InEdgeIndex)
 	{
 	}
 
@@ -768,8 +768,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	FGraphEdgeMetadata& FGraph::GetOrCreateEdgeMetadata_Unsafe(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent)
 	{
-		if (FGraphEdgeMetadata* MetadataPtr = EdgeMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
-		return EdgeMetadata.Add(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, Parent));
+		return EdgeMetadata.FindOrAdd(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, Parent));
 	}
 
 	FGraphEdgeMetadata& FGraph::GetOrCreateEdgeMetadata(const int32 EdgeIndex, const FGraphEdgeMetadata* Parent)
@@ -780,15 +779,13 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		}
 		{
 			FWriteScopeLock WriteScopeLock(EdgeMetadataLock);
-			if (FGraphEdgeMetadata* MetadataPtr = EdgeMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
-			return EdgeMetadata.Add(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, Parent));
+			return EdgeMetadata.FindOrAdd(EdgeIndex, FGraphEdgeMetadata(EdgeIndex, Parent));
 		}
 	}
 
 	FGraphNodeMetadata& FGraph::GetOrCreateNodeMetadata_Unsafe(const int32 NodeIndex)
 	{
-		if (FGraphNodeMetadata* MetadataPtr = NodeMetadata.Find(NodeIndex)) { return *MetadataPtr; }
-		return NodeMetadata.Add(NodeIndex, FGraphNodeMetadata(NodeIndex));
+		return NodeMetadata.FindOrAdd(NodeIndex, FGraphNodeMetadata(NodeIndex));
 	}
 
 	FGraphNodeMetadata& FGraph::GetOrCreateNodeMetadata(const int32 NodeIndex)
@@ -799,8 +796,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		}
 		{
 			FWriteScopeLock WriteScopeLock(NodeMetadataLock);
-			if (FGraphNodeMetadata* MetadataPtr = NodeMetadata.Find(NodeIndex)) { return *MetadataPtr; }
-			return NodeMetadata.Add(NodeIndex, FGraphNodeMetadata(NodeIndex));
+			return NodeMetadata.FindOrAdd(NodeIndex, FGraphNodeMetadata(NodeIndex));
 		}
 	}
 
@@ -917,7 +913,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		VisitedNodes.Init(false, Nodes.Num());
 		VisitedEdges.Init(false, Edges.Num());
 
-		int32 VisitedNum = 0;
+		int32 VisitedNodesNum = 0;
+		int32 VisitedEdgesNum = 0;
+
+		TSharedPtr<FSubGraph> SubGraph = nullptr;
 
 		for (int i = 0; i < Nodes.Num(); i++)
 		{
@@ -926,7 +925,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			if (VisitedNodes[i]) { continue; }
 
 			VisitedNodes[i] = true;
-			VisitedNum++;
+			VisitedNodesNum++;
 
 			if (!CurrentNode.bValid) { continue; }
 			if (CurrentNode.IsEmpty())
@@ -935,11 +934,16 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				continue;
 			}
 
-			PCGEX_MAKE_SHARED(SubGraph, FSubGraph)
-			SubGraph->WeakParentGraph = SharedThis(this);
+			if (!SubGraph)
+			{
+				SubGraph = MakeShared<FSubGraph>();
+				SubGraph->WeakParentGraph = SharedThis(this);
+				SubGraph->Nodes.Reserve(Nodes.Num() - VisitedNodesNum);
+				SubGraph->Edges.Reserve(Edges.Num() - VisitedEdgesNum);
+			}
 
 			TArray<int32> Stack;
-			Stack.Reserve(Nodes.Num() - VisitedNum);
+			Stack.Reserve(Nodes.Num() - VisitedNodesNum);
 			Stack.Add(i);
 
 			while (Stack.Num() > 0)
@@ -954,6 +958,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 					if (VisitedEdges[E]) { continue; }
 					VisitedEdges[E] = true;
+					VisitedEdgesNum++;
 
 					const FEdge& Edge = Edges[E];
 
@@ -968,7 +973,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					if (!VisitedNodes[OtherIndex]) // Only enqueue if not already visited
 					{
 						VisitedNodes[OtherIndex] = true;
-						VisitedNum++;
+						VisitedNodesNum++;
 
 						Stack.Add(OtherIndex);
 					}
@@ -980,11 +985,16 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// Invalidate traversed points and edges
 				for (const int32 j : SubGraph->Nodes) { Nodes[j].bValid = false; }
 				for (const int32 j : SubGraph->Edges) { Edges[j].bValid = false; }
+
+				SubGraph->Nodes.Reset();
+				SubGraph->Edges.Reset();
+				SubGraph->EdgesInIOIndices.Reset();
 			}
 			else if (!SubGraph->Edges.IsEmpty())
 			{
 				SubGraph->Shrink();
 				SubGraphs.Add(SubGraph.ToSharedRef());
+				SubGraph = nullptr;
 			}
 		}
 	}
@@ -1125,7 +1135,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			if (InNodeData && bInheritNodeData)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints::Inherit);
-				
+
 				ReadIndices.SetNumUninitialized(NumValidNodes);
 
 				// In order to inherit from node data
@@ -1160,7 +1170,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			else
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints::New);
-				
+
 				// We don't have to inherit points, this sounds great
 				// However it makes things harder for us because we need to enforce a deterministic layout for other cluster nodes
 				// We make the assumption that if we don't inherit points, we've introduced new one nodes & edges from different threads
@@ -1176,16 +1186,39 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// We save a bit of memory by re-using it
 				PCGEx::ArrayOfIndices(ReadIndices, OutNodeData->GetNumPoints());
 
-				// Sort valid nodes based on outgoing transforms
-				ValidNodes.Sort(
-					[&](const int32 A, const int32 B)
+				{
+					TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::Sort);
+
+					const int32 N = ValidNodes.Num();
+					TArray<double> Xs, Ys, Zs;
+					Xs.SetNumUninitialized(N);
+					Ys.SetNumUninitialized(N);
+					Zs.SetNumUninitialized(N);
+
+					for (int32 i = 0; i < N; ++i)
 					{
-						const FVector V1 = NodePointsTransforms[Nodes[A].PointIndex].GetLocation();
-						const FVector V2 = NodePointsTransforms[Nodes[B].PointIndex].GetLocation();
-						if (V1.X != V2.X) { return V1.X < V2.X; }
-						if (V1.Y != V2.Y) { return V1.Y < V2.Y; }
-						return V1.Z < V2.Z;
-					});
+						const FNode& Node = Nodes[ValidNodes[i]];
+						const FVector P = NodePointsTransforms[Node.PointIndex].GetLocation();
+						Xs[i] = P.X;
+						Ys[i] = P.Y;
+						Zs[i] = P.Z;
+					}
+
+					// Sort valid nodes based on outgoing transforms
+					ValidNodes.Sort(
+						[&](const int32 A, const int32 B)
+						{
+							const float AX = Xs[A];
+							const float BX = Xs[B];
+							if (AX != BX) return AX < BX;
+
+							const float AY = Ys[A];
+							const float BY = Ys[B];
+							if (AY != BY) return AY < BY;
+
+							return Zs[A] < Zs[B];
+						});
+				}
 
 				for (int i = 0; i < NumValidNodes; i++)
 				{
