@@ -42,6 +42,14 @@ USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeUnionMetadataDetails : public FPCGExUnionMetadataDetails
 {
 	GENERATED_BODY()
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteIsSubEdge = false;
+
+	/** Name of the attribute to mark edge as sub edge or not */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Is Sub Edge", EditCondition="bWriteIsSubEdge"))
+	FName IsSubEdgeAttributeName = "SubEdge";
 };
 
 USTRUCT(BlueprintType)

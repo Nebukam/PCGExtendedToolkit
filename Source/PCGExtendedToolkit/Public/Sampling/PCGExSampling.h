@@ -197,7 +197,12 @@ namespace PCGExSampling
 			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
 			TArray<PCGExData::FWeightedPoint>& OutWeightedPoints) const override;
 
-		void AddWeighted_Unsafe(const PCGExData::FElement& Element, const double InWeight);
+		FORCEINLINE void AddWeighted_Unsafe(const PCGExData::FElement& Element, const double InWeight)
+		{
+			Add_Unsafe(Element.Index, Element.IO);
+			Weights.Add(Element, InWeight);
+		}
+		
 		void AddWeighted(const PCGExData::FElement& Element, const double InWeight);
 
 		double GetWeightAverage() const;

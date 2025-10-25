@@ -179,6 +179,8 @@ namespace PCGExGraph
 		bool Init(FPCGExContext* InContext);
 		bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InUniqueSourceFacade, const bool SupportScopedGet);
 
+		void Reserve(const int32 NodeReserve, const int32 EdgeReserve);
+		
 		int32 NumNodes() const;
 		int32 NumEdges() const;
 

@@ -113,8 +113,8 @@ namespace PCGExPointsMT
 		TSharedPtr<PCGExData::FFacadePreloader> InternalFacadePreloader;
 
 		TSharedPtr<PCGExPointFilter::FManager> PrimaryFilters;
-		bool bDaisyChainProcessPoints = false;
-		bool bDaisyChainProcessRange = false;
+		bool bForceSingleThreadedProcessPoints = false;
+		bool bForceSingleThreadedProcessRange = false;
 
 		int32 LocalPointProcessingChunkSize = -1;
 
@@ -221,10 +221,10 @@ namespace PCGExPointsMT
 
 	public:
 		bool bPrefetchData = false;
-		bool bDaisyChainProcessing = false;
+		bool bForceSingleThreadedProcessing = false;
 		bool bSkipCompletion = false;
-		bool bDaisyChainCompletion = false;
-		bool bDaisyChainWrite = false;
+		bool bForceSingleThreadedCompletion = false;
+		bool bForceSingleThreadedWrite = false;
 		bool bRequiresWriteStep = false;
 		TArray<TSharedRef<PCGExData::FFacade>> ProcessorFacades;
 		TMap<PCGExData::FPointIO*, TSharedRef<IProcessor>>* SubProcessorMap = nullptr;

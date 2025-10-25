@@ -96,6 +96,6 @@ bool FPCGExEdgeDirectionSettings::SortEndpoints(const PCGExCluster::FCluster* In
 
 bool FPCGExEdgeDirectionSettings::SortExtrapolation(const PCGExCluster::FCluster* InCluster, const int32 InEdgeIndex, const int32 StartNodeIndex, const int32 EndNodeIndex) const
 {
-	PCGExGraph::FEdge ChainDir = PCGExGraph::FEdge(InEdgeIndex, InCluster->GetNode(StartNodeIndex)->PointIndex, InCluster->GetNode(EndNodeIndex)->PointIndex);
+	PCGExGraph::FEdge ChainDir = PCGExGraph::FEdge(InEdgeIndex, InCluster->GetNodePointIndex(StartNodeIndex), InCluster->GetNode(EndNodeIndex)->PointIndex);
 	return SortEndpoints(InCluster, ChainDir);
 }

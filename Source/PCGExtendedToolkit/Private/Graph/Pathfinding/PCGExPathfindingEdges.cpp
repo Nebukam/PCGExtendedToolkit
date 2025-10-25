@@ -242,8 +242,8 @@ namespace PCGExPathfindingEdges
 		SearchOperation = Context->SearchAlgorithm->CreateOperation(); // Create a local copy
 		SearchOperation->PrepareForCluster(Cluster.Get());
 
-		bDaisyChainProcessRange = HeuristicsHandler->HasGlobalFeedback() || !Settings->bGreedyQueries;
-		if (bDaisyChainProcessRange) { SearchAllocations = SearchOperation->NewAllocations(); }
+		bForceSingleThreadedProcessRange = HeuristicsHandler->HasGlobalFeedback() || !Settings->bGreedyQueries;
+		if (bForceSingleThreadedProcessRange) { SearchAllocations = SearchOperation->NewAllocations(); }
 
 		PCGEx::InitArray(Queries, Context->SeedGoalPairs.Num());
 		for (int i = 0; i < Queries.Num(); i++)
@@ -257,7 +257,7 @@ namespace PCGExPathfindingEdges
 			Queries[i] = Query;
 		}
 
-		StartParallelLoopForRange(Queries.Num(), bDaisyChainProcessRange ? 12 : 1);
+		StartParallelLoopForRange(Queries.Num(), bForceSingleThreadedProcessRange ? 12 : 1);
 		return true;
 	}
 

@@ -13,6 +13,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
+#include "Async/ParallelFor.h"
 
 namespace PCGExGeo
 {
@@ -743,13 +744,14 @@ namespace PCGExGeoTasks
 		PointBounds = PointBounds.ExpandBy(0.1); // Avoid NaN
 		TransformDetails->ComputeTransform(TaskIndex, TargetTransform, PointBounds);
 
-		if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
+		const int32 NumPoints = OutTransforms.Num();
+		if (NumPoints < 4096)
 		{
-			for (FTransform& Transform : OutTransforms) { Transform *= TargetTransform; }
-		}
-		else
-		{
-			if (TransformDetails->bInheritRotation)
+			if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
+			{
+				for (FTransform& Transform : OutTransforms) { Transform *= TargetTransform; }
+			}
+			else if (TransformDetails->bInheritRotation)
 			{
 				for (FTransform& Transform : OutTransforms)
 				{
@@ -773,6 +775,44 @@ namespace PCGExGeoTasks
 				{
 					Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
 				}
+			}
+		}
+		else
+		{
+			if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
+			{
+				ParallelFor(NumPoints, [&](const int32 i) { OutTransforms[i] *= TargetTransform; });
+			}
+			else if (TransformDetails->bInheritRotation)
+			{
+				ParallelFor(
+					NumPoints, [&](const int32 i)
+					{
+						FTransform Transform = OutTransforms[i];
+						FVector OriginalScale = Transform.GetScale3D();
+						Transform *= TargetTransform;
+						Transform.SetScale3D(OriginalScale);
+					});
+			}
+			else if (TransformDetails->bInheritScale)
+			{
+				ParallelFor(
+					NumPoints, [&](const int32 i)
+					{
+						FTransform Transform = OutTransforms[i];
+						FQuat OriginalRot = Transform.GetRotation();
+						Transform *= TargetTransform;
+						Transform.SetRotation(OriginalRot);
+					});
+			}
+			else
+			{
+				ParallelFor(
+					NumPoints, [&](const int32 i)
+					{
+						FTransform Transform = OutTransforms[i];
+						Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
+					});
 			}
 		}
 	}

@@ -12,10 +12,38 @@ namespace PCGExData
 {
 #pragma region Union Data
 
+	void IUnionData::Add(const FElement& Point)
+	{
+		FWriteScopeLock WriteScopeLock(UnionLock);
+		Add_Unsafe(Point.Index, Point.IO);
+	}
+
+	void IUnionData::Add(const int32 Index, const int32 IO)
+	{
+		FWriteScopeLock WriteScopeLock(UnionLock);
+		Add_Unsafe(Index, IO);
+	}
+
+	void IUnionData::Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices)
+	{
+		IOSet.Add(IOIndex);
+		Elements.Reserve(Elements.Num() + PointIndices.Num());
+		for (const int32 A : PointIndices) { Elements.Add(FElement(A, IOIndex)); }
+	}
+
+	void IUnionData::Add(const int32 IOIndex, const TArray<int32>& PointIndices)
+	{
+		FWriteScopeLock WriteScopeLock(UnionLock);
+		Add_Unsafe(IOIndex, PointIndices);
+	}
+
 	int32 IUnionData::ComputeWeights(
-		const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const FPoint& Target,
-		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<FWeightedPoint>& OutWeightedPoints) const
-	{		
+		const TArray<const UPCGBasePointData*>& Sources,
+		const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
+		const FPoint& Target,
+		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
+		TArray<FWeightedPoint>& OutWeightedPoints) const
+	{
 		const int32 NumElements = Elements.Num();
 		OutWeightedPoints.Reset(NumElements);
 
@@ -59,34 +87,6 @@ namespace PCGExData
 		return Index;
 	}
 
-
-	void IUnionData::Add_Unsafe(const FElement& Point)
-	{
-		IOSet.Add(Point.IO);
-		Elements.Emplace(Point.Index == -1 ? 0 : Point.Index, Point.IO);
-	}
-
-	void IUnionData::Add(const FElement& Point)
-	{
-		FWriteScopeLock WriteScopeLock(UnionLock);
-		IOSet.Add(Point.IO);
-		Elements.Emplace(Point.Index == -1 ? 0 : Point.Index, Point.IO);
-	}
-
-
-	void IUnionData::Add_Unsafe(const int32 IOIndex, const TArray<int32>& PointIndices)
-	{
-		IOSet.Add(IOIndex);
-		Elements.Reserve(Elements.Num() + PointIndices.Num());
-		for (const int32 A : PointIndices) { Elements.Add(FElement(A, IOIndex)); }
-	}
-
-	void IUnionData::Add(const int32 IOIndex, const TArray<int32>& PointIndices)
-	{
-		FWriteScopeLock WriteScopeLock(UnionLock);
-		Add_Unsafe(IOIndex, PointIndices);
-	}
-
 	void FUnionMetadata::SetNum(const int32 InNum)
 	{
 		// To be used only with NewEntryAt / NewEntryAt_Unsafe
@@ -96,7 +96,7 @@ namespace PCGExData
 	TSharedPtr<IUnionData> FUnionMetadata::NewEntry_Unsafe(const FConstPoint& Point)
 	{
 		TSharedPtr<IUnionData> NewUnionData = Entries.Add_GetRef(MakeShared<IUnionData>());
-		NewUnionData->Add(Point);
+		NewUnionData->Add_Unsafe(Point);
 		return NewUnionData;
 	}
 
@@ -104,11 +104,6 @@ namespace PCGExData
 	{
 		Entries[ItemIndex] = MakeShared<IUnionData>();
 		return Entries[ItemIndex];
-	}
-
-	void FUnionMetadata::Append(const int32 Index, const FPoint& Point)
-	{
-		Entries[Index]->Add(Point);
 	}
 
 	bool FUnionMetadata::IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices)

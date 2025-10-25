@@ -123,10 +123,13 @@ namespace PCGExCluster
 				// Update index lookup
 				NodeIndexLookup->GetMutable(NewNode.PointIndex) = NewNode.Index;
 			}
+
+			NodesDataPtr = Nodes->GetData();
 		}
 		else
 		{
 			Nodes = OriginalCluster->Nodes;
+			NodesDataPtr = OriginalCluster->NodesDataPtr;
 
 			// Update index lookup
 			for (const FNode& Node : *Nodes) { NodeIndexLookup->GetMutable(Node.PointIndex) = Node.Index; }
@@ -151,10 +154,12 @@ namespace PCGExCluster
 			}
 
 			BoundedEdges.Reset();
+			EdgesDataPtr = Edges->GetData();
 		}
 		else
 		{
 			Edges = OriginalCluster->Edges;
+			EdgesDataPtr = OriginalCluster->EdgesDataPtr;
 		}
 	}
 
@@ -263,6 +268,9 @@ namespace PCGExCluster
 		Nodes->Shrink();
 		Bounds = Bounds.ExpandBy(10);
 
+		NodesDataPtr = Nodes->GetData();
+		EdgesDataPtr = Edges->GetData();
+
 		return true;
 	}
 
@@ -301,6 +309,9 @@ namespace PCGExCluster
 		}
 
 		Bounds = Bounds.ExpandBy(10);
+
+		NodesDataPtr = Nodes->GetData();
+		EdgesDataPtr = Edges->GetData();
 	}
 
 	bool FCluster::IsValidWith(const TSharedRef<PCGExData::FPointIO>& InVtxIO, const TSharedRef<PCGExData::FPointIO>& InEdgesIO) const
@@ -388,25 +399,25 @@ namespace PCGExCluster
 
 	FVector FCluster::GetEdgeDir(const int32 InEdgeIndex) const
 	{
-		const FEdge* Edge = Edges->GetData() + InEdgeIndex;
+		const FEdge* Edge = EdgesDataPtr + InEdgeIndex;
 		return (VtxTransforms[Edge->Start].GetLocation() - VtxTransforms[Edge->End].GetLocation()).GetSafeNormal();
 	}
 
 	FVector FCluster::GetEdgeDir(const FLink Lk) const
 	{
-		const FEdge* Edge = Edges->GetData() + Lk.Edge;
+		const FEdge* Edge = EdgesDataPtr + Lk.Edge;
 		return (VtxTransforms[Edge->Start].GetLocation() - VtxTransforms[Edge->End].GetLocation()).GetSafeNormal();
 	}
 
 	FVector FCluster::GetEdgeDir(const int32 InEdgeIndex, const int32 InStartPtIndex) const
 	{
-		const FEdge* Edge = Edges->GetData() + InEdgeIndex;
+		const FEdge* Edge = EdgesDataPtr + InEdgeIndex;
 		return (VtxTransforms[InStartPtIndex].GetLocation() - VtxTransforms[Edge->Other(InStartPtIndex)].GetLocation()).GetSafeNormal();
 	}
 
 	FVector FCluster::GetEdgeDir(const FLink Lk, const int32 InStartPtIndex) const
 	{
-		const FEdge* Edge = Edges->GetData() + Lk.Edge;
+		const FEdge* Edge = EdgesDataPtr + Lk.Edge;
 		return (VtxTransforms[InStartPtIndex].GetLocation() - VtxTransforms[Edge->Other(InStartPtIndex)].GetLocation()).GetSafeNormal();
 	}
 
@@ -429,7 +440,7 @@ namespace PCGExCluster
 		NodeOctree = MakeShared<PCGExOctree::FItemOctree>(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
 		for (int i = 0; i < Nodes->Num(); i++)
 		{
-			const FNode* Node = Nodes->GetData() + i;
+			const FNode* Node = NodesDataPtr + i;
 			const PCGExData::FConstPoint Pt = PCGExData::FConstPoint(VtxPoints, Node->PointIndex);
 			NodeOctree->AddElement(PCGExOctree::FItem(Node->Index, FBoxSphereBounds(Pt.GetLocalBounds().TransformBy(Pt.GetTransform()))));
 		}
@@ -443,25 +454,26 @@ namespace PCGExCluster
 
 		EdgeOctree = MakeShared<PCGExOctree::FItemOctree>(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
 
+		const int32 NumEdges = Edges->Num();
+
 		if (!BoundedEdges)
 		{
 			BoundedEdges = MakeShared<TArray<FBoundedEdge>>();
-			PCGEx::InitArray(BoundedEdges, Edges->Num());
+			PCGEx::InitArray(BoundedEdges, NumEdges);
 
 			TArray<FBoundedEdge>& BoundedEdgesRef = (*BoundedEdges);
 
-			for (int i = 0; i < Edges->Num(); i++)
+			for (int i = 0; i < NumEdges; i++)
 			{
-				const FBoundedEdge& NewBoundedEdge = (BoundedEdgesRef[i] = FBoundedEdge(this, i));
+				FBoundedEdge& NewBoundedEdge = BoundedEdgesRef[i];
+				NewBoundedEdge = FBoundedEdge(this, i);
 				EdgeOctree->AddElement(PCGExOctree::FItem(i, NewBoundedEdge.Bounds));
 			}
 		}
 		else
 		{
-			for (int i = 0; i < Edges->Num(); i++)
-			{
-				EdgeOctree->AddElement(PCGExOctree::FItem(i, (BoundedEdges->GetData() + i)->Bounds));
-			}
+			const FBoundedEdge* BoundedEdgesDataPtr = BoundedEdges->GetData();
+			for (int i = 0; i < NumEdges; i++) { EdgeOctree->AddElement(PCGExOctree::FItem(i, (BoundedEdgesDataPtr + i)->Bounds)); }
 		}
 	}
 
@@ -627,8 +639,8 @@ namespace PCGExCluster
 
 	int32 FCluster::FindClosestEdge(const int32 InNodeIndex, const FVector& InPosition, const int32 MinNeighbors) const
 	{
-		if (!Nodes->IsValidIndex(InNodeIndex) || (Nodes->GetData() + InNodeIndex)->IsEmpty()) { return -1; }
-		const FNode& Node = *(Nodes->GetData() + InNodeIndex);
+		if (!Nodes->IsValidIndex(InNodeIndex) || (NodesDataPtr + InNodeIndex)->IsEmpty()) { return -1; }
+		const FNode& Node = *(NodesDataPtr + InNodeIndex);
 
 		double BestDist = MAX_dbl;
 		double BestDot = MAX_dbl;
@@ -842,7 +854,7 @@ namespace PCGExCluster
 
 	FVector FCluster::GetClosestPointOnEdge(const int32 EdgeIndex, const FVector& Position) const
 	{
-		return GetClosestPointOnEdge(*(Edges->GetData() + EdgeIndex), Position);
+		return GetClosestPointOnEdge(*(EdgesDataPtr + EdgeIndex), Position);
 	}
 
 	double FCluster::GetPointDistToEdgeSquared(const FEdge& InEdge, const FVector& Position) const
@@ -855,12 +867,12 @@ namespace PCGExCluster
 
 	double FCluster::GetPointDistToEdgeSquared(const int32 EdgeIndex, const FVector& Position) const
 	{
-		return GetPointDistToEdgeSquared(*(Edges->GetData() + EdgeIndex), Position);
+		return GetPointDistToEdgeSquared(*(EdgesDataPtr + EdgeIndex), Position);
 	}
 
 	FVector FCluster::GetCentroid(const int32 NodeIndex) const
 	{
-		const FNode* Node = (Nodes->GetData() + NodeIndex);
+		const FNode* Node = (NodesDataPtr + NodeIndex);
 		FVector Centroid = FVector::ZeroVector;
 		for (const FLink Lk : Node->Links) { Centroid += GetPos(Lk.Node); }
 		return Centroid / static_cast<double>(Node->Num());
@@ -982,7 +994,7 @@ namespace PCGExCluster
 		{
 			const FLink Lk = InNode.Links[i];
 
-			const FNode* OtherNode = InCluster->Nodes->GetData() + Lk.Node;
+			const FNode* OtherNode = InCluster->NodesDataPtr + Lk.Node;
 			const FVector OtherPosition = InCluster->GetPos(OtherNode);
 
 			FAdjacencyData& Data = OutData.Emplace_GetRef();
@@ -1010,10 +1022,4 @@ namespace PCGExCluster
 	}
 
 #pragma endregion
-}
-
-bool FPCGExNodeSelectionDetails::WithinDistance(const FVector& NodePosition, const FVector& TargetPosition) const
-{
-	if (MaxDistance <= 0) { return true; }
-	return FVector::Distance(NodePosition, TargetPosition) < MaxDistance;
 }

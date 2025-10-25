@@ -85,7 +85,7 @@ namespace PCGExFuseCollinear
 		ReadIndices.Reserve(Path->NumPoints);
 		LastPosition = Path->GetPos(0);
 
-		bDaisyChainProcessPoints = true;
+		bForceSingleThreadedProcessPoints = true;
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;

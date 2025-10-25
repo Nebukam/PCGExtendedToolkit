@@ -191,7 +191,7 @@ namespace PCGExFindContours
 		TArray<int32> ReadIndices;
 		ReadIndices.SetNumUninitialized(NumCellPoints);
 
-		for (int i = 0; i < NumCellPoints; i++) { ReadIndices[i] = Cluster->GetNode(InCell->Nodes[i])->PointIndex; }
+		for (int i = 0; i < NumCellPoints; i++) { ReadIndices[i] = Cluster->GetNodePointIndex(InCell->Nodes[i]); }
 
 		PathIO->InheritPoints(ReadIndices, 0);
 		InCell->PostProcessPoints(PathIO->GetOut());

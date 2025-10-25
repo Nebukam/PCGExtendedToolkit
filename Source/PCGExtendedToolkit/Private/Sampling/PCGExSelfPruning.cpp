@@ -135,7 +135,7 @@ namespace PCGExSelfPruning
 
 		for (int32 i = 0; i < NumPoints; i++) { Priority[Order[i]] = i; }
 
-		bDaisyChainProcessRange = Settings->Mode == EPCGExSelfPruningMode::Prune;
+		bForceSingleThreadedProcessRange = Settings->Mode == EPCGExSelfPruningMode::Prune;
 		StartParallelLoopForPoints(PCGExData::EIOSide::In);
 
 		return true;

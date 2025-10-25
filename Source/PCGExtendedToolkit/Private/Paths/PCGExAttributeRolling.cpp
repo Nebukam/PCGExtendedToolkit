@@ -213,7 +213,7 @@ namespace PCGExAttributeRolling
 
 		SourceIndex = bRoll ? FirstIndex : -1;
 
-		bDaisyChainProcessRange = true;
+		bForceSingleThreadedProcessRange = true;
 		StartParallelLoopForRange(PointDataFacade->GetNum());
 
 		return true;

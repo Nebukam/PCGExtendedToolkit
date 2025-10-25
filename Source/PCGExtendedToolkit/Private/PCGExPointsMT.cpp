@@ -90,7 +90,7 @@ namespace PCGExPointsMT
 			Points, NumPoints,
 			PrepareLoopScopesForPoints, ProcessPoints,
 			OnPointsProcessingComplete,
-			bDaisyChainProcessPoints)
+			bForceSingleThreadedProcessPoints)
 	}
 
 	void IProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
@@ -111,7 +111,7 @@ namespace PCGExPointsMT
 			Ranges, NumIterations,
 			PrepareLoopScopesForRanges, ProcessRange,
 			OnRangeProcessingComplete,
-			bDaisyChainProcessRange)
+			bForceSingleThreadedProcessRange)
 	}
 
 	void IProcessor::PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
@@ -267,13 +267,13 @@ namespace PCGExPointsMT
 	{
 		if (bSkipCompletion) { return; }
 		CurrentState.store(PCGExCommon::State_Completing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bDaisyChainCompletion, { Processor->CompleteWork(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, { Processor->CompleteWork(); })
 	}
 
 	void IBatch::Write()
 	{
 		CurrentState.store(PCGExCommon::State_Writing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bDaisyChainWrite, { Processor->Write(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, { Processor->Write(); })
 	}
 
 	void IBatch::Output()
@@ -302,7 +302,7 @@ namespace PCGExPointsMT
 				This->OnInitialPostProcess();
 			});
 
-		PCGEX_ASYNC_MT_LOOP_TPL(Process, bDaisyChainProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, InitializationTracker)
+		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, InitializationTracker)
 	}
 
 	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch)
