@@ -36,6 +36,9 @@ TArray<FPCGPinProperties> UPCGExBinPackingSettings::OutputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(BinPacking)
+
+PCGExData::EIOInit UPCGExBinPackingSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BinPacking)
 
 bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
@@ -264,7 +267,7 @@ namespace PCGExBinPacking
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->Source->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];

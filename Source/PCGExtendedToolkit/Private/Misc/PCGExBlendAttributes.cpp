@@ -18,6 +18,9 @@ TArray<FPCGPinProperties> UPCGExBlendAttributesSettings::InputPinProperties() co
 }
 
 PCGEX_INITIALIZE_ELEMENT(BlendAttributes)
+
+PCGExData::EIOInit UPCGExBlendAttributesSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BlendAttributes)
 
 bool FPCGExBlendAttributesElement::Boot(FPCGExContext* InContext) const
@@ -66,7 +69,7 @@ namespace PCGExBlendAttributes
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>();
 		BlendOpsManager->SetSources(PointDataFacade, PCGExData::EIOSide::Out);

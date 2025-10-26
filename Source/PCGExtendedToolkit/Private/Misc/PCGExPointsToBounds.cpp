@@ -99,6 +99,13 @@ void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InP
 }
 
 PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
+
+PCGExData::EIOInit UPCGExPointsToBoundsSettings::GetIOPreInitForMainPoints() const
+{
+	if (OutputMode == EPCGExPointsToBoundsOutputMode::Collapse) { return PCGExData::EIOInit::New; }
+	else { return PCGExData::EIOInit::Duplicate; }
+}
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PointsToBounds)
 
 bool FPCGExPointsToBoundsElement::Boot(FPCGExContext* InContext) const
@@ -152,13 +159,13 @@ namespace PCGExPointsToBounds
 
 		if (Settings->OutputMode == EPCGExPointsToBoundsOutputMode::Collapse)
 		{
-			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
+			//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 			OutputIO = PointDataFacade->Source;
 			OutputFacade = PointDataFacade;
 		}
 		else
 		{
-			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+			//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 			OutputIO = MakeShared<PCGExData::FPointIO>(PointDataFacade->Source);
 			OutputIO->InitializeOutput(PCGExData::EIOInit::New);
 			OutputIO->Disable();

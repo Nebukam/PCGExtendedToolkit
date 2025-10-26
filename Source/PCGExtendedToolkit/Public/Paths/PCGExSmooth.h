@@ -42,6 +42,8 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+	
 	//~Begin UPCGExPointsProcessorSettings
 public:
 #if WITH_EDITORONLY_DATA
@@ -49,7 +51,7 @@ public:
 	virtual void PostInitProperties() override;
 	// End of UObject interface
 #endif
-
+	
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters which points get smoothed.", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 

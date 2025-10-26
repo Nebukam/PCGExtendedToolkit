@@ -21,6 +21,9 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHullSettings::OutputPinProperties() c
 }
 
 PCGEX_INITIALIZE_ELEMENT(BuildConvexHull)
+
+PCGExData::EIOInit UPCGExBuildConvexHullSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BuildConvexHull)
 
 FName UPCGExBuildConvexHullSettings::GetMainOutputPin() const { return PCGExGraph::OutputVerticesLabel; }
@@ -95,7 +98,7 @@ namespace PCGExBuildConvexHull
 
 		ActivePositions.Empty();
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		Edges = Delaunay->DelaunayEdges.Array();
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);

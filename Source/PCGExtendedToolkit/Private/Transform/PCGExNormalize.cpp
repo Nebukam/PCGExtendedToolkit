@@ -38,6 +38,8 @@ bool UPCGExNormalizeSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) con
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
+PCGExData::EIOInit UPCGExNormalizeSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 bool FPCGExNormalizeElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
@@ -95,7 +97,7 @@ namespace PCGExNormalize
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		TransformBuffer = Settings->GetValueSettingTransform();
 		if (!TransformBuffer->Init(PointDataFacade, true)) { return false; }

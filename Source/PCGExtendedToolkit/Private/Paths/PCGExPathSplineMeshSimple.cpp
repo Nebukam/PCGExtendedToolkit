@@ -37,6 +37,9 @@ void UPCGExPathSplineMeshSimpleSettings::ApplyDeprecation(UPCGNode* InOutNode)
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(PathSplineMeshSimple)
+
+PCGExData::EIOInit UPCGExPathSplineMeshSimpleSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSplineMeshSimple)
 
 UPCGExPathSplineMeshSimpleSettings::UPCGExPathSplineMeshSimpleSettings(
@@ -179,7 +182,7 @@ namespace PCGExPathSplineMeshSimple
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 

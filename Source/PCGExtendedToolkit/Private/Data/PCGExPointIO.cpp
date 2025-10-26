@@ -64,8 +64,20 @@ namespace PCGExData
 		if (InitOut == EIOInit::Forward && IsValid(Out) && Out == In)
 		{
 			// Already forwarding
+			LastInit = EIOInit::Forward;
 			return true;
 		}
+
+		if (LastInit == EIOInit::Duplicate
+			&& InitOut == EIOInit::New
+			&& Out && Out != In)
+		{
+			LastInit = EIOInit::New;
+			Out->SetNumPoints(0); // lol
+			return true;
+		}
+
+		LastInit = InitOut;
 
 		if (IsValid(Out) && Out != In)
 		{

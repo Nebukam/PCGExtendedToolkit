@@ -79,7 +79,7 @@ public:
 #endif
 
 protected:
-	virtual PCGExData::EIOInit GetMainIOInit() const;
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual bool OnlyPassThroughOneEdgeWhenDisabled() const override { return false; }

@@ -45,6 +45,8 @@ void UPCGExSmoothSettings::PostInitProperties()
 
 PCGEX_INITIALIZE_ELEMENT(Smooth)
 
+PCGExData::EIOInit UPCGExSmoothSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(Smooth)
 
 bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
@@ -113,7 +115,7 @@ namespace PCGExSmooth
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 		NumPoints = PointDataFacade->GetNum();

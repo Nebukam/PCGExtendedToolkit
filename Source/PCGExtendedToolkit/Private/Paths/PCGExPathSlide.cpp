@@ -11,6 +11,9 @@
 #define PCGEX_NAMESPACE PathSlide
 
 PCGEX_INITIALIZE_ELEMENT(PathSlide)
+
+PCGExData::EIOInit UPCGExPathSlideSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSlide)
 
 PCGEX_SETTING_VALUE_IMPL(UPCGExPathSlideSettings, SlideAmount, double, SlideAmountInput, SlideAmountAttribute, SlideAmountConstant)
@@ -74,7 +77,7 @@ namespace PCGExPathSlide
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());

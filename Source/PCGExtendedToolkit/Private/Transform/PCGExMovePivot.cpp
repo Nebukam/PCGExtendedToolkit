@@ -11,6 +11,9 @@
 #define PCGEX_NAMESPACE MovePivot
 
 PCGEX_INITIALIZE_ELEMENT(MovePivot)
+
+PCGExData::EIOInit UPCGExMovePivotSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(MovePivot)
 
 bool FPCGExMovePivotElement::Boot(FPCGExContext* InContext) const
@@ -60,7 +63,7 @@ namespace PCGExMovePivot
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		UVW = Settings->UVW;
 		if (!UVW.Init(ExecutionContext, PointDataFacade)) { return false; }

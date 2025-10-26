@@ -38,6 +38,9 @@ TArray<FPCGPinProperties> UPCGExWriteTangentsSettings::InputPinProperties() cons
 }
 
 PCGEX_INITIALIZE_ELEMENT(WriteTangents)
+
+PCGExData::EIOInit UPCGExWriteTangentsSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteTangents)
 
 FName UPCGExWriteTangentsSettings::GetPointFilterPin() const
@@ -119,7 +122,7 @@ namespace PCGExWriteTangents
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointDataFacade->GetIn());
 

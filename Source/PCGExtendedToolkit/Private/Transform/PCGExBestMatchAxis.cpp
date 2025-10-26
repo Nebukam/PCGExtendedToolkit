@@ -21,6 +21,9 @@ TArray<FPCGPinProperties> UPCGExBestMatchAxisSettings::InputPinProperties() cons
 }
 
 PCGEX_INITIALIZE_ELEMENT(BestMatchAxis)
+
+PCGExData::EIOInit UPCGExBestMatchAxisSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BestMatchAxis)
 
 bool FPCGExBestMatchAxisElement::Boot(FPCGExContext* InContext) const
@@ -86,7 +89,7 @@ namespace PCGExBestMatchAxis
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		if (Context->TargetsHandler)
 		{
@@ -104,8 +107,6 @@ namespace PCGExBestMatchAxis
 			MatchGetter = Settings->GetValueSettingMatch();
 			if (!MatchGetter->Init(PointDataFacade)) { return false; }
 		}
-
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
 		AllocateFor |= EPCGPointNativeProperties::Transform;

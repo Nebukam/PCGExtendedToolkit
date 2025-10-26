@@ -20,6 +20,9 @@ UPCGExShrinkPathSettings::UPCGExShrinkPathSettings(
 }
 
 PCGEX_INITIALIZE_ELEMENT(ShrinkPath)
+
+PCGExData::EIOInit UPCGExShrinkPathSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(ShrinkPath)
 
 void FPCGExShrinkPathContext::GetShrinkAmounts(
@@ -233,7 +236,7 @@ namespace PCGExShrinkPath
 			return false;
 		}
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		(void)PointDataFacade->Source->Gather(Mask);
 
 		UPCGBasePointData* OutData = PointDataFacade->Source->GetOut();

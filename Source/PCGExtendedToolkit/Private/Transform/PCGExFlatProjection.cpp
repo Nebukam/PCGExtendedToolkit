@@ -12,6 +12,9 @@
 #define PCGEX_NAMESPACE FlatProjection
 
 PCGEX_INITIALIZE_ELEMENT(FlatProjection)
+
+PCGExData::EIOInit UPCGExFlatProjectionSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(FlatProjection)
 
 bool FPCGExFlatProjectionElement::Boot(FPCGExContext* InContext) const
@@ -93,7 +96,7 @@ namespace PCGExFlatProjection
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		bWriteAttribute = Settings->bSaveAttributeForRestore;

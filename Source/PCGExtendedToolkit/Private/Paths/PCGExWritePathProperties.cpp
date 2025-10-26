@@ -29,6 +29,9 @@ TArray<FPCGPinProperties> UPCGExWritePathPropertiesSettings::OutputPinProperties
 }
 
 PCGEX_INITIALIZE_ELEMENT(WritePathProperties)
+
+PCGExData::EIOInit UPCGExWritePathPropertiesSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(WritePathProperties)
 
 bool FPCGExWritePathPropertiesElement::Boot(FPCGExContext* InContext) const
@@ -113,7 +116,7 @@ namespace PCGExWritePathProperties
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }

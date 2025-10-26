@@ -51,6 +51,9 @@ void FPCGExAttributeRemapContext::RegisterAssetDependencies()
 }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
+
+PCGExData::EIOInit UPCGExAttributeRemapSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeRemap)
 
 bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const
@@ -125,7 +128,7 @@ namespace PCGExAttributeRemap
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		TArray<TSharedPtr<PCGExData::IBufferProxy>> UntypedInputProxies;
 		TArray<TSharedPtr<PCGExData::IBufferProxy>> UntypedOutputProxies;

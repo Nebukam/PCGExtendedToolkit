@@ -26,6 +26,9 @@ TArray<FPCGPinProperties> UPCGExBatchActionsSettings::InputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(BatchActions)
+
+PCGExData::EIOInit UPCGExBatchActionsSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BatchActions)
 
 bool FPCGExBatchActionsElement::Boot(FPCGExContext* InContext) const
@@ -117,7 +120,7 @@ namespace PCGExBatchActions
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 

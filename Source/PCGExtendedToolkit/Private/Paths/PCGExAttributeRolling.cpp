@@ -42,6 +42,9 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRolling)
+
+PCGExData::EIOInit UPCGExAttributeRollingSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeRolling)
 
 bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
@@ -152,7 +155,7 @@ namespace PCGExAttributeRolling
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		{
 			// Initialize attributes before blend ops so they can be used during the rolling

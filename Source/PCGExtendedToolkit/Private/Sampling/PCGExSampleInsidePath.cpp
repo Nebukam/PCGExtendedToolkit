@@ -60,6 +60,9 @@ bool UPCGExSampleInsidePathSettings::IsPinUsedByNodeExecution(const UPCGPin* InP
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleInsidePath)
+
+PCGExData::EIOInit UPCGExSampleInsidePathSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleInsidePath)
 
 bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
@@ -218,7 +221,7 @@ namespace PCGExSampleInsidePath
 			return false;
 		}
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		Path = MakeShared<PCGExPaths::FPolyPath>(PointDataFacade, Settings->ProjectionDetails, 1, Settings->HeightInclusion);
 

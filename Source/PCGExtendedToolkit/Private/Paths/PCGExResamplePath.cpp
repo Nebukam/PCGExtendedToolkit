@@ -10,6 +10,13 @@
 #define PCGEX_NAMESPACE ResamplePath
 
 PCGEX_INITIALIZE_ELEMENT(ResamplePath)
+
+PCGExData::EIOInit UPCGExResamplePathSettings::GetIOPreInitForMainPoints() const
+{
+	if (Mode == EPCGExResampleMode::Sweep) { return PCGExData::EIOInit::New; }
+	else { return PCGExData::EIOInit::Duplicate; }
+}
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(ResamplePath)
 
 bool FPCGExResamplePathElement::Boot(FPCGExContext* InContext) const
@@ -87,12 +94,12 @@ namespace PCGExResamplePath
 
 			if (NumSamples < 2) { return false; }
 
-			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
+			//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 			PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), NumSamples, PointDataFacade->GetAllocations());
 		}
 		else
 		{
-			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+			//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 			PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 			NumSamples = PointDataFacade->GetNum();
 		}

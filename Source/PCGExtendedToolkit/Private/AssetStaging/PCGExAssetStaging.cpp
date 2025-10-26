@@ -42,6 +42,8 @@ TArray<FPCGPinProperties> UPCGExAssetStagingSettings::OutputPinProperties() cons
 	return PinProperties;
 }
 
+PCGExData::EIOInit UPCGExAssetStagingSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
@@ -212,7 +214,7 @@ namespace PCGExAssetStaging
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		NumPoints = PointDataFacade->GetNum();
 

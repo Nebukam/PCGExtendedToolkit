@@ -27,6 +27,9 @@ TArray<FPCGPinProperties> UPCGExSampleTextureSettings::InputPinProperties() cons
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleTexture)
+
+PCGExData::EIOInit UPCGExSampleTextureSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleTexture)
 
 bool FPCGExSampleTextureElement::Boot(FPCGExContext* InContext) const
@@ -109,7 +112,7 @@ namespace PCGExSampleTexture
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		SamplingMask.Init(false, PointDataFacade->GetNum());
 

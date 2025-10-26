@@ -13,6 +13,9 @@
 #define PCGEX_NAMESPACE LloydRelax
 
 PCGEX_INITIALIZE_ELEMENT(LloydRelax)
+
+PCGExData::EIOInit UPCGExLloydRelaxSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(LloydRelax)
 
 bool FPCGExLloydRelaxElement::Boot(FPCGExContext* InContext) const
@@ -68,7 +71,7 @@ namespace PCGExLloydRelax
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		InfluenceDetails = Settings->InfluenceDetails;

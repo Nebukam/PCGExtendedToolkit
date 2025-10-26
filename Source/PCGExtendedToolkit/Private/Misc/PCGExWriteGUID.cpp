@@ -90,6 +90,9 @@ void FPCGExGUIDDetails::GetGUID(const int32 Index, const PCGExData::FConstPoint&
 }
 
 PCGEX_INITIALIZE_ELEMENT(WriteGUID)
+
+PCGExData::EIOInit UPCGExWriteGUIDSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteGUID)
 
 bool FPCGExWriteGUIDElement::Boot(FPCGExContext* InContext) const
@@ -138,7 +141,7 @@ namespace PCGExWriteGUID
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		Config = Settings->Config;
 

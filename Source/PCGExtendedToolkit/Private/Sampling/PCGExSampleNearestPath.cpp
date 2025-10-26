@@ -56,6 +56,9 @@ bool UPCGExSampleNearestPathSettings::IsPinUsedByNodeExecution(const UPCGPin* In
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPath)
+
+PCGExData::EIOInit UPCGExSampleNearestPathSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleNearestPath)
 
 bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
@@ -239,7 +242,7 @@ namespace PCGExSampleNearestPath
 			return false;
 		}
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		// Allocate edge native properties
 

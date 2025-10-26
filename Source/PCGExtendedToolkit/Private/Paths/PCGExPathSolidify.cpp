@@ -11,6 +11,9 @@
 #define PCGEX_NAMESPACE PathSolidify
 
 PCGEX_INITIALIZE_ELEMENT(PathSolidify)
+
+PCGExData::EIOInit UPCGExPathSolidifySettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSolidify)
 
 PCGEX_SETTING_VALUE_IMPL(UPCGExPathSolidifySettings, SolidificationLerp, double, SolidificationLerpInput, SolidificationLerpAttribute, SolidificationLerpConstant)
@@ -69,7 +72,7 @@ namespace PCGExPathSolidify
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
