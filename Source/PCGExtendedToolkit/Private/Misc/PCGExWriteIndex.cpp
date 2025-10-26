@@ -257,7 +257,7 @@ namespace PCGExWriteIndex
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		NumPoints = PointDataFacade->GetNum();
 		MaxIndex = NumPoints - 1;

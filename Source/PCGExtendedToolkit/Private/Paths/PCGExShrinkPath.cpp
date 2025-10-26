@@ -236,7 +236,7 @@ namespace PCGExShrinkPath
 			return false;
 		}
 
-		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 		(void)PointDataFacade->Source->Gather(Mask);
 
 		UPCGBasePointData* OutData = PointDataFacade->Source->GetOut();

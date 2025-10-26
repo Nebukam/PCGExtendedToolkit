@@ -117,7 +117,7 @@ namespace PCGExShiftPath
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		MaxIndex = PointDataFacade->GetNum(PCGExData::EIOSide::In) - 1;
 		PivotIndex = Settings->bReverseShift ? MaxIndex : 0;

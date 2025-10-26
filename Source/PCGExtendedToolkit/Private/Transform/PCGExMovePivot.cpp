@@ -63,7 +63,7 @@ namespace PCGExMovePivot
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		UVW = Settings->UVW;
 		if (!UVW.Init(ExecutionContext, PointDataFacade)) { return false; }

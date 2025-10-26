@@ -94,12 +94,12 @@ namespace PCGExResamplePath
 
 			if (NumSamples < 2) { return false; }
 
-			//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
 			PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), NumSamples, PointDataFacade->GetAllocations());
 		}
 		else
 		{
-			//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 			PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 			NumSamples = PointDataFacade->GetNum();
 		}

@@ -174,7 +174,7 @@ namespace PCGExSampleVtxByID
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		// Allocate edge native properties
 

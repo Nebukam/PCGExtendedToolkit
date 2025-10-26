@@ -72,7 +72,7 @@ namespace PCGExPathSolidify
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());

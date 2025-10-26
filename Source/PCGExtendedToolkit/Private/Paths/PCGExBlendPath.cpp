@@ -97,7 +97,7 @@ namespace PCGExBlendPath
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		//PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		if (Settings->BlendOver == EPCGExBlendOver::Fixed)
 		{
