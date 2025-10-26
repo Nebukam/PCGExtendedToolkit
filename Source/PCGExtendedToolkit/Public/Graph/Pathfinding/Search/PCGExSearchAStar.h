@@ -20,7 +20,7 @@ public:
 		const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
 		const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
 		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback = nullptr) const override;
-	
+
 	virtual TSharedPtr<PCGExPathfinding::FSearchAllocations> NewAllocations() const override;
 };
 

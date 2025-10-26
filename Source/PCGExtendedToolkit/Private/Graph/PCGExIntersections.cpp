@@ -108,7 +108,7 @@ namespace PCGExGraph
 
 		if (!Octree)
 		{
-			const uint32 GridKey = FuseDetails.GetGridKey(Origin, Point.Index);
+			const uint64 GridKey = FuseDetails.GetGridKey(Origin, Point.Index);
 			TSharedPtr<FUnionNode>* NodePtr;
 
 			{
@@ -207,7 +207,7 @@ namespace PCGExGraph
 
 		if (!Octree)
 		{
-			const uint32 GridKey = FuseDetails.GetGridKey(Origin, Point.Index);
+			const uint64 GridKey = FuseDetails.GetGridKey(Origin, Point.Index);
 
 			if (TSharedPtr<FUnionNode>* NodePtr = GridTree.Find(GridKey))
 			{

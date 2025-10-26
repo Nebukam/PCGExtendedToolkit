@@ -97,7 +97,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyEdgesProcessorContext : FPCGExEdgesP
 
 	TSharedPtr<PCGExTopology::FHoles> Holes;
 	TSharedPtr<PCGExData::FFacade> HolesFacade;
-	TArray<TSharedPtr<TMap<uint32, int32>>> HashMaps;
+	TArray<TSharedPtr<TMap<uint64, int32>>> HashMaps;
 
 	TArray<FString> ComponentTags;
 
@@ -147,7 +147,7 @@ namespace PCGExTopologyEdges
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::EdgeFilterCache;
 		using PCGExClusterMT::TProcessor<TContext, TSettings>::DefaultEdgeFilterValue;
 
-		TSharedPtr<TMap<uint32, int32>> ProjectedHashMap;
+		TSharedPtr<TMap<uint64, int32>> ProjectedHashMap;
 
 		TObjectPtr<UDynamicMesh> GetInternalMesh() { return InternalMesh; }
 
@@ -294,7 +294,7 @@ namespace PCGExTopologyEdges
 					const int32 VtxCount = InMesh.MaxVertexID();
 					const TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
 					const TConstPCGValueRange<FVector4> InColors = VtxDataFacade->GetIn()->GetConstColorValueRange();
-					const TMap<uint32, int32>& HashMapRef = *ProjectedHashMap;
+					const TMap<uint64, int32>& HashMapRef = *ProjectedHashMap;
 
 					FVector4f DefaultVertexColor = FVector4f(Settings->Topology.DefaultVertexColor);
 
@@ -348,7 +348,7 @@ namespace PCGExTopologyEdges
 		using PCGExClusterMT::TBatch<T>::ExecutionContext;
 		using PCGExClusterMT::TBatch<T>::NodeIndexLookup;
 
-		TSharedPtr<TMap<uint32, int32>> ProjectedHashMap;
+		TSharedPtr<TMap<uint64, int32>> ProjectedHashMap;
 
 	public:
 		using PCGExClusterMT::TBatch<T>::VtxDataFacade;
@@ -356,7 +356,7 @@ namespace PCGExTopologyEdges
 		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			PCGExClusterMT::TBatch<T>(InContext, InVtx, InEdges)
 		{
-			ProjectedHashMap = MakeShared<TMap<uint32, int32>>();
+			ProjectedHashMap = MakeShared<TMap<uint64, int32>>();
 			ProjectedHashMap->Reserve(InVtx->GetNum());
 			static_cast<FPCGExTopologyEdgesProcessorContext*>(InContext)->HashMaps[InVtx->IOIndex] = ProjectedHashMap;
 		}
@@ -381,19 +381,6 @@ namespace PCGExTopologyEdges
 
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
 			PCGExClusterMT::TBatch<T>::Output();
-		}
-
-	protected:
-		virtual void OnInitialPostProcess() override
-		{
-			const int32 NumVtx = VtxDataFacade->GetNum();
-
-			TMap<uint32, int32>& MP = *ProjectedHashMap;
-			const TArray<FVector2D>& PP = *this->ProjectedVtxPositions.Get();
-
-			for (int i = 0; i < NumVtx; i++) { MP.Add(PCGEx::GH2(PP[i], CWTolerance), i); }
-
-			PCGExClusterMT::TBatch<T>::OnInitialPostProcess();
 		}
 	};
 }

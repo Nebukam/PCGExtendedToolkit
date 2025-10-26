@@ -33,7 +33,7 @@ bool FPCGExProbeNumericCompare::PrepareForPoints(FPCGExContext* InContext, const
 	return true;
 }
 
-void FPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
 	const int32 MaxIterations = FMath::Min(MaxConnections->Read(Index), Candidates.Num());
@@ -41,7 +41,7 @@ void FPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FTran
 
 	if (MaxIterations <= 0) { return; }
 
-	TSet<FInt32Vector> LocalCoincidence;
+	TSet<uint64> LocalCoincidence;
 	int32 Additions = 0;
 
 	for (PCGExProbing::FCandidate& C : Candidates)
@@ -56,7 +56,7 @@ void FPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FTran
 
 		if (Config.bPreventCoincidence)
 		{
-			LocalCoincidence.Add(PCGEx::I323(C.Direction, CWCoincidenceTolerance), &bIsAlreadyConnected);
+			LocalCoincidence.Add(PCGEx::GH3(C.Direction, CWCoincidenceTolerance), &bIsAlreadyConnected);
 			if (bIsAlreadyConnected) { continue; }
 		}
 
@@ -70,7 +70,7 @@ void FPCGExProbeNumericCompare::ProcessCandidates(const int32 Index, const FTran
 	}
 }
 
-void FPCGExProbeNumericCompare::ProcessNode(const int32 Index, const FTransform& WorkingTransform, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
+void FPCGExProbeNumericCompare::ProcessNode(const int32 Index, const FTransform& WorkingTransform, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
 {
 	FPCGExProbeOperation::ProcessNode(Index, WorkingTransform, nullptr, FVector::ZeroVector, OutEdges, AcceptConnections);
 }

@@ -24,7 +24,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = MeshSelector)
 	bool bForceDisableCollisions = false;
-	
+
 	UPROPERTY(EditAnywhere, Category = MeshSelector, meta=(InlineEditConditionToggle))
 	bool bUseTemplateDescriptor = true;
 

@@ -338,7 +338,7 @@ namespace PCGExPaths
 		if (!Bounds.Intersect(Segment.Bounds)) { return Closest; }
 
 		const uint8 Strictness = InDetails.Strictness;
-		
+
 		GetEdgeOctree()->FindElementsWithBoundsTest(
 			Segment.Bounds, [&](const FPathEdge* PathEdge)
 			{
@@ -375,7 +375,7 @@ namespace PCGExPaths
 		if (!Bounds.Intersect(Segment.Bounds)) { return Closest; }
 
 		const uint8 Strictness = InDetails.Strictness;
-		
+
 		GetEdgeOctree()->FindElementsWithBoundsTest(
 			Segment.Bounds, [&](const FPathEdge* PathEdge)
 			{

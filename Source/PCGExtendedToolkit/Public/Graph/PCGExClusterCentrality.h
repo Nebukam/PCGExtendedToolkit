@@ -22,9 +22,9 @@ namespace PCGExMT
 UENUM()
 enum class EPCGExCentralityDownsampling : uint8
 {
-	None = 0 UMETA(DisplayName = "None", ToolTip="All connected filters must pass."),
-	Ratio  = 1 UMETA(DisplayName = "Random ratio", ToolTip="Sample using a random subset of the nodes."),
-	Filters  = 2 UMETA(DisplayName = "Filters", ToolTip="Use filters to drive which nodes are added to the subset")
+	None    = 0 UMETA(DisplayName = "None", ToolTip="All connected filters must pass."),
+	Ratio   = 1 UMETA(DisplayName = "Random ratio", ToolTip="Sample using a random subset of the nodes."),
+	Filters = 2 UMETA(DisplayName = "Filters", ToolTip="Use filters to drive which nodes are added to the subset")
 };
 
 /**
@@ -96,11 +96,10 @@ protected:
 namespace PCGExClusterCentrality
 {
 	using NodePred = TArray<int32, TInlineAllocator<8>>;
-		
+
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExClusterCentralityContext, UPCGExClusterCentralitySettings>
 	{
 		friend class FBatch;
-		
 
 	protected:
 		bool bDownsample = false;
@@ -108,7 +107,7 @@ namespace PCGExClusterCentrality
 		FRWLock CompletionLock;
 		bool bVtxComplete = true;
 		bool bEdgeComplete = false;
-		
+
 		TArray<int32> RandomSamples;
 		TArray<double> DirectedEdgeScores;
 		TArray<double> Betweenness;
@@ -135,13 +134,12 @@ namespace PCGExClusterCentrality
 		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
-		
+
 		void ProcessSingleNode(
 			const int32 Index,
 			TArray<double>& LocalBetweenness, TArray<double>& Score,
 			TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred,
 			TArray<int32>& Stack, const TSharedPtr<PCGExSearch::FScoredQueue>& Queue);
-
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

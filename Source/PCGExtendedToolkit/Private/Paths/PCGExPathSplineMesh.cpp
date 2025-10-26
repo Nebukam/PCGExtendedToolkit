@@ -383,10 +383,10 @@ namespace PCGExPathSplineMesh
 		PCGEX_MAKE_SHARED(MaterialPaths, TSet<FSoftObjectPath>)
 		ScopedMaterials->Collapse(*MaterialPaths.Get());
 		if (!MaterialPaths->IsEmpty()) { PCGExHelpers::LoadBlocking_AnyThread(MaterialPaths); } // TODO : Refactor this atrocity
-		
+
 		//
 
-		
+
 		TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
 		ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
 
@@ -440,7 +440,7 @@ namespace PCGExPathSplineMesh
 			}
 		}
 
-		if (!Segment.ApplyMesh(SplineMeshComponent)) { return;; }
+		if (!Segment.ApplyMesh(SplineMeshComponent)) { return; }
 
 		Context->AttachManagedComponent(
 			TargetActor, SplineMeshComponent,

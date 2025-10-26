@@ -163,7 +163,7 @@ namespace PCGExMergePoints
 		TProcessor<FPCGExMergePointsContext, UPCGExMergePointsSettings>::OnRangeProcessingComplete();
 
 		check(Context);
-		
+
 		if (SimpleTags.IsEmpty()) { return; }
 
 		for (TArray<FName> SimpleTagNames = SimpleTags.Array();

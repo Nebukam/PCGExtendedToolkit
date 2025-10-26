@@ -32,7 +32,7 @@ PCGExFactories::EPreparationResult UPCGExProbeFactoryTensor::Prepare(FPCGExConte
 	{
 		return PCGExFactories::EPreparationResult::Fail;
 	}
-	
+
 	if (TensorFactories.IsEmpty())
 	{
 		PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("Missing tensors."))
@@ -59,7 +59,7 @@ bool FPCGExProbeTensor::PrepareForPoints(FPCGExContext* InContext, const TShared
 	return true;
 }
 
-void FPCGExProbeTensor::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeTensor::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
 	const double R = GetSearchRadius(Index);
@@ -174,7 +174,7 @@ void FPCGExProbeTensor::ProcessCandidateChained(const int32 Index, const FTransf
 	}
 }
 
-void FPCGExProbeTensor::ProcessBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeTensor::ProcessBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	if (InBestCandidate.BestIndex == -1) { return; }
 

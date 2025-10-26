@@ -112,7 +112,7 @@ namespace PCGExTexture
 		{
 			return false;
 		}
-		
+
 		for (const TObjectPtr<const UPCGExTexParamFactoryData>& Factory : Factories) { PCGEX_VALIDATE_NAME_C(InContext, Factory->Config.TextureIDAttributeName) }
 		return true;
 	}

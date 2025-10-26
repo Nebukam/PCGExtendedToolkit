@@ -74,7 +74,7 @@ namespace PCGExGeo
 		FVector HashTolerance = FVector(1 / 0.001);
 
 	public:
-		TMap<uint32, int32> Data;
+		TMap<uint64, int32> Data;
 
 		explicit FMeshLookup(const int32 Size, TArray<FVector>* InVertices, TArray<int32>* InRawIndices, const FVector& InHashTolerance);
 

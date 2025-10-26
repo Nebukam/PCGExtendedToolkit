@@ -84,7 +84,7 @@ namespace PCGExDiscardSame
 			if (Hasher->RequiresCompilation()) { Hasher->Compile(AsyncManager, nullptr); }
 		}
 
-		TSet<uint32> PositionHashes;
+		TSet<uint64> PositionHashes;
 		const FVector PosCWTolerance = FVector(1 / Settings->TestPositionTolerance);
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
@@ -105,10 +105,10 @@ namespace PCGExDiscardSame
 
 		if (Settings->bTestPositions)
 		{
-			TArray<uint32> PosHashes = PositionHashes.Array();
+			TArray<uint64> PosHashes = PositionHashes.Array();
 			PositionHashes.Empty();
 			PosHashes.Sort();
-			for (int32 i = 0; i < PosHashes.Num(); i++) { HashPositions = HashCombineFast(HashPositions, PosHashes[i]); }
+			HashPositions = CityHash64(reinterpret_cast<const char*>(PosHashes.GetData()), PosHashes.Num() * sizeof(int64));
 		}
 		else
 		{

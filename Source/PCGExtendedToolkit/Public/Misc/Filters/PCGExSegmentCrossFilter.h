@@ -16,7 +16,7 @@
 UENUM()
 enum class EPCGExSegmentCrossWinding : uint8
 {
-	ToNext  = 0 UMETA(DisplayName = "To Next", ToolTip="Segment is current point to next point (canon)."),
+	ToNext = 0 UMETA(DisplayName = "To Next", ToolTip="Segment is current point to next point (canon)."),
 	ToPrev = 1 UMETA(DisplayName = "To Prev", ToolTip="Segment is current point to previous point (inversed direction)."),
 };
 
@@ -40,7 +40,7 @@ struct FPCGExSegmentCrossFilterConfig
 	/** Segment definition. Useful when flagging segments "backward" (e.g so the end point is flagged instead of the first point) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExSegmentCrossWinding Direction = EPCGExSegmentCrossWinding::ToNext;
-	
+
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
@@ -90,14 +90,14 @@ namespace PCGExPointFilter
 
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
-		
+
 		const TObjectPtr<const UPCGExSegmentCrossFilterFactory> TypedFilterFactory;
 		TSharedPtr<PCGExPathInclusion::FHandler> Handler;
 
 		TConstPCGValueRange<FTransform> InTransforms;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
-		
+
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FSegmentCrossFilter() override

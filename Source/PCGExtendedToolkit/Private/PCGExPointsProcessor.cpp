@@ -33,9 +33,9 @@ bool UPCGExPointsProcessorSettings::IsPinUsedByNodeExecution(const UPCGPin* InPi
 	if (GetDefault<UPCGExGlobalSettings>()->bToneDownOptionalPins && !InPin->Properties.IsRequiredPin() && !InPin->IsOutputPin()) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
-
-
 #endif
+
+PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainIOInit() const { return PCGExData::EIOInit::NoInit; }
 
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {

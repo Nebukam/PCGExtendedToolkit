@@ -65,7 +65,7 @@ public:
 	virtual bool PrepareForCluster(FPCGExContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster) override
 	{
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
-		Deltas.Init(FIntVector3(0), Cluster->Nodes->Num());
+		Deltas.Init(FInt64Vector3(0), Cluster->Nodes->Num());
 
 		if (EdgeFitting == EPCGExRelaxEdgeFitting::Attribute)
 		{
@@ -108,7 +108,7 @@ public:
 		{
 			Super::PrepareNextStep(InStep);
 			Deltas.Reset(Cluster->Nodes->Num());
-			Deltas.Init(FIntVector3(0), Cluster->Nodes->Num());
+			Deltas.Init(FInt64Vector3(0), Cluster->Nodes->Num());
 			return EPCGExClusterElement::Edge;
 		}
 
@@ -153,7 +153,7 @@ protected:
 
 	FVector GetDelta(const int32 Index) const
 	{
-		const FIntVector3& P = Deltas[Index];
+		const FInt64Vector3& P = Deltas[Index];
 		return FVector(P.X, P.Y, P.Z) / Precision;
 	}
 };

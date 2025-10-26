@@ -210,7 +210,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathIntersectionDetails
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseMaxAngle = false;
-	
+
 	/** Maximum angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
 	double MaxAngle = 90;
@@ -221,7 +221,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathIntersectionDetails
 	/** Strictness of the intersection detection. Different modes allow for some edge cases to be considered intersection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExIntersectionStrictness"))
 	uint8 Strictness = static_cast<uint8>(EPCGExIntersectionStrictness::Strict);
-	
+
 	void Init();
 
 	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }

@@ -50,7 +50,7 @@ namespace PCGExDataHelpers
 	}
 
 	template <typename T>
-		void SetDataValue(UPCGData* InData, FName Name, const T Value)
+	void SetDataValue(UPCGData* InData, FName Name, const T Value)
 	{
 		FPCGAttributeIdentifier Identifier = FPCGAttributeIdentifier(Name, EPCGMetadataDomainFlag::Data);
 		SetDataValue<T>(InData->Metadata->FindOrCreateAttribute<T>(Identifier, Value, true, true), Value);

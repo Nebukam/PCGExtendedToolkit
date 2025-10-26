@@ -240,7 +240,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAxisDeformDetails
 
 	PCGEX_SETTING_DATA_VALUE_DECL(FirstAlpha, double)
 	PCGEX_SETTING_VALUE_DECL(FirstAlpha, double)
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSampleSource SecondAlphaInput = EPCGExSampleSource::Constant;

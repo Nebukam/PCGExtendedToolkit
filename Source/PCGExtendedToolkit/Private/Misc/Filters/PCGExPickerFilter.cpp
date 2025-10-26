@@ -15,7 +15,7 @@
 bool UPCGExPickerFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
-	
+
 	return PCGExFactories::GetInputFactories(
 		InContext, PCGExPicker::SourcePickersLabel, PickerFactories,
 		{PCGExFactories::EType::IndexPicker});

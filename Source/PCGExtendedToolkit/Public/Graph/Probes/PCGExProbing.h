@@ -13,9 +13,9 @@ namespace PCGExProbing
 		int32 PointIndex;
 		FVector Direction;
 		double Distance;
-		FInt32Vector GH;
+		uint64 GH;
 
-		FCandidate(const int32 InIndex, const FVector& InDirection, const double InDistance, const FInt32Vector& InGH):
+		FCandidate(const int32 InIndex, const FVector& InDirection, const double InDistance, const uint64 InGH):
 			PointIndex(InIndex), Direction(InDirection), Distance(InDistance), GH(InGH)
 		{
 		}

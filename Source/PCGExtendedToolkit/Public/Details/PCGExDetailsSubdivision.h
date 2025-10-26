@@ -81,7 +81,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExManhattanDetails
 	FVector GridSize = FVector(10);
 
 	PCGEX_SETTING_VALUE_DECL(GridSize, FVector)
-		
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExManhattanAlign SpaceAlign = EPCGExManhattanAlign::World;

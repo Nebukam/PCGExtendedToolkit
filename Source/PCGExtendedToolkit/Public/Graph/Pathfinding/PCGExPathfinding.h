@@ -140,7 +140,7 @@ namespace PCGExPathfinding
 	{
 	protected:
 		int32 NumNodes = 0;
-		
+
 	public:
 		FSearchAllocations() = default;
 
@@ -164,7 +164,7 @@ namespace PCGExPathfinding
 			: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
 		{
 		}
-		
+
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
 			const PCGExData::FConstPoint& InSeed,

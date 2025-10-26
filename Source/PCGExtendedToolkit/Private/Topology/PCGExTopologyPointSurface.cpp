@@ -139,7 +139,7 @@ namespace PCGExTopologyPointSurface
 			InternalMesh, Settings->Topology.PrimitiveOptions, FTransform::Identity,
 			VertexPositions, ConstrainedEdges, TriangulationOptions, PositionsToVertexIDs,
 			bHasDuplicateVertices, nullptr);
-		
+
 		if (PositionsToVertexIDs.IsEmpty()) { return false; }
 
 		FTransform Transform = Context->GetComponent()->GetOwner()->GetTransform();
@@ -183,7 +183,7 @@ namespace PCGExTopologyPointSurface
 			UGeometryScriptLibrary_MeshRepairFunctions::RepairMeshDegenerateGeometry(
 				InternalMesh, Settings->RepairDegenerate);
 		}
-		
+
 		Settings->Topology.PostProcessMesh(InternalMesh);
 
 		return true;

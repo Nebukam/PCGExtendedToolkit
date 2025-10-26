@@ -59,7 +59,7 @@ struct FPCGExCopyClustersToPointsContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExCopyClustersToPointsSettings;
 	friend class FPCGExCopyClustersToPointsElement;
-	
+
 	FPCGExTransformDetails TransformDetails;
 
 	TSharedPtr<PCGExData::FFacade> TargetsDataFacade;

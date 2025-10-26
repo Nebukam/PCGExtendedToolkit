@@ -64,7 +64,10 @@ namespace PCGExGeo
 		{
 			A = ExtentA[i];
 			B = ExtentB.X * AbsR[i][0] + ExtentB.Y * AbsR[i][1] + ExtentB.Z * AbsR[i][2];
-			if (FMath::Abs(CenterB[i]) > A + B) return false;
+			if (FMath::Abs(CenterB[i]) > A + B)
+			{
+				return false;
+			}
 		}
 
 		// B’s local axes
@@ -73,7 +76,10 @@ namespace PCGExGeo
 			A = ExtentA.X * AbsR[0][i] + ExtentA.Y * AbsR[1][i] + ExtentA.Z * AbsR[2][i];
 			B = ExtentB[i];
 			P = FMath::Abs(CX * R[0][i] + CY * R[1][i] + CZ * R[2][i]);
-			if (P > A + B) return false;
+			if (P > A + B)
+			{
+				return false;
+			}
 		}
 
 		// Cross products (9 tests)
@@ -94,7 +100,10 @@ namespace PCGExGeo
 				A = EA1 * AbsR[I2][j] + EA2 * AbsR[I1][j];
 				B = ExtentB[J1] * AbsR[i][J2] + ExtentB[J2] * AbsR[i][J1];
 				P = FMath::Abs(CA2 * R[I1][j] - CA1 * R[I2][j]);
-				if (P > A + B) return false;
+				if (P > A + B)
+				{
+					return false;
+				}
 			}
 		}
 
@@ -788,7 +797,7 @@ namespace PCGExGeoTasks
 				ParallelFor(
 					NumPoints, [&](const int32 i)
 					{
-						FTransform Transform = OutTransforms[i];
+						FTransform& Transform = OutTransforms[i];
 						FVector OriginalScale = Transform.GetScale3D();
 						Transform *= TargetTransform;
 						Transform.SetScale3D(OriginalScale);
@@ -799,7 +808,7 @@ namespace PCGExGeoTasks
 				ParallelFor(
 					NumPoints, [&](const int32 i)
 					{
-						FTransform Transform = OutTransforms[i];
+						FTransform& Transform = OutTransforms[i];
 						FQuat OriginalRot = Transform.GetRotation();
 						Transform *= TargetTransform;
 						Transform.SetRotation(OriginalRot);
@@ -810,7 +819,7 @@ namespace PCGExGeoTasks
 				ParallelFor(
 					NumPoints, [&](const int32 i)
 					{
-						FTransform Transform = OutTransforms[i];
+						FTransform& Transform = OutTransforms[i];
 						Transform.SetLocation(TargetTransform.TransformPosition(Transform.GetLocation()));
 					});
 			}
