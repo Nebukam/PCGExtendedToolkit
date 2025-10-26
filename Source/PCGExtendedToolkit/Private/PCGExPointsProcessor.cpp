@@ -222,7 +222,7 @@ bool FPCGExPointsProcessorContext::StartBatchProcessingPoints(FBatchProcessingVa
 	while (AdvancePointsIO(false))
 	{
 		if (!ValidateEntry(CurrentIO)) { continue; }
-		if (bDoPreInit) { CurrentIO->InitializeOutput(PreInit); }
+		//if (bDoPreInit) { CurrentIO->InitializeOutput(PreInit); }
 		BatchAblePoints.Add(CurrentIO.ToSharedRef());
 	}
 
