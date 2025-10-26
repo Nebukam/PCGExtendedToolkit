@@ -49,6 +49,9 @@ void FPCGExSampleOverlapStatsContext::BatchProcessing_WorkComplete()
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleOverlapStats)
+
+PCGExData::EIOInit UPCGExSampleOverlapStatsSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleOverlapStats)
 
 bool FPCGExSampleOverlapStatsElement::Boot(FPCGExContext* InContext) const

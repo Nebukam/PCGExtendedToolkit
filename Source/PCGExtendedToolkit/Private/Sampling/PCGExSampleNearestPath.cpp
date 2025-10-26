@@ -56,6 +56,9 @@ bool UPCGExSampleNearestPathSettings::IsPinUsedByNodeExecution(const UPCGPin* In
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPath)
+
+PCGExData::EIOInit UPCGExSampleNearestPathSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleNearestPath)
 
 bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const

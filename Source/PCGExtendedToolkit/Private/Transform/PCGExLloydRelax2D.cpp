@@ -12,6 +12,9 @@
 #define PCGEX_NAMESPACE LloydRelax2D
 
 PCGEX_INITIALIZE_ELEMENT(LloydRelax2D)
+
+PCGExData::EIOInit UPCGExLloydRelax2DSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(LloydRelax2D)
 
 bool FPCGExLloydRelax2DElement::Boot(FPCGExContext* InContext) const

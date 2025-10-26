@@ -54,6 +54,8 @@ protected:
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
+	
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
 
 public:
 	/** If enabled, allows you to filter out which targets get sampled by which data */

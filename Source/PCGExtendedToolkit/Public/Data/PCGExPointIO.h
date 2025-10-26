@@ -31,6 +31,7 @@ namespace PCGExData
 		friend class FPointIOCollection;
 
 	protected:
+		EIOInit LastInit = EIOInit::NoInit;
 		bool bTransactional = false;
 		bool bMutable = false;
 		bool bPinless = false;
@@ -86,11 +87,26 @@ namespace PCGExData
 		{
 			PCGEX_SHARED_CONTEXT(ContextHandle)
 
+			if (LastInit == InitOut) { return true; }
+			
 			if (InitOut == EIOInit::Forward && IsValid(Out) && Out == In)
 			{
 				// Already forwarding
+				LastInit = EIOInit::Forward;
 				return true;
 			}
+
+			if (LastInit == EIOInit::Duplicate
+				&& InitOut == EIOInit::New
+				&& IsValid(Out)
+				&& Out != In)
+			{
+				LastInit = EIOInit::New;
+				Out->SetNumPoints(0); // lol
+				return true;
+			}
+
+			LastInit = InitOut;
 
 			if (IsValid(Out) && Out != In)
 			{

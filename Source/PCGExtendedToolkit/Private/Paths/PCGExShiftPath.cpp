@@ -26,6 +26,9 @@ void UPCGExShiftPathSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(ShiftPath)
+
+PCGExData::EIOInit UPCGExShiftPathSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(ShiftPath)
 
 bool FPCGExShiftPathElement::Boot(FPCGExContext* InContext) const

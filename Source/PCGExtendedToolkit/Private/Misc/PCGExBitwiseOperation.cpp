@@ -14,6 +14,8 @@
 
 PCGEX_SETTING_VALUE_IMPL(UPCGExBitwiseOperationSettings, Mask, int64, MaskInput, MaskAttribute, Bitmask)
 
+PCGExData::EIOInit UPCGExBitwiseOperationSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_INITIALIZE_ELEMENT(BitwiseOperation)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BitwiseOperation)
 
@@ -78,7 +80,7 @@ namespace PCGExBitwiseOperation
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
+		
 		Mask = Settings->GetValueSettingMask();
 		if (!Mask->Init(PointDataFacade)) { return false; }
 

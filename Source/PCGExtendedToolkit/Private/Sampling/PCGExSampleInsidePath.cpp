@@ -28,6 +28,8 @@ UPCGExSampleInsidePathSettings::UPCGExSampleInsidePathSettings(
 	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinear; }
 }
 
+PCGExData::EIOInit UPCGExSampleInsidePathSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+
 FName UPCGExSampleInsidePathSettings::GetMainInputPin() const { return PCGExPaths::SourcePathsLabel; }
 
 FName UPCGExSampleInsidePathSettings::GetMainOutputPin() const { return PCGExPaths::OutputPathsLabel; }

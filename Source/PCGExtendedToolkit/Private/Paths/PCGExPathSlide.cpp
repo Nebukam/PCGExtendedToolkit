@@ -11,6 +11,9 @@
 #define PCGEX_NAMESPACE PathSlide
 
 PCGEX_INITIALIZE_ELEMENT(PathSlide)
+
+PCGExData::EIOInit UPCGExPathSlideSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSlide)
 
 PCGEX_SETTING_VALUE_IMPL(UPCGExPathSlideSettings, SlideAmount, double, SlideAmountInput, SlideAmountAttribute, SlideAmountConstant)

@@ -89,6 +89,8 @@ void FPCGExGUIDDetails::GetGUID(const int32 Index, const PCGExData::FConstPoint&
 		bUsePosition ? PCGEx::GH3(InPoint.GetLocation() + PositionHashOffset, AdjustedPositionHashCollision) : 0);
 }
 
+PCGExData::EIOInit UPCGExWriteGUIDSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_INITIALIZE_ELEMENT(WriteGUID)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteGUID)
 

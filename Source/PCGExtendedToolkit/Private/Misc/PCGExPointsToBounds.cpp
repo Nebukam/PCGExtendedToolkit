@@ -98,6 +98,12 @@ void FPCGExPointsToBoundsDataDetails::OutputInverse(const UPCGBasePointData* InP
 	}
 }
 
+PCGExData::EIOInit UPCGExPointsToBoundsSettings::GetIOPreInitForMainPoints() const
+{
+	if (OutputMode == EPCGExPointsToBoundsOutputMode::Collapse) { return PCGExData::EIOInit::New; }
+	else { return PCGExData::EIOInit::Duplicate; }
+}
+
 PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PointsToBounds)
 

@@ -52,6 +52,10 @@ public:
 #endif
 	//~End UObject interface
 
+protected:
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+
+public:
 	/** Ordered list of attribute to check to sort over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGExSortRuleConfig> Rules = {FPCGExSortRuleConfig{}};

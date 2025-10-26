@@ -29,6 +29,9 @@ TArray<FPCGPinProperties> UPCGExBlendPathSettings::InputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
+
+PCGExData::EIOInit UPCGExBlendPathSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BlendPath)
 
 bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const

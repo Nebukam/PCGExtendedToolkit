@@ -10,6 +10,8 @@
 #define LOCTEXT_NAMESPACE "PCGExBlendAttributesElement"
 #define PCGEX_NAMESPACE BlendAttributes
 
+PCGExData::EIOInit UPCGExBlendAttributesSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+
 TArray<FPCGPinProperties> UPCGExBlendAttributesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -72,7 +74,7 @@ namespace PCGExBlendAttributes
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
+		
 		BlendOpsManager = MakeShared<PCGExDataBlending::FBlendOpsManager>();
 		BlendOpsManager->SetSources(PointDataFacade, PCGExData::EIOSide::Out);
 		BlendOpsManager->SetTargetFacade(PointDataFacade);

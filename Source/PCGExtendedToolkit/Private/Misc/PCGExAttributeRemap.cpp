@@ -50,6 +50,8 @@ void FPCGExAttributeRemapContext::RegisterAssetDependencies()
 	for (const FPCGExComponentRemapRule& Rule : RemapSettings) { AddAssetDependency(Rule.RemapDetails.RemapCurve.ToSoftObjectPath()); }
 }
 
+PCGExData::EIOInit UPCGExAttributeRemapSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeRemap)
 
@@ -126,7 +128,7 @@ namespace PCGExAttributeRemap
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
+		
 		TArray<TSharedPtr<PCGExData::IBufferProxy>> UntypedInputProxies;
 		TArray<TSharedPtr<PCGExData::IBufferProxy>> UntypedOutputProxies;
 

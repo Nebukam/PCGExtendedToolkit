@@ -95,6 +95,9 @@ FString UPCGExWriteIndexSettings::GetDisplayName() const
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(WriteIndex)
+
+PCGExData::EIOInit UPCGExWriteIndexSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteIndex)
 
 bool FPCGExWriteIndexElement::Boot(FPCGExContext* InContext) const

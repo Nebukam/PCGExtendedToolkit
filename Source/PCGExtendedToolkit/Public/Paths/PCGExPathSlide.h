@@ -50,6 +50,8 @@ protected:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filter which points are processed by the slide maths.", PCGExFactories::PointFilters, false)
 	//~End UPCGSettings
 
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+
 public:
 	/** Whether to slide or restore position */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
