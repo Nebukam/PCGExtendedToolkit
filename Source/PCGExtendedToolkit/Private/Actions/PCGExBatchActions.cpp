@@ -17,6 +17,8 @@
 
 PCGExData::EIOInit UPCGExBatchActionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
+PCGExData::EIOInit UPCGExBatchActionsSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+
 TArray<FPCGPinProperties> UPCGExBatchActionsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -118,7 +120,7 @@ namespace PCGExBatchActions
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
+		
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		// Initialize writers with provided default value

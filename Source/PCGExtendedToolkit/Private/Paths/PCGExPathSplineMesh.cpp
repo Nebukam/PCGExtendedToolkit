@@ -55,6 +55,8 @@ TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::InputPinProperties() con
 	return PinProperties;
 }
 
+PCGExData::EIOInit UPCGExPathSplineMeshSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }

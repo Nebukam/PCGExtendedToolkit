@@ -38,6 +38,8 @@ protected:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
+	
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
 
 public:
 	/** Whether to write the index of the point on the point. */

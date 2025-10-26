@@ -11,6 +11,9 @@
 #define PCGEX_NAMESPACE MovePivot
 
 PCGEX_INITIALIZE_ELEMENT(MovePivot)
+
+PCGExData::EIOInit UPCGExMovePivotSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(MovePivot)
 
 bool FPCGExMovePivotElement::Boot(FPCGExContext* InContext) const

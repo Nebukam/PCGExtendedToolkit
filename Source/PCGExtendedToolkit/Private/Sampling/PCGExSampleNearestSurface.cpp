@@ -20,6 +20,9 @@ TArray<FPCGPinProperties> UPCGExSampleNearestSurfaceSettings::InputPinProperties
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
+
+PCGExData::EIOInit UPCGExSampleNearestSurfaceSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleNearestSurface)
 
 bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const

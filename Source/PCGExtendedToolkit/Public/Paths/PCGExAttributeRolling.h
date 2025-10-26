@@ -65,6 +65,8 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+
 public:
 	/** Rolling range control */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))

@@ -19,6 +19,9 @@ TArray<FPCGPinProperties> UPCGExTensorsTransformSettings::InputPinProperties() c
 }
 
 PCGEX_INITIALIZE_ELEMENT(TensorsTransform)
+
+PCGExData::EIOInit UPCGExTensorsTransformSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(TensorsTransform)
 
 bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const

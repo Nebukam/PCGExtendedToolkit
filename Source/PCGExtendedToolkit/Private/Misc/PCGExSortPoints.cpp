@@ -21,6 +21,8 @@ void UPCGExSortPointsSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 }
 #endif
 
+PCGExData::EIOInit UPCGExSortPointsSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+
 FPCGElementPtr UPCGExSortPointsBaseSettings::CreateElement() const { return MakeShared<FPCGExSortPointsBaseElement>(); }
 
 bool UPCGExSortPointsBaseSettings::GetSortingRules(FPCGExContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
@@ -90,7 +92,7 @@ namespace PCGExSortPoints
 		if (!TProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
+		
 		if (!Sorter->Init(Context))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some dataset have no valid sorting rules, they won't be sorted."));

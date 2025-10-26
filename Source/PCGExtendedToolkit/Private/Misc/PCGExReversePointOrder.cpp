@@ -13,6 +13,8 @@
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"
 #define PCGEX_NAMESPACE ReversePointOrder
 
+PCGExData::EIOInit UPCGExReversePointOrderSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+
 TArray<FPCGPinProperties> UPCGExReversePointOrderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -125,6 +127,8 @@ namespace PCGExReversePointOrder
 			}
 		}
 
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+
 		if (Settings->Method == EPCGExPointReverseMethod::Winding)
 		{
 			FPCGExGeo2DProjectionDetails Proj = Settings->ProjectionDetails;
@@ -138,8 +142,6 @@ namespace PCGExReversePointOrder
 			bReversed = !PCGExGeo::IsWinded(Settings->Winding, UE::Geometry::CurveUtil::SignedArea2<double, FVector2D>(ProjectedPoints) < 0);
 			if (!bReversed) { return true; }
 		}
-
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 #define PCGEX_NATIVE_REVERSE(_NAME, _TYPE, ...) PCGEx::Reverse(PointDataFacade->GetOut()->Get##_NAME##ValueRange());
 		PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_NATIVE_REVERSE)

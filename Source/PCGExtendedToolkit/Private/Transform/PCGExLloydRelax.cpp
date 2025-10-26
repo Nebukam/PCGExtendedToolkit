@@ -13,6 +13,9 @@
 #define PCGEX_NAMESPACE LloydRelax
 
 PCGEX_INITIALIZE_ELEMENT(LloydRelax)
+
+PCGExData::EIOInit UPCGExLloydRelaxSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(LloydRelax)
 
 bool FPCGExLloydRelaxElement::Boot(FPCGExContext* InContext) const

@@ -54,6 +54,8 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+	
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters which points will be offset", PCGExFactories::PointFilters, false)

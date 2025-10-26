@@ -42,6 +42,9 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRolling)
+
+PCGExData::EIOInit UPCGExAttributeRollingSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeRolling)
 
 bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const

@@ -34,6 +34,8 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+	
 public:
 	/** Whether this is a new projection or an old one*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

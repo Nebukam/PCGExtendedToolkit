@@ -25,6 +25,7 @@ public:
 #endif
 
 protected:
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 

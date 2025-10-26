@@ -580,7 +580,8 @@ protected:
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
-
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+	
 public:
 	virtual FName GetMainInputPin() const override;
 	//~End UPCGExPointsProcessorSettings

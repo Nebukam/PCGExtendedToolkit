@@ -10,6 +10,8 @@
 #define LOCTEXT_NAMESPACE "PCGExCollocationCountElement"
 #define PCGEX_NAMESPACE CollocationCount
 
+PCGExData::EIOInit UPCGExCollocationCountSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_INITIALIZE_ELEMENT(CollocationCount)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(CollocationCount)
 
@@ -59,7 +61,7 @@ namespace PCGExCollocationCount
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
+		
 		NumPoints = PointDataFacade->GetNum();
 		ToleranceConstant = Settings->Tolerance;
 

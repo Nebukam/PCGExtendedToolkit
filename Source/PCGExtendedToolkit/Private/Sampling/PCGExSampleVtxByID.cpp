@@ -39,6 +39,9 @@ TArray<FPCGPinProperties> UPCGExSampleVtxByIDSettings::InputPinProperties() cons
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleVtxByID)
+
+PCGExData::EIOInit UPCGExSampleVtxByIDSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleVtxByID)
 
 bool FPCGExSampleVtxByIDElement::Boot(FPCGExContext* InContext) const

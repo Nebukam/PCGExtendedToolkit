@@ -37,6 +37,8 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+
 public:
 	virtual FName GetPointFilterPin() const override;
 

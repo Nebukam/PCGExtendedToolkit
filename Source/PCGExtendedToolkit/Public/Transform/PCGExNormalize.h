@@ -40,6 +40,8 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	//~End UPCGSettings
+	
+	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
 
 public:
 	/**  */

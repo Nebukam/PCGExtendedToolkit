@@ -45,6 +45,8 @@ void UPCGExSmoothSettings::PostInitProperties()
 
 PCGEX_INITIALIZE_ELEMENT(Smooth)
 
+PCGExData::EIOInit UPCGExSmoothSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(Smooth)
 
 bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
