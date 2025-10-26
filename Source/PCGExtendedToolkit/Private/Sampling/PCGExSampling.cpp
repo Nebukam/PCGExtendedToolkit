@@ -258,7 +258,7 @@ namespace PCGExSampling
 	int32 FTargetsHandler::Init(FPCGExContext* InContext, const FName InPinLabel, FInitData&& InitFn)
 	{
 		FBox OctreeBounds = FBox(ForceInit);
-		
+
 		TSharedPtr<PCGExData::FPointIOCollection> Targets = MakeShared<PCGExData::FPointIOCollection>(
 			InContext, InPinLabel, PCGExData::EIOInit::NoInit, true);
 

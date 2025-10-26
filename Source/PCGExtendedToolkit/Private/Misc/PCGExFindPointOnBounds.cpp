@@ -150,7 +150,7 @@ namespace PCGExFindPointOnBounds
 		if (Settings->bBestFitBounds)
 		{
 			PCGExGeo::FBestFitPlane BestFitPlane(PointDataFacade->GetIn()->GetConstTransformValueRange());
-			
+
 			FTransform T = BestFitPlane.GetTransform(Settings->AxisOrder);
 			UVW = T.TransformVector(UVW);
 			Bounds = FBox(BestFitPlane.Centroid - BestFitPlane.Extents, BestFitPlane.Centroid + BestFitPlane.Extents).TransformBy(T);

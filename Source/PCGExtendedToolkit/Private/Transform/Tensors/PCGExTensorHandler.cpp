@@ -69,7 +69,7 @@ namespace PCGExTensor
 			PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("Missing tensors."))
 			return false;
 		}
-		
+
 		return Init(InContext, InFactories, InDataFacade);
 	}
 

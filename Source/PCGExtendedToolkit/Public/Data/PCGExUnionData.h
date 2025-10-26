@@ -49,9 +49,9 @@ namespace PCGExData
 			IOSet.Add(Point.IO);
 			Elements.Emplace(Point.Index == -1 ? 0 : Point.Index, Point.IO);
 		}
-		
+
 		void Add(const FElement& Point);
-		
+
 		FORCEINLINE void Add_Unsafe(const int32 Index, const int32 IO)
 		{
 			IOSet.Add(IO);
@@ -66,11 +66,11 @@ namespace PCGExData
 		bool IsEmpty() const { return Elements.IsEmpty(); }
 
 		virtual int32 ComputeWeights(
-		const TArray<const UPCGBasePointData*>& Sources,
-		const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
-		const FPoint& Target,
-		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
-		TArray<FWeightedPoint>& OutWeightedPoints) const;
+			const TArray<const UPCGBasePointData*>& Sources,
+			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
+			const FPoint& Target,
+			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
+			TArray<FWeightedPoint>& OutWeightedPoints) const;
 
 		virtual void Reset()
 		{
@@ -94,9 +94,9 @@ namespace PCGExData
 		TSharedPtr<IUnionData> NewEntry_Unsafe(const FConstPoint& Point);
 		TSharedPtr<IUnionData> NewEntryAt_Unsafe(const int32 ItemIndex);
 
-		FORCEINLINE void Append_Unsafe(const int32 Index, const FPoint& Point){ Entries[Index]->Add_Unsafe(Point); }
-		FORCEINLINE void Append(const int32 Index, const FPoint& Point){ Entries[Index]->Add(Point); }
-		
+		FORCEINLINE void Append_Unsafe(const int32 Index, const FPoint& Point) { Entries[Index]->Add_Unsafe(Point); }
+		FORCEINLINE void Append(const int32 Index, const FPoint& Point) { Entries[Index]->Add(Point); }
+
 		bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
 
 		FORCEINLINE TSharedPtr<IUnionData> Get(const int32 Index) const { return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr; }

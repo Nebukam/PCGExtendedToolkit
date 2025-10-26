@@ -36,7 +36,7 @@ void FPCGExRandomRatioDetails::GetPicks(FPCGExContext* InContext, const UPCGData
 void FPCGExRandomRatioDetails::GetPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems, TArray<int32>& OutPicks) const
 {
 	const int32 NumPicks = GetNumPicks(InContext, InData, NumMaxItems);
-	
+
 	PCGEx::ArrayOfIndices(OutPicks, NumMaxItems);
 
 	FRandomStream Random = PCGHelpers::GetRandomStreamFromSeed(

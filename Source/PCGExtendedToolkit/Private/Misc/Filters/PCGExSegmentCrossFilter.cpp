@@ -55,7 +55,7 @@ namespace PCGExPointFilter
 	bool FSegmentCrossFilter::Test(const int32 PointIndex) const
 	{
 		int32 NextIndex = PointIndex;
-		
+
 		if (TypedFilterFactory->Config.Direction == EPCGExSegmentCrossWinding::ToNext)
 		{
 			NextIndex++;

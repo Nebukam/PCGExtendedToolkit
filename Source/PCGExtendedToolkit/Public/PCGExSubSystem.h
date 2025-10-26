@@ -105,7 +105,7 @@ public:
 #pragma endregion
 
 	FORCEINLINE double GetEndTime() const { return EndTime; }
-	
+
 protected:
 	double EndTime = 0.0;
 	TArray<int32> IndexBuffer;
@@ -119,6 +119,6 @@ protected:
 	const IConsoleVariable* CVarEditorTimePerFrame = nullptr;
 	const IConsoleVariable* CVarTimePerFrame = nullptr;
 	double GetTickBudgetInSeconds();
-	
+
 	void ExecuteBeginTickActions();
 };

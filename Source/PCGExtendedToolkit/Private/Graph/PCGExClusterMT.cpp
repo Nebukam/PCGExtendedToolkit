@@ -30,7 +30,6 @@ namespace PCGExClusterMT
 	IProcessor::IProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 		: VtxDataFacade(InVtxDataFacade), EdgeDataFacade(InEdgeDataFacade)
 	{
-		
 	}
 
 	void IProcessor::SetExecutionContext(FPCGExContext* InContext)

@@ -117,7 +117,7 @@ public:
 		if (!StiffnessBuffer->Init(SecondaryDataFacade)) { return false; }
 
 		if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
-		Deltas.Init(FIntVector3(0), Cluster->Nodes->Num());
+		Deltas.Init(FInt64Vector3(0), Cluster->Nodes->Num());
 
 		Cluster->ComputeEdgeLengths();
 		EdgeLengths = Cluster->EdgeLengths;
@@ -134,7 +134,7 @@ public:
 		{
 			Super::PrepareNextStep(InStep);
 			Deltas.Reset(Cluster->Nodes->Num());
-			Deltas.Init(FIntVector3(0), Cluster->Nodes->Num());
+			Deltas.Init(FInt64Vector3(0), Cluster->Nodes->Num());
 			return EPCGExClusterElement::Vtx;
 		}
 

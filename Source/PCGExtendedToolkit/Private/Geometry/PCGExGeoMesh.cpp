@@ -90,7 +90,7 @@ namespace PCGExGeo
 
 	uint32 FMeshLookup::Add_GetIdx(const FVector& Position, const int32 RawIndex)
 	{
-		const uint32 Key = PCGEx::GH3(Position, HashTolerance);
+		const uint64 Key = PCGEx::GH3(Position, HashTolerance);
 		if (const int32* IdxPtr = Data.Find(Key)) { return *IdxPtr; }
 
 		const int32 Idx = Vertices->Emplace(Position);
@@ -256,7 +256,7 @@ namespace PCGExGeo
 		const int32 NumTriangles = Indices.Num() / 3;
 		Triangles.Init(FIntVector3(-1), NumTriangles);
 		Tri_Adjacency.Init(FIntVector3(-1), NumTriangles);
-		
+
 		TBitArray<> Tri_IsOnHull;
 		Tri_IsOnHull.Init(true, NumTriangles);
 

@@ -51,21 +51,21 @@ public:
 	/** Whether to use best fit plane bounds, and which axis ordering should be used. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Use Best Fit bounds axis", EditCondition="bBestFitBounds"))
 	EPCGExAxisOrder AxisOrder = EPCGExAxisOrder::YXZ;
-	
+
 	/** Type of UVW value source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType UVWInput = EPCGExInputValueType::Constant;
-	
+
 	/** Fetch the UVW value from a @Data attribute.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="UVW (Attr)", EditCondition="UVWInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalUVW;
-	
+
 	/** UVW position of the target within bounds. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="UVW", EditCondition="UVWInput == EPCGExInputValueType::Constant", EditConditionHides))
 	FVector UVW = FVector::OneVector;
 
 	PCGEX_SETTING_DATA_VALUE_DECL(UVW, FVector)
-	
+
 	/** Offset to apply to the closest point, away from the bounds center. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Offset = 1;

@@ -109,7 +109,7 @@ namespace PCGEx
 				{
 					continue;
 				}
-				
+
 				if (!KeyCandidate && Candidate->GetTypeId() == KeyType)
 				{
 					KeyCandidate = Candidate;

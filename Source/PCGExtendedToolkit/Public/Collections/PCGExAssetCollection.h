@@ -1044,7 +1044,7 @@ protected:
 		const bool bBuildStaging = false) const
 	{
 		const UPCGMetadata* Metadata = InAttributeSet->Metadata;
-        
+
 		TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Metadata);
 
 		const int32 NumEntries = Keys->GetNum();
@@ -1062,12 +1062,12 @@ protected:
 			if (TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(Infos->Attributes[Infos->Map[_NAME->Identifier]], Metadata)){ \
 				TArray<_TYPE> Values; PCGEx::InitArray(Values, NumEntries); \
 				if (Accessor->GetRange<_TYPE>(Values, 0, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible)){ for (int i = 0; i < NumEntries; i++) { _BODY } } } }
-		
+
 		PCGEx::InitArray(InCollection->Entries, NumEntries);
 
-		PCGEX_PROCESS_ATTRIBUTE(FSoftObjectPath, AssetPathSourceAttribute, InCollection->Entries[i].SetAssetPath(Values[i]); )
-		PCGEX_PROCESS_ATTRIBUTE(double, WeightSourceAttribute, InCollection->Entries[i].Weight = Values[i]; )
-		PCGEX_PROCESS_ATTRIBUTE(FName, CategorySourceAttribute, InCollection->Entries[i].Category = Values[i]; )
+		PCGEX_PROCESS_ATTRIBUTE(FSoftObjectPath, AssetPathSourceAttribute, InCollection->Entries[i].SetAssetPath(Values[i]);)
+		PCGEX_PROCESS_ATTRIBUTE(double, WeightSourceAttribute, InCollection->Entries[i].Weight = Values[i];)
+		PCGEX_PROCESS_ATTRIBUTE(FName, CategorySourceAttribute, InCollection->Entries[i].Category = Values[i];)
 
 		if (bBuildStaging) { InCollection->RebuildStagingData(false); }
 

@@ -130,6 +130,7 @@ namespace PCGExCluster
 		TSharedPtr<FCluster> OriginalCluster = nullptr;
 
 		mutable FRWLock ClusterLock;
+
 	public:
 		int32 NumRawVtx = 0;
 		int32 NumRawEdges = 0;
@@ -284,8 +285,8 @@ namespace PCGExCluster
 		int32 FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors = 0) const;
 		int32 FindClosestNode(const FVector& Position, const int32 MinNeighbors = 0) const;
 		int32 FindClosestNodeFromEdge(const FVector& Position, const int32 MinNeighbors = 0) const;
-		
-		int32 FindClosestEdge(const int32 InNodeIndex, const FVector& InPosition, const int32 MinNeighbors = 0) const;		
+
+		int32 FindClosestEdge(const int32 InNodeIndex, const FVector& InPosition, const int32 MinNeighbors = 0) const;
 		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const int32 MinNeighborCount = 1) const;
 		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const TSet<int32>& Exclusion, const int32 MinNeighborCount = 1) const;
 

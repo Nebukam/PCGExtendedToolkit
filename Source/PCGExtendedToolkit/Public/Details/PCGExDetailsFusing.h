@@ -123,7 +123,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 
 	bool DoInlineInsertion() const { return bInlineInsertion; }
 
-	uint32 GetGridKey(const FVector& Location, const int32 PointIndex) const;
+	uint64 GetGridKey(const FVector& Location, const int32 PointIndex) const;
 	FBox GetOctreeBox(const FVector& Location, const int32 PointIndex) const;
 
 	void GetCenters(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const;

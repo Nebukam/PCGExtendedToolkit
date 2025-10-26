@@ -51,7 +51,7 @@ namespace PCGExGeo
 
 	PCGEXTENDEDTOOLKIT_API
 	bool IntersectOBB_OBB(const FBox& BoxA, const FTransform& TransformA, const FBox& BoxB, const FTransform& TransformB);
-	
+
 	bool IsWinded(const EPCGExWinding Winding, const bool bIsInputClockwise);
 	bool IsWinded(const EPCGExWindingMutation Winding, const bool bIsInputClockwise);
 

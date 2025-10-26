@@ -379,10 +379,7 @@ namespace PCGExMT
 			NewGroup->Start();
 			return Groups.Add_GetRef(NewGroup);
 		}
-		else
-		{
-			return nullptr;
-		}
+		return nullptr;
 	}
 
 	bool FTaskManager::TryRegisterHandle(const TSharedPtr<FAsyncHandle>& InHandle)

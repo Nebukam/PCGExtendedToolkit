@@ -19,7 +19,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRelaxClusterOperation : public UPCGExInstance
 	GENERATED_BODY()
 
 public:
-	/** Under the hood updates are operated on a FIntVector3. The regular FVector value is multiplied by this factor, and later divided by it. Default value of 100 means .00 precision. */
+	/** Under the hood updates are operated on a FInt64Vector3. The regular FVector value is multiplied by this factor, and later divided by it. Default value of 100 means .00 precision. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Floating Point Precision"), AdvancedDisplay)
 	double Precision = 100;
 
@@ -88,19 +88,19 @@ public:
 	}
 
 protected:
-	TArray<FIntVector3> Deltas;
+	TArray<FInt64Vector3> Deltas;
 
 	FVector GetDelta(const int32 Index)
 	{
-		const FIntVector3& P = Deltas[Index];
+		const FInt64Vector3& P = Deltas[Index];
 		return FVector(P.X, P.Y, P.Z) / Precision;
 	}
 
 	void AddDelta(const int32 Index, const FVector& Delta)
 	{
-		FPlatformAtomics::InterlockedAdd(&Deltas[Index].X, Delta.X * Precision);
-		FPlatformAtomics::InterlockedAdd(&Deltas[Index].Y, Delta.Y * Precision);
-		FPlatformAtomics::InterlockedAdd(&Deltas[Index].Z, Delta.Z * Precision);
+		FPlatformAtomics::InterlockedAdd(&Deltas[Index].X, FMath::RoundToInt64(Delta.X * Precision));
+		FPlatformAtomics::InterlockedAdd(&Deltas[Index].Y, FMath::RoundToInt64(Delta.Y * Precision));
+		FPlatformAtomics::InterlockedAdd(&Deltas[Index].Z, FMath::RoundToInt64(Delta.Z * Precision));
 	}
 
 	void AddDelta(const int32 AddIndex, const int32 SubtractIndex, const FVector& Delta)

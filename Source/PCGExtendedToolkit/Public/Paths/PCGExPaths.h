@@ -219,7 +219,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathIntersectionDetails
 	/** Strictness of the intersection detection. Different modes allow for some edge cases to be considered intersection. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExIntersectionStrictness"))
 	uint8 Strictness = static_cast<uint8>(EPCGExIntersectionStrictness::Strict);
-	
+
 	bool bWantsDotCheck = false;
 
 	void Init();
@@ -256,7 +256,7 @@ namespace PCGExPaths
 
 	PCGEXTENDEDTOOLKIT_API
 	bool GetClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InData);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	void SetIsHole(UPCGData* InData, const bool bIsHole);
 
@@ -711,7 +711,7 @@ namespace PCGExPaths
 			const double Fidelity, const FPCGExGeo2DProjectionDetails& InProjection,
 			const double Expansion = 0, const double ExpansionZ = -1,
 			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
-		
+
 		FORCEINLINE const FPCGSplineStruct* GetSpline() const { return Spline; }
 
 	protected:

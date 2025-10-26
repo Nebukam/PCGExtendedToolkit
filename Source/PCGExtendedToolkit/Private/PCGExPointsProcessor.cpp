@@ -34,8 +34,9 @@ bool UPCGExPointsProcessorSettings::IsPinUsedByNodeExecution(const UPCGPin* InPi
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
-
 #endif
+
+PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainIOInit() const { return PCGExData::EIOInit::NoInit; }
 
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {

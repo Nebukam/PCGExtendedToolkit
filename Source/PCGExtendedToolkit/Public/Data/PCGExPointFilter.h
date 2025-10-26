@@ -240,7 +240,7 @@ namespace PCGExPointFilter
 
 		bool bUseEdgeAsPrimary = false; // This shouldn't be there...
 		bool bWillBeUsedWithCollections = false;
-		
+
 		bool bCacheResultsPerFilter = false;
 		bool bCacheResults = false;
 		TArray<int8> Results;

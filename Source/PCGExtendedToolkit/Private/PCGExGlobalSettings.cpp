@@ -116,7 +116,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Shape, "PCGEx Shape Builder");
 	PCGEX_MAP_PIN_OUT("Shape Builder")
-	
+
 	PCGEX_EMPLACE_PIN_OUT(OUT_Tensor, "PCGEx Tensor");
 	PCGEX_MAP_PIN_OUT("Tensor")
 
@@ -128,7 +128,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_MatchRule, "PCGEx Data Matching Rule");
 	PCGEX_MAP_PIN_OUT("Match Rule")
-	
+
 	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.OUT_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
 	PCGEX_MAP_PIN_OUT("Vtx")
 
@@ -230,7 +230,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_EMPLACE_PIN_IN(IN_MatchRule, "PCGEx Data Match Rules, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Match Rules")
 	PCGEX_MAP_PIN_IN("Match Rules (Edges)")
-	
+
 	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
 	PCGEX_MAP_PIN_IN("Vtx")
 

@@ -37,7 +37,7 @@ USTRUCT()
 struct FPCGDataTypeInfo
 {
 	GENERATED_BODY()
-	
+
 #if WITH_EDITOR
 	virtual bool Hidden() const { return false; }
 #endif // WITH_EDITOR
@@ -207,11 +207,11 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietInvalidInputWarning = false;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingAttributeError = false;
-	
+
 	/** If enabled, will turn off missing input errors on factories that have inputs with missing or no data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietMissingInputError = false;
@@ -252,7 +252,7 @@ protected:
 
 public:
 	virtual FPCGContext* CreateContext() override;
-	
+
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;

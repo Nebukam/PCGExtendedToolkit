@@ -25,7 +25,7 @@ bool FPCGExProbeOperation::PrepareForPoints(FPCGExContext* InContext, const TSha
 	return true;
 }
 
-void FPCGExProbeOperation::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeOperation::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 }
 
@@ -37,11 +37,11 @@ void FPCGExProbeOperation::ProcessCandidateChained(const int32 Index, const FTra
 {
 }
 
-void FPCGExProbeOperation::ProcessBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeOperation::ProcessBestCandidate(const int32 Index, const FTransform& WorkingTransform, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 }
 
-void FPCGExProbeOperation::ProcessNode(const int32 Index, const FTransform& WorkingTransform, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
+void FPCGExProbeOperation::ProcessNode(const int32 Index, const FTransform& WorkingTransform, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
 {
 }
 

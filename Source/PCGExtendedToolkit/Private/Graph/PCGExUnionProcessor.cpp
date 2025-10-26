@@ -282,7 +282,7 @@ namespace PCGExGraph
 				if (PEI->Details->bEnableSelfIntersection)
 				{
 					PCGEX_SCOPE_LOOP(Index)
-					{ 
+					{
 						if (!PEI->InitProxy(EdgeProxy, Index)) { continue; }
 						FindCollinearNodes(PEI, EdgeProxy);
 						if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_PE }
@@ -306,16 +306,15 @@ namespace PCGExGraph
 
 	void FUnionProcessor::OnPointEdgeIntersectionsFound()
 	{
+		if (PointEdgeIntersections) { PointEdgeIntersections->InsertEdges(); }
 
-		if (PointEdgeIntersections){ PointEdgeIntersections->InsertEdges(); }
-		
 		if (!PointEdgeIntersections
 			|| PointEdgeIntersections->Edges.IsEmpty())
 		{
 			OnPointEdgeIntersectionsComplete();
 			return;
 		}
-		
+
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendPointEdgeGroup)
 
 		PointEdgeIntersections->InsertEdges();
@@ -404,7 +403,7 @@ namespace PCGExGraph
 				FPlatformAtomics::InterlockedAdd(&EENum, EdgeProxy->Crossings.Num()); \
 				EdgeProxy = MakeShared<FEdgeEdgeProxy>();
 
-				
+
 				const TSharedRef<FEdgeEdgeIntersections> EEI = This->EdgeEdgeIntersections.ToSharedRef();
 				TArray<TSharedPtr<FEdgeEdgeProxy>>& ScopedEdges = EEI->ScopedEdges->Get_Ref(Scope);
 
@@ -428,7 +427,7 @@ namespace PCGExGraph
 						if (!EdgeProxy->IsEmpty()) { PCGEX_FOUND_EE }
 					}
 				}
-				
+
 #undef PCGEX_FOUND_EE
 			};
 
@@ -446,7 +445,7 @@ namespace PCGExGraph
 			OnEdgeEdgeIntersectionsComplete();
 			return;
 		}
-		
+
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
 
 		EdgeEdgeIntersections->InsertEdges();

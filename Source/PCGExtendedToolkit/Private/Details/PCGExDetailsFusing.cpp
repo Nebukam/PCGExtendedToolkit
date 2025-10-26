@@ -117,7 +117,7 @@ bool FPCGExFuseDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCGExDat
 	return true;
 }
 
-uint32 FPCGExFuseDetails::GetGridKey(const FVector& Location, const int32 PointIndex) const
+uint64 FPCGExFuseDetails::GetGridKey(const FVector& Location, const int32 PointIndex) const
 {
 	const FVector Raw = ToleranceGetter->Read(PointIndex);
 	return PCGEx::GH3(Location + VoxelGridOffset, FVector(1 / Raw.X, 1 / Raw.Y, 1 / Raw.Z));

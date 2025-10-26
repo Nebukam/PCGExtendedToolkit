@@ -27,7 +27,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrap
 
 	UPROPERTY()
 	bool bIsModel = false;
-	
+
 	FPCGExTupleValueWrap() = default;
 	virtual ~FPCGExTupleValueWrap() = default;
 
@@ -35,7 +35,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrap
 
 	/** Called once when row entry is initialized, because the header type has been changed */
 	virtual void InitEntry(const FPCGExTupleValueWrap* InHeader);
-	
+
 	/** Called when the data is written to an attribute */
 	virtual void WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const;
 

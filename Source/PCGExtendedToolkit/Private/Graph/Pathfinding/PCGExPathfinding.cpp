@@ -32,7 +32,7 @@ namespace PCGExPathfinding
 	void FSearchAllocations::Init(const PCGExCluster::FCluster* InCluster)
 	{
 		NumNodes = InCluster->Nodes->Num();
-		
+
 		Visited.Init(false, NumNodes);
 		TravelStack = PCGEx::NewHashLookup<PCGEx::FHashLookupArray>(PCGEx::NH64(-1, -1), NumNodes);
 		ScoredQueue = MakeShared<PCGExSearch::FScoredQueue>(NumNodes);
@@ -52,7 +52,7 @@ namespace PCGExPathfinding
 		{
 			for (int i = 0; i < NumNodes; i++) { Visited[i] = false; }
 		}
-		
+
 		TravelStack->Reset();
 		ScoredQueue->Reset();
 	}

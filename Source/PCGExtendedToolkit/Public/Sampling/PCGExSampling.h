@@ -202,7 +202,7 @@ namespace PCGExSampling
 			Add_Unsafe(Element.Index, Element.IO);
 			Weights.Add(Element, InWeight);
 		}
-		
+
 		void AddWeighted(const PCGExData::FElement& Element, const double InWeight);
 
 		double GetWeightAverage() const;

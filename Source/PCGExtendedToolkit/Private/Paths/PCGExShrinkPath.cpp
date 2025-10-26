@@ -398,7 +398,7 @@ namespace PCGExShrinkPath
 
 		if (StartAmount <= 0)
 		{
-			for (int i = 0; i < NumPoints; i++) { DistFromStart[i] = Metrics.Add(InTransforms[i].GetLocation());; }
+			for (int i = 0; i < NumPoints; i++) { DistFromStart[i] = Metrics.Add(InTransforms[i].GetLocation()); }
 		}
 		else
 		{

@@ -65,7 +65,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 				if (bScaleTolerance) { DataBounds = DataBounds.ExpandBy((DataBounds.GetSize().Length() + 1) * 10); }
 				BoundsList.Add(DataBounds);
 				OctreeBounds += DataBounds;
-				
+
 				PolyPaths.Add(Path);
 				Datas.Add(Data);
 			}
@@ -319,7 +319,7 @@ namespace PCGExPathInclusion
 	PCGExMath::FClosestPosition FHandler::FindClosestIntersection(const PCGExMath::FSegment& Segment, const FPCGExPathIntersectionDetails& InDetails, const UPCGData* InParentData) const
 	{
 		PCGExMath::FClosestPosition ClosestIntersection;
-		
+
 		Octree->FindFirstElementWithBoundsTest(
 			Segment.Bounds, [&](
 			const PCGExOctree::FItem& Item)
