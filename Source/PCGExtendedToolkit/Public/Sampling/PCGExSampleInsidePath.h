@@ -262,12 +262,12 @@ namespace PCGExSampleInsidePath
 		double WeightedDistance = 0;
 		double WeightedTime = 0;
 		double WeightedSegmentTime = 0;
-		
+
 		PCGEX_FOREACH_FIELD_INSIDEPATH(PCGEX_OUTPUT_DECL)
 
-		
+
 		FBox SampleBox = FBox(ForceInit);
-		
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TProcessor(InPointDataFacade)

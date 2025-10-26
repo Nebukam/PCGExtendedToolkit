@@ -574,7 +574,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellArtifactsDetails
 	/** Write cell compactness as a @Data attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName = "Cell Compactness", EditCondition="bWriteCompactness"))
 	FName CompactnessAttributeName = FName("@Data.Compactness");
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxId = false;

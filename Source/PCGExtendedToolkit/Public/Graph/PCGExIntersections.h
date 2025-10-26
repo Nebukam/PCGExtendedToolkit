@@ -156,7 +156,7 @@ namespace PCGExGraph
 	class PCGEXTENDEDTOOLKIT_API FUnionGraph : public TSharedFromThis<FUnionGraph>
 	{
 	public:
-		TMap<uint32, TSharedPtr<FUnionNode>> GridTree;
+		TMap<uint64, TSharedPtr<FUnionNode>> GridTree;
 
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
@@ -180,7 +180,7 @@ namespace PCGExGraph
 		bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InUniqueSourceFacade, const bool SupportScopedGet);
 
 		void Reserve(const int32 NodeReserve, const int32 EdgeReserve);
-		
+
 		int32 NumNodes() const;
 		int32 NumEdges() const;
 
@@ -214,7 +214,7 @@ namespace PCGExGraph
 		FIntersectionCache(const TSharedPtr<FGraph>& InGraph, const TSharedPtr<PCGExData::FPointIO>& InPointIO);
 
 		bool InitProxy(const TSharedPtr<FEdgeProxy>& Edge, const int32 Index) const;
-		
+
 	protected:
 		double Tolerance = 10;
 		void BuildCache();
@@ -231,7 +231,7 @@ namespace PCGExGraph
 
 		FEdgeProxy() = default;
 
-		virtual void Init(const FEdge& InEdge, const FVector& InStart, const FVector& InEnd, const double Tolerance);		
+		virtual void Init(const FEdge& InEdge, const FVector& InStart, const FVector& InEnd, const double Tolerance);
 		virtual bool IsEmpty() const { return true; }
 	};
 

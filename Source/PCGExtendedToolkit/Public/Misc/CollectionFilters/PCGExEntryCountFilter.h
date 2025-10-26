@@ -46,7 +46,6 @@ struct FPCGExEntryCountFilterConfig
 	/** What should this filter return when dealing with data that don't have the specified? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="CompareAgainst != EPCGExInputValueType::Constant", EditConditionHides))
 	EPCGExFilterFallback MissingAttributeFallback = EPCGExFilterFallback::Fail;
-
 };
 
 

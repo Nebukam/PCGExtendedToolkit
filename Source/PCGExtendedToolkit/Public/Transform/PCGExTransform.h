@@ -159,7 +159,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="U", EditCondition="UInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double UConstant = 0;
 
-	
+
 	/** V Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExInputValueType VInput = EPCGExInputValueType::Constant;
@@ -172,7 +172,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="V", EditCondition="VInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double VConstant = 0;
 
-	
 
 	/** W Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -190,7 +189,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	PCGEX_SETTING_VALUE_DECL(U, double)
 	PCGEX_SETTING_VALUE_DECL(V, double)
 	PCGEX_SETTING_VALUE_DECL(W, double)
-	
+
 
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 

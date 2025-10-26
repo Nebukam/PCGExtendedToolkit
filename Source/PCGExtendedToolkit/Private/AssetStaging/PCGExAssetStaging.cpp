@@ -390,9 +390,8 @@ namespace PCGExAssetStaging
 
 			if (Variations.bEnabledBefore)
 			{
-
 				FTransform LocalXForm = FTransform::Identity;
-				
+
 				if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
 					Entry->VariationMode == EPCGExEntryVariationMode::Global)
 				{

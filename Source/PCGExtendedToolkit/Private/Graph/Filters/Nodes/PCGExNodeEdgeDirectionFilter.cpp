@@ -145,9 +145,9 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	if (TypedFilterFactory->Config.bTransformDirection) { RefDir = VtxTransforms[PointIndex].TransformVectorNoScale(RefDir); }
 
 	const FVector CWTolerance = HashComparison.GetCWTolerance(PointIndex);
-	const FInt32Vector A = PCGEx::I323(RefDir, CWTolerance);
+	const uint64 A = PCGEx::GH3(RefDir, CWTolerance);
 
-	TArray<FInt32Vector> Hashes;
+	TArray<uint64> Hashes;
 	Hashes.SetNumUninitialized(Node.Links.Num());
 
 	// Precompute all dot products
@@ -156,20 +156,20 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	{
 		for (int i = 0; i < Hashes.Num(); i++)
 		{
-			Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.Index, Node.Links[i].Node), CWTolerance);
+			Hashes[i] = PCGEx::GH3(Cluster->GetDir(Node.Index, Node.Links[i].Node), CWTolerance);
 		}
 	}
 	else
 	{
 		for (int i = 0; i < Hashes.Num(); i++)
 		{
-			Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.Index, Node.Links[i].Node), CWTolerance);
+			Hashes[i] = PCGEx::GH3(Cluster->GetDir(Node.Index, Node.Links[i].Node), CWTolerance);
 		}
 	}
 
 	if (Adjacency.bTestAllNeighbors)
 	{
-		for (const FInt32Vector Hash : Hashes) { if (A != Hash) { return false; } }
+		for (const uint64 Hash : Hashes) { if (A != Hash) { return false; } }
 		return true;
 	}
 
@@ -180,7 +180,7 @@ bool FNodeEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	if (Threshold == -1) { return false; }
 
 	int32 LocalSuccessCount = 0;
-	for (const FInt32Vector Hash : Hashes) { if (A == Hash) { LocalSuccessCount++; } }
+	for (const uint64 Hash : Hashes) { if (A == Hash) { LocalSuccessCount++; } }
 
 	return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold);
 }

@@ -91,7 +91,7 @@ public:
 	/** If enabled, does very precise and EXPENSIVE spatial tests. Only supported for pruning. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta=(PCG_NotOverridable))
 	bool bPreciseTest = false;
-	
+
 	/** If and how to expand the primary bounds (bounds used for the main point being evaluated) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Expansion", meta=(PCG_NotOverridable))
 	EPCGExSelfPruningExpandOrder PrimaryMode = EPCGExSelfPruningExpandOrder::None;

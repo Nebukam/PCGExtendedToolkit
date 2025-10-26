@@ -6,7 +6,6 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
@@ -209,7 +208,6 @@ namespace PCGExSampleInsidePath
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
 		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
 			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
@@ -374,7 +372,7 @@ namespace PCGExSampleInsidePath
 		}
 
 		if (Settings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0) { Union->WeightRange = RangeMaxSquared; }
-		
+
 		NumSampled = Union->Num();
 		WeightedDistance /= NumSampled; // We have two points per samples
 		WeightedTime /= NumSampled;
@@ -403,7 +401,7 @@ namespace PCGExSampleInsidePath
 			PCGEX_SCOPE_LOOP(Index)
 			{
 				DataBlender->ComputeWeights(Index, Union, OutWeightedPoints);
-				
+
 				PCGEX_OUTPUT_VALUE(Distance, Index, RangeMax)
 				PCGEX_OUTPUT_VALUE(NumInside, Index, -1)
 				PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)

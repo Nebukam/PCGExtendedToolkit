@@ -521,11 +521,11 @@ namespace PCGExMT
 
 	protected:
 		double EndTime = 0.0;
-		
+
 		virtual void Schedule();
 		virtual bool Execute();
 		virtual void End(bool bIsCancellation) override;
-		
+
 		bool ShouldStop();
 		bool CanRun();
 	};
@@ -534,7 +534,7 @@ namespace PCGExMT
 	{
 	protected:
 		FScope Scope = FScope{};
-		
+
 	public:
 		using FIterationCallback = std::function<void(const int32, const FScope&)>;
 		FIterationCallback OnIterationCallback;

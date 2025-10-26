@@ -437,7 +437,7 @@ namespace PCGExData
 
 		FBox GetInBounds() const;
 		FBox GetOutBounds() const;
-		
+
 		int32 GetInNumPoints() const;
 
 		void PruneNullEntries(const bool bUpdateIndices);

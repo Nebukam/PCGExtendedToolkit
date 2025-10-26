@@ -282,7 +282,7 @@ bool FPCGExJustificationDetails::Init(FPCGExContext* InContext, const TSharedRef
 void FPCGExFittingVariationsDetails::Init(const int InSeed)
 {
 	Seed = InSeed;
-	
+
 	bEnabledBefore = (Offset == EPCGExVariationMode::Before || Rotation == EPCGExVariationMode::Before || Scale == EPCGExVariationMode::Before);
 	bEnabledAfter = (Offset == EPCGExVariationMode::After || Rotation == EPCGExVariationMode::After || Scale == EPCGExVariationMode::After);
 }
@@ -383,7 +383,7 @@ void FPCGExFittingDetailsHandler::ComputeLocalTransform(const int32 TargetIndex,
 
 	FVector OutScale = OutTransform.GetScale3D();
 	FVector OutTranslation = FVector::ZeroVector;
-	
+
 	ScaleToFit.Process(TargetPoint, InOutBounds.TransformBy(InLocalXForm), OutScale, InOutBounds);
 	Justification.Process(
 		TargetIndex, PCGExMath::GetLocalBounds<EPCGExPointBoundsSource::ScaledBounds>(TargetPoint),

@@ -165,7 +165,7 @@ namespace PCGExPathfinding
 			: Cluster(InCluster), Seed(InSeed), Goal(InGoal), QueryIndex(InQueryIndex)
 		{
 		}
-		
+
 		FPathQuery(
 			const TSharedRef<PCGExCluster::FCluster>& InCluster,
 			const PCGExData::FConstPoint& InSeed,

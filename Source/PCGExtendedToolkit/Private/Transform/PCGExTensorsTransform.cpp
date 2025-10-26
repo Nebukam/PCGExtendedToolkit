@@ -45,7 +45,7 @@ bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const
 	GetInputFactories(
 		Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories,
 		PCGExFactories::PointFilters, false);
-	
+
 	PCGExPointFilter::PruneForDirectEvaluation(Context, Context->StopFilterFactories);
 
 	return true;

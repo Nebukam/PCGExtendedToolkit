@@ -50,7 +50,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 	// TODO : Support local fuse distance, requires access to all input facades
 	if (!Context->UnionGraph->Init(Context)) { return false; }
 	Context->UnionGraph->Reserve(Context->MainPoints->GetInNumPoints(), Context->MainEdges->GetInNumPoints());
-	
+
 	Context->UnionGraph->EdgesUnion->bIsAbstract = false; // Because we have valid edge data
 
 	Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(
@@ -120,7 +120,6 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 
 		if (!Context->UnionProcessor->StartExecution(Context->VtxFacades, Settings->GraphBuilderDetails)) { return true; }
-		
 	}
 
 	if (!Context->UnionProcessor->Execute()) { return false; }

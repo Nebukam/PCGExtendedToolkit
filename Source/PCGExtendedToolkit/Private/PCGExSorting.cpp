@@ -199,7 +199,7 @@ namespace PCGExSorting
 				{
 					RuleHandlers.RemoveAt(i);
 					i--;
-					
+
 					PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
 					break;
 				}

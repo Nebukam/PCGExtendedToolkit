@@ -266,8 +266,8 @@ namespace PCGExConnectPoints
 			if (!CanGenerate[Index]) { continue; } // Not a generator
 
 			TSet<uint64>* UniqueEdges = ScopedEdges->Get(Scope).Get();
-			TUniquePtr<TSet<FInt32Vector>> LocalCoincidence;
-			if (bPreventCoincidence) { LocalCoincidence = MakeUnique<TSet<FInt32Vector>>(); }
+			TUniquePtr<TSet<uint64>> LocalCoincidence;
+			if (bPreventCoincidence) { LocalCoincidence = MakeUnique<TSet<uint64>>(); }
 
 			const FTransform& CandidateTransform = bUseProjection ? WorkingTransforms[Index] : OriginalTransforms[Index];
 
@@ -303,7 +303,7 @@ namespace PCGExConnectPoints
 						OtherPointIndex,
 						Dir,
 						FVector::DistSquared(Position, Origin),
-						bPreventCoincidence ? PCGEx::I323(Dir, CWCoincidenceTolerance) : FInt32Vector::ZeroValue);
+						bPreventCoincidence ? PCGEx::GH3(Dir, CWCoincidenceTolerance) : 0);
 
 					if (NumChainedOps > 0)
 					{

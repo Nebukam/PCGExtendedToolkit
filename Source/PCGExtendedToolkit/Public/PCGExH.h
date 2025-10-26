@@ -96,108 +96,43 @@ namespace PCGEx
 		return A == Not ? NH64B(Hash) : A;
 	}
 
-	constexpr FORCEINLINE static uint64 H6416(const uint16 A, const uint16 B, const uint16 C, const uint16 D)
-	{
-		return (static_cast<uint64>(A) << 48) |
-			(static_cast<uint64>(B) << 32) |
-			(static_cast<uint64>(C) << 16) |
-			static_cast<uint64>(D);
-	}
-
-	constexpr FORCEINLINE static void H6416(const uint64_t H, uint16& A, uint16& B, uint16& C, uint16& D)
-	{
-		A = static_cast<uint16>(H >> 48);
-		B = static_cast<uint16>((H >> 32) & 0xFFFF);
-		C = static_cast<uint16>((H >> 16) & 0xFFFF);
-		D = static_cast<uint16>(H & 0xFFFF);
-	}
-
-	FORCEINLINE static uint32 H64S(const uint32 A, const uint32 B, const uint32 C)
-	{
-		return HashCombineFast(A, HashCombineFast(B, C));
-	}
-
-	FORCEINLINE static uint32 H64S(int32 ABC[3]) { return H64S(ABC[0], ABC[1], ABC[2]); }
-
-	FORCEINLINE static uint32 GH3(const FInt64Vector3& Seed) { return GetTypeHash(Seed); }
-
 	template <typename T>
-	FORCEINLINE static FInt32Vector3 I323(const T& Seed, const T& Tolerance)
+	FORCEINLINE static uint64 GH3(const T& Seed, const T& Tolerance)
 	{
-		return FInt32Vector3(
-			FMath::RoundToDouble(Seed[0] * Tolerance[0]),
-			FMath::RoundToDouble(Seed[1] * Tolerance[1]),
-			FMath::RoundToDouble(Seed[2] * Tolerance[2]));
+		return GetTypeHash(
+			FInt64Vector(
+				FMath::RoundToInt64(Seed[0] * Tolerance[0]),
+				FMath::RoundToInt64(Seed[1] * Tolerance[1]),
+				FMath::RoundToInt64(Seed[2] * Tolerance[2])));
 	}
 
 	template <typename S, typename T>
-	FORCEINLINE static FInt32Vector3 I323(const S& Seed, const T& Tolerance)
+	FORCEINLINE static uint64 GH3(const S& Seed, const T& Tolerance)
 	{
-		return FInt32Vector3(
-			FMath::RoundToDouble(Seed[0] * Tolerance[0]),
-			FMath::RoundToDouble(Seed[1] * Tolerance[1]),
-			FMath::RoundToDouble(Seed[2] * Tolerance[2]));
+		return GetTypeHash(
+			FInt64Vector(
+				FMath::RoundToInt64(Seed[0] * Tolerance[0]),
+				FMath::RoundToInt64(Seed[1] * Tolerance[1]),
+				FMath::RoundToInt64(Seed[2] * Tolerance[2])));
 	}
 
-	template <typename T>
-	FORCEINLINE static FInt64Vector3 I643(const T& Seed, const T& Tolerance)
+	FORCEINLINE static uint64 UH3(const int32 A, const int32 B, const int32 C)
 	{
-		return FInt64Vector3(
-			FMath::RoundToDouble(Seed[0] * Tolerance[0]),
-			FMath::RoundToDouble(Seed[1] * Tolerance[1]),
-			FMath::RoundToDouble(Seed[2] * Tolerance[2]));
-	}
-
-	template <typename S, typename T>
-	FORCEINLINE static FInt64Vector3 I643(const S& Seed, const T& Tolerance)
-	{
-		return FInt64Vector3(
-			FMath::RoundToDouble(Seed[0] * Tolerance[0]),
-			FMath::RoundToDouble(Seed[1] * Tolerance[1]),
-			FMath::RoundToDouble(Seed[2] * Tolerance[2]));
-	}
-
-	template <typename T>
-	FORCEINLINE static uint32 GH3(const T& Seed, const T& Tolerance) { return GetTypeHash(I643(Seed, Tolerance)); }
-
-	template <typename S, typename T>
-	FORCEINLINE static uint32 GH3(const S& Seed, const T& Tolerance) { return GetTypeHash(I643(Seed, Tolerance)); }
-
-	FORCEINLINE static uint32 UH3(const int32 A, const int32 B, const int32 C)
-	{
-		int32 X = A, Y = B, Z = C;
+		int64 X = A, Y = B, Z = C;
 		if (X > Y) { Swap(X, Y); }
 		if (X > Z) { Swap(X, Z); }
 		if (Y > Z) { Swap(Y, Z); }
-		return GetTypeHash(FInt32Vector3(X, Y, Z));
-	}
-
-
-	template <typename T>
-	FORCEINLINE static FInt64Vector2 I642(const T& Seed, const T& Tolerance)
-	{
-		return FInt64Vector2(
-			FMath::RoundToDouble(Seed[0] * Tolerance[0]),
-			FMath::RoundToDouble(Seed[1] * Tolerance[1]));
+		return GetTypeHash(FInt64Vector(X, Y, Z));
 	}
 
 	template <typename S, typename T>
-	FORCEINLINE static FInt64Vector2 I642(const S& Seed, const T& Tolerance)
+	FORCEINLINE static uint64 GH2(const S& Seed, const T& Tolerance)
 	{
-		return FInt64Vector2(
-			FMath::RoundToDouble(Seed[0] * Tolerance[0]),
-			FMath::RoundToDouble(Seed[1] * Tolerance[1]));
-	}
-
-	template <typename T>
-	FORCEINLINE static uint32 GH2(const T& Seed, const T& Tolerance) { return GetTypeHash(I642(Seed, Tolerance)); }
-
-	template <typename S, typename T>
-	FORCEINLINE static uint32 GH2(const S& Seed, const T& Tolerance) { return GetTypeHash(I642(Seed, Tolerance)); }
-
-	FORCEINLINE static uint32 UH2(const int32 A, const int32 B)
-	{
-		return A > B ? GetTypeHash(FInt32Vector2(B, A)) : GetTypeHash(FInt32Vector2(A, B));
+		return GetTypeHash(
+			FInt64Vector(
+				FMath::RoundToInt64(Seed[0] * Tolerance[0]),
+				FMath::RoundToInt64(Seed[1] * Tolerance[1]),
+				0));
 	}
 
 	class FIndexLookup : public TSharedFromThis<FIndexLookup>

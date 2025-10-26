@@ -56,7 +56,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 		// TODO : Support local fuse distance, requires access to all input facades
 		if (!Context->UnionGraph->Init(Context)) { return false; }
 		Context->UnionGraph->Reserve(Context->MainPoints->GetInNumPoints(), -1);
-		
+
 		Context->UnionGraph->EdgesUnion->bIsAbstract = true; // Because we don't have edge data
 
 		Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(

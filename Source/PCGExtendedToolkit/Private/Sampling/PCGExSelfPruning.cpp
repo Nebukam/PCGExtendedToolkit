@@ -85,7 +85,6 @@ bool FPCGExSelfPruningElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSelfPruning
 {
-
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSelfPruning::Process);

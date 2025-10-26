@@ -41,10 +41,10 @@ namespace PCGExDetails
 
 	template <typename T>
 	T TSettingValueBuffer<T>::Max() { return Buffer->Max; }
-	
+
 	template <typename T>
-	uint32 TSettingValueBuffer<T>::ReadValueHash(const int32 Index){ return Buffer->ReadValueHash(Index); }
-	
+	uint32 TSettingValueBuffer<T>::ReadValueHash(const int32 Index) { return Buffer->ReadValueHash(Index); }
+
 	template <typename T>
 	bool TSettingValueSelector<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax)
 	{
@@ -73,7 +73,7 @@ namespace PCGExDetails
 	T TSettingValueSelector<T>::Max() { return Buffer->Max; }
 
 	template <typename T>
-	uint32 TSettingValueSelector<T>::ReadValueHash(const int32 Index){ return Buffer->ReadValueHash(Index); }
+	uint32 TSettingValueSelector<T>::ReadValueHash(const int32 Index) { return Buffer->ReadValueHash(Index); }
 
 	template <typename T>
 	bool TSettingValueConstant<T>::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade, const bool bSupportScoped, const bool bCaptureMinMax) { return true; }

@@ -60,7 +60,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRandomRatioDetails
 	GENERATED_BODY()
 
 	FPCGExRandomRatioDetails() = default;
-	explicit  FPCGExRandomRatioDetails(double DefaultAmount)
+
+	explicit FPCGExRandomRatioDetails(double DefaultAmount)
 	{
 		Amount = DefaultAmount;
 	}
@@ -77,7 +78,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRandomRatioDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Seed", meta=(PCG_Overridable, DisplayName="Seed", EditCondition="SeedInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int32 SeedValue = 42;
 
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExMeanMeasure Units = EPCGExMeanMeasure::Relative;
@@ -103,7 +104,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRandomRatioDetails
 	PCGEX_SETTING_DATA_VALUE_DECL(FixedAmount, int32)
 
 	int32 GetNumPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems) const;
-	
+
 	void GetPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems, TSet<int32>& OutPicks) const;
 	void GetPicks(FPCGExContext* InContext, const UPCGData* InData, const int32 NumMaxItems, TArray<int32>& OutPicks) const;
 };

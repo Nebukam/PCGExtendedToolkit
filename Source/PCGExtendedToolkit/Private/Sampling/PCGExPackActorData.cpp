@@ -491,7 +491,6 @@ namespace PCGExPackActorData
 		}
 		*/
 	}
-	
 }
 
 

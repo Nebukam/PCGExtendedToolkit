@@ -1107,11 +1107,17 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 						{
 							const float AX = Xs[A];
 							const float BX = Xs[B];
-							if (AX != BX) return AX < BX;
+							if (AX != BX)
+							{
+								return AX < BX;
+							}
 
 							const float AY = Ys[A];
 							const float BY = Ys[B];
-							if (AY != BY) return AY < BY;
+							if (AY != BY)
+							{
+								return AY < BY;
+							}
 
 							return Zs[A] < Zs[B];
 						});
