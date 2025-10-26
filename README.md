@@ -22,7 +22,7 @@ For questions & support, join the [PCGEx Discord Server](https://discord.gg/mde2
 ![image](https://github.com/user-attachments/assets/b8bd713e-0b60-4cdc-84d9-dd776d452bf8)
 
 # Highlights
-### Vtx/Edge structures
+### Graph theory with Vtx/Edge structures
 A new concept of connection between points, enabling entierely new ways of working with PCG
 
 ![hl-graphs](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-graphs.jpg)
