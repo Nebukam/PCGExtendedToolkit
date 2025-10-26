@@ -13,7 +13,7 @@
 
 PCGEX_INITIALIZE_ELEMENT(FlatProjection)
 
-PCGExData::EIOInit UPCGExFlatProjectionSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExFlatProjectionSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(FlatProjection)
 

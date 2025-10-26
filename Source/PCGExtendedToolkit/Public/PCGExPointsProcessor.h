@@ -79,7 +79,7 @@ public:
 #endif
 
 protected:
-	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const;
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual bool OnlyPassThroughOneEdgeWhenDisabled() const override { return false; }
@@ -103,6 +103,10 @@ public:
 
 	bool SupportsPointFilters() const { return !GetPointFilterPin().IsNone(); }
 
+	/** If enabled, will pre-instanciate all data on a single thread to avoid contention. Not all nodes support this. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
+	EPCGExOptionState BulkInitData = EPCGExOptionState::Default;
+	
 	/** Async work priority for this node.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
@@ -158,6 +162,7 @@ public:
 protected:
 	virtual bool ShouldCache() const;
 	virtual bool WantsScopedAttributeGet() const;
+	virtual bool WantsBulkInitData() const;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext

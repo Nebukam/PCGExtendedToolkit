@@ -22,7 +22,7 @@ TArray<FPCGPinProperties> UPCGExBestMatchAxisSettings::InputPinProperties() cons
 
 PCGEX_INITIALIZE_ELEMENT(BestMatchAxis)
 
-PCGExData::EIOInit UPCGExBestMatchAxisSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExBestMatchAxisSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BestMatchAxis)
 

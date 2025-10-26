@@ -12,7 +12,7 @@
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"
 #define PCGEX_NAMESPACE AssetStaging
 
-PCGExData::EIOInit UPCGExAssetStagingSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExAssetStagingSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(AssetStaging)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(AssetStaging)

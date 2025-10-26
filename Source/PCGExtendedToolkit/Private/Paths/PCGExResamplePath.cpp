@@ -11,7 +11,7 @@
 
 PCGEX_INITIALIZE_ELEMENT(ResamplePath)
 
-PCGExData::EIOInit UPCGExResamplePathSettings::GetIOPreInitForMainPoints() const
+PCGExData::EIOInit UPCGExResamplePathSettings::GetMainDataInitializationPolicy() const
 {
 	if (Mode == EPCGExResampleMode::Sweep) { return PCGExData::EIOInit::New; }
 	else { return PCGExData::EIOInit::Duplicate; }

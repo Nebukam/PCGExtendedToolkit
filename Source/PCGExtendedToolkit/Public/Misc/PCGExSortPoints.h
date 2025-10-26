@@ -53,7 +53,7 @@ public:
 	//~End UObject interface
 
 protected:
-	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
 	/** Ordered list of attribute to check to sort over. */
