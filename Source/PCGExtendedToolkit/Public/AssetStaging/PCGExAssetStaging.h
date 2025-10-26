@@ -49,7 +49,7 @@ protected:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters which points get staged.", PCGExFactories::PointFilters, false)
 	//~End UPCGSettings
 
-	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 	
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

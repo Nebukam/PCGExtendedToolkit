@@ -30,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExWritePathPropertiesSettings::OutputPinProperties
 
 PCGEX_INITIALIZE_ELEMENT(WritePathProperties)
 
-PCGExData::EIOInit UPCGExWritePathPropertiesSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExWritePathPropertiesSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(WritePathProperties)
 

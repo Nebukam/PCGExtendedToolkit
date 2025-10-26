@@ -12,7 +12,7 @@
 
 PCGEX_INITIALIZE_ELEMENT(CollocationCount)
 
-PCGExData::EIOInit UPCGExCollocationCountSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExCollocationCountSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(CollocationCount)
 

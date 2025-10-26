@@ -35,7 +35,7 @@ bool UPCGExPointsProcessorSettings::IsPinUsedByNodeExecution(const UPCGPin* InPi
 }
 #endif
 
-PCGExData::EIOInit UPCGExPointsProcessorSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::NoInit; }
 
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {
@@ -93,6 +93,11 @@ bool UPCGExPointsProcessorSettings::ShouldCache() const
 bool UPCGExPointsProcessorSettings::WantsScopedAttributeGet() const
 {
 	PCGEX_GET_OPTION_STATE(ScopedAttributeGet, bDefaultScopedAttributeGet)
+}
+
+bool UPCGExPointsProcessorSettings::WantsBulkInitData() const
+{
+	PCGEX_GET_OPTION_STATE(BulkInitData, bBulkInitData)
 }
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
@@ -216,12 +221,9 @@ bool FPCGExPointsProcessorContext::StartBatchProcessingPoints(FBatchProcessingVa
 	TArray<TWeakPtr<PCGExData::FPointIO>> BatchAblePoints;
 	BatchAblePoints.Reserve(InitialMainPointsNum);
 
-	const PCGExData::EIOInit PreInit = Settings->GetIOPreInitForMainPoints();
-	const bool bDoPreInit = PreInit == PCGExData::EIOInit::Duplicate || PreInit == PCGExData::EIOInit::New;
 	while (AdvancePointsIO(false))
 	{
 		if (!ValidateEntry(CurrentIO)) { continue; }
-		//if (bDoPreInit) { CurrentIO->InitializeOutput(PreInit); }
 		BatchAblePoints.Add(CurrentIO.ToSharedRef());
 	}
 
@@ -231,6 +233,7 @@ bool FPCGExPointsProcessorContext::StartBatchProcessingPoints(FBatchProcessingVa
 	const TSharedPtr<PCGExPointsMT::IBatch> NewBatch = CreatePointBatchInstance(BatchAblePoints);
 	MainBatch = NewBatch;
 	MainBatch->SubProcessorMap = &SubProcessorMap;
+	MainBatch->DataInitializationPolicy = Settings->WantsBulkInitData() ? Settings->GetMainDataInitializationPolicy() : PCGExData::EIOInit::NoInit;
 
 	InitBatch(NewBatch);
 

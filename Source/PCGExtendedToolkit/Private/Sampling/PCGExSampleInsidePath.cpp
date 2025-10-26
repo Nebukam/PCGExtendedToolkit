@@ -61,7 +61,7 @@ bool UPCGExSampleInsidePathSettings::IsPinUsedByNodeExecution(const UPCGPin* InP
 
 PCGEX_INITIALIZE_ELEMENT(SampleInsidePath)
 
-PCGExData::EIOInit UPCGExSampleInsidePathSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExSampleInsidePathSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleInsidePath)
 

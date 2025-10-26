@@ -34,7 +34,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
 	/** Whther to write the index as a normalized output value. */

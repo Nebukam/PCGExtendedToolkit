@@ -34,7 +34,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 	
 public:
 	/** If the path is not closed, the last point cannot be solidified, thus it's usually preferable to remove it. */

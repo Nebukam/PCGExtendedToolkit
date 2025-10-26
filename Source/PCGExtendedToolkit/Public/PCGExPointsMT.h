@@ -226,6 +226,7 @@ namespace PCGExPointsMT
 		bool bForceSingleThreadedCompletion = false;
 		bool bForceSingleThreadedWrite = false;
 		bool bRequiresWriteStep = false;
+		PCGExData::EIOInit DataInitializationPolicy = PCGExData::EIOInit::NoInit;
 		TArray<TSharedRef<PCGExData::FFacade>> ProcessorFacades;
 		TMap<PCGExData::FPointIO*, TSharedRef<IProcessor>>* SubProcessorMap = nullptr;
 

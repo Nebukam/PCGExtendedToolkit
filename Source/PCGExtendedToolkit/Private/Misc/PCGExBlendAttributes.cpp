@@ -19,7 +19,7 @@ TArray<FPCGPinProperties> UPCGExBlendAttributesSettings::InputPinProperties() co
 
 PCGEX_INITIALIZE_ELEMENT(BlendAttributes)
 
-PCGExData::EIOInit UPCGExBlendAttributesSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExBlendAttributesSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BlendAttributes)
 

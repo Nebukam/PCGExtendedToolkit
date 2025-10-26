@@ -12,7 +12,7 @@
 
 PCGEX_INITIALIZE_ELEMENT(PathSlide)
 
-PCGExData::EIOInit UPCGExPathSlideSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExPathSlideSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSlide)
 

@@ -91,7 +91,7 @@ void FPCGExGUIDDetails::GetGUID(const int32 Index, const PCGExData::FConstPoint&
 
 PCGEX_INITIALIZE_ELEMENT(WriteGUID)
 
-PCGExData::EIOInit UPCGExWriteGUIDSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExWriteGUIDSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteGUID)
 
