@@ -46,7 +46,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	virtual  PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+	virtual  PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 	
 	//~Begin UPCGExPointsProcessorSettings
 

@@ -13,7 +13,7 @@
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"
 #define PCGEX_NAMESPACE ReversePointOrder
 
-PCGExData::EIOInit UPCGExReversePointOrderSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExReversePointOrderSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 TArray<FPCGPinProperties> UPCGExReversePointOrderSettings::InputPinProperties() const
 {

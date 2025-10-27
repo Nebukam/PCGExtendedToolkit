@@ -28,7 +28,7 @@ TArray<FPCGPinProperties> UPCGExSampleTextureSettings::InputPinProperties() cons
 
 PCGEX_INITIALIZE_ELEMENT(SampleTexture)
 
-PCGExData::EIOInit UPCGExSampleTextureSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExSampleTextureSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleTexture)
 

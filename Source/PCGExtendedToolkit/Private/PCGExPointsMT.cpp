@@ -197,6 +197,8 @@ namespace PCGExPointsMT
 
 		TSharedPtr<IBatch> SelfPtr = SharedThis(this);
 
+		const bool bDoInitData = DataInitializationPolicy == PCGExData::EIOInit::Duplicate || DataInitializationPolicy == PCGExData::EIOInit::New;
+
 		for (const TWeakPtr<PCGExData::FPointIO>& WeakIO : PointsCollection)
 		{
 			TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
@@ -222,6 +224,8 @@ namespace PCGExPointsMT
 			SubProcessorMap->Add(&NewProcessor->PointDataFacade->Source.Get(), NewProcessor);
 
 			NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize;
+			
+			if (bDoInitData) { NewProcessor->PointDataFacade->Source->InitializeOutput(DataInitializationPolicy); }
 		}
 
 		if (Processors.IsEmpty())

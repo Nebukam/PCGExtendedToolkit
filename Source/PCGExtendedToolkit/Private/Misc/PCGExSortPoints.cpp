@@ -21,7 +21,7 @@ void UPCGExSortPointsSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 }
 #endif
 
-PCGExData::EIOInit UPCGExSortPointsSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExSortPointsSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 FPCGElementPtr UPCGExSortPointsBaseSettings::CreateElement() const { return MakeShared<FPCGExSortPointsBaseElement>(); }
 

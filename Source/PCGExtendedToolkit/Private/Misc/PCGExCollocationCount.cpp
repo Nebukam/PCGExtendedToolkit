@@ -10,7 +10,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCollocationCountElement"
 #define PCGEX_NAMESPACE CollocationCount
 
-PCGExData::EIOInit UPCGExCollocationCountSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExCollocationCountSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(CollocationCount)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(CollocationCount)

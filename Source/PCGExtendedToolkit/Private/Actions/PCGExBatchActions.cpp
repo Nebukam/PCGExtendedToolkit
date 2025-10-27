@@ -17,7 +17,7 @@
 
 PCGExData::EIOInit UPCGExBatchActionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
-PCGExData::EIOInit UPCGExBatchActionsSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExBatchActionsSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 TArray<FPCGPinProperties> UPCGExBatchActionsSettings::InputPinProperties() const
 {

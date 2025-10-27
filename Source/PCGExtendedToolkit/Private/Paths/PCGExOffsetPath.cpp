@@ -14,7 +14,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExOffsetPathSettings, Offset, double, OffsetInput, 
 
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
 
-PCGExData::EIOInit UPCGExOffsetPathSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExOffsetPathSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(OffsetPath)
 

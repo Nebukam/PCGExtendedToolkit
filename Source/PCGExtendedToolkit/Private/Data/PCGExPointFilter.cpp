@@ -106,6 +106,12 @@ namespace PCGExPointFilter
 				continue;
 			}
 
+			if (bWillBeUsedWithCollections && !Factory->SupportsCollectionEvaluation())
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter can't be used with collections : {0}."), PCGExHelpers::GetClassDisplayName(Factory->GetClass())));
+				continue;
+			}
+			
 			TSharedPtr<IFilter> NewFilter = Factory->CreateFilter();
 			NewFilter->bUseDataDomainSelectorsOnly = Factory->GetOnlyUseDataDomain();
 			NewFilter->bCacheResults = bCacheResultsPerFilter;

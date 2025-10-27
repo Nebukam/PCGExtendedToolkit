@@ -34,7 +34,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 	
 public:
 	/** Whether this is a new projection or an old one*/

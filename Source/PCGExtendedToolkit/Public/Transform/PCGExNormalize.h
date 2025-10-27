@@ -41,7 +41,7 @@ protected:
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	//~End UPCGSettings
 	
-	virtual PCGExData::EIOInit GetIOPreInitForMainPoints() const override;
+	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
 	/**  */

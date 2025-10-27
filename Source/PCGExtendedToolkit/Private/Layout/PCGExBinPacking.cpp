@@ -19,7 +19,7 @@ bool UPCGExBinPackingSettings::GetSortingRules(FPCGExContext* InContext, TArray<
 	return !OutRules.IsEmpty();
 }
 
-PCGExData::EIOInit UPCGExBinPackingSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExBinPackingSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 TArray<FPCGPinProperties> UPCGExBinPackingSettings::InputPinProperties() const
 {

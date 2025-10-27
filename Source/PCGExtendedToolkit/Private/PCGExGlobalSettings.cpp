@@ -165,6 +165,7 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_MAP_PIN_IN("Pin Conditions")
 	PCGEX_MAP_PIN_IN("Conditions")
 	PCGEX_MAP_PIN_IN("Flip Conditions")
+	PCGEX_MAP_PIN_IN("Tracker Filters")
 
 	// Ahem.
 	for (int f = 0; f < 42; f++)

@@ -29,7 +29,7 @@ TArray<FPCGPinProperties> UPCGExSampleSurfaceGuidedSettings::InputPinProperties(
 
 PCGEX_INITIALIZE_ELEMENT(SampleSurfaceGuided)
 
-PCGExData::EIOInit UPCGExSampleSurfaceGuidedSettings::GetIOPreInitForMainPoints() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExSampleSurfaceGuidedSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleSurfaceGuided)
 

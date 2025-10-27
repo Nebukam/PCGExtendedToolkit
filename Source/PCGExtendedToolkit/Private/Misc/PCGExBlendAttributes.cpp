@@ -10,7 +10,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBlendAttributesElement"
 #define PCGEX_NAMESPACE BlendAttributes
 
-PCGExData::EIOInit UPCGExBlendAttributesSettings::GetIOPreInitForMainPoints() const { return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExBlendAttributesSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 TArray<FPCGPinProperties> UPCGExBlendAttributesSettings::InputPinProperties() const
 {
