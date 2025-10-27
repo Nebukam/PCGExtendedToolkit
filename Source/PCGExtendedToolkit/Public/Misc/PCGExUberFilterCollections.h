@@ -42,6 +42,8 @@ public:
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
 
+	virtual bool HasDynamicPins() const override;
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -51,6 +53,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual FName GetMainOutputPin() const override;
+	virtual bool GetIsMainTransactional() const override;
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings
 
@@ -96,8 +99,6 @@ struct FPCGExUberFilterCollectionsContext final : FPCGExPointsProcessorContext
 
 	TSharedPtr<PCGExData::FPointIOCollection> Inside;
 	TSharedPtr<PCGExData::FPointIOCollection> Outside;
-
-	PCGExData::EIOInit DataIOInit = PCGExData::EIOInit::Forward;
 
 	int32 NumPairs = 0;
 

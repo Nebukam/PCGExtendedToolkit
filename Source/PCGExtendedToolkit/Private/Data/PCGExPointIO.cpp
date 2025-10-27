@@ -62,7 +62,7 @@ namespace PCGExData
 		PCGEX_SHARED_CONTEXT(ContextHandle)
 
 		if (LastInit == InitOut) { return true; }
-		
+
 		if (InitOut == EIOInit::Forward && IsValid(Out) && Out == In)
 		{
 			// Already forwarding
@@ -481,7 +481,14 @@ namespace PCGExData
 
 		if (!IsEnabled() || !Out || (!bAllowEmptyOutput && Out->IsEmpty())) { return false; }
 
-		TargetContext->StageOutput(Out, OutputPin, Tags->Flatten(), Out != In, bMutable, bPinless);
+		if (LastInit == EIOInit::Forward && Out == In && OriginalIn)
+		{
+			TargetContext->StageOutput(const_cast<UPCGData*>(OriginalIn), OutputPin, Tags->Flatten(), false, false, bPinless);
+		}
+		else
+		{
+			TargetContext->StageOutput(Out, OutputPin, Tags->Flatten(), Out != In, bMutable, bPinless);
+		}
 
 		return true;
 	}
