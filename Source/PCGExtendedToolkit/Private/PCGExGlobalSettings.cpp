@@ -129,10 +129,10 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_EMPLACE_PIN_OUT(OUT_MatchRule, "PCGEx Data Matching Rule");
 	PCGEX_MAP_PIN_OUT("Match Rule")
 
-	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.OUT_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
+	PCGEX_EMPLACE_PIN_OUT(OUT_Vtx, "Point collection formatted for use as cluster vtx.");
 	PCGEX_MAP_PIN_OUT("Vtx")
 
-	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.OUT_Edges"), TEXT("Point collection formatted for use as cluster edges."));
+	PCGEX_EMPLACE_PIN_OUT(OUT_Edges, "Point collection formatted for use as cluster edges.");
 	PCGEX_MAP_PIN_OUT("Edges")
 
 #undef PCGEX_EMPLACE_PIN_OUT
@@ -232,10 +232,10 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_MAP_PIN_IN("Match Rules")
 	PCGEX_MAP_PIN_IN("Match Rules (Edges)")
 
-	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
+	PCGEX_EMPLACE_PIN_IN(IN_Vtx, "Point collection formatted for use as cluster vtx.");
 	PCGEX_MAP_PIN_IN("Vtx")
 
-	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Edges"), TEXT("Point collection formatted for use as cluster edges."));
+	PCGEX_EMPLACE_PIN_IN(IN_Edges, "Point collection formatted for use as cluster edges.");
 	PCGEX_MAP_PIN_IN("Edges")
 
 	PCGEX_EMPLACE_PIN_IN(IN_Special, "Attribute set whose values will be used to override a specific internal module.");
