@@ -73,10 +73,10 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 #define PCGEX_EMPLACE_PIN_OUT(_ID, _TOOLTIP) PinIndex = OutPinInfos.Emplace(FName("PCGEx.Pin." # _ID), TEXT(_TOOLTIP))
 #define PCGEX_MAP_PIN_OUT(_ID) OutPinInfosMap.Add(FName(TEXT(_ID)), PinIndex);
 
-	PCGEX_EMPLACE_PIN_OUT("OUT_Vtx", "Point collection formatted for use as cluster vtx.");
+	PCGEX_EMPLACE_PIN_OUT(OUT_Vtx, "Point collection formatted for use as cluster vtx.");
 	PCGEX_MAP_PIN_OUT("Vtx")
 
-	PCGEX_EMPLACE_PIN_OUT("OUT_Edges", "Point collection formatted for use as cluster edges.");
+	PCGEX_EMPLACE_PIN_OUT(OUT_Edges, "Point collection formatted for use as cluster edges.");
 	PCGEX_MAP_PIN_OUT("Edges")
 
 #undef PCGEX_EMPLACE_PIN_OUT
