@@ -73,10 +73,10 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 #define PCGEX_EMPLACE_PIN_OUT(_ID, _TOOLTIP) PinIndex = OutPinInfos.Emplace(FName("PCGEx.Pin." # _ID), TEXT(_TOOLTIP))
 #define PCGEX_MAP_PIN_OUT(_ID) OutPinInfosMap.Add(FName(TEXT(_ID)), PinIndex);
 
-	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.OUT_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
+	PCGEX_EMPLACE_PIN_OUT("OUT_Vtx", "Point collection formatted for use as cluster vtx.");
 	PCGEX_MAP_PIN_OUT("Vtx")
 
-	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.OUT_Edges"), TEXT("Point collection formatted for use as cluster edges."));
+	PCGEX_EMPLACE_PIN_OUT("OUT_Edges", "Point collection formatted for use as cluster edges.");
 	PCGEX_MAP_PIN_OUT("Edges")
 
 #undef PCGEX_EMPLACE_PIN_OUT
@@ -88,10 +88,10 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 #define PCGEX_EMPLACE_PIN_IN(_ID, _TOOLTIP) PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin." # _ID), TEXT(_TOOLTIP ", supports multiple inputs."))
 #define PCGEX_MAP_PIN_IN(_ID) InPinInfosMap.Add(FName(TEXT(_ID)), PinIndex);
 
-	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Vtx"), TEXT("Point collection formatted for use as cluster vtx."));
+	PCGEX_EMPLACE_PIN_IN(IN_Vtx, "Point collection formatted for use as cluster vtx.");
 	PCGEX_MAP_PIN_IN("Vtx")
 
-	PinIndex = InPinInfos.Emplace(FName("PCGEx.Pin.IN_Edges"), TEXT("Point collection formatted for use as cluster edges."));
+	PCGEX_EMPLACE_PIN_IN(IN_Edges, "Point collection formatted for use as cluster edges.");
 	PCGEX_MAP_PIN_IN("Edges")
 
 	PCGEX_EMPLACE_PIN_IN(IN_Special, "Attribute set whose values will be used to override a specific internal module.");
