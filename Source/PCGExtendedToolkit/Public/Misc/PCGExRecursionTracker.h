@@ -50,7 +50,7 @@ protected:
 
 	/** How is this recursion tracker supposed to be used. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExRecursionTrackerMode Mode = EPCGExRecursionTrackerMode::Create;
+	EPCGExRecursionTrackerMode Mode = EPCGExRecursionTrackerMode::CreateOrUpdate;
 
 	/** Name of the bool attribute that will be set on the tracker. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Update", EditConditionHides, ClampMin=0))
