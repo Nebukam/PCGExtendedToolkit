@@ -20,7 +20,7 @@ TArray<FPCGPinProperties> UPCGExTensorsTransformSettings::InputPinProperties() c
 
 PCGEX_INITIALIZE_ELEMENT(TensorsTransform)
 
-PCGExData::EIOInit UPCGExTensorsTransformSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExTensorsTransformSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(TensorsTransform)
 

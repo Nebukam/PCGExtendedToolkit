@@ -39,7 +39,7 @@ TArray<FPCGPinProperties> UPCGExWriteTangentsSettings::InputPinProperties() cons
 
 PCGEX_INITIALIZE_ELEMENT(WriteTangents)
 
-PCGExData::EIOInit UPCGExWriteTangentsSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExWriteTangentsSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(WriteTangents)
 

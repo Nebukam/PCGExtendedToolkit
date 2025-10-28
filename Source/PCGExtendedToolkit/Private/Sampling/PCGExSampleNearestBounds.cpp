@@ -65,7 +65,7 @@ void FPCGExSampleNearestBoundsContext::RegisterAssetDependencies()
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestBounds)
 
-PCGExData::EIOInit UPCGExSampleNearestBoundsSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExSampleNearestBoundsSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleNearestBounds)
 

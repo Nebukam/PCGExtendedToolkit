@@ -38,7 +38,7 @@ protected:
 	//~End UPCGSettings
 
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
-	
+
 public:
 	virtual FName GetPointFilterPin() const override;
 

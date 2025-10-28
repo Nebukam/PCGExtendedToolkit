@@ -56,7 +56,7 @@ protected:
 	//~End UPCGSettings
 
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
-	
+
 public:
 	/** If enabled, allows you to filter out which targets get sampled by which data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

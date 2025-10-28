@@ -18,13 +18,23 @@
 
 #pragma region UPCGSettings interface
 
+#if WITH_EDITOR
+bool UPCGExRecursionTrackerSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
+{
+	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
+}
+#endif
+
+
 TArray<FPCGPinProperties> UPCGExRecursionTrackerSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
+
+	PCGEX_PIN_PARAMS(PCGPinConstants::DefaultInputLabel, "Tracker(s)", Required)
+	PCGEX_PIN_FILTERS(PCGExRecursionTracker::SourceTrackerFilters, "Filters incoming data, if any.", Normal)
+
 	if (Mode != EPCGExRecursionTrackerMode::Create)
 	{
-		PCGEX_PIN_PARAMS(PCGPinConstants::DefaultInputLabel, "Tracker(s)", Required)
-
 		if (bDoAdditionalDataTesting)
 		{
 			PCGEX_PIN_ANY(PCGExRecursionTracker::SourceTestData, "Collections on that will be tested using the filters below. If no filter is provided, only fail on empty data.", Normal)
@@ -69,44 +79,70 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 	FPCGAttributeIdentifier ContinueAttribute = FPCGAttributeIdentifier(Settings->ContinueAttributeName, PCGMetadataDomainID::Default);
 
 	const FString TAG_MAX_COUNT_STR = TEXT("PCGEx/MaxCount");
-	const FString TAG_COUNT_STR = TEXT("PCGEx/Remainder");
+	const FString TAG_REMAINDER_STR = TEXT("PCGEx/Remainder");
 
+	TSet<FString> RemoveTags;
+	RemoveTags.Append(PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->RemoveTags));
 	TArray<FString> AddTags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->AddTags);
 
-	TSharedPtr<PCGExData::FPointIOCollection> TrackersCollection = nullptr;
 	int32 SafeMax = Settings->Count;
-	
-	auto InitTrackersCollection = [&]()
-	{
-		if (!TrackersCollection)
-		{
-			TArray<FPCGTaggedData> TaggedData = Context->InputData.GetParamsByPin(PCGPinConstants::DefaultInputLabel);
-			TrackersCollection = MakeShared<PCGExData::FPointIOCollection>(Context, TaggedData, PCGExData::EIOInit::NoInit, true);
-		}
-	};
-
+	int32 RemainderOffset = 0;
 	EPCGExRecursionTrackerMode SafeMode = Settings->Mode;
 
-	if (SafeMode == EPCGExRecursionTrackerMode::CreateOrMutate)
+	TArray<FPCGTaggedData> TaggedData = Context->InputData.GetParamsByPin(PCGPinConstants::DefaultInputLabel);
+	TSharedPtr<PCGExData::FPointIOCollection> TrackersCollection = MakeShared<PCGExData::FPointIOCollection>(Context, TaggedData, PCGExData::EIOInit::NoInit, true);
+	TSharedPtr<PCGExPointFilter::FManager> CollectionFilters = nullptr;
+
+	TArray<TSharedPtr<PCGExData::FPointIO>> ValidInputs;
+	ValidInputs.Reserve(TrackersCollection->Num());
+
+	if (!TrackersCollection->IsEmpty())
 	{
-		InitTrackersCollection();
-		if (TrackersCollection->IsEmpty())
+		// Initialize collection filters if we have some inputs
+		TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
+
+		if (PCGExFactories::GetInputFactories(
+			Context, PCGExRecursionTracker::SourceTrackerFilters, FilterFactories,
+			PCGExFactories::PointFilters, false))
 		{
-			SafeMax += Settings->OffsetOnCreateFromEmpty;
-			SafeMode = EPCGExRecursionTrackerMode::Create;
+			PCGEX_MAKE_SHARED(DummyFacade, PCGExData::FFacade, TrackersCollection->Pairs[0].ToSharedRef())
+			CollectionFilters = MakeShared<PCGExPointFilter::FManager>(DummyFacade.ToSharedRef());
+			CollectionFilters->bWillBeUsedWithCollections = true;
+			if (!CollectionFilters->Init(Context, FilterFactories)) { CollectionFilters = nullptr; }
 		}
-		else { SafeMode = EPCGExRecursionTrackerMode::Mutate; }
+
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : TrackersCollection->Pairs)
+		{
+			if (CollectionFilters && !CollectionFilters->Test(IO, TrackersCollection)) { continue; }
+			ValidInputs.Add(IO);
+		}
+
+		if (SafeMode == EPCGExRecursionTrackerMode::CreateOrUpdate)
+		{
+			SafeMode = EPCGExRecursionTrackerMode::Update;
+		}
+	}
+	else if (SafeMode == EPCGExRecursionTrackerMode::CreateOrUpdate)
+	{
+		// Create or Update is provided no input
+		// Offset safe max (assume we create one from scratch)
+		RemainderOffset = Settings->RemainderOffsetWhenCreateInsteadOfUpdate;
+		SafeMode = EPCGExRecursionTrackerMode::Create;
 	}
 
+	TrackersCollection.Reset();
+
 	SafeMax = FMath::Max(0, SafeMax);
-	
+
 	auto StageResult = [&](bool bResult)
 	{
 		UPCGParamData* NewParamData = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);
 
 		TSharedPtr<PCGExData::FTags> Tags = MakeShared<PCGExData::FTags>();
 		Tags->Append(AddTags);
+
 		Tags->Set<int32>(TAG_MAX_COUNT_STR, SafeMax);
+		Tags->Set<int32>(TAG_REMAINDER_STR, SafeMax + RemainderOffset);
 
 		UPCGMetadata* Metadata = NewParamData->MutableMetadata();
 		Metadata->CreateAttribute<bool>(ContinueAttribute, bResult, true, true);
@@ -117,58 +153,80 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (SafeMode == EPCGExRecursionTrackerMode::Create)
 	{
-		StageResult(true);
+		if (ValidInputs.IsEmpty())
+		{
+			StageResult(true);
+		}
+		else
+		{
+			for (const TSharedPtr<PCGExData::FPointIO>& IO : ValidInputs)
+			{
+				const UPCGParamData* OriginalParamData = Cast<UPCGParamData>(IO->InitializationData);
+				if (!OriginalParamData) { continue; }
+
+				UPCGParamData* NewParamData = OriginalParamData->DuplicateData(Context);
+
+				IO->Tags->Append(AddTags);
+				IO->Tags->Remove(RemoveTags);
+				IO->Tags->Set<int32>(TAG_MAX_COUNT_STR, SafeMax);
+				IO->Tags->Set<int32>(TAG_REMAINDER_STR, SafeMax);
+
+				UPCGMetadata* Metadata = NewParamData->MutableMetadata();
+				Metadata->DeleteAttribute(ContinueAttribute);
+				Metadata->CreateAttribute<bool>(ContinueAttribute, true, true, true);
+
+				if (Settings->bAddEntryWhenCreatingFromExistingData) { Metadata->AddEntry(); }
+
+				Context->StageOutput(NewParamData, PCGPinConstants::DefaultOutputLabel, IO->Tags->Flatten(), false, true, false);
+			}
+		}
 	}
 	else
 	{
 		FPCGAttributeIdentifier ProgressAttribute = FPCGAttributeIdentifier(FName("Progress"), PCGMetadataDomainID::Default);
 
-		auto StageProgress = [&](float Progress, const TSharedPtr<PCGExData::FTags>& Tags)
+		if (ValidInputs.IsEmpty())
 		{
-			UPCGParamData* NewParamData = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);
-			UPCGMetadata* Metadata = NewParamData->MutableMetadata();
-			Metadata->CreateAttribute<float>(ProgressAttribute, Settings->bOneMinus ? 1 - Progress : Progress, true, true);
-			Metadata->AddEntry();
-			Context->StageOutput(NewParamData, PCGExRecursionTracker::OutputProgressLabel, Tags->Flatten(), false, true, false);
-		};
-
-		InitTrackersCollection();
-
-		if (TrackersCollection->IsEmpty())
-		{
-			if (!Settings->bEmptyOutputOnStop) { StageResult(false); }
+			// No trackers, empty list.
+			if (!Settings->bOutputNothingOnStop) { StageResult(false); }
 		}
 		else
 		{
 			int32 NumTrackers = 0;
-			bool bForceFail = false;
+			bool bShouldStop = false;
+
 			if (Settings->bDoAdditionalDataTesting)
 			{
-				TSharedPtr<PCGExData::FPointIOCollection> TestDataCollection = MakeShared<PCGExData::FPointIOCollection>(Context, PCGExRecursionTracker::SourceTestData, PCGExData::EIOInit::NoInit, true);
+				TSharedPtr<PCGExData::FPointIOCollection> TestDataCollection = MakeShared<PCGExData::FPointIOCollection>(
+					Context, PCGExRecursionTracker::SourceTestData, PCGExData::EIOInit::NoInit, true);
+
 				if (TestDataCollection->IsEmpty())
 				{
-					bForceFail = true;
+					bShouldStop = true;
 				}
 				else
 				{
-					TSharedPtr<PCGExPointFilter::FManager> CollectionFilters = nullptr;
-					TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
+					TSharedPtr<PCGExPointFilter::FManager> TestDataFilters = nullptr;
+					TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> TestFilterFactories;
 
-					if (!bForceFail && PCGExFactories::GetInputFactories(
-						Context, PCGExRecursionTracker::SourceTrackerFilters, FilterFactories,
+					if (!bShouldStop && PCGExFactories::GetInputFactories(
+						Context, PCGExRecursionTracker::SourceTrackerFilters, TestFilterFactories,
 						PCGExFactories::PointFilters, false))
 					{
-						PCGEX_MAKE_SHARED(DummyFacade, PCGExData::FFacade, TrackersCollection->Pairs[0].ToSharedRef())
-						CollectionFilters = MakeShared<PCGExPointFilter::FManager>(DummyFacade.ToSharedRef());
-						CollectionFilters->bWillBeUsedWithCollections = true;
-						if (CollectionFilters->Init(Context, FilterFactories))
+						PCGEX_MAKE_SHARED(DummyFacade, PCGExData::FFacade, TestDataCollection->Pairs[0].ToSharedRef())
+						TestDataFilters = MakeShared<PCGExPointFilter::FManager>(DummyFacade.ToSharedRef());
+						TestDataFilters->bWillBeUsedWithCollections = true;
+
+						if (TestDataFilters->Init(Context, TestFilterFactories))
 						{
-							bForceFail = true;
+							bShouldStop = true;
+
 							for (const TSharedPtr<PCGExData::FPointIO>& IO : TestDataCollection->Pairs)
 							{
-								if (CollectionFilters->Test(IO, TestDataCollection))
+								if (TestDataFilters->Test(IO, TestDataCollection))
 								{
-									bForceFail = false;
+									// At least one valid test data.
+									bShouldStop = false;
 									break;
 								}
 							}
@@ -177,32 +235,14 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 				}
 			}
 
-			if (bForceFail && Settings->bEmptyOutputOnStop)
+			if (bShouldStop && Settings->bOutputNothingOnStop)
 			{
 				Context->Done();
 				return Context->TryComplete();
 			}
 
-			TSet<FString> RemoveTags;
-			RemoveTags.Append(PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->RemoveTags));
-
-			TSharedPtr<PCGExPointFilter::FManager> TrackerFilters = nullptr;
-			TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> TrackerFilterFactories;
-
-			if (!bForceFail && PCGExFactories::GetInputFactories(
-				Context, PCGExRecursionTracker::SourceTrackerFilters, TrackerFilterFactories,
-				PCGExFactories::PointFilters, false))
+			for (const TSharedPtr<PCGExData::FPointIO>& Data : ValidInputs)
 			{
-				PCGEX_MAKE_SHARED(DummyFacade, PCGExData::FFacade, TrackersCollection->Pairs[0].ToSharedRef())
-				TrackerFilters = MakeShared<PCGExPointFilter::FManager>(DummyFacade.ToSharedRef());
-				TrackerFilters->bWillBeUsedWithCollections = true;
-				if (!TrackerFilters->Init(Context, TrackerFilterFactories)) { TrackerFilters = nullptr; }
-			}
-
-			for (const TSharedPtr<PCGExData::FPointIO>& Data : TrackersCollection->Pairs)
-			{
-				if (TrackerFilters && !TrackerFilters->Test(Data, TrackersCollection)) { continue; }
-
 				const UPCGParamData* OriginalParamData = Cast<UPCGParamData>(Data->InitializationData);
 				if (!OriginalParamData) { continue; }
 
@@ -210,52 +250,56 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 				if (!MaxCountTag) { continue; }
 
 				UPCGParamData* OutputParamData = const_cast<UPCGParamData*>(OriginalParamData);
-				TSharedPtr<PCGExData::IDataValue> CountTag = Data->Tags->GetValue(TAG_COUNT_STR);
+				TSharedPtr<PCGExData::IDataValue> RemainderTag = Data->Tags->GetValue(TAG_REMAINDER_STR);
 
 				NumTrackers++;
 
 				int32 MaxCount = FMath::RoundToInt32(MaxCountTag->AsDouble());
-				const int32 OriginalCount = FMath::Clamp(CountTag ? FMath::RoundToInt32(CountTag->AsDouble()) : MaxCount, 0, MaxCount);
-				const int32 Count = OriginalCount - 1;
+				const int32 ClampedRemainder = FMath::Clamp(RemainderTag ? FMath::RoundToInt32(RemainderTag->AsDouble()) : MaxCount, 0, MaxCount);
+				const int32 Remainder = ClampedRemainder + Settings->CounterUpdate;
+				const float Progress = static_cast<float>(Remainder) / static_cast<float>(MaxCount);
 
-				if (bForceFail || Count < 0 || Settings->bForceOutputContinue)
+				if (bShouldStop || Remainder < 0 || Settings->bForceOutputContinue)
 				{
-					if (!Settings->bEmptyOutputOnStop)
-					{
-						OutputParamData = OriginalParamData->DuplicateData(Context);
-						UPCGMetadata* Metadata = OutputParamData->MutableMetadata();
-						Metadata->DeleteAttribute(ContinueAttribute);
-						Metadata->CreateAttribute<bool>(ContinueAttribute, Count >= 0, true, true);
-					}
-					else
+					if (!Settings->bOutputNothingOnStop)
 					{
 						OutputParamData = nullptr;
 					}
+					else
+					{
+						OutputParamData = OriginalParamData->DuplicateData(Context);
+						UPCGMetadata* Metadata = OutputParamData->MutableMetadata();
+
+						Metadata->DeleteAttribute(ContinueAttribute);
+						Metadata->CreateAttribute<bool>(ContinueAttribute, Remainder >= 0, true, true);
+					}
 				}
 
-				if (OutputParamData)
+				if (!OutputParamData) { continue; }
+
+				Data->Tags->Remove(RemoveTags);
+				Data->Tags->Append(AddTags);
+				Data->Tags->Set<int32>(TAG_MAX_COUNT_STR, MaxCount);
+				Data->Tags->Set<int32>(TAG_REMAINDER_STR, Remainder);
+
+				Context->StageOutput(OutputParamData, PCGPinConstants::DefaultOutputLabel, Data->Tags->Flatten(), false, false, false);
+
+				if (Settings->bOutputProgress)
 				{
-					Data->Tags->Remove(RemoveTags);
-					Data->Tags->Append(AddTags);
+					UPCGParamData* ProgressData = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);
+					UPCGMetadata* Metadata = ProgressData->MutableMetadata();
 
-					Data->Tags->Set<int32>(TAG_COUNT_STR, Count);
-					Data->Tags->Set<int32>(TAG_MAX_COUNT_STR, MaxCount);
+					Metadata->CreateAttribute<float>(ProgressAttribute, Settings->bOneMinus ? 1 - Progress : Progress, true, true);
+					Metadata->AddEntry();
 
-					Context->StageOutput(OutputParamData, PCGPinConstants::DefaultOutputLabel, Data->Tags->Flatten(), false, false, false);
+					Context->StageOutput(ProgressData, PCGExRecursionTracker::OutputProgressLabel, Data->Tags->Flatten(), false, true, false);
 				}
-
-				if (Settings->bOutputProgress) { StageProgress(static_cast<float>(Count) / static_cast<float>(MaxCount), Data->Tags); }
 			}
 
-			if (NumTrackers == 0 && !Settings->bEmptyOutputOnStop)
-			{
-				StageResult(false);
-			}
+			if (NumTrackers == 0 && !Settings->bOutputNothingOnStop) { StageResult(false); }
 		}
 	}
 
-	TrackersCollection.Reset();
-	
 	Context->Done();
 	return Context->TryComplete();
 }

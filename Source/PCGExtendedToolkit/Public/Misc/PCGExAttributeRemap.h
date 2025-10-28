@@ -210,7 +210,7 @@ protected:
 	//~End UPCGSettings
 
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
-	
+
 public:
 #pragma region DEPRECATED
 

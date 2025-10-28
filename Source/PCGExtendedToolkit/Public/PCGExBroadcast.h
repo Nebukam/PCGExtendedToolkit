@@ -224,6 +224,11 @@ extern template void FSubSelection::Set<_TYPE_A, _TYPE_B>(_TYPE_A& Target, const
 		//TSharedPtr<FValueBuffer> GetBuffer(FString BufferID);
 	};
 
+	PCGEXTENDEDTOOLKIT_API
+	bool TryGetType(
+		const FPCGAttributePropertyInputSelector& InputSelector,
+		const UPCGData* InData, EPCGMetadataTypes& OutType);
+
 	// Prioritize originally specified source
 	PCGEXTENDEDTOOLKIT_API
 	bool TryGetTypeAndSource(

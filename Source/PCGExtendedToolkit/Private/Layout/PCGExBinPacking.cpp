@@ -37,7 +37,7 @@ TArray<FPCGPinProperties> UPCGExBinPackingSettings::OutputPinProperties() const
 
 PCGEX_INITIALIZE_ELEMENT(BinPacking)
 
-PCGExData::EIOInit UPCGExBinPackingSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExBinPackingSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BinPacking)
 

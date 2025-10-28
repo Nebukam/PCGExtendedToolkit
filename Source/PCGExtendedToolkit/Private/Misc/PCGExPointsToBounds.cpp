@@ -103,7 +103,7 @@ PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
 PCGExData::EIOInit UPCGExPointsToBoundsSettings::GetMainDataInitializationPolicy() const
 {
 	if (OutputMode == EPCGExPointsToBoundsOutputMode::Collapse) { return PCGExData::EIOInit::New; }
-	else { return PCGExData::EIOInit::Duplicate; }
+	return PCGExData::EIOInit::Duplicate;
 }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PointsToBounds)

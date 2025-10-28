@@ -221,7 +221,7 @@ TArray<FPCGPinProperties> UPCGExPackActorDataSettings::OutputPinProperties() con
 
 PCGEX_INITIALIZE_ELEMENT(PackActorData)
 
-PCGExData::EIOInit UPCGExPackActorDataSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExPackActorDataSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PackActorData)
 

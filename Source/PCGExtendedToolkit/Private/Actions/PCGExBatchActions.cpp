@@ -27,7 +27,7 @@ TArray<FPCGPinProperties> UPCGExBatchActionsSettings::InputPinProperties() const
 
 PCGEX_INITIALIZE_ELEMENT(BatchActions)
 
-PCGExData::EIOInit UPCGExBatchActionsSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExBatchActionsSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BatchActions)
 

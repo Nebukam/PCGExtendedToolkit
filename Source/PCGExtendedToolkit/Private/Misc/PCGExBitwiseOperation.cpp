@@ -16,7 +16,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExBitwiseOperationSettings, Mask, int64, MaskInput,
 
 PCGEX_INITIALIZE_ELEMENT(BitwiseOperation)
 
-PCGExData::EIOInit UPCGExBitwiseOperationSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExBitwiseOperationSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BitwiseOperation)
 

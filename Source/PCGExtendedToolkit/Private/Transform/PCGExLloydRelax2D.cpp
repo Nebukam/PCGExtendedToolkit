@@ -13,7 +13,7 @@
 
 PCGEX_INITIALIZE_ELEMENT(LloydRelax2D)
 
-PCGExData::EIOInit UPCGExLloydRelax2DSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExLloydRelax2DSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(LloydRelax2D)
 

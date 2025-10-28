@@ -12,7 +12,7 @@
 
 PCGEX_INITIALIZE_ELEMENT(PathSolidify)
 
-PCGExData::EIOInit UPCGExPathSolidifySettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExPathSolidifySettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSolidify)
 

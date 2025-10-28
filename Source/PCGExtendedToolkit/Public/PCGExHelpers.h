@@ -235,6 +235,9 @@ namespace PCGEx
 	PCGEXTENDEDTOOLKIT_API
 	FPCGAttributeIdentifier GetAttributeIdentifier(const FName InName);
 
+	PCGEXTENDEDTOOLKIT_API
+	FPCGAttributePropertyInputSelector GetSelectorFromIdentifier(const FPCGAttributeIdentifier& InIdentifier);
+
 	class PCGEXTENDEDTOOLKIT_API FPCGExAsyncStateScope
 	{
 	public:

@@ -50,7 +50,7 @@ void FPCGExSampleOverlapStatsContext::BatchProcessing_WorkComplete()
 
 PCGEX_INITIALIZE_ELEMENT(SampleOverlapStats)
 
-PCGExData::EIOInit UPCGExSampleOverlapStatsSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExSampleOverlapStatsSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleOverlapStats)
 

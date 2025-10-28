@@ -1213,46 +1213,21 @@ template PCGEXTENDEDTOOLKIT_API void FSubSelection::Set<_TYPE_A, _TYPE_B>(_TYPE_
 	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 
-	bool TryGetTypeAndSource(
-		const FPCGAttributePropertyInputSelector& InputSelector,
-		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSide)
+	bool TryGetType(const FPCGAttributePropertyInputSelector& InputSelector, const UPCGData* InData, EPCGMetadataTypes& OutType)
 	{
 		OutType = EPCGMetadataTypes::Unknown;
-		const UPCGBasePointData* Data = InOutSide == PCGExData::EIOSide::In ?
-			                                InDataFacade->Source->GetInOut(InOutSide) :
-			                                InDataFacade->Source->GetOutIn(InOutSide);
 
-		if (!IsValid(Data)) { return false; }
+		if (!IsValid(InData)) { return false; }
 
-		const FPCGAttributePropertyInputSelector FixedSelector = InputSelector.CopyAndFixLast(Data);
+		const FPCGAttributePropertyInputSelector FixedSelector = InputSelector.CopyAndFixLast(InData);
 		if (!FixedSelector.IsValid()) { return false; }
 
 		if (FixedSelector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
-			// TODO : Try the other way around if we don't find it at first 
-			if (!Data->Metadata) { return false; }
-			if (const FPCGMetadataAttributeBase* AttributeBase = Data->Metadata->GetConstAttribute(GetAttributeIdentifier(FixedSelector, Data)))
+			if (!InData->Metadata) { return false; }
+			if (const FPCGMetadataAttributeBase* AttributeBase = InData->Metadata->GetConstAttribute(GetAttributeIdentifier(FixedSelector, InData)))
 			{
 				OutType = static_cast<EPCGMetadataTypes>(AttributeBase->GetTypeId());
-			}
-			else if (const UPCGBasePointData* OutData = InDataFacade->Source->GetOut(); OutData && InOutSide == PCGExData::EIOSide::In)
-			{
-				// Failed to find attribute on input, try to find it on output if there is one
-				if (const FPCGMetadataAttributeBase* OutAttributeBase = OutData->Metadata->GetConstAttribute(GetAttributeIdentifier(FixedSelector, OutData)))
-				{
-					OutType = static_cast<EPCGMetadataTypes>(OutAttributeBase->GetTypeId());
-					InOutSide = PCGExData::EIOSide::Out;
-				}
-			}
-			else if (const UPCGBasePointData* InData = InDataFacade->Source->GetIn(); InData && InOutSide == PCGExData::EIOSide::Out)
-			{
-				// Failed to find attribute on input, try to find it on output if there is one
-				if (const FPCGMetadataAttributeBase* InAttributeBase = InData->Metadata->GetConstAttribute(GetAttributeIdentifier(FixedSelector, InData)))
-				{
-					OutType = static_cast<EPCGMetadataTypes>(InAttributeBase->GetTypeId());
-					InOutSide = PCGExData::EIOSide::In;
-				}
 			}
 		}
 		else if (FixedSelector.GetSelection() == EPCGAttributePropertySelection::ExtraProperty)
@@ -1265,5 +1240,36 @@ template PCGEXTENDEDTOOLKIT_API void FSubSelection::Set<_TYPE_A, _TYPE_B>(_TYPE_
 		}
 
 		return OutType != EPCGMetadataTypes::Unknown;
+	}
+
+	bool TryGetTypeAndSource(
+		const FPCGAttributePropertyInputSelector& InputSelector,
+		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
+		EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSide)
+	{
+		OutType = EPCGMetadataTypes::Unknown;
+		if (InOutSide == PCGExData::EIOSide::In)
+		{
+			if (!TryGetType(InputSelector, InDataFacade->GetIn(), OutType))
+			{
+				if (TryGetType(InputSelector, InDataFacade->GetOut(), OutType)) { InOutSide = PCGExData::EIOSide::Out; }
+			}
+		}
+		else
+		{
+			if (!TryGetType(InputSelector, InDataFacade->GetOut(), OutType))
+			{
+				if (TryGetType(InputSelector, InDataFacade->GetIn(), OutType)) { InOutSide = PCGExData::EIOSide::In; }
+			}
+		}
+
+		return OutType != EPCGMetadataTypes::Unknown;
+	}
+
+	bool TryGetTypeAndSource(const FName AttributeName, const TSharedPtr<PCGExData::FFacade>& InDataFacade, EPCGMetadataTypes& OutType, PCGExData::EIOSide& InOutSource)
+	{
+		FPCGAttributePropertyInputSelector Selector;
+		Selector.SetAttributeName(AttributeName);
+		return TryGetTypeAndSource(Selector, InDataFacade, OutType, InOutSource);
 	}
 }

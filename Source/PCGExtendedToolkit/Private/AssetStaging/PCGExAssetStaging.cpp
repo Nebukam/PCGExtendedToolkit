@@ -42,7 +42,7 @@ TArray<FPCGPinProperties> UPCGExAssetStagingSettings::OutputPinProperties() cons
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExAssetStagingSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExAssetStagingSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 {
