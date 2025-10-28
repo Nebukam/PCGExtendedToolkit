@@ -34,7 +34,7 @@ bool FPCGExSocketStagingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SocketStaging)
 
-	Context->CollectionPickDatasetUnpacker = MakeShared<PCGExStaging::TPickUnpacker<>>();
+	Context->CollectionPickDatasetUnpacker = MakeShared<PCGExStaging::TPickUnpacker<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>();
 	Context->CollectionPickDatasetUnpacker->UnpackPin(InContext, PCGExSocketStaging::SourceStagingMap);
 
 	if (!Context->CollectionPickDatasetUnpacker->HasValidMapping())

@@ -386,6 +386,13 @@ namespace PCGEx
 
 	const FPCGMetadataAttributeBase* IAttributeBroadcaster::GetAttribute() const { return ProcessingInfos; }
 
+	EPCGMetadataTypes IAttributeBroadcaster::GetMetadataType() const
+	{
+		return EPCGMetadataTypes::Unknown;
+	}
+
+	FName IAttributeBroadcaster::GetName() const { return NAME_None; }
+
 	template <typename T>
 	bool TAttributeBroadcaster<T>::ApplySelector(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData)
 
@@ -413,15 +420,11 @@ namespace PCGEx
 			ProcessingInfos.bIsValid = InternalAccessor.IsValid();
 		}
 
-
 		return ProcessingInfos.bIsValid;
 	}
 
 	template <typename T>
-	FString TAttributeBroadcaster<T>::GetName() const { return ProcessingInfos.Selector.GetName().ToString(); }
-
-	template <typename T>
-	EPCGMetadataTypes TAttributeBroadcaster<T>::GetType() const { return GetMetadataType<T>(); }
+	FName TAttributeBroadcaster<T>::GetName() const { return ProcessingInfos.Selector.GetName(); }
 
 	template <typename T>
 	bool TAttributeBroadcaster<T>::IsUsable(int32 NumEntries) { return ProcessingInfos.bIsValid && Values.Num() >= NumEntries; }
@@ -443,6 +446,12 @@ namespace PCGEx
 	}
 
 	template <typename T>
+	bool TAttributeBroadcaster<T>::Prepare(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<PCGExData::FPointIO>& InPointIO)
+	{
+		return Prepare(GetSelectorFromIdentifier(InIdentifier), InPointIO);
+	}
+
+	template <typename T>
 	bool TAttributeBroadcaster<T>::PrepareForSingleFetch(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys)
 	{
 		if (InKeys) { Keys = InKeys; }
@@ -460,8 +469,13 @@ namespace PCGEx
 	{
 		FPCGAttributePropertyInputSelector InSelector = FPCGAttributePropertyInputSelector();
 		InSelector.Update(InName.ToString());
-
 		return PrepareForSingleFetch(InSelector, InData, InKeys);
+	}
+
+	template <typename T>
+	bool TAttributeBroadcaster<T>::PrepareForSingleFetch(const FPCGAttributeIdentifier& InIdentifier, const UPCGData* InData, const TSharedPtr<IPCGAttributeAccessorKeys> InKeys)
+	{
+		return PrepareForSingleFetch(GetSelectorFromIdentifier(InIdentifier), InData, InKeys);
 	}
 
 	template <typename T>
@@ -474,6 +488,12 @@ namespace PCGEx
 	bool TAttributeBroadcaster<T>::PrepareForSingleFetch(const FName& InName, const PCGExData::FTaggedData& InData)
 	{
 		return PrepareForSingleFetch(InName, InData.Data, InData.Keys);
+	}
+
+	template <typename T>
+	bool TAttributeBroadcaster<T>::PrepareForSingleFetch(const FPCGAttributeIdentifier& InIdentifier, const PCGExData::FTaggedData& InData)
+	{
+		return PrepareForSingleFetch(InIdentifier, InData.Data, InData.Keys);
 	}
 
 	template <typename T>
@@ -601,25 +621,95 @@ namespace PCGEx
 	}
 
 	template <typename T>
-	TSharedPtr<TAttributeBroadcaster<T>> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO)
+	bool TAttributeBroadcaster<T>::TryFetchSingle(const PCGExData::FElement& Element, T& OutValue) const
 	{
-		PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<T>)
-		if (!Broadcaster->Prepare(InName, InPointIO)) { return nullptr; }
+		if (!ProcessingInfos.bIsValid) { return false; }
+		if (DataValue)
+		{
+			OutValue = TypedDataValue;
+			return true;
+		}
+
+		return InternalAccessor->Get<T>(OutValue, Element.Index, *Keys.Get(), EPCGAttributeAccessorFlags::AllowBroadcastAndConstructible);
+	}
+
+	template <typename T>
+	EPCGMetadataTypes TAttributeBroadcaster<T>::GetMetadataType() const
+	{
+		return PCGEx::GetMetadataType<T>();
+	}
+
+	TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch)
+	{
+		return MakeBroadcaster(FPCGAttributeIdentifier(InName), InPointIO, bSingleFetch);
+	}
+
+	TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch)
+	{
+		const FPCGMetadataAttributeBase* Attribute = InPointIO->FindConstAttribute(InIdentifier);
+		if (!Attribute) { return nullptr; }
+
+		TSharedPtr<IAttributeBroadcaster> Broadcaster = nullptr;
+		ExecuteWithRightType(
+			Attribute->GetTypeId(), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				TSharedPtr<TAttributeBroadcaster<T>> TypedBroadcaster = MakeShared<TAttributeBroadcaster<T>>();
+				if (!(bSingleFetch ? TypedBroadcaster->PrepareForSingleFetch(InIdentifier, InPointIO->GetIn()) : TypedBroadcaster->Prepare(InIdentifier, InPointIO))) { return; }
+				Broadcaster = TypedBroadcaster;
+			});
+
+		return Broadcaster;
+	}
+
+	TSharedPtr<IAttributeBroadcaster> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch)
+	{
+		const UPCGData* InData = InPointIO->GetIn();
+		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
+		if (!TryGetType(InSelector, InData, Type)) { return nullptr; }
+
+		TSharedPtr<IAttributeBroadcaster> Broadcaster = nullptr;
+		ExecuteWithRightType(
+			Type, [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				TSharedPtr<TAttributeBroadcaster<T>> TypedBroadcaster = MakeShared<TAttributeBroadcaster<T>>();
+				if (!(bSingleFetch ? TypedBroadcaster->PrepareForSingleFetch(InSelector, InData) : TypedBroadcaster->Prepare(InSelector, InPointIO))) { return; }
+				Broadcaster = TypedBroadcaster;
+			});
+
 		return Broadcaster;
 	}
 
 	template <typename T>
-	TSharedPtr<TAttributeBroadcaster<T>> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO)
+	TSharedPtr<TAttributeBroadcaster<T>> MakeTypedBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch)
 	{
 		PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<T>)
-		if (!Broadcaster->Prepare(InSelector, InPointIO)) { return nullptr; }
+		if (!(bSingleFetch ? Broadcaster->PrepareForSingleFetch(InName, InPointIO->GetIn()) : Broadcaster->Prepare(InName, InPointIO))) { return nullptr; }
+		return Broadcaster;
+	}
+
+	template <typename T>
+	TSharedPtr<TAttributeBroadcaster<T>> MakeTypedBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch)
+	{
+		FPCGAttributePropertyInputSelector Selector;
+		Selector.Update(InIdentifier.ToString());
+		return MakeTypedBroadcaster<T>(Selector, InPointIO, bSingleFetch);
+	}
+
+	template <typename T>
+	TSharedPtr<TAttributeBroadcaster<T>> MakeTypedBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch)
+	{
+		PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<T>)
+		if (!(bSingleFetch ? Broadcaster->PrepareForSingleFetch(InSelector, InPointIO->GetIn()) : Broadcaster->Prepare(InSelector, InPointIO))) { return nullptr; }
 		return Broadcaster;
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...)\
 template class PCGEXTENDEDTOOLKIT_API TAttributeBroadcaster<_TYPE>;\
-template PCGEXTENDEDTOOLKIT_API TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO); \
-template PCGEXTENDEDTOOLKIT_API TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO);
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeTypedBroadcaster(const FName& InName, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch); \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeTypedBroadcaster(const FPCGAttributeIdentifier& InIdentifier, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch); \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TAttributeBroadcaster<_TYPE>> MakeTypedBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const TSharedRef<PCGExData::FPointIO>& InPointIO, bool bSingleFetch);
 
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 

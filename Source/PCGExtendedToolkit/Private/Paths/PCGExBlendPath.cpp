@@ -30,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExBlendPathSettings::InputPinProperties() const
 
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
 
-PCGExData::EIOInit UPCGExBlendPathSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExBlendPathSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BlendPath)
 

@@ -68,7 +68,7 @@ protected:
 	//~End UPCGSettings
 
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
-	
+
 	//~Begin UPCGExPointsProcessorSettings
 
 public:

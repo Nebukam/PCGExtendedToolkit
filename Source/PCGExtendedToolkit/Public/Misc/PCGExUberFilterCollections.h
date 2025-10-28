@@ -41,7 +41,7 @@ public:
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
-	
+
 	virtual bool HasDynamicPins() const override;
 
 protected:

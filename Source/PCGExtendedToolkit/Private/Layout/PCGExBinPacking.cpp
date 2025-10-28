@@ -267,7 +267,7 @@ namespace PCGExBinPacking
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-		
+
 		PointDataFacade->Source->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];

@@ -106,7 +106,7 @@ public:
 	/** If enabled, will pre-instanciate all data on a single thread to avoid contention. Not all nodes support this. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	EPCGExOptionState BulkInitData = EPCGExOptionState::Default;
-	
+
 	/** Async work priority for this node.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;

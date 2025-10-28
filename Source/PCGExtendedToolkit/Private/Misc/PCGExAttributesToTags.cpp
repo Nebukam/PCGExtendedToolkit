@@ -23,6 +23,7 @@ bool UPCGExAttributesToTagsSettings::GetIsMainTransactional() const
 TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
 	if (Resolution != EPCGExAttributeToTagsResolution::Self)
 	{
 		PCGEX_PIN_ANY(FName("Tags Source"), "Source collection(s) to read the tags from.", Required)
@@ -50,7 +51,6 @@ TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::OutputPinProperties() 
 	{
 		PCGEX_PIN_PARAMS(FName("Tags"), "Tags value in the format `AttributeName = AttributeName:AttributeValue`", Required)
 	}
-
 
 	return PinProperties;
 }

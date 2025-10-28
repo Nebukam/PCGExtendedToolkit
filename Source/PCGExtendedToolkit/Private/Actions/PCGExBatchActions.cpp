@@ -120,7 +120,7 @@ namespace PCGExBatchActions
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-		
+
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		// Initialize writers with provided default value

@@ -57,7 +57,7 @@ bool UPCGExSampleNearestPathSettings::IsPinUsedByNodeExecution(const UPCGPin* In
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPath)
 
-PCGExData::EIOInit UPCGExSampleNearestPathSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExSampleNearestPathSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleNearestPath)
 
