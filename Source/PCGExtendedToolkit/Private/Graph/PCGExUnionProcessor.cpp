@@ -269,12 +269,12 @@ namespace PCGExGraph
 
 				TArray<TSharedPtr<FPointEdgeProxy>>& ScopedEdges = PEI->ScopedEdges->Get_Ref(Scope);
 
-				int32& PENum = This->PENum;
+				int32& PENum_Ref = This->PENum;
 				TArray<FEdge>& GraphEdges = This->GraphBuilder->Graph->Edges;
 
 #define PCGEX_FOUND_PE \
 				ScopedEdges.Add(EdgeProxy); \
-				FPlatformAtomics::InterlockedAdd(&PENum, EdgeProxy->CollinearPoints.Num() + 1); \
+				FPlatformAtomics::InterlockedAdd(&PENum_Ref, EdgeProxy->CollinearPoints.Num() + 1); \
 				GraphEdges[Index].bValid = 0; \
 				EdgeProxy->CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; }); \
 				EdgeProxy = MakeShared<FPointEdgeProxy>();
@@ -394,13 +394,13 @@ namespace PCGExGraph
 			{
 				PCGEX_ASYNC_THIS
 
-				int32& EENum = This->EENum;
+				int32& EENum_Ref = This->EENum;
 				TArray<FEdge>& GraphEdges = This->GraphBuilder->Graph->Edges;
 
 #define PCGEX_FOUND_EE \
 				ScopedEdges.Add(EdgeProxy); \
 				GraphEdges[Index].bValid = 0; \
-				FPlatformAtomics::InterlockedAdd(&EENum, EdgeProxy->Crossings.Num()); \
+				FPlatformAtomics::InterlockedAdd(&EENum_Ref, EdgeProxy->Crossings.Num()); \
 				EdgeProxy = MakeShared<FEdgeEdgeProxy>();
 
 
