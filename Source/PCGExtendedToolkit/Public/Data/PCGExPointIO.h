@@ -88,7 +88,7 @@ namespace PCGExData
 			PCGEX_SHARED_CONTEXT(ContextHandle)
 
 			if (LastInit == InitOut) { return true; }
-			
+
 			if (InitOut == EIOInit::Forward && IsValid(Out) && Out == In)
 			{
 				// Already forwarding

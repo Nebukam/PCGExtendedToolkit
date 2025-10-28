@@ -224,7 +224,7 @@ namespace PCGExPointsMT
 			SubProcessorMap->Add(&NewProcessor->PointDataFacade->Source.Get(), NewProcessor);
 
 			NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize;
-			
+
 			if (bDoInitData) { NewProcessor->PointDataFacade->Source->InitializeOutput(DataInitializationPolicy); }
 		}
 

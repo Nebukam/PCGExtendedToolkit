@@ -38,7 +38,7 @@ void UPCGExPathSplineMeshSimpleSettings::ApplyDeprecation(UPCGNode* InOutNode)
 
 PCGEX_INITIALIZE_ELEMENT(PathSplineMeshSimple)
 
-PCGExData::EIOInit UPCGExPathSplineMeshSimpleSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExPathSplineMeshSimpleSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSplineMeshSimple)
 

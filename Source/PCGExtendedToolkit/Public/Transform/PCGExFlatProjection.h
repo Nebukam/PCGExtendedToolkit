@@ -35,7 +35,7 @@ protected:
 	//~End UPCGSettings
 
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
-	
+
 public:
 	/** Whether this is a new projection or an old one*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

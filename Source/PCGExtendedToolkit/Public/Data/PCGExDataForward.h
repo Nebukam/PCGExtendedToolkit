@@ -101,7 +101,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagDetails
 	FString CommaSeparatedAttributeSelectors;
 
 	TSharedPtr<PCGExData::FFacade> SourceDataFacade;
-	TArray<TSharedPtr<PCGEx::TAttributeBroadcaster<FString>>> Getters;
+	TArray<TSharedPtr<PCGEx::IAttributeBroadcaster>> Getters;
 
 	bool Init(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade);
 	void Tag(const PCGExData::FConstPoint& TagSource, TSet<FString>& InTags) const;

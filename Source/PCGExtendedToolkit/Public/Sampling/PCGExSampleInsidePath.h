@@ -54,7 +54,7 @@ protected:
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
-	
+
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:

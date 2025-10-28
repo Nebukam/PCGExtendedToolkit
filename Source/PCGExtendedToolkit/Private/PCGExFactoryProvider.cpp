@@ -97,11 +97,7 @@ FLinearColor UPCGExFactoryProviderSettings::GetNodeTitleColor() const { return G
 
 bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
 {
-	if (!GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, true))
-	{
-		return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, false);
-	}
-	return true;
+	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
 }
 
 void UPCGExFactoryProviderSettings::EDITOR_OpenNodeDocumentation() const

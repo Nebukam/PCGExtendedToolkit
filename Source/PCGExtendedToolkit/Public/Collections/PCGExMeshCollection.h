@@ -140,11 +140,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	TSoftObjectPtr<UStaticMesh> StaticMesh = nullptr;
 
 	/** Config used when this entry is consumed as an instanced static mesh */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" ├─ ISM Settings", EditCondition="!bIsSubCollection", EditConditionHides))
 	FSoftISMComponentDescriptor ISMDescriptor;
 
 	/** Config used when this entry is consumed as a regular static mesh primitive (i.e Spline Mesh)*/
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ SM Settings", EditCondition="!bIsSubCollection", EditConditionHides))
 	FPCGExStaticMeshComponentDescriptor SMDescriptor;
 
 	/** A list of material variants */
@@ -163,7 +163,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variants", EditCondition="!bIsSubCollection && MaterialVariants == EPCGExMaterialVariantsMode::Multi", TitleProperty="DisplayName", EditConditionHides))
 	TArray<FPCGExMaterialOverrideCollection> MaterialOverrideVariantsList;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides, DisplayAfter="bIsSubCollection"))
 	TObjectPtr<UPCGExMeshCollection> SubCollection;
 
 	bool Matches(const FPCGMeshInstanceList& InstanceList) const

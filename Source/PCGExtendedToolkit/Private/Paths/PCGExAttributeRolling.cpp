@@ -43,7 +43,7 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRolling)
 
-PCGExData::EIOInit UPCGExAttributeRollingSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExAttributeRollingSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeRolling)
 

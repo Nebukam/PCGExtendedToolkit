@@ -100,6 +100,14 @@ namespace PCGEx
 		return FPCGAttributeIdentifier(Selector.GetAttributeName(), StrName.StartsWith(TEXT("@Data.")) ? PCGMetadataDomainID::Data : PCGMetadataDomainID::Elements);
 	}
 
+	FPCGAttributePropertyInputSelector GetSelectorFromIdentifier(const FPCGAttributeIdentifier& InIdentifier)
+	{
+		FPCGAttributePropertyInputSelector Selector;
+		Selector.SetAttributeName(InIdentifier.Name);
+		Selector.SetDomainName(InIdentifier.MetadataDomain.DebugName);
+		return Selector;
+	}
+
 	FPCGExAsyncStateScope::FPCGExAsyncStateScope(FPCGContext* InContext, const bool bDesired)
 		: Context(InContext)
 	{

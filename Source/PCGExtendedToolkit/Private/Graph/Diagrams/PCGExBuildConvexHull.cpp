@@ -20,7 +20,7 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHullSettings::OutputPinProperties() c
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExBuildConvexHullSettings::GetMainDataInitializationPolicy() const{ return PCGExData::EIOInit::Duplicate; }
+PCGExData::EIOInit UPCGExBuildConvexHullSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 PCGEX_INITIALIZE_ELEMENT(BuildConvexHull)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BuildConvexHull)

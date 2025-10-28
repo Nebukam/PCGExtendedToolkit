@@ -4,14 +4,33 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Collections/PCGExAssetCollection.h"
-#include "Collections/PCGExActorCollection.h"
-#include "Collections/PCGExMeshCollection.h"
-#include "MeshSelectors/PCGMeshSelectorBase.h"
+#include "PCGExCommon.h"
+#include "Details/PCGExDetailsStaging.h"
+#include "Transform/PCGExTransform.h"
 
+namespace PCGExAssetCollection
+{
+	class FCache;
+}
+
+struct FPCGExActorCollectionEntry;
+struct FPCGExAssetCollectionEntry;
+struct FPCGMeshInstanceList;
+struct FPCGContext;
+class UPCGBasePointData;
+class UPCGParamData;
+struct FPCGExContext;
 struct FPCGExMeshCollectionEntry;
+class UPCGExAssetCollection;
 class UPCGExMeshCollection;
 class UPCGExActorCollection;
+
+namespace PCGExDetails
+{
+	template <typename T>
+	class TSettingValue;
+}
+
 
 UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Component Flags"))
 enum class EPCGExAbsoluteRotationFlags : uint8
@@ -80,7 +99,7 @@ namespace PCGExStaging
 		UPCGExAssetCollection* UnpackHash(const uint64 EntryHash, int16& OutPrimaryIndex, int16& OutSecondaryIndex);
 	};
 
-	template <typename C = UPCGExAssetCollection, typename A = FPCGExAssetCollectionEntry>
+	template <typename C, typename A>
 	class TPickUnpacker : public IPickUnpacker
 	{
 	public:
@@ -111,7 +130,7 @@ namespace PCGExStaging
 		bool Init(const TSharedRef<PCGExData::FFacade>& InDataFacade);
 	};
 
-	template <typename C = UPCGExAssetCollection, typename A = FPCGExAssetCollectionEntry>
+	template <typename C, typename A>
 	class TDistributionHelper : public IDistributionHelper
 	{
 	public:

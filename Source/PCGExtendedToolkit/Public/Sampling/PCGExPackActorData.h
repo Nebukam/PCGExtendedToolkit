@@ -581,7 +581,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
-	
+
 public:
 	virtual FName GetMainInputPin() const override;
 	//~End UPCGExPointsProcessorSettings
