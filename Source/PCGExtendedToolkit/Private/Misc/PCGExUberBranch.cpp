@@ -29,9 +29,12 @@ void UPCGExUberBranchSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 }
 #endif
 
+bool UPCGExUberBranchSettings::HasDynamicPins() const { return true; }
+
 TArray<FPCGPinProperties> UPCGExUberBranchSettings::InputPinProperties() const
 {
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	TArray<FPCGPinProperties> PinProperties;
+	PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required)
 	for (int i = 0; i < NumBranches; i++)
 	{
 		PCGEX_PIN_FILTERS(InputLabels[i], "Collection filters. Only support C-Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal)
@@ -42,11 +45,11 @@ TArray<FPCGPinProperties> UPCGExUberBranchSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExUberBranchSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(GetMainOutputPin(), "Collections that didn't branch in any specific pin", Normal)
+	PCGEX_PIN_ANY(GetMainOutputPin(), "Collections that didn't branch in any specific pin", Normal)
 
 	for (int i = 0; i < NumBranches; i++)
 	{
-		PCGEX_PIN_POINTS(OutputLabels[i], "Collections that passed the matching input filters, if they weren't output to any previous pin.", Normal)
+		PCGEX_PIN_ANY(OutputLabels[i], "Collections that passed the matching input filters, if they weren't output to any previous pin.", Normal)
 	}
 
 	return PinProperties;
@@ -75,45 +78,30 @@ bool FPCGExUberBranchElement::Boot(FPCGExContext* InContext) const
 
 	for (int i = 0; i < Settings->NumBranches; i++)
 	{
-		TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> Factories;
-		if (GetInputFactories(
-			Context, Settings->InputLabels[i], Factories,
-			PCGExFactories::PointFilters))
-		{
-			for (int f = 0; f < Factories.Num(); f++)
-			{
-				TObjectPtr<const UPCGExPointFilterFactoryData> Factory = Factories[f];
-				if (!Factory->SupportsCollectionEvaluation())
-				{
-					PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("Unsupported filter : {0} (Requires per-point evaluation)"), FText::FromString(Factory->GetName())))
-					Factories.RemoveAt(f);
-					f--;
-				}
-			}
-		}
+		bool bInitialized = false;
 
-		if (Factories.IsEmpty())
+		if (TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> Factories;
+			GetInputFactories(Context, Settings->InputLabels[i], Factories, PCGExFactories::PointFilters))
 		{
-			Context->Managers.Add(nullptr);
-		}
-		else
-		{
-			bool bInitialized = false;
 			for (const TSharedPtr<PCGExData::FFacade>& Facade : Context->Facades)
 			{
 				// Attempt to initialize with all data until hopefully one works
 				PCGEX_MAKE_SHARED(Manager, PCGExPointFilter::FManager, Facade.ToSharedRef())
-				bInitialized = Manager->Init(Context, Factories);
-				if (bInitialized)
+				Manager->bWillBeUsedWithCollections = true;
+
+				if (Manager->Init(Context, Factories))
 				{
+					bInitialized = true;
 					Context->Managers.Add(Manager);
 					break;
 				}
 			}
-
-			if (!bInitialized) { Context->Managers.Add(nullptr); }
 		}
+
+		if (!bInitialized) { Context->Managers.Add(nullptr); }
 	}
+
+	Context->Dispatch.Init(0, Settings->NumBranches);
 
 	return true;
 }
@@ -148,8 +136,9 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 							if (!Manager) { continue; }
 							if (Manager->Test(Facade->Source, SharedContext.Get()->MainPoints))
 							{
-								Facade->Source->OutputPin = Settings->OutputLabels[i];
 								bDistributed = true;
+								Facade->Source->OutputPin = Settings->OutputLabels[i];
+								FPlatformAtomics::InterlockedIncrement(&SharedContext.Get()->Dispatch[i]);
 								break;
 							}
 						}
@@ -164,6 +153,7 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 
 		PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
 		{
+			for (int i = 0; i < Settings->NumBranches; i++) { if (!Context->Dispatch[i]) { Context->OutputData.InactiveOutputPinBitmask |= 1ULL << (i + 1); } }
 			Context->MainPoints->StageOutputs();
 			Context->Done();
 		}
@@ -179,8 +169,9 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 				if (!Manager) { continue; }
 				if (Manager->Test(Facade->Source, Context->MainPoints))
 				{
-					Facade->Source->OutputPin = Settings->OutputLabels[i];
 					bDistributed = true;
+					Facade->Source->OutputPin = Settings->OutputLabels[i];
+					Context->Dispatch[i]++;
 					break;
 				}
 			}
@@ -188,6 +179,7 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 			if (!bDistributed) { Facade->Source->OutputPin = Settings->GetMainOutputPin(); }
 		}
 
+		for (int i = 0; i < Settings->NumBranches; i++) { if (!Context->Dispatch[i]) { Context->OutputData.InactiveOutputPinBitmask |= 1ULL << (i + 1); } }
 		Context->MainPoints->StageOutputs();
 		Context->Done();
 	}

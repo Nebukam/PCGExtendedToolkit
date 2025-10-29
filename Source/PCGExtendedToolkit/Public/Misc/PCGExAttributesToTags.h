@@ -17,7 +17,8 @@ UENUM()
 enum class EPCGExAttributeToTagsAction : uint8
 {
 	AddTags   = 0 UMETA(DisplayName = "Hoist to Tags", ToolTip="Hoist element attribute value as data tags"),
-	Attribute = 1 UMETA(DisplayName = "Hoist to @Data", ToolTip="Hoist element attribute values to @Data domain"),
+	Attribute = 1 UMETA(DisplayName = "Hoist to Attribute Set", ToolTip="Output to a new attribute set"),
+	Data      = 2 UMETA(DisplayName = "Hoist to @Data", ToolTip="Hoist element attribute values to @Data domain"),
 };
 
 UENUM()
@@ -50,7 +51,7 @@ public:
 	PCGEX_NODE_INFOS(AttributesToTags, "Hoist Attributes", "Hoist element values to tags or data domain");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorMiscWrite); }
-	virtual bool HasDynamicPins() const override { return Action == EPCGExAttributeToTagsAction::AddTags; }
+	virtual bool HasDynamicPins() const override { return Action != EPCGExAttributeToTagsAction::Attribute; }
 #endif
 
 	virtual bool GetIsMainTransactional() const override;

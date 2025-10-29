@@ -23,6 +23,11 @@ bool UPCGExUberFilterSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) co
 }
 #endif
 
+bool UPCGExUberFilterSettings::OutputPinsCanBeDeactivated() const
+{
+	return Mode != EPCGExUberFilterMode::Write;
+}
+
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -111,8 +116,9 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->Inside->PruneNullEntries(true);
 		Context->Outside->PruneNullEntries(true);
 
-		Context->Inside->StageOutputs();
-		Context->Outside->StageOutputs();
+		uint64& Mask = Context->OutputData.InactiveOutputPinBitmask;
+		if (!Context->Inside->StageOutputs()){ Mask |= 1ULL << 0; }
+		if (!Context->Outside->StageOutputs()){ Mask |= 1ULL << 1; }
 	}
 
 	return Context->TryComplete();

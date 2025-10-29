@@ -531,7 +531,7 @@ namespace PCGExData
 
 		if (!Out || (!bAllowEmptyOutput && Out->IsEmpty())) { return false; }
 
-		return true;
+		return StageOutput(TargetContext);
 	}
 
 	int32 FPointIO::Gather(const TArrayView<int32> InIndices) const
@@ -764,43 +764,49 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		Pairs.Reserve(Pairs.Max() + InIncreaseNum);
 	}
 
-	void FPointIOCollection::StageOutputs()
+	int32 FPointIOCollection::StageOutputs()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputs);
 
-		PCGEX_SHARED_CONTEXT_VOID(ContextHandle)
+		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
 
 		Sort();
 
+		int32 NumStaged = 0;
 		Context->IncreaseStagedOutputReserve(Pairs.Num());
-		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { (void)IO->StageOutput(Context); } }
+		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageOutput(Context); } }
+		return NumStaged;
 	}
 
-	void FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
+	int32 FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
 	{
-		PCGEX_SHARED_CONTEXT_VOID(ContextHandle)
+		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 
 		FPCGExContext* Context = SharedContext.Get();
 
-		if (!Context) { return; }
+		if (!Context) { return 0; }
 
 		Sort();
 
+		int32 NumStaged = 0;
 		Context->IncreaseStagedOutputReserve(Pairs.Num());
-		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { (void)IO->StageOutput(Context, MinPointCount, MaxPointCount); } }
+		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageOutput(Context, MinPointCount, MaxPointCount); } }
+		return NumStaged;
 	}
 
-	void FPointIOCollection::StageAnyOutputs()
+	int32 FPointIOCollection::StageAnyOutputs()
 	{
-		PCGEX_SHARED_CONTEXT_VOID(ContextHandle)
+		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 
 		FPCGExContext* Context = SharedContext.Get();
 
 		Sort();
 
+		int32 NumStaged = 0;
 		Context->IncreaseStagedOutputReserve(Pairs.Num());
-		for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->StageAnyOutput(Context); }
+		for (int i = 0; i < Pairs.Num(); i++) { NumStaged += Pairs[i]->StageAnyOutput(Context); }
+		return NumStaged;
 	}
 
 	void FPointIOCollection::Sort()
