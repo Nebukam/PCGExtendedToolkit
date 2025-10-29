@@ -382,5 +382,18 @@ namespace PCGExTopologyEdges
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
 			PCGExClusterMT::TBatch<T>::Output();
 		}
+
+	protected:
+		virtual void OnInitialPostProcess() override
+		{
+			const int32 NumVtx = VtxDataFacade->GetNum();
+
+			TMap<uint64, int32>& MP = *ProjectedHashMap;
+			const TArray<FVector2D>& PP = *this->ProjectedVtxPositions.Get();
+
+			for (int i = 0; i < NumVtx; i++) { MP.Add(PCGEx::GH2(PP[i], CWTolerance), i); }
+
+			PCGExClusterMT::TBatch<T>::OnInitialPostProcess();
+		}
 	};
 }
