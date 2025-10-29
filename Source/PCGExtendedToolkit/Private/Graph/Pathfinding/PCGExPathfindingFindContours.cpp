@@ -86,6 +86,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = Settings->Artifacts.WriteAny();
+				NewBatch->bSkipCompletion = true;
 				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
 			}))
 		{
@@ -125,12 +126,21 @@ namespace PCGExFindContours
 		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 		Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); // We need edge octree anyway
 
-		CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
-		if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get()); }
+		const int32 NumSeeds = Context->SeedsDataFacade->Source->GetNum();
 
-		StartParallelLoopForRange(Context->SeedsDataFacade->Source->GetNum(), 64);
+		CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
+		CellsConstraints->Reserve(NumSeeds);
+		if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *ProjectedVtxPositions.Get()); }
+		if (CellsConstraints->WrapperCell) { CellsConstraints->WrapperCell->CustomIndex = WrapperSeed; }
+
+		StartParallelLoopForRange(NumSeeds, 64);
 
 		return true;
+	}
+
+	void FProcessor::PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops)
+	{
+		ScopedValidCells = MakeShared<PCGExMT::TScopedArray<TSharedPtr<PCGExTopology::FCell>>>(Loops);
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
@@ -138,6 +148,9 @@ namespace PCGExFindContours
 		TConstPCGValueRange<FTransform> InSeedTransforms = Context->SeedsDataFacade->GetIn()->GetConstTransformValueRange();
 
 		const TArray<FVector2D>& ProjectedPositions = *ProjectedVtxPositions.Get();
+
+		TArray<TSharedPtr<PCGExTopology::FCell>>& CellsContainer = ScopedValidCells->Get_Ref(Scope);
+		CellsContainer.Reserve(Scope.Count * 2);
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -169,15 +182,61 @@ namespace PCGExFindContours
 				continue;
 			}
 
-			ProcessCell(Index, Cell);
+			Cell->CustomIndex = Index;
+			CellsContainer.Add(Cell);
 		}
 	}
 
-	void FProcessor::ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell)
+	void FProcessor::OnRangeProcessingComplete()
 	{
-		TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
+		ScopedValidCells->Collapse(ValidCells);
+
+		const int32 NumCells = ValidCells.Num();
+		CellsIOIndices.Reserve(NumCells);
+
+		Context->Paths->IncreaseReserve(NumCells + 1);
+		for (int i = 0; i < NumCells; i++)
+		{
+			const TSharedPtr<PCGExData::FPointIO> IO = Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
+			CellsIOIndices.Add(IO ? IO->IOIndex : -1);
+		}
+
+		if (CellsConstraints->WrapperCell
+			&& ValidCells.IsEmpty()
+			&& WrapperSeed != -1
+			&& Settings->Constraints.bKeepWrapperIfSolePath)
+		{
+			// Process wrapper cell if it's the only valid cell and it's not omitted
+			ProcessCell(CellsConstraints->WrapperCell, Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
+			return;
+		}
+
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessCellsTask)
+
+		ProcessCellsTask->OnSubLoopStartCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+				TArray<TSharedPtr<PCGExTopology::FCell>>& ValidCells_Ref = This->ValidCells;
+				const TArray<int32>& CellsIOIndices_Ref = This->CellsIOIndices;
+				TArray<TSharedPtr<PCGExData::FPointIO>>& Pairs = This->Context->Paths->Pairs;
+
+				PCGEX_SCOPE_LOOP(Index)
+				{
+					const int32 CellIndex = CellsIOIndices_Ref[Index];
+					if (CellIndex != -1) { This->ProcessCell(ValidCells_Ref[Index], Pairs[CellIndex]); }
+					ValidCells_Ref[Index] = nullptr;
+				}
+			};
+
+		ProcessCellsTask->StartSubLoops(CellsIOIndices.Num(), 64);
+	}
+
+	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO)
+	{
 		if (!PathIO) { return; }
 
+		const int32 SeedIndex = InCell->CustomIndex;
 		const int32 NumCellPoints = InCell->Nodes.Num();
 		PCGEx::SetNumPointsAllocated(PathIO->GetOut(), NumCellPoints);
 
@@ -208,14 +267,6 @@ namespace PCGExFindContours
 			PCGExData::FMutablePoint SeedPoint = Context->GoodSeeds->GetOutPoint(SeedIndex);
 			Settings->SeedMutations.ApplyToPoint(InCell.Get(), SeedPoint, PathIO->GetOut());
 		}
-
-		FPlatformAtomics::InterlockedIncrement(&OutputPathNum);
-	}
-
-	void FProcessor::CompleteWork()
-	{
-		if (!CellsConstraints->WrapperCell) { return; }
-		if (OutputPathNum == 0 && WrapperSeed != -1 && Settings->Constraints.bKeepWrapperIfSolePath) { ProcessCell(WrapperSeed, CellsConstraints->WrapperCell); }
 	}
 
 	void FProcessor::Cleanup()

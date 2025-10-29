@@ -135,42 +135,29 @@ namespace PCGExTopology
 		}
 	}
 
-	bool FCellConstraints::ContainsSignedEdgeHash(const uint64 Hash) const
+	void FCellConstraints::Reserve(const int32 InCellHashReserve)
 	{
-		FReadScopeLock ReadScopeLock(UniqueStartHalfEdgesHashLock);
+		UniqueStartHalfEdgesHash.Reserve(InCellHashReserve);
+		UniquePathsHashSet.Reserve(InCellHashReserve);
+	}
+
+	bool FCellConstraints::ContainsSignedEdgeHash(const uint64 Hash)
+	{
 		return UniqueStartHalfEdgesHash.Contains(Hash);
 	}
 
 	bool FCellConstraints::IsUniqueStartHalfEdge(const uint64 Hash)
 	{
 		bool bAlreadyExists = false;
-		{
-			FReadScopeLock ReadScopeLock(UniqueStartHalfEdgesHashLock);
-			bAlreadyExists = UniqueStartHalfEdgesHash.Contains(Hash);
-			if (bAlreadyExists) { return false; }
-		}
-		{
-			FWriteScopeLock WriteScopeLock(UniqueStartHalfEdgesHashLock);
-			UniqueStartHalfEdgesHash.Add(Hash, &bAlreadyExists);
-			return !bAlreadyExists;
-		}
+		UniqueStartHalfEdgesHash.Add(Hash, bAlreadyExists);
+		return !bAlreadyExists;
 	}
 
 	bool FCellConstraints::IsUniqueCellHash(const TSharedPtr<FCell>& InCell)
 	{
-		const uint32 CellHash = InCell->GetCellHash();
-
-		{
-			FReadScopeLock ReadScopeLock(UniqueStartHalfEdgesHashLock);
-			if (UniquePathsHashSet.Contains(CellHash)) { return false; }
-		}
-
-		{
-			FWriteScopeLock WriteScope(UniqueStartHalfEdgesHashLock);
-			bool bAlreadyExists;
-			UniquePathsHashSet.Add(CellHash, &bAlreadyExists);
-			return !bAlreadyExists;
-		}
+		bool bAlreadyExists;
+		UniquePathsHashSet.Add(InCell->GetCellHash(), bAlreadyExists);
+		return !bAlreadyExists;
 	}
 
 	void FCellConstraints::BuildWrapperCell(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints)
@@ -268,6 +255,8 @@ namespace PCGExTopology
 		TSharedRef<PCGExCluster::FCluster> InCluster,
 		const TArray<FVector2D>& ProjectedPositions)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCell::BuildFromCluster);
+		
 		bBuiltSuccessfully = false;
 		Data.Bounds = FBox(ForceInit);
 

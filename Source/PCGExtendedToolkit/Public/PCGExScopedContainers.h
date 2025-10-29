@@ -7,6 +7,84 @@
 
 namespace PCGExMT
 {
+	template <int32 NumShards = 32>
+	struct TH64SetShards
+	{
+	private:
+		const int32 Log2NumShards = FMath::FloorLog2(NumShards);
+		TStaticArray<TSet<uint64>, NumShards> Shards;
+		TStaticArray<FRWLock, NumShards> Locks;
+		const uint32 ShardMask = NumShards - 1;
+
+	public:
+		TH64SetShards()
+		{
+			static_assert(FMath::IsPowerOfTwo(NumShards));
+		}
+
+		void Reserve(const int32 ShardReserve)
+		{
+			int32 NumReserve = ShardReserve / NumShards;
+			for (int32 i = 0; i < NumShards; i++)
+			{
+				FReadScopeLock ScopeLock(Locks[i]);
+				Shards[i].Reserve(NumReserve);
+			}
+		}
+
+		void Add(uint64 Value)
+		{
+			const uint32 Index = FastHashToShard(Value);
+			FWriteScopeLock ScopeLock(Locks[Index]);
+			Shards[Index].Add(Value);
+		}
+
+		void Add(uint64 Value, bool& bIsAlreadySet)
+		{
+			const uint32 Index = FastHashToShard(Value);
+			FWriteScopeLock ScopeLock(Locks[Index]);
+			Shards[Index].Add(Value, &bIsAlreadySet);
+		}
+
+		int32 Remove(uint64 Value)
+		{
+			const uint32 Index = FastHashToShard(Value);
+			FWriteScopeLock ScopeLock(Locks[Index]);
+			return Shards[Index].Add(Value);
+		}
+
+		bool Contains(uint64 Value)
+		{
+			const uint32 Index = FastHashToShard(Value);
+			FReadScopeLock ScopeLock(Locks[Index]);
+			return Shards[Index].Contains(Value);
+		}
+
+		void MergeInto(TSet<uint64>& OutMerged)
+		{
+			for (int32 i = 0; i < NumShards; i++)
+			{
+				FReadScopeLock ScopeLock(Locks[i]);
+				OutMerged.Append(Shards[i]);
+			}
+		}
+
+		void Clear()
+		{
+			for (int32 i = 0; i < NumShards; i++)
+			{
+				FRWScopeLock ScopeLock(&Locks[i], SLT_Write);
+				Shards[i].Reset();
+			}
+		}
+
+	private:
+		FORCEINLINE uint32 FastHashToShard(uint64 Value) const
+		{
+			return static_cast<uint32>((Value * 2654435761ULL) >> (64 - Log2NumShards));
+		}
+	};
+
 	template <typename T>
 	class TScopedArray final : public TSharedFromThis<TScopedArray<T>>
 	{

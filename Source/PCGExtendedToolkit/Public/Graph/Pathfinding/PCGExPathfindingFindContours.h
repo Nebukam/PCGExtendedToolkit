@@ -132,8 +132,11 @@ namespace PCGExFindContours
 		int32 WrapperSeed = -1;
 
 		bool bBuildExpandedNodes = false;
-		int32 OutputPathNum = 0;
 		TSharedPtr<PCGExTopology::FCell> WrapperCell;
+
+		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExTopology::FCell>>> ScopedValidCells;
+		TArray<TSharedPtr<PCGExTopology::FCell>> ValidCells;
+		TArray<int32> CellsIOIndices;
 
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
@@ -146,10 +149,13 @@ namespace PCGExFindContours
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 
-		void ProcessCell(const int32 SeedIndex, const TSharedPtr<PCGExTopology::FCell>& InCell);
-		virtual void CompleteWork() override;
+		virtual void PrepareLoopScopesForRanges(const TArray<PCGExMT::FScope>& Loops) override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void OnRangeProcessingComplete() override;
+
+		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
+		
 		virtual void Cleanup() override;
 	};
 }
