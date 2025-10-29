@@ -72,7 +72,7 @@ protected:
 
 	/** How is this recursion tracker supposed to be used. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExRecursionTrackerType Type = EPCGExRecursionTrackerType::Simple;
+	EPCGExRecursionTrackerType Type = EPCGExRecursionTrackerType::Branch;
 	
 	/** How is this recursion tracker supposed to be used. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -82,9 +82,9 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Update", EditConditionHides, ClampMin=0))
 	FName ContinueAttributeName = "Continue";
 
-	/** Starting count. */
+	/** Max count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Update", EditConditionHides, ClampMin=0))
-	int32 Count = 20;
+	int32 MaxCount = 20;
 
 	/** Tags to be added to the tracker */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable))

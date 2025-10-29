@@ -65,7 +65,7 @@ TArray<FPCGPinProperties> UPCGExRecursionTrackerSettings::InputPinProperties() c
 	if (Type == EPCGExRecursionTrackerType::Branch) { PCGEX_PIN_ANY(PCGPinConstants::DefaultInputLabel, "Data to branch out", Required) }
 
 	PCGEX_PIN_PARAMS(PCGExRecursionTracker::SourceTrackerLabel, "Tracker(s)", Required)
-	PCGEX_PIN_FILTERS(PCGExRecursionTracker::SourceTrackerFilters, "Filters incoming data, if any.", Normal)
+	PCGEX_PIN_FILTERS(PCGExRecursionTracker::SourceTrackerFilters, "Filters incoming data, if any.", Advanced)
 
 	if (Type == EPCGExRecursionTrackerType::Simple
 		&& Mode != EPCGExRecursionTrackerMode::Create
@@ -135,7 +135,7 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 	RemoveTags.Append(PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->RemoveTags));
 	TArray<FString> AddTags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->AddTags);
 
-	int32 SafeMax = Settings->Count;
+	int32 SafeMax = Settings->MaxCount;
 	int32 RemainderOffset = 0;
 	EPCGExRecursionTrackerMode SafeMode = Settings->Mode;
 
