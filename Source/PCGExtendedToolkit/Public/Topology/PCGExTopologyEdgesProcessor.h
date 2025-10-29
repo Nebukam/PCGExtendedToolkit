@@ -189,6 +189,8 @@ namespace PCGExTopologyEdges
 			bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 
 			CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
+			CellsConstraints->Reserve(Cluster->Edges->Num());
+			
 			if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *this->ProjectedVtxPositions.Get()); }
 			CellsConstraints->Holes = Holes;
 
@@ -284,6 +286,8 @@ namespace PCGExTopologyEdges
 
 		void ApplyPointData()
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(TopologyEdgesProcessor::ApplyPointData);
+			
 			FTransform Transform = Settings->OutputMode == EPCGExTopologyOutputMode::PCGDynamicMesh ? Context->GetComponent()->GetOwner()->GetTransform() : FTransform::Identity;
 			Transform.SetScale3D(FVector::OneVector);
 			Transform.SetRotation(FQuat::Identity);
