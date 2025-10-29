@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "GeomTools.h"
 #include "PCGExHelpers.h"
+#include "PCGExScopedContainers.h"
 #include "Collections/PCGExComponentDescriptors.h"
 #include "Data/PCGExDataFilter.h"
 #include "GeometryScript/MeshNormalsFunctions.h"
@@ -396,11 +397,8 @@ namespace PCGExTopology
 	class FCellConstraints : public TSharedFromThis<FCellConstraints>
 	{
 	protected:
-		mutable FRWLock UniquePathsHashSetLock;
-		TSet<uint64> UniquePathsHashSet;
-
-		mutable FRWLock UniqueStartHalfEdgesHashLock;
-		TSet<uint64> UniqueStartHalfEdgesHash;
+		PCGExMT::TH64SetShards<> UniquePathsHashSet;
+		PCGExMT::TH64SetShards<> UniqueStartHalfEdgesHash;
 
 	public:
 		EPCGExWinding Winding = EPCGExWinding::CounterClockwise;
@@ -468,7 +466,8 @@ namespace PCGExTopology
 			if (InDetails.bOmitAboveCompactness) { MaxCompactness = InDetails.MaxCompactness; }
 		}
 
-		bool ContainsSignedEdgeHash(const uint64 Hash) const;
+		void Reserve(const int32 InCellHashReserve);
+		bool ContainsSignedEdgeHash(const uint64 Hash);
 		bool IsUniqueStartHalfEdge(const uint64 Hash);
 		bool IsUniqueCellHash(const TSharedPtr<FCell>& InCell);
 		void BuildWrapperCell(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints = nullptr);
@@ -510,6 +509,8 @@ namespace PCGExTopology
 		bool bBuiltSuccessfully = false;
 
 		FGeometryScriptSimplePolygon Polygon;
+		
+		int32 CustomIndex = -1;
 
 		explicit FCell(const TSharedRef<FCellConstraints>& InConstraints)
 			: Constraints(InConstraints)
