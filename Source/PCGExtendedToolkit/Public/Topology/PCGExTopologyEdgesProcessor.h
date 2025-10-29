@@ -284,6 +284,8 @@ namespace PCGExTopologyEdges
 
 		void ApplyPointData()
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(TopologyEdgesProcessor::ApplyPointData);
+			
 			FTransform Transform = Settings->OutputMode == EPCGExTopologyOutputMode::PCGDynamicMesh ? Context->GetComponent()->GetOwner()->GetTransform() : FTransform::Identity;
 			Transform.SetScale3D(FVector::OneVector);
 			Transform.SetRotation(FQuat::Identity);
