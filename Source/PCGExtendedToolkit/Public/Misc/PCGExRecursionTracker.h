@@ -11,6 +11,13 @@
 #include "PCGExRecursionTracker.generated.h"
 
 UENUM()
+enum class EPCGExRecursionTrackerType : uint8
+{
+	Simple = 0 UMETA(DisplayName = "Simple", ToolTip="Simple recursion tracker. Can update multiple trackers at once.", ActionIcon="PCGEx.Pin.OUT_RecursionTracker"),
+	Branch  = 1 UMETA(DisplayName = "Branch", ToolTip="Branch recusion tracker. Can only work with a single tracker", ActionIcon="PCGEx.Pin.OUT_RecursionTracker", SearchHints = "Branch")
+};
+
+UENUM()
 enum class EPCGExRecursionTrackerMode : uint8
 {
 	Create         = 0 UMETA(DisplayName = "Create", Tooltip="Create a new tracker. This is for creating an initial tracker outside the subgraph."),
@@ -20,9 +27,18 @@ enum class EPCGExRecursionTrackerMode : uint8
 
 namespace PCGExRecursionTracker
 {
+	
+	const FName SourceTrackerLabel = FName("Tracker");
+	const FName OutputTrackerLabel = FName("Tracker");
+	const FName OutputContinueLabel = FName("Continue");
+	const FName OutputStopLabel = FName("Stop");
+	
 	const FName SourceTrackerFilters = FName("Tracker Filters");
 	const FName SourceTestData = FName("Test Data");
 	const FName OutputProgressLabel = FName("Progress");
+	const FName OutputIndexLabel = FName("Index");
+	const FName OutputRemainderLabel = FName("Remainder");
+	
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/recursion-tracker"))
@@ -37,11 +53,17 @@ public:
 #if WITH_EDITOR
 	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(RecursionTracker, "Recursion Tracker", "A Simple Recursion tracker to make working with recursive subgraphs easier.");
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorConstant; }
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::ControlFlow; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorConstant); }
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
+	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
 
+	virtual bool OutputPinsCanBeDeactivated() const override { return true; }
+	virtual bool HasDynamicPins() const override;
+	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
+	virtual EPCGDataType GetCurrentPinTypes(const UPCGPin* InPin) const override;
+	
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -50,15 +72,19 @@ protected:
 
 	/** How is this recursion tracker supposed to be used. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExRecursionTrackerType Type = EPCGExRecursionTrackerType::Branch;
+	
+	/** How is this recursion tracker supposed to be used. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExRecursionTrackerMode Mode = EPCGExRecursionTrackerMode::CreateOrUpdate;
 
 	/** Name of the bool attribute that will be set on the tracker. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Update", EditConditionHides, ClampMin=0))
 	FName ContinueAttributeName = "Continue";
 
-	/** Starting count. */
+	/** Max count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Update", EditConditionHides, ClampMin=0))
-	int32 Count = 20;
+	int32 MaxCount = 20;
 
 	/** Tags to be added to the tracker */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable))
@@ -73,8 +99,16 @@ protected:
 	int32 CounterUpdate = -1;
 	
 	/** If enabled, will create a pin that outputs the normalized progress value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Outputs", meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides))
 	bool bOutputProgress = false;
+	
+	/** If enabled, will create a pin that outputs the current iteration index (Max - Remainder). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Outputs", meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides))
+	bool bOutputIndex = false;
+	
+	/** If enabled, will create a pin that outputs the current remainder. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Outputs", meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides))
+	bool bOutputRemainder = false;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ One Minus", EditCondition="Mode != EPCGExRecursionTrackerMode::Create && bOutputProgress", EditConditionHides))
@@ -84,12 +118,8 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides), AdvancedDisplay)
 	bool bForceOutputContinue = false;
 
-	/** If enabled, will not output data if counter runs out of iterations. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides), AdvancedDisplay)
-	bool bOutputNothingOnStop = false;
-
 	/** If enabled, does additional collection-level filtering on a separate set of datas. If no data passes those filters, the tracker will return a single false value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create && Type == EPCGExRecursionTrackerType::Simple", EditConditionHides))
 	bool bDoAdditionalDataTesting = false;
 
 	/** . */
@@ -99,6 +129,10 @@ protected:
 	/** An offset applied when creating a tracker in "Create or Update" mode. The default value assume the tracker is created from inside a subgraph and thus that one iteration passed already. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExRecursionTrackerMode::CreateOrUpdate", EditConditionHides), AdvancedDisplay)
 	int32 RemainderOffsetWhenCreateInsteadOfUpdate = -1;
+
+	/** For OCD purposes. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	bool bGroupBranchPins = false;
 };
 
 class FPCGExRecursionTrackerElement final : public IPCGElement
@@ -109,4 +143,5 @@ public:
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
+	
 };

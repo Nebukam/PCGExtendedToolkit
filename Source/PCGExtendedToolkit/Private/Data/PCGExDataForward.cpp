@@ -74,7 +74,7 @@ void FPCGExAttributeToTagDetails::Tag(const PCGExData::FConstPoint& TagSource, T
 			FString Prefix = TEXT("");
 
 			PCGEx::ExecuteWithRightType(
-				Getter->ProcessingInfos.SourceIdentity.GetTypeId(), [&](auto DummyValue)
+				Getter->GetMetadataType(), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 					TSharedPtr<PCGEx::TAttributeBroadcaster<T>> TypedGetter = StaticCastSharedPtr<PCGEx::TAttributeBroadcaster<T>>(Getter);

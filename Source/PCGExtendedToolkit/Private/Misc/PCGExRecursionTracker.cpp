@@ -3,7 +3,6 @@
 
 #include "Misc/PCGExRecursionTracker.h"
 
-
 #include "PCGExHelpers.h"
 #include "PCGGraph.h"
 #include "PCGParamData.h"
@@ -23,24 +22,59 @@ bool UPCGExRecursionTrackerSettings::GetPinExtraIcon(const UPCGPin* InPin, FName
 {
 	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
 }
+
+TArray<FPCGPreConfiguredSettingsInfo> UPCGExRecursionTrackerSettings::GetPreconfiguredInfo() const
+{
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExRecursionTrackerType>({}, FTEXT("Recursion Tracker : {0}"));
+}
 #endif
 
+bool UPCGExRecursionTrackerSettings::HasDynamicPins() const
+{
+	return Type == EPCGExRecursionTrackerType::Branch;
+}
+
+void UPCGExRecursionTrackerSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
+{
+	if (const UEnum* EnumPtr = StaticEnum<EPCGExRecursionTrackerType>())
+	{
+		if (EnumPtr->IsValidEnumValue(PreconfigureInfo.PreconfiguredIndex))
+		{
+			Type = static_cast<EPCGExRecursionTrackerType>(PreconfigureInfo.PreconfiguredIndex);
+		}
+	}
+}
+
+EPCGDataType UPCGExRecursionTrackerSettings::GetCurrentPinTypes(const UPCGPin* InPin) const
+{
+	if (!InPin->IsOutputPin()
+		|| InPin->Properties.Label == PCGPinConstants::DefaultInputLabel
+		|| InPin->Properties.Label == PCGExRecursionTracker::OutputContinueLabel
+		|| InPin->Properties.Label == PCGExRecursionTracker::OutputStopLabel)
+	{
+		return Super::GetCurrentPinTypes(InPin);
+	}
+
+	return EPCGDataType::Param;
+}
 
 TArray<FPCGPinProperties> UPCGExRecursionTrackerSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	PCGEX_PIN_PARAMS(PCGPinConstants::DefaultInputLabel, "Tracker(s)", Required)
-	PCGEX_PIN_FILTERS(PCGExRecursionTracker::SourceTrackerFilters, "Filters incoming data, if any.", Normal)
+	if (Type == EPCGExRecursionTrackerType::Branch) { PCGEX_PIN_ANY(PCGPinConstants::DefaultInputLabel, "Data to branch out", Required) }
 
-	if (Mode != EPCGExRecursionTrackerMode::Create)
+	PCGEX_PIN_PARAMS(PCGExRecursionTracker::SourceTrackerLabel, "Tracker(s)", Required)
+	PCGEX_PIN_FILTERS(PCGExRecursionTracker::SourceTrackerFilters, "Filters incoming data, if any.", Advanced)
+
+	if (Type == EPCGExRecursionTrackerType::Simple
+		&& Mode != EPCGExRecursionTrackerMode::Create
+		&& bDoAdditionalDataTesting)
 	{
-		if (bDoAdditionalDataTesting)
-		{
-			PCGEX_PIN_ANY(PCGExRecursionTracker::SourceTestData, "Collections on that will be tested using the filters below. If no filter is provided, only fail on empty data.", Normal)
-			PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, "Collection filters used on the collections above.", Normal)
-		}
+		PCGEX_PIN_ANY(PCGExRecursionTracker::SourceTestData, "Collections on that will be tested using the filters below. If no filter is provided, only fail on empty data.", Normal)
+		PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, "Collection filters used on the collections above.", Normal)
 	}
+
 	return PinProperties;
 }
 
@@ -48,14 +82,28 @@ TArray<FPCGPinProperties> UPCGExRecursionTrackerSettings::OutputPinProperties() 
 {
 	TArray<FPCGPinProperties> PinProperties;
 
+	if (Type == EPCGExRecursionTrackerType::Branch)
+	{
+		PCGEX_PIN_ANY(PCGExRecursionTracker::OutputContinueLabel, "Input data will be redirected to this pin if any tracker can continue.", Normal)
+		if (bGroupBranchPins) { PCGEX_PIN_ANY(PCGExRecursionTracker::OutputStopLabel, "Input data will be redirected to this pin if no tracker can continue.", Normal) }
+	}
+
+	PCGEX_PIN_PARAMS(PCGExRecursionTracker::OutputTrackerLabel, "New or updated tracker(s)", Required)
+
+	if (!bGroupBranchPins && Type == EPCGExRecursionTrackerType::Branch)
+	{
+		PCGEX_PIN_ANY(PCGExRecursionTracker::OutputStopLabel, "Input data will be redirected to this pin if no tracker can continue.", Normal)
+	}
+
 	if (Mode != EPCGExRecursionTrackerMode::Create)
 	{
-		PCGEX_PIN_PARAMS(PCGPinConstants::DefaultOutputLabel, "Updated tracker(s). Each input has been decremented once", Normal)
-		if (bOutputProgress) { PCGEX_PIN_PARAMS(PCGExRecursionTracker::OutputProgressLabel, "Progress float", Normal) }
-	}
-	else
-	{
-		PCGEX_PIN_PARAMS(PCGPinConstants::DefaultOutputLabel, "Tracker(s)", Required)
+#define PCGEX_OUTPUT_EXTRA(_NAME) if (bOutput##_NAME){ PCGEX_PIN_PARAMS(PCGExRecursionTracker::Output##_NAME##Label, "See toggle tooltip.", Normal)}
+
+		PCGEX_OUTPUT_EXTRA(Progress)
+		PCGEX_OUTPUT_EXTRA(Index)
+		PCGEX_OUTPUT_EXTRA(Remainder)
+
+#undef PCGEX_OUTPUT_EXTRA
 	}
 
 	return PinProperties;
@@ -69,6 +117,8 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 {
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(RecursionTracker)
+
+	const bool bDoAdditionalDataTesting = Settings->Type == EPCGExRecursionTrackerType::Simple ? Settings->bDoAdditionalDataTesting : false;
 
 	if (!PCGEx::IsWritableAttributeName(Settings->ContinueAttributeName))
 	{
@@ -85,11 +135,11 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 	RemoveTags.Append(PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->RemoveTags));
 	TArray<FString> AddTags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->AddTags);
 
-	int32 SafeMax = Settings->Count;
+	int32 SafeMax = Settings->MaxCount;
 	int32 RemainderOffset = 0;
 	EPCGExRecursionTrackerMode SafeMode = Settings->Mode;
 
-	TArray<FPCGTaggedData> TaggedData = Context->InputData.GetParamsByPin(PCGPinConstants::DefaultInputLabel);
+	TArray<FPCGTaggedData> TaggedData = Context->InputData.GetParamsByPin(PCGExRecursionTracker::SourceTrackerLabel);
 	TSharedPtr<PCGExData::FPointIOCollection> TrackersCollection = MakeShared<PCGExData::FPointIOCollection>(Context, TaggedData, PCGExData::EIOInit::NoInit, true);
 	TSharedPtr<PCGExPointFilter::FManager> CollectionFilters = nullptr;
 
@@ -134,6 +184,25 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	SafeMax = FMath::Max(0, SafeMax);
 
+	auto Branch = [&](bool bContinue)
+	{
+		if (Settings->Type != EPCGExRecursionTrackerType::Branch) { return; }
+
+		TArray<FPCGTaggedData> InOutData = Context->InputData.GetInputsByPin(PCGPinConstants::DefaultInputLabel);
+		if (bContinue)
+		{
+			for (FPCGTaggedData& Data : InOutData) { Data.Pin = PCGExRecursionTracker::OutputContinueLabel; }
+			Context->OutputData.InactiveOutputPinBitmask |= Settings->bGroupBranchPins ? 1ULL << 1 : 1ULL << 2;
+		}
+		else
+		{
+			for (FPCGTaggedData& Data : InOutData) { Data.Pin = PCGExRecursionTracker::OutputStopLabel; }
+			Context->OutputData.InactiveOutputPinBitmask |= 1ULL << 0;
+		}
+
+		Context->OutputData.TaggedData.Append(InOutData);
+	};
+
 	auto StageResult = [&](bool bResult)
 	{
 		UPCGParamData* NewParamData = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);
@@ -148,13 +217,14 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 		Metadata->CreateAttribute<bool>(ContinueAttribute, bResult, true, true);
 		Metadata->AddEntry();
 
-		Context->StageOutput(NewParamData, PCGPinConstants::DefaultOutputLabel, Tags->Flatten(), false, true, false);
+		Context->StageOutput(NewParamData, PCGExRecursionTracker::OutputTrackerLabel, Tags->Flatten(), false, true, false);
 	};
 
 	if (SafeMode == EPCGExRecursionTrackerMode::Create)
 	{
 		if (ValidInputs.IsEmpty())
 		{
+			Branch(true);
 			StageResult(true);
 		}
 		else
@@ -177,25 +247,22 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 
 				if (Settings->bAddEntryWhenCreatingFromExistingData) { Metadata->AddEntry(); }
 
-				Context->StageOutput(NewParamData, PCGPinConstants::DefaultOutputLabel, IO->Tags->Flatten(), false, true, false);
+				Context->StageOutput(NewParamData, PCGExRecursionTracker::OutputTrackerLabel, IO->Tags->Flatten(), false, true, false);
 			}
 		}
 	}
 	else
 	{
-		FPCGAttributeIdentifier ProgressAttribute = FPCGAttributeIdentifier(FName("Progress"), PCGMetadataDomainID::Default);
-
 		if (ValidInputs.IsEmpty())
 		{
-			// No trackers, empty list.
-			if (!Settings->bOutputNothingOnStop) { StageResult(false); }
+			Branch(false);
 		}
 		else
 		{
 			int32 NumTrackers = 0;
 			bool bShouldStop = false;
 
-			if (Settings->bDoAdditionalDataTesting)
+			if (bDoAdditionalDataTesting)
 			{
 				TSharedPtr<PCGExData::FPointIOCollection> TestDataCollection = MakeShared<PCGExData::FPointIOCollection>(
 					Context, PCGExRecursionTracker::SourceTestData, PCGExData::EIOInit::NoInit, true);
@@ -235,22 +302,18 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 				}
 			}
 
-			if (bShouldStop && Settings->bOutputNothingOnStop)
-			{
-				Context->Done();
-				return Context->TryComplete();
-			}
+			bool bAnyContinue = false;
 
-			for (const TSharedPtr<PCGExData::FPointIO>& Data : ValidInputs)
+			for (const TSharedPtr<PCGExData::FPointIO>& Input : ValidInputs)
 			{
-				const UPCGParamData* OriginalParamData = Cast<UPCGParamData>(Data->InitializationData);
+				const UPCGParamData* OriginalParamData = Cast<UPCGParamData>(Input->InitializationData);
 				if (!OriginalParamData) { continue; }
 
-				TSharedPtr<PCGExData::IDataValue> MaxCountTag = Data->Tags->GetValue(TAG_MAX_COUNT_STR);
+				TSharedPtr<PCGExData::IDataValue> MaxCountTag = Input->Tags->GetValue(TAG_MAX_COUNT_STR);
 				if (!MaxCountTag) { continue; }
 
 				UPCGParamData* OutputParamData = const_cast<UPCGParamData*>(OriginalParamData);
-				TSharedPtr<PCGExData::IDataValue> RemainderTag = Data->Tags->GetValue(TAG_REMAINDER_STR);
+				TSharedPtr<PCGExData::IDataValue> RemainderTag = Input->Tags->GetValue(TAG_REMAINDER_STR);
 
 				NumTrackers++;
 
@@ -259,50 +322,50 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 				const int32 Remainder = ClampedRemainder + Settings->CounterUpdate;
 				const float Progress = static_cast<float>(Remainder) / static_cast<float>(MaxCount);
 
-				if (bShouldStop || Remainder < 0 || Settings->bForceOutputContinue)
-				{
-					if (!Settings->bOutputNothingOnStop)
-					{
-						OutputParamData = nullptr;
-					}
-					else
-					{
-						OutputParamData = OriginalParamData->DuplicateData(Context);
-						UPCGMetadata* Metadata = OutputParamData->MutableMetadata();
+				const bool bContinue = Remainder >= 0;
+				if (bContinue) { bAnyContinue = true; }
 
-						Metadata->DeleteAttribute(ContinueAttribute);
-						Metadata->CreateAttribute<bool>(ContinueAttribute, Remainder >= 0, true, true);
-					}
+				if (bShouldStop || !bContinue || Settings->bForceOutputContinue)
+				{
+					OutputParamData = OriginalParamData->DuplicateData(Context);
+					UPCGMetadata* Metadata = OutputParamData->MutableMetadata();
+
+					Metadata->DeleteAttribute(ContinueAttribute);
+					Metadata->CreateAttribute<bool>(ContinueAttribute, bContinue, true, true);
 				}
 
-				if (!OutputParamData) { continue; }
+				Input->Tags->Remove(RemoveTags);
+				Input->Tags->Append(AddTags);
+				Input->Tags->Set<int32>(TAG_MAX_COUNT_STR, MaxCount);
+				Input->Tags->Set<int32>(TAG_REMAINDER_STR, Remainder);
+				const TSet<FString> FlattenedTags = Input->Tags->Flatten();
 
-				Data->Tags->Remove(RemoveTags);
-				Data->Tags->Append(AddTags);
-				Data->Tags->Set<int32>(TAG_MAX_COUNT_STR, MaxCount);
-				Data->Tags->Set<int32>(TAG_REMAINDER_STR, Remainder);
+				Context->StageOutput(OutputParamData, PCGExRecursionTracker::OutputTrackerLabel, FlattenedTags, false, false, false);
 
-				Context->StageOutput(OutputParamData, PCGPinConstants::DefaultOutputLabel, Data->Tags->Flatten(), false, false, false);
+#define PCGEX_OUTPUT_EXTRA(_NAME, _TYPE, _VALUE)\
+				if (Settings->bOutput##_NAME){\
+					UPCGParamData* Extra = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);\
+					UPCGMetadata* Metadata = Extra->MutableMetadata();\
+					Metadata->CreateAttribute<_TYPE>(FPCGAttributeIdentifier(PCGExRecursionTracker::Output##_NAME##Label, PCGMetadataDomainID::Default), _VALUE, true, true);\
+					Metadata->AddEntry();\
+					Context->StageOutput(Extra, PCGExRecursionTracker::Output##_NAME##Label, FlattenedTags, false, true, false);}
 
-				if (Settings->bOutputProgress)
-				{
-					UPCGParamData* ProgressData = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);
-					UPCGMetadata* Metadata = ProgressData->MutableMetadata();
+				PCGEX_OUTPUT_EXTRA(Progress, float, Settings->bOneMinus ? 1 - Progress : Progress)
+				PCGEX_OUTPUT_EXTRA(Index, int32, FMath::Clamp(MaxCount - ClampedRemainder, 0, MaxCount))
+				PCGEX_OUTPUT_EXTRA(Remainder, int32, Remainder)
 
-					Metadata->CreateAttribute<float>(ProgressAttribute, Settings->bOneMinus ? 1 - Progress : Progress, true, true);
-					Metadata->AddEntry();
-
-					Context->StageOutput(ProgressData, PCGExRecursionTracker::OutputProgressLabel, Data->Tags->Flatten(), false, true, false);
-				}
+#undef PCGEX_OUTPUT_EXTRA
 			}
 
-			if (NumTrackers == 0 && !Settings->bOutputNothingOnStop) { StageResult(false); }
+			if (NumTrackers == 0) { StageResult(false); }
+			Branch(bAnyContinue);
 		}
 	}
 
 	Context->Done();
 	return Context->TryComplete();
 }
+
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

@@ -40,6 +40,9 @@ public:
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::ControlFlow; }
 #endif
 
+	virtual bool OutputPinsCanBeDeactivated() const override { return true; }
+	virtual bool HasDynamicPins() const override;
+	
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -73,6 +76,7 @@ struct FPCGExUberBranchContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExUberBranchElement;
 
+	TArray<int32> Dispatch;
 	TArray<TSharedPtr<PCGExPointFilter::FManager>> Managers;
 	TArray<TSharedPtr<PCGExData::FFacade>> Facades;
 };
