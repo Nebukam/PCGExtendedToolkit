@@ -445,9 +445,9 @@ namespace PCGExData
 
 		void IncreaseReserve(int32 InIncreaseNum);
 
-		void StageOutputs();
-		void StageOutputs(const int32 MinPointCount, const int32 MaxPointCount);
-		void StageAnyOutputs();
+		int32 StageOutputs();
+		int32 StageOutputs(const int32 MinPointCount, const int32 MaxPointCount);
+		int32 StageAnyOutputs();
 
 		void Sort();
 

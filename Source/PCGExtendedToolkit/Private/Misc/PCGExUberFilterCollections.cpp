@@ -130,8 +130,9 @@ bool FPCGExUberFilterCollectionsElement::ExecuteInternal(FPCGContext* InContext)
 		Context->MainBatch->Output();
 	}
 
-	Context->Inside->StageOutputs();
-	Context->Outside->StageOutputs();
+	uint64& Mask = Context->OutputData.InactiveOutputPinBitmask;
+	if (!Context->Inside->StageOutputs()){ Mask |= 1ULL << 0; }
+	if (!Context->Outside->StageOutputs()){ Mask |= 1ULL << 1; }
 
 	return Context->TryComplete();
 }

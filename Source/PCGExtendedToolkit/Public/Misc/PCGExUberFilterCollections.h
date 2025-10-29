@@ -42,6 +42,7 @@ public:
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
 
+	virtual bool OutputPinsCanBeDeactivated() const override { return true; }
 	virtual bool HasDynamicPins() const override;
 
 protected:

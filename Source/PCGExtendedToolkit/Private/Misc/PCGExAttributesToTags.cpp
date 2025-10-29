@@ -43,7 +43,7 @@ TArray<FPCGPinProperties> UPCGExAttributesToTagsSettings::OutputPinProperties() 
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	if (Action == EPCGExAttributeToTagsAction::AddTags)
+	if (Action != EPCGExAttributeToTagsAction::Attribute)
 	{
 		PCGEX_PIN_ANY(GetMainOutputPin(), "The processed input.", Normal)
 	}
@@ -153,7 +153,7 @@ bool FPCGExAttributesToTagsElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
-	if (Settings->Action == EPCGExAttributeToTagsAction::AddTags)
+	if (Settings->Action != EPCGExAttributeToTagsAction::Attribute)
 	{
 		Context->MainPoints->StageAnyOutputs();
 	}
@@ -171,7 +171,11 @@ namespace PCGExAttributesToTags
 	{
 		const PCGExData::FConstPoint Point = PointDataFacade->GetInPoint(Index);
 		if (OutputSet) { InDetails.Tag(Point, OutputSet->Metadata); }
-		else { InDetails.Tag(Point, PointDataFacade->Source); }
+		else
+		{
+			if (Settings->Action == EPCGExAttributeToTagsAction::AddTags) { InDetails.Tag(Point, PointDataFacade->Source); }
+			else { InDetails.Tag(Point, PointDataFacade->Source->GetOut()->MutableMetadata()); }
+		}
 	}
 
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
@@ -180,15 +184,10 @@ namespace PCGExAttributesToTags
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		if (Settings->Action == EPCGExAttributeToTagsAction::Attribute)
-		{
-			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::NoInit)
-		}
-		else
-		{
-			PCGEX_INIT_IO(PointDataFacade->Source, Settings->bCleanupConsumableAttributes ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward)
-		}
-
+		PCGEX_INIT_IO(
+			PointDataFacade->Source, Settings->Action == EPCGExAttributeToTagsAction::Attribute ? PCGExData::EIOInit::NoInit
+			: Settings->Action == EPCGExAttributeToTagsAction::Data ? PCGExData::EIOInit::Duplicate
+			: PCGExData::EIOInit::Forward)
 
 		FRandomStream RandomSource(BatchIndex);
 

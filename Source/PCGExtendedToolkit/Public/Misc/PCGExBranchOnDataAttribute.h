@@ -88,7 +88,7 @@ public:
 #endif
 
 	virtual bool HasDynamicPins() const override { return true; }
-	virtual bool OutputPinsCanBeDeactivated() const override { return false; }
+	virtual bool OutputPinsCanBeDeactivated() const override { return true; }
 	virtual FName GetMainInputPin() const override { return PCGPinConstants::DefaultInputLabel; }
 	virtual FName GetMainOutputPin() const override { return DefaultPinName; }
 
@@ -136,6 +136,7 @@ public:
 struct FPCGExBranchOnDataAttributeContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBranchOnDataAttributeElement;
+	TArray<int32> Dispatch;
 };
 
 class FPCGExBranchOnDataAttributeElement final : public FPCGExPointsProcessorElement
