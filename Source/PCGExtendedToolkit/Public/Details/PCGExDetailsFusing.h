@@ -116,12 +116,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 	TSharedPtr<PCGExDetails::FDistances> DistanceDetails;
 
 	/** Check this box if you're fusing over a very large radius and want to ensure insertion order to avoid snapping to different points. NOTE : Will make things considerably slower. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="FuseMethod == EPCGExFuseMethod::Voxel", EditConditionHides, DisplayName="Stabilize Insertion Order"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName="Stabilize Insertion Order"))
 	bool bInlineInsertion = false;
 
 	virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InDataFacade) override;
 
-	bool DoInlineInsertion() const { return bInlineInsertion || FuseMethod == EPCGExFuseMethod::Octree; }
+	bool DoInlineInsertion() const { return bInlineInsertion; }
 
 	uint64 GetGridKey(const FVector& Location, const int32 PointIndex) const;
 	FBox GetOctreeBox(const FVector& Location, const int32 PointIndex) const;
