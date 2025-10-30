@@ -96,7 +96,7 @@ struct FPCGExBreakClustersToPathsContext final : FPCGExEdgesProcessorContext
 
 	bool bUseProjection = false;
 	bool bUsePerClusterProjection = false;
-	TSharedPtr<PCGExData::FPointIOCollection> Paths;
+	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 	TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 
 protected:
@@ -120,6 +120,7 @@ namespace PCGExBreakClustersToPaths
 
 	protected:
 		TSharedPtr<PCGExCluster::FNodeChainBuilder> ChainBuilder;
+		TArray<TSharedPtr<PCGExData::FPointIO>> ChainsIO;
 
 		FPCGExEdgeDirectionSettings DirectionSettings;
 

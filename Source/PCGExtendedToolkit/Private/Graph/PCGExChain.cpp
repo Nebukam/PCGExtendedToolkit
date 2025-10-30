@@ -311,6 +311,7 @@ namespace PCGExCluster
 		TSet<uint64> UniqueHashSet;
 		UniqueHashSet.Reserve(Chains.Num());
 
+		int32 WriteIndex = 0;
 		for (int i = 0; i < Chains.Num(); i++)
 		{
 			const TSharedPtr<FNodeChain>& Chain = Chains[i];
@@ -318,7 +319,9 @@ namespace PCGExCluster
 			bool bAlreadySet = false;
 			UniqueHashSet.Add(Chain->UniqueHash, &bAlreadySet);
 
-			if (bAlreadySet) { Chains[i] = nullptr; }
+			if (!bAlreadySet) { Chains[WriteIndex++] = Chain; }
 		}
+
+		Chains.SetNum(WriteIndex);
 	}
 }

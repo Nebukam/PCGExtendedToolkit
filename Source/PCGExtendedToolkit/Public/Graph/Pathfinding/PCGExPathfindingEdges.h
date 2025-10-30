@@ -128,7 +128,7 @@ struct FPCGExPathfindingEdgesContext final : FPCGExEdgesProcessorContext
 
 	TArray<uint64> SeedGoalPairs;
 
-	void BuildPath(const TSharedPtr<PCGExPathfinding::FPathQuery>& Query);
+	void BuildPath(const TSharedPtr<PCGExPathfinding::FPathQuery>& Query, const TSharedPtr<PCGExData::FPointIO>& PathIO);
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -148,6 +148,7 @@ namespace PCGExPathfindingEdges
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPathfindingEdgesContext, UPCGExPathfindingEdgesSettings>
 	{
 		TArray<TSharedPtr<PCGExPathfinding::FPathQuery>> Queries;
+		TArray<TSharedPtr<PCGExData::FPointIO>> QueriesIO;
 		TSharedPtr<PCGExPathfinding::FSearchAllocations> SearchAllocations;
 
 	public:
