@@ -182,8 +182,8 @@ namespace PCGExFindAllCells
 		const TSharedPtr<PCGExTopology::FCell>& InCell,
 		const TSharedPtr<PCGExData::FPointIO>& PathIO)
 	{
-		if (!PathIO) { return; }
-
+		if (!PathIO){return;}
+		
 		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts
 		PathIO->IOIndex = Cluster->GetEdge(InCell->Seed.Edge)->IOIndex; // Enforce seed order for collection output-ish
 
@@ -220,13 +220,12 @@ namespace PCGExFindAllCells
 		ScopedValidCells->Collapse(ValidCells);
 
 		const int32 NumCells = ValidCells.Num();
-		CellsIOIndices.Reserve(NumCells);
+		CellsIO.Reserve(NumCells);
 
 		Context->Paths->IncreaseReserve(NumCells + 1);
 		for (int i = 0; i < NumCells; i++)
 		{
-			const TSharedPtr<PCGExData::FPointIO> IO = Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
-			CellsIOIndices.Add(IO ? IO->IOIndex : -1);
+			CellsIO.Add(Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
 		}
 
 		if (CellsConstraints->WrapperCell
@@ -245,8 +244,7 @@ namespace PCGExFindAllCells
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			const int32 CellIndex = CellsIOIndices[Index];
-			if (CellIndex != -1) { ProcessCell(ValidCells[Index], Context->Paths->Pairs[CellIndex]); }
+			if (const TSharedPtr<PCGExData::FPointIO> IO = CellsIO[Index]) { ProcessCell(ValidCells[Index], IO); }
 			ValidCells[Index] = nullptr;
 		}
 	}

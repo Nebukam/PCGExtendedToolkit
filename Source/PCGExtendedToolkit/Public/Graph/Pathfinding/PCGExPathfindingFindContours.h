@@ -136,7 +136,7 @@ namespace PCGExFindContours
 
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExTopology::FCell>>> ScopedValidCells;
 		TArray<TSharedPtr<PCGExTopology::FCell>> ValidCells;
-		TArray<int32> CellsIOIndices;
+		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIOIndices;
 
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;

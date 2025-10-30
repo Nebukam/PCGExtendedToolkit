@@ -5,6 +5,7 @@
 
 #include "PCGExHelpers.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 #include "Details/PCGExDetailsDistances.h"
 
 namespace PCGExGraph
@@ -65,10 +66,10 @@ namespace PCGExGraph
 			return false;
 		}
 
+		UnionGraph->Collapse();
 		Context->SetAsyncState(State_ProcessingUnion);
 
 		Distances = PCGExDetails::MakeDistances(PointPointIntersectionDetails.FuseDetails.SourceDistance, PointPointIntersectionDetails.FuseDetails.TargetDistance);
-
 
 		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&DefaultPointsBlendingDetails, VtxCarryOverDetails, Distances);
 		UnionBlender = TypedBlender;
@@ -146,7 +147,7 @@ namespace PCGExGraph
 		GraphBuilder->SourceEdgeFacades = SourceEdgesIO;
 		GraphBuilder->Graph->NodesUnion = UnionGraph->NodesUnion;
 		GraphBuilder->Graph->EdgesUnion = UnionGraph->EdgesUnion;
-
+		
 		TArray<FEdge> UniqueEdges;
 		UnionGraph->GetUniqueEdges(UniqueEdges);
 		GraphBuilder->Graph->InsertEdges(UniqueEdges);

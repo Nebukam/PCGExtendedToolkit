@@ -197,8 +197,7 @@ namespace PCGExFindContours
 		Context->Paths->IncreaseReserve(NumCells + 1);
 		for (int i = 0; i < NumCells; i++)
 		{
-			const TSharedPtr<PCGExData::FPointIO> IO = Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
-			CellsIOIndices.Add(IO ? IO->IOIndex : -1);
+			CellsIOIndices.Add(Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
 		}
 
 		if (CellsConstraints->WrapperCell
@@ -218,12 +217,11 @@ namespace PCGExFindContours
 			{
 				PCGEX_ASYNC_THIS
 				TArray<TSharedPtr<PCGExTopology::FCell>>& ValidCells_Ref = This->ValidCells;
-				const TArray<int32>& CellsIOIndices_Ref = This->CellsIOIndices;
+				const TArray<TSharedPtr<PCGExData::FPointIO>>& CellsIOIndices_Ref = This->CellsIOIndices;
 
 				PCGEX_SCOPE_LOOP(Index)
 				{
-					const int32 CellIndex = CellsIOIndices_Ref[Index];
-					if (CellIndex != -1) { This->ProcessCell(ValidCells_Ref[Index], This->Context->Paths->Pairs[CellIndex]); }
+					if (const TSharedPtr<PCGExData::FPointIO> IO = CellsIOIndices_Ref[Index]) { This->ProcessCell(ValidCells_Ref[Index], IO); }
 					ValidCells_Ref[Index] = nullptr;
 				}
 			};

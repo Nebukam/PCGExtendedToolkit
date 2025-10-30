@@ -105,10 +105,10 @@ namespace PCGExFindAllCells
 		TSharedPtr<PCGExTopology::FHoles> Holes;
 		bool bBuildExpandedNodes = false;
 		TSharedPtr<PCGExTopology::FCell> WrapperCell;
-		
+
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExTopology::FCell>>> ScopedValidCells;
 		TArray<TSharedPtr<PCGExTopology::FCell>> ValidCells;
-		TArray<int32> CellsIOIndices;
+		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIO;
 
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
