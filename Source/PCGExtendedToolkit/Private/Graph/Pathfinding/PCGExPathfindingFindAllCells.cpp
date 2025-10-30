@@ -243,11 +243,10 @@ namespace PCGExFindAllCells
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)
 	{
-		TArray<TSharedPtr<PCGExData::FPointIO>>& Pairs = Context->Paths->Pairs;
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const int32 CellIndex = CellsIOIndices[Index];
-			if (CellIndex != -1) { ProcessCell(ValidCells[Index], Pairs[CellIndex]); }
+			if (CellIndex != -1) { ProcessCell(ValidCells[Index], Context->Paths->Pairs[CellIndex]); }
 			ValidCells[Index] = nullptr;
 		}
 	}

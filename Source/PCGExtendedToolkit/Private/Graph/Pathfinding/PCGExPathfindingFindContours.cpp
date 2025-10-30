@@ -219,12 +219,11 @@ namespace PCGExFindContours
 				PCGEX_ASYNC_THIS
 				TArray<TSharedPtr<PCGExTopology::FCell>>& ValidCells_Ref = This->ValidCells;
 				const TArray<int32>& CellsIOIndices_Ref = This->CellsIOIndices;
-				TArray<TSharedPtr<PCGExData::FPointIO>>& Pairs = This->Context->Paths->Pairs;
 
 				PCGEX_SCOPE_LOOP(Index)
 				{
 					const int32 CellIndex = CellsIOIndices_Ref[Index];
-					if (CellIndex != -1) { This->ProcessCell(ValidCells_Ref[Index], Pairs[CellIndex]); }
+					if (CellIndex != -1) { This->ProcessCell(ValidCells_Ref[Index], This->Context->Paths->Pairs[CellIndex]); }
 					ValidCells_Ref[Index] = nullptr;
 				}
 			};
