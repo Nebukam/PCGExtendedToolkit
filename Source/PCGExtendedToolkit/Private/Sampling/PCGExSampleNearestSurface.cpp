@@ -352,7 +352,8 @@ namespace PCGExSampleNearestSurface
 		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
 
 		const int32 NumPoints = PointDataFacade->GetNum();
-
+		MaxSampledDistance = MaxDistanceValue->Max();
+		
 		if (Settings->bOutputOneMinusDistance)
 		{
 			for (int i = 0; i < NumPoints; i++)
