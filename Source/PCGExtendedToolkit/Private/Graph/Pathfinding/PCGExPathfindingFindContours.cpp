@@ -51,8 +51,8 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
 	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
 
-	Context->Paths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->Paths->OutputPin = PCGExPaths::OutputPathsLabel;
+	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
 
 	if (Settings->bOutputFilteredSeeds)
 	{
@@ -105,7 +105,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 		(void)Context->BadSeeds->StageOutput(Context);
 	}
 
-	Context->Paths->StageOutputs();
+	Context->OutputPaths->StageOutputs();
 
 	return Context->TryComplete();
 }
@@ -194,10 +194,10 @@ namespace PCGExFindContours
 		const int32 NumCells = ValidCells.Num();
 		CellsIOIndices.Reserve(NumCells);
 
-		Context->Paths->IncreaseReserve(NumCells + 1);
+		Context->OutputPaths->IncreaseReserve(NumCells + 1);
 		for (int i = 0; i < NumCells; i++)
 		{
-			CellsIOIndices.Add(Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
+			CellsIOIndices.Add(Context->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
 		}
 
 		if (CellsConstraints->WrapperCell
@@ -206,7 +206,7 @@ namespace PCGExFindContours
 			&& Settings->Constraints.bKeepWrapperIfSolePath)
 		{
 			// Process wrapper cell if it's the only valid cell and it's not omitted
-			ProcessCell(CellsConstraints->WrapperCell, Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
+			ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
 			return;
 		}
 

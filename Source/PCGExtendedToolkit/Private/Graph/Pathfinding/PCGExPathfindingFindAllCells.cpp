@@ -49,8 +49,8 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 	//const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
 	//if (!SeedsPoints) { return false; }
 
-	Context->Paths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	Context->Paths->OutputPin = PCGExPaths::OutputPathsLabel;
+	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
 
 	/*
 	if (Settings->bOutputFilteredSeeds)
@@ -98,7 +98,7 @@ bool FPCGExFindAllCellsElement::ExecuteInternal(
 
 	// TODO : Output seeds?
 
-	Context->Paths->StageOutputs();
+	Context->OutputPaths->StageOutputs();
 
 	return Context->TryComplete();
 }
@@ -222,10 +222,10 @@ namespace PCGExFindAllCells
 		const int32 NumCells = ValidCells.Num();
 		CellsIO.Reserve(NumCells);
 
-		Context->Paths->IncreaseReserve(NumCells + 1);
+		Context->OutputPaths->IncreaseReserve(NumCells + 1);
 		for (int i = 0; i < NumCells; i++)
 		{
-			CellsIO.Add(Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
+			CellsIO.Add(Context->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
 		}
 
 		if (CellsConstraints->WrapperCell
@@ -233,7 +233,7 @@ namespace PCGExFindAllCells
 			&& Settings->Constraints.bKeepWrapperIfSolePath)
 		{
 			// Process wrapper cell, it's the only valid one and we want it.
-			ProcessCell(CellsConstraints->WrapperCell, Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
+			ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
 			return;
 		}
 

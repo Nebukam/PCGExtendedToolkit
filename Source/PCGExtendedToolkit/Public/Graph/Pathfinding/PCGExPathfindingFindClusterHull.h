@@ -77,7 +77,7 @@ struct FPCGExFindClusterHullContext final : FPCGExEdgesProcessorContext
 
 	FPCGExCellArtifactsDetails Artifacts;
 
-	TSharedPtr<PCGExData::FPointIOCollection> Paths;
+	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	mutable FRWLock SeedOutputLock;
 

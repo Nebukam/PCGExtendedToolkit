@@ -99,7 +99,7 @@ struct FPCGExFindContoursContext final : FPCGExEdgesProcessorContext
 
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 
-	TSharedPtr<PCGExData::FPointIOCollection> Paths;
+	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 	TSharedPtr<PCGExData::FPointIO> GoodSeeds;
 	TSharedPtr<PCGExData::FPointIO> BadSeeds;
 

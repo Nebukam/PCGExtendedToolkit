@@ -76,7 +76,7 @@ struct FPCGExFindAllCellsContext final : FPCGExEdgesProcessorContext
 	TSharedPtr<PCGExTopology::FHoles> Holes;
 	TSharedPtr<PCGExData::FFacade> HolesFacade;
 
-	TSharedPtr<PCGExData::FPointIOCollection> Paths;
+	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 	TSharedPtr<PCGExData::FPointIO> Seeds;
 
 	mutable FRWLock SeedOutputLock;
