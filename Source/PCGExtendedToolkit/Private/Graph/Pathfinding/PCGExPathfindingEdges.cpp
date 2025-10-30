@@ -271,11 +271,11 @@ namespace PCGExPathfindingEdges
 
 			Query->ResolvePicks(Settings->SeedPicking, Settings->GoalPicking);
 
-			if (!Query->HasValidEndpoints()) { return; }
+			if (!Query->HasValidEndpoints()) { continue; }
 
 			Query->FindPath(SearchOperation, SearchAllocations, HeuristicsHandler, nullptr);
 
-			if (!Query->IsQuerySuccessful()) { return; }
+			if (!Query->IsQuerySuccessful()) { continue; }
 
 			Context->BuildPath(Query);
 		}
