@@ -136,7 +136,7 @@ namespace PCGExFindContours
 
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExTopology::FCell>>> ScopedValidCells;
 		TArray<TSharedPtr<PCGExTopology::FCell>> ValidCells;
-		TArray<int32> CellsIOIndices;
+		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIOIndices;
 
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
@@ -154,7 +154,7 @@ namespace PCGExFindContours
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
-		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, TSharedRef<PCGExData::FPointIO> PathIO);
+		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
 		
 		virtual void Cleanup() override;
 	};

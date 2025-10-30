@@ -105,10 +105,10 @@ namespace PCGExFindAllCells
 		TSharedPtr<PCGExTopology::FHoles> Holes;
 		bool bBuildExpandedNodes = false;
 		TSharedPtr<PCGExTopology::FCell> WrapperCell;
-		
+
 		TSharedPtr<PCGExMT::TScopedArray<TSharedPtr<PCGExTopology::FCell>>> ScopedValidCells;
 		TArray<TSharedPtr<PCGExTopology::FCell>> ValidCells;
-		TArray<int32> CellsIOIndices;
+		TArray<TSharedPtr<PCGExData::FPointIO>> CellsIO;
 
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
@@ -124,7 +124,7 @@ namespace PCGExFindAllCells
 		virtual void PrepareLoopScopesForEdges(const TArray<PCGExMT::FScope>& Loops) override;
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
 		bool FindCell(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge, TArray<TSharedPtr<PCGExTopology::FCell>>& Scope, const bool bSkipBinary = true);
-		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, TSharedRef<PCGExData::FPointIO> PathIO);
+		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
 		void EnsureRoamingClosedLoopProcessing();
 
 		virtual void OnEdgesProcessingComplete() override;
