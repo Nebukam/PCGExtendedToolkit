@@ -180,16 +180,14 @@ namespace PCGExFindAllCells
 
 	void FProcessor::ProcessCell(
 		const TSharedPtr<PCGExTopology::FCell>& InCell,
-		const TSharedPtr<PCGExData::FPointIO>& PathIO)
+		TSharedRef<PCGExData::FPointIO> PathIO)
 	{
-		if (!PathIO) { return; }
-
 		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts
 		PathIO->IOIndex = Cluster->GetEdge(InCell->Seed.Edge)->IOIndex; // Enforce seed order for collection output-ish
 
 		PCGExGraph::CleanupClusterData(PathIO);
 
-		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
+		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO)
 
 		TArray<int32> ReadIndices;
 		ReadIndices.SetNumUninitialized(InCell->Nodes.Num());
@@ -234,7 +232,8 @@ namespace PCGExFindAllCells
 			&& Settings->Constraints.bKeepWrapperIfSolePath)
 		{
 			// Process wrapper cell, it's the only valid one and we want it.
-			ProcessCell(CellsConstraints->WrapperCell, Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
+			const TSharedPtr<PCGExData::FPointIO> IO = Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
+			ProcessCell(CellsConstraints->WrapperCell, IO.ToSharedRef());
 			return;
 		}
 
@@ -246,7 +245,7 @@ namespace PCGExFindAllCells
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			const int32 CellIndex = CellsIOIndices[Index];
-			if (CellIndex != -1) { ProcessCell(ValidCells[Index], Context->Paths->Pairs[CellIndex]); }
+			if (CellIndex != -1) { ProcessCell(ValidCells[Index], Context->Paths->Pairs[CellIndex].ToSharedRef()); }
 			ValidCells[Index] = nullptr;
 		}
 	}

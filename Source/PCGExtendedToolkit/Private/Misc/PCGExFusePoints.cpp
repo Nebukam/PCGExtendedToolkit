@@ -97,7 +97,8 @@ namespace PCGExFusePoints
 
 		// TODO : See if we can support scoped get
 		if (!UnionGraph->Init(Context, PointDataFacade, false)) { return false; }
-
+		UnionGraph->Reserve(PointDataFacade->GetNum(), 0);
+		
 		// Register fetch-able buffers for chunked reads
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
 		PCGExDataBlending::GetFilteredIdentities(
@@ -118,7 +119,14 @@ namespace PCGExFusePoints
 
 		PointDataFacade->Fetch(Scope);
 
-		PCGEX_SCOPE_LOOP(Index) { UnionGraph->InsertPoint(PointDataFacade->GetInPoint(Index)); }
+		if (bForceSingleThreadedProcessPoints)
+		{
+			PCGEX_SCOPE_LOOP(Index) { UnionGraph->InsertPoint_Unsafe(PointDataFacade->GetInPoint(Index)); }
+		}
+		else
+		{
+			PCGEX_SCOPE_LOOP(Index) { UnionGraph->InsertPoint(PointDataFacade->GetInPoint(Index)); }
+		}
 	}
 
 	void FProcessor::ProcessRange(const PCGExMT::FScope& Scope)

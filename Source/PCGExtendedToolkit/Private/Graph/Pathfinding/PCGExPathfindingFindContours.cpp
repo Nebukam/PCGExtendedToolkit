@@ -207,7 +207,8 @@ namespace PCGExFindContours
 			&& Settings->Constraints.bKeepWrapperIfSolePath)
 		{
 			// Process wrapper cell if it's the only valid cell and it's not omitted
-			ProcessCell(CellsConstraints->WrapperCell, Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
+			const TSharedPtr<PCGExData::FPointIO> IO = Context->Paths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
+			ProcessCell(CellsConstraints->WrapperCell, IO.ToSharedRef());
 			return;
 		}
 
@@ -223,7 +224,7 @@ namespace PCGExFindContours
 				PCGEX_SCOPE_LOOP(Index)
 				{
 					const int32 CellIndex = CellsIOIndices_Ref[Index];
-					if (CellIndex != -1) { This->ProcessCell(ValidCells_Ref[Index], This->Context->Paths->Pairs[CellIndex]); }
+					if (CellIndex != -1) { This->ProcessCell(ValidCells_Ref[Index], This->Context->Paths->Pairs[CellIndex].ToSharedRef()); }
 					ValidCells_Ref[Index] = nullptr;
 				}
 			};
@@ -231,10 +232,9 @@ namespace PCGExFindContours
 		ProcessCellsTask->StartSubLoops(CellsIOIndices.Num(), 64);
 	}
 
-	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO)
+	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, TSharedRef<PCGExData::FPointIO> PathIO)
 	{
-		if (!PathIO) { return; }
-
+		
 		const int32 SeedIndex = InCell->CustomIndex;
 		const int32 NumCellPoints = InCell->Nodes.Num();
 		PCGEx::SetNumPointsAllocated(PathIO->GetOut(), NumCellPoints);
@@ -244,7 +244,7 @@ namespace PCGExFindContours
 
 		PCGExGraph::CleanupClusterData(PathIO);
 
-		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO.ToSharedRef())
+		PCGEX_MAKE_SHARED(PathDataFacade, PCGExData::FFacade, PathIO)
 
 		TArray<int32> ReadIndices;
 		ReadIndices.SetNumUninitialized(NumCellPoints);
