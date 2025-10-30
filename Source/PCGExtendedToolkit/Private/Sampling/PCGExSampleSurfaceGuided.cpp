@@ -392,6 +392,7 @@ namespace PCGExSampleSurfaceGuided
 		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
 
 		const int32 NumPoints = PointDataFacade->GetNum();
+		MaxSampledDistance = MaxDistanceValue->Max();
 
 		if (Settings->bOutputOneMinusDistance)
 		{
