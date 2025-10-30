@@ -7,6 +7,7 @@
 #include "PCGEx.h"
 
 #include "PCGExOctree.h"
+#include "PCGExScopedContainers.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/PCGExPointElements.h"
 #include "Graph/PCGExEdge.h"
@@ -155,13 +156,19 @@ namespace PCGExGraph
 
 	class PCGEXTENDEDTOOLKIT_API FUnionGraph : public TSharedFromThis<FUnionGraph>
 	{
+		int32 NumCollapsedEdges = 0;
+
 	public:
-		TMap<uint64, TSharedPtr<FUnionNode>> GridTree;
+		PCGExMT::TH64MapShards<int32> NodeBinsShards;
+		TMap<uint64, int32> NodeBins;
 
 		TSharedPtr<PCGExData::FUnionMetadata> NodesUnion;
 		TSharedPtr<PCGExData::FUnionMetadata> EdgesUnion;
 		TArray<TSharedPtr<FUnionNode>> Nodes;
-		TMap<uint64, FEdge> Edges;
+
+		PCGExMT::TH64MapShards<int32> EdgesMapShards;
+		TMap<uint64, int32> EdgesMap;
+		TArray<FEdge> Edges;
 
 		FPCGExFuseDetails FuseDetails;
 
@@ -181,17 +188,20 @@ namespace PCGExGraph
 
 		void Reserve(const int32 NodeReserve, const int32 EdgeReserve);
 
-		int32 NumNodes() const;
-		int32 NumEdges() const;
+		FORCEINLINE int32 GetNumCollapsedEdges() const { return NumCollapsedEdges; }
 
-		TSharedPtr<FUnionNode> InsertPoint(const PCGExData::FConstPoint& Point);
-		TSharedPtr<FUnionNode> InsertPoint_Unsafe(const PCGExData::FConstPoint& Point);
-		TSharedPtr<PCGExData::IUnionData> InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
-		TSharedPtr<PCGExData::IUnionData> InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
-		void GetUniqueEdges(TSet<uint64>& OutEdges);
+		int32 InsertPoint(const PCGExData::FConstPoint& Point);
+		int32 InsertPoint_Unsafe(const PCGExData::FConstPoint& Point);
+
+		void InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
+		void InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge = PCGExData::NONE_ConstPoint);
+
 		void GetUniqueEdges(TArray<FEdge>& OutEdges);
+
 		void WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const;
 		void WriteEdgeMetadata(const TSharedPtr<FGraph>& InGraph) const;
+
+		void Collapse();
 	};
 
 #pragma endregion

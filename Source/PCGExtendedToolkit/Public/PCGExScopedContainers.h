@@ -50,7 +50,7 @@ namespace PCGExMT
 		{
 			const uint32 Index = FastHashToShard(Value);
 			FWriteScopeLock ScopeLock(Locks[Index]);
-			return Shards[Index].Add(Value);
+			return Shards[Index].Remove(Value);
 		}
 
 		bool Contains(uint64 Value)
@@ -60,22 +60,103 @@ namespace PCGExMT
 			return Shards[Index].Contains(Value);
 		}
 
-		void MergeInto(TSet<uint64>& OutMerged)
+		void Collapse(TSet<uint64>& OutMerged)
 		{
+			int32 Num = 0;
+			for (int32 i = 0; i < NumShards; i++) { Num += Shards[i].Num(); }
 			for (int32 i = 0; i < NumShards; i++)
 			{
-				FReadScopeLock ScopeLock(Locks[i]);
 				OutMerged.Append(Shards[i]);
+				Shards[i].Empty();
 			}
 		}
 
-		void Clear()
+		void Empty()
 		{
+			for (int32 i = 0; i < NumShards; i++) { Shards[i].Empty(); }
+		}
+
+	private:
+		FORCEINLINE uint32 FastHashToShard(uint64 Value) const
+		{
+			return static_cast<uint32>((Value * 2654435761ULL) >> (64 - Log2NumShards));
+		}
+	};
+
+	template <typename T, int32 NumShards = 32>
+	struct TH64MapShards
+	{
+	private:
+		const int32 Log2NumShards = FMath::FloorLog2(NumShards);
+		TStaticArray<TMap<uint64, T>, NumShards> Shards;
+		TStaticArray<FRWLock, NumShards> Locks;
+		const uint32 ShardMask = NumShards - 1;
+
+	public:
+		TH64MapShards()
+		{
+			static_assert(FMath::IsPowerOfTwo(NumShards));
+		}
+
+		void Reserve(const int32 ShardReserve)
+		{
+			int32 NumReserve = ShardReserve / NumShards;
 			for (int32 i = 0; i < NumShards; i++)
 			{
-				FRWScopeLock ScopeLock(&Locks[i], SLT_Write);
-				Shards[i].Reset();
+				FReadScopeLock ScopeLock(Locks[i]);
+				Shards[i].Reserve(NumReserve);
 			}
+		}
+
+		T& Add(uint64 Key, T Value)
+		{
+			const uint32 Index = FastHashToShard(Key);
+			FWriteScopeLock ScopeLock(Locks[Index]);
+			return Shards[Index].Add(Key, Value);
+		}
+
+		T* Find(uint64 Key)
+		{
+			const uint32 Index = FastHashToShard(Key);
+			FWriteScopeLock ScopeLock(Locks[Index]);
+			return Shards[Index].Find(Key);
+		}
+
+		T& FindOrAdd(uint64 Key, T& Value)
+		{
+			const uint32 Index = FastHashToShard(Key);
+			FWriteScopeLock ScopeLock(Locks[Index]);
+			return Shards[Index].FindOrAdd(Key, Value);
+		}
+
+		int32 Remove(uint64 Key)
+		{
+			const uint32 Index = FastHashToShard(Key);
+			FWriteScopeLock ScopeLock(Locks[Index]);
+			return Shards[Index].Remove(Key);
+		}
+
+		bool Contains(uint64 Key)
+		{
+			const uint32 Index = FastHashToShard(Key);
+			FReadScopeLock ScopeLock(Locks[Index]);
+			return Shards[Index].Contains(Key);
+		}
+
+		void Collapse(TMap<uint64, T>& OutMerged)
+		{
+			int32 Num = 0;
+			for (int32 i = 0; i < NumShards; i++) { Num += Shards[i].Num(); }
+			for (int32 i = 0; i < NumShards; i++)
+			{
+				OutMerged.Append(Shards[i]);
+				Shards[i].Empty();
+			}
+		}
+
+		void Empty()
+		{
+			for (int32 i = 0; i < NumShards; i++) { Shards[i].Empty(); }
 		}
 
 	private:
@@ -183,6 +264,33 @@ namespace PCGExMT
 	};
 
 	template <typename T>
+	class TScopedValue : public TSharedFromThis<TScopedValue<T>>
+	{
+	public:
+		TArray<T> Values;
+
+		using FFlattenFunc = std::function<T(const T&, const T&)>;
+
+		TScopedValue(const TArray<FScope>& InScopes, const T InDefaultValue)
+		{
+			Values.Init(InDefaultValue, InScopes.Num());
+		};
+
+		~TScopedValue() = default;
+
+		FORCEINLINE T Get(const FScope& InScope) { return Values[InScope.LoopIndex]; }
+		FORCEINLINE T& GetMutable(const FScope& InScope) { return Values[InScope.LoopIndex]; }
+		FORCEINLINE T Set(const FScope& InScope, const T& InValue) { return Values[InScope.LoopIndex] = InValue; }
+
+		FORCEINLINE T Flatten(FFlattenFunc&& Func)
+		{
+			T Result = Values[0];
+			if (Values.Num() > 1) { for (int i = 1; i < Values.Num(); i++) { Result = Func(Values[i], Result); } }
+			return Result;
+		}
+	};
+
+	template <typename T>
 	class TScopedPtr : public TSharedFromThis<TScopedPtr<T>>
 	{
 	public:
@@ -210,33 +318,6 @@ namespace PCGExMT
 
 		using FForEachFunc = std::function<void (T&)>;
 		FORCEINLINE void ForEach(FForEachFunc&& Func) { for (int i = 0; i < Data.Num(); i++) { Func(*Data[i].Get()); } }
-	};
-
-	template <typename T>
-	class TScopedValue : public TSharedFromThis<TScopedValue<T>>
-	{
-	public:
-		TArray<T> Values;
-
-		using FFlattenFunc = std::function<T(const T&, const T&)>;
-
-		TScopedValue(const TArray<FScope>& InScopes, const T InDefaultValue)
-		{
-			Values.Init(InDefaultValue, InScopes.Num());
-		};
-
-		~TScopedValue() = default;
-
-		FORCEINLINE T Get(const FScope& InScope) { return Values[InScope.LoopIndex]; }
-		FORCEINLINE T& GetMutable(const FScope& InScope) { return Values[InScope.LoopIndex]; }
-		FORCEINLINE T Set(const FScope& InScope, const T& InValue) { return Values[InScope.LoopIndex] = InValue; }
-
-		FORCEINLINE T Flatten(FFlattenFunc&& Func)
-		{
-			T Result = Values[0];
-			if (Values.Num() > 1) { for (int i = 1; i < Values.Num(); i++) { Result = Func(Values[i], Result); } }
-			return Result;
-		}
 	};
 
 	template <typename T>

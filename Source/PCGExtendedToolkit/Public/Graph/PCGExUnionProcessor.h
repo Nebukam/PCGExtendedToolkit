@@ -10,7 +10,6 @@
 #include "PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsIntersection.h"
 #include "Data/PCGExData.h"
-#include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 namespace PCGExGraph

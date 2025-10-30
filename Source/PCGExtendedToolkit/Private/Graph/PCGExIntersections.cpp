@@ -55,7 +55,7 @@ namespace PCGExGraph
 		NodesUnion = MakeShared<PCGExData::FUnionMetadata>();
 		EdgesUnion = MakeShared<PCGExData::FUnionMetadata>();
 
-		if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree)
+		if (FuseDetails.FuseMethod == EPCGExFuseMethod::Octree)
 		{
 			Octree = MakeUnique<FUnionNodeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10);
 		}
@@ -75,112 +75,90 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionGraph::Reserve);
 
+		if (!Octree)
+		{
+			if (FuseDetails.DoInlineInsertion()) { NodeBins.Reserve(NodeReserve); }
+			else { NodeBinsShards.Reserve(NodeReserve); }
+		}
+
 		Nodes.Reserve(NodeReserve);
 		NodesUnion->Entries.Reserve(NodeReserve);
 
 		if (EdgeReserve < 0)
 		{
+			if (FuseDetails.DoInlineInsertion()) { EdgesMapShards.Reserve(NodeReserve); }
+			else { EdgesMap.Reserve(NodeReserve); }
+
 			Edges.Reserve(NodeReserve);
 			EdgesUnion->Entries.Reserve(NodeReserve);
 		}
 		else
 		{
+			if (FuseDetails.DoInlineInsertion()) { EdgesMapShards.Reserve(EdgeReserve); }
+			else { EdgesMap.Reserve(EdgeReserve); }
+
 			Edges.Reserve(EdgeReserve);
 			EdgesUnion->Entries.Reserve(EdgeReserve);
 		}
 	}
 
-	int32 FUnionGraph::NumNodes() const
-	{
-		return NodesUnion->Num();
-	}
-
-	int32 FUnionGraph::NumEdges() const
-	{
-		return EdgesUnion->Num();
-	}
-
-	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint(const PCGExData::FConstPoint& Point)
+	int32 FUnionGraph::InsertPoint(const PCGExData::FConstPoint& Point)
 	{
 		const FVector Origin = Point.GetLocation();
-
-		TSharedPtr<FUnionNode> Node;
 
 		if (!Octree)
 		{
 			const uint64 GridKey = FuseDetails.GetGridKey(Origin, Point.Index);
-			TSharedPtr<FUnionNode>* NodePtr;
-
 			{
-				FReadScopeLock ReadScopeLock(UnionLock);
-				NodePtr = GridTree.Find(GridKey);
-
-
-				if (NodePtr)
+				if (const int32* NodePtr = NodeBinsShards.Find(GridKey))
 				{
-					Node = *NodePtr;
-					NodesUnion->Append(Node->Index, Point);
-					return Node;
+					const int32 NodeIndex = *NodePtr;
+					NodesUnion->Append(NodeIndex, Point);
+					return NodeIndex;
 				}
 			}
 
 			{
 				FWriteScopeLock WriteLock(UnionLock);
-				NodePtr = GridTree.Find(GridKey); // Make sure there hasn't been an insert while locking
 
-				if (NodePtr)
+				// Make sure there hasn't been an insert while locking
+				if (const int32* NodePtr = NodeBinsShards.Find(GridKey))
 				{
-					Node = *NodePtr;
-					NodesUnion->Append(Node->Index, Point);
-					return Node;
+					const int32 NodeIndex = *NodePtr;
+					NodesUnion->Append(NodeIndex, Point);
+					return NodeIndex;
 				}
 
-				Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
-				Nodes.Add(Node);
 				NodesUnion->NewEntry_Unsafe(Point);
-				GridTree.Add(GridKey, Node);
+				return NodeBinsShards.Add(GridKey, Nodes.Add(MakeShared<FUnionNode>(Point, Origin, Nodes.Num())));
 			}
-
-			return Node;
 		}
 
 		{
 			// Write lock starts
 			FWriteScopeLock WriteScopeLock(UnionLock);
-
 			PCGExMath::FClosestPosition ClosestNode(Origin);
 
-			if (FuseDetails.bComponentWiseTolerance)
-			{
-				Octree->FindElementsWithBoundsTest(
-					FuseDetails.GetOctreeBox(Origin, Point.Index), [&](const FUnionNode* ExistingNode)
+			Octree->FindElementsWithBoundsTest(
+				FuseDetails.GetOctreeBox(Origin, Point.Index), [&](const FUnionNode* ExistingNode)
+				{
+					const bool bIsWithin =
+						FuseDetails.bComponentWiseTolerance ?
+							FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point) :
+							FuseDetails.IsWithinTolerance(Point, ExistingNode->Point);
+
+					if (bIsWithin)
 					{
-						if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
-						{
-							ClosestNode.Update(ExistingNode->Center, ExistingNode->Index);
-							return false;
-						}
-						return true;
-					});
-			}
-			else
-			{
-				Octree->FindElementsWithBoundsTest(
-					FuseDetails.GetOctreeBox(Origin, Point.Index), [&](const FUnionNode* ExistingNode)
-					{
-						if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
-						{
-							ClosestNode.Update(ExistingNode->Center, ExistingNode->Index);
-							return false;
-						}
-						return true;
-					});
-			}
+						ClosestNode.Update(ExistingNode->Center, ExistingNode->Index);
+						return false;
+					}
+					return true;
+				});
 
 			if (ClosestNode.bValid)
 			{
 				NodesUnion->Append(ClosestNode.Index, Point);
-				return Nodes[ClosestNode.Index];
+				return ClosestNode.Index;
 			}
 
 			// Write lock ends
@@ -190,157 +168,122 @@ namespace PCGExGraph
 			// Write lock start
 			FWriteScopeLock WriteScopeLock(UnionLock);
 
-			Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
-			Nodes.Add(Node);
+			const TSharedPtr<FUnionNode> Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 			Octree->AddElement(Node.Get());
 			NodesUnion->NewEntry_Unsafe(Point);
+			return Nodes.Add(Node);
 		}
-
-		return Node;
 	}
 
-	TSharedPtr<FUnionNode> FUnionGraph::InsertPoint_Unsafe(const PCGExData::FConstPoint& Point)
+	int32 FUnionGraph::InsertPoint_Unsafe(const PCGExData::FConstPoint& Point)
 	{
 		const FVector Origin = Point.GetLocation();
-
-		TSharedPtr<FUnionNode> Node;
 
 		if (!Octree)
 		{
 			const uint64 GridKey = FuseDetails.GetGridKey(Origin, Point.Index);
 
-			if (TSharedPtr<FUnionNode>* NodePtr = GridTree.Find(GridKey))
+			if (const int32* NodePtr = NodeBins.Find(GridKey))
 			{
-				Node = *NodePtr;
-				NodesUnion->Append_Unsafe(Node->Index, Point);
-				return Node;
+				const int32 NodeIndex = *NodePtr;
+				NodesUnion->Append_Unsafe(NodeIndex, Point);
+				return NodeIndex;
 			}
 
-			Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
-			Nodes.Add(Node);
 			NodesUnion->NewEntry_Unsafe(Point);
-			GridTree.Add(GridKey, Node);
-
-			return Node;
+			return NodeBins.Add(GridKey, Nodes.Add(MakeShared<FUnionNode>(Point, Origin, Nodes.Num())));
 		}
 
 		PCGExMath::FClosestPosition ClosestNode(Origin);
 
-		if (FuseDetails.bComponentWiseTolerance)
-		{
-			Octree->FindElementsWithBoundsTest(
-				FuseDetails.GetOctreeBox(Origin, Point.Index), [&](const FUnionNode* ExistingNode)
+		Octree->FindElementsWithBoundsTest(
+			FuseDetails.GetOctreeBox(Origin, Point.Index), [&](const FUnionNode* ExistingNode)
+			{
+				const bool bIsWithin =
+					FuseDetails.bComponentWiseTolerance ?
+						FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point) :
+						FuseDetails.IsWithinTolerance(Point, ExistingNode->Point);
+
+				if (bIsWithin)
 				{
-					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
-					{
-						ClosestNode.Update(ExistingNode->Center, ExistingNode->Index);
-						return false;
-					}
-					return true;
-				});
-		}
-		else
-		{
-			Octree->FindElementsWithBoundsTest(
-				FuseDetails.GetOctreeBox(Origin, Point.Index), [&](const FUnionNode* ExistingNode)
-				{
-					if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
-					{
-						ClosestNode.Update(ExistingNode->Center, ExistingNode->Index);
-						return false;
-					}
-					return true;
-				});
-		}
+					ClosestNode.Update(ExistingNode->Center, ExistingNode->Index);
+					return false;
+				}
+				return true;
+			});
 
 		if (ClosestNode.bValid)
 		{
 			NodesUnion->Append_Unsafe(ClosestNode.Index, Point);
-			return Nodes[ClosestNode.Index];
+			return ClosestNode.Index;
 		}
 
-		Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
-		Nodes.Add(Node);
+		const TSharedPtr<FUnionNode> Node = MakeShared<FUnionNode>(Point, Origin, Nodes.Num());
 		Octree->AddElement(Node.Get());
 		NodesUnion->NewEntry_Unsafe(Point);
 
-		return Node;
+		return Nodes.Add(Node);
 	}
 
-	TSharedPtr<PCGExData::IUnionData> FUnionGraph::InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge)
+	void FUnionGraph::InsertEdge(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(IUnionData::InsertEdge);
 
-		const TSharedPtr<FUnionNode> StartVtx = InsertPoint(From);
-		const TSharedPtr<FUnionNode> EndVtx = InsertPoint(To);
+		const int32 Start = InsertPoint(From);
+		const int32 End = InsertPoint(To);
 
-		if (StartVtx == EndVtx) { return nullptr; } // Edge got fused entirely
+		if (Start == End) { return; } // Edge got fused entirely
 
-		StartVtx->Add(EndVtx->Index);
-		EndVtx->Add(StartVtx->Index);
+		const TSharedPtr<FUnionNode> StartVtx = Nodes[Start];
+		const TSharedPtr<FUnionNode> EndVtx = Nodes[End];
+
+		StartVtx->Add(End);
+		EndVtx->Add(Start);
 
 		TSharedPtr<PCGExData::IUnionData> EdgeUnion;
 
-		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);
+		const uint64 H = PCGEx::H64U(Start, End);
 
+		if (const int32* ExistingEdge = EdgesMapShards.Find(H))
 		{
-			FReadScopeLock ReadLockEdges(EdgesLock);
-			if (const FEdge* ExistingEdge = Edges.Find(H))
-			{
-				EdgeUnion = EdgesUnion->Entries[ExistingEdge->Index];
-			}
+			EdgeUnion = EdgesUnion->Entries[*ExistingEdge];
 
-			if (EdgeUnion)
-			{
-				// Abstract tracking to get valid union data
-				if (Edge.IO == -1) { EdgeUnion->Add(EdgeUnion->Num(), -1); }
-				else { EdgeUnion->Add(Edge); }
-
-				return EdgeUnion;
-			}
+			// Abstract tracking to get valid union data
+			if (Edge.IO == -1) { EdgeUnion->Add(EdgeUnion->Num(), -1); }
+			else { EdgeUnion->Add(Edge); }
+			return;
 		}
 
 		{
 			FWriteScopeLock WriteLockEdges(EdgesLock);
 
-			if (const FEdge* ExistingEdge = Edges.Find(H)) { EdgeUnion = EdgesUnion->Entries[ExistingEdge->Index]; }
-
-			if (EdgeUnion)
-			{
-				// Abstract tracking to get valid union data
-				if (Edge.IO == -1) { EdgeUnion->Add(EdgeUnion->Num(), -1); }
-				else { EdgeUnion->Add(Edge); }
-
-				return EdgeUnion;
-			}
-
 			EdgeUnion = EdgesUnion->NewEntry_Unsafe(Edge);
-			Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
+			EdgesMapShards.Add(H, Edges.Emplace(Edges.Num(), Start, End));
 		}
-
-		return EdgeUnion;
 	}
 
-	TSharedPtr<PCGExData::IUnionData> FUnionGraph::InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge)
+	void FUnionGraph::InsertEdge_Unsafe(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, const PCGExData::FConstPoint& Edge)
 	{
-		const TSharedPtr<FUnionNode> StartVtx = InsertPoint_Unsafe(From);
-		const TSharedPtr<FUnionNode> EndVtx = InsertPoint_Unsafe(To);
+		const int32 Start = InsertPoint_Unsafe(From);
+		const int32 End = InsertPoint_Unsafe(To);
 
-		if (StartVtx == EndVtx) { return nullptr; } // Edge got fused entirely
+		if (Start == End) { return; } // Edge got fused entirely
 
-		StartVtx->Adjacency.Add(EndVtx->Index);
-		EndVtx->Adjacency.Add(StartVtx->Index);
+		const TSharedPtr<FUnionNode> StartVtx = Nodes[Start];
+		const TSharedPtr<FUnionNode> EndVtx = Nodes[End];
 
-		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);
-		TSharedPtr<PCGExData::IUnionData> EdgeUnion;
+		StartVtx->Adjacency.Add(End);
+		EndVtx->Adjacency.Add(Start);
+
+		const uint64 H = PCGEx::H64U(Start, End);
 
 		if (Edge.IO == -1)
 		{
 			// Abstract edge management, so we have some valid metadata even tho there are no valid input edges
 			// So EdgeIOIndex will be invalid, be we can still track union data
-			if (const FEdge* ExistingEdge = Edges.Find(H))
+			if (const int32* ExistingEdge = EdgesMap.Find(H))
 			{
-				EdgeUnion = EdgesUnion->Entries[ExistingEdge->Index];
+				TSharedPtr<PCGExData::IUnionData> EdgeUnion = EdgesUnion->Entries[*ExistingEdge];
 				EdgeUnion->Add_Unsafe(EdgeUnion->Num(), -1);
 			}
 			else
@@ -350,46 +293,30 @@ namespace PCGExGraph
 				PCGExData::FConstPoint NewEdge(Edge);
 				NewEdge.Index = -1; // Force entry index to use index 0
 
-				EdgeUnion = EdgesUnion->NewEntry_Unsafe(NewEdge);
-				Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
+				EdgesUnion->NewEntry_Unsafe(NewEdge);
+				EdgesMap.Add(H, Edges.Emplace(Edges.Num(), Start, End));
 			}
 		}
 		else
 		{
 			// Concrete edge management, we have valild input edges			
-			if (const FEdge* ExistingEdge = Edges.Find(H))
+			if (const int32* ExistingEdge = EdgesMap.Find(H))
 			{
-				EdgeUnion = EdgesUnion->Entries[ExistingEdge->Index];
-				EdgeUnion->Add_Unsafe(Edge);
+				EdgesUnion->Entries[*ExistingEdge]->Add_Unsafe(Edge);
 			}
 			else
 			{
-				EdgeUnion = EdgesUnion->NewEntry_Unsafe(Edge);
-				Edges.Add(H, FEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
-			}
-		}
-
-		return EdgeUnion;
-	}
-
-	void FUnionGraph::GetUniqueEdges(TSet<uint64>& OutEdges)
-	{
-		OutEdges.Empty(Nodes.Num() * 4);
-		for (const TSharedPtr<FUnionNode>& Node : Nodes)
-		{
-			for (const int32 OtherNodeIndex : Node->Adjacency)
-			{
-				const uint64 Hash = PCGEx::H64U(Node->Index, OtherNodeIndex);
-				OutEdges.Add(Hash);
+				EdgesUnion->NewEntry_Unsafe(Edge);
+				EdgesMap.Add(H, Edges.Emplace(Edges.Num(), Start, End));
 			}
 		}
 	}
 
 	void FUnionGraph::GetUniqueEdges(TArray<FEdge>& OutEdges)
 	{
-		const int32 NumEdges = Edges.Num();
-		OutEdges.SetNumUninitialized(NumEdges);
-		for (const TPair<uint64, FEdge>& Pair : Edges) { OutEdges[Pair.Value.Index] = Pair.Value; }
+		OutEdges.Reserve(Edges.Num());
+		OutEdges.Append(Edges);
+		Edges.Empty();
 	}
 
 	void FUnionGraph::WriteNodeMetadata(const TSharedPtr<FGraph>& InGraph) const
@@ -410,7 +337,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionGraph::WriteEdgeMetadata)
 
-		const int32 NumEdges = Edges.Num();
+		const int32 NumEdges = GetNumCollapsedEdges();
 		InGraph->EdgeMetadata.Reserve(NumEdges);
 
 		for (int i = 0; i < NumEdges; i++)
@@ -428,6 +355,13 @@ namespace PCGExGraph
 			EdgeMetadata.UnionSize = UnionData->Num();
 		}
 		*/
+	}
+
+	void FUnionGraph::Collapse()
+	{
+		NumCollapsedEdges = Edges.Num();
+		EdgesMapShards.Empty();
+		EdgesMap.Empty();
 	}
 
 	FIntersectionCache::FIntersectionCache(const TSharedPtr<FGraph>& InGraph, const TSharedPtr<PCGExData::FPointIO>& InPointIO)
