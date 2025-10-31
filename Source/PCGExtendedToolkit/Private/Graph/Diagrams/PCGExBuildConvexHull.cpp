@@ -91,7 +91,10 @@ namespace PCGExBuildConvexHull
 
 		if (!Delaunay->Process<false, true>(ActivePositions))
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
+			if (!Context->bQuietInvalidInputWarning)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
+			}
 			return false;
 		}
 

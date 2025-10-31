@@ -108,7 +108,10 @@ namespace PCGExBuildDelaunayGraph
 
 		if (!bProcessed)
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generated invalid results. Are points coplanar? If so, use Delaunay 2D instead."));
+			if (!Context->bQuietInvalidInputWarning)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generated invalid results. Are points coplanar? If so, use Delaunay 2D instead."));
+			}
 			return false;
 		}
 
