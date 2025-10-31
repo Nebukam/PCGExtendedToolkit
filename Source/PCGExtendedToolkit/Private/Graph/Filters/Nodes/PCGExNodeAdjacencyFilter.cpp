@@ -95,8 +95,8 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				PCGEX_SUB_TEST_FUNC
 				{
 					double B = 0;
-					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(NodesRef[Lk.Node].PointIndex); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
+					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(NodesRef[Lk.Node].PointIndex); }					;
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B / FMath::Max(1, static_cast<double>(Node.Num())), TypedFilterFactory->Config.Tolerance);
 				};
 			}
 			else
@@ -105,7 +105,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				{
 					double B = 0;
 					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(Lk.Edge); }
-					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
+					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B / FMath::Max(1, static_cast<double>(Node.Num())), TypedFilterFactory->Config.Tolerance);
 				};
 			}
 
@@ -155,8 +155,8 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 			{
 				PCGEX_SUB_TEST_FUNC
 				{
-					double B = MIN_dbl_neg;
-					for (const PCGExGraph::FLink Lk : Node.Links) { B += FMath::Max(B, OperandB->Read(NodesRef[Lk.Node].PointIndex)); }
+					double B = 0;
+					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(NodesRef[Lk.Node].PointIndex); }					;
 					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 				};
 			}
@@ -164,8 +164,8 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 			{
 				PCGEX_SUB_TEST_FUNC
 				{
-					double B = MIN_dbl_neg;
-					for (const PCGExGraph::FLink Lk : Node.Links) { B += FMath::Max(B, OperandB->Read(Lk.Edge)); }
+					double B = 0;
+					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(Lk.Edge); }
 					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 				};
 			}
