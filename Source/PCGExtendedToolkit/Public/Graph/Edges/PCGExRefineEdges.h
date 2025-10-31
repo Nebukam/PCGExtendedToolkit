@@ -41,6 +41,7 @@ public:
 		(Refinement ? FName(Refinement.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorClusterOp); }
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
 
 protected:
