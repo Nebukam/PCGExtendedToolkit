@@ -14,14 +14,25 @@
 #define LOCTEXT_NAMESPACE "PCGExRefineEdges"
 #define PCGEX_NAMESPACE RefineEdges
 
+#if WITH_EDITOR
+bool UPCGExRefineEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (InPin->Properties.Label == PCGExGraph::SourceHeuristicsLabel) { return Refinement && Refinement->WantsHeuristics(); }
+	if (InPin->Properties.Label == PCGExGraph::SourceEdgeFiltersLabel) { return Refinement && Refinement->SupportFilters(); }
+	
+	return Super::IsPinUsedByNodeExecution(InPin);
+}
+#endif
+
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	
 	if (Refinement && Refinement->WantsHeuristics()) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, FPCGExDataTypeInfoHeuristics::AsId()) }
-	if (Refinement && Refinement->SupportFilters())
-	{
-		PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeFiltersLabel, "Refinements filters.", Normal)
-	}
+	else{PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Advanced, FPCGExDataTypeInfoHeuristics::AsId())}
+	
+	if (Refinement && Refinement->SupportFilters()) { PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeFiltersLabel, "Refinements filters.", Normal) }
+	else { PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeFiltersLabel, "Refinements filters.", Advanced) }
 
 	if (Sanitization == EPCGExRefineSanitization::Filters)
 	{
