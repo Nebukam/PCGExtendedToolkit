@@ -67,4 +67,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollisionDetails
 	void Init(FPCGExContext* InContext);
 	void Update(FCollisionQueryParams& InCollisionParams) const;
 	bool Linecast(const FVector& From, const FVector& To, FHitResult& HitResult) const;
+	bool Linecast(const FVector& From, const FVector& To) const;
+	bool StrongLinecast(const FVector& From, const FVector& To) const;
+	bool Linecast(const FVector& From, const FVector& To, bool bStrong) const;
 };

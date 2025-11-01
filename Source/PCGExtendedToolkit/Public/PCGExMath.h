@@ -103,6 +103,28 @@ namespace PCGExMath
 
 #pragma region basics
 
+	FORCEINLINE static double FastRand01(uint32& Seed)
+	{
+		Seed = Seed * 1664525u + 1013904223u;
+		return (Seed & 0x00FFFFFF) / static_cast<double>(0x01000000);
+	}
+
+	FORCEINLINE static FVector RandomPointInSphere(const FVector& Center, const double Radius, uint32& Seed)
+	{
+		for (int i = 0; i < 10; ++i)
+		{
+			const float x = (FastRand01(Seed) * 2.0f - 1.0f);
+			const float y = (FastRand01(Seed) * 2.0f - 1.0f);
+			const float z = (FastRand01(Seed) * 2.0f - 1.0f);
+			
+			FVector V(x, y, z);
+			
+			if (V.SizeSquared() <= 1.0f) { return Center + V * Radius; }
+		}
+		
+		return Center;
+	}
+	
 	FORCEINLINE static double DegreesToDot(const double AngleInDegrees)
 	{
 		return FMath::Cos(FMath::DegreesToRadians(AngleInDegrees));

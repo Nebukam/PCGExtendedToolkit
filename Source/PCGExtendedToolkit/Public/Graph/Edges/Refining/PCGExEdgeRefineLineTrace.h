@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Engine/HitResult.h"
 #include "PCGExEdgeRefineOperation.h"
+#include "PCGExMath.h"
 #include "Details/PCGExDetailsCollision.h"
 #include "Graph/PCGExCluster.h"
 #include "PCGExEdgeRefineLineTrace.generated.h"
@@ -30,10 +31,21 @@ public:
 		const FVector From = Cluster->GetStartPos(Edge);
 		const FVector To = Cluster->GetEndPos(Edge);
 
-		FHitResult HitResult;
-		if (!InitializedCollisionSettings->Linecast(From, To, HitResult))
+		if (bScatter)
 		{
-			if (!bTwoWayCheck || !InitializedCollisionSettings->Linecast(To, From, HitResult)) { return; }
+			bool bHit = false;
+			for (int s = 0; s < ScatterSamples; ++s)
+			{
+				uint32 Seed = Edge.Start * 73856093 ^ Edge.End * 19349663 ^ s;
+				bHit = InitializedCollisionSettings->Linecast(From, PCGExMath::RandomPointInSphere(To, ScatterRadius, Seed), bTwoWayCheck);
+				if (bHit) { break; }
+			}
+
+			if (!bHit) { return; }
+		}
+		else
+		{
+			if (!InitializedCollisionSettings->Linecast(From, To, bTwoWayCheck)) { return; }
 		}
 
 		FPlatformAtomics::InterlockedExchange(&Edge.bValid, ExchangeValue);
@@ -42,6 +54,10 @@ public:
 	bool bTwoWayCheck = true;
 	bool bInvert = false;
 	int8 ExchangeValue = 0;
+
+	bool bScatter = false;
+	double ScatterSamples = 10;
+	double ScatterRadius = 10;
 
 	const FPCGExCollisionDetails* InitializedCollisionSettings = nullptr;
 };
@@ -89,6 +105,17 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bScatter = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Samples", EditCondition="bScatter", EditConditionHides, ClampMin=1))
+	double ScatterSamples = 10;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Radius", EditCondition="bScatter", EditConditionHides))
+	double ScatterRadius = 10;
+
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
 	PCGEX_CREATE_REFINE_OPERATION(
@@ -96,6 +123,9 @@ public:
 		Operation->bTwoWayCheck = bTwoWayCheck;
 		Operation->bInvert = bInvert;
 		Operation->InitializedCollisionSettings = &InitializedCollisionSettings;
+		Operation->bScatter = bScatter;
+		Operation->ScatterSamples = FMath::Max(1, ScatterSamples);
+		Operation->ScatterRadius = ScatterRadius;
 		})
 
 protected:
