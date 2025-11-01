@@ -51,3 +51,59 @@ bool FPCGExCollisionDetails::Linecast(const FVector& From, const FVector& To, FH
 		return false;
 	}
 }
+
+bool FPCGExCollisionDetails::Linecast(const FVector& From, const FVector& To) const
+{
+	FHitResult HitResult;
+	FCollisionQueryParams CollisionParams;
+	Update(CollisionParams);
+
+	switch (CollisionType)
+	{
+	case EPCGExCollisionFilterType::Channel:
+		return World->LineTraceSingleByChannel(HitResult, From, To, CollisionChannel, CollisionParams);
+	case EPCGExCollisionFilterType::ObjectType:
+		return World->LineTraceSingleByObjectType(HitResult, From, To, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams);
+	case EPCGExCollisionFilterType::Profile:
+		return World->LineTraceSingleByProfile(HitResult, From, To, CollisionProfileName, CollisionParams);
+	default:
+		return false;
+	}
+}
+
+bool FPCGExCollisionDetails::StrongLinecast(const FVector& From, const FVector& To) const
+{
+	FHitResult HitResult;
+	FCollisionQueryParams CollisionParams;
+	Update(CollisionParams);
+
+	switch (CollisionType)
+	{
+	case EPCGExCollisionFilterType::Channel:
+		if (!World->LineTraceSingleByChannel(HitResult, From, To, CollisionChannel, CollisionParams))
+		{
+			return World->LineTraceSingleByChannel(HitResult, To, From, CollisionChannel, CollisionParams);
+		}
+		else { return true; }
+	case EPCGExCollisionFilterType::ObjectType:
+		if (!World->LineTraceSingleByObjectType(HitResult, From, To, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams))
+		{
+			return World->LineTraceSingleByObjectType(HitResult, To, From, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams);
+		}
+		else { return true; }
+	case EPCGExCollisionFilterType::Profile:
+		if (!World->LineTraceSingleByProfile(HitResult, From, To, CollisionProfileName, CollisionParams))
+		{
+			return World->LineTraceSingleByProfile(HitResult, To, From, CollisionProfileName, CollisionParams);
+		}
+		else { return true; }
+	default:
+		return false;
+	}
+}
+
+bool FPCGExCollisionDetails::Linecast(const FVector& From, const FVector& To, bool bStrong) const
+{
+	if (bStrong){return StrongLinecast(From, To);}
+	return Linecast(From, To);
+}
