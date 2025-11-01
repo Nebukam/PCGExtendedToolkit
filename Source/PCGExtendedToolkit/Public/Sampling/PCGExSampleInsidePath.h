@@ -84,6 +84,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	bool bOnlySampleWhenInside = true;
 
+	/** If non-zero, will apply an offset (inset) to the data used for inclusion testing. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	double InclusionOffset = 0;
+	
 	/** Sort direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_Overridable, EditCondition="SampleMethod == EPCGExSampleMethod::BestCandidate", EditConditionHides))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;

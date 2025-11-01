@@ -481,7 +481,7 @@ namespace PCGExPathCrossings
 	{
 		if (!bCanBeCut)
 		{
-			PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward)
+			if (!Settings->bOmitUncuttableFromOutput){ PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
 			return;
 		}
 

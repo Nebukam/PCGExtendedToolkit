@@ -10,16 +10,27 @@
 #include "Graph/PCGExGraph.h"
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
+#include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExRefineEdges"
 #define PCGEX_NAMESPACE RefineEdges
 
 #if WITH_EDITOR
+void UPCGExRefineEdgesSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	if (bOutputEdgesOnly_DEPRECATED)
+	{
+		Mode = EPCGExRefineEdgesOutput::Points;
+		bOutputEdgesOnly_DEPRECATED = false;
+	}
+	Super::ApplyDeprecation(InOutNode);
+}
+
 bool UPCGExRefineEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (InPin->Properties.Label == PCGExGraph::SourceHeuristicsLabel) { return Refinement && Refinement->WantsHeuristics(); }
 	if (InPin->Properties.Label == PCGExGraph::SourceEdgeFiltersLabel) { return Refinement && Refinement->SupportFilters(); }
-	
+
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 #endif
@@ -27,10 +38,9 @@ bool UPCGExRefineEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) c
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	
 	if (Refinement && Refinement->WantsHeuristics()) { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, FPCGExDataTypeInfoHeuristics::AsId()) }
-	else{PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Advanced, FPCGExDataTypeInfoHeuristics::AsId())}
-	
+	else { PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Advanced, FPCGExDataTypeInfoHeuristics::AsId()) }
+
 	if (Refinement && Refinement->SupportFilters()) { PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeFiltersLabel, "Refinements filters.", Normal) }
 	else { PCGEX_PIN_FILTERS(PCGExGraph::SourceEdgeFiltersLabel, "Refinements filters.", Advanced) }
 
@@ -46,7 +56,7 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::OutputPinProperties() const
 {
-	if (!bOutputEdgesOnly) { return Super::OutputPinProperties(); }
+	if (Mode != EPCGExRefineEdgesOutput::Points) { return Super::OutputPinProperties(); }
 
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_POINTS(PCGExGraph::OutputKeptEdgesLabel, "Kept edges but as simple points.", Required)
@@ -54,8 +64,21 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EIOInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return bOutputEdgesOnly ? PCGExData::EIOInit::NoInit : PCGExData::EIOInit::New; }
-PCGExData::EIOInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::NoInit; }
+PCGExData::EIOInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const
+{
+	switch (Mode)
+	{
+	default:
+	case EPCGExRefineEdgesOutput::Clusters:
+		return PCGExData::EIOInit::New;
+	case EPCGExRefineEdgesOutput::Points:
+		return PCGExData::EIOInit::NoInit;
+	case EPCGExRefineEdgesOutput::Attribute:
+		return PCGExData::EIOInit::Duplicate;
+	}
+}
+
+PCGExData::EIOInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return Mode == EPCGExRefineEdgesOutput::Attribute ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::NoInit; }
 
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
 PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(RefineEdges)
@@ -99,7 +122,7 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	if (Settings->bOutputEdgesOnly)
+	if (Settings->Mode == EPCGExRefineEdgesOutput::Points)
 	{
 		// TODO : Revisit this
 
@@ -138,24 +161,29 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 			{
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 				if (Context->Refinement->WantsHeuristics()) { NewBatch->SetWantsHeuristics(true); }
+				NewBatch->bRequiresWriteStep = Settings->Mode == EPCGExRefineEdgesOutput::Attribute;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->bOutputEdgesOnly ? PCGExCommon::State_Done : PCGExGraph::State_ReadyToCompile)
+	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->Mode != EPCGExRefineEdgesOutput::Clusters ? PCGExCommon::State_Done : PCGExGraph::State_ReadyToCompile)
 
-	if (!Settings->bOutputEdgesOnly && !Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
-
-	if (!Settings->bOutputEdgesOnly)
+	if (Settings->Mode == EPCGExRefineEdgesOutput::Clusters)
 	{
+		// Wait for compilation
+		if (!Context->CompileGraphBuilders(true, PCGExCommon::State_Done)) { return false; }
 		Context->MainPoints->StageOutputs();
 	}
-	else
+	else if (Settings->Mode == EPCGExRefineEdgesOutput::Points)
 	{
 		Context->KeptEdges->StageOutputs();
 		Context->RemovedEdges->StageOutputs();
+	}
+	else if (Settings->Mode == EPCGExRefineEdgesOutput::Attribute)
+	{
+		Context->OutputPointsAndEdges();
 	}
 
 	return Context->TryComplete();
@@ -197,6 +225,20 @@ namespace PCGExRefineEdges
 		Refinement->EdgeFilterCache = &EdgeFilterCache;
 
 		const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
+
+		if (Settings->Mode == EPCGExRefineEdgesOutput::Attribute)
+		{
+			if (Settings->bResultAsIntegerAdd)
+			{
+				RefinedEdgeIncrementBuffer = EdgeDataFacade->GetWritable<int32>(Settings->ResultAttributeName, 0, true, PCGExData::EBufferInit::Inherit);
+				RefinedNodeIncrementBuffer = StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->RefinedNodeIncrementBuffer;
+			}
+			else
+			{
+				RefinedEdgeBuffer = EdgeDataFacade->GetWritable<bool>(Settings->ResultAttributeName, false, true, PCGExData::EBufferInit::New);
+				RefinedNodeBuffer = StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->RefinedNodeBuffer;
+			}
+		}
 
 		if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 		{
@@ -358,27 +400,135 @@ namespace PCGExRefineEdges
 
 	void FProcessor::InsertEdges() const
 	{
-		if (GraphBuilder)
+		if (Settings->Mode == EPCGExRefineEdgesOutput::Attribute)
 		{
+			// TODO : Re-validate all edges & nodes
+			TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes.Get();
+			TArray<PCGExCluster::FEdge>& Edges = *Cluster->Edges.Get();
+
+			if (RefinedNodeBuffer)
+			{
+				if (Nodes.Num() > 1024)
+				{
+					ParallelFor(
+						Nodes.Num(), [&](const int32 i)
+						{
+							PCGExCluster::FNode& Node = Nodes[i];
+							if (Node.bValid)
+							{
+								int32 ValidCount = 0;
+								for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
+								RefinedNodeBuffer->SetValue(Node.PointIndex, static_cast<bool>(ValidCount));
+							}
+							else
+							{
+								RefinedNodeBuffer->SetValue(Node.PointIndex, static_cast<bool>(Node.bValid));
+								Node.bValid = true;
+							}
+						});
+				}
+				else
+				{
+					for (PCGExCluster::FNode& Node : Nodes)
+					{
+						if (Node.bValid)
+						{
+							int32 ValidCount = 0;
+							for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
+							RefinedNodeBuffer->SetValue(Node.PointIndex, static_cast<bool>(ValidCount));
+						}
+						else
+						{
+							RefinedNodeBuffer->SetValue(Node.PointIndex, static_cast<bool>(Node.bValid));
+							Node.bValid = true;
+						}
+					}
+				}
+			}
+			else if (RefinedNodeIncrementBuffer)
+			{
+				if (Nodes.Num() > 1024)
+				{
+					ParallelFor(
+						Nodes.Num(), [&](const int32 i)
+						{
+							PCGExCluster::FNode& Node = Nodes[i];
+							if (Node.bValid)
+							{
+								int32 ValidCount = 0;
+								for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
+								RefinedNodeIncrementBuffer->SetValue(Node.PointIndex, RefinedNodeIncrementBuffer->GetValue(Node.PointIndex) + (ValidCount ? Settings->PassIncrement : Settings->FailIncrement));
+							}
+							else
+							{
+								RefinedNodeIncrementBuffer->SetValue(Node.PointIndex, RefinedNodeIncrementBuffer->GetValue(Node.PointIndex) + (Node.bValid ? Settings->PassIncrement : Settings->FailIncrement));
+								Node.bValid = true;
+							}
+						});
+				}
+				else
+				{
+					for (PCGExCluster::FNode& Node : Nodes)
+					{
+						if (Node.bValid)
+						{
+							int32 ValidCount = 0;
+							for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
+							RefinedNodeIncrementBuffer->SetValue(Node.PointIndex, RefinedNodeIncrementBuffer->GetValue(Node.PointIndex) + (ValidCount ? Settings->PassIncrement : Settings->FailIncrement));
+						}
+						else
+						{
+							RefinedEdgeIncrementBuffer->SetValue(Node.PointIndex, RefinedEdgeIncrementBuffer->GetValue(Node.PointIndex) + (Node.bValid ? Settings->PassIncrement : Settings->FailIncrement));
+							Node.bValid = true;
+						}
+					}
+				}
+			}
+
+			if (RefinedEdgeBuffer)
+			{
+				for (PCGExCluster::FEdge& Edge : Edges)
+				{
+					RefinedEdgeBuffer->SetValue(Edge.Index, static_cast<bool>(Edge.bValid));
+					Edge.bValid = true;
+				}
+			}
+			else if (RefinedEdgeIncrementBuffer)
+			{
+				for (PCGExCluster::FEdge& Edge : Edges)
+				{
+					RefinedEdgeIncrementBuffer->SetValue(Edge.Index, RefinedEdgeIncrementBuffer->GetValue(Edge.Index) + (Edge.bValid ? Settings->PassIncrement : Settings->FailIncrement));
+					Edge.bValid = true;
+				}
+			}
+
+
+			EdgeDataFacade->WriteFastest(AsyncManager);
+		}
+		else if (Settings->Mode == EPCGExRefineEdgesOutput::Points)
+		{
+			const UPCGBasePointData* OriginalEdges = EdgeDataFacade->GetIn();
+
+			TBitArray<> Mask;
+			Mask.Init(false, OriginalEdges->GetNumPoints());
+
+			const TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
+			for (int i = 0; i < Mask.Num(); ++i) { Mask[i] = Edges[i].bValid ? true : false; }
+
+			(void)Context->KeptEdges->Pairs[EdgeDataFacade->Source->IOIndex]->InheritPoints(Mask, false);
+			(void)Context->RemovedEdges->Pairs[EdgeDataFacade->Source->IOIndex]->InheritPoints(Mask, true);
+		}
+		else if (Settings->Mode == EPCGExRefineEdgesOutput::Clusters)
+		{
+			if (!GraphBuilder) { return; }
+
 			TArray<PCGExGraph::FEdge> ValidEdges;
 			Cluster->GetValidEdges(ValidEdges);
 
 			if (ValidEdges.IsEmpty()) { return; }
 
 			GraphBuilder->Graph->InsertEdges(ValidEdges);
-			return;
 		}
-
-		const UPCGBasePointData* OriginalEdges = EdgeDataFacade->GetIn();
-
-		TBitArray<> Mask;
-		Mask.Init(false, OriginalEdges->GetNumPoints());
-
-		const TArray<PCGExGraph::FEdge>& Edges = *Cluster->Edges;
-		for (int i = 0; i < Mask.Num(); ++i) { Mask[i] = Edges[i].bValid ? true : false; }
-
-		(void)Context->KeptEdges->Pairs[EdgeDataFacade->Source->IOIndex]->InheritPoints(Mask, false);
-		(void)Context->RemovedEdges->Pairs[EdgeDataFacade->Source->IOIndex]->InheritPoints(Mask, true);
 	}
 
 	void FProcessor::CompleteWork()
@@ -401,8 +551,21 @@ namespace PCGExRefineEdges
 
 	void FBatch::RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader)
 	{
-		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
+
+		if (Settings->Mode == EPCGExRefineEdgesOutput::Attribute)
+		{
+			if (Settings->bResultAsIntegerAdd)
+			{
+				RefinedNodeIncrementBuffer = VtxDataFacade->GetWritable<int32>(Settings->ResultAttributeName, 0, true, PCGExData::EBufferInit::Inherit);
+			}
+			else
+			{
+				RefinedNodeBuffer = VtxDataFacade->GetWritable<bool>(Settings->ResultAttributeName, false, true, PCGExData::EBufferInit::New);
+			}
+		}
+
+		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);
 
 		Context->Refinement->RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 
@@ -417,6 +580,11 @@ namespace PCGExRefineEdges
 
 		Context->Refinement->PrepareVtxFacade(VtxDataFacade);
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
+	}
+
+	void FBatch::Write()
+	{
+		VtxDataFacade->WriteFastest(AsyncManager);
 	}
 
 	void FSanitizeRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)

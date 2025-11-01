@@ -46,6 +46,10 @@ struct FPCGExInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSplineScalesTolerance = false;
 
+	/** If enabled, will apply an offset (inset) to the data used for inclusion testing. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double InclusionOffset = 0;
+	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseMinInclusionCount = false;
@@ -62,7 +66,7 @@ struct FPCGExInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxInclusionCount"))
 	int32 MaxInclusionCount = 10;
 
-
+	
 	/** If enabled, invert the result of the test */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;

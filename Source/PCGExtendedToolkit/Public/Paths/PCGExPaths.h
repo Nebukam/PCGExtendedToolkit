@@ -732,6 +732,8 @@ namespace PCGExPaths
 
 		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const override;
 		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const override;
+		
+		void OffsetProjection(const double Offset);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCrossing

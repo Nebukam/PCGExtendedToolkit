@@ -279,6 +279,8 @@ namespace PCGExSplineToPath
 			}
 		}
 
+		PCGEx::TagsToData(PointDataFacade->Source, Settings->TagsToData);
+		
 		PointDataFacade->WriteFastest(AsyncManager);
 	}
 }

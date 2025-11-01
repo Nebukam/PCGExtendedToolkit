@@ -63,6 +63,18 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 				const UPCGSpatialData* Data = Cast<UPCGSpatialData>(TempTargets[i].Data);
 				FBox DataBounds = Data->GetBounds().ExpandBy((LocalExpansion + 1) * 2);
 				if (bScaleTolerance) { DataBounds = DataBounds.ExpandBy((DataBounds.GetSize().Length() + 1) * 10); }
+
+				if (LocalExpansionZ < 0)
+				{
+					DataBounds.Max.Z = MAX_dbl * 0.5;
+					DataBounds.Min.Z = MAX_dbl * -0.5;
+				}
+				else
+				{
+					DataBounds.Max.Z += LocalExpansionZ;
+					DataBounds.Min.Z -= LocalExpansionZ;
+				}
+
 				BoundsList.Add(DataBounds);
 				OctreeBounds += DataBounds;
 
@@ -111,6 +123,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 				const TSharedPtr<PCGExData::FPointIO> PointIO = MakeShared<PCGExData::FPointIO>(CtxHandle, PointData);
 				Path = MakeShared<PCGExPaths::FPolyPath>(PointIO, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
+				Path->OffsetProjection(InclusionOffset);
 			}
 			else if (const UPCGSplineData* SplineData = Cast<UPCGSplineData>(Data))
 			{
@@ -121,6 +134,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 				}
 
 				Path = MakeShared<PCGExPaths::FPolyPath>(SplineData, LocalFidelity, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
+				Path->OffsetProjection(InclusionOffset);
 			}
 
 			if (Path)
@@ -168,9 +182,18 @@ namespace PCGExPathInclusion
 		{
 		case EPCGExSplineCheckType::IsInside:
 			GoodFlags = Inside;
-			BadFlags = On;
+			
+			if (Tolerance <= 0)
+			{
+				bFastCheck = true;
+			}
+			else
+			{
+				bFastCheck = false;
+				BadFlags = On;
+			}
+			
 			FlagScope = Any;
-			bFastCheck = Tolerance <= 0;
 			break;
 		case EPCGExSplineCheckType::IsInsideOrOn:
 			GoodFlags = static_cast<EFlags>(Inside | On);
@@ -182,9 +205,18 @@ namespace PCGExPathInclusion
 			break;
 		case EPCGExSplineCheckType::IsOutside:
 			GoodFlags = Outside;
-			BadFlags = On;
+
+			if (Tolerance <= 0)
+			{
+				bFastCheck = true;
+			}
+			else
+			{
+				bFastCheck = false;
+				BadFlags = On;
+			}
+			
 			FlagScope = Any;
-			bFastCheck = Tolerance <= 0;
 			break;
 		case EPCGExSplineCheckType::IsOutsideOrOn:
 			GoodFlags = static_cast<EFlags>(Outside | On);

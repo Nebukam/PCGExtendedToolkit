@@ -985,6 +985,37 @@ namespace PCGExPaths
 		return FMath::Min(OutEdgeIndex, this->LastEdge);
 	}
 
+	void FPolyPath::OffsetProjection(const double Offset)
+	{
+		if (FMath::IsNearlyZero(Offset)) { return; }
+		
+		const int32 N = ProjectedPoints.Num();
+		if (N < 3) { return; }
+
+		TArray<FVector2D> InsetPositions;
+		InsetPositions.SetNum(N);
+
+		for (int32 i = 0; i < N; ++i)
+		{
+			const FVector2D& A = ProjectedPoints[(i - 1 + N) % N];
+			const FVector2D& B = ProjectedPoints[i];
+			const FVector2D& C = ProjectedPoints[(i + 1) % N];
+
+			const FVector2D AB = (B - A).GetSafeNormal();
+			const FVector2D BC = (C - B).GetSafeNormal();
+
+			FVector2D N1 = FVector2D(-AB.Y, AB.X);
+			FVector2D N2 = FVector2D(-BC.Y, BC.X);
+
+			FVector2D Avg = (N1 + N2).GetSafeNormal();
+
+			InsetPositions[i] = B - Avg * Offset;
+		}
+
+		ProjectedPoints.Empty();
+		ProjectedPoints = MoveTemp(InsetPositions);
+	}
+
 	FCrossing::FCrossing(const uint64 InHash, const FVector& InLocation, const double InAlpha, const bool InIsPoint, const FVector& InDir)
 		: Hash(InHash), Location(InLocation), Alpha(InAlpha), bIsPoint(InIsPoint), Dir(InDir)
 	{
