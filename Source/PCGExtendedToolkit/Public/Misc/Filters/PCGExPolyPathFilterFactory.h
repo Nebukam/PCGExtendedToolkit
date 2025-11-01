@@ -77,6 +77,7 @@ protected:
 	double LocalFidelity = 50;
 	double LocalExpansion = 0;
 	double LocalExpansionZ = -1;
+	double InclusionOffset = 0;
 	FPCGExGeo2DProjectionDetails LocalProjection;
 	EPCGExSplineSamplingIncludeMode LocalSampleInputs = EPCGExSplineSamplingIncludeMode::All;
 	EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged;
@@ -151,7 +152,7 @@ namespace PCGExPathInclusion
 
 		FORCEINLINE bool TestFlags(const EFlags InFlags) const
 		{
-			bool bPass = (InFlags & BadFlags) == 0; // None of the bad flags
+			bool bPass = !EnumHasAnyFlags(InFlags, BadFlags); // None of the bad flags
 			if (bPass && FlagScope != Skip)
 			{
 				bPass =

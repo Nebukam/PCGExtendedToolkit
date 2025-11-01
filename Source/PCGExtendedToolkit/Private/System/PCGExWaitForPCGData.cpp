@@ -42,11 +42,22 @@ void UPCGExWaitForPCGDataSettings::PostEditChangeProperty(FPropertyChangedEvent&
 }
 #endif
 
+bool UPCGExWaitForPCGDataSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	return true;
+}
+
 TArray<FPCGPinProperties> UPCGExWaitForPCGDataSettings::OutputPinProperties() const
 {
-	if (!bOutputRoaming) { return CachedPins; }
-	TArray<FPCGPinProperties> PinProperties = CachedPins;
-	PCGEX_PIN_ANY(RoamingPin, "Roaming data that isn't part of the template output but still exists.", Normal)
+	TArray<FPCGPinProperties> PinProperties;
+
+	FPCGPinProperties& DependencyPin = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultExecutionDependencyLabel, EPCGDataType::Any, /*bInAllowMultipleConnections=*/true, /*bAllowMultipleData=*/true);
+	DependencyPin.Usage = EPCGPinUsage::DependencyOnly;
+
+	if (bOutputRoaming) { PCGEX_PIN_ANY(RoamingPin, "Roaming data that isn't part of the template output but still exists.", Normal) }
+
+	PinProperties.Append(CachedPins);
+
 	return PinProperties;
 }
 

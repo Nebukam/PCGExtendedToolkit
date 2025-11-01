@@ -129,6 +129,10 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bTagIfHasNoCrossings"))
 	FString HasNoCrossingsTag = TEXT("HasNoCrossings");
+
+	/** If enabled, paths that are only "cutters" (paths that will cut but won't be cut). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bOmitUncuttableFromOutput = false;
 };
 
 struct FPCGExPathCrossingsContext final : FPCGExPathProcessorContext

@@ -27,6 +27,14 @@ enum class EPCGExRefineSanitization : uint8
 	Filters  = 3 UMETA(DisplayName = "Filters", ToolTip="Use filters to find edges that must be preserved."),
 };
 
+UENUM()
+enum class EPCGExRefineEdgesOutput : uint8
+{
+	Clusters  = 0 UMETA(DisplayName = "Clusters", ToolTip="Outputs clusters."),
+	Points    = 1 UMETA(DisplayName = "Points", ToolTip="Outputs regular points (edges only)"),
+	Attribute = 3 UMETA(DisplayName = "Attribute", ToolTip="Writes the result of the filters to an attribute."),
+};
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Clusters", meta=(Keywords = "filter edge mst minimum spanning tree skeleton gabriel"), meta=(PCGExNodeLibraryDoc="clusters/refine-cluster"))
 class UPCGExRefineEdgesSettings : public UPCGExEdgesProcessorSettings
 {
@@ -36,6 +44,8 @@ class UPCGExRefineEdgesSettings : public UPCGExEdgesProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+	
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		RefineEdges, "Cluster : Refine", "Refine edges according to special rules.",
 		(Refinement ? FName(Refinement.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
@@ -60,19 +70,36 @@ public:
 	TObjectPtr<UPCGExEdgeRefineInstancedFactory> Refinement;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	bool bOutputEdgesOnly = false;
+	EPCGExRefineEdgesOutput Mode = EPCGExRefineEdgesOutput::Clusters;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "bOutputEdgesOnly", EditConditionHides))
+	/** Name of the attribute to write the refinement result to. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExRefineEdgesOutput::Attribute", EditConditionHides))
+	FName ResultAttributeName = FName("Refined");
+
+	/** If enabled, instead of writing the result as a simple bool, the node will add a int value based on whether it's a pass or fail. Very handy to combine multiple refinements without altering the cluster. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode==EPCGExRefineEdgesOutput::Attribute", EditConditionHides))
+	bool bResultAsIntegerAdd = false;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName=" ├─ Pass Increment", EditCondition = "Mode==EPCGExRefineEdgesOutput::Attribute && bResultAsIntegerAdd", EditConditionHides))
+	int32 PassIncrement = 1;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName=" └─ Fail Increment", EditCondition = "Mode==EPCGExRefineEdgesOutput::Attribute && bResultAsIntegerAdd", EditConditionHides))
+	int32 FailIncrement = 0;
+	
+	UPROPERTY()
+	bool bOutputEdgesOnly_DEPRECATED = false;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode==EPCGExRefineEdgesOutput::Points", EditConditionHides))
 	bool bAllowZeroPointOutputs = false;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode==EPCGExRefineEdgesOutput::Clusters", EditConditionHides))
 	EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode==EPCGExRefineEdgesOutput::Clusters", EditConditionHides))
 	bool bRestoreEdgesThatConnectToValidNodes = false;
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="!bOutputEdgesOnly", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="Mode==EPCGExRefineEdgesOutput::Clusters", EditConditionHides))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 private:
@@ -124,6 +151,12 @@ namespace PCGExRefineEdges
 	protected:
 		TSharedPtr<PCGExClusterFilter::FManager> SanitizationFilterManager;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
+		
+		TSharedPtr<PCGExData::TBuffer<bool>> RefinedEdgeBuffer;
+		TSharedPtr<PCGExData::TBuffer<bool>> RefinedNodeBuffer;
+		
+		TSharedPtr<PCGExData::TBuffer<int32>> RefinedEdgeIncrementBuffer;
+		TSharedPtr<PCGExData::TBuffer<int32>> RefinedNodeIncrementBuffer;
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 		mutable FRWLock NodeLock;
@@ -153,16 +186,23 @@ namespace PCGExRefineEdges
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
+		friend class FProcessor;
+		
+	protected:
+		TSharedPtr<PCGExData::TBuffer<bool>> RefinedNodeBuffer;
+		TSharedPtr<PCGExData::TBuffer<int32>> RefinedNodeIncrementBuffer;
+		
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 			: TBatch(InContext, InVtx, InEdges)
 		{
 			PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
-			bRequiresGraphBuilder = !Settings->bOutputEdgesOnly;
+			bRequiresGraphBuilder = Settings->Mode == EPCGExRefineEdgesOutput::Clusters;
 		}
 
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
+		virtual void Write() override;
 	};
 
 	class FSanitizeRangeTask final : public PCGExMT::FScopeIterationTask

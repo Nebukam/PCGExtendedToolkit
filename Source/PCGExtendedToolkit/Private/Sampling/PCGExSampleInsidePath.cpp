@@ -221,7 +221,8 @@ namespace PCGExSampleInsidePath
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
 
 		Path = MakeShared<PCGExPaths::FPolyPath>(PointDataFacade, Settings->ProjectionDetails, 1, Settings->HeightInclusion);
-
+		Path->OffsetProjection(Settings->InclusionOffset);
+		
 		// Allocate edge native properties
 
 		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
