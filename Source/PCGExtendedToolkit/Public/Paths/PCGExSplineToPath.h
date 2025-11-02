@@ -72,7 +72,7 @@ public:
 	FName LeaveTangentAttributeName = FName("LeaveTangent");
 	
 	/** Tag handling */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Leave Tangent", PCG_Overridable, EditCondition="bWriteLeaveTangent"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExTagsToDataAction TagsToData = EPCGExTagsToDataAction::ToData;
 
 	/** */
