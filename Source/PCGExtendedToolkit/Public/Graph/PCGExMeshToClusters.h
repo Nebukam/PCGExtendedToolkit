@@ -34,6 +34,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(MeshToClusters, "Mesh to Clusters", "Creates clusters from mesh topology.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorClusterGenerator; }
+	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

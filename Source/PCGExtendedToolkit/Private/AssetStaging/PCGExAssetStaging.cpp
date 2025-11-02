@@ -64,6 +64,8 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));
 			return false;
 		}
+		
+		Context->MainCollection->EDITOR_RegisterTrackingKeys(Context);
 	}
 	else
 	{

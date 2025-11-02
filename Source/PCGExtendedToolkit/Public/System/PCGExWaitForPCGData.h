@@ -49,6 +49,7 @@ public:
 	PCGEX_NODE_INFOS(WaitForPCGData, "Wait for PCG Data", "Wait for PCG Components Generated output.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::ControlFlow; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorAction); }
+	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
 
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;

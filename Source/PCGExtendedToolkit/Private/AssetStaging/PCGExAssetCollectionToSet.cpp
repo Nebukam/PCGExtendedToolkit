@@ -8,6 +8,10 @@
 #include "PCGPin.h"
 #include "Collections/PCGExActorCollection.h"
 
+#if WITH_EDITOR
+#include "Helpers/PCGDynamicTrackingHelpers.h"
+#endif
+
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE AssetCollectionToSet
 
@@ -72,6 +76,8 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Asset collection failed to load."));
 		return OutputToPin();
 	}
+
+	MainCollection->EDITOR_RegisterTrackingKeys(static_cast<FPCGExContext*>(Context));
 
 #define PCGEX_DECLARE_ATT(_NAME, _TYPE, _DEFAULT, _VALUE) bool bOutput##_NAME = Settings->bWrite##_NAME;
 	PCGEX_FOREACH_COL_FIELD(PCGEX_DECLARE_ATT);

@@ -113,6 +113,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 				return false;
 			}
 
+			Context->EDITOR_TrackPath(Settings->StaticMeshConstant.ToSoftObjectPath());
 			for (int32& Index : Context->MeshIdx) { Index = Idx; }
 		}
 		else

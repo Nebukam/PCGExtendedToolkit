@@ -132,8 +132,8 @@ public:
 
 	TSharedPtr<PCGEx::FUniqueNameGenerator> UniqueNameGenerator;
 
-	void EDITOR_TrackPath(const FSoftObjectPath& Path, bool bIsCulled = false) const;
-	void EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled = false) const;
+	void EDITOR_TrackPath(const FSoftObjectPath& Path, bool bIsCulled = false);
+	void EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled = false);
 
 	bool CanExecute() const;
 	virtual bool IsAsyncWorkComplete();

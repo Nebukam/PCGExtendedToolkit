@@ -571,6 +571,7 @@ public:
 		PackActorData, "Pack Actor Data", "Use custom blueprint to read data from actor references.",
 		(Packer ? FName(Packer.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
+	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
 
 protected:

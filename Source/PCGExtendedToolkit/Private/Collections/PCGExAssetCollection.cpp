@@ -367,6 +367,11 @@ void UPCGExAssetCollection::RebuildStagingData(const bool bRecursive)
 	InvalidateCache();
 }
 
+void UPCGExAssetCollection::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const
+{
+	Context->EDITOR_TrackPath(this);
+}
+
 #if WITH_EDITOR
 void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {

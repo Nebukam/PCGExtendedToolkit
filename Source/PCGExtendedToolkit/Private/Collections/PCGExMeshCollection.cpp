@@ -428,5 +428,10 @@ void UPCGExMeshCollection::EDITOR_DisableCollisions()
 	PostEditChangeProperty(EmptyEvent);
 	MarkPackageDirty();
 }
-
 #endif
+
+void UPCGExMeshCollection::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const
+{
+	Super::EDITOR_RegisterTrackingKeys(Context);
+	for (const FPCGExMeshCollectionEntry& Entry : Entries) { if (Entry.bIsSubCollection && Entry.SubCollection) { Entry.SubCollection->EDITOR_RegisterTrackingKeys(Context); } }
+}

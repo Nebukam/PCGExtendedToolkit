@@ -238,6 +238,8 @@ public:
 
 	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExMeshCollection, FPCGExMeshCollectionEntry)
 
+	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const override;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
 	TArray<FPCGExMeshCollectionEntry> Entries;
 };
