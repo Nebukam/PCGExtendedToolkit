@@ -490,6 +490,88 @@ namespace PCGExPaths
 		ExtraComputingDone();
 	}
 
+	bool FPath::IsInsideProjection(const FVector& WorldPosition) const
+	{
+		const FVector2D ProjectedPoint = FVector2D(Projection.ProjectFlat(WorldPosition));
+		if (!ProjectedBounds.IsInside(ProjectedPoint)) { return false; }
+		return FGeomTools2D::IsPointInPolygon(ProjectedPoint, ProjectedPoints);
+	}
+
+	bool FPath::Contains(const TSharedPtr<FPath>& OtherPath, const double Tolerance) const
+	{
+		const int32 OtherNumPoints = OtherPath->NumPoints;
+		const int32 Threshold = FMath::Min(1, FMath::RoundToInt(static_cast<double>(OtherNumPoints) * (1 - FMath::Clamp(Tolerance, 0, 1))));
+
+		int32 InsideCount = 0;
+
+		for (int i = 0; i < OtherNumPoints; i++)
+		{
+			if (IsInsideProjection(OtherPath->GetPos_Unsafe(i)))
+			{
+				InsideCount++;
+				if (InsideCount >= Threshold) { return true; }
+			}
+		}
+
+		return false;
+	}
+
+	void FPath::BuildProjection()
+	{
+		ProjectedPoints.SetNumUninitialized(NumPoints);
+		ProjectedBounds = FBox2D();
+
+		for (int i = 0; i < NumPoints; i++)
+		{
+			const FVector2D ProjectedPoint = FVector2D(Projection.ProjectFlat(GetPos_Unsafe(i), i));
+			ProjectedBounds += ProjectedPoint;
+			ProjectedPoints[i] = ProjectedPoint;
+		}
+	}
+
+	void FPath::BuildProjection(const FPCGExGeo2DProjectionDetails& InProjectionDetails)
+	{
+		Projection = InProjectionDetails;
+		BuildProjection();
+	}
+
+	void FPath::OffsetProjection(const double Offset)
+	{
+		if (FMath::IsNearlyZero(Offset)) { return; }
+
+		if (Offset > 0) { ProjectedBounds = ProjectedBounds.ExpandBy(Offset); }
+
+		const int32 N = ProjectedPoints.Num();
+		if (N < 3) { return; }
+
+		TArray<FVector2D> InsetPositions;
+		InsetPositions.SetNum(N);
+
+		ProjectedBounds = FBox2D();
+
+		for (int32 i = 0; i < N; ++i)
+		{
+			const FVector2D& A = ProjectedPoints[(i - 1 + N) % N];
+			const FVector2D& B = ProjectedPoints[i];
+			const FVector2D& C = ProjectedPoints[(i + 1) % N];
+
+			const FVector2D AB = (B - A).GetSafeNormal();
+			const FVector2D BC = (C - B).GetSafeNormal();
+
+			const FVector2D N1 = FVector2D(-AB.Y, AB.X);
+			const FVector2D N2 = FVector2D(-BC.Y, BC.X);
+
+			const FVector2D Avg = (N1 + N2).GetSafeNormal();
+
+			const FVector2D Pos = B - Avg * Offset;
+			InsetPositions[i] = Pos;
+			ProjectedBounds += Pos;
+		}
+
+		ProjectedPoints.Empty();
+		ProjectedPoints = MoveTemp(InsetPositions);
+	}
+
 	void FPath::BuildPath(const double Expansion)
 	{
 		if (bClosedLoop) { NumEdges = NumPoints; }
@@ -832,13 +914,13 @@ namespace PCGExPaths
 		const EPCGExWindingMutation WindingMutation)
 		: FPath(InPointIO->GetIn()->GetConstTransformValueRange(), GetClosedLoop(InPointIO), Expansion)
 	{
-		const TConstPCGValueRange<FTransform>& InTransforms = InPointIO->GetIn()->GetConstTransformValueRange();
+		Positions = InPointIO->GetIn()->GetConstTransformValueRange();
 
 		Projection = InProjection;
-		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(InTransforms)); }
-		else { if (!Projection.Init(InPointIO)) { Projection.Init(PCGExGeo::FBestFitPlane(InTransforms)); } }
+		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); }
+		else { if (!Projection.Init(InPointIO)) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); } }
 
-		InitFromTransforms(InTransforms, ExpansionZ, WindingMutation);
+		InitFromTransforms(WindingMutation);
 	}
 
 	FPolyPath::FPolyPath(
@@ -848,13 +930,11 @@ namespace PCGExPaths
 		const EPCGExWindingMutation WindingMutation)
 		: FPath(InPathFacade->GetIn()->GetConstTransformValueRange(), GetClosedLoop(InPathFacade->Source), Expansion)
 	{
-		const TConstPCGValueRange<FTransform>& InTransforms = InPathFacade->GetIn()->GetConstTransformValueRange();
-
 		Projection = InProjection;
-		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(InTransforms)); }
-		else { if (!Projection.Init(InPathFacade)) { Projection.Init(PCGExGeo::FBestFitPlane(InTransforms)); } }
+		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); }
+		else { if (!Projection.Init(InPathFacade)) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); } }
 
-		InitFromTransforms(InTransforms, ExpansionZ, WindingMutation);
+		InitFromTransforms(WindingMutation);
 	}
 
 	FPolyPath::FPolyPath(
@@ -871,34 +951,25 @@ namespace PCGExPaths
 
 		LocalTransforms.Reserve(TempPolyline.Num());
 		for (int i = 0; i < TempPolyline.Num(); i++) { LocalTransforms.Emplace(TempPolyline[i]); }
-		LocalTransformsValueRange = TConstPCGValueRange<FTransform>(MakeConstStridedView(LocalTransforms));
+
+		Positions = TConstPCGValueRange<FTransform>(MakeConstStridedView(LocalTransforms));
 
 		Projection = InProjection;
-		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(LocalTransformsValueRange)); }
-		else { if (!Projection.Init(SplineData)) { Projection.Init(PCGExGeo::FBestFitPlane(LocalTransformsValueRange)); } }
+		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); }
+		else { if (!Projection.Init(SplineData)) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); } }
 
-		InitFromTransforms(LocalTransformsValueRange, ExpansionZ, WindingMutation);
-
-		Positions = LocalTransformsValueRange;
+		InitFromTransforms(WindingMutation);
 
 		// Need to force-build path post initializations
 		this->BuildPath(Expansion);
 	}
 
-	void FPolyPath::InitFromTransforms(const TConstPCGValueRange<FTransform>& InTransforms, const double ExpansionZ, const EPCGExWindingMutation WindingMutation)
+	void FPolyPath::InitFromTransforms(const EPCGExWindingMutation WindingMutation)
 	{
-		const int32 NumPts = InTransforms.Num();
-		ProjectedPoints.SetNumUninitialized(NumPts);
+		NumPoints = Positions.Num();
+		LastIndex = NumPoints - 1;
 
-		this->NumPoints = NumPts;
-		this->LastIndex = NumPts - 1;
-
-		for (int i = 0; i < NumPts; i++)
-		{
-			const FVector ProjectedPoint = Projection.ProjectFlat(InTransforms[i].GetLocation(), i);
-			PolyBox += ProjectedPoint;
-			ProjectedPoints[i] = FVector2D(ProjectedPoint);
-		}
+		BuildProjection();
 
 		if (WindingMutation != EPCGExWindingMutation::Unchanged)
 		{
@@ -910,24 +981,12 @@ namespace PCGExPaths
 			}
 		}
 
-		const double ExpandZ = ExpansionZ > 0 ? ExpansionZ : MAX_dbl * 0.5;
-		const FVector PolyBoxCenter = PolyBox.GetCenter();
-		PolyBox += (PolyBoxCenter + FVector(0, 0, ExpandZ));
-		PolyBox += (PolyBoxCenter + FVector(0, 0, -ExpandZ));
-
 		if (!Spline)
 		{
-			if (bClosedLoop) { LocalSpline = MakeSplineFromPoints(InTransforms, EPCGExSplinePointTypeRedux::Linear, true, false); }
-			else { LocalSpline = MakeSplineFromPoints(InTransforms, EPCGExSplinePointTypeRedux::Linear, false, false); }
+			if (bClosedLoop) { LocalSpline = MakeSplineFromPoints(Positions, EPCGExSplinePointTypeRedux::Linear, true, false); }
+			else { LocalSpline = MakeSplineFromPoints(Positions, EPCGExSplinePointTypeRedux::Linear, false, false); }
 			Spline = LocalSpline.Get();
 		}
-	}
-
-	bool FPolyPath::IsInsideProjection(const FVector& WorldPosition) const
-	{
-		const FVector ProjectedPoint = Projection.Project(WorldPosition);
-		if (!PolyBox.IsInside(ProjectedPoint)) { return false; }
-		return FGeomTools2D::IsPointInPolygon(FVector2D(ProjectedPoint), ProjectedPoints);
 	}
 
 	FTransform FPolyPath::GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp, const bool bUseScale) const
@@ -983,39 +1042,6 @@ namespace PCGExPaths
 		const int32 OutEdgeIndex = FMath::FloorToInt32(InTime * this->NumEdges);
 		OutLerp = InTime - OutEdgeIndex;
 		return FMath::Min(OutEdgeIndex, this->LastEdge);
-	}
-
-	void FPolyPath::OffsetProjection(const double Offset)
-	{
-		if (FMath::IsNearlyZero(Offset)) { return; }
-
-		if (Offset > 0) { PolyBox = PolyBox.ExpandBy(Offset); }
-
-		const int32 N = ProjectedPoints.Num();
-		if (N < 3) { return; }
-
-		TArray<FVector2D> InsetPositions;
-		InsetPositions.SetNum(N);
-
-		for (int32 i = 0; i < N; ++i)
-		{
-			const FVector2D& A = ProjectedPoints[(i - 1 + N) % N];
-			const FVector2D& B = ProjectedPoints[i];
-			const FVector2D& C = ProjectedPoints[(i + 1) % N];
-
-			const FVector2D AB = (B - A).GetSafeNormal();
-			const FVector2D BC = (C - B).GetSafeNormal();
-
-			FVector2D N1 = FVector2D(-AB.Y, AB.X);
-			FVector2D N2 = FVector2D(-BC.Y, BC.X);
-
-			FVector2D Avg = (N1 + N2).GetSafeNormal();
-
-			InsetPositions[i] = B - Avg * Offset;
-		}
-
-		ProjectedPoints.Empty();
-		ProjectedPoints = MoveTemp(InsetPositions);
 	}
 
 	FCrossing::FCrossing(const uint64 InHash, const FVector& InLocation, const double InAlpha, const bool InIsPoint, const FVector& InDir)
@@ -1102,6 +1128,55 @@ namespace PCGExPaths
 	{
 		if (Crossings.Num() <= 1) { return; }
 		Crossings.Sort([&](const FCrossing& A, const FCrossing& B) { return PCGEx::H64A(A.Hash) < PCGEx::H64A(B.Hash); });
+	}
+
+	void FPathInclusionHelper::AddPath(const TSharedPtr<FPath>& InPath, const double Tolerance)
+	{
+		bool bAlreadyInSet = false;
+		PathsSet.Add(InPath->Idx, &bAlreadyInSet);
+
+		if (bAlreadyInSet) { return; }
+		
+		FInclusionInfos& NewInfos = IdxMap.Add(InPath->Idx, FInclusionInfos());
+
+		for (const TSharedPtr<FPath>& OtherPath : Paths)
+		{
+			FInclusionInfos& OtherInfos = IdxMap[OtherPath->Idx];
+
+			if (OtherPath->Contains(InPath, Tolerance))
+			{
+				NewInfos.Depth++;
+				NewInfos.bOuter = NewInfos.Depth % 2 == 0;
+				OtherInfos.Children++;
+			}
+			else if (InPath->Contains(OtherPath, Tolerance))
+			{
+				OtherInfos.Depth++;
+				OtherInfos.bOuter = OtherInfos.Depth % 2 == 0;
+				NewInfos.Children++;
+			}
+		}
+
+		Paths.Add(InPath);
+	}
+
+	void FPathInclusionHelper::AddPaths(const TArrayView<TSharedPtr<FPath>> InPaths, const double Tolerance)
+	{
+		const int32 Reserve = IdxMap.Num() + InPaths.Num();
+		PathsSet.Reserve(Reserve);
+		Paths.Reserve(Reserve);
+		IdxMap.Reserve(Reserve);
+
+		for (const TSharedPtr<FPath>& Path : InPaths) { AddPath(Path, Tolerance); }
+	}
+
+	bool FPathInclusionHelper::Find(const int32 Idx, FInclusionInfos& OutInfos) const
+	{
+		const FInclusionInfos* Infos = IdxMap.Find(Idx);
+		if (!Infos) { return false; }
+
+		OutInfos = *Infos;
+		return true;
 	}
 }
 

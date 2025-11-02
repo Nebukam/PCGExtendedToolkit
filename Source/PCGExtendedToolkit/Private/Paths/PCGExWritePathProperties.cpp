@@ -12,13 +12,28 @@
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
 #define PCGEX_NAMESPACE WritePathProperties
 
+bool UPCGExWritePathPropertiesSettings::CanForwardData() const
+{
+#define PCGEX_PATH_MARK_FALSE(_NAME, _TYPE, _DEFAULT) if(bWrite##_NAME){return false;}
+	PCGEX_FOREACH_FIELD_PATH(PCGEX_PATH_MARK_FALSE)
+	PCGEX_FOREACH_FIELD_PATH_POINT(PCGEX_PATH_MARK_FALSE)
+#undef PCGEX_PATH_MARK_FALSE
+
+	return true;
+}
+
+bool UPCGExWritePathPropertiesSettings::WantsInclusionHelper() const
+{
+	return bTagInner || bTagOuter || bTagMedian || bWriteNumInside || bWriteInclusionDepth;
+}
+
 bool UPCGExWritePathPropertiesSettings::WriteAnyPathData() const
 {
 #define PCGEX_PATH_MARK_TRUE(_NAME, _TYPE, _DEFAULT) if(bWrite##_NAME){return true;}
 	PCGEX_FOREACH_FIELD_PATH(PCGEX_PATH_MARK_TRUE)
 #undef PCGEX_PATH_MARK_TRUE
 
-	return false;
+	return bTagInner || bTagOuter || bTagMedian;
 }
 
 TArray<FPCGPinProperties> UPCGExWritePathPropertiesSettings::OutputPinProperties() const
@@ -32,7 +47,7 @@ PCGEX_INITIALIZE_ELEMENT(WritePathProperties)
 
 PCGExData::EIOInit UPCGExWritePathPropertiesSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
-PCGEX_ELEMENT_BATCH_POINT_IMPL(WritePathProperties)
+PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(WritePathProperties)
 
 bool FPCGExWritePathPropertiesElement::Boot(FPCGExContext* InContext) const
 {
@@ -116,7 +131,7 @@ namespace PCGExWritePathProperties
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+		PCGEX_INIT_IO(PointDataFacade->Source, Settings->CanForwardData() ? PCGExData::EIOInit::Forward : PCGExData::EIOInit::Duplicate)
 
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (ProjectionDetails.Method == EPCGExProjectionMethod::Normal) { if (!ProjectionDetails.Init(PointDataFacade)) { return false; } }
@@ -125,6 +140,10 @@ namespace PCGExWritePathProperties
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		Path = MakeShared<PCGExPaths::FPath>(PointDataFacade->GetIn(), 0);
+		Path->BuildProjection(ProjectionDetails);
+		Path->OffsetProjection(Settings->InclusionDetails.InclusionOffset);
+		Path->Idx = PointDataFacade->Source->IOIndex;
+
 		bClosedLoop = Path->IsClosedLoop();
 
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
@@ -231,10 +250,7 @@ namespace PCGExWritePathProperties
 
 		if (Settings->WriteAnyPathData())
 		{
-			TArray<FVector2D> WindedPoints;
-			ProjectionDetails.ProjectFlat(PointDataFacade, WindedPoints);
-
-			const PCGExGeo::FPolygonInfos PolyInfos = PCGExGeo::FPolygonInfos(WindedPoints);
+			const PCGExGeo::FPolygonInfos PolyInfos = PCGExGeo::FPolygonInfos(Path->GetProjectedPoints());
 
 			PathAttributeSet = Context->PathAttributeSet ? Context->PathAttributeSet.Get() : Context->ManagedObjects->New<UPCGParamData>();
 			const int64 Key = Context->PathAttributeSet ? Context->MergedAttributeSetKeys[PointDataFacade->Source->IOIndex] : PathAttributeSet->Metadata->AddEntry();
@@ -250,6 +266,22 @@ namespace PCGExWritePathProperties
 			PCGEX_OUTPUT_PATH_VALUE(Area, double, PolyInfos.Area * 0.01)
 			PCGEX_OUTPUT_PATH_VALUE(Perimeter, double, PolyInfos.Perimeter)
 			PCGEX_OUTPUT_PATH_VALUE(Compactness, double, PolyInfos.Compactness)
+
+			bool bIsMedian = false;
+			bool bIsInside = false;
+
+			if (PCGExPaths::FInclusionInfos Infos;
+				Context->InclusionHelper && Context->InclusionHelper->Find(Path->Idx, Infos))
+			{
+				bIsMedian = !Infos.bOuter;
+				bIsInside = Infos.Depth > 0;
+				PCGEX_OUTPUT_PATH_VALUE(InclusionDepth, int32, Infos.Depth)
+				PCGEX_OUTPUT_PATH_VALUE(NumInside, int32, Infos.Children)
+			}
+
+			if (bIsMedian && Settings->bTagMedian) { PointIO->Tags->AddRaw(Settings->MedianTag); }
+			if (bIsInside) { if (Settings->bTagInner) { PointIO->Tags->AddRaw(Settings->InnerTag); } }
+			else { if (Settings->bTagOuter) { PointIO->Tags->AddRaw(Settings->OuterTag); } }
 
 			if (Settings->bWriteBoundingBoxCenter ||
 				Settings->bWriteBoundingBoxExtent ||
@@ -296,6 +328,26 @@ namespace PCGExWritePathProperties
 		{
 			FPCGTaggedData& StagedData = Context->StageOutput(PathAttributeSet, false, false);
 			StagedData.Pin = OutputPathProperties;
+		}
+	}
+
+	FBatch::FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
+		: TBatch(InContext, InPointsCollection)
+	{
+	}
+
+	void FBatch::OnInitialPostProcess()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WritePathProperties)
+
+		if (Settings->WantsInclusionHelper())
+		{
+			Context->InclusionHelper = MakeShared<PCGExPaths::FPathInclusionHelper>();
+			TArray<TSharedPtr<PCGExPaths::FPath>> Paths;
+			Paths.Reserve(Processors.Num());
+
+			for (const TSharedRef<PCGExPointsMT::IProcessor>& P : Processors) { Paths.Add(StaticCastSharedRef<FProcessor>(P)->Path); }
+			Context->InclusionHelper->AddPaths(Paths, Settings->InclusionDetails.InclusionTolerance);
 		}
 	}
 }

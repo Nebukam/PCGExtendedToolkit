@@ -62,6 +62,7 @@ namespace PCGExGeo
 		double Perimeter = 0;
 		double Compactness = 0;
 
+		FPolygonInfos() = default;
 		explicit FPolygonInfos(const TArray<FVector2D>& InPolygon);
 
 		bool IsWinded(const EPCGExWinding Winding) const;
