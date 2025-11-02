@@ -14,13 +14,11 @@
 #define LOCTEXT_NAMESPACE "PCGExUberFilterCollections"
 #define PCGEX_NAMESPACE UberFilterCollections
 
-#if WITH_EDITOR
 bool UPCGExUberFilterCollectionsSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (InPin->Properties.Label == PCGExPicker::SourcePickersLabel) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
-#endif
 
 bool UPCGExUberFilterCollectionsSettings::HasDynamicPins() const { return true; }
 

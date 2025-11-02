@@ -16,12 +16,23 @@
 #define PCGEX_NAMESPACE UberFilter
 
 #if WITH_EDITOR
+void UPCGExUberFilterSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	if (!ResultAttributeName_DEPRECATED.IsNone())
+	{
+		ResultDetails.ResultAttributeName = ResultAttributeName_DEPRECATED;
+		ResultAttributeName_DEPRECATED = NAME_None;
+	}
+	
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
+
 bool UPCGExUberFilterSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (InPin->Properties.Label == PCGExPicker::SourcePickersLabel) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
-#endif
 
 bool UPCGExUberFilterSettings::OutputPinsCanBeDeactivated() const
 {
@@ -66,8 +77,7 @@ bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->Mode == EPCGExUberFilterMode::Write)
 	{
-		PCGEX_VALIDATE_NAME(Settings->ResultAttributeName)
-		return true;
+		return Settings->ResultDetails.Validate(Context);
 	}
 
 	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
@@ -145,7 +155,8 @@ namespace PCGExUberFilter
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
-			Results = PointDataFacade->GetWritable<bool>(Settings->ResultAttributeName, false, true, PCGExData::EBufferInit::New);
+			Results = Settings->ResultDetails;
+			Results.Init(PointDataFacade);
 		}
 		else
 		{
@@ -159,7 +170,7 @@ namespace PCGExUberFilter
 
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops)
 	{
-		if (!Results)
+		if (!Results.bEnabled)
 		{
 			const int32 MaxRange = PCGExMT::FScope::GetMaxRange(Loops);
 
@@ -191,7 +202,7 @@ namespace PCGExUberFilter
 			PCGEX_SCOPE_LOOP(Index) { PointFilterCache[Index] = !PointFilterCache[Index]; }
 		}
 
-		if (!Results)
+		if (!Results.bEnabled)
 		{
 			TArray<int32>& IndicesInsideRef = IndicesInside->Get_Ref(Scope);
 			TArray<int32>& IndicesOutsideRef = IndicesOutside->Get_Ref(Scope);
@@ -211,13 +222,11 @@ namespace PCGExUberFilter
 		{
 			PCGEX_SCOPE_LOOP(Index)
 			{
-				const int8 bPass = PointFilterCache[Index];
-
-				if (bPass) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
+				if (PointFilterCache[Index]) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
 				else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
-
-				Results->SetValue(Index, bPass ? true : false);
 			}
+
+			Results.Write(Scope, PointFilterCache);
 		}
 	}
 

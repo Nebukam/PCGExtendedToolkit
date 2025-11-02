@@ -62,7 +62,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 				const UPCGSpatialData* Data = Cast<UPCGSpatialData>(TempTargets[i].Data);
 				FBox DataBounds = Data->GetBounds().ExpandBy((LocalExpansion + 1) * 2);
-				if (bScaleTolerance) { DataBounds = DataBounds.ExpandBy((DataBounds.GetSize().Length() + 1) * 10); }
+				if (bScaleTolerance) { DataBounds = DataBounds.ExpandBy((DataBounds.GetSize().Length() + 1) * 10 + FMath::Max(0, InclusionOffset)); }
 
 				if (LocalExpansionZ < 0)
 				{

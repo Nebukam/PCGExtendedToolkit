@@ -48,9 +48,9 @@ public:
 	PCGEX_NODE_INFOS(SelfPruning, "Self Pruning", "A slower, more precise self pruning node.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilter); }
-	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
 
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters which points can be processed as overlapping", PCGExFactories::PointFilters, false)
 
 protected:

@@ -25,6 +25,7 @@ void UPCGExRefineEdgesSettings::ApplyDeprecation(UPCGNode* InOutNode)
 	}
 	Super::ApplyDeprecation(InOutNode);
 }
+#endif
 
 bool UPCGExRefineEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
@@ -33,7 +34,6 @@ bool UPCGExRefineEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) c
 
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
-#endif
 
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
@@ -142,6 +142,11 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 			Context->RemovedEdges->Emplace_GetRef(EdgeIO, PCGExData::EIOInit::New)->bAllowEmptyOutput = Settings->bAllowZeroPointOutputs;
 		}
 	}
+	else if (Settings->Mode == EPCGExRefineEdgesOutput::Attribute)
+	{
+		if (!Settings->ResultOutputVtx.Validate(Context)) { return false; }
+		if (!Settings->ResultOutputEdges.Validate(Context)) { return false; }
+	}
 
 	return true;
 }
@@ -228,16 +233,10 @@ namespace PCGExRefineEdges
 
 		if (Settings->Mode == EPCGExRefineEdgesOutput::Attribute)
 		{
-			if (Settings->bResultAsIntegerAdd)
-			{
-				RefinedEdgeIncrementBuffer = EdgeDataFacade->GetWritable<int32>(Settings->ResultAttributeName, 0, true, PCGExData::EBufferInit::Inherit);
-				RefinedNodeIncrementBuffer = StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->RefinedNodeIncrementBuffer;
-			}
-			else
-			{
-				RefinedEdgeBuffer = EdgeDataFacade->GetWritable<bool>(Settings->ResultAttributeName, false, true, PCGExData::EBufferInit::New);
-				RefinedNodeBuffer = StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->RefinedNodeBuffer;
-			}
+			ResultOutputVtx = StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->ResultOutputVtx;
+
+			ResultOutputEdges = Settings->ResultOutputEdges;
+			if (ResultOutputEdges.bEnabled) { ResultOutputEdges.Init(EdgeDataFacade); }
 		}
 
 		if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
@@ -406,7 +405,7 @@ namespace PCGExRefineEdges
 			TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes.Get();
 			TArray<PCGExCluster::FEdge>& Edges = *Cluster->Edges.Get();
 
-			if (RefinedNodeBuffer)
+			if (ResultOutputVtx.bEnabled)
 			{
 				if (Nodes.Num() > 1024)
 				{
@@ -418,11 +417,11 @@ namespace PCGExRefineEdges
 							{
 								int32 ValidCount = 0;
 								for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
-								RefinedNodeBuffer->SetValue(Node.PointIndex, static_cast<bool>(ValidCount));
+								ResultOutputVtx.Write(Node.PointIndex, static_cast<bool>(ValidCount));
 							}
 							else
 							{
-								RefinedNodeBuffer->SetValue(Node.PointIndex, static_cast<bool>(Node.bValid));
+								ResultOutputVtx.Write(Node.PointIndex, static_cast<bool>(Node.bValid));
 								Node.bValid = true;
 							}
 						});
@@ -435,69 +434,22 @@ namespace PCGExRefineEdges
 						{
 							int32 ValidCount = 0;
 							for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
-							RefinedNodeBuffer->SetValue(Node.PointIndex, static_cast<bool>(ValidCount));
+							ResultOutputVtx.Write(Node.PointIndex, static_cast<bool>(ValidCount));
 						}
 						else
 						{
-							RefinedNodeBuffer->SetValue(Node.PointIndex, static_cast<bool>(Node.bValid));
-							Node.bValid = true;
-						}
-					}
-				}
-			}
-			else if (RefinedNodeIncrementBuffer)
-			{
-				if (Nodes.Num() > 1024)
-				{
-					ParallelFor(
-						Nodes.Num(), [&](const int32 i)
-						{
-							PCGExCluster::FNode& Node = Nodes[i];
-							if (Node.bValid)
-							{
-								int32 ValidCount = 0;
-								for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
-								RefinedNodeIncrementBuffer->SetValue(Node.PointIndex, RefinedNodeIncrementBuffer->GetValue(Node.PointIndex) + (ValidCount ? Settings->PassIncrement : Settings->FailIncrement));
-							}
-							else
-							{
-								RefinedNodeIncrementBuffer->SetValue(Node.PointIndex, RefinedNodeIncrementBuffer->GetValue(Node.PointIndex) + (Node.bValid ? Settings->PassIncrement : Settings->FailIncrement));
-								Node.bValid = true;
-							}
-						});
-				}
-				else
-				{
-					for (PCGExCluster::FNode& Node : Nodes)
-					{
-						if (Node.bValid)
-						{
-							int32 ValidCount = 0;
-							for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
-							RefinedNodeIncrementBuffer->SetValue(Node.PointIndex, RefinedNodeIncrementBuffer->GetValue(Node.PointIndex) + (ValidCount ? Settings->PassIncrement : Settings->FailIncrement));
-						}
-						else
-						{
-							RefinedEdgeIncrementBuffer->SetValue(Node.PointIndex, RefinedEdgeIncrementBuffer->GetValue(Node.PointIndex) + (Node.bValid ? Settings->PassIncrement : Settings->FailIncrement));
+							ResultOutputVtx.Write(Node.PointIndex, static_cast<bool>(Node.bValid));
 							Node.bValid = true;
 						}
 					}
 				}
 			}
 
-			if (RefinedEdgeBuffer)
+			if (ResultOutputEdges.bEnabled)
 			{
 				for (PCGExCluster::FEdge& Edge : Edges)
 				{
-					RefinedEdgeBuffer->SetValue(Edge.Index, static_cast<bool>(Edge.bValid));
-					Edge.bValid = true;
-				}
-			}
-			else if (RefinedEdgeIncrementBuffer)
-			{
-				for (PCGExCluster::FEdge& Edge : Edges)
-				{
-					RefinedEdgeIncrementBuffer->SetValue(Edge.Index, RefinedEdgeIncrementBuffer->GetValue(Edge.Index) + (Edge.bValid ? Settings->PassIncrement : Settings->FailIncrement));
+					ResultOutputEdges.Write(Edge.Index, static_cast<bool>(Edge.bValid));
 					Edge.bValid = true;
 				}
 			}
@@ -555,14 +507,8 @@ namespace PCGExRefineEdges
 
 		if (Settings->Mode == EPCGExRefineEdgesOutput::Attribute)
 		{
-			if (Settings->bResultAsIntegerAdd)
-			{
-				RefinedNodeIncrementBuffer = VtxDataFacade->GetWritable<int32>(Settings->ResultAttributeName, 0, true, PCGExData::EBufferInit::Inherit);
-			}
-			else
-			{
-				RefinedNodeBuffer = VtxDataFacade->GetWritable<bool>(Settings->ResultAttributeName, false, true, PCGExData::EBufferInit::New);
-			}
+			ResultOutputVtx = Settings->ResultOutputVtx;
+			if (ResultOutputVtx.bEnabled) { ResultOutputVtx.Init(VtxDataFacade); }
 		}
 
 		TBatch<FProcessor>::RegisterBuffersDependencies(FacadePreloader);

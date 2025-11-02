@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Details/PCGExDetailsFiltering.h"
 
 
 #include "Graph/PCGExClusterMT.h"
@@ -51,8 +52,9 @@ public:
 		(Refinement ? FName(Refinement.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorClusterOp); }
-	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
+	
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -71,23 +73,19 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExRefineEdgesOutput Mode = EPCGExRefineEdgesOutput::Clusters;
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Vtx Result", EditCondition="Mode == EPCGExRefineEdgesOutput::Attribute", EditConditionHides))
+	FPCGExFilterResultDetails ResultOutputVtx;
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Edge Result", EditCondition="Mode == EPCGExRefineEdgesOutput::Attribute", EditConditionHides))
+	FPCGExFilterResultDetails ResultOutputEdges;
 
-	/** Name of the attribute to write the refinement result to. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExRefineEdgesOutput::Attribute", EditConditionHides))
-	FName ResultAttributeName = FName("Refined");
-
-	/** If enabled, instead of writing the result as a simple bool, the node will add a int value based on whether it's a pass or fail. Very handy to combine multiple refinements without altering the cluster. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode==EPCGExRefineEdgesOutput::Attribute", EditConditionHides))
-	bool bResultAsIntegerAdd = false;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName=" ├─ Pass Increment", EditCondition = "Mode==EPCGExRefineEdgesOutput::Attribute && bResultAsIntegerAdd", EditConditionHides))
-	int32 PassIncrement = 1;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayName=" └─ Fail Increment", EditCondition = "Mode==EPCGExRefineEdgesOutput::Attribute && bResultAsIntegerAdd", EditConditionHides))
-	int32 FailIncrement = 0;
+#pragma region DEPRECATED
 	
 	UPROPERTY()
 	bool bOutputEdgesOnly_DEPRECATED = false;
+
+#pragma endregion 
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode==EPCGExRefineEdgesOutput::Points", EditConditionHides))
 	bool bAllowZeroPointOutputs = false;
@@ -152,11 +150,8 @@ namespace PCGExRefineEdges
 		TSharedPtr<PCGExClusterFilter::FManager> SanitizationFilterManager;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 		
-		TSharedPtr<PCGExData::TBuffer<bool>> RefinedEdgeBuffer;
-		TSharedPtr<PCGExData::TBuffer<bool>> RefinedNodeBuffer;
-		
-		TSharedPtr<PCGExData::TBuffer<int32>> RefinedEdgeIncrementBuffer;
-		TSharedPtr<PCGExData::TBuffer<int32>> RefinedNodeIncrementBuffer;
+		FPCGExFilterResultDetails ResultOutputVtx = FPCGExFilterResultDetails(false, false);
+		FPCGExFilterResultDetails ResultOutputEdges = FPCGExFilterResultDetails(false, false);
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 		mutable FRWLock NodeLock;
@@ -189,8 +184,7 @@ namespace PCGExRefineEdges
 		friend class FProcessor;
 		
 	protected:
-		TSharedPtr<PCGExData::TBuffer<bool>> RefinedNodeBuffer;
-		TSharedPtr<PCGExData::TBuffer<int32>> RefinedNodeIncrementBuffer;
+		FPCGExFilterResultDetails ResultOutputVtx;
 		
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)

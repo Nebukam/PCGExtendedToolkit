@@ -41,8 +41,9 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ClusterCentrality, "Cluster : Centrality", "Compute betweenness centrality. Processing time increases exponentially with the number of vtx.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorNeighborSampler; }
-	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
+	
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

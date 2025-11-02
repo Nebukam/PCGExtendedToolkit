@@ -75,8 +75,9 @@ public:
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
 
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
-	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
+	
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 
 protected:
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const;

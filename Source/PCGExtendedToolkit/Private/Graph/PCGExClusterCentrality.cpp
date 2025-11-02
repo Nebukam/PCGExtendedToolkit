@@ -18,13 +18,11 @@
 PCGEX_INITIALIZE_ELEMENT(ClusterCentrality)
 PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(ClusterCentrality)
 
-#if WITH_EDITOR
 bool UPCGExClusterCentralitySettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (InPin->Properties.Label == PCGExGraph::SourceVtxFiltersLabel) { return DownsamplingMode == EPCGExCentralityDownsampling::Filters; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
-#endif
 
 TArray<FPCGPinProperties> UPCGExClusterCentralitySettings::InputPinProperties() const
 {
