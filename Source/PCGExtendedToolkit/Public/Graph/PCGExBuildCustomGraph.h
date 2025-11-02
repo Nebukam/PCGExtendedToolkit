@@ -462,6 +462,7 @@ public:
 		BuildCustomGraph, "Cluster : Build Custom Graph", "Create clusters using custom blueprint objects",
 		(Builder ? FName(Builder.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorClusterGenerator; }
+	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
 
 protected:

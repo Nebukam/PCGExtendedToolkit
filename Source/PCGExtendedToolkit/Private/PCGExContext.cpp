@@ -12,6 +12,7 @@
 #include "Helpers/PCGHelpers.h"
 #include "Async/Async.h"
 #include "Engine/EngineTypes.h"
+#include "Helpers/PCGDynamicTrackingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
@@ -440,25 +441,17 @@ void FPCGExContext::AddProtectedAttributeName(const FName InName)
 	}
 }
 
-void FPCGExContext::EDITOR_TrackPath(const FSoftObjectPath& Path, const bool bIsCulled) const
+void FPCGExContext::EDITOR_TrackPath(const FSoftObjectPath& Path, const bool bIsCulled)
 {
 #if WITH_EDITOR
-	if (UPCGComponent* PCGComponent = GetMutableComponent())
-	{
-		TPair<FPCGSelectionKey, bool> NewPair(FPCGSelectionKey::CreateFromPath(Path), bIsCulled);
-		PCGComponent->RegisterDynamicTracking(GetOriginalSettings<UPCGSettings>(), MakeArrayView(&NewPair, 1));
-	}
+	FPCGDynamicTrackingHelper::AddSingleDynamicTrackingKey(this, FPCGSelectionKey::CreateFromPath(Path), false);
 #endif
 }
 
-void FPCGExContext::EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled) const
+void FPCGExContext::EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled)
 {
 #if WITH_EDITOR
-	if (UPCGComponent* PCGComponent = GetMutableComponent())
-	{
-		TPair<FPCGSelectionKey, bool> NewPair(FPCGSelectionKey(InSelectionClass), bIsCulled);
-		PCGComponent->RegisterDynamicTracking(GetOriginalSettings<UPCGSettings>(), MakeArrayView(&NewPair, 1));
-	}
+	FPCGDynamicTrackingHelper::AddSingleDynamicTrackingKey(this, FPCGSelectionKey(InSelectionClass), false);
 #endif
 }
 
