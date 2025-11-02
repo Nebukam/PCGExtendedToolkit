@@ -11,6 +11,18 @@
 #define LOCTEXT_NAMESPACE "PCGExFilterVtx"
 #define PCGEX_NAMESPACE FilterVtx
 
+#if WITH_EDITOR
+void UPCGExFilterVtxSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	if (!ResultAttributeName_DEPRECATED.IsNone())
+	{
+		ResultOutputVtx.ResultAttributeName = ResultAttributeName_DEPRECATED;
+		ResultAttributeName_DEPRECATED = NAME_None;
+	}
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
+
 TArray<FPCGPinProperties> UPCGExFilterVtxSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -180,8 +192,7 @@ namespace PCGExFilterVtx
 
 		if (Settings->Mode == EPCGExVtxFilterOutput::Attribute)
 		{
-			TestResults = VtxDataFacade->GetWritable<bool>(Settings->ResultAttributeName, !Settings->bInvert, true, PCGExData::EBufferInit::New);
-			if (!TestResults) { return false; }
+			ResultOutputVtx = StaticCastSharedPtr<FBatch>(ParentBatch.Pin())->ResultOutputVtx;
 		}
 
 		StartParallelLoopForNodes();
@@ -190,28 +201,13 @@ namespace PCGExFilterVtx
 		return true;
 	}
 
-	void FProcessor::PrepareLoopScopesForNodes(const TArray<PCGExMT::FScope>& Loops)
-	{
-		TProcessor<FPCGExFilterVtxContext, UPCGExFilterVtxSettings>::PrepareLoopScopesForNodes(Loops);
-		ScopedPassNum = MakeShared<PCGExMT::TScopedNumericValue<int32>>(Loops, 0);
-		ScopedFailNum = MakeShared<PCGExMT::TScopedNumericValue<int32>>(Loops, 0);
-	}
-
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
-
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
-
-			const bool bTestResult = VtxFiltersManager->Test(Node) ? !Settings->bInvert : Settings->bInvert;
-
-			if (bTestResult) { ScopedPassNum->GetMutable(Scope)++; }
-			else { ScopedFailNum->GetMutable(Scope)++; }
-
-			if (TestResults) { TestResults->SetValue(Node.PointIndex, bTestResult); }
-			else { Node.bValid = bTestResult; }
+			Node.bValid = VtxFiltersManager->Test(Node) ? !Settings->bInvert : Settings->bInvert;
 		}
 	}
 
@@ -231,14 +227,58 @@ namespace PCGExFilterVtx
 
 	void FProcessor::CompleteWork()
 	{
-		if (Settings->Mode == EPCGExVtxFilterOutput::Attribute)
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes.Get();
+		TArray<PCGExCluster::FEdge>& Edges = *Cluster->Edges.Get();
+
+		PassNum = 0;
+		FailNum = 0;
+
+		if (Nodes.Num() > 1024)
 		{
-			return;
+			ParallelFor(
+				Nodes.Num(), [&](const int32 i)
+				{
+					PCGExCluster::FNode& Node = Nodes[i];
+					if (Node.bValid)
+					{
+						int32 ValidCount = 0;
+						for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
+						Node.bValid = static_cast<bool>(ValidCount);
+					}
+
+					if (Node.bValid) { FPlatformAtomics::InterlockedIncrement(&PassNum); }
+					else { FPlatformAtomics::InterlockedIncrement(&FailNum); }
+				});
+		}
+		else
+		{
+			for (PCGExCluster::FNode& Node : Nodes)
+			{
+				if (Node.bValid)
+				{
+					int32 ValidCount = 0;
+					for (const PCGExGraph::FLink& Lk : Node.Links) { ValidCount += Edges[Lk.Edge].bValid; }
+					Node.bValid = static_cast<bool>(ValidCount);
+				}
+
+				if (Node.bValid) { PassNum++; }
+				else { FailNum++; }
+			}
 		}
 
-		PassNum = ScopedPassNum->Sum();
-		FailNum = ScopedFailNum->Sum();
+		if (Settings->Mode == EPCGExVtxFilterOutput::Attribute)
+		{
+			for (PCGExCluster::FNode& Node : Nodes)
+			{
+				ResultOutputVtx.Write(Node.PointIndex, static_cast<bool>(Node.bValid));
+				Node.bValid = true;
+			}
+			
+			for (PCGExCluster::FEdge& Edge : Edges) { Edge.bValid = true; }
 
+			return;
+		}
+		
 		if (Settings->Mode == EPCGExVtxFilterOutput::Clusters)
 		{
 			TArray<PCGExGraph::FEdge> ValidEdges;
@@ -250,8 +290,6 @@ namespace PCGExFilterVtx
 		}
 		else if (Settings->Mode == EPCGExVtxFilterOutput::Points)
 		{
-			const TArray<PCGExCluster::FNode> Nodes = *Cluster->Nodes.Get();
-
 			TArray<int32> ReadIndices;
 
 			if (PassNum == 0 || FailNum == 0)
@@ -298,6 +336,19 @@ namespace PCGExFilterVtx
 		}
 	}
 
+	void FBatch::OnProcessingPreparationComplete()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FilterVtx)
+
+		if (Settings->Mode == EPCGExVtxFilterOutput::Attribute)
+		{
+			ResultOutputVtx = Settings->ResultOutputVtx;
+			ResultOutputVtx.Init(VtxDataFacade);
+		}
+
+		TBatch<FProcessor>::OnProcessingPreparationComplete();
+	}
+
 	void FBatch::CompleteWork()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FilterVtx)
@@ -318,8 +369,8 @@ namespace PCGExFilterVtx
 		for (int Pi = 0; Pi < Processors.Num(); Pi++)
 		{
 			const TSharedPtr<FProcessor> P = GetProcessor<FProcessor>(Pi);
-			PassNum += P->ScopedPassNum->Sum();
-			FailNum += P->ScopedFailNum->Sum();
+			PassNum += P->PassNum;
+			FailNum += P->FailNum;
 		}
 
 		if (PassNum == 0 || FailNum == 0)

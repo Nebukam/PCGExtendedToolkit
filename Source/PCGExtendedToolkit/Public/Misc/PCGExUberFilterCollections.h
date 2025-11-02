@@ -39,9 +39,9 @@ public:
 	PCGEX_NODE_INFOS(UberFilterCollections, "Uber Filter (Collection)", "Filter entire collections based on multiple rules & conditions.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
-	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 #endif
 
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual bool OutputPinsCanBeDeactivated() const override { return true; }
 	virtual bool HasDynamicPins() const override;
 

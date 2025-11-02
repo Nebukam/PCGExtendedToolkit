@@ -27,14 +27,13 @@ bool UPCGExPointsProcessorSettings::GetPinExtraIcon(const UPCGPin* InPin, FName&
 {
 	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
 }
+#endif
 
 bool UPCGExPointsProcessorSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if (GetDefault<UPCGExGlobalSettings>()->bToneDownOptionalPins && !InPin->Properties.IsRequiredPin() && !InPin->IsOutputPin()) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
-
-#endif
 
 PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::NoInit; }
 

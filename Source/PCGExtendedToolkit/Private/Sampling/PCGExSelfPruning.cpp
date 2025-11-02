@@ -18,7 +18,6 @@
 PCGEX_SETTING_VALUE_IMPL(UPCGExSelfPruningSettings, PrimaryExpansion, double, PrimaryExpansionInput, PrimaryExpansionAttribute, PrimaryExpansion)
 PCGEX_SETTING_VALUE_IMPL(UPCGExSelfPruningSettings, SecondaryExpansion, double, SecondaryExpansionInput, SecondaryExpansionAttribute, SecondaryExpansion)
 
-#if WITH_EDITOR
 bool UPCGExSelfPruningSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if ((Mode != EPCGExSelfPruningMode::Prune || bRandomize)
@@ -26,7 +25,6 @@ bool UPCGExSelfPruningSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) c
 
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
-#endif
 
 bool UPCGExSelfPruningSettings::HasDynamicPins() const
 {

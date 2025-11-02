@@ -988,7 +988,9 @@ namespace PCGExPaths
 	void FPolyPath::OffsetProjection(const double Offset)
 	{
 		if (FMath::IsNearlyZero(Offset)) { return; }
-		
+
+		if (Offset > 0) { PolyBox = PolyBox.ExpandBy(Offset); }
+
 		const int32 N = ProjectedPoints.Num();
 		if (N < 3) { return; }
 
