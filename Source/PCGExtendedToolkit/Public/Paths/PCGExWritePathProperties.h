@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
+#include "Details/PCGExDetailsIntersection.h"
 #include "Geometry/PCGExGeo.h"
 
 
@@ -21,7 +22,9 @@ MACRO(Perimeter, double, 0)\
 MACRO(Compactness, double, 0)\
 MACRO(BoundingBoxCenter, FVector, FVector::ZeroVector)\
 MACRO(BoundingBoxExtent, FVector, FVector::OneVector)\
-MACRO(BoundingBoxOrientation, FQuat, FQuat::Identity)
+MACRO(BoundingBoxOrientation, FQuat, FQuat::Identity)\
+MACRO(InclusionDepth, int32, 0)\
+MACRO(NumInside, int32, 0)
 
 
 #define PCGEX_FOREACH_FIELD_PATH_POINT(MACRO)\
@@ -37,6 +40,16 @@ MACRO(PointAvgNormal, FVector, FVector::OneVector)\
 MACRO(PointBinormal, FVector, FVector::OneVector)\
 MACRO(DirectionToNext, FVector, FVector::OneVector)\
 MACRO(DirectionToPrev, FVector, FVector::OneVector)
+
+namespace PCGExPaths
+{
+	class FPathInclusionHelper;
+}
+
+namespace PCGExPaths
+{
+	class FPolyPath;
+}
 
 namespace PCGExPaths
 {
@@ -57,10 +70,11 @@ class UPCGExWritePathPropertiesSettings : public UPCGExPathProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WritePathProperties, "Path : Properties", "Extract & write extra path informations to the path.");
+	PCGEX_NODE_INFOS(WritePathProperties, "Path : Properties", "One-stop node to compute useful path infos.");
 #endif
 
 protected:
+	virtual bool OutputPinsCanBeDeactivated() const override{ return bUseInclusionPins; }
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -68,22 +82,26 @@ protected:
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
-#pragma region Path attributes
-
 	/** Projection settings. Some path data must be computed on a 2D plane. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails();
 
+	/** Inclusion details settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	FPCGExInclusionDetails InclusionDetails;
+
 	/** Attribute set packing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, DisplayName="Packing"))
 	EPCGExAttributeSetPackingMode PathAttributePackingMode = EPCGExAttributeSetPackingMode::Merged;
+
+#pragma region Path attributes
 
 	/** Whether to also write path attribute to the data set. Looks appealing, but can have massive memory cost -- this is legacy only.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable))
 	bool bWritePathDataToPoints = true;
 
 	/** Output Path Length. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWritePathLength = false;
 
 	/** Name of the 'double' attribute to write path length to.*/
@@ -91,7 +109,7 @@ public:
 	FName PathLengthAttributeName = FName("@Data.PathLength");
 
 	/** Output averaged path direction. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWritePathDirection = false;
 
 	/** Name of the 'FVector' attribute to write averaged direction to.*/
@@ -99,7 +117,7 @@ public:
 	FName PathDirectionAttributeName = FName("@Data.PathDirection");
 
 	/** Output averaged path direction. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWritePathCentroid = false;
 
 	/** Name of the 'FVector' attribute to write averaged direction to.*/
@@ -107,7 +125,7 @@ public:
 	FName PathCentroidAttributeName = FName("@Data.PathCentroid");
 
 	/** Output path winding. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteIsClockwise = false;
 
 	/** Name of the 'bool' attribute to write winding to.*/
@@ -115,7 +133,7 @@ public:
 	FName IsClockwiseAttributeName = FName("@Data.Clockwise");
 
 	/** Output path area. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteArea = false;
 
 	/** Name of the 'double' attribute to write area to.*/
@@ -123,7 +141,7 @@ public:
 	FName AreaAttributeName = FName("@Data.Area");
 
 	/** Output path perimeter. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWritePerimeter = false;
 
 	/** Name of the 'double' attribute to write perimeter to (differ from length because this is the 2D projected value used to infer other values).*/
@@ -131,7 +149,7 @@ public:
 	FName PerimeterAttributeName = FName("@Data.Perimeter");
 
 	/** Output path compactness. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteCompactness = false;
 
 	/** Name of the 'double' attribute to write compactness to.*/
@@ -140,7 +158,7 @@ public:
 
 
 	/** Output OBB extents **/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteBoundingBoxCenter = false;
 
 	/** Name of the 'FVector' attribute to write bounding box center to. */
@@ -148,7 +166,7 @@ public:
 	FName BoundingBoxCenterAttributeName = FName("@Data.OBBCenter");
 
 	/** Output OBB extents **/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteBoundingBoxExtent = false;
 
 	/** Name of the 'FVector' attribute to write bounding box extent to. */
@@ -156,13 +174,28 @@ public:
 	FName BoundingBoxExtentAttributeName = FName("@Data.OBBExtent");
 
 	/** Output OBB orientation **/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteBoundingBoxOrientation = false;
 
 	/** Name of the 'FRotator' attribute to write bounding box orientation to. **/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(DisplayName="Orientation", EditCondition="bWriteBoundingBoxOrientation"))
 	FName BoundingBoxOrientationAttributeName = FName("@Data.OBBOrientation");
 
+	/** Output path inclusion depth. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bWriteInclusionDepth = false;
+
+	/** Name of the 'int32' attribute to write inclusion depth to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="Inclusion Depth", PCG_Overridable, EditCondition="bWriteInclusionDepth"))
+	FName InclusionDepthAttributeName = FName("@Data.InclusionDepth");
+
+	/** Output path number of children. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bWriteNumInside = false;
+
+	/** Name of the 'int32' attribute to write how many paths are contained inside this one.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="Num Inside", PCG_Overridable, EditCondition="bWriteNumInside"))
+	FName NumInsideAttributeName = FName("@Data.NumInside");
 
 #pragma endregion
 
@@ -173,7 +206,7 @@ public:
 	FVector UpVector = FVector::UpVector;
 
 	/** Output Dot product of Prev/Next directions. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteDot = false;
 
 	/** Name of the 'double' attribute to write distance to next point to.*/
@@ -181,7 +214,7 @@ public:
 	FName DotAttributeName = FName("Dot");
 
 	/** Output Dot product of Prev/Next directions. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteAngle = false;
 
 	/** Name of the 'double' attribute to write angle to next point to.*/
@@ -193,7 +226,7 @@ public:
 	EPCGExAngleRange AngleRange = EPCGExAngleRange::PIRadians;
 
 	/** Output distance to next. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteDistanceToNext = false;
 
 	/** Name of the 'double' attribute to write distance to next point to.*/
@@ -202,7 +235,7 @@ public:
 
 
 	/** Output distance to prev. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteDistanceToPrev = false;
 
 	/** Name of the 'double' attribute to write distance to prev point to.*/
@@ -211,7 +244,7 @@ public:
 
 
 	/** Output distance to start. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteDistanceToStart = false;
 
 	/** Name of the 'double' attribute to write distance to start to.*/
@@ -220,7 +253,7 @@ public:
 
 
 	/** Output distance to end. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteDistanceToEnd = false;
 
 	/** Name of the 'double' attribute to write distance to start to.*/
@@ -229,7 +262,7 @@ public:
 
 
 	/** Output distance to end. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWritePointTime = false;
 
 	/** Name of the 'double' attribute to write distance to start to.*/
@@ -237,11 +270,11 @@ public:
 	FName PointTimeAttributeName = FName("PointTime");
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, DisplayName=" └─ One Minus", EditCondition="bWritePointTime", HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, DisplayName=" └─ One Minus", EditCondition="bWritePointTime", HideEditConditionToggle))
 	bool bTimeOneMinus = false;
 
 	/** Output point normal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWritePointNormal = false;
 
 	/** Name of the 'FVector' attribute to write point normal to.*/
@@ -249,7 +282,7 @@ public:
 	FName PointNormalAttributeName = FName("PointNormal");
 
 	/** Output point normal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWritePointAvgNormal = false;
 
 	/** Name of the 'FVector' attribute to write point averaged normal to.*/
@@ -257,7 +290,7 @@ public:
 	FName PointAvgNormalAttributeName = FName("PointAvgNormal");
 
 	/** Output point normal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWritePointBinormal = false;
 
 	/** Name of the 'FVector' attribute to write point binormal to. Note that it's stabilized.*/
@@ -265,7 +298,7 @@ public:
 	FName PointBinormalAttributeName = FName("PointBinormal");
 
 	/** Output direction to next normal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteDirectionToNext = false;
 
 	/** Name of the 'FVector' attribute to write direction to next point to.*/
@@ -273,7 +306,7 @@ public:
 	FName DirectionToNextAttributeName = FName("DirectionToNext");
 
 	/** Output direction to prev normal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteDirectionToPrev = false;
 
 	/** Name of the 'FVector' attribute to write direction to prev point to.*/
@@ -283,21 +316,55 @@ public:
 #pragma endregion
 
 	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bTagConcave = false;
 
 	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(EditCondition="bTagConcave"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagConcave"))
 	FString ConcaveTag = TEXT("Concave");
 
 	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bTagConvex = false;
 
 	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(EditCondition="bTagConvex"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagConvex"))
 	FString ConvexTag = TEXT("Convex");
 
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bTagOuter = false;
+
+	/** Outer paths are not enclosed by any other path */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagOuter"))
+	FString OuterTag = TEXT("Outer");
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bTagInner = false;
+
+	/** Inner paths are enclosed by one or more paths */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagInner"))
+	FString InnerTag = TEXT("Inner");
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bTagOddInclusionDepth = false;
+
+	/** Median paths are inner with a depth %2 != 0 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagOddInclusionDepth"))
+	FString OddInclusionDepthTag = TEXT("OddDepth");
+	
+	/** If enabled, will output data to additional pins. Note that all outputs are added to the default Path pin; extra pins contain a filtered list of the same data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bUseInclusionPins = false;
+
+	/** If enabled, outer path (inclusion depth of zero) will not be considered "odd" even if they technically are. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Outer is not Odd", EditCondition="bTagOddInclusionDepth || bUseInclusionPins", HideEditConditionToggle))
+	bool bOuterIsNotOdd = true;
+	
+	bool CanForwardData() const;
+	bool WantsInclusionHelper() const;
 	bool WriteAnyPathData() const;
 };
 
@@ -310,6 +377,12 @@ struct FPCGExWritePathPropertiesContext final : FPCGExPathProcessorContext
 
 	TObjectPtr<UPCGParamData> PathAttributeSet;
 	TArray<int64> MergedAttributeSetKeys;
+
+	int32 NumOuter = 0;
+	int32 NumInner = 0;
+	int32 NumOdd = 0;
+
+	TSharedPtr<PCGExPaths::FPathInclusionHelper> InclusionHelper;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
@@ -327,6 +400,9 @@ protected:
 namespace PCGExWritePathProperties
 {
 	const FName OutputPathProperties = TEXT("PathProperties");
+	const FName OutputPathOuter = TEXT("Outer");
+	const FName OutputPathInner = TEXT("Inner");
+	const FName OutputPathMedian = TEXT("Odd");
 
 	struct PCGEXTENDEDTOOLKIT_API FPointDetails
 	{
@@ -339,6 +415,9 @@ namespace PCGExWritePathProperties
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExWritePathPropertiesContext, UPCGExWritePathPropertiesSettings>
 	{
+		friend class FBatch;
+
+	protected:
 		PCGEX_FOREACH_FIELD_PATH_POINT(PCGEX_OUTPUT_DECL)
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
@@ -367,5 +446,14 @@ namespace PCGExWritePathProperties
 
 		virtual void CompleteWork() override;
 		virtual void Output() override;
+	};
+
+	class FBatch final : public PCGExPointsMT::TBatch<FProcessor>
+	{
+	public:
+		explicit FBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection);
+
+	protected:
+		virtual void OnInitialPostProcess() override;
 	};
 }

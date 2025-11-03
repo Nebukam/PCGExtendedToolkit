@@ -175,6 +175,8 @@ public:
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
 #endif
 
+	virtual int32 GetDefaultPriority() const { return 0; }
+	
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;

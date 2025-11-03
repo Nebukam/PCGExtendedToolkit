@@ -31,6 +31,8 @@ protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterPoint)
 
 public:
+	UPCGExFilterProviderSettings();
+		
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
@@ -50,8 +52,8 @@ public:
 #endif
 
 	/** Filter Priority.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
-	int32 Priority;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1), AdvancedDisplay)
+	int32 Priority = 0;
 
 	/** How to handle missing data. This only applies to filters that rely on data to output meaningful results. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(EditCondition="ShowMissingDataHandling()", PCG_NotOverridable))
