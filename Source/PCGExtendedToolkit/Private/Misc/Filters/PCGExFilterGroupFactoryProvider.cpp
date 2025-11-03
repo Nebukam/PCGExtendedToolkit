@@ -23,7 +23,7 @@ TArray<FPCGPreConfiguredSettingsInfo> UPCGExFilterGroupProviderSettings::GetPrec
 	TArray<FPCGPreConfiguredSettingsInfo> Infos;
 
 	const TSet<EPCGExFilterGroupMode> ValuesToSkip = {};
-	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExFilterGroupMode>(ValuesToSkip, FTEXT("PCGEx | Filter {0}"));
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExFilterGroupMode>(ValuesToSkip, FTEXT("{0} (Combine Filters)"));
 }
 #endif
 

@@ -114,6 +114,28 @@ namespace PCGExPointFilter
 #undef PCGEX_CHECK_MIN
 }
 
+#if WITH_EDITOR
+TArray<FPCGPreConfiguredSettingsInfo> UPCGExInclusionFilterProviderSettings::GetPreconfiguredInfo() const
+{
+	TArray<FPCGPreConfiguredSettingsInfo> Infos;
+
+	const TSet<EPCGExSplineCheckType> ValuesToSkip = {};
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExSplineCheckType>(ValuesToSkip, FTEXT("{0}"));
+}
+#endif
+
+void UPCGExInclusionFilterProviderSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
+{
+	Super::ApplyPreconfiguredSettings(PreconfigureInfo);
+	if (const UEnum* EnumPtr = StaticEnum<EPCGExSplineCheckType>())
+	{
+		if (EnumPtr->IsValidEnumValue(PreconfigureInfo.PreconfiguredIndex))
+		{
+			Config.CheckType = static_cast<EPCGExSplineCheckType>(PreconfigureInfo.PreconfiguredIndex);
+		}
+	}
+}
+
 TArray<FPCGPinProperties> UPCGExInclusionFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();

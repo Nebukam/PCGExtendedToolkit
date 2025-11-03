@@ -26,6 +26,7 @@
 #include "Data/PCGSpatialData.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "DataViz/PCGExSpatialDataVisualization.h"
+#include "Details/PCGExDetailsCustomization.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -163,7 +164,8 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
 
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FPCGExtendedToolkitEditorModule::RegisterMenuExtensions));
-
+	PCGExDetailsCustomization::RegisterDetailsCustomization();
+	
 	RegisterDataVisualizations();
 }
 

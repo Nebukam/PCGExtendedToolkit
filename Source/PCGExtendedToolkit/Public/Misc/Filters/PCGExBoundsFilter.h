@@ -19,10 +19,10 @@
 UENUM()
 enum class EPCGExBoundsCheckType : uint8
 {
-	Intersects           = 0 UMETA(DisplayName = "Intersects", Tooltip="..."),
-	IsInside             = 1 UMETA(DisplayName = "Is Inside", Tooltip="..."),
-	IsInsideOrOn         = 2 UMETA(DisplayName = "Is Inside or On", Tooltip="..."),
-	IsInsideOrIntersects = 3 UMETA(DisplayName = "Is Inside or Intersects", Tooltip="..."),
+	Intersects           = 0 UMETA(DisplayName = "Intersects", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Intersects"),
+	IsInside             = 1 UMETA(DisplayName = "Is Inside", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Inside"),
+	IsInsideOrOn         = 2 UMETA(DisplayName = "Is Inside or On", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Is Inside or On"),
+	IsInsideOrIntersects = 3 UMETA(DisplayName = "Is Inside or Intersects", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Is Inside or Intersects"),
 };
 
 UENUM()
@@ -151,9 +151,12 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		BoundsFilterFactory, "Filter : Bounds", "Creates a filter definition that compares dot value of two vectors.",
+		BoundsFilterFactory, "Filter : Inclusion (Bounds)", "Creates a filter definition that compares dot value of two vectors.",
 		PCGEX_FACTORY_NAME_PRIORITY)
+	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
 #endif
+
+	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
