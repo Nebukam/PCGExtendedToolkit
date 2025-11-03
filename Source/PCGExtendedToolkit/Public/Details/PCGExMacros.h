@@ -49,7 +49,6 @@ if(!SharedContext.Get()){ return _RET; }
 #define PCGEX_NOT_IMPLEMENTED_RET(_NAME, _RETURN){ LowLevelFatalError(TEXT("Method not implemented: (%s)"), TEXT(#_NAME)); return _RETURN;}
 
 #define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
-#define FSTRING(_TEXT) FString(_TEXT)
 
 #define PCGEX_AXIS_X FVector::ForwardVector
 #define PCGEX_AXIS_Y FVector::RightVector

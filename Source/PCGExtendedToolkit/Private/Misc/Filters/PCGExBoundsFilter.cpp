@@ -171,6 +171,28 @@ TArray<FPCGPinProperties> UPCGExBoundsFilterProviderSettings::InputPinProperties
 PCGEX_CREATE_FILTER_FACTORY(Bounds)
 
 #if WITH_EDITOR
+TArray<FPCGPreConfiguredSettingsInfo> UPCGExBoundsFilterProviderSettings::GetPreconfiguredInfo() const
+{
+	TArray<FPCGPreConfiguredSettingsInfo> Infos;
+
+	const TSet<EPCGExBoundsCheckType> ValuesToSkip = {};
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExBoundsCheckType>(ValuesToSkip, FTEXT("{0}"));
+}
+#endif
+
+void UPCGExBoundsFilterProviderSettings::ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo)
+{
+	Super::ApplyPreconfiguredSettings(PreconfigureInfo);
+	if (const UEnum* EnumPtr = StaticEnum<EPCGExBoundsCheckType>())
+	{
+		if (EnumPtr->IsValidEnumValue(PreconfigureInfo.PreconfiguredIndex))
+		{
+			Config.CheckType = static_cast<EPCGExBoundsCheckType>(PreconfigureInfo.PreconfiguredIndex);
+		}
+	}
+}
+
+#if WITH_EDITOR
 FString UPCGExBoundsFilterProviderSettings::GetDisplayName() const
 {
 	switch (Config.CheckType)

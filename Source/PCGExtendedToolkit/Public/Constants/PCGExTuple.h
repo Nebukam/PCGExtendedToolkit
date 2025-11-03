@@ -309,7 +309,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{Name}", ToolTip="Tuple composition, per-row values are set in the values array."))
 	TArray<FPCGExTupleValueHeader> Composition;
 
-	/** Tuple composition */
+	/** Tuple values */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ToolTip="Per-row values. Do no change the type here, it will be reset internally; instead, change it in the composition.", FullyExpand=true))
 	TArray<FPCGExTupleBody> Values;
 };

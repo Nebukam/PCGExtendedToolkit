@@ -31,7 +31,7 @@ enum class EPCGExSupportedTagValue : uint8
 
 namespace PCGExData
 {
-	const FString TagSeparator = FSTRING(":");
+	const FString TagSeparator = TEXT(":");
 
 	class PCGEXTENDEDTOOLKIT_API FTags : public TSharedFromThis<FTags>
 	{

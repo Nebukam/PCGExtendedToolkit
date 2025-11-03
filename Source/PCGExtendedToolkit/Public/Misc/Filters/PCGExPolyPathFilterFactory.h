@@ -26,14 +26,14 @@ enum class EPCGExSplineSamplingIncludeMode : uint8
 UENUM()
 enum class EPCGExSplineCheckType : uint8
 {
-	IsInside       = 0 UMETA(DisplayName = "Is Inside", Tooltip="..."),
-	IsInsideOrOn   = 1 UMETA(DisplayName = "Is Inside or On", Tooltip="..."),
-	IsInsideAndOn  = 2 UMETA(DisplayName = "Is Inside and On", Tooltip="..."),
-	IsOutside      = 3 UMETA(DisplayName = "Is Outside", Tooltip="..."),
-	IsOutsideOrOn  = 4 UMETA(DisplayName = "Is Outside or On", Tooltip="..."),
-	IsOutsideAndOn = 5 UMETA(DisplayName = "Is Outside and On", Tooltip="..."),
-	IsOn           = 6 UMETA(DisplayName = "Is On", Tooltip="..."),
-	IsNotOn        = 7 UMETA(DisplayName = "Is not On", Tooltip="..."),
+	IsInside       = 0 UMETA(DisplayName = "Is Inside", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Inside"),
+	IsInsideOrOn   = 1 UMETA(DisplayName = "Is Inside or On", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Inside or On"),
+	IsInsideAndOn  = 2 UMETA(DisplayName = "Is Inside and On", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Inside and On"),
+	IsOutside      = 3 UMETA(DisplayName = "Is Outside", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Outside"),
+	IsOutsideOrOn  = 4 UMETA(DisplayName = "Is Outside or On", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Outside or On"),
+	IsOutsideAndOn = 5 UMETA(DisplayName = "Is Outside and On", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Outside and On"),
+	IsOn           = 6 UMETA(DisplayName = "Is On", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Is On"),
+	IsNotOn        = 7 UMETA(DisplayName = "Is not On", Tooltip="...", ActionIcon="PCGEx.Pin.OUT_Filter", SearchHints = "Not On"),
 };
 
 UENUM()
