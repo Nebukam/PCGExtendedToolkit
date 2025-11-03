@@ -70,10 +70,11 @@ class UPCGExWritePathPropertiesSettings : public UPCGExPathProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WritePathProperties, "Path : Properties", "Extract & write extra path informations to the path.");
+	PCGEX_NODE_INFOS(WritePathProperties, "Path : Properties", "One-stop node to compute useful path infos.");
 #endif
 
 protected:
+	virtual bool OutputPinsCanBeDeactivated() const override{ return bUseInclusionPins; }
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -81,7 +82,6 @@ protected:
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
-
 	/** Projection settings. Some path data must be computed on a 2D plane. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails();
@@ -89,11 +89,11 @@ public:
 	/** Inclusion details settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	FPCGExInclusionDetails InclusionDetails;
-	
+
 	/** Attribute set packing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, DisplayName="Packing"))
 	EPCGExAttributeSetPackingMode PathAttributePackingMode = EPCGExAttributeSetPackingMode::Merged;
-	
+
 #pragma region Path attributes
 
 	/** Whether to also write path attribute to the data set. Looks appealing, but can have massive memory cost -- this is legacy only.*/
@@ -154,7 +154,7 @@ public:
 
 	/** Name of the 'double' attribute to write compactness to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(DisplayName="Compactness", PCG_Overridable, EditCondition="bWriteCompactness"))
-	FName CompactnessAttributeName = FName("@Data.NumInside");
+	FName CompactnessAttributeName = FName("@Data.Compactness");
 
 
 	/** Output OBB extents **/
@@ -180,7 +180,7 @@ public:
 	/** Name of the 'FRotator' attribute to write bounding box orientation to. **/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path|Oriented Bounding Box", meta=(DisplayName="Orientation", EditCondition="bWriteBoundingBoxOrientation"))
 	FName BoundingBoxOrientationAttributeName = FName("@Data.OBBOrientation");
-	
+
 	/** Output path inclusion depth. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteInclusionDepth = false;
@@ -349,16 +349,23 @@ public:
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_NotOverridable, InlineEditConditionToggle))
-	bool bTagMedian = false;
+	bool bTagOddInclusionDepth = false;
 
 	/** Median paths are inner with a depth %2 != 0 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagMedian"))
-	FString MedianTag = TEXT("Median");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagOddInclusionDepth"))
+	FString OddInclusionDepthTag = TEXT("OddDepth");
+	
+	/** If enabled, will output data to additional pins. Note that all outputs are added to the default Path pin; extra pins contain a filtered list of the same data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bUseInclusionPins = false;
+
+	/** If enabled, outer path (inclusion depth of zero) will not be considered "odd" even if they technically are. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Outer is not Odd", EditCondition="bTagOddInclusionDepth || bUseInclusionPins", HideEditConditionToggle))
+	bool bOuterIsNotOdd = true;
 	
 	bool CanForwardData() const;
 	bool WantsInclusionHelper() const;
 	bool WriteAnyPathData() const;
-	
 };
 
 struct FPCGExWritePathPropertiesContext final : FPCGExPathProcessorContext
@@ -371,8 +378,12 @@ struct FPCGExWritePathPropertiesContext final : FPCGExPathProcessorContext
 	TObjectPtr<UPCGParamData> PathAttributeSet;
 	TArray<int64> MergedAttributeSetKeys;
 
+	int32 NumOuter = 0;
+	int32 NumInner = 0;
+	int32 NumOdd = 0;
+
 	TSharedPtr<PCGExPaths::FPathInclusionHelper> InclusionHelper;
-	
+
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
@@ -389,6 +400,9 @@ protected:
 namespace PCGExWritePathProperties
 {
 	const FName OutputPathProperties = TEXT("PathProperties");
+	const FName OutputPathOuter = TEXT("Outer");
+	const FName OutputPathInner = TEXT("Inner");
+	const FName OutputPathMedian = TEXT("Odd");
 
 	struct PCGEXTENDEDTOOLKIT_API FPointDetails
 	{
@@ -402,9 +416,8 @@ namespace PCGExWritePathProperties
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExWritePathPropertiesContext, UPCGExWritePathPropertiesSettings>
 	{
 		friend class FBatch;
-		
+
 	protected:
-		
 		PCGEX_FOREACH_FIELD_PATH_POINT(PCGEX_OUTPUT_DECL)
 
 		FPCGExGeo2DProjectionDetails ProjectionDetails;

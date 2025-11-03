@@ -14,6 +14,11 @@
 FString UPCGExFilterProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
+UPCGExFilterProviderSettings::UPCGExFilterProviderSettings()
+{
+	Priority = GetDefaultPriority();
+}
+
 UPCGExFactoryData* UPCGExFilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExPointFilterFactoryData* NewFactory = Cast<UPCGExPointFilterFactoryData>(InFactory);

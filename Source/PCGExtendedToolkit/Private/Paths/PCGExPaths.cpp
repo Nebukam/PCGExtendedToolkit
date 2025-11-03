@@ -497,16 +497,16 @@ namespace PCGExPaths
 		return FGeomTools2D::IsPointInPolygon(ProjectedPoint, ProjectedPoints);
 	}
 
-	bool FPath::Contains(const TSharedPtr<FPath>& OtherPath, const double Tolerance) const
+	bool FPath::Contains(const TConstPCGValueRange<FTransform>& InPositions, const double Tolerance) const
 	{
-		const int32 OtherNumPoints = OtherPath->NumPoints;
+		const int32 OtherNumPoints = InPositions.Num();
 		const int32 Threshold = FMath::Min(1, FMath::RoundToInt(static_cast<double>(OtherNumPoints) * (1 - FMath::Clamp(Tolerance, 0, 1))));
 
 		int32 InsideCount = 0;
 
 		for (int i = 0; i < OtherNumPoints; i++)
 		{
-			if (IsInsideProjection(OtherPath->GetPos_Unsafe(i)))
+			if (IsInsideProjection(InPositions[i].GetLocation()))
 			{
 				InsideCount++;
 				if (InsideCount >= Threshold) { return true; }
@@ -1143,16 +1143,16 @@ namespace PCGExPaths
 		{
 			FInclusionInfos& OtherInfos = IdxMap[OtherPath->Idx];
 
-			if (OtherPath->Contains(InPath, Tolerance))
+			if (OtherPath->Contains(InPath->GetPositions(), Tolerance))
 			{
 				NewInfos.Depth++;
-				NewInfos.bOuter = NewInfos.Depth % 2 == 0;
+				NewInfos.bOdd = NewInfos.Depth % 2 != 0;
 				OtherInfos.Children++;
 			}
-			else if (InPath->Contains(OtherPath, Tolerance))
+			else if (InPath->Contains(OtherPath->GetPositions(), Tolerance))
 			{
 				OtherInfos.Depth++;
-				OtherInfos.bOuter = OtherInfos.Depth % 2 == 0;
+				OtherInfos.bOdd = OtherInfos.Depth % 2 != 0;
 				NewInfos.Children++;
 			}
 		}

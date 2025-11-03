@@ -24,7 +24,7 @@ bool UPCGExWritePathPropertiesSettings::CanForwardData() const
 
 bool UPCGExWritePathPropertiesSettings::WantsInclusionHelper() const
 {
-	return bTagInner || bTagOuter || bTagMedian || bWriteNumInside || bWriteInclusionDepth;
+	return bTagInner || bTagOuter || bTagOddInclusionDepth || bWriteNumInside || bWriteInclusionDepth || bUseInclusionPins;
 }
 
 bool UPCGExWritePathPropertiesSettings::WriteAnyPathData() const
@@ -33,12 +33,18 @@ bool UPCGExWritePathPropertiesSettings::WriteAnyPathData() const
 	PCGEX_FOREACH_FIELD_PATH(PCGEX_PATH_MARK_TRUE)
 #undef PCGEX_PATH_MARK_TRUE
 
-	return bTagInner || bTagOuter || bTagMedian;
+	return bTagInner || bTagOuter || bTagOddInclusionDepth;
 }
 
 TArray<FPCGPinProperties> UPCGExWritePathPropertiesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	if (bUseInclusionPins)
+	{
+		PCGEX_PIN_POINTS(PCGExWritePathProperties::OutputPathOuter, "Paths that aren't inside any other path", Normal)
+		PCGEX_PIN_POINTS(PCGExWritePathProperties::OutputPathInner, "Paths that are inside at least another path", Normal)
+		PCGEX_PIN_POINTS(PCGExWritePathProperties::OutputPathMedian, "Paths that are inside at least another path, with an even inclusion depth", Normal)
+	}
 	if (WriteAnyPathData()) { PCGEX_PIN_PARAMS(PCGExWritePathProperties::OutputPathProperties, "...", Advanced) }
 	return PinProperties;
 }
@@ -104,18 +110,13 @@ bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) c
 
 	PCGEX_OUTPUT_VALID_PATHS(MainPoints)
 
-	if (Settings->WriteAnyPathData())
+	if (Context->PathAttributeSet)
 	{
-		if (Context->PathAttributeSet)
-		{
-			FPCGTaggedData& StagedData = Context->StageOutput(Context->PathAttributeSet, false, false);
-			StagedData.Pin = PCGExWritePathProperties::OutputPathProperties;
-		}
-		else
-		{
-			Context->MainBatch->Output();
-		}
+		FPCGTaggedData& StagedData = Context->StageOutput(Context->PathAttributeSet, false, false);
+		StagedData.Pin = PCGExWritePathProperties::OutputPathProperties;
 	}
+
+	Context->MainBatch->Output();
 
 	return Context->TryComplete();
 }
@@ -267,20 +268,21 @@ namespace PCGExWritePathProperties
 			PCGEX_OUTPUT_PATH_VALUE(Perimeter, double, PolyInfos.Perimeter)
 			PCGEX_OUTPUT_PATH_VALUE(Compactness, double, PolyInfos.Compactness)
 
-			bool bIsMedian = false;
-			bool bIsInside = false;
+			bool bIsOdd = false;
+			bool bInner = false;
 
 			if (PCGExPaths::FInclusionInfos Infos;
-				Context->InclusionHelper && Context->InclusionHelper->Find(Path->Idx, Infos))
+				Context->InclusionHelper
+				&& Context->InclusionHelper->Find(Path->Idx, Infos))
 			{
-				bIsMedian = !Infos.bOuter;
-				bIsInside = Infos.Depth > 0;
+				bIsOdd = Infos.bOdd;
+				bInner = Infos.Depth > 0;
 				PCGEX_OUTPUT_PATH_VALUE(InclusionDepth, int32, Infos.Depth)
 				PCGEX_OUTPUT_PATH_VALUE(NumInside, int32, Infos.Children)
 			}
 
-			if (bIsMedian && Settings->bTagMedian) { PointIO->Tags->AddRaw(Settings->MedianTag); }
-			if (bIsInside) { if (Settings->bTagInner) { PointIO->Tags->AddRaw(Settings->InnerTag); } }
+			if (bIsOdd && Settings->bTagOddInclusionDepth && (!Settings->bOuterIsNotOdd || bInner)) { PointIO->Tags->AddRaw(Settings->OddInclusionDepthTag); }
+			if (bInner) { if (Settings->bTagInner) { PointIO->Tags->AddRaw(Settings->InnerTag); } }
 			else { if (Settings->bTagOuter) { PointIO->Tags->AddRaw(Settings->OuterTag); } }
 
 			if (Settings->bWriteBoundingBoxCenter ||
@@ -324,10 +326,37 @@ namespace PCGExWritePathProperties
 	void FProcessor::Output()
 	{
 		TProcessor<FPCGExWritePathPropertiesContext, UPCGExWritePathPropertiesSettings>::Output();
-		if (PathAttributeSet && !Context->PathAttributeSet)
+		if (PathAttributeSet
+			&& !Context->PathAttributeSet)
 		{
 			FPCGTaggedData& StagedData = Context->StageOutput(PathAttributeSet, false, false);
 			StagedData.Pin = OutputPathProperties;
+		}
+
+		if (PCGExPaths::FInclusionInfos Infos;
+			Settings->bUseInclusionPins
+			&& Context->InclusionHelper
+			&& Context->InclusionHelper->Find(Path->Idx, Infos))
+		{
+			if (!Infos.Depth)
+			{
+				Context->NumOuter++;
+				FPCGTaggedData& StagedData = Context->StageOutput(PointDataFacade->GetOut(), false, false);
+				StagedData.Pin = OutputPathOuter;
+			}
+			else
+			{
+				Context->NumInner++;
+				FPCGTaggedData& InnerData = Context->StageOutput(PointDataFacade->GetOut(), false, false);
+				InnerData.Pin = OutputPathInner;
+				
+				if (Infos.bOdd && (!Settings->bOuterIsNotOdd || Infos.Depth > 0))
+				{
+					Context->NumOdd++;
+					FPCGTaggedData& StagedData = Context->StageOutput(PointDataFacade->GetOut(), false, false);
+					StagedData.Pin = OutputPathMedian;
+				}				
+			}
 		}
 	}
 

@@ -269,9 +269,9 @@ public:
 	virtual FName GetMainOutputPin() const override { return PCGExDataBlending::OutputBlendingLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
-	/** Filter Priority.*/
+	/** Op Priority. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
-	int32 Priority;
+	int32 Priority = 0;
 
 	/** Config. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))

@@ -48,11 +48,11 @@ public:
 	virtual FString GetDisplayName() const override;
 #endif
 
-	/** Filter Priority.*/
+	/** Filter Priority. Will use the highest value between the one set here and from the connected filters. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1), AdvancedDisplay)
 	int32 Priority = 0;
 
-	/** Filter Priority.*/
+	/** Group mode.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	EPCGExFilterGroupMode Mode = EPCGExFilterGroupMode::AND;
 

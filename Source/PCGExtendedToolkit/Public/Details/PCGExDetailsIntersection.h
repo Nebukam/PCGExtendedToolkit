@@ -106,7 +106,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionDetails
 	bool bEnableSelfIntersection = true;
 
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
 	FPCGExSourceFuseDetails FuseDetails;
 
 	/** When enabled, point will be moved exactly on the edge. */

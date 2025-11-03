@@ -419,6 +419,7 @@ namespace PCGExPaths
 		double TotalLength = 0;
 
 		PCGExMT::FScope GetEdgeScope(const int32 InLoopIndex = -1) const;
+		const TConstPCGValueRange<FTransform>& GetPositions() const { return Positions; }
 
 		int32 LoopPointIndex(const int32 Index) const;
 		int32 SafePointIndex(const int32 Index) const;
@@ -531,7 +532,7 @@ namespace PCGExPaths
 		const TArray<FVector2D>& GetProjectedPoints() const { return ProjectedPoints; }
 
 		virtual bool IsInsideProjection(const FVector& WorldPosition) const;
-		virtual bool Contains(const TSharedPtr<FPath>& OtherPath, const double Tolerance = 0) const;
+		virtual bool Contains(const TConstPCGValueRange<FTransform>& InPositions, const double Tolerance = 0) const;
 
 	protected:
 		void BuildPath(const double Expansion);
@@ -776,7 +777,7 @@ namespace PCGExPaths
 		FInclusionInfos() = default;
 		int32 Depth = 0;    // Inclusion "depth"
 		int32 Children = 0; // Number of paths included in this one
-		bool bOuter = true;
+		bool bOdd = false;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FPathInclusionHelper : public TSharedFromThis<FPathInclusionHelper>

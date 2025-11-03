@@ -56,6 +56,11 @@ namespace PCGExClusterMT
 			PCGExFactories::RegisterConsumableAttributesWithFacade(*HeuristicsFactories, VtxDataFacade);
 			PCGExFactories::RegisterConsumableAttributesWithFacade(*HeuristicsFactories, EdgeDataFacade);
 		}
+
+		if (EdgeFilterFactories)
+		{
+			PCGExFactories::RegisterConsumableAttributesWithFacade(*EdgeFilterFactories, EdgeDataFacade);
+		}
 	}
 
 	void IProcessor::SetWantsHeuristics(const bool bRequired, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* InHeuristicsFactories)
@@ -468,6 +473,8 @@ namespace PCGExClusterMT
 		{
 			VtxFilterCache = MakeShared<TArray<int8>>();
 			VtxFilterCache->Init(DefaultVtxFilterValue, VtxDataFacade->GetNum());
+			
+			PCGExFactories::RegisterConsumableAttributesWithFacade(*VtxFilterFactories, VtxDataFacade);
 		}
 
 		bIsBatchValid = true;
