@@ -164,6 +164,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
 
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FPCGExtendedToolkitEditorModule::RegisterMenuExtensions));
+
 	PCGExDetailsCustomization::RegisterDetailsCustomization();
 	
 	RegisterDataVisualizations();
