@@ -394,6 +394,10 @@ namespace PCGExPaths
 		TUniquePtr<FPathEdgeOctree> EdgeOctree;
 		TArray<TSharedPtr<IPathEdgeExtra>> Extras;
 
+		TArray<FVector2D> ProjectedPoints;
+		FPCGExGeo2DProjectionDetails Projection;
+		FBox2D ProjectedBounds = FBox2D(ForceInit);
+
 	public:
 		explicit FPath(const bool IsClosed = false);
 		FPath(const TConstPCGValueRange<FTransform>& InTransforms, const bool IsClosed, const double Expansion = 0);
@@ -415,6 +419,7 @@ namespace PCGExPaths
 		double TotalLength = 0;
 
 		PCGExMT::FScope GetEdgeScope(const int32 InLoopIndex = -1) const;
+		const TConstPCGValueRange<FTransform>& GetPositions() const { return Positions; }
 
 		int32 LoopPointIndex(const int32 Index) const;
 		int32 SafePointIndex(const int32 Index) const;
@@ -496,13 +501,6 @@ namespace PCGExPaths
 		virtual void ExtraComputingDone();
 		virtual void ComputeAllEdgeExtra();
 
-		virtual bool IsInsideProjection(const FVector& WorldPosition) const
-		PCGEX_NOT_IMPLEMENTED_RET(
-				IsInsideProjection(const FTransform& WorldPosition)
-				,
-				false
-			)
-
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp, const bool bUseScale = false) const
 		PCGEX_NOT_IMPLEMENTED_RET(GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp), FTransform::Identity);
 
@@ -526,6 +524,15 @@ namespace PCGExPaths
 
 		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const
 		PCGEX_NOT_IMPLEMENTED_RET(GetClosestEdge(const double InTime, float& OutLerp), - 1);
+
+		void BuildProjection();
+		void BuildProjection(const FPCGExGeo2DProjectionDetails& InProjectionDetails);
+		void OffsetProjection(const double Offset);
+
+		const TArray<FVector2D>& GetProjectedPoints() const { return ProjectedPoints; }
+
+		virtual bool IsInsideProjection(const FVector& WorldPosition) const;
+		virtual bool Contains(const TConstPCGValueRange<FTransform>& InPositions, const double Tolerance = 0) const;
 
 	protected:
 		void BuildPath(const double Expansion);
@@ -686,12 +693,8 @@ namespace PCGExPaths
 	{
 		TSharedPtr<FPCGSplineStruct> LocalSpline;
 		TArray<FTransform> LocalTransforms;
-		TConstPCGValueRange<FTransform> LocalTransformsValueRange;
 
 		const FPCGSplineStruct* Spline = nullptr;
-		TArray<FVector2D> ProjectedPoints;
-		FPCGExGeo2DProjectionDetails Projection;
-		FBox PolyBox = FBox(ForceInit);
 
 	public:
 		FPolyPath(
@@ -716,12 +719,9 @@ namespace PCGExPaths
 
 	protected:
 		void InitFromTransforms(
-			const TConstPCGValueRange<FTransform>& InTransforms,
-			const double ExpansionZ = -1, const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
+			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
 
 	public:
-		virtual bool IsInsideProjection(const FVector& WorldPosition) const override;
-
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, int32& OutEdgeIndex, float& OutLerp, const bool bUseScale = false) const override;
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, float& OutAlpha, const bool bUseScale = false) const override;
 		virtual FTransform GetClosestTransform(const FVector& WorldPosition, bool& bIsInside, const bool bUseScale = false) const override;
@@ -732,8 +732,6 @@ namespace PCGExPaths
 
 		virtual int32 GetClosestEdge(const FVector& WorldPosition, float& OutLerp) const override;
 		virtual int32 GetClosestEdge(const double InTime, float& OutLerp) const override;
-		
-		void OffsetProjection(const double Offset);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCrossing
@@ -772,6 +770,29 @@ namespace PCGExPaths
 
 		void SortByAlpha();
 		void SortByHash();
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FInclusionInfos
+	{
+		FInclusionInfos() = default;
+		int32 Depth = 0;    // Inclusion "depth"
+		int32 Children = 0; // Number of paths included in this one
+		bool bOdd = false;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FPathInclusionHelper : public TSharedFromThis<FPathInclusionHelper>
+	{
+	protected:
+		TSet<int32> PathsSet;
+		TArray<TSharedPtr<FPath>> Paths;
+		TMap<int32, FInclusionInfos> IdxMap;
+
+	public:
+		FPathInclusionHelper() = default;
+
+		void AddPath(const TSharedPtr<FPath>& InPath, const double Tolerance = 0);
+		void AddPaths(const TArrayView<TSharedPtr<FPath>> InPaths, const double Tolerance = 0);
+		bool Find(const int32 Idx, FInclusionInfos& OutInfos) const;
 	};
 }
 

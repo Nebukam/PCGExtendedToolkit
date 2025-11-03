@@ -8,6 +8,20 @@
 #include "PCGExDetailsIntersection.generated.h"
 
 USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInclusionDetails
+{
+	GENERATED_BODY()
+
+	/** Offset applied to projected polygon for inclusion tests. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	double InclusionOffset = 0;
+
+	/** Percentage of points that can lie outside a path and still be considered inside it */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, ClampMin=0, ClampMax=1))
+	double InclusionTolerance = 0;
+};
+
+USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExUnionMetadataDetails
 {
 	GENERATED_BODY()
@@ -92,7 +106,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionDetails
 	bool bEnableSelfIntersection = true;
 
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
 	FPCGExSourceFuseDetails FuseDetails;
 
 	/** When enabled, point will be moved exactly on the edge. */

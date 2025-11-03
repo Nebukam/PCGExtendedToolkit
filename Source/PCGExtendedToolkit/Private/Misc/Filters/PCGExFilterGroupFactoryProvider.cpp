@@ -54,9 +54,6 @@ UPCGExFactoryData* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContex
 	if (Mode == EPCGExFilterGroupMode::AND) { NewFactory = InContext->ManagedObjects->New<UPCGExFilterGroupFactoryDataAND>(); }
 	else { NewFactory = InContext->ManagedObjects->New<UPCGExFilterGroupFactoryDataOR>(); }
 
-	NewFactory->Priority = Priority;
-	NewFactory->bInvert = bInvert;
-
 	if (!GetInputFactories(
 		InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,
 		PCGExFactories::AnyFilters))
@@ -64,6 +61,12 @@ UPCGExFactoryData* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContex
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;
 	}
+
+	int32 MaxPriority = Priority;
+	for (const TObjectPtr<const UPCGExPointFilterFactoryData>& Factory : NewFactory->FilterFactories) { MaxPriority = FMath::Max(MaxPriority, Factory->Priority); }
+	
+	NewFactory->Priority = MaxPriority;
+	NewFactory->bInvert = bInvert;
 
 	return Super::CreateFactory(InContext, NewFactory);
 }
