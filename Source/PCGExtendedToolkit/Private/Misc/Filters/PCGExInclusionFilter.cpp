@@ -32,7 +32,7 @@ void UPCGExInclusionFilterFactory::InitConfig_Internal()
 	Super::InitConfig_Internal();
 	LocalFidelity = Config.Fidelity;
 	LocalExpansion = Config.Tolerance;
-	LocalExpansionZ = -1;
+	LocalExpansionZ = Config.ExpandZAxis;
 	InclusionOffset = Config.InclusionOffset;
 	LocalProjection = Config.ProjectionDetails;
 	LocalSampleInputs = Config.SampleInputs;

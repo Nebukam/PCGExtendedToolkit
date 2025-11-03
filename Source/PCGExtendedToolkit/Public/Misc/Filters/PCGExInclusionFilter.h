@@ -71,6 +71,10 @@ struct FPCGExInclusionFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	double ExpandZAxis = -1;
+	
 	/** Lets you enforce a path winding for testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::CounterClockwise;
