@@ -24,9 +24,9 @@ namespace PCGExData
 UENUM(BlueprintType)
 enum class EPCGExFitMode : uint8
 {
-	None       = 0 UMETA(DisplayName = "None", ToolTip="No fitting"),
-	Uniform    = 1 UMETA(DisplayName = "Uniform", ToolTip="Uniform fit"),
-	Individual = 2 UMETA(DisplayName = "Individual", ToolTip="Per-component fit"),
+	None       = 0 UMETA(DisplayName = "None", ToolTip="No fitting", ActionIcon="STF_None"),
+	Uniform    = 1 UMETA(DisplayName = "Uniform", ToolTip="Uniform fit", ActionIcon="STF_Uniform"),
+	Individual = 2 UMETA(DisplayName = "Individual", ToolTip="Per-component fit", ActionIcon="STF_Individual"),
 };
 
 UENUM(BlueprintType)
@@ -52,12 +52,12 @@ enum class EPCGExJustifyFrom : uint8
 UENUM(BlueprintType)
 enum class EPCGExJustifyTo : uint8
 {
-	Same   = 0 UMETA(DisplayName = "Same", ToolTip="Same as 'From'", ActionIcon="To_Same"),
 	Min    = 1 UMETA(DisplayName = "Min", ToolTip="Min", ActionIcon="To_Min"),
 	Center = 2 UMETA(DisplayName = "Center", ToolTip="Center", ActionIcon="To_Center"),
 	Max    = 3 UMETA(DisplayName = "Max", ToolTip="Max", ActionIcon="To_Max"),
 	Pivot  = 4 UMETA(DisplayName = "Pivot", ToolTip="Pivot", ActionIcon="To_Pivot"),
 	Custom = 5 UMETA(DisplayName = "Custom", ToolTip="Custom", ActionIcon="To_Custom"),
+	Same   = 0 UMETA(DisplayName = "Same", ToolTip="Same as 'From'", ActionIcon="To_Same"),
 };
 
 UENUM(BlueprintType)

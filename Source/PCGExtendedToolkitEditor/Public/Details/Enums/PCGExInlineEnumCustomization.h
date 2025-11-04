@@ -81,6 +81,19 @@ public:
 	}
 };
 
+class PCGEXTENDEDTOOLKITEDITOR_API FPCGExFilterNoDataFallbackCustomization final : public FPCGExInlineEnumCustomization
+{
+public:
+	explicit FPCGExFilterNoDataFallbackCustomization(const FString& InEnumName) : FPCGExInlineEnumCustomization(InEnumName)
+	{
+	}
+
+	static TSharedRef<IPropertyTypeCustomization> MakeInstance()
+	{
+		return MakeShareable(new FPCGExFilterNoDataFallbackCustomization(TEXT("EPCGExFilterNoDataFallback")));
+	}
+};
+
 class PCGEXTENDEDTOOLKITEDITOR_API FPCGExBoundsSourceCustomization final : public FPCGExInlineEnumCustomization
 {
 public:
@@ -169,6 +182,19 @@ public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance()
 	{
 		return MakeShareable(new FPCGExJustifyToCustomization(TEXT("EPCGExJustifyTo")));
+	}
+};
+
+class PCGEXTENDEDTOOLKITEDITOR_API FPCGExFitModeCustomization final : public FPCGExInlineEnumCustomization
+{
+public:
+	explicit FPCGExFitModeCustomization(const FString& InEnumName) : FPCGExInlineEnumCustomization(InEnumName)
+	{
+	}
+
+	static TSharedRef<IPropertyTypeCustomization> MakeInstance()
+	{
+		return MakeShareable(new FPCGExFitModeCustomization(TEXT("EPCGExFitMode")));
 	}
 };
 #pragma endregion
