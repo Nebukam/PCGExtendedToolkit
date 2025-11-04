@@ -29,32 +29,32 @@ enum class EPCGExAsyncPriority : uint8
 UENUM()
 enum class EPCGExInputValueType : uint8
 {
-	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
-	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Attribute."),
+	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Use a constant, user-defined value.", ActionIcon="Constant"),
+	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Read the value from the input data.", ActionIcon="Attribute"),
 };
 
 UENUM()
 enum class EPCGExDataInputValueType : uint8
 {
-	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
-	Attribute = 1 UMETA(DisplayName = "@Data", Tooltip="Attribute. Can only read from @Data domain."),
+	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant.", ActionIcon="Constant"),
+	Attribute = 1 UMETA(DisplayName = "@Data", Tooltip="Attribute. Can only read from @Data domain.", ActionIcon="DataAttribute"),
 };
 
 UENUM()
 enum class EPCGExPointBoundsSource : uint8
 {
-	ScaledBounds  = 0 UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),
-	DensityBounds = 1 UMETA(DisplayName = "Density Bounds", ToolTip="Density Bounds (scaled + steepness)"),
-	Bounds        = 2 UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds (why?)"),
-	Center        = 3 UMETA(DisplayName = "Center", ToolTip="A tiny size 1 box.")
+	ScaledBounds  = 0 UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds", ActionIcon="ScaledBounds"),
+	DensityBounds = 1 UMETA(DisplayName = "Density Bounds", ToolTip="Density Bounds (scaled + steepness)", ActionIcon="DensityBounds"),
+	Bounds        = 2 UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds (why?)", ActionIcon="Bounds"),
+	Center        = 3 UMETA(DisplayName = "Center", ToolTip="A tiny size 1 box.", ActionIcon="Center")
 };
 
 UENUM()
 enum class EPCGExDistance : uint8
 {
-	Center       = 0 UMETA(DisplayName = "Center", ToolTip="Center"),
-	SphereBounds = 1 UMETA(DisplayName = "Sphere Bounds", ToolTip="Point sphere which radius is scaled extent"),
-	BoxBounds    = 2 UMETA(DisplayName = "Box Bounds", ToolTip="Point extents"),
+	Center       = 0 UMETA(DisplayName = "Center", ToolTip="Center", ActionIcon="Dist_Center"),
+	SphereBounds = 1 UMETA(DisplayName = "Sphere Bounds", ToolTip="Point sphere which radius is scaled extent", ActionIcon="Dist_SphereBounds"),
+	BoxBounds    = 2 UMETA(DisplayName = "Box Bounds", ToolTip="Point extents", ActionIcon="Dist_BoxBounds"),
 	None         = 3 UMETA(Hidden, DisplayName = "None", ToolTip="Used for union blending with full weight."),
 };
 

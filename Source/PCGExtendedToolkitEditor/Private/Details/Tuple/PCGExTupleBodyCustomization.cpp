@@ -4,11 +4,9 @@
 #include "Details/Tuple/PCGExTupleBodyCustomization.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
-#include "IDetailGroup.h"
 #include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"
 #include "Constants/PCGExTuple.h"
-#include "Details/PCGExMacros.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SEditableTextBox.h"
@@ -19,21 +17,21 @@ TSharedRef<IPropertyTypeCustomization> FPCGExTupleBodyCustomization::MakeInstanc
 }
 
 void FPCGExTupleBodyCustomization::CustomizeHeader(
-	TSharedRef<IPropertyHandle> StructPropertyHandle,
+	TSharedRef<IPropertyHandle> PropertyHandle,
 	FDetailWidgetRow& HeaderRow,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	HeaderRow.NameContent()[StructPropertyHandle->CreatePropertyNameWidget()];
+	HeaderRow.NameContent()[PropertyHandle->CreatePropertyNameWidget()];
 }
 
 void FPCGExTupleBodyCustomization::CustomizeChildren(
-	TSharedRef<IPropertyHandle> StructPropertyHandle,
+	TSharedRef<IPropertyHandle> PropertyHandle,
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
 	// Grab parent composition
 	TArray<UObject*> OuterObjects;
-	StructPropertyHandle->GetOuterObjects(OuterObjects);
+	PropertyHandle->GetOuterObjects(OuterObjects);
 	if (OuterObjects.Num() == 0) { return; }
 
 	const TArray<FPCGExTupleValueHeader>* Composition = nullptr;
@@ -41,7 +39,7 @@ void FPCGExTupleBodyCustomization::CustomizeChildren(
 	else { return; }
 
 	// Grab row array
-	TSharedPtr<IPropertyHandle> RowHandle = StructPropertyHandle->GetChildHandle(TEXT("Row"));
+	TSharedPtr<IPropertyHandle> RowHandle = PropertyHandle->GetChildHandle(TEXT("Row"));
 	if (!RowHandle.IsValid()) { return; }
 
 	uint32 NumElements = 0;

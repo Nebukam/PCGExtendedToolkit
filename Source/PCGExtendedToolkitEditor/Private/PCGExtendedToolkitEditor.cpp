@@ -153,7 +153,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_Special)
 	PCGEX_ADD_PIN_EXTRA_ICON(IN_Special)
-	
+
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_RecursionTracker)
 	PCGEX_ADD_PIN_EXTRA_ICON(IN_RecursionTracker)
 
@@ -161,11 +161,71 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 
 #undef PCGEX_REGISTER_PIN_AND_COLOR
 
+#pragma region Action icon
+
+#define PCGEX_ADD_ACTION_ICON(_NAME, _SIZE) AppStyle.Set("PCGEx.ActionIcon." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGEx_Editor_" #_NAME), TEXT(".svg")), _SIZE));
+
+	const FVector2D AIS_VerySmall = FVector2D(16.0f, 16.0f);
+	const FVector2D AIS_Small = FVector2D(18.0f, 18.0f);
+	const FVector2D AIS_Med = FVector2D(22.0f, 22.0f);
+	const FVector2D AIS_Wide = FVector2D(44.0f, 22.0f);
+
+	PCGEX_ADD_ACTION_ICON(Constant, AIS_VerySmall)
+	PCGEX_ADD_ACTION_ICON(Attribute, AIS_VerySmall)
+	PCGEX_ADD_ACTION_ICON(DataAttribute, AIS_VerySmall)
+	PCGEX_ADD_ACTION_ICON(Default, AIS_VerySmall)
+	PCGEX_ADD_ACTION_ICON(Enabled, AIS_VerySmall)
+	PCGEX_ADD_ACTION_ICON(Disabled, AIS_VerySmall)
+	PCGEX_ADD_ACTION_ICON(ScaledBounds, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(DensityBounds, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(Bounds, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(Center, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(X, AIS_Small)
+	PCGEX_ADD_ACTION_ICON(Y, AIS_Small)
+	PCGEX_ADD_ACTION_ICON(Z, AIS_Small)
+	PCGEX_ADD_ACTION_ICON(Dist_Center, AIS_Small)
+	PCGEX_ADD_ACTION_ICON(Dist_SphereBounds, AIS_Small)
+	PCGEX_ADD_ACTION_ICON(Dist_BoxBounds, AIS_Small)
+	PCGEX_ADD_ACTION_ICON(All, AIS_Small)
+	PCGEX_ADD_ACTION_ICON(Include, AIS_Small)
+	PCGEX_ADD_ACTION_ICON(Exclude, AIS_Small)
+	PCGEX_ADD_ACTION_ICON(Vtx, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(Edges, AIS_Med)
+	
+	PCGEX_ADD_ACTION_ICON(Fit_None, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(Fit_Fill, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(Fit_Min, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(Fit_Max, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(Fit_Average, AIS_Med)
+	
+	PCGEX_ADD_ACTION_ICON(From_Min, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(From_Center, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(From_Max, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(From_Pivot, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(From_Custom, AIS_Med)
+	
+	PCGEX_ADD_ACTION_ICON(To_Same, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(To_Min, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(To_Center, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(To_Max, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(To_Pivot, AIS_Med)
+	PCGEX_ADD_ACTION_ICON(To_Custom, AIS_Med)
+
+	FButtonStyle ActionIconButton = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton");
+	ActionIconButton.SetPressed(FSlateColorBrush(FLinearColor(0, 0, 0, 0.5f))); // selected/toggled
+	Style->Set("PCGEx.ActionIcon", ActionIconButton);
+
+#undef PCGEX_ADD_ACTION_ICON
+#undef PCGEX_ADD_ACTION_ICON_WIDE
+
+#pragma endregion
+
 	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
 
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FPCGExtendedToolkitEditorModule::RegisterMenuExtensions));
+
 	PCGExDetailsCustomization::RegisterDetailsCustomization();
-	
+
 	RegisterDataVisualizations();
 }
 

@@ -104,10 +104,10 @@ UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PC
 enum class EPCGExApplySampledComponentFlags : uint8
 {
 	None = 0,
-	X    = 1 << 0 UMETA(DisplayName = "X", ToolTip="Apply X Component"),
-	Y    = 1 << 1 UMETA(DisplayName = "Y", ToolTip="Apply Y Component"),
-	Z    = 1 << 2 UMETA(DisplayName = "Z", ToolTip="Apply Z Component"),
-	All  = X | Y | Z UMETA(DisplayName = "All", ToolTip="Apply all Component"),
+	X    = 1 << 0 UMETA(DisplayName = "X", ToolTip="Apply X Component", ActionIcon="X"),
+	Y    = 1 << 1 UMETA(DisplayName = "Y", ToolTip="Apply Y Component", ActionIcon="Y"),
+	Z    = 1 << 2 UMETA(DisplayName = "Z", ToolTip="Apply Z Component", ActionIcon="Z"),
+	All  = X | Y | Z UMETA(Hidden, DisplayName = "All", ToolTip="Apply all Component"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExApplySampledComponentFlags)
