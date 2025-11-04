@@ -69,9 +69,21 @@ namespace PCGExDetailsCustomization
 		PCGEX_ADD_ACTION_ICON(To_Pivot, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(To_Custom, AIS_Med)
 
-		FButtonStyle ActionIconButton = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("FlatButton");
-		ActionIconButton.SetPressed(FSlateColorBrush(FLinearColor(0, 0, 0, 0.5f))); // selected/toggled
-		Style->Set("PCGEx.ActionIcon", ActionIconButton);
+		FButtonStyle ActionIconButton = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton");
+
+		FSlateBrush Brush = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton").Pressed;
+		Brush.Margin = FMargin(2,2);
+
+		Brush.TintColor = FLinearColor(0.1, 0.1, 0.1, 0.5f);
+		ActionIconButton.SetNormal(Brush);
+
+		Brush.TintColor = FLinearColor(0.1, 0.1, 0.1, 0.5f);
+		ActionIconButton.SetHovered(Brush);
+		
+		Brush.TintColor = FLinearColor(0.1, 0.1, 0.1, 0.8f);
+		ActionIconButton.SetPressed(Brush);
+		
+		AppStyle.Set("PCGEx.ActionIcon", ActionIconButton);
 
 #undef PCGEX_ADD_ACTION_ICON
 #undef PCGEX_ADD_ACTION_ICON_WIDE

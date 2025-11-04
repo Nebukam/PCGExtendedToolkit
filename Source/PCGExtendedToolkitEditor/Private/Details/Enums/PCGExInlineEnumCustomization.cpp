@@ -57,13 +57,10 @@ TSharedRef<SWidget> FPCGExInlineEnumCustomization::GenerateEnumButtons(UEnum* En
 		if (Enum->HasMetaData(TEXT("Hidden"), i)) { continue; }
 		const FString KeyName = Enum->GetNameStringByIndex(i);
 
-
-		//FLinearColor(0.351486, 0.744792, 0.647392) 
-
 		FString IconName = Enum->GetMetaData(TEXT("ActionIcon"), i);
 		if (IconName.IsEmpty())
 		{
-			Box->AddSlot().AutoWidth().Padding(2, 0)
+			Box->AddSlot().AutoWidth().Padding(2, 2)
 			[
 				SNew(SButton)
 				.Text(Enum->GetDisplayNameTextByIndex(i))
@@ -73,7 +70,7 @@ TSharedRef<SWidget> FPCGExInlineEnumCustomization::GenerateEnumButtons(UEnum* En
 					{
 						FString CurrentValue;
 						EnumHandle->GetValueAsFormattedString(CurrentValue);
-						return CurrentValue == KeyName ? FLinearColor(0.005, 0.005, 0.005) : FLinearColor::Gray;
+						return CurrentValue == KeyName ? FLinearColor(0.005, 0.005, 0.005, 0.8) : FLinearColor::Transparent;
 					})
 				.OnClicked_Lambda(
 					[this, KeyName]()
@@ -86,7 +83,7 @@ TSharedRef<SWidget> FPCGExInlineEnumCustomization::GenerateEnumButtons(UEnum* En
 		else
 		{
 			IconName = TEXT("PCGEx.ActionIcon.") + IconName;
-			Box->AddSlot().AutoWidth().Padding(2, 0)
+			Box->AddSlot().AutoWidth().Padding(2, 2)
 			[
 				SNew(SButton)
 				.ToolTipText(Enum->GetToolTipTextByIndex(i))
@@ -96,7 +93,7 @@ TSharedRef<SWidget> FPCGExInlineEnumCustomization::GenerateEnumButtons(UEnum* En
 					{
 						FString CurrentValue;
 						EnumHandle->GetValueAsFormattedString(CurrentValue);
-						return CurrentValue == KeyName ? FLinearColor(0.005, 0.005, 0.005, 1) : FLinearColor::Transparent;
+						return CurrentValue == KeyName ? FLinearColor(0.005, 0.005, 0.005, 0.8f) : FLinearColor::Transparent;
 					})
 				.OnClicked_Lambda(
 					[this, KeyName]()
