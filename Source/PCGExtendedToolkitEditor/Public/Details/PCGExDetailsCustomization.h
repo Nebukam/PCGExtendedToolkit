@@ -7,5 +7,5 @@
 
 namespace PCGExDetailsCustomization
 {
-	PCGEXTENDEDTOOLKITEDITOR_API void RegisterDetailsCustomization();
+	PCGEXTENDEDTOOLKITEDITOR_API void RegisterDetailsCustomization(const TSharedPtr<FSlateStyleSet>& Style);
 }

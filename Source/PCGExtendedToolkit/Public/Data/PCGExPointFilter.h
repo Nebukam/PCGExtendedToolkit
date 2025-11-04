@@ -45,9 +45,9 @@ enum class EPCGExFilterResult : uint8
 UENUM()
 enum class EPCGExFilterNoDataFallback : uint8
 {
-	Error = 0 UMETA(DisplayName = "Throw Error", ToolTip="This filter will throw an error if there is no data."),
-	Pass  = 1 UMETA(DisplayName = "Pass", ToolTip="This filter will pass if there is no data"),
-	Fail  = 2 UMETA(DisplayName = "Fail", ToolTip="This filter will fail if there is no data"),
+	Error = 0 UMETA(DisplayName = "Throw Error", ToolTip="This filter will throw an error if there is no data.", ActionIcon="MissingData_Error"),
+	Pass  = 1 UMETA(DisplayName = "Pass", ToolTip="This filter will pass if there is no data", ActionIcon="MissingData_Pass"),
+	Fail  = 2 UMETA(DisplayName = "Fail", ToolTip="This filter will fail if there is no data", ActionIcon="MissingData_Fail"),
 };
 
 namespace PCGExGraph
