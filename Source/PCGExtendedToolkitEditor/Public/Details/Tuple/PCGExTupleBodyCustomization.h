@@ -10,11 +10,13 @@ class PCGEXTENDEDTOOLKITEDITOR_API FPCGExTupleBodyCustomization : public IProper
 public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
 
-	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> StructPropertyHandle,
-								 class FDetailWidgetRow& HeaderRow,
-								 IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeHeader(
+		TSharedRef<IPropertyHandle> PropertyHandle,
+		class FDetailWidgetRow& HeaderRow,
+		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 
-	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> StructPropertyHandle,
-								   class IDetailChildrenBuilder& ChildBuilder,
-								   IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeChildren(
+		TSharedRef<IPropertyHandle> PropertyHandle,
+		class IDetailChildrenBuilder& ChildBuilder,
+		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 };

@@ -32,32 +32,32 @@ enum class EPCGExFitMode : uint8
 UENUM(BlueprintType)
 enum class EPCGExScaleToFit : uint8
 {
-	None = 0 UMETA(DisplayName = "None", ToolTip="No fitting"),
-	Fill = 1 UMETA(DisplayName = "Fill", ToolTip="..."),
-	Min  = 2 UMETA(DisplayName = "Min", ToolTip="..."),
-	Max  = 3 UMETA(DisplayName = "Max", ToolTip="..."),
-	Avg  = 4 UMETA(DisplayName = "Average", ToolTip="..."),
+	None = 0 UMETA(DisplayName = "None", ToolTip="No fitting", ActionIcon="Fit_None"),
+	Fill = 1 UMETA(DisplayName = "Fill", ToolTip="Fill", ActionIcon="Fit_Fill"),
+	Min  = 2 UMETA(DisplayName = "Min", ToolTip="Min", ActionIcon="Fit_Min"),
+	Max  = 3 UMETA(DisplayName = "Max", ToolTip="Max", ActionIcon="Fit_Max"),
+	Avg  = 4 UMETA(DisplayName = "Average", ToolTip="Average", ActionIcon="Fit_Average"),
 };
 
 UENUM(BlueprintType)
 enum class EPCGExJustifyFrom : uint8
 {
-	Min    = 0 UMETA(DisplayName = "Min", ToolTip="..."),
-	Center = 1 UMETA(DisplayName = "Center", ToolTip="..."),
-	Max    = 2 UMETA(DisplayName = "Max", ToolTip="..."),
-	Pivot  = 3 UMETA(DisplayName = "Pivot", ToolTip="..."),
-	Custom = 4 UMETA(DisplayName = "Custom", ToolTip="..."),
+	Min    = 0 UMETA(DisplayName = "Min", ToolTip="Min", ActionIcon="From_Min"),
+	Center = 1 UMETA(DisplayName = "Center", ToolTip="Center", ActionIcon="From_Center"),
+	Max    = 2 UMETA(DisplayName = "Max", ToolTip="Max", ActionIcon="From_Max"),
+	Pivot  = 3 UMETA(DisplayName = "Pivot", ToolTip="Pivot", ActionIcon="From_Pivot"),
+	Custom = 4 UMETA(DisplayName = "Custom", ToolTip="Custom", ActionIcon="From_Custom"),
 };
 
 UENUM(BlueprintType)
 enum class EPCGExJustifyTo : uint8
 {
-	Same   = 0 UMETA(DisplayName = "Same", ToolTip="..."),
-	Min    = 1 UMETA(DisplayName = "Min", ToolTip="..."),
-	Center = 2 UMETA(DisplayName = "Center", ToolTip="..."),
-	Max    = 3 UMETA(DisplayName = "Max", ToolTip="..."),
-	Pivot  = 4 UMETA(DisplayName = "Pivot", ToolTip="..."),
-	Custom = 5 UMETA(DisplayName = "Custom", ToolTip="..."),
+	Same   = 0 UMETA(DisplayName = "Same", ToolTip="Same as 'From'", ActionIcon="To_Same"),
+	Min    = 1 UMETA(DisplayName = "Min", ToolTip="Min", ActionIcon="To_Min"),
+	Center = 2 UMETA(DisplayName = "Center", ToolTip="Center", ActionIcon="To_Center"),
+	Max    = 3 UMETA(DisplayName = "Max", ToolTip="Max", ActionIcon="To_Max"),
+	Pivot  = 4 UMETA(DisplayName = "Pivot", ToolTip="Pivot", ActionIcon="To_Pivot"),
+	Custom = 5 UMETA(DisplayName = "Custom", ToolTip="Custom", ActionIcon="To_Custom"),
 };
 
 UENUM(BlueprintType)
@@ -123,15 +123,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleJustifyDetails
 	EPCGExJustifyFrom From = EPCGExJustifyFrom::Center;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="From == EPCGExJustifyFrom::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" ├─ Input", EditCondition="From == EPCGExJustifyFrom::Custom", EditConditionHides))
 	EPCGExInputValueType FromInput = EPCGExInputValueType::Constant;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="From (Attr)", EditCondition="From == EPCGExJustifyFrom::Custom && FromInput != EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ From (Attr)", EditCondition="From == EPCGExJustifyFrom::Custom && FromInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector FromSourceAttribute;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="From", EditCondition="From == EPCGExJustifyFrom::Custom && FromInput == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ From", EditCondition="From == EPCGExJustifyFrom::Custom && FromInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double FromConstant = 0.5;
 
 	TSharedPtr<PCGExData::TBuffer<double>> FromGetter;
@@ -142,15 +142,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleJustifyDetails
 	EPCGExJustifyTo To = EPCGExJustifyTo::Same;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="To == EPCGExJustifyTo::Custom", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" ├─ Input", EditCondition="To == EPCGExJustifyTo::Custom", EditConditionHides))
 	EPCGExInputValueType ToInput = EPCGExInputValueType::Constant;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="To (Attr)", EditCondition="To == EPCGExJustifyTo::Custom && ToInput != EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ To (Attr)", EditCondition="To == EPCGExJustifyTo::Custom && ToInput != EPCGExInputValueType::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector ToSourceAttribute;
 
 	/**  Value is expected to be 0-1 normalized, 0 being bounds min and 1 being bounds min + size. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="To", EditCondition="To == EPCGExJustifyTo::Custom && ToInput == EPCGExInputValueType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ To", EditCondition="To == EPCGExJustifyTo::Custom && ToInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double ToConstant = 0.5;
 
 	TSharedPtr<PCGExData::TBuffer<double>> ToGetter;

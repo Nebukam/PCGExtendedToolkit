@@ -28,9 +28,9 @@ enum class EPCGMetadataTypes : uint8;
 UENUM()
 enum class EPCGExAttributeFilter : uint8
 {
-	All     = 0 UMETA(DisplayName = "All", ToolTip="All attributes"),
-	Exclude = 1 UMETA(DisplayName = "Exclude", ToolTip="Exclude listed attributes"),
-	Include = 2 UMETA(DisplayName = "Include", ToolTip="Only listed attributes"),
+	All     = 0 UMETA(DisplayName = "All", ToolTip="All elements", ActionIcon="All"),
+	Exclude = 1 UMETA(DisplayName = "Exclude", ToolTip="Discard listed elements, keep the others", ActionIcon="Exclude"),
+	Include = 2 UMETA(DisplayName = "Include", ToolTip="Keep listed elements, discard the others", ActionIcon="Include"),
 };
 
 USTRUCT(BlueprintType)
