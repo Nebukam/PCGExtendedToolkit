@@ -56,14 +56,14 @@ bool PCGExPointFilter::FModuloComparisonFilter::Init(FPCGExContext* InContext, c
 
 	if (!OperandA)
 	{
-		PCGEX_LOG_INVALID_SELECTOR_C(InContext, Operand A, TypedFilterFactory->Config.OperandA)
+		PCGEX_LOG_INVALID_SELECTOR_HANDLED_C(InContext, Operand A, TypedFilterFactory->Config.OperandA)
 		return false;
 	}
 
-	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB();
+	OperandB = TypedFilterFactory->Config.GetValueSettingOperandB(PCGEX_QUIET_HANDLING);
 	if (!OperandB->Init(PointDataFacade)) { return false; }
 
-	OperandC = TypedFilterFactory->Config.GetValueSettingOperandC();
+	OperandC = TypedFilterFactory->Config.GetValueSettingOperandC(PCGEX_QUIET_HANDLING);
 	if (!OperandC->Init(PointDataFacade)) { return false; }
 
 	return true;
@@ -84,9 +84,13 @@ bool PCGExPointFilter::FModuloComparisonFilter::Test(const TSharedPtr<PCGExData:
 	double B = 0;
 	double C = 0;
 
-	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A)) { return false; }
-	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.OperandBSource, TypedFilterFactory->Config.OperandB, TypedFilterFactory->Config.OperandBConstant, B)) { return false; }
-	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandC, TypedFilterFactory->Config.OperandCConstant, C)) { return false; }
+	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A), PCGEX_QUIET_HANDLING) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExDataHelpers::TryGetSettingDataValue(
+		IO, TypedFilterFactory->Config.OperandBSource, TypedFilterFactory->Config.OperandB,
+		TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExDataHelpers::TryGetSettingDataValue(
+		IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandC,
+		TypedFilterFactory->Config.OperandCConstant, C, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
 	if (A == 0 || B == 0) { return TypedFilterFactory->Config.ZeroResult; }
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Fmod(A, B), C, TypedFilterFactory->Config.Tolerance);

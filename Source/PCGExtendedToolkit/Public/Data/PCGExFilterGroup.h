@@ -105,9 +105,10 @@ namespace PCGExFilterGroup
 		TArray<TSharedPtr<PCGExPointFilter::IFilter>> ManagedFilters;
 
 		virtual bool InitManaged(FPCGExContext* InContext);
-		bool InitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& Filter) const;
+		bool InitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& Filter, const bool bQuiet = false) const;
 		virtual bool PostInitManaged(FPCGExContext* InContext);
 		virtual void PostInitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& InFilter);
+		
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FFilterGroupAND final : public FFilterGroup
@@ -118,35 +119,12 @@ namespace PCGExFilterGroup
 		{
 		}
 
-		virtual bool Test(const int32 Index) const override
-		{
-			for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Index)) { return bInvert; } }
-			return !bInvert;
-		}
-
-		virtual bool Test(const PCGExCluster::FNode& Node) const override
-		{
-			for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Node)) { return bInvert; } }
-			return !bInvert;
-		}
-
-		virtual bool Test(const PCGExGraph::FEdge& Edge) const override
-		{
-			for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Edge)) { return bInvert; } }
-			return !bInvert;
-		}
-
-		virtual bool Test(const PCGExData::FProxyPoint& Point) const override
-		{
-			for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Point)) { return bInvert; } }
-			return !bInvert;
-		}
-
-		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override
-		{
-			for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(IO, ParentCollection)) { return bInvert; } }
-			return !bInvert;
-		}
+		virtual bool Test(const int32 Index) const override;		
+		virtual bool Test(const PCGExCluster::FNode& Node) const override;		
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;		
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
+		
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FFilterGroupOR final : public FFilterGroup
@@ -157,34 +135,10 @@ namespace PCGExFilterGroup
 		{
 		}
 
-		virtual bool Test(const int32 Index) const override
-		{
-			for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Index)) { return !bInvert; } }
-			return bInvert;
-		}
-
-		virtual bool Test(const PCGExCluster::FNode& Node) const override
-		{
-			for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Node)) { return !bInvert; } }
-			return bInvert;
-		}
-
-		virtual bool Test(const PCGExGraph::FEdge& Edge) const override
-		{
-			for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Edge)) { return !bInvert; } }
-			return bInvert;
-		}
-
-		virtual bool Test(const PCGExData::FProxyPoint& Point) const override
-		{
-			for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Point)) { return !bInvert; } }
-			return bInvert;
-		}
-
-		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override
-		{
-			for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(IO, ParentCollection)) { return !bInvert; } }
-			return bInvert;
-		}
+		virtual bool Test(const int32 Index) const override;
+		virtual bool Test(const PCGExCluster::FNode& Node) const override;
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;
+		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
+		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
 	};
 }

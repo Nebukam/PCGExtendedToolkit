@@ -25,7 +25,7 @@ bool FNodeEdgeAngleFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 {
 	if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-	if (!DotComparison.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
+	if (!DotComparison.Init(InContext, PointDataFacade.ToSharedRef(), PCGEX_QUIET_HANDLING)) { return false; }
 
 	bLeavesFallback = TypedFilterFactory->Config.LeavesFallback == EPCGExFilterFallback::Pass;
 	bNonBinaryFallback = TypedFilterFactory->Config.LeavesFallback == EPCGExFilterFallback::Pass;

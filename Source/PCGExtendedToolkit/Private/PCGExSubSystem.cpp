@@ -5,6 +5,7 @@
 
 #include "Data/Sharing/PCGExDataSharing.h"
 #include "Helpers/PCGAsync.h"
+#include "Misc/Filters/PCGExConstantFilter.h"
 
 #if WITH_EDITOR
 #include "Editor.h"
@@ -21,6 +22,12 @@ UPCGExSubSystem::UPCGExSubSystem()
 
 void UPCGExSubSystem::Initialize(FSubsystemCollectionBase& Collection)
 {
+	ConstantFilterFactory_TRUE = NewObject<UPCGExConstantFilterFactory>(this);
+	ConstantFilterFactory_TRUE->Config.Value = true;
+
+	ConstantFilterFactory_FALSE = NewObject<UPCGExConstantFilterFactory>(this);
+	ConstantFilterFactory_FALSE->Config.Value = false;
+
 	Super::Initialize(Collection);
 }
 
@@ -161,6 +168,12 @@ TArrayView<const int32> UPCGExSubSystem::GetIndexRange(const int32 Start, const 
 {
 	EnsureIndexBufferSize(Start + Count);
 	return TArrayView<const int32>(IndexBuffer.GetData() + Start, Count);
+}
+
+TSharedPtr<PCGExPointFilter::IFilter> UPCGExSubSystem::GetConstantFilter(const bool bValue) const
+{
+	if (bValue) { return ConstantFilterFactory_TRUE->CreateFilter(); }
+	return ConstantFilterFactory_FALSE->CreateFilter();
 }
 
 double UPCGExSubSystem::GetTickBudgetInSeconds()

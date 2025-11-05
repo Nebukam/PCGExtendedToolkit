@@ -3,6 +3,7 @@
 
 #include "Data/PCGExPointFilter.h"
 
+#include "PCGExSubSystem.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
@@ -98,17 +99,20 @@ namespace PCGExPointFilter
 
 	bool FManager::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories)
 	{
+		bool bWantsTrueConstant = false;
+		bool bWantsFalseConstant = false;
+
 		for (const UPCGExPointFilterFactoryData* Factory : InFactories)
 		{
 			if (SupportedFactoriesTypes && !SupportedFactoriesTypes->Contains(Factory->GetFactoryType()))
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter is of an unexpected type : {0}."), PCGExHelpers::GetClassDisplayName(Factory->GetClass())));
+				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("A filter is of an unexpected type : {0}."), PCGExHelpers::GetClassDisplayName(Factory->GetClass())))
 				continue;
 			}
 
 			if (bWillBeUsedWithCollections && !Factory->SupportsCollectionEvaluation())
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter can't be used with collections : {0}. (Requires per-point evaluation)"), PCGExHelpers::GetClassDisplayName(Factory->GetClass())));
+				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("A filter can't be used with collections : {0}. (Requires per-point evaluation)"), PCGExHelpers::GetClassDisplayName(Factory->GetClass())))
 				continue;
 			}
 
@@ -117,13 +121,57 @@ namespace PCGExPointFilter
 			NewFilter->bCacheResults = bCacheResultsPerFilter;
 			NewFilter->bUseEdgeAsPrimary = bUseEdgeAsPrimary;
 			NewFilter->SetSupportedTypes(SupportedFactoriesTypes);
+			NewFilter->bWillBeUsedWithCollections = bWillBeUsedWithCollections;
 
 			if (!InitFilter(InContext, NewFilter))
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter failed to initialize properly : {0}."), PCGExHelpers::GetClassDisplayName(Factory->GetClass())));
+				if (Factory->InitializationFailurePolicy == EPCGExFilterNoDataFallback::Error)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter failed to initialize properly : {0}."), PCGExHelpers::GetClassDisplayName(Factory->GetClass())));
+				}
+				else if (Factory->InitializationFailurePolicy == EPCGExFilterNoDataFallback::Pass)
+				{
+					bWantsTrueConstant = true;
+				}
+				else
+				{
+					bWantsFalseConstant = true;
+					break;
+				}
 				continue;
 			}
+
 			ManagedFilters.Add(NewFilter);
+		}
+
+		if (bWantsFalseConstant)
+		{
+			// Guaranteed fail.
+			ManagedFilters.Reset();
+			PCGEX_SUBSYSTEM
+			const TSharedPtr<IFilter> NewFilter = PCGExSubsystem->GetConstantFilter(false);
+			NewFilter->bUseDataDomainSelectorsOnly = true;
+			NewFilter->bCacheResults = bCacheResultsPerFilter;
+			NewFilter->bUseEdgeAsPrimary = bUseEdgeAsPrimary;
+			NewFilter->bWillBeUsedWithCollections = bWillBeUsedWithCollections;
+
+			InitFilter(InContext, NewFilter);
+
+			ManagedFilters.Add(NewFilter);
+		}
+		else if (bWantsTrueConstant)
+		{
+			PCGEX_SUBSYSTEM
+			const TSharedPtr<IFilter> NewFilter = PCGExSubsystem->GetConstantFilter(true);
+			NewFilter->bUseDataDomainSelectorsOnly = true;
+			NewFilter->bCacheResults = bCacheResultsPerFilter;
+			NewFilter->bUseEdgeAsPrimary = bUseEdgeAsPrimary;
+			NewFilter->bWillBeUsedWithCollections = bWillBeUsedWithCollections;
+
+			InitFilter(InContext, NewFilter);
+
+			if (ManagedFilters.IsEmpty()) { ManagedFilters.Add(NewFilter); }
+			else { ManagedFilters.Insert(NewFilter, 0); }
 		}
 
 		return PostInit(InContext);
@@ -292,7 +340,6 @@ namespace PCGExPointFilter
 
 	bool FManager::InitFilter(FPCGExContext* InContext, const TSharedPtr<IFilter>& Filter)
 	{
-		Filter->bWillBeUsedWithCollections = bWillBeUsedWithCollections;
 		return Filter->Init(InContext, PointDataFacade);
 	}
 

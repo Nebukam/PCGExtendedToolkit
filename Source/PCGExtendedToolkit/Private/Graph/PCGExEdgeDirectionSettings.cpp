@@ -18,7 +18,8 @@ void FPCGExEdgeDirectionSettings::RegisterBuffersDependencies(FPCGExContext* InC
 bool FPCGExEdgeDirectionSettings::Init(
 	FPCGExContext* InContext,
 	const TSharedRef<PCGExData::FFacade>& InVtxDataFacade,
-	const TArray<FPCGExSortRuleConfig>* InSortingRules)
+	const TArray<FPCGExSortRuleConfig>* InSortingRules,
+	const bool bQuiet)
 {
 	bAscendingDesired = DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
 	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort)
@@ -35,7 +36,8 @@ bool FPCGExEdgeDirectionSettings::Init(
 bool FPCGExEdgeDirectionSettings::InitFromParent(
 	FPCGExContext* InContext,
 	const FPCGExEdgeDirectionSettings& ParentSettings,
-	const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+	const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade,
+	const bool bQuiet)
 {
 	DirectionMethod = ParentSettings.DirectionMethod;
 	DirectionChoice = ParentSettings.DirectionChoice;
@@ -48,7 +50,7 @@ bool FPCGExEdgeDirectionSettings::InitFromParent(
 		EdgeDirReader = InEdgeDataFacade->GetBroadcaster<FVector>(DirSourceAttribute, true);
 		if (!EdgeDirReader)
 		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, Dir Source (Edges), DirSourceAttribute)
+			if (!bQuiet){ PCGEX_LOG_INVALID_SELECTOR_C(InContext, Dir Source (Edges), DirSourceAttribute) }
 			return false;
 		}
 	}

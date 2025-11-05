@@ -62,10 +62,10 @@ bool PCGExPointFilter::FSegmentLengthFilter::Init(FPCGExContext* InContext, cons
 	if (TypedFilterFactory->Config.bForceTileIfClosedLoop && bClosedLoop) { IndexSafety = EPCGExIndexSafety::Tile; }
 	else { IndexSafety = TypedFilterFactory->Config.IndexSafety; }
 
-	Threshold = TypedFilterFactory->Config.GetValueSettingThreshold();
+	Threshold = TypedFilterFactory->Config.GetValueSettingThreshold(PCGEX_QUIET_HANDLING);
 	if (!Threshold->Init(PointDataFacade)) { return false; }
 
-	Index = TypedFilterFactory->Config.GetValueSettingIndex();
+	Index = TypedFilterFactory->Config.GetValueSettingIndex(PCGEX_QUIET_HANDLING);
 	if (!Index->Init(PointDataFacade)) { return false; }
 
 	return true;

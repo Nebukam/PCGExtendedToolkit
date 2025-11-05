@@ -40,7 +40,7 @@ namespace PCGExNodeNeighborsCount
 	{
 		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		LocalCount = TypedFilterFactory->Config.GetValueSettingLocalCount();
+		LocalCount = TypedFilterFactory->Config.GetValueSettingLocalCount(PCGEX_QUIET_HANDLING);
 		if (!LocalCount->Init(PointDataFacade, false)) { return false; }
 
 		return true;

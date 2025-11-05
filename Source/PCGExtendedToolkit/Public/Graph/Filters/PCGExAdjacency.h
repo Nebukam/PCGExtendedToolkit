@@ -105,7 +105,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 
 	TSharedPtr<PCGExData::TBuffer<double>> LocalThreshold;
 
-	bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade);
+	bool Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade, const bool bQuiet = false);
 	int32 GetThreshold(const PCGExCluster::FNode& Node) const;
 };
 

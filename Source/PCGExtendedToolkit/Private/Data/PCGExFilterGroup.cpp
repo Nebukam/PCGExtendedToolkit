@@ -4,6 +4,7 @@
 #include "Data/PCGExFilterGroup.h"
 
 
+#include "PCGExSubSystem.h"
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExFilterGroup
@@ -42,11 +43,14 @@ namespace PCGExFilterGroup
 
 	bool FFilterGroup::InitManaged(FPCGExContext* InContext)
 	{
+		bool bWantsTrueConstant = false;
+		bool bWantsFalseConstant = false;
+
 		for (const UPCGExPointFilterFactoryData* ManagedFactory : *ManagedFactories)
 		{
 			if (SupportedFactoriesTypes && !SupportedFactoriesTypes->Contains(ManagedFactory->GetFactoryType()))
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A grouped filter is of an unexpected type : {0}."), PCGExHelpers::GetClassDisplayName(ManagedFactory->GetClass())));
+				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("A grouped filter is of an unexpected type : {0}."), PCGExHelpers::GetClassDisplayName(ManagedFactory->GetClass())));
 				continue;
 			}
 
@@ -54,16 +58,49 @@ namespace PCGExFilterGroup
 			NewFilter->bUseDataDomainSelectorsOnly = ManagedFactory->GetOnlyUseDataDomain();
 			NewFilter->bCacheResults = false;
 			NewFilter->SetSupportedTypes(SupportedFactoriesTypes);
+			NewFilter->bWillBeUsedWithCollections = bWillBeUsedWithCollections;
 
-			if (!InitManagedFilter(InContext, NewFilter)) { continue; }
+			if (!InitManagedFilter(InContext, NewFilter, ManagedFactory->InitializationFailurePolicy != EPCGExFilterNoDataFallback::Error))
+			{
+				if (ManagedFactory->InitializationFailurePolicy == EPCGExFilterNoDataFallback::Error)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A filter failed to initialize properly : {0}."), PCGExHelpers::GetClassDisplayName(Factory->GetClass())));
+				}
+				else if (ManagedFactory->InitializationFailurePolicy == EPCGExFilterNoDataFallback::Pass)
+				{
+					bWantsTrueConstant = true;
+				}
+				else
+				{
+					bWantsFalseConstant = true;
+					break;
+				}
+				continue;
+			}
 
 			ManagedFilters.Add(NewFilter);
 		}
 
+		auto RegisterConstant = [&](bool bConstant)
+		{
+			PCGEX_SUBSYSTEM
+			const TSharedPtr<PCGExPointFilter::IFilter> NewFilter = PCGExSubsystem->GetConstantFilter(bConstant);
+			NewFilter->bUseDataDomainSelectorsOnly = true;
+			NewFilter->bCacheResults = bCacheResults;
+			NewFilter->bUseEdgeAsPrimary = bUseEdgeAsPrimary;
+			NewFilter->bWillBeUsedWithCollections = bWillBeUsedWithCollections;
+
+			InitManagedFilter(InContext, NewFilter);
+			ManagedFilters.Add(NewFilter);
+		};
+
+		if (bWantsFalseConstant) { RegisterConstant(false); }
+		if (bWantsTrueConstant) { RegisterConstant(true); }
+
 		return PostInitManaged(InContext);
 	}
 
-	bool FFilterGroup::InitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& Filter) const
+	bool FFilterGroup::InitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& Filter, const bool bQuiet) const
 	{
 		if (Filter->GetFilterType() == PCGExFilters::EType::Group)
 		{
@@ -82,7 +119,7 @@ namespace PCGExFilterGroup
 			if (!bInitForCluster)
 			{
 				// Other filter types require cluster data, which we don't have :/
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Using a Cluster filter without cluster data"));
+				if (!bQuiet) { PCGEX_LOG_INVALID_INPUT(InContext, FTEXT("Using a Cluster filter without cluster data")); }
 				return false;
 			}
 
@@ -117,6 +154,66 @@ namespace PCGExFilterGroup
 	void FFilterGroup::PostInitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& InFilter)
 	{
 		InFilter->PostInit();
+	}
+
+	bool FFilterGroupAND::Test(const int32 Index) const
+	{
+		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Index)) { return bInvert; } }
+		return !bInvert;
+	}
+
+	bool FFilterGroupAND::Test(const PCGExCluster::FNode& Node) const
+	{
+		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Node)) { return bInvert; } }
+		return !bInvert;
+	}
+
+	bool FFilterGroupAND::Test(const PCGExGraph::FEdge& Edge) const
+	{
+		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Edge)) { return bInvert; } }
+		return !bInvert;
+	}
+
+	bool FFilterGroupAND::Test(const PCGExData::FProxyPoint& Point) const
+	{
+		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(Point)) { return bInvert; } }
+		return !bInvert;
+	}
+
+	bool FFilterGroupAND::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+	{
+		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (!Filter->Test(IO, ParentCollection)) { return bInvert; } }
+		return !bInvert;
+	}
+
+	bool FFilterGroupOR::Test(const int32 Index) const
+	{
+		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Index)) { return !bInvert; } }
+		return bInvert;
+	}
+
+	bool FFilterGroupOR::Test(const PCGExCluster::FNode& Node) const
+	{
+		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Node)) { return !bInvert; } }
+		return bInvert;
+	}
+
+	bool FFilterGroupOR::Test(const PCGExGraph::FEdge& Edge) const
+	{
+		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Edge)) { return !bInvert; } }
+		return bInvert;
+	}
+
+	bool FFilterGroupOR::Test(const PCGExData::FProxyPoint& Point) const
+	{
+		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(Point)) { return !bInvert; } }
+		return bInvert;
+	}
+
+	bool FFilterGroupOR::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
+	{
+		for (const TSharedPtr<PCGExPointFilter::IFilter>& Filter : ManagedFilters) { if (Filter->Test(IO, ParentCollection)) { return !bInvert; } }
+		return bInvert;
 	}
 }
 

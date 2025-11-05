@@ -31,8 +31,8 @@ class UPCGExFilterProviderSettings;
 UENUM()
 enum class EPCGExFilterFallback : uint8
 {
-	Pass = 0 UMETA(DisplayName = "Pass", ToolTip="This item will be considered to successfully pass the filter"),
-	Fail = 1 UMETA(DisplayName = "Fail", ToolTip="This item will be considered to failing to pass the filter"),
+	Pass = 0 UMETA(DisplayName = "Pass", ToolTip="This item will be considered to successfully pass the filter", ActionIcon="MissingData_Pass"),
+	Fail = 1 UMETA(DisplayName = "Fail", ToolTip="This item will be considered to failing to pass the filter", ActionIcon="MissingData_Fail"),
 };
 
 UENUM()
@@ -42,7 +42,7 @@ enum class EPCGExFilterResult : uint8
 	Fail = 1 UMETA(DisplayName = "Fail", ToolTip="Fails the filters"),
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExFilterNoDataFallback : uint8
 {
 	Error = 0 UMETA(DisplayName = "Throw Error", ToolTip="This filter will throw an error if there is no data.", ActionIcon="MissingData_Error"),
@@ -113,7 +113,8 @@ public:
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const;
 
 	int32 Priority = 0;
-	EPCGExFilterNoDataFallback MissingDataHandling = EPCGExFilterNoDataFallback::Fail;
+	EPCGExFilterNoDataFallback InitializationFailurePolicy = EPCGExFilterNoDataFallback::Error;
+	EPCGExFilterNoDataFallback MissingDataPolicy = EPCGExFilterNoDataFallback::Fail;
 
 protected:
 	bool bOnlyUseDataDomain = false;
@@ -244,7 +245,7 @@ namespace PCGExPointFilter
 		bool bCacheResultsPerFilter = false;
 		bool bCacheResults = false;
 		TArray<int8> Results;
-
+		
 		bool bValid = false;
 
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
@@ -271,7 +272,7 @@ namespace PCGExPointFilter
 		void SetSupportedTypes(const TSet<PCGExFactories::EType>* InTypes);
 		const TSet<PCGExFactories::EType>* GetSupportedTypes() const;
 
-	protected:
+	protected:		
 		const TSet<PCGExFactories::EType>* SupportedFactoriesTypes = nullptr;
 		TArray<TSharedPtr<IFilter>> ManagedFilters;
 
@@ -280,6 +281,7 @@ namespace PCGExPointFilter
 		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<IFilter>& InFilter);
 
 		virtual void InitCache();
+
 	};
 
 	static void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)
