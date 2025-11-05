@@ -58,7 +58,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 	PCGEX_SETTINGS_LOCAL(PathfindingPlotEdges)
 
 	if (!PathIO) { return; }
-	
+
 	bool bAddGoal = Settings->bAddGoalToPath ? (!Query->bIsClosedLoop || !Settings->bAddSeedToPath) : false;
 
 	int32 NumPoints = Query->SubQueries.Num() + 2;
@@ -258,14 +258,13 @@ namespace PCGExPathfindingPlotEdges
 		{
 			// TODO : Implement
 		}
-		
+
 		SearchOperation = Context->SearchAlgorithm->CreateOperation(); // Create a local copy
 		SearchOperation->PrepareForCluster(Cluster.Get());
-;
 		const int32 NumPlots = Context->Plots.Num();
 		PCGEx::InitArray(Queries, NumPlots);
 		QueriesIO.Init(nullptr, NumPlots);
-		
+
 		Context->OutputPaths->IncreaseReserve(NumPlots);
 		for (int i = 0; i < NumPlots; i++)
 		{

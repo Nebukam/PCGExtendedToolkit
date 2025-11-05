@@ -102,19 +102,19 @@ TSharedRef<SWidget> FPCGExInlineEnumCustomization::GenerateEnumButtons(UEnum* En
 						return FReply::Handled();
 					})
 				[
-						SNew(SImage)
-						.Image(FAppStyle::Get().GetBrush(*IconName))
-						.ColorAndOpacity_Lambda(
-							[this, Enum, i]
-							{
-								FString CurrentValue;
-								EnumHandle->GetValueAsFormattedString(CurrentValue);
-								const FString KeyName = Enum->GetNameStringByIndex(i);
-								return (CurrentValue == KeyName)
-										   ? FLinearColor::White
-										   : FLinearColor::Gray;
-							})
-					]
+					SNew(SImage)
+					.Image(FAppStyle::Get().GetBrush(*IconName))
+					.ColorAndOpacity_Lambda(
+						[this, Enum, i]
+						{
+							FString CurrentValue;
+							EnumHandle->GetValueAsFormattedString(CurrentValue);
+							const FString KeyName = Enum->GetNameStringByIndex(i);
+							return (CurrentValue == KeyName)
+								       ? FLinearColor::White
+								       : FLinearColor::Gray;
+						})
+				]
 			];
 		}
 	}

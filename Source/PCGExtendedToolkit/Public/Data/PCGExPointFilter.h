@@ -245,7 +245,7 @@ namespace PCGExPointFilter
 		bool bCacheResultsPerFilter = false;
 		bool bCacheResults = false;
 		TArray<int8> Results;
-		
+
 		bool bValid = false;
 
 		TSharedRef<PCGExData::FFacade> PointDataFacade;
@@ -272,7 +272,7 @@ namespace PCGExPointFilter
 		void SetSupportedTypes(const TSet<PCGExFactories::EType>* InTypes);
 		const TSet<PCGExFactories::EType>* GetSupportedTypes() const;
 
-	protected:		
+	protected:
 		const TSet<PCGExFactories::EType>* SupportedFactoriesTypes = nullptr;
 		TArray<TSharedPtr<IFilter>> ManagedFilters;
 
@@ -281,7 +281,6 @@ namespace PCGExPointFilter
 		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<IFilter>& InFilter);
 
 		virtual void InitCache();
-
 	};
 
 	static void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)

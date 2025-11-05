@@ -98,7 +98,7 @@ namespace PCGExFusePoints
 		// TODO : See if we can support scoped get
 		if (!UnionGraph->Init(Context, PointDataFacade, false)) { return false; }
 		UnionGraph->Reserve(PointDataFacade->GetNum(), 0);
-		
+
 		// Register fetch-able buffers for chunked reads
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
 		PCGExDataBlending::GetFilteredIdentities(

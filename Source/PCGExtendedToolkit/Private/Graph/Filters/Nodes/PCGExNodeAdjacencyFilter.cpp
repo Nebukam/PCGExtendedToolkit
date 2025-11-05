@@ -95,7 +95,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				PCGEX_SUB_TEST_FUNC
 				{
 					double B = 0;
-					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(NodesRef[Lk.Node].PointIndex); }					;
+					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(NodesRef[Lk.Node].PointIndex); }
 					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B / FMath::Max(1, static_cast<double>(Node.Num())), TypedFilterFactory->Config.Tolerance);
 				};
 			}
@@ -156,7 +156,7 @@ bool FNodeAdjacencyFilter::Init(FPCGExContext* InContext, const TSharedRef<PCGEx
 				PCGEX_SUB_TEST_FUNC
 				{
 					double B = 0;
-					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(NodesRef[Lk.Node].PointIndex); }					;
+					for (const PCGExGraph::FLink Lk : Node.Links) { B += OperandB->Read(NodesRef[Lk.Node].PointIndex); }
 					return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 				};
 			}

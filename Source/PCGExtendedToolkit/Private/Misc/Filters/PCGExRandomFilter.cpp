@@ -67,7 +67,7 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	Threshold = TypedFilterFactory->Config.Threshold;
-	
+
 	WeightBuffer = TypedFilterFactory->Config.GetValueSettingWeight(PCGEX_QUIET_HANDLING);
 	if (!WeightBuffer->IsConstant())
 	{

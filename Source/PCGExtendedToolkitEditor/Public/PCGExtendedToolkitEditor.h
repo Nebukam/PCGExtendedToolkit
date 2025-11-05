@@ -26,5 +26,4 @@ protected:
 	void RegisterDataVisualizations();
 	void RegisterMenuExtensions();
 	void UnregisterMenuExtensions();
-
 };

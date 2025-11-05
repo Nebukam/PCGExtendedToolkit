@@ -349,13 +349,13 @@ namespace PCGExWritePathProperties
 				Context->NumInner++;
 				FPCGTaggedData& InnerData = Context->StageOutput(PointDataFacade->GetOut(), false, false);
 				InnerData.Pin = OutputPathInner;
-				
+
 				if (Infos.bOdd && (!Settings->bOuterIsNotOdd || Infos.Depth > 0))
 				{
 					Context->NumOdd++;
 					FPCGTaggedData& StagedData = Context->StageOutput(PointDataFacade->GetOut(), false, false);
 					StagedData.Pin = OutputPathMedian;
-				}				
+				}
 			}
 		}
 	}

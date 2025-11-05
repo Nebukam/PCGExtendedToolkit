@@ -83,8 +83,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSwap = false;
 
-	/** If enabled, will output discarded elements, otherwise omit creating the data entierely. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	/** If enabled, will output discarded elements, otherwise omit creating the data entirely. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_Overridable))
 	bool bOutputDiscardedElements = true;
 
 	/** */

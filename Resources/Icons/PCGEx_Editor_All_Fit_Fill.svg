@@ -1,1 +1,8 @@
-<svg id="icons" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><style>.cls-1{fill:#4d8dfc;}</style></defs><rect x="17.31" y="31.19" width="65.38" height="37.62"/><path class="cls-1" d="M82.91,71.53H17.09a2.5,2.5,0,0,1-2.5-2.5V31a2.5,2.5,0,0,1,2.5-2.5H82.91a2.5,2.5,0,0,1,2.5,2.5V69A2.5,2.5,0,0,1,82.91,71.53Zm-65.6-2.72H82.69V31.19H17.31Z"/></svg>
+<svg id="icons" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <defs>
+        <style>.cls-1{fill:#4d8dfc;}</style>
+    </defs>
+    <rect x="17.31" y="31.19" width="65.38" height="37.62"/>
+    <path class="cls-1"
+          d="M82.91,71.53H17.09a2.5,2.5,0,0,1-2.5-2.5V31a2.5,2.5,0,0,1,2.5-2.5H82.91a2.5,2.5,0,0,1,2.5,2.5V69A2.5,2.5,0,0,1,82.91,71.53Zm-65.6-2.72H82.69V31.19H17.31Z"/>
+</svg>

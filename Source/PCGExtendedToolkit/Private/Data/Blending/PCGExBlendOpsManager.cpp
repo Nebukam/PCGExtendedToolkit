@@ -186,7 +186,7 @@ namespace PCGExDataBlending
 
 		for (const TSharedPtr<PCGExData::IBuffer>& Buffer : DisabledBuffers)
 		{
-			// If disabled buffer does not exist on input, delete it entierely
+			// If disabled buffer does not exist on input, delete it entirely
 			if (!Buffer->OutAttribute) { continue; }
 			if (!TargetFacade->GetIn()->Metadata->HasAttribute(Buffer->OutAttribute->Name))
 			{

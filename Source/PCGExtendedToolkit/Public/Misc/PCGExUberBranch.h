@@ -42,7 +42,7 @@ public:
 
 	virtual bool OutputPinsCanBeDeactivated() const override { return true; }
 	virtual bool HasDynamicPins() const override;
-	
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;

@@ -98,7 +98,7 @@ bool FPCGExBranchOnDataAttributeElement::ExecuteInternal(FPCGContext* InContext)
 	PCGEX_EXECUTION_CHECK
 
 	const int32 NumBranches = Settings->InternalBranches.Num();
-	
+
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		FPCGAttributePropertyInputSelector DummySelector;
@@ -140,7 +140,7 @@ bool FPCGExBranchOnDataAttributeElement::ExecuteInternal(FPCGContext* InContext)
 						for (int i = 0; i < NumBranches; ++i)
 						{
 							const FPCGExBranchOnDataPin& Pin = Settings->InternalBranches[i];
-							
+
 							if (Pin.Check == EPCGExComparisonDataType::Numeric) { bDistributed = PCGExCompare::Compare(Pin.NumericCompare, static_cast<double>(Pin.NumericValue), AsNumeric, Pin.Tolerance); }
 							else { bDistributed = PCGExCompare::Compare(Pin.StringCompare, Pin.StringValue, AsString); }
 
@@ -160,8 +160,8 @@ bool FPCGExBranchOnDataAttributeElement::ExecuteInternal(FPCGContext* InContext)
 		}
 	}
 
-	for (int i = 0; i < NumBranches; i++) { if (!Context->Dispatch[i]) { Context->OutputData.InactiveOutputPinBitmask |= 1ULL << (i+1); } }
-	
+	for (int i = 0; i < NumBranches; i++) { if (!Context->Dispatch[i]) { Context->OutputData.InactiveOutputPinBitmask |= 1ULL << (i + 1); } }
+
 	Context->Done();
 	return Context->TryComplete();
 }

@@ -248,7 +248,7 @@ namespace PCGExClusterDiffusion
 			return;
 		}
 
-		// Grow one entierely
+		// Grow one entirely
 		const TSharedPtr<PCGExFloodFill::FDiffusion> Diffusion = OngoingDiffusions.Pop();
 		while (!Diffusion->bStopped) { Diffusion->Grow(); }
 

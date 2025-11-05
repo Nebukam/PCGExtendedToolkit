@@ -36,8 +36,8 @@ class UPCGExFilterVtxSettings : public UPCGExEdgesProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;	
-	
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+
 	PCGEX_NODE_INFOS(FilterVtx, "Cluster : Filter Vtx", "Filter out vtx from clusters.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorClusterOp); }
@@ -61,7 +61,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Result", PCG_Overridable, EditCondition="Mode == EPCGExVtxFilterOutput::Attribute", EditConditionHides))
 	FPCGExFilterResultDetails ResultOutputVtx;
-	
+
 	/** Invert the filter result */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvert = false;
@@ -71,11 +71,11 @@ public:
 	bool bInvertEdgeFilters = false;
 
 #pragma region DEPRECATED
-	
+
 	UPROPERTY()
 	FName ResultAttributeName_DEPRECATED = FName("PassFilters");
 
-#pragma endregion 
+#pragma endregion
 
 	/** If enabled, inside/outside groups will be partitioned by initial edge connectivity. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExVtxFilterOutput::Points", EditConditionHides))
@@ -153,7 +153,7 @@ namespace PCGExFilterVtx
 
 	protected:
 		FPCGExFilterResultDetails ResultOutputVtx = FPCGExFilterResultDetails(false, false);
-		
+
 		int32 PassNum = 0;
 		int32 FailNum = 0;
 
@@ -168,7 +168,7 @@ namespace PCGExFilterVtx
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		
+
 		virtual void ProcessNodes(const PCGExMT::FScope& Scope) override;
 
 		virtual void ProcessEdges(const PCGExMT::FScope& Scope) override;
@@ -179,7 +179,7 @@ namespace PCGExFilterVtx
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		friend class FProcessor;
-		
+
 	protected:
 		FPCGExFilterResultDetails ResultOutputVtx = FPCGExFilterResultDetails(false, false);
 
@@ -194,7 +194,7 @@ namespace PCGExFilterVtx
 		}
 
 		virtual void OnProcessingPreparationComplete() override;
-		
+
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

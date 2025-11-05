@@ -147,7 +147,7 @@ namespace PCGExGraph
 		GraphBuilder->SourceEdgeFacades = SourceEdgesIO;
 		GraphBuilder->Graph->NodesUnion = UnionGraph->NodesUnion;
 		GraphBuilder->Graph->EdgesUnion = UnionGraph->EdgesUnion;
-		
+
 		TArray<FEdge> UniqueEdges;
 		UnionGraph->GetUniqueEdges(UniqueEdges);
 		GraphBuilder->Graph->InsertEdges(UniqueEdges);

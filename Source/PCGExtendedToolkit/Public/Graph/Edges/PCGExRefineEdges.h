@@ -46,14 +46,14 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
-	
+
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		RefineEdges, "Cluster : Refine", "Refine edges according to special rules.",
 		(Refinement ? FName(Refinement.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorClusterOp); }
 #endif
-	
+
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 
 protected:
@@ -73,31 +73,31 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExRefineEdgesOutput Mode = EPCGExRefineEdgesOutput::Clusters;
-	
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Vtx Result", EditCondition="Mode == EPCGExRefineEdgesOutput::Attribute", EditConditionHides))
 	FPCGExFilterResultDetails ResultOutputVtx;
-	
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Edge Result", EditCondition="Mode == EPCGExRefineEdgesOutput::Attribute", EditConditionHides))
 	FPCGExFilterResultDetails ResultOutputEdges;
 
 #pragma region DEPRECATED
-	
+
 	UPROPERTY()
 	bool bOutputEdgesOnly_DEPRECATED = false;
 
-#pragma endregion 
+#pragma endregion
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode==EPCGExRefineEdgesOutput::Points", EditConditionHides))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode == EPCGExRefineEdgesOutput::Points", EditConditionHides))
 	bool bAllowZeroPointOutputs = false;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode==EPCGExRefineEdgesOutput::Clusters", EditConditionHides))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode == EPCGExRefineEdgesOutput::Clusters", EditConditionHides))
 	EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode==EPCGExRefineEdgesOutput::Clusters", EditConditionHides))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition = "Mode == EPCGExRefineEdgesOutput::Clusters", EditConditionHides))
 	bool bRestoreEdgesThatConnectToValidNodes = false;
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="Mode==EPCGExRefineEdgesOutput::Clusters", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="Mode == EPCGExRefineEdgesOutput::Clusters", EditConditionHides))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 private:
@@ -149,7 +149,7 @@ namespace PCGExRefineEdges
 	protected:
 		TSharedPtr<PCGExClusterFilter::FManager> SanitizationFilterManager;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
-		
+
 		FPCGExFilterResultDetails ResultOutputVtx = FPCGExFilterResultDetails(false, false);
 		FPCGExFilterResultDetails ResultOutputEdges = FPCGExFilterResultDetails(false, false);
 
@@ -182,10 +182,10 @@ namespace PCGExRefineEdges
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		friend class FProcessor;
-		
+
 	protected:
 		FPCGExFilterResultDetails ResultOutputVtx;
-		
+
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
 			: TBatch(InContext, InVtx, InEdges)

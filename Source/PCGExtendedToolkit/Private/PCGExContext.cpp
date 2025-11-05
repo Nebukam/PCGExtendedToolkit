@@ -174,21 +174,45 @@ void FPCGExContext::IncreaseStagedOutputReserve(const int32 InIncreaseNum)
 	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + InIncreaseNum);
 }
 
-void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) const
+void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
 {
-	FReadScopeLock ReadScopeLock(NotifyActorsLock);
-
 	// Execute PostProcess Functions
 	if (!NotifyActors.IsEmpty())
 	{
-		TArray<AActor*> NotifyActorsArray = NotifyActors.Array();
-		for (AActor* TargetActor : NotifyActorsArray)
+		if (IsInGameThread())
 		{
-			if (!IsValid(TargetActor)) { continue; }
-			for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, this))
+			TArray<AActor*> NotifyActorsArray = NotifyActors.Array();
+			for (AActor* TargetActor : NotifyActorsArray)
 			{
-				TargetActor->ProcessEvent(Function, nullptr);
+				if (!IsValid(TargetActor)) { continue; }
+				for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, this))
+				{
+					TargetActor->ProcessEvent(Function, nullptr);
+				}
 			}
+		}
+		else
+		{
+			// Force execution on main thread
+			FSharedContext<FPCGExContext> SharedContext(GetOrCreateHandle());
+			if (!SharedContext.Get()) { return; }
+
+			FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady(
+				[SharedContext, FunctionNames]()
+				{
+					const FPCGExContext* Ctx = SharedContext.Get();
+					for (TArray<AActor*> NotifyActorsArray = Ctx->NotifyActors.Array();
+						 AActor* TargetActor : NotifyActorsArray)
+					{
+						if (!IsValid(TargetActor)) { continue; }
+						for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, Ctx))
+						{
+							TargetActor->ProcessEvent(Function, nullptr);
+						}
+					}
+				}, TStatId(), nullptr, ENamedThreads::GameThread);
+
+			FTaskGraphInterface::Get().WaitUntilTaskCompletes(Task);
 		}
 	}
 }

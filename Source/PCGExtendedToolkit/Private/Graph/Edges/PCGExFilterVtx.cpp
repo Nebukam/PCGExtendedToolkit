@@ -274,12 +274,12 @@ namespace PCGExFilterVtx
 				ResultOutputVtx.Write(Node.PointIndex, static_cast<bool>(Node.bValid));
 				Node.bValid = true;
 			}
-			
+
 			for (PCGExCluster::FEdge& Edge : Edges) { Edge.bValid = true; }
 
 			return;
 		}
-		
+
 		if (Settings->Mode == EPCGExVtxFilterOutput::Clusters)
 		{
 			TArray<PCGExGraph::FEdge> ValidEdges;

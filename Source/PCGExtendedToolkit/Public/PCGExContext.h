@@ -152,7 +152,7 @@ protected:
 	// Actors to notify when execution is complete
 	TSet<AActor*> NotifyActors;
 
-	void ExecuteOnNotifyActors(const TArray<FName>& FunctionNames) const;
+	void ExecuteOnNotifyActors(const TArray<FName>& FunctionNames);
 
 	bool bExecutionCancelled = false;
 

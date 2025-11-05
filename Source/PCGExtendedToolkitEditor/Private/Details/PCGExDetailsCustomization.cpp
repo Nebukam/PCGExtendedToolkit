@@ -126,6 +126,5 @@ PropertyModule.RegisterCustomPropertyTypeLayout(#_ENUM,FOnGetPropertyTypeCustomi
 
 #undef PCGEX_DECL_INLINE_ENUM
 #undef PCGEX_FOREACH_INLINE_ENUM
-		
 	}
 }

@@ -509,7 +509,7 @@ namespace PCGExTopology
 		bool bBuiltSuccessfully = false;
 
 		FGeometryScriptSimplePolygon Polygon;
-		
+
 		int32 CustomIndex = -1;
 
 		explicit FCell(const TSharedRef<FCellConstraints>& InConstraints)

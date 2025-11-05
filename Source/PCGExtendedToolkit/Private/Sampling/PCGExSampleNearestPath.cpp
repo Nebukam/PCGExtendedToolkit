@@ -101,7 +101,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 			// TODO : We could support per-point project here but ugh
 			TSharedPtr<PCGExPaths::FPolyPath> Path = MakeShared<PCGExPaths::FPolyPath>(IO, Settings->ProjectionDetails, 1, Settings->HeightInclusion);
 			Path->OffsetProjection(Settings->InclusionOffset);
-			
+
 			if (!Path->Bounds.IsValid) { return FBox(NoInit); }
 
 			Path->IOIndex = IO->IOIndex;

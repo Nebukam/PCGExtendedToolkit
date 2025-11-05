@@ -80,23 +80,29 @@ bool FPCGExCollisionDetails::StrongLinecast(const FVector& From, const FVector& 
 	switch (CollisionType)
 	{
 	case EPCGExCollisionFilterType::Channel:
-		if (!World->LineTraceSingleByChannel(HitResult, From, To, CollisionChannel, CollisionParams))
 		{
-			return World->LineTraceSingleByChannel(HitResult, To, From, CollisionChannel, CollisionParams);
+			if (!World->LineTraceSingleByChannel(HitResult, From, To, CollisionChannel, CollisionParams))
+			{
+				return World->LineTraceSingleByChannel(HitResult, To, From, CollisionChannel, CollisionParams);
+			}
+			return true;
 		}
-		else { return true; }
 	case EPCGExCollisionFilterType::ObjectType:
-		if (!World->LineTraceSingleByObjectType(HitResult, From, To, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams))
 		{
-			return World->LineTraceSingleByObjectType(HitResult, To, From, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams);
+			if (!World->LineTraceSingleByObjectType(HitResult, From, To, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams))
+			{
+				return World->LineTraceSingleByObjectType(HitResult, To, From, FCollisionObjectQueryParams(CollisionObjectType), CollisionParams);
+			}
+			return true;
 		}
-		else { return true; }
 	case EPCGExCollisionFilterType::Profile:
-		if (!World->LineTraceSingleByProfile(HitResult, From, To, CollisionProfileName, CollisionParams))
 		{
-			return World->LineTraceSingleByProfile(HitResult, To, From, CollisionProfileName, CollisionParams);
+			if (!World->LineTraceSingleByProfile(HitResult, From, To, CollisionProfileName, CollisionParams))
+			{
+				return World->LineTraceSingleByProfile(HitResult, To, From, CollisionProfileName, CollisionParams);
+			}
+			return true;
 		}
-		else { return true; }
 	default:
 		return false;
 	}
@@ -104,6 +110,6 @@ bool FPCGExCollisionDetails::StrongLinecast(const FVector& From, const FVector& 
 
 bool FPCGExCollisionDetails::Linecast(const FVector& From, const FVector& To, bool bStrong) const
 {
-	if (bStrong){return StrongLinecast(From, To);}
+	if (bStrong) { return StrongLinecast(From, To); }
 	return Linecast(From, To);
 }

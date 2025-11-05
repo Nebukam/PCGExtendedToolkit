@@ -15,11 +15,7 @@
 
 #include "PCGExHelpers.h"
 #include "PCGParamData.h"
-#include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGExData.h"
-#include "Data/PCGExDataFilter.h"
 #include "Details/PCGExDetailsStaging.h"
-#include "Details/PCGExSettingsMacros.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 #include "Transform/PCGExTransform.h"
 #include "Transform/PCGExFitting.h"

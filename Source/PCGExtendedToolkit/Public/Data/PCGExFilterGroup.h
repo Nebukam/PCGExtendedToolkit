@@ -108,7 +108,6 @@ namespace PCGExFilterGroup
 		bool InitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& Filter, const bool bQuiet = false) const;
 		virtual bool PostInitManaged(FPCGExContext* InContext);
 		virtual void PostInitManagedFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& InFilter);
-		
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FFilterGroupAND final : public FFilterGroup
@@ -119,12 +118,11 @@ namespace PCGExFilterGroup
 		{
 		}
 
-		virtual bool Test(const int32 Index) const override;		
-		virtual bool Test(const PCGExCluster::FNode& Node) const override;		
-		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;		
+		virtual bool Test(const int32 Index) const override;
+		virtual bool Test(const PCGExCluster::FNode& Node) const override;
+		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;
 		virtual bool Test(const PCGExData::FProxyPoint& Point) const override;
 		virtual bool Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const override;
-		
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FFilterGroupOR final : public FFilterGroup

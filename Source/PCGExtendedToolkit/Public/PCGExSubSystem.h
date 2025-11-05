@@ -135,7 +135,7 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UPCGExConstantFilterFactory> ConstantFilterFactory_TRUE;
-	
+
 	UPROPERTY()
 	TObjectPtr<UPCGExConstantFilterFactory> ConstantFilterFactory_FALSE;
 };

@@ -155,7 +155,7 @@ namespace PCGExFindContours
 		virtual void OnRangeProcessingComplete() override;
 
 		void ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell, const TSharedPtr<PCGExData::FPointIO>& PathIO);
-		
+
 		virtual void Cleanup() override;
 	};
 }

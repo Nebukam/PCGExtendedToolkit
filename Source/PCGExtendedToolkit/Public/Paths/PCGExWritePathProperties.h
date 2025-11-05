@@ -74,7 +74,7 @@ public:
 #endif
 
 protected:
-	virtual bool OutputPinsCanBeDeactivated() const override{ return bUseInclusionPins; }
+	virtual bool OutputPinsCanBeDeactivated() const override { return bUseInclusionPins; }
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -354,7 +354,7 @@ public:
 	/** Median paths are inner with a depth %2 != 0 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagOddInclusionDepth"))
 	FString OddInclusionDepthTag = TEXT("OddDepth");
-	
+
 	/** If enabled, will output data to additional pins. Note that all outputs are added to the default Path pin; extra pins contain a filtered list of the same data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bUseInclusionPins = false;
@@ -362,7 +362,7 @@ public:
 	/** If enabled, outer path (inclusion depth of zero) will not be considered "odd" even if they technically are. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Outer is not Odd", EditCondition="bTagOddInclusionDepth || bUseInclusionPins", HideEditConditionToggle))
 	bool bOuterIsNotOdd = true;
-	
+
 	bool CanForwardData() const;
 	bool WantsInclusionHelper() const;
 	bool WriteAnyPathData() const;

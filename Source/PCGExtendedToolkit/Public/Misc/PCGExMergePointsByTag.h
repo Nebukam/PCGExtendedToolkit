@@ -16,7 +16,7 @@ UENUM()
 enum class EPCGExMergeByTagOverlapResolutionMode : uint8
 {
 	Strict           = 0 UMETA(DisplayName = "Strict", ToolTip="Merge happens per-tag, and higher priority tags are removed from lower priority overlaps."),
-	ImmediateOverlap = 1 UMETA(DisplayName = "Overlap", ToolTip="Merge happens per-tag, overlapping data is merged entierely."),
+	ImmediateOverlap = 1 UMETA(DisplayName = "Overlap", ToolTip="Merge happens per-tag, overlapping data is merged entirely."),
 	Flatten          = 2 UMETA(DisplayName = "Flatten", ToolTip="Flatten all tags into a unique identifier and match-merge based on that identifier."),
 };
 

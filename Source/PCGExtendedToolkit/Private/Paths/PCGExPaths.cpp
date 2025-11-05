@@ -1136,7 +1136,7 @@ namespace PCGExPaths
 		PathsSet.Add(InPath->Idx, &bAlreadyInSet);
 
 		if (bAlreadyInSet) { return; }
-		
+
 		FInclusionInfos& NewInfos = IdxMap.Add(InPath->Idx, FInclusionInfos());
 
 		for (const TSharedPtr<FPath>& OtherPath : Paths)

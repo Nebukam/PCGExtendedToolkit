@@ -163,7 +163,7 @@ template class PCGEXTENDEDTOOLKIT_API TDataValue<_TYPE>;
 		{
 			return MakeShared<TDataValue<FVector4>>(ParsedVector4);
 		}
-		
+
 		if (const FString ToUpper = RightSide.ToUpper(); ToUpper == TEXT("TRUE")) { return MakeShared<TDataValue<bool>>(true); }
 		else if (ToUpper == TEXT("FALSE")) { return MakeShared<TDataValue<bool>>(false); }
 

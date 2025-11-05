@@ -62,7 +62,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 				const UPCGSpatialData* Data = Cast<UPCGSpatialData>(TempTargets[i].Data);
 				FBox DataBounds = Data->GetBounds().ExpandBy((LocalExpansion + 1 + FMath::Max(0, InclusionOffset)) * 2);
-				if (bScaleTolerance) { DataBounds = DataBounds.ExpandBy((DataBounds.GetSize().Length() + 1) * 10 ); }
+				if (bScaleTolerance) { DataBounds = DataBounds.ExpandBy((DataBounds.GetSize().Length() + 1) * 10); }
 
 				if (LocalExpansionZ < 0)
 				{
@@ -182,7 +182,7 @@ namespace PCGExPathInclusion
 		{
 		case EPCGExSplineCheckType::IsInside:
 			GoodFlags = Inside;
-			
+
 			if (Tolerance <= 0)
 			{
 				bFastCheck = true;
@@ -192,7 +192,7 @@ namespace PCGExPathInclusion
 				bFastCheck = false;
 				BadFlags = On;
 			}
-			
+
 			FlagScope = Any;
 			break;
 		case EPCGExSplineCheckType::IsInsideOrOn:
@@ -215,7 +215,7 @@ namespace PCGExPathInclusion
 				bFastCheck = false;
 				BadFlags = On;
 			}
-			
+
 			FlagScope = Any;
 			break;
 		case EPCGExSplineCheckType::IsOutsideOrOn:
