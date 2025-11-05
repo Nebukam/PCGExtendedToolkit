@@ -264,9 +264,25 @@ void FPCGExBlendingDetails::GetBlendingParams(
 		}
 		else
 		{
-			const EPCGExDataBlendingType* TypePtr = AttributesOverrides.Find(Identity.Identifier.Name);
-			// TODO : Support global defaults (or ditch support)
-			Param.SetBlending(TypePtr ? *TypePtr : DefaultBlending);
+			if (const EPCGExDataBlendingType* TypePtr = AttributesOverrides.Find(Identity.Identifier.Name))
+			{
+				Param.SetBlending(*TypePtr);
+			}
+			else
+			{
+				EPCGExDataBlendingType DesiredBlending = DefaultBlending;
+
+#define PCGEX_GET_GLOBAL_BLENDMODE(_TYPE, _NAME, ...)\
+				if (Identity.UnderlyingType == EPCGMetadataTypes::Boolean){\
+					if (GetDefault<UPCGExGlobalSettings>()->DefaultBooleanBlendMode != EPCGExDataBlendingTypeDefault::Default){\
+						DesiredBlending = static_cast<EPCGExDataBlendingType>(GetDefault<UPCGExGlobalSettings>()->DefaultBooleanBlendMode);}}
+
+				PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_GET_GLOBAL_BLENDMODE)
+
+#undef PCGEX_GET_GLOBAL_BLENDMODE
+
+				Param.SetBlending(DesiredBlending);
+			}
 		}
 
 		if (Param.Blending == EPCGExABBlendingType::None) { continue; }
