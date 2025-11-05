@@ -76,7 +76,7 @@ public:
 
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
 #endif
-	
+
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 
 protected:
@@ -123,7 +123,7 @@ public:
 	/** Flatten the output of this node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable))
 	bool bFlattenOutput = false;
-	
+
 	/** If the node registers consumable attributes, these will be deleted from the output data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable))
 	bool bCleanupConsumableAttributes = false;

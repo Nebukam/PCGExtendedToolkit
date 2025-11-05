@@ -20,7 +20,7 @@ namespace PCGEx
 		{
 			for (const TPair<FString, TSharedPtr<PCGExData::IDataValue>>& ValueTag : Tags->ValueTags)
 			{
-				PCGEx::ExecuteWithRightType(
+				ExecuteWithRightType(
 					ValueTag.Value->UnderlyingType, [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
@@ -33,7 +33,7 @@ namespace PCGEx
 		{
 			for (const TPair<FString, TSharedPtr<PCGExData::IDataValue>>& ValueTag : Tags->ValueTags)
 			{
-				PCGEx::ExecuteWithRightType(
+				ExecuteWithRightType(
 					ValueTag.Value->UnderlyingType, [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);

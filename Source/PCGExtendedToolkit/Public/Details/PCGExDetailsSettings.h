@@ -37,7 +37,7 @@ namespace PCGExDetails
 		}
 
 		bool bQuiet = false;
-		
+
 		FORCEINLINE virtual bool IsConstant() { return false; }
 		FORCEINLINE virtual T Read(const int32 Index) = 0;
 		FORCEINLINE virtual T Min() = 0;

@@ -50,7 +50,7 @@ bool FPCGExEdgeDirectionSettings::InitFromParent(
 		EdgeDirReader = InEdgeDataFacade->GetBroadcaster<FVector>(DirSourceAttribute, true);
 		if (!EdgeDirReader)
 		{
-			if (!bQuiet){ PCGEX_LOG_INVALID_SELECTOR_C(InContext, Dir Source (Edges), DirSourceAttribute) }
+			if (!bQuiet) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Dir Source (Edges), DirSourceAttribute) }
 			return false;
 		}
 	}

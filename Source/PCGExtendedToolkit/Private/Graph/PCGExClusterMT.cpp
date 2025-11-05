@@ -473,7 +473,7 @@ namespace PCGExClusterMT
 		{
 			VtxFilterCache = MakeShared<TArray<int8>>();
 			VtxFilterCache->Init(DefaultVtxFilterValue, VtxDataFacade->GetNum());
-			
+
 			PCGExFactories::RegisterConsumableAttributesWithFacade(*VtxFilterFactories, VtxDataFacade);
 		}
 

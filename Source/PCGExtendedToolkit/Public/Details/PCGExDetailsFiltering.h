@@ -20,7 +20,7 @@ namespace PCGExData
 	class FFacade;
 	class FPointIO;
 
-	template<typename T>
+	template <typename T>
 	class TBuffer;
 }
 
@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterResultDetails
 	/** */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOptional", EditConditionHides, HideEditConditionToggle))
 	bool bEnabled = true;
-	
+
 	/** Name of the attribute to write the result to. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName ResultAttributeName = FName("Result");

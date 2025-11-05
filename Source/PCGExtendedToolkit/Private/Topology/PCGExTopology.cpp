@@ -256,7 +256,7 @@ namespace PCGExTopology
 		const TArray<FVector2D>& ProjectedPositions)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCell::BuildFromCluster);
-		
+
 		bBuiltSuccessfully = false;
 		Data.Bounds = FBox(ForceInit);
 

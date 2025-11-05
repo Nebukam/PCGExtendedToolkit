@@ -218,7 +218,7 @@ extern template void FSubSelection::Set<_TYPE_A, _TYPE_B>(_TYPE_A& Target, const
 
 #define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
 extern template void TValueBuffer<_TYPE_A>::Set<_TYPE_B>(const FSubSelection& SubSelection, const int32 Index, const _TYPE_B& Value); \
-extern template _TYPE_B TValueBuffer<_TYPE_A>::Get(const FSubSelection& SubSelection, const int32 Index) const; 
+extern template _TYPE_B TValueBuffer<_TYPE_A>::Get(const FSubSelection& SubSelection, const int32 Index) const;
 	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 

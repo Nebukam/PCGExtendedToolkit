@@ -15,11 +15,7 @@
 
 #include "PCGExHelpers.h"
 #include "PCGParamData.h"
-#include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGExData.h"
-#include "Data/PCGExDataFilter.h"
 #include "Details/PCGExDetailsStaging.h"
-#include "Details/PCGExSettingsMacros.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 #include "Transform/PCGExTransform.h"
 #include "Transform/PCGExFitting.h"
@@ -322,7 +318,7 @@ public:
 	virtual PCGExAssetCollection::EType GetType() const { return PCGExAssetCollection::EType::None; }
 
 	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
-	
+
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void EDITOR_RefreshDisplayNames();

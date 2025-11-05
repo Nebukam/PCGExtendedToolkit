@@ -27,7 +27,7 @@ namespace PCGExRandom
 		Seed = Seed * 1664525u + 1013904223u;
 		return (Seed & 0x00FFFFFF) / static_cast<double>(0x01000000);
 	}
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	int32 GetSeed(const int32 BaseSeed, const uint8 Flags, const int32 Local, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr);
 

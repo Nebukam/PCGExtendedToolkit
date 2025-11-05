@@ -118,7 +118,7 @@ public:
 	/** Sort direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta = (PCG_Overridable, DisplayName=" └─ Sort direction", EditCondition="SampleMethod == EPCGExSampleMethod::BestCandidate", EditConditionHides))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
-	
+
 	/** If enabled, will always sample paths if the point lies inside, even if further away from the edges than the specified max range. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	bool bAlwaysSampleWhenInside = true;
@@ -130,7 +130,7 @@ public:
 	/** If non-zero, will apply an offset (inset) to the data used for inclusion testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	double InclusionOffset = 0;
-	
+
 #pragma region Sampling Range
 
 	/** Type of Range Min */

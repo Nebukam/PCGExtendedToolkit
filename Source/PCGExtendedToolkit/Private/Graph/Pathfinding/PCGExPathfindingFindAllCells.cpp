@@ -182,8 +182,8 @@ namespace PCGExFindAllCells
 		const TSharedPtr<PCGExTopology::FCell>& InCell,
 		const TSharedPtr<PCGExData::FPointIO>& PathIO)
 	{
-		if (!PathIO){return;}
-		
+		if (!PathIO) { return; }
+
 		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts
 		PathIO->IOIndex = Cluster->GetEdge(InCell->Seed.Edge)->IOIndex; // Enforce seed order for collection output-ish
 

@@ -114,14 +114,13 @@ namespace PCGExBreakClustersToPaths
 		}
 		else
 		{
-			
 			ChainsIO.Reserve(NumEdges);
 			Context->OutputPaths->IncreaseReserve(NumEdges);
 			for (int i = 0; i < NumEdges; ++i)
 			{
 				ChainsIO.Add(Context->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
 			}
-			
+
 			StartParallelLoopForEdges();
 		}
 
@@ -173,10 +172,10 @@ namespace PCGExBreakClustersToPaths
 
 			if (!Chain)
 			{
-				if (PathIO){PathIO->Disable();}
+				if (PathIO) { PathIO->Disable(); }
 				continue;
 			}
-			
+
 #define PCGEX_IGNORE_CHAIN PathIO->Disable(); continue;
 
 			if (Settings->LeavesHandling == EPCGExBreakClusterLeavesHandling::Exclude && Chain->bIsLeaf) { PCGEX_IGNORE_CHAIN }
@@ -226,7 +225,6 @@ namespace PCGExBreakClustersToPaths
 			PathIO->ConsumeIdxMapping(EPCGPointNativeProperties::All);
 
 #undef PCGX_IGNORE_CHAIN
-			
 		}
 	}
 

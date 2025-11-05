@@ -43,7 +43,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
-	
+
 	PCGEX_NODE_INFOS(UberFilter, "Uber Filter", "Filter points based on multiple rules & conditions.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
@@ -51,7 +51,7 @@ public:
 
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual bool OutputPinsCanBeDeactivated() const override;
-	
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -72,19 +72,19 @@ public:
 	FPCGExFilterResultDetails ResultDetails;
 
 #pragma region DEPRECATED
-	
+
 	/** Name of the attribute to write result to */
 	UPROPERTY()
 	FName ResultAttributeName_DEPRECATED = FName("PassFilter");
-	
-#pragma endregion 
+
+#pragma endregion
 
 	/** Invert the filter result */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSwap = false;
 
-	/** If enabled, will output discarded elements, otherwise omit creating the data entierely. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	/** If enabled, will output discarded elements, otherwise omit creating the data entirely. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_Overridable))
 	bool bOutputDiscardedElements = true;
 
 	/** */

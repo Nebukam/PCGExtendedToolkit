@@ -121,12 +121,12 @@ namespace PCGExMath
 			const float x = (FastRand01(Seed) * 2.0f - 1.0f);
 			const float y = (FastRand01(Seed) * 2.0f - 1.0f);
 			const float z = (FastRand01(Seed) * 2.0f - 1.0f);
-			
+
 			FVector V(x, y, z);
-			
+
 			if (V.SizeSquared() <= 1.0f) { return Center + V * Radius; }
 		}
-		
+
 		return Center;
 	}
 
