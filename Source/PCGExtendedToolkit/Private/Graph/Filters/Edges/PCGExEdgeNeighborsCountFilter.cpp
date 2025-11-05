@@ -31,7 +31,7 @@ namespace PCGExEdgeNeighborsCount
 	{
 		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		ThresholdBuffer = TypedFilterFactory->Config.GetValueSettingThreshold();
+		ThresholdBuffer = TypedFilterFactory->Config.GetValueSettingThreshold(PCGEX_QUIET_HANDLING);
 		if (!ThresholdBuffer->Init(PointDataFacade)) { return false; }
 
 		return true;

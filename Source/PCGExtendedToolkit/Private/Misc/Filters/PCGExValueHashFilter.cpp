@@ -24,7 +24,7 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 
 	if (SetSources.IsEmpty())
 	{
-		if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No valid set found")) }
+		if (MissingDataPolicy == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No valid set found")) }
 		return PCGExFactories::EPreparationResult::MissingData;
 	}
 
@@ -46,7 +46,7 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 
 				if (Hashes[0].IsEmpty())
 				{
-					if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(SharedContext.Get(), FTEXT("Merged sets are empty")) }
+					if (MissingDataPolicy == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(SharedContext.Get(), FTEXT("Merged sets are empty")) }
 					PrepResult = PCGExFactories::EPreparationResult::MissingData;
 				}
 			}
@@ -63,7 +63,7 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 
 				if (Hashes.IsEmpty())
 				{
-					if (MissingDataHandling == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(SharedContext.Get(), FTEXT("Merged sets are empty")) }
+					if (MissingDataPolicy == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(SharedContext.Get(), FTEXT("Merged sets are empty")) }
 					PrepResult = PCGExFactories::EPreparationResult::MissingData;
 				}
 			}
@@ -149,7 +149,7 @@ bool PCGExPointFilter::FValueHashFilter::Init(FPCGExContext* InContext, const TS
 
 	if (!OperandA)
 	{
-		PCGEX_LOG_INVALID_ATTR_C(InContext, Operand A, TypedFilterFactory->Config.OperandA)
+		PCGEX_LOG_INVALID_ATTR_HANDLED_C(InContext, Operand A, TypedFilterFactory->Config.OperandA)
 		return false;
 	}
 
@@ -191,7 +191,7 @@ bool PCGExPointFilter::FValueHashFilter::Test(const TSharedPtr<PCGExData::FPoint
 {
 	double H = 0;
 
-	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, H)) { return bInvert; }
+	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, H, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
 	bool bPass = false;
 	if (bAnyPass)

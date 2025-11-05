@@ -104,8 +104,8 @@ enum class EPCGExBitflagComparison : uint8
 UENUM()
 enum class EPCGExComparisonDataType : uint8
 {
-	Numeric = 0 UMETA(DisplayName = "Numeric", Tooltip="Compare numeric values"),
-	String  = 1 UMETA(DisplayName = "String", Tooltip="Compare string values"),
+	Numeric = 0 UMETA(DisplayName = "Numeric", Tooltip="Compare numeric values", ActionIcon="Numeric"),
+	String  = 1 UMETA(DisplayName = "String", Tooltip="Compare string values", ActionIcon="Text"),
 };
 
 namespace PCGExCompare
@@ -447,7 +447,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 
 	PCGEX_SETTING_VALUE_DECL(Tolerance, double)
 
-	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade);
+	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade, const bool bQuiet = false);
 	FVector GetCWTolerance(const int32 PointIndex) const;
 
 	void RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const;
@@ -556,7 +556,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 
 	double ComparisonTolerance = 0;
 
-	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache);
+	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache, const bool bQuiet = false);
 
 	double GetComparisonThreshold(const int32 PointIndex) const;
 

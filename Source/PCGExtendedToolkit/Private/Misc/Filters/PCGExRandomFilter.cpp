@@ -67,9 +67,8 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
 	Threshold = TypedFilterFactory->Config.Threshold;
-
-
-	WeightBuffer = TypedFilterFactory->Config.GetValueSettingWeight();
+	
+	WeightBuffer = TypedFilterFactory->Config.GetValueSettingWeight(PCGEX_QUIET_HANDLING);
 	if (!WeightBuffer->IsConstant())
 	{
 		if (TypedFilterFactory->Config.bRemapWeightInternally)
@@ -89,7 +88,7 @@ bool PCGExPointFilter::FRandomFilter::Init(FPCGExContext* InContext, const TShar
 		}
 	}
 
-	ThresholdBuffer = TypedFilterFactory->Config.GetValueSettingThreshold();
+	ThresholdBuffer = TypedFilterFactory->Config.GetValueSettingThreshold(PCGEX_QUIET_HANDLING);
 	if (!ThresholdBuffer->IsConstant())
 	{
 		if (TypedFilterFactory->Config.bRemapThresholdInternally)

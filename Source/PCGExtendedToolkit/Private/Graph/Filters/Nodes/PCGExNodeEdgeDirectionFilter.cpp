@@ -37,20 +37,20 @@ bool FNodeEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<P
 
 	bFromNode = TypedFilterFactory->Config.DirectionOrder == EPCGExAdjacencyDirectionOrigin::FromNode;
 
-	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection();
+	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection(PCGEX_QUIET_HANDLING);
 	if (!OperandDirection->Init(PointDataFacade, false)) { return false; }
 	if (!OperandDirection->IsConstant()) { DirectionMultiplier = TypedFilterFactory->Config.bInvertDirection ? -1 : 1; }
 
-	if (!Adjacency.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
+	if (!Adjacency.Init(InContext, PointDataFacade.ToSharedRef(), PCGEX_QUIET_HANDLING)) { return false; }
 
 	if (TypedFilterFactory->Config.ComparisonQuality == EPCGExDirectionCheckMode::Dot)
 	{
-		if (!DotComparison.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
+		if (!DotComparison.Init(InContext, PointDataFacade.ToSharedRef(), PCGEX_QUIET_HANDLING)) { return false; }
 	}
 	else
 	{
 		bUseDot = false;
-		if (!HashComparison.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
+		if (!HashComparison.Init(InContext, PointDataFacade.ToSharedRef(), PCGEX_QUIET_HANDLING)) { return false; }
 	}
 
 	VtxTransforms = InPointDataFacade->GetIn()->GetConstTransformValueRange();

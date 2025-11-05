@@ -2,9 +2,9 @@
 
 
 #include "Details/PCGExDetailsCustomization.h"
-
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
 #include "Details/Tuple/PCGExTupleBodyCustomization.h"
+
 
 namespace PCGExDetailsCustomization
 {
@@ -12,7 +12,7 @@ namespace PCGExDetailsCustomization
 	{
 		// I know this is cursed
 		FSlateStyleSet& AppStyle = const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get()));
-		
+
 #define PCGEX_ADD_ACTION_ICON(_NAME, _SIZE) AppStyle.Set("PCGEx.ActionIcon." # _NAME, new FSlateVectorImageBrush(Style->RootToContentDir(TEXT( "PCGEx_Editor_" #_NAME), TEXT(".svg")), _SIZE));
 
 		const FVector2D AIS_VerySmall = FVector2D(16.0f, 16.0f);
@@ -49,7 +49,7 @@ namespace PCGExDetailsCustomization
 		PCGEX_ADD_ACTION_ICON(MissingData_Error, AIS_VerySmall)
 		PCGEX_ADD_ACTION_ICON(MissingData_Pass, AIS_VerySmall)
 		PCGEX_ADD_ACTION_ICON(MissingData_Fail, AIS_VerySmall)
-		
+
 		PCGEX_ADD_ACTION_ICON(Fit_None, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(Fit_Fill, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(Fit_Min, AIS_Med)
@@ -69,20 +69,23 @@ namespace PCGExDetailsCustomization
 		PCGEX_ADD_ACTION_ICON(To_Pivot, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(To_Custom, AIS_Med)
 
+		PCGEX_ADD_ACTION_ICON(Numeric, AIS_Wide)
+		PCGEX_ADD_ACTION_ICON(Text, AIS_Wide)
+
 		FButtonStyle ActionIconButton = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton");
 
 		FSlateBrush Brush = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton").Pressed;
-		Brush.Margin = FMargin(2,2);
+		Brush.Margin = FMargin(2, 2);
 
 		Brush.TintColor = FLinearColor(0.1, 0.1, 0.1, 0.5f);
 		ActionIconButton.SetNormal(Brush);
 
 		Brush.TintColor = FLinearColor(0.1, 0.1, 0.1, 0.5f);
 		ActionIconButton.SetHovered(Brush);
-		
+
 		Brush.TintColor = FLinearColor(0.1, 0.1, 0.1, 0.8f);
 		ActionIconButton.SetPressed(Brush);
-		
+
 		AppStyle.Set("PCGEx.ActionIcon", ActionIconButton);
 
 #undef PCGEX_ADD_ACTION_ICON
@@ -96,23 +99,33 @@ namespace PCGExDetailsCustomization
 			"PCGExTupleBody",
 			FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExTupleBodyCustomization::MakeInstance));
 
-#define PCGEX_DECL_INLINE_ENUM(_NAME, _CLASS) PropertyModule.RegisterCustomPropertyTypeLayout(_NAME,FOnGetPropertyTypeCustomizationInstance::CreateStatic(&_CLASS::MakeInstance));
+#define PCGEX_FOREACH_INLINE_ENUM(MACRO)\
+MACRO(EPCGExInputValueType)\
+MACRO(EPCGExApplySampledComponentFlags)\
+MACRO(EPCGExOptionState)\
+MACRO(EPCGExFilterFallback)\
+MACRO(EPCGExFilterNoDataFallback)\
+MACRO(EPCGExPointBoundsSource)\
+MACRO(EPCGExDistance)\
+MACRO(EPCGExClusterElement)\
+MACRO(EPCGExAttributeFilter)\
+MACRO(EPCGExComparisonDataType)\
+MACRO(EPCGExScaleToFit)\
+MACRO(EPCGExJustifyFrom)\
+MACRO(EPCGExJustifyTo)\
+MACRO(EPCGExFitMode)
 
-		PCGEX_DECL_INLINE_ENUM("EPCGExInputValueType", FPCGExInputValueTypeCustomization)
-		PCGEX_DECL_INLINE_ENUM("EPCGExDataInputValueType", FPCGExDataInputValueTypeCustomization)
-		PCGEX_DECL_INLINE_ENUM("EPCGExApplySampledComponentFlags", FPCGExApplyAxisFlagCustomization)
-		PCGEX_DECL_INLINE_ENUM("EPCGExOptionState", FPCGExOptionStateCustomization)
-		PCGEX_DECL_INLINE_ENUM("EPCGExFilterNoDataFallback", FPCGExFilterNoDataFallbackCustomization)
-		PCGEX_DECL_INLINE_ENUM("EPCGExPointBoundsSource", FPCGExBoundsSourceCustomization)
-		PCGEX_DECL_INLINE_ENUM("EPCGExDistance", FPCGExDistanceCustomization)
-		PCGEX_DECL_INLINE_ENUM("EPCGExClusterElement", FPCGExClusterElementCustomization)
-		PCGEX_DECL_INLINE_ENUM("EPCGExAttributeFilter", FPCGExAttributeFilterCustomization)
+#define PCGEX_DECL_INLINE_ENUM(_ENUM)\
+class FPCGExInline##_ENUM final : public FPCGExInlineEnumCustomization{\
+public:	explicit FPCGExInline##_ENUM(const FString& InEnumName) : FPCGExInlineEnumCustomization(InEnumName){}\
+static TSharedRef<IPropertyTypeCustomization> MakeInstance(){ return MakeShareable(new FPCGExInline##_ENUM(#_ENUM));}};\
+PropertyModule.RegisterCustomPropertyTypeLayout(#_ENUM,FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInline##_ENUM::MakeInstance));
 
-		PCGEX_DECL_INLINE_ENUM("EPCGExFitMode", FPCGExFitModeCustomization)
-		PCGEX_DECL_INLINE_ENUM("EPCGExScaleToFit", FPCGExScaleToFitCustomization)
-		PCGEX_DECL_INLINE_ENUM("EPCGExJustifyFrom", FPCGExJustifyFromCustomization)
-		PCGEX_DECL_INLINE_ENUM("EPCGExJustifyTo", FPCGExJustifyToCustomization)
+		// This is grotesque but it works （。＾▽＾）
+		PCGEX_FOREACH_INLINE_ENUM(PCGEX_DECL_INLINE_ENUM)
 
 #undef PCGEX_DECL_INLINE_ENUM
+#undef PCGEX_FOREACH_INLINE_ENUM
+		
 	}
 }

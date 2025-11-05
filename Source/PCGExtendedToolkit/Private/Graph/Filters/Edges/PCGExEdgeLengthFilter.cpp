@@ -32,7 +32,7 @@ namespace PCGExEdgeLength
 	{
 		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		Threshold = TypedFilterFactory->Config.GetValueSettingThreshold();
+		Threshold = TypedFilterFactory->Config.GetValueSettingThreshold(PCGEX_QUIET_HANDLING);
 		if (!Threshold->Init(PointDataFacade)) { return false; }
 
 		return true;

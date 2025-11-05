@@ -6,7 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
 
-bool FPCGExAdjacencySettings::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
+bool FPCGExAdjacencySettings::Init(const FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade, const bool bQuiet)
 {
 	bUseDiscreteMeasure = ThresholdType == EPCGExMeanMeasure::Discrete;
 	bUseLocalThreshold = ThresholdInput == EPCGExInputValueType::Attribute;
@@ -17,7 +17,7 @@ bool FPCGExAdjacencySettings::Init(const FPCGExContext* InContext, const TShared
 		LocalThreshold = InPrimaryDataFacade->GetBroadcaster<double>(ThresholdAttribute);
 		if (!LocalThreshold)
 		{
-			PCGEX_LOG_INVALID_SELECTOR_C(InContext, Local Threshold, ThresholdAttribute)
+			if (!bQuiet) { PCGEX_LOG_INVALID_SELECTOR_C(InContext, Local Threshold, ThresholdAttribute) }
 			return false;
 		}
 	}

@@ -5,13 +5,21 @@
 
 #include "CoreMinimal.h"
 #include "Data/Sharing/PCGExBeacon.h"
+#include "DSP/PassiveFilter.h"
 #include "Engine/Level.h"
+#include "Paths/PCGExShiftPath.h"
 #include "Subsystems/WorldSubsystem.h"
 
 #include "PCGExSubSystem.generated.h"
 
 #define PCGEX_SUBSYSTEM UPCGExSubSystem* PCGExSubsystem = UPCGExSubSystem::GetSubsystemForCurrentWorld(); check(PCGExSubsystem)
 
+namespace PCGExPointFilter
+{
+	class IFilter;
+}
+
+class UPCGExConstantFilterFactory;
 class UPCGExGridIDTracker;
 
 UENUM()
@@ -106,6 +114,8 @@ public:
 
 	FORCEINLINE double GetEndTime() const { return EndTime; }
 
+	TSharedPtr<PCGExPointFilter::IFilter> GetConstantFilter(const bool bValue) const;
+
 protected:
 	double EndTime = 0.0;
 	TArray<int32> IndexBuffer;
@@ -116,9 +126,16 @@ protected:
 	TArray<FTickAction> BeginTickActions;
 	TSet<PCGEx::FPolledEvent> PolledEvents;
 
+
 	const IConsoleVariable* CVarEditorTimePerFrame = nullptr;
 	const IConsoleVariable* CVarTimePerFrame = nullptr;
 	double GetTickBudgetInSeconds();
 
 	void ExecuteBeginTickActions();
+
+	UPROPERTY()
+	TObjectPtr<UPCGExConstantFilterFactory> ConstantFilterFactory_TRUE;
+	
+	UPROPERTY()
+	TObjectPtr<UPCGExConstantFilterFactory> ConstantFilterFactory_FALSE;
 };

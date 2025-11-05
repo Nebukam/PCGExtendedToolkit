@@ -51,12 +51,12 @@ bool FIsoEdgeDirectionFilter::Init(FPCGExContext* InContext, const TSharedRef<PC
 	if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 	// Init for vtx
-	if (!DirectionSettings.Init(InContext, InPointDataFacade, &TypedFilterFactory->EdgeSortingRules)) { return false; }
+	if (!DirectionSettings.Init(InContext, InPointDataFacade, &TypedFilterFactory->EdgeSortingRules, PCGEX_QUIET_HANDLING)) { return false; }
 
 	// Init for edges
-	if (!DirectionSettings.InitFromParent(InContext, DirectionSettings, InEdgeDataFacade)) { return false; }
+	if (!DirectionSettings.InitFromParent(InContext, DirectionSettings, InEdgeDataFacade, PCGEX_QUIET_HANDLING)) { return false; }
 
-	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection();
+	OperandDirection = TypedFilterFactory->Config.GetValueSettingDirection(PCGEX_QUIET_HANDLING);
 	if (!OperandDirection->Init(InEdgeDataFacade)) { return false; }
 	if (!OperandDirection->IsConstant()) { DirectionMultiplier = TypedFilterFactory->Config.bInvertDirection ? -1 : 1; }
 

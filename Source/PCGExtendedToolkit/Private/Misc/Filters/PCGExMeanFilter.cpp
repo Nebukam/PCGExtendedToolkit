@@ -40,7 +40,7 @@ bool PCGExPointFilter::FMeanFilter::Init(FPCGExContext* InContext, const TShared
 
 	if (!Buffer)
 	{
-		PCGEX_LOG_INVALID_SELECTOR_C(InContext, Target, TypedFilterFactory->Config.Target)
+		PCGEX_LOG_INVALID_SELECTOR_HANDLED_C(InContext, Target, TypedFilterFactory->Config.Target)
 		return false;
 	}
 

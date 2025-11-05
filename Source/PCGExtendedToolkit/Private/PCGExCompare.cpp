@@ -266,9 +266,9 @@ namespace PCGExCompare
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExVectorHashComparisonDetails, Tolerance, double, HashToleranceInput, HashToleranceAttribute, HashToleranceConstant);
 
-bool FPCGExVectorHashComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
+bool FPCGExVectorHashComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade, const bool bQuiet)
 {
-	Tolerance = GetValueSettingTolerance();
+	Tolerance = GetValueSettingTolerance(bQuiet);
 	if (!Tolerance->Init(InPrimaryDataFacade, false)) { return false; }
 
 	return true;
@@ -310,9 +310,9 @@ bool FPCGExStaticDotComparisonDetails::Test(const double A) const
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExDotComparisonDetails, Threshold, double, ThresholdInput, ThresholdAttribute, Domain == EPCGExAngularDomain::Degrees ? DegreesConstant : DotConstant)
 
-bool FPCGExDotComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache)
+bool FPCGExDotComparisonDetails::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataCache, const bool bQuiet)
 {
-	ThresholdGetter = GetValueSettingThreshold();
+	ThresholdGetter = GetValueSettingThreshold(bQuiet);
 	if (!ThresholdGetter->Init(InPrimaryDataCache, false)) { return false; }
 
 	if (Domain == EPCGExAngularDomain::Degrees) { ComparisonTolerance = (1 + PCGExMath::DegreesToDot(180 - DegreesTolerance)) * 0.5; }

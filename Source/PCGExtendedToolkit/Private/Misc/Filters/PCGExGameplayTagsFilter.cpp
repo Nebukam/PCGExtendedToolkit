@@ -40,10 +40,9 @@ bool PCGExPointFilter::FGameplayTagsFilter::Init(FPCGExContext* InContext, const
 	for (int i = 0; i < PropertyPath.GetNumSegments(); i++) { PathSegments.Add(PropertyPath.GetSegment(i).Name.ToString()); }
 
 	ActorReferences = PointDataFacade->GetBroadcaster<FSoftObjectPath>(TypedFilterFactory->Config.ActorReference, true);
-
 	if (!ActorReferences)
 	{
-		PCGEX_LOG_INVALID_ATTR_C(InContext, Actor Reference, TypedFilterFactory->Config.ActorReference)
+		PCGEX_LOG_INVALID_ATTR_HANDLED_C(InContext, Actor Reference, TypedFilterFactory->Config.ActorReference)
 		return false;
 	}
 
