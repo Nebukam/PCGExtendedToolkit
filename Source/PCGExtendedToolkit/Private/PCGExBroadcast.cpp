@@ -1213,6 +1213,20 @@ template PCGEXTENDEDTOOLKIT_API void FSubSelection::Set<_TYPE_A, _TYPE_B>(_TYPE_
 	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 
+	template <typename T>
+	template <typename T_VALUE>
+	void TValueBuffer<T>::Set(const FSubSelection& SubSelection, const int32 Index, const T_VALUE& Value)	{ *(Values->GetData() + Index) = SubSelection.Get<T_VALUE, T>(Value); }
+
+	template <typename T>
+	template <typename T_VALUE>
+	T_VALUE TValueBuffer<T>::Get(const FSubSelection& SubSelection, const int32 Index) const{ return SubSelection.Get<T, T_VALUE>(*(Values->GetData() + Index)); }
+
+#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
+template PCGEXTENDEDTOOLKIT_API void TValueBuffer<_TYPE_A>::Set<_TYPE_B>(const FSubSelection& SubSelection, const int32 Index, const _TYPE_B& Value); \
+template PCGEXTENDEDTOOLKIT_API _TYPE_B TValueBuffer<_TYPE_A>::Get(const FSubSelection& SubSelection, const int32 Index) const; 
+	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
+#undef PCGEX_TPL
+	
 	bool TryGetType(const FPCGAttributePropertyInputSelector& InputSelector, const UPCGData* InData, EPCGMetadataTypes& OutType)
 	{
 		OutType = EPCGMetadataTypes::Unknown;

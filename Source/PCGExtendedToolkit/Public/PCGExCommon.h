@@ -76,10 +76,10 @@ namespace PCGExData
 
 	enum class EIOInit : uint8
 	{
-		NoInit UMETA(DisplayName = "No Output"),
-		New UMETA(DisplayName = "Create Empty Output Object"),
-		Duplicate UMETA(DisplayName = "Duplicate Input Object"),
-		Forward UMETA(DisplayName = "Forward Input Object")
+		NoInit,    // No Output
+		New,       // Create Empty Output Object
+		Duplicate, // Duplicate Input Object
+		Forward,   //Forward Input Object
 	};
 
 	enum class EIOSide : uint8
