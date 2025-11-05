@@ -318,7 +318,7 @@ public:
 	virtual PCGExAssetCollection::EType GetType() const { return PCGExAssetCollection::EType::None; }
 
 	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
-	
+
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void EDITOR_RefreshDisplayNames();

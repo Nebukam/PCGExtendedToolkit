@@ -64,7 +64,7 @@ UPCGExFactoryData* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContex
 
 	int32 MaxPriority = Priority;
 	for (const TObjectPtr<const UPCGExPointFilterFactoryData>& Factory : NewFactory->FilterFactories) { MaxPriority = FMath::Max(MaxPriority, Factory->Priority); }
-	
+
 	NewFactory->Priority = MaxPriority;
 	NewFactory->bInvert = bInvert;
 

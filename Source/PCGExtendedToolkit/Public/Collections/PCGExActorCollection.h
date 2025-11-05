@@ -83,5 +83,4 @@ public:
 	PCGEX_ASSET_COLLECTION_BOILERPLATE(UPCGExActorCollection, FPCGExActorCollectionEntry)
 
 	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const override;
-	
 };

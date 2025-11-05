@@ -14,7 +14,7 @@ UENUM()
 enum class EPCGExRecursionTrackerType : uint8
 {
 	Simple = 0 UMETA(DisplayName = "Simple", ToolTip="Simple recursion tracker. Can update multiple trackers at once.", ActionIcon="PCGEx.Pin.OUT_RecursionTracker"),
-	Branch  = 1 UMETA(DisplayName = "Branch", ToolTip="Branch recusion tracker. Can only work with a single tracker", ActionIcon="PCGEx.Pin.OUT_RecursionTracker", SearchHints = "Branch")
+	Branch = 1 UMETA(DisplayName = "Branch", ToolTip="Branch recusion tracker. Can only work with a single tracker", ActionIcon="PCGEx.Pin.OUT_RecursionTracker", SearchHints = "Branch")
 };
 
 UENUM()
@@ -27,18 +27,16 @@ enum class EPCGExRecursionTrackerMode : uint8
 
 namespace PCGExRecursionTracker
 {
-	
 	const FName SourceTrackerLabel = FName("Tracker");
 	const FName OutputTrackerLabel = FName("Tracker");
 	const FName OutputContinueLabel = FName("Continue");
 	const FName OutputStopLabel = FName("Stop");
-	
+
 	const FName SourceTrackerFilters = FName("Tracker Filters");
 	const FName SourceTestData = FName("Test Data");
 	const FName OutputProgressLabel = FName("Progress");
 	const FName OutputIndexLabel = FName("Index");
 	const FName OutputRemainderLabel = FName("Remainder");
-	
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/recursion-tracker"))
@@ -63,7 +61,7 @@ public:
 	virtual bool HasDynamicPins() const override;
 	virtual void ApplyPreconfiguredSettings(const FPCGPreConfiguredSettingsInfo& PreconfigureInfo) override;
 	virtual EPCGDataType GetCurrentPinTypes(const UPCGPin* InPin) const override;
-	
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -73,7 +71,7 @@ protected:
 	/** How is this recursion tracker supposed to be used. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExRecursionTrackerType Type = EPCGExRecursionTrackerType::Branch;
-	
+
 	/** How is this recursion tracker supposed to be used. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExRecursionTrackerMode Mode = EPCGExRecursionTrackerMode::CreateOrUpdate;
@@ -97,15 +95,15 @@ protected:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides), AdvancedDisplay)
 	int32 CounterUpdate = -1;
-	
+
 	/** If enabled, will create a pin that outputs the normalized progress value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Outputs", meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides))
 	bool bOutputProgress = false;
-	
+
 	/** If enabled, will create a pin that outputs the current iteration index (Max - Remainder). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Outputs", meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides))
 	bool bOutputIndex = false;
-	
+
 	/** If enabled, will create a pin that outputs the current remainder. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Outputs", meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides))
 	bool bOutputRemainder = false;
@@ -125,7 +123,7 @@ protected:
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExRecursionTrackerMode::Create", EditConditionHides), AdvancedDisplay)
 	bool bAddEntryWhenCreatingFromExistingData = false;
-	
+
 	/** An offset applied when creating a tracker in "Create or Update" mode. The default value assume the tracker is created from inside a subgraph and thus that one iteration passed already. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExRecursionTrackerMode::CreateOrUpdate", EditConditionHides), AdvancedDisplay)
 	int32 RemainderOffsetWhenCreateInsteadOfUpdate = -1;
@@ -143,5 +141,4 @@ public:
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
-	
 };

@@ -33,7 +33,7 @@ protected:
 
 public:
 	UPCGExFilterProviderSettings();
-		
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
@@ -59,7 +59,7 @@ public:
 	/** How to handle failed attribute initialization. Usually, the reason is missing attributes, but can also be unsupported filter type. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
 	EPCGExFilterNoDataFallback InitializationFailurePolicy = EPCGExFilterNoDataFallback::Error;
-	
+
 	/** How to handle missing data. This only applies to filters that rely on local data pins to output meaningful results. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(EditCondition="ShowMissingDataPolicy()", PCG_NotOverridable))
 	EPCGExFilterNoDataFallback MissingDataPolicy = EPCGExFilterNoDataFallback::Fail;

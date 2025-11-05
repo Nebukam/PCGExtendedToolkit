@@ -202,7 +202,7 @@ void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
 				{
 					const FPCGExContext* Ctx = SharedContext.Get();
 					for (TArray<AActor*> NotifyActorsArray = Ctx->NotifyActors.Array();
-						 AActor* TargetActor : NotifyActorsArray)
+					     AActor* TargetActor : NotifyActorsArray)
 					{
 						if (!IsValid(TargetActor)) { continue; }
 						for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, Ctx))

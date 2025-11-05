@@ -23,7 +23,7 @@ void UPCGExUberFilterSettings::ApplyDeprecation(UPCGNode* InOutNode)
 		ResultDetails.ResultAttributeName = ResultAttributeName_DEPRECATED;
 		ResultAttributeName_DEPRECATED = NAME_None;
 	}
-	
+
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif
@@ -127,8 +127,8 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->Outside->PruneNullEntries(true);
 
 		uint64& Mask = Context->OutputData.InactiveOutputPinBitmask;
-		if (!Context->Inside->StageOutputs()){ Mask |= 1ULL << 0; }
-		if (!Context->Outside->StageOutputs()){ Mask |= 1ULL << 1; }
+		if (!Context->Inside->StageOutputs()) { Mask |= 1ULL << 0; }
+		if (!Context->Outside->StageOutputs()) { Mask |= 1ULL << 1; }
 	}
 
 	return Context->TryComplete();
