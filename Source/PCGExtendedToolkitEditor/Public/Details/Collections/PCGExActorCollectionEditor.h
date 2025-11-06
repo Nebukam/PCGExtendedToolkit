@@ -17,6 +17,6 @@ public:
 	virtual FLinearColor GetWorldCentricTabColorScale() const override { return FLinearColor::White; }
 
 protected:
-	virtual void FillToolbar(FToolBarBuilder& ToolbarBuilder) override;
+	virtual void BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder) override;
 	virtual void CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTabs) override;
 };

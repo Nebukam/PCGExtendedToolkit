@@ -17,15 +17,15 @@
 #include "Modules/ModuleManager.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
 
-void FPCGExMeshCollectionEditor::FillToolbar(FToolBarBuilder& ToolbarBuilder)
+void FPCGExMeshCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder)
 {
-	FPCGExAssetCollectionEditor::FillToolbar(ToolbarBuilder);
+	FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(ToolbarBuilder);
 
 #define PCGEX_SLATE_ICON(_NAME) FSlateIcon(FAppStyle::GetAppStyleSetName(), "PCGEx.ActionIcon."#_NAME)
 #define PCGEX_CURRENT_COLLECTION if (UPCGExMeshCollection* Collection = Cast<UPCGExMeshCollection>(EditedCollection.Get()))
-	
+
 #pragma region Collision
-	
+
 	ToolbarBuilder.BeginSection("CollisionSection");
 	{
 		ToolbarBuilder.AddToolBarButton(
@@ -54,7 +54,7 @@ void FPCGExMeshCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTa
 {
 	// Property editor module
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-
+	
 	// Details view arguments
 	FDetailsViewArgs DetailsArgs;
 	DetailsArgs.bUpdatesFromSelection = false;
@@ -70,13 +70,35 @@ void FPCGExMeshCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTa
 		FIsPropertyVisible::CreateLambda(
 			[](const FPropertyAndParent& PropertyAndParent)
 			{
-				return PropertyAndParent.Property.GetFName() == TEXT("Entries");
+				FName EntriesName = FName("Entries");
+				// Show the Entries array itself
+				if (PropertyAndParent.Property.GetFName() == EntriesName)
+					return true;
+
+				// Show any child property of Entries
+				for (const FProperty* Parent : PropertyAndParent.ParentProperties)
+				{
+					if (!Parent) { continue; }
+					Parent = Parent->GetOwnerProperty();
+					if (Parent->GetFName() == EntriesName)
+					{
+						return true;
+					}
+				}
+
+				// Hide everything else
+				return false;
 			}));
-	
+
 	// Set the asset to display
 	DetailsView->SetObject(EditedCollection.Get());
 	FPCGExDetailsTabInfos& Infos = OutTabs.Emplace_GetRef(FName("Assets"), DetailsView);
 	Infos.Icon = TEXT("Entries");
+
+	FToolBarBuilder ToolbarBuilder(GetToolkitCommands(), FMultiBoxCustomization::None);
+	ToolbarBuilder.SetStyle(&FAppStyle::Get(), FName("Toolbar"));
+	BuildAssetHeaderToolbar(ToolbarBuilder);
+	Infos.Header = ToolbarBuilder.MakeWidget();
 
 	// Default handling (will append default collection tab)
 	FPCGExAssetCollectionEditor::CreateTabs(OutTabs);

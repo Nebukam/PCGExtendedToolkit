@@ -14,11 +14,12 @@
 #include "Widgets/Layout/SBox.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Modules/ModuleManager.h"
+#include "Styling/ToolBarStyle.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
 
-void FPCGExActorCollectionEditor::FillToolbar(FToolBarBuilder& ToolbarBuilder)
+void FPCGExActorCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder)
 {
-	FPCGExAssetCollectionEditor::FillToolbar(ToolbarBuilder);
+	FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(ToolbarBuilder);
 }
 
 void FPCGExActorCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTabs)
@@ -48,6 +49,11 @@ void FPCGExActorCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutT
 	DetailsView->SetObject(EditedCollection.Get());
 	FPCGExDetailsTabInfos& Infos = OutTabs.Emplace_GetRef(FName("Assets"), DetailsView);
 	Infos.Icon = TEXT("Entries");
+
+	FToolBarBuilder ToolbarBuilder(GetToolkitCommands(), FMultiBoxCustomization::None);
+	ToolbarBuilder.SetStyle(&FAppStyle::Get(), FName("Toolbar"));
+	BuildAssetHeaderToolbar(ToolbarBuilder);
+	Infos.Header = ToolbarBuilder.MakeWidget();
 
 	// Default handling (will append default collection tab)
 	FPCGExAssetCollectionEditor::CreateTabs(OutTabs);

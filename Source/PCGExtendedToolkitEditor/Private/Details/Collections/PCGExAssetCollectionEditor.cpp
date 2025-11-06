@@ -56,7 +56,7 @@ void FPCGExAssetCollectionEditor::InitEditor(UPCGExAssetCollection* InCollection
 			"Asset",
 			EExtensionHook::After,
 			GetToolkitCommands(),
-			FToolBarExtensionDelegate::CreateSP(this, &FPCGExAssetCollectionEditor::FillToolbar)
+			FToolBarExtensionDelegate::CreateSP(this, &FPCGExAssetCollectionEditor::BuildEditorToolbar)
 		);
 
 	AddToolbarExtender(ToolbarExtender);
@@ -93,22 +93,80 @@ void FPCGExAssetCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutT
 
 	// Set the asset to display
 	DetailsView->SetObject(EditedCollection.Get());
+
 	FPCGExDetailsTabInfos& Infos = OutTabs.Emplace_GetRef(FName("Collection"), DetailsView, FName("Collection Settings"));
 	Infos.Icon = TEXT("Settings");
 }
 
-void FPCGExAssetCollectionEditor::FillToolbar(FToolBarBuilder& ToolbarBuilder)
-{
 #define PCGEX_SLATE_ICON(_NAME) FSlateIcon(FAppStyle::GetAppStyleSetName(), "PCGEx.ActionIcon."#_NAME)
 #define PCGEX_CURRENT_COLLECTION if (UPCGExAssetCollection* Collection = EditedCollection.Get())
-
 #define PCGEX_SECTION_HEADER(_LABEL) \
-	ToolbarBuilder.AddWidget(\
-		SNew(SBox).VAlign(VAlign_Center).HAlign(HAlign_Center).Padding(FMargin(8, 0))[\
-			SNew(STextBlock).Text(INVTEXT(_LABEL)).Font(FCoreStyle::GetDefaultFontStyle("Regular", 8)).ColorAndOpacity(FSlateColor(FLinearColor(1, 1, 1, 0.8)))\
-			.Justification(ETextJustify::Center)]);
+ToolbarBuilder.AddWidget(\
+SNew(SBox).VAlign(VAlign_Center).HAlign(HAlign_Center).Padding(FMargin(8, 0))[\
+SNew(STextBlock).Text(INVTEXT(_LABEL)).Font(FCoreStyle::GetDefaultFontStyle("Regular", 8)).ColorAndOpacity(FSlateColor(FLinearColor(1, 1, 1, 0.8)))\
+.Justification(ETextJustify::Center)]);
 
+void FPCGExAssetCollectionEditor::BuildEditorToolbar(FToolBarBuilder& ToolbarBuilder)
+{
+#pragma region Staging
+
+	ToolbarBuilder.BeginSection("StagingSection");
+	{
+		//PCGEX_SECTION_HEADER("Rebuild\nStaging")
+
+		ToolbarBuilder.AddToolBarButton(
+				FUIAction(
+						FExecuteAction::CreateLambda(
+							[&]()
+							{
+								PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData(); }
+							})
+					),
+				NAME_None,
+				FText::FromString(TEXT("Rebuild")),
+				INVTEXT("Rebuild Staging for this asset collection."),
+				PCGEX_SLATE_ICON(RebuildStaging)
+			);
+
+		ToolbarBuilder.AddToolBarButton(
+				FUIAction(
+						FExecuteAction::CreateLambda(
+							[&]()
+							{
+								PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData_Recursive(); }
+							})
+					),
+				NAME_None,
+				FText::GetEmpty(), //FText::FromString(TEXT("Rebuild (Recursive)")),
+				INVTEXT("Rebuild staging recursively (this and all subcollections)."),
+				PCGEX_SLATE_ICON(RebuildStagingRecursive)
+			);
+
+		ToolbarBuilder.AddToolBarButton(
+				FUIAction(
+						FExecuteAction::CreateLambda(
+							[&]()
+							{
+								PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData_Project(); }
+							})
+					),
+				NAME_None,
+				FText::GetEmpty(), //FText::FromString(TEXT("Rebuild All (Project)")),
+				INVTEXT("Rebuild staging for the entire project. (Will go through all collection assets)"),
+				PCGEX_SLATE_ICON(RebuildStagingProject)
+			);
+
+		ToolbarBuilder.AddSeparator();
+	}
+	ToolbarBuilder.EndSection();
+
+#pragma endregion
+}
+
+void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder)
+{
 #pragma region Append
+
 
 	ToolbarBuilder.BeginSection("AppendSection");
 	{
@@ -130,65 +188,11 @@ void FPCGExAssetCollectionEditor::FillToolbar(FToolBarBuilder& ToolbarBuilder)
 
 #pragma endregion
 
-#pragma region Staging
-
-	ToolbarBuilder.BeginSection("StagingSection");
-	{
-		PCGEX_SECTION_HEADER("Rebuild\nStaging")
-
-		ToolbarBuilder.AddToolBarButton(
-				FUIAction(
-						FExecuteAction::CreateLambda(
-							[&]()
-							{
-								PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData(); }
-							})
-					),
-				NAME_None,
-				FText::GetEmpty(),
-				INVTEXT("Rebuild Staging for this asset collection."),
-				PCGEX_SLATE_ICON(RebuildStaging)
-			);
-
-		ToolbarBuilder.AddToolBarButton(
-				FUIAction(
-						FExecuteAction::CreateLambda(
-							[&]()
-							{
-								PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData_Recursive(); }
-							})
-					),
-				NAME_None,
-				FText::GetEmpty(),
-				INVTEXT("Rebuild staging recursively (this and all subcollections)."),
-				PCGEX_SLATE_ICON(RebuildStagingRecursive)
-			);
-
-		ToolbarBuilder.AddToolBarButton(
-				FUIAction(
-						FExecuteAction::CreateLambda(
-							[&]()
-							{
-								PCGEX_CURRENT_COLLECTION { Collection->EDITOR_RebuildStagingData_Project(); }
-							})
-					),
-				NAME_None,
-				FText::GetEmpty(),
-				INVTEXT("Rebuild staging for the entire project."),
-				PCGEX_SLATE_ICON(RebuildStagingProject)
-			);
-
-		ToolbarBuilder.AddSeparator();
-	}
-	ToolbarBuilder.EndSection();
-
-#pragma endregion
-
 #pragma region Weighting
 
 	ToolbarBuilder.BeginSection("WeightSection");
 	{
-		PCGEX_SECTION_HEADER("Weights")
+		PCGEX_SECTION_HEADER("Weight")
 
 		ToolbarBuilder.AddToolBarButton(
 				FUIAction(
@@ -288,8 +292,11 @@ void FPCGExAssetCollectionEditor::FillToolbar(FToolBarBuilder& ToolbarBuilder)
 
 #pragma region Sorting
 
+
 	ToolbarBuilder.BeginSection("SortingSection");
 	{
+		PCGEX_SECTION_HEADER("Sort")
+		
 		ToolbarBuilder.AddWidget(
 				SNew(SUniformGridPanel)
 				.SlotPadding(FMargin(1, 2))
@@ -322,11 +329,11 @@ void FPCGExAssetCollectionEditor::FillToolbar(FToolBarBuilder& ToolbarBuilder)
 	ToolbarBuilder.EndSection();
 
 #pragma endregion
+}
 
 #undef PCGEX_SLATE_ICON
 #undef PCGEX_CURRENT_COLLECTION
 #undef PCGEX_SECTION_HEADER
-}
 
 void FPCGExAssetCollectionEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
 {
@@ -345,7 +352,22 @@ void FPCGExAssetCollectionEditor::RegisterTabSpawners(const TSharedRef<FTabManag
 								          .TabRole(Tab.Role)
 								          .CanEverClose(false)
 								          [
-									          Tab.View.ToSharedRef()
+									          SNew(SVerticalBox)
+									          + SVerticalBox::Slot()
+									          .AutoHeight()
+									          [
+										          Tab.Header.IsValid() ? Tab.Header.ToSharedRef() : SNullWidget::NullWidget
+									          ]
+									          + SVerticalBox::Slot()
+									          .FillHeight(1.f)
+									          [
+										          Tab.View.ToSharedRef()
+									          ]
+									          + SVerticalBox::Slot()
+									          .AutoHeight()
+									          [
+										          Tab.Footer.IsValid() ? Tab.Footer.ToSharedRef() : SNullWidget::NullWidget
+									          ]
 								          ];
 						          })
 				          )
