@@ -12,4 +12,5 @@ namespace PCGExEditorMenuUtils
 	PCGEXTENDEDTOOLKITEDITOR_API void CreateOrUpdatePCGExAssetCollectionsFromMenu(UToolMenu* Menu, TArray<FAssetData>& Assets);
 
 	bool DoesAssetInheritFromAActor(const FAssetData& AssetData);
+
 }

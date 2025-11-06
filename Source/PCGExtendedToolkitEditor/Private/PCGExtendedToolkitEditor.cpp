@@ -6,40 +6,20 @@
 #include "Styling/SlateStyleRegistry.h"
 #include "Interfaces/IPluginManager.h"
 #include "AssetRegistry/AssetData.h"
-#include "EditorStyleSet.h"
 #include "Editor.h"
 
-#include "AssetToolsModule.h"
 #include "ContentBrowserMenuContexts.h"
-#include "IAssetTools.h"
 #include "PCGDataVisualizationRegistry.h"
-#include "PCGEditorSettings.h"
 #include "PCGExEditorMenuUtils.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGGraph.h"
 #include "PCGModule.h"
 #include "Actions/PCGExActionFactoryProvider.h"
 #include "AssetRegistry/AssetRegistryModule.h"
-#include "Collections/PCGExActorCollectionActions.h"
-#include "Collections/PCGExMeshCollectionActions.h"
-#include "Collections/PCGExActorDataPackerActions.h"
 #include "Data/PCGSpatialData.h"
-#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 #include "DataViz/PCGExSpatialDataVisualization.h"
 #include "Details/PCGExDetailsCustomization.h"
-#include "Graph/Data/PCGExClusterData.h"
-#include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
-#include "Graph/Filters/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
-#include "Graph/Probes/PCGExProbeFactoryProvider.h"
-#include "Graph/States/PCGExClusterStates.h"
-#include "Misc/PCGExModularPartitionByValues.h"
-#include "Misc/Pickers/PCGExPickerFactoryProvider.h"
-#include "Sampling/PCGExTexParamFactoryProvider.h"
-#include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
-#include "Shapes/PCGExShapeBuilderFactoryProvider.h"
-#include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitEditorModule"
 
@@ -120,15 +100,6 @@ namespace PCGExEditor
 
 void FPCGExtendedToolkitEditorModule::StartupModule()
 {
-	MeshCollectionActions = MakeShared<FPCGExMeshCollectionActions>();
-	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MeshCollectionActions.ToSharedRef());
-
-	ActorCollectionActions = MakeShared<FPCGExActorCollectionActions>();
-	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(ActorCollectionActions.ToSharedRef());
-
-	ActorPackerActions = MakeShared<FPCGExActorDataPackerActions>();
-	FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(ActorPackerActions.ToSharedRef());
-
 	// I know this is cursed
 	FSlateStyleSet& AppStyle = const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get()));
 
@@ -162,7 +133,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 #undef PCGEX_REGISTER_PIN_AND_COLOR
 
 	PCGExDetailsCustomization::RegisterDetailsCustomization(Style);
-	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());
+	FSlateStyleRegistry::RegisterSlateStyle(*Style.Get());	
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FPCGExtendedToolkitEditorModule::RegisterMenuExtensions));
 
 	RegisterDataVisualizations();
@@ -196,11 +167,7 @@ void FPCGExtendedToolkitEditorModule::RegisterMenuExtensions()
 			"PCGEx", FNewToolMenuDelegate::CreateLambda(
 				[this](UToolMenu* ToolMenu)
 				{
-					if (!GEditor || GEditor->GetPIEWorldContext() || !ToolMenu)
-					{
-						return;
-					}
-
+					if (!GEditor || GEditor->GetPIEWorldContext() || !ToolMenu) { return; }
 					if (UContentBrowserAssetContextMenuContext* AssetMenuContext = ToolMenu->Context.FindContext<UContentBrowserAssetContextMenuContext>())
 					{
 						PCGExEditorMenuUtils::CreateOrUpdatePCGExAssetCollectionsFromMenu(ToolMenu, AssetMenuContext->SelectedAssets);

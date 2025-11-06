@@ -3,9 +3,10 @@
 
 #include "PCGExEditorMenuUtils.h"
 
-#include "Collections/PCGExActorCollectionActions.h"
-#include "Collections/PCGExMeshCollectionActions.h"
-
+#include "Collections/PCGExActorCollection.h"
+#include "Collections/PCGExMeshCollection.h"
+#include "Details/Collections/PCGExActorCollectionActions.h"
+#include "Details/Collections/PCGExMeshCollectionActions.h"
 #include "Engine/Blueprint.h"
 #include "Engine/World.h"
 #include "Misc/ScopedSlowTask.h"

@@ -324,27 +324,27 @@ public:
 	virtual void EDITOR_RefreshDisplayNames();
 
 	/** Add Content Browser selection to this collection. */
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Add Selection", ShortToolTip="Add active content browser selection to this collection.", DisplayOrder=-1))
+	UFUNCTION()
 	void EDITOR_AddBrowserSelection();
 
 	void EDITOR_AddBrowserSelectionTyped(const TArray<FAssetData>& InAssetData);
 
 	/** Rebuild Staging data just for this collection. */
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging", ShortToolTip="Rebuild Staging data just for this collection.", DisplayOrder=0))
+	UFUNCTION()
 	virtual void EDITOR_RebuildStagingData();
 
 	/** Rebuild Staging data for this collection and its sub-collections, recursively. */
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging (Recursive)", ShortToolTip="Rebuild Staging data for this collection and its sub-collections, recursively.", DisplayOrder=1))
+	UFUNCTION()
 	virtual void EDITOR_RebuildStagingData_Recursive();
 
 	/** Rebuild Staging data for all collection within this project. */
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging (Project)", ShortToolTip="Rebuild Staging data for all collection within this project.", DisplayOrder=2))
+	UFUNCTION()
 	virtual void EDITOR_RebuildStagingData_Project();
 
 #pragma region Tools
 
 	/** Sort collection by weights in ascending order. */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="⇅ Ascending", ShortToolTip="Sort collection by weights in ascending order.", DisplayOrder=10))
+	UFUNCTION()
 	void EDITOR_SortByWeightAscending();
 
 	virtual void EDITOR_SortByWeightAscendingTyped();
@@ -356,7 +356,7 @@ public:
 	}
 
 	/** Sort collection by weights in descending order. */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="⇅ Descending", ShortToolTip="Sort collection by weights in descending order.", DisplayOrder=11))
+	UFUNCTION()
 	void EDITOR_SortByWeightDescending();
 
 	virtual void EDITOR_SortByWeightDescendingTyped();
@@ -368,7 +368,7 @@ public:
 	}
 
 	/**Sort collection by weights in descending order. */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="W = i", ShortToolTip="Set weigth to the entry index.", DisplayOrder=20))
+	UFUNCTION()
 	void EDITOR_SetWeightIndex();
 
 	virtual void EDITOR_SetWeightIndexTyped();
@@ -380,7 +380,7 @@ public:
 	}
 
 	/** Add 1 to all weights so it's easier to weight down some assets */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="W += 1", ShortToolTip="Add 1 to all weights so it's easier to weight down some assets", DisplayOrder=21))
+	UFUNCTION()
 	void EDITOR_PadWeight();
 
 	virtual void EDITOR_PadWeightTyped();
@@ -392,13 +392,13 @@ public:
 	}
 
 	/** Multiplies all weights by 2 */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="W * 2", ShortToolTip="Multiplies weights by 2", DisplayOrder=21))
+	UFUNCTION()
 	void EDITOR_MultWeight2();
 
 	virtual void EDITOR_MultWeight2Typed();
 
 	/** Multiplies all weights by 10 */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="W * 10", ShortToolTip="Multiplies weights by 10", DisplayOrder=22))
+	UFUNCTION()
 	void EDITOR_MultWeight10();
 
 	virtual void EDITOR_MultWeight10Typed();
@@ -410,7 +410,7 @@ public:
 	}
 
 	/** Reset all weights to 100 */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="W = 100", ShortToolTip="Reset all weights to 100", DisplayOrder=23))
+	UFUNCTION()
 	void EDITOR_WeightOne();
 
 	virtual void EDITOR_WeightOneTyped();
@@ -422,7 +422,7 @@ public:
 	}
 
 	/** Assign random weights to items */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Randomize Weights", ShortToolTip="Assign random weights to items", DisplayOrder=24))
+	UFUNCTION()
 	void EDITOR_WeightRandom();
 
 	virtual void EDITOR_WeightRandomTyped();
@@ -435,7 +435,7 @@ public:
 	}
 
 	/** Normalize weight sum to 100 */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Normalized Weights Sum", ShortToolTip="Normalize weight sum to 100", DisplayOrder=25))
+	UFUNCTION()
 	void EDITOR_NormalizedWeightToSum();
 
 	virtual void EDITOR_NormalizedWeightToSumTyped();

@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Collections/PCGExMeshCollectionActions.h"
+#include "Details/Collections/PCGExMeshCollectionActions.h"
 
 #include "ToolMenuSection.h"
 #include "Collections/PCGExMeshCollection.h"
@@ -11,6 +11,7 @@
 #include "UObject/Package.h"
 #include "FileHelpers.h"
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "Details/Collections/PCGExCollectionEditor.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 
@@ -169,4 +170,16 @@ uint32 FPCGExMeshCollectionActions::GetCategories()
 bool FPCGExMeshCollectionActions::HasActions(const TArray<UObject*>& InObjects) const
 {
 	return false;
+}
+
+void FPCGExMeshCollectionActions::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
+{
+	for (UObject* Obj : InObjects)
+	{
+		if (UPCGExAssetCollection* Collection = Cast<UPCGExAssetCollection>(Obj))
+		{
+			TSharedRef<FPCGExAssetCollectionEditor> Editor = MakeShared<FPCGExAssetCollectionEditor>();
+			Editor->InitEditor(Collection, EToolkitMode::Standalone, EditWithinLevelEditor);
+		}
+	}
 }

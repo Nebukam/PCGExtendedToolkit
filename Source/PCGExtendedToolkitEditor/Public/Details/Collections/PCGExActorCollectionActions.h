@@ -32,4 +32,6 @@ public:
 	virtual FColor GetTypeColor() const override;
 	virtual uint32 GetCategories() override;
 	virtual bool HasActions(const TArray<UObject*>& InObjects) const override;
+
+	virtual void OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor) override;
 };
