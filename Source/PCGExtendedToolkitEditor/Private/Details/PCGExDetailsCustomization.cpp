@@ -2,6 +2,11 @@
 
 
 #include "Details/PCGExDetailsCustomization.h"
+
+#include "AssetToolsModule.h"
+#include "Details/Collections/PCGExActorCollectionActions.h"
+#include "Details/Actions/PCGExActorDataPackerActions.h"
+#include "Details/Collections/PCGExMeshCollectionActions.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
 #include "Details/Tuple/PCGExTupleBodyCustomization.h"
 
@@ -19,6 +24,7 @@ namespace PCGExDetailsCustomization
 		const FVector2D AIS_Small = FVector2D(18.0f, 18.0f);
 		const FVector2D AIS_Med = FVector2D(22.0f, 22.0f);
 		const FVector2D AIS_Wide = FVector2D(44.0f, 22.0f);
+		const FVector2D AIS_Big = FVector2D(44.0f, 44.0f);
 
 		PCGEX_ADD_ACTION_ICON(Constant, AIS_VerySmall)
 		PCGEX_ADD_ACTION_ICON(Attribute, AIS_VerySmall)
@@ -72,6 +78,13 @@ namespace PCGExDetailsCustomization
 		PCGEX_ADD_ACTION_ICON(Numeric, AIS_Wide)
 		PCGEX_ADD_ACTION_ICON(Text, AIS_Wide)
 
+		
+		PCGEX_ADD_ACTION_ICON(RebuildStaging, AIS_Big)
+		PCGEX_ADD_ACTION_ICON(RebuildStagingRecursive, AIS_Big)
+		PCGEX_ADD_ACTION_ICON(RebuildStagingProject, AIS_Big)
+		PCGEX_ADD_ACTION_ICON(AddContentBrowserSelection, AIS_Big)
+		PCGEX_ADD_ACTION_ICON(NormalizeWeight, AIS_Big)
+
 		FButtonStyle ActionIconButton = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton");
 
 		FSlateBrush Brush = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton").Pressed;
@@ -93,6 +106,10 @@ namespace PCGExDetailsCustomization
 
 		/////////
 
+		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExMeshCollectionActions>());
+		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExActorCollectionActions>());
+		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExActorDataPackerActions>());
+				
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
 		PropertyModule.RegisterCustomPropertyTypeLayout(

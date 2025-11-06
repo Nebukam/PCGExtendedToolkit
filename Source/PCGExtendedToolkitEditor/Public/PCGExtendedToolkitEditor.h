@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Collections/PCGExActorDataPackerActions.h"
 #include "Modules/ModuleInterface.h"
 #include "Styling/SlateStyle.h"
 
@@ -18,9 +17,6 @@ public:
 	virtual void ShutdownModule() override;
 
 protected:
-	TSharedPtr<FPCGExMeshCollectionActions> MeshCollectionActions;
-	TSharedPtr<FPCGExActorCollectionActions> ActorCollectionActions;
-	TSharedPtr<FPCGExActorDataPackerActions> ActorPackerActions;
 	TSharedPtr<FSlateStyleSet> Style;
 
 	void RegisterDataVisualizations();

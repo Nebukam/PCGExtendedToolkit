@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Collections/PCGExActorDataPackerActions.h"
+#include "Details/Actions/PCGExActorDataPackerActions.h"
 
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"

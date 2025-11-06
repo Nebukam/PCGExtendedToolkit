@@ -18,7 +18,6 @@
 
 #include "PCGEx.h"
 #include "Details/PCGExMacros.h"
-#include "Details/PCGExDetailsSettings.h"
 
 namespace PCGExAssetCollection
 {
