@@ -11,7 +11,7 @@
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "ToolMenuSection.h"
-#include "Details/Collections/PCGExCollectionEditor.h"
+#include "Details/Collections/PCGExAssetCollectionEditor.h"
 #include "Misc/MessageDialog.h"
 #include "Widgets/Views/SListView.h"
 

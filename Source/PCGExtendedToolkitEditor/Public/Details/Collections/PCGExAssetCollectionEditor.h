@@ -7,13 +7,27 @@
 
 class UPCGExAssetCollection;
 
+struct FPCGExDetailsTabInfos
+{
+	FPCGExDetailsTabInfos() = default;
+
+	FPCGExDetailsTabInfos(const FName InId, const TSharedPtr<IDetailsView>& InView, const FName InLabel = NAME_None, const ETabRole InRole = MajorTab)
+		: Id(InId), View(InView), Label(InLabel.IsNone() ? InId : InLabel), Role(InRole)
+	{
+	}
+
+	FName Id = NAME_None;
+	TSharedPtr<IDetailsView> View = nullptr;
+	FName Label = NAME_None;
+	ETabRole Role = MajorTab;
+	FString Icon = TEXT("");
+};
+
 class FPCGExAssetCollectionEditor : public FAssetEditorToolkit
 {
 public:
-	TWeakObjectPtr<UPCGExAssetCollection> EditedCollection;
-
-	void InitEditor(UPCGExAssetCollection* InCollection, const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost);
-	UPCGExAssetCollection* GetEditedCollection() const;
+	virtual void InitEditor(UPCGExAssetCollection* InCollection, const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost);
+	virtual UPCGExAssetCollection* GetEditedCollection() const;
 
 	virtual FName GetToolkitFName() const override { return FName("PCGExAssetCollectionEditor"); }
 	virtual FText GetBaseToolkitName() const override { return INVTEXT("PCGEx Collection Editor"); }
@@ -21,10 +35,11 @@ public:
 	virtual FLinearColor GetWorldCentricTabColorScale() const override { return FLinearColor::White; }
 
 protected:
-	const FName DetailsViewTabId = FName("Details");
+	TWeakObjectPtr<UPCGExAssetCollection> EditedCollection;
 
+	virtual void CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTabs);
 	virtual void FillToolbar(FToolBarBuilder& ToolbarBuilder);
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 
-	TSharedPtr<IDetailsView> DetailsView;
+	TArray<FPCGExDetailsTabInfos> Tabs;
 };
