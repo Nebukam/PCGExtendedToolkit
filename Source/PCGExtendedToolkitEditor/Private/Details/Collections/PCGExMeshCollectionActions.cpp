@@ -11,7 +11,8 @@
 #include "UObject/Package.h"
 #include "FileHelpers.h"
 #include "AssetRegistry/AssetRegistryModule.h"
-#include "Details/Collections/PCGExCollectionEditor.h"
+#include "Details/Collections/PCGExAssetCollectionEditor.h"
+#include "Details/Collections/PCGExMeshCollectionEditor.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 
@@ -176,9 +177,9 @@ void FPCGExMeshCollectionActions::OpenAssetEditor(const TArray<UObject*>& InObje
 {
 	for (UObject* Obj : InObjects)
 	{
-		if (UPCGExAssetCollection* Collection = Cast<UPCGExAssetCollection>(Obj))
+		if (UPCGExMeshCollection* Collection = Cast<UPCGExMeshCollection>(Obj))
 		{
-			TSharedRef<FPCGExAssetCollectionEditor> Editor = MakeShared<FPCGExAssetCollectionEditor>();
+			TSharedRef<FPCGExMeshCollectionEditor> Editor = MakeShared<FPCGExMeshCollectionEditor>();
 			Editor->InitEditor(Collection, EToolkitMode::Standalone, EditWithinLevelEditor);
 		}
 	}

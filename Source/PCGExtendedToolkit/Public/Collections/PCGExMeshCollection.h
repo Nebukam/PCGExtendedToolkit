@@ -231,7 +231,7 @@ public:
 	virtual void EDITOR_RefreshDisplayNames() override;
 
 	/** Disable collision on all entries. */
-	UFUNCTION(CallInEditor, Category = Utils, meta=(DisplayName="Disable Collisions", ShortToolTip="Disable collision on all entries.", DisplayOrder=100))
+	UFUNCTION()
 	void EDITOR_DisableCollisions();
 
 #endif

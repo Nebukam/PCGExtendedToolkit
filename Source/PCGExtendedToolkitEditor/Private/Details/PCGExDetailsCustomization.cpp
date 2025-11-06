@@ -82,8 +82,12 @@ namespace PCGExDetailsCustomization
 		PCGEX_ADD_ACTION_ICON(RebuildStaging, AIS_Big)
 		PCGEX_ADD_ACTION_ICON(RebuildStagingRecursive, AIS_Big)
 		PCGEX_ADD_ACTION_ICON(RebuildStagingProject, AIS_Big)
-		PCGEX_ADD_ACTION_ICON(AddContentBrowserSelection, AIS_Big)
-		PCGEX_ADD_ACTION_ICON(NormalizeWeight, AIS_Big)
+		
+		PCGEX_ADD_ACTION_ICON(AddContentBrowserSelection, AIS_Med)
+		PCGEX_ADD_ACTION_ICON(NormalizeWeight, AIS_Med)
+		
+		PCGEX_ADD_ACTION_ICON(Entries, AIS_Med)
+		PCGEX_ADD_ACTION_ICON(Settings, AIS_Med)
 
 		FButtonStyle ActionIconButton = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton");
 
