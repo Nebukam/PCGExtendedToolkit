@@ -28,7 +28,7 @@ enum class EPCGExAxis : uint8
 	Down     = 5 UMETA(DisplayName = "Down", ToolTip="Down (Z-)"),
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPCGExAxisOrder : uint8
 {
 	XYZ = 0 UMETA(DisplayName = "X > Y > Z"),

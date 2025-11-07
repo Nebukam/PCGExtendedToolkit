@@ -122,6 +122,7 @@ namespace PCGExDetailsCustomization
 
 #define PCGEX_FOREACH_INLINE_ENUM(MACRO)\
 MACRO(EPCGExInputValueType)\
+MACRO(EPCGExInputValueToggle)\
 MACRO(EPCGExApplySampledComponentFlags)\
 MACRO(EPCGExOptionState)\
 MACRO(EPCGExFilterFallback)\

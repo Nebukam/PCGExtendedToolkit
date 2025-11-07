@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExResamplePath.h"
 
+#include "PCGExRandom.h"
 #include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPaths.h"
 
@@ -95,7 +96,7 @@ namespace PCGExResamplePath
 			if (NumSamples < 2) { return false; }
 
 			PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::New)
-			PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), NumSamples, PointDataFacade->GetAllocations());
+			PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), NumSamples, PointDataFacade->GetAllocations() | EPCGPointNativeProperties::Seed);
 		}
 		else
 		{
@@ -203,6 +204,7 @@ namespace PCGExResamplePath
 		PointDataFacade->Fetch(Scope);
 
 		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+		TPCGValueRange<int32> OutSeed = PointDataFacade->GetOut()->GetSeedValueRange(false);
 
 		if (Settings->Mode == EPCGExResampleMode::Redistribute)
 		{
@@ -210,6 +212,7 @@ namespace PCGExResamplePath
 			{
 				const FPointSample& Sample = Samples[Index];
 				OutTransforms[Index].SetLocation(Sample.Location);
+				if (Settings->bEnsureUniqueSeeds){ OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
 			}
 		}
 		else
@@ -221,6 +224,7 @@ namespace PCGExResamplePath
 			{
 				const FPointSample& Sample = Samples[Index];
 				OutTransforms[Index].SetLocation(Sample.Location);
+				if (Settings->bEnsureUniqueSeeds){ OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
 
 				//if (SourcesRange == 1)
 				//{

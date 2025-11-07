@@ -34,6 +34,14 @@ enum class EPCGExInputValueType : uint8
 };
 
 UENUM()
+enum class EPCGExInputValueToggle : uint8
+{
+	Disabled  = 0 UMETA(DisplayName = "Disabled", Tooltip="Disabled", ActionIcon="Disabled"),
+	Constant  = 1 UMETA(DisplayName = "Constant", Tooltip="Use a constant, user-defined value.", ActionIcon="Constant"),
+	Attribute = 2 UMETA(DisplayName = "Attribute", Tooltip="Read the value from the input data.", ActionIcon="Attribute"),
+};
+
+UENUM()
 enum class EPCGExDataInputValueType : uint8
 {
 	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant.", ActionIcon="Constant"),
