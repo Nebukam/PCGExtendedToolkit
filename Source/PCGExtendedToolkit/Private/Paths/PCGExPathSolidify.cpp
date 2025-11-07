@@ -25,20 +25,20 @@ void UPCGExPathSolidifySettings::ApplyDeprecation(UPCGNode* InOutNode)
 		if (SolidificationAxis_DEPRECATED == EPCGExMinimalAxis::X)
 		{
 			SolidificationOrder = EPCGExAxisOrder::XYZ;
-			PCGEX_COPY_TO(Z, Right)
-			PCGEX_COPY_TO(Y, Up)
+			PCGEX_COPY_TO(Z, Up)
+			PCGEX_COPY_TO(Y, Right)
 		}
 		else if (SolidificationAxis_DEPRECATED == EPCGExMinimalAxis::Y)
 		{
 			SolidificationOrder = EPCGExAxisOrder::YZX;
-			PCGEX_COPY_TO(Z, Right)
-			PCGEX_COPY_TO(X, Up)
+			PCGEX_COPY_TO(Z, Up)
+			PCGEX_COPY_TO(X, Right)
 		}
 		else
 		{
 			SolidificationOrder = EPCGExAxisOrder::ZXY;
-			PCGEX_COPY_TO(X, Right)
-			PCGEX_COPY_TO(Y, Up)
+			PCGEX_COPY_TO(X, Up)
+			PCGEX_COPY_TO(Y, Right)
 		}
 #undef PCGEX_COPY_TO
 	}
