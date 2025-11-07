@@ -227,9 +227,25 @@ namespace PCGExShrinkPath
 		}
 
 		int32 Remainder = 0;
-		for (int32 i = 0; i < NumPoints; i++) { if (Mask[i]) { Remainder++; } }
+		int32 StartIndex = MAX_int32;
+		int32 EndIndex = 0;
+		for (int32 i = 0; i < NumPoints; i++)
+		{
+			if (Mask[i])
+			{
+				Remainder++;
+				StartIndex = FMath::Min(StartIndex, i);
+				EndIndex = FMath::Max(EndIndex, i);
+			}
+		}
 
-		if (Remainder < 2)
+		
+		// Clear "crossing" shrinks
+		const double Dot = StartIndex < NumPoints ? FVector::DotProduct(
+			(PointDataFacade->GetIn()->GetTransform(StartIndex).GetLocation() - PointDataFacade->GetIn()->GetTransform(EndIndex).GetLocation()),
+			(NewStart.Transform.GetLocation() - NewEnd.Transform.GetLocation())) : 1;
+		
+		if (Remainder < 2 || StartIndex == EndIndex || Dot < 0)
 		{
 			// No valid path is left for gathering, simply omit output.
 			PointDataFacade->Source->Disable();
@@ -454,11 +470,6 @@ namespace PCGExShrinkPath
 
 				if (EndIndex != -1) { break; }
 			}
-		}
-
-		if (StartAmount > 0 && EndAmount > 0)
-		{
-			// TODO : Handle case where cuts cross each other
 		}
 	}
 }
