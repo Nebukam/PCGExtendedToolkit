@@ -20,7 +20,8 @@ void UPCGExPathSolidifySettings::ApplyDeprecation(UPCGNode* InOutNode)
 #define PCGEX_COPY_TO(_SOURCE, _TARGET)\
 		_TARGET##Axis.Radius = Radius##_SOURCE##Constant_DEPRECATED;\
 		_TARGET##Axis.RadiusAttribute = Radius##_SOURCE##SourceAttribute_DEPRECATED;\
-		_TARGET##Axis.RadiusInput = bWriteRadius##_SOURCE##_DEPRECATED ? Radius##_SOURCE##Input##_DEPRECATED == EPCGExInputValueType::Constant ? EPCGExInputValueToggle::Constant : EPCGExInputValueToggle::Attribute :  EPCGExInputValueToggle::Disabled;
+		if(bWriteRadius##_SOURCE##_DEPRECATED){ _TARGET##Axis.RadiusInput = static_cast<EPCGExInputValueToggle>(Radius##_SOURCE##Input##_DEPRECATED); }\
+		else{_TARGET##Axis.RadiusInput = EPCGExInputValueToggle::Disabled;}
 
 		if (SolidificationAxis_DEPRECATED == EPCGExMinimalAxis::X)
 		{
