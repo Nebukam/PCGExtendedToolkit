@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "MinVolumeBox3.h"
 #include "PCGEx.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGExMath.h"
 #include "PCGExMT.h"
 #include "Transform/PCGExFitting.h"
@@ -524,6 +525,12 @@ namespace PCGExGeo
 		Axis[1] = Y.GetSafeNormal();
 		Axis[2] = Z.GetSafeNormal();
 	}
+}
+
+FPCGExGeo2DProjectionDetails::FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal)
+: bSupportLocalNormal(InSupportLocalNormal)
+{
+	ProjectionNormal = GetDefault<UPCGExGlobalSettings>()->WorldUp;
 }
 
 bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade)

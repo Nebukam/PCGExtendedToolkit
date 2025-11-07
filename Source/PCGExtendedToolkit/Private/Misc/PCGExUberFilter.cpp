@@ -8,6 +8,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExVersion.h"
 #include "Misc/Pickers/PCGExPicker.h"
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
@@ -18,12 +19,12 @@
 #if WITH_EDITOR
 void UPCGExUberFilterSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	if (!ResultAttributeName_DEPRECATED.IsNone())
+	PCGEX_IF_DATA_VERSION(1, 70, 11)
 	{
-		ResultDetails.ResultAttributeName = ResultAttributeName_DEPRECATED;
-		ResultAttributeName_DEPRECATED = NAME_None;
+		if (!ResultAttributeName_DEPRECATED.IsNone()) { ResultDetails.ResultAttributeName = ResultAttributeName_DEPRECATED; }
 	}
-
+	
+	PCGEX_UPDATE_DATA_VERSION
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

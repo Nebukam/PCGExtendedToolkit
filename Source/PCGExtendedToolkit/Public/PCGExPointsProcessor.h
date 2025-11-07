@@ -163,7 +163,7 @@ public:
 protected:
 	/** Store version of the node, used for deprecation purposes */
 	UPROPERTY()
-	int64 PCGExVersion = -1;
+	int64 PCGExDataVersion = -1;
 	
 	virtual bool ShouldCache() const;
 	virtual bool WantsScopedAttributeGet() const;

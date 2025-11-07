@@ -231,10 +231,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 
 	FPCGExGeo2DProjectionDetails() = default;
 
-	explicit FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal)
-		: bSupportLocalNormal(InSupportLocalNormal)
-	{
-	}
+	explicit FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal);
 
 	UPROPERTY()
 	bool bSupportLocalNormal = true;

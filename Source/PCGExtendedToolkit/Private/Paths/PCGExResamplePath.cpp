@@ -212,7 +212,7 @@ namespace PCGExResamplePath
 			{
 				const FPointSample& Sample = Samples[Index];
 				OutTransforms[Index].SetLocation(Sample.Location);
-				if (Settings->bEnsureUniqueSeeds){ OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
+				if (Settings->bEnsureUniqueSeeds) { OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
 			}
 		}
 		else
@@ -224,7 +224,7 @@ namespace PCGExResamplePath
 			{
 				const FPointSample& Sample = Samples[Index];
 				OutTransforms[Index].SetLocation(Sample.Location);
-				if (Settings->bEnsureUniqueSeeds){ OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
+				if (Settings->bEnsureUniqueSeeds) { OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
 
 				//if (SourcesRange == 1)
 				//{

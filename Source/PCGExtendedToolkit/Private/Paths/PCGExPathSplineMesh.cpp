@@ -11,6 +11,7 @@
 #include "PCGExSubSystem.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExVersion.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
 
@@ -22,13 +23,13 @@
 #if WITH_EDITOR
 void UPCGExPathSplineMeshSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	if (SplineMeshAxisConstant_DEPRECATED != EPCGExMinimalAxis::None && DefaultDescriptor.SplineMeshAxis == EPCGExSplineMeshAxis::Default)
+	PCGEX_IF_DATA_VERSION(1, 70, 11)
 	{
 		DefaultDescriptor.SplineMeshAxis = static_cast<EPCGExSplineMeshAxis>(SplineMeshAxisConstant_DEPRECATED);
+		Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
 	}
 
-	Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
-
+	PCGEX_UPDATE_DATA_VERSION
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

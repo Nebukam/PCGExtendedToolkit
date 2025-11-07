@@ -60,6 +60,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGlobalSettings : public UDeveloperSettings
 	GENERATED_BODY()
 
 public:
+	/** World "Up" vector used as default up internally */
+	UPROPERTY(EditAnywhere, config, Category = "Defaults")
+	FVector WorldUp = FVector::UpVector;
+	
 	/** Value applied by default to node caching when `Default` is selected -- note that some nodes may stop working as expected when working with cached data.*/
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
 	bool bDefaultCacheNodeOutput = true;

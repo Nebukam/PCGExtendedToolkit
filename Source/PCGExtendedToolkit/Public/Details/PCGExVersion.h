@@ -1,0 +1,25 @@
+﻿// Copyright 2025 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#define PCGEX_VERSION_NUM(_MAJOR, _MINOR, _PATCH) ((_MAJOR * 1000000) + (_MINOR * 10000) + (_PATCH * 100))
+#define PCGEX_VERSION_NAME(_MAJOR, _MINOR, _PATCH) v_##_MAJOR##_##_MINOR##_##_PATCH
+#define PCGEX_VERSION_BOOL(_MAJOR, _MINOR, _PATCH) b_##_MAJOR##_##_MINOR##_##_PATCH
+#define PCGEX_VERSION_DECL(_MAJOR, _MINOR, _PATCH) int64 PCGEX_VERSION_NAME(_MAJOR, _MINOR, _PATCH) = PCGEX_VERSION_NUM(_MAJOR, _MINOR, _PATCH);
+#define PCGEX_VERSION_DECL_LATEST(_MAJOR, _MINOR, _PATCH)\
+PCGEX_VERSION_DECL(_MAJOR, _MINOR, _PATCH)\
+constexpr int64 Latest = PCGEX_VERSION_NUM(_MAJOR, _MINOR, _PATCH);
+
+#define PCGEX_IF_DATA_VERSION(_MAJOR, _MINOR, _PATCH) \
+constexpr PCGEX_VERSION_DECL(_MAJOR, _MINOR, _PATCH) \
+const bool PCGEX_VERSION_BOOL(_MAJOR, _MINOR, _PATCH) = PCGExDataVersion < PCGEX_VERSION_NAME(_MAJOR, _MINOR, _PATCH); \
+if(PCGEX_VERSION_BOOL(_MAJOR, _MINOR, _PATCH)){ PCGExDataVersion = PCGEX_VERSION_NAME(_MAJOR, _MINOR, _PATCH); } \
+if(PCGEX_VERSION_BOOL(_MAJOR, _MINOR, _PATCH))
+
+#define PCGEX_UPDATE_DATA_VERSION PCGExDataVersion = PCGExVersion::Latest;
+
+namespace PCGExVersion
+{
+	constexpr int64 Latest = PCGEX_VERSION_NUM(1, 70, 11);
+}

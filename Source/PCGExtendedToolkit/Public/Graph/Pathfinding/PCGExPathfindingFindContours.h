@@ -35,7 +35,7 @@ class UPCGExFindContoursSettings : public UPCGExEdgesProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FindContours, "Pathfinding : Find Contours", "Attempts to find a closed contour of connected edges around seed points.");
+	PCGEX_NODE_INFOS(FindContours, "Pathfinding : Find Cells", "Attempts to find a closed cell of connected edges around seed points.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorPathfinding; }
 #endif
 
