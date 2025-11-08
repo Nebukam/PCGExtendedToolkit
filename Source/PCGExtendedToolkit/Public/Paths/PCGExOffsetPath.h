@@ -85,7 +85,7 @@ public:
 
 	/** Up vector used to calculate Offset direction.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FVector UpVectorConstant = FVector::UpVector;
+	FVector UpVectorConstant = GetDefault<UPCGExGlobalSettings>()->WorldUp;
 
 	/** Direction Vector type.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

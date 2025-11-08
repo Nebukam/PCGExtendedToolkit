@@ -11,6 +11,7 @@
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Async/ParallelFor.h"
+#include "Details/PCGExVersion.h"
 
 #define LOCTEXT_NAMESPACE "PCGExRefineEdges"
 #define PCGEX_NAMESPACE RefineEdges
@@ -18,11 +19,12 @@
 #if WITH_EDITOR
 void UPCGExRefineEdgesSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	if (bOutputEdgesOnly_DEPRECATED)
+	PCGEX_IF_DATA_VERSION(1, 70, 11)
 	{
-		Mode = EPCGExRefineEdgesOutput::Points;
-		bOutputEdgesOnly_DEPRECATED = false;
+		if (bOutputEdgesOnly_DEPRECATED) { Mode = EPCGExRefineEdgesOutput::Points; }
 	}
+
+	PCGEX_UPDATE_DATA_VERSION
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

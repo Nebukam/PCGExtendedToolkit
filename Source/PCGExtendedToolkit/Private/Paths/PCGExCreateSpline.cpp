@@ -7,6 +7,7 @@
 #include "PCGComponent.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExVersion.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateSplineElement"
@@ -15,7 +16,12 @@
 #if WITH_EDITOR
 void UPCGExCreateSplineSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
+	PCGEX_IF_DATA_VERSION(1, 70, 11)
+	{
+		Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
+	}
+
+	PCGEX_UPDATE_DATA_VERSION
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

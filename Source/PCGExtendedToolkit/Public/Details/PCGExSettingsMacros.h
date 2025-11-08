@@ -29,6 +29,7 @@ V->bQuiet = bQuiet;\
 return V; }
 
 #define PCGEX_SETTING_VALUE_IMPL_BOOL(_CLASS, _NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT) PCGEX_SETTING_VALUE_IMPL(_CLASS, _NAME, _TYPE, ((_INPUT) ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant), _SOURCE, _CONSTANT);
+#define PCGEX_SETTING_VALUE_IMPL_TOGGLE(_CLASS, _NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT, _DISABLED) PCGEX_SETTING_VALUE_IMPL(_CLASS, _NAME, _TYPE, ((_INPUT != EPCGExInputValueToggle::Disabled) ? static_cast<EPCGExInputValueType>(_INPUT) : EPCGExInputValueType::Constant), _SOURCE, (_INPUT == EPCGExInputValueToggle::Disabled ? _DISABLED : _CONSTANT));
 
 #define PCGEX_SETTING_VALUE_INLINE(_NAME, _TYPE, _INPUT, _SOURCE, _CONSTANT)\
 TSharedPtr<PCGExDetails::TSettingValue<_TYPE>> GetValueSetting##_NAME(const bool bQuiet = false) const{ \

@@ -5,10 +5,50 @@
 
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
+#include "Details/PCGExVersion.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSolidifyElement"
 #define PCGEX_NAMESPACE PathSolidify
+
+#if WITH_EDITOR
+
+void UPCGExPathSolidifySettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	PCGEX_IF_DATA_VERSION(1, 70, 11)
+	{
+#define PCGEX_COPY_TO(_SOURCE, _TARGET)\
+		_TARGET##Axis.Radius = Radius##_SOURCE##Constant_DEPRECATED;\
+		_TARGET##Axis.RadiusAttribute = Radius##_SOURCE##SourceAttribute_DEPRECATED;\
+		if(bWriteRadius##_SOURCE##_DEPRECATED){ _TARGET##Axis.RadiusInput = static_cast<EPCGExInputValueToggle>(Radius##_SOURCE##Input##_DEPRECATED); }\
+		else{_TARGET##Axis.RadiusInput = EPCGExInputValueToggle::Disabled;}
+
+		if (SolidificationAxis_DEPRECATED == EPCGExMinimalAxis::X)
+		{
+			SolidificationOrder = EPCGExAxisOrder::XYZ;
+			PCGEX_COPY_TO(Z, Up)
+			PCGEX_COPY_TO(Y, Right)
+		}
+		else if (SolidificationAxis_DEPRECATED == EPCGExMinimalAxis::Y)
+		{
+			SolidificationOrder = EPCGExAxisOrder::YZX;
+			PCGEX_COPY_TO(Z, Up)
+			PCGEX_COPY_TO(X, Right)
+		}
+		else
+		{
+			SolidificationOrder = EPCGExAxisOrder::ZXY;
+			PCGEX_COPY_TO(X, Up)
+			PCGEX_COPY_TO(Y, Right)
+		}
+#undef PCGEX_COPY_TO
+	}
+
+	PCGEX_UPDATE_DATA_VERSION
+	Super::ApplyDeprecation(InOutNode);
+}
+
+#endif
 
 PCGEX_INITIALIZE_ELEMENT(PathSolidify)
 
@@ -16,7 +56,29 @@ PCGExData::EIOInit UPCGExPathSolidifySettings::GetMainDataInitializationPolicy()
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSolidify)
 
+PCGEX_SETTING_VALUE_IMPL_TOGGLE(FPCGExPathSolidificationAxisDetails, Flip, bool, FlipInput, FlipAttributeName, bFlip, false)
+PCGEX_SETTING_VALUE_IMPL_BOOL(FPCGExPathSolidificationRadiusDetails, Radius, double, RadiusInput == EPCGExInputValueToggle::Attribute, RadiusAttribute, Radius)
+PCGEX_SETTING_VALUE_IMPL_BOOL(FPCGExPathSolidificationRadiusOnlyDetails, Radius, double, RadiusInput == EPCGExInputValueToggle::Attribute, RadiusAttribute, Radius)
+
 PCGEX_SETTING_VALUE_IMPL(UPCGExPathSolidifySettings, SolidificationLerp, double, SolidificationLerpInput, SolidificationLerpAttribute, SolidificationLerpConstant)
+
+bool FPCGExPathSolidificationAxisDetails::Validate(FPCGExContext* InContext) const
+{
+	if (FlipInput == EPCGExInputValueToggle::Attribute) { PCGEX_VALIDATE_NAME_C(InContext, FlipAttributeName); }
+	return true;
+}
+
+bool FPCGExPathSolidificationRadiusDetails::Validate(FPCGExContext* InContext) const
+{
+	if (!FPCGExPathSolidificationAxisDetails::Validate(InContext)) { return false; }
+	return true;
+}
+
+
+bool FPCGExPathSolidificationRadiusOnlyDetails::Validate(FPCGExContext* InContext) const
+{
+	return true;
+}
 
 bool FPCGExPathSolidifyElement::Boot(FPCGExContext* InContext) const
 {
@@ -78,24 +140,70 @@ namespace PCGExPathSolidify
 		bClosedLoop = PCGExPaths::GetClosedLoop(PointIO->GetIn());
 
 		Path = MakeShared<PCGExPaths::FPath>(PointDataFacade->GetIn(), 0);
-		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 
+		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>();
+
+		const FVector Up = GetDefault<UPCGExGlobalSettings>()->WorldUp;
+
+		if (Settings->CrossDirectionType == EPCGExInputValueType::Attribute)
+		{
+			CrossGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->CrossDirectionAttribute, true);
+			if (!CrossGetter)
+			{
+				PCGEX_LOG_INVALID_SELECTOR_C(ExecutionContext, Cross Direction, Settings->CrossDirectionAttribute)
+				return false;
+			}
+		}
+		else
+		{
+			switch (Settings->CrossDirection)
+			{
+			case EPCGExPathNormalDirection::Normal:
+				PathNormal = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeNormal>(false, Up));
+				break;
+			case EPCGExPathNormalDirection::Binormal:
+				PathNormal = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeBinormal>(false, Up));
+				break;
+			case EPCGExPathNormalDirection::AverageNormal:
+				PathNormal = StaticCastSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>>(Path->AddExtra<PCGExPaths::FPathEdgeAvgNormal>(false, Up));
+				break;
+			}
+		}
+
 		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointDataFacade->GetOut()->SetNumPoints(Path->LastIndex); }
+
+		// Flip settings
+
+		ForwardFlipBuffer = Settings->ForwardAxis.GetValueSettingFlip();
+		if (!ForwardFlipBuffer->Init(PointDataFacade)) { return false; }
+
+		RightFlipBuffer = Settings->RightAxis.GetValueSettingFlip();
+		if (!RightFlipBuffer->Init(PointDataFacade)) { return false; }
+
+		// Radius settings
+
+		if (Settings->UpAxis.RadiusInput != EPCGExInputValueToggle::Disabled)
+		{
+			UpRadiusBuffer = Settings->UpAxis.GetValueSettingRadius();
+			if (!UpRadiusBuffer->Init(PointDataFacade)) { return false; }
+		}
+
+		if (Settings->RightAxis.RadiusInput != EPCGExInputValueToggle::Disabled)
+		{
+			RightRadiusBuffer = Settings->RightAxis.GetValueSettingRadius();
+			if (!RightRadiusBuffer->Init(PointDataFacade)) { return false; }
+		}
 
 		PointDataFacade->GetOut()->AllocateProperties(
 			EPCGPointNativeProperties::Transform |
 			EPCGPointNativeProperties::BoundsMin |
 			EPCGPointNativeProperties::BoundsMax);
 
-#define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){\
-		SolidificationRad##_AXIS = PCGExDetails::MakeSettingValue(Settings->Radius##_AXIS##Input, Settings->Radius##_AXIS##SourceAttribute, Settings->Radius##_AXIS##Constant);\
-		if (!SolidificationRad##_AXIS->Init(PointDataFacade, false)){ return false; }}
-		PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_SET_CONST)
-#undef PCGEX_CREATE_LOCAL_AXIS_SET_CONST
-
 		SolidificationLerp = Settings->GetValueSettingSolidificationLerp();
 		if (!SolidificationLerp->Init(PointDataFacade, false)) { return false; }
+
+		Path->ComputeAllEdgeExtra();
 
 		StartParallelLoopForPoints();
 
@@ -112,58 +220,68 @@ namespace PCGExPathSolidify
 		TPCGValueRange<FVector> BoundsMin = PointDataFacade->GetOut()->GetBoundsMinValueRange(false);
 		TPCGValueRange<FVector> BoundsMax = PointDataFacade->GetOut()->GetBoundsMaxValueRange(false);
 
+		int32 X = 0;
+		int32 Y = 0;
+		int32 Z = 0;
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (!Path->IsValidEdgeIndex(Index)) { continue; }
+			if (!Path->IsValidEdgeIndex(Index))
+				continue;
 
 			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
-			Path->ComputeEdgeExtra(Index);
-
 			const double Length = PathLength->Get(Index);
+			const FVector InvScale = FVector::One() / Transforms[Index].GetScale3D();
 
-			FRotator EdgeRot;
-			FVector TargetBoundsMin = BoundsMin[Index];
-			FVector TargetBoundsMax = BoundsMax[Index];
+			// user-aligned directions			
+			FVector Forward = Edge.Dir; // initial "toward" vector
+			FVector Right = FVector::CrossProduct(Forward, PathNormal ? PathNormal->Get(Index) : CrossGetter->Read(Index)).GetSafeNormal();
+			FVector Up = FVector::CrossProduct(Right, Forward).GetSafeNormal();
 
-			const double EdgeLerp = FMath::Clamp(SolidificationLerp->Read(Index), 0, 1);
-			const double EdgeLerpInv = 1 - EdgeLerp;
+			// determine order
+			PCGEx::GetAxisOrder(Settings->SolidificationOrder, X, Y, Z);
+			FVector BaseAxes[3] = {Forward, Right, Up};
 
-			const FVector PtScale = Transforms[Index].GetScale3D();
-			const FVector InvScale = FVector::One() / PtScale;
+			// Apply forward flip safely
+			bool bFlipFwd = ForwardFlipBuffer && ForwardFlipBuffer->Read(Index);
+			bool bFlipRight = RightFlipBuffer && RightFlipBuffer->Read(Index);
 
-			//SolidificationRad##_AXIS.IsValid();
+			Forward = BaseAxes[X];
+			Right = BaseAxes[Y];
+			Up = BaseAxes[Z];
 
-#define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
-if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
-TargetBoundsMin._AXIS = (-Length * EdgeLerp)* InvScale._AXIS;\
-TargetBoundsMax._AXIS = (Length * EdgeLerpInv) * InvScale._AXIS;\
-}else if(Settings->bWriteRadius##_AXIS){\
-const double Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Index), SolidificationRad##_AXIS->Read(Index), EdgeLerpInv); \
-TargetBoundsMin._AXIS = (-Rad) * InvScale._AXIS;\
-TargetBoundsMax._AXIS = (Rad) * InvScale._AXIS;\
-}
+			// Create initial direction
+			FQuat Quat = FRotationMatrix::MakeFromX(Forward).ToQuat();
+			const FVector TUp = Quat.GetUpVector();			
+			Quat = FQuat::FindBetweenNormals((TUp - (TUp | Forward) * Forward).GetSafeNormal(), (Right - (Right | Forward) * Forward).GetSafeNormal()) * Quat;
 
-			PCGEX_FOREACH_XYZ(PCGEX_SOLIDIFY_DIMENSION)
-#undef PCGEX_SOLIDIFY_DIMENSION
+			double EdgeLerp = FMath::Clamp(SolidificationLerp->Read(Index), 0.0, 1.0);
+			if (bFlipFwd || bFlipRight) { EdgeLerp = 1.0 - EdgeLerp; }
+			const double EdgeLerpInv = 1.0 - EdgeLerp;
 
-			switch (Settings->SolidificationAxis)
+			// update transform
+			Transforms[Index] = FTransform(Quat, Path->GetEdgePositionAtAlpha(Index, EdgeLerp), Transforms[Index].GetScale3D());
+
+			// bounds per axis index
+			FVector& OutBoundsMin = BoundsMin[Index];
+			FVector& OutBoundsMax = BoundsMax[Index];
+
+			OutBoundsMin[X] = (-Length * EdgeLerp) * InvScale[X];
+			OutBoundsMax[X] = (Length * EdgeLerpInv) * InvScale[X];
+
+			if (RightRadiusBuffer)
 			{
-			default:
-			case EPCGExMinimalAxis::X:
-				EdgeRot = FRotationMatrix::MakeFromX(Edge.Dir).Rotator();
-				break;
-			case EPCGExMinimalAxis::Y:
-				EdgeRot = FRotationMatrix::MakeFromY(Edge.Dir).Rotator();
-				break;
-			case EPCGExMinimalAxis::Z:
-				EdgeRot = FRotationMatrix::MakeFromZ(Edge.Dir).Rotator();
-				break;
+				const double Rad = FMath::Abs(RightRadiusBuffer->Read(Index));
+				OutBoundsMin[Y] = -Rad * InvScale[Y];
+				OutBoundsMax[Y] = Rad * InvScale[Y];
 			}
 
-			Transforms[Index] = FTransform(EdgeRot, Path->GetEdgePositionAtAlpha(Index, EdgeLerp), Transforms[Index].GetScale3D());
-
-			BoundsMin[Index] = TargetBoundsMin;
-			BoundsMax[Index] = TargetBoundsMax;
+			if (UpRadiusBuffer)
+			{
+				const double Rad = FMath::Abs(UpRadiusBuffer->Read(Index));
+				OutBoundsMin[Z] = -Rad * InvScale[Z];
+				OutBoundsMax[Z] = Rad * InvScale[Z];
+			}
 		}
 	}
 }

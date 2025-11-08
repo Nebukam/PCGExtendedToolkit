@@ -75,6 +75,11 @@ void FPCGExEdgeOutputWithIndexSettings::Set(const int32 EntryIndex, const PCGExC
 	if (NCountWriter) { NCountWriter->SetValue(EntryIndex, NeighborCount); }
 }
 
+bool FPCGExVtxPropertyOperation::WantsBFP() const
+{
+	return false;
+}
+
 bool FPCGExVtxPropertyOperation::PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	PrimaryDataFacade = InVtxDataFacade;
@@ -86,7 +91,7 @@ bool FPCGExVtxPropertyOperation::PrepareForCluster(FPCGExContext* InContext, TSh
 
 bool FPCGExVtxPropertyOperation::IsOperationValid() { return bIsValidOperation; }
 
-void FPCGExVtxPropertyOperation::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void FPCGExVtxPropertyOperation::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExGeo::FBestFitPlane& BFP)
 {
 }
 
