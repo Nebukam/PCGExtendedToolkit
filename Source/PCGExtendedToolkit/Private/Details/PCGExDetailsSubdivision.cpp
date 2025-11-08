@@ -37,7 +37,7 @@ bool FPCGExManhattanDetails::Init(FPCGExContext* InContext, const TSharedPtr<PCG
 		else if (SpaceAlign == EPCGExManhattanAlign::World) { OrientBuffer = PCGExDetails::MakeSettingValue(FQuat::Identity); }
 	}
 
-	PCGEx::GetAxisOrder(Order, Comps);
+	PCGEx::GetAxesOrder(Order, Comps);
 
 	bInitialized = true;
 	return true;

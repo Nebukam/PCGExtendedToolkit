@@ -7,6 +7,7 @@
 #include "Details/Collections/PCGExActorCollectionActions.h"
 #include "Details/Actions/PCGExActorDataPackerActions.h"
 #include "Details/Collections/PCGExMeshCollectionActions.h"
+#include "Details/Enums/PCGExGridEnumCustomization.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
 #include "Details/Tuple/PCGExTupleBodyCustomization.h"
 
@@ -88,6 +89,23 @@ namespace PCGExDetailsCustomization
 		
 		PCGEX_ADD_ACTION_ICON(Entries, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(Settings, AIS_Med)
+		
+		PCGEX_ADD_ACTION_ICON(AxisOrder_XYZ, AIS_Wide)
+		PCGEX_ADD_ACTION_ICON(AxisOrder_YZX, AIS_Wide)
+		PCGEX_ADD_ACTION_ICON(AxisOrder_ZXY, AIS_Wide)
+		PCGEX_ADD_ACTION_ICON(AxisOrder_YXZ, AIS_Wide)
+		PCGEX_ADD_ACTION_ICON(AxisOrder_ZYX, AIS_Wide)
+		PCGEX_ADD_ACTION_ICON(AxisOrder_XZY, AIS_Wide)
+
+		PCGEX_ADD_ACTION_ICON(RotOrder_X, AIS_Med)
+		PCGEX_ADD_ACTION_ICON(RotOrder_XY, AIS_Med)
+		PCGEX_ADD_ACTION_ICON(RotOrder_XZ, AIS_Med)
+		PCGEX_ADD_ACTION_ICON(RotOrder_Y, AIS_Med)
+		PCGEX_ADD_ACTION_ICON(RotOrder_YX, AIS_Med)
+		PCGEX_ADD_ACTION_ICON(RotOrder_YZ, AIS_Med)
+		PCGEX_ADD_ACTION_ICON(RotOrder_Z, AIS_Med)
+		PCGEX_ADD_ACTION_ICON(RotOrder_ZX, AIS_Med)
+		PCGEX_ADD_ACTION_ICON(RotOrder_ZY, AIS_Med)
 
 		FButtonStyle ActionIconButton = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton");
 
@@ -135,18 +153,35 @@ MACRO(EPCGExComparisonDataType)\
 MACRO(EPCGExScaleToFit)\
 MACRO(EPCGExJustifyFrom)\
 MACRO(EPCGExJustifyTo)\
-MACRO(EPCGExFitMode)
+MACRO(EPCGExFitMode)\
+MACRO(EPCGExMinimalAxis)
 
+#define PCGEX_FOREACH_GRID_ENUM(MACRO)\
+MACRO(EPCGExAxisOrder, 3)\
+MACRO(EPCGExMakeRotAxis, 3)
+
+		// This is grotesque but it works （。＾▽＾）
+		
 #define PCGEX_DECL_INLINE_ENUM(_ENUM)\
 class FPCGExInline##_ENUM final : public FPCGExInlineEnumCustomization{\
 public:	explicit FPCGExInline##_ENUM(const FString& InEnumName) : FPCGExInlineEnumCustomization(InEnumName){}\
 static TSharedRef<IPropertyTypeCustomization> MakeInstance(){ return MakeShareable(new FPCGExInline##_ENUM(#_ENUM));}};\
 PropertyModule.RegisterCustomPropertyTypeLayout(#_ENUM,FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInline##_ENUM::MakeInstance));
 
-		// This is grotesque but it works （。＾▽＾）
 		PCGEX_FOREACH_INLINE_ENUM(PCGEX_DECL_INLINE_ENUM)
 
 #undef PCGEX_DECL_INLINE_ENUM
 #undef PCGEX_FOREACH_INLINE_ENUM
+
+#define PCGEX_DECL_GRID_ENUM(_ENUM, _COL)\
+class FPCGExGrid##_ENUM final : public FPCGExGridEnumCustomization{\
+public:	explicit FPCGExGrid##_ENUM(const FString& InEnumName, const int32 InColumns = 3) : FPCGExGridEnumCustomization(InEnumName){}\
+static TSharedRef<IPropertyTypeCustomization> MakeInstance(){ return MakeShareable(new FPCGExGrid##_ENUM(#_ENUM, _COL));}};\
+PropertyModule.RegisterCustomPropertyTypeLayout(#_ENUM,FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExGrid##_ENUM::MakeInstance));
+
+	PCGEX_FOREACH_GRID_ENUM(PCGEX_DECL_GRID_ENUM)
+
+#undef PCGEX_DECL_GRID_ENUM
+#undef PCGEX_FOREACH_GRID_ENUM
 	}
 }

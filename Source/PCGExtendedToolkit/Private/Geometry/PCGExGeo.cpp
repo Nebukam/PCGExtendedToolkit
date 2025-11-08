@@ -540,7 +540,7 @@ namespace PCGExGeo
 	FTransform FBestFitPlane::GetTransform(const EPCGExAxisOrder Order) const
 	{
 		int32 Comps[3] = {0, 0, 0};
-		PCGEx::GetAxisOrder(Order, Comps);
+		PCGEx::GetAxesOrder(Order, Comps);
 
 		FTransform Transform = FTransform(FMatrix(Axis[Comps[0]], Axis[Comps[1]], Axis[Comps[2]], FVector::Zero()));
 		Transform.SetLocation(Centroid);

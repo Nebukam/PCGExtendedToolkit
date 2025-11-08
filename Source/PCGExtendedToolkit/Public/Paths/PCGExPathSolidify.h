@@ -55,7 +55,6 @@ struct FPCGExPathSolidificationAxisDetails
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
 	//EPCGExSolidificationSpace Space = EPCGExSolidificationSpace::Local;
 
-	virtual bool Validate(FPCGExContext* InContext) const;
 };
 
 USTRUCT(BlueprintType)
@@ -79,31 +78,6 @@ struct FPCGExPathSolidificationRadiusDetails : public FPCGExPathSolidificationAx
 
 	PCGEX_SETTING_VALUE_DECL(Radius, double)
 
-	virtual bool Validate(FPCGExContext* InContext) const override;
-};
-
-USTRUCT(BlueprintType)
-struct FPCGExPathSolidificationRadiusOnlyDetails
-{
-	GENERATED_BODY()
-
-	FPCGExPathSolidificationRadiusOnlyDetails() = default;
-	
-	/** Input value type for Radius */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	EPCGExInputValueToggle RadiusInput = EPCGExInputValueToggle::Disabled;
-	
-	/** Constant Radius for this axis */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, DisplayName="Radius", meta = (PCG_Overridable, EditCondition="RadiusInput == EPCGExInputValueToggle::Constant", EditConditionHides, ClampMin=0.001))
-	double Radius = 10;
-
-	/** Attribute-driven radius for this axis */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, DisplayName="Radius (Attr)", meta = (PCG_Overridable, EditCondition="RadiusInput == EPCGExInputValueToggle::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector RadiusAttribute;
-
-	PCGEX_SETTING_VALUE_DECL(Radius, double)
-
-	bool Validate(FPCGExContext* InContext) const;
 };
 
 /**
@@ -132,40 +106,44 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bRemoveLastPoint = true;
 
-	/** Axis order. The first axis is aligned to the segment (Forward), second is Right, third is Up */
+	/** Axis order. First axis will use the segment direction, second is the path normal. These are Primary > Secondary > Tertiary. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExAxisOrder SolidificationOrder = EPCGExAxisOrder::XZY;
+	EPCGExAxisOrder SolidificationOrder = EPCGExAxisOrder::XYZ;
+
+	/** Defines how the selected axis will be used to construct the point' rotation. This will be using remapped axis from the selected order. X = Primary, Y = Secondary, Z = Tertiary*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExMakeRotAxis RotationConstruction = EPCGExMakeRotAxis::XY;
 	
 	// - Constant vs attribute
 	// - Attribute can be int as pick (with sanitization)
 	// - Attribute can be vector as pick (with sanitization)
 
 	/** Primary axis settings (direction aligned to the segment) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExPathSolidificationAxisDetails ForwardAxis;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Primary"))
+	FPCGExPathSolidificationAxisDetails PrimaryAxis;
 
-	/** Cross axis settings, relative to the selected order */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExPathSolidificationRadiusDetails RightAxis;
+	/** Secondary axis settings, relative to the selected order */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Secondary"))
+	FPCGExPathSolidificationRadiusDetails SecondaryAxis;
 	
-	/** Up axis settings, relative to the selected order */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExPathSolidificationRadiusOnlyDetails UpAxis;
+	/** Tertiary axis settings, relative to the selected order */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Tertiary"))
+	FPCGExPathSolidificationRadiusDetails TertiaryAxis;
 
 	/** How should the cross direction (Cross) be computed.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExInputValueType CrossDirectionType = EPCGExInputValueType::Constant;
+	EPCGExInputValueType NormalType = EPCGExInputValueType::Constant;
 
 	/** Fetch the cross direction vector from a local point attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cross Direction (Attr)", EditCondition="CrossDirectionType != EPCGExInputValueType::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector CrossDirectionAttribute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Normal (Attr)", EditCondition="NormalType != EPCGExInputValueType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector NormalAttribute;
 
 	/** Type of arithmetic path point cross direction.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Cross Direction", EditCondition="CrossDirectionType == EPCGExInputValueType::Constant", EditConditionHides))
-	EPCGExPathNormalDirection CrossDirection = EPCGExPathNormalDirection::AverageNormal;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Normal", EditCondition="NormalType == EPCGExInputValueType::Constant", EditConditionHides))
+	EPCGExPathNormalDirection Normal = EPCGExPathNormalDirection::AverageNormal;
 
-	/** Inverts cross direction.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Invert Direction", EditCondition="CrossDirectionType != EPCGExInputValueType::Constant", EditConditionHides))
+	/** Inverts normal direction.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Invert Direction", EditCondition="NormalType != EPCGExInputValueType::Constant", EditConditionHides))
 	bool bInvertDirection = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -253,17 +231,18 @@ namespace PCGExPathSolidify
 		
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerp;
 
-		TSharedPtr<PCGExDetails::TSettingValue<bool>> ForwardFlipBuffer;
+		TSharedPtr<PCGExDetails::TSettingValue<bool>> PrimaryFlip;
 
-		TSharedPtr<PCGExDetails::TSettingValue<bool>> RightFlipBuffer;
-		TSharedPtr<PCGExDetails::TSettingValue<double>> RightRadiusBuffer;
+		TSharedPtr<PCGExDetails::TSettingValue<bool>> SecondaryFlip;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> SecondaryRadius;
 		
-		TSharedPtr<PCGExDetails::TSettingValue<double>> UpRadiusBuffer;
+		TSharedPtr<PCGExDetails::TSettingValue<bool>> TertiaryFlip;
+		TSharedPtr<PCGExDetails::TSettingValue<double>> TertiaryRadius;
 
 		TSharedPtr<PCGExPaths::FPath> Path;
 		TSharedPtr<PCGExPaths::FPathEdgeLength> PathLength;
 		TSharedPtr<PCGExPaths::TPathEdgeExtra<FVector>> PathNormal;
-		TSharedPtr<PCGExData::TBuffer<FVector>> CrossGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> NormalGetter;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
