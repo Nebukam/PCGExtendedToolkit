@@ -52,6 +52,9 @@ void FPCGExMeshCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolba
 
 void FPCGExMeshCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTabs)
 {
+	// Default handling (will append default collection settings tab)
+	FPCGExAssetCollectionEditor::CreateTabs(OutTabs);
+	
 	// Property editor module
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	
@@ -99,7 +102,5 @@ void FPCGExMeshCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTa
 	ToolbarBuilder.SetStyle(&FAppStyle::Get(), FName("Toolbar"));
 	BuildAssetHeaderToolbar(ToolbarBuilder);
 	Infos.Header = ToolbarBuilder.MakeWidget();
-
-	// Default handling (will append default collection tab)
-	FPCGExAssetCollectionEditor::CreateTabs(OutTabs);
+	
 }
