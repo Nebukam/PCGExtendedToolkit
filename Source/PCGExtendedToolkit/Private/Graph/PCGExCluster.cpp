@@ -38,25 +38,6 @@ namespace PCGExCluster
 		return Centroid;
 	}
 
-	FVector FNode::ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData) const
-	{
-		const int32 NumNeighbors = AdjacencyData.Num();
-
-		FVector OutNormal = FVector::ZeroVector;
-
-		if (AdjacencyData.IsEmpty()) { return OutNormal; }
-
-		for (const FAdjacencyData& A : AdjacencyData)
-		{
-			FVector Position = InCluster->GetPos(Index);
-			OutNormal += PCGExMath::GetNormal(InCluster->GetPos(A.NodeIndex), Position, Position + FVector::ForwardVector);
-		}
-
-		OutNormal /= NumNeighbors;
-
-		return OutNormal;
-	}
-
 	int32 FNode::ValidEdges(const FCluster* InCluster)
 	{
 		int32 ValidNum = 0;

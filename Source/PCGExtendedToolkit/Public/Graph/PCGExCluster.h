@@ -103,7 +103,6 @@ namespace PCGExCluster
 		FNode(const int32 InNodeIndex, const int32 InPointIndex);
 
 		FVector GetCentroid(const FCluster* InCluster) const;
-		FVector ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData) const;
 		int32 ValidEdges(const FCluster* InCluster);
 		bool HasAnyValidEdges(const FCluster* InCluster);
 	};
