@@ -202,6 +202,10 @@ namespace PCGExGeo
 		explicit FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms, TArrayView<int32> InIndices);
 		explicit FBestFitPlane(const TArrayView<const FVector> InPositions);
 		explicit FBestFitPlane(const TArrayView<const FVector2D> InPositions);
+		
+		using FGetElementPositionCallback = std::function<FVector(int32)>;
+		FBestFitPlane(const int32 NumElements, FGetElementPositionCallback&& GetPointFunc);
+		FBestFitPlane(const int32 NumElements, FGetElementPositionCallback&& GetPointFunc, const FVector& Extra);
 
 		FVector Centroid = FVector::ZeroVector;
 		FVector Extents = FVector::OneVector;
@@ -209,7 +213,7 @@ namespace PCGExGeo
 		int32 Swizzle[3] = {0, 1, 2};
 		FVector Axis[3] = {FVector::ForwardVector, FVector::RightVector, FVector::UpVector};
 
-		FVector Normal() const;
+		FORCEINLINE FVector Normal() const{ return Axis[2]; }
 		FTransform GetTransform() const;
 		FTransform GetTransform(EPCGExAxisOrder Order) const;
 
@@ -229,12 +233,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 {
 	GENERATED_BODY()
 
-	FPCGExGeo2DProjectionDetails() = default;
-
-	explicit FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal)
-		: bSupportLocalNormal(InSupportLocalNormal)
-	{
-	}
+	FPCGExGeo2DProjectionDetails();
+	explicit FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal);
 
 	UPROPERTY()
 	bool bSupportLocalNormal = true;
@@ -286,6 +286,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	void Project(const TConstPCGValueRange<FTransform>& InTransforms, TArray<FVector2D>& OutPositions) const;
 	void Project(const TArrayView<FVector>& InPositions, std::vector<double>& OutPositions) const;
 	void Project(const TConstPCGValueRange<FTransform>& InTransforms, std::vector<double>& OutPositions) const;
+
+protected:
+	FVector WorldUp = FVector::UpVector;
 };
 
 extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector2D>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector2D>& OutPositions) const;

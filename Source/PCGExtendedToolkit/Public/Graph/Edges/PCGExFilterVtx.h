@@ -73,7 +73,7 @@ public:
 #pragma region DEPRECATED
 
 	UPROPERTY()
-	FName ResultAttributeName_DEPRECATED = FName("PassFilters");
+	FName ResultAttributeName_DEPRECATED = NAME_None;
 
 #pragma endregion
 

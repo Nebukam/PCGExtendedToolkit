@@ -16,6 +16,11 @@
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyAmplitude"
 #define PCGEX_NAMESPACE PCGExVtxPropertyAmplitude
 
+FPCGExAmplitudeConfig::FPCGExAmplitudeConfig()
+{
+	UpConstant = GetDefault<UPCGExGlobalSettings>()->WorldUp;
+}
+
 bool FPCGExAmplitudeConfig::Validate(FPCGExContext* InContext) const
 {
 #define PCGEX_VALIDATE_AMP_NAME(_NAME) if(bWrite##_NAME){ PCGEX_VALIDATE_NAME_C(InContext, _NAME##AttributeName) }
@@ -94,7 +99,7 @@ bool FPCGExVtxPropertyAmplitude::PrepareForCluster(FPCGExContext* InContext, TSh
 	return bIsValidOperation;
 }
 
-void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void FPCGExVtxPropertyAmplitude::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExGeo::FBestFitPlane& BFP)
 {
 	const int32 NumAdjacency = Adjacency.Num();
 

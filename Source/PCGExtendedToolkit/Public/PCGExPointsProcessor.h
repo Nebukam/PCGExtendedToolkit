@@ -161,6 +161,10 @@ public:
 #endif
 
 protected:
+	/** Store version of the node, used for deprecation purposes */
+	UPROPERTY()
+	int64 PCGExDataVersion = -1;
+	
 	virtual bool ShouldCache() const;
 	virtual bool WantsScopedAttributeGet() const;
 	virtual bool WantsBulkInitData() const;

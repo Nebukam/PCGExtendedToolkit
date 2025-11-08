@@ -8,6 +8,7 @@
 #include "AssetStaging/PCGExAssetStaging.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
+#include "Details/PCGExVersion.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRemap"
@@ -26,20 +27,17 @@ FString UPCGExAttributeRemapSettings::GetDisplayName() const
 
 void UPCGExAttributeRemapSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	if (SourceAttributeName_DEPRECATED != NAME_None)
+	PCGEX_IF_DATA_VERSION(1, 70, 11)
 	{
-		Attributes.Source = SourceAttributeName_DEPRECATED;
-		SourceAttributeName_DEPRECATED = NAME_None;
+		if (SourceAttributeName_DEPRECATED != NAME_None) { Attributes.Source = SourceAttributeName_DEPRECATED; }
+		if (TargetAttributeName_DEPRECATED != NAME_None)
+		{
+			Attributes.Target = TargetAttributeName_DEPRECATED;
+			Attributes.bOutputToDifferentName = (SourceAttributeName_DEPRECATED != TargetAttributeName_DEPRECATED);
+		}
 	}
 
-	if (TargetAttributeName_DEPRECATED != NAME_None)
-	{
-		Attributes.Target = TargetAttributeName_DEPRECATED;
-		TargetAttributeName_DEPRECATED = NAME_None;
-
-		Attributes.bOutputToDifferentName = (SourceAttributeName_DEPRECATED != TargetAttributeName_DEPRECATED);
-	}
-
+	PCGEX_UPDATE_DATA_VERSION
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

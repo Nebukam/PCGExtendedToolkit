@@ -30,7 +30,7 @@ bool FPCGExVtxPropertySpecialNeighbors::PrepareForCluster(
 	return bIsValidOperation;
 }
 
-void FPCGExVtxPropertySpecialNeighbors::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void FPCGExVtxPropertySpecialNeighbors::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExGeo::FBestFitPlane& BFP)
 {
 	int32 LLargest = MIN_int32;
 	int32 ILargest = -1;

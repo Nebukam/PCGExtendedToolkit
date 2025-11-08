@@ -43,7 +43,7 @@ bool FPCGExVtxPropertyEdgeMatch::PrepareForCluster(FPCGExContext* InContext, TSh
 	return bIsValidOperation;
 }
 
-void FPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void FPCGExVtxPropertyEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExGeo::FBestFitPlane& BFP)
 {
 	const FTransform& PointTransform = PrimaryDataFacade->Source->GetIn()->GetTransform(Node.PointIndex);
 

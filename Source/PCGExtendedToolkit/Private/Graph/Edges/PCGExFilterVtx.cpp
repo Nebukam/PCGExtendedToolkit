@@ -8,6 +8,7 @@
 #include "Graph/PCGExGraph.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Async/ParallelFor.h"
+#include "Details/PCGExVersion.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFilterVtx"
 #define PCGEX_NAMESPACE FilterVtx
@@ -15,11 +16,12 @@
 #if WITH_EDITOR
 void UPCGExFilterVtxSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	if (!ResultAttributeName_DEPRECATED.IsNone())
+	PCGEX_IF_DATA_VERSION(1,70,11)
 	{
 		ResultOutputVtx.ResultAttributeName = ResultAttributeName_DEPRECATED;
-		ResultAttributeName_DEPRECATED = NAME_None;
 	}
+
+	PCGEX_UPDATE_DATA_VERSION
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

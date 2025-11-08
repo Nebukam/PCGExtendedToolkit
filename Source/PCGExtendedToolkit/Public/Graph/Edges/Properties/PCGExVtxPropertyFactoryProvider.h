@@ -15,6 +15,11 @@
 #define PCGEX_VTX_EXTRA_CREATE \
 	NewOperation->Config = Config;
 
+namespace PCGExGeo
+{
+	struct FBestFitPlane;
+}
+
 namespace PCGExData
 {
 	template <typename T>
@@ -140,10 +145,11 @@ struct FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
 class FPCGExVtxPropertyOperation : public FPCGExOperation
 {
 public:
+	virtual bool WantsBFP() const;
 	virtual bool PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
 	virtual bool IsOperationValid();
 
-	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
+	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency, const PCGExGeo::FBestFitPlane& BFP);
 
 protected:
 	const PCGExCluster::FCluster* Cluster = nullptr;

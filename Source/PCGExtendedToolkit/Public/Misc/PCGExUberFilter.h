@@ -75,7 +75,7 @@ public:
 
 	/** Name of the attribute to write result to */
 	UPROPERTY()
-	FName ResultAttributeName_DEPRECATED = FName("PassFilter");
+	FName ResultAttributeName_DEPRECATED = NAME_None;
 
 #pragma endregion
 

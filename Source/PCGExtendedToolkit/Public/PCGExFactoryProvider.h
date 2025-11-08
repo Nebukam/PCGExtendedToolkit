@@ -149,6 +149,10 @@ public:
 	virtual void BeginDestroy() override;
 
 protected:
+	/** Store version of the factory, used for deprecation purposes */
+	UPROPERTY()
+	int64 PCGExDataVersion = -1;
+	
 	UPROPERTY()
 	TSet<TObjectPtr<UPCGData>> DataDependencies;
 };
