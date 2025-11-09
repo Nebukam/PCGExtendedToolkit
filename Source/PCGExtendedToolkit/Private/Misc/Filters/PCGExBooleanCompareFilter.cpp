@@ -74,10 +74,10 @@ bool PCGExPointFilter::FBooleanCompareFilter::Test(const TSharedPtr<PCGExData::F
 	bool A = false;
 	bool B = false;
 
-	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A), PCGEX_QUIET_HANDLING) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 	if (!PCGExDataHelpers::TryGetSettingDataValue(
 		IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB,
-		TypedFilterFactory->Config.OperandBConstant, B), PCGEX_QUIET_HANDLING) { PCGEX_QUIET_HANDLING_RET }
+		TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
 	return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
 }

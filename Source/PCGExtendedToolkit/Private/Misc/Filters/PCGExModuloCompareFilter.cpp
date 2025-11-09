@@ -84,7 +84,7 @@ bool PCGExPointFilter::FModuloComparisonFilter::Test(const TSharedPtr<PCGExData:
 	double B = 0;
 	double C = 0;
 
-	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A), PCGEX_QUIET_HANDLING) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 	if (!PCGExDataHelpers::TryGetSettingDataValue(
 		IO, TypedFilterFactory->Config.OperandBSource, TypedFilterFactory->Config.OperandB,
 		TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
