@@ -85,7 +85,7 @@ namespace PCGExData
 		virtual TSharedPtr<IBuffer> GetBuffer() const { return nullptr; }
 		virtual bool EnsureReadable() const { return true; }
 
-#define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) FORCEINLINE virtual _TYPE ReadAs##_NAME(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(ReadAs##_NAME, _TYPE{})
+#define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) virtual _TYPE ReadAs##_NAME(const int32 Index) const;
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
 #undef PCGEX_CONVERTING_READ
 	};
@@ -101,10 +101,7 @@ namespace PCGExData
 		virtual T_WORKING GetCurrent(const int32 Index) const { return Get(Index); };
 		virtual TSharedPtr<IBuffer> GetBuffer() const override { return nullptr; }
 
-#define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) FORCEINLINE virtual _TYPE ReadAs##_NAME(const int32 Index) const override { \
-		if constexpr (std::is_same_v<_TYPE, T_WORKING>) { return Get(Index); } \
-		else { return PCGEx::Convert<T_WORKING, _TYPE>(Get(Index)); } \
-	}
+#define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) virtual _TYPE ReadAs##_NAME(const int32 Index) const override;
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
 #undef PCGEX_CONVERTING_READ
 	};
