@@ -57,13 +57,13 @@ public:
 	FPCGExRoamingAssetCollectionDetails AttributeSetDetails = FPCGExRoamingAssetCollectionDetails(UPCGExMeshCollection::StaticClass());
 
 	/** Distribution details */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExAssetDistributionDetails DistributionSettings;
 
-	/** The name of the attribute to write asset path to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
-	FName AssetPathAttributeName = "AssetPath";
-
+	/** How should materials be distributed and picked. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExMicroCacheDistributionDetails MaterialDistributionSettings;
+	
 #pragma region DEPRECATED
 
 	UPROPERTY()
@@ -74,6 +74,9 @@ public:
 
 	UPROPERTY()
 	FName LeaveTangentAttribute_DEPRECATED = "LeaveTangent";
+	
+	UPROPERTY()
+	EPCGExMinimalAxis SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::X;
 
 #pragma endregion
 
@@ -81,30 +84,31 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTangentsDetails Tangents;
 
-	UPROPERTY()
-	EPCGExMinimalAxis SplineMeshAxisConstant_DEPRECATED = EPCGExMinimalAxis::X;
-
 	/** If enabled, will break scaling interpolation across the spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable))
 	FPCGExScaleToFitDetails ScaleToFit = FPCGExScaleToFitDetails(EPCGExFitMode::None);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Fitting", meta=(PCG_Overridable))
 	FPCGExJustificationDetails Justification;
 
 	/** Push details */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Mutations", meta=(PCG_Overridable, DisplayName="Expansion"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Expansion"))
 	FPCGExSplineMeshMutationDetails MutationDetails;
 
+	/** The name of the attribute to write asset path to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable))
+	FName AssetPathAttributeName = "AssetPath";
+	
 	/** Tagging details */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable))
 	FPCGExAssetTaggingDetails TaggingDetails;
 
 	/** Update point scale so staged asset fits within its bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable))
 	EPCGExWeightOutputMode WeightToAttribute = EPCGExWeightOutputMode::NoOutput;
 
 	/** The name of the attribute to write asset weight to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute != EPCGExWeightOutputMode::NoOutput && WeightToAttribute != EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute != EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute != EPCGExWeightOutputMode::NoOutput && WeightToAttribute != EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute != EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
 
 	/** */
@@ -125,17 +129,17 @@ public:
 	FPCGExStaticMeshComponentDescriptor DefaultDescriptor;
 
 	/** If enabled, override collection settings with the default descriptor settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource != EPCGExCollectionSource::AttributeSet"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Force Default Descriptor", EditCondition="CollectionSource != EPCGExCollectionSource::AttributeSet"))
 	bool bForceDefaultDescriptor = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FPCGObjectPropertyOverrideDescription> PropertyOverrideDescriptions;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
 	TSoftObjectPtr<AActor> TargetActor;
 
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	TArray<FName> PostProcessFunctionNames;
 
 protected:
@@ -191,6 +195,8 @@ namespace PCGExPathSplineMesh
 		TSharedPtr<PCGExTangents::FTangentsHandler> TangentsHandler;
 
 		TSharedPtr<PCGExStaging::TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>> Helper;
+		TSharedPtr<PCGExStaging::TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>> MicroHelper;
+		
 		FPCGExJustificationDetails Justification;
 		FPCGExSplineMeshMutationDetails SegmentMutationDetails;
 

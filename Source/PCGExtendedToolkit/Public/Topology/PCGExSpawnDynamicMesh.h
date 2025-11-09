@@ -45,7 +45,7 @@ protected:
 	FPCGExAttachmentRules AttachmentRules = FPCGExAttachmentRules(EAttachmentRule::KeepRelative);
 
 	/** Specify a list of functions to be called on the target actor after instances are spawned. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	TArray<FName> PostProcessFunctionNames;
 };
 

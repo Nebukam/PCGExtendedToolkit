@@ -81,11 +81,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTangentsDetails Tangents;
 
-	UPROPERTY(meta = (PCG_Overridable))
+	UPROPERTY(meta = (PCG_Overridable), AdvancedDisplay)
 	TSoftObjectPtr<AActor> TargetActor;
 
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	TArray<FName> PostProcessFunctionNames;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
