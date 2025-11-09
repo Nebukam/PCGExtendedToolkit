@@ -111,6 +111,7 @@ namespace PCGExMeshCollection
 
 		virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Mesh; }
 
+		int32 Num() const { return Order.Num(); }
 		int32 GetHighestIndex() const { return HighestIndex; }
 
 		void ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideSingleEntry>& Overrides, const int32 InSlotIndex = -1);

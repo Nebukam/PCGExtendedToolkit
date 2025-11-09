@@ -13,6 +13,11 @@ namespace PCGExAssetCollection
 	class FCache;
 }
 
+namespace PCGExMeshCollection
+{
+	class FMicroCache;
+}
+
 struct FPCGExActorCollectionEntry;
 struct FPCGExAssetCollectionEntry;
 struct FPCGMeshInstanceList;
@@ -35,7 +40,7 @@ namespace PCGExDetails
 UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Component Flags"))
 enum class EPCGExAbsoluteRotationFlags : uint8
 {
-	None = 0,
+	None = 0 UMETA(Hidden),
 	X    = 1 << 0 UMETA(DisplayName = "Pitch"),
 	Y    = 1 << 1 UMETA(DisplayName = "Yaw"),
 	Z    = 1 << 2 UMETA(DisplayName = "Roll"),
@@ -146,6 +151,30 @@ namespace PCGExStaging
 	extern template class TDistributionHelper<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
 	extern template class TDistributionHelper<UPCGExActorCollection, FPCGExActorCollectionEntry>;
 
+	class PCGEXTENDEDTOOLKIT_API IMicroDistributionHelper : public TSharedFromThis<IMicroDistributionHelper>
+	{
+	protected:
+		TSharedPtr<PCGExDetails::TSettingValue<int32>> IndexGetter;
+		double MaxInputIndex = 0;
+		
+	public:
+		FPCGExMicroCacheDistributionDetails Details;
+
+		explicit IMicroDistributionHelper(const FPCGExMicroCacheDistributionDetails& InDetails);
+		bool Init(const TSharedRef<PCGExData::FFacade>& InDataFacade);
+	};
+
+	template <typename T>
+	class TMicroDistributionHelper : public IMicroDistributionHelper
+	{
+	public:
+		explicit TMicroDistributionHelper(const FPCGExMicroCacheDistributionDetails& InDetails);
+
+		void GetPick(const T*& InMicroCache, const int32 PointIndex, const int32 Seed, int16& OutIndex) const;
+	};
+
+	extern template class TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>;
+	
 	struct PCGEXTENDEDTOOLKIT_API FSocketInfos
 	{
 		FSocketInfos() = default;

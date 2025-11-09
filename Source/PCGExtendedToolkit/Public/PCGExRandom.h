@@ -11,7 +11,7 @@ class UPCGSettings;
 UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Seed Components"))
 enum class EPCGExSeedComponents : uint8
 {
-	None      = 0,
+	None      = 0  UMETA(Hidden),
 	Local     = 1 << 1 UMETA(DisplayName = "Local"),
 	Settings  = 1 << 2 UMETA(DisplayName = "Settings"),
 	Component = 1 << 3 UMETA(DisplayName = "Component"),

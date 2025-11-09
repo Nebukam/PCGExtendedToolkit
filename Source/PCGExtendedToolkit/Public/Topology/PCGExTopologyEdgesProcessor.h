@@ -77,10 +77,10 @@ public:
 	FString CommaSeparatedComponentTags = TEXT("PCGExTopology");
 
 	/** Specify a list of functions to be called on the target actor after dynamic mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides), AdvancedDisplay)
 	TArray<FName> PostProcessFunctionNames;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="OutputMode == EPCGExTopologyOutputMode::Legacy", EditConditionHides), AdvancedDisplay)
 	FPCGExAttachmentRules AttachmentRules;
 
 protected:

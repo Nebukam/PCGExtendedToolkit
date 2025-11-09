@@ -11,6 +11,7 @@
 #include "Sampling/PCGExSampling.h"
 #include "PCGExDetailsStaging.generated.h"
 
+class UPCGExAssetCollection;
 
 UENUM()
 enum class EPCGExCollectionSource : uint8
@@ -113,11 +114,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionIndexDetails
 {
 	GENERATED_BODY()
 
-	FPCGExAssetDistributionIndexDetails()
-	{
-		if (IndexSource.GetName() == FName("@Last")) { IndexSource.Update(TEXT("$Index")); }
-	}
-
+	FPCGExAssetDistributionIndexDetails();
+	
 	/** Index picking mode*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending;
@@ -206,7 +204,30 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionDetails
 	EPCGExDistribution Distribution = EPCGExDistribution::WeightedRandom;
 
 	/** Index settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution == EPCGExDistribution::Index"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Index Settings", EditCondition="Distribution == EPCGExDistribution::Index"))
+	FPCGExAssetDistributionIndexDetails IndexSettings;
+
+	/** Note that this is only accounted for if selected in the seed component. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	int32 LocalSeed = 0;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExMicroCacheDistributionDetails
+{
+	GENERATED_BODY()
+
+	FPCGExMicroCacheDistributionDetails() = default;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
+	uint8 SeedComponents = 0;
+
+	/** Distribution type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDistribution Distribution = EPCGExDistribution::WeightedRandom;
+
+	/** Index settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Index Settings", EditCondition="Distribution == EPCGExDistribution::Index"))
 	FPCGExAssetDistributionIndexDetails IndexSettings;
 
 	/** Note that this is only accounted for if selected in the seed component. */
@@ -294,3 +315,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetAttributeSetDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName CategorySourceAttribute = NAME_None;
 };
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExRoamingAssetCollectionDetails : public FPCGExAssetAttributeSetDetails
+{
+	GENERATED_BODY()
+
+	FPCGExRoamingAssetCollectionDetails() = default;
+
+	explicit FPCGExRoamingAssetCollectionDetails(const TSubclassOf<UPCGExAssetCollection>& InAssetCollectionType);
+
+	UPROPERTY()
+	bool bSupportCustomType = true;
+
+	/** Defines what type of temp collection to build from input attribute set */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, NoClear, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportCustomType", EditConditionHides, HideEditConditionToggle))
+	TSubclassOf<UPCGExAssetCollection> AssetCollectionType;
+
+	bool Validate(FPCGExContext* InContext) const;
+
+	UPCGExAssetCollection* TryBuildCollection(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const bool bBuildStaging = false) const;
+	UPCGExAssetCollection* TryBuildCollection(FPCGExContext* InContext, const FName InputPin, const bool bBuildStaging) const;
+};
+

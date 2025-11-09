@@ -7,12 +7,31 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Collections/PCGExMeshCollection.h"
 #include "Transform/PCGExFitting.h"
-#include "PCGExStaging.h"
 #include "Data/PCGExPointFilter.h"
+#include "Details/PCGExDetailsStaging.h"
 
 #include "PCGExAssetStaging.generated.h"
+
+struct FPCGExAssetCollectionEntry;
+
+namespace PCGExMeshCollection
+{
+	class FMicroCache;
+}
+
+namespace PCGExStaging
+{
+	class FPickPacker;
+	
+	template<typename C, typename E>
+	class TDistributionHelper;
+
+	template<typename T>
+	class TMicroDistributionHelper;
+	
+	class FSocketHelper;
+}
 
 namespace PCGExMT
 {
@@ -72,6 +91,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distribution"))
 	FPCGExAssetDistributionDetails DistributionSettings;
 
+	/** Distribution details that are specific to the picked entry -- what it picks depends on the type of collection being staged. For Mesh Collections, this let you control how materials are picked. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distribution (Entry)"))
+	FPCGExMicroCacheDistributionDetails EntryDistributionSettings;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExScaleToFitDetails ScaleToFit;
 
@@ -100,7 +123,7 @@ public:
 	//** If enabled, will output mesh material picks. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="OutputMode != EPCGExStagingOutputMode::CollectionMap"))
 	bool bOutputMaterialPicks = false;
-
+	
 	//** If > 0 will create dummy attributes for missing material indices up to a maximum; in order to create a full, fixed-length list of valid (yet null) attributes for the static mesh spawner material overrides. Otherwise, will only create attribute for valid indices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Fixed Max Index", EditCondition="bOutputMaterialPicks && OutputMode != EPCGExStagingOutputMode::CollectionMap", ClampMin="0"))
 	int32 MaxMaterialPicks = 0;
@@ -172,6 +195,7 @@ namespace PCGExAssetStaging
 		FPCGExFittingVariationsDetails Variations;
 
 		TSharedPtr<PCGExStaging::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
+		TSharedPtr<PCGExStaging::TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>> MicroHelper;
 		TSharedPtr<PCGExStaging::FSocketHelper> SocketHelper;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;

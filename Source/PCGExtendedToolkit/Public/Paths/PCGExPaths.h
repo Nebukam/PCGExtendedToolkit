@@ -308,7 +308,7 @@ namespace PCGExPaths
 		ESplineMeshAxis::Type SplineMeshAxis = ESplineMeshAxis::Type::X;
 
 		const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
-		int32 MaterialPick = -1;
+		int16 MaterialPick = -1;
 		FSplineMeshParams Params;
 
 		void ComputeUpVectorFromTangents();

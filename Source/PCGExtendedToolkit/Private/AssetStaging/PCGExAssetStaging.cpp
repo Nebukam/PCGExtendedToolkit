@@ -6,6 +6,9 @@
 
 #include "PCGExRandom.h"
 #include "PCGExScopedContainers.h"
+#include "AssetStaging/PCGExStaging.h"
+#include "Collections/PCGExAssetCollection.h"
+#include "Collections/PCGExMeshCollection.h"
 #include "Data/PCGExPointIO.h"
 
 
@@ -237,6 +240,12 @@ namespace PCGExAssetStaging
 		Helper = MakeShared<PCGExStaging::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>(Context->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(PointDataFacade)) { return false; }
 
+		if (Context->MainCollection->GetType() == PCGExAssetCollection::EType::Mesh)
+		{
+			MicroHelper = MakeShared<PCGExStaging::TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>>(Settings->EntryDistributionSettings);
+			if (!MicroHelper->Init(PointDataFacade)) { return false; }
+		}
+
 		if (Settings->bDoOutputSockets) { SocketHelper = MakeShared<PCGExStaging::FSocketHelper>(&Context->OutputSocketDetails, NumPoints); }
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
@@ -331,7 +340,8 @@ namespace PCGExAssetStaging
 		};
 
 		const UPCGComponent* Component = Context->GetComponent();
-
+		int32 LocalHighestSlotIndex = 0;
+				
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index])
@@ -339,8 +349,6 @@ namespace PCGExAssetStaging
 				InvalidPoint(Index);
 				continue;
 			}
-
-			FTransform& OutTransform = OutTransforms[Index];
 
 			const FPCGExAssetCollectionEntry* Entry = nullptr;
 			const UPCGExAssetCollection* EntryHost = nullptr;
@@ -356,21 +364,26 @@ namespace PCGExAssetStaging
 				InvalidPoint(Index);
 				continue;
 			}
-
+			
+			FTransform& OutTransform = OutTransforms[Index];
+			FBox OutBounds = Entry->Staging.Bounds;
 			int16 SecondaryIndex = -1;
+			
+			const FPCGExAssetStagingData& Staging = Entry->Staging;
+			const FPCGExFittingVariations& EntryVariations = Entry->Variations;
+			const FPCGExFittingVariations& GlobalVariations = EntryHost->GlobalVariations;
 
-			if (Entry->MicroCache && Entry->MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			if (const PCGExAssetCollection::FMicroCache* MicroCache = Entry->MicroCache.Get();
+				MicroHelper && MicroCache && MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
 			{
-				TSharedPtr<PCGExMeshCollection::FMicroCache> EntryMicroCache = StaticCastSharedPtr<PCGExMeshCollection::FMicroCache>(Entry->MicroCache);
+				const PCGExMeshCollection::FMicroCache* EntryMicroCache = static_cast<const PCGExMeshCollection::FMicroCache*>(MicroCache);
+				MicroHelper->GetPick(EntryMicroCache, Index, Seed, SecondaryIndex);
+				
 				if (Context->bPickMaterials)
 				{
-					MaterialPick[Index] = EntryMicroCache->GetPickRandomWeighted(Seed);
-					HighestSlotIndex->Set(Scope, FMath::Max(FMath::Max(0, EntryMicroCache->GetHighestIndex()), HighestSlotIndex->Get(Scope)));
+					MaterialPick[Index] = SecondaryIndex;
 					CachedPicks[Index] = Entry;
-				}
-				else
-				{
-					SecondaryIndex = EntryMicroCache->GetPickRandomWeighted(Seed);
+					LocalHighestSlotIndex = FMath::Max(LocalHighestSlotIndex, EntryMicroCache->GetHighestIndex());
 				}
 			}
 			else if (Context->bPickMaterials)
@@ -387,10 +400,8 @@ namespace PCGExAssetStaging
 				else { Densities[Index] = Weight; }
 			}
 
-			if (PathWriter) { PathWriter->SetValue(Index, Entry->Staging.Path); }
-			else { HashWriter->SetValue(Index, Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Entry->Staging.InternalIndex, SecondaryIndex)); }
-
-			FBox OutBounds = Entry->Staging.Bounds;
+			if (PathWriter) { PathWriter->SetValue(Index, Staging.Path); }
+			else { HashWriter->SetValue(Index, Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Staging.InternalIndex, SecondaryIndex)); }
 
 			if (Variations.bEnabledBefore)
 			{
@@ -399,11 +410,11 @@ namespace PCGExAssetStaging
 				if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
 					Entry->VariationMode == EPCGExEntryVariationMode::Global)
 				{
-					Variations.Apply(Seed, LocalXForm, EntryHost->GlobalVariations, EPCGExVariationMode::Before);
+					Variations.Apply(Seed, LocalXForm, GlobalVariations, EPCGExVariationMode::Before);
 				}
 				else
 				{
-					Variations.Apply(Seed, LocalXForm, Entry->Variations, EPCGExVariationMode::Before);
+					Variations.Apply(Seed, LocalXForm, EntryVariations, EPCGExVariationMode::Before);
 				}
 
 				FittingHandler.ComputeLocalTransform(Index, LocalXForm, OutTransform, OutBounds);
@@ -421,22 +432,23 @@ namespace PCGExAssetStaging
 				if (EntryHost->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule ||
 					Entry->VariationMode == EPCGExEntryVariationMode::Global)
 				{
-					Variations.Apply(Seed, OutTransform, EntryHost->GlobalVariations, EPCGExVariationMode::After);
+					Variations.Apply(Seed, OutTransform, GlobalVariations, EPCGExVariationMode::After);
 				}
 				else
 				{
-					Variations.Apply(Seed, OutTransform, Entry->Variations, EPCGExVariationMode::After);
+					Variations.Apply(Seed, OutTransform, EntryVariations, EPCGExVariationMode::After);
 				}
 			}
 
 			if (SocketHelper)
 			{
 				// Register entry
-				uint64 EntryHash = PCGEx::H64(EntryHost->GetUniqueID(), Entry->Staging.InternalIndex);
+				uint64 EntryHash = PCGEx::H64(EntryHost->GetUniqueID(), Staging.InternalIndex);
 				SocketHelper->Add(Index, EntryHash, Entry);
 			}
 		}
 
+		HighestSlotIndex->Set(Scope, FMath::Max(LocalHighestSlotIndex, HighestSlotIndex->Get(Scope)));
 		FPlatformAtomics::InterlockedAdd(&NumInvalid, LocalNumInvalid);
 	}
 
