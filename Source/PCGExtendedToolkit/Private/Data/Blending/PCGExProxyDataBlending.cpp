@@ -5,6 +5,7 @@
 
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
+#include "Data/PCGExProxyDataHelpers.h"
 #include "Data/PCGExUnionData.h"
 #include "Data/Blending/PCGExBlendModes.h"
 #include "Details/PCGExDetailsDistances.h"

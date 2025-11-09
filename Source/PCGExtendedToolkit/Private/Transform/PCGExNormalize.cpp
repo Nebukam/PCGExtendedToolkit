@@ -6,6 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
+#include "Data/PCGExProxyDataHelpers.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Sampling/PCGExSampling.h"
 

@@ -8,6 +8,7 @@
 #include "AssetStaging/PCGExAssetStaging.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
+#include "Data/PCGExProxyDataHelpers.h"
 #include "Details/PCGExVersion.h"
 
 

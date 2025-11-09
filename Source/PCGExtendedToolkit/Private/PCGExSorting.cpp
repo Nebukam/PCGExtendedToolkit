@@ -9,6 +9,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
+#include "Data/PCGExProxyDataHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExModularSortPoints"
 #define PCGEX_NAMESPACE ModularSortPoints

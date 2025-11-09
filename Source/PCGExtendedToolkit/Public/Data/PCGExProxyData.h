@@ -73,11 +73,6 @@ namespace PCGExData
 		EPCGMetadataTypes RealType = EPCGMetadataTypes::Unknown;
 		EPCGMetadataTypes WorkingType = EPCGMetadataTypes::Unknown;
 
-#if WITH_EDITOR
-		// This is purely for debugging purposes
-		FProxyDescriptor Descriptor;
-#endif
-
 		IBufferProxy() = default;
 		virtual ~IBufferProxy() = default;
 
@@ -106,6 +101,14 @@ namespace PCGExData
 #undef PCGEX_CONVERTING_READ
 	};
 
+#pragma region externalization TBufferProxy
+
+#define PCGEX_TPL(_TYPE, _NAME, ...) extern template class TBufferProxy<_TYPE>;
+PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+#undef PCGEX_TPL
+
+#pragma endregion
+	
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
 	class TAttributeBufferProxy : public TBufferProxy<T_WORKING>
 	{
@@ -124,6 +127,16 @@ namespace PCGExData
 		virtual bool EnsureReadable() const override;
 	};
 
+#pragma region externalization TAttributeBufferProxy
+
+#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
+extern template class TAttributeBufferProxy<_TYPE_A, _TYPE_B, true>;\
+extern template class TAttributeBufferProxy<_TYPE_A, _TYPE_B, false>;
+	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
+#undef PCGEX_TPL
+
+#pragma endregion
+	
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection, EPCGPointProperties PROPERTY>
 	class TPointPropertyProxy : public TBufferProxy<T_WORKING>
 	{
@@ -207,6 +220,18 @@ extern template class TPointExtraPropertyProxy<_REALTYPE, _TYPE, false, _PROPERT
 		virtual bool Validate(const FProxyDescriptor& InDescriptor) const override { return InDescriptor.WorkingType == this->WorkingType; }
 	};
 
+#pragma region externalization TConstantProxy
+
+#define PCGEX_TPL(_TYPE, _NAME, ...) extern template class TConstantProxy<_TYPE>;
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+#undef PCGEX_TPL
+	
+#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) extern template void TConstantProxy<_TYPE_A>::SetConstant<_TYPE_B>(const _TYPE_B&);
+    PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
+#undef PCGEX_TPL
+
+#pragma endregion
+	
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
 	class TDirectAttributeProxy : public TBufferProxy<T_WORKING>
 	{
@@ -227,6 +252,16 @@ extern template class TPointExtraPropertyProxy<_REALTYPE, _TYPE, false, _PROPERT
 		virtual void Set(const int32 Index, const T_WORKING& Value) const override;
 	};
 
+#pragma region externalization TDirectAttributeProxy
+
+#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
+extern template class TDirectAttributeProxy<_TYPE_A, _TYPE_B, true>;\
+extern template class TDirectAttributeProxy<_TYPE_A, _TYPE_B, false>;
+	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
+#undef PCGEX_TPL
+
+#pragma endregion
+	
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
 	class TDirectDataAttributeProxy : public TBufferProxy<T_WORKING>
 	{
@@ -247,18 +282,9 @@ extern template class TPointExtraPropertyProxy<_REALTYPE, _TYPE, false, _PROPERT
 		virtual void Set(const int32 Index, const T_WORKING& Value) const override;
 	};
 
-#pragma region externalization
-
-#define PCGEX_TPL(_TYPE, _NAME, ...) \
-extern template class TBufferProxy<_TYPE>;\
-PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
-#undef PCGEX_TPL
+#pragma region externalization TDirectDataAttributeProxy
 
 #define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
-	extern template class TAttributeBufferProxy<_TYPE_A, _TYPE_B, true>;\
-	extern template class TAttributeBufferProxy<_TYPE_A, _TYPE_B, false>;\
-	extern template class TDirectAttributeProxy<_TYPE_A, _TYPE_B, true>;\
-	extern template class TDirectAttributeProxy<_TYPE_A, _TYPE_B, false>;\
 	extern template class TDirectDataAttributeProxy<_TYPE_A, _TYPE_B, true>;\
 	extern template class TDirectDataAttributeProxy<_TYPE_A, _TYPE_B, false>;
 	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
@@ -266,51 +292,4 @@ PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #pragma endregion
 
-	template <typename T_REAL>
-	TSharedPtr<TBuffer<T_REAL>> TryGetBuffer(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade);
-
-	template <typename T_REAL>
-	void TryGetInOutAttr(const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade, const FPCGMetadataAttribute<T_REAL>*& OutInAttribute, FPCGMetadataAttribute<T_REAL>*& OutOutAttribute);
-
-#pragma region externalization
-
-#define PCGEX_TPL(_TYPE, _NAME, ...) \
-extern template void TryGetInOutAttr<_TYPE>(const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade, const FPCGMetadataAttribute<_TYPE>*& OutInAttribute, FPCGMetadataAttribute<_TYPE>*& OutOutAttribute); \
-extern template TSharedPtr<TBuffer<_TYPE>> TryGetBuffer<_TYPE>(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade);
-	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
-#undef PCGEX_TPL
-
-#pragma endregion
-
-	template <typename T_REAL, typename T_WORKING>
-	TSharedPtr<IBufferProxy> GetProxyBuffer(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade, UPCGBasePointData* PointData);
-
-#pragma region externalization
-
-#define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) \
-extern template TSharedPtr<IBufferProxy> GetProxyBuffer<_TYPE_A, _TYPE_B>(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade, UPCGBasePointData* PointData);
-	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
-#undef PCGEX_TPL
-
-#pragma endregion
-
-	TSharedPtr<IBufferProxy> GetProxyBuffer(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor);
-
-	template <typename T>
-	TSharedPtr<IBufferProxy> GetConstantProxyBuffer(const T& Constant);
-
-#pragma region externalization
-
-#define PCGEX_TPL(_TYPE, _NAME, ...) \
-extern template TSharedPtr<IBufferProxy> GetConstantProxyBuffer<_TYPE>(const _TYPE& Constant);
-	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
-#undef PCGEX_TPL
-
-#pragma endregion
-
-	bool GetPerFieldProxyBuffers(
-		FPCGExContext* InContext,
-		const FProxyDescriptor& InBaseDescriptor,
-		const int32 NumDesiredFields,
-		TArray<TSharedPtr<IBufferProxy>>& OutProxies);
 }
