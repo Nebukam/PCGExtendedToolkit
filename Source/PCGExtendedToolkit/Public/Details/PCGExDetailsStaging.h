@@ -219,7 +219,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMicroCacheDistributionDetails
 
 	FPCGExMicroCacheDistributionDetails() = default;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
 	uint8 SeedComponents = 0;
 
 	/** Distribution type */
@@ -231,7 +231,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMicroCacheDistributionDetails
 	FPCGExAssetDistributionIndexDetails IndexSettings;
 
 	/** Note that this is only accounted for if selected in the seed component. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 LocalSeed = 0;
 };
 
