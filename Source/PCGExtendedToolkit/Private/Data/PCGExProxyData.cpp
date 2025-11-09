@@ -126,9 +126,19 @@ namespace PCGExData
 
 #pragma endregion
 
+#define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) _TYPE IBufferProxy::ReadAs##_NAME(const int32 Index) const PCGEX_NOT_IMPLEMENTED_RET(ReadAs##_NAME, _TYPE{})
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
+#undef PCGEX_CONVERTING_READ
+	
 	template <typename T_WORKING>
 	TBufferProxy<T_WORKING>::TBufferProxy() : IBufferProxy() { WorkingType = PCGEx::GetMetadataType<T_WORKING>(); }
 
+#define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) template <typename T_WORKING> _TYPE TBufferProxy<T_WORKING>::ReadAs##_NAME(const int32 Index) const { \
+if constexpr (std::is_same_v<_TYPE, T_WORKING>) { return Get(Index); } \
+else { return PCGEx::Convert<T_WORKING, _TYPE>(Get(Index)); }}
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
+#undef PCGEX_CONVERTING_READ
+	
 	template <typename T_REAL, typename T_WORKING, bool bSubSelection>
 	TAttributeBufferProxy<T_REAL, T_WORKING, bSubSelection>::TAttributeBufferProxy()
 		: TBufferProxy<T_WORKING>()
