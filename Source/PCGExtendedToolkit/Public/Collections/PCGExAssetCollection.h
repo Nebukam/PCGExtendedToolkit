@@ -119,6 +119,18 @@ namespace PCGExAssetCollection
 
 		virtual EType GetType() const { return EType::None; }
 		virtual ~FMicroCache() = default;
+
+		bool IsEmpty() const { return Num() == 0; }
+		virtual int32 Num() const { return 0; }
+
+		virtual int32 GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const { return -1; }
+
+		virtual int32 GetPickAscending(const int32 Index) const { return -1; }
+		virtual int32 GetPickDescending(const int32 Index) const { return -1; }
+		virtual int32 GetPickWeightAscending(const int32 Index) const { return -1; }
+		virtual int32 GetPickWeightDescending(const int32 Index) const { return -1; }
+		virtual int32 GetPickRandom(const int32 Seed) const { return -1; }
+		virtual int32 GetPickRandomWeighted(const int32 Seed) const { return -1; }
 	};
 }
 

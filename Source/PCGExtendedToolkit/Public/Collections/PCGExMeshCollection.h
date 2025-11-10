@@ -111,20 +111,20 @@ namespace PCGExMeshCollection
 
 		virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Mesh; }
 
-		int32 Num() const { return Order.Num(); }
+		virtual int32 Num() const override { return Order.Num(); }
 		int32 GetHighestIndex() const { return HighestIndex; }
 
 		void ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideSingleEntry>& Overrides, const int32 InSlotIndex = -1);
 		void ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideCollection>& Overrides);
 
-		int32 GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const;
+		virtual int32 GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const override;
 
-		int32 GetPickAscending(const int32 Index) const;
-		int32 GetPickDescending(const int32 Index) const;
-		int32 GetPickWeightAscending(const int32 Index) const;
-		int32 GetPickWeightDescending(const int32 Index) const;
-		int32 GetPickRandom(const int32 Seed) const;
-		int32 GetPickRandomWeighted(const int32 Seed) const;
+		virtual int32 GetPickAscending(const int32 Index) const override;
+		virtual int32 GetPickDescending(const int32 Index) const override;
+		virtual int32 GetPickWeightAscending(const int32 Index) const override;
+		virtual int32 GetPickWeightDescending(const int32 Index) const override;
+		virtual int32 GetPickRandom(const int32 Seed) const override;
+		virtual int32 GetPickRandomWeighted(const int32 Seed) const override;
 	};
 }
 
