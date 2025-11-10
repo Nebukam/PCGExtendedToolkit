@@ -421,7 +421,7 @@ namespace PCGExStaging
 			const bool bWantsMinMax = Details.IndexSettings.bRemapIndexToCollectionSize;
 			IndexGetter = Details.IndexSettings.GetValueSettingIndex();
 			if (!IndexGetter->Init(InDataFacade, !bWantsMinMax, bWantsMinMax)) { return false; }
-			
+
 			MaxInputIndex = IndexGetter->Max();
 		}
 
@@ -437,6 +437,12 @@ namespace PCGExStaging
 	template <typename T>
 	void TMicroDistributionHelper<T>::GetPick(const T*& InMicroCache, const int32 PointIndex, const int32 Seed, int16& OutIndex) const
 	{
+		if (InMicroCache->IsEmpty())
+		{
+			OutIndex = -1;
+			return;
+		}
+
 		switch (Details.Distribution)
 		{
 		case EPCGExDistribution::Index:
