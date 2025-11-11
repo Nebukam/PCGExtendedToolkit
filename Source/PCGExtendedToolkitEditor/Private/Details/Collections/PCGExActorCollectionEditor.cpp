@@ -26,7 +26,7 @@ void FPCGExActorCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutT
 {
 	// Default handling (will append default collection settings tab)
 	FPCGExAssetCollectionEditor::CreateTabs(OutTabs);
-	
+
 	// Property editor module
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
@@ -45,9 +45,10 @@ void FPCGExActorCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutT
 		FIsPropertyVisible::CreateLambda(
 			[](const FPropertyAndParent& PropertyAndParent)
 			{
-				return PropertyAndParent.Property.GetFName() == TEXT("Entries");
+				return PropertyAndParent.Property.GetFName() == PCGExAssetCollectionEditor::EntriesName
+					|| (!PropertyAndParent.ParentProperties.IsEmpty() && PropertyAndParent.ParentProperties.Last()->GetFName() == PCGExAssetCollectionEditor::EntriesName);
 			}));
-	
+
 	// Set the asset to display
 	DetailsView->SetObject(EditedCollection.Get());
 	FPCGExDetailsTabInfos& Infos = OutTabs.Emplace_GetRef(FName("Assets"), DetailsView);

@@ -64,21 +64,15 @@ enum class EPCGExAssetTagInheritance : uint8
 UENUM()
 enum class EPCGExEntryVariationMode : uint8
 {
-	Local  = 0 UMETA(DisplayName = "Local", ToolTip="This entry defines its own variation settings. This can be overruled at the collection level."),
-	Global = 1 UMETA(DisplayName = "Global", ToolTip="Uses global variation settings"),
-	//LocalGlobalFactor    = 2 UMETA(DisplayName = "Local x Global", ToolTip="Uses local variation settings multiplied by global random values (within global min/max range)"),
-	//LocalGlobalFactorMin = 3 UMETA(DisplayName = "Local x Global (Min)", ToolTip="Uses local variation settings multiplied by global min values"),
-	//LocalGlobalFactorMax = 4 UMETA(DisplayName = "Local x Global (Max)", ToolTip="Uses local variation settings multiplied by global max values"),
+	Local  = 0 UMETA(DisplayName = "Local", ToolTip="This entry defines its own settings. This can be overruled in the collection settings.", ActionIcon="EntryRule"),
+	Global = 1 UMETA(DisplayName = "Global", ToolTip="Uses collections settings", ActionIcon="CollectionRule")
 };
 
 UENUM()
 enum class EPCGExGlobalVariationRule : uint8
 {
-	PerEntry = 0 UMETA(DisplayName = "Per Entry", ToolTip="Let the entry choose whether it's using global variations or its own settings"),
-	Overrule = 1 UMETA(DisplayName = "Overrule", ToolTip="Disregard of the entry settings and enforce global settings"),
-	//OverruleFactor = 2 UMETA(DisplayName = "Overrule - Multiply Entry", ToolTip="Multiply the entry setting by global random values (within min/max range)"),
-	//OverruleFactorMin = 3 UMETA(DisplayName = "Overrule - Multiply Entry (Min)", ToolTip="Disregard of the entry settings and enforce global settings"),
-	//OverruleFactorMax = 4 UMETA(DisplayName = "Overrule - Multiply Entry (Max)", ToolTip="Disregard of the entry settings and enforce global settings"),
+	PerEntry = 0 UMETA(DisplayName = "Per Entry", ToolTip="Let the entry choose whether it's using collection settings or its own", ActionIcon="EntryRule"),
+	Overrule = 1 UMETA(DisplayName = "Overrule", ToolTip="Disregard the entry settings and enforce collection settings", ActionIcon="CollectionRule")
 };
 
 ENUM_CLASS_FLAGS(EPCGExAssetTagInheritance)

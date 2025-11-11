@@ -141,7 +141,8 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 			const FPCGExMeshCollectionEntry* Entry = nullptr;
 			int16 MaterialPick = -1;
 
-			if (!CollectionMap->ResolveEntry(Partition.Key, Entry, MaterialPick)) { continue; }
+			const UPCGExMeshCollection* ParentCollection = nullptr;
+			if (!CollectionMap->ResolveEntry(Partition.Key, Entry, MaterialPick, ParentCollection)) { continue; }
 
 			FPCGMeshInstanceList& InstanceList = OutMeshInstances[Partition.Value];
 
@@ -155,7 +156,7 @@ bool UPCGExMeshSelectorStaged::SelectMeshInstances(FPCGStaticMeshSpawnerContext&
 			}
 			else
 			{
-				Entry->InitPCGSoftISMDescriptor(OutDescriptor);
+				Entry->InitPCGSoftISMDescriptor(ParentCollection, OutDescriptor);
 			}
 
 			if (bForceDisableCollisions)

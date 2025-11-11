@@ -267,6 +267,20 @@ namespace PCGExStaging
 		return static_cast<C*>(Collection)->GetEntryAt(OutEntry, EntryIndex, EntryHost);
 	}
 
+	template <typename C, typename A>
+	bool TPickUnpacker<C, A>::ResolveEntry(const uint64 EntryHash, const A*& OutEntry, int16& OutSecondaryIndex, const C*& OutParentCollection)
+	{
+		const UPCGExAssetCollection* EntryHost = nullptr;
+
+		int16 EntryIndex = 0;
+		UPCGExAssetCollection* Collection = UnpackHash(EntryHash, EntryIndex, OutSecondaryIndex);
+		if (!Collection) { return false; }
+
+		OutParentCollection = static_cast<C*>(Collection);
+
+		return static_cast<C*>(Collection)->GetEntryAt(OutEntry, EntryIndex, EntryHost);
+	}
+
 	template class PCGEXTENDEDTOOLKIT_API TPickUnpacker<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
 	template class PCGEXTENDEDTOOLKIT_API TPickUnpacker<UPCGExMeshCollection, FPCGExMeshCollectionEntry>;
 	template class PCGEXTENDEDTOOLKIT_API TPickUnpacker<UPCGExActorCollection, FPCGExActorCollectionEntry>;

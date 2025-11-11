@@ -11,6 +11,7 @@
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "ToolMenuSection.h"
+#include "Details/Collections/PCGExActorCollectionEditor.h"
 #include "Details/Collections/PCGExAssetCollectionEditor.h"
 #include "Misc/MessageDialog.h"
 #include "Widgets/Views/SListView.h"
@@ -176,9 +177,9 @@ void FPCGExActorCollectionActions::OpenAssetEditor(const TArray<UObject*>& InObj
 {
 	for (UObject* Obj : InObjects)
 	{
-		if (UPCGExAssetCollection* Collection = Cast<UPCGExAssetCollection>(Obj))
+		if (UPCGExActorCollection* Collection = Cast<UPCGExActorCollection>(Obj))
 		{
-			TSharedRef<FPCGExAssetCollectionEditor> Editor = MakeShared<FPCGExAssetCollectionEditor>();
+			TSharedRef<FPCGExActorCollectionEditor> Editor = MakeShared<FPCGExActorCollectionEditor>();
 			Editor->InitEditor(Collection, EToolkitMode::Standalone, EditWithinLevelEditor);
 		}
 	}

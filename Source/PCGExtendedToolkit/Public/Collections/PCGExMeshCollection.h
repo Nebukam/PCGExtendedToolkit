@@ -24,9 +24,9 @@ class UPCGExMeshCollection;
 UENUM()
 enum class EPCGExMaterialVariantsMode : uint8
 {
-	None   = 0 UMETA(DisplayName = "None", ToolTip="No variants."),
-	Single = 1 UMETA(DisplayName = "Single Slot", ToolTip="Single-slot variants, for when there is only a single material slot override."),
-	Multi  = 2 UMETA(DisplayName = "Multi Slots", ToolTip="Multi-slot variants, more admin, for when there is multiple material slots for the entry."),
+	None   = 0 UMETA(DisplayName = "None", ToolTip="No variants.", ActionIcon="STF_None"),
+	Single = 1 UMETA(DisplayName = "Single Slot", ToolTip="Single-slot variants, for when there is only a single material slot override.", ActionIcon="SingleMat"),
+	Multi  = 2 UMETA(DisplayName = "Multi Slots", ToolTip="Multi-slot variants, more admin, for when there is multiple material slots for the entry.", ActionIcon="MultiMat"),
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Material Override Entry")
@@ -140,14 +140,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	TSoftObjectPtr<UStaticMesh> StaticMesh = nullptr;
 
-	/** Config used when this entry is consumed as an instanced static mesh */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" ├─ ISM Settings", EditCondition="!bIsSubCollection", EditConditionHides))
-	FSoftISMComponentDescriptor ISMDescriptor;
-
-	/** Config used when this entry is consumed as a regular static mesh primitive (i.e Spline Mesh)*/
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ SM Settings", EditCondition="!bIsSubCollection", EditConditionHides))
-	FPCGExStaticMeshComponentDescriptor SMDescriptor;
-
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides, DisplayAfter="bIsSubCollection"))
+	TObjectPtr<UPCGExMeshCollection> SubCollection;
+	
 	/** A list of material variants */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	EPCGExMaterialVariantsMode MaterialVariants = EPCGExMaterialVariantsMode::None;
@@ -164,8 +159,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variants", EditCondition="!bIsSubCollection && MaterialVariants == EPCGExMaterialVariantsMode::Multi", TitleProperty="DisplayName", EditConditionHides))
 	TArray<FPCGExMaterialOverrideCollection> MaterialOverrideVariantsList;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides, DisplayAfter="bIsSubCollection"))
-	TObjectPtr<UPCGExMeshCollection> SubCollection;
+	
+	/** Descriptor source. */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides, DisplayAfter="Variations"))
+	EPCGExEntryVariationMode DescriptorSource = EPCGExEntryVariationMode::Local;
+	
+	/** Config used when this entry is consumed as an instanced static mesh */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" ├─ ISM Settings", EditCondition="!bIsSubCollection && DescriptorSource == EPCGExEntryVariationMode::Local", EditConditionHides, DisplayAfter="DescriptorSource"))
+	FSoftISMComponentDescriptor ISMDescriptor;
+
+	/** Config used when this entry is consumed as a regular static mesh primitive (i.e Spline Mesh)*/
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ SM Settings", EditCondition="!bIsSubCollection && DescriptorSource == EPCGExEntryVariationMode::Local", EditConditionHides, DisplayAfter="ISMDescriptor"))
+	FPCGExStaticMeshComponentDescriptor SMDescriptor;
 
 	bool Matches(const FPCGMeshInstanceList& InstanceList) const
 	{
@@ -207,7 +212,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
 
-	void InitPCGSoftISMDescriptor(FPCGSoftISMComponentDescriptor& TargetDescriptor) const;
+	void InitPCGSoftISMDescriptor(const UPCGExMeshCollection* ParentCollection, FPCGSoftISMComponentDescriptor& TargetDescriptor) const;
 
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
@@ -227,6 +232,18 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMeshCollection : public UPCGExAssetCollection
 public:
 	virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Mesh; }
 
+	/** Global descriptor rule. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	EPCGExGlobalVariationRule GlobalDescriptorMode = EPCGExGlobalVariationRule::PerEntry;
+
+	/** Config used when this entry is consumed as an instanced static mesh */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" ├─ Global ISM Settings"))
+	FSoftISMComponentDescriptor GlobalISMDescriptor;
+
+	/** Config used when this entry is consumed as a regular static mesh primitive (i.e Spline Mesh)*/
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Global SM Settings"))
+	FPCGExStaticMeshComponentDescriptor GlobalSMDescriptor;
+		
 #if WITH_EDITOR
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
 	virtual void EDITOR_RefreshDisplayNames() override;
@@ -234,6 +251,10 @@ public:
 	/** Disable collision on all entries. */
 	UFUNCTION()
 	void EDITOR_DisableCollisions();
+	
+	/** Set Descriptor source on all entries. */
+	UFUNCTION()
+	void EDITOR_SetDescriptorSourceAll(EPCGExEntryVariationMode DescriptorSource);
 
 #endif
 
