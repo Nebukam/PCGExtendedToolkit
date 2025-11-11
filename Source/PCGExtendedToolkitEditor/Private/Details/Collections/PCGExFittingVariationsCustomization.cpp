@@ -10,6 +10,7 @@
 #include "PropertyHandle.h"
 #include "Collections/PCGExAssetCollection.h"
 #include "Constants/PCGExTuple.h"
+#include "DataWrappers/ChaosVDAccelerationStructureDataWrappers.h"
 #include "Math/UnitConversion.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
@@ -26,7 +27,42 @@ void FPCGExFittingVariationsCustomization::CustomizeHeader(
 	FDetailWidgetRow& HeaderRow,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	HeaderRow.NameContent()[PropertyHandle->CreatePropertyNameWidget()];
+	// Grab parent collection
+	TArray<UObject*> OuterObjects;
+	PropertyHandle->GetOuterObjects(OuterObjects);
+
+	if (UPCGExAssetCollection* Collection = !OuterObjects.IsEmpty() ? Cast<UPCGExAssetCollection>(OuterObjects[0]) : nullptr)
+	{
+		HeaderRow.NameContent()
+			[
+				PropertyHandle->CreatePropertyNameWidget()
+			]
+			.ValueContent()[
+				SNew(STextBlock)
+				.Font(IDetailLayoutBuilder::GetDetailFontItalic())
+				.Text_Lambda(
+					[Collection]()
+					{
+						return Collection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule
+							       ? FText::FromString("Overruled in collection settings!")
+							       : FText::GetEmpty();
+					})
+				.ColorAndOpacity_Lambda(
+					[Collection]()
+					{
+						return Collection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule
+							       ? FLinearColor(1.0f,0.5f,0.1f, 0.25)
+							       : FLinearColor::Transparent;
+					})
+			];
+	}
+	else
+	{
+		HeaderRow.NameContent()[
+
+			PropertyHandle->CreatePropertyNameWidget()
+		];
+	}
 }
 
 void FPCGExFittingVariationsCustomization::CustomizeChildren(
@@ -41,7 +77,7 @@ void FPCGExFittingVariationsCustomization::CustomizeChildren(
 #define PCGEX_SMALL_LABEL_COL(_TEXT, _COL) \
 + SVerticalBox::Slot().AutoHeight().VAlign(VAlign_Center).Padding(1,8,1,2)\
 [SNew(STextBlock).Text(FText::FromString(TEXT(_TEXT))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(_COL)).MinDesiredWidth(10)]
-	
+
 #define PCGEX_SEP_LABEL(_TEXT)\
 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0)\
 [SNew(STextBlock).Text(FText::FromString(_TEXT)).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray))]
@@ -69,7 +105,7 @@ SNew(SNumericEntryBox<double>).Value_Lambda([=]() -> TOptional<double>{_TYPE V; 
 			PCGEX_SMALL_LABEL_COL("Offset Min:Max", FLinearColor::White)
 			+ SVerticalBox::Slot() // First line: toggle
 			.AutoHeight()
-			.Padding(0,2,0,8)
+			.Padding(0, 2, 0, 8)
 			[
 				SNew(SHorizontalBox)
 				PCGEX_SMALL_LABEL("Absolute Space : ")
@@ -127,7 +163,7 @@ SNew(SNumericEntryBox<double>).Value_Lambda([=]() -> TOptional<double>{_TYPE V; 
 			PCGEX_SMALL_LABEL_COL("Rotation Min:Max", FLinearColor::White)
 			+ SVerticalBox::Slot() // First line: toggle
 			.AutoHeight()
-			.Padding(0,2,0,8)
+			.Padding(0, 2, 0, 8)
 			[
 				SNew(SHorizontalBox)
 				PCGEX_SMALL_LABEL("Absolute Rotation : ")
@@ -169,7 +205,7 @@ SNew(SNumericEntryBox<double>).Value_Lambda([=]() -> TOptional<double>{_TYPE V; 
 
 #pragma endregion
 
-#pragma region Rotation Min/Max
+#pragma region Scale Min/Max
 
 	// Get handles
 	TSharedPtr<IPropertyHandle> ScaleMinHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, ScaleMin));
@@ -186,7 +222,7 @@ SNew(SNumericEntryBox<double>).Value_Lambda([=]() -> TOptional<double>{_TYPE V; 
 			PCGEX_SMALL_LABEL_COL("Scale Min:Max", FLinearColor::White)
 			+ SVerticalBox::Slot() // First line: toggle
 			.AutoHeight()
-			.Padding(0,2,0,8)
+			.Padding(0, 2, 0, 8)
 			[
 				SNew(SHorizontalBox)
 				PCGEX_SMALL_LABEL("Uniform Scale : ")
