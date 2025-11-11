@@ -362,13 +362,27 @@ void FPCGExMeshCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 	ISMDescriptor.StaticMesh = StaticMesh;
 }
 
-void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(FPCGSoftISMComponentDescriptor& TargetDescriptor) const
+void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(const UPCGExMeshCollection* ParentCollection, FPCGSoftISMComponentDescriptor& TargetDescriptor) const
 {
-	PCGExHelpers::CopyStructProperties(
-		&ISMDescriptor,
-		&TargetDescriptor,
-		FSoftISMComponentDescriptor::StaticStruct(),
-		FPCGSoftISMComponentDescriptor::StaticStruct());
+	if (ParentCollection &&
+		(DescriptorSource == EPCGExEntryVariationMode::Global || ParentCollection->GlobalDescriptorMode == EPCGExGlobalVariationRule::Overrule))
+	{
+		PCGExHelpers::CopyStructProperties(
+			&ParentCollection->GlobalISMDescriptor,
+			&TargetDescriptor,
+			FSoftISMComponentDescriptor::StaticStruct(),
+			FPCGSoftISMComponentDescriptor::StaticStruct());
+
+		TargetDescriptor.ComponentTags.Append(ParentCollection->CollectionTags.Array());
+	}
+	else
+	{
+		PCGExHelpers::CopyStructProperties(
+			&ISMDescriptor,
+			&TargetDescriptor,
+			FSoftISMComponentDescriptor::StaticStruct(),
+			FPCGSoftISMComponentDescriptor::StaticStruct());
+	}
 
 	TargetDescriptor.ComponentTags.Append(Tags.Array());
 }
@@ -428,6 +442,18 @@ void UPCGExMeshCollection::EDITOR_DisableCollisions()
 	PostEditChangeProperty(EmptyEvent);
 	MarkPackageDirty();
 }
+
+void UPCGExMeshCollection::EDITOR_SetDescriptorSourceAll(EPCGExEntryVariationMode DescriptorSource)
+{
+	Modify(true);
+
+	for (FPCGExMeshCollectionEntry& Entry : Entries) { Entry.DescriptorSource = DescriptorSource; }
+
+	FPropertyChangedEvent EmptyEvent(nullptr);
+	PostEditChangeProperty(EmptyEvent);
+	MarkPackageDirty();
+}
+
 #endif
 
 void UPCGExMeshCollection::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const

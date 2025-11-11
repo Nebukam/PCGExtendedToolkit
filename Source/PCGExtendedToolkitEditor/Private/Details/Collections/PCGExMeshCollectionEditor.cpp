@@ -46,6 +46,50 @@ void FPCGExMeshCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolba
 
 #pragma endregion
 
+#pragma region Sorting
+
+
+	ToolbarBuilder.BeginSection("DescriptorSection");
+	{
+		ToolbarBuilder.AddWidget(
+				SNew(SUniformGridPanel)
+				.SlotPadding(FMargin(1, 2))
+				+ SUniformGridPanel::Slot(0, 0)
+				[
+					SNew(SButton)
+					.Text(FText::GetEmpty())
+					.OnClicked_Lambda(
+						[&]()
+						{
+							PCGEX_CURRENT_COLLECTION { Collection->EDITOR_SetDescriptorSourceAll(EPCGExEntryVariationMode::Global); }
+							return FReply::Handled();
+						})
+					.ToolTipText(FText::FromString("Set all entry Descriptor to \"Inherit from collection\". Each entry will inherit from the collection global descriptors.\nNOTE : Local settings are preserved, just hidden."))
+					[
+						SNew(SImage).Image(FAppStyle::Get().GetBrush("PCGEx.ActionIcon.CollectionRule"))
+					]
+				]
+				+ SUniformGridPanel::Slot(0, 1)
+				[
+					SNew(SButton)
+					.Text(FText::GetEmpty())
+					.OnClicked_Lambda(
+						[&]()
+						{
+							PCGEX_CURRENT_COLLECTION { Collection->EDITOR_SetDescriptorSourceAll(EPCGExEntryVariationMode::Local); }
+							return FReply::Handled();
+						})
+					.ToolTipText(FText::FromString("Set all entry Descriptor to \"Local\" -- each entry is responsible for managing its own descriptors.\nNOTE : This will restore previous local settings."))
+					[
+						SNew(SImage).Image(FAppStyle::Get().GetBrush("PCGEx.ActionIcon.EntryRule"))
+					]
+				]
+			);
+	}
+	ToolbarBuilder.EndSection();
+
+#pragma endregion
+
 #undef PCGEX_SLATE_ICON
 #undef PCGEX_CURRENT_COLLECTION
 }

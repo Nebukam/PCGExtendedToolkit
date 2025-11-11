@@ -25,11 +25,16 @@ void FPCGExAssetEntryCustomization::CustomizeHeader(
 	TSharedPtr<IPropertyHandle> CategoryHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExAssetCollectionEntry, Category));
 	TSharedPtr<IPropertyHandle> IsSubCollectionHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExAssetCollectionEntry, bIsSubCollection));
 
-	//HeaderRow.NameContent()[PropertyHandle->CreatePropertyNameWidget()];
 	HeaderRow.NameContent()
 		[
-			GetAssetPicker(PropertyHandle, IsSubCollectionHandle)
-			
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.VAlign(VAlign_Center)
+			.Padding(2, 10)
+			[
+				GetAssetPicker(PropertyHandle, IsSubCollectionHandle)
+			]
 		]
 		.ValueContent()
 		.MinDesiredWidth(400)
@@ -40,7 +45,7 @@ void FPCGExAssetEntryCustomization::CustomizeHeader(
 			.VAlign(VAlign_Center)
 			.Padding(2, 0)
 			[
-				
+
 				SNew(SHorizontalBox)
 
 				// Weight
@@ -65,10 +70,10 @@ void FPCGExAssetEntryCustomization::CustomizeHeader(
 				.VAlign(VAlign_Center)
 				.Padding(2, 0)
 				[
-					SNew(STextBlock).Text(FText::FromString(TEXT("Category"))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)
+					SNew(STextBlock).Text(FText::FromString(TEXT("·· Category"))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)
 				]
 				+ SHorizontalBox::Slot()
-				.AutoWidth()
+				.FillWidth(1)
 				.MinWidth(50)
 				.Padding(2, 0)
 				[
@@ -80,20 +85,25 @@ void FPCGExAssetEntryCustomization::CustomizeHeader(
 			.VAlign(VAlign_Center)
 			.Padding(2, 0)
 			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.VAlign(VAlign_Center)
-				.Padding(2, 0)
+				// Wrap in a border to control opacity based on value
+				SNew(SBorder)
+				.BorderImage(FStyleDefaults::GetNoBrush())
+				.ColorAndOpacity(FLinearColor(1, 1, 1, 0.6f))
 				[
-					SNew(STextBlock).Text(FText::FromString(TEXT("Use Sub-collection"))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)
-				]
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.MinWidth(50)
-				.Padding(2, 0)
-				[
-					IsSubCollectionHandle->CreatePropertyValueWidget()
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(2, 0)
+					[
+						IsSubCollectionHandle->CreatePropertyValueWidget()
+					]
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					.Padding(2, 0)
+					[
+						SNew(STextBlock).Text(FText::FromString(TEXT("Sub-collection"))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(8)
+					]
 				]
 			]
 		];
@@ -144,46 +154,55 @@ void FPCGExMeshEntryCustomization::FillCustomizedTopLevelPropertiesNames()
 	CustomizedTopLevelProperties.Add(FName("StaticMesh"));
 }
 
+#define PCGEX_SUBCOLLECTION_VISIBLE \
+.Visibility_Lambda([IsSubCollectionHandle](){ \
+	bool bWantsSubcollections = false; \
+	IsSubCollectionHandle->GetValue(bWantsSubcollections);\
+	return bWantsSubcollections ? EVisibility::Visible : EVisibility::Collapsed;})
+
+#define PCGEX_SUBCOLLECTION_COLLAPSED \
+.Visibility_Lambda([IsSubCollectionHandle](){ \
+	bool bWantsSubcollections = false; \
+	IsSubCollectionHandle->GetValue(bWantsSubcollections); \
+	return bWantsSubcollections ? EVisibility::Collapsed : EVisibility::Visible;})
+
+#define PCGEX_ENTRY_INDEX \
++ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0, 0)[\
+SNew(STextBlock).Text_Lambda([PropertyHandle](){\
+		const int32 Index = PropertyHandle->GetIndexInArray();\
+		if (Index == INDEX_NONE) { return FText::FromString(TEXT("")); }\
+		return FText::FromString(FString::Printf(TEXT("%d →"), Index));}).Font(IDetailLayoutBuilder::GetDetailFont())\
+.ColorAndOpacity(FSlateColor(FLinearColor(1,1,1,0.25)))]
+
 TSharedRef<SWidget> FPCGExMeshEntryCustomization::GetAssetPicker(TSharedRef<IPropertyHandle> PropertyHandle, TSharedPtr<IPropertyHandle> IsSubCollectionHandle)
 {
 	TSharedPtr<IPropertyHandle> SubCollection = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExMeshCollectionEntry, SubCollection));
 	TSharedPtr<IPropertyHandle> StaticMeshHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExMeshCollectionEntry, StaticMesh));
 
 	return SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.VAlign(VAlign_Center)
-		.Padding(2, 0)
-		[
-			SNew(SBox)
-			.Visibility_Lambda(
-				[IsSubCollectionHandle]()
-				{
-					bool bWantsSubcollections = false;
-					IsSubCollectionHandle->GetValue(bWantsSubcollections);
-					return bWantsSubcollections ? EVisibility::Visible : EVisibility::Collapsed;
-				})
+			PCGEX_ENTRY_INDEX
+			+ SHorizontalBox::Slot()
+			.FillWidth(1)
+			.MinWidth(200)
+			.Padding(2, 0)
 			[
-				SubCollection->CreatePropertyValueWidget()
+				SNew(SBox)
+				PCGEX_SUBCOLLECTION_VISIBLE
+				[
+					SubCollection->CreatePropertyValueWidget()
+				]
 			]
-		]
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.MinWidth(50)
-		.Padding(2, 0)
-		[
-			SNew(SBox)
-			.Visibility_Lambda(
-				[IsSubCollectionHandle]()
-				{
-					bool bWantsSubcollections = false;
-					IsSubCollectionHandle->GetValue(bWantsSubcollections);
-					return bWantsSubcollections ? EVisibility::Collapsed : EVisibility::Visible;
-				})
+			+ SHorizontalBox::Slot()
+			.FillWidth(1)
+			.MinWidth(200)
+			.Padding(2, 0)
 			[
-				StaticMeshHandle->CreatePropertyValueWidget()
-			]
-		];
+				SNew(SBox)
+				PCGEX_SUBCOLLECTION_COLLAPSED
+				[
+					StaticMeshHandle->CreatePropertyValueWidget()
+				]
+			];
 }
 
 TSharedRef<IPropertyTypeCustomization> FPCGExActorEntryCustomization::MakeInstance()
@@ -205,37 +224,30 @@ TSharedRef<SWidget> FPCGExActorEntryCustomization::GetAssetPicker(TSharedRef<IPr
 	TSharedPtr<IPropertyHandle> ActorPickHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExActorCollectionEntry, Actor));
 
 	return SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.VAlign(VAlign_Center)
-		.Padding(2, 0)
-		[
-			SNew(SBox)
-			.Visibility_Lambda(
-				[IsSubCollectionHandle]()
-				{
-					bool bWantsSubcollections = false;
-					IsSubCollectionHandle->GetValue(bWantsSubcollections);
-					return bWantsSubcollections ? EVisibility::Visible : EVisibility::Collapsed;
-				})
+			PCGEX_ENTRY_INDEX
+			+ SHorizontalBox::Slot()
+			.FillWidth(1)
+			.MinWidth(200)
+			.Padding(2, 0)
 			[
-				SubCollection->CreatePropertyValueWidget()
+				SNew(SBox)
+				PCGEX_SUBCOLLECTION_VISIBLE
+				[
+					SubCollection->CreatePropertyValueWidget()
+				]
 			]
-		]
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(2, 0)
-		[
-			SNew(SBox)
-			.Visibility_Lambda(
-				[IsSubCollectionHandle]()
-				{
-					bool bWantsSubcollections = false;
-					IsSubCollectionHandle->GetValue(bWantsSubcollections);
-					return bWantsSubcollections ? EVisibility::Collapsed : EVisibility::Visible;
-				})
+			+ SHorizontalBox::Slot()
+			.FillWidth(1)
+			.MinWidth(200)
+			.Padding(2, 0)
 			[
-				ActorPickHandle->CreatePropertyValueWidget()
-			]
-		];
+				SNew(SBox)
+				PCGEX_SUBCOLLECTION_COLLAPSED
+				[
+					ActorPickHandle->CreatePropertyValueWidget()
+				]
+			];
 }
+
+#undef PCGEX_SUBCOLLECTION_VISIBLE
+#undef PCGEX_SUBCOLLECTION_COLLAPSED

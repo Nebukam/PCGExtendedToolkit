@@ -187,22 +187,22 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1, ClampMin=0, UIMin=0))
 	int32 Weight = 1;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
+	UPROPERTY(EditAnywhere, Category = Settings)
 	FName Category = NAME_None;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
+	UPROPERTY(EditAnywhere, Category = Settings)
 	bool bIsSubCollection = false;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
-	TSet<FName> Tags;
-
-	UPROPERTY(EditAnywhere, Category = "Settings|Extras", meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	EPCGExEntryVariationMode VariationMode = EPCGExEntryVariationMode::Local;
 
-	UPROPERTY(EditAnywhere, Category = "Settings|Extras", meta=(DisplayName=" └─ Variations", EditCondition="!bIsSubCollection && VariationMode == EPCGExEntryVariationMode::Local", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variations", EditCondition="!bIsSubCollection && VariationMode == EPCGExEntryVariationMode::Local", EditConditionHides))
 	FPCGExFittingVariations Variations;
 
-	UPROPERTY(EditAnywhere, Category = "Settings|Extras", meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings)
+	TSet<FName> Tags;
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	FPCGExAssetStagingData Staging;
 
 	UPROPERTY()

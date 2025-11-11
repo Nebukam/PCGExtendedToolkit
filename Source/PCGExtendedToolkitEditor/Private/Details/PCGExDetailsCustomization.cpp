@@ -110,8 +110,8 @@ namespace PCGExDetailsCustomization
 		PCGEX_ADD_ACTION_ICON(RotOrder_ZX, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(RotOrder_ZY, AIS_Med)
 
-		PCGEX_ADD_ACTION_ICON(EntryRule, AIS_Small)
-		PCGEX_ADD_ACTION_ICON(CollectionRule, AIS_Small)
+		PCGEX_ADD_ACTION_ICON(EntryRule, AIS_VerySmall)
+		PCGEX_ADD_ACTION_ICON(CollectionRule, AIS_VerySmall)
 
 		PCGEX_ADD_ACTION_ICON(SingleMat, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(MultiMat, AIS_Wide)
