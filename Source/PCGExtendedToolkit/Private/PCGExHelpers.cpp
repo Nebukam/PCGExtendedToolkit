@@ -500,27 +500,6 @@ void UPCGExComponentCallback::BeginDestroy()
 	UObject::BeginDestroy();
 }
 
-void UPCGExPCGComponentCallback::Callback(UPCGComponent* InComponent)
-{
-	if (!CallbackFn) { return; }
-	if (bIsOnce)
-	{
-		auto Callback = MoveTemp(CallbackFn);
-		CallbackFn = nullptr;
-		Callback(InComponent);
-	}
-	else
-	{
-		CallbackFn(InComponent);
-	}
-}
-
-void UPCGExPCGComponentCallback::BeginDestroy()
-{
-	CallbackFn = nullptr;
-	UObject::BeginDestroy();
-}
-
 namespace PCGExHelpers
 {
 	FText GetClassDisplayName(const UClass* InClass)
