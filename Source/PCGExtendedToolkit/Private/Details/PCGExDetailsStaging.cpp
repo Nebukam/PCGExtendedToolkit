@@ -4,6 +4,8 @@
 
 #include "Details/PCGExDetailsStaging.h"
 
+#include "UObject/Object.h"
+#include "UObject/Package.h"
 #include "Collections/PCGExAssetCollection.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Details/PCGExDetailsSettings.h"
