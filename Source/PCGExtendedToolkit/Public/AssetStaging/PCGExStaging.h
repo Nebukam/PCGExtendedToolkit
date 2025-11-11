@@ -111,6 +111,7 @@ namespace PCGExStaging
 		TPickUnpacker() = default;
 
 		bool ResolveEntry(const uint64 EntryHash, const A*& OutEntry, int16& OutSecondaryIndex);
+		bool ResolveEntry(const uint64 EntryHash, const A*& OutEntry, int16& OutSecondaryIndex, const C*& OutParentCollection);
 	};
 
 	extern template class TPickUnpacker<UPCGExAssetCollection, FPCGExAssetCollectionEntry>;
