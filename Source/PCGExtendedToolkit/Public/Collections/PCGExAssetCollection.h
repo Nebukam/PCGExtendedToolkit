@@ -199,7 +199,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 	UPROPERTY(EditAnywhere, Category = "Settings|Extras", meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	EPCGExEntryVariationMode VariationMode = EPCGExEntryVariationMode::Local;
 
-	UPROPERTY(EditAnywhere, Category = "Settings|Extras", meta=(DisplayName=" └─ Variations", EditCondition="!bIsSubCollection", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = "Settings|Extras", meta=(DisplayName=" └─ Variations", EditCondition="!bIsSubCollection && VariationMode == EPCGExEntryVariationMode::Local", EditConditionHides))
 	FPCGExFittingVariations Variations;
 
 	UPROPERTY(EditAnywhere, Category = "Settings|Extras", meta=(EditCondition="!bIsSubCollection", EditConditionHides))
@@ -479,6 +479,12 @@ public:
 
 	virtual void BeginDestroy() override;
 
+#if WITH_EDITORONLY_DATA
+	/** Dev notes/comments. Editor-only data.  */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1, MultiLine))
+	FString Notes;
+#endif
+	
 	/** Collection tags */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
 	TSet<FName> CollectionTags;

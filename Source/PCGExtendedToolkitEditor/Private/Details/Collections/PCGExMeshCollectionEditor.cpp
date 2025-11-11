@@ -54,10 +54,10 @@ void FPCGExMeshCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTa
 {
 	// Default handling (will append default collection settings tab)
 	FPCGExAssetCollectionEditor::CreateTabs(OutTabs);
-	
+
 	// Property editor module
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	
+
 	// Details view arguments
 	FDetailsViewArgs DetailsArgs;
 	DetailsArgs.bUpdatesFromSelection = false;
@@ -73,24 +73,8 @@ void FPCGExMeshCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTa
 		FIsPropertyVisible::CreateLambda(
 			[](const FPropertyAndParent& PropertyAndParent)
 			{
-				FName EntriesName = FName("Entries");
-				// Show the Entries array itself
-				if (PropertyAndParent.Property.GetFName() == EntriesName)
-					return true;
-
-				// Show any child property of Entries
-				for (const FProperty* Parent : PropertyAndParent.ParentProperties)
-				{
-					if (!Parent) { continue; }
-					Parent = Parent->GetOwnerProperty();
-					if (Parent->GetFName() == EntriesName)
-					{
-						return true;
-					}
-				}
-
-				// Hide everything else
-				return false;
+				return PropertyAndParent.Property.GetFName() == PCGExAssetCollectionEditor::EntriesName
+					|| (!PropertyAndParent.ParentProperties.IsEmpty() && PropertyAndParent.ParentProperties.Last()->GetFName() == PCGExAssetCollectionEditor::EntriesName);
 			}));
 
 	// Set the asset to display
@@ -102,5 +86,4 @@ void FPCGExMeshCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTa
 	ToolbarBuilder.SetStyle(&FAppStyle::Get(), FName("Toolbar"));
 	BuildAssetHeaderToolbar(ToolbarBuilder);
 	Infos.Header = ToolbarBuilder.MakeWidget();
-	
 }

@@ -6,6 +6,9 @@
 #include "AssetToolsModule.h"
 #include "Details/Collections/PCGExActorCollectionActions.h"
 #include "Details/Actions/PCGExActorDataPackerActions.h"
+#include "Details/Collections/PCGExAssetEntryCustomization.h"
+#include "Details/Collections/PCGExFittingVariationsCustomization.h"
+#include "Details/Collections/PCGExMaterialPicksCustomization.h"
 #include "Details/Collections/PCGExMeshCollectionActions.h"
 #include "Details/Enums/PCGExGridEnumCustomization.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
@@ -79,17 +82,17 @@ namespace PCGExDetailsCustomization
 		PCGEX_ADD_ACTION_ICON(Numeric, AIS_Wide)
 		PCGEX_ADD_ACTION_ICON(Text, AIS_Wide)
 
-		
+
 		PCGEX_ADD_ACTION_ICON(RebuildStaging, AIS_Big)
 		PCGEX_ADD_ACTION_ICON(RebuildStagingRecursive, AIS_Big)
 		PCGEX_ADD_ACTION_ICON(RebuildStagingProject, AIS_Big)
-		
+
 		PCGEX_ADD_ACTION_ICON(AddContentBrowserSelection, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(NormalizeWeight, AIS_Med)
-		
+
 		PCGEX_ADD_ACTION_ICON(Entries, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(Settings, AIS_Med)
-		
+
 		PCGEX_ADD_ACTION_ICON(AxisOrder_XYZ, AIS_Wide)
 		PCGEX_ADD_ACTION_ICON(AxisOrder_YZX, AIS_Wide)
 		PCGEX_ADD_ACTION_ICON(AxisOrder_ZXY, AIS_Wide)
@@ -106,6 +109,12 @@ namespace PCGExDetailsCustomization
 		PCGEX_ADD_ACTION_ICON(RotOrder_Z, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(RotOrder_ZX, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(RotOrder_ZY, AIS_Med)
+
+		PCGEX_ADD_ACTION_ICON(EntryRule, AIS_Small)
+		PCGEX_ADD_ACTION_ICON(CollectionRule, AIS_Small)
+
+		PCGEX_ADD_ACTION_ICON(SingleMat, AIS_Med)
+		PCGEX_ADD_ACTION_ICON(MultiMat, AIS_Wide)
 
 		FButtonStyle ActionIconButton = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton");
 
@@ -131,12 +140,15 @@ namespace PCGExDetailsCustomization
 		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExMeshCollectionActions>());
 		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExActorCollectionActions>());
 		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExActorDataPackerActions>());
-				
-		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
-		PropertyModule.RegisterCustomPropertyTypeLayout(
-			"PCGExTupleBody",
-			FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExTupleBodyCustomization::MakeInstance));
+		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExTupleBody", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExTupleBodyCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExFittingVariations", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExFittingVariationsCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMaterialOverrideEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMaterialOverrideEntryCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMaterialOverrideSingleEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMaterialOverrideSingleEntryCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMaterialOverrideCollection", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMaterialOverrideCollectionCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMeshCollectionEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMeshEntryCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExActorCollectionEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExActorEntryCustomization::MakeInstance));
 
 #define PCGEX_FOREACH_INLINE_ENUM(MACRO)\
 MACRO(EPCGExInputValueType)\
@@ -154,14 +166,17 @@ MACRO(EPCGExScaleToFit)\
 MACRO(EPCGExJustifyFrom)\
 MACRO(EPCGExJustifyTo)\
 MACRO(EPCGExFitMode)\
-MACRO(EPCGExMinimalAxis)
+MACRO(EPCGExMinimalAxis)\
+MACRO(EPCGExMaterialVariantsMode)\
+MACRO(EPCGExEntryVariationMode)\
+MACRO(EPCGExGlobalVariationRule)
 
 #define PCGEX_FOREACH_GRID_ENUM(MACRO)\
 MACRO(EPCGExAxisOrder, 3)\
 MACRO(EPCGExMakeRotAxis, 3)
 
 		// This is grotesque but it works （。＾▽＾）
-		
+
 #define PCGEX_DECL_INLINE_ENUM(_ENUM)\
 class FPCGExInline##_ENUM final : public FPCGExInlineEnumCustomization{\
 public:	explicit FPCGExInline##_ENUM(const FString& InEnumName) : FPCGExInlineEnumCustomization(InEnumName){}\
@@ -179,7 +194,7 @@ public:	explicit FPCGExGrid##_ENUM(const FString& InEnumName, const int32 InColu
 static TSharedRef<IPropertyTypeCustomization> MakeInstance(){ return MakeShareable(new FPCGExGrid##_ENUM(#_ENUM, _COL));}};\
 PropertyModule.RegisterCustomPropertyTypeLayout(#_ENUM,FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExGrid##_ENUM::MakeInstance));
 
-	PCGEX_FOREACH_GRID_ENUM(PCGEX_DECL_GRID_ENUM)
+		PCGEX_FOREACH_GRID_ENUM(PCGEX_DECL_GRID_ENUM)
 
 #undef PCGEX_DECL_GRID_ENUM
 #undef PCGEX_FOREACH_GRID_ENUM

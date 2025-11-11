@@ -7,6 +7,11 @@
 
 class UPCGExAssetCollection;
 
+namespace PCGExAssetCollectionEditor
+{
+	const FName EntriesName = FName("Entries");
+}
+
 struct FPCGExDetailsTabInfos
 {
 	FPCGExDetailsTabInfos() = default;
