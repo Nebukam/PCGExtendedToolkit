@@ -77,30 +77,6 @@ public:
 	}
 };
 
-UCLASS(Hidden)
-class PCGEXTENDEDTOOLKIT_API UPCGExPCGComponentCallback : public UObject
-{
-	GENERATED_BODY()
-
-	bool bIsOnce = false;
-	TFunction<void(UPCGComponent* InComponent)> CallbackFn;
-
-public:
-	UFUNCTION()
-	void Callback(UPCGComponent* InComponent);
-
-	virtual void BeginDestroy() override;
-
-	template <typename T>
-	void Bind(T& Delegate, TFunction<void(UPCGComponent* InComponent)>&& InCallback, const bool bOnce = false)
-	{
-		check(!CallbackFn)
-		bIsOnce = bOnce;
-		CallbackFn = InCallback;
-		Delegate.AddDynamic(this, &UPCGExPCGComponentCallback::Callback);
-	}
-};
-
 UINTERFACE()
 class PCGEXTENDEDTOOLKIT_API UPCGExManagedObjectInterface : public UInterface
 {

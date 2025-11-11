@@ -577,21 +577,21 @@ namespace PCGExWaitForPCGData
 				}
 
 				// Make sure to not wait on cancelled generation
-				This->Context->ManagedObjects->New<UPCGExPCGComponentCallback>()->Bind(
-					TargetComponent->OnPCGGraphCancelledExternal, [AsyncThis, Idx](UPCGComponent* InComponent)
+				TargetComponent->OnPCGGraphCancelledDelegate.AddLambda(
+					[AsyncThis, Idx](UPCGComponent* InComponent)
 					{
 						PCGEX_ASYNC_NESTED_THIS
 						NestedThis->ValidComponents[Idx] = nullptr;
 						NestedThis->WatcherTracker->IncrementCompleted();
-					}, true);
+					});
 
 				// Wait for generated callback
-				This->Context->ManagedObjects->New<UPCGExPCGComponentCallback>()->Bind(
-					TargetComponent->OnPCGGraphGeneratedExternal, [AsyncThis, Idx](UPCGComponent* InComponent)
+				TargetComponent->OnPCGGraphGeneratedDelegate.AddLambda(
+					[AsyncThis, Idx](UPCGComponent* InComponent)
 					{
 						PCGEX_ASYNC_NESTED_THIS
 						NestedThis->ScheduleComponentDataStaging(Idx);
-					}, true);
+					});
 			});
 	}
 
