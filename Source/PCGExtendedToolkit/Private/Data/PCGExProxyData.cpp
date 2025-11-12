@@ -141,8 +141,7 @@ else { return PCGEx::Convert<T_WORKING, _TYPE>(Get(Index)); }}
 
 #pragma region externalization TBufferProxy
 
-#define PCGEX_TPL(_TYPE, _NAME, ...) \
-template class PCGEXTENDEDTOOLKIT_API TBufferProxy<_TYPE>;\
+#define PCGEX_TPL(_TYPE, _NAME, ...) template class PCGEXTENDEDTOOLKIT_API TBufferProxy<_TYPE>;
 PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
