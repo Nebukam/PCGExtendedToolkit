@@ -50,7 +50,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_DUMMY_SETTINGS_MEMBERS
-	PCGEX_NODE_INFOS(RecursionTracker, "Recursion Tracker", "A Simple Recursion tracker to make working with recursive subgraphs easier.");
+	PCGEX_NODE_INFOS(Break, "Break", "A Simple Recursion tracker to make working with recursive subgraphs easier. Acts as a \"break\" by tracking a counter, and/or checking if data meet certain requirements.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::ControlFlow; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorConstant); }
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
