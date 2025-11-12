@@ -112,7 +112,7 @@ public:
 
 	/** Defines how the selected axis will be used to construct the point' rotation. This will be using remapped axis from the selected order. X = Primary, Y = Secondary, Z = Tertiary*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExMakeRotAxis RotationConstruction = EPCGExMakeRotAxis::XY;
+	EPCGExMakeRotAxis RotationConstruction = EPCGExMakeRotAxis::X;
 	
 	// - Constant vs attribute
 	// - Attribute can be int as pick (with sanitization)

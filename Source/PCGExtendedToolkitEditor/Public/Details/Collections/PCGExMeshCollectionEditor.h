@@ -17,6 +17,7 @@ public:
 	virtual FLinearColor GetWorldCentricTabColorScale() const override { return FLinearColor::White; }
 
 protected:
+	virtual void RegisterPropertyNameMapping(TMap<FName, FName>& Mapping) override;
 	virtual void BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder) override;
-	virtual void CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTabs) override;
+	virtual void CreateTabs(TArray<PCGExAssetCollectionEditor::TabInfos>& OutTabs) override;
 };

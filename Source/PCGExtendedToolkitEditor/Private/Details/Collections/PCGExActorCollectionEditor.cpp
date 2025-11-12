@@ -22,7 +22,7 @@ void FPCGExActorCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 	FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(ToolbarBuilder);
 }
 
-void FPCGExActorCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTabs)
+void FPCGExActorCollectionEditor::CreateTabs(TArray<PCGExAssetCollectionEditor::TabInfos>& OutTabs)
 {
 	// Default handling (will append default collection settings tab)
 	FPCGExAssetCollectionEditor::CreateTabs(OutTabs);
@@ -51,11 +51,17 @@ void FPCGExActorCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutT
 
 	// Set the asset to display
 	DetailsView->SetObject(EditedCollection.Get());
-	FPCGExDetailsTabInfos& Infos = OutTabs.Emplace_GetRef(FName("Assets"), DetailsView);
+	PCGExAssetCollectionEditor::TabInfos& Infos = OutTabs.Emplace_GetRef(FName("Assets"), DetailsView);
 	Infos.Icon = TEXT("Entries");
 
-	FToolBarBuilder ToolbarBuilder(GetToolkitCommands(), FMultiBoxCustomization::None);
-	ToolbarBuilder.SetStyle(&FAppStyle::Get(), FName("Toolbar"));
-	BuildAssetHeaderToolbar(ToolbarBuilder);
-	Infos.Header = ToolbarBuilder.MakeWidget();
+	FToolBarBuilder HeaderToolbarBuilder(GetToolkitCommands(), FMultiBoxCustomization::None);
+	HeaderToolbarBuilder.SetStyle(&FAppStyle::Get(), FName("Toolbar"));
+	BuildAssetHeaderToolbar(HeaderToolbarBuilder);
+	Infos.Header = HeaderToolbarBuilder.MakeWidget();
+
+	FToolBarBuilder FooterToolbarBuilder(GetToolkitCommands(), FMultiBoxCustomization::None);
+	FooterToolbarBuilder.SetStyle(&FAppStyle::Get(), FName("Toolbar"));
+	BuildAssetFooterToolbar(FooterToolbarBuilder);
+	Infos.Footer = FooterToolbarBuilder.MakeWidget();
+
 }
