@@ -3,6 +3,7 @@
 
 #include "Details/Collections/PCGExAssetCollectionEditor.h"
 
+#include "PCGExGlobalEditorSettings.h"
 #include "ToolMenus.h"
 #include "Widgets/Input/SButton.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
@@ -18,6 +19,13 @@
 
 namespace PCGExCollectionEditor
 {
+}
+
+TMap<FName, PCGExAssetCollectionEditor::FilterInfos> FPCGExAssetCollectionEditor::FilterInfos;
+
+FPCGExAssetCollectionEditor::FPCGExAssetCollectionEditor()
+{
+	RegisterPropertyNameMapping(GetMutableDefault<UPCGExGlobalEditorSettings>()->PropertyNamesMap);
 }
 
 void FPCGExAssetCollectionEditor::InitEditor(UPCGExAssetCollection* InCollection, const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost)
@@ -61,6 +69,9 @@ void FPCGExAssetCollectionEditor::InitEditor(UPCGExAssetCollection* InCollection
 
 	AddToolbarExtender(ToolbarExtender);
 	RegenerateMenusAndToolbars();
+
+	// Assuming DetailsView is already created.
+	UPCGExGlobalEditorSettings::OnHiddenAssetPropertyNamesChanged.AddRaw(this, &FPCGExAssetCollectionEditor::ForceRefreshTabs);
 }
 
 UPCGExAssetCollection* FPCGExAssetCollectionEditor::GetEditedCollection() const
@@ -68,7 +79,35 @@ UPCGExAssetCollection* FPCGExAssetCollectionEditor::GetEditedCollection() const
 	return EditedCollection.Get();
 }
 
-void FPCGExAssetCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTabs)
+void FPCGExAssetCollectionEditor::RegisterPropertyNameMapping(TMap<FName, FName>& Mapping)
+{
+#define PCGEX_DECL_ASSET_FILTER(_NAME, _ID, _LABEL, _TOOLTIP)PCGExAssetCollectionEditor::FilterInfos& _NAME = FilterInfos.Emplace(FName(_ID), PCGExAssetCollectionEditor::FilterInfos(FName(_ID),FTEXT(_LABEL), FTEXT(_TOOLTIP)));
+
+	PCGEX_DECL_ASSET_FILTER(Variations, "AssetEditor.Variations", "Variations", "Show/hide Variations")
+	Mapping.Add(FName("VariationMode"), Variations.Id);
+	Mapping.Add(FName("Variations"), Variations.Id);
+
+	PCGEX_DECL_ASSET_FILTER(Tags, "AssetEditor.Tags", "Tags", "Show/hide Tags")
+	Mapping.Add(FName("Tags"), Tags.Id);
+
+	PCGEX_DECL_ASSET_FILTER(Staging, "AssetEditor.Staging", "Staging", "Show/hide Staging")
+	Mapping.Add(FName("Staging"), Staging.Id);
+
+	PCGEX_DECL_ASSET_FILTER(Materials, "AssetEditor.Materials", "Materials", "Show/hide Materials")	
+	Mapping.Add(FName("MaterialVariants"), Materials.Id);
+	Mapping.Add(FName("SlotIndex"), Materials.Id);
+	Mapping.Add(FName("MaterialOverrideVariants"), Materials.Id);
+	Mapping.Add(FName("MaterialOverrideVariantsList"), Materials.Id);
+	
+	PCGEX_DECL_ASSET_FILTER(Descriptors, "AssetEditor.Descriptors", "Descriptors", "Show/hide Descriptors")	
+	Mapping.Add(FName("DescriptorSource"), Descriptors.Id);
+	Mapping.Add(FName("ISMDescriptor"), Descriptors.Id);
+	Mapping.Add(FName("SMDescriptor"), Descriptors.Id);
+
+#undef PCGEX_DECL_ASSET_FILTER
+}
+
+void FPCGExAssetCollectionEditor::CreateTabs(TArray<PCGExAssetCollectionEditor::TabInfos>& OutTabs)
 {
 	// Property editor module
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
@@ -94,7 +133,7 @@ void FPCGExAssetCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutT
 	// Set the asset to display
 	DetailsView->SetObject(EditedCollection.Get());
 
-	FPCGExDetailsTabInfos& Infos = OutTabs.Emplace_GetRef(FName("Collection"), DetailsView, FName("Collection Settings"));
+	PCGExAssetCollectionEditor::TabInfos& Infos = OutTabs.Emplace_GetRef(FName("Collection"), DetailsView, FName("Collection Settings"));
 	Infos.Icon = TEXT("Settings");
 }
 
@@ -296,7 +335,7 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 	ToolbarBuilder.BeginSection("SortingSection");
 	{
 		PCGEX_SECTION_HEADER("Sort")
-		
+
 		ToolbarBuilder.AddWidget(
 				SNew(SUniformGridPanel)
 				.SlotPadding(FMargin(1, 2))
@@ -331,6 +370,49 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 #pragma endregion
 }
 
+void FPCGExAssetCollectionEditor::BuildAssetFooterToolbar(FToolBarBuilder& ToolbarBuilder)
+{
+	ToolbarBuilder.BeginSection("FilterSection");
+	{
+		PCGEX_SECTION_HEADER("Filters")
+
+		TSharedRef<SUniformGridPanel> Grid =
+			SNew(SUniformGridPanel)
+			.SlotPadding(FMargin(2, 2));
+
+		int32 Index = 0;
+		for (const TPair<FName, PCGExAssetCollectionEditor::FilterInfos>& Infos : FilterInfos)
+		{
+			const PCGExAssetCollectionEditor::FilterInfos& Filter = Infos.Value;
+
+			Grid->AddSlot(Index / 2, Index % 2)
+			[
+				SNew(SButton)
+				.Text(Filter.Label)
+				.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
+				.OnClicked_Lambda(
+					[Filter]()
+					{
+						UPCGExGlobalEditorSettings* MutableSettings = GetMutableDefault<UPCGExGlobalEditorSettings>();
+						MutableSettings->ToggleHiddenAssetPropertyName(Filter.Id, MutableSettings->GetIsPropertyVisible(Filter.Id));
+						return FReply::Handled();
+					})
+				.ButtonColorAndOpacity_Lambda(
+					[Filter]
+					{
+						return GetMutableDefault<UPCGExGlobalEditorSettings>()->GetIsPropertyVisible(Filter.Id) ? FLinearColor(0.005, 0.005, 0.005, 0.8) : FLinearColor::Transparent;
+					})
+				.ToolTipText(Filter.ToolTip)
+			];
+
+			Index++;
+		}
+
+		ToolbarBuilder.AddWidget(Grid);
+	}
+	ToolbarBuilder.EndSection();
+}
+
 #undef PCGEX_SLATE_ICON
 #undef PCGEX_CURRENT_COLLECTION
 #undef PCGEX_SECTION_HEADER
@@ -339,7 +421,7 @@ void FPCGExAssetCollectionEditor::RegisterTabSpawners(const TSharedRef<FTabManag
 {
 	TabManager->SetCanDoDragOperation(false);
 
-	for (const FPCGExDetailsTabInfos& Tab : Tabs)
+	for (const PCGExAssetCollectionEditor::TabInfos& Tab : Tabs)
 	{
 		// Register tab spawner with out layout Id
 		FTabSpawnerEntry& Entry =
@@ -383,4 +465,15 @@ void FPCGExAssetCollectionEditor::RegisterTabSpawners(const TSharedRef<FTabManag
 	if (!Tabs.IsEmpty()) { TabManager->SetMainTab(Tabs[0].Id); }
 
 	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
+}
+
+void FPCGExAssetCollectionEditor::ForceRefreshTabs()
+{
+	for (const PCGExAssetCollectionEditor::TabInfos& Tab : Tabs)
+	{
+		if (TSharedPtr<IDetailsView> DetailsView = StaticCastSharedPtr<IDetailsView>(Tab.View))
+		{
+			DetailsView->ForceRefresh();
+		}
+	}
 }

@@ -17,6 +17,27 @@
 #include "Modules/ModuleManager.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
 
+void FPCGExMeshCollectionEditor::RegisterPropertyNameMapping(TMap<FName, FName>& Mapping)
+{
+	FPCGExAssetCollectionEditor::RegisterPropertyNameMapping(Mapping);
+
+#define PCGEX_DECL_ASSET_FILTER(_NAME, _ID, _LABEL, _TOOLTIP)PCGExAssetCollectionEditor::FilterInfos& _NAME = FilterInfos.Emplace(FName(_ID), PCGExAssetCollectionEditor::FilterInfos(FName(_ID),FTEXT(_LABEL), FTEXT(_TOOLTIP)));
+
+	PCGEX_DECL_ASSET_FILTER(Materials, "AssetEditor.Materials", "Materials", "Show/hide Materials")	
+	Mapping.Add(FName("MaterialVariants"), Materials.Id);
+	Mapping.Add(FName("SlotIndex"), Materials.Id);
+	Mapping.Add(FName("MaterialOverrideVariants"), Materials.Id);
+	Mapping.Add(FName("MaterialOverrideVariantsList"), Materials.Id);
+	
+	PCGEX_DECL_ASSET_FILTER(Descriptors, "AssetEditor.Descriptors", "Descriptors", "Show/hide Descriptors")	
+	Mapping.Add(FName("DescriptorSource"), Descriptors.Id);
+	Mapping.Add(FName("ISMDescriptor"), Descriptors.Id);
+	Mapping.Add(FName("SMDescriptor"), Descriptors.Id);
+	
+#undef PCGEX_DECL_ASSET_FILTER
+	
+}
+
 void FPCGExMeshCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder)
 {
 	FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(ToolbarBuilder);
@@ -47,7 +68,6 @@ void FPCGExMeshCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolba
 #pragma endregion
 
 #pragma region Sorting
-
 
 	ToolbarBuilder.BeginSection("DescriptorSection");
 	{
@@ -94,7 +114,7 @@ void FPCGExMeshCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolba
 #undef PCGEX_CURRENT_COLLECTION
 }
 
-void FPCGExMeshCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTabs)
+void FPCGExMeshCollectionEditor::CreateTabs(TArray<PCGExAssetCollectionEditor::TabInfos>& OutTabs)
 {
 	// Default handling (will append default collection settings tab)
 	FPCGExAssetCollectionEditor::CreateTabs(OutTabs);
@@ -123,11 +143,16 @@ void FPCGExMeshCollectionEditor::CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTa
 
 	// Set the asset to display
 	DetailsView->SetObject(EditedCollection.Get());
-	FPCGExDetailsTabInfos& Infos = OutTabs.Emplace_GetRef(FName("Assets"), DetailsView);
+	PCGExAssetCollectionEditor::TabInfos& Infos = OutTabs.Emplace_GetRef(FName("Assets"), DetailsView);
 	Infos.Icon = TEXT("Entries");
 
-	FToolBarBuilder ToolbarBuilder(GetToolkitCommands(), FMultiBoxCustomization::None);
-	ToolbarBuilder.SetStyle(&FAppStyle::Get(), FName("Toolbar"));
-	BuildAssetHeaderToolbar(ToolbarBuilder);
-	Infos.Header = ToolbarBuilder.MakeWidget();
+	FToolBarBuilder HeaderToolbarBuilder(GetToolkitCommands(), FMultiBoxCustomization::None);
+	HeaderToolbarBuilder.SetStyle(&FAppStyle::Get(), FName("Toolbar"));
+	BuildAssetHeaderToolbar(HeaderToolbarBuilder);
+	Infos.Header = HeaderToolbarBuilder.MakeWidget();
+
+	FToolBarBuilder FooterToolbarBuilder(GetToolkitCommands(), FMultiBoxCustomization::None);
+	FooterToolbarBuilder.SetStyle(&FAppStyle::Get(), FName("Toolbar"));
+	BuildAssetFooterToolbar(FooterToolbarBuilder);
+	Infos.Footer = FooterToolbarBuilder.MakeWidget();
 }

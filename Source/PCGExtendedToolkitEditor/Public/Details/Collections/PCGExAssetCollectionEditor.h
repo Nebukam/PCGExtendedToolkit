@@ -10,29 +10,45 @@ class UPCGExAssetCollection;
 namespace PCGExAssetCollectionEditor
 {
 	const FName EntriesName = FName("Entries");
-}
 
-struct FPCGExDetailsTabInfos
-{
-	FPCGExDetailsTabInfos() = default;
-
-	FPCGExDetailsTabInfos(const FName InId, const TSharedPtr<SWidget>& InView, const FName InLabel = NAME_None, const ETabRole InRole = MajorTab)
-		: Id(InId), View(InView), Label(InLabel.IsNone() ? InId : InLabel), Role(InRole)
+	struct TabInfos
 	{
-	}
+		TabInfos() = default;
 
-	FName Id = NAME_None;
-	TSharedPtr<SWidget> Header = nullptr;
-	TSharedPtr<SWidget> View = nullptr;
-	TSharedPtr<SWidget> Footer = nullptr;
-	FName Label = NAME_None;
-	ETabRole Role = MajorTab;
-	FString Icon = TEXT("");
-};
+		TabInfos(const FName InId, const TSharedPtr<SWidget>& InView, const FName InLabel = NAME_None, const ETabRole InRole = MajorTab)
+			: Id(InId), View(InView), Label(InLabel.IsNone() ? InId : InLabel), Role(InRole)
+		{
+		}
+
+		FName Id = NAME_None;
+		TSharedPtr<SWidget> Header = nullptr;
+		TSharedPtr<SWidget> View = nullptr;
+		TSharedPtr<SWidget> Footer = nullptr;
+		FName Label = NAME_None;
+		ETabRole Role = MajorTab;
+		FString Icon = TEXT("");
+	};
+
+	struct FilterInfos
+	{
+		FilterInfos() = default;
+
+		FilterInfos(const FName InId, const FText& InLabel, const FText& InToolTip)
+			: Id(InId), Label(InLabel), ToolTip(InToolTip)
+		{
+		}
+
+		FName Id = NAME_None;
+		FText Label = FText::GetEmpty();
+		FText ToolTip = FText::GetEmpty();
+	};
+}
 
 class FPCGExAssetCollectionEditor : public FAssetEditorToolkit
 {
 public:
+	FPCGExAssetCollectionEditor();
+
 	virtual void InitEditor(UPCGExAssetCollection* InCollection, const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost);
 	virtual UPCGExAssetCollection* GetEditedCollection() const;
 
@@ -41,13 +57,18 @@ public:
 	virtual FString GetWorldCentricTabPrefix() const override { return TEXT("PCGEx"); }
 	virtual FLinearColor GetWorldCentricTabColorScale() const override { return FLinearColor::White; }
 
+	static TMap<FName, PCGExAssetCollectionEditor::FilterInfos> FilterInfos;
+	
 protected:
 	TWeakObjectPtr<UPCGExAssetCollection> EditedCollection;
+	virtual void RegisterPropertyNameMapping(TMap<FName, FName>& Mapping);
 
-	virtual void CreateTabs(TArray<FPCGExDetailsTabInfos>& OutTabs);
+	virtual void CreateTabs(TArray<PCGExAssetCollectionEditor::TabInfos>& OutTabs);
 	virtual void BuildEditorToolbar(FToolBarBuilder& ToolbarBuilder);
 	virtual void BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder);
+	virtual void BuildAssetFooterToolbar(FToolBarBuilder& ToolbarBuilder);
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
+	virtual void ForceRefreshTabs();
 
-	TArray<FPCGExDetailsTabInfos> Tabs;
+	TArray<PCGExAssetCollectionEditor::TabInfos> Tabs;
 };

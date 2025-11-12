@@ -6,12 +6,14 @@
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
+#include "PCGExGlobalEditorSettings.h"
 #include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"
 #include "Collections/PCGExActorCollection.h"
 #include "Collections/PCGExAssetCollection.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Constants/PCGExTuple.h"
+#include "Details/Collections/PCGExAssetCollectionEditor.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SEditableTextBox.h"
@@ -128,8 +130,17 @@ void FPCGExAssetEntryCustomization::CustomizeChildren(
 	for (uint32 i = 0; i < NumElements; ++i)
 	{
 		TSharedPtr<IPropertyHandle> ElementHandle = PropertyHandle->GetChildHandle(i);
-		if (!ElementHandle.IsValid() || CustomizedTopLevelProperties.Contains(ElementHandle->GetProperty()->GetFName())) { continue; }
-		ChildBuilder.AddProperty(ElementHandle.ToSharedRef());
+		FName ElementName = ElementHandle ? ElementHandle->GetProperty()->GetFName() : NAME_None;
+		if (!ElementHandle.IsValid() || CustomizedTopLevelProperties.Contains(ElementName)) { continue; }
+
+		IDetailPropertyRow& PropertyRow = ChildBuilder.AddProperty(ElementHandle.ToSharedRef());
+		// Bind visibility dynamically
+		PropertyRow.Visibility(
+			TAttribute<EVisibility>::Create(
+				[ElementName]()
+				{
+					return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(ElementName);
+				}));
 	}
 }
 
