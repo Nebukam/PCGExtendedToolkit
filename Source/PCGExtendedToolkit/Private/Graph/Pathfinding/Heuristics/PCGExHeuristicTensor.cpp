@@ -68,7 +68,6 @@ PCGExFactories::EPreparationResult UPCGExHeuristicsFactoryTensor::Prepare(FPCGEx
 	{
 		return PCGExFactories::EPreparationResult::Fail;
 	}
-
 	if (TensorFactories.IsEmpty())
 	{
 		PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("Missing tensors."))

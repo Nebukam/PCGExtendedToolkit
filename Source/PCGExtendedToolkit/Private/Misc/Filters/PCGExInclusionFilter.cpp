@@ -114,6 +114,15 @@ namespace PCGExPointFilter
 #undef PCGEX_CHECK_MIN
 }
 
+TArray<FPCGPinProperties> UPCGExInclusionFilterProviderSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_FACTORIES(PCGEx::SourceTargetsLabel, TEXT("Path, splines, polygons, ... will be used for testing"), Required, PCGExPathInclusion::GetInclusionIdentifier())
+	return PinProperties;
+}
+
+PCGEX_CREATE_FILTER_FACTORY(Inclusion)
+
 #if WITH_EDITOR
 TArray<FPCGPreConfiguredSettingsInfo> UPCGExInclusionFilterProviderSettings::GetPreconfiguredInfo() const
 {
@@ -135,15 +144,6 @@ void UPCGExInclusionFilterProviderSettings::ApplyPreconfiguredSettings(const FPC
 		}
 	}
 }
-
-TArray<FPCGPinProperties> UPCGExInclusionFilterProviderSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(PCGEx::SourceTargetsLabel, TEXT("Path, splines, polygons, ... will be used for testing"), Required)
-	return PinProperties;
-}
-
-PCGEX_CREATE_FILTER_FACTORY(Inclusion)
 
 #if WITH_EDITOR
 FString UPCGExInclusionFilterProviderSettings::GetDisplayName() const

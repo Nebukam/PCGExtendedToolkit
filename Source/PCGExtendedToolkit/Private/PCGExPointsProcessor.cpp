@@ -369,6 +369,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	PCGEX_SETTINGS(PointsProcessor)
 
 	Context->bQuietInvalidInputWarning = Settings->bQuietInvalidInputWarning;
+	Context->bQuietMissingAttributeError = Settings->bQuietMissingAttributeError;
 	Context->bQuietMissingInputError = Settings->bQuietMissingInputError;
 	Context->bQuietCancellationError = Settings->bQuietCancellationError;
 
@@ -402,10 +403,8 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		if (const TSharedPtr<PCGExData::FPointIO> SingleInput = PCGExData::TryGetSingleInput(Context, Settings->GetMainInputPin(), false, false))
-		{
-			Context->MainPoints->Add_Unsafe(SingleInput);
-		}
+		const TSharedPtr<PCGExData::FPointIO> SingleInput = PCGExData::TryGetSingleInput(Context, Settings->GetMainInputPin(), false, false);
+		if (SingleInput) { Context->MainPoints->Add_Unsafe(SingleInput); }
 	}
 
 	Context->InitialMainPointsNum = Context->MainPoints->Num();

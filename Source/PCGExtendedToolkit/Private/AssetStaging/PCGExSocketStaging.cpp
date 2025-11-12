@@ -5,6 +5,7 @@
 
 
 #include "PCGExScopedContainers.h"
+#include "PCGParamData.h"
 #include "Data/PCGExPointIO.h"
 
 

@@ -18,6 +18,7 @@
 PCGEX_SETTING_VALUE_IMPL(UPCGExSelfPruningSettings, PrimaryExpansion, double, PrimaryExpansionInput, PrimaryExpansionAttribute, PrimaryExpansion)
 PCGEX_SETTING_VALUE_IMPL(UPCGExSelfPruningSettings, SecondaryExpansion, double, SecondaryExpansionInput, SecondaryExpansionAttribute, SecondaryExpansion)
 
+
 bool UPCGExSelfPruningSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
 	if ((Mode != EPCGExSelfPruningMode::Prune || bRandomize)

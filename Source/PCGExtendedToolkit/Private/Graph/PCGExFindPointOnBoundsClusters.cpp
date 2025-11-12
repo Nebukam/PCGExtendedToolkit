@@ -130,8 +130,10 @@ namespace PCGExFindPointOnBoundsClusters
 			IdxLookup->Dump(PtIndices);
 
 			PCGExGeo::FBestFitPlane BestFitPlane(InVtxTransforms, PtIndices);
-			Bounds = FBox(BestFitPlane.Centroid - BestFitPlane.Extents, BestFitPlane.Centroid + BestFitPlane.Extents);
-			UVW = BestFitPlane.GetTransform(Settings->AxisOrder).TransformVector(UVW);
+
+			FTransform T = BestFitPlane.GetTransform(Settings->AxisOrder);
+			UVW = T.TransformVector(UVW);
+			Bounds = FBox(BestFitPlane.Centroid - BestFitPlane.Extents, BestFitPlane.Centroid + BestFitPlane.Extents).TransformBy(T);
 		}
 		else
 		{

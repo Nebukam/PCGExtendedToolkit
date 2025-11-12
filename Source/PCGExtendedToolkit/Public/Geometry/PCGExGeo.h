@@ -202,7 +202,7 @@ namespace PCGExGeo
 		explicit FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms, TArrayView<int32> InIndices);
 		explicit FBestFitPlane(const TArrayView<const FVector> InPositions);
 		explicit FBestFitPlane(const TArrayView<const FVector2D> InPositions);
-		
+
 		using FGetElementPositionCallback = std::function<FVector(int32)>;
 		FBestFitPlane(const int32 NumElements, FGetElementPositionCallback&& GetPointFunc);
 		FBestFitPlane(const int32 NumElements, FGetElementPositionCallback&& GetPointFunc, const FVector& Extra);

@@ -1,4 +1,4 @@
-![UE 5.6](https://img.shields.io/badge/UE-5.6-darkgreen) ![5.5](https://img.shields.io/badge/5.5-darkgreen) ![5.4](https://img.shields.io/badge/5.4-darkgreen) ![5.3](https://img.shields.io/badge/5.3-darkgreen) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Nebukam/PCGExtendedToolkit)
+![UE 5.7](https://img.shields.io/badge/UE-5.7-green) ![5.6](https://img.shields.io/badge/5.6-darkgreen) ![5.5](https://img.shields.io/badge/5.5-darkgreen) ![5.4](https://img.shields.io/badge/5.4-darkgreen) ![5.3](https://img.shields.io/badge/5.3-darkgreen) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Nebukam/PCGExtendedToolkit)
 # PCG Extended Toolkit 
 
 ![PCGEx](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/refs/heads/docs/_sources/smol-logo.png)
@@ -22,7 +22,7 @@ For questions & support, join the [PCGEx Discord Server](https://discord.gg/mde2
 ![image](https://github.com/user-attachments/assets/b8bd713e-0b60-4cdc-84d9-dd776d452bf8)
 
 # Highlights
-### Graph theory with Vtx/Edge structures
+### Vtx/Edge structures
 A new concept of connection between points, enabling entierely new ways of working with PCG
 
 ![hl-graphs](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-graphs.jpg)

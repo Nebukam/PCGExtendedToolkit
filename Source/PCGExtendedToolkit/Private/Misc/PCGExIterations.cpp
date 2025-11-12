@@ -35,19 +35,19 @@ TArray<FPCGPinProperties> UPCGExIterationsSettings::OutputPinProperties() const
 	{
 	default:
 	case EPCGExIterationDataType::Any:
-		Pin.AllowedTypes = EPCGDataType::Any;
+		Pin.AllowedTypes = FPCGDataTypeInfo::AsId();
 		break;
 	case EPCGExIterationDataType::Params:
-		Pin.AllowedTypes = EPCGDataType::Param;
+		Pin.AllowedTypes = FPCGDataTypeInfoParam::AsId();
 		break;
 	case EPCGExIterationDataType::Points:
-		Pin.AllowedTypes = EPCGDataType::Point;
+		Pin.AllowedTypes = FPCGDataTypeInfoPoint::AsId();
 		break;
 	case EPCGExIterationDataType::Spline:
-		Pin.AllowedTypes = EPCGDataType::Spline;
+		Pin.AllowedTypes = FPCGDataTypeInfoSpline::AsId();
 		break;
 	case EPCGExIterationDataType::Texture:
-		Pin.AllowedTypes = EPCGDataType::BaseTexture;
+		Pin.AllowedTypes = FPCGDataTypeInfoBaseTexture2D::AsId();
 		break;
 	}
 	return PinProperties;

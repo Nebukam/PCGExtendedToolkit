@@ -95,9 +95,9 @@ namespace PCGExPathInclusion
 	enum EFlags : uint8
 	{
 		None    = 0,
-		Inside  = 1 << 0,
-		Outside = 1 << 1,
-		On      = 1 << 2,
+		Inside  = 1 << 1,
+		Outside = 1 << 2,
+		On      = 1 << 3,
 	};
 
 	enum ESplineMatch : uint8
@@ -106,6 +106,9 @@ namespace PCGExPathInclusion
 		All,
 		Skip
 	};
+
+	PCGEXTENDEDTOOLKIT_API
+	FPCGDataTypeIdentifier GetInclusionIdentifier();
 
 #if WITH_EDITOR
 	static FString ToString(const EPCGExSplineCheckType Check)
@@ -152,7 +155,7 @@ namespace PCGExPathInclusion
 
 		FORCEINLINE bool TestFlags(const EFlags InFlags) const
 		{
-			bool bPass = !EnumHasAnyFlags(InFlags, BadFlags); // None of the bad flags
+			bool bPass = (InFlags & BadFlags) == 0; // None of the bad flags
 			if (bPass && FlagScope != Skip)
 			{
 				bPass =

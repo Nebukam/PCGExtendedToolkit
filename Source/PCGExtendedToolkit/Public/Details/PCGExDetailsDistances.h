@@ -10,6 +10,7 @@
 namespace PCGExData
 {
 	struct FPoint;
+	struct FPoint;
 }
 
 namespace PCGExDetails

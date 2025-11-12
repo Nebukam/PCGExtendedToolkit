@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "MaterialTypes.h"
+#include "Materials/MaterialParameters.h"
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
@@ -110,7 +110,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTextureParamConfig
 	void Init();
 };
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Tex Param"))
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Tex Param"))
 struct FPCGExDataTypeInfoTexParam : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

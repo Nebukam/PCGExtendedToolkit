@@ -580,8 +580,9 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+
+	//~Begin UPCGExPointsProcessorSettings
 
 public:
 	virtual FName GetMainInputPin() const override;

@@ -200,7 +200,7 @@ namespace PCGExPointFilter
 TArray<FPCGPinProperties> UPCGExTimeFilterProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_ANY(PCGEx::SourceTargetsLabel, TEXT("Paths/Splines/Polygons that will be used for testing"), Required)
+	PCGEX_PIN_FACTORIES(PCGEx::SourceTargetsLabel, TEXT("Paths/Splines/Polygons that will be used for testing"), Required, PCGExPathInclusion::GetInclusionIdentifier())
 	return PinProperties;
 }
 

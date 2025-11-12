@@ -72,7 +72,7 @@ TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::OutputPinProperties() c
 	TArray<FPCGPinProperties> PinProperties;
 
 	{
-		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(GetMainOutputPin(), EPCGDataType::Param, false, false);
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(GetMainOutputPin(), GetFactoryTypeId(), false, false);
 		PCGEX_PIN_TOOLTIP(GetMainOutputPin().ToString())
 		PCGEX_PIN_STATUS(Required)
 	}
@@ -83,6 +83,11 @@ TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::OutputPinProperties() c
 FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 {
 	return MakeShared<FPCGExFactoryProviderElement>();
+}
+
+const FPCGDataTypeBaseId& UPCGExFactoryProviderSettings::GetFactoryTypeId() const
+{
+	return FPCGExFactoryDataTypeInfo::AsId();
 }
 
 #if WITH_EDITOR
@@ -99,6 +104,7 @@ bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName&
 {
 	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
 }
+
 
 void UPCGExFactoryProviderSettings::EDITOR_OpenNodeDocumentation() const
 {
@@ -185,6 +191,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
 	FPCGTaggedData& StagedData = Context->StageOutput(Context->OutFactory, false);
 	StagedData.Pin = Settings->GetMainOutputPin();
 
+
 	return Context->TryComplete();
 }
 
@@ -242,7 +249,7 @@ namespace PCGExFactories
 
 		if (OutFactories.IsEmpty())
 		{
-			if (bRequired) { PCGEX_LOG_MISSING_INPUT(InContext, FText::Format(FTEXT("Missing required inputs on pin '{0}'."), FText::FromName(InLabel))) }
+			if (bRequired) { PCGEX_LOG_MISSING_INPUT(InContext, FText::Format(FTEXT("Missing required '{0}' inputs."), FText::FromName(InLabel))) }
 			return false;
 		}
 

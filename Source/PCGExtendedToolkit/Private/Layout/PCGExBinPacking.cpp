@@ -19,8 +19,6 @@ bool UPCGExBinPackingSettings::GetSortingRules(FPCGExContext* InContext, TArray<
 	return !OutRules.IsEmpty();
 }
 
-PCGExData::EIOInit UPCGExBinPackingSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
-
 TArray<FPCGPinProperties> UPCGExBinPackingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -38,6 +36,9 @@ TArray<FPCGPinProperties> UPCGExBinPackingSettings::OutputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(BinPacking)
+
+PCGExData::EIOInit UPCGExBinPackingSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BinPacking)
 
 bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
@@ -267,7 +268,6 @@ namespace PCGExBinPacking
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
 		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
-
 		PointDataFacade->Source->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 
 		TSharedPtr<PCGExData::FPointIO> TargetBins = Context->Bins->Pairs[BatchIndex];

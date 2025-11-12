@@ -278,7 +278,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTupleBody
 
 	FPCGExTupleBody() = default;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, EditFixedSize, meta=(TitleProperty="{Name}", ExcludeBaseStruct, ShowOnlyInnerProperties, FullyExpand=true, ForceInlineRow))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, EditFixedSize, meta=(TitleProperty="{Name}", ExcludeBaseStruct, ShowOnlyInnerProperties, FullyExpand=true))
 	TArray<TInstancedStruct<FPCGExTupleValueWrap>> Row;
 };
 

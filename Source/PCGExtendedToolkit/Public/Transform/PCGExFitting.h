@@ -228,7 +228,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariations
 {
 	GENERATED_BODY()
 
-	/** Min/max variation on position, applied as an offset from the original position. */
+	/** Index picking mode*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FVector OffsetMin = FVector::ZeroVector;
 
@@ -239,7 +239,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariations
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bAbsoluteOffset = false;
 
-	/** Min/max variation on rotation, applied as an offset from the original rotation, unless specified otherwise in the dropdown */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FRotator RotationMin = FRotator::ZeroRotator;
 
@@ -250,7 +249,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariations
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExAbsoluteRotationFlags"))
 	uint8 AbsoluteRotation = 0;
 
-	/** Min/max variation on scale, applied as a multiplicative offset from the original scale. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (AllowPreserveRatio, PCG_Overridable))
 	FVector ScaleMin = FVector::One();
 

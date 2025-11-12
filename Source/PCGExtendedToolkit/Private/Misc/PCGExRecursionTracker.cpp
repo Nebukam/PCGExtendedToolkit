@@ -45,17 +45,22 @@ void UPCGExRecursionTrackerSettings::ApplyPreconfiguredSettings(const FPCGPreCon
 	}
 }
 
-EPCGDataType UPCGExRecursionTrackerSettings::GetCurrentPinTypes(const UPCGPin* InPin) const
+FPCGDataTypeIdentifier UPCGExRecursionTrackerSettings::GetCurrentPinTypesID(const UPCGPin* InPin) const
 {
 	if (!InPin->IsOutputPin()
 		|| InPin->Properties.Label == PCGPinConstants::DefaultInputLabel
 		|| InPin->Properties.Label == PCGExRecursionTracker::OutputContinueLabel
 		|| InPin->Properties.Label == PCGExRecursionTracker::OutputStopLabel)
 	{
-		return Super::GetCurrentPinTypes(InPin);
+		return Super::GetCurrentPinTypesID(InPin);
 	}
 
-	return EPCGDataType::Param;
+	FPCGDataTypeIdentifier Id = FPCGDataTypeInfoParam::AsId();
+	if (InPin->Properties.Label == PCGExRecursionTracker::OutputProgressLabel) { Id.CustomSubtype = static_cast<int32>(EPCGMetadataTypes::Float); }
+	else if (InPin->Properties.Label == PCGExRecursionTracker::OutputIndexLabel) { Id.CustomSubtype = static_cast<int32>(EPCGMetadataTypes::Integer32); }
+	else if (InPin->Properties.Label == PCGExRecursionTracker::OutputRemainderLabel) { Id.CustomSubtype = static_cast<int32>(EPCGMetadataTypes::Integer32); }
+
+	return Id;
 }
 
 TArray<FPCGPinProperties> UPCGExRecursionTrackerSettings::InputPinProperties() const
@@ -358,6 +363,7 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 			}
 
 			if (NumTrackers == 0) { StageResult(false); }
+
 			Branch(bAnyContinue);
 		}
 	}

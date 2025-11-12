@@ -49,9 +49,10 @@ void FPCGExAttributeRemapContext::RegisterAssetDependencies()
 	for (const FPCGExComponentRemapRule& Rule : RemapSettings) { AddAssetDependency(Rule.RemapDetails.RemapCurve.ToSoftObjectPath()); }
 }
 
+PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
+
 PCGExData::EIOInit UPCGExAttributeRemapSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
-PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeRemap)
 
 bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const

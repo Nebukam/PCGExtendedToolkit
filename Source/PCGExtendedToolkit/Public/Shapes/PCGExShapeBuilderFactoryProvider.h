@@ -25,7 +25,7 @@ UPCGExFactoryData* UPCGExCreateShape##_SHAPE##Settings::CreateFactory(FPCGExCont
 
 class FPCGExShapeBuilderOperation;
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Shape"))
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Shape"))
 struct FPCGExDataTypeInfoShape : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

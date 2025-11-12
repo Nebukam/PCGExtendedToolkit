@@ -6,6 +6,7 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExUnionOpsManager.h"
@@ -27,8 +28,6 @@ UPCGExSampleInsidePathSettings::UPCGExSampleInsidePathSettings(
 {
 	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinear; }
 }
-
-PCGExData::EIOInit UPCGExSampleInsidePathSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
 FName UPCGExSampleInsidePathSettings::GetMainInputPin() const { return PCGExPaths::SourcePathsLabel; }
 
@@ -61,6 +60,9 @@ bool UPCGExSampleInsidePathSettings::IsPinUsedByNodeExecution(const UPCGPin* InP
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleInsidePath)
+
+PCGExData::EIOInit UPCGExSampleInsidePathSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SampleInsidePath)
 
 bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
@@ -119,7 +121,7 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 	Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
 	if (!Context->NumMaxTargets)
 	{
-		PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No targets (no input matches criteria)"))
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (no input matches criteria)"));
 		return false;
 	}
 
@@ -210,6 +212,7 @@ namespace PCGExSampleInsidePath
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
+
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
 		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
 			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
@@ -278,20 +281,30 @@ namespace PCGExSampleInsidePath
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleInsidePath::ProcessPath);
 
+		constexpr int32 Index = 0; // Only support writing to @Data domain, otherwise will write data to the first point of the path
+
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
-		Union = MakeShared<PCGExSampling::FSampingUnionData>();
+		TArray<PCGExData::FWeightedPoint> OutWeightedPoints;
+		TArray<PCGEx::FOpStats> Trackers;
+		DataBlender->InitTrackers(Trackers);
+
+		const TSharedPtr<PCGExSampling::FSampingUnionData> Union = MakeShared<PCGExSampling::FSampingUnionData>();
 		Union->IOSet.Reserve(Context->TargetsHandler->Num());
 
 		Union->Reset();
 
+		int32 NumInside = 0;
 		const double RangeMinSquared = FMath::Square(RangeMin);
 		const double RangeMaxSquared = FMath::Square(RangeMax);
 
 		if (RangeMax == 0) { Union->Elements.Reserve(Context->NumMaxTargets); }
 
 		PCGExData::FElement SinglePick(-1, -1);
-		WeightedDistance = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
+		double WeightedDistance = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
+
+		double WeightedTime = 0;
+		double WeightedSegmentTime = 0;
 
 		auto SampleTarget = [&](const PCGExData::FConstPoint& Target)
 		{
@@ -369,50 +382,73 @@ namespace PCGExSampleInsidePath
 
 		if (Union->IsEmpty())
 		{
-			if (NumSampled == 0 && Settings->OutputMode == EPCGExSampleInsidePathOutput::SuccessOnly) { PCGEX_CLEAR_IO_VOID(PointDataFacade->Source) }
-			else { StartParallelLoopForPoints(); }
+			SamplingFailed(Index);
 			return;
 		}
 
 		if (Settings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0) { Union->WeightRange = RangeMaxSquared; }
+		DataBlender->ComputeWeights(Index, Union, OutWeightedPoints);
+
+		FTransform WeightedTransform = FTransform::Identity;
+		WeightedTransform.SetScale3D(FVector::ZeroVector);
 
 		NumSampled = Union->Num();
 		WeightedDistance /= NumSampled; // We have two points per samples
 		WeightedTime /= NumSampled;
 		WeightedSegmentTime /= NumSampled;
 
-		bAnySuccess = true;
-		StartParallelLoopForPoints();
-	}
+		double TotalWeight = 0;
 
-	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
-	{
-		if (!bAnySuccess)
+		// Post-process weighted points and compute local data
+		PCGEx::FOpStats SampleTracker{};
+		for (PCGExData::FWeightedPoint& P : OutWeightedPoints)
 		{
-			PCGEX_SCOPE_LOOP(Index)
-			{
-				PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)
-				PCGEX_OUTPUT_VALUE(NumInside, Index, NumInside)
-				PCGEX_OUTPUT_VALUE(NumSamples, Index, NumSampled)
-			}
+			const double W = Context->WeightCurve->Eval(P.Weight);
+
+			// Don't remap blending if we use external blend ops; they have their own curve
+			//if (Settings->BlendingInterface == EPCGExBlendingInterface::Monolithic) { P.Weight = W; }
+
+			SampleTracker.Count++;
+			SampleTracker.Weight += W;
+
+			const FTransform& TargetTransform = Context->TargetsHandler->GetPoint(P).GetTransform();
+
+			WeightedTransform = PCGExBlend::WeightedAdd(WeightedTransform, TargetTransform, W);
+
+			TotalWeight += W;
+		}
+
+		// Blend using updated weighted points
+		DataBlender->Blend(Index, OutWeightedPoints, Trackers);
+
+		if (TotalWeight != 0) // Dodge NaN
+		{
+			WeightedTransform = PCGExBlend::Div(WeightedTransform, TotalWeight);
 		}
 		else
 		{
-			TArray<PCGEx::FOpStats> Trackers;
-			DataBlender->InitTrackers(Trackers);
-
-			PCGEX_SCOPE_LOOP(Index)
-			{
-				DataBlender->ComputeWeights(Index, Union, OutWeightedPoints);
-
-				PCGEX_OUTPUT_VALUE(Distance, Index, RangeMax)
-				PCGEX_OUTPUT_VALUE(NumInside, Index, -1)
-				PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
-
-				// Blend using updated weighted points
-				DataBlender->Blend(Index, OutWeightedPoints, Trackers);
-			}
+			WeightedTransform = InTransforms[Index];
 		}
+
+		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)
+		PCGEX_OUTPUT_VALUE(NumInside, Index, NumInside)
+		PCGEX_OUTPUT_VALUE(NumSamples, Index, NumSampled)
+
+		bAnySuccess = true;
+	}
+
+	void FProcessor::SamplingFailed(const int32 Index)
+	{
+		if (NumSampled == 0 && Settings->OutputMode == EPCGExSampleInsidePathOutput::SuccessOnly)
+		{
+			PCGEX_CLEAR_IO_VOID(PointDataFacade->Source)
+			return;
+		}
+
+		const double FailSafeDist = RangeMax;
+		PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
+		PCGEX_OUTPUT_VALUE(NumInside, Index, -1)
+		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
 	}
 
 	void FProcessor::CompleteWork()

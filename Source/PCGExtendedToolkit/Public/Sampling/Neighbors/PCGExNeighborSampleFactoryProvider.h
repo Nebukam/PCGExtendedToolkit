@@ -30,7 +30,7 @@
 	NewOperation->EdgesFilterFactories.Append(EdgesFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Neighbor Sampler"))
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Neighbor Sampler"))
 struct FPCGExDataTypeInfoNeighborSampler : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

@@ -106,10 +106,7 @@ UPCGExFactoryData* UPCGExActionProviderSettings::CreateFactory(FPCGExContext* In
 	{
 		if (!GetInputFactories(
 			InContext, PCGExActions::SourceConditionsFilterLabel, TypedFactory->FilterFactories,
-			PCGExFactories::PointFilters))
-		{
-			return nullptr;
-		}
+			PCGExFactories::PointFilters)) { return nullptr; }
 
 		TypedFactory->Priority = Priority;
 

@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExPolyPathFilterFactory.h"
 
 #include "Data/PCGExPointIO.h"
+#include "Data/PCGPolygon2DData.h"
 #include "Data/PCGSplineData.h"
 
 
@@ -136,6 +137,17 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 				Path = MakeShared<PCGExPaths::FPolyPath>(SplineData, LocalFidelity, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
 				Path->OffsetProjection(InclusionOffset);
 			}
+			else if (const UPCGPolygon2DData* PolygonData = Cast<UPCGPolygon2DData>(Data))
+			{
+				if (PolygonData->GetNumSegments() < 1)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, SharedContext.Get(), FTEXT("Some targets splines are invalid (less than one segment)."));
+					return;
+				}
+
+				Path = MakeShared<PCGExPaths::FPolyPath>(PolygonData, LocalProjection, SafeExpansion, LocalExpansionZ, WindingMutation);
+				Path->OffsetProjection(InclusionOffset);
+			}
 
 			if (Path)
 			{
@@ -160,6 +172,17 @@ void UPCGExPolyPathFilterFactory::BeginDestroy()
 	PolyPaths.Reset();
 	Octree.Reset();
 	Super::BeginDestroy();
+}
+
+FPCGDataTypeIdentifier PCGExPathInclusion::GetInclusionIdentifier()
+{
+	return FPCGDataTypeIdentifier::Construct(
+		{
+			FPCGDataTypeInfoSpline::AsId(),
+			FPCGDataTypeInfoPolyline::AsId(),
+			FPCGDataTypeInfoPolygon2D::AsId(),
+			FPCGDataTypeInfoPoint::AsId()
+		});
 }
 
 namespace PCGExPathInclusion

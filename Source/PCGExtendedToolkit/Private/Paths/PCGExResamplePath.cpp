@@ -205,14 +205,14 @@ namespace PCGExResamplePath
 
 		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
 		TPCGValueRange<int32> OutSeed = PointDataFacade->GetOut()->GetSeedValueRange(false);
-
+		
 		if (Settings->Mode == EPCGExResampleMode::Redistribute)
 		{
 			PCGEX_SCOPE_LOOP(Index)
 			{
 				const FPointSample& Sample = Samples[Index];
 				OutTransforms[Index].SetLocation(Sample.Location);
-				if (Settings->bEnsureUniqueSeeds) { OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
+				if (Settings->bEnsureUniqueSeeds){ OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
 			}
 		}
 		else
@@ -224,7 +224,7 @@ namespace PCGExResamplePath
 			{
 				const FPointSample& Sample = Samples[Index];
 				OutTransforms[Index].SetLocation(Sample.Location);
-				if (Settings->bEnsureUniqueSeeds) { OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
+				if (Settings->bEnsureUniqueSeeds){ OutSeed[Index] = PCGExRandom::ComputeSpatialSeed(Sample.Location); }
 
 				//if (SourcesRange == 1)
 				//{

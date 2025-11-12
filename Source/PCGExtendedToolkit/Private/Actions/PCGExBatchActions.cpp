@@ -17,8 +17,6 @@
 
 PCGExData::EIOInit UPCGExBatchActionsSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
-PCGExData::EIOInit UPCGExBatchActionsSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
-
 TArray<FPCGPinProperties> UPCGExBatchActionsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -28,6 +26,9 @@ TArray<FPCGPinProperties> UPCGExBatchActionsSettings::InputPinProperties() const
 }
 
 PCGEX_INITIALIZE_ELEMENT(BatchActions)
+
+PCGExData::EIOInit UPCGExBatchActionsSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BatchActions)
 
 bool FPCGExBatchActionsElement::Boot(FPCGExContext* InContext) const
@@ -39,8 +40,8 @@ bool FPCGExBatchActionsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BatchActions)
 
 	if (!PCGExFactories::GetInputFactories(
-		Context, PCGExActions::SourceActionsLabel,
-		Context->ActionsFactories, {PCGExFactories::EType::Action}))
+		Context, PCGExActions::SourceActionsLabel, Context->ActionsFactories,
+		{PCGExFactories::EType::Action}))
 	{
 		// No action factories, early exit.
 		Context->ActionsFactories.Empty();

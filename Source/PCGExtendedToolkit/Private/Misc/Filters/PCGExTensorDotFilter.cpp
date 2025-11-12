@@ -18,7 +18,7 @@ bool UPCGExTensorDotFilterFactory::Init(FPCGExContext* InContext)
 
 	return PCGExFactories::GetInputFactories(
 		InContext, PCGExTensor::SourceTensorsLabel, TensorFactories,
-		{PCGExFactories::EType::Tensor}, true);
+		{PCGExFactories::EType::Tensor});
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExTensorDotFilterFactory::CreateFilter() const

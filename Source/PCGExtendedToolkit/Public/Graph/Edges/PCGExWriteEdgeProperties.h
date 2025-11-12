@@ -111,7 +111,7 @@ public:
 	bool bWriteEdgePosition = false;
 
 	/** Position position lerp between start & end points*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="bWriteEdgePosition && SolidificationAxis == EPCGExMinimalAxis::None", ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="bWriteEdgePosition", ClampMin=0, ClampMax=1))
 	double EdgePositionLerp = 0.5;
 
 	/** Align the edge point to the edge direction over the selected axis. */
@@ -225,9 +225,6 @@ namespace PCGExWriteEdgeProperties
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExWriteEdgePropertiesContext, UPCGExWriteEdgePropertiesSettings>
 	{
 		FPCGExEdgeDirectionSettings DirectionSettings;
-
-		double StartWeight = 0;
-		double EndWeight = 1;
 
 		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;

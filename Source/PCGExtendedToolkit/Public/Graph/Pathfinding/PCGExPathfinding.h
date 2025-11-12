@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExMT.h"
 #include "Data/PCGExPointElements.h"
-
 #include "PCGExPathfinding.generated.h"
 
 class UPCGExGoalPicker;
@@ -220,8 +219,7 @@ namespace PCGExPathfinding
 		void FindPath(
 			const TSharedPtr<FPCGExSearchOperation>& SearchOperation,
 			const TSharedPtr<FSearchAllocations>& Allocations,
-			const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler,
-			const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback);
+			const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback);
 
 		void AppendNodePoints(
 			TArray<int32>& OutPoints,
@@ -261,8 +259,7 @@ namespace PCGExPathfinding
 		void FindPaths(
 			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 			const TSharedPtr<FPCGExSearchOperation>& SearchOperation,
-			const TSharedPtr<FSearchAllocations>& Allocations,
-			const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler);
+			const TSharedPtr<FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& HeuristicsHandler);
 
 		void Cleanup();
 	};

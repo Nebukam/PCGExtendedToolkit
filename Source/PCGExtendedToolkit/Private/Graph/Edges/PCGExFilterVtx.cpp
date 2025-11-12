@@ -16,9 +16,10 @@
 #if WITH_EDITOR
 void UPCGExFilterVtxSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	PCGEX_IF_DATA_VERSION(1,70,11)
+	PCGEX_IF_DATA_VERSION(1, 70, 11)
 	{
 		ResultOutputVtx.ResultAttributeName = ResultAttributeName_DEPRECATED;
+		ResultAttributeName_DEPRECATED = NAME_None;
 	}
 
 	PCGEX_UPDATE_DATA_VERSION

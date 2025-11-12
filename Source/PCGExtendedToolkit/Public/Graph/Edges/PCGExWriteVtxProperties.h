@@ -54,7 +54,7 @@ public:
 	/** Name of the 'normal' vertex attribute to write normal to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="EdgeCount", PCG_Overridable, EditCondition="bWriteVtxEdgeCount"))
 	FName VtxEdgeCountAttributeName = FName("EdgeCount");
-
+	
 	/** Write normal from edges on vertices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxNormal = false;
@@ -62,7 +62,7 @@ public:
 	/** Name of the 'normal' vertex attribute to write normal to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Normal", PCG_Overridable, EditCondition="bWriteVtxNormal"))
 	FName VtxNormalAttributeName = FName("Normal");
-	
+
 	/** Which axis of the vtx OOB to use as normal.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName=" └─ Axis", PCG_Overridable, EditCondition="bWriteVtxNormal", HideEditConditionToggle))
 	EPCGExMinimalAxis NormalAxis = EPCGExMinimalAxis::Z;

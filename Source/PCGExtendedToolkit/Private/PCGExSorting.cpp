@@ -119,7 +119,7 @@ namespace PCGExSorting
 {
 	void DeclareSortingRulesInputs(TArray<FPCGPinProperties>& PinProperties, const EPCGPinStatus InStatus)
 	{
-		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceSortingRules, EPCGDataType::Param);
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(SourceSortingRules, FPCGExDataTypeInfoSortRule::AsId());
 		PCGEX_PIN_TOOLTIP("Plug sorting rules here. Order is defined by each rule' priority value, in ascending order.")
 		Pin.PinStatus = InStatus;
 	}
@@ -165,6 +165,7 @@ namespace PCGExSorting
 			{
 				RuleHandlers.RemoveAt(i);
 				i--;
+
 				PCGEX_LOG_INVALID_SELECTOR_C(InContext, Sorting Rule, RuleHandler->Selector)
 				continue;
 			}
@@ -322,8 +323,12 @@ namespace PCGExSorting
 	{
 		TArray<FPCGExSortRuleConfig> OutRules;
 		TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
-		if (!PCGExFactories::GetInputFactories(InContext, InLabel, Factories, {PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
+		if (!PCGExFactories::GetInputFactories(
+			InContext, InLabel, Factories,
+			{PCGExFactories::EType::RuleSort}, false)) { return OutRules; }
+
 		for (const UPCGExSortingRule* Factory : Factories) { OutRules.Add(Factory->Config); }
+
 		return OutRules;
 	}
 }

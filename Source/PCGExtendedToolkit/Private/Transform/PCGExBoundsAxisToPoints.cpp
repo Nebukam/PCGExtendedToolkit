@@ -3,7 +3,6 @@
 
 #include "Transform/PCGExBoundsAxisToPoints.h"
 
-#include "PCGExHelpers.h"
 #include "PCGExMathBounds.h"
 #include "Data/PCGExPointIO.h"
 

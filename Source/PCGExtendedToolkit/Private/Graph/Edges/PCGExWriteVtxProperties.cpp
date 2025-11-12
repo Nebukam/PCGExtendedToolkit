@@ -92,8 +92,7 @@ namespace PCGExWriteVtxProperties
 			if (NewOperation->WantsBFP()) { bWantsOOB = true; }
 		}
 
-		switch (Settings->NormalAxis)
-		{
+		switch (Settings->NormalAxis) {
 		case EPCGExMinimalAxis::None:
 		case EPCGExMinimalAxis::X:
 			NormalAxis = EAxis::Type::X;
@@ -140,10 +139,10 @@ namespace PCGExWriteVtxProperties
 
 			const PCGExGeo::FBestFitPlane BestFitPlane =
 				bWantsOOB ? Settings->bIncludeVtxInOOB ?
-					            PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }, Cluster->GetPos(Node)) :
-					            PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }) :
+								PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }, Cluster->GetPos(Node)) :
+								PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }) :
 					PCGExGeo::FBestFitPlane();
-					
+
 			const FTransform BFPT = BestFitPlane.GetTransform();
 			
 			if (VtxNormalWriter) { VtxNormalWriter->SetValue(Node.PointIndex, BFPT.GetUnitAxis(NormalAxis)); }
@@ -155,7 +154,7 @@ namespace PCGExWriteVtxProperties
 				OutBoundsMin[PtIndex] = BestFitPlane.Extents * -1;
 				OutBoundsMax[PtIndex] = BestFitPlane.Extents;
 			}
-			
+
 			for (const TSharedPtr<FPCGExVtxPropertyOperation>& Op : Operations) { Op->ProcessNode(Node, Adjacency, BestFitPlane); }
 		}
 	}

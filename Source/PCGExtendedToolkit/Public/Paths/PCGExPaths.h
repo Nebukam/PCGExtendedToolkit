@@ -396,7 +396,7 @@ namespace PCGExPaths
 
 		TArray<FVector2D> ProjectedPoints;
 		FPCGExGeo2DProjectionDetails Projection;
-		FBox2D ProjectedBounds = FBox2D(ForceInit);
+		FBox2D ProjectedBounds = FBox2D();
 
 	public:
 		explicit FPath(const bool IsClosed = false);
@@ -712,6 +712,12 @@ namespace PCGExPaths
 		FPolyPath(
 			const UPCGSplineData* SplineData,
 			const double Fidelity, const FPCGExGeo2DProjectionDetails& InProjection,
+			const double Expansion = 0, const double ExpansionZ = -1,
+			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
+
+		FPolyPath(
+			const UPCGPolygon2DData* PolygonData,
+			const FPCGExGeo2DProjectionDetails& InProjection,
 			const double Expansion = 0, const double ExpansionZ = -1,
 			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
 

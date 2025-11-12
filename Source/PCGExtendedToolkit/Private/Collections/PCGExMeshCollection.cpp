@@ -373,7 +373,7 @@ void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(const UPCGExMeshCollect
 			FSoftISMComponentDescriptor::StaticStruct(),
 			FPCGSoftISMComponentDescriptor::StaticStruct());
 
-		TargetDescriptor.StaticMesh = StaticMesh;
+		TargetDescriptor.StaticMesh = StaticMesh;		
 		TargetDescriptor.ComponentTags.Append(ParentCollection->CollectionTags.Array());
 	}
 	else
@@ -454,7 +454,6 @@ void UPCGExMeshCollection::EDITOR_SetDescriptorSourceAll(EPCGExEntryVariationMod
 	PostEditChangeProperty(EmptyEvent);
 	MarkPackageDirty();
 }
-
 #endif
 
 void UPCGExMeshCollection::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const

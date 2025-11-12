@@ -21,7 +21,7 @@ Super::CreateFactory(InContext, NewFactory); /* Super factory to grab custom ove
 _NEW_FACTORY \
 return NewFactory; }
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Picker"))
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Picker"))
 struct FPCGExDataTypeInfoPicker : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

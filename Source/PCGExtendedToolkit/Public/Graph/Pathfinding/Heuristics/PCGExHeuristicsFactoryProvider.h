@@ -40,7 +40,7 @@ void UPCGExHeuristicsFactory##_TYPE::RegisterAssetDependencies(FPCGExContext* In
 
 class FPCGExHeuristicOperation;
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Heuristic"))
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Heuristic"))
 struct FPCGExDataTypeInfoHeuristics : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

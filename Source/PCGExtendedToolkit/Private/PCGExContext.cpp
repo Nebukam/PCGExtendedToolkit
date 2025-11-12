@@ -12,7 +12,10 @@
 #include "Helpers/PCGHelpers.h"
 #include "Async/Async.h"
 #include "Engine/EngineTypes.h"
+
+#if WITH_EDITOR
 #include "Helpers/PCGDynamicTrackingHelpers.h"
+#endif
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
@@ -176,6 +179,8 @@ void FPCGExContext::IncreaseStagedOutputReserve(const int32 InIncreaseNum)
 
 void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
 {
+	FReadScopeLock ReadScopeLock(NotifyActorsLock);
+
 	// Execute PostProcess Functions
 	if (!NotifyActors.IsEmpty())
 	{

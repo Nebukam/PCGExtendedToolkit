@@ -95,13 +95,14 @@ FVector FPCGExUVW::GetUVW(const int32 PointIndex) const
 FVector FPCGExUVW::GetPosition(const int32 PointIndex) const
 {
 	const FBox Bounds = PCGExMath::GetLocalBounds(PCGExData::FConstPoint(PointData, PointIndex), BoundsReference);
-	return PointData->GetTransform(PointIndex).TransformPositionNoScale(Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointIndex)));
+	const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointIndex));
+	return PointData->GetTransform(PointIndex).TransformPositionNoScale(LocalPosition);
 }
 
 FVector FPCGExUVW::GetPosition(const int32 PointIndex, FVector& OutOffset) const
 {
 	const FBox Bounds = PCGExMath::GetLocalBounds(PCGExData::FConstPoint(PointData, PointIndex), BoundsReference);
-	OutOffset = (Bounds.GetExtent() * GetUVW(PointIndex));
+	OutOffset = Bounds.GetExtent() * GetUVW(PointIndex);
 	return PointData->GetTransform(PointIndex).TransformPositionNoScale(Bounds.GetCenter() + OutOffset);
 }
 

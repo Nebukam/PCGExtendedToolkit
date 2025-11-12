@@ -35,10 +35,12 @@ TArray<FPCGPinProperties> UPCGExUberBranchSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required)
+
 	for (int i = 0; i < NumBranches; i++)
 	{
 		PCGEX_PIN_FILTERS(InputLabels[i], "Collection filters. Only support C-Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal)
 	}
+
 	return PinProperties;
 }
 
@@ -88,10 +90,9 @@ bool FPCGExUberBranchElement::Boot(FPCGExContext* InContext) const
 				// Attempt to initialize with all data until hopefully one works
 				PCGEX_MAKE_SHARED(Manager, PCGExPointFilter::FManager, Facade.ToSharedRef())
 				Manager->bWillBeUsedWithCollections = true;
-
-				if (Manager->Init(Context, Factories))
+				bInitialized = Manager->Init(Context, Factories);
+				if (bInitialized)
 				{
-					bInitialized = true;
 					Context->Managers.Add(Manager);
 					break;
 				}
@@ -133,12 +134,13 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 						for (int i = 0; i < Settings->NumBranches; i++)
 						{
 							const TSharedPtr<PCGExPointFilter::FManager> Manager = SharedContext.Get()->Managers[i];
+							Manager->bWillBeUsedWithCollections = true;
 							if (!Manager) { continue; }
 							if (Manager->Test(Facade->Source, SharedContext.Get()->MainPoints))
 							{
-								bDistributed = true;
 								Facade->Source->OutputPin = Settings->OutputLabels[i];
 								FPlatformAtomics::InterlockedIncrement(&SharedContext.Get()->Dispatch[i]);
+								bDistributed = true;
 								break;
 							}
 						}
@@ -169,9 +171,9 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 				if (!Manager) { continue; }
 				if (Manager->Test(Facade->Source, Context->MainPoints))
 				{
-					bDistributed = true;
 					Facade->Source->OutputPin = Settings->OutputLabels[i];
 					Context->Dispatch[i]++;
+					bDistributed = true;
 					break;
 				}
 			}

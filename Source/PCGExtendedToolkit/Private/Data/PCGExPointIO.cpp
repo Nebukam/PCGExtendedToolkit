@@ -72,8 +72,7 @@ namespace PCGExData
 
 		if (LastInit == EIOInit::Duplicate
 			&& InitOut == EIOInit::New
-			&& IsValid(Out)
-			&& Out != In)
+			&& Out && Out != In)
 		{
 			LastInit = EIOInit::New;
 			Out->SetNumPoints(0); // lol

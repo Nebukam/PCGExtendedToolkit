@@ -68,7 +68,7 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
 	bool bDefaultCacheNodeOutput = true;
 
-	/** Value applied by default to node caching when `Default` is selected. */
+	/** Value applied by default to node caching when `Default` is selected*/
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
 	bool bDefaultScopedAttributeGet = true;
 

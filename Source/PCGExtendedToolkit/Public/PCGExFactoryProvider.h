@@ -17,7 +17,7 @@
 
 #define PCGEX_FACTORY_NAME_PRIORITY FName(FString::Printf(TEXT("(%d) "), Priority) +  GetDisplayName())
 #define PCGEX_FACTORY_NEW_OPERATION(_TYPE) TSharedPtr<FPCGEx##_TYPE> NewOperation = MakeShared<FPCGEx##_TYPE>();
-#define PCGEX_FACTORY_TYPE_ID(_TYPE)
+#define PCGEX_FACTORY_TYPE_ID(_TYPE) virtual const FPCGDataTypeBaseId& GetFactoryTypeId() const{ return _TYPE::AsId(); }
 
 ///
 
@@ -28,26 +28,6 @@ namespace PCGExData
 }
 
 struct FPCGExFactoryProviderContext;
-
-#define PCG_DECLARE_TYPE_INFO(...)
-#define PCG_ASSIGN_TYPE_INFO(...)
-#define PCG_DEFINE_TYPE_INFO(...)
-
-USTRUCT()
-struct FPCGDataTypeInfo
-{
-	GENERATED_BODY()
-
-#if WITH_EDITOR
-	virtual bool Hidden() const { return false; }
-#endif // WITH_EDITOR
-};
-
-USTRUCT()
-struct FPCGDataTypeInfoPoint : public FPCGDataTypeInfo
-{
-	GENERATED_BODY()
-};
 
 namespace PCGExFactories
 {
@@ -149,7 +129,7 @@ public:
 	virtual void BeginDestroy() override;
 
 protected:
-	/** Store version of the factory, used for deprecation purposes */
+	/** Store version of factory node, used for deprecation purposes */
 	UPROPERTY()
 	int64 PCGExDataVersion = -1;
 	
@@ -179,6 +159,7 @@ public:
 	virtual bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
 #endif
 
+	virtual const FPCGDataTypeBaseId& GetFactoryTypeId() const;
 	virtual int32 GetDefaultPriority() const { return 0; }
 
 protected:

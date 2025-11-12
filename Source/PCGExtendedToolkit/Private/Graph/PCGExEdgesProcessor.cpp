@@ -377,14 +377,13 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	if (!Context->ClusterDataLibrary->Build(Context->MainPoints, Context->MainEdges))
 	{
 		Context->ClusterDataLibrary->PrintLogs(Context);
-		PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("Could not find any valid vtx/edge pairs."))
+		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Could not find any valid vtx/edge pairs."))
 		return false;
 	}
 
 	if (Settings->SupportsEdgeSorting())
 	{
 		Context->EdgeSortingRules = PCGExSorting::GetSortingRules(Context, PCGExGraph::SourceEdgeSortingRules);
-
 		if (Settings->RequiresEdgeSorting() && Context->EdgeSortingRules.IsEmpty())
 		{
 			PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Missing valid sorting rules."))

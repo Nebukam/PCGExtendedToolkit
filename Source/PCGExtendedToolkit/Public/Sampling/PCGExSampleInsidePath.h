@@ -261,16 +261,7 @@ namespace PCGExSampleInsidePath
 		bool bClosestSample = false;
 		bool bOnlyIncrementInsideNumIfClosed = false;
 
-		// Constants
-		TSharedPtr<PCGExSampling::FSampingUnionData> Union;
-		TArray<PCGExData::FWeightedPoint> OutWeightedPoints;
-		int32 NumInside = 0;
-		double WeightedDistance = 0;
-		double WeightedTime = 0;
-		double WeightedSegmentTime = 0;
-
 		PCGEX_FOREACH_FIELD_INSIDEPATH(PCGEX_OUTPUT_DECL)
-
 
 		FBox SampleBox = FBox(ForceInit);
 
@@ -285,7 +276,7 @@ namespace PCGExSampleInsidePath
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		void ProcessPath();
 
-		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+		void SamplingFailed(const int32 Index);
 
 		virtual void CompleteWork() override;
 

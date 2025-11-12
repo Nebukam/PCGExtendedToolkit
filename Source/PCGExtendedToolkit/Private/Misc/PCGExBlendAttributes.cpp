@@ -10,8 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExBlendAttributesElement"
 #define PCGEX_NAMESPACE BlendAttributes
 
-PCGExData::EIOInit UPCGExBlendAttributesSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
-
 TArray<FPCGPinProperties> UPCGExBlendAttributesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -20,6 +18,9 @@ TArray<FPCGPinProperties> UPCGExBlendAttributesSettings::InputPinProperties() co
 }
 
 PCGEX_INITIALIZE_ELEMENT(BlendAttributes)
+
+PCGExData::EIOInit UPCGExBlendAttributesSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(BlendAttributes)
 
 bool FPCGExBlendAttributesElement::Boot(FPCGExContext* InContext) const
@@ -28,14 +29,9 @@ bool FPCGExBlendAttributesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendAttributes)
 
-	if (!PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
+	return PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
 		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}))
-	{
-		return false;
-	}
-
-	return true;
+		{PCGExFactories::EType::Blending});
 }
 
 bool FPCGExBlendAttributesElement::ExecuteInternal(FPCGContext* InContext) const

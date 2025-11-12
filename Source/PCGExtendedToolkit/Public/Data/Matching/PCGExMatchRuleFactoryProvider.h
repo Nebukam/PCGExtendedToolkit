@@ -66,7 +66,7 @@ protected:
 	TSharedPtr<TArray<PCGExData::FTaggedData>> Targets;
 };
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Match Rule"))
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Match Rule"))
 struct FPCGExDataTypeInfoMatchRule : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

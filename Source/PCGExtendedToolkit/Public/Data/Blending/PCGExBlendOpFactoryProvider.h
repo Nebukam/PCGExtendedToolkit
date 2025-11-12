@@ -197,7 +197,7 @@ protected:
 	TSharedPtr<PCGExDataBlending::FProxyDataBlender> Blender;
 };
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Blend Op"))
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Blend Op"))
 struct FPCGExDataTypeInfoBlendOp : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
@@ -269,7 +269,7 @@ public:
 	virtual FName GetMainOutputPin() const override { return PCGExDataBlending::OutputBlendingLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
-	/** Op Priority. */
+	/** Filter Priority.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	int32 Priority = 0;
 

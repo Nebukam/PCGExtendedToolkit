@@ -242,7 +242,7 @@ namespace PCGExPathfinding
 			{
 				PCGEX_ASYNC_THIS
 				TSharedPtr<FSearchAllocations> LocalAllocations = Allocations;
-				if (!LocalAllocations) { LocalAllocations = SearchOperation->NewAllocations(); }
+				if (!Allocations) { LocalAllocations = SearchOperation->NewAllocations(); }
 				PCGEX_SCOPE_LOOP(Index)
 				{
 					This->SubQueries[Index]->FindPath(SearchOperation, LocalAllocations, HeuristicsHandler, This->LocalFeedbackHandler);

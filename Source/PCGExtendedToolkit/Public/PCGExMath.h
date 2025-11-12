@@ -103,11 +103,6 @@ namespace PCGExMath
 
 #pragma region basics
 
-	FORCEINLINE static double DegreesToDot(const double AngleInDegrees)
-	{
-		return FMath::Cos(FMath::DegreesToRadians(AngleInDegrees));
-	}
-
 	FORCEINLINE static double FastRand01(uint32& Seed)
 	{
 		Seed = Seed * 1664525u + 1013904223u;
@@ -128,6 +123,11 @@ namespace PCGExMath
 		}
 
 		return Center;
+	}
+
+	FORCEINLINE static double DegreesToDot(const double AngleInDegrees)
+	{
+		return FMath::Cos(FMath::DegreesToRadians(AngleInDegrees));
 	}
 
 	PCGEXTENDEDTOOLKIT_API

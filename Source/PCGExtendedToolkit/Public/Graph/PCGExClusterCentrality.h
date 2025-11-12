@@ -72,7 +72,7 @@ public:
 
 	/** If enabled, only compute centrality on a subset of the nodes to get a rough approximation. This is useful for large clusters, or if you want to tradeoff precision for speed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Ratio", EditCondition="DownsamplingMode == EPCGExCentralityDownsampling::Ratio", EditConditionHides))
-	FPCGExRandomRatioDetails RandomDownsampling = FPCGExRandomRatioDetails(0.1);
+	FPCGExRandomRatioDetails RandomDownsampling;
 };
 
 struct FPCGExClusterCentralityContext final : FPCGExEdgesProcessorContext

@@ -59,7 +59,6 @@ namespace PCGExDetails
 			return false;
 		}
 
-
 		return true;
 	}
 

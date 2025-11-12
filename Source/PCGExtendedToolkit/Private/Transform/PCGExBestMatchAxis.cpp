@@ -40,7 +40,7 @@ bool FPCGExBestMatchAxisElement::Boot(FPCGExContext* InContext) const
 		Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
 		if (!Context->NumMaxTargets)
 		{
-			PCGEX_LOG_MISSING_INPUT(Context, FTEXT("No targets (empty datasets)"))
+			PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No targets (empty datasets)"))
 			return false;
 		}
 

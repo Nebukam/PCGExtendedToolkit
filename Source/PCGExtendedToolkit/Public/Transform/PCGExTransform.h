@@ -185,11 +185,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="W", EditCondition="WInput == EPCGExInputValueType::Constant", EditConditionHides))
 	double WConstant = 0;
 
-
 	PCGEX_SETTING_VALUE_DECL(U, double)
 	PCGEX_SETTING_VALUE_DECL(V, double)
 	PCGEX_SETTING_VALUE_DECL(W, double)
-
 
 	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 
@@ -287,7 +285,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAxisTwistDetails
 namespace PCGExTransform
 {
 	const FName SourceDeformersLabel = TEXT("Deformers");
-	const FName SourceDeformersBoundsLabel = TEXT("Bounds");
 
 	static void SanitizeBounds(FBox& InBox)
 	{

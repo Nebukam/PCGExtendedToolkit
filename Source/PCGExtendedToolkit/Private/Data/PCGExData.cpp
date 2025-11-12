@@ -247,7 +247,6 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 			if (bSparseBuffer && !bScoped)
 			{
 				// Un-scoping reader.
-
 				if (!InternalBroadcaster) { InternalBroadcaster = MakeShared<PCGEx::TAttributeBroadcaster<T>>(); }
 				if (!InternalBroadcaster->Prepare(InSelector, Source)) { return false; }
 

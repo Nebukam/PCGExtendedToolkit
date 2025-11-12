@@ -50,7 +50,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 
 		if (!PCGExFactories::GetInputFactories(
 			InContext, PCGExTexture::SourceTexLabel, Context->TexParamsFactories,
-			{PCGExFactories::EType::TexParam}, true))
+			{PCGExFactories::EType::TexParam}))
 		{
 			return false;
 		}
@@ -392,6 +392,7 @@ namespace PCGExSampleSurfaceGuided
 		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
 
 		const int32 NumPoints = PointDataFacade->GetNum();
+		MaxSampledDistance = MaxDistanceValue->Max();
 
 		if (Settings->bOutputOneMinusDistance)
 		{

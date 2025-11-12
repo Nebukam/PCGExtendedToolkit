@@ -64,7 +64,7 @@ namespace PCGExFilterGroup
 			{
 				if (ManagedFactory->InitializationFailurePolicy == EPCGExFilterNoDataFallback::Error)
 				{
-					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A grouped  filter failed to initialize properly : {0}."), PCGExHelpers::GetClassDisplayName(ManagedFactory->GetClass())));
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("A grouped filter failed to initialize properly : {0}."), PCGExHelpers::GetClassDisplayName(ManagedFactory->GetClass())));
 				}
 				else if (ManagedFactory->InitializationFailurePolicy == EPCGExFilterNoDataFallback::Pass)
 				{

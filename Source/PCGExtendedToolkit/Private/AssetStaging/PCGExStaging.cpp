@@ -435,7 +435,7 @@ namespace PCGExStaging
 			const bool bWantsMinMax = Details.IndexSettings.bRemapIndexToCollectionSize;
 			IndexGetter = Details.IndexSettings.GetValueSettingIndex();
 			if (!IndexGetter->Init(InDataFacade, !bWantsMinMax, bWantsMinMax)) { return false; }
-
+			
 			MaxInputIndex = IndexGetter->Max();
 		}
 
@@ -456,7 +456,7 @@ namespace PCGExStaging
 			OutIndex = -1;
 			return;
 		}
-
+		
 		switch (Details.Distribution)
 		{
 		case EPCGExDistribution::Index:

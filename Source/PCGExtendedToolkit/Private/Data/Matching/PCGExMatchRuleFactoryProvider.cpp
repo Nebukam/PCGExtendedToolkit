@@ -281,8 +281,8 @@ namespace PCGExMatching
 
 		TArray<TObjectPtr<const UPCGExMatchRuleFactoryData>> Factories;
 		if (!PCGExFactories::GetInputFactories(
-			InContext, InFactoriesLabel,
-			Factories, {PCGExFactories::EType::MatchRule}))
+			InContext, InFactoriesLabel, Factories,
+			{PCGExFactories::EType::MatchRule}))
 		{
 			MatchMode = EPCGExMapMatchMode::Disabled;
 			return false;

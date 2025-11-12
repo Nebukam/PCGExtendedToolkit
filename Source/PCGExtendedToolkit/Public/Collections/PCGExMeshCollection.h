@@ -251,7 +251,7 @@ public:
 	/** Disable collision on all entries. */
 	UFUNCTION()
 	void EDITOR_DisableCollisions();
-	
+
 	/** Set Descriptor source on all entries. */
 	UFUNCTION()
 	void EDITOR_SetDescriptorSourceAll(EPCGExEntryVariationMode DescriptorSource);
