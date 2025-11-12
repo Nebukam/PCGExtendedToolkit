@@ -1,4 +1,4 @@
-![UE 5.6](https://img.shields.io/badge/UE-5.6-darkgreen) ![5.5](https://img.shields.io/badge/5.5-darkgreen) ![5.4](https://img.shields.io/badge/5.4-darkgreen) ![5.3](https://img.shields.io/badge/5.3-darkgreen) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Nebukam/PCGExtendedToolkit)
+![UE 5.7](https://img.shields.io/badge/UE-5.7-darkgreen) ![5.6](https://img.shields.io/badge/5.6-green) ![5.5](https://img.shields.io/badge/5.5-darkgreen) ![5.4](https://img.shields.io/badge/5.4-darkgreen) ![5.3](https://img.shields.io/badge/5.3-darkgreen) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Nebukam/PCGExtendedToolkit)
 # PCG Extended Toolkit 
 
 ![PCGEx](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/refs/heads/docs/_sources/smol-logo.png)
