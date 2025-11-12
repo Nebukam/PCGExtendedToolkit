@@ -25,7 +25,7 @@ bool UPCGExRecursionTrackerSettings::GetPinExtraIcon(const UPCGPin* InPin, FName
 
 TArray<FPCGPreConfiguredSettingsInfo> UPCGExRecursionTrackerSettings::GetPreconfiguredInfo() const
 {
-	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExRecursionTrackerType>({}, FTEXT("Recursion Tracker : {0}"));
+	return FPCGPreConfiguredSettingsInfo::PopulateFromEnum<EPCGExRecursionTrackerType>({}, FTEXT("Break : {0}"));
 }
 #endif
 
