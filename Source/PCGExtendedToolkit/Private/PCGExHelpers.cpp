@@ -16,6 +16,7 @@
 #include "Engine/AssetManager.h"
 #include "Async/Async.h"
 #include "Data/PCGPointArrayData.h"
+#include "Async/ParallelFor.h"
 
 namespace PCGEx
 {
@@ -302,8 +303,8 @@ namespace PCGEx
 
 	void FManagedObjects::AddExtraStructReferencedObjects(FReferenceCollector& Collector)
 	{
-		//FReadScopeLock ReadScopeLock(ManagedObjectLock);
-		//for (TObjectPtr<UObject>& Object : ManagedObjects) { Collector.AddReferencedObject(Object); }
+		FReadScopeLock ReadScopeLock(ManagedObjectLock);
+		for (TObjectPtr<UObject>& Object : ManagedObjects) { Collector.AddReferencedObject(Object); }
 	}
 
 	void FManagedObjects::Destroy(UObject* InObject)
