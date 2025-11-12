@@ -47,8 +47,6 @@ namespace PCGExAssetCollectionEditor
 class FPCGExAssetCollectionEditor : public FAssetEditorToolkit
 {
 public:
-	FPCGExAssetCollectionEditor();
-
 	virtual void InitEditor(UPCGExAssetCollection* InCollection, const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost);
 	virtual UPCGExAssetCollection* GetEditedCollection() const;
 
@@ -57,12 +55,16 @@ public:
 	virtual FString GetWorldCentricTabPrefix() const override { return TEXT("PCGEx"); }
 	virtual FLinearColor GetWorldCentricTabColorScale() const override { return FLinearColor::White; }
 
-	static TMap<FName, PCGExAssetCollectionEditor::FilterInfos> FilterInfos;
+	TMap<FName, PCGExAssetCollectionEditor::FilterInfos> FilterInfos;
 	
 protected:
 	TWeakObjectPtr<UPCGExAssetCollection> EditedCollection;
 	virtual void RegisterPropertyNameMapping(TMap<FName, FName>& Mapping);
 
+	FReply FilterShowAll() const;
+	FReply FilterHideAll() const;
+	FReply ToggleFilter(const PCGExAssetCollectionEditor::FilterInfos Filter) const;
+	
 	virtual void CreateTabs(TArray<PCGExAssetCollectionEditor::TabInfos>& OutTabs);
 	virtual void BuildEditorToolbar(FToolBarBuilder& ToolbarBuilder);
 	virtual void BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder);

@@ -6,6 +6,7 @@
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
+#include "PCGExGlobalEditorSettings.h"
 #include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"
 #include "Collections/PCGExAssetCollection.h"
@@ -51,7 +52,7 @@ void FPCGExFittingVariationsCustomization::CustomizeHeader(
 					[Collection]()
 					{
 						return Collection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule
-							       ? FLinearColor(1.0f,0.5f,0.1f, 0.25)
+							       ? FLinearColor(1.0f, 0.5f, 0.1f, 0.25)
 							       : FLinearColor::Transparent;
 					})
 			];
@@ -98,8 +99,10 @@ SNew(SNumericEntryBox<double>).Value_Lambda([=]() -> TOptional<double>{_TYPE V; 
 	TSharedPtr<IPropertyHandle> AbsoluteOffsetHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, bAbsoluteOffset));
 
 	// Add custom Offset row
-	ChildBuilder.AddCustomRow(FText::FromString("Offset"))
-	            .NameContent()
+	ChildBuilder
+		.AddCustomRow(FText::FromString("Offset"))
+		.Visibility(TAttribute<EVisibility>::Create([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationOffset")); }))
+		.NameContent()
 		[
 			SNew(SVerticalBox)
 			PCGEX_SMALL_LABEL_COL("Offset Min:Max", FLinearColor::White)
@@ -156,8 +159,10 @@ SNew(SNumericEntryBox<double>).Value_Lambda([=]() -> TOptional<double>{_TYPE V; 
 	TSharedPtr<IPropertyHandle> AbsoluteRotHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, AbsoluteRotation));
 
 	// Add custom Offset row
-	ChildBuilder.AddCustomRow(FText::FromString("Rotation"))
-	            .NameContent()
+	ChildBuilder
+		.AddCustomRow(FText::FromString("Rotation"))
+		.Visibility(TAttribute<EVisibility>::Create([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationRotation")); }))
+		.NameContent()
 		[
 			SNew(SVerticalBox)
 			PCGEX_SMALL_LABEL_COL("Rotation Min:Max", FLinearColor::White)
@@ -215,8 +220,10 @@ SNew(SNumericEntryBox<double>).Value_Lambda([=]() -> TOptional<double>{_TYPE V; 
 #define PCGEX_UNIFORM_VISIBILITY .IsEnabled_Lambda([UniformScaleHandle]() { bool bUniform = false; UniformScaleHandle->GetValue(bUniform); return !bUniform; }) ]
 
 	// Add custom Offset row
-	ChildBuilder.AddCustomRow(FText::FromString("Scale"))
-	            .NameContent()
+	ChildBuilder
+		.AddCustomRow(FText::FromString("Scale"))
+		.Visibility(TAttribute<EVisibility>::Create([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationScale")); }))
+		.NameContent()
 		[
 			SNew(SVerticalBox)
 			PCGEX_SMALL_LABEL_COL("Scale Min:Max", FLinearColor::White)

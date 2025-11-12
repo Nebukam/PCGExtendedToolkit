@@ -18,8 +18,8 @@ namespace PCGExData
 UENUM()
 enum class EPCGExSortDirection : uint8
 {
-	Ascending  = 0 UMETA(DisplayName = "Ascending"),
-	Descending = 1 UMETA(DisplayName = "Descending")
+	Ascending  = 0 UMETA(DisplayName = "Ascending", ToolTip = "Ascending", ActionIcon="Ascending"),
+	Descending = 1 UMETA(DisplayName = "Descending", ToolTip = "Descending", ActionIcon="Descending")
 };
 
 USTRUCT(BlueprintType)
@@ -80,7 +80,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionSortingDetails
 	void Sort(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const;
 };
 
-USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Sort Rule")
+USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Sort Rule"))
 struct FPCGExDataTypeInfoSortRule : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

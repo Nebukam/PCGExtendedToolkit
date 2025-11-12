@@ -25,6 +25,33 @@ void UPCGExGlobalEditorSettings::ToggleHiddenAssetPropertyName(const FName Prope
 	OnHiddenAssetPropertyNamesChanged.Broadcast();
 }
 
+void UPCGExGlobalEditorSettings::ToggleHiddenAssetPropertyName(const TArray<FName> Properties, const bool bHide)
+{
+	if (Properties.IsEmpty()) { return; }
+	bool bAnyChanges = false;
+	if (bHide)
+	{
+		for (FName PropertyName : Properties)
+		{
+			bool bIsAlreadyInSet = false;
+			HiddenPropertyNames.Add(PropertyName, &bIsAlreadyInSet);
+			if (!bIsAlreadyInSet) { bAnyChanges = true; }
+		}
+	}
+	else
+	{
+		for (FName PropertyName : Properties)
+		{
+			if (HiddenPropertyNames.Remove(PropertyName)) { bAnyChanges = true; }
+		}
+	}
+
+	if (!bAnyChanges) { return; }
+
+	SaveConfig();
+	OnHiddenAssetPropertyNamesChanged.Broadcast();
+}
+
 EVisibility UPCGExGlobalEditorSettings::GetPropertyVisibility(const FName PropertyName) const
 {
 	const FName* Id = PropertyNamesMap.Find(PropertyName);
