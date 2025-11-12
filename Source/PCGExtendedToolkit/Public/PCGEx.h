@@ -33,16 +33,16 @@ enum class EPCGExAttributeSetPackingMode : uint8
 UENUM()
 enum class EPCGExWinding : uint8
 {
-	Clockwise        = 1 UMETA(DisplayName = "Clockwise", ToolTip="..."),
-	CounterClockwise = 2 UMETA(DisplayName = "Counter Clockwise", ToolTip="..."),
+	Clockwise        = 1 UMETA(DisplayName = "Clockwise", ToolTip="Clockwise", ActionIcon="CW"),
+	CounterClockwise = 2 UMETA(DisplayName = "Counter Clockwise", ToolTip="Counter Clockwise", ActionIcon="CCW"),
 };
 
 UENUM()
 enum class EPCGExWindingMutation : uint8
 {
-	Unchanged        = 0 UMETA(DisplayName = "Unchanged", ToolTip="..."),
-	Clockwise        = 1 UMETA(DisplayName = "Clockwise", ToolTip="..."),
-	CounterClockwise = 2 UMETA(DisplayName = "CounterClockwise", ToolTip="..."),
+	Unchanged        = 0 UMETA(DisplayName = "Unchanged", ToolTip="Unchanged", ActionIcon="Unchanged"),
+	Clockwise        = 1 UMETA(DisplayName = "Clockwise", ToolTip="Clockwise", ActionIcon="CW"),
+	CounterClockwise = 2 UMETA(DisplayName = "CounterClockwise", ToolTip="Counter Clockwise", ActionIcon="CCW"),
 };
 
 namespace PCGEx

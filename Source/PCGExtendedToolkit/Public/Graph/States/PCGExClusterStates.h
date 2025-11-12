@@ -29,7 +29,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClusterStateConfigBase : public FPCGExStateC
 	}
 };
 
-USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Cluster State")
+USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Cluster State"))
 struct FPCGExDataTypeInfoClusterState : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

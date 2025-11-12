@@ -116,6 +116,12 @@ namespace PCGExDetailsCustomization
 		PCGEX_ADD_ACTION_ICON(SingleMat, AIS_Med)
 		PCGEX_ADD_ACTION_ICON(MultiMat, AIS_Wide)
 
+		PCGEX_ADD_ACTION_ICON(Unchanged, AIS_Small)
+		PCGEX_ADD_ACTION_ICON(CW, AIS_Small)
+		PCGEX_ADD_ACTION_ICON(CCW, AIS_Small)
+		PCGEX_ADD_ACTION_ICON(Ascending, AIS_Small)
+		PCGEX_ADD_ACTION_ICON(Descending, AIS_Small)
+
 		FButtonStyle ActionIconButton = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton");
 
 		FSlateBrush Brush = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton").Pressed;
@@ -169,7 +175,10 @@ MACRO(EPCGExFitMode)\
 MACRO(EPCGExMinimalAxis)\
 MACRO(EPCGExMaterialVariantsMode)\
 MACRO(EPCGExEntryVariationMode)\
-MACRO(EPCGExGlobalVariationRule)
+MACRO(EPCGExGlobalVariationRule)\
+MACRO(EPCGExWinding)\
+MACRO(EPCGExWindingMutation)\
+MACRO(EPCGExSortDirection)
 
 #define PCGEX_FOREACH_GRID_ENUM(MACRO)\
 MACRO(EPCGExAxisOrder, 3)\

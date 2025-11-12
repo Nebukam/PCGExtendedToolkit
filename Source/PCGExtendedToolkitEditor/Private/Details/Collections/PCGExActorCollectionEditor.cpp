@@ -14,8 +14,6 @@
 #include "Widgets/Layout/SBox.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Modules/ModuleManager.h"
-#include "Styling/ToolBarStyle.h"
-#include "Widgets/Layout/SUniformGridPanel.h"
 
 void FPCGExActorCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder)
 {

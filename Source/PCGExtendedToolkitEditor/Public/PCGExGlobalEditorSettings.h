@@ -25,6 +25,7 @@ public:
 	TSet<FName> HiddenPropertyNames;
 	
 	void ToggleHiddenAssetPropertyName(const FName PropertyName, const bool bHide);
+	void ToggleHiddenAssetPropertyName(const TArray<FName> Properties, const bool bHide);
 	EVisibility GetPropertyVisibility(const FName PropertyName) const;
 	
 	bool GetIsPropertyVisible(const FName PropertyName) const;

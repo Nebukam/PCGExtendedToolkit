@@ -21,15 +21,10 @@ namespace PCGExCollectionEditor
 {
 }
 
-TMap<FName, PCGExAssetCollectionEditor::FilterInfos> FPCGExAssetCollectionEditor::FilterInfos;
-
-FPCGExAssetCollectionEditor::FPCGExAssetCollectionEditor()
-{
-	RegisterPropertyNameMapping(GetMutableDefault<UPCGExGlobalEditorSettings>()->PropertyNamesMap);
-}
-
 void FPCGExAssetCollectionEditor::InitEditor(UPCGExAssetCollection* InCollection, const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost)
 {
+	RegisterPropertyNameMapping(GetMutableDefault<UPCGExGlobalEditorSettings>()->PropertyNamesMap);
+
 	EditedCollection = InCollection;
 
 	const TArray<UObject*> ObjectsToEdit = {InCollection};
@@ -87,24 +82,45 @@ void FPCGExAssetCollectionEditor::RegisterPropertyNameMapping(TMap<FName, FName>
 	Mapping.Add(FName("VariationMode"), Variations.Id);
 	Mapping.Add(FName("Variations"), Variations.Id);
 
+	PCGEX_DECL_ASSET_FILTER(Variations_Offset, "AssetEditor.Variations.Offset", "Var : Offset", "Show/hide Variations : Offset")
+	Mapping.Add(FName("VariationOffset"), Variations_Offset.Id);
+	PCGEX_DECL_ASSET_FILTER(Variations_Rotation, "AssetEditor.Variations.Rotation", "Var : Rot", "Show/hide Variations : Rotation")
+	Mapping.Add(FName("VariationRotation"), Variations_Rotation.Id);
+	PCGEX_DECL_ASSET_FILTER(Variations_Scale, "AssetEditor.Variations.Scale", "Var : Scale", "Show/hide Variations : Scale")
+	Mapping.Add(FName("VariationScale"), Variations_Scale.Id);
+
 	PCGEX_DECL_ASSET_FILTER(Tags, "AssetEditor.Tags", "Tags", "Show/hide Tags")
 	Mapping.Add(FName("Tags"), Tags.Id);
 
 	PCGEX_DECL_ASSET_FILTER(Staging, "AssetEditor.Staging", "Staging", "Show/hide Staging")
 	Mapping.Add(FName("Staging"), Staging.Id);
 
-	PCGEX_DECL_ASSET_FILTER(Materials, "AssetEditor.Materials", "Materials", "Show/hide Materials")	
-	Mapping.Add(FName("MaterialVariants"), Materials.Id);
-	Mapping.Add(FName("SlotIndex"), Materials.Id);
-	Mapping.Add(FName("MaterialOverrideVariants"), Materials.Id);
-	Mapping.Add(FName("MaterialOverrideVariantsList"), Materials.Id);
-	
-	PCGEX_DECL_ASSET_FILTER(Descriptors, "AssetEditor.Descriptors", "Descriptors", "Show/hide Descriptors")	
-	Mapping.Add(FName("DescriptorSource"), Descriptors.Id);
-	Mapping.Add(FName("ISMDescriptor"), Descriptors.Id);
-	Mapping.Add(FName("SMDescriptor"), Descriptors.Id);
-
 #undef PCGEX_DECL_ASSET_FILTER
+}
+
+FReply FPCGExAssetCollectionEditor::FilterShowAll() const
+{
+	TArray<FName> Keys;
+	FilterInfos.GetKeys(Keys);
+	UPCGExGlobalEditorSettings* MutableSettings = GetMutableDefault<UPCGExGlobalEditorSettings>();
+	MutableSettings->ToggleHiddenAssetPropertyName(Keys, false);
+	return FReply::Handled();
+}
+
+FReply FPCGExAssetCollectionEditor::FilterHideAll() const
+{
+	TArray<FName> Keys;
+	FilterInfos.GetKeys(Keys);
+	UPCGExGlobalEditorSettings* MutableSettings = GetMutableDefault<UPCGExGlobalEditorSettings>();
+	MutableSettings->ToggleHiddenAssetPropertyName(Keys, true);
+	return FReply::Handled();
+}
+
+FReply FPCGExAssetCollectionEditor::ToggleFilter(const PCGExAssetCollectionEditor::FilterInfos Filter) const
+{
+	UPCGExGlobalEditorSettings* MutableSettings = GetMutableDefault<UPCGExGlobalEditorSettings>();
+	MutableSettings->ToggleHiddenAssetPropertyName(Filter.Id, MutableSettings->GetIsPropertyVisible(Filter.Id));
+	return FReply::Handled();
 }
 
 void FPCGExAssetCollectionEditor::CreateTabs(TArray<PCGExAssetCollectionEditor::TabInfos>& OutTabs)
@@ -372,6 +388,42 @@ void FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& Toolb
 
 void FPCGExAssetCollectionEditor::BuildAssetFooterToolbar(FToolBarBuilder& ToolbarBuilder)
 {
+#pragma region Expand/Collapse
+/*
+	ToolbarBuilder.BeginSection("FilterSection");
+	{
+		PCGEX_SECTION_HEADER("")
+
+		TSharedRef<SUniformGridPanel> Grid =
+			SNew(SUniformGridPanel)
+			.SlotPadding(FMargin(2, 2));
+
+		// Show all
+		Grid->AddSlot(0, 0)
+		[
+			SNew(SButton)
+			.Text(FText::FromString(TEXT("▼")))
+			.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
+			.OnClicked_Raw(this, &FPCGExAssetCollectionEditor::ExpandAll)
+			.ToolTipText(FText::FromString(TEXT("Expand all properties.")))
+		];
+
+		// Show all
+		Grid->AddSlot(1, 0)
+		[
+			SNew(SButton)
+			.Text(FText::FromString(TEXT("▶")))
+			.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
+			.OnClicked_Raw(this, &FPCGExAssetCollectionEditor::CollapseAll)
+			.ToolTipText(FText::FromString(TEXT("Collapse all properties.")))
+		];
+	}
+	ToolbarBuilder.EndSection();
+*/
+#pragma endregion
+
+#pragma region Filters
+
 	ToolbarBuilder.BeginSection("FilterSection");
 	{
 		PCGEX_SECTION_HEADER("Filters")
@@ -380,7 +432,27 @@ void FPCGExAssetCollectionEditor::BuildAssetFooterToolbar(FToolBarBuilder& Toolb
 			SNew(SUniformGridPanel)
 			.SlotPadding(FMargin(2, 2));
 
-		int32 Index = 0;
+		// Show all
+		Grid->AddSlot(0, 0)
+		[
+			SNew(SButton)
+			.Text(FText::FromString(TEXT("Show all")))
+			.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
+			.OnClicked_Raw(this, &FPCGExAssetCollectionEditor::FilterShowAll)
+			.ToolTipText(FText::FromString(TEXT("Turns all filter off and show all properties.")))
+		];
+
+		// Hide all
+		Grid->AddSlot(0, 1)
+		[
+			SNew(SButton)
+			.Text(FText::FromString(TEXT("Hide all")))
+			.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
+			.OnClicked_Raw(this, &FPCGExAssetCollectionEditor::FilterHideAll)
+			.ToolTipText(FText::FromString(TEXT("Turns all filter on and hide all properties.")))
+		];
+
+		int32 Index = 2;
 		for (const TPair<FName, PCGExAssetCollectionEditor::FilterInfos>& Infos : FilterInfos)
 		{
 			const PCGExAssetCollectionEditor::FilterInfos& Filter = Infos.Value;
@@ -388,21 +460,23 @@ void FPCGExAssetCollectionEditor::BuildAssetFooterToolbar(FToolBarBuilder& Toolb
 			Grid->AddSlot(Index / 2, Index % 2)
 			[
 				SNew(SButton)
-				.Text(Filter.Label)
-				.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
-				.OnClicked_Lambda(
-					[Filter]()
-					{
-						UPCGExGlobalEditorSettings* MutableSettings = GetMutableDefault<UPCGExGlobalEditorSettings>();
-						MutableSettings->ToggleHiddenAssetPropertyName(Filter.Id, MutableSettings->GetIsPropertyVisible(Filter.Id));
-						return FReply::Handled();
-					})
+				.OnClicked_Raw(this, &FPCGExAssetCollectionEditor::ToggleFilter, Filter)
 				.ButtonColorAndOpacity_Lambda(
 					[Filter]
 					{
-						return GetMutableDefault<UPCGExGlobalEditorSettings>()->GetIsPropertyVisible(Filter.Id) ? FLinearColor(0.005, 0.005, 0.005, 0.8) : FLinearColor::Transparent;
+						return GetMutableDefault<UPCGExGlobalEditorSettings>()->GetIsPropertyVisible(Filter.Id) ? FLinearColor(0.005, 0.005, 0.005, 0.5) : FLinearColor::Transparent;
 					})
 				.ToolTipText(Filter.ToolTip)
+				[
+					SNew(STextBlock)
+					.Text(Filter.Label)
+					.StrikeBrush_Lambda(
+						[Filter]()
+						{
+							const bool bVisible = GetMutableDefault<UPCGExGlobalEditorSettings>()->GetIsPropertyVisible(Filter.Id);
+							return bVisible ? nullptr : FAppStyle::GetBrush("Common.StrikeThrough");
+						})
+				]
 			];
 
 			Index++;
@@ -411,6 +485,8 @@ void FPCGExAssetCollectionEditor::BuildAssetFooterToolbar(FToolBarBuilder& Toolb
 		ToolbarBuilder.AddWidget(Grid);
 	}
 	ToolbarBuilder.EndSection();
+
+#pragma endregion
 }
 
 #undef PCGEX_SLATE_ICON

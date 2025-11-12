@@ -20,7 +20,7 @@ namespace PCGExCluster
 	class FCluster;
 }
 
-USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Cluster Part")
+USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Cluster Part"))
 struct FPCGExDataTypeInfoClusterPart : public FPCGDataTypeInfoPoint
 {
 	GENERATED_BODY()
@@ -43,7 +43,7 @@ public:
 	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoClusterPart)
 };
 
-USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Cluster Vtx")
+USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Cluster Vtx"))
 struct FPCGExDataTypeInfoVtx : public FPCGExDataTypeInfoClusterPart
 {
 	GENERATED_BODY()
@@ -66,7 +66,7 @@ protected:
 	virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;
 };
 
-USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Cluster Edges")
+USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Cluster Edges"))
 struct FPCGExDataTypeInfoEdges : public FPCGExDataTypeInfoClusterPart
 {
 	GENERATED_BODY()

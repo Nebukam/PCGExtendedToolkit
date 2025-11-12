@@ -6,16 +6,13 @@
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "IDetailChildrenBuilder.h"
-#include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"
 #include "Collections/PCGExAssetCollection.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Constants/PCGExTuple.h"
-#include "Math/UnitConversion.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SEditableTextBox.h"
-#include "Widgets/Input/SNumericEntryBox.h"
 
 #pragma region FPCGExMaterialOverrideSingleEntryCustomization
 

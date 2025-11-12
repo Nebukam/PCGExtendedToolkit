@@ -51,7 +51,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFillControlConfigBase
 	void Init();
 };
 
-USTRUCT(/*PCG_DataType*/DisplayName="PCGEx | Fill Control")
+USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Fill Control"))
 struct FPCGExDataTypeInfoFillControl : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
