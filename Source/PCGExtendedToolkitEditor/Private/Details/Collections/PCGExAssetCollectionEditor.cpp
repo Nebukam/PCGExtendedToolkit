@@ -21,6 +21,16 @@ namespace PCGExCollectionEditor
 {
 }
 
+FPCGExAssetCollectionEditor::FPCGExAssetCollectionEditor()
+{
+	OnHiddenAssetPropertyNamesChanged = UPCGExGlobalEditorSettings::OnHiddenAssetPropertyNamesChanged.AddRaw(this, &FPCGExAssetCollectionEditor::ForceRefreshTabs);
+}
+
+FPCGExAssetCollectionEditor::~FPCGExAssetCollectionEditor()
+{
+	UPCGExGlobalEditorSettings::OnHiddenAssetPropertyNamesChanged.Remove(OnHiddenAssetPropertyNamesChanged);
+}
+
 void FPCGExAssetCollectionEditor::InitEditor(UPCGExAssetCollection* InCollection, const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost)
 {
 	RegisterPropertyNameMapping(GetMutableDefault<UPCGExGlobalEditorSettings>()->PropertyNamesMap);
@@ -64,9 +74,6 @@ void FPCGExAssetCollectionEditor::InitEditor(UPCGExAssetCollection* InCollection
 
 	AddToolbarExtender(ToolbarExtender);
 	RegenerateMenusAndToolbars();
-
-	// Assuming DetailsView is already created.
-	UPCGExGlobalEditorSettings::OnHiddenAssetPropertyNamesChanged.AddRaw(this, &FPCGExAssetCollectionEditor::ForceRefreshTabs);
 }
 
 UPCGExAssetCollection* FPCGExAssetCollectionEditor::GetEditedCollection() const

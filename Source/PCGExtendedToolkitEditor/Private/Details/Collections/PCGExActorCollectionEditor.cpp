@@ -15,6 +15,11 @@
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Modules/ModuleManager.h"
 
+FPCGExActorCollectionEditor::FPCGExActorCollectionEditor()
+	: FPCGExAssetCollectionEditor()
+{
+}
+
 void FPCGExActorCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder)
 {
 	FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(ToolbarBuilder);
@@ -61,5 +66,4 @@ void FPCGExActorCollectionEditor::CreateTabs(TArray<PCGExAssetCollectionEditor::
 	FooterToolbarBuilder.SetStyle(&FAppStyle::Get(), FName("Toolbar"));
 	BuildAssetFooterToolbar(FooterToolbarBuilder);
 	Infos.Footer = FooterToolbarBuilder.MakeWidget();
-
 }

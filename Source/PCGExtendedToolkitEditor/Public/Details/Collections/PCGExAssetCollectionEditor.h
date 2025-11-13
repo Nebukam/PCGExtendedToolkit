@@ -47,6 +47,9 @@ namespace PCGExAssetCollectionEditor
 class FPCGExAssetCollectionEditor : public FAssetEditorToolkit
 {
 public:
+	FPCGExAssetCollectionEditor();
+	virtual ~FPCGExAssetCollectionEditor();
+	
 	virtual void InitEditor(UPCGExAssetCollection* InCollection, const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost);
 	virtual UPCGExAssetCollection* GetEditedCollection() const;
 
@@ -73,4 +76,5 @@ protected:
 	virtual void ForceRefreshTabs();
 
 	TArray<PCGExAssetCollectionEditor::TabInfos> Tabs;
+	FDelegateHandle OnHiddenAssetPropertyNamesChanged;
 };
