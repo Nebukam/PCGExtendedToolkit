@@ -17,6 +17,11 @@
 #include "Modules/ModuleManager.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
 
+FPCGExMeshCollectionEditor::FPCGExMeshCollectionEditor()
+	:FPCGExAssetCollectionEditor()
+{
+}
+
 void FPCGExMeshCollectionEditor::RegisterPropertyNameMapping(TMap<FName, FName>& Mapping)
 {
 	FPCGExAssetCollectionEditor::RegisterPropertyNameMapping(Mapping);

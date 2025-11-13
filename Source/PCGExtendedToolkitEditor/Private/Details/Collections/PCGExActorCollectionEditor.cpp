@@ -15,6 +15,11 @@
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Modules/ModuleManager.h"
 
+FPCGExActorCollectionEditor::FPCGExActorCollectionEditor()
+	: FPCGExAssetCollectionEditor()
+{
+}
+
 void FPCGExActorCollectionEditor::BuildAssetHeaderToolbar(FToolBarBuilder& ToolbarBuilder)
 {
 	FPCGExAssetCollectionEditor::BuildAssetHeaderToolbar(ToolbarBuilder);
