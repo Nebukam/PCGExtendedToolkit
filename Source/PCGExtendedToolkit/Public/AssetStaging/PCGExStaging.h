@@ -37,14 +37,13 @@ namespace PCGExDetails
 }
 
 
-UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Component Flags"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Rotation Component Flags"))
 enum class EPCGExAbsoluteRotationFlags : uint8
 {
 	None = 0 UMETA(Hidden),
-	X    = 1 << 0 UMETA(DisplayName = "Pitch"),
-	Y    = 1 << 1 UMETA(DisplayName = "Yaw"),
-	Z    = 1 << 2 UMETA(DisplayName = "Roll"),
-	All  = X | Y | Z UMETA(DisplayName = "All"),
+	X    = 1 << 0 UMETA(DisplayName = "Pitch", ToolTip = "Pitch", ActionIcon="X"),
+	Y    = 1 << 1 UMETA(DisplayName = "Yaw", ToolTip = "Yaw", ActionIcon="Y"),
+	Z    = 1 << 2 UMETA(DisplayName = "Roll", ToolTip = "Roll", ActionIcon="Z")
 };
 
 ENUM_CLASS_FLAGS(EPCGExAbsoluteRotationFlags)
@@ -157,7 +156,7 @@ namespace PCGExStaging
 	protected:
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> IndexGetter;
 		double MaxInputIndex = 0;
-		
+
 	public:
 		FPCGExMicroCacheDistributionDetails Details;
 
@@ -175,7 +174,7 @@ namespace PCGExStaging
 	};
 
 	extern template class TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>;
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FSocketInfos
 	{
 		FSocketInfos() = default;

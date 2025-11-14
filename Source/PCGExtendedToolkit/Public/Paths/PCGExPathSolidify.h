@@ -110,9 +110,33 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExAxisOrder SolidificationOrder = EPCGExAxisOrder::XYZ;
 
+	/** .*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bReadOrderFromAttribute = false;
+	
+	/** Solidification Order attribute.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Order (Attr)", EditCondition="bReadOrderFromAttribute"))
+	FName OrderAttribute = NAME_None;
+
+	/** How to "sanitize" the input value.\n"Ignore" will pick the default constant specified above if the attribute value is invalid. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Order Safety", EditCondition="bReadOrderFromAttribute", HideEditConditionToggle))
+	EPCGExIndexSafety OrderSafety = EPCGExIndexSafety::Tile;
+	
 	/** Defines how the selected axis will be used to construct the point' rotation. This will be using remapped axis from the selected order. X = Primary, Y = Secondary, Z = Tertiary*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExMakeRotAxis RotationConstruction = EPCGExMakeRotAxis::X;
+
+	/** .*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bReadConstructionFromAttribute = false;
+	
+	/** Rotation Construction attribute.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Construction (Attr)", EditCondition="bReadConstructionFromAttribute"))
+	FName ConstructionAttribute = NAME_None;
+
+	/** How to "sanitize" the input value.\n"Ignore" will pick the default constant specified above if the attribute value is invalid. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Construction Safety", EditCondition="bReadConstructionFromAttribute", HideEditConditionToggle))
+	EPCGExIndexSafety bReadConstructionFromAttributeSafety = EPCGExIndexSafety::Tile;
 	
 	// - Constant vs attribute
 	// - Attribute can be int as pick (with sanitization)
@@ -149,7 +173,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType SolidificationLerpInput = EPCGExInputValueType::Constant;
 
-	/** Solidification Lerp attribute (read from Edge).*/
+	/** Solidification Lerp attribute .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Solidification Lerp (Attr)", EditCondition="SolidificationLerpInput == EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector SolidificationLerpAttribute;
 

@@ -162,8 +162,13 @@ bool FPCGExAssetStagingData::FindSocket(const FName InName, const FString& Tag, 
 	return false;
 }
 
-#if WITH_EDITOR
+const FPCGExFittingVariations& FPCGExAssetCollectionEntry::GetVariations(const UPCGExAssetCollection* ParentCollection) const
+{
+	if (VariationMode == EPCGExEntryVariationMode::Global || ParentCollection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule) { return ParentCollection->GlobalVariations; }
+	return Variations;
+}
 
+#if WITH_EDITOR
 void FPCGExAssetCollectionEntry::EDITOR_Sanitize()
 {
 }

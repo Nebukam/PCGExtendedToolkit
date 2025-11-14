@@ -39,6 +39,12 @@ void FPCGExMeshCollectionEditor::RegisterPropertyNameMapping(TMap<FName, FName>&
 	Mapping.Add(FName("ISMDescriptor"), Descriptors.Id);
 	Mapping.Add(FName("SMDescriptor"), Descriptors.Id);
 	
+	PCGEX_DECL_ASSET_FILTER(Grammar, "AssetEditor.Grammar", "Grammar", "Show/hide Grammar")	
+	Mapping.Add(FName("GrammarSource"), Descriptors.Id);
+	Mapping.Add(FName("MeshGrammar"), Descriptors.Id);
+	Mapping.Add(FName("bOverrideSubCollectionGrammar"), Descriptors.Id);
+	Mapping.Add(FName("CollectionGrammar"), Descriptors.Id);
+	
 #undef PCGEX_DECL_ASSET_FILTER
 	
 }

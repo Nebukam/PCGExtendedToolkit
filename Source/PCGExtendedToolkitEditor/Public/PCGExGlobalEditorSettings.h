@@ -10,18 +10,22 @@
 
 #include "PCGExGlobalEditorSettings.generated.h"
 
-UCLASS(Config=Editor, DefaultConfig, meta=(DisplayName="PCGEx - Editor", Description="PCGEx Editor Settings"))
+UCLASS(Config=EditorUser, DefaultConfig, meta=(DisplayName="PCGEx - Editor", Description="PCGEx Editor Settings"))
 class PCGEXTENDEDTOOLKITEDITOR_API UPCGExGlobalEditorSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
 public:
+	virtual FName GetContainerName() const override { return "Editor"; }
+	virtual FName GetCategoryName() const override { return "Plugins"; }
+	virtual FName GetSectionName() const override { return "PCGEx"; }
+	
 	static FSimpleMulticastDelegate OnHiddenAssetPropertyNamesChanged;
 
 	/** Map a property internal name to a property name, so multiple property visibility can be toggled by a single flag */
 	TMap<FName, FName> PropertyNamesMap;
 	
-	UPROPERTY(Config, EditAnywhere, Category=Settings, meta=(EditCondition=false, EditConditionHides))
+	UPROPERTY(Config)
 	TSet<FName> HiddenPropertyNames;
 	
 	void ToggleHiddenAssetPropertyName(const FName PropertyName, const bool bHide);

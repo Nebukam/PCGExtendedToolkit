@@ -6,10 +6,10 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 #include "PCGExMath.h"
-#include "PCGExSettingsMacros.h"
+#include "Details/PCGExSettingsMacros.h"
 #include "Data/PCGExDataFilter.h"
 #include "Sampling/PCGExSampling.h"
-#include "PCGExDetailsStaging.generated.h"
+#include "PCGExMeshGrammar.generated.h"
 
 struct FPCGExAssetStagingData;
 class UPCGExMeshCollection;
@@ -77,20 +77,28 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionGrammarDetails
 
 	FPCGExMeshCollectionGrammarDetails() = default;
 
-	/** Symbol for the grammar. */
+	/** If enabled, items within that collection will be flattened into their parent context. Note that hoisting is not recursive. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bFlatten = false;
+	
+	/** Symbol for the grammar. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bFlatten", EditConditionHides))
 	FName Symbol = NAME_None;
 
+	/** If the volume can be scaled to fit the remaining space or not. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bFlatten", EditConditionHides))
+	EPCGExGrammarScaleMode ScaleMode = EPCGExGrammarScaleMode::Fixed;
+	
 	/** How to define the size of this collection "as a grammar module"*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayAfter="ScaleMode"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayAfter="ScaleMode", EditCondition="!bFlatten", EditConditionHides))
 	EPCGExCollectionGrammarSize SizeMode = EPCGExCollectionGrammarSize::Min;
 
 	/** Fixed size */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayAfter="SizeMode", EditCondition="SizeMode==EPCGExCollectionGrammarSize::Fixed", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayAfter="SizeMode", EditCondition="!bFlatten && SizeMode==EPCGExCollectionGrammarSize::Fixed", EditConditionHides))
 	double Size = 100;
 
 	/** For easier debugging, using Point color in conjunction with PCG Debug Color Material. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bFlatten", EditConditionHides))
 	FLinearColor DebugColor = FLinearColor::White;
 
 	void Fix(const UPCGExMeshCollection* InCollection, FPCGSubdivisionSubmodule& OutSubmodule) const;

@@ -196,7 +196,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	EPCGExEntryVariationMode VariationMode = EPCGExEntryVariationMode::Local;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variations", EditCondition="!bIsSubCollection && VariationMode == EPCGExEntryVariationMode::Local", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variations", EditCondition="!bIsSubCollection && VariationMode == EPCGExEntryVariationMode::Local", EditConditionHides, ShowOnlyInnerProperties))
 	FPCGExFittingVariations Variations;
 
 	UPROPERTY(EditAnywhere, Category = Settings)
@@ -210,6 +210,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 
 	template <typename T>
 	T* GetSubCollection() { return Cast<T>(InternalSubCollection); }
+	
+	const FPCGExFittingVariations& GetVariations(const UPCGExAssetCollection* ParentCollection) const;
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))

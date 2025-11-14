@@ -166,7 +166,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 
 	
 	/** Grammar details. */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides, ShowOnlyInnerProperties))
 	FPCGExMeshGrammarDetails MeshGrammar;
 
 	/** Whether to override subcollection grammar settings. TODO: Make this an enum */
@@ -174,7 +174,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	bool bOverrideSubCollectionGrammar = false;
 	
 	/** Grammar details subcollection overrides.  */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection && bOverrideSubCollectionGrammar", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection && bOverrideSubCollectionGrammar", EditConditionHides, ShowOnlyInnerProperties))
 	FPCGExMeshCollectionGrammarDetails CollectionGrammar;
 
 	
