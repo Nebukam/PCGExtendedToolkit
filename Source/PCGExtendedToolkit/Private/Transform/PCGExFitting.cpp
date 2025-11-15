@@ -303,12 +303,12 @@ void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, FTransform& Out
 			RandomSource.FRandRange(Min.Y, Max.Y),
 			RandomSource.FRandRange(Min.Z, Max.Z));
 
-		if (Variations.OffsetStepping == EPCGExStepping::Steps)
+		if (Variations.OffsetSnapping == EPCGExSnapping::Snap)
 		{
-			const FVector& StepSize = Variations.OffsetSteps;
-			PCGExMath::Step(RandomOffset.X, StepSize.X);
-			PCGExMath::Step(RandomOffset.Y, StepSize.Y);
-			PCGExMath::Step(RandomOffset.Z, StepSize.Z);
+			const FVector& StepSize = Variations.OffsetSnap;
+			PCGExMath::Snap(RandomOffset.X, StepSize.X);
+			PCGExMath::Snap(RandomOffset.Y, StepSize.Y);
+			PCGExMath::Snap(RandomOffset.Z, StepSize.Z);
 		}
 
 		OutTransform.SetLocation(
@@ -328,12 +328,12 @@ void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, FTransform& Out
 			RandomSource.FRandRange(Min.Yaw, Max.Yaw),
 			RandomSource.FRandRange(Min.Roll, Max.Roll));
 
-		if (Variations.RotationStepping == EPCGExStepping::Steps)
+		if (Variations.RotationSnapping == EPCGExSnapping::Snap)
 		{
-			const FRotator& StepSize = Variations.RotationSteps;
-			PCGExMath::Step(RandRot.Pitch, StepSize.Pitch);
-			PCGExMath::Step(RandRot.Yaw, StepSize.Yaw);
-			PCGExMath::Step(RandRot.Roll, StepSize.Roll);
+			const FRotator& StepSize = Variations.RotationSnap;
+			PCGExMath::Snap(RandRot.Pitch, StepSize.Pitch);
+			PCGExMath::Snap(RandRot.Yaw, StepSize.Yaw);
+			PCGExMath::Snap(RandRot.Roll, StepSize.Roll);
 		}
 
 		FRotator OutRotation = BaseRotation.Rotator();
@@ -360,7 +360,7 @@ void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, FTransform& Out
 		if (Variations.bUniformScale)
 		{
 			double RandomScale = RandomSource.FRandRange(Min.X, Variations.ScaleMax.X);
-			if (Variations.ScaleStepping == EPCGExStepping::Steps) { PCGExMath::Step(RandomScale, Variations.ScaleSteps.X); }
+			if (Variations.ScaleSnapping == EPCGExSnapping::Snap) { PCGExMath::Snap(RandomScale, Variations.ScaleSnap.X); }
 			OutTransform.SetScale3D(BaseScale * RandomScale);
 		}
 		else
@@ -370,12 +370,12 @@ void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, FTransform& Out
 				RandomSource.FRandRange(Min.Y, Max.Y),
 				RandomSource.FRandRange(Min.Z, Max.Z));
 
-			if (Variations.ScaleStepping == EPCGExStepping::Steps)
+			if (Variations.ScaleSnapping == EPCGExSnapping::Snap)
 			{
-				const FVector& StepSize = Variations.OffsetSteps;
-				PCGExMath::Step(RandomScale.X, StepSize.X);
-				PCGExMath::Step(RandomScale.Y, StepSize.Y);
-				PCGExMath::Step(RandomScale.Z, StepSize.Z);
+				const FVector& StepSize = Variations.OffsetSnap;
+				PCGExMath::Snap(RandomScale.X, StepSize.X);
+				PCGExMath::Snap(RandomScale.Y, StepSize.Y);
+				PCGExMath::Snap(RandomScale.Z, StepSize.Z);
 			}
 
 			OutTransform.SetScale3D(BaseScale * RandomScale);

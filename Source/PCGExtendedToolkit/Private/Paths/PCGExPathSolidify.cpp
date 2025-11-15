@@ -11,6 +11,17 @@
 #define LOCTEXT_NAMESPACE "PCGExPathSolidifyElement"
 #define PCGEX_NAMESPACE PathSolidify
 
+UPCGExPathSolidifySettings::UPCGExPathSolidifySettings(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	RotationMapping.Add(EPCGExAxisOrder::XYZ, EPCGExMakeRotAxis::X);
+	RotationMapping.Add(EPCGExAxisOrder::YZX, EPCGExMakeRotAxis::XY);
+	RotationMapping.Add(EPCGExAxisOrder::ZXY, EPCGExMakeRotAxis::Y);
+	RotationMapping.Add(EPCGExAxisOrder::YXZ, EPCGExMakeRotAxis::XY);
+	RotationMapping.Add(EPCGExAxisOrder::ZYX, EPCGExMakeRotAxis::XY);
+	RotationMapping.Add(EPCGExAxisOrder::XZY, EPCGExMakeRotAxis::X);
+}
+
 #if WITH_EDITOR
 
 void UPCGExPathSolidifySettings::ApplyDeprecation(UPCGNode* InOutNode)
@@ -66,6 +77,12 @@ bool FPCGExPathSolidifyElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSolidify)
+
+	Context->RotationConstructionsMap.Reserve(6);
+	for (int i = 0; i < 6; i++)
+	{
+		Context->RotationConstructionsMap.Add(Settings->RotationMapping[static_cast<EPCGExAxisOrder>(i)]);
+	}
 
 	return true;
 }
@@ -154,6 +171,21 @@ namespace PCGExPathSolidify
 
 		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointDataFacade->GetOut()->SetNumPoints(Path->LastIndex); }
 
+		// Axis order overrides
+		
+		if (Settings->bReadOrderFromAttribute)
+		{
+			AxisOrder = PointDataFacade->GetBroadcaster<int32>(Settings->OrderAttribute, true);
+			if (!AxisOrder) { PCGEX_LOG_INVALID_ATTR_C(ExecutionContext, Axis Order, Settings->OrderAttribute) }
+		}
+
+		// Axis construction overrides
+		if (Settings->bReadConstructionFromAttribute)
+		{
+			RotationConstruction = PointDataFacade->GetBroadcaster<int32>(Settings->ConstructionAttribute, true);
+			if (!AxisOrder) { PCGEX_LOG_INVALID_ATTR_C(ExecutionContext, Rotation Construction, Settings->ConstructionAttribute) }
+		}
+
 		// Flip settings
 
 		PrimaryFlip = Settings->PrimaryAxis.GetValueSettingFlip();
@@ -194,6 +226,30 @@ namespace PCGExPathSolidify
 		return true;
 	}
 
+	EPCGExAxisOrder FProcessor::GetOrder(const int32 Index) const
+	{
+		if (!AxisOrder) { return Settings->SolidificationOrder; }
+		int32 CustomValue = PCGExMath::SanitizeIndex(AxisOrder->Read(Index), 5);
+		if (CustomValue == -1) { return Settings->SolidificationOrder; }
+		return static_cast<EPCGExAxisOrder>(CustomValue);
+	}
+
+	EPCGExMakeRotAxis FProcessor::GetConstruction(const EPCGExAxisOrder Order, const int32 Index) const
+	{
+		if (!RotationConstruction)
+		{
+			if (Settings->bUseConstructionMapping) { return Context->RotationConstructionsMap[static_cast<int32>(Order)]; }
+			return Settings->RotationConstruction;
+		}
+		int32 CustomValue = PCGExMath::SanitizeIndex(AxisOrder->Read(Index), 5);
+		if (CustomValue == -1)
+		{
+			if (Settings->bUseConstructionMapping) { return Context->RotationConstructionsMap[static_cast<int32>(Order)]; }
+			return Settings->RotationConstruction;
+		}
+		return static_cast<EPCGExMakeRotAxis>(CustomValue);
+	}
+
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::PathSolidify::ProcessPoints);
@@ -212,7 +268,7 @@ namespace PCGExPathSolidify
 		{
 			if (!Path->IsValidEdgeIndex(Index))
 				continue;
-
+			
 			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
 			const double Length = PathLength->Get(Index);
 			const FVector Scale = Transforms[Index].GetScale3D();
@@ -233,8 +289,10 @@ namespace PCGExPathSolidify
 			FVector YAxis = RealYAxis * Flip.Y;
 			FVector ZAxis = RealZAxis * Flip.Z;
 
-			PCGEx::ReorderAxes(Settings->SolidificationOrder, XAxis, YAxis, ZAxis);
-			const FQuat Quat = PCGEx::MakeRot(Settings->RotationConstruction, XAxis, YAxis, ZAxis);
+			const EPCGExAxisOrder Order = GetOrder(Index);
+			
+			PCGEx::ReorderAxes(Order, XAxis, YAxis, ZAxis);
+			const FQuat Quat = PCGEx::MakeRot(GetConstruction(Order, Index), XAxis, YAxis, ZAxis);
 
 			// Find primary / secondary / tertiary components
 			PCGEx::FindOrderMatch(Quat, RealXAxis, RealYAxis, RealZAxis, Main, Sec, Ter);

@@ -8,8 +8,10 @@
 #include "IDetailChildrenBuilder.h"
 #include "PCGExGlobalEditorSettings.h"
 #include "PropertyHandle.h"
+#include "SAdvancedTransformInputBox.h"
 #include "Collections/PCGExAssetCollection.h"
 #include "Constants/PCGExTuple.h"
+#include "Details/PCGExCustomizationMacros.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
@@ -94,24 +96,6 @@ SNew(SNumericEntryBox<double>).Value_Lambda([=]() -> TOptional<double>{_TYPE V; 
 if (_HANDLE->GetValue(EnumValue) == FPropertyAccess::Success){ return EnumValue ? EVisibility::Visible : EVisibility::Collapsed;}\
 return EVisibility::Collapsed;})
 
-#define PCGEX_VECTORINPUTBOX(_HANDLE)\
-SNew(SVectorInputBox)\
-.X_Lambda([_HANDLE] { double Val; _HANDLE->GetChildHandle(TEXT("X"))->GetValue(Val); return Val; })\
-.Y_Lambda([_HANDLE] { double Val; _HANDLE->GetChildHandle(TEXT("Y"))->GetValue(Val); return Val; })\
-.Z_Lambda([_HANDLE] { double Val; _HANDLE->GetChildHandle(TEXT("Z"))->GetValue(Val); return Val; })\
-.OnXCommitted_Lambda([_HANDLE](double Val, ETextCommit::Type) { _HANDLE->GetChildHandle(TEXT("X"))->SetValue(Val); })\
-.OnYCommitted_Lambda([_HANDLE](double Val, ETextCommit::Type) { _HANDLE->GetChildHandle(TEXT("Y"))->SetValue(Val); })\
-.OnZCommitted_Lambda([_HANDLE](double Val, ETextCommit::Type) { _HANDLE->GetChildHandle(TEXT("Z"))->SetValue(Val); })
-	
-#define PCGEX_ROTATORINPUTBOX(_HANDLE)\
-SNew(SRotatorInputBox)\
-.Roll_Lambda([_HANDLE] { double Val; _HANDLE->GetChildHandle(TEXT("Roll"))->GetValue(Val); return Val; })\
-.Pitch_Lambda([_HANDLE] { double Val; _HANDLE->GetChildHandle(TEXT("Pitch"))->GetValue(Val); return Val; })\
-.Yaw_Lambda([_HANDLE] { double Val; _HANDLE->GetChildHandle(TEXT("Yaw"))->GetValue(Val); return Val; })\
-.OnRollCommitted_Lambda([_HANDLE](double Val, ETextCommit::Type) { _HANDLE->GetChildHandle(TEXT("Roll"))->SetValue(Val); })\
-.OnPitchCommitted_Lambda([_HANDLE](double Val, ETextCommit::Type) { _HANDLE->GetChildHandle(TEXT("Pitch"))->SetValue(Val); })\
-.OnYawCommitted_Lambda([_HANDLE](double Val, ETextCommit::Type) { _HANDLE->GetChildHandle(TEXT("Yaw"))->SetValue(Val); })
-
 #define PCGEX_FIELD(_HANDLE, _TYPE, _PART, _TOOLTIP) PCGEX_FIELD_BASE(_HANDLE, _TYPE, _PART, _TOOLTIP)]
 
 #pragma region Offset Min/Max
@@ -120,13 +104,13 @@ SNew(SRotatorInputBox)\
 	TSharedPtr<IPropertyHandle> OffsetMinHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, OffsetMin));
 	TSharedPtr<IPropertyHandle> OffsetMaxHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, OffsetMax));
 	TSharedPtr<IPropertyHandle> AbsoluteOffsetHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, bAbsoluteOffset));
-	TSharedPtr<IPropertyHandle> OffsetSteppingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, OffsetStepping));
-	TSharedPtr<IPropertyHandle> OffsetStepsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, OffsetSteps));
+	TSharedPtr<IPropertyHandle> OffsetSnappingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, OffsetSnapping));
+	TSharedPtr<IPropertyHandle> OffsetStepsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, OffsetSnap));
 
 	// Add custom Offset row
 	ChildBuilder
 		.AddCustomRow(FText::FromString("Offset"))
-		.Visibility(TAttribute<EVisibility>::Create([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationOffset")); }))
+		.Visibility(MakeAttributeLambda([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationOffset")); }))
 		.NameContent()
 		[
 			SNew(SVerticalBox)
@@ -138,7 +122,7 @@ SNew(SRotatorInputBox)\
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
 				[
-					PCGExEnumCustomization::CreateRadioGroup(OffsetSteppingModeHandle, FindFirstObjectSafe<UEnum>(*FString(TEXT("EPCGExStepping"))))
+					PCGExEnumCustomization::CreateRadioGroup(OffsetSnappingModeHandle, FindFirstObjectSafe<UEnum>(*FString(TEXT("EPCGExSnapping"))))
 				]
 				PCGEX_SMALL_LABEL("·· Absolute Space : ")
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
@@ -181,7 +165,7 @@ SNew(SRotatorInputBox)\
 			[
 				// X pair
 				SNew(SHorizontalBox)
-				PCGEX_STEP_VISIBILITY(OffsetSteppingModeHandle)
+				PCGEX_STEP_VISIBILITY(OffsetSnappingModeHandle)
 				PCGEX_SMALL_LABEL(" Steps : ")
 				+ SHorizontalBox::Slot().FillWidth(1).Padding(1).VAlign(VAlign_Center)
 				[
@@ -199,13 +183,13 @@ SNew(SRotatorInputBox)\
 	TSharedPtr<IPropertyHandle> RotationMinHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, RotationMin));
 	TSharedPtr<IPropertyHandle> RotationMaxHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, RotationMax));
 	TSharedPtr<IPropertyHandle> AbsoluteRotHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, AbsoluteRotation));
-	TSharedPtr<IPropertyHandle> RotationSteppingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, RotationStepping));
-	TSharedPtr<IPropertyHandle> RotationStepsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, RotationSteps));
+	TSharedPtr<IPropertyHandle> RotationSnappingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, RotationSnapping));
+	TSharedPtr<IPropertyHandle> RotationStepsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, RotationSnap));
 	
 	// Add custom Offset row
 	ChildBuilder
 		.AddCustomRow(FText::FromString("Rotation"))
-		.Visibility(TAttribute<EVisibility>::Create([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationRotation")); }))
+		.Visibility(MakeAttributeLambda([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationRotation")); }))
 		.NameContent()
 		[
 			SNew(SVerticalBox)
@@ -217,7 +201,7 @@ SNew(SRotatorInputBox)\
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
 				[
-					PCGExEnumCustomization::CreateRadioGroup(RotationSteppingModeHandle, FindFirstObjectSafe<UEnum>(*FString(TEXT("EPCGExStepping"))))
+					PCGExEnumCustomization::CreateRadioGroup(RotationSnappingModeHandle, FindFirstObjectSafe<UEnum>(*FString(TEXT("EPCGExSnapping"))))
 				]
 				PCGEX_SMALL_LABEL("·· Absolute Rotation : ")
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
@@ -260,7 +244,7 @@ SNew(SRotatorInputBox)\
 			[
 				// X pair
 				SNew(SHorizontalBox)
-				PCGEX_STEP_VISIBILITY(RotationSteppingModeHandle)
+				PCGEX_STEP_VISIBILITY(RotationSnappingModeHandle)
 				PCGEX_SMALL_LABEL(" Steps : ")
 				+ SHorizontalBox::Slot().FillWidth(1).Padding(1).VAlign(VAlign_Center)
 				[
@@ -277,15 +261,15 @@ SNew(SRotatorInputBox)\
 	TSharedPtr<IPropertyHandle> ScaleMinHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, ScaleMin));
 	TSharedPtr<IPropertyHandle> ScaleMaxHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, ScaleMax));
 	TSharedPtr<IPropertyHandle> UniformScaleHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, bUniformScale));
-	TSharedPtr<IPropertyHandle> ScaleSteppingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, ScaleStepping));
-	TSharedPtr<IPropertyHandle> ScaleStepsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, ScaleSteps));
+	TSharedPtr<IPropertyHandle> ScaleSnappingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, ScaleSnapping));
+	TSharedPtr<IPropertyHandle> ScaleStepsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, ScaleSnap));
 	
 #define PCGEX_UNIFORM_VISIBILITY .IsEnabled_Lambda([UniformScaleHandle]() { bool bUniform = false; UniformScaleHandle->GetValue(bUniform); return !bUniform; }) ]
 
 	// Add custom Offset row
 	ChildBuilder
 		.AddCustomRow(FText::FromString("Scale"))
-		.Visibility(TAttribute<EVisibility>::Create([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationScale")); }))
+		.Visibility(MakeAttributeLambda([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationScale")); }))
 		.NameContent()
 		[
 			SNew(SVerticalBox)
@@ -297,7 +281,7 @@ SNew(SRotatorInputBox)\
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
 				[
-					PCGExEnumCustomization::CreateRadioGroup(ScaleSteppingModeHandle, FindFirstObjectSafe<UEnum>(*FString(TEXT("EPCGExStepping"))))
+					PCGExEnumCustomization::CreateRadioGroup(ScaleSnappingModeHandle, FindFirstObjectSafe<UEnum>(*FString(TEXT("EPCGExSnapping"))))
 				]
 				PCGEX_SMALL_LABEL("·· Uniform Scale : ")
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
@@ -344,7 +328,7 @@ SNew(SRotatorInputBox)\
 			[
 				// X pair
 				SNew(SHorizontalBox)
-				PCGEX_STEP_VISIBILITY(ScaleSteppingModeHandle)
+				PCGEX_STEP_VISIBILITY(ScaleSnappingModeHandle)
 				PCGEX_SMALL_LABEL(" Steps : ")
 				+ SHorizontalBox::Slot().FillWidth(1).Padding(1).VAlign(VAlign_Center)
 				[
@@ -363,6 +347,4 @@ SNew(SRotatorInputBox)\
 #undef PCGEX_FIELD
 #undef PCGEX_FIELD_D
 #undef PCGEX_STEP_VISIBILITY
-#undef PCGEX_VECTORINPUTBOX
-#undef PCGEX_ROTATORINPUTBOX
 }

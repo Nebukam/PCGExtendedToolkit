@@ -1,0 +1,138 @@
+﻿// Copyright 2025 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#include "Transform/PCGExTransformPoints.h"
+
+#include "Data/PCGExData.h"
+#include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsSettings.h"
+
+#define LOCTEXT_NAMESPACE "PCGExTransformPointsElement"
+#define PCGEX_NAMESPACE TransformPoints
+
+PCGEX_INITIALIZE_ELEMENT(TransformPoints)
+
+PCGExData::EIOInit UPCGExTransformPointsSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
+
+PCGEX_ELEMENT_BATCH_POINT_IMPL(TransformPoints)
+
+bool FPCGExTransformPointsElement::Boot(FPCGExContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(TransformPoints)
+
+	return true;
+}
+
+bool FPCGExTransformPointsElement::ExecuteInternal(FPCGContext* InContext) const
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExTransformPointsElement::Execute);
+
+	PCGEX_CONTEXT_AND_SETTINGS(TransformPoints)
+	PCGEX_EXECUTION_CHECK
+	PCGEX_ON_INITIAL_EXECUTION
+	{
+		if (!Context->StartBatchProcessingPoints(
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+				NewBatch->bSkipCompletion = true;
+			}))
+		{
+			return Context->CancelExecution(TEXT("No data."));
+		}
+	}
+
+	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
+
+	Context->MainPoints->StageOutputs();
+
+	return Context->TryComplete();
+}
+
+namespace PCGExTransformPoints
+{
+	FProcessor::~FProcessor()
+	{
+	}
+
+	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExTransformPoints::Process);
+
+		if (!IProcessor::Process(InAsyncManager)) { return false; }
+
+		PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Duplicate)
+
+		// Cherry pick native properties allocations
+
+		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
+		AllocateFor |= EPCGPointNativeProperties::Transform;
+		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
+
+		OffsetMin = Settings->OffsetMin.GetValueSetting();
+		if (!OffsetMin->Init(PointDataFacade)) { return false; }
+
+		OffsetMax = Settings->OffsetMax.GetValueSetting();
+		if (!OffsetMax->Init(PointDataFacade)) { return false; }
+
+		OffsetSnap = Settings->OffsetSnap.GetValueSetting();
+		if (!OffsetSnap->Init(PointDataFacade)) { return false; }
+
+		AbsoluteOffset = Settings->AbsoluteOffset.GetValueSetting();
+		if (!AbsoluteOffset->Init(PointDataFacade)) { return false; }
+
+		RotMin = Settings->RotationMin.GetValueSetting();
+		if (!RotMin->Init(PointDataFacade)) { return false; }
+
+		RotMax = Settings->RotationMax.GetValueSetting();
+		if (!RotMax->Init(PointDataFacade)) { return false; }
+
+		RotSnap = Settings->RotationSnap.GetValueSetting();
+		if (!RotSnap->Init(PointDataFacade)) { return false; }
+
+		ScaleMin = Settings->ScaleMin.GetValueSetting();
+		if (!ScaleMin->Init(PointDataFacade)) { return false; }
+
+		ScaleMax = Settings->ScaleMax.GetValueSetting();
+		if (!ScaleMax->Init(PointDataFacade)) { return false; }
+
+		ScaleSnap = Settings->ScaleSnap.GetValueSetting();
+		if (!ScaleSnap->Init(PointDataFacade)) { return false; }
+		
+		StartParallelLoopForPoints();
+
+		return true;
+	}
+
+	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::TransformPoints::ProcessPoints);
+
+		TConstPCGValueRange<int32> Seeds = PointDataFacade->GetIn()->GetConstSeedValueRange();
+		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+		FPCGExFittingVariationsDetails Variations = FPCGExFittingVariationsDetails();
+
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			Variations.Apply(
+				Seeds[Index],
+				OutTransforms[Index],
+				FPCGExFittingVariations(
+					OffsetMin->Read(Index), OffsetMax->Read(Index),
+					Settings->OffsetSnapping, OffsetSnap->Read(Index),
+					AbsoluteOffset->Read(Index),
+					RotMin->Read(Index), RotMax->Read(Index),
+					Settings->RotationSnapping, RotSnap->Read(Index),
+					Settings->AbsoluteRotation,
+					ScaleMin->Read(Index), ScaleMax->Read(Index),
+					Settings->ScaleSnapping, ScaleSnap->Read(Index)),
+				EPCGExVariationMode::Disabled);
+		}
+	}
+}
+
+
+#undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

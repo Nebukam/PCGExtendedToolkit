@@ -318,7 +318,7 @@ namespace PCGExMath
 
 #pragma region Rounding
 
-	FORCEINLINE static void Step(double& Value, const double Step)
+	FORCEINLINE static void Snap(double& Value, const double Step)
 	{
 		Value = !FMath::IsNearlyZero(Step) ? FMath::RoundToDouble(Value / Step) * Step : Value;
 	}
