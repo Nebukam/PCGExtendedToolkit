@@ -341,6 +341,7 @@ namespace PCGExAssetStaging
 
 		const UPCGComponent* Component = Context->GetComponent();
 		int32 LocalHighestSlotIndex = 0;
+		FRandomStream RandomSource;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -402,10 +403,12 @@ namespace PCGExAssetStaging
 			if (PathWriter) { PathWriter->SetValue(Index, Staging.Path); }
 			else { HashWriter->SetValue(Index, Context->CollectionPickDatasetPacker->GetPickIdx(EntryHost, Staging.InternalIndex, SecondaryIndex)); }
 
+			RandomSource.Initialize(PCGExRandom::GetSeed(Seed, Variations.Seed));
+
 			if (Variations.bEnabledBefore)
 			{
 				FTransform LocalXForm = FTransform::Identity;
-				Variations.Apply(Seed, LocalXForm, EntryVariations, EPCGExVariationMode::Before);
+				Variations.Apply(RandomSource, LocalXForm, EntryVariations, EPCGExVariationMode::Before);
 				FittingHandler.ComputeLocalTransform(Index, LocalXForm, OutTransform, OutBounds);
 			}
 			else
@@ -418,7 +421,7 @@ namespace PCGExAssetStaging
 
 			if (Variations.bEnabledAfter)
 			{
-				Variations.Apply(Seed, OutTransform, EntryVariations, EPCGExVariationMode::After);
+				Variations.Apply(RandomSource, OutTransform, EntryVariations, EPCGExVariationMode::After);
 			}
 
 			if (SocketHelper)

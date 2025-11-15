@@ -20,59 +20,6 @@
 #include "Widgets/Input/SRotatorInputBox.h"
 #include "Widgets/Input/SVectorInputBox.h"
 
-TSharedRef<IPropertyTypeCustomization> FPCGExFittingVariationsCustomization::MakeInstance()
-{
-	return MakeShareable(new FPCGExFittingVariationsCustomization());
-}
-
-void FPCGExFittingVariationsCustomization::CustomizeHeader(
-	TSharedRef<IPropertyHandle> PropertyHandle,
-	FDetailWidgetRow& HeaderRow,
-	IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
-	// Grab parent collection
-	TArray<UObject*> OuterObjects;
-	PropertyHandle->GetOuterObjects(OuterObjects);
-
-	if (UPCGExAssetCollection* Collection = !OuterObjects.IsEmpty() ? Cast<UPCGExAssetCollection>(OuterObjects[0]) : nullptr)
-	{
-		HeaderRow.NameContent()
-			[
-				PropertyHandle->CreatePropertyNameWidget()
-			]
-			.ValueContent()[
-				SNew(STextBlock)
-				.Font(IDetailLayoutBuilder::GetDetailFontItalic())
-				.Text_Lambda(
-					[Collection]()
-					{
-						return Collection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule
-							       ? FText::FromString("Overruled in collection settings!")
-							       : FText::GetEmpty();
-					})
-				.ColorAndOpacity_Lambda(
-					[Collection]()
-					{
-						return Collection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule
-							       ? FLinearColor(1.0f, 0.5f, 0.1f, 0.25)
-							       : FLinearColor::Transparent;
-					})
-			];
-	}
-	else
-	{
-		HeaderRow.NameContent()[
-
-			PropertyHandle->CreatePropertyNameWidget()
-		];
-	}
-}
-
-void FPCGExFittingVariationsCustomization::CustomizeChildren(
-	TSharedRef<IPropertyHandle> PropertyHandle,
-	IDetailChildrenBuilder& ChildBuilder,
-	IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
 #define PCGEX_SMALL_LABEL(_TEXT) \
 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(1, 0)\
 [SNew(STextBlock).Text(FText::FromString(TEXT(_TEXT))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)]
@@ -90,7 +37,7 @@ void FPCGExFittingVariationsCustomization::CustomizeChildren(
 SNew(SNumericEntryBox<double>).Value_Lambda([=]() -> TOptional<double>{_TYPE V; _HANDLE->GetValue(V); return V._PART;})\
 .OnValueCommitted_Lambda([=](double NewVal, ETextCommit::Type){_TYPE V; _HANDLE->GetValue(V); V._PART = NewVal; _HANDLE->SetValue(V);})\
 .ToolTipText(FString(_TOOLTIP).IsEmpty() ? _HANDLE->GetToolTipText() : FText::FromString(_TOOLTIP)).AllowSpin(true)
-	
+
 #define PCGEX_STEP_VISIBILITY(_HANDLE)\
 .Visibility_Lambda([_HANDLE](){uint8 EnumValue = 0;\
 if (_HANDLE->GetValue(EnumValue) == FPropertyAccess::Success){ return EnumValue ? EVisibility::Visible : EVisibility::Collapsed;}\
@@ -98,13 +45,72 @@ return EVisibility::Collapsed;})
 
 #define PCGEX_FIELD(_HANDLE, _TYPE, _PART, _TOOLTIP) PCGEX_FIELD_BASE(_HANDLE, _TYPE, _PART, _TOOLTIP)]
 
+TSharedRef<IPropertyTypeCustomization> FPCGExFittingVariationsCustomization::MakeInstance()
+{
+	return MakeShareable(new FPCGExFittingVariationsCustomization());
+}
+
+void FPCGExFittingVariationsCustomization::CustomizeHeader(
+	TSharedRef<IPropertyHandle> PropertyHandle,
+	FDetailWidgetRow& HeaderRow,
+	IPropertyTypeCustomizationUtils& CustomizationUtils)
+{
+	// Grab parent collection
+	TArray<UObject*> OuterObjects;
+	PropertyHandle->GetOuterObjects(OuterObjects);
+
+	if (UPCGExAssetCollection* Collection = !OuterObjects.IsEmpty() ? Cast<UPCGExAssetCollection>(OuterObjects[0]) : nullptr;
+		Collection && !PropertyHandle->GetProperty()->GetFName().ToString().Contains(TEXT("Global")))
+		{
+			HeaderRow.NameContent()[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().Padding(1).AutoWidth()
+				[
+					PropertyHandle->CreatePropertyNameWidget()
+				]
+				+ SHorizontalBox::Slot().Padding(10, 0).FillWidth(1).VAlign(VAlign_Center)
+				[
+					SNew(STextBlock)
+					.Font(IDetailLayoutBuilder::GetDetailFontItalic())
+					.Text_Lambda(
+						[Collection]()
+						{
+							return Collection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule
+									   ? FText::FromString(TEXT("⚠ Overruled"))
+									   : FText::GetEmpty();
+						})
+					.ColorAndOpacity_Lambda(
+						[Collection]()
+						{
+							return Collection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule
+									   ? FLinearColor(1.0f, 0.5f, 0.1f, 0.5)
+									   : FLinearColor::Transparent;
+						})
+				]
+
+			];
+		}
+		else
+		{
+			HeaderRow.NameContent()
+			[
+				PropertyHandle->CreatePropertyNameWidget()
+			];
+		}
+}
+
+void FPCGExFittingVariationsCustomization::CustomizeChildren(
+	TSharedRef<IPropertyHandle> PropertyHandle,
+	IDetailChildrenBuilder& ChildBuilder,
+	IPropertyTypeCustomizationUtils& CustomizationUtils)
+{
 #pragma region Offset Min/Max
 
 	// Get handles
 	TSharedPtr<IPropertyHandle> OffsetMinHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, OffsetMin));
 	TSharedPtr<IPropertyHandle> OffsetMaxHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, OffsetMax));
 	TSharedPtr<IPropertyHandle> AbsoluteOffsetHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, bAbsoluteOffset));
-	TSharedPtr<IPropertyHandle> OffsetSnappingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, OffsetSnapping));
+	TSharedPtr<IPropertyHandle> OffsetSnappingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, SnapPosition));
 	TSharedPtr<IPropertyHandle> OffsetStepsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, OffsetSnap));
 
 	// Add custom Offset row
@@ -122,9 +128,9 @@ return EVisibility::Collapsed;})
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
 				[
-					PCGExEnumCustomization::CreateRadioGroup(OffsetSnappingModeHandle, FindFirstObjectSafe<UEnum>(*FString(TEXT("EPCGExSnapping"))))
+					PCGExEnumCustomization::CreateRadioGroup(OffsetSnappingModeHandle, TEXT("EPCGExVariationSnapping"))
 				]
-				PCGEX_SMALL_LABEL("·· Absolute Space : ")
+				PCGEX_SMALL_LABEL("·· Absolute : ")
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
 				[
 					AbsoluteOffsetHandle->CreatePropertyValueWidget()
@@ -183,9 +189,9 @@ return EVisibility::Collapsed;})
 	TSharedPtr<IPropertyHandle> RotationMinHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, RotationMin));
 	TSharedPtr<IPropertyHandle> RotationMaxHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, RotationMax));
 	TSharedPtr<IPropertyHandle> AbsoluteRotHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, AbsoluteRotation));
-	TSharedPtr<IPropertyHandle> RotationSnappingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, RotationSnapping));
+	TSharedPtr<IPropertyHandle> RotationSnappingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, SnapRotation));
 	TSharedPtr<IPropertyHandle> RotationStepsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, RotationSnap));
-	
+
 	// Add custom Offset row
 	ChildBuilder
 		.AddCustomRow(FText::FromString("Rotation"))
@@ -201,12 +207,12 @@ return EVisibility::Collapsed;})
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
 				[
-					PCGExEnumCustomization::CreateRadioGroup(RotationSnappingModeHandle, FindFirstObjectSafe<UEnum>(*FString(TEXT("EPCGExSnapping"))))
+					PCGExEnumCustomization::CreateRadioGroup(RotationSnappingModeHandle, TEXT("EPCGExVariationSnapping"))
 				]
-				PCGEX_SMALL_LABEL("·· Absolute Rotation : ")
+				PCGEX_SMALL_LABEL("·· Absolute : ")
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
 				[
-					PCGExEnumCustomization::CreateCheckboxGroup(AbsoluteRotHandle, FindFirstObjectSafe<UEnum>(*FString(TEXT("EPCGExAbsoluteRotationFlags"))), {})
+					PCGExEnumCustomization::CreateCheckboxGroup(AbsoluteRotHandle, TEXT("EPCGExAbsoluteRotationFlags"), {})
 				]
 			]
 		]
@@ -261,9 +267,9 @@ return EVisibility::Collapsed;})
 	TSharedPtr<IPropertyHandle> ScaleMinHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, ScaleMin));
 	TSharedPtr<IPropertyHandle> ScaleMaxHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, ScaleMax));
 	TSharedPtr<IPropertyHandle> UniformScaleHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, bUniformScale));
-	TSharedPtr<IPropertyHandle> ScaleSnappingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, ScaleSnapping));
+	TSharedPtr<IPropertyHandle> ScaleSnappingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, SnapScale));
 	TSharedPtr<IPropertyHandle> ScaleStepsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, ScaleSnap));
-	
+
 #define PCGEX_UNIFORM_VISIBILITY .IsEnabled_Lambda([UniformScaleHandle]() { bool bUniform = false; UniformScaleHandle->GetValue(bUniform); return !bUniform; }) ]
 
 	// Add custom Offset row
@@ -281,9 +287,9 @@ return EVisibility::Collapsed;})
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
 				[
-					PCGExEnumCustomization::CreateRadioGroup(ScaleSnappingModeHandle, FindFirstObjectSafe<UEnum>(*FString(TEXT("EPCGExSnapping"))))
+					PCGExEnumCustomization::CreateRadioGroup(ScaleSnappingModeHandle, TEXT("EPCGExVariationSnapping"))
 				]
-				PCGEX_SMALL_LABEL("·· Uniform Scale : ")
+				PCGEX_SMALL_LABEL("·· Uniform : ")
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2, 0)
 				[
 					UniformScaleHandle->CreatePropertyValueWidget()
@@ -340,6 +346,7 @@ return EVisibility::Collapsed;})
 #undef PCGEX_UNIFORM_VISIBILITY
 
 #pragma endregion
+}
 
 #undef PCGEX_SMALL_LABEL
 #undef PCGEX_SEP_LABEL
@@ -347,4 +354,3 @@ return EVisibility::Collapsed;})
 #undef PCGEX_FIELD
 #undef PCGEX_FIELD_D
 #undef PCGEX_STEP_VISIBILITY
-}

@@ -38,7 +38,7 @@ void FPCGExInputShorthandCustomization::CustomizeHeader(
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot().Padding(1).AutoWidth()
 			[
-				PCGExEnumCustomization::CreateRadioGroup(InputHandle, FindFirstObjectSafe<UEnum>(*FString(TEXT("EPCGExInputValueType"))))
+				PCGExEnumCustomization::CreateRadioGroup(InputHandle, TEXT("EPCGExInputValueType"))
 			]
 			+ SHorizontalBox::Slot().Padding(1).FillWidth(1)
 			[

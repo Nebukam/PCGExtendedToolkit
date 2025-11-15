@@ -38,19 +38,19 @@ protected:
 public:
 #pragma region Translation
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Translation", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable))
 	FPCGExInputShorthandNameVector OffsetMin = FPCGExInputShorthandNameVector(FName("OffsetMin"));
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Translation", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable))
 	FPCGExInputShorthandNameVector OffsetMax = FPCGExInputShorthandNameVector(FName("OffsetMax"));
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Translation", meta = (PCG_Overridable))
-	EPCGExSnapping OffsetSnapping = EPCGExSnapping::None;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable))
+	EPCGExVariationSnapping SnapPosition = EPCGExVariationSnapping::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Translation", meta = (PCG_Overridable, EditCondition="OffsetSnapping != EPCGExSnapping::None", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable, EditCondition="SnapPosition != EPCGExVariationSnapping::None", EditConditionHides))
 	FPCGExInputShorthandNameVector OffsetSnap = FPCGExInputShorthandNameVector(FName("OffsetStep"), FVector(100));
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Translation", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable))
 	FPCGExInputShorthandNameBoolean AbsoluteOffset = FPCGExInputShorthandNameBoolean(FName("AbsoluteOffset"), false);
 	
 #pragma endregion
@@ -64,9 +64,9 @@ public:
 	FPCGExInputShorthandNameRotator RotationMax = FPCGExInputShorthandNameRotator(FName("RotationMax"));
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable))
-	EPCGExSnapping RotationSnapping = EPCGExSnapping::None;
+	EPCGExVariationSnapping SnapRotation = EPCGExVariationSnapping::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable, EditCondition="RotationSnapping != EPCGExSnapping::None", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable, EditCondition="SnapRotation != EPCGExVariationSnapping::None", EditConditionHides))
 	FPCGExInputShorthandNameRotator RotationSnap = FPCGExInputShorthandNameRotator(FName("RotationStep"), FRotator(90));
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExAbsoluteRotationFlags"))
@@ -77,16 +77,16 @@ public:
 #pragma region Scale
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
-	FPCGExInputShorthandNameVector ScaleMin = FPCGExInputShorthandNameVector(FName("ScaleMin"));
+	FPCGExInputShorthandNameVector ScaleMin = FPCGExInputShorthandNameVector(FName("ScaleMin"), FVector::OneVector);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
-	FPCGExInputShorthandNameVector ScaleMax = FPCGExInputShorthandNameVector(FName("ScaleMax"));
+	FPCGExInputShorthandNameVector ScaleMax = FPCGExInputShorthandNameVector(FName("ScaleMax"), FVector::OneVector);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
-	EPCGExSnapping ScaleSnapping = EPCGExSnapping::None;
+	EPCGExVariationSnapping SnapScale = EPCGExVariationSnapping::None;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable, EditCondition="ScaleSnapping != EPCGExSnapping::None", EditConditionHides))
-	FPCGExInputShorthandNameVector ScaleSnap = FPCGExInputShorthandNameVector(FName("ScaleStep"), FVector(100));
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable, EditCondition="SnapScale != EPCGExVariationSnapping::None", EditConditionHides))
+	FPCGExInputShorthandNameVector ScaleSnap = FPCGExInputShorthandNameVector(FName("ScaleStep"), FVector(0.1));
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	FPCGExInputShorthandNameBoolean UniformScale = FPCGExInputShorthandNameBoolean(FName("UniformScale"), false);

@@ -100,7 +100,7 @@ namespace PCGExTransformPoints
 
 		ScaleSnap = Settings->ScaleSnap.GetValueSetting();
 		if (!ScaleSnap->Init(PointDataFacade)) { return false; }
-		
+
 		StartParallelLoopForPoints();
 
 		return true;
@@ -112,23 +112,43 @@ namespace PCGExTransformPoints
 
 		TConstPCGValueRange<int32> Seeds = PointDataFacade->GetIn()->GetConstSeedValueRange();
 		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
-		FPCGExFittingVariationsDetails Variations = FPCGExFittingVariationsDetails();
 
+		FRandomStream RandomSource;
+		
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			Variations.Apply(
-				Seeds[Index],
-				OutTransforms[Index],
-				FPCGExFittingVariations(
-					OffsetMin->Read(Index), OffsetMax->Read(Index),
-					Settings->OffsetSnapping, OffsetSnap->Read(Index),
-					AbsoluteOffset->Read(Index),
-					RotMin->Read(Index), RotMax->Read(Index),
-					Settings->RotationSnapping, RotSnap->Read(Index),
-					Settings->AbsoluteRotation,
-					ScaleMin->Read(Index), ScaleMax->Read(Index),
-					Settings->ScaleSnapping, ScaleSnap->Read(Index)),
-				EPCGExVariationMode::Disabled);
+			RandomSource.Initialize(Seeds[Index]);
+			
+			FTransform& OutTransform = OutTransforms[Index];
+			
+			const FVector OffsetMinV = OffsetMin->Read(Index);
+			const FVector OffsetMaxV = OffsetMax->Read(Index);
+			const FVector OffsetSnapV = OffsetSnap->Read(Index);
+
+			const FRotator RotMinV = RotMin->Read(Index);
+			const FRotator RotMaxV = RotMax->Read(Index);
+			const FRotator RotSnapV = RotSnap->Read(Index);
+
+			const FVector ScaleMinV = ScaleMin->Read(Index);
+			const FVector ScaleMaxV = ScaleMax->Read(Index);
+			const FVector ScaleSnapV = ScaleSnap->Read(Index);
+
+			const bool bAbsoluteOffset = AbsoluteOffset->Read(Index);
+			
+			FPCGExFittingVariations Variations(
+				OffsetMinV, OffsetMaxV,
+				Settings->SnapPosition, OffsetSnapV,
+				bAbsoluteOffset,
+				RotMinV, RotMaxV,
+				Settings->SnapRotation, RotSnapV,
+				Settings->AbsoluteRotation,
+				ScaleMinV, ScaleMaxV,
+				Settings->SnapScale, ScaleSnapV
+			);
+
+			Variations.ApplyOffset(RandomSource, OutTransform);
+			Variations.ApplyRotation(RandomSource, OutTransform);
+			Variations.ApplyScale(RandomSource, OutTransform);
 		}
 	}
 }

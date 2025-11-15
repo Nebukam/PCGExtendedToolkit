@@ -20,8 +20,8 @@ class UPCGExAssetCollection;
 UENUM()
 enum class EPCGExGrammarScaleMode : uint8
 {
-	Fixed = 0 UMETA(DisplayName = "Fixed", Tooltip="Fixed size. Will use the bound size of the selected axis.", ActionIcon="FixedSize"),
-	Flex  = 1 UMETA(DisplayName = "Flexible", Tooltip="Flexible size. Will use the bound size of the selected axis as a base but will be marked scalable.", ActionIcon="FlexibleSize"),
+	Fixed = 0 UMETA(DisplayName = "Fixed", Tooltip="Fixed size. Will use the bound size of the selected axis.", ActionIcon="Fixed"),
+	Flex  = 1 UMETA(DisplayName = "Flexible", Tooltip="Flexible size. Will use the bound size of the selected axis as a base but will be marked scalable.", ActionIcon="Flexible"),
 };
 
 UENUM()

@@ -85,6 +85,11 @@ namespace PCGExEnumCustomization
 		return Box;
 	}
 
+	TSharedRef<SWidget> CreateRadioGroup(const TSharedPtr<IPropertyHandle>& PropertyHandle, const FString& Enum)
+	{
+		return CreateRadioGroup(PropertyHandle, FindFirstObjectSafe<UEnum>(*Enum));
+	}
+
 	TSharedRef<SWidget> CreateCheckboxGroup(TSharedPtr<IPropertyHandle> PropertyHandle, UEnum* Enum, const TSet<int32>& SkipIndices)
 	{
 		TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox);
@@ -167,6 +172,11 @@ namespace PCGExEnumCustomization
 		}
 
 		return Box;
+	}
+
+	TSharedRef<SWidget> CreateCheckboxGroup(const TSharedPtr<IPropertyHandle>& PropertyHandle, const FString& Enum, const TSet<int32>& SkipIndices)
+	{
+		return CreateCheckboxGroup(PropertyHandle, FindFirstObjectSafe<UEnum>(*Enum), SkipIndices);
 	}
 }
 

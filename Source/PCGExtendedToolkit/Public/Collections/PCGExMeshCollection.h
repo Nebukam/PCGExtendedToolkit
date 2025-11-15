@@ -160,13 +160,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variants", EditCondition="!bIsSubCollection && MaterialVariants == EPCGExMaterialVariantsMode::Multi", TitleProperty="DisplayName", EditConditionHides))
 	TArray<FPCGExMaterialOverrideCollection> MaterialOverrideVariantsList;
 
-	/** Descriptor source. */
+	
+	/** Grammar source. */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	EPCGExEntryVariationMode GrammarSource = EPCGExEntryVariationMode::Local;
-
 	
 	/** Grammar details. */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides, ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection && GrammarSource == EPCGExEntryVariationMode::Local", EditConditionHides, ShowOnlyInnerProperties))
 	FPCGExMeshGrammarDetails MeshGrammar;
 
 	/** Whether to override subcollection grammar settings. TODO: Make this an enum */

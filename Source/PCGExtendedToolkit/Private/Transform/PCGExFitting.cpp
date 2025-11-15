@@ -279,6 +279,110 @@ bool FPCGExJustificationDetails::Init(FPCGExContext* InContext, const TSharedRef
 	return true;
 }
 
+void FPCGExFittingVariations::ApplyOffset(const FRandomStream& RandomStream, FTransform& OutTransform) const
+{
+	const FVector BaseLocation = OutTransform.GetLocation();
+	const FQuat BaseRotation = OutTransform.GetRotation();
+
+	FVector RandomOffset = FVector(
+		RandomStream.FRandRange(OffsetMin.X, OffsetMax.X),
+		RandomStream.FRandRange(OffsetMin.Y, OffsetMax.Y),
+		RandomStream.FRandRange(OffsetMin.Z, OffsetMax.Z));
+
+	if (SnapPosition == EPCGExVariationSnapping::SnapOffset)
+	{
+		PCGExMath::Snap(RandomOffset.X, OffsetSnap.X);
+		PCGExMath::Snap(RandomOffset.Y, OffsetSnap.Y);
+		PCGExMath::Snap(RandomOffset.Z, OffsetSnap.Z);
+	}
+
+	FVector OutLocation = bAbsoluteOffset ? BaseLocation + RandomOffset : BaseLocation + BaseRotation.RotateVector(RandomOffset);
+
+	if (SnapPosition == EPCGExVariationSnapping::SnapOffset)
+	{
+		PCGExMath::Snap(OutLocation.X, OffsetSnap.X);
+		PCGExMath::Snap(OutLocation.Y, OffsetSnap.Y);
+		PCGExMath::Snap(OutLocation.Z, OffsetSnap.Z);
+	}
+
+	OutTransform.SetLocation(OutLocation);
+}
+
+void FPCGExFittingVariations::ApplyRotation(const FRandomStream& RandomStream, FTransform& OutTransform) const
+{
+	const FQuat BaseRotation = OutTransform.GetRotation();
+
+	FRotator RandRot = FRotator(
+		RandomStream.FRandRange(RotationMin.Pitch, RotationMax.Pitch),
+		RandomStream.FRandRange(RotationMin.Yaw, RotationMax.Yaw),
+		RandomStream.FRandRange(RotationMin.Roll, RotationMax.Roll));
+
+	if (SnapRotation == EPCGExVariationSnapping::SnapOffset)
+	{
+		PCGExMath::Snap(RandRot.Pitch, RotationSnap.Pitch);
+		PCGExMath::Snap(RandRot.Yaw, RotationSnap.Yaw);
+		PCGExMath::Snap(RandRot.Roll, RotationSnap.Roll);
+	}
+
+	FRotator OutRotation = BaseRotation.Rotator();
+
+	if (AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::X)) { OutRotation.Pitch = RandRot.Pitch; }
+	else { OutRotation.Pitch += RandRot.Pitch; }
+
+	if (AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Y)) { OutRotation.Yaw = RandRot.Yaw; }
+	else { OutRotation.Yaw += RandRot.Yaw; }
+
+	if (AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Z)) { OutRotation.Roll = RandRot.Roll; }
+	else { OutRotation.Roll += RandRot.Roll; }
+
+	if (SnapRotation == EPCGExVariationSnapping::SnapResult)
+	{
+		PCGExMath::Snap(OutRotation.Pitch, RotationSnap.Pitch);
+		PCGExMath::Snap(OutRotation.Yaw, RotationSnap.Yaw);
+		PCGExMath::Snap(OutRotation.Roll, RotationSnap.Roll);
+	}
+
+	OutTransform.SetRotation(OutRotation.Quaternion());
+}
+
+void FPCGExFittingVariations::ApplyScale(const FRandomStream& RandomStream, FTransform& OutTransform) const
+{
+	FVector OutScale = OutTransform.GetScale3D();
+	FVector RandomScale;
+	if (bUniformScale)
+	{
+		const double S = RandomStream.FRandRange(ScaleMin.X, ScaleMax.X);
+		RandomScale = FVector(S);
+	}
+	else
+	{
+		RandomScale = FVector(
+			RandomStream.FRandRange(ScaleMin.X, ScaleMax.X),
+			RandomStream.FRandRange(ScaleMin.Y, ScaleMax.Y),
+			RandomStream.FRandRange(ScaleMin.Z, ScaleMax.Z));
+	}
+
+	if (SnapScale == EPCGExVariationSnapping::SnapOffset)
+	{
+		const FVector Snap = bUniformScale ? FVector(ScaleSnap.X) : OffsetSnap;
+		PCGExMath::Snap(RandomScale.X, Snap.X);
+		PCGExMath::Snap(RandomScale.Y, Snap.Y);
+		PCGExMath::Snap(RandomScale.Z, Snap.Z);
+	}
+
+	OutScale *= RandomScale;
+
+	if (SnapScale == EPCGExVariationSnapping::SnapResult)
+	{
+		const FVector Snap = bUniformScale ? FVector(ScaleSnap.X) : OffsetSnap;
+		PCGExMath::Snap(OutScale.X, Snap.X);
+		PCGExMath::Snap(OutScale.Y, Snap.Y);
+		PCGExMath::Snap(OutScale.Z, Snap.Z);
+	}
+
+	OutTransform.SetScale3D(OutScale);
+}
+
 void FPCGExFittingVariationsDetails::Init(const int InSeed)
 {
 	Seed = InSeed;
@@ -286,101 +390,11 @@ void FPCGExFittingVariationsDetails::Init(const int InSeed)
 	bEnabledAfter = (Offset == EPCGExVariationMode::After || Rotation == EPCGExVariationMode::After || Scale == EPCGExVariationMode::After);
 }
 
-void FPCGExFittingVariationsDetails::Apply(const int32 BaseSeed, FTransform& OutTransform, const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const
+void FPCGExFittingVariationsDetails::Apply(const FRandomStream& RandomStream, FTransform& OutTransform, const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const
 {
-	FRandomStream RandomSource(PCGHelpers::ComputeSeed(Seed, BaseSeed));
-
-	const FVector BaseLocation = OutTransform.GetLocation();
-	const FQuat BaseRotation = OutTransform.GetRotation();
-
-	if (Offset == Step)
-	{
-		const FVector& Min = Variations.OffsetMin;
-		const FVector& Max = Variations.OffsetMax;
-
-		FVector RandomOffset = FVector(
-			RandomSource.FRandRange(Min.X, Max.X),
-			RandomSource.FRandRange(Min.Y, Max.Y),
-			RandomSource.FRandRange(Min.Z, Max.Z));
-
-		if (Variations.OffsetSnapping == EPCGExSnapping::Snap)
-		{
-			const FVector& StepSize = Variations.OffsetSnap;
-			PCGExMath::Snap(RandomOffset.X, StepSize.X);
-			PCGExMath::Snap(RandomOffset.Y, StepSize.Y);
-			PCGExMath::Snap(RandomOffset.Z, StepSize.Z);
-		}
-
-		OutTransform.SetLocation(
-				Variations.bAbsoluteOffset
-					? BaseLocation + RandomOffset
-					: BaseLocation + BaseRotation.RotateVector(RandomOffset)
-			);
-	}
-
-	if (Rotation == Step)
-	{
-		const FRotator& Min = Variations.RotationMin;
-		const FRotator& Max = Variations.RotationMax;
-
-		FRotator RandRot = FRotator(
-			RandomSource.FRandRange(Min.Pitch, Max.Pitch),
-			RandomSource.FRandRange(Min.Yaw, Max.Yaw),
-			RandomSource.FRandRange(Min.Roll, Max.Roll));
-
-		if (Variations.RotationSnapping == EPCGExSnapping::Snap)
-		{
-			const FRotator& StepSize = Variations.RotationSnap;
-			PCGExMath::Snap(RandRot.Pitch, StepSize.Pitch);
-			PCGExMath::Snap(RandRot.Yaw, StepSize.Yaw);
-			PCGExMath::Snap(RandRot.Roll, StepSize.Roll);
-		}
-
-		FRotator OutRotation = BaseRotation.Rotator();
-		const uint8 Flags = Variations.AbsoluteRotation;
-
-		if (Flags & static_cast<uint8>(EPCGExAbsoluteRotationFlags::X)) { OutRotation.Pitch = RandRot.Pitch; }
-		else { OutRotation.Pitch += RandRot.Pitch; }
-
-		if (Flags & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Y)) { OutRotation.Yaw = RandRot.Yaw; }
-		else { OutRotation.Yaw += RandRot.Yaw; }
-
-		if (Flags & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Z)) { OutRotation.Roll = RandRot.Roll; }
-		else { OutRotation.Roll += RandRot.Roll; }
-
-		OutTransform.SetRotation(OutRotation.Quaternion());
-	}
-
-	if (Scale == Step)
-	{
-		const FVector BaseScale = OutTransform.GetScale3D();
-		const FVector& Min = Variations.ScaleMin;
-		const FVector& Max = Variations.ScaleMax;
-
-		if (Variations.bUniformScale)
-		{
-			double RandomScale = RandomSource.FRandRange(Min.X, Variations.ScaleMax.X);
-			if (Variations.ScaleSnapping == EPCGExSnapping::Snap) { PCGExMath::Snap(RandomScale, Variations.ScaleSnap.X); }
-			OutTransform.SetScale3D(BaseScale * RandomScale);
-		}
-		else
-		{
-			FVector RandomScale = FVector(
-				RandomSource.FRandRange(Min.X, Max.X),
-				RandomSource.FRandRange(Min.Y, Max.Y),
-				RandomSource.FRandRange(Min.Z, Max.Z));
-
-			if (Variations.ScaleSnapping == EPCGExSnapping::Snap)
-			{
-				const FVector& StepSize = Variations.OffsetSnap;
-				PCGExMath::Snap(RandomScale.X, StepSize.X);
-				PCGExMath::Snap(RandomScale.Y, StepSize.Y);
-				PCGExMath::Snap(RandomScale.Z, StepSize.Z);
-			}
-
-			OutTransform.SetScale3D(BaseScale * RandomScale);
-		}
-	}
+	if (Offset == Step) { Variations.ApplyOffset(RandomStream, OutTransform); }
+	if (Rotation == Step) { Variations.ApplyRotation(RandomStream, OutTransform); }
+	if (Scale == Step) { Variations.ApplyScale(RandomStream, OutTransform); }
 }
 
 bool FPCGExFittingDetailsHandler::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InTargetFacade)
