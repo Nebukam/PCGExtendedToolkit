@@ -298,7 +298,7 @@ void FPCGExFittingVariations::ApplyOffset(const FRandomStream& RandomStream, FTr
 
 	FVector OutLocation = bAbsoluteOffset ? BaseLocation + RandomOffset : BaseLocation + BaseRotation.RotateVector(RandomOffset);
 
-	if (SnapPosition == EPCGExVariationSnapping::SnapOffset)
+	if (SnapPosition == EPCGExVariationSnapping::SnapResult)
 	{
 		PCGExMath::Snap(OutLocation.X, OffsetSnap.X);
 		PCGExMath::Snap(OutLocation.Y, OffsetSnap.Y);
@@ -319,27 +319,27 @@ void FPCGExFittingVariations::ApplyRotation(const FRandomStream& RandomStream, F
 
 	if (SnapRotation == EPCGExVariationSnapping::SnapOffset)
 	{
+		PCGExMath::Snap(RandRot.Roll, RotationSnap.Roll);
 		PCGExMath::Snap(RandRot.Pitch, RotationSnap.Pitch);
 		PCGExMath::Snap(RandRot.Yaw, RotationSnap.Yaw);
-		PCGExMath::Snap(RandRot.Roll, RotationSnap.Roll);
 	}
 
 	FRotator OutRotation = BaseRotation.Rotator();
 
-	if (AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::X)) { OutRotation.Pitch = RandRot.Pitch; }
+	if (AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::X)) { OutRotation.Roll = RandRot.Roll; }
+	else { OutRotation.Roll += RandRot.Roll; }
+	
+	if (AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Y)) { OutRotation.Pitch = RandRot.Pitch; }
 	else { OutRotation.Pitch += RandRot.Pitch; }
 
-	if (AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Y)) { OutRotation.Yaw = RandRot.Yaw; }
+	if (AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Z)) { OutRotation.Yaw = RandRot.Yaw; }
 	else { OutRotation.Yaw += RandRot.Yaw; }
-
-	if (AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Z)) { OutRotation.Roll = RandRot.Roll; }
-	else { OutRotation.Roll += RandRot.Roll; }
 
 	if (SnapRotation == EPCGExVariationSnapping::SnapResult)
 	{
+		PCGExMath::Snap(OutRotation.Roll, RotationSnap.Roll);
 		PCGExMath::Snap(OutRotation.Pitch, RotationSnap.Pitch);
 		PCGExMath::Snap(OutRotation.Yaw, RotationSnap.Yaw);
-		PCGExMath::Snap(OutRotation.Roll, RotationSnap.Roll);
 	}
 
 	OutTransform.SetRotation(OutRotation.Quaternion());
