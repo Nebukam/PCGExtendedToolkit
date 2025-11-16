@@ -39,7 +39,8 @@ MACRO(Symbol, FName, Infos.Symbol, NAME_None)\
 MACRO(Size, double, Infos.Size, 0)\
 MACRO(Scalable, bool, Infos.bScalable, true)\
 MACRO(DebugColor, FVector4, Infos.DebugColor, FVector4(1,1,1,1))\
-MACRO(Entry, int64, Idx, 0)
+MACRO(Entry, int64, Idx, 0)\
+MACRO(Category, FName, Entry->Category, NAME_None)
 
 bool FPCGExMeshCollectionToGrammarElement::IsCacheable(const UPCGSettings* InSettings) const
 {
@@ -133,7 +134,8 @@ void FPCGExMeshCollectionToGrammarElement::FlattenCollection(
 		}
 
 		PCGExMeshCollectionToGrammar::FModule& Module = OutModules.Emplace_GetRef();
-		if (!Entry->FixModuleInfos(Collection, Module.Infos))
+		if (!Entry->FixModuleInfos(Collection, Module.Infos)
+			|| (Settings->bSkipEmptySymbol && Module.Infos.Symbol.IsNone()) )
 		{
 			OutModules.Pop(EAllowShrinking::No);
 			continue;
@@ -148,6 +150,7 @@ void FPCGExMeshCollectionToGrammarElement::FlattenCollection(
 			continue;
 		}
 
+		Module.Entry = Entry;
 		Module.Idx = Packer->GetPickIdx(EntryHost, Entry->Staging.InternalIndex, 0);
 	}
 }

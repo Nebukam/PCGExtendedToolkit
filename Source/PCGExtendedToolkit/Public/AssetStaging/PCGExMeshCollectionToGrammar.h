@@ -17,6 +17,7 @@ namespace PCGExMeshCollectionToGrammar
 	{
 		FModule() = default;
 		FPCGSubdivisionSubmodule Infos;
+		const FPCGExMeshCollectionEntry* Entry = nullptr;
 		int64 Idx;
 	};
 }
@@ -49,6 +50,10 @@ protected:
 	/** If enabled, allows duplicate entries (duplicate is same symbol) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAllowDuplicates = true;
+	
+	/** If enabled, skip entries which symbol is "None" */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bSkipEmptySymbol = true;
 
 	/** If enabled, invalid or empty entries are removed from the output */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -74,6 +79,10 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Entry", EditCondition="false"))
 	FName EntryAttributeName = PCGExStaging::Tag_EntryIdx;
 
+	/** Name of the attribute the entry' Category value will be written to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Category"))
+	FName CategoryAttributeName = FName("Category");
+	
 	/** Cache the results of this node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
 	EPCGExOptionState CacheData = EPCGExOptionState::Default;
