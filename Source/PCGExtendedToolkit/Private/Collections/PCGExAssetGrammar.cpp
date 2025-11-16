@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Collections/PCGExMeshGrammar.h"
+#include "Collections/PCGExAssetGrammar.h"
 
 #include "UObject/Object.h"
 #include "UObject/Package.h"
@@ -10,7 +10,7 @@
 #include "Collections/PCGExMeshCollection.h"
 #include "Elements/Grammar/PCGSubdivisionBase.h"
 
-double FPCGExMeshGrammarDetails::GetSize(const FBox& InBounds, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache) const
+double FPCGExAssetGrammarDetails::GetSize(const FBox& InBounds, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache) const
 {
 	const FVector S = InBounds.GetSize();
 
@@ -27,7 +27,7 @@ double FPCGExMeshGrammarDetails::GetSize(const FBox& InBounds, TMap<const FPCGEx
 	return 0;
 }
 
-void FPCGExMeshGrammarDetails::Fix(const FBox& InBounds, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache) const
+void FPCGExAssetGrammarDetails::Fix(const FBox& InBounds, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache) const
 {
 	OutSubmodule.Symbol = Symbol;
 	OutSubmodule.DebugColor = DebugColor;
@@ -35,18 +35,18 @@ void FPCGExMeshGrammarDetails::Fix(const FBox& InBounds, FPCGSubdivisionSubmodul
 	OutSubmodule.Size = GetSize(InBounds);
 }
 
-double FPCGExMeshCollectionGrammarDetails::GetSize(const UPCGExMeshCollection* InCollection, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache) const
+double FPCGExCollectionGrammarDetails::GetSize(const UPCGExAssetCollection* InCollection, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache) const
 {
 	if (SizeMode == EPCGExCollectionGrammarSize::Fixed)
 	{
 		return Size;
 	}
 
-	UPCGExMeshCollection* Collection = const_cast<UPCGExMeshCollection*>(InCollection);
+	UPCGExAssetCollection* Collection = const_cast<UPCGExAssetCollection*>(InCollection);
 	const PCGExAssetCollection::FCache* Cache = Collection->LoadCache();
 	const int32 NumEntries = Cache->Main->Order.Num();
 
-	const FPCGExMeshCollectionEntry* Entry = nullptr;
+	const FPCGExAssetCollectionEntry* Entry = nullptr;
 	const UPCGExAssetCollection* EntryHost = nullptr;
 
 	double CompoundSize = 0;
@@ -58,7 +58,7 @@ double FPCGExMeshCollectionGrammarDetails::GetSize(const UPCGExMeshCollection* I
 		{
 			Collection->GetEntryAt(Entry, i, EntryHost);
 			if (!Entry) { continue; }
-			CompoundSize = FMath::Min(CompoundSize, Entry->GetGrammarSize(static_cast<const UPCGExMeshCollection*>(EntryHost), SizeCache));
+			CompoundSize = FMath::Min(CompoundSize, Entry->GetGrammarSize(static_cast<const UPCGExAssetCollection*>(EntryHost), SizeCache));
 		}
 	}
 	else if (SizeMode == EPCGExCollectionGrammarSize::Max)
@@ -69,7 +69,7 @@ double FPCGExMeshCollectionGrammarDetails::GetSize(const UPCGExMeshCollection* I
 		{
 			Collection->GetEntryAt(Entry, i, EntryHost);
 			if (!Entry) { continue; }
-			CompoundSize = FMath::Max(CompoundSize, Entry->GetGrammarSize(static_cast<const UPCGExMeshCollection*>(EntryHost), SizeCache));
+			CompoundSize = FMath::Max(CompoundSize, Entry->GetGrammarSize(static_cast<const UPCGExAssetCollection*>(EntryHost), SizeCache));
 		}
 	}
 	else if (SizeMode == EPCGExCollectionGrammarSize::Average)
@@ -81,7 +81,7 @@ double FPCGExMeshCollectionGrammarDetails::GetSize(const UPCGExMeshCollection* I
 			Collection->GetEntryAt(Entry, i, EntryHost);
 			if (!Entry) { continue; }
 
-			CompoundSize += Entry->GetGrammarSize(static_cast<const UPCGExMeshCollection*>(EntryHost), SizeCache);
+			CompoundSize += Entry->GetGrammarSize(static_cast<const UPCGExAssetCollection*>(EntryHost), SizeCache);
 			NumSamples++;
 		}
 
@@ -91,7 +91,7 @@ double FPCGExMeshCollectionGrammarDetails::GetSize(const UPCGExMeshCollection* I
 	return CompoundSize;
 }
 
-void FPCGExMeshCollectionGrammarDetails::Fix(const UPCGExMeshCollection* InCollection, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache) const
+void FPCGExCollectionGrammarDetails::Fix(const UPCGExAssetCollection* InCollection, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache) const
 {
 	OutSubmodule.Symbol = Symbol;
 	OutSubmodule.DebugColor = DebugColor;

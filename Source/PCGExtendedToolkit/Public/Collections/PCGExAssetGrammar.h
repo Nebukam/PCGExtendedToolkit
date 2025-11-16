@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMeshGrammar.generated.h"
+#include "PCGExAssetGrammar.generated.h"
 
 struct FPCGExAssetStagingData;
-class UPCGExMeshCollection;
-struct FPCGExMeshCollectionEntry;
+class UPCGExAssetCollection;
+struct FPCGExAssetCollectionEntry;
 struct FPCGSubdivisionSubmodule;
 class UPCGExAssetCollection;
 
@@ -48,13 +48,13 @@ enum class EPCGExCollectionGrammarSize : uint8
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Grammar Details")
-struct PCGEXTENDEDTOOLKIT_API FPCGExMeshGrammarDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExAssetGrammarDetails
 {
 	GENERATED_BODY()
 
-	FPCGExMeshGrammarDetails() = default;
+	FPCGExAssetGrammarDetails() = default;
 
-	FPCGExMeshGrammarDetails(const FName InSymbol): Symbol(InSymbol)
+	FPCGExAssetGrammarDetails(const FName InSymbol): Symbol(InSymbol)
 	{
 	}
 
@@ -74,16 +74,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshGrammarDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FLinearColor DebugColor = FLinearColor::White;
 
-	double GetSize(const FBox& InBounds, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache = nullptr) const;
-	void Fix(const FBox& InBounds, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache = nullptr) const;
+	double GetSize(const FBox& InBounds, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache = nullptr) const;
+	void Fix(const FBox& InBounds, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache = nullptr) const;
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Grammar Details")
-struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionGrammarDetails
+struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionGrammarDetails
 {
 	GENERATED_BODY()
 
-	FPCGExMeshCollectionGrammarDetails() = default;
+	FPCGExCollectionGrammarDetails() = default;
 
 	/** Symbol for the grammar. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -105,6 +105,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionGrammarDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FLinearColor DebugColor = FLinearColor::White;
 
-	double GetSize(const UPCGExMeshCollection* InCollection, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache = nullptr) const;
-	void Fix(const UPCGExMeshCollection* InCollection, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache = nullptr) const;
+	double GetSize(const UPCGExAssetCollection* InCollection, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache = nullptr) const;
+	void Fix(const UPCGExAssetCollection* InCollection, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache = nullptr) const;
 };

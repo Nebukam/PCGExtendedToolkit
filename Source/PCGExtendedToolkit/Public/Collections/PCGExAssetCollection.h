@@ -13,6 +13,7 @@
 #include "AssetRegistry/AssetData.h"
 #endif
 
+#include "PCGExAssetGrammar.h"
 #include "PCGExHelpers.h"
 #include "PCGParamData.h"
 #include "Details/PCGExDetailsStaging.h"
@@ -202,6 +203,22 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TSet<FName> Tags;
 
+	/** Grammar source. */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	EPCGExEntryVariationMode GrammarSource = EPCGExEntryVariationMode::Local;
+
+	/** Grammar details. */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	FPCGExAssetGrammarDetails AssetGrammar;
+
+	/** Whether to override subcollection grammar settings. TODO: Make this an enum */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides))
+	EPCGExGrammarSubCollectionMode SubGrammarMode = EPCGExGrammarSubCollectionMode::Inherit;
+
+	/** Grammar details subcollection overrides.  */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection && SubGrammarMode == EPCGExGrammarSubCollectionMode::Override", EditConditionHides))
+	FPCGExCollectionGrammarDetails CollectionGrammar;
+	
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	FPCGExAssetStagingData Staging;
 
@@ -211,7 +228,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 	template <typename T>
 	T* GetSubCollection() { return Cast<T>(InternalSubCollection); }
 	
+	template <typename T>
+	T* GetSubCollection() const { return Cast<T>(InternalSubCollection); }
+	
 	const FPCGExFittingVariations& GetVariations(const UPCGExAssetCollection* ParentCollection) const;
+	
+	double GetGrammarSize(const UPCGExAssetCollection* Host) const;
+	double GetGrammarSize(const UPCGExAssetCollection* Host, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache) const;
+	
+	bool FixModuleInfos(const UPCGExAssetCollection* Host, FPCGSubdivisionSubmodule& OutModule, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache = nullptr) const;
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
@@ -505,6 +530,18 @@ public:
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExFittingVariations GlobalVariations;
 
+	/** Global grammar rule.\nNOTE: Symbol is still defined per-entry. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	EPCGExGlobalVariationRule GlobalGrammarMode = EPCGExGlobalVariationRule::PerEntry;
+
+	/** Global Mesh Grammar details.\nNOTE: Symbol is still defined per-entry. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	FPCGExAssetGrammarDetails GlobalAssetGrammar = FPCGExAssetGrammarDetails(FName("N/A"));
+
+	/** Default grammar when this collection is used as a subcollection. Note that this can be superseded by the host. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	FPCGExCollectionGrammarDetails CollectionGrammar;
+	
 	/** If enabled, empty mesh will still be weighted and picked as valid entries, instead of being ignored. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	bool bDoNotIgnoreInvalidEntries = false;

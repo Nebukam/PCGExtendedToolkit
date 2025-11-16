@@ -7,33 +7,33 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExStaging.h"
 #include "Elements/Grammar/PCGSubdivisionBase.h"
-#include "PCGExMeshCollectionToGrammar.generated.h"
+#include "PCGExCollectionToModuleInfos.generated.h"
 
-class UPCGExMeshCollection;
+class UPCGExAssetCollection;
 
-namespace PCGExMeshCollectionToGrammar
+namespace PCGExCollectionToGrammar
 {
 	struct FModule
 	{
 		FModule() = default;
 		FPCGSubdivisionSubmodule Infos;
-		const FPCGExMeshCollectionEntry* Entry = nullptr;
+		const FPCGExAssetCollectionEntry* Entry = nullptr;
 		int64 Idx;
 	};
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="assets-management/asset-collection-to-set"))
-class UPCGExMeshCollectionToGrammarSettings : public UPCGSettings
+class UPCGExCollectionToModuleInfosSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
-	friend class FPCGExMeshCollectionToGrammarElement;
+	friend class FPCGExCollectionToModuleInfosElement;
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_DUMMY_SETTINGS_MEMBERS
-	PCGEX_NODE_INFOS(MeshCollectionToGrammar, "Collection to Module Infos", "Converts a mesh collection to a grammar-friendly attribute set that can be used as module infos.");
+	PCGEX_NODE_INFOS(CollectionToModuleInfos, "Collection to Module Infos", "Converts an asset collection to a grammar-friendly attribute set that can be used as module infos.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 #endif
 
@@ -45,7 +45,7 @@ protected:
 
 	/** The mesh collection to read module infos from */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UPCGExMeshCollection> MeshCollection;
+	TSoftObjectPtr<UPCGExAssetCollection> AssetCollection;
 
 	/** If enabled, allows duplicate entries (duplicate is same symbol) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -88,7 +88,7 @@ protected:
 	EPCGExOptionState CacheData = EPCGExOptionState::Default;
 };
 
-class FPCGExMeshCollectionToGrammarElement final : public IPCGElement
+class FPCGExCollectionToModuleInfosElement final : public IPCGElement
 {
 public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
@@ -101,9 +101,9 @@ protected:
 
 	void FlattenCollection(
 		const TSharedPtr<PCGExStaging::FPickPacker>& Packer,
-		UPCGExMeshCollection* Collection,
-		const UPCGExMeshCollectionToGrammarSettings* Settings,
-		TArray<PCGExMeshCollectionToGrammar::FModule>& OutModules,
+		UPCGExAssetCollection* Collection,
+		const UPCGExCollectionToModuleInfosSettings* Settings,
+		TArray<PCGExCollectionToGrammar::FModule>& OutModules,
 		TSet<FName>& OutSymbols,
-		TMap<const FPCGExMeshCollectionEntry*, double>& SizeCache) const;
+		TMap<const FPCGExAssetCollectionEntry*, double>& SizeCache) const;
 };

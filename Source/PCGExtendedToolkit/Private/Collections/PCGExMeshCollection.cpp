@@ -262,30 +262,7 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 	return Super::Validate(ParentCollection);
 }
 
-double FPCGExMeshCollectionEntry::GetGrammarSize(const UPCGExMeshCollection* Host) const
-{
-	if (!bIsSubCollection)
-	{
-		if (GrammarSource == EPCGExEntryVariationMode::Local) { return MeshGrammar.GetSize(Staging.Bounds); }
-		return Host->GlobalMeshGrammar.GetSize(Staging.Bounds);
-	}
 
-	if (SubCollection)
-	{
-		if (SubGrammarMode == EPCGExGrammarSubCollectionMode::Flatten) { return 0; }
-		if (SubGrammarMode == EPCGExGrammarSubCollectionMode::Inherit) { return SubCollection->CollectionGrammar.GetSize(SubCollection); }
-		if (SubGrammarMode == EPCGExGrammarSubCollectionMode::Override) { return CollectionGrammar.GetSize(SubCollection); }
-	}
-
-	return 0;
-}
-
-double FPCGExMeshCollectionEntry::GetGrammarSize(const UPCGExMeshCollection* Host, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache) const
-{
-	if (!SizeCache) { return GetGrammarSize(Host); }
-	if (double* CachedSize = SizeCache->Find(this)) { return *CachedSize; }
-	return SizeCache->Add(this, GetGrammarSize(Host));
-}
 
 #if WITH_EDITOR
 void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
@@ -323,25 +300,6 @@ void FPCGExMeshCollectionEntry::BuildMicroCache()
 	}
 
 	MicroCache = NewCache;
-}
-
-
-bool FPCGExMeshCollectionEntry::FixModuleInfos(const UPCGExMeshCollection* Host, FPCGSubdivisionSubmodule& OutModule, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache) const
-{
-	if (!bIsSubCollection)
-	{
-		if (GrammarSource == EPCGExEntryVariationMode::Local) { MeshGrammar.Fix(Staging.Bounds, OutModule); }
-		else { Host->GlobalMeshGrammar.Fix(Staging.Bounds, OutModule); }
-	}
-
-	if (SubCollection)
-	{
-		if (SubGrammarMode == EPCGExGrammarSubCollectionMode::Inherit) { SubCollection->CollectionGrammar.Fix(SubCollection, OutModule); }
-		else if (SubGrammarMode == EPCGExGrammarSubCollectionMode::Override) { CollectionGrammar.Fix(SubCollection, OutModule); }
-		else { return false; }
-	}
-
-	return true;
 }
 
 void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const int32 InInternalIndex, const bool bRecursive)

@@ -1,28 +1,28 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "AssetStaging/PCGExMeshCollectionToGrammar.h"
+#include "AssetStaging/PCGExCollectionToModuleInfos.h"
 
 
 #include "PCGGraph.h"
 #include "PCGPin.h"
 #include "AssetStaging/PCGExStaging.h"
 #include "Collections/PCGExActorCollection.h"
-#include "Collections/PCGExMeshCollection.h"
+#include "Collections/PCGExAssetCollection.h"
 #include "Elements/Grammar/PCGSubdivisionBase.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
-#define PCGEX_NAMESPACE MeshCollectionToGrammar
+#define PCGEX_NAMESPACE CollectionToModuleInfos
 
 #pragma region UPCGSettings interface
 
-TArray<FPCGPinProperties> UPCGExMeshCollectionToGrammarSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCollectionToModuleInfosSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExMeshCollectionToGrammarSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCollectionToModuleInfosSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_PARAM(FName("ModuleInfos"), TEXT("Module infos generated from the selected collection"), Normal)
@@ -30,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExMeshCollectionToGrammarSettings::OutputPinProper
 	return PinProperties;
 }
 
-FPCGElementPtr UPCGExMeshCollectionToGrammarSettings::CreateElement() const { return MakeShared<FPCGExMeshCollectionToGrammarElement>(); }
+FPCGElementPtr UPCGExCollectionToModuleInfosSettings::CreateElement() const { return MakeShared<FPCGExCollectionToModuleInfosElement>(); }
 
 #pragma endregion
 
@@ -42,17 +42,17 @@ MACRO(DebugColor, FVector4, Infos.DebugColor, FVector4(1,1,1,1))\
 MACRO(Entry, int64, Idx, 0)\
 MACRO(Category, FName, Entry->Category, NAME_None)
 
-bool FPCGExMeshCollectionToGrammarElement::IsCacheable(const UPCGSettings* InSettings) const
+bool FPCGExCollectionToModuleInfosElement::IsCacheable(const UPCGSettings* InSettings) const
 {
-	const UPCGExMeshCollectionToGrammarSettings* Settings = static_cast<const UPCGExMeshCollectionToGrammarSettings*>(InSettings);
+	const UPCGExCollectionToModuleInfosSettings* Settings = static_cast<const UPCGExCollectionToModuleInfosSettings*>(InSettings);
 	PCGEX_GET_OPTION_STATE(Settings->CacheData, bDefaultCacheNodeOutput)
 }
 
-bool FPCGExMeshCollectionToGrammarElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExCollectionToModuleInfosElement::ExecuteInternal(FPCGContext* Context) const
 {
-	PCGEX_SETTINGS(MeshCollectionToGrammar)
+	PCGEX_SETTINGS(CollectionToModuleInfos)
 
-	UPCGExMeshCollection* MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->MeshCollection);
+	UPCGExAssetCollection* MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
 
 	if (!MainCollection)
 	{
@@ -76,15 +76,15 @@ bool FPCGExMeshCollectionToGrammarElement::ExecuteInternal(FPCGContext* Context)
 	TSet<FName> UniqueSymbols;
 	UniqueSymbols.Reserve(100);
 	
-	TMap<const FPCGExMeshCollectionEntry*, double> SizeCache;
+	TMap<const FPCGExAssetCollectionEntry*, double> SizeCache;
 	SizeCache.Reserve(100);
 
-	TArray<PCGExMeshCollectionToGrammar::FModule> Modules;
+	TArray<PCGExCollectionToGrammar::FModule> Modules;
 	Modules.Reserve(100);
 
 	FlattenCollection(Packer, MainCollection, Settings, Modules, UniqueSymbols, SizeCache);
 
-	for (const PCGExMeshCollectionToGrammar::FModule& Module : Modules)
+	for (const PCGExCollectionToGrammar::FModule& Module : Modules)
 	{
 		const int64 Key = Metadata->AddEntry();
 #define PCGEX_MODULE_OUT(_NAME, _TYPE, _GETTER, _DEFAULT) _NAME##Attribute->SetValue(Key, Module._GETTER);
@@ -106,20 +106,20 @@ bool FPCGExMeshCollectionToGrammarElement::ExecuteInternal(FPCGContext* Context)
 	return true;
 }
 
-void FPCGExMeshCollectionToGrammarElement::FlattenCollection(
+void FPCGExCollectionToModuleInfosElement::FlattenCollection(
 	const TSharedPtr<PCGExStaging::FPickPacker>& Packer,
-	UPCGExMeshCollection* Collection,
-	const UPCGExMeshCollectionToGrammarSettings* Settings,
-	TArray<PCGExMeshCollectionToGrammar::FModule>& OutModules,
+	UPCGExAssetCollection* Collection,
+	const UPCGExCollectionToModuleInfosSettings* Settings,
+	TArray<PCGExCollectionToGrammar::FModule>& OutModules,
 	TSet<FName>& UniqueSymbols,
-	TMap<const FPCGExMeshCollectionEntry*, double>& SizeCache) const
+	TMap<const FPCGExAssetCollectionEntry*, double>& SizeCache) const
 {
 	if (!Collection) { return; }
 
 	const PCGExAssetCollection::FCache* Cache = Collection->LoadCache();
 	const int32 NumEntries = Cache->Main->Order.Num();
 
-	const FPCGExMeshCollectionEntry* Entry = nullptr;
+	const FPCGExAssetCollectionEntry* Entry = nullptr;
 	const UPCGExAssetCollection* EntryHost = nullptr;
 
 	for (int i = 0; i < NumEntries; i++)
@@ -129,11 +129,11 @@ void FPCGExMeshCollectionToGrammarElement::FlattenCollection(
 
 		if (Entry->bIsSubCollection && Entry->SubGrammarMode == EPCGExGrammarSubCollectionMode::Flatten)
 		{
-			FlattenCollection(Packer, Entry->SubCollection, Settings, OutModules, UniqueSymbols, SizeCache);
+			FlattenCollection(Packer, Entry->GetSubCollection<UPCGExAssetCollection>(), Settings, OutModules, UniqueSymbols, SizeCache);
 			continue;
 		}
 
-		PCGExMeshCollectionToGrammar::FModule& Module = OutModules.Emplace_GetRef();
+		PCGExCollectionToGrammar::FModule& Module = OutModules.Emplace_GetRef();
 		if (!Entry->FixModuleInfos(Collection, Module.Infos)
 			|| (Settings->bSkipEmptySymbol && Module.Infos.Symbol.IsNone()) )
 		{

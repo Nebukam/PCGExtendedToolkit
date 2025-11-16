@@ -11,7 +11,7 @@
 #include "Details/Collections/PCGExFittingVariationsCustomization.h"
 #include "Details/Collections/PCGExMaterialPicksCustomization.h"
 #include "Details/Collections/PCGExMeshCollectionActions.h"
-#include "Details/Collections/PCGExMeshGrammarCustomization.h"
+#include "Details/Collections/PCGExAssetGrammarCustomization.h"
 #include "Details/Enums/PCGExGridEnumCustomization.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
 #include "Details/InputSettings/PCGExInputShorthandsCustomization.h"
@@ -173,7 +173,7 @@ namespace PCGExDetailsCustomization
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMaterialOverrideCollection", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMaterialOverrideCollectionCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMeshCollectionEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMeshEntryCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExActorCollectionEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExActorEntryCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMeshGrammarDetails", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMeshGrammarCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExAssetGrammarDetails", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExAssetGrammarCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameBoolean", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameFloat", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));

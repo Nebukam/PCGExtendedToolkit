@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Details/Collections/PCGExMeshGrammarCustomization.h"
+#include "Details/Collections/PCGExCollectionGrammarCustomization.h"
 
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
@@ -10,16 +10,12 @@
 #include "PropertyHandle.h"
 #include "Collections/PCGExAssetCollection.h"
 #include "Collections/PCGExMeshCollection.h"
-#include "Collections/PCGExMeshGrammar.h"
 #include "Constants/PCGExTuple.h"
 #include "Details/PCGExCustomizationMacros.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SEditableTextBox.h"
-#include "Widgets/Input/SNumericEntryBox.h"
-#include "Widgets/Input/SRotatorInputBox.h"
-#include "Widgets/Input/SVectorInputBox.h"
 
 #define PCGEX_SMALL_LABEL(_TEXT) \
 + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(1, 0)\
@@ -46,20 +42,20 @@ return EVisibility::Collapsed;})
 
 #define PCGEX_FIELD(_HANDLE, _TYPE, _PART, _TOOLTIP) PCGEX_FIELD_BASE(_HANDLE, _TYPE, _PART, _TOOLTIP)]
 
-TSharedRef<IPropertyTypeCustomization> FPCGExMeshGrammarCustomization::MakeInstance()
+TSharedRef<IPropertyTypeCustomization> FPCGExCollectionGrammarCustomization::MakeInstance()
 {
-	return MakeShareable(new FPCGExMeshGrammarCustomization());
+	return MakeShareable(new FPCGExCollectionGrammarCustomization());
 }
 
-void FPCGExMeshGrammarCustomization::CustomizeHeader(
+void FPCGExCollectionGrammarCustomization::CustomizeHeader(
 	TSharedRef<IPropertyHandle> PropertyHandle,
 	FDetailWidgetRow& HeaderRow,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	TSharedPtr<IPropertyHandle> SymbolHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExMeshGrammarDetails, Symbol));
-	TSharedPtr<IPropertyHandle> ScaleModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExMeshGrammarDetails, ScaleMode));
-	TSharedPtr<IPropertyHandle> SizeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExMeshGrammarDetails, Size));
-	TSharedPtr<IPropertyHandle> DebugColorHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExMeshGrammarDetails, DebugColor));
+	TSharedPtr<IPropertyHandle> SymbolHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExCollectionGrammarDetails, Symbol));
+	TSharedPtr<IPropertyHandle> ScaleModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExCollectionGrammarDetails, ScaleMode));
+	TSharedPtr<IPropertyHandle> SizeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExCollectionGrammarDetails, SizeMode));
+	TSharedPtr<IPropertyHandle> DebugColorHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExCollectionGrammarDetails, DebugColor));
 
 	TSharedPtr<IPropertyHandle> GrammarSourceHandle = nullptr;
 	if (TSharedPtr<IPropertyHandle> ParentHandle = PropertyHandle->GetParentHandle()) { GrammarSourceHandle = ParentHandle->GetChildHandle(FName("GrammarSource")); }
@@ -70,7 +66,7 @@ void FPCGExMeshGrammarCustomization::CustomizeHeader(
 
 	const bool bIsGlobal = PropertyHandle->GetProperty()->GetFName().ToString().Contains(TEXT("Global"));
 
-	if (UPCGExMeshCollection* Collection = !OuterObjects.IsEmpty() ? Cast<UPCGExMeshCollection>(OuterObjects[0]) : nullptr;
+	if (UPCGExAssetCollection* Collection = !OuterObjects.IsEmpty() ? Cast<UPCGExAssetCollection>(OuterObjects[0]) : nullptr;
 		Collection && !bIsGlobal)
 	{
 		HeaderRow.NameContent()[
@@ -163,7 +159,7 @@ void FPCGExMeshGrammarCustomization::CustomizeHeader(
 	];
 }
 
-void FPCGExMeshGrammarCustomization::CustomizeChildren(
+void FPCGExCollectionGrammarCustomization::CustomizeChildren(
 	TSharedRef<IPropertyHandle> PropertyHandle,
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
