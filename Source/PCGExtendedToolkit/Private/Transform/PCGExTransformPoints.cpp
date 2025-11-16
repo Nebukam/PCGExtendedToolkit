@@ -76,6 +76,9 @@ namespace PCGExTransformPoints
 
 		OffsetMax = Settings->OffsetMax.GetValueSetting();
 		if (!OffsetMax->Init(PointDataFacade)) { return false; }
+		
+		OffsetScale = Settings->OffsetScaling.GetValueSetting();
+		if (!OffsetScale->Init(PointDataFacade)) { return false; }
 
 		OffsetSnap = Settings->OffsetSnap.GetValueSetting();
 		if (!OffsetSnap->Init(PointDataFacade)) { return false; }
@@ -83,20 +86,28 @@ namespace PCGExTransformPoints
 		AbsoluteOffset = Settings->AbsoluteOffset.GetValueSetting();
 		if (!AbsoluteOffset->Init(PointDataFacade)) { return false; }
 
+		
 		RotMin = Settings->RotationMin.GetValueSetting();
 		if (!RotMin->Init(PointDataFacade)) { return false; }
 
 		RotMax = Settings->RotationMax.GetValueSetting();
 		if (!RotMax->Init(PointDataFacade)) { return false; }
+		
+		RotScale = Settings->RotationScaling.GetValueSetting();
+		if (!RotScale->Init(PointDataFacade)) { return false; }
 
 		RotSnap = Settings->RotationSnap.GetValueSetting();
 		if (!RotSnap->Init(PointDataFacade)) { return false; }
 
+		
 		ScaleMin = Settings->ScaleMin.GetValueSetting();
 		if (!ScaleMin->Init(PointDataFacade)) { return false; }
 
 		ScaleMax = Settings->ScaleMax.GetValueSetting();
 		if (!ScaleMax->Init(PointDataFacade)) { return false; }
+
+		ScaleScale = Settings->ScaleScaling.GetValueSetting();
+		if (!ScaleScale->Init(PointDataFacade)) { return false; }
 
 		ScaleSnap = Settings->ScaleSnap.GetValueSetting();
 		if (!ScaleSnap->Init(PointDataFacade)) { return false; }
@@ -110,41 +121,49 @@ namespace PCGExTransformPoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::TransformPoints::ProcessPoints);
 
+		PointDataFacade->Fetch(Scope);
+		FilterScope(Scope);
+
 		TConstPCGValueRange<int32> Seeds = PointDataFacade->GetIn()->GetConstSeedValueRange();
 		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
 
 		FRandomStream RandomSource;
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
+			if (!PointFilterCache[Index]) { continue; }
+
 			RandomSource.Initialize(Seeds[Index]);
-			
+
 			FTransform& OutTransform = OutTransforms[Index];
-			
-			const FVector OffsetMinV = OffsetMin->Read(Index);
-			const FVector OffsetMaxV = OffsetMax->Read(Index);
+
+			const FVector OffsetScaleV = OffsetScale->Read(Index);
+			const FVector OffsetMinV = OffsetMin->Read(Index) * OffsetScaleV;
+			const FVector OffsetMaxV = OffsetMax->Read(Index) * OffsetScaleV;
 			const FVector OffsetSnapV = OffsetSnap->Read(Index);
 
-			const FRotator RotMinV = RotMin->Read(Index);
-			const FRotator RotMaxV = RotMax->Read(Index);
+			const FVector RotScaleV = OffsetScale->Read(Index);
+			const FRotator RotMinV = FRotator::MakeFromEuler(RotMin->Read(Index).Euler() * RotScaleV);
+			const FRotator RotMaxV = FRotator::MakeFromEuler(RotMax->Read(Index).Euler() * RotScaleV);
 			const FRotator RotSnapV = RotSnap->Read(Index);
 
-			const FVector ScaleMinV = ScaleMin->Read(Index);
-			const FVector ScaleMaxV = ScaleMax->Read(Index);
+			const FVector ScaleScaleV = ScaleMax->Read(Index);
+			const FVector ScaleMinV = ScaleMin->Read(Index) * ScaleScaleV;
+			const FVector ScaleMaxV = ScaleMax->Read(Index) * ScaleScaleV;
 			const FVector ScaleSnapV = ScaleSnap->Read(Index);
 
 			const bool bAbsoluteOffset = AbsoluteOffset->Read(Index);
-			
+
 			FPCGExFittingVariations Variations(
-				OffsetMinV, OffsetMaxV,
-				Settings->SnapPosition, OffsetSnapV,
-				bAbsoluteOffset,
-				RotMinV, RotMaxV,
-				Settings->SnapRotation, RotSnapV,
-				Settings->AbsoluteRotation,
-				ScaleMinV, ScaleMaxV,
-				Settings->SnapScale, ScaleSnapV
-			);
+					OffsetMinV, OffsetMaxV,
+					Settings->SnapPosition, OffsetSnapV,
+					bAbsoluteOffset,
+					RotMinV, RotMaxV,
+					Settings->SnapRotation, RotSnapV,
+					Settings->AbsoluteRotation,
+					ScaleMinV, ScaleMaxV,
+					Settings->SnapScale, ScaleSnapV
+				);
 
 			Variations.ApplyOffset(RandomSource, OutTransform);
 			Variations.ApplyRotation(RandomSource, OutTransform);

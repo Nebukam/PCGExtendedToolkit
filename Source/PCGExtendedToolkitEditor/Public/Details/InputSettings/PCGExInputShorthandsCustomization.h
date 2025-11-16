@@ -21,6 +21,7 @@ public:
 		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 
 	virtual TSharedRef<SWidget> CreateValueWidget(TSharedPtr<IPropertyHandle> ValueHandle);
+	virtual TSharedRef<SWidget> CreateAttributeWidget(TSharedPtr<IPropertyHandle> AttributeHandle);
 };
 
 class PCGEXTENDEDTOOLKITEDITOR_API FPCGExInputShorthandVectorCustomization : public FPCGExInputShorthandCustomization
