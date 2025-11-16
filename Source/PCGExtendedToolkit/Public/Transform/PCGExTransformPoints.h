@@ -18,7 +18,7 @@
 class FPCGExComputeIOBounds;
 
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/move-pivot"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="transform/transform-points"))
 class UPCGExTransformPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
