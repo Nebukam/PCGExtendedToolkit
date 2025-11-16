@@ -15,8 +15,8 @@ UPCGExPathSolidifySettings::UPCGExPathSolidifySettings(const FObjectInitializer&
 	: Super(ObjectInitializer)
 {
 	RotationMapping.Add(EPCGExAxisOrder::XYZ, EPCGExMakeRotAxis::X);
-	RotationMapping.Add(EPCGExAxisOrder::YZX, EPCGExMakeRotAxis::XY);
-	RotationMapping.Add(EPCGExAxisOrder::ZXY, EPCGExMakeRotAxis::Y);
+	RotationMapping.Add(EPCGExAxisOrder::YZX, EPCGExMakeRotAxis::Z);
+	RotationMapping.Add(EPCGExAxisOrder::ZXY, EPCGExMakeRotAxis::X);
 	RotationMapping.Add(EPCGExAxisOrder::YXZ, EPCGExMakeRotAxis::XY);
 	RotationMapping.Add(EPCGExAxisOrder::ZYX, EPCGExMakeRotAxis::XY);
 	RotationMapping.Add(EPCGExAxisOrder::XZY, EPCGExMakeRotAxis::X);
@@ -260,9 +260,9 @@ namespace PCGExPathSolidify
 		TPCGValueRange<FVector> BoundsMin = PointDataFacade->GetOut()->GetBoundsMinValueRange(false);
 		TPCGValueRange<FVector> BoundsMax = PointDataFacade->GetOut()->GetBoundsMaxValueRange(false);
 
-		int32 Main = 0;
-		int32 Sec = 0;
-		int32 Ter = 0;
+		int32 A = 0;
+		int32 B = 0;
+		int32 C = 0;
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -295,10 +295,10 @@ namespace PCGExPathSolidify
 			const FQuat Quat = PCGEx::MakeRot(GetConstruction(Order, Index), XAxis, YAxis, ZAxis);
 
 			// Find primary / secondary / tertiary components
-			PCGEx::FindOrderMatch(Quat, RealXAxis, RealYAxis, RealZAxis, Main, Sec, Ter);
+			PCGEx::FindOrderMatch(Quat, RealXAxis, RealYAxis, RealZAxis, A, B, C);
 
 			const FVector QuatAxes[3] = {Quat.GetAxisX(), Quat.GetAxisY(), Quat.GetAxisZ()};
-			const bool bForwardFlipped = FVector::DotProduct(QuatAxes[Main], RealXAxis) < 0;
+			const bool bForwardFlipped = FVector::DotProduct(QuatAxes[A], RealXAxis) < 0;
 			double EdgeLerp = FMath::Clamp(SolidificationLerp->Read(Index), 0.0, 1.0);
 			//if (bForwardFlipped) { EdgeLerp = 1.0 - EdgeLerp; }
 
@@ -313,21 +313,21 @@ namespace PCGExPathSolidify
 			// Yey
 			const double EdgeLerpInv = 1.0 - EdgeLerp;
 
-			OutBoundsMin[Main] = (-Length * EdgeLerp) * InvScale[Main];
-			OutBoundsMax[Main] = (Length * EdgeLerpInv) * InvScale[Main];
+			OutBoundsMin[A] = (-Length * EdgeLerp) * InvScale[A];
+			OutBoundsMax[A] = (Length * EdgeLerpInv) * InvScale[A];
 
 			if (SecondaryRadius)
 			{
 				const double Rad = FMath::Abs(SecondaryRadius->Read(Index));
-				OutBoundsMin[Sec] = -Rad * InvScale[Sec];
-				OutBoundsMax[Sec] = Rad * InvScale[Sec];
+				OutBoundsMin[B] = -Rad * InvScale[B];
+				OutBoundsMax[B] = Rad * InvScale[B];
 			}
 
 			if (TertiaryRadius)
 			{
 				const double Rad = FMath::Abs(TertiaryRadius->Read(Index));
-				OutBoundsMin[Ter] = -Rad * InvScale[Ter];
-				OutBoundsMax[Ter] = Rad * InvScale[Ter];
+				OutBoundsMin[C] = -Rad * InvScale[C];
+				OutBoundsMax[C] = Rad * InvScale[C];
 			}
 		}
 	}
