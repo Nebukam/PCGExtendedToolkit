@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "PCGExPointsProcessor.h"
-#include "Collections/PCGExAssetCollection.h"
-
 #include "PCGExAssetCollectionToSet.generated.h"
+
+class UPCGExAssetCollection;
+struct FPCGExAssetCollectionEntry;
 
 UENUM()
 enum class EPCGExSubCollectionToSet : uint8
@@ -41,6 +41,7 @@ public:
 	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(AssetCollectionToSet, "Asset Collection to Set", "Converts an asset collection to an attribute set.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
+	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif
 
 protected:
@@ -127,10 +128,17 @@ protected:
 	/** Name of the attribute on the AttributeSet that contains the asset depth, if any. Otherwise -1 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Nesting Depth", EditCondition="bWriteNestingDepth"))
 	FName NestingDepthAttributeName = FName("NestingDepth");
+
+	/** Cache the results of this node. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
+	EPCGExOptionState CacheData = EPCGExOptionState::Default;
 };
 
 class FPCGExAssetCollectionToSetElement final : public IPCGElement
 {
+public:
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
+	
 protected:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 

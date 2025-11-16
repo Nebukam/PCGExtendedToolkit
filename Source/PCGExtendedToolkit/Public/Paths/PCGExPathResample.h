@@ -12,7 +12,7 @@
 
 #include "Shapes/PCGExShapes.h"
 
-#include "PCGExResamplePath.generated.h"
+#include "PCGExPathResample.generated.h"
 
 namespace PCGExPaths
 {

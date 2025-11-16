@@ -6,7 +6,7 @@
 
 #include "Data/PCGExDataFilter.h"
 #include "Data/PCGExDataTag.h"
-#include "Paths/PCGExShiftPath.h"
+#include "Paths/PCGExPathShift.h"
 
 
 PCGExPointIOMerger::FIdentityRef::FIdentityRef()

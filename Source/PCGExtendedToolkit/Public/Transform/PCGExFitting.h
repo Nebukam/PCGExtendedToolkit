@@ -9,17 +9,28 @@
 
 #include "PCGExFitting.generated.h"
 
+namespace PCGExData
+{
+}
+
 struct FPCGExContext;
 
 namespace PCGExData
 {
-	struct FProxyPoint;
+	struct FPoint;
 	class FFacade;
-	struct FConstPoint;
 
 	template <typename T>
 	class TBuffer;
 }
+
+UENUM()
+enum class EPCGExVariationSnapping : uint8
+{
+	None       = 0 UMETA(DisplayName = "No Snapping", ToolTip="No Snapping", ActionIcon="NoSnapping"),
+	SnapOffset = 1 UMETA(DisplayName = "Snap Offset", ToolTip="Snap Offset (the variation value will be snapped, not the result)", ActionIcon="SnapOffset"),
+	SnapResult = 2 UMETA(DisplayName = "Snap Result", ToolTip="Snap Result (the variation will not be snapped but the final result will)", ActionIcon="SnapResult"),
+};
 
 UENUM(BlueprintType)
 enum class EPCGExFitMode : uint8
@@ -63,9 +74,9 @@ enum class EPCGExJustifyTo : uint8
 UENUM(BlueprintType)
 enum class EPCGExVariationMode : uint8
 {
-	Disabled = 0 UMETA(DisplayName = "Disabled", ToolTip="..."),
-	Before   = 1 UMETA(DisplayName = "Before fitting", ToolTip="Variation are applied to the point that will be fitted"),
-	After    = 2 UMETA(DisplayName = "After fitting", ToolTip="Variation are applied to the fitted bounds"),
+	Disabled = 0 UMETA(DisplayName = "Disabled", ToolTip="Disabled", ActionIcon="STF_None"),
+	Before   = 1 UMETA(DisplayName = "Before fitting", ToolTip="Pre-processing.\nVariation are applied to the asset before it will be fitted to the host point.", ActionIcon="BeforeStaging"),
+	After    = 2 UMETA(DisplayName = "After fitting", ToolTip="Post-processing.\nVariation are applied to the host point after the asset has been fitted inside.", ActionIcon="AfterStaging"),
 };
 
 USTRUCT(BlueprintType)
@@ -98,7 +109,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExScaleToFitDetails
 	EPCGExScaleToFit ScaleToFitZ = EPCGExScaleToFit::None;
 
 	void Process(
-		const PCGExData::FConstPoint& InPoint,
+		const PCGExData::FPoint& InPoint,
 		const FBox& InBounds,
 		FVector& OutScale,
 		FBox& OutBounds) const;
@@ -228,39 +239,59 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariations
 {
 	GENERATED_BODY()
 
-	/** Min/max variation on position, applied as an offset from the original position. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FVector OffsetMin = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FVector OffsetMax = FVector::ZeroVector;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExVariationSnapping SnapPosition = EPCGExVariationSnapping::None;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FVector OffsetSnap = FVector(100);
+
 	/** Set offset in world space */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bAbsoluteOffset = false;
 
-	/** Min/max variation on rotation, applied as an offset from the original rotation, unless specified otherwise in the dropdown */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FRotator RotationMin = FRotator::ZeroRotator;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FRotator RotationMax = FRotator::ZeroRotator;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExVariationSnapping SnapRotation = EPCGExVariationSnapping::None;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FRotator RotationSnap = FRotator(90);
+
 	/** Set rotation directly instead of additively on the selected axis */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditConditionHides, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExAbsoluteRotationFlags"))
 	uint8 AbsoluteRotation = 0;
 
-	/** Min/max variation on scale, applied as a multiplicative offset from the original scale. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (AllowPreserveRatio, PCG_Overridable))
-	FVector ScaleMin = FVector::One();
+	FVector ScaleMin = FVector::OneVector;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (AllowPreserveRatio, PCG_Overridable))
-	FVector ScaleMax = FVector::One();
+	FVector ScaleMax = FVector::OneVector;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExVariationSnapping SnapScale = EPCGExVariationSnapping::None;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FVector ScaleSnap = FVector(0.1);
 
 	/** Scale uniformly on each axis. Uses the X component of ScaleMin and ScaleMax. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bUniformScale = true;
+
+	void ApplyOffset(const FRandomStream& RandomStream, FTransform& OutTransform) const;
+	void ApplyRotation(const FRandomStream& RandomStream, FTransform& OutTransform) const;
+	void ApplyScale(const FRandomStream& RandomStream, FTransform& OutTransform) const;
 };
+
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariationsDetails
@@ -288,8 +319,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFittingVariationsDetails
 	void Init(const int InSeed);
 
 	void Apply(
-		int32 BaseSeed,
-		FTransform& OutTransform,
+		const FRandomStream& RandomStream, FTransform& OutTransform,
 		const FPCGExFittingVariations& Variations, const EPCGExVariationMode& Step) const;
 };
 

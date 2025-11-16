@@ -9,6 +9,177 @@
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
 
+namespace PCGExEnumCustomization
+{
+	TSharedRef<SWidget> CreateRadioGroup(TSharedPtr<IPropertyHandle> PropertyHandle, UEnum* Enum)
+	{
+		TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox);
+
+		for (int32 i = 0; i < Enum->NumEnums() - 1; ++i)
+		{
+			if (Enum->HasMetaData(TEXT("Hidden"), i)) { continue; }
+			const FString KeyName = Enum->GetNameStringByIndex(i);
+
+			FString IconName = Enum->GetMetaData(TEXT("ActionIcon"), i);
+			if (IconName.IsEmpty())
+			{
+				Box->AddSlot().AutoWidth().Padding(2, 2)
+				[
+					SNew(SButton)
+					.Text(Enum->GetDisplayNameTextByIndex(i))
+					.ToolTipText(Enum->GetToolTipTextByIndex(i))
+					.ButtonColorAndOpacity_Lambda(
+						[PropertyHandle, KeyName]
+						{
+							FString CurrentValue;
+							PropertyHandle->GetValueAsFormattedString(CurrentValue);
+							return CurrentValue == KeyName ? FLinearColor(0.005, 0.005, 0.005, 0.8) : FLinearColor::Transparent;
+						})
+					.OnClicked_Lambda(
+						[PropertyHandle, KeyName]()
+						{
+							PropertyHandle->SetValueFromFormattedString(KeyName);
+							return FReply::Handled();
+						})
+				];
+			}
+			else
+			{
+				IconName = TEXT("PCGEx.ActionIcon.") + IconName;
+				Box->AddSlot().AutoWidth().Padding(2, 2)
+				[
+					SNew(SButton)
+					.ToolTipText(Enum->GetToolTipTextByIndex(i))
+					.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
+					.ButtonColorAndOpacity_Lambda(
+						[PropertyHandle, KeyName]
+						{
+							FString CurrentValue;
+							PropertyHandle->GetValueAsFormattedString(CurrentValue);
+							return CurrentValue == KeyName ? FLinearColor(0.005, 0.005, 0.005, 0.8) : FLinearColor::Transparent;
+						})
+					.OnClicked_Lambda(
+						[PropertyHandle, KeyName]()
+						{
+							PropertyHandle->SetValueFromFormattedString(KeyName);
+							return FReply::Handled();
+						})
+					[
+						SNew(SImage)
+						.Image(FAppStyle::Get().GetBrush(*IconName))
+						.ColorAndOpacity_Lambda(
+							[PropertyHandle, Enum, i]
+							{
+								FString CurrentValue;
+								PropertyHandle->GetValueAsFormattedString(CurrentValue);
+								const FString KeyName = Enum->GetNameStringByIndex(i);
+								return (CurrentValue == KeyName)
+									       ? FLinearColor::White
+									       : FLinearColor::Gray;
+							})
+					]
+				];
+			}
+		}
+
+		return Box;
+	}
+
+	TSharedRef<SWidget> CreateRadioGroup(const TSharedPtr<IPropertyHandle>& PropertyHandle, const FString& Enum)
+	{
+		return CreateRadioGroup(PropertyHandle, FindFirstObjectSafe<UEnum>(*Enum));
+	}
+
+	TSharedRef<SWidget> CreateCheckboxGroup(TSharedPtr<IPropertyHandle> PropertyHandle, UEnum* Enum, const TSet<int32>& SkipIndices)
+	{
+		TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox);
+
+		for (int32 i = 0; i < Enum->NumEnums() - 1; ++i)
+		{
+			if (Enum->HasMetaData(TEXT("Hidden"), i) || SkipIndices.Contains(i)) { continue; }
+
+			const FString KeyName = Enum->GetNameStringByIndex(i);
+			const uint8 Bit = Enum->GetValueByIndex(i); // or (1LL << i)
+
+			auto IsActive = [PropertyHandle, Bit]() -> bool
+			{
+				uint8 Mask = 0;
+				if (PropertyHandle->GetValue(Mask) == FPropertyAccess::Success) { return (Mask & Bit) != 0; }
+				return false;
+			};
+
+			auto Toggle = [PropertyHandle, Bit]()
+			{
+				uint8 Mask = 0;
+				if (PropertyHandle->GetValue(Mask) == FPropertyAccess::Success)
+				{
+					Mask ^= Bit;
+					PropertyHandle->SetValue(Mask);
+					PropertyHandle->NotifyPostChange(EPropertyChangeType::ValueSet);
+				}
+				return FReply::Handled();
+			};
+
+			FString IconName = Enum->GetMetaData(TEXT("ActionIcon"), i);
+
+			if (IconName.IsEmpty())
+			{
+				Box->AddSlot().AutoWidth().Padding(2, 2)
+				[
+					SNew(SButton)
+					.Text(Enum->GetDisplayNameTextByIndex(i))
+					.ToolTipText(Enum->GetToolTipTextByIndex(i))
+					.ButtonColorAndOpacity_Lambda(
+						[IsActive]
+						{
+							return IsActive()
+								       ? FLinearColor(0.005, 0.005, 0.005, 0.8)
+								       : FLinearColor::Transparent;
+						})
+					.OnClicked_Lambda(Toggle)
+				];
+			}
+			else
+			{
+				IconName = TEXT("PCGEx.ActionIcon.") + IconName;
+
+				Box->AddSlot().AutoWidth().Padding(2, 2)
+				[
+					SNew(SButton)
+					.ToolTipText(Enum->GetToolTipTextByIndex(i))
+					.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
+					.ButtonColorAndOpacity_Lambda(
+						[IsActive]
+						{
+							return IsActive()
+								       ? FLinearColor(0.005, 0.005, 0.005, 0.8)
+								       : FLinearColor::Transparent;
+						})
+					.OnClicked_Lambda(Toggle)
+					[
+						SNew(SImage)
+						.Image(FAppStyle::Get().GetBrush(*IconName))
+						.ColorAndOpacity_Lambda(
+							[IsActive]
+							{
+								return IsActive()
+									       ? FLinearColor::White
+									       : FLinearColor::Gray;
+							})
+					]
+				];
+			}
+		}
+
+		return Box;
+	}
+
+	TSharedRef<SWidget> CreateCheckboxGroup(const TSharedPtr<IPropertyHandle>& PropertyHandle, const FString& Enum, const TSet<int32>& SkipIndices)
+	{
+		return CreateCheckboxGroup(PropertyHandle, FindFirstObjectSafe<UEnum>(*Enum), SkipIndices);
+	}
+}
+
 FPCGExInlineEnumCustomization::FPCGExInlineEnumCustomization(const FString& InEnumName)
 	: EnumName(InEnumName)
 {
@@ -19,8 +190,6 @@ void FPCGExInlineEnumCustomization::CustomizeHeader(
 	FDetailWidgetRow& HeaderRow,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	EnumHandle = PropertyHandle;
-
 	UEnum* Enum = FindFirstObjectSafe<UEnum>(*EnumName);
 	if (!Enum) { return; }
 
@@ -35,7 +204,7 @@ void FPCGExInlineEnumCustomization::CustomizeHeader(
 				SNew(SUniformGridPanel)
 				+ SUniformGridPanel::Slot(0, 0)
 				[
-					GenerateEnumButtons(Enum)
+					PCGExEnumCustomization::CreateRadioGroup(PropertyHandle, Enum)
 				]
 			]
 		];
@@ -46,78 +215,4 @@ void FPCGExInlineEnumCustomization::CustomizeChildren(
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-}
-
-TSharedRef<SWidget> FPCGExInlineEnumCustomization::GenerateEnumButtons(UEnum* Enum)
-{
-	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox);
-
-	for (int32 i = 0; i < Enum->NumEnums() - 1; ++i)
-	{
-		if (Enum->HasMetaData(TEXT("Hidden"), i)) { continue; }
-		const FString KeyName = Enum->GetNameStringByIndex(i);
-
-		FString IconName = Enum->GetMetaData(TEXT("ActionIcon"), i);
-		if (IconName.IsEmpty())
-		{
-			Box->AddSlot().AutoWidth().Padding(2, 2)
-			[
-				SNew(SButton)
-				.Text(Enum->GetDisplayNameTextByIndex(i))
-				.ToolTipText(Enum->GetToolTipTextByIndex(i))
-				.ButtonColorAndOpacity_Lambda(
-					[this, KeyName]
-					{
-						FString CurrentValue;
-						EnumHandle->GetValueAsFormattedString(CurrentValue);
-						return CurrentValue == KeyName ? FLinearColor(0.005, 0.005, 0.005, 0.8) : FLinearColor::Transparent;
-					})
-				.OnClicked_Lambda(
-					[this, KeyName]()
-					{
-						EnumHandle->SetValueFromFormattedString(KeyName);
-						return FReply::Handled();
-					})
-			];
-		}
-		else
-		{
-			IconName = TEXT("PCGEx.ActionIcon.") + IconName;
-			Box->AddSlot().AutoWidth().Padding(2, 2)
-			[
-				SNew(SButton)
-				.ToolTipText(Enum->GetToolTipTextByIndex(i))
-				.ButtonStyle(FAppStyle::Get(), "PCGEx.ActionIcon")
-				.ButtonColorAndOpacity_Lambda(
-					[this, KeyName]
-					{
-						FString CurrentValue;
-						EnumHandle->GetValueAsFormattedString(CurrentValue);
-						return CurrentValue == KeyName ? FLinearColor(0.005, 0.005, 0.005, 0.8f) : FLinearColor::Transparent;
-					})
-				.OnClicked_Lambda(
-					[this, KeyName]()
-					{
-						EnumHandle->SetValueFromFormattedString(KeyName);
-						return FReply::Handled();
-					})
-				[
-					SNew(SImage)
-					.Image(FAppStyle::Get().GetBrush(*IconName))
-					.ColorAndOpacity_Lambda(
-						[this, Enum, i]
-						{
-							FString CurrentValue;
-							EnumHandle->GetValueAsFormattedString(CurrentValue);
-							const FString KeyName = Enum->GetNameStringByIndex(i);
-							return (CurrentValue == KeyName)
-								       ? FLinearColor::White
-								       : FLinearColor::Gray;
-						})
-				]
-			];
-		}
-	}
-
-	return Box;
 }

@@ -7,7 +7,7 @@
 #include "Data/Sharing/PCGExBeacon.h"
 #include "DSP/PassiveFilter.h"
 #include "Engine/Level.h"
-#include "Paths/PCGExShiftPath.h"
+#include "Paths/PCGExPathShift.h"
 #include "Subsystems/WorldSubsystem.h"
 
 #include "PCGExSubSystem.generated.h"

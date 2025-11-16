@@ -39,6 +39,11 @@ void FPCGExMeshCollectionEditor::RegisterPropertyNameMapping(TMap<FName, FName>&
 	Mapping.Add(FName("ISMDescriptor"), Descriptors.Id);
 	Mapping.Add(FName("SMDescriptor"), Descriptors.Id);
 	
+	PCGEX_DECL_ASSET_FILTER(Grammar, "AssetEditor.Grammar", "Grammar", "Show/hide Grammar")	
+	Mapping.Add(FName("DescriptorSource"), Grammar.Id);
+	Mapping.Add(FName("ISMDescriptor"), Grammar.Id);
+	Mapping.Add(FName("SMDescriptor"), Grammar.Id);
+		
 #undef PCGEX_DECL_ASSET_FILTER
 	
 }

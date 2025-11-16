@@ -23,19 +23,19 @@ namespace PCGExData
 UENUM()
 enum class EPCGExIndexSafety : uint8
 {
-	Ignore = 0 UMETA(DisplayName = "Ignore", Tooltip="Out of bounds indices are ignored."),
-	Tile   = 1 UMETA(DisplayName = "Tile", Tooltip="Out of bounds indices are tiled."),
-	Clamp  = 2 UMETA(DisplayName = "Clamp", Tooltip="Out of bounds indices are clamped."),
-	Yoyo   = 3 UMETA(DisplayName = "Yoyo", Tooltip="Out of bounds indices are mirrored and back."),
+	Ignore = 0 UMETA(DisplayName = "Ignore", Tooltip="Out of bounds indices are ignored.(0,1,2,-1,-1,-1,...)"),
+	Tile   = 1 UMETA(DisplayName = "Tile", Tooltip="Out of bounds indices are tiled. (0,1,2,0,1,2...)"),
+	Clamp  = 2 UMETA(DisplayName = "Clamp", Tooltip="Out of bounds indices are clamped. (0,1,2,2,2,2...)"),
+	Yoyo   = 3 UMETA(DisplayName = "Yoyo", Tooltip="Out of bounds indices are mirrored and back. (0,1,2,1,0,1...)"),
 };
 
 UENUM()
 enum class EPCGExTruncateMode : uint8
 {
-	None  = 0 UMETA(DisplayName = "None", ToolTip="None"),
-	Round = 1 UMETA(DisplayName = "Round", ToolTip="Round"),
-	Ceil  = 2 UMETA(DisplayName = "Ceil", ToolTip="Ceil"),
-	Floor = 3 UMETA(DisplayName = "Floor", ToolTip="Floor"),
+	None  = 0 UMETA(DisplayName = "None", ToolTip="None", ActionIcon="Unchanged"),
+	Round = 1 UMETA(DisplayName = "Round", ToolTip="Round", ActionIcon="Round"),
+	Ceil  = 2 UMETA(DisplayName = "Ceil", ToolTip="Ceil", ActionIcon="Ceil"),
+	Floor = 3 UMETA(DisplayName = "Floor", ToolTip="Floor", ActionIcon="Floor"),
 };
 
 UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
@@ -103,11 +103,6 @@ namespace PCGExMath
 
 #pragma region basics
 
-	FORCEINLINE static double DegreesToDot(const double AngleInDegrees)
-	{
-		return FMath::Cos(FMath::DegreesToRadians(AngleInDegrees));
-	}
-
 	FORCEINLINE static double FastRand01(uint32& Seed)
 	{
 		Seed = Seed * 1664525u + 1013904223u;
@@ -128,6 +123,11 @@ namespace PCGExMath
 		}
 
 		return Center;
+	}
+
+	FORCEINLINE static double DegreesToDot(const double AngleInDegrees)
+	{
+		return FMath::Cos(FMath::DegreesToRadians(AngleInDegrees));
 	}
 
 	PCGEXTENDEDTOOLKIT_API
@@ -318,6 +318,11 @@ namespace PCGExMath
 
 #pragma region Rounding
 
+	FORCEINLINE static void Snap(double& Value, const double Step)
+	{
+		Value = !FMath::IsNearlyZero(Step) ? FMath::RoundToDouble(Value / Step) * Step : Value;
+	}
+	
 	FORCEINLINE static double Round10(const float A)
 	{
 		return FMath::RoundToFloat(A * 10.0f) / 10.0f;

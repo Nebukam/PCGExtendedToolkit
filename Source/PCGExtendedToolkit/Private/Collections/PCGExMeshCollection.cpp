@@ -262,6 +262,8 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 	return Super::Validate(ParentCollection);
 }
 
+
+
 #if WITH_EDITOR
 void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
 {
@@ -454,7 +456,6 @@ void UPCGExMeshCollection::EDITOR_SetDescriptorSourceAll(EPCGExEntryVariationMod
 	PostEditChangeProperty(EmptyEvent);
 	MarkPackageDirty();
 }
-
 #endif
 
 void UPCGExMeshCollection::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const

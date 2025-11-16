@@ -89,6 +89,8 @@ class UPCGExPathSolidifySettings : public UPCGExPathProcessorSettings
 	GENERATED_BODY()
 
 public:
+	UPCGExPathSolidifySettings(const FObjectInitializer& ObjectInitializer);
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathSolidify, "Path : Solidify", "Solidify a path.");
@@ -107,12 +109,45 @@ public:
 	bool bRemoveLastPoint = true;
 
 	/** Axis order. First axis will use the segment direction, second is the path normal. These are Primary > Secondary > Tertiary. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta = (PCG_Overridable, InlineEnum))
 	EPCGExAxisOrder SolidificationOrder = EPCGExAxisOrder::XYZ;
 
+	/** .*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bReadOrderFromAttribute = false;
+	
+	/** Solidification Order attribute.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="bReadOrderFromAttribute"))
+	FName OrderAttribute = NAME_None;
+
+	/** How to "sanitize" the input value.\n"Ignore" will pick the default constant specified above if the attribute value is invalid. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, DisplayName=" └─ Order Safety", EditCondition="bReadOrderFromAttribute", HideEditConditionToggle))
+	EPCGExIndexSafety OrderSafety = EPCGExIndexSafety::Tile;
+
+
+	/** .*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bUseConstructionMapping = false;
+	
+	/** Map of rotation construction orders based on selected mapping. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Solidification", EditFixedSize, meta=(PCG_NotOverridable, ReadOnlyKeys, EditCondition="bUseConstructionMapping"))
+	TMap<EPCGExAxisOrder, EPCGExMakeRotAxis> RotationMapping;
+	
 	/** Defines how the selected axis will be used to construct the point' rotation. This will be using remapped axis from the selected order. X = Primary, Y = Secondary, Z = Tertiary*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta = (PCG_Overridable, InlineEnum, EditCondition="!bUseConstructionMapping", HideEditConditionToggle, EditConditionHides))
 	EPCGExMakeRotAxis RotationConstruction = EPCGExMakeRotAxis::X;
+	
+	/** .*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bReadConstructionFromAttribute = false;
+	
+	/** Rotation Construction attribute.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="bReadConstructionFromAttribute"))
+	FName ConstructionAttribute = NAME_None;
+
+	/** How to "sanitize" the input value.\n"Ignore" will pick the default constant specified above if the attribute value is invalid. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Construction Safety", EditCondition="bReadConstructionFromAttribute", HideEditConditionToggle))
+	EPCGExIndexSafety ConstructionSafety = EPCGExIndexSafety::Tile;
 	
 	// - Constant vs attribute
 	// - Attribute can be int as pick (with sanitization)
@@ -149,7 +184,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExInputValueType SolidificationLerpInput = EPCGExInputValueType::Constant;
 
-	/** Solidification Lerp attribute (read from Edge).*/
+	/** Solidification Lerp attribute .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Solidification Lerp (Attr)", EditCondition="SolidificationLerpInput == EPCGExInputValueType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector SolidificationLerpAttribute;
 
@@ -207,6 +242,8 @@ struct FPCGExPathSolidifyContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathSolidifyElement;
 
+	TArray<EPCGExMakeRotAxis> RotationConstructionsMap;
+	
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
@@ -226,8 +263,8 @@ namespace PCGExPathSolidify
 	{
 		bool bClosedLoop = false;
 
-		TSharedPtr<PCGExDetails::TSettingValue<int32>> AxisOrder;
-		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> AxisOrderVector;
+		TSharedPtr<PCGExData::TBuffer<int32>> AxisOrder;
+		TSharedPtr<PCGExData::TBuffer<int32>> RotationConstruction;
 		
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerp;
 
@@ -253,6 +290,10 @@ namespace PCGExPathSolidify
 		virtual ~FProcessor() override;
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+
+		EPCGExAxisOrder GetOrder(const int32 Index) const;
+		EPCGExMakeRotAxis GetConstruction(const EPCGExAxisOrder Order, const int32 Index) const;
+		
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 	};
 }
