@@ -101,6 +101,12 @@ void FPCGExAssetCollectionEditor::RegisterPropertyNameMapping(TMap<FName, FName>
 
 	PCGEX_DECL_ASSET_FILTER(Staging, "AssetEditor.Staging", "Staging", "Show/hide Staging")
 	Mapping.Add(FName("Staging"), Staging.Id);
+	
+	PCGEX_DECL_ASSET_FILTER(Grammar, "AssetEditor.Grammar", "Grammar", "Show/hide Grammar")	
+	Mapping.Add(FName("GrammarSource"), Grammar.Id);
+	Mapping.Add(FName("AssetGrammar"), Grammar.Id);
+	Mapping.Add(FName("SubGrammarMode"), Grammar.Id);
+	Mapping.Add(FName("CollectionGrammar"), Grammar.Id);
 
 #undef PCGEX_DECL_ASSET_FILTER
 }

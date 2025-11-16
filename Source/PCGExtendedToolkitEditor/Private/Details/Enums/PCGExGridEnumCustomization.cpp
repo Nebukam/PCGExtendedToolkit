@@ -21,6 +21,14 @@ void FPCGExGridEnumCustomization::CustomizeHeader(
 {
 	EnumHandle = PropertyHandle;
 
+	if (!PropertyHandle->HasMetaData("InlineEnum"))
+	{
+		HeaderRow
+			.NameContent()[PropertyHandle->CreatePropertyNameWidget()]
+			.ValueContent()[PropertyHandle->CreatePropertyValueWidget()];
+		return;
+	}
+
 	UEnum* Enum = FindFirstObjectSafe<UEnum>(*EnumName);
 	if (!Enum) { return; }
 

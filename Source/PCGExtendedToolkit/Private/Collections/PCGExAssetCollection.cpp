@@ -162,8 +162,56 @@ bool FPCGExAssetStagingData::FindSocket(const FName InName, const FString& Tag, 
 	return false;
 }
 
-#if WITH_EDITOR
+const FPCGExFittingVariations& FPCGExAssetCollectionEntry::GetVariations(const UPCGExAssetCollection* ParentCollection) const
+{
+	if (VariationMode == EPCGExEntryVariationMode::Global || ParentCollection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule) { return ParentCollection->GlobalVariations; }
+	return Variations;
+}
 
+double FPCGExAssetCollectionEntry::GetGrammarSize(const UPCGExAssetCollection* Host) const
+{
+	if (!bIsSubCollection)
+	{
+		if (GrammarSource == EPCGExEntryVariationMode::Local) { return AssetGrammar.GetSize(Staging.Bounds); }
+		return Host->GlobalAssetGrammar.GetSize(Staging.Bounds);
+	}
+
+	if (InternalSubCollection)
+	{
+		if (SubGrammarMode == EPCGExGrammarSubCollectionMode::Flatten) { return 0; }
+		if (SubGrammarMode == EPCGExGrammarSubCollectionMode::Inherit) { return InternalSubCollection->CollectionGrammar.GetSize(InternalSubCollection); }
+		if (SubGrammarMode == EPCGExGrammarSubCollectionMode::Override) { return CollectionGrammar.GetSize(InternalSubCollection); }
+	}
+
+	return 0;
+}
+
+double FPCGExAssetCollectionEntry::GetGrammarSize(const UPCGExAssetCollection* Host, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache) const
+{
+	if (!SizeCache) { return GetGrammarSize(Host); }
+	if (double* CachedSize = SizeCache->Find(this)) { return *CachedSize; }
+	return SizeCache->Add(this, GetGrammarSize(Host));
+}
+
+bool FPCGExAssetCollectionEntry::FixModuleInfos(const UPCGExAssetCollection* Host, FPCGSubdivisionSubmodule& OutModule, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache) const
+{
+	if (!bIsSubCollection)
+	{
+		if (GrammarSource == EPCGExEntryVariationMode::Local) { AssetGrammar.Fix(Staging.Bounds, OutModule); }
+		else { Host->GlobalAssetGrammar.Fix(Staging.Bounds, OutModule); }
+	}
+
+	if (InternalSubCollection)
+	{
+		if (SubGrammarMode == EPCGExGrammarSubCollectionMode::Inherit) { InternalSubCollection->CollectionGrammar.Fix(InternalSubCollection, OutModule); }
+		else if (SubGrammarMode == EPCGExGrammarSubCollectionMode::Override) { CollectionGrammar.Fix(InternalSubCollection, OutModule); }
+		else { return false; }
+	}
+
+	return true;
+}
+
+#if WITH_EDITOR
 void FPCGExAssetCollectionEntry::EDITOR_Sanitize()
 {
 }

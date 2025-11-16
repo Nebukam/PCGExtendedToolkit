@@ -67,34 +67,66 @@ namespace PCGEx
 		const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis,
 		int32& X, int32& Y, int32& Z, const bool bPermute)
 	{
-		const FVector QuatAxes[3] = { Quat.GetAxisX(), Quat.GetAxisY(), Quat.GetAxisZ() };
+		const FVector QA[3] = { Quat.GetAxisX(), Quat.GetAxisY(), Quat.GetAxisZ() };
 
-		auto FindBest = [&](const FVector& Ref)
+		double M[3][3];
+		for (int i = 0; i < 3; ++i)
 		{
-			const double DX = FMath::Abs(FVector::DotProduct(XAxis, Ref));
-			const double DY = FMath::Abs(FVector::DotProduct(YAxis, Ref));
-			const double DZ = FMath::Abs(FVector::DotProduct(ZAxis, Ref));
-			return (DX > DY && DX > DZ) ? 0 : (DY > DZ ? 1 : 2);
+			M[i][0] = FMath::Abs(FVector::DotProduct(QA[i], XAxis));
+			M[i][1] = FMath::Abs(FVector::DotProduct(QA[i], YAxis));
+			M[i][2] = FMath::Abs(FVector::DotProduct(QA[i], ZAxis));
+		}
+
+		// choose best X/Y/Z directly
+		int32 Best[3];
+		for (int i = 0; i < 3; ++i)
+		{
+			const double DX = M[i][0];
+			const double DY = M[i][1];
+			const double DZ = M[i][2];
+			Best[i] = (DX >= DY && DX >= DZ) ? 0 : ((DY >= DZ) ? 1 : 2);
+		}
+
+		if (!bPermute)
+		{
+			X = Best[0];
+			Y = Best[1];
+			Z = Best[2];
+			return;
+		}
+
+		// guaranteed permutation with constant-time deterministic resolution
+		static const int32 Permutations[6][3] =
+		{
+			{0,1,2}, {0,2,1},
+			{1,0,2}, {1,2,0},
+			{2,0,1}, {2,1,0}
 		};
 
-		X = FindBest(QuatAxes[0]);
-		Y = FindBest(QuatAxes[1]);
-		Z = FindBest(QuatAxes[2]);
+		int32 BestScore = -1;
+		const int32* BestPerm = Permutations[0];
 
-		if (bPermute)
+		for (int p = 0; p < 6; ++p)
 		{
-			const int OldX = X;
-			const int OldY = Y;
-			const int OldZ = Z;
+			const int32* P = Permutations[p];
+			const double Score =
+				M[0][P[0]] +
+				M[1][P[1]] +
+				M[2][P[2]];
 
-			uint8 Inv[3];
-			Inv[OldX] = 0;
-			Inv[OldY] = 1;
-			Inv[OldZ] = 2;
-
-			X = Inv[0];
-			Y = Inv[1];
-			Z = Inv[2];
+			if (Score > BestScore)
+			{
+				BestScore = Score;
+				BestPerm = P;
+			}
 		}
+
+		X = BestPerm[0];
+		Y = BestPerm[1];
+		Z = BestPerm[2];
+
+		check(X >= 0 && X <= 2);
+		check(Y >= 0 && Y <= 2);
+		check(Z >= 0 && Z <= 2);
 	}
 }

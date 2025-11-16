@@ -10,7 +10,7 @@
 #include "Data/PCGExPointFilter.h"
 
 
-#include "PCGExShrinkPath.generated.h"
+#include "PCGExPathShrink.generated.h"
 
 UENUM()
 enum class EPCGExPathShrinkMode : uint8

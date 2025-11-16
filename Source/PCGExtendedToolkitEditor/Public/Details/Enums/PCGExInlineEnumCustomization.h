@@ -5,6 +5,21 @@
 
 #include "IPropertyTypeCustomization.h"
 
+namespace PCGExEnumCustomization
+{
+	PCGEXTENDEDTOOLKITEDITOR_API
+	TSharedRef<SWidget> CreateRadioGroup(TSharedPtr<IPropertyHandle> PropertyHandle, UEnum* Enum);
+
+	PCGEXTENDEDTOOLKITEDITOR_API
+	TSharedRef<SWidget> CreateRadioGroup(const TSharedPtr<IPropertyHandle>& PropertyHandle, const FString& Enum);
+
+	PCGEXTENDEDTOOLKITEDITOR_API
+	TSharedRef<SWidget> CreateCheckboxGroup(TSharedPtr<IPropertyHandle> PropertyHandle, UEnum* Enum, const TSet<int32>& SkipIndices);
+
+	PCGEXTENDEDTOOLKITEDITOR_API
+	TSharedRef<SWidget> CreateCheckboxGroup(const TSharedPtr<IPropertyHandle>& PropertyHandle, const FString& Enum, const TSet<int32>& SkipIndices);
+}
+
 class PCGEXTENDEDTOOLKITEDITOR_API FPCGExInlineEnumCustomization : public IPropertyTypeCustomization
 {
 public:
@@ -22,7 +37,4 @@ public:
 
 protected:
 	FString EnumName = TEXT("");
-	TSharedPtr<IPropertyHandle> EnumHandle;
-
-	virtual TSharedRef<SWidget> GenerateEnumButtons(UEnum* Enum);
 };

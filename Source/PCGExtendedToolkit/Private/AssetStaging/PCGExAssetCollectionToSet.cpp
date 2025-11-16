@@ -8,10 +8,6 @@
 #include "PCGPin.h"
 #include "Collections/PCGExActorCollection.h"
 
-#if WITH_EDITOR
-#include "Helpers/PCGDynamicTrackingHelpers.h"
-#endif
-
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE AssetCollectionToSet
 
@@ -53,6 +49,12 @@ MACRO(Extents, FVector, FVector::OneVector, E->Staging.Bounds.GetExtent())\
 MACRO(BoundsMin, FVector, FVector::OneVector, E->Staging.Bounds.Min)\
 MACRO(BoundsMax, FVector, FVector::OneVector, E->Staging.Bounds.Max)\
 MACRO(NestingDepth, int32, -1, -1)
+
+bool FPCGExAssetCollectionToSetElement::IsCacheable(const UPCGSettings* InSettings) const
+{
+	const UPCGExAssetCollectionToSetSettings* Settings = static_cast<const UPCGExAssetCollectionToSetSettings*>(InSettings);
+	PCGEX_GET_OPTION_STATE(Settings->CacheData, bDefaultCacheNodeOutput)
+}
 
 bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) const
 {

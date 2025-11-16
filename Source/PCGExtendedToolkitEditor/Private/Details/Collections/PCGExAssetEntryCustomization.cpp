@@ -134,7 +134,7 @@ void FPCGExAssetEntryCustomization::CustomizeChildren(
 		IDetailPropertyRow& PropertyRow = ChildBuilder.AddProperty(ElementHandle.ToSharedRef());
 		// Bind visibility dynamically
 		PropertyRow.Visibility(
-			TAttribute<EVisibility>::Create(
+			MakeAttributeLambda(
 				[ElementName]()
 				{
 					return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(ElementName);

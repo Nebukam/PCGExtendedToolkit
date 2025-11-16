@@ -1,0 +1,109 @@
+﻿// Copyright 2025 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "PCGExPointsProcessor.h"
+#include "PCGExStaging.h"
+#include "Elements/Grammar/PCGSubdivisionBase.h"
+#include "PCGExCollectionToModuleInfos.generated.h"
+
+class UPCGExAssetCollection;
+
+namespace PCGExCollectionToGrammar
+{
+	struct FModule
+	{
+		FModule() = default;
+		FPCGSubdivisionSubmodule Infos;
+		const FPCGExAssetCollectionEntry* Entry = nullptr;
+		int64 Idx;
+	};
+}
+
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="assets-management/asset-collection-to-set"))
+class UPCGExCollectionToModuleInfosSettings : public UPCGSettings
+{
+	GENERATED_BODY()
+
+	friend class FPCGExCollectionToModuleInfosElement;
+
+public:
+	//~Begin UPCGSettings
+#if WITH_EDITOR
+	PCGEX_DUMMY_SETTINGS_MEMBERS
+	PCGEX_NODE_INFOS(CollectionToModuleInfos, "Collection to Module Infos", "Converts an asset collection to a grammar-friendly attribute set that can be used as module infos.");
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
+#endif
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	virtual FPCGElementPtr CreateElement() const override;
+	//~End UPCGSettings
+
+	/** The mesh collection to read module infos from */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	TSoftObjectPtr<UPCGExAssetCollection> AssetCollection;
+
+	/** If enabled, allows duplicate entries (duplicate is same symbol) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bAllowDuplicates = true;
+	
+	/** If enabled, skip entries which symbol is "None" */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bSkipEmptySymbol = true;
+
+	/** If enabled, invalid or empty entries are removed from the output */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bOmitInvalidAndEmpty = true;
+
+	/** Name of the attribute the "Symbol" value will be written to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Symbol"))
+	FName SymbolAttributeName = FName("Symbol");
+
+	/** Name of the attribute the "Size" value will be written to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Size"))
+	FName SizeAttributeName = FName("Size");
+
+	/** Name of the attribute the "Scalable" value will be written to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Scalable"))
+	FName ScalableAttributeName = FName("Scalable");
+
+	/** Name of the attribute the "DebugColor" value will be written to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="DebugColor"))
+	FName DebugColorAttributeName = FName("DebugColor");
+
+	/** Mesh collection entry Idx. Serialize the id of the parent collection (in the collection map) and entry index within that collection.\nThis is a critical piece of data that will be used by the Grammar Staging node to retrieve the corresponding mesh. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Entry", EditCondition="false"))
+	FName EntryAttributeName = PCGExStaging::Tag_EntryIdx;
+
+	/** Name of the attribute the entry' Category value will be written to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Category"))
+	FName CategoryAttributeName = FName("Category");
+	
+	/** Cache the results of this node. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
+	EPCGExOptionState CacheData = EPCGExOptionState::Default;
+};
+
+class FPCGExCollectionToModuleInfosElement final : public IPCGElement
+{
+public:
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
+
+protected:
+	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
+
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
+	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+
+	void FlattenCollection(
+		const TSharedPtr<PCGExStaging::FPickPacker>& Packer,
+		UPCGExAssetCollection* Collection,
+		const UPCGExCollectionToModuleInfosSettings* Settings,
+		TArray<PCGExCollectionToGrammar::FModule>& OutModules,
+		TSet<FName>& OutSymbols,
+		TMap<const FPCGExAssetCollectionEntry*, double>& SizeCache) const;
+};

@@ -10,7 +10,7 @@
 #include "PCGExPaths.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
-#include "PCGExShiftPath.generated.h"
+#include "PCGExPathShift.generated.h"
 
 namespace PCGExData
 {

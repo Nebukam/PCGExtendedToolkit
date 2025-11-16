@@ -11,7 +11,6 @@
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
-#include "Paths/PCGExShiftPath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExClusterCentralityElement"
 #define PCGEX_NAMESPACE ClusterCentrality

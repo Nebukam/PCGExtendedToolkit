@@ -262,6 +262,8 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 	return Super::Validate(ParentCollection);
 }
 
+
+
 #if WITH_EDITOR
 void FPCGExMeshCollectionEntry::EDITOR_Sanitize()
 {
@@ -373,7 +375,7 @@ void FPCGExMeshCollectionEntry::InitPCGSoftISMDescriptor(const UPCGExMeshCollect
 			FSoftISMComponentDescriptor::StaticStruct(),
 			FPCGSoftISMComponentDescriptor::StaticStruct());
 
-		TargetDescriptor.StaticMesh = StaticMesh;		
+		TargetDescriptor.StaticMesh = StaticMesh;
 		TargetDescriptor.ComponentTags.Append(ParentCollection->CollectionTags.Array());
 	}
 	else
