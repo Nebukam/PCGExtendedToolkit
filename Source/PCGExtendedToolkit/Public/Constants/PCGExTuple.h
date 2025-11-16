@@ -43,22 +43,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrap
 	virtual void SanitizeEntry(const FPCGExTupleValueWrap* InHeader);
 };
 
-#define PCGEX_TUPLE_WRAP_DECL(_TYPE)\
+#define PCGEX_TUPLEVALUEWRAP_CTR(_TYPE)\
 virtual FPCGMetadataAttributeBase* CreateAttribute(UPCGMetadata* Metadata, FName Name) const override;\
 virtual void InitEntry(const FPCGExTupleValueWrap* InHeader);\
-virtual void WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const override;
+virtual void WriteValue(FPCGMetadataAttributeBase* Attribute, int64 Key) const override;\
+FPCGExTupleValueWrap##_TYPE() = default;
 
 USTRUCT(BlueprintType, DisplayName="Boolean")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapBoolean : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
 
-	FPCGExTupleValueWrapBoolean() = default;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	bool Value = false;
 
-	PCGEX_TUPLE_WRAP_DECL(Boolean)
+	PCGEX_TUPLEVALUEWRAP_CTR(Boolean)
 };
 
 USTRUCT(BlueprintType, DisplayName="Float")
@@ -66,181 +65,140 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapFloat : public FPCGExTupleValu
 {
 	GENERATED_BODY()
 
-	FPCGExTupleValueWrapFloat() = default;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	float Value = 0;
 
-	PCGEX_TUPLE_WRAP_DECL(Float)
+	PCGEX_TUPLEVALUEWRAP_CTR(Float)
 };
 
 USTRUCT(BlueprintType, DisplayName="Double")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapDouble : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapDouble() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(Double)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	double Value = 0;
-
-	PCGEX_TUPLE_WRAP_DECL(Double)
 };
 
 USTRUCT(BlueprintType, DisplayName="Integer 32")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapInteger32 : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapInteger32() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(Integer32)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	int32 Value = 0;
-
-	PCGEX_TUPLE_WRAP_DECL(Integer32)
 };
 
 USTRUCT(BlueprintType, DisplayName="Vector2")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapVector2 : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapVector2() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(Vector2)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FVector2D Value = FVector2D::ZeroVector;
-
-	PCGEX_TUPLE_WRAP_DECL(Vector2)
 };
 
 USTRUCT(BlueprintType, DisplayName="Vector")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapVector : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapVector() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(Vector)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FVector Value = FVector::ZeroVector;
-
-	PCGEX_TUPLE_WRAP_DECL(Vector)
 };
 
 USTRUCT(BlueprintType, DisplayName="Vector4")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapVector4 : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapVector4() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(Vector4)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FVector4 Value = FVector4::Zero();
-
-	PCGEX_TUPLE_WRAP_DECL(Vector4)
 };
 
 USTRUCT(BlueprintType, DisplayName="Color")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapColor : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapColor() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(Color)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FLinearColor Value = FLinearColor::White;
-
-	PCGEX_TUPLE_WRAP_DECL(Color)
 };
 
 USTRUCT(BlueprintType, DisplayName="Transform")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapTransform : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapTransform() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(Transform)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FTransform Value = FTransform::Identity;
-
-	PCGEX_TUPLE_WRAP_DECL(Transform)
 };
 
 USTRUCT(BlueprintType, DisplayName="Rotator")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapRotator : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapRotator() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(Rotator)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FRotator Value = FRotator::ZeroRotator;
-
-	PCGEX_TUPLE_WRAP_DECL(Rotator)
 };
 
 USTRUCT(BlueprintType, DisplayName="String")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapString : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapString() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(String)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FString Value = TEXT("");
-
-	PCGEX_TUPLE_WRAP_DECL(String)
 };
 
 USTRUCT(BlueprintType, DisplayName="Name")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapName : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapName() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(Name)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FName Value = NAME_None;
-
-	PCGEX_TUPLE_WRAP_DECL(Name)
 };
 
 USTRUCT(BlueprintType, DisplayName="Soft Object Path")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapSoftObjectPath : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapSoftObjectPath() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(SoftObjectPath)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FSoftObjectPath Value;
-
-	PCGEX_TUPLE_WRAP_DECL(SoftObjectPath)
 };
 
 USTRUCT(BlueprintType, DisplayName="Soft Class Path")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapSoftClassPath : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapSoftClassPath() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(SoftClassPath)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FSoftClassPath Value;
-
-	PCGEX_TUPLE_WRAP_DECL(SoftClassPath)
 };
 
 USTRUCT(BlueprintType, DisplayName="Enum Selector")
 struct PCGEXTENDEDTOOLKIT_API FPCGExTupleValueWrapEnumSelector : public FPCGExTupleValueWrap
 {
 	GENERATED_BODY()
-
-	FPCGExTupleValueWrapEnumSelector() = default;
+	PCGEX_TUPLEVALUEWRAP_CTR(EnumSelector)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings)
 	FEnumSelector Enum;
-
-	PCGEX_TUPLE_WRAP_DECL(EnumSelector)
 
 	virtual void SanitizeEntry(const FPCGExTupleValueWrap* InHeader) override;
 };
@@ -278,7 +236,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTupleBody
 
 	FPCGExTupleBody() = default;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, EditFixedSize, meta=(TitleProperty="{Name}", ExcludeBaseStruct, ShowOnlyInnerProperties, FullyExpand=true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Settings, EditFixedSize, meta=(TitleProperty="{Name}", ExcludeBaseStruct, ShowOnlyInnerProperties, FullyExpand=true, ForceInlineRow))
 	TArray<TInstancedStruct<FPCGExTupleValueWrap>> Row;
 };
 
@@ -321,3 +279,5 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(false)
 };
+
+#undef PCGEX_TUPLEVALUEWRAP_CTR

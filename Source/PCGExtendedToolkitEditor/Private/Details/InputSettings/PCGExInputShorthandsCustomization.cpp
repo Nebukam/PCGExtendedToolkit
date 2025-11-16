@@ -76,7 +76,7 @@ void FPCGExInputShorthandCustomization::CustomizeHeader(
 							return V ? EVisibility::Visible : EVisibility::Collapsed;
 						}))
 				[
-					AttributeHandle->CreatePropertyValueWidget()
+					CreateAttributeWidget(AttributeHandle)
 				]
 			]
 		];
@@ -92,6 +92,56 @@ void FPCGExInputShorthandCustomization::CustomizeChildren(
 TSharedRef<SWidget> FPCGExInputShorthandCustomization::CreateValueWidget(TSharedPtr<IPropertyHandle> ValueHandle)
 {
 	return ValueHandle->CreatePropertyValueWidget();
+}
+
+TSharedRef<SWidget> FPCGExInputShorthandCustomization::CreateAttributeWidget(TSharedPtr<IPropertyHandle> AttributeHandle)
+{
+	FProperty* Prop = AttributeHandle->GetProperty();
+	if (CastField<FNameProperty>(Prop) || CastField<FTextProperty>(Prop))
+	{
+		return AttributeHandle->CreatePropertyValueWidget();
+	}
+
+	return SNew(SEditableTextBox)
+		.Text_Lambda(
+			[AttributeHandle]()
+			{
+				TArray<void*> RawData;
+				AttributeHandle->AccessRawData(RawData);
+
+				if (RawData.Num() > 0)
+				{
+					FPCGAttributePropertyInputSelector* Selector = static_cast<FPCGAttributePropertyInputSelector*>(RawData[0]);
+					if (Selector)
+					{
+						return FText::FromString(Selector->ToString());
+					}
+				}
+				return FText::GetEmpty();
+			})
+		.OnTextCommitted_Lambda(
+			[AttributeHandle](const FText& NewText, ETextCommit::Type CommitType)
+			{
+				// Only handle commits from Enter or losing focus
+				if (CommitType == ETextCommit::OnEnter || CommitType == ETextCommit::OnUserMovedFocus)
+				{
+					TArray<void*> RawData;
+					AttributeHandle->AccessRawData(RawData);
+
+					bool bUpdated = false;
+					for (void* Ptr : RawData)
+					{
+						FPCGAttributePropertyInputSelector* Selector = static_cast<FPCGAttributePropertyInputSelector*>(Ptr);
+						if (Selector)
+						{
+							Selector->Update(NewText.ToString());
+							bUpdated = true;
+						}
+					}
+
+					if (bUpdated) { AttributeHandle->NotifyPostChange(EPropertyChangeType::ValueSet); }
+				}
+			});
 }
 
 TSharedRef<IPropertyTypeCustomization> FPCGExInputShorthandVectorCustomization::MakeInstance()
