@@ -59,44 +59,45 @@ void FPCGExFittingVariationsCustomization::CustomizeHeader(
 	TArray<UObject*> OuterObjects;
 	PropertyHandle->GetOuterObjects(OuterObjects);
 
+	const bool bIsGlobal = PropertyHandle->GetProperty()->GetFName().ToString().Contains(TEXT("Global"));
 	if (UPCGExAssetCollection* Collection = !OuterObjects.IsEmpty() ? Cast<UPCGExAssetCollection>(OuterObjects[0]) : nullptr;
-		Collection && !PropertyHandle->GetProperty()->GetFName().ToString().Contains(TEXT("Global")))
-		{
-			HeaderRow.NameContent()[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot().Padding(1).AutoWidth()
-				[
-					PropertyHandle->CreatePropertyNameWidget()
-				]
-				+ SHorizontalBox::Slot().Padding(10, 0).FillWidth(1).VAlign(VAlign_Center)
-				[
-					SNew(STextBlock)
-					.Font(IDetailLayoutBuilder::GetDetailFontItalic())
-					.Text_Lambda(
-						[Collection]()
-						{
-							return Collection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule
-									   ? FText::FromString(TEXT("⚠ Overruled"))
-									   : FText::GetEmpty();
-						})
-					.ColorAndOpacity_Lambda(
-						[Collection]()
-						{
-							return Collection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule
-									   ? FLinearColor(1.0f, 0.5f, 0.1f, 0.5)
-									   : FLinearColor::Transparent;
-						})
-				]
-
-			];
-		}
-		else
-		{
-			HeaderRow.NameContent()
+		Collection && !bIsGlobal)
+	{
+		HeaderRow.NameContent()[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().Padding(1).AutoWidth()
 			[
 				PropertyHandle->CreatePropertyNameWidget()
-			];
-		}
+			]
+			+ SHorizontalBox::Slot().Padding(10, 0).FillWidth(1).VAlign(VAlign_Center)
+			[
+				SNew(STextBlock)
+				.Font(IDetailLayoutBuilder::GetDetailFontItalic())
+				.Text_Lambda(
+					[Collection]()
+					{
+						return Collection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule
+							       ? FText::FromString(TEXT("··· Overruled"))
+							       : FText::GetEmpty();
+					})
+				.ColorAndOpacity_Lambda(
+					[Collection]()
+					{
+						return Collection->GlobalVariationMode == EPCGExGlobalVariationRule::Overrule
+							       ? FLinearColor(1.0f, 0.5f, 0.1f, 0.5)
+							       : FLinearColor::Transparent;
+					})
+			]
+
+		];
+	}
+	else
+	{
+		HeaderRow.NameContent()
+		[
+			PropertyHandle->CreatePropertyNameWidget()
+		];
+	}
 }
 
 void FPCGExFittingVariationsCustomization::CustomizeChildren(
@@ -113,10 +114,14 @@ void FPCGExFittingVariationsCustomization::CustomizeChildren(
 	TSharedPtr<IPropertyHandle> OffsetSnappingModeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, SnapPosition));
 	TSharedPtr<IPropertyHandle> OffsetStepsHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExFittingVariations, OffsetSnap));
 
+	const bool bIsGlobal = PropertyHandle->GetProperty()->GetFName().ToString().Contains(TEXT("Global"));
+
+#define PCGEX_GLOBAL_VISIBILITY(_ID) .Visibility(MakeAttributeLambda([bIsGlobal]() { return !bIsGlobal ? GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName(_ID)) : EVisibility::Visible; }))
+
 	// Add custom Offset row
 	ChildBuilder
 		.AddCustomRow(FText::FromString("Offset"))
-		.Visibility(MakeAttributeLambda([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationOffset")); }))
+		PCGEX_GLOBAL_VISIBILITY("VariationOffset")
 		.NameContent()
 		[
 			SNew(SVerticalBox)
@@ -195,7 +200,7 @@ void FPCGExFittingVariationsCustomization::CustomizeChildren(
 	// Add custom Offset row
 	ChildBuilder
 		.AddCustomRow(FText::FromString("Rotation"))
-		.Visibility(MakeAttributeLambda([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationRotation")); }))
+		PCGEX_GLOBAL_VISIBILITY("VariationRotation")
 		.NameContent()
 		[
 			SNew(SVerticalBox)
@@ -275,7 +280,7 @@ void FPCGExFittingVariationsCustomization::CustomizeChildren(
 	// Add custom Offset row
 	ChildBuilder
 		.AddCustomRow(FText::FromString("Scale"))
-		.Visibility(MakeAttributeLambda([]() { return GetDefault<UPCGExGlobalEditorSettings>()->GetPropertyVisibility(FName("VariationScale")); }))
+		PCGEX_GLOBAL_VISIBILITY("VariationScale")
 		.NameContent()
 		[
 			SNew(SVerticalBox)
@@ -343,6 +348,7 @@ void FPCGExFittingVariationsCustomization::CustomizeChildren(
 			]
 		];
 
+#undef PCGEX_GLOBAL_VISIBILITY
 #undef PCGEX_UNIFORM_VISIBILITY
 
 #pragma endregion

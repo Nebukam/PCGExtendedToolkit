@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Details/Collections/PCGExMeshGrammarDetailsCustomization.h"
+#include "Details/Collections/PCGExMeshGrammarCustomization.h"
 
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
@@ -46,12 +46,12 @@ return EVisibility::Collapsed;})
 
 #define PCGEX_FIELD(_HANDLE, _TYPE, _PART, _TOOLTIP) PCGEX_FIELD_BASE(_HANDLE, _TYPE, _PART, _TOOLTIP)]
 
-TSharedRef<IPropertyTypeCustomization> FPCGExMeshGrammarDetailsCustomization::MakeInstance()
+TSharedRef<IPropertyTypeCustomization> FPCGExMeshGrammarCustomization::MakeInstance()
 {
-	return MakeShareable(new FPCGExMeshGrammarDetailsCustomization());
+	return MakeShareable(new FPCGExMeshGrammarCustomization());
 }
 
-void FPCGExMeshGrammarDetailsCustomization::CustomizeHeader(
+void FPCGExMeshGrammarCustomization::CustomizeHeader(
 	TSharedRef<IPropertyHandle> PropertyHandle,
 	FDetailWidgetRow& HeaderRow,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
@@ -61,12 +61,17 @@ void FPCGExMeshGrammarDetailsCustomization::CustomizeHeader(
 	TSharedPtr<IPropertyHandle> SizeHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExMeshGrammarDetails, Size));
 	TSharedPtr<IPropertyHandle> DebugColorHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExMeshGrammarDetails, DebugColor));
 
+	TSharedPtr<IPropertyHandle> GrammarSourceHandle = nullptr;
+	if (TSharedPtr<IPropertyHandle> ParentHandle = PropertyHandle->GetParentHandle()) { GrammarSourceHandle = ParentHandle->GetChildHandle(FName("GrammarSource")); }
+
 	// Grab parent collection
 	TArray<UObject*> OuterObjects;
 	PropertyHandle->GetOuterObjects(OuterObjects);
 
+	const bool bIsGlobal = PropertyHandle->GetProperty()->GetFName().ToString().Contains(TEXT("Global"));
+
 	if (UPCGExMeshCollection* Collection = !OuterObjects.IsEmpty() ? Cast<UPCGExMeshCollection>(OuterObjects[0]) : nullptr;
-		Collection && !PropertyHandle->GetProperty()->GetFName().ToString().Contains(TEXT("Global")))
+		Collection && !bIsGlobal)
 	{
 		HeaderRow.NameContent()[
 			SNew(SHorizontalBox)
@@ -82,7 +87,7 @@ void FPCGExMeshGrammarDetailsCustomization::CustomizeHeader(
 					[Collection]()
 					{
 						return Collection->GlobalGrammarMode == EPCGExGlobalVariationRule::Overrule
-							       ? FText::FromString(TEXT("⚠ Overruled"))
+							       ? FText::FromString(TEXT("··· Overruled"))
 							       : FText::GetEmpty();
 					})
 				.ColorAndOpacity_Lambda(
@@ -104,6 +109,14 @@ void FPCGExMeshGrammarDetailsCustomization::CustomizeHeader(
 		];
 	}
 
+	auto IsLocalData = [GrammarSourceHandle]()
+	{
+		if (!GrammarSourceHandle) { return true; }
+		uint8 EnumValue = 0;
+		GrammarSourceHandle->GetValue(EnumValue);
+		return !EnumValue;
+	};
+
 	HeaderRow.ValueContent()
 	         .MinDesiredWidth(400)
 	[
@@ -112,30 +125,45 @@ void FPCGExMeshGrammarDetailsCustomization::CustomizeHeader(
 		PCGEX_SMALL_LABEL("Symbol")
 		+ SHorizontalBox::Slot().Padding(1).FillWidth(1)
 		[
-			SymbolHandle->CreatePropertyValueWidget()
+			SNew(SBox)
+			.IsEnabled_Lambda([bIsGlobal]() { return !bIsGlobal; })
+			[
+				SymbolHandle->CreatePropertyValueWidget()
+			]
 		]
 		// Scale mode
 		+ SHorizontalBox::Slot().Padding(1).AutoWidth()
 		[
-			//ScaleModeHandle->CreatePropertyValueWidget()
-			PCGExEnumCustomization::CreateRadioGroup(ScaleModeHandle, TEXT("EPCGExGrammarScaleMode"))
+			SNew(SBox)
+			.IsEnabled_Lambda(IsLocalData)
+			[
+				PCGExEnumCustomization::CreateRadioGroup(ScaleModeHandle, TEXT("EPCGExGrammarScaleMode"))
+			]
 		]
 		// Size
 		PCGEX_SMALL_LABEL("·· Size")
 		+ SHorizontalBox::Slot().Padding(1).FillWidth(1)
 		[
-			SizeHandle->CreatePropertyValueWidget()
+			SNew(SBox)
+			.IsEnabled_Lambda(IsLocalData)
+			[
+				SizeHandle->CreatePropertyValueWidget()
+			]
 		]
 		// Debug color
 		PCGEX_SMALL_LABEL("·· ")
 		+ SHorizontalBox::Slot().Padding(1).MaxWidth(25)
 		[
-			DebugColorHandle->CreatePropertyValueWidget()
+			SNew(SBox)
+			.IsEnabled_Lambda(IsLocalData)
+			[
+				DebugColorHandle->CreatePropertyValueWidget()
+			]
 		]
 	];
 }
 
-void FPCGExMeshGrammarDetailsCustomization::CustomizeChildren(
+void FPCGExMeshGrammarCustomization::CustomizeChildren(
 	TSharedRef<IPropertyHandle> PropertyHandle,
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)

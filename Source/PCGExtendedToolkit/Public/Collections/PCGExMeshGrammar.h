@@ -4,11 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
-#include "PCGExMath.h"
-#include "Details/PCGExSettingsMacros.h"
-#include "Data/PCGExDataFilter.h"
-#include "Sampling/PCGExSampling.h"
 #include "PCGExMeshGrammar.generated.h"
 
 struct FPCGExAssetStagingData;
@@ -30,17 +25,25 @@ enum class EPCGExGrammarSizeReference : uint8
 	X       = 0 UMETA(DisplayName = "X", Tooltip="X size", ActionIcon="X"),
 	Y       = 1 UMETA(DisplayName = "Y", Tooltip="Y size", ActionIcon="Y"),
 	Z       = 2 UMETA(DisplayName = "Z", Tooltip="Z axis", ActionIcon="Z"),
-	Min     = 3 UMETA(DisplayName = "Min", Tooltip="Min size", ActionIcon="MinSize"),
-	Max     = 4 UMETA(DisplayName = "Max", Tooltip="Max size.", ActionIcon="MaxSize"),
-	Average = 5 UMETA(DisplayName = "Average", Tooltip="Average of all axes.", ActionIcon="AverageSize"),
+	Min     = 3 UMETA(DisplayName = "Smallest", Tooltip="Use smallest axis size", ActionIcon="MinSize"),
+	Max     = 4 UMETA(DisplayName = "Largest", Tooltip="Use largest axis size", ActionIcon="MaxSize"),
+	Average = 5 UMETA(DisplayName = "Average", Tooltip="Average size of all axes.", ActionIcon="AverageSize"),
+};
+
+UENUM()
+enum class EPCGExGrammarSubCollectionMode : uint8
+{
+	Inherit  = 0 UMETA(DisplayName = "Inherit", Tooltip="Inherit the settings from the selected collection."),
+	Override = 1 UMETA(DisplayName = "Override", Tooltip="Override the collection internal settings with custom ones."),
+	Flatten  = 2 UMETA(DisplayName = "Flatten", Tooltip="Hoist the collection entries as if they were part of this collection."),
 };
 
 UENUM()
 enum class EPCGExCollectionGrammarSize : uint8
 {
 	Fixed   = 0 UMETA(DisplayName = "Fixed", Tooltip="Fixed size.", ActionIcon="Constant"),
-	Min     = 1 UMETA(DisplayName = "Min", Tooltip="Uses the smallest size found within the collection entries.", ActionIcon="MinSize"),
-	Max     = 2 UMETA(DisplayName = "Max", Tooltip="Uses the largest size found within the collection entries.", ActionIcon="MaxSize"),
+	Min     = 1 UMETA(DisplayName = "Smallest", Tooltip="Uses the smallest size found within the collection entries.", ActionIcon="MinSize"),
+	Max     = 2 UMETA(DisplayName = "Largest", Tooltip="Uses the largest size found within the collection entries.", ActionIcon="MaxSize"),
 	Average = 3 UMETA(DisplayName = "Average", Tooltip="Uses an average of the sizes of all the collection entries.", ActionIcon="AverageSize"),
 };
 
@@ -50,7 +53,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshGrammarDetails
 	GENERATED_BODY()
 
 	FPCGExMeshGrammarDetails() = default;
-	
+
+	FPCGExMeshGrammarDetails(const FName InSymbol): Symbol(InSymbol)
+	{
+	}
+
 	/** Symbol for the grammar. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FName Symbol = NAME_None;
@@ -67,7 +74,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshGrammarDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FLinearColor DebugColor = FLinearColor::White;
 
-	void Fix(const FBox& InBounds, FPCGSubdivisionSubmodule& OutSubmodule) const;
+	double GetSize(const FBox& InBounds, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache = nullptr) const;
+	void Fix(const FBox& InBounds, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache = nullptr) const;
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Grammar Details")
@@ -77,38 +85,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionGrammarDetails
 
 	FPCGExMeshCollectionGrammarDetails() = default;
 
-	/** If enabled, items within that collection will be flattened into their parent context. Note that hoisting is not recursive. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bFlatten = false;
-	
 	/** Symbol for the grammar. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bFlatten", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FName Symbol = NAME_None;
 
 	/** If the volume can be scaled to fit the remaining space or not. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bFlatten", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGrammarScaleMode ScaleMode = EPCGExGrammarScaleMode::Fixed;
-	
+
 	/** How to define the size of this collection "as a grammar module"*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayAfter="ScaleMode", EditCondition="!bFlatten", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExCollectionGrammarSize SizeMode = EPCGExCollectionGrammarSize::Min;
 
 	/** Fixed size */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayAfter="SizeMode", EditCondition="!bFlatten && SizeMode==EPCGExCollectionGrammarSize::Fixed", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="SizeMode == EPCGExCollectionGrammarSize::Fixed", EditConditionHides))
 	double Size = 100;
 
 	/** For easier debugging, using Point color in conjunction with PCG Debug Color Material. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bFlatten", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FLinearColor DebugColor = FLinearColor::White;
 
-	void Fix(const UPCGExMeshCollection* InCollection, FPCGSubdivisionSubmodule& OutSubmodule) const;
+	double GetSize(const UPCGExMeshCollection* InCollection, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache = nullptr) const;
+	void Fix(const UPCGExMeshCollection* InCollection, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache = nullptr) const;
 };
-
-namespace PCGExMeshGrammar
-{
-	PCGEXTENDEDTOOLKIT_API
-	void FixModule(const UPCGExMeshCollection* Collection, FPCGSubdivisionSubmodule& OutSubmodule);
-	
-	PCGEXTENDEDTOOLKIT_API
-	void FixModule(const FPCGExMeshCollectionEntry* Entry, const UPCGExMeshCollection* Collection, FPCGSubdivisionSubmodule& OutSubmodule);
-}

@@ -11,7 +11,7 @@
 #include "Details/Collections/PCGExFittingVariationsCustomization.h"
 #include "Details/Collections/PCGExMaterialPicksCustomization.h"
 #include "Details/Collections/PCGExMeshCollectionActions.h"
-#include "Details/Collections/PCGExMeshGrammarDetailsCustomization.h"
+#include "Details/Collections/PCGExMeshGrammarCustomization.h"
 #include "Details/Enums/PCGExGridEnumCustomization.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
 #include "Details/InputSettings/PCGExInputShorthandsCustomization.h"
@@ -136,7 +136,7 @@ namespace PCGExDetailsCustomization
 		PCGEX_ADD_ACTION_ICON(Round, AIS_Small)
 		PCGEX_ADD_ACTION_ICON(Floor, AIS_Small)
 		PCGEX_ADD_ACTION_ICON(Ceil, AIS_Small)
-		
+
 		PCGEX_ADD_ACTION_ICON(Fixed, AIS_Small)
 		PCGEX_ADD_ACTION_ICON(Flexible, AIS_Small)
 
@@ -173,7 +173,7 @@ namespace PCGExDetailsCustomization
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMaterialOverrideCollection", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMaterialOverrideCollectionCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMeshCollectionEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMeshEntryCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExActorCollectionEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExActorEntryCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMeshGrammarDetails", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMeshGrammarDetailsCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMeshGrammarDetails", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMeshGrammarCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameBoolean", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameFloat", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));

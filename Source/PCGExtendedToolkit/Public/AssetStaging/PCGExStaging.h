@@ -61,8 +61,6 @@ namespace PCGExStaging
 
 	class PCGEXTENDEDTOOLKIT_API FPickPacker : public TSharedFromThis<FPickPacker>
 	{
-		FPCGExContext* Context = nullptr;
-
 		TArray<const UPCGExAssetCollection*> AssetCollections;
 		TMap<const UPCGExAssetCollection*, uint32> CollectionMap;
 		mutable FRWLock AssetCollectionsLock;
@@ -70,7 +68,7 @@ namespace PCGExStaging
 		uint16 BaseHash = 0;
 
 	public:
-		FPickPacker(FPCGExContext* InContext);
+		FPickPacker(FPCGContext* InContext);
 
 
 		uint64 GetPickIdx(const UPCGExAssetCollection* InCollection, const int16 InIndex, const int16 InSecondaryIndex);

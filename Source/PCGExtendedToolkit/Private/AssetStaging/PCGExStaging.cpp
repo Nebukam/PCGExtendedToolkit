@@ -15,8 +15,7 @@
 
 namespace PCGExStaging
 {
-	FPickPacker::FPickPacker(FPCGExContext* InContext)
-		: Context(InContext)
+	FPickPacker::FPickPacker(FPCGContext* InContext)
 	{
 		BaseHash = static_cast<uint16>(InContext->GetInputSettings<UPCGSettings>()->UID);
 	}

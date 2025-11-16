@@ -106,9 +106,7 @@ namespace PCGExMeshCollection
 		int32 HighestIndex = -1;
 
 	public:
-		FMicroCache()
-		{
-		}
+		FMicroCache() = default;
 
 		virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Mesh; }
 
@@ -134,16 +132,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 {
 	GENERATED_BODY()
 
-	FPCGExMeshCollectionEntry()
-	{
-	}
+	FPCGExMeshCollectionEntry() = default;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	TSoftObjectPtr<UStaticMesh> StaticMesh = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides, DisplayAfter="bIsSubCollection"))
 	TObjectPtr<UPCGExMeshCollection> SubCollection;
-	
+
 	/** A list of material variants */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	EPCGExMaterialVariantsMode MaterialVariants = EPCGExMaterialVariantsMode::None;
@@ -160,28 +156,28 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variants", EditCondition="!bIsSubCollection && MaterialVariants == EPCGExMaterialVariantsMode::Multi", TitleProperty="DisplayName", EditConditionHides))
 	TArray<FPCGExMaterialOverrideCollection> MaterialOverrideVariantsList;
 
-	
+
 	/** Grammar source. */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	EPCGExEntryVariationMode GrammarSource = EPCGExEntryVariationMode::Local;
-	
+
 	/** Grammar details. */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection && GrammarSource == EPCGExEntryVariationMode::Local", EditConditionHides, ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	FPCGExMeshGrammarDetails MeshGrammar;
 
 	/** Whether to override subcollection grammar settings. TODO: Make this an enum */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides))
-	bool bOverrideSubCollectionGrammar = false;
-	
+	EPCGExGrammarSubCollectionMode SubGrammarMode = EPCGExGrammarSubCollectionMode::Inherit;
+
 	/** Grammar details subcollection overrides.  */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection && bOverrideSubCollectionGrammar", EditConditionHides, ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection && SubGrammarMode == EPCGExGrammarSubCollectionMode::Override", EditConditionHides))
 	FPCGExMeshCollectionGrammarDetails CollectionGrammar;
 
-	
+
 	/** Descriptor source. */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides, DisplayAfter="Variations"))
 	EPCGExEntryVariationMode DescriptorSource = EPCGExEntryVariationMode::Local;
-		
+
 	/** Config used when this entry is consumed as an instanced static mesh */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" ├─ ISM Settings", EditCondition="!bIsSubCollection && DescriptorSource == EPCGExEntryVariationMode::Local", EditConditionHides, DisplayAfter="DescriptorSource"))
 	FSoftISMComponentDescriptor ISMDescriptor;
@@ -212,6 +208,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	virtual void ApplyMaterials(const int32 PickIndex, FPCGSoftISMComponentDescriptor& Descriptor) const;
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
+
+	double GetGrammarSize(const UPCGExMeshCollection* Host) const;
+	double GetGrammarSize(const UPCGExMeshCollection* Host, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache) const;
+	
+	bool FixModuleInfos(const UPCGExMeshCollection* Host, FPCGSubdivisionSubmodule& OutModule, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache = nullptr) const;
 
 #pragma region DEPRECATED
 
@@ -250,19 +251,19 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMeshCollection : public UPCGExAssetCollection
 public:
 	virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Mesh; }
 
-	/** Global grammar rule. */
+	/** Global grammar rule.\nNOTE: Symbol is still defined per-entry. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	EPCGExGlobalVariationRule GlobalGrammarMode = EPCGExGlobalVariationRule::PerEntry;
-	
-	/** Global Mesh Grammar details. */
-	UPROPERTY(EditAnywhere, Category = Settings)
-	FPCGExMeshGrammarDetails GlobalMeshGrammar;
 
-	/** Grammar as a collection.  */
+	/** Global Mesh Grammar details.\nNOTE: Symbol is still defined per-entry. */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	FPCGExMeshGrammarDetails GlobalMeshGrammar = FPCGExMeshGrammarDetails(FName("N/A"));
+
+	/** Default grammar when this collection is used as a subcollection. Note that this can be superseded by the host. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExMeshCollectionGrammarDetails CollectionGrammar;
 
-	
+
 	/** Global descriptor rule. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	EPCGExGlobalVariationRule GlobalDescriptorMode = EPCGExGlobalVariationRule::PerEntry;
@@ -274,7 +275,7 @@ public:
 	/** Config used when this entry is consumed as a regular static mesh primitive (i.e Spline Mesh)*/
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Global SM Settings"))
 	FPCGExStaticMeshComponentDescriptor GlobalSMDescriptor;
-		
+
 #if WITH_EDITOR
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
 	virtual void EDITOR_RefreshDisplayNames() override;

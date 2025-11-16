@@ -5,7 +5,7 @@
 
 #include "IPropertyTypeCustomization.h"
 
-class PCGEXTENDEDTOOLKITEDITOR_API FPCGExMeshGrammarDetailsCustomization : public IPropertyTypeCustomization
+class PCGEXTENDEDTOOLKITEDITOR_API FPCGExMeshCollectionGrammarCustomization : public IPropertyTypeCustomization
 {
 public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();

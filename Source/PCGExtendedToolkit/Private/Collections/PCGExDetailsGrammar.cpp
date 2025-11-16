@@ -8,76 +8,93 @@
 #include "UObject/Package.h"
 #include "Collections/PCGExAssetCollection.h"
 #include "Collections/PCGExMeshCollection.h"
-#include "Details/PCGExDetailsDistances.h"
-#include "Details/PCGExDetailsSettings.h"
 #include "Elements/Grammar/PCGSubdivisionBase.h"
 
-void FPCGExMeshGrammarDetails::Fix(const FBox& InBounds, FPCGSubdivisionSubmodule& OutSubmodule) const
+double FPCGExMeshGrammarDetails::GetSize(const FBox& InBounds, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache) const
+{
+	const FVector S = InBounds.GetSize();
+
+	switch (Size)
+	{
+	case EPCGExGrammarSizeReference::X: return S.X;
+	case EPCGExGrammarSizeReference::Y: return S.Y;
+	case EPCGExGrammarSizeReference::Z: return S.Z;
+	case EPCGExGrammarSizeReference::Min: return FMath::Min3(S.X, S.Y, S.Z);
+	case EPCGExGrammarSizeReference::Max: return FMath::Max3(S.X, S.Y, S.Z);
+	case EPCGExGrammarSizeReference::Average: return (S.X + S.Y + S.Z) / 3;
+	}
+
+	return 0;
+}
+
+void FPCGExMeshGrammarDetails::Fix(const FBox& InBounds, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache) const
 {
 	OutSubmodule.Symbol = Symbol;
 	OutSubmodule.DebugColor = DebugColor;
 	OutSubmodule.bScalable = ScaleMode == EPCGExGrammarScaleMode::Flex;
-
-	const FVector S = InBounds.GetSize();
-	switch (Size)
-	{
-	case EPCGExGrammarSizeReference::X:
-		OutSubmodule.Size = S.X;
-		break;
-	case EPCGExGrammarSizeReference::Y:
-		OutSubmodule.Size = S.X;
-		break;
-	case EPCGExGrammarSizeReference::Z:
-		OutSubmodule.Size = S.Y;
-		break;
-	case EPCGExGrammarSizeReference::Min:
-		OutSubmodule.Size = FMath::Min3(S.X, S.Y, S.Z);
-		break;
-	case EPCGExGrammarSizeReference::Max:
-		OutSubmodule.Size = FMath::Max3(S.X, S.Y, S.Z);
-		break;
-	case EPCGExGrammarSizeReference::Average:
-		OutSubmodule.Size = (S.X + S.Y + S.Z) / 3;
-		break;
-	}
+	OutSubmodule.Size = GetSize(InBounds);
 }
 
-void FPCGExMeshCollectionGrammarDetails::Fix(const UPCGExMeshCollection* InCollection, FPCGSubdivisionSubmodule& OutSubmodule) const
+double FPCGExMeshCollectionGrammarDetails::GetSize(const UPCGExMeshCollection* InCollection, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache) const
 {
-	
 	if (SizeMode == EPCGExCollectionGrammarSize::Fixed)
 	{
-		
+		return Size;
 	}
+
+	UPCGExMeshCollection* Collection = const_cast<UPCGExMeshCollection*>(InCollection);
+	const PCGExAssetCollection::FCache* Cache = Collection->LoadCache();
+	const int32 NumEntries = Cache->Main->Order.Num();
+
+	const FPCGExMeshCollectionEntry* Entry = nullptr;
+	const UPCGExAssetCollection* EntryHost = nullptr;
+
+	double CompoundSize = 0;
+	if (SizeMode == EPCGExCollectionGrammarSize::Min)
+	{
+		CompoundSize = MAX_dbl;
+
+		for (int i = 0; i < NumEntries; i++)
+		{
+			Collection->GetEntryAt(Entry, i, EntryHost);
+			if (!Entry) { continue; }
+			CompoundSize = FMath::Min(CompoundSize, Entry->GetGrammarSize(static_cast<const UPCGExMeshCollection*>(EntryHost), SizeCache));
+		}
+	}
+	else if (SizeMode == EPCGExCollectionGrammarSize::Max)
+	{
+		CompoundSize = 0;
+
+		for (int i = 0; i < NumEntries; i++)
+		{
+			Collection->GetEntryAt(Entry, i, EntryHost);
+			if (!Entry) { continue; }
+			CompoundSize = FMath::Max(CompoundSize, Entry->GetGrammarSize(static_cast<const UPCGExMeshCollection*>(EntryHost), SizeCache));
+		}
+	}
+	else if (SizeMode == EPCGExCollectionGrammarSize::Average)
+	{
+		double NumSamples = 0;
+
+		for (int i = 0; i < NumEntries; i++)
+		{
+			Collection->GetEntryAt(Entry, i, EntryHost);
+			if (!Entry) { continue; }
+
+			CompoundSize += Entry->GetGrammarSize(static_cast<const UPCGExMeshCollection*>(EntryHost), SizeCache);
+			NumSamples++;
+		}
+
+		CompoundSize /= NumSamples;
+	}
+
+	return CompoundSize;
 }
 
-namespace PCGExMeshGrammar
+void FPCGExMeshCollectionGrammarDetails::Fix(const UPCGExMeshCollection* InCollection, FPCGSubdivisionSubmodule& OutSubmodule, TMap<const FPCGExMeshCollectionEntry*, double>* SizeCache) const
 {
-	void FixModule(const FPCGExMeshCollectionEntry* Entry, const UPCGExMeshCollection* Collection, FPCGSubdivisionSubmodule& OutSubmodule)
-	{
-		if (Entry->bIsSubCollection)
-		{
-			if (Entry->bOverrideSubCollectionGrammar)
-			{
-				// Entry settings override sub collection internal settings		
-			}
-			else
-			{
-				// Entry settings grabs sub collection internal settings
-			}
-		}
-		else
-		{
-			if (Entry->GrammarSource == EPCGExEntryVariationMode::Global
-				|| Collection->GlobalGrammarMode == EPCGExGlobalVariationRule::Overrule)
-			{
-				// Grab parent collection global mesh settings
-				Collection->GlobalMeshGrammar.Fix(Entry->Staging.Bounds, OutSubmodule);
-			}
-			else
-			{
-				Entry->MeshGrammar.Fix(Entry->Staging.Bounds, OutSubmodule);
-			}
-		}
-	}
+	OutSubmodule.Symbol = Symbol;
+	OutSubmodule.DebugColor = DebugColor;
+	OutSubmodule.Size = GetSize(InCollection);
+	OutSubmodule.bScalable = ScaleMode == EPCGExGrammarScaleMode::Flex;
 }
