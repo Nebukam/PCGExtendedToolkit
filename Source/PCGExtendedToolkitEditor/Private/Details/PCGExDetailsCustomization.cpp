@@ -180,7 +180,8 @@ namespace PCGExDetailsCustomization
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExBitmask", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExBitmaskCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExClampedBit", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExClampedBitCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExClampedBitOp", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExClampedBitOpCustomization::MakeInstance));
-
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExBitmaskFilterConfig", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExBitmaskFilterConfigCustomization::MakeInstance));
+		
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameBoolean", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameFloat", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameDouble", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
