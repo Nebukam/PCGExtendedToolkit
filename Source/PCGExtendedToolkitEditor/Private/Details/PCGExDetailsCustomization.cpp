@@ -7,6 +7,9 @@
 #include "Details/PCGExDetailsInputShorthands.h"
 #include "Details/Collections/PCGExActorCollectionActions.h"
 #include "Details/Actions/PCGExActorDataPackerActions.h"
+#include "Details/Bitmask/PCGExBitmaskCustomization.h"
+#include "Details/Bitmask/PCGExClampedBitCustomization.h"
+#include "Details/Bitmask/PCGExClampedBitOpCustomization.h"
 #include "Details/Collections/PCGExAssetEntryCustomization.h"
 #include "Details/Collections/PCGExFittingVariationsCustomization.h"
 #include "Details/Collections/PCGExMaterialPicksCustomization.h"
@@ -174,6 +177,9 @@ namespace PCGExDetailsCustomization
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMeshCollectionEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMeshEntryCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExActorCollectionEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExActorEntryCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExAssetGrammarDetails", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExAssetGrammarCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExBitmask", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExBitmaskCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExClampedBit", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExClampedBitCustomization::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExClampedBitOp", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExClampedBitOpCustomization::MakeInstance));
 
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameBoolean", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameFloat", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));

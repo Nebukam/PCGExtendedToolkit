@@ -5,6 +5,7 @@
 
 
 #include "PCGParamData.h"
+#include "Details/PCGExVersion.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
@@ -28,6 +29,19 @@ void UPCGExClusterStateFactoryData::BeginDestroy()
 {
 	Super::BeginDestroy();
 }
+
+#if WITH_EDITOR
+void UPCGExClusterStateFactoryProviderSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	PCGEX_IF_DATA_VERSION(1, 71, 2)
+	{
+		Config.ApplyDeprecation();
+	}
+
+	PCGEX_UPDATE_DATA_VERSION
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
 
 namespace PCGExClusterStates
 {

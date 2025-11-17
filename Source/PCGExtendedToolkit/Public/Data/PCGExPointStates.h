@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
 #include "UObject/Object.h"
 #include "PCGExPointFilter.h"
+#include "Details/PCGExDetailsBitmask.h"
 
 #include "PCGExPointStates.generated.h"
 
@@ -41,6 +41,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStateConfigBase
 	void Init()
 	{
 	}
+
+#if WITH_EDITOR
+	void ApplyDeprecation()
+	{
+		PassStateFlags.ApplyDeprecation();
+		FailStateFlags.ApplyDeprecation();
+	}
+#endif
 };
 
 /**
@@ -74,7 +82,6 @@ namespace PCGExPointStates
 		}
 
 		virtual ~FState() override;
-
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		bool InitInternalManager(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);

@@ -9,6 +9,7 @@
 #include "PCGExHelpers.h"
 #include "PCGModule.h"
 #include "PCGParamData.h"
+#include "Details/PCGExDetailsBitmask.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 
 #if WITH_EDITOR

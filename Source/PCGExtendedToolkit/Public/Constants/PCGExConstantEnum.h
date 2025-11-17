@@ -2,13 +2,14 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
-#include "PCGExCompare.h"
 #include "PCGSettings.h"
 #include "Details/PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExContext.h"
 #include "Elements/ControlFlow/PCGControlFlow.h"
 #include "PCGExConstantEnum.generated.h"
+
+struct FPCGExBitmask;
 
 UENUM()
 enum class EPCGExEnumConstantSourceType : uint8
