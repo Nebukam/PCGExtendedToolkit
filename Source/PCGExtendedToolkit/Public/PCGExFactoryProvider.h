@@ -127,12 +127,8 @@ public:
 
 	virtual void AddDataDependency(const UPCGData* InData);
 	virtual void BeginDestroy() override;
-
-protected:
-	/** Store version of factory node, used for deprecation purposes */
-	UPROPERTY()
-	int64 PCGExDataVersion = -1;
 	
+protected:	
 	UPROPERTY()
 	TSet<TObjectPtr<UPCGData>> DataDependencies;
 };
@@ -208,8 +204,12 @@ public:
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Node Documentation", ShortToolTip="Open a browser and navigate to that node' documentation page", DisplayOrder=-1))
 	void EDITOR_OpenNodeDocumentation() const;
 #endif
-
+	
 protected:
+	/** Store version of factory node, used for deprecation purposes */
+	UPROPERTY()
+	int64 PCGExDataVersion = -1;
+	
 	virtual bool ShouldCache() const;
 };
 

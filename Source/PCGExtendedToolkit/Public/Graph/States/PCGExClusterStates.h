@@ -138,6 +138,8 @@ protected:
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+	
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		ClusterNodeFlag, "Cluster : Node Flag", "A single, filter-driven node flag.",
 		PCGEX_FACTORY_NAME_PRIORITY)

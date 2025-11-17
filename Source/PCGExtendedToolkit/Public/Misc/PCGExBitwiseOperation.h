@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
 #include "PCGExGlobalSettings.h"
-
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsBitmask.h"
+#include "Details/PCGExSettingsMacros.h"
 
 #include "PCGExBitwiseOperation.generated.h"
 

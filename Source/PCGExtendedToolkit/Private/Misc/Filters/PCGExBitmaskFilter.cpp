@@ -7,6 +7,7 @@
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExDetailsBitmask.h"
 #include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
@@ -63,7 +64,7 @@ bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSha
 
 bool PCGExPointFilter::FBitmaskFilter::Test(const int32 PointIndex) const
 {
-	const bool Result = PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FlagsReader->Read(PointIndex), MaskReader->Read(PointIndex));
+	const bool Result = PCGExBitmask::Compare(TypedFilterFactory->Config.Comparison, FlagsReader->Read(PointIndex), MaskReader->Read(PointIndex));
 	return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
 }
 
@@ -78,7 +79,7 @@ bool PCGExPointFilter::FBitmaskFilter::Test(const TSharedPtr<PCGExData::FPointIO
 		IO, TypedFilterFactory->Config.MaskInput, TypedFilterFactory->Config.BitmaskAttribute,
 		TypedFilterFactory->Config.Bitmask, OutMask, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
-	const bool Result = PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, OutFlags, OutMask);
+	const bool Result = PCGExBitmask::Compare(TypedFilterFactory->Config.Comparison, OutFlags, OutMask);
 	return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
 }
 

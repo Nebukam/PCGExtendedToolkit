@@ -7,9 +7,23 @@
 #include "PCGGraph.h"
 #include "PCGParamData.h"
 #include "PCGPin.h"
+#include "Details/PCGExVersion.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE Bitmask
+
+#if WITH_EDITOR
+void UPCGExBitmaskSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	PCGEX_IF_DATA_VERSION(1, 71, 2)
+	{
+		Bitmask.ApplyDeprecation();
+	}
+
+	PCGEX_UPDATE_DATA_VERSION
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
 
 TArray<FPCGPinProperties> UPCGExBitmaskSettings::InputPinProperties() const
 {

@@ -5,9 +5,9 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExCompare.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGSettings.h"
+#include "Details/PCGExDetailsBitmask.h"
 
 #include "PCGExBitmask.generated.h"
 
@@ -35,33 +35,6 @@ namespace PCGExBitmask
 			break;
 		}
 	}
-
-	FORCEINLINE static void Do(const EPCGExBitOp Op, int64& Flags, const TArray<FClampedBit>& Mask)
-	{
-		switch (Op)
-		{
-		default: ;
-		case EPCGExBitOp::Set:
-			for (const FClampedBit& Bit : Mask)
-			{
-				if (Bit.bValue) { Flags |= Bit.Get(); } // Set the bit
-				else { Flags &= ~Bit.Get(); }           // Clear the bit
-			}
-			break;
-		case EPCGExBitOp::AND:
-			for (const FClampedBit& Bit : Mask) { Flags &= Bit.Get(); }
-			break;
-		case EPCGExBitOp::OR:
-			for (const FClampedBit& Bit : Mask) { Flags |= Bit.Get(); }
-			break;
-		case EPCGExBitOp::NOT:
-			for (const FClampedBit& Bit : Mask) { Flags &= ~Bit.Get(); }
-			break;
-		case EPCGExBitOp::XOR:
-			for (const FClampedBit& Bit : Mask) { Flags ^= Bit.Get(); }
-			break;
-		}
-	}
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
@@ -74,6 +47,8 @@ class UPCGExBitmaskSettings : public UPCGSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
+	
 	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(Bitmask, "Bitmask", "A Simple bitmask attribute.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
@@ -87,8 +62,12 @@ protected:
 	//~End UPCGSettings
 
 	/** Operations executed on the flag if all filters pass */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
 	FPCGExBitmask Bitmask;
+	
+	/** Store version of the node, used for deprecation purposes */
+	UPROPERTY()
+	int64 PCGExDataVersion = -1;
 };
 
 class FPCGExBitmaskElement final : public IPCGElement

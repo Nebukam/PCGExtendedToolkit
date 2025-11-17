@@ -4,9 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
-
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsBitmask.h"
 #include "PCGExBitmaskMerge.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="metadata/bitmasks/bitmask-merge"))
