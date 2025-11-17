@@ -8,6 +8,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsBitmask.h"
 
 #include "PCGExBitwiseOperation.generated.h"
 

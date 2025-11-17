@@ -148,11 +148,7 @@ public:
 	virtual void AddDataDependency(const UPCGData* InData);
 	virtual void BeginDestroy() override;
 
-protected:
-	/** Store version of the factory, used for deprecation purposes */
-	UPROPERTY()
-	int64 PCGExDataVersion = -1;
-	
+protected:	
 	UPROPERTY()
 	TSet<TObjectPtr<UPCGData>> DataDependencies;
 };
@@ -229,6 +225,10 @@ public:
 #endif
 
 protected:
+	/** Store version of factory node, used for deprecation purposes */
+	UPROPERTY()
+	int64 PCGExDataVersion = -1;
+	
 	virtual bool ShouldCache() const;
 };
 

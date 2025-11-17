@@ -21,5 +21,5 @@ if(PCGEX_VERSION_BOOL(_MAJOR, _MINOR, _PATCH))
 
 namespace PCGExVersion
 {
-	constexpr int64 Latest = PCGEX_VERSION_NUM(1, 70, 11);
+	constexpr int64 Latest = PCGEX_VERSION_NUM(1, 71, 2);
 }
