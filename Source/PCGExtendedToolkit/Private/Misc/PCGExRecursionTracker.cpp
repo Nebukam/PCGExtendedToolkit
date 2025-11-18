@@ -220,6 +220,14 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 		Context->StageOutput(NewParamData, PCGExRecursionTracker::OutputTrackerLabel, Tags->Flatten(), false, true, false);
 	};
 
+#define PCGEX_OUTPUT_EXTRA(_NAME, _TYPE, _VALUE)\
+if (Settings->bOutput##_NAME){\
+UPCGParamData* Extra = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);\
+UPCGMetadata* Metadata = Extra->MutableMetadata();\
+Metadata->CreateAttribute<_TYPE>(FPCGAttributeIdentifier(PCGExRecursionTracker::Output##_NAME##Label, PCGMetadataDomainID::Default), _VALUE, true, true);\
+Metadata->AddEntry();\
+Context->StageOutput(Extra, PCGExRecursionTracker::Output##_NAME##Label, FlattenedTags, false, true, false);}
+	
 	if (SafeMode == EPCGExRecursionTrackerMode::Create)
 	{
 		if (ValidInputs.IsEmpty())
@@ -240,6 +248,8 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 				IO->Tags->Remove(RemoveTags);
 				IO->Tags->Set<int32>(TAG_MAX_COUNT_STR, SafeMax);
 				IO->Tags->Set<int32>(TAG_REMAINDER_STR, SafeMax);
+				
+				const TSet<FString> FlattenedTags = IO->Tags->Flatten();
 
 				UPCGMetadata* Metadata = NewParamData->MutableMetadata();
 				Metadata->DeleteAttribute(ContinueAttribute);
@@ -247,7 +257,12 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 
 				if (Settings->bAddEntryWhenCreatingFromExistingData) { Metadata->AddEntry(); }
 
-				Context->StageOutput(NewParamData, PCGExRecursionTracker::OutputTrackerLabel, IO->Tags->Flatten(), false, true, false);
+				Context->StageOutput(NewParamData, PCGExRecursionTracker::OutputTrackerLabel, FlattenedTags, false, true, false);
+
+				PCGEX_OUTPUT_EXTRA(Progress, float, Settings->bOneMinus ? 1 : 0)
+				PCGEX_OUTPUT_EXTRA(Index, int32, 0)
+				PCGEX_OUTPUT_EXTRA(Remainder, int32, SafeMax)
+
 			}
 		}
 	}
@@ -342,22 +357,14 @@ bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) cons
 
 				Context->StageOutput(OutputParamData, PCGExRecursionTracker::OutputTrackerLabel, FlattenedTags, false, false, false);
 
-#define PCGEX_OUTPUT_EXTRA(_NAME, _TYPE, _VALUE)\
-				if (Settings->bOutput##_NAME){\
-					UPCGParamData* Extra = FPCGContext::NewObject_AnyThread<UPCGParamData>(Context);\
-					UPCGMetadata* Metadata = Extra->MutableMetadata();\
-					Metadata->CreateAttribute<_TYPE>(FPCGAttributeIdentifier(PCGExRecursionTracker::Output##_NAME##Label, PCGMetadataDomainID::Default), _VALUE, true, true);\
-					Metadata->AddEntry();\
-					Context->StageOutput(Extra, PCGExRecursionTracker::Output##_NAME##Label, FlattenedTags, false, true, false);}
-
 				PCGEX_OUTPUT_EXTRA(Progress, float, Settings->bOneMinus ? 1 - Progress : Progress)
 				PCGEX_OUTPUT_EXTRA(Index, int32, FMath::Clamp(MaxCount - ClampedRemainder, 0, MaxCount))
 				PCGEX_OUTPUT_EXTRA(Remainder, int32, Remainder)
 
-#undef PCGEX_OUTPUT_EXTRA
 			}
 
 			if (NumTrackers == 0) { StageResult(false); }
+
 			Branch(bAnyContinue);
 		}
 	}
