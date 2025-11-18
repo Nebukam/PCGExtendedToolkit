@@ -191,7 +191,7 @@ namespace PCGExTopologyEdges
 			CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
 			CellsConstraints->Reserve(Cluster->Edges->Num());
 
-			if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *this->ProjectedVtxPositions.Get(), nullptr, &this->ProjectionDetails); }
+			if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *this->ProjectedVtxPositions.Get()); }
 			CellsConstraints->Holes = Holes;
 
 			InitConstraints();

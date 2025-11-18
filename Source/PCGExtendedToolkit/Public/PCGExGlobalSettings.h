@@ -63,6 +63,10 @@ public:
 	/** World "Up" vector used as default up internally */
 	UPROPERTY(EditAnywhere, config, Category = "Defaults")
 	FVector WorldUp = FVector::UpVector;
+
+	/** World "Forward" vector used as default up internally (Custom X direction). Should be in relation to the specific Up (Z) axis. */
+	UPROPERTY(EditAnywhere, config, Category = "Defaults")
+	FVector WorldForward = FVector::ForwardVector;
 	
 	/** Value applied by default to node caching when `Default` is selected -- note that some nodes may stop working as expected when working with cached data.*/
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
@@ -76,6 +80,9 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Defaults")
 	bool bBulkInitData = false;
 
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster")
+	bool bUseDelaunator = true;
+	
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
 	int32 SmallClusterSize = 512;
 

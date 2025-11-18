@@ -580,11 +580,12 @@ namespace PCGExGeo
 FPCGExGeo2DProjectionDetails::FPCGExGeo2DProjectionDetails()
 {
 	WorldUp = GetDefault<UPCGExGlobalSettings>()->WorldUp;
+	WorldFwd = GetDefault<UPCGExGlobalSettings>()->WorldForward;
 	ProjectionNormal = WorldUp;
 }
 
 FPCGExGeo2DProjectionDetails::FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal)
-: bSupportLocalNormal(InSupportLocalNormal)
+	: bSupportLocalNormal(InSupportLocalNormal)
 {
 	WorldUp = GetDefault<UPCGExGlobalSettings>()->WorldUp;
 	ProjectionNormal = WorldUp;
@@ -596,7 +597,7 @@ bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FFacade>& Po
 	if (!Context) { return false; }
 
 	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, WorldUp);
-	ProjectionQuat = FRotationMatrix::MakeFromZ(ProjectionNormal).ToQuat();
+	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, WorldFwd).ToQuat();
 
 	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
 	if (bLocalProjectionNormal && PointDataFacade)
@@ -618,7 +619,7 @@ bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FPointIO>& P
 	if (!Context) { return false; }
 
 	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, WorldUp);
-	ProjectionQuat = FRotationMatrix::MakeFromZ(ProjectionNormal).ToQuat();
+	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, WorldFwd).ToQuat();
 
 	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
 	if (bLocalProjectionNormal)
@@ -641,7 +642,7 @@ bool FPCGExGeo2DProjectionDetails::Init(const TSharedPtr<PCGExData::FPointIO>& P
 bool FPCGExGeo2DProjectionDetails::Init(const UPCGData* InData)
 {
 	ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, WorldUp);
-	ProjectionQuat = FRotationMatrix::MakeFromZ(ProjectionNormal).ToQuat();
+	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, WorldFwd).ToQuat();
 
 	if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
 	if (bLocalProjectionNormal)
@@ -664,10 +665,10 @@ bool FPCGExGeo2DProjectionDetails::Init(const UPCGData* InData)
 void FPCGExGeo2DProjectionDetails::Init(const PCGExGeo::FBestFitPlane& InFitPlane)
 {
 	ProjectionNormal = InFitPlane.Normal();
-	ProjectionQuat = FRotationMatrix::MakeFromZ(ProjectionNormal).ToQuat();
+	ProjectionQuat = FRotationMatrix::MakeFromZX(ProjectionNormal, WorldFwd).ToQuat();
 }
 
-#define PCGEX_READ_QUAT(_INDEX) FRotationMatrix::MakeFromZ(NormalGetter->Read(_INDEX).GetSafeNormal(1E-08, WorldUp)).ToQuat()
+#define PCGEX_READ_QUAT(_INDEX) FRotationMatrix::MakeFromZX(NormalGetter->Read(_INDEX).GetSafeNormal(1E-08, FVector::UpVector), WorldFwd).ToQuat()
 
 FQuat FPCGExGeo2DProjectionDetails::GetQuat(const int32 PointIndex) const
 {

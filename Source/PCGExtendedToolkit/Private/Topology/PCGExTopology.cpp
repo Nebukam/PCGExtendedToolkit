@@ -161,21 +161,18 @@ namespace PCGExTopology
 		return !bAlreadyExists;
 	}
 
-	void FCellConstraints::BuildWrapperCell(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints, const FPCGExGeo2DProjectionDetails* ProjectionDetails)
+	void FCellConstraints::BuildWrapperCell(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints)
 	{
 		double MaxDist = 0;
 		PCGExGraph::FLink Link = PCGExGraph::FLink(-1, -1);
-
-		// Find a point far away on the cluster's bounds
-		const FBox ClusterBounds = InCluster->Bounds;
-		FVector GuidePosition = ClusterBounds.GetCenter() + ClusterBounds.GetExtent() * FVector::OneVector;
 		const TArray<PCGExCluster::FNode>& Nodes = *InCluster->Nodes.Get();
 		for (const PCGExCluster::FNode& Node : Nodes)
 		{
-			if (const double Dist = FVector::DistSquared(GuidePosition, InCluster->GetPos(Node)); Dist > MaxDist)
+			if (const double Dist = FVector2D::DistSquared(InCluster->ProjectedCentroid, ProjectedPositions[Node.PointIndex]);
+				Dist > MaxDist)
 			{
-				MaxDist = Dist;
 				Link.Node = Node.Index;
+				MaxDist = Dist;
 			}
 		}
 
@@ -184,8 +181,6 @@ namespace PCGExTopology
 			WrapperCell = nullptr;
 			return;
 		}
-
-		GuidePosition = (InCluster->GetPos(Link) - ClusterBounds.GetCenter()).GetSafeNormal() * 1;
 
 		TSharedPtr<FCellConstraints> TempConstraints = InConstraints;
 		if (!InConstraints)
@@ -196,13 +191,48 @@ namespace PCGExTopology
 			TempConstraints->Winding = Winding;
 		}
 
-		const TSharedPtr<FCell> Cell = MakeShared<FCell>(TempConstraints.ToSharedRef());
-		const ECellResult Result = Cell->BuildFromCluster(
-			GuidePosition, InCluster, ProjectedPositions,
-			ProjectionDetails ? ProjectionDetails->ProjectionNormal : GetDefault<UPCGExGlobalSettings>()->WorldUp, nullptr);
+		// Find edge that's pointing away from the local center the most
+		double BestDot = MAX_dbl;
+		PCGExCluster::FNode* SeedNode = InCluster->GetNode(Link);
+		const FVector2D From = ProjectedPositions[SeedNode->PointIndex];
+		const FVector2D TowardCenter = (InCluster->ProjectedCentroid - From).GetSafeNormal();
 
+		for (const PCGExGraph::FLink& Lk : SeedNode->Links)
+		{
+			double Dot = FVector2D::DotProduct(TowardCenter, (ProjectedPositions[InCluster->GetNodePointIndex(Lk)] - From).GetSafeNormal());
+			if (Dot < BestDot)
+			{
+				BestDot = Dot;
+				Link.Edge = Lk.Edge;
+			}
+		}
 
-		if (Result == ECellResult::Success)
+		if (Link.Edge == -1)
+		{
+			WrapperCell = nullptr;
+			return;
+		}
+
+		auto GetGuidedHalfEdge = [&]()
+		{
+			PCGExCluster::FNode* StartNode = InCluster->GetEdgeStart(Link.Edge);
+			PCGExCluster::FNode* EndNode = InCluster->GetEdgeEnd(Link.Edge);
+
+			if (StartNode->IsLeaf() && !EndNode->IsLeaf()) { return StartNode; }
+			if (EndNode->IsLeaf() && !StartNode->IsLeaf()) { return EndNode; }
+
+			FVector2D EdgeDir = (ProjectedPositions[EndNode->PointIndex] - ProjectedPositions[StartNode->PointIndex]).GetSafeNormal();
+			FVector2D Normal(-EdgeDir.Y, EdgeDir.X); // CCW normal
+
+			if (FVector2D::DotProduct((ProjectedPositions[InCluster->GetNodePointIndex(Link)] - InCluster->ProjectedCentroid).GetSafeNormal(), Normal) > 0) { return StartNode; }
+			return EndNode;
+		};
+
+		// Determine which node we should start with to be right-handed
+		Link.Node = GetGuidedHalfEdge()->Index;
+
+		if (const TSharedPtr<FCell> Cell = MakeShared<FCell>(TempConstraints.ToSharedRef());
+			Cell->BuildFromCluster(Link, InCluster, ProjectedPositions) == ECellResult::Success)
 		{
 			WrapperCell = Cell;
 			IsUniqueCellHash(WrapperCell);
