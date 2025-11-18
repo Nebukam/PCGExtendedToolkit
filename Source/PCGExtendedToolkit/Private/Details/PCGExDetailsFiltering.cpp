@@ -90,6 +90,31 @@ void FPCGExFilterResultDetails::Write(const int32 Index, bool bPass) const
 		IncrementBuffer->SetValue(Index, IncrementBuffer->GetValue(Index) + (bPass ? PassIncrement : FailIncrement));
 		break;
 	case EPCGExResultWriteAction::Bitmask:
+		if (bDoBitmaskOpOnFail && bDoBitmaskOpOnPass)
+		{
+			int64 Flags = BitmaskBuffer->GetValue(Index);
+			if (bPass) { PassBitmask.DoOperation(Flags); }
+			else { FailBitmask.DoOperation(Flags); }
+			BitmaskBuffer->SetValue(Index, Flags);
+		}
+		else if (bDoBitmaskOpOnPass)
+		{
+			int64 Flags = BitmaskBuffer->GetValue(Index);
+			if (bPass)
+			{
+				PassBitmask.DoOperation(Flags);
+				BitmaskBuffer->SetValue(Index, Flags);
+			}
+		}
+		else if (bDoBitmaskOpOnFail)
+		{
+			int64 Flags = BitmaskBuffer->GetValue(Index);
+			if (!bPass)
+			{
+				FailBitmask.DoOperation(Flags);
+				BitmaskBuffer->SetValue(Index, Flags);
+			}
+		}
 		break;
 	}
 }
@@ -117,10 +142,10 @@ void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TArray
 			PCGEX_SCOPE_LOOP(Index)
 			{
 				int64 Flags = BitmaskBuffer->GetValue(Index);
-				
+
 				if (Results[Index]) { PassBitmask.DoOperation(Flags); }
 				else { FailBitmask.DoOperation(Flags); }
-				
+
 				BitmaskBuffer->SetValue(Index, Flags);
 			}
 		}
@@ -174,10 +199,10 @@ void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TBitAr
 			PCGEX_SCOPE_LOOP(Index)
 			{
 				int64 Flags = BitmaskBuffer->GetValue(Index);
-				
+
 				if (Results[Index]) { PassBitmask.DoOperation(Flags); }
 				else { FailBitmask.DoOperation(Flags); }
-				
+
 				BitmaskBuffer->SetValue(Index, Flags);
 			}
 		}
