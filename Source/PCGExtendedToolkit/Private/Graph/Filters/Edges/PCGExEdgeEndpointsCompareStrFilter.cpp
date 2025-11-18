@@ -37,7 +37,7 @@ namespace PCGExEdgeEndpointsCompareStr
 	{
 		if (!IFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		StringBuffer = InPointDataFacade->GetBroadcaster<FString>(TypedFilterFactory->Config.Attribute);
+		StringBuffer = InPointDataFacade->GetBroadcaster<FString>(TypedFilterFactory->Config.Attribute, false, PCGEX_QUIET_HANDLING);
 		if (!StringBuffer)
 		{
 			PCGEX_LOG_INVALID_SELECTOR_HANDLED_C(InContext, Comparison Attribute, TypedFilterFactory->Config.Attribute)

@@ -55,7 +55,7 @@ bool PCGExPointFilter::FWithinRangeFilter::Init(FPCGExContext* InContext, const 
 {
 	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandA, true);
+	OperandA = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandA, true, false, PCGEX_QUIET_HANDLING);
 
 	if (!OperandA)
 	{

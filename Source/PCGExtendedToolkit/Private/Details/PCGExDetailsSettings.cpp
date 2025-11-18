@@ -51,13 +51,8 @@ namespace PCGExDetails
 		FPCGExContext* Context = InDataFacade->GetContext();
 		if (!Context) { return false; }
 
-		Buffer = InDataFacade->GetBroadcaster<T>(Selector, bSupportScoped && !bCaptureMinMax, bCaptureMinMax);
-
-		if (!Buffer)
-		{
-			if (!this->bQuiet) { PCGEX_LOG_INVALID_SELECTOR_C(Context, Selector, Selector) }
-			return false;
-		}
+		Buffer = InDataFacade->GetBroadcaster<T>(Selector, bSupportScoped && !bCaptureMinMax, bCaptureMinMax, this->bQuiet);
+		if (!Buffer) { return false; }
 
 		return true;
 	}
@@ -86,11 +81,7 @@ namespace PCGExDetails
 		FPCGExContext* Context = InDataFacade->GetContext();
 		if (!Context) { return false; }
 
-		if (!PCGExDataHelpers::TryReadDataValue(Context, InDataFacade->GetIn(), Selector, this->Constant))
-		{
-			if (!this->bQuiet) { PCGEX_LOG_INVALID_SELECTOR_C(Context, Selector, Selector) }
-			return false;
-		}
+		if (!PCGExDataHelpers::TryReadDataValue(Context, InDataFacade->GetIn(), Selector, this->Constant, this->bQuiet)) { return false; }
 
 		return true;
 	}
@@ -103,11 +94,7 @@ namespace PCGExDetails
 
 		PCGEX_VALIDATE_NAME_C(Context, Name)
 
-		if (!PCGExDataHelpers::TryReadDataValue(Context, InDataFacade->GetIn(), Name, this->Constant))
-		{
-			if (!this->bQuiet) { PCGEX_LOG_INVALID_ATTR_C(Context, Attribute, Name) }
-			return false;
-		}
+		if (!PCGExDataHelpers::TryReadDataValue(Context, InDataFacade->GetIn(), Name, this->Constant, this->bQuiet)) { return false; }
 
 		return true;
 	}

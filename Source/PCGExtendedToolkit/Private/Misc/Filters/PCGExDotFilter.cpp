@@ -63,7 +63,7 @@ bool PCGExPointFilter::FDotFilter::Init(FPCGExContext* InContext, const TSharedP
 	if (!DotComparison.Init(InContext, InPointDataFacade.ToSharedRef())) { return false; }
 
 
-	OperandA = PointDataFacade->GetBroadcaster<FVector>(TypedFilterFactory->Config.OperandA, true);
+	OperandA = PointDataFacade->GetBroadcaster<FVector>(TypedFilterFactory->Config.OperandA, true, false, PCGEX_QUIET_HANDLING);
 	OperandAMultiplier = TypedFilterFactory->Config.bInvertOperandA ? -1 : 1;
 	if (!OperandA)
 	{
