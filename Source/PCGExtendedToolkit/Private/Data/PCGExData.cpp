@@ -238,7 +238,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	}
 
 	template <typename T>
-	bool TArrayBuffer<T>::InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax, const bool bScoped)
+	bool TArrayBuffer<T>::InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax, const bool bScoped, const bool bQuiet)
 	{
 		FWriteScopeLock WriteScopeLock(BufferLock);
 
@@ -509,7 +509,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	}
 
 	template <typename T>
-	bool TSingleValueBuffer<T>::InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax, const bool bScoped)
+	bool TSingleValueBuffer<T>::InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax, const bool bScoped, const bool bQuiet)
 	{
 		FWriteScopeLock WriteScopeLock(BufferLock);
 
@@ -527,7 +527,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		}
 
 		PCGEX_SHARED_CONTEXT(Source->GetContextHandle())
-		bReadInitialized = PCGExDataHelpers::TryReadDataValue(SharedContext.Get(), Source->GetIn(), InSelector, InValue);
+		bReadInitialized = PCGExDataHelpers::TryReadDataValue(SharedContext.Get(), Source->GetIn(), InSelector, InValue, bQuiet);
 
 		return bReadInitialized;
 	}
@@ -789,7 +789,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	}
 
 	template <typename T>
-	TSharedPtr<TBuffer<T>> FFacade::GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bSupportScoped, const bool bCaptureMinMax)
+	TSharedPtr<TBuffer<T>> FFacade::GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bSupportScoped, const bool bCaptureMinMax, const bool bQuiet)
 	{
 		// Build a proper identifier from the selector
 		// We'll use it to get a unique buffer ID as well as domain, which is conditional to finding the right buffer class to use
@@ -802,7 +802,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		}
 
 		TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(Identifier);
-		if (!Buffer || !Buffer->InitForBroadcast(InSelector, bCaptureMinMax, bCaptureMinMax || !bSupportsScopedGet ? false : bSupportScoped))
+		if (!Buffer || !Buffer->InitForBroadcast(InSelector, bCaptureMinMax, bCaptureMinMax || !bSupportsScopedGet ? false : bSupportScoped, bQuiet))
 		{
 			Flush(Buffer);
 			return nullptr;
@@ -812,14 +812,14 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	}
 
 	template <typename T>
-	TSharedPtr<TBuffer<T>> FFacade::GetBroadcaster(const FName InName, const bool bSupportScoped, const bool bCaptureMinMax)
+	TSharedPtr<TBuffer<T>> FFacade::GetBroadcaster(const FName InName, const bool bSupportScoped, const bool bCaptureMinMax, const bool bQuiet)
 	{
 		// Create a selector from the identifier.
 		// This is a bit backward but the user may have added domain prefixes to the name such as @Data.
 		FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 		Selector.Update(InName.ToString());
 
-		return GetBroadcaster<T>(Selector, bSupportScoped, bCaptureMinMax);
+		return GetBroadcaster<T>(Selector, bSupportScoped, bCaptureMinMax, bQuiet);
 	}
 
 	template <typename T>
@@ -842,8 +842,8 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> FFacade::GetWritable<
 template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> FFacade::GetWritable<_TYPE>(const FPCGMetadataAttribute<_TYPE>* InAttribute, EBufferInit Init); \
 template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> FFacade::GetWritable<_TYPE>(const FPCGAttributeIdentifier& InIdentifier, EBufferInit Init); \
 template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> FFacade::GetReadable<_TYPE>(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide, const bool bSupportScoped); \
-template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> FFacade::GetBroadcaster<_TYPE>(const FPCGAttributePropertyInputSelector& InSelector, const bool bSupportScoped, const bool bCaptureMinMax); \
-template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> FFacade::GetBroadcaster<_TYPE>(const FName InName, const bool bSupportScoped, const bool bCaptureMinMax); \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> FFacade::GetBroadcaster<_TYPE>(const FPCGAttributePropertyInputSelector& InSelector, const bool bSupportScoped, const bool bCaptureMinMax, const bool bQuiet); \
+template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> FFacade::GetBroadcaster<_TYPE>(const FName InName, const bool bSupportScoped, const bool bCaptureMinMax, const bool bQuiet); \
 template PCGEXTENDEDTOOLKIT_API FPCGMetadataAttribute<_TYPE>* FFacade::FindMutableAttribute<_TYPE>(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide) const; \
 template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::FindConstAttribute<_TYPE>(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide) const;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)

@@ -172,7 +172,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		virtual void SetValue(const int32 Index, const T& Value) = 0;
 
 		virtual bool InitForRead(const EIOSide InSide = EIOSide::In, const bool bScoped = false) = 0;
-		virtual bool InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false, const bool bScoped = false) = 0;
+		virtual bool InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false, const bool bScoped = false, const bool bQuiet = false) = 0;
 		virtual bool InitForWrite(const T& DefaultValue, bool bAllowInterpolation, EBufferInit Init = EBufferInit::Inherit) = 0;
 		virtual bool InitForWrite(const EBufferInit Init = EBufferInit::Inherit) = 0;
 
@@ -231,7 +231,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		virtual bool EnsureReadable() override;
 
 		virtual bool InitForRead(const EIOSide InSide = EIOSide::In, const bool bScoped = false) override;
-		virtual bool InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false, const bool bScoped = false) override;
+		virtual bool InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false, const bool bScoped = false, const bool bQuiet = false) override;
 
 		virtual bool InitForWrite(const T& DefaultValue, bool bAllowInterpolation, EBufferInit Init = EBufferInit::Inherit) override;
 		virtual bool InitForWrite(const EBufferInit Init = EBufferInit::Inherit) override;
@@ -271,7 +271,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		virtual void SetValue(const int32 Index, const T& Value) override;
 
 		virtual bool InitForRead(const EIOSide InSide = EIOSide::In, const bool bScoped = false) override;
-		virtual bool InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false, const bool bScoped = false) override;
+		virtual bool InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false, const bool bScoped = false, const bool bQuiet = false) override;
 
 		virtual bool InitForWrite(const T& DefaultValue, bool bAllowInterpolation, EBufferInit Init = EBufferInit::Inherit) override;
 		virtual bool InitForWrite(const EBufferInit Init = EBufferInit::Inherit) override;
@@ -365,10 +365,10 @@ extern template class TSingleValueBuffer<_TYPE>;
 #pragma region Broadcasters
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bSupportScoped = false, const bool bCaptureMinMax = false);
+		TSharedPtr<TBuffer<T>> GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bSupportScoped = false, const bool bCaptureMinMax = false, const bool bQuiet = false);
 
 		template <typename T>
-		TSharedPtr<TBuffer<T>> GetBroadcaster(const FName InName, const bool bSupportScoped = false, const bool bCaptureMinMax = false);
+		TSharedPtr<TBuffer<T>> GetBroadcaster(const FName InName, const bool bSupportScoped = false, const bool bCaptureMinMax = false, const bool bQuiet = false);
 
 #pragma endregion
 
@@ -438,8 +438,8 @@ extern template TSharedPtr<TBuffer<_TYPE>> FFacade::GetWritable<_TYPE>(const FPC
 extern template TSharedPtr<TBuffer<_TYPE>> FFacade::GetWritable<_TYPE>(const FPCGMetadataAttribute<_TYPE>* InAttribute, EBufferInit Init); \
 extern template TSharedPtr<TBuffer<_TYPE>> FFacade::GetWritable<_TYPE>(const FPCGAttributeIdentifier& InIdentifier, EBufferInit Init); \
 extern template TSharedPtr<TBuffer<_TYPE>> FFacade::GetReadable<_TYPE>(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide, const bool bSupportScoped); \
-extern template TSharedPtr<TBuffer<_TYPE>> FFacade::GetBroadcaster<_TYPE>(const FPCGAttributePropertyInputSelector& InSelector, const bool bSupportScoped, const bool bCaptureMinMax); \
-extern template TSharedPtr<TBuffer<_TYPE>> FFacade::GetBroadcaster<_TYPE>(const FName InName, const bool bSupportScoped, const bool bCaptureMinMax); \
+extern template TSharedPtr<TBuffer<_TYPE>> FFacade::GetBroadcaster<_TYPE>(const FPCGAttributePropertyInputSelector& InSelector, const bool bSupportScoped, const bool bCaptureMinMax, const bool bQuiet); \
+extern template TSharedPtr<TBuffer<_TYPE>> FFacade::GetBroadcaster<_TYPE>(const FName InName, const bool bSupportScoped, const bool bCaptureMinMax, const bool bQuiet); \
 extern template FPCGMetadataAttribute<_TYPE>* FFacade::FindMutableAttribute<_TYPE>(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide) const; \
 extern template const FPCGMetadataAttribute<_TYPE>* FFacade::FindConstAttribute<_TYPE>(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide) const;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
