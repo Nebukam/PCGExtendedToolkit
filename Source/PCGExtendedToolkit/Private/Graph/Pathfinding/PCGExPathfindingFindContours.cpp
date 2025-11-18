@@ -190,8 +190,14 @@ namespace PCGExFindContours
 	void FProcessor::OnRangeProcessingComplete()
 	{
 		ScopedValidCells->Collapse(ValidCells);
-
 		const int32 NumCells = ValidCells.Num();
+
+		if (!NumCells)
+		{
+			bIsProcessorValid = false;
+			return;
+		}
+		
 		CellsIOIndices.Reserve(NumCells);
 
 		Context->OutputPaths->IncreaseReserve(NumCells + 1);

@@ -60,6 +60,7 @@ MACRO(FillControl, __VA_ARGS__) \
 MACRO(Heuristics, __VA_ARGS__) \
 MACRO(Probe, __VA_ARGS__) \
 MACRO(ClusterState, __VA_ARGS__) \
+MACRO(PointState, __VA_ARGS__) \
 MACRO(Picker, __VA_ARGS__) \
 MACRO(TexParam, __VA_ARGS__) \
 MACRO(Shape, __VA_ARGS__) \
@@ -251,6 +252,7 @@ FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorFillControl() const { r
 FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorHeuristics() const { return GetDefault<UPCGExGlobalSettings>()->ColorHeuristics; }
 FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorProbe() const { return GetDefault<UPCGExGlobalSettings>()->ColorProbe; }
 FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorClusterState() const { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
+FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorPointState() const { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
 FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorPicker() const { return GetDefault<UPCGExGlobalSettings>()->ColorPicker; }
 FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorTexParam() const { return GetDefault<UPCGExGlobalSettings>()->ColorTexParam; }
 FLinearColor FPCGExtendedToolkitEditorModule::GetPinColorShape() const { return GetDefault<UPCGExGlobalSettings>()->ColorShape; }

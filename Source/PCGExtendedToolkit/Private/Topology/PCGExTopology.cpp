@@ -4,6 +4,7 @@
 #include "Topology/PCGExTopology.h"
 
 #include "PCGExContext.h"
+#include "PCGExGlobalSettings.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"

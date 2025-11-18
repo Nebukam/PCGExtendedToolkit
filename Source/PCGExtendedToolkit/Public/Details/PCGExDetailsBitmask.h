@@ -20,7 +20,7 @@ enum class EPCGExBitOp : uint8
 UENUM()
 enum class EPCGExBitmaskMode : uint8
 {
-	Direct     = 0 UMETA(DisplayName = "Set", ToolTip="Used for easy override mostly. Will use the value of the bitmask as-is"),
+	Direct     = 0 UMETA(DisplayName = "Direct", ToolTip="Used for easy override mostly. Will use the value of the bitmask as-is"),
 	Individual = 1 UMETA(DisplayName = "Mutations", ToolTip="Use an array to mutate the bits of the incoming bitmask (will modify the constant value on output)"),
 	Composite  = 2 UMETA(Hidden),
 };
@@ -74,6 +74,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClampedBitOp : public FPCGExClampedBit
 
 	bool operator==(const FPCGExClampedBitOp& Other) const { return BitIndex == Other.BitIndex; }
 	friend uint32 GetTypeHash(const FPCGExClampedBitOp& Key) { return HashCombine(0, GetTypeHash(Key.BitIndex)); }
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleBitmask
+{
+	GENERATED_BODY()
+
+	FPCGExSimpleBitmask() = default;
+
+	/** Base value, how it will be mutated, if at all, depends on chosen mode. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	int64 Bitmask = 0;
 };
 
 USTRUCT(BlueprintType)
@@ -137,9 +149,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 {
 	GENERATED_BODY()
 
-	FPCGExBitmaskWithOperation()
-	{
-	}
+	FPCGExBitmaskWithOperation() = default;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExBitmaskMode Mode = EPCGExBitmaskMode::Direct;

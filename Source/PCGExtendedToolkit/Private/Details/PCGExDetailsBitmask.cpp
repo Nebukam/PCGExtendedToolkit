@@ -119,7 +119,6 @@ void FPCGExBitmask::ApplyDeprecation()
 		Bitmask |= static_cast<int64>(Range_40_48_DEPRECATED) << 40;
 		Bitmask |= static_cast<int64>(Range_48_56_DEPRECATED) << 48;
 		Bitmask |= static_cast<int64>(Range_56_64_DEPRECATED) << 56;
-		Mode = EPCGExBitmaskMode::Direct;
 	}
 	else if (Mode == EPCGExBitmaskMode::Individual)
 	{
@@ -133,10 +132,10 @@ void FPCGExBitmask::ApplyDeprecation()
 			Mutation.bValue = Bit.bValue;
 			Mutation.Op = EPCGExBitOp::Set;
 		}
-		UE_LOG(LogTemp, Warning, TEXT("Bits : %d"), Bits.Num())
 		Bits.Empty();
-		Mode = EPCGExBitmaskMode::Direct;
 	}
+	
+	Mode = EPCGExBitmaskMode::Direct;
 }
 #endif
 

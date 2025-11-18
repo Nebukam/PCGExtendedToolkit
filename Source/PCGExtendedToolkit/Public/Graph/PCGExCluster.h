@@ -82,9 +82,6 @@ namespace PCGExCluster
 	using PCGExGraph::FLink;
 	using PCGExGraph::FEdge;
 
-	const FName OutputNodeFlagLabel = TEXT("Flag");
-	const FName SourceNodeFlagLabel = TEXT("NodeFlags");
-
 	struct PCGEXTENDEDTOOLKIT_API FAdjacencyData
 	{
 		int32 NodeIndex = -1;

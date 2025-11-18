@@ -4,12 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExClusterStates.h"
-
-
 #include "Graph/PCGExEdgesProcessor.h"
+#include "PCGExClusterWriteStates.generated.h"
 
-#include "PCGExFlagNodes.generated.h"
+namespace PCGExClusterStates
+{
+	class FStateManager;
+}
 
 /**
  * 
@@ -22,7 +23,10 @@ class UPCGExFlagNodesSettings : public UPCGExEdgesProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FlagNodes, "Cluster : Flag Nodes", "Find & writes node states as a int64 flag mask");
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
+	PCGEX_NODE_INFOS(FlagNodes, "Cluster : Write States", "Writes cluster states as a int64 flag mask");
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Metadata; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
 #endif
 
 protected:

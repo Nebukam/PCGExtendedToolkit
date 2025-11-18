@@ -289,6 +289,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 
 protected:
 	FVector WorldUp = FVector::UpVector;
+	FVector WorldFwd = FVector::ForwardVector;
 };
 
 extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector2D>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector2D>& OutPositions) const;

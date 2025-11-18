@@ -4,18 +4,36 @@
 #include "Data/PCGExPointStates.h"
 
 #include "PCGExGlobalSettings.h"
+#include "PCGParamData.h"
 #include "Graph/PCGExCluster.h"
 
+PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoPointState, UPCGExPointStateFactoryData)
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExPointStateFactoryData::CreateFilter() const
 {
-	return Super::CreateFilter();
+	PCGEX_MAKE_SHARED(NewState, PCGExPointStates::FState, this)
+	NewState->BaseConfig = BaseConfig;
+	return NewState;
+}
+
+void UPCGExPointStateFactoryData::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	Super::RegisterBuffersDependencies(InContext, FacadePreloader);
+	PCGExPointFilter::RegisterBuffersDependencies(InContext, FilterFactories, FacadePreloader);
 }
 
 void UPCGExPointStateFactoryData::BeginDestroy()
 {
 	Super::BeginDestroy();
 }
+
+#if WITH_EDITOR
+void UPCGExStateFactoryProviderSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+	InOutNode->RenameOutputPin(FName("Flag"), PCGExPointStates::OutputStateLabel);
+}
+#endif
 
 namespace PCGExPointStates
 {
@@ -72,13 +90,100 @@ namespace PCGExPointStates
 }
 
 #if WITH_EDITOR
-FLinearColor UPCGExPointStateFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
+FLinearColor UPCGExStateFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
 #endif
 
-FName UPCGExPointStateFactoryProviderSettings::GetMainOutputPin() const { return PCGExCluster::OutputNodeFlagLabel; }
-
-
-UPCGExFactoryData* UPCGExPointStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
+bool UPCGExStateFactoryProviderSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {
-	return Super::CreateFactory(InContext, InFactory);
+	if (InPin->IsOutputPin()
+		&& (InPin->Properties.Label == PCGExPointStates::OutputOnPassBitmaskLabel || InPin->Properties.Label == PCGExPointStates::OutputOnFailBitmaskLabel))
+	{
+		return bOutputBitmasks;
+	}
+	
+	return Super::IsPinUsedByNodeExecution(InPin);
+}
+
+TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties;
+	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, TEXT("Filters used to check whether this state is true or not. Accepts regular point filters & cluster filters."), Required)
+	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PCGEX_PIN_PARAMS(PCGExPointStates::OutputOnPassBitmaskLabel, TEXT("On Pass Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced)
+	PCGEX_PIN_PARAMS(PCGExPointStates::OutputOnFailBitmaskLabel, TEXT("On Fail Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced)
+	return PinProperties;
+}
+
+FName UPCGExStateFactoryProviderSettings::GetMainOutputPin() const { return PCGExPointStates::OutputStateLabel; }
+
+UPCGExFactoryData* UPCGExStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
+{
+	UPCGExPointStateFactoryData* NewFactory = Cast<UPCGExPointStateFactoryData>(InFactory);
+	if (!NewFactory) { return NewFactory; }
+
+	NewFactory->Priority = Priority;
+
+	if (!GetInputFactories(
+		InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,
+		PCGExFactories::ClusterNodeFilters))
+	{
+		InContext->ManagedObjects->Destroy(NewFactory);
+		return nullptr;
+	}
+
+	if (bOutputBitmasks) { OutputBitmasks(InContext, NewFactory->BaseConfig); }
+
+	Super::CreateFactory(InContext, InFactory);
+	return InFactory;
+}
+
+#if WITH_EDITOR
+FString UPCGExStateFactoryProviderSettings::GetDisplayName() const
+{
+	return Name.ToString();
+}
+#endif
+
+TSet<PCGExFactories::EType> UPCGExStateFactoryProviderSettings::GetInternalFilterTypes() const
+{
+	return PCGExFactories::PointFilters;
+}
+
+void UPCGExStateFactoryProviderSettings::OutputBitmasks(FPCGExContext* InContext, const FPCGExStateConfigBase& InConfig) const
+{
+	UPCGParamData* PassBitmask = InContext->ManagedObjects->New<UPCGParamData>();
+
+	if (InConfig.bOnTestPass)
+	{
+		PassBitmask->Metadata->CreateAttribute<int64>(FName("OnPassBitmask"), InConfig.PassStateFlags.Get(), false, true);
+	}
+	else
+	{
+		PassBitmask->Metadata->CreateAttribute<int64>(FName("OnPassBitmask"), 0, false, true);
+	}
+
+	PassBitmask->Metadata->AddEntry();
+	FPCGTaggedData& OutPassData = InContext->OutputData.TaggedData.Emplace_GetRef();
+	OutPassData.Pin = PCGExPointStates::OutputOnPassBitmaskLabel;
+	OutPassData.Data = PassBitmask;
+
+	UPCGParamData* FailBitmask = InContext->ManagedObjects->New<UPCGParamData>();
+	if (InConfig.bOnTestFail)
+	{
+		FailBitmask->Metadata->CreateAttribute<int64>(FName("OnFailBitmask"), InConfig.FailStateFlags.Get(), false, true);
+	}
+	else
+	{
+		FailBitmask->Metadata->CreateAttribute<int64>(FName("OnFailBitmask"), 0, false, true);
+	}
+
+	FailBitmask->Metadata->AddEntry();
+	FPCGTaggedData& OutFailData = InContext->OutputData.TaggedData.Emplace_GetRef();
+	OutFailData.Pin = PCGExPointStates::OutputOnFailBitmaskLabel;
+	OutFailData.Data = FailBitmask;
 }

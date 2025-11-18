@@ -156,8 +156,8 @@ protected:
 	bool bIsValidOperation = true;
 };
 
-USTRUCT()
-struct FPCGExDataTypeInfoVtxProperty : public FPCGDataTypeInfo
+USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Vtx Property"))
+struct FPCGExDataTypeInfoVtxProperty : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
 	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
