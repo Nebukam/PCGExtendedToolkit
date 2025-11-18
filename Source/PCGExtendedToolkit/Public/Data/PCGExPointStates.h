@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 #include "PCGExPointFilter.h"
 #include "Details/PCGExDetailsBitmask.h"
+#include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExPointStates.generated.h"
 
@@ -51,29 +52,51 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStateConfigBase
 #endif
 };
 
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | State : Point"))
+struct FPCGExDataTypeInfoPointState : public FPCGExFactoryDataTypeInfo
+{
+	GENERATED_BODY()
+	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
+};
+
 /**
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExPointStateFactoryData : public UPCGExPointFilterFactoryData
+class PCGEXTENDEDTOOLKIT_API UPCGExPointStateFactoryData : public UPCGExClusterFilterFactoryData
 {
+	// Inherits from ClusterFilterFactory because states are filters so we want to inherit from the widest type
+	// This is a bit inelegant but greatly simplifies maintenance
 	GENERATED_BODY()
 
 public:
+	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoPointState)
+
+	UPROPERTY()
+	FPCGExStateConfigBase BaseConfig;
+	
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
 
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::PointState; }
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
+	virtual void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const override;
 	virtual void BeginDestroy() override;
 };
 
 namespace PCGExPointStates
 {
+	const FName OutputOnPassBitmaskLabel = TEXT("BitmaskPass");
+	const FName OutputOnFailBitmaskLabel = TEXT("BitmaskFail");
+
+	const FName OutputStateLabel = TEXT("State");
+	const FName SourceStatesLabel = TEXT("States");
+	
 	class PCGEXTENDEDTOOLKIT_API FState final : public PCGExPointFilter::IFilter
 	{
 	public:
-		FPCGExStateConfigBase* BaseConfig = nullptr;
+		FPCGExStateConfigBase BaseConfig;
 		const UPCGExPointStateFactoryData* StateFactory = nullptr;
 
 		explicit FState(const TObjectPtr<const UPCGExPointStateFactoryData>& InFactory):
@@ -109,18 +132,44 @@ namespace PCGExPointStates
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExPointStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
 	PCGEX_NODE_INFOS(PointStateDefinition, "Abstract Point State Definition", "Base class for state factory management.")
 	virtual FLinearColor GetNodeTitleColor() const override;
 #endif
+	
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
+
+protected:	
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings
 
+public:
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FName Name = FName("Flag");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
+	int32 Priority = 0;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
+	bool bOutputBitmasks = true;
+	
 	virtual FName GetMainOutputPin() const override;
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
+	
+protected:
+	virtual TSet<PCGExFactories::EType> GetInternalFilterTypes() const;
+	virtual void OutputBitmasks(FPCGExContext* InContext, const FPCGExStateConfigBase& InConfig) const;
 };

@@ -44,7 +44,8 @@ namespace PCGExFactories
 		RuleSort,
 		RulePartition,
 		Probe,
-		NodeState,
+		ClusterState,
+		PointState,
 		Sampler,
 		Heuristics,
 		VtxProperty,
@@ -70,8 +71,9 @@ namespace PCGExFactories
 	static inline TSet<EType> PointFilters = {EType::FilterPoint, EType::FilterGroup, EType::FilterCollection};
 	static inline TSet<EType> ClusterNodeFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterGroup, EType::FilterCollection};
 	static inline TSet<EType> ClusterEdgeFilters = {EType::FilterPoint, EType::FilterEdge, EType::FilterGroup, EType::FilterCollection};
-	static inline TSet<EType> SupportsClusterFilters = {EType::FilterEdge, EType::FilterNode, EType::NodeState, EType::FilterGroup, EType::FilterCollection};
-	static inline TSet<EType> ClusterOnlyFilters = {EType::FilterEdge, EType::FilterNode, EType::NodeState};
+	static inline TSet<EType> SupportsClusterFilters = {EType::FilterEdge, EType::FilterNode, EType::ClusterState, EType::FilterGroup, EType::FilterCollection};
+	static inline TSet<EType> ClusterOnlyFilters = {EType::FilterEdge, EType::FilterNode, EType::ClusterState};
+	static inline TSet<EType> ClusterStates = {EType::ClusterState, EType::PointState};
 }
 
 

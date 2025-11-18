@@ -41,6 +41,7 @@ protected:
 	FLinearColor GetPinColorHeuristics() const;
 	FLinearColor GetPinColorProbe() const;
 	FLinearColor GetPinColorClusterState() const;
+	FLinearColor GetPinColorPointState() const;
 	FLinearColor GetPinColorPicker() const;
 	FLinearColor GetPinColorTexParam() const;
 	FLinearColor GetPinColorShape() const;

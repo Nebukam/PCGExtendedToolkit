@@ -75,7 +75,8 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="DebugColor"))
 	FName DebugColorAttributeName = FName("DebugColor");
 
-	/** Mesh collection entry Idx. Serialize the id of the parent collection (in the collection map) and entry index within that collection.\nThis is a critical piece of data that will be used by the Grammar Staging node to retrieve the corresponding mesh. */
+	/** Mesh collection entry Idx. Serialize the id of the parent collection (in the collection map) and entry index within that collection.
+	 * This is a critical piece of data that will be used by the Grammar Staging node to retrieve the corresponding mesh. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Entry", EditCondition="false"))
 	FName EntryAttributeName = PCGExStaging::Tag_EntryIdx;
 

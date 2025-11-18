@@ -65,48 +65,145 @@ bool FPCGExFilterResultDetails::Validate(FPCGExContext* InContext) const
 
 void FPCGExFilterResultDetails::Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 {
-	if (bResultAsIncrement) { IncrementBuffer = InDataFacade->GetWritable<double>(ResultAttributeName, 0, true, PCGExData::EBufferInit::Inherit); }
-	else { BoolBuffer = InDataFacade->GetWritable<bool>(ResultAttributeName, false, true, PCGExData::EBufferInit::New); }
+	switch (Action)
+	{
+	case EPCGExResultWriteAction::Bool:
+		BoolBuffer = InDataFacade->GetWritable<bool>(ResultAttributeName, false, true, PCGExData::EBufferInit::New);
+		break;
+	case EPCGExResultWriteAction::Counter:
+		IncrementBuffer = InDataFacade->GetWritable<double>(ResultAttributeName, 0, true, PCGExData::EBufferInit::Inherit);
+		break;
+	case EPCGExResultWriteAction::Bitmask:
+		BitmaskBuffer = InDataFacade->GetWritable<int64>(ResultAttributeName, 0, true, PCGExData::EBufferInit::Inherit);
+		break;
+	}
 }
 
 void FPCGExFilterResultDetails::Write(const int32 Index, bool bPass) const
 {
-	if (bResultAsIncrement) { IncrementBuffer->SetValue(Index, IncrementBuffer->GetValue(Index) + (bPass ? PassIncrement : FailIncrement)); }
-	else { BoolBuffer->SetValue(Index, bPass); }
+	switch (Action)
+	{
+	case EPCGExResultWriteAction::Bool:
+		BoolBuffer->SetValue(Index, bPass);
+		break;
+	case EPCGExResultWriteAction::Counter:
+		IncrementBuffer->SetValue(Index, IncrementBuffer->GetValue(Index) + (bPass ? PassIncrement : FailIncrement));
+		break;
+	case EPCGExResultWriteAction::Bitmask:
+		break;
+	}
 }
 
 void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TArray<int8>& Results) const
 {
-	if (bResultAsIncrement)
-	{
-		PCGEX_SCOPE_LOOP(Index)
-		{
-			IncrementBuffer->SetValue(Index, IncrementBuffer->GetValue(Index) + (Results[Index] ? PassIncrement : FailIncrement));
-		}
-	}
-	else
+	if (Action == EPCGExResultWriteAction::Bool)
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			BoolBuffer->SetValue(Index, static_cast<bool>(Results[Index]));
 		}
 	}
-}
-
-void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TBitArray<>& Results) const
-{
-	if (bResultAsIncrement)
+	else if (Action == EPCGExResultWriteAction::Counter)
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			IncrementBuffer->SetValue(Index, IncrementBuffer->GetValue(Index) + (Results[Index] ? PassIncrement : FailIncrement));
 		}
 	}
-	else
+	else if (Action == EPCGExResultWriteAction::Bitmask)
+	{
+		if (bDoBitmaskOpOnFail && bDoBitmaskOpOnPass)
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				int64 Flags = BitmaskBuffer->GetValue(Index);
+				
+				if (Results[Index]) { PassBitmask.DoOperation(Flags); }
+				else { FailBitmask.DoOperation(Flags); }
+				
+				BitmaskBuffer->SetValue(Index, Flags);
+			}
+		}
+		else if (bDoBitmaskOpOnPass)
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				int64 Flags = BitmaskBuffer->GetValue(Index);
+				if (Results[Index])
+				{
+					PassBitmask.DoOperation(Flags);
+					BitmaskBuffer->SetValue(Index, Flags);
+				}
+			}
+		}
+		else if (bDoBitmaskOpOnFail)
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				int64 Flags = BitmaskBuffer->GetValue(Index);
+				if (!Results[Index])
+				{
+					FailBitmask.DoOperation(Flags);
+					BitmaskBuffer->SetValue(Index, Flags);
+				}
+			}
+		}
+	}
+}
+
+void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TBitArray<>& Results) const
+{
+	if (Action == EPCGExResultWriteAction::Bool)
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			BoolBuffer->SetValue(Index, Results[Index]);
+			BoolBuffer->SetValue(Index, static_cast<bool>(Results[Index]));
+		}
+	}
+	else if (Action == EPCGExResultWriteAction::Counter)
+	{
+		PCGEX_SCOPE_LOOP(Index)
+		{
+			IncrementBuffer->SetValue(Index, IncrementBuffer->GetValue(Index) + (Results[Index] ? PassIncrement : FailIncrement));
+		}
+	}
+	else if (Action == EPCGExResultWriteAction::Bitmask)
+	{
+		if (bDoBitmaskOpOnFail && bDoBitmaskOpOnPass)
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				int64 Flags = BitmaskBuffer->GetValue(Index);
+				
+				if (Results[Index]) { PassBitmask.DoOperation(Flags); }
+				else { FailBitmask.DoOperation(Flags); }
+				
+				BitmaskBuffer->SetValue(Index, Flags);
+			}
+		}
+		else if (bDoBitmaskOpOnPass)
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				int64 Flags = BitmaskBuffer->GetValue(Index);
+				if (Results[Index])
+				{
+					PassBitmask.DoOperation(Flags);
+					BitmaskBuffer->SetValue(Index, Flags);
+				}
+			}
+		}
+		else if (bDoBitmaskOpOnFail)
+		{
+			PCGEX_SCOPE_LOOP(Index)
+			{
+				int64 Flags = BitmaskBuffer->GetValue(Index);
+				if (!Results[Index])
+				{
+					FailBitmask.DoOperation(Flags);
+					BitmaskBuffer->SetValue(Index, Flags);
+				}
+			}
 		}
 	}
 }

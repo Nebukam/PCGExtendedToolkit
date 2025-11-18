@@ -470,7 +470,7 @@ namespace PCGExTopology
 		bool ContainsSignedEdgeHash(const uint64 Hash);
 		bool IsUniqueStartHalfEdge(const uint64 Hash);
 		bool IsUniqueCellHash(const TSharedPtr<FCell>& InCell);
-		void BuildWrapperCell(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints = nullptr);
+		void BuildWrapperCell(const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const TSharedPtr<FCellConstraints>& InConstraints = nullptr, const FPCGExGeo2DProjectionDetails* ProjectionDetails = nullptr);
 
 		void Cleanup();
 	};

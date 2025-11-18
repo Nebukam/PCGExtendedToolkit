@@ -16,12 +16,11 @@
 #if WITH_EDITOR
 void UPCGExCreateSplineSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	PCGEX_IF_DATA_VERSION(1, 70, 11)
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 70, 11)
 	{
 		Tangents.ApplyDeprecation(bApplyCustomTangents_DEPRECATED, ArriveTangentAttribute_DEPRECATED, LeaveTangentAttribute_DEPRECATED);
 	}
 
-	PCGEX_UPDATE_DATA_VERSION
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

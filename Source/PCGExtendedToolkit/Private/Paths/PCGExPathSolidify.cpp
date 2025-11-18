@@ -26,7 +26,7 @@ UPCGExPathSolidifySettings::UPCGExPathSolidifySettings(const FObjectInitializer&
 
 void UPCGExPathSolidifySettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	PCGEX_IF_DATA_VERSION(1, 70, 11)
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 70, 11)
 	{
 #define PCGEX_COPY_TO(_SOURCE, _TARGET)\
 		_TARGET##Axis.Radius = Radius##_SOURCE##Constant_DEPRECATED;\
@@ -55,7 +55,6 @@ void UPCGExPathSolidifySettings::ApplyDeprecation(UPCGNode* InOutNode)
 #undef PCGEX_COPY_TO
 	}
 
-	PCGEX_UPDATE_DATA_VERSION
 	Super::ApplyDeprecation(InOutNode);
 }
 

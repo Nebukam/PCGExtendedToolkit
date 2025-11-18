@@ -302,7 +302,7 @@ public:
 
 	/** Color associated with cluster state (node flags) subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")
-	FLinearColor ColorClusterState = FLinearColor(0.885417, 0.012192, 0.000000, 1.000000);
+	FLinearColor ColorClusterState = FLinearColor(0.755417, 0.12192, 0.000000, 1.000000);
 
 	/** Color associated with pickers subnodes */
 	UPROPERTY(EditAnywhere, config, Category = "Colors and Semantics|Subnodes")

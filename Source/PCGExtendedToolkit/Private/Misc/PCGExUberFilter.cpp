@@ -19,12 +19,16 @@
 #if WITH_EDITOR
 void UPCGExUberFilterSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	PCGEX_IF_DATA_VERSION(1, 70, 11)
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 70, 11)
 	{
 		if (!ResultAttributeName_DEPRECATED.IsNone()) { ResultDetails.ResultAttributeName = ResultAttributeName_DEPRECATED; }
 	}
+
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 71, 2)
+	{
+		ResultDetails.ApplyDeprecation();
+	}
 	
-	PCGEX_UPDATE_DATA_VERSION
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

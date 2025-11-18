@@ -1,7 +1,7 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/States/PCGExFlagNodes.h"
+#include "Graph/States/PCGExClusterWriteStates.h"
 
 #include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
@@ -13,10 +13,18 @@
 PCGExData::EIOInit UPCGExFlagNodesSettings::GetMainOutputInitMode() const { return PCGExData::EIOInit::Duplicate; }
 PCGExData::EIOInit UPCGExFlagNodesSettings::GetEdgeOutputInitMode() const { return PCGExData::EIOInit::Forward; }
 
+#if WITH_EDITOR
+void UPCGExFlagNodesSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+	InOutNode->RenameInputPin(FName("Node Flags"), PCGExPointStates::SourceStatesLabel);
+}
+#endif
+
 TArray<FPCGPinProperties> UPCGExFlagNodesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_FACTORIES(PCGExCluster::SourceNodeFlagLabel, "Node states.", Required, FPCGExDataTypeInfoClusterState::AsId())
+	PCGEX_PIN_FACTORIES(PCGExPointStates::SourceStatesLabel, "Cluster & Points states.", Required, FPCGExDataTypeInfoPointState::AsId())
 	return PinProperties;
 }
 
@@ -30,8 +38,8 @@ bool FPCGExFlagNodesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(FlagNodes)
 
 	return PCGExFactories::GetInputFactories(
-		Context, PCGExCluster::SourceNodeFlagLabel, Context->StateFactories,
-		{PCGExFactories::EType::NodeState});
+		Context, PCGExPointStates::SourceStatesLabel, Context->StateFactories,
+		{PCGExFactories::EType::ClusterState});
 }
 
 bool FPCGExFlagNodesElement::ExecuteInternal(
