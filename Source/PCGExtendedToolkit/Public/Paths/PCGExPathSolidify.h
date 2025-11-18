@@ -109,44 +109,46 @@ public:
 	bool bRemoveLastPoint = true;
 
 	/** Axis order. First axis will use the segment direction, second is the path normal. These are Primary > Secondary > Tertiary. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta = (PCG_Overridable, InlineEnum))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEnum))
 	EPCGExAxisOrder SolidificationOrder = EPCGExAxisOrder::XYZ;
 
 	/** .*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bReadOrderFromAttribute = false;
 	
 	/** Solidification Order attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="bReadOrderFromAttribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bReadOrderFromAttribute"))
 	FName OrderAttribute = NAME_None;
 
-	/** How to "sanitize" the input value.\n"Ignore" will pick the default constant specified above if the attribute value is invalid. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, DisplayName=" └─ Order Safety", EditCondition="bReadOrderFromAttribute", HideEditConditionToggle))
+	/** How to "sanitize" the input value.
+	 * "Ignore" will pick the default constant specified above if the attribute value is invalid. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Order Safety", EditCondition="bReadOrderFromAttribute", EditConditionHides, HideEditConditionToggle))
 	EPCGExIndexSafety OrderSafety = EPCGExIndexSafety::Tile;
 
 
 	/** .*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bUseConstructionMapping = false;
 	
 	/** Map of rotation construction orders based on selected mapping. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Solidification", EditFixedSize, meta=(PCG_NotOverridable, ReadOnlyKeys, EditCondition="bUseConstructionMapping"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, EditFixedSize, meta=(PCG_NotOverridable, ReadOnlyKeys, EditCondition="bUseConstructionMapping"))
 	TMap<EPCGExAxisOrder, EPCGExMakeRotAxis> RotationMapping;
 	
 	/** Defines how the selected axis will be used to construct the point' rotation. This will be using remapped axis from the selected order. X = Primary, Y = Secondary, Z = Tertiary*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta = (PCG_Overridable, InlineEnum, EditCondition="!bUseConstructionMapping", HideEditConditionToggle, EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEnum, EditCondition="!bUseConstructionMapping", HideEditConditionToggle, EditConditionHides))
 	EPCGExMakeRotAxis RotationConstruction = EPCGExMakeRotAxis::X;
 	
 	/** .*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bReadConstructionFromAttribute = false;
 	
 	/** Rotation Construction attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="bReadConstructionFromAttribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bReadConstructionFromAttribute"))
 	FName ConstructionAttribute = NAME_None;
 
-	/** How to "sanitize" the input value.\n"Ignore" will pick the default constant specified above if the attribute value is invalid. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Construction Safety", EditCondition="bReadConstructionFromAttribute", HideEditConditionToggle))
+	/** How to "sanitize" the input value.
+	 * "Ignore" will pick the default constant specified above if the attribute value is invalid. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Construction Safety", EditCondition="bReadConstructionFromAttribute", EditConditionHides, HideEditConditionToggle))
 	EPCGExIndexSafety ConstructionSafety = EPCGExIndexSafety::Tile;
 	
 	// - Constant vs attribute
@@ -175,7 +177,7 @@ public:
 
 	/** Type of arithmetic path point cross direction.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Normal", EditCondition="NormalType == EPCGExInputValueType::Constant", EditConditionHides))
-	EPCGExPathNormalDirection Normal = EPCGExPathNormalDirection::AverageNormal;
+	EPCGExPathNormalDirection Normal = EPCGExPathNormalDirection::Normal;
 
 	/** Inverts normal direction.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Invert Direction", EditCondition="NormalType != EPCGExInputValueType::Constant", EditConditionHides))

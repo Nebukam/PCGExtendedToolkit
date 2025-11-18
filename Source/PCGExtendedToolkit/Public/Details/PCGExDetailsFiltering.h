@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDetailsBitmask.h"
 #include "PCGExDetailsFiltering.generated.h"
 
 class UPCGData;
@@ -40,6 +41,14 @@ enum class EPCGExTagsToDataAction : uint8
 	ToElements = 2 UMETA(DisplayName = "Attribute", Tooltip="Copy tag:value to element domain attributes."),
 };
 
+UENUM()
+enum class EPCGExResultWriteAction : uint8
+{
+	Bool    = 0 UMETA(DisplayName = "Boolean", Tooltip="Set a boolean attribute on the points. True when filters pass, False if they don't."),
+	Counter = 1 UMETA(DisplayName = "Counter", Tooltip="Mutates a int32 counter with the specified increment/decrement associated with pass/fail. (i.e +1 on pass, -2 on fail)"),
+	Bitmask = 2 UMETA(DisplayName = "Bitmask", Tooltip="Mutates a bitmask flag with the operations associated with pass/fail."),
+};
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExFilterResultDetails
 {
@@ -56,19 +65,38 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterResultDetails
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOptional", EditConditionHides, HideEditConditionToggle))
 	bool bEnabled = true;
 
+	/** How should the result be used. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExResultWriteAction Action = EPCGExResultWriteAction::Bool;
+
 	/** Name of the attribute to write the result to. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName ResultAttributeName = FName("Result");
 
-	/** If enabled, instead of writing the result as a simple bool, the node will add a int value based on whether it's a pass or fail. Very handy to combine multiple refinements without altering the cluster. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	bool bResultAsIncrement = false;
+	UPROPERTY()
+	bool bResultAsIncrement_DEPRECATED = false;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Pass Increment", EditCondition = "bResultAsIncrement", EditConditionHides))
+	/** Value added to the counter when filters pass (use minus sign to decrement) */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ├─ Pass Increment", EditCondition = "Action == EPCGExResultWriteAction::Counter", EditConditionHides))
 	double PassIncrement = 1;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Fail Increment", EditCondition = "bResultAsIncrement", EditConditionHides))
+	/** Value added to the counter when filters fail (use minus sign to decrement) */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Fail Increment", EditCondition = "Action == EPCGExResultWriteAction::Counter", EditConditionHides))
 	double FailIncrement = 0;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExResultWriteAction::Bitmask", EditConditionHides, InlineEditConditionToggle))
+	bool bDoBitmaskOpOnPass = true;
+
+	/** Operations executed on the flag when filters pass */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Pass Bitmask", EditCondition="bDoBitmaskOpOnPass"))
+	FPCGExBitmaskWithOperation PassBitmask;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExResultWriteAction::Bitmask", EditConditionHides, InlineEditConditionToggle))
+	bool bDoBitmaskOpOnFail = true;
+
+	/** Operations executed on the flag if when filters fail */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Fail Bitmask", EditCondition="bDoBitmaskOpOnFail"))
+	FPCGExBitmaskWithOperation FailBitmask;
 
 	bool Validate(FPCGExContext* InContext) const;
 	void Init(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
@@ -77,9 +105,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterResultDetails
 	void Write(const PCGExMT::FScope& Scope, const TArray<int8>& Results) const;
 	void Write(const PCGExMT::FScope& Scope, const TBitArray<>& Results) const;
 
+#if WITH_EDITOR
+	void ApplyDeprecation()
+	{
+		if (bResultAsIncrement_DEPRECATED) { Action = EPCGExResultWriteAction::Counter; }
+	}
+#endif
+
 protected:
 	TSharedPtr<PCGExData::TBuffer<bool>> BoolBuffer;
 	TSharedPtr<PCGExData::TBuffer<double>> IncrementBuffer;
+	TSharedPtr<PCGExData::TBuffer<int64>> BitmaskBuffer;
 };
 
 namespace PCGEx

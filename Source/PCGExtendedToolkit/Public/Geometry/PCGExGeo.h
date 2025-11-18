@@ -202,7 +202,7 @@ namespace PCGExGeo
 		explicit FBestFitPlane(const TConstPCGValueRange<FTransform>& InTransforms, TArrayView<int32> InIndices);
 		explicit FBestFitPlane(const TArrayView<const FVector> InPositions);
 		explicit FBestFitPlane(const TArrayView<const FVector2D> InPositions);
-		
+
 		using FGetElementPositionCallback = std::function<FVector(int32)>;
 		FBestFitPlane(const int32 NumElements, FGetElementPositionCallback&& GetPointFunc);
 		FBestFitPlane(const int32 NumElements, FGetElementPositionCallback&& GetPointFunc, const FVector& Extra);
@@ -289,6 +289,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 
 protected:
 	FVector WorldUp = FVector::UpVector;
+	FVector WorldFwd = FVector::ForwardVector;
 };
 
 extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector2D>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector2D>& OutPositions) const;

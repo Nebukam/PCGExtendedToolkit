@@ -28,7 +28,7 @@ FString UPCGExAttributeRemapSettings::GetDisplayName() const
 
 void UPCGExAttributeRemapSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	PCGEX_IF_DATA_VERSION(1, 70, 11)
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 70, 11)
 	{
 		if (SourceAttributeName_DEPRECATED != NAME_None) { Attributes.Source = SourceAttributeName_DEPRECATED; }
 		if (TargetAttributeName_DEPRECATED != NAME_None)
@@ -38,7 +38,6 @@ void UPCGExAttributeRemapSettings::ApplyDeprecation(UPCGNode* InOutNode)
 		}
 	}
 
-	PCGEX_UPDATE_DATA_VERSION
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif
@@ -49,9 +48,10 @@ void FPCGExAttributeRemapContext::RegisterAssetDependencies()
 	for (const FPCGExComponentRemapRule& Rule : RemapSettings) { AddAssetDependency(Rule.RemapDetails.RemapCurve.ToSoftObjectPath()); }
 }
 
+PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
+
 PCGExData::EIOInit UPCGExAttributeRemapSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::Duplicate; }
 
-PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeRemap)
 
 bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const

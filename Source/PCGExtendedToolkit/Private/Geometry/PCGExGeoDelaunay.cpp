@@ -4,6 +4,7 @@
 #include "Geometry/PCGExGeoDelaunay.h"
 
 #include "CoreMinimal.h"
+#include "PCGExGlobalSettings.h"
 #include "Geometry/PCGExGeoPrimtives.h"
 #include "ThirdParty/Delaunator/include/delaunator.hpp"
 #include "Async/ParallelFor.h"
@@ -83,27 +84,7 @@ namespace PCGExGeo
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunator::Triangulate);
 
-			std::vector<double> OutVector(Positions.Num() * 2);
-			ProjectionDetails.Project(Positions, OutVector);
-
-			delaunator::Delaunator d(OutVector);
-
-			if (d.runtime_error) { return false; }
-
-			const int32 NumTriangles = d.triangles.size();
-
-			if (!NumTriangles) { return false; }
-
-			const int32 NumSites = NumTriangles / 3;
-
-			DelaunayEdges.Reserve(NumSites);
-			Sites.Reserve(NumSites);
-
-
-			EdgeMap.Reserve(NumSites);
-
 			IsValid = true;
-
 			auto PushEdge = [&](FDelaunaySite2& Site, const uint64 Edge)
 			{
 				bool bIsAlreadySet = false;
@@ -124,13 +105,59 @@ namespace PCGExGeo
 				}
 			};
 
-			int32 s = 0;
-			for (std::size_t i = 0; i < NumTriangles; i += 3)
+			if (GetDefault<UPCGExGlobalSettings>()->bUseDelaunator)
 			{
-				FDelaunaySite2& Site = Sites.Emplace_GetRef(d.triangles[i], d.triangles[i + 1], d.triangles[i + 2], s++);
-				PushEdge(Site, Site.AB());
-				PushEdge(Site, Site.BC());
-				PushEdge(Site, Site.AC());
+				std::vector<double> OutVector(Positions.Num() * 2);
+				ProjectionDetails.Project(Positions, OutVector);
+
+				delaunator::Delaunator d(OutVector);
+
+				if (d.runtime_error) { return false; }
+
+				const int32 NumTriangles = d.triangles.size();
+
+				if (!NumTriangles) { return false; }
+
+				const int32 NumSites = NumTriangles / 3;
+				DelaunayEdges.Reserve(NumSites);
+				Sites.Reserve(NumSites);
+				EdgeMap.Reserve(NumSites);
+
+				int32 s = 0;
+				for (std::size_t i = 0; i < NumTriangles; i += 3)
+				{
+					FDelaunaySite2& Site = Sites.Emplace_GetRef(d.triangles[i], d.triangles[i + 1], d.triangles[i + 2], s++);
+					PushEdge(Site, Site.AB());
+					PushEdge(Site, Site.BC());
+					PushEdge(Site, Site.AC());
+				}
+			}
+			else
+			{
+				TArray<FVector2D> OutVector;
+				ProjectionDetails.Project(Positions, OutVector);
+
+				UE::Geometry::FDelaunay2 Delaunay2;
+				if (!Delaunay2.Triangulate(OutVector)) { return false; }
+
+				TArray<UE::Geometry::FIndex3i> Triangles = Delaunay2.GetTriangles();
+				const int32 NumTriangles = Triangles.Num();
+
+				if (!NumTriangles) { return false; }
+
+				const int32 NumSites = NumTriangles / 3;
+				DelaunayEdges.Reserve(NumSites);
+				Sites.Reserve(NumSites);
+				EdgeMap.Reserve(NumSites);
+
+				int32 s = 0;
+				for (const UE::Geometry::FIndex3i& T : Triangles)
+				{
+					FDelaunaySite2& Site = Sites.Emplace_GetRef(T.A, T.B, T.C, s++);
+					PushEdge(Site, Site.AB());
+					PushEdge(Site, Site.BC());
+					PushEdge(Site, Site.AC());
+				}
 			}
 
 			DelaunayEdges.Shrink();

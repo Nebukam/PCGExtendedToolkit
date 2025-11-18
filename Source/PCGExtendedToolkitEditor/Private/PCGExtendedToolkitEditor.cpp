@@ -47,6 +47,7 @@ MACRO(FillControl, __VA_ARGS__) \
 MACRO(Heuristics, __VA_ARGS__) \
 MACRO(Probe, __VA_ARGS__) \
 MACRO(ClusterState, __VA_ARGS__) \
+MACRO(PointState, __VA_ARGS__) \
 MACRO(Picker, __VA_ARGS__) \
 MACRO(TexParam, __VA_ARGS__) \
 MACRO(Shape, __VA_ARGS__) \

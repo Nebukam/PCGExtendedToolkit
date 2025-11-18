@@ -15,12 +15,11 @@
 #if WITH_EDITOR
 void UPCGExBitmaskSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
-	PCGEX_IF_DATA_VERSION(1, 71, 2)
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 71, 2)
 	{
 		Bitmask.ApplyDeprecation();
 	}
 
-	PCGEX_UPDATE_DATA_VERSION
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

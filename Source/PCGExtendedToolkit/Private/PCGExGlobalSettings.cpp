@@ -86,8 +86,8 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_EMPLACE_PIN_OUT(OUT_FilterVtx, "PCGEx Vtx Filter");
 	PCGEX_MAP_PIN_OUT("Node Filter")
 
-	PCGEX_EMPLACE_PIN_OUT(OUT_ClusterState, "PCGEx Vtx Node Flag");
-	PCGEX_MAP_PIN_OUT("Flag")
+	PCGEX_EMPLACE_PIN_OUT(OUT_ClusterState, "PCGEx State Cluster");
+	PCGEX_MAP_PIN_OUT("State")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Heuristics, "PCGEx Heuristic");
 	PCGEX_MAP_PIN_OUT("Heuristics")
@@ -184,9 +184,8 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 	PCGEX_MAP_PIN_IN("NodeFilters")
 	PCGEX_MAP_PIN_IN("Break Conditions")
 
-	PCGEX_EMPLACE_PIN_IN(IN_ClusterState, "Expects PCGEx Vtx Node Flags, supports multiple inputs.");
-	PCGEX_MAP_PIN_IN("Flags")
-	PCGEX_MAP_PIN_IN("NodeFlags")
+	PCGEX_EMPLACE_PIN_IN(IN_ClusterState, "Expects PCGEx State nodes, supports multiple inputs.");
+	PCGEX_MAP_PIN_IN("States")
 
 	PCGEX_EMPLACE_PIN_IN(IN_Heuristics, "Expects PCGEx Heuristics, supports multiple inputs.");
 	PCGEX_MAP_PIN_IN("Heuristics")

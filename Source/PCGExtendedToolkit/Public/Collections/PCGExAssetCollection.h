@@ -530,11 +530,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExFittingVariations GlobalVariations;
 
-	/** Global grammar rule.\nNOTE: Symbol is still defined per-entry. */
+	/** Global grammar rule.
+	 * NOTE: Symbol is still defined per-entry. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	EPCGExGlobalVariationRule GlobalGrammarMode = EPCGExGlobalVariationRule::PerEntry;
 
-	/** Global Mesh Grammar details.\nNOTE: Symbol is still defined per-entry. */
+	/** Global Mesh Grammar details.
+	 * NOTE: Symbol is still defined per-entry. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExAssetGrammarDetails GlobalAssetGrammar = FPCGExAssetGrammarDetails(FName("N/A"));
 
