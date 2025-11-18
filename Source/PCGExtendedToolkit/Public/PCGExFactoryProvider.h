@@ -77,7 +77,7 @@ namespace PCGExFactories
 }
 
 
-USTRUCT(DisplayName="PCGEx Subnode")
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Factory"))
 struct FPCGExFactoryDataTypeInfo : public FPCGDataTypeInfo
 {
 	GENERATED_BODY()

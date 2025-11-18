@@ -177,7 +177,7 @@ public:
 
 	/** Type of arithmetic path point cross direction.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Normal", EditCondition="NormalType == EPCGExInputValueType::Constant", EditConditionHides))
-	EPCGExPathNormalDirection Normal = EPCGExPathNormalDirection::AverageNormal;
+	EPCGExPathNormalDirection Normal = EPCGExPathNormalDirection::Normal;
 
 	/** Inverts normal direction.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Invert Direction", EditCondition="NormalType != EPCGExInputValueType::Constant", EditConditionHides))
