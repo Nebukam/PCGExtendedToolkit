@@ -48,7 +48,7 @@ bool PCGExPointFilter::FBooleanCompareFilter::Init(FPCGExContext* InContext, con
 {
 	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = PointDataFacade->GetBroadcaster<bool>(TypedFilterFactory->Config.OperandA, true);
+	OperandA = PointDataFacade->GetBroadcaster<bool>(TypedFilterFactory->Config.OperandA, true, false, PCGEX_QUIET_HANDLING);
 
 	if (!OperandA)
 	{

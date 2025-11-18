@@ -36,7 +36,7 @@ bool PCGExPointFilter::FMeanFilter::Init(FPCGExContext* InContext, const TShared
 {
 	if (!IFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	const TSharedPtr<PCGExData::TBuffer<double>> Buffer = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, false, true);
+	const TSharedPtr<PCGExData::TBuffer<double>> Buffer = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, false, true, PCGEX_QUIET_HANDLING);
 
 	if (!Buffer)
 	{

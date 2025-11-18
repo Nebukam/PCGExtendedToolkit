@@ -251,11 +251,11 @@ Context->StageOutput(Extra, PCGExRecursionTracker::Output##_NAME##Label, Flatten
 				
 				const TSet<FString> FlattenedTags = IO->Tags->Flatten();
 
-				UPCGMetadata* Metadata = NewParamData->MutableMetadata();
-				Metadata->DeleteAttribute(ContinueAttribute);
-				Metadata->CreateAttribute<bool>(ContinueAttribute, true, true, true);
+				UPCGMetadata* NewMetadata = NewParamData->MutableMetadata();
+				NewMetadata->DeleteAttribute(ContinueAttribute);
+				NewMetadata->CreateAttribute<bool>(ContinueAttribute, true, true, true);
 
-				if (Settings->bAddEntryWhenCreatingFromExistingData) { Metadata->AddEntry(); }
+				if (Settings->bAddEntryWhenCreatingFromExistingData) { NewMetadata->AddEntry(); }
 
 				Context->StageOutput(NewParamData, PCGExRecursionTracker::OutputTrackerLabel, FlattenedTags, false, true, false);
 
