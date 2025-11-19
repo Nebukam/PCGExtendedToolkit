@@ -74,6 +74,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	TBuffer<T>::TBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier)
 		: IBuffer(InSource, InIdentifier)
 	{
+		Ops = &OpsImpl;
 		SetType(PCGEx::GetMetadataType<T>());
 	}
 
@@ -604,6 +605,31 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		PCGExDataHelpers::SetDataValue(TypedOutAttribute, OutValue);
 	}
 
+	template<typename T>
+	const IBuffer::OpsTable TBuffer<T>::OpsImpl =
+	{
+		&TBuffer<T>::ReadRawImpl,
+		&TBuffer<T>::GetValueRawImpl,
+		&TBuffer<T>::SetValueRawImpl
+	};
+
+#pragma region externalization
+
+#define PCGEX_TPL(_TYPE, _NAME, ...)\
+template class PCGEXTENDEDTOOLKIT_API TBuffer<_TYPE>;\
+template class PCGEXTENDEDTOOLKIT_API TArrayBuffer<_TYPE>;\
+template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
+
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+
+#undef PCGEX_TPL
+	
+#pragma endregion
+	
+#pragma endregion
+
+#pragma region FFacade
+		
 	int32 FFacade::GetNum(const EIOSide InSide) const { return Source->GetNum(InSide); }
 
 	TSharedPtr<IBuffer> FFacade::FindBuffer_Unsafe(const uint64 UID)
@@ -895,23 +921,6 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 
 		return Buffer;
 	}
-
-#pragma endregion
-
-#pragma region externalization
-
-#define PCGEX_TPL(_TYPE, _NAME, ...)\
-template class PCGEXTENDEDTOOLKIT_API TBuffer<_TYPE>;\
-template class PCGEXTENDEDTOOLKIT_API TArrayBuffer<_TYPE>;\
-template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
-
-	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
-
-#undef PCGEX_TPL
-
-#pragma endregion
-
-#pragma region FFacade
 
 	FPCGMetadataAttributeBase* FFacade::FindMutableAttribute(const FPCGAttributeIdentifier& InIdentifier, const EIOSide InSide) const
 
