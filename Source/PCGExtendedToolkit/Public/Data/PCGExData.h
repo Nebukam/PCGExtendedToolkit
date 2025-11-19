@@ -67,6 +67,15 @@ namespace PCGExData
 		friend class FFacade;
 
 	protected:
+		struct OpsTable
+		{
+			const void* (*ReadRaw)(const IBuffer* Self, int32 Index);
+			const void* (*GetValueRaw)(IBuffer* Self, int32 Index);
+			void (*SetValueRaw)(IBuffer* Self, int32 Index, const void* Value);
+		};
+
+		const OpsTable* Ops = nullptr; // Assigned by TBuffer<T>
+
 		mutable FRWLock BufferLock;
 
 		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
@@ -124,6 +133,10 @@ namespace PCGExData
 		virtual bool IsWritable() = 0;
 		virtual bool IsReadable() = 0;
 		virtual bool ReadsFromOutput() = 0;
+		
+		FORCEINLINE const void* ReadRaw(const int32 Index) const { return Ops->ReadRaw(this, Index); }
+		FORCEINLINE const void* GetValueRaw(const int32 Index) { return Ops->GetValueRaw(this, Index); }
+		FORCEINLINE void SetValueRaw(const int32 Index, const void* Value) { Ops->SetValueRaw(this, Index, Value); }
 
 		virtual void Flush()
 		{
@@ -144,6 +157,8 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		friend class FFacade;
 
 	protected:
+		static const OpsTable OpsImpl;
+				
 		const FPCGMetadataAttribute<T>* TypedInAttribute = nullptr;
 		FPCGMetadataAttribute<T>* TypedOutAttribute = nullptr;
 
@@ -178,6 +193,24 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 		void DumpValues(TArray<T>& OutValues) const;
 		void DumpValues(const TSharedPtr<TArray<T>>& OutValues) const;
+
+		static const void* ReadRawImpl(const IBuffer* Self, int32 Index)
+		{
+			const TBuffer* Buffer = static_cast<const TBuffer*>(Self);
+			return &Buffer->Read(Index);
+		}
+
+		static const void* GetValueRawImpl(IBuffer* Self, int32 Index)
+		{
+			TBuffer* Buffer = static_cast<TBuffer*>(Self);
+			return &Buffer->GetValue(Index);
+		}
+		
+		static void SetValueRawImpl(IBuffer* Self, int32 Index, const void* Value)
+		{
+			TBuffer* Buffer = static_cast<TBuffer*>(Self);
+			Buffer->SetValue(Index, *static_cast<const T*>(Value));
+		}
 	};
 
 #define PCGEX_USING_TBUFFER \
