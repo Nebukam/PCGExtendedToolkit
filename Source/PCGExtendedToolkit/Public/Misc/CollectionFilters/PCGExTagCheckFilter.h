@@ -94,7 +94,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		TagCheckFilterFactory, "C-Filter : Tag Check", "Simple tag check on the input collection.",
+		TagCheckFilterFactory, "Data Filter : Tag Check", "Simple tag check on the input collection.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings

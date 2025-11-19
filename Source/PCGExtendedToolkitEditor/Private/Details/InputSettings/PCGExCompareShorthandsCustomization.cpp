@@ -1,8 +1,9 @@
 ﻿// Copyright 2025 Timothé Lapetite and contributors
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Details/InputSettings/PCGExInputShorthandsCustomization.h"
+#include "Details/InputSettings/PCGExCompareShorthandsCustomization.h"
 
+#include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "PropertyHandle.h"
 #include "Constants/PCGExTuple.h"
@@ -14,24 +15,30 @@
 #include "Widgets/Input/SRotatorInputBox.h"
 #include "Widgets/Input/SVectorInputBox.h"
 
-TSharedRef<IPropertyTypeCustomization> FPCGExInputShorthandCustomization::MakeInstance()
+TSharedRef<IPropertyTypeCustomization> FPCGExCompareShorthandCustomization::MakeInstance()
 {
-	return MakeShareable(new FPCGExInputShorthandCustomization());
+	return MakeShareable(new FPCGExCompareShorthandCustomization());
 }
 
-void FPCGExInputShorthandCustomization::CustomizeHeader(
+void FPCGExCompareShorthandCustomization::CustomizeHeader(
 	TSharedRef<IPropertyHandle> PropertyHandle,
 	FDetailWidgetRow& HeaderRow,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
 	// Get handles
+	TSharedPtr<IPropertyHandle> ComparisonHandle = PropertyHandle->GetChildHandle(FName("Comparison"));
 	TSharedPtr<IPropertyHandle> InputHandle = PropertyHandle->GetChildHandle(FName("Input"));
 	TSharedPtr<IPropertyHandle> ConstantHandle = PropertyHandle->GetChildHandle(FName("Constant"));
 	TSharedPtr<IPropertyHandle> AttributeHandle = PropertyHandle->GetChildHandle(FName("Attribute"));
+	TSharedPtr<IPropertyHandle> ToleranceHandle = PropertyHandle->GetChildHandle(FName("Tolerance"));
 
 	HeaderRow.NameContent()
 		[
 			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().Padding(1).MinWidth(30)
+			[
+				ComparisonHandle->CreatePropertyValueWidget()
+			]
 			+ SHorizontalBox::Slot().Padding(1).AutoWidth()
 			[
 				PCGExEnumCustomization::CreateRadioGroup(InputHandle, TEXT("EPCGExInputValueType"))
@@ -45,7 +52,7 @@ void FPCGExInputShorthandCustomization::CustomizeHeader(
 		.MinDesiredWidth(400)
 		[
 			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot().Padding(1).FillWidth(1)
+			+ SHorizontalBox::Slot().Padding(1)
 			[
 				SNew(SBox)
 				.Visibility(
@@ -60,7 +67,7 @@ void FPCGExInputShorthandCustomization::CustomizeHeader(
 					CreateValueWidget(ConstantHandle)
 				]
 			]
-			+ SHorizontalBox::Slot().Padding(1).FillWidth(1)
+			+ SHorizontalBox::Slot().Padding(1)
 			[
 				SNew(SBox)
 				.Visibility(
@@ -75,22 +82,42 @@ void FPCGExInputShorthandCustomization::CustomizeHeader(
 					CreateAttributeWidget(AttributeHandle)
 				]
 			]
+			+ SHorizontalBox::Slot().Padding(1)
+			[
+				SNew(SHorizontalBox)
+				.Visibility(
+					MakeAttributeLambda(
+						[ComparisonHandle]()
+						{
+							uint8 V = 0;
+							ComparisonHandle->GetValue(V);
+							return V < 6 ? EVisibility::Collapsed : EVisibility::Visible;
+						}))
+				+ SHorizontalBox::Slot().Padding(1).AutoWidth()
+				[
+					SNew(STextBlock).Text(FText::FromString(TEXT("±"))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)
+				]
+				+ SHorizontalBox::Slot().Padding(1).FillWidth(1)
+				[
+					ToleranceHandle->CreatePropertyValueWidget()
+				]
+			]
 		];
 }
 
-void FPCGExInputShorthandCustomization::CustomizeChildren(
+void FPCGExCompareShorthandCustomization::CustomizeChildren(
 	TSharedRef<IPropertyHandle> PropertyHandle,
 	IDetailChildrenBuilder& ChildBuilder,
 	IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
 }
 
-TSharedRef<SWidget> FPCGExInputShorthandCustomization::CreateValueWidget(TSharedPtr<IPropertyHandle> ValueHandle)
+TSharedRef<SWidget> FPCGExCompareShorthandCustomization::CreateValueWidget(TSharedPtr<IPropertyHandle> ValueHandle)
 {
 	return ValueHandle->CreatePropertyValueWidget();
 }
 
-TSharedRef<SWidget> FPCGExInputShorthandCustomization::CreateAttributeWidget(TSharedPtr<IPropertyHandle> AttributeHandle)
+TSharedRef<SWidget> FPCGExCompareShorthandCustomization::CreateAttributeWidget(TSharedPtr<IPropertyHandle> AttributeHandle)
 {
 	FProperty* Prop = AttributeHandle->GetProperty();
 	if (CastField<FNameProperty>(Prop) || CastField<FTextProperty>(Prop))
@@ -140,22 +167,22 @@ TSharedRef<SWidget> FPCGExInputShorthandCustomization::CreateAttributeWidget(TSh
 			});
 }
 
-TSharedRef<IPropertyTypeCustomization> FPCGExInputShorthandVectorCustomization::MakeInstance()
+TSharedRef<IPropertyTypeCustomization> FPCGExCompareShorthandVectorCustomization::MakeInstance()
 {
-	return MakeShareable(new FPCGExInputShorthandVectorCustomization());
+	return MakeShareable(new FPCGExCompareShorthandVectorCustomization());
 }
 
-TSharedRef<SWidget> FPCGExInputShorthandVectorCustomization::CreateValueWidget(TSharedPtr<IPropertyHandle> ValueHandle)
+TSharedRef<SWidget> FPCGExCompareShorthandVectorCustomization::CreateValueWidget(TSharedPtr<IPropertyHandle> ValueHandle)
 {
 	return PCGEX_VECTORINPUTBOX(ValueHandle);
 }
 
-TSharedRef<IPropertyTypeCustomization> FPCGExInputShorthandRotatorCustomization::MakeInstance()
+TSharedRef<IPropertyTypeCustomization> FPCGExCompareShorthandRotatorCustomization::MakeInstance()
 {
-	return MakeShareable(new FPCGExInputShorthandRotatorCustomization());
+	return MakeShareable(new FPCGExCompareShorthandRotatorCustomization());
 }
 
-TSharedRef<SWidget> FPCGExInputShorthandRotatorCustomization::CreateValueWidget(TSharedPtr<IPropertyHandle> ValueHandle)
+TSharedRef<SWidget> FPCGExCompareShorthandRotatorCustomization::CreateValueWidget(TSharedPtr<IPropertyHandle> ValueHandle)
 {
 	return PCGEX_ROTATORINPUTBOX(ValueHandle);
 }

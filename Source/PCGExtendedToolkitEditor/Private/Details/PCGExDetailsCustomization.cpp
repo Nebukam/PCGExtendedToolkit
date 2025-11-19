@@ -17,6 +17,8 @@
 #include "Details/Collections/PCGExAssetGrammarCustomization.h"
 #include "Details/Enums/PCGExGridEnumCustomization.h"
 #include "Details/Enums/PCGExInlineEnumCustomization.h"
+#include "Details/InputSettings/PCGExClampDetailsCustomization.h"
+#include "Details/InputSettings/PCGExCompareShorthandsCustomization.h"
 #include "Details/InputSettings/PCGExInputShorthandsCustomization.h"
 #include "Details/Tuple/PCGExTupleBodyCustomization.h"
 
@@ -169,37 +171,43 @@ namespace PCGExDetailsCustomization
 		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExActorDataPackerActions>());
 
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExTupleBody", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExTupleBodyCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExFittingVariations", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExFittingVariationsCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMaterialOverrideEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMaterialOverrideEntryCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMaterialOverrideSingleEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMaterialOverrideSingleEntryCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMaterialOverrideCollection", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMaterialOverrideCollectionCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExMeshCollectionEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExMeshEntryCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExActorCollectionEntry", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExActorEntryCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExAssetGrammarDetails", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExAssetGrammarCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExBitmask", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExBitmaskCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExBitmaskWithOperation", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExBitmaskWithOperationCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExClampedBit", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExClampedBitCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExClampedBitOp", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExClampedBitOpCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExBitmaskFilterConfig", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExBitmaskFilterConfigCustomization::MakeInstance));
-		
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameBoolean", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameFloat", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameDouble", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameString", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameName", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameInteger32", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameVector", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandVectorCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandNameRotator", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandRotatorCustomization::MakeInstance));
 
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandSelectorBoolean", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandSelectorFloat", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandSelectorDouble", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandSelectorString", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandSelectorName", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandSelectorInteger32", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandSelectorVector", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandVectorCustomization::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout("PCGExInputShorthandSelectorRotator", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPCGExInputShorthandRotatorCustomization::MakeInstance));
+#define PCGEX_REGISTER_CUSTO(_NAME, _CLASS) PropertyModule.RegisterCustomPropertyTypeLayout(_NAME, FOnGetPropertyTypeCustomizationInstance::CreateStatic(&_CLASS::MakeInstance));
+		
+		PCGEX_REGISTER_CUSTO("PCGExTupleBody", FPCGExTupleBodyCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExFittingVariations", FPCGExFittingVariationsCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExMaterialOverrideEntry", FPCGExMaterialOverrideEntryCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExMaterialOverrideSingleEntry", FPCGExMaterialOverrideSingleEntryCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExMaterialOverrideCollection", FPCGExMaterialOverrideCollectionCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExMeshCollectionEntry", FPCGExMeshEntryCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExActorCollectionEntry", FPCGExActorEntryCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExAssetGrammarDetails", FPCGExAssetGrammarCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExBitmask", FPCGExBitmaskCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExBitmaskWithOperation", FPCGExBitmaskWithOperationCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExClampedBit", FPCGExClampedBitCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExClampedBitOp", FPCGExClampedBitOpCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExBitmaskFilterConfig", FPCGExBitmaskFilterConfigCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExClampDetails", FPCGExClampDetailsCustomization)
+		
+		PCGEX_REGISTER_CUSTO("PCGExCompareSelectorDouble", FPCGExCompareShorthandCustomization)
+		
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameBoolean", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameFloat", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameDouble", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameString", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameName", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameInteger32", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameVector", FPCGExInputShorthandVectorCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameRotator", FPCGExInputShorthandRotatorCustomization)
+
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorBoolean", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorFloat", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorDouble", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorString", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorName", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorInteger32", FPCGExInputShorthandCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorVector", FPCGExInputShorthandVectorCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorRotator", FPCGExInputShorthandRotatorCustomization)
 
 #define PCGEX_FOREACH_INLINE_ENUM(MACRO)\
 MACRO(EPCGExInputValueType)\
