@@ -37,7 +37,7 @@ TArray<FPCGPinProperties> UPCGExUberBranchSettings::InputPinProperties() const
 	PCGEX_PIN_ANY(GetMainInputPin(), "The data to be processed.", Required)
 	for (int i = 0; i < NumBranches; i++)
 	{
-		PCGEX_PIN_FILTERS(InputLabels[i], "Collection filters. Only support C-Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal)
+		PCGEX_PIN_FILTERS(InputLabels[i], "Collection filters. Only support Data Filter or regular filters that are set-up to work with data bounds or @Data attributes.", Normal)
 	}
 	return PinProperties;
 }

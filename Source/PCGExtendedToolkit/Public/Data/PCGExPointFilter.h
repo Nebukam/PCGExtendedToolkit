@@ -140,7 +140,7 @@ public:
 namespace PCGExPointFilter
 {
 	const FName OutputFilterLabel = FName("Filter");
-	const FName OutputColFilterLabel = FName("C-Filter");
+	const FName OutputColFilterLabel = FName("Data Filter");
 	const FName OutputFilterLabelNode = FName("Vtx Filter");
 	const FName OutputFilterLabelEdge = FName("Edge Filter");
 	const FName SourceFiltersLabel = FName("Filters");
