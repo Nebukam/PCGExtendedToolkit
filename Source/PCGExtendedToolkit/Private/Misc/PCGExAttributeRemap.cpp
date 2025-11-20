@@ -27,6 +27,22 @@ FString UPCGExAttributeRemapSettings::GetDisplayName() const
 	return TEXT("Remap : ") + Attributes.Source.ToString();
 }
 
+void UPCGExAttributeRemapSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 70, 11)
+	{
+		if (SourceAttributeName_DEPRECATED != NAME_None) { Attributes.Source = SourceAttributeName_DEPRECATED; }
+		if (TargetAttributeName_DEPRECATED != NAME_None)
+		{
+			Attributes.Target = TargetAttributeName_DEPRECATED;
+			Attributes.bOutputToDifferentName = (SourceAttributeName_DEPRECATED != TargetAttributeName_DEPRECATED);
+		}
+	}
+
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
+
 double FPCGExRemapDetails::GetRemappedValue(const double Value, const double Step) const
 {
 	switch (Snapping)
@@ -54,22 +70,6 @@ double FPCGExRemapDetails::GetRemappedValue(const double Value, const double Ste
 		}
 	}
 }
-
-void UPCGExAttributeRemapSettings::ApplyDeprecation(UPCGNode* InOutNode)
-{
-	PCGEX_UPDATE_TO_DATA_VERSION(1, 70, 11)
-	{
-		if (SourceAttributeName_DEPRECATED != NAME_None) { Attributes.Source = SourceAttributeName_DEPRECATED; }
-		if (TargetAttributeName_DEPRECATED != NAME_None)
-		{
-			Attributes.Target = TargetAttributeName_DEPRECATED;
-			Attributes.bOutputToDifferentName = (SourceAttributeName_DEPRECATED != TargetAttributeName_DEPRECATED);
-		}
-	}
-
-	Super::ApplyDeprecation(InOutNode);
-}
-#endif
 
 void FPCGExAttributeRemapContext::RegisterAssetDependencies()
 {
