@@ -17,6 +17,13 @@
 
 #include "PCGExFusePoints.generated.h"
 
+UENUM()
+enum class EPCGExFusedPointOutput : uint8
+{
+	Blend = 0 UMETA(DisplayName = "Blend", ToolTip="Blend all points within a radius"),
+	MostCentral = 1 UMETA(DisplayName = "Keep Most Central", ToolTip="Keep the existing point that's most central to the sample group"),
+};
+
 namespace PCGExFuse
 {
 	struct FFusedPoint
@@ -52,6 +59,10 @@ protected:
 	//~End UPCGSettings
 
 public:
+	/** Mode */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExFusedPointOutput Mode = EPCGExFusedPointOutput::Blend;
+	
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
 	FPCGExPointPointIntersectionDetails PointPointIntersectionDetails = FPCGExPointPointIntersectionDetails(false);
@@ -61,11 +72,11 @@ public:
 	bool bPreserveOrder = true;
 
 	/** Defines how fused point properties and attributes are merged together. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExFusedPointOutput::Blend", EditConditionHides))
 	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
 
 	/** Meta filter settings. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings", EditCondition="Mode==EPCGExFusedPointOutput::Blend", EditConditionHides))
 	FPCGExCarryOverDetails CarryOverDetails;
 
 private:
