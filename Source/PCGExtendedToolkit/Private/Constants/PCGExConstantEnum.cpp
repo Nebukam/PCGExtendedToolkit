@@ -292,11 +292,11 @@ bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
 
 	FPCGExBitmask Bitflags;
 	Bitflags.Mode = EPCGExBitmaskMode::Individual;
-	Bitflags.Bits.SetNum(Unfiltered.Num());
+	Bitflags.Mutations.SetNum(Unfiltered.Num());
 	for (int i = 0; i < Unfiltered.Num(); i++)
 	{
-		Bitflags.Bits[i].BitIndex = Settings->FlagBitOffset + i;
-		Bitflags.Bits[i].bValue = false;
+		Bitflags.Mutations[i].BitIndex = Settings->FlagBitOffset + i;
+		Bitflags.Mutations[i].bValue = false;
 	}
 
 
@@ -367,7 +367,7 @@ void FPCGExConstantEnumElement::StageEnumValuesSeparatePins(
 {
 	for (const PCGExConstantEnumConstants::FMapping& T : ValueData)
 	{
-		OutBitflags.Bits[T.Get<3>()].bValue = true;
+		OutBitflags.Mutations[T.Get<3>()].bValue = true;
 
 		UPCGParamData* OutputData = InContext->ManagedObjects->New<UPCGParamData>();
 
@@ -439,7 +439,7 @@ void FPCGExConstantEnumElement::StageEnumValuesSinglePin(
 
 	for (const PCGExConstantEnumConstants::FMapping& T : ValueData)
 	{
-		OutBitflags.Bits[T.Get<3>()].bValue = true;
+		OutBitflags.Mutations[T.Get<3>()].bValue = true;
 
 		const auto Entry = OutputData->Metadata->AddEntry();
 		if (KeyAttrib)
