@@ -60,7 +60,7 @@ public:
 	FPCGExInputShorthandSelectorVector OffsetSnap = FPCGExInputShorthandSelectorVector(FName("OffsetStep"), FVector(100));
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable))
-	FPCGExInputShorthandSelectorBoolean AbsoluteOffset = FPCGExInputShorthandSelectorBoolean(FName("AbsoluteOffset"), false);
+	FPCGExInputShorthandSelectorBoolean AbsoluteOffset = FPCGExInputShorthandSelectorBoolean(FName("AbsoluteOffset"), false, false);
 	
 #pragma endregion
 
@@ -106,7 +106,7 @@ public:
 	FPCGExInputShorthandSelectorVector ScaleSnap = FPCGExInputShorthandSelectorVector(FName("ScaleStep"), FVector(0.1));
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
-	FPCGExInputShorthandSelectorBoolean UniformScale = FPCGExInputShorthandSelectorBoolean(FName("UniformScale"), false);
+	FPCGExInputShorthandSelectorBoolean UniformScale = FPCGExInputShorthandSelectorBoolean(FName("UniformScale"), false, false);
 
 #pragma endregion
 

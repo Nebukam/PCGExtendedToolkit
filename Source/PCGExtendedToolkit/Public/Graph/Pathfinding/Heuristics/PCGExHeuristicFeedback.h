@@ -32,7 +32,8 @@ struct FPCGExHeuristicConfigFeedback : public FPCGExHeuristicConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bBinary", ClampMin=0, ClampMax=1))
 	double VisitedEdgesWeightFactor = 1;
 
-	/** Global feedback weight persist between path query in a single pathfinding node.  IMPORTANT NOTE: This break parallelism, and may be slower.*/
+	/** Global feedback weight persist between path query in a single pathfinding node.
+	 * IMPORTANT NOTE: This break parallelism, and may be slower.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bGlobalFeedback = false;
 

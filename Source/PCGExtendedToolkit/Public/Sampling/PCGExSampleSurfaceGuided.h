@@ -15,6 +15,8 @@
 #include "Data/PCGExDataForward.h"
 #include "Data/PCGExPointFilter.h"
 #include "Details/PCGExDetailsCollision.h"
+#include "Details/PCGExDetailsInputShorthands.h"
+#include "Geometry/PCGExGeoMesh.h"
 
 
 #include "PCGExSampleSurfaceGuided.generated.h"
@@ -110,6 +112,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	FPCGExApplySamplingDetails ApplySampling;
 
+	/** How hit transform rotation should be constructed. First value used is the impact normal. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEnum))
+	EPCGExMakeRotAxis RotationConstruction = EPCGExMakeRotAxis::Z;
+
+	/** Second value used for constructing rotation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Cross Axis"))
+	FPCGExInputShorthandSelectorDirection CrossAxis = FPCGExInputShorthandSelectorDirection(FString("$Rotation.Forward"), GetDefault<UPCGExGlobalSettings>()->WorldForward, true);
+	
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
@@ -174,7 +184,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteUVCoords = false;
 
-	/** Create an attribute for UV Coordinates of the surface hit. Note: Will only work in complex traces and must have 'Project Settings->Physics->Support UV From Hit Results' set to true. */
+	/** Create an attribute for UV Coordinates of the surface hit.
+	 * Note: Will only work in complex traces and must have 'Project Settings->Physics->Support UV From Hit Results' set to true. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="UV Coords", PCG_Overridable, EditCondition="bWriteUVCoords"))
 	FName UVCoordsAttributeName = FName("UVCoords");
 
@@ -186,9 +197,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteFaceIndex = false;
 
-	/** Create an attribute for index of the hit face. Note: Will only work in complex traces. */
+	/** Create an attribute for index of the hit face.
+	 * Note: Will only work in complex traces. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Face Index", PCG_Overridable, EditCondition="bWriteFaceIndex"))
 	FName FaceIndexAttributeName = FName("FaceIndex");
+
+	/** Whether to attempt to compute the vertex color and write it to the point $Color */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable))
+	bool bWriteVertexColor = false;
 
 	/** Write the actor reference hit. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -310,11 +326,18 @@ namespace PCGExSampleSurfaceGuided
 		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
 		TSharedPtr<PCGExData::TBuffer<FVector>> OriginGetter;
+		TSharedPtr<PCGExDetails::TSettingValue<FVector>> CrossAxis;
 
 		TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxDistanceValue;
 		double MaxSampledDistance = 0;
 
 		TSharedPtr<PCGExTexture::FLookup> TexParamLookup;
+
+		TArray<int32> FaceIndex;
+		TArray<int32> MeshIndex;
+		TArray<FVector> HitLocation;
+		TArray<PCGExGeo::FMeshData> MeshData;
+		TSharedPtr<PCGExMT::TScopedArray<const UStaticMesh*>> ScopedMeshes;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 
@@ -331,8 +354,13 @@ namespace PCGExSampleSurfaceGuided
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void PrepareLoopScopesForPoints(const TArray<PCGExMT::FScope>& Loops) override;
+
+		void ProcessTraceResult(const PCGExMT::FScope& Scope, const FHitResult& HitResult, const int32 Index,
+		                        const FVector& Origin, const FVector& Direction, PCGExData::FMutablePoint& MutablePoint);
+		
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
+		void GetVertexColorAtHit(const int32 Index, FVector4& OutColor) const;
 		virtual void OnPointsProcessingComplete() override;
 
 		virtual void CompleteWork() override;

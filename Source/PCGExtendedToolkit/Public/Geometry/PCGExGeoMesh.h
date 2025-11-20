@@ -65,6 +65,25 @@ namespace PCGExGeo
 	PCGEXTENDEDTOOLKIT_API
 	void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 
+	struct FMeshData
+	{
+		FMeshData() = default;
+		FMeshData(const UStaticMesh* InStaticMesh);
+
+		int8 bIsValid = 0;
+		int32 NumTexCoords = 0;
+		FIndexArrayView Indices;
+		const FStaticMeshVertexBuffers* Buffers = nullptr;
+		const FPositionVertexBuffer* Positions = nullptr;
+		const FColorVertexBuffer* Colors = nullptr;
+
+		
+		FORCEINLINE int32 NumTriangles() const { return Indices.Num() / 3; }
+		FORCEINLINE int32 NumVertices() const { return Indices.Num(); }
+		
+		FORCEINLINE bool HasColor() const { return Colors != nullptr; }
+	};
+
 	class PCGEXTENDEDTOOLKIT_API FMeshLookup : public TSharedFromThis<FMeshLookup>
 	{
 	protected:
@@ -118,7 +137,7 @@ namespace PCGExGeo
 		TObjectPtr<UStaticMesh> StaticMesh;
 		FVector CWTolerance = FVector(1 / 0.001);
 
-		const FStaticMeshLODResources* LODResource = nullptr;
+		FMeshData RawData;
 
 		explicit FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh);
 		explicit FGeoStaticMesh(const FSoftObjectPath& InSoftStaticMesh);

@@ -150,6 +150,72 @@ TSharedRef<SWidget> FPCGExInputShorthandVectorCustomization::CreateValueWidget(T
 	return PCGEX_VECTORINPUTBOX(ValueHandle);
 }
 
+TSharedRef<IPropertyTypeCustomization> FPCGExInputShorthandDirectionCustomization::MakeInstance()
+{
+	return MakeShareable(new FPCGExInputShorthandDirectionCustomization());
+}
+
+void FPCGExInputShorthandDirectionCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, class FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
+{
+	// Get handles
+	TSharedPtr<IPropertyHandle> InputHandle = PropertyHandle->GetChildHandle(FName("Input"));
+	TSharedPtr<IPropertyHandle> ConstantHandle = PropertyHandle->GetChildHandle(FName("Constant"));
+	TSharedPtr<IPropertyHandle> AttributeHandle = PropertyHandle->GetChildHandle(FName("Attribute"));
+	TSharedPtr<IPropertyHandle> FlipHandle = PropertyHandle->GetChildHandle(FName("bFlip"));
+
+	HeaderRow.NameContent()
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().Padding(1).AutoWidth()
+			[
+				PCGExEnumCustomization::CreateRadioGroup(InputHandle, TEXT("EPCGExInputValueType"))
+			]
+			+ SHorizontalBox::Slot().Padding(1).FillWidth(1)
+			[
+				PropertyHandle->CreatePropertyNameWidget()
+			]
+		]
+		.ValueContent()
+		.MinDesiredWidth(400)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().Padding(1).FillWidth(1)
+			[
+				SNew(SBox)
+				.Visibility(
+					MakeAttributeLambda(
+						[InputHandle]()
+						{
+							uint8 V = 0;
+							InputHandle->GetValue(V);
+							return V ? EVisibility::Collapsed : EVisibility::Visible;
+						}))
+				[
+					CreateValueWidget(ConstantHandle)
+				]
+			]
+			+ SHorizontalBox::Slot().Padding(1).FillWidth(1)
+			[
+				SNew(SBox)
+				.Visibility(
+					MakeAttributeLambda(
+						[InputHandle]()
+						{
+							uint8 V = 0;
+							InputHandle->GetValue(V);
+							return V ? EVisibility::Visible : EVisibility::Collapsed;
+						}))
+				[
+					CreateAttributeWidget(AttributeHandle)
+				]
+			]
+			+ SHorizontalBox::Slot().Padding(1).AutoWidth()
+			[
+				FlipHandle->CreatePropertyValueWidget()
+			]
+		];
+}
+
 TSharedRef<IPropertyTypeCustomization> FPCGExInputShorthandRotatorCustomization::MakeInstance()
 {
 	return MakeShareable(new FPCGExInputShorthandRotatorCustomization());

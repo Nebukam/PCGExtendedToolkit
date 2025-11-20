@@ -198,6 +198,7 @@ namespace PCGExDetailsCustomization
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameName", FPCGExInputShorthandCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameInteger32", FPCGExInputShorthandCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameVector", FPCGExInputShorthandVectorCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameDirection", FPCGExInputShorthandDirectionCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameRotator", FPCGExInputShorthandRotatorCustomization)
 
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorBoolean", FPCGExInputShorthandCustomization)
@@ -207,6 +208,7 @@ namespace PCGExDetailsCustomization
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorName", FPCGExInputShorthandCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorInteger32", FPCGExInputShorthandCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorVector", FPCGExInputShorthandVectorCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorDirection", FPCGExInputShorthandDirectionCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandSelectorRotator", FPCGExInputShorthandRotatorCustomization)
 
 #define PCGEX_FOREACH_INLINE_ENUM(MACRO)\

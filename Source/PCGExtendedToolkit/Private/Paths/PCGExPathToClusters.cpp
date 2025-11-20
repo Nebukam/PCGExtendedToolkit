@@ -110,6 +110,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 						bHasInvalidInputs = true;
 						return false;
 					}
+					
 					return true;
 				},
 				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)

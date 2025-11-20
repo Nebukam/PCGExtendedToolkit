@@ -20,12 +20,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandBase
 	EPCGExInputValueType Input = EPCGExInputValueType::Constant;
 };
 
+#define PCGEX_ATTRIBUTE_TOGGLE_DECL const bool bDefaultToAttribute = false
+#define PCGEX_ATTRIBUTE_TOGGLE Input = bDefaultToAttribute ? EPCGExInputValueType::Attribute : EPCGExInputValueType::Constant;
+
 #pragma region Name
 
 #define PCGEX_SHORTHAND_NAME_CTR(_NAME, _TYPE) \
 FPCGExInputShorthandName##_NAME() = default; \
-explicit FPCGExInputShorthandName##_NAME(const FName DefaultName) { Attribute = DefaultName; } \
-FPCGExInputShorthandName##_NAME(const FName DefaultName, const _TYPE DefaultValue){	Attribute = DefaultName;	Constant = DefaultValue;} \
+explicit FPCGExInputShorthandName##_NAME(const FName DefaultName, PCGEX_ATTRIBUTE_TOGGLE_DECL) { Attribute = DefaultName; PCGEX_ATTRIBUTE_TOGGLE  } \
+FPCGExInputShorthandName##_NAME(const FName DefaultName, const _TYPE DefaultValue, PCGEX_ATTRIBUTE_TOGGLE_DECL){	Attribute = DefaultName; Constant = DefaultValue; PCGEX_ATTRIBUTE_TOGGLE } \
 PCGEX_SETTING_VALUE_DECL(, _TYPE)
 
 USTRUCT(BlueprintType)
@@ -106,6 +109,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameVector : public FPCGExInpu
 };
 
 USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameDirection : public FPCGExInputShorthandNameVector
+{
+	GENERATED_BODY()
+
+	PCGEX_SHORTHAND_NAME_CTR(Direction, FVector)
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bFlip = false;
+};
+
+USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameVector4 : public FPCGExInputShorthandNameBase
 {
 	GENERATED_BODY()
@@ -166,10 +180,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameName : public FPCGExInputS
 
 #define PCGEX_SHORTHAND_SELECTOR_CTR(_NAME, _TYPE) \
 FPCGExInputShorthandSelector##_NAME() = default;\
-explicit FPCGExInputShorthandSelector##_NAME(const FString& DefaultSelection) { Attribute.Update(DefaultSelection); }\
-explicit FPCGExInputShorthandSelector##_NAME(const FName& DefaultSelection) { Attribute.SetAttributeName(DefaultSelection); }\
-FPCGExInputShorthandSelector##_NAME(const FString& DefaultSelection, const _TYPE DefaultValue){	Attribute.Update(DefaultSelection);	Constant = DefaultValue; }\
-FPCGExInputShorthandSelector##_NAME(const FName& DefaultSelection, const _TYPE DefaultValue){	Attribute.SetAttributeName(DefaultSelection);	Constant = DefaultValue; }\
+explicit FPCGExInputShorthandSelector##_NAME(const FString& DefaultSelection, PCGEX_ATTRIBUTE_TOGGLE_DECL) { Attribute.Update(DefaultSelection); PCGEX_ATTRIBUTE_TOGGLE } \
+explicit FPCGExInputShorthandSelector##_NAME(const FName& DefaultSelection, PCGEX_ATTRIBUTE_TOGGLE_DECL) { Attribute.SetAttributeName(DefaultSelection); PCGEX_ATTRIBUTE_TOGGLE } \
+FPCGExInputShorthandSelector##_NAME(const FString& DefaultSelection, const _TYPE DefaultValue, PCGEX_ATTRIBUTE_TOGGLE_DECL){ Attribute.Update(DefaultSelection);	Constant = DefaultValue; PCGEX_ATTRIBUTE_TOGGLE } \
+FPCGExInputShorthandSelector##_NAME(const FName& DefaultSelection, const _TYPE DefaultValue, PCGEX_ATTRIBUTE_TOGGLE_DECL){ Attribute.Update(DefaultSelection.ToString()); Constant = DefaultValue; PCGEX_ATTRIBUTE_TOGGLE  } \
 PCGEX_SETTING_VALUE_DECL(, _TYPE)
 
 USTRUCT(BlueprintType)
@@ -250,6 +264,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorVector : public FPCGEx
 };
 
 USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorDirection : public FPCGExInputShorthandSelectorBase
+{
+	GENERATED_BODY()
+
+	PCGEX_SHORTHAND_SELECTOR_CTR(Direction, FVector)
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FVector Constant = FVector::ZeroVector;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bFlip = false;
+};
+
+
+USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorVector4 : public FPCGExInputShorthandSelectorBase
 {
 	GENERATED_BODY()
@@ -304,5 +333,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorName : public FPCGExIn
 	FName Constant = NAME_None;
 };
 
-
 #pragma endregion
+
+#undef PCGEX_ATTRIBUTE_TOGGLE
+#undef PCGEX_SHORTHAND_NAME_CTR
+#undef PCGEX_SHORTHAND_SELECTOR_CTR

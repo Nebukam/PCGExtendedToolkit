@@ -15,6 +15,7 @@ MACRO(float, Float, __VA_ARGS__)      \
 MACRO(double, Double, __VA_ARGS__)     \
 MACRO(FVector2D, Vector2, __VA_ARGS__)  \
 MACRO(FVector, Vector, __VA_ARGS__)    \
+MACRO(FVector, Direction, __VA_ARGS__)    \
 MACRO(FVector4, Vector4, __VA_ARGS__)   \
 MACRO(FRotator, Rotator, __VA_ARGS__)   \
 MACRO(FTransform, Transform, __VA_ARGS__) \

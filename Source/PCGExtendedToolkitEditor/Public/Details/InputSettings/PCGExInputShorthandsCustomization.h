@@ -31,6 +31,16 @@ public:
 	virtual TSharedRef<SWidget> CreateValueWidget(TSharedPtr<IPropertyHandle> ValueHandle) override;
 };
 
+class PCGEXTENDEDTOOLKITEDITOR_API FPCGExInputShorthandDirectionCustomization : public FPCGExInputShorthandVectorCustomization
+{
+public:
+	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
+	virtual void CustomizeHeader(
+		TSharedRef<IPropertyHandle> PropertyHandle,
+		class FDetailWidgetRow& HeaderRow,
+		IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+};
+
 class PCGEXTENDEDTOOLKITEDITOR_API FPCGExInputShorthandRotatorCustomization : public FPCGExInputShorthandCustomization
 {
 public:

@@ -41,7 +41,8 @@ protected:
 	//~End UPCGSettings
 
 public:
-	/** If enabled, crossings are only computed per path, against themselves only. Note: this ignores the "bEnableSelfIntersection" from details below. */
+	/** If enabled, crossings are only computed per path, against themselves only.
+	 * Note: this ignores the "bEnableSelfIntersection" from details below. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	bool bSelfIntersectionOnly = false;
 

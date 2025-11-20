@@ -153,7 +153,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 	EPCGExVariationSnapping Snapping = EPCGExVariationSnapping::None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Snapping != EPCGExVariationSnapping::None", EditConditionHides))
-	FPCGExInputShorthandSelectorDouble Snap = FPCGExInputShorthandSelectorDouble(FName("Step"), 10);
+	FPCGExInputShorthandSelectorDouble Snap = FPCGExInputShorthandSelectorDouble(FName("Step"), 10, false);
 
 	void Init()
 	{
@@ -189,9 +189,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Clamp Output"))
 	FPCGExClampDetails OutputClampDetails;
-
-	// TODO : Add snapping
-	// TODO : Pimp the UI of this baddie
 
 	TSharedPtr<PCGExMT::TScopedNumericValue<double>> MinCache;
 	TSharedPtr<PCGExMT::TScopedNumericValue<double>> MaxCache;
