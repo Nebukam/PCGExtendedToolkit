@@ -475,7 +475,6 @@ namespace PCGExTopology
 		void Cleanup();
 	};
 
-	USTRUCT(BlueprintType)
 	struct PCGEXTENDEDTOOLKIT_API FCellData
 	{
 		int8 bIsValid = 0;
@@ -492,7 +491,7 @@ namespace PCGExTopology
 		FCellData() = default;
 	};
 
-	class FCell : public TSharedFromThis<FCell>
+	class PCGEXTENDEDTOOLKIT_API FCell : public TSharedFromThis<FCell>
 	{
 	protected:
 		int32 Sign = 0;
