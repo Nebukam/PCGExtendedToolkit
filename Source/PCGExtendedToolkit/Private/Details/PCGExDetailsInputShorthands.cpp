@@ -5,6 +5,7 @@
 #include "Details/PCGExDetailsInputShorthands.h"
 
 #include "PCGEx.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Details/PCGExMacros.h"
 #include "Details/PCGExDetailsSettings.h"
 
@@ -13,6 +14,8 @@ MACRO(bool, Boolean, __VA_ARGS__)       \
 MACRO(int32, Integer32, __VA_ARGS__)      \
 MACRO(float, Float, __VA_ARGS__)      \
 MACRO(double, Double, __VA_ARGS__)     \
+MACRO(double, DoubleAbs, __VA_ARGS__)     \
+MACRO(double, Double01, __VA_ARGS__)     \
 MACRO(FVector2D, Vector2, __VA_ARGS__)  \
 MACRO(FVector, Vector, __VA_ARGS__)    \
 MACRO(FVector, Direction, __VA_ARGS__)    \
@@ -22,8 +25,13 @@ MACRO(FTransform, Transform, __VA_ARGS__) \
 MACRO(FString, String, __VA_ARGS__)    \
 MACRO(FName, Name, __VA_ARGS__)
 
-#define PCGEX_TPL_SHORTHAND_NAME(_TYPE, _NAME, ...) PCGEX_SETTING_VALUE_IMPL(FPCGExInputShorthandName##_NAME, , _TYPE, Input, Attribute, Constant)
-#define PCGEX_TPL_SHORTHAND_SELECTOR(_TYPE, _NAME, ...) PCGEX_SETTING_VALUE_IMPL(FPCGExInputShorthandSelector##_NAME, , _TYPE, Input, Attribute, Constant)
+#define PCGEX_TPL_SHORTHAND_NAME(_TYPE, _NAME, ...)\
+PCGEX_SETTING_VALUE_IMPL(FPCGExInputShorthandName##_NAME, , _TYPE, Input, Attribute, Constant)\
+bool FPCGExInputShorthandName##_NAME::TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue, const bool bQuiet) const{return PCGExDataHelpers::TryGetSettingDataValue(IO, Input, Attribute, Constant, OutValue, bQuiet);}
+
+#define PCGEX_TPL_SHORTHAND_SELECTOR(_TYPE, _NAME, ...)\
+PCGEX_SETTING_VALUE_IMPL(FPCGExInputShorthandSelector##_NAME, , _TYPE, Input, Attribute, Constant)\
+bool FPCGExInputShorthandSelector##_NAME::TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue, const bool bQuiet) const{return PCGExDataHelpers::TryGetSettingDataValue(IO, Input, Attribute, Constant, OutValue, bQuiet);}
 
 PCGEX_FOREACH_INPUT_SHORTHAND(PCGEX_TPL_SHORTHAND_NAME)
 PCGEX_FOREACH_INPUT_SHORTHAND(PCGEX_TPL_SHORTHAND_SELECTOR)

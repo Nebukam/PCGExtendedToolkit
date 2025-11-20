@@ -5,10 +5,29 @@
 
 #include "PCGExRandom.h"
 #include "Data/PCGExPointIO.h"
+#include "Details/PCGExVersion.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExResamplePathElement"
 #define PCGEX_NAMESPACE ResamplePath
+
+#if WITH_EDITOR
+void UPCGExResamplePathSettings::ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins)
+{
+	Super::ApplyDeprecationBeforeUpdatePins(InOutNode, InputPins, OutputPins);
+	InOutNode->RenameOutputPin(FName("Resolution"), FName("Constant"));
+}
+
+void UPCGExResamplePathSettings::ApplyDeprecation(UPCGNode* InOutNode)
+{
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 71, 3)
+	{
+		SampleLength.Constant = Resolution_DEPRECATED;
+	}
+
+	Super::ApplyDeprecation(InOutNode);
+}
+#endif
 
 PCGEX_INITIALIZE_ELEMENT(ResamplePath)
 
@@ -76,6 +95,11 @@ namespace PCGExResamplePath
 
 		const UPCGBasePointData* InPoints = PointDataFacade->GetIn();
 
+		bPreserveLastPoint = Settings->bPreserveLastPoint;
+		bAutoSampleSize = true;
+
+		if (!Settings->SampleLength.TryReadDataValue(PointDataFacade->Source, SampleLength)) { return false; }
+
 		Path = MakeShared<PCGExPaths::FPath>(InPoints, 0);
 		Path->IOIndex = PointDataFacade->Source->IOIndex;
 		PathLength = Path->AddExtra<PCGExPaths::FPathEdgeLength>(true); // Force compute length
@@ -84,11 +108,12 @@ namespace PCGExResamplePath
 		{
 			if (Settings->ResolutionMode == EPCGExResolutionMode::Fixed)
 			{
-				NumSamples = Settings->Resolution;
+				NumSamples = SampleLength;
 			}
 			else
 			{
-				NumSamples = PCGExMath::TruncateDbl(PathLength->TotalLength / Settings->Resolution, Settings->Truncate);
+				NumSamples = PCGExMath::TruncateDbl(PathLength->TotalLength / SampleLength, Settings->Truncate);
+				bAutoSampleSize = Settings->bRedistributeEvenly;
 			}
 
 			if (Path->IsClosedLoop()) { NumSamples++; }
@@ -105,7 +130,11 @@ namespace PCGExResamplePath
 			NumSamples = PointDataFacade->GetNum();
 		}
 
-		SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - 1);
+		if (bAutoSampleSize)
+		{
+			bPreserveLastPoint = false;
+			SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - 1);
+		}
 
 		Samples.SetNumUninitialized(NumSamples);
 		bForceSingleThreadedProcessPoints = true;
@@ -171,7 +200,7 @@ namespace PCGExResamplePath
 			Sample.Distance = TraversedDistance;
 		}
 
-		if (Settings->bPreserveLastPoint && !Path->IsClosedLoop())
+		if (bPreserveLastPoint && !Path->IsClosedLoop())
 		{
 			FPointSample& LastSample = Samples.Last();
 			LastSample.Start = InTransforms.Num() - 2;

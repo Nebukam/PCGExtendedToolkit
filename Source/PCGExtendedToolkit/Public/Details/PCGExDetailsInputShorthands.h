@@ -9,6 +9,11 @@
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExDetailsInputShorthands.generated.h"
 
+namespace PCGExData
+{
+	class FPointIO;
+}
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandBase
 {
@@ -29,6 +34,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandBase
 FPCGExInputShorthandName##_NAME() = default; \
 explicit FPCGExInputShorthandName##_NAME(const FName DefaultName, PCGEX_ATTRIBUTE_TOGGLE_DECL) { Attribute = DefaultName; PCGEX_ATTRIBUTE_TOGGLE  } \
 FPCGExInputShorthandName##_NAME(const FName DefaultName, const _TYPE DefaultValue, PCGEX_ATTRIBUTE_TOGGLE_DECL){	Attribute = DefaultName; Constant = DefaultValue; PCGEX_ATTRIBUTE_TOGGLE } \
+bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue, const bool bQuiet = false) const;\
 PCGEX_SETTING_VALUE_DECL(, _TYPE)
 
 USTRUCT(BlueprintType)
@@ -40,6 +46,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameBase : public FPCGExInputS
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName Attribute = NAME_None;
+	
 };
 
 USTRUCT(BlueprintType)
@@ -51,6 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameBoolean : public FPCGExInp
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool Constant = false;
+
 };
 
 USTRUCT(BlueprintType)
@@ -72,7 +80,29 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameDouble : public FPCGExInpu
 	PCGEX_SHORTHAND_NAME_CTR(Double, double)
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	float Constant = 0;
+	double Constant = 0;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameDoubleAbs : public FPCGExInputShorthandNameBase
+{
+	GENERATED_BODY()
+
+	PCGEX_SHORTHAND_NAME_CTR(DoubleAbs, double)
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0))
+	double Constant = 0;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameDouble01 : public FPCGExInputShorthandNameBase
+{
+	GENERATED_BODY()
+
+	PCGEX_SHORTHAND_NAME_CTR(Double01, double)
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0, ClampMax=0, UIMax=0))
+	double Constant = 0;
 };
 
 USTRUCT(BlueprintType)
@@ -184,6 +214,7 @@ explicit FPCGExInputShorthandSelector##_NAME(const FString& DefaultSelection, PC
 explicit FPCGExInputShorthandSelector##_NAME(const FName& DefaultSelection, PCGEX_ATTRIBUTE_TOGGLE_DECL) { Attribute.SetAttributeName(DefaultSelection); PCGEX_ATTRIBUTE_TOGGLE } \
 FPCGExInputShorthandSelector##_NAME(const FString& DefaultSelection, const _TYPE DefaultValue, PCGEX_ATTRIBUTE_TOGGLE_DECL){ Attribute.Update(DefaultSelection);	Constant = DefaultValue; PCGEX_ATTRIBUTE_TOGGLE } \
 FPCGExInputShorthandSelector##_NAME(const FName& DefaultSelection, const _TYPE DefaultValue, PCGEX_ATTRIBUTE_TOGGLE_DECL){ Attribute.Update(DefaultSelection.ToString()); Constant = DefaultValue; PCGEX_ATTRIBUTE_TOGGLE  } \
+bool TryReadDataValue(const TSharedPtr<PCGExData::FPointIO>& IO, _TYPE& OutValue, const bool bQuiet = false) const;\
 PCGEX_SETTING_VALUE_DECL(, _TYPE)
 
 USTRUCT(BlueprintType)
@@ -227,7 +258,29 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorDouble : public FPCGEx
 	PCGEX_SHORTHAND_SELECTOR_CTR(Double, double)
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	float Constant = 0;
+	double Constant = 0;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorDoubleAbs : public FPCGExInputShorthandSelectorBase
+{
+	GENERATED_BODY()
+
+	PCGEX_SHORTHAND_SELECTOR_CTR(DoubleAbs, double)
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0))
+	double Constant = 0;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorDouble01 : public FPCGExInputShorthandSelectorBase
+{
+	GENERATED_BODY()
+
+	PCGEX_SHORTHAND_SELECTOR_CTR(Double01, double)
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0, ClampMax=0, UIMax=0))
+	double Constant = 0;
 };
 
 USTRUCT(BlueprintType)
