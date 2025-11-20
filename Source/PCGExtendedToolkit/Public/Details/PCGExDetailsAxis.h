@@ -110,6 +110,9 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API
 	FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& X, const FVector& Y, const FVector& Z);
+	
+	PCGEXTENDEDTOOLKIT_API
+	FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& A, const FVector& B);
 
 	PCGEXTENDEDTOOLKIT_API
 	void FindOrderMatch(

@@ -62,6 +62,23 @@ namespace PCGEx
 		}
 	}
 
+	FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& A, const FVector& B)
+	{
+		switch (Order)
+		{
+		default:
+		case EPCGExMakeRotAxis::X: return FRotationMatrix::MakeFromX(A).ToQuat();
+		case EPCGExMakeRotAxis::XY: return FRotationMatrix::MakeFromXY(A, B).ToQuat();
+		case EPCGExMakeRotAxis::XZ: return FRotationMatrix::MakeFromXZ(A, B).ToQuat();
+		case EPCGExMakeRotAxis::Y: return FRotationMatrix::MakeFromY(A).ToQuat();
+		case EPCGExMakeRotAxis::YX: return FRotationMatrix::MakeFromYX(A, B).ToQuat();
+		case EPCGExMakeRotAxis::YZ: return FRotationMatrix::MakeFromYZ(A, B).ToQuat();
+		case EPCGExMakeRotAxis::Z: return FRotationMatrix::MakeFromZ(A).ToQuat();
+		case EPCGExMakeRotAxis::ZX: return FRotationMatrix::MakeFromZX(A, B).ToQuat();
+		case EPCGExMakeRotAxis::ZY: return FRotationMatrix::MakeFromZY(B, B).ToQuat();
+		}
+	}
+
 	void FindOrderMatch(
 		const FQuat& Quat,
 		const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis,

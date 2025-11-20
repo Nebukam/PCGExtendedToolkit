@@ -80,6 +80,29 @@ namespace PCGExGeo
 		}
 	}
 
+	FMeshData::FMeshData(const UStaticMesh* InStaticMesh)
+	{
+		if (!InStaticMesh) { return; }
+
+		const FStaticMeshRenderData* RenderData = InStaticMesh->GetRenderData();
+		if (!RenderData || RenderData->LODResources.IsEmpty()) { return; }
+
+		const FStaticMeshLODResources* LODResource = &RenderData->LODResources[0];
+
+		if (!LODResource) { return; }
+
+		NumTexCoords = LODResource->GetNumTexCoords();
+		Indices = LODResource->IndexBuffer.GetArrayView();
+		if (Indices.Num() <= 0) { return; }
+
+		Buffers = &LODResource->VertexBuffers;
+		if (Buffers->ColorVertexBuffer.IsInitialized() && Buffers->ColorVertexBuffer.GetNumVertices() > 0) { Colors = &Buffers->ColorVertexBuffer; }
+
+		Positions = &Buffers->PositionVertexBuffer;
+		
+		bIsValid = true;
+	}
+
 	FMeshLookup::FMeshLookup(const int32 Size, TArray<FVector>* InVertices, TArray<int32>* InRawIndices, const FVector& InHashTolerance)
 		: Vertices(InVertices), RawIndices(InRawIndices), HashTolerance(InHashTolerance)
 	{
@@ -190,21 +213,17 @@ namespace PCGExGeo
 		if (bIsLoaded) { return; }
 		if (!bIsValid) { return; }
 
-		LODResource = &StaticMesh->GetRenderData()->LODResources[0];
+		RawData = FMeshData(StaticMesh);
 
-		if (!LODResource)
+		if (!RawData.bIsValid)
 		{
 			bIsValid = false;
 			return;
 		}
 
-		const FStaticMeshVertexBuffers& VertexBuffers = LODResource->VertexBuffers;
-
-		bHasColorData = VertexBuffers.ColorVertexBuffer.IsInitialized() && VertexBuffers.ColorVertexBuffer.GetNumVertices() > 0;
-		const FPositionVertexBuffer& PositionBuffer = VertexBuffers.PositionVertexBuffer;
-
-		const FIndexArrayView& Indices = LODResource->IndexBuffer.GetArrayView();
-		const int32 NumTriangles = Indices.Num() / 3;
+		const FPositionVertexBuffer& PositionBuffer = *RawData.Positions;
+		const FIndexArrayView Indices = RawData.Indices;
+		const int32 NumTriangles = RawData.NumTriangles();
 
 		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(PositionBuffer.GetNumVertices() / 3, &Vertices, &RawIndices, CWTolerance);
 		Edges.Reserve(NumTriangles / 2);
@@ -234,26 +253,22 @@ namespace PCGExGeo
 		if (bIsLoaded) { return; }
 		if (!bIsValid) { return; }
 
-		LODResource = &StaticMesh->GetRenderData()->LODResources[0];
+		RawData = FMeshData(StaticMesh);
 
-		if (!LODResource)
+		if (!RawData.bIsValid)
 		{
 			bIsValid = false;
 			return;
 		}
 
-		const FStaticMeshVertexBuffers& VertexBuffers = LODResource->VertexBuffers;
-
-		bHasColorData = VertexBuffers.ColorVertexBuffer.IsInitialized() && VertexBuffers.ColorVertexBuffer.GetNumVertices() > 0;
-		const FPositionVertexBuffer& PositionBuffer = VertexBuffers.PositionVertexBuffer;
+		const FPositionVertexBuffer& PositionBuffer = *RawData.Positions;
+		const FIndexArrayView Indices = RawData.Indices;
+		const int32 NumTriangles = RawData.NumTriangles();
 
 		Edges.Empty();
 
-		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(PositionBuffer.GetNumVertices() / 3, &Vertices, &RawIndices, CWTolerance);
+		TUniquePtr<FMeshLookup> MeshLookup = MakeUnique<FMeshLookup>(RawData.NumVertices() / 3, &Vertices, &RawIndices, CWTolerance);
 
-		const FIndexArrayView& Indices = LODResource->IndexBuffer.GetArrayView();
-
-		const int32 NumTriangles = Indices.Num() / 3;
 		Triangles.Init(FIntVector3(-1), NumTriangles);
 		Tri_Adjacency.Init(FIntVector3(-1), NumTriangles);
 

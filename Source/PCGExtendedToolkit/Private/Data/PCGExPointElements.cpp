@@ -77,44 +77,37 @@ namespace PCGExData
 
 	FTransform& FMutablePoint::GetMutableTransform()
 	{
-		TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange(false);
-		return Transforms[Index];
+		return Data->GetTransformValueRange(false)[Index];
 	}
 
 	void FMutablePoint::SetTransform(const FTransform& InValue)
 	{
-		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange(false);
-		Transforms[Index] = InValue;
+		Data->GetTransformValueRange(false)[Index] = InValue;
 	}
 
 	void FMutablePoint::SetLocation(const FVector& InValue)
 	{
-		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange(false);
-		Transforms[Index].SetLocation(InValue);
+		Data->GetTransformValueRange(false)[Index].SetLocation(InValue);
 	}
 
 	void FMutablePoint::SetScale3D(const FVector& InValue)
 	{
-		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange(false);
-		Transforms[Index].SetScale3D(InValue);
+		Data->GetTransformValueRange(false)[Index].SetScale3D(InValue);
 	}
 
 	void FMutablePoint::SetRotation(const FQuat& InValue)
 	{
-		const TPCGValueRange<FTransform> Transforms = Data->GetTransformValueRange(false);
-		Transforms[Index].SetRotation(InValue);
+		Data->GetTransformValueRange(false)[Index].SetRotation(InValue);
 	}
 
 	void FMutablePoint::SetBoundsMin(const FVector& InValue)
 	{
-		const TPCGValueRange<FVector> BoundsMin = Data->GetBoundsMinValueRange(false);
-		BoundsMin[Index] = InValue;
+		Data->GetBoundsMinValueRange(false)[Index] = InValue;
 	}
 
 	void FMutablePoint::SetBoundsMax(const FVector& InValue)
 	{
-		const TPCGValueRange<FVector> BoundsMax = Data->GetBoundsMaxValueRange(false);
-		BoundsMax[Index] = InValue;
+		Data->GetBoundsMaxValueRange(false)[Index] = InValue;
 	}
 
 	void FMutablePoint::SetExtents(const FVector& InValue, const bool bKeepLocalCenter)
@@ -137,17 +130,18 @@ namespace PCGExData
 
 	void FMutablePoint::SetLocalBounds(const FBox& InValue)
 	{
-		const TPCGValueRange<FVector> BoundsMin = Data->GetBoundsMinValueRange(false);
-		BoundsMin[Index] = InValue.Min;
-
-		const TPCGValueRange<FVector> BoundsMax = Data->GetBoundsMaxValueRange(false);
-		BoundsMax[Index] = InValue.Max;
+		Data->GetBoundsMinValueRange(false)[Index] = InValue.Min;
+		Data->GetBoundsMaxValueRange(false)[Index] = InValue.Max;
 	}
 
 	void FMutablePoint::SetMetadataEntry(const int64 InValue)
 	{
-		const TPCGValueRange<int64> MetadataEntries = Data->GetMetadataEntryValueRange(false);
-		MetadataEntries[Index] = InValue;
+		Data->GetMetadataEntryValueRange(false)[Index] = InValue;
+	}
+
+	void FMutablePoint::SetColor(const FVector4& InValue)
+	{
+		Data->GetColorValueRange(false)[Index] = InValue;
 	}
 
 	FConstPoint::FConstPoint(const FMutablePoint& InPoint)
@@ -185,7 +179,8 @@ namespace PCGExData
 		Transform(InPoint.GetTransform()),
 		BoundsMin(InPoint.GetBoundsMin()),
 		BoundsMax(InPoint.GetBoundsMax()),
-		Steepness(InPoint.GetSteepness())
+		Steepness(InPoint.GetSteepness()),
+		Color(InPoint.GetColor())
 	{
 	}
 
@@ -193,7 +188,8 @@ namespace PCGExData
 		: Transform(InPoint.GetTransform()),
 		  BoundsMin(InPoint.GetBoundsMin()),
 		  BoundsMax(InPoint.GetBoundsMax()),
-		  Steepness(InPoint.GetSteepness())
+		  Steepness(InPoint.GetSteepness()),
+		  Color(InPoint.GetColor())
 	{
 	}
 
@@ -214,14 +210,10 @@ namespace PCGExData
 
 	void FProxyPoint::CopyTo(UPCGBasePointData* InData) const
 	{
-		TPCGValueRange<FTransform> OutTransform = InData->GetTransformValueRange(false);
-
-		TPCGValueRange<FVector> OutBoundsMin = InData->GetBoundsMinValueRange(false);
-		TPCGValueRange<FVector> OutBoundsMax = InData->GetBoundsMinValueRange(false);
-
-		OutTransform[Index] = Transform;
-		OutBoundsMin[Index] = BoundsMin;
-		OutBoundsMax[Index] = BoundsMax;
+		InData->GetTransformValueRange(false)[Index] = Transform;
+		InData->GetBoundsMinValueRange(false)[Index] = BoundsMin;
+		InData->GetBoundsMinValueRange(false)[Index] = BoundsMax;
+		InData->GetColorValueRange(false)[Index] = Color;
 	}
 
 	void FProxyPoint::CopyTo(FMutablePoint& InPoint) const
@@ -229,6 +221,7 @@ namespace PCGExData
 		InPoint.SetTransform(Transform);
 		InPoint.SetBoundsMin(BoundsMin);
 		InPoint.SetBoundsMax(BoundsMax);
+		InPoint.SetColor(Color);
 	}
 
 #pragma endregion

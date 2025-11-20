@@ -58,7 +58,8 @@ struct FPCGExPartitonRuleConfig : public FPCGExInputConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Offset = 0.0;
 
-	/** Whether to write the partition Key to an attribute. Useful for debugging. Note: They key is not the index, but instead the filtered value used to distribute into partitions. */
+	/** Whether to write the partition Key to an attribute. Useful for debugging.
+	 * Note: They key is not the index, but instead the filtered value used to distribute into partitions. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteKey = false;
 

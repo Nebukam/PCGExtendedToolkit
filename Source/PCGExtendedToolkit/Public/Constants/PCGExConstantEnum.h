@@ -123,7 +123,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Attributes|Descriptions", meta=(EditCondition="OutputEnumDescriptions"))
 	FName DescriptionAttribute = "Description";
 
-	// Whether to output the numeric enum values. Note: will be output as int64 to match behaviour in native PCG
+	/** Whether to output the numeric enum values.
+	 * Note: will be output as int64 to match behaviour in native PCG */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Settings|Output Attributes|Values")
 	bool OutputEnumValues = true;
 

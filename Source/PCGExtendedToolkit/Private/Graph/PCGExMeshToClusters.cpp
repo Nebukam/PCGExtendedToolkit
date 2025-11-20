@@ -285,7 +285,7 @@ namespace PCGExMeshToCluster
 
 		if (Context->bWantsImport)
 		{
-			VertexBuffers = &Mesh->LODResource->VertexBuffers;
+			VertexBuffers = Mesh->RawData.Buffers;
 
 			if (ImportDetails.bImportVertexColor && Mesh->bHasColorData)
 			{
@@ -293,7 +293,7 @@ namespace PCGExMeshToCluster
 				bWantsColor = true;
 			}
 
-			if (const int32 NumTexCoords = Mesh->LODResource->GetNumTexCoords();
+			if (const int32 NumTexCoords = Mesh->RawData.NumTexCoords;
 				!ImportDetails.UVChannelIndex.IsEmpty() && NumTexCoords >= 0)
 			{
 				UVChannels.Reserve(ImportDetails.UVChannelIndex.Num());

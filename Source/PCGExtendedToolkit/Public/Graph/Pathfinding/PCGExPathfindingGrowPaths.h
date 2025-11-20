@@ -143,7 +143,8 @@ public:
 	int32 NumIterationsConstant = 3;
 
 
-	/** How to update the number of iteration for each seed.  Note: No matter what is selected, will never exceed the Max iteration. */
+	/** How to update the number of iteration for each seed.
+	 * Note: No matter what is selected, will never exceed the Max iteration. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="NumIterations != EPCGExGrowthValueSource::Constant && NumIterations == EPCGExGrowthValueSource::VtxAttribute", EditConditionHides))
 	EPCGExGrowthUpdateMode NumIterationsUpdateMode = EPCGExGrowthUpdateMode::Once;
 
@@ -176,7 +177,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="GrowthDirection == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FVector GrowthDirectionConstant = FVector::UpVector;
 
-	/** How to update the number of iteration for each seed.  Note: No matter what is selected, will never exceed the Max iteration. */
+	/** How to update the number of iteration for each seed.
+	 * Note: No matter what is selected, will never exceed the Max iteration. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGrowthUpdateMode GrowthDirectionUpdateMode = EPCGExGrowthUpdateMode::Once;
 

@@ -88,14 +88,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterResultDetails
 	bool bDoBitmaskOpOnPass = true;
 
 	/** Operations executed on the flag when filters pass */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Pass Bitmask", EditCondition="bDoBitmaskOpOnPass"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" ├─ Pass Bitmask", EditCondition="bDoBitmaskOpOnPass && Action == EPCGExResultWriteAction::Bitmask"))
 	FPCGExBitmaskWithOperation PassBitmask;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExResultWriteAction::Bitmask", EditConditionHides, InlineEditConditionToggle))
 	bool bDoBitmaskOpOnFail = true;
 
 	/** Operations executed on the flag if when filters fail */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Fail Bitmask", EditCondition="bDoBitmaskOpOnFail"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Fail Bitmask", EditCondition="bDoBitmaskOpOnFail && Action == EPCGExResultWriteAction::Bitmask"))
 	FPCGExBitmaskWithOperation FailBitmask;
 
 	bool Validate(FPCGExContext* InContext) const;
