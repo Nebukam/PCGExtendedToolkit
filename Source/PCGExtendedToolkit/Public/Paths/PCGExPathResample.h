@@ -8,6 +8,7 @@
 #include "PCGExPathProcessor.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Details/PCGExDetailsInputShorthands.h"
 
 
 #include "Shapes/PCGExShapes.h"
@@ -38,6 +39,8 @@ class UPCGExResamplePathSettings : public UPCGExPathProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
+	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 	PCGEX_NODE_INFOS(ResamplePath, "Path : Resample", "Resample path to enforce equally spaced points.");
 #endif
 
@@ -54,16 +57,23 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep"))
-	bool bPreserveLastPoint = true;
+	bool bRedistributeEvenly = true;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bRedistributeEvenly && Mode == EPCGExResampleMode::Sweep"))
+	bool bPreserveLastPoint = false;
 
 	/** Resolution mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExResampleMode::Sweep"))
 	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Distance;
 
-	/** Resolution Constant. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep", EditConditionHides, ClampMin=0))
-	double Resolution = 10;
-
+	UPROPERTY()
+	double Resolution_DEPRECATED = 10;
+	
+	/** Resolution */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Resolution", EditCondition="Mode == EPCGExResampleMode::Sweep", EditConditionHides))
+	FPCGExInputShorthandNameDoubleAbs SampleLength = FPCGExInputShorthandNameDoubleAbs(NAME_None, Resolution_DEPRECATED, false);
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep", EditConditionHides))
 	EPCGExTruncateMode Truncate = EPCGExTruncateMode::Round;
@@ -106,6 +116,8 @@ namespace PCGExResamplePath
 
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExResamplePathContext, UPCGExResamplePathSettings>
 	{
+		bool bPreserveLastPoint = false;
+		bool bAutoSampleSize = false;
 		int32 NumSamples = 0;
 		double SampleLength = 0;
 		TArray<FPointSample> Samples;
