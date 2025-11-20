@@ -7,6 +7,7 @@
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Details/PCGExDetailsDistances.h"
 #include "Graph/PCGExGraph.h"
+#include "Async/ParallelFor.h"
 
 
 #include "Graph/PCGExIntersections.h"
@@ -61,7 +62,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
-				NewBatch->bRequiresWriteStep = true;
+				NewBatch->bRequiresWriteStep = Settings->Mode != EPCGExFusedPointOutput::MostCentral;
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to fuse."));
@@ -172,6 +173,38 @@ namespace PCGExFusePoints
 
 		UPCGBasePointData* OutData = PointDataFacade->GetOut();
 		PCGEx::SetNumPointsAllocated(OutData, NumUnionNodes, PointDataFacade->GetAllocations());
+
+		if (Settings->Mode == EPCGExFusedPointOutput::MostCentral)
+		{
+			TArray<int32>& IdxMapping = PointDataFacade->Source->GetIdxMapping(NumUnionNodes);
+			const PCGPointOctree::FPointOctree& Octree = PointDataFacade->GetIn()->GetPointOctree();
+			const TConstPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
+			ParallelFor(
+				NumUnionNodes, [&](int32 Index)
+				{
+					const FVector Center = UnionGraph->Nodes[Index]->UpdateCenter(UnionGraph->NodesUnion, Context->MainPoints);
+					double BestDist = MAX_dbl;
+					int32 BestIndex = -1;
+
+					Octree.FindNearbyElements(
+						Center, [&](const PCGPointOctree::FPointRef& PointRef)
+						{
+							const double Dist = FVector::DistSquared(Center, OutTransforms[PointRef.Index].GetLocation());
+							if (Dist < BestDist)
+							{
+								BestDist = Dist;
+								BestIndex = PointRef.Index;
+							}
+						});
+
+					if (BestIndex == -1) { BestIndex = UnionGraph->Nodes[Index]->Point.Index; }
+					IdxMapping[Index] = BestIndex;
+				});
+
+			PointDataFacade->Source->ConsumeIdxMapping(PointDataFacade->GetAllocations());
+
+			return;
+		}
 
 		const TSharedPtr<PCGExDataBlending::FUnionBlender> TypedBlender = MakeShared<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails, Context->Distances);
 		UnionBlender = TypedBlender;
