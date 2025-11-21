@@ -55,7 +55,7 @@ class UPCGExPolyPathFilterFactory : public UPCGExPointFilterFactoryData
 public:
 	virtual bool SupportsProxyEvaluation() const override { return true; } // TODO Change this one we support per-point tolerance from attribute
 
-	TArray<const UPCGData*> Datas;
+	TSharedPtr<TArray<PCGExData::FTaggedData>> Datas;
 	TArray<TSharedPtr<PCGExPaths::FPolyPath>> PolyPaths;
 	TSharedPtr<PCGExOctree::FItemOctree> Octree;
 
@@ -88,6 +88,7 @@ protected:
 
 	TArray<FPCGTaggedData> TempTargets;
 	TArray<TSharedPtr<PCGExPaths::FPolyPath>> TempPolyPaths;
+	TArray<PCGExData::FTaggedData> TempTaggedData;
 };
 
 namespace PCGExPathInclusion
@@ -127,7 +128,7 @@ namespace PCGExPathInclusion
 
 	class FHandler : public TSharedFromThis<FHandler>
 	{
-		const TArray<const UPCGData*>* Datas;
+		TSharedPtr<TArray<PCGExData::FTaggedData>> Datas;
 		const TArray<TSharedPtr<PCGExPaths::FPolyPath>>* Paths;
 		TSharedPtr<PCGExOctree::FItemOctree> Octree;
 		EPCGExSplineCheckType Check = EPCGExSplineCheckType::IsInside;
@@ -152,7 +153,7 @@ namespace PCGExPathInclusion
 
 		FORCEINLINE bool TestFlags(const EFlags InFlags) const
 		{
-			bool bPass = !EnumHasAnyFlags(InFlags, BadFlags); // None of the bad flags
+			bool bPass = (InFlags & BadFlags) == 0; // None of the bad flags
 			if (bPass && FlagScope != Skip)
 			{
 				bPass =
