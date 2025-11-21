@@ -183,9 +183,12 @@ namespace PCGExFindAllCells
 		const TSharedPtr<PCGExData::FPointIO>& PathIO)
 	{
 		if (!PathIO) { return; }
-
-		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts
-		PathIO->IOIndex = Cluster->GetEdge(InCell->Seed.Edge)->IOIndex; // Enforce seed order for collection output-ish
+		
+		// Tag forwarding handled by artifacts
+		PathIO->Tags->Reset();
+		
+		// Enforce IO index based on edge IO + smallest node point index, for deterministic output order
+		PathIO->IOIndex = EdgeDataFacade->Source->IOIndex * 1000000 + Cluster->GetNodePointIndex(InCell->Nodes[0]);
 
 		PCGExGraph::CleanupClusterData(PathIO);
 
