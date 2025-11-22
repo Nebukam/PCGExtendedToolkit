@@ -59,7 +59,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep"))
 	bool bRedistributeEvenly = true;
 	
-	/** */
+	/** (ignored for closed loops) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bRedistributeEvenly && Mode == EPCGExResampleMode::Sweep"))
 	bool bPreserveLastPoint = false;
 
