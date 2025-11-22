@@ -101,7 +101,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameDouble01 : public FPCGExIn
 
 	PCGEX_SHORTHAND_NAME_CTR(Double01, double)
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0, ClampMax=0, UIMax=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0, ClampMax=1, UIMax=1))
 	double Constant = 0;
 };
 
@@ -113,6 +113,29 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameInteger32 : public FPCGExI
 	PCGEX_SHORTHAND_NAME_CTR(Integer32, int32)
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	int32 Constant = 0;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameInteger32Abs : public FPCGExInputShorthandNameBase
+{
+	GENERATED_BODY()
+
+	PCGEX_SHORTHAND_NAME_CTR(Integer32Abs, int32)
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0, ClampMax=1, UIMax=1))
+	int32 Constant = 0;
+};
+
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameInteger3201 : public FPCGExInputShorthandNameBase
+{
+	GENERATED_BODY()
+
+	PCGEX_SHORTHAND_NAME_CTR(Integer3201, int32)
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0))
 	int32 Constant = 0;
 };
 
@@ -279,7 +302,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorDouble01 : public FPCG
 
 	PCGEX_SHORTHAND_SELECTOR_CTR(Double01, double)
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0, ClampMax=0, UIMax=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0, ClampMax=1, UIMax=1))
 	double Constant = 0;
 };
 
@@ -291,6 +314,28 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorInteger32 : public FPC
 	PCGEX_SHORTHAND_SELECTOR_CTR(Integer32, int32)
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	int32 Constant = 0;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorInteger32Abs : public FPCGExInputShorthandSelectorBase
+{
+	GENERATED_BODY()
+
+	PCGEX_SHORTHAND_SELECTOR_CTR(Integer32Abs, int32)
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0))
+	int32 Constant = 0;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorInteger3201 : public FPCGExInputShorthandSelectorBase
+{
+	GENERATED_BODY()
+
+	PCGEX_SHORTHAND_SELECTOR_CTR(Integer3201, int32)
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0, UIMin=0, ClampMax=1, UIMax=1))
 	int32 Constant = 0;
 };
 
