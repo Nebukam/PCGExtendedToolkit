@@ -55,17 +55,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExResampleMode Mode = EPCGExResampleMode::Sweep;
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep"))
-	bool bRedistributeEvenly = true;
-	
-	/** (ignored for closed loops) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bRedistributeEvenly && Mode == EPCGExResampleMode::Sweep"))
-	bool bPreserveLastPoint = false;
-
 	/** Resolution mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExResampleMode::Sweep"))
 	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Distance;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep && ResolutionMode == EPCGExResolutionMode::Distance"))
+	bool bRedistributeEvenly = true;
+	
+	/** (ignored for closed loops) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bRedistributeEvenly && Mode == EPCGExResampleMode::Sweep && ResolutionMode == EPCGExResolutionMode::Distance"))
+	bool bPreserveLastPoint = false;
 
 	UPROPERTY()
 	double Resolution_DEPRECATED = 10;

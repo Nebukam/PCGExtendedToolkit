@@ -109,14 +109,14 @@ namespace PCGExResamplePath
 			if (Settings->ResolutionMode == EPCGExResolutionMode::Fixed)
 			{
 				NumSamples = SampleLength;
+				bAutoSampleSize = true;
 			}
 			else
 			{
 				NumSamples = PCGExMath::TruncateDbl(PathLength->TotalLength / SampleLength, Settings->Truncate);
-				bAutoSampleSize = Settings->bRedistributeEvenly;
+				bAutoSampleSize = Settings->bRedistributeEvenly;				
 			}
 
-			if (Path->IsClosedLoop()) { NumSamples++; }
 
 			if (NumSamples < 2) { return false; }
 
@@ -129,11 +129,13 @@ namespace PCGExResamplePath
 			PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 			NumSamples = PointDataFacade->GetNum();
 		}
+		
+		if (Path->IsClosedLoop()) { NumSamples++; }
 
 		if (bAutoSampleSize)
 		{
 			bPreserveLastPoint = false;
-			SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - (Path->IsClosedLoop() ? 0 : 1));
+			SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - 1);
 		}
 
 		Samples.SetNumUninitialized(NumSamples);
