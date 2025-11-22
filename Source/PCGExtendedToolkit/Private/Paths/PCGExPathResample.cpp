@@ -133,7 +133,7 @@ namespace PCGExResamplePath
 		if (bAutoSampleSize)
 		{
 			bPreserveLastPoint = false;
-			SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - 1);
+			SampleLength = PathLength->TotalLength / static_cast<double>(NumSamples - (Path->IsClosedLoop() ? 0 : 1));
 		}
 
 		Samples.SetNumUninitialized(NumSamples);
