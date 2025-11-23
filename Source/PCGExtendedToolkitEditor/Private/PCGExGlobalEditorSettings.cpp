@@ -4,9 +4,26 @@
 #include "PCGExGlobalEditorSettings.h"
 
 #include "CoreMinimal.h"
-#include "Components/SlateWrapperTypes.h"
+#include "Details/PCGExVersion.h"
 
 FSimpleMulticastDelegate UPCGExGlobalEditorSettings::OnHiddenAssetPropertyNamesChanged;
+
+void UPCGExGlobalEditorSettings::PostLoad()
+{
+	Super::PostLoad();
+	/*
+#if WITH_EDITOR
+	bool bWantsSaving = false;
+	PCGEX_UPDATE_TO_DATA_VERSION(1, 71, 2)
+	{
+		HiddenPropertyNames.Add(FName("AssetEditor.Descriptors"));
+		bWantsSaving = true;
+	}
+
+	if (bWantsSaving) { SaveConfig(); }
+#endif
+	*/
+}
 
 void UPCGExGlobalEditorSettings::ToggleHiddenAssetPropertyName(const FName PropertyName, const bool bHide)
 {
