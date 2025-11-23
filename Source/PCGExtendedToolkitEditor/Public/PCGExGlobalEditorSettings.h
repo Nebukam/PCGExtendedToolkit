@@ -16,6 +16,8 @@ class PCGEXTENDEDTOOLKITEDITOR_API UPCGExGlobalEditorSettings : public UDevelope
 	GENERATED_BODY()
 
 public:
+	virtual void PostLoad() override;
+	
 	virtual FName GetContainerName() const override { return "Editor"; }
 	virtual FName GetCategoryName() const override { return "Plugins"; }
 	virtual FName GetSectionName() const override { return "PCGEx"; }
@@ -33,5 +35,10 @@ public:
 	EVisibility GetPropertyVisibility(const FName PropertyName) const;
 	
 	bool GetIsPropertyVisible(const FName PropertyName) const;
+
+protected:
+	/** Internal version tracking. */
+	UPROPERTY(EditAnywhere, config, Category = Settings, AdvancedDisplay)
+	int64 PCGExDataVersion = -1;
 	
 };
