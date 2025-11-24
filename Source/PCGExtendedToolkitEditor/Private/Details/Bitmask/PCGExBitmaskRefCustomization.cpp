@@ -98,7 +98,7 @@ void FPCGExBitmaskRefCustomization::RefreshOptions()
 	{
 		if (UPCGExBitmaskCollection* Collection = Cast<UPCGExBitmaskCollection>(SourceObject))
 		{
-			TArray<FName> Identifiers = Collection->GetIdentifierOptions();
+			TArray<FName> Identifiers = Collection->EDITOR_GetIdentifierOptions();
 			for (const FName& Name : Identifiers) { ComboOptions.Add(MakeShared<FName>(Name)); }
 			bNoOptions = Identifiers.IsEmpty();
 		}

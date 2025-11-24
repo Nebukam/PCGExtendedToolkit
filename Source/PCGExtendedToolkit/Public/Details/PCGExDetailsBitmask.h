@@ -128,14 +128,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskRef
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TObjectPtr<UPCGExBitmaskCollection> Source;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(GetOptions="GetIdentifierOptions"))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(GetOptions="EDITOR_GetIdentifierOptions"))
 	FName Identifier = NAME_None;
 
 	UPROPERTY(EditAnywhere, Category = Settings)
 	EPCGExBitOp Op = EPCGExBitOp::OR;
 
-	TArray<FName> GetIdentifierOptions() const;
-
+#if WITH_EDITOR
+	TArray<FName> EDITOR_GetIdentifierOptions() const;
+#endif
+	
 	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
 	
 	void Mutate(int64& Flags) const;

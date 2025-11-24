@@ -100,7 +100,7 @@ public:
 	bool HasCircularDependency(TSet<const UPCGExBitmaskCollection*>& InReferences) const;
 	
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;	
-	TArray<FName> GetIdentifierOptions() const;
+	TArray<FName> EDITOR_GetIdentifierOptions() const;
 #endif
 
 	
