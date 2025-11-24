@@ -115,7 +115,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 	Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
 	if (!Context->NumMaxTargets)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No targets (no input matches criteria)"));
+		PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No targets (no input matches criteria)"))
 		return false;
 	}
 
@@ -302,7 +302,7 @@ namespace PCGExSampleNearestPath
 			if (!SampleAlphaGetter->Init(PointDataFacade)) { return false; }
 		}
 
-		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection == EPCGExSampleSource::Source)
+		if (Settings->LookAtUpSelection == EPCGExSampleSource::Source)
 		{
 			LookAtUpGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->LookAtUpSource, true);
 			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("LookAtUp is invalid.")); }
@@ -541,14 +541,16 @@ namespace PCGExSampleNearestPath
 			if (Settings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0) { Union->WeightRange = RangeMax; }
 			DataBlender->ComputeWeights(Index, Union, OutWeightedPoints);
 
-			FTransform WeightedTransform = FTransform::Identity;
-			WeightedTransform.SetScale3D(FVector::ZeroVector);
-
-			FVector WeightedUp = SafeUpVector;
-			if (LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
-
+			FVector WeightedUp = LookAtUpGetter ? LookAtUpGetter->Read(Index).GetSafeNormal() : SafeUpVector;			
+			FTransform WeightedTransform = InTransforms[Index];
 			FVector WeightedSignAxis = FVector::ZeroVector;
 			FVector WeightedAngleAxis = FVector::ZeroVector;
+			
+			if (!Settings->bWeightFromOriginalTransform)
+			{
+				WeightedTransform = FTransform::Identity;
+				WeightedTransform.SetScale3D(FVector::ZeroVector);
+			}
 
 			const double NumSampled = Union->Num() * 0.5;
 			WeightedDistance /= NumSampled; // We have two points per samples
@@ -590,8 +592,8 @@ namespace PCGExSampleNearestPath
 
 			if (TotalWeight != 0) // Dodge NaN
 			{
-				WeightedUp /= TotalWeight;
-				WeightedTransform = PCGExBlend::Div(WeightedTransform, TotalWeight);
+				//WeightedUp /= TotalWeight;
+				//WeightedTransform = PCGExBlend::Div(WeightedTransform, TotalWeight);
 			}
 			else
 			{

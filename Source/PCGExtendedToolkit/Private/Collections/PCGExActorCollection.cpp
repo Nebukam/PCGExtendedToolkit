@@ -58,6 +58,11 @@ void FPCGExActorCollectionEntry::SetAssetPath(const FSoftObjectPath& InPath)
 	Actor = TSoftClassPtr<AActor>(InPath);
 }
 
+UPCGExAssetCollection* FPCGExActorCollectionEntry::GetSubCollectionVoid() const
+{
+	return SubCollection;
+}
+
 #if WITH_EDITOR
 void UPCGExActorCollection::EDITOR_RefreshDisplayNames()
 {

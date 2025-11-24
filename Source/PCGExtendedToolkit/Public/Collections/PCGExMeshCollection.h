@@ -168,6 +168,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ SM Settings", EditCondition="!bIsSubCollection && DescriptorSource == EPCGExEntryVariationMode::Local", EditConditionHides, DisplayAfter="ISMDescriptor"))
 	FPCGExStaticMeshComponentDescriptor SMDescriptor;
 
+	virtual void ClearSubCollection() override
+	{
+		FPCGExAssetCollectionEntry::ClearSubCollection();
+		SubCollection = nullptr;
+	}
+
 	bool Matches(const FPCGMeshInstanceList& InstanceList) const
 	{
 		// TODO : This is way too weak
@@ -191,6 +197,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 
+	virtual UPCGExAssetCollection* GetSubCollectionVoid() const override;
+	
 #pragma region DEPRECATED
 
 	// DEPRECATED -- Moved to macro cache instead.

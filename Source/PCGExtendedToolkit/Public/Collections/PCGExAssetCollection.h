@@ -74,6 +74,8 @@ virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetColl
 #if WITH_EDITOR
 #define PCGEX_ASSET_COLLECTION_BOILERPLATE(_TYPE, _ENTRY_TYPE)\
 PCGEX_ASSET_COLLECTION_BOILERPLATE_BASE(_TYPE, _ENTRY_TYPE)\
+virtual void ForEachEntry(FForEachConstEntryFunc&& Iterator) const override { for(int i = 0; i < Entries.Num(); i++){ Iterator(&Entries[i]); } }\
+virtual void ForEachEntry(FForEachEntryFunc&& Iterator) override { for(int i = 0; i < Entries.Num(); i++){ Iterator(&Entries[i]); } }\
 virtual void EDITOR_SortByWeightAscendingTyped() override { EDITOR_SortByWeightAscendingInternal(Entries); }\
 virtual void EDITOR_SortByWeightDescendingTyped() override { EDITOR_SortByWeightDescendingInternal(Entries); }\
 virtual void EDITOR_SetWeightIndexTyped() override { EDITOR_SetWeightIndexInternal(Entries); }\
@@ -167,16 +169,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetStagingData
 	bool FindSocket(const FName InName, const FString& Tag, const FPCGExSocket*& OutSocket) const;
 };
 
-USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Collection Entry Misc")
-struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntryMisc
-{
-	GENERATED_BODY()
-	virtual ~FPCGExAssetCollectionEntryMisc() = default;
-
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
-	FLinearColor ColorKey = FLinearColor::Black;
-};
-
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Collection Entry")
 struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 {
@@ -218,25 +210,29 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 	/** Grammar details subcollection overrides.  */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection && SubGrammarMode == EPCGExGrammarSubCollectionMode::Override", EditConditionHides))
 	FPCGExCollectionGrammarDetails CollectionGrammar;
-	
+
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	FPCGExAssetStagingData Staging;
 
 	UPROPERTY()
 	TObjectPtr<UPCGExAssetCollection> InternalSubCollection;
 
+	virtual UPCGExAssetCollection* GetSubCollectionVoid() const { return nullptr; }
+	
 	template <typename T>
 	T* GetSubCollection() { return Cast<T>(InternalSubCollection); }
-	
+
 	template <typename T>
 	T* GetSubCollection() const { return Cast<T>(InternalSubCollection); }
-	
+
 	const FPCGExFittingVariations& GetVariations(const UPCGExAssetCollection* ParentCollection) const;
-	
+
 	double GetGrammarSize(const UPCGExAssetCollection* Host) const;
 	double GetGrammarSize(const UPCGExAssetCollection* Host, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache) const;
-	
+
 	bool FixModuleInfos(const UPCGExAssetCollection* Host, FPCGSubdivisionSubmodule& OutModule, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache = nullptr) const;
+
+	virtual void ClearSubCollection() { InternalSubCollection = nullptr; }
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
@@ -359,7 +355,17 @@ public:
 	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
 
 #if WITH_EDITOR
+	bool HasCircularDependency(const UPCGExAssetCollection* OtherCollection) const;
+	bool HasCircularDependency(TSet<const UPCGExAssetCollection*>& InReferences) const;
+
+	using FForEachConstEntryFunc = std::function<void (const FPCGExAssetCollectionEntry*)>;
+	virtual void ForEachEntry(FForEachConstEntryFunc&& Iterator) const	{}
+	
+	using FForEachEntryFunc = std::function<void (FPCGExAssetCollectionEntry*)>;
+	virtual void ForEachEntry(FForEachEntryFunc&& Iterator)	{}
+
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
 	virtual void EDITOR_RefreshDisplayNames();
 
 	/** Add Content Browser selection to this collection. */
@@ -511,7 +517,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1, MultiLine))
 	FString Notes;
 #endif
-	
+
 	/** Collection tags */
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
 	TSet<FName> CollectionTags;
@@ -543,7 +549,7 @@ public:
 	/** Default grammar when this collection is used as a subcollection. Note that this can be superseded by the host. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExCollectionGrammarDetails CollectionGrammar;
-	
+
 	/** If enabled, empty mesh will still be weighted and picked as valid entries, instead of being ignored. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	bool bDoNotIgnoreInvalidEntries = false;

@@ -262,6 +262,10 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 	return Super::Validate(ParentCollection);
 }
 
+UPCGExAssetCollection* FPCGExMeshCollectionEntry::GetSubCollectionVoid() const
+{
+	return SubCollection;
+}
 
 
 #if WITH_EDITOR
