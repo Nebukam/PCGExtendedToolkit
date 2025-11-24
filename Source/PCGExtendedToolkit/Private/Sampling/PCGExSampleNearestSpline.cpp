@@ -265,7 +265,7 @@ namespace PCGExSampleNearestSpline
 			if (!SampleAlphaGetter->Init(PointDataFacade)) { return false; }
 		}
 
-		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection == EPCGExSampleSource::Source)
+		if (Settings->LookAtUpSelection == EPCGExSampleSource::Source)
 		{
 			LookAtUpGetter = PointDataFacade->GetBroadcaster<FVector>(Settings->LookAtUpSource, true);
 			if (!LookAtUpGetter) { PCGEX_LOG_INVALID_SELECTOR_C(Context, LookAt Up, Settings->LookAtUpSource) }
@@ -533,9 +533,7 @@ namespace PCGExSampleNearestSpline
 				Stats.SampledRangeWidth = MaxSampledRange - MinSampledRange;
 			}
 
-			FVector WeightedUp = SafeUpVector;
-			if (LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
-
+			FVector WeightedUp = LookAtUpGetter ? LookAtUpGetter->Read(Index).GetSafeNormal() : SafeUpVector;
 			FTransform WeightedTransform = InTransforms[Index];
 			FVector WeightedSignAxis = FVector::ZeroVector;
 			FVector WeightedAngleAxis = FVector::ZeroVector;
@@ -543,7 +541,6 @@ namespace PCGExSampleNearestSpline
 
 			double WeightedTime = 0;
 			double TotalWeight = 0;
-
 
 			if (!Settings->bWeightFromOriginalTransform)
 			{

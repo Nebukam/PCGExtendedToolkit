@@ -118,6 +118,7 @@ void FPCGExtendedToolkitEditorModule::StartupModule()
 	PCGEX_ADD_ICON(PCGExCustomGraphBuilder)
 	PCGEX_ADD_ICON(PCGExCustomActorDataPacker)
 	PCGEX_ADD_ICON(PCGExBeacon)
+	PCGEX_ADD_ICON(PCGExBitmaskCollection)
 
 #define PCGEX_REGISTER_PIN_ICON(_NAME, ...) \
 	PCGEX_ADD_PIN_EXTRA_ICON(OUT_##_NAME) \

@@ -420,9 +420,50 @@ void UPCGExAssetCollection::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) 
 }
 
 #if WITH_EDITOR
-void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+bool UPCGExAssetCollection::HasCircularDependency(const UPCGExAssetCollection* OtherCollection) const
 {
+	if (!OtherCollection) { return false; }
+	if (OtherCollection == this) { return true; }
+
+	TSet<const UPCGExAssetCollection*> References;
+	return OtherCollection->HasCircularDependency(References);
+}
+
+bool UPCGExAssetCollection::HasCircularDependency(TSet<const UPCGExAssetCollection*>& InReferences) const
+{
+	bool bCircularDependency = false;
+	InReferences.Add(this, &bCircularDependency);
+
+	if (bCircularDependency) { return true; }
+	
+	ForEachEntry(
+		[&](const FPCGExAssetCollectionEntry* InEntry)
+		{
+			if (bCircularDependency) { return; }
+			if (UPCGExAssetCollection* Other = InEntry->GetSubCollectionVoid())
+			{
+				bCircularDependency = Other->HasCircularDependency(InReferences);
+			}
+		});
+
+	return bCircularDependency;
+}
+
+void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{	
 	if (PropertyChangedEvent.Property) { Super::PostEditChangeProperty(PropertyChangedEvent); }
+	
+	ForEachEntry(
+		[&](FPCGExAssetCollectionEntry* InEntry)
+		{
+			UPCGExAssetCollection* Other = InEntry->GetSubCollectionVoid();
+			if (Other && HasCircularDependency(Other))
+			{
+				UE_LOG(LogTemp, Error, TEXT("Prevented circular dependency trying to nest \"%s\" inside \"%s\""), *GetNameSafe(Other), *GetNameSafe(this))
+				InEntry->ClearSubCollection();
+				(void)MarkPackageDirty();
+			}
+		});
 
 	EDITOR_RefreshDisplayNames();
 	EDITOR_SetDirty();
@@ -450,7 +491,7 @@ void UPCGExAssetCollection::EDITOR_AddBrowserSelectionTyped(const TArray<FAssetD
 	Modify(true);
 	EDITOR_AddBrowserSelectionInternal(InAssetData);
 	EDITOR_RefreshDisplayNames();
-	MarkPackageDirty();
+	(void)MarkPackageDirty();
 	FCoreUObjectDelegates::BroadcastOnObjectModified(this);
 	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
@@ -460,7 +501,7 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData()
 	Modify(true);
 	InvalidateCache();
 	EDITOR_SanitizeAndRebuildStagingData(false);
-	MarkPackageDirty();
+	(void)MarkPackageDirty();
 	FCoreUObjectDelegates::BroadcastOnObjectModified(this);
 	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
@@ -470,7 +511,7 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData_Recursive()
 	Modify(true);
 	InvalidateCache();
 	EDITOR_SanitizeAndRebuildStagingData(true);
-	MarkPackageDirty();
+	(void)MarkPackageDirty();
 	FCoreUObjectDelegates::BroadcastOnObjectModified(this);
 	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }

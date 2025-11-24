@@ -72,9 +72,9 @@ enum class EPCGExSampleMethod : uint8
 UENUM()
 enum class EPCGExSampleSource : uint8
 {
-	Source   = 0 UMETA(DisplayName = "Main", ToolTip="Read value on main inputs"),
+	Source   = 0 UMETA(DisplayName = "In", ToolTip="Read value on main inputs"),
 	Target   = 1 UMETA(DisplayName = "Target", ToolTip="Read value on target"),
-	Constant = 2 UMETA(DisplayName = "Constant", ToolTip="Read constant"),
+	Constant = 2 UMETA(DisplayName = "Constant", ToolTip="Read constant", ActionIcon="Constant"),
 };
 
 UENUM()

@@ -198,9 +198,13 @@ public:
 	EPCGExDistance DistanceSettings = EPCGExDistance::Center;
 
 	/** Weight method used for blending */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
+	/** If enabled, will preserve the original point transform as base for weighting. Otherwise, use transform identity. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
+	bool bWeightFromOriginalTransform = true;
+	
 	/** Whether to use in-editor curve or an external asset. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))
 	bool bUseLocalCurve = false;
