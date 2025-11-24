@@ -10,6 +10,7 @@
 #include "Collections/PCGExAssetCollection.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Constants/PCGExTuple.h"
+#include "Data/Blending/PCGExDataBlending.h"
 #include "Details/PCGExDetailsBitmask.h"
 #include "Misc/Filters/PCGExBitmaskFilter.h"
 #include "Widgets/Text/STextBlock.h"
@@ -103,12 +104,16 @@ void FPCGExBitmaskCustomization::BuildGrid(TSharedRef<IPropertyHandle> PropertyH
 		.NameContent()
 		[
 			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot().Padding(1).AutoWidth()
+			+ SHorizontalBox::Slot()
+			.Padding(1)
+			.AutoWidth()
 			.VAlign(VAlign_Center)
 			[
 				SNew(STextBlock).Text(FText::FromString(TEXT("Bitmask :"))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)
 			]
-			+ SHorizontalBox::Slot().Padding(1).MinWidth(100)
+			+ SHorizontalBox::Slot()
+			.Padding(1)
+			.MinWidth(100)
 			.VAlign(VAlign_Center)
 			[
 				BitmaskHandle->CreatePropertyValueWidget()
@@ -154,12 +159,16 @@ void FPCGExBitmaskFilterConfigCustomization::BuildGrid(TSharedRef<IPropertyHandl
 		.NameContent()
 		[
 			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot().Padding(1).AutoWidth()
+			+ SHorizontalBox::Slot()
+			.Padding(1)
+			.AutoWidth()
 			.VAlign(VAlign_Center)
 			[
 				SNew(STextBlock).Text(FText::FromString(TEXT("Bitmask :"))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)
 			]
-			+ SHorizontalBox::Slot().Padding(1).MinWidth(100)
+			+ SHorizontalBox::Slot()
+			.Padding(1)
+			.MinWidth(100)
 			.VAlign(VAlign_Center)
 			[
 				BitmaskHandle->CreatePropertyValueWidget()

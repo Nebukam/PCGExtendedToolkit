@@ -42,6 +42,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides, DisplayAfter="bIsSubCollection"))
 	TObjectPtr<UPCGExActorCollection> SubCollection;
 
+	virtual void ClearSubCollection() override
+	{
+		FPCGExAssetCollectionEntry::ClearSubCollection();
+		SubCollection = nullptr;
+	}
+	
 	bool SameAs(const FPCGExActorCollectionEntry& Other) const
 	{
 		return
@@ -57,6 +63,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, int32 InInternalIndex, const bool bRecursive) override;
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
 
+	virtual UPCGExAssetCollection* GetSubCollectionVoid() const override;
+	
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
 #endif

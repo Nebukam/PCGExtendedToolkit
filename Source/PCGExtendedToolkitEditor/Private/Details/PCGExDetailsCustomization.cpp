@@ -1,4 +1,5 @@
-﻿// Copyright (c) Nebukam
+﻿// Copyright 2025 Timothé Lapetite and contributors
+// Released under the MIT license https://opensource.org/license/MIT/
 
 
 #include "Details/PCGExDetailsCustomization.h"
@@ -7,7 +8,9 @@
 #include "Details/PCGExDetailsInputShorthands.h"
 #include "Details/Collections/PCGExActorCollectionActions.h"
 #include "Details/Actions/PCGExActorDataPackerActions.h"
+#include "Details/Bitmask/PCGExBitmaskActions.h"
 #include "Details/Bitmask/PCGExBitmaskCustomization.h"
+#include "Details/Bitmask/PCGExBitmaskRefCustomization.h"
 #include "Details/Bitmask/PCGExClampedBitCustomization.h"
 #include "Details/Bitmask/PCGExClampedBitOpCustomization.h"
 #include "Details/Collections/PCGExAssetEntryCustomization.h"
@@ -169,6 +172,7 @@ namespace PCGExDetailsCustomization
 		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExMeshCollectionActions>());
 		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExActorCollectionActions>());
 		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExActorDataPackerActions>());
+		FAssetToolsModule::GetModule().Get().RegisterAssetTypeActions(MakeShared<FPCGExBitmaskActions>());
 
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
@@ -188,6 +192,7 @@ namespace PCGExDetailsCustomization
 		PCGEX_REGISTER_CUSTO("PCGExClampedBitOp", FPCGExClampedBitOpCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExBitmaskFilterConfig", FPCGExBitmaskFilterConfigCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExClampDetails", FPCGExClampDetailsCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExBitmaskRef", FPCGExBitmaskRefCustomization)
 		
 		PCGEX_REGISTER_CUSTO("PCGExCompareSelectorDouble", FPCGExCompareShorthandCustomization)
 		
@@ -245,7 +250,8 @@ MACRO(EPCGExSortDirection)\
 MACRO(EPCGExTruncateMode)\
 MACRO(EPCGExVariationMode)\
 MACRO(EPCGExVariationSnapping)\
-MACRO(EPCGExGrammarScaleMode)
+MACRO(EPCGExGrammarScaleMode)\
+MACRO(EPCGExSampleSource)
 
 #define PCGEX_FOREACH_GRID_ENUM(MACRO)\
 MACRO(EPCGExAxisOrder, 3)\

@@ -6,6 +6,9 @@
 #include "CoreMinimal.h"
 #include "PCGExDetailsBitmask.generated.h"
 
+struct FPCGExBitmaskRef;
+struct FPCGExContext;
+class UPCGExBitmaskCollection;
 
 UENUM()
 enum class EPCGExBitOp : uint8
@@ -37,8 +40,37 @@ enum class EPCGExBitflagComparison : uint8
 
 namespace PCGExBitmask
 {
-	FString ToString(const EPCGExBitflagComparison Comparison);	
-	bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask);	
+	PCGEXTENDEDTOOLKIT_API
+	FString ToString(const EPCGExBitflagComparison Comparison);
+
+	PCGEXTENDEDTOOLKIT_API
+	bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask);
+
+	FORCEINLINE static void Mutate(const EPCGExBitOp Operation, int64& Flags, const int64 Mask)
+	{
+		switch (Operation)
+		{
+		case EPCGExBitOp::Set:
+			Flags = Mask;
+			break;
+		case EPCGExBitOp::AND:
+			Flags &= Mask;
+			break;
+		case EPCGExBitOp::OR:
+			Flags |= Mask;
+			break;
+		case EPCGExBitOp::NOT:
+			Flags &= ~Mask;
+			break;
+		case EPCGExBitOp::XOR:
+			Flags ^= Mask;
+			break;
+		default: ;
+		}
+	}
+
+	PCGEXTENDEDTOOLKIT_API
+	void Mutate(const TArray<FPCGExBitmaskRef>& Compositions, int64& Flags);
 }
 
 USTRUCT(BlueprintType)
@@ -88,7 +120,30 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleBitmask
 	int64 Bitmask = 0;
 };
 
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType, DisplayName="[PCGEx] Bitmask Ref")
+struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskRef
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, Category = Settings)
+	TObjectPtr<UPCGExBitmaskCollection> Source;
+
+	UPROPERTY(EditAnywhere, Category = Settings)
+	FName Identifier = NAME_None;
+
+	UPROPERTY(EditAnywhere, Category = Settings)
+	EPCGExBitOp Op = EPCGExBitOp::OR;
+
+#if WITH_EDITOR
+	TArray<FName> EDITOR_GetIdentifierOptions() const;
+#endif
+	
+	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
+	
+	void Mutate(int64& Flags) const;
+};
+
+USTRUCT(BlueprintType, DisplayName="[PCGEx] Bitmask")
 struct PCGEXTENDEDTOOLKIT_API FPCGExBitmask
 {
 	GENERATED_BODY()
@@ -105,11 +160,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmask
 	UPROPERTY()
 	TArray<FPCGExClampedBit> Bits;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExBitmaskMode::Individual", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExBitmaskMode::Individual", EditConditionHides))
 	TArray<FPCGExClampedBitOp> Mutations;
-	
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	TArray<FPCGExBitmaskRef> Compositions;
+
 #pragma region DEPRECATED
-	
+
 	UPROPERTY()
 	uint8 Range_00_08_DEPRECATED = 0;
 
@@ -135,10 +193,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmask
 	uint8 Range_56_64_DEPRECATED = 0;
 
 #pragma endregion
-	
-	int64 Get() const;
-	void DoOperation(const EPCGExBitOp Op, int64& Flags) const;
 
+	int64 Get() const;
+	FORCEINLINE void DoOperation(const EPCGExBitOp Op, int64& Flags) const{PCGExBitmask::Mutate(Op, Flags, Get());}
+
+	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
+	
 #if WITH_EDITOR
 	void ApplyDeprecation();
 #endif
@@ -160,11 +220,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExBitmaskMode::Individual", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
 	TArray<FPCGExClampedBitOp> Mutations;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	TArray<FPCGExBitmaskRef> Compositions;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode != EPCGExBitmaskMode::Individual", EditConditionHides))
 	EPCGExBitOp Op = EPCGExBitOp::OR;
 
 #pragma region DEPRECATED
-	
+
 	UPROPERTY()
 	uint8 Range_00_08_DEPRECATED = 0;
 
@@ -190,12 +253,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 	uint8 Range_56_64_DEPRECATED = 0;
 
 #pragma endregion
-	
+
 	int64 Get() const;
 	void DoOperation(int64& Flags) const;
 
+	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
+	
 #if WITH_EDITOR
 	void ApplyDeprecation();
-#endif	
-	
+#endif
 };

@@ -30,6 +30,7 @@ public:
 
 protected:
 	virtual void BuildGrid(TSharedRef<IPropertyHandle> PropertyHandle, IDetailChildrenBuilder& ChildBuilder) const;
+	
 };
 
 class PCGEXTENDEDTOOLKITEDITOR_API FPCGExBitmaskWithOperationCustomization : public FPCGExBitmaskCustomization
