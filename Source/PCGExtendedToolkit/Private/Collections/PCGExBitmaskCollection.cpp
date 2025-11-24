@@ -154,7 +154,7 @@ void UPCGExBitmaskCollection::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	EDITOR_SetDirty();
 }
 
-TArray<FName> UPCGExBitmaskCollection::GetIdentifierOptions() const
+TArray<FName> UPCGExBitmaskCollection::EDITOR_GetIdentifierOptions() const
 {
 	TArray<FName> Options;
 	Options.Reserve(const_cast<UPCGExBitmaskCollection*>(this)->LoadCache()->Bitmasks.Num());

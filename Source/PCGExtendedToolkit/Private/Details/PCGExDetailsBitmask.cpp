@@ -80,11 +80,13 @@ void FPCGExClampedBitOp::Mutate(int64& Flags) const
 	}
 }
 
-TArray<FName> FPCGExBitmaskRef::GetIdentifierOptions() const
+#if WITH_EDITOR
+TArray<FName> FPCGExBitmaskRef::EDITOR_GetIdentifierOptions() const
 {
-	if (Source) { return Source->GetIdentifierOptions(); }
+	if (Source) { return Source->EDITOR_GetIdentifierOptions(); }
 	return {TEXT("INVALID")};
 }
+#endif
 
 void FPCGExBitmaskRef::EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const
 {
