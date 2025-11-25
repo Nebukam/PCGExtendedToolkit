@@ -234,11 +234,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 
 	virtual void ClearSubCollection() { InternalSubCollection = nullptr; }
 
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
-	FName DisplayName = NAME_None;
-#endif
-
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize();
 #endif
@@ -365,8 +360,6 @@ public:
 	virtual void ForEachEntry(FForEachEntryFunc&& Iterator)	{}
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-
-	virtual void EDITOR_RefreshDisplayNames();
 
 	/** Add Content Browser selection to this collection. */
 	UFUNCTION()

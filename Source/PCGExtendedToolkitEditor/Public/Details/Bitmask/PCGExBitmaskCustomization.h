@@ -10,7 +10,7 @@ class SUniformGridPanel;
 namespace PCGExBitmaskCustomization
 {
 	PCGEXTENDEDTOOLKITEDITOR_API
-	void FillGrid(TSharedRef<SUniformGridPanel> Grid, TSharedPtr<IPropertyHandle> BitmaskHandle);
+	TSharedRef<SWidget> BitsGrid(TSharedRef<SUniformGridPanel> Grid, TSharedPtr<IPropertyHandle> BitmaskHandle);
 }
 
 class PCGEXTENDEDTOOLKITEDITOR_API FPCGExBitmaskCustomization : public IPropertyTypeCustomization

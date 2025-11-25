@@ -114,8 +114,11 @@ TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::InputPinProperties
 TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPointStates::OutputOnPassBitmaskLabel, TEXT("On Pass Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced)
-	PCGEX_PIN_PARAMS(PCGExPointStates::OutputOnFailBitmaskLabel, TEXT("On Fail Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced)
+	if (CanOutputBitmasks())
+	{
+		PCGEX_PIN_PARAMS(PCGExPointStates::OutputOnPassBitmaskLabel, TEXT("On Pass Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced)
+		PCGEX_PIN_PARAMS(PCGExPointStates::OutputOnFailBitmaskLabel, TEXT("On Fail Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced)
+	}
 	return PinProperties;
 }
 
@@ -130,13 +133,13 @@ UPCGExFactoryData* UPCGExStateFactoryProviderSettings::CreateFactory(FPCGExConte
 
 	if (!GetInputFactories(
 		InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,
-		PCGExFactories::ClusterNodeFilters))
+		PCGExFactories::ClusterNodeFilters) && NewFactory->GetRequiresFilters())
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;
 	}
 
-	if (bOutputBitmasks) { OutputBitmasks(InContext, NewFactory->BaseConfig); }
+	if (CanOutputBitmasks() && bOutputBitmasks) { OutputBitmasks(InContext, NewFactory->BaseConfig); }
 
 	Super::CreateFactory(InContext, InFactory);
 	return InFactory;

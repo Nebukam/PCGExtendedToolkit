@@ -53,7 +53,7 @@ public:
 
 namespace PCGExClusterStates
 {
-	class PCGEXTENDEDTOOLKIT_API FState final : public PCGExClusterFilter::IFilter
+	class PCGEXTENDEDTOOLKIT_API FState : public PCGExClusterFilter::IFilter
 	{
 	public:
 		FPCGExClusterStateConfigBase Config;
@@ -75,7 +75,9 @@ namespace PCGExClusterStates
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) const override;
 
-		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
+		virtual void ProcessFlags(const bool bSuccess, int64& InFlags, const int32 Index) const;
+		virtual void ProcessFlags(const bool bSuccess, int64& InFlags, const PCGExCluster::FNode& Node) const;
+		virtual void ProcessFlags(const bool bSuccess, int64& InFlags, const PCGExGraph::FEdge& Edge) const;
 
 	protected:
 		TSharedPtr<PCGExClusterFilter::FManager> Manager;

@@ -81,7 +81,6 @@ public:
 	virtual PCGExAssetCollection::EType GetType() const override { return PCGExAssetCollection::EType::Actor; }
 
 #if WITH_EDITOR
-	virtual void EDITOR_RefreshDisplayNames() override;
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
 #endif
 

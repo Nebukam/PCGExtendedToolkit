@@ -74,10 +74,11 @@ public:
 
 	UPROPERTY()
 	FPCGExStateConfigBase BaseConfig;
-	
+
 	UPROPERTY()
 	TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
 
+	virtual bool GetRequiresFilters() const { return true; }
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::PointState; }
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override;
 
@@ -92,7 +93,7 @@ namespace PCGExPointStates
 
 	const FName OutputStateLabel = TEXT("State");
 	const FName SourceStatesLabel = TEXT("States");
-	
+
 	class PCGEXTENDEDTOOLKIT_API FState final : public PCGExPointFilter::IFilter
 	{
 	public:
@@ -143,10 +144,10 @@ public:
 	PCGEX_NODE_INFOS(PointStateDefinition, "Abstract Point State Definition", "Base class for state factory management.")
 	virtual FLinearColor GetNodeTitleColor() const override;
 #endif
-	
+
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 
-protected:	
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings
@@ -158,17 +159,18 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable), AdvancedDisplay)
 	int32 Priority = 0;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bOutputBitmasks = true;
-	
+
+	virtual bool CanOutputBitmasks() const { return true; }
 	virtual FName GetMainOutputPin() const override;
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-	
+
 protected:
 	virtual TSet<PCGExFactories::EType> GetInternalFilterTypes() const;
 	virtual void OutputBitmasks(FPCGExContext* InContext, const FPCGExStateConfigBase& InConfig) const;

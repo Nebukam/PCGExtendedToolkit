@@ -62,14 +62,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideCollection
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
 	int32 GetHighestIndex() const;
 
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
-	FName DisplayName = NAME_None;
-#endif
-
-#if WITH_EDITOR
-	void UpdateDisplayName();
-#endif
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Material Override Single Entry")
@@ -85,13 +77,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideSingleEntry
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TSoftObjectPtr<UMaterialInterface> Material = nullptr;
 
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
-	FName DisplayName = NAME_None;
-#endif
-#if WITH_EDITOR
-	void UpdateDisplayName();
-#endif
 };
 
 namespace PCGExMeshCollection
@@ -148,11 +133,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	int32 SlotIndex = 0;
 
 	/** A list of single material variants */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variants", EditCondition="!bIsSubCollection && MaterialVariants == EPCGExMaterialVariantsMode::Single", TitleProperty="DisplayName", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variants", EditCondition="!bIsSubCollection && MaterialVariants == EPCGExMaterialVariantsMode::Single", EditConditionHides))
 	TArray<FPCGExMaterialOverrideSingleEntry> MaterialOverrideVariants;
 
 	/** A list of material variants */
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variants", EditCondition="!bIsSubCollection && MaterialVariants == EPCGExMaterialVariantsMode::Multi", TitleProperty="DisplayName", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName=" └─ Variants", EditCondition="!bIsSubCollection && MaterialVariants == EPCGExMaterialVariantsMode::Multi", EditConditionHides))
 	TArray<FPCGExMaterialOverrideCollection> MaterialOverrideVariantsList;
 
 
@@ -250,7 +235,6 @@ public:
 
 #if WITH_EDITOR
 	virtual void EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData) override;
-	virtual void EDITOR_RefreshDisplayNames() override;
 
 	/** Disable collision on all entries. */
 	UFUNCTION()
@@ -266,6 +250,6 @@ public:
 
 	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings)
 	TArray<FPCGExMeshCollectionEntry> Entries;
 };

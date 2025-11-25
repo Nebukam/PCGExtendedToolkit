@@ -93,8 +93,8 @@ void FPCGExFilterResultDetails::Write(const int32 Index, bool bPass) const
 		if (bDoBitmaskOpOnFail && bDoBitmaskOpOnPass)
 		{
 			int64 Flags = BitmaskBuffer->GetValue(Index);
-			if (bPass) { PassBitmask.DoOperation(Flags); }
-			else { FailBitmask.DoOperation(Flags); }
+			if (bPass) { PassBitmask.Mutate(Flags); }
+			else { FailBitmask.Mutate(Flags); }
 			BitmaskBuffer->SetValue(Index, Flags);
 		}
 		else if (bDoBitmaskOpOnPass)
@@ -102,7 +102,7 @@ void FPCGExFilterResultDetails::Write(const int32 Index, bool bPass) const
 			int64 Flags = BitmaskBuffer->GetValue(Index);
 			if (bPass)
 			{
-				PassBitmask.DoOperation(Flags);
+				PassBitmask.Mutate(Flags);
 				BitmaskBuffer->SetValue(Index, Flags);
 			}
 		}
@@ -111,7 +111,7 @@ void FPCGExFilterResultDetails::Write(const int32 Index, bool bPass) const
 			int64 Flags = BitmaskBuffer->GetValue(Index);
 			if (!bPass)
 			{
-				FailBitmask.DoOperation(Flags);
+				FailBitmask.Mutate(Flags);
 				BitmaskBuffer->SetValue(Index, Flags);
 			}
 		}
@@ -143,8 +143,8 @@ void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TArray
 			{
 				int64 Flags = BitmaskBuffer->GetValue(Index);
 
-				if (Results[Index]) { PassBitmask.DoOperation(Flags); }
-				else { FailBitmask.DoOperation(Flags); }
+				if (Results[Index]) { PassBitmask.Mutate(Flags); }
+				else { FailBitmask.Mutate(Flags); }
 
 				BitmaskBuffer->SetValue(Index, Flags);
 			}
@@ -156,7 +156,7 @@ void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TArray
 				int64 Flags = BitmaskBuffer->GetValue(Index);
 				if (Results[Index])
 				{
-					PassBitmask.DoOperation(Flags);
+					PassBitmask.Mutate(Flags);
 					BitmaskBuffer->SetValue(Index, Flags);
 				}
 			}
@@ -168,7 +168,7 @@ void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TArray
 				int64 Flags = BitmaskBuffer->GetValue(Index);
 				if (!Results[Index])
 				{
-					FailBitmask.DoOperation(Flags);
+					FailBitmask.Mutate(Flags);
 					BitmaskBuffer->SetValue(Index, Flags);
 				}
 			}
@@ -200,8 +200,8 @@ void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TBitAr
 			{
 				int64 Flags = BitmaskBuffer->GetValue(Index);
 
-				if (Results[Index]) { PassBitmask.DoOperation(Flags); }
-				else { FailBitmask.DoOperation(Flags); }
+				if (Results[Index]) { PassBitmask.Mutate(Flags); }
+				else { FailBitmask.Mutate(Flags); }
 
 				BitmaskBuffer->SetValue(Index, Flags);
 			}
@@ -213,7 +213,7 @@ void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TBitAr
 				int64 Flags = BitmaskBuffer->GetValue(Index);
 				if (Results[Index])
 				{
-					PassBitmask.DoOperation(Flags);
+					PassBitmask.Mutate(Flags);
 					BitmaskBuffer->SetValue(Index, Flags);
 				}
 			}
@@ -225,7 +225,7 @@ void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TBitAr
 				int64 Flags = BitmaskBuffer->GetValue(Index);
 				if (!Results[Index])
 				{
-					FailBitmask.DoOperation(Flags);
+					FailBitmask.Mutate(Flags);
 					BitmaskBuffer->SetValue(Index, Flags);
 				}
 			}

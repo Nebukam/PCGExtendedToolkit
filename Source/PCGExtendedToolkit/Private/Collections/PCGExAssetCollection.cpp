@@ -386,7 +386,6 @@ void UPCGExAssetCollection::PostLoad()
 {
 	Super::PostLoad();
 #if WITH_EDITOR
-	EDITOR_RefreshDisplayNames();
 	EDITOR_SetDirty();
 #endif
 }
@@ -395,7 +394,6 @@ void UPCGExAssetCollection::PostDuplicate(bool bDuplicateForPIE)
 {
 	Super::PostDuplicate(bDuplicateForPIE);
 #if WITH_EDITOR
-	EDITOR_RefreshDisplayNames();
 	EDITOR_SetDirty();
 #endif
 }
@@ -404,7 +402,6 @@ void UPCGExAssetCollection::PostEditImport()
 {
 	Super::PostEditImport();
 #if WITH_EDITOR
-	EDITOR_RefreshDisplayNames();
 	EDITOR_SetDirty();
 #endif
 }
@@ -465,14 +462,9 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 			}
 		});
 
-	EDITOR_RefreshDisplayNames();
 	EDITOR_SetDirty();
 
 	if (bAutoRebuildStaging) { EDITOR_RebuildStagingData(); }
-}
-
-void UPCGExAssetCollection::EDITOR_RefreshDisplayNames()
-{
 }
 
 void UPCGExAssetCollection::EDITOR_AddBrowserSelection()
@@ -490,7 +482,6 @@ void UPCGExAssetCollection::EDITOR_AddBrowserSelectionTyped(const TArray<FAssetD
 {
 	Modify(true);
 	EDITOR_AddBrowserSelectionInternal(InAssetData);
-	EDITOR_RefreshDisplayNames();
 	(void)MarkPackageDirty();
 	FCoreUObjectDelegates::BroadcastOnObjectModified(this);
 	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
@@ -537,7 +528,6 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData_Project()
 #define PCGEX_ASSET_COLLECTION_UTIL_CALL(_BODY) \
 Modify(true); \
 _BODY \
-EDITOR_RefreshDisplayNames(); \
 FPropertyChangedEvent EmptyEvent(nullptr); \
 PostEditChangeProperty(EmptyEvent); \
 MarkPackageDirty(); \

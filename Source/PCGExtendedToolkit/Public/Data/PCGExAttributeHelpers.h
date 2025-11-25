@@ -64,7 +64,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputConfig
 	explicit FPCGExInputConfig(const FName InName);
 
 	virtual ~FPCGExInputConfig() = default;
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, HideInDetailPanel, Hidden, EditConditionHides, EditCondition="false"))
+	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
 	FString TitlePropertyName;
 
 	/** Attribute or $Property. */

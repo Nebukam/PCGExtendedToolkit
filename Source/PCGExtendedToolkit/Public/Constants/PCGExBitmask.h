@@ -50,9 +50,10 @@ public:
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 	
 	PCGEX_DUMMY_SETTINGS_MEMBERS
-	PCGEX_NODE_INFOS(Bitmask, "Bitmask", "A Simple bitmask attribute.");
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Bitmask, "Bitmask", "A Simple bitmask attribute.", GetDisplayName());
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorConstant; }
+	FName GetDisplayName() const;
 #endif
 
 protected:
@@ -68,6 +69,10 @@ protected:
 	/** Store version of the node, used for deprecation purposes */
 	UPROPERTY()
 	int64 PCGExDataVersion = -1;
+
+	/** Limit of characters for the title */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
+	int32 TitleCharLimit = 32;
 };
 
 class FPCGExBitmaskElement final : public IPCGElement
