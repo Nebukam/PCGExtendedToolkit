@@ -10,24 +10,29 @@
 #include "Collections/PCGExAssetCollection.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Constants/PCGExTuple.h"
-#include "Data/Blending/PCGExDataBlending.h"
-#include "Details/PCGExDetailsBitmask.h"
+#include "Details/Enums/PCGExInlineEnumCustomization.h"
 #include "Misc/Filters/PCGExBitmaskFilter.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SEditableTextBox.h"
+#include "Widgets/Layout/SScaleBox.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
 
 namespace PCGExBitmaskCustomization
 {
-	void FillGrid(TSharedRef<SUniformGridPanel> Grid, TSharedPtr<IPropertyHandle> BitmaskHandle)
+	TSharedRef<SWidget> BitsGrid(TSharedPtr<IPropertyHandle> BitmaskHandle)
 	{
+		TSharedRef<SUniformGridPanel> Grid = SNew(SUniformGridPanel);
+		Grid->SetSlotPadding(FMargin(2, 2));
+
 		for (int32 i = 0; i < 64; ++i)
 		{
-			Grid->AddSlot(i % 8, i / 8)
+			const bool bSwitch = ((i + 8) / 16) % 2 != 0;
+			Grid->AddSlot(i % 16, i / 16)
 			[
 				SNew(SCheckBox)
-				.RenderOpacity((i / 8) % 2 != 0 ? 0.8 : 1)
+				.Style(FAppStyle::Get(), "PCGEx.Checkbox")
+				.RenderOpacity(bSwitch ? 0.8 : 1)
 				.IsChecked_Lambda(
 					[BitmaskHandle, BitIndex = i]()
 					{
@@ -49,6 +54,16 @@ namespace PCGExBitmaskCustomization
 					})
 			];
 		}
+
+		return SNew(SScaleBox)
+			.Stretch(EStretch::UserSpecified)
+			.StretchDirection(EStretchDirection::DownOnly)
+			.IgnoreInheritedScale(true)
+			.HAlign(HAlign_Left)
+			.UserSpecifiedScale(0.5)
+			[
+				Grid
+			];
 	}
 }
 
@@ -76,6 +91,7 @@ void FPCGExBitmaskCustomization::CustomizeChildren(
 	for (uint32 i = 0; i < NumChildren; ++i)
 	{
 		TSharedPtr<IPropertyHandle> Handle = PropertyHandle->GetChildHandle(i);
+		if (Handle->GetProperty()->GetFName() == FName("Mode")) {continue;}
 		if (Handle->GetProperty()->GetFName() == FName("Bitmask")) { BuildGrid(PropertyHandle, ChildBuilder); }
 		else { ChildBuilder.AddProperty(Handle.ToSharedRef()); }
 	}
@@ -86,42 +102,57 @@ void FPCGExBitmaskCustomization::BuildGrid(TSharedRef<IPropertyHandle> PropertyH
 	TSharedPtr<IPropertyHandle> ModeHandle = PropertyHandle->GetChildHandle(FName("Mode"));
 	TSharedPtr<IPropertyHandle> BitmaskHandle = PropertyHandle->GetChildHandle(FName("Bitmask"));
 
-	TSharedRef<SUniformGridPanel> Grid = SNew(SUniformGridPanel);
-	Grid->SetSlotPadding(FMargin(2, 2));
-
-	PCGExBitmaskCustomization::FillGrid(Grid, BitmaskHandle);
-
 	ChildBuilder
 		.AddCustomRow(FText::FromString("Bitmask"))
-		.Visibility(
-			MakeAttributeLambda(
-				[ModeHandle]()
-				{
-					uint8 EnumValue = 0;
-					ModeHandle->GetValue(EnumValue);
-					return EnumValue != 1 ? EVisibility::Visible : EVisibility::Collapsed;
-				}))
 		.NameContent()
 		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
 			.Padding(1)
-			.AutoWidth()
+			.AutoHeight()
 			.VAlign(VAlign_Center)
 			[
-				SNew(STextBlock).Text(FText::FromString(TEXT("Bitmask :"))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.Padding(1)
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock).Text(FText::FromString(TEXT("Bitmask :"))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)
+				]
+				+ SHorizontalBox::Slot()
+				.Padding(1)
+				.MinWidth(100)
+				.VAlign(VAlign_Center)
+				[
+					BitmaskHandle->CreatePropertyValueWidget()
+				]
 			]
-			+ SHorizontalBox::Slot()
+			+ SVerticalBox::Slot()
 			.Padding(1)
-			.MinWidth(100)
+			.AutoHeight()
 			.VAlign(VAlign_Center)
 			[
-				BitmaskHandle->CreatePropertyValueWidget()
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.Padding(1)
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock).Text(FText::FromString(TEXT("Mode :"))).Font(IDetailLayoutBuilder::GetDetailFont()).ColorAndOpacity(FSlateColor(FLinearColor::Gray)).MinDesiredWidth(10)
+				]
+				+ SHorizontalBox::Slot()
+				.Padding(1)
+				.MinWidth(100)
+				.VAlign(VAlign_Center)
+				[
+					PCGExEnumCustomization::CreateRadioGroup(ModeHandle, "EPCGExBitmaskMode")
+				]
 			]
 		]
 		.ValueContent()
 		[
-			Grid
+			PCGExBitmaskCustomization::BitsGrid(BitmaskHandle)
 		];
 }
 
@@ -140,22 +171,9 @@ void FPCGExBitmaskFilterConfigCustomization::BuildGrid(TSharedRef<IPropertyHandl
 	TSharedPtr<IPropertyHandle> BitmaskHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExBitmaskFilterConfig, Bitmask));
 	TSharedPtr<IPropertyHandle> InputHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExBitmaskFilterConfig, MaskInput));
 
-	TSharedRef<SUniformGridPanel> Grid = SNew(SUniformGridPanel);
-	Grid->SetSlotPadding(FMargin(2, 2));
-
-	PCGExBitmaskCustomization::FillGrid(Grid, BitmaskHandle);
-
 	// Create a grid of [bool], the grid itself will only be visible in composite view
 	ChildBuilder
 		.AddCustomRow(FText::FromString("Bitmask"))
-		.Visibility(
-			MakeAttributeLambda(
-				[InputHandle]()
-				{
-					uint8 EnumValue = 0;
-					InputHandle->GetValue(EnumValue);
-					return EnumValue == 0 ? EVisibility::Visible : EVisibility::Collapsed;
-				}))
 		.NameContent()
 		[
 			SNew(SHorizontalBox)
@@ -177,6 +195,6 @@ void FPCGExBitmaskFilterConfigCustomization::BuildGrid(TSharedRef<IPropertyHandl
 		.ValueContent()
 		//.MinDesiredWidth(400)
 		[
-			Grid
+			PCGExBitmaskCustomization::BitsGrid(BitmaskHandle)
 		];
 }

@@ -43,6 +43,10 @@ struct FPCGExBitmaskFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Bitmask", EditCondition="MaskInput == EPCGExInputValueType::Constant", EditConditionHides))
 	int64 Bitmask = 0;
 
+	/** External compositions applied to Operand B (whether it's a constant or not) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	TArray<FPCGExBitmaskRef> Compositions;
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
@@ -86,6 +90,7 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGExDetails::TSettingValue<int64>> MaskReader;
 
 		int64 Bitmask;
+		TArray<FPCGExSimpleBitmask> Compositions;
 
 		virtual bool Init(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;

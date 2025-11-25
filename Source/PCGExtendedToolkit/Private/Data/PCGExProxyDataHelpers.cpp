@@ -112,7 +112,7 @@ namespace PCGExData
 	}
 
 #pragma region externalization TryGetInOutAttr / TryGetBuffer
-	
+
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
 template PCGEXTENDEDTOOLKIT_API void TryGetInOutAttr<_TYPE>(const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade, const FPCGMetadataAttribute<_TYPE>*& OutInAttribute, FPCGMetadataAttribute<_TYPE>*& OutOutAttribute); \
 template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> TryGetBuffer<_TYPE>(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade);
@@ -125,7 +125,7 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> TryGetBuffer<_TYPE>(F
 	TSharedPtr<IBufferProxy> GetProxyBuffer(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade, UPCGBasePointData* PointData)
 	{
 		TSharedPtr<IBufferProxy> OutProxy = nullptr;
-		const bool bSubSelection = InDescriptor.SubSelection.bIsValid;
+#define PCGEX_RETURN_OUT_PROXY if (OutProxy) { OutProxy->SetSubSelection(InDescriptor.SubSelection); } return OutProxy;
 
 		if (InDescriptor.bIsConstant)
 		{
@@ -140,7 +140,7 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> TryGetBuffer<_TYPE>(F
 				if (!Attribute)
 				{
 					TypedProxy->SetConstant(0);
-					return OutProxy;
+					PCGEX_RETURN_OUT_PROXY
 				}
 
 				const PCGMetadataEntryKey Key = InDataFacade->GetIn()->IsEmpty() ?
@@ -158,10 +158,7 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> TryGetBuffer<_TYPE>(F
 					constexpr int32 Index = 0;
 					const EPCGPointProperties SelectedProperty = InDescriptor.Selector.GetPointProperty();
 
-#define PCGEX_SET_CONST(_ACCESSOR, _TYPE) \
-									if (bSubSelection) { TypedProxy->SetConstant(PointData->_ACCESSOR); } \
-									else { TypedProxy->SetConstant(PointData->_ACCESSOR); }
-
+#define PCGEX_SET_CONST(_ACCESSOR, _TYPE) TypedProxy->SetConstant(PointData->_ACCESSOR);
 					PCGEX_IFELSE_GETPOINTPROPERTY(SelectedProperty, PCGEX_SET_CONST)
 					else { TypedProxy->SetConstant(0); }
 #undef PCGEX_SET_CONST
@@ -172,7 +169,7 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> TryGetBuffer<_TYPE>(F
 				TypedProxy->SetConstant(0);
 			}
 
-			return OutProxy;
+			PCGEX_RETURN_OUT_PROXY
 		}
 
 		if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
@@ -184,24 +181,16 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> TryGetBuffer<_TYPE>(F
 
 				TryGetInOutAttr(InDescriptor, InDataFacade, InAttribute, OutAttribute);
 
-#define PCGEX_DIRECT_PROXY(_SUBSELECTION, _DATA)\
-TSharedPtr<TDirect##_DATA##AttributeProxy<T_REAL, T_WORKING, _SUBSELECTION>> TypedProxy = MakeShared<TDirect##_DATA##AttributeProxy<T_REAL, T_WORKING, _SUBSELECTION>>();\
+#define PCGEX_DIRECT_PROXY(_DATA)\
+TSharedPtr<TDirect##_DATA##AttributeProxy<T_REAL, T_WORKING>> TypedProxy = MakeShared<TDirect##_DATA##AttributeProxy<T_REAL, T_WORKING>>();\
 TypedProxy->InAttribute = const_cast<FPCGMetadataAttribute<T_REAL>*>(InAttribute);\
 TypedProxy->OutAttribute = OutAttribute;\
 OutProxy = TypedProxy;
 
-				if (InAttribute->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data)
-				{
-					if (bSubSelection) { PCGEX_DIRECT_PROXY(true, Data) }
-					else { PCGEX_DIRECT_PROXY(false, Data) }
-				}
-				else
-				{
-					if (bSubSelection) { PCGEX_DIRECT_PROXY(true,) }
-					else { PCGEX_DIRECT_PROXY(false,) }
-				}
+				if (InAttribute->GetMetadataDomain()->GetDomainID().Flag == EPCGMetadataDomainFlag::Data) { PCGEX_DIRECT_PROXY(Data) }
+				else { PCGEX_DIRECT_PROXY() }
 
-				return OutProxy;
+				PCGEX_RETURN_OUT_PROXY
 			}
 
 			// Check if there is an existing buffer with for our attribute
@@ -213,18 +202,9 @@ OutProxy = TypedProxy;
 				return nullptr;
 			}
 
-			if (bSubSelection)
-			{
-				TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, true>> TypedProxy = MakeShared<TAttributeBufferProxy<T_REAL, T_WORKING, true>>();
-				TypedProxy->Buffer = Buffer;
-				OutProxy = TypedProxy;
-			}
-			else
-			{
-				TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING, false>> TypedProxy = MakeShared<TAttributeBufferProxy<T_REAL, T_WORKING, false>>();
-				TypedProxy->Buffer = Buffer;
-				OutProxy = TypedProxy;
-			}
+			TSharedPtr<TAttributeBufferProxy<T_REAL, T_WORKING>> TypedProxy = MakeShared<TAttributeBufferProxy<T_REAL, T_WORKING>>();
+			TypedProxy->Buffer = Buffer;
+			OutProxy = TypedProxy;
 		}
 
 		else if (InDescriptor.Selector.GetSelection() == EPCGAttributePropertySelection::Property)
@@ -244,8 +224,7 @@ OutProxy = TypedProxy;
 
 #define PCGEX_DECL_PROXY(_PROPERTY, _ACCESSOR, _TYPE, _RANGE_TYPE) \
 						case _PROPERTY : \
-						if (bSubSelection) { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, true, _PROPERTY>>(); } \
-						else { OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, false, _PROPERTY>>(); } \
+						OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, _PROPERTY>>(); \
 						break;
 			switch (InDescriptor.Selector.GetPointProperty())
 			{
@@ -258,25 +237,16 @@ OutProxy = TypedProxy;
 		{
 			// TODO : Support new extra properties here!
 
-			if (bSubSelection)
-			{
-				TSharedPtr<TPointExtraPropertyProxy<int32, T_WORKING, true, EPCGExtraProperties::Index>> TypedProxy =
-					MakeShared<TPointExtraPropertyProxy<int32, T_WORKING, true, EPCGExtraProperties::Index>>();
+			TSharedPtr<TPointExtraPropertyProxy<int32, T_WORKING, EPCGExtraProperties::Index>> TypedProxy =
+				MakeShared<TPointExtraPropertyProxy<int32, T_WORKING, EPCGExtraProperties::Index>>();
 
-				//TypedProxy->Buffer = InDataFacade->GetBroadcaster<int32>(InDescriptor.Selector, true);
-				OutProxy = TypedProxy;
-			}
-			else
-			{
-				TSharedPtr<TPointExtraPropertyProxy<int32, T_WORKING, false, EPCGExtraProperties::Index>> TypedProxy =
-					MakeShared<TPointExtraPropertyProxy<int32, T_WORKING, false, EPCGExtraProperties::Index>>();
-
-				//TypedProxy->Buffer = InDataFacade->GetBroadcaster<int32>(InDescriptor.Selector, true);
-				OutProxy = TypedProxy;
-			}
+			//TypedProxy->Buffer = InDataFacade->GetBroadcaster<int32>(InDescriptor.Selector, true);
+			OutProxy = TypedProxy;
 		}
 
-		return OutProxy;
+		PCGEX_RETURN_OUT_PROXY
+
+
 	}
 
 #pragma region externalization GetProxyBuffer
@@ -287,14 +257,12 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IBufferProxy> GetProxyBuffer<_TYPE_A,
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	TSharedPtr<IBufferProxy> GetProxyBuffer(
 		FPCGExContext* InContext,
 		const FProxyDescriptor& InDescriptor)
 	{
 		TSharedPtr<IBufferProxy> OutProxy = nullptr;
-		const bool bSubSelection = InDescriptor.SubSelection.bIsValid;
-
 		const TSharedPtr<FFacade> InDataFacade = InDescriptor.DataFacade.Pin();
 		UPCGBasePointData* PointData = nullptr;
 
@@ -325,38 +293,14 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IBufferProxy> GetProxyBuffer<_TYPE_A,
 			}
 		}
 
-		/*
-		// Old, bad pattern
-		PCGEx::ExecuteWithRightType(
-			InDescriptor.RealType, [&](auto R)
-			{
-				using T_REAL = decltype(R);
-				PCGEx::ExecuteWithRightType(
-					InDescriptor.WorkingType, [&](auto W)
-					{
-						using T_WORKING = decltype(W);
-						OutProxy = GetProxyBuffer<T_REAL, T_WORKING>(InContext, InDescriptor, InDataFacade, PointData);
-					});
-			});
-			*/
-
-
-		/*
-		PCGEx::ExecuteWithRightTypePair(
-		InDescriptor.RealType,
-		InDescriptor.WorkingType,
-			[&](auto A, auto B)
-			{
-				using T_REAL = decltype(A);
-				using T_WORKING = decltype(B);
-				OutProxy = GetProxyBuffer<T_REAL, T_WORKING>(InContext, InDescriptor, InDataFacade, PointData);
-			});
-			*/
-
 #define PCGEX_SWITCHON_WORKING(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...)	case EPCGMetadataTypes::_NAME_B : OutProxy = GetProxyBuffer<_TYPE_A, _TYPE_B>(InContext, InDescriptor, InDataFacade, PointData); break;
 #define PCGEX_SWITCHON_REAL(_TYPE, _NAME, ...)	case EPCGMetadataTypes::_NAME :	switch (InDescriptor.WorkingType){	PCGEX_INNER_FOREACH_TYPE2(_TYPE, _NAME, PCGEX_SWITCHON_WORKING) } break;
 
-		switch (InDescriptor.RealType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SWITCHON_REAL) default:break; }
+		switch (InDescriptor.RealType)
+		{
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SWITCHON_REAL)
+		default: break;
+		}
 
 #undef PCGEX_SWITCHON_WORKING
 #undef PCGEX_SWITCHON_REAL
@@ -370,15 +314,13 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IBufferProxy> GetProxyBuffer<_TYPE_A,
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Proxy buffer doesn't match desired T_REAL and T_WORKING : \"{0}\""), FText::FromString(PCGEx::GetSelectorDisplayName(InDescriptor.Selector))));
 				OutProxy = nullptr;
 			}
-			else
-			{
-				OutProxy->SubSelection = InDescriptor.SubSelection;
-			}
 		}
 
-		return OutProxy;
+		PCGEX_RETURN_OUT_PROXY
 	}
 
+#undef PCGEX_RETURN_OUT_PROXY
+	
 	template <typename T>
 	TSharedPtr<IBufferProxy> GetConstantProxyBuffer(const T& Constant)
 	{
@@ -458,3 +400,4 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IBufferProxy> GetConstantProxyBuffer<
 		return true;
 	}
 }
+

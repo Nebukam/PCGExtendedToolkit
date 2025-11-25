@@ -218,7 +218,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 	TObjectPtr<UPCGExAssetCollection> InternalSubCollection;
 
 	virtual UPCGExAssetCollection* GetSubCollectionVoid() const { return nullptr; }
-	
+
 	template <typename T>
 	T* GetSubCollection() { return Cast<T>(InternalSubCollection); }
 
@@ -233,11 +233,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 	bool FixModuleInfos(const UPCGExAssetCollection* Host, FPCGSubdivisionSubmodule& OutModule, TMap<const FPCGExAssetCollectionEntry*, double>* SizeCache = nullptr) const;
 
 	virtual void ClearSubCollection() { InternalSubCollection = nullptr; }
-
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
-	FName DisplayName = NAME_None;
-#endif
 
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize();
@@ -359,14 +354,18 @@ public:
 	bool HasCircularDependency(TSet<const UPCGExAssetCollection*>& InReferences) const;
 
 	using FForEachConstEntryFunc = std::function<void (const FPCGExAssetCollectionEntry*)>;
-	virtual void ForEachEntry(FForEachConstEntryFunc&& Iterator) const	{}
-	
+
+	virtual void ForEachEntry(FForEachConstEntryFunc&& Iterator) const
+	{
+	}
+
 	using FForEachEntryFunc = std::function<void (FPCGExAssetCollectionEntry*)>;
-	virtual void ForEachEntry(FForEachEntryFunc&& Iterator)	{}
+
+	virtual void ForEachEntry(FForEachEntryFunc&& Iterator)
+	{
+	}
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-
-	virtual void EDITOR_RefreshDisplayNames();
 
 	/** Add Content Browser selection to this collection. */
 	UFUNCTION()

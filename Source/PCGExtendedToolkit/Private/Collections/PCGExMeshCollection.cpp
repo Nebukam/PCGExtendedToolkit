@@ -19,17 +19,6 @@ int32 FPCGExMaterialOverrideCollection::GetHighestIndex() const
 	return HighestIndex;
 }
 
-#if WITH_EDITOR
-void FPCGExMaterialOverrideCollection::UpdateDisplayName()
-{
-}
-
-void FPCGExMaterialOverrideSingleEntry::UpdateDisplayName()
-{
-	DisplayName = FName(Material.GetAssetName());
-}
-#endif
-
 namespace PCGExMeshCollection
 {
 	void FMicroCache::ProcessMaterialOverrides(const TArray<FPCGExMaterialOverrideSingleEntry>& Overrides, const int32 InSlotIndex)
@@ -324,28 +313,6 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 
 	Staging.Path = StaticMesh.ToSoftObjectPath();
 
-#if WITH_EDITOR
-	if (MaterialVariants != EPCGExMaterialVariantsMode::None)
-	{
-		if (MaterialVariants == EPCGExMaterialVariantsMode::Single)
-		{
-			for (int i = 0; i < MaterialOverrideVariants.Num(); i++)
-			{
-				FPCGExMaterialOverrideSingleEntry& MEntry = MaterialOverrideVariants[i];
-				MEntry.UpdateDisplayName();
-			}
-		}
-		else
-		{
-			for (int i = 0; i < MaterialOverrideVariantsList.Num(); i++)
-			{
-				FPCGExMaterialOverrideCollection& MEntry = MaterialOverrideVariantsList[i];
-				MEntry.UpdateDisplayName();
-			}
-		}
-	}
-#endif
-
 	const UStaticMesh* M = PCGExHelpers::LoadBlocking_AnyThread(StaticMesh);
 	PCGExAssetCollection::UpdateStagingBounds(Staging, M);
 
@@ -421,17 +388,6 @@ void UPCGExMeshCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAsse
 		Entry.StaticMesh = Mesh;
 
 		Entries.Add(Entry);
-	}
-}
-
-void UPCGExMeshCollection::EDITOR_RefreshDisplayNames()
-{
-	Super::EDITOR_RefreshDisplayNames();
-	for (FPCGExMeshCollectionEntry& Entry : Entries)
-	{
-		FString DisplayName = Entry.bIsSubCollection ? TEXT("[") + Entry.SubCollection.GetName() + TEXT("]") : Entry.StaticMesh.GetAssetName();
-		DisplayName += FString::Printf(TEXT(" @ %d "), Entry.Weight);
-		Entry.DisplayName = FName(DisplayName);
 	}
 }
 

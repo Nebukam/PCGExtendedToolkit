@@ -14,10 +14,10 @@ void FPCGExBitmaskCollectionEntry::RebuildCache()
 {
 	CachedBitmask.Identifier = Identifier;
 	CachedBitmask.Bitmask = Bitmask.Get();
-	CachedBitmask.Direction = Direction;
+	CachedBitmask.Direction = Direction.GetSafeNormal();
 }
 
-bool PCGExBitmaskCollection::FCache::TryGetBitmask(FName Identifier, int64& OutBitmask) const
+bool PCGExBitmaskCollection::FCache::TryGetBitmask(const FName Identifier, int64& OutBitmask) const
 {
 	const int32* Index = BitmaskMap.Find(Identifier);
 	if (!Index)
@@ -29,6 +29,21 @@ bool PCGExBitmaskCollection::FCache::TryGetBitmask(FName Identifier, int64& OutB
 		return false;
 	}
 	OutBitmask = Bitmasks[*Index].Bitmask;
+	return true;
+}
+
+bool PCGExBitmaskCollection::FCache::TryGetBitmask(const FName Identifier, FPCGExBitmaskCache& OutCachedBitmask) const
+{
+	const int32* Index = BitmaskMap.Find(Identifier);
+	if (!Index)
+	{
+		if (!Identifier.IsNone())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Bitmask \"%s\" doesn't exists."), *Identifier.ToString())
+		}
+		return false;
+	}
+	OutCachedBitmask = Bitmasks[*Index];
 	return true;
 }
 

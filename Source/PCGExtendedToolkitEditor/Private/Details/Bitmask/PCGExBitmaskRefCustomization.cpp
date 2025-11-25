@@ -27,16 +27,33 @@ void FPCGExBitmaskRefCustomization::CustomizeHeader(
 	IdentifierHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExBitmaskRef, Identifier));
 	TSharedPtr<IPropertyHandle> OperationHandle = PropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FPCGExBitmaskRef, Op));
 
+
 	HeaderRow
 		.NameContent()
+		.MinDesiredWidth(50)
 		[
-			SourceHandle->CreatePropertyValueWidget()
+			//SourceHandle->CreatePropertyValueWidget()
+			SNew(SObjectPropertyEntryBox)
+			.PropertyHandle(SourceHandle)
+			.AllowedClass(UPCGExBitmaskCollection::StaticClass())
+			.DisplayThumbnail(true)
+			.AllowClear(true)
+			.ThumbnailSizeOverride(FIntPoint(24, 24))
 		]
-		.ValueContent().MinDesiredWidth(400)
+		.ValueContent()
+		.MinDesiredWidth(400)
 		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.AutoHeight()
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.MinWidth(50)
+			.VAlign(VAlign_Center)
+			.Padding(2, 2)
+			[
+				OperationHandle->CreatePropertyValueWidget()
+			]
+			+ SHorizontalBox::Slot()
+			.FillWidth(1)
 			.VAlign(VAlign_Center)
 			.Padding(2, 2)
 			[
@@ -65,13 +82,6 @@ void FPCGExBitmaskRefCustomization::CustomizeHeader(
 							return FText::FromName(CurrentValue);
 						})
 				]
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.VAlign(VAlign_Center)
-			.Padding(2, 2)
-			[
-				OperationHandle->CreatePropertyValueWidget()
 			]
 		];
 

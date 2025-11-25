@@ -7,6 +7,7 @@
 #include "PCGGraph.h"
 #include "PCGParamData.h"
 #include "PCGPin.h"
+#include "Chaos/ChaosPerfTest.h"
 #include "Details/PCGExVersion.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -21,6 +22,30 @@ void UPCGExBitmaskSettings::ApplyDeprecation(UPCGNode* InOutNode)
 	}
 
 	Super::ApplyDeprecation(InOutNode);
+}
+
+FName UPCGExBitmaskSettings::GetDisplayName() const
+{
+	FString S = TEXT("");
+	if (Bitmask.Compositions.IsEmpty())
+	{
+		S = FString::Printf(TEXT("%lld"), Bitmask.Get());
+	}
+	else
+	{
+		TArray<FString> Ss;
+		Ss.Reserve(Bitmask.Compositions.Num());
+		for (const FPCGExBitmaskRef& Ref : Bitmask.Compositions) { Ss.Add(Ref.Identifier.ToString()); }
+		S = FString::Join(Ss, TEXT(", "));
+	}
+
+	if (S.Len() > TitleCharLimit)
+	{
+		const int32 TruncLen = TitleCharLimit - 3;
+		S = S.Left(TruncLen) + TEXT("...");
+	}
+
+	return FName(S);
 }
 #endif
 

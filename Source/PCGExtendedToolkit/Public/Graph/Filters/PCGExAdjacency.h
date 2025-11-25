@@ -6,10 +6,11 @@
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
 #include "PCGExMathMean.h"
+#include "Details/PCGExDetailsBitmask.h"
 
 #include "PCGExAdjacency.generated.h"
 
-
+class UPCGExBitmaskCollection;
 struct FPCGContext;
 
 namespace PCGExCluster
@@ -111,4 +112,22 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 
 namespace PCGExAdjacency
 {
+	class FBitmaskData : public TSharedFromThis<FBitmaskData>
+	{
+	public:
+		
+		TArray<FVector> Directions;
+		TArray<FPCGExSimpleBitmask> Bitmasks;
+		TArray<double> Dots;
+		
+		FBitmaskData() = default;
+
+		void Append(const UPCGExBitmaskCollection* InCollection, const double InAngle, EPCGExBitOp Op = EPCGExBitOp::OR);
+		void Append(const FPCGExBitmaskRef& InBitmaskRef, const double InAngle);
+		void Append(const TArray<FPCGExBitmaskRef>& InBitmaskRef, const double InAngle);
+
+		void MutateMatch(const FVector& InDirection, int64& Flags) const;
+		void MutateUnmatch(const FVector& InDirection, int64& Flags) const;
+		
+	};
 }

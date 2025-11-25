@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExDetailsBitmask.generated.h"
 
+struct FPCGExSimpleBitmask;
 struct FPCGExBitmaskRef;
 struct FPCGExContext;
 class UPCGExBitmaskCollection;
@@ -23,8 +24,8 @@ enum class EPCGExBitOp : uint8
 UENUM()
 enum class EPCGExBitmaskMode : uint8
 {
-	Direct     = 0 UMETA(DisplayName = "Direct", ToolTip="Used for easy override mostly. Will use the value of the bitmask as-is"),
-	Individual = 1 UMETA(DisplayName = "Mutations", ToolTip="Use an array to mutate the bits of the incoming bitmask (will modify the constant value on output)"),
+	Direct     = 0 UMETA(DisplayName = "Direct", ToolTip="Used for easy override mostly. Will use the value of the bitmask as-is", ActionIcon="Bit_Direct"),
+	Individual = 1 UMETA(DisplayName = "Mutations", ToolTip="Use an array to mutate the bits of the incoming bitmask (will modify the constant value on output)", ActionIcon="Bit_Mutations"),
 	Composite  = 2 UMETA(Hidden),
 };
 
@@ -71,6 +72,9 @@ namespace PCGExBitmask
 
 	PCGEXTENDEDTOOLKIT_API
 	void Mutate(const TArray<FPCGExBitmaskRef>& Compositions, int64& Flags);
+	
+	PCGEXTENDEDTOOLKIT_API
+	void Mutate(const TArray<FPCGExSimpleBitmask>& Compositions, int64& Flags);
 }
 
 USTRUCT(BlueprintType)
@@ -118,6 +122,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleBitmask
 	/** Base value, how it will be mutated, if at all, depends on chosen mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int64 Bitmask = 0;
+
+	UPROPERTY(EditAnywhere, Category = Settings)
+	EPCGExBitOp Op = EPCGExBitOp::OR;
+
+	FORCEINLINE void Mutate(int64& Flags) const{PCGExBitmask::Mutate(Op, Flags, Bitmask);}
+	
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Bitmask Ref")
@@ -128,7 +138,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskRef
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TObjectPtr<UPCGExBitmaskCollection> Source;
 
-	UPROPERTY(EditAnywhere, Category = Settings)
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(GetOptions="EDITOR_GetIdentifierOptions"))
 	FName Identifier = NAME_None;
 
 	UPROPERTY(EditAnywhere, Category = Settings)
@@ -141,6 +151,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskRef
 	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
 	
 	void Mutate(int64& Flags) const;
+	FPCGExSimpleBitmask GetSimpleBitmask() const;
+	bool TryGetAdjacencyInfos(FVector& OutDirection, FPCGExSimpleBitmask& OutSimpleBitmask) const;
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Bitmask")
@@ -195,7 +207,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmask
 #pragma endregion
 
 	int64 Get() const;
-	FORCEINLINE void DoOperation(const EPCGExBitOp Op, int64& Flags) const{PCGExBitmask::Mutate(Op, Flags, Get());}
+	FORCEINLINE void Mutate(const EPCGExBitOp Op, int64& Flags) const{PCGExBitmask::Mutate(Op, Flags, Get());}
 
 	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
 	
@@ -214,7 +226,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExBitmaskMode Mode = EPCGExBitmaskMode::Direct;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExBitmaskMode::Direct", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int64 Bitmask = 0;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode == EPCGExBitmaskMode::Individual", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
@@ -255,7 +267,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 #pragma endregion
 
 	int64 Get() const;
-	void DoOperation(int64& Flags) const;
+	void Mutate(int64& Flags) const;
 
 	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
 	

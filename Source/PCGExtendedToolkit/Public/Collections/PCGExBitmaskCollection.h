@@ -69,7 +69,8 @@ namespace PCGExBitmaskCollection
 		explicit FCache() = default;
 		~FCache() = default;
 
-		bool TryGetBitmask(FName Identifier, int64& OutBitmask) const;
+		bool TryGetBitmask(const FName Identifier, int64& OutBitmask) const;
+		bool TryGetBitmask(const FName Identifier, FPCGExBitmaskCache& OutCachedBitmask) const;
 
 		bool IsEmpty() const { return Bitmasks.IsEmpty(); }
 	};
