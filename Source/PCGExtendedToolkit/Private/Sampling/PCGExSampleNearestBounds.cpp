@@ -92,7 +92,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	if (!Context->NumMaxTargets)
 	{
-		PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No bounds (no input matches criteria)"))
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("No valid bounds"));
 		return false;
 	}
 
@@ -371,6 +371,50 @@ namespace PCGExSampleNearestBounds
 
 			const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Origin, PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
 
+			auto SampleSingle = [&](const PCGExData::FElement& Current, const PCGExGeo::FPointBox* NearbyBox)
+			{
+				double DetCandidate = Det;
+				bool bReplaceWithCurrent = Union->IsEmpty();
+
+				switch (Settings->SampleMethod)
+				{
+				case EPCGExBoundsSampleMethod::BestCandidate:
+					DetCandidate = NearbyBox->Index;
+					if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(Current, SinglePick); }
+					else { bReplaceWithCurrent = true; }
+					break;
+				default:
+				case EPCGExBoundsSampleMethod::ClosestBounds:
+					DetCandidate = CloudSample.Distances.SizeSquared();
+					bReplaceWithCurrent = DetCandidate < Det;
+					break;
+				case EPCGExBoundsSampleMethod::FarthestBounds:
+					DetCandidate = CloudSample.Distances.SizeSquared();
+					bReplaceWithCurrent = DetCandidate > Det;
+					break;
+				case EPCGExBoundsSampleMethod::SmallestBounds:
+					DetCandidate = NearbyBox->RadiusSquared;
+					bReplaceWithCurrent = DetCandidate < Det;
+					break;
+				case EPCGExBoundsSampleMethod::LargestBounds:
+					DetCandidate = NearbyBox->RadiusSquared;
+					bReplaceWithCurrent = DetCandidate > Det;
+					break;
+				}
+
+				if (bReplaceWithCurrent)
+				{
+					SinglePick = Current;
+					Det = DetCandidate;
+					Union->Reset();
+					Union->AddWeighted_Unsafe(Current, CloudSample.Weight);
+				}
+			};
+
+			auto SampleMulti = []()
+			{
+			};
+
 			Context->TargetsHandler->FindTargetsWithBoundsTest(
 				BCAE, [&](const PCGExOctree::FItem& Target)
 				{
@@ -381,50 +425,8 @@ namespace PCGExSampleNearestBounds
 							if (!CloudSample.bIsInside) { return; }
 
 							const PCGExData::FElement Current(NearbyBox->Index, Target.Index);
-
-							if (bSingleSample)
-							{
-								double DetCandidate = Det;
-								bool bReplaceWithCurrent = Union->IsEmpty();
-
-								switch (Settings->SampleMethod)
-								{
-								case EPCGExBoundsSampleMethod::BestCandidate:
-									DetCandidate = NearbyBox->Index;
-									if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(Current, SinglePick); }
-									else { bReplaceWithCurrent = true; }
-									break;
-								default:
-								case EPCGExBoundsSampleMethod::ClosestBounds:
-									DetCandidate = CloudSample.Distances.SizeSquared();
-									bReplaceWithCurrent = DetCandidate < Det;
-									break;
-								case EPCGExBoundsSampleMethod::FarthestBounds:
-									DetCandidate = CloudSample.Distances.SizeSquared();
-									bReplaceWithCurrent = DetCandidate > Det;
-									break;
-								case EPCGExBoundsSampleMethod::SmallestBounds:
-									DetCandidate = NearbyBox->RadiusSquared;
-									bReplaceWithCurrent = DetCandidate < Det;
-									break;
-								case EPCGExBoundsSampleMethod::LargestBounds:
-									DetCandidate = NearbyBox->RadiusSquared;
-									bReplaceWithCurrent = DetCandidate > Det;
-									break;
-								}
-
-								if (bReplaceWithCurrent)
-								{
-									SinglePick = Current;
-									Det = DetCandidate;
-									Union->Reset();
-									Union->AddWeighted_Unsafe(Current, CloudSample.Weight);
-								}
-							}
-							else
-							{
-								Union->AddWeighted_Unsafe(Current, CloudSample.Weight);
-							}
+							if (bSingleSample) { SampleSingle(Current, NearbyBox); }
+							else { Union->AddWeighted_Unsafe(Current, CloudSample.Weight); }
 						});
 				}, &IgnoreList);
 

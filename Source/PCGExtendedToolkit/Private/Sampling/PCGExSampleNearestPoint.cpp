@@ -330,7 +330,6 @@ namespace PCGExSampleNearestPoint
 		if (!RangeMaxGetter->Init(PointDataFacade)) { return false; }
 
 		bSingleSample = Settings->SampleMethod != EPCGExSampleMethod::WithinRange;
-		bSampleClosest = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget || Settings->SampleMethod == EPCGExSampleMethod::BestCandidate;
 
 		StartParallelLoopForPoints();
 
@@ -346,6 +345,12 @@ namespace PCGExSampleNearestPoint
 	void FProcessor::ProcessPoints(const PCGExMT::FScope& Scope)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleNearestPoint::ProcessPoints);
+
+		const bool bWeightUseAttr = Settings->WeightMode == EPCGExSampleWeightMode::Attribute;
+		const bool bWeightUseAttrMult = Settings->WeightMode == EPCGExSampleWeightMode::AttributeMult;
+		const bool bSampleClosest = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget;
+		const bool bSampleFarthest = Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget;
+		const bool bSampleBest = Settings->SampleMethod == EPCGExSampleMethod::BestCandidate;
 
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
@@ -385,54 +390,55 @@ namespace PCGExSampleNearestPoint
 			PCGExData::FElement SinglePick(-1, -1);
 			double Det = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? MAX_dbl : MIN_dbl;
 
-			auto SampleTarget = [&](const PCGExData::FConstPoint& Target)
+			auto SampleSingleTarget = [&](const PCGExData::FConstPoint& Target)
 			{
 				double DistSquared = Context->TargetsHandler->GetDistSquared(Point, Target);
-
 				if (RangeMax > 0 && (DistSquared < RangeMin || DistSquared > RangeMax)) { return; }
+				if (bWeightUseAttr) { DistSquared = Context->TargetWeights[Target.IO]->Read(Target.Index); }
+				else if (bWeightUseAttrMult) { DistSquared *= Context->TargetWeights[Target.IO]->Read(Target.Index); }
 
-				if (Settings->WeightMode == EPCGExSampleWeightMode::Attribute) { DistSquared = Context->TargetWeights[Target.IO]->Read(Target.Index); }
-				else if (Settings->WeightMode == EPCGExSampleWeightMode::AttributeMult) { DistSquared *= Context->TargetWeights[Target.IO]->Read(Target.Index); }
+				bool bReplaceWithCurrent = Union->IsEmpty();
 
-				if (bSingleSample)
+				if (bSampleBest)
 				{
-					bool bReplaceWithCurrent = Union->IsEmpty();
-
-					if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
-					{
-						if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(static_cast<PCGExData::FElement>(Target), SinglePick); }
-					}
-					else if (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget && Det > DistSquared)
-					{
-						bReplaceWithCurrent = true;
-					}
-					else if (Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget && Det < DistSquared)
-					{
-						bReplaceWithCurrent = true;
-					}
-
-					if (bReplaceWithCurrent)
-					{
-						SinglePick = static_cast<PCGExData::FElement>(Target);
-						Det = DistSquared;
-						Union->Reset();
-						Union->AddWeighted_Unsafe(Target, DistSquared);
-					}
+					if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(static_cast<PCGExData::FElement>(Target), SinglePick); }
 				}
-				else
+				else if (
+					(bSampleClosest && Det > DistSquared) ||
+					(bSampleFarthest && Det < DistSquared))
 				{
+					bReplaceWithCurrent = true;
+				}
+
+				if (bReplaceWithCurrent)
+				{
+					SinglePick = static_cast<PCGExData::FElement>(Target);
+					Det = DistSquared;
+					Union->Reset();
 					Union->AddWeighted_Unsafe(Target, DistSquared);
 				}
+			};
+
+			auto SampleMultiTarget = [&](const PCGExData::FConstPoint& Target)
+			{
+				double DistSquared = Context->TargetsHandler->GetDistSquared(Point, Target);
+				if (RangeMax > 0 && (DistSquared < RangeMin || DistSquared > RangeMax)) { return; }
+				if (bWeightUseAttr) { DistSquared = Context->TargetWeights[Target.IO]->Read(Target.Index); }
+				else if (bWeightUseAttrMult) { DistSquared *= Context->TargetWeights[Target.IO]->Read(Target.Index); }
+
+				Union->AddWeighted_Unsafe(Target, DistSquared);
 			};
 
 			if (RangeMax > 0)
 			{
 				const FBox Box = FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(RangeMax))).GetBox();
-				Context->TargetsHandler->FindElementsWithBoundsTest(Box, SampleTarget, &IgnoreList);
+				if (bSingleSample) { Context->TargetsHandler->ForEachTargetPoint(SampleSingleTarget, &IgnoreList); }
+				else { Context->TargetsHandler->FindElementsWithBoundsTest(Box, SampleMultiTarget, &IgnoreList); }
 			}
 			else
 			{
-				Context->TargetsHandler->ForEachTargetPoint(SampleTarget, &IgnoreList);
+				if (bSingleSample) { Context->TargetsHandler->ForEachTargetPoint(SampleSingleTarget, &IgnoreList); }
+				else { Context->TargetsHandler->ForEachTargetPoint(SampleMultiTarget, &IgnoreList); }
 			}
 
 			if (Union->IsEmpty())

@@ -372,7 +372,6 @@ namespace PCGExSampleNearestPoint
 		TArray<int8> SamplingMask;
 
 		bool bSingleSample = false;
-		bool bSampleClosest = false;
 
 		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMinGetter;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> RangeMaxGetter;
