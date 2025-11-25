@@ -76,10 +76,22 @@ namespace PCGExClusterStates
 		return bResult;
 	}
 
-	void FState::ProcessFlags(const bool bSuccess, int64& InFlags) const
+	void FState::ProcessFlags(const bool bSuccess, int64& InFlags, const int32 Index) const
 	{
-		if (Config.bOnTestPass && bSuccess) { Config.PassStateFlags.DoOperation(InFlags); }
-		else if (Config.bOnTestFail && !bSuccess) { Config.FailStateFlags.DoOperation(InFlags); }
+		if (Config.bOnTestPass && bSuccess) { Config.PassStateFlags.Mutate(InFlags); }
+		else if (Config.bOnTestFail && !bSuccess) { Config.FailStateFlags.Mutate(InFlags); }
+	}
+
+	void FState::ProcessFlags(const bool bSuccess, int64& InFlags, const PCGExCluster::FNode& Node) const
+	{
+		if (Config.bOnTestPass && bSuccess) { Config.PassStateFlags.Mutate(InFlags); }
+		else if (Config.bOnTestFail && !bSuccess) { Config.FailStateFlags.Mutate(InFlags); }
+	}
+
+	void FState::ProcessFlags(const bool bSuccess, int64& InFlags, const PCGExGraph::FEdge& Edge) const
+	{
+		if (Config.bOnTestPass && bSuccess) { Config.PassStateFlags.Mutate(InFlags); }
+		else if (Config.bOnTestFail && !bSuccess) { Config.FailStateFlags.Mutate(InFlags); }
 	}
 
 	FStateManager::FStateManager(
@@ -95,21 +107,21 @@ namespace PCGExClusterStates
 	bool FStateManager::Test(const int32 Index)
 	{
 		int64& Flags = *(FlagsCache->GetData() + Index);
-		for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Index), Flags); }
+		for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Index), Flags, Index); }
 		return true;
 	}
 
 	bool FStateManager::Test(const PCGExCluster::FNode& Node)
 	{
 		int64& Flags = *(FlagsCache->GetData() + Node.PointIndex);
-		for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Node), Flags); }
+		for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Node), Flags, Node); }
 		return true;
 	}
 
 	bool FStateManager::Test(const PCGExGraph::FEdge& Edge)
 	{
 		int64& Flags = *(FlagsCache->GetData() + Edge.PointIndex);
-		for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Edge), Flags); }
+		for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Edge), Flags, Edge); }
 		return true;
 	}
 

@@ -148,6 +148,9 @@ namespace PCGExDetailsCustomization
 		PCGEX_ADD_ACTION_ICON(Fixed, AIS_Small)
 		PCGEX_ADD_ACTION_ICON(Flexible, AIS_Small)
 
+		PCGEX_ADD_ACTION_ICON(Bit_Direct, AIS_VerySmall)
+		PCGEX_ADD_ACTION_ICON(Bit_Mutations, AIS_VerySmall)
+
 		FButtonStyle ActionIconButton = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton");
 
 		FSlateBrush Brush = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton").Pressed;
@@ -164,6 +167,17 @@ namespace PCGExDetailsCustomization
 
 		AppStyle.Set("PCGEx.ActionIcon", ActionIconButton);
 
+		FCheckBoxStyle SmallCheckStyle = FCoreStyle::Get().GetWidgetStyle<FCheckBoxStyle>("Checkbox");
+
+		FSlateBrush CheckBrush = FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton").Pressed;
+		CheckBrush.Margin = FMargin(2, 2);
+		CheckBrush.TintColor = FLinearColor(0, 0.5, 1, 1);
+		SmallCheckStyle.SetCheckedImage(CheckBrush);
+		CheckBrush.TintColor = FLinearColor(1, 1, 1, 1);
+		SmallCheckStyle.SetCheckedHoveredImage(CheckBrush);
+
+		AppStyle.Set("PCGEx.Checkbox", SmallCheckStyle);
+
 #undef PCGEX_ADD_ACTION_ICON
 #undef PCGEX_ADD_ACTION_ICON_WIDE
 
@@ -177,7 +191,7 @@ namespace PCGExDetailsCustomization
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
 #define PCGEX_REGISTER_CUSTO(_NAME, _CLASS) PropertyModule.RegisterCustomPropertyTypeLayout(_NAME, FOnGetPropertyTypeCustomizationInstance::CreateStatic(&_CLASS::MakeInstance));
-		
+
 		PCGEX_REGISTER_CUSTO("PCGExTupleBody", FPCGExTupleBodyCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExFittingVariations", FPCGExFittingVariationsCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExMaterialOverrideEntry", FPCGExMaterialOverrideEntryCustomization)
@@ -193,9 +207,9 @@ namespace PCGExDetailsCustomization
 		PCGEX_REGISTER_CUSTO("PCGExBitmaskFilterConfig", FPCGExBitmaskFilterConfigCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExClampDetails", FPCGExClampDetailsCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExBitmaskRef", FPCGExBitmaskRefCustomization)
-		
+
 		PCGEX_REGISTER_CUSTO("PCGExCompareSelectorDouble", FPCGExCompareShorthandCustomization)
-		
+
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameBoolean", FPCGExInputShorthandCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameFloat", FPCGExInputShorthandCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExInputShorthandNameDouble", FPCGExInputShorthandCustomization)
@@ -251,7 +265,8 @@ MACRO(EPCGExTruncateMode)\
 MACRO(EPCGExVariationMode)\
 MACRO(EPCGExVariationSnapping)\
 MACRO(EPCGExGrammarScaleMode)\
-MACRO(EPCGExSampleSource)
+MACRO(EPCGExSampleSource)\
+MACRO(EPCGExBitmaskMode)
 
 #define PCGEX_FOREACH_GRID_ENUM(MACRO)\
 MACRO(EPCGExAxisOrder, 3)\

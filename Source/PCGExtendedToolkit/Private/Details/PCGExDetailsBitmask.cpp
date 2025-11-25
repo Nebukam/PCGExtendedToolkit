@@ -4,6 +4,7 @@
 #include "Details/PCGExDetailsBitmask.h"
 
 #include "PCGExContext.h"
+#include "PCGExGlobalSettings.h"
 #include "Collections/PCGExBitmaskCollection.h"
 
 namespace PCGExBitmask
@@ -48,6 +49,11 @@ namespace PCGExBitmask
 	void Mutate(const TArray<FPCGExBitmaskRef>& Compositions, int64& Flags)
 	{
 		for (const FPCGExBitmaskRef& Comp : Compositions) { Comp.Mutate(Flags); }
+	}
+
+	void Mutate(const TArray<FPCGExSimpleBitmask>& Compositions, int64& Flags)
+	{
+		for (const FPCGExSimpleBitmask& Comp : Compositions) { Comp.Mutate(Flags); }
 	}
 }
 
@@ -99,6 +105,31 @@ void FPCGExBitmaskRef::Mutate(int64& Flags) const
 	if (Source && Source->LoadCache()->TryGetBitmask(Identifier, Mask)) { PCGExBitmask::Mutate(Op, Flags, Mask); }
 }
 
+FPCGExSimpleBitmask FPCGExBitmaskRef::GetSimpleBitmask() const
+{
+	FPCGExSimpleBitmask SimpleBitmask;
+	if (Source && Source->LoadCache()->TryGetBitmask(Identifier, SimpleBitmask.Bitmask)) { SimpleBitmask.Op = Op; }
+	else { SimpleBitmask.Op = EPCGExBitOp::OR; }
+	return SimpleBitmask;
+}
+
+bool FPCGExBitmaskRef::TryGetAdjacencyInfos(FVector& OutDirection, FPCGExSimpleBitmask& OutSimpleBitmask) const
+{
+	if (FPCGExBitmaskCache Cache = FPCGExBitmaskCache{};
+		Source && Source->LoadCache()->TryGetBitmask(Identifier, Cache))
+	{
+		OutSimpleBitmask = FPCGExSimpleBitmask();
+		OutSimpleBitmask.Bitmask = Cache.Bitmask;
+		OutSimpleBitmask.Op = Op;
+
+		OutDirection = Cache.Direction;
+
+		return true;
+	}
+
+	return false;
+}
+
 int64 FPCGExBitmask::Get() const
 {
 	int64 Mask = Bitmask;
@@ -148,25 +179,14 @@ void FPCGExBitmask::ApplyDeprecation()
 
 int64 FPCGExBitmaskWithOperation::Get() const
 {
-	int64 Mask = 0;
-
-	switch (Mode)
-	{
-	case EPCGExBitmaskMode::Composite:
-	case EPCGExBitmaskMode::Direct:
-		Mask = Bitmask;
-		break;
-	case EPCGExBitmaskMode::Individual:
-		for (const FPCGExClampedBitOp& Bit : Mutations) { Bit.Mutate(Mask); }
-		break;
-	}
-
+	int64 Mask = Bitmask;
+	if (Mode == EPCGExBitmaskMode::Individual) { for (const FPCGExClampedBitOp& Bit : Mutations) { Bit.Mutate(Mask); } }
 	PCGExBitmask::Mutate(Compositions, Mask);
 
 	return Mask;
 }
 
-void FPCGExBitmaskWithOperation::DoOperation(int64& Flags) const
+void FPCGExBitmaskWithOperation::Mutate(int64& Flags) const
 {
 	if (Mode == EPCGExBitmaskMode::Individual)
 	{

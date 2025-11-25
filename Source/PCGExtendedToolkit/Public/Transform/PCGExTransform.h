@@ -69,7 +69,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocket
 	FPCGExSocket(const FName& InSocketName, const FTransform& InRelativeTransform, const FString& InTag);
 	~FPCGExSocket() = default;
 
-	UPROPERTY(EditDefaultsOnly, Category=Settings, meta =(PCG_NotOverridable, EditCondition="false", EditConditionHides))
+	UPROPERTY(meta=(PCG_NotOverridable, EditCondition="false", EditConditionHides))
 	bool bManaged = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bManaged"))

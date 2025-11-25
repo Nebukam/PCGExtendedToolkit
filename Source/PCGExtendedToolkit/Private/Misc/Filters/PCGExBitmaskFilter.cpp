@@ -59,12 +59,17 @@ bool PCGExPointFilter::FBitmaskFilter::Init(FPCGExContext* InContext, const TSha
 	MaskReader = TypedFilterFactory->Config.GetValueSettingBitmask(PCGEX_QUIET_HANDLING);
 	if (!MaskReader->Init(PointDataFacade)) { return false; }
 
+	Compositions.Reserve(TypedFilterFactory->Config.Compositions.Num());
+	for (const FPCGExBitmaskRef& Ref : TypedFilterFactory->Config.Compositions){ Compositions.Add(Ref.GetSimpleBitmask()); }
+
 	return true;
 }
 
 bool PCGExPointFilter::FBitmaskFilter::Test(const int32 PointIndex) const
 {
-	const bool Result = PCGExBitmask::Compare(TypedFilterFactory->Config.Comparison, FlagsReader->Read(PointIndex), MaskReader->Read(PointIndex));
+	int64 OutMask = MaskReader->Read(PointIndex);
+	for (const FPCGExSimpleBitmask& Comp : Compositions){ Comp.Mutate(OutMask); }
+	const bool Result = PCGExBitmask::Compare(TypedFilterFactory->Config.Comparison, FlagsReader->Read(PointIndex), OutMask);
 	return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
 }
 
@@ -79,6 +84,8 @@ bool PCGExPointFilter::FBitmaskFilter::Test(const TSharedPtr<PCGExData::FPointIO
 		IO, TypedFilterFactory->Config.MaskInput, TypedFilterFactory->Config.BitmaskAttribute,
 		TypedFilterFactory->Config.Bitmask, OutMask, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
+	for (const FPCGExSimpleBitmask& Comp : Compositions){ Comp.Mutate(OutMask); }
+	
 	const bool Result = PCGExBitmask::Compare(TypedFilterFactory->Config.Comparison, OutFlags, OutMask);
 	return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
 }

@@ -64,15 +64,6 @@ UPCGExAssetCollection* FPCGExActorCollectionEntry::GetSubCollectionVoid() const
 }
 
 #if WITH_EDITOR
-void UPCGExActorCollection::EDITOR_RefreshDisplayNames()
-{
-	Super::EDITOR_RefreshDisplayNames();
-	for (FPCGExActorCollectionEntry& Entry : Entries)
-	{
-		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetName() + TEXT("]")) : FName(Entry.Actor ? Entry.Actor->GetName() : TEXT("None"));
-	}
-}
-
 void UPCGExActorCollection::EDITOR_AddBrowserSelectionInternal(const TArray<FAssetData>& InAssetData)
 {
 	Super::EDITOR_AddBrowserSelectionInternal(InAssetData);
