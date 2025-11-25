@@ -347,6 +347,10 @@ namespace PCGExSampleNearestPath
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGEx::SampleNearestPath::ProcessPoints);
 
+		const bool bSampleClosest = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget;
+		const bool bSampleFarthest = Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget;
+		const bool bSampleBest = Settings->SampleMethod == EPCGExSampleMethod::BestCandidate;
+
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
@@ -393,18 +397,75 @@ namespace PCGExSampleNearestPath
 			double WeightedTime = 0;
 			double WeightedSegmentTime = 0;
 
+			auto SampleSingle = [&](const PCGExData::FElement& EdgeElement, const double DistSquared,
+			                        const PCGExData::FElement& A, const PCGExData::FElement& B, const double Time, const double Lerp,
+			                        const int32 NumInsideIncrement, const bool bClosedLoop)
+			{
+				bool bReplaceWithCurrent = Union->IsEmpty();
+
+				if (bSampleBest)
+				{
+					if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(EdgeElement, SinglePick); }
+				}
+				else if (
+					(bSampleClosest && WeightedDistance > DistSquared)
+					|| (bSampleFarthest && WeightedDistance < DistSquared))
+				{
+					bReplaceWithCurrent = true;
+				}
+
+				if (bReplaceWithCurrent)
+				{
+					SinglePick = EdgeElement;
+					WeightedDistance = FMath::Square(DistSquared);
+
+					// TODO : Adjust dist based on edge lerp
+					Union->Reset();
+					Union->AddWeighted_Unsafe(A, DistSquared);
+					Union->AddWeighted_Unsafe(B, DistSquared);
+
+					NumInside = NumInsideIncrement;
+					NumInClosed = bSampledClosedLoop = bClosedLoop;
+
+					WeightedTime = Time;
+					WeightedSegmentTime = Lerp;
+				}
+			};
+
+			auto SampleMulti = [&](const PCGExData::FElement& EdgeElement, const double DistSquared,
+			                       const PCGExData::FElement& A, const PCGExData::FElement& B, const double Time, const double Lerp,
+			                       const int32 NumInsideIncrement, const bool bClosedLoop)
+			{
+				// TODO : Adjust dist based on edge lerp
+				WeightedDistance += FMath::Square(DistSquared);
+				Union->AddWeighted_Unsafe(A, DistSquared);
+				Union->AddWeighted_Unsafe(B, DistSquared);
+
+				if (bClosedLoop)
+				{
+					bSampledClosedLoop = true;
+					NumInClosed += NumInsideIncrement;
+				}
+
+				WeightedTime += Time;
+				WeightedSegmentTime += Lerp;
+
+				NumInside += NumInsideIncrement;
+			};
+
 			auto SampleTarget = [&](const int32 EdgeIndex, const double& Lerp, const TSharedPtr<PCGExPaths::FPolyPath>& InPath)
 			{
 				const PCGExData::FElement EdgeElement(EdgeIndex, InPath->Idx);
 				const PCGExData::FElement A(InPath->Edges[EdgeIndex].Start, InPath->Idx);
 				const PCGExData::FElement B(InPath->Edges[EdgeIndex].End, InPath->Idx);
 
+				const bool bClosedLoop = InPath->IsClosedLoop();
 				const bool bIsInside = InPath->IsInsideProjection(Transform.GetLocation());
 
 				if (Settings->bOnlySampleWhenInside && !bIsInside) { return; }
 
 				int32 NumInsideIncrement = 0;
-				if (bIsInside) { if (!bOnlyIncrementInsideNumIfClosed || InPath->IsClosedLoop()) { NumInsideIncrement = 1; } }
+				if (bIsInside) { if (!bOnlyIncrementInsideNumIfClosed || bClosedLoop) { NumInsideIncrement = 1; } }
 
 				const FVector PosA = InPath->GetPos(A.Index);
 				const FVector PosB = InPath->GetPos(B.Index);
@@ -421,60 +482,8 @@ namespace PCGExSampleNearestPath
 
 				const double Time = (static_cast<double>(EdgeIndex) + Lerp) / static_cast<double>(InPath->NumEdges);
 
-				///////
-
-				if (bSingleSample)
-				{
-					bool bReplaceWithCurrent = Union->IsEmpty();
-
-					if (Settings->SampleMethod == EPCGExSampleMethod::BestCandidate)
-					{
-						if (SinglePick.Index != -1) { bReplaceWithCurrent = Context->Sorter->Sort(EdgeElement, SinglePick); }
-					}
-					else if (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget && WeightedDistance > DistSquared)
-					{
-						bReplaceWithCurrent = true;
-					}
-					else if (Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget && WeightedDistance < DistSquared)
-					{
-						bReplaceWithCurrent = true;
-					}
-
-					if (bReplaceWithCurrent)
-					{
-						SinglePick = EdgeElement;
-						WeightedDistance = FMath::Square(DistSquared);
-
-						// TODO : Adjust dist based on edge lerp
-						Union->Reset();
-						Union->AddWeighted_Unsafe(A, DistSquared);
-						Union->AddWeighted_Unsafe(B, DistSquared);
-
-						NumInside = NumInsideIncrement;
-						NumInClosed = bSampledClosedLoop = InPath->IsClosedLoop();
-
-						WeightedTime = Time;
-						WeightedSegmentTime = Lerp;
-					}
-				}
-				else
-				{
-					// TODO : Adjust dist based on edge lerp
-					WeightedDistance += FMath::Square(DistSquared);
-					Union->AddWeighted_Unsafe(A, DistSquared);
-					Union->AddWeighted_Unsafe(B, DistSquared);
-
-					if (InPath->IsClosedLoop())
-					{
-						bSampledClosedLoop = true;
-						NumInClosed += NumInsideIncrement;
-					}
-
-					WeightedTime += Time;
-					WeightedSegmentTime += Lerp;
-
-					NumInside += NumInsideIncrement;
-				}
+				if (bSingleSample) { SampleSingle(EdgeElement, DistSquared, A, B, Time, Lerp, NumInsideIncrement, bClosedLoop); }
+				else { SampleMulti(EdgeElement, DistSquared, A, B, Time, Lerp, NumInsideIncrement, bClosedLoop); }
 			};
 
 
@@ -541,11 +550,11 @@ namespace PCGExSampleNearestPath
 			if (Settings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0) { Union->WeightRange = RangeMax; }
 			DataBlender->ComputeWeights(Index, Union, OutWeightedPoints);
 
-			FVector WeightedUp = LookAtUpGetter ? LookAtUpGetter->Read(Index).GetSafeNormal() : SafeUpVector;			
+			FVector WeightedUp = LookAtUpGetter ? LookAtUpGetter->Read(Index).GetSafeNormal() : SafeUpVector;
 			FTransform WeightedTransform = InTransforms[Index];
 			FVector WeightedSignAxis = FVector::ZeroVector;
 			FVector WeightedAngleAxis = FVector::ZeroVector;
-			
+
 			if (!Settings->bWeightFromOriginalTransform)
 			{
 				WeightedTransform = FTransform::Identity;
