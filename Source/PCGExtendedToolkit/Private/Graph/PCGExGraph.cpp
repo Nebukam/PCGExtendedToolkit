@@ -107,16 +107,16 @@ bool FPCGExGraphBuilderDetails::WantsClusters() const
 	PCGEX_GET_OPTION_STATE(BuildAndCacheClusters, bDefaultBuildAndCacheClusters)
 }
 
-bool FPCGExGraphBuilderDetails::IsValid(const TSharedPtr<PCGExGraph::FSubGraph>& InSubgraph) const
+bool FPCGExGraphBuilderDetails::IsValid(const int32 NumVtx, const int32 NumEdges) const
 {
 	if (bRemoveBigClusters)
 	{
-		if (InSubgraph->Edges.Num() > MaxEdgeCount || InSubgraph->Nodes.Num() > MaxVtxCount) { return false; }
+		if (NumEdges > MaxEdgeCount || NumVtx > MaxVtxCount) { return false; }
 	}
 
 	if (bRemoveSmallClusters)
 	{
-		if (InSubgraph->Edges.Num() < MinEdgeCount || InSubgraph->Nodes.Num() < MinVtxCount) { return false; }
+		if (NumEdges < MinEdgeCount || NumVtx < MinVtxCount) { return false; }
 	}
 
 	return true;
@@ -270,7 +270,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		return -1;
 	}
 
-	void FSubGraph::Add(const FEdge& Edge, FGraph* InGraph)
+	void FSubGraph::Add(const FEdge& Edge)
 	{
 		Nodes.Add(Edge.Start);
 		Nodes.Add(Edge.End);
@@ -766,8 +766,14 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	void FGraph::InsertEdges_Unsafe(const TSet<uint64>& InEdges, const int32 InIOIndex)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::InsertEdges_Unsafe);
+
 		uint32 A;
 		uint32 B;
+
+		UniqueEdges.Reserve(UniqueEdges.Num() + InEdges.Num());
+		Edges.Reserve(UniqueEdges.Num() + InEdges.Num());
+
 		for (const uint64& E : InEdges)
 		{
 			if (UniqueEdges.Contains(E)) { continue; }
@@ -792,6 +798,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	TArrayView<FNode> FGraph::AddNodes(const int32 NumNewNodes, int32& OutStartIndex)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::AddNodes);
+
 		FWriteScopeLock WriteLock(GraphLock);
 		OutStartIndex = Nodes.Num();
 		const int32 TotalNum = OutStartIndex + NumNewNodes;
@@ -805,93 +813,82 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::BuildSubGraphs);
 
-		TBitArray<> VisitedNodes;
-		TBitArray<> VisitedEdges;
-		VisitedNodes.Init(false, Nodes.Num());
-		VisitedEdges.Init(false, Edges.Num());
+		const int32 NumNodes = Nodes.Num();
+		const int32 NumEdges = Edges.Num();
+
+		TArray<bool> VisitedNodes;
+		VisitedNodes.Init(false, NumNodes);
+		TArray<bool> VisitedEdges;
+		VisitedEdges.Init(false, NumEdges);
 
 		int32 VisitedNodesNum = 0;
 		int32 VisitedEdgesNum = 0;
 
-		TSharedPtr<FSubGraph> SubGraph = nullptr;
+		TArray<int32> Stack;
+		Stack.Reserve(NumNodes);
 
-		for (int i = 0; i < Nodes.Num(); i++)
+		for (int32 i = 0; i < NumNodes; i++)
 		{
 			FNode& CurrentNode = Nodes[i];
+			if (VisitedNodes[i]) continue;
 
-			if (VisitedNodes[i]) { continue; }
-
-			VisitedNodes[i] = true;
-			VisitedNodesNum++;
-
-			if (!CurrentNode.bValid) { continue; }
-			if (CurrentNode.IsEmpty())
+			if (!CurrentNode.bValid || CurrentNode.IsEmpty())
 			{
 				CurrentNode.bValid = false;
 				continue;
 			}
 
-			if (!SubGraph)
-			{
-				SubGraph = MakeShared<FSubGraph>();
-				SubGraph->WeakParentGraph = SharedThis(this);
-				SubGraph->Nodes.Reserve(Nodes.Num() - VisitedNodesNum);
-				SubGraph->Edges.Reserve(Edges.Num() - VisitedEdgesNum);
-			}
-
-			TArray<int32> Stack;
-			Stack.Reserve(Nodes.Num() - VisitedNodesNum);
+			Stack.Reset();
 			Stack.Add(i);
+			VisitedNodes[i] = true;
+			VisitedNodesNum++;
 
-			while (Stack.Num() > 0)
+			TSharedPtr<FSubGraph> SubGraph = MakeShared<FSubGraph>();
+			SubGraph->WeakParentGraph = SharedThis(this);
+			SubGraph->Nodes.Reserve(NumNodes - VisitedNodesNum);
+			SubGraph->Edges.Reserve(NumEdges - VisitedEdgesNum);
+
+			while (!Stack.IsEmpty())
 			{
-				const int32 NextIndex = Stack.Pop(EAllowShrinking::No);
-				FNode& Node = Nodes[NextIndex];
+				const int32 NodeIndex = Stack.Pop(EAllowShrinking::No);
+				FNode& Node = Nodes[NodeIndex];
 				Node.NumExportedEdges = 0;
 
-				for (const FLink Lk : Node.Links)
+				for (const FLink& Lk : Node.Links)
 				{
 					const int32 E = Lk.Edge;
-
 					if (VisitedEdges[E]) { continue; }
+
 					VisitedEdges[E] = true;
 					VisitedEdgesNum++;
 
-					const FEdge& Edge = Edges[E];
-
+					FEdge& Edge = Edges[E];
 					if (!Edge.bValid) { continue; }
 
-					const int32 OtherIndex = Edge.Other(NextIndex);
+					const int32 OtherIndex = Edge.Other(NodeIndex);
 					if (!Nodes[OtherIndex].bValid) { continue; }
 
 					Node.NumExportedEdges++;
-					SubGraph->Add(Edge, this);
+					SubGraph->Add(Edge);
 
-					if (!VisitedNodes[OtherIndex]) // Only enqueue if not already visited
+					if (!VisitedNodes[OtherIndex])
 					{
 						VisitedNodes[OtherIndex] = true;
 						VisitedNodesNum++;
-
 						Stack.Add(OtherIndex);
 					}
 				}
 			}
 
-			if (!Limits.IsValid(SubGraph))
+			if (!Limits.IsValid(SubGraph->Nodes.Num(), SubGraph->Edges.Num()))
 			{
-				// Invalidate traversed points and edges
 				for (const int32 j : SubGraph->Nodes) { Nodes[j].bValid = false; }
 				for (const int32 j : SubGraph->Edges) { Edges[j].bValid = false; }
-
-				SubGraph->Nodes.Reset();
-				SubGraph->Edges.Reset();
-				SubGraph->EdgesInIOIndices.Reset();
 			}
 			else if (!SubGraph->Edges.IsEmpty())
 			{
 				SubGraph->Shrink();
 				SubGraphs.Add(SubGraph.ToSharedRef());
-				SubGraph = nullptr;
 			}
 		}
 	}

@@ -166,6 +166,23 @@ namespace PCGExMT
 		}
 	};
 
+	class FScopedContainer : public TSharedFromThis<FScopedContainer>
+	{
+		FScope Scope;
+
+	public:
+		const FScope& GetScope() const { return Scope; }
+
+		virtual ~FScopedContainer() = default;
+		FScopedContainer(const FScope& InScope): Scope(InScope)
+		{
+		}
+
+		virtual void Reset()
+		{
+		}
+	};
+
 	template <typename T>
 	class TScopedArray final : public TSharedFromThis<TScopedArray<T>>
 	{
@@ -208,6 +225,8 @@ namespace PCGExMT
 		{
 			int32 Reserve = 0;
 			for (int i = 0; i < Arrays.Num(); i++) { Reserve += Arrays[i]->Num(); }
+			InTarget.Reserve(Reserve);
+			
 			for (int i = 0; i < Arrays.Num(); i++)
 			{
 				InTarget.Append(*Arrays[i].Get());
@@ -252,9 +271,12 @@ namespace PCGExMT
 
 		void Collapse(TSet<T>& InTarget)
 		{
+			int32 Reserve = 0;
+			for (int i = 0; i < Sets.Num(); i++) { Reserve += Sets[i]->Num(); }
+			InTarget.Reserve(Reserve);
+			
 			for (int i = 0; i < Sets.Num(); i++)
 			{
-				InTarget.Reserve(InTarget.Num() + Sets[i].Get()->Num());
 				InTarget.Append(*Sets[i].Get());
 				Sets[i] = nullptr;
 			}

@@ -79,12 +79,16 @@ void FPCGExPathfindingEdgesContext::BuildPath(const TSharedPtr<PCGExPathfinding:
 
 	if (Settings->bAddSeedToPath)
 	{
-		Query->Seed.Point.Data->CopyPropertiesTo(PathPoints, Query->Seed.Point.Index, 0, 1, AllocateProperties);
+		Query->Seed.Point.Data->CopyPropertiesTo(
+			PathPoints, Query->Seed.Point.Index, 0, 1,
+			AllocateProperties & ~EPCGPointNativeProperties::MetadataEntry);
 	}
 
 	if (Settings->bAddGoalToPath)
 	{
-		Query->Goal.Point.Data->CopyPropertiesTo(PathPoints, Query->Goal.Point.Index, PathPoints->GetNumPoints() - 1, 1, AllocateProperties);
+		Query->Goal.Point.Data->CopyPropertiesTo(
+			PathPoints, Query->Goal.Point.Index, PathPoints->GetNumPoints() - 1, 1,
+			AllocateProperties & ~EPCGPointNativeProperties::MetadataEntry);
 	}
 
 	PCGExGraph::CleanupClusterData(PathIO);

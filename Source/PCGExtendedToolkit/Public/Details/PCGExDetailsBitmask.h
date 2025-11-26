@@ -22,6 +22,16 @@ enum class EPCGExBitOp : uint8
 };
 
 UENUM()
+enum class EPCGExBitOp_OR : uint8
+{
+	OR  = 0 UMETA(DisplayName = "OR", ToolTip="OR (Flags |= Mask) Output true if any of the bits == 1, otherwise false."),
+	Set = 1 UMETA(DisplayName = "SET", ToolTip="SET (Flags = Mask) Set the bit with the specified value."),
+	AND = 2 UMETA(DisplayName = "AND", ToolTip="AND (Flags &= Mask) Output true if boths bits == 1, otherwise false."),
+	NOT = 3 UMETA(DisplayName = "NOT", ToolTip="NOT (Flags &= ~Mask) Like AND, but inverts the masks."),
+	XOR = 4 UMETA(DisplayName = "XOR", ToolTip="XOR (Flags ^= Mask) Invert the flag bit where the mask == 1."),
+};
+
+UENUM()
 enum class EPCGExBitmaskMode : uint8
 {
 	Direct     = 0 UMETA(DisplayName = "Direct", ToolTip="Used for easy override mostly. Will use the value of the bitmask as-is", ActionIcon="Bit_Direct"),
@@ -44,6 +54,16 @@ namespace PCGExBitmask
 	PCGEXTENDEDTOOLKIT_API
 	FString ToString(const EPCGExBitflagComparison Comparison);
 
+	constexpr EPCGExBitOp OR_Ops[5] = {
+		EPCGExBitOp::OR,
+		EPCGExBitOp::Set,
+		EPCGExBitOp::AND,
+		EPCGExBitOp::NOT,
+		EPCGExBitOp::XOR,
+	};
+
+	FORCEINLINE constexpr EPCGExBitOp GetBitOp(EPCGExBitOp_OR BitOp) { return OR_Ops[static_cast<uint8>(BitOp)]; }
+	
 	PCGEXTENDEDTOOLKIT_API
 	bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask);
 

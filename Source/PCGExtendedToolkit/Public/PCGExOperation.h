@@ -16,6 +16,7 @@ struct FPCGExContext;
 
 namespace PCGExMT
 {
+	class FScopedContainer;
 	struct FScope;
 	class FTaskManager;
 }
@@ -40,10 +41,12 @@ public:
 	TSharedPtr<PCGExData::FFacade> PrimaryDataFacade;
 	TSharedPtr<PCGExData::FFacade> SecondaryDataFacade;
 
+	
 	virtual void RegisterConsumableAttributesWithFacade(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InFacade) const;
 	virtual void RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const;
 
 	virtual void InitForScopes(const TArray<PCGExMT::FScope>& Loops);
+	virtual TSharedPtr<PCGExMT::FScopedContainer> GetScopedContainer(const PCGExMT::FScope& InScope) const;
 
 protected:
 	FPCGExContext* Context = nullptr;
