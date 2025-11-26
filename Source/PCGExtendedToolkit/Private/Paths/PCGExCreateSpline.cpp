@@ -26,6 +26,13 @@ void UPCGExCreateSplineSettings::ApplyDeprecation(UPCGNode* InOutNode)
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(CreateSpline)
+
+bool UPCGExCreateSplineSettings::ShouldCache() const
+{
+	if (Mode == EPCGCreateSplineMode::CreateComponent) { return false; }
+	return Super::ShouldCache();
+}
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL_ADV(CreateSpline)
 
 TArray<FPCGPinProperties> UPCGExCreateSplineSettings::OutputPinProperties() const
@@ -84,12 +91,6 @@ bool FPCGExCreateSplineElement::ExecuteInternal(FPCGContext* InContext) const
 	Context->ExecuteOnNotifyActors(Settings->PostProcessFunctionNames);
 
 	return Context->TryComplete();
-}
-
-bool FPCGExCreateSplineElement::IsCacheable(const UPCGSettings* InSettings) const
-{
-	const UPCGCreateSplineSettings* Settings = Cast<const UPCGCreateSplineSettings>(InSettings);
-	return !Settings || Settings->Mode == EPCGCreateSplineMode::CreateDataOnly;
 }
 
 bool FPCGExCreateSplineElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const

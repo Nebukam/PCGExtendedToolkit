@@ -49,6 +49,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FVector Direction;
 
+	FORCEINLINE FVector GetDirection() const { return Direction.GetSafeNormal(); }
+	FORCEINLINE void GetDirection(FVector& OutDir) const { OutDir = Direction.GetSafeNormal(); }
+	
 	UPROPERTY(Transient)
 	FPCGExBitmaskCache CachedBitmask;
 

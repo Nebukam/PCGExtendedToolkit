@@ -100,7 +100,7 @@ bool UPCGExStateFactoryProviderSettings::IsPinUsedByNodeExecution(const UPCGPin*
 	{
 		return bOutputBitmasks;
 	}
-	
+
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 
@@ -131,9 +131,10 @@ UPCGExFactoryData* UPCGExStateFactoryProviderSettings::CreateFactory(FPCGExConte
 
 	NewFactory->Priority = Priority;
 
-	if (!GetInputFactories(
-		InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,
-		PCGExFactories::ClusterNodeFilters) && NewFactory->GetRequiresFilters())
+	if (const bool bRequiresFilters = NewFactory->GetRequiresFilters();
+		!GetInputFactories(
+			InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,
+			PCGExFactories::ClusterNodeFilters, bRequiresFilters) && bRequiresFilters)
 	{
 		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;

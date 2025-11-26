@@ -5,11 +5,13 @@
 #include "Details/PCGExDetailsCustomization.h"
 
 #include "AssetToolsModule.h"
+#include "IDetailChildrenBuilder.h"
 #include "Details/PCGExDetailsInputShorthands.h"
 #include "Details/Collections/PCGExActorCollectionActions.h"
 #include "Details/Actions/PCGExActorDataPackerActions.h"
 #include "Details/Bitmask/PCGExBitmaskActions.h"
 #include "Details/Bitmask/PCGExBitmaskCustomization.h"
+#include "Details/Bitmask/PCGExBitmaskEntryCustomization.h"
 #include "Details/Bitmask/PCGExBitmaskRefCustomization.h"
 #include "Details/Bitmask/PCGExClampedBitCustomization.h"
 #include "Details/Bitmask/PCGExClampedBitOpCustomization.h"
@@ -207,6 +209,7 @@ namespace PCGExDetailsCustomization
 		PCGEX_REGISTER_CUSTO("PCGExBitmaskFilterConfig", FPCGExBitmaskFilterConfigCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExClampDetails", FPCGExClampDetailsCustomization)
 		PCGEX_REGISTER_CUSTO("PCGExBitmaskRef", FPCGExBitmaskRefCustomization)
+		PCGEX_REGISTER_CUSTO("PCGExBitmaskCollectionEntry", FPCGExBitmaskEntryCustomization)
 
 		PCGEX_REGISTER_CUSTO("PCGExCompareSelectorDouble", FPCGExCompareShorthandCustomization)
 
