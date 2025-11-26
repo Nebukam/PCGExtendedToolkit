@@ -136,22 +136,25 @@ namespace PCGExConnectPoints
 
 			if (!NewOperation->RequiresOctree())
 			{
-				DirectProbes.Add(NewOperation);
+				DirectOperations.Add(NewOperation);
 				continue;
 			}
 
 			if (!NewOperation->SearchRadius->IsConstant()) { bUseVariableRadius = true; }
 			SharedSearchRadius = FMath::Max(SharedSearchRadius, NewOperation->BaseConfig->SearchRadiusConstant);
 
-			if (NewOperation->RequiresChainProcessing()) { ChainProbeOperations.Add(NewOperation); }
-			else { SharedProbeOperations.Add(NewOperation); }
+			if (NewOperation->RequiresChainProcessing()) { ChainedOperations.Add(NewOperation); }
+			else { SharedOperations.Add(NewOperation); }
 
-			SearchProbes.Add(NewOperation);
+			RadiusSources.Add(NewOperation);
 		}
 
-		NumChainedOps = ChainProbeOperations.Num();
+		NumRadiusSources = RadiusSources.Num();
+		NumChainedOps = ChainedOperations.Num();
+		NumSharedOps = SharedOperations.Num();
+		NumDirectOps = DirectOperations.Num();
 
-		if (SearchProbes.IsEmpty() && DirectProbes.IsEmpty()) { return false; }
+		if (RadiusSources.IsEmpty() && DirectOperations.IsEmpty()) { return false; }
 
 		if (!PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EIOInit::New)) { return false; }
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
@@ -175,7 +178,7 @@ namespace PCGExConnectPoints
 
 		bUseProjection = Settings->bProjectPoints;
 
-		if (!SearchProbes.IsEmpty())
+		if (!RadiusSources.IsEmpty())
 		{
 			// If we have search probes, build the octree
 			const FBox B = PointDataFacade->GetIn()->GetBounds();
@@ -215,7 +218,7 @@ namespace PCGExConnectPoints
 
 		const int32 NumPoints = OriginalTransforms.Num();
 
-		if (!SearchProbes.IsEmpty())
+		if (!RadiusSources.IsEmpty())
 		{
 			constexpr double PPRefRadius = 0.05;
 			const FVector PPRefExtents = FVector(PPRefRadius);
@@ -261,96 +264,124 @@ namespace PCGExConnectPoints
 		const UPCGBasePointData* InPointData = PointDataFacade->GetIn();
 		const TConstPCGValueRange<FTransform> OriginalTransforms = InPointData->GetConstTransformValueRange();
 
+		TSet<uint64>* UniqueEdges = ScopedEdges->Get(Scope).Get();
+		TUniquePtr<TSet<uint64>> LocalCoincidence;
+		if (bPreventCoincidence) { LocalCoincidence = MakeUnique<TSet<uint64>>(); }
+
+#define PCGEX_SCOPED_CONTAINERS(_NAME)\
+		TArray<TSharedPtr<PCGExMT::FScopedContainer>> _NAME##OpsContainers;\
+		_NAME##OpsContainers.Reserve(NumChainedOps);\
+		for (int i = 0; i < Num##_NAME##Ops; i++){ _NAME##OpsContainers.Add(_NAME##Operations[i]->GetScopedContainer(Scope)); }
+
+		PCGEX_SCOPED_CONTAINERS(Chained)
+		PCGEX_SCOPED_CONTAINERS(Shared)
+		PCGEX_SCOPED_CONTAINERS(Direct)
+
+#undef PCGEX_SCOPED_CONTAINERS
+
+		TArray<PCGExProbing::FCandidate> Candidates;
+		TArray<PCGExProbing::FBestCandidate> BestCandidates;
+
+		FTransform CandidateTransform = FTransform::Identity;
+		FVector Origin = FVector::ZeroVector;
+		int32 CurrentIndex = 0;
+
+		auto ProcessPoint = [&](const PCGExOctree::FItem& InPositionRef)
+		{
+			const int32 OtherPointIndex = InPositionRef.Index;
+			if (OtherPointIndex == CurrentIndex) { return; }
+
+			const FVector Position = WorkingTransforms[OtherPointIndex].GetLocation();
+			const FVector Dir = (Origin - Position).GetSafeNormal();
+			const int32 EmplaceIndex = Candidates.Emplace(
+				OtherPointIndex,
+				Dir,
+				FVector::DistSquared(Position, Origin),
+				bPreventCoincidence ? PCGEx::GH3(Dir, CWCoincidenceTolerance) : 0);
+
+			if (NumChainedOps > 0)
+			{
+				for (int i = 0; i < NumChainedOps; i++)
+				{
+					ChainedOperations[i]->ProcessCandidateChained(i, CandidateTransform, EmplaceIndex, Candidates[EmplaceIndex], BestCandidates[i], ChainedOpsContainers[i].Get());
+				}
+			}
+		};
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!CanGenerate[Index]) { continue; } // Not a generator
 
-			TSet<uint64>* UniqueEdges = ScopedEdges->Get(Scope).Get();
-			TUniquePtr<TSet<uint64>> LocalCoincidence;
-			if (bPreventCoincidence) { LocalCoincidence = MakeUnique<TSet<uint64>>(); }
+#define PCGEX_SCOPED_CONTAINERS_RESET(_NAME) for (const TSharedPtr<PCGExMT::FScopedContainer>& Container : _NAME##OpsContainers){ if(Container){ Container->Reset(); } }
 
-			const FTransform& CandidateTransform = bUseProjection ? WorkingTransforms[Index] : OriginalTransforms[Index];
+			PCGEX_SCOPED_CONTAINERS_RESET(Chained)
+			PCGEX_SCOPED_CONTAINERS_RESET(Shared)
+			PCGEX_SCOPED_CONTAINERS_RESET(Direct)
 
-			TArray<PCGExProbing::FBestCandidate> BestCandidates;
+#undef PCGEX_SCOPED_CONTAINERS_RESET
+
+			CurrentIndex = Index;
+			Candidates.Reset();
+
+			if (LocalCoincidence) { LocalCoincidence->Reset(); }
+
+			CandidateTransform = bUseProjection ? WorkingTransforms[Index] : OriginalTransforms[Index];
 
 			if (NumChainedOps > 0)
 			{
 				BestCandidates.SetNum(NumChainedOps);
-				for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->PrepareBestCandidate(Index, CandidateTransform, BestCandidates[i]); }
+				for (int i = 0; i < NumChainedOps; i++)
+				{
+					ChainedOperations[i]->PrepareBestCandidate(
+						Index, CandidateTransform, BestCandidates[i],
+						ChainedOpsContainers[i].Get());
+				}
 			}
 
-			if (!SearchProbes.IsEmpty())
+			if (!RadiusSources.IsEmpty())
 			{
 				double MaxRadius = 0;
 				if (!bUseVariableRadius) { MaxRadius = SharedSearchRadius; }
-				else
-				{
-					for (const TSharedPtr<FPCGExProbeOperation>& Op : SearchProbes) { MaxRadius = FMath::Max(MaxRadius, Op->GetSearchRadius(Index)); }
-				}
+				else { for (int i = 0; i < NumRadiusSources; i++) { MaxRadius = FMath::Max(MaxRadius, RadiusSources[i]->GetSearchRadius(Index)); } }
 
-				const FVector Origin = WorkingTransforms[Index].GetLocation();
+				Origin = WorkingTransforms[Index].GetLocation();
 
-				TArray<PCGExProbing::FCandidate> Candidates;
-
-				auto ProcessPoint = [&](const PCGExOctree::FItem& InPositionRef)
-				{
-					const int32 OtherPointIndex = InPositionRef.Index;
-					if (OtherPointIndex == Index) { return; }
-
-					const FVector Position = WorkingTransforms[OtherPointIndex].GetLocation();
-					const FVector Dir = (Origin - Position).GetSafeNormal();
-					const int32 EmplaceIndex = Candidates.Emplace(
-						OtherPointIndex,
-						Dir,
-						FVector::DistSquared(Position, Origin),
-						bPreventCoincidence ? PCGEx::GH3(Dir, CWCoincidenceTolerance) : 0);
-
-					if (NumChainedOps > 0)
-					{
-						for (int i = 0; i < NumChainedOps; i++)
-						{
-							ChainProbeOperations[i]->ProcessCandidateChained(i, CandidateTransform, EmplaceIndex, Candidates[EmplaceIndex], BestCandidates[i]);
-						}
-					}
-				};
-
+				// Find candidates within radius
 				Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Origin, FVector(MaxRadius)), ProcessPoint);
+				Candidates.Sort([&](const PCGExProbing::FCandidate& A, const PCGExProbing::FCandidate& B) { return A.Distance < B.Distance; });
 
-				if (NumChainedOps > 0)
+				for (int i = 0; i < NumChainedOps; i++)
 				{
-					for (int i = 0; i < NumChainedOps; i++)
-					{
-						ChainProbeOperations[i]->ProcessBestCandidate(Index, CandidateTransform, BestCandidates[i], Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges);
-					}
+					ChainedOperations[i]->ProcessBestCandidate(
+						Index, CandidateTransform, BestCandidates[i],
+						Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges,
+						ChainedOpsContainers[i].Get());
 				}
 
-				if (!Candidates.IsEmpty())
+				for (int i = 0; i < NumSharedOps; i++)
 				{
-					Algo::Sort(Candidates, [&](const PCGExProbing::FCandidate& A, const PCGExProbing::FCandidate& B) { return A.Distance < B.Distance; });
-					for (const TSharedPtr<FPCGExProbeOperation>& Op : SharedProbeOperations)
-					{
-						Op->ProcessCandidates(Index, CandidateTransform, Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges);
-					}
-				}
-				else
-				{
-					for (const TSharedPtr<FPCGExProbeOperation>& Op : SharedProbeOperations)
-					{
-						Op->ProcessCandidates(Index, CandidateTransform, Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges);
-					}
+					SharedOperations[i]->ProcessCandidates(
+						Index, CandidateTransform,
+						Candidates, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges,
+						SharedOpsContainers[i].Get());
 				}
 			}
 
-			for (const TSharedPtr<FPCGExProbeOperation>& Op : DirectProbes)
+			for (int i = 0; i < NumDirectOps; i++)
 			{
-				Op->ProcessNode(Index, CandidateTransform, LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges, AcceptConnections);
+				DirectOperations[i]->ProcessNode(
+					Index, CandidateTransform,
+					LocalCoincidence.Get(), CWCoincidenceTolerance, UniqueEdges,
+					AcceptConnections, DirectOpsContainers[i].Get());
 			}
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		ScopedEdges->ForEach([this](const TSet<uint64>& Edges) { GraphBuilder->Graph->InsertEdges_Unsafe(Edges, -1); });
+		TSet<uint64> UniqueEdges;
+		ScopedEdges->Collapse(UniqueEdges);
+		GraphBuilder->Graph->InsertEdges_Unsafe(UniqueEdges, -1);
 		ScopedEdges.Reset();
 
 		GraphBuilder->CompileAsync(AsyncManager, false);
@@ -376,10 +407,10 @@ namespace PCGExConnectPoints
 	{
 		TProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>::Cleanup();
 
-		SearchProbes.Empty();
-		DirectProbes.Empty();
-		ChainProbeOperations.Empty();
-		SharedProbeOperations.Empty();
+		RadiusSources.Empty();
+		DirectOperations.Empty();
+		ChainedOperations.Empty();
+		SharedOperations.Empty();
 	}
 }
 

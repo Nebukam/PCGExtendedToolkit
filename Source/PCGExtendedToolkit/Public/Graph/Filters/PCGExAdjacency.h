@@ -112,7 +112,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 
 namespace PCGExAdjacency
 {
-	class FBitmaskData : public TSharedFromThis<FBitmaskData>
+	class PCGEXTENDEDTOOLKIT_API FBitmaskData : public TSharedFromThis<FBitmaskData>
 	{
 	public:
 		
@@ -128,6 +128,8 @@ namespace PCGExAdjacency
 
 		void MutateMatch(const FVector& InDirection, int64& Flags) const;
 		void MutateUnmatch(const FVector& InDirection, int64& Flags) const;
+
+		static TSharedPtr<FBitmaskData> Make(const TMap<TObjectPtr<UPCGExBitmaskCollection>, EPCGExBitOp_OR>& InCollections, const TArray<FPCGExBitmaskRef>& InReferences, const double Angle);
 		
 	};
 }

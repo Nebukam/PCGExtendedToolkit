@@ -16,6 +16,7 @@ struct FPCGExContext;
 
 namespace PCGExMT
 {
+	class FScopedContainer;
 	struct FScope;
 	class FTaskManager;
 }
@@ -44,6 +45,7 @@ public:
 	virtual void RegisterPrimaryBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) const;
 
 	virtual void InitForScopes(const TArray<PCGExMT::FScope>& Loops);
+	virtual TSharedPtr<PCGExMT::FScopedContainer> GetScopedContainer(const PCGExMT::FScope& InScope) const;
 
 protected:
 	FPCGExContext* Context = nullptr;

@@ -24,7 +24,7 @@ bool FPCGExProbeClosest::PrepareForPoints(FPCGExContext* InContext, const TShare
 	return true;
 }
 
-void FPCGExProbeClosest::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
+void FPCGExProbeClosest::ProcessCandidates(const int32 Index, const FTransform& WorkingTransform, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, PCGExMT::FScopedContainer* Container)
 {
 	bool bIsAlreadyConnected;
 	const int32 MaxIterations = FMath::Min(MaxConnections->Read(Index), Candidates.Num());
@@ -56,11 +56,6 @@ void FPCGExProbeClosest::ProcessCandidates(const int32 Index, const FTransform& 
 		Additions++;
 		if (Additions >= MaxIterations) { return; }
 	}
-}
-
-void FPCGExProbeClosest::ProcessNode(const int32 Index, const FTransform& WorkingTransform, TSet<uint64>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges, const TArray<int8>& AcceptConnections)
-{
-	FPCGExProbeOperation::ProcessNode(Index, WorkingTransform, nullptr, FVector::ZeroVector, OutEdges, AcceptConnections);
 }
 
 #if WITH_EDITOR

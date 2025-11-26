@@ -49,12 +49,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FVector Direction;
 
+	FORCEINLINE FVector GetDirection() const { return Direction.GetSafeNormal(); }
+	FORCEINLINE void GetDirection(FVector& OutDir) const { OutDir = Direction.GetSafeNormal(); }
+
 	UPROPERTY(Transient)
 	FPCGExBitmaskCache CachedBitmask;
 
 	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
 	void RebuildCache();
-	
 };
 
 namespace PCGExBitmaskCollection
@@ -99,12 +101,11 @@ public:
 #if WITH_EDITOR
 	bool HasCircularDependency(const UPCGExBitmaskCollection* OtherCollection) const;
 	bool HasCircularDependency(TSet<const UPCGExBitmaskCollection*>& InReferences) const;
-	
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;	
+
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	TArray<FName> EDITOR_GetIdentifierOptions() const;
 #endif
 
-	
 
 #if WITH_EDITORONLY_DATA
 	/** Dev notes/comments. Editor-only data.  */

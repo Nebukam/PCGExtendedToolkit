@@ -15,7 +15,7 @@ void FPCGExBitmaskCollectionEntry::RebuildCache()
 {
 	CachedBitmask.Identifier = Identifier;
 	CachedBitmask.Bitmask = Bitmask.Get();
-	CachedBitmask.Direction = Direction.GetSafeNormal();
+	GetDirection(CachedBitmask.Direction);
 }
 
 bool PCGExBitmaskCollection::FCache::TryGetBitmask(const FName Identifier, int64& OutBitmask) const

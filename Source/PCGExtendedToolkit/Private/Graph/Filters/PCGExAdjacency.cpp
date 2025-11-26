@@ -111,7 +111,7 @@ namespace PCGExAdjacency
 			FPCGExSimpleBitmask& Bitmask = Bitmasks.Emplace_GetRef();
 			Bitmask.Bitmask = Entry.Bitmask.Get();
 			Bitmask.Op = Op;
-			Directions.Add(Entry.Direction);
+			Directions.Add(Entry.GetDirection());
 			Dots.Add(Dot);
 		}
 	}
@@ -145,20 +145,30 @@ namespace PCGExAdjacency
 	void FBitmaskData::MutateMatch(const FVector& InDirection, int64& Flags) const
 	{
 		const int32 NumEntries = Directions.Num();
-		for (int i = 0; i < NumEntries; ++i)
+		for (int i = 0; i < NumEntries; i++)
 		{
-			if (FVector::DotProduct(InDirection, Directions[i]) < Dots[i]) { continue; }
-			Bitmasks[i].Mutate(Flags);
+			if (FVector::DotProduct(InDirection, Directions[i]) >= Dots[i]) { Bitmasks[i].Mutate(Flags); }
 		}
 	}
 
 	void FBitmaskData::MutateUnmatch(const FVector& InDirection, int64& Flags) const
 	{
 		const int32 NumEntries = Directions.Num();
-		for (int i = 0; i < NumEntries; ++i)
+		for (int i = 0; i < NumEntries; i++)
 		{
-			if (FVector::DotProduct(InDirection, Directions[i]) > Dots[i]) { continue; }
-			Bitmasks[i].Mutate(Flags);
+			if (FVector::DotProduct(InDirection, Directions[i]) <= Dots[i]) { Bitmasks[i].Mutate(Flags); }
 		}
+	}
+
+	TSharedPtr<FBitmaskData> FBitmaskData::Make(const TMap<TObjectPtr<UPCGExBitmaskCollection>, EPCGExBitOp_OR>& InCollections, const TArray<FPCGExBitmaskRef>& InReferences, const double Angle)
+	{
+		TSharedPtr<FBitmaskData> Data = MakeShared<FBitmaskData>();
+		Data = MakeShared<FBitmaskData>();
+		Data->Append(InReferences, Angle);
+		for (const TPair<TObjectPtr<UPCGExBitmaskCollection>, EPCGExBitOp_OR>& Pair : InCollections)
+		{
+			if (Pair.Key) { Data->Append(Pair.Key, Angle, PCGExBitmask::GetBitOp(Pair.Value)); }
+		}
+		return Data;
 	}
 }

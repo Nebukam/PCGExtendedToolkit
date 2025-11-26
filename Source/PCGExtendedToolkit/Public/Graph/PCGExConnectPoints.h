@@ -94,13 +94,18 @@ namespace PCGExConnectPoints
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		TArray<TSharedPtr<FPCGExProbeOperation>> SearchProbes;
-		TArray<TSharedPtr<FPCGExProbeOperation>> DirectProbes;
-		TArray<TSharedPtr<FPCGExProbeOperation>> ChainProbeOperations;
-		TArray<TSharedPtr<FPCGExProbeOperation>> SharedProbeOperations;
+		TArray<TSharedPtr<FPCGExProbeOperation>> RadiusSources;
+		
+		TArray<TSharedPtr<FPCGExProbeOperation>> DirectOperations;
+		TArray<TSharedPtr<FPCGExProbeOperation>> ChainedOperations;
+		TArray<TSharedPtr<FPCGExProbeOperation>> SharedOperations;
+
+		int32 NumRadiusSources = 0;
+		int32 NumDirectOps = 0;
+		int32 NumChainedOps = 0;
+		int32 NumSharedOps = 0;
 
 		bool bUseVariableRadius = false;
-		int32 NumChainedOps = 0;
 		double SharedSearchRadius = 0;
 
 		TArray<int8> CanGenerate;

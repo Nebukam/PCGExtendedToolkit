@@ -11,6 +11,7 @@
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExAdjacencyStateFactoryData::CreateFilter() const
 {
 	PCGEX_MAKE_SHARED(NewState, PCGExAdjacencyStates::FState, this)
+	NewState->bInvert = bInvert;
 	NewState->bTransformDirection = bTransformDirection;
 	NewState->SuccessBitmaskData = SuccessBitmaskData;
 	NewState->FailBitmaskData = FailBitmaskData;
@@ -44,12 +45,26 @@ namespace PCGExAdjacencyStates
 		if (!bSuccess && !FailBitmaskData) { return; }
 
 		const FTransform& InTransform = InTransformRange[Node.PointIndex];
-		for (const PCGExGraph::FLink& Lk : Node.Links)
+
+		if (bInvert)
 		{
-			FVector Dir = Cluster->GetDir(Node.Index, Lk.Node);
-			if (bTransformDirection) { Dir = InTransform.InverseTransformVectorNoScale(Dir); }
-			if (bSuccess) { SuccessBitmaskData->MutateMatch(Dir, InFlags); }
-			else { FailBitmaskData->MutateMatch(Dir, InFlags); }
+			for (const PCGExGraph::FLink& Lk : Node.Links)
+			{
+				FVector Dir = Cluster->GetDir(Node.Index, Lk.Node);
+				if (bTransformDirection) { Dir = InTransform.InverseTransformVectorNoScale(Dir); }
+				if (bSuccess) { SuccessBitmaskData->MutateUnmatch(Dir, InFlags); }
+				else { FailBitmaskData->MutateUnmatch(Dir, InFlags); }
+			}
+		}
+		else
+		{
+			for (const PCGExGraph::FLink& Lk : Node.Links)
+			{
+				FVector Dir = Cluster->GetDir(Node.Index, Lk.Node);
+				if (bTransformDirection) { Dir = InTransform.InverseTransformVectorNoScale(Dir); }
+				if (bSuccess) { SuccessBitmaskData->MutateMatch(Dir, InFlags); }
+				else { FailBitmaskData->MutateMatch(Dir, InFlags); }
+			}
 		}
 	}
 
@@ -62,7 +77,7 @@ namespace PCGExAdjacencyStates
 TArray<FPCGPinProperties> UPCGExAdjacencyStateFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, TEXT("Filters used to check which node should be processed."), Normal)
+	PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, TEXT("Filters used to check which node should be processed."), Advanced)
 	return PinProperties;
 }
 
@@ -74,24 +89,15 @@ UPCGExFactoryData* UPCGExAdjacencyStateFactoryProviderSettings::CreateFactory(FP
 	TSharedPtr<PCGExAdjacency::FBitmaskData> SuccessBitmaskData = MakeShared<PCGExAdjacency::FBitmaskData>();
 	TSharedPtr<PCGExAdjacency::FBitmaskData> FailBitmaskData = nullptr;
 
-	if (Config.bUseAlternativeBitmasksOnFail)
+	if (Config.bUseAlternativeBitmasksOnFilterFail)
 	{
-		FailBitmaskData = MakeShared<PCGExAdjacency::FBitmaskData>();
-		FailBitmaskData->Append(Config.OnFailCompositions, Config.Angle);
-		for (const TPair<TObjectPtr<UPCGExBitmaskCollection>, EPCGExBitOp>& Pair : Config.OnFailCollections)
-		{
-			if (Pair.Key) { FailBitmaskData->Append(Pair.Key, Config.Angle, Pair.Value); }
-		}
+		FailBitmaskData = PCGExAdjacency::FBitmaskData::Make(Config.OnFailCollections, Config.OnFailCompositions, Config.Angle);
 	}
 
-	SuccessBitmaskData = MakeShared<PCGExAdjacency::FBitmaskData>();
-	SuccessBitmaskData->Append(Config.Compositions, Config.Angle);
-	for (const TPair<TObjectPtr<UPCGExBitmaskCollection>, EPCGExBitOp>& Pair : Config.Collections)
-	{
-		if (Pair.Key) { SuccessBitmaskData->Append(Pair.Key, Config.Angle, Pair.Value); }
-	}
+	SuccessBitmaskData = PCGExAdjacency::FBitmaskData::Make(Config.Collections, Config.Compositions, Config.Angle);
 
 	NewFactory->bTransformDirection = Config.bTransformDirection;
+	NewFactory->bInvert = Config.bInvert;
 	NewFactory->SuccessBitmaskData = SuccessBitmaskData;
 	NewFactory->FailBitmaskData = FailBitmaskData;
 

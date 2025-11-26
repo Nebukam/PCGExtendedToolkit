@@ -43,19 +43,23 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyStateConfigBase
 
 	/** Operations executed on the flag if all filters pass (or if no filter is set) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	TMap<TObjectPtr<UPCGExBitmaskCollection>, EPCGExBitOp> Collections;
+	TMap<TObjectPtr<UPCGExBitmaskCollection>, EPCGExBitOp_OR> Collections;
 
 	/** If enabled, and if filters exist, will apply alternative bitwise operations when filters fail. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	bool bUseAlternativeBitmasksOnFail = true;
+	bool bUseAlternativeBitmasksOnFilterFail = false;
 
 	/** Operations executed on the flag if any filters fails */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" ├─ Compositions", EditCondition="bUseAlternativeBitmasksOnFail"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" ├─ Compositions", EditCondition="bUseAlternativeBitmasksOnFilterFail"))
 	TArray<FPCGExBitmaskRef> OnFailCompositions;
 
 	/** Operations executed on the flag if any filters fails */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Collections", EditCondition="bUseAlternativeBitmasksOnFail"))
-	TMap<TObjectPtr<UPCGExBitmaskCollection>, EPCGExBitOp> OnFailCollections;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Collections", EditCondition="bUseAlternativeBitmasksOnFilterFail"))
+	TMap<TObjectPtr<UPCGExBitmaskCollection>, EPCGExBitOp_OR> OnFailCollections;
+
+	/** Whether to invert the dot product check. Bitmasks will be applied with direction does NOT match. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
 };
 
 /**
@@ -68,6 +72,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExAdjacencyStateFactoryData : public UPCGExClus
 
 public:
 	bool bTransformDirection = true;
+	bool bInvert = false;
 	TSharedPtr<PCGExAdjacency::FBitmaskData> SuccessBitmaskData;
 	TSharedPtr<PCGExAdjacency::FBitmaskData> FailBitmaskData;
 
@@ -81,9 +86,10 @@ namespace PCGExAdjacencyStates
 	{
 	protected:
 		TConstPCGValueRange<FTransform> InTransformRange;
-		
+
 	public:
 		bool bTransformDirection = true;
+		bool bInvert = false;
 		TSharedPtr<PCGExAdjacency::FBitmaskData> SuccessBitmaskData;
 		TSharedPtr<PCGExAdjacency::FBitmaskData> FailBitmaskData;
 
@@ -109,7 +115,7 @@ namespace PCGExAdjacencyStates
 	};
 };
 
-UCLASS(Hidden, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/metadata/flag-nodes/node-flag"))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params", meta=(PCGExNodeLibraryDoc="clusters/metadata/flag-nodes/node-flag"))
 class PCGEXTENDEDTOOLKIT_API UPCGExAdjacencyStateFactoryProviderSettings : public UPCGExStateFactoryProviderSettings
 {
 	GENERATED_BODY()

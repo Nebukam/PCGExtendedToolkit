@@ -15,9 +15,19 @@ class UPCGExBitmaskCollection;
 UENUM()
 enum class EPCGExBitOp : uint8
 {
-	Set = 0 UMETA(DisplayName = "=", ToolTip="SET (Flags = Mask) Set the bit with the specified value."),
+	Set = 0 UMETA(DisplayName = "SET", ToolTip="SET (Flags = Mask) Set the bit with the specified value."),
 	AND = 1 UMETA(DisplayName = "AND", ToolTip="AND (Flags &= Mask) Output true if boths bits == 1, otherwise false."),
 	OR  = 2 UMETA(DisplayName = "OR", ToolTip="OR (Flags |= Mask) Output true if any of the bits == 1, otherwise false."),
+	NOT = 3 UMETA(DisplayName = "NOT", ToolTip="NOT (Flags &= ~Mask) Like AND, but inverts the masks."),
+	XOR = 4 UMETA(DisplayName = "XOR", ToolTip="XOR (Flags ^= Mask) Invert the flag bit where the mask == 1."),
+};
+
+UENUM()
+enum class EPCGExBitOp_OR : uint8
+{
+	OR  = 0 UMETA(DisplayName = "OR", ToolTip="OR (Flags |= Mask) Output true if any of the bits == 1, otherwise false."),
+	Set = 1 UMETA(DisplayName = "SET", ToolTip="SET (Flags = Mask) Set the bit with the specified value."),
+	AND = 2 UMETA(DisplayName = "AND", ToolTip="AND (Flags &= Mask) Output true if boths bits == 1, otherwise false."),
 	NOT = 3 UMETA(DisplayName = "NOT", ToolTip="NOT (Flags &= ~Mask) Like AND, but inverts the masks."),
 	XOR = 4 UMETA(DisplayName = "XOR", ToolTip="XOR (Flags ^= Mask) Invert the flag bit where the mask == 1."),
 };
@@ -48,6 +58,16 @@ namespace PCGExBitmask
 	PCGEXTENDEDTOOLKIT_API
 	bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask);
 
+	constexpr EPCGExBitOp OR_Ops[5] = {
+		EPCGExBitOp::OR,
+		EPCGExBitOp::Set,
+		EPCGExBitOp::AND,
+		EPCGExBitOp::NOT,
+		EPCGExBitOp::XOR,
+	};
+
+	FORCEINLINE constexpr EPCGExBitOp GetBitOp(EPCGExBitOp_OR BitOp) { return OR_Ops[static_cast<uint8>(BitOp)]; }
+
 	FORCEINLINE static void Mutate(const EPCGExBitOp Operation, int64& Flags, const int64 Mask)
 	{
 		switch (Operation)
@@ -73,7 +93,7 @@ namespace PCGExBitmask
 
 	PCGEXTENDEDTOOLKIT_API
 	void Mutate(const TArray<FPCGExBitmaskRef>& Compositions, int64& Flags);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	void Mutate(const TArray<FPCGExSimpleBitmask>& Compositions, int64& Flags);
 }
@@ -127,15 +147,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleBitmask
 	UPROPERTY(EditAnywhere, Category = Settings)
 	EPCGExBitOp Op = EPCGExBitOp::OR;
 
-	FORCEINLINE void Mutate(int64& Flags) const{PCGExBitmask::Mutate(Op, Flags, Bitmask);}
-	
+	FORCEINLINE void Mutate(int64& Flags) const { PCGExBitmask::Mutate(Op, Flags, Bitmask); }
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Bitmask Ref")
 struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskRef
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TObjectPtr<UPCGExBitmaskCollection> Source;
 
@@ -148,9 +167,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskRef
 #if WITH_EDITOR
 	TArray<FName> EDITOR_GetIdentifierOptions() const;
 #endif
-	
+
 	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
-	
+
 	void Mutate(int64& Flags) const;
 	FPCGExSimpleBitmask GetSimpleBitmask() const;
 	bool TryGetAdjacencyInfos(FVector& OutDirection, FPCGExSimpleBitmask& OutSimpleBitmask) const;
@@ -208,10 +227,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmask
 #pragma endregion
 
 	int64 Get() const;
-	FORCEINLINE void Mutate(const EPCGExBitOp Op, int64& Flags) const{PCGExBitmask::Mutate(Op, Flags, Get());}
+	FORCEINLINE void Mutate(const EPCGExBitOp Op, int64& Flags) const { PCGExBitmask::Mutate(Op, Flags, Get()); }
 
 	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
-	
+
 #if WITH_EDITOR
 	void ApplyDeprecation();
 #endif
@@ -271,7 +290,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 	void Mutate(int64& Flags) const;
 
 	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
-	
+
 #if WITH_EDITOR
 	void ApplyDeprecation();
 #endif

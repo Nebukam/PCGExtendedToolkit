@@ -190,7 +190,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 
 	bool WantsClusters() const;
 
-	bool IsValid(const TSharedPtr<PCGExGraph::FSubGraph>& InSubgraph) const;
+	bool IsValid(const int32 NumVtx, const int32 NumEdges) const;
 };
 
 namespace PCGExGraph
@@ -367,7 +367,7 @@ namespace PCGExGraph
 
 		~FSubGraph() = default;
 
-		void Add(const FEdge& Edge, FGraph* InGraph);
+		void Add(const FEdge& Edge);
 		void Shrink();
 
 		void BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster);
