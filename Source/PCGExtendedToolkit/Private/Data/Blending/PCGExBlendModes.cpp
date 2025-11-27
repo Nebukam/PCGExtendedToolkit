@@ -23,7 +23,10 @@ namespace PCGExBlend
 		}
 		else if constexpr (std::is_same_v<T, FName>)
 		{
-			return FName(A.ToString() + B.ToString());
+			const FString AString = A.ToString();
+			const FString BString = B.ToString();
+			if ((AString.Len() + BString.Len()) > 1023) { return A; }
+			return FName(AString + BString);
 		}
 		else if constexpr (
 			std::is_same_v<T, bool> ||

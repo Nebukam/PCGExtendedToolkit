@@ -277,16 +277,14 @@ namespace PCGExCluster
 		TSparseArray<int32> TempLookup;
 		TempLookup.Reserve(SubGraph->Nodes.Num());
 
-		const int32 NumEdges = Edges->Num();
-
-		for (int i = 0; i < NumEdges; i++)
+		for (const TArray<FEdge>& SubgraphEdges = *Edges.Get();
+		     const FEdge& E : SubgraphEdges)
 		{
-			const FEdge* E = Edges->GetData() + i;
-			const int32 StartNode = GetOrCreateNode_Unsafe(TempLookup, E->Start);
-			const int32 EndNode = GetOrCreateNode_Unsafe(TempLookup, E->End);
+			const int32 StartNode = GetOrCreateNode_Unsafe(TempLookup, E.Start);
+			const int32 EndNode = GetOrCreateNode_Unsafe(TempLookup, E.End);
 
-			(Nodes->GetData() + StartNode)->Link(EndNode, E->Index);
-			(Nodes->GetData() + EndNode)->Link(StartNode, E->Index);
+			(Nodes->GetData() + StartNode)->Link(EndNode, E.Index);
+			(Nodes->GetData() + EndNode)->Link(StartNode, E.Index);
 		}
 
 		Bounds = Bounds.ExpandBy(10);

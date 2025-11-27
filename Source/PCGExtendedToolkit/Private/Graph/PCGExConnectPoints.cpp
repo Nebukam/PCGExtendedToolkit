@@ -377,7 +377,7 @@ namespace PCGExConnectPoints
 		}
 	}
 
-	void FProcessor::CompleteWork()
+	void FProcessor::OnPointsProcessingComplete()
 	{
 		TSet<uint64> UniqueEdges;
 		ScopedEdges->Collapse(UniqueEdges);
@@ -385,6 +385,11 @@ namespace PCGExConnectPoints
 		ScopedEdges.Reset();
 
 		GraphBuilder->CompileAsync(AsyncManager, false);
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		
 	}
 
 	void FProcessor::Write()

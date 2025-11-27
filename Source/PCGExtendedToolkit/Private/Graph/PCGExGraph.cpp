@@ -8,6 +8,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExSortHelpers.h"
 #include "Details/PCGExDetailsIntersection.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Metadata/PCGMetadata.h"
@@ -272,9 +273,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 
 	void FSubGraph::Add(const FEdge& Edge)
 	{
-		Nodes.Add(Edge.Start);
-		Nodes.Add(Edge.End);
-		Edges.Add(Edge.Index);
+		Edges.Emplace(Edge.Index, Edge.H64U());
 		if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
 	}
 
@@ -311,68 +310,16 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::ExecuteTask);
 
 		const TSharedPtr<FGraph> ParentGraph = WeakParentGraph.Pin();
+		const TArray<FNode>& ParentGraphNodes = ParentGraph->Nodes;
+		const TArray<FEdge>& ParentGraphEdges = ParentGraph->Edges;
 
 		WeakBuilder = InBuilder;
 		WeakAsyncManager = AsyncManager;
 
 		const int32 NumEdges = Edges.Num();
-		TArray<int32> EdgeDump = Edges.Array();
+		PCGEx::RadixSort(Edges);
 
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::EdgeSorting);
-
-
-			struct FEdgeSortKey
-			{
-				int32 Index;
-				uint64 PackedKey;
-
-				FEdgeSortKey(int32 InIndex, int32 A, int32 B)
-					: Index(InIndex)
-				{
-					const int32 Min = FMath::Min(A, B);
-					const int32 Max = FMath::Max(A, B);
-					PackedKey = (static_cast<uint64>(Min) << 32) | static_cast<uint64>(Max);
-				}
-
-				bool operator<(const FEdgeSortKey& Other) const
-				{
-					return PackedKey < Other.PackedKey;
-				}
-			};
-
-			TArray<FEdgeSortKey> EdgeSortKeys;
-			EdgeSortKeys.SetNumUninitialized(NumEdges);
-
-			if (NumEdges < 1024)
-			{
-				for (int i = 0; i < NumEdges; i++)
-				{
-					const int32 Index = EdgeDump[i];
-					const FEdge& E = ParentGraph->Edges[Index];
-					const int32 A = ParentGraph->Nodes[E.Start].PointIndex;
-					const int32 B = ParentGraph->Nodes[E.End].PointIndex;
-					EdgeSortKeys[i] = FEdgeSortKey(Index, A, B);
-				}
-			}
-			else
-			{
-				ParallelFor(
-					NumEdges, [&](int32 i)
-					{
-						const int32 Index = EdgeDump[i];
-						const FEdge& E = ParentGraph->Edges[Index];
-						const int32 A = ParentGraph->Nodes[E.Start].PointIndex;
-						const int32 B = ParentGraph->Nodes[E.End].PointIndex;
-						EdgeSortKeys[i] = FEdgeSortKey(Index, A, B);
-					});
-			}
-
-			EdgeSortKeys.Sort();
-			for (int32 i = 0; i < NumEdges; ++i) { EdgeDump[i] = EdgeSortKeys[i].Index; }
-		}
-
-		FlattenedEdges.Reserve(NumEdges);
+		FlattenedEdges.SetNumUninitialized(NumEdges);
 
 		const UPCGBasePointData* InEdgeData = EdgesDataFacade->GetIn();
 		UPCGBasePointData* OutEdgeData = EdgesDataFacade->GetOut();
@@ -382,9 +329,6 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 
 		UPCGMetadata* Metadata = OutEdgeData->MutableMetadata();
 
-		const TArray<FNode>& ParentGraphNodes = ParentGraph->Nodes;
-		const TArray<FEdge>& ParentGraphEdges = ParentGraph->Edges;
-
 		if (InEdgeData)
 		{
 			// We'll cherry pick existing edges
@@ -393,17 +337,18 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 			TArray<int32> ReadEdgeIndices;
 			TArray<int32> WriteEdgeIndices;
 
-			ReadEdgeIndices.Reserve(NumEdges);
-			WriteEdgeIndices.Reserve(NumEdges);
+			ReadEdgeIndices.SetNumUninitialized(NumEdges);
+			WriteEdgeIndices.SetNumUninitialized(NumEdges);
+			int32 WriteIndex = 0;
 
 			const TConstPCGValueRange<int64> InMetadataEntries = InEdgeData->GetConstMetadataEntryValueRange();
 
 			for (int i = 0; i < NumEdges; i++)
 			{
-				const FEdge& OE = ParentGraphEdges[EdgeDump[i]];
+				const FEdge& OE = ParentGraphEdges[Edges[i].Index];
 
 				// Hijack edge IOIndex to store original edge index in the flattened
-				FlattenedEdges.Emplace(i, ParentGraphNodes[OE.Start].PointIndex, ParentGraph->Nodes[OE.End].PointIndex, i, OE.Index);
+				FlattenedEdges[i] = FEdge(i, ParentGraphNodes[OE.Start].PointIndex, ParentGraphNodes[OE.End].PointIndex, i, OE.Index);
 
 				const int32 OriginalPointIndex = OE.PointIndex;
 				int64& EdgeMetadataEntry = OutMetadataEntries[i];
@@ -412,12 +357,15 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 				{
 					// Grab existing metadata entry & cache read/write indices
 					EdgeMetadataEntry = InMetadataEntries[OriginalPointIndex];
-					ReadEdgeIndices.Add(OriginalPointIndex);
-					WriteEdgeIndices.Add(i);
+					ReadEdgeIndices[WriteIndex] = OriginalPointIndex;
+					WriteEdgeIndices[WriteIndex++] = i;
 				}
 
 				Metadata->InitializeOnSet(EdgeMetadataEntry);
 			}
+
+			ReadEdgeIndices.SetNum(WriteIndex);
+			WriteEdgeIndices.SetNum(WriteIndex);
 
 			EPCGPointNativeProperties Allocate = EPCGPointNativeProperties::All;
 			EnumRemoveFlags(Allocate, EPCGPointNativeProperties::MetadataEntry);
@@ -429,8 +377,8 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 
 			for (int i = 0; i < NumEdges; i++)
 			{
-				const FEdge& E = ParentGraphEdges[EdgeDump[i]];
-				FlattenedEdges.Emplace(i, ParentGraphNodes[E.Start].PointIndex, ParentGraphNodes[E.End].PointIndex, i, E.Index);
+				const FEdge& E = ParentGraphEdges[Edges[i].Index];
+				FlattenedEdges[i] = FEdge(i, ParentGraphNodes[E.Start].PointIndex, ParentGraphNodes[E.End].PointIndex, i, E.Index);
 				Metadata->InitializeOnSet(OutMetadataEntries[i]);
 			}
 		}
@@ -767,13 +715,13 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	void FGraph::InsertEdges_Unsafe(const TSet<uint64>& InEdges, const int32 InIOIndex)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::InsertEdges_Unsafe);
-		
+
 		uint32 A;
 		uint32 B;
 
 		UniqueEdges.Reserve(UniqueEdges.Num() + InEdges.Num());
 		Edges.Reserve(UniqueEdges.Num() + InEdges.Num());
-		
+
 		for (const uint64& E : InEdges)
 		{
 			if (UniqueEdges.Contains(E)) { continue; }
@@ -799,7 +747,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 	TArrayView<FNode> FGraph::AddNodes(const int32 NumNewNodes, int32& OutStartIndex)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::AddNodes);
-		
+
 		FWriteScopeLock WriteLock(GraphLock);
 		OutStartIndex = Nodes.Num();
 		const int32 TotalNum = OutStartIndex + NumNewNodes;
@@ -809,7 +757,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		return MakeArrayView(Nodes.GetData() + OutStartIndex, NumNewNodes);
 	}
 
-	void FGraph::BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits)
+	void FGraph::BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits, TArray<int32>& OutValidNodes)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::BuildSubGraphs);
 
@@ -826,6 +774,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		TArray<int32> Stack;
 		Stack.Reserve(NumNodes);
+		OutValidNodes.Reserve(NumNodes);
 
 		for (int32 i = 0; i < NumNodes; i++)
 		{
@@ -851,6 +800,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			while (!Stack.IsEmpty())
 			{
 				const int32 NodeIndex = Stack.Pop(EAllowShrinking::No);
+				SubGraph->Nodes.Add(NodeIndex);
 				FNode& Node = Nodes[NodeIndex];
 				Node.NumExportedEdges = 0;
 
@@ -883,10 +833,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			if (!Limits.IsValid(SubGraph->Nodes.Num(), SubGraph->Edges.Num()))
 			{
 				for (const int32 j : SubGraph->Nodes) { Nodes[j].bValid = false; }
-				for (const int32 j : SubGraph->Edges) { Edges[j].bValid = false; }
+				for (const PCGEx::FIndexKey j : SubGraph->Edges) { Edges[j.Index].bValid = false; }
 			}
 			else if (!SubGraph->Edges.IsEmpty())
 			{
+				OutValidNodes.Append(SubGraph->Nodes);
 				SubGraph->Shrink();
 				SubGraphs.Add(SubGraph.ToSharedRef());
 			}
@@ -972,12 +923,19 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraphBuilder::Compile);
 
-		NodeIndexLookup = MakeShared<PCGEx::FIndexLookup>(Graph->Nodes.Num()); // Likely larger than exported size; required for compilation.
+		TArray<FNode>& Nodes = Graph->Nodes;
+		const int32 NumNodes = Nodes.Num();
+
+		NodeIndexLookup = MakeShared<PCGEx::FIndexLookup>(NumNodes); // Likely larger than exported size; required for compilation.
 		Graph->NodeIndexLookup = NodeIndexLookup;
+
+		TArray<int32> InternalValidNodes;
+		TArray<int32>& ValidNodes = InternalValidNodes;
+		if (OutputNodeIndices) { ValidNodes = *OutputNodeIndices.Get(); }
 
 		// Building subgraphs isolate connected edge clusters
 		// and invalidate roaming (isolated) nodes
-		Graph->BuildSubGraphs(*OutputDetails);
+		Graph->BuildSubGraphs(*OutputDetails, ValidNodes);
 
 		if (Graph->SubGraphs.IsEmpty())
 		{
@@ -992,31 +950,9 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		NodeDataFacade->Source->ClearCachedKeys(); //Ensure fresh keys later on
 
-		TArray<FNode>& Nodes = Graph->Nodes;
-
-		TArray<int32> InternalValidNodes;
-		TArray<int32>& ValidNodes = InternalValidNodes;
-
-		int32 NumNodes = Nodes.Num();
-
-		if (OutputNodeIndices) { ValidNodes = *OutputNodeIndices.Get(); }
-
-		ValidNodes.Reserve(NumNodes);
-
-		bool bHasInvalidNodes = false;
-
-		// Filter all valid nodes
-		for (FNode& Node : Nodes)
-		{
-			if (!Node.bValid)
-			{
-				bHasInvalidNodes = true;
-				continue;
-			}
-			ValidNodes.Add(Node.Index);
-		}
 
 		const int32 NumValidNodes = ValidNodes.Num();
+		bool bHasInvalidNodes = NumValidNodes != NumNodes;
 
 		TArray<int32> ReadIndices;
 
@@ -1044,9 +980,6 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 				if (!bOutputIsSameAsInput)
 				{
-					// Ensure we have the required number of nodes in the output
-					PCGEx::EnsureMinNumPoints(OutNodeData, NumValidNodes);
-
 					// Build & remap new point count to node topology
 					for (int i = 0; i < NumValidNodes; i++)
 					{
@@ -1071,10 +1004,10 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				// The cheap way to make things deterministic is to sort nodes by spatial position
 
 				// Rough check to make sure we won't have a PointIndex that's outside the desired range
-				check(NodePointsTransforms.Num() >= Nodes.Num())
+				check(NodePointsTransforms.Num() >= NumNodes)
 
 				// We must have an output size that's at least equal to the number of nodes we have as well, to do the re-order
-				check(OutNodeData->GetNumPoints() >= Nodes.Num())
+				check(OutNodeData->GetNumPoints() >= NumNodes)
 
 				// Init array of indice as a valid order range first, will be truncated later.
 				// We save a bit of memory by re-using it
@@ -1082,49 +1015,28 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 				{
 					TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::Sort);
+		
+					const int32 N = NumValidNodes;
+					TArray<PCGEx::FIndexKey> MortonHash;
+					MortonHash.SetNumUninitialized(N);
 
-					const int32 N = ValidNodes.Num();
-					TArray<double> Xs, Ys, Zs;
-					Xs.SetNumUninitialized(N);
-					Ys.SetNumUninitialized(N);
-					Zs.SetNumUninitialized(N);
-
-					for (int32 i = 0; i < N; ++i)
+					for (int32 i = 0; i < N; i++)
 					{
-						const FNode& Node = Nodes[ValidNodes[i]];
-						const FVector P = NodePointsTransforms[Node.PointIndex].GetLocation();
-						Xs[i] = P.X;
-						Ys[i] = P.Y;
-						Zs[i] = P.Z;
+						const int32 Idx = ValidNodes[i];
+						const FVector P = NodePointsTransforms[Idx].GetLocation() * 1000;
+						MortonHash[i] = PCGEx::FIndexKey(Idx, (static_cast<uint64>(P.X) << 42) ^ (static_cast<uint64>(P.Y) << 21) ^ static_cast<uint64>(P.Z));
 					}
 
-					// Sort valid nodes based on outgoing transforms
-					ValidNodes.Sort(
-						[&](const int32 A, const int32 B)
-						{
-							const float AX = Xs[A];
-							const float BX = Xs[B];
-							if (AX != BX)
-							{
-								return AX < BX;
-							}
+					PCGEx::RadixSort(MortonHash);
 
-							const float AY = Ys[A];
-							const float BY = Ys[B];
-							if (AY != BY)
-							{
-								return AY < BY;
-							}
-
-							return Zs[A] < Zs[B];
-						});
-				}
-
-				for (int i = 0; i < NumValidNodes; i++)
-				{
-					FNode& Node = Nodes[ValidNodes[i]];
-					ReadIndices[i] = Node.PointIndex;
-					Node.PointIndex = i;
+					for (int i = 0; i < NumValidNodes; i++)
+					{
+						const int32 Idx = MortonHash[i].Index;
+						ValidNodes[i] = Idx;
+						FNode& Node = Nodes[Idx];
+						ReadIndices[i] = Node.PointIndex;
+						Node.PointIndex = i;
+					}
 				}
 
 				// There is no points to inherit from; meaning we need to reorder the existing data
@@ -1234,34 +1146,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
-				if (This->bWriteVtxDataFacadeWithCompile)
-				{
-					if (This->OnCompilationEndCallback)
-					{
-						if (!This->bCompiledSuccessfully)
-						{
-							This->OnCompilationEndCallback(This.ToSharedRef(), false);
-						}
-						else
-						{
-							This->NodeDataFacade->WriteBuffers(
-								This->AsyncManager,
-								[AsyncThis]()
-								{
-									PCGEX_ASYNC_NESTED_THIS
-									NestedThis->OnCompilationEndCallback(NestedThis.ToSharedRef(), true);
-								});
-						}
-					}
-					else if (This->bCompiledSuccessfully)
-					{
-						This->NodeDataFacade->WriteFastest(This->AsyncManager);
-					}
-				}
-				else if (This->OnCompilationEndCallback)
-				{
-					This->OnCompilationEndCallback(This.ToSharedRef(), This->bCompiledSuccessfully);
-				}
+				This->OnCompilationEnd();
 			};
 
 		ProcessSubGraphTask->OnIterationCallback =
@@ -1273,6 +1158,40 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			};
 
 		ProcessSubGraphTask->StartIterations(Graph->SubGraphs.Num(), 1, false);
+	}
+
+	void FGraphBuilder::OnCompilationEnd()
+	{
+		TSharedRef<FGraphBuilder> Self = SharedThis(this);
+
+		if (bWriteVtxDataFacadeWithCompile)
+		{
+			if (OnCompilationEndCallback)
+			{
+				if (!bCompiledSuccessfully)
+				{
+					OnCompilationEndCallback(Self, false);
+				}
+				else
+				{
+					NodeDataFacade->WriteBuffers(
+						AsyncManager,
+						[PCGEX_ASYNC_THIS_CAPTURE]()
+						{
+							PCGEX_ASYNC_THIS
+							This->OnCompilationEndCallback(This.ToSharedRef(), true);
+						});
+				}
+			}
+			else if (bCompiledSuccessfully)
+			{
+				NodeDataFacade->WriteFastest(AsyncManager);
+			}
+		}
+		else if (OnCompilationEndCallback)
+		{
+			OnCompilationEndCallback(Self, bCompiledSuccessfully);
+		}
 	}
 
 	void FGraphBuilder::StageEdgesOutputs() const

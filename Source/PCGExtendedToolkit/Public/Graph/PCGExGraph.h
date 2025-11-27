@@ -9,6 +9,7 @@
 #include "PCGEx.h"
 #include "PCGExEdge.h"
 #include "PCGExMT.h"
+#include "PCGExSortHelpers.h"
 #include "Details/PCGExDetailsAxis.h"
 #include "Utils/PCGValueRange.h"
 
@@ -353,8 +354,8 @@ namespace PCGExGraph
 	{
 	public:
 		TWeakPtr<FGraph> WeakParentGraph;
-		TSet<int32> Nodes;
-		TSet<int32> Edges;
+		TArray<int32> Nodes;
+		TArray<PCGEx::FIndexKey> Edges;
 		TSet<int32> EdgesInIOIndices;
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgesDataFacade;
@@ -507,7 +508,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		TArrayView<FNode> AddNodes(const int32 NumNewNodes, int32& OutStartIndex);
 
-		void BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits);
+		void BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits, TArray<int32>& OutValidNodes);
 
 		~FGraph() = default;
 
@@ -565,6 +566,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		void CompileAsync(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
 		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager, const bool bWriteNodeFacade, const FGraphMetadataDetails* MetadataDetails = nullptr);
 
+	protected:
+		void OnCompilationEnd();
+
+	public:
+		
 		void StageEdgesOutputs() const;
 		void MoveEdgesOutputs(const TSharedPtr<PCGExData::FPointIOCollection>& To, const int32 IndexOffset) const;
 

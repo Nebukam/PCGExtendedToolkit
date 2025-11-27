@@ -17,21 +17,6 @@
 
 class UPCGExBitmaskCollection;
 
-USTRUCT(BlueprintType, DisplayName="[PCGEx] Bitmask Staging Entry")
-struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskCache
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	FName Identifier = NAME_None;
-
-	UPROPERTY()
-	int64 Bitmask;
-
-	UPROPERTY()
-	FVector Direction;
-};
-
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Bitmask Collection Entry")
 struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskCollectionEntry
 {
@@ -47,13 +32,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskCollectionEntry
 	FPCGExBitmask Bitmask;
 
 	UPROPERTY(EditAnywhere, Category = Settings)
-	FVector Direction;
+	FVector Direction = FVector::UpVector;
 
 	FORCEINLINE FVector GetDirection() const { return Direction.GetSafeNormal(); }
 	FORCEINLINE void GetDirection(FVector& OutDir) const { OutDir = Direction.GetSafeNormal(); }
 
-	UPROPERTY(Transient)
-	FPCGExBitmaskCache CachedBitmask;
+	PCGExBitmask::FCachedRef CachedBitmask;
 
 	virtual void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
 	void RebuildCache();
@@ -64,7 +48,7 @@ namespace PCGExBitmaskCollection
 	class PCGEXTENDEDTOOLKIT_API FCache : public TSharedFromThis<FCache>
 	{
 	public:
-		TArray<FPCGExBitmaskCache> Bitmasks;
+		TArray<PCGExBitmask::FCachedRef> Bitmasks;
 		TMap<FName, int32> BitmaskMap;
 		TArray<FString> Identifiers;
 
@@ -72,7 +56,7 @@ namespace PCGExBitmaskCollection
 		~FCache() = default;
 
 		bool TryGetBitmask(const FName Identifier, int64& OutBitmask) const;
-		bool TryGetBitmask(const FName Identifier, FPCGExBitmaskCache& OutCachedBitmask) const;
+		bool TryGetBitmask(const FName Identifier, PCGExBitmask::FCachedRef& OutCachedBitmask) const;
 
 		bool IsEmpty() const { return Bitmasks.IsEmpty(); }
 	};

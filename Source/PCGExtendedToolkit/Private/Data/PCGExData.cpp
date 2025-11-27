@@ -1032,6 +1032,13 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 			return;
 		}
 
+		if (Source->GetNum(EIOSide::Out) < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize)
+		{
+			WriteSynchronous(true);
+			Callback();
+			return;
+		}
+
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteBuffersWithCallback);
 		WriteBuffersWithCallback->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE, Callback]()
