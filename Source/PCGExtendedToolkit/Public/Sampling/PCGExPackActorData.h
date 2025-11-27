@@ -571,7 +571,7 @@ public:
 		PackActorData, "Pack Actor Data", "Use custom blueprint to read data from actor references.",
 		(Packer ? FName(Packer.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
-	virtual bool CanDynamicallyTrackKeys() const override { return true; }
+	virtual bool CanDynamicallyTrackKeys() const override { return bTrackActors; }
 #endif
 
 protected:
@@ -604,6 +604,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bOmitEmptyOutputs = true;
 
+	/** When enabled, will track referenced actors and trigger a graph regeneration when their properties change. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bTrackActors = true;
+	
 	/** If enabled, will turn off uninitialized packer warning. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietUninitializedPackerWarning = false;
