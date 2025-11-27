@@ -27,17 +27,20 @@ public:
 #endif
 
 protected:
+	virtual bool HasDynamicPins() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
+	virtual bool GetIsMainTransactional() const override;
+	
 public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
 	FPCGExAttributeHashConfig HashConfig;
 
-	/** Name to output the hash to */
+	/** Name to output the hash to (written on @Data domain) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName OutputName = FName("@Data.Hash");
+	FName OutputName = FName("Hash");
 
 	/** Whether to add the hash as a tag */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -51,7 +54,9 @@ public:
 struct FPCGExAttributeHashContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributeHashElement;
-
+	TArray<bool> ValidHash;
+	TArray<int32> Hashes;
+	
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };

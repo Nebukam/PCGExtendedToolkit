@@ -6,6 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/PCGExValueHash.h"
 
 namespace PCGExData
 {
@@ -144,6 +145,12 @@ namespace PCGExData
 if constexpr (std::is_same_v<_TYPE, T_WORKING>) { return Get(Index); } \
 else { return PCGEx::Convert<T_WORKING, _TYPE>(Get(Index)); }}
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
+
+	template <typename T_WORKING>
+	PCGExValueHash TBufferProxy<T_WORKING>::ReadValueHash(const int32 Index)
+	{
+		return PCGExBlend::ValueHash(Get(Index));
+	}
 #undef PCGEX_CONVERTING_READ
 
 #pragma region externalization TBufferProxy

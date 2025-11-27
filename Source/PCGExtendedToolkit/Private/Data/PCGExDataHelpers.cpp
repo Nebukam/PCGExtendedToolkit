@@ -52,7 +52,16 @@ namespace PCGExDataHelpers
 	template <typename T>
 	void SetDataValue(UPCGData* InData, FName Name, const T Value)
 	{
-		FPCGAttributeIdentifier Identifier = FPCGAttributeIdentifier(Name, EPCGMetadataDomainFlag::Data);
+		FPCGAttributePropertyInputSelector SafetySelector;
+		SafetySelector.Update(Name.ToString());
+
+		if (SafetySelector.GetSelection() != EPCGAttributePropertySelection::Attribute)
+		{
+			UE_LOG(LogPCGEx, Error, TEXT("Attempting to write @Data value to a non-attribute domain."))
+			return;
+		}
+		
+		FPCGAttributeIdentifier Identifier = FPCGAttributeIdentifier(SafetySelector.GetAttributeName(), EPCGMetadataDomainFlag::Data);
 		SetDataValue<T>(InData->Metadata->FindOrCreateAttribute<T>(Identifier, Value, true, true), Value);
 	}
 

@@ -4,6 +4,7 @@
 #include "Misc/PCGExAttributeHash.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 
@@ -11,7 +12,15 @@
 #define LOCTEXT_NAMESPACE "PCGExAttributeHashElement"
 #define PCGEX_NAMESPACE AttributeHash
 
+bool UPCGExAttributeHashSettings::HasDynamicPins() const
+{
+	return true;
+}
+
 PCGEX_INITIALIZE_ELEMENT(AttributeHash)
+
+bool UPCGExAttributeHashSettings::GetIsMainTransactional() const { return Super::GetIsMainTransactional(); }
+
 PCGEX_ELEMENT_BATCH_POINT_IMPL(AttributeHash)
 
 bool FPCGExAttributeHashElement::Boot(FPCGExContext* InContext) const
@@ -21,6 +30,10 @@ bool FPCGExAttributeHashElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(AttributeHash)
 
 	PCGEX_VALIDATE_NAME(Settings->OutputName)
+
+	Context->ValidHash.Init(false, Context->MainPoints->Num());
+	Context->Hashes.Init(0, Context->ValidHash.Num());
+
 	return true;
 }
 
@@ -28,7 +41,7 @@ bool FPCGExAttributeHashElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeHashElement::Execute);
 
-	PCGEX_CONTEXT(AttributeHash)
+	PCGEX_CONTEXT_AND_SETTINGS(AttributeHash)
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
@@ -44,7 +57,23 @@ bool FPCGExAttributeHashElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_POINTS_BATCH_PROCESSING(PCGExCommon::State_Done)
 
-	Context->MainPoints->StageOutputs();
+	for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs)
+	{
+		if (const int32 Idx = IO->IOIndex;
+			Context->ValidHash[Idx] && Settings->bOutputToAttribute)
+		{
+			UPCGData* OutputCopy = Context->ManagedObjects->DuplicateData<UPCGData>(IO->InitializationData);
+			PCGExDataHelpers::SetDataValue<int32>(OutputCopy, Settings->OutputName, Context->Hashes[Idx]);
+			FPCGTaggedData& OutData = Context->StageOutput(OutputCopy, true, true);
+
+			OutData.Tags = IO->Tags->Flatten();
+			OutData.Pin = Settings->GetMainOutputPin();
+		}
+		else
+		{
+			IO->StageAnyOutput(Context);
+		}
+	}
 
 	return Context->TryComplete();
 }
@@ -57,10 +86,8 @@ namespace PCGExAttributeHash
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
-		PCGEX_INIT_IO(PointDataFacade->Source, Settings->bOutputToAttribute ? PCGExData::EIOInit::Duplicate : PCGExData::EIOInit::Forward)
-
 		Hasher = MakeShared<PCGEx::FAttributeHasher>(Settings->HashConfig);
-		if (!Hasher->Init(Context, PointDataFacade->Source)) { return false; }
+		if (!Hasher->Init(Context, PointDataFacade)) { return false; }
 		if (Hasher->RequiresCompilation()) { Hasher->Compile(AsyncManager, nullptr); }
 
 		return true;
@@ -68,8 +95,9 @@ namespace PCGExAttributeHash
 
 	void FProcessor::CompleteWork()
 	{
+		Context->ValidHash[PointDataFacade->Source->IOIndex] = true;
+		Context->Hashes[PointDataFacade->Source->IOIndex] = Hasher->GetHash();
 		if (Settings->bOutputToTags) { PointDataFacade->Source->Tags->Set<int32>(Settings->OutputName.ToString(), Hasher->GetHash()); }
-		if (Settings->bOutputToAttribute) { PCGExData::WriteMark<int32>(PointDataFacade->Source, Settings->OutputName, Hasher->GetHash()); }
 	}
 }
 
