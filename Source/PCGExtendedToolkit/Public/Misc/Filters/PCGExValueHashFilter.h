@@ -106,7 +106,7 @@ namespace PCGExPointFilter
 
 		const TObjectPtr<const UPCGExValueHashFilterFactory> TypedFilterFactory;
 
-		const TArray<TSet<uint32>>* Hashes = nullptr;
+		const TArray<TSet<PCGExValueHash>>* Hashes = nullptr;
 
 		TSharedPtr<PCGExData::IBuffer> OperandA;
 		bool bInvert = false;

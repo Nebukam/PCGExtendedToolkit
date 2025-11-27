@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExBroadcast.h"
+#include "Blending/PCGExBlendModes.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "UObject/Object.h"
 
@@ -87,6 +88,8 @@ namespace PCGExData
 #define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) virtual _TYPE ReadAs##_NAME(const int32 Index) const;
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
 #undef PCGEX_CONVERTING_READ
+
+		virtual PCGExValueHash ReadValueHash(const int32 Index) = 0;
 	};
 
 	template <typename T_WORKING>
@@ -103,6 +106,8 @@ namespace PCGExData
 #define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) virtual _TYPE ReadAs##_NAME(const int32 Index) const override;
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
 #undef PCGEX_CONVERTING_READ
+
+		virtual PCGExValueHash ReadValueHash(const int32 Index) override;
 	};
 
 #pragma region externalization TBufferProxy

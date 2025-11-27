@@ -96,10 +96,10 @@ namespace PCGExData
 		void Enable() { bIsEnabled.store(true, std::memory_order_release); }
 
 		// Unsafe read value hash from input
-		virtual uint32 ReadValueHash(const int32 Index) = 0;
+		virtual PCGExValueHash ReadValueHash(const int32 Index) = 0;
 
 		// Unsafe read value hash from output
-		virtual uint32 GetValueHash(const int32 Index) = 0;
+		virtual PCGExValueHash GetValueHash(const int32 Index) = 0;
 
 		// Unsafe read value hash from output
 		virtual int32 GetNumValues(const EIOSide InSide = EIOSide::In) = 0;
@@ -178,10 +178,10 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		virtual const T& GetValue(const int32 Index) = 0;
 
 		// Unsafe read value hash from input
-		virtual uint32 ReadValueHash(const int32 Index) override;
+		virtual PCGExValueHash ReadValueHash(const int32 Index) override;
 
 		// Unsafe read value hash from output
-		virtual uint32 GetValueHash(const int32 Index) override;
+		virtual PCGExValueHash GetValueHash(const int32 Index) override;
 
 		// Unsafe set value in output
 		virtual void SetValue(const int32 Index, const T& Value) = 0;

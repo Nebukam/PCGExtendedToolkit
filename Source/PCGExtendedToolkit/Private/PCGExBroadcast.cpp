@@ -16,7 +16,7 @@ namespace PCGEx
 	T ConvertFromBoolean(const bool& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value ? 1 : 0; }
@@ -47,7 +47,7 @@ namespace PCGEx
 	T ConvertFromInteger32(const int32& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value); }
@@ -66,7 +66,7 @@ namespace PCGEx
 	T ConvertFromInteger64(const int64& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value); }
@@ -85,7 +85,7 @@ namespace PCGEx
 	T ConvertFromFloat(const float& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value); }
@@ -104,7 +104,7 @@ namespace PCGEx
 	T ConvertFromDouble(const double& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value); }
@@ -123,7 +123,7 @@ namespace PCGEx
 	T ConvertFromVector2(const FVector2D& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value.SquaredLength() > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value.X); }
@@ -142,7 +142,7 @@ namespace PCGEx
 	T ConvertFromVector(const FVector& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value.SquaredLength() > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value.X); }
@@ -161,7 +161,7 @@ namespace PCGEx
 	T ConvertFromVector4(const FVector4& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, bool>) { return FVector(Value.X * Value.Y * Value.Z).SquaredLength() > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value.X); }
@@ -180,7 +180,7 @@ namespace PCGEx
 	T ConvertFromQuaternion(const FQuat& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value.Euler().SquaredLength() > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value.X); }
@@ -203,7 +203,7 @@ namespace PCGEx
 	T ConvertFromRotator(const FRotator& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(FVector(Value.Pitch, Value.Roll, Value.Yaw)); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(FVector(Value.Pitch, Value.Roll, Value.Yaw)); }
 
 		else if constexpr (std::is_same_v<T, bool>) { return Value.Euler().SquaredLength() > 0; }
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value.Pitch); }
@@ -222,7 +222,7 @@ namespace PCGEx
 	T ConvertFromTransform(const FTransform& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (
 			std::is_same_v<T, bool> ||
@@ -248,7 +248,7 @@ namespace PCGEx
 	T ConvertFromString(const FString& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, FString>) { return Value; }
 		else if constexpr (std::is_same_v<T, FName>) { return FName(Value); }
@@ -261,7 +261,7 @@ namespace PCGEx
 	T ConvertFromName(const FName& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
 		else if constexpr (std::is_same_v<T, FName>) { return Value; }
@@ -274,7 +274,7 @@ namespace PCGEx
 	T ConvertFromSoftClassPath(const FSoftClassPath& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
 		else if constexpr (std::is_same_v<T, FName>) { return FName(Value.ToString()); }
@@ -287,7 +287,7 @@ namespace PCGEx
 	T ConvertFromSoftObjectPath(const FSoftObjectPath& Value)
 	{
 		if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-		else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+		else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 		else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
 		else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
@@ -511,7 +511,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		if constexpr (std::is_same_v<T_VALUE, bool>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (std::is_same_v<T, bool>) { return Value; }
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return Value ? 1 : 0; }
@@ -549,7 +549,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 			std::is_same_v<T_VALUE, double>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (std::is_same_v<T, bool>) { return Value > 0; }
 			else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { return static_cast<T>(Value); }
@@ -585,7 +585,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		else if constexpr (std::is_same_v<T_VALUE, FVector2D>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (std::is_same_v<T, bool>)
 			{
@@ -646,7 +646,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		else if constexpr (std::is_same_v<T_VALUE, FVector>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (std::is_same_v<T, bool>)
 			{
@@ -709,7 +709,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		else if constexpr (std::is_same_v<T_VALUE, FVector4>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (std::is_same_v<T, bool>)
 			{
@@ -774,7 +774,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		else if constexpr (std::is_same_v<T_VALUE, FQuat>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (std::is_same_v<T, bool>)
 			{
@@ -840,7 +840,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		else if constexpr (std::is_same_v<T_VALUE, FRotator>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(FVector(Value.Pitch, Value.Roll, Value.Yaw)); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(FVector(Value.Pitch, Value.Roll, Value.Yaw)); }
 
 			else if constexpr (std::is_same_v<T, bool>)
 			{
@@ -900,7 +900,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		else if constexpr (std::is_same_v<T_VALUE, FTransform>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (
 				std::is_same_v<T, bool> ||
@@ -935,7 +935,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		else if constexpr (std::is_same_v<T_VALUE, FString>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (std::is_same_v<T, FString>) { return Value; }
 			else if constexpr (std::is_same_v<T, FName>) { return FName(Value); }
@@ -951,7 +951,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		else if constexpr (std::is_same_v<T_VALUE, FName>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
 			else if constexpr (std::is_same_v<T, FName>) { return Value; }
@@ -967,7 +967,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		else if constexpr (std::is_same_v<T_VALUE, FSoftClassPath>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (std::is_same_v<T, FString>) { return Value.ToString(); }
 			else if constexpr (std::is_same_v<T, FName>) { return FName(Value.ToString()); }
@@ -983,7 +983,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		else if constexpr (std::is_same_v<T_VALUE, FSoftObjectPath>)
 		{
 			if constexpr (std::is_same_v<T, decltype(Value)>) { return Value; }
-			else if constexpr (std::is_same_v<T, PCGExTypeHash>) { return GetTypeHash(Value); }
+			else if constexpr (std::is_same_v<T, PCGExValueHash>) { return GetTypeHash(Value); }
 
 			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
 			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
@@ -1008,7 +1008,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 			std::is_same_v<T, float> ||
 			std::is_same_v<T, double>)
 		{
-			if constexpr (std::is_same_v<T_VALUE, PCGExTypeHash>) { Target = GetTypeHash(Value); }
+			if constexpr (std::is_same_v<T_VALUE, PCGExValueHash>) { Target = GetTypeHash(Value); }
 			else if constexpr (std::is_same_v<T_VALUE, bool>) { Target = Value ? 1 : 0; }
 			else if constexpr (
 				std::is_same_v<T_VALUE, int32> ||
@@ -1050,7 +1050,7 @@ template PCGEXTENDEDTOOLKIT_API _TYPE_B ConvertFrom##_NAME_A<_TYPE_B>(const _TYP
 		{
 			double V = 1;
 
-			if constexpr (std::is_same_v<T_VALUE, PCGExTypeHash>) { V = GetTypeHash(Value); }
+			if constexpr (std::is_same_v<T_VALUE, PCGExValueHash>) { V = GetTypeHash(Value); }
 			else if constexpr (std::is_same_v<T_VALUE, bool>) { V = Value ? 1 : 0; }
 			else if constexpr (
 				std::is_same_v<T_VALUE, int32> ||

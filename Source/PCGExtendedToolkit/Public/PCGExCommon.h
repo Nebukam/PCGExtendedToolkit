@@ -15,6 +15,8 @@ struct FPCGTaggedData;
 class UPCGData;
 class IPCGAttributeAccessorKeys;
 
+using PCGExValueHash = uint32;
+
 UENUM()
 enum class EPCGExAsyncPriority : uint8
 {

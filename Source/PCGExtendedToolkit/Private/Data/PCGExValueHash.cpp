@@ -3,10 +3,12 @@
 
 #include "Data/PCGExValueHash.h"
 
+#include "PCGExCommon.h"
+
 namespace PCGExBlend
 {
 	template <typename T>
-	uint32 ValueHash(const T& Value)
+	PCGExValueHash ValueHash(const T& Value)
 	{
 		if constexpr (std::is_same_v<T, FRotator>)
 		{
@@ -25,7 +27,7 @@ namespace PCGExBlend
 	}
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-template PCGEXTENDEDTOOLKIT_API uint32 ValueHash<_TYPE>(const _TYPE& A);
+template PCGEXTENDEDTOOLKIT_API PCGExValueHash ValueHash<_TYPE>(const _TYPE& A);
 
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
