@@ -134,6 +134,7 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 						{
 							const TSharedPtr<PCGExPointFilter::FManager> Manager = SharedContext.Get()->Managers[i];
 							if (!Manager) { continue; }
+							Manager->bWillBeUsedWithCollections = true;
 							if (Manager->Test(Facade->Source, SharedContext.Get()->MainPoints))
 							{
 								bDistributed = true;
