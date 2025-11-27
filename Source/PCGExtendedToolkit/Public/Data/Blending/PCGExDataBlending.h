@@ -354,12 +354,28 @@ namespace PCGExDataBlending
 		const TSharedRef<PCGExData::FPointIO>& SourceIO,
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes);
+	
+	PCGEXTENDEDTOOLKIT_API
+	void AssembleBlendingDetails(
+		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
+		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
+		const TArray<TSharedRef<PCGExData::FFacade>>& InSources,
+		FPCGExBlendingDetails& OutDetails,
+		TSet<FName>& OutMissingAttributes);
 
 	PCGEXTENDEDTOOLKIT_API
 	void AssembleBlendingDetails(
 		const EPCGExDataBlendingType& DefaultBlending,
 		const TArray<FName>& Attributes,
 		const TSharedRef<PCGExData::FPointIO>& SourceIO,
+		FPCGExBlendingDetails& OutDetails,
+		TSet<FName>& OutMissingAttributes);
+
+	PCGEXTENDEDTOOLKIT_API
+	void AssembleBlendingDetails(
+		const EPCGExDataBlendingType& DefaultBlending,
+		const TArray<FName>& Attributes,
+		const TArray<TSharedRef<PCGExData::FFacade>>& InSources,
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes);
 
