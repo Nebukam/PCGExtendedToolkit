@@ -295,7 +295,7 @@ namespace PCGExSampleNearestPoint
 			TSet<FName> MissingAttributes;
 			PCGExDataBlending::AssembleBlendingDetails(
 				Settings->PointPropertiesBlendingSettings, Settings->TargetAttributes,
-				PointDataFacade->Source, BlendingDetails, MissingAttributes);
+				Context->TargetsHandler->GetFacades(), BlendingDetails, MissingAttributes);
 
 			UnionBlender = MakeShared<PCGExDataBlending::FUnionBlender>(&BlendingDetails, nullptr, Context->TargetsHandler->GetDistances());
 			UnionBlender->AddSources(Context->TargetsHandler->GetFacades());
