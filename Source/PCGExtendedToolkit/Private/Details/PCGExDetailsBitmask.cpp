@@ -115,7 +115,7 @@ FPCGExSimpleBitmask FPCGExBitmaskRef::GetSimpleBitmask() const
 
 bool FPCGExBitmaskRef::TryGetAdjacencyInfos(FVector& OutDirection, FPCGExSimpleBitmask& OutSimpleBitmask) const
 {
-	if (FPCGExBitmaskCache Cache = FPCGExBitmaskCache{};
+	if (PCGExBitmask::FCachedRef Cache = PCGExBitmask::FCachedRef{};
 		Source && Source->LoadCache()->TryGetBitmask(Identifier, Cache))
 	{
 		OutSimpleBitmask = FPCGExSimpleBitmask();

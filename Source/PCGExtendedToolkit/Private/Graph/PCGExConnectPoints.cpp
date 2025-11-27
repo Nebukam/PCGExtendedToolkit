@@ -199,6 +199,7 @@ namespace PCGExConnectPoints
 			{
 				PCGEX_ASYNC_THIS
 				This->PointDataFacade->Fetch(Scope);
+				
 				PCGEX_SCOPE_LOOP(i)
 				{
 					This->CanGenerate[i] = This->GeneratorsFilter ? This->GeneratorsFilter->Test(i) : true;
@@ -377,7 +378,7 @@ namespace PCGExConnectPoints
 		}
 	}
 
-	void FProcessor::CompleteWork()
+	void FProcessor::OnPointsProcessingComplete()
 	{
 		TSet<uint64> UniqueEdges;
 		ScopedEdges->Collapse(UniqueEdges);
@@ -385,6 +386,11 @@ namespace PCGExConnectPoints
 		ScopedEdges.Reset();
 
 		GraphBuilder->CompileAsync(AsyncManager, false);
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		// Only required for post-processing work
 	}
 
 	void FProcessor::Write()

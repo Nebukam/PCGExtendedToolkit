@@ -605,7 +605,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		PCGExDataHelpers::SetDataValue(TypedOutAttribute, OutValue);
 	}
 
-	template<typename T>
+	template <typename T>
 	const IBuffer::OpsTable TBuffer<T>::OpsImpl =
 	{
 		&TBuffer<T>::ReadRawImpl,
@@ -623,13 +623,13 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL
-	
+
 #pragma endregion
-	
+
 #pragma endregion
 
 #pragma region FFacade
-		
+
 	int32 FFacade::GetNum(const EIOSide InSide) const { return Source->GetNum(InSide); }
 
 	TSharedPtr<IBuffer> FFacade::FindBuffer_Unsafe(const uint64 UID)
@@ -1029,6 +1029,13 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 		if (!ValidateOutputsBeforeWriting())
 		{
 			Flush();
+			return;
+		}
+
+		if (Source->GetNum(EIOSide::Out) < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize)
+		{
+			WriteSynchronous(true);
+			Callback();
 			return;
 		}
 
