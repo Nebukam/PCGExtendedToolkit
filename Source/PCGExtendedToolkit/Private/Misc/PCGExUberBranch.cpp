@@ -134,8 +134,8 @@ bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
 						for (int i = 0; i < Settings->NumBranches; i++)
 						{
 							const TSharedPtr<PCGExPointFilter::FManager> Manager = SharedContext.Get()->Managers[i];
-							Manager->bWillBeUsedWithCollections = true;
 							if (!Manager) { continue; }
+							Manager->bWillBeUsedWithCollections = true;
 							if (Manager->Test(Facade->Source, SharedContext.Get()->MainPoints))
 							{
 								Facade->Source->OutputPin = Settings->OutputLabels[i];
