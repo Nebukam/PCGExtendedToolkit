@@ -324,7 +324,14 @@ namespace PCGExPackActorData
 		ActorReferences->Grab();
 		Packer->InputActors.Init(nullptr, PointDataFacade->GetNum());
 
-		for (int i = 0; i < ActorReferences->Values.Num(); i++) { Packer->InputActors[i] = Cast<AActor>(ActorReferences->Values[i].ResolveObject()); }
+		for (int i = 0; i < ActorReferences->Values.Num(); i++)
+		{
+			AActor* ActorRef = Cast<AActor>(ActorReferences->Values[i].ResolveObject());
+			Packer->InputActors[i] = ActorRef;
+			if (ActorRef) { UniqueActors.Add(ActorRef); }
+		}
+
+		for (AActor* ActorRef : UniqueActors) { Context->EDITOR_TrackPath(ActorRef); }
 
 		bool bSuccess = false;
 

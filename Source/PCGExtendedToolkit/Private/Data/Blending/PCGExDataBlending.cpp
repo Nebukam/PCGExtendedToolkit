@@ -336,6 +336,35 @@ namespace PCGExDataBlending
 	}
 
 	void AssembleBlendingDetails(
+		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
+		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
+		const TArray<TSharedRef<PCGExData::FFacade>>& InSources,
+		FPCGExBlendingDetails& OutDetails,
+		TSet<FName>& OutMissingAttributes)
+	{
+		OutDetails = FPCGExBlendingDetails(PropertiesBlending);
+		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
+
+		for (const TSharedRef<PCGExData::FFacade>& Facade : InSources)
+		{
+			const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(Facade->Source->GetIn()->Metadata);
+
+			TArray<FName> SourceAttributesList;
+			PerAttributeBlending.GetKeys(SourceAttributesList);
+
+			AttributesInfos->FindMissing(SourceAttributesList, OutMissingAttributes);
+
+			for (const FName& Id : SourceAttributesList)
+			{
+				if (OutMissingAttributes.Contains(Id)) { continue; }
+
+				OutDetails.AttributesOverrides.Add(Id, *PerAttributeBlending.Find(Id));
+				OutDetails.FilteredAttributes.Add(Id);
+			}
+		}
+	}
+
+	void AssembleBlendingDetails(
 		const EPCGExDataBlendingType& DefaultBlending,
 		const TArray<FName>& Attributes,
 		const TSharedRef<PCGExData::FPointIO>& SourceIO,
@@ -354,6 +383,31 @@ namespace PCGExDataBlending
 
 			OutDetails.AttributesOverrides.Add(Id, DefaultBlending);
 			OutDetails.FilteredAttributes.Add(Id);
+		}
+	}
+
+	void AssembleBlendingDetails(
+		const EPCGExDataBlendingType& DefaultBlending,
+		const TArray<FName>& Attributes,
+		const TArray<TSharedRef<PCGExData::FFacade>>& InSources,
+		FPCGExBlendingDetails& OutDetails,
+		TSet<FName>& OutMissingAttributes)
+	{
+		OutDetails = FPCGExBlendingDetails(FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None));
+		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
+
+		for (const TSharedRef<PCGExData::FFacade>& Facade : InSources)
+		{
+			const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(Facade->Source->GetIn()->Metadata);
+			AttributesInfos->FindMissing(Attributes, OutMissingAttributes);
+
+			for (const FName& Id : Attributes)
+			{
+				if (OutMissingAttributes.Contains(Id)) { continue; }
+
+				OutDetails.AttributesOverrides.Add(Id, DefaultBlending);
+				OutDetails.FilteredAttributes.Add(Id);
+			}
 		}
 	}
 

@@ -580,8 +580,9 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
+
+	//~Begin UPCGExPointsProcessorSettings
 
 public:
 	virtual FName GetMainInputPin() const override;
@@ -635,6 +636,8 @@ namespace PCGExPackActorData
 	{
 		TArray<FPCGMetadataAttributeBase*> Attributes;
 		UPCGExCustomActorDataPacker* Packer = nullptr;
+
+		TSet<AActor*> UniqueActors;
 		TSharedPtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> ActorReferences;
 
 		TArray<FPCGPoint> PointsForProcessing;
