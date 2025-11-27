@@ -331,7 +331,10 @@ namespace PCGExPackActorData
 			if (ActorRef) { UniqueActors.Add(ActorRef); }
 		}
 
-		for (AActor* ActorRef : UniqueActors) { Context->EDITOR_TrackPath(ActorRef); }
+		if (Settings->bTrackActors)
+		{
+			for (AActor* ActorRef : UniqueActors) { Context->EDITOR_TrackPath(ActorRef); }
+		}
 
 		bool bSuccess = false;
 
