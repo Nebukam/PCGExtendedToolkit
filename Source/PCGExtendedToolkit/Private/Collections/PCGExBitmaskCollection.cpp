@@ -32,7 +32,7 @@ bool PCGExBitmaskCollection::FCache::TryGetBitmask(const FName Identifier, int64
 	return true;
 }
 
-bool PCGExBitmaskCollection::FCache::TryGetBitmask(const FName Identifier, FPCGExBitmaskCache& OutCachedBitmask) const
+bool PCGExBitmaskCollection::FCache::TryGetBitmask(const FName Identifier, PCGExBitmask::FCachedRef& OutCachedBitmask) const
 {
 	const int32* Index = BitmaskMap.Find(Identifier);
 	if (!Index)
@@ -113,7 +113,7 @@ void UPCGExBitmaskCollection::BuildCache()
 	for (FPCGExBitmaskCollectionEntry& Entry : Entries)
 	{
 		Entry.RebuildCache();
-		FPCGExBitmaskCache EntryCache = Entry.CachedBitmask;
+		PCGExBitmask::FCachedRef EntryCache = Entry.CachedBitmask;
 		bool bAlreadyInSet = false;
 		UniqueIdentifiers.Add(Entry.Identifier, &bAlreadyInSet);
 		Cache->BitmaskMap.Add(Entry.Identifier, Cache->Bitmasks.Add(EntryCache));
@@ -173,7 +173,7 @@ TArray<FName> UPCGExBitmaskCollection::EDITOR_GetIdentifierOptions() const
 {
 	TArray<FName> Options;
 	Options.Reserve(const_cast<UPCGExBitmaskCollection*>(this)->LoadCache()->Bitmasks.Num());
-	for (const FPCGExBitmaskCache& StagedBitmask : Cache->Bitmasks) { Options.Add(StagedBitmask.Identifier); }
+	for (const PCGExBitmask::FCachedRef& StagedBitmask : Cache->Bitmasks) { Options.Add(StagedBitmask.Identifier); }
 	return Options;
 }
 #endif

@@ -330,6 +330,8 @@ namespace PCGExAttributeStats
 			PCGExMath::TypeMinMax(MinValue, MaxValue);
 			PCGExMath::TypeMinMax(SetMinValue, SetMaxValue);
 
+#define PCGEX_NO_AVERAGE if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
+
 			if (!Buffer)
 			{
 				// Invalid attribute, type mismatch!
@@ -387,10 +389,14 @@ namespace PCGExAttributeStats
 
 					MinValue = PCGExBlend::Min(MinValue, Value);
 					MaxValue = PCGExBlend::Max(MaxValue, Value);
-					AverageValue = PCGExBlend::Add(AverageValue, Value);
 
-					const int32 Count = ValuesCount.FindOrAdd(Value, 0);
-					ValuesCount.Add(Value, Count + 1);
+					PCGEX_NO_AVERAGE
+					{
+					}
+					else { AverageValue = PCGExBlend::Add(AverageValue, Value); }
+
+					int32& Count = ValuesCount.FindOrAdd(Value, 0);
+					Count++;
 
 					if (PCGExCompare::StrictlyEqual(Value, DefaultValue))
 					{
@@ -398,11 +404,25 @@ namespace PCGExAttributeStats
 					}
 					else
 					{
-						const int32 SetCount = SetValuesCount.FindOrAdd(Value, 0);
-						SetValuesCount.Add(Value, SetCount + 1);
+						int32& SetCount = SetValuesCount.FindOrAdd(Value, 0);
+						SetCount++;
 
 						SetMinValue = PCGExBlend::Min(SetMinValue, Value);
 						SetMaxValue = PCGExBlend::Max(SetMaxValue, Value);
+					}
+				}
+
+				PCGEX_NO_AVERAGE
+				{
+					// Pick the most present value.
+					int32 Max = -1;
+					for (const TPair<T, int32>& Pair : ValuesCount)
+					{
+						if (Pair.Value > Max)
+						{
+							Max = Pair.Value;
+							AverageValue = Pair.Key;
+						}
 					}
 				}
 
@@ -470,6 +490,7 @@ namespace PCGExAttributeStats
 				PCGEX_OUTPUT_STAT(IsValid, bool, true)
 
 #undef PCGEX_OUTPUT_STAT
+#undef PCGEX_NO_AVERAGE
 			}
 		}
 	};
