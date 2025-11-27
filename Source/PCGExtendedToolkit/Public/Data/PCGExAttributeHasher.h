@@ -6,9 +6,15 @@
 #include <functional>
 
 #include "CoreMinimal.h"
+#include "PCGExScopedContainers.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExSorting.h"
 #include "PCGExAttributeHasher.generated.h"
+
+namespace PCGExData
+{
+	class IBuffer;
+}
 
 UENUM()
 enum class EPCGExDataHashScope : uint8
@@ -51,30 +57,28 @@ namespace PCGEx
 	{
 		FPCGExAttributeHashConfig Config;
 
-		TSharedPtr<TAttributeBroadcaster<int32>> ValuesGetter;
-
-		TArray<int32> Values;
-
-		TSet<int32> UniqueValues;
-		TArray<int32> UniqueIndices;
-
-		uint32 CombinedHashUnique = 0;
+		TSharedPtr<PCGExData::FFacade> DataFacade;
+		TSharedPtr<PCGExData::IBufferProxy> ValuesBuffer;
+		TArray<PCGExValueHash> Hashes;
 
 		int32 NumValues = -1;
 		uint32 OutHash = 0;
 
+		TSharedPtr<PCGExMT::TScopedArray<PCGExValueHash>> ScopedHashes;
+		TSharedPtr<PCGExMT::TScopedSet<PCGExValueHash>> ScopedSets;
+		
 		PCGExMT::FSimpleCallback CompleteCallback;
 
 	public:
 		explicit FAttributeHasher(const FPCGExAttributeHashConfig& InConfig);
 		~FAttributeHasher() = default;
 
-		bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InPointIO);
+		bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InFacade);
 
 		bool RequiresCompilation();
 		void Compile(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, PCGExMT::FSimpleCallback&& InCallback);
 
-		int32 GetHash() const { return OutHash; }
+		uint32 GetHash() const { return OutHash; }
 
 	protected:
 		void CompileScope(const PCGExMT::FScope& Scope);

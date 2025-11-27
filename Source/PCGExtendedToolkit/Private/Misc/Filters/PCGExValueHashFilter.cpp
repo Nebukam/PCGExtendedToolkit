@@ -40,8 +40,8 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 
 			if (Config.Mode == EPCGExValueHashMode::Merged)
 			{
-				TSet<uint32>& MergedSet = Hashes[0];
-				for (TSet<uint32>& H : Hashes) { MergedSet.Append(H); }
+				TSet<PCGExValueHash>& MergedSet = Hashes[0];
+				for (TSet<PCGExValueHash>& H : Hashes) { MergedSet.Append(H); }
 				Hashes.SetNum(1);
 
 				if (Hashes[0].IsEmpty())
@@ -53,7 +53,7 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 			else
 			{
 				int32 WriteIndex = 0;
-				for (TSet<uint32>& H : Hashes)
+				for (TSet<PCGExValueHash>& H : Hashes)
 				{
 					if (H.IsEmpty()) { continue; }
 					Hashes[WriteIndex++] = MoveTemp(H);
@@ -78,8 +78,8 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 
 			PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
 
-			Hashes[Index] = TSet<uint32>();
-			TSet<uint32>& UniqueValues = Hashes[Index];
+			Hashes[Index] = TSet<PCGExValueHash>();
+			TSet<PCGExValueHash>& UniqueValues = Hashes[Index];
 
 			TSharedPtr<PCGExData::FFacade> SourceFacade = SetSources[Index];
 
@@ -158,11 +158,11 @@ bool PCGExPointFilter::FValueHashFilter::Init(FPCGExContext* InContext, const TS
 
 bool PCGExPointFilter::FValueHashFilter::Test(const int32 PointIndex) const
 {
-	const double H = OperandA->ReadValueHash(PointIndex);
+	const PCGExValueHash H = OperandA->ReadValueHash(PointIndex);
 	bool bPass = false;
 	if (bAnyPass)
 	{
-		for (const TSet<uint32>& HashSet : *Hashes)
+		for (const TSet<PCGExValueHash>& HashSet : *Hashes)
 		{
 			if (HashSet.Contains(H))
 			{
@@ -174,7 +174,7 @@ bool PCGExPointFilter::FValueHashFilter::Test(const int32 PointIndex) const
 	else
 	{
 		bPass = true;
-		for (const TSet<uint32>& HashSet : *Hashes)
+		for (const TSet<PCGExValueHash>& HashSet : *Hashes)
 		{
 			if (!HashSet.Contains(H))
 			{
@@ -189,6 +189,7 @@ bool PCGExPointFilter::FValueHashFilter::Test(const int32 PointIndex) const
 
 bool PCGExPointFilter::FValueHashFilter::Test(const TSharedPtr<PCGExData::FPointIO>& IO, const TSharedPtr<PCGExData::FPointIOCollection>& ParentCollection) const
 {
+	// TODO : Refactor
 	double H = 0;
 
 	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, H, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
@@ -196,7 +197,7 @@ bool PCGExPointFilter::FValueHashFilter::Test(const TSharedPtr<PCGExData::FPoint
 	bool bPass = false;
 	if (bAnyPass)
 	{
-		for (const TSet<uint32>& HashSet : *Hashes)
+		for (const TSet<PCGExValueHash>& HashSet : *Hashes)
 		{
 			if (HashSet.Contains(H))
 			{
@@ -208,7 +209,7 @@ bool PCGExPointFilter::FValueHashFilter::Test(const TSharedPtr<PCGExData::FPoint
 	else
 	{
 		bPass = true;
-		for (const TSet<uint32>& HashSet : *Hashes)
+		for (const TSet<PCGExValueHash>& HashSet : *Hashes)
 		{
 			if (!HashSet.Contains(H))
 			{

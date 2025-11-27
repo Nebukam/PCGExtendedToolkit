@@ -5,16 +5,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCommon.h"
 #include "UObject/SoftObjectPath.h"
 #include "Details/PCGExMacros.h"
 
 namespace PCGExBlend
 {
 	template <typename T>
-	uint32 ValueHash(const T& Value);
+	PCGExValueHash ValueHash(const T& Value);
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) \
-extern template uint32 ValueHash<_TYPE>(const _TYPE& Value);
+extern template PCGExValueHash ValueHash<_TYPE>(const _TYPE& Value);
 
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL

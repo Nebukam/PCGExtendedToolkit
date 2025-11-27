@@ -80,7 +80,7 @@ namespace PCGExDiscardSame
 		if (Settings->bTestAttributeHash)
 		{
 			Hasher = MakeShared<PCGEx::FAttributeHasher>(Settings->AttributeHashConfig);
-			if (!Hasher->Init(Context, PointDataFacade->Source)) { return false; }
+			if (!Hasher->Init(Context, PointDataFacade)) { return false; }
 			if (Hasher->RequiresCompilation()) { Hasher->Compile(AsyncManager, nullptr); }
 		}
 
