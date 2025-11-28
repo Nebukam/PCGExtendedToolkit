@@ -268,22 +268,24 @@ namespace PCGExPathfindingPlotEdges
 
 		if (Context->bMatchForEdges)
 		{
-			if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
-				!Context->EdgeDataMatcher->PopulateIgnoreList(EdgeDataFacade->Source, MatchingScope, IgnoreList))
-			{
-				if (!Context->EdgeDataMatcher->HandleUnmatchedOutput(EdgeDataFacade, true))
-				{
-				}
-				return false;
-			}
+			PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
+			Context->EdgeDataMatcher->PopulateIgnoreList(EdgeDataFacade->Source, MatchingScope, IgnoreList);
 		}
 
-		if (Context->bMatchForVtx && VtxIgnoreList) { IgnoreList.Append(*VtxIgnoreList); }
+		if (VtxIgnoreList)
+		{
+			if (Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Any) { IgnoreList = IgnoreList.Intersect(*VtxIgnoreList); }
+			else { if (Context->bMatchForVtx) { IgnoreList.Append(*VtxIgnoreList); } }
+		}
 
 		ValidPlots.Reserve(Context->PlotsHandler->Num() - IgnoreList.Num());
 		Context->PlotsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& Target, const int32 i) { ValidPlots.Add(Target); }, &IgnoreList);
 
-		if (ValidPlots.IsEmpty()) { return false; }
+		if (ValidPlots.IsEmpty())
+		{
+			//if (!Context->EdgeDataMatcher->HandleUnmatchedOutput(EdgeDataFacade, false)){}
+			return false;
+		}
 
 		if (Settings->bUseOctreeSearch)
 		{
@@ -355,10 +357,7 @@ namespace PCGExPathfindingPlotEdges
 			Context->bMatchForVtx
 			&& !Context->MainDataMatcher->PopulateIgnoreList(VtxDataFacade->Source, MatchingScope, IgnoreList))
 		{
-			if (!Context->MainDataMatcher->HandleUnmatchedOutput(VtxDataFacade, true))
-			{
-				// TODO : Do something about it
-			}
+			//if (!Context->MainDataMatcher->HandleUnmatchedOutput(VtxDataFacade, true)){}
 		}
 
 		TBatch<FProcessor>::Process();
