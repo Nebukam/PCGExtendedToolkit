@@ -25,7 +25,24 @@ void PCGExMatching::DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDe
 
 void PCGExMatching::DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)
 {
-	FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(OutputUnmatchedLabel, EPCGDataType::Point);
-	PCGEX_PIN_TOOLTIP("Data that couldn't be matched to any target, and couldn't be processed.")
-	Pin.PinStatus = !InDetails.WantsUnmatchedSplit() ? EPCGPinStatus::Advanced : EPCGPinStatus::Normal;
+	const bool bShowAsAdvanced = !InDetails.WantsUnmatchedSplit();
+	if (InDetails.Usage == EPCGExMatchingDetailsUsage::Cluster)
+	{
+		{
+			FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(OutputUnmatchedVtxLabel, EPCGDataType::Point);
+			PCGEX_PIN_TOOLTIP("Vtx data that couldn't be matched to any target, and couldn't be processed. Note that Vtx data may exist in regular pin as well, this is to ensure unmatched edges are still bound to valid vtx.")
+			Pin.PinStatus = bShowAsAdvanced ? EPCGPinStatus::Advanced : EPCGPinStatus::Normal;
+		}
+		{
+			FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(OutputUnmatchedEdgesLabel, EPCGDataType::Point);
+			PCGEX_PIN_TOOLTIP("Edge data that couldn't be matched to any target, and couldn't be processed.")
+			Pin.PinStatus = bShowAsAdvanced ? EPCGPinStatus::Advanced : EPCGPinStatus::Normal;
+		}
+	}
+	else
+	{
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(OutputUnmatchedLabel, EPCGDataType::Point);
+		PCGEX_PIN_TOOLTIP("Data that couldn't be matched to any target, and couldn't be processed.")
+		Pin.PinStatus = bShowAsAdvanced ? EPCGPinStatus::Advanced : EPCGPinStatus::Normal;
+	}
 }

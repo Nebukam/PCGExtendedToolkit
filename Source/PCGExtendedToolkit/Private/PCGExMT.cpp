@@ -292,6 +292,16 @@ namespace PCGExMT
 			return false;
 		}
 
+		if (GetState() == EAsyncHandleState::Running)
+		{
+			if (!Context->bIsPaused)
+			{
+				UE_LOG(LogPCGEx, Warning, TEXT("Task Manager started a task while it was already running, but the context was somehow unpaused?"));
+			}
+
+			return true;
+		}
+
 		Context->PauseContext();
 		SetState(EAsyncHandleState::Running);
 
@@ -333,16 +343,19 @@ namespace PCGExMT
 
 			// Fail safe for tasks that cannot be cancelled mid-way
 			// This will only be false in cases where lots of regen/cancel happen in the same frame.
-			while (IsWaitingForRunningTasks())
-			{
-				// (；′⌒`)
-			}
+			PCGEX_ASYNC_WAIT_CHKD(IsWaitingForRunningTasks())
 		}
 
 		Tokens.Empty();
 		Groups.Empty();
 
 		bIsCancelling.store(false, std::memory_order_release);
+
+		if (!IsResetting())
+		{
+			// TODO : We should call end here if we're not resetting
+		}
+
 		return true;
 	}
 
@@ -352,7 +365,9 @@ namespace PCGExMT
 
 		bIsResetting.store(true, std::memory_order_release);
 
-		Cancel();                   // Cancel ongoing work first, just in case
+		Cancel(); // Cancel ongoing work first, just in case
+		// TODO : We should call End() here instead of unpausing context afterward?
+		// NOTE : Actually maybe not, End is triggering the OnComplete() callback.
 		FAsyncMultiHandle::Reset(); // Reset trackers, cancellation, set State to Idle
 
 		bIsResetting.store(false, std::memory_order_release);
@@ -452,6 +467,7 @@ namespace PCGExMT
 
 	void FTaskManager::End(const bool bIsCancellation)
 	{
+		// TODO : When is unpausing safe here?
 		FAsyncMultiHandle::End(bIsCancellation);
 		Context->UnpauseContext();
 	}

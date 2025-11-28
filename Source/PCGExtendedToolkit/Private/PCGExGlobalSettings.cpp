@@ -75,9 +75,11 @@ void UPCGExGlobalSettings::GeneratePinInfos()
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Vtx, "Point collection formatted for use as cluster vtx.");
 	PCGEX_MAP_PIN_OUT("Vtx")
+	PCGEX_MAP_PIN_OUT("Unmatched Vtx")
 
 	PCGEX_EMPLACE_PIN_OUT(OUT_Edges, "Point collection formatted for use as cluster edges.");
 	PCGEX_MAP_PIN_OUT("Edges")
+	PCGEX_MAP_PIN_OUT("Unmatched Edges")
 
 #undef PCGEX_EMPLACE_PIN_OUT
 #undef PCGEX_MAP_PIN_OUT

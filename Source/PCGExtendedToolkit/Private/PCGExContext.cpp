@@ -291,7 +291,7 @@ bool FPCGExContext::TryComplete(const bool bForce)
 void FPCGExContext::ResumeExecution()
 {
 	if (AsyncManager) { AsyncManager->Reset(); }
-	UnpauseContext();
+	UnpauseContext(); 
 	bWaitingForAsyncCompletion = false;
 }
 

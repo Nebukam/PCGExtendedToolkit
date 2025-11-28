@@ -42,6 +42,7 @@ public:
 #endif
 
 protected:
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
@@ -180,6 +181,7 @@ namespace PCGExPathfindingPlotEdges
 		friend class FProcessor;
 
 	protected:
+		bool bUnmatched = false;
 		TSet<const UPCGData*> IgnoreList;
 		
 	public:
@@ -190,5 +192,6 @@ namespace PCGExPathfindingPlotEdges
 
 		virtual void Process() override;
 		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
+		virtual void CompleteWork() override;
 	};
 }
