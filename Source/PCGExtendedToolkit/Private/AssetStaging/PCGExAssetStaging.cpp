@@ -8,6 +8,7 @@
 #include "PCGExScopedContainers.h"
 #include "AssetStaging/PCGExStaging.h"
 #include "Collections/PCGExAssetCollection.h"
+#include "Collections/PCGExAssetLoader.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Data/PCGExPointIO.h"
 
@@ -70,7 +71,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 		Context->MainCollection->EDITOR_RegisterTrackingKeys(Context);
 	}
-	else
+	else if (Settings->CollectionSource == EPCGExCollectionSource::AttributeSet)
 	{
 		if (Settings->OutputMode == EPCGExStagingOutputMode::CollectionMap)
 		{
@@ -84,6 +85,13 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build collection from attribute set."));
 			return false;
 		}
+	}
+	else if (Settings->CollectionSource == EPCGExCollectionSource::Attribute)
+	{
+		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->CollectionPathAttributeName)
+
+		TArray<FName> Names = {Settings->CollectionPathAttributeName};
+		Context->CollectionsLoader = MakeShared<PCGEx::TAssetLoader<UPCGExAssetCollection>>(Context, Context->MainPoints.ToSharedRef(), Names);
 	}
 
 	if (Context->bPickMaterials && Context->MainCollection->GetType() != PCGExAssetCollection::EType::Mesh)
@@ -127,10 +135,6 @@ void FPCGExAssetStagingContext::RegisterAssetDependencies()
 	{
 		MainCollection->GetAssetPaths(GetRequiredAssets(), PCGExAssetCollection::ELoadingFlags::Recursive);
 	}
-	else
-	{
-		MainCollection->GetAssetPaths(GetRequiredAssets(), PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly);
-	}
 }
 
 
@@ -172,6 +176,42 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
+		if (Context->CollectionsLoader)
+		{
+			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+
+			if (!Context->CollectionsLoader->Start(Context->GetAsyncManager()))
+			{
+				return Context->CancelExecution(TEXT("Failed to find any collections to load."));
+			}
+		}
+		else
+		{
+			if (!Context->StartBatchProcessingPoints(
+				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+				{
+					NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
+				}))
+			{
+				return Context->CancelExecution(TEXT("Could not find any points to process."));
+			}
+		}
+	}
+
+	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)
+	{
+		if (Context->CollectionsLoader && Context->CollectionsLoader->IsEmpty())
+		{
+			return Context->CancelExecution(TEXT("Failed to load any collection from points."));
+		}
+
+		// Make sure cache is built for all collections
+		for (const TPair<PCGExValueHash, TObjectPtr<UPCGExAssetCollection>>& Pair : Context->CollectionsLoader->AssetsMap)
+		{
+			Pair.Value->LoadCache();
+		}
+
 		if (!Context->StartBatchProcessingPoints(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
@@ -237,13 +277,22 @@ namespace PCGExAssetStaging
 		Variations = Settings->Variations;
 		Variations.Init(Settings->Seed);
 
-		Helper = MakeShared<PCGExStaging::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>(Context->MainCollection, Settings->DistributionSettings);
-		if (!Helper->Init(PointDataFacade)) { return false; }
-
-		if (Context->MainCollection->GetType() == PCGExAssetCollection::EType::Mesh)
+		Source = MakeShared<PCGExStaging::FCollectionSource>(PointDataFacade);
+		Source->DistributionSettings = Settings->DistributionSettings;
+		Source->EntryDistributionSettings = Settings->EntryDistributionSettings;
+		
+		if (Settings->CollectionSource == EPCGExCollectionSource::Attribute)
 		{
-			MicroHelper = MakeShared<PCGExStaging::TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>>(Settings->EntryDistributionSettings);
-			if (!MicroHelper->Init(PointDataFacade)) { return false; }
+			if (!Source->Init(
+				Context->CollectionsLoader->AssetsMap,
+				Context->CollectionsLoader->GetKeys(PointDataFacade->Source->IOIndex)))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if (!Source->Init(Context->MainCollection)) { return false; }
 		}
 
 		if (Settings->bDoOutputSockets) { SocketHelper = MakeShared<PCGExStaging::FSocketHelper>(&Context->OutputSocketDetails, NumPoints); }
@@ -345,7 +394,10 @@ namespace PCGExAssetStaging
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			if (!PointFilterCache[Index])
+			PCGExStaging::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>* Helper = nullptr;
+			PCGExStaging::TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>* MicroHelper = nullptr;
+
+			if (!PointFilterCache[Index] || !Source->TryGetHelpers(Index, Helper, MicroHelper))
 			{
 				InvalidPoint(Index);
 				continue;
@@ -503,6 +555,7 @@ namespace PCGExAssetStaging
 
 	void FProcessor::Write()
 	{
+		Source.Reset();
 		(void)PointDataFacade->Source->Gather(Mask);
 	}
 }

@@ -18,6 +18,7 @@ namespace PCGExMeshCollection
 	class FMicroCache;
 }
 
+
 struct FPCGExActorCollectionEntry;
 struct FPCGExAssetCollectionEntry;
 struct FPCGMeshInstanceList;
@@ -37,13 +38,14 @@ namespace PCGExDetails
 }
 
 
-UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Rotation Component Flags"))
+UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Component Flags"))
 enum class EPCGExAbsoluteRotationFlags : uint8
 {
 	None = 0 UMETA(Hidden),
-	X    = 1 << 0 UMETA(DisplayName = "Pitch", ToolTip = "Pitch", ActionIcon="X"),
-	Y    = 1 << 1 UMETA(DisplayName = "Yaw", ToolTip = "Yaw", ActionIcon="Y"),
-	Z    = 1 << 2 UMETA(DisplayName = "Roll", ToolTip = "Roll", ActionIcon="Z")
+	X    = 1 << 0 UMETA(DisplayName = "Pitch"),
+	Y    = 1 << 1 UMETA(DisplayName = "Yaw"),
+	Z    = 1 << 2 UMETA(DisplayName = "Roll"),
+	All  = X | Y | Z UMETA(DisplayName = "All"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExAbsoluteRotationFlags)
@@ -69,7 +71,6 @@ namespace PCGExStaging
 
 	public:
 		FPickPacker(FPCGContext* InContext);
-
 
 		uint64 GetPickIdx(const UPCGExAssetCollection* InCollection, const int16 InIndex, const int16 InSecondaryIndex);
 
@@ -221,5 +222,34 @@ MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 		FSocketInfos& NewSocketInfos(const uint64 EntryHash, int32& OutIndex);
 		void FilterSocketInfos(const int32 Index);
 		void CompileRange(const PCGExMT::FScope& Scope);
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FCollectionSource : public TSharedFromThis<FCollectionSource>
+	{
+		TSharedPtr<TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
+		TSharedPtr<TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>> MicroHelper;
+		
+		TArray<TSharedPtr<TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>> Helpers;
+		TArray<TSharedPtr<TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>>> MicroHelpers;
+		TMap<PCGExValueHash, int32> Indices;
+
+		TSharedPtr<TArray<PCGExValueHash>> Keys;
+
+		TSharedPtr<PCGExData::FFacade> DataFacade = nullptr;
+		UPCGExAssetCollection* SingleSource = nullptr;
+		
+	public:
+		FPCGExAssetDistributionDetails DistributionSettings;
+		FPCGExMicroCacheDistributionDetails EntryDistributionSettings;
+
+		explicit FCollectionSource(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
+		
+		bool Init(UPCGExAssetCollection* InCollection);
+		bool Init(const TMap<PCGExValueHash, TObjectPtr<UPCGExAssetCollection>>& InMap, const TSharedPtr<TArray<PCGExValueHash>>& InKeys);
+		
+		bool TryGetHelpers(
+			const int32 Index,
+			TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>*& OutHelper,
+			TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>*& OutMicroHelper);
 	};
 }

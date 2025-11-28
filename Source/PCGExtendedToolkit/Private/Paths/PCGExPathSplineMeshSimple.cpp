@@ -9,11 +9,11 @@
 #include "PCGExHelpers.h"
 #include "Collections/PCGExAssetLoader.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Details/PCGExVersion.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 #include "Engine/StaticMesh.h"
-
 
 #include "Paths/PCGExPaths.h"
 
@@ -208,8 +208,8 @@ namespace PCGExPathSplineMeshSimple
 
 		if (Settings->AssetType == EPCGExInputValueType::Attribute)
 		{
-			AssetPathReader = PointDataFacade->GetBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName, true);
-			if (!AssetPathReader)
+			MeshKeys = Context->StaticMeshLoader->GetKeys(PointDataFacade->Source->IOIndex);
+			if (!MeshKeys)
 			{
 				PCGEX_LOG_INVALID_ATTR_C(Context, Asset Path, Settings->AssetPathAttributeName)
 				return false;
@@ -218,8 +218,8 @@ namespace PCGExPathSplineMeshSimple
 
 		if (Settings->bReadMaterialFromAttribute)
 		{
-			MaterialPathReader = PointDataFacade->GetBroadcaster<FSoftObjectPath>(Settings->MaterialAttributeName, true);
-			if (!MaterialPathReader)
+			MaterialKeys = Context->MaterialLoader->GetKeys(PointDataFacade->Source->IOIndex);
+			if (!MaterialKeys)
 			{
 				PCGEX_LOG_INVALID_ATTR_C(Context, Material Path, Settings->MaterialAttributeName)
 				return false;
@@ -236,7 +236,7 @@ namespace PCGExPathSplineMeshSimple
 
 		Segments.Init(PCGExPaths::FSplineMeshSegment(), bClosedLoop ? LastIndex + 1 : LastIndex);
 		Meshes.Init(nullptr, Segments.Num());
-		if (MaterialPathReader) { Materials.Init(nullptr, Segments.Num()); }
+		if (MaterialKeys) { Materials.Init(nullptr, Segments.Num()); }
 
 		StartParallelLoopForPoints();
 
@@ -265,6 +265,9 @@ namespace PCGExPathSplineMeshSimple
 
 		bool bAnyValidSegment = false;
 
+		const TArray<PCGExValueHash>& MeshKeysRef = MeshKeys ? *MeshKeys.Get() : TArray<PCGExValueHash>{};
+		const TArray<PCGExValueHash>& MaterialKeysRef = MaterialKeys ? *MaterialKeys.Get() : TArray<PCGExValueHash>{};
+		
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (Index == LastIndex && !bClosedLoop)
@@ -280,7 +283,7 @@ namespace PCGExPathSplineMeshSimple
 				continue;
 			}
 
-			const TObjectPtr<UStaticMesh>* SM = AssetPathReader ? Context->StaticMeshLoader->GetAsset(AssetPathReader->Read(Index)) : &Context->StaticMesh;
+			const TObjectPtr<UStaticMesh>* SM = MeshKeys ? Context->StaticMeshLoader->GetAsset(MeshKeysRef[Index]) : &Context->StaticMesh;
 
 			if (!SM)
 			{
@@ -289,7 +292,7 @@ namespace PCGExPathSplineMeshSimple
 			}
 
 			Meshes[Index] = *SM;
-			if (const TObjectPtr<UMaterialInterface>* MI = MaterialPathReader ? Context->MaterialLoader->GetAsset(MaterialPathReader->Read(Index)) : nullptr)
+			if (const TObjectPtr<UMaterialInterface>* MI = MaterialKeys ? Context->MaterialLoader->GetAsset(MaterialKeysRef[Index]) : nullptr)
 			{
 				Materials[Index] = *MI;
 			}
@@ -389,7 +392,7 @@ namespace PCGExPathSplineMeshSimple
 
 		Segment.ApplySettings(SplineMeshComponent); // Init Component
 
-		if (MaterialPathReader)
+		if (MaterialKeys)
 		{
 			int32 SlotIndex = Settings->MaterialSlotConstant;
 

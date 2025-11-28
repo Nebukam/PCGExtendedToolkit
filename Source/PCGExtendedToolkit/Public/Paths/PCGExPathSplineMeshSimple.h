@@ -220,8 +220,8 @@ namespace PCGExPathSplineMeshSimple
 		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> StartOffset;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector2D>> EndOffset;
 
-		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathReader;
-		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> MaterialPathReader;
+		TSharedPtr<TArray<PCGExValueHash>> MeshKeys;
+		TSharedPtr<TArray<PCGExValueHash>> MaterialKeys;
 
 		TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;

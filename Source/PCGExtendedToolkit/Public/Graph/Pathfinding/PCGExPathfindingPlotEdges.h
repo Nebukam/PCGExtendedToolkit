@@ -7,10 +7,21 @@
 
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/Matching/PCGExMatching.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Paths/PCGExPaths.h"
 
 #include "PCGExPathfindingPlotEdges.generated.h"
+
+namespace PCGExMatching
+{
+	class FDataMatcher;
+}
+
+namespace PCGExSampling
+{
+	class FTargetsHandler;
+}
 
 class FPCGExHeuristicOperation;
 class UPCGExSearchInstancedFactory;
@@ -44,6 +55,10 @@ public:
 #endif
 	//~End UObject interface
 
+	/** If enabled, allows you to filter out which plots get associated to which clusters */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Cluster);
+	
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAddSeedToPath = false;
@@ -104,7 +119,14 @@ struct FPCGExPathfindingPlotEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingPlotEdgesElement;
 
-	TArray<TSharedPtr<PCGExData::FFacade>> Plots;
+	TSharedPtr<PCGExSampling::FTargetsHandler> PlotsHandler;
+	TSharedPtr<PCGExMatching::FDataMatcher> MainDataMatcher;
+	TSharedPtr<PCGExMatching::FDataMatcher> EdgeDataMatcher;
+	int32 NumMaxPlots = 0;
+
+	bool bMatchForVtx = false;
+	bool bMatchForEdges = false;
+	
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	UPCGExSearchInstancedFactory* SearchAlgorithm = nullptr;
@@ -128,6 +150,13 @@ namespace PCGExPathfindingPlotEdges
 {
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPathfindingPlotEdgesContext, UPCGExPathfindingPlotEdgesSettings>
 	{
+		friend class FBatch;
+		
+	protected:
+		
+		TSet<const UPCGData*>* VtxIgnoreList = nullptr;
+		TSet<const UPCGData*> IgnoreList;
+		TArray<TSharedPtr<PCGExData::FFacade>> ValidPlots;
 		TArray<TSharedPtr<PCGExPathfinding::FPlotQuery>> Queries;
 		TArray<TSharedPtr<PCGExData::FPointIO>> QueriesIO;
 		TSharedPtr<PCGExPathfinding::FSearchAllocations> SearchAllocations;
@@ -144,5 +173,22 @@ namespace PCGExPathfindingPlotEdges
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+	};
+
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+		friend class FProcessor;
+
+	protected:
+		TSet<const UPCGData*> IgnoreList;
+		
+	public:
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
+			TBatch(InContext, InVtx, InEdges)
+		{
+		}
+
+		virtual void Process() override;
+		virtual bool PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor) override;
 	};
 }
