@@ -91,7 +91,7 @@ namespace PCGExSampleSockets
 	{
 	protected:
 		TSharedPtr<PCGExStaging::FSocketHelper> SocketHelper;
-		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> AssetPathReader;
+		TSharedPtr<TArray<PCGExValueHash>> Keys;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

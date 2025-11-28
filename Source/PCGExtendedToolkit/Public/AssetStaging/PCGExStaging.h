@@ -18,6 +18,7 @@ namespace PCGExMeshCollection
 	class FMicroCache;
 }
 
+
 struct FPCGExActorCollectionEntry;
 struct FPCGExAssetCollectionEntry;
 struct FPCGMeshInstanceList;
@@ -154,7 +155,7 @@ namespace PCGExStaging
 	protected:
 		TSharedPtr<PCGExDetails::TSettingValue<int32>> IndexGetter;
 		double MaxInputIndex = 0;
-		
+
 	public:
 		FPCGExMicroCacheDistributionDetails Details;
 
@@ -172,7 +173,7 @@ namespace PCGExStaging
 	};
 
 	extern template class TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>;
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FSocketInfos
 	{
 		FSocketInfos() = default;
@@ -221,5 +222,34 @@ MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 		FSocketInfos& NewSocketInfos(const uint64 EntryHash, int32& OutIndex);
 		void FilterSocketInfos(const int32 Index);
 		void CompileRange(const PCGExMT::FScope& Scope);
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FCollectionSource : public TSharedFromThis<FCollectionSource>
+	{
+		TSharedPtr<TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
+		TSharedPtr<TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>> MicroHelper;
+		
+		TArray<TSharedPtr<TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>> Helpers;
+		TArray<TSharedPtr<TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>>> MicroHelpers;
+		TMap<PCGExValueHash, int32> Indices;
+
+		TSharedPtr<TArray<PCGExValueHash>> Keys;
+
+		TSharedPtr<PCGExData::FFacade> DataFacade = nullptr;
+		UPCGExAssetCollection* SingleSource = nullptr;
+		
+	public:
+		FPCGExAssetDistributionDetails DistributionSettings;
+		FPCGExMicroCacheDistributionDetails EntryDistributionSettings;
+
+		explicit FCollectionSource(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
+		
+		bool Init(UPCGExAssetCollection* InCollection);
+		bool Init(const TMap<PCGExValueHash, TObjectPtr<UPCGExAssetCollection>>& InMap, const TSharedPtr<TArray<PCGExValueHash>>& InKeys);
+		
+		bool TryGetHelpers(
+			const int32 Index,
+			TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>*& OutHelper,
+			TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>*& OutMicroHelper);
 	};
 }

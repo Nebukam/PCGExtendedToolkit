@@ -46,6 +46,11 @@ namespace PCGExData
 		return Identifier;
 	}
 
+	void IBuffer::EnableValueHashCache()
+	{
+		bCacheValueHashes = true;
+	}
+
 	IBuffer::IBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier)
 		: Identifier(InIdentifier), Source(InSource)
 	{
@@ -139,12 +144,29 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	void TArrayBuffer<T>::SetValue(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
 
 	template <typename T>
+	PCGExValueHash TArrayBuffer<T>::ReadValueHash(const int32 Index)
+	{
+		if (bCacheValueHashes) { return InHashes[Index]; }
+		return PCGExBlend::ValueHash(Read(Index));
+	}
+
+	template <typename T>
+	void TArrayBuffer<T>::ComputeValueHashes(const PCGExMT::FScope& Scope)
+	{
+		const TArray<T>& InValuesRef = *InValues.Get();
+		PCGEX_SCOPE_LOOP(Index) { InHashes[Index] = PCGExBlend::ValueHash(InValuesRef[Index]); }
+	}
+
+	template <typename T>
 	void TArrayBuffer<T>::InitForReadInternal(const bool bScoped, const FPCGMetadataAttributeBase* Attribute)
 	{
 		if (InValues) { return; }
 
+		const int32 NumReadValue = Source->GetIn()->GetNumPoints();
 		InValues = MakeShared<TArray<T>>();
-		PCGEx::InitArray(InValues, Source->GetIn()->GetNumPoints());
+		PCGEx::InitArray(InValues, NumReadValue);
+
+		if (bCacheValueHashes) { InHashes.Init(0, NumReadValue); }
 
 		InAttribute = Attribute;
 		TypedInAttribute = Attribute ? static_cast<const FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
@@ -170,6 +192,19 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		if (InValues) { return true; }
 		InValues = OutValues;
 		return InValues ? true : false;
+	}
+
+	template <typename T>
+	void TArrayBuffer<T>::EnableValueHashCache()
+	{
+		if (bCacheValueHashes) { return; }
+		bCacheValueHashes = true;
+
+		if (bReadComplete)
+		{
+			if (InHashes.Num() != InValues->Num()) { InHashes.Init(0, InValues->Num()); }
+			Fetch(PCGExMT::FScope(0, InValues->Num()));
+		}
 	}
 
 	template <typename T>
@@ -401,6 +436,8 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 			TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + Scope.Start, Scope.Count);
 			InAccessor->GetRange<T>(ReadRange, Scope.Start, *Source->GetInKeys());
 		}
+
+		if (bCacheValueHashes) { ComputeValueHashes(Scope); }
 	}
 
 	template <typename T>
@@ -605,7 +642,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		PCGExDataHelpers::SetDataValue(TypedOutAttribute, OutValue);
 	}
 
-	template<typename T>
+	template <typename T>
 	const IBuffer::OpsTable TBuffer<T>::OpsImpl =
 	{
 		&TBuffer<T>::ReadRawImpl,
@@ -623,13 +660,13 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 
 #undef PCGEX_TPL
-	
+
 #pragma endregion
-	
+
 #pragma endregion
 
 #pragma region FFacade
-		
+
 	int32 FFacade::GetNum(const EIOSide InSide) const { return Source->GetNum(InSide); }
 
 	TSharedPtr<IBuffer> FFacade::FindBuffer_Unsafe(const uint64 UID)

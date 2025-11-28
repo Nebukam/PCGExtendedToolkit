@@ -5,30 +5,23 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExContext.h"
 #include "PCGExMT.h"
-#include "PCGExSubSystem.h"
-#include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGExPointIO.h"
+#include "Data/PCGExValueHash.h"
 
-
-#include "Engine/AssetManager.h"
+namespace PCGExData
+{
+	class FPointIOCollection;
+}
 
 namespace PCGEx
 {
 	template <typename T>
-	class TDiscoverAssetsTask;
+	class TAttributeBroadcaster;
+}
 
+namespace PCGEx
+{
 	class PCGEXTENDEDTOOLKIT_API IAssetLoader : public TSharedFromThis<IAssetLoader>
-	{
-	public:
-		IAssetLoader()
-		{
-		}
-	};
-
-	template <typename T>
-	class TAssetLoader : public IAssetLoader
 	{
 	protected:
 		bool bBypass = false;
@@ -39,137 +32,63 @@ namespace PCGEx
 
 		TSharedPtr<FStreamableHandle> LoadHandle;
 		TWeakPtr<PCGExMT::FAsyncToken> AsyncToken;
-
 		int8 bEnded = 0;
+
+		FPCGExContext* Context = nullptr;
 
 	public:
 		PCGExMT::FCompletionCallback OnComplete;
-		FPCGExContext* Context = nullptr;
-		TMap<FSoftObjectPath, TObjectPtr<T>> AssetsMap;
-		TSharedRef<PCGExData::FPointIOCollection> IOCollection;
+		TSharedPtr<PCGExData::FPointIOCollection> IOCollection;
+		TArray<TSharedPtr<TArray<PCGExValueHash>>> Keys;
+
+		IAssetLoader() = default;
+		IAssetLoader(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InIOCollection, const TArray<FName>& InAttributeNames);
+		virtual ~IAssetLoader();
+
+		virtual bool IsEmpty() { return true; }
+		bool HasEnded() const { return bEnded ? true : false; }
+		void Cancel();
+
+		void AddUniquePaths(const TSet<FSoftObjectPath>& InPaths);
+
+		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
+		TSharedPtr<TArray<PCGExValueHash>> GetKeys(const int32 IOIndex);
+
+		virtual bool Load();
+		virtual void End(const bool bBuildMap = false) {}
+		virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) {}
+
+	protected:
+		virtual void PrepareLoading();
+	};
+
+	template <typename T>
+	class TAssetLoader : public IAssetLoader
+	{
+	public:
+		TMap<PCGExValueHash, TObjectPtr<T>> AssetsMap;
 
 		TAssetLoader(
 			FPCGExContext* InContext,
-			const TSharedRef<PCGExData::FPointIOCollection>& InIOCollection,
+			const TSharedPtr<PCGExData::FPointIOCollection>& InIOCollection,
 			const TArray<FName>& InAttributeNames)
-			: IAssetLoader(),
-			  AttributeNames(InAttributeNames),
-			  Context(InContext),
-			  IOCollection(InIOCollection)
+			: IAssetLoader(InContext, InIOCollection, InAttributeNames)
 		{
 		}
 
-		~TAssetLoader()
+		virtual bool IsEmpty() override { return AssetsMap.IsEmpty(); }
+		TObjectPtr<T>* GetAsset(const PCGExValueHash Key) { return AssetsMap.Find(Key); }
+
+		virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override
 		{
-			Cancel();
-		}
-
-
-		bool HasEnded() const { return bEnded ? true : false; }
-
-		TObjectPtr<T>* GetAsset(const FSoftObjectPath& Path) { return AssetsMap.Find(Path); }
-
-		void AddExtraStructReferencedObjects(FReferenceCollector& Collector)
-		{
-			for (const TPair<FSoftObjectPath, TObjectPtr<T>>& Pair : AssetsMap)
+			for (const TPair<PCGExValueHash, TObjectPtr<T>>& Pair : AssetsMap)
 			{
 				TObjectPtr<UObject> Obj = Pair.Value;
 				Collector.AddReferencedObject(Obj);
 			}
 		}
 
-		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-		{
-			TArray<TSharedPtr<TDiscoverAssetsTask<T>>> Tasks;
-
-			for (const TSharedPtr<PCGExData::FPointIO>& PointIO : IOCollection->Pairs)
-			{
-				TSharedRef<PCGExData::FPointIO> PointIORef = PointIO.ToSharedRef();
-				for (const FName& AssetAttributeName : AttributeNames)
-				{
-					PCGEX_MAKE_SHARED(Broadcaster, TAttributeBroadcaster<FSoftObjectPath>)
-
-					if (!Broadcaster->Prepare(AssetAttributeName, PointIORef))
-					{
-						// Warn & continue
-						continue;
-					}
-
-					PCGEX_MAKE_SHARED(Task, TDiscoverAssetsTask<T>, SharedThis(this), Broadcaster)
-					Tasks.Add(Task);
-				}
-			}
-
-			if (Tasks.IsEmpty()) { return false; }
-
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, AssetDiscovery)
-
-			AsyncToken = AsyncManager->TryCreateToken(FName("AssetLoaderToken"));
-
-			AssetDiscovery->OnCompleteCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE]()
-				{
-					PCGEX_ASYNC_THIS
-
-					if (!This->AsyncToken.IsValid()) { return; }
-
-					PCGEX_SUBSYSTEM
-					PCGExSubsystem->RegisterBeginTickAction(
-						[AsyncThis]()
-						{
-							PCGEX_ASYNC_THIS
-							This->Load();
-						});
-				};
-
-			AssetDiscovery->StartTasksBatch(Tasks);
-
-			return true;
-		}
-
-		void AddUniquePaths(const TSet<FSoftObjectPath>& InPaths)
-		{
-			FWriteScopeLock WriteScopeLock(RegistrationLock);
-			UniquePaths.Append(InPaths);
-		}
-
-		bool Load()
-		{
-			if (UniquePaths.IsEmpty())
-			{
-				End(false);
-				return false;
-			}
-
-			AssetsMap.Reserve(UniquePaths.Num());
-
-			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-				UniquePaths.Array(), [&]() { End(true); });
-
-			if (!LoadHandle || !LoadHandle->IsActive())
-			{
-				if (!LoadHandle || !LoadHandle->HasLoadCompleted())
-				{
-					End(false);
-					return false;
-				}
-
-				// Resources were already loaded
-				End(true);
-			}
-
-			return true;
-		}
-
-		void Cancel()
-		{
-			if (LoadHandle.IsValid() && LoadHandle->IsActive()) { LoadHandle->CancelHandle(); }
-			LoadHandle.Reset();
-			UniquePaths.Empty();
-			End();
-		}
-
-		void End(const bool bBuildMap = false)
+		virtual void End(const bool bBuildMap = false) override
 		{
 			if (bEnded) { return; }
 
@@ -180,7 +99,7 @@ namespace PCGEx
 				for (FSoftObjectPath Path : UniquePaths)
 				{
 					TSoftObjectPtr<T> SoftPtr = TSoftObjectPtr<T>(Path);
-					if (SoftPtr.Get()) { AssetsMap.Add(Path, SoftPtr.Get()); }
+					if (SoftPtr.Get()) { AssetsMap.Add(PCGExBlend::ValueHash(Path), SoftPtr.Get()); }
 				}
 			}
 
@@ -188,39 +107,26 @@ namespace PCGEx
 			if (OnComplete) { OnComplete(); }
 		}
 
-		bool IsEmpty() { return AssetsMap.IsEmpty(); }
+	protected:
+		virtual void PrepareLoading() override
+		{
+			AssetsMap.Reserve(UniquePaths.Num());
+		}
 	};
 
-	template <typename T>
-	class TDiscoverAssetsTask final : public PCGExMT::FTask
+	class FDiscoverAssetsTask final : public PCGExMT::FTask
 	{
 	public:
 		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
 
-		TDiscoverAssetsTask(const TSharedPtr<TAssetLoader<T>>& InLoader,
-		                    const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster) :
-			FTask(),
-			Loader(InLoader),
-			Broadcaster(InBroadcaster)
-		{
-		}
+		FDiscoverAssetsTask(
+			const TSharedPtr<IAssetLoader>& InLoader,
+			const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster);
 
-		TSharedPtr<TAssetLoader<T>> Loader;
+		int32 IOIndex = -1;
+		TSharedPtr<IAssetLoader> Loader;
 		TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>> Broadcaster;
 
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
-		{
-			TSet<FSoftObjectPath> UniquePaths;
-			Broadcaster->GrabUniqueValues(UniquePaths);
-
-			TSet<FSoftObjectPath> UniqueValidPaths;
-			for (const FSoftObjectPath& Path : UniquePaths)
-			{
-				if (!Path.IsAsset()) { continue; }
-				UniqueValidPaths.Add(Path);
-			}
-
-			Loader->AddUniquePaths(UniqueValidPaths);
-		}
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

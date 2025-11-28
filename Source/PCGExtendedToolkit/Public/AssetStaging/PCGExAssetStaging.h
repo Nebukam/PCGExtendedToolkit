@@ -13,6 +13,11 @@
 
 #include "PCGExAssetStaging.generated.h"
 
+namespace PCGExStaging
+{
+	class FCollectionSource;
+}
+
 struct FPCGExAssetCollectionEntry;
 
 namespace PCGExMeshCollection
@@ -23,13 +28,13 @@ namespace PCGExMeshCollection
 namespace PCGExStaging
 {
 	class FPickPacker;
-	
-	template<typename C, typename E>
+
+	template <typename C, typename E>
 	class TDistributionHelper;
 
-	template<typename T>
+	template <typename T>
 	class TMicroDistributionHelper;
-	
+
 	class FSocketHelper;
 }
 
@@ -37,6 +42,12 @@ namespace PCGExMT
 {
 	template <typename T>
 	class TScopedNumericValue;
+}
+
+namespace PCGEx
+{
+	template <typename T>
+	class TAssetLoader;
 }
 
 UENUM()
@@ -80,6 +91,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::AttributeSet", EditConditionHides))
 	FPCGExRoamingAssetCollectionDetails AttributeSetDetails;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Attribute", EditCondition="CollectionSource == EPCGExCollectionSource::Attribute", EditConditionHides))
+	FName CollectionPathAttributeName = "CollectionPath";
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExStagingOutputMode OutputMode = EPCGExStagingOutputMode::Attributes;
 
@@ -94,7 +108,7 @@ public:
 	/** Distribution details that are specific to the picked entry -- what it picks depends on the type of collection being staged. For Mesh Collections, this let you control how materials are picked. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Distribution (Entry)"))
 	FPCGExMicroCacheDistributionDetails EntryDistributionSettings;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExScaleToFitDetails ScaleToFit;
 
@@ -123,7 +137,7 @@ public:
 	//** If enabled, will output mesh material picks. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="OutputMode != EPCGExStagingOutputMode::CollectionMap"))
 	bool bOutputMaterialPicks = false;
-	
+
 	//** If > 0 will create dummy attributes for missing material indices up to a maximum; in order to create a full, fixed-length list of valid (yet null) attributes for the static mesh spawner material overrides. Otherwise, will only create attribute for valid indices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" ├─ Fixed Max Index", EditCondition="bOutputMaterialPicks && OutputMode != EPCGExStagingOutputMode::CollectionMap", ClampMin="0"))
 	int32 MaxMaterialPicks = 0;
@@ -150,6 +164,8 @@ struct FPCGExAssetStagingContext final : FPCGExPointsProcessorContext
 	friend class FPCGExAssetStagingElement;
 
 	virtual void RegisterAssetDependencies() override;
+
+	TSharedPtr<PCGEx::TAssetLoader<UPCGExAssetCollection>> CollectionsLoader;
 
 	TObjectPtr<UPCGExAssetCollection> MainCollection;
 	bool bPickMaterials = false;
@@ -194,8 +210,8 @@ namespace PCGExAssetStaging
 		FPCGExFittingDetailsHandler FittingHandler;
 		FPCGExFittingVariationsDetails Variations;
 
-		TSharedPtr<PCGExStaging::TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
-		TSharedPtr<PCGExStaging::TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>> MicroHelper;
+		TSharedPtr<TArray<PCGExValueHash>> SourceKeys;
+		TSharedPtr<PCGExStaging::FCollectionSource> Source;
 		TSharedPtr<PCGExStaging::FSocketHelper> SocketHelper;
 
 		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
