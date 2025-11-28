@@ -8,8 +8,8 @@
 #include "AssetStaging/PCGExSocketStaging.h"
 #include "AssetStaging/PCGExStaging.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointIO.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
-
 
 #include "Paths/PCGExPaths.h"
 
@@ -50,7 +50,7 @@ bool FPCGExSampleSocketsElement::Boot(FPCGExContext* InContext) const
 		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->AssetPathAttributeName)
 
 		TArray<FName> Names = {Settings->AssetPathAttributeName};
-		Context->StaticMeshLoader = MakeShared<PCGEx::TAssetLoader<UStaticMesh>>(Context, Context->MainPoints.ToSharedRef(), Names);
+		Context->StaticMeshLoader = MakeShared<PCGEx::TAssetLoader<UStaticMesh>>(Context, Context->MainPoints, Names);
 	}
 	else
 	{
@@ -130,8 +130,7 @@ namespace PCGExSampleSockets
 
 		if (Settings->AssetType == EPCGExInputValueType::Attribute)
 		{
-			AssetPathReader = PointDataFacade->GetBroadcaster<FSoftObjectPath>(Settings->AssetPathAttributeName, true);
-			if (!AssetPathReader) { return false; }
+			Keys = Context->StaticMeshLoader->GetKeys(PointDataFacade->Source->IOIndex);
 		}
 
 		SocketHelper = MakeShared<PCGExStaging::FSocketHelper>(&Context->OutputSocketDetails, PointDataFacade->GetNum());
@@ -148,14 +147,14 @@ namespace PCGExSampleSockets
 		PointDataFacade->Fetch(Scope);
 		FilterScope(Scope);
 
+		const TArray<PCGExValueHash>& KeysRef = Keys ? *Keys.Get() : TArray<PCGExValueHash>{};
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!PointFilterCache[Index]) { continue; }
 
-			const TObjectPtr<UStaticMesh>* SM = AssetPathReader ? Context->StaticMeshLoader->GetAsset(AssetPathReader->Read(Index)) : &Context->StaticMesh;
-
+			const TObjectPtr<UStaticMesh>* SM = Keys ? Context->StaticMeshLoader->GetAsset(KeysRef[Index]) : &Context->StaticMesh;
 			if (!SM) { continue; }
-
 			SocketHelper->Add(Index, *SM);
 		}
 	}

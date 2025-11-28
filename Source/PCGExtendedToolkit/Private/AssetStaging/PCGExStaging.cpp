@@ -434,7 +434,7 @@ namespace PCGExStaging
 			const bool bWantsMinMax = Details.IndexSettings.bRemapIndexToCollectionSize;
 			IndexGetter = Details.IndexSettings.GetValueSettingIndex();
 			if (!IndexGetter->Init(InDataFacade, !bWantsMinMax, bWantsMinMax)) { return false; }
-			
+
 			MaxInputIndex = IndexGetter->Max();
 		}
 
@@ -455,7 +455,7 @@ namespace PCGExStaging
 			OutIndex = -1;
 			return;
 		}
-		
+
 		switch (Details.Distribution)
 		{
 		case EPCGExDistribution::Index:
@@ -752,5 +752,86 @@ namespace PCGExStaging
 				Index++;
 			}
 		}
+	}
+
+
+	FCollectionSource::FCollectionSource(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+		: DataFacade(InDataFacade)
+	{
+	}
+
+	bool FCollectionSource::Init(UPCGExAssetCollection* InCollection)
+	{
+		SingleSource = InCollection;
+		Helper = MakeShared<TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>(InCollection, DistributionSettings);
+		if (!Helper->Init(DataFacade.ToSharedRef())) { return false; }
+
+		if (InCollection->GetType() == PCGExAssetCollection::EType::Mesh)
+		{
+			MicroHelper = MakeShared<TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>>(EntryDistributionSettings);
+			if (!MicroHelper->Init(DataFacade.ToSharedRef())) { return false; }
+		}
+
+		return true;
+	}
+
+	bool FCollectionSource::Init(
+		const TMap<PCGExValueHash, TObjectPtr<UPCGExAssetCollection>>& InMap,
+		const TSharedPtr<TArray<PCGExValueHash>>& InKeys)
+	{
+		Keys = InKeys;
+		if (!Keys) { return false; }
+
+		const int32 NumElements = InMap.Num();
+		Helpers.Reserve(NumElements);
+		MicroHelpers.Reserve(NumElements);
+
+		for (const TPair<PCGExValueHash, TObjectPtr<UPCGExAssetCollection>>& Pair : InMap)
+		{
+			UPCGExAssetCollection* Collection = Pair.Value.Get();
+
+			Helper = MakeShared<TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>(Collection, DistributionSettings);
+			if (!Helper->Init(DataFacade.ToSharedRef())) { continue; }
+
+			Indices.Add(Pair.Key, Helpers.Add(Helper));
+
+			if (Collection->GetType() == PCGExAssetCollection::EType::Mesh)
+			{
+				MicroHelper = MakeShared<TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>>(EntryDistributionSettings);
+				if (!MicroHelper->Init(DataFacade.ToSharedRef())) { MicroHelpers.Add(nullptr); }
+				else { MicroHelpers.Add(MicroHelper); }
+			}
+		}
+
+		Helper = nullptr;
+		MicroHelper = nullptr;
+
+		return true;
+	}
+
+
+	bool FCollectionSource::TryGetHelpers(
+		const int32 Index,
+		TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>*& OutHelper,
+		TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>*& OutMicroHelper)
+	{
+		if (SingleSource)
+		{
+			OutHelper = Helper.Get();
+			OutMicroHelper = MicroHelper.Get();
+			return true;
+		}
+
+		const int32* Idx = Indices.Find(*(Keys->GetData() + Index));
+		if (!Idx)
+		{
+			OutHelper = nullptr;
+			OutMicroHelper = nullptr;
+			return false;
+		}
+
+		OutHelper = Helpers[*Idx].Get();
+		OutMicroHelper = MicroHelpers[*Idx].Get();
+		return true;
 	}
 }

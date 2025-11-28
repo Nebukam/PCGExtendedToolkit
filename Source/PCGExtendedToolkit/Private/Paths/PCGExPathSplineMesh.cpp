@@ -74,7 +74,7 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 			return false;
 		}
 	}
-	else
+	else if (Settings->CollectionSource == EPCGExCollectionSource::AttributeSet)
 	{
 		Context->MainCollection = Cast<UPCGExMeshCollection>(Settings->AttributeSetDetails.TryBuildCollection(Context, PCGExAssetCollection::SourceAssetCollection, false));
 		if (!Context->MainCollection)
@@ -82,6 +82,11 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Failed to build collection from attribute set."));
 			return false;
 		}
+	}
+	else
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Per-point collection is not supported with Spline Mesh (yet)"));
+		return false;
 	}
 
 	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->AssetPathAttributeName)
@@ -280,7 +285,7 @@ namespace PCGExPathSplineMesh
 
 			PCGExPaths::FSplineMeshSegment Segment;
 			ON_SCOPE_EXIT { Segments[Index] = Segment; };
-			
+
 			const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
 			const UPCGExAssetCollection* EntryHost = nullptr;
 

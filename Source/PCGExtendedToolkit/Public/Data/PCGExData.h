@@ -86,6 +86,8 @@ namespace PCGExData
 		bool bIsNewOutput = false;
 		std::atomic<bool> bIsEnabled{true}; // BUG : Need to have a better look at why we hang when this is false
 		bool bReadComplete = false;
+		
+		bool bCacheValueHashes = false;
 
 	public:
 		FPCGAttributeIdentifier Identifier;
@@ -94,6 +96,7 @@ namespace PCGExData
 		bool IsEnabled() const { return bIsEnabled.load(std::memory_order_acquire); }
 		void Disable() { bIsEnabled.store(false, std::memory_order_release); }
 		void Enable() { bIsEnabled.store(true, std::memory_order_release); }
+		virtual void EnableValueHashCache();
 
 		// Unsafe read value hash from input
 		virtual PCGExValueHash ReadValueHash(const int32 Index) = 0;
@@ -223,7 +226,8 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 	using TBuffer<T>::OutAttribute;\
 	using TBuffer<T>::TypedOutAttribute;\
 	using TBuffer<T>::bReadComplete;\
-	using TBuffer<T>::IsEnabled;
+	using TBuffer<T>::IsEnabled;\
+	using TBuffer<T>::bCacheValueHashes;
 
 	template <typename T>
 	class TArrayBuffer : public TBuffer<T>
@@ -237,6 +241,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 		TSharedPtr<TArray<T>> InValues;
 		TSharedPtr<TArray<T>> OutValues;
+		TArray<PCGExValueHash> InHashes;
 
 	public:
 		TArrayBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier);
@@ -255,13 +260,17 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		virtual const T& Read(const int32 Index) const override;
 		virtual const T& GetValue(const int32 Index) override;
 		virtual void SetValue(const int32 Index, const T& Value) override;
-
-	protected:
+		virtual PCGExValueHash ReadValueHash(const int32 Index) override;
+		
+	protected:		
+		virtual void ComputeValueHashes(const PCGExMT::FScope& Scope);
+		
 		virtual void InitForReadInternal(const bool bScoped, const FPCGMetadataAttributeBase* Attribute);
 		virtual void InitForWriteInternal(FPCGMetadataAttributeBase* Attribute, const T& InDefaultValue, const EBufferInit Init);
 
 	public:
 		virtual bool EnsureReadable() override;
+		virtual void EnableValueHashCache() override;
 
 		virtual bool InitForRead(const EIOSide InSide = EIOSide::In, const bool bScoped = false) override;
 		virtual bool InitForBroadcast(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false, const bool bScoped = false, const bool bQuiet = false) override;
@@ -287,6 +296,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 		T InValue = T{};
 		T OutValue = T{};
+		PCGExValueHash Hash = 0;
 
 	public:
 		virtual int32 GetNumValues(const EIOSide InSide) override;

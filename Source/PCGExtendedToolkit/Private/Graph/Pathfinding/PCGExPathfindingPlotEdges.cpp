@@ -11,12 +11,14 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 #include "Paths/PCGExPaths.h"
+#include "Sampling/PCGExSampling.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingPlotEdgesElement"
 #define PCGEX_NAMESPACE PathfindingPlotEdges
@@ -159,7 +161,7 @@ void FPCGExPathfindingPlotEdgesContext::BuildPath(const TSharedPtr<PCGExPathfind
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)
 
-PCGEX_ELEMENT_BATCH_EDGE_IMPL(PathfindingPlotEdges)
+PCGEX_ELEMENT_BATCH_EDGE_IMPL_ADV(PathfindingPlotEdges)
 
 bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 {
@@ -170,28 +172,57 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchInstancedFactory, PCGExPathfinding::SourceOverridesSearch)
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
-	PCGEX_MAKE_SHARED(Plots, PCGExData::FPointIOCollection, Context)
 
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourcePlotsLabel);
-	Plots->Initialize(Sources, PCGExData::EIOInit::NoInit);
-
-	Context->Plots.Reserve(Plots->Num());
-	for (const TSharedPtr<PCGExData::FPointIO>& PlotIO : Plots->Pairs)
-	{
-		if (PlotIO->GetNum() < 2)
+	Context->PlotsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
+	Context->PlotsHandler->Init(
+		Context, PCGExGraph::SourcePlotsLabel,
+		[&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
 		{
-			if (!Settings->bQuietInvalidPlotWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points.")); }
-			continue;
-		}
+			if (IO->GetNum() < 2)
+			{
+				if (!Settings->bQuietInvalidPlotWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points.")); }
+				return FBox(NoInit);
+			}
 
-		TSharedPtr<PCGExData::FFacade> PlotFacade = MakeShared<PCGExData::FFacade>(PlotIO.ToSharedRef());
-		Context->Plots.Add(PlotFacade);
+			return IO->GetIn()->GetBounds();
+		});
+
+	Context->NumMaxPlots = Context->PlotsHandler->GetMaxNumTargets();
+	if (!Context->NumMaxPlots)
+	{
+		PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("No targets (no input matches criteria)"))
+		return false;
 	}
 
-	if (Context && Context->Plots.IsEmpty())
+	if (Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated ||
+		Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Any ||
+		Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Both)
 	{
-		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Missing valid Plots."))
-		return false;
+		Context->bMatchForVtx = true;
+		Context->bMatchForEdges = true;
+	}
+	else
+	{
+		Context->bMatchForVtx = Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Vtx;
+		Context->bMatchForEdges = Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Edges;
+	}
+
+	if (Context->bMatchForVtx || Context->bMatchForEdges)
+	{
+		Context->MainDataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+		Context->MainDataMatcher->SetDetails(&Settings->DataMatching);
+		if (!Context->MainDataMatcher->Init(Context, Context->PlotsHandler->GetFacades(), true)) { return false; }
+
+		if (Settings->DataMatching.Mode != EPCGExMapMatchMode::Disabled &&
+			Settings->DataMatching.ClusterMatchMode == EPCGExClusterComponentTagMatchMode::Separated)
+		{
+			Context->EdgeDataMatcher = MakeShared<PCGExMatching::FDataMatcher>();
+			if (!Context->EdgeDataMatcher->Init(Context, Context->MainDataMatcher, PCGExMatching::SourceMatchRulesEdgesLabel, true)) { return false; }
+		}
+		else
+		{
+			Context->EdgeDataMatcher = Context->MainDataMatcher;
+		}
 	}
 
 	return true;
@@ -235,6 +266,25 @@ namespace PCGExPathfindingPlotEdges
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
+		if (Context->bMatchForEdges)
+		{
+			if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
+				!Context->EdgeDataMatcher->PopulateIgnoreList(EdgeDataFacade->Source, MatchingScope, IgnoreList))
+			{
+				if (!Context->EdgeDataMatcher->HandleUnmatchedOutput(EdgeDataFacade, true))
+				{
+				}
+				return false;
+			}
+		}
+
+		if (Context->bMatchForVtx && VtxIgnoreList) { IgnoreList.Append(*VtxIgnoreList); }
+
+		ValidPlots.Reserve(Context->PlotsHandler->Num() - IgnoreList.Num());
+		Context->PlotsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& Target, const int32 i) { ValidPlots.Add(Target); }, &IgnoreList);
+
+		if (ValidPlots.IsEmpty()) { return false; }
+
 		if (Settings->bUseOctreeSearch)
 		{
 			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Vtx ||
@@ -261,7 +311,7 @@ namespace PCGExPathfindingPlotEdges
 
 		SearchOperation = Context->SearchAlgorithm->CreateOperation(); // Create a local copy
 		SearchOperation->PrepareForCluster(Cluster.Get());
-		const int32 NumPlots = Context->Plots.Num();
+		const int32 NumPlots = ValidPlots.Num();
 		PCGEx::InitArray(Queries, NumPlots);
 		QueriesIO.Init(nullptr, NumPlots);
 
@@ -286,7 +336,7 @@ namespace PCGExPathfindingPlotEdges
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			TSharedPtr<PCGExPathfinding::FPlotQuery> Query = Queries[Index];
-			Query->BuildPlotQuery(Context->Plots[Index], Settings->SeedPicking, Settings->GoalPicking);
+			Query->BuildPlotQuery(ValidPlots[Index], Settings->SeedPicking, Settings->GoalPicking);
 			Query->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](const TSharedPtr<PCGExPathfinding::FPlotQuery>& Plot)
 			{
 				PCGEX_ASYNC_THIS
@@ -295,6 +345,31 @@ namespace PCGExPathfindingPlotEdges
 			};
 			Query->FindPaths(AsyncManager, SearchOperation, SearchAllocations, HeuristicsHandler);
 		}
+	}
+
+	void FBatch::Process()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
+
+		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
+			Context->bMatchForVtx
+			&& !Context->MainDataMatcher->PopulateIgnoreList(VtxDataFacade->Source, MatchingScope, IgnoreList))
+		{
+			if (!Context->MainDataMatcher->HandleUnmatchedOutput(VtxDataFacade, true))
+			{
+				// TODO : Do something about it
+			}
+		}
+
+		TBatch<FProcessor>::Process();
+	}
+
+	bool FBatch::PrepareSingle(const TSharedPtr<PCGExClusterMT::IProcessor>& InProcessor)
+	{
+		if (!TBatch<FProcessor>::PrepareSingle(InProcessor)) { return false; }
+		PCGEX_TYPED_PROCESSOR
+		TypedProcessor->VtxIgnoreList = &IgnoreList;
+		return true;
 	}
 }
 
