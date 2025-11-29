@@ -4,10 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
-
 #include "UObject/Object.h"
 
+#include "PCGExCompare.h"
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExFilterGroup.h"
@@ -83,12 +82,9 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-collections/tag-check"))
-class UPCGExTagCheckFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExTagCheckFilterProviderSettings : public UPCGExFilterCollectionProviderSettings
 {
 	GENERATED_BODY()
-
-protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterCollection)
 
 public:
 	//~Begin UPCGSettings
@@ -103,7 +99,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExTagCheckFilterConfig Config;
 
-	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputColFilterLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR

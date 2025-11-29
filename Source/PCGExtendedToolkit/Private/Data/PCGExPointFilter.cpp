@@ -3,6 +3,7 @@
 
 #include "Data/PCGExPointFilter.h"
 
+#include "PCGExLabels.h"
 #include "PCGExSubSystem.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -26,7 +27,6 @@ bool UPCGExFilterCollectionFactoryData::SupportsCollectionEvaluation() const
 {
 	return true;
 }
-
 
 bool UPCGExFilterFactoryData::DomainCheck()
 {
@@ -374,5 +374,40 @@ namespace PCGExPointFilter
 	{
 		const int32 NumResults = PointDataFacade->Source->GetNum();
 		Results.Init(false, NumResults);
+	}
+
+	
+	void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)
+	{
+		for (const UPCGExPointFilterFactoryData* Factory : InFactories)
+		{
+			Factory->RegisterBuffersDependencies(InContext, FacadePreloader);
+		}
+	}
+
+	void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories)
+	{
+		if (InFactories.IsEmpty()) { return; }
+
+		TArray<FString> UnsupportedFilters;
+		UnsupportedFilters.Reserve(InFactories.Num());
+
+		int32 WriteIndex = 0;
+		for (int32 i = 0; i < InFactories.Num(); i++)
+		{
+			if (InFactories[i]->SupportsProxyEvaluation()) { InFactories[WriteIndex++] = InFactories[i]; }
+			else { UnsupportedFilters.AddUnique(InFactories[i]->GetName()); }
+		}
+
+		InFactories.SetNum(WriteIndex);
+
+		if (InFactories.IsEmpty())
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("None of the filters used supports direct evaluation."));
+		}
+		else if (!UnsupportedFilters.IsEmpty())
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Some filters don't support direct evaluation and will be ignored: \"{0}\"."), FText::FromString(FString::Join(UnsupportedFilters, TEXT(", ")))));
+		}
 	}
 }

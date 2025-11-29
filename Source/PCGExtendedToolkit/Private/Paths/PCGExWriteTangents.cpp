@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExWriteTangents.h"
 
+#include "PCGExLabels.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"

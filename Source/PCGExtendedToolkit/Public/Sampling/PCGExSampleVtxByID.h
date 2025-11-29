@@ -4,11 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactories.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-#include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 #include "PCGExSampleVtxByID.generated.h"

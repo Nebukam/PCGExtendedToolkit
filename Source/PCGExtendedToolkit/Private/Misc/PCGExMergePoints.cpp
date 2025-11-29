@@ -224,15 +224,6 @@ namespace PCGExMergePoints
 	void FBatch::OnProcessingPreparationComplete()
 	{
 		StartMerge();
-		/*
-		PCGEX_LAUNCH(
-			PCGExMT::FDeferredCallbackTask,
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->StartMerge();
-			});
-			*/
 	}
 
 	void FBatch::Write()

@@ -11,25 +11,12 @@
 #include "Details/PCGExMacros.h"
 
 #include "PCGExContext.h"
+#include "PCGExElement.h"
+#include "PCGExSettings.h"
 #include "PCGExGlobalSettings.h" // Needed for child classes
 #include "PCGExPointsMT.h"
 
 #include "PCGExPointsProcessor.generated.h"
-
-#define PCGEX_EXECUTION_CHECK_C(_CONTEXT) if(!_CONTEXT->CanExecute()){ return true; } if (!_CONTEXT->IsAsyncWorkComplete()) { return false; }
-#define PCGEX_EXECUTION_CHECK PCGEX_EXECUTION_CHECK_C(Context)
-#define PCGEX_ASYNC_WAIT_C(_CONTEXT) if (_CONTEXT->bWaitingForAsyncCompletion) { return false; }
-#define PCGEX_ASYNC_WAIT PCGEX_ASYNC_WAIT_C(Context)
-#define PCGEX_ASYNC_WAIT_INTERNAL if (bWaitingForAsyncCompletion) { return false; }
-#define PCGEX_ON_STATE(_STATE) if(Context->IsState(_STATE))
-#define PCGEX_ON_STATE_INTERNAL(_STATE) if(IsState(_STATE))
-#define PCGEX_ON_ASYNC_STATE_READY(_STATE) if(Context->IsState(_STATE) && Context->ShouldWaitForAsync()){ return false; }else if(Context->IsState(_STATE) && !Context->ShouldWaitForAsync())
-#define PCGEX_ON_ASYNC_STATE_READY_INTERNAL(_STATE) if(const bool ShouldWait = ShouldWaitForAsync(); IsState(_STATE) && ShouldWait){ return false; }else if(IsState(_STATE) && !ShouldWait)
-#define PCGEX_ON_INITIAL_EXECUTION if(Context->IsInitialExecution())
-#define PCGEX_POINTS_BATCH_PROCESSING(_STATE) if (!Context->ProcessPointsBatch(_STATE)) { return false; }
-
-#define PCGEX_ELEMENT_CREATE_CONTEXT(_CLASS) virtual FPCGContext* CreateContext() override { return new FPCGEx##_CLASS##Context(); }
-#define PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT virtual FPCGContext* CreateContext() override { return new FPCGExContext(); }
 
 #define PCGEX_ELEMENT_BATCH_POINT_DECL virtual TSharedPtr<PCGExPointsMT::IBatch> CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const override;
 #define PCGEX_ELEMENT_BATCH_POINT_IMPL(_CLASS) TSharedPtr<PCGExPointsMT::IBatch> FPCGEx##_CLASS##Context::CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const{ \
@@ -62,7 +49,7 @@ struct FPCGExPointsProcessorContext;
 class FPCGExPointsProcessorElement;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
 
@@ -80,7 +67,6 @@ public:
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
 
 protected:
-	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual bool OnlyPassThroughOneEdgeWhenDisabled() const override { return false; }
@@ -103,71 +89,7 @@ public:
 	virtual bool RequiresPointFilters() const { return false; }
 
 	bool SupportsPointFilters() const { return !GetPointFilterPin().IsNone(); }
-
-	/** If enabled, will pre-allocate all data on a single thread to avoid contention. Not all nodes support this. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
-	EPCGExOptionState BulkInitData = EPCGExOptionState::Default;
-
-	/** Async work priority for this node.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable), AdvancedDisplay)
-	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
-
-	/** Cache the results of this node. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
-	EPCGExOptionState CacheData = EPCGExOptionState::Default;
-
-	/** Whether scoped attribute read is enabled or not. Disabling this on small dataset may greatly improve performance. It's enabled by default for legacy reasons. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
-	EPCGExOptionState ScopedAttributeGet = EPCGExOptionState::Default;
-
-	/** Flatten the output of this node. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable))
-	bool bFlattenOutput = false;
-
-	/** If the node registers consumable attributes, these will be deleted from the output data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable))
-	bool bCleanupConsumableAttributes = false;
-
-	/** If the node registers consumable attributes, this a list of comma separated names that won't be deleted if they were registered. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_Overridable, DisplayName="Protected Attributes", EditCondition="bCleanupConsumableAttributes"))
-	FString CommaSeparatedProtectedAttributesName;
-
-	/** Hardcoded set for ease of use. Not mutually exclusive with the overridable string, just easier to edit. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Cleanup", meta=(PCG_NotOverridable, DisplayName="Protected Attributes", EditCondition="bCleanupConsumableAttributes"))
-	TArray<FName> ProtectedAttributes;
-
-	/** Whether the execution of the graph should be cancelled if this node execution is cancelled internally */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
-	bool bPropagateAbortedExecution = false;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
-	bool bQuietInvalidInputWarning = false;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
-	bool bQuietMissingInputError = false;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable))
-	bool bQuietCancellationError = false;
-
 	//~End UPCGExPointsProcessorSettings
-
-#if WITH_EDITOR
-	/** Open a browser and navigate to that node' documentation page. */
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Node Documentation", ShortToolTip="Open a browser and navigate to that node' documentation page", DisplayOrder=-1))
-	void EDITOR_OpenNodeDocumentation() const;
-#endif
-
-protected:
-	/** Store version of the node, used for deprecation purposes */
-	UPROPERTY()
-	int64 PCGExDataVersion = -1;
-	
-	virtual bool ShouldCache() const;
-	virtual bool WantsScopedAttributeGet() const;
-	virtual bool WantsBulkInitData() const;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
@@ -185,8 +107,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
 
 	int32 InitialMainPointsNum = 0;
-
-	UPCGExInstancedFactory* RegisterOperation(UPCGExInstancedFactory* BaseOperation, const FName OverridePinLabel = NAME_None);
 
 
 #pragma region Filtering
@@ -216,35 +136,12 @@ protected:
 
 	virtual TSharedPtr<PCGExPointsMT::IBatch> CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const
 	PCGEX_NOT_IMPLEMENTED_RET(CreatePointBatchInstance, nullptr);
-
-	TArray<UPCGExInstancedFactory*> ProcessorOperations;
-	TSet<UPCGExInstancedFactory*> InternalOperations;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGExElement
 {
-public:
-	virtual bool PrepareDataInternal(FPCGContext* Context) const override;
-
-	virtual FPCGContext* Initialize(const FPCGInitializeElementParams& InParams) override;
-
-#if WITH_EDITOR
-	virtual bool ShouldLog() const override { return false; }
-#endif
-
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
-	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
-
 protected:
-	virtual FPCGContext* CreateContext() override;
-
-	virtual void OnContextInitialized(FPCGExPointsProcessorContext* InContext) const;
-
-	virtual bool Boot(FPCGExContext* InContext) const;
-	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const;
-	virtual bool PostBoot(FPCGExContext* InContext) const;
-	virtual void AbortInternal(FPCGContext* Context) const override;
-
-	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
-	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override;
+	PCGEX_ELEMENT_CREATE_CONTEXT(PointsProcessor)
+	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
+	virtual bool Boot(FPCGExContext* InContext) const override;
 };

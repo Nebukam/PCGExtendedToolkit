@@ -3,6 +3,7 @@
 
 #include "Graph/Filters/PCGExClusterFilter.h"
 
+#include "PCGExLabels.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
@@ -77,3 +78,7 @@ namespace PCGExClusterFilter
 		Results.Init(false, NumResults);
 	}
 }
+
+FName UPCGExVtxFilterProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabelNode; }
+
+FName UPCGExEdgeFilterProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabelEdge; }

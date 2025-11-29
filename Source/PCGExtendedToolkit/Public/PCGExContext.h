@@ -10,6 +10,7 @@
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 
+class UPCGExInstancedFactory;
 class UPCGComponent;
 class UPCGManagedComponent;
 struct FStreamableHandle;
@@ -24,25 +25,22 @@ namespace PCGEx
 {
 	class FUniqueNameGenerator;
 	class FManagedObjects;
-	class FWorkPermit;
+	class FWorkHandle;
 }
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 {
+	friend class IPCGExElement;
+
 protected:
 	mutable FRWLock AsyncLock;
 	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetDependenciesLock;
 
-	TSharedPtr<PCGEx::FWorkPermit> WorkPermit;
-
-	bool bFlattenOutput = false;
-
-	TSet<FName> ConsumableAttributesSet;
-	TSet<FName> ProtectedAttributesSet;
+	TSharedPtr<PCGEx::FWorkHandle> WorkHandle;
 
 public:
-	TWeakPtr<PCGEx::FWorkPermit> GetWorkPermit() { return WorkPermit; }
+	TWeakPtr<PCGEx::FWorkHandle> GetWorkHandle() { return WorkHandle; }
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
 	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
 
@@ -53,11 +51,18 @@ public:
 
 	virtual ~FPCGExContext() override;
 
-	void IncreaseStagedOutputReserve(const int32 InIncreaseNum);
+	UPCGExInstancedFactory* RegisterOperation(UPCGExInstancedFactory* BaseOperation, const FName OverridePinLabel = NAME_None);
 
+#pragma region Output Data
+
+	bool bFlattenOutput = false;
+
+	void IncreaseStagedOutputReserve(const int32 InIncreaseNum);
 	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged, const bool bIsMutable);
 	void StageOutput(UPCGData* InData, const FName& InPin, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable, const bool bPinless);
 	FPCGTaggedData& StageOutput(UPCGData* InData, const bool bManaged);
+
+#pragma endregion
 
 	UWorld* GetWorld() const;
 	const UPCGComponent* GetComponent() const;
@@ -79,17 +84,24 @@ public:
 	bool IsState(const PCGExCommon::ContextState StateId) const { return CurrentState.load(std::memory_order_acquire) == StateId; }
 	bool IsInitialExecution() const { return IsState(PCGExCommon::State_InitialExecution); }
 	bool IsDone() const { return IsState(PCGExCommon::State_Done); }
+	bool IsWorkCompleted() const { return bWorkCompleted.load(std::memory_order_acquire); }
+	bool IsWorkCancelled() const { return bWorkCancelled.load(std::memory_order_acquire); }
 	void Done();
 
-	virtual void OnComplete();
 	bool TryComplete(const bool bForce = false);
 
 	virtual void ResumeExecution();
 
 protected:
+	std::atomic<PCGExCommon::ContextState> CurrentState;
+	std::atomic<bool> bWorkCompleted{false};
+	std::atomic<bool> bWorkCancelled{false};
+
 	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 	bool bWaitingForAsyncCompletion = false;
-	std::atomic<PCGExCommon::ContextState> CurrentState;
+
+	virtual void OnComplete();
+
 
 #pragma endregion
 
@@ -123,10 +135,15 @@ public:
 
 #pragma endregion
 
+protected:
+	TSet<FName> ConsumableAttributesSet;
+	TSet<FName> ProtectedAttributesSet;
+
 	mutable FRWLock ConsumableAttributesLock;
 	mutable FRWLock ProtectedAttributesLock;
+
+public:
 	bool bCleanupConsumableAttributes = false;
-	TSet<FName>& GetConsumableAttributesSet() { return ConsumableAttributesSet; }
 	void AddConsumableAttributeName(FName InName);
 	void AddProtectedAttributeName(FName InName);
 
@@ -139,7 +156,6 @@ public:
 	virtual bool IsAsyncWorkComplete();
 
 	bool bQuietInvalidInputWarning = false;
-
 	bool bQuietMissingAttributeError = false;
 	bool bQuietMissingInputError = false;
 	bool bQuietCancellationError = false;
@@ -153,10 +169,10 @@ protected:
 	TSet<AActor*> NotifyActors;
 
 	void ExecuteOnNotifyActors(const TArray<FName>& FunctionNames);
-
-	bool bExecutionCancelled = false;
-
 	virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) override;
+
+	TArray<UPCGExInstancedFactory*> ProcessorOperations;
+	TSet<UPCGExInstancedFactory*> InternalOperations;
 
 public:
 	void AddNotifyActor(AActor* InActor);

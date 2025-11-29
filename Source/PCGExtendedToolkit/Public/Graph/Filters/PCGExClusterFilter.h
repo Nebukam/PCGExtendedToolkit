@@ -90,6 +90,8 @@ class UPCGExVtxFilterProviderSettings : public UPCGExClusterFilterProviderSettin
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterVtx)
+
+	virtual FName GetMainOutputPin() const override;
 };
 
 #pragma endregion
@@ -124,6 +126,8 @@ class UPCGExEdgeFilterProviderSettings : public UPCGExClusterFilterProviderSetti
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterEdge)
+
+	virtual FName GetMainOutputPin() const override;
 };
 
 #pragma endregion

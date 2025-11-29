@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
 #include "Collections/PCGExAssetCollection.h"
 #include "Collections/PCGExComponentDescriptors.h"
-#include "Data/PCGExPointFilter.h"
 #include "Tangents/PCGExTangentsInstancedFactory.h"
 
 #include "PCGExPathSplineMeshSimple.generated.h"

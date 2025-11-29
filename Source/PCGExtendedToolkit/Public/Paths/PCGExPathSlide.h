@@ -4,9 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactories.h"
+#include "PCGExLabels.h"
 #include "PCGExMathMean.h"
 #include "PCGExPathProcessor.h"
-#include "Data/PCGExPointFilter.h"
 #include "Details/PCGExSettingsMacros.h"
 
 #include "Sampling/PCGExSampling.h"

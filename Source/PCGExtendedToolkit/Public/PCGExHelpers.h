@@ -274,11 +274,11 @@ namespace PCGEx
 		FName Get(const FName& BaseName);
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FWorkPermit final : public TSharedFromThis<FWorkPermit>
+	class PCGEXTENDEDTOOLKIT_API FWorkHandle final : public TSharedFromThis<FWorkHandle>
 	{
 	public:
-		FWorkPermit() = default;
-		~FWorkPermit() = default;
+		FWorkHandle() = default;
+		~FWorkHandle() = default;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FManagedObjects : public TSharedFromThis<FManagedObjects>

@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExChain.h"
-
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExBreakClustersToPaths.generated.h"

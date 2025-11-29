@@ -7,7 +7,6 @@
 #include "PCGExCompare.h"
 
 #include "UObject/Object.h"
-
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
 
@@ -83,12 +82,9 @@ namespace PCGExPointFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter", meta=(PCGExNodeLibraryDoc="filters/filters-collections/entry-count"))
-class UPCGExEntryCountFilterProviderSettings : public UPCGExFilterProviderSettings
+class UPCGExEntryCountFilterProviderSettings : public UPCGExFilterCollectionProviderSettings
 {
 	GENERATED_BODY()
-
-protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterCollection)
 
 public:
 	//~Begin UPCGSettings
@@ -103,7 +99,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExEntryCountFilterConfig Config;
 
-	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputColFilterLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
 #if WITH_EDITOR

@@ -3,6 +3,7 @@
 
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 
+#include "PCGExLabels.h"
 #include "PCGPin.h"
 
 

@@ -4,12 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactories.h"
+#include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
-
-#include "PCGExPointsProcessor.h"
-#include "Data/PCGExPointFilter.h"
-
-
 #include "PCGExPathShrink.generated.h"
 
 UENUM()
@@ -64,11 +61,8 @@ struct FPCGExShrinkPathEndpointDistanceDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPathShrinkDistanceCutType CutType = EPCGExPathShrinkDistanceCutType::NewPoint;
 
-	bool SanityCheck(const FPCGContext* Context) const
-	{
-		if (AmountInput == EPCGExInputValueType::Attribute) { PCGEX_VALIDATE_NAME_C(Context, DistanceAttribute.GetName()) }
-		return true;
-	}
+	bool SanityCheck(const FPCGContext* Context) const;
+	
 };
 
 USTRUCT(BlueprintType)
@@ -88,11 +82,7 @@ struct FPCGExShrinkPathEndpointCountDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Count", EditCondition="ValueSource == EPCGExInputValueType::Constant", EditConditionHides, ClampMin=1))
 	int32 Count = 10;
 
-	bool SanityCheck(const FPCGContext* Context) const
-	{
-		if (ValueSource == EPCGExInputValueType::Attribute) { PCGEX_VALIDATE_NAME_C(Context, CountAttribute.GetName()) }
-		return true;
-	}
+	bool SanityCheck(const FPCGContext* Context) const;
 };
 
 /**

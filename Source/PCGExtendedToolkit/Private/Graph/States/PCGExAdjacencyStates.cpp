@@ -3,6 +3,7 @@
 
 #include "Graph/States/PCGExAdjacencyStates.h"
 
+#include "PCGExLabels.h"
 #include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExAdjacency.h"

@@ -39,12 +39,23 @@ void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChanged
 }
 #endif
 
+bool UPCGExPathfindingPlotEdgesSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
+{
+	if (InPin->IsOutputPin()
+		&& (InPin->Properties.Label == PCGExMatching::OutputUnmatchedVtxLabel || InPin->Properties.Label == PCGExMatching::OutputUnmatchedEdgesLabel))
+	{
+		return DataMatching.WantsUnmatchedSplit();
+	}
+	return Super::IsPinUsedByNodeExecution(InPin);
+}
+
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::SourcePlotsLabel, "Plot points for pathfinding.", Required)
 	PCGEX_PIN_FACTORIES(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Required, FPCGExDataTypeInfoHeuristics::AsId())
 	PCGEX_PIN_OPERATION_OVERRIDES(PCGExPathfinding::SourceOverridesSearch)
+	PCGExMatching::DeclareMatchingRulesInputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -52,6 +63,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinPropertie
 {
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_POINTS(PCGExPaths::OutputPathsLabel, "Paths output.", Required)
+	PCGExMatching::DeclareMatchingRulesOutputs(DataMatching, PinProperties);
 	return PinProperties;
 }
 
@@ -172,6 +184,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchInstancedFactory, PCGExPathfinding::SourceOverridesSearch)
 
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->OutputPaths->OutputPin = PCGExPaths::OutputPathsLabel;
 
 	Context->PlotsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
 	Context->PlotsHandler->Init(
@@ -250,6 +263,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExCommon::State_Done)
 
 	Context->OutputPaths->StageOutputs();
+	if (Settings->DataMatching.WantsUnmatchedSplit()) { Context->OutputPointsAndEdges(); }
 
 	return Context->TryComplete();
 }
@@ -281,11 +295,7 @@ namespace PCGExPathfindingPlotEdges
 		ValidPlots.Reserve(Context->PlotsHandler->Num() - IgnoreList.Num());
 		Context->PlotsHandler->ForEachTarget([&](const TSharedRef<PCGExData::FFacade>& Target, const int32 i) { ValidPlots.Add(Target); }, &IgnoreList);
 
-		if (ValidPlots.IsEmpty())
-		{
-			//if (!Context->EdgeDataMatcher->HandleUnmatchedOutput(EdgeDataFacade, false)){}
-			return false;
-		}
+		if (ValidPlots.IsEmpty()) { return false; }
 
 		if (Settings->bUseOctreeSearch)
 		{
@@ -357,7 +367,7 @@ namespace PCGExPathfindingPlotEdges
 			Context->bMatchForVtx
 			&& !Context->MainDataMatcher->PopulateIgnoreList(VtxDataFacade->Source, MatchingScope, IgnoreList))
 		{
-			//if (!Context->MainDataMatcher->HandleUnmatchedOutput(VtxDataFacade, true)){}
+			bUnmatched = true;
 		}
 
 		TBatch<FProcessor>::Process();
@@ -369,6 +379,34 @@ namespace PCGExPathfindingPlotEdges
 		PCGEX_TYPED_PROCESSOR
 		TypedProcessor->VtxIgnoreList = &IgnoreList;
 		return true;
+	}
+
+	void FBatch::CompleteWork()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
+
+		if (Settings->DataMatching.WantsUnmatchedSplit())
+		{
+			int32 NumEdgesMatched = 0;
+			for (const TSharedRef<PCGExClusterMT::IProcessor>& InProcessor : Processors)
+			{
+				PCGEX_TYPED_PROCESSOR_NREF(P)
+				if (!P->ValidPlots.IsEmpty()) { NumEdgesMatched++; }
+				else
+				{
+					P->EdgeDataFacade->Source->OutputPin = PCGExMatching::OutputUnmatchedEdgesLabel;
+					P->EdgeDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
+				}
+			}
+
+			if (NumEdgesMatched != Processors.Num())
+			{
+				VtxDataFacade->Source->OutputPin = PCGExMatching::OutputUnmatchedVtxLabel;
+				VtxDataFacade->Source->InitializeOutput(PCGExData::EIOInit::Forward);
+			}
+		}
+
+		TBatch<FProcessor>::CompleteWork();
 	}
 }
 

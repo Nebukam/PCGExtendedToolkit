@@ -4,6 +4,7 @@
 #include "Data/PCGExPointStates.h"
 
 #include "PCGExGlobalSettings.h"
+#include "PCGExLabels.h"
 #include "PCGParamData.h"
 #include "Graph/PCGExCluster.h"
 

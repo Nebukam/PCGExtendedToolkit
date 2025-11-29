@@ -6,16 +6,14 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExPointFilter.h"
-
 #include "Paths/PCGExPaths.h"
 #include "Sampling/PCGExSampling.h"
 #include "Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"
 #include "Tensors/PCGExTensorHandler.h"
-
 
 #include "PCGExTensorsTransform.generated.h"
 

@@ -3,6 +3,7 @@
 
 #include "Graph/Edges/PCGExFilterVtx.h"
 
+#include "PCGExLabels.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExGraph.h"

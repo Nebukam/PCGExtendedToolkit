@@ -5,6 +5,7 @@
 
 #include "PCGComponent.h"
 #include "PCGExHelpers.h"
+#include "PCGExInstancedFactory.h"
 #include "Details/PCGExMacros.h"
 #include "PCGExMT.h"
 #include "PCGManagedResource.h"
@@ -15,6 +16,25 @@
 #include "Helpers/PCGDynamicTrackingHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
+
+UPCGExInstancedFactory* FPCGExContext::RegisterOperation(UPCGExInstancedFactory* BaseOperation, const FName OverridePinLabel)
+{
+	BaseOperation->BindContext(this); // Temp so Copy doesn't crash
+
+	UPCGExInstancedFactory* RetValue = BaseOperation->CreateNewInstance(ManagedObjects.Get());
+	if (!RetValue) { return nullptr; }
+	InternalOperations.Add(RetValue);
+	RetValue->InitializeInContext(this, OverridePinLabel);
+	return RetValue;
+}
+
+#pragma region Output Data
+
+void FPCGExContext::IncreaseStagedOutputReserve(const int32 InIncreaseNum)
+{
+	FWriteScopeLock WriteScopeLock(StagedOutputLock);
+	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + InIncreaseNum);
+}
 
 FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged, const bool bIsMutable)
 {
@@ -120,6 +140,8 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 	return OutputData.TaggedData[Index];
 }
 
+#pragma endregion 
+
 UWorld* FPCGExContext::GetWorld() const { return GetComponent()->GetWorld(); }
 
 const UPCGComponent* FPCGExContext::GetComponent() const
@@ -156,22 +178,16 @@ void FPCGExContext::UnpauseContext()
 
 FPCGExContext::FPCGExContext()
 {
-	WorkPermit = MakeShared<PCGEx::FWorkPermit>();
+	WorkHandle = MakeShared<PCGEx::FWorkHandle>();
 	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this);
 	UniqueNameGenerator = MakeShared<PCGEx::FUniqueNameGenerator>();
 }
 
 FPCGExContext::~FPCGExContext()
 {
-	WorkPermit.Reset();
+	WorkHandle.Reset();
 	CancelAssetLoading();
 	ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
-}
-
-void FPCGExContext::IncreaseStagedOutputReserve(const int32 InIncreaseNum)
-{
-	FWriteScopeLock WriteScopeLock(StagedOutputLock);
-	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + InIncreaseNum);
 }
 
 void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
@@ -232,15 +248,6 @@ void FPCGExContext::AddNotifyActor(AActor* InActor)
 	}
 }
 
-void FPCGExContext::OnComplete()
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::OnComplete);
-
-	FWriteScopeLock WriteScopeLock(StagedOutputLock);
-	ManagedObjects->Remove(OutputData.TaggedData);
-}
-
-
 #pragma region State
 
 
@@ -278,8 +285,15 @@ void FPCGExContext::Done()
 
 bool FPCGExContext::TryComplete(const bool bForce)
 {
+	if (IsWorkCompleted()) { return true; }
 	if (!bForce && !IsDone()) { return false; }
-	OnComplete();
+
+	bool bExpected = false;
+	if (bWorkCompleted.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
+	{
+		OnComplete();
+	}
+
 	return true;
 }
 
@@ -288,6 +302,14 @@ void FPCGExContext::ResumeExecution()
 	if (AsyncManager) { AsyncManager->Reset(); }
 	UnpauseContext();
 	bWaitingForAsyncCompletion = false;
+}
+
+void FPCGExContext::OnComplete()
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::OnComplete);
+
+	FWriteScopeLock WriteScopeLock(StagedOutputLock);
+	ManagedObjects->Remove(OutputData.TaggedData);
 }
 
 #pragma endregion
@@ -481,13 +503,17 @@ void FPCGExContext::EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionCla
 
 bool FPCGExContext::CanExecute() const
 {
-	return !InputData.bCancelExecution && !bExecutionCancelled;
+	return !InputData.bCancelExecution && !IsWorkCancelled() && !IsWorkCompleted();
 }
 
 bool FPCGExContext::IsAsyncWorkComplete()
 {
 	// Context must be unpaused for this to be called
 	if (!bWaitingForAsyncCompletion || !AsyncManager) { return true; }
+
+	// TODO : We want the async manager to notify that work can resume
+	// not the other way around
+	// so we need a pointer to the IPCGElement :x
 
 	if (!AsyncManager->IsWaitingForRunningTasks())
 	{
@@ -500,17 +526,18 @@ bool FPCGExContext::IsAsyncWorkComplete()
 
 bool FPCGExContext::CancelExecution(const FString& InReason)
 {
-	if (bExecutionCancelled) { return true; }
+	bool bExpected = false;
+	if (bWorkCancelled.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
+	{
+		if (!InReason.IsEmpty() && !bQuietCancellationError) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
 
-	if (!InReason.IsEmpty() && !bQuietCancellationError) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
+		PCGEX_TERMINATE_ASYNC
+		OutputData.Reset();
+		if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
 
-	bExecutionCancelled = true;
-	PCGEX_TERMINATE_ASYNC
+		ResumeExecution();
+	}
 
-	OutputData.Reset();
-	if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
-
-	ResumeExecution();
 	return true;
 }
 
