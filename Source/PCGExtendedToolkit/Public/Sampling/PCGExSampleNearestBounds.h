@@ -9,10 +9,10 @@
 #include "Curves/RichCurve.h"
 
 #include "PCGExGlobalSettings.h"
+#include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExSorting.h"
-#include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Matching/PCGExMatching.h"
 

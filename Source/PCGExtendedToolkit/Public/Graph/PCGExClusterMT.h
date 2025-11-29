@@ -77,7 +77,7 @@ namespace PCGExClusterMT
 		FPCGExContext* ExecutionContext = nullptr;
 		UPCGSettings* ExecutionSettings = nullptr;
 
-		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
+		TWeakPtr<PCGEx::FWorkHandle> WorkHandle;
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 
 		const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* HeuristicsFactories = nullptr;
@@ -252,7 +252,7 @@ namespace PCGExClusterMT
 		FPCGExContext* ExecutionContext = nullptr;
 		UPCGSettings* ExecutionSettings = nullptr;
 
-		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
+		TWeakPtr<PCGEx::FWorkHandle> WorkHandle;
 		const TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>>* HeuristicsFactories = nullptr;
 
 		const TSharedRef<PCGExData::FFacade> VtxDataFacade;

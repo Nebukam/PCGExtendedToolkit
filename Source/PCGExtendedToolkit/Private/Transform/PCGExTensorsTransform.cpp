@@ -4,6 +4,7 @@
 #include "Transform/PCGExTensorsTransform.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 
 

@@ -4,11 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactories.h"
+#include "PCGExLabels.h"
 #include "PCGExMathMean.h"
 
 #include "PCGExOctree.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointElements.h"
 
 #include "PCGExDiscardByOverlap.generated.h"

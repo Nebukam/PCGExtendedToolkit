@@ -58,7 +58,7 @@
 
 namespace PCGEx
 {
-	class FWorkPermit;
+	class FWorkHandle;
 }
 
 struct FPCGContextHandle;
@@ -223,7 +223,7 @@ namespace PCGExMT
 		mutable FRWLock GroupsLock;
 		mutable FRWLock TokensLock;
 
-		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
+		TWeakPtr<PCGEx::FWorkHandle> WorkHandle;
 
 		FPCGExContext* Context = nullptr;
 		TWeakPtr<FPCGContextHandle> ContextHandle;

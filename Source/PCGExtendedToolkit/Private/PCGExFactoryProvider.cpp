@@ -7,7 +7,6 @@
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExDataPreloader.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExData.h"
 #include "PCGPin.h"
 #include "Data/PCGExPointIO.h"
 #include "Tasks/Task.h"
@@ -53,6 +52,13 @@ void UPCGExFactoryData::BeginDestroy()
 	Super::BeginDestroy();
 }
 
+#if PCGEX_ENGINE_VERSION > 506
+const FPCGDataTypeBaseId& UPCGExFactoryProviderSettings::GetFactoryTypeId() const
+{
+	return FPCGExFactoryDataTypeInfo::AsId();
+}
+#endif
+
 #if WITH_EDITOR
 void UPCGExFactoryProviderSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -72,7 +78,11 @@ TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::OutputPinProperties() c
 	TArray<FPCGPinProperties> PinProperties;
 
 	{
+#if PCGEX_ENGINE_VERSION > 506
 		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(GetMainOutputPin(), GetFactoryTypeId(), false, false);
+#else
+		FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(GetMainOutputPin(), EPCGDataType::Param, false, false);
+#endif
 		PCGEX_PIN_TOOLTIP(GetMainOutputPin().ToString())
 		PCGEX_PIN_STATUS(Required)
 	}
@@ -85,50 +95,10 @@ FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 	return MakeShared<FPCGExFactoryProviderElement>();
 }
 
-const FPCGDataTypeBaseId& UPCGExFactoryProviderSettings::GetFactoryTypeId() const
-{
-	return FPCGExFactoryDataTypeInfo::AsId();
-}
-
 #if WITH_EDITOR
 FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT(""); }
 FLinearColor UPCGExFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorDebug; }
-
-#ifndef PCGEX_CUSTOM_PIN_DECL
-#define PCGEX_CUSTOM_PIN_DECL
-#define PCGEX_CUSTOM_PIN_ICON(_LABEL, _ICON, _TOOLTIP) if(PinLabel == _LABEL){ OutExtraIcon = TEXT("PCGEx.Pin." # _ICON); OutTooltip = FTEXT(_TOOLTIP); return true; }
 #endif
-
-
-bool UPCGExFactoryProviderSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
-{
-	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
-}
-
-
-void UPCGExFactoryProviderSettings::EDITOR_OpenNodeDocumentation() const
-{
-	const FString URL = PCGEx::META_PCGExDocNodeLibraryBaseURL + GetClass()->GetMetaData(*PCGEx::META_PCGExDocURL);
-	FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
-}
-#endif
-
-bool UPCGExFactoryProviderSettings::ShouldCache() const
-{
-	if (!IsCacheable()) { return false; }
-	PCGEX_GET_OPTION_STATE(CachingBehavior, bDefaultCacheNodeOutput)
-}
-
-FPCGExFactoryProviderContext::~FPCGExFactoryProviderContext()
-{
-	for (const TSharedPtr<PCGExMT::FDeferredCallbackHandle>& Task : DeferredTasks) { CancelDeferredCallback(Task); }
-	DeferredTasks.Empty();
-}
-
-void FPCGExFactoryProviderContext::LaunchDeferredCallback(PCGExMT::FSimpleCallback&& InCallback)
-{
-	DeferredTasks.Add(PCGExMT::DeferredCallback(this, MoveTemp(InCallback)));
-}
 
 UPCGExFactoryData* UPCGExFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
@@ -144,10 +114,6 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		Context->bQuietInvalidInputWarning = Settings->bQuietInvalidInputWarning;
-		Context->bQuietMissingAttributeError = Settings->bQuietMissingAttributeError;
-		Context->bQuietMissingInputError = Settings->bQuietMissingInputError;
-
 		Context->OutFactory = Settings->CreateFactory(Context, nullptr);
 
 		if (!Context->OutFactory) { return true; }
@@ -191,102 +157,13 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
 	FPCGTaggedData& StagedData = Context->StageOutput(Context->OutFactory, false);
 	StagedData.Pin = Settings->GetMainOutputPin();
 
-
 	return Context->TryComplete();
-}
-
-FPCGContext* FPCGExFactoryProviderElement::CreateContext()
-{
-	FPCGExFactoryProviderContext* NewContext = new FPCGExFactoryProviderContext();
-	NewContext->SetState(PCGExCommon::State_InitialExecution);
-	return NewContext;
-}
-
-bool FPCGExFactoryProviderElement::IsCacheable(const UPCGSettings* InSettings) const
-{
-	const UPCGExFactoryProviderSettings* Settings = static_cast<const UPCGExFactoryProviderSettings*>(InSettings);
-	return Settings->ShouldCache();
 }
 
 void FPCGExFactoryProviderElement::DisabledPassThroughData(FPCGContext* Context) const
 {
 	// Disabled factories should not output anything when disabled
 	Context->OutputData.TaggedData.Empty();
-}
-
-namespace PCGExFactories
-{
-	bool GetInputFactories_Internal(FPCGExContext* InContext, const FName InLabel, TArray<TObjectPtr<const UPCGExFactoryData>>& OutFactories, const TSet<EType>& Types, const bool bRequired)
-	{
-		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
-		TSet<uint32> UniqueData;
-		UniqueData.Reserve(Inputs.Num());
-
-		for (const FPCGTaggedData& TaggedData : Inputs)
-		{
-			bool bIsAlreadyInSet;
-			UniqueData.Add(TaggedData.Data->GetUniqueID(), &bIsAlreadyInSet);
-			if (bIsAlreadyInSet) { continue; }
-
-			const UPCGExFactoryData* Factory = Cast<UPCGExFactoryData>(TaggedData.Data);
-			if (Factory)
-			{
-				if (!Types.Contains(Factory->GetFactoryType()))
-				{
-					PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("Input '{0}' is not supported by pin {1}."), FText::FromString(TaggedData.Data->GetClass()->GetName()), FText::FromName(InLabel)))
-					continue;
-				}
-
-				OutFactories.AddUnique(Factory);
-				Factory->RegisterAssetDependencies(InContext);
-				Factory->RegisterConsumableAttributes(InContext);
-			}
-			else
-			{
-				PCGEX_LOG_INVALID_INPUT(InContext, FText::Format(FTEXT("Input '{0}' is not supported by pin {1}."), FText::FromString(TaggedData.Data->GetClass()->GetName()), FText::FromName(InLabel)))
-			}
-		}
-
-		if (OutFactories.IsEmpty())
-		{
-			if (bRequired) { PCGEX_LOG_MISSING_INPUT(InContext, FText::Format(FTEXT("Missing required '{0}' inputs."), FText::FromName(InLabel))) }
-			return false;
-		}
-
-		OutFactories.Sort([](const UPCGExFactoryData& A, const UPCGExFactoryData& B) { return A.Priority < B.Priority; });
-
-		return true;
-	}
-
-	void RegisterConsumableAttributesWithData_Internal(const TArray<TObjectPtr<const UPCGExFactoryData>>& InFactories, FPCGExContext* InContext, const UPCGData* InData)
-	{
-		check(InContext)
-
-		if (!InData || InFactories.IsEmpty()) { return; }
-
-		for (const TObjectPtr<const UPCGExFactoryData>& Factory : InFactories)
-		{
-			if (!Factory.Get()) { continue; }
-			Factory->RegisterConsumableAttributesWithData(InContext, InData);
-		}
-	}
-
-	void RegisterConsumableAttributesWithFacade_Internal(const TArray<TObjectPtr<const UPCGExFactoryData>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InFacade)
-	{
-		FPCGContext::FSharedContext<FPCGExContext> SharedContext(InFacade->Source->GetContextHandle());
-		check(SharedContext.Get())
-
-		if (!InFacade->GetIn()) { return; }
-
-		const UPCGData* Data = InFacade->GetIn();
-
-		if (!Data) { return; }
-
-		for (const TObjectPtr<const UPCGExFactoryData>& Factory : InFactories)
-		{
-			Factory->RegisterConsumableAttributesWithData(SharedContext.Get(), Data);
-		}
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

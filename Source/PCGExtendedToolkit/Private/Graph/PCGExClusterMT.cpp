@@ -35,7 +35,7 @@ namespace PCGExClusterMT
 	void IProcessor::SetExecutionContext(FPCGExContext* InContext)
 	{
 		ExecutionContext = InContext;
-		WorkPermit = ExecutionContext->GetWorkPermit();
+		WorkHandle = ExecutionContext->GetWorkHandle();
 		EdgeDataFacade->bSupportsScopedGet = InContext->bScopedAttributeGet && bAllowEdgesDataFacadeScopedGet;
 	}
 
@@ -74,7 +74,7 @@ namespace PCGExClusterMT
 		AsyncManager = InAsyncManager;
 		PCGEX_ASYNC_CHKD(AsyncManager)
 
-		PCGEX_CHECK_WORK_PERMIT(false)
+		PCGEX_CHECK_WORK_HANDLE(false)
 
 		if (!bBuildCluster) { return true; }
 
@@ -279,7 +279,7 @@ namespace PCGExClusterMT
 	}
 
 	IBatch::IBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
-		: ExecutionContext(InContext), WorkPermit(InContext->GetWorkPermit()), VtxDataFacade(MakeShared<PCGExData::FFacade>(InVtx))
+		: ExecutionContext(InContext), WorkHandle(InContext->GetWorkHandle()), VtxDataFacade(MakeShared<PCGExData::FFacade>(InVtx))
 	{
 		SetExecutionContext(InContext);
 		Edges.Append(InEdges);
@@ -288,7 +288,7 @@ namespace PCGExClusterMT
 	void IBatch::SetExecutionContext(FPCGExContext* InContext)
 	{
 		ExecutionContext = InContext;
-		WorkPermit = ExecutionContext->GetWorkPermit();
+		WorkHandle = ExecutionContext->GetWorkHandle();
 	}
 
 	void IBatch::SetProjectionDetails(const FPCGExGeo2DProjectionDetails& InProjectionDetails)
@@ -300,7 +300,7 @@ namespace PCGExClusterMT
 
 	void IBatch::PrepareProcessing(const TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
 	{
-		PCGEX_CHECK_WORK_PERMIT_VOID
+		PCGEX_CHECK_WORK_HANDLE_VOID
 
 		AsyncManager = AsyncManagerPtr;
 		VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet && ExecutionContext->bScopedAttributeGet;
@@ -448,7 +448,7 @@ namespace PCGExClusterMT
 
 	void IBatch::OnProcessingPreparationComplete()
 	{
-		PCGEX_CHECK_WORK_PERMIT_OR_VOID(!bIsBatchValid)
+		PCGEX_CHECK_WORK_HANDLE_OR_VOID(!bIsBatchValid)
 
 		VtxFacadePreloader = MakeShared<PCGExData::FFacadePreloader>(VtxDataFacade);
 		RegisterBuffersDependencies(*VtxFacadePreloader);
@@ -556,7 +556,7 @@ namespace PCGExClusterMT
 
 	void IBatch::Write()
 	{
-		PCGEX_CHECK_WORK_PERMIT_VOID
+		PCGEX_CHECK_WORK_HANDLE_VOID
 
 		if (!bIsBatchValid) { return; }
 
@@ -573,7 +573,7 @@ namespace PCGExClusterMT
 
 	void IBatch::CompileGraphBuilder(const bool bOutputToContext)
 	{
-		PCGEX_CHECK_WORK_PERMIT_OR_VOID(!GraphBuilder || !bIsBatchValid)
+		PCGEX_CHECK_WORK_HANDLE_OR_VOID(!GraphBuilder || !bIsBatchValid)
 
 		if (bOutputToContext)
 		{

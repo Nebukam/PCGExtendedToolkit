@@ -12,6 +12,18 @@
 #define LOCTEXT_NAMESPACE "PCGExShrinkPathElement"
 #define PCGEX_NAMESPACE ShrinkPath
 
+bool FPCGExShrinkPathEndpointDistanceDetails::SanityCheck(const FPCGContext* Context) const
+{
+	if (AmountInput == EPCGExInputValueType::Attribute) { PCGEX_VALIDATE_NAME_C(Context, DistanceAttribute.GetName()) }
+	return true;
+}
+
+bool FPCGExShrinkPathEndpointCountDetails::SanityCheck(const FPCGContext* Context) const
+{
+	if (ValueSource == EPCGExInputValueType::Attribute) { PCGEX_VALIDATE_NAME_C(Context, CountAttribute.GetName()) }
+	return true;
+}
+
 UPCGExShrinkPathSettings::UPCGExShrinkPathSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

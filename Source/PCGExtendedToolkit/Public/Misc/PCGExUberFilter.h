@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
@@ -11,7 +12,6 @@
 #include "Data/PCGExPointFilter.h"
 #include "Details/PCGExDetailsFiltering.h"
 #include "Pickers/PCGExPickerFactoryProvider.h"
-
 
 #include "PCGExUberFilter.generated.h"
 

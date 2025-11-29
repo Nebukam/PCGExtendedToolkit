@@ -5,13 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExTexParamFactoryProvider.h"
-#include "Data/PCGExPointFilter.h"
 #include "Data/PCGTextureData.h"
-
 
 #include "PCGExGetTextureData.generated.h"
 

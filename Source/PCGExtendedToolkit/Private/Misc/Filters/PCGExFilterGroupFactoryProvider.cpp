@@ -47,6 +47,8 @@ TArray<FPCGPinProperties> UPCGExFilterGroupProviderSettings::OutputPinProperties
 	return PinProperties;
 }
 
+FName UPCGExFilterGroupProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabel; }
+
 UPCGExFactoryData* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExFilterGroupFactoryData* NewFactory;

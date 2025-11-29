@@ -264,7 +264,7 @@ namespace PCGExMT
 	FTaskManager::FTaskManager(FPCGExContext* InContext, const bool InForceSync)
 		: FAsyncMultiHandle(InForceSync, FName("ROOT")), Context(InContext), ContextHandle(InContext->GetOrCreateHandle())
 	{
-		WorkPermit = Context->GetWorkPermit();
+		WorkHandle = Context->GetWorkHandle();
 	}
 
 	FTaskManager::~FTaskManager()
@@ -274,7 +274,7 @@ namespace PCGExMT
 
 	bool FTaskManager::IsAvailable() const
 	{
-		return (ContextHandle.IsValid() && !IsCancelling() && !IsCancelled() && !IsResetting() && WorkPermit.IsValid());
+		return (ContextHandle.IsValid() && !IsCancelling() && !IsCancelled() && !IsResetting() && WorkHandle.IsValid());
 	}
 
 	bool FTaskManager::IsWaitingForRunningTasks() const

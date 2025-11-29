@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactories.h"
+#include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExPointFilter.h"
-
 
 #include "PCGExFuseCollinear.generated.h"
 

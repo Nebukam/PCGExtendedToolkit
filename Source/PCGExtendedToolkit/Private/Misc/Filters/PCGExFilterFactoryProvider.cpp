@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
 #include "PCGExHelpers.h"
+#include "PCGExLabels.h"
 #include "Data/PCGExPointFilter.h"
 #include "Misc/Filters/PCGExConstantFilter.h"
 
@@ -18,6 +19,8 @@ UPCGExFilterProviderSettings::UPCGExFilterProviderSettings()
 {
 	Priority = GetDefaultPriority();
 }
+
+FName UPCGExFilterProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabel; }
 
 UPCGExFactoryData* UPCGExFilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
@@ -43,6 +46,8 @@ bool UPCGExFilterProviderSettings::ShouldCancel(FPCGExFactoryProviderContext* In
 
 	return false;
 }
+
+FName UPCGExFilterCollectionProviderSettings::GetMainOutputPin() const{ return PCGExPointFilter::OutputColFilterLabel; }
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

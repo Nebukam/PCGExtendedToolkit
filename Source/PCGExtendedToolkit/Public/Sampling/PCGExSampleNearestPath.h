@@ -5,13 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExLabels.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExSorting.h"
-#include "Data/PCGExPointFilter.h"
 #include "Data/Matching/PCGExMatching.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Geometry/PCGExGeo.h"

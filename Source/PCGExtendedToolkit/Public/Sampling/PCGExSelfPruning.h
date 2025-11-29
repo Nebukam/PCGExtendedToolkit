@@ -5,12 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExLabels.h"
 #include "PCGExMathMean.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSorting.h"
 #include "Data/PCGExDataHelpers.h"
-#include "Data/PCGExPointFilter.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Geometry/PCGExGeo.h"
 

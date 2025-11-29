@@ -4,10 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactories.h"
+#include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
-#include "Data/PCGExPointFilter.h"
-
 
 #include "PCGExOffsetPath.generated.h"
 

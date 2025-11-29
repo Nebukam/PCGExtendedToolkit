@@ -20,7 +20,7 @@ namespace PCGExPointsMT
 	{
 		check(InContext)
 		ExecutionContext = InContext;
-		WorkPermit = ExecutionContext->GetWorkPermit();
+		WorkHandle = ExecutionContext->GetWorkHandle();
 	}
 
 	void IProcessor::SetPointsFilterData(TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>* InFactories)
@@ -178,7 +178,7 @@ namespace PCGExPointsMT
 	void IBatch::SetExecutionContext(FPCGExContext* InContext)
 	{
 		ExecutionContext = InContext;
-		WorkPermit = ExecutionContext->GetWorkPermit();
+		WorkHandle = ExecutionContext->GetWorkHandle();
 	}
 
 	bool IBatch::PrepareProcessing()
