@@ -16,6 +16,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "TopologyProcessor"
 #define PCGEX_NAMESPACE TopologyProcessor
@@ -255,28 +256,33 @@ namespace PCGExTopologyEdges
 				TArray<int32> ElemIDs;
 				ElemIDs.SetNum(VtxCount);
 
-				for (int i = 0; i < VtxCount; i++)
-				{
-					const int32* WP = HashMapRef.Find(PCGEx::GH2(InMesh.GetVertex(i), CWTolerance));
-					if (WP)
-					{
-						const int32 PointIndex = *WP;
-						InMesh.SetVertex(i, Transform.InverseTransformPosition(InTransforms[PointIndex].GetLocation()));
-						//InMesh.SetVertexNormal()
-						ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[PointIndex]));
-					}
-					else
-					{
-						ElemIDs[i] = Colors->AppendElement(DefaultVertexColor);
-					}
-				}
+				for (int32 i = 0; i < VtxCount; i++) { ElemIDs[i] = Colors->AppendElement(DefaultVertexColor); }
 
-				for (int32 TriangleID : InMesh.TriangleIndicesItr())
-				{
-					UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
-					MaterialID->SetValue(TriangleID, 0);
-					Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
-				}
+				ParallelFor(
+					VtxCount, [&](int32 i)
+					{
+						const int32* WP = HashMapRef.Find(PCGEx::GH2(InMesh.GetVertex(i), CWTolerance));
+						if (WP)
+						{
+							const int32 PointIndex = *WP;
+							InMesh.SetVertex(i, Transform.InverseTransformPosition(InTransforms[PointIndex].GetLocation()));
+							Colors->SetElement(ElemIDs[i], FVector4f(InColors[PointIndex]));
+						}
+					});
+
+				TArray<int32> TriangleIDs;
+				TriangleIDs.Reserve(InMesh.TriangleCount());
+				for (int32 TriangleID : InMesh.TriangleIndicesItr()) { TriangleIDs.Add(TriangleID); }
+
+				ParallelFor(
+					TriangleIDs.Num(), [&](int32 i)
+					{
+						const int32 TriangleID = TriangleIDs[i];
+						UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+						MaterialID->SetValue(TriangleID, 0);
+						Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+					});
+				
 			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 
 		Settings->Topology.PostProcessMesh(GetInternalMesh());

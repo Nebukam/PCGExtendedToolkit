@@ -282,18 +282,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 	{
 	}
 
+	/** Default material assigned to the mesh */
 	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	TSoftObjectPtr<UMaterialInterface> Material;
 
+	/** Default vertex color used for the points. Will use point color when available.*/
 	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FLinearColor DefaultVertexColor = FLinearColor::White;
 
+	/** Default primitive options
+	 * Note that those are applied when triangulation is appended to the dynamic mesh. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FGeometryScriptPrimitiveOptions PrimitiveOptions;
 
+	/** Triangulation options
+	 * Note that those are applied when triangulation is appended to the dynamic mesh. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	FGeometryScriptPolygonsTriangulationOptions TriangulationOptions;
 
+	/** If enabled, will not throw an error in case Geometry Script complain about bad triangulation.
+	 * If it shows, something went wrong but it's impossible to know exactly why. Look for structural anomalies, overlapping points, ...*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bQuietTriangulationError = false;
 
@@ -309,7 +317,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Geometry Script", meta = (PCG_Overridable, EditCondition="bComputeNormals"))
 	FGeometryScriptCalculateNormalsOptions NormalsOptions;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	/** Dynamic mesh component data. Only used by legacy output mode that spawned the component, prior to vanilla PCG interop.
+	 * This will be completely ignored in most usecases. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable), AdvancedDisplay)
 	FPCGExDynamicMeshDescriptor TemplateDescriptor;
 
 	void PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDynamicMesh) const;
