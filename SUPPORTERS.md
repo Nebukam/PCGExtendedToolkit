@@ -4,7 +4,7 @@ This project is maintained in my spare time and kept alive thanks to the support
 Many thanks to everyone who’s chosen to support this work <3
 
 # Sponsors
-[@amathlog](https://www.youtube.com/channel/UC8oszEDFBhDmpeXtnPrDP4A )
+[@amathlog](https://www.youtube.com/channel/UC8oszEDFBhDmpeXtnPrDP4A )  
 @sna-scourtney a.k.a Syscrusher  
 
 @3neo  
