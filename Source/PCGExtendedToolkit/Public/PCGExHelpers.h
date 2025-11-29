@@ -647,6 +647,9 @@ namespace PCGEx
 
 		bool IsEmpty() const { return ReadIndices.IsEmpty(); }
 		int32 Num() const { return ReadIndices.Num(); }
+
+		const TArray<int32>& GetReadIndices() const { return ReadIndices; }
+		const TArray<int32>& GetWriteIndices() const { return WriteIndices; }
 	};
 
 	PCGEXTENDEDTOOLKIT_API

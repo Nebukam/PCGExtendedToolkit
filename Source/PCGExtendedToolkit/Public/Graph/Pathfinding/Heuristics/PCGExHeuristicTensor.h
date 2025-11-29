@@ -7,9 +7,6 @@
 #include "PCGExHeuristicDistance.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
-
-
-#include "Graph/PCGExCluster.h"
 #include "Transform/Tensors/PCGExTensor.h"
 #include "Transform/Tensors/PCGExTensorHandler.h"
 #include "PCGExHeuristicTensor.generated.h"

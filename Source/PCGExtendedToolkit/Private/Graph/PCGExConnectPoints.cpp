@@ -389,7 +389,6 @@ namespace PCGExConnectPoints
 
 	void FProcessor::CompleteWork()
 	{
-		
 	}
 
 	void FProcessor::Write()

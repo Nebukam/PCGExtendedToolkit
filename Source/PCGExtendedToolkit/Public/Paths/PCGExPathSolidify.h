@@ -36,7 +36,7 @@ struct FPCGExPathSolidificationAxisDetails
 	GENERATED_BODY()
 	virtual ~FPCGExPathSolidificationAxisDetails() = default;
 	FPCGExPathSolidificationAxisDetails() = default;
-	
+
 	/** Input value type for flip */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
 	EPCGExInputValueToggle FlipInput = EPCGExInputValueToggle::Disabled;
@@ -44,17 +44,16 @@ struct FPCGExPathSolidificationAxisDetails
 	/** Whether to flip this axis or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, DisplayName="Flip", meta = (PCG_Overridable, EditCondition="FlipInput == EPCGExInputValueToggle::Constant", EditConditionHides, DisplayPriority=-1))
 	bool bFlip = false;
-	
+
 	/** Whether to flip this axis or not */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, DisplayName="Flip (Attr)", meta = (PCG_Overridable, EditCondition="FlipInput == EPCGExInputValueToggle::Attribute", EditConditionHides, DisplayPriority=-1))
 	FName FlipAttributeName = NAME_None;
-	
+
 	PCGEX_SETTING_VALUE_DECL(Flip, bool)
 
 	/** How to deal with scale during solidification */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, DisplayPriority=-1))
 	//EPCGExSolidificationSpace Space = EPCGExSolidificationSpace::Local;
-
 };
 
 USTRUCT(BlueprintType)
@@ -63,11 +62,11 @@ struct FPCGExPathSolidificationRadiusDetails : public FPCGExPathSolidificationAx
 	GENERATED_BODY()
 
 	FPCGExPathSolidificationRadiusDetails() = default;
-	
+
 	/** Input value type for Radius */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExInputValueToggle RadiusInput = EPCGExInputValueToggle::Disabled;
-	
+
 	/** Constant Radius for this axis */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, DisplayName="Radius", meta = (PCG_Overridable, EditCondition="RadiusInput == EPCGExInputValueToggle::Constant", EditConditionHides, ClampMin=0.001))
 	double Radius = 10;
@@ -77,7 +76,6 @@ struct FPCGExPathSolidificationRadiusDetails : public FPCGExPathSolidificationAx
 	FPCGAttributePropertyInputSelector RadiusAttribute;
 
 	PCGEX_SETTING_VALUE_DECL(Radius, double)
-
 };
 
 /**
@@ -115,7 +113,7 @@ public:
 	/** .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bReadOrderFromAttribute = false;
-	
+
 	/** Solidification Order attribute.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bReadOrderFromAttribute"))
 	FName OrderAttribute = NAME_None;
@@ -129,19 +127,19 @@ public:
 	/** .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bUseConstructionMapping = false;
-	
+
 	/** Map of rotation construction orders based on selected mapping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=Settings, EditFixedSize, meta=(PCG_NotOverridable, ReadOnlyKeys, EditCondition="bUseConstructionMapping"))
 	TMap<EPCGExAxisOrder, EPCGExMakeRotAxis> RotationMapping;
-	
+
 	/** Defines how the selected axis will be used to construct the point' rotation. This will be using remapped axis from the selected order. X = Primary, Y = Secondary, Z = Tertiary*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEnum, EditCondition="!bUseConstructionMapping", HideEditConditionToggle, EditConditionHides))
 	EPCGExMakeRotAxis RotationConstruction = EPCGExMakeRotAxis::X;
-	
+
 	/** .*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bReadConstructionFromAttribute = false;
-	
+
 	/** Rotation Construction attribute.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bReadConstructionFromAttribute"))
 	FName ConstructionAttribute = NAME_None;
@@ -150,7 +148,7 @@ public:
 	 * "Ignore" will pick the default constant specified above if the attribute value is invalid. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName=" └─ Construction Safety", EditCondition="bReadConstructionFromAttribute", EditConditionHides, HideEditConditionToggle))
 	EPCGExIndexSafety ConstructionSafety = EPCGExIndexSafety::Tile;
-	
+
 	// - Constant vs attribute
 	// - Attribute can be int as pick (with sanitization)
 	// - Attribute can be vector as pick (with sanitization)
@@ -162,7 +160,7 @@ public:
 	/** Secondary axis settings, relative to the selected order */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Secondary"))
 	FPCGExPathSolidificationRadiusDetails SecondaryAxis;
-	
+
 	/** Tertiary axis settings, relative to the selected order */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Tertiary"))
 	FPCGExPathSolidificationRadiusDetails TertiaryAxis;
@@ -195,7 +193,7 @@ public:
 	double SolidificationLerpConstant = 0;
 
 	PCGEX_SETTING_VALUE_DECL(SolidificationLerp, double)
-	
+
 #pragma region DEPRECATED
 
 	UPROPERTY()
@@ -245,7 +243,7 @@ struct FPCGExPathSolidifyContext final : FPCGExPathProcessorContext
 	friend class FPCGExPathSolidifyElement;
 
 	TArray<EPCGExMakeRotAxis> RotationConstructionsMap;
-	
+
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
@@ -267,14 +265,14 @@ namespace PCGExPathSolidify
 
 		TSharedPtr<PCGExData::TBuffer<int32>> AxisOrder;
 		TSharedPtr<PCGExData::TBuffer<int32>> RotationConstruction;
-		
+
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SolidificationLerp;
 
 		TSharedPtr<PCGExDetails::TSettingValue<bool>> PrimaryFlip;
 
 		TSharedPtr<PCGExDetails::TSettingValue<bool>> SecondaryFlip;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> SecondaryRadius;
-		
+
 		TSharedPtr<PCGExDetails::TSettingValue<bool>> TertiaryFlip;
 		TSharedPtr<PCGExDetails::TSettingValue<double>> TertiaryRadius;
 
@@ -295,7 +293,7 @@ namespace PCGExPathSolidify
 
 		EPCGExAxisOrder GetOrder(const int32 Index) const;
 		EPCGExMakeRotAxis GetConstruction(const EPCGExAxisOrder Order, const int32 Index) const;
-		
+
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 	};
 }

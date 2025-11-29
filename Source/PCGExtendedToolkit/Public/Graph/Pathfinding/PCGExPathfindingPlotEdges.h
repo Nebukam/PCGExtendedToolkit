@@ -7,11 +7,23 @@
 
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExDataForward.h"
 #include "Data/Matching/PCGExMatching.h"
+#include "Details/PCGExDetailsCluster.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Paths/PCGExPaths.h"
 
 #include "PCGExPathfindingPlotEdges.generated.h"
+
+namespace PCGExClusterUtils
+{
+	class FClusterDataForwardHandler;
+}
+
+namespace PCGExData
+{
+	class FDataForwardHandler;
+}
 
 namespace PCGExMatching
 {
@@ -59,7 +71,7 @@ public:
 	/** If enabled, allows you to filter out which plots get associated to which clusters */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExMatchingDetails DataMatching = FPCGExMatchingDetails(EPCGExMatchingDetailsUsage::Cluster);
-	
+
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAddSeedToPath = false;
@@ -106,6 +118,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Paths Output Settings"))
 	FPCGExPathOutputDetails PathOutputDetails;
 
+	/** Which data is forwarded from plots to paths */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExForwardDetails PlotForwarding;
+
+	/** Which data is forwarded from vtx to paths. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="PathComposition==EPCGExPathComposition::Vtx"))
+	FPCGExForwardDetails VtxDataForwarding;
+
+	/** Which data is forwarded from edges to paths. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="PathComposition==EPCGExPathComposition::Edges"))
+	FPCGExForwardDetails EdgesDataForwarding;
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietInvalidPlotWarning = false;
@@ -127,12 +151,19 @@ struct FPCGExPathfindingPlotEdgesContext final : FPCGExEdgesProcessorContext
 
 	bool bMatchForVtx = false;
 	bool bMatchForEdges = false;
-	
+
+	TMap<int32, TSharedPtr<PCGExData::FDataForwardHandler>> PlotsForwardHandlers;
+	FPCGExForwardDetails VtxDataForwarding;
+	FPCGExForwardDetails EdgesDataForwarding;
+
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	UPCGExSearchInstancedFactory* SearchAlgorithm = nullptr;
 
-	void BuildPath(const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query, const TSharedPtr<PCGExData::FPointIO>& PathIO) const;
+	void BuildPath(
+		const TSharedPtr<PCGExPathfinding::FPlotQuery>& Query,
+		const TSharedPtr<PCGExData::FPointIO>& PathIO,
+		const TSharedPtr<PCGExClusterUtils::FClusterDataForwardHandler>& ClusterForwardHandler = nullptr) const;
 
 protected:
 	PCGEX_ELEMENT_BATCH_EDGE_DECL
@@ -152,15 +183,16 @@ namespace PCGExPathfindingPlotEdges
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExPathfindingPlotEdgesContext, UPCGExPathfindingPlotEdgesSettings>
 	{
 		friend class FBatch;
-		
+
 	protected:
-		
 		TSet<const UPCGData*>* VtxIgnoreList = nullptr;
 		TSet<const UPCGData*> IgnoreList;
 		TArray<TSharedPtr<PCGExData::FFacade>> ValidPlots;
 		TArray<TSharedPtr<PCGExPathfinding::FPlotQuery>> Queries;
 		TArray<TSharedPtr<PCGExData::FPointIO>> QueriesIO;
 		TSharedPtr<PCGExPathfinding::FSearchAllocations> SearchAllocations;
+
+		TSharedPtr<PCGExClusterUtils::FClusterDataForwardHandler> ClusterDataForwardHandler;
 
 	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
@@ -174,6 +206,7 @@ namespace PCGExPathfindingPlotEdges
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void Cleanup() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
@@ -183,7 +216,8 @@ namespace PCGExPathfindingPlotEdges
 	protected:
 		bool bUnmatched = false;
 		TSet<const UPCGData*> IgnoreList;
-		
+		TSharedPtr<PCGExData::FDataForwardHandler> VtxDataForwardHandler;
+
 	public:
 		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch(InContext, InVtx, InEdges)

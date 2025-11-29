@@ -233,4 +233,14 @@ namespace PCGExClusterUtils
 	{
 		ProblemsTracker[static_cast<int32>(Problem)]++;
 	}
+
+	FClusterDataForwardHandler::FClusterDataForwardHandler(
+		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
+		const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler,
+		const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler)
+		: Cluster(InCluster),
+		  VtxDataForwardHandler(InVtxDataForwardHandler),
+		  EdgeDataForwardHandler(InEdgeDataForwardHandler)
+	{
+	}
 }

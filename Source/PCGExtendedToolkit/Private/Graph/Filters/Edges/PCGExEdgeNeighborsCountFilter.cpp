@@ -3,6 +3,8 @@
 
 #include "Graph/Filters/Edges/PCGExEdgeNeighborsCountFilter.h"
 
+#include "PCGExHelpers.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgeNeighborsCountFilter"

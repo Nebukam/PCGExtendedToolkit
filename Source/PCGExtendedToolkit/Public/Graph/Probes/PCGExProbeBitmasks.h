@@ -38,7 +38,7 @@ namespace PCGExProbeBitmasks
 		TArray<FVector> WorkingDirs;
 
 		void Init(const TSharedPtr<PCGExAdjacency::FBitmaskData>& BitmaskData, const bool bCopyDirs);
-		void Reset();
+		virtual void Reset() override;
 	};
 }
 

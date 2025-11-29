@@ -6,11 +6,8 @@
 #include "UObject/Object.h"
 #include "CoreMinimal.h"
 #include "Data/PCGExPointStates.h"
-
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/PCGExBitmaskMerge.h"
-#include "Graph/PCGExCluster.h"
 #include "PCGExClusterStates.generated.h"
 
 
@@ -58,7 +55,7 @@ namespace PCGExClusterStates
 	public:
 		FPCGExClusterStateConfigBase Config;
 		FPCGExStateConfigBase BaseConfig;
-		
+
 		const UPCGExClusterStateFactoryData* StateFactory = nullptr;
 
 		explicit FState(const UPCGExClusterStateFactoryData* InFactory):
@@ -95,10 +92,10 @@ namespace PCGExClusterStates
 			const TSharedRef<PCGExData::FFacade>& InPointDataCache,
 			const TSharedRef<PCGExData::FFacade>& InEdgeDataCache);
 
-		virtual bool Test(const int32 Index) override;		
+		virtual bool Test(const int32 Index) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) override;
 		virtual bool Test(const PCGExGraph::FEdge& Edge) override;
-		
+
 	protected:
 		virtual void PostInitFilter(FPCGExContext* InContext, const TSharedPtr<PCGExPointFilter::IFilter>& InFilter) override;
 	};
@@ -116,7 +113,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
-	
+
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		ClusterNodeFlag, "State : Cluster", "A single, filter-driven vtx state.",
 		PCGEX_FACTORY_NAME_PRIORITY)

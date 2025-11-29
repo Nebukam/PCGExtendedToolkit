@@ -4,11 +4,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
-
+#include "Details/PCGExDetailsGraph.h"
 #include "Geometry/PCGExGeo.h"
-#include "Graph/PCGExGraph.h"
+
 #include "PCGExBuildConvexHull2D.generated.h"
+
+namespace PCGExGraph
+{
+	class FGraphBuilder;
+}
 
 /**
  * 

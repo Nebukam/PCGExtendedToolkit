@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Details/PCGExDetailsCluster.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Misc/PCGExFindPointOnBounds.h"
 #include "PCGExFindPointOnBoundsClusters.generated.h"

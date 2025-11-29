@@ -97,11 +97,11 @@ namespace PCGExBitmask
 	PCGEXTENDEDTOOLKIT_API
 	void Mutate(const TArray<FPCGExSimpleBitmask>& Compositions, int64& Flags);
 
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FCachedRef
 	{
 		FCachedRef() = default;
-		
+
 		FName Identifier = NAME_None;
 		int64 Bitmask = 0;
 		FVector Direction = FVector::UpVector;

@@ -268,7 +268,6 @@ namespace PCGExPointFilter
 
 	PCGEXTENDEDTOOLKIT_API
 	void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
-	
 }
 
 USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Filter (Data)"))
@@ -294,4 +293,3 @@ public:
 	virtual bool SupportsCollectionEvaluation() const override;
 	virtual TSharedPtr<PCGExPointFilter::IFilter> CreateFilter() const override { return nullptr; }
 };
-

@@ -75,7 +75,7 @@ bool FPCGExCollectionToModuleInfosElement::ExecuteInternal(FPCGContext* Context)
 
 	TSet<FName> UniqueSymbols;
 	UniqueSymbols.Reserve(100);
-	
+
 	TMap<const FPCGExAssetCollectionEntry*, double> SizeCache;
 	SizeCache.Reserve(100);
 
@@ -135,7 +135,7 @@ void FPCGExCollectionToModuleInfosElement::FlattenCollection(
 
 		PCGExCollectionToGrammar::FModule& Module = OutModules.Emplace_GetRef();
 		if (!Entry->FixModuleInfos(Collection, Module.Infos)
-			|| (Settings->bSkipEmptySymbol && Module.Infos.Symbol.IsNone()) )
+			|| (Settings->bSkipEmptySymbol && Module.Infos.Symbol.IsNone()))
 		{
 			OutModules.Pop(EAllowShrinking::No);
 			continue;

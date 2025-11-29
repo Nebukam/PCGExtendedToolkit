@@ -6,6 +6,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Graph/PCGExCluster.h"
 
 
 void FPCGExHeuristicOperation::PrepareForCluster(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)
@@ -59,6 +60,10 @@ double FPCGExHeuristicOperation::GetCustomWeightMultiplier(const int32 PointInde
 	if (!bUseLocalWeightMultiplier || LocalWeightMultiplier.IsEmpty()) { return 1; }
 	return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExClusterElement::Vtx ? PointIndex : EdgeIndex]);
 }
+
+const PCGExCluster::FNode* FPCGExHeuristicOperation::GetRoamingSeed() const { return Cluster->GetRoamingNode(UVWSeed); }
+
+const PCGExCluster::FNode* FPCGExHeuristicOperation::GetRoamingGoal() const { return Cluster->GetRoamingNode(UVWGoal); }
 
 double FPCGExHeuristicOperation::GetScoreInternal(const double InTime) const
 {

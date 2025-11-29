@@ -5,12 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFactoryProvider.h"
+#include "PCGExLabels.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
-
-#include "Graph/PCGExGraph.h"
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsCluster.h"
 
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 
@@ -40,7 +40,7 @@ void UPCGExHeuristicsFactory##_TYPE::RegisterAssetDependencies(FPCGExContext* In
 
 class FPCGExHeuristicOperation;
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Heuristic"))
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Heuristic"))
 struct FPCGExDataTypeInfoHeuristics : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

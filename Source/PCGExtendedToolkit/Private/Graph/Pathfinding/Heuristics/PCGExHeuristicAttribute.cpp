@@ -6,6 +6,7 @@
 
 #include "PCGExMath.h"
 #include "Data/PCGExDataPreloader.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristicAttribute"

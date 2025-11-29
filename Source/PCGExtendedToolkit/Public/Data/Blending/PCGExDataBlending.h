@@ -354,7 +354,7 @@ namespace PCGExDataBlending
 		const TSharedRef<PCGExData::FPointIO>& SourceIO,
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	void AssembleBlendingDetails(
 		const FPCGExPropertiesBlendingDetails& PropertiesBlending,

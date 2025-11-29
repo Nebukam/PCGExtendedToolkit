@@ -119,5 +119,4 @@ namespace PCGEx
 		const FQuat& Quat,
 		const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis,
 		int32& X, int32& Y, int32& Z, const bool bPermute = true);
-	
 }

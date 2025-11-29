@@ -155,7 +155,7 @@ bool IPCGExElement::SupportsBasePointDataInputs(FPCGContext* InContext) const
 bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 {
 	check(Context);
-	
+
 	FPCGExContext* InContext = static_cast<FPCGExContext*>(Context);
 
 	const UPCGExSettings* InSettings = Context->GetInputSettings<UPCGExSettings>();

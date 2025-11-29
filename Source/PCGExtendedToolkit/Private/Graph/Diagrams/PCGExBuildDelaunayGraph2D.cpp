@@ -106,7 +106,7 @@ namespace PCGExBuildDelaunayGraph2D
 		TArray<FVector> ActivePositions;
 		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 
-		Delaunay = MakeUnique<PCGExGeo::TDelaunay2>();
+		Delaunay = MakeShared<PCGExGeo::TDelaunay2>();
 
 		if (!Delaunay->Process(ActivePositions, ProjectionDetails))
 		{

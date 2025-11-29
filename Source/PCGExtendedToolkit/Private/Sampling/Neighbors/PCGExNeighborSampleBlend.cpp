@@ -4,6 +4,7 @@
 #include "Sampling/Neighbors/PCGExNeighborSampleBlend.h"
 
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Graph/PCGExCluster.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"

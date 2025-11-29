@@ -245,8 +245,6 @@ OutProxy = TypedProxy;
 		}
 
 		PCGEX_RETURN_OUT_PROXY
-
-
 	}
 
 #pragma region externalization GetProxyBuffer
@@ -320,7 +318,7 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IBufferProxy> GetProxyBuffer<_TYPE_A,
 	}
 
 #undef PCGEX_RETURN_OUT_PROXY
-	
+
 	template <typename T>
 	TSharedPtr<IBufferProxy> GetConstantProxyBuffer(const T& Constant)
 	{
@@ -400,4 +398,3 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<IBufferProxy> GetConstantProxyBuffer<
 		return true;
 	}
 }
-

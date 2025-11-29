@@ -100,7 +100,7 @@ namespace PCGExBuildDelaunayGraph
 		TArray<FVector> ActivePositions;
 		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 
-		Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
+		Delaunay = MakeShared<PCGExGeo::TDelaunay3>();
 
 		bool bProcessed = false;
 		if (Settings->bMarkHull) { bProcessed = Delaunay->Process<false, true>(ActivePositions); }

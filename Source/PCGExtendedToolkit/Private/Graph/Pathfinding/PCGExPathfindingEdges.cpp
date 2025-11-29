@@ -7,6 +7,7 @@
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"

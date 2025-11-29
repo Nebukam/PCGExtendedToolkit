@@ -55,8 +55,14 @@ namespace PCGEx
 		TSharedPtr<TArray<PCGExValueHash>> GetKeys(const int32 IOIndex);
 
 		virtual bool Load();
-		virtual void End(const bool bBuildMap = false) {}
-		virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) {}
+
+		virtual void End(const bool bBuildMap = false)
+		{
+		}
+
+		virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector)
+		{
+		}
 
 	protected:
 		virtual void PrepareLoading();

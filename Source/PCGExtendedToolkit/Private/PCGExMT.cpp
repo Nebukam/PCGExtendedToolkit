@@ -334,7 +334,6 @@ namespace PCGExMT
 			// Fail safe for tasks that cannot be cancelled mid-way
 			// This will only be false in cases where lots of regen/cancel happen in the same frame.
 			PCGEX_ASYNC_WAIT_CHKD(IsWaitingForRunningTasks())
-			
 		}
 
 		Tokens.Empty();

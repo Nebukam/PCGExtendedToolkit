@@ -4,9 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCluster.h"
 #include "PCGExClusterMT.h"
-#include "PCGExClusterUtils.h"
+#include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExEdgesProcessor.generated.h"
@@ -18,6 +17,16 @@ return MakeShared<PCGExClusterMT::TBatch<PCGEx##_CLASS::FProcessor>>(const_cast<
 return MakeShared<PCGEx##_CLASS::FBatch>(const_cast<FPCGEx##_CLASS##Context*>(this), InVtx, InEdges); }
 
 #define PCGEX_CLUSTER_BATCH_PROCESSING(_STATE) if (!Context->ProcessClusters(_STATE)) { return false; }
+
+namespace PCGExClusterUtils
+{
+	class FClusterDataLibrary;
+}
+
+namespace PCGExData
+{
+	class FPointIOTaggedEntries;
+}
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
 class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings

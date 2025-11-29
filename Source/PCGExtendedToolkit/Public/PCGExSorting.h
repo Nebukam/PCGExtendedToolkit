@@ -80,7 +80,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionSortingDetails
 	void Sort(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const;
 };
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Sort Rule"))
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Sort Rule"))
 struct FPCGExDataTypeInfoSortRule : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

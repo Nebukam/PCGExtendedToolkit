@@ -140,7 +140,7 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 	return OutputData.TaggedData[Index];
 }
 
-#pragma endregion 
+#pragma endregion
 
 UWorld* FPCGExContext::GetWorld() const { return GetComponent()->GetWorld(); }
 

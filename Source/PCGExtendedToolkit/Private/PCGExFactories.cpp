@@ -28,7 +28,7 @@ namespace PCGExFactories
 			UniqueData.Add(TaggedData.Data->GetUniqueID(), &bIsAlreadyInSet);
 			if (bIsAlreadyInSet) { continue; }
 
-			const UPCGExFactoryData* Factory = Cast<::UPCGExFactoryData>(TaggedData.Data);
+			const UPCGExFactoryData* Factory = Cast<UPCGExFactoryData>(TaggedData.Data);
 			if (Factory)
 			{
 				if (!Types.Contains(Factory->GetFactoryType()))
@@ -87,7 +87,6 @@ namespace PCGExFactories
 			Factory->RegisterConsumableAttributesWithData(SharedContext.Get(), Data);
 		}
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

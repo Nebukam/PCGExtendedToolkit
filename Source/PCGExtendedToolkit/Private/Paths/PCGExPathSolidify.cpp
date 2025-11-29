@@ -171,7 +171,7 @@ namespace PCGExPathSolidify
 		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointDataFacade->GetOut()->SetNumPoints(Path->LastIndex); }
 
 		// Axis order overrides
-		
+
 		if (Settings->bReadOrderFromAttribute)
 		{
 			AxisOrder = PointDataFacade->GetBroadcaster<int32>(Settings->OrderAttribute, true);
@@ -266,8 +266,10 @@ namespace PCGExPathSolidify
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (!Path->IsValidEdgeIndex(Index))
+			{
 				continue;
-			
+			}
+
 			const PCGExPaths::FPathEdge& Edge = Path->Edges[Index];
 			const double Length = PathLength->Get(Index);
 			const FVector Scale = Transforms[Index].GetScale3D();
@@ -289,7 +291,7 @@ namespace PCGExPathSolidify
 			FVector ZAxis = RealZAxis * Flip.Z;
 
 			const EPCGExAxisOrder Order = GetOrder(Index);
-			
+
 			PCGEx::ReorderAxes(Order, XAxis, YAxis, ZAxis);
 			const FQuat Quat = PCGEx::MakeRot(GetConstruction(Order, Index), XAxis, YAxis, ZAxis);
 

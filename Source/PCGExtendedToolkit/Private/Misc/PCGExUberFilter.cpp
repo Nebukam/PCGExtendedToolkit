@@ -28,7 +28,7 @@ void UPCGExUberFilterSettings::ApplyDeprecation(UPCGNode* InOutNode)
 	{
 		ResultDetails.ApplyDeprecation();
 	}
-	
+
 	Super::ApplyDeprecation(InOutNode);
 }
 #endif

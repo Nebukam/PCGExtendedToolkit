@@ -376,7 +376,7 @@ namespace PCGExPointFilter
 		Results.Init(false, NumResults);
 	}
 
-	
+
 	void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)
 	{
 		for (const UPCGExPointFilterFactoryData* Factory : InFactories)

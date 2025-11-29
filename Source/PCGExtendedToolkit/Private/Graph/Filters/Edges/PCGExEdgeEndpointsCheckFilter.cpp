@@ -5,6 +5,7 @@
 
 
 #include "PCGExLabels.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgeEndpointsCheckFilter"

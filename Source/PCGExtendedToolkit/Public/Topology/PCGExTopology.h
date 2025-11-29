@@ -123,7 +123,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowBoundsSize = false;
 
 	/** Omit cells whose bounds size.length is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Bounds Size", EditCondition="bOmitBelowBoundsSize", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Bounds Size", EditCondition="bOmitBelowBoundsSize", ClampMin=0))
 	double MinBoundsSize = 3;
 
 	/**  */
@@ -131,7 +131,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAboveBoundsSize = false;
 
 	/** Omit cells whose bounds size.length is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Bounds Size", EditCondition="bOmitAboveBoundsSize", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Bounds Size", EditCondition="bOmitAboveBoundsSize", ClampMin=0))
 	double MaxBoundsSize = 500;
 
 	/**  */
@@ -139,7 +139,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowPointCount = false;
 
 	/** Omit cells whose point count is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Point Count", EditCondition="bOmitBelowPointCount", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Point Count", EditCondition="bOmitBelowPointCount", ClampMin=0))
 	int32 MinPointCount = 3;
 
 	/**  */
@@ -147,7 +147,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAbovePointCount = false;
 
 	/** Omit cells whose point count is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Point Count", EditCondition="bOmitAbovePointCount", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Point Count", EditCondition="bOmitAbovePointCount", ClampMin=0))
 	int32 MaxPointCount = 500;
 
 	/**  */
@@ -155,7 +155,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowArea = false;
 
 	/** Omit cells whose area is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Area", EditCondition="bOmitBelowArea", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Area", EditCondition="bOmitBelowArea", ClampMin=0))
 	double MinArea = 3;
 
 	/**  */
@@ -163,7 +163,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAboveArea = false;
 
 	/** Omit cells whose area is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Area", EditCondition="bOmitAboveArea", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Area", EditCondition="bOmitAboveArea", ClampMin=0))
 	double MaxArea = 500;
 
 	/**  */
@@ -171,7 +171,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowPerimeter = false;
 
 	/** Omit cells whose perimeter is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Perimeter", EditCondition="bOmitBelowPerimeter", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Perimeter", EditCondition="bOmitBelowPerimeter", ClampMin=0))
 	double MinPerimeter = 3;
 
 	/**  */
@@ -179,7 +179,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAbovePerimeter = false;
 
 	/** Omit cells whose perimeter is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Perimeter", EditCondition="bOmitAbovePerimeter", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Perimeter", EditCondition="bOmitAbovePerimeter", ClampMin=0))
 	double MaxPerimeter = 500;
 
 	/**  */
@@ -187,7 +187,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowSegmentLength = false;
 
 	/** Omit cells that contains any segment which length is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Segment Length", EditCondition="bOmitBelowSegmentLength", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Segment Length", EditCondition="bOmitBelowSegmentLength", ClampMin=0))
 	double MinSegmentLength = 3;
 
 	/**  */
@@ -195,7 +195,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAboveSegmentLength = false;
 
 	/** Omit cells that contains any segment which length is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Segment Length", EditCondition="bOmitAboveSegmentLength", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Segment Length", EditCondition="bOmitAboveSegmentLength", ClampMin=0))
 	double MaxSegmentLength = 500;
 
 	/**  */
@@ -203,7 +203,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowCompactness = false;
 
 	/** Omit cells that contains any segment which length is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Compactness", EditCondition="bOmitBelowCompactness", ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Compactness", EditCondition="bOmitBelowCompactness", ClampMin=0, ClampMax=1))
 	double MinCompactness = 0;
 
 	/**  */
@@ -211,7 +211,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAboveCompactness = false;
 
 	/** Omit cells that contains any segment which length is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Compactness", EditCondition="bOmitAboveCompactness", ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Compactness", EditCondition="bOmitAboveCompactness", ClampMin=0, ClampMax=1))
 	double MaxCompactness = 1;
 };
 

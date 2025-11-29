@@ -4,6 +4,7 @@
 #include "Graph/Filters/Nodes/PCGExNodeEdgeAngleFilter.h"
 
 
+#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeEdgeAngleFilter"

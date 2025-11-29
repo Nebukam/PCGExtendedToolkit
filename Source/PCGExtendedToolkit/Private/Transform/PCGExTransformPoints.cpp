@@ -76,7 +76,7 @@ namespace PCGExTransformPoints
 
 		OffsetMax = Settings->OffsetMax.GetValueSetting();
 		if (!OffsetMax->Init(PointDataFacade)) { return false; }
-		
+
 		OffsetScale = Settings->OffsetScaling.GetValueSetting();
 		if (!OffsetScale->Init(PointDataFacade)) { return false; }
 
@@ -86,20 +86,20 @@ namespace PCGExTransformPoints
 		AbsoluteOffset = Settings->AbsoluteOffset.GetValueSetting();
 		if (!AbsoluteOffset->Init(PointDataFacade)) { return false; }
 
-		
+
 		RotMin = Settings->RotationMin.GetValueSetting();
 		if (!RotMin->Init(PointDataFacade)) { return false; }
 
 		RotMax = Settings->RotationMax.GetValueSetting();
 		if (!RotMax->Init(PointDataFacade)) { return false; }
-		
+
 		RotScale = Settings->RotationScaling.GetValueSetting();
 		if (!RotScale->Init(PointDataFacade)) { return false; }
 
 		RotSnap = Settings->RotationSnap.GetValueSetting();
 		if (!RotSnap->Init(PointDataFacade)) { return false; }
 
-		
+
 		ScaleMin = Settings->ScaleMin.GetValueSetting();
 		if (!ScaleMin->Init(PointDataFacade)) { return false; }
 

@@ -8,9 +8,8 @@
 #include "PCGExGraph.h"
 #include "PCGExHelpers.h"
 #include "PCGExOctree.h"
+#include "Details/PCGExDetailsCluster.h"
 #include "Utils/PCGValueRange.h"
-
-#include "PCGExCluster.generated.h"
 
 struct FPCGExContext;
 
@@ -34,48 +33,6 @@ namespace PCGExCluster
 {
 	struct FBoundedEdge;
 }
-
-UENUM()
-enum class EPCGExClusterClosestSearchMode : uint8
-{
-	Vtx  = 0 UMETA(DisplayName = "Closest vtx", ToolTip="Proximity to node position"),
-	Edge = 1 UMETA(DisplayName = "Closest edge", ToolTip="Proximity to edge, then endpoint"),
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExNodeSelectionDetails
-{
-	GENERATED_BODY()
-
-	FPCGExNodeSelectionDetails()
-	{
-	}
-
-	explicit FPCGExNodeSelectionDetails(const double InMaxDistance):
-		MaxDistance(InMaxDistance)
-	{
-	}
-
-	~FPCGExNodeSelectionDetails()
-	{
-	}
-
-	/** Drives how the seed & goal points are selected within each cluster. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExClusterClosestSearchMode PickingMethod = EPCGExClusterClosestSearchMode::Edge;
-
-	/** Max distance at which a node can be selected. Use <= 0 to ignore distance check. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1))
-	double MaxDistance = -1;
-
-	// TODO : Support local attribute
-
-	FORCEINLINE bool WithinDistance(const FVector& NodePosition, const FVector& TargetPosition) const
-	{
-		if (MaxDistance <= 0) { return true; }
-		return FVector::Distance(NodePosition, TargetPosition) < MaxDistance;
-	}
-};
 
 namespace PCGExCluster
 {

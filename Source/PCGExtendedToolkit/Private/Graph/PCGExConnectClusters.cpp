@@ -10,6 +10,7 @@
 
 
 #include "Geometry/PCGExGeoDelaunay.h"
+#include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExConnectClusters"
 #define PCGEX_NAMESPACE ConnectClusters

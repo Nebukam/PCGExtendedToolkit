@@ -62,7 +62,6 @@ struct FPCGExShrinkPathEndpointDistanceDetails
 	EPCGExPathShrinkDistanceCutType CutType = EPCGExPathShrinkDistanceCutType::NewPoint;
 
 	bool SanityCheck(const FPCGContext* Context) const;
-	
 };
 
 USTRUCT(BlueprintType)

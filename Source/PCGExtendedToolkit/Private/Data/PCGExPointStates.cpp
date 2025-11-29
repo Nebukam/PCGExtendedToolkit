@@ -101,7 +101,7 @@ bool UPCGExStateFactoryProviderSettings::IsPinUsedByNodeExecution(const UPCGPin*
 	{
 		return bOutputBitmasks;
 	}
-	
+
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
 

@@ -64,4 +64,3 @@ UPCGExAssetCollection* FPCGExRoamingAssetCollectionDetails::TryBuildCollection(F
 
 	return Collection;
 }
-

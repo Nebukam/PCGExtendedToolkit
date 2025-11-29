@@ -6,6 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindAllCells"
 #define PCGEX_NAMESPACE FindAllCells
@@ -183,10 +184,10 @@ namespace PCGExFindAllCells
 		const TSharedPtr<PCGExData::FPointIO>& PathIO)
 	{
 		if (!PathIO) { return; }
-		
+
 		// Tag forwarding handled by artifacts
 		PathIO->Tags->Reset();
-		
+
 		// Enforce IO index based on edge IO + smallest node point index, for deterministic output order
 		PathIO->IOIndex = EdgeDataFacade->Source->IOIndex * 1000000 + Cluster->GetNodePointIndex(InCell->Nodes[0]);
 

@@ -66,7 +66,7 @@ namespace PCGEx
 
 		TSharedPtr<PCGExMT::TScopedArray<PCGExValueHash>> ScopedHashes;
 		TSharedPtr<PCGExMT::TScopedSet<PCGExValueHash>> ScopedSets;
-		
+
 		PCGExMT::FSimpleCallback CompleteCallback;
 
 	public:

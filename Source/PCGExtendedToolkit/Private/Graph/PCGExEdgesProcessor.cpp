@@ -8,6 +8,8 @@
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExClusterMT.h"
+#include "Graph/PCGExClusterUtils.h"
+#include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"

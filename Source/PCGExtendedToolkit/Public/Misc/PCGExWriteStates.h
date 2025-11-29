@@ -96,13 +96,13 @@ UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Params", meta=(
 class PCGEXTENDEDTOOLKIT_API UPCGExPointStateFactoryProviderSettings : public UPCGExStateFactoryProviderSettings
 {
 	GENERATED_BODY()
-	
+
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoPointState)
-	
+
 public:
 	//~Begin UPCGSettings
-#if WITH_EDITOR	
+#if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		ClusterNodeFlag, "State : Point", "A single, filter-driven point state.",
 		PCGEX_FACTORY_NAME_PRIORITY)
@@ -114,5 +114,4 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, DisplayAfter="Name"))
 	FPCGExStateConfigBase Config;
-
 };

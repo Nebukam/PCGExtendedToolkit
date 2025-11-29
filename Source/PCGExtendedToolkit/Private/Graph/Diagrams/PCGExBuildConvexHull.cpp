@@ -4,6 +4,7 @@
 #include "Graph/Diagrams/PCGExBuildConvexHull.h"
 
 
+#include "PCGExLabels.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -87,7 +88,7 @@ namespace PCGExBuildConvexHull
 		TArray<FVector> ActivePositions;
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
-		Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
+		Delaunay = MakeShared<PCGExGeo::TDelaunay3>();
 
 		if (!Delaunay->Process<false, true>(ActivePositions))
 		{

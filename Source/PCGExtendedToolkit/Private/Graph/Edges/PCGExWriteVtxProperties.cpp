@@ -4,6 +4,7 @@
 #include "Graph/Edges/PCGExWriteVtxProperties.h"
 
 
+#include "Graph/PCGExCluster.h"
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "WriteVtxProperties"
@@ -143,11 +144,11 @@ namespace PCGExWriteVtxProperties
 					            PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }, Cluster->GetPos(Node)) :
 					            PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }) :
 					PCGExGeo::FBestFitPlane();
-					
+
 			const FTransform BFPT = BestFitPlane.GetTransform();
-			
+
 			if (VtxNormalWriter) { VtxNormalWriter->SetValue(Node.PointIndex, BFPT.GetUnitAxis(NormalAxis)); }
-			
+
 			if (Settings->bMutateVtxToOOB)
 			{
 				const int32 PtIndex = Node.PointIndex;
@@ -155,7 +156,7 @@ namespace PCGExWriteVtxProperties
 				OutBoundsMin[PtIndex] = BestFitPlane.Extents * -1;
 				OutBoundsMax[PtIndex] = BestFitPlane.Extents;
 			}
-			
+
 			for (const TSharedPtr<FPCGExVtxPropertyOperation>& Op : Operations) { Op->ProcessNode(Node, Adjacency, BestFitPlane); }
 		}
 	}

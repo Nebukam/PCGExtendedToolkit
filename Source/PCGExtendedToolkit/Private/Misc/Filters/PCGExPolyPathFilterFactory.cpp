@@ -302,7 +302,7 @@ namespace PCGExPathInclusion
 
 						bool bLocalIsInside = false;
 						const FTransform Closest = PathArray[Item.Index]->GetClosestTransform(WorldPosition, bLocalIsInside, bScaleTolerance);
-						InclusionCount += bLocalIsInside;						
+						InclusionCount += bLocalIsInside;
 						OutFlags |= bLocalIsInside ? Inside : Outside;
 
 						if (const double Dist = FVector::DistSquared(WorldPosition, Closest.GetLocation()); Dist < BestDist)
@@ -319,7 +319,7 @@ namespace PCGExPathInclusion
 					FBoxCenterAndExtent(WorldPosition, FVector::OneVector), [&](
 					const PCGExOctree::FItem& Item)
 					{
-						if (bIgnoreSelf && DataArray[Item.Index].Data == InParentData) { return; } 
+						if (bIgnoreSelf && DataArray[Item.Index].Data == InParentData) { return; }
 
 						bool bLocalIsInside = false;
 						const FTransform Closest = PathArray[Item.Index]->GetClosestTransform(WorldPosition, bLocalIsInside, bScaleTolerance);

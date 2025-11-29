@@ -44,7 +44,7 @@ bool PCGExBitmaskCollection::FCache::TryGetBitmask(const FName Identifier, PCGEx
 		}
 		return false;
 	}
-	
+
 	OutCachedBitmask = Bitmasks[*Index];
 	return true;
 }
@@ -165,9 +165,9 @@ void UPCGExBitmaskCollection::PostEditChangeProperty(FPropertyChangedEvent& Prop
 			}
 		}
 	}
-	
+
 	if (PropertyChangedEvent.Property) { Super::PostEditChangeProperty(PropertyChangedEvent); }
-	
+
 	EDITOR_SetDirty();
 }
 

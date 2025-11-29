@@ -4,13 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "PCGExGraph.h"
+
 #include "PCGExIntersections.h"
 #include "PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsIntersection.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Details/PCGExDetailsGraph.h"
 
 namespace PCGExGraph
 {

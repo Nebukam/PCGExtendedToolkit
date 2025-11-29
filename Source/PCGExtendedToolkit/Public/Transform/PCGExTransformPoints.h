@@ -28,12 +28,12 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(TransformPoints, "Transform Points", "A Transform points with the same settings found in Asset Collection variations, with attribute override support.");
-	virtual EPCGSettingsType GetType() const override{return EPCGSettingsType::PointOps;}
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::PointOps; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTransform; }
 #endif
 
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -41,7 +41,6 @@ protected:
 	virtual PCGExData::EIOInit GetMainDataInitializationPolicy() const override;
 
 public:
-	
 #pragma region Translation
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable))
@@ -62,7 +61,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Position", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorBoolean AbsoluteOffset = FPCGExInputShorthandSelectorBoolean(FName("AbsoluteOffset"), false, false);
-	
+
 #pragma endregion
 
 #pragma region Rotation
@@ -76,7 +75,7 @@ public:
 	/** Scale applied to both Rotation Min & Rotation Max */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable, DisplayName=" └─ Scaling"))
 	FPCGExInputShorthandSelectorVector RotationScaling = FPCGExInputShorthandSelectorVector(FName("Scaling"), FVector(1));
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Rotation", meta = (PCG_Overridable))
 	EPCGExVariationSnapping SnapRotation = EPCGExVariationSnapping::None;
 
@@ -99,7 +98,7 @@ public:
 	/** Scale applied to both Scale Min & Scale Max */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable, DisplayName=" └─ Scaling"))
 	FPCGExInputShorthandSelectorVector ScaleScaling = FPCGExInputShorthandSelectorVector(FName("Scaling"), FVector(1));
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	EPCGExVariationSnapping SnapScale = EPCGExVariationSnapping::None;
 
@@ -136,23 +135,22 @@ namespace PCGExTransformPoints
 {
 	class FProcessor final : public PCGExPointsMT::TProcessor<FPCGExTransformPointsContext, UPCGExTransformPointsSettings>
 	{
-
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> OffsetMin;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> OffsetMax;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> OffsetScale;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> OffsetSnap;
 		TSharedPtr<PCGExDetails::TSettingValue<bool>> AbsoluteOffset;
-		
+
 		TSharedPtr<PCGExDetails::TSettingValue<FRotator>> RotMin;
 		TSharedPtr<PCGExDetails::TSettingValue<FRotator>> RotMax;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> RotScale;
 		TSharedPtr<PCGExDetails::TSettingValue<FRotator>> RotSnap;
-		
+
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> ScaleMin;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> ScaleMax;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> ScaleScale;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> ScaleSnap;
-		
+
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
 			TProcessor(InPointDataFacade)

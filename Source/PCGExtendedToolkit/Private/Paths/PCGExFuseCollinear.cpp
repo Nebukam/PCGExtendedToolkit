@@ -102,7 +102,7 @@ namespace PCGExFuseCollinear
 		PointFilterCache[0] = true;
 
 		// Only force-preserve last point if not closed loop
-		if (!Path->IsClosedLoop()) { PointFilterCache[Path->LastIndex] = true; } 
+		if (!Path->IsClosedLoop()) { PointFilterCache[Path->LastIndex] = true; }
 
 		PCGEX_SCOPE_LOOP(Index)
 		{
@@ -136,7 +136,7 @@ namespace PCGExFuseCollinear
 	}
 
 	void FProcessor::CompleteWork()
-	{		
+	{
 		if (ReadIndices.Num() < 2) { return; }
 
 		if (Path->IsClosedLoop())
@@ -148,7 +148,7 @@ namespace PCGExFuseCollinear
 			const FVector FirstPos = Path->GetPos(0);
 			const FVector ForwardDir = (Path->GetPos(NextIndex) - FirstPos).GetSafeNormal();
 			const FVector WrapDir = (FirstPos - Path->GetPos(LastIndex)).GetSafeNormal();
-			
+
 			// Use last position to avoid removing smooth arcs
 			const double Dot = FVector::DotProduct(WrapDir, ForwardDir);
 			if ((!Settings->bInvertThreshold && Dot > Context->DotThreshold) ||
@@ -160,7 +160,7 @@ namespace PCGExFuseCollinear
 		}
 
 		if (ReadIndices.Num() < 2) { return; }
-		
+
 		PCGEX_INIT_IO_VOID(PointDataFacade->Source, PCGExData::EIOInit::New)
 
 		PCGEx::SetNumPointsAllocated(PointDataFacade->GetOut(), ReadIndices.Num(), PointDataFacade->GetAllocations());

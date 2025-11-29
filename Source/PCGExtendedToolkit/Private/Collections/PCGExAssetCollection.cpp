@@ -432,7 +432,7 @@ bool UPCGExAssetCollection::HasCircularDependency(TSet<const UPCGExAssetCollecti
 	InReferences.Add(this, &bCircularDependency);
 
 	if (bCircularDependency) { return true; }
-	
+
 	ForEachEntry(
 		[&](const FPCGExAssetCollectionEntry* InEntry)
 		{
@@ -447,9 +447,9 @@ bool UPCGExAssetCollection::HasCircularDependency(TSet<const UPCGExAssetCollecti
 }
 
 void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{	
+{
 	if (PropertyChangedEvent.Property) { Super::PostEditChangeProperty(PropertyChangedEvent); }
-	
+
 	ForEachEntry(
 		[&](FPCGExAssetCollectionEntry* InEntry)
 		{

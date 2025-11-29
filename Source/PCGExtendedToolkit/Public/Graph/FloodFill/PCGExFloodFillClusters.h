@@ -8,6 +8,7 @@
 #include "PCGExSorting.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Details/PCGExDetailsCluster.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"

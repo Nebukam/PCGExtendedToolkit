@@ -61,7 +61,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideCollection
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths) const;
 	int32 GetHighestIndex() const;
-
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Material Override Single Entry")
@@ -76,7 +75,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMaterialOverrideSingleEntry
 
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TSoftObjectPtr<UMaterialInterface> Material = nullptr;
-
 };
 
 namespace PCGExMeshCollection
@@ -183,7 +181,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry : public FPCGExAssetColl
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 
 	virtual UPCGExAssetCollection* GetSubCollectionVoid() const override;
-	
+
 #pragma region DEPRECATED
 
 	// DEPRECATED -- Moved to macro cache instead.

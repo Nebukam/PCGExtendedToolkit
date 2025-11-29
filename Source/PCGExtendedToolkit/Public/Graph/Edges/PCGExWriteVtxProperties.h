@@ -46,7 +46,7 @@ public:
 	/** Mutate Vtx into their OOB based on neighboring connections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable))
 	bool bMutateVtxToOOB = false;
-	
+
 	/** Write normal from edges on vertices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxEdgeCount = false;
@@ -62,7 +62,7 @@ public:
 	/** Name of the 'normal' vertex attribute to write normal to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="Normal", PCG_Overridable, EditCondition="bWriteVtxNormal"))
 	FName VtxNormalAttributeName = FName("Normal");
-	
+
 	/** Which axis of the vtx OOB to use as normal.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName=" └─ Axis", PCG_Overridable, EditCondition="bWriteVtxNormal", HideEditConditionToggle))
 	EPCGExMinimalAxis NormalAxis = EPCGExMinimalAxis::Z;
@@ -70,9 +70,9 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable))
 	bool bIncludeVtxInOOB = false;
-	
+
 	bool WantsOOB() const;
-	
+
 private:
 	friend class FPCGExWriteVtxPropertiesElement;
 };

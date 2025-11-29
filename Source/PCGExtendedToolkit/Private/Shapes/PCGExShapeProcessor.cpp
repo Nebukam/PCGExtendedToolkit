@@ -3,6 +3,7 @@
 
 #include "Shapes/PCGExShapeProcessor.h"
 
+#include "PCGExLabels.h"
 #include "Data/PCGExPointFilter.h"
 #include "Graph/PCGExGraph.h"
 

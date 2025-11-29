@@ -6,6 +6,7 @@
 
 
 #include "PCGExLabels.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 

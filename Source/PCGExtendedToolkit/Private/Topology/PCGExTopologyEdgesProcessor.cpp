@@ -17,6 +17,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Async/ParallelFor.h"
+#include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "TopologyProcessor"
 #define PCGEX_NAMESPACE TopologyProcessor

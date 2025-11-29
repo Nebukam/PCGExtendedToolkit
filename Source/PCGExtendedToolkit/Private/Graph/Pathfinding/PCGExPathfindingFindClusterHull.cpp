@@ -6,6 +6,8 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Graph/PCGExCluster.h"
+#include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindClusterHull"
 #define PCGEX_NAMESPACE FindClusterHull

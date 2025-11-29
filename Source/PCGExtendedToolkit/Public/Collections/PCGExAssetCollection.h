@@ -218,7 +218,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetCollectionEntry
 	TObjectPtr<UPCGExAssetCollection> InternalSubCollection;
 
 	virtual UPCGExAssetCollection* GetSubCollectionVoid() const { return nullptr; }
-	
+
 	template <typename T>
 	T* GetSubCollection() { return Cast<T>(InternalSubCollection); }
 
@@ -354,10 +354,16 @@ public:
 	bool HasCircularDependency(TSet<const UPCGExAssetCollection*>& InReferences) const;
 
 	using FForEachConstEntryFunc = std::function<void (const FPCGExAssetCollectionEntry*)>;
-	virtual void ForEachEntry(FForEachConstEntryFunc&& Iterator) const	{}
-	
+
+	virtual void ForEachEntry(FForEachConstEntryFunc&& Iterator) const
+	{
+	}
+
 	using FForEachEntryFunc = std::function<void (FPCGExAssetCollectionEntry*)>;
-	virtual void ForEachEntry(FForEachEntryFunc&& Iterator)	{}
+
+	virtual void ForEachEntry(FForEachEntryFunc&& Iterator)
+	{
+	}
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 

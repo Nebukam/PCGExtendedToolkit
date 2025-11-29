@@ -156,7 +156,7 @@ else { return PCGEx::Convert<T_WORKING, _TYPE>(Get(Index)); }}
 #pragma region externalization TBufferProxy
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) template class PCGEXTENDEDTOOLKIT_API TBufferProxy<_TYPE>;
-PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
@@ -178,7 +178,7 @@ PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Buffer->Read(Index); }
 			else { return PCGEx::Convert<T_REAL, T_WORKING>(Buffer->Read(Index)); }
 		}
-		else { return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->Read(Index)); }
+		return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->Read(Index));
 	}
 
 	template <typename T_REAL, typename T_WORKING>
@@ -209,7 +209,7 @@ PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Buffer->GetValue(Index); }
 			else { return PCGEx::Convert<T_REAL, T_WORKING>(Buffer->GetValue(Index)); }
 		}
-		else { return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->GetValue(Index)); }
+		return SubSelection.template Get<T_REAL, T_WORKING>(Buffer->GetValue(Index));
 	}
 
 	template <typename T_REAL, typename T_WORKING>
@@ -225,7 +225,7 @@ PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	template <typename T_REAL, typename T_WORKING, EPCGPointProperties PROPERTY>
 	TPointPropertyProxy<T_REAL, T_WORKING, PROPERTY>::TPointPropertyProxy()
 		: TBufferProxy<T_WORKING>()
@@ -287,11 +287,11 @@ else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
 
 	PCGEX_FOREACH_POINTPROPERTY(PCGEX_TPL_LOOP)
 
-	#undef PCGEX_TPL_LOOP
-	#undef PCGEX_TPL
+#undef PCGEX_TPL_LOOP
+#undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	template <typename T_REAL, typename T_WORKING, EPCGExtraProperties PROPERTY>
 	TPointExtraPropertyProxy<T_REAL, T_WORKING, PROPERTY>::TPointExtraPropertyProxy()
 		: TBufferProxy<T_WORKING>()
@@ -319,11 +319,11 @@ else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
 
 	PCGEX_FOREACH_EXTRAPROPERTY(PCGEX_TPL_LOOP)
 
-	#undef PCGEX_TPL_LOOP
-	#undef PCGEX_TPL
+#undef PCGEX_TPL_LOOP
+#undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	template <typename T_WORKING>
 	TConstantProxy<T_WORKING>::TConstantProxy()
 		: TBufferProxy<T_WORKING>()
@@ -342,11 +342,11 @@ else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
 #undef PCGEX_TPL
 
 #define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) template PCGEXTENDEDTOOLKIT_API void TConstantProxy<_TYPE_A>::SetConstant<_TYPE_B>(const _TYPE_B&);
-PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
+	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	template <typename T_REAL, typename T_WORKING>
 	TDirectAttributeProxy<T_REAL, T_WORKING>::TDirectAttributeProxy()
 		: TBufferProxy<T_WORKING>()
@@ -366,10 +366,7 @@ PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return InAttribute->GetValueFromItemKey(MetadataEntry); }
 			else { return PCGEx::Convert<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(MetadataEntry)); }
 		}
-		else
-		{
-			return SubSelection.template Get<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(MetadataEntry));
-		}
+		return SubSelection.template Get<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(MetadataEntry));
 	}
 
 	template <typename T_REAL, typename T_WORKING>
@@ -384,10 +381,7 @@ PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return OutAttribute->GetValueFromItemKey(MetadataEntry); }
 			else { return PCGEx::Convert<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(MetadataEntry)); }
 		}
-		else
-		{
-			return SubSelection.template Get<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(MetadataEntry));
-		}
+		return SubSelection.template Get<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(MetadataEntry));
 	}
 
 	template <typename T_REAL, typename T_WORKING>
@@ -417,7 +411,7 @@ PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	template <typename T_REAL, typename T_WORKING>
 	TDirectDataAttributeProxy<T_REAL, T_WORKING>::TDirectDataAttributeProxy()
 		: TBufferProxy<T_WORKING>()
@@ -435,10 +429,7 @@ PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return InAttribute->GetValueFromItemKey(PCGDefaultValueKey); }
 			else { return PCGEx::Convert<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(PCGDefaultValueKey)); }
 		}
-		else
-		{
-			return SubSelection.template Get<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(PCGDefaultValueKey));
-		}
+		return SubSelection.template Get<T_REAL, T_WORKING>(InAttribute->GetValueFromItemKey(PCGDefaultValueKey));
 	}
 
 	template <typename T_REAL, typename T_WORKING>
@@ -451,10 +442,7 @@ PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 			if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return OutAttribute->GetValueFromItemKey(PCGDefaultValueKey); }
 			else { return PCGEx::Convert<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(PCGDefaultValueKey)); }
 		}
-		else
-		{
-			return SubSelection.template Get<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(PCGDefaultValueKey));
-		}
+		return SubSelection.template Get<T_REAL, T_WORKING>(OutAttribute->GetValueFromItemKey(PCGDefaultValueKey));
 	}
 
 	template <typename T_REAL, typename T_WORKING>
@@ -482,5 +470,4 @@ PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
-
 }

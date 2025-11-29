@@ -119,7 +119,7 @@ public:
 	/** Second value used for constructing rotation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Cross Axis"))
 	FPCGExInputShorthandSelectorDirection CrossAxis = FPCGExInputShorthandSelectorDirection(FString("$Rotation.Forward"), GetDefault<UPCGExGlobalSettings>()->WorldForward, true);
-	
+
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
@@ -357,7 +357,7 @@ namespace PCGExSampleSurfaceGuided
 
 		void ProcessTraceResult(const PCGExMT::FScope& Scope, const FHitResult& HitResult, const int32 Index,
 		                        const FVector& Origin, const FVector& Direction, PCGExData::FMutablePoint& MutablePoint);
-		
+
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		void GetVertexColorAtHit(const int32 Index, FVector4& OutColor) const;

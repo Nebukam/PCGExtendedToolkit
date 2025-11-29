@@ -9,12 +9,17 @@
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
-#include "Graph/PCGExGraph.h"
 
 #include "PCGExTexParamFactoryProvider.generated.h"
 
 class UPCGBaseTextureData;
 class UMaterialInterface;
+
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
 
 UENUM()
 enum class EPCGExTexSampleAttributeType : uint8
@@ -110,7 +115,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTextureParamConfig
 	void Init();
 };
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Tex Param"))
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Tex Param"))
 struct FPCGExDataTypeInfoTexParam : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

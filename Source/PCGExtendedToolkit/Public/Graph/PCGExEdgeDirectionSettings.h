@@ -5,14 +5,21 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdge.h"
-#include "PCGExGraph.h"
 #include "PCGExSorting.h"
 
 #include "PCGExEdgeDirectionSettings.generated.h"
 
+namespace PCGExCluster
+{
+	class FCluster;
+}
+
 namespace PCGExData
 {
 	class FFacadePreloader;
+
+	template <typename T>
+	class TBuffer;
 }
 
 USTRUCT(BlueprintType)

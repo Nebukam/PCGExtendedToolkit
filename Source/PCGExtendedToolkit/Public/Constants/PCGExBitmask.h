@@ -48,7 +48,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
-	
+
 	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Bitmask, "Bitmask", "A Simple bitmask attribute.", GetDisplayName());
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
@@ -65,7 +65,7 @@ protected:
 	/** Operations executed on the flag if all filters pass */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
 	FPCGExBitmask Bitmask;
-	
+
 	/** Store version of the node, used for deprecation purposes */
 	UPROPERTY()
 	int64 PCGExDataVersion = -1;

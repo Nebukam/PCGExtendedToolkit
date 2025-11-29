@@ -10,10 +10,9 @@
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExGlobalSettings.h"
-#include "Data/Blending/PCGExDataBlending.h"
-#include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
+#include "Data/Blending/PCGExDataBlending.h"
+#include "Details/PCGExDetailsCluster.h"
 
 
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -30,7 +29,12 @@
 	NewOperation->EdgesFilterFactories.Append(EdgesFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Neighbor Sampler"))
+namespace PCGExGraph
+{
+	struct FLink;
+}
+
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Neighbor Sampler"))
 struct FPCGExDataTypeInfoNeighborSampler : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()
