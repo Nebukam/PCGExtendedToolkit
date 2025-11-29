@@ -227,7 +227,7 @@ MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 	{
 		TSharedPtr<TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>> Helper;
 		TSharedPtr<TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>> MicroHelper;
-		
+
 		TArray<TSharedPtr<TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>>> Helpers;
 		TArray<TSharedPtr<TMicroDistributionHelper<PCGExMeshCollection::FMicroCache>>> MicroHelpers;
 		TMap<PCGExValueHash, int32> Indices;
@@ -236,16 +236,16 @@ MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath{})
 
 		TSharedPtr<PCGExData::FFacade> DataFacade = nullptr;
 		UPCGExAssetCollection* SingleSource = nullptr;
-		
+
 	public:
 		FPCGExAssetDistributionDetails DistributionSettings;
 		FPCGExMicroCacheDistributionDetails EntryDistributionSettings;
 
 		explicit FCollectionSource(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
-		
+
 		bool Init(UPCGExAssetCollection* InCollection);
 		bool Init(const TMap<PCGExValueHash, TObjectPtr<UPCGExAssetCollection>>& InMap, const TSharedPtr<TArray<PCGExValueHash>>& InKeys);
-		
+
 		bool TryGetHelpers(
 			const int32 Index,
 			TDistributionHelper<UPCGExAssetCollection, FPCGExAssetCollectionEntry>*& OutHelper,

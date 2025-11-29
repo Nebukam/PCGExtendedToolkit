@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Graph/PCGExCluster.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
 #include "PCGExHeuristicsFactoryProvider.h"

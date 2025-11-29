@@ -7,9 +7,6 @@
 #include "PCGExHeuristicsFactoryProvider.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
-
-
-#include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicInertia.generated.h"
 
 USTRUCT(BlueprintType)

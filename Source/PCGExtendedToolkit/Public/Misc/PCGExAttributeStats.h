@@ -397,7 +397,7 @@ namespace PCGExAttributeStats
 					else { AverageValue = PCGExBlend::Add(AverageValue, Value); }
 
 					int32& Count = ValuesCount.FindOrAdd(Value, 0);
-					Count++;
+					++Count;
 
 					if (PCGExCompare::StrictlyEqual(Value, DefaultValue))
 					{
@@ -406,7 +406,7 @@ namespace PCGExAttributeStats
 					else
 					{
 						int32& SetCount = SetValuesCount.FindOrAdd(Value, 0);
-						SetCount++;
+						++SetCount;
 
 						SetMinValue = PCGExBlend::Min(SetMinValue, Value);
 						SetMaxValue = PCGExBlend::Max(SetMaxValue, Value);

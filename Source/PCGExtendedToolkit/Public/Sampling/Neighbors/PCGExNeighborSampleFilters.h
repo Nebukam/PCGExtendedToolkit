@@ -7,10 +7,6 @@
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
-#include "Data/Blending/PCGExDataBlending.h"
-#include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
-
 #include "PCGExNeighborSampleFactoryProvider.h"
 #include "PCGExNeighborSampleFilters.generated.h"
 

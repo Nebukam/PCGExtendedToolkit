@@ -17,6 +17,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Async/ParallelFor.h"
+#include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "TopologyProcessor"
 #define PCGEX_NAMESPACE TopologyProcessor
@@ -282,7 +283,6 @@ namespace PCGExTopologyEdges
 						MaterialID->SetValue(TriangleID, 0);
 						Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
 					});
-				
 			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 
 		Settings->Topology.PostProcessMesh(GetInternalMesh());

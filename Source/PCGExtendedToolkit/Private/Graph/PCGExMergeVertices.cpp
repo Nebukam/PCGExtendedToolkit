@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExMergeVertices.h"
 
+#include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
 

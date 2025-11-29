@@ -47,7 +47,7 @@ bool UPCGExFilterProviderSettings::ShouldCancel(FPCGExFactoryProviderContext* In
 	return false;
 }
 
-FName UPCGExFilterCollectionProviderSettings::GetMainOutputPin() const{ return PCGExPointFilter::OutputColFilterLabel; }
+FName UPCGExFilterCollectionProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputColFilterLabel; }
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

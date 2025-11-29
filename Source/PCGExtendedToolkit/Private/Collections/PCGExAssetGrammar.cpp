@@ -58,7 +58,7 @@ double FPCGExCollectionGrammarDetails::GetSize(const UPCGExAssetCollection* InCo
 		{
 			Collection->GetEntryAt(Entry, i, EntryHost);
 			if (!Entry) { continue; }
-			CompoundSize = FMath::Min(CompoundSize, Entry->GetGrammarSize(static_cast<const UPCGExAssetCollection*>(EntryHost), SizeCache));
+			CompoundSize = FMath::Min(CompoundSize, Entry->GetGrammarSize(EntryHost, SizeCache));
 		}
 	}
 	else if (SizeMode == EPCGExCollectionGrammarSize::Max)
@@ -69,7 +69,7 @@ double FPCGExCollectionGrammarDetails::GetSize(const UPCGExAssetCollection* InCo
 		{
 			Collection->GetEntryAt(Entry, i, EntryHost);
 			if (!Entry) { continue; }
-			CompoundSize = FMath::Max(CompoundSize, Entry->GetGrammarSize(static_cast<const UPCGExAssetCollection*>(EntryHost), SizeCache));
+			CompoundSize = FMath::Max(CompoundSize, Entry->GetGrammarSize(EntryHost, SizeCache));
 		}
 	}
 	else if (SizeMode == EPCGExCollectionGrammarSize::Average)
@@ -81,7 +81,7 @@ double FPCGExCollectionGrammarDetails::GetSize(const UPCGExAssetCollection* InCo
 			Collection->GetEntryAt(Entry, i, EntryHost);
 			if (!Entry) { continue; }
 
-			CompoundSize += Entry->GetGrammarSize(static_cast<const UPCGExAssetCollection*>(EntryHost), SizeCache);
+			CompoundSize += Entry->GetGrammarSize(EntryHost, SizeCache);
 			NumSamples++;
 		}
 

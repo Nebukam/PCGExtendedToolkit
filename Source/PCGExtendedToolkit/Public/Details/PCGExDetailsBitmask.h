@@ -63,7 +63,7 @@ namespace PCGExBitmask
 	};
 
 	FORCEINLINE constexpr EPCGExBitOp GetBitOp(EPCGExBitOp_OR BitOp) { return OR_Ops[static_cast<uint8>(BitOp)]; }
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask);
 
@@ -92,14 +92,14 @@ namespace PCGExBitmask
 
 	PCGEXTENDEDTOOLKIT_API
 	void Mutate(const TArray<FPCGExBitmaskRef>& Compositions, int64& Flags);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	void Mutate(const TArray<FPCGExSimpleBitmask>& Compositions, int64& Flags);
 
 	struct PCGEXTENDEDTOOLKIT_API FCachedRef
 	{
 		FCachedRef() = default;
-		
+
 		FName Identifier = NAME_None;
 		int64 Bitmask = 0;
 		FVector Direction = FVector::UpVector;
@@ -155,15 +155,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleBitmask
 	UPROPERTY(EditAnywhere, Category = Settings)
 	EPCGExBitOp Op = EPCGExBitOp::OR;
 
-	FORCEINLINE void Mutate(int64& Flags) const{PCGExBitmask::Mutate(Op, Flags, Bitmask);}
-	
+	FORCEINLINE void Mutate(int64& Flags) const { PCGExBitmask::Mutate(Op, Flags, Bitmask); }
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Bitmask Ref")
 struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskRef
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(EditAnywhere, Category = Settings)
 	TObjectPtr<UPCGExBitmaskCollection> Source;
 
@@ -176,9 +175,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskRef
 #if WITH_EDITOR
 	TArray<FName> EDITOR_GetIdentifierOptions() const;
 #endif
-	
+
 	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
-	
+
 	void Mutate(int64& Flags) const;
 	FPCGExSimpleBitmask GetSimpleBitmask() const;
 	bool TryGetAdjacencyInfos(FVector& OutDirection, FPCGExSimpleBitmask& OutSimpleBitmask) const;
@@ -236,10 +235,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmask
 #pragma endregion
 
 	int64 Get() const;
-	FORCEINLINE void Mutate(const EPCGExBitOp Op, int64& Flags) const{PCGExBitmask::Mutate(Op, Flags, Get());}
+	FORCEINLINE void Mutate(const EPCGExBitOp Op, int64& Flags) const { PCGExBitmask::Mutate(Op, Flags, Get()); }
 
 	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
-	
+
 #if WITH_EDITOR
 	void ApplyDeprecation();
 #endif
@@ -299,7 +298,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 	void Mutate(int64& Flags) const;
 
 	void EDITOR_RegisterTrackingKeys(FPCGExContext* Context) const;
-	
+
 #if WITH_EDITOR
 	void ApplyDeprecation();
 #endif

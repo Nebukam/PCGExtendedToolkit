@@ -6,10 +6,9 @@
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
 #include "UObject/Object.h"
-
 #include "PCGExFactoryProvider.h"
 #include "PCGExVtxPropertyFactoryProvider.h"
-#include "Graph/PCGExGraph.h"
+#include "Details/PCGExDetailsGraph.h"
 
 #include "PCGExVtxPropertyEdgeMatch.generated.h"
 

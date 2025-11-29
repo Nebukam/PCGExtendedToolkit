@@ -322,7 +322,7 @@ namespace PCGExMath
 	{
 		Value = !FMath::IsNearlyZero(Step) ? FMath::RoundToDouble(Value / Step) * Step : Value;
 	}
-	
+
 	FORCEINLINE static double Round10(const float A)
 	{
 		return FMath::RoundToFloat(A * 10.0f) / 10.0f;

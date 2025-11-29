@@ -12,6 +12,11 @@
 
 #include "PCGExCutClusters.generated.h"
 
+namespace PCGExDetails
+{
+	class FDistances;
+}
+
 UENUM()
 enum class EPCGExCutEdgesMode : uint8
 {

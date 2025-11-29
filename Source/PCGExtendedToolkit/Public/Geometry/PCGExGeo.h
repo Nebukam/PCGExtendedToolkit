@@ -213,7 +213,7 @@ namespace PCGExGeo
 		int32 Swizzle[3] = {0, 1, 2};
 		FVector Axis[3] = {FVector::ForwardVector, FVector::RightVector, FVector::UpVector};
 
-		FORCEINLINE FVector Normal() const{ return Axis[2]; }
+		FORCEINLINE FVector Normal() const { return Axis[2]; }
 		FTransform GetTransform() const;
 		FTransform GetTransform(EPCGExAxisOrder Order) const;
 

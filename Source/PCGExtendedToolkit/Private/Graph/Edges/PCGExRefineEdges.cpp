@@ -21,7 +21,7 @@ void UPCGExRefineEdgesSettings::ApplyDeprecation(UPCGNode* InOutNode)
 {
 	PCGEX_UPDATE_TO_DATA_VERSION(1, 70, 11)
 	{
-		if (bOutputEdgesOnly_DEPRECATED){ Mode = EPCGExRefineEdgesOutput::Points;}
+		if (bOutputEdgesOnly_DEPRECATED) { Mode = EPCGExRefineEdgesOutput::Points; }
 	}
 
 	PCGEX_UPDATE_TO_DATA_VERSION(1, 71, 2)

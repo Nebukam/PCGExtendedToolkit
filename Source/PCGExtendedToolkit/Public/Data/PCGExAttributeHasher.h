@@ -65,7 +65,7 @@ namespace PCGEx
 		uint32 OutHash = 0;
 
 		TSharedPtr<PCGExMT::TScopedArray<PCGExValueHash>> ScopedHashes;
-		
+
 		PCGExMT::FSimpleCallback CompleteCallback;
 
 	public:

@@ -139,7 +139,7 @@ namespace PCGExClusterStates
 UPCGExFactoryData* UPCGExClusterStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
 	UPCGExClusterStateFactoryData* NewFactory = InContext->ManagedObjects->New<UPCGExClusterStateFactoryData>();
-	
+
 	NewFactory->BaseConfig = Config;
 	NewFactory->Config = Config;
 

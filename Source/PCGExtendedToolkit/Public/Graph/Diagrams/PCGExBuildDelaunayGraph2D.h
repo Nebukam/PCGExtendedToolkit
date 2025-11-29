@@ -4,14 +4,29 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
-
+#include "Details/PCGExDetailsGraph.h"
 
 #include "Geometry/PCGExGeo.h"
-#include "Geometry/PCGExGeoDelaunay.h"
-#include "Graph/PCGExGraph.h"
 
 #include "PCGExBuildDelaunayGraph2D.generated.h"
+
+namespace PCGExGeo
+{
+	class TDelaunay2;
+}
+
+namespace PCGExGraph
+{
+	class FGraphBuilder;
+}
+
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
 
 UENUM()
 enum class EPCGExUrquhartSiteMergeMode : uint8
@@ -118,7 +133,7 @@ namespace PCGExBuildDelaunayGraph2D
 
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TUniquePtr<PCGExGeo::TDelaunay2> Delaunay;
+		TSharedPtr<PCGExGeo::TDelaunay2> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		TSet<uint64> UrquhartEdges;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;

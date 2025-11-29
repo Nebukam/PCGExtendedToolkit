@@ -8,8 +8,6 @@
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
 
-
-#include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicSteepness.generated.h"
 
 USTRUCT(BlueprintType)

@@ -4,6 +4,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicAzimuth.h"
 
 #include "PCGExMath.h"
+#include "Graph/PCGExCluster.h"
 
 
 double FPCGExHeuristicAzimuth::GetGlobalScore(

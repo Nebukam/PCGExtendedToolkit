@@ -82,6 +82,6 @@ class UPCGExFilterCollectionProviderSettings : public UPCGExFilterProviderSettin
 
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterCollection)
-	
+
 	virtual FName GetMainOutputPin() const override;
 };

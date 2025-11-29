@@ -114,7 +114,7 @@ namespace PCGExResamplePath
 			else
 			{
 				NumSamples = PCGExMath::TruncateDbl(PathLength->TotalLength / SampleLength, Settings->Truncate);
-				bAutoSampleSize = Settings->bRedistributeEvenly;				
+				bAutoSampleSize = Settings->bRedistributeEvenly;
 			}
 
 
@@ -129,7 +129,7 @@ namespace PCGExResamplePath
 			PointDataFacade->GetOut()->AllocateProperties(EPCGPointNativeProperties::Transform);
 			NumSamples = PointDataFacade->GetNum();
 		}
-		
+
 		if (Path->IsClosedLoop()) { NumSamples++; }
 
 		if (bAutoSampleSize)

@@ -163,9 +163,9 @@ void UPCGExBitmaskCollection::PostEditChangeProperty(FPropertyChangedEvent& Prop
 			}
 		}
 	}
-	
+
 	if (PropertyChangedEvent.Property) { Super::PostEditChangeProperty(PropertyChangedEvent); }
-	
+
 	EDITOR_SetDirty();
 }
 

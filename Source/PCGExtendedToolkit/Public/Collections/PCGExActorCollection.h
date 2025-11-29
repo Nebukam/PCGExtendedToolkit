@@ -47,7 +47,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 		FPCGExAssetCollectionEntry::ClearSubCollection();
 		SubCollection = nullptr;
 	}
-	
+
 	bool SameAs(const FPCGExActorCollectionEntry& Other) const
 	{
 		return
@@ -64,7 +64,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorCollectionEntry : public FPCGExAssetCol
 	virtual void SetAssetPath(const FSoftObjectPath& InPath) override;
 
 	virtual UPCGExAssetCollection* GetSubCollectionVoid() const override;
-	
+
 #if WITH_EDITOR
 	virtual void EDITOR_Sanitize() override;
 #endif

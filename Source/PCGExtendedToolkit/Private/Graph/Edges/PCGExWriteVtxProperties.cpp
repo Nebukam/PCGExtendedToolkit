@@ -4,6 +4,7 @@
 #include "Graph/Edges/PCGExWriteVtxProperties.h"
 
 
+#include "Graph/PCGExCluster.h"
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "WriteVtxProperties"
@@ -92,7 +93,8 @@ namespace PCGExWriteVtxProperties
 			if (NewOperation->WantsBFP()) { bWantsOOB = true; }
 		}
 
-		switch (Settings->NormalAxis) {
+		switch (Settings->NormalAxis)
+		{
 		case EPCGExMinimalAxis::None:
 		case EPCGExMinimalAxis::X:
 			NormalAxis = EAxis::Type::X;
@@ -139,14 +141,14 @@ namespace PCGExWriteVtxProperties
 
 			const PCGExGeo::FBestFitPlane BestFitPlane =
 				bWantsOOB ? Settings->bIncludeVtxInOOB ?
-								PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }, Cluster->GetPos(Node)) :
-								PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }) :
+					            PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }, Cluster->GetPos(Node)) :
+					            PCGExGeo::FBestFitPlane(Adjacency.Num(), [&](int32 i) { return InTransforms[Adjacency[i].NodePointIndex].GetLocation(); }) :
 					PCGExGeo::FBestFitPlane();
 
 			const FTransform BFPT = BestFitPlane.GetTransform();
-			
+
 			if (VtxNormalWriter) { VtxNormalWriter->SetValue(Node.PointIndex, BFPT.GetUnitAxis(NormalAxis)); }
-			
+
 			if (Settings->bMutateVtxToOOB)
 			{
 				const int32 PtIndex = Node.PointIndex;

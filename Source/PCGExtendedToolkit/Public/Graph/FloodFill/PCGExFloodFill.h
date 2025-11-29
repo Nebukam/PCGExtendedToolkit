@@ -133,7 +133,7 @@ namespace PCGExFloodFill
 		FDiffusion(const TSharedPtr<FFillControlsHandler>& InFillControlsHandler, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const PCGExCluster::FNode* InSeedNode);
 		~FDiffusion() = default;
 
-		FORCEINLINE int32 GetSettingsIndex(EPCGExFloodFillSettingSource Source) const { return Source == EPCGExFloodFillSettingSource::Seed ? SeedIndex : SeedNode->PointIndex; }
+		int32 GetSettingsIndex(EPCGExFloodFillSettingSource Source) const;
 
 		void Init(const int32 InSeedIndex);
 		void Probe(const FCandidate& From);

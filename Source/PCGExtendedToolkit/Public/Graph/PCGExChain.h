@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGraph.h"
 #include "PCGExCluster.h"
 
 namespace PCGExCluster

@@ -182,7 +182,7 @@ void FPCGExFilterResultDetails::Write(const PCGExMT::FScope& Scope, const TBitAr
 	{
 		PCGEX_SCOPE_LOOP(Index)
 		{
-			BoolBuffer->SetValue(Index, static_cast<bool>(Results[Index]));
+			BoolBuffer->SetValue(Index, Results[Index]);
 		}
 	}
 	else if (Action == EPCGExResultWriteAction::Counter)

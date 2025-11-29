@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCluster.h"
 #include "PCGExEdgesProcessor.h"
 
 #include "PCGExMakeClustersUnique.generated.h"

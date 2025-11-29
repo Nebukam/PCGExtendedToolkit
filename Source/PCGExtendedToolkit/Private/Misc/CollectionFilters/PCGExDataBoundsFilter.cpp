@@ -80,7 +80,8 @@ bool PCGExPointFilter::FDataBoundsFilter::Test(const TSharedPtr<PCGExData::FPoin
 		|| TypedFilterFactory->Config.OperandA == EPCGExDataBoundsAspect::SortedRatio)
 	{
 		A = MaxRatio / MinRatio;
-	}else
+	}
+	else
 	{
 		switch (TypedFilterFactory->Config.SubOperand)
 		{

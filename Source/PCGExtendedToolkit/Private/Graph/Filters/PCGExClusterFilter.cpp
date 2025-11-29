@@ -12,11 +12,11 @@
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterCluster, UPCGExClusterFilterFactoryData)
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterVtx, UPCGExNodeFilterFactoryData)
 
-FName UPCGExVtxFilterProviderSettings::GetMainOutputPin() const{ return PCGExPointFilter::OutputFilterLabelNode; }
+FName UPCGExVtxFilterProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabelNode; }
 
 PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoFilterEdge, UPCGExEdgeFilterFactoryData)
 
-FName UPCGExEdgeFilterProviderSettings::GetMainOutputPin() const{ return PCGExPointFilter::OutputFilterLabelEdge; }
+FName UPCGExEdgeFilterProviderSettings::GetMainOutputPin() const { return PCGExPointFilter::OutputFilterLabelEdge; }
 
 namespace PCGExClusterFilter
 {

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExDataForward.h"
+#include "Details/PCGExDetailsCluster.h"
 #include "Details/PCGExDetailsFiltering.h"
 
 #include "Graph/PCGExEdgesProcessor.h"

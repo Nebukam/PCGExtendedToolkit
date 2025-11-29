@@ -138,7 +138,7 @@ class FPCGExAssetCollectionToSetElement final : public IPCGElement
 {
 public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
-	
+
 protected:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 

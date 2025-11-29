@@ -4,12 +4,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsGraph.h"
 #include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoVoronoi.h"
-#include "Graph/PCGExGraph.h"
 
 #include "PCGExBuildVoronoiGraph2D.generated.h"
+
+namespace PCGExGraph
+{
+	class FGraphBuilder;
+}
+
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
 
 /** Parameters for conducting a sweep with a specified shape against the physical world. */
 USTRUCT(BlueprintType)
@@ -174,7 +186,7 @@ namespace PCGExBuildVoronoiGraph2D
 		TArray<FVector> SitesPositions;
 
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TUniquePtr<PCGExGeo::TVoronoi2> Voronoi;
+		TSharedPtr<PCGExGeo::TVoronoi2> Voronoi;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TSharedPtr<PCGExData::FFacade> SiteDataFacade;

@@ -175,7 +175,7 @@ namespace PCGExTopologyPointSurface
 						{
 							const int32 VtxID = PositionsToVertexIDs[i];
 							InMesh.SetVertex(VtxID, Transform.InverseTransformPosition(InTransforms[i].GetLocation()));
-							ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[i]));
+							Colors->SetElement(ElemIDs[i], FVector4f(InColors[i]));
 						});
 
 					TArray<int32> TriangleIDs;

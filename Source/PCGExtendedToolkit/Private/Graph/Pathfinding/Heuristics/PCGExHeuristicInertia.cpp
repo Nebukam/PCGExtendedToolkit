@@ -4,6 +4,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicInertia.h"
 
 #include "PCGExMath.h"
+#include "Graph/PCGExCluster.h"
 
 
 double FPCGExHeuristicInertia::GetGlobalScore(

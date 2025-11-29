@@ -3,7 +3,9 @@
 
 #include "Graph/Filters/Edges/PCGExEdgeLengthFilter.h"
 
+#include "PCGExHelpers.h"
 #include "Details/PCGExDetailsSettings.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgeLengthFilter"

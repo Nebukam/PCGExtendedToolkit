@@ -4,6 +4,8 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicNodeCount.h"
 
+#include "PCGExHelpers.h"
+
 
 double FPCGExHeuristicNodeCount::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {

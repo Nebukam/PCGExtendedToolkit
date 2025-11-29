@@ -7,6 +7,7 @@
 
 #include "Data/PCGExDataPreloader.h"
 #include "Details/PCGExDetailsSettings.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"
 
 PCGEX_SETTING_VALUE_IMPL(FPCGExFillControlConfigKeepDirection, WindowSize, int32, WindowSizeInput, WindowSizeAttribute, WindowSize)

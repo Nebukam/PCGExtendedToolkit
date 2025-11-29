@@ -236,7 +236,9 @@ namespace PCGExSampleSurfaceGuided
 		{
 			FVector2D UVCoords;
 			if (!UGameplayStatics::FindCollisionUV(HitResult, Settings->UVChannel, UVCoords))
+			{
 				UVCoords = FVector2D::ZeroVector;
+			}
 
 			PCGEX_OUTPUT_VALUE(UVCoords, Index, UVCoords)
 		}
@@ -265,7 +267,9 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(RenderMat, Index, FSoftObjectPath(RenderMat ? RenderMat->GetPathName() : TEXT("")))
 
 			if (TexParamLookup)
+			{
 				TexParamLookup->ExtractParams(Index, RenderMat);
+			}
 
 			if (ScopedMeshes)
 			{

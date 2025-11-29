@@ -308,7 +308,7 @@ namespace PCGEx
 		void AddExtraStructReferencedObjects(FReferenceCollector& Collector);
 
 		template <class T, typename... Args>
-				T* New(Args&&... InArgs)
+		T* New(Args&&... InArgs)
 		{
 			check(WeakHandle.IsValid())
 			if (IsFlushing()) { UE_LOG(LogPCGEx, Error, TEXT("Attempting to create a managed object while flushing!")) }
@@ -330,7 +330,7 @@ namespace PCGEx
 			Add(Object);
 			return Object;
 		}
-		
+
 		template <class T>
 		T* DuplicateData(const UPCGData* InData)
 		{
@@ -647,6 +647,9 @@ namespace PCGEx
 
 		bool IsEmpty() const { return ReadIndices.IsEmpty(); }
 		int32 Num() const { return ReadIndices.Num(); }
+
+		const TArray<int32>& GetReadIndices() const { return ReadIndices; }
+		const TArray<int32>& GetWriteIndices() const { return WriteIndices; }
 	};
 
 	PCGEXTENDEDTOOLKIT_API

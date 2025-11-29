@@ -156,7 +156,7 @@ protected:
 	bool bIsValidOperation = true;
 };
 
-USTRUCT( meta=(PCG_DataTypeDisplayName="PCGEx | Vtx Property"))
+USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Vtx Property"))
 struct FPCGExDataTypeInfoVtxProperty : public FPCGExFactoryDataTypeInfo
 {
 	GENERATED_BODY()

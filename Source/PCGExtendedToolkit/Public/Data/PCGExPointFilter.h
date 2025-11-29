@@ -269,7 +269,6 @@ namespace PCGExPointFilter
 
 	PCGEXTENDEDTOOLKIT_API
 	void PruneForDirectEvaluation(FPCGExContext* InContext, TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories);
-	
 }
 
 USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Filter (Data)"))

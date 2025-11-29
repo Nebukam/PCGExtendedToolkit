@@ -104,7 +104,7 @@ namespace PCGExBuildVoronoiGraph
 		TArray<FVector> ActivePositions;
 		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn(), ActivePositions);
 
-		Voronoi = MakeUnique<PCGExGeo::TVoronoi3>();
+		Voronoi = MakeShared<PCGExGeo::TVoronoi3>();
 
 		if (!Voronoi->Process(ActivePositions))
 		{

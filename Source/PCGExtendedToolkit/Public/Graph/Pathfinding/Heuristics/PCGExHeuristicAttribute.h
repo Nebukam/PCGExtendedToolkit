@@ -7,10 +7,6 @@
 #include "PCGExHeuristicOperation.h"
 #include "PCGExHeuristicsFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
-
-
-#include "Graph/PCGExCluster.h"
-
 #include "PCGExHeuristicAttribute.generated.h"
 
 class FPCGExHeuristicOperation;

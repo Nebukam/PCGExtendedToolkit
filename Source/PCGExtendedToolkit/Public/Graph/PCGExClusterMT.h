@@ -6,7 +6,14 @@
 #include "CoreMinimal.h"
 
 #include "PCGExEdgeDirectionSettings.h"
+#include "Details/PCGExDetailsGraph.h"
 #include "Geometry/PCGExGeo.h"
+
+namespace PCGExGraph
+{
+	struct FGraphMetadataDetails;
+	class FGraphBuilder;
+}
 
 namespace PCGEx
 {

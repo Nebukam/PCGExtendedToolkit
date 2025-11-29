@@ -280,7 +280,7 @@ namespace PCGExAssetStaging
 		Source = MakeShared<PCGExStaging::FCollectionSource>(PointDataFacade);
 		Source->DistributionSettings = Settings->DistributionSettings;
 		Source->EntryDistributionSettings = Settings->EntryDistributionSettings;
-		
+
 		if (Settings->CollectionSource == EPCGExCollectionSource::Attribute)
 		{
 			if (!Source->Init(

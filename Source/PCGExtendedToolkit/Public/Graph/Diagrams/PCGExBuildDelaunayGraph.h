@@ -4,13 +4,27 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
-
-
-#include "Geometry/PCGExGeoDelaunay.h"
-#include "Graph/PCGExGraph.h"
-
+#include "Details/PCGExDetailsAxis.h"
+#include "Details/PCGExDetailsGraph.h"
 #include "PCGExBuildDelaunayGraph.generated.h"
+
+namespace PCGExGraph
+{
+	class FGraphBuilder;
+}
+
+namespace PCGExGeo
+{
+	class TDelaunay3;
+}
+
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
 
 /**
  * 
@@ -105,7 +119,7 @@ namespace PCGExBuildDelaunayGraph
 
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TUniquePtr<PCGExGeo::TDelaunay3> Delaunay;
+		TSharedPtr<PCGExGeo::TDelaunay3> Delaunay;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		TSet<uint64> UrquhartEdges;
 
