@@ -19,7 +19,7 @@ namespace PCGExTensor
 
 	bool FTensorsHandler::Init(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExTensorFactoryData>>& InFactories, const TSharedPtr<PCGExData::FFacade>& InDataFacade)
 	{
-		if (!InContext->GetWorkPermit().Pin())
+		if (!InContext->GetWorkHandle().Pin())
 		{
 			// nuh-uh
 			return false;

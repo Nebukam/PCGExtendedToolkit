@@ -3,6 +3,7 @@
 
 #include "PCGExPointsProcessor.h"
 
+#include "PCGExElement.h"
 #include "Styling/SlateStyle.h"
 #include "PCGPin.h"
 
@@ -17,12 +18,6 @@
 #pragma region UPCGSettings interface
 
 #if WITH_EDITOR
-
-#ifndef PCGEX_CUSTOM_PIN_DECL
-#define PCGEX_CUSTOM_PIN_DECL
-#define PCGEX_CUSTOM_PIN_ICON(_LABEL, _ICON, _TOOLTIP) if(PinLabel == _LABEL){ OutExtraIcon = TEXT("PCGEx.Pin." # _ICON); OutTooltip = FTEXT(_TOOLTIP); return true; }
-#endif
-
 bool UPCGExPointsProcessorSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
 {
 	return GetDefault<UPCGExGlobalSettings>()->GetPinExtraIcon(InPin, OutExtraIcon, OutTooltip, InPin->IsOutputPin());
@@ -34,8 +29,6 @@ bool UPCGExPointsProcessorSettings::IsPinUsedByNodeExecution(const UPCGPin* InPi
 	if (GetDefault<UPCGExGlobalSettings>()->bToneDownOptionalPins && !InPin->Properties.IsRequiredPin() && !InPin->IsOutputPin()) { return InPin->EdgeCount() > 0; }
 	return Super::IsPinUsedByNodeExecution(InPin);
 }
-
-PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainDataInitializationPolicy() const { return PCGExData::EIOInit::NoInit; }
 
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {
@@ -76,30 +69,6 @@ PCGExData::EIOInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const 
 
 TSet<PCGExFactories::EType> UPCGExPointsProcessorSettings::GetPointFilterTypes() const { return PCGExFactories::PointFilters; }
 
-#if WITH_EDITOR
-void UPCGExPointsProcessorSettings::EDITOR_OpenNodeDocumentation() const
-{
-	const FString URL = PCGEx::META_PCGExDocNodeLibraryBaseURL + GetClass()->GetMetaData(*PCGEx::META_PCGExDocURL);
-	FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
-}
-#endif
-
-bool UPCGExPointsProcessorSettings::ShouldCache() const
-{
-	if (!IsCacheable()) { return false; }
-	PCGEX_GET_OPTION_STATE(CacheData, bDefaultCacheNodeOutput)
-}
-
-bool UPCGExPointsProcessorSettings::WantsScopedAttributeGet() const
-{
-	PCGEX_GET_OPTION_STATE(ScopedAttributeGet, bDefaultScopedAttributeGet)
-}
-
-bool UPCGExPointsProcessorSettings::WantsBulkInitData() const
-{
-	PCGEX_GET_OPTION_STATE(BulkInitData, bBulkInitData)
-}
-
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -129,18 +98,6 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 	CurrentIO = nullptr;
 	return false;
 }
-
-UPCGExInstancedFactory* FPCGExPointsProcessorContext::RegisterOperation(UPCGExInstancedFactory* BaseOperation, const FName OverridePinLabel)
-{
-	BaseOperation->BindContext(this); // Temp so Copy doesn't crash
-
-	UPCGExInstancedFactory* RetValue = BaseOperation->CreateNewInstance(ManagedObjects.Get());
-	if (!RetValue) { return nullptr; }
-	InternalOperations.Add(RetValue);
-	RetValue->InitializeInContext(this, OverridePinLabel);
-	return RetValue;
-}
-
 
 #pragma endregion
 
@@ -264,73 +221,6 @@ void FPCGExPointsProcessorContext::BatchProcessing_WritingDone()
 {
 }
 
-bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* InContext) const
-{
-	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
-	check(Context);
-
-	if (!Context->GetInputSettings<UPCGSettings>()->bEnabled)
-	{
-		Context->bExecutionCancelled = true;
-		return true;
-	}
-
-	PCGEX_EXECUTION_CHECK_C(Context)
-
-	if (Context->IsState(PCGExCommon::State_Preparation))
-	{
-		if (!Boot(Context))
-		{
-			return Context->CancelExecution(TEXT(""));
-		}
-
-		// Have operations register their dependencies
-		for (UPCGExInstancedFactory* Op : Context->InternalOperations) { Op->RegisterAssetDependencies(Context); }
-
-		Context->RegisterAssetDependencies();
-		if (Context->HasAssetRequirements())
-		{
-			Context->LoadAssets();
-			return false;
-		}
-		// Call it so if there's initialization in there it'll run as a mandatory step
-		PostLoadAssetsDependencies(Context);
-	}
-
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_LoadingAssetDependencies)
-	{
-		PostLoadAssetsDependencies(Context);
-		PCGEX_EXECUTION_CHECK_C(Context)
-	}
-
-	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_AsyncPreparation)
-	{
-		PCGEX_EXECUTION_CHECK_C(Context)
-	}
-
-	if (!PostBoot(Context))
-	{
-		return Context->CancelExecution(TEXT("There was a problem during post-data preparation."));
-	}
-
-	Context->ReadyForExecution();
-	return IPCGElement::PrepareDataInternal(Context);
-}
-
-FPCGContext* FPCGExPointsProcessorElement::Initialize(const FPCGInitializeElementParams& InParams)
-{
-	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(IPCGElement::Initialize(InParams));
-	Context->WorkPriority = Context->GetInputSettings<UPCGExPointsProcessorSettings>()->WorkPriority;
-	OnContextInitialized(Context);
-	return Context;
-}
-
-bool FPCGExPointsProcessorElement::IsCacheable(const UPCGSettings* InSettings) const
-{
-	const UPCGExPointsProcessorSettings* Settings = static_cast<const UPCGExPointsProcessorSettings*>(InSettings);
-	return Settings->ShouldCache();
-}
-
 void FPCGExPointsProcessorElement::DisabledPassThroughData(FPCGContext* Context) const
 {
 	const UPCGExPointsProcessorSettings* Settings = Context->GetInputSettings<UPCGExPointsProcessorSettings>();
@@ -347,47 +237,12 @@ void FPCGExPointsProcessorElement::DisabledPassThroughData(FPCGContext* Context)
 	}
 }
 
-FPCGContext* FPCGExPointsProcessorElement::CreateContext() { return new FPCGExPointsProcessorContext(); }
-
-void FPCGExPointsProcessorElement::OnContextInitialized(FPCGExPointsProcessorContext* InContext) const
-{
-	InContext->SetState(PCGExCommon::State_Preparation);
-
-	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
-	check(Settings);
-
-	InContext->bFlattenOutput = Settings->bFlattenOutput;
-	InContext->bScopedAttributeGet = Settings->WantsScopedAttributeGet();
-	InContext->bPropagateAbortedExecution = Settings->bPropagateAbortedExecution;
-}
-
 bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 {
-	if (InContext->InputData.bCancelExecution) { return false; }
+	if (!IPCGExElement::Boot(InContext)) { return false; }
 
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 	PCGEX_SETTINGS(PointsProcessor)
-
-	Context->bQuietInvalidInputWarning = Settings->bQuietInvalidInputWarning;
-	Context->bQuietMissingAttributeError = Settings->bQuietMissingAttributeError;
-	Context->bQuietMissingInputError = Settings->bQuietMissingInputError;
-	Context->bQuietCancellationError = Settings->bQuietCancellationError;
-
-	Context->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
-
-	if (Settings->bCleanupConsumableAttributes)
-	{
-		for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedProtectedAttributesName);
-		     const FString& Name : Names)
-		{
-			Context->AddProtectedAttributeName(FName(Name));
-		}
-
-		for (const FName& Name : Settings->ProtectedAttributes)
-		{
-			Context->AddProtectedAttributeName(FName(Name));
-		}
-	}
 
 	if (Context->InputData.GetAllInputs().IsEmpty() && !Settings->IsInputless()) { return false; } //Get rid of errors and warning when there is no input
 
@@ -403,8 +258,10 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		const TSharedPtr<PCGExData::FPointIO> SingleInput = PCGExData::TryGetSingleInput(Context, Settings->GetMainInputPin(), false, false);
-		if (SingleInput) { Context->MainPoints->Add_Unsafe(SingleInput); }
+		if (const TSharedPtr<PCGExData::FPointIO> SingleInput = PCGExData::TryGetSingleInput(Context, Settings->GetMainInputPin(), false, false))
+		{
+			Context->MainPoints->Add_Unsafe(SingleInput);
+		}
 	}
 
 	Context->InitialMainPointsNum = Context->MainPoints->Num();
@@ -427,35 +284,6 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	return true;
-}
-
-void FPCGExPointsProcessorElement::PostLoadAssetsDependencies(FPCGExContext* InContext) const
-{
-}
-
-bool FPCGExPointsProcessorElement::PostBoot(FPCGExContext* InContext) const
-{
-	return true;
-}
-
-void FPCGExPointsProcessorElement::AbortInternal(FPCGContext* Context) const
-{
-	IPCGElement::AbortInternal(Context);
-
-	if (!Context) { return; }
-
-	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
-	PCGExContext->CancelExecution(TEXT(""));
-}
-
-bool FPCGExPointsProcessorElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
-{
-	return false;
-}
-
-bool FPCGExPointsProcessorElement::SupportsBasePointDataInputs(FPCGContext* InContext) const
-{
 	return true;
 }
 

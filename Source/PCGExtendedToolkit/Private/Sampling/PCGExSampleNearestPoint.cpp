@@ -6,6 +6,7 @@
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataTag.h"
+#include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendModes.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"

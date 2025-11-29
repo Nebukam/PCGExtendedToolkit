@@ -105,6 +105,8 @@ namespace PCGExMatching
 	const FName SourceMatchRulesLabel = TEXT("Match Rules");
 	const FName SourceMatchRulesEdgesLabel = TEXT("Match Rules (Edges)");
 	const FName OutputUnmatchedLabel = TEXT("Unmatched");
+	const FName OutputUnmatchedVtxLabel = TEXT("Unmatched Vtx");
+	const FName OutputUnmatchedEdgesLabel = TEXT("Unmatched Edges");
 
 	PCGEXTENDEDTOOLKIT_API
 	void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);

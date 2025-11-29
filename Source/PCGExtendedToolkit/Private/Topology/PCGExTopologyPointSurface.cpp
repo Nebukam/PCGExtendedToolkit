@@ -9,6 +9,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
+#include "Async/ParallelFor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE TopologyPointSurface
@@ -146,37 +147,51 @@ namespace PCGExTopologyPointSurface
 		Transform.SetScale3D(FVector::OneVector);
 		Transform.SetRotation(FQuat::Identity);
 
-		InternalMesh->EditMesh(
-			[&](FDynamicMesh3& InMesh)
-			{
-				const int32 VtxCount = InMesh.MaxVertexID();
-				const TConstPCGValueRange<FVector4> InColors = PointDataFacade->GetIn()->GetConstColorValueRange();
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(PCGExTopologyPointSurface::EditMesh)
 
-				InMesh.EnableAttributes();
-				InMesh.Attributes()->EnablePrimaryColors();
-				InMesh.Attributes()->EnableMaterialID();
-
-				UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
-				UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
-
-				TArray<int32> ElemIDs;
-				ElemIDs.SetNum(VtxCount);
-
-				for (int i = 0; i < VtxCount; i++)
+			InternalMesh->EditMesh(
+				[&](FDynamicMesh3& InMesh)
 				{
-					const int32 VtxID = PositionsToVertexIDs[i];
-					InMesh.SetVertex(VtxID, Transform.InverseTransformPosition(InTransforms[i].GetLocation()));
-					ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[i]));
-				}
+					FVector4f DefaultVertexColor = FVector4f(Settings->Topology.DefaultVertexColor);
 
-				for (int32 TriangleID : InMesh.TriangleIndicesItr())
-				{
-					UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
-					MaterialID->SetValue(TriangleID, 0);
-					Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
-				}
-			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
+					const int32 VtxCount = InMesh.MaxVertexID();
+					const TConstPCGValueRange<FVector4> InColors = PointDataFacade->GetIn()->GetConstColorValueRange();
 
+					InMesh.EnableAttributes();
+					InMesh.Attributes()->EnablePrimaryColors();
+					InMesh.Attributes()->EnableMaterialID();
+
+					UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
+					UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
+
+					TArray<int32> ElemIDs;
+					ElemIDs.SetNum(VtxCount);
+
+					for (int32 i = 0; i < VtxCount; i++) { ElemIDs[i] = Colors->AppendElement(DefaultVertexColor); }
+
+					ParallelFor(
+						VtxCount, [&](int32 i)
+						{
+							const int32 VtxID = PositionsToVertexIDs[i];
+							InMesh.SetVertex(VtxID, Transform.InverseTransformPosition(InTransforms[i].GetLocation()));
+							ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[i]));
+						});
+
+					TArray<int32> TriangleIDs;
+					TriangleIDs.Reserve(InMesh.TriangleCount());
+					for (int32 TriangleID : InMesh.TriangleIndicesItr()) { TriangleIDs.Add(TriangleID); }
+
+					ParallelFor(
+						TriangleIDs.Num(), [&](int32 i)
+						{
+							const int32 TriangleID = TriangleIDs[i];
+							UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+							MaterialID->SetValue(TriangleID, 0);
+							Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+						});
+				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
+		}
 
 		if (Settings->bAttemptRepair)
 		{

@@ -23,6 +23,8 @@
 #ifndef PCGEX_MT_MACROS
 #define PCGEX_MT_MACROS
 
+#define PCGEX_ASYNC_WAIT_CHKD(_CONDITION) int _WAIT_COUNTER_ = 0; while (_CONDITION){ if (++_WAIT_COUNTER_ < 100){ FPlatformProcess::YieldThread(); } else { FPlatformProcess::SleepNoStats(0.001f); _WAIT_COUNTER_ = 0; } }
+
 #define PCGEX_ASYNC_TASK_NAME(_NAME) virtual FString HandleId() const override { return TEXT(""#_NAME); }
 
 #define PCGEX_ASYNC_GROUP_CHKD_VOID(_MANAGER, _NAME) TSharedPtr<PCGExMT::FTaskGroup> _NAME = _MANAGER ? _MANAGER->TryCreateTaskGroup(FName(#_NAME)) : nullptr;	if(!_NAME){ return; }
@@ -56,7 +58,7 @@
 
 namespace PCGEx
 {
-	class FWorkPermit;
+	class FWorkHandle;
 }
 
 struct FPCGContextHandle;
@@ -221,7 +223,7 @@ namespace PCGExMT
 		mutable FRWLock GroupsLock;
 		mutable FRWLock TokensLock;
 
-		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
+		TWeakPtr<PCGEx::FWorkHandle> WorkHandle;
 
 		FPCGExContext* Context = nullptr;
 		TWeakPtr<FPCGContextHandle> ContextHandle;

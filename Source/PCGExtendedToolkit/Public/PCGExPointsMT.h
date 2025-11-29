@@ -42,7 +42,7 @@ namespace PCGExPointsMT
 #define PCGEX_ASYNC_TRACKER_COMP if (const TSharedPtr<PCGEx::FIntTracker> PinnedTracker = WeakTracker.Pin(); PinnedTracker){ PinnedTracker->IncrementCompleted(); }
 
 #define PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, _BODY, _TRACKER)\
-	PCGEX_CHECK_WORK_PERMIT_VOID\
+	PCGEX_CHECK_WORK_HANDLE_VOID\
 	TSharedPtr<PCGEx::FIntTracker> Tracker = _TRACKER; \
 	TWeakPtr<PCGEx::FIntTracker> WeakTracker = Tracker; \
 	if (Tracker){ Tracker->IncrementPending(Processors.Num()); } \
@@ -58,7 +58,7 @@ namespace PCGExPointsMT
 	}
 
 #define PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, _PLI) \
-	PCGEX_CHECK_WORK_PERMIT_VOID\
+	PCGEX_CHECK_WORK_HANDLE_VOID\
 	if (IsTrivial()){ _PREPARE({PCGExMT::FScope(0, _NUM, 0)}); _PROCESS(PCGExMT::FScope(0, _NUM, 0)); _COMPLETE(); return; } \
 	const int32 PLI = GetDefault<UPCGExGlobalSettings>()->_PLI(PerLoopIterations); \
 	PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopFor##_NAME) \
@@ -108,7 +108,7 @@ namespace PCGExPointsMT
 		FPCGExContext* ExecutionContext = nullptr;
 		UPCGSettings* ExecutionSettings = nullptr;
 
-		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
+		TWeakPtr<PCGEx::FWorkHandle> WorkHandle;
 
 		TSharedPtr<PCGExData::FFacadePreloader> InternalFacadePreloader;
 
@@ -237,7 +237,7 @@ namespace PCGExPointsMT
 		FPCGExContext* ExecutionContext = nullptr;
 		UPCGSettings* ExecutionSettings = nullptr;
 
-		TWeakPtr<PCGEx::FWorkPermit> WorkPermit;
+		TWeakPtr<PCGEx::FWorkHandle> WorkHandle;
 
 		TArray<TWeakPtr<PCGExData::FPointIO>> PointsCollection;
 

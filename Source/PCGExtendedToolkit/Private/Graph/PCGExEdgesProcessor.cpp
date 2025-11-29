@@ -394,12 +394,10 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-void FPCGExEdgesProcessorElement::OnContextInitialized(FPCGExPointsProcessorContext* InContext) const
+void FPCGExEdgesProcessorElement::OnContextInitialized(FPCGExContext* InContext) const
 {
 	FPCGExPointsProcessorElement::OnContextInitialized(InContext);
-
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
-
 	Context->bScopedIndexLookupBuild = Settings->WantsScopedIndexLookupBuild();
 }
 

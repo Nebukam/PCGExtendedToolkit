@@ -4,20 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExContext.h"
-#include "PCGComponent.h"
-#include "PCGExDynamicMeshComponent.h"
 #include "PCGExTopology.h"
-#include "Data/PCGDynamicMeshData.h"
-#include "Geometry/PCGExGeoMesh.h"
 #include "Graph/PCGExClusterMT.h"
-#include "Graph/PCGExEdgesProcessor.h"
 #include "Transform/PCGExTransform.h"
-#include "Data/PCGExDataTag.h"
-#include "Data/PCGExPointFilter.h"
-#include "Data/PCGExPointIO.h"
+#include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExTopologyEdgesProcessor.generated.h"
+
+class UPCGDynamicMeshData;
 
 UENUM()
 enum class EPCGExTopologyOutputMode : uint8
@@ -115,14 +109,9 @@ namespace PCGExTopologyEdges
 {
 	const FName SourceEdgeConstrainsFiltersLabel = FName("ConstrainedEdgeFilters");
 
-	template <typename TContext, typename TSettings>
-	class PCGEXTENDEDTOOLKIT_API TProcessor : public PCGExClusterMT::TProcessor<TContext, TSettings>
+	class PCGEXTENDEDTOOLKIT_API IProcessor : public PCGExClusterMT::IProcessor
 	{
 	protected:
-		using PCGExClusterMT::TProcessor<TContext, TSettings>::ExecutionContext;
-		using PCGExClusterMT::TProcessor<TContext, TSettings>::Settings;
-		using PCGExClusterMT::TProcessor<TContext, TSettings>::Context;
-
 		TSharedPtr<PCGExTopology::FHoles> Holes;
 
 		const FVector2D CWTolerance = FVector2D(1 / 0.001);
@@ -139,265 +128,84 @@ namespace PCGExTopologyEdges
 		int32 ConstrainedEdgesNum = 0;
 
 	public:
-		using PCGExClusterMT::TProcessor<TContext, TSettings>::NodeIndexLookup;
-		using PCGExClusterMT::TProcessor<TContext, TSettings>::Cluster;
-		using PCGExClusterMT::TProcessor<TContext, TSettings>::VtxDataFacade;
-		using PCGExClusterMT::TProcessor<TContext, TSettings>::EdgeDataFacade;
-		using PCGExClusterMT::TProcessor<TContext, TSettings>::EdgeFilterFactories;
-		using PCGExClusterMT::TProcessor<TContext, TSettings>::EdgeFilterCache;
-		using PCGExClusterMT::TProcessor<TContext, TSettings>::DefaultEdgeFilterValue;
-
 		TSharedPtr<TMap<uint64, int32>> ProjectedHashMap;
 
 		TObjectPtr<UDynamicMesh> GetInternalMesh() { return InternalMesh; }
 
+		IProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
+
+		virtual ~IProcessor() override = default;
+
+		virtual void InitConstraints();
+		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
+
+		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void Output() override;
+		virtual void Cleanup() override;
+
+	protected:
+		void FilterConstrainedEdgeScope(const PCGExMT::FScope& Scope);
+		void ApplyPointData();
+	};
+
+	template <typename TContext, typename TSettings>
+	class PCGEXTENDEDTOOLKIT_API TProcessor : public IProcessor
+	{
+	protected:
+		TContext* Context = nullptr;
+		const TSettings* Settings = nullptr;
+
+	public:
 		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
-			: PCGExClusterMT::TProcessor<TContext, TSettings>(InVtxDataFacade, InEdgeDataFacade)
+			: IProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			static_assert(std::is_base_of_v<FPCGExTopologyEdgesProcessorContext, TContext>, "TContext must inherit from FPCGExTopologyProcessorContext");
 			static_assert(std::is_base_of_v<UPCGExTopologyEdgesProcessorSettings, TSettings>, "TSettings must inherit from UPCGExTopologyProcessorSettings");
-			DefaultEdgeFilterValue = false;
 		}
 
-		virtual ~TProcessor() override
+		virtual ~TProcessor() override = default;
+
+		virtual void SetExecutionContext(FPCGExContext* InContext) override
 		{
+			IProcessor::SetExecutionContext(InContext);
+			Context = static_cast<TContext*>(ExecutionContext);
+			Settings = InContext->GetInputSettings<TSettings>();
 		}
 
-		virtual void InitConstraints()
-		{
-		}
-
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override
-		{
-			// Create a light working copy with nodes only, will be deleted.
-			return MakeShared<PCGExCluster::FCluster>(
-				InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup,
-				true, false, false);
-		}
-
-		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override
-		{
-			EdgeDataFacade->bSupportsScopedGet = true;
-			EdgeFilterFactories = &Context->EdgeConstraintsFilterFactories;
-
-			ProjectedHashMap = Context->HashMaps[VtxDataFacade->Source->IOIndex];
-
-			if (!PCGExClusterMT::TProcessor<TContext, TSettings>::Process(InAsyncManager)) { return false; }
-
-			if (Context->HolesFacade) { Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails); }
-
-			bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
-
-			CellsConstraints = MakeShared<PCGExTopology::FCellConstraints>(Settings->Constraints);
-			CellsConstraints->Reserve(Cluster->Edges->Num());
-
-			if (Settings->Constraints.bOmitWrappingBounds) { CellsConstraints->BuildWrapperCell(Cluster.ToSharedRef(), *this->ProjectedVtxPositions.Get()); }
-			CellsConstraints->Holes = Holes;
-
-			InitConstraints();
-
-			for (PCGExCluster::FNode& Node : *Cluster->Nodes) { Node.bValid = false; } // Invalidate all edges, triangulation will mark valid nodes to rebuild an index
-
-			// IMPORTANT : Need to wait for projection to be completed.
-			// Children should start work only in CompleteWork!!
-
-			if (Settings->OutputMode == EPCGExTopologyOutputMode::PCGDynamicMesh)
-			{
-				InternalMeshData = Context->ManagedObjects->template New<UPCGDynamicMeshData>();
-				if (!InternalMeshData) { return false; }
-			}
-
-			InternalMesh = Context->ManagedObjects->template New<UDynamicMesh>();
-			InternalMesh->InitializeMesh();
-
-			if (InternalMeshData)
-			{
-				InternalMeshData->Initialize(InternalMesh, true);
-				InternalMesh = InternalMeshData->GetMutableDynamicMesh();
-				if (UMaterialInterface* Material = Settings->Topology.Material.Get()) { InternalMeshData->SetMaterials({Material}); }
-			}
-
-			return true;
-		}
-
-		virtual void Output() override
-		{
-			if (!this->bIsProcessorValid) { return; }
-
-			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
-
-			if (InternalMeshData)
-			{
-				TSet<FString> MeshTags;
-
-				EdgeDataFacade->Source->Tags->DumpTo(MeshTags);
-				VtxDataFacade->Source->Tags->DumpTo(MeshTags);
-
-				Context->StageOutput(InternalMeshData, PCGExTopology::MeshOutputLabel, MeshTags, true, false, false);
-
-				return;
-			}
-
-			AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
-
-			if (!TargetActor)
-			{
-				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
-				return;
-			}
-
-			const FString ComponentName = TEXT("PCGDynamicMeshComponent");
-			const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
-			UPCGExDynamicMeshComponent* DynamicMeshComponent = NewObject<UPCGExDynamicMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, UPCGExDynamicMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
-
-			// Needed otherwise triggers updates in a loop
-			Context->GetMutableComponent()->IgnoreChangeOriginDuringGenerationWithScope(
-				DynamicMeshComponent, [&]()
-				{
-					Settings->Topology.TemplateDescriptor.InitComponent(DynamicMeshComponent);
-					DynamicMeshComponent->SetDynamicMesh(InternalMesh);
-					if (UMaterialInterface* Material = Settings->Topology.Material.Get())
-					{
-						DynamicMeshComponent->SetMaterial(0, Material);
-					}
-				});
-
-			DynamicMeshComponent->ComponentTags.Reserve(DynamicMeshComponent->ComponentTags.Num() + Context->ComponentTags.Num());
-			for (const FString& ComponentTag : Context->ComponentTags) { DynamicMeshComponent->ComponentTags.Add(FName(ComponentTag)); }
-
-			Context->ManagedObjects->Remove(InternalMesh);
-			Context->AttachManagedComponent(TargetActor, DynamicMeshComponent, Settings->AttachmentRules.GetRules());
-			Context->AddNotifyActor(TargetActor);
-		}
-
-		virtual void Cleanup() override
-		{
-			PCGExClusterMT::TProcessor<TContext, TSettings>::Cleanup();
-			CellsConstraints->Cleanup();
-		}
-
-	protected:
-		void FilterConstrainedEdgeScope(const PCGExMT::FScope& Scope)
-		{
-			int32 LocalConstrainedEdgesNum = 0;
-			PCGEX_SCOPE_LOOP(i) { if (EdgeFilterCache[i]) { LocalConstrainedEdgesNum++; } }
-			FPlatformAtomics::InterlockedAdd(&ConstrainedEdgesNum, LocalConstrainedEdgesNum);
-		}
-
-		void ApplyPointData()
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(TopologyEdgesProcessor::ApplyPointData);
-
-			FTransform Transform = Settings->OutputMode == EPCGExTopologyOutputMode::PCGDynamicMesh ? Context->GetComponent()->GetOwner()->GetTransform() : FTransform::Identity;
-			Transform.SetScale3D(FVector::OneVector);
-			Transform.SetRotation(FQuat::Identity);
-
-			InternalMesh->EditMesh(
-				[&](FDynamicMesh3& InMesh)
-				{
-					const int32 VtxCount = InMesh.MaxVertexID();
-					const TConstPCGValueRange<FTransform> InTransforms = VtxDataFacade->GetIn()->GetConstTransformValueRange();
-					const TConstPCGValueRange<FVector4> InColors = VtxDataFacade->GetIn()->GetConstColorValueRange();
-					const TMap<uint64, int32>& HashMapRef = *ProjectedHashMap;
-
-					FVector4f DefaultVertexColor = FVector4f(Settings->Topology.DefaultVertexColor);
-
-					InMesh.EnableAttributes();
-					InMesh.Attributes()->EnablePrimaryColors();
-					InMesh.Attributes()->EnableMaterialID();
-
-					UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
-					UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
-
-					TArray<int32> ElemIDs;
-					ElemIDs.SetNum(VtxCount);
-
-					for (int i = 0; i < VtxCount; i++)
-					{
-						const int32* WP = HashMapRef.Find(PCGEx::GH2(InMesh.GetVertex(i), CWTolerance));
-						if (WP)
-						{
-							const int32 PointIndex = *WP;
-							InMesh.SetVertex(i, Transform.InverseTransformPosition(InTransforms[PointIndex].GetLocation()));
-							//InMesh.SetVertexNormal()
-							ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[PointIndex]));
-						}
-						else
-						{
-							ElemIDs[i] = Colors->AppendElement(DefaultVertexColor);
-						}
-					}
-
-					for (int32 TriangleID : InMesh.TriangleIndicesItr())
-					{
-						UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
-						MaterialID->SetValue(TriangleID, 0);
-						Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
-					}
-				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
-
-			Settings->Topology.PostProcessMesh(GetInternalMesh());
-		}
+		TContext* GetContext() { return Context; }
+		const TSettings* GetSettings() { return Settings; }
 	};
 
-	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TBatch : public PCGExClusterMT::TBatch<T>
+	class PCGEXTENDEDTOOLKIT_API IBatch : public PCGExClusterMT::IBatch
 	{
 	protected:
 		const FVector2D CWTolerance = FVector2D(1 / 0.001);
-
-		using PCGExClusterMT::TBatch<T>::SharedThis;
-		using PCGExClusterMT::TBatch<T>::AsyncManager;
-
-		using PCGExClusterMT::TBatch<T>::ExecutionContext;
-		using PCGExClusterMT::TBatch<T>::NodeIndexLookup;
-
 		TSharedPtr<TMap<uint64, int32>> ProjectedHashMap;
 
 	public:
-		using PCGExClusterMT::TBatch<T>::VtxDataFacade;
+		IBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 
-		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			PCGExClusterMT::TBatch<T>(InContext, InVtx, InEdges)
-		{
-			ProjectedHashMap = MakeShared<TMap<uint64, int32>>();
-			ProjectedHashMap->Reserve(InVtx->GetNum());
-			static_cast<FPCGExTopologyEdgesProcessorContext*>(InContext)->HashMaps[InVtx->IOIndex] = ProjectedHashMap;
-		}
-
-		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override
-		{
-			PCGExClusterMT::TBatch<T>::RegisterBuffersDependencies(FacadePreloader);
-
-			PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
-
-			check(Settings);
-
-			if (Settings->SupportsEdgeConstraints())
-			{
-				PCGExPointFilter::RegisterBuffersDependencies(ExecutionContext, Context->EdgeConstraintsFilterFactories, FacadePreloader);
-			}
-		}
-
-		virtual void Output() override
-		{
-			if (!this->bIsBatchValid) { return; }
-
-			PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
-			PCGExClusterMT::TBatch<T>::Output();
-		}
+		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
+		virtual void Output() override;
 
 	protected:
-		virtual void OnInitialPostProcess() override
+		virtual void OnInitialPostProcess() override;
+	};
+
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API TBatch : public IBatch
+	{
+	protected:
+		virtual TSharedPtr<PCGExClusterMT::IProcessor> NewProcessorInstance(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade) const override
 		{
-			const int32 NumVtx = VtxDataFacade->GetNum();
+			TSharedPtr<PCGExClusterMT::IProcessor> NewInstance = MakeShared<T>(InVtxDataFacade, InEdgeDataFacade);
+			return NewInstance;
+		}
 
-			TMap<uint64, int32>& MP = *ProjectedHashMap;
-			const TArray<FVector2D>& PP = *this->ProjectedVtxPositions.Get();
-
-			for (int i = 0; i < NumVtx; i++) { MP.Add(PCGEx::GH2(PP[i], CWTolerance), i); }
-
-			PCGExClusterMT::TBatch<T>::OnInitialPostProcess();
+	public:
+		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
+			IBatch(InContext, InVtx, InEdges)
+		{
 		}
 	};
 }

@@ -5,10 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExFactories.h"
+#include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Transform/PCGExFitting.h"
-#include "Data/PCGExPointFilter.h"
 #include "Details/PCGExDetailsStaging.h"
 
 #include "PCGExAssetStaging.generated.h"

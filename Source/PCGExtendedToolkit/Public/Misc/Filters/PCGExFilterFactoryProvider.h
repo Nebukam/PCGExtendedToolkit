@@ -44,7 +44,7 @@ public:
 #endif
 	//~End UPCGSettings
 
-	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabel; }
+	virtual FName GetMainOutputPin() const override;
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 	virtual bool ShouldCancel(FPCGExFactoryProviderContext* InContext, PCGExFactories::EPreparationResult InResult) const override;
 
@@ -72,4 +72,16 @@ protected:
 	UFUNCTION()
 	bool ShowMissingDataPolicy() const { return ShowMissingDataPolicy_Internal(); }
 #endif
+};
+
+
+UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class UPCGExFilterCollectionProviderSettings : public UPCGExFilterProviderSettings
+{
+	GENERATED_BODY()
+
+protected:
+	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterCollection)
+	
+	virtual FName GetMainOutputPin() const override;
 };

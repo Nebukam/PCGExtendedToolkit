@@ -8,12 +8,12 @@
 #include "Materials/MaterialInterface.h"
 
 #include "PCGExGlobalSettings.h"
+#include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
 #include "PCGExTexParamFactoryProvider.h"
 #include "Data/PCGExDataForward.h"
-#include "Data/PCGExPointFilter.h"
 #include "Details/PCGExDetailsCollision.h"
 #include "Details/PCGExDetailsInputShorthands.h"
 #include "Geometry/PCGExGeoMesh.h"

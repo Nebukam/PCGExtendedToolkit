@@ -113,8 +113,6 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 public:
-	virtual FName GetMainOutputPin() const override { return PCGExPointFilter::OutputFilterLabelEdge; }
-
 	/** Test Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExEdgeEndpointsCheckFilterConfig Config;

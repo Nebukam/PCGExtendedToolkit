@@ -4,13 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
 #include "AssetStaging/PCGExStaging.h"
 #include "Collections/PCGExMeshCollection.h"
-#include "Data/PCGExPointFilter.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 
 #include "Tangents/PCGExTangentsInstancedFactory.h"

@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactories.h"
+#include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
 #include "Collections/PCGExAssetLoader.h"
 #include "Collections/PCGExMeshCollection.h"
-#include "Data/PCGExPointFilter.h"
-
 
 #include "PCGExSampleSockets.generated.h"
 

@@ -5,14 +5,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactories.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExDataForward.h"
 #include "Components/PrimitiveComponent.h"
-#include "Data/PCGExPointFilter.h"
 #include "Details/PCGExDetailsCollision.h"
 #include "Materials/MaterialInterface.h"
 
