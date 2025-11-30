@@ -143,7 +143,7 @@ namespace PCGExTopologyPointSurface
 
 		if (PositionsToVertexIDs.IsEmpty()) { return false; }
 
-		UVDetails = Settings->Topology.TexCoordinates;
+		UVDetails = Settings->Topology.UVChannels;
 		UVDetails.Prepare(PointDataFacade);
 		
 		FTransform Transform = Context->GetComponent()->GetOwner()->GetTransform();
@@ -183,18 +183,16 @@ namespace PCGExTopologyPointSurface
 
 					TArray<int32> TriangleIDs;
 					TriangleIDs.Reserve(InMesh.TriangleCount());
-					for (int32 TriangleID : InMesh.TriangleIndicesItr()) { TriangleIDs.Add(TriangleID); }
+					for (int32 TriangleID : InMesh.TriangleIndicesItr())
+					{
+						TriangleIDs.Add(TriangleID);
 
-					ParallelFor(
-						TriangleIDs.Num(), [&](int32 i)
-						{
-							const int32 TriangleID = TriangleIDs[i];
-							UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
-							MaterialID->SetValue(TriangleID, 0);
-							Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
-						});
+						const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+						MaterialID->SetValue(TriangleID, 0);
+						Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+					}
 
-					UVDetails.Write(InMesh);
+					UVDetails.Write(TriangleIDs, PositionsToVertexIDs, InMesh);
 				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 		}
 

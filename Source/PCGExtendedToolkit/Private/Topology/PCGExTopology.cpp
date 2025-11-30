@@ -91,25 +91,75 @@ void FPCGExTopologyUVDetails::RegisterBuffersDependencies(FPCGExContext* InConte
 {
 	TSet<int32> ExistingChannels;
 	ExistingChannels.Reserve(8);
-	
+
 	for (const FPCGExUVInputDetails& Channel : UVs)
 	{
 		if (!Channel.bEnabled || Channel.AttributeName.IsNone()) { continue; }
-		
+
 		bool bIsAlreadySet = false;
 		ExistingChannels.Add(Channel.Channel, &bIsAlreadySet);
 		if (bIsAlreadySet) { continue; }
-		
+
 		FacadePreloader.Register<FVector2D>(InContext, Channel.AttributeName, PCGExData::EBufferPreloadType::BroadcastFromName);
 	}
 }
 
-void FPCGExTopologyUVDetails::Write(FDynamicMesh3& Mesh) const
+void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, FDynamicMesh3& InMesh) const
 {
+	if (!NumChannels) { return; }
+
+	const int32 VtxCount = InMesh.MaxVertexID();
+	InMesh.Attributes()->SetNumUVLayers(NumChannels);
+
+	TArray<int32> ElemIDs;
+	ElemIDs.SetNum(VtxCount);
+
+	for (int t = 0; t < ChannelIndices.Num(); ++t)
+	{
+		const int32 ChannelIndex = ChannelIndices[t];
+		const TSharedPtr<PCGExData::TBuffer<FVector2D>> UVBuffer = UVBuffers[t];
+
+		UE::Geometry::FDynamicMeshUVOverlay* UV = InMesh.Attributes()->GetUVLayer(ChannelIndex);
+
+		for (int i = 0; i < VtxCount; i++) { ElemIDs[i] = UV->AppendElement(FVector2f(UVBuffer->Read(i))); }
+
+		for (const int32 TriangleID : TriangleIDs)
+		{
+			const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+			UV->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+		}
+	}
 }
 
-void FPCGExTopologyUVDetails::Write(const TMap<uint64, int32>& HashMapRef, const FVector2D CWTolerance, FDynamicMesh3& Mesh) const
+void FPCGExTopologyUVDetails::Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, FDynamicMesh3& InMesh) const
 {
+	if (!NumChannels) { return; }
+
+	const int32 VtxCount = InMesh.MaxVertexID();
+	InMesh.Attributes()->SetNumUVLayers(NumChannels);
+
+	TArray<int32> ElemIDs;
+	ElemIDs.SetNum(VtxCount);
+
+
+	for (int t = 0; t < ChannelIndices.Num(); ++t)
+	{
+		const int32 ChannelIndex = ChannelIndices[t];
+		const TSharedPtr<PCGExData::TBuffer<FVector2D>> UVBuffer = UVBuffers[t];
+		UE::Geometry::FDynamicMeshUVOverlay* UV = InMesh.Attributes()->GetUVLayer(ChannelIndex);
+
+		for (int i = 0; i < VtxCount; i++)
+		{
+			const int32 PtIdx = VtxIDs[i];
+			ElemIDs[i] = UV->AppendElement(FVector2f(PtIdx != -1 ? UVBuffer->Read(PtIdx) : FVector2D(0)));
+		}
+
+		for (const int32 TriangleID : TriangleIDs)
+		{
+			const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+			UV->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+		}
+	}
 }
 
 namespace PCGExTopology
