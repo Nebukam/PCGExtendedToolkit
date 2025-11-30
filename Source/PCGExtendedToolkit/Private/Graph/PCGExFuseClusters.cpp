@@ -5,6 +5,7 @@
 
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExIntersections.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExUnionProcessor.h"

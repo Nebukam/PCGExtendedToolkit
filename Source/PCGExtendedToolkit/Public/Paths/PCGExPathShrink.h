@@ -83,7 +83,6 @@ struct FPCGExShrinkPathEndpointCountDetails
 	int32 Count = 10;
 
 	bool SanityCheck(const FPCGContext* Context) const;
-	
 };
 
 /**

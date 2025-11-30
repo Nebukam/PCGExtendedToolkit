@@ -446,8 +446,8 @@ namespace PCGEx
 		}
 		else
 		{
-			ParallelFor(NumIndices, [&](int32 i) { ValuesCopy[i] = MoveTemp(InRange[InOrder[i]]); });
-			ParallelFor(NumIndices, [&](int32 i) { InRange[i] = MoveTemp(ValuesCopy[i]); });
+			ParallelFor(NumIndices, [&](int32 i) { ValuesCopy[i] = InRange[InOrder[i]]; });
+			ParallelFor(NumIndices, [&](int32 i) { InRange[i] = ValuesCopy[i]; });
 		}
 	}
 

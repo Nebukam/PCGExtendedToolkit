@@ -5,9 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExLabels.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
 #include "PCGExFindClustersData.generated.h"
 

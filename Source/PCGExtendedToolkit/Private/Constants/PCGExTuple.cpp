@@ -221,7 +221,7 @@ void UPCGExTupleSettings::PostEditChangeProperty(struct FPropertyChangedEvent& P
 
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExTupleSettings::BodyUpdate);
-		
+
 		// First ensure all bodies have valid GUID from the composition, and the same number
 		for (FPCGExTupleBody& Body : Values)
 		{

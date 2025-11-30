@@ -199,7 +199,7 @@ namespace PCGExConnectPoints
 			{
 				PCGEX_ASYNC_THIS
 				This->PointDataFacade->Fetch(Scope);
-				
+
 				PCGEX_SCOPE_LOOP(i)
 				{
 					This->CanGenerate[i] = This->GeneratorsFilter ? This->GeneratorsFilter->Test(i) : true;

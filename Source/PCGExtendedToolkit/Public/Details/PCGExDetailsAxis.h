@@ -110,7 +110,7 @@ namespace PCGEx
 
 	PCGEXTENDEDTOOLKIT_API
 	FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& X, const FVector& Y, const FVector& Z);
-	
+
 	PCGEXTENDEDTOOLKIT_API
 	FQuat MakeRot(const EPCGExMakeRotAxis Order, const FVector& A, const FVector& B);
 
@@ -119,5 +119,4 @@ namespace PCGEx
 		const FQuat& Quat,
 		const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis,
 		int32& X, int32& Y, int32& Z, const bool bPermute = true);
-	
 }

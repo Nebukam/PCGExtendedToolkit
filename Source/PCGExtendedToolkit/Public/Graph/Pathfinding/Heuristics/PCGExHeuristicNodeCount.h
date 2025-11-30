@@ -5,10 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicDistance.h"
-
-
 #include "PCGExHeuristicNodeCount.generated.h"
 
 USTRUCT(BlueprintType)

@@ -6,6 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
+#include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours
@@ -197,7 +198,7 @@ namespace PCGExFindContours
 			bIsProcessorValid = false;
 			return;
 		}
-		
+
 		CellsIOIndices.Reserve(NumCells);
 
 		Context->OutputPaths->IncreaseReserve(NumCells + 1);

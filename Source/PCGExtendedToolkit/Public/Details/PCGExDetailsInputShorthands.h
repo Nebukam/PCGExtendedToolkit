@@ -46,7 +46,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameBase : public FPCGExInputS
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName Attribute = NAME_None;
-	
 };
 
 USTRUCT(BlueprintType)
@@ -58,7 +57,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandNameBoolean : public FPCGExInp
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool Constant = false;
-
 };
 
 USTRUCT(BlueprintType)
@@ -370,7 +368,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputShorthandSelectorDirection : public FPC
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FVector Constant = FVector::ZeroVector;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bFlip = false;
 };

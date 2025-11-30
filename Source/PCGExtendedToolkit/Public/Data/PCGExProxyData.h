@@ -71,7 +71,7 @@ namespace PCGExData
 	protected:
 		bool bWantsSubSelection = false;
 		PCGEx::FSubSelection SubSelection;
-		
+
 	public:
 		UPCGBasePointData* Data = nullptr;
 		EPCGMetadataTypes RealType = EPCGMetadataTypes::Unknown;
@@ -113,11 +113,11 @@ namespace PCGExData
 #pragma region externalization TBufferProxy
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) extern template class TBufferProxy<_TYPE>;
-PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	template <typename T_REAL, typename T_WORKING>
 	class TAttributeBufferProxy : public TBufferProxy<T_WORKING>
 	{
@@ -144,7 +144,7 @@ PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	template <typename T_REAL, typename T_WORKING, EPCGPointProperties PROPERTY>
 	class TPointPropertyProxy : public TBufferProxy<T_WORKING>
 	{
@@ -229,13 +229,13 @@ PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #define PCGEX_TPL(_TYPE, _NAME, ...) extern template class TConstantProxy<_TYPE>;
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
-	
+
 #define PCGEX_TPL(_TYPE_A, _NAME_A, _TYPE_B, _NAME_B, ...) extern template void TConstantProxy<_TYPE_A>::SetConstant<_TYPE_B>(const _TYPE_B&);
-    PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
+	PCGEX_FOREACH_SUPPORTEDTYPES_PAIRS(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	template <typename T_REAL, typename T_WORKING>
 	class TDirectAttributeProxy : public TBufferProxy<T_WORKING>
 	{
@@ -264,7 +264,7 @@ PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
-	
+
 	template <typename T_REAL, typename T_WORKING>
 	class TDirectDataAttributeProxy : public TBufferProxy<T_WORKING>
 	{
@@ -293,5 +293,4 @@ PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
 #undef PCGEX_TPL
 
 #pragma endregion
-
 }

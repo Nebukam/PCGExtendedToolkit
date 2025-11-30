@@ -18,7 +18,7 @@ bool FPCGExShapeFiblatBuilder::PrepareForSeeds(FPCGExContext* InContext, const T
 
 	Phi = Config.Phi.GetValueSetting();
 	if (!Phi->Init(InSeedDataFacade)) { return false; }
-	
+
 	return true;
 }
 
@@ -38,13 +38,13 @@ void FPCGExShapeFiblatBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 	switch (Config.PhiConstant)
 	{
 	case EPCGExFibPhiConstant::GoldenRatio:
-		Fiblat->Phi = (FMath::Sqrt(5.0) - 1.0) * 0.5;;
+		Fiblat->Phi = (FMath::Sqrt(5.0) - 1.0) * 0.5;
 		break;
 	case EPCGExFibPhiConstant::SqRootOfTwo:
 		Fiblat->Phi = FMath::Sqrt(2.0);
 		break;
 	case EPCGExFibPhiConstant::Irrational:
-		Fiblat->Phi = (9 + FMath::Sqrt(221.0)) * 0.1;;
+		Fiblat->Phi = (9 + FMath::Sqrt(221.0)) * 0.1;
 		break;
 	case EPCGExFibPhiConstant::SqRootOfTthree:
 		Fiblat->Phi = FMath::Sqrt(2.0);

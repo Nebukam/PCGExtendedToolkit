@@ -72,7 +72,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 class PCGEXTENDEDTOOLKIT_API FPCGExProbeOperation : public FPCGExOperation
 {
 public:
-	
 	virtual bool PrepareForPoints(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InPointIO);
 	virtual bool RequiresOctree();
 	virtual bool RequiresChainProcessing();

@@ -111,8 +111,11 @@ namespace PCGExTopologyEdges
 
 	class PCGEXTENDEDTOOLKIT_API IProcessor : public PCGExClusterMT::IProcessor
 	{
+		friend class IBatch;
+		
 	protected:
 		TSharedPtr<PCGExTopology::FHoles> Holes;
+		FPCGExTopologyUVDetails UVDetails;
 
 		const FVector2D CWTolerance = FVector2D(1 / 0.001);
 		bool bIsPreviewMode = false;

@@ -143,6 +143,9 @@ namespace PCGExTopologyPointSurface
 
 		if (PositionsToVertexIDs.IsEmpty()) { return false; }
 
+		UVDetails = Settings->Topology.TexCoordinates;
+		UVDetails.Prepare(PointDataFacade);
+		
 		FTransform Transform = Context->GetComponent()->GetOwner()->GetTransform();
 		Transform.SetScale3D(FVector::OneVector);
 		Transform.SetRotation(FQuat::Identity);
@@ -175,7 +178,7 @@ namespace PCGExTopologyPointSurface
 						{
 							const int32 VtxID = PositionsToVertexIDs[i];
 							InMesh.SetVertex(VtxID, Transform.InverseTransformPosition(InTransforms[i].GetLocation()));
-							ElemIDs[i] = Colors->AppendElement(FVector4f(InColors[i]));
+							Colors->SetElement(ElemIDs[i], FVector4f(InColors[i]));
 						});
 
 					TArray<int32> TriangleIDs;
@@ -190,6 +193,8 @@ namespace PCGExTopologyPointSurface
 							MaterialID->SetValue(TriangleID, 0);
 							Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
 						});
+
+					UVDetails.Write(InMesh);
 				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 		}
 

@@ -4,6 +4,7 @@
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 
 #include "PCGPin.h"
+#include "Graph/PCGExCluster.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"

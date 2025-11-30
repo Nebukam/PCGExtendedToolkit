@@ -58,22 +58,22 @@ public:
 	/** Resolution mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="Mode == EPCGExResampleMode::Sweep"))
 	EPCGExResolutionMode ResolutionMode = EPCGExResolutionMode::Distance;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep && ResolutionMode == EPCGExResolutionMode::Distance"))
 	bool bRedistributeEvenly = true;
-	
+
 	/** (ignored for closed loops) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bRedistributeEvenly && Mode == EPCGExResampleMode::Sweep && ResolutionMode == EPCGExResolutionMode::Distance"))
 	bool bPreserveLastPoint = false;
 
 	UPROPERTY()
 	double Resolution_DEPRECATED = 10;
-	
+
 	/** Resolution */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Resolution", EditCondition="Mode == EPCGExResampleMode::Sweep", EditConditionHides))
 	FPCGExInputShorthandNameDoubleAbs SampleLength = FPCGExInputShorthandNameDoubleAbs(NAME_None, Resolution_DEPRECATED, false);
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Mode == EPCGExResampleMode::Sweep", EditConditionHides))
 	EPCGExTruncateMode Truncate = EPCGExTruncateMode::Round;

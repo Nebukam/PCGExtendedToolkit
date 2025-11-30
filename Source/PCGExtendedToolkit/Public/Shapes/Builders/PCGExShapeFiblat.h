@@ -39,7 +39,7 @@ struct FPCGExShapeFiblatConfig : public FPCGExShapeConfigBase
 	/** Phi Custom Value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="PhiConstant == EPCGExFibPhiConstant::Custom", EditConditionHides))
 	FPCGExInputShorthandNameDouble Phi = FPCGExInputShorthandNameDouble(FName("Phi"), 0.724592938, false);
-	
+
 	/** Epsilon */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Epsilon = 0;

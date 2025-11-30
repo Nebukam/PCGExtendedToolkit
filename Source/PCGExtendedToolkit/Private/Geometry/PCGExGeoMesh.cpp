@@ -99,7 +99,7 @@ namespace PCGExGeo
 		if (Buffers->ColorVertexBuffer.IsInitialized() && Buffers->ColorVertexBuffer.GetNumVertices() > 0) { Colors = &Buffers->ColorVertexBuffer; }
 
 		Positions = &Buffers->PositionVertexBuffer;
-		
+
 		bIsValid = true;
 	}
 

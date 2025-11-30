@@ -84,7 +84,7 @@ namespace PCGEx
 		const FVector& XAxis, const FVector& YAxis, const FVector& ZAxis,
 		int32& X, int32& Y, int32& Z, const bool bPermute)
 	{
-		const FVector QA[3] = { Quat.GetAxisX(), Quat.GetAxisY(), Quat.GetAxisZ() };
+		const FVector QA[3] = {Quat.GetAxisX(), Quat.GetAxisY(), Quat.GetAxisZ()};
 
 		double M[3][3];
 		for (int i = 0; i < 3; ++i)
@@ -115,9 +115,9 @@ namespace PCGEx
 		// guaranteed permutation with constant-time deterministic resolution
 		static const int32 Permutations[6][3] =
 		{
-			{0,1,2}, {0,2,1},
-			{1,0,2}, {1,2,0},
-			{2,0,1}, {2,1,0}
+			{0, 1, 2}, {0, 2, 1},
+			{1, 0, 2}, {1, 2, 0},
+			{2, 0, 1}, {2, 1, 0}
 		};
 
 		int32 BestScore = -1;

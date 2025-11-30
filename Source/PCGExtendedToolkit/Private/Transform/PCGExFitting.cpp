@@ -328,7 +328,7 @@ void FPCGExFittingVariations::ApplyRotation(const FRandomStream& RandomStream, F
 
 	if (AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::X)) { OutRotation.Roll = RandRot.Roll; }
 	else { OutRotation.Roll += RandRot.Roll; }
-	
+
 	if (AbsoluteRotation & static_cast<uint8>(EPCGExAbsoluteRotationFlags::Y)) { OutRotation.Pitch = RandRot.Pitch; }
 	else { OutRotation.Pitch += RandRot.Pitch; }
 

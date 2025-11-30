@@ -162,7 +162,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 	}
 
 	double GetRemappedValue(const double Value, const double Step) const;
-	
 };
 
 USTRUCT(BlueprintType)

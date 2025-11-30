@@ -32,7 +32,7 @@ protected:
 	//~End UPCGSettings
 
 	virtual bool GetIsMainTransactional() const override;
-	
+
 public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
@@ -56,7 +56,7 @@ struct FPCGExAttributeHashContext final : FPCGExPointsProcessorContext
 	friend class FPCGExAttributeHashElement;
 	TArray<bool> ValidHash;
 	TArray<int32> Hashes;
-	
+
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };

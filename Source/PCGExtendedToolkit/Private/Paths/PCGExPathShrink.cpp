@@ -251,12 +251,12 @@ namespace PCGExShrinkPath
 			}
 		}
 
-		
+
 		// Clear "crossing" shrinks
 		const double Dot = StartIndex < NumPoints ? FVector::DotProduct(
-			(PointDataFacade->GetIn()->GetTransform(StartIndex).GetLocation() - PointDataFacade->GetIn()->GetTransform(EndIndex).GetLocation()),
-			(NewStart.Transform.GetLocation() - NewEnd.Transform.GetLocation())) : 1;
-		
+				                   (PointDataFacade->GetIn()->GetTransform(StartIndex).GetLocation() - PointDataFacade->GetIn()->GetTransform(EndIndex).GetLocation()),
+				                   (NewStart.Transform.GetLocation() - NewEnd.Transform.GetLocation())) : 1;
+
 		if (Remainder < 2 || StartIndex == EndIndex || Dot < 0)
 		{
 			// No valid path is left for gathering, simply omit output.

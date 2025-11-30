@@ -5,12 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFactoryProvider.h"
+#include "PCGExLabels.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
 
-#include "Graph/PCGExGraph.h"
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsCluster.h"
 
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 

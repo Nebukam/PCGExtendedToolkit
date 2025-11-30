@@ -174,6 +174,7 @@ namespace PCGExMT
 		const FScope& GetScope() const { return Scope; }
 
 		virtual ~FScopedContainer() = default;
+
 		FScopedContainer(const FScope& InScope): Scope(InScope)
 		{
 		}
@@ -226,7 +227,7 @@ namespace PCGExMT
 			int32 Reserve = 0;
 			for (int i = 0; i < Arrays.Num(); i++) { Reserve += Arrays[i]->Num(); }
 			InTarget.Reserve(Reserve);
-			
+
 			for (int i = 0; i < Arrays.Num(); i++)
 			{
 				InTarget.Append(*Arrays[i].Get());
@@ -274,7 +275,7 @@ namespace PCGExMT
 			int32 Reserve = 0;
 			for (int i = 0; i < Sets.Num(); i++) { Reserve += Sets[i]->Num(); }
 			InTarget.Reserve(Reserve);
-			
+
 			for (int i = 0; i < Sets.Num(); i++)
 			{
 				InTarget.Append(*Sets[i].Get());

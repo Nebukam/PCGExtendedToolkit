@@ -607,7 +607,7 @@ public:
 	/** When enabled, will track referenced actors and trigger a graph regeneration when their properties change. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bTrackActors = true;
-	
+
 	/** If enabled, will turn off uninitialized packer warning. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietUninitializedPackerWarning = false;

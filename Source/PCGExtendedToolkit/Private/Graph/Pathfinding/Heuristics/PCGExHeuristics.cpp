@@ -4,6 +4,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
 
+#include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
@@ -173,6 +174,20 @@ namespace PCGExHeuristics
 		FVector UVW = FVector::ZeroVector;
 		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations) { UVW += Op->GetGoalUVW(); }
 		return UVW;
+	}
+
+	const PCGExCluster::FNode* FHeuristicsHandler::GetRoamingSeed()
+	{
+		if (RoamingSeedNode) { return RoamingSeedNode; }
+		RoamingSeedNode = Cluster->GetRoamingNode(GetSeedUVW());
+		return RoamingSeedNode;
+	}
+
+	const PCGExCluster::FNode* FHeuristicsHandler::GetRoamingGoal()
+	{
+		if (RoamingGoalNode) { return RoamingGoalNode; }
+		RoamingGoalNode = Cluster->GetRoamingNode(GetGoalUVW());
+		return RoamingGoalNode;
 	}
 
 	TSharedPtr<FLocalFeedbackHandler> FHeuristicsHandler::MakeLocalFeedbackHandler(const TSharedPtr<const PCGExCluster::FCluster>& InCluster)

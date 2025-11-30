@@ -50,7 +50,7 @@ protected:
 	/** If enabled, allows duplicate entries (duplicate is same symbol) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAllowDuplicates = true;
-	
+
 	/** If enabled, skip entries which symbol is "None" */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSkipEmptySymbol = true;
@@ -83,7 +83,7 @@ protected:
 	/** Name of the attribute the entry' Category value will be written to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Category"))
 	FName CategoryAttributeName = FName("Category");
-	
+
 	/** Cache the results of this node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
 	EPCGExOptionState CacheData = EPCGExOptionState::Default;

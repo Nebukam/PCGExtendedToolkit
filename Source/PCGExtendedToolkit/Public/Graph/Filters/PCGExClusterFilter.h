@@ -127,8 +127,7 @@ class UPCGExEdgeFilterProviderSettings : public UPCGExClusterFilterProviderSetti
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoFilterEdge)
 
-	virtual FName GetMainOutputPin() const override; 
-	
+	virtual FName GetMainOutputPin() const override;
 };
 
 #pragma endregion

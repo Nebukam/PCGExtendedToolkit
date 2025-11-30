@@ -8,6 +8,7 @@
 #include "PCGExPathfinding.h"
 
 #include "Data/PCGExDataForward.h"
+#include "Details/PCGExDetailsCluster.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Paths/PCGExPaths.h"

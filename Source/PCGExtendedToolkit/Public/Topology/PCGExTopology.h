@@ -123,7 +123,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowBoundsSize = false;
 
 	/** Omit cells whose bounds size.length is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Bounds Size", EditCondition="bOmitBelowBoundsSize", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Bounds Size", EditCondition="bOmitBelowBoundsSize", ClampMin=0))
 	double MinBoundsSize = 3;
 
 	/**  */
@@ -131,7 +131,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAboveBoundsSize = false;
 
 	/** Omit cells whose bounds size.length is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Bounds Size", EditCondition="bOmitAboveBoundsSize", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Bounds Size", EditCondition="bOmitAboveBoundsSize", ClampMin=0))
 	double MaxBoundsSize = 500;
 
 	/**  */
@@ -139,7 +139,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowPointCount = false;
 
 	/** Omit cells whose point count is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Point Count", EditCondition="bOmitBelowPointCount", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Point Count", EditCondition="bOmitBelowPointCount", ClampMin=0))
 	int32 MinPointCount = 3;
 
 	/**  */
@@ -147,7 +147,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAbovePointCount = false;
 
 	/** Omit cells whose point count is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Point Count", EditCondition="bOmitAbovePointCount", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Point Count", EditCondition="bOmitAbovePointCount", ClampMin=0))
 	int32 MaxPointCount = 500;
 
 	/**  */
@@ -155,7 +155,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowArea = false;
 
 	/** Omit cells whose area is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Area", EditCondition="bOmitBelowArea", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Area", EditCondition="bOmitBelowArea", ClampMin=0))
 	double MinArea = 3;
 
 	/**  */
@@ -163,7 +163,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAboveArea = false;
 
 	/** Omit cells whose area is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Area", EditCondition="bOmitAboveArea", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Area", EditCondition="bOmitAboveArea", ClampMin=0))
 	double MaxArea = 500;
 
 	/**  */
@@ -171,7 +171,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowPerimeter = false;
 
 	/** Omit cells whose perimeter is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Perimeter", EditCondition="bOmitBelowPerimeter", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Perimeter", EditCondition="bOmitBelowPerimeter", ClampMin=0))
 	double MinPerimeter = 3;
 
 	/**  */
@@ -179,7 +179,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAbovePerimeter = false;
 
 	/** Omit cells whose perimeter is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Perimeter", EditCondition="bOmitAbovePerimeter", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Perimeter", EditCondition="bOmitAbovePerimeter", ClampMin=0))
 	double MaxPerimeter = 500;
 
 	/**  */
@@ -187,7 +187,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowSegmentLength = false;
 
 	/** Omit cells that contains any segment which length is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Segment Length", EditCondition="bOmitBelowSegmentLength", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Segment Length", EditCondition="bOmitBelowSegmentLength", ClampMin=0))
 	double MinSegmentLength = 3;
 
 	/**  */
@@ -195,7 +195,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAboveSegmentLength = false;
 
 	/** Omit cells that contains any segment which length is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Segment Length", EditCondition="bOmitAboveSegmentLength", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Segment Length", EditCondition="bOmitAboveSegmentLength", ClampMin=0))
 	double MaxSegmentLength = 500;
 
 	/**  */
@@ -203,7 +203,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitBelowCompactness = false;
 
 	/** Omit cells that contains any segment which length is smaller than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" ┌─ Min Compactness", EditCondition="bOmitBelowCompactness", ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" ┌─ Min Compactness", EditCondition="bOmitBelowCompactness", ClampMin=0, ClampMax=1))
 	double MinCompactness = 0;
 
 	/**  */
@@ -211,7 +211,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 	bool bOmitAboveCompactness = false;
 
 	/** Omit cells that contains any segment which length is larger than the specified amount */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable,  DisplayName=" └─ Max Compactness", EditCondition="bOmitAboveCompactness", ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Max Compactness", EditCondition="bOmitAboveCompactness", ClampMin=0, ClampMax=1))
 	double MaxCompactness = 1;
 };
 
@@ -274,6 +274,47 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellSeedMutationDetails
 };
 
 USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExUVInputDetails
+{
+	GENERATED_BODY()
+
+	FPCGExUVInputDetails() = default;
+
+	/** Whether this input is enabled or not */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	bool bEnabled = true;
+
+	/** Name of the attribute containing the UVs (expects FVector2) */
+	UPROPERTY(EditAnywhere, Category = Settings)
+	FName AttributeName = NAME_None;
+
+	/** Index of the UV channel on the final model */
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(ClampMin="0", ClampMax="7", UIMin="0", UIMax="7"))
+	int32 Channel = 0;
+};
+	
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyUVDetails
+{
+	GENERATED_BODY()
+
+	FPCGExTopologyUVDetails() = default;
+
+	/** List of UV channels */
+	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	TArray<FPCGExUVInputDetails> UVs;
+
+	int32 NumChannels = 0;
+	TArray<int32> ChannelIndices;
+	TArray<TSharedPtr<PCGExData::TBuffer<FVector2D>>> UVBuffers;
+
+	void Prepare(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
+	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
+	void Write(FDynamicMesh3& Mesh) const;
+	void Write(const TMap<uint64, int32>& HashMapRef, const FVector2D CWTolerance, FDynamicMesh3& Mesh) const;
+};
+
+USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 {
 	GENERATED_BODY()
@@ -289,6 +330,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 	/** Default vertex color used for the points. Will use point color when available.*/
 	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FLinearColor DefaultVertexColor = FLinearColor::White;
+
+	/** UV input settings */
+	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	FPCGExTopologyUVDetails TexCoordinates;
 
 	/** Default primitive options
 	 * Note that those are applied when triangulation is appended to the dynamic mesh. */

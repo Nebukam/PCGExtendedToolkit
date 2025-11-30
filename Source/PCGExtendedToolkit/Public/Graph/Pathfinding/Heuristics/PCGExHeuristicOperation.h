@@ -7,9 +7,25 @@
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
-
 #include "PCGExOperation.h"
-#include "Graph/PCGExCluster.h"
+#include "Details/PCGExDetailsCluster.h"
+#include "Metadata/PCGAttributePropertySelector.h"
+
+namespace PCGEx
+{
+	class FHashLookup;
+}
+
+namespace PCGExGraph
+{
+	struct FEdge;
+}
+
+namespace PCGExCluster
+{
+	struct FNode;
+	class FCluster;
+}
 
 /**
  * 
@@ -52,8 +68,8 @@ public:
 	FORCEINLINE FVector GetSeedUVW() const { return UVWSeed; }
 	FORCEINLINE FVector GetGoalUVW() const { return UVWGoal; }
 
-	FORCEINLINE const PCGExCluster::FNode* GetRoamingSeed() const { return Cluster->GetRoamingNode(UVWSeed); }
-	FORCEINLINE const PCGExCluster::FNode* GetRoamingGoal() const { return Cluster->GetRoamingNode(UVWGoal); }
+	const PCGExCluster::FNode* GetRoamingSeed() const;
+	const PCGExCluster::FNode* GetRoamingGoal() const;
 
 protected:
 	TSharedPtr<const PCGExCluster::FCluster> Cluster;

@@ -267,7 +267,7 @@ namespace PCGExPathSplineMeshSimple
 
 		const TArray<PCGExValueHash>& MeshKeysRef = MeshKeys ? *MeshKeys.Get() : TArray<PCGExValueHash>{};
 		const TArray<PCGExValueHash>& MaterialKeysRef = MaterialKeys ? *MaterialKeys.Get() : TArray<PCGExValueHash>{};
-		
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			if (Index == LastIndex && !bClosedLoop)

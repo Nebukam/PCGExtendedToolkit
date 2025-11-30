@@ -8,10 +8,16 @@
 #include "CoreMinimal.h"
 #include "Details/PCGExMacros.h"
 
+namespace PCGExCluster
+{
+	class FCluster;
+}
+
 struct FPCGExContext;
 
 namespace PCGExData
 {
+	class FDataForwardHandler;
 	class FPointIOCollection;
 	class FPointIO;
 	class FPointIOTaggedEntries;
@@ -77,5 +83,20 @@ namespace PCGExClusterUtils
 
 		void Invalidate(const TSharedPtr<PCGExData::FPointIO>& InPointData, const EProblem Problem);
 		void Log(const EProblem Problem);
+	};
+
+	// Utility to forward data from vtx/edges clusters to path-like outputs (cells, paths, etc)
+	class PCGEXTENDEDTOOLKIT_API FClusterDataForwardHandler : public TSharedFromThis<FClusterDataForwardHandler>
+	{
+	protected:
+		TSharedPtr<PCGExCluster::FCluster> Cluster;
+		TSharedPtr<PCGExData::FDataForwardHandler> VtxDataForwardHandler;
+		TSharedPtr<PCGExData::FDataForwardHandler> EdgeDataForwardHandler;
+
+	public:
+		FClusterDataForwardHandler(
+			const TSharedPtr<PCGExCluster::FCluster>& InCluster,
+			const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler,
+			const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler);
 	};
 }

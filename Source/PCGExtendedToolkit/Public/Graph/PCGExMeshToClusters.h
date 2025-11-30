@@ -4,15 +4,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExLabels.h"
 #include "Transform/PCGExFitting.h"
-#include "PCGExGraph.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
+#include "Details/PCGExDetailsGraph.h"
 
 
 #include "Geometry/PCGExGeoMesh.h"
 
 #include "PCGExMeshToClusters.generated.h"
+
+namespace PCGExGraph
+{
+	class FGraphBuilder;
+}
 
 UENUM()
 enum class EPCGExMeshAttributeHandling : uint8

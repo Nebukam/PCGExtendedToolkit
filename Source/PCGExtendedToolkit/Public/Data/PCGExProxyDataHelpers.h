@@ -18,11 +18,11 @@ namespace PCGExData
 	class FFacade;
 	class IBufferProxy;
 
-	template<typename T_REAL>
+	template <typename T_REAL>
 	class TBuffer;
-	
+
 	struct FProxyDescriptor;
-	
+
 	template <typename T_REAL>
 	TSharedPtr<TBuffer<T_REAL>> TryGetBuffer(FPCGExContext* InContext, const FProxyDescriptor& InDescriptor, const TSharedPtr<FFacade>& InDataFacade);
 

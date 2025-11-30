@@ -77,10 +77,10 @@ namespace PCGExGeo
 		const FPositionVertexBuffer* Positions = nullptr;
 		const FColorVertexBuffer* Colors = nullptr;
 
-		
+
 		FORCEINLINE int32 NumTriangles() const { return Indices.Num() / 3; }
 		FORCEINLINE int32 NumVertices() const { return Indices.Num(); }
-		
+
 		FORCEINLINE bool HasColor() const { return Colors != nullptr; }
 	};
 

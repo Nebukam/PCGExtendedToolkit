@@ -61,7 +61,7 @@ bool FPCGExWriteStatesElement::ExecuteInternal(
 
 UPCGExFactoryData* UPCGExPointStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
 {
-	UPCGExPointStateFactoryData* NewFactory = InContext->ManagedObjects->New<UPCGExPointStateFactoryData>();	
+	UPCGExPointStateFactoryData* NewFactory = InContext->ManagedObjects->New<UPCGExPointStateFactoryData>();
 	NewFactory->BaseConfig = Config;
 	Super::CreateFactory(InContext, NewFactory);
 	return NewFactory;

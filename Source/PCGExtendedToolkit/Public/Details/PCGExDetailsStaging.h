@@ -109,7 +109,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAssetDistributionIndexDetails
 	GENERATED_BODY()
 
 	FPCGExAssetDistributionIndexDetails();
-	
+
 	/** Index picking mode*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending;
@@ -331,4 +331,3 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRoamingAssetCollectionDetails : public FPCGE
 	UPCGExAssetCollection* TryBuildCollection(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const bool bBuildStaging = false) const;
 	UPCGExAssetCollection* TryBuildCollection(FPCGExContext* InContext, const FName InputPin, const bool bBuildStaging) const;
 };
-

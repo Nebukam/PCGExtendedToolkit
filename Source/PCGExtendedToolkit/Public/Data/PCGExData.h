@@ -86,7 +86,7 @@ namespace PCGExData
 		bool bIsNewOutput = false;
 		std::atomic<bool> bIsEnabled{true}; // BUG : Need to have a better look at why we hang when this is false
 		bool bReadComplete = false;
-		
+
 		bool bCacheValueHashes = false;
 
 	public:
@@ -136,7 +136,7 @@ namespace PCGExData
 		virtual bool IsWritable() = 0;
 		virtual bool IsReadable() = 0;
 		virtual bool ReadsFromOutput() = 0;
-		
+
 		FORCEINLINE const void* ReadRaw(const int32 Index) const { return Ops->ReadRaw(this, Index); }
 		FORCEINLINE const void* GetValueRaw(const int32 Index) { return Ops->GetValueRaw(this, Index); }
 		FORCEINLINE void SetValueRaw(const int32 Index, const void* Value) { Ops->SetValueRaw(this, Index, Value); }
@@ -161,7 +161,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 
 	protected:
 		static const OpsTable OpsImpl;
-				
+
 		const FPCGMetadataAttribute<T>* TypedInAttribute = nullptr;
 		FPCGMetadataAttribute<T>* TypedOutAttribute = nullptr;
 
@@ -208,7 +208,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 			TBuffer* Buffer = static_cast<TBuffer*>(Self);
 			return &Buffer->GetValue(Index);
 		}
-		
+
 		static void SetValueRawImpl(IBuffer* Self, int32 Index, const void* Value)
 		{
 			TBuffer* Buffer = static_cast<TBuffer*>(Self);
@@ -261,10 +261,10 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		virtual const T& GetValue(const int32 Index) override;
 		virtual void SetValue(const int32 Index, const T& Value) override;
 		virtual PCGExValueHash ReadValueHash(const int32 Index) override;
-		
-	protected:		
+
+	protected:
 		virtual void ComputeValueHashes(const PCGExMT::FScope& Scope);
-		
+
 		virtual void InitForReadInternal(const bool bScoped, const FPCGMetadataAttributeBase* Attribute);
 		virtual void InitForWriteInternal(FPCGMetadataAttributeBase* Attribute, const T& InDefaultValue, const EBufferInit Init);
 

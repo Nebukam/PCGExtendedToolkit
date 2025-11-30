@@ -4,14 +4,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExLabels.h"
 #include "PCGExOctree.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
-
-
+#include "Details/PCGExDetailsGraph.h"
 #include "Geometry/PCGExGeo.h"
-#include "Graph/PCGExGraph.h"
 #include "PCGExConnectPoints.generated.h"
+
+namespace PCGExGraph
+{
+	class FGraphBuilder;
+}
 
 class UPCGExProbeFactoryData;
 class FPCGExProbeOperation;
@@ -95,7 +99,7 @@ namespace PCGExConnectPoints
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TArray<TSharedPtr<FPCGExProbeOperation>> RadiusSources;
-		
+
 		TArray<TSharedPtr<FPCGExProbeOperation>> DirectOperations;
 		TArray<TSharedPtr<FPCGExProbeOperation>> ChainedOperations;
 		TArray<TSharedPtr<FPCGExProbeOperation>> SharedOperations;

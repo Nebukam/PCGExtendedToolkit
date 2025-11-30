@@ -46,7 +46,7 @@ public:
 	/** Mutate Vtx into their OOB based on neighboring connections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable))
 	bool bMutateVtxToOOB = false;
-	
+
 	/** Write normal from edges on vertices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxEdgeCount = false;
@@ -54,7 +54,7 @@ public:
 	/** Name of the 'normal' vertex attribute to write normal to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(DisplayName="EdgeCount", PCG_Overridable, EditCondition="bWriteVtxEdgeCount"))
 	FName VtxEdgeCountAttributeName = FName("EdgeCount");
-	
+
 	/** Write normal from edges on vertices. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxNormal = false;
@@ -70,9 +70,9 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_NotOverridable))
 	bool bIncludeVtxInOOB = false;
-	
+
 	bool WantsOOB() const;
-	
+
 private:
 	friend class FPCGExWriteVtxPropertiesElement;
 };

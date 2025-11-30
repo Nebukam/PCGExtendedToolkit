@@ -45,7 +45,7 @@ namespace PCGEx
 		IAssetLoader(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InIOCollection, const TArray<FName>& InAttributeNames);
 		virtual ~IAssetLoader();
 
-		virtual bool IsEmpty() {return true;}
+		virtual bool IsEmpty() { return true; }
 		bool HasEnded() const { return bEnded ? true : false; }
 		void Cancel();
 
@@ -55,8 +55,14 @@ namespace PCGEx
 		TSharedPtr<TArray<PCGExValueHash>> GetKeys(const int32 IOIndex);
 
 		virtual bool Load();
-		virtual void End(const bool bBuildMap = false) {}
-		virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector) {}
+
+		virtual void End(const bool bBuildMap = false)
+		{
+		}
+
+		virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector)
+		{
+		}
 
 	protected:
 		virtual void PrepareLoading();

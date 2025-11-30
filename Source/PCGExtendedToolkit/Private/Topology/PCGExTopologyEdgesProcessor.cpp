@@ -17,6 +17,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Async/ParallelFor.h"
+#include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "TopologyProcessor"
 #define PCGEX_NAMESPACE TopologyProcessor
@@ -124,6 +125,9 @@ namespace PCGExTopologyEdges
 		if (!PCGExClusterMT::IProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Context->HolesFacade) { Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails); }
+
+		UVDetails = Settings->Topology.TexCoordinates;
+		UVDetails.Prepare(VtxDataFacade);
 
 		bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
 
@@ -252,6 +256,7 @@ namespace PCGExTopologyEdges
 
 				UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
 				UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
+				InMesh.Attributes()->GetUVLayer(0);
 
 				TArray<int32> ElemIDs;
 				ElemIDs.SetNum(VtxCount);
@@ -282,7 +287,8 @@ namespace PCGExTopologyEdges
 						MaterialID->SetValue(TriangleID, 0);
 						Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
 					});
-				
+
+				UVDetails.Write(HashMapRef, CWTolerance, InMesh);
 			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 
 		Settings->Topology.PostProcessMesh(GetInternalMesh());
@@ -303,6 +309,8 @@ namespace PCGExTopologyEdges
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(TopologyEdgesProcessor)
 
 		check(Settings);
+
+		Settings->Topology.TexCoordinates.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 
 		if (Settings->SupportsEdgeConstraints())
 		{

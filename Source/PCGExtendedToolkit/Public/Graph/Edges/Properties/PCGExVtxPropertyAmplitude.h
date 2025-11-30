@@ -48,7 +48,7 @@ struct FPCGExAmplitudeConfig
 	GENERATED_BODY()
 
 	FPCGExAmplitudeConfig();
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteMinAmplitude = false;

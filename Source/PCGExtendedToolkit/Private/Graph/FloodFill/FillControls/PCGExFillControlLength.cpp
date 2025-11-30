@@ -5,6 +5,7 @@
 #include "Graph/FloodFill/FillControls/PCGExFillControlLength.h"
 
 
+#include "PCGExHelpers.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/FloodFill/FillControls/PCGExFillControlsFactoryProvider.h"

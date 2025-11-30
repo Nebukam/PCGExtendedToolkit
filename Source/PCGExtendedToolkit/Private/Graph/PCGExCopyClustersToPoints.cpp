@@ -6,6 +6,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
 

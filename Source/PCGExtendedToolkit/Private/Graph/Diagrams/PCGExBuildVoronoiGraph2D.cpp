@@ -181,7 +181,7 @@ namespace PCGExBuildVoronoiGraph2D
 		TArray<FVector> ActivePositions;
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn(), ActivePositions);
 
-		Voronoi = MakeUnique<PCGExGeo::TVoronoi2>();
+		Voronoi = MakeShared<PCGExGeo::TVoronoi2>();
 
 		const FBox Bounds = PointDataFacade->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 		bool bSuccess = false;

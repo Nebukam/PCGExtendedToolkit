@@ -4,14 +4,28 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
-
-
+#include "Details/PCGExDetailsGraph.h"
 #include "Geometry/PCGExGeo.h"
-#include "Geometry/PCGExGeoVoronoi.h"
-#include "Graph/PCGExGraph.h"
 
 #include "PCGExBuildVoronoiGraph.generated.h"
+
+namespace PCGExGraph
+{
+	class FGraphBuilder;
+}
+
+namespace PCGExGeo
+{
+	class TVoronoi3;
+}
+
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
 
 /**
  * 
@@ -97,7 +111,7 @@ namespace PCGExBuildVoronoiGraph
 	{
 	protected:
 		TSharedPtr<TArray<int32>> OutputIndices;
-		TUniquePtr<PCGExGeo::TVoronoi3> Voronoi;
+		TSharedPtr<PCGExGeo::TVoronoi3> Voronoi;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
