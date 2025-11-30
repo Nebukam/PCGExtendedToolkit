@@ -310,8 +310,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyUVDetails
 
 	void Prepare(const TSharedPtr<PCGExData::FFacade>& InDataFacade);
 	void RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const;
-	void Write(FDynamicMesh3& Mesh) const;
-	void Write(const TMap<uint64, int32>& HashMapRef, const FVector2D CWTolerance, FDynamicMesh3& Mesh) const;
+	void Write(const TArray<int32>& TriangleIDs, FDynamicMesh3& InMesh) const;
+	void Write(const TArray<int32>& TriangleIDs, const TArray<int32>& VtxIDs, FDynamicMesh3& InMesh) const;
 };
 
 USTRUCT(BlueprintType)
@@ -333,7 +333,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyDetails
 
 	/** UV input settings */
 	UPROPERTY(EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	FPCGExTopologyUVDetails TexCoordinates;
+	FPCGExTopologyUVDetails UVChannels;
 
 	/** Default primitive options
 	 * Note that those are applied when triangulation is appended to the dynamic mesh. */
