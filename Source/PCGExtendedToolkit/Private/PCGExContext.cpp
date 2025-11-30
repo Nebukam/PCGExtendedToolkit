@@ -186,7 +186,6 @@ FPCGExContext::FPCGExContext()
 FPCGExContext::~FPCGExContext()
 {
 	WorkHandle.Reset();
-	CancelAssetLoading();
 	ManagedObjects->Flush(); // So cleanups can be recursively triggered while manager is still alive
 }
 
@@ -320,7 +319,6 @@ void FPCGExContext::CancelAssetLoading()
 	if (LoadHandle.IsValid() && LoadHandle->IsActive()) { LoadHandle->CancelHandle(); }
 	LoadHandle.Reset();
 	if (RequiredAssets) { RequiredAssets->Empty(); }
-	CancelExecution(TEXT("")); // Quiet cancel
 }
 
 TSet<FSoftObjectPath>& FPCGExContext::GetRequiredAssets()
@@ -533,7 +531,8 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 		PCGEX_TERMINATE_ASYNC
 		OutputData.Reset();
 		if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
-
+		
+		CancelAssetLoading();
 		ResumeExecution();
 	}
 

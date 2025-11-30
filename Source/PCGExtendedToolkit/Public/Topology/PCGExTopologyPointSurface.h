@@ -81,6 +81,7 @@ namespace PCGExTopologyPointSurface
 		TObjectPtr<UDynamicMesh> InternalMesh;
 		UPCGDynamicMeshData* InternalMeshData = nullptr;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
+		FPCGExTopologyUVDetails UVDetails;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

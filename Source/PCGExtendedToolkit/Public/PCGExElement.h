@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <functional>
-
 #include "CoreMinimal.h"
 #include "PCGElement.h"
 
@@ -52,6 +50,5 @@ protected:
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override;
 
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-	virtual bool AdvanceWork(FPCGExContext* InContext) const;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const;
 };

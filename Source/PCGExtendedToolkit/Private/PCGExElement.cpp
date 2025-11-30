@@ -5,6 +5,8 @@
 
 #include "PCGExInstancedFactory.h"
 #include "PCGExSettings.h"
+#include "Details/PCGExWaitMacros.h"
+#include "Helpers/PCGAsync.h"
 #include "Helpers/PCGSettingsHelpers.h"
 #include "Transform/PCGExNormalize.h"
 
@@ -71,9 +73,45 @@ FPCGContext* IPCGExElement::Initialize(const FPCGInitializeElementParams& InPara
 	check(Settings);
 
 	Context->WorkPriority = Settings->WorkPriority;
+
+	switch (Settings->ExecutionPolicy == EPCGExExecutionPolicy::Default ? GetDefault<UPCGExGlobalSettings>()->GetDefaultExecutionPolicy() : Settings->ExecutionPolicy)
+	{
+	case EPCGExExecutionPolicy::Default:
+	case EPCGExExecutionPolicy::Normal:
+		Context->ExecutionPolicy = FPCGExContext::EExecutionPolicy::Normal;
+		break;
+	case EPCGExExecutionPolicy::AsyncEx:
+		Context->ExecutionPolicy = FPCGExContext::EExecutionPolicy::AsyncEx;
+		break;
+	case EPCGExExecutionPolicy::AsyncTask:
+		Context->ExecutionPolicy = FPCGExContext::EExecutionPolicy::AsyncTask;
+		break;
+	}
+
 	Context->bFlattenOutput = Settings->bFlattenOutput;
 	Context->bScopedAttributeGet = Settings->WantsScopedAttributeGet();
 	Context->bPropagateAbortedExecution = Settings->bPropagateAbortedExecution;
+
+	Context->bQuietInvalidInputWarning = Settings->bQuietInvalidInputWarning;
+	Context->bQuietMissingInputError = Settings->bQuietMissingInputError;
+	Context->bQuietCancellationError = Settings->bQuietCancellationError;
+	Context->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
+
+	Context->ElementHandle = this;
+
+	if (Context->bCleanupConsumableAttributes)
+	{
+		for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedProtectedAttributesName);
+		     const FString& Name : Names)
+		{
+			Context->AddProtectedAttributeName(FName(Name));
+		}
+
+		for (const FName& Name : Settings->ProtectedAttributes)
+		{
+			Context->AddProtectedAttributeName(FName(Name));
+		}
+	}
 
 	OnContextInitialized(Context);
 
@@ -96,30 +134,6 @@ void IPCGExElement::OnContextInitialized(FPCGExContext* InContext) const
 bool IPCGExElement::Boot(FPCGExContext* InContext) const
 {
 	if (InContext->InputData.bCancelExecution) { return false; }
-
-	const UPCGExSettings* Settings = InContext->GetInputSettings<UPCGExSettings>();
-	check(Settings);
-
-	InContext->bQuietInvalidInputWarning = Settings->bQuietInvalidInputWarning;
-	InContext->bQuietMissingInputError = Settings->bQuietMissingInputError;
-	InContext->bQuietCancellationError = Settings->bQuietCancellationError;
-
-	InContext->bCleanupConsumableAttributes = Settings->bCleanupConsumableAttributes;
-
-	if (Settings->bCleanupConsumableAttributes)
-	{
-		for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedProtectedAttributesName);
-		     const FString& Name : Names)
-		{
-			InContext->AddProtectedAttributeName(FName(Name));
-		}
-
-		for (const FName& Name : Settings->ProtectedAttributes)
-		{
-			InContext->AddProtectedAttributeName(FName(Name));
-		}
-	}
-
 	return true;
 }
 
@@ -161,17 +175,49 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 	const UPCGExSettings* InSettings = Context->GetInputSettings<UPCGExSettings>();
 	check(InSettings);
 
-	return AdvanceWork(InContext, InSettings);
-}
+	if (InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::Normal)
+	{
+		return AdvanceWork(InContext, InSettings);
+	}
 
-bool IPCGExElement::AdvanceWork(FPCGExContext* InContext) const
-{
-	check(InContext);
+	TWeakPtr<FPCGContextHandle> CtxHandle = Context->GetOrCreateHandle();
 
-	const UPCGExSettings* InSettings = InContext->GetInputSettings<UPCGExSettings>();
-	check(InSettings);
+	if (InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::AsyncTask)
+	{
+		if (AdvanceWork(InContext, InSettings)) { return true; }
 
-	return AdvanceWork(InContext, InSettings);
+		InContext->bIsPaused = true;
+		UE::Tasks::Launch(
+				TEXT("AdvanceWork"),
+				[CtxHandle, Settings = InSettings]()
+				{
+					FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
+					FPCGExContext* Ctx = SharedContext.Get();
+					if (!Ctx) { return; }
+
+					PCGEX_ASYNC_WAIT_CHKD_ADV(!Ctx->ElementHandle->AdvanceWork(Ctx, Settings))
+				},
+				UE::Tasks::ETaskPriority::High
+			);
+
+		return false;
+	}
+	else if (InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::AsyncEx)
+	{
+		FPCGAsync::AsyncProcessingOneToOneRangeEx(
+			&Context->AsyncState,
+			1,
+			/*InitializeFunc=*/[](){},
+			[CtxHandle, Settings = InSettings](int32 StartReadIndex, int32 StartWriteIndex, int32 Count)
+			{
+				FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
+				FPCGExContext* Ctx = SharedContext.Get();
+				PCGEX_ASYNC_WAIT_CHKD_ADV(!Ctx->ElementHandle->AdvanceWork(Ctx, Settings))
+				return 1;
+			}, false);
+	}
+
+	return true;
 }
 
 bool IPCGExElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
