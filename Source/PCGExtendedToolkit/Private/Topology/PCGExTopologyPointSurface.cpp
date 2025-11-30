@@ -143,7 +143,7 @@ namespace PCGExTopologyPointSurface
 
 		if (PositionsToVertexIDs.IsEmpty()) { return false; }
 
-		UVDetails = Settings->Topology.TexCoordinates;
+		UVDetails = Settings->Topology.UVChannels;
 		UVDetails.Prepare(PointDataFacade);
 
 		FTransform Transform = Context->GetComponent()->GetOwner()->GetTransform();
@@ -194,7 +194,7 @@ namespace PCGExTopologyPointSurface
 							Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
 						});
 
-					UVDetails.Write(InMesh);
+					UVDetails.Write(TriangleIDs, PositionsToVertexIDs, InMesh);
 				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 		}
 

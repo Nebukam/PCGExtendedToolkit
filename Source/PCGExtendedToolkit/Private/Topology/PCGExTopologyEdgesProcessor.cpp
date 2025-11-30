@@ -126,7 +126,7 @@ namespace PCGExTopologyEdges
 
 		if (Context->HolesFacade) { Holes = Context->Holes ? Context->Holes : MakeShared<PCGExTopology::FHoles>(Context, Context->HolesFacade.ToSharedRef(), this->ProjectionDetails); }
 
-		UVDetails = Settings->Topology.TexCoordinates;
+		UVDetails = Settings->Topology.UVChannels;
 		UVDetails.Prepare(VtxDataFacade);
 
 		bIsPreviewMode = ExecutionContext->GetComponent()->IsInPreviewMode();
@@ -256,7 +256,9 @@ namespace PCGExTopologyEdges
 
 				UE::Geometry::FDynamicMeshColorOverlay* Colors = InMesh.Attributes()->PrimaryColors();
 				UE::Geometry::FDynamicMeshMaterialAttribute* MaterialID = InMesh.Attributes()->GetMaterialID();
-				InMesh.Attributes()->GetUVLayer(0);
+
+				TArray<int32> VtxIDs;
+				VtxIDs.Init(-1, VtxCount);
 
 				TArray<int32> ElemIDs;
 				ElemIDs.SetNum(VtxCount);
@@ -270,6 +272,7 @@ namespace PCGExTopologyEdges
 						if (WP)
 						{
 							const int32 PointIndex = *WP;
+							VtxIDs[i] = PointIndex;
 							InMesh.SetVertex(i, Transform.InverseTransformPosition(InTransforms[PointIndex].GetLocation()));
 							Colors->SetElement(ElemIDs[i], FVector4f(InColors[PointIndex]));
 						}
@@ -277,18 +280,16 @@ namespace PCGExTopologyEdges
 
 				TArray<int32> TriangleIDs;
 				TriangleIDs.Reserve(InMesh.TriangleCount());
-				for (int32 TriangleID : InMesh.TriangleIndicesItr()) { TriangleIDs.Add(TriangleID); }
+				for (int32 TriangleID : InMesh.TriangleIndicesItr())
+				{
+					TriangleIDs.Add(TriangleID);
+					
+					const UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
+					MaterialID->SetValue(TriangleID, 0);
+					Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
+				}
 
-				ParallelFor(
-					TriangleIDs.Num(), [&](int32 i)
-					{
-						const int32 TriangleID = TriangleIDs[i];
-						UE::Geometry::FIndex3i Triangle = InMesh.GetTriangle(TriangleID);
-						MaterialID->SetValue(TriangleID, 0);
-						Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
-					});
-
-				UVDetails.Write(HashMapRef, CWTolerance, InMesh);
+				UVDetails.Write(TriangleIDs, VtxIDs, InMesh);
 			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 
 		Settings->Topology.PostProcessMesh(GetInternalMesh());
@@ -310,7 +311,7 @@ namespace PCGExTopologyEdges
 
 		check(Settings);
 
-		Settings->Topology.TexCoordinates.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
+		Settings->Topology.UVChannels.RegisterBuffersDependencies(ExecutionContext, FacadePreloader);
 
 		if (Settings->SupportsEdgeConstraints())
 		{
