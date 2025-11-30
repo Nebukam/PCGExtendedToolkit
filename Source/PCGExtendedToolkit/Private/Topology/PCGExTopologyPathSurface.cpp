@@ -84,7 +84,7 @@ namespace PCGExTopologyPathSurface
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
-		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = false; //Context->bScopedAttributeGet;
 
 		if (!IProcessor::Process(InAsyncManager)) { return false; }
 
