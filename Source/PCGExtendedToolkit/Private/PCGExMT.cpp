@@ -9,6 +9,7 @@
 #include "PCGExContext.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExSubSystem.h"
+#include "Details/PCGExWaitMacros.h"
 #include "HAL/PlatformTime.h"
 
 namespace PCGExMT

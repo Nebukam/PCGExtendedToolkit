@@ -72,7 +72,8 @@ namespace PCGExTopologyPathSurface
 
 		TObjectPtr<UDynamicMesh> InternalMesh;
 		UPCGDynamicMeshData* InternalMeshData = nullptr;
-
+		FPCGExTopologyUVDetails UVDetails;
+		
 		int32 ConstrainedEdgesNum = 0;
 
 	public:

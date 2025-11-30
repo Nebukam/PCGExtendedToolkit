@@ -110,6 +110,9 @@ namespace PCGExTopologyPathSurface
 			GetInternalMesh(),
 			Settings->Topology.PrimitiveOptions, FTransform::Identity, ActivePositions);
 
+		UVDetails = Settings->Topology.TexCoordinates;
+		UVDetails.Prepare(PointDataFacade);
+		
 		/////
 
 		FTransform Transform = Context->GetComponent()->GetOwner()->GetTransform();
@@ -145,6 +148,8 @@ namespace PCGExTopologyPathSurface
 					MaterialID->SetValue(TriangleID, 0);
 					Colors->SetTriangle(TriangleID, UE::Geometry::FIndex3i(ElemIDs[Triangle.A], ElemIDs[Triangle.B], ElemIDs[Triangle.C]));
 				}
+
+				UVDetails.Write(InMesh);
 			}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 
 

@@ -33,17 +33,29 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 	friend class IPCGExElement;
 
 protected:
+	
+	enum class EExecutionPolicy : int8
+	{
+		Normal,
+		AsyncEx,
+		AsyncTask
+	};
+	
 	mutable FRWLock AsyncLock;
 	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetDependenciesLock;
 
 	TSharedPtr<PCGEx::FWorkHandle> WorkHandle;
+	const IPCGExElement* ElementHandle = nullptr;
 
 public:
 	TWeakPtr<PCGEx::FWorkHandle> GetWorkHandle() { return WorkHandle; }
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
 	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
+	EExecutionPolicy ExecutionPolicy = EExecutionPolicy::Normal;
 
+	// TODO : bool toggle for hoarder execution 
+	
 	bool bScopedAttributeGet = false;
 	bool bPropagateAbortedExecution = false;
 
@@ -98,10 +110,10 @@ protected:
 	std::atomic<bool> bWorkCancelled{false};
 
 	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
+
 	bool bWaitingForAsyncCompletion = false;
 
 	virtual void OnComplete();
-
 
 #pragma endregion
 
@@ -156,6 +168,7 @@ public:
 	virtual bool IsAsyncWorkComplete();
 
 	bool bQuietInvalidInputWarning = false;
+
 	bool bQuietMissingAttributeError = false;
 	bool bQuietMissingInputError = false;
 	bool bQuietCancellationError = false;

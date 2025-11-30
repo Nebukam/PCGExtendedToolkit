@@ -13,6 +13,11 @@ TMap<FName, int32> UPCGExGlobalSettings::InPinInfosMap;
 TMap<FName, int32> UPCGExGlobalSettings::OutPinInfosMap;
 bool UPCGExGlobalSettings::bGeneratedPinMap = false; // Initialize to a default value
 
+EPCGExAsyncPriority UPCGExGlobalSettings::GetDefaultWorkPriority() const { return DefaultWorkPriority == EPCGExAsyncPriority::Default ? EPCGExAsyncPriority::BackgroundNormal : DefaultWorkPriority; }
+
+EPCGExExecutionPolicy UPCGExGlobalSettings::GetDefaultExecutionPolicy() const { return DefaultExecutionPolicy == EPCGExExecutionPolicy::Default ? EPCGExExecutionPolicy::Normal : DefaultExecutionPolicy; }
+
+
 FLinearColor UPCGExGlobalSettings::WantsColor(const FLinearColor InColor) const
 {
 	return bUseNativeColorsIfPossible ? FLinearColor::White : InColor;

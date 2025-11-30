@@ -7,6 +7,7 @@
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
+#include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGExPointIO.h"
@@ -56,6 +57,59 @@ void FPCGExTopologyDetails::PostProcessMesh(const TObjectPtr<UDynamicMesh>& InDy
 {
 	if (bWeldEdges) { UGeometryScriptLibrary_MeshRepairFunctions::WeldMeshEdges(InDynamicMesh, WeldEdgesOptions); }
 	if (bComputeNormals) { UGeometryScriptLibrary_MeshNormalsFunctions::RecomputeNormals(InDynamicMesh, NormalsOptions); }
+}
+
+void FPCGExTopologyUVDetails::Prepare(const TSharedPtr<PCGExData::FFacade>& InDataFacade)
+{
+	TSet<int32> ExistingChannels;
+	ExistingChannels.Reserve(8);
+	ChannelIndices.Reserve(8);
+	UVBuffers.Reserve(8);
+
+	for (const FPCGExUVInputDetails& Channel : UVs)
+	{
+		if (!Channel.bEnabled || Channel.AttributeName.IsNone()) { continue; }
+
+		bool bIsAlreadySet = false;
+		ExistingChannels.Add(Channel.Channel, &bIsAlreadySet);
+		if (bIsAlreadySet) { continue; }
+
+		TSharedPtr<PCGExData::TBuffer<FVector2D>> Buffer = InDataFacade->GetBroadcaster<FVector2D>(Channel.AttributeName, true);
+		if (!Buffer)
+		{
+			PCGEX_LOG_INVALID_ATTR_C(InDataFacade->GetContext(), UV Channel, Channel.AttributeName)
+			continue;
+		}
+
+		NumChannels = FMath::Max(NumChannels, Channel.Channel + 1);
+		ChannelIndices.Add(Channel.Channel);
+		UVBuffers.Add(Buffer);
+	}
+}
+
+void FPCGExTopologyUVDetails::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader) const
+{
+	TSet<int32> ExistingChannels;
+	ExistingChannels.Reserve(8);
+	
+	for (const FPCGExUVInputDetails& Channel : UVs)
+	{
+		if (!Channel.bEnabled || Channel.AttributeName.IsNone()) { continue; }
+		
+		bool bIsAlreadySet = false;
+		ExistingChannels.Add(Channel.Channel, &bIsAlreadySet);
+		if (bIsAlreadySet) { continue; }
+		
+		FacadePreloader.Register<FVector2D>(InContext, Channel.AttributeName, PCGExData::EBufferPreloadType::BroadcastFromName);
+	}
+}
+
+void FPCGExTopologyUVDetails::Write(FDynamicMesh3& Mesh) const
+{
+}
+
+void FPCGExTopologyUVDetails::Write(const TMap<uint64, int32>& HashMapRef, const FVector2D CWTolerance, FDynamicMesh3& Mesh) const
+{
 }
 
 namespace PCGExTopology
