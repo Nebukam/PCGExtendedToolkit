@@ -364,20 +364,18 @@ void FPCGExFittingVariations::ApplyScale(const FRandomStream& RandomStream, FTra
 
 	if (SnapScale == EPCGExVariationSnapping::SnapOffset)
 	{
-		const FVector Snap = bUniformScale ? FVector(ScaleSnap.X) : OffsetSnap;
-		PCGExMath::Snap(RandomScale.X, Snap.X);
-		PCGExMath::Snap(RandomScale.Y, Snap.Y);
-		PCGExMath::Snap(RandomScale.Z, Snap.Z);
+		PCGExMath::Snap(RandomScale.X, ScaleSnap.X);
+		PCGExMath::Snap(RandomScale.Y, ScaleSnap.Y);
+		PCGExMath::Snap(RandomScale.Z, ScaleSnap.Z);
 	}
 
 	OutScale *= RandomScale;
 
 	if (SnapScale == EPCGExVariationSnapping::SnapResult)
 	{
-		const FVector Snap = bUniformScale ? FVector(ScaleSnap.X) : OffsetSnap;
-		PCGExMath::Snap(OutScale.X, Snap.X);
-		PCGExMath::Snap(OutScale.Y, Snap.Y);
-		PCGExMath::Snap(OutScale.Z, Snap.Z);
+		PCGExMath::Snap(OutScale.X, ScaleSnap.X);
+		PCGExMath::Snap(OutScale.Y, ScaleSnap.Y);
+		PCGExMath::Snap(OutScale.Z, ScaleSnap.Z);
 	}
 
 	OutTransform.SetScale3D(OutScale);
