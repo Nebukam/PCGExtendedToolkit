@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "Engine/StaticMesh.h"
+#include "StaticMeshResources.h"
+#include "UObject/SoftObjectPath.h"
 #include "Metadata/PCGMetadataCommon.h"
 
 #include "PCGExGeoMesh.generated.h" // Credit goes to @Syscrusher attention to detail :D

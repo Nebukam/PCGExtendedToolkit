@@ -4,6 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Misc/ScopeRWLock.h"
+#include "UObject/SoftObjectPtr.h"
+#include "UObject/SoftObjectPath.h"
 #include "Data/PCGExValueHash.h"
 
 struct FPCGExContext;
