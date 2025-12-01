@@ -7,7 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSolidifyElement"

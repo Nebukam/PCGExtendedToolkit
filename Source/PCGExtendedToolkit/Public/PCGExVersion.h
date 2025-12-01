@@ -3,7 +3,17 @@
 
 #pragma once
 
+#include "HAL/Platform.h"
+#include "Runtime/Launch/Resources/Version.h"
+
+#ifndef PCGEX_VERSION
+#define PCGEX_VERSION
+
 #define PCGEX_ENGINE_VERSION ENGINE_MAJOR_VERSION * 100 + ENGINE_MINOR_VERSION
+
+#if PCGEX_ENGINE_VERSION != 507
+static_assert("PCGEx :: This version of the plugin is for Unreal 5.7.x! Make sure to use the branch that matches your engine version.");
+#endif
 
 #define PCGEX_VERSION_NUM(_MAJOR, _MINOR, _PATCH) ((_MAJOR * 1000000) + (_MINOR * 10000) + (_PATCH * 100))
 #define PCGEX_VERSION_NAME(_MAJOR, _MINOR, _PATCH) v_##_MAJOR##_##_MINOR##_##_PATCH
@@ -21,3 +31,5 @@ namespace PCGExVersion
 {
 	PCGEX_VERSION_DECL_LATEST(1, 71, 3)
 }
+
+#endif

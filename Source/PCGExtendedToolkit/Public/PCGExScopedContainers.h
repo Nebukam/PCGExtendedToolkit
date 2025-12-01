@@ -4,7 +4,8 @@
 #pragma once
 
 #include <functional>
-
+#include "CoreMinimal.h"
+#include "Misc/ScopeRWLock.h"
 #include "PCGExCommon.h"
 
 namespace PCGExMT

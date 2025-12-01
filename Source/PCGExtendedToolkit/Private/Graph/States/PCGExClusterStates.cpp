@@ -5,7 +5,7 @@
 
 
 #include "PCGParamData.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
