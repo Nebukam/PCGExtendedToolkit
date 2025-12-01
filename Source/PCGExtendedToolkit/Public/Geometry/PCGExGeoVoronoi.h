@@ -4,15 +4,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGeo.h"
-#include "PCGExGeoDelaunay.h"
+
+struct FPCGExGeo2DProjectionDetails;
 
 namespace PCGExGeo
 {
+	class TDelaunay3;
+	class TDelaunay2;
+
 	class PCGEXTENDEDTOOLKIT_API TVoronoi2
 	{
 	public:
-		TUniquePtr<TDelaunay2> Delaunay;
+		TSharedPtr<TDelaunay2> Delaunay;
 		TSet<uint64> VoronoiEdges;
 		TArray<FVector> Circumcenters;
 		TArray<FVector> Centroids;
@@ -33,7 +36,7 @@ namespace PCGExGeo
 	class PCGEXTENDEDTOOLKIT_API TVoronoi3
 	{
 	public:
-		TUniquePtr<TDelaunay3> Delaunay;
+		TSharedPtr<TDelaunay3> Delaunay;
 		TSet<uint64> VoronoiEdges;
 		TSet<int32> VoronoiHull;
 		TArray<FSphere> Circumspheres;

@@ -297,7 +297,7 @@ TArray<FPCGPinProperties> UPCGExTupleSettings::OutputPinProperties() const
 FPCGElementPtr UPCGExTupleSettings::CreateElement() const { return MakeShared<FPCGExTupleElement>(); }
 
 
-bool FPCGExTupleElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExTupleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(Tuple)

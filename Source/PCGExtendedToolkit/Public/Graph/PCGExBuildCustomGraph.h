@@ -518,29 +518,10 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BuildCustomGraph)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExBuildCustomGraph
 {
 	const FName SourceOverridesBuilder = TEXT("Overrides : Graph Builder");
-
-	class FBuildGraph final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FBuildGraph)
-
-		FBuildGraph(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		            UPCGExCustomGraphSettings* InGraphSettings) :
-			FTask(),
-			PointIO(InPointIO),
-			GraphSettings(InGraphSettings)
-		{
-		}
-
-		TSharedPtr<PCGExData::FPointIO> PointIO;
-		UPCGExCustomGraphSettings* GraphSettings = nullptr;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
 }

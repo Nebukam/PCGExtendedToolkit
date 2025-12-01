@@ -4,6 +4,8 @@
 #include "Transform/PCGExCopyToPaths.h"
 
 
+#include "PCGExMT.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
@@ -124,7 +126,7 @@ bool FPCGExCopyToPathsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExCopyToPathsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExCopyToPathsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCopyToPathsElement::Execute);
 

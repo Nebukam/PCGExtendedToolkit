@@ -7,7 +7,6 @@
 #include "PCGExScopedContainers.h"
 #include "PCGExSorting.h"
 #include "Data/PCGExDataForward.h"
-#include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Details/PCGExDetailsCluster.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
@@ -19,6 +18,8 @@ MACRO(DiffusionDepth, int32, -1)\
 MACRO(DiffusionOrder, int32, -1)\
 MACRO(DiffusionDistance, double, 0)\
 MACRO(DiffusionEnding, bool, false)
+
+class UPCGExBlendOpFactory;
 
 UENUM()
 enum class EPCGExFloodFillOrder : uint8
@@ -203,7 +204,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ClusterDiffusion)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExClusterDiffusion

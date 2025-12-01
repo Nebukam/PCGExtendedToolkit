@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExDataForward.h"
 
-#include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Topology/PCGExTopology.h"
 
@@ -91,7 +90,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FindAllCells)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExFindAllCells

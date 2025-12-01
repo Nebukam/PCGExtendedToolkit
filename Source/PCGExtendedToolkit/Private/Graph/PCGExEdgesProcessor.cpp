@@ -4,6 +4,8 @@
 #include "Graph/PCGExEdgesProcessor.h"
 
 
+#include "PCGExMT.h"
+#include "PCGExSortingRuleProvider.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"

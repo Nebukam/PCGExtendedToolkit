@@ -4,9 +4,11 @@
 #include "Misc/PCGExDestroyActor.h"
 
 #include "PCGComponent.h"
+#include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSubSystem.h"
 #include "PCGManagedResource.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 
 
@@ -41,7 +43,7 @@ bool FPCGExDestroyActorElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExDestroyActorElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExDestroyActorElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDestroyActorElement::Execute);
 

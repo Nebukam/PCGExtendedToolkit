@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExTangentsInstancedFactory.h"
-#include "Geometry/PCGExGeo.h"
 #include "PCGExTangentsAuto.generated.h"
 
 class FPCGExTangentsAuto : public FPCGExTangentsOperation

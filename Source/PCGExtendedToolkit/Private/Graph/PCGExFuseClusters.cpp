@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExFuseClusters.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExCluster.h"
@@ -84,7 +85,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExFuseClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFuseClustersElement::Execute);
 

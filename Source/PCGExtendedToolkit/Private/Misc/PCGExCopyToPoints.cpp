@@ -6,6 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeo.h"
+#include "Geometry/PCGExGeoTasks.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCopyToPointsElement"
 #define PCGEX_NAMESPACE CopyToPoints
@@ -54,7 +55,7 @@ bool FPCGExCopyToPointsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExCopyToPointsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExCopyToPointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCopyToPointsElement::Execute);
 

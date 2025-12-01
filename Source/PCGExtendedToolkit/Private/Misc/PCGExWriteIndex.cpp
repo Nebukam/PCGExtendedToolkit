@@ -4,6 +4,7 @@
 #include "Misc/PCGExWriteIndex.h"
 
 #include "PCGExBroadcast.h"
+#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
@@ -179,7 +180,7 @@ bool FPCGExWriteIndexElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExWriteIndexElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteIndexElement::Execute);
 

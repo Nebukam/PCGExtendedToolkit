@@ -12,6 +12,7 @@
 
 class UPCGExInstancedFactory;
 class UPCGComponent;
+class IPCGExElement;
 class UPCGManagedComponent;
 struct FStreamableHandle;
 struct FAttachmentTransformRules;

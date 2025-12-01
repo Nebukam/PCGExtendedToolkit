@@ -6,11 +6,16 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExHelpers.h"
-
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Details/PCGExDetailsAttributes.h"
 
 #include "PCGExDrawAttributes.generated.h"
+
+namespace PCGEx
+{
+	template <typename T>
+	class TAttributeBroadcaster;
+}
 
 namespace PCGExData
 {
@@ -197,7 +202,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(DrawAttributes)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 };

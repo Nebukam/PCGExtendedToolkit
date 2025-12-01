@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExModuloCompareFilter.h"
 
 #include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Details/PCGExDetailsSettings.h"

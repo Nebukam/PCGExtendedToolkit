@@ -4,6 +4,7 @@
 #include "Collections/PCGExAssetLoader.h"
 
 #include "PCGExContext.h"
+#include "PCGExMT.h"
 #include "PCGExSubSystem.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
@@ -11,6 +12,56 @@
 
 namespace PCGEx
 {
+	class FDiscoverAssetsTask final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
+
+		FDiscoverAssetsTask(
+			const TSharedPtr<IAssetLoader>& InLoader,
+			const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster)
+			: FTask(),
+			  Loader(InLoader),
+			  Broadcaster(InBroadcaster)
+		{
+		}
+
+		int32 IOIndex = -1;
+		TSharedPtr<IAssetLoader> Loader;
+		TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>> Broadcaster;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			FSoftObjectPath Min;
+			FSoftObjectPath Max;
+			TArray<FSoftObjectPath> ValueDump;
+			Broadcaster->GrabAndDump(ValueDump, false, Min, Max);
+
+			const int32 NumValues = ValueDump.Num();
+
+			TSharedPtr<TArray<PCGExValueHash>> KeysPtrs = MakeShared<TArray<PCGExValueHash>>();
+			KeysPtrs->Init(0, NumValues);
+
+			Loader->Keys[IOIndex] = KeysPtrs;
+			TArray<PCGExValueHash>& Keys = *KeysPtrs.Get();
+
+			TSet<FSoftObjectPath> UniqueValidPaths;
+			UniqueValidPaths.Reserve(NumValues);
+
+			for (int i = 0; i < NumValues; i++)
+			{
+				const FSoftObjectPath& Path = ValueDump[i];
+				if (!Path.IsAsset()) { continue; }
+
+				Keys[i] = PCGExBlend::ValueHash(Path);
+				UniqueValidPaths.Add(Path);
+			}
+
+			UniqueValidPaths.Shrink();
+			Loader->AddUniquePaths(UniqueValidPaths);
+		}
+	};
+
 	IAssetLoader::IAssetLoader(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InIOCollection, const TArray<FName>& InAttributeNames)
 		: AttributeNames(InAttributeNames), Context(InContext), IOCollection(InIOCollection)
 	{
@@ -116,47 +167,13 @@ namespace PCGEx
 		return true;
 	}
 
+	void IAssetLoader::End(const bool bBuildMap)
+	{
+		if (AsyncToken.IsValid()) { AsyncToken.Pin()->Release(); }		
+		if (OnComplete) { OnComplete(); }
+	}
+
 	void IAssetLoader::PrepareLoading()
 	{
-	}
-
-	FDiscoverAssetsTask::FDiscoverAssetsTask(
-		const TSharedPtr<IAssetLoader>& InLoader,
-		const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster)
-		: FTask(),
-		  Loader(InLoader),
-		  Broadcaster(InBroadcaster)
-	{
-	}
-
-	void FDiscoverAssetsTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		FSoftObjectPath Min;
-		FSoftObjectPath Max;
-		TArray<FSoftObjectPath> ValueDump;
-		Broadcaster->GrabAndDump(ValueDump, false, Min, Max);
-
-		const int32 NumValues = ValueDump.Num();
-
-		TSharedPtr<TArray<PCGExValueHash>> KeysPtrs = MakeShared<TArray<PCGExValueHash>>();
-		KeysPtrs->Init(0, NumValues);
-
-		Loader->Keys[IOIndex] = KeysPtrs;
-		TArray<PCGExValueHash>& Keys = *KeysPtrs.Get();
-
-		TSet<FSoftObjectPath> UniqueValidPaths;
-		UniqueValidPaths.Reserve(NumValues);
-
-		for (int i = 0; i < NumValues; i++)
-		{
-			const FSoftObjectPath& Path = ValueDump[i];
-			if (!Path.IsAsset()) { continue; }
-
-			Keys[i] = PCGExBlend::ValueHash(Path);
-			UniqueValidPaths.Add(Path);
-		}
-
-		UniqueValidPaths.Shrink();
-		Loader->AddUniquePaths(UniqueValidPaths);
 	}
 }

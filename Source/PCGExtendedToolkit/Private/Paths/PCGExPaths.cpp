@@ -6,12 +6,14 @@
 #include "Data/PCGSplineData.h"
 #include "Data/PCGSplineStruct.h"
 #include "GeomTools.h"
-#include "Polygon2.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Curve/CurveUtil.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
+#if PCGEX_ENGINE_VERSION > 506
 #include "Data/PCGPolygon2DData.h"
+#endif
 #include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPaths"
@@ -967,6 +969,7 @@ namespace PCGExPaths
 		this->BuildPath(Expansion);
 	}
 
+#if PCGEX_ENGINE_VERSION > 506
 	FPolyPath::FPolyPath(
 		const UPCGPolygon2DData* PolygonData,
 		const FPCGExGeo2DProjectionDetails& InProjection,
@@ -996,6 +999,7 @@ namespace PCGExPaths
 		// Need to force-build path post initializations
 		this->BuildPath(Expansion);
 	}
+#endif
 
 	void FPolyPath::InitFromTransforms(const EPCGExWindingMutation WindingMutation)
 	{

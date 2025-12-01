@@ -5,6 +5,7 @@
 
 
 #include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
 #include "Paths/PCGExSplineToPath.h"
 #include "Transform/Tensors/PCGExTensorOperation.h"
 

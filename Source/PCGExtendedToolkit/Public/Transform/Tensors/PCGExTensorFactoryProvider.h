@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFactoryProvider.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGExTensor.h"
 
 #include "PCGExTensorFactoryProvider.generated.h"
@@ -75,7 +74,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Tensor, "Tensor Definition", "Creates a single tensor field definition.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTensor; }
+	virtual FLinearColor GetNodeTitleColor() const override{ return GetDefault<UPCGExGlobalSettings>()->ColorTensor; }
 #endif
 
 protected:

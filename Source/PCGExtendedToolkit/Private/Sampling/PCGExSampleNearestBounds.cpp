@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleNearestBounds.h"
 
+#include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
@@ -131,7 +132,7 @@ void FPCGExSampleNearestBoundsElement::PostLoadAssetsDependencies(FPCGExContext*
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
 }
 
-bool FPCGExSampleNearestBoundsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleNearestBoundsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestBoundsElement::Execute);
 

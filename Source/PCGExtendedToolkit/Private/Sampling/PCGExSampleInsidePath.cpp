@@ -155,7 +155,7 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSampleInsidePathElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleInsidePathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleInsidePathElement::Execute);
 

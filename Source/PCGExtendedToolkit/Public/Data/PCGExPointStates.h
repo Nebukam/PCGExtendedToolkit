@@ -142,7 +142,7 @@ public:
 #if WITH_EDITOR
 	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
 	PCGEX_NODE_INFOS(PointStateDefinition, "Abstract Point State Definition", "Base class for state factory management.")
-	virtual FLinearColor GetNodeTitleColor() const override;
+	virtual FLinearColor GetNodeTitleColor() const override{ return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
 #endif
 
 	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;

@@ -7,6 +7,7 @@
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 #include "PCGComponent.h"
+#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExPointIO.h"
 
@@ -137,6 +138,156 @@ void UPCGExCustomGraphBuilder::BuildGraph_Implementation(UPCGExCustomGraphSettin
 	InCustomGraphSettings->BuildGraph(OutSuccess);
 }
 
+namespace PCGExBuildCustomGraph
+{
+	class FBuildGraph final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FBuildGraph)
+
+		FBuildGraph(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+		            UPCGExCustomGraphSettings* InGraphSettings) :
+			FTask(),
+			PointIO(InPointIO),
+			GraphSettings(InGraphSettings)
+		{
+		}
+
+		TSharedPtr<PCGExData::FPointIO> PointIO;
+		UPCGExCustomGraphSettings* GraphSettings = nullptr;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			FPCGExBuildCustomGraphContext* Context = AsyncManager->GetContext<FPCGExBuildCustomGraphContext>();
+			PCGEX_SETTINGS(BuildCustomGraph)
+
+			UPCGExCustomGraphBuilder* Builder = Context->Builder;
+
+			bool bInitSuccess = false;
+			int32 NodeReserveNum = 0;
+			int32 EdgeReserveNum = 0;
+
+			{
+				if (!IsInGameThread())
+				{
+					FGCScopeGuard Scope;
+					GraphSettings->InitializeSettings(bInitSuccess, NodeReserveNum, EdgeReserveNum);
+				}
+				else
+				{
+					GraphSettings->InitializeSettings(bInitSuccess, NodeReserveNum, EdgeReserveNum);
+				}
+			}
+
+			if (!bInitSuccess)
+			{
+				if (!Settings->bQuietUnprocessedSettingsWarning)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("A graph builder settings has less than 2 max nodes and won't be processed."));
+				}
+
+				PCGEX_CLEAR_IO_VOID(PointIO)
+				return;
+			}
+
+			if (NodeReserveNum > 0)
+			{
+				GraphSettings->Idx.Reserve(NodeReserveNum);
+				GraphSettings->IdxMap.Reserve(NodeReserveNum);
+			}
+
+			if (EdgeReserveNum > 0)
+			{
+				GraphSettings->UniqueEdges.Reserve(EdgeReserveNum);
+			}
+			else if (NodeReserveNum > 0)
+			{
+				GraphSettings->UniqueEdges.Reserve(NodeReserveNum * 3); // Wild guess
+			}
+
+			bool bSuccessfulBuild = false;
+			Builder->BuildGraph(GraphSettings, bSuccessfulBuild);
+
+			if (!bSuccessfulBuild)
+			{
+				if (!Settings->bQuietFailedBuildGraphWarning)
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("A graph builder 'BuildGraph' returned false."));
+				}
+				return;
+			}
+
+			(void)PCGEx::SetNumPointsAllocated(PointIO->GetOut(), GraphSettings->Idx.Num());
+
+			PCGEX_MAKE_SHARED(NodeDataFacade, PCGExData::FFacade, PointIO.ToSharedRef())
+			PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails)
+			GraphBuilder->OutputNodeIndices = MakeShared<TArray<int32>>();
+
+			GraphSettings->VtxBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>>(NodeDataFacade.ToSharedRef());
+			GraphSettings->GraphBuilder = GraphBuilder;
+
+			GraphBuilder->Graph->InsertEdges(GraphSettings->UniqueEdges, -1);
+
+			bool bSuccessfulAttrInit = false;
+
+			{
+				if (!IsInGameThread())
+				{
+					FGCScopeGuard Scope;
+					GraphSettings->InitPointAttributes(bSuccessfulAttrInit);
+				}
+				else
+				{
+					GraphSettings->InitPointAttributes(bSuccessfulAttrInit);
+				}
+			}
+
+			if (!bSuccessfulAttrInit)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("A graph builder 'InitPointAttributes' returned false."));
+				GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
+				return;
+			}
+
+			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InitNodesGroup)
+
+			TWeakPtr<PCGExData::FPointIO> WeakIO = PointIO;
+			TWeakPtr<PCGExGraph::FGraphBuilder> WeakGraphBuilder = GraphBuilder;
+
+			InitNodesGroup->OnCompleteCallback =
+				[WeakGraphBuilder, AsyncManager]()
+				{
+					const TSharedPtr<PCGExGraph::FGraphBuilder> GBuilder = WeakGraphBuilder.Pin();
+					if (!GBuilder) { return; }
+
+					GBuilder->CompileAsync(AsyncManager, true);
+				};
+
+			UPCGExCustomGraphSettings* CustomGraphSettings = GraphSettings;
+			InitNodesGroup->OnSubLoopStartCallback =
+				[WeakIO, CustomGraphSettings](const PCGExMT::FScope& Scope)
+				{
+					const TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
+					if (!IO) { return; }
+
+					TArray<FPCGPoint> MutablePoints;
+					GetPoints(IO->GetOutScope(Scope), MutablePoints);
+
+					PCGEX_SCOPE_LOOP(i)
+					{
+						FPCGPoint& Point = MutablePoints[i];
+						CustomGraphSettings->UpdateNodePoint(Point, CustomGraphSettings->Idx[i], i, Point);
+					}
+
+					IO->SetPoints(Scope.Start, MutablePoints);
+				};
+
+			PointIO->GetOutKeys(true); // Generate out keys		
+			InitNodesGroup->StartSubLoops(CustomGraphSettings->Idx.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		}
+	};
+}
+
 TArray<FPCGPinProperties> UPCGExBuildCustomGraphSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -177,7 +328,7 @@ bool FPCGExBuildCustomGraphElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBuildCustomGraphElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildCustomGraphElement::Execute);
 
@@ -284,139 +435,6 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(FPCGContext* InContext) cons
 	}
 
 	return Context->TryComplete();
-}
-
-namespace PCGExBuildCustomGraph
-{
-	void FBuildGraph::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		FPCGExBuildCustomGraphContext* Context = AsyncManager->GetContext<FPCGExBuildCustomGraphContext>();
-		PCGEX_SETTINGS(BuildCustomGraph)
-
-		UPCGExCustomGraphBuilder* Builder = Context->Builder;
-
-		bool bInitSuccess = false;
-		int32 NodeReserveNum = 0;
-		int32 EdgeReserveNum = 0;
-
-		{
-			if (!IsInGameThread())
-			{
-				FGCScopeGuard Scope;
-				GraphSettings->InitializeSettings(bInitSuccess, NodeReserveNum, EdgeReserveNum);
-			}
-			else
-			{
-				GraphSettings->InitializeSettings(bInitSuccess, NodeReserveNum, EdgeReserveNum);
-			}
-		}
-
-		if (!bInitSuccess)
-		{
-			if (!Settings->bQuietUnprocessedSettingsWarning)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("A graph builder settings has less than 2 max nodes and won't be processed."));
-			}
-
-			PCGEX_CLEAR_IO_VOID(PointIO)
-			return;
-		}
-
-		if (NodeReserveNum > 0)
-		{
-			GraphSettings->Idx.Reserve(NodeReserveNum);
-			GraphSettings->IdxMap.Reserve(NodeReserveNum);
-		}
-
-		if (EdgeReserveNum > 0)
-		{
-			GraphSettings->UniqueEdges.Reserve(EdgeReserveNum);
-		}
-		else if (NodeReserveNum > 0)
-		{
-			GraphSettings->UniqueEdges.Reserve(NodeReserveNum * 3); // Wild guess
-		}
-
-		bool bSuccessfulBuild = false;
-		Builder->BuildGraph(GraphSettings, bSuccessfulBuild);
-
-		if (!bSuccessfulBuild)
-		{
-			if (!Settings->bQuietFailedBuildGraphWarning)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("A graph builder 'BuildGraph' returned false."));
-			}
-			return;
-		}
-
-		(void)PCGEx::SetNumPointsAllocated(PointIO->GetOut(), GraphSettings->Idx.Num());
-
-		PCGEX_MAKE_SHARED(NodeDataFacade, PCGExData::FFacade, PointIO.ToSharedRef())
-		PCGEX_MAKE_SHARED(GraphBuilder, PCGExGraph::FGraphBuilder, NodeDataFacade.ToSharedRef(), &Settings->GraphBuilderDetails)
-		GraphBuilder->OutputNodeIndices = MakeShared<TArray<int32>>();
-
-		GraphSettings->VtxBuffers = MakeShared<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>>(NodeDataFacade.ToSharedRef());
-		GraphSettings->GraphBuilder = GraphBuilder;
-
-		GraphBuilder->Graph->InsertEdges(GraphSettings->UniqueEdges, -1);
-
-		bool bSuccessfulAttrInit = false;
-
-		{
-			if (!IsInGameThread())
-			{
-				FGCScopeGuard Scope;
-				GraphSettings->InitPointAttributes(bSuccessfulAttrInit);
-			}
-			else
-			{
-				GraphSettings->InitPointAttributes(bSuccessfulAttrInit);
-			}
-		}
-
-		if (!bSuccessfulAttrInit)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("A graph builder 'InitPointAttributes' returned false."));
-			GraphSettings->GraphBuilder->bCompiledSuccessfully = false;
-			return;
-		}
-
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InitNodesGroup)
-
-		TWeakPtr<PCGExData::FPointIO> WeakIO = PointIO;
-		TWeakPtr<PCGExGraph::FGraphBuilder> WeakGraphBuilder = GraphBuilder;
-
-		InitNodesGroup->OnCompleteCallback =
-			[WeakGraphBuilder, AsyncManager]()
-			{
-				const TSharedPtr<PCGExGraph::FGraphBuilder> GBuilder = WeakGraphBuilder.Pin();
-				if (!GBuilder) { return; }
-
-				GBuilder->CompileAsync(AsyncManager, true);
-			};
-
-		UPCGExCustomGraphSettings* CustomGraphSettings = GraphSettings;
-		InitNodesGroup->OnSubLoopStartCallback =
-			[WeakIO, CustomGraphSettings](const PCGExMT::FScope& Scope)
-			{
-				const TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
-				if (!IO) { return; }
-
-				TArray<FPCGPoint> MutablePoints;
-				GetPoints(IO->GetOutScope(Scope), MutablePoints);
-
-				PCGEX_SCOPE_LOOP(i)
-				{
-					FPCGPoint& Point = MutablePoints[i];
-					CustomGraphSettings->UpdateNodePoint(Point, CustomGraphSettings->Idx[i], i, Point);
-				}
-
-				IO->SetPoints(Scope.Start, MutablePoints);
-			};
-
-		PointIO->GetOutKeys(true); // Generate out keys		
-		InitNodesGroup->StartSubLoops(CustomGraphSettings->Idx.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

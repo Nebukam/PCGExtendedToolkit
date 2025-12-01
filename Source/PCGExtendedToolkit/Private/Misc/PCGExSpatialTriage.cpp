@@ -41,7 +41,7 @@ bool FPCGExSpatialTriageElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSpatialTriageElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSpatialTriageElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSpatialTriageElement::Execute);
 

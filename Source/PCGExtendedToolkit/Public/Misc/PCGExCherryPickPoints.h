@@ -5,14 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-
 #include "PCGExPointsProcessor.h"
 
-
-#include "Pickers/PCGExPickerFactoryProvider.h"
-
-
 #include "PCGExCherryPickPoints.generated.h"
+
+class UPCGExPickerFactoryData;
 
 UENUM()
 enum class EPCGExCherryPickSource : uint8
@@ -68,7 +65,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(CherryPickPoints)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExCherryPickPoints

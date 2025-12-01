@@ -4,6 +4,7 @@
 
 #include "Misc/PCGExUberFilterCollections.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
@@ -83,7 +84,7 @@ bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExUberFilterCollectionsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExUberFilterCollectionsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExUberFilterCollectionsElement::Execute);
 

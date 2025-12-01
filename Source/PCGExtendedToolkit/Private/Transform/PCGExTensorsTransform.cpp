@@ -3,6 +3,7 @@
 
 #include "Transform/PCGExTensorsTransform.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
@@ -55,7 +56,7 @@ bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExTensorsTransformElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExTensorsTransformElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExTensorsTransformElement::Execute);
 

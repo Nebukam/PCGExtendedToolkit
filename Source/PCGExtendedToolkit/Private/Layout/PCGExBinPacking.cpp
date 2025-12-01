@@ -4,6 +4,8 @@
 #include "Layout/PCGExBinPacking.h"
 
 
+#include "PCGExMT.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Layout/PCGExLayout.h"
@@ -100,7 +102,7 @@ bool FPCGExBinPackingElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBinPackingElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBinPackingElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBinPackingElement::Execute);
 

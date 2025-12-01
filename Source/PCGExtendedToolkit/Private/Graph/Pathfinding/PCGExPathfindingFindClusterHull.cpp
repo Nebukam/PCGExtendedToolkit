@@ -4,6 +4,7 @@
 #include "Graph/Pathfinding/PCGExPathfindingFindClusterHull.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGPointArrayData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
@@ -45,8 +46,7 @@ bool FPCGExFindClusterHullElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExFindClusterHullElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExFindClusterHullElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindClusterHullElement::Execute);
 
@@ -109,7 +109,7 @@ namespace PCGExFindClusterHull
 
 	void FProcessor::ProcessCell(const TSharedPtr<PCGExTopology::FCell>& InCell)
 	{
-		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New);
 		if (!PathIO) { return; }
 
 		PathIO->Tags->Reset();                                          // Tag forwarding handled by artifacts

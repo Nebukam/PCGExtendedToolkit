@@ -6,9 +6,57 @@
 
 #include "PCGEx.h"
 #include "PCGExContext.h"
+#include "PCGExHelpers.h"
 #include "PCGModule.h"
 #include "Details/PCGExMacros.h"
+#include "Metadata/PCGMetadata.h"
 
+#pragma region legacy
+
+
+FPCGExInputConfig::FPCGExInputConfig(const FPCGAttributePropertyInputSelector& InSelector)
+{
+	Selector.ImportFromOtherSelector(InSelector);
+}
+
+FPCGExInputConfig::FPCGExInputConfig(const FPCGExInputConfig& Other)
+	: Attribute(Other.Attribute)
+{
+	Selector.ImportFromOtherSelector(Other.Selector);
+}
+
+FPCGExInputConfig::FPCGExInputConfig(const FName InName)
+{
+	Selector.Update(InName.ToString());
+}
+
+#if WITH_EDITOR
+FString FPCGExInputConfig::GetDisplayName() const { return GetName().ToString(); }
+
+void FPCGExInputConfig::UpdateUserFacingInfos() { TitlePropertyName = GetDisplayName(); }
+#endif
+
+bool FPCGExInputConfig::Validate(const UPCGData* InData)
+{
+	Selector = Selector.CopyAndFixLast(InData);
+	if (GetSelection() == EPCGAttributePropertySelection::Attribute)
+	{
+		Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(PCGEx::GetAttributeIdentifier(Selector, InData)) : nullptr;
+		UnderlyingType = Attribute ? Attribute->GetTypeId() : static_cast<int16>(EPCGMetadataTypes::Unknown);
+		return Attribute != nullptr;
+	}
+
+	if (Selector.IsValid() &&
+		Selector.GetSelection() == EPCGAttributePropertySelection::Property)
+	{
+		UnderlyingType = static_cast<int16>(PCGEx::GetPropertyType(Selector.GetPointProperty()));
+		return true;
+	}
+
+	return false;
+}
+
+#pragma endregion
 
 bool FPCGExAttributeSourceToTargetDetails::ValidateNames(FPCGExContext* InContext) const
 {

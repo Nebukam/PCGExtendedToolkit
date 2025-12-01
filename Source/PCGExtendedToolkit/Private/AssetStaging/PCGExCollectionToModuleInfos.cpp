@@ -48,21 +48,21 @@ bool FPCGExCollectionToModuleInfosElement::IsCacheable(const UPCGSettings* InSet
 	PCGEX_GET_OPTION_STATE(Settings->CacheData, bDefaultCacheNodeOutput)
 }
 
-bool FPCGExCollectionToModuleInfosElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExCollectionToModuleInfosElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
-	PCGEX_SETTINGS(CollectionToModuleInfos)
+	PCGEX_SETTINGS_C(InContext, CollectionToModuleInfos)
 
 	UPCGExAssetCollection* MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);
 
 	if (!MainCollection)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Mesh collection failed to load."));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Mesh collection failed to load."));
 		return true;
 	}
 
-	TSharedPtr<PCGExStaging::FPickPacker> Packer = MakeShared<PCGExStaging::FPickPacker>(Context);
+	TSharedPtr<PCGExStaging::FPickPacker> Packer = MakeShared<PCGExStaging::FPickPacker>(InContext);
 
-	MainCollection->EDITOR_RegisterTrackingKeys(static_cast<FPCGExContext*>(Context));
+	MainCollection->EDITOR_RegisterTrackingKeys(static_cast<FPCGExContext*>(InContext));
 
 	UPCGParamData* OutputModules = NewObject<UPCGParamData>();
 	UPCGMetadata* Metadata = OutputModules->Metadata;
@@ -92,14 +92,14 @@ bool FPCGExCollectionToModuleInfosElement::ExecuteInternal(FPCGContext* Context)
 #undef PCGEX_MODULE_OUT
 	}
 
-	FPCGTaggedData& ModulesData = Context->OutputData.TaggedData.Emplace_GetRef();
+	FPCGTaggedData& ModulesData = InContext->OutputData.TaggedData.Emplace_GetRef();
 	ModulesData.Pin = FName("ModuleInfos");
 	ModulesData.Data = OutputModules;
 
 	UPCGParamData* OutputMap = NewObject<UPCGParamData>();
 	Packer->PackToDataset(OutputMap);
 
-	FPCGTaggedData& CollectionMapData = Context->OutputData.TaggedData.Emplace_GetRef();
+	FPCGTaggedData& CollectionMapData = InContext->OutputData.TaggedData.Emplace_GetRef();
 	CollectionMapData.Pin = PCGExStaging::OutputCollectionMapLabel;
 	CollectionMapData.Data = OutputMap;
 

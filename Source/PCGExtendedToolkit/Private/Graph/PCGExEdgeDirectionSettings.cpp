@@ -3,8 +3,10 @@
 
 #include "Graph/PCGExEdgeDirectionSettings.h"
 
+#include "PCGExContext.h"
 #include "Data/PCGExDataPreloader.h"
 #include "PCGExSorting.h"
+#include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
 
 void FPCGExEdgeDirectionSettings::RegisterBuffersDependencies(FPCGExContext* InContext, PCGExData::FFacadePreloader& FacadePreloader, const TArray<FPCGExSortRuleConfig>* InSortingRules) const

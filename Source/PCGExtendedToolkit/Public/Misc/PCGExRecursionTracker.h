@@ -40,7 +40,7 @@ namespace PCGExRecursionTracker
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/recursion-tracker"))
-class UPCGExRecursionTrackerSettings : public UPCGSettings
+class UPCGExRecursionTrackerSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
 
@@ -49,7 +49,6 @@ class UPCGExRecursionTrackerSettings : public UPCGSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(Break, "Break", "A Simple Recursion tracker to make working with recursive subgraphs easier. Acts as a \"break\" by tracking a counter, and/or checking if data meet certain requirements.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::ControlFlow; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorConstant); }
@@ -133,12 +132,12 @@ protected:
 	bool bGroupBranchPins = false;
 };
 
-class FPCGExRecursionTrackerElement final : public IPCGElement
+class FPCGExRecursionTrackerElement final : public IPCGExElement
 {
 public:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 
 protected:
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 };

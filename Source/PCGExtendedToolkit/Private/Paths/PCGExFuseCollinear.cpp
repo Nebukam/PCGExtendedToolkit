@@ -4,6 +4,7 @@
 #include "Paths/PCGExFuseCollinear.h"
 
 #include "PCGExMath.h"
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPaths.h"
@@ -28,7 +29,7 @@ bool FPCGExFuseCollinearElement::Boot(FPCGExContext* InContext) const
 }
 
 
-bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExFuseCollinearElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFuseCollinearElement::Execute);
 

@@ -134,7 +134,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(RefineEdges)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExRefineEdges
@@ -197,18 +197,5 @@ namespace PCGExRefineEdges
 		virtual void RegisterBuffersDependencies(PCGExData::FFacadePreloader& FacadePreloader) override;
 		virtual void OnProcessingPreparationComplete() override;
 		virtual void Write() override;
-	};
-
-	class FSanitizeRangeTask final : public PCGExMT::FScopeIterationTask
-	{
-	public:
-		explicit FSanitizeRangeTask(const TSharedPtr<FProcessor>& InProcessor):
-			FScopeIterationTask(),
-			Processor(InProcessor)
-		{
-		}
-
-		TSharedPtr<FProcessor> Processor;
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

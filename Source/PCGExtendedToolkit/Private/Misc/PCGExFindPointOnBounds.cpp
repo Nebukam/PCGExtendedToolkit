@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExFindPointOnBounds.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Geometry/PCGExGeo.h"
@@ -50,7 +51,7 @@ bool FPCGExFindPointOnBoundsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExFindPointOnBoundsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExFindPointOnBoundsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindPointOnBoundsElement::Execute);
 

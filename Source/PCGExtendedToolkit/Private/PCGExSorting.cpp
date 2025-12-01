@@ -4,7 +4,7 @@
 #include "PCGExSorting.h"
 
 #include "PCGExCompare.h"
-#include "PCGExGlobalSettings.h"
+#include "PCGExSortingRuleProvider.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
@@ -16,8 +16,6 @@
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
-
-PCG_DEFINE_TYPE_INFO(FPCGExDataTypeInfoSortRule, UPCGExSortingRule)
 
 FPCGExSortRuleConfig::FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other)
 	: FPCGExInputConfig(Other),
@@ -88,32 +86,6 @@ void FPCGExCollectionSortingDetails::Sort(const FPCGExContext* InContext, const 
 
 	for (int i = 0; i < Pairs.Num(); i++) { Pairs[i]->IOIndex = i; }
 }
-
-bool UPCGExSortingRule::RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const
-{
-	if (!Super::RegisterConsumableAttributesWithData(InContext, InData)) { return false; }
-
-	FName Consumable;
-	PCGEX_CONSUMABLE_SELECTOR(Config.Selector, Consumable)
-
-	return true;
-}
-
-#if WITH_EDITOR
-FLinearColor UPCGExSortingRuleProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorSortRule; }
-#endif
-
-UPCGExFactoryData* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
-{
-	UPCGExSortingRule* NewFactory = InContext->ManagedObjects->New<UPCGExSortingRule>();
-	NewFactory->Priority = Priority;
-	NewFactory->Config = Config;
-	return Super::CreateFactory(InContext, NewFactory);
-}
-
-#if WITH_EDITOR
-FString UPCGExSortingRuleProviderSettings::GetDisplayName() const { return Config.GetDisplayName(); }
-#endif
 
 namespace PCGExSorting
 {

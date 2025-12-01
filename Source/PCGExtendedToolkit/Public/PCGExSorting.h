@@ -5,13 +5,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExFactoryProvider.h"
-#include "Data/PCGExAttributeHelpers.h"
-
+#include "PCGExCommon.h"
+#include "Details/PCGExDetailsAttributes.h"
 #include "PCGExSorting.generated.h"
+
+struct FPCGContext;
+enum class EPCGPinStatus : uint8;
+struct FPCGPinProperties;
 
 namespace PCGExData
 {
+	struct FElement;
+	class FFacade;
+	class IDataValue;
+	class FPointIOCollection;
 	class IBufferProxy;
 }
 
@@ -78,68 +85,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCollectionSortingDetails
 
 	bool Init(const FPCGContext* InContext);
 	void Sort(const FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InCollection) const;
-};
-
-USTRUCT(meta=(PCG_DataTypeDisplayName="PCGEx | Sort Rule"))
-struct FPCGExDataTypeInfoSortRule : public FPCGExFactoryDataTypeInfo
-{
-	GENERATED_BODY()
-	PCG_DECLARE_TYPE_INFO(PCGEXTENDEDTOOLKIT_API)
-};
-
-/**
- * 
- */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExSortingRule : public UPCGExFactoryData
-{
-	GENERATED_BODY()
-
-public:
-	PCG_ASSIGN_TYPE_INFO(FPCGExDataTypeInfoSortRule)
-
-	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RuleSort; }
-
-	int32 Priority;
-	FPCGExSortRuleConfig Config;
-
-	virtual bool RegisterConsumableAttributesWithData(FPCGExContext* InContext, const UPCGData* InData) const override;
-};
-
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExSortingRuleProviderSettings : public UPCGExFactoryProviderSettings
-{
-	GENERATED_BODY()
-
-protected:
-	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoSortRule)
-
-public:
-	//~Begin UPCGSettings
-#if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		SortingRuleFactory, "Sorting Rule", "Creates an single sorting rule to be used with the Sort Points node.",
-		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override;
-#endif
-	//~End UPCGSettings
-
-	//~Begin UPCGExFactoryProviderSettings
-	virtual FName GetMainOutputPin() const override { return FName("SortingRule"); }
-	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
-
-#if WITH_EDITOR
-	virtual FString GetDisplayName() const override;
-#endif
-	//~End UPCGExFactoryProviderSettings
-
-	/** Filter Priority.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1), AdvancedDisplay)
-	int32 Priority = 0;
-
-	/** Rule Config */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSortRuleConfig Config;
 };
 
 namespace PCGExSorting

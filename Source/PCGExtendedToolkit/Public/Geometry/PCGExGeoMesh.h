@@ -5,13 +5,16 @@
 
 #include "CoreMinimal.h"
 #include "Engine/StaticMesh.h"
-#include "StaticMeshResources.h"
-#include "UObject/SoftObjectPath.h"
 #include "Metadata/PCGMetadataCommon.h"
 
-#include "PCGExMT.h"
-
 #include "PCGExGeoMesh.generated.h" // Credit goes to @Syscrusher attention to detail :D
+
+struct FPCGExContext;
+
+namespace PCGExMT
+{
+	class FTaskManager;
+}
 
 struct FPCGPinProperties;
 
@@ -165,17 +168,5 @@ namespace PCGExGeo
 		int32 Find(const FSoftObjectPath& InPath);
 
 		TSharedPtr<FGeoStaticMesh> GetMesh(const int32 Index) { return GSMs[Index]; }
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FExtractStaticMeshTask final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FExtractStaticMeshTask)
-
-		explicit FExtractStaticMeshTask(const TSharedPtr<FGeoStaticMesh>& InGSM);
-
-		TSharedPtr<FGeoStaticMesh> GSM;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

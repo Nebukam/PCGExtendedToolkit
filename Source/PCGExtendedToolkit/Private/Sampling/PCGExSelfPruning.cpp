@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSelfPruning.h"
 
+#include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "PCGExSorting.h"
 #include "PCGParamData.h"
@@ -11,6 +12,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGPointData.h"
 #include "Details/PCGExDetailsSettings.h"
+#include "Geometry/PCGExGeo.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSelfPruningElement"
 #define PCGEX_NAMESPACE SelfPruning
@@ -53,7 +55,7 @@ bool FPCGExSelfPruningElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSelfPruningElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSelfPruningElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSelfPruningElement::Execute);
 

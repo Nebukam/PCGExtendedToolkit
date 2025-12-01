@@ -6,6 +6,7 @@
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Geometry/PCGExGeoTasks.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -72,7 +73,7 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExCopyClustersToPointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCopyClustersToPointsElement::Execute);
 

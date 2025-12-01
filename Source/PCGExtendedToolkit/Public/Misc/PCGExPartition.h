@@ -7,6 +7,7 @@
 #include "PCGExMath.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
+#include "Details/PCGExDetailsAttributes.h"
 
 #include "PCGExPartition.generated.h"
 

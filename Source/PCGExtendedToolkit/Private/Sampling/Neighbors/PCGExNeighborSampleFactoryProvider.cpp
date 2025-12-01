@@ -4,6 +4,7 @@
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 
 #include "PCGPin.h"
+#include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
 
 

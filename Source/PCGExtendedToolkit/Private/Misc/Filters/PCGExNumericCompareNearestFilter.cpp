@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExNumericCompareNearestFilter.h"
 
 #include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
 #include "Details/PCGExDetailsSettings.h"
 
 

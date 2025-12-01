@@ -22,7 +22,7 @@ enum class EPCGExSubCollectionToSet : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="assets-management/asset-collection-to-set"))
-class UPCGExAssetCollectionToSetSettings : public UPCGSettings
+class UPCGExAssetCollectionToSetSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
 
@@ -38,7 +38,6 @@ class UPCGExAssetCollectionToSetSettings : public UPCGSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(AssetCollectionToSet, "Asset Collection to Set", "Converts an asset collection to an attribute set.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
@@ -129,12 +128,9 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Nesting Depth", EditCondition="bWriteNestingDepth"))
 	FName NestingDepthAttributeName = FName("NestingDepth");
 
-	/** Cache the results of this node. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
-	EPCGExOptionState CacheData = EPCGExOptionState::Default;
 };
 
-class FPCGExAssetCollectionToSetElement final : public IPCGElement
+class FPCGExAssetCollectionToSetElement final : public IPCGExElement
 {
 public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
@@ -143,7 +139,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 	static void ProcessEntry(
 		const FPCGExAssetCollectionEntry* InEntry,
 		TArray<const FPCGExAssetCollectionEntry*>& OutEntries,

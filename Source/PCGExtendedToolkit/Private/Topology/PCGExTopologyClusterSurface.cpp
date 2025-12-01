@@ -3,6 +3,8 @@
 
 #include "Topology/PCGExTopologyClusterSurface.h"
 
+#include "PCGExMT.h"
+#include "Data/PCGExData.h"
 #include "GeometryScript/PolygonFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "Graph/PCGExCluster.h"
@@ -21,8 +23,7 @@ bool FPCGExTopologyClusterSurfaceElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExTopologyClusterSurfaceElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExTopologyClusterSurfaceElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExTopologyEdgesProcessorElement::Execute);
 

@@ -4,9 +4,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "PCGExMT.h"
 #include "Data/PCGExValueHash.h"
+
+struct FPCGExContext;
+
+namespace PCGExMT
+{
+	class FAsyncToken;
+	class FTaskManager;
+}
+
+struct FStreamableHandle;
 
 namespace PCGExData
 {
@@ -56,10 +64,8 @@ namespace PCGEx
 
 		virtual bool Load();
 
-		virtual void End(const bool bBuildMap = false)
-		{
-		}
-
+		virtual void End(const bool bBuildMap = false);
+		
 		virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector)
 		{
 		}
@@ -109,8 +115,7 @@ namespace PCGEx
 				}
 			}
 
-			if (AsyncToken.IsValid()) { AsyncToken.Pin()->Release(); }
-			if (OnComplete) { OnComplete(); }
+			IAssetLoader::End();
 		}
 
 	protected:
@@ -118,21 +123,5 @@ namespace PCGEx
 		{
 			AssetsMap.Reserve(UniquePaths.Num());
 		}
-	};
-
-	class FDiscoverAssetsTask final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
-
-		FDiscoverAssetsTask(
-			const TSharedPtr<IAssetLoader>& InLoader,
-			const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster);
-
-		int32 IOIndex = -1;
-		TSharedPtr<IAssetLoader> Loader;
-		TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>> Broadcaster;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

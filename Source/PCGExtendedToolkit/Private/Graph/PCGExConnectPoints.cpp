@@ -4,6 +4,7 @@
 #include "Graph/PCGExConnectPoints.h"
 
 
+#include "PCGExMT.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -63,7 +64,7 @@ bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExConnectPointsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExConnectPointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectPointsElement::Execute);
 

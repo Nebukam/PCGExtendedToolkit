@@ -57,7 +57,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(LloydRelax)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExLloydRelax
@@ -79,26 +79,5 @@ namespace PCGExLloydRelax
 		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
 
 		virtual void CompleteWork() override;
-	};
-
-	class FLloydRelaxTask final : public PCGExMT::FPCGExIndexedTask
-	{
-	public:
-		FLloydRelaxTask(const int32 InTaskIndex,
-		                const TSharedPtr<FProcessor>& InProcessor,
-		                const FPCGExInfluenceDetails* InInfluenceSettings,
-		                const int32 InNumIterations) :
-			FPCGExIndexedTask(InTaskIndex),
-			Processor(InProcessor),
-			InfluenceSettings(InInfluenceSettings),
-			NumIterations(InNumIterations)
-		{
-		}
-
-		TSharedPtr<FProcessor> Processor;
-		const FPCGExInfluenceDetails* InfluenceSettings = nullptr;
-		int32 NumIterations = 0;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

@@ -3,8 +3,10 @@
 
 #include "Graph/PCGExBreakClustersToPaths.h"
 
-
+#include "PCGExMT.h"
 #include "Curve/CurveUtil.h"
+#include "Data/PCGExData.h"
+#include "Data/PCGPointArrayData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExChain.h"
@@ -41,8 +43,7 @@ bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExBreakClustersToPathsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBreakClustersToPathsElement::Execute);
 
@@ -118,7 +119,7 @@ namespace PCGExBreakClustersToPaths
 			Context->OutputPaths->IncreaseReserve(NumEdges);
 			for (int i = 0; i < NumEdges; ++i)
 			{
-				ChainsIO.Add(Context->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
+				ChainsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 			}
 
 			StartParallelLoopForEdges();
@@ -157,7 +158,7 @@ namespace PCGExBreakClustersToPaths
 		Context->OutputPaths->IncreaseReserve(NumChains);
 		for (int i = 0; i < NumChains; ++i)
 		{
-			ChainsIO.Add(Context->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
+			ChainsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 		}
 
 		StartParallelLoopForRange(ChainBuilder->Chains.Num());

@@ -8,7 +8,6 @@
 #include "PCGExData.h"
 #include "PCGExDataFilter.h"
 #include "PCGExDataHelpers.h"
-#include "PCGExMT.h"
 #include "PCGExPointIO.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
@@ -137,43 +136,4 @@ namespace PCGExPointIOMerger
 			}
 		}
 	}
-
-	class PCGEXTENDEDTOOLKIT_API FCopyAttributeTask final : public PCGExMT::FPCGExIndexedTask
-	{
-	public:
-		FCopyAttributeTask(const int32 InTaskIndex, const TSharedPtr<FPCGExPointIOMerger>& InMerger);
-
-		TSharedPtr<FPCGExPointIOMerger> Merger;
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
-	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FWriteAttributeScopeTask final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FWriteAttributeScopeTask)
-
-		FWriteAttributeScopeTask(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const FMergeScope& InScope,
-			const FIdentityRef& InIdentity,
-			const TSharedPtr<PCGExData::TBuffer<T>>& InOutBuffer)
-			: FTask(),
-			  PointIO(InPointIO),
-			  Scope(InScope),
-			  Identity(InIdentity),
-			  OutBuffer(InOutBuffer)
-		{
-		}
-
-		const TSharedPtr<PCGExData::FPointIO> PointIO;
-		const FMergeScope Scope;
-		const FIdentityRef Identity;
-		const TSharedPtr<PCGExData::TBuffer<T>> OutBuffer;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
-		{
-			ScopeMerge<T>(Scope, Identity, PointIO, OutBuffer);
-		}
-	};
 }

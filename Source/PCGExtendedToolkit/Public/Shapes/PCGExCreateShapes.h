@@ -24,7 +24,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(CreateShapes, "Create Shapes", "Use shape builders to create shapes from input seed points.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorTransform; }
+	virtual FLinearColor GetNodeTitleColor() const override{ return GetDefault<UPCGExGlobalSettings>()->ColorTransform; }
 #endif
 
 protected:
@@ -78,7 +78,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(CreateShapes)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExCreateShapes
@@ -116,26 +116,5 @@ namespace PCGExCreateShapes
 		const TSharedRef<PCGExData::FFacade>& ShapeDataFacade,
 		const TSharedPtr<FPCGExShapeBuilderOperation>& Operation,
 		const TSharedPtr<PCGExShapes::FShape>& Shape);
-
-	class FBuildShape final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FBuildShape)
-
-		FBuildShape(const TSharedPtr<FPCGExShapeBuilderOperation>& InOperation,
-		            const TSharedRef<PCGExData::FFacade>& InShapeDataFacade,
-		            const TSharedPtr<PCGExShapes::FShape>& InShape) :
-			FTask(),
-			ShapeDataFacade(InShapeDataFacade),
-			Operation(InOperation),
-			Shape(InShape)
-		{
-		}
-
-		TSharedRef<PCGExData::FFacade> ShapeDataFacade;
-		TSharedPtr<FPCGExShapeBuilderOperation> Operation;
-		TSharedPtr<PCGExShapes::FShape> Shape;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
+	
 }

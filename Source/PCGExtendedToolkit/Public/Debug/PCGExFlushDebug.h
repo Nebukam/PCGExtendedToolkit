@@ -10,7 +10,7 @@
 #include "PCGExFlushDebug.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
-class UPCGExDebugSettings : public UPCGSettings
+class UPCGExDebugSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
 
@@ -19,7 +19,6 @@ class UPCGExDebugSettings : public UPCGSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(FlushDebug, "Flush Debug", "Flush persistent debug lines.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return CustomColor; }
@@ -48,13 +47,13 @@ struct FPCGExDebugContext final : FPCGExContext
 	bool bWait = true;
 };
 
-class FPCGExDebugElement final : public IPCGElement
+class FPCGExDebugElement final : public IPCGExElement
 {
 protected:
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 
 	PCGEX_ELEMENT_CREATE_CONTEXT(Debug)
 
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 };

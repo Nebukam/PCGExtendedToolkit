@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExTimeFilter.h"
 
 
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"

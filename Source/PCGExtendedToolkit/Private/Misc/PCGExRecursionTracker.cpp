@@ -118,7 +118,7 @@ FPCGElementPtr UPCGExRecursionTrackerSettings::CreateElement() const { return Ma
 
 #pragma endregion
 
-bool FPCGExRecursionTrackerElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExRecursionTrackerElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(RecursionTracker)

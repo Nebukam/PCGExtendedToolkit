@@ -3,6 +3,8 @@
 
 #include "Data/PCGExPointFilter.h"
 
+#include "PCGExLabels.h"
+#include "PCGExMT.h"
 #include "PCGExSubSystem.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -374,6 +376,7 @@ namespace PCGExPointFilter
 		const int32 NumResults = PointDataFacade->Source->GetNum();
 		Results.Init(false, NumResults);
 	}
+
 
 	void RegisterBuffersDependencies(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExPointFilterFactoryData>>& InFactories, PCGExData::FFacadePreloader& FacadePreloader)
 	{

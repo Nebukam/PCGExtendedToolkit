@@ -4,6 +4,7 @@
 
 #include "Misc/PCGExUberBranch.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
@@ -107,7 +108,7 @@ bool FPCGExUberBranchElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExUberBranchElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExUberBranchElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExUberBranchElement::Execute);
 

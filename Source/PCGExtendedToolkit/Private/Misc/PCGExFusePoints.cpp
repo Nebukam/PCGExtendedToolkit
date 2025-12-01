@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExFusePoints.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Details/PCGExDetailsDistances.h"
@@ -50,7 +51,7 @@ bool FPCGExFusePointsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExFusePointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::Execute);
 

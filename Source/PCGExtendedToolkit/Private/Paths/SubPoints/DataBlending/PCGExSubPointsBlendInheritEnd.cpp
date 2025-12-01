@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInheritEnd.h"
+
+#include "PCGExMT.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Sampling/PCGExGetTextureData.h"
 

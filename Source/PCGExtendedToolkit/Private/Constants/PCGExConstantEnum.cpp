@@ -254,7 +254,7 @@ FPCGElementPtr UPCGExConstantEnumSettings::CreateElement() const
 	return MakeShared<FPCGExConstantEnumElement>();
 }
 
-bool FPCGExConstantEnumElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExConstantEnumElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(ConstantEnum)

@@ -4,10 +4,13 @@
 #include "Geometry/PCGExGeoMesh.h"
 
 #include "CoreMinimal.h"
+#include "StaticMeshResources.h"
+
 #include "PCGEx.h"
-#include "PCGExContext.h"
 #include "PCGExH.h"
+#include "PCGExContext.h"
 #include "PCGExHelpers.h"
+#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "StaticMeshResources.h"
 #include "Engine/StaticMesh.h"
@@ -71,6 +74,24 @@ bool FPCGExGeoMeshImportDetails::WantsImport() const
 
 namespace PCGExGeo
 {
+	class PCGEXTENDEDTOOLKIT_API FExtractStaticMeshTask final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FExtractStaticMeshTask)
+
+		explicit FExtractStaticMeshTask(const TSharedPtr<FGeoStaticMesh>& InGSM)
+			: FTask(), GSM(InGSM)
+		{
+		}
+
+		TSharedPtr<FGeoStaticMesh> GSM;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			GSM->ExtractMeshSynchronous();
+		}
+	};
+
 	void DeclareGeoMeshImportInputs(const FPCGExGeoMeshImportDetails& InDetails, TArray<FPCGPinProperties>& PinProperties)
 	{
 		if (!InDetails.bImportUVs) { return; }
@@ -399,15 +420,5 @@ namespace PCGExGeo
 		GSM->DesiredTriangulationType = DesiredTriangulationType;
 		Map.Add(InPath, Index);
 		return Index;
-	}
-
-	FExtractStaticMeshTask::FExtractStaticMeshTask(const TSharedPtr<FGeoStaticMesh>& InGSM) :
-		FTask(), GSM(InGSM)
-	{
-	}
-
-	void FExtractStaticMeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		GSM->ExtractMeshSynchronous();
 	}
 }

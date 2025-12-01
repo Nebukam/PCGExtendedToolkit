@@ -130,26 +130,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(MeshToClusters)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 };
-
-namespace PCGExMeshToCluster
-{
-	class FExtractMeshAndBuildGraph final : public PCGExMT::FPCGExIndexedTask
-	{
-	public:
-		FExtractMeshAndBuildGraph(
-			const int32 InTaskIndex,
-			const TSharedPtr<PCGExGeo::FGeoStaticMesh>& InMesh) :
-			FPCGExIndexedTask(InTaskIndex),
-			Mesh(InMesh)
-		{
-		}
-
-		TSharedPtr<PCGExGeo::FGeoStaticMesh> Mesh;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-}

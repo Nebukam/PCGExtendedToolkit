@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "Data/PCGExPointFilter.h"
-
+#include "Details/PCGExVersion.h"
 #include "Paths/PCGExPaths.h"
 #include "PCGExPolyPathFilterFactory.generated.h"
 
@@ -108,9 +108,11 @@ namespace PCGExPathInclusion
 		Skip
 	};
 
+#if PCGEX_ENGINE_VERSION > 506
 	PCGEXTENDEDTOOLKIT_API
 	FPCGDataTypeIdentifier GetInclusionIdentifier();
-
+#endif
+	
 #if WITH_EDITOR
 	static FString ToString(const EPCGExSplineCheckType Check)
 	{

@@ -7,11 +7,16 @@
 #include "PCGExLabels.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
-#include "Collections/PCGExAssetCollection.h"
 #include "Collections/PCGExComponentDescriptors.h"
+#include "Details/PCGExDetailsStaging.h"
 #include "Tangents/PCGExTangentsInstancedFactory.h"
 
 #include "PCGExPathSplineMeshSimple.generated.h"
+
+namespace PCGExMT
+{
+	class FScopeLoopOnMainThread;
+}
 
 struct FPCGObjectPropertyOverrideDescription;
 
@@ -198,7 +203,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PathSplineMeshSimple)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExPathSplineMeshSimple

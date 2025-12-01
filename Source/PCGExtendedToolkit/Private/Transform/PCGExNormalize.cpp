@@ -3,6 +3,7 @@
 
 #include "Transform/PCGExNormalize.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
@@ -60,7 +61,7 @@ bool FPCGExNormalizeElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExNormalizeElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExNormalizeElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExNormalizeElement::Execute);
 

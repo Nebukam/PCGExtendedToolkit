@@ -4,6 +4,7 @@
 #include "Data/PCGExAttributeHasher.h"
 
 #include "PCGExGlobalSettings.h"
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"

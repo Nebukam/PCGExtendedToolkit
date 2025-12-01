@@ -32,7 +32,7 @@ bool FPCGExPartitionVerticesElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPartitionVerticesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPartitionVerticesElement::Execute);
 

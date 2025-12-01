@@ -65,7 +65,7 @@ TArray<FPCGPinProperties> UPCGExBitmaskSettings::OutputPinProperties() const
 FPCGElementPtr UPCGExBitmaskSettings::CreateElement() const { return MakeShared<FPCGExBitmaskElement>(); }
 
 
-bool FPCGExBitmaskElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBitmaskElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(Bitmask)

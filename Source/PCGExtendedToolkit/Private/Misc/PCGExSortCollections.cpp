@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExSortCollections.h"
+#include "PCGModule.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSortCollectionsElement"
 #define PCGEX_NAMESPACE SortCollections
@@ -50,7 +51,7 @@ bool FPCGExSortCollectionsElement::Boot(FPCGExContext* InContext) const
 	return Context->Sorter->Init(InContext, Context->Datas);
 }
 
-bool FPCGExSortCollectionsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSortCollectionsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortCollectionsElement::Execute);
 

@@ -123,7 +123,7 @@ bool FPCGExReduceDataAttributeElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExReduceDataAttributeElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExReduceDataAttributeElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExReduceDataAttributeElement::Execute);
 
