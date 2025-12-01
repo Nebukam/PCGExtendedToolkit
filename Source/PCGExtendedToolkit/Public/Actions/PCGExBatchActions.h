@@ -68,7 +68,7 @@ class FPCGExBatchActionsElement final : public FPCGExPointsProcessorElement
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BatchActions)
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExBatchActions

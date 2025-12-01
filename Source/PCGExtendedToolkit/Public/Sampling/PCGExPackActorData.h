@@ -15,6 +15,12 @@
 
 #include "PCGExPackActorData.generated.h"
 
+namespace PCGExMT
+{
+	class FAsyncToken;
+	class FScopeLoopOnMainThread;
+}
+
 namespace PCGExPackActorData
 {
 }
@@ -629,7 +635,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PackActorData)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExPackActorData

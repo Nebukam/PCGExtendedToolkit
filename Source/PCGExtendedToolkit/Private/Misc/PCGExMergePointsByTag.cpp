@@ -227,7 +227,7 @@ bool FPCGExMergePointsByTagElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExMergePointsByTagElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMergePointsByTagElement::Execute);
 

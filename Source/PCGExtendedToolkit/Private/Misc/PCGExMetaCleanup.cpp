@@ -22,7 +22,7 @@ bool FPCGExMetaCleanupElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExMetaCleanupElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExMetaCleanupElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMetaCleanupElement::Execute);
 

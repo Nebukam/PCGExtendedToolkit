@@ -8,7 +8,6 @@
 #include "Details/PCGExDetailsIntersection.h"
 #include "Geometry/PCGExGeo.h"
 
-
 #include "Sampling/PCGExSampling.h"
 #include "PCGExWritePathProperties.generated.h"
 
@@ -57,6 +56,12 @@ namespace PCGExPaths
 	class FPathEdgeBinormal;
 	class FPathEdgeLength;
 	class FPath;
+}
+
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
 }
 
 /**
@@ -394,7 +399,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(WritePathProperties)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExWritePathProperties

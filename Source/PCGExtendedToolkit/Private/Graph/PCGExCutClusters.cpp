@@ -4,6 +4,7 @@
 #include "Graph/PCGExCutClusters.h"
 
 #include "PCGExMathBounds.h"
+#include "PCGExMT.h"
 
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -101,8 +102,7 @@ bool FPCGExCutEdgesElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExCutEdgesElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExCutEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCutEdgesElement::Execute);
 

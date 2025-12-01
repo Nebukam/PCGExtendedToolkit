@@ -5,6 +5,7 @@
 
 #include "DrawDebugHelpers.h"
 #include "PCGExMath.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointElements.h"
 #include "Data/PCGExPointIO.h"
 
@@ -234,7 +235,7 @@ bool FPCGExDrawAttributesElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExDrawAttributesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawAttributesElement::Execute);
 

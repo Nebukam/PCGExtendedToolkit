@@ -5,6 +5,7 @@
 
 
 #include "PCGExLabels.h"
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -38,8 +39,7 @@ bool FPCGExBuildConvexHullElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBuildConvexHullElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExBuildConvexHullElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildConvexHullElement::Execute);
 

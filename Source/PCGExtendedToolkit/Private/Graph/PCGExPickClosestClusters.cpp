@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExPickClosestClusters.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIOMerger.h"
 #include "Graph/PCGExCluster.h"
@@ -99,8 +100,7 @@ bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPickClosestClustersElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExPickClosestClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPickClosestClustersElement::Execute);
 

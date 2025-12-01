@@ -36,7 +36,7 @@ bool FPCGExBoundsClustersIntersectionElement::Boot(FPCGExContext* InContext) con
 	return true;
 }
 
-bool FPCGExBoundsClustersIntersectionElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBoundsClustersIntersectionElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBoundsClustersIntersectionElement::Execute);
 

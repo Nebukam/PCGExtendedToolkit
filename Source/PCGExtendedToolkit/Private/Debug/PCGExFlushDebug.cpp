@@ -31,7 +31,7 @@ FPCGElementPtr UPCGExDebugSettings::CreateElement() const { return MakeShared<FP
 
 #pragma endregion
 
-bool FPCGExDebugElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExDebugElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	PCGEX_CONTEXT_AND_SETTINGS(Debug)
 

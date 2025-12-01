@@ -7,11 +7,17 @@
 #include "PCGExAttributeHelpers.h"
 #include "UObject/Object.h"
 
-#include "PCGExData.h"
-#include "PCGExMT.h"
+namespace PCGExMT
+{
+	class FAsyncMultiHandle;
+	class FTaskManager;
+}
+
+struct FPCGContextHandle;
 
 namespace PCGExData
 {
+	class IBuffer;
 	PCGEX_CTX_STATE(State_PreloadingData)
 
 	enum class EBufferPreloadType : uint8

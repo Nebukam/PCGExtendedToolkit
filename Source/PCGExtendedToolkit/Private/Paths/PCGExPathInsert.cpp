@@ -35,7 +35,7 @@ bool FPCGExPathInsertElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPathInsertElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathInsertElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathInsertElement::Execute);
 

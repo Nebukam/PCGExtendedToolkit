@@ -35,7 +35,7 @@ bool FPCGExGetGUIDElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExGetGUIDElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExGetGUIDElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGetGUIDElement::Execute);
 

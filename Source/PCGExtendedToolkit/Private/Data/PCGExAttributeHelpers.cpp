@@ -19,48 +19,6 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendMinMax.h"
 
-FPCGExInputConfig::FPCGExInputConfig(const FPCGAttributePropertyInputSelector& InSelector)
-{
-	Selector.ImportFromOtherSelector(InSelector);
-}
-
-FPCGExInputConfig::FPCGExInputConfig(const FPCGExInputConfig& Other)
-	: Attribute(Other.Attribute)
-{
-	Selector.ImportFromOtherSelector(Other.Selector);
-}
-
-FPCGExInputConfig::FPCGExInputConfig(const FName InName)
-{
-	Selector.Update(InName.ToString());
-}
-
-#if WITH_EDITOR
-FString FPCGExInputConfig::GetDisplayName() const { return GetName().ToString(); }
-
-void FPCGExInputConfig::UpdateUserFacingInfos() { TitlePropertyName = GetDisplayName(); }
-#endif
-
-bool FPCGExInputConfig::Validate(const UPCGData* InData)
-{
-	Selector = Selector.CopyAndFixLast(InData);
-	if (GetSelection() == EPCGAttributePropertySelection::Attribute)
-	{
-		Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(PCGEx::GetAttributeIdentifier(Selector, InData)) : nullptr;
-		UnderlyingType = Attribute ? Attribute->GetTypeId() : static_cast<int16>(EPCGMetadataTypes::Unknown);
-		return Attribute != nullptr;
-	}
-
-	if (Selector.IsValid() &&
-		Selector.GetSelection() == EPCGAttributePropertySelection::Property)
-	{
-		UnderlyingType = static_cast<int16>(PCGEx::GetPropertyType(Selector.GetPointProperty()));
-		return true;
-	}
-
-	return false;
-}
-
 bool PCGEx::FAttributeIdentity::InDataDomain() const
 {
 	return Identifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Data;

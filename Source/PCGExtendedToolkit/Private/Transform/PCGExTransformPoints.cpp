@@ -3,6 +3,7 @@
 
 #include "Transform/PCGExTransformPoints.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -25,7 +26,7 @@ bool FPCGExTransformPointsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExTransformPointsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExTransformPointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExTransformPointsElement::Execute);
 
@@ -112,6 +113,9 @@ namespace PCGExTransformPoints
 		ScaleSnap = Settings->ScaleSnap.GetValueSetting();
 		if (!ScaleSnap->Init(PointDataFacade)) { return false; }
 
+		UniformScale = Settings->UniformScale.GetValueSetting();
+		if (!UniformScale->Init(PointDataFacade)) { return false; }
+
 		StartParallelLoopForPoints();
 
 		return true;
@@ -153,6 +157,7 @@ namespace PCGExTransformPoints
 			const FVector ScaleSnapV = ScaleSnap->Read(Index);
 
 			const bool bAbsoluteOffset = AbsoluteOffset->Read(Index);
+			const bool bUniformScale = UniformScale->Read(Index);
 
 			FPCGExFittingVariations Variations(
 					OffsetMinV, OffsetMaxV,
@@ -162,7 +167,8 @@ namespace PCGExTransformPoints
 					Settings->SnapRotation, RotSnapV,
 					Settings->AbsoluteRotation,
 					ScaleMinV, ScaleMaxV,
-					Settings->SnapScale, ScaleSnapV
+					Settings->SnapScale, ScaleSnapV,
+					bUniformScale
 				);
 
 			Variations.ApplyOffset(RandomSource, OutTransform);

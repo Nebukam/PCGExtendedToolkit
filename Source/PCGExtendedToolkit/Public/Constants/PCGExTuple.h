@@ -241,14 +241,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTupleBody
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/tuple"))
-class UPCGExTupleSettings : public UPCGSettings
+class UPCGExTupleSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(Tuple, "Tuple", "A Simple Tuple attribute.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorConstant; }
@@ -272,11 +271,11 @@ public:
 	TArray<FPCGExTupleBody> Values;
 };
 
-class FPCGExTupleElement final : public IPCGElement
+class FPCGExTupleElement final : public IPCGExElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 	PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(false)
 };
 

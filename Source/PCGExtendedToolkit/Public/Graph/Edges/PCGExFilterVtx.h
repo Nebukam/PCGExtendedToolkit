@@ -140,7 +140,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FilterVtx)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExFilterVtx

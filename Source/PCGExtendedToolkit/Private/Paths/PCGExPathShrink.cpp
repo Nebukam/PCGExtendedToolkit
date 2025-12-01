@@ -145,7 +145,7 @@ bool FPCGExShrinkPathElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExShrinkPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExShrinkPathElement::Execute);
 

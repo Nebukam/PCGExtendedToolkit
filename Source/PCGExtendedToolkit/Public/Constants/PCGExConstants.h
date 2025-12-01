@@ -19,13 +19,12 @@
 
 
 UCLASS(BlueprintType, ClassGroup=(Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/constants"))
-class UPCGExConstantsSettings : public UPCGSettings
+class UPCGExConstantsSettings : public UPCGExSettings
 {
 public:
 	GENERATED_BODY()
 
 #if WITH_EDITOR
-	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Constant, "Constant", "Constants.", GetEnumName());
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorConstant; }
@@ -132,10 +131,10 @@ public:
 	}
 };
 
-class FPCGExConstantsElement : public IPCGElement
+class FPCGExConstantsElement : public IPCGExElement
 {
 protected:
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 
 	template <typename T>

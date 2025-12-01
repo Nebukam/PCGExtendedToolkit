@@ -3,7 +3,11 @@
 
 #include "Graph/FloodFill/PCGExFloodFillClusters.h"
 
+#include "PCGExMT.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
+#include "Data/Blending/PCGExDataBlending.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/FloodFill/PCGExFloodFill.h"
@@ -85,7 +89,7 @@ bool FPCGExClusterDiffusionElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExClusterDiffusionElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExClusterDiffusionElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExClusterDiffusionElement::Execute);
 

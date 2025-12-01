@@ -35,7 +35,7 @@ bool FPCGExDiscardByPointCountElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExDiscardByPointCountElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDiscardByPointCountElement::Execute);
 

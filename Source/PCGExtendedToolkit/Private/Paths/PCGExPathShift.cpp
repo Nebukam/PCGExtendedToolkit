@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExPathShift.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Paths/PCGExPaths.h"
@@ -74,7 +75,7 @@ bool FPCGExShiftPathElement::Boot(FPCGExContext* InContext) const
 }
 
 
-bool FPCGExShiftPathElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExShiftPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExShiftPathElement::Execute);
 

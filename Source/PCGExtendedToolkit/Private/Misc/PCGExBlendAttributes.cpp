@@ -3,8 +3,10 @@
 
 #include "Misc/PCGExBlendAttributes.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExBlendAttributesElement"
@@ -34,7 +36,7 @@ bool FPCGExBlendAttributesElement::Boot(FPCGExContext* InContext) const
 		{PCGExFactories::EType::Blending});
 }
 
-bool FPCGExBlendAttributesElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBlendAttributesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBlendAttributesElement::Execute);
 

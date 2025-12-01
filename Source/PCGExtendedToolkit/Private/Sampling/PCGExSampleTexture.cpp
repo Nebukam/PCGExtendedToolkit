@@ -4,6 +4,7 @@
 #include "Sampling/PCGExSampleTexture.h"
 
 
+#include "PCGExMT.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Sampling/PCGExTexParamFactoryProvider.h"
@@ -71,7 +72,7 @@ bool FPCGExSampleTextureElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSampleTextureElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleTextureElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleTextureElement::Execute);
 

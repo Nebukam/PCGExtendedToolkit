@@ -4,6 +4,7 @@
 #include "Graph/Edges/PCGExSubdivideEdges.h"
 
 
+#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
@@ -42,7 +43,7 @@ bool FPCGExSubdivideEdgesElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSubdivideEdgesElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSubdivideEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSubdivideEdgesElement::Execute);
 

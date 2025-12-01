@@ -4,6 +4,7 @@
 #include "Sampling/PCGExSampleVtxByID.h"
 
 #include "PCGExMath.h"
+#include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
@@ -99,7 +100,7 @@ void FPCGExSampleVtxByIDElement::PostLoadAssetsDependencies(FPCGExContext* InCon
 	PCGEX_CONTEXT_AND_SETTINGS(SampleVtxByID)
 }
 
-bool FPCGExSampleVtxByIDElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleVtxByIDElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleVtxByIDElement::Execute);
 

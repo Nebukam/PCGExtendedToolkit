@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExCollocationCount.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 
@@ -28,7 +29,7 @@ bool FPCGExCollocationCountElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExCollocationCountElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExCollocationCountElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCollocationCountElement::Execute);
 

@@ -3,6 +3,7 @@
 
 #include "Transform/PCGExFlatProjection.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Sampling/PCGExSampling.h"
@@ -48,7 +49,7 @@ if ((Settings->_COMPONENT & static_cast<uint8>(EPCGExApplySampledComponentFlags:
 	return true;
 }
 
-bool FPCGExFlatProjectionElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExFlatProjectionElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFlatProjectionElement::Execute);
 

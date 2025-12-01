@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExClusterMT.h"
 
+#include "PCGExMT.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
@@ -12,6 +14,35 @@
 
 namespace PCGExClusterMT
 {
+#pragma region Tasks
+
+#define PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetClusterBatchChunkSize)
+
+	template <typename T>
+	class FStartClusterBatchProcessing final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FStartClusterBatchProcessing)
+
+		FStartClusterBatchProcessing(TSharedPtr<T> InTarget,
+		                             const bool bScoped)
+			: FTask(),
+			  Target(InTarget),
+			  bScopedIndexLookupBuild(bScoped)
+		{
+		}
+
+		TSharedPtr<T> Target;
+		bool bScopedIndexLookupBuild = false;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			Target->PrepareProcessing(AsyncManager, bScopedIndexLookupBuild);
+		}
+	};
+
+#pragma endregion
+
 	TSharedPtr<PCGExCluster::FCluster> IProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
 		return MakeShared<PCGExCluster::FCluster>(
@@ -643,4 +674,6 @@ namespace PCGExClusterMT
 	{
 		for (const TSharedPtr<IBatch>& Batch : Batches) { Batch->Write(); }
 	}
+
+#undef PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP
 }

@@ -4,6 +4,7 @@
 #include "Transform/PCGExLloydRelax.h"
 
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeoDelaunay.h"
@@ -27,7 +28,7 @@ bool FPCGExLloydRelaxElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExLloydRelaxElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExLloydRelaxElement::Execute);
 
@@ -65,6 +66,69 @@ bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExLloydRelax
 {
+	class FLloydRelaxTask final : public PCGExMT::FPCGExIndexedTask
+	{
+	public:
+		FLloydRelaxTask(const int32 InTaskIndex,
+		                const TSharedPtr<FProcessor>& InProcessor,
+		                const FPCGExInfluenceDetails* InInfluenceSettings,
+		                const int32 InNumIterations) :
+			FPCGExIndexedTask(InTaskIndex),
+			Processor(InProcessor),
+			InfluenceSettings(InInfluenceSettings),
+			NumIterations(InNumIterations)
+		{
+		}
+
+		TSharedPtr<FProcessor> Processor;
+		const FPCGExInfluenceDetails* InfluenceSettings = nullptr;
+		int32 NumIterations = 0;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			NumIterations--;
+
+			TUniquePtr<PCGExGeo::TDelaunay3> Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
+			TArray<FVector>& Positions = Processor->ActivePositions;
+
+			//FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
+
+			const TArrayView<FVector> View = MakeArrayView(Positions);
+			if (!Delaunay->Process<false, false>(View)) { return; }
+
+			const int32 NumPoints = Positions.Num();
+
+			TArray<FVector> Sum;
+			TArray<double> Counts;
+			Sum.Append(Processor->ActivePositions);
+			Counts.SetNum(NumPoints);
+			for (int i = 0; i < NumPoints; i++) { Counts[i] = 1; }
+
+			FVector Centroid;
+			for (const PCGExGeo::FDelaunaySite3& Site : Delaunay->Sites)
+			{
+				PCGExGeo::GetCentroid(Positions, Site.Vtx, Centroid);
+				for (const int32 PtIndex : Site.Vtx)
+				{
+					Counts[PtIndex] += 1;
+					Sum[PtIndex] += Centroid;
+				}
+			}
+
+			if (InfluenceSettings->bProgressiveInfluence)
+			{
+				for (int i = 0; i < NumPoints; i++) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i)); }
+			}
+
+			Delaunay.Reset();
+
+			if (NumIterations > 0)
+			{
+				PCGEX_LAUNCH_INTERNAL(FLloydRelaxTask, TaskIndex + 1, Processor, InfluenceSettings, NumIterations)
+			}
+		}
+	};
+
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExLloydRelax::Process);
@@ -105,50 +169,6 @@ namespace PCGExLloydRelax
 	void FProcessor::CompleteWork()
 	{
 		StartParallelLoopForPoints();
-	}
-
-	void FLloydRelaxTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		NumIterations--;
-
-		TUniquePtr<PCGExGeo::TDelaunay3> Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
-		TArray<FVector>& Positions = Processor->ActivePositions;
-
-		//FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
-
-		const TArrayView<FVector> View = MakeArrayView(Positions);
-		if (!Delaunay->Process<false, false>(View)) { return; }
-
-		const int32 NumPoints = Positions.Num();
-
-		TArray<FVector> Sum;
-		TArray<double> Counts;
-		Sum.Append(Processor->ActivePositions);
-		Counts.SetNum(NumPoints);
-		for (int i = 0; i < NumPoints; i++) { Counts[i] = 1; }
-
-		FVector Centroid;
-		for (const PCGExGeo::FDelaunaySite3& Site : Delaunay->Sites)
-		{
-			PCGExGeo::GetCentroid(Positions, Site.Vtx, Centroid);
-			for (const int32 PtIndex : Site.Vtx)
-			{
-				Counts[PtIndex] += 1;
-				Sum[PtIndex] += Centroid;
-			}
-		}
-
-		if (InfluenceSettings->bProgressiveInfluence)
-		{
-			for (int i = 0; i < NumPoints; i++) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i)); }
-		}
-
-		Delaunay.Reset();
-
-		if (NumIterations > 0)
-		{
-			PCGEX_LAUNCH_INTERNAL(FLloydRelaxTask, TaskIndex + 1, Processor, InfluenceSettings, NumIterations)
-		}
 	}
 }
 

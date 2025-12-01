@@ -4,11 +4,13 @@
 #include "AssetStaging/PCGExStaging.h"
 
 #include "PCGExGlobalSettings.h"
+#include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Collections/PCGExAssetCollection.h"
 #include "Collections/PCGExActorCollection.h"
 #include "Collections/PCGExMeshCollection.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"

@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExSplitPath.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
@@ -36,7 +37,7 @@ bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSplitPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSplitPathElement::Execute);
 

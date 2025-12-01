@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Kismet/GameplayStatics.h"
@@ -92,7 +93,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleSurfaceGuidedElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleSurfaceGuidedElement::Execute);
 

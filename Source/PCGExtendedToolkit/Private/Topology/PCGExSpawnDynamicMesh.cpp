@@ -32,7 +32,7 @@ FPCGElementPtr UPCGExSpawnDynamicMeshSettings::CreateElement() const { return Ma
 
 #pragma endregion
 
-bool FPCGExSpawnDynamicMeshElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSpawnDynamicMeshElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	PCGEX_CONTEXT_AND_SETTINGS(SpawnDynamicMesh)
 

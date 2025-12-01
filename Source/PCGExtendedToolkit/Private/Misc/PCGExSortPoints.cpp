@@ -39,7 +39,7 @@ bool UPCGExSortPointsSettings::GetSortingRules(FPCGExContext* InContext, TArray<
 
 PCGEX_ELEMENT_BATCH_POINT_IMPL(SortPoints)
 
-bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSortPointsBaseElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsElement::Execute);
 

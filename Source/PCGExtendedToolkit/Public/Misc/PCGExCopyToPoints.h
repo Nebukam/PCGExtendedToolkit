@@ -10,11 +10,15 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
-#include "Data/PCGExFilterGroup.h"
 #include "Data/Matching/PCGExMatching.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
 
 #include "PCGExCopyToPoints.generated.h"
+
+namespace PCGExMatching
+{
+	class FDataMatcher;
+}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc", meta=(PCGExNodeLibraryDoc="misc/copy-to-points"))
 class UPCGExCopyToPointsSettings : public UPCGExPointsProcessorSettings
@@ -78,7 +82,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(CopyToPoints)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExCopyToPoints

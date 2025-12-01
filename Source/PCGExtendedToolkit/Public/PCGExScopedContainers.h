@@ -3,7 +3,9 @@
 
 #pragma once
 
-#include "PCGExMT.h"
+#include <functional>
+
+#include "PCGExCommon.h"
 
 namespace PCGExMT
 {

@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExMergeVertices.h"
 
+#include "PCGExMT.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -59,7 +60,7 @@ bool FPCGExMergeVerticesElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExMergeVerticesElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExMergeVerticesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMergeVerticesElement::Execute);
 

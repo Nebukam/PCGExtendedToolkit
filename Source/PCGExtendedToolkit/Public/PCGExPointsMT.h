@@ -6,14 +6,22 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 #include "PCGExContext.h"
-#include "PCGExMT.h"
 
 #define PCGEX_TYPED_PROCESSOR_NREF(_NAME) const TSharedRef<FProcessor> _NAME = StaticCastSharedRef<FProcessor>(InProcessor);
 #define PCGEX_TYPED_PROCESSOR_REF PCGEX_TYPED_PROCESSOR_NREF(TypedProcessor)
 #define PCGEX_TYPED_PROCESSOR const TSharedPtr<FProcessor> TypedProcessor = StaticCastSharedPtr<FProcessor>(InProcessor);
 
+struct FPCGExContext;
+
+namespace PCGExMT
+{
+	class FTaskManager;
+	class FTaskGroup;
+}
+
 namespace PCGEx
 {
+	class FWorkHandle;
 	class FIntTracker;
 }
 
@@ -70,33 +78,7 @@ namespace PCGExPointsMT
 #define PCGEX_ASYNC_POINT_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetPointsBatchChunkSize)
 
 #define PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(_ID, _INLINE_CONDITION, _BODY) PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, if(Processor->bIsProcessorValid){ _BODY }, nullptr)
-
-#define PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetClusterBatchChunkSize)
-
-#pragma region Tasks
-
-	template <typename T>
-	class FStartBatchProcessing final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FStartClusterBatchProcessing)
-
-		FStartBatchProcessing(TSharedPtr<T> InTarget)
-			: FTask(),
-			  Target(InTarget)
-		{
-		}
-
-		TSharedPtr<T> Target;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
-		{
-			Target->Process(AsyncManager);
-		}
-	};
-
-#pragma endregion
-
+	
 	class IBatch;
 
 	class PCGEXTENDEDTOOLKIT_API IProcessor : public TSharedFromThis<IProcessor>

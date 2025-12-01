@@ -8,6 +8,8 @@
 #define DBL_COMPARE_TOLERANCE 0.01
 #define MIN_dbl_neg MAX_dbl *-1
 
+#include <functional>
+
 #include "CoreMinimal.h"
 #include "PCGExCommon.generated.h"
 
@@ -146,5 +148,42 @@ namespace PCGExCommon
 	PCGEX_CTX_STATE(State_Writing)
 
 	PCGEX_CTX_STATE(State_UnionWriting)
+
+}
+
+namespace PCGExMT
+{
+	using FCompletionCallback = std::function<void()>;
+	using FSimpleCallback = std::function<void()>;
+	
+	struct FScope
+	{
+		int32 Start = -1;
+		int32 Count = -1;
+		int32 End = -1;
+		int32 LoopIndex = -1;
+
+		FScope() = default;
+
+		FScope(const int32 InStart, const int32 InCount, const int32 InLoopIndex = -1);
+
+		~FScope() = default;
+		bool IsValid() const { return Start != -1 && Count > 0; }
+		int32 GetNextScopeIndex() const { return LoopIndex + 1; }
+		void GetIndices(TArray<int32>& OutIndices) const;
+
+		static int32 GetMaxRange(const TArray<FScope>& InScopes)
+		{
+			int32 MaxRange = 0;
+			for (const FScope& S : InScopes) { MaxRange = FMath::Max(MaxRange, S.Count); }
+			return MaxRange;
+		}
+
+		template <typename T>
+		FORCEINLINE TArrayView<T> GetView(TArray<T>& InArray) const { return TArrayView<T>(InArray.GetData() + Start, Count); }
+
+		template <typename T>
+		FORCEINLINE TArrayView<const T> GetView(const TArray<T>& InArray) const { return TArrayView<T>(InArray.GetData() + Start, Count); }
+	};
 
 }

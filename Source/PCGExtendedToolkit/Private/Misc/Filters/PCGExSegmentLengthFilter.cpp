@@ -4,6 +4,7 @@
 #include "Misc/Filters/PCGExSegmentLengthFilter.h"
 
 #include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPaths.h"

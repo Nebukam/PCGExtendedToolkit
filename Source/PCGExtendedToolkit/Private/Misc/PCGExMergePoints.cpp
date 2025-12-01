@@ -4,6 +4,7 @@
 #include "Misc/PCGExMergePoints.h"
 
 
+#include "PCGExMT.h"
 #include "Data/PCGExDataTag.h"
 #include "Graph/PCGExEdge.h"
 
@@ -41,7 +42,7 @@ bool FPCGExMergePointsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExMergePointsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExMergePointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMergePointsElement::Execute);
 

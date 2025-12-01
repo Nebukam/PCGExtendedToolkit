@@ -7,7 +7,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdge.h"
-#include "PCGExMT.h"
 #include "PCGExSortHelpers.h"
 #include "Details/PCGExDetailsGraph.h"
 #include "Utils/PCGValueRange.h"
@@ -446,77 +445,4 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 	PCGEXTENDEDTOOLKIT_API
 	void CleanupClusterData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
-}
-
-namespace PCGExGraphTask
-{
-#pragma region Graph tasks
-
-	class FWriteSubGraphCluster final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FWriteSubGraphCluster)
-
-		FWriteSubGraphCluster(const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
-			: FTask(),
-			  SubGraph(InSubGraph)
-		{
-		}
-
-		TSharedPtr<PCGExGraph::FSubGraph> SubGraph;
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
-	class FCompileGraph final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FCompileGraph)
-
-		FCompileGraph(const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
-		              const bool bInWriteNodeFacade,
-		              const PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
-			: FTask(),
-			  Builder(InGraphBuilder),
-			  bWriteNodeFacade(bInWriteNodeFacade),
-			  MetadataDetails(InMetadataDetails)
-		{
-		}
-
-		TSharedPtr<PCGExGraph::FGraphBuilder> Builder;
-		const bool bWriteNodeFacade = false;
-		const PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
-	class FCopyGraphToPoint final : public PCGExMT::FPCGExIndexedTask
-	{
-	public:
-		FCopyGraphToPoint(const int32 InTaskIndex,
-		                  const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                  const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
-		                  const TSharedPtr<PCGExData::FPointIOCollection>& InVtxCollection,
-		                  const TSharedPtr<PCGExData::FPointIOCollection>& InEdgeCollection,
-		                  FPCGExTransformDetails* InTransformDetails) :
-			FPCGExIndexedTask(InTaskIndex),
-			PointIO(InPointIO),
-			GraphBuilder(InGraphBuilder),
-			VtxCollection(InVtxCollection),
-			EdgeCollection(InEdgeCollection),
-			TransformDetails(InTransformDetails)
-		{
-		}
-
-		TSharedPtr<PCGExData::FPointIO> PointIO;
-		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
-
-		TSharedPtr<PCGExData::FPointIOCollection> VtxCollection;
-		TSharedPtr<PCGExData::FPointIOCollection> EdgeCollection;
-
-		FPCGExTransformDetails* TransformDetails = nullptr;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
-#pragma endregion
 }

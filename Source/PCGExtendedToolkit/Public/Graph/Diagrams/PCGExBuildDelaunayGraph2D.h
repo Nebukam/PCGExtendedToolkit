@@ -121,7 +121,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BuildDelaunayGraph2D)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExBuildDelaunayGraph2D
@@ -153,43 +153,5 @@ namespace PCGExBuildDelaunayGraph2D
 
 		virtual void Write() override;
 		virtual void Output() override;
-	};
-
-	class FOutputDelaunaySites2D final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FOutputDelaunaySites2D)
-
-		FOutputDelaunaySites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                       const TSharedPtr<FProcessor>& InProcessor) :
-			FTask(),
-			PointIO(InPointIO),
-			Processor(InProcessor)
-		{
-		}
-
-		TSharedPtr<PCGExData::FPointIO> PointIO;
-		TSharedPtr<FProcessor> Processor;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
-	class FOutputDelaunayUrquhartSites2D final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FOutputDelaunayUrquhartSites2D)
-
-		FOutputDelaunayUrquhartSites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                               const TSharedPtr<FProcessor>& InProcessor) :
-			FTask(),
-			PointIO(InPointIO),
-			Processor(InProcessor)
-		{
-		}
-
-		TSharedPtr<PCGExData::FPointIO> PointIO;
-		TSharedPtr<FProcessor> Processor;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

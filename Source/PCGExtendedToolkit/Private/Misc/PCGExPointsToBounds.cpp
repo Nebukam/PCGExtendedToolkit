@@ -119,7 +119,7 @@ bool FPCGExPointsToBoundsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPointsToBoundsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsToBoundsElement::Execute);
 

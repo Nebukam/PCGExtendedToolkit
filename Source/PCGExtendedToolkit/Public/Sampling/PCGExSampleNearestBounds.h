@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFactories.h"
 #include "UObject/Object.h"
 #include "Curves/CurveFloat.h"
 #include "Curves/RichCurve.h"
@@ -28,6 +29,11 @@ MACRO(ComponentWiseDistance, FVector, FVector::ZeroVector)\
 MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)\
 MACRO(SampledIndex, int32, -1)
+
+namespace PCGExGeo
+{
+	class FPointBoxCloud;
+}
 
 class UPCGExBlendOpFactory;
 
@@ -324,7 +330,7 @@ protected:
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual void PostLoadAssetsDependencies(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override;
 };

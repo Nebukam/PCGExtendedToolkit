@@ -3,6 +3,8 @@
 
 #include "Graph/Edges/PCGExEdgeOrder.h"
 
+#include "PCGExMT.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Graph/PCGExCluster.h"
 
@@ -24,8 +26,7 @@ bool FPCGExEdgeOrderElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExEdgeOrderElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExEdgeOrderElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdgeOrderElement::Execute);
 

@@ -3,7 +3,9 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindAllCells.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGPointArrayData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"
@@ -74,8 +76,7 @@ bool FPCGExFindAllCellsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExFindAllCellsElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExFindAllCellsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindAllCellsElement::Execute);
 
@@ -229,7 +230,7 @@ namespace PCGExFindAllCells
 		Context->OutputPaths->IncreaseReserve(NumCells + 1);
 		for (int i = 0; i < NumCells; i++)
 		{
-			CellsIO.Add(Context->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
+			CellsIO.Add(Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 		}
 
 		if (CellsConstraints->WrapperCell
@@ -237,7 +238,7 @@ namespace PCGExFindAllCells
 			&& Settings->Constraints.bKeepWrapperIfSolePath)
 		{
 			// Process wrapper cell, it's the only valid one and we want it.
-			ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef<UPCGPointArrayData>(VtxDataFacade->Source, PCGExData::EIOInit::New));
+			ProcessCell(CellsConstraints->WrapperCell, Context->OutputPaths->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EIOInit::New));
 			return;
 		}
 

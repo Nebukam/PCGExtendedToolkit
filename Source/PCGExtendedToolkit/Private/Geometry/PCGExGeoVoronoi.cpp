@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExHelpers.h"
+#include "Geometry/PCGExGeoDelaunay.h"
 
 namespace PCGExGeo
 {
@@ -25,7 +26,7 @@ namespace PCGExGeo
 	{
 		Clear();
 
-		Delaunay = MakeUnique<TDelaunay2>();
+		Delaunay = MakeShared<TDelaunay2>();
 		if (!Delaunay->Process(Positions, ProjectionDetails))
 		{
 			Clear();
@@ -60,7 +61,7 @@ namespace PCGExGeo
 	{
 		Clear();
 
-		Delaunay = MakeUnique<TDelaunay2>();
+		Delaunay = MakeShared<TDelaunay2>();
 		if (!Delaunay->Process(Positions, ProjectionDetails))
 		{
 			Clear();
@@ -113,7 +114,7 @@ namespace PCGExGeo
 
 	{
 		IsValid = false;
-		Delaunay = MakeUnique<TDelaunay3>();
+		Delaunay = MakeShared<TDelaunay3>();
 
 		if (!Delaunay->Process<true, false>(Positions))
 		{

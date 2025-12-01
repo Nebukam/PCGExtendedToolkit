@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExBevelPath.h"
 
+#include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
@@ -80,7 +81,7 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBevelPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBevelPathElement::Execute);
 

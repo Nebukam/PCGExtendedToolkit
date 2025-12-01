@@ -16,7 +16,7 @@ enum class EPCGExToggleTopologyAction : uint8
 };
 
 UCLASS(Hidden, MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="topology/cluster-surface/toggle-topology"))
-class UPCGExToggleTopologySettings : public UPCGSettings
+class UPCGExToggleTopologySettings : public UPCGExSettings
 {
 	GENERATED_BODY()
 
@@ -25,7 +25,6 @@ class UPCGExToggleTopologySettings : public UPCGSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(ToggleTopology, "Topology : Toggle (DEPRECATED)", "Registers/unregister or Removes PCGEx spawned dynamic meshes. Use OutputMode : Dynamic Mesh to use the mesh with the PCG Geometry Script interop stack from now on.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::DynamicMesh; }
 #endif
@@ -52,13 +51,13 @@ protected:
 	TSoftObjectPtr<AActor> TargetActor;
 };
 
-struct FPCGExToggleTopologyContext final : FPCGContext
+struct FPCGExToggleTopologyContext final : FPCGExContext
 {
 	friend class FPCGExToggleTopologyElement;
 	bool bWait = true;
 };
 
-class FPCGExToggleTopologyElement final : public IPCGElement
+class FPCGExToggleTopologyElement final : public IPCGExElement
 {
 public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
@@ -66,7 +65,7 @@ public:
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ToggleTopology)
 
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }

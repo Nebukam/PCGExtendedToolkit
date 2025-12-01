@@ -37,7 +37,7 @@ bool FPCGExAttributeHashElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExAttributeHashElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExAttributeHashElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeHashElement::Execute);
 

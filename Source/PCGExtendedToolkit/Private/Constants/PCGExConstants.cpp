@@ -154,7 +154,7 @@ FPCGElementPtr UPCGExConstantsSettings::CreateElement() const
 	return MakeShared<FPCGExConstantsElement>();
 }
 
-bool FPCGExConstantsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExConstantsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(Constants)

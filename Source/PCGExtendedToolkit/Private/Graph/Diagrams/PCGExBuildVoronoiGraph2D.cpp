@@ -3,6 +3,7 @@
 
 #include "Graph/Diagrams/PCGExBuildVoronoiGraph2D.h"
 
+#include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
@@ -10,6 +11,7 @@
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
+#include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
@@ -117,8 +119,7 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExBuildVoronoiGraph2DElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildVoronoiGraph2DElement::Execute);
 

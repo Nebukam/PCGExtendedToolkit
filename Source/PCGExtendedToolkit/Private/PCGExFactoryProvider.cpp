@@ -97,7 +97,6 @@ FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 
 #if WITH_EDITOR
 FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT(""); }
-FLinearColor UPCGExFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorDebug; }
 #endif
 
 UPCGExFactoryData* UPCGExFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const
@@ -106,7 +105,7 @@ UPCGExFactoryData* UPCGExFactoryProviderSettings::CreateFactory(FPCGExContext* I
 	return InFactory;
 }
 
-bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExFactoryProviderElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFactoryProviderElement::Execute);
 

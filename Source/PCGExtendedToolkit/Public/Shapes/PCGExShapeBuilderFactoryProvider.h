@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExFactoryProvider.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGExShapes.h"
 
 #include "PCGExShapeBuilderFactoryProvider.generated.h"

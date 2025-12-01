@@ -5,8 +5,10 @@
 
 #include "PCGComponent.h"
 #include "PCGExHelpers.h"
+#include "PCGExMT.h"
 #include "AssetStaging/PCGExSocketStaging.h"
 #include "AssetStaging/PCGExStaging.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
@@ -68,7 +70,7 @@ bool FPCGExSampleSocketsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSampleSocketsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleSocketsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleSocketsElement::Execute);
 

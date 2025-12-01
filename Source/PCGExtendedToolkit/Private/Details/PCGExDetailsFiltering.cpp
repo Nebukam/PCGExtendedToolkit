@@ -5,6 +5,7 @@
 #include "Details/PCGExDetailsFiltering.h"
 
 #include "PCGEx.h"
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"

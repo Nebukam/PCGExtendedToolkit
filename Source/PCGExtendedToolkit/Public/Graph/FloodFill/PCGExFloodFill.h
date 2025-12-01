@@ -4,10 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Blending/PCGExBlendOpsManager.h"
-
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExFloodFill.generated.h"
+
+namespace PCGExDataBlending
+{
+	class FBlendOpsManager;
+}
 
 class FPCGExBlendOperation;
 class UPCGExFillControlsFactoryData;

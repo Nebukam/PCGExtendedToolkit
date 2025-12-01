@@ -38,7 +38,7 @@ namespace PCGExBitmask
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="TBD"))
-class UPCGExBitmaskSettings : public UPCGSettings
+class UPCGExBitmaskSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
 
@@ -49,7 +49,6 @@ public:
 #if WITH_EDITOR
 	virtual void ApplyDeprecation(UPCGNode* InOutNode) override;
 
-	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(Bitmask, "Bitmask", "A Simple bitmask attribute.", GetDisplayName());
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorConstant; }
@@ -66,18 +65,14 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
 	FPCGExBitmask Bitmask;
 
-	/** Store version of the node, used for deprecation purposes */
-	UPROPERTY()
-	int64 PCGExDataVersion = -1;
-
 	/** Limit of characters for the title */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	int32 TitleCharLimit = 32;
 };
 
-class FPCGExBitmaskElement final : public IPCGElement
+class FPCGExBitmaskElement final : public IPCGExElement
 {
 protected:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };

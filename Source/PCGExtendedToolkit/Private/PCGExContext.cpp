@@ -3,6 +3,7 @@
 
 #include "PCGExContext.h"
 
+#include "PCGExElement.h"
 #include "PCGComponent.h"
 #include "PCGExHelpers.h"
 #include "PCGExInstancedFactory.h"

@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleNearestPath.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendModes.h"
@@ -151,7 +152,7 @@ bool FPCGExSampleNearestPathElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSampleNearestPathElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleNearestPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestPathElement::Execute);
 

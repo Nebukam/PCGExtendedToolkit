@@ -11,6 +11,11 @@
 #include "PCGExSorting.h"
 #include "PCGExAttributeHasher.generated.h"
 
+namespace PCGExMT
+{
+	class FTaskManager;
+}
+
 namespace PCGExData
 {
 	class IBuffer;

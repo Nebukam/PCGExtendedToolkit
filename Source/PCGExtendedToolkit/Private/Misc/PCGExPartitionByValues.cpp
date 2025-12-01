@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExPartitionByValues.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
@@ -165,7 +166,7 @@ bool FPCGExPartitionByValuesBaseElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPartitionByValuesBaseElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPartitionByValuesElement::Execute);
 

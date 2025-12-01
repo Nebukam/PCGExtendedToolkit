@@ -4,6 +4,7 @@
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInheritStart.h"
 
+#include "PCGExMT.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Sampling/PCGExGetTextureData.h"
 

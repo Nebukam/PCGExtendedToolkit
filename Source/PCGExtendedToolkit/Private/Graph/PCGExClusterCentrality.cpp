@@ -61,7 +61,7 @@ bool FPCGExClusterCentralityElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExClusterCentralityElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExClusterCentralityElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExClusterCentralityElement::Execute);
 

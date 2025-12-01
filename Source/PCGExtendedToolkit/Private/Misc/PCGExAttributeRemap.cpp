@@ -4,8 +4,10 @@
 
 #include "Misc/PCGExAttributeRemap.h"
 #include "PCGExHelpers.h"
+#include "PCGExMT.h"
 #include "PCGExScopedContainers.h"
 #include "AssetStaging/PCGExAssetStaging.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
@@ -113,7 +115,7 @@ void FPCGExAttributeRemapElement::PostLoadAssetsDependencies(FPCGExContext* InCo
 	Context->RemapIndices[3] = Settings->bOverrideComponent4 ? 3 : 0;
 }
 
-bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExAttributeRemapElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemapElement::Execute);
 

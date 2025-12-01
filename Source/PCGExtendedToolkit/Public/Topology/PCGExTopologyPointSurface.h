@@ -8,8 +8,6 @@
 #include "PCGExTopology.h"
 #include "Data/PCGDynamicMeshData.h"
 
-#include "Geometry/PCGExGeo.h"
-
 #include "PCGExTopologyPointSurface.generated.h"
 
 /**
@@ -68,7 +66,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(TopologyPointSurface)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExTopologyPointSurface

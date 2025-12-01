@@ -48,20 +48,5 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(RefreshSeed)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-};
-
-class FPCGExRefreshSeedTask final : public PCGExMT::FPCGExIndexedTask
-{
-public:
-	explicit FPCGExRefreshSeedTask(const int32 InPointIndex,
-	                               const TSharedPtr<PCGExData::FPointIO>& InPointIO)
-		: FPCGExIndexedTask(InPointIndex),
-		  PointIO(InPointIO)
-	{
-	}
-
-	const TSharedPtr<PCGExData::FPointIO> PointIO;
-
-	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };

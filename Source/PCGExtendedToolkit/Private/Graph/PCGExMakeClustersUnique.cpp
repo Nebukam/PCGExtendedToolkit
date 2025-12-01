@@ -26,7 +26,7 @@ bool FPCGExMakeClustersUniqueElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExMakeClustersUniqueElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExMakeClustersUniqueElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMakeClustersUniqueElement::Execute);
 

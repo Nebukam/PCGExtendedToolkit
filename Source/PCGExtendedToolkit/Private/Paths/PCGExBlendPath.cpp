@@ -4,6 +4,7 @@
 #include "Paths/PCGExBlendPath.h"
 
 
+#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -50,7 +51,7 @@ bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBlendPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBlendPathElement::Execute);
 

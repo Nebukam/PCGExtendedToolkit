@@ -4,7 +4,9 @@
 #include "Misc/PCGExReversePointOrder.h"
 
 #include "PCGExMath.h"
+#include "PCGExMT.h"
 #include "Curve/CurveUtil.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
@@ -12,6 +14,13 @@
 
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"
 #define PCGEX_NAMESPACE ReversePointOrder
+
+bool FPCGExSwapAttributePairDetails::Validate(const FPCGContext* InContext) const
+{
+	PCGEX_VALIDATE_NAME_C(InContext, FirstAttributeName)
+	PCGEX_VALIDATE_NAME_C(InContext, SecondAttributeName)
+	return true;
+}
 
 TArray<FPCGPinProperties> UPCGExReversePointOrderSettings::InputPinProperties() const
 {
@@ -40,7 +49,7 @@ bool FPCGExReversePointOrderElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExReversePointOrderElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExReversePointOrderElement::Execute);
 
