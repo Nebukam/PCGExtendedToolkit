@@ -4,6 +4,7 @@
 #include "Paths/PCGExPathToClusters.h"
 
 
+#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExUnionData.h"
 #include "Graph/PCGExGraph.h"
@@ -90,7 +91,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathToClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathToClustersElement::Execute);
 

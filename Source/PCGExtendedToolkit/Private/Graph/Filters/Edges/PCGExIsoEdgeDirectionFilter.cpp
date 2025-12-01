@@ -4,6 +4,7 @@
 #include "Graph/Filters/Edges/PCGExIsoEdgeDirectionFilter.h"
 
 #include "PCGExSorting.h"
+#include "PCGExSortingRuleProvider.h"
 #include "PCGPin.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"

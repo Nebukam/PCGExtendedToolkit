@@ -3,6 +3,7 @@
 
 #include "Graph/Edges/PCGExWriteEdgeProperties.h"
 
+#include "PCGExMT.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
@@ -53,8 +54,7 @@ bool FPCGExWriteEdgePropertiesElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExWriteEdgePropertiesElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExWriteEdgePropertiesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteEdgePropertiesElement::Execute);
 

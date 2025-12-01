@@ -4,6 +4,7 @@
 #include "AssetStaging/PCGExAssetStaging.h"
 
 
+#include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "PCGExScopedContainers.h"
 #include "AssetStaging/PCGExStaging.h"
@@ -168,7 +169,7 @@ bool FPCGExAssetStagingElement::PostBoot(FPCGExContext* InContext) const
 	return FPCGExPointsProcessorElement::PostBoot(InContext);
 }
 
-bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExAssetStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAssetStagingElement::Execute);
 

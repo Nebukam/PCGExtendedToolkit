@@ -3,6 +3,7 @@
 
 #include "Graph/States/PCGExClusterWriteStates.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/States/PCGExClusterStates.h"
@@ -42,8 +43,7 @@ bool FPCGExFlagNodesElement::Boot(FPCGExContext* InContext) const
 		{PCGExFactories::EType::ClusterState});
 }
 
-bool FPCGExFlagNodesElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExFlagNodesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFlagNodesElement::Execute);
 

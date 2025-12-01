@@ -4,6 +4,7 @@
 #include "Graph/Edges/PCGExWriteVtxProperties.h"
 
 
+#include "PCGExMT.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 
@@ -44,8 +45,7 @@ bool FPCGExWriteVtxPropertiesElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExWriteVtxPropertiesElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExWriteVtxPropertiesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteVtxPropertiesElement::Execute);
 

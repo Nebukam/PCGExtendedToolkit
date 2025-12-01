@@ -6,8 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExLabels.h"
 #include "PCGExPointsProcessor.h"
+#include "Details/PCGExDetailsAxis.h"
 #include "Details/PCGExDetailsGraph.h"
-
 #include "PCGExBuildDelaunayGraph.generated.h"
 
 namespace PCGExGraph
@@ -107,7 +107,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(BuildDelaunayGraph)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExBuildDelaunayGraph
@@ -138,43 +138,5 @@ namespace PCGExBuildDelaunayGraph
 
 		virtual void Write() override;
 		virtual void Output() override;
-	};
-
-	class FOutputDelaunaySites final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FOutputDelaunaySites)
-
-		FOutputDelaunaySites(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                     const TSharedPtr<FProcessor>& InProcessor) :
-			FTask(),
-			PointIO(InPointIO),
-			Processor(InProcessor)
-		{
-		}
-
-		const TSharedPtr<PCGExData::FPointIO> PointIO;
-		TSharedPtr<FProcessor> Processor;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
-	class FOutputDelaunayUrquhartSites final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FOutputDelaunayUrquhartSites)
-
-		FOutputDelaunayUrquhartSites(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                             const TSharedPtr<FProcessor>& InProcessor) :
-			FTask(),
-			PointIO(InPointIO),
-			Processor(InProcessor)
-		{
-		}
-
-		const TSharedPtr<PCGExData::FPointIO> PointIO;
-		TSharedPtr<FProcessor> Processor;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

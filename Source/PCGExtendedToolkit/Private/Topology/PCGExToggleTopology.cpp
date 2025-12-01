@@ -31,7 +31,7 @@ FPCGElementPtr UPCGExToggleTopologySettings::CreateElement() const { return Make
 
 #pragma endregion
 
-bool FPCGExToggleTopologyElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExToggleTopologyElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	PCGEX_CONTEXT_AND_SETTINGS(ToggleTopology)
 

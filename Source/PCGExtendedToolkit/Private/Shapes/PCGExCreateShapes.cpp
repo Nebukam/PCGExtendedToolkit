@@ -3,6 +3,7 @@
 
 #include "Shapes/PCGExCreateShapes.h"
 
+#include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -29,7 +30,7 @@ bool FPCGExCreateShapesElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExCreateShapesElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExCreateShapesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCreateShapesElement::Execute);
 
@@ -64,6 +65,34 @@ bool FPCGExCreateShapesElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExCreateShapes
 {
+	class FBuildShape final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FBuildShape)
+
+		FBuildShape(const TSharedPtr<FPCGExShapeBuilderOperation>& InOperation,
+		            const TSharedRef<PCGExData::FFacade>& InShapeDataFacade,
+		            const TSharedPtr<PCGExShapes::FShape>& InShape) :
+			FTask(),
+			ShapeDataFacade(InShapeDataFacade),
+			Operation(InOperation),
+			Shape(InShape)
+		{
+		}
+
+		TSharedRef<PCGExData::FFacade> ShapeDataFacade;
+		TSharedPtr<FPCGExShapeBuilderOperation> Operation;
+		TSharedPtr<PCGExShapes::FShape> Shape;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			FPCGExCreateShapesContext* Context = AsyncManager->GetContext<FPCGExCreateShapesContext>();
+			PCGEX_SETTINGS(CreateShapes);
+
+			BuildShape(Context, ShapeDataFacade, Operation, Shape);
+		}
+	};
+
 	FProcessor::~FProcessor()
 	{
 	}
@@ -324,14 +353,6 @@ namespace PCGExCreateShapes
 	void FProcessor::Output()
 	{
 		for (const TSharedPtr<PCGExData::FFacade>& IO : PerSeedFacades) { (void)IO->Source->StageOutput(Context); }
-	}
-
-	void FBuildShape::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		FPCGExCreateShapesContext* Context = AsyncManager->GetContext<FPCGExCreateShapesContext>();
-		PCGEX_SETTINGS(CreateShapes);
-
-		BuildShape(Context, ShapeDataFacade, Operation, Shape);
 	}
 }
 

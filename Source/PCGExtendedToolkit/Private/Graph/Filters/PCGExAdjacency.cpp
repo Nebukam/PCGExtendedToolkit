@@ -3,6 +3,7 @@
 
 #include "Graph/Filters/PCGExAdjacency.h"
 
+#include "PCGExContext.h"
 #include "PCGExMath.h"
 #include "Collections/PCGExBitmaskCollection.h"
 #include "Details/PCGExDetailsBitmask.h"

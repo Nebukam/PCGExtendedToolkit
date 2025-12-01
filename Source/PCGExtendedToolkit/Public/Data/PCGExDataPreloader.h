@@ -8,7 +8,13 @@
 #include "UObject/Object.h"
 
 #include "PCGExData.h"
-#include "PCGExMT.h"
+
+struct FPCGContextHandle;
+
+namespace PCGExMT
+{
+	class FAsyncMultiHandle;
+}
 
 namespace PCGExData
 {

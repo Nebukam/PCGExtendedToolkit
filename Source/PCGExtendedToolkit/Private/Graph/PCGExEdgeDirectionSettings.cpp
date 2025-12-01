@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExEdgeDirectionSettings.h"
 
+#include "PCGExContext.h"
 #include "Data/PCGExDataPreloader.h"
 #include "PCGExSorting.h"
 #include "Graph/PCGExCluster.h"

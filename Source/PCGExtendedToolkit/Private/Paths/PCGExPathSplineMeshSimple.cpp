@@ -7,6 +7,7 @@
 #include "Components/SplineMeshComponent.h"
 
 #include "PCGExHelpers.h"
+#include "PCGExMT.h"
 #include "Collections/PCGExAssetLoader.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
@@ -92,7 +93,7 @@ bool FPCGExPathSplineMeshSimpleElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPathSplineMeshSimpleElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathSplineMeshSimpleElement::Execute);
 

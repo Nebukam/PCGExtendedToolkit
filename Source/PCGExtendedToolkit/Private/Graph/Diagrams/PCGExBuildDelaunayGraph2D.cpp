@@ -4,6 +4,7 @@
 #include "Graph/Diagrams/PCGExBuildDelaunayGraph2D.h"
 
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -49,8 +50,7 @@ bool FPCGExBuildDelaunayGraph2DElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExBuildDelaunayGraph2DElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildDelaunayGraph2DElement::Execute);
 
@@ -91,6 +91,207 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 namespace PCGExBuildDelaunayGraph2D
 {
+	class FOutputDelaunaySites2D final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FOutputDelaunaySites2D)
+
+		FOutputDelaunaySites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+		                       const TSharedPtr<FProcessor>& InProcessor) :
+			FTask(),
+			PointIO(InPointIO),
+			Processor(InProcessor)
+		{
+		}
+
+		TSharedPtr<PCGExData::FPointIO> PointIO;
+		TSharedPtr<FProcessor> Processor;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunaySites2D::ExecuteTask);
+
+			FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
+			PCGEX_SETTINGS(BuildDelaunayGraph2D)
+
+			const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
+			PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
+
+			Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
+
+			const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
+			UPCGBasePointData* MutablePoints = SitesIO->GetOut();
+
+			PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
+			const int32 NumSites = Delaunay->Sites.Num();
+
+			(void)PCGEx::SetNumPointsAllocated(MutablePoints, NumSites, SitesIO->GetAllocations());
+			TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
+
+			TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
+			TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange();
+
+			for (int i = 0; i < NumSites; i++)
+			{
+				const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
+
+				FVector Centroid = FVector::ZeroVector;
+				for (int j = 0; j < 3; j++) { Centroid += InTransforms[Site.Vtx[j]].GetLocation(); }
+				Centroid /= 3;
+
+				IdxMapping[i] = Site.Vtx[0];
+				OutTransforms[i].SetLocation(Centroid);
+			}
+
+			EPCGPointNativeProperties Allocate = EPCGPointNativeProperties::All;
+			EnumRemoveFlags(Allocate, EPCGPointNativeProperties::Transform);
+			SitesIO->ConsumeIdxMapping(Allocate);
+
+			if (Settings->bMarkSiteHull)
+			{
+				PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TArrayBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
+				HullBuffer->InitForWrite(false, true, PCGExData::EBufferInit::New);
+				{
+					TArray<bool>& OutValues = *HullBuffer->GetOutValues();
+					for (int i = 0; i < NumSites; i++) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
+				}
+				WriteBuffer(AsyncManager, HullBuffer);
+			}
+		}
+	};
+
+	class FOutputDelaunayUrquhartSites2D final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FOutputDelaunayUrquhartSites2D)
+
+		FOutputDelaunayUrquhartSites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+		                               const TSharedPtr<FProcessor>& InProcessor) :
+			FTask(),
+			PointIO(InPointIO),
+			Processor(InProcessor)
+		{
+		}
+
+		TSharedPtr<PCGExData::FPointIO> PointIO;
+		TSharedPtr<FProcessor> Processor;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunayUrquhartSites2D::ExecuteTask);
+
+			FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
+			PCGEX_SETTINGS(BuildDelaunayGraph2D)
+
+			TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
+			PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
+
+			Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
+
+			const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
+			UPCGBasePointData* MutablePoints = SitesIO->GetOut();
+
+			PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
+			const int32 NumSites = Delaunay->Sites.Num();
+
+			// TODO : Revisit this to avoid allocating so much memory when we only need a subset
+			(void)PCGEx::SetNumPointsAllocated(MutablePoints, NumSites, SitesIO->GetAllocations());
+			TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
+
+			TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
+			TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange(true);
+
+			TBitArray<> VisitedSites;
+			VisitedSites.Init(false, NumSites);
+
+			TBitArray<> Hull;
+			TArray<int32> FinalSites;
+			FinalSites.Reserve(NumSites);
+			Hull.Reserve(NumSites / 4);
+
+			for (int i = 0; i < NumSites; i++)
+			{
+				if (VisitedSites[i]) { continue; }
+				VisitedSites[i] = true;
+
+				const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
+
+				TSet<int32> QueueSet;
+				TSet<uint64> QueuedEdgesSet;
+				Delaunay->GetMergedSites(i, Processor->UrquhartEdges, QueueSet, QueuedEdgesSet, VisitedSites);
+
+				if (QueuedEdgesSet.IsEmpty()) { continue; }
+
+				TArray<int32> Queue = QueueSet.Array();
+				QueueSet.Empty();
+
+				TArray<uint64> QueuedEdges = QueuedEdgesSet.Array();
+				QueuedEdgesSet.Empty();
+
+				FVector Centroid = FVector::ZeroVector;
+				bool bOnHull = Site.bOnHull;
+
+				if (Settings->UrquhartSitesMerge == EPCGExUrquhartSiteMergeMode::MergeSites)
+				{
+					for (const int32 MergeSiteIndex : Queue)
+					{
+						const PCGExGeo::FDelaunaySite2& MSite = Delaunay->Sites[MergeSiteIndex];
+						for (int j = 0; j < 3; j++) { Centroid += InTransforms[MSite.Vtx[j]].GetLocation(); }
+
+						if (!bOnHull && Settings->bMarkSiteHull && MSite.bOnHull) { bOnHull = true; }
+					}
+
+					Centroid /= (Queue.Num() * 3);
+				}
+				else
+				{
+					if (Settings->bMarkSiteHull)
+					{
+						for (const int32 MergeSiteIndex : Queue)
+						{
+							if (!bOnHull && Delaunay->Sites[MergeSiteIndex].bOnHull)
+							{
+								bOnHull = true;
+								break;
+							}
+						}
+					}
+
+					for (const uint64 EdgeHash : QueuedEdges)
+					{
+						Centroid += FMath::Lerp(
+							InTransforms[PCGEx::H64A(EdgeHash)].GetLocation(),
+							InTransforms[PCGEx::H64B(EdgeHash)].GetLocation(), 0.5);
+					}
+
+					Centroid /= (QueuedEdges.Num());
+				}
+
+				const int32 VIndex = FinalSites.Add(Site.Vtx[0]);
+
+				Hull.Add(bOnHull);
+				IdxMapping[VIndex] = Site.Vtx[0];
+				OutTransforms[VIndex].SetLocation(Centroid);
+			}
+
+			IdxMapping.SetNum(FinalSites.Num());
+			MutablePoints->SetNumPoints(FinalSites.Num());
+
+			SitesIO->ConsumeIdxMapping(OriginalPoints->GetAllocatedProperties() & ~EPCGPointNativeProperties::Transform);
+
+			if (Settings->bMarkSiteHull)
+			{
+				PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TArrayBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
+				HullBuffer->InitForWrite(false, true, PCGExData::EBufferInit::New);
+				{
+					TArray<bool>& OutValues = *HullBuffer->GetOutValues();
+					for (int i = 0; i < Hull.Num(); i++) { OutValues[i] = Hull[i]; }
+				}
+				WriteBuffer(AsyncManager, HullBuffer);
+			}
+		}
+	};
+
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunayGraph2D::Process);
@@ -185,173 +386,6 @@ namespace PCGExBuildDelaunayGraph2D
 	void FProcessor::Output()
 	{
 		GraphBuilder->StageEdgesOutputs();
-	}
-
-	void FOutputDelaunaySites2D::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunaySites2D::ExecuteTask);
-
-		FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
-		PCGEX_SETTINGS(BuildDelaunayGraph2D)
-
-		const TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
-
-		Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
-
-		const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
-		UPCGBasePointData* MutablePoints = SitesIO->GetOut();
-
-		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
-		const int32 NumSites = Delaunay->Sites.Num();
-
-		(void)PCGEx::SetNumPointsAllocated(MutablePoints, NumSites, SitesIO->GetAllocations());
-		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
-
-		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
-		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange();
-
-		for (int i = 0; i < NumSites; i++)
-		{
-			const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
-
-			FVector Centroid = FVector::ZeroVector;
-			for (int j = 0; j < 3; j++) { Centroid += InTransforms[Site.Vtx[j]].GetLocation(); }
-			Centroid /= 3;
-
-			IdxMapping[i] = Site.Vtx[0];
-			OutTransforms[i].SetLocation(Centroid);
-		}
-
-		EPCGPointNativeProperties Allocate = EPCGPointNativeProperties::All;
-		EnumRemoveFlags(Allocate, EPCGPointNativeProperties::Transform);
-		SitesIO->ConsumeIdxMapping(Allocate);
-
-		if (Settings->bMarkSiteHull)
-		{
-			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TArrayBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
-			HullBuffer->InitForWrite(false, true, PCGExData::EBufferInit::New);
-			{
-				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
-				for (int i = 0; i < NumSites; i++) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
-			}
-			WriteBuffer(AsyncManager, HullBuffer);
-		}
-	}
-
-	void FOutputDelaunayUrquhartSites2D::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunayUrquhartSites2D::ExecuteTask);
-
-		FPCGExBuildDelaunayGraph2DContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
-		PCGEX_SETTINGS(BuildDelaunayGraph2D)
-
-		TSharedPtr<PCGExData::FPointIO> SitesIO = NewPointIO(PointIO.ToSharedRef());
-		PCGEX_INIT_IO_VOID(SitesIO, PCGExData::EIOInit::New)
-
-		Context->MainSites->Insert_Unsafe(Processor->BatchIndex, SitesIO);
-
-		const UPCGBasePointData* OriginalPoints = SitesIO->GetIn();
-		UPCGBasePointData* MutablePoints = SitesIO->GetOut();
-
-		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
-		const int32 NumSites = Delaunay->Sites.Num();
-
-		// TODO : Revisit this to avoid allocating so much memory when we only need a subset
-		(void)PCGEx::SetNumPointsAllocated(MutablePoints, NumSites, SitesIO->GetAllocations());
-		TArray<int32>& IdxMapping = SitesIO->GetIdxMapping();
-
-		TConstPCGValueRange<FTransform> InTransforms = OriginalPoints->GetConstTransformValueRange();
-		TPCGValueRange<FTransform> OutTransforms = MutablePoints->GetTransformValueRange(true);
-
-		TBitArray<> VisitedSites;
-		VisitedSites.Init(false, NumSites);
-
-		TBitArray<> Hull;
-		TArray<int32> FinalSites;
-		FinalSites.Reserve(NumSites);
-		Hull.Reserve(NumSites / 4);
-
-		for (int i = 0; i < NumSites; i++)
-		{
-			if (VisitedSites[i]) { continue; }
-			VisitedSites[i] = true;
-
-			const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
-
-			TSet<int32> QueueSet;
-			TSet<uint64> QueuedEdgesSet;
-			Delaunay->GetMergedSites(i, Processor->UrquhartEdges, QueueSet, QueuedEdgesSet, VisitedSites);
-
-			if (QueuedEdgesSet.IsEmpty()) { continue; }
-
-			TArray<int32> Queue = QueueSet.Array();
-			QueueSet.Empty();
-
-			TArray<uint64> QueuedEdges = QueuedEdgesSet.Array();
-			QueuedEdgesSet.Empty();
-
-			FVector Centroid = FVector::ZeroVector;
-			bool bOnHull = Site.bOnHull;
-
-			if (Settings->UrquhartSitesMerge == EPCGExUrquhartSiteMergeMode::MergeSites)
-			{
-				for (const int32 MergeSiteIndex : Queue)
-				{
-					const PCGExGeo::FDelaunaySite2& MSite = Delaunay->Sites[MergeSiteIndex];
-					for (int j = 0; j < 3; j++) { Centroid += InTransforms[MSite.Vtx[j]].GetLocation(); }
-
-					if (!bOnHull && Settings->bMarkSiteHull && MSite.bOnHull) { bOnHull = true; }
-				}
-
-				Centroid /= (Queue.Num() * 3);
-			}
-			else
-			{
-				if (Settings->bMarkSiteHull)
-				{
-					for (const int32 MergeSiteIndex : Queue)
-					{
-						if (!bOnHull && Delaunay->Sites[MergeSiteIndex].bOnHull)
-						{
-							bOnHull = true;
-							break;
-						}
-					}
-				}
-
-				for (const uint64 EdgeHash : QueuedEdges)
-				{
-					Centroid += FMath::Lerp(
-						InTransforms[PCGEx::H64A(EdgeHash)].GetLocation(),
-						InTransforms[PCGEx::H64B(EdgeHash)].GetLocation(), 0.5);
-				}
-
-				Centroid /= (QueuedEdges.Num());
-			}
-
-			const int32 VIndex = FinalSites.Add(Site.Vtx[0]);
-
-			Hull.Add(bOnHull);
-			IdxMapping[VIndex] = Site.Vtx[0];
-			OutTransforms[VIndex].SetLocation(Centroid);
-		}
-
-		IdxMapping.SetNum(FinalSites.Num());
-		MutablePoints->SetNumPoints(FinalSites.Num());
-
-		SitesIO->ConsumeIdxMapping(OriginalPoints->GetAllocatedProperties() & ~EPCGPointNativeProperties::Transform);
-
-		if (Settings->bMarkSiteHull)
-		{
-			PCGEX_MAKE_SHARED(HullBuffer, PCGExData::TArrayBuffer<bool>, SitesIO.ToSharedRef(), Settings->SiteHullAttributeName)
-			HullBuffer->InitForWrite(false, true, PCGExData::EBufferInit::New);
-			{
-				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
-				for (int i = 0; i < Hull.Num(); i++) { OutValues[i] = Hull[i]; }
-			}
-			WriteBuffer(AsyncManager, HullBuffer);
-		}
 	}
 }
 

@@ -11,7 +11,6 @@
 #define PCGEX_MACRO_NONE(...)
 
 #define PCGEX_MAKE_SHARED(_NAME, _CLASS, ...) const TSharedPtr<_CLASS> _NAME = MakeShared<_CLASS>(__VA_ARGS__);
-#define PCGEX_ENGINE_VERSION ENGINE_MAJOR_VERSION * 100 + ENGINE_MINOR_VERSION
 
 #define PCGEX_CAN_ONLY_EXECUTE_ON_MAIN_THREAD(_BOOL) virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return _BOOL; }
 #define PCGEX_SUPPORT_BASE_POINT_DATA(_BOOL) virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return _BOOL; }
@@ -202,11 +201,6 @@ else if _PREFIX (_PROPERTY == EPCGPointProperties::ScaledLocalSize){ /* TODO */ 
 
 #pragma endregion
 
-// Dummy members required by Macros (I know! Don't say it!)
-#define PCGEX_DUMMY_SETTINGS_MEMBERS \
-bool ShouldCache() const { return false; } \
-bool bCleanupConsumableAttributes = false;
-
 // FString A = ShouldCache() ? TEXT("♻️ ") : TEXT("");
 
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
@@ -233,12 +227,13 @@ virtual bool RequiresPointFilters() const override { return _REQUIRED; }
 FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared<FPCGEx##_NAME##Element>();}
 #define PCGEX_CONTEXT(_NAME) FPCGEx##_NAME##Context* Context = static_cast<FPCGEx##_NAME##Context*>(InContext);	check(Context);
 #define PCGEX_SETTINGS(_NAME) const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
+#define PCGEX_SETTINGS_C(_CTX, _NAME) const UPCGEx##_NAME##Settings* Settings = _CTX->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
 #define PCGEX_SETTINGS_LOCAL(_NAME) const UPCGEx##_NAME##Settings* Settings = GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
 #define PCGEX_CONTEXT_AND_SETTINGS(_NAME) PCGEX_CONTEXT(_NAME) PCGEX_SETTINGS(_NAME)
 #define PCGEX_OPERATION_VALIDATE(_NAME) if(!Settings->_NAME){PCGE_LOG(Error, GraphAndLog, FTEXT("No operation selected for : "#_NAME)); return false;}
 #define PCGEX_OPERATION_REGISTER_C(_CTX, _TYPE, _OP, _OVERRIDES_PIN) Cast<_TYPE>(_CTX->RegisterOperation(_OP, _OVERRIDES_PIN))
 #define PCGEX_OPERATION_BIND(_NAME, _TYPE, _OVERRIDES_PIN) PCGEX_OPERATION_VALIDATE(_NAME) Context->_NAME = PCGEX_OPERATION_REGISTER_C(Context, _TYPE, Settings->_NAME, _OVERRIDES_PIN); if(!Context->_NAME){return false;}
-#define PCGEX_VALIDATE_NAME(_NAME) if (!PCGEx::IsWritableAttributeName(_NAME)){	PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined attribute name for " #_NAME)); return false;	}
+#define PCGEX_VALIDATE_NAME(_NAME) if (!PCGEx::IsWritableAttributeName(_NAME)){	PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid user-defined attribute name for " #_NAME)); return false;	}
 #define PCGEX_VALIDATE_NAME_CONDITIONAL(_IF, _NAME) if(_IF){ PCGEX_VALIDATE_NAME(_NAME) }
 #define PCGEX_VALIDATE_NAME_CONSUMABLE(_NAME) if (!PCGEx::IsWritableAttributeName(_NAME)){	PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined attribute name for " #_NAME)); return false;	} Context->AddConsumableAttributeName(_NAME);
 #define PCGEX_VALIDATE_NAME_C(_CTX, _NAME) if (!PCGEx::IsWritableAttributeName(_NAME)){	PCGE_LOG_C(Error, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); return false;	}

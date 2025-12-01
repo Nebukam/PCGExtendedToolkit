@@ -82,7 +82,7 @@ bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 }
 
 
-bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExFindClustersDataElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindClustersDataElement::Execute);
 

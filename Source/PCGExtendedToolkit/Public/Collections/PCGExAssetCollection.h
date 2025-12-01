@@ -14,6 +14,7 @@
 #endif
 
 #include "PCGExAssetGrammar.h"
+#include "PCGExContext.h"
 #include "PCGExHelpers.h"
 #include "PCGParamData.h"
 #include "Details/PCGExDetailsStaging.h"

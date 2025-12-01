@@ -3,10 +3,11 @@
 
 #pragma once
 
+#include <functional>
+
 #include "CoreMinimal.h"
 #include "PCGExMath.h"
 #include "UObject/Object.h"
-
 #include "PCGExProbeFactoryProvider.h"
 #include "PCGExProbeOperation.h"
 

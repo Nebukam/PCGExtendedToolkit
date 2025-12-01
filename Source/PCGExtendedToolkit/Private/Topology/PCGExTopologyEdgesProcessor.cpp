@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExContext.h"
 #include "PCGComponent.h"
+#include "PCGExMT.h"
 #include "Topology/PCGExDynamicMeshComponent.h"
 #include "Topology/PCGExTopology.h"
 #include "Data/PCGDynamicMeshData.h"

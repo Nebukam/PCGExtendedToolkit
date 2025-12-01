@@ -4,6 +4,7 @@
 #include "Graph/PCGExUnionProcessor.h"
 
 #include "PCGExHelpers.h"
+#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Details/PCGExDetailsDistances.h"

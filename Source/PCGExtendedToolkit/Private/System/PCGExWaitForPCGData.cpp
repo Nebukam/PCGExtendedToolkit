@@ -3,6 +3,7 @@
 
 #include "System/PCGExWaitForPCGData.h"
 
+#include "PCGExMT.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "PCGExPointsProcessor.h"
@@ -164,7 +165,7 @@ bool FPCGExWaitForPCGDataElement::PostBoot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExWaitForPCGDataElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExWaitForPCGDataElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWaitForPCGDataElement::Execute);
 
@@ -189,6 +190,23 @@ bool FPCGExWaitForPCGDataElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExWaitForPCGData
 {
+	
+	class FStageComponentDataTask final : public PCGExMT::FPCGExIndexedTask
+	{
+	public:
+		explicit FStageComponentDataTask(const int32 InTaskIndex, const TWeakPtr<FProcessor>& InProcessor):
+			FPCGExIndexedTask(InTaskIndex), Processor(InProcessor)
+		{
+		}
+
+		const TWeakPtr<FProcessor> Processor;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			if (const TSharedPtr<FProcessor> P = Processor.Pin()) { P->StageComponentData(TaskIndex); }
+		}
+	};
+	
 	FProcessor::~FProcessor()
 	{
 	}
@@ -771,11 +789,6 @@ namespace PCGExWaitForPCGData
 				}
 			}
 		}
-	}
-
-	void FStageComponentDataTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		if (const TSharedPtr<FProcessor> P = Processor.Pin()) { P->StageComponentData(TaskIndex); }
 	}
 }
 

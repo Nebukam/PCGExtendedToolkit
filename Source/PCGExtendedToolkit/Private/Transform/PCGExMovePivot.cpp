@@ -3,6 +3,7 @@
 
 #include "Transform/PCGExMovePivot.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 
@@ -25,7 +26,7 @@ bool FPCGExMovePivotElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExMovePivotElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExMovePivotElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMovePivotElement::Execute);
 

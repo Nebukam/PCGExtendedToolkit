@@ -4,10 +4,88 @@
 
 #include "Data/PCGExPointIOMerger.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/PCGExDataTag.h"
 #include "Paths/PCGExPathShift.h"
 
+namespace PCGExPointIOMerger
+{
+	template <typename T>
+	class FWriteAttributeScopeTask final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FWriteAttributeScopeTask)
+
+		FWriteAttributeScopeTask(
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+			const FMergeScope& InScope,
+			const FIdentityRef& InIdentity,
+			const TSharedPtr<PCGExData::TBuffer<T>>& InOutBuffer)
+			: FTask(),
+			  PointIO(InPointIO),
+			  Scope(InScope),
+			  Identity(InIdentity),
+			  OutBuffer(InOutBuffer)
+		{
+		}
+
+		const TSharedPtr<PCGExData::FPointIO> PointIO;
+		const FMergeScope Scope;
+		const FIdentityRef Identity;
+		const TSharedPtr<PCGExData::TBuffer<T>> OutBuffer;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			ScopeMerge<T>(Scope, Identity, PointIO, OutBuffer);
+		}
+	};
+
+#define PCGEX_TPL(_TYPE, _NAME, ...) template class FWriteAttributeScopeTask<_TYPE>;
+
+	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
+
+#undef PCGEX_TPL
+
+	class FCopyAttributeTask final : public PCGExMT::FPCGExIndexedTask
+	{
+	public:
+		FCopyAttributeTask(const int32 InTaskIndex, const TSharedPtr<FPCGExPointIOMerger>& InMerger)
+			: FPCGExIndexedTask(InTaskIndex),
+			  Merger(InMerger)
+		{
+		}
+
+		TSharedPtr<FPCGExPointIOMerger> Merger;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			const FIdentityRef& Identity = Merger->UniqueIdentities[TaskIndex];
+
+			PCGEx::ExecuteWithRightType(
+				Identity.UnderlyingType, [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+
+					TSharedPtr<PCGExData::TBuffer<T>> Buffer = Merger->UnionDataFacade->GetWritable(
+						Merger->WantsDataToElements() ? Identity.ElementsIdentifier : Identity.Identifier,
+						Identity.bInitDefault ? static_cast<const FPCGMetadataAttribute<T>*>(Identity.Attribute)->GetValue(PCGDefaultValueKey) : T{},
+						Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
+
+					for (int i = 0; i < Merger->IOSources.Num(); i++)
+					{
+						TSharedPtr<PCGExData::FPointIO> SourceIO = Merger->IOSources[i];
+						const FPCGMetadataAttributeBase* Attribute = SourceIO->GetIn()->Metadata->GetConstAttribute(Identity.Identifier);
+
+						if (!Attribute) { continue; }                            // Missing attribute
+						if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
+
+						PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, Buffer)
+					}
+				});
+		}
+	};
+}
 
 PCGExPointIOMerger::FIdentityRef::FIdentityRef()
 	: FAttributeIdentity()
@@ -187,41 +265,5 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 	for (int i = 0; i < UniqueIdentities.Num(); i++)
 	{
 		PCGEX_LAUNCH(PCGExPointIOMerger::FCopyAttributeTask, i, ThisPtr)
-	}
-}
-
-namespace PCGExPointIOMerger
-{
-	FCopyAttributeTask::FCopyAttributeTask(const int32 InTaskIndex, const TSharedPtr<FPCGExPointIOMerger>& InMerger)
-		: FPCGExIndexedTask(InTaskIndex),
-		  Merger(InMerger)
-	{
-	}
-
-	void FCopyAttributeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		const FIdentityRef& Identity = Merger->UniqueIdentities[TaskIndex];
-
-		PCGEx::ExecuteWithRightType(
-			Identity.UnderlyingType, [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-
-				TSharedPtr<PCGExData::TBuffer<T>> Buffer = Merger->UnionDataFacade->GetWritable(
-					Merger->WantsDataToElements() ? Identity.ElementsIdentifier : Identity.Identifier,
-					Identity.bInitDefault ? static_cast<const FPCGMetadataAttribute<T>*>(Identity.Attribute)->GetValue(PCGDefaultValueKey) : T{},
-					Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
-
-				for (int i = 0; i < Merger->IOSources.Num(); i++)
-				{
-					TSharedPtr<PCGExData::FPointIO> SourceIO = Merger->IOSources[i];
-					const FPCGMetadataAttributeBase* Attribute = SourceIO->GetIn()->Metadata->GetConstAttribute(Identity.Identifier);
-
-					if (!Attribute) { continue; }                            // Missing attribute
-					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
-
-					PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, Buffer)
-				}
-			});
 	}
 }

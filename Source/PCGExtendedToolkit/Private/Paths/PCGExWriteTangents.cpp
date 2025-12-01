@@ -4,6 +4,7 @@
 #include "Paths/PCGExWriteTangents.h"
 
 #include "PCGExLabels.h"
+#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
@@ -75,7 +76,7 @@ bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 }
 
 
-bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExWriteTangentsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteTangentsElement::Execute);
 

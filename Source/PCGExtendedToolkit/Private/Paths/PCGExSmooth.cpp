@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExSmooth.h"
 
+#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
@@ -66,7 +67,7 @@ bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSmoothElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSmoothElement::Execute);
 

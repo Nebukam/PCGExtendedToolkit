@@ -24,6 +24,14 @@
 #endif
 #pragma endregion
 
+namespace PCGExMT
+{
+	class FTaskGroup;
+	class FTaskManager;
+}
+
+struct FPCGExContext;
+
 namespace PCGEx
 {
 	struct FAttributeIdentity;
@@ -523,22 +531,6 @@ extern template bool TryReadMark<_TYPE>(const TSharedRef<FPointIO>& PointIO, con
 
 	TSharedPtr<FFacade> TryGetSingleFacade(FPCGExContext* InContext, const FName InputPinLabel, bool bTransactional, const bool bRequired);
 	bool TryGetFacades(FPCGExContext* InContext, const FName InputPinLabel, TArray<TSharedPtr<FFacade>>& OutFacades, const bool bRequired, const bool bIsTransactional = false);
-
-	class PCGEXTENDEDTOOLKIT_API FWriteBufferTask final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FWriteTask)
-
-		explicit FWriteBufferTask(const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true)
-			: FTask(), bEnsureValidKeys(InEnsureValidKeys), Buffer(InBuffer)
-		{
-		}
-
-		bool bEnsureValidKeys = true;
-		TSharedPtr<IBuffer> Buffer;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
 
 	PCGEXTENDEDTOOLKIT_API
 	void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true);

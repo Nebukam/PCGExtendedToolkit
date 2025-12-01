@@ -4,10 +4,12 @@
 #include "Misc/PCGExCherryPickPoints.h"
 
 
+#include "PCGExFactories.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Misc/PCGExDiscardByPointCount.h"
 #include "Misc/Pickers/PCGExPicker.h"
+#include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCherryPickPointsElement"
 #define PCGEX_NAMESPACE CherryPickPoints
@@ -45,7 +47,7 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExCherryPickPointsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExCherryPickPointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCherryPickPointsElement::Execute);
 

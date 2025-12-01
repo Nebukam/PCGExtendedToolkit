@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Sampling/PCGExSampleNearestSurface.h"
+
+#include "PCGExMT.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "Engine/OverlapResult.h"
@@ -75,7 +77,7 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleNearestSurfaceElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestSurfaceElement::Execute);
 

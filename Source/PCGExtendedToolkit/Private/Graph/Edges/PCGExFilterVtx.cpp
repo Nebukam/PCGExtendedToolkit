@@ -4,6 +4,7 @@
 #include "Graph/Edges/PCGExFilterVtx.h"
 
 #include "PCGExLabels.h"
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExGraph.h"
@@ -129,8 +130,7 @@ bool FPCGExFilterVtxElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExFilterVtxElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExFilterVtxElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFilterVtxElement::Execute);
 

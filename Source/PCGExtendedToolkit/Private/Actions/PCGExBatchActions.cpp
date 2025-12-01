@@ -4,6 +4,7 @@
 #include "Actions/PCGExBatchActions.h"
 
 
+#include "PCGExMT.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/States/PCGExClusterStates.h"
 #include "Actions/PCGExActionFactoryProvider.h"
@@ -73,8 +74,7 @@ bool FPCGExBatchActionsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBatchActionsElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExBatchActionsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBatchActionsElement::Execute);
 

@@ -130,26 +130,10 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SplineToPath)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExSplineToPath
 {
 	const FName SourceSplineLabel = TEXT("Splines");
-
-	class FWriteTask final : public PCGExMT::FPCGExIndexedTask
-	{
-	public:
-		FWriteTask(const int32 InTaskIndex,
-		           const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
-			: FPCGExIndexedTask(InTaskIndex),
-			  PointDataFacade(InPointDataFacade)
-
-		{
-		}
-
-		TSharedPtr<PCGExData::FFacade> PointDataFacade;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
 }

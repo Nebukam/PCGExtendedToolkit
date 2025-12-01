@@ -8,6 +8,7 @@
 #include "PCGExClusterMT.h"
 #include "Details/PCGExDetailsIntersection.h"
 #include "PCGExEdgesProcessor.h"
+#include "PCGExFactories.h"
 #include "PCGExLabels.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
@@ -113,7 +114,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(SimplifyClusters)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExSimplifyClusters

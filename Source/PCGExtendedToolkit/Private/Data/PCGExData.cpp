@@ -1265,11 +1265,25 @@ template PCGEXTENDEDTOOLKIT_API bool TryReadMark<_TYPE>(const TSharedRef<FPointI
 		return const_cast<UPCGBasePointData*>(PointData);
 	}
 
-	void FWriteBufferTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	class PCGEXTENDEDTOOLKIT_API FWriteBufferTask final : public PCGExMT::FTask
 	{
-		if (!Buffer) { return; }
-		Buffer->Write(bEnsureValidKeys);
-	}
+	public:
+		PCGEX_ASYNC_TASK_NAME(FWriteTask)
+
+		explicit FWriteBufferTask(const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys = true)
+			: FTask(), bEnsureValidKeys(InEnsureValidKeys), Buffer(InBuffer)
+		{
+		}
+
+		bool bEnsureValidKeys = true;
+		TSharedPtr<IBuffer> Buffer;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			if (!Buffer) { return; }
+			Buffer->Write(bEnsureValidKeys);
+		}
+	};
 
 	void WriteBuffer(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBuffer>& InBuffer, const bool InEnsureValidKeys)
 	{

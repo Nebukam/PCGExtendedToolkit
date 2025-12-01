@@ -90,9 +90,6 @@ namespace PCGExPointStates
 	}
 }
 
-#if WITH_EDITOR
-FLinearColor UPCGExStateFactoryProviderSettings::GetNodeTitleColor() const { return GetDefault<UPCGExGlobalSettings>()->ColorClusterState; }
-#endif
 
 bool UPCGExStateFactoryProviderSettings::IsPinUsedByNodeExecution(const UPCGPin* InPin) const
 {

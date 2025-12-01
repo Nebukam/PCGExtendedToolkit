@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "PCGExH.h"
-#include "PCGExGeo.h"
 
 namespace PCGExGeo
 {

@@ -4,6 +4,7 @@
 #include "AssetStaging/PCGExStaging.h"
 
 #include "PCGExGlobalSettings.h"
+#include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Collections/PCGExAssetCollection.h"

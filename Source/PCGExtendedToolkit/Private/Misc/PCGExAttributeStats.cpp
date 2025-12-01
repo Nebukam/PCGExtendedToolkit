@@ -4,6 +4,7 @@
 
 #include "Misc/PCGExAttributeStats.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 
@@ -131,7 +132,7 @@ bool FPCGExAttributeStatsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExAttributeStatsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExAttributeStatsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeStatsElement::Execute);
 

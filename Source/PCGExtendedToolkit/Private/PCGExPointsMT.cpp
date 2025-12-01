@@ -6,11 +6,38 @@
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGExPointFilter.h"
 #include "PCGExInstancedFactory.h"
+#include "PCGExMT.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"
 
 namespace PCGExPointsMT
 {
+
+#pragma region Tasks
+
+	template <typename T>
+	class FStartBatchProcessing final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FStartClusterBatchProcessing)
+
+		FStartBatchProcessing(TSharedPtr<T> InTarget)
+			: FTask(),
+			  Target(InTarget)
+		{
+		}
+
+		TSharedPtr<T> Target;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			Target->Process(AsyncManager);
+		}
+	};
+
+#pragma endregion
+	
 	IProcessor::IProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
 	{

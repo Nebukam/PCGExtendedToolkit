@@ -32,11 +32,11 @@ FPCGElementPtr UPCGExBitmaskMergeSettings::CreateElement() const { return MakeSh
 
 #pragma endregion
 
-bool FPCGExBitmaskMergeElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExBitmaskMergeElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
-	PCGEX_SETTINGS(BitmaskMerge)
+	PCGEX_SETTINGS_C(InContext, BitmaskMerge)
 
-	TArray<FPCGTaggedData> InputParams = Context->InputData.GetInputsByPin(FName("Bitmasks"));
+	TArray<FPCGTaggedData> InputParams = InContext->InputData.GetInputsByPin(FName("Bitmasks"));
 
 	bool bInitialized = false;
 	int64 OutputMask = 0;
@@ -71,7 +71,7 @@ bool FPCGExBitmaskMergeElement::ExecuteInternal(FPCGContext* Context) const
 	UPCGParamData* Bitmask = NewObject<UPCGParamData>();
 	Bitmask->Metadata->CreateAttribute<int64>(FName("Bitmask"), OutputMask, false, true);
 	Bitmask->Metadata->AddEntry();
-	FPCGTaggedData& OutData = Context->OutputData.TaggedData.Emplace_GetRef();
+	FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();
 	OutData.Pin = FName("Bitmask");
 	OutData.Data = Bitmask;
 

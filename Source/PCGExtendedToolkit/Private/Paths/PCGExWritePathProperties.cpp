@@ -4,6 +4,7 @@
 #include "Paths/PCGExWritePathProperties.h"
 #include "MinVolumeBox3.h"
 #include "OrientedBoxTypes.h"
+#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
@@ -74,7 +75,7 @@ bool FPCGExWritePathPropertiesElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExWritePathPropertiesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWritePathPropertiesElement::Execute);
 

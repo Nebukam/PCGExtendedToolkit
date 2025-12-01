@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExFindPointOnBoundsClusters.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExPointIOMerger.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExCluster.h"
@@ -67,8 +68,7 @@ bool FPCGExFindPointOnBoundsClustersElement::Boot(FPCGExContext* InContext) cons
 	return true;
 }
 
-bool FPCGExFindPointOnBoundsClustersElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExFindPointOnBoundsClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindPointOnBoundsClustersElement::Execute);
 

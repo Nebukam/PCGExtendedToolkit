@@ -4,6 +4,7 @@
 #include "Misc/PCGExWriteGUID.h"
 
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
@@ -105,7 +106,7 @@ bool FPCGExWriteGUIDElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExWriteGUIDElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExWriteGUIDElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteGUIDElement::Execute);
 

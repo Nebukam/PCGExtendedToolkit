@@ -3,7 +3,9 @@
 
 #pragma once
 
-#include "PCGExMT.h"
+#include <functional>
+
+#include "PCGExCommon.h"
 
 namespace PCGExMT
 {
@@ -278,7 +280,6 @@ namespace PCGExMT
 
 			for (int i = 0; i < Sets.Num(); i++)
 			{
-				InTarget.Reserve(InTarget.Num() + Sets[i].Get()->Num());
 				InTarget.Append(*Sets[i].Get());
 				Sets[i] = nullptr;
 			}

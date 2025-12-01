@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleNearestSpline.h"
 
+#include "PCGExMT.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
@@ -172,7 +173,7 @@ void FPCGExSampleNearestSplineElement::PostLoadAssetsDependencies(FPCGExContext*
 	Context->WeightCurve = Context->RuntimeWeightCurve.GetRichCurveConst();
 }
 
-bool FPCGExSampleNearestSplineElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleNearestSplineElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestSplineElement::Execute);
 

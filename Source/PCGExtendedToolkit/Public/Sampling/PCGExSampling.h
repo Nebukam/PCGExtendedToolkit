@@ -34,6 +34,7 @@ namespace PCGExDetails
 
 namespace PCGExData
 {
+	class FFacade;
 	class FMultiFacadePreloader;
 }
 

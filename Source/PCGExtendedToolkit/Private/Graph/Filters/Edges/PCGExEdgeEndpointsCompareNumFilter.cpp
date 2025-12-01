@@ -3,8 +3,8 @@
 
 #include "Graph/Filters/Edges/PCGExEdgeEndpointsCompareNumFilter.h"
 
-
 #include "PCGExHelpers.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Graph/PCGExGraph.h"
 

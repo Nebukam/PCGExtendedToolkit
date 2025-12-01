@@ -4,6 +4,7 @@
 #include "Misc/PCGExBitwiseOperation.h"
 
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Constants/PCGExBitmask.h"
@@ -35,7 +36,7 @@ bool FPCGExBitwiseOperationElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBitwiseOperationElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBitwiseOperationElement::Execute);
 

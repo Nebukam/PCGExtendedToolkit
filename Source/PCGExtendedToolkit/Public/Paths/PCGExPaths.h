@@ -11,12 +11,16 @@
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExOctree.h"
 #include "Components/SplineMeshComponent.h"
+#include "Details/PCGExVersion.h"
+#include "Details/PCGExMacros.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdge.h"
+#include "Utils/PCGValueRange.h"
 
 #include "PCGExPaths.generated.h"
 
+struct FPCGExContext;
 class UPCGPolygon2DData;
 struct FPCGSplineStruct;
 
@@ -396,7 +400,7 @@ namespace PCGExPaths
 
 		TArray<FVector2D> ProjectedPoints;
 		FPCGExGeo2DProjectionDetails Projection;
-		FBox2D ProjectedBounds = FBox2D(ForceInit);
+		FBox2D ProjectedBounds = FBox2D();
 
 	public:
 		explicit FPath(const bool IsClosed = false);
@@ -715,6 +719,14 @@ namespace PCGExPaths
 			const double Expansion = 0, const double ExpansionZ = -1,
 			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
 
+#if PCGEX_ENGINE_VERSION > 506
+		FPolyPath(
+			const UPCGPolygon2DData* PolygonData,
+			const FPCGExGeo2DProjectionDetails& InProjection,
+			const double Expansion = 0, const double ExpansionZ = -1,
+			const EPCGExWindingMutation WindingMutation = EPCGExWindingMutation::Unchanged);
+#endif
+		
 		FORCEINLINE const FPCGSplineStruct* GetSpline() const { return Spline; }
 
 	protected:

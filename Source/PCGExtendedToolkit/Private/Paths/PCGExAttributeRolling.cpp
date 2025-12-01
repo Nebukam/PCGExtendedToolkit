@@ -4,6 +4,7 @@
 #include "Paths/PCGExAttributeRolling.h"
 
 #include "PCGExLabels.h"
+#include "PCGExMT.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
@@ -97,7 +98,7 @@ bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 }
 
 
-bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExAttributeRollingElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRollingElement::Execute);
 

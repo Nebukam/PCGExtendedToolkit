@@ -4,6 +4,7 @@
 #include "Sampling/PCGExSampleNeighbors.h"
 
 
+#include "PCGExMT.h"
 #include "Graph/PCGExCluster.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleAttribute.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
@@ -43,8 +44,7 @@ bool FPCGExSampleNeighborsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSampleNeighborsElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExSampleNeighborsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNeighborsElement::Execute);
 

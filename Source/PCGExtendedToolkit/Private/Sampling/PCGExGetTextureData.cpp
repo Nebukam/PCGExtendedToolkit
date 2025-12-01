@@ -7,6 +7,7 @@
 #include "Materials/MaterialInterface.h"
 #include "PCGComponent.h"
 #include "PCGExHelpers.h"
+#include "PCGExMT.h"
 #include "Data/PCGRenderTargetData.h"
 #include "Data/PCGTextureData.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -84,7 +85,7 @@ bool FPCGExGetTextureDataElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExGetTextureDataElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGetTextureDataElement::Execute);
 

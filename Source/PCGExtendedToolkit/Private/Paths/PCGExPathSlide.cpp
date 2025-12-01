@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExPathSlide.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPaths.h"
@@ -32,7 +33,7 @@ bool FPCGExPathSlideElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPathSlideElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathSlideElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathSlideElement::Execute);
 

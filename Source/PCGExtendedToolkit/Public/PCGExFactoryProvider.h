@@ -8,19 +8,24 @@
 #include "PCGSettings.h"
 #include "UObject/Object.h"
 
-#include "PCGEx.h"
 #include "PCGExContext.h"
 #include "PCGExElement.h"
 #include "PCGExFactories.h"
-#include "PCGExMT.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGExSettings.h"
 #include "Data/PCGExPointData.h"
+#include "Details/PCGExMacros.h"
+#include "Details/PCGExVersion.h"
 
 #include "PCGExFactoryProvider.generated.h"
 
 #define PCGEX_FACTORY_NAME_PRIORITY FName(FString::Printf(TEXT("(%d) "), Priority) +  GetDisplayName())
 #define PCGEX_FACTORY_NEW_OPERATION(_TYPE) TSharedPtr<FPCGEx##_TYPE> NewOperation = MakeShared<FPCGEx##_TYPE>();
+#if PCGEX_ENGINE_VERSION > 506
+#define PCGEX_FACTORY_TYPE_ID(_TYPE) virtual const FPCGDataTypeBaseId& GetFactoryTypeId() const{ return _TYPE::AsId(); }
+#else
 #define PCGEX_FACTORY_TYPE_ID(_TYPE)
+#endif
 
 ///
 
@@ -112,7 +117,7 @@ public:
 #if WITH_EDITOR
 	//PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FactoryProvider, "Factory : Provider", "Creates an abstract factory provider.", FName(GetDisplayName()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override;
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorDebug; }
 #endif
 
 	virtual int32 GetDefaultPriority() const { return 0; }
@@ -152,7 +157,7 @@ public:
 #endif
 
 protected:
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 public:
 	PCGEX_ELEMENT_CREATE_CONTEXT(FactoryProvider)

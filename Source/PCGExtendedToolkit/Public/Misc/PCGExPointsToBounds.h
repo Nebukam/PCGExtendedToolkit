@@ -166,7 +166,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PointsToBounds)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 
 namespace PCGExPointsToBounds

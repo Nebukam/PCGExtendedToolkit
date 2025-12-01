@@ -3,6 +3,7 @@
 
 #include "Transform/PCGExTransform.h"
 
+#include "PCGExContext.h"
 #include "PCGExHelpers.h"
 #include "PCGExMathBounds.h"
 #include "Data/PCGExData.h"

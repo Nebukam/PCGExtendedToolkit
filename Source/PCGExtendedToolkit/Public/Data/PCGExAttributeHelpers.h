@@ -13,8 +13,6 @@
 #include "Details/PCGExMacros.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
-#include "PCGExAttributeHelpers.generated.h"
-
 class UPCGMetadata;
 struct FPCGContext;
 class FPCGMetadataAttributeBase;
@@ -48,50 +46,6 @@ namespace PCGExData
 }
 
 struct FPCGExAttributeGatherDetails;
-
-#pragma region Legacy
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputConfig
-{
-	GENERATED_BODY()
-
-	// Legacy horror
-
-	FPCGExInputConfig() = default;
-	explicit FPCGExInputConfig(const FPCGAttributePropertyInputSelector& InSelector);
-	explicit FPCGExInputConfig(const FPCGExInputConfig& Other);
-	explicit FPCGExInputConfig(const FName InName);
-
-	virtual ~FPCGExInputConfig() = default;
-	UPROPERTY(VisibleAnywhere, Category=Settings, meta=(HideInDetailPanel, EditCondition="false", EditConditionHides))
-	FString TitlePropertyName;
-
-	/** Attribute or $Property. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Attribute", DisplayPriority=0))
-	FPCGAttributePropertyInputSelector Selector;
-
-	FPCGMetadataAttributeBase* Attribute = nullptr;
-	int16 UnderlyingType = static_cast<int16>(EPCGMetadataTypes::Unknown);
-
-	FPCGAttributePropertyInputSelector& GetMutableSelector() { return Selector; }
-
-	EPCGAttributePropertySelection GetSelection() const { return Selector.GetSelection(); }
-	FName GetName() const { return Selector.GetName(); }
-#if WITH_EDITOR
-	virtual FString GetDisplayName() const;
-	void UpdateUserFacingInfos();
-#endif
-	/**
-	 * Bind & cache the current selector for a given point data
-	 * @param InData 
-	 * @return 
-	 */
-	virtual bool Validate(const UPCGData* InData);
-	FString ToString() const { return GetName().ToString(); }
-};
-
-#pragma endregion
 
 namespace PCGEx
 {

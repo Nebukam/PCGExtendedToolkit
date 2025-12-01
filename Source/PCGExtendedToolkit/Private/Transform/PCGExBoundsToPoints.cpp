@@ -3,6 +3,7 @@
 
 #include "Transform/PCGExBoundsToPoints.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 
 
@@ -21,7 +22,7 @@ bool FPCGExBoundsToPointsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBoundsToPointsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBoundsToPointsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBoundsToPointsElement::Execute);
 

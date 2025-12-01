@@ -3,7 +3,9 @@
 
 #include "Graph/FloodFill/PCGExFloodFill.h"
 
+#include "PCGExMT.h"
 #include "Data/Blending/PCGExBlendOpFactoryProvider.h"
+#include "Data/Blending/PCGExBlendOpsManager.h"
 #include "Graph/PCGExCluster.h"
 
 #include "Graph/FloodFill/FillControls/PCGExFillControlOperation.h"
@@ -24,7 +26,10 @@ namespace PCGExFloodFill
 		TravelStack = MakeShared<PCGEx::FHashLookupMap>(0, 0);
 	}
 
-	int32 FDiffusion::GetSettingsIndex(EPCGExFloodFillSettingSource Source) const { return Source == EPCGExFloodFillSettingSource::Seed ? SeedIndex : SeedNode->PointIndex; }
+	int32 FDiffusion::GetSettingsIndex(EPCGExFloodFillSettingSource Source) const
+	{
+		return Source == EPCGExFloodFillSettingSource::Seed ? SeedIndex : SeedNode->PointIndex;
+	}
 
 	void FDiffusion::Init(const int32 InSeedIndex)
 	{

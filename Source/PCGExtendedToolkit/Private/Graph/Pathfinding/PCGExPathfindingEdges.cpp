@@ -176,7 +176,7 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathfindingEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathfindingEdgesElement::Execute);
 

@@ -6,6 +6,8 @@
 #include "Details/PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExContext.h"
+#include "PCGExElement.h"
+#include "PCGExSettings.h"
 #include "Elements/ControlFlow/PCGControlFlow.h"
 #include "PCGExConstantEnum.generated.h"
 
@@ -50,14 +52,12 @@ namespace PCGExConstantEnumConstants
 }
 
 UCLASS(BlueprintType, ClassGroup=(Procedural), meta=(AutoExpandCategories="Settings|Output Attributes", PCGExNodeLibraryDoc="quality-of-life/enum"))
-class UPCGExConstantEnumSettings : public UPCGSettings
+class UPCGExConstantEnumSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
 
 public:
 #if WITH_EDITOR
-	PCGEX_DUMMY_SETTINGS_MEMBERS
-
 	// Begin unrolling of Tim's lovely macro
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(EnumConstant, "Enum Constant", "Break an enum into handy constant values.", FName(GetDisplayName())); // Tim says nope! :D
 	FString GetDisplayName() const;
@@ -161,10 +161,10 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 };
 
-class FPCGExConstantEnumElement : public IPCGElement
+class FPCGExConstantEnumElement : public IPCGExElement
 {
 protected:
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	// Stage to separate pins for each value
 	static void StageEnumValuesSeparatePins(

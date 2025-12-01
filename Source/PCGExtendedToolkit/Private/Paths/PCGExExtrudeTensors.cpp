@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExExtrudeTensors.h"
 
+#include "PCGExMT.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
@@ -84,7 +85,7 @@ bool FPCGExExtrudeTensorsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExExtrudeTensorsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExExtrudeTensorsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExExtrudeTensorsElement::Execute);
 

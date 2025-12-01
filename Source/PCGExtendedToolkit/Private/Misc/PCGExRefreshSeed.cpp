@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExRefreshSeed.h"
 
+#include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -22,7 +23,31 @@ bool FPCGExRefreshSeedElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
+class FPCGExRefreshSeedTask final : public PCGExMT::FPCGExIndexedTask
+{
+public:
+	explicit FPCGExRefreshSeedTask(const int32 InPointIndex,
+	                               const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+		: FPCGExIndexedTask(InPointIndex),
+		  PointIO(InPointIO)
+	{
+	}
+
+	const TSharedPtr<PCGExData::FPointIO> PointIO;
+
+	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+	{
+		PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::Duplicate)
+
+		TPCGValueRange<int32> Seeds = PointIO->GetOut()->GetSeedValueRange();
+		TConstPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetConstTransformValueRange();
+
+		const FVector BaseOffset = FVector(TaskIndex) * 0.001;
+		for (int i = 0; i < PointIO->GetNum(); i++) { Seeds[i] = PCGExRandom::ComputeSpatialSeed(Transforms[i].GetLocation(), BaseOffset); }
+	}
+};
+
+bool FPCGExRefreshSeedElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRefreshSeedElement::Execute);
 
@@ -47,17 +72,6 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 
 	return Context->TryComplete();
-}
-
-void FPCGExRefreshSeedTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-{
-	PCGEX_INIT_IO_VOID(PointIO, PCGExData::EIOInit::Duplicate)
-
-	TPCGValueRange<int32> Seeds = PointIO->GetOut()->GetSeedValueRange();
-	TConstPCGValueRange<FTransform> Transforms = PointIO->GetOut()->GetConstTransformValueRange();
-
-	const FVector BaseOffset = FVector(TaskIndex) * 0.001;
-	for (int i = 0; i < PointIO->GetNum(); i++) { Seeds[i] = PCGExRandom::ComputeSpatialSeed(Transforms[i].GetLocation(), BaseOffset); }
 }
 
 #undef LOCTEXT_NAMESPACE

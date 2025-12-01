@@ -23,6 +23,61 @@
 #include "Details/PCGExDetailsDistances.h"
 #include "Geometry/PCGExGeo.h"
 
+
+namespace PCGExGraphTask
+{
+	class FWriteSubGraphCluster final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FWriteSubGraphCluster)
+
+		FWriteSubGraphCluster(const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
+			: FTask(),
+			  SubGraph(InSubGraph)
+		{
+		}
+
+		TSharedPtr<PCGExGraph::FSubGraph> SubGraph;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesDataFacade->GetOut());
+			const TSharedPtr<PCGExGraph::FGraph> ParentGraph = SubGraph->WeakParentGraph.Pin();
+			if (!ParentGraph) { return; }
+			PCGEX_MAKE_SHARED(NewCluster, PCGExCluster::FCluster, SubGraph->VtxDataFacade->Source, SubGraph->EdgesDataFacade->Source, ParentGraph->NodeIndexLookup)
+			ClusterEdgesData->SetBoundCluster(NewCluster);
+
+			SubGraph->BuildCluster(NewCluster.ToSharedRef());
+		}
+	};
+
+	class FCompileGraph final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FCompileGraph)
+
+		FCompileGraph(const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
+		              const bool bInWriteNodeFacade,
+		              const PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
+			: FTask(),
+			  Builder(InGraphBuilder),
+			  bWriteNodeFacade(bInWriteNodeFacade),
+			  MetadataDetails(InMetadataDetails)
+		{
+		}
+
+		TSharedPtr<PCGExGraph::FGraphBuilder> Builder;
+		const bool bWriteNodeFacade = false;
+		const PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);
+			Builder->Compile(AsyncManager, bWriteNodeFacade, MetadataDetails);
+		}
+	};
+}
+
 bool PCGExGraph::BuildIndexedEdges(
 	const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
 	const TMap<uint32, int32>& EndpointsLookup,
@@ -1175,55 +1230,5 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		CleanupVtxData(PointIO);
 		CleanupEdgeData(PointIO);
 		CleanupClusterTags(PointIO);
-	}
-}
-
-namespace PCGExGraphTask
-{
-	void FWriteSubGraphCluster::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesDataFacade->GetOut());
-		const TSharedPtr<PCGExGraph::FGraph> ParentGraph = SubGraph->WeakParentGraph.Pin();
-		if (!ParentGraph) { return; }
-		PCGEX_MAKE_SHARED(NewCluster, PCGExCluster::FCluster, SubGraph->VtxDataFacade->Source, SubGraph->EdgesDataFacade->Source, ParentGraph->NodeIndexLookup)
-		ClusterEdgesData->SetBoundCluster(NewCluster);
-
-		SubGraph->BuildCluster(NewCluster.ToSharedRef());
-	}
-
-	void FCompileGraph::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);
-		Builder->Compile(AsyncManager, bWriteNodeFacade, MetadataDetails);
-	}
-
-	void FCopyGraphToPoint::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		if (!GraphBuilder || !GraphBuilder->bCompiledSuccessfully) { return; }
-
-		const TSharedPtr<PCGExData::FPointIO> VtxDupe = VtxCollection->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetOut(), PCGExData::EIOInit::Duplicate);
-		if (!VtxDupe) { return; }
-
-		VtxDupe->IOIndex = TaskIndex;
-
-		PCGExCommon::DataIDType OutId;
-		PCGExGraph::SetClusterVtx(VtxDupe, OutId);
-
-		PCGEX_MAKE_SHARED(VtxTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, VtxDupe, TransformDetails);
-		Launch(VtxTask);
-
-		for (const TSharedPtr<PCGExData::FPointIO>& Edges : GraphBuilder->EdgesIO->Pairs)
-		{
-			TSharedPtr<PCGExData::FPointIO> EdgeDupe = EdgeCollection->Emplace_GetRef(Edges->GetOut(), PCGExData::EIOInit::Duplicate);
-			if (!EdgeDupe) { return; }
-
-			EdgeDupe->IOIndex = TaskIndex;
-			PCGExGraph::MarkClusterEdges(EdgeDupe, OutId);
-
-			PCGEX_MAKE_SHARED(EdgeTask, PCGExGeoTasks::FTransformPointIO, TaskIndex, PointIO, EdgeDupe, TransformDetails);
-			Launch(EdgeTask);
-		}
-
-		// TODO : Copy & Transform cluster as well for a big perf boost
 	}
 }

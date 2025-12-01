@@ -22,7 +22,7 @@ enum class EPCGExIterationDataType : uint8
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="quality-of-life/iterations"))
-class UPCGExIterationsSettings : public UPCGSettings
+class UPCGExIterationsSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
 
@@ -31,7 +31,6 @@ class UPCGExIterationsSettings : public UPCGSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(Iterations, "Iterations", "A Simple Iterations data generator. It create a single instance of a lightweight dummy data object and adds duplicate entries to the node output to be used as individual iterations for a loop node.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorConstant; }
@@ -56,12 +55,12 @@ protected:
 	bool bOutputUtils = false;
 };
 
-class FPCGExIterationsElement final : public IPCGElement
+class FPCGExIterationsElement final : public IPCGExElement
 {
 public:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 
 protected:
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 };

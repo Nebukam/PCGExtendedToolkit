@@ -5,6 +5,7 @@
 
 #include "PCGExMath.h"
 #include "PCGPin.h"
+#include "Data/PCGExData.h"
 #include "Data/Blending/PCGExBlendMinMax.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Graph/PCGExCluster.h"

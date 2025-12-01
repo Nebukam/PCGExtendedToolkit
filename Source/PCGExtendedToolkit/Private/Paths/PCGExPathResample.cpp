@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExPathResample.h"
 
+#include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExVersion.h"
@@ -48,7 +49,7 @@ bool FPCGExResamplePathElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExResamplePathElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExResamplePathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExResamplePathElement::Execute);
 

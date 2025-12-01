@@ -8,7 +8,6 @@
 #include "OrientedBoxTypes.h"
 #include "Utils/PCGValueRange.h"
 #include "PCGEx.h"
-#include "PCGExMT.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExGeo.generated.h"
@@ -298,28 +297,3 @@ extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector4>(const T
 extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector2D>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector2D>& OutPositions, const PCGExMT::FScope& Scope) const;
 extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector>& OutPositions, const PCGExMT::FScope& Scope) const;
 extern template void FPCGExGeo2DProjectionDetails::ProjectFlat<FVector4>(const TSharedPtr<PCGExData::FFacade>& InFacade, TArray<FVector4>& OutPositions, const PCGExMT::FScope& Scope) const;
-
-namespace PCGExGeoTasks
-{
-	class FTransformPointIO final : public PCGExMT::FPCGExIndexedTask
-	{
-	public:
-		FTransformPointIO(const int32 InTaskIndex,
-		                  const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                  const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO,
-		                  FPCGExTransformDetails* InTransformDetails,
-		                  bool bAllocate = false) :
-			FPCGExIndexedTask(InTaskIndex),
-			PointIO(InPointIO),
-			ToBeTransformedIO(InToBeTransformedIO),
-			TransformDetails(InTransformDetails)
-		{
-		}
-
-		TSharedPtr<PCGExData::FPointIO> PointIO;
-		TSharedPtr<PCGExData::FPointIO> ToBeTransformedIO;
-		FPCGExTransformDetails* TransformDetails = nullptr;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-}

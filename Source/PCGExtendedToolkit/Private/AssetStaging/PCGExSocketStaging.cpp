@@ -4,6 +4,7 @@
 #include "AssetStaging/PCGExSocketStaging.h"
 
 
+#include "PCGExMT.h"
 #include "PCGExScopedContainers.h"
 #include "Data/PCGExPointIO.h"
 
@@ -52,7 +53,7 @@ bool FPCGExSocketStagingElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSocketStagingElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSocketStagingElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSocketStagingElement::Execute);
 

@@ -4,6 +4,8 @@
 #include "Graph/PCGExEdgesProcessor.h"
 
 
+#include "PCGExMT.h"
+#include "PCGExSortingRuleProvider.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
@@ -379,14 +381,13 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	if (!Context->ClusterDataLibrary->Build(Context->MainPoints, Context->MainEdges))
 	{
 		Context->ClusterDataLibrary->PrintLogs(Context);
-		PCGEX_LOG_MISSING_INPUT(InContext, FTEXT("Could not find any valid vtx/edge pairs."))
+		PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Could not find any valid vtx/edge pairs."))
 		return false;
 	}
 
 	if (Settings->SupportsEdgeSorting())
 	{
 		Context->EdgeSortingRules = PCGExSorting::GetSortingRules(Context, PCGExGraph::SourceEdgeSortingRules);
-
 		if (Settings->RequiresEdgeSorting() && Context->EdgeSortingRules.IsEmpty())
 		{
 			PCGEX_LOG_MISSING_INPUT(Context, FTEXT("Missing valid sorting rules."))
@@ -400,9 +401,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 void FPCGExEdgesProcessorElement::OnContextInitialized(FPCGExContext* InContext) const
 {
 	FPCGExPointsProcessorElement::OnContextInitialized(InContext);
-
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
-
 	Context->bScopedIndexLookupBuild = Settings->WantsScopedIndexLookupBuild();
 }
 

@@ -110,7 +110,7 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathfindingNavmeshElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathfindingNavmeshElement::Execute);
 

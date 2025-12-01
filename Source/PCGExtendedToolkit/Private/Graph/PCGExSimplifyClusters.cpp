@@ -5,6 +5,7 @@
 
 
 #include "PCGExMath.h"
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
@@ -47,7 +48,7 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSimplifyClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSimplifyClustersElement::Execute);
 

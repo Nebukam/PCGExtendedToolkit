@@ -5,9 +5,6 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExMT.h"
-
-
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExUnpackClusters.generated.h"
 
@@ -57,20 +54,5 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(UnpackClusters)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-};
-
-class FPCGExUnpackClusterTask final : public PCGExMT::FTask
-{
-public:
-	PCGEX_ASYNC_TASK_NAME(FPCGExUnpackClusterTask)
-
-	explicit FPCGExUnpackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
-		: FTask(),
-		  PointIO(InPointIO)
-	{
-	}
-
-	TSharedPtr<PCGExData::FPointIO> PointIO;
-	virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };

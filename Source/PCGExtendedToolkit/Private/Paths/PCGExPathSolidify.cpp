@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExPathSolidify.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Details/PCGExVersion.h"
@@ -86,7 +87,7 @@ bool FPCGExPathSolidifyElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPathSolidifyElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathSolidifyElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathSolidifyElement::Execute);
 

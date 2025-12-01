@@ -90,7 +90,7 @@ bool FPCGExBranchOnDataAttributeElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBranchOnDataAttributeElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBranchOnDataAttributeElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBranchOnDataAttributeElement::Execute);
 

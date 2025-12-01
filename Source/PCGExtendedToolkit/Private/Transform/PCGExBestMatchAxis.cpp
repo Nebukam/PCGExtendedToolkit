@@ -3,6 +3,7 @@
 
 #include "Transform/PCGExBestMatchAxis.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Matching/PCGExMatchRuleFactoryProvider.h"
@@ -51,7 +52,7 @@ bool FPCGExBestMatchAxisElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBestMatchAxisElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBestMatchAxisElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBestMatchAxisElement::Execute);
 

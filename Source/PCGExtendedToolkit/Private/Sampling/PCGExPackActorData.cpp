@@ -4,6 +4,7 @@
 #include "Sampling/PCGExPackActorData.h"
 
 #include "PCGComponent.h"
+#include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 #include "Data/PCGExPointIO.h"
@@ -252,7 +253,7 @@ bool FPCGExPackActorDataElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPackActorDataElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPackActorDataElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPackActorDataElement::Execute);
 

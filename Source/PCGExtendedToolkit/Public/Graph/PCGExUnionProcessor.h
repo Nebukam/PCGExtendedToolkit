@@ -9,12 +9,13 @@
 #include "PCGExIntersections.h"
 #include "PCGExPointsProcessor.h"
 #include "Details/PCGExDetailsIntersection.h"
-#include "Data/PCGExData.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Details/PCGExDetailsGraph.h"
 
 namespace PCGExGraph
 {
+	class FGraphBuilder;
+
 	class PCGEXTENDEDTOOLKIT_API FUnionProcessor : public TSharedFromThis<FUnionProcessor>
 	{
 		bool bCompilingFinalGraph = false;

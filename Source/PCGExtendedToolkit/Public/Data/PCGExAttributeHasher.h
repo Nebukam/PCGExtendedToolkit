@@ -11,6 +11,11 @@
 #include "PCGExSorting.h"
 #include "PCGExAttributeHasher.generated.h"
 
+namespace PCGExMT
+{
+	class FTaskManager;
+}
+
 namespace PCGExData
 {
 	class IBuffer;
@@ -65,7 +70,6 @@ namespace PCGEx
 		uint32 OutHash = 0;
 
 		TSharedPtr<PCGExMT::TScopedArray<PCGExValueHash>> ScopedHashes;
-		TSharedPtr<PCGExMT::TScopedSet<PCGExValueHash>> ScopedSets;
 
 		PCGExMT::FSimpleCallback CompleteCallback;
 

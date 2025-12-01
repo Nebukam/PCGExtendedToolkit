@@ -3,11 +3,28 @@
 
 #pragma once
 
+#include "Details/PCGExVersion.h"
 #include "CoreMinimal.h"
-
+#include "PCGExContext.h"
 #include "PCGExEdgeDirectionSettings.h"
+#if PCGEX_ENGINE_VERSION > 506
+#include "PCGPointPropertiesTraits.h"
+#else
+#include "PCGCommon.h"
+#endif
 #include "Details/PCGExDetailsGraph.h"
 #include "Geometry/PCGExGeo.h"
+
+namespace PCGExMT
+{
+	class FTaskManager;
+}
+
+template<typename T>
+class FPCGMetadataAttribute;
+
+class UPCGSettings;
+struct FPCGExContext;
 
 namespace PCGExGraph
 {
@@ -17,6 +34,7 @@ namespace PCGExGraph
 
 namespace PCGEx
 {
+	class FWorkHandle;
 	class FIntTracker;
 }
 
@@ -44,35 +62,6 @@ namespace PCGExClusterMT
 	PCGEX_CTX_STATE(MTState_ClusterProcessing)
 	PCGEX_CTX_STATE(MTState_ClusterCompletingWork)
 	PCGEX_CTX_STATE(MTState_ClusterWriting)
-
-#pragma region Tasks
-
-#define PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE) PCGEX_ASYNC_PROCESSOR_LOOP(_NAME, _NUM, _PREPARE, _PROCESS, _COMPLETE, _INLINE, GetClusterBatchChunkSize)
-
-	template <typename T>
-	class FStartClusterBatchProcessing final : public PCGExMT::FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FStartClusterBatchProcessing)
-
-		FStartClusterBatchProcessing(TSharedPtr<T> InTarget,
-		                             const bool bScoped)
-			: FTask(),
-			  Target(InTarget),
-			  bScopedIndexLookupBuild(bScoped)
-		{
-		}
-
-		TSharedPtr<T> Target;
-		bool bScopedIndexLookupBuild = false;
-
-		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
-		{
-			Target->PrepareProcessing(AsyncManager, bScopedIndexLookupBuild);
-		}
-	};
-
-#pragma endregion
 
 	class IBatch;
 

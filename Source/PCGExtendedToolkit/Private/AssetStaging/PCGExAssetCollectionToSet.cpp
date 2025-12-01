@@ -56,15 +56,15 @@ bool FPCGExAssetCollectionToSetElement::IsCacheable(const UPCGSettings* InSettin
 	PCGEX_GET_OPTION_STATE(Settings->CacheData, bDefaultCacheNodeOutput)
 }
 
-bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExAssetCollectionToSetElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
-	PCGEX_SETTINGS(AssetCollectionToSet)
+	PCGEX_SETTINGS_C(InContext, AssetCollectionToSet)
 
 	UPCGParamData* OutputSet = NewObject<UPCGParamData>();
 
-	auto OutputToPin = [Context, OutputSet]()
+	auto OutputToPin = [InContext, OutputSet]()
 	{
-		FPCGTaggedData& OutData = Context->OutputData.TaggedData.Emplace_GetRef();
+		FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();
 		OutData.Pin = FName("AttributeSet");
 		OutData.Data = OutputSet;
 		return true;
@@ -75,11 +75,11 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 
 	if (!MainCollection)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Asset collection failed to load."));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Asset collection failed to load."));
 		return OutputToPin();
 	}
 
-	MainCollection->EDITOR_RegisterTrackingKeys(static_cast<FPCGExContext*>(Context));
+	MainCollection->EDITOR_RegisterTrackingKeys(InContext);
 
 #define PCGEX_DECLARE_ATT(_NAME, _TYPE, _DEFAULT, _VALUE) bool bOutput##_NAME = Settings->bWrite##_NAME;
 	PCGEX_FOREACH_COL_FIELD(PCGEX_DECLARE_ATT);

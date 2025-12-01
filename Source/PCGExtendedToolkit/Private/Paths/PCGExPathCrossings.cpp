@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExPathCrossings.h"
 #include "PCGExMath.h"
+#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
@@ -76,7 +77,7 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathCrossingsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathCrossingsElement::Execute);
 

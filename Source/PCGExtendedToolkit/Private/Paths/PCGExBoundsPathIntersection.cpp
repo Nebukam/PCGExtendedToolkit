@@ -2,6 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExBoundsPathIntersection.h"
+
+#include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
@@ -88,7 +90,7 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBoundsPathIntersectionElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBoundsPathIntersectionElement::Execute);
 

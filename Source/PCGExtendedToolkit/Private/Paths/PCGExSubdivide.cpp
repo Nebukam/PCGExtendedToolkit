@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExSubdivide.h"
 
+#include "PCGExMT.h"
 #include "PCGExRandom.h"
 #include "PCGParamData.h"
 #include "Data/PCGExPointIO.h"
@@ -52,7 +53,7 @@ bool FPCGExSubdivideElement::Boot(FPCGExContext* InContext) const
 }
 
 
-bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSubdivideElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSubdivideElement::Execute);
 

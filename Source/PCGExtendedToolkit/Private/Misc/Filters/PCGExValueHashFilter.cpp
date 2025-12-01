@@ -3,6 +3,7 @@
 
 #include "Misc/Filters/PCGExValueHashFilter.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataPreloader.h"
 #include "Data/PCGExPointIO.h"

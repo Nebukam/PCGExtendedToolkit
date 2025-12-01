@@ -4,6 +4,7 @@
 #include "Graph/Edges/PCGExRefineEdges.h"
 
 
+#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -158,8 +159,7 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExRefineEdgesElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExRefineEdgesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRefineEdgesElement::Execute);
 
@@ -203,6 +203,74 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 namespace PCGExRefineEdges
 {
+	class FSanitizeRangeTask final : public PCGExMT::FScopeIterationTask
+	{
+	public:
+		explicit FSanitizeRangeTask(const TSharedPtr<FProcessor>& InProcessor):
+			FScopeIterationTask(),
+			Processor(InProcessor)
+		{
+		}
+
+		TSharedPtr<FProcessor> Processor;
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			auto RestoreEdge = [&](const int32 EdgeIndex)
+			{
+				if (EdgeIndex == -1) { return; }
+				FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdge(EdgeIndex)->bValid, 1);
+				FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdgeStart(EdgeIndex)->bValid, 1);
+				FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdgeEnd(EdgeIndex)->bValid, 1);
+			};
+
+			if (Processor->Sanitization == EPCGExRefineSanitization::Longest)
+			{
+				PCGEX_SCOPE_LOOP(i)
+				{
+					const PCGExCluster::FNode* Node = (Processor->Cluster->GetNode(i));
+
+					int32 BestIndex = -1;
+					double LongestDist = 0;
+
+					for (const PCGExGraph::FLink Lk : Node->Links)
+					{
+						const double Dist = Processor->Cluster->GetDistSquared(Node->Index, Lk.Node);
+						if (Dist > LongestDist)
+						{
+							LongestDist = Dist;
+							BestIndex = Lk.Edge;
+						}
+					}
+
+					RestoreEdge(BestIndex);
+				}
+			}
+			else if (Processor->Sanitization == EPCGExRefineSanitization::Shortest)
+			{
+				PCGEX_SCOPE_LOOP(i)
+				{
+					const PCGExCluster::FNode* Node = Processor->Cluster->GetNode(i);
+
+					int32 BestIndex = -1;
+					double ShortestDist = MAX_dbl;
+
+					for (const PCGExGraph::FLink Lk : Node->Links)
+					{
+						const double Dist = Processor->Cluster->GetDistSquared(Node->Index, Lk.Node);
+						if (Dist < ShortestDist)
+						{
+							ShortestDist = Dist;
+							BestIndex = Lk.Edge;
+						}
+					}
+
+					RestoreEdge(BestIndex);
+				}
+			}
+		}
+	};
+
 	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a light working copy with edges only, will be deleted.
@@ -538,62 +606,6 @@ namespace PCGExRefineEdges
 	void FBatch::Write()
 	{
 		VtxDataFacade->WriteFastest(AsyncManager);
-	}
-
-	void FSanitizeRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		auto RestoreEdge = [&](const int32 EdgeIndex)
-		{
-			if (EdgeIndex == -1) { return; }
-			FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdge(EdgeIndex)->bValid, 1);
-			FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdgeStart(EdgeIndex)->bValid, 1);
-			FPlatformAtomics::InterlockedExchange(&Processor->Cluster->GetEdgeEnd(EdgeIndex)->bValid, 1);
-		};
-
-		if (Processor->Sanitization == EPCGExRefineSanitization::Longest)
-		{
-			PCGEX_SCOPE_LOOP(i)
-			{
-				const PCGExCluster::FNode* Node = (Processor->Cluster->GetNode(i));
-
-				int32 BestIndex = -1;
-				double LongestDist = 0;
-
-				for (const PCGExGraph::FLink Lk : Node->Links)
-				{
-					const double Dist = Processor->Cluster->GetDistSquared(Node->Index, Lk.Node);
-					if (Dist > LongestDist)
-					{
-						LongestDist = Dist;
-						BestIndex = Lk.Edge;
-					}
-				}
-
-				RestoreEdge(BestIndex);
-			}
-		}
-		else if (Processor->Sanitization == EPCGExRefineSanitization::Shortest)
-		{
-			PCGEX_SCOPE_LOOP(i)
-			{
-				const PCGExCluster::FNode* Node = Processor->Cluster->GetNode(i);
-
-				int32 BestIndex = -1;
-				double ShortestDist = MAX_dbl;
-
-				for (const PCGExGraph::FLink Lk : Node->Links)
-				{
-					const double Dist = Processor->Cluster->GetDistSquared(Node->Index, Lk.Node);
-					if (Dist < ShortestDist)
-					{
-						ShortestDist = Dist;
-						BestIndex = Lk.Edge;
-					}
-				}
-
-				RestoreEdge(BestIndex);
-			}
-		}
 	}
 }
 

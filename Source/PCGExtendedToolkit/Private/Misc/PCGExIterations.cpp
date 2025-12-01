@@ -57,7 +57,7 @@ FPCGElementPtr UPCGExIterationsSettings::CreateElement() const { return MakeShar
 
 #pragma endregion
 
-bool FPCGExIterationsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExIterationsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	PCGEX_CONTEXT()
 	PCGEX_SETTINGS(Iterations)

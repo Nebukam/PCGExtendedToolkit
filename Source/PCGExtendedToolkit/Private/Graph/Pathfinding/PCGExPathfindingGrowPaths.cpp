@@ -248,7 +248,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathfindingGrowPathsElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathfindingGrowPathsElement::Execute);
 

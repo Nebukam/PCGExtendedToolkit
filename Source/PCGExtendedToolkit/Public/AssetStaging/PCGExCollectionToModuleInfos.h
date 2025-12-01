@@ -23,7 +23,7 @@ namespace PCGExCollectionToGrammar
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), meta=(PCGExNodeLibraryDoc="assets-management/collection-to-module-infos"))
-class UPCGExCollectionToModuleInfosSettings : public UPCGSettings
+class UPCGExCollectionToModuleInfosSettings : public UPCGExSettings
 {
 	GENERATED_BODY()
 
@@ -32,7 +32,6 @@ class UPCGExCollectionToModuleInfosSettings : public UPCGSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_DUMMY_SETTINGS_MEMBERS
 	PCGEX_NODE_INFOS(CollectionToModuleInfos, "Collection to Module Infos", "Converts an asset collection to a grammar-friendly attribute set that can be used as module infos.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 #endif
@@ -83,13 +82,10 @@ protected:
 	/** Name of the attribute the entry' Category value will be written to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Outputs", meta=(PCG_Overridable, DisplayName="Category"))
 	FName CategoryAttributeName = FName("Category");
-
-	/** Cache the results of this node. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable))
-	EPCGExOptionState CacheData = EPCGExOptionState::Default;
+;
 };
 
-class FPCGExCollectionToModuleInfosElement final : public IPCGElement
+class FPCGExCollectionToModuleInfosElement final : public IPCGExElement
 {
 public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
@@ -98,7 +94,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
 
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 
 	void FlattenCollection(
 		const TSharedPtr<PCGExStaging::FPickPacker>& Packer,

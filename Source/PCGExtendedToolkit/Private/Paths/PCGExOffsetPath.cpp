@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExOffsetPath.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Paths/PCGExPathCrossings.h"
@@ -31,7 +32,7 @@ bool FPCGExOffsetPathElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExOffsetPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExOffsetPathElement::Execute);
 

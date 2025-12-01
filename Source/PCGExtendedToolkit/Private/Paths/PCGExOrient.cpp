@@ -4,6 +4,7 @@
 #include "Paths/PCGExOrient.h"
 
 
+#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -59,7 +60,7 @@ bool FPCGExOrientElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExOrientElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExOrientElement::Execute);
 

@@ -30,7 +30,7 @@ bool FPCGExSanitizeClustersElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSanitizeClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSanitizeClustersElement::Execute);
 

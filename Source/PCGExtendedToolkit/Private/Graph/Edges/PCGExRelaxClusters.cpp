@@ -3,6 +3,7 @@
 
 #include "Graph/Edges/PCGExRelaxClusters.h"
 
+#include "PCGExMT.h"
 #include "PCGParamData.h"
 #include "Data/Blending/PCGExBlendLerp.h"
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
@@ -42,7 +43,7 @@ bool FPCGExRelaxClustersElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExRelaxClustersElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRelaxClustersElement::Execute);
 

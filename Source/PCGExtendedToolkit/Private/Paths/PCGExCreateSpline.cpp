@@ -5,6 +5,7 @@
 
 
 #include "PCGComponent.h"
+#include "PCGExMT.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExVersion.h"
@@ -58,7 +59,7 @@ bool FPCGExCreateSplineElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExCreateSplineElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExCreateSplineElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCreateSplineElement::Execute);
 

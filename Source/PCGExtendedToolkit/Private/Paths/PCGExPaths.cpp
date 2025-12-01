@@ -6,10 +6,15 @@
 #include "Data/PCGSplineData.h"
 #include "Data/PCGSplineStruct.h"
 #include "GeomTools.h"
+#include "Details/PCGExVersion.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Curve/CurveUtil.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
+#if PCGEX_ENGINE_VERSION > 506
+#include "Data/PCGPolygon2DData.h"
+#endif
 #include "Details/PCGExDetailsSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPaths"
@@ -958,11 +963,44 @@ namespace PCGExPaths
 		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); }
 		else { if (!Projection.Init(SplineData)) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); } }
 
+
 		InitFromTransforms(WindingMutation);
 
 		// Need to force-build path post initializations
 		this->BuildPath(Expansion);
 	}
+
+#if PCGEX_ENGINE_VERSION > 506
+	FPolyPath::FPolyPath(
+		const UPCGPolygon2DData* PolygonData,
+		const FPCGExGeo2DProjectionDetails& InProjection,
+		const double Expansion,
+		const double ExpansionZ,
+		const EPCGExWindingMutation WindingMutation)
+	{
+		const UE::Geometry::TPolygon2<double>& Polygon = PolygonData->GetPolygon().GetOuter();
+
+		const int32 NumVertices = Polygon.VertexCount();
+		LocalTransforms.Reserve(NumVertices);
+
+		for (int i = 0; i < NumVertices; i++)
+		{
+			const UE::Math::TVector2<double>& V2 = Polygon.GetVertices()[i];
+			LocalTransforms.Emplace(FVector(V2.X, V2.Y, 0));
+		}
+
+		Positions = TConstPCGValueRange<FTransform>(MakeConstStridedView(LocalTransforms));
+
+		Projection = InProjection;
+		if (Projection.Method == EPCGExProjectionMethod::BestFit) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); }
+		else { if (!Projection.Init(PolygonData)) { Projection.Init(PCGExGeo::FBestFitPlane(Positions)); } }
+
+		InitFromTransforms(WindingMutation);
+
+		// Need to force-build path post initializations
+		this->BuildPath(Expansion);
+	}
+#endif
 
 	void FPolyPath::InitFromTransforms(const EPCGExWindingMutation WindingMutation)
 	{

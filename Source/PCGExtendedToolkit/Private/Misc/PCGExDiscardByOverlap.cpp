@@ -4,6 +4,7 @@
 #include "Misc/PCGExDiscardByOverlap.h"
 
 #include "PCGExMathBounds.h"
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
@@ -172,7 +173,28 @@ bool FPCGExDiscardByOverlapElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) const
+namespace PCGExDiscardByOverlap
+{
+	class FPruneTask final : public PCGExMT::FTask
+	{
+	public:
+		PCGEX_ASYNC_TASK_NAME(FPruneTask)
+
+		explicit FPruneTask()
+			: FTask()
+
+		{
+		}
+
+		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		{
+			FPCGExDiscardByOverlapContext* Context = AsyncManager->GetContext<FPCGExDiscardByOverlapContext>();
+			Context->Prune();
+		}
+	};
+}
+
+bool FPCGExDiscardByOverlapElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDiscardByOverlapElement::Execute);
 
