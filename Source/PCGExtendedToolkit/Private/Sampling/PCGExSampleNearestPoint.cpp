@@ -434,7 +434,7 @@ namespace PCGExSampleNearestPoint
 			if (RangeMax > 0)
 			{
 				const FBox Box = FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(RangeMax))).GetBox();
-				if (bSingleSample) { Context->TargetsHandler->ForEachTargetPoint(SampleSingleTarget, &IgnoreList); }
+				if (bSingleSample) { Context->TargetsHandler->FindElementsWithBoundsTest(Box, SampleSingleTarget, &IgnoreList); }
 				else { Context->TargetsHandler->FindElementsWithBoundsTest(Box, SampleMultiTarget, &IgnoreList); }
 			}
 			else
