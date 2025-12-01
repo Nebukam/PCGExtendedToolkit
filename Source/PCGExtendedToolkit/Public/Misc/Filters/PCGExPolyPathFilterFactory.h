@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "Data/PCGExPointFilter.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 #include "Paths/PCGExPaths.h"
 #include "PCGExPolyPathFilterFactory.generated.h"
 

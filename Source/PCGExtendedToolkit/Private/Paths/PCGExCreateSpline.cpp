@@ -8,7 +8,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateSplineElement"

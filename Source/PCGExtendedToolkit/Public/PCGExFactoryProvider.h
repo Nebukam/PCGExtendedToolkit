@@ -15,7 +15,7 @@
 #include "PCGExSettings.h"
 #include "Data/PCGExPointData.h"
 #include "Details/PCGExMacros.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 
 #include "PCGExFactoryProvider.generated.h"
 

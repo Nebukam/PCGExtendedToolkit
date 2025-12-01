@@ -6,7 +6,6 @@
 #include "Data/PCGSplineData.h"
 #include "Data/PCGSplineStruct.h"
 #include "GeomTools.h"
-#include "Details/PCGExVersion.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "Curve/CurveUtil.h"
 #include "Data/PCGExData.h"

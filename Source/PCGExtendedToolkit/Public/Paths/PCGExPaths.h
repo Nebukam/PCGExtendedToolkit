@@ -11,7 +11,7 @@
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "PCGExOctree.h"
 #include "Components/SplineMeshComponent.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 #include "Details/PCGExMacros.h"
 #include "Details/PCGExSettingsMacros.h"
 #include "Geometry/PCGExGeo.h"

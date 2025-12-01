@@ -11,7 +11,7 @@
 #include "Data/PCGExProxyData.h"
 #include "Data/PCGExProxyDataHelpers.h"
 #include "Details/PCGExDetailsSettings.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExAttributeRemap"

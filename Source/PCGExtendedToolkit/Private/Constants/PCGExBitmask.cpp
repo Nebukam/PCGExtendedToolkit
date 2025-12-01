@@ -7,8 +7,7 @@
 #include "PCGGraph.h"
 #include "PCGParamData.h"
 #include "PCGPin.h"
-#include "Chaos/ChaosPerfTest.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 #define PCGEX_NAMESPACE Bitmask

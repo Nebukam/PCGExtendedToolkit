@@ -4,7 +4,7 @@
 #include "PCGExGlobalEditorSettings.h"
 
 #include "CoreMinimal.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 
 FSimpleMulticastDelegate UPCGExGlobalEditorSettings::OnHiddenAssetPropertyNamesChanged;
 

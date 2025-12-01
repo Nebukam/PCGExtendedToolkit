@@ -9,7 +9,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointFilter.h"
 #include "Data/PCGExPointIO.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 #include "Misc/Pickers/PCGExPicker.h"
 #include "Misc/Pickers/PCGExPickerFactoryProvider.h"
 

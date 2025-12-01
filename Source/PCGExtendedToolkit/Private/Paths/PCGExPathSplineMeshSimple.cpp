@@ -12,7 +12,7 @@
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Details/PCGExDetailsSettings.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 #include "Metadata/PCGObjectPropertyOverride.h"
 #include "Engine/StaticMesh.h"
 

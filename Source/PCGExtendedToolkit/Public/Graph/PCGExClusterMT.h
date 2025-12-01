@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 #include "CoreMinimal.h"
 #include "PCGExContext.h"
 #include "PCGExEdgeDirectionSettings.h"
