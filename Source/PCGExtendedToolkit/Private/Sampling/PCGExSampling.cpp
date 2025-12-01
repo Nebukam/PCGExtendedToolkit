@@ -373,7 +373,7 @@ namespace PCGExSampling
 	{
 		for (int i = 0; i < TargetFacades.Num(); i++)
 		{
-			if (Exclude && Exclude->Contains(TargetFacades[i]->GetIn())) { return; }
+			if (Exclude && Exclude->Contains(TargetFacades[i]->GetIn())) { continue; }
 			const int32 NumPoints = TargetFacades[i]->GetNum();
 			for (int j = 0; j < NumPoints; j++) { It(PCGExData::FPoint(j, i)); }
 		}
@@ -384,7 +384,7 @@ namespace PCGExSampling
 		for (int i = 0; i < TargetFacades.Num(); i++)
 		{
 			const TSharedRef<PCGExData::FFacade>& Target = TargetFacades[i];
-			if (Exclude && Exclude->Contains(Target->GetIn())) { return; }
+			if (Exclude && Exclude->Contains(Target->GetIn())) { continue; }
 			const int32 NumPoints = TargetFacades[i]->GetNum();
 			for (int j = 0; j < NumPoints; j++)
 			{

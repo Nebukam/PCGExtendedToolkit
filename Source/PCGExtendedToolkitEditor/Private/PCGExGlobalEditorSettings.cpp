@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SlateWrapperTypes.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 
 FSimpleMulticastDelegate UPCGExGlobalEditorSettings::OnHiddenAssetPropertyNamesChanged;
 

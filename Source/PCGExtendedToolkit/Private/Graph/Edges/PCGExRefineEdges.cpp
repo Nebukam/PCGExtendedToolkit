@@ -12,7 +12,7 @@
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Async/ParallelFor.h"
-#include "Details/PCGExVersion.h"
+#include "PCGExVersion.h"
 
 #define LOCTEXT_NAMESPACE "PCGExRefineEdges"
 #define PCGEX_NAMESPACE RefineEdges
