@@ -513,7 +513,7 @@ bool FPCGExContext::IsAsyncWorkComplete()
 	// not the other way around
 	// so we need a pointer to the IPCGElement :x
 
-	if (!AsyncManager->IsWaitingForRunningTasks())
+	if (!AsyncManager->IsWaitingForTasks())
 	{
 		ResumeExecution();
 		return true;
