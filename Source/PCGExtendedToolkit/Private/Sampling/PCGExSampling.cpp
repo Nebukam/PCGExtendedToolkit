@@ -405,22 +405,7 @@ namespace PCGExSampling
 			});
 	}
 
-	void FTargetsHandler::FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FTargetElementsQuery&& Func, const TSet<const UPCGData*>* Exclude) const
-	{
-		TargetsOctree->FindElementsWithBoundsTest(
-			QueryBounds, [&](const PCGExOctree::FItem& Item)
-			{
-				if (Exclude && Exclude->Contains(TargetFacades[Item.Index]->GetIn())) { return; }
-
-				TargetOctrees[Item.Index]->FindElementsWithBoundsTest(
-					QueryBounds, [&](const PCGPointOctree::FPointRef& PointRef)
-					{
-						Func(PCGExData::FPoint(PointRef.Index, Item.Index));
-					});
-			});
-	}
-
-	void FTargetsHandler::FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FOctreeQueryWithData&& Func, const TSet<const UPCGData*>* Exclude) const
+	void FTargetsHandler::FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FPointIteratorWithData&& Func, const TSet<const UPCGData*>* Exclude) const
 	{
 		TargetsOctree->FindElementsWithBoundsTest(
 			QueryBounds, [&](const PCGExOctree::FItem& Item)
@@ -616,7 +601,7 @@ namespace PCGExSampling
 		return TargetFacades[Point.IO]->GetInPoint(Point.Index);
 	}
 
-	double FTargetsHandler::GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const
+	double FTargetsHandler::GetDistSquared(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint) const
 	{
 		if (Distances->bOverlapIsZero)
 		{
@@ -628,7 +613,7 @@ namespace PCGExSampling
 		return Distances->GetDistSquared(SourcePoint, TargetPoint);
 	}
 
-	FVector FTargetsHandler::GetSourceCenter(const PCGExData::FConstPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const
+	FVector FTargetsHandler::GetSourceCenter(const PCGExData::FPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const
 	{
 		return Distances->GetSourceCenter(OriginPoint, OriginLocation, ToCenter);
 	}

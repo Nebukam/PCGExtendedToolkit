@@ -233,8 +233,6 @@ namespace PCGExSampling
 		using FPointIterator = std::function<void(const PCGExData::FPoint&)>;
 		using FPointIteratorWithData = std::function<void(const PCGExData::FConstPoint&)>;
 		using FTargetQuery = std::function<void(const PCGExOctree::FItem&)>;
-		using FTargetElementsQuery = std::function<void(const PCGExData::FPoint&)>;
-		using FOctreeQueryWithData = std::function<void(const PCGExData::FConstPoint&)>;
 
 		TSharedPtr<PCGExData::FMultiFacadePreloader> TargetsPreloader;
 		TSharedPtr<PCGExMatching::FDataMatcher> DataMatcher;
@@ -266,8 +264,7 @@ namespace PCGExSampling
 		void ForEachTargetPoint(FPointIteratorWithData&& It, const TSet<const UPCGData*>* Exclude = nullptr) const;
 
 		void FindTargetsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FTargetQuery&& Func, const TSet<const UPCGData*>* Exclude = nullptr) const;
-		void FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FTargetElementsQuery&& Func, const TSet<const UPCGData*>* Exclude = nullptr) const;
-		void FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FOctreeQueryWithData&& Func, const TSet<const UPCGData*>* Exclude = nullptr) const;
+		void FindElementsWithBoundsTest(const FBoxCenterAndExtent& QueryBounds, FPointIteratorWithData&& Func, const TSet<const UPCGData*>* Exclude = nullptr) const;
 
 		bool FindClosestTarget(const PCGExData::FConstPoint& Probe, const FBoxCenterAndExtent& QueryBounds, PCGExData::FConstPoint& OutResult, double& OutDistSquared, const TSet<const UPCGData*>* Exclude = nullptr) const;
 		void FindClosestTarget(const PCGExData::FConstPoint& Probe, PCGExData::FConstPoint& OutResult, double& OutDistSquared, const TSet<const UPCGData*>* Exclude = nullptr) const;
@@ -276,8 +273,8 @@ namespace PCGExSampling
 		PCGExData::FConstPoint GetPoint(const int32 IO, const int32 Index) const;
 		PCGExData::FConstPoint GetPoint(const PCGExData::FPoint& Point) const;
 
-		double GetDistSquared(const PCGExData::FConstPoint& SourcePoint, const PCGExData::FConstPoint& TargetPoint) const;
-		FVector GetSourceCenter(const PCGExData::FConstPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const;
+		double GetDistSquared(const PCGExData::FPoint& SourcePoint, const PCGExData::FPoint& TargetPoint) const;
+		FVector GetSourceCenter(const PCGExData::FPoint& OriginPoint, const FVector& OriginLocation, const FVector& ToCenter) const;
 
 		void StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle = nullptr) const;
 	};
