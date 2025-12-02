@@ -101,7 +101,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	FPCGExInputShorthandSelectorBoolean UniformScale = FPCGExInputShorthandSelectorBoolean(FName("UniformScale"), false, false);
-
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scale", meta = (PCG_Overridable))
 	EPCGExVariationSnapping SnapScale = EPCGExVariationSnapping::None;
 
@@ -109,6 +109,16 @@ public:
 	FPCGExInputShorthandSelectorVector ScaleSnap = FPCGExInputShorthandSelectorVector(FName("ScaleStep"), FVector(0.1));
 
 #pragma endregion
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extras", meta=(PCG_Overridable))
+	bool bApplyScaleToBounds = false;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extras", meta=(PCG_Overridable))
+	bool bResetPointCenter = false;
+
+	/** Bounds-relative coordinate used for the new center */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extras", meta = (PCG_Overridable, DisplayName=" └─ Point Center Location", EditCondition="bResetPointCenter", EditConditionHides))
+	FPCGExInputShorthandSelectorVector PointCenterLocation = FPCGExInputShorthandSelectorVector(FName("PointCenter"), FVector(0.5));
 
 private:
 	friend class FPCGExTransformPointsElement;
@@ -151,6 +161,12 @@ namespace PCGExTransformPoints
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> ScaleScale;
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> ScaleSnap;
 		TSharedPtr<PCGExDetails::TSettingValue<bool>> UniformScale;
+		
+		TSharedPtr<PCGExDetails::TSettingValue<FVector>> PointCenter;
+
+		bool bApplyScaleToBounds = false;
+		bool bResetPointCenter = false;
+		bool bAllocatedBounds = false;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
