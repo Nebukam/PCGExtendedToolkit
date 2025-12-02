@@ -70,6 +70,16 @@ namespace PCGExTransformPoints
 
 		EPCGPointNativeProperties AllocateFor = EPCGPointNativeProperties::None;
 		AllocateFor |= EPCGPointNativeProperties::Transform;
+
+		bApplyScaleToBounds = Settings->bApplyScaleToBounds;
+		bResetPointCenter = Settings->bApplyScaleToBounds;
+		if (bApplyScaleToBounds || bResetPointCenter)
+		{
+			bAllocatedBounds = true;
+			AllocateFor |= EPCGPointNativeProperties::BoundsMin;
+			AllocateFor |= EPCGPointNativeProperties::BoundsMax;
+		}
+
 		PointDataFacade->GetOut()->AllocateProperties(AllocateFor);
 
 		OffsetMin = Settings->OffsetMin.GetValueSetting();
@@ -116,6 +126,13 @@ namespace PCGExTransformPoints
 		UniformScale = Settings->UniformScale.GetValueSetting();
 		if (!UniformScale->Init(PointDataFacade)) { return false; }
 
+
+		if (bResetPointCenter)
+		{
+			PointCenter = Settings->PointCenterLocation.GetValueSetting();
+			if (!PointCenter->Init(PointDataFacade)) { return false; }
+		}
+
 		StartParallelLoopForPoints();
 
 		return true;
@@ -130,6 +147,9 @@ namespace PCGExTransformPoints
 
 		TConstPCGValueRange<int32> Seeds = PointDataFacade->GetIn()->GetConstSeedValueRange();
 		TPCGValueRange<FTransform> OutTransforms = PointDataFacade->GetOut()->GetTransformValueRange(false);
+
+		TPCGValueRange<FVector> OutBoundsMin = bAllocatedBounds ? PointDataFacade->GetOut()->GetBoundsMinValueRange(false) : TPCGValueRange<FVector>();
+		TPCGValueRange<FVector> OutBoundsMax = bAllocatedBounds ? PointDataFacade->GetOut()->GetBoundsMaxValueRange(false) : TPCGValueRange<FVector>();
 
 		FRandomStream RandomSource;
 
@@ -174,6 +194,20 @@ namespace PCGExTransformPoints
 			Variations.ApplyOffset(RandomSource, OutTransform);
 			Variations.ApplyRotation(RandomSource, OutTransform);
 			Variations.ApplyScale(RandomSource, OutTransform);
+
+			if (bApplyScaleToBounds)
+			{
+				PCGPointHelpers::ApplyScaleToBounds(
+					OutTransform,
+					OutBoundsMin[Index], OutBoundsMax[Index]);
+			}
+
+			if (bResetPointCenter)
+			{
+				PCGPointHelpers::ResetPointCenter(
+					PointCenter->Read(Index), OutTransform,
+					OutBoundsMin[Index], OutBoundsMax[Index]);
+			}
 		}
 	}
 }
