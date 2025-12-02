@@ -618,7 +618,7 @@ namespace PCGExSampling
 		return Distances->GetSourceCenter(OriginPoint, OriginLocation, ToCenter);
 	}
 
-	void FTargetsHandler::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::FAsyncMultiHandle>& InParentHandle) const
+	void FTargetsHandler::StartLoading(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<PCGExMT::IAsyncMultiHandle>& InParentHandle) const
 	{
 		TargetsPreloader->StartLoading(AsyncManager, InParentHandle);
 	}
