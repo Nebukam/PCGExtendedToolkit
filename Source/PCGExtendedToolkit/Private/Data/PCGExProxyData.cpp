@@ -3,6 +3,7 @@
 
 #include "Data/PCGExProxyData.h"
 
+#include "details/PCGExMacros.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExPointIO.h"
@@ -135,6 +136,10 @@ namespace PCGExData
 		bWantsSubSelection = SubSelection.bIsValid;
 	}
 
+	void IBufferProxy::InitForRole(EProxyRole InRole)
+	{
+	}
+
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
 #undef PCGEX_CONVERTING_READ
 
@@ -226,6 +231,49 @@ else { return PCGEx::Convert<T_WORKING, _TYPE>(Get(Index)); }}
 
 #pragma endregion
 
+#pragma region PointProperty macros
+
+
+#define PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(_PREFIX, _PROPERTY, MACRO)\
+if _PREFIX(_PROPERTY == EPCGPointProperties::Density){ MACRO(GetDensity(), float) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ MACRO(GetBoundsMin(), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMax){ MACRO(GetBoundsMax(), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Extents){ MACRO(GetExtents(), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Color){ MACRO(GetColor(), FVector4) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Position){ MACRO(GetLocation(), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Rotation){ MACRO(GetRotation(), FQuat) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Scale){ MACRO(GetScale3D(), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Transform){ MACRO(GetTransform(), FTransform) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Steepness){ MACRO(GetSteepness(), float) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalCenter){ MACRO(GetLocalCenter(), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Seed){ MACRO(GetSeed(), int32) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalSize){ MACRO(GetLocalSize(), FVector) } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::ScaledLocalSize){ MACRO(GetScaledLocalSize(), FVector) }
+
+#define PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(_PROPERTY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(constexpr, _PROPERTY, MACRO)
+#define PCGEX_IFELSE_GETPOINTPROPERTY(_PROPERTY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(, _PROPERTY, MACRO)
+
+#define PCGEX_PREFIXED_IFELSE_SETPOINTPROPERTY(_PREFIX, _PROPERTY, MACRO)\
+if _PREFIX(_PROPERTY == EPCGPointProperties::Density){ Point.SetDensity(MACRO(float)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ Point.SetBoundsMin(MACRO(FVector)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMax){ Point.SetBoundsMax(MACRO(FVector)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Extents){ Point.SetExtents(MACRO(FVector)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Color){ Point.SetColor(MACRO(FVector4)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Position){ Point.SetLocation(MACRO(FVector)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Rotation){ Point.SetRotation(MACRO(FQuat)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Scale){ Point.SetScale3D(MACRO(FVector)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Transform){ Point.SetTransform(MACRO(FTransform)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Steepness){ Point.SetSteepness(MACRO(float)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalCenter){ Point.SetLocalCenter(MACRO(FVector)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::Seed){ Point.SetSeed(MACRO(int32)); }\
+else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalSize){ /* TODO */  } \
+else if _PREFIX (_PROPERTY == EPCGPointProperties::ScaledLocalSize){ /* TODO */ }
+
+#define PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(_PROPERTY, BODY, MACRO) PCGEX_PREFIXED_IFELSE_SETPOINTPROPERTY(constexpr, _PROPERTY, MACRO)
+#define PCGEX_IFELSE_SETPOINTPROPERTY(_PROPERTY, BODY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(, _PROPERTY, MACRO)
+
+#pragma endregion
+
 	template <typename T_REAL, typename T_WORKING, EPCGPointProperties PROPERTY>
 	TPointPropertyProxy<T_REAL, T_WORKING, PROPERTY>::TPointPropertyProxy()
 		: TBufferProxy<T_WORKING>()
@@ -236,11 +284,13 @@ else { return PCGEx::Convert<T_WORKING, _TYPE>(Get(Index)); }}
 	template <typename T_REAL, typename T_WORKING, EPCGPointProperties PROPERTY>
 	T_WORKING TPointPropertyProxy<T_REAL, T_WORKING, PROPERTY>::Get(const int32 Index) const
 	{
+		const FConstPoint Point(Data, Index);
+
 #define PCGEX_GET_SUBPROPERTY(_ACCESSOR, _TYPE) \
 if (!bWantsSubSelection){ \
-if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Data->_ACCESSOR; }\
-else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
-}else{ return SubSelection.template Get<T_REAL, T_WORKING>(Data->_ACCESSOR); }
+if constexpr (std::is_same_v<T_REAL, T_WORKING>) { return Point._ACCESSOR; }\
+else{ return PCGEx::Convert<T_REAL, T_WORKING>(Point._ACCESSOR); }\
+}else{ return SubSelection.template Get<T_REAL, T_WORKING>(Point._ACCESSOR); }
 
 		PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(PROPERTY, PCGEX_GET_SUBPROPERTY)
 #undef PCGEX_GET_SUBPROPERTY
@@ -250,33 +300,36 @@ else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
 	template <typename T_REAL, typename T_WORKING, EPCGPointProperties PROPERTY>
 	void TPointPropertyProxy<T_REAL, T_WORKING, PROPERTY>::Set(const int32 Index, const T_WORKING& Value) const
 	{
+		FMutablePoint Point(Data, Index);
+
 		if (!bWantsSubSelection)
 		{
 			if constexpr (std::is_same_v<T_REAL, T_WORKING>)
 			{
 #define PCGEX_PROPERTY_VALUE(_TYPE) Value
-				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Data, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
+				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
 #undef PCGEX_PROPERTY_VALUE
 			}
 			else
 			{
-#define PCGEX_PROPERTY_VALUE(_TYPE) PCGEx::Convert<T_WORKING, _TYPE>(Value)
-				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Data, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
+				const T_REAL V = PCGEx::Convert<T_WORKING, T_REAL>(Value);
+#define PCGEX_PROPERTY_VALUE(_TYPE) V
+				PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
 #undef PCGEX_PROPERTY_VALUE
 			}
 		}
 		else
 		{
 			T_REAL V = T_REAL{};
-#define PCGEX_GET_REAL(_ACCESSOR, _TYPE) V = Data->_ACCESSOR;
+#define PCGEX_GET_REAL(_ACCESSOR, _TYPE) V = Point._ACCESSOR;
 			PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(PROPERTY, PCGEX_GET_REAL)
-#undef PCGEX_GET_REAL
-
-#define PCGEX_PROPERTY_SET(_TYPE) SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
+	#undef PCGEX_GET_REAL
+			
+			SubSelection.template Set<T_REAL, T_WORKING>(V, Value);
+			
 #define PCGEX_PROPERTY_VALUE(_TYPE) V
-			PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, Data, PCGEX_PROPERTY_SET, PCGEX_PROPERTY_VALUE)
+			PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(PROPERTY, PCGEX_MACRO_NONE, PCGEX_PROPERTY_VALUE)
 #undef PCGEX_PROPERTY_VALUE
-#undef PCGEX_PROPERTY_SET
 		}
 	}
 
@@ -302,14 +355,8 @@ else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
 	template <typename T_REAL, typename T_WORKING, EPCGExtraProperties PROPERTY>
 	T_WORKING TPointExtraPropertyProxy<T_REAL, T_WORKING, PROPERTY>::Get(const int32 Index) const
 	{
-		if constexpr (PROPERTY == EPCGExtraProperties::Index)
-		{
-			return PCGEx::Convert<T_REAL, T_WORKING>(Index);
-		}
-		else
-		{
-			return T_WORKING{};
-		}
+		if constexpr (PROPERTY == EPCGExtraProperties::Index) { return PCGEx::Convert<T_REAL, T_WORKING>(Index); }
+		else { return T_WORKING{}; }
 	}
 
 #pragma region externalization TPointExtraPropertyProxy
@@ -471,3 +518,9 @@ else{ return PCGEx::Convert<T_REAL, T_WORKING>(Data->_ACCESSOR); }\
 
 #pragma endregion
 }
+
+#undef PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY
+#undef PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY
+#undef PCGEX_IFELSE_GETPOINTPROPERTY
+#undef PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY
+#undef PCGEX_IFELSE_SETPOINTPROPERTY

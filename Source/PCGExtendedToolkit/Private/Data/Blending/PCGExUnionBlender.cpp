@@ -228,7 +228,7 @@ namespace PCGExDataBlending
 		Blenders.Reserve(Blenders.Num() + PropertyParams.Num());
 		for (const FBlendingParam& Param : PropertyParams)
 		{
-			if (!EnumHasAnyFlags(AllocatedProperties, PCGEx::GetPropertyNativeType(Param.Selector.GetPointProperty())))
+			if (!EnumHasAnyFlags(AllocatedProperties, PCGEx::GetPropertyNativeTypes(Param.Selector.GetPointProperty())))
 			{
 				// Don't create a blender for properties that no source has allocated
 				continue;

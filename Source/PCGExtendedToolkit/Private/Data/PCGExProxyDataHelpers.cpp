@@ -155,13 +155,15 @@ template PCGEXTENDEDTOOLKIT_API TSharedPtr<TBuffer<_TYPE>> TryGetBuffer<_TYPE>(F
 
 				if (!PointData->IsEmpty())
 				{
-					constexpr int32 Index = 0;
-					const EPCGPointProperties SelectedProperty = InDescriptor.Selector.GetPointProperty();
-
-#define PCGEX_SET_CONST(_ACCESSOR, _TYPE) TypedProxy->SetConstant(PointData->_ACCESSOR);
-					PCGEX_IFELSE_GETPOINTPROPERTY(SelectedProperty, PCGEX_SET_CONST)
-					else { TypedProxy->SetConstant(0); }
+					const FConstPoint Point = FConstPoint(PointData, 0);
+					switch (InDescriptor.Selector.GetPointProperty())
+					{
+#define PCGEX_SET_CONST(_PROPERTY, _ACCESSOR, _REAL, _WORKING) case _PROPERTY : TypedProxy->SetConstant(Point._ACCESSOR); break;
+					PCGEX_FOREACH_POINTPROPERTY(PCGEX_SET_CONST)
 #undef PCGEX_SET_CONST
+					default: TypedProxy->SetConstant(0);
+						break;
+					}
 				}
 			}
 			else
@@ -212,9 +214,10 @@ OutProxy = TypedProxy;
 			if (InDescriptor.Role == EProxyRole::Write)
 			{
 				// Ensure we allocate native properties we'll be writing to
-				EPCGPointNativeProperties NativeType = PCGEx::GetPropertyNativeType(InDescriptor.Selector.GetPointProperty());
+				EPCGPointNativeProperties NativeType = PCGEx::GetPropertyNativeTypes(InDescriptor.Selector.GetPointProperty());
 				if (NativeType == EPCGPointNativeProperties::None)
 				{
+					// Check if the property is a shorthand
 					PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attempting to write to an unsupported property type."));
 					return nullptr;
 				}
@@ -222,16 +225,13 @@ OutProxy = TypedProxy;
 				PointData->AllocateProperties(NativeType);
 			}
 
-#define PCGEX_DECL_PROXY(_PROPERTY, _ACCESSOR, _TYPE, _RANGE_TYPE) \
-						case _PROPERTY : \
-						OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, _PROPERTY>>(); \
-						break;
 			switch (InDescriptor.Selector.GetPointProperty())
 			{
+#define PCGEX_DECL_PROXY(_PROPERTY, _ACCESSOR, _TYPE, _RANGE_TYPE) case _PROPERTY :  OutProxy = MakeShared<TPointPropertyProxy<_TYPE, T_WORKING, _PROPERTY>>(); OutProxy->InitForRole(InDescriptor.Role); break;
 			PCGEX_FOREACH_POINTPROPERTY(PCGEX_DECL_PROXY)
+#undef PCGEX_DECL_PROXY
 			default: break;
 			}
-#undef PCGEX_DECL_PROXY
 		}
 		else
 		{
