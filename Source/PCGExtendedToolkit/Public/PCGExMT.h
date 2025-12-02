@@ -95,6 +95,7 @@ namespace PCGExMT
 		TWeakPtr<IAsyncMultiHandle> Root;
 		TWeakPtr<IAsyncMultiHandle> ParentHandle;
 		
+		std::atomic<bool> bResetting{false};
 		std::atomic<bool> bCancelled{false};
 		std::atomic<EAsyncHandleState> State{EAsyncHandleState::Idle};
 

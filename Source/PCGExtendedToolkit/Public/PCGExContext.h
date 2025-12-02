@@ -91,7 +91,7 @@ public:
 	void SetState(const PCGExCommon::ContextState StateId);
 	void SetAsyncState(const PCGExCommon::ContextState WaitState);
 
-	virtual bool ShouldWaitForAsync();
+	virtual bool IsWaitingForTasks();
 	void ReadyForExecution();
 
 	bool IsState(const PCGExCommon::ContextState StateId) const { return CurrentState.load(std::memory_order_acquire) == StateId; }
@@ -111,8 +111,6 @@ protected:
 	std::atomic<bool> bWorkCancelled{false};
 
 	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
-
-	bool bWaitingForAsyncCompletion = false;
 
 	virtual void OnComplete();
 
@@ -166,8 +164,6 @@ public:
 	void EDITOR_TrackClass(const TSubclassOf<UObject>& InSelectionClass, bool bIsCulled = false);
 
 	bool CanExecute() const;
-	virtual bool IsAsyncWorkComplete();
-
 	bool bQuietInvalidInputWarning = false;
 
 	bool bQuietMissingAttributeError = false;

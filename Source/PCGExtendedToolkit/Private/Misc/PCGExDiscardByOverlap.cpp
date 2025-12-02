@@ -225,7 +225,7 @@ bool FPCGExDiscardByOverlapElement::AdvanceWork(FPCGExContext* InContext, const 
 
 	if (Context->IsState(PCGExCommon::State_Completing))
 	{
-		PCGEX_ASYNC_WAIT
+		//PCGEX_ASYNC_WAIT // BUG: NEED REFACTOR
 		Context->Done();
 	}
 

@@ -114,15 +114,8 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 		SetAsyncState(PCGExPointsMT::MTState_PointsCompletingWork);
 		if (!MainBatch->bSkipCompletion)
 		{
-			//GetAsyncManager();
-			PCGEX_LAUNCH(
-				PCGExMT::FDeferredCallbackTask,
-				[WeakHandle = GetOrCreateHandle()]()
-				{
-				PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
-				SharedContext.Get()->MainBatch->CompleteWork();
-				});
-			return false;
+			MainBatch->CompleteWork();
+			if (IsWaitingForTasks()) { return false; } // RET_WAIT_FOR_TASK
 		}
 	}
 
@@ -134,15 +127,8 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 		if (MainBatch->bRequiresWriteStep)
 		{
 			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
-			//GetAsyncManager();
-			PCGEX_LAUNCH(
-				PCGExMT::FDeferredCallbackTask,
-				[WeakHandle = GetOrCreateHandle()]()
-				{
-				PCGEX_SHARED_TCONTEXT_VOID(MergePoints, WeakHandle)
-				SharedContext.Get()->MainBatch->Write();
-				});
-			return false;
+			MainBatch->Write();
+			if (IsWaitingForTasks()) { return false; } // RET_WAIT_FOR_TASK
 		}
 
 		bBatchProcessingEnabled = false;
@@ -162,7 +148,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 		else { SetState(NextStateId); }
 	}
 
-	return false;
+	return IsWaitingForTasks();
 }
 
 bool FPCGExPointsProcessorContext::StartBatchProcessingPoints(FBatchProcessingValidateEntry&& ValidateEntry, FBatchProcessingInitPointBatch&& InitBatch)

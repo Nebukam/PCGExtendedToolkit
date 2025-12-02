@@ -161,6 +161,28 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetAsyncManager()
 	{
 		FWriteScopeLock WriteLock(AsyncLock);
 		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
+		AsyncManager->OnCompleteCallback = [CtxHandle = GetOrCreateHandle()]
+		{
+			PCGEX_SHARED_CONTEXT_VOID(CtxHandle);
+
+			FPCGExContext* Ctx = SharedContext.Get();
+
+			if (Ctx && Ctx->ElementHandle)
+			{
+				// NOTE : The problem here is if async work finishes before we return, that's... bad.
+				// So really, instead of "return false" in contexts, we need to "return if waiting on async work"
+				// In processors it should be mostly fine because we schedule new work before the end in most cases.
+				// or at least we should ensure we do so.
+				UE_LOG(LogTemp, Warning, TEXT(" -------> Async work done, let's move on!"))
+				Ctx->AsyncManager->Reset(); // Reset so we can start new work
+				Ctx->bIsPaused = !Ctx->ElementHandle->AdvanceWork(Ctx, Ctx->GetInputSettings<UPCGExSettings>());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("OnEnd but no context or element handle!"))
+			}
+		};
+
 		PCGExMT::SetWorkPriority(WorkPriority, AsyncManager->WorkPriority);
 	}
 
@@ -252,19 +274,13 @@ void FPCGExContext::AddNotifyActor(AActor* InActor)
 
 void FPCGExContext::SetAsyncState(const PCGExCommon::ContextState WaitState)
 {
-	bWaitingForAsyncCompletion = true;
 	SetState(WaitState);
 }
 
-bool FPCGExContext::ShouldWaitForAsync()
+bool FPCGExContext::IsWaitingForTasks()
 {
-	if (!AsyncManager)
-	{
-		if (bWaitingForAsyncCompletion) { ResumeExecution(); }
-		return false;
-	}
-
-	return bWaitingForAsyncCompletion;
+	if (AsyncManager) { return AsyncManager->IsWaitingForTasks(); }
+	return false;
 }
 
 void FPCGExContext::ReadyForExecution()
@@ -298,9 +314,9 @@ bool FPCGExContext::TryComplete(const bool bForce)
 
 void FPCGExContext::ResumeExecution()
 {
+	// TODO : We need to get rid of this
 	if (AsyncManager) { AsyncManager->Reset(); }
 	UnpauseContext();
-	bWaitingForAsyncCompletion = false;
 }
 
 void FPCGExContext::OnComplete()
@@ -504,24 +520,6 @@ bool FPCGExContext::CanExecute() const
 	return !InputData.bCancelExecution && !IsWorkCancelled() && !IsWorkCompleted();
 }
 
-bool FPCGExContext::IsAsyncWorkComplete()
-{
-	// Context must be unpaused for this to be called
-	if (!bWaitingForAsyncCompletion || !AsyncManager) { return true; }
-
-	// TODO : We want the async manager to notify that work can resume
-	// not the other way around
-	// so we need a pointer to the IPCGElement :x
-
-	if (!AsyncManager->IsWaitingForTasks())
-	{
-		ResumeExecution();
-		return true;
-	}
-
-	return false;
-}
-
 bool FPCGExContext::CancelExecution(const FString& InReason)
 {
 	bool bExpected = false;
@@ -532,7 +530,7 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 		PCGEX_TERMINATE_ASYNC
 		OutputData.Reset();
 		if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
-		
+
 		CancelAssetLoading();
 		ResumeExecution();
 	}

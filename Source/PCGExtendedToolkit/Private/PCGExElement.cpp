@@ -175,6 +175,9 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 	const UPCGExSettings* InSettings = Context->GetInputSettings<UPCGExSettings>();
 	check(InSettings);
 
+	return AdvanceWork(InContext, InSettings);
+	
+	/*
 	if (InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::Normal)
 	{
 		return AdvanceWork(InContext, InSettings);
@@ -207,7 +210,7 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 		FPCGAsync::AsyncProcessingOneToOneRangeEx(
 			&Context->AsyncState,
 			1,
-			/*InitializeFunc=*/[](){},
+			[](){},
 			[CtxHandle, Settings = InSettings](int32 StartReadIndex, int32 StartWriteIndex, int32 Count)
 			{
 				FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
@@ -218,6 +221,8 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 	}
 
 	return true;
+	*/
+
 }
 
 bool IPCGExElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const

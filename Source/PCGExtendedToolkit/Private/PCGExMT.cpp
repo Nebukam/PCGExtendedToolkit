@@ -9,8 +9,8 @@
 #include "PCGExSubSystem.h"
 #include "HAL/PlatformTime.h"
 
-#define PCGEX_TASK_LOG(...) //UE_LOG(__VA_ARGS__)
-#define PCGEX_MULTI_LOG(...) //UE_LOG(__VA_ARGS__)
+#define PCGEX_TASK_LOG(...) UE_LOG(__VA_ARGS__)
+#define PCGEX_MULTI_LOG(...) UE_LOG(__VA_ARGS__)
 #define PCGEX_MANAGER_LOG(...) UE_LOG(__VA_ARGS__)
 
 namespace PCGExMT
@@ -320,7 +320,9 @@ namespace PCGExMT
 
 	void FTaskManager::Cancel()
 	{
-		PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::Cancel"));
+		const bool IsResetting = bResetting.load(std::memory_order_acquire);
+
+		// Cancel will call End if we're idling.
 		IAsyncHandle::Cancel();
 
 		// Cancel all registered handles
@@ -334,6 +336,7 @@ namespace PCGExMT
 			{
 				if (TSharedPtr<IAsyncHandle> Handle = Weak.Pin()) { HandlesToCancel.Add(Handle); }
 			}
+
 			for (const TSharedPtr<FTaskGroup>& Group : Groups) { HandlesToCancel.Add(Group); }
 			Registry.Empty();
 			Groups.Empty();
@@ -342,9 +345,11 @@ namespace PCGExMT
 		// Cancel outside lock
 		for (const TSharedPtr<IAsyncHandle>& Handle : HandlesToCancel) { Handle->Cancel(); }
 
+		/*
 		// Wait for running tasks with timeout
 		const double StartTime = FPlatformTime::Seconds();
 		const double TimeoutSeconds = 10.0;
+
 		while (IsWaitingForTasks())
 		{
 			if (FPlatformTime::Seconds() - StartTime > TimeoutSeconds)
@@ -354,24 +359,36 @@ namespace PCGExMT
 			}
 			FPlatformProcess::Sleep(0.001f);
 		}
+		*/
 	}
 
 	void FTaskManager::Reset()
 	{
-		PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::Reset"));
+		if (IsCancelled())
+		{
+			PCGEX_MANAGER_LOG(LogTemp, Error, TEXT("FTaskManager::Reset but manager was cancelled"));
+			return;
+		}
 
-		if (!IsAvailable()) { return; }
+		bool Expected = false;
+		if (bResetting.compare_exchange_strong(Expected, true, std::memory_order_acq_rel))
+		{
+			PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::Reset"));
 
-		Cancel();
+			Cancel();
 
-		// Reset state
-		ExpectedCount.store(0, std::memory_order_release);
-		StartedCount.store(0, std::memory_order_release);
-		CompletedCount.store(0, std::memory_order_release);
-		bCancelled.store(false, std::memory_order_release);
-		State.store(EAsyncHandleState::Idle, std::memory_order_release);
+			// Reset values
+			ExpectedCount.store(0, std::memory_order_release);
+			StartedCount.store(0, std::memory_order_release);
+			CompletedCount.store(0, std::memory_order_release);
+			bCancelled.store(false, std::memory_order_release);
 
-		Context->UnpauseContext();
+			// Reset state
+			State.store(EAsyncHandleState::Idle, std::memory_order_release);
+			bResetting.store(false, std::memory_order_release);
+
+			//Context->UnpauseContext();
+		}
 	}
 
 	TSharedPtr<FTaskGroup> FTaskManager::TryCreateTaskGroup(const FName& InName)
@@ -388,10 +405,12 @@ namespace PCGExMT
 			Idx = Groups.Add(NewGroup) + 1;
 		}
 
-		TSharedPtr<FTaskManager> Manager = SharedThis(this);
-		if (NewGroup->SetRoot(Manager, Idx * -1))
+		PCGEX_SHARED_THIS_DECL
+		if (NewGroup->SetRoot(ThisPtr, Idx * -1))
 		{
-			NewGroup->SetParent(Manager);
+			// TODO : Make group self-referencing shared ptr
+			// .Rst on Complete/End
+			NewGroup->SetParent(ThisPtr);
 			NewGroup->Start();
 			return NewGroup;
 		}
@@ -430,7 +449,7 @@ namespace PCGExMT
 	{
 		if (!IsAvailable()) { return; }
 
-		//PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::LaunchTask : [%d|%s]"), InTask->HandleIdx, *InTask->DEBUG_HandleId());
+		PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::LaunchTask : [%d|%s]"), InTask->HandleIdx, *InTask->DEBUG_HandleId());
 
 		int32 Idx = -1;
 		{
@@ -438,11 +457,15 @@ namespace PCGExMT
 			Idx = Registry.Add(InTask);
 		}
 
-		if (!InTask->SetRoot(SharedThis(this), Idx)) { return; }
+		PCGEX_SHARED_THIS_DECL
+
+		// TODO : We SetParent if none exist, need to make sure we don't set it "too late"
+		// This ensure tracking of roaming tasks
+		if (!InTask->ParentHandle.IsValid()) { InTask->SetParent(ThisPtr); }
+		if (!InTask->SetRoot(ThisPtr, Idx)) { return; }
 
 		Start(); // Ensure manager is running
 
-		PCGEX_SHARED_THIS_DECL
 		UE::Tasks::Launch(
 				*InTask->DEBUG_HandleId(),
 				[WeakManager = TWeakPtr<FTaskManager>(ThisPtr), Task = InTask]()
@@ -468,7 +491,7 @@ namespace PCGExMT
 	void FTaskManager::OnEnd(const bool bWasCancelled)
 	{
 		IAsyncMultiHandle::OnEnd(bWasCancelled);
-		Context->UnpauseContext();
+		//Context->UnpauseContext();
 	}
 
 	// FTaskGroup
