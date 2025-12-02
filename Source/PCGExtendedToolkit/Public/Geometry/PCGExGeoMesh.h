@@ -125,8 +125,6 @@ namespace PCGExGeo
 		TSet<int32> HullIndices;
 		TSet<uint64> HullEdges;
 
-		bool bHasColorData = false;
-
 		EPCGExTriangulationType DesiredTriangulationType = EPCGExTriangulationType::Raw;
 
 		FGeoMesh() = default;
