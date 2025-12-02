@@ -12,11 +12,20 @@
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
-bool IPCGExElement::PrepareDataInternal(FPCGContext* InContext) const
+bool IPCGExElement::PrepareDataInternal(FPCGContext* Context) const
 {
-	FPCGExContext* Context = static_cast<FPCGExContext*>(InContext);
 	check(Context);
 
+	FPCGExContext* InContext = static_cast<FPCGExContext*>(Context);
+
+	const UPCGExSettings* InSettings = Context->GetInputSettings<UPCGExSettings>();
+	check(InSettings);
+
+	return AdvancePreparation(InContext, InSettings);
+}
+
+bool IPCGExElement::AdvancePreparation(FPCGExContext* Context, const UPCGExSettings* InSettings) const
+{
 	if (!Context->GetInputSettings<UPCGSettings>()->bEnabled)
 	{
 		Context->bWorkCancelled = true;
@@ -62,7 +71,7 @@ bool IPCGExElement::PrepareDataInternal(FPCGContext* InContext) const
 	}
 
 	Context->ReadyForExecution();
-	return IPCGElement::PrepareDataInternal(Context);
+	return true;
 }
 
 FPCGContext* IPCGExElement::Initialize(const FPCGInitializeElementParams& InParams)

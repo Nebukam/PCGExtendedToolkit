@@ -66,7 +66,7 @@ bool FPCGExWriteEdgePropertiesElement::AdvanceWork(FPCGExContext* InContext, con
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
-				if (Settings->bWriteHeuristics) { NewBatch->SetWantsHeuristics(true); }
+				NewBatch->SetWantsHeuristics(Settings->bWriteHeuristics);
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));

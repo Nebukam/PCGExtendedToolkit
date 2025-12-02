@@ -148,7 +148,7 @@ namespace PCGExMeshToCluster
 			{
 				VertexBuffers = Mesh->RawData.Buffers;
 
-				if (ImportDetails.bImportVertexColor && Mesh->bHasColorData)
+				if (ImportDetails.bImportVertexColor && Mesh->RawData.HasColor())
 				{
 					Allocations |= EPCGPointNativeProperties::Color;
 					bWantsColor = true;

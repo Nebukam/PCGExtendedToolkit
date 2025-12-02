@@ -349,9 +349,4 @@ namespace PCGExClusterMT
 	PCGEXTENDEDTOOLKIT_API
 	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild);
 
-	PCGEXTENDEDTOOLKIT_API
-	void CompleteBatches(const TArrayView<TSharedPtr<IBatch>> Batches);
-
-	PCGEXTENDEDTOOLKIT_API
-	void WriteBatches(const TArrayView<TSharedPtr<IBatch>> Batches);
 }

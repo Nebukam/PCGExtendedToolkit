@@ -113,15 +113,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : FPCGExPointsProcesso
 
 protected:
 	virtual TSharedPtr<PCGExClusterMT::IBatch> CreateEdgeBatchInstance(const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges) const;
-
-	mutable FRWLock ClusterProcessingLock;
 	TArray<TObjectPtr<const UPCGExHeuristicsFactoryData>> HeuristicsFactories;
 
 public:
-	virtual bool ProcessClusters(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync = false);
+	bool ProcessClusters(const PCGExCommon::ContextState NextStateId, const bool bIsNextStateAsync = false);
 
 protected:
-	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGExCommon::ContextState NextStateId);
+	bool CompileGraphBuilders(const bool bOutputToContext, const PCGExCommon::ContextState NextStateId);
 
 	TArray<FPCGExSortRuleConfig> EdgeSortingRules;
 
@@ -133,13 +131,12 @@ protected:
 
 	bool bSkipClusterBatchCompletionStep = false;
 	bool bDoClusterBatchWritingStep = false;
-
-	bool bClusterWantsHeuristics = false;
-	bool bClusterBatchInlined = false;
+	bool bDaisyChainClusterBatches = false;
+	
 	int32 CurrentBatchIndex = -1;
 	TSharedPtr<PCGExClusterMT::IBatch> CurrentBatch;
 
-	bool StartProcessingClusters(FBatchProcessingValidateEntries&& ValidateEntries, FBatchProcessingInitEdgeBatch&& InitBatch, const bool bInlined = false);
+	bool StartProcessingClusters(FBatchProcessingValidateEntries&& ValidateEntries, FBatchProcessingInitEdgeBatch&& InitBatch, const bool bDaisyChain = false);
 
 	virtual void ClusterProcessing_InitialProcessingDone();
 	virtual void ClusterProcessing_WorkComplete();

@@ -210,8 +210,7 @@ template PCGEXTENDEDTOOLKIT_API void FFacadePreloader::Register<_TYPE>(FPCGExCon
 				return;
 			}
 
-			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PrefetchAttributesTask)
-			PrefetchAttributesTask->SetParent(InParentHandle);
+			PCGEX_ASYNC_SUBGROUP_CHKD_VOID(AsyncManager, InParentHandle, PrefetchAttributesTask)
 
 			PrefetchAttributesTask->OnCompleteCallback =
 				[PCGEX_ASYNC_THIS_CAPTURE]()

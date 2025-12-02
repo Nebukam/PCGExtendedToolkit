@@ -112,6 +112,7 @@ protected:
 
 	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 
+	void OnAsyncWorkEnd(const bool bWasCancelled);
 	virtual void OnComplete();
 
 #pragma endregion

@@ -111,30 +111,27 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::InitialProcessingDone);
 		BatchProcessing_InitialProcessingDone();
 
-		SetAsyncState(PCGExPointsMT::MTState_PointsCompletingWork);
-		if (!MainBatch->bSkipCompletion)
-		{
-			MainBatch->CompleteWork();
-			if (IsWaitingForTasks()) { return false; } // RET_WAIT_FOR_TASK
-		}
+		SetState(PCGExPointsMT::MTState_PointsCompletingWork);
+		if (!MainBatch->bSkipCompletion) { MainBatch->CompleteWork(); }
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsCompletingWork)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsProcessorContext::ProcessPointsBatch::WorkComplete);
-		BatchProcessing_WorkComplete();
+		if (!MainBatch->bSkipCompletion) { BatchProcessing_WorkComplete(); }
 
 		if (MainBatch->bRequiresWriteStep)
 		{
-			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
+			SetState(PCGExPointsMT::MTState_PointsWriting);
 			MainBatch->Write();
-			if (IsWaitingForTasks()) { return false; } // RET_WAIT_FOR_TASK
 		}
-
-		bBatchProcessingEnabled = false;
-		if (NextStateId == PCGExCommon::State_Done) { Done(); }
-		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
-		else { SetState(NextStateId); }
+		else
+		{
+			bBatchProcessingEnabled = false;
+			if (NextStateId == PCGExCommon::State_Done) { Done(); }
+			SetState(NextStateId);
+			return true;
+		}
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY_INTERNAL(PCGExPointsMT::MTState_PointsWriting)
@@ -144,11 +141,10 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExCommon::Context
 
 		bBatchProcessingEnabled = false;
 		if (NextStateId == PCGExCommon::State_Done) { Done(); }
-		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
-		else { SetState(NextStateId); }
+		SetState(NextStateId);
 	}
 
-	return IsWaitingForTasks();
+	return !IsWaitingForTasks();
 }
 
 bool FPCGExPointsProcessorContext::StartBatchProcessingPoints(FBatchProcessingValidateEntry&& ValidateEntry, FBatchProcessingInitPointBatch&& InitBatch)
@@ -185,7 +181,7 @@ bool FPCGExPointsProcessorContext::StartBatchProcessingPoints(FBatchProcessingVa
 
 	if (MainBatch->PrepareProcessing())
 	{
-		SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
+		SetState(PCGExPointsMT::MTState_PointsProcessing);
 		ScheduleBatch(GetAsyncManager(), MainBatch);
 	}
 	else

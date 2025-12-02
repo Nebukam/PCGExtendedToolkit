@@ -9,9 +9,9 @@
 #include "PCGExSubSystem.h"
 #include "HAL/PlatformTime.h"
 
-#define PCGEX_TASK_LOG(...) UE_LOG(__VA_ARGS__)
-#define PCGEX_MULTI_LOG(...) UE_LOG(__VA_ARGS__)
-#define PCGEX_MANAGER_LOG(...) UE_LOG(__VA_ARGS__)
+#define PCGEX_TASK_LOG(...) //UE_LOG(__VA_ARGS__)
+#define PCGEX_MULTI_LOG(...) //UE_LOG(__VA_ARGS__)
+#define PCGEX_MANAGER_LOG(...) //UE_LOG(__VA_ARGS__)
 
 namespace PCGExMT
 {
@@ -247,9 +247,11 @@ namespace PCGExMT
 
 		if (!bWasCancelled && OnCompleteCallback)
 		{
-			FCompletionCallback Callback = MoveTemp(OnCompleteCallback);
+			const FCompletionCallback Callback = MoveTemp(OnCompleteCallback);
 			Callback();
 		}
+
+		if (OnEndCallback) { OnEndCallback(bWasCancelled); }
 
 		if (const TSharedPtr<IAsyncMultiHandle> Parent = ParentHandle.Pin())
 		{
@@ -347,6 +349,7 @@ namespace PCGExMT
 
 		/*
 		// Wait for running tasks with timeout
+		// This just a safety measure during to avoid messing data CrCs
 		const double StartTime = FPlatformTime::Seconds();
 		const double TimeoutSeconds = 10.0;
 
@@ -354,7 +357,7 @@ namespace PCGExMT
 		{
 			if (FPlatformTime::Seconds() - StartTime > TimeoutSeconds)
 			{
-				PCGEX_MANAGER_LOG(LogPCGEx, Error, TEXT("FTaskManager::Cancel - Timeout waiting for tasks to complete"));
+				UE_LOG(LogPCGEx, Error, TEXT("FTaskManager::Cancel - Timeout waiting for tasks to complete"));
 				break;
 			}
 			FPlatformProcess::Sleep(0.001f);
@@ -391,7 +394,7 @@ namespace PCGExMT
 		}
 	}
 
-	TSharedPtr<FTaskGroup> FTaskManager::TryCreateTaskGroup(const FName& InName)
+	TSharedPtr<FTaskGroup> FTaskManager::TryCreateTaskGroup(const FName& InName, const TSharedPtr<IAsyncMultiHandle>& InParentHandle)
 	{
 		if (!IsAvailable()) { return nullptr; }
 
@@ -410,7 +413,7 @@ namespace PCGExMT
 		{
 			// TODO : Make group self-referencing shared ptr
 			// .Rst on Complete/End
-			NewGroup->SetParent(ThisPtr);
+			NewGroup->SetParent(InParentHandle ? InParentHandle : ThisPtr);
 			NewGroup->Start();
 			return NewGroup;
 		}
@@ -640,7 +643,11 @@ namespace PCGExMT
 
 	void FExecuteOnMainThread::OnEnd(bool bWasCancelled)
 	{
-		if (!bWasCancelled && OnCompleteCallback) { OnCompleteCallback(); }
+		if (!bWasCancelled && OnCompleteCallback)
+		{
+			const FCompletionCallback Callback = MoveTemp(OnCompleteCallback);
+			Callback();
+		}
 		IAsyncHandle::OnEnd(bWasCancelled);
 	}
 

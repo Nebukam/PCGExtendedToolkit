@@ -396,25 +396,23 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		EdgesDataFacade->GetOut()->AllocateProperties(AllocateProperties);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphEdges)
+		PCGEX_ASYNC_SUBGROUP_REQ_CHKD_VOID(AsyncManager, InParentHandle.Pin(), CompileSubGraph)
 
-		ProcessSubGraphEdges->SetParent(InParentHandle.Pin());
-
-		ProcessSubGraphEdges->OnCompleteCallback =
+		CompileSubGraph->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
 				This->CompilationComplete();
 			};
 
-		ProcessSubGraphEdges->OnSubLoopStartCallback =
+		CompileSubGraph->OnSubLoopStartCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				This->CompileRange(Scope);
 			};
 
-		ProcessSubGraphEdges->StartSubLoops(FlattenedEdges.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		CompileSubGraph->StartSubLoops(FlattenedEdges.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FSubGraph::CompileRange(const PCGExMT::FScope& Scope)
@@ -1098,24 +1096,24 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		MarkClusterVtx(NodeDataFacade->Source, PairId);
 
-		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, BatchCompileSubGraphs)
 
-		ProcessSubGraphTask->OnCompleteCallback =
+		BatchCompileSubGraphs->OnCompleteCallback =
 			[PCGEX_ASYNC_THIS_CAPTURE]()
 			{
 				PCGEX_ASYNC_THIS
 				This->OnCompilationEnd();
 			};
 
-		ProcessSubGraphTask->OnIterationCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE, WeakGroup = ProcessSubGraphTask](const int32 Index, const PCGExMT::FScope& Scope)
+		BatchCompileSubGraphs->OnIterationCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE, WeakGroup = BatchCompileSubGraphs](const int32 Index, const PCGExMT::FScope& Scope)
 			{
 				PCGEX_ASYNC_THIS
 				const TSharedPtr<FSubGraph> SubGraph = This->Graph->SubGraphs[Index];
 				SubGraph->Compile(WeakGroup, This->AsyncManager, This);
 			};
 
-		ProcessSubGraphTask->StartIterations(Graph->SubGraphs.Num(), 1, false);
+		BatchCompileSubGraphs->StartIterations(Graph->SubGraphs.Num(), 1, false);
 	}
 
 	void FGraphBuilder::OnCompilationEnd()

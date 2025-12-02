@@ -33,7 +33,7 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 	PCGEx::InitArray(Hashes, SetSources.Num());
 
 	TWeakPtr<FPCGContextHandle> CtxHandle = InContext->GetOrCreateHandle();
-	PCGEX_ASYNC_GROUP_CHKD_CUSTOM(AsyncManager, GrabUniqueValues, PCGExFactories::EPreparationResult::Fail)
+	PCGEX_ASYNC_GROUP_CHKD_RET(AsyncManager, GrabUniqueValues, PCGExFactories::EPreparationResult::Fail)
 
 	GrabUniqueValues->OnCompleteCallback =
 		[CtxHandle, this]()

@@ -50,7 +50,7 @@ PCGExFactories::EPreparationResult UPCGExPolyPathFilterFactory::Prepare(FPCGExCo
 
 	InitConfig_Internal();
 
-	PCGEX_ASYNC_GROUP_CHKD_CUSTOM(AsyncManager, CreatePolyPaths, PCGExFactories::EPreparationResult::Fail)
+	PCGEX_ASYNC_GROUP_CHKD_RET(AsyncManager, CreatePolyPaths, PCGExFactories::EPreparationResult::Fail)
 
 	CreatePolyPaths->OnCompleteCallback =
 		[CtxHandle, this]()

@@ -30,6 +30,7 @@ class PCGEXTENDEDTOOLKIT_API IPCGExElement : public IPCGElement
 	
 public:
 	virtual bool PrepareDataInternal(FPCGContext* Context) const override;
+	virtual bool AdvancePreparation(FPCGExContext* Context, const UPCGExSettings* InSettings) const;
 	virtual FPCGContext* Initialize(const FPCGInitializeElementParams& InParams) override;
 
 #if WITH_EDITOR

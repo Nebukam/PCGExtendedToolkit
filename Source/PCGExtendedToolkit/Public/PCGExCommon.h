@@ -154,6 +154,7 @@ namespace PCGExCommon
 namespace PCGExMT
 {
 	using FCompletionCallback = std::function<void()>;
+	using FEndCallback = std::function<void(const bool)>;
 	using FSimpleCallback = std::function<void()>;
 	
 	struct FScope

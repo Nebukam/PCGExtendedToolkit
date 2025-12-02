@@ -670,10 +670,5 @@ namespace PCGExClusterMT
 		for (const TSharedPtr<IBatch>& Batch : Batches) { Batch->CompleteWork(); }
 	}
 
-	void WriteBatches(const TArrayView<TSharedPtr<IBatch>> Batches)
-	{
-		for (const TSharedPtr<IBatch>& Batch : Batches) { Batch->Write(); }
-	}
-
 #undef PCGEX_ASYNC_CLUSTER_PROCESSOR_LOOP
 }
