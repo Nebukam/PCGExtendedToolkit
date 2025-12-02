@@ -514,27 +514,23 @@ namespace PCGEx
 		switch (Property)
 		{
 		case EPCGPointProperties::Density:
+		case EPCGPointProperties::Steepness:
 			return EPCGMetadataTypes::Float;
 		case EPCGPointProperties::BoundsMin:
-			return EPCGMetadataTypes::Vector;
 		case EPCGPointProperties::BoundsMax:
-			return EPCGMetadataTypes::Vector;
 		case EPCGPointProperties::Extents:
+		case EPCGPointProperties::Position:
+		case EPCGPointProperties::Scale:
+		case EPCGPointProperties::LocalCenter:
+		case EPCGPointProperties::LocalSize:
+		case EPCGPointProperties::ScaledLocalSize:
 			return EPCGMetadataTypes::Vector;
 		case EPCGPointProperties::Color:
 			return EPCGMetadataTypes::Vector4;
-		case EPCGPointProperties::Position:
-			return EPCGMetadataTypes::Vector;
 		case EPCGPointProperties::Rotation:
 			return EPCGMetadataTypes::Quaternion;
-		case EPCGPointProperties::Scale:
-			return EPCGMetadataTypes::Vector;
 		case EPCGPointProperties::Transform:
 			return EPCGMetadataTypes::Transform;
-		case EPCGPointProperties::Steepness:
-			return EPCGMetadataTypes::Float;
-		case EPCGPointProperties::LocalCenter:
-			return EPCGMetadataTypes::Vector;
 		case EPCGPointProperties::Seed:
 			return EPCGMetadataTypes::Integer32;
 		default:
@@ -542,7 +538,7 @@ namespace PCGEx
 		}
 	}
 
-	constexpr static EPCGPointNativeProperties GetPropertyNativeType(const EPCGPointProperties Property)
+	constexpr static EPCGPointNativeProperties GetPropertyNativeTypes(const EPCGPointProperties Property)
 	{
 		switch (Property)
 		{
@@ -568,6 +564,10 @@ namespace PCGEx
 			return EPCGPointNativeProperties::Seed;
 		case EPCGPointProperties::Extents:
 		case EPCGPointProperties::LocalCenter:
+		case EPCGPointProperties::LocalSize:
+			return EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax;
+		case EPCGPointProperties::ScaledLocalSize:
+			return EPCGPointNativeProperties::BoundsMin | EPCGPointNativeProperties::BoundsMax | EPCGPointNativeProperties::Transform;
 		default:
 			return EPCGPointNativeProperties::None;
 		}

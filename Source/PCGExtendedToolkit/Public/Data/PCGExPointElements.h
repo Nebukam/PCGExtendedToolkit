@@ -57,6 +57,7 @@ namespace PCGExData
 		virtual FQuat GetRotation() const PCGEX_NOT_IMPLEMENTED_RET(GetRotation, FQuat::Identity)
 		virtual FVector GetBoundsMin() const PCGEX_NOT_IMPLEMENTED_RET(GetBoundsMin, FVector::OneVector)
 		virtual FVector GetBoundsMax() const PCGEX_NOT_IMPLEMENTED_RET(GetBoundsMax, FVector::OneVector)
+		virtual FVector GetLocalCenter() const PCGEX_NOT_IMPLEMENTED_RET(GetLocalBounds, FVector::OneVector)
 		virtual FVector GetExtents() const PCGEX_NOT_IMPLEMENTED_RET(GetExtents, FVector::OneVector)
 		virtual FVector GetScaledExtents() const PCGEX_NOT_IMPLEMENTED_RET(GetScaledExtents, FVector::OneVector)
 		virtual FBox GetLocalBounds() const PCGEX_NOT_IMPLEMENTED_RET(GetLocalBounds, FBox(NoInit))
@@ -66,6 +67,10 @@ namespace PCGExData
 		virtual float GetDensity() const PCGEX_NOT_IMPLEMENTED_RET(GetDensity, 1)
 		virtual int64 GetMetadataEntry() const PCGEX_NOT_IMPLEMENTED_RET(GetMetadataEntry, 0)
 		virtual FVector4 GetColor() const PCGEX_NOT_IMPLEMENTED_RET(GetColor, FVector4(1))
+		virtual FVector GetLocalSize() const PCGEX_NOT_IMPLEMENTED_RET(GetLocalSize, FVector::OneVector)
+		virtual FVector GetScaledLocalSize() const PCGEX_NOT_IMPLEMENTED_RET(GetScaledLocalSize, FVector::OneVector)
+		virtual int32 GetSeed() const PCGEX_NOT_IMPLEMENTED_RET(GetSeed, 0)
+
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FWeightedPoint : FPoint
@@ -88,18 +93,21 @@ FORCEINLINE virtual FVector GetScale3D() const override { return Data->GetTransf
 FORCEINLINE virtual FQuat GetRotation() const override { return Data->GetTransform(Index).GetRotation(); }\
 FORCEINLINE virtual FVector GetBoundsMin() const override { return Data->GetBoundsMin(Index); }\
 FORCEINLINE virtual FVector GetBoundsMax() const override { return Data->GetBoundsMax(Index); }\
+FORCEINLINE virtual FVector GetLocalCenter() const override { return Data->GetLocalCenter(Index); }\
 FORCEINLINE virtual FVector GetExtents() const override { return Data->GetExtents(Index); }\
 FORCEINLINE virtual FVector GetScaledExtents() const override { return Data->GetScaledExtents(Index); }\
 FORCEINLINE virtual FBox GetLocalBounds() const override { return Data->GetLocalBounds(Index); }\
 FORCEINLINE virtual FBox GetLocalDensityBounds() const override { return Data->GetLocalDensityBounds(Index); }\
-FORCEINLINE virtual FBox GetScaledBounds() const override{\
-	const FVector Scale3D = Data->GetTransform(Index).GetScale3D();\
-	return FBox(Data->GetBoundsMin(Index) * Scale3D, Data->GetBoundsMax(Index) * Scale3D);}\
+FORCEINLINE virtual FBox GetScaledBounds() const override{ const FVector Scale3D = Data->GetTransform(Index).GetScale3D(); return FBox(Data->GetBoundsMin(Index) * Scale3D, Data->GetBoundsMax(Index) * Scale3D);}\
 FORCEINLINE virtual float GetSteepness() const override { return Data->GetSteepness(Index); }\
 FORCEINLINE virtual float GetDensity() const override { return Data->GetDensity(Index); }\
 FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMetadataEntry(Index); }\
-FORCEINLINE virtual FVector4 GetColor() const override { return Data->GetColor(Index); }
+FORCEINLINE virtual FVector4 GetColor() const override { return Data->GetColor(Index); }\
+FORCEINLINE virtual FVector GetLocalSize() const override { return Data->GetLocalSize(Index); }\
+FORCEINLINE virtual FVector GetScaledLocalSize() const override { return Data->GetScaledLocalSize(Index); }\
+FORCEINLINE virtual int32 GetSeed() const override { return Data->GetSeed(Index); }
 
+	
 	// A beefed-up version of FPoint that implement FPoint getters
 	// and comes with setters helpers
 	// Should be used when the point it references actually exists, otherwise getter will return bad data
@@ -117,16 +125,20 @@ FORCEINLINE virtual FVector4 GetColor() const override { return Data->GetColor(I
 
 		FTransform& GetMutableTransform();
 
+		virtual void SetDensity(const float InValue);
+		virtual void SetSteepness(const float InValue);
 		virtual void SetTransform(const FTransform& InValue);
 		virtual void SetLocation(const FVector& InValue);
 		virtual void SetScale3D(const FVector& InValue);
 		virtual void SetRotation(const FQuat& InValue);
 		virtual void SetBoundsMin(const FVector& InValue);
 		virtual void SetBoundsMax(const FVector& InValue);
+		virtual void SetLocalCenter(const FVector& InValue);
 		virtual void SetExtents(const FVector& InValue, const bool bKeepLocalCenter = false);
 		virtual void SetLocalBounds(const FBox& InValue);
 		virtual void SetMetadataEntry(const int64 InValue);
 		virtual void SetColor(const FVector4& InValue);
+		virtual void SetSeed(const int32 InValue);
 
 		bool operator==(const FMutablePoint& Other) const { return Index == Other.Index && Data == Other.Data; }
 	};
@@ -187,7 +199,9 @@ FORCEINLINE virtual FVector4 GetColor() const override { return Data->GetColor(I
 		FORCEINLINE virtual FBox GetScaledBounds() const override { return FBox(BoundsMin * Transform.GetScale3D(), BoundsMax * Transform.GetScale3D()); }
 		FORCEINLINE virtual FBox GetLocalDensityBounds() const override { return PCGPointHelpers::GetLocalDensityBounds(Steepness, BoundsMin, BoundsMax); }
 		FORCEINLINE virtual FVector4 GetColor() const override { return Color; }
-
+		FORCEINLINE virtual FVector GetLocalSize() const override { return PCGPointHelpers::GetLocalSize(BoundsMin, BoundsMax); }\
+		FORCEINLINE virtual FVector GetScaledLocalSize() const override { return PCGPointHelpers::GetScaledLocalSize(Transform, BoundsMin, BoundsMax); }
+		
 		// Metadata entry stays unimplemented
 		//FORCEINLINE virtual int64 GetMetadataEntry() const override { return Data->GetMetadataEntry(Index); }
 
