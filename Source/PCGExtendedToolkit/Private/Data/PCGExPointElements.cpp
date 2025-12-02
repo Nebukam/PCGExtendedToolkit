@@ -80,6 +80,16 @@ namespace PCGExData
 		return Data->GetTransformValueRange(false)[Index];
 	}
 
+	void FMutablePoint::SetDensity(const float InValue)
+	{
+		Data->GetDensityValueRange(false)[Index] = InValue;
+	}
+
+	void FMutablePoint::SetSteepness(const float InValue)
+	{
+		Data->GetSteepnessValueRange(false)[Index] = InValue;
+	}
+
 	void FMutablePoint::SetTransform(const FTransform& InValue)
 	{
 		Data->GetTransformValueRange(false)[Index] = InValue;
@@ -108,6 +118,14 @@ namespace PCGExData
 	void FMutablePoint::SetBoundsMax(const FVector& InValue)
 	{
 		Data->GetBoundsMaxValueRange(false)[Index] = InValue;
+	}
+
+	void FMutablePoint::SetLocalCenter(const FVector& InValue)
+	{
+		PCGPointHelpers::SetLocalCenter(
+			InValue,
+			Data->GetBoundsMinValueRange(false)[Index],
+			Data->GetBoundsMaxValueRange(false)[Index]);
 	}
 
 	void FMutablePoint::SetExtents(const FVector& InValue, const bool bKeepLocalCenter)
@@ -142,6 +160,11 @@ namespace PCGExData
 	void FMutablePoint::SetColor(const FVector4& InValue)
 	{
 		Data->GetColorValueRange(false)[Index] = InValue;
+	}
+
+	void FMutablePoint::SetSeed(const int32 InValue)
+	{
+		Data->GetSeedValueRange(false)[Index] = InValue;
 	}
 
 	FConstPoint::FConstPoint(const FMutablePoint& InPoint)

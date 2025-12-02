@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Runtime/Launch/Resources/Version.h"
+#include "PCGExVersion.h"
 
 #ifndef PCGEX_MACROS
 #define PCGEX_MACROS
@@ -133,71 +133,23 @@ MACRO(MetadataEntry, int64, __VA_ARGS__)
 #define PCGEX_FOREACH_POINT_NATIVE_PROPERTY_CONSTGET(_SOURCE) PCGEX_FOREACH_POINT_NATIVE_PROPERTY(PCGEX_NATIVE_PROPERTY_CONSTGET, _SOURCE)
 
 #define PCGEX_FOREACH_POINTPROPERTY(MACRO)\
-MACRO(EPCGPointProperties::Density, Density, float, float) \
-MACRO(EPCGPointProperties::BoundsMin, BoundsMin, FVector, FVector) \
-MACRO(EPCGPointProperties::BoundsMax, BoundsMax, FVector, FVector) \
+MACRO(EPCGPointProperties::Density, GetDensity(), float, float) \
+MACRO(EPCGPointProperties::BoundsMin, GetBoundsMin(), FVector, FVector) \
+MACRO(EPCGPointProperties::BoundsMax, GetBoundsMax(), FVector, FVector) \
 MACRO(EPCGPointProperties::Extents, GetExtents(), FVector, FVector) \
-MACRO(EPCGPointProperties::Color, Color, FVector4, FVector4) \
-MACRO(EPCGPointProperties::Position, Transform.GetLocation(), FVector, FTransform) \
-MACRO(EPCGPointProperties::Rotation, Transform.GetRotation(), FQuat, FTransform) \
-MACRO(EPCGPointProperties::Scale, Transform.GetScale3D(), FVector, FTransform) \
-MACRO(EPCGPointProperties::Transform, Transform, FTransform, FTransform) \
-MACRO(EPCGPointProperties::Steepness, Steepness, float, float) \
+MACRO(EPCGPointProperties::Color, GetColor(), FVector4, FVector4) \
+MACRO(EPCGPointProperties::Position, GetLocation(), FVector, FTransform) \
+MACRO(EPCGPointProperties::Rotation, GetRotation(), FQuat, FTransform) \
+MACRO(EPCGPointProperties::Scale, GetScale3D(), FVector, FTransform) \
+MACRO(EPCGPointProperties::Transform, GetTransform(), FTransform, FTransform) \
+MACRO(EPCGPointProperties::Steepness, GetSteepness(), float, float) \
 MACRO(EPCGPointProperties::LocalCenter, GetLocalCenter(), FVector, FVector) \
-MACRO(EPCGPointProperties::Seed, Seed, int32, int32)\
+MACRO(EPCGPointProperties::Seed, GetSeed(), int32, int32)\
 MACRO(EPCGPointProperties::LocalSize, GetLocalSize(), FVector, FVector)\
 MACRO(EPCGPointProperties::ScaledLocalSize, GetScaledLocalSize(), FVector, FVector)
 
 #define PCGEX_FOREACH_EXTRAPROPERTY(MACRO)\
 MACRO(EPCGExtraProperties::Index, int32, int32)
-
-#define PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(_PREFIX, _PROPERTY, MACRO)\
-if _PREFIX(_PROPERTY == EPCGPointProperties::Density){ MACRO(GetDensity(Index), float) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ MACRO(GetBoundsMin(Index), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMax){ MACRO(GetBoundsMax(Index), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Extents){ MACRO(GetExtents(Index), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Color){ MACRO(GetColor(Index), FVector4) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Position){ MACRO(GetTransform(Index).GetLocation(), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Rotation){ MACRO(GetTransform(Index).GetRotation(), FQuat) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Scale){ MACRO(GetTransform(Index).GetScale3D(), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Transform){ MACRO(GetTransform(Index), FTransform) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Steepness){ MACRO(GetSteepness(Index), float) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalCenter){ MACRO(GetLocalCenter(Index), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Seed){ MACRO(GetSeed(Index), int32) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalSize){ MACRO(GetLocalSize(Index), FVector) } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::ScaledLocalSize){ MACRO(GetScaledLocalSize(Index), FVector) }
-
-#define PCGEX_CONSTEXPR_IFELSE_GETPOINTPROPERTY(_PROPERTY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(constexpr, _PROPERTY, MACRO)
-#define PCGEX_IFELSE_GETPOINTPROPERTY(_PROPERTY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(, _PROPERTY, MACRO)
-
-#define PCGEX_PREFIXED_IFELSE_SETPOINTPROPERTY(_PREFIX, _PROPERTY, _DATA, BODY, MACRO)\
-if _PREFIX(_PROPERTY == EPCGPointProperties::Density){ \
-BODY(FVector) TPCGValueRange<float> R = _DATA->GetDensityValueRange(); R[Index] = MACRO(float); } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMin){ \
-BODY(FVector) TPCGValueRange<FVector> R = _DATA->GetBoundsMinValueRange(); R[Index] = MACRO(FVector); } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::BoundsMax){ \
-BODY(FVector) TPCGValueRange<FVector> R = _DATA->GetBoundsMaxValueRange(); R[Index] = MACRO(FVector); } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Extents){ /* TODO */ } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Color){ \
-BODY(FVector) TPCGValueRange<FVector4> R = _DATA->GetColorValueRange(); R[Index] = MACRO(FVector4); } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Position){ \
-BODY(FVector) TPCGValueRange<FTransform> R = _DATA->GetTransformValueRange(); R[Index].SetLocation(MACRO(FVector)); } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Rotation){ \
-BODY(FVector) TPCGValueRange<FTransform> R = _DATA->GetTransformValueRange(); R[Index].SetRotation(MACRO(FQuat)); } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Scale){ \
-BODY(FVector) TPCGValueRange<FTransform> R = _DATA->GetTransformValueRange(); R[Index].SetScale3D(MACRO(FVector)); } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Transform){ \
-BODY(FVector) TPCGValueRange<FTransform> R = _DATA->GetTransformValueRange(); R[Index] = MACRO(FTransform); } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Steepness){ \
-BODY(FVector) TPCGValueRange<float> R = _DATA->GetSteepnessValueRange(); R[Index] = MACRO(float); } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalCenter){ /* TODO */ } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::Seed){ \
-BODY(FVector) TPCGValueRange<int32> R = _DATA->GetSeedValueRange(); R[Index] = MACRO(int32); } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::LocalSize){ /* TODO */  } \
-else if _PREFIX (_PROPERTY == EPCGPointProperties::ScaledLocalSize){ /* TODO */ }
-
-#define PCGEX_CONSTEXPR_IFELSE_SETPOINTPROPERTY(_PROPERTY, _DATA, BODY, MACRO) PCGEX_PREFIXED_IFELSE_SETPOINTPROPERTY(constexpr, _PROPERTY, _DATA, BODY, MACRO)
-#define PCGEX_IFELSE_SETPOINTPROPERTY(_PROPERTY, _DATA, BODY, MACRO) PCGEX_PREFIXED_IFELSE_GETPOINTPROPERTY(, _PROPERTY, _DATA, BODY, MACRO)
 
 #pragma endregion
 
@@ -225,7 +177,7 @@ virtual bool RequiresPointFilters() const override { return _REQUIRED; }
 
 #define PCGEX_INITIALIZE_ELEMENT(_NAME)\
 FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared<FPCGEx##_NAME##Element>();}
-#define PCGEX_CONTEXT(_NAME) FPCGEx##_NAME##Context* Context = static_cast<FPCGEx##_NAME##Context*>(InContext);	check(Context);
+#define PCGEX_CONTEXT(_NAME) FPCGEx##_NAME##Context* Context = static_cast<FPCGEx##_NAME##Context*>(InContext); check(Context);
 #define PCGEX_SETTINGS(_NAME) const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
 #define PCGEX_SETTINGS_C(_CTX, _NAME) const UPCGEx##_NAME##Settings* Settings = _CTX->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
 #define PCGEX_SETTINGS_LOCAL(_NAME) const UPCGEx##_NAME##Settings* Settings = GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
@@ -265,6 +217,7 @@ case EPCGExOptionState::Disabled: return false; }
 
 #define PCGEX_PIN_STATUS(_STATUS) Pin.PinStatus = EPCGPinStatus::_STATUS;
 
+#if PCGEX_ENGINE_VERSION < 507
 #define PCGEX_PIN_ANY(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Any); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_POINTS(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_SPATIALS(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Spatial); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
@@ -280,6 +233,24 @@ case EPCGExOptionState::Disabled: return false; }
 #define PCGEX_PIN_PARAM(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_FACTORY(_LABEL, _TOOLTIP, _STATUS, _FACTORY_TYPEID) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
 #define PCGEX_PIN_TEXTURE(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::BaseTexture, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#else
+#define PCGEX_PIN_ANY(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfo::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_POINTS(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoPoint::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_SPATIALS(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoSpatial::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_POLYLINES(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoPolyline::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_MESH(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoDynamicMesh::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_PARAMS(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoParam::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS)  }
+#define PCGEX_PIN_FILTERS(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGExDataTypeInfoFilter::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_FACTORIES(_LABEL, _TOOLTIP, _STATUS, _FACTORY_TYPEID) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, _FACTORY_TYPEID); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_TEXTURES(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoBaseTexture2D::AsId()); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_ANY_SINGLE(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfo::AsId(), false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_POINT(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoPoint::AsId(), false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_SPATIAL(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoSpatial::AsId(), false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_PARAM(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoParam::AsId(), false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_FACTORY(_LABEL, _TOOLTIP, _STATUS, _FACTORY_TYPEID) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, _FACTORY_TYPEID, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#define PCGEX_PIN_TEXTURE(_LABEL, _TOOLTIP, _STATUS) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, FPCGDataTypeInfoBaseTexture2D::AsId(), false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) }
+#endif
+
 #define PCGEX_PIN_OPERATION_OVERRIDES(_LABEL) PCGEX_PIN_PARAMS(_LABEL, "Property overrides to be forwarded & processed by the module. Name must match the property you're targeting 1:1, type mismatch will be broadcasted at your own risk.", Advanced)
 
 #define PCGEX_BOX_TOLERANCE(_NAME, A, B, Tolerance)\

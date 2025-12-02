@@ -5,8 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExBroadcast.h"
+#include "Blending/PCGExBlendModes.h"
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "UObject/Object.h"
+#include "Utils/PCGValueRange.h"
 
 struct FPCGExContext;
 class UPCGBasePointData;
@@ -83,6 +85,7 @@ namespace PCGExData
 		virtual TSharedPtr<IBuffer> GetBuffer() const { return nullptr; }
 		virtual bool EnsureReadable() const { return true; }
 		void SetSubSelection(const PCGEx::FSubSelection& InSubSelection);
+		virtual void InitForRole(EProxyRole InRole);
 
 #define PCGEX_CONVERTING_READ(_TYPE, _NAME, ...) virtual _TYPE ReadAs##_NAME(const int32 Index) const;
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_CONVERTING_READ)
@@ -150,12 +153,13 @@ namespace PCGExData
 		using TBufferProxy<T_WORKING>::bWantsSubSelection;
 		using TBufferProxy<T_WORKING>::SubSelection;
 		using TBufferProxy<T_WORKING>::Data;
-
+		
 	public:
 		TPointPropertyProxy();
 
 		virtual T_WORKING Get(const int32 Index) const override;
 		virtual void Set(const int32 Index, const T_WORKING& Value) const override;
+
 	};
 
 #pragma region externalization TPointPropertyProxy
