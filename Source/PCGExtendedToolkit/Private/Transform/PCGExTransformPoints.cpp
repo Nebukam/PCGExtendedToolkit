@@ -151,7 +151,7 @@ namespace PCGExTransformPoints
 			const FRotator RotMaxV = FRotator::MakeFromEuler(RotMax->Read(Index).Euler() * RotScaleV);
 			const FRotator RotSnapV = RotSnap->Read(Index);
 
-			const FVector ScaleScaleV = ScaleMax->Read(Index);
+			const FVector ScaleScaleV = ScaleScale->Read(Index);
 			const FVector ScaleMinV = ScaleMin->Read(Index) * ScaleScaleV;
 			const FVector ScaleMaxV = ScaleMax->Read(Index) * ScaleScaleV;
 			const FVector ScaleSnapV = ScaleSnap->Read(Index);
