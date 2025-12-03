@@ -408,8 +408,6 @@ namespace PCGExMT
 		PCGEX_SHARED_THIS_DECL
 		if (NewGroup->SetRoot(ThisPtr, Idx * -1))
 		{
-			// TODO : Make group self-referencing shared ptr
-			// .Rst on Complete/End
 			NewGroup->SetParent(InParentHandle ? InParentHandle : ThisPtr);
 			NewGroup->Start();
 			return NewGroup;
@@ -417,7 +415,7 @@ namespace PCGExMT
 		return nullptr;
 	}
 
-	bool FTaskManager::TryRegisterHandle(const TSharedPtr<IAsyncHandle>& InHandle)
+	bool FTaskManager::TryRegisterHandle(const TSharedPtr<IAsyncHandle>& InHandle, const TSharedPtr<IAsyncMultiHandle>& InParentHandle)
 	{
 		if (!IsAvailable()) { return false; }
 
@@ -427,9 +425,10 @@ namespace PCGExMT
 			Idx = Registry.Add(InHandle);
 		}
 
-		if (InHandle->SetRoot(SharedThis(this), Idx))
+		PCGEX_SHARED_THIS_DECL
+		if (InHandle->SetRoot(ThisPtr, Idx))
 		{
-			Start(); // Ensure manager is running
+			InHandle->SetParent(InParentHandle ? InParentHandle : ThisPtr);
 			InHandle->Start();
 			return true;
 		}

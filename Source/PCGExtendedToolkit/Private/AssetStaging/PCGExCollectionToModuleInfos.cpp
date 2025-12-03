@@ -103,7 +103,8 @@ bool FPCGExCollectionToModuleInfosElement::AdvanceWork(FPCGExContext* InContext,
 	CollectionMapData.Pin = PCGExStaging::OutputCollectionMapLabel;
 	CollectionMapData.Data = OutputMap;
 
-	return true;
+	InContext->Done();
+	return InContext->TryComplete();
 }
 
 void FPCGExCollectionToModuleInfosElement::FlattenCollection(

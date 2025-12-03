@@ -75,7 +75,8 @@ bool FPCGExBitmaskMergeElement::AdvanceWork(FPCGExContext* InContext, const UPCG
 	OutData.Pin = FName("Bitmask");
 	OutData.Data = Bitmask;
 
-	return true;
+	InContext->Done();
+	return InContext->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

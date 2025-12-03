@@ -67,7 +67,9 @@ bool FPCGExAssetCollectionToSetElement::AdvanceWork(FPCGExContext* InContext, co
 		FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();
 		OutData.Pin = FName("AttributeSet");
 		OutData.Data = OutputSet;
-		return true;
+
+		InContext->Done();
+		return InContext->TryComplete();
 	};
 
 	UPCGExAssetCollection* MainCollection = PCGExHelpers::LoadBlocking_AnyThread(Settings->AssetCollection);

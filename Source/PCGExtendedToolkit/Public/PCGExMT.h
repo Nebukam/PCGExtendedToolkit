@@ -205,7 +205,7 @@ namespace PCGExMT
 		virtual void Cancel() override;
 
 		TSharedPtr<FTaskGroup> TryCreateTaskGroup(const FName& InName, const TSharedPtr<IAsyncMultiHandle>& InParentHandle = nullptr);
-		bool TryRegisterHandle(const TSharedPtr<IAsyncHandle>& InHandle);
+		bool TryRegisterHandle(const TSharedPtr<IAsyncHandle>& InHandle, const TSharedPtr<IAsyncMultiHandle>& InParentHandle = nullptr);
 		TWeakPtr<FAsyncToken> TryCreateToken(const FName& InName);
 
 		void Reset();

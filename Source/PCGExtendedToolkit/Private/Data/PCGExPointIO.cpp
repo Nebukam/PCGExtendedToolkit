@@ -775,9 +775,9 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 	PCGEX_SORT_OUTPUTS\
 	Context->IncreaseStagedOutputReserve(TempPairs.Num());\
 	for (const TSharedPtr<FPointIO>& IO : TempPairs) { if (IO) { NumStaged += IO->_METHOD; } }\
-	if (!Pairs.IsEmpty()){\
-		if (const UPCGExSettings* OutSettings = Context->GetInputSettings<UPCGExSettings>()){ UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on '%s' | "#_METHOD" | diff +%d"), *GetNameSafe(OutSettings), Pairs.Num()) }\
-		else{ UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on unknown node | "#_METHOD" | diff +%d"), Pairs.Num()) }}\
+	if (!ensure(Pairs.IsEmpty())){\
+		if (const UPCGExSettings* OutSettings = Context->GetInputSettings<UPCGExSettings>()){ UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on '%s' -> %s | diff +%d"), *GetNameSafe(OutSettings), *OutputPin.ToString(), Pairs.Num()) }\
+		else{ UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on unknown node | -> %s | diff +%d"), *OutputPin.ToString(), Pairs.Num()) }}\
 	Pairs = MoveTemp(TempPairs);
 
 	int32 FPointIOCollection::StageOutputs()

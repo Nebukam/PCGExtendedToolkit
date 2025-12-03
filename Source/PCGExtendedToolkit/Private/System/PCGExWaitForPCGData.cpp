@@ -205,7 +205,7 @@ namespace PCGExWaitForPCGData
 			if (const TSharedPtr<FProcessor> P = Processor.Pin()) { P->StageComponentData(TaskIndex); }
 		}
 	};
-	
+
 	FProcessor::~FProcessor()
 	{
 	}
@@ -340,8 +340,6 @@ namespace PCGExWaitForPCGData
 				return;
 			}
 
-			PCGEX_ASYNC_RELEASE_TOKEN(SearchActorsToken)
-
 			if (!Settings->bQuietTimeoutError)
 			{
 				for (const FSoftObjectPath& ActorRef : UniqueActorReferences)
@@ -351,11 +349,13 @@ namespace PCGExWaitForPCGData
 					PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::FromString(Rel));
 				}
 			}
+
+			PCGEX_ASYNC_RELEASE_TOKEN(SearchActorsToken)
 		}
 		else
 		{
-			PCGEX_ASYNC_RELEASE_TOKEN(SearchActorsToken)
 			StartComponentSearch();
+			PCGEX_ASYNC_RELEASE_TOKEN(SearchActorsToken)
 		}
 	}
 
@@ -399,8 +399,6 @@ namespace PCGExWaitForPCGData
 	{
 		if (!SearchComponentsToken.IsValid()) { return; }
 
-		PCGEX_ASYNC_RELEASE_TOKEN(SearchComponentsToken)
-
 		if (bTimeout && !Settings->bQuietTimeoutError)
 		{
 			for (const AActor* Actor : QueuedActors)
@@ -409,6 +407,8 @@ namespace PCGExWaitForPCGData
 				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::FromString(Rel));
 			}
 		}
+
+		PCGEX_ASYNC_RELEASE_TOKEN(SearchComponentsToken)
 	}
 
 	void FProcessor::InspectGatheredComponents()
@@ -520,14 +520,9 @@ namespace PCGExWaitForPCGData
 
 		// Inspection is complete
 		// Trim actor list
-		for (int i = 0; i < QueuedActors.Num(); i++)
-		{
-			if (!QueuedActors[i])
-			{
-				QueuedActors.RemoveAt(i);
-				i--;
-			}
-		}
+		int32 WriteIndex = 0;
+		for (int i = 0; i < QueuedActors.Num(); i++) { if (AActor* QueuedActor = QueuedActors[i]) { QueuedActors[WriteIndex++] = QueuedActor; } }
+		QueuedActors.SetNum(WriteIndex);
 
 		// If some actors are still enqueued, we failed to find a valid component.
 		if (!QueuedActors.IsEmpty())
