@@ -54,4 +54,5 @@ protected:
 
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const;
+	virtual void CompleteWork(FPCGExContext* InContext) const;
 };

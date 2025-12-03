@@ -193,4 +193,9 @@ bool IPCGExElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* 
 	return true;
 }
 
+void IPCGExElement::CompleteWork(FPCGExContext* InContext) const
+{
+	
+}
+
 #undef LOCTEXT_NAMESPACE

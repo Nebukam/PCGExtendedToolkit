@@ -312,6 +312,9 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 {
 	//UE_LOG(LogTemp, Warning, TEXT(" -------> Async work ended, let's move on!"))
 
+	// BUG : This gets called twice from different threads in some cases, need to investigate why
+	FWriteScopeLock WriteLock(AsyncLock);
+	
 	if (AsyncManager) { AsyncManager->Reset(); }
 
 	if (bWasCancelled)
@@ -346,6 +349,8 @@ void FPCGExContext::OnComplete()
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::OnComplete);
 
 	//UE_LOG(LogTemp, Warning, TEXT(">> OnComplete @%s"), *GetInputSettings<UPCGExSettings>()->GetName());
+
+	if (ElementHandle) { ElementHandle->CompleteWork(this); }
 
 	FWriteScopeLock WriteScopeLock(StagedOutputLock);
 	ManagedObjects->Remove(OutputData.TaggedData);
