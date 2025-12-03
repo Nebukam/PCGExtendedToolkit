@@ -105,6 +105,7 @@ public:
 
 protected:
 	std::atomic<PCGExCommon::ContextState> CurrentState;
+	std::atomic<bool> bAsyncWorkEnded{false};
 	std::atomic<bool> bWorkCompleted{false};
 	std::atomic<bool> bWorkCancelled{false};
 

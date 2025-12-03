@@ -12,6 +12,11 @@
 
 #include "PCGExWaitForPCGData.generated.h"
 
+namespace PCGEx
+{
+	class FIntTracker;
+}
+
 namespace PCGExMT
 {
 	class FAsyncToken;

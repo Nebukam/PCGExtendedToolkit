@@ -35,7 +35,6 @@ namespace PCGExGraph
 namespace PCGEx
 {
 	class FWorkHandle;
-	class FIntTracker;
 }
 
 namespace PCGExCluster
@@ -214,8 +213,6 @@ namespace PCGExClusterMT
 	class PCGEXTENDEDTOOLKIT_API IBatch : public TSharedFromThis<IBatch>
 	{
 	protected:
-		TSharedPtr<PCGEx::FIntTracker> InitializationTracker = nullptr;
-
 		mutable FRWLock BatchLock;
 		TSharedPtr<PCGEx::FIndexLookup> NodeIndexLookup;
 

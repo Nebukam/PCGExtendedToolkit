@@ -550,14 +550,13 @@ namespace PCGExClusterMT
 	{
 		if (!bIsBatchValid) { return; }
 
-		InitializationTracker = MakeShared<PCGEx::FIntTracker>(
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
+		PCGEX_ASYNC_MT_LOOP_TPL(
+			Process, bForceSingleThreadedProcessing,
+			{ Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); },
+			{ Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](){
 				PCGEX_ASYNC_THIS
 				This->OnInitialPostProcess();
-			});
-
-		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, {Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, InitializationTracker)
+			};})
 	}
 
 	void IBatch::OnInitialPostProcess()
@@ -582,7 +581,7 @@ namespace PCGExClusterMT
 		if (!bIsBatchValid) { return; }
 
 		CurrentState.store(PCGExCommon::State_Completing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, {Processor->CompleteWork(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, {Processor->CompleteWork(); }, {})
 	}
 
 	void IBatch::Write()
@@ -592,7 +591,7 @@ namespace PCGExClusterMT
 		if (!bIsBatchValid) { return; }
 
 		CurrentState.store(PCGExCommon::State_Writing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, {Processor->Write(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, {Processor->Write(); }, {})
 
 		if (bWriteVtxDataFacade && bIsBatchValid) { VtxDataFacade->WriteFastest(AsyncManager); }
 	}

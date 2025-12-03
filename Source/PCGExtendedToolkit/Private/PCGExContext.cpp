@@ -169,6 +169,8 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetAsyncManager()
 		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
 		AsyncManager->OnEndCallback = [CtxHandle = GetOrCreateHandle()](const bool bWasCancelled)
 		{
+			if (bWasCancelled) { return; }
+			
 			PCGEX_SHARED_CONTEXT_VOID(CtxHandle);
 
 			FPCGExContext* Ctx = SharedContext.Get();
@@ -310,19 +312,32 @@ bool FPCGExContext::TryComplete(const bool bForce)
 
 void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 {
-	//UE_LOG(LogTemp, Warning, TEXT(" -------> Async work ended, let's move on!"))
+	// Ensure only one thread processes at a time
+	bool bExpected = false;
+	if (!bAsyncWorkEnded.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
+	{
+		// Another thread is already processing
+		UE_LOG(LogTemp, Warning, TEXT("OnAsyncWorkEnd: Already processing, skipping (%s)"), *GetNameSafe(GetInputSettings<UPCGExSettings>()));
+		return;
+	}
 
-	// BUG : This gets called twice from different threads in some cases, need to investigate why
-	FWriteScopeLock WriteLock(AsyncLock);
-	
-	if (AsyncManager) { AsyncManager->Reset(); }
+	// RAII-style cleanup to ensure flag is reset even if exception occurs
+	struct FProcessingGuard
+	{
+		std::atomic<bool>& Flag;
+		~FProcessingGuard() { Flag.store(false, std::memory_order_release); }
+	} Guard{bAsyncWorkEnded};
 
 	if (bWasCancelled)
 	{
-		// VERY IMPORTANT so we don't keep execution running
-		// Advancing work while cancelled can lead to all sort of really bad behaviors
-		// like appending data into CrCs while they're being iterated on.
 		return;
+	}
+
+	// Reset manager BEFORE calling AdvanceWork
+	// This is safe because we're the only thread that can be here
+	if (AsyncManager) 
+	{ 
+		AsyncManager->Reset(); 
 	}
 
 	const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
@@ -342,6 +357,8 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 	case EPCGExecutionPhase::Done:
 		break;
 	}
+    
+	// Guard destructor automatically resets bAsyncWorkEnded
 }
 
 void FPCGExContext::OnComplete()

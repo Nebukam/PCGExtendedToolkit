@@ -193,8 +193,9 @@ namespace PCGExMT
 
 	void IAsyncMultiHandle::CheckCompletion()
 	{
-		// Don't check if already ended
-		if (GetState() == EAsyncHandleState::Ended) { return; }
+		// Don't check if already ended or completing
+		EAsyncHandleState CurrentState = GetState();
+		if (CurrentState == EAsyncHandleState::Ended) { return; }
 
 		const int32 Expected = ExpectedCount.load(std::memory_order_acquire);
 		const int32 Started = StartedCount.load(std::memory_order_acquire);
@@ -205,11 +206,16 @@ namespace PCGExMT
 			HandleIdx, *DEBUG_HandleId(),
 			Expected, Started, Completed);
 
-		// Complete when all started tasks have finished
-		// (Completed == Started ensures we wait for running tasks even if cancelled)
+		// Only one thread should complete
 		if (Completed >= Expected && Completed == Started && Expected > 0)
 		{
-			Complete();
+			// Try to transition to Ended state atomically
+			// This ensures only one thread completes
+			EAsyncHandleState RunningState = EAsyncHandleState::Running;
+			if (State.compare_exchange_strong(RunningState, EAsyncHandleState::Ended, std::memory_order_acq_rel))
+			{
+				OnEnd(IsCancelled());
+			}
 		}
 	}
 
@@ -377,16 +383,26 @@ namespace PCGExMT
 		{
 			PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::Reset"));
 
-			Cancel();
+			// Clean up handles WITHOUT calling Cancel() 
+			// (which would trigger OnEnd callbacks)
+			{
+				FWriteScopeLock WriteLock(RegistryLock);
+				Tokens.Empty();
+            
+				// Just clear references, don't actively cancel
+				Registry.Empty();
+				Groups.Empty();
+			}
 
-			// Reset values
+			// Reset counters
 			ExpectedCount.store(0, std::memory_order_release);
 			StartedCount.store(0, std::memory_order_release);
 			CompletedCount.store(0, std::memory_order_release);
 			bCancelled.store(false, std::memory_order_release);
 
-			// Reset state
+			// Reset state to Idle (ready for next iteration)
 			State.store(EAsyncHandleState::Idle, std::memory_order_release);
+        
 			bResetting.store(false, std::memory_order_release);
 		}
 	}

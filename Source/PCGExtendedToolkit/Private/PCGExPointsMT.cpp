@@ -13,7 +13,6 @@
 
 namespace PCGExPointsMT
 {
-
 #pragma region Tasks
 
 	template <typename T>
@@ -37,7 +36,7 @@ namespace PCGExPointsMT
 	};
 
 #pragma endregion
-	
+
 	IProcessor::IProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 		: PointDataFacade(InPointDataFacade)
 	{
@@ -298,13 +297,13 @@ namespace PCGExPointsMT
 	{
 		if (bSkipCompletion) { return; }
 		CurrentState.store(PCGExCommon::State_Completing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, { Processor->CompleteWork(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bForceSingleThreadedCompletion, { Processor->CompleteWork(); }, {})
 	}
 
 	void IBatch::Write()
 	{
 		CurrentState.store(PCGExCommon::State_Writing, std::memory_order_release);
-		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, { Processor->Write(); })
+		PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bForceSingleThreadedWrite, { Processor->Write(); }, {})
 	}
 
 	void IBatch::Output()
@@ -325,15 +324,14 @@ namespace PCGExPointsMT
 	}
 
 	void IBatch::OnProcessingPreparationComplete()
-	{
-		InitializationTracker = MakeShared<PCGEx::FIntTracker>(
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
+	{		
+		PCGEX_ASYNC_MT_LOOP_TPL(
+			Process, bForceSingleThreadedProcessing,
+			{ Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); },
+			{ Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](){
 				PCGEX_ASYNC_THIS
 				This->OnInitialPostProcess();
-			});
-
-		PCGEX_ASYNC_MT_LOOP_TPL(Process, bForceSingleThreadedProcessing, { Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); }, InitializationTracker)
+			};})
 	}
 
 	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch)
