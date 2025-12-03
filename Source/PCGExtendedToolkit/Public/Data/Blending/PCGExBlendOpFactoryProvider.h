@@ -12,6 +12,8 @@
 #include "PCGExOperation.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExProxyDataBlending.h"
+#include "Data/PCGExDefaultValueContainer.h"
+#include "Metadata/PCGDefaultValueInterface.h"
 
 #include "PCGExBlendOpFactoryProvider.generated.h"
 
@@ -25,9 +27,16 @@ namespace PCGExDataBlending
 {
 	class FProxyDataBlender;
 
-	const FName SourceConstantA = FName("Constant A");
-	const FName SourceConstantB = FName("Constant B");
+	const FName SourceConstantA = FName("A");
+	const FName SourceConstantB = FName("B");
 }
+
+UENUM()
+enum class EPCGExOperandSource : uint8
+{
+	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Use a constant, user-defined value.", ActionIcon="Constant"),
+	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Read the value from the input data.", ActionIcon="Attribute"),
+};
 
 UENUM()
 enum class EPCGExOperandAuthority : uint8
@@ -113,6 +122,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::Average;
 
+	/** Operand A Source. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExOperandSource OperandASource = EPCGExOperandSource::Attribute;
+	
 	/** Operand A. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandA;
@@ -125,6 +138,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseOperandB"))
 	FPCGAttributePropertyInputSelector OperandB;
 
+	/** Operand A Source. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Inline", EditCondition="bUseOperandB", HideEditConditionToggle))
+	EPCGExOperandSource OperandBSource = EPCGExOperandSource::Attribute;
+	
 	/** Choose where to output the result of the A/B blend */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExBlendOpOutputMode OutputMode = EPCGExBlendOpOutputMode::SameAsA;
@@ -148,7 +165,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	/** Weight settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRequiresWeight", EditConditionHides, HideEditConditionToggle))
 	FPCGExAttributeBlendWeight Weighting;
-
+	
 	void Init();
 };
 
@@ -232,18 +249,39 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Blending", meta=(PCGExNodeLibraryDoc="metadata/uber-blend/blend-op"))
-class PCGEXTENDEDTOOLKIT_API UPCGExBlendOpFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBlendOpFactoryProviderSettings : public UPCGExFactoryProviderSettings, public IPCGSettingsDefaultValueProvider
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UObject interface
 #if WITH_EDITOR
-
+	virtual void ApplyDeprecationBeforeUpdatePins(UPCGNode* InOutNode, TArray<TObjectPtr<UPCGPin>>& InputPins, TArray<TObjectPtr<UPCGPin>>& OutputPins) override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface
 
+	//~Begin IPCGSettingsDefaultValueProvider interface
+	virtual bool DefaultValuesAreEnabled() const override { return true; }
+	virtual bool IsPinDefaultValueEnabled(FName PinLabel) const override;
+	virtual bool IsPinDefaultValueActivated(FName PinLabel) const override;
+	virtual EPCGMetadataTypes GetPinDefaultValueType(FName PinLabel) const override;
+	virtual bool IsPinDefaultValueMetadataTypeValid(FName PinLabel, EPCGMetadataTypes DataType) const override;
+#if WITH_EDITOR
+	virtual void SetPinDefaultValue(FName PinLabel, const FString& DefaultValue, bool bCreateIfNeeded = false) override;
+	virtual void ConvertPinDefaultValueMetadataType(FName PinLabel, EPCGMetadataTypes DataType) override;
+	virtual void SetPinDefaultValueIsActivated(FName PinLabel, bool bIsActivated, bool bDirtySettings = true) override;
+	virtual void ResetDefaultValues() override;
+	virtual FString GetPinInitialDefaultValueString(FName PinLabel) const override;
+	virtual FString GetPinDefaultValueAsString(FName PinLabel) const override;
+	virtual void ResetDefaultValue(FName PinLabel) override;
+#endif // WITH_EDITOR
+
+protected:
+	virtual bool IsPinUsedByNodeExecution(const UPCGPin* InPin) const override;
+	virtual EPCGMetadataTypes GetPinInitialDefaultValueType(FName PinLabel) const override;
+	//~End IPCGSettingsDefaultValueProvider interface
+	
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
@@ -254,9 +292,10 @@ public:
 
 	virtual bool CanUserEditTitle() const override { return false; }
 	virtual TArray<FPCGPreConfiguredSettingsInfo> GetPreconfiguredInfo() const override;
-
 #endif
 
+	
+	
 protected:
 	PCGEX_FACTORY_TYPE_ID(FPCGExDataTypeInfoBlendOp)
 
@@ -269,15 +308,20 @@ public:
 	virtual FName GetMainOutputPin() const override { return PCGExDataBlending::OutputBlendingLabel; }
 	virtual UPCGExFactoryData* CreateFactory(FPCGExContext* InContext, UPCGExFactoryData* InFactory) const override;
 
-	/** Op Priority. */
+	/** Filter Priority.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	int32 Priority = 0;
 
 	/** Config. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAttributeBlendConfig Config;
-
+	
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+private:
+	/** Stores the default values for the pins to be used as inline constants. */
+	UPROPERTY()
+	FPCGExDefaultValueContainer DefaultValues;
 };
