@@ -764,30 +764,17 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		Pairs.Reserve(Pairs.Max() + InIncreaseNum);
 	}
 
-#define PCGEX_SORT_OUTPUTS TempPairs.Sort([](const TSharedPtr<FPointIO>& A, const TSharedPtr<FPointIO>& B) { return A->IOIndex < B->IOIndex; });
-
-	// If this warning hits, some node has been emplacing/adding new data while it was being added to the context output.
-	// It's recoverable and I sure would love to know which node is triggering it, it's been really hard to repro.
-#define PCGEX_STAGE_OUTPUTS(_METHOD)\
-	int32 NumStaged = 0;\
-	TArray<TSharedPtr<FPointIO>> TempPairs = MoveTemp(Pairs);\
-	Pairs.Empty();\
-	PCGEX_SORT_OUTPUTS\
-	Context->IncreaseStagedOutputReserve(TempPairs.Num());\
-	for (const TSharedPtr<FPointIO>& IO : TempPairs) { if (IO) { NumStaged += IO->_METHOD; } }\
-	if (!ensure(Pairs.IsEmpty())){\
-		if (const UPCGExSettings* OutSettings = Context->GetInputSettings<UPCGExSettings>()){ UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on '%s' -> %s | diff +%d"), *GetNameSafe(OutSettings), *OutputPin.ToString(), Pairs.Num()) }\
-		else{ UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on unknown node | -> %s | diff +%d"), *OutputPin.ToString(), Pairs.Num()) }}\
-	Pairs = MoveTemp(TempPairs);
-
 	int32 FPointIOCollection::StageOutputs()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputs);
 
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
+		
+		Sort();
 
-		PCGEX_STAGE_OUTPUTS(StageOutput(Context))
+		int32 NumStaged = 0;
+		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageOutput(Context); } }
 
 		return NumStaged;
 	}
@@ -799,7 +786,10 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
 
-		PCGEX_STAGE_OUTPUTS(StageOutput(Context, MinPointCount, MaxPointCount))
+		Sort();
+		
+		int32 NumStaged = 0;
+		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageOutput(Context, MinPointCount, MaxPointCount); } }
 
 		return NumStaged;
 	}
@@ -809,16 +799,15 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputsAny);
 
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
-
 		FPCGExContext* Context = SharedContext.Get();
 
-		PCGEX_STAGE_OUTPUTS(StageAnyOutput(Context))
+		Sort();
+		
+		int32 NumStaged = 0;
+		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageAnyOutput(Context); } }
 
 		return NumStaged;
 	}
-
-#undef PCGEX_SORT_OUTPUTS
-#undef PCGEX_STAGE_OUTPUTS
 
 	void FPointIOCollection::Sort()
 	{
