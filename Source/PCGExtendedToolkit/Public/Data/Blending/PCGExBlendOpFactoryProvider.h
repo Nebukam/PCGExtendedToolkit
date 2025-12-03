@@ -123,7 +123,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	EPCGExABBlendingType BlendMode = EPCGExABBlendingType::Average;
 
 	/** Operand A Source. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExOperandSource OperandASource = EPCGExOperandSource::Attribute;
 	
 	/** Operand A. */
@@ -138,8 +138,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeBlendConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseOperandB"))
 	FPCGAttributePropertyInputSelector OperandB;
 
-	/** Operand A Source. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Inline", EditCondition="bUseOperandB", HideEditConditionToggle))
+	/** Operand B Source. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, DisplayName=" └─ Inline", EditCondition="bUseOperandB", HideEditConditionToggle))
 	EPCGExOperandSource OperandBSource = EPCGExOperandSource::Attribute;
 	
 	/** Choose where to output the result of the A/B blend */
