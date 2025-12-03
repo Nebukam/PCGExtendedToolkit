@@ -41,6 +41,8 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutput);
 
+	check(WorkHandle.IsValid())
+	
 	int32 Index = -1;
 	if (!IsInGameThread())
 	{
@@ -82,6 +84,8 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutputComplex);
 
+	check(WorkHandle.IsValid())
+	
 	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(StagedOutputLock);
@@ -122,6 +126,8 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet
 
 FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged)
 {
+	check(WorkHandle.IsValid())
+	
 	int32 Index = -1;
 	if (!IsInGameThread())
 	{
@@ -274,6 +280,7 @@ bool FPCGExContext::IsWaitingForTasks()
 
 void FPCGExContext::ReadyForExecution()
 {
+	bIsPaused = false;
 	SetState(PCGExCommon::State_InitialExecution);
 }
 
@@ -301,22 +308,19 @@ bool FPCGExContext::TryComplete(const bool bForce)
 	return true;
 }
 
-void FPCGExContext::ResumeExecution()
-{
-	// TODO : We need to get rid of this
-	if (AsyncManager) { AsyncManager->Reset(); }
-	UnpauseContext();
-}
-
 void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 {
 	// NOTE : The problem here is if async work finishes before we return, that's... bad.
 	// So really, instead of "return false" in contexts, we need to "return if waiting on async work"
 	// In processors it should be mostly fine because we schedule new work before the end in most cases.
 	// or at least we should ensure we do so.
+
 	//UE_LOG(LogTemp, Warning, TEXT(" -------> Async work ended, let's move on!"))
 
-	AsyncManager->Reset(); // Important so new work can be scheduled
+	if (AsyncManager)
+	{
+		AsyncManager->Reset(); // Important so new work can be scheduled
+	}
 	
 	const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
 	
@@ -325,10 +329,10 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 	case EPCGExecutionPhase::NotExecuted:
 		break;
 	case EPCGExecutionPhase::PrepareData:
-		bIsPaused = !ElementHandle->AdvancePreparation(this, Settings);
+		ElementHandle->AdvancePreparation(this, Settings);
 		break;
 	case EPCGExecutionPhase::Execute:
-		bIsPaused = !ElementHandle->AdvanceWork(this, Settings);
+		ElementHandle->AdvanceWork(this, Settings);
 		break;
 	case EPCGExecutionPhase::PostExecute:
 		break;
@@ -345,6 +349,7 @@ void FPCGExContext::OnComplete()
 	
 	FWriteScopeLock WriteScopeLock(StagedOutputLock);
 	ManagedObjects->Remove(OutputData.TaggedData);
+	bIsPaused = false;
 }
 
 #pragma endregion
@@ -381,7 +386,7 @@ void FPCGExContext::LoadAssets()
 	if (bAssetLoadRequested) { return; }
 	bAssetLoadRequested = true;
 
-	SetAsyncState(PCGExCommon::State_LoadingAssetDependencies);
+	SetState(PCGExCommon::State_LoadingAssetDependencies);
 
 	if (!RequiredAssets || RequiredAssets->IsEmpty())
 	{
@@ -402,13 +407,11 @@ void FPCGExContext::LoadAssets()
 				RequiredAssets->Array(), [CtxHandle]()
 				{
 					PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
-					SharedContext.Get()->UnpauseContext();
+					SharedContext.Get()->OnAsyncWorkEnd(false);
 				});
 
 			if (!LoadHandle || !LoadHandle->IsActive())
 			{
-				UnpauseContext();
-
 				if (!LoadHandle || !LoadHandle->HasLoadCompleted())
 				{
 					bAssetLoadError = true;
@@ -416,7 +419,7 @@ void FPCGExContext::LoadAssets()
 				}
 				else
 				{
-					// Resources were already loaded
+					OnAsyncWorkEnd(false);
 				}
 			}
 		}
@@ -433,13 +436,11 @@ void FPCGExContext::LoadAssets()
 						This->RequiredAssets->Array(), [CtxHandle]()
 						{
 							PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
-							SharedContext.Get()->UnpauseContext();
+							SharedContext.Get()->OnAsyncWorkEnd(false);
 						});
 
 					if (!This->LoadHandle || !This->LoadHandle->IsActive())
-					{
-						This->UnpauseContext();
-
+					{						
 						if (!This->LoadHandle || !This->LoadHandle->HasLoadCompleted())
 						{
 							This->bAssetLoadError = true;
@@ -447,7 +448,7 @@ void FPCGExContext::LoadAssets()
 						}
 						else
 						{
-							// Resources were already loaded
+							This->OnAsyncWorkEnd(false);
 						}
 					}
 				});
@@ -548,11 +549,12 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 		if (!InReason.IsEmpty() && !bQuietCancellationError) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
 
 		PCGEX_TERMINATE_ASYNC
+		
 		OutputData.Reset();
 		if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
 
 		CancelAssetLoading();
-		ResumeExecution();
+		bIsPaused = false;
 	}
 
 	return true;

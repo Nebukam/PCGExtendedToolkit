@@ -184,54 +184,8 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 	const UPCGExSettings* InSettings = Context->GetInputSettings<UPCGExSettings>();
 	check(InSettings);
 
+	if (InContext->CanExecute()){ InContext->bIsPaused = true; }	
 	return AdvanceWork(InContext, InSettings);
-	
-	/*
-	if (InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::Normal)
-	{
-		return AdvanceWork(InContext, InSettings);
-	}
-
-	TWeakPtr<FPCGContextHandle> CtxHandle = Context->GetOrCreateHandle();
-
-	if (InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::AsyncTask)
-	{
-		if (AdvanceWork(InContext, InSettings)) { return true; }
-
-		InContext->bIsPaused = true;
-		UE::Tasks::Launch(
-				TEXT("AdvanceWork"),
-				[CtxHandle, Settings = InSettings]()
-				{
-					FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
-					FPCGExContext* Ctx = SharedContext.Get();
-					if (!Ctx) { return; }
-
-					PCGEX_ASYNC_WAIT_CHKD_ADV(!Ctx->ElementHandle->AdvanceWork(Ctx, Settings))
-				},
-				UE::Tasks::ETaskPriority::High
-			);
-
-		return false;
-	}
-	else if (InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::AsyncEx)
-	{
-		FPCGAsync::AsyncProcessingOneToOneRangeEx(
-			&Context->AsyncState,
-			1,
-			[](){},
-			[CtxHandle, Settings = InSettings](int32 StartReadIndex, int32 StartWriteIndex, int32 Count)
-			{
-				FPCGContext::FSharedContext<FPCGExContext> SharedContext(CtxHandle);
-				FPCGExContext* Ctx = SharedContext.Get();
-				PCGEX_ASYNC_WAIT_CHKD_ADV(!Ctx->ElementHandle->AdvanceWork(Ctx, Settings))
-				return 1;
-			}, false);
-	}
-
-	return true;
-	*/
-
 }
 
 bool IPCGExElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const

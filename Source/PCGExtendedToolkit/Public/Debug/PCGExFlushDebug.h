@@ -41,19 +41,13 @@ protected:
 	FLinearColor CustomColor = FLinearColor(1.0f, 0.0f, 1.0f, 1.0f);
 };
 
-struct FPCGExDebugContext final : FPCGExContext
-{
-	friend class FPCGExDebugElement;
-	bool bWait = true;
-};
-
 class FPCGExDebugElement final : public IPCGExElement
 {
 protected:
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 
-	PCGEX_ELEMENT_CREATE_CONTEXT(Debug)
-
+	PCGEX_ELEMENT_CREATE_DEFAULT_CONTEXT
+	
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 };

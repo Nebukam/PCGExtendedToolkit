@@ -103,8 +103,6 @@ public:
 
 	bool TryComplete(const bool bForce = false);
 
-	virtual void ResumeExecution();
-
 protected:
 	std::atomic<PCGExCommon::ContextState> CurrentState;
 	std::atomic<bool> bWorkCompleted{false};

@@ -314,7 +314,6 @@ namespace PCGExMT
 		if (TryTransitionState(EAsyncHandleState::Idle, EAsyncHandleState::Running))
 		{
 			PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::Start"));
-			Context->PauseContext();
 			return true;
 		}
 		return GetState() == EAsyncHandleState::Running;

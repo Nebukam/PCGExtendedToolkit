@@ -9,6 +9,7 @@
 #include "PCGEx.h"
 #include "PCGExContext.h"
 #include "PCGExMT.h"
+#include "PCGExSettings.h"
 #include "PCGParamData.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGPointData.h"
@@ -773,8 +774,30 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		Sort();
 
 		int32 NumStaged = 0;
-		Context->IncreaseStagedOutputReserve(Pairs.Num());
-		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageOutput(Context); } }
+		// Prevents resizing if async tasks are creating outputs during cancellation
+		TArray<TSharedPtr<FPointIO>> OutputCopy = MoveTemp(Pairs);
+		Pairs.Empty();
+
+		Context->IncreaseStagedOutputReserve(OutputCopy.Num());
+		for (const TSharedPtr<FPointIO>& IO : OutputCopy) { if (IO) { NumStaged += IO->StageOutput(Context); } }
+
+		if (!Pairs.IsEmpty())
+		{
+			// If this ensure is hit, some node has been emplacing/adding new data while it was being added to the context output.
+			// It's recoverable and I sure would love to know which node is triggering it, it's been really hard to repro.
+
+			if (const UPCGExSettings* OutSettings = Context->GetInputSettings<UPCGExSettings>())
+			{
+				UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on '%s' | diff +%d"), *GetNameSafe(OutSettings), Pairs.Num())
+			}
+			else
+			{
+				UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on unknown node | diff +%d"), Pairs.Num())
+			}
+		}
+
+		Pairs = MoveTemp(OutputCopy);
+
 		return NumStaged;
 	}
 
