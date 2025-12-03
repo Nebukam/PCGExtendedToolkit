@@ -388,8 +388,6 @@ namespace PCGExMT
 			// Reset state
 			State.store(EAsyncHandleState::Idle, std::memory_order_release);
 			bResetting.store(false, std::memory_order_release);
-
-			//Context->UnpauseContext();
 		}
 	}
 
@@ -493,7 +491,6 @@ namespace PCGExMT
 	void FTaskManager::OnEnd(const bool bWasCancelled)
 	{
 		IAsyncMultiHandle::OnEnd(bWasCancelled);
-		//Context->UnpauseContext();
 	}
 
 	// FTaskGroup

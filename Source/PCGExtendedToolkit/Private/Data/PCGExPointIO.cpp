@@ -764,6 +764,22 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		Pairs.Reserve(Pairs.Max() + InIncreaseNum);
 	}
 
+#define PCGEX_SORT_OUTPUTS TempPairs.Sort([](const TSharedPtr<FPointIO>& A, const TSharedPtr<FPointIO>& B) { return A->IOIndex < B->IOIndex; });
+
+	// If this warning hits, some node has been emplacing/adding new data while it was being added to the context output.
+	// It's recoverable and I sure would love to know which node is triggering it, it's been really hard to repro.
+#define PCGEX_STAGE_OUTPUTS(_METHOD)\
+	int32 NumStaged = 0;\
+	TArray<TSharedPtr<FPointIO>> TempPairs = MoveTemp(Pairs);\
+	Pairs.Empty();\
+	PCGEX_SORT_OUTPUTS\
+	Context->IncreaseStagedOutputReserve(TempPairs.Num());\
+	for (const TSharedPtr<FPointIO>& IO : TempPairs) { if (IO) { NumStaged += IO->_METHOD; } }\
+	if (!Pairs.IsEmpty()){\
+		if (const UPCGExSettings* OutSettings = Context->GetInputSettings<UPCGExSettings>()){ UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on '%s' | "#_METHOD" | diff +%d"), *GetNameSafe(OutSettings), Pairs.Num()) }\
+		else{ UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on unknown node | "#_METHOD" | diff +%d"), Pairs.Num()) }}\
+	Pairs = MoveTemp(TempPairs);
+
 	int32 FPointIOCollection::StageOutputs()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputs);
@@ -771,65 +787,38 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
 
-		Sort();
-
-		int32 NumStaged = 0;
-		// Prevents resizing if async tasks are creating outputs during cancellation
-		TArray<TSharedPtr<FPointIO>> OutputCopy = MoveTemp(Pairs);
-		Pairs.Empty();
-
-		Context->IncreaseStagedOutputReserve(OutputCopy.Num());
-		for (const TSharedPtr<FPointIO>& IO : OutputCopy) { if (IO) { NumStaged += IO->StageOutput(Context); } }
-
-		if (!Pairs.IsEmpty())
-		{
-			// If this ensure is hit, some node has been emplacing/adding new data while it was being added to the context output.
-			// It's recoverable and I sure would love to know which node is triggering it, it's been really hard to repro.
-
-			if (const UPCGExSettings* OutSettings = Context->GetInputSettings<UPCGExSettings>())
-			{
-				UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on '%s' | diff +%d"), *GetNameSafe(OutSettings), Pairs.Num())
-			}
-			else
-			{
-				UE_LOG(LogPCGEx, Warning, TEXT("Output Staging discrepancy on unknown node | diff +%d"), Pairs.Num())
-			}
-		}
-
-		Pairs = MoveTemp(OutputCopy);
+		PCGEX_STAGE_OUTPUTS(StageOutput(Context))
 
 		return NumStaged;
 	}
 
 	int32 FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
 	{
-		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputsMinMax);
 
+		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
 
-		if (!Context) { return 0; }
+		PCGEX_STAGE_OUTPUTS(StageOutput(Context, MinPointCount, MaxPointCount))
 
-		Sort();
-
-		int32 NumStaged = 0;
-		Context->IncreaseStagedOutputReserve(Pairs.Num());
-		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageOutput(Context, MinPointCount, MaxPointCount); } }
 		return NumStaged;
 	}
 
 	int32 FPointIOCollection::StageAnyOutputs()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::StageOutputsAny);
+
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 
 		FPCGExContext* Context = SharedContext.Get();
 
-		Sort();
+		PCGEX_STAGE_OUTPUTS(StageAnyOutput(Context))
 
-		int32 NumStaged = 0;
-		Context->IncreaseStagedOutputReserve(Pairs.Num());
-		for (int i = 0; i < Pairs.Num(); i++) { NumStaged += Pairs[i]->StageAnyOutput(Context); }
 		return NumStaged;
 	}
+
+#undef PCGEX_SORT_OUTPUTS
+#undef PCGEX_STAGE_OUTPUTS
 
 	void FPointIOCollection::Sort()
 	{
