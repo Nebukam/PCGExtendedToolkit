@@ -81,22 +81,6 @@ FPCGContext* IPCGExElement::Initialize(const FPCGInitializeElementParams& InPara
 	const UPCGExSettings* Settings = Context->GetInputSettings<UPCGExSettings>();
 	check(Settings);
 
-	Context->WorkPriority = Settings->WorkPriority;
-
-	switch (Settings->ExecutionPolicy == EPCGExExecutionPolicy::Default ? GetDefault<UPCGExGlobalSettings>()->GetDefaultExecutionPolicy() : Settings->ExecutionPolicy)
-	{
-	case EPCGExExecutionPolicy::Default:
-	case EPCGExExecutionPolicy::Normal:
-		Context->ExecutionPolicy = FPCGExContext::EExecutionPolicy::Normal;
-		break;
-	case EPCGExExecutionPolicy::AsyncEx:
-		Context->ExecutionPolicy = FPCGExContext::EExecutionPolicy::AsyncEx;
-		break;
-	case EPCGExExecutionPolicy::AsyncTask:
-		Context->ExecutionPolicy = FPCGExContext::EExecutionPolicy::AsyncTask;
-		break;
-	}
-
 	Context->bFlattenOutput = Settings->bFlattenOutput;
 	Context->bScopedAttributeGet = Settings->WantsScopedAttributeGet();
 	Context->bPropagateAbortedExecution = Settings->bPropagateAbortedExecution;

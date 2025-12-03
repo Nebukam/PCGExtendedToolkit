@@ -67,7 +67,6 @@ struct FPCGExContext;
 
 namespace PCGExMT
 {
-	void SetWorkPriority(const EPCGExAsyncPriority Selection, UE::Tasks::ETaskPriority& Priority);
 	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 MaxItems, const int32 RangeSize);
 
 	PCGEXTENDEDTOOLKIT_API void AssertEmptyThread(const int32 MaxItems);
@@ -135,8 +134,7 @@ namespace PCGExMT
 	public:
 		virtual FString DEBUG_HandleId() const override { return GroupName.ToString(); }
 		FCompletionCallback OnCompleteCallback;
-		FEndCallback OnEndCallback;
-
+		
 		explicit IAsyncMultiHandle(const FName InName);
 		virtual ~IAsyncMultiHandle() override;
 
@@ -188,6 +186,7 @@ namespace PCGExMT
 		TArray<TSharedPtr<FAsyncToken>> Tokens;
 
 	public:
+		FEndCallback OnEndCallback;
 		UE::Tasks::ETaskPriority WorkPriority = UE::Tasks::ETaskPriority::Default;
 
 		explicit FTaskManager(FPCGExContext* InContext);

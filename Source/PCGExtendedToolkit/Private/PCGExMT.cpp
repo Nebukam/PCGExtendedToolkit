@@ -15,27 +15,6 @@
 
 namespace PCGExMT
 {
-	void SetWorkPriority(const EPCGExAsyncPriority Selection, UE::Tasks::ETaskPriority& Priority)
-	{
-		switch (Selection)
-		{
-		default:
-		case EPCGExAsyncPriority::Default:
-			SetWorkPriority(GetDefault<UPCGExGlobalSettings>()->GetDefaultWorkPriority(), Priority);
-			break;
-		case EPCGExAsyncPriority::Normal: Priority = UE::Tasks::ETaskPriority::Normal;
-			break;
-		case EPCGExAsyncPriority::High: Priority = UE::Tasks::ETaskPriority::High;
-			break;
-		case EPCGExAsyncPriority::BackgroundHigh: Priority = UE::Tasks::ETaskPriority::BackgroundHigh;
-			break;
-		case EPCGExAsyncPriority::BackgroundNormal: Priority = UE::Tasks::ETaskPriority::BackgroundNormal;
-			break;
-		case EPCGExAsyncPriority::BackgroundLow: Priority = UE::Tasks::ETaskPriority::BackgroundLow;
-			break;
-		}
-	}
-
 	FScope::FScope(const int32 InStart, const int32 InCount, const int32 InLoopIndex)
 		: Start(InStart), Count(InCount), End(InStart + InCount), LoopIndex(InLoopIndex)
 	{
@@ -257,7 +236,7 @@ namespace PCGExMT
 			Callback();
 		}
 
-		if (OnEndCallback) { OnEndCallback(bWasCancelled); }
+		//		if (OnEndCallback) { OnEndCallback(bWasCancelled); }
 
 		if (const TSharedPtr<IAsyncMultiHandle> Parent = ParentHandle.Pin())
 		{
@@ -388,7 +367,7 @@ namespace PCGExMT
 			{
 				FWriteScopeLock WriteLock(RegistryLock);
 				Tokens.Empty();
-            
+
 				// Just clear references, don't actively cancel
 				Registry.Empty();
 				Groups.Empty();
@@ -402,7 +381,7 @@ namespace PCGExMT
 
 			// Reset state to Idle (ready for next iteration)
 			State.store(EAsyncHandleState::Idle, std::memory_order_release);
-        
+
 			bResetting.store(false, std::memory_order_release);
 		}
 	}
@@ -498,14 +477,18 @@ namespace PCGExMT
 						Task->ExecuteTask(Manager);
 						Task->Complete();
 					}
-				},
-				WorkPriority
+				}
 			);
 	}
 
 	void FTaskManager::OnEnd(const bool bWasCancelled)
 	{
 		IAsyncMultiHandle::OnEnd(bWasCancelled);
+
+		Reset();
+		
+		if (OnEndCallback) { OnEndCallback(bWasCancelled); }
+
 	}
 
 	// FTaskGroup

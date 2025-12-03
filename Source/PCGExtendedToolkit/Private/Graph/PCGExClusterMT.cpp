@@ -554,8 +554,8 @@ namespace PCGExClusterMT
 			Process, bForceSingleThreadedProcessing,
 			{ Processor->bIsProcessorValid = Processor->Process(This->AsyncManager); },
 			{ Process->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE](){
-				PCGEX_ASYNC_THIS
-				This->OnInitialPostProcess();
+			PCGEX_ASYNC_THIS
+			This->OnInitialPostProcess();
 			};})
 	}
 

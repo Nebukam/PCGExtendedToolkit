@@ -170,7 +170,7 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetAsyncManager()
 		AsyncManager->OnEndCallback = [CtxHandle = GetOrCreateHandle()](const bool bWasCancelled)
 		{
 			if (bWasCancelled) { return; }
-			
+
 			PCGEX_SHARED_CONTEXT_VOID(CtxHandle);
 
 			FPCGExContext* Ctx = SharedContext.Get();
@@ -178,8 +178,6 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetAsyncManager()
 			if (Ctx && Ctx->ElementHandle) { Ctx->OnAsyncWorkEnd(bWasCancelled); }
 			else { UE_LOG(LogTemp, Error, TEXT("OnEnd but no context or element handle!")) }
 		};
-
-		PCGExMT::SetWorkPriority(WorkPriority, AsyncManager->WorkPriority);
 	}
 
 	return AsyncManager;
@@ -314,7 +312,7 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 {
 	// Ensure only one thread processes at a time
 	bool bExpected = false;
-	if (!bAsyncWorkEnded.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
+	if (!bProcessingAsyncWorkEnd.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 	{
 		// Another thread is already processing
 		UE_LOG(LogTemp, Warning, TEXT("OnAsyncWorkEnd: Already processing, skipping (%s)"), *GetNameSafe(GetInputSettings<UPCGExSettings>()));
@@ -326,18 +324,11 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 	{
 		std::atomic<bool>& Flag;
 		~FProcessingGuard() { Flag.store(false, std::memory_order_release); }
-	} Guard{bAsyncWorkEnded};
+	} Guard{bProcessingAsyncWorkEnd};
 
 	if (bWasCancelled)
 	{
 		return;
-	}
-
-	// Reset manager BEFORE calling AdvanceWork
-	// This is safe because we're the only thread that can be here
-	if (AsyncManager) 
-	{ 
-		AsyncManager->Reset(); 
 	}
 
 	const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
@@ -357,7 +348,7 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 	case EPCGExecutionPhase::Done:
 		break;
 	}
-    
+
 	// Guard destructor automatically resets bAsyncWorkEnded
 }
 

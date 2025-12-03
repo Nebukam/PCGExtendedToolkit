@@ -31,15 +31,6 @@ enum class EPCGExAsyncPriority : uint8
 };
 
 UENUM()
-enum class EPCGExExecutionPolicy : uint8
-{
-	Default   = 0 UMETA(DisplayName = "Default", ToolTip="..."),
-	Normal    = 1 UMETA(DisplayName = "Normal", ToolTip="..."),
-	AsyncEx   = 2 UMETA(DisplayName = "AsyncEx", ToolTip="..."),
-	AsyncTask = 3 UMETA(DisplayName = "AsyncTask", ToolTip="..."),
-};
-
-UENUM()
 enum class EPCGExInputValueType : uint8
 {
 	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Use a constant, user-defined value.", ActionIcon="Constant"),
