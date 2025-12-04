@@ -286,7 +286,9 @@ void FPCGExContext::ReadyForExecution()
 
 void FPCGExContext::SetState(const PCGExCommon::ContextState StateId)
 {
+	PCGExCommon::ContextState OldState = CurrentState.load(std::memory_order_acquire);
 	CurrentState.store(StateId, std::memory_order_release);
+	//if (OldState == StateId) { UE_LOG(LogPCGEx, Warning, TEXT("Repeat SetState : %llu"), StateId); }
 }
 
 void FPCGExContext::Done()
@@ -310,26 +312,15 @@ bool FPCGExContext::TryComplete(const bool bForce)
 
 void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 {
-	// Ensure only one thread processes at a time
 	bool bExpected = false;
 	if (!bProcessingAsyncWorkEnd.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 	{
-		// Another thread is already processing
-		UE_LOG(LogTemp, Warning, TEXT("OnAsyncWorkEnd: Already processing, skipping (%s)"), *GetNameSafe(GetInputSettings<UPCGExSettings>()));
+		UE_LOG(LogTemp, Error, TEXT("OnAsyncWorkEnd: Already processing, skipping (%s)"), *GetNameSafe(GetInputSettings<UPCGExSettings>()));
 		return;
 	}
 
-	// RAII-style cleanup to ensure flag is reset even if exception occurs
-	struct FProcessingGuard
-	{
-		std::atomic<bool>& Flag;
-		~FProcessingGuard() { Flag.store(false, std::memory_order_release); }
-	} Guard{bProcessingAsyncWorkEnd};
-
-	if (bWasCancelled)
-	{
-		return;
-	}
+	if (bWasCancelled) { return; }
+	if (AsyncManager) { AsyncManager->Reset(); }
 
 	const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
 
@@ -349,7 +340,7 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 		break;
 	}
 
-	// Guard destructor automatically resets bAsyncWorkEnded
+	bProcessingAsyncWorkEnd.store(false, std::memory_order_release);
 }
 
 void FPCGExContext::OnComplete()

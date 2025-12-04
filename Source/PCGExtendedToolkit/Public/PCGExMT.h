@@ -95,7 +95,7 @@ namespace PCGExMT
 		int8 bExpected = false;
 		TWeakPtr<IAsyncMultiHandle> Root;
 		TWeakPtr<IAsyncMultiHandle> ParentHandle;
-		
+
 		std::atomic<bool> bResetting{false};
 		std::atomic<bool> bCancelled{false};
 		std::atomic<EAsyncHandleState> State{EAsyncHandleState::Idle};
@@ -127,14 +127,32 @@ namespace PCGExMT
 	{
 	protected:
 		FName GroupName = NAME_None;
+		std::atomic<int32> PendingRegistrations{0};
 		std::atomic<int32> ExpectedCount{0};
 		std::atomic<int32> StartedCount{0};
 		std::atomic<int32> CompletedCount{0};
 
 	public:
+		struct FRegistrationGuard
+		{
+			TSharedPtr<IAsyncMultiHandle> Parent;
+
+			explicit FRegistrationGuard(const TSharedPtr<IAsyncMultiHandle>& InParent)
+				: Parent(InParent)
+			{
+				Parent->PendingRegistrations.fetch_add(1, std::memory_order_acquire);
+			}
+
+			~FRegistrationGuard()
+			{
+				const int32 Remaining = Parent->PendingRegistrations.fetch_sub(1, std::memory_order_release) - 1;
+				if (Remaining == 0) { Parent->CheckCompletion(); }
+			}
+		};
+
 		virtual FString DEBUG_HandleId() const override { return GroupName.ToString(); }
 		FCompletionCallback OnCompleteCallback;
-		
+
 		explicit IAsyncMultiHandle(const FName InName);
 		virtual ~IAsyncMultiHandle() override;
 
@@ -174,9 +192,12 @@ namespace PCGExMT
 	// Task manager - root of task hierarchy
 	class PCGEXTENDEDTOOLKIT_API FTaskManager : public IAsyncMultiHandle
 	{
+		friend class IAsyncHandle;
+		friend class IAsyncMultiHandle;
 		friend class FTask;
 		friend class FTaskGroup;
 
+	protected:
 		mutable FRWLock RegistryLock;
 		TWeakPtr<PCGEx::FWorkHandle> WorkHandle;
 		FPCGExContext* Context = nullptr;
@@ -184,6 +205,8 @@ namespace PCGExMT
 		TArray<TWeakPtr<IAsyncHandle>> Registry;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
 		TArray<TSharedPtr<FAsyncToken>> Tokens;
+
+		std::atomic<int32> PendingRegistrations{0};
 
 	public:
 		FEndCallback OnEndCallback;
@@ -242,23 +265,20 @@ namespace PCGExMT
 			TArray<FScope> Loops;
 			const int32 NumLoops = SubLoopScopes(Loops, MaxItems, FMath::Max(1, ChunkSize));
 
-			if (NumLoops == 0)
-			{
-				AssertEmptyThread(MaxItems);
-				return;
-			}
-
-			RegisterExpected(NumLoops);
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
+
+			TArray<TSharedPtr<FTask>> Tasks;
+			Tasks.Reserve(NumLoops);
 
 			for (const FScope& Scope : Loops)
 			{
 				PCGEX_MAKE_SHARED(Task, T, std::forward<Args>(InArgs)...)
-				Task->bExpected = true;
 				Task->bPrepareOnly = bPrepareOnly;
 				Task->Scope = Scope;
-				Launch(Task, true);
+				Tasks.Add(Task);
 			}
+
+			StartHandlesBatchImpl(Tasks);
 		}
 
 		void StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bForceSingleThreaded = false, const bool bPreparationOnly = false);

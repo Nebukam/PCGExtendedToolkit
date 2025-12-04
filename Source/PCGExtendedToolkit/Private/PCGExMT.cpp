@@ -6,6 +6,7 @@
 #include "PCGExHelpers.h"
 #include "PCGExContext.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExSettings.h"
 #include "PCGExSubSystem.h"
 #include "HAL/PlatformTime.h"
 
@@ -64,15 +65,16 @@ namespace PCGExMT
 
 	void IAsyncHandle::SetParent(const TSharedPtr<IAsyncMultiHandle>& InParent)
 	{
+		check(!ParentHandle.IsValid());
 		if (!InParent) { return; }
+
 		ParentHandle = InParent;
 		PCGEX_TASK_LOG(LogTemp, Warning, TEXT("IAsyncHandle[#%d|%s]::SetParent to [#%d|%s]"), HandleIdx, *DEBUG_HandleId(), InParent->HandleIdx, *InParent->DEBUG_HandleId());
 
-		// Only notify parent if the task isn't expected already.
-		// This greatly facilitates batching and avoid race conditions where starting a task inside a loop
-		// triggers completion before the next iteration can even be scheduled
 		if (!bExpected)
 		{
+			IAsyncMultiHandle::FRegistrationGuard Guard(InParent);
+
 			bExpected = true;
 			InParent->RegisterExpected();
 		}
@@ -140,11 +142,13 @@ namespace PCGExMT
 
 	IAsyncMultiHandle::~IAsyncMultiHandle()
 	{
+		/*
 		if (GetState() != EAsyncHandleState::Ended)
 		{
 			Cancel();
 			Complete();
 		}
+		*/
 	}
 
 	bool IAsyncMultiHandle::RegisterExpected(int32 Count)
@@ -165,31 +169,30 @@ namespace PCGExMT
 	void IAsyncMultiHandle::NotifyCompleted()
 	{
 		if (!IsAvailable()) { return; }
+
 		CompletedCount.fetch_add(1, std::memory_order_acq_rel);
 		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[#%d|%s]::NotifyCompleted = %d"), HandleIdx, *DEBUG_HandleId(), CompletedCount.load());
+
 		CheckCompletion();
 	}
 
 	void IAsyncMultiHandle::CheckCompletion()
 	{
-		// Don't check if already ended or completing
 		EAsyncHandleState CurrentState = GetState();
 		if (CurrentState == EAsyncHandleState::Ended) { return; }
+
+		// CRITICAL: Block completion checks during registration
+		if (PendingRegistrations.load(std::memory_order_acquire) > 0) { return; }
+
+		// Memory fence ensures we see all completed registrations
+		std::atomic_thread_fence(std::memory_order_seq_cst);
 
 		const int32 Expected = ExpectedCount.load(std::memory_order_acquire);
 		const int32 Started = StartedCount.load(std::memory_order_acquire);
 		const int32 Completed = CompletedCount.load(std::memory_order_acquire);
 
-		PCGEX_MULTI_LOG(
-			LogTemp, Warning, TEXT("IAsyncMultiHandle[#%d|%s]::CheckCompletion Expected : %d, Started : %d, Completed : %d"),
-			HandleIdx, *DEBUG_HandleId(),
-			Expected, Started, Completed);
-
-		// Only one thread should complete
 		if (Completed >= Expected && Completed == Started && Expected > 0)
 		{
-			// Try to transition to Ended state atomically
-			// This ensures only one thread completes
 			EAsyncHandleState RunningState = EAsyncHandleState::Running;
 			if (State.compare_exchange_strong(RunningState, EAsyncHandleState::Ended, std::memory_order_acq_rel))
 			{
@@ -200,10 +203,21 @@ namespace PCGExMT
 
 	void IAsyncMultiHandle::StartHandlesBatchImpl(const TArray<TSharedPtr<FTask>>& InHandles)
 	{
-		if (!IsAvailable() || InHandles.Num() == 0) { return; }
+		if (!IsAvailable()) { return; }
 
-		RegisterExpected(InHandles.Num());
-		for (const TSharedPtr<FTask>& Task : InHandles) { Launch(Task, true); }
+		if (InHandles.IsEmpty())
+		{
+			AssertEmptyThread(0);
+			Cancel();
+			return;
+		}
+
+		{
+			FRegistrationGuard Guard(SharedThis(this));
+
+			RegisterExpected(InHandles.Num());
+			for (const TSharedPtr<FTask>& Task : InHandles) { Launch(Task, true); }
+		}
 	}
 
 	bool IAsyncMultiHandle::IsAvailable() const
@@ -228,15 +242,15 @@ namespace PCGExMT
 
 	void IAsyncMultiHandle::OnEnd(const bool bWasCancelled)
 	{
-		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[#%d|%s]::OnEnd(%d)"), HandleIdx, *DEBUG_HandleId(), bWasCancelled)
+		const IAsyncMultiHandle* RootPtr = Root.IsValid() ? Root.Pin().Get() : this;
+		const FTaskManager* Mngr = static_cast<const FTaskManager*>(RootPtr);
+		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[[%s]#%d|%s]::OnEnd(%d)"), Mngr ? *GetNameSafe(Mngr->GetContext()->GetInputSettings<UPCGExSettings>()) : TEXT(""), HandleIdx, *DEBUG_HandleId(), bWasCancelled)
 
 		if (!bWasCancelled && OnCompleteCallback)
 		{
 			const FCompletionCallback Callback = MoveTemp(OnCompleteCallback);
 			Callback();
 		}
-
-		//		if (OnEndCallback) { OnEndCallback(bWasCancelled); }
 
 		if (const TSharedPtr<IAsyncMultiHandle> Parent = ParentHandle.Pin())
 		{
@@ -279,7 +293,7 @@ namespace PCGExMT
 
 	FTaskManager::~FTaskManager()
 	{
-		Cancel();
+		//if (IsWaitingForTasks()){ Cancel(); }
 	}
 
 	bool FTaskManager::IsAvailable() const
@@ -485,10 +499,9 @@ namespace PCGExMT
 	{
 		IAsyncMultiHandle::OnEnd(bWasCancelled);
 
-		Reset();
-		
-		if (OnEndCallback) { OnEndCallback(bWasCancelled); }
+		//Reset();
 
+		if (OnEndCallback) { OnEndCallback(bWasCancelled); }
 	}
 
 	// FTaskGroup
@@ -505,14 +518,22 @@ namespace PCGExMT
 		if (bForceSingleThreaded)
 		{
 			const int32 NumScopes = SubLoopScopes(ScopeCache, MaxItems, SanitizedChunk);
-			if (NumScopes == 0) { return; }
+			if (!NumScopes)
+			{
+				AssertEmptyThread(MaxItems);
+				return;
+			}
 
-			RegisterExpected(NumScopes);
-			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(ScopeCache); }
+			{
+				FRegistrationGuard Guard(SharedThis(this));
 
-			PCGEX_MAKE_SHARED(Task, FForceSingleThreadedScopeIterationTask, 0)
-			Task->bPrepareOnly = bPreparationOnly;
-			Launch(Task, true);
+				RegisterExpected(NumScopes);
+				if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(ScopeCache); }
+
+				PCGEX_MAKE_SHARED(Task, FForceSingleThreadedScopeIterationTask, 0)
+				Task->bPrepareOnly = bPreparationOnly;
+				Launch(Task, true);
+			}
 		}
 		else
 		{
@@ -533,14 +554,16 @@ namespace PCGExMT
 	void FTaskGroup::StartSimpleCallbacks()
 	{
 		const int32 Count = SimpleCallbacks.Num();
-		if (Count == 0) { return; }
+		TArray<TSharedPtr<FTask>> Tasks;
+		Tasks.Reserve(Count);
 
-		RegisterExpected(Count);
 		for (int i = 0; i < Count; i++)
 		{
 			PCGEX_MAKE_SHARED(Task, FSimpleCallbackTask, i)
-			Launch(Task, true);
+			Tasks.Add(Task);
 		}
+
+		StartHandlesBatchImpl(Tasks);
 	}
 
 	void FTaskGroup::ExecScopeIteration(const FScope& Scope, const bool bPrepareOnly) const
