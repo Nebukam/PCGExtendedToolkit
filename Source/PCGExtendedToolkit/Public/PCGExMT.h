@@ -122,6 +122,13 @@ namespace PCGExMT
 		virtual void OnEnd(bool bWasCancelled);
 	};
 
+	struct FSchedulingScope
+	{
+		TWeakPtr<FAsyncToken> Token;
+		explicit FSchedulingScope(const TSharedPtr<FTaskManager>& InManager);
+		~FSchedulingScope();
+	};
+	
 	// Multi-handle manages multiple child tasks
 	class PCGEXTENDEDTOOLKIT_API IAsyncMultiHandle : public IAsyncHandle
 	{

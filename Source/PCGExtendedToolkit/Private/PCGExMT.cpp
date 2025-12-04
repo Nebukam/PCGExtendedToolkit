@@ -125,6 +125,20 @@ namespace PCGExMT
 		}
 	}
 
+	FSchedulingScope::FSchedulingScope(const TSharedPtr<FTaskManager>& InManager)
+	{
+		Token = InManager->TryCreateToken(FName("SchedulingScope"));
+	}
+
+	FSchedulingScope::~FSchedulingScope()
+	{
+		if (const TSharedPtr<FAsyncToken> PinnedToken = Token.Pin())
+		{
+			PinnedToken->Release();
+			Token.Reset();
+		}
+	}
+
 	// IAsyncMultiHandle
 	IAsyncMultiHandle::IAsyncMultiHandle(const FName InName) : GroupName(InName)
 	{
@@ -341,6 +355,7 @@ namespace PCGExMT
 		{
 			PCGEX_TASK_LOG(LogTemp, Error, TEXT("FAsyncToken::FAsyncToken @#%d|%s"), Pinned->HandleIdx, *Pinned->DEBUG_HandleId());
 			Pinned->RegisterExpected();
+			Pinned->NotifyStarted();
 		}
 	}
 

@@ -60,6 +60,8 @@ namespace PCGExPointIOMerger
 
 		virtual void ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FCopyAttributeTask::ExecuteTask);
+
 			const FIdentityRef& Identity = Merger->UniqueIdentities[TaskIndex];
 
 			PCGEx::ExecuteWithRightType(
@@ -174,17 +176,7 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	bDataDomainToElements = InCarryOverDetails->bDataDomainToElements;
 
-	EnumAddFlags(AllocateProperties, EPCGPointNativeProperties::MetadataEntry);
-
-	UPCGBasePointData* OutPointData = UnionDataFacade->GetOut();
-	PCGEx::SetNumPointsAllocated(OutPointData, NumCompositePoints, AllocateProperties);
-
-	// We could not copy metadata if there's no attributes on any of the input data
-
-	OutPointData->SetMetadataEntry(PCGInvalidEntryKey);
-
 	InCarryOverDetails->Prune(&UnionDataFacade->Source.Get());
-
 	TMap<FPCGAttributeIdentifier, int32> ExpectedTypes;
 
 	const int32 NumSources = IOSources.Num();
@@ -205,25 +197,8 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	for (int i = 0; i < NumSources; i++)
 	{
-		const PCGExPointIOMerger::FMergeScope& Scope = Scopes[i];
 		const TSharedPtr<PCGExData::FPointIO> Source = IOSources[i];
 		UnionDataFacade->Source->Tags->Append(Source->Tags.ToSharedRef());
-
-		if (Scope.bReverse)
-		{
-			TArray<int32> TempWriteIndices;
-			PCGEx::ArrayOfIndices(TempWriteIndices, Scope.Write.Count, Scope.Write.Start);
-
-			Source->GetIn()->CopyPropertiesTo(
-				OutPointData, Scope.ReadIndices, TempWriteIndices,
-				Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
-		}
-		else
-		{
-			Source->GetIn()->CopyPropertiesTo(
-				OutPointData, Scope.Read.Start, Scope.Write.Start, Scope.Write.Count,
-				Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
-		}
 
 		// Discover attributes
 		UPCGMetadata* Metadata = Source->GetIn()->Metadata;
@@ -261,11 +236,61 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	InCarryOverDetails->Prune(&UnionDataFacade->Source.Get());
 
-	PCGEX_SHARED_THIS_DECL
-	AsyncManager->Launch(
-		UniqueIdentities.Num(), [&](int32 i)
+	UPCGBasePointData* OutPointData = UnionDataFacade->GetOut();
+	const bool bHasAttributes = !UniqueIdentities.IsEmpty();
+	if (bHasAttributes) { EnumAddFlags(AllocateProperties, EPCGPointNativeProperties::MetadataEntry); }
+
+	PCGEx::SetNumPointsAllocated(OutPointData, NumCompositePoints, AllocateProperties);
+
+	if (bHasAttributes) { OutPointData->SetMetadataEntry(PCGInvalidEntryKey); }
+
+	PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CopyProperties)
+	CopyProperties->OnIterationCallback =
+		[PCGEX_ASYNC_THIS_CAPTURE](int32 Index, const PCGExMT::FScope& Scope)
 		{
-			PCGEX_MAKE_SHARED(Task, PCGExPointIOMerger::FCopyAttributeTask, i, ThisPtr);
-			return Task;
-		});
+			PCGEX_ASYNC_THIS
+			This->CopyProperties(Index);
+		};
+
+	if (bHasAttributes)
+	{
+		CopyProperties->OnCompleteCallback =
+			[PCGEX_ASYNC_THIS_CAPTURE, AsyncManager]()
+			{
+				PCGEX_ASYNC_THIS
+				AsyncManager->Launch(
+					This->UniqueIdentities.Num(), [&](int32 i)
+					{
+						PCGEX_MAKE_SHARED(Task, PCGExPointIOMerger::FCopyAttributeTask, i, This);
+						return Task;
+					});
+			};
+	}
+
+	CopyProperties->StartIterations(NumSources, 1);
+}
+
+void FPCGExPointIOMerger::CopyProperties(const int32 Index)
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointIOMerger::CopyProperties);
+
+	const PCGExPointIOMerger::FMergeScope& Scope = Scopes[Index];
+	const TSharedPtr<PCGExData::FPointIO> Source = IOSources[Index];
+	UnionDataFacade->Source->Tags->Append(Source->Tags.ToSharedRef());
+
+	if (Scope.bReverse)
+	{
+		TArray<int32> TempWriteIndices;
+		PCGEx::ArrayOfIndices(TempWriteIndices, Scope.Write.Count, Scope.Write.Start);
+
+		Source->GetIn()->CopyPropertiesTo(
+			UnionDataFacade->GetOut(), Scope.ReadIndices, TempWriteIndices,
+			Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
+	}
+	else
+	{
+		Source->GetIn()->CopyPropertiesTo(
+			UnionDataFacade->GetOut(), Scope.Read.Start, Scope.Write.Start, Scope.Write.Count,
+			Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
+	}
 }

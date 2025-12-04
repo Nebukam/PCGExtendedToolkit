@@ -60,6 +60,7 @@ public:
 	bool WantsDataToElements() const { return bDataDomainToElements; }
 
 protected:
+	void CopyProperties(const int32 Index);
 	PCGExPointIOMerger::FMergeScope NullScope;
 	bool bDataDomainToElements = false;
 	int32 NumCompositePoints = 0;
@@ -75,6 +76,8 @@ namespace PCGExPointIOMerger
 	template <typename T>
 	static void ScopeMerge(const FMergeScope& Scope, const FIdentityRef& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, const TSharedPtr<PCGExData::TBuffer<T>>& OutBuffer)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPointIOMerger::ScopeMerge);
+		
 		UPCGMetadata* InMetadata = SourceIO->GetIn()->Metadata;
 
 		const FPCGMetadataAttribute<T>* TypedInAttribute = PCGEx::TryGetConstAttribute<T>(InMetadata, Identity.Identifier);

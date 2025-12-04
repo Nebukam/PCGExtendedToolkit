@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExMergePointsByTag.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIOMerger.h"
 
@@ -287,15 +288,28 @@ bool FPCGExMergePointsByTagElement::AdvanceWork(FPCGExContext* InContext, const 
 			Buckets->BuildMergeLists(Context, Settings->Mode, Context->MergeLists, Settings->ResolutionPriorities, Settings->SortDirection);
 		}
 
-		if (Context->FallbackMergeList) { Context->FallbackMergeList->Merge(Context->GetAsyncManager(), &Context->CarryOverDetails); }
-		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists) { List->Merge(Context->GetAsyncManager(), &Context->CarryOverDetails); }
-		Context->SetAsyncState(PCPGExMergePointsByTag::State_MergingData);
+		{
+			TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+			Context->SetState(PCPGExMergePointsByTag::State_MergingData);
+			PCGEX_ASYNC_GROUP_CHKD_RET(AsyncManager, MergeAsync, true)
+
+			if (Context->FallbackMergeList) { Context->FallbackMergeList->Merge(AsyncManager, &Context->CarryOverDetails); }
+			for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists)
+			{
+				MergeAsync->AddSimpleCallback([List, AsyncManager, Det = Context->CarryOverDetails] { List->Merge(AsyncManager, &Det); });
+			}
+
+			MergeAsync->StartSimpleCallbacks();
+		}
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCPGExMergePointsByTag::State_MergingData)
 	{
-		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists) { List->Write(Context->GetAsyncManager()); }
-		Context->SetAsyncState(PCGExCommon::State_Writing);
+		Context->SetState(PCGExCommon::State_Writing);
+
+		TSharedPtr<PCGExMT::FTaskManager> AsyncManager = Context->GetAsyncManager();
+		PCGExMT::FSchedulingScope SchedulingScope(AsyncManager);
+		for (const TSharedPtr<PCPGExMergePointsByTag::FMergeList>& List : Context->MergeLists) { List->Write(AsyncManager); }
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_Writing)
