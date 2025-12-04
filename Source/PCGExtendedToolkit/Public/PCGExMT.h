@@ -47,8 +47,8 @@
 #define PCGEX_ASYNC_CHKD_VOID(_MANAGER) if (!_MANAGER->IsAvailable()) { return; }
 #define PCGEX_ASYNC_CHKD(_MANAGER) if (!_MANAGER->IsAvailable()) { return false; }
 
-#define PCGEX_LAUNCH(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); AsyncManager->Launch<_CLASS>(Task);
-#define PCGEX_LAUNCH_INTERNAL(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); Launch<_CLASS>(Task);
+#define PCGEX_LAUNCH(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); AsyncManager->Launch(Task);
+#define PCGEX_LAUNCH_INTERNAL(_CLASS, ...) PCGEX_MAKE_SHARED(Task, _CLASS, __VA_ARGS__); Launch(Task);
 
 #define PCGEX_SCOPE_LOOP(_VAR) for(int _VAR = Scope.Start; _VAR < Scope.End; _VAR++)
 #define PCGEX_SUBSCOPE_LOOP(_VAR) for(int _VAR = SubScope.Start; _VAR < SubScope.End; _VAR++)
@@ -68,8 +68,6 @@ struct FPCGExContext;
 namespace PCGExMT
 {
 	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 MaxItems, const int32 RangeSize);
-
-	PCGEXTENDEDTOOLKIT_API void AssertEmptyThread(const int32 MaxItems);
 
 	enum class EAsyncHandleState : uint8
 	{
@@ -105,7 +103,7 @@ namespace PCGExMT
 	public:
 		int32 HandleIdx = -1;
 		virtual FString DEBUG_HandleId() const { return TEXT("NOT IMPLEMENTED"); }
-
+		
 		IAsyncHandle() = default;
 		virtual ~IAsyncHandle();
 
@@ -128,20 +126,22 @@ namespace PCGExMT
 	class PCGEXTENDEDTOOLKIT_API IAsyncMultiHandle : public IAsyncHandle
 	{
 		friend class FTaskManager;
-		
+
 	protected:
 		FName GroupName = NAME_None;
-		
+
 		// Per-handle registry for memory management
 		mutable FRWLock RegistryLock;
 		TArray<TWeakPtr<IAsyncHandle>> Registry;
-		
+
 		std::atomic<int32> PendingRegistrations{0};
 		std::atomic<int32> ExpectedCount{0};
 		std::atomic<int32> StartedCount{0};
 		std::atomic<int32> CompletedCount{0};
 
 	public:
+		using FCreateLaunchablePredicate = std::function<TSharedPtr<FTask>(int32)>;
+		
 		// RAII guard that blocks CheckCompletion during registration
 		struct FRegistrationGuard
 		{
@@ -159,7 +159,7 @@ namespace PCGExMT
 				if (Remaining == 0) { Parent->CheckCompletion(); }
 			}
 		};
-
+		
 		virtual FString DEBUG_HandleId() const override { return GroupName.ToString(); }
 		FCompletionCallback OnCompleteCallback;
 
@@ -171,28 +171,24 @@ namespace PCGExMT
 		bool RegisterExpected(int32 Count = 1);
 		void NotifyStarted();
 		void NotifyCompleted();
-		
-		// Register task in this handle's registry
-		int32 RegisterTask(const TSharedPtr<IAsyncHandle>& InTask);
 
-		template <typename T>
-		void Launch(const TSharedPtr<T>& InTask, const bool bIsExpected = false)
-		{
-			InTask->bExpected = bIsExpected;
-			LaunchTask(InTask);
-		}
+		void Launch(const TSharedPtr<FTask>& InTask, const bool bIsExpected = false);
+		int32 Launch(const int32 Count, FCreateLaunchablePredicate&& Predicate);
 
 		virtual void Cancel() override;
 
 	protected:
-		virtual void LaunchTask(const TSharedPtr<FTask>& InTask);
+		virtual bool CanScheduleWork();
+		virtual void LaunchInternal(const TSharedPtr<FTask>& InTask);
 		virtual void OnEnd(bool bWasCancelled) override;
 		void CheckCompletion();
-		
-		// Clear registry on end
-		void ClearRegistry();
+
+		int32 RegisterTask(const TSharedPtr<IAsyncHandle>& InTask);
+		virtual void ClearRegistry(const bool bCancel = false);
 
 		void StartHandlesBatchImpl(const TArray<TSharedPtr<FTask>>& InHandles);
+
+		void AssertEmptyThread(const int32 MaxItems) const;
 	};
 
 	// Token for async work tracking
@@ -219,7 +215,7 @@ namespace PCGExMT
 		TWeakPtr<PCGEx::FWorkHandle> WorkHandle;
 		FPCGExContext* Context = nullptr;
 		TWeakPtr<FPCGContextHandle> ContextHandle;
-		
+
 		// Groups and tokens managed separately (they start immediately)
 		mutable FRWLock GroupsLock;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
@@ -250,9 +246,12 @@ namespace PCGExMT
 		void Reset();
 
 	protected:
-		virtual void LaunchTask(const TSharedPtr<FTask>& InTask) override;
+		virtual bool CanScheduleWork() override;
+		virtual void LaunchInternal(const TSharedPtr<FTask>& InTask) override;
 		virtual void OnEnd(bool bWasCancelled) override;
-		
+
+		virtual void ClearRegistry(const bool bCancel = false) override;
+
 		void ClearGroups();
 	};
 
@@ -286,18 +285,14 @@ namespace PCGExMT
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 
-			TArray<TSharedPtr<FTask>> Tasks;
-			Tasks.Reserve(NumLoops);
-
-			for (const FScope& Scope : Loops)
-			{
-				PCGEX_MAKE_SHARED(Task, T, std::forward<Args>(InArgs)...)
-				Task->bPrepareOnly = bPrepareOnly;
-				Task->Scope = Scope;
-				Tasks.Add(Task);
-			}
-
-			StartHandlesBatchImpl(Tasks);
+			Launch(
+				NumLoops, [&](int32 i)
+				{
+					PCGEX_MAKE_SHARED(Task, T, std::forward<Args>(InArgs)...)
+					Task->bPrepareOnly = bPrepareOnly;
+					Task->Scope = Loops[i];
+					return Task;
+				});
 		}
 
 		void StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bForceSingleThreaded = false, const bool bPreparationOnly = false);
@@ -333,12 +328,7 @@ namespace PCGExMT
 		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) = 0;
 
 	protected:
-		template <typename T>
-		void Launch(const TSharedPtr<T>& InTask, bool bIsExpected = false)
-		{
-			if (const TSharedPtr<IAsyncMultiHandle> Parent = ParentHandle.Pin()) { Parent->Launch<T>(InTask, bIsExpected); }
-			else if (const TSharedPtr<FTaskManager> RootPtr = Root.Pin()) { RootPtr->Launch<T>(InTask, bIsExpected); }
-		}
+		void Launch(const TSharedPtr<FTask>& InTask, const bool bIsExpected = false) const;
 	};
 
 	// Indexed task base

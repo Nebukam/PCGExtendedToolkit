@@ -42,9 +42,9 @@ namespace PCGExPointIOMerger
 	};
 
 #define PCGEX_TPL(_TYPE, _NAME, ...) template class FWriteAttributeScopeTask<_TYPE>;
-	
+
 	PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_TPL)
-	
+
 #undef PCGEX_TPL
 
 	class FCopyAttributeTask final : public PCGExMT::FPCGExIndexedTask
@@ -262,8 +262,10 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 	InCarryOverDetails->Prune(&UnionDataFacade->Source.Get());
 
 	PCGEX_SHARED_THIS_DECL
-	for (int i = 0; i < UniqueIdentities.Num(); i++)
-	{
-		PCGEX_LAUNCH(PCGExPointIOMerger::FCopyAttributeTask, i, ThisPtr)
-	}
+	AsyncManager->Launch(
+		UniqueIdentities.Num(), [&](int32 i)
+		{
+			PCGEX_MAKE_SHARED(Task, PCGExPointIOMerger::FCopyAttributeTask, i, ThisPtr);
+			return Task;
+		});
 }

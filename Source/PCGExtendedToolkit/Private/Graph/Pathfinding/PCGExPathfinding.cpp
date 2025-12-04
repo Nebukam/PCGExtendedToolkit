@@ -3,6 +3,7 @@
 
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 
+#include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
 #include "Graph/PCGExCluster.h"

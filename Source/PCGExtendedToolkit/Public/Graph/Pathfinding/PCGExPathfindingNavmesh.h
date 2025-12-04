@@ -5,10 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGExNavmesh.h"
-#include "PCGExPointsProcessor.h"
+#include "PCGExPathfindingTasks.h"
 #include "Data/PCGExDataForward.h"
 #include "AI/Navigation/NavigationTypes.h"
-
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "PCGExPathfindingNavmesh.generated.h"
@@ -131,7 +130,6 @@ protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
-
 
 class FSampleNavmeshTask final : public FPCGExPathfindingTask
 {

@@ -4,9 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMT.h"
 #include "Data/PCGExPointElements.h"
 #include "PCGExPathfinding.generated.h"
+
+namespace PCGExMT
+{
+	class FTaskManager;
+}
 
 class UPCGExGoalPicker;
 
@@ -269,19 +273,3 @@ namespace PCGExPathfinding
 		const UPCGExGoalPicker* GoalPicker,
 		TFunction<void(int32, int32)>&& GoalFunc);
 }
-
-class FPCGExPathfindingTask : public PCGExMT::FPCGExIndexedTask
-{
-public:
-	FPCGExPathfindingTask(const int32 InTaskIndex,
-	                      const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-	                      const TArray<PCGExPathfinding::FSeedGoalPair>* InQueries) :
-		FPCGExIndexedTask(InTaskIndex),
-		PointIO(InPointIO),
-		Queries(InQueries)
-	{
-	}
-
-	TSharedPtr<PCGExData::FPointIO> PointIO;
-	const TArray<PCGExPathfinding::FSeedGoalPair>* Queries = nullptr;
-};

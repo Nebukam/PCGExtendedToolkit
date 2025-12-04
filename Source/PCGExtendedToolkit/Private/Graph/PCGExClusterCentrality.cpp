@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExClusterCentrality.h"
 
+#include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExScopedContainers.h"
 #include "PCGParamData.h"

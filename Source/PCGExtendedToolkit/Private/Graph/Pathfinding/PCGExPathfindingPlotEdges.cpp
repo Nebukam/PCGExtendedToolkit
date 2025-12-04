@@ -4,6 +4,7 @@
 #include "Graph/Pathfinding/PCGExPathfindingPlotEdges.h"
 
 
+#include "PCGExMT.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 #include "Graph/PCGExGraph.h"
