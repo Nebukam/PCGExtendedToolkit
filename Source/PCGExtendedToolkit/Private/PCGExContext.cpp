@@ -312,35 +312,51 @@ bool FPCGExContext::TryComplete(const bool bForce)
 
 void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 {
+	if (bWasCancelled) { return; }
+
+	// Signal that completion needs processing
+	PendingCompletions.store(true, std::memory_order_release);
+    
+	// Try to become the processor
 	bool bExpected = false;
 	if (!bProcessingAsyncWorkEnd.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 	{
-		UE_LOG(LogTemp, Error, TEXT("OnAsyncWorkEnd: Already processing, skipping (%s)"), *GetNameSafe(GetInputSettings<UPCGExSettings>()));
+		// Someone else is processing - they'll see our pending flag
 		return;
 	}
 
-	if (bWasCancelled) { return; }
-	if (AsyncManager) { AsyncManager->Reset(); }
-
-	const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
-
-	switch (CurrentPhase)
+	// We're the processor - handle all pending completions
+	do
 	{
-	case EPCGExecutionPhase::NotExecuted:
-		break;
-	case EPCGExecutionPhase::PrepareData:
-		ElementHandle->AdvancePreparation(this, Settings);
-		break;
-	case EPCGExecutionPhase::Execute:
-		ElementHandle->AdvanceWork(this, Settings);
-		break;
-	case EPCGExecutionPhase::PostExecute:
-		break;
-	case EPCGExecutionPhase::Done:
-		break;
-	}
+		// Clear pending BEFORE processing
+		// If new work completes during processing, the flag gets set again
+		PendingCompletions.store(false, std::memory_order_release);
 
+		const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
+		switch (CurrentPhase)
+		{
+		case EPCGExecutionPhase::PrepareData:
+			ElementHandle->AdvancePreparation(this, Settings);
+			break;
+		case EPCGExecutionPhase::Execute:
+			ElementHandle->AdvanceWork(this, Settings);
+			break;
+		default:
+			break;
+		}
+
+	} while (PendingCompletions.load(std::memory_order_acquire));
+
+	// Release guard
 	bProcessingAsyncWorkEnd.store(false, std::memory_order_release);
+    
+	// CRITICAL: Check for late arrivals between our last check and releasing the guard
+	// Race: Thread B sets pending=true, fails CAS, returns. We release guard. pending is orphaned!
+	if (PendingCompletions.load(std::memory_order_acquire))
+	{
+		// Try to re-enter - will attempt CAS again
+		OnAsyncWorkEnd(false);
+	}
 }
 
 void FPCGExContext::OnComplete()

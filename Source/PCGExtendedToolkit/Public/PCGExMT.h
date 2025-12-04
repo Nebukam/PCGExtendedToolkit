@@ -82,6 +82,7 @@ namespace PCGExMT
 	class FAsyncToken;
 	class FTask;
 	class FTaskGroup;
+	class FTaskManager;
 
 	// Base async handle with state management
 	class PCGEXTENDEDTOOLKIT_API IAsyncHandle : public TSharedFromThis<IAsyncHandle>
@@ -90,10 +91,11 @@ namespace PCGExMT
 		friend class FAsyncToken;
 		friend class FTask;
 		friend class FTaskGroup;
+		friend class FTaskManager;
 
 	protected:
 		int8 bExpected = false;
-		TWeakPtr<IAsyncMultiHandle> Root;
+		TWeakPtr<FTaskManager> Root;
 		TWeakPtr<IAsyncMultiHandle> ParentHandle;
 
 		std::atomic<bool> bResetting{false};
@@ -110,7 +112,7 @@ namespace PCGExMT
 		bool IsCancelled() const { return bCancelled.load(std::memory_order_acquire); }
 		EAsyncHandleState GetState() const { return State.load(std::memory_order_acquire); }
 
-		virtual bool SetRoot(const TSharedPtr<IAsyncMultiHandle>& InRoot, int32 InHandleIdx = -1);
+		virtual bool SetRoot(const TSharedPtr<FTaskManager>& InRoot, int32 InHandleIdx = -1);
 		void SetParent(const TSharedPtr<IAsyncMultiHandle>& InParent);
 
 		virtual bool Start();
@@ -125,14 +127,22 @@ namespace PCGExMT
 	// Multi-handle manages multiple child tasks
 	class PCGEXTENDEDTOOLKIT_API IAsyncMultiHandle : public IAsyncHandle
 	{
+		friend class FTaskManager;
+		
 	protected:
 		FName GroupName = NAME_None;
+		
+		// Per-handle registry for memory management
+		mutable FRWLock RegistryLock;
+		TArray<TWeakPtr<IAsyncHandle>> Registry;
+		
 		std::atomic<int32> PendingRegistrations{0};
 		std::atomic<int32> ExpectedCount{0};
 		std::atomic<int32> StartedCount{0};
 		std::atomic<int32> CompletedCount{0};
 
 	public:
+		// RAII guard that blocks CheckCompletion during registration
 		struct FRegistrationGuard
 		{
 			TSharedPtr<IAsyncMultiHandle> Parent;
@@ -161,6 +171,9 @@ namespace PCGExMT
 		bool RegisterExpected(int32 Count = 1);
 		void NotifyStarted();
 		void NotifyCompleted();
+		
+		// Register task in this handle's registry
+		int32 RegisterTask(const TSharedPtr<IAsyncHandle>& InTask);
 
 		template <typename T>
 		void Launch(const TSharedPtr<T>& InTask, const bool bIsExpected = false)
@@ -169,10 +182,15 @@ namespace PCGExMT
 			LaunchTask(InTask);
 		}
 
+		virtual void Cancel() override;
+
 	protected:
 		virtual void LaunchTask(const TSharedPtr<FTask>& InTask);
 		virtual void OnEnd(bool bWasCancelled) override;
 		void CheckCompletion();
+		
+		// Clear registry on end
+		void ClearRegistry();
 
 		void StartHandlesBatchImpl(const TArray<TSharedPtr<FTask>>& InHandles);
 	};
@@ -198,15 +216,14 @@ namespace PCGExMT
 		friend class FTaskGroup;
 
 	protected:
-		mutable FRWLock RegistryLock;
 		TWeakPtr<PCGEx::FWorkHandle> WorkHandle;
 		FPCGExContext* Context = nullptr;
 		TWeakPtr<FPCGContextHandle> ContextHandle;
-		TArray<TWeakPtr<IAsyncHandle>> Registry;
+		
+		// Groups and tokens managed separately (they start immediately)
+		mutable FRWLock GroupsLock;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
 		TArray<TSharedPtr<FAsyncToken>> Tokens;
-
-		std::atomic<int32> PendingRegistrations{0};
 
 	public:
 		FEndCallback OnEndCallback;
@@ -235,6 +252,8 @@ namespace PCGExMT
 	protected:
 		virtual void LaunchTask(const TSharedPtr<FTask>& InTask) override;
 		virtual void OnEnd(bool bWasCancelled) override;
+		
+		void ClearGroups();
 	};
 
 	// Task group for batched operations
@@ -318,7 +337,7 @@ namespace PCGExMT
 		void Launch(const TSharedPtr<T>& InTask, bool bIsExpected = false)
 		{
 			if (const TSharedPtr<IAsyncMultiHandle> Parent = ParentHandle.Pin()) { Parent->Launch<T>(InTask, bIsExpected); }
-			else if (const TSharedPtr<IAsyncMultiHandle> RootPtr = Root.Pin()) { RootPtr->Launch<T>(InTask, bIsExpected); }
+			else if (const TSharedPtr<FTaskManager> RootPtr = Root.Pin()) { RootPtr->Launch<T>(InTask, bIsExpected); }
 		}
 	};
 

@@ -19,7 +19,7 @@ namespace PCGExPointsMT
 	class FStartBatchProcessing final : public PCGExMT::FTask
 	{
 	public:
-		PCGEX_ASYNC_TASK_NAME(FStartClusterBatchProcessing)
+		PCGEX_ASYNC_TASK_NAME(FStartBatchProcessing)
 
 		FStartBatchProcessing(TSharedPtr<T> InTarget)
 			: FTask(),
