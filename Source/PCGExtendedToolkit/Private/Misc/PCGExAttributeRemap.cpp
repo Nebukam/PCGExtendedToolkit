@@ -140,6 +140,11 @@ bool FPCGExAttributeRemapElement::AdvanceWork(FPCGExContext* InContext, const UP
 	return Context->TryComplete();
 }
 
+bool FPCGExAttributeRemapElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
+}
+
 namespace PCGExAttributeRemap
 {
 	FProcessor::~FProcessor()

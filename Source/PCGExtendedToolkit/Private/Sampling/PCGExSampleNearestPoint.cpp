@@ -226,6 +226,11 @@ bool FPCGExSampleNearestPointElement::AdvanceWork(FPCGExContext* InContext, cons
 	return Context->TryComplete();
 }
 
+bool FPCGExSampleNearestPointElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
+}
+
 namespace PCGExSampleNearestPoint
 {
 	FProcessor::~FProcessor()

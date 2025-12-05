@@ -66,5 +66,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(ToggleTopology)
 
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
+
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 	virtual bool SupportsBasePointDataInputs(FPCGContext* InContext) const override { return true; }
 };

@@ -80,6 +80,12 @@ bool FPCGExSocketStagingElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	return Context->TryComplete();
 }
 
+bool FPCGExSocketStagingElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	// Loading collection and/or creating one from attributes
+	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
+}
+
 namespace PCGExSocketStaging
 {
 	bool FProcessor::Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager)

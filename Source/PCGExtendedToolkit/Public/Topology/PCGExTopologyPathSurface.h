@@ -57,6 +57,7 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(TopologyPathSurface)
 
 	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 	virtual bool AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };
 

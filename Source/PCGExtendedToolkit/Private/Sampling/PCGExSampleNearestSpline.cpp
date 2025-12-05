@@ -200,6 +200,12 @@ bool FPCGExSampleNearestSplineElement::AdvanceWork(FPCGExContext* InContext, con
 	return Context->TryComplete();
 }
 
+bool FPCGExSampleNearestSplineElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
+{
+	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
+}
+
+
 namespace PCGExSampleNearestSpline
 {
 	FProcessor::~FProcessor()

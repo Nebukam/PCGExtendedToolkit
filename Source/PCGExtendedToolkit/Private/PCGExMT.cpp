@@ -598,8 +598,8 @@ namespace PCGExMT
 	{
 		if (bCancel)
 		{
-			// Cancel all registered handles
 			TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
+			
 			{
 				FWriteScopeLock WriteLock(RegistryLock);
 
@@ -622,13 +622,13 @@ namespace PCGExMT
 		}
 		else
 		{
+			IAsyncMultiHandle::ClearRegistry(false);
+			
 			{
 				FWriteScopeLock WriteLock(GroupsLock);
 				Tokens.Empty();
 				Groups.Empty();
 			}
-
-			IAsyncMultiHandle::ClearRegistry(false);
 		}
 	}
 
