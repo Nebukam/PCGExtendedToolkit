@@ -183,15 +183,9 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExContext::GetAsyncManager()
 	return AsyncManager;
 }
 
-void FPCGExContext::PauseContext()
-{
-	bIsPaused = true;
-}
+void FPCGExContext::PauseContext() { bIsPaused = true; }
 
-void FPCGExContext::UnpauseContext()
-{
-	bIsPaused = false;
-}
+void FPCGExContext::UnpauseContext() { bIsPaused = false; }
 
 FPCGExContext::FPCGExContext()
 {
@@ -280,7 +274,7 @@ bool FPCGExContext::IsWaitingForTasks()
 
 void FPCGExContext::ReadyForExecution()
 {
-	bIsPaused = false;
+	UnpauseContext();
 	SetState(PCGExCommon::State_InitialExecution);
 }
 
@@ -316,7 +310,7 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 
 	// Signal that completion needs processing
 	PendingCompletions.store(true, std::memory_order_release);
-    
+
 	// Try to become the processor
 	bool bExpected = false;
 	if (!bProcessingAsyncWorkEnd.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
@@ -344,12 +338,12 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 		default:
 			break;
 		}
-
-	} while (PendingCompletions.load(std::memory_order_acquire));
+	}
+	while (PendingCompletions.load(std::memory_order_acquire));
 
 	// Release guard
 	bProcessingAsyncWorkEnd.store(false, std::memory_order_release);
-    
+
 	// CRITICAL: Check for late arrivals between our last check and releasing the guard
 	// Race: Thread B sets pending=true, fails CAS, returns. We release guard. pending is orphaned!
 	if (PendingCompletions.load(std::memory_order_acquire))
@@ -369,7 +363,7 @@ void FPCGExContext::OnComplete()
 
 	FWriteScopeLock WriteScopeLock(StagedOutputLock);
 	ManagedObjects->Remove(OutputData.TaggedData);
-	bIsPaused = false;
+	UnpauseContext();
 }
 
 #pragma endregion
@@ -378,9 +372,10 @@ void FPCGExContext::OnComplete()
 
 void FPCGExContext::CancelAssetLoading()
 {
-	if (LoadHandle.IsValid() && LoadHandle->IsActive()) { LoadHandle->CancelHandle(); }
-	LoadHandle.Reset();
+	if (AssetDependenciesHandle.IsValid() && AssetDependenciesHandle->IsActive()) { AssetDependenciesHandle->CancelHandle(); }
+	AssetDependenciesHandle.Reset();
 	if (RequiredAssets) { RequiredAssets->Empty(); }
+	PCGEX_ASYNC_RELEASE_TOKEN(AssetLoadingToken);
 }
 
 TSet<FSoftObjectPath>& FPCGExContext::GetRequiredAssets()
@@ -401,83 +396,52 @@ void FPCGExContext::AddAssetDependency(const FSoftObjectPath& Dependency)
 	RequiredAssets->Add(Dependency);
 }
 
-void FPCGExContext::LoadAssets()
+bool FPCGExContext::LoadAssets()
 {
-	if (bAssetLoadRequested) { return; }
-	bAssetLoadRequested = true;
+	if (AssetLoadingToken.Pin()) { return false; }
+	if (!RequiredAssets || RequiredAssets->IsEmpty()) { return false; }
 
 	SetState(PCGExCommon::State_LoadingAssetDependencies);
+	AssetLoadingToken = GetAsyncManager()->TryCreateToken(FName("AssetLoadingToken"));
 
-	if (!RequiredAssets || RequiredAssets->IsEmpty())
+	if (IsInGameThread())
 	{
-		bAssetLoadError = true; // No asset to load, yet we required it?
-		return;
-	}
-
-	if (!bForceSynchronousAssetLoad)
-	{
-		PauseContext();
-
-		// Dispatch the async load request to the game thread
-		TWeakPtr<FPCGContextHandle> CtxHandle = GetOrCreateHandle();
-
-		if (IsInGameThread())
-		{
-			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-				RequiredAssets->Array(), [CtxHandle]()
-				{
-					PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
-					SharedContext.Get()->OnAsyncWorkEnd(false);
-				});
-
-			if (!LoadHandle || !LoadHandle->IsActive())
+		AssetDependenciesHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+			RequiredAssets->Array(), [AsyncToken = AssetLoadingToken]()
 			{
-				if (!LoadHandle || !LoadHandle->HasLoadCompleted())
-				{
-					bAssetLoadError = true;
-					CancelExecution("Error loading assets.");
-				}
-				else
-				{
-					OnAsyncWorkEnd(false);
-				}
-			}
-		}
-		else
+				PCGEX_ASYNC_RELEASE_TOKEN_LAMBDA(AsyncToken)
+			});
+
+		if (!AssetDependenciesHandle || !AssetDependenciesHandle->IsActive())
 		{
-			AsyncTask(
-				ENamedThreads::GameThread, [CtxHandle]()
-				{
-					PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
-
-					FPCGExContext* This = SharedContext.Get();
-
-					This->LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-						This->RequiredAssets->Array(), [CtxHandle]()
-						{
-							PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
-							SharedContext.Get()->OnAsyncWorkEnd(false);
-						});
-
-					if (!This->LoadHandle || !This->LoadHandle->IsActive())
-					{
-						if (!This->LoadHandle || !This->LoadHandle->HasLoadCompleted())
-						{
-							This->bAssetLoadError = true;
-							This->CancelExecution("Error loading assets.");
-						}
-						else
-						{
-							This->OnAsyncWorkEnd(false);
-						}
-					}
-				});
+			if (!AssetDependenciesHandle || !AssetDependenciesHandle->HasLoadCompleted()) { CancelExecution("Error loading assets."); }
+			else { PCGEX_ASYNC_RELEASE_TOKEN(AssetLoadingToken) }
 		}
 	}
 	else
 	{
-		LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(RequiredAssets->Array());
+		AsyncTask(
+			ENamedThreads::GameThread, [CtxHandle = GetOrCreateHandle()]()
+			{
+				PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+
+				FPCGExContext* This = SharedContext.Get();
+
+				This->AssetDependenciesHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+					This->RequiredAssets->Array(), [AsyncToken = This->AssetLoadingToken]()
+					{
+						PCGEX_ASYNC_RELEASE_TOKEN_LAMBDA(AsyncToken)
+					});
+
+				if (!This->AssetDependenciesHandle || !This->AssetDependenciesHandle->IsActive())
+				{
+					if (!This->AssetDependenciesHandle || !This->AssetDependenciesHandle->HasLoadCompleted()) { This->CancelExecution("Error loading assets."); }
+					else { PCGEX_ASYNC_RELEASE_TOKEN(This->AssetLoadingToken) }
+				}
+			});
 	}
+
+	return true;
 }
 
 UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UActorComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
@@ -566,7 +530,7 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 	bool bExpected = false;
 	if (bWorkCancelled.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 	{
-		if (!InReason.IsEmpty() && !bQuietCancellationError) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
+		if (!bQuietCancellationError && !InReason.IsEmpty()) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
 
 		PCGEX_TERMINATE_ASYNC
 
@@ -574,7 +538,7 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 		if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
 
 		CancelAssetLoading();
-		bIsPaused = false;
+		UnpauseContext();
 	}
 
 	return true;

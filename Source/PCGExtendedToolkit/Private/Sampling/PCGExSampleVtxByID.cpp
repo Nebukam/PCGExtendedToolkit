@@ -150,11 +150,6 @@ bool FPCGExSampleVtxByIDElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	return Context->TryComplete();
 }
 
-bool FPCGExSampleVtxByIDElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
-{
-	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
-}
-
 namespace PCGExSampleVtxByID
 {
 	FProcessor::~FProcessor()

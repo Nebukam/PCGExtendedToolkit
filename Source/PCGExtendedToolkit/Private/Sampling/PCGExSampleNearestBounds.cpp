@@ -167,7 +167,7 @@ bool FPCGExSampleNearestBoundsElement::AdvanceWork(FPCGExContext* InContext, con
 
 			if (bError)
 			{
-				Context->CancelExecution(TEXT(""));
+				Context->CancelExecution();
 				return;
 			}
 
@@ -199,11 +199,6 @@ bool FPCGExSampleNearestBoundsElement::AdvanceWork(FPCGExContext* InContext, con
 	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
-}
-
-bool FPCGExSampleNearestBoundsElement::CanExecuteOnlyOnMainThread(FPCGContext* Context) const
-{
-	return Context ? Context->CurrentPhase == EPCGExecutionPhase::PrepareData : false;
 }
 
 namespace PCGExSampleNearestBounds

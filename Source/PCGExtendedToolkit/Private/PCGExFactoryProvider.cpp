@@ -133,7 +133,7 @@ bool FPCGExFactoryProviderElement::AdvanceWork(FPCGExContext* InContext, const U
 		{
 			if (Settings->ShouldCancel(Context, Context->OutFactory->PrepResult))
 			{
-				return Context->CancelExecution(TEXT(""));
+				return Context->CancelExecution();
 			}
 		}
 	}

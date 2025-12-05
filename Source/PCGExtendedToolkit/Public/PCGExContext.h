@@ -10,6 +10,11 @@
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 
+namespace PCGExMT
+{
+	class FAsyncToken;
+}
+
 class UPCGExInstancedFactory;
 class UPCGComponent;
 class IPCGExElement;
@@ -38,8 +43,7 @@ protected:
 	enum class EExecutionPolicy : int8
 	{
 		Normal,
-		AsyncEx,
-		AsyncTask
+		NoPause
 	};
 	
 	mutable FRWLock AsyncLock;
@@ -47,12 +51,12 @@ protected:
 	mutable FRWLock AssetDependenciesLock;
 
 	TSharedPtr<PCGEx::FWorkHandle> WorkHandle;
+	TWeakPtr<PCGExMT::FAsyncToken> AssetLoadingToken;
 	const IPCGExElement* ElementHandle = nullptr;
 
 public:
 	TWeakPtr<PCGEx::FWorkHandle> GetWorkHandle() { return WorkHandle; }
 	TSharedPtr<PCGEx::FManagedObjects> ManagedObjects;
-	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
 	EExecutionPolicy ExecutionPolicy = EExecutionPolicy::Normal;
 
 	// TODO : bool toggle for hoarder execution 
@@ -127,16 +131,13 @@ public:
 
 	virtual void RegisterAssetDependencies();
 	void AddAssetDependency(const FSoftObjectPath& Dependency);
-	void LoadAssets();
+	bool LoadAssets();
 
 protected:
-	bool bForceSynchronousAssetLoad = false;
-	bool bAssetLoadRequested = false;
-	bool bAssetLoadError = false;
 	TSharedPtr<TSet<FSoftObjectPath>> RequiredAssets;
 
 	/** Handle holder for any loaded resources */
-	TSharedPtr<FStreamableHandle> LoadHandle;
+	TSharedPtr<FStreamableHandle> AssetDependenciesHandle;
 
 #pragma endregion
 
@@ -147,7 +148,7 @@ public:
 
 #pragma endregion
 
-protected:
+protected:	
 	TSet<FName> ConsumableAttributesSet;
 	TSet<FName> ProtectedAttributesSet;
 
@@ -171,7 +172,7 @@ public:
 	bool bQuietMissingInputError = false;
 	bool bQuietCancellationError = false;
 
-	virtual bool CancelExecution(const FString& InReason);
+	virtual bool CancelExecution(const FString& InReason = FString());
 
 protected:
 	mutable FRWLock NotifyActorsLock;

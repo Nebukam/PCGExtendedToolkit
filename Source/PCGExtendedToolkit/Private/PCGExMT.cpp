@@ -400,6 +400,8 @@ namespace PCGExMT
 	{
 		if (IsCancelled()) { return false; }
 
+		Context->PauseContext();
+		
 		// Auto-reset from Ended state - this allows reuse without explicit Reset calls
 		EAsyncHandleState CurrentState = GetState();
 		if (CurrentState == EAsyncHandleState::Ended)
