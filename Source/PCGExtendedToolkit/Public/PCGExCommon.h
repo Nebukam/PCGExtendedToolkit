@@ -76,6 +76,11 @@ enum class EPCGExExecutionPolicy : uint8
 	NoPause = 2 UMETA(DisplayName = "No Pause", ToolTip="..."),
 };
 
+namespace PCGEx
+{
+	constexpr int NumSupportedTypes = 16;
+}
+
 namespace PCGExData
 {
 	class FTags;
