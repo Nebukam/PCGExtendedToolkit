@@ -412,10 +412,6 @@ namespace PCGExSampleNearestBounds
 				}
 			};
 
-			auto SampleMulti = []()
-			{
-			};
-
 			Context->TargetsHandler->FindTargetsWithBoundsTest(
 				BCAE, [&](const PCGExOctree::FItem& Target)
 				{
