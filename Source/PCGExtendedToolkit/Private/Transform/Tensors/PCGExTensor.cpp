@@ -5,6 +5,7 @@
 
 #include "PCGExMathBounds.h"
 #include "PCGExHelpers.h"
+#include "PCGExStreamingHelpers.h"
 #include "Data/PCGExData.h"
 #include "Details/PCGExDetailsSettings.h"
 #include "Transform/Tensors/PCGExTensorFactoryProvider.h"

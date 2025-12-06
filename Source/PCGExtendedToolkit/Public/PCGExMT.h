@@ -36,13 +36,14 @@
 #define PCGEX_ASYNC_HANDLE_CHKD(_MANAGER, _HANDLE) PCGEX_ASYNC_HANDLE_CHKD_CUSTOM(_MANAGER, _HANDLE, false);
 
 #define PCGEX_ASYNC_RELEASE_TOKEN(_TOKEN) if(const TSharedPtr<PCGExMT::FAsyncToken> Token = _TOKEN.Pin()){ Token->Release(); _TOKEN.Reset(); }
-#define PCGEX_ASYNC_RELEASE_TOKEN_LAMBDA(_TOKEN) if(const TSharedPtr<PCGExMT::FAsyncToken> Token = _TOKEN.Pin()){ Token->Release(); }
+#define PCGEX_ASYNC_RELEASE_CAPTURED_TOKEN(_TOKEN) if(const TSharedPtr<PCGExMT::FAsyncToken> Token = _TOKEN.Pin()){ Token->Release(); }
 #define PCGEX_ASYNC_RELEASE_TOKEN_ELSE(_TOKEN) if(const TSharedPtr<PCGExMT::FAsyncToken> Token = _TOKEN.Pin()){ Token->Release(); _TOKEN.Reset(); }else
 
 #define PCGEX_SHARED_THIS_DECL TSharedPtr<std::remove_reference_t<decltype(*this)>> ThisPtr = SharedThis(this);
 #define PCGEX_ASYNC_THIS_DECL TWeakPtr<std::remove_reference_t<decltype(*this)>> AsyncThis = SharedThis(this);
 #define PCGEX_ASYNC_THIS_CAPTURE AsyncThis = TWeakPtr<std::remove_reference_t<decltype(*this)>>(SharedThis(this))
 #define PCGEX_ASYNC_THIS const TSharedPtr<std::remove_reference_t<decltype(*this)>> This = AsyncThis.Pin(); if (!This) { return; }
+#define PCGEX_ASYNC_THIS_RET(_RET) const TSharedPtr<std::remove_reference_t<decltype(*this)>> This = AsyncThis.Pin(); if (!This) { return _RET; }
 #define PCGEX_ASYNC_NESTED_THIS const TSharedPtr<std::remove_reference_t<decltype(*this)>> NestedThis = AsyncThis.Pin(); if (!NestedThis) { return; }
 
 #define PCGEX_ASYNC_CHKD_VOID(_MANAGER) if (!_MANAGER->IsAvailable()) { return; }
@@ -68,13 +69,13 @@ struct FPCGExContext;
 
 namespace PCGExMT
 {
-	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 MaxItems, const int32 RangeSize);
+	int32 SubLoopScopes(TArray<FScope>& OutSubRanges, const int32 NumIterations, const int32 RangeSize);
 
 	enum class EAsyncHandleState : uint8
 	{
-		Idle    = 0,
+		Idle = 0,
 		Running = 1,
-		Ended   = 2,
+		Ended = 2,
 	};
 
 	class IAsyncMultiHandle;
@@ -104,7 +105,7 @@ namespace PCGExMT
 	public:
 		int32 HandleIdx = -1;
 		virtual FString DEBUG_HandleId() const { return TEXT("NOT IMPLEMENTED"); }
-		
+
 		IAsyncHandle() = default;
 		virtual ~IAsyncHandle();
 
@@ -129,7 +130,7 @@ namespace PCGExMT
 		explicit FSchedulingScope(const TSharedPtr<FTaskManager>& InManager);
 		~FSchedulingScope();
 	};
-	
+
 	// Multi-handle manages multiple child tasks
 	class PCGEXTENDEDTOOLKIT_API IAsyncMultiHandle : public IAsyncHandle
 	{
@@ -142,6 +143,9 @@ namespace PCGExMT
 		mutable FRWLock RegistryLock;
 		TArray<TWeakPtr<IAsyncHandle>> Registry;
 
+		mutable FRWLock TokenLock;
+		TArray<TSharedPtr<FAsyncToken>> Tokens;
+
 		std::atomic<int32> PendingRegistrations{0};
 		std::atomic<int32> ExpectedCount{0};
 		std::atomic<int32> StartedCount{0};
@@ -149,7 +153,7 @@ namespace PCGExMT
 
 	public:
 		using FCreateLaunchablePredicate = std::function<TSharedPtr<FTask>(int32)>;
-		
+
 		// RAII guard that blocks CheckCompletion during registration
 		struct FRegistrationGuard
 		{
@@ -167,7 +171,7 @@ namespace PCGExMT
 				if (Remaining == 0) { Parent->CheckCompletion(); }
 			}
 		};
-		
+
 		virtual FString DEBUG_HandleId() const override { return GroupName.ToString(); }
 		FCompletionCallback OnCompleteCallback;
 
@@ -183,6 +187,8 @@ namespace PCGExMT
 		void Launch(const TSharedPtr<FTask>& InTask, const bool bIsExpected = false);
 		int32 Launch(const int32 Count, FCreateLaunchablePredicate&& Predicate);
 
+		TWeakPtr<FAsyncToken> TryCreateToken(const FName& InName);
+
 		virtual void Cancel() override;
 
 	protected:
@@ -196,7 +202,7 @@ namespace PCGExMT
 
 		void StartHandlesBatchImpl(const TArray<TSharedPtr<FTask>>& InHandles);
 
-		void AssertEmptyThread(const int32 MaxItems) const;
+		void AssertEmptyThread(const int32 NumIterations) const;
 	};
 
 	// Token for async work tracking
@@ -227,7 +233,6 @@ namespace PCGExMT
 		// Groups and tokens managed separately (they start immediately)
 		mutable FRWLock GroupsLock;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
-		TArray<TSharedPtr<FAsyncToken>> Tokens;
 
 	public:
 		FEndCallback OnEndCallback;
@@ -247,9 +252,10 @@ namespace PCGExMT
 		virtual bool Start() override;
 		virtual void Cancel() override;
 
-		TSharedPtr<FTaskGroup> TryCreateTaskGroup(const FName& InName, const TSharedPtr<IAsyncMultiHandle>& InParentHandle = nullptr);
-		bool TryRegisterHandle(const TSharedPtr<IAsyncHandle>& InHandle, const TSharedPtr<IAsyncMultiHandle>& InParentHandle = nullptr);
-		TWeakPtr<FAsyncToken> TryCreateToken(const FName& InName);
+		TSharedPtr<FTaskGroup> TryCreateTaskGroup(const FName& InName,
+		                                          const TSharedPtr<IAsyncMultiHandle>& InParentHandle = nullptr);
+		bool TryRegisterHandle(const TSharedPtr<IAsyncHandle>& InHandle,
+		                       const TSharedPtr<IAsyncMultiHandle>& InParentHandle = nullptr);
 
 		void Reset();
 
@@ -303,8 +309,9 @@ namespace PCGExMT
 				});
 		}
 
-		void StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bForceSingleThreaded = false, const bool bPreparationOnly = false);
-		void StartSubLoops(const int32 MaxItems, const int32 ChunkSize, const bool bForceSingleThreaded = false);
+		void StartIterations(const int32 NumIterations, const int32 ChunkSize, const bool bForceSingleThreaded = false,
+		                     const bool bPreparationOnly = false);
+		void StartSubLoops(const int32 NumIterations, const int32 ChunkSize, const bool bForceSingleThreaded = false);
 
 		void AddSimpleCallback(FSimpleCallback&& InCallback);
 		void StartSimpleCallbacks();
@@ -319,11 +326,13 @@ namespace PCGExMT
 
 	protected:
 		TArray<FSimpleCallback> SimpleCallbacks;
-		TArray<FScope> ScopeCache;
 
 		void ExecScopeIteration(const FScope& Scope, bool bPrepareOnly) const;
 		void TriggerSimpleCallback(int32 Index);
 	};
+
+	PCGEXTENDEDTOOLKIT_API
+	void ExecuteOnMainThread(const TSharedPtr<IAsyncMultiHandle>& ParentHandle, FExecuteCallback&& Callback);
 
 	// Base task class
 	class PCGEXTENDEDTOOLKIT_API FTask : public IAsyncHandle
@@ -359,7 +368,7 @@ namespace PCGExMT
 	public:
 		PCGEX_ASYNC_TASK_NAME(FSimpleCallbackTask)
 
-		explicit FSimpleCallbackTask(const int32 InTaskIndex): FPCGExIndexedTask(InTaskIndex)
+		explicit FSimpleCallbackTask(const int32 InTaskIndex) : FPCGExIndexedTask(InTaskIndex)
 		{
 		}
 
@@ -372,42 +381,18 @@ namespace PCGExMT
 		PCGEX_ASYNC_TASK_NAME(FScopeIterationTask)
 		bool bPrepareOnly = false;
 		FScope Scope = FScope{};
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
-	};
-
-	class FForceSingleThreadedScopeIterationTask final : public FPCGExIndexedTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FForceSingleThreadedScopeIterationTask)
-		bool bPrepareOnly = false;
-
-		explicit FForceSingleThreadedScopeIterationTask(const int32 InTaskIndex): FPCGExIndexedTask(InTaskIndex)
-		{
-		}
-
-		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FDeferredCallbackTask final : public FTask
-	{
-	public:
-		PCGEX_ASYNC_TASK_NAME(FDeferredCallbackTask)
-		FSimpleCallback Callback;
-
-		FDeferredCallbackTask(FSimpleCallback&& InCallback) : FTask(), Callback(InCallback)
-		{
-		}
+		int32 NumIterations = -1;
 
 		virtual void ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
 	// Main thread execution
-	class PCGEXTENDEDTOOLKIT_API FExecuteOnMainThread : public IAsyncHandle
+	class PCGEXTENDEDTOOLKIT_API IExecuteOnMainThread : public IAsyncHandle
 	{
 	public:
 		FCompletionCallback OnCompleteCallback;
 
-		explicit FExecuteOnMainThread();
+		explicit IExecuteOnMainThread();
 		virtual bool Start() override;
 
 	protected:
@@ -418,7 +403,7 @@ namespace PCGExMT
 		bool ShouldStop();
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FScopeLoopOnMainThread : public FExecuteOnMainThread
+	class PCGEXTENDEDTOOLKIT_API FTimeSlicedMainThreadLoop : public IExecuteOnMainThread
 	{
 	protected:
 		FScope Scope = FScope{};
@@ -427,7 +412,7 @@ namespace PCGExMT
 		using FIterationCallback = std::function<void(const int32, const FScope&)>;
 		FIterationCallback OnIterationCallback;
 
-		explicit FScopeLoopOnMainThread(const int32 NumIterations);
+		explicit FTimeSlicedMainThreadLoop(const int32 NumIterations);
 		virtual bool Start() override;
 		virtual void Cancel() override;
 

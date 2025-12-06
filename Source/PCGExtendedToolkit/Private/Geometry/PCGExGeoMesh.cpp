@@ -11,6 +11,7 @@
 #include "PCGExContext.h"
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
 #include "PCGParamData.h"
 #include "StaticMeshResources.h"
 #include "Engine/StaticMesh.h"

@@ -8,6 +8,7 @@
 
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
 #include "Collections/PCGExAssetLoader.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataTag.h"
@@ -376,7 +377,7 @@ namespace PCGExPathSplineMeshSimple
 			return;
 		}
 
-		MainThreadLoop = MakeShared<PCGExMT::FScopeLoopOnMainThread>(FinalNumSegments);
+		MainThreadLoop = MakeShared<PCGExMT::FTimeSlicedMainThreadLoop>(FinalNumSegments);
 		MainThreadLoop->OnIterationCallback = [&](const int32 Index, const PCGExMT::FScope& Scope) { ProcessSegment(Index); };
 
 		PCGEX_ASYNC_HANDLE_CHKD_VOID(AsyncManager, MainThreadLoop)

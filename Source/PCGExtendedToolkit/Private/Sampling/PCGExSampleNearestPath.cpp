@@ -4,6 +4,7 @@
 #include "Sampling/PCGExSampleNearestPath.h"
 
 #include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExBlendModes.h"

@@ -16,6 +16,7 @@
 #include "PCGExAssetGrammar.h"
 #include "PCGExContext.h"
 #include "PCGExHelpers.h"
+#include "PCGExStreamingHelpers.h"
 #include "PCGParamData.h"
 #include "Details/PCGExDetailsStaging.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"

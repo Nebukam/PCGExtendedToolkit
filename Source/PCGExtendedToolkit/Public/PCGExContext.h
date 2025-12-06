@@ -51,7 +51,7 @@ protected:
 	mutable FRWLock AssetDependenciesLock;
 
 	TSharedPtr<PCGEx::FWorkHandle> WorkHandle;
-	TWeakPtr<PCGExMT::FAsyncToken> AssetLoadingToken;
+	TSharedPtr<FStreamableHandle> AssetsHandle;
 	const IPCGExElement* ElementHandle = nullptr;
 
 public:
@@ -124,8 +124,6 @@ protected:
 #pragma region Async resource management
 
 public:
-	void CancelAssetLoading();
-
 	TSet<FSoftObjectPath>& GetRequiredAssets();
 	bool HasAssetRequirements() const { return RequiredAssets && !RequiredAssets->IsEmpty(); }
 

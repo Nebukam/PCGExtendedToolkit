@@ -9,6 +9,7 @@
 #include "PCGExInstancedFactory.h"
 #include "Details/PCGExMacros.h"
 #include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
 #include "PCGManagedResource.h"
 #include "Engine/AssetManager.h"
 #include "Helpers/PCGHelpers.h"
@@ -18,7 +19,8 @@
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
-UPCGExInstancedFactory* FPCGExContext::RegisterOperation(UPCGExInstancedFactory* BaseOperation, const FName OverridePinLabel)
+UPCGExInstancedFactory* FPCGExContext::RegisterOperation(UPCGExInstancedFactory* BaseOperation,
+                                                         const FName OverridePinLabel)
 {
 	BaseOperation->BindContext(this); // Temp so Copy doesn't crash
 
@@ -68,7 +70,10 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 			{
 				for (const FName ConsumableName : ConsumableAttributesSet)
 				{
-					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName))
+					{
+						continue;
+					}
 					Metadata->DeleteAttribute(ConsumableName);
 				}
 			}
@@ -80,7 +85,8 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 	return OutputData.TaggedData[Index];
 }
 
-void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable, const bool bPinless)
+void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet<FString>& InTags, const bool bManaged,
+                                const bool bIsMutable, const bool bPinless)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutputComplex);
 
@@ -114,7 +120,10 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet
 			{
 				for (const FName ConsumableName : ConsumableAttributesSet)
 				{
-					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName)) { continue; }
+					if (!Metadata->HasAttribute(ConsumableName) || ProtectedAttributesSet.Contains(ConsumableName))
+					{
+						continue;
+					}
 					Metadata->DeleteAttribute(ConsumableName);
 				}
 			}
@@ -211,7 +220,9 @@ void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
 			for (AActor* TargetActor : NotifyActorsArray)
 			{
 				if (!IsValid(TargetActor)) { continue; }
-				for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, this))
+				for (UFunction* Function : PCGExHelpers::FindUserFunctions(
+					     TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()},
+					     this))
 				{
 					TargetActor->ProcessEvent(Function, nullptr);
 				}
@@ -231,7 +242,10 @@ void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
 					     AActor* TargetActor : NotifyActorsArray)
 					{
 						if (!IsValid(TargetActor)) { continue; }
-						for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, Ctx))
+						for (UFunction* Function : PCGExHelpers::FindUserFunctions(
+							     TargetActor->GetClass(), FunctionNames, {
+								     UPCGExFunctionPrototypes::GetPrototypeWithNoParams()
+							     }, Ctx))
 						{
 							TargetActor->ProcessEvent(Function, nullptr);
 						}
@@ -370,14 +384,6 @@ void FPCGExContext::OnComplete()
 
 #pragma region Async resource management
 
-void FPCGExContext::CancelAssetLoading()
-{
-	if (AssetDependenciesHandle.IsValid() && AssetDependenciesHandle->IsActive()) { AssetDependenciesHandle->CancelHandle(); }
-	AssetDependenciesHandle.Reset();
-	if (RequiredAssets) { RequiredAssets->Empty(); }
-	PCGEX_ASYNC_RELEASE_TOKEN(AssetLoadingToken);
-}
-
 TSet<FSoftObjectPath>& FPCGExContext::GetRequiredAssets()
 {
 	FWriteScopeLock WriteScopeLock(AssetDependenciesLock);
@@ -398,53 +404,30 @@ void FPCGExContext::AddAssetDependency(const FSoftObjectPath& Dependency)
 
 bool FPCGExContext::LoadAssets()
 {
-	if (AssetLoadingToken.Pin()) { return false; }
 	if (!RequiredAssets || RequiredAssets->IsEmpty()) { return false; }
 
 	SetState(PCGExCommon::State_LoadingAssetDependencies);
-	AssetLoadingToken = GetAsyncManager()->TryCreateToken(FName("AssetLoadingToken"));
 
-	if (IsInGameThread())
-	{
-		AssetDependenciesHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-			RequiredAssets->Array(), [AsyncToken = AssetLoadingToken]()
-			{
-				PCGEX_ASYNC_RELEASE_TOKEN_LAMBDA(AsyncToken)
-			});
-
-		if (!AssetDependenciesHandle || !AssetDependenciesHandle->IsActive())
+	PCGExHelpers::Load(
+		GetAsyncManager(),
+		[CtxHandle = GetOrCreateHandle()]() -> TArray<FSoftObjectPath>
 		{
-			if (!AssetDependenciesHandle || !AssetDependenciesHandle->HasLoadCompleted()) { CancelExecution("Error loading assets."); }
-			else { PCGEX_ASYNC_RELEASE_TOKEN(AssetLoadingToken) }
-		}
-	}
-	else
-	{
-		AsyncTask(
-			ENamedThreads::GameThread, [CtxHandle = GetOrCreateHandle()]()
-			{
-				PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+			PCGEX_SHARED_CONTEXT_RET(CtxHandle, {})
+			return SharedContext.Get()->RequiredAssets->Array();
+		},
+		[CtxHandle = GetOrCreateHandle()](const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)
+		{
+			PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+			SharedContext.Get()->AssetsHandle = StreamableHandle;
+			if (!bSuccess) { SharedContext.Get()->CancelExecution("Error loading assets."); }
+		});
 
-				FPCGExContext* This = SharedContext.Get();
-
-				This->AssetDependenciesHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-					This->RequiredAssets->Array(), [AsyncToken = This->AssetLoadingToken]()
-					{
-						PCGEX_ASYNC_RELEASE_TOKEN_LAMBDA(AsyncToken)
-					});
-
-				if (!This->AssetDependenciesHandle || !This->AssetDependenciesHandle->IsActive())
-				{
-					if (!This->AssetDependenciesHandle || !This->AssetDependenciesHandle->HasLoadCompleted()) { This->CancelExecution("Error loading assets."); }
-					else { PCGEX_ASYNC_RELEASE_TOKEN(This->AssetLoadingToken) }
-				}
-			});
-	}
 
 	return true;
 }
 
-UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UActorComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
+UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UActorComponent* InComponent,
+                                                            const FAttachmentTransformRules& AttachmentRules) const
 {
 	UPCGComponent* SrcComp = GetMutableComponent();
 
@@ -465,7 +448,10 @@ UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UA
 	ManagedComponent->GeneratedComponent = InComponent;
 	SrcComp->AddToManagedResources(ManagedComponent);
 
-	if (IPCGExManagedComponentInterface* Managed = Cast<IPCGExManagedComponentInterface>(InComponent)) { Managed->SetManagedComponent(ManagedComponent); }
+	if (IPCGExManagedComponentInterface* Managed = Cast<IPCGExManagedComponentInterface>(InComponent))
+	{
+		Managed->SetManagedComponent(ManagedComponent);
+	}
 
 	InParent->Modify(!bIsPreviewMode);
 
@@ -537,7 +523,6 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 		OutputData.Reset();
 		if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
 
-		CancelAssetLoading();
 		UnpauseContext();
 	}
 

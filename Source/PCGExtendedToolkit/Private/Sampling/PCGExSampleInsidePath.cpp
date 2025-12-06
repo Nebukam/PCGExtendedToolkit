@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleInsidePath.h"
 
+#include "PCGExStreamingHelpers.h"
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGExDataTag.h"
 #include "Data/PCGExPointIO.h"

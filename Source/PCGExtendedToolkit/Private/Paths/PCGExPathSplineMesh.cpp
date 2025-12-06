@@ -422,7 +422,7 @@ namespace PCGExPathSplineMesh
 			return;
 		}
 
-		MainThreadLoop = MakeShared<PCGExMT::FScopeLoopOnMainThread>(FinalNumSegments);
+		MainThreadLoop = MakeShared<PCGExMT::FTimeSlicedMainThreadLoop>(FinalNumSegments);
 		MainThreadLoop->OnIterationCallback = [&](const int32 Index, const PCGExMT::FScope& Scope) { ProcessSegment(Index); };
 
 		PCGEX_ASYNC_HANDLE_CHKD_VOID(AsyncManager, MainThreadLoop)

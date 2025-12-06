@@ -18,7 +18,7 @@
 
 namespace PCGExMT
 {
-	class FScopeLoopOnMainThread;
+	class FTimeSlicedMainThreadLoop;
 
 	template <typename T>
 	class TScopedSet;
@@ -217,7 +217,7 @@ namespace PCGExPathSplineMesh
 
 		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 
-		TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
+		TSharedPtr<PCGExMT::FTimeSlicedMainThreadLoop> MainThreadLoop;
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 
 		AActor* TargetActor = nullptr;

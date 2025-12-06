@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExStreamingHelpers.h"
 #include "PCGGraph.h"
 #include "PCGSubsystem.h"
 #include "PCGExSubSystem.h"

@@ -18,7 +18,7 @@
 namespace PCGExMT
 {
 	class FAsyncToken;
-	class FScopeLoopOnMainThread;
+	class FTimeSlicedMainThreadLoop;
 }
 
 namespace PCGExPackActorData
@@ -39,8 +39,9 @@ class UPCGExCustomActorDataPacker : public UPCGExInstancedFactory
 		UActorComponent* Component = nullptr;
 		FAttachmentTransformRules AttachmentTransformRules;
 
-		FComponentInfos():
-			AttachmentTransformRules(FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false))
+		FComponentInfos() :
+			AttachmentTransformRules(FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld,
+			                                                   EAttachmentRule::KeepWorld, false))
 		{
 		}
 
@@ -49,9 +50,10 @@ class UPCGExCustomActorDataPacker : public UPCGExInstancedFactory
 			EAttachmentRule InLocationRule,
 			EAttachmentRule InRotationRule,
 			EAttachmentRule InScaleRule,
-			bool InWeldSimulatedBodies):
+			bool InWeldSimulatedBodies) :
 			Component(InComponent),
-			AttachmentTransformRules(FAttachmentTransformRules(InLocationRule, InRotationRule, InScaleRule, InWeldSimulatedBodies))
+			AttachmentTransformRules(
+				FAttachmentTransformRules(InLocationRule, InRotationRule, InScaleRule, InWeldSimulatedBodies))
 		{
 		}
 	};
@@ -92,7 +94,8 @@ public:
 	 * @param InWeldSimulatedBodies Whether to weld simulated bodies together when attaching
 	 * @param OutComponent Created Component
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution", meta=(DeterminesOutputType="ComponentClass", DynamicOutputParam="OutComponent"))
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution",
+		meta=(DeterminesOutputType="ComponentClass", DynamicOutputParam="OutComponent"))
 	void AddComponent(
 		AActor* InActor,
 		UPARAM(meta = (AllowAbstract = "false"))
@@ -114,7 +117,7 @@ public:
 	TArray<TObjectPtr<AActor>> InputActors;
 
 	TSet<FSoftObjectPath> RequiredAssetsPaths;
-	TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
+	TSharedPtr<PCGExMT::FTimeSlicedMainThreadLoop> MainThreadLoop;
 
 	TSharedPtr<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Write>> WriteBuffers;
 	TSharedPtr<PCGExData::TBufferHelper<PCGExData::EBufferHelperMode::Read>> ReadBuffers;
@@ -555,7 +558,8 @@ public:
 	 * @param OutObject 
 	 * @param OutIsValid 
 	 */
-	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter", meta=(DeterminesOutputType="ObjectClass", DynamicOutputParam="OutObject"))
+	UFUNCTION(BlueprintCallable, Category = "PCGEx|Getter",
+		meta=(DeterminesOutputType="ObjectClass", DynamicOutputParam="OutObject"))
 	void ResolveObjectPath(const FName& InAttributeName, const int32 InPointIndex,
 	                       UPARAM(meta = (AllowAbstract = "true"))
 	                       TSubclassOf<UObject> ObjectClass, UObject*& OutObject, bool& OutIsValid);
@@ -563,7 +567,8 @@ public:
 #pragma endregion
 };
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="quality-of-life/pack-actor-data"))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling",
+	meta=(PCGExNodeLibraryDoc="quality-of-life/pack-actor-data"))
 class UPCGExPackActorDataSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -576,7 +581,12 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		PackActorData, "Pack Actor Data", "Use custom blueprint to read data from actor references.",
 		(Packer ? FName(Packer.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorSampling; }
+
+	virtual FLinearColor GetNodeTitleColor() const override
+	{
+		return GetDefault<UPCGExGlobalSettings>()->ColorSampling;
+	}
+
 	virtual bool CanDynamicallyTrackKeys() const override { return bTrackActors; }
 #endif
 
@@ -599,7 +609,8 @@ public:
 	FName ActorReferenceAttribute = FName(TEXT("ActorReference"));
 
 	/** Builder instance. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced,
+		meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExCustomActorDataPacker> Packer;
 
 	/** */
@@ -615,7 +626,8 @@ public:
 	bool bTrackActors = true;
 
 	/** If enabled, will turn off uninitialized packer warning. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors", meta=(PCG_NotOverridable, AdvancedDisplay))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors",
+		meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bQuietUninitializedPackerWarning = false;
 };
 
@@ -653,8 +665,7 @@ namespace PCGExPackActorData
 		TArray<FPCGPoint> PointsForProcessing;
 		TArray<int8> PointMask;
 
-		TSharedPtr<PCGExMT::FScopeLoopOnMainThread> MainThreadLoop;
-		TWeakPtr<PCGExMT::FAsyncToken> LoadToken;
+		TSharedPtr<PCGExMT::FTimeSlicedMainThreadLoop> MainThreadLoop;
 		TSharedPtr<FStreamableHandle> LoadHandle;
 
 	public:

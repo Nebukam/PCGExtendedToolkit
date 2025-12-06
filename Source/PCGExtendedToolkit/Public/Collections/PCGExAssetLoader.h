@@ -42,7 +42,6 @@ namespace PCGEx
 		TSet<FSoftObjectPath> UniquePaths;
 
 		TSharedPtr<FStreamableHandle> LoadHandle;
-		TWeakPtr<PCGExMT::FAsyncToken> AsyncToken;
 		int8 bEnded = 0;
 
 		FPCGExContext* Context = nullptr;
@@ -65,7 +64,7 @@ namespace PCGEx
 		bool Start(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
 		TSharedPtr<TArray<PCGExValueHash>> GetKeys(const int32 IOIndex);
 
-		virtual bool Load();
+		virtual bool Load(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
 
 		virtual void End(const bool bBuildMap = false);
 		

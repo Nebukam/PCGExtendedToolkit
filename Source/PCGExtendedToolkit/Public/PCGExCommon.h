@@ -139,6 +139,7 @@ namespace PCGExCommon
 
 namespace PCGExMT
 {
+	using FExecuteCallback = std::function<void()>;
 	using FCompletionCallback = std::function<void()>;
 	using FEndCallback = std::function<void(const bool)>;
 	using FSimpleCallback = std::function<void()>;

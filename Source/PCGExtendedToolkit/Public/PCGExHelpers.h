@@ -53,30 +53,6 @@ enum class EPCGExPointNativeProperties : uint8
 ENUM_CLASS_FLAGS(EPCGExPointNativeProperties)
 using EPCGExNativePointPropertiesBitmask = TEnumAsByte<EPCGExPointNativeProperties>;
 
-UCLASS(Hidden)
-class PCGEXTENDEDTOOLKIT_API UPCGExComponentCallback : public UObject
-{
-	GENERATED_BODY()
-
-	bool bIsOnce = false;
-	TFunction<void(UActorComponent* InComponent)> CallbackFn;
-
-public:
-	UFUNCTION()
-	void Callback(UActorComponent* InComponent);
-
-	virtual void BeginDestroy() override;
-
-	template <typename T>
-	void Bind(T& Delegate, TFunction<void(UActorComponent* InComponent)>&& InCallback, const bool bOnce = false)
-	{
-		check(!CallbackFn)
-		bIsOnce = bOnce;
-		CallbackFn = InCallback;
-		Delegate.AddDynamic(this, &UPCGExComponentCallback::Callback);
-	}
-};
-
 UINTERFACE()
 class PCGEXTENDEDTOOLKIT_API UPCGExManagedObjectInterface : public UInterface
 {
@@ -128,34 +104,6 @@ namespace PCGExHelpers
 
 	PCGEXTENDEDTOOLKIT_API
 	void InitEmptyNativeProperties(const UPCGData* From, UPCGData* To, EPCGPointNativeProperties Properties = EPCGPointNativeProperties::All);
-
-	PCGEXTENDEDTOOLKIT_API
-	void LoadBlocking_AnyThread(const FSoftObjectPath& Path);
-
-	template <typename T>
-	static TObjectPtr<T> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
-	{
-		// If the requested object is valid and loaded, early exit
-		TObjectPtr<T> LoadedObject = SoftObjectPtr.Get();
-		if (LoadedObject) { return LoadedObject; }
-
-		// If not, make sure it's a valid path, and if not fallback to the fallback path
-		FSoftObjectPath ToBeLoaded = SoftObjectPtr.ToSoftObjectPath().IsValid() ? SoftObjectPtr.ToSoftObjectPath() : FallbackPath;
-
-		// Make sure we have a valid path at all
-		if (!ToBeLoaded.IsValid()) { return nullptr; }
-
-		// Check if the fallback path is loaded, early exit
-		LoadedObject = TSoftObjectPtr<T>(ToBeLoaded).Get();
-		if (LoadedObject) { return LoadedObject; }
-
-		LoadBlocking_AnyThread(ToBeLoaded);
-
-		return TSoftObjectPtr<T>(ToBeLoaded).Get();
-	}
-
-	PCGEXTENDEDTOOLKIT_API
-	void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths);
 
 	PCGEXTENDEDTOOLKIT_API
 	void CopyStructProperties(const void* SourceStruct, void* TargetStruct, const UStruct* SourceStructType, const UStruct* TargetStructType);

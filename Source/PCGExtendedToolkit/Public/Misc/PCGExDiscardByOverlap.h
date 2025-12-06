@@ -179,6 +179,7 @@ struct FPCGExDiscardByOverlapContext final : FPCGExPointsProcessorContext
 
 	FPCGExOverlapScoresWeighting Weights;
 	FPCGExOverlapScoresWeighting MaxScores;
+	TArray<PCGExDiscardByOverlap::FProcessor*> AllProcessors;
 	void UpdateMaxScores(const TArray<PCGExDiscardByOverlap::FProcessor*>& InStack);
 
 	void Prune();

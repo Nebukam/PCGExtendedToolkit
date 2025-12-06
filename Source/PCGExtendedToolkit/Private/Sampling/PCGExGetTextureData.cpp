@@ -8,6 +8,7 @@
 #include "PCGComponent.h"
 #include "PCGExHelpers.h"
 #include "PCGExMT.h"
+#include "PCGExStreamingHelpers.h"
 #include "Data/PCGRenderTargetData.h"
 #include "Data/PCGTextureData.h"
 #include "Engine/TextureRenderTarget2D.h"
