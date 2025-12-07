@@ -83,12 +83,12 @@ namespace PCGExGeo
 	{
 		const FBox PointBox = PCGExMath::GetLocalBounds(InPoint, BoundsSource);
 		Extents = PointBox.GetExtent();
-		double Size = Extents.Length();
+		double Size = PointBox.GetExtent().Size();
 		double SanitizedExpansion = Expansion < 0 ? FMath::Max(Expansion, -Size) : Expansion;
 
-		Box = FBox(Extents * -1, Extents);
+		Box = FBox(PointBox.Min, PointBox.Max);
 		BoxExpanded = Box.ExpandBy(Expansion);
-		SearchableBounds = FBoxSphereBounds(InPoint.GetTransform().GetLocation(), FVector(Size + SanitizedExpansion * 1.5), Size + SanitizedExpansion * 1.5);
+		SearchableBounds = FBoxSphereBounds(InPoint.GetTransform().GetLocation() + Box.GetCenter(), FVector(Size + SanitizedExpansion * 1.5), Size + SanitizedExpansion * 1.5);
 		RadiusSquared = FMath::Square(Size);
 		RadiusSquaredExpanded = FMath::Square(Size + SanitizedExpansion);
 	}
@@ -96,13 +96,11 @@ namespace PCGExGeo
 	void FPointBox::Sample(const FVector& Position, FSample& OutSample) const
 	{
 		const FVector LocalPosition = Matrix.InverseTransformPosition(Position);
+		const FVector LocalCenter = Box.GetCenter();
 		OutSample.bIsInside = Box.IsInside(LocalPosition);
 		OutSample.Distances = LocalPosition;
 		OutSample.BoxIndex = Index;
-		OutSample.UVW = FVector(
-			LocalPosition.X / Extents.X,
-			LocalPosition.Y / Extents.Y,
-			LocalPosition.Z / Extents.Z);
+		OutSample.UVW = (LocalPosition - LocalCenter) / Extents;
 		OutSample.Weight = 1 - ((
 			(FMath::Clamp(FMath::Abs(OutSample.UVW.X), 0, Extents.X) / Extents.X) +
 			(FMath::Clamp(FMath::Abs(OutSample.UVW.Y), 0, Extents.Y) / Extents.Y) +
