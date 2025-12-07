@@ -129,7 +129,7 @@ namespace PCGExDataBlending
 		BlendOp->Blend(ValueA, ValueB, Weight, Result);
 
 		// Set result to output
-		// !BUG : ProxyC->Set(TargetIndex, Result);
+		ProxyC->Set(TargetIndex, Result); // BUG ?
 	}
 
 	PCGEx::FOpStats FTypeErasedProxyBlender::BeginMultiBlend(int32 TargetIndex)
@@ -147,14 +147,8 @@ namespace PCGExDataBlending
 		else
 		{
 			// Start with current target value
-			if (ProxyC)
-			{
-				ProxyC->GetCurrent(TargetIndex, AccumulatorStorage);
-			}
-			else
-			{
-				BlendOp->InitDefault(AccumulatorStorage);
-			}
+			if (ProxyC) { ProxyC->GetCurrent(TargetIndex, AccumulatorStorage); }
+			else { BlendOp->InitDefault(AccumulatorStorage); }
 		}
 		return Stats;
 	}
@@ -185,7 +179,7 @@ namespace PCGExDataBlending
 		BlendOp->EndMulti(AccumulatorStorage, Tracker.Weight, Tracker.Count);
 
 		// Write final result to target
-		// !BUG : ProxyC->Set(TargetIndex, AccumulatorStorage);
+		ProxyC->Set(TargetIndex, AccumulatorStorage); // BUG ?
 	}
 
 	void FTypeErasedProxyBlender::Div(int32 TargetIndex, double Divider)
@@ -202,7 +196,7 @@ namespace PCGExDataBlending
 		TypeOps->BlendDiv(CurrentValue, Divider, Result);
 
 		// Set result
-		ProxyC->Set(TargetIndex, Result);
+		ProxyC->Set(TargetIndex, Result); // BUG ?
 	}
 
 	void FTypeErasedProxyBlender::Set(int32 TargetIndex, EPCGMetadataTypes Type, const void* Value) const
@@ -219,7 +213,7 @@ namespace PCGExDataBlending
 			// Convert and set
 			alignas(16) uint8 ConvertedValue[sizeof(FTransform)];
 			PCGExTypeOps::FConversionTable::Convert(Type, Value, WorkingType, ConvertedValue);
-			ProxyC->Set(TargetIndex, ConvertedValue);
+			ProxyC->Set(TargetIndex, ConvertedValue); // BUG ?
 		}
 	}
 
