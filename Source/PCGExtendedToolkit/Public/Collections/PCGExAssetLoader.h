@@ -41,6 +41,7 @@ namespace PCGEx
 		TArray<FName> AttributeNames;
 		TSet<FSoftObjectPath> UniquePaths;
 
+		TWeakPtr<PCGExMT::FAsyncToken> LoadToken;
 		TSharedPtr<FStreamableHandle> LoadHandle;
 		int8 bEnded = 0;
 

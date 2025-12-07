@@ -102,26 +102,20 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
+		Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
+		
 		if (Context->StaticMesh)
 		{
 			if (Context->MaterialLoader)
 			{
-				Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-
 				if (!Context->MaterialLoader->Start(Context->GetAsyncManager()))
 				{
 					return Context->CancelExecution(TEXT("Failed to find any material to load."));
 				}
 			}
-			else
-			{
-				Context->SetState(PCGExCommon::State_WaitingOnAsyncWork);
-			}
 		}
 		else
 		{
-			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-
 			if (!Context->StaticMeshLoader->Start(Context->GetAsyncManager()))
 			{
 				return Context->CancelExecution(TEXT("Failed to find any asset to load."));
@@ -134,9 +128,9 @@ bool FPCGExPathSplineMeshSimpleElement::AdvanceWork(FPCGExContext* InContext, co
 					return Context->CancelExecution(TEXT("Failed to find any material to load."));
 				}
 			}
-
-			return false;
 		}
+		
+		if (Context->IsWaitingForTasks()) { return false; }
 	}
 
 	PCGEX_ON_ASYNC_STATE_READY(PCGExCommon::State_WaitingOnAsyncWork)

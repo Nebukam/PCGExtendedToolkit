@@ -139,6 +139,7 @@ namespace PCGEx
 			return false;
 		}
 
+		LoadToken = AsyncManager->TryCreateToken(FName("LoadToken"));
 		PrepareLoading();
 
 		PCGExHelpers::Load(
@@ -161,6 +162,7 @@ namespace PCGEx
 	void IAssetLoader::End(const bool bBuildMap)
 	{
 		if (OnComplete) { OnComplete(); }
+		PCGEX_ASYNC_RELEASE_TOKEN(LoadToken)
 	}
 
 	void IAssetLoader::PrepareLoading()

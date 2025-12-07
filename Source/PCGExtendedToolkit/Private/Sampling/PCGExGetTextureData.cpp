@@ -109,12 +109,8 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 
 	PCGEX_ON_STATE(PCGExCommon::State_AsyncPreparation)
 	{
-		if (Context->TextureReferences.IsEmpty())
-		{
-			// Nothing to load, skip
-			Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
-		}
-		else
+		Context->SetAsyncState(PCGExCommon::State_WaitingOnAsyncWork);
+		if (!Context->TextureReferences.IsEmpty())
 		{
 			// Start loading textures...
 			TSharedPtr<TSet<FSoftObjectPath>> Paths = MakeShared<TSet<FSoftObjectPath>>();
@@ -130,7 +126,13 @@ bool FPCGExGetTextureDataElement::AdvanceWork(FPCGExContext* InContext, const UP
 			Context->TextureProcessingToken = Context->GetAsyncManager()->TryCreateToken(FName("TextureProcessing"));
 			if (!Context->TextureProcessingToken.IsValid()) { return true; }
 
-			Context->AdvanceProcessing(0);
+			PCGExMT::ExecuteOnMainThread(
+				Context->GetAsyncManager(),
+				[CtxHandle = Context->GetOrCreateHandle()]()
+				{
+					PCGEX_SHARED_TCONTEXT_VOID(GetTextureData, CtxHandle)
+					SharedContext.Get()->AdvanceProcessing(0);
+				});
 		}
 	}
 

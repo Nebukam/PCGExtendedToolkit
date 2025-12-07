@@ -213,11 +213,6 @@ namespace PCGExMT
 
 	void IAsyncMultiHandle::ClearRegistry(const bool bCancel)
 	{
-		{
-			FWriteScopeLock WriteLock(TokenLock);
-			Tokens.Empty();
-		}
-
 		if (bCancel)
 		{
 			TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
@@ -241,6 +236,11 @@ namespace PCGExMT
 				FWriteScopeLock WriteLock(RegistryLock);
 				Registry.Empty();
 			}
+		}
+		
+		{
+			FWriteScopeLock WriteLock(TokenLock);
+			Tokens.Empty();
 		}
 	}
 
@@ -484,11 +484,6 @@ namespace PCGExMT
 			PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::Reset"));
 
 			{
-				FWriteScopeLock WriteLock(TokenLock);
-				Tokens.Empty();
-			}
-
-			{
 				FWriteScopeLock WriteLock(RegistryLock);
 				Registry.Empty();
 			}
@@ -498,6 +493,11 @@ namespace PCGExMT
 				Groups.Empty();
 			}
 
+			{
+				FWriteScopeLock WriteLock(TokenLock);
+				Tokens.Empty();
+			}
+			
 			// Reset counters
 			ExpectedCount.store(0, std::memory_order_release);
 			StartedCount.store(0, std::memory_order_release);
@@ -629,11 +629,6 @@ namespace PCGExMT
 			TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
 
 			{
-				FWriteScopeLock WriteLock(TokenLock);
-				Tokens.Empty();
-			}
-
-			{
 				FWriteScopeLock WriteLock(RegistryLock);
 
 				HandlesToCancel.Reserve(Registry.Num() + Groups.Num());
@@ -662,6 +657,11 @@ namespace PCGExMT
 				FWriteScopeLock WriteLock(GroupsLock);
 				Groups.Empty();
 			}
+		}
+		
+		{
+			FWriteScopeLock WriteLock(TokenLock);
+			Tokens.Empty();
 		}
 	}
 
