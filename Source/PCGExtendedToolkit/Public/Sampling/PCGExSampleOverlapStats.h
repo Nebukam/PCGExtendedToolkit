@@ -23,6 +23,12 @@ namespace PCGExSampleOverlapStats
 	class FProcessor;
 }
 
+namespace PCGExData
+{
+	template <typename T>
+	class TBuffer;
+}
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Sampling", meta=(PCGExNodeLibraryDoc="sampling/overlap-stats"))
 class UPCGExSampleOverlapStatsSettings : public UPCGExPointsProcessorSettings
 {
@@ -140,7 +146,7 @@ struct FPCGExSampleOverlapStatsContext final : FPCGExPointsProcessorContext
 	double SharedOverlapSubCountMax = 0;
 	double SharedOverlapCountMax = 0;
 
-protected:
+protected:	
 	PCGEX_ELEMENT_BATCH_POINT_DECL
 };
 
@@ -219,7 +225,7 @@ namespace PCGExSampleOverlapStats
 		const UPCGBasePointData* InPoints = nullptr;
 		FBox Bounds = FBox(ForceInit);
 
-		TUniquePtr<PCGExDiscardByOverlap::FPointBoundsOctree> Octree;
+		TSharedPtr<PCGExDiscardByOverlap::FPointBoundsOctree> Octree;
 
 		TArray<TSharedPtr<PCGExDiscardByOverlap::FPointBounds>> LocalPointBounds;
 
@@ -264,9 +270,16 @@ namespace PCGExSampleOverlapStats
 		void RegisterOverlap(FProcessor* InOtherProcessor, const FBox& Intersection);
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+		virtual void OnPointsProcessingComplete() override;
+		
 		void ResolveOverlap(const int32 Index);
 		void WriteSingleData(const int32 Index);
+		
 		virtual void CompleteWork() override;
+		void ProcessRange(const PCGExMT::FScope& Scope) override;
+		void OnRangeProcessingComplete() override;
+		
 		virtual void Write() override;
 	};
 }

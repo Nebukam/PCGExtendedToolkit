@@ -17,15 +17,15 @@
 UENUM()
 enum class EPCGExOverlapTestMode : uint8
 {
-	Fast   = 0 UMETA(DisplayName = "Fast", ToolTip="Only test using datasets' overall bounds"),
-	Box    = 1 UMETA(DisplayName = "Box", ToolTip="Test every points' bounds as transformed box. May not detect some overlaps."),
+	Fast = 0 UMETA(DisplayName = "Fast", ToolTip="Only test using datasets' overall bounds"),
+	Box = 1 UMETA(DisplayName = "Box", ToolTip="Test every points' bounds as transformed box. May not detect some overlaps."),
 	Sphere = 2 UMETA(DisplayName = "Sphere", ToolTip="Test every points' bounds as spheres. Will have some false positve."),
 };
 
 UENUM()
 enum class EPCGExOverlapPruningLogic : uint8
 {
-	LowFirst  = 0 UMETA(DisplayName = "Low to High", ToolTip="Lower weights are pruned first."),
+	LowFirst = 0 UMETA(DisplayName = "Low to High", ToolTip="Lower weights are pruned first."),
 	HighFirst = 1 UMETA(DisplayName = "High to Low", ToolTip="Higher weights are pruned first."),
 };
 
@@ -179,7 +179,8 @@ struct FPCGExDiscardByOverlapContext final : FPCGExPointsProcessorContext
 
 	FPCGExOverlapScoresWeighting Weights;
 	FPCGExOverlapScoresWeighting MaxScores;
-	void UpdateMaxScores(const TArray<PCGExDiscardByOverlap::FProcessor*>& InStack);
+	TArray<PCGExDiscardByOverlap::FProcessor*> AllProcessors;
+	void UpdateScores(const TArray<PCGExDiscardByOverlap::FProcessor*>& InStack);
 
 	void Prune();
 
@@ -198,8 +199,6 @@ protected:
 
 namespace PCGExDiscardByOverlap
 {
-	class FProcessor;
-
 	struct PCGEXTENDEDTOOLKIT_API FOverlapStats
 	{
 		int32 OverlapCount = 0;
@@ -258,7 +257,7 @@ namespace PCGExDiscardByOverlap
 
 	struct PCGEXTENDEDTOOLKIT_API FPointBounds
 	{
-		FPointBounds(const int32 InIndex, const PCGExData::FConstPoint& InPoint, const FBox& InBounds):
+		FPointBounds(const int32 InIndex, const PCGExData::FConstPoint& InPoint, const FBox& InBounds) :
 			Index(InIndex), Point(InPoint), LocalBounds(InBounds), Bounds(InBounds.TransformBy(InPoint.GetTransform().ToMatrixNoScale()))
 		{
 		}
@@ -317,28 +316,25 @@ namespace PCGExDiscardByOverlap
 		FORCEINLINE bool HasOverlaps() const { return !Overlaps.IsEmpty(); }
 
 		void RegisterOverlap(FProcessor* InOtherProcessor, const FBox& Intersection);
-		void RemoveOverlap(const TSharedPtr<FOverlap>& InOverlap, TArray<FProcessor*>& Stack);
-		void Prune(TArray<FProcessor*>& Stack);
-
-		void RegisterPointBounds(const int32 Index, const TSharedPtr<FPointBounds>& InPointBounds)
-		{
-			const int8 bValidPoint = PointFilterCache[Index];
-			if (!bValidPoint && !Settings->bIncludeFilteredInMetrics) { return; }
-
-			const FBox& B = InPointBounds->Bounds.GetBox();
-			Bounds += B;
-			TotalVolume += B.GetVolume();
-
-			if (bValidPoint) { LocalPointBounds[Index] = InPointBounds; }
-		}
+		void RemoveOverlap(const TSharedPtr<FOverlap>& InOverlap, TArray<FProcessor*>& RemaininStack);
+		void Pruned(TArray<FProcessor*>& RemaininStack);
+		void RegisterPointBounds(const int32 Index, const TSharedPtr<FPointBounds>& InPointBounds);
 
 		virtual bool Process(const TSharedPtr<PCGExMT::FTaskManager>& InAsyncManager) override;
-		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+		virtual void ProcessPoints(const PCGExMT::FScope& Scope) override;
+		virtual void OnPointsProcessingComplete() override;
 
 		virtual void CompleteWork() override;
+		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
+
 		virtual void Write() override;
 
 		void UpdateWeightValues();
 		void UpdateWeight(const FPCGExOverlapScoresWeighting& InMax);
+		
+#if WITH_EDITOR
+		void PrintWeights() const;
+#endif
+		
 	};
 }
