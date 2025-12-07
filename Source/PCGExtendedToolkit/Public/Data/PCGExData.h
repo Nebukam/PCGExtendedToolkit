@@ -107,10 +107,10 @@ namespace PCGExData
 		virtual void EnableValueHashCache();
 
 		// Unsafe read value hash from input
-		virtual PCGExValueHash ReadValueHash(const int32 Index) = 0;
+		virtual PCGExValueHash ReadValueHash(const int32 Index) const = 0;
 
 		// Unsafe read value hash from output
-		virtual PCGExValueHash GetValueHash(const int32 Index) = 0;
+		virtual PCGExValueHash GetValueHash(const int32 Index) const = 0;
 
 		// Unsafe read value hash from output
 		virtual int32 GetNumValues(const EIOSide InSide = EIOSide::In) = 0;
@@ -186,13 +186,13 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		virtual const T& Read(const int32 Index) const = 0;
 
 		// Unsafe read from output
-		virtual const T& GetValue(const int32 Index) = 0;
+		virtual const T& GetValue(const int32 Index) const = 0;
 
 		// Unsafe read value hash from input
-		virtual PCGExValueHash ReadValueHash(const int32 Index) override;
+		virtual PCGExValueHash ReadValueHash(const int32 Index) const override;
 
 		// Unsafe read value hash from output
-		virtual PCGExValueHash GetValueHash(const int32 Index) override;
+		virtual PCGExValueHash GetValueHash(const int32 Index) const override;
 
 		// Unsafe set value in output
 		virtual void SetValue(const int32 Index, const T& Value) = 0;
@@ -266,9 +266,9 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		virtual bool ReadsFromOutput() override;
 
 		virtual const T& Read(const int32 Index) const override;
-		virtual const T& GetValue(const int32 Index) override;
+		virtual const T& GetValue(const int32 Index) const override;
 		virtual void SetValue(const int32 Index, const T& Value) override;
-		virtual PCGExValueHash ReadValueHash(const int32 Index) override;
+		virtual PCGExValueHash ReadValueHash(const int32 Index) const override;
 
 	protected:
 		virtual void ComputeValueHashes(const PCGExMT::FScope& Scope);
@@ -318,7 +318,7 @@ extern template bool IBuffer::IsA<_TYPE>() const;
 		virtual bool ReadsFromOutput() override;
 
 		virtual const T& Read(const int32 Index) const override;
-		virtual const T& GetValue(const int32 Index) override;
+		virtual const T& GetValue(const int32 Index) const override;
 		virtual void SetValue(const int32 Index, const T& Value) override;
 
 		virtual bool InitForRead(const EIOSide InSide = EIOSide::In, const bool bScoped = false) override;

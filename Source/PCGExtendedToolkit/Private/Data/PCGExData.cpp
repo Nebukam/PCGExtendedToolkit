@@ -90,10 +90,10 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	FPCGMetadataAttribute<T>* TBuffer<T>::GetTypedOutAttribute() const { return TypedOutAttribute; }
 
 	template <typename T>
-	PCGExValueHash TBuffer<T>::ReadValueHash(const int32 Index) { return PCGExBlend::ValueHash(Read(Index)); }
+	PCGExValueHash TBuffer<T>::ReadValueHash(const int32 Index) const { return PCGExBlend::ValueHash(Read(Index)); }
 
 	template <typename T>
-	PCGExValueHash TBuffer<T>::GetValueHash(const int32 Index) { return PCGExBlend::ValueHash(GetValue(Index)); }
+	PCGExValueHash TBuffer<T>::GetValueHash(const int32 Index) const { return PCGExBlend::ValueHash(GetValue(Index)); }
 
 	template <typename T>
 	void TBuffer<T>::DumpValues(TArray<T>& OutValues) const { for (int i = 0; i < OutValues.Num(); i++) { OutValues[i] = Read(i); } }
@@ -138,13 +138,13 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	const T& TArrayBuffer<T>::Read(const int32 Index) const { return *(InValues->GetData() + Index); }
 
 	template <typename T>
-	const T& TArrayBuffer<T>::GetValue(const int32 Index) { return *(OutValues->GetData() + Index); }
+	const T& TArrayBuffer<T>::GetValue(const int32 Index) const { return *(OutValues->GetData() + Index); }
 
 	template <typename T>
 	void TArrayBuffer<T>::SetValue(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
 
 	template <typename T>
-	PCGExValueHash TArrayBuffer<T>::ReadValueHash(const int32 Index)
+	PCGExValueHash TArrayBuffer<T>::ReadValueHash(const int32 Index) const
 	{
 		if (bCacheValueHashes) { return InHashes[Index]; }
 		return PCGExBlend::ValueHash(Read(Index));
@@ -491,7 +491,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	}
 
 	template <typename T>
-	const T& TSingleValueBuffer<T>::GetValue(const int32 Index)
+	const T& TSingleValueBuffer<T>::GetValue(const int32 Index) const
 	{
 		FReadScopeLock ReadScopeLock(BufferLock);
 		return OutValue;
