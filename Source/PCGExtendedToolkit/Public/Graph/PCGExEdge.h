@@ -16,9 +16,9 @@ namespace PCGExData
 UENUM()
 enum class EPCGExEdgeDirectionMethod : uint8
 {
-	EndpointsOrder   = 0 UMETA(DisplayName = "Endpoints Order", ToolTip="Uses the edge' Start & End properties"),
+	EndpointsOrder = 0 UMETA(DisplayName = "Endpoints Order", ToolTip="Uses the edge' Start & End properties"),
 	EndpointsIndices = 1 UMETA(DisplayName = "Endpoints Indices", ToolTip="Uses the edge' Start & End indices"),
-	EndpointsSort    = 2 UMETA(DisplayName = "Endpoints Sort", ToolTip="Uses sorting rules to check endpoint is the Start or End."),
+	EndpointsSort = 2 UMETA(DisplayName = "Endpoints Sort", ToolTip="Uses sorting rules to check endpoint is the Start or End."),
 	EdgeDotAttribute = 3 UMETA(DisplayName = "Edge Dot Attribute", ToolTip="Chooses the highest dot product against a vector property or attribute on the edge point"),
 };
 
@@ -116,6 +116,8 @@ namespace PCGExGraph
 		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(Start, End); }
 
 		FORCEINLINE uint32 GetTypeHash(const FLink& Key) { return HashCombineFast(Key.Node, Key.Edge); }
+
+		FORCEINLINE bool operator<(const FEdge& Other) const { return H64U() < Other.H64U(); }
 	};
 
 	void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExCommon::DataIDType& OutId);
