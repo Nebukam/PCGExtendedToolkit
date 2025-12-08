@@ -130,7 +130,7 @@ namespace PCGExTopologyPointSurface
 
 		TArray<FIntPoint> ConstrainedEdges;
 		TArray<int32> PositionsToVertexIDs;
-		bool bHasDuplicateVertices = false;
+		bool bHasBadVertices = false;
 
 		FGeometryScriptConstrainedDelaunayTriangulationOptions TriangulationOptions{};
 		TriangulationOptions.bRemoveDuplicateVertices = true;
@@ -138,13 +138,13 @@ namespace PCGExTopologyPointSurface
 		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendDelaunayTriangulation2D(
 			InternalMesh, Settings->Topology.PrimitiveOptions, FTransform::Identity,
 			VertexPositions, ConstrainedEdges, TriangulationOptions, PositionsToVertexIDs,
-			bHasDuplicateVertices, nullptr);
+			bHasBadVertices, nullptr);
 
 		if (PositionsToVertexIDs.IsEmpty()) { return false; }
 
 		UVDetails = Settings->Topology.UVChannels;
 		UVDetails.Prepare(PointDataFacade);
-		
+
 		FTransform Transform = Context->GetComponent()->GetOwner()->GetTransform();
 		Transform.SetScale3D(FVector::OneVector);
 		Transform.SetRotation(FQuat::Identity);
@@ -152,6 +152,8 @@ namespace PCGExTopologyPointSurface
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(PCGExTopologyPointSurface::EditMesh)
 
+			int8 bHasInvalidVertices = false;
+			
 			InternalMesh->EditMesh(
 				[&](FDynamicMesh3& InMesh)
 				{
@@ -176,6 +178,13 @@ namespace PCGExTopologyPointSurface
 						VtxCount, [&](int32 i)
 						{
 							const int32 VtxID = PositionsToVertexIDs[i];
+							
+							if (VtxID == -1)
+							{
+								FPlatformAtomics::InterlockedExchange(&bHasInvalidVertices, 1);
+								return;
+							}
+							
 							InMesh.SetVertex(VtxID, Transform.InverseTransformPosition(InTransforms[i].GetLocation()));
 							Colors->SetElement(ElemIDs[i], FVector4f(InColors[i]));
 						});
@@ -195,6 +204,11 @@ namespace PCGExTopologyPointSurface
 				}, EDynamicMeshChangeType::GeneralEdit, EDynamicMeshAttributeChangeFlags::Unknown, true);
 		}
 
+		if (bHasBadVertices && !Settings->bQuietBadVerticesWarning)
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs have bad vertices : some points will be skipped (most likely collocated points)"));
+		}
+		
 		if (Settings->bAttemptRepair)
 		{
 			UGeometryScriptLibrary_MeshRepairFunctions::RepairMeshDegenerateGeometry(
