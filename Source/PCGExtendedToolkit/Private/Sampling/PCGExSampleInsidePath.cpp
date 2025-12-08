@@ -287,6 +287,8 @@ namespace PCGExSampleInsidePath
 		TConstPCGValueRange<FTransform> InTransforms = PointDataFacade->GetIn()->GetConstTransformValueRange();
 
 		TArray<PCGExData::FWeightedPoint> OutWeightedPoints;
+		OutWeightedPoints.Reserve(256);
+		
 		TArray<PCGEx::FOpStats> Trackers;
 		DataBlender->InitTrackers(Trackers);
 
@@ -353,7 +355,7 @@ namespace PCGExSampleInsidePath
 
 				if (bReplaceWithCurrent)
 				{
-					SinglePick = Target;
+					SinglePick = static_cast<PCGExData::FElement>(Target);
 					WeightedDistance = DistSquared;
 
 					Union->Reset();
