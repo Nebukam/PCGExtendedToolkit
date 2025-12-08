@@ -9,6 +9,7 @@
 
 #include "PCGContext.h"
 #include "PCGExCommon.h"
+#include "PCGExMT.h"
 
 namespace PCGExMT
 {
@@ -39,13 +40,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExContext : FPCGContext
 	friend class IPCGExElement;
 
 protected:
-	
 	enum class EExecutionPolicy : int8
 	{
 		Normal,
 		NoPause
 	};
-	
+
 	mutable FRWLock AsyncLock;
 	mutable FRWLock StagedOutputLock;
 	mutable FRWLock AssetDependenciesLock;
@@ -60,7 +60,7 @@ public:
 	EExecutionPolicy ExecutionPolicy = EExecutionPolicy::Normal;
 
 	// TODO : bool toggle for hoarder execution 
-	
+
 	bool bScopedAttributeGet = false;
 	bool bPropagateAbortedExecution = false;
 
@@ -102,7 +102,14 @@ public:
 	bool IsInitialExecution() const { return IsState(PCGExCommon::State_InitialExecution); }
 	bool IsDone() const { return IsState(PCGExCommon::State_Done); }
 	bool IsWorkCompleted() const { return bWorkCompleted.load(std::memory_order_acquire); }
-	bool IsWorkCancelled() const { return bWorkCancelled.load(std::memory_order_acquire); }
+
+	bool IsWorkCancelled() const
+	{
+		return bWorkCancelled.load(std::memory_order_acquire)
+			|| (AsyncManager && AsyncManager->IsCancelled())
+			|| !WorkHandle.IsValid();
+	}
+
 	void Done();
 
 	bool TryComplete(const bool bForce = false);
@@ -110,7 +117,7 @@ public:
 protected:
 	std::atomic<PCGExCommon::ContextState> CurrentState;
 	std::atomic<bool> bProcessingAsyncWorkEnd{false};
-	std::atomic<int32> PendingCompletions{0}; 
+	std::atomic<int32> PendingCompletions{0};
 	std::atomic<bool> bWorkCompleted{false};
 	std::atomic<bool> bWorkCancelled{false};
 
@@ -146,7 +153,7 @@ public:
 
 #pragma endregion
 
-protected:	
+protected:
 	TSet<FName> ConsumableAttributesSet;
 	TSet<FName> ProtectedAttributesSet;
 

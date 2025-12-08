@@ -90,7 +90,7 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutputComplex);
 
-	check(WorkHandle.IsValid())
+	if (IsWorkCancelled()) { return; }
 
 	if (!IsInGameThread())
 	{
@@ -336,7 +336,7 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 	do
 	{
 		if (IsWorkCancelled()) { return; }
-		
+
 		// Clear pending BEFORE processing
 		// If new work completes during processing, the flag gets set again
 		PendingCompletions.store(false, std::memory_order_release);
@@ -379,6 +379,8 @@ void FPCGExContext::OnComplete()
 	FWriteScopeLock WriteScopeLock(StagedOutputLock);
 	ManagedObjects->Remove(OutputData.TaggedData);
 	UnpauseContext();
+
+	PCGEX_TERMINATE_ASYNC
 }
 
 #pragma endregion
@@ -517,6 +519,7 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 	bool bExpected = false;
 	if (bWorkCancelled.compare_exchange_strong(bExpected, true, std::memory_order_acq_rel))
 	{
+		//UE_LOG(LogTemp, Warning, TEXT(">> CANCELLED @%s"), *GetInputSettings<UPCGExSettings>()->GetName());
 		if (!bQuietCancellationError && !InReason.IsEmpty()) { PCGE_LOG_C(Error, GraphAndLog, this, FTEXT(InReason)); }
 
 		PCGEX_TERMINATE_ASYNC
