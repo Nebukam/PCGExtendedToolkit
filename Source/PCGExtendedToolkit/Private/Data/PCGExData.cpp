@@ -772,7 +772,7 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 
 			Buffer->BufferIndex = Buffers.Num();
 
-			Buffers.Add(StaticCastSharedPtr<IBuffer>(Buffer));
+			Buffers.Add(Buffer);
 			BufferMap.Add(Buffer->UID, Buffer);
 
 			return Buffer;

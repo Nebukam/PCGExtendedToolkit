@@ -71,12 +71,11 @@ namespace PCGExHelpers
 		}
 	}
 
-	void Load(const TSharedPtr<PCGExMT::IAsyncMultiHandle>& ParentHandle, FGetPaths&& GetPathsFunc,
-	          FOnLoadEnd&& OnLoadEnd)
+	void Load(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, FGetPaths&& GetPathsFunc, FOnLoadEnd&& OnLoadEnd)
 	{
-		check(ParentHandle);
+		check(AsyncManager);
 
-		PCGExMT::ExecuteOnMainThread(ParentHandle, [GetPathsFunc, OnLoadEnd]()
+		PCGExMT::ExecuteOnMainThread(AsyncManager, [GetPathsFunc, OnLoadEnd]()
 		{
 			TArray<FSoftObjectPath> Paths = GetPathsFunc();
 
@@ -87,7 +86,7 @@ namespace PCGExHelpers
 			}
 
 			const TSharedPtr<FStreamableHandle> LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-				MoveTemp(Paths), [OnLoadEnd](TSharedPtr<FStreamableHandle> InHandle)// NOLINT(performance-unnecessary-value-param)
+				MoveTemp(Paths), [OnLoadEnd](TSharedPtr<FStreamableHandle> InHandle) // NOLINT(performance-unnecessary-value-param)
 				{
 					OnLoadEnd(true, InHandle);
 				});

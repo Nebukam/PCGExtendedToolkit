@@ -213,34 +213,40 @@ namespace PCGExMT
 
 	void IAsyncMultiHandle::ClearRegistry(const bool bCancel)
 	{
-		if (bCancel)
+		bool Expected = false;
+		if (bCleaning.compare_exchange_strong(Expected, true, std::memory_order_acq_rel))
 		{
-			TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
-
+			if (bCancel)
 			{
-				FWriteScopeLock WriteLock(RegistryLock);
-				HandlesToCancel.Reserve(Registry.Num());
-				for (const TWeakPtr<IAsyncHandle>& Weak : Registry)
+				TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
+
 				{
-					if (TSharedPtr<IAsyncHandle> Handle = Weak.Pin()) { HandlesToCancel.Add(Handle); }
+					FWriteScopeLock WriteLock(RegistryLock);
+					HandlesToCancel.Reserve(Registry.Num());
+					for (const TWeakPtr<IAsyncHandle>& Weak : Registry)
+					{
+						if (TSharedPtr<IAsyncHandle> Handle = Weak.Pin()) { HandlesToCancel.Add(Handle); }
+					}
+					Registry.Empty();
 				}
-				Registry.Empty();
+
+				// Cancel outside locks
+				for (const TSharedPtr<IAsyncHandle>& Handle : HandlesToCancel) { Handle->Cancel(); }
+			}
+			else
+			{
+				{
+					FWriteScopeLock WriteLock(RegistryLock);
+					Registry.Empty();
+				}
 			}
 
-			// Cancel outside locks
-			for (const TSharedPtr<IAsyncHandle>& Handle : HandlesToCancel) { Handle->Cancel(); }
-		}
-		else
-		{
 			{
-				FWriteScopeLock WriteLock(RegistryLock);
-				Registry.Empty();
+				FWriteScopeLock WriteLock(TokenLock);
+				Tokens.Empty();
 			}
-		}
-		
-		{
-			FWriteScopeLock WriteLock(TokenLock);
-			Tokens.Empty();
+
+			bCleaning.store(false, std::memory_order_release);
 		}
 	}
 
@@ -483,18 +489,25 @@ namespace PCGExMT
 		{
 			PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::Reset"));
 
+			TArray<TWeakPtr<IAsyncHandle>> LocalRegistry;
+			TArray<TSharedPtr<FTaskGroup>> LocalGroups;
+			TArray<TSharedPtr<FAsyncToken>> LocalTokens;
+
 			{
 				FWriteScopeLock WriteLock(RegistryLock);
+				LocalRegistry = MoveTemp(Registry);
 				Registry.Empty();
 			}
 
 			{
 				FWriteScopeLock WriteLock(GroupsLock);
+				LocalGroups = MoveTemp(Groups);
 				Groups.Empty();
 			}
 
 			{
 				FWriteScopeLock WriteLock(TokenLock);
+				LocalTokens = MoveTemp(Tokens);
 				Tokens.Empty();
 			}
 			
@@ -624,44 +637,49 @@ namespace PCGExMT
 
 	void FTaskManager::ClearRegistry(const bool bCancel)
 	{
-		if (bCancel)
+		bool Expected = false;
+		if (bCleaning.compare_exchange_strong(Expected, true, std::memory_order_acq_rel))
 		{
-			TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
-
+			if (bCancel)
 			{
-				FWriteScopeLock WriteLock(RegistryLock);
+				TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
 
-				HandlesToCancel.Reserve(Registry.Num() + Groups.Num());
-				for (const TWeakPtr<IAsyncHandle>& Weak : Registry)
 				{
-					if (TSharedPtr<IAsyncHandle> Handle = Weak.Pin()) { HandlesToCancel.Add(Handle); }
+					FWriteScopeLock WriteLock(RegistryLock);
+
+					HandlesToCancel.Reserve(Registry.Num() + Groups.Num());
+					for (const TWeakPtr<IAsyncHandle>& Weak : Registry)
+					{
+						if (TSharedPtr<IAsyncHandle> Handle = Weak.Pin()) { HandlesToCancel.Add(Handle); }
+					}
+
+					Registry.Empty();
 				}
 
-				Registry.Empty();
-			}
+				{
+					FWriteScopeLock WriteLock(TokenLock);
+					Tokens.Empty();
+				}
 
+				{
+					FWriteScopeLock WriteLock(GroupsLock);
+					for (const TSharedPtr<FTaskGroup>& Group : Groups) { HandlesToCancel.Add(Group); }
+					Groups.Empty();
+				}
+
+				// Cancel outside locks
+				for (const TSharedPtr<IAsyncHandle>& Handle : HandlesToCancel) { Handle->Cancel(); }
+			}
+			else
 			{
-				FWriteScopeLock WriteLock(GroupsLock);
-				for (const TSharedPtr<FTaskGroup>& Group : Groups) { HandlesToCancel.Add(Group); }
-				Groups.Empty();
-			}
+				IAsyncMultiHandle::ClearRegistry(false);
 
-			// Cancel outside locks
-			for (const TSharedPtr<IAsyncHandle>& Handle : HandlesToCancel) { Handle->Cancel(); }
-		}
-		else
-		{
-			IAsyncMultiHandle::ClearRegistry(false);
-
-			{
-				FWriteScopeLock WriteLock(GroupsLock);
-				Groups.Empty();
+				{
+					FWriteScopeLock WriteLock(GroupsLock);
+					Groups.Empty();
+				}
 			}
-		}
-		
-		{
-			FWriteScopeLock WriteLock(TokenLock);
-			Tokens.Empty();
+			bCleaning.store(false, std::memory_order_release);
 		}
 	}
 

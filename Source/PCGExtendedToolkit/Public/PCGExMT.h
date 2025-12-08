@@ -140,12 +140,15 @@ namespace PCGExMT
 		FName GroupName = NAME_None;
 
 		// Per-handle registry for memory management
+		
 		mutable FRWLock RegistryLock;
 		TArray<TWeakPtr<IAsyncHandle>> Registry;
 
 		mutable FRWLock TokenLock;
 		TArray<TSharedPtr<FAsyncToken>> Tokens;
 
+		
+		std::atomic<bool> bCleaning{false};
 		std::atomic<int32> PendingRegistrations{0};
 		std::atomic<int32> ExpectedCount{0};
 		std::atomic<int32> StartedCount{0};

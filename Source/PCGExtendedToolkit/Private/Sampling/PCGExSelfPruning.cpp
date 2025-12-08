@@ -120,6 +120,8 @@ namespace PCGExSelfPruning
 		{
 			TSharedPtr<PCGExSorting::FPointSorter> Sorter = MakeShared<PCGExSorting::FPointSorter>(Context, PointDataFacade, PCGExSorting::GetSortingRules(Context, PCGExSorting::SourceSortingRules));
 			Sorter->SortDirection = Settings->SortDirection;
+			
+			PCGEX_SHARED_CONTEXT(Context->GetOrCreateHandle())
 			if (Sorter->Init(Context)) { Order.Sort([&](const int32 A, const int32 B) { return Sorter->Sort(A, B); }); }
 
 			if (Settings->bRandomize)

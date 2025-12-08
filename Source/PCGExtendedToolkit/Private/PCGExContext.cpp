@@ -90,7 +90,7 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutputComplex);
 
-	check(WorkHandle.IsValid())
+	//check(WorkHandle.IsValid())
 
 	if (!IsInGameThread())
 	{
@@ -336,6 +336,8 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 	// We're the processor - handle all pending completions
 	do
 	{
+		if (IsWorkCancelled()) { return; }
+		
 		// Clear pending BEFORE processing
 		// If new work completes during processing, the flag gets set again
 		PendingCompletions.store(false, std::memory_order_release);
