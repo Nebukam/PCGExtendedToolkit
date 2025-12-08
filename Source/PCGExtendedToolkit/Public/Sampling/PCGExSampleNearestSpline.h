@@ -539,6 +539,5 @@ namespace PCGExSampleNearestSpline
 		virtual void OnPointsProcessingComplete() override;
 
 		virtual void CompleteWork() override;
-		virtual void Write() override;
 	};
 }

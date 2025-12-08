@@ -492,7 +492,6 @@ namespace PCGExSampleNearestPath
 		virtual void OnPointsProcessingComplete() override;
 
 		virtual void CompleteWork() override;
-		virtual void Write() override;
 
 		virtual void Cleanup() override;
 	};

@@ -186,7 +186,7 @@ bool FPCGExSampleNearestSplineElement::AdvanceWork(FPCGExContext* InContext, con
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 			{
-				if (Settings->bPruneFailedSamples) { NewBatch->bRequiresWriteStep = true; }
+				
 			}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to split."));
@@ -367,7 +367,7 @@ namespace PCGExSampleNearestSpline
 				double LocalRangeMin = BaseRangeMin;
 				double LocalRangeMax = BaseRangeMax;
 				double DepthRange = Settings->DepthRange;
-
+				
 				if (Settings->bSplineScalesRanges)
 				{
 					const FVector S = Transform.GetScale3D();
@@ -580,18 +580,17 @@ namespace PCGExSampleNearestSpline
 				for (PCGExPolyPath::FSample& TargetInfos : Samples)
 				{
 					const double Weight = Context->WeightCurve->Eval(Stats.GetRangeRatio(TargetInfos.Distance));
-					if (Weight == 0) { continue; }
 					ProcessTargetInfos(TargetInfos, Weight);
 				}
 			}
-
+			
 			// Compound never got updated, meaning we couldn't find target in range
 			if (!NumSampled)
 			{
 				SamplingFailed(Index, Depth);
 				continue;
 			}
-			
+
 			if (TotalWeight != 0) // Dodge NaN
 			{
 				//WeightedUp /= TotalWeight;
@@ -642,42 +641,41 @@ namespace PCGExSampleNearestSpline
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
-		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
-
-		MaxDistance = MaxDistanceValue->Max();
-
-		const int32 NumPoints = PointDataFacade->GetNum();
-
-		if (Settings->bOutputOneMinusDistance)
+		if (Settings->bOutputNormalizedDistance && DistanceWriter)
 		{
-			for (int i = 0; i < NumPoints; i++)
+			MaxDistance = MaxDistanceValue->Max();
+
+			const int32 NumPoints = PointDataFacade->GetNum();
+
+			if (Settings->bOutputOneMinusDistance)
 			{
-				const double D = DistanceWriter->GetValue(i);
-				DistanceWriter->SetValue(i, (1 - (D / MaxDistance)) * Settings->DistanceScale);
+				for (int i = 0; i < NumPoints; i++)
+				{
+					const double D = DistanceWriter->GetValue(i);
+					DistanceWriter->SetValue(i, (1 - (D / MaxDistance)) * Settings->DistanceScale);
+				}
+			}
+			else
+			{
+				for (int i = 0; i < NumPoints; i++)
+				{
+					const double D = DistanceWriter->GetValue(i);
+					DistanceWriter->SetValue(i, (D / MaxDistance) * Settings->DistanceScale);
+				}
 			}
 		}
-		else
-		{
-			for (int i = 0; i < NumPoints; i++)
-			{
-				const double D = DistanceWriter->GetValue(i);
-				DistanceWriter->SetValue(i, (D / MaxDistance) * Settings->DistanceScale);
-			}
-		}
-	}
-
-	void FProcessor::CompleteWork()
-	{
+		
 		PointDataFacade->WriteFastest(AsyncManager);
 
 		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasSuccessesTag); }
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasNoSuccessesTag); }
 	}
 
-	void FProcessor::Write()
+	void FProcessor::CompleteWork()
 	{
 		if (Settings->bPruneFailedSamples) { (void)PointDataFacade->Source->Gather(SamplingMask); }
 	}
+
 }
 
 #undef LOCTEXT_NAMESPACE
