@@ -3,7 +3,6 @@
 
 #include "Graph/Edges/PCGExFilterVtx.h"
 
-#include "PCGExLabels.h"
 #include "PCGExMT.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointIO.h"
@@ -214,10 +213,18 @@ namespace PCGExFilterVtx
 	void FProcessor::ProcessNodes(const PCGExMT::FScope& Scope)
 	{
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+		TArray<PCGExCluster::FEdge>& Edges = *Cluster->Edges.Get();
+
+		const bool bNodeInvalidateEdges = Settings->bNodeInvalidateEdges;
+
 		PCGEX_SCOPE_LOOP(Index)
 		{
 			PCGExCluster::FNode& Node = Nodes[Index];
 			Node.bValid = VtxFiltersManager->Test(Node) ? !Settings->bInvert : Settings->bInvert;
+			if (!Node.bValid && bNodeInvalidateEdges)
+			{
+				for (const PCGExGraph::FLink& Lk : Node.Links) { FPlatformAtomics::InterlockedExchange(&Edges[Lk.Edge].bValid, 0); }
+			}
 		}
 	}
 
@@ -295,6 +302,7 @@ namespace PCGExFilterVtx
 			Cluster->GetValidEdges(ValidEdges);
 
 			if (ValidEdges.IsEmpty()) { return; }
+			ValidEdges.Sort();
 
 			GraphBuilder->Graph->InsertEdges(ValidEdges);
 		}
@@ -318,6 +326,7 @@ namespace PCGExFilterVtx
 				ReadIndices.SetNumUninitialized(NumNodes);
 				for (int i = 0; i < NumNodes; i++) { ReadIndices[i] = Nodes[i].PointIndex; }
 
+				ReadIndices.Sort();
 				OutIO->InheritPoints(ReadIndices, 0);
 
 				return;
@@ -337,6 +346,7 @@ namespace PCGExFilterVtx
 			auto GatherNodes = [&](const TSharedPtr<PCGExData::FPointIO>& IO, const bool bValid)
 			{
 				Cluster->GatherNodesPointIndices(ReadIndices, bValid);
+				ReadIndices.Sort();
 				(void)PCGEx::SetNumPointsAllocated(IO->GetOut(), ReadIndices.Num());
 				IO->InheritPoints(ReadIndices, 0);
 			};

@@ -116,6 +116,8 @@ namespace PCGExGraph
 		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(Start, End); }
 
 		FORCEINLINE uint32 GetTypeHash(const FLink& Key) { return HashCombineFast(Key.Node, Key.Edge); }
+		
+		FORCEINLINE bool operator<(const FEdge& Other) const { return H64U() < Other.H64U(); }
 	};
 
 	void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, PCGExCommon::DataIDType& OutId);
