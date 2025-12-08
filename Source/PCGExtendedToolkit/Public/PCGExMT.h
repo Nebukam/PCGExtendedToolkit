@@ -147,8 +147,6 @@ namespace PCGExMT
 		mutable FRWLock TokenLock;
 		TArray<TSharedPtr<FAsyncToken>> Tokens;
 
-		
-		std::atomic<bool> bCleaning{false};
 		std::atomic<int32> PendingRegistrations{0};
 		std::atomic<int32> ExpectedCount{0};
 		std::atomic<int32> StartedCount{0};

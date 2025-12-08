@@ -213,40 +213,37 @@ namespace PCGExMT
 
 	void IAsyncMultiHandle::ClearRegistry(const bool bCancel)
 	{
-		bool Expected = false;
-		if (bCleaning.compare_exchange_strong(Expected, true, std::memory_order_acq_rel))
+		TArray<TSharedPtr<FAsyncToken>> LocalTokens;
+
 		{
-			if (bCancel)
-			{
-				TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
+			FWriteScopeLock WriteLock(TokenLock);
+			LocalTokens = MoveTemp(Tokens); // Move tokens so they're cancelled outside lock
+			Tokens.Empty();
+		}
 
+		if (bCancel)
+		{
+			TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
+
+			{
+				FWriteScopeLock WriteLock(RegistryLock);
+				HandlesToCancel.Reserve(Registry.Num());
+				for (const TWeakPtr<IAsyncHandle>& Weak : Registry)
 				{
-					FWriteScopeLock WriteLock(RegistryLock);
-					HandlesToCancel.Reserve(Registry.Num());
-					for (const TWeakPtr<IAsyncHandle>& Weak : Registry)
-					{
-						if (TSharedPtr<IAsyncHandle> Handle = Weak.Pin()) { HandlesToCancel.Add(Handle); }
-					}
-					Registry.Empty();
+					if (TSharedPtr<IAsyncHandle> Handle = Weak.Pin()) { HandlesToCancel.Add(Handle); }
 				}
-
-				// Cancel outside locks
-				for (const TSharedPtr<IAsyncHandle>& Handle : HandlesToCancel) { Handle->Cancel(); }
+				Registry.Empty();
 			}
-			else
+
+			// Cancel outside locks
+			for (const TSharedPtr<IAsyncHandle>& Handle : HandlesToCancel) { Handle->Cancel(); }
+		}
+		else
+		{
 			{
-				{
-					FWriteScopeLock WriteLock(RegistryLock);
-					Registry.Empty();
-				}
+				FWriteScopeLock WriteLock(RegistryLock);
+				Registry.Empty();
 			}
-
-			{
-				FWriteScopeLock WriteLock(TokenLock);
-				Tokens.Empty();
-			}
-
-			bCleaning.store(false, std::memory_order_release);
 		}
 	}
 
@@ -462,8 +459,6 @@ namespace PCGExMT
 		// Don't call regular flow on cancellation, this is scorched eath.
 		// Execution has been cancelled, we just need to cancel all ongoing tasks
 
-		const bool IsResetting = bResetting.load(std::memory_order_acquire);
-
 		bool Expected = false;
 		if (!bCancelled.compare_exchange_strong(Expected, true, std::memory_order_acq_rel)) { return; }
 
@@ -489,28 +484,21 @@ namespace PCGExMT
 		{
 			PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::Reset"));
 
-			TArray<TWeakPtr<IAsyncHandle>> LocalRegistry;
-			TArray<TSharedPtr<FTaskGroup>> LocalGroups;
-			TArray<TSharedPtr<FAsyncToken>> LocalTokens;
-
 			{
 				FWriteScopeLock WriteLock(RegistryLock);
-				LocalRegistry = MoveTemp(Registry);
 				Registry.Empty();
 			}
 
 			{
 				FWriteScopeLock WriteLock(GroupsLock);
-				LocalGroups = MoveTemp(Groups);
 				Groups.Empty();
 			}
 
 			{
 				FWriteScopeLock WriteLock(TokenLock);
-				LocalTokens = MoveTemp(Tokens);
 				Tokens.Empty();
 			}
-			
+
 			// Reset counters
 			ExpectedCount.store(0, std::memory_order_release);
 			StartedCount.store(0, std::memory_order_release);
@@ -576,8 +564,7 @@ namespace PCGExMT
 	{
 		if (!CanScheduleWork()) { return; }
 
-		PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::LaunchTask : [%d|%s]"), InTask->HandleIdx,
-		                  *InTask->DEBUG_HandleId());
+		PCGEX_MANAGER_LOG(LogTemp, Warning, TEXT("FTaskManager::LaunchTask : [%d|%s]"), InTask->HandleIdx, *InTask->DEBUG_HandleId());
 		PCGEX_SHARED_THIS_DECL
 
 		// If task doesn't have a parent, register with root
@@ -638,48 +625,45 @@ namespace PCGExMT
 	void FTaskManager::ClearRegistry(const bool bCancel)
 	{
 		bool Expected = false;
-		if (bCleaning.compare_exchange_strong(Expected, true, std::memory_order_acq_rel))
+
+		if (bCancel)
 		{
-			if (bCancel)
+			TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
+
 			{
-				TArray<TSharedPtr<IAsyncHandle>> HandlesToCancel;
+				FWriteScopeLock WriteLock(RegistryLock);
 
-				{
-					FWriteScopeLock WriteLock(RegistryLock);
+				HandlesToCancel.Reserve(Registry.Num() + Groups.Num());
+				for (const TWeakPtr<IAsyncHandle>& Weak : Registry) { if (TSharedPtr<IAsyncHandle> Handle = Weak.Pin()) { HandlesToCancel.Add(Handle); } }
 
-					HandlesToCancel.Reserve(Registry.Num() + Groups.Num());
-					for (const TWeakPtr<IAsyncHandle>& Weak : Registry)
-					{
-						if (TSharedPtr<IAsyncHandle> Handle = Weak.Pin()) { HandlesToCancel.Add(Handle); }
-					}
-
-					Registry.Empty();
-				}
-
-				{
-					FWriteScopeLock WriteLock(TokenLock);
-					Tokens.Empty();
-				}
-
-				{
-					FWriteScopeLock WriteLock(GroupsLock);
-					for (const TSharedPtr<FTaskGroup>& Group : Groups) { HandlesToCancel.Add(Group); }
-					Groups.Empty();
-				}
-
-				// Cancel outside locks
-				for (const TSharedPtr<IAsyncHandle>& Handle : HandlesToCancel) { Handle->Cancel(); }
+				Registry.Empty();
 			}
-			else
+
+			TArray<TSharedPtr<FAsyncToken>> LocalTokens;
+
 			{
-				IAsyncMultiHandle::ClearRegistry(false);
-
-				{
-					FWriteScopeLock WriteLock(GroupsLock);
-					Groups.Empty();
-				}
+				FWriteScopeLock WriteLock(TokenLock);
+				LocalTokens = MoveTemp(Tokens); // Move tokens so they're cancelled outside lock
+				Tokens.Empty();
 			}
-			bCleaning.store(false, std::memory_order_release);
+
+			{
+				FWriteScopeLock WriteLock(GroupsLock);
+				for (const TSharedPtr<FTaskGroup>& Group : Groups) { HandlesToCancel.Add(Group); }
+				Groups.Empty();
+			}
+
+			// Cancel outside locks
+			for (const TSharedPtr<IAsyncHandle>& Handle : HandlesToCancel) { Handle->Cancel(); }
+		}
+		else
+		{
+			IAsyncMultiHandle::ClearRegistry(false);
+
+			{
+				FWriteScopeLock WriteLock(GroupsLock);
+				Groups.Empty();
+			}
 		}
 	}
 
