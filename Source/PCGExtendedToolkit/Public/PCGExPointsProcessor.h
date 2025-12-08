@@ -144,4 +144,5 @@ protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(PointsProcessor)
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual void InitializeData(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 };

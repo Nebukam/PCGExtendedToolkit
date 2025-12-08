@@ -184,6 +184,9 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 	const UPCGExSettings* InSettings = Context->GetInputSettings<UPCGExSettings>();
 	check(InSettings);
 
+	if (InContext->IsInitialExecution()) { InitializeData(InContext, InSettings); }
+
+	/*
 	if (!IsInGameThread() && InContext->ExecutionPolicy == FPCGExContext::EExecutionPolicy::NoPause)
 	{
 		if (AdvanceWork(InContext, InSettings)) { return true; }
@@ -199,8 +202,13 @@ bool IPCGExElement::ExecuteInternal(FPCGContext* Context) const
 			}, false);
 		return true;
 	}
+	*/
 
 	return AdvanceWork(InContext, InSettings);
+}
+
+void IPCGExElement::InitializeData(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
+{
 }
 
 bool IPCGExElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
@@ -210,6 +218,8 @@ bool IPCGExElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* 
 
 void IPCGExElement::CompleteWork(FPCGExContext* InContext) const
 {
+	const UPCGExSettings* InSettings = InContext->GetInputSettings<UPCGExSettings>();
+	check(InSettings);
 }
 
 #undef PCGEX_NO_PAUSE

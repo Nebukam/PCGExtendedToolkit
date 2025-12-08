@@ -58,7 +58,7 @@ bool FPCGExFindClusterHullElement::AdvanceWork(FPCGExContext* InContext, const U
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
 			{
-				// NewBatch->bRequiresWriteStep = true;
+				NewBatch->bSkipCompletion = true;
 				NewBatch->SetProjectionDetails(Settings->ProjectionDetails);
 			}))
 		{

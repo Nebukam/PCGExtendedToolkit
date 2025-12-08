@@ -308,11 +308,7 @@ namespace PCGExMT
 	void IAsyncMultiHandle::AssertEmptyThread(const int32 NumIterations) const
 	{
 		const FTaskManager* RootPtr = Root.IsValid() ? Root.Pin().Get() : static_cast<const FTaskManager*>(this);
-		UE_LOG(LogPCGEx, Error,
-		       TEXT(
-			       "[%s >>] StartRanges: NumIterations = %i - Graph will never finish! Enable bAssertOnEmptyThread for stack trace."
-		       ), RootPtr ? *GetNameSafe(RootPtr->GetContext()->GetInputSettings<UPCGExSettings>()) : TEXT(
-			       "UNKNOWN NODE"), NumIterations);
+		UE_LOG(LogPCGEx, Error, TEXT( "[%s >>] StartRanges: NumIterations = %i - Graph will never finish! Enable bAssertOnEmptyThread for stack trace." ), RootPtr ? *GetNameSafe(RootPtr->GetContext()->GetInputSettings<UPCGExSettings>()) : TEXT( "UNKNOWN NODE"), NumIterations);
 		if (GetDefault<UPCGExGlobalSettings>()->bAssertOnEmptyThread) { ensure(false); }
 	}
 

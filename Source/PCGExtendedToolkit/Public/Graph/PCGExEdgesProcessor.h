@@ -158,5 +158,6 @@ class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsPr
 protected:
 	PCGEX_ELEMENT_CREATE_CONTEXT(EdgesProcessor)
 	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual void InitializeData(FPCGExContext* InContext, const UPCGExSettings* InSettings) const override;
 	virtual void OnContextInitialized(FPCGExContext* InContext) const override;
 };

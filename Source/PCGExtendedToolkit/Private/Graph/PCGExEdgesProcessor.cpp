@@ -358,7 +358,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	Context->MainEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->MainEdges->OutputPin = PCGExGraph::OutputEdgesLabel;
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
-	Context->MainEdges->Initialize(Sources, Settings->GetEdgeOutputInitMode());
+	Context->MainEdges->Initialize(Sources);
 
 	if (!Context->ClusterDataLibrary->Build(Context->MainPoints, Context->MainEdges))
 	{
@@ -378,6 +378,18 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 	}
 
 	return true;
+}
+
+void FPCGExEdgesProcessorElement::InitializeData(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
+{
+	FPCGExPointsProcessorElement::InitializeData(InContext, InSettings);
+	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
+	
+	PCGExData::EIOInit InitMode = Settings->GetEdgeOutputInitMode();
+	if (InitMode != PCGExData::EIOInit::NoInit)
+	{
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainEdges->Pairs) { IO->InitializeOutput(InitMode); }
+	}
 }
 
 void FPCGExEdgesProcessorElement::OnContextInitialized(FPCGExContext* InContext) const

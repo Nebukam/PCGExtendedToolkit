@@ -90,7 +90,7 @@ void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutputComplex);
 
-	//check(WorkHandle.IsValid())
+	check(WorkHandle.IsValid())
 
 	if (!IsInGameThread())
 	{
@@ -296,7 +296,6 @@ void FPCGExContext::SetState(const PCGExCommon::ContextState StateId)
 {
 	PCGExCommon::ContextState OldState = CurrentState.load(std::memory_order_acquire);
 	CurrentState.store(StateId, std::memory_order_release);
-	//if (OldState == StateId) { UE_LOG(LogPCGEx, Warning, TEXT("Repeat SetState : %llu"), StateId); }
 }
 
 void FPCGExContext::Done()

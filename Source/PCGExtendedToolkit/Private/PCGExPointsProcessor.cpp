@@ -237,7 +237,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->GetMainAcceptMultipleData())
 	{
-		Context->MainPoints->Initialize(Sources, Settings->GetMainOutputInitMode());
+		Context->MainPoints->Initialize(Sources);
 	}
 	else
 	{
@@ -268,6 +268,20 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	}
 
 	return true;
+}
+
+void FPCGExPointsProcessorElement::InitializeData(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
+{
+	IPCGExElement::InitializeData(InContext, InSettings);
+
+	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
+	PCGEX_SETTINGS(PointsProcessor)
+
+	PCGExData::EIOInit InitMode = Settings->GetMainOutputInitMode();
+	if (InitMode != PCGExData::EIOInit::NoInit)
+	{
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : Context->MainPoints->Pairs) { IO->InitializeOutput(InitMode); }
+	}
 }
 
 #undef LOCTEXT_NAMESPACE
