@@ -208,7 +208,6 @@ bool FPCGExSampleNearestPointElement::AdvanceWork(FPCGExContext* InContext, cons
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
 				{
-					NewBatch->bRequiresWriteStep = Settings->bPruneFailedSamples;
 				}))
 			{
 				Context->CancelExecution(TEXT("Could not find any points to sample."));
@@ -530,32 +529,30 @@ namespace PCGExSampleNearestPoint
 
 	void FProcessor::OnPointsProcessingComplete()
 	{
-		if (!Settings->bOutputNormalizedDistance || !DistanceWriter) { return; }
-
-		MaxDistance = MaxDistanceValue->Max();
-
-		const int32 NumPoints = PointDataFacade->GetNum();
-
-		if (Settings->bOutputOneMinusDistance)
+		if (Settings->bOutputNormalizedDistance && DistanceWriter)
 		{
-			for (int i = 0; i < NumPoints; i++)
+			MaxDistance = MaxDistanceValue->Max();
+
+			const int32 NumPoints = PointDataFacade->GetNum();
+
+			if (Settings->bOutputOneMinusDistance)
 			{
-				const double D = DistanceWriter->GetValue(i);
-				DistanceWriter->SetValue(i, (1 - (D / MaxDistance)) * Settings->DistanceScale);
+				for (int i = 0; i < NumPoints; i++)
+				{
+					const double D = DistanceWriter->GetValue(i);
+					DistanceWriter->SetValue(i, (1 - (D / MaxDistance)) * Settings->DistanceScale);
+				}
+			}
+			else
+			{
+				for (int i = 0; i < NumPoints; i++)
+				{
+					const double D = DistanceWriter->GetValue(i);
+					DistanceWriter->SetValue(i, (D / MaxDistance) * Settings->DistanceScale);
+				}
 			}
 		}
-		else
-		{
-			for (int i = 0; i < NumPoints; i++)
-			{
-				const double D = DistanceWriter->GetValue(i);
-				DistanceWriter->SetValue(i, (D / MaxDistance) * Settings->DistanceScale);
-			}
-		}
-	}
 
-	void FProcessor::CompleteWork()
-	{
 		if (UnionBlendOpsManager) { UnionBlendOpsManager->Cleanup(Context); }
 		PointDataFacade->WriteFastest(AsyncManager);
 
@@ -563,9 +560,9 @@ namespace PCGExSampleNearestPoint
 		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->AddRaw(Settings->HasNoSuccessesTag); }
 	}
 
-	void FProcessor::Write()
+	void FProcessor::CompleteWork()
 	{
-		(void)PointDataFacade->Source->Gather(SamplingMask);
+		if (Settings->bPruneFailedSamples) { (void)PointDataFacade->Source->Gather(SamplingMask); }
 	}
 
 	void FProcessor::Cleanup()
