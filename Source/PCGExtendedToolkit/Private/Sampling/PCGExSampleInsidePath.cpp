@@ -365,8 +365,7 @@ namespace PCGExSampleInsidePath
 			}
 		};
 
-		Context->TargetsHandler->FindElementsWithBoundsTest(
-			SampleBox, SampleTarget, &IgnoreList);
+		Context->TargetsHandler->FindElementsWithBoundsTest(SampleBox, SampleTarget, &IgnoreList);
 
 		if (Union->IsEmpty())
 		{

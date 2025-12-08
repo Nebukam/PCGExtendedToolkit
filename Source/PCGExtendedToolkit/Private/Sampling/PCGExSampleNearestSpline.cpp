@@ -518,6 +518,13 @@ namespace PCGExSampleNearestSpline
 
 			Depth /= DepthSamples;
 
+			// Compound never got updated, meaning we couldn't find target in range
+			if (Stats.UpdateCount <= 0)
+			{
+				SamplingFailed(Index, Depth);
+				continue;
+			}
+
 			// Compute individual target weight
 			if (Settings->WeightMethod == EPCGExRangeType::FullRange && BaseRangeMax > 0)
 			{
@@ -576,9 +583,9 @@ namespace PCGExSampleNearestSpline
 					ProcessTargetInfos(TargetInfos, Weight);
 				}
 			}
-			
+
 			// Compound never got updated, meaning we couldn't find target in range
-			if (Stats.UpdateCount <= 0)
+			if (!NumSampled)
 			{
 				SamplingFailed(Index, Depth);
 				continue;
