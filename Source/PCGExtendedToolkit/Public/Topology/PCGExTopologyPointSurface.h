@@ -8,8 +8,6 @@
 #include "PCGExTopology.h"
 #include "Data/PCGDynamicMeshData.h"
 
-#include "Geometry/PCGExGeo.h"
-
 #include "PCGExTopologyPointSurface.generated.h"
 
 /**
@@ -48,6 +46,10 @@ public:
 	/** Topology settings. Some settings will be ignored based on selected output mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTopologyDetails Topology;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
+	bool bQuietBadVerticesWarning = false;
 
 private:
 	friend class FPCGExTopologyPointSurfaceElement;
