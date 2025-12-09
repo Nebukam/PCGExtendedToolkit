@@ -269,6 +269,7 @@ bool FPCGExEdgesProcessorContext::StartProcessingClusters(FBatchProcessingValida
 	if (!bDaisyChainClusterBatches)
 	{
 		SetState(PCGExClusterMT::MTState_ClusterProcessing);
+		PCGExMT::FSchedulingScope AsyncScope(GetAsyncManager());
 		for (const TSharedPtr<PCGExClusterMT::IBatch>& Batch : Batches)
 		{
 			PCGExClusterMT::ScheduleBatch(GetAsyncManager(), Batch, bScopedIndexLookupBuild);
@@ -386,7 +387,7 @@ void FPCGExEdgesProcessorElement::InitializeData(FPCGExContext* InContext, const
 {
 	FPCGExPointsProcessorElement::InitializeData(InContext, InSettings);
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
-	
+
 	PCGExData::EIOInit InitMode = Settings->GetEdgeOutputInitMode();
 	if (InitMode != PCGExData::EIOInit::NoInit)
 	{
