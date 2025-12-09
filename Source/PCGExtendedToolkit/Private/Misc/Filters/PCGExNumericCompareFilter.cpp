@@ -16,9 +16,7 @@ PCGEX_SETTING_VALUE_IMPL(FPCGExNumericCompareFilterConfig, OperandB, double, Com
 
 bool UPCGExNumericCompareFilterFactory::DomainCheck()
 {
-	return
-		PCGExHelpers::IsDataDomainAttribute(Config.OperandA) &&
-		(Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB));
+	return PCGExHelpers::IsDataDomainAttribute(Config.OperandA) && (Config.CompareAgainst == EPCGExInputValueType::Constant || PCGExHelpers::IsDataDomainAttribute(Config.OperandB));
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExNumericCompareFilterFactory::CreateFilter() const
@@ -75,9 +73,7 @@ bool PCGExPointFilter::FNumericCompareFilter::Test(const TSharedPtr<PCGExData::F
 	double B = 0;
 
 	if (!PCGExDataHelpers::TryReadDataValue(IO, TypedFilterFactory->Config.OperandA, A, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
-	if (!PCGExDataHelpers::TryGetSettingDataValue(
-		IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB,
-		TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
+	if (!PCGExDataHelpers::TryGetSettingDataValue(IO, TypedFilterFactory->Config.CompareAgainst, TypedFilterFactory->Config.OperandB, TypedFilterFactory->Config.OperandBConstant, B, PCGEX_QUIET_HANDLING)) { PCGEX_QUIET_HANDLING_RET }
 
 	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 }

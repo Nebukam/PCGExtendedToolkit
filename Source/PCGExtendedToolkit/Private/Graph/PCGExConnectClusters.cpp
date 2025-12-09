@@ -76,23 +76,21 @@ bool FPCGExConnectClustersElement::AdvanceWork(FPCGExContext* InContext, const U
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries)
-			{
-				if (Entries->Entries.Num() == 1)
-				{
-					// No clusters to consolidate, just dump existing points
-					Context->CurrentIO->InitializeOutput(PCGExData::EIOInit::Forward);
-					Entries->Entries[0]->InitializeOutput(PCGExData::EIOInit::Forward);
-					return false;
-				}
+		if (!Context->StartProcessingClusters([&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries)
+		                                      {
+			                                      if (Entries->Entries.Num() == 1)
+			                                      {
+				                                      // No clusters to consolidate, just dump existing points
+				                                      Context->CurrentIO->InitializeOutput(PCGExData::EIOInit::Forward);
+				                                      Entries->Entries[0]->InitializeOutput(PCGExData::EIOInit::Forward);
+				                                      return false;
+			                                      }
 
-				return true;
-			},
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+			                                      return true;
+		                                      }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		                                      {
+			                                      NewBatch->bRequiresWriteStep = true;
+		                                      }))
 		{
 			if (!Settings->bQuietNoBridgeWarning) { PCGE_LOG(Warning, GraphAndLog, FTEXT("No bridge was created.")); }
 
@@ -140,8 +138,8 @@ namespace PCGExConnectClusters
 
 	//////// BATCH
 
-	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-		TBatch(InContext, InVtx, InEdges)
+	FBatch::FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+		: TBatch(InContext, InVtx, InEdges)
 	{
 		InVtx->InitializeOutput(PCGExData::EIOInit::Duplicate);
 	}
@@ -244,8 +242,7 @@ namespace PCGExConnectClusters
 				{
 					if (i == j || VisitedEdges.Contains(j)) { continue; }
 
-					if (const double Dist = FVector::DistSquared(Bounds[i].GetCenter(), Bounds[j].GetCenter());
-						Dist < Distance)
+					if (const double Dist = FVector::DistSquared(Bounds[i].GetCenter(), Bounds[j].GetCenter()); Dist < Distance)
 					{
 						ClosestIndex = j;
 						Distance = Dist;
@@ -337,8 +334,7 @@ namespace PCGExConnectClusters
 			FVector NodePos = ClusterA->GetPos(Node);
 			const PCGExCluster::FNode& OtherNode = NodesRefB[ClusterB->FindClosestNode(NodePos)];
 
-			if (const double Dist = FVector::DistSquared(NodePos, ClusterB->GetPos(OtherNode));
-				Dist < Distance)
+			if (const double Dist = FVector::DistSquared(NodePos, ClusterB->GetPos(OtherNode)); Dist < Distance)
 			{
 				IndexA = Node.PointIndex;
 				IndexB = OtherNode.PointIndex;

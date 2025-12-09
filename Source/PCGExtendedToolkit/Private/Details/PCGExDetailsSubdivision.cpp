@@ -53,17 +53,13 @@ int32 FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVecto
 	switch (SpaceAlign)
 	{
 	case EPCGExManhattanAlign::World:
-	case EPCGExManhattanAlign::Custom:
-		Rotation = OrientBuffer->Read(Index);
+	case EPCGExManhattanAlign::Custom: Rotation = OrientBuffer->Read(Index);
 		break;
-	case EPCGExManhattanAlign::SegmentX:
-		Rotation = FRotationMatrix::MakeFromX(DirectionAndSize).ToQuat();
+	case EPCGExManhattanAlign::SegmentX: Rotation = FRotationMatrix::MakeFromX(DirectionAndSize).ToQuat();
 		break;
-	case EPCGExManhattanAlign::SegmentY:
-		Rotation = FRotationMatrix::MakeFromY(DirectionAndSize).ToQuat();
+	case EPCGExManhattanAlign::SegmentY: Rotation = FRotationMatrix::MakeFromY(DirectionAndSize).ToQuat();
 		break;
-	case EPCGExManhattanAlign::SegmentZ:
-		Rotation = FRotationMatrix::MakeFromZ(DirectionAndSize).ToQuat();
+	case EPCGExManhattanAlign::SegmentZ: Rotation = FRotationMatrix::MakeFromZ(DirectionAndSize).ToQuat();
 		break;
 	}
 
@@ -95,10 +91,7 @@ int32 FPCGExManhattanDetails::ComputeSubdivisions(const FVector& A, const FVecto
 		FVector Maxes = PCGExMath::Abs(DirectionAndSize);
 		if (Method == EPCGExManhattanMethod::GridCount)
 		{
-			Subdivs = FVector(
-				FMath::Floor(Maxes.X / Subdivs.X),
-				FMath::Floor(Maxes.Y / Subdivs.Y),
-				FMath::Floor(Maxes.Z / Subdivs.Z));
+			Subdivs = FVector(FMath::Floor(Maxes.X / Subdivs.X), FMath::Floor(Maxes.Y / Subdivs.Y), FMath::Floor(Maxes.Z / Subdivs.Z));
 		}
 
 		const FVector StepSize = FVector::Min(Subdivs, Maxes);

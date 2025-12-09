@@ -17,11 +17,7 @@ void FPCGExEdgeDirectionSettings::RegisterBuffersDependencies(FPCGExContext* InC
 	}
 }
 
-bool FPCGExEdgeDirectionSettings::Init(
-	FPCGExContext* InContext,
-	const TSharedRef<PCGExData::FFacade>& InVtxDataFacade,
-	const TArray<FPCGExSortRuleConfig>* InSortingRules,
-	const bool bQuiet)
+bool FPCGExEdgeDirectionSettings::Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TArray<FPCGExSortRuleConfig>* InSortingRules, const bool bQuiet)
 {
 	bAscendingDesired = DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
 	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsSort)
@@ -35,11 +31,7 @@ bool FPCGExEdgeDirectionSettings::Init(
 	return true;
 }
 
-bool FPCGExEdgeDirectionSettings::InitFromParent(
-	FPCGExContext* InContext,
-	const FPCGExEdgeDirectionSettings& ParentSettings,
-	const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade,
-	const bool bQuiet)
+bool FPCGExEdgeDirectionSettings::InitFromParent(FPCGExContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade, const bool bQuiet)
 {
 	DirectionMethod = ParentSettings.DirectionMethod;
 	DirectionChoice = ParentSettings.DirectionChoice;

@@ -35,81 +35,79 @@ PCGExFactories::EPreparationResult UPCGExValueHashFilterFactory::Prepare(FPCGExC
 	TWeakPtr<FPCGContextHandle> CtxHandle = InContext->GetOrCreateHandle();
 	PCGEX_ASYNC_GROUP_CHKD_RET(AsyncManager, GrabUniqueValues, PCGExFactories::EPreparationResult::Fail)
 
-	GrabUniqueValues->OnCompleteCallback =
-		[CtxHandle, this]()
+	GrabUniqueValues->OnCompleteCallback = [CtxHandle, this]()
+	{
+		PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+
+		if (Config.Mode == EPCGExValueHashMode::Merged)
 		{
-			PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+			TSet<PCGExValueHash>& MergedSet = Hashes[0];
+			for (TSet<PCGExValueHash>& H : Hashes) { MergedSet.Append(H); }
+			Hashes.SetNum(1);
 
-			if (Config.Mode == EPCGExValueHashMode::Merged)
+			if (Hashes[0].IsEmpty())
 			{
-				TSet<PCGExValueHash>& MergedSet = Hashes[0];
-				for (TSet<PCGExValueHash>& H : Hashes) { MergedSet.Append(H); }
-				Hashes.SetNum(1);
-
-				if (Hashes[0].IsEmpty())
-				{
-					if (MissingDataPolicy == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(SharedContext.Get(), FTEXT("Merged sets are empty")) }
-					PrepResult = PCGExFactories::EPreparationResult::MissingData;
-				}
+				if (MissingDataPolicy == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(SharedContext.Get(), FTEXT("Merged sets are empty")) }
+				PrepResult = PCGExFactories::EPreparationResult::MissingData;
 			}
-			else
-			{
-				int32 WriteIndex = 0;
-				for (TSet<PCGExValueHash>& H : Hashes)
-				{
-					if (H.IsEmpty()) { continue; }
-					Hashes[WriteIndex++] = MoveTemp(H);
-				}
-
-				Hashes.SetNum(WriteIndex);
-
-				if (Hashes.IsEmpty())
-				{
-					if (MissingDataPolicy == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(SharedContext.Get(), FTEXT("Merged sets are empty")) }
-					PrepResult = PCGExFactories::EPreparationResult::MissingData;
-				}
-			}
-
-			SetSources.Empty();
-		};
-
-	GrabUniqueValues->OnIterationCallback =
-		[CtxHandle, this](const int32 Index, const PCGExMT::FScope& Scope)
+		}
+		else
 		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPolyPathFilterFactory::CreatePolyPath);
-
-			PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
-
-			Hashes[Index] = TSet<PCGExValueHash>();
-			TSet<PCGExValueHash>& UniqueValues = Hashes[Index];
-
-			TSharedPtr<PCGExData::FFacade> SourceFacade = SetSources[Index];
-
-			FPCGAttributeIdentifier Identifier;
-
-			if (Config.SetAttributeName.IsNone())
+			int32 WriteIndex = 0;
+			for (TSet<PCGExValueHash>& H : Hashes)
 			{
-				TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(SourceFacade->GetIn()->Metadata);
-				if (Infos->Attributes.IsEmpty()) { return; }
-
-				Identifier = Infos->Identities[0].Identifier;
-			}
-			else
-			{
-				Identifier = PCGEx::GetAttributeIdentifier(Config.SetAttributeName, SourceFacade->GetIn());
+				if (H.IsEmpty()) { continue; }
+				Hashes[WriteIndex++] = MoveTemp(H);
 			}
 
-			TSharedPtr<PCGExData::IBuffer> Buffer = SourceFacade->GetDefaultReadable(Identifier, PCGExData::EIOSide::In, false);
+			Hashes.SetNum(WriteIndex);
 
-			if (!Buffer)
+			if (Hashes.IsEmpty())
 			{
-				PCGEX_LOG_INVALID_ATTR_C(SharedContext.Get(), SetAttributeName, Identifier.Name)
-				return;
+				if (MissingDataPolicy == EPCGExFilterNoDataFallback::Error) { PCGEX_LOG_MISSING_INPUT(SharedContext.Get(), FTEXT("Merged sets are empty")) }
+				PrepResult = PCGExFactories::EPreparationResult::MissingData;
 			}
+		}
 
-			const int32 NumValues = Buffer->GetNumValues(PCGExData::EIOSide::In);
-			for (int i = 0; i < NumValues; i++) { UniqueValues.Add(Buffer->ReadValueHash(i)); }
-		};
+		SetSources.Empty();
+	};
+
+	GrabUniqueValues->OnIterationCallback = [CtxHandle, this](const int32 Index, const PCGExMT::FScope& Scope)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPolyPathFilterFactory::CreatePolyPath);
+
+		PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+
+		Hashes[Index] = TSet<PCGExValueHash>();
+		TSet<PCGExValueHash>& UniqueValues = Hashes[Index];
+
+		TSharedPtr<PCGExData::FFacade> SourceFacade = SetSources[Index];
+
+		FPCGAttributeIdentifier Identifier;
+
+		if (Config.SetAttributeName.IsNone())
+		{
+			TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(SourceFacade->GetIn()->Metadata);
+			if (Infos->Attributes.IsEmpty()) { return; }
+
+			Identifier = Infos->Identities[0].Identifier;
+		}
+		else
+		{
+			Identifier = PCGEx::GetAttributeIdentifier(Config.SetAttributeName, SourceFacade->GetIn());
+		}
+
+		TSharedPtr<PCGExData::IBuffer> Buffer = SourceFacade->GetDefaultReadable(Identifier, PCGExData::EIOSide::In, false);
+
+		if (!Buffer)
+		{
+			PCGEX_LOG_INVALID_ATTR_C(SharedContext.Get(), SetAttributeName, Identifier.Name)
+			return;
+		}
+
+		const int32 NumValues = Buffer->GetNumValues(PCGExData::EIOSide::In);
+		for (int i = 0; i < NumValues; i++) { UniqueValues.Add(Buffer->ReadValueHash(i)); }
+	};
 
 	GrabUniqueValues->StartIterations(SetSources.Num(), 1);
 

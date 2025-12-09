@@ -27,21 +27,17 @@ namespace PCGExHelpers
 	using FGetPaths = std::function<TArray<FSoftObjectPath>()>;
 	using FOnLoadEnd = std::function<void(const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)>;
 
-	PCGEXTENDEDTOOLKIT_API
-	void LoadBlocking_AnyThread(const FSoftObjectPath& Path);
+	PCGEXTENDEDTOOLKIT_API void LoadBlocking_AnyThread(const FSoftObjectPath& Path);
 
 	template <typename T>
-	static TObjectPtr<T> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr,
-	                                            const FSoftObjectPath& FallbackPath = nullptr)
+	static TObjectPtr<T> LoadBlocking_AnyThread(const TSoftObjectPtr<T>& SoftObjectPtr, const FSoftObjectPath& FallbackPath = nullptr)
 	{
 		// If the requested object is valid and loaded, early exit
 		TObjectPtr<T> LoadedObject = SoftObjectPtr.Get();
 		if (LoadedObject) { return LoadedObject; }
 
 		// If not, make sure it's a valid path, and if not fallback to the fallback path
-		FSoftObjectPath ToBeLoaded = SoftObjectPtr.ToSoftObjectPath().IsValid()
-			                             ? SoftObjectPtr.ToSoftObjectPath()
-			                             : FallbackPath;
+		FSoftObjectPath ToBeLoaded = SoftObjectPtr.ToSoftObjectPath().IsValid() ? SoftObjectPtr.ToSoftObjectPath() : FallbackPath;
 
 		// Make sure we have a valid path at all
 		if (!ToBeLoaded.IsValid()) { return nullptr; }
@@ -55,9 +51,7 @@ namespace PCGExHelpers
 		return TSoftObjectPtr<T>(ToBeLoaded).Get();
 	}
 
-	PCGEXTENDEDTOOLKIT_API
-	void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths);
+	PCGEXTENDEDTOOLKIT_API void LoadBlocking_AnyThread(const TSharedPtr<TSet<FSoftObjectPath>>& Paths);
 
-	PCGEXTENDEDTOOLKIT_API
-	void Load(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, FGetPaths&& GetPathsFunc, FOnLoadEnd&& OnLoadEnd);
+	PCGEXTENDEDTOOLKIT_API void Load(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, FGetPaths&& GetPathsFunc, FOnLoadEnd&& OnLoadEnd);
 }

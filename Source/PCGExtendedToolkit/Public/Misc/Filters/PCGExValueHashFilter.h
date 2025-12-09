@@ -133,9 +133,7 @@ class UPCGExValueHashFilterProviderSettings : public UPCGExFilterProviderSetting
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ValueHashFilterFactory, "Filter : Contains (Hash)", "Creates a filter definition that checks whether a given value hash is contained within a one or more set of values. Important note : this is a hash comparison, so it's highly type sensitive! Float 0 != Double 0",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ValueHashFilterFactory, "Filter : Contains (Hash)", "Creates a filter definition that checks whether a given value hash is contained within a one or more set of values. Important note : this is a hash comparison, so it's highly type sensitive! Float 0 != Double 0", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 
 protected:

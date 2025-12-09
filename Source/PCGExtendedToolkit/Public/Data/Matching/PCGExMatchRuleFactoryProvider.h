@@ -59,8 +59,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExMatchRuleOperation : public FPCGExOperation
 public:
 	virtual bool PrepareForTargets(FPCGExContext* InContext, const TSharedPtr<TArray<PCGExData::FTaggedData>>& InTargets);
 
-	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FMatchingScope& InMatchingScope) const
-	PCGEX_NOT_IMPLEMENTED_RET(Test, false);
+	virtual bool Test(const PCGExData::FConstPoint& InTargetElement, const TSharedPtr<PCGExData::FPointIO>& PointIO, const PCGExMatching::FMatchingScope& InMatchingScope) const PCGEX_NOT_IMPLEMENTED_RET(Test, false);
 
 protected:
 	TSharedPtr<TArray<PCGExData::FTaggedData>> Targets;

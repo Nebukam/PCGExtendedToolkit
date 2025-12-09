@@ -59,12 +59,10 @@ bool FPCGExFindPointOnBoundsElement::AdvanceWork(FPCGExContext* InContext, const
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				//NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			//NewBatch->bRequiresWriteStep = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points."));
 		}
@@ -74,11 +72,7 @@ bool FPCGExFindPointOnBoundsElement::AdvanceWork(FPCGExContext* InContext, const
 
 	if (Settings->OutputMode == EPCGExPointOnBoundsOutputMode::Merged)
 	{
-		PCGExFindPointOnBounds::MergeBestCandidatesAttributes(
-			Context->MergedOut,
-			Context->MainPoints->Pairs,
-			Context->BestIndices,
-			*Context->MergedAttributesInfos);
+		PCGExFindPointOnBounds::MergeBestCandidatesAttributes(Context->MergedOut, Context->MainPoints->Pairs, Context->BestIndices, *Context->MergedAttributesInfos);
 
 		(void)Context->MergedOut->StageOutput(Context);
 	}
@@ -90,11 +84,7 @@ bool FPCGExFindPointOnBoundsElement::AdvanceWork(FPCGExContext* InContext, const
 	return Context->TryComplete();
 }
 
-void PCGExFindPointOnBounds::MergeBestCandidatesAttributes(
-	const TSharedPtr<PCGExData::FPointIO>& Target,
-	const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections,
-	const TArray<int32>& BestIndices,
-	const PCGEx::FAttributesInfos& InAttributesInfos)
+void PCGExFindPointOnBounds::MergeBestCandidatesAttributes(const TSharedPtr<PCGExData::FPointIO>& Target, const TArray<TSharedPtr<PCGExData::FPointIO>>& Collections, const TArray<int32>& BestIndices, const PCGEx::FAttributesInfos& InAttributesInfos)
 {
 	UPCGMetadata* OutMetadata = Target->GetOut()->Metadata;
 
@@ -110,25 +100,21 @@ void PCGExFindPointOnBounds::MergeBestCandidatesAttributes(
 
 		for (const PCGEx::FAttributeIdentity& Identity : InAttributesInfos.Identities)
 		{
-			PCGEx::ExecuteWithRightType(
-				Identity.GetTypeId(), [&](auto DummyValue)
+			PCGEx::ExecuteWithRightType(Identity.GetTypeId(), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Identifier);
+				FPCGMetadataAttribute<T>* OutAttribute = PCGEx::TryGetMutableAttribute<T>(OutMetadata, Identity.Identifier);
+
+				if (!OutAttribute)
 				{
-					using T = decltype(DummyValue);
-					const FPCGMetadataAttribute<T>* InAttribute = InMetadata->GetConstTypedAttribute<T>(Identity.Identifier);
-					FPCGMetadataAttribute<T>* OutAttribute = PCGEx::TryGetMutableAttribute<T>(OutMetadata, Identity.Identifier);
+					OutAttribute = Target->FindOrCreateAttribute<T>(Identity.Identifier, InAttribute->GetValueFromItemKey(PCGDefaultValueKey), InAttribute->AllowsInterpolation());
+				}
 
-					if (!OutAttribute)
-					{
-						OutAttribute = Target->FindOrCreateAttribute<T>(
-							Identity.Identifier,
-							InAttribute->GetValueFromItemKey(PCGDefaultValueKey),
-							InAttribute->AllowsInterpolation());
-					}
+				if (!OutAttribute) { return; }
 
-					if (!OutAttribute) { return; }
-
-					OutAttribute->SetValue(OutKey, InAttribute->GetValueFromItemKey(InKey));
-				});
+				OutAttribute->SetValue(OutKey, InAttribute->GetValueFromItemKey(InKey));
+			});
 		}
 	}
 }

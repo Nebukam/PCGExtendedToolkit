@@ -55,20 +55,18 @@ bool FPCGExBuildDelaunayGraphElement::AdvanceWork(FPCGExContext* InContext, cons
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 4)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 4)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bRequiresWriteStep = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
 		}
@@ -94,11 +92,8 @@ namespace PCGExBuildDelaunayGraph
 	public:
 		PCGEX_ASYNC_TASK_NAME(FOutputDelaunaySites)
 
-		FOutputDelaunaySites(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                     const TSharedPtr<FProcessor>& InProcessor) :
-			FTask(),
-			PointIO(InPointIO),
-			Processor(InProcessor)
+		FOutputDelaunaySites(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<FProcessor>& InProcessor)
+			: FTask(), PointIO(InPointIO), Processor(InProcessor)
 		{
 		}
 
@@ -163,11 +158,8 @@ namespace PCGExBuildDelaunayGraph
 	public:
 		PCGEX_ASYNC_TASK_NAME(FOutputDelaunayUrquhartSites)
 
-		FOutputDelaunayUrquhartSites(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                             const TSharedPtr<FProcessor>& InProcessor) :
-			FTask(),
-			PointIO(InPointIO),
-			Processor(InProcessor)
+		FOutputDelaunayUrquhartSites(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<FProcessor>& InProcessor)
+			: FTask(), PointIO(InPointIO), Processor(InProcessor)
 		{
 		}
 

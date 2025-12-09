@@ -30,11 +30,7 @@ public:
 
 	virtual bool PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSet<FName>* IgnoreAttributeSet);
 
-	virtual void ProcessSubPoints(
-		const PCGExData::FConstPoint& From,
-		const PCGExData::FConstPoint& To,
-		PCGExData::FScope& Scope,
-		const PCGExPaths::FPathMetrics& Metrics) const;
+	virtual void ProcessSubPoints(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const;
 };
 
 /**

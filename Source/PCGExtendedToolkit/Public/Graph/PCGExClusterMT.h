@@ -194,8 +194,8 @@ namespace PCGExClusterMT
 		const TSettings* Settings = nullptr;
 
 	public:
-		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			IProcessor(InVtxDataFacade, InEdgeDataFacade)
+		TProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: IProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -337,13 +337,11 @@ namespace PCGExClusterMT
 		}
 
 	public:
-		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			IBatch(InContext, InVtx, InEdges)
+		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: IBatch(InContext, InVtx, InEdges)
 		{
 		}
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild);
-
+	PCGEXTENDEDTOOLKIT_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch, const bool bScopedIndexLookupBuild);
 }

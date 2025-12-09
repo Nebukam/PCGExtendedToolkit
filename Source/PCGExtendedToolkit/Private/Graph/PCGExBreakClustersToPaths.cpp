@@ -51,20 +51,18 @@ bool FPCGExBreakClustersToPathsElement::AdvanceWork(FPCGExContext* InContext, co
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			if (Settings->Winding != EPCGExWindingMutation::Unchanged) { NewBatch->SetProjectionDetails(Settings->ProjectionDetails); }
+			if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 			{
-				if (Settings->Winding != EPCGExWindingMutation::Unchanged) { NewBatch->SetProjectionDetails(Settings->ProjectionDetails); }
-				if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
-				{
-					NewBatch->VtxFilterFactories = &Context->FilterFactories;
-				}
-				else
-				{
-					NewBatch->bSkipCompletion = true;
-				}
-			}))
+				NewBatch->VtxFilterFactories = &Context->FilterFactories;
+			}
+			else
+			{
+				NewBatch->bSkipCompletion = true;
+			}
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -92,19 +90,17 @@ namespace PCGExBreakClustersToPaths
 			{
 				PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FilterBreakpoints)
 
-				FilterBreakpoints->OnCompleteCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE]()
-					{
-						PCGEX_ASYNC_THIS
-						This->BuildChains();
-					};
+				FilterBreakpoints->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+				{
+					PCGEX_ASYNC_THIS
+					This->BuildChains();
+				};
 
-				FilterBreakpoints->OnSubLoopStartCallback =
-					[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-					{
-						PCGEX_ASYNC_THIS
-						This->FilterVtxScope(Scope);
-					};
+				FilterBreakpoints->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+				{
+					PCGEX_ASYNC_THIS
+					This->FilterVtxScope(Scope);
+				};
 
 				FilterBreakpoints->StartSubLoops(NumNodes, GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize());
 			}

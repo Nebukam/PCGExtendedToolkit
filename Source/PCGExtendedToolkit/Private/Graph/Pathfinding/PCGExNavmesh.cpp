@@ -22,17 +22,11 @@ namespace PCGExNavmesh
 
 		if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return; }
 
-		FPathFindingQuery PathFindingQuery = FPathFindingQuery(
-			World, *NavSys->GetDefaultNavDataInstance(),
-			SeedGoalPair.SeedPosition, SeedGoalPair.GoalPosition, nullptr, nullptr,
-			TNumericLimits<FVector::FReal>::Max(),
-			InContext->bRequireNavigableEndLocation);
+		FPathFindingQuery PathFindingQuery = FPathFindingQuery(World, *NavSys->GetDefaultNavDataInstance(), SeedGoalPair.SeedPosition, SeedGoalPair.GoalPosition, nullptr, nullptr, TNumericLimits<FVector::FReal>::Max(), InContext->bRequireNavigableEndLocation);
 
 		PathFindingQuery.NavAgentProperties = InContext->NavAgentProperties;
 
-		const FPathFindingResult Result = NavSys->FindPathSync(
-			InContext->NavAgentProperties, PathFindingQuery,
-			InContext->PathfindingMode == EPCGExPathfindingNavmeshMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
+		const FPathFindingResult Result = NavSys->FindPathSync(InContext->NavAgentProperties, PathFindingQuery, InContext->PathfindingMode == EPCGExPathfindingNavmeshMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
 
 
 		if (Result.Result == ENavigationQueryResult::Type::Success)

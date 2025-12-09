@@ -18,12 +18,7 @@ namespace PCGExGeoTasks
 	class FTransformPointIO final : public PCGExMT::FPCGExIndexedTask
 	{
 	public:
-		FTransformPointIO(
-			const int32 InTaskIndex,
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO,
-			FPCGExTransformDetails* InTransformDetails,
-			bool bAllocate = false);
+		FTransformPointIO(const int32 InTaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO, FPCGExTransformDetails* InTransformDetails, bool bAllocate = false);
 
 		TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<PCGExData::FPointIO> ToBeTransformedIO;

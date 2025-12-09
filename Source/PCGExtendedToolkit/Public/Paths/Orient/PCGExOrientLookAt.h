@@ -45,35 +45,24 @@ public:
 	{
 		switch (LookAt)
 		{
-		default:
-		case EPCGExOrientLookAtMode::NextPoint:
-			return LookAtAxis(Point.GetTransform(), Path->DirToNextPoint(Point.Index), DirectionMultiplier);
-		case EPCGExOrientLookAtMode::PreviousPoint:
-			return LookAtAxis(Point.GetTransform(), Path->DirToPrevPoint(Point.Index), DirectionMultiplier);
-		case EPCGExOrientLookAtMode::Direction:
-			return LookAtDirection(Point.GetTransform(), Point.Index, DirectionMultiplier);
-		case EPCGExOrientLookAtMode::Position:
-			return LookAtPosition(Point.GetTransform(), Point.Index, DirectionMultiplier);
+		default: case EPCGExOrientLookAtMode::NextPoint: return LookAtAxis(Point.GetTransform(), Path->DirToNextPoint(Point.Index), DirectionMultiplier);
+		case EPCGExOrientLookAtMode::PreviousPoint: return LookAtAxis(Point.GetTransform(), Path->DirToPrevPoint(Point.Index), DirectionMultiplier);
+		case EPCGExOrientLookAtMode::Direction: return LookAtDirection(Point.GetTransform(), Point.Index, DirectionMultiplier);
+		case EPCGExOrientLookAtMode::Position: return LookAtPosition(Point.GetTransform(), Point.Index, DirectionMultiplier);
 		}
 	}
 
 	virtual FTransform LookAtAxis(const FTransform& InT, const FVector& InAxis, const double DirectionMultiplier) const
 	{
 		FTransform OutT = InT;
-		OutT.SetRotation(
-			PCGExMath::MakeDirection(
-				Factory->OrientAxis,
-				InAxis * DirectionMultiplier,
-				PCGExMath::GetDirection(Factory->UpAxis)));
+		OutT.SetRotation(PCGExMath::MakeDirection(Factory->OrientAxis, InAxis * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
 		return OutT;
 	}
 
 	virtual FTransform LookAtDirection(const FTransform& InT, const int32 Index, const double DirectionMultiplier) const
 	{
 		FTransform OutT = InT;
-		OutT.SetRotation(
-			PCGExMath::MakeDirection(
-				Factory->OrientAxis, LookAtGetter->Read(Index).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
+		OutT.SetRotation(PCGExMath::MakeDirection(Factory->OrientAxis, LookAtGetter->Read(Index).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
 		return OutT;
 	}
 
@@ -82,9 +71,7 @@ public:
 		FTransform OutT = InT;
 		const FVector Current = OutT.GetLocation();
 		const FVector Position = LookAtGetter->Read(Index);
-		OutT.SetRotation(
-			PCGExMath::MakeDirection(
-				Factory->OrientAxis, (Position - Current).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
+		OutT.SetRotation(PCGExMath::MakeDirection(Factory->OrientAxis, (Position - Current).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(Factory->UpAxis)));
 		return OutT;
 	}
 

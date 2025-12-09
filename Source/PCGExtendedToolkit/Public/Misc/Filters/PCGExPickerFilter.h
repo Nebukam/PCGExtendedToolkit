@@ -88,9 +88,7 @@ class UPCGExPickerFilterProviderSettings : public UPCGExFilterProviderSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		PickerFilterFactory, "Filter : Picker", "Creates a filter definition that check if the point or collection index is picked, using pickers.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(PickerFilterFactory, "Filter : Picker", "Creates a filter definition that check if the point or collection index is picked, using pickers.", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

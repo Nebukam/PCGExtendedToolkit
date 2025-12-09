@@ -441,8 +441,8 @@ namespace PCGExWritePathProperties
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -113,9 +113,7 @@ class UPCGExBitmaskFilterProviderSettings : public UPCGExFilterProviderSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		BitmaskFilterFactory, "Filter : Bitmask", "Filter using bitflag comparison.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(BitmaskFilterFactory, "Filter : Bitmask", "Filter using bitflag comparison.", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

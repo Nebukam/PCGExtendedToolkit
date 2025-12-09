@@ -15,8 +15,8 @@ struct FPCGExPickerConstantConfig : public FPCGExPickerConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExPickerConstantConfig() :
-		FPCGExPickerConfigBase()
+	FPCGExPickerConstantConfig()
+		: FPCGExPickerConfigBase()
 	{
 	}
 
@@ -49,9 +49,7 @@ class UPCGExPickerConstantSettings : public UPCGExPickerFactoryProviderSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		PickerConstant, "Picker : Constant", "A Picker that has a single value.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(PickerConstant, "Picker : Constant", "A Picker that has a single value.", FName(GetDisplayName()))
 
 #endif
 	//~End UPCGSettings

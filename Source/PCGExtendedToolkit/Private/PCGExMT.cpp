@@ -60,8 +60,7 @@ namespace PCGExMT
 		if (!InGroup) { return false; }
 
 		Group = InGroup;
-		PCGEX_TASK_LOG(LogTemp, Warning, TEXT("IAsyncHandle[#%d|%s]::SetParent to [#%d|%s]"), HandleIdx,
-		               *DEBUG_HandleId(), InGroup->HandleIdx, *InGroup->DEBUG_HandleId());
+		PCGEX_TASK_LOG(LogTemp, Warning, TEXT("IAsyncHandle[#%d|%s]::SetParent to [#%d|%s]"), HandleIdx, *DEBUG_HandleId(), InGroup->HandleIdx, *InGroup->DEBUG_HandleId());
 
 		if (!bExpected)
 		{
@@ -140,7 +139,8 @@ namespace PCGExMT
 	}
 
 	// IAsyncMultiHandle
-	IAsyncHandleGroup::IAsyncHandleGroup(const FName InName) : GroupName(InName)
+	IAsyncHandleGroup::IAsyncHandleGroup(const FName InName)
+		: GroupName(InName)
 	{
 	}
 
@@ -152,8 +152,7 @@ namespace PCGExMT
 	{
 		if (!IsAvailable()) { return false; }
 		ExpectedCount.fetch_add(Count, std::memory_order_acq_rel);
-		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[#%d|%s]::RegisterExpected +%d (%d)"), HandleIdx,
-		                *DEBUG_HandleId(), Count, ExpectedCount.load());
+		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[#%d|%s]::RegisterExpected +%d (%d)"), HandleIdx, *DEBUG_HandleId(), Count, ExpectedCount.load());
 		return true;
 	}
 
@@ -161,8 +160,7 @@ namespace PCGExMT
 	{
 		//if (!IsAvailable()) { return; }
 		StartedCount.fetch_add(1, std::memory_order_acq_rel);
-		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[#%d|%s]::NotifyStarted++ (%d)"), HandleIdx,
-		                *DEBUG_HandleId(), StartedCount.load());
+		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[#%d|%s]::NotifyStarted++ (%d)"), HandleIdx, *DEBUG_HandleId(), StartedCount.load());
 	}
 
 	void IAsyncHandleGroup::NotifyCompleted()
@@ -170,8 +168,7 @@ namespace PCGExMT
 		//if (!IsAvailable()) { return; }
 
 		CompletedCount.fetch_add(1, std::memory_order_acq_rel);
-		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[#%d|%s]::NotifyCompleted++ (%d)"), HandleIdx,
-		                *DEBUG_HandleId(), CompletedCount.load());
+		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[#%d|%s]::NotifyCompleted++ (%d)"), HandleIdx, *DEBUG_HandleId(), CompletedCount.load());
 
 		CheckCompletion();
 	}
@@ -290,6 +287,7 @@ namespace PCGExMT
 			FRegistrationGuard Guard(ThisPtr);
 
 			RegisterExpected(InHandles.Num());
+			Registry.Reserve(Registry.Num() + InHandles.Num());
 
 			for (const TSharedPtr<FTask>& Task : InHandles)
 			{
@@ -337,9 +335,7 @@ namespace PCGExMT
 	{
 		if (!IsAvailable()) { return; }
 
-		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[#%d|%s]::LaunchTask"), HandleIdx, *DEBUG_HandleId())
-
-		if (FTaskManager* Manager = GetManager())
+		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[#%d|%s]::LaunchTask"), HandleIdx, *DEBUG_HandleId()) if (FTaskManager* Manager = GetManager())
 		{
 			// Register in this handle's registry
 			const int32 Idx = RegisterTask(InTask);
@@ -354,9 +350,7 @@ namespace PCGExMT
 	void IAsyncHandleGroup::OnEnd(const bool bWasCancelled)
 	{
 		const FTaskManager* Manager = GetManager();
-		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[[%s]#%d|%s]::OnEnd(%d)"),
-		                Manager ? *GetNameSafe(Manager->GetContext()->GetInputSettings<UPCGExSettings>()) : TEXT(""),
-		                HandleIdx, *DEBUG_HandleId(), bWasCancelled)
+		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("IAsyncMultiHandle[[%s]#%d|%s]::OnEnd(%d)"), Manager ? *GetNameSafe(Manager->GetContext()->GetInputSettings<UPCGExSettings>()) : TEXT(""), HandleIdx, *DEBUG_HandleId(), bWasCancelled)
 
 		// Clear registry to free memory
 		ClearRegistry();
@@ -374,7 +368,8 @@ namespace PCGExMT
 	}
 
 	// FAsyncToken
-	FAsyncToken::FAsyncToken(const TWeakPtr<IAsyncHandleGroup>& InHandle) : Group(InHandle)
+	FAsyncToken::FAsyncToken(const TWeakPtr<IAsyncHandleGroup>& InHandle)
+		: Group(InHandle)
 	{
 		if (const TSharedPtr<IAsyncHandleGroup> Pinned = Group.Pin())
 		{
@@ -513,8 +508,7 @@ namespace PCGExMT
 		return Start();
 	}
 
-	TSharedPtr<FTaskGroup> FTaskManager::TryCreateTaskGroup(const FName& InName,
-	                                                        const TSharedPtr<IAsyncHandleGroup>& InParentHandle)
+	TSharedPtr<FTaskGroup> FTaskManager::TryCreateTaskGroup(const FName& InName, const TSharedPtr<IAsyncHandleGroup>& InParentHandle)
 	{
 		if (!CanScheduleWork()) { return nullptr; }
 
@@ -540,8 +534,7 @@ namespace PCGExMT
 		return nullptr;
 	}
 
-	bool FTaskManager::TryRegisterHandle(const TSharedPtr<IAsyncHandle>& InHandle,
-	                                     const TSharedPtr<IAsyncHandleGroup>& InParentHandle)
+	bool FTaskManager::TryRegisterHandle(const TSharedPtr<IAsyncHandle>& InHandle, const TSharedPtr<IAsyncHandleGroup>& InParentHandle)
 	{
 		if (!CanScheduleWork()) { return false; }
 
@@ -572,38 +565,33 @@ namespace PCGExMT
 			InTask->SetGroup(ThisPtr);
 		}
 
-		UE::Tasks::Launch(
-			*InTask->DEBUG_HandleId(),
-			[WeakManager = TWeakPtr<FTaskManager>(SharedThis(this)), Task = InTask]()
-			{
+		UE::Tasks::Launch(*InTask->DEBUG_HandleId(), [WeakManager = TWeakPtr<FTaskManager>(SharedThis(this)), Task = InTask]()
+		{
 #define PCGEX_CANCEL_TASK_INTERNAL Task->Cancel(); Task->Complete(); return;
 
-				const TSharedPtr<FTaskManager> Manager = WeakManager.Pin();
-				if (!Manager || !Manager->IsAvailable()) { PCGEX_CANCEL_TASK_INTERNAL }
+			const TSharedPtr<FTaskManager> Manager = WeakManager.Pin();
+			if (!Manager || !Manager->IsAvailable()) { PCGEX_CANCEL_TASK_INTERNAL }
 
+			{
+				// Retain context for the duration of the execution
+				FPCGContext::FSharedContext<FPCGExContext> SharedContext(Manager->ContextHandle);
+				if (!SharedContext.Get()) { PCGEX_CANCEL_TASK_INTERNAL }
+
+#undef PCGEX_CANCEL_TASK_INTERNAL
+
+				if (Task->Start())
 				{
-					// Retain context for the duration of the execution
-					FPCGContext::FSharedContext<FPCGExContext> SharedContext(Manager->ContextHandle);
-					if (!SharedContext.Get()) { PCGEX_CANCEL_TASK_INTERNAL }
-
-	#undef PCGEX_CANCEL_TASK_INTERNAL
-
-					if (Task->Start())
-					{
-						Task->ExecuteTask(Manager);
-						Task->Complete();
-					}
+					Task->ExecuteTask(Manager);
+					Task->Complete();
 				}
 			}
-		);
+		});
 	}
 
 	void FTaskManager::OnEnd(const bool bWasCancelled)
 	{
 		const FTaskManager* Manager = this;
-		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("FTaskManager[[%s]#%d|%s]::OnEnd(%d)"),
-		                Manager ? *GetNameSafe(Manager->GetContext()->GetInputSettings<UPCGExSettings>()) : TEXT(""),
-		                HandleIdx, *DEBUG_HandleId(), bWasCancelled)
+		PCGEX_MULTI_LOG(LogTemp, Warning, TEXT("FTaskManager[[%s]#%d|%s]::OnEnd(%d)"), Manager ? *GetNameSafe(Manager->GetContext()->GetInputSettings<UPCGExSettings>()) : TEXT(""), HandleIdx, *DEBUG_HandleId(), bWasCancelled)
 
 		// Clear registries
 		ClearRegistry();
@@ -668,12 +656,12 @@ namespace PCGExMT
 	}
 
 	// FTaskGroup
-	FTaskGroup::FTaskGroup(const FName InName) : IAsyncHandleGroup(InName)
+	FTaskGroup::FTaskGroup(const FName InName)
+		: IAsyncHandleGroup(InName)
 	{
 	}
 
-	void FTaskGroup::StartIterations(const int32 NumIterations, const int32 ChunkSize, const bool bForceSingleThreaded,
-	                                 const bool bPreparationOnly)
+	void FTaskGroup::StartIterations(const int32 NumIterations, const int32 ChunkSize, const bool bForceSingleThreaded, const bool bPreparationOnly)
 	{
 		if (!IsAvailable() || (!bPreparationOnly && !OnIterationCallback)) { return; }
 
@@ -757,13 +745,12 @@ namespace PCGExMT
 
 		TWeakPtr<FAsyncToken> TokenWeakPtr = ParentHandle->TryCreateToken(FName("ExecuteOnMainThread"));
 		PCGEX_SUBSYSTEM
-		PCGExSubsystem->RegisterBeginTickAction(
-			[TokenWeakPtr, Callback]()
-			{
-				if (!TokenWeakPtr.IsValid()) { return; }
-				Callback();
-				PCGEX_ASYNC_RELEASE_CAPTURED_TOKEN(TokenWeakPtr)
-			});
+		PCGExSubsystem->RegisterBeginTickAction([TokenWeakPtr, Callback]()
+		{
+			if (!TokenWeakPtr.IsValid()) { return; }
+			Callback();
+			PCGEX_ASYNC_RELEASE_CAPTURED_TOKEN(TokenWeakPtr)
+		});
 	}
 
 	void FTask::Launch(const TSharedPtr<FTask>& InTask, const bool bIsExpected) const
@@ -794,8 +781,7 @@ namespace PCGExMT
 		if (NumIterations != -1)
 		{
 			// Calculate next scope
-			FScope NextScope = FScope(Scope.End, FMath::Min(NumIterations - Scope.End, Scope.Count),
-			                          Scope.LoopIndex + 1);
+			FScope NextScope = FScope(Scope.End, FMath::Min(NumIterations - Scope.End, Scope.Count), Scope.LoopIndex + 1);
 			if (NextScope.IsValid())
 			{
 				PCGEX_MAKE_SHARED(Task, FScopeIterationTask)
@@ -828,15 +814,14 @@ namespace PCGExMT
 		}
 
 		PCGEX_SUBSYSTEM
-		PCGExSubsystem->RegisterBeginTickAction(
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				PCGEX_SUBSYSTEM
-				This->EndTime = PCGExSubsystem->GetEndTime();
-				if (!This->Execute()) { This->Schedule(); }
-				else { This->Complete(); }
-			});
+		PCGExSubsystem->RegisterBeginTickAction([PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			PCGEX_SUBSYSTEM
+			This->EndTime = PCGExSubsystem->GetEndTime();
+			if (!This->Execute()) { This->Schedule(); }
+			else { This->Complete(); }
+		});
 	}
 
 	bool IExecuteOnMainThread::Execute()

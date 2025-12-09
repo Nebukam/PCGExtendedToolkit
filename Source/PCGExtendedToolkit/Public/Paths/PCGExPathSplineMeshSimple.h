@@ -238,8 +238,8 @@ namespace PCGExPathSplineMeshSimple
 		EObjectFlags ObjectFlags = RF_NoFlags;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

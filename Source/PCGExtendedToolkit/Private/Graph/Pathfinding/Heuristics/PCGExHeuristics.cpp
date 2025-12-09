@@ -92,11 +92,7 @@ namespace PCGExHeuristics
 		for (const TSharedPtr<FPCGExHeuristicOperation>& Op : Operations) { TotalStaticWeight += Op->WeightFactor; }
 	}
 
-	double FHeuristicsHandler::GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const FLocalFeedbackHandler* LocalFeedback) const
+	double FHeuristicsHandler::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback) const
 	{
 		double GScore = 0;
 		double EWeight = TotalStaticWeight;
@@ -110,14 +106,7 @@ namespace PCGExHeuristics
 		return GScore / EWeight;
 	}
 
-	double FHeuristicsHandler::GetEdgeScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& To,
-		const PCGExGraph::FEdge& Edge,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const FLocalFeedbackHandler* LocalFeedback,
-		const TSharedPtr<PCGEx::FHashLookup>& TravelStack) const
+	double FHeuristicsHandler::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback, const TSharedPtr<PCGEx::FHashLookup>& TravelStack) const
 	{
 		double EScore = 0;
 		double EWeight = TotalStaticWeight;

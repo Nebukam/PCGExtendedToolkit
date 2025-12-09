@@ -9,16 +9,11 @@
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialNeighbors"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialNeighbors
 
-bool FPCGExVtxPropertySpecialNeighbors::PrepareForCluster(
-	FPCGExContext* InContext,
-	TSharedPtr<PCGExCluster::FCluster> InCluster,
-	const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade,
-	const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+bool FPCGExVtxPropertySpecialNeighbors::PrepareForCluster(FPCGExContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	if (!FPCGExVtxPropertyOperation::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade)) { return false; }
 
-	if (!Config.LargestNeighbor.Validate(InContext) ||
-		!Config.SmallestNeighbor.Validate(InContext))
+	if (!Config.LargestNeighbor.Validate(InContext) || !Config.SmallestNeighbor.Validate(InContext))
 	{
 		bIsValidOperation = false;
 		return false;

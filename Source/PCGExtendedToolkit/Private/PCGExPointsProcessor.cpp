@@ -257,11 +257,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->SupportsPointFilters())
 	{
-		if (const bool bRequiredFilters = Settings->RequiresPointFilters();
-			!GetInputFactories(
-				Context, Settings->GetPointFilterPin(), Context->FilterFactories,
-				Settings->GetPointFilterTypes(), bRequiredFilters)
-			&& bRequiredFilters)
+		if (const bool bRequiredFilters = Settings->RequiresPointFilters(); !GetInputFactories(Context, Settings->GetPointFilterPin(), Context->FilterFactories, Settings->GetPointFilterTypes(), bRequiredFilters) && bRequiredFilters)
 		{
 			return false;
 		}

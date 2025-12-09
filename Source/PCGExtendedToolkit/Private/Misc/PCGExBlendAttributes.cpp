@@ -31,9 +31,7 @@ bool FPCGExBlendAttributesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendAttributes)
 
-	return PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending});
+	return PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending});
 }
 
 bool FPCGExBlendAttributesElement::AdvanceWork(FPCGExContext* InContext, const UPCGExSettings* InSettings) const
@@ -44,11 +42,9 @@ bool FPCGExBlendAttributesElement::AdvanceWork(FPCGExContext* InContext, const U
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}

@@ -40,11 +40,9 @@ bool FPCGExDiscardSameElement::AdvanceWork(FPCGExContext* InContext, const UPCGE
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any input to check."));
 		}
@@ -119,9 +117,7 @@ namespace PCGExDiscardSame
 		if (Settings->bTestBounds)
 		{
 			const FVector BoundsCWTolerance = FVector(1 / Settings->TestBoundsTolerance);
-			HashBounds = HashCombineFast(
-				PCGEx::GH3(Bounds.Min, BoundsCWTolerance),
-				PCGEx::GH3(Bounds.Max, BoundsCWTolerance));
+			HashBounds = HashCombineFast(PCGEx::GH3(Bounds.Min, BoundsCWTolerance), PCGEx::GH3(Bounds.Max, BoundsCWTolerance));
 		}
 		else
 		{
@@ -164,10 +160,7 @@ namespace PCGExDiscardSame
 				const TSharedRef<FProcessor> P = Batch->GetProcessorRef<FProcessor>(Pi);
 				if (P == ThisPtr) { continue; }
 
-				if ((Settings->bTestBounds && P->HashBounds == HashBounds) ||
-					(Settings->bTestPositions && P->HashPositions == HashPositions) ||
-					(Settings->bTestPointCount && FMath::IsNearlyEqual(P->HashPointsCount, HashPointsCount, Tol)) ||
-					(Settings->bTestAttributeHash && P->Hasher->GetHash() != Hasher->GetHash()))
+				if ((Settings->bTestBounds && P->HashBounds == HashBounds) || (Settings->bTestPositions && P->HashPositions == HashPositions) || (Settings->bTestPointCount && FMath::IsNearlyEqual(P->HashPointsCount, HashPointsCount, Tol)) || (Settings->bTestAttributeHash && P->Hasher->GetHash() != Hasher->GetHash()))
 				{
 					SameAs.Add(P);
 				}

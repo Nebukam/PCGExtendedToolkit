@@ -56,22 +56,20 @@ bool FPCGExBuildVoronoiGraphElement::AdvanceWork(FPCGExContext* InContext, const
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 4 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 4)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 4)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
 
-				Context->SitesOutput->Emplace_GetRef(Entry, PCGExData::EIOInit::New);
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+			                                         Context->SitesOutput->Emplace_GetRef(Entry, PCGExData::EIOInit::New);
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bRequiresWriteStep = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
 		}

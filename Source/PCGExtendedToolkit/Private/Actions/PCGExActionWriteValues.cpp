@@ -20,28 +20,26 @@ bool FPCGExActionWriteValuesOperation::PrepareForData(FPCGExContext* InContext, 
 
 	for (FPCGMetadataAttributeBase* AttributeBase : TypedFactory->CheckSuccessInfos->Attributes)
 	{
-		PCGEx::ExecuteWithRightType(
-			AttributeBase->GetTypeId(), [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
-				TSharedPtr<PCGExData::TBuffer<T>> Writer = InPointDataFacade->GetWritable<T>(TypedAttribute, PCGExData::EBufferInit::Inherit);
-				SuccessAttributes.Add(AttributeBase);
-				SuccessWriters.Add(Writer);
-			});
+		PCGEx::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+			const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
+			TSharedPtr<PCGExData::TBuffer<T>> Writer = InPointDataFacade->GetWritable<T>(TypedAttribute, PCGExData::EBufferInit::Inherit);
+			SuccessAttributes.Add(AttributeBase);
+			SuccessWriters.Add(Writer);
+		});
 	}
 
 	for (FPCGMetadataAttributeBase* AttributeBase : TypedFactory->CheckFailInfos->Attributes)
 	{
-		PCGEx::ExecuteWithRightType(
-			AttributeBase->GetTypeId(), [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
-				TSharedPtr<PCGExData::TBuffer<T>> Writer = InPointDataFacade->GetWritable<T>(TypedAttribute, PCGExData::EBufferInit::Inherit);
-				FailAttributes.Add(AttributeBase);
-				FailWriters.Add(Writer);
-			});
+		PCGEx::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+			const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
+			TSharedPtr<PCGExData::TBuffer<T>> Writer = InPointDataFacade->GetWritable<T>(TypedAttribute, PCGExData::EBufferInit::Inherit);
+			FailAttributes.Add(AttributeBase);
+			FailWriters.Add(Writer);
+		});
 	}
 
 	return true;
@@ -52,12 +50,11 @@ void FPCGExActionWriteValuesOperation::OnMatchSuccess(int32 Index)
 	for (int i = 0; i < SuccessAttributes.Num(); i++)
 	{
 		FPCGMetadataAttributeBase* AttributeBase = SuccessAttributes[i];
-		PCGEx::ExecuteWithRightType(
-			AttributeBase->GetTypeId(), [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				static_cast<PCGExData::TBuffer<T>*>(SuccessWriters[i].Get())->SetValue(Index, static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey));
-			});
+		PCGEx::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+			static_cast<PCGExData::TBuffer<T>*>(SuccessWriters[i].Get())->SetValue(Index, static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey));
+		});
 	}
 }
 
@@ -66,12 +63,11 @@ void FPCGExActionWriteValuesOperation::OnMatchFail(int32 Index)
 	for (int i = 0; i < FailAttributes.Num(); i++)
 	{
 		FPCGMetadataAttributeBase* AttributeBase = FailAttributes[i];
-		PCGEx::ExecuteWithRightType(
-			AttributeBase->GetTypeId(), [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				static_cast<PCGExData::TBuffer<T>*>(FailWriters[i].Get())->SetValue(Index, static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey));
-			});
+		PCGEx::ExecuteWithRightType(AttributeBase->GetTypeId(), [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+			static_cast<PCGExData::TBuffer<T>*>(FailWriters[i].Get())->SetValue(Index, static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey));
+		});
 	}
 }
 
@@ -107,11 +103,7 @@ TArray<FPCGPinProperties> UPCGExActionWriteValuesProviderSettings::InputPinPrope
 	return PinProperties;
 }
 
-PCGEX_BITMASK_TRANSMUTE_CREATE_FACTORY(
-	ActionWriteValues, {
-	NewFactory->SuccessAttributesFilter = SuccessAttributesFilter;
-	NewFactory->FailAttributesFilter = FailAttributesFilter;
-	})
+PCGEX_BITMASK_TRANSMUTE_CREATE_FACTORY(ActionWriteValues, { NewFactory->SuccessAttributesFilter = SuccessAttributesFilter; NewFactory->FailAttributesFilter = FailAttributesFilter; })
 
 
 #undef LOCTEXT_NAMESPACE

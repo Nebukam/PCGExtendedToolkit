@@ -33,12 +33,11 @@ namespace PCGExDataHelpers
 	T ReadDataValue(const FPCGMetadataAttributeBase* Attribute, T Fallback)
 	{
 		T Value = Fallback;
-		PCGEx::ExecuteWithRightType(
-			Attribute->GetTypeId(), [&](auto DummyValue)
-			{
-				using T_VALUE = decltype(DummyValue);
-				Value = PCGEx::Convert<T_VALUE, T>(ReadDataValue<T_VALUE>(static_cast<const FPCGMetadataAttribute<T_VALUE>*>(Attribute)));
-			});
+		PCGEx::ExecuteWithRightType(Attribute->GetTypeId(), [&](auto DummyValue)
+		{
+			using T_VALUE = decltype(DummyValue);
+			Value = PCGEx::Convert<T_VALUE, T>(ReadDataValue<T_VALUE>(static_cast<const FPCGMetadataAttribute<T_VALUE>*>(Attribute)));
+		});
 		return Value;
 	}
 
@@ -94,19 +93,18 @@ template PCGEXTENDEDTOOLKIT_API void SetDataValue<_TYPE>(UPCGData* InData, FPCGA
 
 		if (const FPCGMetadataAttributeBase* SourceAttribute = InMetadata->GetConstAttribute(SanitizedIdentifier))
 		{
-			PCGEx::ExecuteWithRightType(
-				SourceAttribute->GetTypeId(), [&](auto DummyValue)
-				{
-					using T_VALUE = decltype(DummyValue);
+			PCGEx::ExecuteWithRightType(SourceAttribute->GetTypeId(), [&](auto DummyValue)
+			{
+				using T_VALUE = decltype(DummyValue);
 
-					const FPCGMetadataAttribute<T_VALUE>* TypedSource = static_cast<const FPCGMetadataAttribute<T_VALUE>*>(SourceAttribute);
-					const T_VALUE Value = ReadDataValue(TypedSource);
+				const FPCGMetadataAttribute<T_VALUE>* TypedSource = static_cast<const FPCGMetadataAttribute<T_VALUE>*>(SourceAttribute);
+				const T_VALUE Value = ReadDataValue(TypedSource);
 
-					if (SubSelection.bIsValid) { OutValue = SubSelection.Get<T_VALUE, T>(Value); }
-					else { OutValue = PCGEx::Convert<T_VALUE, T>(Value); }
+				if (SubSelection.bIsValid) { OutValue = SubSelection.Get<T_VALUE, T>(Value); }
+				else { OutValue = PCGEx::Convert<T_VALUE, T>(Value); }
 
-					bSuccess = true;
-				});
+				bSuccess = true;
+			});
 		}
 		else
 		{
@@ -138,9 +136,7 @@ template PCGEXTENDEDTOOLKIT_API void SetDataValue<_TYPE>(UPCGData* InData, FPCGA
 	}
 
 	template <typename T>
-	bool TryGetSettingDataValue(
-		FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType Input,
-		const FPCGAttributePropertyInputSelector& InSelector, const T& InConstant, T& OutValue, const bool bQuiet)
+	bool TryGetSettingDataValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType Input, const FPCGAttributePropertyInputSelector& InSelector, const T& InConstant, T& OutValue, const bool bQuiet)
 	{
 		if (Input == EPCGExInputValueType::Constant)
 		{
@@ -152,9 +148,7 @@ template PCGEXTENDEDTOOLKIT_API void SetDataValue<_TYPE>(UPCGData* InData, FPCGA
 	}
 
 	template <typename T>
-	bool TryGetSettingDataValue(
-		FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType Input,
-		const FName& InName, const T& InConstant, T& OutValue, const bool bQuiet)
+	bool TryGetSettingDataValue(FPCGExContext* InContext, const UPCGData* InData, const EPCGExInputValueType Input, const FName& InName, const T& InConstant, T& OutValue, const bool bQuiet)
 	{
 		if (Input == EPCGExInputValueType::Constant)
 		{
@@ -168,17 +162,13 @@ template PCGEXTENDEDTOOLKIT_API void SetDataValue<_TYPE>(UPCGData* InData, FPCGA
 	}
 
 	template <typename T>
-	bool TryGetSettingDataValue(
-		const TSharedPtr<PCGExData::FPointIO>& InIO, const EPCGExInputValueType Input,
-		const FName& InName, const T& InConstant, T& OutValue, const bool bQuiet)
+	bool TryGetSettingDataValue(const TSharedPtr<PCGExData::FPointIO>& InIO, const EPCGExInputValueType Input, const FName& InName, const T& InConstant, T& OutValue, const bool bQuiet)
 	{
 		return TryGetSettingDataValue(InIO->GetContext(), InIO->GetIn(), Input, InName, InConstant, OutValue, bQuiet);
 	}
 
 	template <typename T>
-	bool TryGetSettingDataValue(
-		const TSharedPtr<PCGExData::FPointIO>& InIO, const EPCGExInputValueType Input,
-		const FPCGAttributePropertyInputSelector& InSelector, const T& InConstant, T& OutValue, const bool bQuiet)
+	bool TryGetSettingDataValue(const TSharedPtr<PCGExData::FPointIO>& InIO, const EPCGExInputValueType Input, const FPCGAttributePropertyInputSelector& InSelector, const T& InConstant, T& OutValue, const bool bQuiet)
 	{
 		return TryGetSettingDataValue(InIO->GetContext(), InIO->GetIn(), Input, InSelector, InConstant, OutValue, bQuiet);
 	}

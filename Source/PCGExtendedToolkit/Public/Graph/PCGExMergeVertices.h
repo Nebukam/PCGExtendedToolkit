@@ -78,8 +78,8 @@ namespace PCGExMergeVertices
 	public:
 		int32 StartIndexOffset = 0;
 
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

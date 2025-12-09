@@ -29,8 +29,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNodeSelectionDetails
 	{
 	}
 
-	explicit FPCGExNodeSelectionDetails(const double InMaxDistance):
-		MaxDistance(InMaxDistance)
+	explicit FPCGExNodeSelectionDetails(const double InMaxDistance)
+		: MaxDistance(InMaxDistance)
 	{
 	}
 

@@ -73,9 +73,9 @@ namespace PCGExMT
 
 	enum class EAsyncHandleState : uint8
 	{
-		Idle = 0,
+		Idle    = 0,
 		Running = 1,
-		Ended = 2,
+		Ended   = 2,
 	};
 
 	class IAsyncHandleGroup;
@@ -253,10 +253,8 @@ namespace PCGExMT
 		virtual bool Start() override;
 		virtual void Cancel() override;
 
-		TSharedPtr<FTaskGroup> TryCreateTaskGroup(const FName& InName,
-		                                          const TSharedPtr<IAsyncHandleGroup>& InParentHandle = nullptr);
-		bool TryRegisterHandle(const TSharedPtr<IAsyncHandle>& InHandle,
-		                       const TSharedPtr<IAsyncHandleGroup>& InParentHandle = nullptr);
+		TSharedPtr<FTaskGroup> TryCreateTaskGroup(const FName& InName, const TSharedPtr<IAsyncHandleGroup>& InParentHandle = nullptr);
+		bool TryRegisterHandle(const TSharedPtr<IAsyncHandle>& InHandle, const TSharedPtr<IAsyncHandleGroup>& InParentHandle = nullptr);
 
 		void Reset();
 
@@ -306,18 +304,16 @@ namespace PCGExMT
 
 			if (OnPrepareSubLoopsCallback) { OnPrepareSubLoopsCallback(Loops); }
 
-			Launch(
-				NumLoops, [&](int32 i)
-				{
-					PCGEX_MAKE_SHARED(Task, T, std::forward<Args>(InArgs)...)
-					Task->bPrepareOnly = bPrepareOnly;
-					Task->Scope = Loops[i];
-					return Task;
-				});
+			Launch(NumLoops, [&](int32 i)
+			{
+				PCGEX_MAKE_SHARED(Task, T, std::forward<Args>(InArgs)...)
+				Task->bPrepareOnly = bPrepareOnly;
+				Task->Scope = Loops[i];
+				return Task;
+			});
 		}
 
-		void StartIterations(const int32 NumIterations, const int32 ChunkSize, const bool bForceSingleThreaded = false,
-		                     const bool bPreparationOnly = false);
+		void StartIterations(const int32 NumIterations, const int32 ChunkSize, const bool bForceSingleThreaded = false, const bool bPreparationOnly = false);
 		void StartSubLoops(const int32 NumIterations, const int32 ChunkSize, const bool bForceSingleThreaded = false);
 
 		void AddSimpleCallback(FSimpleCallback&& InCallback);
@@ -338,8 +334,7 @@ namespace PCGExMT
 		void TriggerSimpleCallback(int32 Index);
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	void ExecuteOnMainThread(const TSharedPtr<IAsyncHandleGroup>& ParentHandle, FExecuteCallback&& Callback);
+	PCGEXTENDEDTOOLKIT_API void ExecuteOnMainThread(const TSharedPtr<IAsyncHandleGroup>& ParentHandle, FExecuteCallback&& Callback);
 
 	// Base task class
 	class PCGEXTENDEDTOOLKIT_API FTask : public IAsyncHandle
@@ -364,7 +359,8 @@ namespace PCGExMT
 	public:
 		PCGEX_ASYNC_TASK_NAME(FPCGExIndexedTask)
 
-		explicit FPCGExIndexedTask(const int32 InTaskIndex) : FTask(), TaskIndex(InTaskIndex)
+		explicit FPCGExIndexedTask(const int32 InTaskIndex)
+			: FTask(), TaskIndex(InTaskIndex)
 		{
 		}
 	};
@@ -375,7 +371,8 @@ namespace PCGExMT
 	public:
 		PCGEX_ASYNC_TASK_NAME(FSimpleCallbackTask)
 
-		explicit FSimpleCallbackTask(const int32 InTaskIndex) : FPCGExIndexedTask(InTaskIndex)
+		explicit FSimpleCallbackTask(const int32 InTaskIndex)
+			: FPCGExIndexedTask(InTaskIndex)
 		{
 		}
 

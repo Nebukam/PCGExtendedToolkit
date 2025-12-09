@@ -21,26 +21,24 @@ namespace PCGEx
 		{
 			for (const TPair<FString, TSharedPtr<PCGExData::IDataValue>>& ValueTag : Tags->ValueTags)
 			{
-				ExecuteWithRightType(
-					ValueTag.Value->UnderlyingType, [&](auto DummyValue)
-					{
-						using T = decltype(DummyValue);
-						TSharedPtr<PCGExData::TDataValue<T>> TypedValue = StaticCastSharedPtr<PCGExData::TDataValue<T>>(ValueTag.Value);
-						PCGExDataHelpers::SetDataValue<T>(Data, FName(ValueTag.Key), TypedValue->Value);
-					});
+				ExecuteWithRightType(ValueTag.Value->UnderlyingType, [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					TSharedPtr<PCGExData::TDataValue<T>> TypedValue = StaticCastSharedPtr<PCGExData::TDataValue<T>>(ValueTag.Value);
+					PCGExDataHelpers::SetDataValue<T>(Data, FName(ValueTag.Key), TypedValue->Value);
+				});
 			}
 		}
 		else if (Action == EPCGExTagsToDataAction::ToElements)
 		{
 			for (const TPair<FString, TSharedPtr<PCGExData::IDataValue>>& ValueTag : Tags->ValueTags)
 			{
-				ExecuteWithRightType(
-					ValueTag.Value->UnderlyingType, [&](auto DummyValue)
-					{
-						using T = decltype(DummyValue);
-						TSharedPtr<PCGExData::TDataValue<T>> TypedValue = StaticCastSharedPtr<PCGExData::TDataValue<T>>(ValueTag.Value);
-						Data->MutableMetadata()->FindOrCreateAttribute<T>(FName(ValueTag.Key), TypedValue->Value);
-					});
+				ExecuteWithRightType(ValueTag.Value->UnderlyingType, [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					TSharedPtr<PCGExData::TDataValue<T>> TypedValue = StaticCastSharedPtr<PCGExData::TDataValue<T>>(ValueTag.Value);
+					Data->MutableMetadata()->FindOrCreateAttribute<T>(FName(ValueTag.Key), TypedValue->Value);
+				});
 			}
 		}
 	}
@@ -68,14 +66,11 @@ void FPCGExFilterResultDetails::Init(const TSharedPtr<PCGExData::FFacade>& InDat
 {
 	switch (Action)
 	{
-	case EPCGExResultWriteAction::Bool:
-		BoolBuffer = InDataFacade->GetWritable<bool>(ResultAttributeName, false, true, PCGExData::EBufferInit::New);
+	case EPCGExResultWriteAction::Bool: BoolBuffer = InDataFacade->GetWritable<bool>(ResultAttributeName, false, true, PCGExData::EBufferInit::New);
 		break;
-	case EPCGExResultWriteAction::Counter:
-		IncrementBuffer = InDataFacade->GetWritable<double>(ResultAttributeName, 0, true, PCGExData::EBufferInit::Inherit);
+	case EPCGExResultWriteAction::Counter: IncrementBuffer = InDataFacade->GetWritable<double>(ResultAttributeName, 0, true, PCGExData::EBufferInit::Inherit);
 		break;
-	case EPCGExResultWriteAction::Bitmask:
-		BitmaskBuffer = InDataFacade->GetWritable<int64>(ResultAttributeName, 0, true, PCGExData::EBufferInit::Inherit);
+	case EPCGExResultWriteAction::Bitmask: BitmaskBuffer = InDataFacade->GetWritable<int64>(ResultAttributeName, 0, true, PCGExData::EBufferInit::Inherit);
 		break;
 	}
 }
@@ -84,14 +79,11 @@ void FPCGExFilterResultDetails::Write(const int32 Index, bool bPass) const
 {
 	switch (Action)
 	{
-	case EPCGExResultWriteAction::Bool:
-		BoolBuffer->SetValue(Index, bPass);
+	case EPCGExResultWriteAction::Bool: BoolBuffer->SetValue(Index, bPass);
 		break;
-	case EPCGExResultWriteAction::Counter:
-		IncrementBuffer->SetValue(Index, IncrementBuffer->GetValue(Index) + (bPass ? PassIncrement : FailIncrement));
+	case EPCGExResultWriteAction::Counter: IncrementBuffer->SetValue(Index, IncrementBuffer->GetValue(Index) + (bPass ? PassIncrement : FailIncrement));
 		break;
-	case EPCGExResultWriteAction::Bitmask:
-		if (bDoBitmaskOpOnFail && bDoBitmaskOpOnPass)
+	case EPCGExResultWriteAction::Bitmask: if (bDoBitmaskOpOnFail && bDoBitmaskOpOnPass)
 		{
 			int64 Flags = BitmaskBuffer->GetValue(Index);
 			if (bPass) { PassBitmask.Mutate(Flags); }

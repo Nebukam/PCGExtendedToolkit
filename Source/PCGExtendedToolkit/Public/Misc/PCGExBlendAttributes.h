@@ -71,8 +71,8 @@ namespace PCGExBlendAttributes
 		TSharedPtr<PCGExDataBlending::FBlendOpsManager> BlendOpsManager;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

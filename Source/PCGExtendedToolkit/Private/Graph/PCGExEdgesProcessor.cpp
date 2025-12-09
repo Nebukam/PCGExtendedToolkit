@@ -349,9 +349,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 
 	Context->bQuietMissingClusterPairElement = Settings->bQuietMissingClusterPairElement;
 
-	Context->bHasValidHeuristics = PCGExFactories::GetInputFactories(
-		Context, PCGExGraph::SourceHeuristicsLabel, Context->HeuristicsFactories,
-		{PCGExFactories::EType::Heuristics}, false);
+	Context->bHasValidHeuristics = PCGExFactories::GetInputFactories(Context, PCGExGraph::SourceHeuristicsLabel, Context->HeuristicsFactories, {PCGExFactories::EType::Heuristics}, false);
 
 	Context->ClusterDataLibrary = MakeShared<PCGExClusterUtils::FClusterDataLibrary>(true);
 

@@ -68,12 +68,10 @@ bool FPCGExMergeVerticesElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartProcessingClusters(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
-			[&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartProcessingClusters([](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; }, [&](const TSharedPtr<PCGExClusterMT::IBatch>& NewBatch)
+		{
+			NewBatch->bRequiresWriteStep = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
@@ -92,9 +90,7 @@ namespace PCGExMergeVertices
 	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a heavy copy we'll update and forward
-		return MakeShared<PCGExCluster::FCluster>(
-			InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup,
-			true, true, true);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, NodeIndexLookup, true, true, true);
 	}
 
 	FProcessor::~FProcessor()

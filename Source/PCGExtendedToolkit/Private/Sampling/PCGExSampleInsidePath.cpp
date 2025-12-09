@@ -23,8 +23,7 @@ PCGEX_SETTING_VALUE_IMPL(UPCGExSampleInsidePathSettings, RangeMax, double, Range
 #define LOCTEXT_NAMESPACE "PCGExSampleInsidePathElement"
 #define PCGEX_NAMESPACE SampleInsidePath
 
-UPCGExSampleInsidePathSettings::UPCGExSampleInsidePathSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExSampleInsidePathSettings::UPCGExSampleInsidePathSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinear; }
@@ -92,32 +91,24 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(
-		Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories,
-		{PCGExFactories::EType::Blending}, false);
+	PCGExFactories::GetInputFactories<UPCGExBlendOpFactory>(Context, PCGExDataBlending::SourceBlendingLabel, Context->BlendingFactories, {PCGExFactories::EType::Blending}, false);
 
 	Context->TargetsHandler = MakeShared<PCGExSampling::FTargetsHandler>();
-	Context->NumMaxTargets = Context->TargetsHandler->Init(
-		Context, PCGEx::SourceTargetsLabel,
-		[&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
+	Context->NumMaxTargets = Context->TargetsHandler->Init(Context, PCGEx::SourceTargetsLabel, [&](const TSharedPtr<PCGExData::FPointIO>& IO, const int32 Idx)-> FBox
+	{
+		const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
+
+		switch (Settings->ProcessInputs)
 		{
-			const bool bClosedLoop = PCGExPaths::GetClosedLoop(IO->GetIn());
+		default: case EPCGExPathSamplingIncludeMode::All: break;
+		case EPCGExPathSamplingIncludeMode::ClosedLoopOnly: if (!bClosedLoop) { return FBox(NoInit); }
+			break;
+		case EPCGExPathSamplingIncludeMode::OpenLoopsOnly: if (bClosedLoop) { return FBox(NoInit); }
+			break;
+		}
 
-			switch (Settings->ProcessInputs)
-			{
-			default:
-			case EPCGExPathSamplingIncludeMode::All:
-				break;
-			case EPCGExPathSamplingIncludeMode::ClosedLoopOnly:
-				if (!bClosedLoop) { return FBox(NoInit); }
-				break;
-			case EPCGExPathSamplingIncludeMode::OpenLoopsOnly:
-				if (bClosedLoop) { return FBox(NoInit); }
-				break;
-			}
-
-			return IO->GetIn()->GetBounds();
-		});
+		return IO->GetIn()->GetBounds();
+	});
 
 	Context->NumMaxTargets = Context->TargetsHandler->GetMaxNumTargets();
 	if (!Context->NumMaxTargets)
@@ -134,11 +125,10 @@ bool FPCGExSampleInsidePathElement::Boot(FPCGExContext* InContext) const
 
 	if (!Context->BlendingFactories.IsEmpty())
 	{
-		Context->TargetsHandler->ForEachPreloader(
-			[&](PCGExData::FFacadePreloader& Preloader)
-			{
-				PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
-			});
+		Context->TargetsHandler->ForEachPreloader([&](PCGExData::FFacadePreloader& Preloader)
+		{
+			PCGExDataBlending::RegisterBuffersDependencies_SourceA(Context, Preloader, Context->BlendingFactories);
+		});
 	}
 
 	Context->RuntimeWeightCurve = Settings->LocalWeightOverDistance;
@@ -178,11 +168,9 @@ bool FPCGExSampleInsidePathElement::AdvanceWork(FPCGExContext* InContext, const 
 
 			Context->TargetsHandler->SetMatchingDetails(Context, &Settings->DataMatching);
 
-			if (!Context->StartBatchProcessingPoints(
-				[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-				[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-				{
-				}))
+			if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+			{
+			}))
 			{
 				Context->CancelExecution(TEXT("Could not find any paths to split."));
 			}
@@ -215,8 +203,7 @@ namespace PCGExSampleInsidePath
 
 
 		if (Settings->bIgnoreSelf) { IgnoreList.Add(PointDataFacade->GetIn()); }
-		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true);
-			!Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
+		if (PCGExMatching::FMatchingScope MatchingScope(Context->InitialMainPointsNum, true); !Context->TargetsHandler->PopulateIgnoreList(PointDataFacade->Source, MatchingScope, IgnoreList))
 		{
 			if (!Context->TargetsHandler->HandleUnmatchedOutput(PointDataFacade, true)) { PCGEX_INIT_IO(PointDataFacade->Source, PCGExData::EIOInit::Forward) }
 			return false;
@@ -288,7 +275,7 @@ namespace PCGExSampleInsidePath
 
 		TArray<PCGExData::FWeightedPoint> OutWeightedPoints;
 		OutWeightedPoints.Reserve(256);
-		
+
 		TArray<PCGEx::FOpStats> Trackers;
 		DataBlender->InitTrackers(Trackers);
 
@@ -380,8 +367,7 @@ namespace PCGExSampleInsidePath
 			}
 		};
 
-		Context->TargetsHandler->FindElementsWithBoundsTest(
-			SampleBox, SampleTarget, &IgnoreList);
+		Context->TargetsHandler->FindElementsWithBoundsTest(SampleBox, SampleTarget, &IgnoreList);
 
 		if (Union->IsEmpty())
 		{

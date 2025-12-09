@@ -102,8 +102,8 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	void TBuffer<T>::DumpValues(const TSharedPtr<TArray<T>>& OutValues) const { DumpValues(*OutValues.Get()); }
 
 	template <typename T>
-	TArrayBuffer<T>::TArrayBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier):
-		TBuffer<T>(InSource, InIdentifier)
+	TArrayBuffer<T>::TArrayBuffer(const TSharedRef<FPointIO>& InSource, const FPCGAttributeIdentifier& InIdentifier)
+		: TBuffer<T>(InSource, InIdentifier)
 	{
 		check(InIdentifier.MetadataDomain.Flag != EPCGMetadataDomainFlag::Data)
 		this->UnderlyingDomain = EDomainType::Elements;
@@ -126,10 +126,16 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	}
 
 	template <typename T>
-	bool TArrayBuffer<T>::IsWritable() { return OutValues ? true : false; }
+	bool TArrayBuffer<T>::IsWritable()
+	{
+		return OutValues ? true : false;
+	}
 
 	template <typename T>
-	bool TArrayBuffer<T>::IsReadable() { return InValues ? true : false; }
+	bool TArrayBuffer<T>::IsReadable()
+	{
+		return InValues ? true : false;
+	}
 
 	template <typename T>
 	bool TArrayBuffer<T>::ReadsFromOutput() { return InValues == OutValues; }
@@ -380,10 +386,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 
 		if (const FPCGMetadataAttribute<T>* ExistingAttribute = PCGEx::TryGetConstAttribute<T>(Source->GetIn(), Identifier))
 		{
-			return InitForWrite(
-				ExistingAttribute->GetValue(PCGDefaultValueKey),
-				ExistingAttribute->AllowsInterpolation(),
-				Init);
+			return InitForWrite(ExistingAttribute->GetValue(PCGDefaultValueKey), ExistingAttribute->AllowsInterpolation(), Init);
 		}
 
 		return InitForWrite(T{}, true, Init);
@@ -430,8 +433,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 		if (!IsSparse() || bReadComplete || !IsEnabled()) { return; }
 		if (InternalBroadcaster) { InternalBroadcaster->Fetch(*InValues, Scope); }
 
-		if (TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, Source->GetIn()->Metadata);
-			InAccessor.IsValid())
+		if (TUniquePtr<const IPCGAttributeAccessor> InAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(TypedInAttribute, Source->GetIn()->Metadata); InAccessor.IsValid())
 		{
 			TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + Scope.Start, Scope.Count);
 			InAccessor->GetRange<T>(ReadRange, Scope.Start, *Source->GetInKeys());
@@ -613,10 +615,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 
 		if (const FPCGMetadataAttribute<T>* ExistingAttribute = PCGEx::TryGetConstAttribute<T>(Source->GetIn(), Identifier))
 		{
-			return InitForWrite(
-				PCGExDataHelpers::ReadDataValue(ExistingAttribute),
-				ExistingAttribute->AllowsInterpolation(),
-				Init);
+			return InitForWrite(PCGExDataHelpers::ReadDataValue(ExistingAttribute), ExistingAttribute->AllowsInterpolation(), Init);
 		}
 
 		return InitForWrite(T{}, true, Init);
@@ -643,12 +642,7 @@ template PCGEXTENDEDTOOLKIT_API bool IBuffer::IsA<_TYPE>() const;
 	}
 
 	template <typename T>
-	const IBuffer::OpsTable TBuffer<T>::OpsImpl =
-	{
-		&TBuffer<T>::ReadRawImpl,
-		&TBuffer<T>::GetValueRawImpl,
-		&TBuffer<T>::SetValueRawImpl
-	};
+	const IBuffer::OpsTable TBuffer<T>::OpsImpl = {&TBuffer<T>::ReadRawImpl, &TBuffer<T>::GetValueRawImpl, &TBuffer<T>::SetValueRawImpl};
 
 #pragma region externalization
 
@@ -755,8 +749,7 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 			Buffer = FindBuffer_Unsafe<T>(InIdentifier);
 			if (Buffer) { return Buffer; }
 
-			if (InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Default ||
-				InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Elements)
+			if (InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Default || InIdentifier.MetadataDomain.Flag == EPCGMetadataDomainFlag::Elements)
 			{
 				Buffer = MakeShared<TArrayBuffer<T>>(Source, InIdentifier);
 			}
@@ -801,9 +794,7 @@ template class PCGEXTENDEDTOOLKIT_API TSingleValueBuffer<_TYPE>;
 	template <typename T>
 	TSharedPtr<TBuffer<T>> FFacade::GetWritable(const FPCGMetadataAttribute<T>* InAttribute, EBufferInit Init)
 	{
-		return GetWritable(
-			FPCGAttributeIdentifier(InAttribute->Name, InAttribute->GetMetadataDomain()->GetDomainID()),
-			InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), Init);
+		return GetWritable(FPCGAttributeIdentifier(InAttribute->Name, InAttribute->GetMetadataDomain()->GetDomainID()), InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), Init);
 	}
 
 	template <typename T>
@@ -1077,13 +1068,12 @@ template PCGEXTENDEDTOOLKIT_API const FPCGMetadataAttribute<_TYPE>* FFacade::Fin
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteBuffersWithCallback);
-		WriteBuffersWithCallback->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE, Callback]()
-			{
-				PCGEX_ASYNC_THIS
-				This->Flush();
-				Callback();
-			};
+		WriteBuffersWithCallback->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, Callback]()
+		{
+			PCGEX_ASYNC_THIS
+			This->Flush();
+			Callback();
+		};
 
 		if (const int32 WritableCount = WriteBuffersAsCallbacks(WriteBuffersWithCallback); WritableCount <= 0)
 		{

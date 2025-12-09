@@ -215,8 +215,8 @@ namespace PCGExBinPacking
 		TArray<int32> ProcessingOrder;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 			bForceSingleThreadedProcessPoints = true;
 		}

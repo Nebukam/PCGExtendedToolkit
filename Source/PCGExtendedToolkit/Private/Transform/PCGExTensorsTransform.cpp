@@ -32,9 +32,7 @@ bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(TensorsTransform)
 
-	if (!PCGExFactories::GetInputFactories(
-		InContext, PCGExTensor::SourceTensorsLabel, Context->TensorFactories,
-		{PCGExFactories::EType::Tensor}))
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, Context->TensorFactories, {PCGExFactories::EType::Tensor}))
 	{
 		return false;
 	}
@@ -47,9 +45,7 @@ bool FPCGExTensorsTransformElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_TRTENSOR(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	GetInputFactories(
-		Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories,
-		PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExPointFilter::SourceStopConditionLabel, Context->StopFilterFactories, PCGExFactories::PointFilters, false);
 
 	PCGExPointFilter::PruneForDirectEvaluation(Context, Context->StopFilterFactories);
 
@@ -64,12 +60,10 @@ bool FPCGExTensorsTransformElement::AdvanceWork(FPCGExContext* InContext, const 
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				//NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			//NewBatch->bRequiresWriteStep = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
 		}

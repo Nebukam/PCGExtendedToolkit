@@ -99,8 +99,7 @@ FPCGContext* IPCGExElement::Initialize(const FPCGInitializeElementParams& InPara
 
 	if (Context->bCleanupConsumableAttributes)
 	{
-		for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedProtectedAttributesName);
-		     const FString& Name : Names)
+		for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(Settings->CommaSeparatedProtectedAttributesName); const FString& Name : Names)
 		{
 			Context->AddProtectedAttributeName(FName(Name));
 		}
@@ -149,7 +148,7 @@ void IPCGExElement::AbortInternal(FPCGContext* Context) const
 	IPCGElement::AbortInternal(Context);
 
 	if (!Context) { return; }
-	
+
 	//UE_LOG(LogTemp, Warning, TEXT(">> ABORTING @%s"), *Context->GetInputSettings<UPCGExSettings>()->GetName());
 
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);

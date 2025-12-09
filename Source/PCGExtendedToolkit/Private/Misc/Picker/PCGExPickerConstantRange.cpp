@@ -74,8 +74,7 @@ void UPCGExPickerConstantRangeFactory::AddPicksFromConfig(const FPCGExPickerCons
 	if (TargetEndIndex < 0) { TargetEndIndex = InNum + TargetEndIndex; }
 	TargetEndIndex = PCGExMath::SanitizeIndex(TargetEndIndex, MaxIndex, InConfig.Safety);
 
-	if (!FMath::IsWithin(TargetStartIndex, 0, InNum) ||
-		!FMath::IsWithin(TargetEndIndex, 0, InNum))
+	if (!FMath::IsWithin(TargetStartIndex, 0, InNum) || !FMath::IsWithin(TargetEndIndex, 0, InNum))
 	{
 		return;
 	}

@@ -42,9 +42,7 @@ namespace PCGEx
 	// Unsigned uint64 hash
 	constexpr FORCEINLINE static uint64 H64U(const uint32 A, const uint32 B)
 	{
-		return A > B ?
-			       static_cast<uint64>(A) << 32 | B :
-			       static_cast<uint64>(B) << 32 | A;
+		return A > B ? static_cast<uint64>(A) << 32 | B : static_cast<uint64>(B) << 32 | A;
 	}
 
 	// Signed uint32 hash
@@ -99,21 +97,13 @@ namespace PCGEx
 	template <typename T>
 	FORCEINLINE static uint64 GH3(const T& Seed, const T& Tolerance)
 	{
-		return GetTypeHash(
-			FInt64Vector(
-				FMath::RoundToInt64(Seed[0] * Tolerance[0]),
-				FMath::RoundToInt64(Seed[1] * Tolerance[1]),
-				FMath::RoundToInt64(Seed[2] * Tolerance[2])));
+		return GetTypeHash(FInt64Vector(FMath::RoundToInt64(Seed[0] * Tolerance[0]), FMath::RoundToInt64(Seed[1] * Tolerance[1]), FMath::RoundToInt64(Seed[2] * Tolerance[2])));
 	}
 
 	template <typename S, typename T>
 	FORCEINLINE static uint64 GH3(const S& Seed, const T& Tolerance)
 	{
-		return GetTypeHash(
-			FInt64Vector(
-				FMath::RoundToInt64(Seed[0] * Tolerance[0]),
-				FMath::RoundToInt64(Seed[1] * Tolerance[1]),
-				FMath::RoundToInt64(Seed[2] * Tolerance[2])));
+		return GetTypeHash(FInt64Vector(FMath::RoundToInt64(Seed[0] * Tolerance[0]), FMath::RoundToInt64(Seed[1] * Tolerance[1]), FMath::RoundToInt64(Seed[2] * Tolerance[2])));
 	}
 
 	FORCEINLINE static uint64 UH3(const int32 A, const int32 B, const int32 C)
@@ -128,11 +118,7 @@ namespace PCGEx
 	template <typename S, typename T>
 	FORCEINLINE static uint64 GH2(const S& Seed, const T& Tolerance)
 	{
-		return GetTypeHash(
-			FInt64Vector(
-				FMath::RoundToInt64(Seed[0] * Tolerance[0]),
-				FMath::RoundToInt64(Seed[1] * Tolerance[1]),
-				0));
+		return GetTypeHash(FInt64Vector(FMath::RoundToInt64(Seed[0] * Tolerance[0]), FMath::RoundToInt64(Seed[1] * Tolerance[1]), 0));
 	}
 
 	class FIndexLookup : public TSharedFromThis<FIndexLookup>

@@ -19,8 +19,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
-UPCGExInstancedFactory* FPCGExContext::RegisterOperation(UPCGExInstancedFactory* BaseOperation,
-                                                         const FName OverridePinLabel)
+UPCGExInstancedFactory* FPCGExContext::RegisterOperation(UPCGExInstancedFactory* BaseOperation, const FName OverridePinLabel)
 {
 	BaseOperation->BindContext(this); // Temp so Copy doesn't crash
 
@@ -85,8 +84,7 @@ FPCGTaggedData& FPCGExContext::StageOutput(UPCGData* InData, const bool bManaged
 	return OutputData.TaggedData[Index];
 }
 
-void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet<FString>& InTags, const bool bManaged,
-                                const bool bIsMutable, const bool bPinless)
+void FPCGExContext::StageOutput(UPCGData* InData, const FName& InPin, const TSet<FString>& InTags, const bool bManaged, const bool bIsMutable, const bool bPinless)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::StageOutputComplex);
 
@@ -220,9 +218,7 @@ void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
 			for (AActor* TargetActor : NotifyActorsArray)
 			{
 				if (!IsValid(TargetActor)) { continue; }
-				for (UFunction* Function : PCGExHelpers::FindUserFunctions(
-					     TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()},
-					     this))
+				for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, this))
 				{
 					TargetActor->ProcessEvent(Function, nullptr);
 				}
@@ -234,23 +230,18 @@ void FPCGExContext::ExecuteOnNotifyActors(const TArray<FName>& FunctionNames)
 			FSharedContext<FPCGExContext> SharedContext(GetOrCreateHandle());
 			if (!SharedContext.Get()) { return; }
 
-			FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady(
-				[SharedContext, FunctionNames]()
+			FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([SharedContext, FunctionNames]()
+			{
+				const FPCGExContext* Ctx = SharedContext.Get();
+				for (TArray<AActor*> NotifyActorsArray = Ctx->NotifyActors.Array(); AActor* TargetActor : NotifyActorsArray)
 				{
-					const FPCGExContext* Ctx = SharedContext.Get();
-					for (TArray<AActor*> NotifyActorsArray = Ctx->NotifyActors.Array();
-					     AActor* TargetActor : NotifyActorsArray)
+					if (!IsValid(TargetActor)) { continue; }
+					for (UFunction* Function : PCGExHelpers::FindUserFunctions(TargetActor->GetClass(), FunctionNames, {UPCGExFunctionPrototypes::GetPrototypeWithNoParams()}, Ctx))
 					{
-						if (!IsValid(TargetActor)) { continue; }
-						for (UFunction* Function : PCGExHelpers::FindUserFunctions(
-							     TargetActor->GetClass(), FunctionNames, {
-								     UPCGExFunctionPrototypes::GetPrototypeWithNoParams()
-							     }, Ctx))
-						{
-							TargetActor->ProcessEvent(Function, nullptr);
-						}
+						TargetActor->ProcessEvent(Function, nullptr);
 					}
-				}, TStatId(), nullptr, ENamedThreads::GameThread);
+				}
+			}, TStatId(), nullptr, ENamedThreads::GameThread);
 
 			FTaskGraphInterface::Get().WaitUntilTaskCompletes(Task);
 		}
@@ -344,14 +335,11 @@ void FPCGExContext::OnAsyncWorkEnd(const bool bWasCancelled)
 		const UPCGExSettings* Settings = GetInputSettings<UPCGExSettings>();
 		switch (CurrentPhase)
 		{
-		case EPCGExecutionPhase::PrepareData:
-			ElementHandle->AdvancePreparation(this, Settings);
+		case EPCGExecutionPhase::PrepareData: ElementHandle->AdvancePreparation(this, Settings);
 			break;
-		case EPCGExecutionPhase::Execute:
-			ElementHandle->AdvanceWork(this, Settings);
+		case EPCGExecutionPhase::Execute: ElementHandle->AdvanceWork(this, Settings);
 			break;
-		default:
-			break;
+		default: break;
 		}
 	}
 	while (PendingCompletions.load(std::memory_order_acquire));
@@ -412,26 +400,22 @@ bool FPCGExContext::LoadAssets()
 
 	SetState(PCGExCommon::State_LoadingAssetDependencies);
 
-	PCGExHelpers::Load(
-		GetAsyncManager(),
-		[CtxHandle = GetOrCreateHandle()]() -> TArray<FSoftObjectPath>
-		{
-			PCGEX_SHARED_CONTEXT_RET(CtxHandle, {})
-			return SharedContext.Get()->RequiredAssets->Array();
-		},
-		[CtxHandle = GetOrCreateHandle()](const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)
-		{
-			PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
-			SharedContext.Get()->AssetsHandle = StreamableHandle;
-			if (!bSuccess) { SharedContext.Get()->CancelExecution("Error loading assets."); }
-		});
+	PCGExHelpers::Load(GetAsyncManager(), [CtxHandle = GetOrCreateHandle()]() -> TArray<FSoftObjectPath>
+	                   {
+		                   PCGEX_SHARED_CONTEXT_RET(CtxHandle, {})
+		                   return SharedContext.Get()->RequiredAssets->Array();
+	                   }, [CtxHandle = GetOrCreateHandle()](const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)
+	                   {
+		                   PCGEX_SHARED_CONTEXT_VOID(CtxHandle)
+		                   SharedContext.Get()->AssetsHandle = StreamableHandle;
+		                   if (!bSuccess) { SharedContext.Get()->CancelExecution("Error loading assets."); }
+	                   });
 
 
 	return true;
 }
 
-UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UActorComponent* InComponent,
-                                                            const FAttachmentTransformRules& AttachmentRules) const
+UPCGManagedComponent* FPCGExContext::AttachManagedComponent(AActor* InParent, UActorComponent* InComponent, const FAttachmentTransformRules& AttachmentRules) const
 {
 	UPCGComponent* SrcComp = GetMutableComponent();
 
@@ -527,7 +511,7 @@ bool FPCGExContext::CancelExecution(const FString& InReason)
 		OutputData.Reset();
 		if (bPropagateAbortedExecution) { OutputData.bCancelExecution = true; }
 		ManagedObjects->Flush();
-		
+
 		UnpauseContext();
 	}
 

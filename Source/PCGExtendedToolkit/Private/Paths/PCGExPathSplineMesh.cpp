@@ -39,8 +39,7 @@ void UPCGExPathSplineMeshSettings::ApplyDeprecation(UPCGNode* InOutNode)
 PCGEX_INITIALIZE_ELEMENT(PathSplineMesh)
 PCGEX_ELEMENT_BATCH_POINT_IMPL(PathSplineMesh)
 
-UPCGExPathSplineMeshSettings::UPCGExPathSplineMeshSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExPathSplineMeshSettings::UPCGExPathSplineMeshSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	if (SplineMeshUpVectorAttribute.GetName() == FName("@Last")) { SplineMeshUpVectorAttribute.Update(TEXT("$Rotation.Up")); }
@@ -94,8 +93,7 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->AssetPathAttributeName)
 
-	if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw ||
-		Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
+	if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw || Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
 	{
 		PCGEX_VALIDATE_NAME_CONSUMABLE(Settings->WeightAttributeName)
 	}
@@ -144,20 +142,18 @@ bool FPCGExPathSplineMeshElement::AdvanceWork(FPCGExContext* InContext, const UP
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 2 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 2)
-				{
-					bHasInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EIOInit::Forward);
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 2)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         Entry->InitializeOutput(PCGExData::EIOInit::Forward);
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
 		}
@@ -292,9 +288,7 @@ namespace PCGExPathSplineMesh
 			const FPCGExMeshCollectionEntry* MeshEntry = nullptr;
 			const UPCGExAssetCollection* EntryHost = nullptr;
 
-			const int32 Seed = PCGExRandom::GetSeed(
-				Seeds[Index], Helper->Details.SeedComponents,
-				Helper->Details.LocalSeed, Settings, Component);
+			const int32 Seed = PCGExRandom::GetSeed(Seeds[Index], Helper->Details.SeedComponents, Helper->Details.LocalSeed, Settings, Component);
 
 			if (bUseTags) { Helper->GetEntry(MeshEntry, Index, Seed, Settings->TaggingDetails.GrabTags, Segment.Tags, EntryHost); }
 			else { Helper->GetEntry(MeshEntry, Index, Seed, EntryHost); }
@@ -317,8 +311,7 @@ namespace PCGExPathSplineMesh
 			const FQuat NextRotation = NextTransform.GetRotation();
 			const FVector NextScale = NextTransform.GetScale3D();
 
-			if (const PCGExAssetCollection::FMicroCache* MicroCache = MeshEntry->MicroCache.Get();
-				MicroHelper && MicroCache && MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
+			if (const PCGExAssetCollection::FMicroCache* MicroCache = MeshEntry->MicroCache.Get(); MicroHelper && MicroCache && MicroCache->GetType() == PCGExAssetCollection::EType::Mesh)
 			{
 				const PCGExMeshCollection::FMicroCache* EntryMicroCache = static_cast<const PCGExMeshCollection::FMicroCache*>(MicroCache);
 				MicroHelper->GetPick(EntryMicroCache, Index, Seed, Segment.MaterialPick);
@@ -433,10 +426,7 @@ namespace PCGExPathSplineMesh
 		const PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
 		if (!Segment.MeshEntry) { return; }
 
-		USplineMeshComponent* SplineMeshComponent = Context->ManagedObjects->New<USplineMeshComponent>(
-			TargetActor, MakeUniqueObjectName(
-				TargetActor, USplineMeshComponent::StaticClass(),
-				Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Segment.MeshEntry->Staging.Path.GetAssetName())), ObjectFlags);
+		USplineMeshComponent* SplineMeshComponent = Context->ManagedObjects->New<USplineMeshComponent>(TargetActor, MakeUniqueObjectName(TargetActor, USplineMeshComponent::StaticClass(), Context->UniqueNameGenerator->Get(TEXT("PCGSplineMeshComponent_") + Segment.MeshEntry->Staging.Path.GetAssetName())), ObjectFlags);
 
 		if (!SplineMeshComponent || !Segment.MeshEntry) { return; }
 
@@ -459,9 +449,7 @@ namespace PCGExPathSplineMesh
 
 		if (!Segment.ApplyMesh(SplineMeshComponent)) { return; }
 
-		Context->AttachManagedComponent(
-			TargetActor, SplineMeshComponent,
-			FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
+		Context->AttachManagedComponent(TargetActor, SplineMeshComponent, FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
 
 		Context->AddNotifyActor(TargetActor);
 	}

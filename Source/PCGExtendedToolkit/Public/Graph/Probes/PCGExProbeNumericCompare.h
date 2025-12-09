@@ -96,9 +96,7 @@ class UPCGExProbeNumericCompareProviderSettings : public UPCGExProbeFactoryProvi
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ProbeNumericCompare, "Probe : Numeric Compare", "Connect points that pass the value comparison between the probing point and the candidate point.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ProbeNumericCompare, "Probe : Numeric Compare", "Connect points that pass the value comparison between the probing point and the candidate point.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

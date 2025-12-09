@@ -8,8 +8,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExShapeProcessorElement"
 
-UPCGExShapeProcessorSettings::UPCGExShapeProcessorSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExShapeProcessorSettings::UPCGExShapeProcessorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
@@ -43,9 +42,7 @@ bool FPCGExShapeProcessorElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ShapeProcessor)
 
-	if (!PCGExFactories::GetInputFactories(
-		Context, PCGExShapes::SourceShapeBuildersLabel, Context->BuilderFactories,
-		{PCGExFactories::EType::ShapeBuilder}))
+	if (!PCGExFactories::GetInputFactories(Context, PCGExShapes::SourceShapeBuildersLabel, Context->BuilderFactories, {PCGExFactories::EType::ShapeBuilder}))
 	{
 		return false;
 	}

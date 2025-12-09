@@ -78,12 +78,9 @@ extern template class TDataValue<_TYPE>;
 
 #pragma endregion
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<IDataValue> TryGetValueFromTag(const FString& InTag, FString& OutLeftSide);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<IDataValue> TryGetValueFromTag(const FString& InTag, FString& OutLeftSide);
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<IDataValue> TryGetValueFromData(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<IDataValue> TryGetValueFromData(const UPCGData* InData, const FPCGAttributePropertyInputSelector& InSelector);
 
-	PCGEXTENDEDTOOLKIT_API
-	TSharedPtr<IDataValue> TryGetValueFromData(const UPCGData* InData, const FName& InName);
+	PCGEXTENDEDTOOLKIT_API TSharedPtr<IDataValue> TryGetValueFromData(const UPCGData* InData, const FName& InName);
 }

@@ -78,8 +78,8 @@ namespace PCGExBatchActions
 		TArray<TSharedPtr<FPCGExActionOperation>> Operations;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

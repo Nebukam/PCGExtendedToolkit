@@ -129,20 +129,18 @@ bool FPCGExBuildVoronoiGraph2DElement::AdvanceWork(FPCGExContext* InContext, con
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				if (Entry->GetNum() < 3)
-				{
-					bHasInvalidInputs = true;
-					return false;
-				}
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         if (Entry->GetNum() < 3)
+			                                         {
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bRequiresWriteStep = true;
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any valid inputs to build from."));
 		}
@@ -401,25 +399,24 @@ namespace PCGExBuildVoronoiGraph2D
 		{
 			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, OutputSites)
 
-			OutputSites->OnSubLoopStartCallback =
-				[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			OutputSites->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+			{
+				PCGEX_ASYNC_THIS
+
+				TPCGValueRange<FTransform> OutTransforms = This->SiteDataFacade->GetOut()->GetTransformValueRange(false);
+
+				const TArray<FVector>& SitesPositionsDetails = This->SitesOutputDetails.Locations;
+				const TArray<int32>& SitesInfluenceCountDetails = This->SitesOutputDetails.Influences;
+
+				PCGEX_SCOPE_LOOP(Index)
 				{
-					PCGEX_ASYNC_THIS
-
-					TPCGValueRange<FTransform> OutTransforms = This->SiteDataFacade->GetOut()->GetTransformValueRange(false);
-
-					const TArray<FVector>& SitesPositionsDetails = This->SitesOutputDetails.Locations;
-					const TArray<int32>& SitesInfluenceCountDetails = This->SitesOutputDetails.Influences;
-
-					PCGEX_SCOPE_LOOP(Index)
-					{
-						const bool bIsWithinBounds = This->IsVtxValid[Index];
-						if (This->OpenSiteWriter) { This->OpenSiteWriter->SetValue(Index, bIsWithinBounds); }
-						This->SitesOutputDetails.Output(Index);
-						if (SitesInfluenceCountDetails[Index] == 0) { continue; }
-						OutTransforms[Index].SetLocation(SitesPositionsDetails[Index] / SitesInfluenceCountDetails[Index]);
-					}
-				};
+					const bool bIsWithinBounds = This->IsVtxValid[Index];
+					if (This->OpenSiteWriter) { This->OpenSiteWriter->SetValue(Index, bIsWithinBounds); }
+					This->SitesOutputDetails.Output(Index);
+					if (SitesInfluenceCountDetails[Index] == 0) { continue; }
+					OutTransforms[Index].SetLocation(SitesPositionsDetails[Index] / SitesInfluenceCountDetails[Index]);
+				}
+			};
 
 			OutputSites->StartSubLoops(DelaunaySitesNum, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 		}

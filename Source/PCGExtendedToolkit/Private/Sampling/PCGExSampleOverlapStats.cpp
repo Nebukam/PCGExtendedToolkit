@@ -13,10 +13,7 @@
 #define LOCTEXT_NAMESPACE "PCGExSampleOverlapStatsElement"
 #define PCGEX_NAMESPACE SampleOverlapStats
 
-TSharedPtr<PCGExSampleOverlapStats::FOverlap> FPCGExSampleOverlapStatsContext::RegisterOverlap(
-	PCGExSampleOverlapStats::FProcessor* InA,
-	PCGExSampleOverlapStats::FProcessor* InB,
-	const FBox& InIntersection)
+TSharedPtr<PCGExSampleOverlapStats::FOverlap> FPCGExSampleOverlapStatsContext::RegisterOverlap(PCGExSampleOverlapStats::FProcessor* InA, PCGExSampleOverlapStats::FProcessor* InB, const FBox& InIntersection)
 {
 	const uint64 HashID = PCGEx::H64U(InA->BatchIndex, InB->BatchIndex);
 
@@ -83,12 +80,10 @@ bool FPCGExSampleOverlapStatsElement::AdvanceWork(FPCGExContext* InContext, cons
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bRequiresWriteStep = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any input to check for overlaps."));
 		}
@@ -103,8 +98,8 @@ bool FPCGExSampleOverlapStatsElement::AdvanceWork(FPCGExContext* InContext, cons
 
 namespace PCGExSampleOverlapStats
 {
-	FOverlap::FOverlap(FProcessor* InPrimary, FProcessor* InSecondary, const FBox& InIntersection) :
-		Intersection(InIntersection), Primary(InPrimary), Secondary(InSecondary)
+	FOverlap::FOverlap(FProcessor* InPrimary, FProcessor* InSecondary, const FBox& InIntersection)
+		: Intersection(InIntersection), Primary(InPrimary), Secondary(InSecondary)
 	{
 		HashID = PCGEx::H64U(InPrimary->BatchIndex, InSecondary->BatchIndex);
 	}
@@ -221,80 +216,72 @@ namespace PCGExSampleOverlapStats
 
 		if (Settings->TestMode != EPCGExOverlapTestMode::Sphere)
 		{
-			Octree->FindElementsWithBoundsTest(
-				FBoxCenterAndExtent(Overlap->Intersection.GetCenter(), Overlap->Intersection.GetExtent()),
-				[&](const PCGExDiscardByOverlap::FPointBounds* OwnedPoint)
+			Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Overlap->Intersection.GetCenter(), Overlap->Intersection.GetExtent()), [&](const PCGExDiscardByOverlap::FPointBounds* OwnedPoint)
+			{
+				const double Length = OwnedPoint->LocalBounds.GetExtent().Length() * 2;
+				const FMatrix InvMatrix = InTransforms[OwnedPoint->Index].ToMatrixNoScale().Inverse();
+
+				int32 Count = 0;
+
+				OtherProcessor->GetOctree()->FindElementsWithBoundsTest(FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()), [&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
 				{
-					const double Length = OwnedPoint->LocalBounds.GetExtent().Length() * 2;
-					const FMatrix InvMatrix = InTransforms[OwnedPoint->Index].ToMatrixNoScale().Inverse();
+					const FBox Intersection = OwnedPoint->LocalBounds.Overlap(OtherPoint->TransposedBounds(InvMatrix));
 
-					int32 Count = 0;
+					if (!Intersection.IsValid) { return; }
 
-					OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()),
-						[&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
-						{
-							const FBox Intersection = OwnedPoint->LocalBounds.Overlap(OtherPoint->TransposedBounds(InvMatrix));
+					const double Amount = Intersection.GetExtent().Length() * 2;
+					if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative) { if ((Amount / Length) < Settings->MinThreshold) { return; } }
+					else if (Amount < Settings->MinThreshold) { return; }
 
-							if (!Intersection.IsValid) { return; }
+					Count++;
 
-							const double Amount = Intersection.GetExtent().Length() * 2;
-							if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative) { if ((Amount / Length) < Settings->MinThreshold) { return; } }
-							else if (Amount < Settings->MinThreshold) { return; }
-
-							Count++;
-
-							if (bUpdateOverlap)
-							{
-								Overlap->Stats.OverlapCount++;
-								Overlap->Stats.OverlapVolume += Intersection.GetVolume();
-							}
-						});
-
-					if (Count > 0)
+					if (bUpdateOverlap)
 					{
-						FPlatformAtomics::InterlockedExchange(&bAnyOverlap, 1);
-						FPlatformAtomics::InterlockedAdd(&OverlapSubCount[OwnedPoint->Index], Count);
-						FPlatformAtomics::InterlockedAdd(&OverlapCount[OwnedPoint->Index], 1);
+						Overlap->Stats.OverlapCount++;
+						Overlap->Stats.OverlapVolume += Intersection.GetVolume();
 					}
 				});
+
+				if (Count > 0)
+				{
+					FPlatformAtomics::InterlockedExchange(&bAnyOverlap, 1);
+					FPlatformAtomics::InterlockedAdd(&OverlapSubCount[OwnedPoint->Index], Count);
+					FPlatformAtomics::InterlockedAdd(&OverlapCount[OwnedPoint->Index], 1);
+				}
+			});
 		}
 		else
 		{
-			Octree->FindElementsWithBoundsTest(
-				FBoxCenterAndExtent(Overlap->Intersection.GetCenter(), Overlap->Intersection.GetExtent()),
-				[&](const PCGExDiscardByOverlap::FPointBounds* OwnedPoint)
+			Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Overlap->Intersection.GetCenter(), Overlap->Intersection.GetExtent()), [&](const PCGExDiscardByOverlap::FPointBounds* OwnedPoint)
+			{
+				const FSphere S1 = OwnedPoint->Bounds.GetSphere();
+
+				int32 Count = 0;
+
+				OtherProcessor->GetOctree()->FindElementsWithBoundsTest(FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()), [&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
 				{
-					const FSphere S1 = OwnedPoint->Bounds.GetSphere();
+					double Amount = 0;
+					if (!PCGExMath::SphereOverlap(S1, OtherPoint->Bounds.GetSphere(), Amount)) { return; }
 
-					int32 Count = 0;
+					if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative) { if ((Amount / S1.W) < Settings->MinThreshold) { return; } }
+					else if (Amount < Settings->MinThreshold) { return; }
 
-					OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox()), 
-						[&](const PCGExDiscardByOverlap::FPointBounds* OtherPoint)
-						{
-							double Amount = 0;
-							if (!PCGExMath::SphereOverlap(S1, OtherPoint->Bounds.GetSphere(), Amount)) { return; }
+					Count++;
 
-							if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative) { if ((Amount / S1.W) < Settings->MinThreshold) { return; } }
-							else if (Amount < Settings->MinThreshold) { return; }
-
-							Count++;
-
-							if (bUpdateOverlap)
-							{
-								Overlap->Stats.OverlapCount++;
-								Overlap->Stats.OverlapVolume += Amount;
-							}
-						});
-
-					if (Count > 0)
+					if (bUpdateOverlap)
 					{
-						FPlatformAtomics::InterlockedExchange(&bAnyOverlap, 1);
-						FPlatformAtomics::InterlockedAdd(&OverlapSubCount[OwnedPoint->Index], Count);
-						FPlatformAtomics::InterlockedAdd(&OverlapCount[OwnedPoint->Index], 1);
+						Overlap->Stats.OverlapCount++;
+						Overlap->Stats.OverlapVolume += Amount;
 					}
 				});
+
+				if (Count > 0)
+				{
+					FPlatformAtomics::InterlockedExchange(&bAnyOverlap, 1);
+					FPlatformAtomics::InterlockedAdd(&OverlapSubCount[OwnedPoint->Index], Count);
+					FPlatformAtomics::InterlockedAdd(&OverlapCount[OwnedPoint->Index], 1);
+				}
+			});
 		}
 	}
 
@@ -356,21 +343,19 @@ namespace PCGExSampleOverlapStats
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
 
-		SearchTask->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->PointDataFacade->WriteFastest(This->AsyncManager);
-				if (This->Settings->bTagIfHasAnyOverlap && This->bAnyOverlap) { This->PointDataFacade->Source->Tags->AddRaw(This->Settings->HasAnyOverlapTag); }
-				if (This->Settings->bTagIfHasNoOverlap && !This->bAnyOverlap) { This->PointDataFacade->Source->Tags->AddRaw(This->Settings->HasNoOverlapTag); }
-			};
+		SearchTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->PointDataFacade->WriteFastest(This->AsyncManager);
+			if (This->Settings->bTagIfHasAnyOverlap && This->bAnyOverlap) { This->PointDataFacade->Source->Tags->AddRaw(This->Settings->HasAnyOverlapTag); }
+			if (This->Settings->bTagIfHasNoOverlap && !This->bAnyOverlap) { This->PointDataFacade->Source->Tags->AddRaw(This->Settings->HasNoOverlapTag); }
+		};
 
-		SearchTask->OnIterationCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->WriteSingleData(Index);
-			};
+		SearchTask->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](const int32 Index, const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->WriteSingleData(Index);
+		};
 
 		SearchTask->StartIterations(NumPoints, ParentBatch.Pin()->ProcessorFacades.Num());
 	}

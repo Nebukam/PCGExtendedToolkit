@@ -36,9 +36,7 @@ public:
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		AbstractFilterFactory, "Filter : Abstract", "Creates an abstract filter definition.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AbstractFilterFactory, "Filter : Abstract", "Creates an abstract filter definition.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilter); }
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 #endif

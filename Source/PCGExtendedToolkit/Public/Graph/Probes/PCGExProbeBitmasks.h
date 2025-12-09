@@ -47,8 +47,8 @@ struct FPCGExProbeConfigBitmasks : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeConfigBitmasks() :
-		FPCGExProbeConfigBase()
+	FPCGExProbeConfigBitmasks()
+		: FPCGExProbeConfigBase()
 	{
 	}
 
@@ -120,9 +120,7 @@ class UPCGExProbeBitmasksProviderSettings : public UPCGExProbeFactoryProviderSet
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		ProbeBitmasks, "Probe : Bitmasks", "Probe using bitmasks references & collections.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(ProbeBitmasks, "Probe : Bitmasks", "Probe using bitmasks references & collections.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

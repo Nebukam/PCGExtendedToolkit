@@ -37,23 +37,17 @@ void FPCGExShapeFiblatBuilder::PrepareShape(const PCGExData::FConstPoint& Seed)
 
 	switch (Config.PhiConstant)
 	{
-	case EPCGExFibPhiConstant::GoldenRatio:
-		Fiblat->Phi = (FMath::Sqrt(5.0) - 1.0) * 0.5;
+	case EPCGExFibPhiConstant::GoldenRatio: Fiblat->Phi = (FMath::Sqrt(5.0) - 1.0) * 0.5;
 		break;
-	case EPCGExFibPhiConstant::SqRootOfTwo:
-		Fiblat->Phi = FMath::Sqrt(2.0);
+	case EPCGExFibPhiConstant::SqRootOfTwo: Fiblat->Phi = FMath::Sqrt(2.0);
 		break;
-	case EPCGExFibPhiConstant::Irrational:
-		Fiblat->Phi = (9 + FMath::Sqrt(221.0)) * 0.1;
+	case EPCGExFibPhiConstant::Irrational: Fiblat->Phi = (9 + FMath::Sqrt(221.0)) * 0.1;
 		break;
-	case EPCGExFibPhiConstant::SqRootOfTthree:
-		Fiblat->Phi = FMath::Sqrt(2.0);
+	case EPCGExFibPhiConstant::SqRootOfTthree: Fiblat->Phi = FMath::Sqrt(2.0);
 		break;
-	case EPCGExFibPhiConstant::Ln2:
-		Fiblat->Phi = 0.69314718056;
+	case EPCGExFibPhiConstant::Ln2: Fiblat->Phi = 0.69314718056;
 		break;
-	case EPCGExFibPhiConstant::Custom:
-		Fiblat->Phi = Phi->Read(Seed.Index);
+	case EPCGExFibPhiConstant::Custom: Fiblat->Phi = Phi->Read(Seed.Index);
 		break;
 	}
 
@@ -76,15 +70,12 @@ void FPCGExShapeFiblatBuilder::BuildShape(const TSharedPtr<PCGExShapes::FShape> 
 
 	const int32 Count = Fiblat->NumPoints;
 
-	ParallelFor(
-		Count, [&](int32 i)
-		{
-			const FVector P = Center + (Fiblat->ComputeFibLatPoint(i, Count) * Extents);
+	ParallelFor(Count, [&](int32 i)
+	{
+		const FVector P = Center + (Fiblat->ComputeFibLatPoint(i, Count) * Extents);
 
-			OutTransforms[Scope.Start + i] = FTransform(
-				PCGExMath::MakeLookAtTransform(P - Target, FVector::UpVector, Config.LookAtAxis).GetRotation(),
-				P, FVector::OneVector);
-		});
+		OutTransforms[Scope.Start + i] = FTransform(PCGExMath::MakeLookAtTransform(P - Target, FVector::UpVector, Config.LookAtAxis).GetRotation(), P, FVector::OneVector);
+	});
 }
 
 PCGEX_SHAPE_BUILDER_BOILERPLATE(Fiblat)

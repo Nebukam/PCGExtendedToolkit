@@ -115,8 +115,8 @@ namespace PCGExConnectClusters
 	class FProcessor final : public PCGExClusterMT::TProcessor<FPCGExConnectClustersContext, UPCGExConnectClustersSettings>
 	{
 	public:
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

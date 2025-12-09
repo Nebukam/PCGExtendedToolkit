@@ -262,8 +262,8 @@ namespace PCGExWriteEdgeProperties
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch(InContext, InVtx, InEdges)
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges)
+			: TBatch(InContext, InVtx, InEdges)
 		{
 			bAllowVtxDataFacadeScopedGet = true;
 		}

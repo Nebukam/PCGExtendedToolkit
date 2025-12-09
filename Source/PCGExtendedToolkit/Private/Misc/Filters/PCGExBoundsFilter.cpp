@@ -30,10 +30,7 @@ PCGExFactories::EPreparationResult UPCGExBoundsFilterFactory::Prepare(FPCGExCont
 	Clouds.Reserve(BoundsDataFacades.Num());
 	for (const TSharedPtr<PCGExData::FFacade>& Facade : BoundsDataFacades)
 	{
-		Clouds.Add(
-			Facade->GetCloud(
-				Config.BoundsTarget,
-				Config.TestMode == EPCGExBoxCheckMode::ExpandedBox || Config.TestMode == EPCGExBoxCheckMode::ExpandedSphere ? Config.Expansion * 2 : Config.Expansion));
+		Clouds.Add(Facade->GetCloud(Config.BoundsTarget, Config.TestMode == EPCGExBoxCheckMode::ExpandedBox || Config.TestMode == EPCGExBoxCheckMode::ExpandedSphere ? Config.Expansion * 2 : Config.Expansion));
 	}
 
 	return Result;
@@ -100,18 +97,13 @@ if(TypedFilterFactory->Config.bInvert){\
 	{
 		switch (TypedFilterFactory->Config.CheckType)
 		{
-		default:
-		case EPCGExBoundsCheckType::Intersects:
-			PCGEX_FOREACH_BOUNDTYPE(Intersect)
+		default: case EPCGExBoundsCheckType::Intersects: PCGEX_FOREACH_BOUNDTYPE(Intersect)
 			break;
-		case EPCGExBoundsCheckType::IsInside:
-			PCGEX_FOREACH_BOUNDTYPE(IsInside)
+		case EPCGExBoundsCheckType::IsInside: PCGEX_FOREACH_BOUNDTYPE(IsInside)
 			break;
-		case EPCGExBoundsCheckType::IsInsideOrOn:
-			PCGEX_FOREACH_BOUNDTYPE(IsInsideOrOn)
+		case EPCGExBoundsCheckType::IsInsideOrOn: PCGEX_FOREACH_BOUNDTYPE(IsInsideOrOn)
 			break;
-		case EPCGExBoundsCheckType::IsInsideOrIntersects:
-			PCGEX_FOREACH_BOUNDTYPE(IsInsideOrIntersects)
+		case EPCGExBoundsCheckType::IsInsideOrIntersects: PCGEX_FOREACH_BOUNDTYPE(IsInsideOrIntersects)
 			break;
 		}
 	}
@@ -119,18 +111,13 @@ if(TypedFilterFactory->Config.bInvert){\
 	{
 		switch (TypedFilterFactory->Config.CheckType)
 		{
-		default:
-		case EPCGExBoundsCheckType::Intersects:
-			PCGEX_FOREACH_BOUNDTYPE(IntersectCloud)
+		default: case EPCGExBoundsCheckType::Intersects: PCGEX_FOREACH_BOUNDTYPE(IntersectCloud)
 			break;
-		case EPCGExBoundsCheckType::IsInside:
-			PCGEX_FOREACH_BOUNDTYPE(IsInsideCloud)
+		case EPCGExBoundsCheckType::IsInside: PCGEX_FOREACH_BOUNDTYPE(IsInsideCloud)
 			break;
-		case EPCGExBoundsCheckType::IsInsideOrOn:
-			PCGEX_FOREACH_BOUNDTYPE(IsInsideOrOnCloud)
+		case EPCGExBoundsCheckType::IsInsideOrOn: PCGEX_FOREACH_BOUNDTYPE(IsInsideOrOnCloud)
 			break;
-		case EPCGExBoundsCheckType::IsInsideOrIntersects:
-			PCGEX_FOREACH_BOUNDTYPE(IsInsideOrIntersectsCloud)
+		case EPCGExBoundsCheckType::IsInsideOrIntersects: PCGEX_FOREACH_BOUNDTYPE(IsInsideOrIntersectsCloud)
 			break;
 		}
 	}
@@ -197,8 +184,7 @@ FString UPCGExBoundsFilterProviderSettings::GetDisplayName() const
 {
 	switch (Config.CheckType)
 	{
-	default:
-	case EPCGExBoundsCheckType::Intersects: return TEXT("Intersects");
+	default: case EPCGExBoundsCheckType::Intersects: return TEXT("Intersects");
 	case EPCGExBoundsCheckType::IsInside: return TEXT("Is Inside");
 	case EPCGExBoundsCheckType::IsInsideOrOn: return TEXT("Is Inside or On");
 	case EPCGExBoundsCheckType::IsInsideOrIntersects: return TEXT("Is Inside or Intersects");

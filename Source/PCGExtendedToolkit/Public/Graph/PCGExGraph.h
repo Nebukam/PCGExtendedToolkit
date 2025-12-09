@@ -91,11 +91,7 @@ namespace PCGExGraph
 
 #pragma region Graph Utils
 
-	bool BuildIndexedEdges(
-		const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
-		const TMap<uint32, int32>& EndpointsLookup,
-		TArray<FEdge>& OutEdges,
-		const bool bStopOnError = false);
+	bool BuildIndexedEdges(const TSharedPtr<PCGExData::FPointIO>& EdgeIO, const TMap<uint32, int32>& EndpointsLookup, TArray<FEdge>& OutEdges, const bool bStopOnError = false);
 
 #pragma endregion
 
@@ -222,10 +218,7 @@ namespace PCGExGraph
 		void BuildCluster(const TSharedRef<PCGExCluster::FCluster>& InCluster);
 		int32 GetFirstInIOIndex();
 
-		void Compile(
-			const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle,
-			const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-			const TSharedPtr<FGraphBuilder>& InBuilder);
+		void Compile(const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<FGraphBuilder>& InBuilder);
 
 	protected:
 		TWeakPtr<PCGExMT::FTaskManager> WeakAsyncManager;
@@ -316,9 +309,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			return NodeMetadata.FindOrAdd(NodeIndex, FGraphNodeMetadata(NodeIndex));
 		}
 
-		FORCEINLINE FGraphEdgeMetadata& AddNodeAndEdgeMetadata_Unsafe(
-			const int32 InNodeIndex, const int32 InEdgeIndex, const int32 RootIndex = -1,
-			const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
+		FORCEINLINE FGraphEdgeMetadata& AddNodeAndEdgeMetadata_Unsafe(const int32 InNodeIndex, const int32 InEdgeIndex, const int32 RootIndex = -1, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
 		{
 			NodeMetadata.FindOrAdd(InNodeIndex, FGraphNodeMetadata(InNodeIndex)).Type = InType;
 			return EdgeMetadata.FindOrAdd(InEdgeIndex, FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType));
@@ -329,9 +320,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 			NodeMetadata.FindOrAdd(InNodeIndex, FGraphNodeMetadata(InNodeIndex)).Type = InType;
 		}
 
-		FORCEINLINE FGraphEdgeMetadata& AddEdgeMetadata_Unsafe(
-			const int32 InEdgeIndex, const int32 RootIndex = -1,
-			const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
+		FORCEINLINE FGraphEdgeMetadata& AddEdgeMetadata_Unsafe(const int32 InEdgeIndex, const int32 RootIndex = -1, const EPCGExIntersectionType InType = EPCGExIntersectionType::Unknown)
 		{
 			return EdgeMetadata.FindOrAdd(InEdgeIndex, FGraphEdgeMetadata(InEdgeIndex, RootIndex, InType));
 		}
@@ -405,9 +394,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		// This will be set to true post-graph compilation, if compilation was a success
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(
-			const TSharedRef<PCGExData::FFacade>& InNodeDataFacade,
-			const FPCGExGraphBuilderDetails* InDetails);
+		FGraphBuilder(const TSharedRef<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails);
 
 		const FGraphMetadataDetails* GetMetadataDetails() const { return MetadataDetailsPtr; }
 
@@ -424,25 +411,17 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		~FGraphBuilder() = default;
 	};
 
-	bool BuildEndpointsLookup(
-		const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		TMap<uint32, int32>& OutIndices,
-		TArray<int32>& OutAdjacency);
+	bool BuildEndpointsLookup(const TSharedPtr<PCGExData::FPointIO>& InPointIO, TMap<uint32, int32>& OutIndices, TArray<int32>& OutAdjacency);
 
 #pragma endregion
 
-	PCGEXTENDEDTOOLKIT_API
-	bool IsPointDataVtxReady(const UPCGMetadata* Metadata);
+	PCGEXTENDEDTOOLKIT_API bool IsPointDataVtxReady(const UPCGMetadata* Metadata);
 
-	PCGEXTENDEDTOOLKIT_API
-	bool IsPointDataEdgeReady(const UPCGMetadata* Metadata);
+	PCGEXTENDEDTOOLKIT_API bool IsPointDataEdgeReady(const UPCGMetadata* Metadata);
 
-	PCGEXTENDEDTOOLKIT_API
-	void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
+	PCGEXTENDEDTOOLKIT_API void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 
-	PCGEXTENDEDTOOLKIT_API
-	void CleanupEdgeData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
+	PCGEXTENDEDTOOLKIT_API void CleanupEdgeData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 
-	PCGEXTENDEDTOOLKIT_API
-	void CleanupClusterData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
+	PCGEXTENDEDTOOLKIT_API void CleanupClusterData(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 }

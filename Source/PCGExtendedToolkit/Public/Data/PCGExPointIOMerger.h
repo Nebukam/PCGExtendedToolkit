@@ -77,7 +77,7 @@ namespace PCGExPointIOMerger
 	static void ScopeMerge(const FMergeScope& Scope, const FIdentityRef& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, const TSharedPtr<PCGExData::TBuffer<T>>& OutBuffer)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPointIOMerger::ScopeMerge);
-		
+
 		UPCGMetadata* InMetadata = SourceIO->GetIn()->Metadata;
 
 		const FPCGMetadataAttribute<T>* TypedInAttribute = PCGEx::TryGetConstAttribute<T>(InMetadata, Identity.Identifier);

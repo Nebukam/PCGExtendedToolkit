@@ -56,12 +56,7 @@ namespace PCGExGeo
 		void GetMergedSites(const int32 SiteIndex, const TSet<uint64>& EdgeConnectors, TSet<int32>& OutMerged, TSet<uint64>& OutUEdges, TBitArray<>& VisitedSites);
 	};
 
-	static int32 MTX[4][3] = {
-		{0, 1, 2},
-		{0, 1, 3},
-		{0, 2, 3},
-		{1, 2, 3}
-	};
+	static int32 MTX[4][3] = {{0, 1, 2}, {0, 1, 3}, {0, 2, 3}, {1, 2, 3}};
 
 	struct PCGEXTENDEDTOOLKIT_API FDelaunaySite3
 	{

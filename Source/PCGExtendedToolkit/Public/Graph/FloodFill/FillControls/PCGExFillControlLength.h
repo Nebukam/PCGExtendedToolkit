@@ -16,8 +16,8 @@ struct FPCGExFillControlConfigLength : public FPCGExFillControlConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExFillControlConfigLength() :
-		FPCGExFillControlConfigBase()
+	FPCGExFillControlConfigLength()
+		: FPCGExFillControlConfigBase()
 	{
 	}
 
@@ -81,9 +81,7 @@ class UPCGExFillControlsLengthProviderSettings : public UPCGExFillControlsFactor
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		FillControlsLength, "Fill Control : Length", "Stop fill after a certain number of vtx have been captured.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(FillControlsLength, "Fill Control : Length", "Stop fill after a certain number of vtx have been captured.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

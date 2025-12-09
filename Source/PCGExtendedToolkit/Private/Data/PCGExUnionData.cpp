@@ -37,12 +37,7 @@ namespace PCGExData
 		Add_Unsafe(IOIndex, PointIndices);
 	}
 
-	int32 IUnionData::ComputeWeights(
-		const TArray<const UPCGBasePointData*>& Sources,
-		const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
-		const FPoint& Target,
-		const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
-		TArray<FWeightedPoint>& OutWeightedPoints) const
+	int32 IUnionData::ComputeWeights(const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const FPoint& Target, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<FWeightedPoint>& OutWeightedPoints) const
 	{
 		const int32 NumElements = Elements.Num();
 		OutWeightedPoints.Reset(NumElements);

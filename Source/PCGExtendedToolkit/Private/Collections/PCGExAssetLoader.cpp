@@ -18,12 +18,8 @@ namespace PCGEx
 	public:
 		PCGEX_ASYNC_TASK_NAME(TDiscoverAssetsTask)
 
-		FDiscoverAssetsTask(
-			const TSharedPtr<IAssetLoader>& InLoader,
-			const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster)
-			: FTask(),
-			  Loader(InLoader),
-			  Broadcaster(InBroadcaster)
+		FDiscoverAssetsTask(const TSharedPtr<IAssetLoader>& InLoader, const TSharedPtr<TAttributeBroadcaster<FSoftObjectPath>>& InBroadcaster)
+			: FTask(), Loader(InLoader), Broadcaster(InBroadcaster)
 		{
 		}
 
@@ -63,9 +59,7 @@ namespace PCGEx
 		}
 	};
 
-	IAssetLoader::IAssetLoader(FPCGExContext* InContext,
-	                           const TSharedPtr<PCGExData::FPointIOCollection>& InIOCollection,
-	                           const TArray<FName>& InAttributeNames)
+	IAssetLoader::IAssetLoader(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InIOCollection, const TArray<FName>& InAttributeNames)
 		: AttributeNames(InAttributeNames), Context(InContext), IOCollection(InIOCollection)
 	{
 		Keys.Init(nullptr, InIOCollection->Num());
@@ -117,12 +111,11 @@ namespace PCGEx
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, AssetDiscovery)
 
-		AssetDiscovery->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE, AsyncManager]()
-			{
-				PCGEX_ASYNC_THIS
-				This->Load(AsyncManager);
-			};
+		AssetDiscovery->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, AsyncManager]()
+		{
+			PCGEX_ASYNC_THIS
+			This->Load(AsyncManager);
+		};
 
 		AssetDiscovery->StartTasksBatch(Tasks);
 
@@ -142,19 +135,16 @@ namespace PCGEx
 		LoadToken = AsyncManager->TryCreateToken(FName("LoadToken"));
 		PrepareLoading();
 
-		PCGExHelpers::Load(
-			AsyncManager,
-			[PCGEX_ASYNC_THIS_CAPTURE]() -> TArray<FSoftObjectPath>
-			{
-				PCGEX_ASYNC_THIS_RET({})
-				return This->UniquePaths.Array();
-			},
-			[PCGEX_ASYNC_THIS_CAPTURE](const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)
-			{
-				PCGEX_ASYNC_THIS
-				This->LoadHandle = StreamableHandle;
-				This->End(bSuccess);
-			});
+		PCGExHelpers::Load(AsyncManager, [PCGEX_ASYNC_THIS_CAPTURE]() -> TArray<FSoftObjectPath>
+		                   {
+			                   PCGEX_ASYNC_THIS_RET({})
+			                   return This->UniquePaths.Array();
+		                   }, [PCGEX_ASYNC_THIS_CAPTURE](const bool bSuccess, TSharedPtr<FStreamableHandle> StreamableHandle)
+		                   {
+			                   PCGEX_ASYNC_THIS
+			                   This->LoadHandle = StreamableHandle;
+			                   This->End(bSuccess);
+		                   });
 
 		return true;
 	}

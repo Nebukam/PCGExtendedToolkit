@@ -115,8 +115,8 @@ namespace PCGExClusterCentrality
 		TSharedPtr<PCGExMT::TScopedArray<double>> ScopedBetweenness;
 
 	public:
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -136,11 +136,7 @@ namespace PCGExClusterCentrality
 		virtual void ProcessRange(const PCGExMT::FScope& Scope) override;
 		virtual void OnRangeProcessingComplete() override;
 
-		void ProcessSingleNode(
-			const int32 Index,
-			TArray<double>& LocalBetweenness, TArray<double>& Score,
-			TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred,
-			TArray<int32>& Stack, const TSharedPtr<PCGExSearch::FScoredQueue>& Queue);
+		void ProcessSingleNode(const int32 Index, TArray<double>& LocalBetweenness, TArray<double>& Score, TArray<double>& Sigma, TArray<double>& Delta, TArray<NodePred>& Pred, TArray<int32>& Stack, const TSharedPtr<PCGExSearch::FScoredQueue>& Queue);
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

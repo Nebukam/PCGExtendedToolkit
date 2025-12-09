@@ -41,7 +41,8 @@ struct FPCGExShapePolygonConfig : public FPCGExShapeConfigBase
 	GENERATED_BODY()
 	;
 
-	FPCGExShapePolygonConfig() : FPCGExShapeConfigBase()
+	FPCGExShapePolygonConfig()
+		: FPCGExShapeConfigBase()
 	{
 	}
 
@@ -146,7 +147,8 @@ namespace PCGExShapes
 
 		const FPCGExShapePolygonConfig* Config = nullptr;
 
-		explicit FPolygon(const PCGExData::FConstPoint& InPointRef) : FShape(InPointRef)
+		explicit FPolygon(const PCGExData::FConstPoint& InPointRef)
+			: FShape(InPointRef)
 		{
 		}
 	};

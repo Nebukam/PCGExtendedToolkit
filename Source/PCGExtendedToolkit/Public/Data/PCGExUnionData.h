@@ -65,12 +65,7 @@ namespace PCGExData
 
 		bool IsEmpty() const { return Elements.IsEmpty(); }
 
-		virtual int32 ComputeWeights(
-			const TArray<const UPCGBasePointData*>& Sources,
-			const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup,
-			const FPoint& Target,
-			const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails,
-			TArray<FWeightedPoint>& OutWeightedPoints) const;
+		virtual int32 ComputeWeights(const TArray<const UPCGBasePointData*>& Sources, const TSharedPtr<PCGEx::FIndexLookup>& IdxLookup, const FPoint& Target, const TSharedPtr<PCGExDetails::FDistances>& InDistanceDetails, TArray<FWeightedPoint>& OutWeightedPoints) const;
 
 		virtual void Reset()
 		{
@@ -99,7 +94,10 @@ namespace PCGExData
 
 		bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
 
-		FORCEINLINE TSharedPtr<IUnionData> Get(const int32 Index) const { return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr; }
+		FORCEINLINE TSharedPtr<IUnionData> Get(const int32 Index) const
+		{
+			return Entries.IsValidIndex(Index) ? Entries[Index] : nullptr;
+		}
 	};
 
 #pragma endregion

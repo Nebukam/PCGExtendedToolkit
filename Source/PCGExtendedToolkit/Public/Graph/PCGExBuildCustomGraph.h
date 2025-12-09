@@ -420,8 +420,7 @@ public:
 	 * @param OutSettings
 	 */
 	UFUNCTION(BlueprintCallable, Category = "PCGEx|Execution", meta=(DeterminesOutputType="SettingsClass", DynamicOutputParam="OutSettings"))
-	void CreateGraphSettings(UPARAM(meta = (AllowAbstract = "false"))
-	                         TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, UPCGExCustomGraphSettings*& OutSettings);
+	void CreateGraphSettings(UPARAM(meta = (AllowAbstract = "false")) TSubclassOf<UPCGExCustomGraphSettings> SettingsClass, UPCGExCustomGraphSettings*& OutSettings);
 
 	/**
 	 * Main execution function. Called once per requested graphs. This method is executed in a multi-threaded context, Graph Settings are safe but the custom builder wrapper itself isn't.
@@ -462,9 +461,7 @@ class UPCGExBuildCustomGraphSettings : public UPCGExPointsProcessorSettings
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		BuildCustomGraph, "Cluster : Build Custom Graph", "Create clusters using custom blueprint objects",
-		(Builder ? FName(Builder.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(BuildCustomGraph, "Cluster : Build Custom Graph", "Create clusters using custom blueprint objects", (Builder ? FName(Builder.GetClass()->GetMetaData(TEXT("DisplayName"))) : FName("...")));
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorClusterGenerator; }
 	virtual bool CanDynamicallyTrackKeys() const override { return true; }
 #endif

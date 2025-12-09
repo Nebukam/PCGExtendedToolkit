@@ -12,11 +12,7 @@ bool FPCGExSubPointsBlendOperation::PrepareForData(FPCGExContext* InContext, con
 	return PrepareForData(InContext, InTargetFacade, InTargetFacade, PCGExData::EIOSide::Out, IgnoreAttributeSet);
 }
 
-bool FPCGExSubPointsBlendOperation::PrepareForData(
-	FPCGExContext* InContext,
-	const TSharedPtr<PCGExData::FFacade>& InTargetFacade,
-	const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide,
-	const TSet<FName>* IgnoreAttributeSet)
+bool FPCGExSubPointsBlendOperation::PrepareForData(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InTargetFacade, const TSharedPtr<PCGExData::FFacade>& InSourceFacade, const PCGExData::EIOSide InSourceSide, const TSet<FName>* IgnoreAttributeSet)
 {
 	if (!FPCGExSubPointsOperation::PrepareForData(InContext, InTargetFacade, IgnoreAttributeSet)) { return false; }
 
@@ -50,16 +46,12 @@ bool FPCGExSubPointsBlendOperation::PrepareForData(
 	return MetadataBlender->Init(InContext, BlendingDetails, IgnoreAttributeSet);
 }
 
-void FPCGExSubPointsBlendOperation::ProcessSubPoints(
-	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
+void FPCGExSubPointsBlendOperation::ProcessSubPoints(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
 	BlendSubPoints(From, To, Scope, Metrics);
 }
 
-void FPCGExSubPointsBlendOperation::BlendSubPoints(
-	const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To,
-	PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
+void FPCGExSubPointsBlendOperation::BlendSubPoints(const PCGExData::FConstPoint& From, const PCGExData::FConstPoint& To, PCGExData::FScope& Scope, const PCGExPaths::FPathMetrics& Metrics) const
 {
 }
 

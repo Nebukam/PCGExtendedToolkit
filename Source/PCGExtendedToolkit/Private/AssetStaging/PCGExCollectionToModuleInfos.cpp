@@ -62,7 +62,7 @@ bool FPCGExCollectionToModuleInfosElement::AdvanceWork(FPCGExContext* InContext,
 
 	TSharedPtr<PCGExStaging::FPickPacker> Packer = MakeShared<PCGExStaging::FPickPacker>(InContext);
 
-	MainCollection->EDITOR_RegisterTrackingKeys(static_cast<FPCGExContext*>(InContext));
+	MainCollection->EDITOR_RegisterTrackingKeys(InContext);
 
 	UPCGParamData* OutputModules = NewObject<UPCGParamData>();
 	UPCGMetadata* Metadata = OutputModules->Metadata;
@@ -107,13 +107,7 @@ bool FPCGExCollectionToModuleInfosElement::AdvanceWork(FPCGExContext* InContext,
 	return InContext->TryComplete();
 }
 
-void FPCGExCollectionToModuleInfosElement::FlattenCollection(
-	const TSharedPtr<PCGExStaging::FPickPacker>& Packer,
-	UPCGExAssetCollection* Collection,
-	const UPCGExCollectionToModuleInfosSettings* Settings,
-	TArray<PCGExCollectionToGrammar::FModule>& OutModules,
-	TSet<FName>& UniqueSymbols,
-	TMap<const FPCGExAssetCollectionEntry*, double>& SizeCache) const
+void FPCGExCollectionToModuleInfosElement::FlattenCollection(const TSharedPtr<PCGExStaging::FPickPacker>& Packer, UPCGExAssetCollection* Collection, const UPCGExCollectionToModuleInfosSettings* Settings, TArray<PCGExCollectionToGrammar::FModule>& OutModules, TSet<FName>& UniqueSymbols, TMap<const FPCGExAssetCollectionEntry*, double>& SizeCache) const
 {
 	if (!Collection) { return; }
 
@@ -135,8 +129,7 @@ void FPCGExCollectionToModuleInfosElement::FlattenCollection(
 		}
 
 		PCGExCollectionToGrammar::FModule& Module = OutModules.Emplace_GetRef();
-		if (!Entry->FixModuleInfos(Collection, Module.Infos)
-			|| (Settings->bSkipEmptySymbol && Module.Infos.Symbol.IsNone()))
+		if (!Entry->FixModuleInfos(Collection, Module.Infos) || (Settings->bSkipEmptySymbol && Module.Infos.Symbol.IsNone()))
 		{
 			OutModules.Pop(EAllowShrinking::No);
 			continue;

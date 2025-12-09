@@ -163,14 +163,9 @@ struct FPCGExShrinkPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExShrinkPathElement;
 
-	void GetShrinkAmounts(
-		const TSharedRef<PCGExData::FPointIO>& PointIO,
-		double& Start, double& End,
-		EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
+	void GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
 
-	void GetShrinkAmounts(
-		const TSharedRef<PCGExData::FPointIO>& PointIO,
-		int32& Start, int32& End) const;
+	void GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, int32& Start, int32& End) const;
 
 protected:
 	PCGEX_ELEMENT_BATCH_POINT_DECL

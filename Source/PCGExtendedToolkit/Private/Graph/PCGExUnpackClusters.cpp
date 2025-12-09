@@ -50,8 +50,7 @@ public:
 	PCGEX_ASYNC_TASK_NAME(FPCGExUnpackClusterTask)
 
 	explicit FPCGExUnpackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
-		: FTask(),
-		  PointIO(InPointIO)
+		: FTask(), PointIO(InPointIO)
 	{
 	}
 

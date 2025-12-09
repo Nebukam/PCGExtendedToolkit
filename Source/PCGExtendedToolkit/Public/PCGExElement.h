@@ -27,7 +27,7 @@ struct FPCGExContext;
 class PCGEXTENDEDTOOLKIT_API IPCGExElement : public IPCGElement
 {
 	friend struct FPCGExContext;
-	
+
 public:
 	virtual bool PrepareDataInternal(FPCGContext* Context) const override;
 	virtual bool AdvancePreparation(FPCGExContext* Context, const UPCGExSettings* InSettings) const;

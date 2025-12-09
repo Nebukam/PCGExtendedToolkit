@@ -91,25 +91,23 @@ bool FPCGExBevelPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	{
 		PCGEX_ON_INVALILD_INPUTS(FTEXT("Some inputs have less than 3 points and won't be processed."))
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
-			{
-				PCGEX_SKIP_INVALID_PATH_ENTRY
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry)
+		                                         {
+			                                         PCGEX_SKIP_INVALID_PATH_ENTRY
 
-				if (Entry->GetNum() < 3)
-				{
-					Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
-					Settings->InitOutputFlags(Entry);
-					bHasInvalidInputs = true;
-					return false;
-				}
+			                                         if (Entry->GetNum() < 3)
+			                                         {
+				                                         Entry->InitializeOutput(PCGExData::EIOInit::Duplicate);
+				                                         Settings->InitOutputFlags(Entry);
+				                                         bHasInvalidInputs = true;
+				                                         return false;
+			                                         }
 
-				return true;
-			},
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bRequiresWriteStep = (Settings->bFlagPoles || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
-			}))
+			                                         return true;
+		                                         }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		                                         {
+			                                         NewBatch->bRequiresWriteStep = (Settings->bFlagPoles || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
+		                                         }))
 		{
 			return Context->CancelExecution(TEXT("Could not find any paths to Bevel."));
 		}
@@ -124,8 +122,8 @@ bool FPCGExBevelPathElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 
 namespace PCGExBevelPath
 {
-	FBevel::FBevel(const int32 InIndex, const FProcessor* InProcessor):
-		Index(InIndex)
+	FBevel::FBevel(const int32 InIndex, const FProcessor* InProcessor)
+		: Index(InIndex)
 	{
 		const UPCGBasePointData* InPoints = InProcessor->PointDataFacade->GetIn();
 		TConstPCGValueRange<FTransform> InTransforms = InPoints->GetConstTransformValueRange();
@@ -419,37 +417,35 @@ namespace PCGExBevelPath
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
 
-		Preparation->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
+		Preparation->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			if (!This->Path->IsClosedLoop())
 			{
-				PCGEX_ASYNC_THIS
-				if (!This->Path->IsClosedLoop())
-				{
-					// Ensure bevel is disabled on start/end points
-					This->PointFilterCache[0] = false;
-					This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
-				}
+				// Ensure bevel is disabled on start/end points
+				This->PointFilterCache[0] = false;
+				This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
+			}
 
-				This->StartParallelLoopForPoints(PCGExData::EIOSide::In);
-			};
+			This->StartParallelLoopForPoints(PCGExData::EIOSide::In);
+		};
 
-		Preparation->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		Preparation->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+
+			This->PointDataFacade->Fetch(Scope);
+			This->FilterScope(Scope);
+
+			if (!This->Path->IsClosedLoop())
 			{
-				PCGEX_ASYNC_THIS
+				// Ensure bevel is disabled on start/end points
+				This->PointFilterCache[0] = false;
+				This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
+			}
 
-				This->PointDataFacade->Fetch(Scope);
-				This->FilterScope(Scope);
-
-				if (!This->Path->IsClosedLoop())
-				{
-					// Ensure bevel is disabled on start/end points
-					This->PointFilterCache[0] = false;
-					This->PointFilterCache[This->PointFilterCache.Num() - 1] = false;
-				}
-
-				PCGEX_SCOPE_LOOP(i) { This->PrepareSinglePoint(i); }
-			};
+			PCGEX_SCOPE_LOOP(i) { This->PrepareSinglePoint(i); }
+		};
 
 		Preparation->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchChunkSize);
 
@@ -531,9 +527,7 @@ namespace PCGExBevelPath
 
 	void FProcessor::OnRangeProcessingComplete()
 	{
-		constexpr EPCGPointNativeProperties CarryOverProperties =
-			static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) &
-				~static_cast<uint8>(EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::MetadataEntry));
+		constexpr EPCGPointNativeProperties CarryOverProperties = static_cast<EPCGPointNativeProperties>(static_cast<uint8>(EPCGPointNativeProperties::All) & ~static_cast<uint8>(EPCGPointNativeProperties::Transform | EPCGPointNativeProperties::MetadataEntry));
 
 		PointDataFacade->Source->ConsumeIdxMapping(CarryOverProperties);
 	}
@@ -659,23 +653,21 @@ namespace PCGExBevelPath
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteFlagsTask)
-		WriteFlagsTask->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->PointDataFacade->WriteFastest(This->AsyncManager);
-			};
+		WriteFlagsTask->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->PointDataFacade->WriteFastest(This->AsyncManager);
+		};
 
-		WriteFlagsTask->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		WriteFlagsTask->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			PCGEX_SCOPE_LOOP(i)
 			{
-				PCGEX_ASYNC_THIS
-				PCGEX_SCOPE_LOOP(i)
-				{
-					if (!This->PointFilterCache[i]) { continue; }
-					This->WriteFlags(i);
-				}
-			};
+				if (!This->PointFilterCache[i]) { continue; }
+				This->WriteFlags(i);
+			}
+		};
 
 		WriteFlagsTask->StartSubLoops(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 

@@ -68,7 +68,7 @@ namespace PCGEx
 		virtual bool Load(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
 
 		virtual void End(const bool bBuildMap = false);
-		
+
 		virtual void AddExtraStructReferencedObjects(FReferenceCollector& Collector)
 		{
 		}
@@ -83,10 +83,7 @@ namespace PCGEx
 	public:
 		TMap<PCGExValueHash, TObjectPtr<T>> AssetsMap;
 
-		TAssetLoader(
-			FPCGExContext* InContext,
-			const TSharedPtr<PCGExData::FPointIOCollection>& InIOCollection,
-			const TArray<FName>& InAttributeNames)
+		TAssetLoader(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIOCollection>& InIOCollection, const TArray<FName>& InAttributeNames)
 			: IAssetLoader(InContext, InIOCollection, InAttributeNames)
 		{
 		}

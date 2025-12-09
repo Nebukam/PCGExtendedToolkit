@@ -87,9 +87,7 @@ class UPCGExNodeEdgeAngleFilterProviderSettings : public UPCGExVtxFilterProvider
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NodeEdgeAngleFilterFactory, "Vtx Filter : Edge Angle", "Dot product comparison of connected edges against themselves. Mostly useful on binary nodes only.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeEdgeAngleFilterFactory, "Vtx Filter : Edge Angle", "Dot product comparison of connected edges against themselves. Mostly useful on binary nodes only.", PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterCluster); }
 #endif
 

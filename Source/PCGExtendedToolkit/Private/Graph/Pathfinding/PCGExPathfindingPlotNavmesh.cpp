@@ -179,10 +179,7 @@ void FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		PCGExData::FScope SubScope(PathIO->GetOut(), StartIndex, Query.Positions.Num());
 		if (SubScope.IsValid())
 		{
-			SubBlending->BlendSubPoints(
-				PointIO->GetInPoint(Query.SeedGoalPair.Seed),
-				PointIO->GetInPoint(Query.SeedGoalPair.Goal),
-				SubScope, Query.SeedGoalMetrics);
+			SubBlending->BlendSubPoints(PointIO->GetInPoint(Query.SeedGoalPair.Seed), PointIO->GetInPoint(Query.SeedGoalPair.Goal), SubScope, Query.SeedGoalMetrics);
 		}
 
 		// Pad index if we inserted plot points

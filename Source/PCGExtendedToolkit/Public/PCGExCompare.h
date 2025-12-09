@@ -121,9 +121,7 @@ namespace PCGExCompare
 		{
 			return A == B || A;
 		}
-		else if constexpr (
-			std::is_same_v<T, FVector2D> ||
-			std::is_same_v<T, FVector>)
+		else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector>)
 		{
 			return A.SquaredLength() >= B.SquaredLength();
 		}
@@ -131,27 +129,19 @@ namespace PCGExCompare
 		{
 			return EqualOrGreater(FVector(A), FVector(B));
 		}
-		else if constexpr (
-			std::is_same_v<T, FQuat> ||
-			std::is_same_v<T, FRotator>)
+		else if constexpr (std::is_same_v<T, FQuat> || std::is_same_v<T, FRotator>)
 		{
 			return EqualOrGreater(FVector(A.Euler()), FVector(B.Euler()));
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return (
-				EqualOrGreater(A.GetLocation(), B.GetLocation()) &&
-				EqualOrGreater(A.GetRotation(), B.GetRotation()) &&
-				EqualOrGreater(A.GetScale3D(), B.GetScale3D()));
+			return (EqualOrGreater(A.GetLocation(), B.GetLocation()) && EqualOrGreater(A.GetRotation(), B.GetRotation()) && EqualOrGreater(A.GetScale3D(), B.GetScale3D()));
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
 			return A.Compare(B, ESearchCase::IgnoreCase) >= 0;
 		}
-		else if constexpr (
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, FName> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return EqualOrGreater(A.ToString(), B.ToString());
 		}
@@ -168,9 +158,7 @@ namespace PCGExCompare
 		{
 			return A == B || !A;
 		}
-		else if constexpr (
-			std::is_same_v<T, FVector2D> ||
-			std::is_same_v<T, FVector>)
+		else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector>)
 		{
 			return A.SquaredLength() <= B.SquaredLength();
 		}
@@ -178,27 +166,19 @@ namespace PCGExCompare
 		{
 			return EqualOrSmaller(FVector(A), FVector(B));
 		}
-		else if constexpr (
-			std::is_same_v<T, FQuat> ||
-			std::is_same_v<T, FRotator>)
+		else if constexpr (std::is_same_v<T, FQuat> || std::is_same_v<T, FRotator>)
 		{
 			return EqualOrSmaller(FVector(A.Euler()), FVector(B.Euler()));
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return (
-				EqualOrSmaller(A.GetLocation(), B.GetLocation()) &&
-				EqualOrSmaller(A.GetRotation(), B.GetRotation()) &&
-				EqualOrSmaller(A.GetScale3D(), B.GetScale3D()));
+			return (EqualOrSmaller(A.GetLocation(), B.GetLocation()) && EqualOrSmaller(A.GetRotation(), B.GetRotation()) && EqualOrSmaller(A.GetScale3D(), B.GetScale3D()));
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
 			return A.Compare(B, ESearchCase::IgnoreCase) <= 0;
 		}
-		else if constexpr (
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, FName> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return EqualOrSmaller(A.ToString(), B.ToString());
 		}
@@ -215,9 +195,7 @@ namespace PCGExCompare
 		{
 			return A && !B;
 		}
-		else if constexpr (
-			std::is_same_v<T, FVector2D> ||
-			std::is_same_v<T, FVector>)
+		else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector>)
 		{
 			return A.SquaredLength() > B.SquaredLength();
 		}
@@ -225,27 +203,19 @@ namespace PCGExCompare
 		{
 			return StrictlyGreater(FVector(A), FVector(B));
 		}
-		else if constexpr (
-			std::is_same_v<T, FQuat> ||
-			std::is_same_v<T, FRotator>)
+		else if constexpr (std::is_same_v<T, FQuat> || std::is_same_v<T, FRotator>)
 		{
 			return StrictlyGreater(FVector(A.Euler()), FVector(B.Euler()));
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return (
-				StrictlyGreater(A.GetLocation(), B.GetLocation()) &&
-				StrictlyGreater(A.GetRotation(), B.GetRotation()) &&
-				StrictlyGreater(A.GetScale3D(), B.GetScale3D()));
+			return (StrictlyGreater(A.GetLocation(), B.GetLocation()) && StrictlyGreater(A.GetRotation(), B.GetRotation()) && StrictlyGreater(A.GetScale3D(), B.GetScale3D()));
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
 			return A.Compare(B, ESearchCase::IgnoreCase) > 0;
 		}
-		else if constexpr (
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, FName> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return StrictlyGreater(A.ToString(), B.ToString());
 		}
@@ -262,9 +232,7 @@ namespace PCGExCompare
 		{
 			return !A && B;
 		}
-		else if constexpr (
-			std::is_same_v<T, FVector2D> ||
-			std::is_same_v<T, FVector>)
+		else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector>)
 		{
 			return A.SquaredLength() < B.SquaredLength();
 		}
@@ -272,27 +240,19 @@ namespace PCGExCompare
 		{
 			return StrictlySmaller(FVector(A), FVector(B));
 		}
-		else if constexpr (
-			std::is_same_v<T, FQuat> ||
-			std::is_same_v<T, FRotator>)
+		else if constexpr (std::is_same_v<T, FQuat> || std::is_same_v<T, FRotator>)
 		{
 			return StrictlySmaller(FVector(A.Euler()), FVector(B.Euler()));
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return (
-				StrictlySmaller(A.GetLocation(), B.GetLocation()) &&
-				StrictlySmaller(A.GetRotation(), B.GetRotation()) &&
-				StrictlySmaller(A.GetScale3D(), B.GetScale3D()));
+			return (StrictlySmaller(A.GetLocation(), B.GetLocation()) && StrictlySmaller(A.GetRotation(), B.GetRotation()) && StrictlySmaller(A.GetScale3D(), B.GetScale3D()));
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
 			return A.Compare(B, ESearchCase::IgnoreCase) < 0;
 		}
-		else if constexpr (
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, FName> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return StrictlySmaller(A.ToString(), B.ToString());
 		}
@@ -311,46 +271,29 @@ namespace PCGExCompare
 		}
 		else if constexpr (std::is_same_v<T, FVector2D>)
 		{
-			return
-				NearlyEqual(A.X, B.X, Tolerance) &&
-				NearlyEqual(A.Y, B.Y, Tolerance);
+			return NearlyEqual(A.X, B.X, Tolerance) && NearlyEqual(A.Y, B.Y, Tolerance);
 		}
 		else if constexpr (std::is_same_v<T, FVector2D>)
 		{
-			return
-				NearlyEqual(A.X, B.X, Tolerance) &&
-				NearlyEqual(A.Y, B.Y, Tolerance) &&
-				NearlyEqual(A.Z, B.Z, Tolerance);
+			return NearlyEqual(A.X, B.X, Tolerance) && NearlyEqual(A.Y, B.Y, Tolerance) && NearlyEqual(A.Z, B.Z, Tolerance);
 		}
 		else if constexpr (std::is_same_v<T, FVector4>)
 		{
-			return
-				NearlyEqual(A.X, B.X, Tolerance) &&
-				NearlyEqual(A.Y, B.Y, Tolerance) &&
-				NearlyEqual(A.Z, B.Z, Tolerance) &&
-				NearlyEqual(A.W, B.W, Tolerance);
+			return NearlyEqual(A.X, B.X, Tolerance) && NearlyEqual(A.Y, B.Y, Tolerance) && NearlyEqual(A.Z, B.Z, Tolerance) && NearlyEqual(A.W, B.W, Tolerance);
 		}
-		else if constexpr (
-			std::is_same_v<T, FQuat> ||
-			std::is_same_v<T, FRotator>)
+		else if constexpr (std::is_same_v<T, FQuat> || std::is_same_v<T, FRotator>)
 		{
 			return NearlyEqual(FVector(A.Euler()), FVector(B.Euler()), Tolerance);
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return
-				NearlyEqual(A.GetLocation(), B.GetLocation(), Tolerance) &&
-				NearlyEqual(A.GetRotation(), B.GetRotation(), Tolerance) &&
-				NearlyEqual(A.GetScale3D(), B.GetScale3D(), Tolerance);
+			return NearlyEqual(A.GetLocation(), B.GetLocation(), Tolerance) && NearlyEqual(A.GetRotation(), B.GetRotation(), Tolerance) && NearlyEqual(A.GetScale3D(), B.GetScale3D(), Tolerance);
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
 			return FMath::IsNearlyEqual(A.Len(), B.Len(), Tolerance);
 		}
-		else if constexpr (
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, FName> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return NearlyEqual(A.ToString(), B.ToString(), Tolerance);
 		}
@@ -370,24 +313,15 @@ namespace PCGExCompare
 	{
 		switch (Method)
 		{
-		case EPCGExComparison::StrictlyEqual:
-			return StrictlyEqual(A, B);
-		case EPCGExComparison::StrictlyNotEqual:
-			return StrictlyNotEqual(A, B);
-		case EPCGExComparison::EqualOrGreater:
-			return EqualOrGreater(A, B);
-		case EPCGExComparison::EqualOrSmaller:
-			return EqualOrSmaller(A, B);
-		case EPCGExComparison::StrictlyGreater:
-			return StrictlyGreater(A, B);
-		case EPCGExComparison::StrictlySmaller:
-			return StrictlySmaller(A, B);
-		case EPCGExComparison::NearlyEqual:
-			return NearlyEqual(A, B, Tolerance);
-		case EPCGExComparison::NearlyNotEqual:
-			return NearlyNotEqual(A, B, Tolerance);
-		default:
-			return false;
+		case EPCGExComparison::StrictlyEqual: return StrictlyEqual(A, B);
+		case EPCGExComparison::StrictlyNotEqual: return StrictlyNotEqual(A, B);
+		case EPCGExComparison::EqualOrGreater: return EqualOrGreater(A, B);
+		case EPCGExComparison::EqualOrSmaller: return EqualOrSmaller(A, B);
+		case EPCGExComparison::StrictlyGreater: return StrictlyGreater(A, B);
+		case EPCGExComparison::StrictlySmaller: return StrictlySmaller(A, B);
+		case EPCGExComparison::NearlyEqual: return NearlyEqual(A, B, Tolerance);
+		case EPCGExComparison::NearlyNotEqual: return NearlyNotEqual(A, B, Tolerance);
+		default: return false;
 		}
 	}
 

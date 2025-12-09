@@ -26,10 +26,7 @@ const FProperty* FPCGExDefaultValueContainer::CreateNewProperty(const FName Prop
 	{
 		return OutPropertyDesc->CachedProperty;
 	}
-	else
-	{
-		return nullptr;
-	}
+	return nullptr;
 }
 
 const FProperty* FPCGExDefaultValueContainer::FindProperty(const FName PropertyName) const
@@ -106,16 +103,10 @@ bool FPCGExDefaultValueContainer::SetPropertyActivated(const FName PropertyName,
 			ActivatedProperties.Add(PropertyName);
 			return true;
 		}
-		else
-		{
-			ActivatedProperties.Remove(PropertyName);
-			return true;
-		}
+		ActivatedProperties.Remove(PropertyName);
+		return true;
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 void FPCGExDefaultValueContainer::Reset()

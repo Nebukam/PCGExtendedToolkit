@@ -337,12 +337,11 @@ namespace PCGEx
 		{
 			InObject->ClearInternalFlags(EInternalObjectFlags::Async);
 
-			ForEachObjectWithOuter(
-				InObject, [&](UObject* SubObject)
-				{
-					if (ManagedObjects.Contains(SubObject)) { return; }
-					SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
-				}, true);
+			ForEachObjectWithOuter(InObject, [&](UObject* SubObject)
+			{
+				if (ManagedObjects.Contains(SubObject)) { return; }
+				SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
+			}, true);
 		}
 	}
 
@@ -516,8 +515,7 @@ namespace PCGExHelpers
 
 	bool IsDataDomainAttribute(const FPCGAttributePropertyInputSelector& InputSelector)
 	{
-		return InputSelector.GetDomainName() == PCGDataConstants::DataDomainName ||
-			IsDataDomainAttribute(InputSelector.GetName());
+		return InputSelector.GetDomainName() == PCGDataConstants::DataDomainName || IsDataDomainAttribute(InputSelector.GetName());
 	}
 
 	void InitEmptyNativeProperties(const UPCGData* From, UPCGData* To, EPCGPointNativeProperties Properties)

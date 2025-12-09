@@ -32,8 +32,7 @@ namespace PCGExGraphTask
 		PCGEX_ASYNC_TASK_NAME(FWriteSubGraphCluster)
 
 		FWriteSubGraphCluster(const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
-			: FTask(),
-			  SubGraph(InSubGraph)
+			: FTask(), SubGraph(InSubGraph)
 		{
 		}
 
@@ -56,13 +55,8 @@ namespace PCGExGraphTask
 	public:
 		PCGEX_ASYNC_TASK_NAME(FCompileGraph)
 
-		FCompileGraph(const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
-		              const bool bInWriteNodeFacade,
-		              const PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
-			: FTask(),
-			  Builder(InGraphBuilder),
-			  bWriteNodeFacade(bInWriteNodeFacade),
-			  MetadataDetails(InMetadataDetails)
+		FCompileGraph(const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder, const bool bInWriteNodeFacade, const PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
+			: FTask(), Builder(InGraphBuilder), bWriteNodeFacade(bInWriteNodeFacade), MetadataDetails(InMetadataDetails)
 		{
 		}
 
@@ -78,11 +72,7 @@ namespace PCGExGraphTask
 	};
 }
 
-bool PCGExGraph::BuildIndexedEdges(
-	const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
-	const TMap<uint32, int32>& EndpointsLookup,
-	TArray<FEdge>& OutEdges,
-	const bool bStopOnError)
+bool PCGExGraph::BuildIndexedEdges(const TSharedPtr<PCGExData::FPointIO>& EdgeIO, const TMap<uint32, int32>& EndpointsLookup, TArray<FEdge>& OutEdges, const bool bStopOnError)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
@@ -257,10 +247,7 @@ MACRO(Crossing, bWriteCrossing, Crossing,TEXT("bCrossing"))
 		return -1;
 	}
 
-	void FSubGraph::Compile(
-		const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle,
-		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-		const TSharedPtr<FGraphBuilder>& InBuilder)
+	void FSubGraph::Compile(const TWeakPtr<PCGExMT::IAsyncHandleGroup>& InParentHandle, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<FGraphBuilder>& InBuilder)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::ExecuteTask);
 
@@ -398,19 +385,17 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		PCGEX_ASYNC_SUBGROUP_REQ_CHKD_VOID(AsyncManager, InParentHandle.Pin(), CompileSubGraph)
 
-		CompileSubGraph->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->CompilationComplete();
-			};
+		CompileSubGraph->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->CompilationComplete();
+		};
 
-		CompileSubGraph->OnSubLoopStartCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				This->CompileRange(Scope);
-			};
+		CompileSubGraph->OnSubLoopStartCallback = [PCGEX_ASYNC_THIS_CAPTURE](const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			This->CompileRange(Scope);
+		};
 
 		CompileSubGraph->StartSubLoops(FlattenedEdges.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
@@ -455,8 +440,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				const FGraphEdgeMetadata* EdgeMeta = ParentGraph->FindEdgeMetadata_Unsafe(E.IOIndex);
 				if (const FGraphEdgeMetadata* RootEdgeMeta = EdgeMeta ? ParentGraph->FindEdgeMetadata_Unsafe(EdgeMeta->RootIndex) : nullptr)
 				{
-					if (TSharedPtr<PCGExData::IUnionData> UnionData = ParentGraph->EdgesUnion->Get(RootEdgeMeta->RootIndex);
-						UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, WeightedPoints, Trackers); }
+					if (TSharedPtr<PCGExData::IUnionData> UnionData = ParentGraph->EdgesUnion->Get(RootEdgeMeta->RootIndex); UnionBlender && UnionData) { UnionBlender->MergeSingle(EdgeIndex, UnionData, WeightedPoints, Trackers); }
 
 					// TODO : Add Sub-edge edge (is the result of a subdivision + merge)
 
@@ -464,10 +448,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 					if (IsSubEdgeBuffer) { IsSubEdgeBuffer->SetValue(EdgeIndex, RootEdgeMeta->bIsSubEdge || EdgeMeta->bIsSubEdge); }
 					if (EdgeUnionSizeBuffer)
 					{
-						EdgeUnionSizeBuffer->SetValue(
-							EdgeIndex, EdgeMeta != RootEdgeMeta ?
-								           RootEdgeMeta->UnionSize + EdgeMeta->UnionSize :
-								           RootEdgeMeta->UnionSize);
+						EdgeUnionSizeBuffer->SetValue(EdgeIndex, EdgeMeta != RootEdgeMeta ? RootEdgeMeta->UnionSize + EdgeMeta->UnionSize : RootEdgeMeta->UnionSize);
 					}
 				}
 			}
@@ -476,9 +457,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 			if (Builder->OutputDetails->bWriteEdgePosition)
 			{
-				Builder->OutputDetails->BasicEdgeSolidification.Mutate(
-					EdgePt, VtxDataFacade->GetOutPoint(Start), VtxDataFacade->GetOutPoint(End),
-					Builder->OutputDetails->EdgePosition);
+				Builder->OutputDetails->BasicEdgeSolidification.Mutate(EdgePt, VtxDataFacade->GetOutPoint(Start), VtxDataFacade->GetOutPoint(End), Builder->OutputDetails->EdgePosition);
 			}
 
 			if (EdgeLength) { EdgeLength->SetValue(EdgeIndex, FVector::Dist(VtxTransforms[Start].GetLocation(), VtxTransforms[End].GetLocation())); }
@@ -818,11 +797,8 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 		}
 	}
 
-	FGraphBuilder::FGraphBuilder(
-		const TSharedRef<PCGExData::FFacade>& InNodeDataFacade,
-		const FPCGExGraphBuilderDetails* InDetails)
-		: OutputDetails(InDetails),
-		  NodeDataFacade(InNodeDataFacade)
+	FGraphBuilder::FGraphBuilder(const TSharedRef<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails)
+		: OutputDetails(InDetails), NodeDataFacade(InNodeDataFacade)
 	{
 		PCGEX_SHARED_CONTEXT_VOID(NodeDataFacade->Source->GetContextHandle())
 
@@ -929,10 +905,7 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				check(!InNodeData->IsEmpty())
 				check(InNodeData->GetNumPoints() >= NumValidNodes)
 
-				const bool bOutputIsSameAsInput =
-					!bHasInvalidNodes &&
-					NumValidNodes == InNodeData->GetNumPoints() &&
-					NumValidNodes == OutNodeData->GetNumPoints();
+				const bool bOutputIsSameAsInput = !bHasInvalidNodes && NumValidNodes == InNodeData->GetNumPoints() && NumValidNodes == OutNodeData->GetNumPoints();
 
 				if (!bOutputIsSameAsInput)
 				{
@@ -1098,20 +1071,18 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, BatchCompileSubGraphs)
 
-		BatchCompileSubGraphs->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE]()
-			{
-				PCGEX_ASYNC_THIS
-				This->OnCompilationEnd();
-			};
+		BatchCompileSubGraphs->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE]()
+		{
+			PCGEX_ASYNC_THIS
+			This->OnCompilationEnd();
+		};
 
-		BatchCompileSubGraphs->OnIterationCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE, WeakGroup = BatchCompileSubGraphs](const int32 Index, const PCGExMT::FScope& Scope)
-			{
-				PCGEX_ASYNC_THIS
-				const TSharedPtr<FSubGraph> SubGraph = This->Graph->SubGraphs[Index];
-				SubGraph->Compile(WeakGroup, This->AsyncManager, This);
-			};
+		BatchCompileSubGraphs->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE, WeakGroup = BatchCompileSubGraphs](const int32 Index, const PCGExMT::FScope& Scope)
+		{
+			PCGEX_ASYNC_THIS
+			const TSharedPtr<FSubGraph> SubGraph = This->Graph->SubGraphs[Index];
+			SubGraph->Compile(WeakGroup, This->AsyncManager, This);
+		};
 
 		BatchCompileSubGraphs->StartIterations(Graph->SubGraphs.Num(), 1, false);
 	}
@@ -1130,13 +1101,11 @@ MACRO(EdgeUnionSize, int32, 0, UnionSize)
 				}
 				else
 				{
-					NodeDataFacade->WriteBuffers(
-						AsyncManager,
-						[PCGEX_ASYNC_THIS_CAPTURE]()
-						{
-							PCGEX_ASYNC_THIS
-							This->OnCompilationEndCallback(This.ToSharedRef(), true);
-						});
+					NodeDataFacade->WriteBuffers(AsyncManager, [PCGEX_ASYNC_THIS_CAPTURE]()
+					{
+						PCGEX_ASYNC_THIS
+						This->OnCompilationEndCallback(This.ToSharedRef(), true);
+					});
 				}
 			}
 			else if (bCompiledSuccessfully)

@@ -134,8 +134,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : FPCGExContext
 protected:
 	int32 CurrentPointIOIndex = -1;
 
-	virtual TSharedPtr<PCGExPointsMT::IBatch> CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const
-	PCGEX_NOT_IMPLEMENTED_RET(CreatePointBatchInstance, nullptr);
+	virtual TSharedPtr<PCGExPointsMT::IBatch> CreatePointBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const PCGEX_NOT_IMPLEMENTED_RET(CreatePointBatchInstance, nullptr);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGExElement

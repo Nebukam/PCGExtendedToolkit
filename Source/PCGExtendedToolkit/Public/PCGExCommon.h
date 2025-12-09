@@ -81,10 +81,14 @@ namespace PCGExData
 
 	enum class EIOInit : uint8
 	{
-		NoInit,    // No Output
-		New,       // Create Empty Output Object
-		Duplicate, // Duplicate Input Object
-		Forward,   //Forward Input Object
+		// No Output
+		NoInit,
+		// Create Empty Output Object
+		New,
+		// Duplicate Input Object
+		Duplicate,
+		//Forward Input Object
+		Forward,
 	};
 
 	enum class EIOSide : uint8

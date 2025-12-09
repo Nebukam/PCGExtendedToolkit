@@ -108,8 +108,8 @@ namespace PCGExBestMatchAxis
 		TSharedPtr<PCGExDetails::TSettingValue<FVector>> MatchGetter;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

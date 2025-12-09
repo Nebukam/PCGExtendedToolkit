@@ -17,9 +17,7 @@ bool UPCGExTensorDotFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 
-	return PCGExFactories::GetInputFactories(
-		InContext, PCGExTensor::SourceTensorsLabel, TensorFactories,
-		{PCGExFactories::EType::Tensor});
+	return PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor});
 }
 
 TSharedPtr<PCGExPointFilter::IFilter> UPCGExTensorDotFilterFactory::CreateFilter() const
@@ -73,11 +71,7 @@ bool PCGExPointFilter::FTensorDotFilter::Test(const int32 PointIndex) const
 
 	if (!bSuccess) { return false; }
 
-	return DotComparison.Test(
-		FVector::DotProduct(
-			TypedFilterFactory->Config.bTransformOperandA ? OperandA->Read(PointIndex) : InTransforms[PointIndex].TransformVectorNoScale(OperandA->Read(PointIndex)),
-			Sample.DirectionAndSize.GetSafeNormal()),
-		DotComparison.GetComparisonThreshold(PointIndex));
+	return DotComparison.Test(FVector::DotProduct(TypedFilterFactory->Config.bTransformOperandA ? OperandA->Read(PointIndex) : InTransforms[PointIndex].TransformVectorNoScale(OperandA->Read(PointIndex)), Sample.DirectionAndSize.GetSafeNormal()), DotComparison.GetComparisonThreshold(PointIndex));
 }
 
 PCGEX_CREATE_FILTER_FACTORY(TensorDot)

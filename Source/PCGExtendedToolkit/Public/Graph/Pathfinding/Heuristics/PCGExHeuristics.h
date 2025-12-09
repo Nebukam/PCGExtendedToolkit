@@ -28,30 +28,21 @@ namespace PCGExHeuristics
 		TArray<TSharedPtr<FPCGExHeuristicFeedback>> Feedbacks;
 		double TotalStaticWeight = 0;
 
-		explicit FLocalFeedbackHandler(FPCGExContext* InContext):
-			ExecutionContext(InContext)
+		explicit FLocalFeedbackHandler(FPCGExContext* InContext)
+			: ExecutionContext(InContext)
 		{
 		}
 
 		~FLocalFeedbackHandler() = default;
 
-		double GetGlobalScore(
-			const PCGExCluster::FNode& From,
-			const PCGExCluster::FNode& Seed,
-			const PCGExCluster::FNode& Goal) const
+		double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 		{
 			double GScore = 0;
 			for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { GScore += Feedback->GetGlobalScore(From, Seed, Goal); }
 			return GScore;
 		}
 
-		double GetEdgeScore(
-			const PCGExCluster::FNode& From,
-			const PCGExCluster::FNode& To,
-			const PCGExGraph::FEdge& Edge,
-			const PCGExCluster::FNode& Seed,
-			const PCGExCluster::FNode& Goal,
-			const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const
+		double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const
 		{
 			double EScore = 0;
 			for (const TSharedPtr<FPCGExHeuristicFeedback>& Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
@@ -102,21 +93,10 @@ namespace PCGExHeuristics
 		void CompleteClusterPreparation();
 
 
-		double GetGlobalScore(
-			const PCGExCluster::FNode& From,
-			const PCGExCluster::FNode& Seed,
-			const PCGExCluster::FNode& Goal,
-			const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
+		double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
 
 
-		double GetEdgeScore(
-			const PCGExCluster::FNode& From,
-			const PCGExCluster::FNode& To,
-			const PCGExGraph::FEdge& Edge,
-			const PCGExCluster::FNode& Seed,
-			const PCGExCluster::FNode& Goal,
-			const FLocalFeedbackHandler* LocalFeedback = nullptr,
-			const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const;
+		double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const FLocalFeedbackHandler* LocalFeedback = nullptr, const TSharedPtr<PCGEx::FHashLookup>& TravelStack = nullptr) const;
 
 		void FeedbackPointScore(const PCGExCluster::FNode& Node);
 		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FEdge& Edge);

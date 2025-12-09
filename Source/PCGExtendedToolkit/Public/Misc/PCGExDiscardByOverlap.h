@@ -17,15 +17,15 @@
 UENUM()
 enum class EPCGExOverlapTestMode : uint8
 {
-	Fast = 0 UMETA(DisplayName = "Fast", ToolTip="Only test using datasets' overall bounds"),
-	Box = 1 UMETA(DisplayName = "Box", ToolTip="Test every points' bounds as transformed box. May not detect some overlaps."),
+	Fast   = 0 UMETA(DisplayName = "Fast", ToolTip="Only test using datasets' overall bounds"),
+	Box    = 1 UMETA(DisplayName = "Box", ToolTip="Test every points' bounds as transformed box. May not detect some overlaps."),
 	Sphere = 2 UMETA(DisplayName = "Sphere", ToolTip="Test every points' bounds as spheres. Will have some false positve."),
 };
 
 UENUM()
 enum class EPCGExOverlapPruningLogic : uint8
 {
-	LowFirst = 0 UMETA(DisplayName = "Low to High", ToolTip="Lower weights are pruned first."),
+	LowFirst  = 0 UMETA(DisplayName = "Low to High", ToolTip="Lower weights are pruned first."),
 	HighFirst = 1 UMETA(DisplayName = "High to Low", ToolTip="Higher weights are pruned first."),
 };
 
@@ -117,7 +117,8 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DiscardByOverlap, "Discard By Overlap", "Discard entire datasets based on how they overlap with each other.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->ColorMiscRemove; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->WantsColor(GetDefault<UPCGExGlobalSettings>()->ColorFilterHub); }
+	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Filter; }
 #endif
 
 protected:
@@ -172,10 +173,7 @@ struct FPCGExDiscardByOverlapContext final : FPCGExPointsProcessorContext
 	mutable FRWLock OverlapLock;
 	TMap<uint64, TSharedPtr<PCGExDiscardByOverlap::FOverlap>> OverlapMap;
 
-	TSharedPtr<PCGExDiscardByOverlap::FOverlap> RegisterOverlap(
-		PCGExDiscardByOverlap::FProcessor* InA,
-		PCGExDiscardByOverlap::FProcessor* InB,
-		const FBox& InIntersection);
+	TSharedPtr<PCGExDiscardByOverlap::FOverlap> RegisterOverlap(PCGExDiscardByOverlap::FProcessor* InA, PCGExDiscardByOverlap::FProcessor* InB, const FBox& InIntersection);
 
 	FPCGExOverlapScoresWeighting Weights;
 	FPCGExOverlapScoresWeighting MaxScores;
@@ -257,8 +255,8 @@ namespace PCGExDiscardByOverlap
 
 	struct PCGEXTENDEDTOOLKIT_API FPointBounds
 	{
-		FPointBounds(const int32 InIndex, const PCGExData::FConstPoint& InPoint, const FBox& InBounds) :
-			Index(InIndex), Point(InPoint), LocalBounds(InBounds), Bounds(InBounds.TransformBy(InPoint.GetTransform().ToMatrixNoScale()))
+		FPointBounds(const int32 InIndex, const PCGExData::FConstPoint& InPoint, const FBox& InBounds)
+			: Index(InIndex), Point(InPoint), LocalBounds(InBounds), Bounds(InBounds.TransformBy(InPoint.GetTransform().ToMatrixNoScale()))
 		{
 		}
 
@@ -331,10 +329,9 @@ namespace PCGExDiscardByOverlap
 
 		void UpdateWeightValues();
 		void UpdateWeight(const FPCGExOverlapScoresWeighting& InMax);
-		
+
 #if WITH_EDITOR
 		void PrintWeights() const;
 #endif
-		
 	};
 }

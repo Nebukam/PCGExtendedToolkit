@@ -15,8 +15,8 @@ struct FPCGExShapeGridConfig : public FPCGExShapeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExShapeGridConfig() :
-		FPCGExShapeConfigBase()
+	FPCGExShapeGridConfig()
+		: FPCGExShapeConfigBase()
 	{
 	}
 

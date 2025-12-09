@@ -48,7 +48,8 @@ namespace PCGExLayout
 		double DistanceScore = 0;
 		double Volume = 0;
 
-		explicit FSpace(const FBox& InBox, const FVector& InSeed) : Box(InBox)
+		explicit FSpace(const FBox& InBox, const FVector& InSeed)
+			: Box(InBox)
 		{
 			Volume = Box.GetVolume();
 			Size = Box.GetSize();
@@ -119,13 +120,9 @@ namespace PCGExLayout
 			PCGEX_BIN_SPLIT(FVector(I_Min.X, I_Max.Y, S_Min.Z), FVector(I_Max.X, S_Max.Y, I_Min.Z));
 			PCGEX_BIN_SPLIT(FVector(I_Max.X, I_Max.Y, S_Min.Z), FVector(S_Max.X, S_Max.Y, I_Min.Z));
 		}
-		else if constexpr (
-			SplitMode == EPCGExSpaceSplitMode::Minimal ||
-			SplitMode == EPCGExSpaceSplitMode::MinimalCross)
+		else if constexpr (SplitMode == EPCGExSpaceSplitMode::Minimal || SplitMode == EPCGExSpaceSplitMode::MinimalCross)
 		{
-			if constexpr (
-				MainAxis == EPCGExAxis::Up ||
-				MainAxis == EPCGExAxis::Down)
+			if constexpr (MainAxis == EPCGExAxis::Up || MainAxis == EPCGExAxis::Down)
 			{
 				PCGEX_BIN_SPLIT(FVector(I_Min.X, I_Min.Y, I_Max.Z), FVector(I_Max.X, I_Max.Y, S_Max.Z));
 				PCGEX_BIN_SPLIT(FVector(I_Min.X, I_Min.Y, S_Min.Z), FVector(I_Max.X, I_Max.Y, I_Min.Z));
@@ -145,9 +142,7 @@ namespace PCGExLayout
 					PCGEX_BIN_SPLIT(FVector(S_Min.X, I_Max.Y, S_Min.Z), S_Max);
 				}
 			}
-			else if constexpr (
-				MainAxis == EPCGExAxis::Left ||
-				MainAxis == EPCGExAxis::Right)
+			else if constexpr (MainAxis == EPCGExAxis::Left || MainAxis == EPCGExAxis::Right)
 			{
 				PCGEX_BIN_SPLIT(FVector(I_Min.X, I_Max.Y, I_Min.Z), FVector(I_Max.X, S_Max.Y, I_Max.Z));
 				PCGEX_BIN_SPLIT(FVector(I_Min.X, S_Min.Y, I_Min.Z), FVector(I_Max.X, I_Min.Y, I_Max.Z));
@@ -169,9 +164,7 @@ namespace PCGExLayout
 					PCGEX_BIN_SPLIT(S_Min, FVector(I_Min.X, S_Max.Y, S_Max.Z));
 				}
 			}
-			else if constexpr (
-				MainAxis == EPCGExAxis::Forward ||
-				MainAxis == EPCGExAxis::Backward)
+			else if constexpr (MainAxis == EPCGExAxis::Forward || MainAxis == EPCGExAxis::Backward)
 			{
 				PCGEX_BIN_SPLIT(FVector(I_Max.X, I_Min.Y, I_Min.Z), FVector(S_Max.X, I_Max.Y, I_Max.Z));
 				PCGEX_BIN_SPLIT(FVector(S_Min.X, I_Min.Y, I_Min.Z), FVector(I_Min.X, I_Max.Y, I_Max.Z));

@@ -18,18 +18,18 @@ namespace PCGExData
 {
 #pragma region FPointIO
 
-	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle):
-		ContextHandle(InContextHandle), In(nullptr)
+	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle)
+		: ContextHandle(InContextHandle), In(nullptr)
 	{
 	}
 
-	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle, const UPCGBasePointData* InData):
-		ContextHandle(InContextHandle), In(InData)
+	FPointIO::FPointIO(const TWeakPtr<FPCGContextHandle>& InContextHandle, const UPCGBasePointData* InData)
+		: ContextHandle(InContextHandle), In(InData)
 	{
 	}
 
-	FPointIO::FPointIO(const TSharedRef<FPointIO>& InPointIO):
-		ContextHandle(InPointIO->GetContextHandle()), In(InPointIO->GetIn())
+	FPointIO::FPointIO(const TSharedRef<FPointIO>& InPointIO)
+		: ContextHandle(InPointIO->GetContextHandle()), In(InPointIO->GetIn())
 	{
 		RootIO = InPointIO;
 
@@ -45,10 +45,7 @@ namespace PCGExData
 		return SharedContext.Get();
 	}
 
-	void FPointIO::SetInfos(
-		const int32 InIndex,
-		const FName InOutputPin,
-		const TSet<FString>* InTags)
+	void FPointIO::SetInfos(const int32 InIndex, const FName InOutputPin, const TSet<FString>* InTags)
 	{
 		IOIndex = InIndex;
 		OutputPin = InOutputPin;
@@ -71,9 +68,7 @@ namespace PCGExData
 			return true;
 		}
 
-		if (LastInit == EIOInit::Duplicate
-			&& InitOut == EIOInit::New
-			&& Out && Out != In)
+		if (LastInit == EIOInit::Duplicate && InitOut == EIOInit::New && Out && Out != In)
 		{
 			LastInit = EIOInit::New;
 			Out->SetNumPoints(0); // lol
@@ -643,9 +638,7 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 
 	FPointIOCollection::~FPointIOCollection() = default;
 
-	void FPointIOCollection::Initialize(
-		TArray<FPCGTaggedData>& Sources,
-		const EIOInit InitOut)
+	void FPointIOCollection::Initialize(TArray<FPCGTaggedData>& Sources, const EIOInit InitOut)
 	{
 		PCGEX_SHARED_CONTEXT_VOID(ContextHandle)
 
@@ -679,10 +672,7 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		UniqueData.Empty();
 	}
 
-	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(
-		const UPCGBasePointData* In,
-		const EIOInit InitOut,
-		const TSet<FString>* Tags)
+	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(const UPCGBasePointData* In, const EIOInit InitOut, const TSet<FString>* Tags)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
 		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(ContextHandle, In));
@@ -770,7 +760,7 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 
 		PCGEX_SHARED_CONTEXT_RET(ContextHandle, 0)
 		FPCGExContext* Context = SharedContext.Get();
-		
+
 		Sort();
 
 		int32 NumStaged = 0;
@@ -787,7 +777,7 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		FPCGExContext* Context = SharedContext.Get();
 
 		Sort();
-		
+
 		int32 NumStaged = 0;
 		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageOutput(Context, MinPointCount, MaxPointCount); } }
 
@@ -802,7 +792,7 @@ for (int i = 0; i < ReducedNum; i++){Range[i] = Range[InIndices[i]];}}
 		FPCGExContext* Context = SharedContext.Get();
 
 		Sort();
-		
+
 		int32 NumStaged = 0;
 		for (const TSharedPtr<FPointIO>& IO : Pairs) { if (IO) { NumStaged += IO->StageAnyOutput(Context); } }
 

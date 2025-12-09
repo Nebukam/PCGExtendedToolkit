@@ -132,7 +132,7 @@ protected:
 	bool bSkipClusterBatchCompletionStep = false;
 	bool bDoClusterBatchWritingStep = false;
 	bool bDaisyChainClusterBatches = false;
-	
+
 	int32 CurrentBatchIndex = -1;
 	TSharedPtr<PCGExClusterMT::IBatch> CurrentBatch;
 
@@ -147,8 +147,7 @@ protected:
 
 	int32 CurrentEdgesIndex = -1;
 
-	virtual TSharedPtr<PCGExPointsMT::IBatch> CreateEdgeBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const
-	PCGEX_NOT_IMPLEMENTED_RET(CreatePointBatchInstance, nullptr);
+	virtual TSharedPtr<PCGExPointsMT::IBatch> CreateEdgeBatchInstance(const TArray<TWeakPtr<PCGExData::FPointIO>>& InData) const PCGEX_NOT_IMPLEMENTED_RET(CreatePointBatchInstance, nullptr);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElement

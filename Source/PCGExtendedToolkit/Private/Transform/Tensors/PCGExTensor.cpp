@@ -16,9 +16,7 @@ PCGExTensor::FTensorSample FPCGExTensorSamplingMutationsDetails::Mutate(const FT
 
 	if (bBidirectional)
 	{
-		if (FVector::DotProduct(
-			PCGExMath::GetDirection(InProbe.GetRotation(), BidirectionalAxisReference),
-			InSample.DirectionAndSize.GetSafeNormal()) < 0)
+		if (FVector::DotProduct(PCGExMath::GetDirection(InProbe.GetRotation(), BidirectionalAxisReference), InSample.DirectionAndSize.GetSafeNormal()) < 0)
 		{
 			InSample.DirectionAndSize = InSample.DirectionAndSize * -1;
 			InSample.Rotation = FQuat(-InSample.Rotation.X, -InSample.Rotation.Y, -InSample.Rotation.Y, InSample.Rotation.W);
@@ -134,11 +132,7 @@ namespace PCGExTensor
 
 	FTensorSample FTensorSample::operator+(const FTensorSample& Other) const
 	{
-		return FTensorSample(
-			DirectionAndSize + Other.DirectionAndSize,
-			Rotation * Other.Rotation,
-			Effectors + Other.Effectors,
-			Weight + Weight);
+		return FTensorSample(DirectionAndSize + Other.DirectionAndSize, Rotation * Other.Rotation, Effectors + Other.Effectors, Weight + Weight);
 	}
 
 	FTensorSample& FTensorSample::operator+=(const FTensorSample& Other)
@@ -152,11 +146,7 @@ namespace PCGExTensor
 
 	FTensorSample FTensorSample::operator*(const double Factor) const
 	{
-		return FTensorSample(
-			DirectionAndSize * Factor,
-			Rotation * Factor,
-			Effectors,
-			Weight * Factor);
+		return FTensorSample(DirectionAndSize * Factor, Rotation * Factor, Effectors, Weight * Factor);
 	}
 
 	FTensorSample& FTensorSample::operator*=(const double Factor)
@@ -170,11 +160,7 @@ namespace PCGExTensor
 	FTensorSample FTensorSample::operator/(const double Factor) const
 	{
 		const double Divisor = 1 / Factor;
-		return FTensorSample(
-			DirectionAndSize * Divisor,
-			Rotation * Divisor,
-			Effectors,
-			Weight * Divisor);
+		return FTensorSample(DirectionAndSize * Divisor, Rotation * Divisor, Effectors, Weight * Divisor);
 	}
 
 	FTensorSample& FTensorSample::operator/=(const double Factor)
@@ -195,10 +181,7 @@ namespace PCGExTensor
 
 	FTransform FTensorSample::GetTransformed(const FTransform& InTransform, const double InWeight) const
 	{
-		return FTransform(
-			(InTransform.GetRotation() * (Rotation * InWeight)).GetNormalized(),
-			InTransform.GetLocation() + DirectionAndSize * InWeight,
-			InTransform.GetScale3D());
+		return FTransform((InTransform.GetRotation() * (Rotation * InWeight)).GetNormalized(), InTransform.GetLocation() + DirectionAndSize * InWeight, InTransform.GetScale3D());
 	}
 }
 

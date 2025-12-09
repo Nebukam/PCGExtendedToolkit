@@ -16,19 +16,14 @@ TArray<FPCGPinProperties> UPCGExProbeTensorProviderSettings::InputPinProperties(
 	return PinProperties;
 }
 
-PCGEX_CREATE_PROBE_FACTORY(
-	Tensor, {}, {
-	NewOperation->TensorFactories = &TensorFactories;
-	})
+PCGEX_CREATE_PROBE_FACTORY(Tensor, {}, { NewOperation->TensorFactories = &TensorFactories; })
 
 PCGExFactories::EPreparationResult UPCGExProbeFactoryTensor::Prepare(FPCGExContext* InContext, const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	PCGExFactories::EPreparationResult Result = Super::Prepare(InContext, AsyncManager);
 	if (Result != PCGExFactories::EPreparationResult::Success) { return Result; }
 
-	if (!PCGExFactories::GetInputFactories(
-		InContext, PCGExTensor::SourceTensorsLabel, TensorFactories,
-		{PCGExFactories::EType::Tensor}))
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExTensor::SourceTensorsLabel, TensorFactories, {PCGExFactories::EType::Tensor}))
 	{
 		return PCGExFactories::EPreparationResult::Fail;
 	}

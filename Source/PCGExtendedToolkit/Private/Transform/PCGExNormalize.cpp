@@ -69,12 +69,10 @@ bool FPCGExNormalizeElement::AdvanceWork(FPCGExContext* InContext, const UPCGExS
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-				NewBatch->bSkipCompletion = true;
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+			NewBatch->bSkipCompletion = true;
+		}))
 		{
 			return Context->CancelExecution(TEXT("No data."));
 		}
@@ -142,21 +140,17 @@ namespace PCGExNormalize
 
 		switch (Settings->Wrapping)
 		{
-		case EPCGExIndexSafety::Ignore:
-			break;
-		case EPCGExIndexSafety::Tile:
-			Wrap = [](const double Value)-> double
+		case EPCGExIndexSafety::Ignore: break;
+		case EPCGExIndexSafety::Tile: Wrap = [](const double Value)-> double
 			{
 				constexpr double OnePlus = 1 + UE_SMALL_NUMBER;
 				const double W = FMath::Fmod(Value, OnePlus);
 				return W < 0 ? W + OnePlus : W;
 			};
 			break;
-		case EPCGExIndexSafety::Clamp:
-			Wrap = [](const double Value)-> double { return FMath::Clamp(Value, 0, 1); };
+		case EPCGExIndexSafety::Clamp: Wrap = [](const double Value)-> double { return FMath::Clamp(Value, 0, 1); };
 			break;
-		case EPCGExIndexSafety::Yoyo:
-			Wrap = [](const double Value)-> double
+		case EPCGExIndexSafety::Yoyo: Wrap = [](const double Value)-> double
 			{
 				double C = FMath::Fmod(Value, 2);
 				C = C < 0 ? C + 2 : C;

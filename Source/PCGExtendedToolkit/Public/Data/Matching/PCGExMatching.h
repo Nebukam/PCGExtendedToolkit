@@ -95,7 +95,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMatchingDetails
 	/** Constant Limit value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Limit", EditCondition="bLimitMatches && LimitInput == EPCGExInputValueType::Constant && Mode != EPCGExMapMatchMode::Disabled && Usage != EPCGExMatchingDetailsUsage::Sampling", EditConditionHides))
 	int32 Limit = 1;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Warnings and Errors")
 	bool bQuietUnmatchedTargetWarning = true;
@@ -112,9 +112,7 @@ namespace PCGExMatching
 	const FName OutputUnmatchedVtxLabel = TEXT("Unmatched Vtx");
 	const FName OutputUnmatchedEdgesLabel = TEXT("Unmatched Edges");
 
-	PCGEXTENDEDTOOLKIT_API
-	void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
+	PCGEXTENDEDTOOLKIT_API void DeclareMatchingRulesInputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 
-	PCGEXTENDEDTOOLKIT_API
-	void DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
+	PCGEXTENDEDTOOLKIT_API void DeclareMatchingRulesOutputs(const FPCGExMatchingDetails& InDetails, TArray<FPCGPinProperties>& PinProperties);
 }

@@ -101,9 +101,7 @@ class UPCGExAttributeCheckFilterProviderSettings : public UPCGExFilterCollection
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		AttributeCheckFilterFactory, "Data Filter : Attribute Check", "Simple attribute existence check.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(AttributeCheckFilterFactory, "Data Filter : Attribute Check", "Simple attribute existence check.", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

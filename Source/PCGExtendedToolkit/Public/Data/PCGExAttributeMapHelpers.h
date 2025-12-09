@@ -23,11 +23,7 @@ class FPCGMetadataAttributeBase;
 namespace PCGEx
 {
 	template <typename T_KEY, typename T_VALUE>
-	static int32 BuildMap(
-		const UPCGMetadata* Metadata,
-		const FPCGMetadataAttributeBase* KeyAttr,
-		const FPCGMetadataAttributeBase* ValueAttr,
-		TMap<T_KEY, T_VALUE>& OutMap)
+	static int32 BuildMap(const UPCGMetadata* Metadata, const FPCGMetadataAttributeBase* KeyAttr, const FPCGMetadataAttributeBase* ValueAttr, TMap<T_KEY, T_VALUE>& OutMap)
 	{
 		if (!Metadata || !KeyAttr || !ValueAttr) { return 0; }
 

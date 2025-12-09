@@ -26,14 +26,12 @@ namespace PCGExHelpers
 			// We're not in the game thread, we need to dispatch loading to the main thread
 			// and wait in the current one
 			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
-			AsyncTask(
-				ENamedThreads::GameThread, [BlockingEvent, Path]()
-				{
-					const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-						Path, [BlockingEvent]() { BlockingEvent->Trigger(); });
+			AsyncTask(ENamedThreads::GameThread, [BlockingEvent, Path]()
+			{
+				const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(Path, [BlockingEvent]() { BlockingEvent->Trigger(); });
 
-					if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
-				});
+				if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
+			});
 
 			BlockingEvent->Wait();
 			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
@@ -50,21 +48,19 @@ namespace PCGExHelpers
 		{
 			TWeakPtr<TSet<FSoftObjectPath>> WeakPaths = Paths;
 			FEvent* BlockingEvent = FPlatformProcess::GetSynchEventFromPool();
-			AsyncTask(
-				ENamedThreads::GameThread, [BlockingEvent, WeakPaths]()
+			AsyncTask(ENamedThreads::GameThread, [BlockingEvent, WeakPaths]()
+			{
+				const TSharedPtr<TSet<FSoftObjectPath>> ToBeLoaded = WeakPaths.Pin();
+				if (!ToBeLoaded)
 				{
-					const TSharedPtr<TSet<FSoftObjectPath>> ToBeLoaded = WeakPaths.Pin();
-					if (!ToBeLoaded)
-					{
-						BlockingEvent->Trigger();
-						return;
-					}
+					BlockingEvent->Trigger();
+					return;
+				}
 
-					const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-						ToBeLoaded->Array(), [BlockingEvent]() { BlockingEvent->Trigger(); });
+				const TSharedPtr<FStreamableHandle> Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(ToBeLoaded->Array(), [BlockingEvent]() { BlockingEvent->Trigger(); });
 
-					if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
-				});
+				if (!Handle || !Handle->IsActive()) { BlockingEvent->Trigger(); }
+			});
 
 			BlockingEvent->Wait();
 			FPlatformProcess::ReturnSynchEventToPool(BlockingEvent);
@@ -85,11 +81,10 @@ namespace PCGExHelpers
 				return;
 			}
 
-			const TSharedPtr<FStreamableHandle> LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-				MoveTemp(Paths), [OnLoadEnd](TSharedPtr<FStreamableHandle> InHandle) // NOLINT(performance-unnecessary-value-param)
-				{
-					OnLoadEnd(true, InHandle);
-				});
+			const TSharedPtr<FStreamableHandle> LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(MoveTemp(Paths), [OnLoadEnd](TSharedPtr<FStreamableHandle> InHandle) // NOLINT(performance-unnecessary-value-param)
+			{
+				OnLoadEnd(true, InHandle);
+			});
 
 			if (!LoadHandle || !LoadHandle->IsActive())
 			{

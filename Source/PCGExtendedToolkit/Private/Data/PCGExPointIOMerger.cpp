@@ -17,16 +17,8 @@ namespace PCGExPointIOMerger
 	public:
 		PCGEX_ASYNC_TASK_NAME(FWriteAttributeScopeTask)
 
-		FWriteAttributeScopeTask(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			const FMergeScope& InScope,
-			const FIdentityRef& InIdentity,
-			const TSharedPtr<PCGExData::TBuffer<T>>& InOutBuffer)
-			: FTask(),
-			  PointIO(InPointIO),
-			  Scope(InScope),
-			  Identity(InIdentity),
-			  OutBuffer(InOutBuffer)
+		FWriteAttributeScopeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const FMergeScope& InScope, const FIdentityRef& InIdentity, const TSharedPtr<PCGExData::TBuffer<T>>& InOutBuffer)
+			: FTask(), PointIO(InPointIO), Scope(InScope), Identity(InIdentity), OutBuffer(InOutBuffer)
 		{
 		}
 
@@ -51,8 +43,7 @@ namespace PCGExPointIOMerger
 	{
 	public:
 		FCopyAttributeTask(const int32 InTaskIndex, const TSharedPtr<FPCGExPointIOMerger>& InMerger)
-			: FPCGExIndexedTask(InTaskIndex),
-			  Merger(InMerger)
+			: FPCGExIndexedTask(InTaskIndex), Merger(InMerger)
 		{
 		}
 
@@ -64,27 +55,23 @@ namespace PCGExPointIOMerger
 
 			const FIdentityRef& Identity = Merger->UniqueIdentities[TaskIndex];
 
-			PCGEx::ExecuteWithRightType(
-				Identity.UnderlyingType, [&](auto DummyValue)
+			PCGEx::ExecuteWithRightType(Identity.UnderlyingType, [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+
+				TSharedPtr<PCGExData::TBuffer<T>> Buffer = Merger->UnionDataFacade->GetWritable(Merger->WantsDataToElements() ? Identity.ElementsIdentifier : Identity.Identifier, Identity.bInitDefault ? static_cast<const FPCGMetadataAttribute<T>*>(Identity.Attribute)->GetValue(PCGDefaultValueKey) : T{}, Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
+
+				for (int i = 0; i < Merger->IOSources.Num(); i++)
 				{
-					using T = decltype(DummyValue);
+					TSharedPtr<PCGExData::FPointIO> SourceIO = Merger->IOSources[i];
+					const FPCGMetadataAttributeBase* Attribute = SourceIO->GetIn()->Metadata->GetConstAttribute(Identity.Identifier);
 
-					TSharedPtr<PCGExData::TBuffer<T>> Buffer = Merger->UnionDataFacade->GetWritable(
-						Merger->WantsDataToElements() ? Identity.ElementsIdentifier : Identity.Identifier,
-						Identity.bInitDefault ? static_cast<const FPCGMetadataAttribute<T>*>(Identity.Attribute)->GetValue(PCGDefaultValueKey) : T{},
-						Identity.bAllowsInterpolation, PCGExData::EBufferInit::New);
+					if (!Attribute) { continue; }                            // Missing attribute
+					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
 
-					for (int i = 0; i < Merger->IOSources.Num(); i++)
-					{
-						TSharedPtr<PCGExData::FPointIO> SourceIO = Merger->IOSources[i];
-						const FPCGMetadataAttributeBase* Attribute = SourceIO->GetIn()->Metadata->GetConstAttribute(Identity.Identifier);
-
-						if (!Attribute) { continue; }                            // Missing attribute
-						if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
-
-						PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, Buffer)
-					}
-				});
+					PCGEX_LAUNCH_INTERNAL(FWriteAttributeScopeTask<T>, SourceIO, Merger->Scopes[i], Identity, Buffer)
+				}
+			});
 		}
 	};
 }
@@ -109,8 +96,8 @@ PCGExPointIOMerger::FIdentityRef::FIdentityRef(const FName InName, const EPCGMet
 {
 }
 
-FPCGExPointIOMerger::FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InUnionDataFacade):
-	UnionDataFacade(InUnionDataFacade)
+FPCGExPointIOMerger::FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InUnionDataFacade)
+	: UnionDataFacade(InUnionDataFacade)
 {
 }
 
@@ -202,36 +189,35 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 		// Discover attributes
 		UPCGMetadata* Metadata = Source->GetIn()->Metadata;
-		PCGEx::FAttributeIdentity::ForEach(
-			Metadata, [&](const PCGEx::FAttributeIdentity& SourceIdentity, const int32)
+		PCGEx::FAttributeIdentity::ForEach(Metadata, [&](const PCGEx::FAttributeIdentity& SourceIdentity, const int32)
+		{
+			if (InIgnoredAttributes && InIgnoredAttributes->Contains(SourceIdentity.Identifier.Name)) { return; }
+
+			FString StrName = SourceIdentity.Identifier.Name.ToString();
+			if (!InCarryOverDetails->Attributes.Test(StrName)) { return; }
+
+			const int32* ExpectedType = ExpectedTypes.Find(SourceIdentity.Identifier);
+			if (!ExpectedType)
 			{
-				if (InIgnoredAttributes && InIgnoredAttributes->Contains(SourceIdentity.Identifier.Name)) { return; }
+				// No type expectations, we need to register a new attribute ref
+				PCGExPointIOMerger::FIdentityRef& SourceRef = UniqueIdentities.Emplace_GetRef(SourceIdentity);
+				SourceRef.Attribute = Metadata->GetConstAttribute(SourceIdentity.Identifier);
+				SourceRef.bInitDefault = InCarryOverDetails->bPreserveAttributesDefaultValue;
 
-				FString StrName = SourceIdentity.Identifier.Name.ToString();
-				if (!InCarryOverDetails->Attributes.Test(StrName)) { return; }
+				SourceRef.ElementsIdentifier.Name = SourceIdentity.Identifier.Name;
+				SourceRef.ElementsIdentifier.MetadataDomain = PCGMetadataDomainID::Elements;
 
-				const int32* ExpectedType = ExpectedTypes.Find(SourceIdentity.Identifier);
-				if (!ExpectedType)
-				{
-					// No type expectations, we need to register a new attribute ref
-					PCGExPointIOMerger::FIdentityRef& SourceRef = UniqueIdentities.Emplace_GetRef(SourceIdentity);
-					SourceRef.Attribute = Metadata->GetConstAttribute(SourceIdentity.Identifier);
-					SourceRef.bInitDefault = InCarryOverDetails->bPreserveAttributesDefaultValue;
+				ExpectedTypes.Add(SourceRef.Identifier, UniqueIdentities.Num() - 1);
 
-					SourceRef.ElementsIdentifier.Name = SourceIdentity.Identifier.Name;
-					SourceRef.ElementsIdentifier.MetadataDomain = PCGMetadataDomainID::Elements;
+				return;
+			}
 
-					ExpectedTypes.Add(SourceRef.Identifier, UniqueIdentities.Num() - 1);
-
-					return;
-				}
-
-				// Notify type/name mismatch if needed
-				if (UniqueIdentities[*ExpectedType].UnderlyingType != SourceIdentity.UnderlyingType)
-				{
-					PCGE_LOG_C(Warning, GraphAndLog, AsyncManager->GetContext(), FText::Format(FTEXT("Mismatching attribute types for: {0}."), FText::FromName(SourceIdentity.Identifier.Name)));
-				}
-			});
+			// Notify type/name mismatch if needed
+			if (UniqueIdentities[*ExpectedType].UnderlyingType != SourceIdentity.UnderlyingType)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, AsyncManager->GetContext(), FText::Format(FTEXT("Mismatching attribute types for: {0}."), FText::FromName(SourceIdentity.Identifier.Name)));
+			}
+		});
 	}
 
 	InCarryOverDetails->Prune(&UnionDataFacade->Source.Get());
@@ -245,26 +231,23 @@ void FPCGExPointIOMerger::MergeAsync(const TSharedPtr<PCGExMT::FTaskManager>& As
 	if (bHasAttributes) { OutPointData->SetMetadataEntry(PCGInvalidEntryKey); }
 
 	PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CopyProperties)
-	CopyProperties->OnIterationCallback =
-		[PCGEX_ASYNC_THIS_CAPTURE](int32 Index, const PCGExMT::FScope& Scope)
-		{
-			PCGEX_ASYNC_THIS
-			This->CopyProperties(Index);
-		};
+	CopyProperties->OnIterationCallback = [PCGEX_ASYNC_THIS_CAPTURE](int32 Index, const PCGExMT::FScope& Scope)
+	{
+		PCGEX_ASYNC_THIS
+		This->CopyProperties(Index);
+	};
 
 	if (bHasAttributes)
 	{
-		CopyProperties->OnCompleteCallback =
-			[PCGEX_ASYNC_THIS_CAPTURE, AsyncManager]()
+		CopyProperties->OnCompleteCallback = [PCGEX_ASYNC_THIS_CAPTURE, AsyncManager]()
+		{
+			PCGEX_ASYNC_THIS
+			AsyncManager->Launch(This->UniqueIdentities.Num(), [&](int32 i)
 			{
-				PCGEX_ASYNC_THIS
-				AsyncManager->Launch(
-					This->UniqueIdentities.Num(), [&](int32 i)
-					{
-						PCGEX_MAKE_SHARED(Task, PCGExPointIOMerger::FCopyAttributeTask, i, This);
-						return Task;
-					});
-			};
+				PCGEX_MAKE_SHARED(Task, PCGExPointIOMerger::FCopyAttributeTask, i, This);
+				return Task;
+			});
+		};
 	}
 
 	CopyProperties->StartIterations(NumSources, 1);
@@ -283,14 +266,10 @@ void FPCGExPointIOMerger::CopyProperties(const int32 Index)
 		TArray<int32> TempWriteIndices;
 		PCGEx::ArrayOfIndices(TempWriteIndices, Scope.Write.Count, Scope.Write.Start);
 
-		Source->GetIn()->CopyPropertiesTo(
-			UnionDataFacade->GetOut(), Scope.ReadIndices, TempWriteIndices,
-			Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
+		Source->GetIn()->CopyPropertiesTo(UnionDataFacade->GetOut(), Scope.ReadIndices, TempWriteIndices, Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
 	}
 	else
 	{
-		Source->GetIn()->CopyPropertiesTo(
-			UnionDataFacade->GetOut(), Scope.Read.Start, Scope.Write.Start, Scope.Write.Count,
-			Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
+		Source->GetIn()->CopyPropertiesTo(UnionDataFacade->GetOut(), Scope.Read.Start, Scope.Write.Start, Scope.Write.Count, Source->GetAllocations() & ~EPCGPointNativeProperties::MetadataEntry);
 	}
 }

@@ -99,8 +99,8 @@ namespace PCGExFindClusterHull
 	public:
 		TSharedPtr<PCGExTopology::FCellConstraints> CellsConstraints;
 
-		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
-			TProcessor(InVtxDataFacade, InEdgeDataFacade)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

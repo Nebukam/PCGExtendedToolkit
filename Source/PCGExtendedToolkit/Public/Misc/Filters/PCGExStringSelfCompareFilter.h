@@ -119,9 +119,7 @@ class UPCGExStringSelfCompareFilterProviderSettings : public UPCGExFilterProvide
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		StringSelfCompareFilterFactory, "Filter : Self Compare (String)", "Creates a filter definition that compares an attribute value against itself at another index.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(StringSelfCompareFilterFactory, "Filter : Self Compare (String)", "Creates a filter definition that compares an attribute value against itself at another index.", PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

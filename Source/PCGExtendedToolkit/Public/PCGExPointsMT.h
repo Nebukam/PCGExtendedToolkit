@@ -169,8 +169,8 @@ namespace PCGExPointsMT
 		const TSettings* Settings = nullptr;
 
 	public:
-		explicit TProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			IProcessor(InPointDataFacade)
+		explicit TProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: IProcessor(InPointDataFacade)
 		{
 		}
 
@@ -266,8 +266,8 @@ namespace PCGExPointsMT
 		}
 
 	public:
-		TBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection):
-			IBatch(InContext, InPointsCollection)
+		TBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection)
+			: IBatch(InContext, InPointsCollection)
 		{
 		}
 
@@ -276,6 +276,5 @@ namespace PCGExPointsMT
 		}
 	};
 
-	PCGEXTENDEDTOOLKIT_API
-	void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch);
+	PCGEXTENDEDTOOLKIT_API void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const TSharedPtr<IBatch>& Batch);
 }

@@ -39,9 +39,7 @@ void FPCGExRandomRatioDetails::GetPicks(FPCGExContext* InContext, const UPCGData
 
 	PCGEx::ArrayOfIndices(OutPicks, NumMaxItems);
 
-	FRandomStream Random = PCGHelpers::GetRandomStreamFromSeed(
-		PCGHelpers::ComputeSeed(GetValueSettingSeed(InContext, InData)->Read(0)),
-		InContext->GetInputSettings<UPCGSettings>(), InContext->ExecutionSource.Get());
+	FRandomStream Random = PCGHelpers::GetRandomStreamFromSeed(PCGHelpers::ComputeSeed(GetValueSettingSeed(InContext, InData)->Read(0)), InContext->GetInputSettings<UPCGSettings>(), InContext->ExecutionSource.Get());
 
 	for (int32 i = NumMaxItems - 1; i > 0; --i) { OutPicks.Swap(i, Random.RandRange(0, i)); }
 	OutPicks.SetNum(NumPicks);

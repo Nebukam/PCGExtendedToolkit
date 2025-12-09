@@ -18,8 +18,8 @@ struct FPCGExTensorNullConfig : public FPCGExTensorConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExTensorNullConfig() :
-		FPCGExTensorConfigBase(false, false)
+	FPCGExTensorNullConfig()
+		: FPCGExTensorConfigBase(false, false)
 	{
 	}
 };

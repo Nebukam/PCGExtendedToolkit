@@ -47,10 +47,7 @@ void UPCGExRecursionTrackerSettings::ApplyPreconfiguredSettings(const FPCGPreCon
 
 FPCGDataTypeIdentifier UPCGExRecursionTrackerSettings::GetCurrentPinTypesID(const UPCGPin* InPin) const
 {
-	if (!InPin->IsOutputPin()
-		|| InPin->Properties.Label == PCGPinConstants::DefaultInputLabel
-		|| InPin->Properties.Label == PCGExRecursionTracker::OutputContinueLabel
-		|| InPin->Properties.Label == PCGExRecursionTracker::OutputStopLabel)
+	if (!InPin->IsOutputPin() || InPin->Properties.Label == PCGPinConstants::DefaultInputLabel || InPin->Properties.Label == PCGExRecursionTracker::OutputContinueLabel || InPin->Properties.Label == PCGExRecursionTracker::OutputStopLabel)
 	{
 		return Super::GetCurrentPinTypesID(InPin);
 	}
@@ -72,9 +69,7 @@ TArray<FPCGPinProperties> UPCGExRecursionTrackerSettings::InputPinProperties() c
 	PCGEX_PIN_PARAMS(PCGExRecursionTracker::SourceTrackerLabel, "Tracker(s)", Required)
 	PCGEX_PIN_FILTERS(PCGExRecursionTracker::SourceTrackerFilters, "Filters incoming data, if any.", Advanced)
 
-	if (Type == EPCGExRecursionTrackerType::Simple
-		&& Mode != EPCGExRecursionTrackerMode::Create
-		&& bDoAdditionalDataTesting)
+	if (Type == EPCGExRecursionTrackerType::Simple && Mode != EPCGExRecursionTrackerMode::Create && bDoAdditionalDataTesting)
 	{
 		PCGEX_PIN_ANY(PCGExRecursionTracker::SourceTestData, "Collections on that will be tested using the filters below. If no filter is provided, only fail on empty data.", Normal)
 		PCGEX_PIN_FILTERS(PCGExPointFilter::SourceFiltersLabel, "Collection filters used on the collections above.", Normal)
@@ -156,9 +151,7 @@ bool FPCGExRecursionTrackerElement::AdvanceWork(FPCGExContext* InContext, const 
 		// Initialize collection filters if we have some inputs
 		TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> FilterFactories;
 
-		if (PCGExFactories::GetInputFactories(
-			Context, PCGExRecursionTracker::SourceTrackerFilters, FilterFactories,
-			PCGExFactories::PointFilters, false))
+		if (PCGExFactories::GetInputFactories(Context, PCGExRecursionTracker::SourceTrackerFilters, FilterFactories, PCGExFactories::PointFilters, false))
 		{
 			PCGEX_MAKE_SHARED(DummyFacade, PCGExData::FFacade, TrackersCollection->Pairs[0].ToSharedRef())
 			CollectionFilters = MakeShared<PCGExPointFilter::FManager>(DummyFacade.ToSharedRef());
@@ -308,8 +301,7 @@ Context->StageOutput(Extra, PCGExRecursionTracker::Output##_NAME##Label, Flatten
 
 			if (bDoAdditionalDataTesting)
 			{
-				TSharedPtr<PCGExData::FPointIOCollection> TestDataCollection = MakeShared<PCGExData::FPointIOCollection>(
-					Context, PCGExRecursionTracker::SourceTestData, PCGExData::EIOInit::NoInit, true);
+				TSharedPtr<PCGExData::FPointIOCollection> TestDataCollection = MakeShared<PCGExData::FPointIOCollection>(Context, PCGExRecursionTracker::SourceTestData, PCGExData::EIOInit::NoInit, true);
 
 				if (TestDataCollection->IsEmpty())
 				{
@@ -320,9 +312,7 @@ Context->StageOutput(Extra, PCGExRecursionTracker::Output##_NAME##Label, Flatten
 					TSharedPtr<PCGExPointFilter::FManager> TestDataFilters = nullptr;
 					TArray<TObjectPtr<const UPCGExPointFilterFactoryData>> TestFilterFactories;
 
-					if (!bShouldStop && PCGExFactories::GetInputFactories(
-						Context, PCGExRecursionTracker::SourceTrackerFilters, TestFilterFactories,
-						PCGExFactories::PointFilters, false))
+					if (!bShouldStop && PCGExFactories::GetInputFactories(Context, PCGExRecursionTracker::SourceTrackerFilters, TestFilterFactories, PCGExFactories::PointFilters, false))
 					{
 						PCGEX_MAKE_SHARED(DummyFacade, PCGExData::FFacade, TestDataCollection->Pairs[0].ToSharedRef())
 						TestDataFilters = MakeShared<PCGExPointFilter::FManager>(DummyFacade.ToSharedRef());

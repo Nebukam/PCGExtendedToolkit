@@ -22,17 +22,9 @@ namespace PCGExBlend
 		}
 		else if constexpr (std::is_same_v<T, FTransform>)
 		{
-			return FTransform(
-				FQuat::Slerp(A.GetRotation(), B.GetRotation(), W),
-				FMath::Lerp(A.GetLocation(), B.GetLocation(), W),
-				FMath::Lerp(A.GetScale3D(), B.GetScale3D(), W));
+			return FTransform(FQuat::Slerp(A.GetRotation(), B.GetRotation(), W), FMath::Lerp(A.GetLocation(), B.GetLocation(), W), FMath::Lerp(A.GetScale3D(), B.GetScale3D(), W));
 		}
-		else if constexpr (
-			std::is_same_v<T, bool> ||
-			std::is_same_v<T, FString> ||
-			std::is_same_v<T, FName> ||
-			std::is_same_v<T, FSoftObjectPath> ||
-			std::is_same_v<T, FSoftClassPath>)
+		else if constexpr (std::is_same_v<T, bool> || std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftObjectPath> || std::is_same_v<T, FSoftClassPath>)
 		{
 			return W > 0.5 ? B : A;
 		}

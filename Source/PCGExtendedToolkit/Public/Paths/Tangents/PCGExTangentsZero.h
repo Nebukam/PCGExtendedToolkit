@@ -10,29 +10,19 @@
 class FPCGExTangentsZero : public FPCGExTangentsOperation
 {
 public:
-	FORCEINLINE virtual void ProcessFirstPoint(
-		const UPCGBasePointData* InPointData,
-		const FVector& ArriveScale, FVector& OutArrive,
-		const FVector& LeaveScale, FVector& OutLeave) const override
+	FORCEINLINE virtual void ProcessFirstPoint(const UPCGBasePointData* InPointData, const FVector& ArriveScale, FVector& OutArrive, const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		OutArrive = FVector::ZeroVector;
 		OutLeave = FVector::ZeroVector;
 	}
 
-	FORCEINLINE virtual void ProcessLastPoint(
-		const UPCGBasePointData* InPointData,
-		const FVector& ArriveScale, FVector& OutArrive,
-		const FVector& LeaveScale, FVector& OutLeave) const override
+	FORCEINLINE virtual void ProcessLastPoint(const UPCGBasePointData* InPointData, const FVector& ArriveScale, FVector& OutArrive, const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		OutArrive = FVector::ZeroVector;
 		OutLeave = FVector::ZeroVector;
 	}
 
-	FORCEINLINE virtual void ProcessPoint(
-		const UPCGBasePointData* InPointData,
-		const int32 Index, const int32 NextIndex, const int32 PrevIndex,
-		const FVector& ArriveScale, FVector& OutArrive,
-		const FVector& LeaveScale, FVector& OutLeave) const override
+	FORCEINLINE virtual void ProcessPoint(const UPCGBasePointData* InPointData, const int32 Index, const int32 NextIndex, const int32 PrevIndex, const FVector& ArriveScale, FVector& OutArrive, const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		OutArrive = FVector::ZeroVector;
 		OutLeave = FVector::ZeroVector;

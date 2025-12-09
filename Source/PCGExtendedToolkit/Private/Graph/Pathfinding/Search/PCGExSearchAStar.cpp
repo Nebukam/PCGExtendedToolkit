@@ -9,11 +9,7 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
-bool FPCGExSearchOperationAStar::ResolveQuery(
-	const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery,
-	const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations,
-	const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics,
-	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
+bool FPCGExSearchOperationAStar::ResolveQuery(const TSharedPtr<PCGExPathfinding::FPathQuery>& InQuery, const TSharedPtr<PCGExPathfinding::FSearchAllocations>& Allocations, const TSharedPtr<PCGExHeuristics::FHeuristicsHandler>& Heuristics, const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	check(InQuery->PickResolution == PCGExPathfinding::EQueryPickResolution::Success)
 

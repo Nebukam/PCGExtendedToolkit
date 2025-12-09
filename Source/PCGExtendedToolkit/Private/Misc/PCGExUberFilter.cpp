@@ -77,9 +77,7 @@ bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilter)
 
-	PCGExFactories::GetInputFactories(
-		Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories,
-		{PCGExFactories::EType::IndexPicker}, false);
+	PCGExFactories::GetInputFactories(Context, PCGExPicker::SourcePickersLabel, Context->PickerFactories, {PCGExFactories::EType::IndexPicker}, false);
 
 	if (Settings->Mode == EPCGExUberFilterMode::Write)
 	{
@@ -111,11 +109,9 @@ bool FPCGExUberFilterElement::AdvanceWork(FPCGExContext* InContext, const UPCGEx
 			Context->Outside->Pairs.Init(nullptr, Context->NumPairs);
 		}
 
-		if (!Context->StartBatchProcessingPoints(
-			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
-			{
-			}))
+		if (!Context->StartBatchProcessingPoints([&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; }, [&](const TSharedPtr<PCGExPointsMT::IBatch>& NewBatch)
+		{
+		}))
 		{
 			return Context->CancelExecution(TEXT("Could not find any points to filter."));
 		}

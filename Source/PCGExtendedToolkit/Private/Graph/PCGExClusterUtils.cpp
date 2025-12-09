@@ -162,8 +162,7 @@ namespace PCGExClusterUtils
 	{
 		if (const PCGExCommon::DataIDType CurrentPairId = InVtxIO->Tags->GetTypedValue<int32>(PCGExGraph::TagStr_PCGExCluster))
 		{
-			if (TSharedPtr<PCGExData::FPointIOTaggedEntries> EdgesEntries = InputDictionary->GetEntries(CurrentPairId->Value);
-				EdgesEntries && !EdgesEntries->Entries.IsEmpty()) { return EdgesEntries; }
+			if (TSharedPtr<PCGExData::FPointIOTaggedEntries> EdgesEntries = InputDictionary->GetEntries(CurrentPairId->Value); EdgesEntries && !EdgesEntries->Entries.IsEmpty()) { return EdgesEntries; }
 		}
 
 		return nullptr;
@@ -206,8 +205,7 @@ namespace PCGExClusterUtils
 		for (const TSharedPtr<PCGExData::FPointIO>& Key : Keys)
 		{
 			// Try and find paired Vtx/Edges
-			if (const TSharedPtr<PCGExData::FPointIOTaggedEntries> EdgesEntries = GetAssociatedEdges(Key);
-				!EdgesEntries)
+			if (const TSharedPtr<PCGExData::FPointIOTaggedEntries> EdgesEntries = GetAssociatedEdges(Key); !EdgesEntries)
 			{
 				Invalidate(Key, EProblem::RoamingVtx);
 				InputDictionary->RemoveKey(Key.ToSharedRef());
@@ -234,13 +232,8 @@ namespace PCGExClusterUtils
 		ProblemsTracker[static_cast<int32>(Problem)]++;
 	}
 
-	FClusterDataForwardHandler::FClusterDataForwardHandler(
-		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-		const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler,
-		const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler)
-		: Cluster(InCluster),
-		  VtxDataForwardHandler(InVtxDataForwardHandler),
-		  EdgeDataForwardHandler(InEdgeDataForwardHandler)
+	FClusterDataForwardHandler::FClusterDataForwardHandler(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FDataForwardHandler>& InVtxDataForwardHandler, const TSharedPtr<PCGExData::FDataForwardHandler>& InEdgeDataForwardHandler)
+		: Cluster(InCluster), VtxDataForwardHandler(InVtxDataForwardHandler), EdgeDataForwardHandler(InEdgeDataForwardHandler)
 	{
 	}
 }

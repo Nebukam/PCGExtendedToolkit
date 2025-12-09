@@ -20,9 +20,7 @@ TSharedPtr<PCGExPointFilter::IFilter> UPCGExAdjacencyStateFactoryData::CreateFil
 
 namespace PCGExAdjacencyStates
 {
-	bool FState::Init(
-		FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster,
-		const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+	bool FState::Init(FPCGExContext* InContext, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TSharedRef<PCGExData::FFacade>& InPointDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		if (!PCGExClusterStates::FState::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 

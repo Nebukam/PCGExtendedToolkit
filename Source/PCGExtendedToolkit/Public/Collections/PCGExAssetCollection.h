@@ -269,8 +269,8 @@ namespace PCGExAssetCollection
 		{
 		}
 
-		explicit FCategory(const FName InName):
-			Name(InName)
+		explicit FCategory(const FName InName)
+			: Name(InName)
 		{
 		}
 
@@ -311,7 +311,11 @@ namespace PCGExAssetCollection
 		{
 		}
 
-		bool IsEmpty() const { return Main ? Main->IsEmpty() : true; }
+		bool IsEmpty() const
+		{
+			return Main ? Main->IsEmpty() : true;
+		}
+
 		void Compile();
 		void RegisterEntry(const int32 Index, const FPCGExAssetCollectionEntry* InEntry);
 	};
@@ -562,44 +566,26 @@ public:
 	virtual bool IsValidIndex(const int32 InIndex) const { return false; }
 	virtual int32 NumEntries() const { return 0; }
 
-	virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const UPCGExAssetCollection*& OutHost)
-	PCGEX_NOT_IMPLEMENTED_RET(GetEntryAt, false)
+	virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const UPCGExAssetCollection*& OutHost) PCGEX_NOT_IMPLEMENTED_RET(GetEntryAt, false)
 
-	virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode, const UPCGExAssetCollection*& OutHost)
-	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
+	virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode, const UPCGExAssetCollection*& OutHost) PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
 
-	virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, const UPCGExAssetCollection*& OutHost)
-	PCGEX_NOT_IMPLEMENTED_RET(GetEntryRandom, false)
+	virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, const UPCGExAssetCollection*& OutHost) PCGEX_NOT_IMPLEMENTED_RET(GetEntryRandom, false)
 
-	virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, const UPCGExAssetCollection*& OutHost)
-	PCGEX_NOT_IMPLEMENTED_RET(GetEntryWeightedRandom, false)
+	virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, const UPCGExAssetCollection*& OutHost) PCGEX_NOT_IMPLEMENTED_RET(GetEntryWeightedRandom, false)
 
 
-	virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost)
-	PCGEX_NOT_IMPLEMENTED_RET(GetEntryAt, false)
+	virtual bool GetEntryAt(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost) PCGEX_NOT_IMPLEMENTED_RET(GetEntryAt, false)
 
-	virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost)
-	PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
+	virtual bool GetEntry(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost) PCGEX_NOT_IMPLEMENTED_RET(GetEntry, false)
 
-	virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost)
-	PCGEX_NOT_IMPLEMENTED_RET(GetEntryRandom, false)
+	virtual bool GetEntryRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost) PCGEX_NOT_IMPLEMENTED_RET(GetEntryRandom, false)
 
-	virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost)
-	PCGEX_NOT_IMPLEMENTED_RET(GetEntryWeightedRandom, false)
+	virtual bool GetEntryWeightedRandom(const FPCGExAssetCollectionEntry*& OutEntry, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost) PCGEX_NOT_IMPLEMENTED_RET(GetEntryWeightedRandom, false)
 
-	virtual bool BuildFromAttributeSet(
-		FPCGExContext* InContext,
-		const UPCGParamData* InAttributeSet,
-		const FPCGExAssetAttributeSetDetails& Details,
-		const bool bBuildStaging = false)
-	PCGEX_NOT_IMPLEMENTED_RET(BuildFromAttributeSet, false)
+	virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging = false) PCGEX_NOT_IMPLEMENTED_RET(BuildFromAttributeSet, false)
 
-	virtual bool BuildFromAttributeSet(
-		FPCGExContext* InContext,
-		const FName InputPin,
-		const FPCGExAssetAttributeSetDetails& Details,
-		const bool bBuildStaging = false)
-	PCGEX_NOT_IMPLEMENTED_RET(BuildFromAttributeSet, false)
+	virtual bool BuildFromAttributeSet(FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging = false) PCGEX_NOT_IMPLEMENTED_RET(BuildFromAttributeSet, false)
 
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const;
 
@@ -607,11 +593,7 @@ protected:
 #pragma region GetEntry
 
 	template <typename T>
-	bool GetEntryAtTpl(
-		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Index,
-		const UPCGExAssetCollection*& OutHost)
+	bool GetEntryAtTpl(const T*& OutEntry, const TArray<T>& InEntries, const int32 Index, const UPCGExAssetCollection*& OutHost)
 	{
 		const int32 Pick = LoadCache()->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
@@ -621,13 +603,7 @@ protected:
 	}
 
 	template <typename T>
-	bool GetEntryTpl(
-		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Index,
-		const int32 Seed,
-		const EPCGExIndexPickMode PickMode,
-		const UPCGExAssetCollection*& OutHost)
+	bool GetEntryTpl(const T*& OutEntry, const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode, const UPCGExAssetCollection*& OutHost)
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
@@ -645,11 +621,7 @@ protected:
 	}
 
 	template <typename T>
-	bool GetEntryRandomTpl(
-		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Seed,
-		const UPCGExAssetCollection*& OutHost)
+	bool GetEntryRandomTpl(const T*& OutEntry, const TArray<T>& InEntries, const int32 Seed, const UPCGExAssetCollection*& OutHost)
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPickRandom(Seed);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
@@ -665,11 +637,7 @@ protected:
 	}
 
 	template <typename T>
-	bool GetEntryWeightedRandomTpl(
-		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Seed,
-		const UPCGExAssetCollection*& OutHost)
+	bool GetEntryWeightedRandomTpl(const T*& OutEntry, const TArray<T>& InEntries, const int32 Seed, const UPCGExAssetCollection*& OutHost)
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPickRandomWeighted(Seed);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
@@ -689,13 +657,7 @@ protected:
 #pragma region GetEntryWithTags
 
 	template <typename T>
-	bool GetEntryAtTpl(
-		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Index,
-		uint8 TagInheritance,
-		TSet<FName>& OutTags,
-		const UPCGExAssetCollection*& OutHost)
+	bool GetEntryAtTpl(const T*& OutEntry, const TArray<T>& InEntries, const int32 Index, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost)
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
@@ -711,15 +673,7 @@ protected:
 	}
 
 	template <typename T>
-	bool GetEntryTpl(
-		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Index,
-		const int32 Seed,
-		const EPCGExIndexPickMode PickMode,
-		uint8 TagInheritance,
-		TSet<FName>& OutTags,
-		const UPCGExAssetCollection*& OutHost)
+	bool GetEntryTpl(const T*& OutEntry, const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost)
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
@@ -738,13 +692,7 @@ protected:
 	}
 
 	template <typename T>
-	bool GetEntryRandomTpl(
-		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Seed,
-		uint8 TagInheritance,
-		TSet<FName>& OutTags,
-		const UPCGExAssetCollection*& OutHost)
+	bool GetEntryRandomTpl(const T*& OutEntry, const TArray<T>& InEntries, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost)
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPickRandom(Seed);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
@@ -763,13 +711,7 @@ protected:
 	}
 
 	template <typename T>
-	bool GetEntryWeightedRandomTpl(
-		const T*& OutEntry,
-		const TArray<T>& InEntries,
-		const int32 Seed,
-		uint8 TagInheritance,
-		TSet<FName>& OutTags,
-		const UPCGExAssetCollection*& OutHost)
+	bool GetEntryWeightedRandomTpl(const T*& OutEntry, const TArray<T>& InEntries, const int32 Seed, uint8 TagInheritance, TSet<FName>& OutTags, const UPCGExAssetCollection*& OutHost)
 	{
 		const int32 PickedIndex = LoadCache()->Main->GetPickRandomWeighted(Seed);
 		if (!InEntries.IsValidIndex(PickedIndex)) { return false; }
@@ -833,10 +775,7 @@ protected:
 #endif
 
 	template <typename T>
-	bool BuildFromAttributeSetTpl(
-		T* InCollection, FPCGExContext* InContext, const UPCGParamData* InAttributeSet,
-		const FPCGExAssetAttributeSetDetails& Details,
-		const bool bBuildStaging = false) const
+	bool BuildFromAttributeSetTpl(T* InCollection, FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging = false) const
 	{
 		const UPCGMetadata* Metadata = InAttributeSet->Metadata;
 
@@ -870,9 +809,7 @@ protected:
 	}
 
 	template <typename T>
-	bool BuildFromAttributeSetTpl(
-		T* InCollection, FPCGExContext* InContext, const FName InputPin,
-		const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
+	bool BuildFromAttributeSetTpl(T* InCollection, FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 	{
 		const TArray<FPCGTaggedData> Inputs = InContext->InputData.GetInputsByPin(InputPin);
 		if (Inputs.IsEmpty()) { return false; }

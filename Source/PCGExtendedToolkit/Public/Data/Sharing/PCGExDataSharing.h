@@ -33,11 +33,9 @@ namespace PCGExDataSharing
 {
 	using FDataFilterFunc = std::function<bool(const FPCGTaggedData&)>;
 
-	PCGEXTENDEDTOOLKIT_API
-	uint32 GetPartitionIdx(const FVector& InPosition, const double PartitionSize);
+	PCGEXTENDEDTOOLKIT_API uint32 GetPartitionIdx(const FVector& InPosition, const double PartitionSize);
 
-	PCGEXTENDEDTOOLKIT_API
-	uint32 GetPartitionIdx(uint32 InBaseID, const FVector& InPosition, const double PartitionSize);
+	PCGEXTENDEDTOOLKIT_API uint32 GetPartitionIdx(uint32 InBaseID, const FVector& InPosition, const double PartitionSize);
 
 	class FDataBucket : public TSharedFromThis<FDataBucket>
 	{

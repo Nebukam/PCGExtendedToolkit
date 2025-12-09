@@ -14,8 +14,8 @@ struct FPCGExHeuristicConfigInertia : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicConfigInertia() :
-		FPCGExHeuristicConfigBase()
+	FPCGExHeuristicConfigInertia()
+		: FPCGExHeuristicConfigBase()
 	{
 	}
 
@@ -47,18 +47,9 @@ public:
 	int32 MaxSamples = 1;
 	bool bIgnoreIfNotEnoughSamples = true;
 
-	virtual double GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+	virtual double GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const override;
 
-	virtual double GetEdgeScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& To,
-		const PCGExGraph::FEdge& Edge,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
+	virtual double GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal, const TSharedPtr<PCGEx::FHashLookup> TravelStack) const override;
 };
 
 ////
@@ -84,9 +75,7 @@ class UPCGExHeuristicsInertiaProviderSettings : public UPCGExHeuristicsFactoryPr
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsInertia, "Heuristics : Inertia", "Heuristics based on direction inertia from last visited node. NOTE: Can be quite expensive.",
-		FName(GetDisplayName()))
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(HeuristicsInertia, "Heuristics : Inertia", "Heuristics based on direction inertia from last visited node. NOTE: Can be quite expensive.", FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 

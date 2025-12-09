@@ -98,9 +98,7 @@ public:
 
 	bool IsWorkCancelled() const
 	{
-		return bWorkCancelled.load(std::memory_order_acquire)
-			|| (AsyncManager && AsyncManager->IsCancelled())
-			|| !WorkHandle.IsValid();
+		return bWorkCancelled.load(std::memory_order_acquire) || (AsyncManager && AsyncManager->IsCancelled()) || !WorkHandle.IsValid();
 	}
 
 	void Done();

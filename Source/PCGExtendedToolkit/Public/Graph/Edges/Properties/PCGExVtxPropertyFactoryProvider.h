@@ -50,8 +50,7 @@ struct FPCGExSimpleEdgeOutputSettings
 	}
 
 	explicit FPCGExSimpleEdgeOutputSettings(const FString& Name)
-		: DirectionAttribute(FName(FText::Format(FText::FromString(TEXT("{0}Dir")), FText::FromString(Name)).ToString())),
-		  LengthAttribute(FName(FText::Format(FText::FromString(TEXT("{0}Len")), FText::FromString(Name)).ToString()))
+		: DirectionAttribute(FName(FText::Format(FText::FromString(TEXT("{0}Dir")), FText::FromString(Name)).ToString())), LengthAttribute(FName(FText::Format(FText::FromString(TEXT("{0}Len")), FText::FromString(Name)).ToString()))
 	{
 	}
 
@@ -96,10 +95,7 @@ struct FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
 	}
 
 	explicit FPCGExEdgeOutputWithIndexSettings(const FString& Name)
-		: FPCGExSimpleEdgeOutputSettings(Name),
-		  EdgeIndexAttribute(FName(FText::Format(FText::FromString(TEXT("{0}EdgeIndex")), FText::FromString(Name)).ToString())),
-		  VtxIndexAttribute(FName(FText::Format(FText::FromString(TEXT("{0}VtxIndex")), FText::FromString(Name)).ToString())),
-		  NeighborCountAttribute(FName(FText::Format(FText::FromString(TEXT("{0}NeighborCount")), FText::FromString(Name)).ToString()))
+		: FPCGExSimpleEdgeOutputSettings(Name), EdgeIndexAttribute(FName(FText::Format(FText::FromString(TEXT("{0}EdgeIndex")), FText::FromString(Name)).ToString())), VtxIndexAttribute(FName(FText::Format(FText::FromString(TEXT("{0}VtxIndex")), FText::FromString(Name)).ToString())), NeighborCountAttribute(FName(FText::Format(FText::FromString(TEXT("{0}NeighborCount")), FText::FromString(Name)).ToString()))
 	{
 	}
 

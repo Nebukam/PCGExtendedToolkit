@@ -282,8 +282,8 @@ namespace PCGExPathSolidify
 		TSharedPtr<PCGExData::TBuffer<FVector>> NormalGetter;
 
 	public:
-		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
-			TProcessor(InPointDataFacade)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TProcessor(InPointDataFacade)
 		{
 		}
 

@@ -5,6 +5,8 @@
 
 #include "Data/PCGExDataHelpers.h"
 #include "Data/PCGSpatialData.h"
+#include "Async/ParallelFor.h"
+#include "Data/PCGExPointIO.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSpatialTriageElement"
 #define PCGEX_NAMESPACE SpatialTriage
@@ -48,6 +50,10 @@ bool FPCGExSpatialTriageElement::AdvanceWork(FPCGExContext* InContext, const UPC
 	PCGEX_CONTEXT_AND_SETTINGS(SpatialTriage)
 	PCGEX_EXECUTION_CHECK
 
+	int32 NumInside = 0;
+	int32 NumTouching = 0;
+	int32 NumOutside = 0;
+
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		TArray<FPCGTaggedData> TaggedDatas = Context->InputData.GetSpatialInputsByPin(PCGExSpatialTriage::SourceLabelBounds);
@@ -57,24 +63,42 @@ bool FPCGExSpatialTriageElement::AdvanceWork(FPCGExContext* InContext, const UPC
 
 		TaggedDatas = Context->InputData.GetInputsByPin(PCGPinConstants::DefaultInputLabel);
 
-		for (int i = 0; i < TaggedDatas.Num(); ++i)
+		Context->OutputData.TaggedData.Reserve(TaggedDatas.Num());
+		const int32 StartIndex = Context->OutputData.TaggedData.Num();
+		Context->OutputData.TaggedData.Append(TaggedDatas);
+
+		ParallelFor(TaggedDatas.Num(), [&](int32 i)
 		{
-			FPCGTaggedData& TaggedData = TaggedDatas[i];
+			FPCGTaggedData& TaggedData = Context->OutputData.TaggedData[StartIndex + i];
 			const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(TaggedData.Data);
 			FName OutputTo = PCGExSpatialTriage::OutputLabelOutside;
 			if (SpatialData)
 			{
 				const FBox Bounds = SpatialData->GetBounds();
-				if (Filter.IsInside(Bounds.GetCenter())) { OutputTo = PCGExSpatialTriage::OutputLabelInside; }
-				else if (Filter.Intersect(Bounds)) { OutputTo = PCGExSpatialTriage::OutputLabelTouching; }
+				if (Filter.IsInside(Bounds.GetCenter()))
+				{
+					OutputTo = PCGExSpatialTriage::OutputLabelInside;
+					FPlatformAtomics::InterlockedIncrement(&NumInside);
+				}
+				else if (Filter.Intersect(Bounds))
+				{
+					OutputTo = PCGExSpatialTriage::OutputLabelTouching;
+					FPlatformAtomics::InterlockedIncrement(&NumTouching);
+				}
 			}
 
-			Context->StageOutput(const_cast<UPCGData*>(TaggedData.Data.Get()), OutputTo, TaggedData.Tags, false, false, false);
-		}
+			if (OutputTo == PCGExSpatialTriage::OutputLabelOutside) { FPlatformAtomics::InterlockedIncrement(&NumOutside); }
+
+			TaggedData.Pin = OutputTo;
+		});
 	}
 
-	Context->Done();
+	uint64& Mask = Context->OutputData.InactiveOutputPinBitmask;
+	if (!NumInside) { Mask |= 1ULL << 0; }
+	if (!NumTouching) { Mask |= 1ULL << 1; }
+	if (!NumOutside) { Mask |= 1ULL << 2; }
 
+	Context->Done();
 	return Context->TryComplete();
 }
 

@@ -12,9 +12,7 @@
 class FPCGExRadiusSmoothing : public FPCGExSmoothingOperation
 {
 public:
-	virtual void SmoothSingle(
-		const int32 TargetIndex,
-		const double Smoothing, const double Influence, TArray<PCGEx::FOpStats>& Trackers) override
+	virtual void SmoothSingle(const int32 TargetIndex, const double Smoothing, const double Influence, TArray<PCGEx::FOpStats>& Trackers) override
 	{
 		const double RadiusSquared = Smoothing * Smoothing;
 
@@ -26,14 +24,13 @@ public:
 
 		Blender->BeginMultiBlend(TargetIndex, Trackers);
 
-		Path->GetIn()->GetPointOctree().FindElementsWithBoundsTest(
-			FBoxCenterAndExtent(Origin, FVector(Smoothing)), [&](const PCGPointOctree::FPointRef& PointRef)
-			{
-				const double Dist = FVector::DistSquared(Origin, InTransforms[PointRef.Index].GetLocation());
-				if (Dist >= RadiusSquared || PointRef.Index == TargetIndex) { return; }
+		Path->GetIn()->GetPointOctree().FindElementsWithBoundsTest(FBoxCenterAndExtent(Origin, FVector(Smoothing)), [&](const PCGPointOctree::FPointRef& PointRef)
+		{
+			const double Dist = FVector::DistSquared(Origin, InTransforms[PointRef.Index].GetLocation());
+			if (Dist >= RadiusSquared || PointRef.Index == TargetIndex) { return; }
 
-				Blender->MultiBlend(PointRef.Index, TargetIndex, (1 - (Dist / RadiusSquared)) * Influence, Trackers);
-			});
+			Blender->MultiBlend(PointRef.Index, TargetIndex, (1 - (Dist / RadiusSquared)) * Influence, Trackers);
+		});
 
 		Blender->EndMultiBlend(TargetIndex, Trackers);
 	}

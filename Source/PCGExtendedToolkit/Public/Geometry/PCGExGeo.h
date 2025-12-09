@@ -48,8 +48,7 @@ namespace PCGExGeo
 {
 	PCGEX_CTX_STATE(State_ExtractingMesh)
 
-	PCGEXTENDEDTOOLKIT_API
-	bool IntersectOBB_OBB(const FBox& BoxA, const FTransform& TransformA, const FBox& BoxB, const FTransform& TransformB);
+	PCGEXTENDEDTOOLKIT_API bool IntersectOBB_OBB(const FBox& BoxA, const FTransform& TransformA, const FBox& BoxB, const FTransform& TransformB);
 
 	bool IsWinded(const EPCGExWinding Winding, const bool bIsInputClockwise);
 	bool IsWinded(const EPCGExWindingMutation Winding, const bool bIsInputClockwise);
@@ -70,30 +69,19 @@ namespace PCGExGeo
 	template <typename T>
 	FORCEINLINE double Det(const T& A, const T& B) { return A.X * B.Y - A.Y * B.X; }
 
-	FORCEINLINE static double S_U(
-		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
-		const FVector& E, const FVector& F, const FVector& G, const FVector& H)
+	FORCEINLINE static double S_U(const FVector& A, const FVector& B, const FVector& C, const FVector& D, const FVector& E, const FVector& F, const FVector& G, const FVector& H)
 	{
 		return (A.Z - B.Z) * (C.X * D.Y - D.X * C.Y) - (E.Z - F.Z) * (G.X * H.Y - H.X * G.Y);
 	};
 
-	FORCEINLINE static double S_D(
-		const int FirstComponent, const int SecondComponent,
-		FVector A, FVector B, FVector C)
+	FORCEINLINE static double S_D(const int FirstComponent, const int SecondComponent, FVector A, FVector B, FVector C)
 	{
-		return
-			A[FirstComponent] * (B[SecondComponent] - C[SecondComponent]) +
-			B[FirstComponent] * (C[SecondComponent] - A[SecondComponent]) +
-			C[FirstComponent] * (A[SecondComponent] - B[SecondComponent]);
+		return A[FirstComponent] * (B[SecondComponent] - C[SecondComponent]) + B[FirstComponent] * (C[SecondComponent] - A[SecondComponent]) + C[FirstComponent] * (A[SecondComponent] - B[SecondComponent]);
 	};
 
-	FORCEINLINE static double S_E(
-		const int FirstComponent, const int SecondComponent,
-		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
-		const double RA, const double RB, const double RC, const double RD, const double UVW)
+	FORCEINLINE static double S_E(const int FirstComponent, const int SecondComponent, const FVector& A, const FVector& B, const FVector& C, const FVector& D, const double RA, const double RB, const double RC, const double RD, const double UVW)
 	{
-		return (RA * S_D(FirstComponent, SecondComponent, B, C, D) - RB * S_D(FirstComponent, SecondComponent, C, D, A) +
-			RC * S_D(FirstComponent, SecondComponent, D, A, B) - RD * S_D(FirstComponent, SecondComponent, A, B, C)) / UVW;
+		return (RA * S_D(FirstComponent, SecondComponent, B, C, D) - RB * S_D(FirstComponent, SecondComponent, C, D, A) + RC * S_D(FirstComponent, SecondComponent, D, A, B) - RD * S_D(FirstComponent, SecondComponent, A, B, C)) / UVW;
 	};
 
 	static double S_SQ(const FVector& P) { return P.X * P.X + P.Y * P.Y + P.Z * P.Z; };

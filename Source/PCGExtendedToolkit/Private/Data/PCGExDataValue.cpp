@@ -86,7 +86,10 @@ template PCGEXTENDEDTOOLKIT_API _TYPE IDataValue::GetValue<_TYPE>();
 
 		double V = 0;
 
-		if constexpr (std::is_same_v<T, bool>) { V = Value ? 1 : 0; }
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			V = Value ? 1 : 0;
+		}
 		else if constexpr (std::is_same_v<T, int32> || std::is_same_v<T, int64> || std::is_same_v<T, float> || std::is_same_v<T, double>) { V = static_cast<double>(Value); }
 		else if constexpr (std::is_same_v<T, FVector2D> || std::is_same_v<T, FVector> || std::is_same_v<T, FVector4>) { V = Value.X; }
 
@@ -101,7 +104,10 @@ template PCGEXTENDEDTOOLKIT_API _TYPE IDataValue::GetValue<_TYPE>();
 
 		FString V = TEXT("");
 
-		if constexpr (std::is_same_v<T, bool>) { V = Value ? TEXT("true") : TEXT("false"); }
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			V = Value ? TEXT("true") : TEXT("false");
+		}
 		else if constexpr (std::is_same_v<T, FName>) { V = Value.ToString(); }
 		else if constexpr (std::is_same_v<T, FString>) { V = Value; }
 		else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) { V = FString::Printf(TEXT("%.2f"), Value); }
@@ -190,28 +196,26 @@ template class PCGEXTENDEDTOOLKIT_API TDataValue<_TYPE>;
 
 		if (const FPCGMetadataAttributeBase* SourceAttribute = InMetadata->GetConstAttribute(SanitizedIdentifier))
 		{
-			PCGEx::ExecuteWithRightType(
-				SourceAttribute->GetTypeId(), [&](auto DummyValue)
+			PCGEx::ExecuteWithRightType(SourceAttribute->GetTypeId(), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				const T Value = PCGExDataHelpers::ReadDataValue<T>(static_cast<const FPCGMetadataAttribute<T>*>(SourceAttribute));
+
+				PCGEx::FSubSelection SubSelection(Selector);
+				TSharedPtr<IDataValue> TypedDataValue = nullptr;
+
+				if (SubSelection.bIsValid)
 				{
-					using T = decltype(DummyValue);
-					const T Value = PCGExDataHelpers::ReadDataValue<T>(static_cast<const FPCGMetadataAttribute<T>*>(SourceAttribute));
-
-					PCGEx::FSubSelection SubSelection(Selector);
-					TSharedPtr<IDataValue> TypedDataValue = nullptr;
-
-					if (SubSelection.bIsValid)
+					PCGEx::ExecuteWithRightType(SourceAttribute->GetTypeId(), [&](auto WorkingValue)
 					{
-						PCGEx::ExecuteWithRightType(
-							SourceAttribute->GetTypeId(), [&](auto WorkingValue)
-							{
-								using T_WORKING = decltype(DummyValue);
-								TypedDataValue = MakeShared<TDataValue<T_WORKING>>(SubSelection.Get<T, T_WORKING>(Value));
-							});
-					}
-					else { TypedDataValue = MakeShared<TDataValue<T>>(Value); }
+						using T_WORKING = decltype(DummyValue);
+						TypedDataValue = MakeShared<TDataValue<T_WORKING>>(SubSelection.Get<T, T_WORKING>(Value));
+					});
+				}
+				else { TypedDataValue = MakeShared<TDataValue<T>>(Value); }
 
-					DataValue = TypedDataValue;
-				});
+				DataValue = TypedDataValue;
+			});
 		}
 
 		return DataValue;

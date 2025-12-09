@@ -73,6 +73,7 @@ enum class EPCGExCellSeedBounds : uint8
 	MatchPathResetQuat = 2 UMETA(DisplayName = "Match Cell (with rotation reset)", ToolTip="Seed bounds match cell bounds, and rotation is reset"),
 };
 
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExCellConstraintsDetails
 {
@@ -292,7 +293,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVInputDetails
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(ClampMin="0", ClampMax="7", UIMin="0", UIMax="7"))
 	int32 Channel = 0;
 };
-	
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExTopologyUVDetails
 {
@@ -387,8 +388,7 @@ namespace PCGExTopology
 	const FName SourceMeshLabel = FName("Mesh");
 	const FName OutputMeshLabel = FName("Mesh");
 
-	PCGEXTENDEDTOOLKIT_API
-	void SetPointProperty(PCGExData::FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
+	PCGEXTENDEDTOOLKIT_API void SetPointProperty(PCGExData::FMutablePoint& InPoint, const double InValue, const EPCGExPointPropertyOutput InProperty);
 
 	template <typename T>
 	static bool IsPointInPolygon(const T& Point, const FGeometryScriptSimplePolygon& Polygon)
@@ -400,10 +400,7 @@ namespace PCGExTopology
 
 	bool IsPolygonInPolygon(const FGeometryScriptSimplePolygon& ContainerPolygon, const FGeometryScriptSimplePolygon& Polygon);
 
-	PCGEXTENDEDTOOLKIT_API
-	void MarkTriangle(
-		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-		const PCGExGeo::FTriangle& InTriangle);
+	PCGEXTENDEDTOOLKIT_API void MarkTriangle(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const PCGExGeo::FTriangle& InTriangle);
 
 
 #pragma region Cell
@@ -576,20 +573,11 @@ namespace PCGExTopology
 
 		uint64 GetCellHash();
 
-		ECellResult BuildFromCluster(
-			const PCGExGraph::FLink InSeedLink,
-			TSharedRef<PCGExCluster::FCluster> InCluster,
-			const TArray<FVector2D>& ProjectedPositions);
+		ECellResult BuildFromCluster(const PCGExGraph::FLink InSeedLink, TSharedRef<PCGExCluster::FCluster> InCluster, const TArray<FVector2D>& ProjectedPositions);
 
-		ECellResult BuildFromCluster(
-			const FVector& SeedPosition,
-			const TSharedRef<PCGExCluster::FCluster>& InCluster,
-			const TArray<FVector2D>& ProjectedPositions,
-			const FVector& UpVector = FVector::UpVector,
-			const FPCGExNodeSelectionDetails* Picking = nullptr);
+		ECellResult BuildFromCluster(const FVector& SeedPosition, const TSharedRef<PCGExCluster::FCluster>& InCluster, const TArray<FVector2D>& ProjectedPositions, const FVector& UpVector = FVector::UpVector, const FPCGExNodeSelectionDetails* Picking = nullptr);
 
-		ECellResult BuildFromPath(
-			const TArray<FVector2D>& ProjectedPositions);
+		ECellResult BuildFromPath(const TArray<FVector2D>& ProjectedPositions);
 
 		void PostProcessPoints(UPCGBasePointData* InMutablePoints);
 	};
@@ -678,8 +666,5 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCellArtifactsDetails
 	bool WriteAny() const;
 	bool Init(FPCGExContext* InContext);
 
-	void Process(
-		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
-		const TSharedPtr<PCGExData::FFacade>& InDataFacade,
-		const TSharedPtr<PCGExTopology::FCell>& InCell) const;
+	void Process(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InDataFacade, const TSharedPtr<PCGExTopology::FCell>& InCell) const;
 };
